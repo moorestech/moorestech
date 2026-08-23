@@ -61,7 +61,7 @@
 **Interfaces:**
 - Produces: `Client.Starter.EventMode.EventExhibitionMode` — `static bool IsEnabled`、`static int IdleTimeoutSeconds`、`static bool IsEnabledValue(string rawValue)`、`static int ParseIdleTimeoutSeconds(string rawValue)`（Task 3, 4, 6が使用）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/EventMode/EventExhibitionModeTest.cs`（Client.Tests（`Tests.asmdef`）は`Client.Starter`参照済み）:
 
@@ -95,12 +95,12 @@ namespace Client.Tests.EventMode
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `EventExhibitionMode` が存在しないためコンパイルエラー
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `moorestech_client/Assets/Scripts/Client.Starter/EventMode/EventExhibitionMode.cs`:
 
@@ -134,13 +134,13 @@ namespace Client.Starter.EventMode
 }
 ```
 
-- [ ] **Step 4: コンパイル＋テストが通ることを確認する**
+- [x] **Step 4: コンパイル＋テストが通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "EventExhibitionModeTest"`
 Expected: 2 tests PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Starter/EventMode moorestech_client/Assets/Scripts/Client.Tests/EventMode
@@ -160,7 +160,7 @@ git commit -m "feat: イベント出展モードの環境変数設定クラス�
 **Interfaces:**
 - Produces: `Client.Starter.LocalGameLauncher.StartLocalGame()`（static void。Task 3が使用）
 
-- [ ] **Step 1: LocalGameLauncherを作る**
+- [x] **Step 1: LocalGameLauncherを作る**
 
 `moorestech_client/Assets/Scripts/Client.Starter/LocalGameLauncher.cs`:
 
@@ -191,7 +191,7 @@ namespace Client.Starter
 }
 ```
 
-- [ ] **Step 2: StartLocal.csを呼び出しに書き換える**
+- [x] **Step 2: StartLocal.csを呼び出しに書き換える**
 
 `moorestech_client/Assets/Scripts/Client.MainMenu/StartLocal.cs` の全体を以下に置き換える:
 
@@ -216,12 +216,12 @@ namespace Client.MainMenu
 
 （`Client.MainMenu.asmdef`は`Client.Starter`参照済み — 既存StartLocalが`InitializeScenePipeline`を使っていたことから確認済み）
 
-- [ ] **Step 3: コンパイルを確認する**
+- [x] **Step 3: コンパイルを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Starter/LocalGameLauncher.cs* moorestech_client/Assets/Scripts/Client.MainMenu/StartLocal.cs
@@ -238,7 +238,7 @@ git commit -m "refactor: ローカルゲーム開始フローをLocalGameLaunche
 **Interfaces:**
 - Consumes: `EventExhibitionMode.IsEnabled`（Task 1）、`LocalGameLauncher.StartLocalGame()`（Task 2）、`Localize.TrySetLanguage` / `Localize.DefaultLanguageCode`（`Client.Localization`、`Client.Starter.asmdef`参照済み）、`new StartServerSettings().WorldDirectory`（`Server.Boot`、参照済み）
 
-- [ ] **Step 1: 実装を書く**
+- [x] **Step 1: 実装を書く**
 
 `moorestech_client/Assets/Scripts/Client.Starter/EventMode/EventModeAutoStart.cs`:
 
@@ -282,12 +282,12 @@ namespace Client.Starter.EventMode
 
 `SceneConstant.MainMenuSceneName` は既存（`BackToMainMenu.cs`が使用中）。
 
-- [ ] **Step 2: コンパイルを確認する**
+- [x] **Step 2: コンパイルを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Starter/EventMode
@@ -307,14 +307,14 @@ git commit -m "feat: イベントモードの起動時ワールド削除・英�
 **Interfaces:**
 - Produces: `Client.Game.InGame.Presenter.PauseMenu.SaveAndQuitPresenter` — `public void SaveAndQuit()`。webuiアクション名 `"pause_menu.save_and_quit"`（Task 5が使用）
 
-- [ ] **Step 1: ファイルを改名する**
+- [x] **Step 1: ファイルを改名する**
 
 ```bash
 git mv moorestech_client/Assets/Scripts/Client.Game/InGame/Presenter/PauseMenu/BackToMainMenu.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Presenter/PauseMenu/SaveAndQuitPresenter.cs
 git mv moorestech_client/Assets/Scripts/Client.Game/InGame/Presenter/PauseMenu/BackToMainMenu.cs.meta moorestech_client/Assets/Scripts/Client.Game/InGame/Presenter/PauseMenu/SaveAndQuitPresenter.cs.meta
 ```
 
-- [ ] **Step 2: SaveAndQuitPresenterを実装する**
+- [x] **Step 2: SaveAndQuitPresenterを実装する**
 
 `SaveAndQuitPresenter.cs` の全体を以下に置き換える（旧uGUIボタン配線は削除。セーブ→切断→`GameShutdownEvent`発火の順序は旧`Disconnect()`を維持）:
 
@@ -372,7 +372,7 @@ namespace Client.Game.InGame.Presenter.PauseMenu
 }
 ```
 
-- [ ] **Step 3: 参照側を更新する**
+- [x] **Step 3: 参照側を更新する**
 
 `MainGameStarter.cs:144` 付近:
 
@@ -414,16 +414,16 @@ using UnityEngine.Serialization; // ファイル先頭のusingに追加
 
 `resolver.Resolve<BackToMainMenu>()` の登録元（MainGameStarterのVContainer登録）も型を追従させる。残存参照は `grep -rn "BackToMainMenu" moorestech_client/Assets/Scripts --include="*.cs"` で洗い出し、`NetworkDisconnectPresenter.cs`のコメント中の言及も「SaveAndQuitPresenter」へ直す。
 
-- [ ] **Step 4: コンパイルを確認する**
+- [x] **Step 4: コンパイルを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 5: シーン参照の生存を確認する**
+- [x] **Step 5: シーン参照の生存を確認する**
 
 `uloop execute-dynamic-code` で確認（MainGameシーンを開いてMainGameStarterの`saveAndQuitPresenter`がnullでないことを検証）。FormerlySerializedAs＋GUID維持なら参照は生きているはず。nullならこのステップで再配線する（テキスト編集ではなくdynamic-code経由）。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts
@@ -440,13 +440,14 @@ git commit -m "feat: ポーズメニューの「メインメニューへ戻る�
 - Modify: `Localization/localization.csv:6`
 - Modify: `moorestech_web/webui/src/bridge/transport/actionContract.ts:48,93`
 - Modify: `moorestech_web/webui/src/features/pauseMenu/PauseMenuPanel.tsx`
+- Modify: `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/action_names.json:22`（C#/TS共有のアクション名フィクスチャ。Task 4レビューで発見しTask 5へ移送）
 - Modify: `moorestech_web/webui/e2e/tests/system/pauseMenu.spec.ts:19`
 - Regenerate: `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`（手編集禁止・スクリプト生成）
 
 **Interfaces:**
 - Consumes: C#側アクション名 `"pause_menu.save_and_quit"`（Task 4）
 
-- [ ] **Step 1: ローカライズCSVのキーと文言を差し替える**
+- [x] **Step 1: ローカライズCSVのキーと文言を差し替える**
 
 `Localization/localization.csv` 6行目:
 
@@ -460,18 +461,18 @@ ui.game.saveAndBackToMainMenu,Save and Back to MainMenu,Save and Back to MainMen
 ui.game.saveAndQuit,Save and Quit,Save and Quit,セーブして終了
 ```
 
-- [ ] **Step 2: 生成物を更新する**
+- [x] **Step 2: 生成物を更新する**
 
 Run: `cd moorestech_web/webui && pnpm gen:i18n`
 Expected: `localizationKeys.ts` から `saveAndBackToMainMenu` が消え `saveAndQuit` が入る
 
 C#側の生成テーブル（`Mooresmaster.Localization.Generated`）はSourceGeneratorが再生成する。`_CompileRequester.cs`のdirtyがあるのはこのためなので**revertしない**。旧キーのC#残存参照を確認: `grep -rn "saveAndBackToMainMenu" moorestech_client/Assets/Scripts --include="*.cs"`（生成物以外でヒットしたら追従修正）。
 
-- [ ] **Step 3: actionContract.tsを更新する**
+- [x] **Step 3: actionContract.tsを更新する**
 
 48行目と93行目の `"pause_menu.back_to_main_menu"` を `"pause_menu.save_and_quit"` に置換する。
 
-- [ ] **Step 4: PauseMenuPanel.tsxを更新する**
+- [x] **Step 4: PauseMenuPanel.tsxを更新する**
 
 ```tsx
   const quitLabel = t(L.ui.game.saveAndQuit);
@@ -480,11 +481,11 @@ C#側の生成テーブル（`Mooresmaster.Localization.Generated`）はSourceGe
 
 （旧 `backLabel` / `back` を置換。ボタンのJSXも `onClick={quit}` / `{quitLabel}` へ。`tutorialAnchor(TutorialAnchorIds.pauseBack)` はそのまま残す — anchor id改名はチュートリアルマスタへ波及するため据え置き）
 
-- [ ] **Step 5: E2Eテストを更新する**
+- [x] **Step 5: E2Eテストを更新する**
 
 `e2e/tests/system/pauseMenu.spec.ts:19` の `"pause_menu.back_to_main_menu"` を `"pause_menu.save_and_quit"` へ。spec内の他の旧名参照も `grep -n back_to_main_menu` で確認して置換する。
 
-- [ ] **Step 6: 検証する**
+- [x] **Step 6: 検証する**
 
 Run: `cd moorestech_web/webui && pnpm build && pnpm test`
 Expected: 型チェック・ユニットテスト通過
@@ -493,7 +494,7 @@ Expected: pauseMenu系E2E通過
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0（ローカライズ再生成の取り込み）
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add Localization moorestech_web/webui moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
@@ -511,11 +512,11 @@ git commit -m "feat: webuiポーズメニューをセーブして終了へ差し
 **Interfaces:**
 - Consumes: `EventExhibitionMode.IsEnabled` / `IdleTimeoutSeconds`（Task 1）
 
-- [ ] **Step 1: asmdefにUnity.InputSystemを追加する**
+- [x] **Step 1: asmdefにUnity.InputSystemを追加する**
 
 `Client.Starter.asmdef` の `references` 配列末尾に `"Unity.InputSystem"` を追加する（参照名は`Client.Game.asmdef`と同じ表記）。
 
-- [ ] **Step 2: 実装を書く**
+- [x] **Step 2: 実装を書く**
 
 `moorestech_client/Assets/Scripts/Client.Starter/EventMode/EventIdleQuitWatcher.cs`:
 
@@ -579,12 +580,12 @@ namespace Client.Starter.EventMode
 }
 ```
 
-- [ ] **Step 3: コンパイルを確認する**
+- [x] **Step 3: コンパイルを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Starter
@@ -598,7 +599,7 @@ git commit -m "feat: イベントモードの無操作自動終了ウォッチ�
 **Files:**
 - Create: `scripts/event/start-gamescom-loop.command`
 
-- [ ] **Step 1: スクリプトを書く**
+- [x] **Step 1: スクリプトを書く**
 
 ```bash
 #!/bin/bash
@@ -627,7 +628,7 @@ while true; do
 done
 ```
 
-- [ ] **Step 2: 実行権限を付けて動作確認する**
+- [x] **Step 2: 実行権限を付けて動作確認する**
 
 ```bash
 chmod +x scripts/event/start-gamescom-loop.command
@@ -635,7 +636,7 @@ scripts/event/start-gamescom-loop.command /path/to/nonexistent.app
 ```
 Expected: `app not found: /path/to/nonexistent.app` と表示して exit 1（実.appでの通し確認はビルド後にユーザーが行う）
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add scripts/event/start-gamescom-loop.command
