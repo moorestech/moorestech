@@ -11,6 +11,7 @@ namespace Game.MapGeneration.Pipeline.Config
         public class ObjectEntry
         {
             public string[] mapObjectGuids;
+            public TerrainSurroundEffectType terrainSurroundEffectType;
 
             // 配置方式ごとのパラメータ（距離帯もここが持つ）。
             // Per-mode placement parameters, which also carry the distance bands.

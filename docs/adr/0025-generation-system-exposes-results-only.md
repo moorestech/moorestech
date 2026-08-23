@@ -40,4 +40,4 @@ ADR-0012 は同じ目標（生成はサーバーに閉じる）を「焼いた�
 - template を同じファサード裏に置く・generate系フラグ温存・GeneratorVersion bump・バイト同値の完了条件・決定論の留保: agent前提（ユーザーは「進めてよい」で黙認。裁定ではない）
 - 裁定レコード: `.decisions/2026-08-21-地形見た目はサーバーasmのロジックをクライアントが呼んで手元で焼く.md` / `…-クラスタは生成ロジック内部に閉じクライアントは配置まで再生成して見た目を焼く.md` / `…-生成システムの外に出るのは結果だけ.md` / `…-地形キャッシュは生成システム内部の共通基盤として残す.md`
 - 関連: [0012](0012-server-baked-terrain-visuals.md)（転送部分を本ADRが差し替え）・[0010](0010-mapobject-placement-carries-full-transform.md)・[0011](0011-mapmaking-parity-via-per-species-mapobjects.md)
-- 実装タスク: bd `moorestech-a3x`／後続: bd `moorestech-f2j`（草距離フィルタのマスタ値同一化・視覚検収）
+- 実装タスク: bd `moorestech-pt8`（Task 1〜9すべて完了、ブランチ `feature/terrain-generation-boundary`。master repo PR番号はPR作成時に追記）／後続: bd `moorestech-f2j`（草距離フィルタのマスタ値同一化・視覚検収）・bd `moorestech-pt8.1`（先焼き所要時間の本番gridSize実測・起動引数ゲートの要否）

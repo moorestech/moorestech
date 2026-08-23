@@ -20,7 +20,7 @@ namespace Game.MapGeneration.Pipeline.Spawn
             var sb = new StringBuilder();
             var ss = config.spawnSearch;
             Vector2 gridCenter = SpawnRegionGeometry.GridCenterWorld(config);
-            Vector2 spawnTarget = ss.overrideSpawnScenePosition ? ss.spawnScenePosition : gridCenter;
+            Vector2 spawnTarget = SpawnRegionGeometry.SpawnTargetScenePosition(config);
             AssertSpawnTargetIsInsideGeneratedTile(config, spawnTarget);
 
             if (ss.scanCellSize <= 0f || ss.topK <= 0)

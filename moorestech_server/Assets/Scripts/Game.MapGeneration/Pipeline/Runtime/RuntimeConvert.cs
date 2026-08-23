@@ -18,10 +18,16 @@ namespace Game.MapGeneration.Pipeline.Runtime
             ParseEnum<MapNoiseType>(generatedNoiseType, "noiseType");
         public static NoiseOp ToNoiseOp(string generatedNoiseOp) =>
             ParseEnum<NoiseOp>(generatedNoiseOp, "noiseOp");
+        // 1つのオブジェクトにNoiseOpが複数並ぶ箇所は、どのキーが不正かをフィールドパスで示す
+        // Where one object carries several NoiseOp keys, the field path pinpoints the invalid one
+        public static NoiseOp ToNoiseOp(string generatedNoiseOp, string fieldPath) =>
+            ParseEnum<NoiseOp>(generatedNoiseOp, fieldPath);
         public static SecondaryPlacementMode ToSecondaryMode(string generatedMode) =>
             ParseEnum<SecondaryPlacementMode>(generatedMode, "secondaryPlacementMode");
         public static TextureChannel ToTextureChannel(string generatedChannel) =>
             ParseEnum<TextureChannel>(generatedChannel, "channel");
+        public static TerrainSurroundEffectType ToTerrainSurroundEffectType(string generatedName, string fieldPath) =>
+            ParseEnum<TerrainSurroundEffectType>(generatedName, fieldPath);
 
         static T ParseEnum<T>(string name, string fieldName) where T : struct
         {

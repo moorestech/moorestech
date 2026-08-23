@@ -137,15 +137,15 @@ return PlaytestRunner.Run("generated-world-5x5-terrain-survey", options, async p
     await LookFrom(groundEye, new Vector3(playerPosition.x, groundPoint.y + 1f, playerPosition.z + 30f), false, 0f);
     await p.Screenshot("07-spawn-ground-detail");
 
-    // 6-5: 岩まわり。岩のmapObjectをクラスタごとに拾い、密集地の1つへ寄る（R6の裸地帯の目視）
-    // 6-5: Around the rocks; pick a clustered rock map object and close in on it (visual check of R6's bare skirt)
-    var rockLike = mapLayout.MapObjects.Where(o => 0 <= o.ClusterId).ToList();
-    p.Note($"mapObjects total={mapLayout.MapObjects.Count} clustered(ClusterId>=0)={rockLike.Count}");
+    // 6-5: 岩まわり。guidでグルーピングし最大スケールの個体へ寄る（R6の裸地帯の目視）
+    // 6-5: Around the rocks; group by guid and close in on the largest-scale instance (visual check of R6's bare skirt)
+    var rockLike = mapLayout.MapObjects.GroupBy(o => o.MapObjectGuid).OrderByDescending(g => g.Max(o => o.ScaleY)).ToList();
+    p.Note($"mapObjects total={mapLayout.MapObjects.Count} guidGroups={rockLike.Count}");
     if (0 < rockLike.Count)
     {
-        var rock = rockLike.OrderByDescending(o => o.ScaleY).First();
+        var rock = rockLike.First().OrderByDescending(o => o.ScaleY).First();
         var rockPosition = new Vector3(rock.X, rock.Y, rock.Z);
-        p.Note($"最大クラスタ岩 guid={rock.MapObjectGuid} pos={rockPosition} scale=({rock.ScaleX},{rock.ScaleY},{rock.ScaleZ}) cluster={rock.ClusterId}");
+        p.Note($"最大スケール個体 guid={rock.MapObjectGuid} pos={rockPosition} scale=({rock.ScaleX},{rock.ScaleY},{rock.ScaleZ})");
         await LookFrom(rockPosition + new Vector3(-45f, 30f, -45f), rockPosition, false, 0f);
         await p.Screenshot("08-rock-surround-oblique");
         await LookDown(rockPosition, SampleWorldHeight(rockPosition) + 140f, true, 70f);

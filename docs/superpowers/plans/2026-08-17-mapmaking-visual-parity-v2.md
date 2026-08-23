@@ -303,15 +303,15 @@ if __name__ == "__main__":
 
 ## 旧planからの委譲先（pt8スコープ・本planでは実装しない）
 
-| 旧タスク | 委譲先 | 根拠 |
-|---|---|---|
-| Task 9: クライアント側草距離場（DetailDistanceFieldBuilder等） | bd `moorestech-a3x`（旧称pt8）（サーバー焼きのdetail密度計算内で距離フィルタを有効化） | ADR-0012。クライアント距離場は「後で捨てる過渡実装」 |
-| Task 10: generateDetail/generateTexture削除 | bd `moorestech-a3x`（旧称pt8）（ビジュアル生成のサーバー移設でゲートごと自然死） | PR #1145 で生きたゲートになった。死にフラグ前提が偽 |
-| クラスタ3キー（ClusterId/ClusterCenterX/Z）の転送・永続化削除 | bd `moorestech-a3x`（旧称pt8）（surround描画のサーバー移設と同時） | ADR-0012 過渡措置裁定 |
-| map.yml `terrainSurroundEffectType` の削除（スキーマ・全map.json・`MapObjectKindSplitter`） | bd `moorestech-a3x`（旧称pt8）（サーバー焼き移設でクライアント側分類＝Splitterごと自然死。サーバーは生成時に配置元prototype/objectConfigを知るためマスタ分類が不要になる） | 転送レイアウトがGUIDのみのため、pt8まではマスタが分類正本として必須。裁定: `.decisions/2026-08-18-terrainSurroundEffectTypeの削除はpt8送りにする.md` |
-| 草分布の視覚検収 | pt8完了後の検収 | 距離フィルタ実装がpt8側のため |
+| 旧タスク | 委譲先 | 根拠 | 実態（2026-08-22） |
+|---|---|---|---|
+| Task 9: クライアント側草距離場（DetailDistanceFieldBuilder等） | bd `moorestech-a3x`（旧称pt8）（サーバー焼きのdetail密度計算内で距離フィルタを有効化） | ADR-0012。クライアント距離場は「後で捨てる過渡実装」 | **未着手。** `feature/terrain-generation-boundary`（pt8実装ブランチ、Task 1〜9完了）では距離フィルタの有効化は行っていない。マスタ値同一化・視覚検収は bd `moorestech-f2j` に分離済みのまま |
+| Task 10: generateDetail/generateTexture削除 | bd `moorestech-a3x`（旧称pt8）（ビジュアル生成のサーバー移設でゲートごと自然死） | PR #1145 で生きたゲートになった。死にフラグ前提が偽 | **方針転換・削除しない。** ADR-0025（R9）で「削除せず`generateObject/generateOre`と同じステージ有効化フラグとして内側に残す」と裁定・実装済み（`feature/terrain-generation-boundary`） |
+| クラスタ3キー（ClusterId/ClusterCenterX/Z）の転送・永続化削除 | bd `moorestech-a3x`（旧称pt8）（surround描画のサーバー移設と同時） | ADR-0012 過渡措置裁定 | **完了。** `feature/terrain-generation-boundary` Task 7 で削除（`PlacedMapObject`／map.json／`MapObjectLayoutMessagePack`／クライアントExporterの4段すべて） |
+| map.yml `terrainSurroundEffectType` の削除（スキーマ・全map.json・`MapObjectKindSplitter`） | bd `moorestech-a3x`（旧称pt8）（サーバー焼き移設でクライアント側分類＝Splitterごと自然死。サーバーは生成時に配置元prototype/objectConfigを知るためマスタ分類が不要になる） | 転送レイアウトがGUIDのみのため、pt8まではマスタが分類正本として必須。裁定: `.decisions/2026-08-18-terrainSurroundEffectTypeの削除はpt8送りにする.md` | **完了。** `feature/terrain-generation-boundary` Task 7 でスキーマ・全map.json・`MapObjectKindSplitter`ごと削除 |
+| 草分布の視覚検収 | pt8完了後の検収 | 距離フィルタ実装がpt8側のため | **未着手。** 距離フィルタ有効化（上記）が未了のため検収も未実施 |
 
-pt8は着手時に **grill-first（HARD GATE）**。
+pt8は着手時に **grill-first（HARD GATE）**。実装（Task 1〜9）は `feature/terrain-generation-boundary` で完了（bd `moorestech-pt8`。残スコープは草距離場の有効化・視覚検収と、後続 bd `moorestech-pt8.1` の先焼き実測）。
 
 ## planning後の判明事項（2026-08-17 追記）
 

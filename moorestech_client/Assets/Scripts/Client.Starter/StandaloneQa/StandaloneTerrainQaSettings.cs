@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using Server.Boot;
 using Server.Boot.Args;
 
@@ -70,7 +70,7 @@ namespace Client.Starter.StandaloneQa
             {
                 ServerDataDirectory = _serverDirectory,
                 WorldDirectory = _worldDirectory,
-                MapMode = WorldProvisioner.GeneratedMapMode,
+                MapMode = WorldMapMode.Generated,
                 Seed = _seed,
                 AutoSave = false,
             };

@@ -1,4 +1,7 @@
 using System.IO;
+using Core.Master;
+using Mod.Config;
+using Mod.Loader;
 using Mooresmaster.Loader.GenerationModule;
 using Mooresmaster.Model.GenerationModule;
 using Newtonsoft.Json.Linq;
@@ -70,6 +73,11 @@ namespace Tests.UnitTest.Game.MapGeneration
             JObject algorithmParamOverrides,
             string mapObjectGuid)
         {
+            // 鉱脈配置段がveinGuidでmapVeinsマスタを引くため、同じmodのマスタを先にロードする
+            // The vein placement stage resolves mapVeins by veinGuid, so load the same mod's masters first
+            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
+            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
+
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
                 "mods", "forUnitTest", "master", "generation.json");
             var root = JObject.Parse(File.ReadAllText(path));
@@ -159,6 +167,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                 return new JObject
                 {
                     ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = mapObjectGuid }),
+                    ["terrainSurroundEffectType"] = "rockNoBareGround",
                     // 外半径・densityが互いに違う2帯にして、帯とリングの対応が入れ替わる改変を転写テストで捕まえる
                     // Two bands differing in both radius and density, so a mix-up between bands and rings fails the transcription test
                     ["placementMode"] = "scatter",

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
@@ -14,21 +15,12 @@ namespace Game.MapGeneration.Pipeline.Runtime
     {
         public static void Resolve(TerrainGenerationConfig config, string serverDataDirectory)
         {
-            // 樹木プロトタイプが PlacementNoise を持つ唯一の場所。バイオーム横断で全ノイズ4種を舐める。
-            // Tree prototypes are the only holders of PlacementNoise; sweep all four per prototype across biomes.
-            var helper = new BiomePlacementHelper(config);
-            foreach (BiomeType biome in Enum.GetValues(typeof(BiomeType)))
+            foreach (var entry in EnumerateTreePrototypeEntries(config))
             {
-                var treePlacement = helper.GetTreePlacementConfig(biome);
-                if (treePlacement?.prototypes == null) continue;
-
-                foreach (var entry in treePlacement.prototypes)
-                {
-                    LoadInto(ref entry.clusterNoise, serverDataDirectory);
-                    LoadInto(ref entry.clusterNoise2, serverDataDirectory);
-                    LoadInto(ref entry.slopeFilter.noise, serverDataDirectory);
-                    LoadInto(ref entry.curvatureFilter.noise, serverDataDirectory);
-                }
+                LoadInto(ref entry.clusterNoise, serverDataDirectory);
+                LoadInto(ref entry.clusterNoise2, serverDataDirectory);
+                LoadInto(ref entry.slopeFilter.noise, serverDataDirectory);
+                LoadInto(ref entry.curvatureFilter.noise, serverDataDirectory);
             }
 
             #region Internal
@@ -65,6 +57,36 @@ namespace Game.MapGeneration.Pipeline.Runtime
             }
 
             #endregion
+        }
+
+        // 生成マスタ指紋が読む PNG パスの列挙。並びは決定的(enum順・prototypes順・4ノイズ固定順)で、
+        // Resolve が展開する順序と一致させる。空パスは列挙しない(読まれないため)。
+        // Enumerates the PNG paths the generation master fingerprint reads. The order is deterministic
+        // (enum order, prototype order, the four noises' fixed order) and matches what Resolve expands; empty paths are skipped.
+        public static IEnumerable<string> EnumerateTexturePngPaths(TerrainGenerationConfig config)
+        {
+            foreach (var entry in EnumerateTreePrototypeEntries(config))
+            {
+                if (!string.IsNullOrEmpty(entry.clusterNoise.texturePngPath)) yield return entry.clusterNoise.texturePngPath;
+                if (!string.IsNullOrEmpty(entry.clusterNoise2.texturePngPath)) yield return entry.clusterNoise2.texturePngPath;
+                if (!string.IsNullOrEmpty(entry.slopeFilter.noise.texturePngPath)) yield return entry.slopeFilter.noise.texturePngPath;
+                if (!string.IsNullOrEmpty(entry.curvatureFilter.noise.texturePngPath)) yield return entry.curvatureFilter.noise.texturePngPath;
+            }
+        }
+
+        // 樹木プロトタイプが PlacementNoise を持つ唯一の場所。バイオーム横断で全プロトタイプを舐める。
+        // Tree prototypes are the only holders of PlacementNoise; sweep every prototype across biomes.
+        private static IEnumerable<TreePrototypeEntry> EnumerateTreePrototypeEntries(TerrainGenerationConfig config)
+        {
+            var helper = new BiomePlacementHelper(config);
+            foreach (BiomeType biome in Enum.GetValues(typeof(BiomeType)))
+            {
+                var treePlacement = helper.GetTreePlacementConfig(biome);
+                if (treePlacement?.prototypes == null) continue;
+
+                foreach (var entry in treePlacement.prototypes)
+                    yield return entry;
+            }
         }
     }
 }

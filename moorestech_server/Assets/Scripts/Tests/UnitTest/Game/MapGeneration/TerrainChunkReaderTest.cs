@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Game.MapGeneration.Export;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Newtonsoft.Json;
@@ -39,15 +38,15 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
-        public void 論理ストリームはタイル順にheightとbiomeを交互に並べチャンク境界はファイル途中でも切れる()
+        public void 論理ストリームはタイル順にheightを並べチャンク境界はファイル途中でも切れる()
         {
-            // 4タイル×各100KBなのでチャンク境界(256KB)はファイルの途中に落ちる。並び順を取り違えれば内容が食い違う
-            // With 4 tiles of 100KB each the 256KB boundary falls mid-file, so a wrong order changes the bytes
+            // 4タイル×各100KBの400KBなのでチャンク境界(256KB)はファイルの途中に落ちる。並び順を取り違えれば内容が食い違う
+            // With 4 tiles of 100KB each (400KB total) the 256KB boundary falls mid-file, so a wrong order changes the bytes
             var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticFileByteSize);
             var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(ExpectedStreamFilePathsOfFourTiles(worldDataDirectory));
 
             var chunkTotal = TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal;
-            Assert.AreEqual(4, chunkTotal);
+            Assert.AreEqual(2, chunkTotal);
 
             var decompressedChunks = Enumerable.Range(0, chunkTotal)
                 .Select(chunkIndex => TerrainTransferTestScope.DecompressChunk(TerrainChunkReader.Read(worldDataDirectory, chunkIndex))).ToList();
@@ -119,7 +118,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             // Terrain emptied by a failed generation or truncation; equating it with template would ship a broken world as healthy
             var worldDataDirectory = CreateSyntheticFourTileWorld(0);
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
-            Assert.AreEqual(WorldProvisioner.GeneratedMapMode, terrainMeta.MapMode);
+            Assert.AreEqual(WorldMapMode.Generated, terrainMeta.MapMode);
             Assert.AreEqual(0, terrainMeta.TerrainChunkTotal);
 
             var hashException = Assert.Throws<InvalidOperationException>(() => TerrainStreamHasher.Compute(worldDataDirectory, terrainMeta));
@@ -134,10 +133,10 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             return new[]
             {
-                worldDataDirectory.TerrainHeightFilePath(0, 0), worldDataDirectory.TerrainBiomeFilePath(0, 0),
-                worldDataDirectory.TerrainHeightFilePath(1, 0), worldDataDirectory.TerrainBiomeFilePath(1, 0),
-                worldDataDirectory.TerrainHeightFilePath(0, 1), worldDataDirectory.TerrainBiomeFilePath(0, 1),
-                worldDataDirectory.TerrainHeightFilePath(1, 1), worldDataDirectory.TerrainBiomeFilePath(1, 1),
+                worldDataDirectory.TerrainHeightFilePath(0, 0),
+                worldDataDirectory.TerrainHeightFilePath(1, 0),
+                worldDataDirectory.TerrainHeightFilePath(0, 1),
+                worldDataDirectory.TerrainHeightFilePath(1, 1),
             };
         }
 
@@ -145,13 +144,10 @@ namespace Tests.UnitTest.Game.MapGeneration
         // Spell the expected order out here; reusing the production enumerator would make the check circular
         private static List<string> ExpectedStreamFilePathsOfGeneratedWorld(WorldDataDirectory worldDataDirectory, int gridSide)
         {
-            var streamFilePaths = new List<string>(gridSide * gridSide * 2);
+            var streamFilePaths = new List<string>(gridSide * gridSide);
             for (var tileZ = 0; tileZ < gridSide; tileZ++)
             for (var tileX = 0; tileX < gridSide; tileX++)
-            {
                 streamFilePaths.Add(worldDataDirectory.TerrainHeightFilePath(tileX, tileZ));
-                streamFilePaths.Add(worldDataDirectory.TerrainBiomeFilePath(tileX, tileZ));
-            }
             return streamFilePaths;
         }
 
@@ -173,9 +169,9 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldMeta = new WorldMetaJson
             {
                 Seed = 1,
-                GeneratorVersion = WorldProvisioner.GeneratorVersion,
+                GeneratorVersion = WorldGeneratorVersion.Current,
                 Algorithm = "test",
-                MapMode = WorldProvisioner.GeneratedMapMode,
+                MapMode = WorldMapMode.Generated,
                 CreatedAt = DateTime.UtcNow.ToString("O"),
                 TerrainResolution = 256,
                 TerrainTileCount = 4,
@@ -186,6 +182,10 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TerrainNoiseOriginZ = 0f,
                 TerrainSceneOriginX = 0f,
                 TerrainSceneOriginZ = 0f,
+
+                // 指紋は必須契約だがチャンク読み出しの対象外
+                // The fingerprint is a required contract but out of scope for this chunk-reading test
+                GenerationMasterFingerprint = "synthetic-fingerprint",
             };
             File.WriteAllText(worldDataDirectory.WorldMetaFilePath, JsonConvert.SerializeObject(worldMeta, Formatting.Indented));
             return worldDataDirectory;

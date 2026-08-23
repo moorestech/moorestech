@@ -16,11 +16,12 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void SameSeedProducesIdenticalOutput()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var a = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
-            var b = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfigA = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var a = MapGenerationPipeline.Generate(config, runtimeConfigA).Output;
+            var runtimeConfigB = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var b = MapGenerationPipeline.Generate(config, runtimeConfigB).Output;
 
             Assert.That(a.Tiles[0].Heights, Is.EqualTo(b.Tiles[0].Heights));
-            Assert.That(a.Tiles[0].BiomeIndices, Is.EqualTo(b.Tiles[0].BiomeIndices));
             Assert.That(a.MapObjects.Count, Is.EqualTo(b.MapObjects.Count));
             Assert.That(a.ItemVeins.Count, Is.EqualTo(b.ItemVeins.Count));
 
@@ -40,8 +41,10 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void DifferentSeedProducesDifferentHeights()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var a = MapGenerationPipeline.Generate(config, 1, TestGenerationConfigFactory.ServerDataDirectory);
-            var b = MapGenerationPipeline.Generate(config, 2, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfigA = MapGenerationPipeline.BuildConfig(config, 1, TestGenerationConfigFactory.ServerDataDirectory);
+            var a = MapGenerationPipeline.Generate(config, runtimeConfigA).Output;
+            var runtimeConfigB = MapGenerationPipeline.BuildConfig(config, 2, TestGenerationConfigFactory.ServerDataDirectory);
+            var b = MapGenerationPipeline.Generate(config, runtimeConfigB).Output;
             Assert.That(a.Tiles[0].Heights.SequenceEqual(b.Tiles[0].Heights), Is.False);
         }
 
@@ -49,7 +52,8 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void VeinAabbIsFixedSizeAndNonEmpty()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var output = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfig = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var output = MapGenerationPipeline.Generate(config, runtimeConfig).Output;
 
             Assert.That(output.ItemVeins, Is.Not.Empty);
             Assert.That(output.FluidVeins, Is.Not.Empty);
@@ -66,7 +70,8 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void VeinAabbsDoNotOverlap()
         {
             var config = TestGenerationConfigFactory.CreateSmall();
-            var output = MapGenerationPipeline.Generate(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfig = MapGenerationPipeline.BuildConfig(config, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var output = MapGenerationPipeline.Generate(config, runtimeConfig).Output;
 
             // 鉱脈の重なりは産出だけ倍にする不具合の再発検知
             // Regression guard: an overlap doubles only the yield

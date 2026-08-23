@@ -1,7 +1,7 @@
 using System;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
-using Client.Tests.UnitTest.Terrain.Surround;
+using Game.MapGeneration.Pipeline.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Surround;
+using Tests.UnitTest.Game.MapGeneration.Visual.Surround;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Jobs;
 using NUnit.Framework;

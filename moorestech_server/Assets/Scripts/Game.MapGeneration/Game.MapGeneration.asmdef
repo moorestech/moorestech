@@ -4,6 +4,7 @@
   "references": [
     "Core.Master",
     "Game.Map.Interface",
+    "Game.MapGeneration.Contract",
     "Game.Paths",
     "Unity.Burst",
     "Unity.Collections",
