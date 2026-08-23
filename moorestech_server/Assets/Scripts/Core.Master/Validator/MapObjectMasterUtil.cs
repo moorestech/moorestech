@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using Mooresmaster.Model.MapModule;
 
@@ -71,10 +73,24 @@ namespace Core.Master.Validator
             #endregion
         }
 
-        public static void Initialize(Map map)
+        public static void Initialize(Map map, out Dictionary<Guid, HashSet<Guid>> mapObjectGuidsByEarnItem)
         {
-            // MapObjectMasterは追加の初期化処理がないため、空実装
-            // MapObjectMaster has no additional initialization, so empty implementation
+            // 毎フレームの候補判定がO(1)になるよう集合で持つ（IReadOnlySetはUnityのAPI互換レベルで使えない）
+            // Keep sets so the per-frame candidate test is O(1); IReadOnlySet is unavailable at Unity's API compatibility level
+            mapObjectGuidsByEarnItem = new Dictionary<Guid, HashSet<Guid>>();
+            foreach (var mapObjectElement in map.MapObjects)
+            {
+                foreach (var earnItem in mapObjectElement.EarnItems)
+                {
+                    if (!mapObjectGuidsByEarnItem.TryGetValue(earnItem.ItemGuid, out var mapObjectGuids))
+                    {
+                        mapObjectGuids = new HashSet<Guid>();
+                        mapObjectGuidsByEarnItem.Add(earnItem.ItemGuid, mapObjectGuids);
+                    }
+
+                    mapObjectGuids.Add(mapObjectElement.MapObjectGuid);
+                }
+            }
         }
     }
 }
