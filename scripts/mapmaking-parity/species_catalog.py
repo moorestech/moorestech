@@ -45,6 +45,22 @@ def _load_timber_declaration() -> tuple[frozenset[str], frozenset[str]]:
 
 TIMBER_KEYS, NON_TIMBER_KEYS = _load_timber_declaration()
 
+# ドロップ軸の値。earn_itemsはこの値だけを見て落とし物を決める
+# Drop-axis values; earn_items decides drops from this value alone
+DROP_CLASS_LOG = "log"
+DROP_CLASS_STONE = "stone"
+DROP_CLASS_NONE = "none"
+
+
+def declared_drop_class(key: str) -> str | None:
+    """宣言表が定めるドロップ軸を返す（未宣言はNone）。生成器と検証で同じ規則を共有する。
+    Returns the drop class the declaration assigns, or None when undeclared; shared by the generator and its validation."""
+    if key in TIMBER_KEYS:
+        return DROP_CLASS_LOG
+    if key in NON_TIMBER_KEYS:
+        return DROP_CLASS_NONE
+    return None
+
 
 class Species:
     def __init__(self, prefab_guid: str, prefab_path: str):
@@ -63,18 +79,23 @@ class Species:
         # Only species referenced from objectConfig can become true; rocks placed via treePlacement are never repainted in the source
         self.referenced_by_object_config = False
 
-    # 幹から原木が採れる樹種か。宣言表に無い樹種は既定へ倒さず生成を止める
-    # Whether the trunk yields logs; an undeclared species stops generation instead of falling back to a default
+    # 何を落とす種か。原木を落とすかは宣言表だけが決め、kind推測との食い違いは静かに通さず止める
+    # What the species drops; only the declaration decides the log axis, and a mismatch with the kind guess stops generation
     @property
-    def timber(self) -> bool:
-        if self.kind != "tree":
-            return False
-        if self.key in TIMBER_KEYS:
-            return True
-        if self.key in NON_TIMBER_KEYS:
-            return False
-        raise ValueError(
-            f"timber未宣言の樹種 {self.key}: {TIMBER_SPECIES_PATH.name} の timber / nonTimber のどちらかへ足すこと")
+    def drop_class(self) -> str:
+        declared = declared_drop_class(self.key)
+        if declared is not None:
+            if self.kind != "tree":
+                raise ValueError(
+                    f"{TIMBER_SPECIES_PATH.name} は kind=tree の宣言表だが {self.key} の kind は {self.kind}")
+            return declared
+
+        if self.kind == "tree":
+            raise ValueError(
+                f"timber未宣言の樹種 {self.key}: {TIMBER_SPECIES_PATH.name} の timber / nonTimber のどちらかへ足すこと")
+        if self.kind == "plant":
+            return DROP_CLASS_NONE
+        return DROP_CLASS_STONE
 
     @property
     def bare_ground(self) -> bool:
@@ -92,7 +113,7 @@ class Species:
             "mapObjectGuid": self.map_object_guid,
             "mapObjectName": self.name,
             "bareGround": self.bare_ground,
-            "timber": self.timber,
+            "dropClass": self.drop_class,
         }
 
 
