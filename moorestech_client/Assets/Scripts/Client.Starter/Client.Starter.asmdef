@@ -32,7 +32,8 @@
         "Client.Localization",
         "Mod.Loader",
         "Game.PlacementTarget",
-        "Server.Event"
+        "Server.Event",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
