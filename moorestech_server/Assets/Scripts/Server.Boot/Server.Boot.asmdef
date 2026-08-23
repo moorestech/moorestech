@@ -44,7 +44,9 @@
         "Game.Blueprint",
         "Game.PlacementTarget",
         "Game.Hotbar",
-        "UniRx"
+        "Game.Construction",
+        "UniRx",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

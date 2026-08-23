@@ -163,12 +163,16 @@
   --operation-hud-detail-gap: 5px;
   --operation-hud-letter-spacing: 1px;
   --operation-hud-detail-line-height: 25px;
-  /* カーソル追従ツールチップの書式はWeb側が唯一の値源。ホストから寸法は受け取らない */
-  /* The cursor tooltip's format is owned solely by the web side; the host sends no sizes */
-  --cursor-tooltip-font-size: 18px;
-  --cursor-tooltip-padding-block: 6px;
-  --cursor-tooltip-padding-inline: 10px;
-  --cursor-tooltip-max-width: 320px;
+  /* ツールチップの書式はWeb側が唯一の値源。ホストから寸法は受け取らない。
+     カーソル追従(CursorTooltip)とスロットのホバー(HoverTooltip)が同じ見た目を共有する */
+  /* The tooltip format is owned solely by the web side and the host sends no sizes;
+     the cursor-following CursorTooltip and the slot HoverTooltip share one look */
+  --tooltip-font-size: 18px;
+  --tooltip-padding-block: 6px;
+  --tooltip-padding-inline: 10px;
+  --tooltip-max-width: 320px;
+  --tooltip-face: rgb(16 20 28 / 94%);
+  --tooltip-border: 1px solid rgb(255 255 255 / 22%);
   /* uGUIの削除バーを1280基準へ縮尺し、上下端に見える半幅と斜線周期を固定する */
   /* Scale the uGUI deletion bar to the 1280 baseline and lock its visible half-height and stripe period */
   --delete-mode-warning-band-height: 20px;
@@ -227,8 +231,8 @@
   --world-pin-edge-margin: 40px;
   /* D&D説明のドラッグガイド矢印の寸法と1周期の長さ（webui-design §8.17） */
   /* Size and one-cycle duration of the D&D drag guide arrow (webui-design §8.17) */
-  --tutorial-drag-guide-size: 28px;
-  --tutorial-drag-guide-duration: 1600ms;
+  --tutorial-drag-guide-size: 56px;
+  --tutorial-drag-guide-duration: 3200ms;
   /* 枠線ハイライトの文言ラベルの間隔（webui-design §8.17） */
   /* Gap for an outline highlight's text label (webui-design §8.17) */
   --tutorial-highlight-label-gap: 4px;
@@ -241,6 +245,9 @@
   --tutorial-key-hint-hotbar-gap: 72px;
   --tutorial-key-hint-gap: 6px;
   --tutorial-key-hint-kbd-gap: 10px;
+  /* keyControlヒントはワールド上に面無しで浮くため白では埋もれる。共通の赤で文字色を立てる（webui-design §8.19） */
+  /* The keyControl hint floats faceless over the world and drowns in white, so it uses the shared red (webui-design §8.19) */
+  --tutorial-key-hint-color: var(--text-insufficient);
   /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
   /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */
   --tutorial-drag-guide-shadow: rgb(0 0 0 / 65%);
@@ -280,9 +287,9 @@
   /* Notification row face and border, same navy-family face and cool border as research node cards */
   --notification-face: var(--surface-navy);
   --notification-border: rgb(104 106 120);
-  /* 通知の最大幅は画面幅の20%（ユーザー裁定）。画面比例が要件のため例外的に%を使う */
-  /* Notification max width is 20% of the screen width (user ruling); % is intentional because the cap must scale with the screen */
-  --notification-max-width: 20vw;
+  /* 通知の幅は画面幅20%の固定値。可変だと同時表示中の最長行に全行が引き伸ばされ増減のたびに幅が動く */
+  /* Notification width is fixed at 20% of the screen; a fluid width stretches every row to the longest visible one and shifts as rows come and go */
+  --notification-width: 20vw;
   /* 通知の出入り。左から固定長で滑り込み、退場は生存尺から逆算した遅延で逆再生する */
   /* Notification enter/exit: slides in from the left by a fixed length; the exit mirrors it after a lifetime-derived delay */
   --notification-enter-duration: 160ms;
@@ -295,9 +302,25 @@
   /* Default size of the shared faceless icon button; each use overrides it locally */
   --icon-button-size: calc(var(--slot-size) / 2);
   --icon-button-icon-size: calc(var(--slot-size) / 3);
-  /* レシピビューア単一リストの最大高とエントリ間隔（ADR 0011・§8.17） */
-  /* Max height and entry gap for the recipe viewer single list (ADR 0011, §8.17) */
-  --recipe-list-max-height: 352px;
+  /* アイテム一覧の個数バッジ（絶対配置・bottom:-1px）が最終段のスロット下端からはみ出す実測量。
+     ScrollAreaの内側でこの分を確保しないと、1段しかなくても偽の溢れが立ち不要な縦バーが出る */
+  /* Measured bleed of the item-list count badge (absolutely placed at bottom:-1px) below the last row's slots;
+     unless the ScrollArea reserves it, even a single row yields a phantom overflow and a needless bar */
+  --item-list-count-bleed: 5px;
+  /* ハイライト枠がアンカーの外へ張り出す量。逃げはスクロール領域の高さを変え段数の溢れ閾値を動かすため、
+     このトークンがWeb側の正本であり実行時に書き換えない。マスタのpaddingPxはこれを超えない前提 */
+  /* How far the highlight ring extends beyond its anchor. The clearance changes a scroller's height and thus its
+     overflow threshold, so this token is the web-side authority and is never rewritten at runtime; the master's paddingPx must not exceed it */
+  --tutorial-anchor-padding: 8px;
+  /* スクロール領域の内側に確保する、チュートリアルハイライトの逃げ。
+     これを下回るとセルがクリップ端に密着し、枠の該当辺が削られて「コ」の字に欠ける */
+  /* Clearance reserved inside a scroller for the tutorial highlight;
+     below this the cell hugs the clip edge and that side of the ring is shaved away */
+  --tutorial-anchor-clip-inset: calc(var(--tutorial-anchor-padding) + var(--tutorial-highlight-glow));
+  /* レシピビューア単一リストのエントリ間隔（ADR 0011・§8.17）。
+     最大高はパネル本文が決めるためトークンを持たない（ユーザー裁定 2026-08-22） */
+  /* Entry gap for the recipe viewer single list (ADR 0011, §8.17);
+     its max height comes from the panel body, so no token holds it (user ruling 2026-08-22) */
   --recipe-entry-gap: 10px;
   /* クラフトボタンと機械情報行が共有する行高。片方だけ変わると単一リストの縦リズムが崩れる */
   /* Row height shared by the craft button and the machine info row; changing one alone breaks the list rhythm */

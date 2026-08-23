@@ -3,10 +3,10 @@ using GenVanilla = Mooresmaster.Model.GenerationModule.VanillaGeneratorAlgorithm
 
 namespace Game.MapGeneration.Pipeline.Runtime
 {
-    // 生成型の各バイオーム定義 → 実行時 *BiomeConfig POCO。高さ生成フィールドと配置サブ設定
-    // (treePlacement/objectConfig) を写す。Alpine/Mesa は AlpineMesaRuntimeConfigFactory が担当。
-    // Maps generated biome definitions to runtime *BiomeConfig POCOs (height fields plus
-    // treePlacement/objectConfig). Alpine/Mesa are handled by AlpineMesaRuntimeConfigFactory.
+    // 生成型の各バイオーム定義 → 実行時 *BiomeConfig POCO。高さ生成フィールドと treePlacement を写す。
+    // Alpine/Mesa は AlpineMesaRuntimeConfigFactory、objectConfig は BiomeObjectConfigRuntimeApplier が担当。
+    // Maps generated biome definitions to runtime *BiomeConfig POCOs (height fields plus treePlacement).
+    // Alpine/Mesa go through AlpineMesaRuntimeConfigFactory, and objectConfig through BiomeObjectConfigRuntimeApplier.
     internal static class BiomeRuntimeConfigFactory
     {
         public static void Apply(TerrainGenerationConfig cfg, GenVanilla vp)
@@ -20,7 +20,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
             gc.hillAmplitude = g.HillAmplitude;
             gc.terrainLayerAddressablePath = g.TerrainLayerAddressablePath;
             gc.treePlacement = TreeRuntimeConfigFactory.Build(g.TreePlacement);
-            gc.objectConfig = ObjectRuntimeConfigFactory.Build(g.ObjectConfig);
 
             var f = vp.Forest; var fc = cfg.forest;
             fc.humidityThreshold = f.HumidityThreshold;
@@ -41,7 +40,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
             fc.amplitude = f.Amplitude;
             fc.terrainLayerAddressablePath = f.TerrainLayerAddressablePath;
             fc.treePlacement = TreeRuntimeConfigFactory.Build(f.TreePlacement);
-            fc.objectConfig = ObjectRuntimeConfigFactory.Build(f.ObjectConfig);
 
             var s = vp.Savanna; var sc = cfg.savanna;
             sc.temperatureThreshold = s.TemperatureThreshold;
@@ -54,7 +52,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
             sc.amplitude = s.Amplitude;
             sc.terrainLayerAddressablePath = s.TerrainLayerAddressablePath;
             sc.treePlacement = TreeRuntimeConfigFactory.Build(s.TreePlacement);
-            sc.objectConfig = ObjectRuntimeConfigFactory.Build(s.ObjectConfig);
 
             var d = vp.Desert; var dc = cfg.desert;
             dc.temperatureThreshold = d.TemperatureThreshold;
@@ -70,7 +67,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
             dc.baseHeight = d.BaseHeight;
             dc.terrainLayerAddressablePath = d.TerrainLayerAddressablePath;
             dc.treePlacement = TreeRuntimeConfigFactory.Build(d.TreePlacement);
-            dc.objectConfig = ObjectRuntimeConfigFactory.Build(d.ObjectConfig);
 
             var j = vp.Jungle; var jc = cfg.jungle;
             jc.temperatureThreshold = j.TemperatureThreshold;
@@ -93,7 +89,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
             jc.amplitude = j.Amplitude;
             jc.terrainLayerAddressablePath = j.TerrainLayerAddressablePath;
             jc.treePlacement = TreeRuntimeConfigFactory.Build(j.TreePlacement);
-            jc.objectConfig = ObjectRuntimeConfigFactory.Build(j.ObjectConfig);
 
             var wd = vp.Woods; var wc = cfg.woods;
             wc.humidityThreshold = wd.HumidityThreshold;
@@ -105,7 +100,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
             wc.amplitude = wd.Amplitude;
             wc.terrainLayerAddressablePath = wd.TerrainLayerAddressablePath;
             wc.treePlacement = TreeRuntimeConfigFactory.Build(wd.TreePlacement);
-            wc.objectConfig = ObjectRuntimeConfigFactory.Build(wd.ObjectConfig);
         }
     }
 }

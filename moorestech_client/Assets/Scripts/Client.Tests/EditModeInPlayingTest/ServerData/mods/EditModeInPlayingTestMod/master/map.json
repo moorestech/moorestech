@@ -130,7 +130,7 @@
       "veinParam": {
         "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Stone",
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Stone",
       "soundEffectType": "stone",
       "handMiningType": "none",
       "handMiningParam": null
@@ -142,7 +142,7 @@
       "veinParam": {
         "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Stone",
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Stone",
       "soundEffectType": "stone",
       "handMiningType": "none",
       "handMiningParam": null
@@ -154,7 +154,7 @@
       "veinParam": {
         "itemGuid": "d9a19e4f-bc3b-4b2e-93b2-d6be5a5c6f44"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Copper",
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Copper",
       "soundEffectType": "stone",
       "handMiningType": "none",
       "handMiningParam": null
@@ -166,7 +166,7 @@
       "veinParam": {
         "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
       },
-      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/Tree",
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Tree",
       "soundEffectType": "stone",
       "handMiningType": "none",
       "handMiningParam": null

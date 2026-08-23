@@ -102,6 +102,7 @@ public class BadExample
 # 関連リポジトリ
 - `../moorestech_master` — マスターデータ（JSON）とアセット画像のリポジトリ。テストプレイ用Modは`../moorestech_master/server_v8/mods`からロード
 - `./moorestech_client/Assets/PersonalAssets/moorestech-client-private` — クライアント側の非公開アセット（有料アセット等）
+- **別リポジトリ（`moorestech_master`等）に変更が及ぶ場合も、本repoと同様にpushしてPRを作る（必須）。** ローカルコミット止まりや「pushだけしてPR無し」は禁止。本repoの`.moorestech-external-revisions.json`のピンは、その別repoのPRが指すpush済みコミットを指すこと
 
 # テスト・コンパイルの実行
 
@@ -166,6 +167,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 - イベント発火のためにActionを使わない。UniRxを使う。
 
 # タスク管理 (Beads)
+treeにログを残すためにマージは通常のマージコミットを使うSquash and mergeは使用しない
 本repoはbd(Beads)でタスク・設計検討・学びを管理する。セッション開始時にhookが概況を注入する（詳細ワークフローは`.agents/skills/beads/SKILL.md`）。
 - タスクは着手前に`bd create`で積み、`bd update <id> --claim`で着手、`bd close <id> --reason="..."`で完了。派生発見は`--parent`や`bd dep`で系譜を残す
 - 設計メモ・経緯・失敗は`bd note <id> "..."`へ。応答末尾に`LEARN: <一行>`と書くとhookが自動でnoteに保存する

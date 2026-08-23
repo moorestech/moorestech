@@ -1,0 +1,67 @@
+# PRごとに、プレイヤービルドをせずPF別のスクリプトコンパイル可否だけを検査する（ADR 0028）。
+# Linuxは既存のEditMode Test(ubuntuランナー)が実質カバーしているため対象に含めない。
+# Per PR, check only whether scripts compile per platform, without building a player (ADR 0028).
+# Linux is omitted because the existing EditMode Test already runs on an ubuntu runner.
+# 生成側のcache-warm.yml(warm-server-compile)とジョブ定義が重複している。matrix・unityVersion・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
+# The job definition is duplicated with the producer cache-warm.yml (warm-server-compile); change matrix, unityVersion, and the cache path/key/restore-keys in both
+name: Platform Compile Check
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+
+  # 手動実行デバッグ用
+  workflow_dispatch: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  compile:
+    name: Compile - ${{ matrix.target }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - StandaloneWindows64
+          - StandaloneOSX
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # PF固有アセットの再インポートを避けるためターゲットごとにLibraryを分けて復元する
+      # Restore a separate Library per target so platform-specific assets are not reimported
+      # 保存はmasterのcache-warm.ymlだけが行う（PR側で焼くと10GB枠を食い潰すため。裁定 2026-08-22）
+      # Only master's cache-warm.yml writes caches; saving from PRs would exhaust the 10GB budget (ruling 2026-08-22)
+      - uses: actions/cache/restore@v4
+        with:
+          path: moorestech_server/Library
+          key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
+          restore-keys: |
+            Library_compile_server_${{ matrix.target }}-
+
+      # buildMethodはプレイヤービルドをせず終了するため、実質「そのdefineでコンパイルが通るか」の検査になる
+      # The buildMethod exits without building a player, so this effectively checks compilation under those defines
+      - name: Compile check - ${{ matrix.target }}
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          unityVersion: 6000.3.8f1
+          buildMethod: Server.Editor.PlatformCompileCheck.RunFromGithubAction
+          targetPlatform: ${{ matrix.target }}
+          allowDirtyBuild: true
+          projectPath: moorestech_server/
+          versioning: None
+          # 切替が成立せず別ターゲットのdefineで緑になるのを防ぐため、期待値をmatrixから渡す
+          # Pass the expected target from the matrix so a failed switch cannot go green under another platform's defines
+          customParameters: '-expectedBuildTarget ${{ matrix.target }}'

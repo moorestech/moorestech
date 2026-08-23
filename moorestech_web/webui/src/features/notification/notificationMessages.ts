@@ -77,9 +77,13 @@ export function buildInterpolationValues(messageId: string, messageParams: strin
   };
 }
 
-// 表示キーと補間値を同じnarrowから作り、countを持つのは獲得通知だけという不変条件を1箇所に閉じる
-// The key and the interpolation values come from one narrow, closing the "only earned rows carry a count" invariant in a single place
-export function resolveNotificationText(notification: GameNotification, translate: (key: TranslationKey) => string) {
+// 表示キーと補間値を同じnarrowから作り、アイテム名とcountを持つのは獲得通知だけという不変条件を1箇所に閉じる
+// The key and the interpolation values come from one narrow, closing the "only earned rows carry an item name and a count" invariant in a single place
+export function resolveNotificationText(
+  notification: GameNotification,
+  translate: (key: TranslationKey) => string,
+  resolveItemDisplayName: (itemId: number) => string,
+) {
   const key = resolveNotificationKey(notification.messageId);
   const values = buildInterpolationValues(
     notification.messageId,
@@ -88,7 +92,7 @@ export function resolveNotificationText(notification: GameNotification, translat
 
   switch (notification.category) {
     case "itemEarned":
-      return { key, values: { ...values, count: notification.count } };
+      return { key, values: { ...values, itemName: resolveItemDisplayName(notification.itemId), count: notification.count } };
     case "achievement":
     case "operationDenied":
       return { key, values };

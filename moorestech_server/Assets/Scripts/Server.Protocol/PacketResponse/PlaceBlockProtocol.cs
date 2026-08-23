@@ -29,12 +29,14 @@ namespace Server.Protocol.PacketResponse
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly NotificationService _notificationService;
+        private readonly ConstructionWalletService _constructionWallet;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
             _notificationService = serviceProvider.GetService<NotificationService>();
+            _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -56,6 +58,10 @@ namespace Server.Protocol.PacketResponse
             {
                 PlaceBlock(placeInfo);
             }
+
+            // ドラッグ設置でセル数分に増幅させないため、財布の変更通知は最後に1通へ集約する
+            // Collapse the wallet notifications into one at the very end so a drag never amplifies them per cell
+            _constructionWallet.FlushRemainingCountChanges();
 
             if (0 < notUnlockedCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", Array.Empty<string>()));
             if (0 < costShortageCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", Array.Empty<string>()));
@@ -88,11 +94,11 @@ namespace Server.Protocol.PacketResponse
                 // Skip locked cells and resolve belt slopes through their family straight block
                 if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) { notUnlockedCount++; return; }
 
-                // コスト不足セルはスキップ
-                // Skip cells whose construction cost cannot be covered
+                // 財布に問い合わせ、賄えないセルはスキップ
+                // Ask the wallet; skip cells it cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
-                var costItemCounts = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
-                if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) { costShortageCount++; return; }
+                var placementPlan = _constructionWallet.PlanPlacement(blockMaster, data.PlayerId);
+                if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
 
                 // 電気なら自動接続を事前検証
                 // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
@@ -102,7 +108,7 @@ namespace Server.Protocol.PacketResponse
                 {
                     // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
                     // Pass construction-cost materials as reservations to exclude them from wire availability
-                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, costItemCounts, inventory.InventoryItems);
+                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems);
                     if (!plan.IsPlaceable) { wireShortageCount++; return; }
                 }
 
@@ -110,7 +116,7 @@ namespace Server.Protocol.PacketResponse
                 // Do not consume the cost when placement fails
                 if (!ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
 
-                ConstructionCostService.ConsumeRequiredItems(costItemCounts, inventory);
+                _constructionWallet.CommitPlacement(placementPlan, inventory, block.BlockInstanceId);
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items

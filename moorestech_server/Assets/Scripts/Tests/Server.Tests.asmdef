@@ -59,6 +59,7 @@
         "Game.Blueprint",
         "Game.PlacementTarget",
         "Game.Hotbar",
+        "Game.Construction",
         "Common.Debug",
         "Unity.Mathematics"
     ],

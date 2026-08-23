@@ -72,7 +72,7 @@
 - Consumes: `ServerConst.LocalServerIp` / `ServerConst.DefaultPlayerId`（既存）
 - Produces: `InitializeProprieties.CreateLocalServer(int playerId)`、`InitializeProprieties.CreateRemoteConnection(string serverIp, int serverPort, int playerId)`、`bool IsRemoteConnection { get; }`（Task 2 が分岐に使用。`LocalServerProcess` と `CreateDefault()` は消滅し、Task 2 で `VanillaApi` 側の受け口も消す）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Starter/InitializeProprietiesTest.cs` を新規作成:
 
@@ -113,12 +113,12 @@ namespace Client.Tests.Starter
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `CreateLocalServer` / `CreateRemoteConnection` / `IsRemoteConnection` が未定義のコンパイルエラー
 
-- [ ] **Step 3: InitializeProprieties を書き換える**
+- [x] **Step 3: InitializeProprieties を書き換える**
 
 `InitializeProprieties.cs` 全体を以下へ置換（`Process`・`CreateDefault`・publicコンストラクタを削除）:
 
@@ -162,11 +162,11 @@ namespace Client.Starter
 }
 ```
 
-- [ ] **Step 4: ServerConst から LocalServerPort を削除する**
+- [x] **Step 4: ServerConst から LocalServerPort を削除する**
 
 `ServerConst.cs:8` の `public const int LocalServerPort = 11564;` の行を削除する。
 
-- [ ] **Step 5: StartLocal をローカル明示へ書き換える**
+- [x] **Step 5: StartLocal をローカル明示へ書き換える**
 
 `StartLocal.cs` の `_serverProcess` フィールド（16行目）と `using System.Diagnostics;`（1行目）を削除し、`OnMainGameSceneLoaded` を以下へ:
 
@@ -180,7 +180,7 @@ namespace Client.Starter
         }
 ```
 
-- [ ] **Step 6: ConnectServer をリモート明示へ書き換える**
+- [x] **Step 6: ConnectServer をリモート明示へ書き換える**
 
 `ConnectServer.cs:80` を以下へ:
 
@@ -188,7 +188,7 @@ namespace Client.Starter
             var properties = InitializeProprieties.CreateRemoteConnection(ip, port, playerId);
 ```
 
-- [ ] **Step 7: 残りの CreateDefault 呼び出し4箇所をローカル明示へ書き換える**
+- [x] **Step 7: 残りの CreateDefault 呼び出し4箇所をローカル明示へ書き換える**
 
 すべて `InitializeProprieties.CreateDefault()` → `InitializeProprieties.CreateLocalServer(ServerConst.DefaultPlayerId)` に置換し、ファイルに `using Client.Common;` が無ければ追加する:
 
@@ -197,21 +197,21 @@ namespace Client.Starter
 - `StandaloneTerrainQaSettings.cs:78`
 - `EditModeInPlayingTestUtil.cs:77`（変数名 `defaultProperties` は `localProperties` へリネーム）
 
-- [ ] **Step 8: MainGameStarter の死にフィールドを削除する**
+- [x] **Step 8: MainGameStarter の死にフィールドを削除する**
 
 `MainGameStarter.cs:154-161` から未使用フィールド `IPAddress` / `isLocal` / `localServerProcess` / `PlayerId` / `Port` の5つを削除する（`_resolver` は残す）。あわせて未使用になったusing（`System.Diagnostics`、`Client.Common` が他で未使用なら）を削除する。
 
-- [ ] **Step 9: コンパイルする**
+- [x] **Step 9: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件。ただし Task 2 未着手のため `ServerConnectionInitializer.cs:50` の `_proprieties.LocalServerProcess` 参照でエラーが出る。その場合はこのステップ限りの暫定として同参照を `null` リテラルへ置き（Task 2 で引数ごと削除される）、再コンパイルでエラー0件を確認する
 
-- [ ] **Step 10: テストを実行して通ることを確認する**
+- [x] **Step 10: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "InitializeProprietiesTest"`
 Expected: 2件PASS
 
-- [ ] **Step 11: コミットする**
+- [x] **Step 11: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts
@@ -230,7 +230,7 @@ git commit -m "feat: InitializeProprietiesをローカル/リモートのファ�
 - Consumes: `InitializeProprieties.IsRemoteConnection` / `ServerIp` / `ServerPort` / `CreateLocalServerArgs`（Task 1）
 - Produces: `VanillaApi` コンストラクタから `Process localServerProcess` 引数が消える（他の呼び出し元は `ServerConnectionInitializer` のみ）
 
-- [ ] **Step 1: ServerConnectionInitializer の接続ロジックを反転する**
+- [x] **Step 1: ServerConnectionInitializer の接続ロジックを反転する**
 
 `ServerConnectionInitializer.cs` の `ConnectionToServer` ローカル関数を以下へ置換し、`using System.Net.Sockets;` を削除する:
 
@@ -300,7 +300,7 @@ git commit -m "feat: InitializeProprietiesをローカル/リモートのファ�
 
 `HandleConnectionFailure` は `ConnectionToServer` と同じ `#region Internal` 内に置く。
 
-- [ ] **Step 2: VanillaApi から Process 配管を削除する**
+- [x] **Step 2: VanillaApi から Process 配管を削除する**
 
 `VanillaApi.cs` で以下を行う（`StartLocal._serverProcess` が常時nullだったため配管全体が死にコード）:
 - `using System.Diagnostics;` を削除
@@ -316,17 +316,17 @@ git commit -m "feat: InitializeProprietiesをローカル/リモートのファ�
 
 （Task 1 Step 9 で暫定 `null` を入れた場合はここで消える）
 
-- [ ] **Step 3: コンパイルする**
+- [x] **Step 3: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
-- [ ] **Step 4: 既存テストを実行して通ることを確認する**
+- [x] **Step 4: 既存テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestBootLifecycleTest|PlaytestWorldBootSessionTest|StandaloneTerrainQaSettingsTest|InitializeProprietiesTest"`
 Expected: 全件PASS（Domain Reloadエラー時は45秒待機してリトライ）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts
@@ -343,7 +343,7 @@ git commit -m "feat: ローカルプレイの接続試行フォールバック�
 **Interfaces:**
 - Consumes: Task 2 までの反転済みクライアント
 
-- [ ] **Step 1: 11564にダミーリスナーを立てる**
+- [x] **Step 1: 11564にダミーリスナーを立てる**
 
 旧コードなら誤接続していた事故条件を再現する。バックグラウンドで:
 
@@ -360,13 +360,13 @@ while True:
 
 Expected: `dummy listening on 11564` が出力される
 
-- [ ] **Step 2: unity-playmode-recorded-playtest スキルでシナリオを1本実行する**
+- [x] **Step 2: unity-playmode-recorded-playtest スキルでシナリオを1本実行する**
 
 unity-playmode-recorded-playtest スキルを起動し、プレイテストDSL（`scripts/run-scenario.sh`）で最小シナリオ（ゲーム起動→ワールド表示確認程度）を実行する。masterデータworktreeピン留め等の手順はスキルに従う。
 
 Expected: result.json が success。ダミーリスナー側に `UNEXPECTED CONNECTION` が**出力されない**（=11564へ一切接続していない）
 
-- [ ] **Step 3: ダミーリスナーを終了し、結果を記録する**
+- [x] **Step 3: ダミーリスナーを終了し、結果を記録する**
 
 ```bash
 kill %1
@@ -378,7 +378,7 @@ result.json の成否とダミーリスナー出力の有無を bd へ記録す�
 bd note moorestech-kjp "録画テスト実証: 11564ダミーリスナー稼働下でresult.json success・ダミーへの接続ゼロを確認"
 ```
 
-- [ ] **Step 4: ローカル運用ドキュメントの11564注意書きを更新する**
+- [x] **Step 4: ローカル運用ドキュメントの11564注意書きを更新する**
 
 メインクローン直下の2ファイル（いずれもgit管理外・コミット不要）を実態に合わせて書き換える:
 
@@ -386,13 +386,13 @@ bd note moorestech-kjp "録画テスト実証: 11564ダミーリスナー稼働�
   「なおADR 0013の反転済みのため、ローカルプレイは接続試行なしで必ず内蔵サーバーを起動する。スタンドアロンサーバーが11564に居ても誤接続しない（外部接続はConnectServerメニューの明示指定のみ）。」
 - `HANDOFF-2026-08-17-worktree-parallel-ops.md:53` — 「残る注意は『クライアントが最初に11564へ接続試行するため…』。kjp完了後はこの注意書きも消せる」を「kjp実装済み（ADR 0013）: クライアントは11564へ接続試行しないため、この注意書きは不要になった」へ置換
 
-- [ ] **Step 5: moorestech-vkn へ前提変更を記録する**
+- [x] **Step 5: moorestech-vkn へ前提変更を記録する**
 
 ```bash
 bd note moorestech-vkn "kjp実装完了(ADR 0013): クライアントは11564へ接続試行しなくなったため、スキル文書の書き換えでは『ポート未指定スタンドアロンサーバーへの誤接続』注意書き自体が不要。『内蔵サーバーはport 0(OS採番)→BoundPort接続で並列可』のみを正として記述する"
 ```
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 シナリオファイル等の成果物を追加した場合のみ:
 
@@ -405,11 +405,11 @@ git commit -m "test: 11564ダミーリスナー稼働下でのローカル起動
 
 ### Task 4: 全ブランチレビュー（省略不可）
 
-- [ ] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
+- [x] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
 
 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。moorestechプロジェクトのため moores-code-review を使う。
 
-- [ ] **Step 2: レビュー指摘の機械的修正を適用し、コンパイル・テストを再実行してコミットする**
+- [x] **Step 2: レビュー指摘の機械的修正を適用し、コンパイル・テストを再実行してコミットする**
 
 ```bash
 uloop compile --project-path ./moorestech_client

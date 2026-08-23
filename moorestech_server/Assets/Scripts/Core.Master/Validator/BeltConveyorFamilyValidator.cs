@@ -43,7 +43,38 @@ namespace Core.Master.Validator
                 familyLogs += ValidateMember(family.StraightBlockGuid, "straightBlockGuid");
                 familyLogs += ValidateOptionalMember(family.UpBlockGuid, "upBlockGuid");
                 familyLogs += ValidateOptionalMember(family.DownBlockGuid, "downBlockGuid");
+
+                // 財布をファミリーで共有するため、直線基準で建設コストと設置数/1セットの一致を要求する
+                // The wallet is shared per family, so require cost and placementsPerCost to match the straight block
+                if (!elementByGuid.TryGetValue(family.StraightBlockGuid, out var straight)) return familyLogs;
+                familyLogs += ValidateCostMatches(straight, family.UpBlockGuid);
+                familyLogs += ValidateCostMatches(straight, family.DownBlockGuid);
                 return familyLogs;
+            }
+
+            string ValidateCostMatches(BlockMasterElement straight, Guid? memberGuid)
+            {
+                if (!memberGuid.HasValue || !elementByGuid.TryGetValue(memberGuid.Value, out var member)) return "";
+                var logs = "";
+                if (member.PlacementsPerCost != straight.PlacementsPerCost)
+                    logs += $"[BlockMaster] BeltConveyorFamily member {member.Name} placementsPerCost must match the family's straight block {straight.Name}\n";
+                if (!SameRequiredItems(straight.RequiredItems, member.RequiredItems))
+                    logs += $"[BlockMaster] BeltConveyorFamily member {member.Name} requiredItems must match the family's straight block {straight.Name}\n";
+                return logs;
+            }
+
+            bool SameRequiredItems(ConstructionRequiredItemElement[] a, ConstructionRequiredItemElement[] b)
+            {
+                var aList = a ?? Array.Empty<ConstructionRequiredItemElement>();
+                var bList = b ?? Array.Empty<ConstructionRequiredItemElement>();
+                if (aList.Length != bList.Length) return false;
+                foreach (var x in aList)
+                {
+                    var found = false;
+                    foreach (var y in bList) found |= x.ItemGuid == y.ItemGuid && x.Count == y.Count;
+                    if (!found) return false;
+                }
+                return true;
             }
 
             string ValidateOptionalMember(Guid? blockGuid, string fieldName)

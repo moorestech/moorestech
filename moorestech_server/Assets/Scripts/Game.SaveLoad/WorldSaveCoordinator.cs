@@ -19,6 +19,10 @@ namespace Game.SaveLoad
             _assembleSaveJsonText = assembleSaveJsonText;
         }
 
+        // 要求済みだがまだ書き出していない保存が残っているか。終了時の待ち合わせに使う
+        // Whether a requested save is still unwritten; used to wait for the flush at shutdown
+        public bool HasPendingSave => Volatile.Read(ref _requestedGeneration) != Volatile.Read(ref _completedGeneration);
+
         public void RequestSave()
         {
             Interlocked.Increment(ref _requestedGeneration);

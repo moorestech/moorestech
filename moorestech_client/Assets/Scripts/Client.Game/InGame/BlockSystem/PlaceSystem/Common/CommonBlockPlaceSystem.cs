@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.Construction;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
@@ -13,6 +14,7 @@ using Client.Input;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Construction;
 using Game.UnlockState;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -29,6 +31,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private const float PlaceableMaxDistance = 100f;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _localPlayerInventory;
+        private readonly ClientRemainingPlacementCountDatastore _remainingPlacementCountDatastore;
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
         private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
@@ -41,11 +44,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
         private int _heightOffset;
 
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData)
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ClientRemainingPlacementCountDatastore remainingPlacementCountDatastore)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
+            _remainingPlacementCountDatastore = remainingPlacementCountDatastore;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
             _autoConnectPreview = new ElectricWireAutoConnectPreview(mainCamera, blockGameObjectDataStore, previewBlockController, gameUnlockStateData);
         }
@@ -157,7 +161,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
-            MarkInsufficientItemPreviewsAsNotPlaceable();
+            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _remainingPlacementCountDatastore, _localPlayerInventory);
 
             // 各セルの自動接続を評価し表示更新
             // Evaluate auto-connect per cell and update the preview
@@ -209,29 +213,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
                 // Placement changes the world and inventory, so drop the auto-connect evaluation cache
                 _autoConnectPreview.Hide();
-            }
-
-            void MarkInsufficientItemPreviewsAsNotPlaceable()
-            {
-                // 無料設置モードでは所持数による制限をかけない
-                // In free placement mode, do not limit by held item count
-                if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
-
-                // 建設コストで賄えるセル数まで設置可にする
-                // Allow placement up to the affordable cell count
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                var affordableCellCount = ConstructionCostPreviewCalculator.CalculateAffordableCellCount(blockMaster.RequiredItems, _localPlayerInventory);
-
-                var placeableCount = 0;
-                for (var i = 0; i < _currentPlaceInfos.Count; i++)
-                {
-                    if (!_currentPlaceInfos[i].Placeable) continue;
-                    placeableCount++;
-                    if (placeableCount > affordableCellCount)
-                    {
-                        _currentPlaceInfos[i].Placeable = false;
-                    }
-                }
             }
 
             #endregion

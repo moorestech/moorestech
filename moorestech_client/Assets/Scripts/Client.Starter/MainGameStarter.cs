@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.BackgroundSkit;
@@ -25,6 +24,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
+using Client.Game.InGame.Construction;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.MapVein;
@@ -65,6 +65,7 @@ using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
+using Client.Skit.Context;
 using Client.Network.API;
 using Client.Skit.Skit;
 using Client.Skit.UI;
@@ -154,14 +155,7 @@ namespace Client.Starter
         
         
         private IObjectResolver _resolver;
-        private string IPAddress = ServerConst.LocalServerIp;
-        
-        private bool isLocal;
-        private Process localServerProcess;
-        
-        private int PlayerId = ServerConst.DefaultPlayerId;
-        private int Port = ServerConst.LocalServerPort;
-        
+
         protected override void OnDestroy()
         {
             _resolver?.Dispose();
@@ -189,6 +183,10 @@ namespace Client.Starter
             // Hotbar's 9-slot assignment-reference model and its update-event subscription
             builder.Register<ClientHotbarDatastore>(Lifetime.Singleton);
             builder.RegisterEntryPoint<HotbarNetworkEventHandler>();
+            // 残り設置数モデルと更新購読
+            // Remaining-placement model and its update-event subscription
+            builder.Register<ClientRemainingPlacementCountDatastore>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<RemainingPlacementCountEventHandler>();
             // 装備モデルと、その選択に追従する手持ち3Dモデル
             // Equipment model and the held 3D model that follows its selection
             builder.Register<LocalPlayerEquipment>(Lifetime.Singleton);
@@ -284,6 +282,9 @@ namespace Client.Starter
             var skitActionContext = new SkitActionContext();
             builder.RegisterInstance<ISkitActionContext>(skitActionContext);
             builder.RegisterInstance<ISkitActionController>(skitActionContext);
+            // スキットJSONの位置はスポーン地点基準の相対座標（ADR 0029）
+            // Skit JSON positions are relative to the spawn point (ADR 0029)
+            builder.RegisterInstance(new SkitOrigin(initialHandshakeResponse.MapLayout.Spawn));
             
             // その他インスタンス
             // register other instance

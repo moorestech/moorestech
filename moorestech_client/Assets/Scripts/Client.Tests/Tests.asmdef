@@ -53,7 +53,8 @@
         "Mod.Loader",
         "Unity.TextMeshPro",
         "Game.Hotbar",
-        "Game.PlacementTarget"
+        "Game.PlacementTarget",
+        "Game.Construction"
     ],
     "includePlatforms": [
         "Editor"
@@ -63,6 +64,7 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll",
+        "DOTween.dll",
         "MessagePack.dll",
         "MessagePack.Annotations.dll",
         "Microsoft.Extensions.DependencyInjection.Abstractions.dll",

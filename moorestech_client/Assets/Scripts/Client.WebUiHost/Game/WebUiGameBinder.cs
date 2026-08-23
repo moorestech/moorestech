@@ -1,4 +1,5 @@
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Construction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Game.PlacementTarget;
 using Client.Game.InGame.UI.Blueprint;
@@ -151,7 +152,8 @@ namespace Client.WebUiHost.Game
             var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
             var buildMenuView = resolver.Resolve<BuildMenuView>();
             var blueprintNameInputView = resolver.Resolve<BlueprintNameInputView>();
-            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver);
+            var remainingPlacementCountDatastore = resolver.Resolve<ClientRemainingPlacementCountDatastore>();
+            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, remainingPlacementCountDatastore);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
             new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
 

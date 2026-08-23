@@ -13,13 +13,13 @@ namespace CommandForgeGenerator.Command
             var isSkip = storyContext.GetService<ISkitActionContext>().IsSkip;
             if (isSkip)
             {
-                storyContext.GetSkitCamera().SetTransform(EndPosition, EndRotation);
+                storyContext.GetSkitCamera().SetTransform(new SkitRelativePosition(EndPosition), EndRotation);
                 return null;
             }
             storyContext.GetSkitCamera().TweenCamera(
-                StartPosition,
+                new SkitRelativePosition(StartPosition),
                 StartRotation,
-                EndPosition,
+                new SkitRelativePosition(EndPosition),
                 EndRotation,
                 Duration,
                 (Ease)System.Enum.Parse(typeof(Ease), Easing));

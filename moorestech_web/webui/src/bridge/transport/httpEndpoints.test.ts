@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   blockIconUrl,
+  fluidIconUrl,
+  fluidMasterUrl,
   itemIconUrl,
   itemMasterUrl,
   localizationDictionaryUrl,
@@ -15,8 +17,16 @@ describe("httpEndpoints", () => {
     expect(blockIconUrl(12)).toBe("/api/block-icons/12.png");
   });
 
+  it("液体アイコンURLをguidから組み立てる", () => {
+    expect(fluidIconUrl("60000000-0000-4000-8000-000000000001")).toBe("/api/fluid-icons/60000000-0000-4000-8000-000000000001.png");
+  });
+
   it("既存のアイテムマスタURLを維持する", () => {
     expect(itemMasterUrl).toBe("/api/master/items");
+  });
+
+  it("液体マスタURLを維持する", () => {
+    expect(fluidMasterUrl).toBe("/api/master/fluids");
   });
 
   it("辞書URLへ期待revisionを含める", () => {

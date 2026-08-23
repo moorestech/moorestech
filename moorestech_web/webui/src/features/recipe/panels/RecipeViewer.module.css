@@ -3,6 +3,37 @@
   min-height: 0;
 }
 
+/* スクロール領域の大きさは器（パネル本文）が決める。中身ぴったりに縮めない（§8.10・ユーザー裁定 2026-08-22） */
+/* The scroller's size comes from its container (the panel body), never from its content (§8.10, user ruling 2026-08-22) */
+.recipeListScroll {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  /* viewport側で広げたクリップ領域を打ち消し、エントリ本体の位置と寸法を変えない */
+  /* Cancels the clip region widened on the viewport so the entries keep their position and size */
+  margin: calc(-1 * var(--tutorial-anchor-clip-inset));
+}
+
+/* クリップ境界をチュートリアル枠の逃げぶんエントリ外周から離す。足りないと端のエントリの枠が辺ごと削られる（§8.10） */
+/* Push the clip edge away from the entries by the tutorial ring's clearance; too little shaves a whole side off an edge entry (§8.10) */
+.recipeListScroll :global(.mantine-ScrollArea-viewport) {
+  box-sizing: border-box;
+  /* Mantine既定のheight:100%はflex由来の親高に対して解決できず内容なりに潰れるためflexで伸ばす */
+  /* Mantine's default height:100% cannot resolve against a flex-derived parent height, so stretch it with flex */
+  flex: 1;
+  min-height: 0;
+  padding: var(--tutorial-anchor-clip-inset);
+}
+
+/* 広げたクリップ領域のぶんトラックを詰め、つまみの位置と長さを変えない */
+/* Inset the track by the widened clip region so the thumb keeps its position and length */
+.recipeListScroll :global(.mantine-ScrollArea-scrollbar[data-orientation="vertical"]) {
+  top: var(--tutorial-anchor-clip-inset);
+  bottom: calc(var(--tutorial-anchor-clip-inset) + var(--sa-corner-width));
+  right: var(--tutorial-anchor-clip-inset);
+}
+
 /* リストのスクロールバーは§8.10のネイビートーンへ統一する */
 /* Unify the list scrollbar with the §8.10 navy tone */
 .recipeListScroll :global(.mantine-ScrollArea-scrollbar) {

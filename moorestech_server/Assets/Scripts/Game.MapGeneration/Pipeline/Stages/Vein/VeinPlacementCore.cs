@@ -19,8 +19,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             int rngSeedOffset, IReadOnlyList<PlacedVein> excludedVeins,
             TilePlacementContext tile, PlacementHaloChannel memberHalo, PlacementHaloChannel centerHalo)
         {
-            var veins = new List<PlacedVein>();
-            if (entries.Length == 0) return veins;
+            if (entries.Length == 0) return new List<PlacedVein>();
 
             int biomeCount = biomeTypes.Length;
             int res = config.Resolution;
@@ -45,9 +44,36 @@ namespace Game.MapGeneration.Pipeline.Stages
                 entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid,
                 memberHalo, centerHalo, tile.Halo.Radius);
 
-            // クラスター単位でメンバー座標の min/max を整数化し PlacedVein を1件生成する。
-            // Snap each cluster's member coord min/max to integers and emit one PlacedVein per cluster.
-            return BuildVeins(members, veins, excludedVeins);
+            // 点ごとに固定サイズの鉱脈を生成。
+            // Emit one fixed-size vein per point.
+            return BuildVeins(members);
+
+            #region Internal
+
+            List<PlacedVein> BuildVeins(List<PlacementEntry> placedMembers)
+            {
+                // 配置順をそのまま出力順にする
+                // The placement order becomes the output order
+                var veins = new List<PlacedVein>();
+                foreach (var member in placedMembers)
+                {
+                    var vein = VeinAabbBuilder.Build(member.MapObjectGuid, member.WorldPosition);
+                    if (!OverlapsExcludedVein(vein)) veins.Add(vein);
+                }
+                return veins;
+            }
+
+            bool OverlapsExcludedVein(PlacedVein candidate)
+            {
+                foreach (var excluded in excludedVeins)
+                    if (candidate.Min.x <= excluded.Max.x && excluded.Min.x <= candidate.Max.x &&
+                        candidate.Min.y <= excluded.Max.y && excluded.Min.y <= candidate.Max.y &&
+                        candidate.Min.z <= excluded.Max.z && excluded.Min.z <= candidate.Max.z)
+                        return true;
+                return false;
+            }
+
+            #endregion
         }
 
         static bool[][,] BuildEntryMasks(
@@ -81,54 +107,6 @@ namespace Game.MapGeneration.Pipeline.Stages
             foreach (var obj in objects)
                 grid.Add(obj.Position.x - config.worldOffsetX, obj.Position.z - config.worldOffsetZ);
             return grid;
-        }
-
-        static List<PlacedVein> BuildVeins(
-            List<PlacementEntry> members, List<PlacedVein> veins, IReadOnlyList<PlacedVein> excludedVeins)
-        {
-            // clusterId → (guid, min, max) の集約。順序はクラスター発見順（決定論・挿入順）を保つ。
-            // Aggregate by clusterId → (guid, min, max); preserve cluster discovery (insertion) order for determinism.
-            var order = new List<int>();
-            var acc = new Dictionary<int, (string guid, Vector3Int min, Vector3Int max)>();
-            foreach (var m in members)
-            {
-                if (m.Cluster == null) continue;
-                int id = m.Cluster.Value.ClusterId;
-                var p = new Vector3Int(
-                    Mathf.RoundToInt(m.WorldPosition.x),
-                    Mathf.RoundToInt(m.WorldPosition.y),
-                    Mathf.RoundToInt(m.WorldPosition.z));
-                if (!acc.TryGetValue(id, out var e))
-                {
-                    order.Add(id);
-                    acc[id] = (m.MapObjectGuid, p, p);
-                    continue;
-                }
-                e.min = Vector3Int.Min(e.min, p);
-                e.max = Vector3Int.Max(e.max, p);
-                acc[id] = e;
-            }
-            foreach (int id in order)
-            {
-                var e = acc[id];
-                var vein = new PlacedVein { VeinGuid = e.guid, Min = e.min, Max = e.max };
-                if (!OverlapsExcludedVein(vein)) veins.Add(vein);
-            }
-            return veins;
-
-            #region Internal
-
-            bool OverlapsExcludedVein(PlacedVein candidate)
-            {
-                foreach (var excluded in excludedVeins)
-                    if (candidate.Min.x <= excluded.Max.x && excluded.Min.x <= candidate.Max.x &&
-                        candidate.Min.y <= excluded.Max.y && excluded.Min.y <= candidate.Max.y &&
-                        candidate.Min.z <= excluded.Max.z && excluded.Min.z <= candidate.Max.z)
-                        return true;
-                return false;
-            }
-
-            #endregion
         }
     }
 }

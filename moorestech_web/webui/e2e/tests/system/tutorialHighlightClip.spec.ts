@@ -106,13 +106,24 @@ test("研究ノードのハイライトが祖先のoverflowクリップに合わ
   await expect(highlight).toBeVisible();
   const glowPx = await readGlowPx(page);
 
-  // クリップ矩形はビューポートのpadding box。.viewportはborder 0なのでboundingBoxをそのまま使える
-  // The clip rect is the viewport's padding box; .viewport has border:0 so boundingBox doubles as it
+  // クリップ矩形は祖先の切り取り全部の積。viewportは逃げのぶん外へ広がり、右は実画面で頭打ちになる
+  // The clip rect is the intersection of every clipping ancestor; the viewport widens outward by the clearance and its right is capped by the real screen
   const viewportBox = (await page.getByTestId("research-viewport").boundingBox())!;
-  const clip: Rect = {
-    left: viewportBox.x, top: viewportBox.y,
-    right: viewportBox.x + viewportBox.width, bottom: viewportBox.y + viewportBox.height,
-  };
+  const clip: Rect = await page.evaluate(() => {
+    let element: HTMLElement | null = document.querySelector('[data-testid="research-viewport"]');
+    const merged = { left: -Infinity, top: -Infinity, right: Infinity, bottom: Infinity };
+    while (element) {
+      if (element === document.querySelector('[data-testid="research-viewport"]') || getComputedStyle(element).overflow !== "visible") {
+        const rect = element.getBoundingClientRect();
+        merged.left = Math.max(merged.left, rect.left);
+        merged.top = Math.max(merged.top, rect.top);
+        merged.right = Math.min(merged.right, rect.right);
+        merged.bottom = Math.min(merged.bottom, rect.bottom);
+      }
+      element = element.parentElement;
+    }
+    return merged;
+  });
 
   // 1. 中央: 全周描画
   // 1. Centered: drawn on all sides

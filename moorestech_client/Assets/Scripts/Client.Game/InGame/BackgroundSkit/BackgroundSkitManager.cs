@@ -23,6 +23,8 @@ namespace Client.Game.InGame.BackgroundSkit
         
         [SerializeField] private VoiceDefine voiceDefine;
         
+        [Inject] private SkitOrigin skitOrigin;
+        
         public async UniTask StartBackgroundSkit(string skitAddressablePath)
         {
             IsPlayingSkit = true;
@@ -76,6 +78,9 @@ namespace Client.Game.InGame.BackgroundSkit
                 builder.RegisterInstance(backgroundSkitUI);
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
+                // SkitManagerと同型に実原点を素通しし、背景スキットだけ別の座標系になる余地を残さない（ADR 0029）
+                // Pass the real origin through just like SkitManager, leaving no room for background skits to use a different coordinate space (ADR 0029)
+                builder.RegisterInstance(skitOrigin);
 
                 return new StoryContext(builder.Build());
             }

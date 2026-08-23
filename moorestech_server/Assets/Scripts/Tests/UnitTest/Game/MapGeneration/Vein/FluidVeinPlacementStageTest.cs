@@ -1,6 +1,7 @@
 using Game.MapGeneration.Pipeline;
 using Mooresmaster.Model.GenerationModule;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
@@ -28,20 +29,22 @@ namespace Tests.UnitTest.Game.MapGeneration
             int maxWorldZ = (int)(output.SceneOrigin.y + vp.GridSizeZ * vp.TerrainLength);
             int maxWorldY = (int)vp.TerrainHeight;
 
+            // 鉱脈は配置点から±1広がるため、格子の外へ1ブロックはみ出しうる。
+            // A vein reaches one unit out from its point, so it can overhang the grid by one block.
+            const int margin = TestGenerationConfigFactory.VeinGridOverhang;
+
             foreach (var vein in output.FluidVeins)
             {
                 Assert.That(vein.VeinGuid, Is.EqualTo(TestGenerationConfigFactory.TestFluidVeinGuid));
 
-                Assert.That(vein.Min.x, Is.LessThanOrEqualTo(vein.Max.x));
-                Assert.That(vein.Min.y, Is.LessThanOrEqualTo(vein.Max.y));
-                Assert.That(vein.Min.z, Is.LessThanOrEqualTo(vein.Max.z));
+                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
 
-                Assert.That(vein.Min.x, Is.GreaterThanOrEqualTo(minWorldX));
-                Assert.That(vein.Max.x, Is.LessThanOrEqualTo(maxWorldX));
-                Assert.That(vein.Min.z, Is.GreaterThanOrEqualTo(minWorldZ));
-                Assert.That(vein.Max.z, Is.LessThanOrEqualTo(maxWorldZ));
-                Assert.That(vein.Min.y, Is.GreaterThanOrEqualTo(0));
-                Assert.That(vein.Max.y, Is.LessThanOrEqualTo(maxWorldY));
+                Assert.That(vein.Min.x, Is.GreaterThanOrEqualTo(minWorldX - margin));
+                Assert.That(vein.Max.x, Is.LessThanOrEqualTo(maxWorldX + margin));
+                Assert.That(vein.Min.z, Is.GreaterThanOrEqualTo(minWorldZ - margin));
+                Assert.That(vein.Max.z, Is.LessThanOrEqualTo(maxWorldZ + margin));
+                Assert.That(vein.Min.y, Is.GreaterThanOrEqualTo(-margin));
+                Assert.That(vein.Max.y, Is.LessThanOrEqualTo(maxWorldY + margin));
             }
         }
     }

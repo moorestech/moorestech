@@ -8,6 +8,7 @@ using Client.Game.InGame.Skit;
 using Client.Game.InGame.Tutorial;
 using Client.Game.Skit;
 using Client.Skit.Skit;
+using Client.Skit.Context;
 using Client.Skit.UI;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
@@ -59,6 +60,9 @@ namespace Client.DebugSystem.Skit
             builder.RegisterInstance(mapObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterInstance(outcropDatastore).AsSelf().As<ISkitWorldObjectControl>();
             builder.RegisterInstance(entityObjectDatastore);
+            // テストシーンにはハンドシェイクが無いので原点ゼロで再生する
+            // The test scene has no handshake, so play with a zero origin
+            builder.RegisterInstance(new SkitOrigin(Vector3.zero));
 
             // 依存関係を解決
             _resolver = builder.Build();

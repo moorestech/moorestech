@@ -42,6 +42,7 @@ def main() -> None:
         object_config = copy.deepcopy(inventory["biomes"][biome]["objectConfig"])
         validate(schema, object_config, f"algorithmParam.{biome}.objectConfig")
         before = algorithm_param[biome]["objectConfig"]
+        reject_dropped_map_objects(biome, before, object_config)
         algorithm_param[biome]["objectConfig"] = object_config
         print(f"{biome}: entries {len(before['entries'])} -> {len(object_config['entries'])}, "
               f"clusterEntries {len(before['clusterEntries'])} -> {len(object_config['clusterEntries'])}")
@@ -53,6 +54,26 @@ def main() -> None:
 
     GENERATION.write_text(json.dumps(generation, ensure_ascii=False, indent=2), encoding="utf-8")
     print("スキーマ突合OK / schema check passed")
+
+
+def reject_dropped_map_objects(biome: str, before: dict, after: dict) -> None:
+    """丸ごと差し替えでmaster側にしか無いmapObjectが消えるのを止める（インベントリ未収録の手追加entry対策）。
+    Stops the wholesale replacement from dropping a mapObject that exists only on the master side (a hand-added entry the inventory never took in)."""
+    dropped = sorted(_placed_map_object_guids(before) - _placed_map_object_guids(after))
+    if dropped:
+        raise ValueError(f"{biome}: インベントリに無いmapObjectがmaster側にある {dropped}。"
+                         f"species-inventory.jsonへ収録してから再実行すること")
+
+
+def _placed_map_object_guids(object_config: dict) -> set:
+    guids = set()
+    for entry in object_config["entries"]:
+        guids.update(prefab["mapObjectGuid"] for prefab in entry["prefabs"])
+    for cluster in object_config["clusterEntries"]:
+        guids.update(prefab["mapObjectGuid"] for prefab in cluster["primary"])
+        for secondary in cluster["secondaries"]:
+            guids.update(prefab["mapObjectGuid"] for prefab in secondary["prefabs"])
+    return guids
 
 
 if __name__ == "__main__":

@@ -1,12 +1,12 @@
 .tooltip {
   position: fixed;
   z-index: var(--z-stage-tooltip);
-  max-width: var(--cursor-tooltip-max-width);
-  padding: var(--cursor-tooltip-padding-block) var(--cursor-tooltip-padding-inline);
-  font-size: var(--cursor-tooltip-font-size);
+  max-width: var(--tooltip-max-width);
+  padding: var(--tooltip-padding-block) var(--tooltip-padding-inline);
+  font-size: var(--tooltip-font-size);
   color: white;
   white-space: pre-line;
   pointer-events: none;
-  background: rgb(16 20 28 / 94%);
-  border: 1px solid rgb(255 255 255 / 22%);
+  background: var(--tooltip-face);
+  border: var(--tooltip-border);
 }

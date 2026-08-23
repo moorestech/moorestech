@@ -92,7 +92,7 @@
               "density": 1.0,
               "maxObjectsPerCluster": 5,
               "clusterRadius": 6,
-              "minDistanceBetweenOres": 1,
+              "minDistanceBetweenOres": 4,
               "placementRetries": 10
             }
           ],
@@ -121,7 +121,7 @@
               "density": 1.0,
               "maxObjectsPerCluster": 5,
               "clusterRadius": 6,
-              "minDistanceBetweenOres": 1,
+              "minDistanceBetweenOres": 4,
               "placementRetries": 10
             }
           ],

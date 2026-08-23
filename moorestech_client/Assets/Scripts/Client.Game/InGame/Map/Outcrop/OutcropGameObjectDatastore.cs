@@ -24,8 +24,8 @@ namespace Client.Game.InGame.Map.Outcrop
         // Append the vein GUID to outcrop names so each one can be traced back to its vein in the scene
         public const string OutcropObjectNamePrefix = "VeinOutcrop_";
 
-        // v8ワールドは約1775本の鉱脈を持ち、露頭1体はmapObjectより重いのでmapObject側の100より短い間隔でフレームを跨ぐ
-        // The v8 world holds ~1775 veins and one outcrop is heavier than a map object, so cross frames more often than that path's 100
+        // 露頭数は鉱脈密度に比例し、露頭1体はmapObjectより重いのでmapObject側の100より短い間隔でフレームを跨ぐ
+        // Outcrop count scales with vein density and one outcrop is heavier than a map object, so cross frames more often than that path's 100
         private const int FrameYieldObjectInterval = 50;
 
         // 同一アドレスを複数のveinが共有するため、guidではなくアドレスでキャッシュする

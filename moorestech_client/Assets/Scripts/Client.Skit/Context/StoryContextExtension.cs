@@ -16,6 +16,7 @@ namespace Client.Skit.Context
         public static VoiceDefine GetVoiceDefine(this StoryContext storyContext) => storyContext.GetService<VoiceDefine>();
         
         public static ISkitCamera GetSkitCamera(this StoryContext storyContext) => storyContext.GetService<ISkitCamera>();
+        public static SkitOrigin GetSkitOrigin(this StoryContext storyContext) => storyContext.GetService<SkitOrigin>();
 
         public static ISkitLocalizationResolver GetLocalizationResolver(this StoryContext storyContext)
             => storyContext.GetService<ISkitLocalizationResolver>();

@@ -2,6 +2,14 @@ import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import type { ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// node環境はdocumentを持たないため、CSS変数の読み取りをテスト用の逃げ量へ差し替える
+// The node environment has no document, so the CSS variable read is swapped for a test clearance
+const CLIP_INSET_PX = 12;
+vi.mock("@/shared/tutorialAnchor", () => ({
+  readTutorialAnchorClipInsetPx: () => CLIP_INSET_PX,
+}));
+
 import TreeView from "./TreeView";
 
 type TestNode = { id: string; x: number; y: number; prevIds: string[] };
@@ -10,10 +18,12 @@ type WheelHandler = (event: object) => void;
 // テスト用にレイアウト・購読を埋める
 // Stub layout values and subscriptions for tests
 const wheelHandlers: WheelHandler[] = [];
+// offsetは枠線box。中央寄せもズームも内容box(逃げのpaddingを除いた 400x300)基準で解決する
+// The offsets are the border box; centering and zoom both resolve against the content box (400x300 minus the clearance)
 const createNodeMock = () => ({
-  offsetWidth: 400,
-  offsetHeight: 300,
-  getBoundingClientRect: () => ({ width: 400, left: 0, top: 0 }),
+  offsetWidth: 400 + CLIP_INSET_PX * 2,
+  offsetHeight: 300 + CLIP_INSET_PX * 2,
+  getBoundingClientRect: () => ({ width: 400 + CLIP_INSET_PX * 2, left: 0, top: 0 }),
   addEventListener: (type: string, handler: WheelHandler) => {
     if (type === "wheel") wheelHandlers.push(handler);
   },
@@ -128,6 +138,16 @@ describe("TreeView viewport state", () => {
     act(() => renderer.update(createElement(TreeView<TestNode>, baseProps({ initialFocus: { x: 0, y: 0 } }))));
     const centeredScale = Number(/scale\(([\d.]+)\)/.exec(canvasTransform(renderer))![1]);
     expect(centeredScale).toBeCloseTo(zoomedScale, 5);
+  });
+
+  // クリップ境界を広げたぶんキャンバス原点はpadding分ずれる。基準を内容boxへ揃えないとズームが逃げの分だけ流れる
+  // Widening the clip edge offsets the canvas origin by the padding; without content-box anchoring the zoom drifts by the clearance
+  it("anchors wheel zoom at the content box, so the clearance does not shift the view", () => {
+    const renderer = mount({});
+    // 内容box原点(=枠線box + 逃げ)を指したホイールは、その点を動かさずに倍率だけを変える
+    // A wheel over the content-box origin (border box + clearance) changes only the scale and keeps that point put
+    act(() => wheelHandlers[0]({ preventDefault: () => undefined, clientX: CLIP_INSET_PX, clientY: CLIP_INSET_PX, deltaY: -100 }));
+    expect(canvasTransform(renderer)).toMatch(/^translate\(0px, 0px\) scale\(1\.[\d]+\)$/);
   });
 
   it("keeps gliding after a fast drag is released and eventually stops", () => {
