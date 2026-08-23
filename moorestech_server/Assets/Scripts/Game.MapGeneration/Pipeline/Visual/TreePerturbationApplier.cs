@@ -62,16 +62,13 @@ namespace Game.MapGeneration.Pipeline.Visual
             // WorldPosition is tile-local; trees inside the halo but outside the tile arrive negative or past tileWidth and TreeHeightModifier drops the off-lattice pixels
             List<PlacementEntry> ToPlacementEntries(IReadOnlyList<TileLocalPlacement> haloObjects)
             {
+                // TreeHeightModifierはguidと位置しか読まず、guidマップに載らない岩は自分で落とす。回転と沈み込みは運ぶ意味がない
+                // TreeHeightModifier reads only the guid and the position and drops the rocks its guid map misses, so rotation and sink are pointless to carry
                 var entries = new List<PlacementEntry>(haloObjects.Count);
                 foreach (var mapObject in haloObjects)
-                    entries.Add(new PlacementEntry
-                    {
-                        MapObjectGuid = mapObject.Guid,
-                        WorldPosition = mapObject.LocalPosition,
-                        // TreeHeightModifierはSurroundEffectを読まないが、none番兵のまま台帳へは戻さず台帳の値をそのまま運ぶ
-                        // TreeHeightModifier never reads SurroundEffect, but this carries the ledger's own value through rather than leaving the none sentinel
-                        SurroundEffect = mapObject.SurroundEffect,
-                    });
+                    entries.Add(PlacementEntry.CreateTree(
+                        mapObject.Guid, mapObject.LocalPosition, Quaternion.identity, mapObject.Scale, 0f,
+                        mapObject.SurroundEffect));
 
                 return entries;
             }

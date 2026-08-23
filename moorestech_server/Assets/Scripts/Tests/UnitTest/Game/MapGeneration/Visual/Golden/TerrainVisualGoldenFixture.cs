@@ -36,7 +36,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
         public static string GoldenJsonPath =>
             Path.GetFullPath(Path.Combine(Application.dataPath, "../../moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Visual/Golden/terrain_visual_golden.json"));
 
-        public static (TerrainGenerationConfig Config, BiomeVisualSections Sections, MapGenerationOutput Output) Build()
+        public static (TerrainGenerationConfig Config, BiomeVisualSections Sections, GenerationRun Run) Build()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
             MultiTileTestWorld.EnableTrees(config);
@@ -75,8 +75,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
 
             // 木・岩の位置とクラスタはVanillaGeneratorが決める
             // Tree and rock positions and clusters come from VanillaGenerator
-            var output = new VanillaGenerator().Generate(config);
-            return (config, sections, output);
+            var run = new VanillaGenerator().Generate(config);
+            return (config, sections, run);
         }
 
         public static string Sha256(Array values)

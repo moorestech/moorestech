@@ -20,16 +20,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         public void 岩クラスタのIDはタイルをまたいで重複しない()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
-            var output = GenerateWithObjects(config);
+            var run = GenerateWithObjects(config);
 
             var tileOfClusterId = new Dictionary<int, Vector2Int>();
             var tilesWithCluster = new HashSet<Vector2Int>();
-            for (var i = 0; i < output.MapObjects.Count; i++)
+            for (var i = 0; i < run.Output.MapObjects.Count; i++)
             {
-                var placement = output.Ledger.Placements[i];
+                var placement = run.Ledger.Placements[i];
                 if (!placement.Cluster.HasValue) continue;
                 var clusterId = placement.Cluster.Value.Id;
-                var tile = MultiTileTestWorld.TileBucket(output.MapObjects[i].Position.x, output.MapObjects[i].Position.z, config);
+                var tile = MultiTileTestWorld.TileBucket(run.Output.MapObjects[i].Position.x, run.Output.MapObjects[i].Position.z, config);
                 tilesWithCluster.Add(tile);
                 if (!tileOfClusterId.TryGetValue(clusterId, out var owner))
                 {
@@ -51,14 +51,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         public void 独立散布の岩はタイルをまたいでもクラスタ無しのまま残る()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
-            var output = GenerateWithObjects(config);
+            var run = GenerateWithObjects(config);
 
             var tilesWithCluster = new HashSet<Vector2Int>();
             var tilesWithIndependent = new HashSet<Vector2Int>();
-            for (var i = 0; i < output.MapObjects.Count; i++)
+            for (var i = 0; i < run.Output.MapObjects.Count; i++)
             {
-                var mapObject = output.MapObjects[i];
-                var placement = output.Ledger.Placements[i];
+                var mapObject = run.Output.MapObjects[i];
+                var placement = run.Ledger.Placements[i];
                 var tile = MultiTileTestWorld.TileBucket(mapObject.Position.x, mapObject.Position.z, config);
                 if (placement.Cluster.HasValue) tilesWithCluster.Add(tile);
                 if (mapObject.MapObjectGuid != MultiTileTestWorld.IndependentMapObjectGuid) continue;
@@ -81,10 +81,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
             MultiTileTestWorld.EnableTrees(config);
 
-            var output = new VanillaGenerator().Generate(config);
+            var run = new VanillaGenerator().Generate(config);
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var placement in output.Ledger.Placements)
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var placement in run.Ledger.Placements)
                 Assert.That(placement.Cluster, Is.Null);
         }
 
@@ -94,12 +94,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         public void クラスタ重心は配置物と同じタイルのシーン座標に乗る()
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
-            var output = GenerateWithObjects(config);
+            var run = GenerateWithObjects(config);
 
             var clustered = new List<LedgerPlacement>();
-            for (var i = 0; i < output.MapObjects.Count; i++)
-                if (output.Ledger.Placements[i].Cluster.HasValue)
-                    clustered.Add(output.Ledger.Placements[i]);
+            for (var i = 0; i < run.Output.MapObjects.Count; i++)
+                if (run.Ledger.Placements[i].Cluster.HasValue)
+                    clustered.Add(run.Ledger.Placements[i]);
 
             Assert.IsNotEmpty(clustered, "クラスタを持つ配置物が1件も無い");
             foreach (var placement in clustered)
@@ -118,10 +118,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         [Test]
         public void 配置物のスケールが出力へ写る()
         {
-            var output = GenerateWithObjects(MultiTileTestWorld.BuildConfig(GridSide, Seed));
+            var run = GenerateWithObjects(MultiTileTestWorld.BuildConfig(GridSide, Seed));
 
-            Assert.IsNotEmpty(output.MapObjects);
-            foreach (var mapObject in output.MapObjects)
+            Assert.IsNotEmpty(run.Output.MapObjects);
+            foreach (var mapObject in run.Output.MapObjects)
             {
                 Assert.Greater(mapObject.Scale.x, 0f);
                 Assert.Greater(mapObject.Scale.y, 0f);
@@ -129,7 +129,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             }
         }
 
-        private static MapGenerationOutput GenerateWithObjects(TerrainGenerationConfig config)
+        private static GenerationRun GenerateWithObjects(TerrainGenerationConfig config)
         {
             MultiTileTestWorld.EnableObjects(config);
             return new VanillaGenerator().Generate(config);

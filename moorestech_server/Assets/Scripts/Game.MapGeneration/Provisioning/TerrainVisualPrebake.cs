@@ -1,11 +1,10 @@
-using System.Diagnostics;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Mooresmaster.Model.GenerationModule;
-using Debug = UnityEngine.Debug;
+using UnityEngine;
 
 namespace Game.MapGeneration.Provisioning
 {
@@ -29,12 +28,11 @@ namespace Game.MapGeneration.Provisioning
             // The prebake's height source is the world's own terrain/ (the generator itself is the sole truth); no copy into the shared cache is needed
             var factoryResult = TileVisualBakerFactory.Create(config, terrainMeta, ledger, worldDataDirectory, selectedGeneration);
 
-            var stopwatch = Stopwatch.StartNew();
             var tileCoordinates = TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount);
             foreach (var (tileX, tileZ) in tileCoordinates)
                 factoryResult.Baker.Bake(tileX, tileZ);
 
-            Debug.Log($"[TerrainVisualPrebake] Baked {tileCoordinates.Count} tiles for world '{terrainMeta.WorldId}' in {stopwatch.ElapsedMilliseconds}ms.");
+            Debug.Log($"[TerrainVisualPrebake] Baked {tileCoordinates.Count} tiles for world '{terrainMeta.WorldId}'.");
         }
     }
 }

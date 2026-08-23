@@ -72,6 +72,13 @@ namespace Game.Paths
                 normalizedRoot + ".provisioning");
         }
 
+        // 同一PCで先焼きとクライアント焼きが共有するワールドキャッシュ。worldIdからの導出はここだけが持つ
+        // The world cache shared by the prebake and the client bake on one PC; deriving it from a worldId lives only here
+        public static WorldDataDirectory ForWorldCache(string worldId)
+        {
+            return FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(worldId));
+        }
+
         // レガシー形: ワールドディレクトリを持たない構成(テスト427箇所・クライアント早期DI)。
         // mapはServerDataDirectory/map/map.json、saveは明示パス。Root系プロパティはnull
         // Legacy form for DI without a world dir (tests / client early init)

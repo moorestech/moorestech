@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             var generation = TestGenerationConfigFactory.CreateSmall();
             var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, 12345, TestGenerationConfigFactory.ServerDataDirectory);
-            var output = MapGenerationPipeline.Generate(generation, runtimeConfig);
+            var output = MapGenerationPipeline.Generate(generation, runtimeConfig).Output;
 
             Assert.That(output.FluidVeins, Is.Not.Empty);
 

@@ -129,7 +129,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 
         private static Dictionary<Vector2Int, byte[]> AssertNoSeamAcrossGrid(TerrainGenerationConfig config)
         {
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
             Assert.AreEqual(GridSide * GridSide, output.Tiles.Count);
 
             var biomeIndicesByTile = TileBiomeIndexComputer.ComputeForAllTiles(config, output);
@@ -150,6 +150,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             // 格子の内部境界を全て見る。1組だけだと特定のタイルでしか起きない取りこぼしを見逃す
             // Walks every interior border of the grid; a single pair would miss a slip that only happens on some tiles
             var resolution = config.Resolution;
+
+            // height と biome を別リストへ収集してから最後にまとめて判定する。Assert.AreEqual を都度呼ぶと最初の height 不一致で例外が飛び、同じ画素の biome 判定が一度も実行されないまま終わる
+            // Height and biome mismatches are collected into separate lists and judged at the end; calling Assert.AreEqual per pixel would throw on the first height miss and never even run the biome check for it
             var heightMismatches = new List<string>();
             var biomeMismatches = new List<string>();
             for (var z = 0; z < GridSide; z++)

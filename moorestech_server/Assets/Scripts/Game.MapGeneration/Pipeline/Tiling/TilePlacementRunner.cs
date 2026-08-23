@@ -119,21 +119,26 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 // このタイルの書き出し開始時点のオフセットを固定して使う。木呼び出しはクラスタを持たないため素通りする。
                 // Freeze the offset as of this tile's write start; the tree call carries no cluster so it passes through untouched.
                 var offset = _nextClusterIdOffset;
-                var maxLocalClusterId = -1;
 
                 foreach (var entry in entries)
                 {
                     if (string.IsNullOrEmpty(entry.MapObjectGuid)) continue;
 
-                    // 独立配置は Cluster を -1 の空情報で持つため、オフセットを掛けると隣タイルの実クラスタIDへ化ける。
-                    // An independent placement carries an empty -1 Cluster, so offsetting it would morph into a neighbouring tile's real id.
-                    var hasCluster = entry.Cluster.HasValue && 0 <= entry.Cluster.Value.ClusterId;
-                    PlacementCluster? cluster = hasCluster
-                        ? new PlacementCluster(
-                            entry.Cluster.Value.ClusterId + offset,
-                            new Vector2(entry.Cluster.Value.Center.x, entry.Cluster.Value.Center.z))
-                        : null;
-                    if (hasCluster) maxLocalClusterId = Mathf.Max(maxLocalClusterId, entry.Cluster.Value.ClusterId);
+                    // クラスタ無し(null)にオフセットを掛けると隣タイルの実クラスタIDへ化けるので、そのまま素通しする。
+                    // Offsetting a "no cluster" (null) would morph it into a neighbouring tile's real id, so it passes straight through.
+                    PlacementCluster? cluster = null;
+                    if (entry.Cluster.HasValue)
+                    {
+                        var entryCluster = entry.Cluster.Value;
+                        cluster = new PlacementCluster(
+                            entryCluster.ClusterId + offset,
+                            new Vector2(entryCluster.Center.x, entryCluster.Center.z));
+
+                        // 次タイルの採番は書き出した最大IDの次から始める。クラスタが1件も無いタイルはオフセットを進めない。
+                        // The next tile numbers from just past the largest id written; a tile holding no cluster leaves the offset where it is.
+                        _nextClusterIdOffset = Mathf.Max(
+                            _nextClusterIdOffset, offset + entryCluster.ClusterId + 1);
+                    }
 
                     _output.MapObjects.Add(new PlacedMapObject
                     {
@@ -146,8 +151,6 @@ namespace Game.MapGeneration.Pipeline.Tiling
                     _ledger.Add(new LedgerPlacement(entry.MapObjectGuid, entry.WorldPosition, entry.Scale,
                         entry.SurroundEffect, cluster));
                 }
-
-                if (0 <= maxLocalClusterId) _nextClusterIdOffset = offset + maxLocalClusterId + 1;
             }
 
             #endregion

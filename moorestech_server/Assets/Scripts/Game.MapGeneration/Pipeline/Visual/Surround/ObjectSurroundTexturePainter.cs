@@ -16,28 +16,6 @@ namespace Game.MapGeneration.Pipeline.Visual.Surround
     /// </summary>
     public static class ObjectSurroundTexturePainter
     {
-        // 隣タイルの岩からも裸地は伸びる。切り出しhaloがこの距離を下回るとタイル境界で裸地が直線に切れる
-        // Bare ground reaches in from neighbouring tiles too; a slice halo below this distance breaks it in a straight line at the seam
-        private static float MaxReach(
-            SurroundTextureConfig[] surroundConfigs, IReadOnlyList<LedgerPlacement> placements)
-        {
-            var maxHorizontalScale = 0f;
-            foreach (var mapObject in placements)
-                maxHorizontalScale = Mathf.Max(maxHorizontalScale, (mapObject.Scale.x + mapObject.Scale.z) * 0.5f);
-
-            var reach = 0f;
-            foreach (var surroundConfig in surroundConfigs)
-            {
-                if (!surroundConfig.enabled) continue;
-
-                reach = Mathf.Max(
-                    reach, surroundConfig.transitionRadius + surroundConfig.rockMeshBaseSize * maxHorizontalScale);
-                reach = Mathf.Max(reach, surroundConfig.singleRockRadius);
-            }
-
-            return reach;
-        }
-
         // 到達距離を知っているのはここだけなので、切り出しと種別分割もここが持つ。呼び出し側に選ばせると木の距離を渡せてしまう
         // Only this class knows the reach, so it owns the slice and the kind split too; letting the caller choose lets a tree's reach slip in
         // 裸地を塗るのはrockBareGroundの岩だけ。rockNoBareGroundの瓦礫・メサは距離場にだけ乗り、ここでは触らない
@@ -79,6 +57,28 @@ namespace Game.MapGeneration.Pipeline.Visual.Surround
             }
 
             #region Internal
+
+            // 隣タイルの岩からも裸地は伸びる。切り出しhaloがこの距離を下回るとタイル境界で裸地が直線に切れる
+            // Bare ground reaches in from neighbouring tiles too; a slice halo below this distance breaks it in a straight line at the seam
+            static float MaxReach(
+                SurroundTextureConfig[] surroundConfigs, IReadOnlyList<LedgerPlacement> placements)
+            {
+                var maxHorizontalScale = 0f;
+                foreach (var mapObject in placements)
+                    maxHorizontalScale = Mathf.Max(maxHorizontalScale, (mapObject.Scale.x + mapObject.Scale.z) * 0.5f);
+
+                var reach = 0f;
+                foreach (var surroundConfig in surroundConfigs)
+                {
+                    if (!surroundConfig.enabled) continue;
+
+                    reach = Mathf.Max(
+                        reach, surroundConfig.transitionRadius + surroundConfig.rockMeshBaseSize * maxHorizontalScale);
+                    reach = Mathf.Max(reach, surroundConfig.singleRockRadius);
+                }
+
+                return reach;
+            }
 
             void GroupByCluster()
             {

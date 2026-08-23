@@ -41,13 +41,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             // entries[0]=クラスタ採番、entries[1]=独立散布（別GUID）
             // entries[0] is cluster-numbered, entries[1] is independently scattered (different guid)
             config.grassland.objectConfig.entries[1].terrainSurroundEffectType = TerrainSurroundEffectType.rockBareGround;
-            var output = new VanillaGenerator().Generate(config);
-            var ledger = output.Ledger;
-            Assert.That(ledger.Placements.Count, Is.EqualTo(output.MapObjects.Count));
+            var run = new VanillaGenerator().Generate(config);
+            var ledger = run.Ledger;
+            var mapObjects = run.Output.MapObjects;
+            Assert.That(ledger.Placements.Count, Is.EqualTo(mapObjects.Count));
             for (var i = 0; i < ledger.Placements.Count; i++)
             {
-                Assert.That(ledger.Placements[i].Guid, Is.EqualTo(output.MapObjects[i].MapObjectGuid));
-                Assert.That(ledger.Placements[i].ScenePosition, Is.EqualTo(output.MapObjects[i].Position));
+                Assert.That(ledger.Placements[i].Guid, Is.EqualTo(mapObjects[i].MapObjectGuid));
+                Assert.That(ledger.Placements[i].ScenePosition, Is.EqualTo(mapObjects[i].Position));
             }
             Assert.That(ledger.Placements.Any(p => p.Guid == MultiTileTestWorld.IndependentMapObjectGuid
                                                    && p.SurroundEffect == TerrainSurroundEffectType.rockBareGround), Is.True);

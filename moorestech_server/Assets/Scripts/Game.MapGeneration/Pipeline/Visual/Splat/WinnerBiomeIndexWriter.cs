@@ -50,18 +50,22 @@ namespace Game.MapGeneration.Pipeline.Visual.Splat
 
                 winnerBiomeIndex[pixelIndex] = mappedWinner;
             }
-        }
 
-        private static int[] BuildLookup(BiomeType[] biomeTypes)
-        {
-            var winnerIndexByBiomeTypeValue = new int[byte.MaxValue + 1];
-            for (var i = 0; i < winnerIndexByBiomeTypeValue.Length; i++)
-                winnerIndexByBiomeTypeValue[i] = UnmappedBiomeType;
+            #region Internal
 
-            for (var i = 0; i < biomeTypes.Length; i++)
-                winnerIndexByBiomeTypeValue[(byte)biomeTypes[i]] = i;
+            static int[] BuildLookup(BiomeType[] biomeTypes)
+            {
+                var winnerIndexByBiomeTypeValue = new int[byte.MaxValue + 1];
+                for (var i = 0; i < winnerIndexByBiomeTypeValue.Length; i++)
+                    winnerIndexByBiomeTypeValue[i] = UnmappedBiomeType;
 
-            return winnerIndexByBiomeTypeValue;
+                for (var i = 0; i < biomeTypes.Length; i++)
+                    winnerIndexByBiomeTypeValue[(byte)biomeTypes[i]] = i;
+
+                return winnerIndexByBiomeTypeValue;
+            }
+
+            #endregion
         }
     }
 }

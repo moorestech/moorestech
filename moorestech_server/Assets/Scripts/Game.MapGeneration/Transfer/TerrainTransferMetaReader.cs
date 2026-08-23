@@ -1,8 +1,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using Game.MapGeneration.Export;
-using Game.MapGeneration.Identity;
 using Game.MapGeneration.Provisioning;
 using Game.Paths;
 using Newtonsoft.Json;
@@ -35,13 +36,23 @@ namespace Game.MapGeneration.Transfer
                         $"but this build is '{WorldProvisioner.GeneratorVersion}'. The transferred terrain file layout changed " +
                         "(biome_x_z.bin output/transfer removed, clusters no longer leave the generation system). Delete the world directory and generate the world again."),
                 WorldProvisioner.GeneratedMapMode => TerrainTransferMeta.CreateGenerated(
-                    WorldIdentity.Calculate(worldMeta.Seed, worldMeta.CreatedAt), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
+                    CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
                     CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins(), ReadGenerationMasterFingerprint()),
-                WorldProvisioner.TemplateMapMode => TerrainTransferMeta.CreateTemplate(WorldIdentity.Calculate(worldMeta.Seed, worldMeta.CreatedAt), worldMeta.Seed),
+                WorldProvisioner.TemplateMapMode => TerrainTransferMeta.CreateTemplate(CalculateWorldId(), worldMeta.Seed),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
 
             #region Internal
+
+            // ワールド同一性IDはseedとcreatedAtの1式で決まる。読み手はここだけなので式もここに置く
+            // The world identity id comes from the one seed-and-createdAt formula; this is its only reader, so the formula lives here
+            string CalculateWorldId()
+            {
+                const int worldIdHexDigits = 16;
+                using var sha256 = SHA256.Create();
+                var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{worldMeta.Seed}:{worldMeta.CreatedAt}"));
+                return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant().Substring(0, worldIdHexDigits);
+            }
 
             // 原点は生成時にしか決まらず0でも補えない。旧バージョンのworld.jsonはキーごと欠けるので作り直しを促す
             // The origins exist only at generation and cannot be filled with 0; older world.json files lack the keys entirely, so demand a regeneration

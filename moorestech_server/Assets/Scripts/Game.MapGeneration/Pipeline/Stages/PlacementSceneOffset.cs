@@ -16,34 +16,16 @@ namespace Game.MapGeneration.Pipeline.Stages
         {
             var shift = new Vector3(tileScene.x, 0f, tileScene.y);
             for (int i = 0; i < entries.Count; i++)
-            {
-                var entry = entries[i];
-                entry.WorldPosition += shift;
-                entries[i] = entry;
-            }
+                entries[i] = entries[i].Shifted(shift);
         }
 
+        // クラスタ重心もノイズ座標のままなので、位置と同じシフトを通してフレームを揃える（PlacementEntry.Shiftedが両方を動かす）。
+        // The cluster centroid is also still in noise space, so the same shift keeps it in the position's frame (PlacementEntry.Shifted moves both).
         public static void ToSceneSpace(List<PlacementEntry> entries, Vector2 noiseToSceneShift)
         {
             var shift = new Vector3(noiseToSceneShift.x, 0f, noiseToSceneShift.y);
             for (int i = 0; i < entries.Count; i++)
-            {
-                var entry = entries[i];
-                entry.WorldPosition -= shift;
-
-                // クラスタ重心もノイズ座標のままなので、配置位置と同じシフトを通してフレームを揃える。
-                // The cluster centroid is also still in noise space, so apply the same shift to keep it in the same frame as the position.
-                // 独立配置(ClusterId=-1)の重心は未設定の (0,0,0) なので、引くと未使用値が -shift の実座標へ化ける。
-                // An independent placement (ClusterId=-1) leaves the centroid at an unset (0,0,0), which subtraction would turn into a real -shift coordinate.
-                if (entry.Cluster.HasValue && 0 <= entry.Cluster.Value.ClusterId)
-                {
-                    var cluster = entry.Cluster.Value;
-                    cluster.Center -= shift;
-                    entry.Cluster = cluster;
-                }
-
-                entries[i] = entry;
-            }
+                entries[i] = entries[i].Shifted(-shift);
         }
 
         // 鉱脈 AABB は整数スナップ済みなので、窓原点シフトを整数へ1度だけ丸めて全件へ同じ値を引く。

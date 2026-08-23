@@ -1,6 +1,5 @@
-using System;
 using System.Collections.Generic;
-using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Runtime;
 using GenTextureConfig = Mooresmaster.Model.BiomeTextureConfigModule.BiomeTextureConfig;
 
 namespace Game.MapGeneration.Pipeline.Visual.Splat
@@ -42,19 +41,10 @@ namespace Game.MapGeneration.Pipeline.Visual.Splat
                 curvatureMax = generated.CurvatureMax,
                 curvatureSmoothness = generated.CurvatureSmoothness,
 
-                noiseType = ParseNoiseType(generated.NoiseType),
+                noiseType = RuntimeConvert.ToMapNoiseType(generated.NoiseType),
                 noiseFrequency = generated.NoiseFrequency,
                 noiseAmplitude = generated.NoiseAmplitude,
             };
-        }
-
-        // Mooresmaster は enum をオプション名の文字列で生成する。未知名は既定化せず違反名を添えて落とす
-        // Mooresmaster emits enums as option-name strings; an unknown name fails loud with the offending value
-        private static MapNoiseType ParseNoiseType(string generatedName)
-        {
-            if (Enum.TryParse<MapNoiseType>(generatedName, out var parsed)) return parsed;
-            throw new InvalidOperationException(
-                $"[SplatTextureConfigFactory] 'noiseType' has an unrecognized enum value: '{generatedName}'.");
         }
     }
 }

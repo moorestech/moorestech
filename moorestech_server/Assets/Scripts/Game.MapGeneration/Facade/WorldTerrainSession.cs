@@ -1,10 +1,10 @@
 using System;
 using Core.Master;
-using Game.MapGeneration.Cache;
 using Game.MapGeneration.Identity;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Transfer;
+using Game.Paths;
 using UnityEngine;
 
 namespace Game.MapGeneration.Facade
@@ -37,20 +37,25 @@ namespace Game.MapGeneration.Facade
             terrainMeta.ThrowIfGenerationMasterFingerprintDiffers(fingerprint);
 
             // サーバーの唯一の入口と同じ2段（config組立→アルゴリズム選択→生成）を通る。手で組み直さない
+            // ただしスポーン探索だけは再計算せず、ワールド作成時に確定した原点を注入して同じ窓を指させる
             // Go through the very two steps of the server's single entry (build config, pick algorithm, generate); never hand-assemble
-            var config = MapGenerationPipeline.BuildConfig(selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory);
+            // The spawn search alone is not recomputed: the origins settled at world creation are injected so the same window is addressed
+            var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
+                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, terrainMeta.Origins);
             terrainMeta.ThrowIfTerrainResolutionDiffers(config.Resolution);
 
             // pass-1: サーバーと同じ生成を丸ごと回し、配置台帳（クラスタ・種別込み）を得る。高さは捨てて転送値を正本にする
             // pass-1: run the very same generation to obtain the placement ledger (clusters and kinds); its heights are dropped in favour of the transferred ones
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var ledger = MapGenerationPipeline.Generate(selectedGeneration, config).Ledger;
-            Debug.Log($"[WorldTerrainSession] pass-1 placement regeneration: {stopwatch.ElapsedMilliseconds}ms, placements={ledger.Placements.Count}");
+            var run = MapGenerationPipeline.Generate(selectedGeneration, config);
 
-            // 高さ源は共有キャッシュ。組み立てはサーバー先焼きと共有
-            // The height source is the shared cache; assembly is shared with the server prebake
-            var heightSource = SharedWorldCache.For(terrainMeta.WorldId);
-            var factoryResult = TileVisualBakerFactory.Create(config, terrainMeta, ledger, heightSource, selectedGeneration);
+            // 注入が効いていれば原点は構造的に一致する。崩れた台帳は別の窓の配置なので、台帳を取る前に止める
+            // The injection makes the origins agree structurally; a drifted ledger holds another window's placements, so stop before taking it
+            terrainMeta.ThrowIfOriginsDiffer(run.Output.NoiseOrigin, run.Output.SceneOrigin);
+
+            // 高さ源は共有キャッシュ。組み立てはサーバー先焼きと共有し、Configは生成が実際に使ったものを渡す
+            // The height source is the shared cache; assembly is shared with the server prebake, and the config handed over is the one the run actually used
+            var heightSource = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId);
+            var factoryResult = TileVisualBakerFactory.Create(run.Config, terrainMeta, run.Ledger, heightSource, selectedGeneration);
             var baker = factoryResult.Baker;
             var gridConfig = factoryResult.GridConfig;
             var layout = WorldTerrainLayout.CreateTileMaps(

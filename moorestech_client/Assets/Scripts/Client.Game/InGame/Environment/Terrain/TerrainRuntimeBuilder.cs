@@ -27,7 +27,7 @@ namespace Client.Game.InGame.Environment.Terrain
         // URP's defaultTerrainMaterial is editor-only and returns null in builds, so a project-owned material is resolved by address
         private const string TerrainMaterialAddress = "Vanilla/Environment/Terrain/TerrainLitMaterial";
 
-        public static async UniTask BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, string serverDataDirectory)
+        public static async UniTask BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, string localMasterDirectory)
         {
             var terrainMaterial = await AddressableLoader.LoadAsyncDefault<Material>(TerrainMaterialAddress);
             if (terrainMaterial == null)
@@ -35,7 +35,7 @@ namespace Client.Game.InGame.Environment.Terrain
 
             // 生成システムへはメタをそのまま戻す。中身（seed・原点）はここでは解釈しない
             // The meta goes straight back to the generation system; nothing here interprets its contents (seed, origins)
-            var session = WorldTerrainSession.Open(mapLayout.TerrainMeta.ToTerrainTransferMeta(), serverDataDirectory);
+            var session = WorldTerrainSession.Open(mapLayout.TerrainMeta.ToTerrainTransferMeta(), localMasterDirectory);
             var layout = session.Layout;
             switch (layout.Kind)
             {

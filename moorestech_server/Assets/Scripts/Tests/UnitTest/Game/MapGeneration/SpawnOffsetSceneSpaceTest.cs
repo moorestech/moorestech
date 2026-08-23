@@ -84,9 +84,9 @@ namespace Tests.UnitTest.Game.MapGeneration
                 new JObject { ["worldOffsetX"] = 317.0, ["worldOffsetZ"] = -213.0 });
 
             var expectedConfig = MapGenerationPipeline.BuildConfig(atOrigin, Seed, TestGenerationConfigFactory.ServerDataDirectory);
-            var expected = MapGenerationPipeline.Generate(atOrigin, expectedConfig);
+            var expected = MapGenerationPipeline.Generate(atOrigin, expectedConfig).Output;
             var actualConfig = MapGenerationPipeline.BuildConfig(shifted, Seed, TestGenerationConfigFactory.ServerDataDirectory);
-            var actual = MapGenerationPipeline.Generate(shifted, actualConfig);
+            var actual = MapGenerationPipeline.Generate(shifted, actualConfig).Output;
 
             Assert.That(actual.SpawnPoint, Is.EqualTo(expected.SpawnPoint));
             Assert.That(actual.Tiles.Count, Is.EqualTo(expected.Tiles.Count));
@@ -115,10 +115,14 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             // 近距離配置だけを除き、境界外の配置順序と座標を維持する
             // Remove only the near placement while preserving the order and position outside the boundary
+            // 除外はXZ位置だけで決まるので、種別と見た目の効き方は結果に関与しない
+            // The exclusion is decided by the XZ position alone, so the kind and the surround effect play no part
             var entries = new List<PlacementEntry>
             {
-                new PlacementEntry { WorldPosition = new Vector3(3f, 0f, 4f) },
-                new PlacementEntry { WorldPosition = new Vector3(20f, 0f, 0f) },
+                PlacementEntry.CreateTree(string.Empty, new Vector3(3f, 0f, 4f),
+                    Quaternion.identity, Vector3.one, 0f, TerrainSurroundEffectType.treeRootPatch),
+                PlacementEntry.CreateTree(string.Empty, new Vector3(20f, 0f, 0f),
+                    Quaternion.identity, Vector3.one, 0f, TerrainSurroundEffectType.treeRootPatch),
             };
             SpawnPlacementExclusionStage.RemoveInsideSpawnClearance(entries, Vector3.zero);
 
@@ -148,6 +152,9 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
             int res = output.Resolution;
+
+            // 中心タイルはシーン (0,W)x(0,L) を占めるので、格子の原点は SceneOrigin ではなく 0 である。
+            // The center tile occupies scene (0,W)x(0,L), so the lattice origin is 0, not SceneOrigin.
             int px = Mathf.RoundToInt(output.SpawnPoint.x / vp.TerrainWidth * (res - 1));
             int pz = Mathf.RoundToInt(output.SpawnPoint.z / vp.TerrainLength * (res - 1));
 

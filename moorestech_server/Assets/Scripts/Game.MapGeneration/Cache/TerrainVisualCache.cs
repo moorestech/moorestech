@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using Game.Paths;
 using UnityEngine;
 
@@ -45,20 +43,9 @@ namespace Game.MapGeneration.Cache
         {
             var filePath = _worldCacheDirectory.TerrainVisualCacheFilePath(tileX, tileZ);
 
-            // 派生キャッシュへの外部I/O失敗だけを隔離し、再構築済みの見た目で起動を継続する
-            // Isolate only external I/O failures for the derived cache so startup can continue with the rebuilt visuals
-            try
-            {
-                TerrainVisualCacheWriter.Write(filePath, _cacheKey, tileVisual);
-            }
-            catch (IOException exception)
-            {
-                Debug.LogWarning($"[TerrainVisualCache] Could not write '{filePath}': {exception.Message}");
-            }
-            catch (UnauthorizedAccessException exception)
-            {
-                Debug.LogWarning($"[TerrainVisualCache] Access denied while writing '{filePath}': {exception.Message}");
-            }
+            // 書き手が保存先ディレクトリを用意する。それでも失敗する書き込みは隠さず呼び出し元へ返す
+            // The writer provisions the destination directory; a write that still fails is surfaced instead of hidden
+            TerrainVisualCacheWriter.Write(filePath, _cacheKey, tileVisual);
         }
     }
 }

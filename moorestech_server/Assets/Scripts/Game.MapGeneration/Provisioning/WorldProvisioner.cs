@@ -111,10 +111,15 @@ namespace Game.MapGeneration.Provisioning
                     throw new InvalidOperationException(
                         "Cannot provision a generated world: MasterHolder.GenerationMaster.SelectedGeneration is undefined.");
 
-                config = MapGenerationPipeline.BuildConfig(selected, settings.Seed, settings.ServerDataDirectory);
-                var output = MapGenerationPipeline.Generate(selected, config);
-                ledger = output.Ledger;
+                var inputConfig = MapGenerationPipeline.BuildConfig(selected, settings.Seed, settings.ServerDataDirectory);
+                var run = MapGenerationPipeline.Generate(selected, inputConfig);
+                ledger = run.Ledger;
 
+                // pass-2へ渡すのは探索結果を書き戻した後のConfig。入力側はスポーン座標が探索前のまま残る
+                // Hand pass-2 the config carrying the search write-back; the input side still holds the pre-search spawn position
+                config = run.Config;
+
+                var output = run.Output;
                 var mapInfoJson = MapInfoJsonBuilder.Build(output);
                 File.WriteAllText(tempDataDirectory.MapJsonFilePath, JsonConvert.SerializeObject(mapInfoJson, Formatting.Indented));
                 TerrainFileWriter.Write(tempDataDirectory, output);

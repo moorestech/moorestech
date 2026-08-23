@@ -11,6 +11,20 @@ namespace Game.MapGeneration.Facade
     /// </summary>
     public sealed class WorldTerrainLayout
     {
+        private const string TemplateTerrainDataAddress = "Vanilla/Environment/TemplateTerrainData";
+
+        // Environment.prefabのTerrainが持っていたオーサリング配置の移設先。sizeは2048角なのに位置は-1000で、中心合わせでは24mずれてベイク済みmapObject座標が全部崩れる
+        // Migrated from the authored placement on Environment.prefab's Terrain; its size is 2048 square yet the position is -1000, so centering it would shift 24m and break every baked mapObject coordinate
+        private static readonly Vector3 TemplateTerrainOrigin = new(-1000f, 0f, -1000f);
+
+        // template専用の見た目定数。生成タイルはCreateTileMapsのBaked側を使う
+        // Visual constants for template only; generated tiles use the Baked pair in CreateTileMaps
+        private const float TemplateDetailObjectDistance = 80f;
+        private const float TemplateDetailObjectDensity = 1f;
+
+        private const float BakedDetailObjectDistance = 200f;
+        private const float BakedDetailObjectDensity = 0.3f;
+
         public TerrainLayoutKind Kind { get; }
 
         public string AuthoredTerrainDataAddress { get; }
@@ -46,10 +60,10 @@ namespace Game.MapGeneration.Facade
         public static WorldTerrainLayout CreateTerrainAsset()
         {
             return new WorldTerrainLayout(
-                TerrainLayoutKind.TerrainAsset, TerrainRenderingDefaults.TemplateTerrainDataAddress, TerrainRenderingDefaults.TemplateTerrainOrigin,
+                TerrainLayoutKind.TerrainAsset, TemplateTerrainDataAddress, TemplateTerrainOrigin,
                 new List<(int TileX, int TileZ)>(), Vector3.zero, 0,
                 new List<string>(), new List<DetailPrototypeSpec>(),
-                TerrainRenderingDefaults.TemplateDetailObjectDistance, TerrainRenderingDefaults.TemplateDetailObjectDensity);
+                TemplateDetailObjectDistance, TemplateDetailObjectDensity);
         }
 
         public static WorldTerrainLayout CreateTileMaps(
@@ -60,7 +74,7 @@ namespace Game.MapGeneration.Facade
                 TerrainLayoutKind.TileMaps, string.Empty, Vector3.zero,
                 tileCoordinates, tileSize, heightmapResolution,
                 textureLayerAddresses, detailPrototypes,
-                TerrainRenderingDefaults.BakedDetailObjectDistance, TerrainRenderingDefaults.BakedDetailObjectDensity);
+                BakedDetailObjectDistance, BakedDetailObjectDensity);
         }
     }
 }

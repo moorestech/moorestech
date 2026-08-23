@@ -107,16 +107,13 @@ namespace Game.MapGeneration.Pipeline.Generators
                                 (float)rng.NextDouble()) * uCfg.understoryScaleThreshold;
                         float sinkNorm = dims.TerrainHeight > 0f ? entry.sink / dims.TerrainHeight : 0f;
 
-                        placements.Add(new PlacementEntry
-                        {
-                            MapObjectGuid = TreePlacementCommon.PickRandomGuid(entry.mapObjectGuids, rng),
-                            WorldPosition = new Vector3(tx, th * dims.TerrainHeight, tz),
-                            Rotation = Quaternion.Euler(0,
-                                entry.randomRotation ? (float)rng.NextDouble() * 360f : 0f, 0),
-                            Scale = new Vector3(childW, childH, childW),
-                            Sink = sinkNorm * dims.TerrainHeight,
-                            SurroundEffect = entry.terrainSurroundEffectType
-                        });
+                        placements.Add(PlacementEntry.CreateTree(
+                            TreePlacementCommon.PickRandomGuid(entry.mapObjectGuids, rng),
+                            new Vector3(tx, th * dims.TerrainHeight, tz),
+                            Quaternion.Euler(0, entry.randomRotation ? (float)rng.NextDouble() * 360f : 0f, 0),
+                            new Vector3(childW, childH, childW),
+                            sinkNorm * dims.TerrainHeight,
+                            entry.terrainSurroundEffectType));
                         sharedGrid.Add(tx, tz);
                         placedChildren++;
                     }

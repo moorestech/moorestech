@@ -61,55 +61,59 @@ namespace Game.MapGeneration.Pipeline.Visual.Splat
             }
 
             return result;
-        }
 
-        private static TextureEntryParams ToTextureEntryParams(
-            TextureEntry entry, IReadOnlyDictionary<string, int> layerIndexByAddress, int noiseOffsetIndex)
-        {
-            return new TextureEntryParams
+            #region Internal
+
+            // SplatLayerTableが全アドレスを登録済みなので未登録は表の組み立て漏れ。0番へ黙って倒さない
+            // SplatLayerTable registered every address, so a miss means the table was built wrong; never fall back to index 0
+            static int RequireLayerIndex(string layerAddressablePath, IReadOnlyDictionary<string, int> layerIndexByAddress)
             {
-                layerIndex = RequireLayerIndex(entry.layerAddressablePath, layerIndexByAddress),
-                weight = entry.weight,
-
-                useSlopeFilter = entry.useSlopeFilter ? 1 : 0,
-                slopeMin = entry.slopeMin,
-                slopeMax = entry.slopeMax,
-                slopeSmoothness = entry.slopeSmoothness,
-
-                useHeightFilter = entry.useHeightFilter ? 1 : 0,
-                heightMin = entry.heightMin,
-                heightMax = entry.heightMax,
-                heightSmoothness = entry.heightSmoothness,
-
-                useCurvatureFilter = entry.useCurvatureFilter ? 1 : 0,
-                curvatureMin = entry.curvatureMin,
-                curvatureMax = entry.curvatureMax,
-                curvatureSmoothness = entry.curvatureSmoothness,
-
-                noiseType = (int)entry.noiseType,
-                noiseFrequency = entry.noiseFrequency,
-                noiseAmplitude = entry.noiseAmplitude,
-                noiseOffsetIndex = noiseOffsetIndex,
-            };
-        }
-
-        private static void ConsumeOffsets(Random random, int count)
-        {
-            for (var i = 0; i < count; i++)
-            {
-                random.NextDouble();
-                random.NextDouble();
+                if (!layerIndexByAddress.TryGetValue(layerAddressablePath, out var layerIndex))
+                    throw new InvalidOperationException(
+                        $"[TextureEntryParamsBuilder] Layer address '{layerAddressablePath}' is missing from the splat layer table.");
+                return layerIndex;
             }
-        }
 
-        // SplatLayerTableが全アドレスを登録済みなので未登録は表の組み立て漏れ。0番へ黙って倒さない
-        // SplatLayerTable registered every address, so a miss means the table was built wrong; never fall back to index 0
-        private static int RequireLayerIndex(string layerAddressablePath, IReadOnlyDictionary<string, int> layerIndexByAddress)
-        {
-            if (!layerIndexByAddress.TryGetValue(layerAddressablePath, out var layerIndex))
-                throw new InvalidOperationException(
-                    $"[TextureEntryParamsBuilder] Layer address '{layerAddressablePath}' is missing from the splat layer table.");
-            return layerIndex;
+            static void ConsumeOffsets(Random random, int count)
+            {
+                for (var i = 0; i < count; i++)
+                {
+                    random.NextDouble();
+                    random.NextDouble();
+                }
+            }
+
+            static TextureEntryParams ToTextureEntryParams(
+                TextureEntry entry, IReadOnlyDictionary<string, int> layerIndexByAddress, int noiseOffsetIndex)
+            {
+                return new TextureEntryParams
+                {
+                    layerIndex = RequireLayerIndex(entry.layerAddressablePath, layerIndexByAddress),
+                    weight = entry.weight,
+
+                    useSlopeFilter = entry.useSlopeFilter ? 1 : 0,
+                    slopeMin = entry.slopeMin,
+                    slopeMax = entry.slopeMax,
+                    slopeSmoothness = entry.slopeSmoothness,
+
+                    useHeightFilter = entry.useHeightFilter ? 1 : 0,
+                    heightMin = entry.heightMin,
+                    heightMax = entry.heightMax,
+                    heightSmoothness = entry.heightSmoothness,
+
+                    useCurvatureFilter = entry.useCurvatureFilter ? 1 : 0,
+                    curvatureMin = entry.curvatureMin,
+                    curvatureMax = entry.curvatureMax,
+                    curvatureSmoothness = entry.curvatureSmoothness,
+
+                    noiseType = (int)entry.noiseType,
+                    noiseFrequency = entry.noiseFrequency,
+                    noiseAmplitude = entry.noiseAmplitude,
+                    noiseOffsetIndex = noiseOffsetIndex,
+                };
+            }
+
+            #endregion
         }
     }
 }

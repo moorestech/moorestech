@@ -131,21 +131,12 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     float my = OrePlacementMath.SampleHeight(heights, mx, mz, w, l, hRes) * dims.TerrainHeight;
 
-                    result.Add(new PlacementEntry
-                    {
-                        MapObjectGuid = entry.veinGuid,
-                        WorldPosition = new Vector3(
-                            mx + dims.WorldOffsetX,
-                            my,
-                            mz + dims.WorldOffsetZ),
-                        Rotation = Quaternion.identity,
-                        Scale = Vector3.one,
-                        Sink = 0f,
-                        // 鉱脈は見た目ステージへ渡らず未使用だが、岩に近い性質なのでrockNoBareGroundを明示する（none番兵に頼らない）
-                        // Veins never reach the visual stages so this goes unused, but rockNoBareGround names its rock-like nature explicitly instead of relying on the none sentinel
-                        SurroundEffect = TerrainSurroundEffectType.rockNoBareGround,
-                        Cluster = null
-                    });
+                    // 鉱脈は見た目ステージへ渡らず未使用だが、岩に近い性質なのでrockNoBareGroundを明示する
+                    // Veins never reach the visual stages so this goes unused, but rockNoBareGround names its rock-like nature explicitly
+                    result.Add(PlacementEntry.CreateVein(
+                        entry.veinGuid,
+                        new Vector3(mx + dims.WorldOffsetX, my, mz + dims.WorldOffsetZ),
+                        TerrainSurroundEffectType.rockNoBareGround));
 
                     oreGrid.Add(mx, mz);
                 }

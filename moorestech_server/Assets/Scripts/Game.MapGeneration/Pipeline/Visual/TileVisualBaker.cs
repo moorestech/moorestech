@@ -95,7 +95,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             var preHeights = HeightFileLoader.LoadHeights(_heightSource, tileX, tileZ, _gridConfig.Resolution);
             var postHeights = TreePerturbationApplier.Apply(preHeights, tileConfig, tileWorldPosition, _ledger.Placements);
 
-            var tileVisual = ResolveVisual(tileX, tileZ, tileConfig, tileWorldPosition, preHeights, postHeights);
+            var tileVisual = ResolveVisual();
 
             // generateTexture/generateDetailと同型の内側ゲート。offなら平坦配列を表示用に渡し、地形本体の起伏を止める
             // The same inner gate shape as generateTexture/generateDetail; off feeds a flat array so the terrain itself stays flat
@@ -104,92 +104,90 @@ namespace Game.MapGeneration.Pipeline.Visual
 
             #region Internal
 
+            // splatもdetailも作らない設定では分類の結果を誰も読まない。パディング窓を回さずに空で返す
+            // With neither splat nor detail requested nobody reads the classification, so the padded window is never run
+            TerrainTileVisual ResolveVisual()
+            {
+                if (!_gridConfig.generateTexture && !_gridConfig.generateDetail)
+                    return new TerrainTileVisual(null, Array.Empty<int[,]>());
+
+                // キャッシュ形式はalphamapを必ず1枚要求する。テクスチャを作らない見た目は書けないので読みも書きもしない
+                // The cache format always demands one alphamap, so a texture-less visual is neither read nor written
+                if (!_gridConfig.generateTexture) return Rebuild();
+
+                // detailの解像度とプロトタイプ数を先に固定する。ヒット後に数違いで落とさず、Readerで壊れた取り逃しにする
+                // Fix detail resolution and prototype count before loading so a mismatch becomes a broken miss in the Reader, never a post-hit failure
+                var cacheHit = _visualCache.TryLoad(
+                    tileX, tileZ, _gridConfig.AlphamapResolution, _layerTable.OrderedLayerAddresses.Count, _gridConfig.Resolution - 1,
+                    DetailPrototypes.Count, out var cachedTileVisual);
+                if (cacheHit) return cachedTileVisual;
+
+                // 取り逃しタイルのみ作り直し書き戻す
+                // Only the missed tiles are rebuilt and written back
+                var rebuilt = Rebuild();
+                _visualCache.Save(tileX, tileZ, rebuilt);
+                return rebuilt;
+
+                #region Internal
+
+                TerrainTileVisual Rebuild()
+                {
+                    // 分類はタイル1枚につき1回。splatのブレンド入力とDetailの勝者マスクを同じパディング窓から採る
+                    // One classification per tile, so splat's blend inputs and detail's winner masks come from the same padded window
+                    using var classification = new TileClassificationContext(tileConfig, _biomeTypes);
+                    classification.Initialize();
+
+                    // 移植元はSplatmapJobそのものをフラグで飛ばす（TerrainGenerator.cs:792）。alphamapが無ければDetailのテクスチャフィルタも休む
+                    // The source gates the SplatmapJob itself (TerrainGenerator.cs:792); with no alphamap the detail texture filter idles too
+                    var alphamap = _gridConfig.generateTexture ? BuildAlphamap(classification) : null;
+                    var detailMaps = _gridConfig.generateDetail
+                        ? BuildDetailMaps(classification, alphamap)
+                        : new List<int[,]>();
+
+                    // Detailは移植元と同じ生の重みを読む。畳むのはその後で、保存と適用に回る値だけをキャッシュ往復で不変にする
+                    // Detail reads the same raw weights as the source; the fold comes after it and only makes the stored, applied values survive a round trip
+                    if (alphamap != null) StoredAlphamapWeights.Fold(alphamap);
+
+                    return new TerrainTileVisual(alphamap, detailMaps);
+                }
+
+                // splatも岩の裸地でmapObjectを読むようになったので、Detailと同じく全タイルぶんを渡してhaloで切らせる
+                // The splat now reads map objects for the rocks' bare ground too, so it takes the whole layout and slices its own halo, as detail does
+                float[,,] BuildAlphamap(TileClassificationContext classification)
+                {
+                    var resolution = _gridConfig.Resolution;
+
+                    // サーバーが転送していたbiome_x_z.binと同じ式。転送をやめても SplatmapJob が読む勝者は1ビットも変わらない
+                    // The same formula that produced the transferred biome_x_z.bin; dropping the transfer changes no bit of the winner SplatmapJob reads
+                    var biomeIndicesFlat = PlacementInputBuilder.BuildBiomeIndices(
+                        classification.Buffers.winnerBiomeIndex, classification.Buffers.landMask, classification.Buffers.beachFactor,
+                        _biomeTypes, resolution * resolution);
+                    var biomeIndices = new byte[resolution, resolution];
+                    for (var z = 0; z < resolution; z++)
+                    for (var x = 0; x < resolution; x++)
+                        biomeIndices[z, x] = biomeIndicesFlat[z * resolution + x];
+
+                    return SplatmapStage.Generate(
+                        tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundSpecies,
+                        preHeights, biomeIndices, _gridConfig.AlphamapResolution,
+                        _ledger.Placements, tileWorldPosition);
+                }
+
+                // 距離場はタイル境界の外まで見るため、切り出し済みのタイル内mapObjectではなく全タイルぶんを渡す
+                // The distance fields look past the tile boundary, so the whole layout goes in rather than the tile's own slice
+                List<int[,]> BuildDetailMaps(TileClassificationContext classification, float[,,] alphamap)
+                {
+                    return TerrainDetailBuilder.Build(
+                        tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
+                        alphamap, _ledger.Placements, tileWorldPosition, tileX, tileZ);
+                }
+
+                #endregion
+            }
+
             float[,] CreateFlatHeights(int resolution)
             {
                 return new float[resolution, resolution];
-            }
-
-            #endregion
-        }
-
-        // splatもdetailも作らない設定では分類の結果を誰も読まない。パディング窓を回さずに空で返す
-        // With neither splat nor detail requested nobody reads the classification, so the padded window is never run
-        private TerrainTileVisual ResolveVisual(
-            int tileX, int tileZ, TerrainGenerationConfig tileConfig, Vector3 tileWorldPosition,
-            float[,] preHeights, float[,] postHeights)
-        {
-            if (!_gridConfig.generateTexture && !_gridConfig.generateDetail)
-                return new TerrainTileVisual(null, Array.Empty<int[,]>());
-
-            // キャッシュ形式はalphamapを必ず1枚要求する。テクスチャを作らない見た目は書けないので読みも書きもしない
-            // The cache format always demands one alphamap, so a texture-less visual is neither read nor written
-            if (!_gridConfig.generateTexture) return Rebuild();
-
-            // detailの解像度とプロトタイプ数を先に固定する。ヒット後に数違いで落とさず、Readerで壊れた取り逃しにする
-            // Fix detail resolution and prototype count before loading so a mismatch becomes a broken miss in the Reader, never a post-hit failure
-            var cacheHit = _visualCache.TryLoad(
-                tileX, tileZ, _gridConfig.AlphamapResolution, _layerTable.OrderedLayerAddresses.Count, _gridConfig.Resolution - 1,
-                DetailPrototypes.Count, out var tileVisual);
-            if (cacheHit) return tileVisual;
-
-            // 取り逃しタイルのみ作り直し書き戻す
-            // Only the missed tiles are rebuilt and written back
-            var rebuilt = Rebuild();
-            _visualCache.Save(tileX, tileZ, rebuilt);
-            return rebuilt;
-
-            #region Internal
-
-            TerrainTileVisual Rebuild()
-            {
-                // 分類はタイル1枚につき1回。splatのブレンド入力とDetailの勝者マスクを同じパディング窓から採る
-                // One classification per tile, so splat's blend inputs and detail's winner masks come from the same padded window
-                using var classification = new TileClassificationContext(tileConfig, _biomeTypes);
-                classification.Initialize();
-
-                // 移植元はSplatmapJobそのものをフラグで飛ばす（TerrainGenerator.cs:792）。alphamapが無ければDetailのテクスチャフィルタも休む
-                // The source gates the SplatmapJob itself (TerrainGenerator.cs:792); with no alphamap the detail texture filter idles too
-                var alphamap = _gridConfig.generateTexture ? BuildAlphamap(classification) : null;
-                var detailMaps = _gridConfig.generateDetail
-                    ? BuildDetailMaps(classification, alphamap)
-                    : new List<int[,]>();
-
-                // Detailは移植元と同じ生の重みを読む。畳むのはその後で、保存と適用に回る値だけをキャッシュ往復で不変にする
-                // Detail reads the same raw weights as the source; the fold comes after it and only makes the stored, applied values survive a round trip
-                if (alphamap != null) StoredAlphamapWeights.Fold(alphamap);
-
-                return new TerrainTileVisual(alphamap, detailMaps);
-            }
-
-            // splatも岩の裸地でmapObjectを読むようになったので、Detailと同じく全タイルぶんを渡してhaloで切らせる
-            // The splat now reads map objects for the rocks' bare ground too, so it takes the whole layout and slices its own halo, as detail does
-            float[,,] BuildAlphamap(TileClassificationContext classification)
-            {
-                var resolution = _gridConfig.Resolution;
-
-                // サーバーが転送していたbiome_x_z.binと同じ式。転送をやめても SplatmapJob が読む勝者は1ビットも変わらない
-                // The same formula that produced the transferred biome_x_z.bin; dropping the transfer changes no bit of the winner SplatmapJob reads
-                var biomeIndicesFlat = PlacementInputBuilder.BuildBiomeIndices(
-                    classification.Buffers.winnerBiomeIndex, classification.Buffers.landMask, classification.Buffers.beachFactor,
-                    _biomeTypes, resolution * resolution);
-                var biomeIndices = new byte[resolution, resolution];
-                for (var z = 0; z < resolution; z++)
-                for (var x = 0; x < resolution; x++)
-                    biomeIndices[z, x] = biomeIndicesFlat[z * resolution + x];
-
-                return SplatmapStage.Generate(
-                    tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundSpecies,
-                    preHeights, biomeIndices, _gridConfig.AlphamapResolution,
-                    _ledger.Placements, tileWorldPosition);
-            }
-
-            // 距離場はタイル境界の外まで見るため、切り出し済みのタイル内mapObjectではなく全タイルぶんを渡す
-            // The distance fields look past the tile boundary, so the whole layout goes in rather than the tile's own slice
-            List<int[,]> BuildDetailMaps(TileClassificationContext classification, float[,,] alphamap)
-            {
-                return TerrainDetailBuilder.Build(
-                    tileConfig, _biomeTypes, _visualSections, preHeights, postHeights, classification.WinnerMasks,
-                    alphamap, _ledger.Placements, tileWorldPosition, tileX, tileZ);
             }
 
             #endregion

@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.AreEqual(GridSide * GridSide, output.Tiles.Count);
 
@@ -68,7 +68,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         {
             var config = MultiTileTestWorld.BuildConfig(1, Seed);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.AreEqual(1, output.Tiles.Count);
             Assert.AreEqual(Vector2.zero, output.SceneOrigin);
@@ -79,7 +79,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         [Test]
         public void 隣接タイルは別のノイズ窓を見て異なる高さになる()
         {
-            var output = new VanillaGenerator().Generate(MultiTileTestWorld.BuildConfig(GridSide, Seed));
+            var output = new VanillaGenerator().Generate(MultiTileTestWorld.BuildConfig(GridSide, Seed)).Output;
 
             var center = output.Tiles.Single(tile => tile.TileX == 1 && tile.TileZ == 1);
             var right = output.Tiles.Single(tile => tile.TileX == 2 && tile.TileZ == 1);
@@ -95,7 +95,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
             MultiTileTestWorld.EnableTrees(config);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.IsNotEmpty(output.MapObjects);
             var buckets = new HashSet<Vector2Int>();
@@ -116,7 +116,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.IsNotEmpty(output.ItemVeins);
             var buckets = new HashSet<Vector2Int>();
@@ -136,7 +136,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.IsNotEmpty(output.ItemVeins);
             MultiTileTestWorld.AssertNoOverlappingVeins(output.ItemVeins);
@@ -159,7 +159,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                 MasterWorldOffset + config.terrainWidth * 0.25f,
                 MasterWorldOffset + config.terrainLength * 0.25f);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.AreEqual(new Vector2(MasterWorldOffset, MasterWorldOffset), output.NoiseOrigin - output.SceneOrigin);
 

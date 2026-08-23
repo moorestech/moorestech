@@ -85,11 +85,6 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
                 foreach (var placement in tileLocal)
                     switch (placement.SurroundEffect)
                     {
-                        // 代入漏れは既定値0=noneのまま台帳へ来る。到達時点で即例外にし木の根元扱いへの取り違えを防ぐ
-                        // An unassigned SurroundEffect stays at its default 0=none through to the ledger; throw on arrival instead of silently drawing a tree root
-                        case TerrainSurroundEffectType.none:
-                            throw new InvalidOperationException(
-                                $"[TilePlacementSlicer] Placement {placement.Guid} reached the ledger with an unset (none) SurroundEffect.");
                         case TerrainSurroundEffectType.treeRootPatch:
                             treeList.Add(placement);
                             break;

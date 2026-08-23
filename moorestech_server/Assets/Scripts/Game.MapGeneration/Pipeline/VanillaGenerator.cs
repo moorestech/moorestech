@@ -16,7 +16,7 @@ namespace Game.MapGeneration.Pipeline
     // The VanillaGenerator algorithm body: generates one independent tile per gridSizeX/Z cell into a single output.
     public class VanillaGenerator : IMapGenerator
     {
-        public MapGenerationOutput Generate(TerrainGenerationConfig sourceConfig)
+        public GenerationRun Generate(TerrainGenerationConfig sourceConfig)
         {
             // 探索結果を config へ書き戻すため作業コピーで通す。引数を汚すと同じ config での再実行が別地形になる。
             // Work on a copy since the search result is written back; mutating the argument would make a re-run differ.
@@ -44,8 +44,8 @@ namespace Game.MapGeneration.Pipeline
             int halfZ = config.gridSizeZ / 2;
             var sceneOrigin = config.TileScenePosition(0, 0);
 
-            // pass-2(見た目焼き)へ渡す配置台帳。生成システムの外(結果出力)へは絶対に写さない。
-            // The ledger handed to pass-2 (visual bake); never copy it into the result output outside the generation system.
+            // pass-2(見た目焼き)へ渡す配置台帳。結果出力ではなく GenerationRun の別枠で運ぶ。
+            // The ledger handed to pass-2 (visual bake); it travels in its own GenerationRun slot, not in the result output.
             var ledger = new PlacementLedger();
             var output = new MapGenerationOutput
             {
@@ -55,7 +55,6 @@ namespace Game.MapGeneration.Pipeline
                 // Clients re-run the classification stage, needing the noise window origin, and place the terrain at the scene origin.
                 NoiseOrigin = noiseToSceneShift + sceneOrigin,
                 SceneOrigin = sceneOrigin,
-                Ledger = ledger,
             };
 
             // スポーンのXZはタイル生成前に確定する（高さYだけ中心タイル生成後に採取する）。
@@ -95,7 +94,10 @@ namespace Game.MapGeneration.Pipeline
             }
 
             output.SpawnPoint = ComputeSpawn(config, centerTileHeights, sceneSpawnXz);
-            return output;
+
+            // 返す config は探索結果を書き戻した作業コピー。pass-2 が入力側を読むと探索前のスポーン座標を掴む。
+            // The returned config is the working copy carrying the search write-back; reading the input side would hand pass-2 the pre-search spawn position.
+            return new GenerationRun(output, ledger, config);
 
             #region Internal
 

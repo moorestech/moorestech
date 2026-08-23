@@ -28,6 +28,16 @@ namespace Game.MapGeneration.Pipeline.Spawn
             return Mathf.Max(w, l);
         }
 
+        // 探索が中央化のねらいに使うシーン座標。探索の成否に依らずスポーンはここへ落ちるため、
+        // 探索を回さず原点だけ注入する経路(MapGenerationPipeline.BuildConfigWithSettledOrigins)も同じ式を読む。
+        // The scene-space target the search centres on; the spawn lands here regardless of the search outcome,
+        // so the origin-injection path that skips the search (MapGenerationPipeline.BuildConfigWithSettledOrigins) reads the very same formula.
+        public static Vector2 SpawnTargetScenePosition(TerrainGenerationConfig config)
+        {
+            var spawnSearch = config.spawnSearch;
+            return spawnSearch.overrideSpawnScenePosition ? spawnSearch.spawnScenePosition : GridCenterWorld(config);
+        }
+
         public static Vector2 GridCenterWorld(TerrainGenerationConfig config)
         {
             int halfX = config.gridSizeX / 2;

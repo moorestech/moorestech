@@ -34,7 +34,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
         [Test]
         public void VisualsMatchGolden()
         {
-            var (config, sections, output) = TerrainVisualGoldenFixture.Build();
+            var (config, sections, run) = TerrainVisualGoldenFixture.Build();
+            var output = run.Output;
             var worldRoot = Path.Combine(Path.GetTempPath(), $"moorestech_golden_{System.Guid.NewGuid()}");
             var worldDirectory = WorldDataDirectory.FromWorldRoot(worldRoot);
             var actual = new Dictionary<string, string>();
@@ -53,7 +54,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
                 var layerTable = SplatLayerTable.Build("addr/beach", "addr/rock", sections.MainLayerAddresses, sections.TextureConfigs,
                     sections.SurroundTextureConfigs, species, System.Array.Empty<string>());
                 var baker = new TileVisualBaker(gridConfig, TerrainVisualGoldenFixture.BiomeTypes, sections, layerTable,
-                    species, output.Ledger, worldDirectory, new TerrainVisualCache(worldDirectory, new string('0', 64)));
+                    species, run.Ledger, worldDirectory, new TerrainVisualCache(worldDirectory, new string('0', 64)));
 
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(output.Tiles.Count))
                 {

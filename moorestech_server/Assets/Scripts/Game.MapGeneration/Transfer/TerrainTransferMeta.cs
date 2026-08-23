@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Provisioning;
 using Game.Paths;
+using UnityEngine;
 
 namespace Game.MapGeneration.Transfer
 {
@@ -91,6 +92,23 @@ namespace Game.MapGeneration.Transfer
             if (currentResolution == TerrainResolution) return;
             throw new InvalidOperationException(
                 $"Generation master resolution {currentResolution} disagrees with the transferred terrain resolution {TerrainResolution}.");
+        }
+
+        // 原点照合も同じく唯一の実装へ集約する。原点がずれた台帳は別の窓の配置なので、無言で見た目へ流さない
+        // The origin check is consolidated the same way; a ledger built on shifted origins holds another window's placements and must never reach the visuals silently
+        public void ThrowIfOriginsDiffer(Vector2 currentNoiseOrigin, Vector2 currentSceneOrigin)
+        {
+            // 原点はfloatでworld.jsonを往復し、注入時のG=NoiseOrigin-SceneOriginでも丸められる（数km地点のfloat刻みは約1mm）
+            // 実際にずれるときは窓1枚ぶん（数百m以上）動くので、ハイトマップ1サンプル(約4m)の400分の1を同一とみなす閾値にする
+            // The origins round-trip through world.json as floats and are rounded again by the injected G = NoiseOrigin - SceneOrigin (a float step is about 1mm several km out)
+            // A real disagreement moves by a whole window (hundreds of metres), so the threshold sits at a four-hundredth of one heightmap sample (about 4m)
+            const float toleranceMeters = 0.01f;
+            if (Vector2.Distance(currentNoiseOrigin, Origins.NoiseOrigin) <= toleranceMeters &&
+                Vector2.Distance(currentSceneOrigin, Origins.SceneOrigin) <= toleranceMeters) return;
+
+            throw new InvalidOperationException(
+                $"Regenerated origins (noise {currentNoiseOrigin}, scene {currentSceneOrigin}) disagree with the transferred origins " +
+                $"(noise {Origins.NoiseOrigin}, scene {Origins.SceneOrigin}).");
         }
 
         // 論理ストリームを構成するタイルの並び順。一辺√TileCountの正方格子をz行→x列で走査する

@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using Game.MapGeneration.Cache;
 using Game.MapGeneration.Facade;
 using Game.MapGeneration.Transfer;
+using Game.Paths;
 using NUnit.Framework;
 using Tests.Module;
 using Tests.Module.TestMod;
@@ -21,7 +21,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             var session = WorldTerrainSession.Open(
                 TerrainTransferMeta.CreateTemplate("0123456789abcdef", 0), TestModDirectory.ForUnitTestModDirectory);
             Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TerrainAsset));
-            Assert.That(session.Layout.AuthoredTerrainDataAddress, Is.EqualTo(TerrainRenderingDefaults.TemplateTerrainDataAddress));
+            Assert.That(session.Layout.AuthoredTerrainDataAddress, Is.EqualTo("Vanilla/Environment/TemplateTerrainData"));
             Assert.That(session.Layout.TileCoordinates, Is.Empty);
             Assert.Throws<InvalidOperationException>(() => session.BakeTile(0, 0));
         }
@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
 
             // 高さ源は共有キャッシュなので、転送後と同じ状態を作る: world dir の terrain/ を cache/worlds/<id>/terrain へ複製
             // The height source is the shared cache, so replicate the post-transfer state: copy the world dir's terrain/ into cache/worlds/<id>/terrain
-            var shared = SharedWorldCache.For(meta.WorldId);
+            var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
             CopyDirectory(worldDirectory.TerrainDirectory, shared.TerrainDirectory);
             try
             {

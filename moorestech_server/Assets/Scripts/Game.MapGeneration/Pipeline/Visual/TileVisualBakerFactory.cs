@@ -55,7 +55,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             var layerTable = SplatLayerTable.Build(gridConfig.shoreConfig.beachLayerAddressablePath, gridConfig.rockLayerAddressablePath,
                 visualSections.MainLayerAddresses, visualSections.TextureConfigs, visualSections.SurroundTextureConfigs, treeSurroundSpecies, debugLayerAddresses);
 
-            var sharedCache = SharedWorldCache.For(terrainMeta.WorldId);
+            var sharedCache = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId);
             var cacheKey = TerrainVisualCacheKey.Compute(terrainMeta.GenerationMasterFingerprint, config.seed, terrainMeta.Origins,
                 terrainMeta.TerrainResolution, WorldProvisioner.GeneratorVersion);
             var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledger,

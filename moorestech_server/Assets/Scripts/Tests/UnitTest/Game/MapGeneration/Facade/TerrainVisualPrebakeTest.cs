@@ -1,7 +1,7 @@
 using System.IO;
-using Game.MapGeneration.Cache;
 using Game.MapGeneration.Facade;
 using Game.MapGeneration.Transfer;
+using Game.Paths;
 using NUnit.Framework;
 using Tests.Module;
 using Tests.Module.TestMod;
@@ -20,7 +20,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             var scope = new TerrainTransferTestScope(nameof(生成ワールドの先焼きで共有キャッシュへ全タイルの見た目ファイルが書き出される));
             var worldDirectory = scope.ProvisionGeneratedWorld(777);
             var meta = TerrainTransferMetaReader.Read(worldDirectory);
-            var shared = SharedWorldCache.For(meta.WorldId);
+            var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
             try
             {
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(meta.TerrainTileCount))
@@ -44,7 +44,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             var scope = new TerrainTransferTestScope(nameof(先焼き済みキャッシュはOpen_BakeTileで再構築されずmtimeが変わらない));
             var worldDirectory = scope.ProvisionGeneratedWorld(778);
             var meta = TerrainTransferMetaReader.Read(worldDirectory);
-            var shared = SharedWorldCache.For(meta.WorldId);
+            var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
             try
             {
                 var cacheFilePath = shared.TerrainVisualCacheFilePath(0, 0);

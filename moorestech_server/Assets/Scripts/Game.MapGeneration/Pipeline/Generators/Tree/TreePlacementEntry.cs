@@ -107,15 +107,13 @@ namespace Game.MapGeneration.Pipeline.Generators
             float rotation = entry.randomRotation ? (float)rng.NextDouble() * 360f : 0f;
             float sinkNorm = dims.TerrainHeight > 0f ? entry.sink / dims.TerrainHeight : 0f;
 
-            placements.Add(new PlacementEntry
-            {
-                MapObjectGuid = TreePlacementCommon.PickRandomGuid(entry.mapObjectGuids, rng),
-                WorldPosition = new Vector3(point.x, height * dims.TerrainHeight, point.y),
-                Rotation = Quaternion.Euler(0, rotation, 0),
-                Scale = new Vector3(widthScale, heightScale, widthScale),
-                Sink = sinkNorm * dims.TerrainHeight,
-                SurroundEffect = entry.terrainSurroundEffectType
-            });
+            placements.Add(PlacementEntry.CreateTree(
+                TreePlacementCommon.PickRandomGuid(entry.mapObjectGuids, rng),
+                new Vector3(point.x, height * dims.TerrainHeight, point.y),
+                Quaternion.Euler(0, rotation, 0),
+                new Vector3(widthScale, heightScale, widthScale),
+                sinkNorm * dims.TerrainHeight,
+                entry.terrainSurroundEffectType));
             sharedGrid.Add(point.x, point.y);
         }
     }

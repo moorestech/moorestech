@@ -35,19 +35,23 @@ namespace Game.MapGeneration.Cache
             }
 
             return heights;
-        }
 
-        // 長さ不一致のまま読むと以降の全画素が1列ずつずれる。切り詰めや解像度取り違えは明示失敗にする
-        // Reading a mismatched length shifts every later pixel by a column, so truncation or a wrong resolution fails loudly
-        private static byte[] ReadWithExpectedLength(string filePath, int terrainResolution, int bytesPerPixel)
-        {
-            var expectedByteLength = terrainResolution * terrainResolution * bytesPerPixel;
-            var bytes = File.ReadAllBytes(filePath);
-            if (bytes.Length != expectedByteLength)
-                throw new InvalidOperationException(
-                    $"Terrain file '{filePath}' holds {bytes.Length} bytes but resolution {terrainResolution} requires {expectedByteLength}.");
+            #region Internal
 
-            return bytes;
+            // 長さ不一致のまま読むと以降の全画素が1列ずつずれる。切り詰めや解像度取り違えは明示失敗にする
+            // Reading a mismatched length shifts every later pixel by a column, so truncation or a wrong resolution fails loudly
+            static byte[] ReadWithExpectedLength(string filePath, int terrainResolution, int bytesPerPixel)
+            {
+                var expectedByteLength = terrainResolution * terrainResolution * bytesPerPixel;
+                var bytes = File.ReadAllBytes(filePath);
+                if (bytes.Length != expectedByteLength)
+                    throw new InvalidOperationException(
+                        $"Terrain file '{filePath}' holds {bytes.Length} bytes but resolution {terrainResolution} requires {expectedByteLength}.");
+
+                return bytes;
+            }
+
+            #endregion
         }
     }
 }

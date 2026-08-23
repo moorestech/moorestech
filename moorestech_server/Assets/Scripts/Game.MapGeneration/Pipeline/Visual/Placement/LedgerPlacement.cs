@@ -12,8 +12,8 @@ namespace Game.MapGeneration.Pipeline.Visual.Placement
         public readonly Vector3 Scale;
         public readonly TerrainSurroundEffectType SurroundEffect;
 
-        // クラスタ無しはnull。-1番兵＋未使用重心は使わない
-        // "No cluster" is null; no -1 sentinel plus an unused centroid
+        // クラスタ無しはnull。値が入るときはIDと重心が必ず対で揃う
+        // "No cluster" is null; whenever a value is present its id and centroid always arrive as a pair
         public readonly PlacementCluster? Cluster;
 
         public LedgerPlacement(string guid, Vector3 scenePosition, Vector3 scale,

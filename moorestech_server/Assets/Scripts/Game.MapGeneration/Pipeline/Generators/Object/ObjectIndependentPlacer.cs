@@ -87,16 +87,13 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     float sink = Mathf.Lerp(entry.sinkRange.x, entry.sinkRange.y, (float)rng.NextDouble());
 
-                    placements.Add(new PlacementEntry
-                    {
-                        MapObjectGuid = ObjectPlacementMath.PickRandomGuid(entry.mapObjectGuids, rng),
-                        WorldPosition = new Vector3(point.x + dims.WorldOffsetX, height * dims.TerrainHeight, point.y + dims.WorldOffsetZ),
-                        Rotation = rot,
-                        Scale = new Vector3(scale, scale, scale),
-                        Sink = sink,
-                        SurroundEffect = entry.terrainSurroundEffectType,
-                        Cluster = new RockClusterInfo { ClusterId = -1 }
-                    });
+                    // 独立散布はクラスタを組まないのでnullを渡す
+                    // Independent scatter forms no cluster, so it passes null
+                    placements.Add(PlacementEntry.CreateObject(
+                        ObjectPlacementMath.PickRandomGuid(entry.mapObjectGuids, rng),
+                        new Vector3(point.x + dims.WorldOffsetX, height * dims.TerrainHeight, point.y + dims.WorldOffsetZ),
+                        rot, new Vector3(scale, scale, scale), sink,
+                        null, entry.terrainSurroundEffectType));
                 }
             }
         }

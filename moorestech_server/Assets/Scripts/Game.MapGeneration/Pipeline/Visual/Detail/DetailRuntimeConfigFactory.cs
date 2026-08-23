@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Facade;
-using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using UnityEngine;
 using GenDetailConfig = Mooresmaster.Model.BiomeDetailConfigModule.BiomeDetailConfig;
@@ -90,9 +90,9 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
             {
                 primary = ToNoiseLayer(generated.Primary),
                 secondary = ToNoiseLayer(generated.Secondary),
-                secondaryOp = ParseEnum<NoiseOp>(generated.SecondaryOp, "secondaryOp"),
+                secondaryOp = RuntimeConvert.ToNoiseOp(generated.SecondaryOp, "biomeDetailConfig.entries.noiseStack.secondaryOp"),
                 tertiary = ToNoiseLayer(generated.Tertiary),
-                tertiaryOp = ParseEnum<NoiseOp>(generated.TertiaryOp, "tertiaryOp"),
+                tertiaryOp = RuntimeConvert.ToNoiseOp(generated.TertiaryOp, "biomeDetailConfig.entries.noiseStack.tertiaryOp"),
             };
         }
 
@@ -100,7 +100,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
         {
             return new DetailNoiseLayer
             {
-                noiseType = ParseEnum<MapNoiseType>(generated.NoiseType, "noiseType"),
+                noiseType = RuntimeConvert.ToMapNoiseType(generated.NoiseType),
                 frequency = generated.Frequency,
                 amplitude = generated.Amplitude,
                 offset = generated.Offset,

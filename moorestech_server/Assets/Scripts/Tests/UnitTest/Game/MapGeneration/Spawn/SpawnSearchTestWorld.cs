@@ -44,7 +44,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             var vp = (VanillaGeneratorAlgorithmParam)generation.AlgorithmParam;
             var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, seed, TestGenerationConfigFactory.ServerDataDirectory);
-            var output = MapGenerationPipeline.Generate(generation, runtimeConfig);
+            var output = MapGenerationPipeline.Generate(generation, runtimeConfig).Output;
 
             // 格子が占める範囲を決めるのは SceneOrigin と格子サイズ。master の worldOffset を原点に使うと実位置とずれる。
             // SceneOrigin plus the grid size decides the extent; using the master worldOffset as origin would diverge from where the tiles really are.
