@@ -20,7 +20,7 @@ namespace Tests.CombinedTest.Server.PacketTest
     // Verify terrain restoration over the wire
     public class GetMapDataTerrainChunkTest
     {
-        // ForUnitTestModの既定は高速な1x1に固定し、packet結合に不要な多タイル生成を持ち込まない
+        // packet結合の実生成は1x1固定
         // Keep ForUnitTestMod's default at a fast 1x1; packet integration does not justify multi-tile generation
         private const int GridSideForUnitTestMod = 1;
 
@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var layoutResponse = RequestLayout(packetResponseCreator);
 
-            // packet往復と実ファイル一致だけを1タイルで検証し、多タイル契約はunit側の合成fixtureへ任せる
+            // 多タイル契約は合成fixtureで検証
             // Verify packet round-trip and real-file parity with one tile; the unit synthetic fixture owns multi-tile behavior
             Assert.AreEqual(GridSideForUnitTestMod * GridSideForUnitTestMod, layoutResponse.TerrainMeta.TerrainTileCount);
             Assert.Greater(layoutResponse.TerrainMeta.TerrainChunkTotal, 0);

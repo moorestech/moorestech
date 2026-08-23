@@ -51,9 +51,9 @@ namespace Tests.Module
 
         public WorldDataDirectory ProvisionGeneratedWorld(int seed)
         {
-            // 注意: 既定は1x1でも生成pipeline・ファイル出力・見た目先焼きを全て通るため、ケース単位の呼び出しを増やさない
+            // 注意: 実生成は1x1でも重い
             // Warning: even at the 1x1 default this runs generation, file output, and visual prebake; do not multiply per-case calls
-            // メタ・例外・packet契約は合成ワールドを使い、実生成が必須な検証だけfixtureで一度生成したコピーを共有する
+            // メタ契約では合成ワールドを使う
             // Use synthetic worlds for metadata, error, and packet contracts; share one fixture snapshot only when real generation is essential
             // generatedの生成はMasterHolderを要求するのでDI構築でマスタをロードする
             // Generated mode requires MasterHolder, so load masters via a DI build first

@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Game.MapGeneration
     {
         private const int SyntheticFileByteSize = 100 * 1024;
 
-        // ForUnitTestModの既定は高速な1x1に固定し、多タイル順序は上の合成4タイルテストへ分離する
+        // 実生成は1x1、多タイルは合成で検証
         // Keep ForUnitTestMod's default at a fast 1x1; the synthetic four-tile test above owns multi-tile ordering
         private const int GridSideForUnitTestMod = 1;
 
@@ -79,7 +79,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
-            // 実生成との結合だけを1タイルで検証し、多タイル契約のために重い既定へ戻さない
+            // 実生成との結合だけ1タイルで検証
             // Verify real-generation integration with one tile; do not restore an expensive default for the multi-tile contract
             Assert.AreEqual(GridSideForUnitTestMod * GridSideForUnitTestMod, terrainMeta.TerrainTileCount);
 

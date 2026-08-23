@@ -22,7 +22,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 {
     // WorldProvisioner.EnsureWorldのアトミック確定・破損検出・no-op挙動を検証する
     // Verifies WorldProvisioner.EnsureWorld's atomic commit, corruption detection, and no-op behavior
-    // 実生成はpipelineと先焼きを伴うため、格子数が契約でないケースではテストmasterの1x1を維持する
+    // 格子数が契約でない実生成は1x1固定
     // Real generation includes the pipeline and prebake, so keep the test master's 1x1 whenever grid size is not the contract
     public class WorldProvisionerTest
     {

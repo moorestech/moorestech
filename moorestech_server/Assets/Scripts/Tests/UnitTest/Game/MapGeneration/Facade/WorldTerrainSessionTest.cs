@@ -10,7 +10,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
 {
     // template/generated双方の結果契約を検証
     // Verifies the result contract for both template and generated worlds
-    // session結合は多タイル数を検証しないため、実生成にはテストmasterの1x1を使い続ける
+    // session結合の実生成は1x1固定
     // Session integration does not verify a multi-tile count, so keep using the test master's 1x1 for real generation
     public class WorldTerrainSessionTest
     {

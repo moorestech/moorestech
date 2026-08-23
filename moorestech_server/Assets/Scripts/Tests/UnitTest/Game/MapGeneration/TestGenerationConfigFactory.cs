@@ -87,9 +87,9 @@ namespace Tests.UnitTest.Game.MapGeneration
             // Make a small, fast single-tile map (bypass preset, set resolution directly).
             ap["overrideResolution"] = spawnSearchSetup == SpawnSearchSetup.Disabled ? 129 : 0;
 
-            // テストmasterの1x1をここでも固定し、既定値が変わって通常のpipelineテストが無言で多タイル化するのを防ぐ。
+            // 通常pipelineテストを1x1に固定
             // Pin the test master's 1x1 here too, preventing ordinary pipeline tests from silently becoming multi-tile if the default changes.
-            // 5x5を要るスポーン探索系はalgorithmParamOverridesで明示し、重い格子を必要なテストだけに閉じ込める。
+            // スポーン探索だけ5x5を明示する
             // Spawn-search tests that need 5x5 state it through algorithmParamOverrides, confining the expensive grid to those tests.
             ap["gridSizeX"] = 1;
             ap["gridSizeZ"] = 1;

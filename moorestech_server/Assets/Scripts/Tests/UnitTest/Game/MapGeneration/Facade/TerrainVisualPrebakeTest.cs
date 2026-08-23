@@ -16,7 +16,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
     // ProvisionGeneratedWorld呼び出しだけで検証対象が走る
     // Verifies the shared-cache prebake (TerrainVisualPrebake) that runs right after world generation
     // Calling ProvisionGeneratedWorld alone already exercises the target
-    // 通常の実生成は1x1を維持し、全タイル走査だけは低解像度2x2をこのfixture内で明示する
+    // 全タイル走査だけ専用2x2で検証
     // Keep ordinary generation at 1x1; only the all-tiles traversal explicitly uses a low-resolution 2x2 inside this fixture
     public class TerrainVisualPrebakeTest
     {
@@ -92,7 +92,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
                 CopyDirectory(subDirectory, Path.Combine(destinationDirectory, Path.GetFileName(subDirectory)));
         }
 
-        // 全タイル走査だけを検証する専用コピーを2x2・低解像度にし、共有テストmasterの高速な1x1を変更しない
+        // 専用2x2低解像度modを作る
         // Make a dedicated 2x2 low-resolution copy for all-tiles traversal without changing the shared test master's fast 1x1
         private static string CreateMultiTileServerDataDirectory()
         {
