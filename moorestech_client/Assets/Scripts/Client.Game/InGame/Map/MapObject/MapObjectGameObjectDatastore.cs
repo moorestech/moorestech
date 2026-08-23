@@ -182,9 +182,9 @@ namespace Client.Game.InGame.Map.MapObject
             gameObject.SetActive(enable);
         }
 
-        public MapObjectGameObject SearchNearestMapObject(Guid mapObjectGuid, Vector3 position)
+        public MapObjectGameObject SearchNearestMapObject(HashSet<Guid> mapObjectGuids, Vector3 position)
         {
-            return _nearestSearcher.SearchNearest(mapObjectGuid, position);
+            return _nearestSearcher.SearchNearest(mapObjectGuids, position);
         }
     }
 }

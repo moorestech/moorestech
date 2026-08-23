@@ -87,7 +87,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             // 電線を潤沢に持たせ、素材不足で選定が落ちないようにする
             // Hold plenty of wire so the selection never fails for lack of materials
             var wireStack = ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(WireItemGuid), 100);
-            return new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(wireStack), Array.Empty<ConstructionRequiredItemElement>());
+            return new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(wireStack), Array.Empty<(ItemId itemId, int count)>());
         }
 
         // 仮想在庫が読むのは列挙だけなので、所持アイテムを列挙するだけのスタブを使う

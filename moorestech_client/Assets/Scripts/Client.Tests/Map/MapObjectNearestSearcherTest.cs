@@ -24,6 +24,10 @@ namespace Client.Tests.Map
         // Another guid that exists in ForUnitTest map.json (for guid-separation checks)
         private static readonly Guid OtherMapObjectGuid = new("00000000-0000-1111-0000-000000000001");
 
+        // 探索APIは候補集合を受けるので、単一guid検証でも集合に包んで渡す
+        // The search API takes a candidate set, so single-guid checks wrap the guid in a set
+        private static readonly HashSet<Guid> ExistingTargets = new() { ExistingMapObjectGuid };
+
         private readonly List<GameObject> _created = new();
 
         [SetUp]
@@ -47,15 +51,15 @@ namespace Client.Tests.Map
             var far = CreateMapObject(2, ExistingMapObjectGuid, new Vector3(10f, 0f, 0f), false);
             searcher.Register(near);
             searcher.Register(far);
-            Assert.AreSame(near, searcher.SearchNearest(ExistingMapObjectGuid, Vector3.zero));
+            Assert.AreSame(near, searcher.SearchNearest(ExistingTargets, Vector3.zero));
 
             near.DestroyMapObject();
             searcher.MarkDirty(ExistingMapObjectGuid);
-            Assert.AreSame(far, searcher.SearchNearest(ExistingMapObjectGuid, Vector3.zero));
+            Assert.AreSame(far, searcher.SearchNearest(ExistingTargets, Vector3.zero));
 
             far.DestroyMapObject();
             searcher.MarkDirty(ExistingMapObjectGuid);
-            Assert.IsNull(searcher.SearchNearest(ExistingMapObjectGuid, Vector3.zero));
+            Assert.IsNull(searcher.SearchNearest(ExistingTargets, Vector3.zero));
         }
 
         [Test]
@@ -66,7 +70,7 @@ namespace Client.Tests.Map
             var alive = CreateMapObject(2, ExistingMapObjectGuid, new Vector3(10f, 0f, 0f), false);
             searcher.Register(destroyedAtStart);
             searcher.Register(alive);
-            Assert.AreSame(alive, searcher.SearchNearest(ExistingMapObjectGuid, Vector3.zero));
+            Assert.AreSame(alive, searcher.SearchNearest(ExistingTargets, Vector3.zero));
         }
 
         [Test]
@@ -77,14 +81,28 @@ namespace Client.Tests.Map
             var farTarget = CreateMapObject(2, ExistingMapObjectGuid, new Vector3(10f, 0f, 0f), false);
             searcher.Register(nearOther);
             searcher.Register(farTarget);
-            Assert.AreSame(farTarget, searcher.SearchNearest(ExistingMapObjectGuid, Vector3.zero));
+            Assert.AreSame(farTarget, searcher.SearchNearest(ExistingTargets, Vector3.zero));
         }
 
         [Test]
         public void 未登録guidはnullを返す()
         {
             var searcher = new MapObjectNearestSearcher();
-            Assert.IsNull(searcher.SearchNearest(ExistingMapObjectGuid, Vector3.zero));
+            Assert.IsNull(searcher.SearchNearest(ExistingTargets, Vector3.zero));
+        }
+
+        [Test]
+        public void 候補集合に複数guidがあるとその中の最寄りが返る()
+        {
+            var searcher = new MapObjectNearestSearcher();
+            var nearOther = CreateMapObject(1, OtherMapObjectGuid, new Vector3(1f, 0f, 0f), false);
+            var farTarget = CreateMapObject(2, ExistingMapObjectGuid, new Vector3(10f, 0f, 0f), false);
+            searcher.Register(nearOther);
+            searcher.Register(farTarget);
+
+            var candidates = new HashSet<Guid> { ExistingMapObjectGuid, OtherMapObjectGuid };
+            Assert.AreSame(nearOther, searcher.SearchNearest(candidates, Vector3.zero));
+            Assert.AreSame(farTarget, searcher.SearchNearest(candidates, new Vector3(11f, 0f, 0f)));
         }
 
         private MapObjectGameObject CreateMapObject(int instanceId, Guid guid, Vector3 position, bool isDestroyed)

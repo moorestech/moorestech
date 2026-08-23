@@ -21,7 +21,7 @@ const connectToolGuid = "40000000-0000-4000-8000-000000000001";
 const trainCarGuid = "8f9c2a51-0000-4000-8000-000000000001";
 
 const blockEntry = (id: string, categoryGuid: string, subCategoryGuid: string): BuildMenuEntryData => ({
-  kind: "block", id, categoryGuid, subCategoryGuid, requiredItems: [], placementsPerCost: 1, remainingPlacementCount: 0,
+  kind: "block", id, categoryGuid, subCategoryGuid, requiredItems: [],
 });
 
 const categories: BuildMenuCategory[] = [

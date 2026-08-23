@@ -31,6 +31,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
                 var cluster = new ObjectClusterEntry
                 {
                     primary = primaryGuids,
+                    terrainSurroundEffectType = RuntimeConvert.ToTerrainSurroundEffectType(ce.TerrainSurroundEffectType, "objectConfig.clusterEntries.terrainSurroundEffectType"),
                     density = ce.Density,
                     scaleRange = ce.ScaleRange,
                     slopeAlignment = ce.SlopeAlignment,
@@ -61,6 +62,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
                     {
                         mode = RuntimeConvert.ToSecondaryMode(s.Mode),
                         mapObjectGuids = secondaryGuids,
+                        terrainSurroundEffectType = RuntimeConvert.ToTerrainSurroundEffectType(s.TerrainSurroundEffectType, "objectConfig.clusterEntries.secondaries.terrainSurroundEffectType"),
                         scaleRange = s.ScaleRange,
                         slopeAlignment = s.SlopeAlignment,
                         sinkRange = s.SinkRange,
@@ -92,6 +94,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
                 entries.Add(new BiomeObjectConfig.ObjectEntry
                 {
                     mapObjectGuids = entryGuids,
+                    terrainSurroundEffectType = RuntimeConvert.ToTerrainSurroundEffectType(e.TerrainSurroundEffectType, "objectConfig.entries.terrainSurroundEffectType"),
                     placement = e.PlacementParam is GenClusterParam genCluster
                         ? BuildCluster(genCluster)
                         : BuildScatter((GenScatterParam)e.PlacementParam),

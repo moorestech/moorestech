@@ -40,8 +40,10 @@
         }
       ],
       "iconUrl": "/api/block-icons/1.png",
-      "placementsPerCost": 3,
-      "remainingPlacementCount": 2
+      "setPlacement": {
+        "perCost": 3,
+        "remaining": 2
+      }
     },
     {
       "id": "8f9c2a51-0000-4000-8000-000000000001",

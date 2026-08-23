@@ -4,7 +4,6 @@ using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
-using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.TrainModule;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
@@ -17,20 +16,6 @@ namespace Server.Protocol.PacketResponse.Util.Construction
     /// </summary>
     public static class ConstructionCostService
     {
-        // ブロック用requiredItemsを正準形(ItemId,個数)へ変換する。電線予約リストと同型
-        // Convert block requiredItems to the canonical (ItemId,count) form, shared with wire reservations
-        public static (ItemId itemId, int count)[] ToItemCounts(ConstructionRequiredItemElement[] requiredItems)
-        {
-            if (requiredItems == null || requiredItems.Length == 0) return Array.Empty<(ItemId, int)>();
-
-            var result = new (ItemId, int)[requiredItems.Length];
-            for (var i = 0; i < requiredItems.Length; i++)
-            {
-                result[i] = (MasterHolder.ItemMaster.GetItemId(requiredItems[i].ItemGuid), requiredItems[i].Count);
-            }
-            return result;
-        }
-
         // 車両用requiredItemsの変換。生成型が別なだけで内容は同じ
         // Conversion for train-car requiredItems; a distinct generated type with the same shape
         public static (ItemId itemId, int count)[] ToItemCounts(TrainCarRequiredItemElement[] requiredItems)

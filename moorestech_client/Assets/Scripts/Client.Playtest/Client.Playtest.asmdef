@@ -21,7 +21,7 @@
         "Game.World.Interface",
         "Game.UnlockState",
         "Game.PlacementTarget",
-        "Game.MapGeneration",
+        "Game.MapGeneration.Contract",
         "Game.Block.Interface",
         "Game.PlayerInventory.Interface",
         "Common.Debug",

@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
 
         // gridSide四方に散布entryを生成、木は出さない。
         // Generate a gridSide-by-gridSide grid with the scatter entry and no trees.
-        public static MapGenerationOutput GenerateScatter(int gridSide, bool useClusterMode, params (float OuterRadiusMeters, float Amount)[] bands)
+        public static GenerationRun GenerateScatter(int gridSide, bool useClusterMode, params (float OuterRadiusMeters, float Amount)[] bands)
         {
             var config = MultiTileTestWorld.BuildConfig(gridSide, Seed);
             config.generateObject = true;
@@ -37,6 +37,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
                         mapObjectGuids = new[] { MultiTileTestWorld.IndependentMapObjectGuid },
                         placement = BuildPlacement(useClusterMode, bands),
                         scaleRange = new Vector2(1f, 1f),
+                        // 既定値のnoneのままだと見た目ステージへ回した瞬間に台帳の代入漏れ検査で落ちる
+                        // Leaving the default none would trip the ledger's unset-value check the moment this world feeds a visual stage
+                        terrainSurroundEffectType = TerrainSurroundEffectType.rockBareGround,
                     },
                 },
             };
@@ -77,11 +80,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
         // Poisson散布・マスク・境界除外で下振れはするが、旧clusterCount固定実装が生む極端な過不足は検知する幅を取る。
         // Pins that the near-band centre count lands in the order of ring-area times density over 1e4.
         // Poisson sampling, masking, and edge exclusion can undershoot, but the range still catches the gross over/under-count a fixed clusterCount implementation would produce.
-        public static void AssertClusterCenterCountMatchesDensity(MapGenerationOutput output, float density)
+        public static void AssertClusterCenterCountMatchesDensity(GenerationRun run, float density)
         {
+            // クラスタ識別子は結果出力ではなく見た目ステージ向けの台帳が持つ（ADR-0025）
+            // The cluster identifiers live in the visual-stage ledger rather than the result output (ADR-0025)
             var clusterIds = new HashSet<int>();
-            foreach (var mapObject in output.MapObjects)
-                clusterIds.Add(mapObject.ClusterId);
+            foreach (var placement in run.Ledger.Placements)
+                if (placement.Cluster.HasValue) clusterIds.Add(placement.Cluster.Value.Id);
 
             float ringArea = Mathf.PI * NearRadius * NearRadius;
             int expectedCenters = Mathf.RoundToInt(density * ringArea / 10000f);

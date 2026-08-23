@@ -41,16 +41,11 @@ namespace Game.MapGeneration.Pipeline.Generators
                         rot = ObjectPlacementMath.ApplySlopeAlignment(rot, heights, ox, oz, w, l, hRes,
                             dims.TerrainHeight, sec.slopeAlignment);
                     float sink = Mathf.Lerp(sec.sinkRange.x, sec.sinkRange.y, (float)rng.NextDouble());
-                    placements.Add(new PlacementEntry
-                    {
-                        MapObjectGuid = ObjectPlacementMath.PickRandomGuid(sec.mapObjectGuids, rng),
-                        WorldPosition = new Vector3(ox + dims.WorldOffsetX,
-                            ht * dims.TerrainHeight, oz + dims.WorldOffsetZ),
-                        Rotation = rot,
-                        Scale = new Vector3(scale, scale, scale),
-                        Sink = sink,
-                        Cluster = info
-                    });
+                    placements.Add(PlacementEntry.CreateObject(
+                        ObjectPlacementMath.PickRandomGuid(sec.mapObjectGuids, rng),
+                        new Vector3(ox + dims.WorldOffsetX, ht * dims.TerrainHeight, oz + dims.WorldOffsetZ),
+                        rot, new Vector3(scale, scale, scale), sink,
+                        info, sec.terrainSurroundEffectType));
                 }
             }
         }
@@ -66,11 +61,13 @@ namespace Game.MapGeneration.Pipeline.Generators
             var clusterMembers = new Dictionary<int, List<Vector3>>();
             foreach (var p in placements)
             {
-                var ci = p.Cluster ?? new RockClusterInfo { ClusterId = -1 };
-                if (ci.ClusterId < 0) continue;
-                if (!clusterMembers.ContainsKey(ci.ClusterId))
-                    clusterMembers[ci.ClusterId] = new List<Vector3>();
-                clusterMembers[ci.ClusterId].Add(p.WorldPosition);
+                // クラスタを組まない配置は従属グループの足場にならないので飛ばす
+                // A placement without a cluster is no anchor for a subordinate group, so it is skipped
+                if (!p.Cluster.HasValue) continue;
+                var clusterId = p.Cluster.Value.ClusterId;
+                if (!clusterMembers.ContainsKey(clusterId))
+                    clusterMembers[clusterId] = new List<Vector3>();
+                clusterMembers[clusterId].Add(p.WorldPosition);
             }
             foreach (var info in clusterInfos)
             {
@@ -126,16 +123,11 @@ namespace Game.MapGeneration.Pipeline.Generators
                             (0.5f + falloff * 0.5f);
                         float yRot = (float)rng.NextDouble() * 360f;
                         float sink = Mathf.Lerp(sec.sinkRange.x, sec.sinkRange.y, (float)rng.NextDouble());
-                        placements.Add(new PlacementEntry
-                        {
-                            MapObjectGuid = ObjectPlacementMath.PickRandomGuid(sec.mapObjectGuids, rng),
-                            WorldPosition = new Vector3(ox + dims.WorldOffsetX,
-                                ht * dims.TerrainHeight, oz + dims.WorldOffsetZ),
-                            Rotation = Quaternion.Euler(0, yRot, 0),
-                            Scale = new Vector3(scale, scale, scale),
-                            Sink = sink,
-                            Cluster = info
-                        });
+                        placements.Add(PlacementEntry.CreateObject(
+                            ObjectPlacementMath.PickRandomGuid(sec.mapObjectGuids, rng),
+                            new Vector3(ox + dims.WorldOffsetX, ht * dims.TerrainHeight, oz + dims.WorldOffsetZ),
+                            Quaternion.Euler(0, yRot, 0), new Vector3(scale, scale, scale), sink,
+                            info, sec.terrainSurroundEffectType));
                     }
                 }
             }

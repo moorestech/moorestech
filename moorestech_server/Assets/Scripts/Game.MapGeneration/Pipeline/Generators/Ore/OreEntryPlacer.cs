@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
+using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Tiling;
 using UnityEngine;
 
@@ -32,6 +33,12 @@ namespace Game.MapGeneration.Pipeline.Generators
             float l = dims.TerrainLength;
             int hRes = dims.Resolution;
             float minDist = entry.minDistanceFromOthers;
+
+            // 地形への効き方はmapVeinsマスタが正本。veinGuidの解決はGenerationMasterのバリデーションが保証する
+            // The mapVeins master owns the terrain effect; GenerationMaster validation guarantees the veinGuid resolves
+            var veinElement = MasterHolder.MapVeinMaster.GetElementOrNull(System.Guid.Parse(entry.veinGuid));
+            var surroundEffect = RuntimeConvert.ToTerrainSurroundEffectType(
+                veinElement.TerrainSurroundEffectType, "mapVeins.terrainSurroundEffectType");
 
             var rings = SpawnDistanceRingPlanner.BuildRings(entry.bands);
             dims.SpawnDistanceRangeXz(out var tileNearestDistance, out var tileFarthestDistance);
@@ -131,18 +138,10 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     float my = OrePlacementMath.SampleHeight(heights, mx, mz, w, l, hRes) * dims.TerrainHeight;
 
-                    result.Add(new PlacementEntry
-                    {
-                        MapObjectGuid = entry.veinGuid,
-                        WorldPosition = new Vector3(
-                            mx + dims.WorldOffsetX,
-                            my,
-                            mz + dims.WorldOffsetZ),
-                        Rotation = Quaternion.identity,
-                        Scale = Vector3.one,
-                        Sink = 0f,
-                        Cluster = null
-                    });
+                    result.Add(PlacementEntry.CreateVein(
+                        entry.veinGuid,
+                        new Vector3(mx + dims.WorldOffsetX, my, mz + dims.WorldOffsetZ),
+                        surroundEffect));
 
                     oreGrid.Add(mx, mz);
                 }

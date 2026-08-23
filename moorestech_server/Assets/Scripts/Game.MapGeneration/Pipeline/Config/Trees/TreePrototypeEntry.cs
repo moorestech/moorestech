@@ -9,6 +9,7 @@ namespace Game.MapGeneration.Pipeline.Config
         // 等確率で選択される mapObjectGuid 群。
         // mapObjectGuids chosen with equal probability.
         public string[] mapObjectGuids;
+        public TerrainSurroundEffectType terrainSurroundEffectType;
         public Vector2 scaleHeightRange = new Vector2(0.8f, 1.2f);
         public Vector2 scaleWidthRange = new Vector2(0.8f, 1.2f);
         public bool lockWidthHeight = true;

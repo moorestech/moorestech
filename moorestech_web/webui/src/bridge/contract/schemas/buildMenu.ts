@@ -17,13 +17,17 @@ const BuildMenuEntryCommonFields = {
   iconUrl: z.string().optional(),
 };
 
-// 設置数系フィールドはブロック専用
-// Placement-count fields belong to blocks alone
+// 財布を使うブロックだけが持つ。ホスト側が財布判定を済ませた形で届く
+// Present only on wallet-backed blocks; the host has already made the wallet decision
+export const BuildMenuSetPlacementSchema = z.object({
+  perCost: z.number().int().min(2),
+  remaining: z.number().int().min(0),
+});
+
 const BuildMenuBlockEntryDataSchema = z.object({
   kind: z.literal("block"),
   ...BuildMenuEntryCommonFields,
-  placementsPerCost: z.number().int().min(1),
-  remainingPlacementCount: z.number().int().min(0),
+  setPlacement: BuildMenuSetPlacementSchema.optional(),
   label: z.never().optional(),
 }).strict();
 

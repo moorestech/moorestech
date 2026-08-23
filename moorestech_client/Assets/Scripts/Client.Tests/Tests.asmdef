@@ -44,6 +44,8 @@
         "Common.Debug",
         "Game.Paths",
         "Game.MapGeneration",
+        "Game.MapGeneration.Contract",
+        "Game.MapGeneration.Facade",
         "Unity.Mathematics",
         "Game.PlayerRiding.Interface",
         "Game.Research",

@@ -18,7 +18,11 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TestGenerationConfigFactory.SpawnSearchSetup.Enabled,
                 new JObject { ["gridSizeX"] = 4, ["gridSizeZ"] = 4 });
 
-            var exception = Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory));
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+                MapGenerationPipeline.Generate(generation, runtimeConfig);
+            });
             StringAssert.Contains("spawn target", exception.Message);
         }
 
@@ -29,7 +33,11 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TestGenerationConfigFactory.SpawnSearchSetup.Disabled,
                 new JObject { ["spawnWorldPosition"] = new JArray(2116.69922, -807.6172) });
 
-            var exception = Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory));
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+                MapGenerationPipeline.Generate(generation, runtimeConfig);
+            });
             StringAssert.Contains("scene spawn", exception.Message);
         }
 
@@ -40,7 +48,11 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TestGenerationConfigFactory.SpawnSearchSetup.Disabled,
                 new JObject { ["spawnWorldPosition"] = new JArray(0, 0) });
 
-            var exception = Assert.Throws<InvalidOperationException>(() => MapGenerationPipeline.Generate(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory));
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+            {
+                var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, Seed, TestGenerationConfigFactory.ServerDataDirectory);
+                MapGenerationPipeline.Generate(generation, runtimeConfig);
+            });
             StringAssert.Contains("scene spawn", exception.Message);
         }
     }

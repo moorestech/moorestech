@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Construction;
 using Game.UnlockState;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
@@ -29,6 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         private readonly BlockGameObjectDataStore _blockDataStore;
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly IGameUnlockStateData _gameUnlockStateData;
+        private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly AutoConnectWirePreviewRenderer _renderer;
 
         // セル単位の幾何キャッシュ。向きかブロックが変わったら全破棄する
@@ -38,11 +40,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         private BlockId _cachedBlockId;
         private bool _hasCacheKey;
 
-        public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore, IPlacementPreviewBlockGameObjectController previewBlockController, IGameUnlockStateData gameUnlockStateData)
+        public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore, IPlacementPreviewBlockGameObjectController previewBlockController, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery)
         {
             _blockDataStore = blockDataStore;
             _previewBlockController = previewBlockController;
             _gameUnlockStateData = gameUnlockStateData;
+            _constructionWalletQuery = constructionWalletQuery;
             _renderer = new AutoConnectWirePreviewRenderer(mainCamera);
         }
 
@@ -72,7 +75,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // Evaluate cells in order while decrementing a virtual inventory, predicting the server's sequential consumption
             // 注意: ドラッグ中の未設置電柱同士の接続は評価に現れない近似（サーバーが設置順に個別再検証するため安全側）
             // Note: connections between not-yet-placed poles in a drag are approximated away (the server re-validates each in placement order, so this stays safe)
-            var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, blockMaster.RequiredItems);
+            // 予約する建設コストは財布へ問い合わせる。サーバーがPlaceBlockProtocolで plan.ItemsToConsume を渡すのと同じ形
+            // The construction reservation comes from the wallet, the same shape the server passes as plan.ItemsToConsume
+            // 注意: 先頭セル基準の近似。ドラッグ途中で財布が尽きて再び支払う切り替わりは再現しない（安全側に倒れる）
+            // Note: this approximates from the first cell; a mid-drag switch back to paying is not replayed (it errs on the safe side)
+            var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, _constructionWalletQuery.GetItemsToConsume(blockId));
             var totalCost = 0;
             var anyPlaceable = false;
             var cursorIndex = -1;

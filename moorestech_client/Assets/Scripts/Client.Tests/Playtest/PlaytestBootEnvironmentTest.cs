@@ -1,6 +1,6 @@
 using Client.DebugSystem.Environment;
 using Client.Playtest;
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -27,7 +27,7 @@ namespace Client.Tests.Playtest
             CreateActiveRoot<PureNatureEnvironmentObjectRoot>();
             CreateActiveRoot<OtherEnvironmentObjectRoot>();
             PlaytestBootLifecycle.PrepareWorldBootSession(
-                "/master/server_v8", "/tmp/fixed-world", WorldProvisioner.GeneratedMapMode, 12345);
+                "/master/server_v8", "/tmp/fixed-world", WorldMapMode.Generated, 12345);
 
             var applied = PlaytestBootLifecycle.ApplyFixedWorldEnvironment();
 

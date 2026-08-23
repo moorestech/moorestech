@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         public void 木のタイルローカル座標が別タイルへ反復しない()
         {
             var config = BuildTreeOnlyConfig();
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
             Assert.IsNotEmpty(output.MapObjects);
 
             var tilesPerLocalCoordinate = new Dictionary<Vector2Int, HashSet<Vector2Int>>();
@@ -64,7 +64,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         public void タイル境界を跨ぐ木も最小距離を守る()
         {
             var config = BuildTreeOnlyConfig();
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
             Assert.IsNotEmpty(output.MapObjects);
 
             // 全ペア総当たりは木の本数に対して重すぎるので、最小距離を辺長とするセルで近傍だけ突き合わせる。

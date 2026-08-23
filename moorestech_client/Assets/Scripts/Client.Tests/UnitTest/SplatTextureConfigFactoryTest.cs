@@ -1,4 +1,4 @@
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
 using GenTexture = Mooresmaster.Model.BiomeTextureConfigModule;

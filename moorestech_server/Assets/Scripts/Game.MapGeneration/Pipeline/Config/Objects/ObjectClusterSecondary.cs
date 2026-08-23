@@ -12,6 +12,7 @@ namespace Game.MapGeneration.Pipeline.Config
     {
         public SecondaryPlacementMode mode;
         public string[] mapObjectGuids;
+        public TerrainSurroundEffectType terrainSurroundEffectType;
         public Vector2 scaleRange = new Vector2(0.8f, 1.2f);
         public float slopeAlignment;
         public Vector2 sinkRange = Vector2.zero;

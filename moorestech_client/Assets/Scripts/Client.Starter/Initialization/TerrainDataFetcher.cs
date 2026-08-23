@@ -37,7 +37,7 @@ namespace Client.Starter.Initialization
             // A template-mode world owns no terrain binary, so there is nothing to fetch
             if (terrainMeta.IsTemplate) return 0;
 
-            var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(terrainMeta.WorldId));
+            var cacheWorldDirectory = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId);
             var segments = TerrainTransferMeta.EnumerateStreamSegments(cacheWorldDirectory, terrainMeta.TerrainTileCount, terrainMeta.TerrainResolution).ToList();
             var totalStreamByteLength = segments.Sum(segment => segment.ByteLength);
 

@@ -6,10 +6,10 @@ using UnityEngine;
 namespace Client.Game.InGame.Map.MapObject
 {
     /// <summary>
-    ///     - mapObjectGuid別の最寄り索引
+    ///     - mapObjectGuid別の最寄り索引を候補集合で横断探索
     ///     - 破壊はdirtyで受ける
     ///     - 探索時に生存個体で再構築
-    ///     - Nearest index per mapObjectGuid
+    ///     - Nearest index per mapObjectGuid, searched across a candidate set
     ///     - Destruction marks the guid dirty
     ///     - Rebuilds from live objects on search
     /// </summary>
@@ -43,10 +43,28 @@ namespace Client.Game.InGame.Map.MapObject
             _dirtyGuids.Add(mapObjectGuid);
         }
 
-        public MapObjectGameObject SearchNearest(Guid mapObjectGuid, Vector3 position)
+        public MapObjectGameObject SearchNearest(HashSet<Guid> mapObjectGuids, Vector3 position)
         {
-            if (_dirtyGuids.Remove(mapObjectGuid)) RebuildIndex(mapObjectGuid);
-            return _nearestIndex.SearchNearest(mapObjectGuid, position);
+            // 候補guidごとに独立した索引を引き、その中の最寄りを選ぶ
+            // Query the independent index of each candidate guid and pick the nearest among them
+            MapObjectGameObject nearest = null;
+            var nearestSqrMagnitude = float.MaxValue;
+
+            foreach (var mapObjectGuid in mapObjectGuids)
+            {
+                if (_dirtyGuids.Remove(mapObjectGuid)) RebuildIndex(mapObjectGuid);
+
+                var candidate = _nearestIndex.SearchNearest(mapObjectGuid, position);
+                if (candidate == null) continue;
+
+                var sqrMagnitude = (position - candidate.Position).sqrMagnitude;
+                if (nearestSqrMagnitude <= sqrMagnitude) continue;
+
+                nearest = candidate;
+                nearestSqrMagnitude = sqrMagnitude;
+            }
+
+            return nearest;
 
             #region Internal
 
