@@ -5,7 +5,8 @@ set -u
 cd "$(dirname "$0")"
 
 export MOORESTECH_EVENT_MODE=1
-# 無操作タイムアウト秒を変えたい場合はコメントを外す / Uncomment to override the idle timeout seconds
+# 無操作タイムアウト秒を変えたい場合はコメントを外す
+# Uncomment to override the idle timeout seconds
 # export MOORESTECH_EVENT_IDLE_TIMEOUT_SECONDS=180
 
 # 引数で.appを指定可能。省略時は同ディレクトリのmoorestech.app
