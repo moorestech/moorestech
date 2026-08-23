@@ -29,6 +29,10 @@ namespace Client.Game.InGame.Tutorial
         private bool _hasReportedMissingOutcropVeinGuid;
         private Guid _reportedMissingOutcropVeinGuid;
 
+        // 配信中かどうか。露頭を失った後にRemovePinを毎フレーム叩き続けないための番人
+        // Whether a pin is being published; guards RemovePin from running every frame after the outcrop is lost
+        private bool _publishing;
+
         [Inject]
         public void Initialize(OutcropGameObjectDatastore outcropGameObjectDatastore)
         {
@@ -57,7 +61,7 @@ namespace Client.Game.InGame.Tutorial
                 }
 
                 _hasReportedMissingOutcropVeinGuid = false;
-                transform.position = outcrop.Position;
+                transform.position = outcrop.transform.position;
                 return true;
             }
 
@@ -74,7 +78,8 @@ namespace Client.Game.InGame.Tutorial
 
                 // SetActive(false)はUpdateごと止めて対象が戻っても復帰できないため、配信の停止だけに留める
                 // SetActive(false) would stop Update itself and never recover when a target returns, so only publishing is stopped
-                WorldPinStateStore.Instance.RemovePin(WebPinId);
+                if (!_publishing) return;
+                RemoveWorldPin();
             }
 
             void PublishWebWorldPin()
@@ -85,6 +90,7 @@ namespace Client.Game.InGame.Tutorial
 
                 var projection = WorldPinScreenProjection.Project(camera, transform.position);
                 WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
+                _publishing = true;
             }
 
             #endregion
@@ -102,6 +108,12 @@ namespace Client.Game.InGame.Tutorial
         {
             SetActive(false);
             _currentTutorialParam = null;
+            RemoveWorldPin();
+        }
+
+        private void RemoveWorldPin()
+        {
+            _publishing = false;
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 
@@ -124,12 +136,12 @@ namespace Client.Game.InGame.Tutorial
 
         private void OnDisable()
         {
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            RemoveWorldPin();
         }
 
         private void OnDestroy()
         {
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            RemoveWorldPin();
         }
     }
 }

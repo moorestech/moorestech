@@ -79,8 +79,16 @@ namespace Client.Game.InGame.Tutorial
 
         public void RemovePin(string pinId)
         {
-            var removed = _pins.RemoveAll(pin => pin.PinId == pinId);
-            if (0 < removed) Publish();
+            // 対象不在でも毎フレーム呼ばれる経路なので、ラムダの確保を避けて走査する
+            // This path is hit every frame even with nothing to remove, so scan without allocating a lambda
+            for (var i = 0; i < _pins.Count; i++)
+            {
+                if (_pins[i].PinId != pinId) continue;
+
+                _pins.RemoveAt(i);
+                Publish();
+                return;
+            }
         }
 
         private void Publish()

@@ -36,6 +36,10 @@ namespace Client.Game.InGame.Tutorial
         // Reporting "no candidate left" every frame would bury the log, so report once until the target changes
         private bool _missingReported;
 
+        // 配信中かどうか。指す先を失った後にRemovePinを毎フレーム叩き続けないための番人
+        // Whether a pin is being published; guards RemovePin from running every frame after the target is lost
+        private bool _publishing;
+
         [Inject]
         public void Initialize(MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
         {
@@ -67,7 +71,7 @@ namespace Client.Game.InGame.Tutorial
                 }
 
                 _missingReported = false;
-                transform.position = mapObject.Position;
+                transform.position = mapObject.transform.position;
                 return true;
             }
 
@@ -83,7 +87,8 @@ namespace Client.Game.InGame.Tutorial
 
                 // SetActive(false)はUpdateごと止めて対象が戻っても復帰できないため、配信の停止だけに留める
                 // SetActive(false) would stop Update itself and never recover when a target returns, so only publishing is stopped
-                WorldPinStateStore.Instance.RemovePin(WebPinId);
+                if (!_publishing) return;
+                RemoveWorldPin();
             }
 
             void PublishWebWorldPin()
@@ -95,6 +100,7 @@ namespace Client.Game.InGame.Tutorial
 
                 var projection = WorldPinScreenProjection.Project(camera, transform.position);
                 WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
+                _publishing = true;
             }
 
             #endregion
@@ -119,6 +125,12 @@ namespace Client.Game.InGame.Tutorial
             SetActive(false);
             _currentTutorialParam = null;
             _targetMapObjectGuids = EmptyTargets;
+            RemoveWorldPin();
+        }
+
+        private void RemoveWorldPin()
+        {
+            _publishing = false;
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 
@@ -139,16 +151,16 @@ namespace Client.Game.InGame.Tutorial
             Visibility.EndSkitSuppress();
         }
 
-        // スキットの一時抑止でもWebピンを確実に消す（RemovePinは冪等）
-        // Temporary skit suppression must also clear the web pin; RemovePin is idempotent
+        // スキットの一時抑止でもWebピンを確実に消す
+        // Temporary skit suppression must also clear the web pin
         private void OnDisable()
         {
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            RemoveWorldPin();
         }
 
         private void OnDestroy()
         {
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            RemoveWorldPin();
         }
     }
 }
