@@ -7,29 +7,44 @@ using UnityEngine.SceneManagement;
 
 namespace Client.Starter.EventMode
 {
-    // イベント出展モード: 起動時にワールドを削除し英語へ戻して自動でローカルゲームを開始する
-    // Event exhibition mode: on boot, delete the world, reset to English, and auto-start the local game
+    // 起動時にワールド削除・英語化・自動開始
+    // On boot: delete world, reset to English, auto-start
     public static class EventModeAutoStart
     {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         public static void AutoStartIfEventMode()
         {
             if (!EventExhibitionMode.IsEnabled) return;
-            // メインメニュー以外からの起動（テスト・Editor別シーン再生）では何もしない
-            // Do nothing when booted outside the main menu (tests, editor playback of other scenes)
+            // メインメニュー以外では何もしない
+            // Do nothing outside the main menu
             if (SceneManager.GetActiveScene().name != SceneConstant.MainMenuSceneName) return;
 
             DeleteDefaultWorldDirectory();
-            Localize.TrySetLanguage(Localize.DefaultLanguageCode);
+            if (!Localize.TrySetLanguage(Localize.DefaultLanguageCode)) Debug.LogError($"EventModeAutoStart: failed to set language to {Localize.DefaultLanguageCode}");
+            CreateIdleQuitWatcher();
             LocalGameLauncher.StartLocalGame();
-        }
 
-        private static void DeleteDefaultWorldDirectory()
-        {
-            // 既定ワールドを削除し毎回新規生成にする（ResetAllDataConfirmPopupと同経路。PlayerPrefsは残す）
-            // Delete the default world so every boot generates fresh (same path as ResetAllDataConfirmPopup, PlayerPrefs kept)
-            var worldDirectory = new StartServerSettings().WorldDirectory;
-            if (Directory.Exists(worldDirectory)) Directory.Delete(worldDirectory, true);
+            #region Internal
+
+            void DeleteDefaultWorldDirectory()
+            {
+                // 新規生成（PlayerPrefs維持）
+                // Regenerate world; PlayerPrefs kept
+                var worldDirectory = new StartServerSettings().WorldDirectory;
+                if (Directory.Exists(worldDirectory)) Directory.Delete(worldDirectory, true);
+            }
+
+            void CreateIdleQuitWatcher()
+            {
+                // イベントモード限定の常駐監視オブジェクトをここでだけ生成する（起動フックを1箇所に集約）
+                // Spawn the event-mode-only resident watcher only here, keeping a single boot entry point
+                var watcherObject = new GameObject(nameof(EventIdleQuitWatcher));
+                Object.DontDestroyOnLoad(watcherObject);
+                var watcher = watcherObject.AddComponent<EventIdleQuitWatcher>();
+                watcher.SetIdleTimeoutSeconds(EventExhibitionMode.IdleTimeoutSeconds);
+            }
+
+            #endregion
         }
     }
 }

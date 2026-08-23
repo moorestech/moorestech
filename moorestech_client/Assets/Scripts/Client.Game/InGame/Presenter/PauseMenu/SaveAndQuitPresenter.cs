@@ -11,6 +11,8 @@ namespace Client.Game.InGame.Presenter.PauseMenu
     // Canonical in-game exit path: saves and quits the app without returning to the main menu
     public class SaveAndQuitPresenter : MonoBehaviour
     {
+        private bool _quitRequested;
+
         private void OnDestroy()
         {
             Disconnect();
@@ -23,19 +25,27 @@ namespace Client.Game.InGame.Presenter.PauseMenu
 
         public void SaveAndQuit()
         {
+            // 連打時は2本目以降を無視
+            // Ignore repeated presses after the first
+            if (_quitRequested) return;
+            _quitRequested = true;
             SaveAndQuitAsync().Forget();
-        }
 
-        private async UniTask SaveAndQuitAsync()
-        {
-            Disconnect();
-            // サーバー側ShutdownAsyncのセーブflush完了を待ってからプロセスを終える
-            // Wait for the server-side ShutdownAsync save flush before ending the process
-            await UniTask.Delay(TimeSpan.FromSeconds(2), true);
-            Application.Quit();
+            #region Internal
+
+            async UniTask SaveAndQuitAsync()
+            {
+                Disconnect();
+                // サーバーのflush完了を待って終了
+                // Wait for the server-side save flush before exit
+                await UniTask.Delay(TimeSpan.FromSeconds(2), true);
+                Application.Quit();
 #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPlaying = false;
+                UnityEditor.EditorApplication.isPlaying = false;
 #endif
+            }
+
+            #endregion
         }
 
         private void Disconnect()
@@ -43,8 +53,8 @@ namespace Client.Game.InGame.Presenter.PauseMenu
             ClientContext.VanillaApi.SendOnly.Save();
             Thread.Sleep(50);
             ClientContext.VanillaApi.Disconnect();
-            // Web UI と内蔵サーバーへゲーム終了を通知する。内蔵サーバーは保存を消化してから自壊する
-            // Notify the Web UI and the embedded server; the server folds itself after flushing pending saves
+            // 終了通知（サーバーは保存後自壊）
+            // Notify shutdown (server self-destructs after saving)
             GameShutdownEvent.FireGameShutdown();
         }
     }

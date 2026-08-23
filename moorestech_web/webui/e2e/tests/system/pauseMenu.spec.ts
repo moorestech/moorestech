@@ -7,7 +7,7 @@ test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
 });
 
-test("PauseMenu遷移で表示しセーブとメインメニュー復帰actionを送る", async ({ page }) => {
+test("PauseMenu遷移で表示しセーブとセーブして終了actionを送る", async ({ page }) => {
   await setUiState(page, "PauseMenu");
   await page.goto("/");
   const menu = page.getByTestId("pause-menu");
