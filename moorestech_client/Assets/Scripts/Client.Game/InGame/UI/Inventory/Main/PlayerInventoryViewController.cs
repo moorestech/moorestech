@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
-using Core.Master;
 using UniRx;
 using UnityEngine;
 using UnityEngine.UI;
@@ -20,7 +19,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
     {
         [SerializeField] private GameObject mainInventoryObject;
         [SerializeField] private PlayerInventoryMainSlotsView mainSlotsView;
-        [SerializeField] private ItemSlotView grabInventorySlotView;
 
         public Transform SubInventoryParent => subInventoryParent.transform;
         [SerializeField] private Transform subInventoryParent;
@@ -38,8 +36,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
         // クリック/ドラッグ操作の解釈を担う非MonoBehaviourハンドラ
         // Non-MonoBehaviour handler that interprets click/drag gestures
         private PlayerInventorySlotInteraction _interaction;
-
-        private bool IsGrabItem => _playerInventory.GrabInventory.Id != ItemMaster.EmptyItemId;
 
         private void Awake()
         {
@@ -107,12 +103,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 else
                     _subInventory.SubInventorySlotObjects[i - mainSlotsView.SlotViews.Count].SetItem(itemView, item.Count);
             }
-
-            // 掴んでいるアイテムの表示を最後に同期する
-            // Synchronize the grabbed-item view last
-            grabInventorySlotView.SetActive(IsGrabItem);
-            var grabItemView = ClientContext.ItemImageContainer.GetItemView(_playerInventory.GrabInventory.Id);
-            grabInventorySlotView.SetItem(grabItemView, _playerInventory.GrabInventory.Count);
         }
     }
 }
