@@ -14,9 +14,9 @@ test("PauseMenu遷移で表示しセーブとメインメニュー復帰action�
   await expect(menu).toBeVisible();
 
   await menu.getByRole("button", { name: "ゲームをセーブする" }).click();
-  await menu.getByRole("button", { name: "セーブしてメインメニューに戻る" }).click();
+  await menu.getByRole("button", { name: "セーブして終了" }).click();
   await expect.poll(async () => (await payloadsOf(page, "pause_menu.save")).at(-1)).toEqual({});
-  await expect.poll(async () => (await payloadsOf(page, "pause_menu.back_to_main_menu")).at(-1)).toEqual({});
+  await expect.poll(async () => (await payloadsOf(page, "pause_menu.save_and_quit")).at(-1)).toEqual({});
 });
 
 test("pause_menu.currentの切断状態を表示する", async ({ page }) => {

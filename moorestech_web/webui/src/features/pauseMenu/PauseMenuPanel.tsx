@@ -11,10 +11,10 @@ export function PauseMenuPanel() {
   const title = t(L.ui.pauseMenu.title);
   const disconnected = t(L.ui.pauseMenu.disconnected);
   const saveLabel = t(L.ui.game.saveGame);
-  const backLabel = t(L.ui.game.saveAndBackToMainMenu);
+  const quitLabel = t(L.ui.game.saveAndQuit);
   const disconnectColor = "red";
   const save = () => void dispatchAction("pause_menu.save", {});
-  const back = () => void dispatchAction("pause_menu.back_to_main_menu", {});
+  const quit = () => void dispatchAction("pause_menu.save_and_quit", {});
 
   return (
     <section className={styles.panel} data-testid="pause-menu" {...tutorialAnchor(TutorialAnchorIds.pauseMenu)}>
@@ -24,8 +24,8 @@ export function PauseMenuPanel() {
         <Button {...tutorialAnchor(TutorialAnchorIds.pauseSave)} onClick={save}>
           {saveLabel}
         </Button>
-        <Button {...tutorialAnchor(TutorialAnchorIds.pauseBack)} onClick={back}>
-          {backLabel}
+        <Button {...tutorialAnchor(TutorialAnchorIds.pauseBack)} onClick={quit}>
+          {quitLabel}
         </Button>
         <LanguageSelect />
       </Stack>
