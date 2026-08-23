@@ -96,8 +96,8 @@ namespace Core.Master
             ResearchMaster = new ResearchMaster(GetJson(masterJsonFileContainer, new JsonFileName("research")));
             InitializeMaster(ResearchMaster);
 
-            // 複数依存（ResearchMasterのTaskParam.ResearchNodeGuid検証を含む）
-            // Multiple dependencies (including TaskParam.ResearchNodeGuid validation against ResearchMaster)
+            // 複数依存（ResearchMasterのTaskParam.ResearchNodeGuid検証、MapObjectMaster.Initializeが構築するearnItem索引を含む）
+            // Multiple dependencies (ResearchMaster's TaskParam.ResearchNodeGuid validation, and the earnItem index MapObjectMaster.Initialize builds)
             ChallengeMaster = new ChallengeMaster(GetJson(masterJsonFileContainer, new JsonFileName("challenges")));
             InitializeMaster(ChallengeMaster);
 

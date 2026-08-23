@@ -63,7 +63,7 @@ namespace Tests.UnitTest.Core.Challenge
             var master = new ChallengeMaster(json);
 
             Assert.IsFalse(master.Validate(out var logs));
-            StringAssert.Contains("which no MapObject earns", logs);
+            StringAssert.Contains("resolving to no MapObject", logs);
         }
 
         [Test]

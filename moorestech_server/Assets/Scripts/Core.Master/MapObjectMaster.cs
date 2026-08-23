@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Master.Validator;
 using Mooresmaster.Loader.MapModule;
+using Mooresmaster.Model.ChallengesModule;
 using Mooresmaster.Model.MapModule;
 using Newtonsoft.Json.Linq;
 
@@ -11,9 +12,13 @@ namespace Core.Master
     {
         public readonly Map Map;
 
-        // ドロップアイテムGUID→そのアイテムを落とすmapObjectGuidの索引
+        // 該当なしの戻り値。呼び出しごとに空集合を確保しない
+        // Returned when nothing matches, so no empty set is allocated per call
+        private static readonly IReadOnlySet<Guid> EmptyMapObjectGuids = new HashSet<Guid>();
+
+        // アイテム→落とすmapObject索引
         // earn item GUID → mapObjectGuids dropping that item
-        private Dictionary<Guid, List<Guid>> _mapObjectGuidsByEarnItem;
+        private Dictionary<Guid, IReadOnlySet<Guid>> _mapObjectGuidsByEarnItem;
 
         public MapObjectMaster(JToken jToken)
         {
@@ -31,12 +36,55 @@ namespace Core.Master
         }
 
         /// <summary>
+        ///     ピンの狙い先指定を候補mapObjectGuid集合へ解決する（client/server共通の唯一の規則）
+        ///     Resolves a pin target param into candidate mapObjectGuids; the single rule shared by client and server.
+        /// </summary>
+        public IReadOnlySet<Guid> ResolvePinTargets(MapObjectPinTutorialParam param)
+        {
+            if (!TryResolvePinTargets(param, out var pinTargets))
+            {
+                throw new InvalidOperationException($"Unknown pinTargetType: {param.PinTargetType}");
+            }
+
+            return pinTargets;
+        }
+
+        /// <summary>
+        ///     未知の狙い先指定でも例外にせず解決可否を返す（マスタ検証は落ちずに報告する必要がある）
+        ///     Reports whether the target param resolves instead of throwing, because master validation must report, not crash.
+        /// </summary>
+        public bool TryResolvePinTargets(MapObjectPinTutorialParam param, out IReadOnlySet<Guid> pinTargets)
+        {
+            switch (param.PinTargetParam)
+            {
+                case MapObjectPinTargetParam byMapObject:
+                    pinTargets = new HashSet<Guid> { byMapObject.MapObjectGuid };
+                    return true;
+                // そのアイテムを落とす全mapObjectが候補。木の種類が増えてもマスタ側の列挙は不要
+                // Every mapObject dropping the item is a candidate, so new tree species need no master enumeration
+                case EarnItemPinTargetParam byEarnItem:
+                    pinTargets = GetMapObjectGuidsByEarnItem(byEarnItem.ItemGuid);
+                    return true;
+                default:
+                    pinTargets = EmptyMapObjectGuids;
+                    return false;
+            }
+        }
+
+        /// <summary>
         ///     そのアイテムをドロップする全マップオブジェクトのGUIDを取得（該当なしなら空）
         ///     Gets the GUIDs of every map object dropping the item (empty when none drops it).
         /// </summary>
-        public IReadOnlyList<Guid> GetMapObjectGuidsByEarnItem(Guid itemGuid)
+        public IReadOnlySet<Guid> GetMapObjectGuidsByEarnItem(Guid itemGuid)
         {
-            if (!_mapObjectGuidsByEarnItem.TryGetValue(itemGuid, out var mapObjectGuids)) return Array.Empty<Guid>();
+            // Validateは他Masterより先にMapObjectMaster.Initializeが完了している前提で呼ばれる（MasterHolder.Loadのロード順に依存）
+            // Validate assumes MapObjectMaster.Initialize already ran (relies on MasterHolder.Load's load order)
+            if (_mapObjectGuidsByEarnItem == null)
+            {
+                throw new InvalidOperationException($"{nameof(MapObjectMaster)}.{nameof(Initialize)} was not called before {nameof(GetMapObjectGuidsByEarnItem)}.");
+            }
+
+            if (!_mapObjectGuidsByEarnItem.TryGetValue(itemGuid, out var mapObjectGuids)) return EmptyMapObjectGuids;
 
             return mapObjectGuids;
         }

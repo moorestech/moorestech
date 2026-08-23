@@ -34,7 +34,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(IsCompleted(challengeDatastore));
         }
 
-        // 非選択スロットに入れただけでは未達成、そのスロットを選択した時点で達成する
+        // 非選択に入れただけでは未達成
         // A non-selected slot does not count; selecting that slot completes it
         [Test]
         public void NonSelectedSlotDoesNotCountUntilSelected()
@@ -70,7 +70,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(IsCompleted(challengeDatastore));
         }
 
-        // チャレンジ開始前に装備済みなら初回tickで回収される
+        // 開始前装備済みは初回tickで回収
         // An item already equipped before the challenge starts is recovered on the first tick
         [Test]
         public void AlreadyEquippedCompletesOnFirstTick()

@@ -5,6 +5,7 @@
 // 足場生成やSetupDebugEnvironmentは呼ばない（自然なマップ=小石mapObjectとスポーンを残すため）
 // Do NOT flatten ground or SetupDebugEnvironment (keep the natural map: pebble mapObjects & spawn)
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Client.Playtest;
 using Cysharp.Threading.Tasks;
@@ -112,7 +113,7 @@ return PlaytestRunner.Run("tutorial-pebble-challenge", options, async p =>
 
     p.Note("最寄りの木をAttackMapObjectで伐採して原木を得る");
     var mapObjectDatastore = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>();
-    var nearestTree = mapObjectDatastore.SearchNearestMapObject(new[] { treeMapObject }, p.PlayerPosition);
+    var nearestTree = mapObjectDatastore.SearchNearestMapObject(new HashSet<Guid> { treeMapObject }, p.PlayerPosition);
     p.Assert(nearestTree != null, "最寄りの未破壊の木がクライアントで見つかった");
     if (nearestTree != null)
     {

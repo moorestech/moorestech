@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Core.Master;
 using Game.Context;
 using Game.PlayerInventory.Interface;
@@ -20,6 +21,10 @@ namespace Game.Challenge.Task
 
         private bool _completed;
         private bool _initialCheckDone;
+
+        // イベントは判定対象のplayerIdを積むだけで、判定と発火はティックで行う
+        // Events only enqueue the player ids to check; the check and the completion fire on the tick
+        private readonly HashSet<int> _playerIdsToCheck = new();
 
         private readonly ItemId _targetItemId;
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
@@ -46,38 +51,58 @@ namespace Game.Challenge.Task
             equipmentUpdateEvent.SubscribeSelectedEquipmentIndex(OnSelectedEquipmentIndexUpdated);
         }
 
+        // 完了カスケードはインベントリ操作の途中に割り込ませない（ユーザー裁定 2026-08-23）
+        // Never let the completion cascade cut into an in-flight inventory operation (user adjudication 2026-08-23)
         public void ManualUpdate()
         {
-            // チャレンジ開始前から装備済みの取りこぼしを初回tickだけ照会する
-            // Query once on the first tick to recover an item equipped before this challenge started
-            if (_completed || _initialCheckDone) return;
-            _initialCheckDone = true;
+            if (_completed) return;
 
-            foreach (var playerId in _playerInventoryDataStore.GetAllPlayerId())
+            EnqueueInitialCheckOnce();
+
+            foreach (var playerId in _playerIdsToCheck)
             {
-                CheckEquipped(playerId);
+                if (IsTargetEquipped(playerId))
+                {
+                    _completed = true;
+                    break;
+                }
             }
+            _playerIdsToCheck.Clear();
+
+            if (_completed) _onChallengeComplete.OnNext(this);
+
+            #region Internal
+
+            // チャレンジ開始前から装備済みの取りこぼしを、プレイヤーが1人以上いる最初のtickで回収する
+            // Recover an item equipped before this challenge started, on the first tick that has at least one player
+            void EnqueueInitialCheckOnce()
+            {
+                if (_initialCheckDone) return;
+
+                var allPlayerIds = _playerInventoryDataStore.GetAllPlayerId();
+                if (allPlayerIds.Count == 0) return;
+
+                _initialCheckDone = true;
+                foreach (var playerId in allPlayerIds) _playerIdsToCheck.Add(playerId);
+            }
+
+            #endregion
         }
 
         private void OnEquipmentSlotUpdated(PlayerInventoryUpdateEventProperties properties)
         {
-            CheckEquipped(properties.PlayerId);
+            _playerIdsToCheck.Add(properties.PlayerId);
         }
 
         private void OnSelectedEquipmentIndexUpdated(EquipmentSelectedIndexUpdateEventProperties properties)
         {
-            CheckEquipped(properties.PlayerId);
+            _playerIdsToCheck.Add(properties.PlayerId);
         }
 
-        private void CheckEquipped(int playerId)
+        private bool IsTargetEquipped(int playerId)
         {
-            if (_completed) return;
-
             var selectedItem = _playerInventoryDataStore.GetInventoryData(playerId).EquipmentInventory.GetSelectedItem();
-            if (selectedItem.Id != _targetItemId) return;
-
-            _completed = true;
-            _onChallengeComplete.OnNext(this);
+            return selectedItem.Id == _targetItemId;
         }
     }
 }

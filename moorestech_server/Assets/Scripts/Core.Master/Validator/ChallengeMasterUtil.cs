@@ -114,31 +114,28 @@ namespace Core.Master.Validator
                             {
                                 case MapObjectPinTutorialParam mapObjectPin:
                                 {
-                                    // ピン先はGUID直指定とドロップ品指定の2系統。どちらも参照先の実在だけを検証する
-                                    // Two target kinds: direct GUID and drop item; both only verify the referenced master exists
-                                    switch (mapObjectPin.PinTargetParam)
+                                    // 狙い先の解決規則はMapObjectMasterが唯一の持ち主。種別が増えてもこのブロックは変えない
+                                    // MapObjectMaster owns the only resolution rule, so adding a target kind never touches this block
+                                    if (!MasterHolder.MapObjectMaster.TryResolvePinTargets(mapObjectPin, out var pinTargets))
                                     {
-                                        case MapObjectPinTargetParam byMapObject:
-                                            if (MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(byMapObject.MapObjectGuid) == null)
-                                            {
-                                                logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.MapObjectGuid:{byMapObject.MapObjectGuid}\n";
-                                            }
-                                            break;
-                                        case EarnItemPinTargetParam byEarnItem:
-                                            if (MasterHolder.ItemMaster.GetItemIdOrNull(byEarnItem.ItemGuid) == null)
-                                            {
-                                                logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.PinTarget.ItemGuid:{byEarnItem.ItemGuid}\n";
-                                            }
-                                            // 誰も落とさないアイテムを指すピンは解決先が空になり達成不能なチュートリアルになる
-                                            // A pin aimed at an item nothing drops resolves to nothing, making the tutorial impossible to complete
-                                            else if (MasterHolder.MapObjectMaster.GetMapObjectGuidsByEarnItem(byEarnItem.ItemGuid).Count == 0)
-                                            {
-                                                logs += $"[ChallengeMaster] Challenge:{challenge.Title} points Tutorial.PinTarget.ItemGuid:{byEarnItem.ItemGuid} which no MapObject earns\n";
-                                            }
-                                            break;
-                                        default:
-                                            logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated PinTargetParam type:{mapObjectPin.PinTargetParam?.GetType().Name}\n";
-                                            break;
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated PinTargetParam type:{mapObjectPin.PinTargetParam?.GetType().Name}\n";
+                                        break;
+                                    }
+
+                                    // 解決先が空のピンは指す先が永久に現れず達成不能なチュートリアルになる
+                                    // A pin resolving to nothing never gets a target, making the tutorial impossible to complete
+                                    if (pinTargets.Count == 0)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has a mapObjectPin resolving to no MapObject. PinTargetType:{mapObjectPin.PinTargetType}\n";
+                                        break;
+                                    }
+
+                                    foreach (var pinTarget in pinTargets)
+                                    {
+                                        if (MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(pinTarget) == null)
+                                        {
+                                            logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.MapObjectGuid:{pinTarget}\n";
+                                        }
                                     }
                                     break;
                                 }

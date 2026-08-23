@@ -5,6 +5,8 @@ Builds tree/rock inventory entries (key, kind, address, deterministic guid) from
 
 from __future__ import annotations
 
+import json
+import pathlib
 import uuid
 
 # 決定論採番の名前空間。再実行でmapObjectGuidを不変に保つため固定値とする
@@ -24,9 +26,24 @@ ADDRESS_CATEGORY_BY_KIND = {"tree": "Tree", "rock": "Rock", "pebble": "Rock", "p
 # The source TerrainGenerator.ApplyObjectSurroundTexture repaints bare ground only under objectConfig placements whose name contains one of these
 BARE_GROUND_NAME_MARKERS = ("Boulder", "Cliff")
 
-# kind=treeのうち幹を持たないサボテン・低木の名前（小文字比較）。木用の描画・音とは別軸なのでkindに相乗りさせない
-# Names (compared lowercase) of kind=tree species without a trunk; a separate axis from the tree rendering and sound kind
-NON_TIMBER_NAME_MARKERS = ("cactus", "opuntia", "saguaro", "senita", "bush")
+# 原木を落とす樹種の宣言表。プレハブ名からの推測は誤分類が静かに通るため持たない（ユーザー裁定 2026-08-23）
+# Declared table of log-dropping species; names are never guessed, since a misread would pass silently (user adjudication 2026-08-23)
+TIMBER_SPECIES_PATH = pathlib.Path(__file__).with_name("timber-species.json")
+
+
+def _load_timber_declaration() -> tuple[frozenset[str], frozenset[str]]:
+    document = json.loads(TIMBER_SPECIES_PATH.read_text(encoding="utf-8"))
+    timber = frozenset(document["timber"])
+    non_timber = frozenset(document["nonTimber"])
+
+    overlap = timber & non_timber
+    if overlap:
+        raise ValueError(f"timberとnonTimberの両方に宣言された樹種: {sorted(overlap)}")
+
+    return timber, non_timber
+
+
+TIMBER_KEYS, NON_TIMBER_KEYS = _load_timber_declaration()
 
 
 class Species:
@@ -46,14 +63,18 @@ class Species:
         # Only species referenced from objectConfig can become true; rocks placed via treePlacement are never repainted in the source
         self.referenced_by_object_config = False
 
-    # 幹から原木が採れる樹種か。サボテン・低木・草花は木のように描画・発音されても原木を落とさない
-    # Whether the trunk yields logs; cacti, shrubs and grasses look and sound like trees but drop no logs
+    # 幹から原木が採れる樹種か。宣言表に無い樹種は既定へ倒さず生成を止める
+    # Whether the trunk yields logs; an undeclared species stops generation instead of falling back to a default
     @property
     def timber(self) -> bool:
         if self.kind != "tree":
             return False
-        lowered = self.name.lower()
-        return not any(marker in lowered for marker in NON_TIMBER_NAME_MARKERS)
+        if self.key in TIMBER_KEYS:
+            return True
+        if self.key in NON_TIMBER_KEYS:
+            return False
+        raise ValueError(
+            f"timber未宣言の樹種 {self.key}: {TIMBER_SPECIES_PATH.name} の timber / nonTimber のどちらかへ足すこと")
 
     @property
     def bare_ground(self) -> bool:

@@ -5,6 +5,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
+using Core.Master;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
 using VContainer;
@@ -17,6 +18,10 @@ namespace Client.Game.InGame.Tutorial
         // World-pin id on the web overlay; a single scene instance suffices, so the id is fixed
         private const string WebPinId = "map-object-pin";
 
+        // 未適用・完了後の空候補。毎フレームの探索でnull分岐を持たずに済む
+        // Empty candidates before apply and after completion, so the per-frame search needs no null branch
+        private static readonly IReadOnlySet<Guid> EmptyTargets = new HashSet<Guid>();
+
         private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
         private TutorialWorldPinVisibility _visibility;
@@ -26,8 +31,12 @@ namespace Client.Game.InGame.Tutorial
         private TutorialWorldPinVisibility Visibility => _visibility ??= new TutorialWorldPinVisibility(gameObject, nameof(MapObjectPin));
 
         private MapObjectPinTutorialParam _currentTutorialParam;
-        private IReadOnlyList<Guid> _targetMapObjectGuids = Array.Empty<Guid>();
+        private IReadOnlySet<Guid> _targetMapObjectGuids = EmptyTargets;
         private string _pinTutorialGuid = "";
+
+        // 候補全滅は毎フレーム出すとログを埋めるので、対象が変わるまで初回だけ報告する
+        // Reporting "no candidate left" every frame would bury the log, so report once until the target changes
+        private bool _missingReported;
 
         [Inject]
         public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
@@ -64,18 +73,42 @@ namespace Client.Game.InGame.Tutorial
 
             void NearestPinMapObject()
             {
-                // 候補GUID集合のうち最寄りの未破壊MapObjectへピンする
-                // Pin the nearest undestroyed MapObject among the candidate GUIDs
+                // 候補集合中の最寄り未破壊にピン
+                // Pin the nearest undestroyed candidate
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_targetMapObjectGuids, playerPos);
 
                 if (mapObject == null)
                 {
-                    Debug.LogError($"未破壊のMapObject（pinTargetType={_currentTutorialParam.PinTargetType}）が存在しません");
+                    HideForMissingMapObject();
                     return;
                 }
 
                 transform.position = mapObject.GetPosition();
+            }
+
+            void HideForMissingMapObject()
+            {
+                // 指す先無しは非表示、報告は初回のみ
+                // Hide when there is nothing to point at; report only once
+                if (!_missingReported)
+                {
+                    _missingReported = true;
+                    Debug.LogError($"未破壊のMapObject（{DescribeTarget()}、候補{_targetMapObjectGuids.Count}件）が存在しません");
+                }
+
+                SetActive(false);
+                WorldPinStateStore.Instance.RemovePin(WebPinId);
+            }
+
+            string DescribeTarget()
+            {
+                return _currentTutorialParam.PinTargetParam switch
+                {
+                    MapObjectPinTargetParam byMapObject => $"mapObjectGuid={byMapObject.MapObjectGuid}",
+                    EarnItemPinTargetParam byEarnItem => $"itemGuid={byEarnItem.ItemGuid}",
+                    _ => $"pinTargetType={_currentTutorialParam.PinTargetType}",
+                };
             }
 
             #endregion
@@ -84,8 +117,9 @@ namespace Client.Game.InGame.Tutorial
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             _currentTutorialParam = (MapObjectPinTutorialParam)tutorial.TutorialParam;
-            _targetMapObjectGuids = MapObjectPinTargetResolver.ResolveMapObjectGuids(_currentTutorialParam);
+            _targetMapObjectGuids = MasterHolder.MapObjectMaster.ResolvePinTargets(_currentTutorialParam);
             _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
+            _missingReported = false;
 
             // 追跡と射影配信のみ行う（表示はWebオーバーレイが担う）
             // Only tracking and projection publishing happen here; display lives on the web overlay
@@ -98,7 +132,7 @@ namespace Client.Game.InGame.Tutorial
         {
             SetActive(false);
             _currentTutorialParam = null;
-            _targetMapObjectGuids = Array.Empty<Guid>();
+            _targetMapObjectGuids = EmptyTargets;
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 

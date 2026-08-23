@@ -1,23 +1,24 @@
 using System;
-using Client.Game.InGame.Tutorial;
+using Core.Master;
 using Mooresmaster.Model.ChallengesModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 
-namespace Client.Tests.UnitTest.Tutorial
+namespace Tests.UnitTest.Core.Map
 {
-    public class MapObjectPinTargetResolverTest
+    public class MapObjectPinTargetResolutionTest
     {
-        // forUnitTest map.json: TreeTest/TestMiningRock/TestRubbleRock が item ...0002 を落とし、vanilla:Tree だけが ...0001 を落とす
-        // forUnitTest map.json: TreeTest/TestMiningRock/TestRubbleRock drop item ...0002, only vanilla:Tree drops ...0001
+        // fixtureのmapObject。いずれもitem...0002を落とす
+        // Fixture map objects; all three earn item ...0002
         private static readonly Guid TreeTestGuid = Guid.Parse("00000000-0000-1111-0000-000000000001");
         private static readonly Guid MiningRockGuid = Guid.Parse("00000000-0000-2222-0000-000000000001");
         private static readonly Guid RubbleRockGuid = Guid.Parse("00000000-0000-3333-0000-000000000001");
+
         private static readonly Guid Item2Guid = Guid.Parse("00000000-0000-0000-1234-000000000002");
 
-        // Test3はitems.jsonに実在するがどのmapObjectのearnItemsにも無い
-        // Test3 exists in items.json but no mapObject earns it
+        // Test3は実在するが誰も落とさない
+        // Test3 exists but nothing earns it
         private static readonly Guid NobodyEarnsItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000003");
 
         [SetUp]
@@ -35,9 +36,9 @@ namespace Client.Tests.UnitTest.Tutorial
                 new MapObjectPinTargetParam(TreeTestGuid),
                 "pin");
 
-            var result = MapObjectPinTargetResolver.ResolveMapObjectGuids(param);
+            var result = MasterHolder.MapObjectMaster.ResolvePinTargets(param);
 
-            CollectionAssert.AreEqual(new[] { TreeTestGuid }, result);
+            CollectionAssert.AreEquivalent(new[] { TreeTestGuid }, result);
         }
 
         [Test]
@@ -48,7 +49,7 @@ namespace Client.Tests.UnitTest.Tutorial
                 new EarnItemPinTargetParam(Item2Guid),
                 "pin");
 
-            var result = MapObjectPinTargetResolver.ResolveMapObjectGuids(param);
+            var result = MasterHolder.MapObjectMaster.ResolvePinTargets(param);
 
             CollectionAssert.AreEquivalent(new[] { TreeTestGuid, MiningRockGuid, RubbleRockGuid }, result);
         }
@@ -61,8 +62,24 @@ namespace Client.Tests.UnitTest.Tutorial
                 new EarnItemPinTargetParam(NobodyEarnsItemGuid),
                 "pin");
 
-            var result = MapObjectPinTargetResolver.ResolveMapObjectGuids(param);
+            var result = MasterHolder.MapObjectMaster.ResolvePinTargets(param);
 
+            CollectionAssert.IsEmpty(result);
+        }
+
+        // 未知の狙い先はマスタ検証が報告するため、例外ではなくfalseで返る必要がある
+        // An unknown target must come back as false, not an exception, so master validation can report it
+        [Test]
+        public void 未知の狙い先指定は解決に失敗する()
+        {
+            var param = new MapObjectPinTutorialParam(
+                MapObjectPinTutorialParam.PinTargetTypeConst.mapObject,
+                null,
+                "pin");
+
+            var resolved = MasterHolder.MapObjectMaster.TryResolvePinTargets(param, out var result);
+
+            Assert.IsFalse(resolved);
             CollectionAssert.IsEmpty(result);
         }
     }
