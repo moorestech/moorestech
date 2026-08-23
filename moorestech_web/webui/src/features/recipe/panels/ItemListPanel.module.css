@@ -1,25 +1,80 @@
-/* Mantine ScrollArea を正本準拠の細い白ノブへ上書きする（静的クラス名 mantine-ScrollArea-* を対象）。
-   トラックは従来透明だったが、正本は暗色トラックが可視。ノブの位置・長さ算出には影響しない */
+/* Mantine ScrollArea を正本準拠の細い白ノブへ上書きする（静的クラス名 mantine-ScrollArea-* を対象） */
 /* Override Mantine's ScrollArea to a thin white knob matching the reference (targets the static
-   mantine-ScrollArea-* classes). The track used to be transparent, but the reference shows a visible dark
-   track; this doesn't affect the thumb's position/length math */
-/* iter6: 旧トラック(31 35 39/70%)はパネル面に溶けほぼ不可視だったため、より暗く不透明度も上げて
-   常時視認できる細トラックにする */
-/* iter6: The old track (31 35 39/70%) blended into the panel face and was nearly invisible; darken it and
-   raise the opacity so the thin track stays visible at all times */
+   mantine-ScrollArea-* classes) */
+/* トラックは透明にし、ノブだけを浮かせる（ユーザー裁定 2026-08-17。正本の暗色トラックから意図的に離れる）。
+   暗色トラックはスロット行の直下につまみ幅0の水平バーを黒帯として残していた */
+/* The track stays transparent so only the knob floats (user ruling 2026-08-17, a deliberate departure from the
+   reference's dark track); that dark track left a zero-thumb horizontal bar as a black band under the slot row */
 .scrollArea :global(.mantine-ScrollArea-scrollbar) {
   padding: 0;
-  background: rgb(12 10 12 / 62%);
+  background: transparent;
 }
 
-/* 左端のクリップ領域だけ3層リング分広げ、グリッド本体の絶対位置は維持する */
-/* Widen only the left clipping region by the three-layer ring while preserving the grid's absolute position */
+/* スクロール領域はパネル本文いっぱいに広げる。内容ぴったりに縮めてはいけない（ユーザー裁定 2026-08-22）。
+   縮めると(1)溢れていないのに1段分の高さでスクロール扱いになり(2)viewportのoverflowクリップが
+   セル外周まで届かず、チュートリアルのハイライト枠が必ず削られてラベルが描画されない(ADR 0024) */
+/* The scroller fills the panel body and must never shrink to its content (user ruling 2026-08-22). Shrinking
+   (1) makes a single row behave as a scroller with no overflow and (2) pulls the viewport's overflow clip inside
+   the cell's surroundings, so the tutorial highlight is always shaved and its label never renders (ADR 0024) */
+/* 内側のviewportをflexで伸ばす。height:100%はflex由来の親高に対して解決できず内容なりに潰れる
+   （Mantineのスクロールバーはposition:absoluteなので、列にしても並びに入らない） */
+/* Stretch the inner viewport with flex; height:100% cannot resolve against a flex-derived parent height and
+   collapses to the content (Mantine's scrollbars are position:absolute, so the column never stacks them) */
+.scrollArea {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  /* 各マージンからclip逃げpaddingを差し引いてクリップ領域だけ外へ広げ、グリッド本体とノブの絶対位置は動かさない */
+  /* Each margin subtracts the clip-clearance padding so only the clipping region grows while the grid and knob stay put */
+  /* 基底値は正本合わせの実測: -3.561498pxはグリッド内側インデント補正、+3.131498pxは旧viewport padding-leftの打ち消し */
+  /* Reference-matched bases: -3.561498px corrects the grid inset and +3.131498px cancels the old viewport padding-left */
+  margin-left: calc(-3.561498px - var(--tutorial-anchor-clip-inset) + 3.131498px);
+  /* stretch下ではmargin-leftだけで右端が動かないため、右は別途ノブ位置を詰める */
+  /* Under stretch margin-left alone cannot move the right edge, so the right side tucks the knob on its own */
+  margin-right: 4.435px;
+  /* 12pxはノブの縦位置合わせ */
+  /* The 12px aligns the knob vertically */
+  margin-top: calc(12px - var(--tutorial-anchor-clip-inset));
+  margin-bottom: calc(-1 * var(--tutorial-anchor-clip-inset));
+}
+
+/* 上下端と左端のクリップ領域をチュートリアル枠の逃げぶん広げ、グリッド本体の絶対位置は維持する
+   （広げたぶんはScrollArea側の負マージンで相殺し、内容box寸法も不変にする。右端は既に15.95pxの逃げがあり不要） */
+/* Widen the top, bottom and left clipping region by the tutorial ring's clearance while preserving the grid's
+   absolute position (negative margins on the ScrollArea cancel it and keep the content box size unchanged;
+   the right edge already has 15.95px) */
 .scrollArea :global(.mantine-ScrollArea-viewport) {
   box-sizing: border-box;
-  padding-left: 3.131498px;
+  /* クリップ境界をパネル本文いっぱいまで伸ばす。Mantine既定のheight:100%は解決できず内容なりに潰れる */
+  /* Stretch the clip edge to the full panel body; Mantine's default height:100% cannot resolve and collapses to the content */
+  flex: 1;
+  min-height: 0;
+  padding-top: var(--tutorial-anchor-clip-inset);
+  padding-bottom: var(--tutorial-anchor-clip-inset);
+  padding-left: var(--tutorial-anchor-clip-inset);
   /* 掴みドラッグを自前で処理するため、タッチの既定スクロールを無効化する */
   /* Disable native touch scrolling since we handle grab-drag ourselves */
   touch-action: none;
+}
+
+/* 最終段の個数バッジがはみ出す分を内側に確保する。0にすると溢れる直前の7段で偽の溢れが立ち、
+   バーの出る段数が1段早まる（2026-08-22 ablation実測。7段のe2eが赤くなる）
+   前例: RecipeViewer.module.css の --recipe-entry-bleed。同じ「装飾のはみ出しが偽スクロールを生む」問題 */
+/* Reserve the last row's count-badge bleed inside the scroller; at 0 the last non-overflowing count (seven rows)
+   raises a phantom overflow and the bar appears one row early (measured by ablation 2026-08-22: the seven-row e2e goes red).
+   Precedent: --recipe-entry-bleed in RecipeViewer.module.css, the same bleed-becomes-scroll problem */
+.scrollArea :global(.mantine-ScrollArea-content) {
+  padding-bottom: var(--item-list-count-bleed);
+}
+
+/* 上下へ広げたクリップ領域のぶんトラックを詰め、ノブの位置と長さを正本合わせのまま保つ */
+/* Inset the track by the clip widening above and below so the knob keeps its reference-matched position and length */
+.scrollArea :global(.mantine-ScrollArea-scrollbar[data-orientation="vertical"]) {
+  top: var(--tutorial-anchor-clip-inset);
+  /* Mantine既定の bottom は --sa-corner-width。丸ごと置き換えるとトラックが4px伸びるため足し込む */
+  /* Mantine's default bottom is --sa-corner-width; replacing it outright lengthens the track by 4px, so add onto it */
+  bottom: calc(var(--tutorial-anchor-clip-inset) + var(--sa-corner-width));
 }
 
 /* ノブ寸法はコンテンツ量から自然算出させる（DEMOは60件=10段で正本のトラック比≈70%になる） */

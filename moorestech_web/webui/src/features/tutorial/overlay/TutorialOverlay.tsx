@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { dispatchAction, Topics, useItemMaster, useTopic } from "@/bridge";
 import { challengeTutorialTextKey, useI18n, type TranslationKey } from "@/shared/i18n";
 import { TutorialAnchorRegistry, TutorialAnchorDynamicPrefixes, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
+import DragGuide from "./DragGuide";
+import HighlightLabel from "./HighlightLabel";
 import { readTutorialHighlightGlowPx } from "./highlightGlowToken";
 import styles from "./style.module.css";
-import { anchoredSubscriptionSignature, assertNever, tutorialElementKey, type TutorialOverlayElement } from "./tutorialElement";
+import { anchoredSubscriptionSignature, assertNever, tutorialElementKey, type TutorialOverlayElement } from "../tutorialElement";
 
 type TutorialOutlineElement = Extract<TutorialOverlayElement, { kind: "outline" }>;
 type AckTarget = { tutorialSessionId: string; elementId: string };
@@ -109,7 +111,7 @@ export function TutorialOverlay() {
         case "outline":
           return renderOutline(key, element, resolved[element.anchorId], t);
         case "dragGuide":
-          return renderDragGuide(key, resolved[element.fromAnchorId], resolved[element.toAnchorId]);
+          return <DragGuide key={key} from={resolved[element.fromAnchorId]} to={resolved[element.toAnchorId]} />;
         case "keyControl":
           // keyControlはanchorを持たず下中央HUDが描画する
           // keyControl has no anchor and is rendered by the bottom-center HUD
@@ -136,39 +138,24 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
   const outline = <div key={key} className={styles.highlight} data-kind={element.kind}
     style={{ left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top, clipPath }} />;
   if (!element.labelTutorialGuid) return outline;
-  // 枠線が祖先クリップで1pxでも削られるならラベルは出さない(半端に切れた文言より非表示が安全)
-  // Skip the label as soon as the ancestor clip shaves the outline at all; a half-cut sentence is worse than none
-  if (isClipped(box, value.clip)) return outline;
+  // 判定はアンカー実体で行う。boxで見るとpaddingPxのリングが削れただけでラベルが落ち、
+  // アンカーが完全に見えていてもクリップ端に接する最上段では必ず消える（ユーザー指摘 2026-08-22）
+  // Judge on the anchor itself: judging on box drops the label when only the paddingPx ring is shaved, so a
+  // fully visible top row that merely touches the clip edge always loses it (user report 2026-08-22)
+  const anchorBox = {
+    left: value.rect.left, top: value.rect.top,
+    right: value.rect.left + value.rect.width, bottom: value.rect.top + value.rect.height,
+  };
+  if (isClipped(anchorBox, value.clip)) return outline;
   // 辞書解決が空ならラベル面ごと出さない
   // An empty dictionary result renders no label face at all
   const labelText = t(challengeTutorialTextKey(element.labelTutorialGuid));
   if (!labelText) return outline;
-  // ラベルは枠線下辺外側左揃え配置
-  // Label sits left-aligned below the outline
-  const label = <div key={`${key}:label`} className={styles.highlightLabel} data-testid="tutorial-highlight-label"
-    style={{ left: box.left, top: box.bottom }}>
-    {labelText}
-  </div>;
-  return [outline, label];
+  return [outline, <HighlightLabel key={`${key}:label`} box={box} clip={value.clip} text={labelText} />];
 }
 
-function renderDragGuide(key: string, from: ResolvedAnchor | undefined, to: ResolvedAnchor | undefined) {
-  if (!from || from.status !== "ready" || !to || to.status !== "ready") return null;
-  const fromX = from.rect.left + from.rect.width / 2;
-  const fromY = from.rect.top + from.rect.height / 2;
-  const toX = to.rect.left + to.rect.width / 2;
-  const toY = to.rect.top + to.rect.height / 2;
-  const dragGuideVars = { "--drag-guide-dx": `${toX - fromX}px`, "--drag-guide-dy": `${toY - fromY}px` } as CSSProperties;
-  return <div key={key} className={styles.dragGuide} data-testid="tutorial-drag-guide"
-    style={{ left: fromX, top: fromY, ...dragGuideVars }}>
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6 3 L18 12 L11 13.5 L13.5 20 L10.5 21 L8 14.5 L3 18 Z" />
-    </svg>
-  </div>;
-}
-
-// ラベルはclip-pathを持たないため、枠線がどこかで削られている時点で描かない判定に使う
-// The label carries no clip-path, so this decides to skip it the moment the outline is cut anywhere
+// ラベルはclip-pathを持たないため、アンカーが一部でも隠れている時点で描かない判定に使う
+// The label carries no clip-path, so this decides to skip it the moment the anchor is partly hidden
 function isClipped(box: ClipRect, clip: ClipRect): boolean {
   return clip.left > box.left || clip.top > box.top || clip.right < box.right || clip.bottom < box.bottom;
 }

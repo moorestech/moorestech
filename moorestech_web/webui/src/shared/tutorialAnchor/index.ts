@@ -3,6 +3,7 @@ export { TutorialAnchorRegistry } from "./anchorRegistry";
 export { resolveTutorialAnchor } from "./resolveAnchor";
 export type { ResolvedAnchor, AnchorReason } from "./resolveAnchor";
 export { clipPathInset } from "./ancestorClip";
+export { readTutorialAnchorClipInsetPx } from "./clipInsetToken";
 export type { ClipRect } from "./ancestorClip";
 export type { AnchorId, TutorialAnchorAttributes, TutorialAnchorId } from "./tutorialAnchor";
 export {

@@ -1,0 +1,12 @@
+/* カーソル追従(CursorTooltip)と同じ面・書式を共有トークンから引く。Mantine既定の白い角丸は出さない（§9） */
+/* Pulls the same face and format as the cursor-following CursorTooltip from shared tokens; Mantine's default white rounded box never shows (§9) */
+.tooltip {
+  max-width: var(--tooltip-max-width);
+  padding: var(--tooltip-padding-block) var(--tooltip-padding-inline);
+  border-radius: 0;
+  font-size: var(--tooltip-font-size);
+  color: white;
+  white-space: pre-line;
+  background: var(--tooltip-face);
+  border: var(--tooltip-border);
+}

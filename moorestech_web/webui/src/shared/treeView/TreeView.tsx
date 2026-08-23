@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent, ReactNode } from "react";
+import { readTutorialAnchorClipInsetPx } from "@/shared/tutorialAnchor";
 import { computeTreeCanvasBounds, lineBetween, toTreeCanvasPoint } from "./treeGeometry";
 import type { TreePoint } from "./treeGeometry";
 import { centerViewportOn, loadStoredViewport, saveStoredViewport, usePanInertia, zoomViewportAt } from "./viewport";
@@ -25,6 +26,16 @@ type Props<T> = {
 };
 
 const toCssScale = (element: HTMLDivElement) => element.offsetWidth / element.getBoundingClientRect().width;
+// キャンバス原点はviewportの内容box。クリップ逃げのpaddingぶん枠線boxからずれるため座標計算はここを基準にする
+// The canvas sits at the viewport's content box, offset from the border box by the clip clearance, so all coordinate math uses it
+const toContentBox = (element: HTMLDivElement) => {
+  const insetPx = readTutorialAnchorClipInsetPx();
+  return {
+    left: insetPx, top: insetPx,
+    width: element.offsetWidth - insetPx * 2,
+    height: element.offsetHeight - insetPx * 2,
+  };
+};
 
 export default function TreeView<T>(props: Props<T>) {
   const { nodes, getId, getPosition, getPrevIds, renderNode, nodeTargetSelector, testIdPrefix, viewportKey, initialFocus } = props;
@@ -69,10 +80,11 @@ export default function TreeView<T>(props: Props<T>) {
     const element = viewportElement.current;
     if (!element || element.offsetWidth === 0) return;
     hasCentered.current = true;
+    const contentBox = toContentBox(element);
     // データ到着前にズーム済みの場合もあるため現在のscaleを保つ
     // Keep the current scale in case the user zoomed before data arrived
     setViewport((current) => centerViewportOn(toTreeCanvasPoint(initialFocus, bounds),
-      { width: element.offsetWidth, height: element.offsetHeight }, current.scale));
+      { width: contentBox.width, height: contentBox.height }, current.scale));
   }, [storedAtMount, initialFocus, bounds, nodes]);
 
   // 初期値以外(センタリング・操作)を保存
@@ -92,8 +104,9 @@ export default function TreeView<T>(props: Props<T>) {
       inertia.cancel();
       const rect = element.getBoundingClientRect();
       const scale = toCssScale(element);
+      const contentBox = toContentBox(element);
       setViewport((current) => zoomViewportAt(current, {
-        x: (event.clientX - rect.left) * scale, y: (event.clientY - rect.top) * scale,
+        x: (event.clientX - rect.left) * scale - contentBox.left, y: (event.clientY - rect.top) * scale - contentBox.top,
       }, event.deltaY));
     };
     element.addEventListener("wheel", handleWheel, { passive: false });
