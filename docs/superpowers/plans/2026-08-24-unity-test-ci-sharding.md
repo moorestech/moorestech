@@ -57,12 +57,12 @@
 - Consumes: Task 1のresolver outputs
 - Produces: 8個の`Unity Test - <shard>` check、8個の`Test results - <shard>` artifact、集約check`EditMode Test (Client + Server)`
 
-- [ ] **Step 1:** 既存test jobの共通setupをmatrix jobへ移し、8 shardを`fail-fast: false`で並列実行する。
-- [ ] **Step 2:** resolverの`assembly_names`と`test_filter`を`-assemblyNames`・`-testFilter`へ渡し、全shardに`-testCategory "!IgnoreCI"`を渡す。
-- [ ] **Step 3:** Client shardだけWebUI toolchainを準備し、全shardでshallow checkout・job token・一意check/artifact名を使う。
-- [ ] **Step 4:** `if: always()`の集約jobでmatrix resultがsuccessのときだけ成功させ、既存check表示名を維持する。
-- [ ] **Step 5:** Ruby YAML parseと構造assertionでmatrix 8件、一意名、resolver利用、`fetch-depth: 0`消滅を確認する。
-- [ ] **Step 6:** `git add .github/workflows/run_test.yml && git commit -m "perf(ci): Unity EditModeテストを8並列化"`でcommitする。
+- [x] **Step 1:** 既存test jobの共通setupをmatrix jobへ移し、8 shardを`fail-fast: false`で並列実行する。
+- [x] **Step 2:** resolverの`assembly_names`と`test_filter`を`-assemblyNames`・`-testFilter`へ渡し、全shardに`-testCategory "!IgnoreCI"`を渡す。
+- [x] **Step 3:** Client shardだけWebUI toolchainを準備し、全shardでshallow checkout・job token・一意check/artifact名を使う。
+- [x] **Step 4:** `if: always()`の集約jobでmatrix resultがsuccessのときだけ成功させ、既存check表示名を維持する。
+- [x] **Step 5:** Ruby YAML parseと構造assertionでmatrix 8件、一意名、resolver利用、`fetch-depth: 0`消滅を確認する。
+- [x] **Step 6:** `git add .github/workflows/run_test.yml && git commit -m "perf(ci): Unity EditModeテストを8並列化"`でcommitする。
 
 ### Task 3: master pushで最新client Libraryをwarm
 
