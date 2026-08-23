@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
             return new TerrainDimensions(
                 terrainWidth: 100f, terrainLength: 100f, terrainHeight: 50f,
                 worldOffsetX: 0f, worldOffsetZ: 0f,
-                resolution: HeightmapResolution, seaLevel: 0f, shoreMinHeight: 0f, seed: 1,
+                resolution: HeightmapResolution, detailResolution: HeightmapResolution - 1, seaLevel: 0f, shoreMinHeight: 0f, seed: 1,
                 spawnWorldX: 0f, spawnWorldZ: 0f,
                 tileIndexX: 0, tileIndexZ: 0, gridSizeX: 1, gridSizeZ: 1);
         }

@@ -94,7 +94,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             var tileConfig = _gridConfig.CreateTileConfig(tileX, tileZ);
             var tileScene = _gridConfig.TileScenePosition(tileX, tileZ);
             var tileWorldPosition = new Vector3(tileScene.x, 0f, tileScene.y);
-            var detailResolution = _gridConfig.Resolution - 1;
+            var detailResolution = _gridConfig.DetailResolution;
 
             var tileVisual = ResolveVisual();
 

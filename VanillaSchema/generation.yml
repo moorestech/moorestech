@@ -98,6 +98,17 @@ properties:
       - _512
       - _1024
       - _2048
+    # detailの密度マップ解像度。heightmapとは独立に決める
+    # detailは1セル1ushortで枚数ぶん積み上がるため、heightmapに揃えると見た目の情報量に対して容量と読み込みが跳ね上がる
+    # Detail density map resolution, settled independently of the heightmap
+    # A detail map costs one ushort per cell times the map count, so matching the heightmap inflates size and load far beyond what the look carries
+    - key: detailResolutionPreset
+      type: enum
+      options:
+      - _256
+      - _512
+      - _1024
+      - _2048
     - key: terrainHeight
       type: number
       default: 600

@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         private static List<PlacementEntry> Place(float worldOffsetX, int tileIndexX)
         {
             var dims = new TerrainDimensions(
-                TerrainSize, TerrainSize, 100f, worldOffsetX, 0f, Resolution, 0f, 0f, 1, 0f, 0f,
+                TerrainSize, TerrainSize, 100f, worldOffsetX, 0f, Resolution, Resolution - 1, 0f, 0f, 1, 0f, 0f,
                 tileIndexX, 0, 2, 1);
 
             var mask = new bool[Resolution, Resolution];

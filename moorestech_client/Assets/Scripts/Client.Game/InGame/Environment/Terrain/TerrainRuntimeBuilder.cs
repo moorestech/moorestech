@@ -35,9 +35,9 @@ namespace Client.Game.InGame.Environment.Terrain
 
             // 生成システムへはメタをそのまま戻す。中身（seed・原点）はここでは解釈しない
             // The meta goes straight back to the generation system; nothing here interprets its contents (seed, origins)
-            UnityEngine.Debug.Log($"[BOOTPROF] terrain.sessionOpenStart {System.DateTime.UtcNow:O}");
+            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] terrain.sessionOpenStart {System.DateTime.UtcNow:O}\n");
             var session = WorldTerrainSession.Open(mapLayout.TerrainMeta.ToTerrainTransferMeta(), localMasterDirectory);
-            UnityEngine.Debug.Log($"[BOOTPROF] terrain.sessionOpenEnd {System.DateTime.UtcNow:O}");
+            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] terrain.sessionOpenEnd {System.DateTime.UtcNow:O}\n");
             var layout = session.Layout;
             switch (layout.Kind)
             {
@@ -81,7 +81,7 @@ namespace Client.Game.InGame.Environment.Terrain
                     bootprofCreateMs += bootprofWatch.Elapsed.TotalMilliseconds;
                     terrainsByTileCoordinate[new Vector2Int(tileX, tileZ)] = terrain;
                 }
-                Debug.Log($"[BOOTPROF] terrain.tiles bake={bootprofBakeMs:F0}ms assemble={bootprofAssembleMs:F0}ms create={bootprofCreateMs:F0}ms tiles={terrainsByTileCoordinate.Count}");
+                System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] terrain.tiles bake={bootprofBakeMs:F0}ms assemble={bootprofAssembleMs:F0}ms create={bootprofCreateMs:F0}ms tiles={terrainsByTileCoordinate.Count}\n");
                 TerrainNeighborLinker.Link(terrainsByTileCoordinate);
                 Debug.Log($"[TerrainRuntimeBuilder] Terrain built: tiles={terrainsByTileCoordinate.Count} elapsedMs={buildStopwatch.ElapsedMilliseconds}");
             }

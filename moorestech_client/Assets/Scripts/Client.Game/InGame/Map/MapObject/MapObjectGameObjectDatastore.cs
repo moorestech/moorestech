@@ -58,7 +58,7 @@ namespace Client.Game.InGame.Map.MapObject
                 var snapshotByInstanceId = handshakeResponse.MapObjects.ToDictionary(info => info.InstanceId);
                 var cancellationToken = this.GetCancellationTokenOnDestroy();
 
-                UnityEngine.Debug.Log($"[BOOTPROF] mapObject.instantiateStart {System.DateTime.UtcNow:O}");
+                System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] mapObject.instantiateStart {System.DateTime.UtcNow:O}\n");
                 var bootprofWatch = System.Diagnostics.Stopwatch.StartNew();
                 var bootprofInstantiateMs = 0d;
                 var processedCount = 0;
@@ -118,7 +118,7 @@ namespace Client.Game.InGame.Map.MapObject
                     processedCount++;
                     if (processedCount % FrameYieldObjectInterval == 0) await UniTask.Yield(cancellationToken);
                 }
-                Debug.Log($"[BOOTPROF] mapObject.instantiateEnd count={processedCount} layoutCount={handshakeResponse.MapLayout.MapObjects.Count} wallMs={bootprofWatch.Elapsed.TotalMilliseconds:F0} instantiateMs={bootprofInstantiateMs:F0} {System.DateTime.UtcNow:O}");
+                System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] mapObject.instantiateEnd count={processedCount} layoutCount={handshakeResponse.MapLayout.MapObjects.Count} wallMs={bootprofWatch.Elapsed.TotalMilliseconds:F0} instantiateMs={bootprofInstantiateMs:F0} {System.DateTime.UtcNow:O}\n");
             }
 
             GameObject ResolvePrefabOrNull(Guid mapObjectGuid)

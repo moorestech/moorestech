@@ -29,7 +29,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             await ApplySplatmapAsync();
             var bootprofSplatMs = bootprofWatch.Elapsed.TotalMilliseconds; bootprofWatch.Restart();
             ApplyDetail();
-            Debug.Log($"[BOOTPROF] assemble height={bootprofHeightMs:F0}ms splat={bootprofSplatMs:F0}ms detail={bootprofWatch.Elapsed.TotalMilliseconds:F0}ms detailMaps={tile.DetailMaps.Count} alphaRes={tile.AlphamapResolution} layers={tile.AlphamapLayerCount}");
+            System.IO.File.AppendAllText("/private/tmp/moorestech-bootprof.log", $"[BOOTPROF] assemble height={bootprofHeightMs:F0}ms splat={bootprofSplatMs:F0}ms detail={bootprofWatch.Elapsed.TotalMilliseconds:F0}ms detailMaps={tile.DetailMaps.Count} alphaRes={tile.AlphamapResolution} layers={tile.AlphamapLayerCount}\n");
             return terrainData;
 
             #region Internal

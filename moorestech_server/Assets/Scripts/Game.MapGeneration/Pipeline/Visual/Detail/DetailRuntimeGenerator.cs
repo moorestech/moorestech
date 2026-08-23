@@ -27,7 +27,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
             float[,] treeDistanceMap, float[,] objectDistanceMap)
         {
             var heightmapResolution = dimensions.Resolution;
-            var detailResolution = heightmapResolution - 1;
+            var detailResolution = dimensions.DetailResolution;
             var maps = new List<int[,]>();
 
             // 曲率・方位角は使うフィルタが1つでもある時だけ計算する
