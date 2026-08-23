@@ -4,6 +4,7 @@ using Core.Master;
 using Core.Update;
 using Game.Challenge;
 using Game.PlayerInventory.Interface;
+using Server.Protocol.PacketResponse.Util.InventoryService;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -87,6 +88,32 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(IsCompleted(challengeDatastore));
             GameUpdater.UpdateOneTick();
 
+            Assert.IsTrue(IsCompleted(challengeDatastore));
+        }
+
+        // メインインベントリからのスロット移動で装備しても、完了はティック境界まで持ち越される
+        // Equipping by moving a slot from the main inventory still defers completion to the tick boundary
+        [Test]
+        public void MovingItemIntoSelectedSlotCompletesOnlyOnTickBoundary()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
+            challengeDatastore.InitializeCurrentChallenges();
+            var inventoryData = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var mainInventory = inventoryData.MainOpenableInventory;
+            var equipment = inventoryData.EquipmentInventory;
+
+            equipment.SetSelectedEquipmentIndex(0);
+            mainInventory.SetItem(0, MasterHolder.ItemMaster.GetItemId(Test1ItemGuid), 1);
+            GameUpdater.UpdateOneTick();
+            Assert.IsFalse(IsCompleted(challengeDatastore));
+
+            // 移動イベントの最中に完了カスケードが割り込まないことを確かめる
+            // Verify the completion cascade never cuts into the in-flight move event
+            InventoryItemMoveService.Move(mainInventory, 0, equipment, 0, 1);
+            Assert.IsFalse(IsCompleted(challengeDatastore));
+
+            GameUpdater.UpdateOneTick();
             Assert.IsTrue(IsCompleted(challengeDatastore));
         }
 

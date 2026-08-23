@@ -86,6 +86,12 @@ namespace Game.Challenge.Task
                 foreach (var playerId in allPlayerIds) _playerIdsToCheck.Add(playerId);
             }
 
+            bool IsTargetEquipped(int playerId)
+            {
+                var selectedItem = _playerInventoryDataStore.GetInventoryData(playerId).EquipmentInventory.GetSelectedItem();
+                return selectedItem.Id == _targetItemId;
+            }
+
             #endregion
         }
 
@@ -97,12 +103,6 @@ namespace Game.Challenge.Task
         private void OnSelectedEquipmentIndexUpdated(EquipmentSelectedIndexUpdateEventProperties properties)
         {
             _playerIdsToCheck.Add(properties.PlayerId);
-        }
-
-        private bool IsTargetEquipped(int playerId)
-        {
-            var selectedItem = _playerInventoryDataStore.GetInventoryData(playerId).EquipmentInventory.GetSelectedItem();
-            return selectedItem.Id == _targetItemId;
         }
     }
 }
