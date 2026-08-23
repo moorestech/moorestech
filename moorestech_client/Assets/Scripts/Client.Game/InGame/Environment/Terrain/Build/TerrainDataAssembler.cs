@@ -25,7 +25,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             var detailResolution = ValidateDetailInputs();
             var terrainData = new TerrainData();
             ApplyHeightmap();
-            await ApplySplatmapAsync();
+            await TerrainAlphamapApplier.ApplyAsync(terrainData, terrainLayers, tile);
             ApplyDetail();
             return terrainData;
 
@@ -38,24 +38,6 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 terrainData.heightmapResolution = layout.HeightmapResolution;
                 terrainData.size = layout.TileSize;
                 terrainData.SetHeights(0, 0, tile.DisplayHeights);
-            }
-
-            async UniTask ApplySplatmapAsync()
-            {
-                // 非生成時はUnity既定のalphamapを維持
-                // When not generating, Unity's default alphamap is kept
-                var alphamap = tile.Alphamap;
-                if (alphamap == null) return;
-
-                // レイヤー表がalphamapのレイヤー数と食い違うとUnityが確保するテクスチャ枚数がずれ、載せる平面と対応しなくなる
-                // A layer table disagreeing with the alphamap's layer count changes how many textures Unity allocates, breaking the correspondence with the planes
-                if (terrainLayers.Length != alphamap.LayerCount)
-                    throw new System.InvalidOperationException(
-                        $"[TerrainDataAssembler] {terrainLayers.Length} terrain layers were resolved but the tile was baked for {alphamap.LayerCount}.");
-
-                terrainData.alphamapResolution = alphamap.Resolution;
-                terrainData.terrainLayers = terrainLayers;
-                await TerrainAlphamapApplier.ApplyAsync(terrainData, alphamap.Planes, alphamap.Resolution);
             }
 
             void ApplyDetail()
