@@ -12,6 +12,7 @@ using UnityEditor;
 using UnityEngine;
 using VContainer;
 using UnityEngine.TestTools;
+using UniRx;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 using Object = UnityEngine.Object;
 
@@ -50,11 +51,10 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             {
                 var datastore = await LoadDatastore();
 
-                var layouts = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
-                Assert.IsNotEmpty(layouts, "test world has no map objects");
+                var nearFieldOrder = ResolveNearFieldOrder();
+                if (nearFieldOrder.NearFieldCount == 0) Assert.Fail("test world has no map objects within the near field");
 
-                var target = layouts[0];
+                var target = nearFieldOrder.Entries[0].Layout;
                 var candidateGuids = new HashSet<Guid> { new(target.MapObjectGuid) };
                 var position = new Vector3(target.X, target.Y, target.Z);
 
@@ -121,12 +121,13 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             // Pick two guid types at distinct positions; no fixture places two types at the same spot, so distinct guids suffice
             (MapObjectLayoutMessagePack near, MapObjectLayoutMessagePack far) FindTwoDistinctGuidLayouts()
             {
-                var layouts = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
+                var nearFieldOrder = ResolveNearFieldOrder();
+                if (nearFieldOrder.NearFieldCount == 0) Assert.Fail("test world has no map objects within the near field");
 
-                var first = layouts[0];
-                foreach (var layout in layouts)
+                var first = nearFieldOrder.Entries[0].Layout;
+                for (var index = 1; index < nearFieldOrder.NearFieldCount; index++)
                 {
+                    var layout = nearFieldOrder.Entries[index].Layout;
                     if (layout.MapObjectGuid == first.MapObjectGuid) continue;
                     return (first, layout);
                 }
@@ -138,8 +139,14 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             #endregion
         }
 
-        // 生成完了まで待ってからdatastoreを返す。索引の検証は全個体が登録済みであることが前提
-        // Return the datastore only after instantiation finishes; index assertions assume every object is registered
+        private static MapObjectLayoutDistanceOrder.NearFieldOrder ResolveNearFieldOrder()
+        {
+            var handshake = ClientDIContext.DIContainer.DIContainerResolver.Resolve<InitialHandshakeResponse>();
+            return MapObjectLayoutDistanceOrder.SortNearFieldFirst(handshake.MapLayout.MapObjects, handshake.PlayerPos);
+        }
+
+        // 近傍生成完了後にdatastoreを返す
+        // Return the datastore after near-field instantiation completes
         private static async UniTask<MapObjectGameObjectDatastore> LoadDatastore()
         {
             await LoadMainGame();
@@ -147,7 +154,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             var datastore = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>(FindObjectsInactive.Include);
             Assert.IsNotNull(datastore, "MapObjectGameObjectDatastore was not found in scene");
 
-            await datastore.WaitForInitialApplyAsync();
+            await datastore.IsNearFieldInstantiated.Where(static completed => completed).First().ToUniTask();
             return datastore;
         }
     }

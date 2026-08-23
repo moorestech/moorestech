@@ -32,6 +32,11 @@ namespace Client.Game.InGame.Map.MapObject.Pending
             _statesByInstanceId.Remove(instanceId);
             return true;
         }
+
+        public void Discard(int instanceId)
+        {
+            _statesByInstanceId.Remove(instanceId);
+        }
     }
 
     /// <summary>

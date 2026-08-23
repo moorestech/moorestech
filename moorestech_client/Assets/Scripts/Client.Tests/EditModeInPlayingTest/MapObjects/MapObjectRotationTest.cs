@@ -11,6 +11,7 @@ using Server.Protocol.PacketResponse.MapData;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UniRx;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 using Object = UnityEngine.Object;
@@ -54,11 +55,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
             #region Internal
 
-            // IsNearFieldがローカル関数として同階層に並ぶため、Bodyで解決した値をここで共有する
-            // Shared here so IsNearField, a sibling local function, can see the value resolved inside Body
-            Vector3 playerPos = default;
-
-            async UniTask Body()
+            static async UniTask Body()
             {
                 await LoadMainGame();
 
@@ -67,14 +64,15 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
                 // 全量生成の完了待ちは実時間が過大なため、近傍待機で完結させ突き合わせ先も近傍から選ぶ（2026-08-23裁定）
                 // Awaiting full instantiation costs too much real time, so stop at the near-field gate and match near objects only (adjudicated 2026-08-23)
-                await datastore.WaitForInitialApplyAsync();
+                await datastore.IsNearFieldInstantiated.Where(static completed => completed).First().ToUniTask();
 
-                // playerPosはループ内で毎回DI解決すると79,000件規模でコストが跳ねるため、ここで1回だけ解決してIsNearFieldへ渡す
-                // Resolving playerPos on every loop iteration would spike cost at the 79,000 scale, so resolve it once here and pass it to IsNearField
-                playerPos = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().PlayerPos;
+                // 近傍集合へ検証対象を限定する
+                // Resolve the near-field set once and limit verification targets to it
+                var handshake = ClientDIContext.DIContainer.DIContainerResolver.Resolve<InitialHandshakeResponse>();
+                var nearFieldOrder = MapObjectLayoutDistanceOrder.SortNearFieldFirst(
+                    handshake.MapLayout.MapObjects, handshake.PlayerPos);
 
-                var turnedLayout = FindTurnedLayout();
+                var turnedLayout = FindTurnedLayout(nearFieldOrder);
                 var expectedRotation = new Quaternion(
                     turnedLayout.RotationX, turnedLayout.RotationY, turnedLayout.RotationZ, turnedLayout.RotationW);
                 var turnedInstance = SearchInstance(datastore, turnedLayout);
@@ -83,7 +81,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                     Quaternion.Angle(expectedRotation, turnedInstance.transform.rotation), RotationTolerance,
                     "the instantiated map object does not face the direction the layout carries");
 
-                var scaledLayout = FindScaledLayout();
+                var scaledLayout = FindScaledLayout(nearFieldOrder);
                 var expectedScale = new Vector3(scaledLayout.ScaleX, scaledLayout.ScaleY, scaledLayout.ScaleZ);
                 var scaledInstance = SearchInstance(datastore, scaledLayout);
 
@@ -92,7 +90,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                     "the instantiated map object does not carry the scale the layout carries");
             }
 
-            MapObjectGameObject SearchInstance(MapObjectGameObjectDatastore datastore, MapObjectLayoutMessagePack layout)
+            static MapObjectGameObject SearchInstance(MapObjectGameObjectDatastore datastore, MapObjectLayoutMessagePack layout)
             {
                 var instance = datastore.SearchNearestMapObject(
                     new HashSet<Guid> { new(layout.MapObjectGuid) }, new Vector3(layout.X, layout.Y, layout.Z));
@@ -103,14 +101,11 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
             // 向きを持たない個体で突き合わせるとidentity固定の実装でも通ってしまう。回っている1件を選び出す
             // Matching against an unturned object would pass even with a hard-coded identity, so the turned one is picked out
-            MapObjectLayoutMessagePack FindTurnedLayout()
+            static MapObjectLayoutMessagePack FindTurnedLayout(MapObjectLayoutDistanceOrder.NearFieldOrder nearFieldOrder)
             {
-                var layouts = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
-
-                foreach (var layout in layouts)
+                for (var index = 0; index < nearFieldOrder.NearFieldCount; index++)
                 {
-                    if (!IsNearField(layout)) continue;
+                    var layout = nearFieldOrder.Entries[index].Layout;
 
                     var rotation = new Quaternion(layout.RotationX, layout.RotationY, layout.RotationZ, layout.RotationW);
                     if (RotationTolerance < Quaternion.Angle(Quaternion.identity, rotation)) return layout;
@@ -122,14 +117,11 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
             // 等倍の個体で突き合わせるとlocalScale適用を消しても通ってしまう。軸ごとに違う倍率の1件を選び出す
             // Matching against a unit-scaled object would pass even with the localScale assignment deleted, so the per-axis scaled one is picked out
-            MapObjectLayoutMessagePack FindScaledLayout()
+            static MapObjectLayoutMessagePack FindScaledLayout(MapObjectLayoutDistanceOrder.NearFieldOrder nearFieldOrder)
             {
-                var layouts = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
-
-                foreach (var layout in layouts)
+                for (var index = 0; index < nearFieldOrder.NearFieldCount; index++)
                 {
-                    if (!IsNearField(layout)) continue;
+                    var layout = nearFieldOrder.Entries[index].Layout;
                     if (Mathf.Approximately(layout.ScaleX, layout.ScaleY) &&
                         Mathf.Approximately(layout.ScaleY, layout.ScaleZ)) continue;
 
@@ -138,14 +130,6 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
                 Assert.Fail("test world has no map object scaled differently per axis within the near field");
                 return null;
-            }
-
-            // 後着個体はまだ生成されていないため、突き合わせ先は近傍レンジ内に限る
-            // Background objects are not instantiated yet, so matching is limited to the near-field range
-            bool IsNearField(MapObjectLayoutMessagePack layout)
-            {
-                var position = new Vector3(layout.X, layout.Y, layout.Z);
-                return MapObjectLayoutDistanceOrder.IsWithinNearField(position, playerPos);
             }
 
             #endregion

@@ -6,7 +6,6 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using Mooresmaster.Model.ChallengesModule;
-using UniRx;
 using UnityEngine;
 using VContainer;
 
@@ -22,7 +21,7 @@ namespace Client.Game.InGame.Tutorial
         // Empty candidates before apply and after completion, so the per-frame search needs no null branch
         private static readonly HashSet<Guid> EmptyTargets = new HashSet<Guid>();
 
-        private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
+        private MapObjectPinTargetResolver _targetResolver;
         private TutorialWorldPinVisibility _visibility;
 
         // ピンは非活性で置かれAwakeが走らないまま表示要求が届くため、初回要求時に組み立てる
@@ -41,15 +40,10 @@ namespace Client.Game.InGame.Tutorial
         // Whether a pin is being published; guards RemovePin from running every frame after the target is lost
         private bool _publishing;
 
-        // 起動待機は近傍だけで明けるため、後着完了までは探索の空振りが「まだ生成されていない」を意味する
-        // The startup wait only covers the near field, so until the background stream finishes a miss means "not yet instantiated"
-        private bool _isAllMapObjectInstantiated;
-
         [Inject]
-        public void Initialize(MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
+        public void Initialize(IMapObjectPinTargetSource targetSource)
         {
-            _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
-            mapObjectGameObjectDatastore.IsAllInstantiated.Subscribe(isAllInstantiated => _isAllMapObjectInstantiated = isAllInstantiated).AddTo(this);
+            _targetResolver = new MapObjectPinTargetResolver(targetSource);
         }
 
         private void Update()
@@ -68,11 +62,14 @@ namespace Client.Game.InGame.Tutorial
                 // 候補集合中の最寄り未破壊にピン
                 // Pin the nearest undestroyed candidate
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_targetMapObjectGuids, playerPos);
-
-                if (mapObject == null)
+                if (!_targetResolver.TryResolve(
+                        _targetMapObjectGuids,
+                        playerPos,
+                        _missingReported,
+                        out var mapObject,
+                        out var shouldReportMissing))
                 {
-                    HideForMissingMapObject();
+                    HideForMissingMapObject(shouldReportMissing);
                     return false;
                 }
 
@@ -81,16 +78,15 @@ namespace Client.Game.InGame.Tutorial
                 return true;
             }
 
-            void HideForMissingMapObject()
+            void HideForMissingMapObject(bool shouldReportMissing)
             {
                 // 指す先無しのまま配信を続けると前回チュートリアルの座標を指し続ける。消すのは配信中の1回だけ
                 // Publishing on with nothing to point at keeps showing the previous tutorial's position; the removal runs only once per publishing streak
                 if (_publishing) RemoveWorldPin();
 
-                // 後着途中の空振りは欠落ではないので報告もラッチもしない。誤報でラッチを消費すると本物の欠落が二度と出なくなる
-                // A miss mid-stream is not a missing target: reporting it would burn the latch and silence the real absence forever
-                if (!_isAllMapObjectInstantiated) return;
-                if (_missingReported) return;
+                // 非活性化は更新を止め復帰を阻む
+                // SetActive(false) stops Update and prevents recovery, so only publishing stops
+                if (!shouldReportMissing) return;
 
                 _missingReported = true;
                 Debug.LogError($"未破壊のMapObject（tutorialGuid={_pinTutorialGuid}、候補{_targetMapObjectGuids.Count}件）が存在しません");

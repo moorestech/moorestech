@@ -60,8 +60,8 @@ namespace Client.Tests.Map.Pending
         [Test]
         public void 保留状態はスナップショットより優先される()
         {
-            // 生存かつ満タンのスナップショットを当てた個体へ、後から届いていた破壊と残HPを被せる
-            // A live, full-HP snapshot is applied first, then the destroy and HP that had already arrived override it
+            // 生存状態へ保留破壊とHPを被せる
+            // Override a live snapshot with pending destroy and HP
             var mapObject = CreateSnapshotAppliedMapObject(false);
             Assert.AreEqual(SnapshotHp, mapObject.CurrentHp);
 

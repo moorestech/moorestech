@@ -14,15 +14,10 @@ namespace Client.Game.InGame.Map.MapObject
         // Radius of the near field that releases the startup wait
         public const float NearFieldRadius = 150f;
 
-        public static bool IsWithinNearField(Vector3 position, Vector3 origin)
-        {
-            return (position - origin).sqrMagnitude <= NearFieldRadius * NearFieldRadius;
-        }
-
         public static NearFieldOrder SortNearFieldFirst(IReadOnlyList<MapObjectLayoutMessagePack> layouts, Vector3 origin)
         {
-            // 79,000件規模でも一度きりのソートなので距離は前計算して焼き込む
-            // Even at the 79,000 scale this sorts once, so distances are precomputed and baked in
+            // 大規模な一度きりのsortへ距離を焼く
+            // Bake distances into the one large sort
             var entries = new List<Entry>(layouts.Count);
             foreach (var layout in layouts)
             {
@@ -34,20 +29,24 @@ namespace Client.Game.InGame.Map.MapObject
 
             // 件数算出はソート直後にここで閉じる。未ソート入力を数えて無音で近傍0件になる誤用を型から消す
             // Counting closes right after the sort here, so no caller can silently count an unsorted list into an empty near field
-            return new NearFieldOrder(entries, CountWithinNearField(entries));
-        }
+            return new NearFieldOrder(entries, CountWithinNearField());
 
-        private static int CountWithinNearField(List<Entry> sortedEntries)
-        {
-            // ソート済み前提で先頭から数え、半径ちょうどは近傍に含める
-            // Assumes sorted input; counts from the head, a distance exactly at the radius counts as near
-            var sqrRadius = NearFieldRadius * NearFieldRadius;
-            for (var index = 0; index < sortedEntries.Count; index++)
+            #region Internal
+
+            int CountWithinNearField()
             {
-                if (sqrRadius < sortedEntries[index].SqrDistance) return index;
+                // 半径ちょうども近傍に含める
+                // Include entries exactly on the radius
+                var sqrRadius = NearFieldRadius * NearFieldRadius;
+                for (var index = 0; index < entries.Count; index++)
+                {
+                    if (sqrRadius < entries[index].SqrDistance) return index;
+                }
+
+                return entries.Count;
             }
 
-            return sortedEntries.Count;
+            #endregion
         }
 
         /// <summary>

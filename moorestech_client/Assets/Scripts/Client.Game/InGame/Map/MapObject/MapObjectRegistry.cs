@@ -30,27 +30,44 @@ namespace Client.Game.InGame.Map.MapObject
             return true;
         }
 
-        public bool TryGet(int instanceId, out MapObjectGameObject mapObject)
+        public void ApplyDestroy(int instanceId)
+        {
+            if (!TryDestroy(instanceId)) RecordPendingDestroy(instanceId);
+        }
+
+        public void ApplyHp(int instanceId, int hp)
+        {
+            if (TryGet(instanceId, out var mapObject)) mapObject.UpdateHp(hp);
+            else RecordPendingHp(instanceId, hp);
+        }
+
+        internal void DiscardPendingState(int instanceId)
+        {
+            _pendingStateLedger.Discard(instanceId);
+        }
+
+        private bool TryGet(int instanceId, out MapObjectGameObject mapObject)
         {
             return _mapObjectsByInstanceId.TryGetValue(instanceId, out mapObject);
         }
 
-        public bool TryDestroy(int instanceId)
+        private bool TryDestroy(int instanceId)
         {
-            // 索引への反映は個体の破壊通知が運ぶ。登録簿は未生成宛（保留行き）との分岐だけを返す
-            // The destroy notification carries this into the index; the registry only reports whether the target was already instantiated
-            if (!_mapObjectsByInstanceId.TryGetValue(instanceId, out var mapObject)) return false;
+            // 破壊通知は索引へ届くため生存だけ裁く
+            // The destroy event updates the index, so the registry only judges liveness
+            if (!TryGet(instanceId, out var mapObject)) return false;
+            if (mapObject.IsDestroyed) return true;
 
             mapObject.DestroyMapObject();
             return true;
         }
 
-        public void RecordPendingDestroy(int instanceId)
+        private void RecordPendingDestroy(int instanceId)
         {
             _pendingStateLedger.RecordDestroy(instanceId);
         }
 
-        public void RecordPendingHp(int instanceId, int hp)
+        private void RecordPendingHp(int instanceId, int hp)
         {
             _pendingStateLedger.RecordHp(instanceId, hp);
         }

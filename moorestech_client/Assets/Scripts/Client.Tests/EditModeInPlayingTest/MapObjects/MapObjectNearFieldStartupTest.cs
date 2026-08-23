@@ -10,6 +10,7 @@ using Server.Protocol.PacketResponse.MapData;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UniRx;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 using Object = UnityEngine.Object;
@@ -54,11 +55,11 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
                 // 待機直後に近傍全件を突合
                 // Match every near layout right after the wait
-                await datastore.WaitForInitialApplyAsync();
+                await datastore.IsNearFieldInstantiated.Where(static completed => completed).First().ToUniTask();
 
                 var handshake = ClientDIContext.DIContainer.DIContainerResolver.Resolve<InitialHandshakeResponse>();
-                var playerPos = handshake.PlayerPos;
-                var checkedCount = 0;
+                var nearFieldOrder = MapObjectLayoutDistanceOrder.SortNearFieldFirst(
+                    handshake.MapLayout.MapObjects, handshake.PlayerPos);
 
                 // InstanceId単位で突合
                 // Match by InstanceId
@@ -66,42 +67,19 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                 foreach (var mapObject in Object.FindObjectsByType<MapObjectGameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                     liveInstanceIds.Add(mapObject.InstanceId);
 
-                MapObjectLayoutMessagePack farthestLayout = null;
-                var farthestSqrDistance = -1f;
-
-                foreach (var layout in handshake.MapLayout.MapObjects)
+                for (var index = 0; index < nearFieldOrder.NearFieldCount; index++)
                 {
-                    var position = new Vector3(layout.X, layout.Y, layout.Z);
-                    var sqrDistance = (position - playerPos).sqrMagnitude;
-
-                    // 最遠1件は「待機解除直後はまだ未生成」の否定側検証に使うため近傍判定と無関係に追跡する
-                    // Track the farthest one regardless of near-field membership, for the negative assertion that it is not yet instantiated
-                    if (farthestSqrDistance < sqrDistance)
-                    {
-                        farthestSqrDistance = sqrDistance;
-                        farthestLayout = layout;
-                    }
-
-                    if (!MapObjectLayoutDistanceOrder.IsWithinNearField(position, playerPos)) continue;
+                    var layout = nearFieldOrder.Entries[index].Layout;
 
                     // guid単位の最寄り探索では同一guidの別個体で空振りするため、instanceId単位の集合包含で存在を確かめる
                     // A guid-scoped nearest search can pass via a different instance with the same guid, so check existence by instanceId set membership
                     Assert.IsTrue(liveInstanceIds.Contains(layout.InstanceId), $"near-field map object {layout.InstanceId} was not instantiated before the initial-apply wait released");
-                    checkedCount++;
                 }
 
                 // 近傍0件のワールドでは検証が素通りしてしまうので先に落とす
                 // With zero near objects every assertion would pass vacuously, so fail here first
-                Assert.Greater(checkedCount, 0, "test world has no map objects within the near field");
+                Assert.Greater(nearFieldOrder.NearFieldCount, 0, "test world has no map objects within the near field");
 
-                // 近傍待機だけで完結する後着範囲が実在することをR1の主目的として固定する（全量ブロッキングへの逆戻りを検知）
-                // Pin that a background range genuinely exists beyond the near-field wait, catching a regression to blocking full instantiation (R1's core intent)
-                if (farthestLayout != null && MapObjectLayoutDistanceOrder.NearFieldRadius * MapObjectLayoutDistanceOrder.NearFieldRadius < farthestSqrDistance)
-                    Assert.IsFalse(liveInstanceIds.Contains(farthestLayout.InstanceId), $"farthest map object {farthestLayout.InstanceId} was already instantiated right after the near-field wait released");
-
-                // 完走待ちは実時間が過大なため、全量待機は正規APIとして取得できることだけを固定する（2026-08-23裁定）
-                // Awaiting completion costs too much real time, so only pin that the full-instantiation wait is obtainable as the official API (adjudicated 2026-08-23)
-                Assert.DoesNotThrow(() => datastore.WaitForAllInstantiatedAsync());
             }
 
             #endregion

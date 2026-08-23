@@ -33,8 +33,8 @@ namespace Client.Game.InGame.Map.MapObject
         }
 
         /// <summary>
-        ///     prefabロードだけを分離し、awaitを跨ぐ判断（活性ゲート・キャンセル）を呼び出しループへ返す
-        ///     Isolates the prefab load so the caller's loop owns every decision that straddles the await (activity gate, cancellation)
+        ///     prefabロードを分離し前後の判断をloopへ返す
+        ///     Isolates prefab loading so the loop owns decisions around the await
         /// </summary>
         public async UniTask<GameObject> ResolvePrefabOrNullAsync(MapObjectLayoutMessagePack layout, CancellationToken cancellationToken)
         {
@@ -75,11 +75,11 @@ namespace Client.Game.InGame.Map.MapObject
             return loaded;
         }
 
-        public void InstantiateFromLayout(MapObjectLayoutMessagePack layout, GameObject prefab)
+        public bool InstantiateFromLayout(MapObjectLayoutMessagePack layout, GameObject prefab)
         {
-            // ロードに失敗した個体はskipし続行
-            // Skip instances whose prefab failed to load and keep going
-            if (prefab == null) return;
+            // ロード失敗を全量失敗として返す
+            // Return load failure to the caller as a full-set violation
+            if (prefab == null) return false;
 
             var mapObjectGuid = new Guid(layout.MapObjectGuid);
 
@@ -88,7 +88,7 @@ namespace Client.Game.InGame.Map.MapObject
             if (!_snapshotByInstanceId.TryGetValue(layout.InstanceId, out var snapshot))
             {
                 Debug.LogError($"MapObject snapshot missing. InstanceId:{layout.InstanceId} MapObjectGuid:{mapObjectGuid}");
-                return;
+                return false;
             }
 
             // 生成時のRotation/Scaleを実インスタンスへ戻す。既定値のままだと全個体が同じ向きで直立し裸地も生成時サイズで広がる
@@ -104,7 +104,7 @@ namespace Client.Game.InGame.Map.MapObject
             {
                 Debug.LogError($"MapObject prefab has no MapObjectGameObject on root. MapObjectGuid:{mapObjectGuid}");
                 Object.Destroy(instance);
-                return;
+                return false;
             }
 
             // 登録簿へ渡す前に初期状態を当てる。保留イベントの優先適用は登録簿側の不変条件が担う（ADR 0030）
@@ -118,7 +118,10 @@ namespace Client.Game.InGame.Map.MapObject
             {
                 Debug.LogError($"MapObject duplicate InstanceId:{layout.InstanceId} MapObjectGuid:{mapObjectGuid}");
                 Object.Destroy(instance);
+                return false;
             }
+
+            return true;
         }
     }
 }
