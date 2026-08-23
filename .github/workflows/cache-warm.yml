@@ -1,12 +1,22 @@
 # master上でLibraryキャッシュを焼く。Actionsのキャッシュスコープは「自分のref＋ベースブランチ」なので、
-# masterに焼かない限りPR側は永遠にコールドで走る（ADR 0028）。日次ビルドの1時間前に回す。
+# masterに焼かない限りPR側は永遠にコールドで走る（ADR 0028）。master更新時はclient、日次前は全系統を更新する。
 # Warm the Library caches on master. Actions cache scope is "own ref plus base branch", so PRs stay
-# cold forever unless master has them (ADR 0028). Runs one hour before the daily build.
+# cold forever unless master has them (ADR 0028). Refresh client test caches on master updates and all caches before the daily build.
 # 消費側(run_test.yml / platform-compile.yml)とジョブ定義が重複している。matrix・unityVersion・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
 # The job definitions are duplicated with the consumers (run_test.yml / platform-compile.yml); change matrix, unityVersion, and the cache path/key/restore-keys in both
 name: Cache Warm
 
 on:
+  # Unity入力がmasterで変わるたびclient test cacheを更新し、次のPRを古いimportから解放する。
+  # Refresh the client test cache whenever Unity inputs change on master so the next PR avoids stale imports.
+  push:
+    branches:
+      - master
+    paths:
+      - 'moorestech_client/**'
+      - 'moorestech_server/**'
+      - '.github/workflows/cache-warm.yml'
+
   # UTC 18:00 = JST 翌03:00（日次ビルドの1時間前）
   # 18:00 UTC equals 03:00 JST the next day, one hour before the daily build
   schedule:
@@ -15,9 +25,15 @@ on:
   # 手動実行デバッグ用
   workflow_dispatch: {}
 
+# master pushが続いたときは古いwarmだけを止め、scheduleと手動実行は独立させる。
+# Cancel only stale master-push warms while keeping scheduled and manual runs independent.
 concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && 'master-push' || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
+permissions:
+  contents: read
+  actions: write
 
 jobs:
   # EditMode Testが使うclient Libraryを焼く
@@ -67,6 +83,7 @@ jobs:
       # テストを1本も実行せずインポートだけ済ませる（Libraryを作るのが目的）
       # Import only, without running any test, since the goal is to produce the Library
       - name: Warm Library
+        id: warm
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -80,15 +97,33 @@ jobs:
           customParameters: '-testFilter __cache_warm_matches_nothing__'
 
       - uses: actions/cache/save@v4
+        id: save
         if: always()
         with:
           path: moorestech/moorestech_client/Library
           key: Library_Test_client-${{ github.sha }}
 
+      # 最新cacheの保存成功後だけmaster上の旧client cacheを消し、10GB枠内に保つ。
+      # Delete old master client caches only after a successful warm and save to stay within the 10GB budget.
+      - name: Delete older client test caches.
+        if: steps.warm.outcome == 'success' && steps.save.outcome == 'success'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_CACHE_KEY: Library_Test_client-${{ github.sha }}
+        run: |
+          gh cache list --key 'Library_Test_client-' --ref 'refs/heads/master' --limit 100 --json id,key --jq ".[] | select(.key != \"$CURRENT_CACHE_KEY\") | .id" |
+          while IFS= read -r cache_id; do
+            if [[ -n "$cache_id" ]]; then
+              gh cache delete "$cache_id"
+            fi
+          done
+
   # PF別コンパイル検査が使うserver Libraryをターゲットごとに焼く
   # Warm the server Library per target for the platform compile check
   warm-server-compile:
     name: Warm server Library - ${{ matrix.target }}
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

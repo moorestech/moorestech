@@ -73,10 +73,10 @@
 - Consumes: masterへの`moorestech_client/**`・`moorestech_server/**`・関連workflow変更push
 - Produces: 最新`Library_Test_client-<master SHA>` cache、定期・手動時の既存server platform cache
 
-- [ ] **Step 1:** Unity関連pathのmaster push triggerを追加し、push時はclient warmだけ実行する。
-- [ ] **Step 2:** client warm/save成功後にGitHub APIで同prefixの旧client cache IDだけを削除し、現在keyとserver prefixを保持する。
-- [ ] **Step 3:** Ruby YAML parseと構造assertionでpush paths、server job条件、cleanup success条件、`actions: write` permissionを確認する。
-- [ ] **Step 4:** `git add .github/workflows/cache-warm.yml && git commit -m "perf(ci): master更新時にUnity test cacheをwarm"`でcommitする。
+- [x] **Step 1:** Unity関連pathのmaster push triggerを追加し、push時はclient warmだけ実行する。
+- [x] **Step 2:** client warm/save成功後にGitHub APIで同prefixの旧client cache IDだけを削除し、現在keyとserver prefixを保持する。
+- [x] **Step 3:** Ruby YAML parseと構造assertionでpush paths、server job条件、cleanup success条件、`actions: write` permissionを確認する。
+- [x] **Step 4:** `git add .github/workflows/cache-warm.yml && git commit -m "perf(ci): master更新時にUnity test cacheをwarm"`でcommitする。
 
 ### Task 4: 実CI検証と全ブランチレビュー
 
