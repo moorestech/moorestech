@@ -1,4 +1,4 @@
-import { Tooltip } from "@mantine/core";
+import HoverTooltip from "../HoverTooltip";
 import { useFluidMaster, type FluidSlotData } from "@/bridge";
 import { fluidNameKey, useI18n } from "@/shared/i18n";
 import FluidIcon from "../FluidIcon";
@@ -21,7 +21,7 @@ export default function FluidSlot({ fluid }: { fluid: FluidSlotData }) {
   const color = fluidMaster?.get(fluid.fluidGuid)?.color;
 
   return (
-    <Tooltip label={name} disabled={!name}>
+    <HoverTooltip label={name} disabled={!name}>
       <div data-testid="fluid-slot" className={styles.slot}>
         {/* マスタ色が未取得の間はフィルを描かない（フォールバック色でごまかさない） */}
         {/* No fill is drawn until the master color arrives (no fallback color) */}
@@ -36,6 +36,6 @@ export default function FluidSlot({ fluid }: { fluid: FluidSlotData }) {
         <FluidIcon fluidGuid={fluid.fluidGuid} className={styles.icon} />
         <span className={styles.amount}>{formatAmount(fluid.amount)}</span>
       </div>
-    </Tooltip>
+    </HoverTooltip>
   );
 }

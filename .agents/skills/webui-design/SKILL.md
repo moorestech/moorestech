@@ -23,15 +23,73 @@ description: |
 
 ---
 
-## 0. 実装前の前提審査（症状を直す前に器と箱・既存定数を審査する）
+## 0. 実装フロー（Web UIの作業はこれで回す）
 
-### 0.1 既存の寸法定数を据え置く前に、責務と前例を1行で書く（実測の直後・plan 確定前に必ず）
+Web UI は Unity を経由せず HMR で即反映でき、Playwright で画素・レイアウトを実測できる。
+**この速さを使い切ることが前提であり、「Unityを立てて目視する」「コードを読んで推測する」で済ませてはいけない。**
+
+### 0.1 worktree を切る
+
+```bash
+moores-wt new <branch> --no-editor
+cd <worktree>/moorestech_web/webui && pnpm install
+```
+
+Web UI だけなら Unity Editor は不要（`--no-editor`）。`node_modules` は worktree に付いてこないので `pnpm install` する（storeが温まっていれば数秒）。
+
+### 0.2 mock-host + vite dev を上げる（Unity不要・HMR有効）
+
+```bash
+MOCK_PORT=<port_a> MOORESTECH_E2E=true node --import tsx e2e/mock-host/server.ts
+MOORESTECH_E2E=true MOORESTECH_BACKEND_PORT=<port_a> MOORESTECH_VITE_PORT=<port_b> pnpm dev
+```
+
+`vite.config.ts` が `/api` `/ws` `/__` を backend ポートへプロキシするので、mock-host が Unity サーバーの代わりになる。
+画面状態は mock の制御エンドポイントで作る（`/__uistate` `/__block` `/__modal` `/__topic-control` 等・`e2e/support/mockControl.ts` が窓口）。
+
+**ポートはセッション固有に振る。** Playwright既定の 5273 を使い回すと並列セッションで衝突し、無関係な spec が落ちて原因調査が空転する。
+
+### 0.3 cloudflared quick tunnel で人間に見せる
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:<port_b> --http-host-header 127.0.0.1:<port_b>
+```
+
+`--http-host-header` は必須。無いと vite の allowedHosts 検査が `*.trycloudflare.com` を弾き "Blocked request" になる（`vite.config.ts` は無変更で通せる）。
+URLはDNS伝播に十数秒かかる。HMRが効くので、修正はそのURLへ即反映される＝ユーザーと同じ画面を見ながら詰められる。
+
+### 0.4 直す前に、症状の出所を実測で特定する（最重要）
+
+**見た目の症状は必ず数値の出所へ落としてから直す。** スクショだけを見て原因を決めない。
+
+Playwright スクリプトで次を出力する:
+- `getBoundingClientRect()` … 位置・寸法のズレ
+- `scrollHeight` vs `clientHeight` / `scrollWidth` vs `clientWidth` … 溢れの有無と量
+- `getComputedStyle()` … 実際に効いている値（トークンの解決結果）
+- `dataset.state` / `display` … Mantineの内部状態（スクロールバー等）
+
+原因候補が複数あるときは **ablation** で切る。要素を1つずつ `display:none` にする／変数を1つずつ変える／値を0.1px刻みでスイープして、症状が消える点を見つける。
+
+> 実例（2026-08-22 CRAFT RECIPE一覧）: 「黒い枠線」は `type="always"` が描いた**つまみ幅0の水平スクロールバー**（`scrollWidth === clientWidth` で溢れゼロ）、「不要なスクロール」は個数バッジの5px はみ出し（`.count` を消すと `scrollHeight - clientHeight` が 5→0）だった。どちらも見ただけでは特定できず、実測とablationで初めて確定した。
+
+### 0.4.5 実装前の前提審査（症状を直す前に器と箱・既存定数を審査する）
+
+**既存の寸法定数を据え置く前に、責務と前例を1行で書く（実測の直後・plan 確定前に必ず）。**
 
 - 実測は症状の値（溢れ量・色・はみ出し px）だけでなく**器の値**（パネル本文の高さ・親の rect）を同じ出力に並べ、症状箇所の箱（スクロール領域・クリップ矩形）の大きさが器と一致しているかを**先に**読む。箱が器より小さく一致していないなら、症状を追う前に「この箱の大きさは何が決めるべきか（器／中身／正本）」を plan の項目にする。症状は箱の大きさの帰結であることが多く、箱を直せば複数症状が同時に落ちる。
 - コード内コメントや過去イテレーションで正当化された既存定数（`mah`・固定 px・`--*-max-height`・`minHeight`）は**審査対象**であって所与ではない。据え置くなら plan に「責務＝○○が決めるべき値だから据え置き」と1行書く。「総スクロール範囲が不変」「N段が収まる」「ノブ比が正本と一致」は中身の量・見た目の根拠であり、箱の大きさの責務の根拠にはならない。
 - 同形の兄弟（同じ機構を使う他パネル・同じ DOM に刺さる Portal オーバーレイ）を `grep` で列挙し、一括適用するか、外すなら理由を plan に書く。**理由無しの「別issue」外出しは禁止**。前例（§8.10 の前例パネル等）と形が違うなら、違う理由を plan に書く。
 
 > 実例（2026-08-22 CRAFT RECIPE 一覧）: 初回計測の同じ出力に `panel.height 452` と `viewport.height 46 / scrollHeight 51` が並んでいたのに溢れ 5px だけを読み、既存の `mah={381.2}` を「7段が収まり総スクロール範囲が不変だから据え置きで正しい」と通して、黒帯→偽の溢れ→領域の大きさ→ハイライトのラベルと症状ごとに4回パッチした。問うべきは「スクロール領域は器（パネル本文）が決める」の一問で、それで4症状は同時に落ちた。同形の中央レシピビューアを「別issue」に外して戻らなかった。
+
+### 0.5 確定したらテストと目視QA
+
+`pnpm lint` / `pnpm test` / `pnpm test:e2e` を通し、§10 の目視QAチェック項目を実施する。
+**挙動を固定していた既存 e2e があれば、裁定に合わせて反転させる**（古い assertion を残したまま実装だけ変えない）。
+
+### 0.6 後片付け
+
+tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除する。
 
 ---
 
@@ -144,6 +202,8 @@ description: |
 
 ## 8. 通知・情報表示
 
+- **要素に紐づくPortalオーバーレイ（ツールチップ・チュートリアルのハイライト）は、祖先スクローラに対する扱いを必ず決める。** Portalへ出る以上CSSのクリップは一切効かないので、放置すると内容と一緒に滑ってパネルの外へ出る。既存の答えは2つで、どちらかに寄せる: ハイライトは祖先の実クリップ矩形でマスクし完全に隠れたら描かない（ADR 0024・`ancestorClipRect`）／スロットのツールチップは祖先がスクロールしたら引っ込め、ポインタが動いたら開き直す（`shared/ui/HoverTooltip`・ユーザー指摘 2026-08-22）。
+- **スロットのホバーツールチップは `shared/ui/HoverTooltip` だけを使う。** Mantine `Tooltip` を機能側から直接使わない。面・書式は `--tooltip-*` トークンで `CursorTooltip` と共有し、Mantine既定の白い角丸を出さない（§9）。
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・7秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
 - **`CursorTooltip` の書式はWeb側トークンが唯一の正**（ADR 0019）: フォント18px・padding 6/10px・max-width 320px。ホストは辞書キーと位置パラメータだけを送り、寸法値（fontSize等）はwireに載せない。
 - **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもなく、`--ui-scale` に追従しない。
@@ -230,9 +290,15 @@ description: |
 
 ## 8.10 カスタムスクロールバー
 
-- Mantine `ScrollArea` の `:global(.mantine-ScrollArea-*)` セレクタで上書きする（前例: `ItemListPanel.module.css:10-30`）。ScrollArea自体は使ってよいが、既定の白ノブ/透明トラックのまま出さない。
-- トラックは `var(--gauge-track)`、ノブは `var(--bevel-c2)` を基調にしたネイビートーンへ統一する（ItemListPanelの白ノブは持ち物一覧固有の正本合わせであり、他パネルではこのネイビートーンに従う）。
+- Mantine `ScrollArea` の `:global(.mantine-ScrollArea-*)` セレクタで上書きする（前例: `ItemListPanel.module.css`）。ScrollArea自体は使ってよいが、既定の白ノブ/透明トラックのまま出さない。
+- トラックは `var(--gauge-track)`、ノブは `var(--bevel-c2)` を基調にしたネイビートーンへ統一する（ItemListPanelの白ノブ＋透明トラックは持ち物一覧固有の正本合わせ／裁定であり、他パネルではこのネイビートーンに従う）。
 - ノブ寸法はコンテンツ量から自然算出させ、固定pxで決め打ちしない。
+- **スクロール領域はパネル本文いっぱいに広げる。内容ぴったりに縮めない**（ユーザー裁定 2026-08-22）。`ScrollArea.Autosize` + `mah` は内容が少ないとき領域が1段分まで縮み、(1)溢れていないのにスクロール扱いになり (2)`overflow` のクリップ矩形がセルの外周へ届かず、**チュートリアルのハイライト枠が必ず削られてラベルが落ちる**（ADR 0024）。パネル側は `minHeight` ではなく `height` で高さを確定させ（floorだけだと件数でパネルごと伸びてスクロールが始まらない）、`ScrollArea` は `flex: 1; min-height: 0`、内側の `.mantine-ScrollArea-viewport` も `flex: 1; min-height: 0` で伸ばす（Mantine既定の `height: 100%` はflex由来の親高に対して解決できず内容なりに潰れる）。
+- **チュートリアルのアンカーを含むスクロール領域は、内容とクリップ境界の間に `--tutorial-anchor-clip-inset`（マスタの `paddingPx` + `--tutorial-highlight-glow`）以上の逃げを取る。** 足りないとセルがクリップ端に密着し、ハイライト枠のその辺が削られて「コ」の字に欠ける（ADR 0024）。逃げは**viewportのpaddingで作り、同量の負マージンをScrollArea側へ入れて相殺する**。こうするとクリップ境界だけが外へ広がり、内容box寸法・グリッドの絶対位置・段数の溢れ閾値が一切動かない。スクロールバーのトラックも同量 `top` / `bottom` で詰めてノブ位置を保つ（`bottom` は Mantine 既定の `var(--sa-corner-width)` に足し込む。置き換えるとトラックが伸びる）。**逃げ量の正本はCSSの `--tutorial-anchor-padding` であり、実行時に書き換えない**（逃げはスクロール領域の高さを変え段数の溢れ閾値を動かすため、実行中に変わる値であってはならない）。マスタの `paddingPx` はこのトークンを超えない前提で使い、超える値を入れたらトークン側を直す。e2eはリテラルでなく **逃げ ≧ `--tutorial-anchor-padding` + `--tutorial-highlight-glow`** の関係式で検査する。前例: `ItemListPanel.module.css` / `RecipeViewer.module.css` / `buildMenu/style.module.css` / `shared/treeView/TreeView.module.css`（アンカーを持つクリップ容器は4つとも適用済み。TreeViewはスクローラでなくパン式だが、`overflow: hidden` でクリップする以上まったく同じ症状を出すため同形を当てる。包む側は `overflow` を持たせない — 内側で広げたクリップ境界を外側で切り戻してしまう）。**クリップ境界を広げたら、その要素の座標計算はpaddingぶんずれる**。`TreeView` はpan/zoomの基準を内容boxへ揃えている（`toContentBox`）。
+- **`type` は `auto` を既定とし、`always` を使わない。** `always` は水平バーも常時描画するため、横に溢れていない場面で**つまみ幅0の黒帯**が内容の直下に敷かれる（2026-08-22に CRAFT RECIPE 一覧で実害。ユーザー裁定 2026-08-17 で `ItemListPanel` を `auto` + トラック透明へ変更）。
+- **ScrollArea に入れる中身は、外へはみ出す装飾の分だけ内側に余白を確保する。** 確保しないと数pxの偽の溢れが立ち、スクロール不要な件数でもスクロールバーが出る（そして装飾はクリップされて欠ける）。はみ出す装飾の例＝スロットの外側ベベルリング・個数バッジ・エントリ枠の四隅ブラケット。余白は固定長トークンで持つ。
+  - 前例: `--recipe-entry-bleed`（レシピ単一リスト・四隅ブラケット+外周リング）、`--item-list-count-bleed`（アイテム一覧・個数バッジ）。
+  - 上限高（`mah`）を持つ場合、その値は「N段+bleed」が丸ごと収まる高さである必要がある。段数だけ数えて bleed を忘れると境界の段数でだけバーが出る。
 
 ## 8.11 建設メニュー
 
@@ -454,7 +520,7 @@ description: |
   落として先頭へ戻る。
 - `pointer-events: none` を維持し、z層は既存の tutorial overlay 内（新しい `--z-*` を増やさない）。
 - e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
-- **枠線ハイライトの文言ラベル**: `tutorial.presentation` の outline に `labelTutorialGuid` があるとき、`TutorialOverlay` が枠線の下辺外側・左揃えに `t(challengeTutorial.<guid>.text)` のラベルを描く（ユーザー裁定 2026-08-20）。面は `--world-pin-face`、文字は `--text-high-contrast`、間隔は `--tutorial-highlight-label-gap`、padding・文字サイズはワールドピンのラベルと共有する `--label-face-padding` / `--label-face-font-size`。枠線が非表示ならラベルも出さない。ラベル自身はclip-pathを持たないため、祖先クリップが枠線を1pxでも削る間もラベルは出さない。`t()` の解決結果が空（辞書未着など）のときもラベル面ごと出さない。吹き出し矢印・光彩・アニメーションは付けない。
+- **枠線ハイライトの文言ラベル**: `tutorial.presentation` の outline に `labelTutorialGuid` があるとき、`TutorialOverlay` が枠線の下辺外側・左揃えに `t(challengeTutorial.<guid>.text)` のラベルを描く（ユーザー裁定 2026-08-20）。面は `--world-pin-face`、文字は `--text-high-contrast`、間隔は `--tutorial-highlight-label-gap`、padding・文字サイズはワールドピンのラベルと共有する `--label-face-padding` / `--label-face-font-size`。枠線が非表示ならラベルも出さない。ラベルの可視判定はアンカー実体で行う（枠のpaddingリングが削れただけでラベルを落とさない）。ラベル自身はclip-pathを持たないため、**下辺に収まらず上辺側に収まるときは枠線の上へ反転配置**して容器の外へ出さない（ユーザー裁定 2026-08-22）。`t()` の解決結果が空（辞書未着など）のときもラベル面ごと出さない。吹き出し矢印・光彩・アニメーションは付けない。
 
 ## 8.19 キー操作ヒントHUD（チュートリアルの keyControl）
 
@@ -479,7 +545,9 @@ description: |
 ## 10. 実装後の目視QA（必須）
 
 パネルの新設・寸法変更・レイアウト変更をしたら、コードレビューだけで終えず**mockホストのスクリーンショットで実画面を確認する**
-（`e2e/capture-eval.ts` の様式でmock-hostを起動し、`/__block` `/__uistate` で対象画面を再現して撮影する）。
+（§0 の実装フローで上げた mock-host + vite dev を使う。単発なら `e2e/capture-eval.ts` の様式でも可。`/__block` `/__uistate` で対象画面を再現して撮影する）。
+
+**目視は最終確認であって原因特定の手段ではない。** 症状を見つけたら §0.4 の実測・ablationへ戻る。
 
 チェック項目:
 1. **端**: 内容（タブバー・ボタン・グリッド）がパネル面のフェード帯に載って「はみ出て」見えないか。逆に、内容の直後で面が途切れて「切れて」見えないか（内容の縁〜フェード開始の余白が左右で対称か）。拡大クロップで**4辺すべて**確認する。内容量でサイズが決まるパネルは特に右端・下端が危ない（共通paddingがフェード幅未満の辺）

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Skit.Context;
 using CommandForgeGenerator.Command;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -13,6 +14,8 @@ namespace Client.Skit.Skit
         [SerializeField] private SkinnedMeshRenderer faceSkinnedMeshRenderer;
         [SerializeField] private SkitCharacterAnimator skitCharacterAnimator;
         
+        private SkitOrigin _skitOrigin;
+        
         public void Initialize(Transform parent)
         {
             skitCharacterAnimator.Initialize();
@@ -20,9 +23,16 @@ namespace Client.Skit.Skit
             transform.SetParent(parent);
         }
         
-        public void SetTransform(Vector3 position, Vector3 rotation)
+        // スキット開始時に再生文脈の原点を押し込み、加算はこのsinkの中だけで起きるようにする
+        // Push the playback context's origin in at skit start so the addition happens only inside this sink
+        public void SetSkitOrigin(SkitOrigin skitOrigin)
         {
-            transform.position = position;
+            _skitOrigin = skitOrigin;
+        }
+        
+        public void SetTransform(SkitRelativePosition position, Vector3 rotation)
+        {
+            transform.position = position.ToWorld(_skitOrigin);
             transform.eulerAngles = rotation;
         }
         

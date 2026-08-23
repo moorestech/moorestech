@@ -43,13 +43,13 @@
 
 /* 枠線脇のラベル。ワールドピンのラベルと同じ面・文字色で、枠線の下辺外側に付く */
 /* Side label of an outline; same face and text color as the world-pin label, attached just below the outline */
+/* 枠線との隙間と折り返し上限はHighlightLabelがJSで与える。CSSで足すと反転判定と描画位置が食い違う */
+/* The ring gap and the wrap limit come from HighlightLabel in JS; adding them here would desync the flip test from the placement */
 .highlightLabel {
   position: fixed;
-  margin-top: var(--tutorial-highlight-label-gap);
   padding: var(--label-face-padding);
   color: var(--text-high-contrast);
   background: var(--world-pin-face);
-  white-space: nowrap;
   font-size: var(--label-face-font-size);
   pointer-events: none;
 }
