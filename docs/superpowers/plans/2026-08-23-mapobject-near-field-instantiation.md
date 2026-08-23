@@ -169,7 +169,7 @@ git commit -m "feat(map-object): フレーム時間予算FrameTimeBudgetを追�
 - Consumes: なし
 - Produces: `public sealed class MapObjectPendingStateLedger` — `public void RecordDestroy(int instanceId)` ／ `public void RecordHp(int instanceId, int hp)` ／ `public bool TryConsume(int instanceId, out MapObjectPendingState state)`（未記録ならfalse。trueで台帳から消える）。`public readonly struct MapObjectPendingState`（`public readonly bool IsDestroyed; public readonly bool HasHp; public readonly int Hp;`）は同ファイルに置く
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Client.Game.InGame.Map.MapObject;
@@ -235,12 +235,12 @@ namespace Client.Tests.Map
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `MapObjectPendingStateLedger` が存在しないエラー
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```csharp
 using System.Collections.Generic;
@@ -299,12 +299,12 @@ namespace Client.Game.InGame.Map.MapObject
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectPendingStateLedgerTest"`
 Expected: 5件PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectPendingStateLedger.cs* moorestech_client/Assets/Scripts/Client.Tests/Map/MapObjectPendingStateLedgerTest.cs*
