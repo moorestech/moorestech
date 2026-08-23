@@ -75,7 +75,7 @@
   - `public class Game.Construction.ConstructionWalletQuery` — ctor `(IRemainingPlacementCountReader reader)`、`IObservable<Unit> OnWalletChanged { get; }`、`ConstructionWalletStatus? GetWalletStatus(BlockId blockId)`、`bool IsCoveredByWallet(BlockId blockId)`、`IReadOnlyList<(ItemId itemId, int count)> GetItemsToConsume(BlockId blockId)`、`int GetAffordablePlacementCount(BlockId blockId, IEnumerable<IItemStack> inventoryItems)`
   - `IRemainingPlacementCountLookup` に `IRemainingPlacementCountReader GetReader(int playerId);` を追加
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/ConstructionWalletQueryTest.cs` を新規作成する。
 
@@ -190,12 +190,12 @@ namespace Tests.UnitTest.Game
 
 `serviceProvider.GetService<T>` を使うため、ファイル先頭に `using Microsoft.Extensions.DependencyInjection;` を追加すること（既存の `Tests/UnitTest/Game/RemainingPlacementCountDataStoreTest.cs` と同じ形）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ConstructionWalletQueryTest"`
 Expected: コンパイルエラー（`ConstructionWalletQuery` / `GetReader` が存在しない）で失敗する
 
-- [ ] **Step 3: asmdef に Core.Item.Interface 参照を足す**
+- [x] **Step 3: asmdef に Core.Item.Interface 参照を足す**
 
 `moorestech_server/Assets/Scripts/Game.Construction/Game.Construction.asmdef` の `references` を次にする（`IItemStack` を扱うため）:
 
@@ -208,7 +208,7 @@ Expected: コンパイルエラー（`ConstructionWalletQuery` / `GetReader` が
     ],
 ```
 
-- [ ] **Step 4: 読み取り口と値型を作る**
+- [x] **Step 4: 読み取り口と値型を作る**
 
 `IRemainingPlacementCountReader.cs`:
 
@@ -255,7 +255,7 @@ namespace Game.Construction
 }
 ```
 
-- [ ] **Step 5: 建設コスト変換と所持数計算を Game.Construction へ移す**
+- [x] **Step 5: 建設コスト変換と所持数計算を Game.Construction へ移す**
 
 `ConstructionCostItems.cs`（`Server.Protocol` の `ConstructionCostService.ToItemCounts(ConstructionRequiredItemElement[])` をそのまま降ろす）:
 
@@ -331,7 +331,7 @@ namespace Game.Construction
 
 移設元 `moorestech_client/Assets/Scripts/Client.Game/InGame/Construction/ConstructionMaterialAffordability.cs` とその `.meta` を削除する。
 
-- [ ] **Step 6: 問い合わせ専用クラスを作る**
+- [x] **Step 6: 問い合わせ専用クラスを作る**
 
 `ConstructionWalletQuery.cs`:
 
@@ -397,7 +397,7 @@ namespace Game.Construction
 }
 ```
 
-- [ ] **Step 7: サーバーの DataStore から reader を払い出す**
+- [x] **Step 7: サーバーの DataStore から reader を払い出す**
 
 `IRemainingPlacementCountLookup.cs` に1メソッド足す:
 
@@ -453,7 +453,7 @@ namespace Game.Construction
         }
 ```
 
-- [ ] **Step 8: テストを実行して通ることを確認する**
+- [x] **Step 8: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件（`ConstructionCostService.ToItemCounts` を消していないため既存参照は生きている）
@@ -461,7 +461,7 @@ Expected: エラー0件（`ConstructionCostService.ToItemCounts` を消してい
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ConstructionWalletQueryTest"`
 Expected: 7件すべて PASS
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Construction moorestech_server/Assets/Scripts/Tests/UnitTest/Game/ConstructionWalletQueryTest.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Construction
@@ -481,12 +481,12 @@ git commit -m "feat: 財布の問い合わせ専用クラスをGame.Construction
 - Consumes: Task 1 の `IRemainingPlacementCountLookup.GetReader(int)`、`ConstructionWalletQuery.IsCoveredByWallet(BlockId)`、`ConstructionWalletQuery.GetItemsToConsume(BlockId)`、`ConstructionCostItems.ToItemCounts(ConstructionRequiredItemElement[])`
 - Produces: `ConstructionWalletService` の public シグネチャは不変（`PlanPlacement(BlockMasterElement, int)` / `CommitPlacement` / `PlanRemoval(BlockMasterElement, BlockInstanceId, int)` / `CommitRemoval` / `FlushRemainingCountChanges`）
 
-- [ ] **Step 1: 既存の回帰テストが通ることを先に確認する**
+- [x] **Step 1: 既存の回帰テストが通ることを先に確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlaceBlockRemainingPlacementTest|RemoveBlockRemainingPlacementTest|ConstructionPayerWalletTest"`
 Expected: 全件 PASS（変更前のベースライン）
 
-- [ ] **Step 2: ConstructionWalletService を query 経由へ書き換える**
+- [x] **Step 2: ConstructionWalletService を query 経由へ書き換える**
 
 `ConstructionWalletService.cs` の `PlanPlacement` / `PlanRemoval` / `ResolveWalletBlockId` を次に置き換える。`using Mooresmaster.Model.BlocksModule;` は残す。
 
@@ -530,11 +530,11 @@ Expected: 全件 PASS（変更前のベースライン）
 
 `private static BlockId ResolveWalletBlockId(BlockMasterElement blockMaster)` は不要になるので削除する。`using Game.Construction;` は既にあるためそのまま。
 
-- [ ] **Step 3: ConstructionCostService からブロック用 ToItemCounts を消す**
+- [x] **Step 3: ConstructionCostService からブロック用 ToItemCounts を消す**
 
 `ConstructionCostService.cs` の `ToItemCounts(ConstructionRequiredItemElement[] requiredItems)` オーバーロード（車両用ではない方）を削除する。`using Mooresmaster.Model.BlocksModule;` も未使用になるなら消す。車両用 `ToItemCounts(TrainCarRequiredItemElement[])` / `HasRequiredItems` / `ConsumeRequiredItems` / `CreateRefundItems` は残す。
 
-- [ ] **Step 4: 残った呼び出し側を Game.Construction 側へ向ける**
+- [x] **Step 4: 残った呼び出し側を Game.Construction 側へ向ける**
 
 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/GearChainPoleConnect/Modes/GearChainPoleFrameInputCollector.cs:50` はこの時点でコンパイルエラーになる。Task 5 で本修正するため、ここでは暫定変更を入れず、Task 5 まで一時的に次へ差し替える:
 
@@ -544,7 +544,7 @@ Expected: 全件 PASS（変更前のベースライン）
 
 `using Server.Protocol.PacketResponse.Util.Construction;` を残したまま `using Game.Construction;` を追加する。
 
-- [ ] **Step 5: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 5: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -552,7 +552,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlaceBlockRemainingPlacementTest|RemoveBlockRemainingPlacementTest|ConstructionPayerWalletTest|ConstructionCostServiceTest|ConstructionWalletQueryTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/Util/Construction moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/GearChainPoleConnect
@@ -579,7 +579,7 @@ git commit -m "refactor: サーバーの財布サービスを共有の問い合�
   - `ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, BlockId representativeBlockId, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)`
   - `CommonBlockPlaceSystem` / `BeltConveyorPlaceSystem` の ctor 末尾引数が `ClientRemainingPlacementCountDatastore` → `ConstructionWalletQuery`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `ConstructionCostPreviewMarkerTest.cs` の `datastore` 生成と呼び出しを窓口経由へ書き換える（他は変更しない）:
 
@@ -596,12 +596,12 @@ git commit -m "refactor: サーバーの財布サービスを共有の問い合�
 
 `ConstructionAffordabilityTest.cs` は財布の算術テストが Task 1 の `ConstructionWalletQueryTest` へ移ったため、次の4テストを削除する: `素材所持数から設置可能セル数を算出する` / `コスト未定義ならMaxValueを返す` / `素材が1種でも足りなければ0セル` は `Game.Construction` 側の同名検証が無いので**残す**（`using Game.Construction;` へ差し替えるだけ）。削除するのは `残り設置数と買えるセット数から置ける数を算出する` / `設置数1なら素材セル数がそのまま置ける数になる` / `コスト未定義なら残り設置数に関わらずMaxValue` の3件（`ConstructionWalletQueryTest` に同等が入ったため）。`坂ベルトの残り設置数は直線代表の財布から引く` と `ApplyAllとApplyは購読者へ変化通知を送る` は残し、後者の購読を `datastore.OnWalletChanged` へ差し替える。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ConstructionCostPreviewMarkerTest|ConstructionAffordabilityTest"`
 Expected: コンパイルエラー（`ClientRemainingPlacementCountDatastore` が `IRemainingPlacementCountReader` でない／`OnWalletChanged` が無い）で失敗する
 
-- [ ] **Step 3: クライアントのミラーを reader の実装にする**
+- [x] **Step 3: クライアントのミラーを reader の実装にする**
 
 `ClientRemainingPlacementCountDatastore.cs` を次に置き換える:
 
@@ -648,7 +648,7 @@ namespace Client.Game.InGame.Construction
 }
 ```
 
-- [ ] **Step 4: DI に窓口を登録する**
+- [x] **Step 4: DI に窓口を登録する**
 
 `MainGameStarter.cs:187` の直後に1行足す:
 
@@ -666,7 +666,7 @@ namespace Client.Game.InGame.Construction
 
 ファイル先頭に `using Game.Construction;` を追加する。
 
-- [ ] **Step 5: プレビュー判定を窓口経由へ書き換える**
+- [x] **Step 5: プレビュー判定を窓口経由へ書き換える**
 
 `ConstructionCostPreviewMarker.cs` の引数と本体1行を変える:
 
@@ -700,7 +700,7 @@ namespace Client.Game.InGame.Construction
 
 Run: `grep -rn "new CommonBlockPlaceSystem\|new BeltConveyorPlaceSystem" moorestech_client/Assets/Scripts`
 
-- [ ] **Step 6: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 6: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -708,7 +708,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ConstructionCostPreviewMarkerTest|ConstructionAffordabilityTest|ConstructionWalletQueryTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts
@@ -727,7 +727,7 @@ git commit -m "refactor: クライアントの財布をミラーと問い合わ�
 - Consumes: Task 1 の `ConstructionWalletQuery.GetAffordablePlacementCount(BlockId, IEnumerable<IItemStack>)`、Task 3 の `ClientRemainingPlacementCountDatastore`
 - Produces: `ElectricWirePoleGhostPart` の ctor が `(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, CommonBlockPlacePointCalculator pointCalculator, ConstructionWalletQuery walletQuery)` になる
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/ElectricWirePoleAffordabilityTest.cs` を新規作成する。`ElectricWirePoleGhostPart` は Camera や TextMeshPro を要求して EditMode では組めないため、判定式そのものを窓口の契約として検証する（財布の残りだけで賄えることを示す）:
 
@@ -771,12 +771,12 @@ namespace Client.Tests.PlaceSystem
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ElectricWirePoleAffordabilityTest"`
 Expected: PASS（窓口は Task 1 で入っているため通る）。ここで落ちる場合は Task 1 の実装漏れなので先に直す
 
-- [ ] **Step 3: 電柱ゴーストを窓口経由へ書き換える**
+- [x] **Step 3: 電柱ゴーストを窓口経由へ書き換える**
 
 `ElectricWirePoleGhostPart.cs` のフィールドに1行足す:
 
@@ -806,13 +806,13 @@ ctor を次にする:
 
 `using Client.Game.InGame.Construction;` を `using Game.Construction;` に差し替える。
 
-- [ ] **Step 4: ctor 呼び出し側を直す**
+- [x] **Step 4: ctor 呼び出し側を直す**
 
 Run: `grep -rn "new ElectricWirePoleGhostPart" moorestech_client/Assets/Scripts`
 
 見つかった各所へ `ConstructionWalletQuery` を渡す。呼び出し元クラスがそれを持っていない場合は、その ctor にも `ConstructionWalletQuery walletQuery` を末尾追加して VContainer から解決させる（`MainGameStarter` の登録は Task 3 で済んでいる）。
 
-- [ ] **Step 5: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 5: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -820,7 +820,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "ElectricWirePoleAffordabilityTest|ConstructionWalletQueryTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts
@@ -839,7 +839,7 @@ git commit -m "fix: 電柱ゴーストの建設コスト判定を財布の窓口
 - Consumes: Task 1 の `ConstructionWalletQuery.GetItemsToConsume(BlockId)`
 - Produces: `GearChainPoleFrameInputCollector` の ctor 末尾に `ConstructionWalletQuery walletQuery` が増える
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/GearChainPoleReservedCostTest.cs` を新規作成する:
 
@@ -883,12 +883,12 @@ namespace Client.Tests.PlaceSystem
 }
 ```
 
-- [ ] **Step 2: テストを実行して通ることを確認する**
+- [x] **Step 2: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "GearChainPoleReservedCostTest"`
 Expected: 2件 PASS
 
-- [ ] **Step 3: 予約算出を窓口経由へ書き換える**
+- [x] **Step 3: 予約算出を窓口経由へ書き換える**
 
 `GearChainPoleFrameInputCollector.cs` のフィールドへ1行足す:
 
@@ -908,13 +908,13 @@ ctor 末尾に `ConstructionWalletQuery walletQuery` を追加し `_walletQuery 
 
 `using Server.Protocol.PacketResponse.Util.Construction;` が他で使われていなければ削除し、`using Game.Construction;` を残す。
 
-- [ ] **Step 4: ctor 呼び出し側を直す**
+- [x] **Step 4: ctor 呼び出し側を直す**
 
 Run: `grep -rn "new GearChainPoleFrameInputCollector" moorestech_client/Assets/Scripts`
 
 見つかった各所へ `ConstructionWalletQuery` を渡す。呼び出し元が持っていなければその ctor にも末尾追加して VContainer から解決させる。
 
-- [ ] **Step 5: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 5: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -922,7 +922,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "GearChainPole|ConstructionWallet"`
 Expected: 全件 PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts
@@ -955,7 +955,7 @@ git commit -m "fix: ギアチェーンポールの素材予約を財布の実消
   - `BuildMenuEntryDtoFactory.CreateDtos(IReadOnlyList<IPlacementTarget>, ConstructionWalletQuery)` および `CreateDtos(PlacementTargetResolver, ConstructionWalletQuery)`
   - webui 契約: block エントリの `setPlacement?: { perCost: number; remaining: number }`
 
-- [ ] **Step 1: 失敗するテストを書く（C#側）**
+- [x] **Step 1: 失敗するテストを書く（C#側）**
 
 `BuildMenuEntryDtoFactoryTest.cs` の `CreateDtosは財布キー正規化後の残り設置数を直線と坂の両方へ反映する` を次に書き換える:
 
@@ -996,12 +996,12 @@ git commit -m "fix: ギアチェーンポールの素材予約を財布の実消
 
 `using Game.Construction;` と `using System.Collections.Generic;` を追加する。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BuildMenuEntryDtoFactoryTest"`
 Expected: コンパイルエラー（`SetPlacement` が存在しない）で失敗する
 
-- [ ] **Step 3: DTO を畳む**
+- [x] **Step 3: DTO を畳む**
 
 `BuildMenuDtos.cs` の該当2フィールドを差し替える:
 
@@ -1021,7 +1021,7 @@ Expected: コンパイルエラー（`SetPlacement` が存在しない）で失�
     }
 ```
 
-- [ ] **Step 4: ファクトリを窓口経由へ書き換える**
+- [x] **Step 4: ファクトリを窓口経由へ書き換える**
 
 `BuildMenuEntryDtoFactory.cs` の2つの `CreateDtos` の第2引数を `ConstructionWalletQuery walletQuery` に変え、エントリ生成の2行を1行にする:
 
@@ -1046,7 +1046,7 @@ Expected: コンパイルエラー（`SetPlacement` が存在しない）で失�
 
 `using Client.Game.InGame.Construction;` を `using Game.Construction;` に差し替える。
 
-- [ ] **Step 5: トピックとバインダを窓口経由へ書き換える**
+- [x] **Step 5: トピックとバインダを窓口経由へ書き換える**
 
 `BuildMenuTopic.cs` のフィールド・ctor引数・購読・ファクトリ呼び出しを `ConstructionWalletQuery` に差し替える:
 
@@ -1060,7 +1060,7 @@ Expected: コンパイルエラー（`SetPlacement` が存在しない）で失�
 
 `WebUiGameBinder.cs:155` の `resolver.Resolve<ClientRemainingPlacementCountDatastore>()` を `resolver.Resolve<ConstructionWalletQuery>()` に差し替え、受け渡し先の変数名も `constructionWalletQuery` に揃える。両ファイルへ `using Game.Construction;` を追加する。
 
-- [ ] **Step 6: ワイヤ契約フィクスチャを更新する**
+- [x] **Step 6: ワイヤ契約フィクスチャを更新する**
 
 `WireContractTest.cs:173` の block エントリを次にする:
 
@@ -1077,7 +1077,7 @@ Expected: コンパイルエラー（`SetPlacement` が存在しない）で失�
       }
 ```
 
-- [ ] **Step 7: コンパイルとC#テストを実行して通ることを確認する**
+- [x] **Step 7: コンパイルとC#テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -1085,7 +1085,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BuildMenuEntryDtoFactoryTest|WireContractTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 8: webui 契約を差し替える**
+- [x] **Step 8: webui 契約を差し替える**
 
 `moorestech_web/webui/src/bridge/contract/schemas/buildMenu.ts` の block スキーマを次にする:
 
@@ -1105,7 +1105,7 @@ const BuildMenuBlockEntryDataSchema = z.object({
 }).strict();
 ```
 
-- [ ] **Step 9: webui のスキーマテストを差し替える**
+- [x] **Step 9: webui のスキーマテストを差し替える**
 
 `buildMenu.test.ts` の該当テストを次にする（名前も実態へ揃える）:
 
@@ -1125,7 +1125,7 @@ const BuildMenuBlockEntryDataSchema = z.object({
 
 `blockEntryBase` は既存テスト内のブロックエントリ生成部を切り出して用意する（`placementsPerCost` / `remainingPlacementCount` を含まない形）。既存の同ファイル内で `placementsPerCost` を参照している箇所（63〜85行目付近）はすべて削除・置換する。
 
-- [ ] **Step 10: tsx から財布の判定条件を消す**
+- [x] **Step 10: tsx から財布の判定条件を消す**
 
 `BuildMenuDetailSidebar.tsx` の15行目を次にする:
 
@@ -1151,7 +1151,7 @@ const BuildMenuBlockEntryDataSchema = z.object({
 
 32行目を含む三項の条件も `setPlacement !== null` に揃える。
 
-- [ ] **Step 11: webui のフィクスチャを更新する**
+- [x] **Step 11: webui のフィクスチャを更新する**
 
 `buildMenuGrouping.test.ts:24` から `placementsPerCost: 1, remainingPlacementCount: 0,` を削除する。
 
@@ -1163,7 +1163,7 @@ const BuildMenuBlockEntryDataSchema = z.object({
 
 `buildMenuScrollFillerEntries` と `buildMenuExtraCategorySpecs` の展開部にも `defaultBlockPlacementFields` があれば同様に削除する。
 
-- [ ] **Step 12: webui のテストを実行して通ることを確認する**
+- [x] **Step 12: webui のテストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && npm run test -- --run`
 Expected: 全件 PASS
@@ -1173,12 +1173,12 @@ Expected: 全件 PASS（`buildMenu.spec.ts:149-161` の期待値は変更しな�
 
 **ポート衝突の注意**: e2e は 5273 番を共有するため、他セッションが走っていると無関係の spec が落ちる。落ちた spec が毎回変わる場合はポート衝突を疑い、他の e2e が終わってから再実行する。
 
-- [ ] **Step 13: 財布の語彙が webui から消えたことを確認する**
+- [x] **Step 13: 財布の語彙が webui から消えたことを確認する**
 
 Run: `grep -rn "placementsPerCost\|remainingPlacementCount" moorestech_web/webui/src moorestech_web/webui/e2e`
 Expected: `remainingPlacementCount` は i18n キー（`L.ui.buildMenu.remainingPlacementCount`）としてのみ残り、`placementsPerCost` は0件
 
-- [ ] **Step 14: コミットする**
+- [x] **Step 14: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts moorestech_web/webui
@@ -1196,12 +1196,12 @@ git commit -m "refactor: build menu の設置数配信を財布判定済みのse
 - Consumes: Task 1〜6 の全変更
 - Produces: レビュー指摘の解消済みブランチ
 
-- [ ] **Step 1: 全体コンパイルを確認する**
+- [x] **Step 1: 全体コンパイルを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件・警告増加なし
 
-- [ ] **Step 2: 財布関連テストを通しで実行する**
+- [x] **Step 2: 財布関連テストを通しで実行する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Construction|RemainingPlacement|BuildMenu|WireContract|GearChainPole|ElectricWirePole"`
 Expected: 全件 PASS
