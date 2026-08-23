@@ -1,3 +1,3 @@
 export { KeyControlHintHud } from "./KeyControlHintHud";
-export { TutorialOverlay } from "./TutorialOverlay";
+export { TutorialOverlay } from "./overlay/TutorialOverlay";
 export { WorldPinOverlay } from "./WorldPinOverlay";

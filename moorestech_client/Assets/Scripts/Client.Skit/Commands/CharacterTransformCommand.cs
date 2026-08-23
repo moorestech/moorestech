@@ -1,6 +1,5 @@
 using Client.Skit.Context;
 using Cysharp.Threading.Tasks;
-using UnityEngine;
 
 namespace CommandForgeGenerator.Command
 {
@@ -9,7 +8,7 @@ namespace CommandForgeGenerator.Command
         public async UniTask<CommandResultContext> ExecuteAsync(StoryContext storyContext)
         {
             var character = storyContext.GetCharacter(Character);
-            character.SetTransform(Position, Rotation);
+            character.SetTransform(new SkitRelativePosition(Position), Rotation);
             return null;
         }
     }

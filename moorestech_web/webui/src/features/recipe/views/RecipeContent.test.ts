@@ -5,7 +5,7 @@ import type { CraftRecipesData, MachineRecipesData, PlayerInventoryData } from "
 import { TutorialAnchorIds } from "@/shared/tutorialAnchor";
 
 vi.mock("@mantine/core", () => ({
-  ScrollArea: { Autosize: ({ children, ...props }: { children: unknown }) => createElement("mock-scroll", props, children as never) },
+  ScrollArea: ({ children, ...props }: { children: unknown }) => createElement("mock-scroll", props, children as never),
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
   Text: ({ children, ...props }: { children: unknown }) => createElement("mock-text", props, children as never),
 }));

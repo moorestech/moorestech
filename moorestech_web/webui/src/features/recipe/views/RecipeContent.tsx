@@ -48,7 +48,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   return (
     <Stack className={styles.recipeContent} gap="sm">
       <ItemHeader name={itemName} />
-      <ScrollArea.Autosize mah="var(--recipe-list-max-height)" type="auto" scrollbarSize="var(--recipe-list-scrollbar-reserve)" className={styles.recipeListScroll}>
+      <ScrollArea type="auto" scrollbarSize="var(--recipe-list-scrollbar-reserve)" className={styles.recipeListScroll}>
         <Stack className={styles.recipeList} gap="var(--recipe-entry-gap)" data-testid="recipe-entry-list">
           {entries.map((entry) =>
             entry.kind === "craft" ? (
@@ -70,7 +70,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
             ),
           )}
         </Stack>
-      </ScrollArea.Autosize>
+      </ScrollArea>
     </Stack>
   );
 }

@@ -130,6 +130,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
             cfg.oreConfig = OreRuntimeConfigFactory.Build(vp);
             BiomeRuntimeConfigFactory.Apply(cfg, vp);
             AlpineMesaRuntimeConfigFactory.Apply(cfg, vp);
+            BiomeObjectConfigRuntimeApplier.Apply(cfg, vp);
 
             return cfg;
         }
