@@ -10,6 +10,8 @@ namespace Game.MapGeneration.Transfer
     ///     Checks whether the generation system of the running build can reproduce the world a transfer meta points at.
     ///     Unlike the checks closed over the meta's own values (resolution, origins, chunk count), these read MasterHolder and build constants, so they live apart from TerrainTransferMeta
     /// </summary>
+    // 指紋の算出がPipelineまで降りるため、クライアント可視のGame.MapGeneration.Contractには入れられずcore側のアセンブリに置く
+    // Computing the fingerprint descends into Pipeline, so this cannot sit in the client-visible Game.MapGeneration.Contract and stays in the core assembly
     public static class TerrainTransferMetaCompatibility
     {
         // 指紋の算出も照合もこのメソッドだけが持つ。呼び出し元にMasterHolderから組み直させると条件変更(templateも持つ等)の直し忘れが起きる

@@ -1,14 +1,8 @@
 {
-  "name": "Game.MapGeneration",
+  "name": "Game.MapGeneration.Contract",
   "rootNamespace": "",
   "references": [
-    "Core.Master",
-    "Game.Map.Interface",
-    "Game.MapGeneration.Contract",
-    "Game.Paths",
-    "Unity.Burst",
-    "Unity.Collections",
-    "Unity.Mathematics"
+    "Game.Paths"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
