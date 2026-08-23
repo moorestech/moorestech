@@ -5,8 +5,10 @@ using UnityEngine;
 namespace Client.Game.InGame.Map.NearestSearch
 {
     /// <summary>
-    ///     key（mapObjectGuid・veinGuid等）別に独立したk-d treeを持つ最寄り索引。点集合の差し替えはkey単位の再構築
-    ///     Nearest index holding one independent k-d tree per key (mapObjectGuid, veinGuid, ...); replacing a set rebuilds that key only
+    ///     - key別に独立したk-d tree
+    ///     - 差し替えはkey単位で再構築
+    ///     - One independent k-d tree per key
+    ///     - Replacing a set rebuilds that key only
     /// </summary>
     public sealed class NearestTargetIndex<T> where T : class, INearestSearchTarget
     {

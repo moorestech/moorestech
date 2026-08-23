@@ -10,8 +10,10 @@ using UnityEngine;
 namespace Client.Tests.Map
 {
     /// <summary>
-    ///     破壊済み個体の除外（dirty→再構築）とguid分離を実体のMapObjectGameObjectで検証
-    ///     Verifies destroyed-object exclusion (dirty→rebuild) and guid separation with real MapObjectGameObjects
+    ///     - 破壊済み個体の除外を検証
+    ///     - guid分離を検証（実体で）
+    ///     - Verifies destroyed-object exclusion
+    ///     - Verifies guid separation (with real objects)
     /// </summary>
     public class MapObjectNearestSearcherTest
     {

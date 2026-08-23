@@ -4,6 +4,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEditor;
@@ -124,6 +125,62 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
                 Assert.Fail("test world has no map object scaled differently per axis");
                 return null;
+            }
+
+            #endregion
+        }
+
+        [UnityTest]
+        public IEnumerator DestroyedMapObjectDropsOutOfNearestSearchAfterServerBroadcast()
+        {
+            EnterPlayModeUtil();
+
+            // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと。そうでないとなぜかわからないがプレイモードに入らない
+            // Always call yield return new EnterPlayMode directly under the [UnityTest] function. Otherwise, for unknown reasons, it will not enter PlayMode.
+            yield return new EnterPlayMode(expectDomainReload: true);
+
+            // EnterPlayMode時のテストフレームワーク内部エラーでテストが失敗するのを防ぐ
+            // Prevent test failure from test framework internal errors during EnterPlayMode.
+            LogAssert.ignoreFailingMessages = true;
+
+            yield return Body().ToCoroutine();
+
+            yield return new ExitPlayMode();
+
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+
+            #region Internal
+
+            async UniTask Body()
+            {
+                await LoadMainGame();
+
+                var datastore = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>(FindObjectsInactive.Include);
+                Assert.IsNotNull(datastore, "MapObjectGameObjectDatastore was not found in scene");
+
+                await datastore.WaitForInitialApplyAsync();
+
+                var layouts = ClientDIContext.DIContainer.DIContainerResolver
+                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
+                Assert.IsNotEmpty(layouts, "test world has no map objects");
+
+                var target = layouts[0];
+                var mapObjectGuid = new Guid(target.MapObjectGuid);
+                var position = new Vector3(target.X, target.Y, target.Z);
+
+                var beforeDestroy = datastore.SearchNearestMapObject(mapObjectGuid, position);
+                Assert.IsNotNull(beforeDestroy, $"map object {target.InstanceId} was not instantiated");
+                Assert.AreEqual(target.InstanceId, beforeDestroy.InstanceId, "resolved a different instance than the one being destroyed");
+
+                // 実サーバーで破壊し、実配信経路(OnDestroyMapObject→イベントパケット→OnUpdateMapObjectのMarkDirty)を通す
+                // Destroy on the real server so the actual broadcast path (OnDestroyMapObject → event packet → OnUpdateMapObject's MarkDirty) is exercised
+                ServerContext.MapObjectDatastore.Get(target.InstanceId).Destroy();
+
+                await UniTask.WaitUntil(() => datastore.SearchNearestMapObject(mapObjectGuid, position) != beforeDestroy)
+                    .Timeout(TimeSpan.FromSeconds(10));
+
+                Assert.AreNotSame(beforeDestroy, datastore.SearchNearestMapObject(mapObjectGuid, position),
+                    "destroyed map object is still returned by SearchNearestMapObject after the server broadcast");
             }
 
             #endregion

@@ -22,8 +22,6 @@ namespace Client.Game.InGame.Map.NearestSearch
         private int _bestIndex;
         private float _bestSqrDistance;
 
-        public int Count => _targets.Length;
-
         public KdTree(IReadOnlyList<T> targets)
         {
             _positions = new Vector3[targets.Count];
@@ -45,7 +43,7 @@ namespace Client.Game.InGame.Map.NearestSearch
             _bestIndex = -1;
             _bestSqrDistance = float.MaxValue;
             Search(0, _targets.Length, 0);
-            return _targets[_bestIndex];
+            return _bestIndex < 0 ? null : _targets[_bestIndex];
         }
 
         private void Build(int lo, int hi, int depth)

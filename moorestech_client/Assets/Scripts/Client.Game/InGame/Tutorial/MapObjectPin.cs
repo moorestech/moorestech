@@ -27,17 +27,17 @@ namespace Client.Game.InGame.Tutorial
 
         // 対象不在は毎フレーム出すとログを埋めるので、対象1件につき1回だけ報告する（VeinPinと同形）
         // Reporting a missing target every frame would bury the log, so report once per target (same as VeinPin)
+        private bool _hasReportedMissingMapObjectGuid;
         private Guid _reportedMissingMapObjectGuid;
 
         [Inject]
-        public void Construct(MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
+        public void Initialize(MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
         {
             _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
         }
 
         private void Update()
         {
-            // 最も近いMapObjectにピンする
             NearestPinMapObject();
 
             // Webへ射影配信する
@@ -59,20 +59,25 @@ namespace Client.Game.InGame.Tutorial
 
             void NearestPinMapObject()
             {
-                // 近くのMapObjectを探してピンを表示
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
                 var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_currentTutorialParam.MapObjectGuid, playerPos);
 
                 if (mapObject == null)
                 {
-                    if (_reportedMissingMapObjectGuid != _currentTutorialParam.MapObjectGuid)
+                    if (!_hasReportedMissingMapObjectGuid || _reportedMissingMapObjectGuid != _currentTutorialParam.MapObjectGuid)
                     {
+                        _hasReportedMissingMapObjectGuid = true;
                         _reportedMissingMapObjectGuid = _currentTutorialParam.MapObjectGuid;
                         Debug.LogError($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
                     }
+
+                    // 指す先が無い間は古い座標の配信を止める。Updateは回し続けるので対象が戻れば追従を再開する
+                    // Stop publishing a stale position while there is nothing to point at; Update keeps running so tracking resumes when a target returns
+                    WorldPinStateStore.Instance.RemovePin(WebPinId);
                     return;
                 }
 
+                _hasReportedMissingMapObjectGuid = false;
                 transform.position = mapObject.Position;
             }
 

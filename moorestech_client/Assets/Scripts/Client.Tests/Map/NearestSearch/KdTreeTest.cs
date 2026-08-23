@@ -61,7 +61,6 @@ namespace Client.Tests.Map.NearestSearch
         public void 空の木はnullを返す()
         {
             var tree = new KdTree<NearestSearchTestTarget>(new List<NearestSearchTestTarget>());
-            Assert.AreEqual(0, tree.Count);
             Assert.IsNull(tree.SearchNearest(Vector3.zero));
         }
 
