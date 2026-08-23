@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEditor;
 using UnityEngine;
+using VContainer;
 using UnityEngine.TestTools;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 using Object = UnityEngine.Object;
