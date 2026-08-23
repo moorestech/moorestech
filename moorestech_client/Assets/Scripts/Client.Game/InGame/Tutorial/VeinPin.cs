@@ -1,6 +1,5 @@
 using System;
 using Client.Common;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
@@ -16,7 +15,6 @@ namespace Client.Game.InGame.Tutorial
         // A separate ID prevents map-object cleanup from removing the vein pin
         private const string WebPinId = "vein-pin";
 
-        private InGameCameraController _inGameCameraController;
         private OutcropGameObjectDatastore _outcropGameObjectDatastore;
         private TutorialWorldPinVisibility _visibility;
 
@@ -31,9 +29,8 @@ namespace Client.Game.InGame.Tutorial
         private Guid _reportedMissingOutcropVeinGuid;
 
         [Inject]
-        public void Initialize(InGameCameraController inGameCameraController, OutcropGameObjectDatastore outcropGameObjectDatastore)
+        public void Initialize(OutcropGameObjectDatastore outcropGameObjectDatastore)
         {
-            _inGameCameraController = inGameCameraController;
             _outcropGameObjectDatastore = outcropGameObjectDatastore;
         }
 
@@ -41,10 +38,6 @@ namespace Client.Game.InGame.Tutorial
         {
             if (_currentTutorialParam == null) return;
 
-            // Y軸だけカメラへ向ける
-            // Face camera on Y axis only
-            transform.LookAt(_inGameCameraController.Position);
-            transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
             if (!TryTrackNearestOutcrop()) return;
             PublishWebWorldPin();
 

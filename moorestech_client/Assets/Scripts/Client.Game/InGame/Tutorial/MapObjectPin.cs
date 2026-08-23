@@ -1,5 +1,5 @@
+using System;
 using Client.Common;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
@@ -15,7 +15,6 @@ namespace Client.Game.InGame.Tutorial
         // World-pin id on the web overlay; a single scene instance suffices, so the id is fixed
         private const string WebPinId = "map-object-pin";
 
-        private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
         private TutorialWorldPinVisibility _visibility;
 
@@ -26,19 +25,18 @@ namespace Client.Game.InGame.Tutorial
         private MapObjectPinTutorialParam _currentTutorialParam;
         private string _pinTutorialGuid = "";
 
+        // 対象不在は毎フレーム出すとログを埋めるので、対象1件につき1回だけ報告する（VeinPinと同形）
+        // Reporting a missing target every frame would bury the log, so report once per target (same as VeinPin)
+        private Guid _reportedMissingMapObjectGuid;
+
         [Inject]
-        public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
+        public void Construct(MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
         {
-            _inGameCameraController = inGameCameraController;
             _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
         }
 
         private void Update()
         {
-            // Y軸を常にカメラに向ける
-            transform.LookAt(_inGameCameraController.Position);
-            transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
-
             // 最も近いMapObjectにピンする
             NearestPinMapObject();
 
@@ -67,7 +65,11 @@ namespace Client.Game.InGame.Tutorial
 
                 if (mapObject == null)
                 {
-                    Debug.LogError($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
+                    if (_reportedMissingMapObjectGuid != _currentTutorialParam.MapObjectGuid)
+                    {
+                        _reportedMissingMapObjectGuid = _currentTutorialParam.MapObjectGuid;
+                        Debug.LogError($"未破壊のMapObject {_currentTutorialParam.MapObjectGuid} が存在しません");
+                    }
                     return;
                 }
 
