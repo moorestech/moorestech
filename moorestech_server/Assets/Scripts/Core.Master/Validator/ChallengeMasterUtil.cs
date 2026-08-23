@@ -114,9 +114,18 @@ namespace Core.Master.Validator
                             {
                                 case MapObjectPinTutorialParam mapObjectPin:
                                 {
-                                    // 狙い先の解決規則はMapObjectMasterが唯一の持ち主。種別が増えてもこのブロックは変えない
-                                    // MapObjectMaster owns the only resolution rule, so adding a target kind never touches this block
-                                    if (!MasterHolder.MapObjectMaster.TryResolvePinTargets(mapObjectPin, out var pinTargets))
+                                    // 狙い先のitemGuidは他5caseと同形にItemMasterで先に突き合わせる
+                                    // The target itemGuid is checked against ItemMaster first, matching the other five cases
+                                    if (mapObjectPin.PinTargetParam is EarnItemPinTargetParam byEarnItem &&
+                                        MasterHolder.ItemMaster.GetItemIdOrNull(byEarnItem.ItemGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.ItemGuid:{byEarnItem.ItemGuid}\n";
+                                        break;
+                                    }
+
+                                    // 狙い先の解決規則はChallengeMasterが唯一の持ち主。種別が増えてもこのブロックは変えない
+                                    // ChallengeMaster owns the only resolution rule, so adding a target kind never touches this block
+                                    if (!MasterHolder.ChallengeMaster.TryResolvePinTargets(mapObjectPin, out var pinTargets))
                                     {
                                         logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated PinTargetParam type:{mapObjectPin.PinTargetParam?.GetType().Name}\n";
                                         break;

@@ -101,7 +101,13 @@ return PlaytestRunner.Run("tutorial-equip-challenge", options, async p =>
     p.Assert(treePinShown, "木ピンが伐採チャレンジのtutorialGuidで表示された");
     await p.Screenshot("05-tree-pin");
 
-    var pinTargets = Core.Master.MasterHolder.MapObjectMaster.GetMapObjectGuidsByEarnItem(new Guid(logItemGuid));
+    // 解決規則はChallengeMasterが唯一の持ち主なので、台本もクライアント実装と同じ入口を通す
+    // ChallengeMaster owns the only resolution rule, so the scenario goes through the same entry point as the client
+    var treePinParam = new Mooresmaster.Model.ChallengesModule.MapObjectPinTutorialParam(
+        Mooresmaster.Model.ChallengesModule.MapObjectPinTutorialParam.PinTargetTypeConst.earnItem,
+        new Mooresmaster.Model.ChallengesModule.EarnItemPinTargetParam(new Guid(logItemGuid)),
+        "pin");
+    var pinTargets = Core.Master.MasterHolder.ChallengeMaster.ResolvePinTargets(treePinParam);
     p.Assert(0 < pinTargets.Count, "earnItem解決で原木を落とすmapObjectが1件以上得られた");
     var mapObjectDatastore = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Map.MapObject.MapObjectGameObjectDatastore>();
     var nearestTree = mapObjectDatastore.SearchNearestMapObject(pinTargets, p.PlayerPosition);

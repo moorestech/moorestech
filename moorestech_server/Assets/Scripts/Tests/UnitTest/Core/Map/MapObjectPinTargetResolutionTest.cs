@@ -36,7 +36,7 @@ namespace Tests.UnitTest.Core.Map
                 new MapObjectPinTargetParam(TreeTestGuid),
                 "pin");
 
-            var result = MasterHolder.MapObjectMaster.ResolvePinTargets(param);
+            var result = MasterHolder.ChallengeMaster.ResolvePinTargets(param);
 
             CollectionAssert.AreEquivalent(new[] { TreeTestGuid }, result);
         }
@@ -49,7 +49,7 @@ namespace Tests.UnitTest.Core.Map
                 new EarnItemPinTargetParam(Item2Guid),
                 "pin");
 
-            var result = MasterHolder.MapObjectMaster.ResolvePinTargets(param);
+            var result = MasterHolder.ChallengeMaster.ResolvePinTargets(param);
 
             CollectionAssert.AreEquivalent(new[] { TreeTestGuid, MiningRockGuid, RubbleRockGuid }, result);
         }
@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Core.Map
                 new EarnItemPinTargetParam(NobodyEarnsItemGuid),
                 "pin");
 
-            var result = MasterHolder.MapObjectMaster.ResolvePinTargets(param);
+            var result = MasterHolder.ChallengeMaster.ResolvePinTargets(param);
 
             CollectionAssert.IsEmpty(result);
         }
@@ -77,7 +77,7 @@ namespace Tests.UnitTest.Core.Map
                 null,
                 "pin");
 
-            var resolved = MasterHolder.MapObjectMaster.TryResolvePinTargets(param, out var result);
+            var resolved = MasterHolder.ChallengeMaster.TryResolvePinTargets(param, out var result);
 
             Assert.IsFalse(resolved);
             CollectionAssert.IsEmpty(result);
