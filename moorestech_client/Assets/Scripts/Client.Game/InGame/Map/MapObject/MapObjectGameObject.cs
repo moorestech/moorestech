@@ -92,7 +92,9 @@ namespace Client.Game.InGame.Map.MapObject
             
             UpdateHpBar();
             
-            var rayTargets = GetComponentsInChildren<MapObjectRayTarget>();
+            // 開幕スキットの非活性窓で生成される近傍個体があるため、非活性の子も走査する（2026-08-23裁定）
+            // Near-field objects can be born inside the opening skit's inactive window, so inactive children are scanned too (adjudicated 2026-08-23)
+            var rayTargets = GetComponentsInChildren<MapObjectRayTarget>(true);
             foreach (var rayTarget in rayTargets)
             {
                 rayTarget.Initialize(this);
@@ -154,8 +156,9 @@ namespace Client.Game.InGame.Map.MapObject
         public void DestroyMapObject()
         {
             IsDestroyed = true;
-            //自分を含む全ての子のコライダーとレンダラーを無効化する
-            foreach (var child in GetComponentsInChildren<Transform>())
+            //自分を含む全ての子のコライダーとレンダラーを無効化する。非活性下で生成された個体も確実に落とす
+            // Disable colliders and renderers on self and every child, including ones born while inactive
+            foreach (var child in GetComponentsInChildren<Transform>(true))
             {
                 var collider = child.GetComponent<Collider>();
                 if (collider != null) collider.enabled = false;
