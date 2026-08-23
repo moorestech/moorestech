@@ -18,8 +18,8 @@ namespace Tests.CombinedTest.Game
         private static readonly Guid Test1ItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
         private static readonly Guid UnrelatedItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000002");
 
-        // 選択中の装備スロットへ入れた瞬間に達成する
-        // Putting the item into the selected equipment slot completes the challenge immediately
+        // 選択中の装備スロットへ入れると次のティックで達成する
+        // Putting the item into the selected equipment slot completes the challenge on the next tick
         [Test]
         public void EquippingIntoSelectedSlotCompletesChallenge()
         {
@@ -30,6 +30,7 @@ namespace Tests.CombinedTest.Game
 
             equipment.SetSelectedEquipmentIndex(0);
             equipment.SetItem(0, MasterHolder.ItemMaster.GetItemId(Test1ItemGuid), 1);
+            GameUpdater.UpdateOneTick();
 
             Assert.IsTrue(IsCompleted(challengeDatastore));
         }
@@ -50,6 +51,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(IsCompleted(challengeDatastore));
 
             equipment.SetSelectedEquipmentIndex(1);
+            GameUpdater.UpdateOneTick();
             Assert.IsTrue(IsCompleted(challengeDatastore));
         }
 

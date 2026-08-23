@@ -174,7 +174,7 @@ namespace Client.Game.InGame.Map.MapObject
             gameObject.SetActive(enable);
         }
 
-        public MapObjectGameObject SearchNearestMapObject(IReadOnlySet<Guid> mapObjectGuids, Vector3 position)
+        public MapObjectGameObject SearchNearestMapObject(HashSet<Guid> mapObjectGuids, Vector3 position)
         {
             MapObjectGameObject nearestMapObject = null;
             var maxMagnitude = float.MaxValue;

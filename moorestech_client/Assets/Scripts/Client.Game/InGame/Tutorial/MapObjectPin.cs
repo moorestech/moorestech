@@ -20,7 +20,7 @@ namespace Client.Game.InGame.Tutorial
 
         // 未適用・完了後の空候補。毎フレームの探索でnull分岐を持たずに済む
         // Empty candidates before apply and after completion, so the per-frame search needs no null branch
-        private static readonly IReadOnlySet<Guid> EmptyTargets = new HashSet<Guid>();
+        private static readonly HashSet<Guid> EmptyTargets = new HashSet<Guid>();
 
         private InGameCameraController _inGameCameraController;
         private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
@@ -31,7 +31,7 @@ namespace Client.Game.InGame.Tutorial
         private TutorialWorldPinVisibility Visibility => _visibility ??= new TutorialWorldPinVisibility(gameObject, nameof(MapObjectPin));
 
         private MapObjectPinTutorialParam _currentTutorialParam;
-        private IReadOnlySet<Guid> _targetMapObjectGuids = EmptyTargets;
+        private HashSet<Guid> _targetMapObjectGuids = EmptyTargets;
         private string _pinTutorialGuid = "";
 
         // 候補全滅は毎フレーム出すとログを埋めるので、対象が変わるまで初回だけ報告する

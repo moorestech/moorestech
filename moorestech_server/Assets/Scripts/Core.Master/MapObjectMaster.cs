@@ -14,11 +14,11 @@ namespace Core.Master
 
         // 該当なしの戻り値。呼び出しごとに空集合を確保しない
         // Returned when nothing matches, so no empty set is allocated per call
-        private static readonly IReadOnlySet<Guid> EmptyMapObjectGuids = new HashSet<Guid>();
+        private static readonly HashSet<Guid> EmptyMapObjectGuids = new();
 
         // アイテム→落とすmapObject索引
         // earn item GUID → mapObjectGuids dropping that item
-        private Dictionary<Guid, IReadOnlySet<Guid>> _mapObjectGuidsByEarnItem;
+        private Dictionary<Guid, HashSet<Guid>> _mapObjectGuidsByEarnItem;
 
         public MapObjectMaster(JToken jToken)
         {
@@ -39,7 +39,7 @@ namespace Core.Master
         ///     ピンの狙い先指定を候補mapObjectGuid集合へ解決する（client/server共通の唯一の規則）
         ///     Resolves a pin target param into candidate mapObjectGuids; the single rule shared by client and server.
         /// </summary>
-        public IReadOnlySet<Guid> ResolvePinTargets(MapObjectPinTutorialParam param)
+        public HashSet<Guid> ResolvePinTargets(MapObjectPinTutorialParam param)
         {
             if (!TryResolvePinTargets(param, out var pinTargets))
             {
@@ -53,7 +53,7 @@ namespace Core.Master
         ///     未知の狙い先指定でも例外にせず解決可否を返す（マスタ検証は落ちずに報告する必要がある）
         ///     Reports whether the target param resolves instead of throwing, because master validation must report, not crash.
         /// </summary>
-        public bool TryResolvePinTargets(MapObjectPinTutorialParam param, out IReadOnlySet<Guid> pinTargets)
+        public bool TryResolvePinTargets(MapObjectPinTutorialParam param, out HashSet<Guid> pinTargets)
         {
             switch (param.PinTargetParam)
             {
@@ -75,7 +75,7 @@ namespace Core.Master
         ///     そのアイテムをドロップする全マップオブジェクトのGUIDを取得（該当なしなら空）
         ///     Gets the GUIDs of every map object dropping the item (empty when none drops it).
         /// </summary>
-        public IReadOnlySet<Guid> GetMapObjectGuidsByEarnItem(Guid itemGuid)
+        public HashSet<Guid> GetMapObjectGuidsByEarnItem(Guid itemGuid)
         {
             // Validateは他Masterより先にMapObjectMaster.Initializeが完了している前提で呼ばれる（MasterHolder.Loadのロード順に依存）
             // Validate assumes MapObjectMaster.Initialize already ran (relies on MasterHolder.Load's load order)

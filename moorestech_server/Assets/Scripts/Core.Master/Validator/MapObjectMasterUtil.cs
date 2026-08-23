@@ -73,28 +73,24 @@ namespace Core.Master.Validator
             #endregion
         }
 
-        public static void Initialize(Map map, out Dictionary<Guid, IReadOnlySet<Guid>> mapObjectGuidsByEarnItem)
+        public static void Initialize(Map map, out Dictionary<Guid, HashSet<Guid>> mapObjectGuidsByEarnItem)
         {
-            // 逆引き索引を構築する
-            // Build the reverse index from an earn item to the map objects dropping it
-            var builder = new Dictionary<Guid, HashSet<Guid>>();
+            // 毎フレームの候補判定がO(1)になるよう集合で持つ（IReadOnlySetはUnityのAPI互換レベルで使えない）
+            // Keep sets so the per-frame candidate test is O(1); IReadOnlySet is unavailable at Unity's API compatibility level
+            mapObjectGuidsByEarnItem = new Dictionary<Guid, HashSet<Guid>>();
             foreach (var mapObjectElement in map.MapObjects)
             {
                 foreach (var earnItem in mapObjectElement.EarnItems)
                 {
-                    if (!builder.TryGetValue(earnItem.ItemGuid, out var mapObjectGuids))
+                    if (!mapObjectGuidsByEarnItem.TryGetValue(earnItem.ItemGuid, out var mapObjectGuids))
                     {
                         mapObjectGuids = new HashSet<Guid>();
-                        builder.Add(earnItem.ItemGuid, mapObjectGuids);
+                        mapObjectGuidsByEarnItem.Add(earnItem.ItemGuid, mapObjectGuids);
                     }
 
                     mapObjectGuids.Add(mapObjectElement.MapObjectGuid);
                 }
             }
-
-            // 毎フレームの候補判定がO(1)になるよう集合で持ち、読み取り専用インターフェースで公開する
-            // Keep sets so the per-frame candidate test is O(1), exposed through the read-only interface
-            mapObjectGuidsByEarnItem = builder.ToDictionary(pair => pair.Key, pair => (IReadOnlySet<Guid>)pair.Value);
         }
     }
 }
