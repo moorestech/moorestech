@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>moorestech 遊び方ガイド</title>
+<style>
+  @page { size: A4 portrait; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #e8e8e8; }
+  body { font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif; color: #1c1c1c; }
+
+  .sheet {
+    width: 210mm; height: 297mm;
+    margin: 0 auto; background: #ffffff;
+    padding: 18mm 18mm 14mm;
+    display: flex; flex-direction: column;
+  }
+  @media print {
+    html, body { background: #ffffff; }
+    .sheet { margin: 0; }
+  }
+
+  .game-title {
+    font-size: 30pt; font-weight: 800; letter-spacing: 0.02em;
+    line-height: 1.1;
+  }
+  .game-subtitle {
+    font-size: 12pt; color: #555; margin-top: 2mm; letter-spacing: 0.15em;
+  }
+  .rule { border: none; border-top: 0.6mm solid #1c1c1c; margin: 6mm 0 8mm; }
+
+  h2 {
+    font-size: 15pt; font-weight: 800; letter-spacing: 0.2em;
+    margin-bottom: 4mm;
+    display: flex; align-items: center; gap: 3mm;
+  }
+  h2::before {
+    content: ""; display: block;
+    width: 3mm; height: 7mm; background: #1c1c1c;
+  }
+
+  .overview {
+    font-size: 14pt; line-height: 1.7;
+  }
+
+  section + section { margin-top: 9mm; }
+
+  table { width: 100%; border-collapse: collapse; }
+  td {
+    padding: 3.2mm 2mm;
+    border-bottom: 0.3mm solid #cfcfcf;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  td.action { font-size: 13pt; width: 40%; }
+  td.keys { text-align: left; }
+
+  .key {
+    display: inline-block;
+    font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", sans-serif;
+    font-size: 12.5pt; font-weight: 700;
+    border: 0.45mm solid #1c1c1c; border-radius: 1.5mm;
+    padding: 1.2mm 3mm; min-width: 9mm; text-align: center;
+    box-shadow: 0 0.8mm 0 #1c1c1c;
+  }
+  .plus, .slash { font-size: 11pt; color: #666; margin: 0 1.5mm; font-weight: 600; }
+  .note { font-size: 10.5pt; color: #666; margin-left: 2.5mm; }
+
+  .lost {
+    font-size: 15pt; font-weight: 700; line-height: 1.7;
+    background: #f2f2f2; border-radius: 2mm;
+    padding: 6mm 7mm;
+  }
+  .lost .em { background: linear-gradient(transparent 62%, #ffd94d 62%); padding: 0 0.5mm; }
+
+  .footer {
+    margin-top: auto; text-align: center;
+    font-size: 9.5pt; color: #999; letter-spacing: 0.1em;
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <header>
+    <div class="game-title">moorestech</div>
+    <div class="game-subtitle">PLAY GUIDE</div>
+  </header>
+  <hr class="rule">
+
+  <section>
+    <h2>概要</h2>
+    <p class="overview">素材を集めて機械を置き、工場を育てていく<strong>自動化ゲーム</strong>です。</p>
+  </section>
+
+  <section>
+    <h2>操作説明</h2>
+    <table>
+      <tr>
+        <td class="action">移動</td>
+        <td class="keys"><span class="key">W</span> <span class="key">A</span> <span class="key">S</span> <span class="key">D</span><span class="note">ジャンプ：<span class="key" style="font-size:10.5pt; padding:0.8mm 4mm;">Space</span></span></td>
+      </tr>
+      <tr>
+        <td class="action">採掘・アイテム取得</td>
+        <td class="keys"><span class="key">左クリック 長押し</span></td>
+      </tr>
+      <tr>
+        <td class="action">機械・チェストを開く</td>
+        <td class="keys"><span class="key">左クリック</span></td>
+      </tr>
+      <tr>
+        <td class="action">インベントリ</td>
+        <td class="keys"><span class="key">Tab</span></td>
+      </tr>
+      <tr>
+        <td class="action">建築メニュー</td>
+        <td class="keys"><span class="key">B</span></td>
+      </tr>
+      <tr>
+        <td class="action">設置 ／ 回転</td>
+        <td class="keys"><span class="key">左クリック</span><span class="slash">／</span><span class="key">R</span></td>
+      </tr>
+      <tr>
+        <td class="action">破壊</td>
+        <td class="keys"><span class="key">G</span></td>
+      </tr>
+      <tr>
+        <td class="action">元に戻す</td>
+        <td class="keys"><span class="key">Ctrl</span><span class="plus">＋</span><span class="key">Z</span></td>
+      </tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>迷ったら</h2>
+    <p class="lost">画面<span class="em">左上の「現在の目標」</span>を見てください。<br>次にやることが表示されています。</p>
+  </section>
+
+  <div class="footer">moorestech — gamescom</div>
+
+</div>
+</body>
+</html>
