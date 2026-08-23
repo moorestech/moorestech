@@ -15,7 +15,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     /// </summary>
     public static class TerrainAlphamapApplier
     {
-        public static async UniTask ApplyAsync(TerrainData terrainData, IReadOnlyList<byte[]> alphamapPlanes, int alphamapResolution)
+        public static async UniTask ApplyAsync(
+            TerrainData terrainData, IReadOnlyList<ReadOnlyMemory<byte>> alphamapPlanes, int alphamapResolution)
         {
             var alphamapTextures = terrainData.alphamapTextures;
 
@@ -27,7 +28,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             for (var planeIndex = 0; planeIndex < alphamapTextures.Length; planeIndex++)
             {
-                alphamapTextures[planeIndex].SetPixelData(alphamapPlanes[planeIndex], 0);
+                // Unity APIはmutable配列だけを受けるため、実アップロード時に限って防御コピーを作る
+                // Unity accepts only a mutable array, so make the defensive copy only for the actual upload
+                alphamapTextures[planeIndex].SetPixelData(alphamapPlanes[planeIndex].ToArray(), 0);
                 alphamapTextures[planeIndex].Apply(false);
 
                 // 最終平面以外はロード画面へ描画機会を返す

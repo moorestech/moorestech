@@ -10,11 +10,11 @@ namespace Game.MapGeneration.Pipeline.Visual
     /// </summary>
     public sealed class TileAlphamap
     {
-        public readonly IReadOnlyList<byte[]> Planes;
+        public readonly IReadOnlyList<ReadOnlyMemory<byte>> Planes;
         public readonly int Resolution;
         public readonly int LayerCount;
 
-        private TileAlphamap(IReadOnlyList<byte[]> planes, int resolution, int layerCount)
+        private TileAlphamap(IReadOnlyList<ReadOnlyMemory<byte>> planes, int resolution, int layerCount)
         {
             Planes = planes;
             Resolution = resolution;
@@ -40,12 +40,20 @@ namespace Game.MapGeneration.Pipeline.Visual
 
             // 各平面はUnity互換RGBA8の全画素を欠けなく保持する
             // Every plane must contain every pixel of the Unity-compatible RGBA8 payload
+            var ownedPlanes = new ReadOnlyMemory<byte>[planes.Count];
             for (var planeIndex = 0; planeIndex < planes.Count; planeIndex++)
-                if (planes[planeIndex] == null || planes[planeIndex].Length != expectedPlaneByteLength)
+            {
+                var sourcePlane = planes[planeIndex];
+                if (sourcePlane == null || sourcePlane.Length != expectedPlaneByteLength)
                     throw new ArgumentException(
                         $"Alphamap plane {planeIndex} must hold {expectedPlaneByteLength} bytes.", nameof(planes));
 
-            return new TileAlphamap(new List<byte[]>(planes).AsReadOnly(), resolution, layerCount);
+                var ownedPlane = new byte[expectedPlaneByteLength];
+                Buffer.BlockCopy(sourcePlane, 0, ownedPlane, 0, expectedPlaneByteLength);
+                ownedPlanes[planeIndex] = ownedPlane;
+            }
+
+            return new TileAlphamap(Array.AsReadOnly(ownedPlanes), resolution, layerCount);
         }
     }
 }

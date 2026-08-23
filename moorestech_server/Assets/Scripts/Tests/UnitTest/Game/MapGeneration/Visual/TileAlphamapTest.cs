@@ -19,7 +19,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
 
             var alphamap = TileAlphamap.Create(planes, Resolution, layerCount);
 
-            Assert.That(alphamap.Planes, Is.EqualTo(planes));
+            Assert.That(alphamap.Planes.Count, Is.EqualTo(expectedPlaneCount));
+            for (var planeIndex = 0; planeIndex < expectedPlaneCount; planeIndex++)
+                Assert.That(alphamap.Planes[planeIndex].Length, Is.EqualTo(PlaneByteLength));
             Assert.That(alphamap.Resolution, Is.EqualTo(Resolution));
             Assert.That(alphamap.LayerCount, Is.EqualTo(layerCount));
         }
@@ -57,15 +59,27 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         }
 
         [Test]
-        public void KeepsItsShapeWhenTheSourceListChanges()
+        public void SourceMutationAfterCreateCannotChangeStoredState()
         {
-            var originalPlane = new byte[PlaneByteLength];
-            var planes = new[] { originalPlane };
+            var planes = CreatePlanes(1, PlaneByteLength);
             var alphamap = TileAlphamap.Create(planes, Resolution, 1);
 
+            planes[0][0] = 123;
             planes[0] = Array.Empty<byte>();
 
-            Assert.That(alphamap.Planes[0], Is.SameAs(originalPlane));
+            Assert.That(alphamap.Planes[0].Span[0], Is.EqualTo(0));
+            Assert.That(alphamap.Planes[0].Length, Is.EqualTo(PlaneByteLength));
+        }
+
+        [Test]
+        public void PubliclyObtainedCopyCannotChangeStoredState()
+        {
+            var alphamap = TileAlphamap.Create(CreatePlanes(1, PlaneByteLength), Resolution, 1);
+
+            var obtainedBytes = alphamap.Planes[0].ToArray();
+            obtainedBytes[0] = 123;
+
+            Assert.That(alphamap.Planes[0].Span[0], Is.EqualTo(0));
         }
 
         private static byte[][] CreatePlanes(int planeCount, int planeByteLength)

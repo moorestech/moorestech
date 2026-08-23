@@ -1,6 +1,7 @@
 using System.Collections;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
+using Game.MapGeneration.Pipeline.Visual;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -44,11 +45,11 @@ namespace Client.Tests.UnitTest.Terrain
         [UnityTest]
         public IEnumerator ApplyAsync_平面をalphamapへ載せ複数フレームへ分散する()
         {
-            var planes = CreatePlanes();
+            var alphamap = TileAlphamap.Create(CreatePlanes(), AlphamapResolution, LayerCount);
 
             // 一括適用でロード画面を止めず、少なくとも1度は次フレームへ制御を返す
             // Return control to a later frame at least once instead of stalling the loading screen with one bulk apply
-            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, planes, AlphamapResolution);
+            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, alphamap.Planes, AlphamapResolution);
             Assert.That(applyTask.Status, Is.EqualTo(UniTaskStatus.Pending));
             yield return applyTask.ToCoroutine();
 
@@ -71,7 +72,9 @@ namespace Client.Tests.UnitTest.Terrain
         {
             // 数が合わないまま載せると、余った層が既定値のまま描かれて原因の分からない見た目になる
             // Uploading a mismatched count leaves the surplus layers at their defaults and yields an unexplainable look
-            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, new[] { new byte[AlphamapResolution * AlphamapResolution * 4] }, AlphamapResolution);
+            var alphamap = TileAlphamap.Create(
+                new[] { new byte[AlphamapResolution * AlphamapResolution * 4] }, AlphamapResolution, 1);
+            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, alphamap.Planes, AlphamapResolution);
             Assert.That(applyTask.Status, Is.EqualTo(UniTaskStatus.Faulted));
             var thrownException = Assert.Throws<System.InvalidOperationException>(() => applyTask.GetAwaiter().GetResult());
             Assert.That(thrownException.Message,

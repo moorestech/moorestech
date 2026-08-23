@@ -76,7 +76,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
 
             Assert.That(second.Alphamap.Planes.Count, Is.EqualTo(first.Alphamap.Planes.Count));
             for (var planeIndex = 0; planeIndex < first.Alphamap.Planes.Count; planeIndex++)
-                Assert.That(second.Alphamap.Planes[planeIndex], Is.EqualTo(first.Alphamap.Planes[planeIndex]), $"plane={planeIndex}");
+                Assert.That(second.Alphamap.Planes[planeIndex].ToArray(),
+                    Is.EqualTo(first.Alphamap.Planes[planeIndex].ToArray()), $"plane={planeIndex}");
 
             // 木摂動もキャッシュ往復一致
             // Keeps tree perturbations equal across the cache round trip.
@@ -86,10 +87,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                     $"height z={z} x={x}");
         }
 
-        private static bool HasFractionalWeight(System.Collections.Generic.IReadOnlyList<byte[]> alphamapPlanes)
+        private static bool HasFractionalWeight(System.Collections.Generic.IReadOnlyList<ReadOnlyMemory<byte>> alphamapPlanes)
         {
             foreach (var plane in alphamapPlanes)
-            foreach (var weight in plane)
+            foreach (var weight in plane.Span)
                 if (0 < weight && weight < byte.MaxValue) return true;
 
             return false;

@@ -89,8 +89,8 @@ namespace Game.MapGeneration.Cache
             {
                 foreach (var plane in alphamap.Planes)
                 {
-                    stream.Write(plane, 0, plane.Length);
-                    payloadHash.AppendData(plane);
+                    stream.Write(plane.Span);
+                    payloadHash.AppendData(plane.Span);
                 }
             }
 

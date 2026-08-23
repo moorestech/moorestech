@@ -58,7 +58,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
 
             Assert.That(restored.Count, Is.EqualTo(planes.Length));
             for (var planeIndex = 0; planeIndex < planes.Length; planeIndex++)
-                Assert.That(restored[planeIndex], Is.EqualTo(planes[planeIndex]), $"plane={planeIndex}");
+                Assert.That(restored[planeIndex].ToArray(), Is.EqualTo(planes[planeIndex]), $"plane={planeIndex}");
         }
 
         [Test]
@@ -164,7 +164,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             return alphamap;
         }
 
-        private System.Collections.Generic.IReadOnlyList<byte[]> WriteAndRead(byte[][] planes)
+        private System.Collections.Generic.IReadOnlyList<ReadOnlyMemory<byte>> WriteAndRead(byte[][] planes)
         {
             TerrainVisualCacheWriter.Write(_filePath, CacheKey, new TerrainTileVisual(
                 new float[HeightmapResolution, HeightmapResolution],

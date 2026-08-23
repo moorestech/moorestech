@@ -70,7 +70,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             for (var planeIndex = 0; planeIndex < saved.Alphamap.Planes.Count; planeIndex++)
                 // 平面はそのままテクスチャへ載る。1バイトも動いてはいけない
                 // A plane goes onto a texture verbatim, so not one byte may move
-                Assert.That(loaded.Alphamap.Planes[planeIndex], Is.EqualTo(saved.Alphamap.Planes[planeIndex]), $"plane={planeIndex}");
+                Assert.That(loaded.Alphamap.Planes[planeIndex].ToArray(),
+                    Is.EqualTo(saved.Alphamap.Planes[planeIndex].ToArray()), $"plane={planeIndex}");
 
             Assert.That(loaded.DetailMaps.Count, Is.EqualTo(saved.DetailMaps.Count));
             for (var mapIndex = 0; mapIndex < saved.DetailMaps.Count; mapIndex++)
