@@ -20,9 +20,9 @@ namespace Tests.CombinedTest.Server.PacketTest
     // Verify terrain restoration over the wire
     public class GetMapDataTerrainChunkTest
     {
-        // ForUnitTestModのgeneration.jsonが定めるgridSizeX/Z。値は生成jsonの実値であり推測ではない
-        // gridSizeX/Z as declared in ForUnitTestMod's generation.json; a real value, not a guess
-        private const int GridSideForUnitTestMod = 5;
+        // ForUnitTestModの既定は高速な1x1に固定し、packet結合に不要な多タイル生成を持ち込まない
+        // Keep ForUnitTestMod's default at a fast 1x1; packet integration does not justify multi-tile generation
+        private const int GridSideForUnitTestMod = 1;
 
         private TerrainTransferTestScope _testScope;
 
@@ -46,8 +46,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var layoutResponse = RequestLayout(packetResponseCreator);
 
-            // ForUnitTestModのgeneration.jsonはgridSizeX/Z=5固定なのでタイル数25を直書きできる
-            // ForUnitTestMod's generation.json pins gridSizeX/Z=5, so the tile count 25 can be hardcoded here
+            // packet往復と実ファイル一致だけを1タイルで検証し、多タイル契約はunit側の合成fixtureへ任せる
+            // Verify packet round-trip and real-file parity with one tile; the unit synthetic fixture owns multi-tile behavior
             Assert.AreEqual(GridSideForUnitTestMod * GridSideForUnitTestMod, layoutResponse.TerrainMeta.TerrainTileCount);
             Assert.Greater(layoutResponse.TerrainMeta.TerrainChunkTotal, 0);
 

@@ -18,6 +18,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 {
     // 実生成ワールドの地形メタを検証する
     // Verify metadata from a provisioned world
+    // packetメタ契約は格子面積を必要としない。実生成はテストmasterの1x1を維持してケース増幅を防ぐ
+    // Packet metadata contracts do not need grid area; preserve the test master's 1x1 to prevent per-case amplification
     public class GetMapDataTerrainMetaTest
     {
         private readonly List<WorldDataDirectory> _createdWorldDataDirectories = new();

@@ -13,6 +13,8 @@ namespace Tests.UnitTest.Game.MapGeneration
 {
     // TerrainChunkTotalはワイヤ契約(クライアントが0..N-1を要求する)なので、実ファイルの増減で動かないことを検証する
     // TerrainChunkTotal is a wire contract (clients request 0..N-1), so verify unrelated files never move it
+    // 実生成を追加するとpipelineと先焼きがケースごとに走る。メタ契約は合成ワールドを優先し、テストmasterの1x1を拡大しない
+    // Real generation reruns the pipeline and prebake per case; prefer synthetic worlds for metadata contracts and never enlarge the 1x1 test master
     public class TerrainTransferMetaReaderTest
     {
         private TerrainTransferTestScope _testScope;

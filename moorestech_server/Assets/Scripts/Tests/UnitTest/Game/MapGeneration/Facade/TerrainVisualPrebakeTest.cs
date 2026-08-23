@@ -12,6 +12,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
     // ProvisionGeneratedWorld呼び出しだけで検証対象が走る
     // Verifies the shared-cache prebake (TerrainVisualPrebake) that runs right after world generation
     // Calling ProvisionGeneratedWorld alone already exercises the target
+    // 全タイル契約は1タイルでも成立する。速度回帰を避けるためテストmasterの1x1を拡大しない
+    // The all-tiles contract holds with one tile; do not enlarge the test master's 1x1 and regress test time
     public class TerrainVisualPrebakeTest
     {
         [Test]

@@ -19,9 +19,9 @@ namespace Tests.UnitTest.Game.MapGeneration
     {
         private const int SyntheticFileByteSize = 100 * 1024;
 
-        // ForUnitTestModのgeneration.jsonが定めるgridSizeX/Z。値は生成jsonの実値であり推測ではない
-        // gridSizeX/Z as declared in ForUnitTestMod's generation.json; a real value, not a guess
-        private const int GridSideForUnitTestMod = 5;
+        // ForUnitTestModの既定は高速な1x1に固定し、多タイル順序は上の合成4タイルテストへ分離する
+        // Keep ForUnitTestMod's default at a fast 1x1; the synthetic four-tile test above owns multi-tile ordering
+        private const int GridSideForUnitTestMod = 1;
 
         private TerrainTransferTestScope _testScope;
 
@@ -79,8 +79,8 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
-            // ForUnitTestModのgeneration.jsonはgridSizeX/Z=5固定なのでタイル数25を直書きできる
-            // ForUnitTestMod's generation.json pins gridSizeX/Z=5, so the tile count 25 can be hardcoded here
+            // 実生成との結合だけを1タイルで検証し、多タイル契約のために重い既定へ戻さない
+            // Verify real-generation integration with one tile; do not restore an expensive default for the multi-tile contract
             Assert.AreEqual(GridSideForUnitTestMod * GridSideForUnitTestMod, terrainMeta.TerrainTileCount);
 
             var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(

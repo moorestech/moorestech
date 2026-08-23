@@ -15,6 +15,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
 {
     // 生成マスタがワールド作成時から動いたときの解決を、EnsureWorldの既存ワールド判定を通して検証する
     // Verifies how a generation master that moved since world creation is resolved, through EnsureWorld's existing-world branch
+    // drift検証は格子面積を必要としない。生成回数が多いのでテストmasterの1x1を維持し、多タイル化しない
+    // Drift checks do not need grid area; they generate repeatedly, so preserve the test master's 1x1 and do not make them multi-tile
     public class GenerationMasterDriftResolverTest
     {
         private WorldDataDirectory _worldDataDirectory;
