@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 import { BuildMenuEntryDataSchema } from "./buildMenu";
 
 describe("BuildMenuEntryDataSchema", () => {
@@ -58,5 +58,41 @@ describe("BuildMenuEntryDataSchema", () => {
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
       requiredItems: [],
     }).label).toBe("starter-base");
+  });
+
+  it("blockはplacementsPerCostとremainingPlacementCountを必須で受理する", () => {
+    const entry = BuildMenuEntryDataSchema.parse({
+      id: "30000000-0000-4000-8000-000000000001",
+      kind: "block",
+      categoryGuid: "10000000-0000-4000-8000-000000000001",
+      subCategoryGuid: "20000000-0000-4000-8000-000000000001",
+      requiredItems: [{ itemId: 3, count: 1 }],
+      placementsPerCost: 3,
+      remainingPlacementCount: 2,
+    });
+    assert(entry.kind === "block");
+    expect(entry.placementsPerCost).toBe(3);
+    expect(() => BuildMenuEntryDataSchema.parse({ ...entry, placementsPerCost: 0 })).toThrow();
+  });
+
+  it("block以外へ設置数フィールドを載せたpayloadは拒否する", () => {
+    expect(() => BuildMenuEntryDataSchema.parse({
+      id: "8f9c2a51-0000-4000-8000-000000000001",
+      kind: "trainCar",
+      categoryGuid: "10000000-0000-4000-8000-000000000001",
+      subCategoryGuid: "20000000-0000-4000-8000-000000000001",
+      requiredItems: [],
+      placementsPerCost: 3,
+    })).toThrow();
+  });
+
+  it("blockは設置数フィールドを欠いたpayloadを拒否する", () => {
+    expect(() => BuildMenuEntryDataSchema.parse({
+      id: "30000000-0000-4000-8000-000000000001",
+      kind: "block",
+      categoryGuid: "10000000-0000-4000-8000-000000000001",
+      subCategoryGuid: "20000000-0000-4000-8000-000000000001",
+      requiredItems: [],
+    })).toThrow();
   });
 });

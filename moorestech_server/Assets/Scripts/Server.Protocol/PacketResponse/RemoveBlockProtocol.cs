@@ -23,12 +23,14 @@ namespace Server.Protocol.PacketResponse
         
         private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
         private readonly TrainRailPositionManager _railPositionManager;
-        
-        
+        private readonly ConstructionWalletService _constructionWallet;
+
+
         public RemoveBlockProtocol(ServiceProvider serviceProvider)
         {
             _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
             _railPositionManager = serviceProvider.GetService<TrainRailPositionManager>();
+            _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -38,7 +40,11 @@ namespace Server.Protocol.PacketResponse
             var block = ServerContext.WorldBlockDatastore.GetBlock(data.Pos);
             if (block == null) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
             if (!CanManualRemoveBlock(block)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.NodeInUseByTrain);
-                
+
+            // 財布に返却物を問い合わせ（確定は後段）
+            // Ask the wallet what to refund (finalized further down)
+            var removalPlan = _constructionWallet.PlanRemoval(MasterHolder.BlockMaster.GetBlockMaster(block.BlockId), block.BlockInstanceId, data.PlayerId);
+
             // 破壊した後のアイテムをインベントリに挿入できるかチェック
             // Check if items after destruction can be inserted into inventory
             if (!TryInsertRefundItems(out var refundItems)) return RemoveBlockResponseMessagePack.CreateFailure(RemoveBlockFailureReason.Unknown);
@@ -46,7 +52,16 @@ namespace Server.Protocol.PacketResponse
             // 削除処理
             // Deletion process
             ServerContext.WorldBlockDatastore.RemoveBlock(data.Pos, BlockRemoveReason.ManualRemove);
+
+            // 撤去確定後に財布へ知らせる
+            // Tell the wallet once the removal is final
+            _constructionWallet.CommitRemoval(removalPlan);
+
             InsertItemsToPlayerInventory(refundItems);
+
+            // 財布の変更通知は撤去1回につき1通へ集約する
+            // Collapse the wallet notifications into one per removal
+            _constructionWallet.FlushRemainingCountChanges();
             
             return RemoveBlockResponseMessagePack.CreateSuccess();
             
@@ -90,13 +105,9 @@ namespace Server.Protocol.PacketResponse
             {
                 var result = new List<IItemStack>();
                 
-                // requiredItems定義ブロックのみ建設コストを全額返却する（未定義は本体返却なし）
-                // Refund the full construction cost only when requiredItems is defined; otherwise no body refund
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
-                if (blockMaster.RequiredItems != null && blockMaster.RequiredItems.Length != 0)
-                {
-                    result.AddRange(ConstructionCostService.CreateRefundItems(ConstructionCostService.ToItemCounts(blockMaster.RequiredItems)));
-                }
+                // 建設コストの返却は財布の指示に従うだけ
+                // The construction-cost refund simply follows the wallet's instruction
+                result.AddRange(removalPlan.ItemsToRefund);
                 
                 // インベントリのアイテムを取得
                 // Get items from block inventory

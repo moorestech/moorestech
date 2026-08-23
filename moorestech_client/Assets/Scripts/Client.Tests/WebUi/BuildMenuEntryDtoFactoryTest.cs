@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.Construction;
 using Game.PlacementTarget;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
@@ -42,7 +43,7 @@ namespace Client.Tests.WebUi
                 .UnlockedEntries(unlockState, false, new[] { (blueprintGuid, "starter-base") })
                 .Select(PlacementTargetFactory.Create)
                 .ToList();
-            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets);
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, new ClientRemainingPlacementCountDatastore());
 
             // 実マスタ規模で複数エントリが返ること（空リストでは以降の検証が無意味）
             // Multiple entries must come back at real-master scale (an empty list would make the rest of this test meaningless)
@@ -73,6 +74,42 @@ namespace Client.Tests.WebUi
             Assert.IsNotEmpty(trainCar.IconUrl);
             Assert.IsTrue(Guid.TryParse(trainCar.CategoryGuid, out _));
             Assert.IsTrue(Guid.TryParse(trainCar.SubCategoryGuid, out _));
+        }
+
+        [Test]
+        public void CreateDtosは財布キー正規化後の残り設置数を直線と坂の両方へ反映する()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 直線と坂族は同一。キー正規化は直線
+            // Straight and slope share a family; key normalizes to straight
+            var straightGuid = Guid.Parse("00000000-0000-0000-0000-000000000015");
+            var upGuid = Guid.Parse("00000000-0000-0000-0000-0000000000a1");
+            var straightBlockId = MasterHolder.BlockMaster.GetBlockId(straightGuid);
+
+            var datastore = new ClientRemainingPlacementCountDatastore();
+            datastore.Apply(straightBlockId, 2);
+
+            var targets = new IPlacementTarget[]
+            {
+                new BlockPlacementTarget(straightGuid, null),
+                new BlockPlacementTarget(upGuid, null),
+                new TrainCarPlacementTarget(MasterHolder.TrainUnitMaster.Train.TrainCars[0].TrainCarGuid),
+            };
+            var dtos = BuildMenuEntryDtoFactory.CreateDtos(targets, datastore);
+
+            var straightDto = dtos.Single(dto => dto.Id == straightGuid.ToString("D"));
+            var upDto = dtos.Single(dto => dto.Id == upGuid.ToString("D"));
+            var trainCarDto = dtos.Single(dto => dto.Kind == "trainCar");
+
+            Assert.AreEqual(3, straightDto.PlacementsPerCost);
+            Assert.AreEqual(2, straightDto.RemainingPlacementCount);
+            Assert.AreEqual(3, upDto.PlacementsPerCost);
+            Assert.AreEqual(2, upDto.RemainingPlacementCount);
+            // 非ブロックは設置数フィールドを持たない（配信時にキーごと省略される）
+            // Non-block kinds carry no placement fields at all, so the keys are omitted on the wire
+            Assert.IsNull(trainCarDto.PlacementsPerCost);
+            Assert.IsNull(trainCarDto.RemainingPlacementCount);
         }
 
         [Test]
