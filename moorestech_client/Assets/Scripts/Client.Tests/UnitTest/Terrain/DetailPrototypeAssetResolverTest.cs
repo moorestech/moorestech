@@ -5,48 +5,18 @@ using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
 using NUnit.Framework;
-using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Client.Tests.UnitTest.Terrain
 {
     /// <summary>
-    ///     アドレス解決からDetailPrototypeへの変換を検証
+    ///     アドレス未解決を例外で落とすことを検証（成功経路の実アセットはPersonalAssets依存でCIに無く、EditModeではロードも完了しない）
     ///     並びを決める側(DetailPrototypeSpecCollector)の検証はサーバー側のDetailPrototypeSpecCollectorTestが持つ
-    ///     Verifies address resolution through conversion to DetailPrototype
+    ///     Verifies that an unresolved address throws (the success path needs a PersonalAssets-only asset that CI lacks and EditMode never finishes loading)
     ///     Verifying the side deciding order (DetailPrototypeSpecCollector) is covered by the server-side test
     /// </summary>
     public class DetailPrototypeAssetResolverTest
     {
-        // 実プロジェクトに登録済みのメッシュDetailアドレス。解決の成功経路を偽物のアドレスなしで固定する
-        // A mesh detail address actually registered in the project, pinning the success path without a fake address
-        private const string RealMeshAddress = "Vanilla/Environment/Terrain/Detail/Mountains/Daisy";
-
-        [UnityTest]
-        public IEnumerator ResolvesAMeshPrototypeAndCopiesItsValues()
-        {
-            var specs = new List<DetailPrototypeSpec>
-            {
-                new()
-                {
-                    usePrototypeMesh = true,
-                    prototypeMeshAddressablePath = RealMeshAddress,
-                    renderMode = DetailRenderMode.VertexLit,
-                    minWidth = 1f,
-                    maxWidth = 2f,
-                },
-            };
-
-            List<DetailPrototype> prototypes = null;
-            yield return DetailPrototypeAssetResolver.ResolveAsync(specs).ToCoroutine(result => prototypes = result);
-
-            Assert.That(prototypes.Count, Is.EqualTo(1));
-            Assert.That(prototypes[0].usePrototypeMesh, Is.True);
-            Assert.That(prototypes[0].prototype, Is.Not.Null);
-            Assert.That(prototypes[0].minWidth, Is.EqualTo(1f));
-            Assert.That(prototypes[0].maxWidth, Is.EqualTo(2f));
-        }
-
         [UnityTest]
         public IEnumerator ThrowsWhenAPrototypeAssetIsUnresolved()
         {

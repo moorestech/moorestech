@@ -144,6 +144,7 @@ namespace Tests.UnitTest.Core.MapGeneration
             var entry = new JObject
             {
                 ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = TestGenerationConfigFactory.TestMapObjectGuid }),
+                ["terrainSurroundEffectType"] = "rockNoBareGround",
                 ["placementMode"] = "scatter",
                 ["placementParam"] = new JObject { ["bands"] = bands },
                 ["scaleRange"] = new JArray(1.0, 1.0),
