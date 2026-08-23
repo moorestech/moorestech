@@ -45,3 +45,30 @@ test("keyControl hint renders a kbd and text above the hotbar while uiState matc
   await expect(hint.locator("kbd")).toHaveText("Tab");
   await expect(hint).toContainText("インベントリを開く");
 });
+
+// 枠線の撤去がフレーム到来に依存すると、CEF(外部BeginFrame駆動)ではフレーム間隔ぶんゴーストが残る
+// If the outline's teardown waits for a frame, CEF (driven by external BeginFrame) shows a ghost for that whole gap
+test("outline never outlives its anchor even when no frame arrives", async ({ page }) => {
+  await setUiState(page, "PlayerInventory");
+  await page.goto("/");
+  await setTopicScenario(page, "tutorialRecipeItem");
+
+  const grid = page.getByTestId("item-list-grid");
+  const outline = page.locator('[data-testid="tutorial-overlay"] [data-kind="outline"]');
+  await expect(grid).toBeVisible();
+  await expect(outline).toBeVisible();
+
+  // rAFを止めて「次の描画が来ない」状況を作る。React本体はMessageChannel駆動なので進み続ける
+  // Stop rAF to model "no next frame"; React itself is MessageChannel-driven and keeps advancing
+  await page.evaluate(() => {
+    window.requestAnimationFrame = (() => 1) as typeof window.requestAnimationFrame;
+  });
+  // 差し替え時点で予約済みだった本物のrAFを消化しきってから閉じる。残っていると偶然そちらが撤去してしまう
+  // Let the real rAF already queued at swap time drain first; otherwise it may do the teardown by luck
+  await page.waitForTimeout(200);
+
+  await setUiState(page, "GameScreen");
+
+  await expect(grid).toHaveCount(0);
+  await expect(outline).toHaveCount(0);
+});
