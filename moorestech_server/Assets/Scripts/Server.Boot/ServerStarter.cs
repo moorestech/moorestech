@@ -30,7 +30,7 @@ namespace Server.Boot
         
         // 保留中の保存を消化してから畳む唯一の終了契約。破棄側は必ずここを通る
         // The single shutdown contract that flushes pending saves before folding; every teardown goes through here
-        public async UniTask ShutdownAsync()
+        public async UniTask<ServerSaveFlushResult> ShutdownAsync()
         {
             // 終了時点の世界を必ず1回書き出させる。通信経由のSaveと違い到達待ちが要らない
             // Force one final write of the world; unlike the networked Save it needs no arrival wait
@@ -41,9 +41,14 @@ namespace Server.Boot
                 await UniTask.Yield(PlayerLoopTiming.Update);
             }
 
+            // 上限到達は「書き出しきれていない」ため完了と区別して返す
+            // Hitting the budget means the write never finished, so report it apart from completion
+            var flushResult = _startServer != null && _startServer.HasPendingSave ? ServerSaveFlushResult.FlushTimedOut : ServerSaveFlushResult.Flushed;
+
             // 破棄はOnDestroy経由に一本化する
             // Funnel the teardown through OnDestroy
             Destroy(gameObject);
+            return flushResult;
         }
         
         private void OnDestroy()

@@ -33,7 +33,8 @@
         "Mod.Loader",
         "Game.PlacementTarget",
         "Server.Event",
-        "Unity.InputSystem"
+        "Unity.InputSystem",
+        "MessagePack"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

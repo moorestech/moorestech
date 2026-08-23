@@ -9,7 +9,6 @@ using Cysharp.Threading.Tasks;
 using Server.Boot;
 using Server.Boot.Args;
 using TMPro;
-using UniRx;
 using UnityEngine;
 
 namespace Client.Starter.Initialization
@@ -48,6 +47,10 @@ namespace Client.Starter.Initialization
             //Vanilla APIの作成
             var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting);
 
+            // リモートは内蔵サーバーを持たないため、通信越しに書き出し完了を待つ参加者を立てる
+            // A remote connection owns no embedded server, so register a participant that awaits the flush over the wire
+            if (_proprieties.IsRemoteConnection) GameShutdownEvent.RegisterParticipant(new RemoteServerSaveFlushParticipant(vanillaApi));
+
             //最初に必要なデータを取得
             // Fetch the initial data bundle
             var handshakeResponse = await vanillaApi.Response.InitialHandShake(_playerConnectionSetting.PlayerId, default);
@@ -80,11 +83,9 @@ namespace Client.Starter.Initialization
                 var serverInstanceGameObject = new GameObject("ServerInstance");
                 var serverStarter = serverInstanceGameObject.AddComponent<ServerStarter>();
 
-                // 生成した内蔵サーバーは自分で終了イベントを購読して自壊する。所有ハンドルを外へ配らない
-                // The embedded server subscribes to shutdown and folds itself, so no ownership handle leaves this scope
-                // 自壊はセーブflushを含むため、終了側が完了を待てるようタスクとして預ける
-                // The fold includes the save flush, so hand it over as a task the shutdown path can await
-                GameShutdownEvent.OnGameShutdown.Subscribe(_ => GameShutdownEvent.RegisterShutdownTask(serverStarter.ShutdownAsync())).AddTo(serverInstanceGameObject);
+                // 生成した内蔵サーバーは終了パイプラインの参加者として自壊する。所有ハンドルを外へ配らない
+                // The embedded server folds itself as a shutdown participant, so no ownership handle leaves this scope
+                GameShutdownEvent.RegisterParticipant(new EmbeddedServerShutdownParticipant(serverStarter));
 
                 // 0でOS自動割り当てさせる
                 // 0 means OS auto-assigns the port
