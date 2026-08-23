@@ -21,19 +21,19 @@ namespace Client.WebUiHost.Game.Actions
         }
     }
 
-    public class PauseMenuBackToMainMenuActionHandler : IActionHandler
+    public class PauseMenuSaveAndQuitActionHandler : IActionHandler
     {
-        private readonly BackToMainMenu _backToMainMenu;
-        public string ActionType => "pause_menu.back_to_main_menu";
+        private readonly SaveAndQuitPresenter _saveAndQuitPresenter;
+        public string ActionType => "pause_menu.save_and_quit";
 
-        public PauseMenuBackToMainMenuActionHandler(BackToMainMenu backToMainMenu)
+        public PauseMenuSaveAndQuitActionHandler(SaveAndQuitPresenter saveAndQuitPresenter)
         {
-            _backToMainMenu = backToMainMenu;
+            _saveAndQuitPresenter = saveAndQuitPresenter;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            _backToMainMenu.Back();
+            _saveAndQuitPresenter.SaveAndQuit();
             return UniTask.FromResult(ActionResult.Success());
         }
     }
