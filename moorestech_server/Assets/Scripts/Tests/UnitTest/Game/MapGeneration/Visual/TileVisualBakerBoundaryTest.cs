@@ -63,8 +63,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                     $"tile ({coord.x},{coord.y}) の可視化パスと生成パスの分類が一致しない");
         }
 
-        // TileVisualBaker.BuildAlphamap と全く同じ手順（TileClassificationContext→PlacementInputBuilder.BuildBiomeIndices）で計算する
-        // Computes with exactly the same steps as TileVisualBaker.BuildAlphamap (TileClassificationContext then PlacementInputBuilder.BuildBiomeIndices)
+        // TileVisualBaker.BuildAlphamap と同じ分類経路（TileClassificationContext）を通し、flat比較のため詰め替えだけ手元で行う
+        // Runs the same classification path as TileVisualBaker.BuildAlphamap (TileClassificationContext), keeping the flat packing local for comparison
         private static Dictionary<Vector2Int, byte[]> ComputeVisualizationPathBiomeIndices(TerrainGenerationConfig config, MapGenerationOutput output)
         {
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(config);

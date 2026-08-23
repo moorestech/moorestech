@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 using Game.MapGeneration.Facade;
 using Game.MapGeneration.Transfer;
@@ -23,7 +22,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TerrainAsset));
             Assert.That(session.Layout.AuthoredTerrainDataAddress, Is.EqualTo("Vanilla/Environment/TemplateTerrainData"));
             Assert.That(session.Layout.TileCoordinates, Is.Empty);
-            Assert.Throws<InvalidOperationException>(() => session.BakeTile(0, 0));
+
+            // 焼く口を持つのはTiledTerrainSessionだけ。実行時throwではなく型で焼けないことを表す
+            // Only TiledTerrainSession exposes baking; the type, not a runtime throw, states that this session cannot bake
+            Assert.That(session, Is.Not.InstanceOf<TiledTerrainSession>());
         }
 
         // generatedはプロビジョニング済みメタから開き全タイルが寸法通り返る
@@ -43,9 +45,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             {
                 var session = WorldTerrainSession.Open(meta, TestModDirectory.ForUnitTestModDirectory);
                 Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TileMaps));
+
+                // 生成ワールドは焼けるセッションで開く。KindがTileMapsなら型もTiledTerrainSessionで対になる
+                // A generated world opens as a bakeable session: a TileMaps kind and the TiledTerrainSession type always arrive as a pair
+                var tiledSession = (TiledTerrainSession)session;
                 foreach (var (x, z) in session.Layout.TileCoordinates)
                 {
-                    var tile = session.BakeTile(x, z);
+                    var tile = tiledSession.BakeTile(x, z);
                     Assert.That(tile.DisplayHeights.GetLength(0), Is.EqualTo(session.Layout.HeightmapResolution));
                     Assert.That(tile.Alphamap.GetLength(2), Is.EqualTo(session.Layout.TextureLayerAddresses.Count));
                     Assert.That(tile.DetailMaps.Count, Is.EqualTo(session.Layout.DetailPrototypes.Count));

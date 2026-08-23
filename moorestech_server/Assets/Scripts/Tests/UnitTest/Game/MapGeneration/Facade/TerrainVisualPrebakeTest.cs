@@ -55,7 +55,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
                 // Open reads heights from the shared cache, so replicate the post-transfer state: copy the world dir's terrain/ into the shared cache
                 CopyDirectory(worldDirectory.TerrainDirectory, shared.TerrainDirectory);
 
-                var session = WorldTerrainSession.Open(meta, TestModDirectory.ForUnitTestModDirectory);
+                var session = (TiledTerrainSession)WorldTerrainSession.Open(meta, TestModDirectory.ForUnitTestModDirectory);
                 session.BakeTile(0, 0);
 
                 var afterOpenWriteTime = File.GetLastWriteTimeUtc(cacheFilePath);

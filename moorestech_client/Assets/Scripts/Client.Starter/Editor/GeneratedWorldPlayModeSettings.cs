@@ -2,7 +2,7 @@
 using System.IO;
 using Client.DebugSystem.Environment;
 using Common.Debug;
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Server.Boot;
 using Server.Boot.Args;
@@ -35,7 +35,7 @@ namespace Client.Starter.Editor
             // Override only the dedicated world and generated map mode (saving stays enabled)
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
             settings.WorldDirectory = WorldDirectoryPath;
-            settings.MapMode = WorldProvisioner.GeneratedMapMode;
+            settings.MapMode = WorldMapMode.Generated;
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(settings);
         }
 

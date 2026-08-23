@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Game.MapGeneration.Provisioning;
 using Game.Paths;
 using UnityEngine;
 
@@ -37,11 +36,15 @@ namespace Game.MapGeneration.Transfer
         // The generation master's fingerprint (JSON text + placement-noise PNGs); empty for template. Used to check agreement with the master at world creation
         public readonly string GenerationMasterFingerprint;
 
+        // 転送ファイル構成の版。ワールドを作ったビルドの値そのもので、templateは空文字
+        // The transferred file layout's version, verbatim from the build that created the world; empty for template
+        public readonly string GeneratorVersion;
+
         private TerrainTransferMeta(string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
-            TerrainOrigins origins, string generationMasterFingerprint)
+            TerrainOrigins origins, string generationMasterFingerprint, string generatorVersion)
         {
             MapMode = mapMode;
-            IsTemplate = mapMode == WorldProvisioner.TemplateMapMode;
+            IsTemplate = mapMode == WorldMapMode.Template;
             WorldId = worldId;
             TerrainResolution = terrainResolution;
             TerrainTileCount = terrainTileCount;
@@ -49,21 +52,35 @@ namespace Game.MapGeneration.Transfer
             WorldSeed = worldSeed;
             Origins = origins;
             GenerationMasterFingerprint = generationMasterFingerprint;
+            GeneratorVersion = generatorVersion;
         }
 
         public static TerrainTransferMeta CreateGenerated(
             string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed, TerrainOrigins origins,
-            string generationMasterFingerprint)
+            string generationMasterFingerprint, string generatorVersion)
         {
             return new TerrainTransferMeta(
-                WorldProvisioner.GeneratedMapMode, worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins,
-                generationMasterFingerprint);
+                WorldMapMode.Generated, worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins,
+                generationMasterFingerprint, generatorVersion);
         }
 
         public static TerrainTransferMeta CreateTemplate(string worldId, int worldSeed)
         {
             return new TerrainTransferMeta(
-                WorldProvisioner.TemplateMapMode, worldId, 0, 0, 0, worldSeed, TerrainOrigins.WithoutTerrain(), string.Empty);
+                WorldMapMode.Template, worldId, 0, 0, 0, worldSeed, TerrainOrigins.WithoutTerrain(), string.Empty, string.Empty);
+        }
+
+        // ワイヤ値をドメインへ戻す唯一の入口。モード文字列の解釈と未知モードの拒否はプロトコルDTOではなくこの型が持つ
+        // The single entry restoring wire values into the domain; interpreting the mode string and rejecting unknown ones belongs here, not to the protocol DTO
+        public static TerrainTransferMeta FromWire(
+            string mapMode, string worldId, int terrainResolution, int terrainTileCount, int terrainChunkTotal, int worldSeed,
+            TerrainOrigins origins, string generationMasterFingerprint, string generatorVersion)
+        {
+            if (mapMode == WorldMapMode.Template) return CreateTemplate(worldId, worldSeed);
+            if (mapMode == WorldMapMode.Generated)
+                return CreateGenerated(worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed, origins,
+                    generationMasterFingerprint, generatorVersion);
+            throw new InvalidOperationException($"[TerrainTransferMeta] Unknown map mode '{mapMode}'.");
         }
 
         // generatedなのにチャンク0本は生成失敗かファイル切り詰め。地形なしと同一視すると壊れたワールドを正常として配る
@@ -75,18 +92,11 @@ namespace Game.MapGeneration.Transfer
                 $"Generated world '{WorldId}' owns zero terrain chunk: the terrain files are missing or truncated.");
         }
 
-        // 指紋照合はこのメソッドだけが持つ。3箇所へ独立実装させると条件変更(templateも持つ等)の直し忘れが起きる
-        // Only this method owns the fingerprint check; three independent copies would risk a missed update when the condition changes (e.g. templates gaining one)
-        public void ThrowIfGenerationMasterFingerprintDiffers(string currentFingerprint)
-        {
-            if (currentFingerprint == GenerationMasterFingerprint) return;
-            throw new InvalidOperationException(
-                $"Generation master fingerprint '{currentFingerprint}' differs from the world's '{GenerationMasterFingerprint}'. " +
-                "Delete the world directory and generate the world again.");
-        }
+        // 現在のビルドとの照合(生成マスタ指紋・生成器の版)はTerrainTransferMetaCompatibilityが持つ。この型自身の値だけで完結する検査はここに置く
+        // Matching against the current build (master fingerprint, generator version) lives in TerrainTransferMetaCompatibility; checks closed over this type's own values stay here
 
-        // 解像度照合も同様に唯一の実装へ集約する
-        // The resolution check is likewise consolidated into the single implementation
+        // 解像度照合は唯一の実装へ集約する
+        // The resolution check is consolidated into a single implementation
         public void ThrowIfTerrainResolutionDiffers(int currentResolution)
         {
             if (currentResolution == TerrainResolution) return;

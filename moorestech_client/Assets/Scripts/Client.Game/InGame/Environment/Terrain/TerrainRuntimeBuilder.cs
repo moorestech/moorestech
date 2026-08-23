@@ -39,8 +39,10 @@ namespace Client.Game.InGame.Environment.Terrain
             var layout = session.Layout;
             switch (layout.Kind)
             {
+                // TileMapsとTiledTerrainSessionはOpenが対で決める。焼く口はこの分岐でしか要らない
+                // Open settles TileMaps and TiledTerrainSession as a pair; baking is needed in this branch alone
                 case TerrainLayoutKind.TerrainAsset: await BuildTerrainAssetAsync(); break;
-                case TerrainLayoutKind.TileMaps: await BuildTileMapsAsync(); break;
+                case TerrainLayoutKind.TileMaps: await BuildTileMapsAsync((TiledTerrainSession)session); break;
                 default: throw new InvalidOperationException($"[TerrainRuntimeBuilder] Unknown layout kind {layout.Kind}.");
             }
 
@@ -56,7 +58,7 @@ namespace Client.Game.InGame.Environment.Terrain
                     layout.DetailObjectDistance, layout.DetailObjectDensity);
             }
 
-            async UniTask BuildTileMapsAsync()
+            async UniTask BuildTileMapsAsync(TiledTerrainSession tiledSession)
             {
                 var buildStopwatch = Stopwatch.StartNew();
                 var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layout.TextureLayerAddresses);
@@ -64,7 +66,7 @@ namespace Client.Game.InGame.Environment.Terrain
                 var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
                 foreach (var (tileX, tileZ) in layout.TileCoordinates)
                 {
-                    var tile = session.BakeTile(tileX, tileZ);
+                    var tile = tiledSession.BakeTile(tileX, tileZ);
                     var terrainData = await TerrainDataAssembler.AssembleAsync(layout, tile, detailPrototypes, terrainLayers);
                     var terrain = TerrainObjectFactory.Create(environmentRoot, $"{TerrainObjectName}_{tileX}_{tileZ}", tile.ScenePosition,
                         terrainData, terrainMaterial, layout.DetailObjectDistance, layout.DetailObjectDensity);

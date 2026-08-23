@@ -1,4 +1,4 @@
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -104,7 +104,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // ワールドディレクトリを持たない構成では地形を持たずWorldIdも定まらない
             // A config without a world directory owns no terrain and has no world identity
-            Assert.AreEqual(WorldProvisioner.TemplateMapMode, response.TerrainMeta.MapMode);
+            Assert.AreEqual(WorldMapMode.Template, response.TerrainMeta.MapMode);
             Assert.AreEqual(string.Empty, response.TerrainMeta.WorldId);
             Assert.AreEqual(0, response.TerrainMeta.TerrainResolution);
             Assert.AreEqual(0, response.TerrainMeta.TerrainTileCount);

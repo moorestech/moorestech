@@ -1,18 +1,16 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline;
-using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Jobs;
 using Game.MapGeneration.Pipeline.Stages;
 using Game.MapGeneration.Pipeline.Tiling;
 using Unity.Collections;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Tiling.Seam
 {
-    // 分類だけを独立再現するテストヘルパー
-    // Test helper that reruns classification alone
+    // 本番の TileBiomeIndexBuilder を格子ぶん回すだけのアダプタ
+    // Adapter that only drives the production TileBiomeIndexBuilder across the grid
     public static class TileBiomeIndexComputer
     {
         // 格子全体のタイルぶんをまとめて計算する。biomeParams/noiseOffsets は格子で1組だけ作って使い回す
@@ -27,8 +25,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling.Seam
             try
             {
                 foreach (var tile in output.Tiles)
-                    result[new Vector2Int(tile.TileX, tile.TileZ)] =
-                        ComputeTile(config, gridConfig, biomeTypes, biomeParams, noiseOffsets, tile.TileX, tile.TileZ);
+                    result[new Vector2Int(tile.TileX, tile.TileZ)] = TileBiomeIndexBuilder.BuildForTile(
+                        gridConfig.CreateTileConfig(tile.TileX, tile.TileZ), biomeTypes, biomeParams, noiseOffsets);
             }
             finally
             {
@@ -49,7 +47,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling.Seam
             var noiseOffsets = JobDataConverter.GenerateNoiseOffsets(config, biomeParams, biomeTypes, Allocator.TempJob);
             try
             {
-                return ComputeTile(config, gridConfig, biomeTypes, biomeParams, noiseOffsets, tileIndexX, tileIndexZ);
+                return TileBiomeIndexBuilder.BuildForTile(
+                    gridConfig.CreateTileConfig(tileIndexX, tileIndexZ), biomeTypes, biomeParams, noiseOffsets);
             }
             finally
             {
@@ -66,30 +65,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling.Seam
             gridConfig.worldOffsetX = output.NoiseOrigin.x;
             gridConfig.worldOffsetZ = output.NoiseOrigin.y;
             return gridConfig;
-        }
-
-        private static byte[] ComputeTile(
-            TerrainGenerationConfig config, TerrainGenerationConfig gridConfig, BiomeType[] biomeTypes,
-            NativeArray<BiomeParams> biomeParams, NativeArray<float2> noiseOffsets, int tileIndexX, int tileIndexZ)
-        {
-            var tileConfig = gridConfig.CreateTileConfig(tileIndexX, tileIndexZ);
-            var buffers = JobDataConverter.AllocateBuffers(config.Resolution, biomeTypes.Length, 1, Allocator.TempJob);
-            buffers.biomeParams = biomeParams;
-            buffers.noiseOffsets = noiseOffsets;
-            try
-            {
-                PaddedWindowStage.Run(tileConfig, biomeTypes, buffers);
-                return PlacementInputBuilder.BuildBiomeIndices(
-                    buffers.winnerBiomeIndex, buffers.landMask, buffers.beachFactor, biomeTypes, config.Resolution * config.Resolution);
-            }
-            finally
-            {
-                // 共有した2本を切り離してから破棄する。付けたままだと呼び出し側の破棄と二重解放になる
-                // Detach the two shared arrays before disposing, otherwise the caller's dispose double-frees them
-                buffers.biomeParams = default;
-                buffers.noiseOffsets = default;
-                buffers.Dispose();
-            }
         }
     }
 }

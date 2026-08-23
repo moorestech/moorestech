@@ -1,5 +1,4 @@
 using System;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using MessagePack;
 using Server.Util.MessagePack;
@@ -39,6 +38,10 @@ namespace Server.Protocol.PacketResponse.MapData
         // Generation master fingerprint; empty for template
         [Key(9)] public string GenerationMasterFingerprint { get; set; }
 
+        // ワールドを作った生成器の版。別ビルドのサーバーに繋いだクライアントが転送ファイル構成の違いを検出するのに要る
+        // The generator version that created the world; a client connected to a server on another build needs it to detect a differing transfer layout
+        [Key(10)] public string GeneratorVersion { get; set; }
+
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
         public TerrainTransferMetaMessagePack() { }
 
@@ -54,18 +57,16 @@ namespace Server.Protocol.PacketResponse.MapData
             NoiseOrigin = new Vector2MessagePack(terrainMeta.Origins.NoiseOrigin);
             SceneOrigin = new Vector2MessagePack(terrainMeta.Origins.SceneOrigin);
             GenerationMasterFingerprint = terrainMeta.GenerationMasterFingerprint;
+            GeneratorVersion = terrainMeta.GeneratorVersion;
         }
 
-        // ワイヤ値から転送メタを組み直す唯一の入口。モード解釈を各所へ散らさない
-        // The single entry rebuilding the transfer meta from wire values, keeping mode interpretation in one place
+        // ワイヤ値を渡すだけ。モード解釈も未知モードの拒否もドメイン側(TerrainTransferMeta.FromWire)が持つ
+        // Values are merely handed over; interpreting the mode and rejecting unknown ones belongs to the domain side (TerrainTransferMeta.FromWire)
         public TerrainTransferMeta ToTerrainTransferMeta()
         {
-            if (MapMode == WorldProvisioner.TemplateMapMode) return TerrainTransferMeta.CreateTemplate(WorldId, WorldSeed);
-            if (MapMode == WorldProvisioner.GeneratedMapMode)
-                return TerrainTransferMeta.CreateGenerated(
-                    WorldId, TerrainResolution, TerrainTileCount, TerrainChunkTotal, WorldSeed,
-                    new TerrainOrigins(noiseOrigin: NoiseOrigin, sceneOrigin: SceneOrigin), GenerationMasterFingerprint);
-            throw new InvalidOperationException($"[TerrainTransferMetaMessagePack] Unknown map mode '{MapMode}'.");
+            return TerrainTransferMeta.FromWire(
+                MapMode, WorldId, TerrainResolution, TerrainTileCount, TerrainChunkTotal, WorldSeed,
+                new TerrainOrigins(noiseOrigin: NoiseOrigin, sceneOrigin: SceneOrigin), GenerationMasterFingerprint, GeneratorVersion);
         }
     }
 }

@@ -127,6 +127,13 @@ properties:
       options:
       - tree
       - stone
+    - key: terrainSurroundEffectType
+      type: enum
+      options:
+      - rockBareGround
+      - rockNoBareGround
+      # 鉱脈の配置点が地形へ与える効き方。岩と同じ2値で、裸地を塗るか距離場だけに乗せるかを選ぶ
+      # How a vein's placement affects the terrain: the same two rock values, choosing bare-ground painting or the distance field alone
     - key: handMiningType
       type: enum
       options:

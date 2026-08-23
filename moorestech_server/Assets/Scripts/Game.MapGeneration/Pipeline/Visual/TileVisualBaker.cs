@@ -9,7 +9,7 @@ using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Visual.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
-using Game.MapGeneration.Pipeline.Stages;
+using Game.MapGeneration.Pipeline.Tiling;
 using Game.Paths;
 using UnityEngine;
 
@@ -157,15 +157,9 @@ namespace Game.MapGeneration.Pipeline.Visual
                 {
                     var resolution = _gridConfig.Resolution;
 
-                    // サーバーが転送していたbiome_x_z.binと同じ式。転送をやめても SplatmapJob が読む勝者は1ビットも変わらない
-                    // The same formula that produced the transferred biome_x_z.bin; dropping the transfer changes no bit of the winner SplatmapJob reads
-                    var biomeIndicesFlat = PlacementInputBuilder.BuildBiomeIndices(
-                        classification.Buffers.winnerBiomeIndex, classification.Buffers.landMask, classification.Buffers.beachFactor,
-                        _biomeTypes, resolution * resolution);
-                    var biomeIndices = new byte[resolution, resolution];
-                    for (var z = 0; z < resolution; z++)
-                    for (var x = 0; x < resolution; x++)
-                        biomeIndices[z, x] = biomeIndicesFlat[z * resolution + x];
+                    // 勝者の確定はTileBiomeIndexBuilderが唯一の場所で、splatが読む[z,x]の形で返ってくる
+                    // TileBiomeIndexBuilder is the single place settling the winner and hands it back in the [z,x] shape the splat reads
+                    var biomeIndices = TileBiomeIndexBuilder.BuildTileGrid(classification.Buffers, _biomeTypes, resolution);
 
                     return SplatmapStage.Generate(
                         tileConfig, _biomeTypes, classification, _layerTable, _visualSections, _treeSurroundSpecies,

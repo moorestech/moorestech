@@ -1,6 +1,4 @@
-using System;
 using Core.Master;
-using Game.MapGeneration.Identity;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Transfer;
@@ -15,31 +13,34 @@ namespace Game.MapGeneration.Facade
     ///     The single entry the generation system exposes: takes the world identity (transfer meta) and returns results only.
     ///     Whether it generated, returned an authored terrain, or hit a cache is indistinguishable from outside
     /// </summary>
-    public sealed class WorldTerrainSession
+    public abstract class WorldTerrainSession
     {
-        private readonly TileVisualBaker _baker;
         public WorldTerrainLayout Layout { get; }
 
-        private WorldTerrainSession(WorldTerrainLayout layout, TileVisualBaker baker)
+        protected WorldTerrainSession(WorldTerrainLayout layout)
         {
             Layout = layout;
-            _baker = baker;
         }
 
         public static WorldTerrainSession Open(TerrainTransferMeta terrainMeta, string serverDataDirectory)
         {
-            if (terrainMeta.IsTemplate) return new WorldTerrainSession(WorldTerrainLayout.CreateTerrainAsset(), null);
+            // オーサリング済み地形は焼くタイルを持たない。焼ける口はTiledTerrainSessionにしか無く、判別子とnullで二重に持たない
+            // An authored terrain owns no tile to bake; only TiledTerrainSession exposes baking, so no discriminator-plus-null pair states it twice
+            if (terrainMeta.IsTemplate) return new AuthoredTerrainSession(WorldTerrainLayout.CreateTerrainAsset());
+
+            // 転送メタは別ビルドのサーバーからも届く。転送ファイル構成の版が違えばこの先の読み出しが全部ずれるので冒頭で止める
+            // The meta can arrive from a server on another build; a differing transfer-layout version skews every read below, so stop at the head
+            terrainMeta.ThrowIfGeneratorVersionDiffers();
 
             // 生成マスタ（JSON原文＋配置ノイズPNG）がワールド作成時と違えば台帳がサーバー正本とずれる。版・解像度と同じく例外で止める
             // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
-            var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
-            var fingerprint = GenerationMasterFingerprint.Compute(MasterHolder.GenerationMaster.SourceJsonText, selectedGeneration, serverDataDirectory);
-            terrainMeta.ThrowIfGenerationMasterFingerprintDiffers(fingerprint);
+            terrainMeta.ThrowIfGenerationMasterDiffers(serverDataDirectory);
 
             // サーバーの唯一の入口と同じ2段（config組立→アルゴリズム選択→生成）を通る。手で組み直さない
             // ただしスポーン探索だけは再計算せず、ワールド作成時に確定した原点を注入して同じ窓を指させる
             // Go through the very two steps of the server's single entry (build config, pick algorithm, generate); never hand-assemble
             // The spawn search alone is not recomputed: the origins settled at world creation are injected so the same window is addressed
+            var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
                 selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, terrainMeta.Origins);
             terrainMeta.ThrowIfTerrainResolutionDiffers(config.Resolution);
@@ -56,20 +57,12 @@ namespace Game.MapGeneration.Facade
             // The height source is the shared cache; assembly is shared with the server prebake, and the config handed over is the one the run actually used
             var heightSource = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId);
             var factoryResult = TileVisualBakerFactory.Create(run.Config, terrainMeta, run.Ledger, heightSource, selectedGeneration);
-            var baker = factoryResult.Baker;
             var gridConfig = factoryResult.GridConfig;
             var layout = WorldTerrainLayout.CreateTileMaps(
                 TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount),
                 new Vector3(gridConfig.terrainWidth, gridConfig.terrainHeight, gridConfig.terrainLength), gridConfig.Resolution,
-                factoryResult.OrderedLayerAddresses, baker.DetailPrototypes);
-            return new WorldTerrainSession(layout, baker);
-        }
-
-        public BakedTerrainTile BakeTile(int tileX, int tileZ)
-        {
-            if (Layout.Kind != TerrainLayoutKind.TileMaps)
-                throw new InvalidOperationException("[WorldTerrainSession] An authored terrain owns no tile to bake.");
-            return _baker.Bake(tileX, tileZ);
+                factoryResult.OrderedLayerAddresses, factoryResult.Baker.DetailPrototypes);
+            return new TiledTerrainSession(layout, factoryResult.Baker);
         }
     }
 }

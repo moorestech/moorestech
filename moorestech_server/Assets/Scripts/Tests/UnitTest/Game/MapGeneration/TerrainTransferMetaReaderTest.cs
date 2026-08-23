@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Linq;
 using Game.MapGeneration.Export;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -116,7 +115,7 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             var meta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
-            Assert.AreEqual(WorldProvisioner.TemplateMapMode, meta.MapMode);
+            Assert.AreEqual(WorldMapMode.Template, meta.MapMode);
             Assert.AreEqual(Vector2.zero, meta.Origins.NoiseOrigin);
             Assert.AreEqual(Vector2.zero, meta.Origins.SceneOrigin);
         }

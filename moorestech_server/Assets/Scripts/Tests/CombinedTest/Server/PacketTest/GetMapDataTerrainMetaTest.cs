@@ -43,11 +43,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var worldDataDirectory = ProvisionWorld(WorldProvisioner.GeneratedMapMode, 12345);
+            var worldDataDirectory = ProvisionWorld(WorldMapMode.Generated, 12345);
             var response = RequestMapDataLayout(worldDataDirectory);
 
             var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
-            Assert.AreEqual(WorldProvisioner.GeneratedMapMode, response.TerrainMeta.MapMode);
+            Assert.AreEqual(WorldMapMode.Generated, response.TerrainMeta.MapMode);
             Assert.AreEqual(worldMeta.TerrainResolution, response.TerrainMeta.TerrainResolution);
             Assert.AreEqual(worldMeta.TerrainTileCount, response.TerrainMeta.TerrainTileCount);
             Assert.Greater(response.TerrainMeta.TerrainResolution, 0);
@@ -82,7 +82,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            var worldDataDirectory = ProvisionWorld(WorldProvisioner.GeneratedMapMode, 12345);
+            var worldDataDirectory = ProvisionWorld(WorldMapMode.Generated, 12345);
 
             var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
             worldMeta.TerrainNoiseOriginX = 1617.5f;
@@ -102,12 +102,12 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void Templateワールドはterrainメタが0でWorldIdはワールドごとに異なる()
         {
-            var firstWorld = ProvisionWorld(WorldProvisioner.TemplateMapMode, 42);
+            var firstWorld = ProvisionWorld(WorldMapMode.Template, 42);
             var firstResponse = RequestMapDataLayout(firstWorld);
 
             // templateは地形を持たないので3項目とも0、WorldIdだけは埋まる
             // Template owns no terrain, so all three values are 0 while WorldId is still filled
-            Assert.AreEqual(WorldProvisioner.TemplateMapMode, firstResponse.TerrainMeta.MapMode);
+            Assert.AreEqual(WorldMapMode.Template, firstResponse.TerrainMeta.MapMode);
             Assert.AreEqual(0, firstResponse.TerrainMeta.TerrainResolution);
             Assert.AreEqual(0, firstResponse.TerrainMeta.TerrainTileCount);
             Assert.AreEqual(0, firstResponse.TerrainMeta.TerrainChunkTotal);
@@ -115,7 +115,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 別ワールドは別のWorldIdになる（クライアント側のワールド識別に使うため）
             // A different world yields a different WorldId, since clients identify worlds by it
-            var secondWorld = ProvisionWorld(WorldProvisioner.TemplateMapMode, 43);
+            var secondWorld = ProvisionWorld(WorldMapMode.Template, 43);
             var secondResponse = RequestMapDataLayout(secondWorld);
             Assert.AreNotEqual(firstResponse.TerrainMeta.WorldId, secondResponse.TerrainMeta.WorldId);
 

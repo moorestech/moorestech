@@ -1,4 +1,7 @@
 using System.IO;
+using Core.Master;
+using Mod.Config;
+using Mod.Loader;
 using Mooresmaster.Loader.GenerationModule;
 using Mooresmaster.Model.GenerationModule;
 using Newtonsoft.Json.Linq;
@@ -70,6 +73,11 @@ namespace Tests.UnitTest.Game.MapGeneration
             JObject algorithmParamOverrides,
             string mapObjectGuid)
         {
+            // 鉱脈配置段がveinGuidでmapVeinsマスタを引くため、同じmodのマスタを先にロードする
+            // The vein placement stage resolves mapVeins by veinGuid, so load the same mod's masters first
+            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
+            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
+
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
                 "mods", "forUnitTest", "master", "generation.json");
             var root = JObject.Parse(File.ReadAllText(path));

@@ -88,6 +88,7 @@
       },
       "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Iron",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
       "handMiningType": "minable",
       "handMiningParam": {
         "handMiningTools": [
@@ -109,6 +110,7 @@
       },
       "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
       "handMiningType": "none",
       "handMiningParam": null
     },
@@ -121,6 +123,7 @@
       },
       "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
       "handMiningType": "none",
       "handMiningParam": null
     },
@@ -133,6 +136,7 @@
       },
       "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Stone",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
       "handMiningType": "none",
       "handMiningParam": null
     }

@@ -4,11 +4,9 @@ using Core.Master;
 using Game.MapGeneration.Export;
 using Game.MapGeneration.Identity;
 using Game.MapGeneration.Pipeline;
-using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
-using Mooresmaster.Model.GenerationModule;
 using Newtonsoft.Json;
 
 namespace Game.MapGeneration.Provisioning
@@ -19,11 +17,6 @@ namespace Game.MapGeneration.Provisioning
     // Directory.Move rename (atomic). Root present without world.json is treated as corruption.
     public static class WorldProvisioner
     {
-        // mapModeの唯一の定義。boot(StartServerSettings/ServerInstanceManager)もこれを参照する
-        // Single source of truth for map mode names; boot code references these too
-        public const string TemplateMapMode = "template";
-        public const string GeneratedMapMode = "generated";
-
         // TerrainTransferMetaReaderが生成ワールドの版照合に参照する。転送するファイル構成が変わるたび上げる
         // Referenced by TerrainTransferMetaReader to gate generated worlds; bump whenever the transferred file layout changes
         public const string GeneratorVersion = "3.0.0";
@@ -46,15 +39,10 @@ namespace Game.MapGeneration.Provisioning
                 // TerrainTransferMetaReader owns the sole version check; deferring it to the handshake lets a catch-all swallow it and hang the client silently
                 var existingTerrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
-                // 指紋不一致は台帳がサーバー正本とずれる合図。バージョンと同じくここでfail-fastする
-                // A fingerprint mismatch signals the ledger has drifted from the server's truth; fail fast here just as for the version
+                // 指紋不一致は台帳がサーバー正本とずれる合図。ワールドごと作り直させるのは配置が動いたときだけで、見た目だけの差は解決させる
+                // A fingerprint mismatch signals the ledger has drifted from the server's truth; only moved placements force recreating the world, a visual-only difference is resolved
                 if (!existingTerrainMeta.IsTemplate)
-                {
-                    var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
-                    var currentFingerprint = GenerationMasterFingerprint.Compute(
-                        MasterHolder.GenerationMaster.SourceJsonText, selectedGeneration, settings.ServerDataDirectory);
-                    existingTerrainMeta.ThrowIfGenerationMasterFingerprintDiffers(currentFingerprint);
-                }
+                    GenerationMasterDriftResolver.Resolve(worldDataDirectory, settings.ServerDataDirectory, existingTerrainMeta);
 
                 return;
             }
@@ -69,15 +57,11 @@ namespace Game.MapGeneration.Provisioning
             Directory.CreateDirectory(tempDataDirectory.Root);
 
             PlacementLedger generatedLedger = null;
-            TerrainGenerationConfig generatedConfig = null;
-            Generation generatedSelectedGeneration = null;
-            string generatedFingerprint = null;
 
             var metaJson = settings.MapMode switch
             {
-                GeneratedMapMode => BuildGenerated(
-                    tempDataDirectory, settings, out generatedLedger, out generatedConfig, out generatedSelectedGeneration, out generatedFingerprint),
-                TemplateMapMode => BuildTemplate(tempDataDirectory, settings),
+                WorldMapMode.Generated => BuildGenerated(tempDataDirectory, settings, out generatedLedger),
+                WorldMapMode.Template => BuildTemplate(tempDataDirectory, settings),
                 _ => throw new ArgumentException($"Unknown map mode: '{settings.MapMode}'"),
             };
 
@@ -91,40 +75,37 @@ namespace Game.MapGeneration.Provisioning
 
             // 先焼きはワールド確定後(コミット済み)にだけ行う。クラッシュしてもワールドは完成済みでキャッシュはクライアントが埋め直せる
             // The prebake runs only after the world is committed; a crash still leaves a complete world, and a client can refill the cache itself
-            if (settings.MapMode == GeneratedMapMode)
+            if (settings.MapMode == WorldMapMode.Generated)
             {
                 var generatedTerrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
-                TerrainVisualPrebake.BakeAll(
-                    worldDataDirectory, generatedTerrainMeta, generatedConfig, generatedLedger, generatedSelectedGeneration, generatedFingerprint);
+                TerrainVisualPrebake.BakeAll(worldDataDirectory, settings.ServerDataDirectory, generatedTerrainMeta, generatedLedger);
             }
 
             #region Internal
 
             static WorldMetaJson BuildGenerated(
-                WorldDataDirectory tempDataDirectory, WorldProvisionSettings settings,
-                out PlacementLedger ledger, out TerrainGenerationConfig config, out Generation selected, out string generationMasterFingerprint)
+                WorldDataDirectory tempDataDirectory, WorldProvisionSettings settings, out PlacementLedger ledger)
             {
                 // 優先度解決済みの1件が未定義ならgenerated modeは実行不能
                 // A priority-resolved candidate must exist; generated mode cannot run without it
-                selected = MasterHolder.GenerationMaster.SelectedGeneration;
+                var selected = MasterHolder.GenerationMaster.SelectedGeneration;
                 if (selected == null)
                     throw new InvalidOperationException(
                         "Cannot provision a generated world: MasterHolder.GenerationMaster.SelectedGeneration is undefined.");
 
                 var inputConfig = MapGenerationPipeline.BuildConfig(selected, settings.Seed, settings.ServerDataDirectory);
                 var run = MapGenerationPipeline.Generate(selected, inputConfig);
-                ledger = run.Ledger;
 
-                // pass-2へ渡すのは探索結果を書き戻した後のConfig。入力側はスポーン座標が探索前のまま残る
-                // Hand pass-2 the config carrying the search write-back; the input side still holds the pre-search spawn position
-                config = run.Config;
+                // pass-2(先焼き)へ渡すのは台帳だけ。selectedとconfigは転送メタの原点から組み直せるのでTerrainVisualPrebakeが持つ
+                // Only the ledger goes to pass-2 (the prebake); selected and config are rebuildable from the transfer meta's origins, so TerrainVisualPrebake owns them
+                ledger = run.Ledger;
 
                 var output = run.Output;
                 var mapInfoJson = MapInfoJsonBuilder.Build(output);
                 File.WriteAllText(tempDataDirectory.MapJsonFilePath, JsonConvert.SerializeObject(mapInfoJson, Formatting.Indented));
                 TerrainFileWriter.Write(tempDataDirectory, output);
 
-                generationMasterFingerprint = GenerationMasterFingerprint.Compute(
+                var generationMasterFingerprint = GenerationMasterFingerprint.Compute(
                     MasterHolder.GenerationMaster.SourceJsonText, selected, settings.ServerDataDirectory);
 
                 return new WorldMetaJson
@@ -132,7 +113,7 @@ namespace Game.MapGeneration.Provisioning
                     Seed = settings.Seed,
                     GeneratorVersion = GeneratorVersion,
                     Algorithm = selected.Algorithm,
-                    MapMode = GeneratedMapMode,
+                    MapMode = WorldMapMode.Generated,
                     CreatedAt = DateTime.UtcNow.ToString("O"),
                     TerrainResolution = output.Resolution,
 
@@ -163,7 +144,7 @@ namespace Game.MapGeneration.Provisioning
                     Seed = settings.Seed,
                     GeneratorVersion = GeneratorVersion,
                     Algorithm = null,
-                    MapMode = TemplateMapMode,
+                    MapMode = WorldMapMode.Template,
                     CreatedAt = DateTime.UtcNow.ToString("O"),
                     TerrainResolution = 0,
                     TerrainTileCount = 0,

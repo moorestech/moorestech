@@ -30,15 +30,15 @@ namespace Game.MapGeneration.Transfer
             // Generated worlds explicitly reject a generatorVersion mismatch; an older transfer layout is unreadable by a new client
             return worldMeta.MapMode switch
             {
-                WorldProvisioner.GeneratedMapMode when worldMeta.GeneratorVersion != WorldProvisioner.GeneratorVersion =>
+                WorldMapMode.Generated when worldMeta.GeneratorVersion != WorldProvisioner.GeneratorVersion =>
                     throw new InvalidOperationException(
                         $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' was written by generator '{worldMeta.GeneratorVersion}', " +
                         $"but this build is '{WorldProvisioner.GeneratorVersion}'. The transferred terrain file layout changed " +
                         "(biome_x_z.bin output/transfer removed, clusters no longer leave the generation system). Delete the world directory and generate the world again."),
-                WorldProvisioner.GeneratedMapMode => TerrainTransferMeta.CreateGenerated(
+                WorldMapMode.Generated => TerrainTransferMeta.CreateGenerated(
                     CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
-                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins(), ReadGenerationMasterFingerprint()),
-                WorldProvisioner.TemplateMapMode => TerrainTransferMeta.CreateTemplate(CalculateWorldId(), worldMeta.Seed),
+                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins(), ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion),
+                WorldMapMode.Template => TerrainTransferMeta.CreateTemplate(CalculateWorldId(), worldMeta.Seed),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
 

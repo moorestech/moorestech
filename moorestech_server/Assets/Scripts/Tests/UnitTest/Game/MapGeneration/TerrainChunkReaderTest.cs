@@ -119,7 +119,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             // Terrain emptied by a failed generation or truncation; equating it with template would ship a broken world as healthy
             var worldDataDirectory = CreateSyntheticFourTileWorld(0);
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
-            Assert.AreEqual(WorldProvisioner.GeneratedMapMode, terrainMeta.MapMode);
+            Assert.AreEqual(WorldMapMode.Generated, terrainMeta.MapMode);
             Assert.AreEqual(0, terrainMeta.TerrainChunkTotal);
 
             var hashException = Assert.Throws<InvalidOperationException>(() => TerrainStreamHasher.Compute(worldDataDirectory, terrainMeta));
@@ -172,7 +172,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                 Seed = 1,
                 GeneratorVersion = WorldProvisioner.GeneratorVersion,
                 Algorithm = "test",
-                MapMode = WorldProvisioner.GeneratedMapMode,
+                MapMode = WorldMapMode.Generated,
                 CreatedAt = DateTime.UtcNow.ToString("O"),
                 TerrainResolution = 256,
                 TerrainTileCount = 4,

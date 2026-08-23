@@ -13,10 +13,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
     // Verifies adjacent tiles agree at their shared border on the full path: padded window, center crop, then the tile loop (R2).
     // WorldOffsetSlopeSeamTest covers the per-job coordinate basis, so this one compares only VanillaGenerator's final output.
     //
-    // biome_x_z.bin の出力・転送が廃止された(Task 8)ため、バイオームは TileBiomeIndexComputer 経由で
-    // 生成側と同じ公開APIを直接呼んで得る（TerrainTileOutput はもうバイオームを持たない）。
-    // biome_x_z.bin's output and transfer were dropped (Task 8), so biomes come from TileBiomeIndexComputer
-    // calling the generator's own public API directly (TerrainTileOutput no longer carries biomes).
+    // biome_x_z.bin の出力・転送が廃止された(Task 8)ため、バイオームは本番の TileVisualBaker と同じ
+    // TileBiomeIndexBuilder を呼ぶ TileBiomeIndexComputer 経由で得る（TerrainTileOutput はもうバイオームを持たない）。
+    // biome_x_z.bin's output and transfer were dropped (Task 8), so biomes come through TileBiomeIndexComputer,
+    // which calls the same TileBiomeIndexBuilder production's TileVisualBaker does (TerrainTileOutput no longer carries biomes).
     //
     // 本テストが保証するのは「クロップ機構と padding 導出が正しいこと」であり「production にシームが無いこと」ではない。
     // SmallSeaRemoval と Alpine 台地の連結成分は到達が無制限で padding では直せず、全設定で無効化してある（bd moorestech-edd.8）。
