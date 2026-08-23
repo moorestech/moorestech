@@ -58,12 +58,6 @@ namespace Client.Network.API
             _packetSender.Send(request);
         }
         
-        public void Save()
-        {
-            var request = new SaveProtocol.SaveProtocolMessagePack();
-            _packetSender.Send(request);
-        }
-        
         public void AttackMapObject(int instanceId)
         {
             var request = MiningProtocol.MiningProtocolMessagePack.CreateMapObjectRequest(_playerId, instanceId);

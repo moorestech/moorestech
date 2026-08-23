@@ -23,7 +23,8 @@
     "Game.Entity.Interface",
     "Game.PlayerRiding.Interface",
     "Game.Hotbar",
-    "Game.Construction"
+    "Game.Construction",
+    "Game.SaveLoad.Interface"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

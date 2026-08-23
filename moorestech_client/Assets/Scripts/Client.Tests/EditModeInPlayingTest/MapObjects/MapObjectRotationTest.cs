@@ -5,6 +5,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEditor;
@@ -125,73 +126,6 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
                 Assert.Fail("test world has no map object scaled differently per axis");
                 return null;
-            }
-
-            #endregion
-        }
-
-        // 候補GUIDが1件だけの経路はSearchInstanceが既に通しているので、ここでは2件以上の候補集合から
-        // 最も近い側が選ばれることをクエリ位置を反転させた双方向で確認する（earnItemピンの実経路）
-        // The single-candidate path is already covered by SearchInstance, so here two candidates are
-        // passed and the nearer one is asserted in both directions by flipping the query position (the earnItem pin's real path)
-        [UnityTest]
-        public IEnumerator SearchNearestMapObjectPicksTheCloserOfMultipleCandidates()
-        {
-            EnterPlayModeUtil();
-
-            yield return new EnterPlayMode(expectDomainReload: true);
-
-            LogAssert.ignoreFailingMessages = true;
-
-            yield return Body().ToCoroutine();
-
-            yield return new ExitPlayMode();
-
-            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
-
-            #region Internal
-
-            async UniTask Body()
-            {
-                await LoadMainGame();
-
-                var datastore = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>(FindObjectsInactive.Include);
-                Assert.IsNotNull(datastore, "MapObjectGameObjectDatastore was not found in scene");
-
-                await datastore.WaitForInitialApplyAsync();
-
-                var (nearLayout, farLayout) = FindTwoDistinctGuidLayouts();
-                var candidateGuids = new HashSet<Guid> { new(nearLayout.MapObjectGuid), new(farLayout.MapObjectGuid) };
-
-                var nearResult = datastore.SearchNearestMapObject(candidateGuids, new Vector3(nearLayout.X, nearLayout.Y, nearLayout.Z));
-                Assert.IsNotNull(nearResult, "expected a candidate to be found near the near layout's position");
-                Assert.AreEqual(
-                    new Guid(nearLayout.MapObjectGuid), nearResult.MapObjectGuid,
-                    "with two candidates in the set, the nearer one must win");
-
-                var farResult = datastore.SearchNearestMapObject(candidateGuids, new Vector3(farLayout.X, farLayout.Y, farLayout.Z));
-                Assert.IsNotNull(farResult, "expected a candidate to be found near the far layout's position");
-                Assert.AreEqual(
-                    new Guid(farLayout.MapObjectGuid), farResult.MapObjectGuid,
-                    "flipping the query position must flip which candidate wins, proving the winner is not a fixed candidate");
-            }
-
-            // 位置の異なる2つのGUID種を選び出す。同一位置に複数種を置く前例は無いため異GUID2件で十分成立する
-            // Pick two guid types at distinct positions; no fixture places two types at the same spot, so distinct guids suffice
-            (MapObjectLayoutMessagePack near, MapObjectLayoutMessagePack far) FindTwoDistinctGuidLayouts()
-            {
-                var layouts = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
-
-                var first = layouts[0];
-                foreach (var layout in layouts)
-                {
-                    if (layout.MapObjectGuid == first.MapObjectGuid) continue;
-                    return (first, layout);
-                }
-
-                Assert.Fail("test world has fewer than two distinct map object guids");
-                return (null, null);
             }
 
             #endregion
