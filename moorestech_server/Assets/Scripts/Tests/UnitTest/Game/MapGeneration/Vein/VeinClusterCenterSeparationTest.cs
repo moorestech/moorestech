@@ -20,6 +20,7 @@ namespace Tests.UnitTest.Game.MapGeneration
     {
         private const string VeinGuidA = "11111111-0000-0000-0000-000000000001";
         private const string VeinGuidB = "11111111-0000-0000-0000-000000000004";
+        private const string VeinGuidC = "11111111-0000-0000-0000-000000000003";
         private const float TileSize = 250f;
         private const int HeightRes = 65;
 
@@ -60,6 +61,35 @@ namespace Tests.UnitTest.Game.MapGeneration
 
             Assert.That(secondTile.Count(p => p.MapObjectGuid == VeinGuidA), Is.GreaterThan(0));
             Assert.That(secondTile.Count(p => p.MapObjectGuid == VeinGuidB), Is.GreaterThan(0));
+        }
+
+        [Test]
+        public void ThirdEntryWithHalfDensitySurvivesDenseFirstEntries()
+        {
+            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
+            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
+
+            // 実マスタと同じ構図: 高密度2エントリの後に半分密度のエントリ。共有グリッドでは3番手が全滅していた。
+            // Mirrors the live master: two dense entries then a half-density one; the shared grid wiped the third out.
+            var entries = new[]
+            {
+                CreateEntryWithDensity(VeinGuidA, 3.6f),
+                CreateEntryWithDensity(VeinGuidB, 3.6f),
+                CreateEntryWithDensity(VeinGuidC, 1.8f),
+            };
+            var entryMasks = new[] { CreateFullMask(), CreateFullMask(), CreateFullMask() };
+            var heights = new float[HeightRes, HeightRes];
+            var dims = new TerrainDimensions(
+                TileSize, TileSize, 100f, 0f, 0f,
+                HeightRes, 0f, 0f, 123, 0f, 0f, 0, 0, 1, 1);
+            var halo = CreateHalo();
+
+            var placements = OrePlacementGenerator.GenerateForWorld(
+                entries, entryMasks, 0f, heights, dims, new System.Random(42),
+                null, null, halo.ItemVeinMembers, halo.ItemVeinCenters, halo.Radius);
+
+            Assert.That(placements.Count(p => p.MapObjectGuid == VeinGuidC), Is.GreaterThan(0),
+                "3番手のエントリ（半分密度）が全滅している");
         }
 
         #region Internal
@@ -112,6 +142,13 @@ namespace Tests.UnitTest.Game.MapGeneration
                     },
                 },
             };
+        }
+
+        static OreEntry CreateEntryWithDensity(string veinGuid, float density)
+        {
+            var entry = CreateEntry(veinGuid);
+            entry.bands[0].density = density;
+            return entry;
         }
 
         static bool[,] CreateFullMask()
