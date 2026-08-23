@@ -22,7 +22,9 @@ Shader "UI/Overlay"
     {
         Tags
         {
-            "Queue" = "Transparent"
+            // HP数値のTMP Overlayシェーダと同じOverlay段に置く。ZTest Alwaysは深度比較を切るだけで描画順は揃えない
+            // Sits in the same Overlay queue as the HP text's TMP Overlay shader; ZTest Always disables depth compare but never orders draws
+            "Queue" = "Overlay"
             "IgnoreProjector" = "True"
             "RenderType" = "Transparent"
             "PreviewType" = "Plane"

@@ -19,8 +19,12 @@ HPバーの全構成要素（Image3枚＋TMP_Text）を `ZTest Always` のマテ
 
 - Imageは自作UIシェーダ `Assets/Asset/Common/Shader/UI/UIOverlay.shader`（UI/Default相当＋`ZTest Always`）と
   それを使うマテリアル1枚で描画する
-- TMP_Textはプロジェクト同梱の `TextMeshPro/Distance Field Overlay`（`ZTest Always`）を使うフォントマテリアル
+- TMP_Textはプロジェクト同梱の `TextMeshPro/Mobile/Distance Field Overlay`（`ZTest Always`）を使うフォントマテリアル
   プリセットで描画する
+- `UIOverlay.shader` のrender queueはTMP Overlay側と同じ `Overlay`(4000) に置く。`ZTest Always` は深度比較を
+  無効化するだけで描画順は揃えないため、キュー段が割れているとqueue 3000〜3999のワールド空間トランスペアレント
+  （伐採エフェクト・水面・半透明の葉ビルボード）がバーImageだけを塗り潰し、HP数値だけが残る
+  出所: ユーザー裁定 2026-08-23「シェーダをOverlayへ揃える」
 - `MapObjectHpBar.prefab` は203件のprefabからネストprefabとして参照されているため、正本1件の差し替えで全体に伝播する
 - バーの高さ（見た目の外接頂部 +0.5m）は本ADRでは変更しない
 
@@ -49,3 +53,8 @@ URPレンダラー設定の変更が他のUIへどう波及するか読みにく
 
 - フォーカス中のmapObjectのHPバーは、手前の別オブジェクトやプレイヤーキャラを貫通して見える
 - 半透明UIが常に最前面に出るため、将来HPバーを常時表示にする場合はこの帰結を再評価する必要がある
+- `MapObjectHpBarText.mat` はfont asset同梱マテリアルのプリセット複製であり、`LiberationSans SDF.asset` のアトラスを再生成した際は`_TextureWidth`/`_TextureHeight`/`_GradientScale`等の値を手動で追従させる必要がある
+- 消費側prefab（実測212件）にマテリアル系のPrefabInstanceオーバーライドは0件であることを確認済み。
+  この不在は回帰テストで固定していないため、wrapper prefabの再生成時にオーバーライドを焼き込まないこと
+  出所: ユーザー裁定 2026-08-23「テストは作らない。今ぱっとチェックするだけ」
+- `UIOverlay.shader` はUnity組み込み `UI-Default` のほぼ逐語コピー（`ZTest`行のみ差分）。組み込みシェーダはソース差し替え不可・`Material.SetInt("unity_GUIZTestMode", ...)` はCanvasRendererが毎フレーム上書きするためコピー以外の手段が無く、Unity側UI-Default更新への追従は手動になる

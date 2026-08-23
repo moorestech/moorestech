@@ -4,7 +4,7 @@
 
 **Goal:** mapObjectのHPバー（World Space Canvas）を全ての3Dジオメトリの手前に描画し、樹冠や岩に沈んで見えない状態を解消する。
 
-**Architecture:** HPバーの構成要素（Image3枚・TMP_Text）のマテリアルを `ZTest Always` のものへ差し替える。Imageは自作UIシェーダ `UI/Overlay`（UI/Default相当＋ZTest Always）＋マテリアル1枚、TMP_Textは同梱の `TextMeshPro/Distance Field Overlay` を使うフォントマテリアルプリセット1枚。C#の変更は無い。
+**Architecture:** HPバーの構成要素（Image3枚・TMP_Text）のマテリアルを `ZTest Always` のものへ差し替える。Imageは自作UIシェーダ `UI/Overlay`（UI/Default相当＋ZTest Always）＋マテリアル1枚、TMP_Textは同梱の `TextMeshPro/Mobile/Distance Field Overlay` を使うフォントマテリアルプリセット1枚。C#の変更は無い。
 
 **Tech Stack:** Unity 6 / URP 17 / uGUI 2.0 / TextMeshPro（`Assets/Dependencies/TextMesh Pro`）
 
@@ -63,7 +63,7 @@ git commit -m "feat(ui): ZTest AlwaysのUIシェーダ UI/Overlay を追加"
 
 - [x] **Step 1: `uloop execute-dynamic-code` でマテリアル2枚を作成する**
 
-`UIOverlay.mat` は `Shader.Find("UI/Overlay")`、`MapObjectHpBarText.mat` は `Shader.Find("TextMeshPro/Distance Field Overlay")` を使い、TMP側はprefabが参照している元フォントマテリアルのプロパティ（フォントアトラス・面色・アウトライン設定）をコピーしてからシェーダだけ差し替える。
+`UIOverlay.mat` は `Shader.Find("UI/Overlay")`、`MapObjectHpBarText.mat` は `Shader.Find("TextMeshPro/Mobile/Distance Field Overlay")` を使い、TMP側はprefabが参照している元フォントマテリアルのプロパティ（フォントアトラス・面色・アウトライン設定）をコピーしてからシェーダだけ差し替える。
 
 - [x] **Step 2: prefabのImage3枚とTMP_Textへ割り当てる**
 
@@ -71,7 +71,7 @@ git commit -m "feat(ui): ZTest AlwaysのUIシェーダ UI/Overlay を追加"
 
 - [x] **Step 3: 割り当て結果を検証する**
 
-`uloop execute-dynamic-code` でprefabを再ロードし、Image3枚の `material.shader.name == "UI/Overlay"`、TMP_Textの `fontSharedMaterial.shader.name == "TextMeshPro/Distance Field Overlay"`、および両シェーダのZTestがAlways（`GetTag`/`renderQueue` ではなく `Shader.Find` 経由の実体確認）であることをログ出力する。
+`uloop execute-dynamic-code` でprefabを再ロードし、Image3枚の `material.shader.name == "UI/Overlay"`、TMP_Textの `fontSharedMaterial.shader.name == "TextMeshPro/Mobile/Distance Field Overlay"`、および両シェーダのZTestがAlways（`GetTag`/`renderQueue` ではなく `Shader.Find` 経由の実体確認）であることをログ出力する。
 Expected: 4件すべて期待どおり
 
 - [x] **Step 4: PlayModeで見た目を確認する**
