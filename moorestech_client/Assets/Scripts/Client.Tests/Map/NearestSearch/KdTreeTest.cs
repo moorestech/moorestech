@@ -25,7 +25,7 @@ namespace Client.Tests.Map.NearestSearch
             {
                 var query = RandomPoint(random);
                 var expected = LinearNearest(targets, query);
-                var actual = tree.SearchNearest(query);
+                Assert.IsTrue(tree.TrySearchNearest(query, out var actual, out _), $"query={query}");
                 Assert.AreSame(expected, actual, $"query={query}");
             }
         }
@@ -44,9 +44,12 @@ namespace Client.Tests.Map.NearestSearch
 
             var query = Vector3.zero;
             var expectedDistance = (LinearNearest(targets, query).Position - query).sqrMagnitude;
-            var actual = tree.SearchNearest(query);
-            Assert.IsNotNull(actual);
+            Assert.IsTrue(tree.TrySearchNearest(query, out var actual, out var actualSqrDistance));
             Assert.AreEqual(expectedDistance, (actual.Position - query).sqrMagnitude, 1e-6f);
+
+            // 索引が返す距離は焼き込み座標由来なので、呼び出し側の再計算と一致する
+            // The distance the index returns comes from the baked position, so it matches a caller-side recomputation
+            Assert.AreEqual(expectedDistance, actualSqrDistance, 1e-6f);
         }
 
         [Test]
@@ -54,14 +57,15 @@ namespace Client.Tests.Map.NearestSearch
         {
             var only = new NearestSearchTestTarget(new Vector3(10f, 0f, -5f));
             var tree = new KdTree<NearestSearchTestTarget>(new[] { only });
-            Assert.AreSame(only, tree.SearchNearest(new Vector3(-999f, 50f, 999f)));
+            Assert.IsTrue(tree.TrySearchNearest(new Vector3(-999f, 50f, 999f), out var actual, out _));
+            Assert.AreSame(only, actual);
         }
 
         [Test]
         public void 空の木はnullを返す()
         {
             var tree = new KdTree<NearestSearchTestTarget>(new List<NearestSearchTestTarget>());
-            Assert.IsNull(tree.SearchNearest(Vector3.zero));
+            Assert.IsFalse(tree.TrySearchNearest(Vector3.zero, out _, out _));
         }
 
         [Test]
@@ -79,7 +83,8 @@ namespace Client.Tests.Map.NearestSearch
             };
             var tree = new KdTree<NearestSearchTestTarget>(targets);
             var query = new Vector3(0.3f, 0f, 0f);
-            Assert.AreSame(LinearNearest(targets, query), tree.SearchNearest(query));
+            Assert.IsTrue(tree.TrySearchNearest(query, out var actual, out _));
+            Assert.AreSame(LinearNearest(targets, query), actual);
         }
 
         [Test]
@@ -91,7 +96,26 @@ namespace Client.Tests.Map.NearestSearch
             for (var i = 0; i < 300; i++) targets.Add(new NearestSearchTestTarget(new Vector3(7f, 7f, 7f)));
             targets.Add(new NearestSearchTestTarget(new Vector3(8f, 7f, 7f)));
             var tree = new KdTree<NearestSearchTestTarget>(targets);
-            Assert.AreSame(targets[300], tree.SearchNearest(new Vector3(9f, 7f, 7f)));
+            Assert.IsTrue(tree.TrySearchNearest(new Vector3(9f, 7f, 7f), out var actual, out _));
+            Assert.AreSame(targets[300], actual);
+        }
+
+        [Test]
+        public void 探索不能になった対象は木を組み直さずに飛ばされる()
+        {
+            var near = new NearestSearchTestTarget(new Vector3(1f, 0f, 0f));
+            var far = new NearestSearchTestTarget(new Vector3(10f, 0f, 0f));
+            var tree = new KdTree<NearestSearchTestTarget>(new[] { near, far });
+            Assert.IsTrue(tree.TrySearchNearest(Vector3.zero, out var first, out _));
+            Assert.AreSame(near, first);
+
+            near.SetSearchable(false);
+            Assert.IsTrue(tree.TrySearchNearest(Vector3.zero, out var second, out var secondSqrDistance));
+            Assert.AreSame(far, second);
+            Assert.AreEqual(100f, secondSqrDistance, 1e-3f);
+
+            far.SetSearchable(false);
+            Assert.IsFalse(tree.TrySearchNearest(Vector3.zero, out _, out _));
         }
 
         private static Vector3 RandomPoint(System.Random random)

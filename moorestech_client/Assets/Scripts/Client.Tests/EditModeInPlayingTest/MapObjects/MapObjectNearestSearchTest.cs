@@ -62,8 +62,8 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                 Assert.IsNotNull(beforeDestroy, $"map object {target.InstanceId} was not instantiated");
                 Assert.AreEqual(target.InstanceId, beforeDestroy.InstanceId, "resolved a different instance than the one being destroyed");
 
-                // 実サーバーで破壊し、実配信経路(OnDestroyMapObject→イベントパケット→OnUpdateMapObjectのMarkDirty)を通す
-                // Destroy on the real server so the actual broadcast path (OnDestroyMapObject → event packet → OnUpdateMapObject's MarkDirty) is exercised
+                // 実サーバーで破壊し、実配信経路(イベントパケット→OnUpdateMapObject→OnDestroyMapObject購読)を通す
+                // Destroy on the real server so the actual broadcast path (event packet → OnUpdateMapObject → OnDestroyMapObject subscription) is exercised
                 ServerContext.MapObjectDatastore.Get(target.InstanceId).Destroy();
 
                 await UniTask.WaitUntil(() => datastore.SearchNearestMapObject(candidateGuids, position) != beforeDestroy)

@@ -1,93 +1,48 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Map.NearestSearch;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.MapObject
 {
     /// <summary>
     ///     - mapObjectGuid別の最寄り索引を候補集合で横断探索
-    ///     - 破壊はdirtyで受ける
-    ///     - 探索時に生存個体で再構築
+    ///     - 破壊は個体の変化通知を購読して索引へ伝える
     ///     - Nearest index per mapObjectGuid, searched across a candidate set
-    ///     - Destruction marks the guid dirty
-    ///     - Rebuilds from live objects on search
+    ///     - Destruction reaches the index through each object's change notification
     /// </summary>
-    public sealed class MapObjectNearestSearcher
+    internal sealed class MapObjectNearestSearcher
     {
-        private readonly Dictionary<Guid, List<MapObjectGameObject>> _mapObjectsByGuid = new();
-        private readonly HashSet<Guid> _dirtyGuids = new();
         private readonly NearestTargetIndex<MapObjectGameObject> _nearestIndex = new();
-
-        // 再構築時の生存個体バッファ。索引側が配列へ複製するので使い回せる
-        // Live-object buffer for rebuilds; the index copies into its own arrays, so this can be reused
-        private readonly List<MapObjectGameObject> _availableBuffer = new();
 
         public void Register(MapObjectGameObject mapObject)
         {
-            var guid = mapObject.MapObjectGuid;
-            if (!_mapObjectsByGuid.TryGetValue(guid, out var mapObjects))
-            {
-                mapObjects = new List<MapObjectGameObject>();
-                _mapObjectsByGuid.Add(guid, mapObjects);
-            }
+            var mapObjectGuid = mapObject.MapObjectGuid;
+            _nearestIndex.Register(mapObjectGuid, mapObject);
 
-            // 生成はフレーム分散なので登録のたびにdirtyにし、最初の探索で一括構築する
-            // Instantiation is spread across frames, so mark dirty per registration and build once on the first search
-            mapObjects.Add(mapObject);
-            _dirtyGuids.Add(guid);
-        }
-
-        public void MarkDirty(Guid mapObjectGuid)
-        {
-            _dirtyGuids.Add(mapObjectGuid);
+            // 破壊は呼び出し側の手押しではなく変化通知で受ける（押し忘れが索引の嘘になるため）
+            // Destruction arrives through the change notification rather than a manual push, since a missed push would make the index lie
+            mapObject.OnDestroyMapObject.Subscribe(_ => _nearestIndex.NotifyTargetUnsearchable(mapObjectGuid));
         }
 
         public MapObjectGameObject SearchNearest(HashSet<Guid> mapObjectGuids, Vector3 position)
         {
-            // 候補guidごとに独立した索引を引き、その中の最寄りを選ぶ
-            // Query the independent index of each candidate guid and pick the nearest among them
+            // 候補guidごとに独立した索引を引き、索引が返した距離のまま横断比較する
+            // Query the independent index of each candidate guid and compare across them with the distance the index returned
             MapObjectGameObject nearest = null;
-            var nearestSqrMagnitude = float.MaxValue;
+            var nearestSqrDistance = float.MaxValue;
 
             foreach (var mapObjectGuid in mapObjectGuids)
             {
-                if (_dirtyGuids.Remove(mapObjectGuid)) RebuildIndex(mapObjectGuid);
-
-                var candidate = _nearestIndex.SearchNearest(mapObjectGuid, position);
-                if (candidate == null) continue;
-
-                var sqrMagnitude = (position - candidate.Position).sqrMagnitude;
-                if (nearestSqrMagnitude <= sqrMagnitude) continue;
+                if (!_nearestIndex.TrySearchNearest(mapObjectGuid, position, out var candidate, out var sqrDistance)) continue;
+                if (nearestSqrDistance <= sqrDistance) continue;
 
                 nearest = candidate;
-                nearestSqrMagnitude = sqrMagnitude;
+                nearestSqrDistance = sqrDistance;
             }
 
             return nearest;
-
-            #region Internal
-
-            void RebuildIndex(Guid guid)
-            {
-                // 未登録guidのdirtyは無視する。MarkDirtyの受理域がRegister済みguidより広いため
-                // Ignore a dirty mark for an unregistered guid; MarkDirty accepts more than the registered set
-                if (!_mapObjectsByGuid.TryGetValue(guid, out var mapObjects)) return;
-
-                // 可否の判断はここで行い、索引には生存個体の座標だけを渡す
-                // Availability is decided here; the index receives only live objects' positions
-                // IsAvailableは採掘可否の述語だが、ピンが指せる対象の条件と同義なので流用する
-                // IsAvailable is the mining predicate, reused here because it matches what a pin can point at
-                _availableBuffer.Clear();
-                foreach (var mapObject in mapObjects)
-                {
-                    if (mapObject.IsAvailable) _availableBuffer.Add(mapObject);
-                }
-
-                _nearestIndex.SetTargets(guid, _availableBuffer);
-            }
-
-            #endregion
         }
     }
 }

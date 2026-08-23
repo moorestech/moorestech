@@ -53,12 +53,12 @@ namespace Client.Tests.Map
             searcher.Register(far);
             Assert.AreSame(near, searcher.SearchNearest(ExistingTargets, Vector3.zero));
 
+            // 破壊の反映は購読経由。呼び出し側からの手押しは無い
+            // Destruction propagates through the subscription; nothing is pushed from the caller
             near.DestroyMapObject();
-            searcher.MarkDirty(ExistingMapObjectGuid);
             Assert.AreSame(far, searcher.SearchNearest(ExistingTargets, Vector3.zero));
 
             far.DestroyMapObject();
-            searcher.MarkDirty(ExistingMapObjectGuid);
             Assert.IsNull(searcher.SearchNearest(ExistingTargets, Vector3.zero));
         }
 

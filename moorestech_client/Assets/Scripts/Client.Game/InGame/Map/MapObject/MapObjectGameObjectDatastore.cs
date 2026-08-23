@@ -164,10 +164,9 @@ namespace Client.Game.InGame.Map.MapObject
             switch (data.EventType)
             {
                 case MapObjectUpdateEventMessagePack.DestroyEventType:
+                    // 索引へは個体の破壊通知が届く（ここから押す必要はない）
+                    // The index hears about this through the object's own destroy notification, so nothing is pushed from here
                     mapObject.DestroyMapObject();
-                    // 破壊は索引へ即時反映せず、次の探索で該当guidだけ再構築する
-                    // Destruction isn't applied to the index immediately; the next search rebuilds just this guid
-                    _nearestSearcher.MarkDirty(mapObject.MapObjectGuid);
                     break;
                 case MapObjectUpdateEventMessagePack.HpUpdateEventType:
                     mapObject.UpdateHp(data.CurrentHp);

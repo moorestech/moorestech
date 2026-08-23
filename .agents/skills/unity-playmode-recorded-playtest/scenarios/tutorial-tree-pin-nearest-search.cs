@@ -70,8 +70,8 @@ return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =
     p.Assert(brute != null, "総当たりで最寄りの木が見つかった");
     if (indexed != null && brute != null)
     {
-        var indexedDistance = (indexed.Position - playerPosition).sqrMagnitude;
-        var bruteDistance = (brute.Position - playerPosition).sqrMagnitude;
+        var indexedDistance = (indexed.transform.position - playerPosition).sqrMagnitude;
+        var bruteDistance = (brute.transform.position - playerPosition).sqrMagnitude;
         p.Note($"索引={indexed.InstanceId} d2={indexedDistance:F3} / 総当たり={brute.InstanceId} d2={bruteDistance:F3} / 木の総数={CountAvailableTrees()}");
         p.Assert(Mathf.Abs(indexedDistance - bruteDistance) < 0.001f, "索引の最寄り距離が総当たりと一致する");
     }
@@ -81,7 +81,7 @@ return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =
     var pinComponent = UnityEngine.Object.FindFirstObjectByType<Client.Game.InGame.Tutorial.MapObjectPin>(FindObjectsInactive.Include);
     p.Assert(pinComponent != null, "MapObjectPinがシーンに存在する");
     var firstPinPosition = pinComponent.transform.position;
-    if (indexed != null) p.Assert((firstPinPosition - indexed.Position).sqrMagnitude < 0.001f, "ピンが最寄りの木の位置を指している");
+    if (indexed != null) p.Assert((firstPinPosition - indexed.transform.position).sqrMagnitude < 0.001f, "ピンが最寄りの木の位置を指している");
 
     // 検証4: その木を伐採すると、索引とピンが次の木へ移る
     // Verify 4: felling that tree moves both the index result and the pin to the next tree
@@ -108,10 +108,10 @@ return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =
     {
         var afterBrute = BruteForceNearest(afterPosition);
         p.Note($"伐採後: 索引={afterIndexed.InstanceId} / 総当たり={afterBrute?.InstanceId}");
-        p.Assert(afterBrute != null && Mathf.Abs((afterIndexed.Position - afterPosition).sqrMagnitude - (afterBrute.Position - afterPosition).sqrMagnitude) < 0.001f,
+        p.Assert(afterBrute != null && Mathf.Abs((afterIndexed.transform.position - afterPosition).sqrMagnitude - (afterBrute.transform.position - afterPosition).sqrMagnitude) < 0.001f,
             "伐採後も索引の最寄り距離が総当たりと一致する");
 
-        var pinMoved = await PollUntil(() => (pinComponent.transform.position - afterIndexed.Position).sqrMagnitude < 0.001f, 15);
+        var pinMoved = await PollUntil(() => (pinComponent.transform.position - afterIndexed.transform.position).sqrMagnitude < 0.001f, 15);
         p.Assert(pinMoved, "ピンが次の木へ移った");
     }
     await p.Screenshot("03-pin-moved-to-next-tree");
@@ -129,7 +129,7 @@ return PlaytestRunner.Run("tutorial-tree-pin-nearest-search", options, async p =
         foreach (var mapObject in UnityEngine.Object.FindObjectsByType<Client.Game.InGame.Map.MapObject.MapObjectGameObject>(FindObjectsSortMode.None))
         {
             if (mapObject.MapObjectGuid != treeMapObject || !mapObject.IsAvailable) continue;
-            var distance = (mapObject.Position - from).sqrMagnitude;
+            var distance = (mapObject.transform.position - from).sqrMagnitude;
             if (bestDistance <= distance) continue;
             bestDistance = distance;
             best = mapObject;
