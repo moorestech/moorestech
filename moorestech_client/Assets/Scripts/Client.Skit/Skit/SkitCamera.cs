@@ -1,4 +1,5 @@
 using Client.Common;
+using Client.Skit.Context;
 using DG.Tweening;
 using UnityEngine;
 
@@ -6,9 +7,11 @@ namespace Client.Skit.Skit
 {
     public interface ISkitCamera
     {
-        public void TweenCamera(Vector3 fromPos, Vector3 fromRot, Vector3 toPos, Vector3 toRot, float duration, Ease easing);
+        // 受け口を相対位置型に限定し、原点加算の抜けをコンパイルエラーへ落とす（ADR 0029）
+        // Accept only the relative-position type so a missing origin addition becomes a compile error (ADR 0029)
+        public void TweenCamera(SkitRelativePosition fromPos, Vector3 fromRot, SkitRelativePosition toPos, Vector3 toRot, float duration, Ease easing);
         
-        public void SetTransform(Vector3 pos, Vector3 rot);
+        public void SetTransform(SkitRelativePosition pos, Vector3 rot);
         public void SetFov(float fov);
     }
     
@@ -17,18 +20,27 @@ namespace Client.Skit.Skit
         public Camera Camera => camera;
         [SerializeField] private Camera camera;
         
-        public void TweenCamera(Vector3 fromPos, Vector3 fromRot, Vector3 toPos, Vector3 toRot, float duration, Ease easing)
+        private SkitOrigin _skitOrigin;
+        
+        // スキット開始時に再生文脈の原点を押し込み、加算はこのsinkの中だけで起きるようにする
+        // Push the playback context's origin in at skit start so the addition happens only inside this sink
+        public void SetSkitOrigin(SkitOrigin skitOrigin)
         {
-            camera.transform.position = fromPos;
+            _skitOrigin = skitOrigin;
+        }
+        
+        public void TweenCamera(SkitRelativePosition fromPos, Vector3 fromRot, SkitRelativePosition toPos, Vector3 toRot, float duration, Ease easing)
+        {
+            camera.transform.position = fromPos.ToWorld(_skitOrigin);
             camera.transform.eulerAngles = fromRot;
             
-            camera.transform.DOMove(toPos, duration).SetEase(easing);
+            camera.transform.DOMove(toPos.ToWorld(_skitOrigin), duration).SetEase(easing);
             camera.transform.DORotate(toRot, duration).SetEase(easing);
         }
         
-        public void SetTransform(Vector3 pos, Vector3 rot)
+        public void SetTransform(SkitRelativePosition pos, Vector3 rot)
         {
-            camera.transform.position = pos;
+            camera.transform.position = pos.ToWorld(_skitOrigin);
             camera.transform.eulerAngles = rot;
         }
         public void SetFov(float fov)
