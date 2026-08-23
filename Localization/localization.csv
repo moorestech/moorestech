@@ -116,7 +116,7 @@ ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notific
 ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー
 ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました
 ui.settings.language,Language,Language,言語
-ui.recipe.catalogTitle,CRAFT RECIPE,CRAFT RECIPE,CRAFT RECIPE
+ui.recipe.catalogTitle,CRAFT RECIPE,CRAFT RECIPE,クラフトレシピ
 ui.recipe.selectItemHint,Select an item from the list on the right,Select an item from the list on the right,右のリストからアイテムを選択してください
 ui.recipe.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}\nクリックでこのアイテムのレシピを確認
 ui.recipe.itemCountSummary,{ownedCount}/{requiredCount},{ownedCount}/{requiredCount},{ownedCount}/{requiredCount}
