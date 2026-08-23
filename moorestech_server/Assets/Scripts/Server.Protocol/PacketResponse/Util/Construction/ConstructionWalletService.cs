@@ -30,16 +30,14 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         // Ask, then call CommitPlacement once final
         public IConstructionPlacementPlan PlanPlacement(BlockMasterElement blockMaster, int playerId)
         {
-            var fullCost = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
-            if (!ConstructionWalletUtil.UsesWallet(blockMaster.PlacementsPerCost)) return new DirectCostPlacementPlan(fullCost);
+            if (!ConstructionWalletUtil.UsesWallet(blockMaster.PlacementsPerCost)) return new DirectCostPlacementPlan(ConstructionCostItems.ToItemCounts(blockMaster.RequiredItems));
 
-            // 残りありは素材消費せず財布から1引く
-            // A cell covered by the wallet draws one from the wallet, no materials consumed
-            var walletBlockId = ResolveWalletBlockId(blockMaster);
-            var covered = ConstructionWalletUtil.IsCoveredByWallet(_lookup.GetRemainingCount(playerId, walletBlockId));
-            var usage = covered ? ConstructionWalletUsage.CoveredByWallet : ConstructionWalletUsage.PaidAndRefilled;
-            var itemsToConsume = covered ? Array.Empty<(ItemId, int)>() : fullCost;
-            return new WalletPlacementPlan(itemsToConsume, _mutation, _payers, usage, playerId, walletBlockId, blockMaster.PlacementsPerCost);
+            // 消費素材と賄えるかの判断は共有の問い合わせ窓口に任せる
+            // What to consume and whether the remainder covers it are both decided by the shared query window
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid);
+            var query = new ConstructionWalletQuery(_lookup.GetReader(playerId));
+            var usage = query.IsCoveredByWallet(blockId) ? ConstructionWalletUsage.CoveredByWallet : ConstructionWalletUsage.PaidAndRefilled;
+            return new WalletPlacementPlan(query.GetItemsToConsume(blockId), _mutation, _payers, usage, playerId, ConstructionWalletUtil.ResolveWalletBlockId(blockId), blockMaster.PlacementsPerCost);
         }
 
         public void CommitPlacement(IConstructionPlacementPlan plan, IOpenableInventory inventory, BlockInstanceId blockInstanceId)
@@ -51,7 +49,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         // Ask, then call CommitRemoval once final
         public IConstructionRemovalPlan PlanRemoval(BlockMasterElement blockMaster, BlockInstanceId blockInstanceId, int removePlayerId)
         {
-            var fullCost = ConstructionCostService.ToItemCounts(blockMaster.RequiredItems);
+            var fullCost = ConstructionCostItems.ToItemCounts(blockMaster.RequiredItems);
             if (!ConstructionWalletUtil.UsesWallet(blockMaster.PlacementsPerCost)) return new DirectCostRemovalPlan(ConstructionCostService.CreateRefundItems(fullCost));
 
             // 戻し先は撤去した人ではなく設置して支払った人の財布
@@ -60,7 +58,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
 
             // 1セット分が貯まる撤去でだけ素材が戻る
             // Materials come back only on the removal that completes one set's worth
-            var walletBlockId = ResolveWalletBlockId(blockMaster);
+            var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid));
             var condensed = ConstructionWalletUtil.WouldCondense(_lookup.GetRemainingCount(payerPlayerId, walletBlockId), blockMaster.PlacementsPerCost);
             IReadOnlyList<IItemStack> refund = condensed ? ConstructionCostService.CreateRefundItems(fullCost) : Array.Empty<IItemStack>();
             return new WalletRemovalPlan(refund, _mutation, _payers, payerPlayerId, walletBlockId, blockInstanceId, condensed);
@@ -76,13 +74,6 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         public void FlushRemainingCountChanges()
         {
             _mutation.FlushChanges();
-        }
-
-        // 財布キーの解決はここだけが持つ（呼び出し側は財布キーの存在すら意識しない）
-        // Wallet-key resolution lives only here, so no caller ever has to know it exists
-        private static BlockId ResolveWalletBlockId(BlockMasterElement blockMaster)
-        {
-            return ConstructionWalletUtil.ResolveWalletBlockId(MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid));
         }
     }
 }

@@ -4,7 +4,7 @@ using Core.Item.Interface;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 
-namespace Client.Game.InGame.Construction
+namespace Game.Construction
 {
     /// <summary>
     /// 建設コスト何セット分賄えるかを数える（財布は関与しない）

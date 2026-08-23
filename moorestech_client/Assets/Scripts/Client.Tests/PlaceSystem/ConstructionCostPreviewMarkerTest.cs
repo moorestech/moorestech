@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Construction;
 using Core.Master;
+using Game.Construction;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -29,14 +30,14 @@ namespace Client.Tests.PlaceSystem
                 factory.Create(MasterHolder.ItemMaster.GetItemId(Material1Guid), 1),
                 factory.Create(MasterHolder.ItemMaster.GetItemId(Material2Guid), 1),
             };
-            var datastore = new ClientRemainingPlacementCountDatastore();
+            var walletQuery = new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
 
             // 財布0・素材1セット→1セット×N=3
             // Empty wallet, one set of materials → one set × N = 3 placements
             var placeInfos = new List<PlaceInfo>();
             for (var i = 0; i < 5; i++) placeInfos.Add(new PlaceInfo { BlockId = blockId, Placeable = true });
 
-            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(placeInfos, blockId, datastore, inventory);
+            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(placeInfos, blockId, walletQuery, inventory);
 
             Assert.IsTrue(placeInfos[0].Placeable);
             Assert.IsTrue(placeInfos[1].Placeable);

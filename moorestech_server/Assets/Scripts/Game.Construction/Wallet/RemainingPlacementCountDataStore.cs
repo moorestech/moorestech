@@ -21,6 +21,10 @@ namespace Game.Construction
         // Changes accumulate and leave on Flush, so one placement never emits two notifications nor a drag one per cell
         private readonly HashSet<(int playerId, BlockId walletBlockId)> _dirtyWallets = new();
 
+        // プレイヤー束縛済みreaderは使い回す（設置1セルごとに作らない）
+        // Player-bound readers are reused so a drag never allocates one per cell
+        private readonly Dictionary<int, IRemainingPlacementCountReader> _readers = new();
+
         // 生のBlockIdを受け取り財布キーへの正規化は内側で行う（クライアント側と同一契約）
         // Takes a raw BlockId and normalizes it to the wallet key inside, the same contract as the client side
         public int GetRemainingCount(int playerId, BlockId blockId)
@@ -33,6 +37,14 @@ namespace Game.Construction
         {
             if (!_remainingCounts.TryGetValue(playerId, out var wallets)) return Array.Empty<(BlockId, int)>();
             return wallets.Where(pair => 0 < pair.Value).Select(pair => (pair.Key, pair.Value)).ToList();
+        }
+
+        public IRemainingPlacementCountReader GetReader(int playerId)
+        {
+            if (_readers.TryGetValue(playerId, out var reader)) return reader;
+            reader = new PlayerBoundReader(this, playerId);
+            _readers[playerId] = reader;
+            return reader;
         }
 
         public void ConsumeOne(int playerId, BlockId walletBlockId)
@@ -135,6 +147,28 @@ namespace Game.Construction
             wallets = new Dictionary<BlockId, int>();
             _remainingCounts[playerId] = wallets;
             return wallets;
+        }
+
+        // 1プレイヤー分へ束縛した読み取り口。問い合わせ側はplayerIdを持たなくてよくなる
+        // A read port bound to one player, so the query side never has to carry a playerId
+        private class PlayerBoundReader : IRemainingPlacementCountReader
+        {
+            public IObservable<Unit> OnWalletChanged { get; }
+
+            private readonly RemainingPlacementCountDataStore _store;
+            private readonly int _playerId;
+
+            public PlayerBoundReader(RemainingPlacementCountDataStore store, int playerId)
+            {
+                _store = store;
+                _playerId = playerId;
+                OnWalletChanged = store.OnRemainingCountChanged.Where(change => change.PlayerId == playerId).AsUnitObservable();
+            }
+
+            public int GetRemainingCount(BlockId blockId)
+            {
+                return _store.GetRemainingCount(_playerId, blockId);
+            }
         }
     }
 }
