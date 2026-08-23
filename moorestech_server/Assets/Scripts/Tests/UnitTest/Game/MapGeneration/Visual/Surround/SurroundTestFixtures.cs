@@ -52,6 +52,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Surround
             return new TerrainGenerationConfig
             {
                 overrideResolution = Resolution,
+                detailResolution = 1024,
                 terrainWidth = TerrainSize,
                 terrainLength = TerrainSize,
                 terrainHeight = 600f,

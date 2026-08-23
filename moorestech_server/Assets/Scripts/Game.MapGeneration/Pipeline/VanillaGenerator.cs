@@ -39,10 +39,10 @@ namespace Game.MapGeneration.Pipeline
             // シーン座標化の基準は探索の戻り値ではなく探索後の config から読む（探索無効時に master worldOffset を捨てないため）。
             // Read the noise-to-scene basis from the post-search config, not the search result, so a disabled search keeps the master worldOffset.
             var noiseToSceneShift = new Vector2(config.worldOffsetX, config.worldOffsetZ);
+            var origins = MapGenerationPipeline.ResolveOrigins(config);
 
             int halfX = config.gridSizeX / 2;
             int halfZ = config.gridSizeZ / 2;
-            var sceneOrigin = config.TileScenePosition(0, 0);
 
             // pass-2(見た目焼き)へ渡す配置台帳。結果出力ではなく GenerationRun の別枠で運ぶ。
             // The ledger handed to pass-2 (visual bake); it travels in its own GenerationRun slot, not in the result output.
@@ -53,8 +53,8 @@ namespace Game.MapGeneration.Pipeline
 
                 // クライアントは分類段を再実行するのでノイズ窓の原点が要り、地形の設置にはシーン原点が要る。
                 // Clients re-run the classification stage, needing the noise window origin, and place the terrain at the scene origin.
-                NoiseOrigin = noiseToSceneShift + sceneOrigin,
-                SceneOrigin = sceneOrigin,
+                NoiseOrigin = origins.NoiseOrigin,
+                SceneOrigin = origins.SceneOrigin,
             };
 
             // スポーンのXZはタイル生成前に確定する（高さYだけ中心タイル生成後に採取する）。

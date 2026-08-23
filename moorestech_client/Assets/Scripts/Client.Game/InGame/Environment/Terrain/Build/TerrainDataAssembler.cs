@@ -82,6 +82,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             {
                 var detailMaps = tile.DetailMaps;
                 if (detailMaps.Count == 0) return 0;
+
+                // プロトタイプ数と密度マップ本数は生成側の1:1対応が保証しているだけで、ここは知らない前提で組む
+                // The prototype count and density-map count agree only because the generator guarantees it 1:1; this stage assumes nothing on its own
                 if (detailPrototypes.Count != detailMaps.Count)
                     throw new System.InvalidOperationException(
                         $"[TerrainDataAssembler] Detail prototype count {detailPrototypes.Count} does not match detail map count {detailMaps.Count}.");

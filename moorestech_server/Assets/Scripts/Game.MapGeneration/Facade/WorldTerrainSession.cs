@@ -49,9 +49,8 @@ namespace Game.MapGeneration.Facade
             // 崩れた原点は別の窓を指しているので、その窓で焼いた見た目をキャッシュへ書き込む前に止める
             // The origins follow from the grid dimensions and the injected G alone, so they are checkable without running generation
             // Shifted origins address another window, so stop before visuals baked on that window can reach the cache
-            var sceneOrigin = config.TileScenePosition(0, 0);
-            var noiseOrigin = new Vector2(config.worldOffsetX, config.worldOffsetZ) + sceneOrigin;
-            terrainMeta.ThrowIfOriginsDiffer(noiseOrigin, sceneOrigin);
+            var origins = MapGenerationPipeline.ResolveOrigins(config);
+            terrainMeta.ThrowIfOriginsDiffer(origins.NoiseOrigin, origins.SceneOrigin);
 
             // 組み立てはサーバー先焼きと共有し、高さ源と遅延台帳源の決定をfactoryへ閉じる
             // Share assembly with the server prebake and keep both height-source and lazy-ledger-source decisions in the factory

@@ -1,10 +1,12 @@
 using System.IO;
 using Game.MapGeneration.Facade;
+using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using NUnit.Framework;
 using Tests.Module;
 using Tests.Module.TestMod;
+using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration.Facade
 {
@@ -62,6 +64,24 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
                 Directory.Delete(shared.Root, true);
                 scope.End();
             }
+        }
+
+        // pipelineの原点導出は、スポーン探索が書き換えた実行後configから生成出力と同じ対を返す
+        // Pipeline origin resolution returns the same pair as generation output from the post-search mutated config
+        [Test]
+        public void ResolveOriginsMatchesGeneratedOutputAfterSpawnSearchMutation()
+        {
+            var generation = SpawnSearchTestWorld.CreateGeneration(TestGenerationConfigFactory.SpawnSearchSetup.Enabled);
+            var sourceConfig = MapGenerationPipeline.BuildConfig(
+                generation, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var run = MapGenerationPipeline.Generate(generation, sourceConfig);
+
+            var settledOffset = new Vector2(run.Config.worldOffsetX, run.Config.worldOffsetZ);
+            Assert.That(settledOffset, Is.Not.EqualTo(new Vector2(sourceConfig.worldOffsetX, sourceConfig.worldOffsetZ)));
+
+            var origins = MapGenerationPipeline.ResolveOrigins(run.Config);
+            Assert.That(origins.NoiseOrigin, Is.EqualTo(run.Output.NoiseOrigin));
+            Assert.That(origins.SceneOrigin, Is.EqualTo(run.Output.SceneOrigin));
         }
 
         // テストが払い出した実ディレクトリ間だけを想定した単純な再帰コピー。シンボリックリンクは扱わない

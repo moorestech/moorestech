@@ -4,6 +4,7 @@ using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Spawn;
 using Game.MapGeneration.Transfer;
 using Mooresmaster.Model.GenerationModule;
+using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline
 {
@@ -49,6 +50,14 @@ namespace Game.MapGeneration.Pipeline
             config.worldOffsetZ = settledShift.y;
             config.useSpawnOffsetSearch = false;
             return config;
+        }
+
+        public static TerrainOrigins ResolveOrigins(TerrainGenerationConfig config)
+        {
+            var sceneOrigin = config.TileScenePosition(0, 0);
+            return new TerrainOrigins(
+                new Vector2(config.worldOffsetX, config.worldOffsetZ) + sceneOrigin,
+                sceneOrigin);
         }
 
         // 組み立て済み Config からアルゴリズムを解決して生成する。

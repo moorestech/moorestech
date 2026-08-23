@@ -73,6 +73,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Splat
             var config = new TerrainGenerationConfig
             {
                 overrideResolution = Resolution,
+                detailResolution = 1024,
                 seed = 42,
                 biomeBlendRadius = 4,
                 chunkPadding = 8,
