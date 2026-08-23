@@ -26,8 +26,11 @@
   出所: ユーザー裁定 2026-08-23「k-d treeブランチを起点に積む」
 - 露頭（`OutcropGameObjectDatastore`・1,775件）は対象外で現状維持。
   出所: ユーザー裁定 2026-08-23「露頭は対象外・現状維持」
-- `MapObjectGameObject.Initialize`のGetComponentsInChildren走査は計測し、支配的なら是正する（本タスク内）。
+- `MapObjectGameObject.Initialize`のGetComponentsInChildren走査は計測し、支配的なら是正する。
   出所: ユーザー裁定 2026-08-23「含める（計測して支配的なら直す）」
+  **状態: 未実施のまま本タスクから切り離した（bd moorestech-4z88.3）。** 計測にPlayMode実行が必要だが
+  Editor固着で起動できなかったため。ユーザー裁定 2026-08-23「Task 6・7へ進む」。
+  なお同走査は非活性下生成への対策として `includeInactive:true` へ変更済みで、走査コスト自体は据え置き。
 - 時間予算の計測にStopwatch等の実時間APIを使う。「実時間API禁止」規約はサーバーのゲームロジック
   （GameUpdaterティック）対象であり、クライアントの描画分散は適用外と裁定。
   出所: ユーザー裁定 2026-08-23「適用外でOK」
