@@ -58,12 +58,12 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(output.ItemVeins, Is.Not.Empty);
             Assert.That(output.FluidVeins, Is.Not.Empty);
 
-            // 変換後も鉱脈は 3x1x3 の固定AABB
-            // After the transform, every vein keeps a fixed 3x1x3 AABB
+            // 変換後も鉱脈は全軸差2の固定AABB
+            // After the transform, every vein keeps a fixed two-unit span on every axis
             foreach (var vein in output.ItemVeins)
-                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 0, 2)));
+                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
             foreach (var vein in output.FluidVeins)
-                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 0, 2)));
+                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
         }
 
         [Test]
