@@ -146,12 +146,23 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         // シーン座標化の基準が探索の戻り値(探索無効なら0)だと、地形の窓原点だけが master worldOffset ぶん進む。
         // A basis taken from the search result (zero when disabled) advances only the terrain window origin by the master worldOffset.
         [Test]
-        public void 探索無効かつmaster_worldOffsetありでも地形と配置物とスポーンが同じフレームに乗る()
+        public void 探索無効かつmaster_worldOffsetありでも地形と配置物とスポーンと鉱脈AABBが同じフレームに乗る()
         {
-            var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
+            var config = MultiTileTestWorld.BuildConfig(2, 1);
             MultiTileTestWorld.EnableTrees(config);
             config.worldOffsetX = MasterWorldOffset;
             config.worldOffsetZ = MasterWorldOffset;
+            config.oreConfig.borderMargin = 0f;
+
+            // 種類別haloだけでは防げない境界AABB候補を増やし、統一台帳の座標frameを検査する。
+            // Densify seam AABB candidates that per-kind halos cannot reject, exercising the unified ledger's coordinate frame.
+            foreach (var entry in config.oreConfig.entries.Concat(config.oreConfig.fluidEntries))
+            {
+                entry.bands[0].density = 5f;
+                entry.bands[0].maxObjectsPerCluster = 1;
+                entry.bands[0].clusterRadius = 0f;
+                entry.bands[0].minDistanceBetweenOres = 0f;
+            }
 
             // spawnWorldPosition はノイズ座標なので窓原点 + 中心タイルの1/4点に置く（シーンでは1/4点そのもの）
             // spawnWorldPosition is noise-space, so place it at the window origin plus the center tile's quarter point
@@ -177,6 +188,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             {
                 MultiTileTestWorld.AssertVeinInsideGrid(vein, config);
             }
+
+            MultiTileTestWorld.AssertNoOverlappingVeins(
+                output.ItemVeins.Concat(output.FluidVeins).ToList());
         }
     }
 }

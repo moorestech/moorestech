@@ -50,9 +50,20 @@ namespace Game.MapGeneration.Pipeline.Tiling
             PlacementHaloChannel memberHalo,
             PlacementHaloChannelMap centerHalos)
         {
+            // 出力側のscene変換が台帳のnoise座標を変えないようAABB値を所有コピーする。
+            // Owns AABB values so output scene shifts cannot mutate the ledger's noise-space coordinates.
+            foreach (var vein in placement.Veins)
+            {
+                _confirmedVeins.Add(new PlacedVein
+                {
+                    VeinGuid = vein.VeinGuid,
+                    Min = vein.Min,
+                    Max = vein.Max,
+                });
+            }
+
             // AABBと距離判定用点を同じ確定境界で一括commitする。
             // Commits AABBs and distance-test points at the same confirmation boundary.
-            _confirmedVeins.AddRange(placement.Veins);
             foreach (var cluster in placement.Clusters)
             {
                 centerHalos.Get(cluster.VeinGuid).Add(cluster.WorldCenter.x, cluster.WorldCenter.y);
