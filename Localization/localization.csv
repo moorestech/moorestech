@@ -3,7 +3,7 @@ ui.mainMenu.playLocally,Play locally,Play locally,ローカルでプレイ
 ui.mainMenu.exitGame,Exit Game,Exit Game,ゲームを終了
 ui.game.howToControl,WASD : Move\nTab : Inventory\nG : Destroy Mode\n1~9 : Block Placement\nR : Rotate when placing,WASD : Move\nTab : Inventory\nG : Destroy Mode\n1~9 : Block Placement\nR : Rotate when placing,WASD : 移動\nTab : インベントリ\nG : 破壊モード\n1～9 : ブロック設置\nR : 設置時回転
 ui.game.saveGame,Save this game,Save this game,ゲームをセーブする
-ui.game.saveAndBackToMainMenu,Save and Back to MainMenu,Save and Back to MainMenu,セーブしてメインメニューに戻る
+ui.game.saveAndQuit,Save and Quit,Save and Quit,セーブして終了
 ui.game.disconnectedFromServer,"Disconnected from server!\nIf you could send us the log data, it would help us in our development.\nPlease contact us on the official Discord with your feedback as well!","Disconnected from server!\nIf you could send us the log data, it would help us in our development.\nPlease contact us on the official Discord with your feedback as well!",サーバーから切断されました！\nログデータを送っていただけると開発の助けになります。\n公式Discordにもフィードバックをよろしくお願いします！
 ui.common.close,Close,Close,閉じる
 ui.common.connecting,Connecting...,Connecting...,接続中...

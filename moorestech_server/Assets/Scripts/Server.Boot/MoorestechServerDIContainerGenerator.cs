@@ -249,6 +249,7 @@ namespace Server.Boot
             // Save requests (auto-save and client requests) funnel into the coordinator; execution happens only at the tick-end stable point
             services.AddSingleton<WorldSaveCoordinator>();
             services.AddSingleton<IWorldSaveRequest>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
+            services.AddSingleton<IWorldSaveCompletionNotifier>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
 
             //イベントを登録
             // Register events.
@@ -270,6 +271,7 @@ namespace Server.Boot
             services.AddSingleton<CompletedChallengeEventPacket>();
             services.AddSingleton<ResearchCompleteEventPacket>();
             services.AddSingleton<ItemStackLevelUnlockEventPacket>();
+            services.AddSingleton<WorldSaveCompletedEventPacket>();
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<HotbarUpdateEventPacket>();

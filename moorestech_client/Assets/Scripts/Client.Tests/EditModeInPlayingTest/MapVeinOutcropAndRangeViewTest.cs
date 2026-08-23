@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
@@ -89,6 +90,28 @@ namespace Client.Tests.EditModeInPlayingTest
                     // 地表Raycastを持たない裁定どおり、Yも地形ではなくAABB中心で決まる
                     // Per the ruling that drops the ground raycast, Y is decided by the AABB center too, not by terrain
                     Assert.AreEqual((layout.MinY + layout.MaxY + 1) * 0.5f, outcrop.position.y, 0.001f, $"outcrop Y for {layout.VeinGuid}");
+
+                    // 索引配線そのものを通す。veinGuid別バケット→索引焼き込みが欠落すると恒久nullで落ちる
+                    // Exercises the index wiring itself; a missing guid-bucket→index bake would fail here with a permanent null
+                    var veinGuid = new Guid(layout.VeinGuid);
+                    var nearestOutcrop = datastore.SearchNearestOutcrop(veinGuid, outcrop.position);
+                    Assert.IsNotNull(nearestOutcrop, $"SearchNearestOutcrop returned null for veinGuid {layout.VeinGuid}");
+                    Assert.AreEqual(outcrop.position, nearestOutcrop.transform.position, $"SearchNearestOutcrop resolved a different outcrop for veinGuid {layout.VeinGuid}");
+                }
+
+                // 別veinGuidの近い露頭を誤って返さないこと。veinGuid別バケットのキー分離まで死ぬmutation
+                // Must not return a nearby outcrop belonging to a different veinGuid; kills mutations that collapse the per-veinGuid key separation
+                if (1 < veinLayouts.Count)
+                {
+                    var first = veinLayouts[0];
+                    var second = veinLayouts[1];
+                    var firstOutcropPosition = datastore.transform
+                        .Find($"{OutcropGameObjectDatastore.OutcropObjectNamePrefix}{first.VeinGuid}").position;
+
+                    var resolvedForSecondGuid = datastore.SearchNearestOutcrop(new Guid(second.VeinGuid), firstOutcropPosition);
+                    if (resolvedForSecondGuid != null)
+                        Assert.AreNotEqual(firstOutcropPosition, resolvedForSecondGuid.transform.position,
+                            $"SearchNearestOutcrop for veinGuid {second.VeinGuid} returned an outcrop belonging to veinGuid {first.VeinGuid}");
                 }
             }
 

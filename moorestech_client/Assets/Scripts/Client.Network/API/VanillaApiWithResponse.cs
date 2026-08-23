@@ -37,6 +37,14 @@ namespace Client.Network.API
             _playerConnectionSetting = playerConnectionSetting;
         }
 
+        // 保存を要求し、その要求番号を受け取る。書き出し完了は完了イベントと突き合わせる
+        // Request a save and receive its generation; completion is matched against the completed event
+        public async UniTask<SaveProtocol.SaveProtocolResponseMessagePack> Save(CancellationToken ct)
+        {
+            var request = new SaveProtocol.SaveProtocolMessagePack();
+            return await _packetExchangeManager.GetPacketResponse<SaveProtocol.SaveProtocolResponseMessagePack>(request, ct);
+        }
+
         public async UniTask<InitialHandshakeResponse> InitialHandShake(int playerId, CancellationToken ct)
         {
             //最初のハンドシェイクを行う

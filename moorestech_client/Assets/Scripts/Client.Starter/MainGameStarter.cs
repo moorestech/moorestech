@@ -141,7 +141,8 @@ namespace Client.Starter
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
         [SerializeField] private SaveButton saveButton;
-        [SerializeField] private BackToMainMenu backToMainMenu;
+        [FormerlySerializedAs("backToMainMenu")]
+        [SerializeField] private SaveAndQuitPresenter saveAndQuitPresenter;
         [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
         [SerializeField] private ChallengeManager challengeManager;
         
@@ -323,7 +324,7 @@ namespace Client.Starter
             builder.RegisterComponent(buildMenuView).AsSelf().As<IBuildMenuView>();
             builder.RegisterComponent(blueprintNameInputView);
             builder.RegisterComponent(saveButton);
-            builder.RegisterComponent(backToMainMenu);
+            builder.RegisterComponent(saveAndQuitPresenter);
             builder.RegisterComponent(networkDisconnectPresenter);
             builder.RegisterComponent(miningController);
             

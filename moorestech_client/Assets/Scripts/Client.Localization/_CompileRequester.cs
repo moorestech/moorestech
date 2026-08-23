@@ -1,4 +1,3 @@
-
 // SchemaWatcher更新用の再compile印
 // Recompile marker updated by SchemaWatcher
 public class LocalizationCompileRequester
