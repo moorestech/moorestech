@@ -10,8 +10,8 @@ using Object = UnityEngine.Object;
 namespace Client.Game.InGame.Map.MapObject
 {
     /// <summary>
-    ///     layout1件からmapObject個体を生成し、スナップショット・保留イベントの適用と索引登録まで担う
-    ///     Instantiates one map object from a layout, applying its snapshot and pending events and registering it for search
+    ///     layoutから個体生成しスナップショット適用・索引登録
+    ///     Instantiates a map object from a layout, applies its snapshot, and registers it for search
     /// </summary>
     public sealed class MapObjectLayoutInstantiator
     {
@@ -42,8 +42,8 @@ namespace Client.Game.InGame.Map.MapObject
             // Parse guid assuming valid data (malformed guids are a T8 data fix; defending here is overkill)
             var mapObjectGuid = new Guid(layout.MapObjectGuid);
 
-            // master欠落・load失敗はResolvePrefabOrNull内でLogError済み。個体だけskipし残りは生成しきる
-            // Master-missing or load-failure is already logged inside; skip just this one and keep generating the rest
+            // 失敗個体はskipし続行
+            // Skip this instance on failure and keep going
             var prefab = ResolvePrefabOrNull(mapObjectGuid);
             if (prefab == null) return;
 
@@ -81,8 +81,8 @@ namespace Client.Game.InGame.Map.MapObject
                 return;
             }
 
-            // 登録後にスナップショットで初期状態（破壊/HP）を適用する
-            // Apply the initial state (destroy/HP) from the snapshot after registration
+            // 登録後に初期状態を適用
+            // Apply the initial state after registration
             mapObject.Initialize(snapshot);
 
             // 生成前に届いた破壊/HPイベントをスナップショットより優先して適用する（ADR 0030）
@@ -93,39 +93,43 @@ namespace Client.Game.InGame.Map.MapObject
                 if (pendingState.IsDestroyed && !mapObject.IsDestroyed) mapObject.DestroyMapObject();
             }
 
-            // 最寄り探索の候補へ登録する（破壊済みは探索時の生存フィルタで除かれる）
-            // Register as a nearest-search candidate (destroyed ones drop out at the live filter on search)
+            // 最寄り探索の候補へ登録
+            // Register as a nearest-search candidate
             _nearestSearcher.Register(mapObject);
-        }
 
-        private GameObject ResolvePrefabOrNull(Guid mapObjectGuid)
-        {
-            // 失敗もnullとしてキャッシュする。同一guidが千個規模で並ぶため同期loadとLogErrorはguidごと1回に抑える
-            // Failures are cached as null too; a guid can repeat by the thousand so keep the sync load and LogError once per guid
-            if (_prefabCacheByMapObjectGuid.TryGetValue(mapObjectGuid, out var cachedPrefab)) return cachedPrefab;
+            #region Internal
 
-            // master欠落はLogError+nullでskipさせる（サーバMapObjectDatastoreと対称）
-            // Master-missing returns null after LogError to skip (symmetric with server MapObjectDatastore)
-            var element = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mapObjectGuid);
-            if (element == null)
+            GameObject ResolvePrefabOrNull(Guid guid)
             {
-                Debug.LogError($"MapObject master missing. MapObjectGuid:{mapObjectGuid}");
-                _prefabCacheByMapObjectGuid[mapObjectGuid] = null;
-                return null;
+                // 失敗もnullとしてキャッシュする。同一guidが千個規模で並ぶため同期loadとLogErrorはguidごと1回に抑える
+                // Failures are cached as null too; a guid can repeat by the thousand so keep the sync load and LogError once per guid
+                if (_prefabCacheByMapObjectGuid.TryGetValue(guid, out var cachedPrefab)) return cachedPrefab;
+
+                // master欠落はskip対象
+                // Master-missing is skipped
+                var element = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(guid);
+                if (element == null)
+                {
+                    Debug.LogError($"MapObject master missing. MapObjectGuid:{guid}");
+                    _prefabCacheByMapObjectGuid[guid] = null;
+                    return null;
+                }
+
+                // load失敗もskip対象
+                // Load failure is also skipped
+                var loaded = AddressableLoader.LoadDefault<GameObject>(element.AddressablePath);
+                if (loaded == null)
+                {
+                    Debug.LogError($"MapObject prefab load failed. MapObjectGuid:{guid} AddressablePath:{element.AddressablePath}");
+                    _prefabCacheByMapObjectGuid[guid] = null;
+                    return null;
+                }
+
+                _prefabCacheByMapObjectGuid[guid] = loaded;
+                return loaded;
             }
 
-            // load失敗（有料アセット不在等）もLogError+nullでskipさせる
-            // Load failure (e.g. missing paid asset) also returns null after LogError to skip
-            var loaded = AddressableLoader.LoadDefault<GameObject>(element.AddressablePath);
-            if (loaded == null)
-            {
-                Debug.LogError($"MapObject prefab load failed. MapObjectGuid:{mapObjectGuid} AddressablePath:{element.AddressablePath}");
-                _prefabCacheByMapObjectGuid[mapObjectGuid] = null;
-                return null;
-            }
-
-            _prefabCacheByMapObjectGuid[mapObjectGuid] = loaded;
-            return loaded;
+            #endregion
         }
     }
 }

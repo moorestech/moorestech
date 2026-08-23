@@ -31,10 +31,6 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
         // The difference within which two scales count as equal, loosened only by the float round trip
         private const float ScaleTolerance = 0.001f;
 
-        // datastore側のNearFieldRadius=150fと同じ値。定数公開はテスト専用publicになるため値を重ねる
-        // Mirrors the datastore's NearFieldRadius=150f; exposing the constant would be a test-only public
-        private const float NearFieldRadius = 150f;
-
         [UnityTest]
         public IEnumerator MapObjectsMatchTheFacingAndScaleTheLayoutCarries()
         {
@@ -56,6 +52,10 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
             #region Internal
 
+            // IsNearFieldがローカル関数として同階層に並ぶため、Bodyで解決した値をここで共有する
+            // Shared here so IsNearField, a sibling local function, can see the value resolved inside Body
+            Vector3 playerPos = default;
+
             async UniTask Body()
             {
                 await LoadMainGame();
@@ -66,6 +66,11 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                 // 全量生成の完了待ちは実時間が過大なため、近傍待機で完結させ突き合わせ先も近傍から選ぶ（2026-08-23裁定）
                 // Awaiting full instantiation costs too much real time, so stop at the near-field gate and match near objects only (adjudicated 2026-08-23)
                 await datastore.WaitForInitialApplyAsync();
+
+                // playerPosはループ内で毎回DI解決すると79,000件規模でコストが跳ねるため、ここで1回だけ解決してIsNearFieldへ渡す
+                // Resolving playerPos on every loop iteration would spike cost at the 79,000 scale, so resolve it once here and pass it to IsNearField
+                playerPos = ClientDIContext.DIContainer.DIContainerResolver
+                    .Resolve<InitialHandshakeResponse>().PlayerPos;
 
                 var turnedLayout = FindTurnedLayout();
                 var expectedRotation = new Quaternion(
@@ -137,10 +142,8 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
             // Background objects are not instantiated yet, so matching is limited to the near-field range
             bool IsNearField(MapObjectLayoutMessagePack layout)
             {
-                var playerPos = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().PlayerPos;
                 var position = new Vector3(layout.X, layout.Y, layout.Z);
-                return (position - playerPos).sqrMagnitude <= NearFieldRadius * NearFieldRadius;
+                return MapObjectLayoutDistanceOrder.IsWithinNearField(position, playerPos);
             }
 
             #endregion

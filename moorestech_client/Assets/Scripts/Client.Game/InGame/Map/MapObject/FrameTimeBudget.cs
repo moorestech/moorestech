@@ -3,8 +3,8 @@ using System.Diagnostics;
 namespace Client.Game.InGame.Map.MapObject
 {
     /// <summary>
-    ///     フレームあたりの処理時間予算。Restartからの経過実時間が予算以上ならフレームを跨ぐ判断に使う
-    ///     A per-frame processing time budget; elapsed real time since Restart at or over the budget means "cross a frame"
+    ///     フレームあたりの処理時間予算（超過で次フレームへ）
+    ///     A per-frame processing time budget (crosses to the next frame when exceeded)
     /// </summary>
     public sealed class FrameTimeBudget
     {

@@ -5,11 +5,20 @@ using UnityEngine;
 namespace Client.Game.InGame.Map.MapObject
 {
     /// <summary>
-    ///     mapObjectのlayoutを基準点からの距離順に並べ、近傍境界の件数を算出する（ADR 0030）
-    ///     Orders map object layouts by distance from an origin and counts the near-field boundary (ADR 0030)
+    ///     layoutを距離順に並べ近傍境界を算出
+    ///     Orders layouts by distance and counts the near-field boundary
     /// </summary>
     public static class MapObjectLayoutDistanceOrder
     {
+        // 起動待機を解除する近傍半径
+        // Radius of the near field that releases the startup wait
+        public const float NearFieldRadius = 150f;
+
+        public static bool IsWithinNearField(Vector3 position, Vector3 origin)
+        {
+            return (position - origin).sqrMagnitude <= NearFieldRadius * NearFieldRadius;
+        }
+
         public static List<Entry> Sort(IReadOnlyList<MapObjectLayoutMessagePack> layouts, Vector3 origin)
         {
             // 79,000件規模でも一度きりのソートなので距離は前計算して焼き込む
@@ -47,7 +56,7 @@ namespace Client.Game.InGame.Map.MapObject
             public readonly MapObjectLayoutMessagePack Layout;
             public readonly float SqrDistance;
 
-            public Entry(MapObjectLayoutMessagePack layout, float sqrDistance)
+            internal Entry(MapObjectLayoutMessagePack layout, float sqrDistance)
             {
                 Layout = layout;
                 SqrDistance = sqrDistance;
