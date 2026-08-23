@@ -323,7 +323,7 @@ git commit -m "feat(map-object): 未生成個体宛イベントの保留台帳�
 - Consumes: `Server.Protocol.PacketResponse.MapData.MapObjectLayoutMessagePack`（X/Y/Zプロパティと15引数ctor。`Client.Game` から参照可能・既存datastoreが使用済み）
 - Produces: `public static class MapObjectLayoutDistanceOrder` — `public static List<Entry> Sort(IReadOnlyList<MapObjectLayoutMessagePack> layouts, Vector3 origin)`（近い順）／ `public static int CountWithinRadius(List<Entry> sortedEntries, float radius)`（ちょうどradiusは含む）。`public readonly struct Entry`（`public readonly MapObjectLayoutMessagePack Layout; public readonly float SqrDistance;`）は同ファイルに置く
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using System.Collections.Generic;
@@ -416,12 +416,12 @@ namespace Client.Tests.Map
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `MapObjectLayoutDistanceOrder` が存在しないエラー
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```csharp
 using System.Collections.Generic;
@@ -483,12 +483,12 @@ namespace Client.Game.InGame.Map.MapObject
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectLayoutDistanceOrderTest"`
 Expected: 5件PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectLayoutDistanceOrder.cs* moorestech_client/Assets/Scripts/Client.Tests/Map/MapObjectLayoutDistanceOrderTest.cs*
