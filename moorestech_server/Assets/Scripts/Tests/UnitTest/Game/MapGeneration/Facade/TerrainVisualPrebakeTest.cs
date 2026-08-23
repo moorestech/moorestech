@@ -1,8 +1,12 @@
+using System;
 using System.IO;
 using Game.MapGeneration.Facade;
+using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Server.Boot;
 using Tests.Module;
 using Tests.Module.TestMod;
 
@@ -12,19 +16,24 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
     // ProvisionGeneratedWorld呼び出しだけで検証対象が走る
     // Verifies the shared-cache prebake (TerrainVisualPrebake) that runs right after world generation
     // Calling ProvisionGeneratedWorld alone already exercises the target
-    // 全タイル契約は1タイルでも成立する。速度回帰を避けるためテストmasterの1x1を拡大しない
-    // The all-tiles contract holds with one tile; do not enlarge the test master's 1x1 and regress test time
+    // 通常の実生成は1x1を維持し、全タイル走査だけは低解像度2x2をこのfixture内で明示する
+    // Keep ordinary generation at 1x1; only the all-tiles traversal explicitly uses a low-resolution 2x2 inside this fixture
     public class TerrainVisualPrebakeTest
     {
         [Test]
         public void 生成ワールドの先焼きで共有キャッシュへ全タイルの見た目ファイルが書き出される()
         {
-            var scope = new TerrainTransferTestScope(nameof(生成ワールドの先焼きで共有キャッシュへ全タイルの見た目ファイルが書き出される));
-            var worldDirectory = scope.ProvisionGeneratedWorld(777);
+            var serverDataDirectory = CreateMultiTileServerDataDirectory();
+            var worldDirectory = WorldDataDirectory.FromWorldRoot(Path.Combine(Path.GetTempPath(), $"TerrainVisualPrebakeTest_{Guid.NewGuid()}"));
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(serverDataDirectory));
+            WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
+                worldDirectory, serverDataDirectory, WorldMapMode.Generated, 777));
+
             var meta = TerrainTransferMetaReader.Read(worldDirectory);
             var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
             try
             {
+                Assert.AreEqual(4, meta.TerrainTileCount);
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(meta.TerrainTileCount))
                     Assert.IsTrue(File.Exists(shared.TerrainVisualCacheFilePath(tileX, tileZ)),
                         $"tile ({tileX},{tileZ}) should have been prebaked into the shared cache");
@@ -32,7 +41,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             finally
             {
                 Directory.Delete(shared.Root, true);
-                scope.End();
+                Directory.Delete(worldDirectory.Root, true);
+                Directory.Delete(serverDataDirectory, true);
             }
         }
 
@@ -80,6 +90,23 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
                 File.Copy(filePath, Path.Combine(destinationDirectory, Path.GetFileName(filePath)), true);
             foreach (var subDirectory in Directory.GetDirectories(sourceDirectory))
                 CopyDirectory(subDirectory, Path.Combine(destinationDirectory, Path.GetFileName(subDirectory)));
+        }
+
+        // 全タイル走査だけを検証する専用コピーを2x2・低解像度にし、共有テストmasterの高速な1x1を変更しない
+        // Make a dedicated 2x2 low-resolution copy for all-tiles traversal without changing the shared test master's fast 1x1
+        private static string CreateMultiTileServerDataDirectory()
+        {
+            var serverDataDirectory = Path.Combine(Path.GetTempPath(), $"TerrainVisualPrebakeServerData_{Guid.NewGuid()}");
+            CopyDirectory(TestModDirectory.ForUnitTestModDirectory, serverDataDirectory);
+
+            var generationJsonPath = Path.Combine(serverDataDirectory, "mods", "forUnitTest", "master", "generation.json");
+            var generationJson = JObject.Parse(File.ReadAllText(generationJsonPath));
+            var algorithmParam = (JObject)generationJson["algorithmParam"];
+            algorithmParam["gridSizeX"] = 2;
+            algorithmParam["gridSizeZ"] = 2;
+            algorithmParam["overrideResolution"] = 129;
+            File.WriteAllText(generationJsonPath, generationJson.ToString());
+            return serverDataDirectory;
         }
     }
 }
