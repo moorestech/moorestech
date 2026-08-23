@@ -21,7 +21,7 @@ namespace Client.Game.InGame.Tutorial
         // Empty candidates before apply and after completion, so the per-frame search needs no null branch
         private static readonly HashSet<Guid> EmptyTargets = new HashSet<Guid>();
 
-        private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
+        private MapObjectPinTargetResolver _targetResolver;
         private TutorialWorldPinVisibility _visibility;
 
         // ピンは非活性で置かれAwakeが走らないまま表示要求が届くため、初回要求時に組み立てる
@@ -41,9 +41,9 @@ namespace Client.Game.InGame.Tutorial
         private bool _publishing;
 
         [Inject]
-        public void Initialize(MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
+        public void Initialize(IMapObjectPinTargetSource targetSource)
         {
-            _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
+            _targetResolver = new MapObjectPinTargetResolver(targetSource);
         }
 
         private void Update()
@@ -62,11 +62,14 @@ namespace Client.Game.InGame.Tutorial
                 // 候補集合中の最寄り未破壊にピン
                 // Pin the nearest undestroyed candidate
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_targetMapObjectGuids, playerPos);
-
-                if (mapObject == null)
+                if (!_targetResolver.TryResolve(
+                        _targetMapObjectGuids,
+                        playerPos,
+                        _missingReported,
+                        out var mapObject,
+                        out var shouldReportMissing))
                 {
-                    HideForMissingMapObject();
+                    HideForMissingMapObject(shouldReportMissing);
                     return false;
                 }
 
@@ -75,20 +78,18 @@ namespace Client.Game.InGame.Tutorial
                 return true;
             }
 
-            void HideForMissingMapObject()
+            void HideForMissingMapObject(bool shouldReportMissing)
             {
-                // 指す先無しは配信を止め、報告は初回のみ
-                // Stop publishing when there is nothing to point at; report only once
-                if (!_missingReported)
-                {
-                    _missingReported = true;
-                    Debug.LogError($"未破壊のMapObject（tutorialGuid={_pinTutorialGuid}、候補{_targetMapObjectGuids.Count}件）が存在しません");
-                }
+                // 指す先無しのまま配信を続けると前回チュートリアルの座標を指し続ける。消すのは配信中の1回だけ
+                // Publishing on with nothing to point at keeps showing the previous tutorial's position; the removal runs only once per publishing streak
+                if (_publishing) RemoveWorldPin();
 
-                // SetActive(false)はUpdateごと止めて対象が戻っても復帰できないため、配信の停止だけに留める
-                // SetActive(false) would stop Update itself and never recover when a target returns, so only publishing is stopped
-                if (!_publishing) return;
-                RemoveWorldPin();
+                // 非活性化は更新を止め復帰を阻む
+                // SetActive(false) stops Update and prevents recovery, so only publishing stops
+                if (!shouldReportMissing) return;
+
+                _missingReported = true;
+                Debug.LogError($"未破壊のMapObject（tutorialGuid={_pinTutorialGuid}、候補{_targetMapObjectGuids.Count}件）が存在しません");
             }
 
             void PublishWebWorldPin()
