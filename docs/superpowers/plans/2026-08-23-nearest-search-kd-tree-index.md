@@ -1112,18 +1112,24 @@ git commit -m "perf(world-pin): WorldPinStateStoreの毎フレームLINQアロ�
 **Files:**
 - 変更なし（検証のみ）
 
-- [ ] **Step 1: 木チュートリアルの通し動作を確認する**
+- [ ] **Step 1: 木チュートリアルの通し動作を確認する** — **ブロック（本PR外の既知不整合）**
+
+> masterデータとスキーマの不整合でPlayModeが起動できず未実施。`VanillaSchema/map.yml` の `mapObjects[].terrainSurroundEffectType`（enum必須）は本repoの `430925007`(2026-08-17、本ブランチのbaseに含まれる)で入ったが、master data側は `8fcefa5` で `mapVeins` にしか追加しておらず、mapObjects側を満たすmasterコミットが存在しない。実測: `ab9e8bc4`(本ブランチのピン)=`fluids[0].color` 欠落 / `e15995ab`=`entries[0].placementMode` 欠落 / `00dda1f8`・`6e01345`(現origin/masterのピン)=`mapObjects[0].terrainSurroundEffectType` 欠落。既存bd `moorestech-lft8`(P0)・`moorestech-hvwb`(P0)・`moorestech-n2xv` と同一事象。シナリオ `.agents/skills/unity-playmode-recorded-playtest/scenarios/tutorial-tree-pin-nearest-search.cs` は作成済みで、環境復旧後にそのまま実行できる。代替として破壊イベント→`MarkDirty`→索引脱落の経路は `MapObjectRotationTest`(EditModeInPlayingTest・実データ起動)で検証済み
+
 
 unity-playmode-recorded-playtest スキル（プレイテストDSL）で、木ピンのチュートリアルが出る段階まで進め、(a) ピンが最寄りの木を指す (b) 1本伐採後にピンが次の木へ移る (c) Errorログに「未破壊のMapObject」「露頭が存在しません」が出ない、を確認する。
 Run: `uloop get-logs --project-path ./moorestech_client --log-type Error`
 Expected: 本変更由来のErrorが0件
 
-- [ ] **Step 2: 全EditModeテストの回帰確認**
+- [x] **Step 2: 全EditModeテストの回帰確認**
+
+> 一括フィルタは uloop クライアントの180秒上限で切れるため7チャンクに分割して実行。合計 245 passed / 2 failed。failedの2件(`MapObjectAddressableLoadTest` / `MapObjectRayTargetTest`)はいずれも `Assets/AddressableResources/Environment/Rock/MesaDesert/StratMesaSharp_0.prefab` 不在が原因で、本ブランチは `AddressableResources` 配下を1ファイルも変更していない(既存のmasterデータ↔非公開アセット不整合)
+
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Map|Tutorial|Mining|WebUi|NearestSearch"`
 Expected: 全件 PASS
 
-- [ ] **Step 3: bdを更新する**
+- [x] **Step 3: bdを更新する**
 
 ```bash
 bd update moorestech-8tw6 --claim
@@ -1135,11 +1141,11 @@ bd note moorestech-8tw6 "k-d tree索引化を実装。plan: docs/superpowers/pla
 
 ### Task 9: 全ブランチレビュー（必須・省略不可）
 
-- [ ] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
+- [x] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
 
 必ず最後にコードレビュースキル（moores-code-review）で全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。指摘の機械的修正を適用し、設計判断はAskUserQuestionで仰ぐ。
 
-- [ ] **Step 2: 修正をコミットし pr-create スキルでPRを作る**
+- [x] **Step 2: 修正をコミットし pr-create スキルでPRを作る**
 
 ```bash
 git add -A && git commit -m "fix: moores-code-review指摘を反映"
