@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UniRx;
 using UnityEngine;
 
@@ -34,7 +33,7 @@ namespace Client.Game.InGame.Tutorial
 
         public void SetPin(string pinId, string tutorialGuid, WorldPinProjection projection)
         {
-            var existing = _pins.FirstOrDefault(pin => pin.PinId == pinId);
+            var existing = FindPin(pinId);
             if (existing != null && IsSame(existing)) return;
 
             if (existing == null)
@@ -53,6 +52,18 @@ namespace Client.Game.InGame.Tutorial
 
             #region Internal
 
+            WorldPinData FindPin(string targetPinId)
+            {
+                // 毎フレーム呼ばれるのでLINQのクロージャ確保を避ける
+                // Called every frame, so avoid the LINQ closure allocation
+                foreach (var pin in _pins)
+                {
+                    if (pin.PinId == targetPinId) return pin;
+                }
+
+                return null;
+            }
+
             bool IsSame(WorldPinData pin)
             {
                 return pin.TutorialGuid == tutorialGuid &&
@@ -68,8 +79,16 @@ namespace Client.Game.InGame.Tutorial
 
         public void RemovePin(string pinId)
         {
-            var removed = _pins.RemoveAll(pin => pin.PinId == pinId);
-            if (0 < removed) Publish();
+            // 対象不在でも毎フレーム呼ばれる経路なので、ラムダの確保を避けて走査する
+            // This path is hit every frame even with nothing to remove, so scan without allocating a lambda
+            for (var i = 0; i < _pins.Count; i++)
+            {
+                if (_pins[i].PinId != pinId) continue;
+
+                _pins.RemoveAt(i);
+                Publish();
+                return;
+            }
         }
 
         private void Publish()
@@ -80,10 +99,13 @@ namespace Client.Game.InGame.Tutorial
 
         private WorldPinPresentationData CreateData()
         {
-            return new WorldPinPresentationData
+            // 配信1回につき配列1本。Selectのイテレータ確保を避ける
+            // One array per publish; avoid the Select iterator allocation
+            var pins = new WorldPinData[_pins.Count];
+            for (var i = 0; i < _pins.Count; i++)
             {
-                Revision = _revision,
-                Pins = _pins.Select(pin => new WorldPinData
+                var pin = _pins[i];
+                pins[i] = new WorldPinData
                 {
                     PinId = pin.PinId,
                     TutorialGuid = pin.TutorialGuid,
@@ -92,8 +114,10 @@ namespace Client.Game.InGame.Tutorial
                     OnScreen = pin.OnScreen,
                     DirectionX = pin.DirectionX,
                     DirectionY = pin.DirectionY,
-                }).ToArray(),
-            };
+                };
+            }
+
+            return new WorldPinPresentationData { Revision = _revision, Pins = pins };
         }
     }
 }
