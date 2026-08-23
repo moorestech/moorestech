@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.MapGeneration.Pipeline.Visual;
 
 namespace Game.MapGeneration.Cache
 {
@@ -12,25 +13,17 @@ namespace Game.MapGeneration.Cache
         // Display heights with the tree perturbation added; [z, x]
         public readonly float[,] DisplayHeights;
 
-        // 4層/面RGBA8列（z-x-rgba）
-        // RGBA8 planes: four layers each, z-x-rgba.
-        public readonly IReadOnlyList<byte[]> AlphamapPlanes;
-
-        public readonly int AlphamapResolution;
-        public readonly int AlphamapLayerCount;
+        public readonly TileAlphamap Alphamap;
 
         // detailプロトタイプと同じ並びの密度マップ。各要素は[z, x]
         // Density maps parallel to the detail prototypes; each element is [z, x]
         public readonly IReadOnlyList<int[,]> DetailMaps;
 
         public TerrainTileVisual(
-            float[,] displayHeights, IReadOnlyList<byte[]> alphamapPlanes, int alphamapResolution, int layerCount,
-            IReadOnlyList<int[,]> detailMaps)
+            float[,] displayHeights, TileAlphamap alphamap, IReadOnlyList<int[,]> detailMaps)
         {
             DisplayHeights = displayHeights;
-            AlphamapPlanes = alphamapPlanes;
-            AlphamapResolution = alphamapResolution;
-            AlphamapLayerCount = layerCount;
+            Alphamap = alphamap;
             DetailMaps = detailMaps;
         }
     }

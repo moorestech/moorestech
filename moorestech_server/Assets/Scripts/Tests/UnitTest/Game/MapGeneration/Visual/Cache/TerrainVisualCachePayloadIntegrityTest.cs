@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual;
 using Game.Paths;
 using NUnit.Framework;
 using static Game.MapGeneration.Cache.TerrainVisualCacheFormat;
@@ -101,7 +102,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
                 detailMaps.Add(new int[DetailResolution, DetailResolution]);
 
             return new TerrainTileVisual(
-                displayHeights, StoredAlphamapWeights.ToPlanes(alphamap), AlphamapResolution, LayerCount, detailMaps);
+                displayHeights,
+                TileAlphamap.Create(StoredAlphamapWeights.ToPlanes(alphamap), AlphamapResolution, LayerCount),
+                detailMaps);
         }
     }
 }

@@ -19,9 +19,13 @@ namespace Game.MapGeneration.Cache
                 throw new InvalidOperationException(
                     $"[TerrainVisualCacheWriter] The cache key must be {CacheKeyByteLength} hex characters but was {cacheKey.Length}.");
 
+            var alphamap = tileVisual.Alphamap;
+            if (alphamap == null)
+                throw new InvalidOperationException("[TerrainVisualCacheWriter] An unbuilt alphamap cannot be cached.");
+
             var heightmapResolution = tileVisual.DisplayHeights.GetLength(0);
-            var alphamapResolution = tileVisual.AlphamapResolution;
-            var layerCount = tileVisual.AlphamapLayerCount;
+            var alphamapResolution = alphamap.Resolution;
+            var layerCount = alphamap.LayerCount;
             var detailMapCount = tileVisual.DetailMaps.Count;
             var detailResolution = detailMapCount == 0 ? 0 : tileVisual.DetailMaps[0].GetLength(0);
 
@@ -83,19 +87,8 @@ namespace Game.MapGeneration.Cache
 
             void WriteAlphamapPlanes(FileStream stream, IncrementalHash payloadHash)
             {
-                var expectedPlaneByteLength = (int)AlphamapPlaneByteLength(alphamapResolution);
-                if (tileVisual.AlphamapPlanes.Count != AlphamapPlaneCount(layerCount))
-                    throw new InvalidOperationException(
-                        $"[TerrainVisualCacheWriter] {layerCount} layers need {AlphamapPlaneCount(layerCount)} planes " +
-                        $"but {tileVisual.AlphamapPlanes.Count} were given.");
-
-                foreach (var plane in tileVisual.AlphamapPlanes)
+                foreach (var plane in alphamap.Planes)
                 {
-                    if (plane.Length != expectedPlaneByteLength)
-                        throw new InvalidOperationException(
-                            $"[TerrainVisualCacheWriter] An alphamap plane holds {plane.Length} bytes but resolution " +
-                            $"{alphamapResolution} requires {expectedPlaneByteLength}.");
-
                     stream.Write(plane, 0, plane.Length);
                     payloadHash.AppendData(plane);
                 }

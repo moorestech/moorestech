@@ -107,8 +107,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
         {
             var baked = CreateBaker(true, true, true).Bake(TileX, TileZ);
 
-            Assert.That(baked.AlphamapLayerCount, Is.GreaterThan(0));
-            Assert.That(baked.AlphamapResolution, Is.EqualTo(AlphamapResolution));
+            Assert.That(baked.Alphamap, Is.Not.Null);
+            Assert.That(baked.Alphamap.LayerCount, Is.GreaterThan(0));
+            Assert.That(baked.Alphamap.Resolution, Is.EqualTo(AlphamapResolution));
         }
 
         [Test]
@@ -118,8 +119,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
 
             // alphamapが無いことがSplatmapRuntimeGenerateを通っていない唯一の観測点
             // The absent alphamap is the single observable telling SplatmapRuntimeGenerator never ran
-            Assert.That(baked.AlphamapLayerCount, Is.EqualTo(0));
-            Assert.That(baked.AlphamapPlanes, Is.Empty);
+            Assert.That(baked.Alphamap, Is.Null);
             Assert.That(baked.DetailMaps.Count, Is.EqualTo(1));
         }
 
@@ -162,7 +162,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
 
             Assert.That(ledgerSource.ResolveCount, Is.EqualTo(0));
             Assert.That(baked.DisplayHeights[0, 0], Is.EqualTo(0f));
-            Assert.That(baked.AlphamapPlanes, Is.Empty);
+            Assert.That(baked.Alphamap, Is.Null);
             Assert.That(baked.DetailMaps, Is.Empty);
         }
 

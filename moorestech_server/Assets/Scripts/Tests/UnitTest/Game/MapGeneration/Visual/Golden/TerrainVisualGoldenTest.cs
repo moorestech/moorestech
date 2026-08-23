@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(output.Tiles.Count))
                 {
                     var baked = baker.Bake(tileX, tileZ);
-                    actual[$"alphamap_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(baked.AlphamapPlanes.SelectMany(plane => plane).ToArray());
+                    actual[$"alphamap_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(baked.Alphamap.Planes.SelectMany(plane => plane).ToArray());
                     actual[$"heights_{tileX}_{tileZ}"] = TerrainVisualGoldenFixture.Sha256(baked.DisplayHeights);
                     for (var d = 0; d < baked.DetailMaps.Count; d++)
                         actual[$"detail_{tileX}_{tileZ}_{d}"] = TerrainVisualGoldenFixture.Sha256(baked.DetailMaps[d]);

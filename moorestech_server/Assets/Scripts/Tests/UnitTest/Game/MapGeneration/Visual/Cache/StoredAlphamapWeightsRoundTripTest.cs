@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Surround;
 using NUnit.Framework;
 using UnityEngine;
@@ -166,13 +167,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
         private System.Collections.Generic.IReadOnlyList<byte[]> WriteAndRead(byte[][] planes)
         {
             TerrainVisualCacheWriter.Write(_filePath, CacheKey, new TerrainTileVisual(
-                new float[HeightmapResolution, HeightmapResolution], planes, AlphaResolution, LayerCount, Array.Empty<int[,]>()));
+                new float[HeightmapResolution, HeightmapResolution],
+                TileAlphamap.Create(planes, AlphaResolution, LayerCount), Array.Empty<int[,]>()));
 
             var succeeded = TerrainVisualCacheReader.TryRead(
                 _filePath, CacheKey, HeightmapResolution, AlphaResolution, LayerCount, 0, 0, out var tileVisual, out var brokenReason);
             Assert.That(succeeded, Is.True, brokenReason);
 
-            return tileVisual.AlphamapPlanes;
+            return tileVisual.Alphamap.Planes;
         }
 
         private static float MaximumWeightSum(float[,,] alphamap)

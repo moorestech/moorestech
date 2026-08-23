@@ -23,8 +23,7 @@ namespace Game.MapGeneration.Facade
             // Merely moves the generation-internal result into the boundary DTO as values; computing here would give the bake two sources of truth
             var bakeResult = _baker.Bake(tileX, tileZ);
             return new BakedTerrainTile(
-                bakeResult.ScenePosition, bakeResult.DisplayHeights, bakeResult.AlphamapPlanes,
-                bakeResult.AlphamapResolution, bakeResult.AlphamapLayerCount, bakeResult.DetailMaps);
+                bakeResult.ScenePosition, bakeResult.DisplayHeights, bakeResult.Alphamap, bakeResult.DetailMaps);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.MapGeneration.Pipeline.Visual;
 using UnityEngine;
 
 namespace Game.MapGeneration.Facade
@@ -13,23 +14,16 @@ namespace Game.MapGeneration.Facade
         // Display heights (post-tree perturbation); [z, x]
         public float[,] DisplayHeights { get; }
 
-        // 4層/面RGBA8列（z-x-rgba）
-        // RGBA8 planes: four layers each, z-x-rgba.
-        public IReadOnlyList<byte[]> AlphamapPlanes { get; }
-        public int AlphamapResolution { get; }
-        public int AlphamapLayerCount { get; }
+        public TileAlphamap Alphamap { get; }
 
         public IReadOnlyList<int[,]> DetailMaps { get; }
 
         public BakedTerrainTile(
-            Vector3 scenePosition, float[,] displayHeights, IReadOnlyList<byte[]> alphamapPlanes,
-            int alphamapResolution, int alphamapLayerCount, IReadOnlyList<int[,]> detailMaps)
+            Vector3 scenePosition, float[,] displayHeights, TileAlphamap alphamap, IReadOnlyList<int[,]> detailMaps)
         {
             ScenePosition = scenePosition;
             DisplayHeights = displayHeights;
-            AlphamapPlanes = alphamapPlanes;
-            AlphamapResolution = alphamapResolution;
-            AlphamapLayerCount = alphamapLayerCount;
+            Alphamap = alphamap;
             DetailMaps = detailMaps;
         }
     }

@@ -44,17 +44,18 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             {
                 // 非生成時はUnity既定のalphamapを維持
                 // When not generating, Unity's default alphamap is kept
-                if (tile.AlphamapLayerCount == 0) return;
+                var alphamap = tile.Alphamap;
+                if (alphamap == null) return;
 
                 // レイヤー表がalphamapのレイヤー数と食い違うとUnityが確保するテクスチャ枚数がずれ、載せる平面と対応しなくなる
                 // A layer table disagreeing with the alphamap's layer count changes how many textures Unity allocates, breaking the correspondence with the planes
-                if (terrainLayers.Length != tile.AlphamapLayerCount)
+                if (terrainLayers.Length != alphamap.LayerCount)
                     throw new System.InvalidOperationException(
-                        $"[TerrainDataAssembler] {terrainLayers.Length} terrain layers were resolved but the tile was baked for {tile.AlphamapLayerCount}.");
+                        $"[TerrainDataAssembler] {terrainLayers.Length} terrain layers were resolved but the tile was baked for {alphamap.LayerCount}.");
 
-                terrainData.alphamapResolution = tile.AlphamapResolution;
+                terrainData.alphamapResolution = alphamap.Resolution;
                 terrainData.terrainLayers = terrainLayers;
-                await TerrainAlphamapApplier.ApplyAsync(terrainData, tile.AlphamapPlanes, tile.AlphamapResolution);
+                await TerrainAlphamapApplier.ApplyAsync(terrainData, alphamap.Planes, alphamap.Resolution);
             }
 
             void ApplyDetail()

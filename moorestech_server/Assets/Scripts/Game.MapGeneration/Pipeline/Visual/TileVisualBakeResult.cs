@@ -17,23 +17,16 @@ namespace Game.MapGeneration.Pipeline.Visual
         // Display heights (post-tree perturbation); [z, x]
         public readonly float[,] DisplayHeights;
 
-        // 4層/面RGBA8列（z-x-rgba）
-        // RGBA8 planes: four layers each, z-x-rgba.
-        public readonly IReadOnlyList<byte[]> AlphamapPlanes;
-        public readonly int AlphamapResolution;
-        public readonly int AlphamapLayerCount;
+        public readonly TileAlphamap Alphamap;
 
         public readonly IReadOnlyList<int[,]> DetailMaps;
 
         public TileVisualBakeResult(
-            Vector3 scenePosition, float[,] displayHeights, IReadOnlyList<byte[]> alphamapPlanes,
-            int alphamapResolution, int alphamapLayerCount, IReadOnlyList<int[,]> detailMaps)
+            Vector3 scenePosition, float[,] displayHeights, TileAlphamap alphamap, IReadOnlyList<int[,]> detailMaps)
         {
             ScenePosition = scenePosition;
             DisplayHeights = displayHeights;
-            AlphamapPlanes = alphamapPlanes;
-            AlphamapResolution = alphamapResolution;
-            AlphamapLayerCount = alphamapLayerCount;
+            Alphamap = alphamap;
             DetailMaps = detailMaps;
         }
     }

@@ -101,7 +101,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             // With all generation off, returns empty without input reads.
             if (!_gridConfig.generateHeightmap && !_gridConfig.generateTexture && !_gridConfig.generateDetail)
                 return new TileVisualBakeResult(
-                    tileWorldPosition, CreateFlatHeights(_gridConfig.Resolution), Array.Empty<byte[]>(), 0, 0, Array.Empty<int[,]>());
+                    tileWorldPosition, CreateFlatHeights(_gridConfig.Resolution), null, Array.Empty<int[,]>());
 
             var detailResolution = _gridConfig.detailResolution;
 
@@ -111,8 +111,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             // The same inner gate shape as generateTexture/generateDetail; off feeds a flat array so the terrain itself stays flat
             var displayHeights = _gridConfig.generateHeightmap ? tileVisual.DisplayHeights : CreateFlatHeights(_gridConfig.Resolution);
             return new TileVisualBakeResult(
-                tileWorldPosition, displayHeights, tileVisual.AlphamapPlanes, tileVisual.AlphamapResolution,
-                tileVisual.AlphamapLayerCount, tileVisual.DetailMaps);
+                tileWorldPosition, displayHeights, tileVisual.Alphamap, tileVisual.DetailMaps);
 
             #region Internal
 
@@ -121,7 +120,7 @@ namespace Game.MapGeneration.Pipeline.Visual
                 // splatもdetailも作らない設定では分類の結果を誰も読まない。高さだけを組み、キャッシュには触れない
                 // With neither splat nor detail requested nobody reads the classification: only the heights are built and the cache is untouched
                 if (!_gridConfig.generateTexture && !_gridConfig.generateDetail)
-                    return new TerrainTileVisual(BuildHeightPair().Post, Array.Empty<byte[]>(), 0, 0, Array.Empty<int[,]>());
+                    return new TerrainTileVisual(BuildHeightPair().Post, null, Array.Empty<int[,]>());
 
                 // キャッシュ形式はalphamapを必ず1枚要求する。テクスチャを作らない見た目は書けないので読みも書きもしない
                 // The cache format always demands one alphamap, so a texture-less visual is neither read nor written
@@ -161,10 +160,12 @@ namespace Game.MapGeneration.Pipeline.Visual
 
                 // Detailは移植元と同じ生の重みを読む。平面化はその後で、保存と適用に回る値だけをキャッシュ往復で不変にする
                 // Detail reads the same raw weights as the source; the flattening comes after it and only makes the stored, applied values survive a round trip
-                if (alphamap == null) return new TerrainTileVisual(postHeights, Array.Empty<byte[]>(), 0, 0, detailMaps);
+                if (alphamap == null) return new TerrainTileVisual(postHeights, null, detailMaps);
 
                 return new TerrainTileVisual(
-                    postHeights, StoredAlphamapWeights.ToPlanes(alphamap), alphamap.GetLength(0), alphamap.GetLength(2), detailMaps);
+                    postHeights,
+                    TileAlphamap.Create(StoredAlphamapWeights.ToPlanes(alphamap), alphamap.GetLength(0), alphamap.GetLength(2)),
+                    detailMaps);
             }
 
             (float[,] Pre, float[,] Post) BuildHeightPair()

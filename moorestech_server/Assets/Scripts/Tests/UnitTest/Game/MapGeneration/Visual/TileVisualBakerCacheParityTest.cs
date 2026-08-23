@@ -72,11 +72,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             // ヒットは書き戻さない。更新時刻が動いていないことが2回目がキャッシュを引いた証拠になる
             // A hit never writes back, so an unmoved timestamp is the evidence the second bake read the cache
             Assert.That(File.GetLastWriteTimeUtc(cacheFilePath), Is.EqualTo(writeTimeAfterFirstBake), "2回目がキャッシュを引かないと往復を検証できない");
-            Assert.That(HasFractionalWeight(first.AlphamapPlanes), Is.True, "0か1しかない盤面では量子化の有無が現れない");
+            Assert.That(HasFractionalWeight(first.Alphamap.Planes), Is.True, "0か1しかない盤面では量子化の有無が現れない");
 
-            Assert.That(second.AlphamapPlanes.Count, Is.EqualTo(first.AlphamapPlanes.Count));
-            for (var planeIndex = 0; planeIndex < first.AlphamapPlanes.Count; planeIndex++)
-                Assert.That(second.AlphamapPlanes[planeIndex], Is.EqualTo(first.AlphamapPlanes[planeIndex]), $"plane={planeIndex}");
+            Assert.That(second.Alphamap.Planes.Count, Is.EqualTo(first.Alphamap.Planes.Count));
+            for (var planeIndex = 0; planeIndex < first.Alphamap.Planes.Count; planeIndex++)
+                Assert.That(second.Alphamap.Planes[planeIndex], Is.EqualTo(first.Alphamap.Planes[planeIndex]), $"plane={planeIndex}");
 
             // 木摂動もキャッシュ往復一致
             // Keeps tree perturbations equal across the cache round trip.

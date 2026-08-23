@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
+using Game.MapGeneration.Pipeline.Visual;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -49,7 +50,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
         [UnityTest]
         public IEnumerator AppliesTheHeightsAlways()
         {
-            yield return Assemble(CreateAlphamapPlanes(), AlphamapResolution, LayerCount);
+            yield return Assemble(CreateAlphamap());
 
             var appliedHeights = _terrainData.GetHeights(0, 0, Resolution, Resolution);
             Assert.That(appliedHeights[2, 2], Is.EqualTo(NormalizedHeight).Within(0.001f));
@@ -60,7 +61,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
         [UnityTest]
         public IEnumerator AppliesTheSplatmapWhenTheAlphamapIsPresent()
         {
-            yield return Assemble(CreateAlphamapPlanes(), AlphamapResolution, LayerCount);
+            yield return Assemble(CreateAlphamap());
 
             Assert.That(_terrainData.terrainLayers.Length, Is.EqualTo(LayerCount));
             Assert.That(_terrainData.alphamapResolution, Is.EqualTo(AlphamapResolution));
@@ -72,7 +73,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
         [UnityTest]
         public IEnumerator LeavesTheDefaultAlphamapWhenNoLayerWasBaked()
         {
-            yield return Assemble(System.Array.Empty<byte[]>(), 0, 0);
+            yield return Assemble(null);
 
             // レイヤーが1本も載らないことが、alphamapへ触れていない唯一の観測点になる
             // No layer being mounted is the single observable telling the alphamap was never touched
@@ -99,13 +100,13 @@ namespace Client.Tests.UnitTest.Terrain.Build
             Assert.Throws<System.InvalidOperationException>(() => task.GetAwaiter().GetResult());
         }
 
-        private IEnumerator Assemble(IReadOnlyList<byte[]> alphamapPlanes, int alphamapResolution, int alphamapLayerCount)
+        private IEnumerator Assemble(TileAlphamap alphamap)
         {
             var layout = WorldTerrainLayout.CreateTileMaps(
                 new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
                 new List<string>(), new List<DetailPrototypeSpec>());
             var tile = new BakedTerrainTile(
-                Vector3.zero, CreateHeights(), alphamapPlanes, alphamapResolution, alphamapLayerCount, new List<int[,]>());
+                Vector3.zero, CreateHeights(), alphamap, new List<int[,]>());
 
             var assembleTask = TerrainDataAssembler.AssembleAsync(layout, tile, new List<DetailPrototype>(), _terrainLayers);
 
@@ -118,7 +119,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
                 new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
                 new List<string>(), new List<DetailPrototypeSpec>());
             var tile = new BakedTerrainTile(
-                Vector3.zero, CreateHeights(), System.Array.Empty<byte[]>(), 0, 0, detailMaps);
+                Vector3.zero, CreateHeights(), null, detailMaps);
             var prototypes = new List<DetailPrototype>();
             for (var index = 0; index < detailMaps.Count; index++) prototypes.Add(new DetailPrototype());
 
@@ -137,7 +138,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
 
         // 0番レイヤーだけに全重みを寄せる。適用されたかどうかを1画素の重みで見分けられる形
         // All weight goes to layer 0 so a single pixel's weight tells whether the apply happened
-        private static IReadOnlyList<byte[]> CreateAlphamapPlanes()
+        private static TileAlphamap CreateAlphamap()
         {
             // 平面は[z][x][rgba]の生バイト。焼き側の変換に依存させず、この並びを直に組んで期待値を固定する
             // A plane is raw [z][x][rgba] bytes; building the order here rather than through the baker pins the expectation itself
@@ -145,7 +146,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
             for (var pixel = 0; pixel < AlphamapResolution * AlphamapResolution; pixel++)
                 plane[pixel * 4] = byte.MaxValue;
 
-            return new[] { plane };
+            return TileAlphamap.Create(new[] { plane }, AlphamapResolution, LayerCount);
         }
     }
 }

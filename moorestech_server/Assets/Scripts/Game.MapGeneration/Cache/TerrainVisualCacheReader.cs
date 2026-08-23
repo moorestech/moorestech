@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using Game.MapGeneration.Pipeline.Visual;
 using static Game.MapGeneration.Cache.TerrainVisualCacheFormat;
 
 namespace Game.MapGeneration.Cache
@@ -102,7 +103,8 @@ namespace Game.MapGeneration.Cache
                 return false;
             }
 
-            tileVisual = new TerrainTileVisual(displayHeights, alphamapPlanes, alphamapResolution, layerCount, detailMaps);
+            var alphamap = TileAlphamap.Create(alphamapPlanes, alphamapResolution, layerCount);
+            tileVisual = new TerrainTileVisual(displayHeights, alphamap, detailMaps);
             return true;
 
             #region Internal

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual;
 using Game.Paths;
 using NUnit.Framework;
 using UnityEngine;
@@ -63,13 +64,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
                 Assert.That(loaded.DisplayHeights[z, x], Is.EqualTo(saved.DisplayHeights[z, x]).Within(1f / ushort.MaxValue),
                     $"height z={z} x={x}");
 
-            Assert.That(loaded.AlphamapResolution, Is.EqualTo(AlphamapResolution));
-            Assert.That(loaded.AlphamapLayerCount, Is.EqualTo(LayerCount));
-            Assert.That(loaded.AlphamapPlanes.Count, Is.EqualTo(saved.AlphamapPlanes.Count));
-            for (var planeIndex = 0; planeIndex < saved.AlphamapPlanes.Count; planeIndex++)
+            Assert.That(loaded.Alphamap.Resolution, Is.EqualTo(AlphamapResolution));
+            Assert.That(loaded.Alphamap.LayerCount, Is.EqualTo(LayerCount));
+            Assert.That(loaded.Alphamap.Planes.Count, Is.EqualTo(saved.Alphamap.Planes.Count));
+            for (var planeIndex = 0; planeIndex < saved.Alphamap.Planes.Count; planeIndex++)
                 // 平面はそのままテクスチャへ載る。1バイトも動いてはいけない
                 // A plane goes onto a texture verbatim, so not one byte may move
-                Assert.That(loaded.AlphamapPlanes[planeIndex], Is.EqualTo(saved.AlphamapPlanes[planeIndex]), $"plane={planeIndex}");
+                Assert.That(loaded.Alphamap.Planes[planeIndex], Is.EqualTo(saved.Alphamap.Planes[planeIndex]), $"plane={planeIndex}");
 
             Assert.That(loaded.DetailMaps.Count, Is.EqualTo(saved.DetailMaps.Count));
             for (var mapIndex = 0; mapIndex < saved.DetailMaps.Count; mapIndex++)
@@ -219,7 +220,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             }
 
             return new TerrainTileVisual(
-                displayHeights, StoredAlphamapWeights.ToPlanes(alphamap), AlphamapResolution, LayerCount, detailMaps);
+                displayHeights,
+                TileAlphamap.Create(StoredAlphamapWeights.ToPlanes(alphamap), AlphamapResolution, LayerCount),
+                detailMaps);
         }
     }
 }
