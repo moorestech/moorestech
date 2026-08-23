@@ -6,10 +6,10 @@ using UnityEngine;
 namespace Client.Game.InGame.Environment.Terrain.Build
 {
     /// <summary>
-    ///     焼き上がったRGBA8平面をTerrainのalphamapTexturesへそのまま載せる。
+    ///     RGBA8平面をTerrainへ直接適用
     ///     SetAlphamapsはfloat[z,x,layer]を要求するため、平面から組み直す変換とUnity側の再量子化が二重にかかる。
     ///     平面はUnityがalphamapを保持している形そのものなので、テクスチャへ直接載せれば変換が1つも要らない。
-    ///     Uploads the baked RGBA8 planes straight onto the terrain's alphamapTextures.
+    ///     Applies RGBA8 planes directly to Terrain.
     ///     SetAlphamaps demands a float[z, x, layer], which costs both a rebuild from the planes and Unity's own requantization.
     ///     The planes are exactly how Unity already holds an alphamap, so loading them into the textures needs no conversion at all.
     /// </summary>

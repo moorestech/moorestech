@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Core.Master;
@@ -24,6 +25,10 @@ namespace Game.MapGeneration.Provisioning
         // 位置はfloatでmap.jsonを往復するので1mm刻みへ丸めて突き合わせる。配置が実際に動くときはメートル単位で移る
         // Positions round-trip through map.json as floats, so the keys quantise to 1mm; a placement that really moved shifts by metres
         private const int PositionKeyUnitsPerMeter = 1000;
+
+        // scaleは配置台帳digestと同じくfloatの全精度を保つ。位置の1mm許容を流用すると小さな見た目差を同一配置と誤認する
+        // Scale keeps full float precision as the placement-ledger digest does; reusing position's 1mm tolerance would hide small visual changes
+        private const string ScaleRoundTripFormat = "R";
 
         public static void Resolve(WorldDataDirectory worldDataDirectory, string serverDataDirectory, TerrainTransferMeta terrainMeta)
         {
@@ -60,14 +65,14 @@ namespace Game.MapGeneration.Provisioning
             {
                 var recordedMapInfo = JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(worldDataDirectory.MapJsonFilePath));
                 var recordedKeys = SortedPlacementKeys(recordedMapInfo.MapObjects.Select(
-                    mapObject => PlacementKey(mapObject.MapObjectGuidStr, mapObject.Position)));
+                    mapObject => PlacementKey(mapObject.MapObjectGuidStr, mapObject.Position, mapObject.Scale)));
                 var regeneratedKeys = SortedPlacementKeys(output.MapObjects.Select(
-                    mapObject => PlacementKey(mapObject.MapObjectGuid, mapObject.Position)));
+                    mapObject => PlacementKey(mapObject.MapObjectGuid, mapObject.Position, mapObject.Scale)));
                 if (recordedKeys.SequenceEqual(regeneratedKeys)) return;
 
                 throw new InvalidOperationException(
                     $"The generation master moved the placements of world '{worldDataDirectory.Root}': map.json records {recordedKeys.Count} " +
-                    $"map objects while the current master generates {regeneratedKeys.Count} with a different (guid, position) set. " +
+                    $"map objects while the current master generates {regeneratedKeys.Count} with a different (guid, position, scale) set. " +
                     "Delete the world directory and generate the world again.");
             }
 
@@ -76,14 +81,20 @@ namespace Game.MapGeneration.Provisioning
                 return keys.OrderBy(key => key, StringComparer.Ordinal).ToList();
             }
 
-            static string PlacementKey(string mapObjectGuid, Vector3 position)
+            static string PlacementKey(string mapObjectGuid, Vector3 position, Vector3 scale)
             {
-                return $"{mapObjectGuid}:{RoundToKeyUnits(position.x)}:{RoundToKeyUnits(position.y)}:{RoundToKeyUnits(position.z)}";
+                return $"{mapObjectGuid}:{RoundToKeyUnits(position.x)}:{RoundToKeyUnits(position.y)}:{RoundToKeyUnits(position.z)}:" +
+                       $"{FormatScale(scale.x)}:{FormatScale(scale.y)}:{FormatScale(scale.z)}";
             }
 
             static int RoundToKeyUnits(float meters)
             {
                 return Mathf.RoundToInt(meters * PositionKeyUnitsPerMeter);
+            }
+
+            static string FormatScale(float scale)
+            {
+                return scale.ToString(ScaleRoundTripFormat, CultureInfo.InvariantCulture);
             }
 
             // 見た目キャッシュは指紋を鍵に含むので放置しても引かれないが、二度と使えないファイルは残さない

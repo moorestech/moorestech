@@ -14,10 +14,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
     /// </summary>
     public class TerrainVisualCachePayloadIntegrityTest
     {
-        private const int HeightmapResolution = 5;
+        private const int HeightmapResolution = 17;
         private const int AlphamapResolution = 4;
         private const int LayerCount = 3;
-        private const int DetailResolution = 3;
+        private const int DetailResolution = 16;
         private const int DetailMapCount = 2;
         private const int TileX = 1;
         private const int TileZ = 2;

@@ -21,7 +21,7 @@ namespace Game.MapGeneration.Cache
 
             var heightmapResolution = tileVisual.DisplayHeights.GetLength(0);
             var alphamapResolution = tileVisual.AlphamapResolution;
-            var layerCount = tileVisual.LayerCount;
+            var layerCount = tileVisual.AlphamapLayerCount;
             var detailMapCount = tileVisual.DetailMaps.Count;
             var detailResolution = detailMapCount == 0 ? 0 : tileVisual.DetailMaps[0].GetLength(0);
 

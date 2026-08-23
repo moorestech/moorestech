@@ -17,8 +17,8 @@ namespace Game.MapGeneration.Pipeline.Visual
         // Display heights (post-tree perturbation); [z, x]
         public readonly float[,] DisplayHeights;
 
-        // UnityのalphamapTexturesと同じRGBA8平面。並びは[z][x][rgba]で、1平面が4レイヤーを担う
-        // The very RGBA8 planes Unity's alphamapTextures use; ordered [z][x][rgba] with one plane per four layers
+        // 4層/面RGBA8列（z-x-rgba）
+        // RGBA8 planes: four layers each, z-x-rgba.
         public readonly IReadOnlyList<byte[]> AlphamapPlanes;
         public readonly int AlphamapResolution;
         public readonly int AlphamapLayerCount;

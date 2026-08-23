@@ -99,6 +99,8 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 読み手はパケット応答経路で例外を握り潰されるため、ログ1行からどのworld.jsonをどうするか分かる必要がある
             // The caller sits on a packet path that swallows exceptions, so the single log line must say which world.json to act on
             Assert.That(exception.Message, Does.Contain(worldDataDirectory.WorldMetaFilePath));
+            Assert.That(exception.Message, Does.Contain("placementLedgerDigest"));
+            Assert.That(exception.Message, Does.Not.Contain("biome_x_z"));
         }
 
         // templateは地形を生成せず原点という概念自体が無い。旧バージョンが書いたキー無しのworld.jsonも読めねばならない

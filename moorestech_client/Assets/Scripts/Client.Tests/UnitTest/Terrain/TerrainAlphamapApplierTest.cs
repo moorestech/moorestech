@@ -8,9 +8,9 @@ using UnityEngine.TestTools;
 namespace Client.Tests.UnitTest.Terrain
 {
     /// <summary>
-    ///     焼いたRGBA8平面がTerrainのalphamapへそのまま届くことを検証する。
+    ///     RGBA8平面の直接適用を検証
     ///     層はUnityのテクスチャ4枚組へ畳まれるため、平面と channel の対応が崩れると別のレイヤーが塗られる
-    ///     Verifies the baked RGBA8 planes reach the terrain's alphamap verbatim.
+    ///     Verifies direct RGBA8-plane upload.
     ///     Layers fold into Unity's four-per-texture groups, so a broken plane-and-channel mapping paints another layer
     /// </summary>
     public class TerrainAlphamapApplierTest
@@ -73,10 +73,13 @@ namespace Client.Tests.UnitTest.Terrain
             // Uploading a mismatched count leaves the surplus layers at their defaults and yields an unexplainable look
             var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, new[] { new byte[AlphamapResolution * AlphamapResolution * 4] }, AlphamapResolution);
             Assert.That(applyTask.Status, Is.EqualTo(UniTaskStatus.Faulted));
+            var thrownException = Assert.Throws<System.InvalidOperationException>(() => applyTask.GetAwaiter().GetResult());
+            Assert.That(thrownException.Message,
+                Does.Contain("5 alphamap textures").And.Contain("1 planes were baked"));
         }
 
-        // 平面0のR(=layer0)に行番号由来の値、G(=layer1)にその補数を入れる
-        // Plane 0 gets a row-derived value in R (layer 0) and its complement in G (layer 1)
+        // 平面0のRへ行値、Gへ補数を格納
+        // Stores the row value in plane 0 R and its complement in G.
         private static byte[][] CreatePlanes()
         {
             var planes = new byte[5][];

@@ -80,6 +80,25 @@ namespace Client.Tests.UnitTest.Terrain.Build
             Assert.That(_terrainData.alphamapResolution, Is.Not.EqualTo(AlphamapResolution));
         }
 
+        [TestCase(1)]
+        [TestCase(15)]
+        [TestCase(17)]
+        [TestCase(48)]
+        public void RejectsDetailResolutionUnityWouldRound(int detailResolution)
+        {
+            var task = AssembleWithDetailMaps(new List<int[,]> { new int[detailResolution, detailResolution] });
+
+            Assert.Throws<System.InvalidOperationException>(() => task.GetAwaiter().GetResult());
+        }
+
+        [Test]
+        public void RejectsDetailMapsWithDifferentShapes()
+        {
+            var task = AssembleWithDetailMaps(new List<int[,]> { new int[16, 16], new int[16, 15] });
+
+            Assert.Throws<System.InvalidOperationException>(() => task.GetAwaiter().GetResult());
+        }
+
         private IEnumerator Assemble(IReadOnlyList<byte[]> alphamapPlanes, int alphamapResolution, int alphamapLayerCount)
         {
             var layout = WorldTerrainLayout.CreateTileMaps(
@@ -91,6 +110,19 @@ namespace Client.Tests.UnitTest.Terrain.Build
             var assembleTask = TerrainDataAssembler.AssembleAsync(layout, tile, new List<DetailPrototype>(), _terrainLayers);
 
             yield return assembleTask.ToCoroutine(terrainData => _terrainData = terrainData);
+        }
+
+        private static UniTask<TerrainData> AssembleWithDetailMaps(IReadOnlyList<int[,]> detailMaps)
+        {
+            var layout = WorldTerrainLayout.CreateTileMaps(
+                new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
+                new List<string>(), new List<DetailPrototypeSpec>());
+            var tile = new BakedTerrainTile(
+                Vector3.zero, CreateHeights(), System.Array.Empty<byte[]>(), 0, 0, detailMaps);
+            var prototypes = new List<DetailPrototype>();
+            for (var index = 0; index < detailMaps.Count; index++) prototypes.Add(new DetailPrototype());
+
+            return TerrainDataAssembler.AssembleAsync(layout, tile, prototypes, System.Array.Empty<TerrainLayer>());
         }
 
         private static float[,] CreateHeights()

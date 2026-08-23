@@ -9,6 +9,7 @@ namespace Core.Master.Validator
         // AABBは点の±1なので軸差3未満は重なる。丸め1を見込み間隔の下限を4とする
         // An AABB spans the point +/-1, so axis gaps under 3 overlap; allowing one for rounding puts the floor at 4
         private const float MinOreSpacing = 4f;
+        private const int DetailResolutionPerPatch = 16;
 
         public static bool Validate(Generation generation, out string errorLogs)
         {
@@ -16,6 +17,7 @@ namespace Core.Master.Validator
             errorLogs += VeinTypeValidation();
             errorLogs += OreSpacingValidation();
             errorLogs += SpawnDistanceBandValidation();
+            errorLogs += DetailResolutionValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -122,6 +124,36 @@ namespace Core.Master.Validator
                 }
 
                 return logs;
+            }
+
+            // Unity受理かつ高さ内のdetailのみ許可
+            // Allows only Unity-stable detail sizes within the heightmap.
+            string DetailResolutionValidation()
+            {
+                if (generation.AlgorithmParam is not VanillaGeneratorAlgorithmParam vanillaGenerator)
+                {
+                    return "";
+                }
+
+                var detailResolution = vanillaGenerator.DetailResolution;
+                if (detailResolution < DetailResolutionPerPatch)
+                    return $"[GenerationMaster] detailResolution:{detailResolution} must be at least {DetailResolutionPerPatch}\n";
+                if (detailResolution % DetailResolutionPerPatch != 0)
+                    return $"[GenerationMaster] detailResolution:{detailResolution} must be a multiple of {DetailResolutionPerPatch}\n";
+
+                var maximumDetailResolution = 0 < vanillaGenerator.OverrideResolution
+                    ? vanillaGenerator.OverrideResolution - 1
+                    : vanillaGenerator.ResolutionPreset switch
+                    {
+                        "_256" => 256,
+                        "_512" => 512,
+                        "_1024" => 1024,
+                        "_2048" => 2048,
+                        _ => 0,
+                    };
+                return maximumDetailResolution < detailResolution
+                    ? $"[GenerationMaster] detailResolution:{detailResolution} exceeds heightmap sample limit:{maximumDetailResolution}\n"
+                    : "";
             }
 
             #endregion

@@ -43,18 +43,19 @@ namespace Game.MapGeneration.Pipeline.Visual
         // クライアントは自分の地形ファイルを持たない。高さ源は先焼きが書いた共有キャッシュで、その導出は呼び出し元に持たせない
         // A client owns no terrain files of its own: its height source is the shared cache the prebake wrote, and deriving it never falls to the caller
         public static Result CreateForClient(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, IPlacementLedgerSource ledgerSource,
-            Generation selectedGeneration)
+            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, Generation selectedGeneration)
         {
+            var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, config);
             return CreateWithHeightSource(config, terrainMeta, ledgerSource, selectedGeneration, SharedCacheOf(terrainMeta));
         }
 
         // 先焼きの高さ源はワールド本体のterrain/(生成した本人が唯一の正)。共有キャッシュへの複製は要らない
         // The prebake's height source is the world's own terrain/ (the generator itself is the sole truth); no copy into the shared cache is needed
         public static Result CreateForPrebake(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, IPlacementLedgerSource ledgerSource,
+            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, PlacementLedger ledger,
             Generation selectedGeneration, WorldDataDirectory worldDataDirectory)
         {
+            var ledgerSource = new MaterializedPlacementLedgerSource(ledger);
             return CreateWithHeightSource(config, terrainMeta, ledgerSource, selectedGeneration, worldDataDirectory);
         }
 
@@ -78,7 +79,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             var cacheKey = TerrainVisualCacheKey.Compute(terrainMeta.GenerationMasterFingerprint, config.seed, terrainMeta.Origins,
                 terrainMeta.TerrainResolution, WorldGeneratorVersion.Current, terrainMeta.PlacementLedgerDigest);
             var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledgerSource,
-                heightSource, new TerrainVisualCache(SharedCacheOf(terrainMeta), cacheKey));
+                terrainMeta.PlacementLedgerDigest, heightSource, new TerrainVisualCache(SharedCacheOf(terrainMeta), cacheKey));
 
             return new Result(baker, gridConfig, layerTable.OrderedLayerAddresses);
         }

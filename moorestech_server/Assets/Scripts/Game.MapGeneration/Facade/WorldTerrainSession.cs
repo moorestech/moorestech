@@ -53,13 +53,9 @@ namespace Game.MapGeneration.Facade
             var noiseOrigin = new Vector2(config.worldOffsetX, config.worldOffsetZ) + sceneOrigin;
             terrainMeta.ThrowIfOriginsDiffer(noiseOrigin, sceneOrigin);
 
-            // 配置台帳（pass-1）はキャッシュを取り逃したタイルが出て初めて要る。鍵は転送メタの指紋で足りる
-            // The ledger (pass-1) is needed only once a tile misses the cache; the transfer meta's digest suffices for the key
-            var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, config);
-
-            // 組み立てはサーバー先焼きと共有する。高さ源の決定はfactoryが持つ
-            // The assembly is shared with the server prebake; the factory owns the height-source decision
-            var factoryResult = TileVisualBakerFactory.CreateForClient(config, terrainMeta, ledgerSource, selectedGeneration);
+            // 組み立てはサーバー先焼きと共有し、高さ源と遅延台帳源の決定をfactoryへ閉じる
+            // Share assembly with the server prebake and keep both height-source and lazy-ledger-source decisions in the factory
+            var factoryResult = TileVisualBakerFactory.CreateForClient(config, terrainMeta, selectedGeneration);
             var gridConfig = factoryResult.GridConfig;
 
             // 生成内部のdetail設定は境界を越えない。並びを保ったまま公開仕様へ写す

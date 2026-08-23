@@ -19,8 +19,8 @@ namespace Game.MapGeneration.Cache
     /// </summary>
     public static class StoredAlphamapWeights
     {
-        // 入力は[z, x, layer]。戻り値は平面ごとのRGBA8バイト列で、UnityのalphamapTexturesがそのまま受け取る並び
-        // The input is [z, x, layer]; the result is RGBA8 bytes per plane, in the very order Unity's alphamapTextures take
+        // 入力z-x-layer、出力RGBA8平面列
+        // Input: z-x-layer; output: RGBA8 planes.
         public static byte[][] ToPlanes(float[,,] alphamap)
         {
             var resolutionZ = alphamap.GetLength(0);
@@ -35,19 +35,34 @@ namespace Game.MapGeneration.Cache
             for (var z = 0; z < resolutionZ; z++)
             for (var x = 0; x < resolutionX; x++)
             {
-                // 合計1以下の画素はバイト表現に収まる。触らずに量子化だけ通し、移植元の重みをそのまま残す
-                // A pixel summing to one or less already fits a byte; it is only quantized, keeping the source weights
+                // 非零画素は比率を保って合計1へ正規化し、丸め残差を最大重みへ戻す
+                // Normalize each non-zero pixel to one while preserving ratios, then return rounding residue to the strongest layer
                 var total = 0f;
                 for (var layer = 0; layer < layerCount; layer++) total += alphamap[z, x, layer];
-                var ratioScale = 1f < total ? 1f / total : 1f;
+                if (total <= 0f) continue;
+
+                var ratioScale = 1f / total;
+                var quantizedTotal = 0;
+                var strongestLayer = 0;
+                var strongestWeight = float.MinValue;
 
                 var pixelOffset = (z * resolutionX + x) * AlphamapPlaneBytesPerPixel;
                 for (var layer = 0; layer < layerCount; layer++)
                 {
                     var weight = Mathf.Clamp01(alphamap[z, x, layer] * ratioScale);
-                    planes[layer / LayersPerAlphamapPlane][pixelOffset + layer % LayersPerAlphamapPlane] =
-                        (byte)Mathf.Clamp(Mathf.RoundToInt(weight * WeightQuantizeScale), 0, byte.MaxValue);
+                    var quantizedWeight = Mathf.Clamp(Mathf.RoundToInt(weight * WeightQuantizeScale), 0, byte.MaxValue);
+                    planes[layer / LayersPerAlphamapPlane][pixelOffset + layer % LayersPerAlphamapPlane] = (byte)quantizedWeight;
+                    quantizedTotal += quantizedWeight;
+                    if (strongestWeight < weight)
+                    {
+                        strongestWeight = weight;
+                        strongestLayer = layer;
+                    }
                 }
+
+                var strongestPlane = strongestLayer / LayersPerAlphamapPlane;
+                var strongestOffset = pixelOffset + strongestLayer % LayersPerAlphamapPlane;
+                planes[strongestPlane][strongestOffset] = (byte)(planes[strongestPlane][strongestOffset] + byte.MaxValue - quantizedTotal);
             }
 
             return planes;

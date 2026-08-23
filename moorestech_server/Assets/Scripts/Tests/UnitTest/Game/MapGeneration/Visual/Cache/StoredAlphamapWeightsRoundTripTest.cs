@@ -94,6 +94,62 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             Assert.That(planes[1][1], Is.EqualTo(191), "layer5は平面1のG");
         }
 
+        [Test]
+        public void QuantizedWeightsSumToOneAcrossNineteenLayers()
+        {
+            // 1/19は各channelの独立丸めだけでは合計255にならないため残差配分を直接踏む
+            // One nineteenth does not total 255 under independent channel rounding, directly exercising residue distribution
+            const int layerCount = 19;
+            var alphamap = new float[1, 1, layerCount];
+            for (var layer = 0; layer < layerCount; layer++) alphamap[0, 0, layer] = 1f / layerCount;
+
+            var planes = StoredAlphamapWeights.ToPlanes(alphamap);
+
+            var total = 0;
+            for (var layer = 0; layer < layerCount; layer++)
+                total += planes[layer / TerrainVisualCacheFormat.LayersPerAlphamapPlane]
+                    [layer % TerrainVisualCacheFormat.LayersPerAlphamapPlane];
+            Assert.That(total, Is.EqualTo(byte.MaxValue));
+        }
+
+        // 3つの有効層を別平面へ散らし、独立丸めの加算・減算補正が最強層へ入ることを両方向で固定する
+        // Spreads three active layers across planes and pins both additive and subtractive correction to the strongest layer
+        [TestCase(50.4f, 154.2f, 254, 155, TestName = "AddsResidueToStrongestLayerWhenNineteenLayerRoundingTotals254Test")]
+        [TestCase(50.6f, 153.8f, 256, 153, TestName = "SubtractsResidueFromStrongestLayerWhenNineteenLayerRoundingTotals256Test")]
+        public void CorrectsNineteenLayerRoundingResidueTest(
+            float smallScaledWeight, float strongestScaledWeight, int independentTotal, int expectedStrongestByte)
+        {
+            const int layerCount = 19;
+            const int middleLayer = 5;
+            const int strongestLayer = 18;
+            var alphamap = new float[1, 1, layerCount];
+            alphamap[0, 0, 0] = smallScaledWeight / byte.MaxValue;
+            alphamap[0, 0, middleLayer] = smallScaledWeight / byte.MaxValue;
+            alphamap[0, 0, strongestLayer] = strongestScaledWeight / byte.MaxValue;
+
+            Assert.That(
+                Mathf.RoundToInt(smallScaledWeight) * 2 + Mathf.RoundToInt(strongestScaledWeight),
+                Is.EqualTo(independentTotal), "補正前の独立丸め合計");
+            var planes = StoredAlphamapWeights.ToPlanes(alphamap);
+
+            var correctedTotal = 0;
+            for (var layer = 0; layer < layerCount; layer++)
+                correctedTotal += planes[layer / TerrainVisualCacheFormat.LayersPerAlphamapPlane]
+                    [layer % TerrainVisualCacheFormat.LayersPerAlphamapPlane];
+            Assert.That(correctedTotal, Is.EqualTo(byte.MaxValue));
+            Assert.That(planes[strongestLayer / TerrainVisualCacheFormat.LayersPerAlphamapPlane]
+                [strongestLayer % TerrainVisualCacheFormat.LayersPerAlphamapPlane], Is.EqualTo(expectedStrongestByte));
+        }
+
+        [Test]
+        public void ZeroWeightPixelRemainsZero()
+        {
+            var planes = StoredAlphamapWeights.ToPlanes(new float[1, 1, 19]);
+
+            foreach (var plane in planes)
+                Assert.That(plane, Is.All.EqualTo(0));
+        }
+
         // クラスタ経路と単体岩経路の両方が同じ画素へ書く配置。2回目の書き込みは書き込み先に重みがある状態で走る
         // A layout where the cluster path and the lone-rock path write the same pixels, so the second write lands on weight already there
         private static float[,,] PaintOverlappingRocks()

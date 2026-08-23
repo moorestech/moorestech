@@ -29,10 +29,6 @@ namespace Game.MapGeneration.Pipeline.Config
         public int Resolution => overrideResolution > 0 ? overrideResolution : (int)resolutionPreset + 1;
         public int AlphamapResolution => overrideResolution > 0 ? overrideResolution - 1 : (int)resolutionPreset;
 
-        // detailはマスタが決めた値をそのまま使う。heightmapやalphamapの解像度からは導かない
-        // Detail takes the master's value verbatim; it is never derived from the heightmap or alphamap resolution
-        public int DetailResolution => detailResolution;
-
         public float terrainHeight = 600f;
         public float terrainWidth = 1000f;
         public float terrainLength = 1000f;

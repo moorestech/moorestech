@@ -13,8 +13,8 @@ namespace Game.MapGeneration.Pipeline.Config
         public readonly float WorldOffsetZ;
         public readonly int Resolution;
 
-        // detailの密度マップ解像度。heightmapとは独立に決まるので、寸法として別に運ぶ
-        // The detail density maps' resolution; settled independently of the heightmap, so it travels as its own dimension
+        // 独立detail密度解像度
+        // Independent detail-density resolution.
         public readonly int DetailResolution;
 
         public readonly float SeaLevel;
@@ -99,7 +99,7 @@ namespace Game.MapGeneration.Pipeline.Config
             return new TerrainDimensions(
                 config.terrainWidth, config.terrainLength, config.terrainHeight,
                 config.worldOffsetX, config.worldOffsetZ,
-                config.Resolution, config.DetailResolution, config.seaLevel,
+                config.Resolution, config.detailResolution, config.seaLevel,
                 config.seaLevel + waterMargin, config.seed,
                 config.spawnWorldPosition.x, config.spawnWorldPosition.y,
                 tileIndexX, tileIndexZ, config.gridSizeX, config.gridSizeZ);

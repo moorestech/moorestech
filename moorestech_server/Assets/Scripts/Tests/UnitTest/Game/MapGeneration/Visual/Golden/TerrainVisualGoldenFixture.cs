@@ -78,8 +78,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
             return (config, sections, run);
         }
 
-        // alphamap平面は生バイト列なので、intへ箱解きする汎用経路を通さずそのまま畳む
-        // An alphamap plane is a raw byte array, so it folds directly instead of going through the int-unboxing path
+        // 生byte平面はint化せず畳む
+        // Folds raw byte planes without int conversion.
         public static string Sha256(byte[] bytes)
         {
             using var sha256 = SHA256.Create();

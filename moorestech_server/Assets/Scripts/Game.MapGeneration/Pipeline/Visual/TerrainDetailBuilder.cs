@@ -95,8 +95,8 @@ namespace Game.MapGeneration.Pipeline.Visual
                 return grid;
             }
 
-            // 解像度はalphamapと同値。detail解像度と一致するのでDetailDensitySamplerがdetail座標のまま引ける
-            // The resolution equals the alphamap's, which matches the detail resolution so DetailDensitySampler indexes it directly
+            // 距離場はdetail座標で直接引くため、detail解像度で生成する
+            // The distance fields are indexed directly by detail coordinates, so they use the detail resolution
             float[,] GenerateDistanceMap(SpatialGrid grid, float maxSearchRadius)
             {
                 // 半径0はフィルタ自体が無効。誰も読まないのでnullを返す（移植元TerrainGenerator.cs:1276と同じ分岐）
@@ -108,14 +108,14 @@ namespace Game.MapGeneration.Pipeline.Visual
                 if (grid.Count == 0) return CreateSaturatedDistanceMap(maxSearchRadius);
 
                 return SdfMapGenerator.Generate(
-                    grid, config.AlphamapResolution, config.terrainWidth, config.terrainLength, maxSearchRadius);
+                    grid, config.detailResolution, config.terrainWidth, config.terrainLength, maxSearchRadius);
             }
 
             // 最寄りの点が探索半径の外にあるときSpatialGrid.FindMinDistanceが返す値で全画素を埋める。点群が空な状況の真値
             // Fills every pixel with what SpatialGrid.FindMinDistance returns when the nearest point lies past the search radius: the true value for an empty set
             float[,] CreateSaturatedDistanceMap(float maxSearchRadius)
             {
-                var resolution = config.AlphamapResolution;
+                var resolution = config.detailResolution;
                 var map = new float[resolution, resolution];
                 for (var z = 0; z < resolution; z++)
                 for (var x = 0; x < resolution; x++)

@@ -140,8 +140,8 @@ namespace Game.MapGeneration.Cache
                 return true;
             }
 
-            // 平面はTerrainのalphamapTexturesへそのまま載せる形なので、読み込み先の配列がそのまま成果物になる
-            // A plane goes onto the terrain's alphamapTextures verbatim, so the array read into is the finished product
+            // 読込RGBA8配列をそのまま返す
+            // Returns the loaded RGBA8 arrays directly.
             bool TryReadAlphamapPlanes(out byte[][] planes)
             {
                 var planeByteLength = (int)AlphamapPlaneByteLength(alphamapResolution);

@@ -42,9 +42,10 @@ namespace Game.MapGeneration.Cache
         public const int HeightBytesPerPixel = 2;
 
         public const int DetailBytesPerCell = 2;
+        private const int DetailResolutionPerPatch = 16;
 
-        // alphamapはUnityのalphamapTexturesと同じRGBA8平面で持つ。1平面が4レイヤーを担う
-        // Alphamaps are held as the very RGBA8 planes Unity's alphamapTextures use; one plane carries four layers
+        // Unity互換RGBA8平面（4層/面）
+        // Unity-compatible RGBA8 planes, four layers each.
         public const int LayersPerAlphamapPlane = 4;
         public const int AlphamapPlaneBytesPerPixel = 4;
 
@@ -89,7 +90,7 @@ namespace Game.MapGeneration.Cache
             return (long)alphamapResolution * alphamapResolution * AlphamapPlaneBytesPerPixel;
         }
 
-        public static long DetailMapByteLength(int detailResolution)
+        private static long DetailMapByteLength(int detailResolution)
         {
             return (long)detailResolution * detailResolution * DetailBytesPerCell;
         }
@@ -103,7 +104,10 @@ namespace Game.MapGeneration.Cache
                 alphamapResolution <= 0 || MaximumAlphamapResolution < alphamapResolution ||
                 layerCount <= 0 || MaximumLayerCount < layerCount ||
                 detailResolution < 0 || MaximumDetailResolution < detailResolution ||
-                detailMapCount < 0 || MaximumDetailMapCount < detailMapCount) return false;
+                detailMapCount < 0 || MaximumDetailMapCount < detailMapCount ||
+                detailMapCount == 0 && detailResolution != 0 ||
+                0 < detailMapCount && (detailResolution < DetailResolutionPerPatch ||
+                    detailResolution % DetailResolutionPerPatch != 0 || heightmapResolution - 1 < detailResolution)) return false;
 
             payloadByteLength = checked(
                 HeightsByteLength(heightmapResolution) +

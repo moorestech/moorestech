@@ -19,7 +19,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
     /// </summary>
     public class TerrainDetailBuilderTest
     {
-        private const int Resolution = 5;
+        private const int Resolution = 17;
+        private const int DetailResolution = 16;
         private const int Seed = 4321;
 
         // 移植元と同じseed規則。空バイオームを飛ばしても添字は「有効バイオーム配列の位置」のまま
@@ -151,7 +152,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
             return new TerrainGenerationConfig
             {
                 overrideResolution = Resolution,
-                detailResolution = Resolution - 1,
+                detailResolution = DetailResolution,
                 seed = Seed,
                 terrainWidth = 100f,
                 terrainLength = 100f,

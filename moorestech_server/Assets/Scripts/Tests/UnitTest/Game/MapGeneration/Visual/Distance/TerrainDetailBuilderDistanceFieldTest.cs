@@ -73,5 +73,38 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Distance
             Assert.That(objectFilteredWithRock[0][InBandPixel, InBandPixel], Is.EqualTo(MaxDensity), "岩はオブジェクトの距離場に入る");
             Assert.That(objectFilteredWithTree[0][InBandPixel, InBandPixel], Is.EqualTo(0), "木はオブジェクトの距離場に入らない");
         }
+
+        // 本番の解像度差ではalphamap距離場の北西半分しかdetailから読めず、南東の木・岩と10m境界が消える
+        // At production's resolution gap, an alphamap-sized field exposes only its north-west half to detail, losing south-east objects and the 10m boundary
+        [Test]
+        public void ProductionResolutionKeepsTreeAndObjectDistanceBoundariesAtSouthEastTest()
+        {
+            const int southEastPixel = DistanceFieldTestScene.ProductionDetailResolution - 1;
+            var rejectedPixelDistance = (int)(
+                DistanceFieldTestScene.RejectedWithin / DistanceFieldTestScene.TileSize * southEastPixel);
+            var lastRejectedPixel = southEastPixel - rejectedPixelDistance;
+            var firstAcceptedPixel = lastRejectedPixel - 1;
+            var maps = DistanceFieldTestScene.BuildAtProductionResolution(
+                DistanceFieldTestScene.TreeAndObjectDistanceSections(),
+                DistanceFieldTestScene.CreateMapObject(DistanceFieldTestScene.TreeGuid, DistanceFieldTestScene.TileSize, DistanceFieldTestScene.TileSize),
+                DistanceFieldTestScene.CreateMapObject(DistanceFieldTestScene.StoneGuid, DistanceFieldTestScene.TileSize, DistanceFieldTestScene.TileSize));
+
+            Assert.That(maps.Count, Is.EqualTo(2));
+            Assert.That(maps[0].GetLength(0), Is.EqualTo(DistanceFieldTestScene.ProductionDetailResolution));
+            Assert.That(maps[0].GetLength(1), Is.EqualTo(DistanceFieldTestScene.ProductionDetailResolution));
+            AssertSouthEastBoundary(maps[0], "木");
+            AssertSouthEastBoundary(maps[1], "岩");
+
+            #region Internal
+
+            void AssertSouthEastBoundary(int[,] map, string kind)
+            {
+                Assert.That(map[southEastPixel, southEastPixel], Is.EqualTo(0), $"{kind}の真下は落ちる");
+                Assert.That(map[lastRejectedPixel, southEastPixel], Is.EqualTo(0), $"{kind}から10m未満は落ちる");
+                Assert.That(map[firstAcceptedPixel, southEastPixel], Is.EqualTo(MaxDensity), $"{kind}から10mを越えた最初の画素は残る");
+            }
+
+            #endregion
+        }
     }
 }

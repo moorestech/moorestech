@@ -13,8 +13,8 @@ namespace Game.MapGeneration.Facade
         // Display heights (post-tree perturbation); [z, x]
         public float[,] DisplayHeights { get; }
 
-        // UnityのalphamapTexturesへそのまま載るRGBA8平面。並びは[z][x][rgba]で、1平面が4レイヤーを担う
-        // RGBA8 planes going straight onto Unity's alphamapTextures; ordered [z][x][rgba] with one plane per four layers
+        // 4層/面RGBA8列（z-x-rgba）
+        // RGBA8 planes: four layers each, z-x-rgba.
         public IReadOnlyList<byte[]> AlphamapPlanes { get; }
         public int AlphamapResolution { get; }
         public int AlphamapLayerCount { get; }

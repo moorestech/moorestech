@@ -20,10 +20,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
     {
         // 高さとalphamapは別解像度にする。同じ値だと区画の取り違えが往復で相殺されて見えなくなる
         // Heights and the alphamap take different resolutions; equal ones would let a section mix-up cancel out across the round trip
-        private const int HeightmapResolution = 5;
+        private const int HeightmapResolution = 17;
         private const int AlphamapResolution = 4;
         private const int LayerCount = 3;
-        private const int DetailResolution = 3;
+        private const int DetailResolution = 16;
         private const int DetailMapCount = 2;
         private const int TileX = 1;
         private const int TileZ = 2;
@@ -64,7 +64,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
                     $"height z={z} x={x}");
 
             Assert.That(loaded.AlphamapResolution, Is.EqualTo(AlphamapResolution));
-            Assert.That(loaded.LayerCount, Is.EqualTo(LayerCount));
+            Assert.That(loaded.AlphamapLayerCount, Is.EqualTo(LayerCount));
             Assert.That(loaded.AlphamapPlanes.Count, Is.EqualTo(saved.AlphamapPlanes.Count));
             for (var planeIndex = 0; planeIndex < saved.AlphamapPlanes.Count; planeIndex++)
                 // 平面はそのままテクスチャへ載る。1バイトも動いてはいけない
@@ -198,7 +198,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             var displayHeights = new float[HeightmapResolution, HeightmapResolution];
             for (var z = 0; z < HeightmapResolution; z++)
             for (var x = 0; x < HeightmapResolution; x++)
-                displayHeights[z, x] = (z * HeightmapResolution + x) / 63f;
+                displayHeights[z, x] = (z * HeightmapResolution + x) /
+                                       (float)(HeightmapResolution * HeightmapResolution - 1);
 
             var alphamap = new float[AlphamapResolution, AlphamapResolution, LayerCount];
             for (var z = 0; z < AlphamapResolution; z++)

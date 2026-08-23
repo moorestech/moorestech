@@ -78,6 +78,25 @@ namespace Tests.UnitTest.Core.MapGeneration
             Assert.IsEmpty(logs);
         }
 
+        [TestCase(-16)]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(15)]
+        [TestCase(17)]
+        [TestCase(512)]
+        public void 不正なdetailResolutionはバリデーションで失敗する(int detailResolution)
+        {
+            // 丸め値と高さ超過を拒否
+            // Rejects rounded and over-height values.
+            var json = LoadGenerationJson();
+            json["algorithmParam"]!["detailResolution"] = detailResolution;
+
+            var master = new GenerationMaster(json, "test");
+
+            Assert.IsFalse(master.Validate(out var logs));
+            Assert.That(logs, Does.Contain("detailResolution"));
+        }
+
         [Test]
         public void 鉱脈帯の外半径が重複するとバリデーションで失敗する()
         {

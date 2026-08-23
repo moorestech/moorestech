@@ -33,7 +33,7 @@ namespace Game.MapGeneration.Transfer
                     throw new InvalidOperationException(
                         $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' was written by generator '{worldMeta.GeneratorVersion}', " +
                         $"but this build is '{WorldGeneratorVersion.Current}'. The transferred terrain file layout changed " +
-                        "(biome_x_z.bin output/transfer removed, clusters no longer leave the generation system). Delete the world directory and generate the world again."),
+                        "(placementLedgerDigest now identifies the placement-dependent visual cache). Delete the world directory and generate the world again."),
                 WorldMapMode.Generated => TerrainTransferMeta.CreateGenerated(
                     CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
                     CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins(), ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion,

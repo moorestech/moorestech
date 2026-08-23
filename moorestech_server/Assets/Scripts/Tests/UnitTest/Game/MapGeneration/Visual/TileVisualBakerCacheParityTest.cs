@@ -25,8 +25,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
     /// </summary>
     public class TileVisualBakerCacheParityTest
     {
-        private const int Resolution = 9;
+        private const int Resolution = 33;
         private const int AlphamapResolution = Resolution - 1;
+        private const int DetailResolution = 16;
         private const float TileSize = 100f;
         private const int TileX = 0;
         private const int TileZ = 0;
@@ -77,8 +78,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             for (var planeIndex = 0; planeIndex < first.AlphamapPlanes.Count; planeIndex++)
                 Assert.That(second.AlphamapPlanes[planeIndex], Is.EqualTo(first.AlphamapPlanes[planeIndex]), $"plane={planeIndex}");
 
-            // 表示用高さもキャッシュ往復の対象になったので、木の摂動ごと一致することを見る
-            // The display heights became part of the round trip too, so the tree perturbation must survive it as well
+            // 木摂動もキャッシュ往復一致
+            // Keeps tree perturbations equal across the cache round trip.
             for (var z = 0; z < Resolution; z++)
             for (var x = 0; x < Resolution; x++)
                 Assert.That(second.DisplayHeights[z, x], Is.EqualTo(first.DisplayHeights[z, x]).Within(1f / ushort.MaxValue),
@@ -105,7 +106,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
 
             return new TileVisualBaker(
                 config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, new MaterializedPlacementLedgerSource(EmptyLedger),
-                _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
+                EmptyLedger.ComputeDigest(), _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
         }
 
         private static TerrainGenerationConfig CreateConfig()
@@ -113,7 +114,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             return new TerrainGenerationConfig
             {
                 overrideResolution = Resolution,
-                detailResolution = Resolution - 1,
+                detailResolution = DetailResolution,
                 seed = 12345,
                 terrainWidth = TileSize,
                 terrainLength = TileSize,
