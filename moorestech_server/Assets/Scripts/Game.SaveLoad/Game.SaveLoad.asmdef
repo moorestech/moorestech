@@ -19,7 +19,8 @@
     "Game.PlayerRiding.Interface",
     "Game.Blueprint",
     "Game.Hotbar",
-    "Game.Construction"
+    "Game.Construction",
+    "UniRx"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

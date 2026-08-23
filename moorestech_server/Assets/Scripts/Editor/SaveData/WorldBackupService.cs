@@ -63,15 +63,11 @@ internal static class WorldBackupService
         return true;
     }
 
+    // 削除手順の正本はGameSystemPathsにあり、ここは委譲だけ行う
+    // The deletion procedure lives in GameSystemPaths; this only delegates
     internal static void DeleteWorld()
     {
-        // 削除前に退避し、途中失敗しても正規名は壊れた状態にしない
-        // Moves aside before deleting so a mid-failure never corrupts the canonical name
-        var source = GameSystemPaths.DefaultWorldDirectory;
-        var pendingDeletion = source + IncompleteSuffix;
-        DiscardRemnant(pendingDeletion);
-        Directory.Move(source, pendingDeletion);
-        Directory.Delete(pendingDeletion, true);
+        GameSystemPaths.DeleteDefaultWorldDirectory();
     }
 
     internal static long GetWorldSizeBytes()

@@ -1,15 +1,18 @@
+using System;
 using System.IO;
 using System.Threading;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using UniRx;
 
 namespace Game.SaveLoad
 {
-    public sealed class WorldSaveCoordinator : IWorldSaveRequest
+    public sealed class WorldSaveCoordinator : IWorldSaveRequest, IWorldSaveCompletionNotifier
     {
         private readonly AssembleSaveJsonText _assembleSaveJsonText;
         private readonly WorldDataDirectory _worldDataDirectory;
+        private readonly Subject<long> _onWorldSaveCompleted = new();
         private long _requestedGeneration;
         private long _completedGeneration;
 
@@ -23,9 +26,13 @@ namespace Game.SaveLoad
         // Whether a requested save is still unwritten; used to wait for the flush at shutdown
         public bool HasPendingSave => Volatile.Read(ref _requestedGeneration) != Volatile.Read(ref _completedGeneration);
 
-        public void RequestSave()
+        // 書き出しが完了した要求番号を流す。終了時のflush待ちがこれで完了を判定する
+        // Emits the generation whose write completed; the shutdown flush wait decides completion from it
+        public IObservable<long> OnWorldSaveCompleted => _onWorldSaveCompleted;
+
+        public long RequestSave()
         {
-            Interlocked.Increment(ref _requestedGeneration);
+            return Interlocked.Increment(ref _requestedGeneration);
         }
 
         public void SaveIfRequested()
@@ -40,6 +47,10 @@ namespace Game.SaveLoad
             Save();
             Volatile.Write(ref _completedGeneration, targetGeneration);
             UnityEngine.Debug.Log("ワールドを保存しました");
+
+            // 完了番号を通知し、終了待ち側が「どこまで書けたか」で判定できるようにする
+            // Publish the completed generation so a shutdown waiter can judge how far the write got
+            _onWorldSaveCompleted.OnNext(targetGeneration);
         }
 
         private void Save()

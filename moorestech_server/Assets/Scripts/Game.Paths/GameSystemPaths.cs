@@ -8,6 +8,10 @@ namespace Game.Paths
     {
         private const int WorldIdHexDigits = 16;
 
+        // 中断時の残骸と正規のワールドを区別するための一時サフィックス
+        // Temp suffix that tells an interrupted remnant apart from the canonical world
+        private const string IncompleteSuffix = ".incomplete";
+
         // 起動時の既定ワールド名。正はここ1箇所
         // The default world name at boot; single source of truth
         public const string DefaultWorldName = "world_1";
@@ -66,6 +70,29 @@ namespace Game.Paths
             }
 
             #endregion
+        }
+
+        // 既定ワールドを丸ごと消す。パスの正本と削除手順を同居させ、リセット経路ごとの二重実装を防ぐ
+        // Wipe the default world here so deletion lives with the canonical path, never duplicated per reset path
+        public static bool DeleteDefaultWorldDirectory()
+        {
+            var worldDirectory = DefaultWorldDirectory;
+            if (!Directory.Exists(worldDirectory)) return false;
+
+            // 退避してから消す。途中失敗しても正規名が半端に壊れた状態では残らない
+            // Move aside before deleting so a mid-failure never leaves the canonical name half-broken
+            var pendingDeletion = worldDirectory + IncompleteSuffix;
+            DiscardRemnant(pendingDeletion);
+            Directory.Move(worldDirectory, pendingDeletion);
+            Directory.Delete(pendingDeletion, true);
+            return true;
+        }
+
+        // 前回の中断で残った一時ディレクトリを捨てて再入を通す
+        // Drops a temp directory left by an earlier interruption so the retry can proceed
+        private static void DiscardRemnant(string incompletePath)
+        {
+            if (Directory.Exists(incompletePath)) Directory.Delete(incompletePath, true);
         }
 
         public static string GetExtractedModDirectory(string folderName)
