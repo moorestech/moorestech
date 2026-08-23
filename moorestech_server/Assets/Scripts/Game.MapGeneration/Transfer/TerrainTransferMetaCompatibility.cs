@@ -1,7 +1,6 @@
 using System;
 using Core.Master;
 using Game.MapGeneration.Identity;
-using Game.MapGeneration.Provisioning;
 
 namespace Game.MapGeneration.Transfer
 {
@@ -38,10 +37,10 @@ namespace Game.MapGeneration.Transfer
         // The world.json-side check (the server's own world) lives separately in TerrainTransferMetaReader, whose message demands a regeneration
         public static void ThrowIfGeneratorVersionDiffers(this TerrainTransferMeta terrainMeta)
         {
-            if (terrainMeta.GeneratorVersion == WorldProvisioner.GeneratorVersion) return;
+            if (terrainMeta.GeneratorVersion == WorldGeneratorVersion.Current) return;
             throw new InvalidOperationException(
                 $"Terrain transfer meta of world '{terrainMeta.WorldId}' was produced by generator '{terrainMeta.GeneratorVersion}', " +
-                $"but this build is '{WorldProvisioner.GeneratorVersion}'. The transferred terrain file layout differs; connect to a server on the same build.");
+                $"but this build is '{WorldGeneratorVersion.Current}'. The transferred terrain file layout differs; connect to a server on the same build.");
         }
     }
 }

@@ -7,12 +7,12 @@ using NUnit.Framework;
 namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
 {
     /// <summary>
-    ///     プロトタイプ仕様の並びが密度マップの並びと同じ規則で決まることを検証する。キャッシュヒット時は
+    ///     プロトタイプ設定の並びが密度マップの並びと同じ規則で決まることを検証する。キャッシュヒット時は
     ///     密度マップだけを復元してプロトタイプをここから引き直すため、この並びが崩れると別の草が描かれる
-    ///     Verifies the prototype spec order follows the same rule as the density maps; on a cache hit only the maps are
+    ///     Verifies the prototype config order follows the same rule as the density maps; on a cache hit only the maps are
     ///     restored and the prototypes come from here, so a broken order draws the wrong plant
     /// </summary>
-    public class DetailPrototypeSpecCollectorTest
+    public class DetailPrototypeRuntimeConfigCollectorTest
     {
         private static readonly BiomeType[] BiomeTypes = { BiomeType.Grassland, BiomeType.Forest };
 
@@ -21,11 +21,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
         {
             // 空バイオームが1本でも列を占めると、以降の全プロトタイプが1つずれて密度マップと食い違う
             // A single empty biome occupying a slot would shift every later prototype off its density map
-            var specs = DetailPrototypeSpecCollector.Collect(BiomeTypes, CreateVisualSections());
+            var prototypeConfigs = DetailPrototypeRuntimeConfigCollector.Collect(BiomeTypes, CreateVisualSections());
 
-            Assert.That(specs.Count, Is.EqualTo(2));
-            Assert.That(specs[0].minWidth, Is.EqualTo(1f));
-            Assert.That(specs[1].minWidth, Is.EqualTo(2f));
+            Assert.That(prototypeConfigs.Count, Is.EqualTo(2));
+            Assert.That(prototypeConfigs[0].minWidth, Is.EqualTo(1f));
+            Assert.That(prototypeConfigs[1].minWidth, Is.EqualTo(2f));
         }
 
         private static BiomeVisualSections CreateVisualSections()

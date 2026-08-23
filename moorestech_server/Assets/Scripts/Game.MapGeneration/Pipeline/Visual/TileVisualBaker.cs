@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Game.MapGeneration.Cache;
-using Game.MapGeneration.Facade;
 using Game.MapGeneration.Pipeline.Visual.Detail;
 using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Pipeline.Visual.Source;
@@ -17,9 +16,9 @@ namespace Game.MapGeneration.Pipeline.Visual
 {
     /// <summary>
     ///     タイル1枚ぶんの見た目を焼く唯一の窓口。キャッシュの引き当て・再構築・書き戻しをここへ集め、
-    ///     detailのプロトタイプ仕様と密度マップを同じ持ち主に揃えて片方だけが欠ける形を作れなくする
+    ///     detailのプロトタイプ設定と密度マップを同じ持ち主に揃えて片方だけが欠ける形を作れなくする
     ///     The single window baking one tile's visuals, gathering cache lookup, rebuild and write-back;
-    ///     the detail prototype specs and density maps share one owner so neither can go missing without the other
+    ///     the detail prototype configs and density maps share one owner so neither can go missing without the other
     /// </summary>
     public class TileVisualBaker
     {
@@ -32,9 +31,9 @@ namespace Game.MapGeneration.Pipeline.Visual
         private readonly BiomeVisualSections _visualSections;
         private readonly WorldDataDirectory _heightSource;
 
-        // detail仕様の並びはタイルに依らず一度だけ決める
-        // The detail spec order does not vary by tile and is decided once
-        public IReadOnlyList<DetailPrototypeSpec> DetailPrototypes { get; }
+        // detailプロトタイプの並びはタイルに依らず一度だけ決める
+        // The detail prototype order does not vary by tile and is decided once
+        public IReadOnlyList<DetailPrototypeRuntimeConfig> DetailPrototypes { get; }
 
         public TileVisualBaker(
             TerrainGenerationConfig gridConfig, BiomeType[] biomeTypes, BiomeVisualSections visualSections,
@@ -52,11 +51,11 @@ namespace Game.MapGeneration.Pipeline.Visual
 
             AssignTextureFilterLayerIndices();
 
-            // プロトタイプ仕様と密度マップは同じフラグで生死を共にする。片方だけ残すと本数が食い違ってDetailPrototypesを読む側が壊れる
-            // Specs and density maps live and die by one flag; keeping either alone breaks the counts for whoever reads DetailPrototypes
+            // プロトタイプ設定と密度マップは同じフラグで生死を共にする。片方だけ残すと本数が食い違ってDetailPrototypesを読む側が壊れる
+            // Configs and density maps live and die by one flag; keeping either alone breaks the counts for whoever reads DetailPrototypes
             DetailPrototypes = gridConfig.generateDetail
-                ? DetailPrototypeSpecCollector.Collect(biomeTypes, visualSections)
-                : new List<DetailPrototypeSpec>();
+                ? DetailPrototypeRuntimeConfigCollector.Collect(biomeTypes, visualSections)
+                : new List<DetailPrototypeRuntimeConfig>();
 
             #region Internal
 
@@ -84,7 +83,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             #endregion
         }
 
-        public BakedTerrainTile Bake(int tileX, int tileZ)
+        public TileVisualBakeResult Bake(int tileX, int tileZ)
         {
             var tileConfig = _gridConfig.CreateTileConfig(tileX, tileZ);
             var tileScene = _gridConfig.TileScenePosition(tileX, tileZ);
@@ -100,7 +99,7 @@ namespace Game.MapGeneration.Pipeline.Visual
             // generateTexture/generateDetailと同型の内側ゲート。offなら平坦配列を表示用に渡し、地形本体の起伏を止める
             // The same inner gate shape as generateTexture/generateDetail; off feeds a flat array so the terrain itself stays flat
             var displayHeights = _gridConfig.generateHeightmap ? postHeights : CreateFlatHeights(_gridConfig.Resolution);
-            return new BakedTerrainTile(tileWorldPosition, displayHeights, tileVisual.Alphamap, tileVisual.DetailMaps);
+            return new TileVisualBakeResult(tileWorldPosition, displayHeights, tileVisual.Alphamap, tileVisual.DetailMaps);
 
             #region Internal
 

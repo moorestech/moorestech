@@ -107,7 +107,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void GeneratorVersion定数は3_0_0に固定されている()
         {
-            Assert.AreEqual("3.0.0", WorldProvisioner.GeneratorVersion);
+            Assert.AreEqual("3.0.0", WorldGeneratorVersion.Current);
         }
 
         [Test]
@@ -121,7 +121,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(_worldDataDirectory.WorldMetaFilePath));
             var config = GenerationRuntimeConfigFactory.Build(MasterHolder.GenerationMaster.SelectedGeneration);
             Assert.AreEqual(config.gridSizeX * config.gridSizeZ, worldMeta.TerrainTileCount);
-            Assert.AreEqual(WorldProvisioner.GeneratorVersion, worldMeta.GeneratorVersion);
+            Assert.AreEqual(WorldGeneratorVersion.Current, worldMeta.GeneratorVersion);
 
             // 全タイルのファイルが存在する / every tile's files exist
             foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(worldMeta.TerrainTileCount))

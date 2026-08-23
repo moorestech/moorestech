@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Game.MapGeneration.Facade;
 using Game.MapGeneration.Pipeline.Visual.Detail;
 using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using Game.MapGeneration.Pipeline.Visual.Surround;
@@ -20,8 +19,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
         public const int HeightmapResolution = 5;
         public const int DetailResolution = HeightmapResolution - 1;
 
-        // プロトタイプ仕様が指すアドレス（解決はCreateResolvedAssets）
-        // The address a prototype spec points at (resolved by CreateResolvedAssets)
+        // プロトタイプ設定が指すアドレス（解決はCreateResolvedAssets）
+        // The address a prototype config points at (resolved by CreateResolvedAssets)
         public const string PrototypeTextureAddress = "Test/DetailPrototypeTexture";
 
         public static TerrainDimensions CreateDimensions()
@@ -52,13 +51,13 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
             return slopes;
         }
 
-        // 全フィルタ無効・ノイズ無効・プロトタイプ仕様が解決可能なアドレスを持つ1エントリ
-        // One entry with every filter and noise disabled and a prototype spec whose address CreateResolvedAssets can resolve
+        // 全フィルタ無効・ノイズ無効・プロトタイプ設定が解決可能なアドレスを持つ1エントリ
+        // One entry with every filter and noise disabled and a prototype config whose address CreateResolvedAssets can resolve
         public static DetailEntry CreateEntry(float weight, int maxDensity)
         {
             return new DetailEntry
             {
-                prototypeConfig = new DetailPrototypeSpec
+                prototypeConfig = new DetailPrototypeRuntimeConfig
                 {
                     usePrototypeMesh = false,
                     prototypeTextureAddressablePath = PrototypeTextureAddress,

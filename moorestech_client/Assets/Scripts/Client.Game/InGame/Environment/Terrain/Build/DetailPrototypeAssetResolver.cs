@@ -9,9 +9,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 {
     /// <summary>
     ///     detail仕様のアドレスをAddressablesで解決しDetailPrototypeへ変換する
-    ///     並びの決定はDetailPrototypeSpecCollectorが担う
+    ///     並びの決定はサーバー側のDetailPrototypeRuntimeConfigCollectorが担う
     ///     Resolves a detail spec's address via Addressables and converts it to a DetailPrototype
-    ///     Deciding the order belongs to DetailPrototypeSpecCollector
+    ///     Deciding the order belongs to the server-side DetailPrototypeRuntimeConfigCollector
     /// </summary>
     public static class DetailPrototypeAssetResolver
     {

@@ -2,7 +2,6 @@ using Core.Master;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Transfer;
-using Game.Paths;
 using UnityEngine;
 
 namespace Game.MapGeneration.Facade
@@ -53,15 +52,17 @@ namespace Game.MapGeneration.Facade
             // The injection makes the origins agree structurally; a drifted ledger holds another window's placements, so stop before taking it
             terrainMeta.ThrowIfOriginsDiffer(run.Output.NoiseOrigin, run.Output.SceneOrigin);
 
-            // 高さ源は共有キャッシュ。組み立てはサーバー先焼きと共有し、Configは生成が実際に使ったものを渡す
-            // The height source is the shared cache; assembly is shared with the server prebake, and the config handed over is the one the run actually used
-            var heightSource = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId);
-            var factoryResult = TileVisualBakerFactory.Create(run.Config, terrainMeta, run.Ledger, heightSource, selectedGeneration);
+            // 組み立てはサーバー先焼きと共有し、Configは生成が実際に使ったものを渡す。高さ源の決定はfactoryが持つ
+            // The assembly is shared with the server prebake and the config handed over is the one the run actually used; the factory owns the height-source decision
+            var factoryResult = TileVisualBakerFactory.CreateForClient(run.Config, terrainMeta, run.Ledger, selectedGeneration);
             var gridConfig = factoryResult.GridConfig;
+
+            // 生成内部のdetail設定は境界を越えない。並びを保ったまま公開仕様へ写す
+            // The generation-internal detail configs never cross the boundary; they are copied into the public specs with their order intact
             var layout = WorldTerrainLayout.CreateTileMaps(
                 TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount),
                 new Vector3(gridConfig.terrainWidth, gridConfig.terrainHeight, gridConfig.terrainLength), gridConfig.Resolution,
-                factoryResult.OrderedLayerAddresses, factoryResult.Baker.DetailPrototypes);
+                factoryResult.OrderedLayerAddresses, DetailPrototypeSpecCollector.Collect(factoryResult.Baker.DetailPrototypes));
             return new TiledTerrainSession(layout, factoryResult.Baker);
         }
     }

@@ -17,9 +17,6 @@ namespace Game.MapGeneration.Provisioning
     // Directory.Move rename (atomic). Root present without world.json is treated as corruption.
     public static class WorldProvisioner
     {
-        // TerrainTransferMetaReaderが生成ワールドの版照合に参照する。転送するファイル構成が変わるたび上げる
-        // Referenced by TerrainTransferMetaReader to gate generated worlds; bump whenever the transferred file layout changes
-        public const string GeneratorVersion = "3.0.0";
         private const string CacheReadmeText = "このディレクトリは削除可能です。削除しても次回起動時に自動で再構築されます。";
 
         public static void EnsureWorld(WorldProvisionSettings settings)
@@ -111,7 +108,7 @@ namespace Game.MapGeneration.Provisioning
                 return new WorldMetaJson
                 {
                     Seed = settings.Seed,
-                    GeneratorVersion = GeneratorVersion,
+                    GeneratorVersion = WorldGeneratorVersion.Current,
                     Algorithm = selected.Algorithm,
                     MapMode = WorldMapMode.Generated,
                     CreatedAt = DateTime.UtcNow.ToString("O"),
@@ -142,7 +139,7 @@ namespace Game.MapGeneration.Provisioning
                 return new WorldMetaJson
                 {
                     Seed = settings.Seed,
-                    GeneratorVersion = GeneratorVersion,
+                    GeneratorVersion = WorldGeneratorVersion.Current,
                     Algorithm = null,
                     MapMode = WorldMapMode.Template,
                     CreatedAt = DateTime.UtcNow.ToString("O"),

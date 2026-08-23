@@ -11,9 +11,9 @@ namespace Client.Tests.UnitTest.Terrain
 {
     /// <summary>
     ///     アドレス未解決を例外で落とすことを検証（成功経路の実アセットはPersonalAssets依存でCIに無く、EditModeではロードも完了しない）
-    ///     並びを決める側(DetailPrototypeSpecCollector)の検証はサーバー側のDetailPrototypeSpecCollectorTestが持つ
+    ///     並びを決める側(DetailPrototypeRuntimeConfigCollector)の検証はサーバー側のテストが持つ
     ///     Verifies that an unresolved address throws (the success path needs a PersonalAssets-only asset that CI lacks and EditMode never finishes loading)
-    ///     Verifying the side deciding order (DetailPrototypeSpecCollector) is covered by the server-side test
+    ///     Verifying the side deciding order (DetailPrototypeRuntimeConfigCollector) is covered by the server-side test
     /// </summary>
     public class DetailPrototypeAssetResolverTest
     {

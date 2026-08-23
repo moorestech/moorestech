@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
             var maps = TerrainDetailBuilder.Build(
                 CreateConfig(), BiomeTypes, visualSections, CreateHeights(), CreateHeights(),
                 CreateWinnerMasks(), null, NoMapObjects, Vector3.zero, 0, 0);
-            var prototypes = DetailPrototypeSpecCollector.Collect(BiomeTypes, visualSections);
+            var prototypes = DetailPrototypeRuntimeConfigCollector.Collect(BiomeTypes, visualSections);
 
             Assert.That(prototypes.Count, Is.EqualTo(2));
             Assert.That(maps.Count, Is.EqualTo(prototypes.Count), "prototypeとmapは同数");

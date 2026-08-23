@@ -80,6 +80,13 @@ namespace Game.MapGeneration.Pipeline.Visual.Surround
             return Paints(surroundParams);
         }
 
+        // 塗るかどうかとは別に「そもそも載っているか」を答える。台帳と樹種テーブルの出所違いはTileVisualBakerFactoryが一度だけ検査する
+        // Answers whether a guid is present at all, apart from whether it paints; TileVisualBakerFactory checks the ledger against this table once
+        public bool IsRegistered(string mapObjectGuid)
+        {
+            return _surroundParamsByGuid.ContainsKey(mapObjectGuid);
+        }
+
         private static bool Paints((string layerAddress, float weight, float width) surroundParams)
         {
             return !string.IsNullOrEmpty(surroundParams.layerAddress) && 0f < surroundParams.weight;

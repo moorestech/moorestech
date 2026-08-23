@@ -19,7 +19,11 @@ namespace Game.MapGeneration.Facade
 
         public BakedTerrainTile BakeTile(int tileX, int tileZ)
         {
-            return _baker.Bake(tileX, tileZ);
+            // 生成内部の結果を境界DTOへ値のまま移すだけ。ここで計算を挟むと焼き上がりの正本が2箇所になる
+            // Merely moves the generation-internal result into the boundary DTO as values; computing here would give the bake two sources of truth
+            var bakeResult = _baker.Bake(tileX, tileZ);
+            return new BakedTerrainTile(
+                bakeResult.ScenePosition, bakeResult.DisplayHeights, bakeResult.Alphamap, bakeResult.DetailMaps);
         }
     }
 }

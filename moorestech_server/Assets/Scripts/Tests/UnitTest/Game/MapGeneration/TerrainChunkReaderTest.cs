@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Game.MapGeneration.Export;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Newtonsoft.Json;
@@ -170,7 +169,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldMeta = new WorldMetaJson
             {
                 Seed = 1,
-                GeneratorVersion = WorldProvisioner.GeneratorVersion,
+                GeneratorVersion = WorldGeneratorVersion.Current,
                 Algorithm = "test",
                 MapMode = WorldMapMode.Generated,
                 CreatedAt = DateTime.UtcNow.ToString("O"),

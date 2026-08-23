@@ -1,4 +1,3 @@
-using Game.MapGeneration.Facade;
 using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using UnityEngine;
 
@@ -10,7 +9,7 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
     /// </summary>
     public class DetailEntry
     {
-        public DetailPrototypeSpec prototypeConfig;
+        public DetailPrototypeRuntimeConfig prototypeConfig;
 
         // バイオーム内の基本密度
         // Base density within the biome

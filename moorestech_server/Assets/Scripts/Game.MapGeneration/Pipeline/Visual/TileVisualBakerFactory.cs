@@ -8,7 +8,6 @@ using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Pipeline.Visual.Source;
 using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Visual.Surround;
-using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Mooresmaster.Model.GenerationModule;
@@ -18,8 +17,10 @@ namespace Game.MapGeneration.Pipeline.Visual
     /// <summary>
     ///     ワールド同一性(転送メタ)から TileVisualBaker を組み立てる唯一の窓口。クライアントの WorldTerrainSession.Open と
     ///     サーバーの先焼き(TerrainVisualPrebake)が同じ組み立てを通るための切り出し
+    ///     入口を用途別に2本置き、両者の唯一の違いである高さ源の決定をここが持つ（呼び出し元は選ばない）
     ///     The single window building a TileVisualBaker from a world identity (transfer meta), so the client's
     ///     WorldTerrainSession.Open and the server's prebake (TerrainVisualPrebake) share the very same assembly
+    ///     Two entries, one per use, keep the height-source decision (their only difference) here rather than at the callers
     /// </summary>
     public static class TileVisualBakerFactory
     {
@@ -39,11 +40,26 @@ namespace Game.MapGeneration.Pipeline.Visual
             }
         }
 
-        // heightSourceは呼び出し側指定（先焼き=terrain/、クライアント=共有キャッシュ）
-        // heightSource is caller-specified (prebake = terrain/, client = shared cache)
-        public static Result Create(
+        // クライアントは自分の地形ファイルを持たない。高さ源は先焼きが書いた共有キャッシュで、その導出は呼び出し元に持たせない
+        // A client owns no terrain files of its own: its height source is the shared cache the prebake wrote, and deriving it never falls to the caller
+        public static Result CreateForClient(
+            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, PlacementLedger ledger, Generation selectedGeneration)
+        {
+            return CreateWithHeightSource(config, terrainMeta, ledger, selectedGeneration, SharedCacheOf(terrainMeta));
+        }
+
+        // 先焼きの高さ源はワールド本体のterrain/(生成した本人が唯一の正)。共有キャッシュへの複製は要らない
+        // The prebake's height source is the world's own terrain/ (the generator itself is the sole truth); no copy into the shared cache is needed
+        public static Result CreateForPrebake(
             TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, PlacementLedger ledger,
-            WorldDataDirectory heightSource, Generation selectedGeneration)
+            Generation selectedGeneration, WorldDataDirectory worldDataDirectory)
+        {
+            return CreateWithHeightSource(config, terrainMeta, ledger, selectedGeneration, worldDataDirectory);
+        }
+
+        private static Result CreateWithHeightSource(
+            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, PlacementLedger ledger,
+            Generation selectedGeneration, WorldDataDirectory heightSource)
         {
             var gridConfig = config.ShallowCopy();
             gridConfig.worldOffsetX = terrainMeta.Origins.NoiseOrigin.x;
@@ -51,17 +67,40 @@ namespace Game.MapGeneration.Pipeline.Visual
             var biomeTypes = ClassificationStage.GetEnabledBiomeTypes(gridConfig);
             var visualSections = BiomeVisualSectionTable.Resolve(selectedGeneration, biomeTypes);
             var treeSurroundSpecies = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(gridConfig), biomeTypes);
+            ThrowIfLedgerTreesAreUnregistered(ledger, treeSurroundSpecies);
+
             var debugLayerAddresses = PlateauDebugOverlayGate.IsEnabled(gridConfig) ? gridConfig.alpine.debugTerrainLayerAddressablePaths : Array.Empty<string>();
             var layerTable = SplatLayerTable.Build(gridConfig.shoreConfig.beachLayerAddressablePath, gridConfig.rockLayerAddressablePath,
                 visualSections.MainLayerAddresses, visualSections.TextureConfigs, visualSections.SurroundTextureConfigs, treeSurroundSpecies, debugLayerAddresses);
 
-            var sharedCache = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId);
             var cacheKey = TerrainVisualCacheKey.Compute(terrainMeta.GenerationMasterFingerprint, config.seed, terrainMeta.Origins,
-                terrainMeta.TerrainResolution, WorldProvisioner.GeneratorVersion);
+                terrainMeta.TerrainResolution, WorldGeneratorVersion.Current, ledger.ComputeDigest());
             var baker = new TileVisualBaker(gridConfig, biomeTypes, visualSections, layerTable, treeSurroundSpecies, ledger,
-                heightSource, new TerrainVisualCache(sharedCache, cacheKey));
+                heightSource, new TerrainVisualCache(SharedCacheOf(terrainMeta), cacheKey));
 
             return new Result(baker, gridConfig, layerTable.OrderedLayerAddresses);
+        }
+
+        // 見た目キャッシュの置き場はワールドIDから一意に決まる。導出をこの1行に閉じ、規則を呼び出し元へ漏らさない
+        // A world id settles the visual cache location uniquely; closing the derivation into this single line keeps the rule out of the callers
+        private static WorldDataDirectory SharedCacheOf(TerrainTransferMeta terrainMeta)
+        {
+            return WorldDataDirectory.ForWorldCache(terrainMeta.WorldId);
+        }
+
+        // 塗る樹種かどうかは塗り側が決めるが、テーブルに載っていない樹種は台帳と樹種テーブルの出所違い。塗りの度に読み飛ばさせず組み立て時に一度だけ止める
+        // Whether a species paints is the painter's call, but a species absent from the table means the ledger and the table came from different sources; stop once at assembly rather than skipping it per paint
+        private static void ThrowIfLedgerTreesAreUnregistered(PlacementLedger ledger, TreeSurroundSpeciesTable treeSurroundSpecies)
+        {
+            foreach (var placement in ledger.Placements)
+            {
+                if (placement.SurroundEffect != TerrainSurroundEffectType.treeRootPatch) continue;
+                if (treeSurroundSpecies.IsRegistered(placement.Guid)) continue;
+
+                throw new InvalidOperationException(
+                    $"[TileVisualBakerFactory] Ledger placement '{placement.Guid}' carries {nameof(TerrainSurroundEffectType.treeRootPatch)} " +
+                    "but is absent from the tree species table; the ledger and the species table came from different biome sets.");
+            }
         }
     }
 }

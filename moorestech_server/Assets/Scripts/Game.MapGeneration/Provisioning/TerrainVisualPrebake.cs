@@ -29,9 +29,9 @@ namespace Game.MapGeneration.Provisioning
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
                 selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, terrainMeta.Origins);
 
-            // 先焼きの高さ源はワールド本体のterrain/(生成した本人が唯一の正)。共有キャッシュへの複製は要らない
-            // The prebake's height source is the world's own terrain/ (the generator itself is the sole truth); no copy into the shared cache is needed
-            var factoryResult = TileVisualBakerFactory.Create(config, terrainMeta, ledger, worldDataDirectory, selectedGeneration);
+            // 高さ源にワールド本体のterrain/を選ぶ入口。共有キャッシュを高さ源にするクライアントとは入口ごと分かれている
+            // The entry choosing the world's own terrain/ as the height source; a client, whose source is the shared cache, goes through a different entry entirely
+            var factoryResult = TileVisualBakerFactory.CreateForPrebake(config, terrainMeta, ledger, selectedGeneration, worldDataDirectory);
 
             var tileCoordinates = TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount);
             foreach (var (tileX, tileZ) in tileCoordinates)
