@@ -4,7 +4,7 @@
 
 **Goal:** PRのUnity EditModeテスト2152件を削らず、実測31分02秒のCI wall timeを、重量クラスの8並列shardと最新Libraryキャッシュで大幅に短縮する。
 
-**Architecture:** `.github/scripts/unity-test-shard-filter.sh` がshard名からassembly・正規表現filter・WebUI要否を一意に解決し、`.github/workflows/run_test.yml` のmatrix jobが8 shardを並列実行する。専用shardだけ既知assemblyへ絞り、Client名前空間とそれ以外を受ける2個の全assembly remainderで既存・将来のtest assemblyを排他的に回収する。`.github/workflows/cache-warm.yml` はmaster更新時にclient Libraryを焼き、成功後に旧client cacheだけを削除して10GB枠を維持する。
+**Architecture:** `.github/scripts/unity-test-shard-filter.sh` がshard名から正規表現filter・WebUI要否を一意に解決し、`.github/workflows/run_test.yml` のmatrix jobが8 shardを並列実行する。全assemblyを完全修飾名だけで分割し、Client名前空間とそれ以外を受ける2個のremainderで新規assemblyとfixture移動も排他的に回収する。`.github/workflows/cache-warm.yml` はmaster更新時にclient Libraryを焼き、成功後に旧client cacheだけを削除して10GB枠を維持する。
 
 **Tech Stack:** GitHub Actions / Bash / game-ci unity-test-runner@v4 / actions/cache@v4 / Unity Test Framework 1.6.0
 
@@ -14,7 +14,7 @@
 - **R2.** 2026-08-23のPR #1256 XMLで支配的だったClient EditModeInPlaying群を3 shardへ均等化する。**受け入れ基準:** 専用3 shardの実測test-case duration合計が188.248秒・212.767秒・204.477秒で、残余Clientテストはclient-remainderへ流れる。
 - **R3.** 同XMLで約8分だったServer MapGeneration重量fixtureを3 shardへ均等化する。**受け入れ基準:** 専用3 shardの実測test-case duration合計が152.594秒・153.247秒・156.512秒で、未列挙のMapGenerationおよび全Server残余はserver-remainderへ流れる。
 - **R4.** テスト範囲を削らない。**受け入れ基準:** 専用filterは正の完全修飾クラス名regex、2個のremainderは全assemblyをClient名前空間とそれ以外へ排他的に分け、専用集合だけを除く。現行CIに含まれる`Unity.Addressables.DocExampleCode.Editor.Tests`の1件はserver-remainderへ含め、すべてのshardに`!IgnoreCI` category除外が適用される。
-- **R5.** 将来fixture・test assemblyを追加してもCIから無音で漏れない。**受け入れ基準:** 専用shard以外では`-assemblyNames`を渡さず、新しい完全修飾名はClient名前空間ならclient-remainder、それ以外ならserver-remainderへ必ず含まれる。
+- **R5.** 将来fixture・test assemblyを追加・移動してもCIから無音で漏れない。**受け入れ基準:** 全shardで`-assemblyNames`を渡さず、新しい完全修飾名はClient名前空間ならclient-remainder、それ以外ならserver-remainderへ必ず含まれ、専用FQNのassembly移動も専用shardへ残る。
 - **R6.** shard失敗を既存の必須チェック名で集約する。**受け入れ基準:** 全matrix jobに依存する集約jobの表示名が既存と同じ`EditMode Test (Client + Server)`で、1 shardでも失敗・cancelなら集約jobが失敗する。
 - **R7.** shardごとの結果を衝突させない。**受け入れ基準:** GameCI `checkName`とupload artifact名がshard名を含み、8件すべて一意である。
 - **R8.** CI固定費を削る。**受け入れ基準:** test checkoutは`fetch-depth: 1`、Server shardはWebUIセットアップをskipし、GameCI結果投稿は1時間App tokenでなくjob寿命の`github.token`を使う。
@@ -41,7 +41,7 @@
 
 **Interfaces:**
 - Consumes: 位置引数1個のshard名、環境変数`GITHUB_OUTPUT`
-- Produces: `assembly_names`、`test_filter`、`needs_webui`のGitHub step output
+- Produces: `test_filter`、`needs_webui`のGitHub step output
 
 - [x] **Step 1:** Client/Serverの実測重量クラスを各3群の完全修飾名として定義し、全assemblyの残余をClient名前空間とそれ以外へ排他的に分割する。
 - [x] **Step 2:** 未知shard、引数不足、`GITHUB_OUTPUT`未設定を非0終了にし、8 shardすべての出力を一時outputへ解決するshell検査で成功を確認する。
@@ -107,7 +107,7 @@
 ## 判断記録（ADR）
 
 - **agent前提（拒否権つき）:** 2分割は固定費込み約20分なので、短さ最優先というユーザー要求に合わせ8 shardを選ぶ。Actions消費量よりwall timeを優先する。
-- **agent前提（拒否権つき）:** assembly allowlistは将来のtest assemblyを漏らすため専用shardだけに限定し、2個のremainderは全assemblyを名前空間で完全分割する。
+- **agent前提（拒否権つき）:** assembly allowlistは新規assemblyとfixture移動を漏らすため全shardで使わず、完全修飾名だけで全assemblyを完全分割する。
 - **agent前提（拒否権つき）:** master pushでplatform compile cacheまで毎回焼くと10GB枠と実行量を圧迫するため、push時はclient test cacheだけ、schedule/manualでは従来3系統を維持する。
 - **ユーザー裁定（2026-08-24）:** grill不要、計測を先に行い、短ければ短いほど良い。PR #1256実測後にCI側施策も実施する。
 - unityプレイ録画テストはゲームランタイム挙動を変更しないため対象外。実GitHub Actionsでの全件同一性とwall timeが正本の検証となる。

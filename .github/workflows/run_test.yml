@@ -151,8 +151,8 @@ jobs:
           restore-keys: |
             Library_Test_client-
 
-      # 専用shardだけassemblyを絞り、全assemblyを受ける残余shardで将来のtest assemblyも欠落させない。
-      # Scope only dedicated shards by assembly; all-assembly remainder shards retain future test assemblies without gaps.
+      # 全assemblyを完全修飾名だけで分割し、新規assemblyやfixture移動でもテストを欠落させない。
+      # Partition all assemblies only by fully qualified name so new assemblies and moved fixtures remain covered.
       - name: Run Unity Test - ${{ matrix.shard }}
         uses: game-ci/unity-test-runner@v4
         env:
@@ -166,7 +166,6 @@ jobs:
           unityVersion: 6000.3.8f1
           testMode: editmode
           customParameters: >-
-            ${{ steps.shard.outputs.assembly_names != '' && format('-assemblyNames "{0}"', steps.shard.outputs.assembly_names) || '' }}
             -testFilter "${{ steps.shard.outputs.test_filter }}"
             -testCategory "!IgnoreCI"
 

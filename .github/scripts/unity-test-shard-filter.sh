@@ -26,22 +26,21 @@ server_map_2='Tests\.UnitTest\.Game\.MapGeneration\.Tiling\.MultiTileMapObjectTr
 server_map_3='Tests\.UnitTest\.Game\.MapGeneration\.Visual\.TileVisualBakerBoundaryTest|Tests\.UnitTest\.Game\.MapGeneration\.TerrainTransferMetaReaderTest|Tests\.UnitTest\.Game\.MapGeneration\.Placement\.ObjectScatterSpawnBandTest|Tests\.UnitTest\.Game\.MapGeneration\.Visual\.Placement\.PlacementLedgerTest|Tests\.UnitTest\.Game\.MapGeneration\.WorldProvisionerTest|Tests\.UnitTest\.Game\.MapGeneration\.Facade\.WorldTerrainSessionTest|Tests\.UnitTest\.Game\.MapGeneration\.TerrainChunkReaderTest'
 server_dedicated="${server_map_1}|${server_map_2}|${server_map_3}"
 
-# 専用fixtureはassemblyで絞り、残余は全assemblyを名前空間で排他的に分割して将来のtest assemblyも回収する。
-# Scope dedicated fixtures by assembly, then partition all assemblies exclusively by namespace so future test assemblies are retained.
+# 全assemblyを完全修飾名だけで排他的に分割し、fixtureのassembly移動でも検査漏れを作らない。
+# Partition every assembly exclusively by fully qualified name so moving a fixture between assemblies cannot create coverage gaps.
 case "$1" in
-  client-play-1) assembly_names='Client.Tests'; test_filter="^(${client_play_1})(\\.|$)"; needs_webui='true' ;;
-  client-play-2) assembly_names='Client.Tests'; test_filter="^(${client_play_2})(\\.|$)"; needs_webui='true' ;;
-  client-play-3) assembly_names='Client.Tests'; test_filter="^(${client_play_3})(\\.|$)"; needs_webui='true' ;;
-  client-remainder) assembly_names=''; test_filter="^(?!(${client_dedicated})(\\.|$))Client\\."; needs_webui='true' ;;
-  server-map-1) assembly_names='Server.Tests'; test_filter="^(${server_map_1})(\\.|$)"; needs_webui='false' ;;
-  server-map-2) assembly_names='Server.Tests'; test_filter="^(${server_map_2})(\\.|$)"; needs_webui='false' ;;
-  server-map-3) assembly_names='Server.Tests'; test_filter="^(${server_map_3})(\\.|$)"; needs_webui='false' ;;
-  server-remainder) assembly_names=''; test_filter="!^(Client\\.|(${server_dedicated})(\\.|$))"; needs_webui='false' ;;
+  client-play-1) test_filter="^(${client_play_1})(\\.|$)"; needs_webui='true' ;;
+  client-play-2) test_filter="^(${client_play_2})(\\.|$)"; needs_webui='true' ;;
+  client-play-3) test_filter="^(${client_play_3})(\\.|$)"; needs_webui='true' ;;
+  client-remainder) test_filter="^(?!(${client_dedicated})(\\.|$))Client\\."; needs_webui='true' ;;
+  server-map-1) test_filter="^(${server_map_1})(\\.|$)"; needs_webui='false' ;;
+  server-map-2) test_filter="^(${server_map_2})(\\.|$)"; needs_webui='false' ;;
+  server-map-3) test_filter="^(${server_map_3})(\\.|$)"; needs_webui='false' ;;
+  server-remainder) test_filter="!^(Client\\.|(${server_dedicated})(\\.|$))"; needs_webui='false' ;;
   *) echo "unknown Unity test shard: $1" >&2; exit 2 ;;
 esac
 
 # GitHub Actionsの単一行outputとして安全に受け渡す。
 # Emit values as single-line GitHub Actions outputs.
-printf 'assembly_names=%s\n' "$assembly_names" >> "$GITHUB_OUTPUT"
 printf 'test_filter=%s\n' "$test_filter" >> "$GITHUB_OUTPUT"
 printf 'needs_webui=%s\n' "$needs_webui" >> "$GITHUB_OUTPUT"
