@@ -14,10 +14,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
     /// </summary>
     public static class DetailTestConfigBuilder
     {
-        // heightmap 5x5 に対し detail は 4x4。両者の解像度差が座標変換のズレを露出させる
-        // A 5x5 heightmap yields a 4x4 detail map; the resolution gap exposes coordinate-mapping mistakes
-        public const int HeightmapResolution = 5;
-        public const int DetailResolution = HeightmapResolution - 1;
+        // 解像度をずらし、座標変換の取り違えを露出させる
+        // Different resolutions expose coordinate-conversion mix-ups
+        public const int HeightmapResolution = 17;
+        public const int DetailResolution = 16;
 
         // プロトタイプ設定が指すアドレス（解決はCreateResolvedAssets）
         // The address a prototype config points at (resolved by CreateResolvedAssets)
@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
             return new TerrainDimensions(
                 terrainWidth: 100f, terrainLength: 100f, terrainHeight: 50f,
                 worldOffsetX: 0f, worldOffsetZ: 0f,
-                resolution: HeightmapResolution, seaLevel: 0f, shoreMinHeight: 0f, seed: 1,
+                resolution: HeightmapResolution, detailResolution: DetailResolution, seaLevel: 0f, shoreMinHeight: 0f, seed: 1,
                 spawnWorldX: 0f, spawnWorldZ: 0f,
                 tileIndexX: 0, tileIndexZ: 0, gridSizeX: 1, gridSizeZ: 1);
         }

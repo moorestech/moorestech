@@ -91,7 +91,7 @@ namespace Client.Tests.UnitTest
             var dimensions = new TerrainDimensions(
                 terrainWidth: TerrainWidth, terrainLength: TerrainLength, terrainHeight: 50f,
                 worldOffsetX: worldOffsetX, worldOffsetZ: worldOffsetZ,
-                resolution: HeightmapResolution, seaLevel: 0f, shoreMinHeight: 0f, seed: 1,
+                resolution: HeightmapResolution, detailResolution: DetailResolution, seaLevel: 0f, shoreMinHeight: 0f, seed: 1,
                 spawnWorldX: 0f, spawnWorldZ: 0f,
                 tileIndexX: 0, tileIndexZ: 0, gridSizeX: 1, gridSizeZ: 1);
 

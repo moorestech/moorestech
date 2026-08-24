@@ -1,6 +1,7 @@
 using Core.Master;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using Game.MapGeneration.Transfer;
 using UnityEngine;
 
@@ -29,32 +30,32 @@ namespace Game.MapGeneration.Facade
 
             // 転送メタは別ビルドのサーバーからも届く。転送ファイル構成の版が違えばこの先の読み出しが全部ずれるので冒頭で止める
             // The meta can arrive from a server on another build; a differing transfer-layout version skews every read below, so stop at the head
-            terrainMeta.ThrowIfGeneratorVersionDiffers();
+            var generatedPayload = terrainMeta.GeneratedPayload;
+            generatedPayload.ThrowIfGeneratorVersionDiffers(terrainMeta.WorldId);
 
             // 生成マスタ（JSON原文＋配置ノイズPNG）がワールド作成時と違えば台帳がサーバー正本とずれる。版・解像度と同じく例外で止める
             // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
-            terrainMeta.ThrowIfGenerationMasterDiffers(serverDataDirectory);
+            generatedPayload.ThrowIfGenerationMasterDiffers(serverDataDirectory);
 
-            // サーバーの唯一の入口と同じ2段（config組立→アルゴリズム選択→生成）を通る。手で組み直さない
+            // サーバーの唯一の入口と同じconfig組立を通す。手で組み直さない
             // ただしスポーン探索だけは再計算せず、ワールド作成時に確定した原点を注入して同じ窓を指させる
-            // Go through the very two steps of the server's single entry (build config, pick algorithm, generate); never hand-assemble
+            // Go through the very config assembly of the server's single entry; never hand-assemble
             // The spawn search alone is not recomputed: the origins settled at world creation are injected so the same window is addressed
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, terrainMeta.Origins);
+                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins);
             terrainMeta.ThrowIfTerrainResolutionDiffers(config.Resolution);
 
-            // pass-1: サーバーと同じ生成を丸ごと回し、配置台帳（クラスタ・種別込み）を得る。高さは捨てて転送値を正本にする
-            // pass-1: run the very same generation to obtain the placement ledger (clusters and kinds); its heights are dropped in favour of the transferred ones
-            var run = MapGenerationPipeline.Generate(selectedGeneration, config);
+            // 原点は格子の寸法と注入したGだけで決まり、生成を回さなくても確かめられる
+            // 崩れた原点は別の窓を指しているので、その窓で焼いた見た目をキャッシュへ書き込む前に止める
+            // The origins follow from the grid dimensions and the injected G alone, so they are checkable without running generation
+            // Shifted origins address another window, so stop before visuals baked on that window can reach the cache
+            var origins = MapGenerationPipeline.ResolveOrigins(config);
+            generatedPayload.ThrowIfOriginsDiffer(origins);
 
-            // 注入が効いていれば原点は構造的に一致する。崩れた台帳は別の窓の配置なので、台帳を取る前に止める
-            // The injection makes the origins agree structurally; a drifted ledger holds another window's placements, so stop before taking it
-            terrainMeta.ThrowIfOriginsDiffer(run.Output.NoiseOrigin, run.Output.SceneOrigin);
-
-            // 組み立てはサーバー先焼きと共有し、Configは生成が実際に使ったものを渡す。高さ源の決定はfactoryが持つ
-            // The assembly is shared with the server prebake and the config handed over is the one the run actually used; the factory owns the height-source decision
-            var factoryResult = TileVisualBakerFactory.CreateForClient(run.Config, terrainMeta, run.Ledger, selectedGeneration);
+            // 組み立てはサーバー先焼きと共有し、高さ源と遅延台帳源の決定をfactoryへ閉じる
+            // Share assembly with the server prebake and keep both height-source and lazy-ledger-source decisions in the factory
+            var factoryResult = TileVisualBakerFactory.CreateForClient(config, terrainMeta, generatedPayload, selectedGeneration);
             var gridConfig = factoryResult.GridConfig;
 
             // 生成内部のdetail設定は境界を越えない。並びを保ったまま公開仕様へ写す

@@ -19,12 +19,5 @@ namespace Game.MapGeneration.Transfer
             NoiseOrigin = noiseOrigin;
             SceneOrigin = sceneOrigin;
         }
-
-        // 地形を持たない構成(template・ワールドディレクトリ無し)の表明。原点という概念自体が存在しない
-        // Declares a terrain-less configuration (template, no world directory) where neither origin concept exists
-        public static TerrainOrigins WithoutTerrain()
-        {
-            return new TerrainOrigins(Vector2.zero, Vector2.zero);
-        }
     }
 }

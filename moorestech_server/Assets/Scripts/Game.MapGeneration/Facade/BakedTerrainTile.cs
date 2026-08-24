@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.MapGeneration.Pipeline.Visual;
 using UnityEngine;
 
 namespace Game.MapGeneration.Facade
@@ -13,12 +14,12 @@ namespace Game.MapGeneration.Facade
         // Display heights (post-tree perturbation); [z, x]
         public float[,] DisplayHeights { get; }
 
-        public float[,,] Alphamap { get; }
+        public TileAlphamap Alphamap { get; }
+
         public IReadOnlyList<int[,]> DetailMaps { get; }
 
         public BakedTerrainTile(
-            Vector3 scenePosition,
-            float[,] displayHeights, float[,,] alphamap, IReadOnlyList<int[,]> detailMaps)
+            Vector3 scenePosition, float[,] displayHeights, TileAlphamap alphamap, IReadOnlyList<int[,]> detailMaps)
         {
             ScenePosition = scenePosition;
             DisplayHeights = displayHeights;

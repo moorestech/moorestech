@@ -20,8 +20,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
     /// </summary>
     public class TerrainDetailBuilderHeightSourceTest
     {
-        private const int Resolution = 5;
-        private const int DetailResolution = Resolution - 1;
+        private const int Resolution = 17;
+        private const int DetailResolution = 16;
         private const int DetailCellCount = DetailResolution * DetailResolution;
         private const int MaxDensity = 8;
         private const float FlatHeight = 0.5f;
@@ -112,7 +112,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
         {
             return new TerrainGenerationConfig
             {
-                overrideResolution = Resolution, seed = 4321,
+                overrideResolution = Resolution, detailResolution = DetailResolution, seed = 4321,
                 terrainWidth = 100f, terrainLength = 100f, terrainHeight = 50f,
             };
         }

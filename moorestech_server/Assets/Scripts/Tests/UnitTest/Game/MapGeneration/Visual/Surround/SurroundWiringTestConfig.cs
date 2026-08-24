@@ -16,6 +16,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Surround
             var config = new TerrainGenerationConfig
             {
                 overrideResolution = Resolution,
+                detailResolution = 1024,
                 seed = 12345,
                 terrainWidth = TileSize,
                 terrainLength = TileSize,

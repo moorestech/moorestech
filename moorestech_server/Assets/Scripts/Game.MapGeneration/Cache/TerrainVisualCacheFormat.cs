@@ -16,16 +16,17 @@ namespace Game.MapGeneration.Cache
         // The running value, bumped whenever the visual derivation changes
         // 据え置くと旧鍵で焼いたキャッシュファイルが新鍵と衝突する可能性が残る
         // Holding it back would risk cache files baked under the old key colliding with the new one
-        public const int FormatVersion = 10;
+        public const int FormatVersion = 11;
 
         // キーはSHA256の16進64文字固定。可変長にすると壊れたファイルで読み出し長が暴れる
         // The key is a fixed 64-char SHA256 hex; a variable length would let a broken file dictate how much is read
         public const int CacheKeyByteLength = 64;
         public const int PayloadChecksumByteLength = 32;
-        public const int HeaderByteLength = 4 + 4 + CacheKeyByteLength + 4 * 4 + PayloadChecksumByteLength;
+        public const int HeaderByteLength = 4 + 4 + CacheKeyByteLength + 4 * 5 + PayloadChecksumByteLength;
 
         // 読み手が破損headerで巨大な配列を確保しないための形式上限。実データの最大値ではない
         // The format bounds stop a corrupt header from allocating enormous arrays; they are not gameplay data limits
+        public const int MaximumHeightmapResolution = 8193;
         public const int MaximumAlphamapResolution = 4096;
         public const int MaximumLayerCount = 64;
         public const int MaximumDetailResolution = 4096;
@@ -35,15 +36,34 @@ namespace Game.MapGeneration.Cache
         // Splat weights are quantized to one byte per pixel: Unity bakes alphamaps into 8-bit textures, so no precision is lost
         public const float WeightQuantizeScale = byte.MaxValue;
 
-        public const int DetailBytesPerCell = 2;
+        // 高さはr16と同じushort量子化で持つ。転送された高さ自体がこの刻みなので表示側の精度は落ちない
+        // Heights are held at the same ushort quantization as r16; the transferred heights already sit on that step, so display precision is unchanged
+        public const float HeightQuantizeScale = ushort.MaxValue;
+        public const int HeightBytesPerPixel = 2;
 
-        // ヘッダの4つの寸法はこの順で並ぶ
-        // The header's four dimensions sit in this order
-        public const int AlphamapResolutionOffset = 8 + CacheKeyByteLength;
+        public const int DetailBytesPerCell = 2;
+        private const int DetailResolutionPerPatch = 16;
+
+        // Unity互換RGBA8平面（4層/面）
+        // Unity-compatible RGBA8 planes, four layers each.
+        public const int LayersPerAlphamapPlane = 4;
+        public const int AlphamapPlaneBytesPerPixel = 4;
+
+        // ヘッダの5つの寸法はこの順で並ぶ
+        // The header's five dimensions sit in this order
+        public const int HeightmapResolutionOffset = 8 + CacheKeyByteLength;
+        public const int AlphamapResolutionOffset = HeightmapResolutionOffset + 4;
         public const int LayerCountOffset = AlphamapResolutionOffset + 4;
         public const int DetailResolutionOffset = LayerCountOffset + 4;
         public const int DetailMapCountOffset = DetailResolutionOffset + 4;
         public const int PayloadChecksumOffset = DetailMapCountOffset + 4;
+
+        // レイヤー数から平面数を出す唯一の場所。UnityのalphamapTextureCountと同じ切り上げ規則
+        // The single place deriving the plane count from the layer count, with Unity's own alphamapTextureCount rounding
+        public static int AlphamapPlaneCount(int layerCount)
+        {
+            return (layerCount + LayersPerAlphamapPlane - 1) / LayersPerAlphamapPlane;
+        }
 
         public static void WriteInt(byte[] bytes, int offset, int value)
         {
@@ -58,18 +78,41 @@ namespace Game.MapGeneration.Cache
             return bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24);
         }
 
+        // 各区画のバイト長。書き手と読み手が同じ式を共有し、区画境界の取り違えを構造的に無くす
+        // Each section's byte length; writer and reader share one formula so a section boundary cannot drift between them
+        public static long HeightsByteLength(int heightmapResolution)
+        {
+            return (long)heightmapResolution * heightmapResolution * HeightBytesPerPixel;
+        }
+
+        public static long AlphamapPlaneByteLength(int alphamapResolution)
+        {
+            return (long)alphamapResolution * alphamapResolution * AlphamapPlaneBytesPerPixel;
+        }
+
+        private static long DetailMapByteLength(int detailResolution)
+        {
+            return (long)detailResolution * detailResolution * DetailBytesPerCell;
+        }
+
         public static bool TryCalculatePayloadByteLength(
-            int alphamapResolution, int layerCount, int detailResolution, int detailMapCount, out long payloadByteLength)
+            int heightmapResolution, int alphamapResolution, int layerCount, int detailResolution, int detailMapCount,
+            out long payloadByteLength)
         {
             payloadByteLength = 0;
-            if (alphamapResolution <= 0 || MaximumAlphamapResolution < alphamapResolution ||
+            if (heightmapResolution <= 0 || MaximumHeightmapResolution < heightmapResolution ||
+                alphamapResolution <= 0 || MaximumAlphamapResolution < alphamapResolution ||
                 layerCount <= 0 || MaximumLayerCount < layerCount ||
                 detailResolution < 0 || MaximumDetailResolution < detailResolution ||
-                detailMapCount < 0 || MaximumDetailMapCount < detailMapCount) return false;
+                detailMapCount < 0 || MaximumDetailMapCount < detailMapCount ||
+                detailMapCount == 0 && detailResolution != 0 ||
+                0 < detailMapCount && (detailResolution < DetailResolutionPerPatch ||
+                    detailResolution % DetailResolutionPerPatch != 0 || heightmapResolution - 1 < detailResolution)) return false;
 
             payloadByteLength = checked(
-                (long)alphamapResolution * alphamapResolution * layerCount +
-                (long)detailMapCount * detailResolution * detailResolution * DetailBytesPerCell);
+                HeightsByteLength(heightmapResolution) +
+                AlphamapPlaneCount(layerCount) * AlphamapPlaneByteLength(alphamapResolution) +
+                detailMapCount * DetailMapByteLength(detailResolution));
             return payloadByteLength <= int.MaxValue;
         }
     }

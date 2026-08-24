@@ -24,8 +24,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
     /// </summary>
     public class TileVisualBakerGateTest
     {
-        private const int Resolution = 9;
+        private const int Resolution = 33;
         private const int AlphamapResolution = Resolution - 1;
+        private const int DetailResolution = 16;
         private const float TileSize = 100f;
         private const int TileX = 0;
         private const int TileZ = 0;
@@ -107,7 +108,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             var baked = CreateBaker(true, true, true).Bake(TileX, TileZ);
 
             Assert.That(baked.Alphamap, Is.Not.Null);
-            Assert.That(baked.Alphamap.GetLength(0), Is.EqualTo(AlphamapResolution));
+            Assert.That(baked.Alphamap.LayerCount, Is.GreaterThan(0));
+            Assert.That(baked.Alphamap.Resolution, Is.EqualTo(AlphamapResolution));
         }
 
         [Test]
@@ -150,6 +152,57 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             Assert.That(File.Exists(_worldCacheDirectory.TerrainVisualCacheFilePath(TileX, TileZ)), Is.False);
         }
 
+        [Test]
+        public void SkipsHeightAndLedgerWhenEveryGenerationGateIsOff()
+        {
+            File.Delete(_worldCacheDirectory.TerrainHeightFilePath(TileX, TileZ));
+            var ledgerSource = new CountingLedgerSource(EmptyLedger);
+
+            var baked = CreateBaker(false, false, false, ledgerSource, EmptyLedger.ComputeDigest()).Bake(TileX, TileZ);
+
+            Assert.That(ledgerSource.ResolveCount, Is.EqualTo(0));
+            Assert.That(baked.DisplayHeights[0, 0], Is.EqualTo(0f));
+            Assert.That(baked.Alphamap, Is.Null);
+            Assert.That(baked.DetailMaps, Is.Empty);
+        }
+
+        [Test]
+        public void RejectsResolvedLedgerWhoseDigestDiffersFromTheCacheIdentity()
+        {
+            var baker = CreateBaker(true, false, true,
+                new MaterializedPlacementLedgerSource(EmptyLedger), new string('f', 64));
+
+            Assert.Throws<InvalidOperationException>(() => baker.Bake(TileX, TileZ));
+            Assert.That(File.Exists(_worldCacheDirectory.TerrainVisualCacheFilePath(TileX, TileZ)), Is.False);
+        }
+
+        [Test]
+        public void FullCacheHitDoesNotResolveTheLedger()
+        {
+            CreateBaker(true, false, true).Bake(TileX, TileZ);
+            var ledgerSource = new CountingLedgerSource(EmptyLedger);
+
+            CreateBaker(true, false, true, ledgerSource, EmptyLedger.ComputeDigest()).Bake(TileX, TileZ);
+
+            Assert.That(ledgerSource.ResolveCount, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TwoDistinctCacheMissesOnTheSameBakerResolveTheLedgerOnceTest()
+        {
+            const int secondTileX = TileX + 1;
+            File.WriteAllBytes(
+                _worldCacheDirectory.TerrainHeightFilePath(secondTileX, TileZ),
+                new byte[Resolution * Resolution * 2]);
+            var ledgerSource = new CountingLedgerSource(EmptyLedger);
+            var baker = CreateBaker(true, false, true, ledgerSource, EmptyLedger.ComputeDigest());
+
+            baker.Bake(TileX, TileZ);
+            baker.Bake(secondTileX, TileZ);
+
+            Assert.That(ledgerSource.ResolveCount, Is.EqualTo(1));
+        }
+
         // 全画素を0xFFFFで埋める。正規化高さ1.0はゲート判定と区別できる非平坦値になる
         // Fills every pixel with 0xFFFF; normalized height 1.0 is a non-flat value distinguishable from the gate's off-state
         private void WriteMaxHeightFile()
@@ -161,6 +214,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
 
         private TileVisualBaker CreateBaker(bool generateTexture, bool generateDetail, bool generateHeightmap)
         {
+            return CreateBaker(generateTexture, generateDetail, generateHeightmap,
+                new MaterializedPlacementLedgerSource(EmptyLedger), EmptyLedger.ComputeDigest());
+        }
+
+        private TileVisualBaker CreateBaker(
+            bool generateTexture, bool generateDetail, bool generateHeightmap,
+            IPlacementLedgerSource ledgerSource, string expectedPlacementLedgerDigest)
+        {
             var config = CreateConfig(generateTexture, generateDetail, generateHeightmap);
             var visualSections = CreateVisualSections();
             var treeSurroundSpecies = TreeSurroundSpeciesTable.Build(new BiomePlacementHelper(config), BiomeTypes);
@@ -169,8 +230,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 visualSections.SurroundTextureConfigs, treeSurroundSpecies, Array.Empty<string>());
 
             return new TileVisualBaker(
-                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, EmptyLedger,
-                _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
+                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, ledgerSource,
+                expectedPlacementLedgerDigest, _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
         }
 
         private static TerrainGenerationConfig CreateConfig(bool generateTexture, bool generateDetail, bool generateHeightmap)
@@ -178,6 +239,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             return new TerrainGenerationConfig
             {
                 overrideResolution = Resolution,
+                detailResolution = DetailResolution,
                 seed = 12345,
                 terrainWidth = TileSize,
                 terrainLength = TileSize,
@@ -213,6 +275,23 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                     },
                 },
                 DetailTestConfigBuilder.CreateDisabledSurroundConfigs(BiomeTypes.Length));
+        }
+
+        private sealed class CountingLedgerSource : IPlacementLedgerSource
+        {
+            private readonly PlacementLedger _ledger;
+            public int ResolveCount { get; private set; }
+
+            public CountingLedgerSource(PlacementLedger ledger)
+            {
+                _ledger = ledger;
+            }
+
+            public PlacementLedger Resolve()
+            {
+                ResolveCount++;
+                return _ledger;
+            }
         }
     }
 }

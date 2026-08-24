@@ -107,9 +107,9 @@ namespace Tests.UnitTest.Game.MapGeneration
         // 定数同士の比較はどんな版でも通るトートロジーになるため、版そのものをリテラルで固定する
         // Comparing the constant to itself is a tautology regardless of value, so pin the version as a literal
         [Test]
-        public void GeneratorVersion定数は3_0_0に固定されている()
+        public void GeneratorVersion定数は4_0_0に固定されている()
         {
-            Assert.AreEqual("3.0.0", WorldGeneratorVersion.Current);
+            Assert.AreEqual("4.0.0", WorldGeneratorVersion.Current);
         }
 
         [Test]

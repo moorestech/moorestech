@@ -126,6 +126,10 @@ namespace Game.MapGeneration.Provisioning
                     TerrainSceneOriginZ = output.SceneOrigin.y,
 
                     GenerationMasterFingerprint = generationMasterFingerprint,
+
+                    // 台帳の指紋はこの1回のpass-1でしか決まらない。ここで記録しないとクライアントが鍵のために丸ごと回し直す
+                    // The ledger digest is settled by this single pass-1; unrecorded, a client would rerun the whole thing just to obtain a key
+                    PlacementLedgerDigest = run.Ledger.ComputeDigest(),
                 };
             }
 

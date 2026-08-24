@@ -43,7 +43,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
             var settings = ProvisionGeneratedWorld();
 
             var terrainMeta = TerrainTransferMetaReader.Read(_worldDataDirectory);
-            var currentFingerprint = terrainMeta.ComputeCurrentGenerationMasterFingerprint(TestModDirectory.ForUnitTestModDirectory);
+            var generatedPayload = terrainMeta.GeneratedPayload;
+            var currentFingerprint = generatedPayload.ComputeCurrentGenerationMasterFingerprint(TestModDirectory.ForUnitTestModDirectory);
             var sharedVisualDirectory = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId).TerrainVisualDirectory;
             Assert.IsTrue(Directory.Exists(sharedVisualDirectory), "前提: 先焼きが共有キャッシュへ見た目を書き出している");
 
@@ -69,8 +70,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
             var settings = ProvisionGeneratedWorld();
             var worldId = TerrainTransferMetaReader.Read(_worldDataDirectory).WorldId;
 
-            // マスタを差し替える代わりに記録側へ1件足す。指紋不一致のうえで(GUID,座標)集合が食い違う状態は同じ
-            // Add one entry to the recorded side instead of swapping the master; the state is the same, a fingerprint mismatch over a disagreeing (guid, position) set
+            // マスタを差し替える代わりに記録側へ1件足す。指紋不一致のうえで(GUID,座標,scale)集合が食い違う状態は同じ
+            // Add one entry to the recorded side instead of swapping the master; the state is the same, a fingerprint mismatch over a disagreeing (guid, position, scale) set
             AppendMapObjectNoMasterGenerates();
             WriteTamperedFingerprint();
 
@@ -78,8 +79,30 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
 
             // 原点ずれ等の別経路の例外を集合不一致と取り違えない
             // Never mistake an exception from another path, such as shifted origins, for the set disagreement
-            Assert.That(thrownException.Message, Does.Contain("(guid, position) set"));
+            Assert.That(thrownException.Message, Does.Contain("(guid, position, scale) set"));
 
+            DeleteSharedWorldCache(worldId);
+        }
+
+        // 位置にだけ許す1mm丸めをscaleへ流用すると、見た目を変える微差なのに旧mapと新digestの組合せを記録してしまう
+        // Reusing position's 1mm rounding for scale would record an old map beside a new digest despite a visible scale-only change
+        [Test]
+        public void Scaleだけが0_001未満動いた既存ワールドは記録を進めず例外を投げるTest()
+        {
+            const float originalScale = 1f;
+            const float changedScale = 1.0001f;
+            TestGenerationConfigFactory.LoadMasterWithMapObjectScaleForProvisioning(originalScale);
+            var settings = ProvisionGeneratedWorldWithLoadedMaster();
+            var originalWorldMeta = ReadWorldMeta();
+            var worldId = TerrainTransferMetaReader.Read(_worldDataDirectory).WorldId;
+
+            TestGenerationConfigFactory.LoadMasterWithMapObjectScaleForProvisioning(changedScale);
+            var thrownException = Assert.Throws<InvalidOperationException>(() => WorldProvisioner.EnsureWorld(settings));
+            var rejectedWorldMeta = ReadWorldMeta();
+
+            Assert.That(thrownException.Message, Does.Contain("(guid, position, scale) set"));
+            Assert.AreEqual(originalWorldMeta.GenerationMasterFingerprint, rejectedWorldMeta.GenerationMasterFingerprint);
+            Assert.AreEqual(originalWorldMeta.PlacementLedgerDigest, rejectedWorldMeta.PlacementLedgerDigest);
             DeleteSharedWorldCache(worldId);
         }
 
@@ -90,15 +113,25 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
             new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
+            return ProvisionGeneratedWorldWithLoadedMaster();
+        }
+
+        private WorldProvisionSettings ProvisionGeneratedWorldWithLoadedMaster()
+        {
             var settings = new WorldProvisionSettings(_worldDataDirectory, TestModDirectory.ForUnitTestModDirectory, WorldMapMode.Generated, 12345);
             WorldProvisioner.EnsureWorld(settings);
             return settings;
         }
 
+        private WorldMetaJson ReadWorldMeta()
+        {
+            return JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(_worldDataDirectory.WorldMetaFilePath));
+        }
+
         // ForUnitTest modの生成マスタはどのバイオームにもobjectConfigの要素を持たず、生成ワールドのmapObjectは0件
         // The ForUnitTest mod's generation master carries no objectConfig entry in any biome, so a generated world holds zero mapObjects
-        // よって記録側にだけ1件在ることが(GUID,座標)集合の食い違いそのものになる
-        // One entry existing on the recorded side alone is therefore precisely the (guid, position) set disagreement
+        // よって記録側にだけ1件在ることが(GUID,座標,scale)集合の食い違いそのものになる
+        // One entry existing on the recorded side alone is therefore precisely the (guid, position, scale) set disagreement
         private void AppendMapObjectNoMasterGenerates()
         {
             var mapInfoJson = JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(_worldDataDirectory.MapJsonFilePath));

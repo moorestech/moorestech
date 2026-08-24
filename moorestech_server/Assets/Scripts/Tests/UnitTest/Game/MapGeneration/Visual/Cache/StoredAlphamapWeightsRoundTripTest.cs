@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Surround;
 using NUnit.Framework;
 using UnityEngine;
@@ -9,17 +10,18 @@ using static Tests.UnitTest.Game.MapGeneration.Visual.Surround.SurroundTestFixtu
 namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
 {
     /// <summary>
-    ///     裸地の塗りで合計が1を超えた画素が、キャッシュ往復で色配分を変えないことを検証する。
-    ///     キャッシュは1画素1バイトなので、畳まずに焼くと1で頭打ちして再読込時だけ比率が変わり、
+    ///     裸地の塗りで合計が1を超えた画素が、平面化とキャッシュ往復で色配分を変えないことを検証する。
+    ///     平面は1画素1バイトなので、畳まずに焼くと1で頭打ちして比率が変わり、
     ///     同じワールドでも初回生成時とリロード後で岩まわりの色が食い違う
-    ///     Verifies pixels pushed past a weight sum of one by the bare-ground painting keep their colour split across a
-    ///     cache round trip. The cache holds one byte per pixel, so an unfolded bake clips at one and shifts the ratio on
-    ///     reload alone, leaving the same world's rocks differently coloured after a restart
+    ///     Verifies pixels pushed past a weight sum of one by the bare-ground painting keep their colour split through the
+    ///     flattening and a cache round trip. A plane holds one byte per pixel, so an unfolded bake clips at one and shifts
+    ///     the ratio, leaving the same world's rocks differently coloured after a restart
     /// </summary>
     public class StoredAlphamapWeightsRoundTripTest
     {
         private const int ClusterId = 7;
         private const int NoCluster = -1;
+        private const int HeightmapResolution = 2;
         private const string CacheKey = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
 
         private string _directoryPath;
@@ -48,28 +50,15 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
         }
 
         [Test]
-        public void AFoldedAlphamapComesBackFromTheCacheUnchanged()
+        public void ThePlanesComeBackFromTheCacheUnchanged()
         {
-            var alphamap = PaintOverlappingRocks();
-            StoredAlphamapWeights.Fold(alphamap);
+            var planes = StoredAlphamapWeights.ToPlanes(PaintOverlappingRocks());
 
-            var restored = WriteAndRead(alphamap);
+            var restored = WriteAndRead(planes);
 
-            for (var z = 0; z < AlphaResolution; z++)
-            for (var x = 0; x < AlphaResolution; x++)
-            for (var layer = 0; layer < LayerCount; layer++)
-                Assert.That(restored[z, x, layer], Is.EqualTo(alphamap[z, x, layer]), $"z={z} x={x} layer={layer}");
-        }
-
-        [Test]
-        public void AnUnfoldedAlphamapDoesNotSurviveTheSameRoundTrip()
-        {
-            // 畳み込みを外したときに何が起きるかを固定する。合計1超の画素は1へ頭打ちし、他の画素も量子化でずれる
-            // Pins down what dropping the fold does: a pixel above one clips to one and the rest drift by quantization
-            var alphamap = PaintOverlappingRocks();
-            var restored = WriteAndRead(alphamap);
-
-            Assert.That(HasDifferentPixel(alphamap, restored), Is.True);
+            Assert.That(restored.Count, Is.EqualTo(planes.Length));
+            for (var planeIndex = 0; planeIndex < planes.Length; planeIndex++)
+                Assert.That(restored[planeIndex].ToArray(), Is.EqualTo(planes[planeIndex]), $"plane={planeIndex}");
         }
 
         [Test]
@@ -81,11 +70,85 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             alphamap[0, 0, 0] = 1.4f;
             alphamap[0, 0, 1] = 0.2f;
 
-            StoredAlphamapWeights.Fold(alphamap);
+            var planes = StoredAlphamapWeights.ToPlanes(alphamap);
 
-            Assert.That(alphamap[0, 0, 0], Is.EqualTo(0.875f).Within(1f / 255f));
-            Assert.That(alphamap[0, 0, 1], Is.EqualTo(0.125f).Within(1f / 255f));
-            Assert.That(alphamap[0, 0, 0] + alphamap[0, 0, 1], Is.EqualTo(1f).Within(1f / 255f));
+            Assert.That(planes[0][0] / 255f, Is.EqualTo(0.875f).Within(1f / 255f));
+            Assert.That(planes[0][1] / 255f, Is.EqualTo(0.125f).Within(1f / 255f));
+            Assert.That((planes[0][0] + planes[0][1]) / 255f, Is.EqualTo(1f).Within(1f / 255f));
+        }
+
+        [Test]
+        public void EachLayerLandsOnItsOwnPlaneChannel()
+        {
+            // 平面と channel の割り当てが崩れると、層の入れ替わりが起きても合計だけは合ってしまう
+            // A broken plane-and-channel assignment still keeps the sums right while the layers swap places
+            // 合計1に収めて畳み込みの正規化を挟ませない。ここで見たいのは層と channel の対応だけ
+            // Keep the sum at one so the fold's normalization stays out of it; only the layer-to-channel mapping is under test
+            var alphamap = new float[1, 1, 6];
+            alphamap[0, 0, 0] = 0.25f;
+            alphamap[0, 0, 5] = 0.75f;
+
+            var planes = StoredAlphamapWeights.ToPlanes(alphamap);
+
+            Assert.That(planes.Length, Is.EqualTo(2), "6層はRGBA2枚に載る");
+            Assert.That(planes[0][0], Is.EqualTo(64), "layer0は平面0のR");
+            Assert.That(planes[1][1], Is.EqualTo(191), "layer5は平面1のG");
+        }
+
+        [Test]
+        public void QuantizedWeightsSumToOneAcrossNineteenLayers()
+        {
+            // 1/19は各channelの独立丸めだけでは合計255にならないため残差配分を直接踏む
+            // One nineteenth does not total 255 under independent channel rounding, directly exercising residue distribution
+            const int layerCount = 19;
+            var alphamap = new float[1, 1, layerCount];
+            for (var layer = 0; layer < layerCount; layer++) alphamap[0, 0, layer] = 1f / layerCount;
+
+            var planes = StoredAlphamapWeights.ToPlanes(alphamap);
+
+            var total = 0;
+            for (var layer = 0; layer < layerCount; layer++)
+                total += planes[layer / TerrainVisualCacheFormat.LayersPerAlphamapPlane]
+                    [layer % TerrainVisualCacheFormat.LayersPerAlphamapPlane];
+            Assert.That(total, Is.EqualTo(byte.MaxValue));
+        }
+
+        // 3つの有効層を別平面へ散らし、独立丸めの加算・減算補正が最強層へ入ることを両方向で固定する
+        // Spreads three active layers across planes and pins both additive and subtractive correction to the strongest layer
+        [TestCase(50.4f, 154.2f, 254, 155, TestName = "AddsResidueToStrongestLayerWhenNineteenLayerRoundingTotals254Test")]
+        [TestCase(50.6f, 153.8f, 256, 153, TestName = "SubtractsResidueFromStrongestLayerWhenNineteenLayerRoundingTotals256Test")]
+        public void CorrectsNineteenLayerRoundingResidueTest(
+            float smallScaledWeight, float strongestScaledWeight, int independentTotal, int expectedStrongestByte)
+        {
+            const int layerCount = 19;
+            const int middleLayer = 5;
+            const int strongestLayer = 18;
+            var alphamap = new float[1, 1, layerCount];
+            alphamap[0, 0, 0] = smallScaledWeight / byte.MaxValue;
+            alphamap[0, 0, middleLayer] = smallScaledWeight / byte.MaxValue;
+            alphamap[0, 0, strongestLayer] = strongestScaledWeight / byte.MaxValue;
+
+            Assert.That(
+                Mathf.RoundToInt(smallScaledWeight) * 2 + Mathf.RoundToInt(strongestScaledWeight),
+                Is.EqualTo(independentTotal), "補正前の独立丸め合計");
+            var planes = StoredAlphamapWeights.ToPlanes(alphamap);
+
+            var correctedTotal = 0;
+            for (var layer = 0; layer < layerCount; layer++)
+                correctedTotal += planes[layer / TerrainVisualCacheFormat.LayersPerAlphamapPlane]
+                    [layer % TerrainVisualCacheFormat.LayersPerAlphamapPlane];
+            Assert.That(correctedTotal, Is.EqualTo(byte.MaxValue));
+            Assert.That(planes[strongestLayer / TerrainVisualCacheFormat.LayersPerAlphamapPlane]
+                [strongestLayer % TerrainVisualCacheFormat.LayersPerAlphamapPlane], Is.EqualTo(expectedStrongestByte));
+        }
+
+        [Test]
+        public void ZeroWeightPixelRemainsZero()
+        {
+            var planes = StoredAlphamapWeights.ToPlanes(new float[1, 1, 19]);
+
+            foreach (var plane in planes)
+                Assert.That(plane, Is.All.EqualTo(0));
         }
 
         // クラスタ経路と単体岩経路の両方が同じ画素へ書く配置。2回目の書き込みは書き込み先に重みがある状態で走る
@@ -101,26 +164,17 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             return alphamap;
         }
 
-        private float[,,] WriteAndRead(float[,,] alphamap)
+        private System.Collections.Generic.IReadOnlyList<ReadOnlyMemory<byte>> WriteAndRead(byte[][] planes)
         {
-            TerrainVisualCacheWriter.Write(_filePath, CacheKey, new TerrainTileVisual(alphamap, Array.Empty<int[,]>()));
+            TerrainVisualCacheWriter.Write(_filePath, CacheKey, new TerrainTileVisual(
+                new float[HeightmapResolution, HeightmapResolution],
+                TileAlphamap.Create(planes, AlphaResolution, LayerCount), Array.Empty<int[,]>()));
 
             var succeeded = TerrainVisualCacheReader.TryRead(
-                _filePath, CacheKey, AlphaResolution, LayerCount, 0, 0, out var tileVisual, out var brokenReason);
+                _filePath, CacheKey, HeightmapResolution, AlphaResolution, LayerCount, 0, 0, out var tileVisual, out var brokenReason);
             Assert.That(succeeded, Is.True, brokenReason);
 
-            return tileVisual.Alphamap;
-        }
-
-        private static bool HasDifferentPixel(float[,,] left, float[,,] right)
-        {
-            for (var z = 0; z < AlphaResolution; z++)
-            for (var x = 0; x < AlphaResolution; x++)
-            for (var layer = 0; layer < LayerCount; layer++)
-                if (left[z, x, layer] != right[z, x, layer])
-                    return true;
-
-            return false;
+            return tileVisual.Alphamap.Planes;
         }
 
         private static float MaximumWeightSum(float[,,] alphamap)

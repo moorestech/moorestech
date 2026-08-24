@@ -149,7 +149,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var masks = entries.Select(_ => CreateFullMask()).ToArray();
             var dims = new TerrainDimensions(
                 TileSize, TileSize, 100f, worldOffsetX, 0f,
-                HeightRes, 0f, 0f, 123, 0f, 0f,
+                HeightRes, HeightRes - 1, 0f, 0f, 123, 0f, 0f,
                 (int)(worldOffsetX / TileSize), 0, 2, 1);
             var placement = OrePlacementGenerator.GenerateForWorld(
                 entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),

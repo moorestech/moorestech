@@ -58,17 +58,33 @@ namespace Tests.UnitTest.Game.MapGeneration
         // Builds with arbitrary algorithmParam fields replaced, for tests varying a single coordinate-system condition.
         public static Generation CreateWithAlgorithmParamOverrides(SpawnSearchSetup spawnSearchSetup, JObject algorithmParamOverrides)
         {
-            return CreateWithMapObjectGuid(spawnSearchSetup, algorithmParamOverrides, TestMapObjectGuid);
+            return GenerationLoader.Load(CreateJsonWithMapObjectGuid(spawnSearchSetup, algorithmParamOverrides, TestMapObjectGuid));
         }
 
         // 任意のMapObject GUIDを1件だけ持つ生成設定を作り、変換境界の検査に使う。
         // Build generation config with one arbitrary MapObject GUID for conversion-boundary validation.
         public static Generation CreateWithMapObjectGuid(string mapObjectGuid)
         {
-            return CreateWithMapObjectGuid(SpawnSearchSetup.Enabled, new JObject(), mapObjectGuid);
+            return GenerationLoader.Load(CreateJsonWithMapObjectGuid(SpawnSearchSetup.Enabled, new JObject(), mapObjectGuid));
         }
 
-        private static Generation CreateWithMapObjectGuid(
+        // scale差だけのmasterでdrift検証
+        // Loads a scale-only master change for drift verification.
+        public static void LoadMasterWithMapObjectScaleForProvisioning(float scale)
+        {
+            var root = CreateJsonWithMapObjectGuid(SpawnSearchSetup.Enabled, new JObject(), TestMapObjectGuid);
+            var algorithmParam = (JObject)root["algorithmParam"];
+            var entries = (JArray)((JObject)((JObject)algorithmParam["grassland"])["objectConfig"])["entries"];
+            ((JObject)entries[0])["scaleRange"] = new JArray(scale, scale);
+
+            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
+            var masterContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
+            masterContainer.ConfigJsons[0].JsonContents[new JsonFileName("generation")] =
+                root.ToString(Newtonsoft.Json.Formatting.None);
+            MasterHolder.Load(masterContainer);
+        }
+
+        private static JObject CreateJsonWithMapObjectGuid(
             SpawnSearchSetup spawnSearchSetup,
             JObject algorithmParamOverrides,
             string mapObjectGuid)
@@ -87,13 +103,13 @@ namespace Tests.UnitTest.Game.MapGeneration
             // Make a small, fast single-tile map (bypass preset, set resolution directly).
             ap["overrideResolution"] = spawnSearchSetup == SpawnSearchSetup.Disabled ? 129 : 0;
 
-            // 通常pipelineテストを1x1に固定
-            // Pin the test master's 1x1 here too, preventing ordinary pipeline tests from silently becoming multi-tile if the default changes.
-            // スポーン探索だけ5x5を明示する
-            // Spawn-search tests that need 5x5 state it through algorithmParamOverrides, confining the expensive grid to those tests.
+            // 通常テストはheightmapとdetailを共に縮小し、実生成を1x1へ固定する
+            // Shrink both heightmap and detail resolution for ordinary tests and pin real generation to 1x1.
+            if (spawnSearchSetup == SpawnSearchSetup.Disabled) ap["detailResolution"] = 128;
             ap["gridSizeX"] = 1;
             ap["gridSizeZ"] = 1;
-
+            // スポーン探索だけはalgorithmParamOverridesから必要な5x5を明示する
+            // Spawn-search tests explicitly restore the required 5x5 through algorithmParamOverrides.
             ap["useSpawnOffsetSearch"] = spawnSearchSetup != SpawnSearchSetup.Disabled;
             ap["generateOre"] = true;
             ConfigureSpawnSearch((JObject)ap["spawnSearch"], spawnSearchSetup);
@@ -128,7 +144,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             foreach (var overrideProperty in algorithmParamOverrides.Properties())
                 ap[overrideProperty.Name] = overrideProperty.Value;
 
-            return GenerationLoader.Load(root);
+            return root;
 
             #region Internal
 

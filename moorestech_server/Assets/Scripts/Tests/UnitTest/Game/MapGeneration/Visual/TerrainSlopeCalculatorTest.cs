@@ -78,6 +78,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             return new TerrainGenerationConfig
             {
                 overrideResolution = Resolution,
+                detailResolution = 1024,
                 terrainWidth = TerrainWidth,
                 terrainLength = TerrainLength,
                 terrainHeight = TerrainHeight,

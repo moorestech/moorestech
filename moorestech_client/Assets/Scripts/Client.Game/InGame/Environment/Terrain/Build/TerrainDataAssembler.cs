@@ -22,9 +22,10 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             WorldTerrainLayout layout, BakedTerrainTile tile,
             IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers)
         {
+            var detailResolution = ValidateDetailInputs();
             var terrainData = new TerrainData();
             ApplyHeightmap();
-            await ApplySplatmapAsync();
+            await TerrainAlphamapApplier.ApplyAsync(terrainData, terrainLayers, tile);
             ApplyDetail();
             return terrainData;
 
@@ -39,29 +40,15 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 terrainData.SetHeights(0, 0, tile.DisplayHeights);
             }
 
-            async UniTask ApplySplatmapAsync()
-            {
-                // 非生成時はUnity既定のalphamapを維持
-                // When not generating, Unity's default alphamap is kept
-                if (tile.Alphamap == null) return;
-
-                terrainData.alphamapResolution = tile.Alphamap.GetLength(0);
-                terrainData.terrainLayers = terrainLayers;
-                await TerrainAlphamapApplier.ApplyAsync(terrainData, tile.Alphamap);
-            }
-
             void ApplyDetail()
             {
                 var detailMaps = tile.DetailMaps;
                 if (detailMaps.Count == 0) return;
 
-                // プロトタイプ数と密度マップ本数は生成側の1:1対応が保証しているだけで、ここは知らない前提で組む
-                // The prototype count and density-map count agree only because the generator guarantees it 1:1; this stage assumes nothing on its own
-                if (detailPrototypes.Count != detailMaps.Count)
+                terrainData.SetDetailResolution(detailResolution, DetailResolutionPerPatch);
+                if (terrainData.detailResolution != detailResolution)
                     throw new System.InvalidOperationException(
-                        $"[TerrainDataAssembler] Detail prototype count {detailPrototypes.Count} does not match detail map count {detailMaps.Count}.");
-
-                terrainData.SetDetailResolution(detailMaps[0].GetLength(0), DetailResolutionPerPatch);
+                        $"[TerrainDataAssembler] Unity applied detail resolution {terrainData.detailResolution} instead of {detailResolution}.");
 
                 // CoverageModeではメッシュDetailが描画されないことがあるため移植元と同じくInstanceCountModeにする
                 // CoverageMode can leave mesh details undrawn, so InstanceCountMode is used as in the source
@@ -70,6 +57,33 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
                 for (var layerIndex = 0; layerIndex < detailMaps.Count; layerIndex++)
                     terrainData.SetDetailLayer(0, 0, layerIndex, detailMaps[layerIndex]);
+            }
+
+            // native TerrainDataを作る前に、全detail入力の本数と寸法を確定する
+            // Settle every detail count and dimension before allocating the native TerrainData
+            int ValidateDetailInputs()
+            {
+                var detailMaps = tile.DetailMaps;
+                if (detailMaps.Count == 0) return 0;
+
+                // プロトタイプ数と密度マップ本数は生成側の1:1対応が保証しているだけで、ここは知らない前提で組む
+                // The prototype count and density-map count agree only because the generator guarantees it 1:1; this stage assumes nothing on its own
+                if (detailPrototypes.Count != detailMaps.Count)
+                    throw new System.InvalidOperationException(
+                        $"[TerrainDataAssembler] Detail prototype count {detailPrototypes.Count} does not match detail map count {detailMaps.Count}.");
+
+                var resolution = detailMaps[0].GetLength(0);
+                if (resolution < DetailResolutionPerPatch || resolution % DetailResolutionPerPatch != 0 ||
+                    layout.HeightmapResolution - 1 < resolution)
+                    throw new System.InvalidOperationException(
+                        $"[TerrainDataAssembler] Detail resolution {resolution} must be at least {DetailResolutionPerPatch}, " +
+                        $"a multiple of {DetailResolutionPerPatch}, and no greater than {layout.HeightmapResolution - 1}.");
+                for (var layerIndex = 0; layerIndex < detailMaps.Count; layerIndex++)
+                    if (detailMaps[layerIndex].GetLength(0) != resolution || detailMaps[layerIndex].GetLength(1) != resolution)
+                        throw new System.InvalidOperationException(
+                            $"[TerrainDataAssembler] Detail map {layerIndex} must be square and match resolution {resolution}.");
+
+                return resolution;
             }
 
             #endregion

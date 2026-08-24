@@ -3,19 +3,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using Game.MapGeneration.Pipeline.Visual;
 using static Game.MapGeneration.Cache.TerrainVisualCacheFormat;
 
 namespace Game.MapGeneration.Cache
 {
     /// <summary>
     ///     書き出した見た目を、固定headerとpayloadチェックサムを検証してから読み戻す
+    ///     payloadは1度しか読まない。復元先へ直接読み込みながら同じ1周でSHAを回し、検算のための2周目を作らない
     ///     Reads written visuals back only after verifying the fixed header and payload checksum
+    ///     The payload is read exactly once: the SHA runs over the very pass that fills the destinations, so verification needs no second sweep
     /// </summary>
     public static class TerrainVisualCacheReader
     {
         public static bool TryRead(
-            string filePath, string expectedCacheKey, int expectedAlphamapResolution, int expectedLayerCount,
-            int expectedDetailResolution, int expectedDetailMapCount, out TerrainTileVisual tileVisual, out string brokenReason)
+            string filePath, string expectedCacheKey, int expectedHeightmapResolution, int expectedAlphamapResolution,
+            int expectedLayerCount, int expectedDetailResolution, int expectedDetailMapCount,
+            out TerrainTileVisual tileVisual, out string brokenReason)
         {
             tileVisual = null;
             brokenReason = null;
@@ -24,13 +28,14 @@ namespace Game.MapGeneration.Cache
             if (!File.Exists(filePath)) return false;
 
             using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            return TryReadOpenedStream(stream, expectedCacheKey, expectedAlphamapResolution, expectedLayerCount,
-                expectedDetailResolution, expectedDetailMapCount, out tileVisual, out brokenReason);
+            return TryReadOpenedStream(stream, expectedCacheKey, expectedHeightmapResolution, expectedAlphamapResolution,
+                expectedLayerCount, expectedDetailResolution, expectedDetailMapCount, out tileVisual, out brokenReason);
         }
 
         private static bool TryReadOpenedStream(
-            FileStream stream, string expectedCacheKey, int expectedAlphamapResolution, int expectedLayerCount,
-            int expectedDetailResolution, int expectedDetailMapCount, out TerrainTileVisual tileVisual, out string brokenReason)
+            FileStream stream, string expectedCacheKey, int expectedHeightmapResolution, int expectedAlphamapResolution,
+            int expectedLayerCount, int expectedDetailResolution, int expectedDetailMapCount,
+            out TerrainTileVisual tileVisual, out string brokenReason)
         {
             tileVisual = null;
             brokenReason = null;
@@ -41,7 +46,7 @@ namespace Game.MapGeneration.Cache
             }
 
             var headerBytes = new byte[HeaderByteLength];
-            if (!ReadExactly(stream, headerBytes))
+            if (!ReadExactly(stream, headerBytes, headerBytes.Length))
             {
                 brokenReason = "header ended before its declared fixed length";
                 return false;
@@ -56,57 +61,62 @@ namespace Game.MapGeneration.Cache
             }
             if (Encoding.ASCII.GetString(headerBytes, 8, CacheKeyByteLength) != expectedCacheKey) return false;
 
+            var heightmapResolution = ReadInt(headerBytes, HeightmapResolutionOffset);
             var alphamapResolution = ReadInt(headerBytes, AlphamapResolutionOffset);
             var layerCount = ReadInt(headerBytes, LayerCountOffset);
             var detailResolution = ReadInt(headerBytes, DetailResolutionOffset);
             var detailMapCount = ReadInt(headerBytes, DetailMapCountOffset);
-            if (!HasSaneDimensions(alphamapResolution, layerCount, detailResolution, detailMapCount))
+            if (!TryCalculatePayloadByteLength(heightmapResolution, alphamapResolution, layerCount, detailResolution,
+                    detailMapCount, out var payloadByteLength))
             {
                 brokenReason = "declared dimensions exceed the visual cache format bounds";
                 return false;
             }
-            if (alphamapResolution != expectedAlphamapResolution || layerCount != expectedLayerCount ||
-                detailMapCount != expectedDetailMapCount || (0 < detailMapCount && detailResolution != expectedDetailResolution))
+            if (heightmapResolution != expectedHeightmapResolution || alphamapResolution != expectedAlphamapResolution ||
+                layerCount != expectedLayerCount || detailMapCount != expectedDetailMapCount ||
+                (0 < detailMapCount && detailResolution != expectedDetailResolution))
             {
                 brokenReason = "declared dimensions disagree with the expected terrain visual layout";
                 return false;
             }
-
-            if (!TryCalculatePayloadByteLength(alphamapResolution, layerCount, detailResolution, detailMapCount, out var payloadByteLength) ||
-                stream.Length != HeaderByteLength + payloadByteLength)
+            if (stream.Length != HeaderByteLength + payloadByteLength)
             {
                 brokenReason = "stream length disagrees with the checked declared payload length";
                 return false;
             }
 
-            // 固定バッファでpayloadを検算し、数百MiBのpayload複製を作らず復元へ進む
-            // Validate the payload through a fixed buffer, avoiding a hundreds-of-MiB payload copy before reconstruction
-            if (!MatchesPayloadChecksum(stream, headerBytes))
-            {
-                brokenReason = "payload checksum disagrees with the header";
-                return false;
-            }
-
-            // 検算後にpayloadが縮むのは同時書き換えのときだけ。読めたバイト数の不足を破損として扱う
-            // Only a concurrent rewrite shrinks the payload after validation, so a short read counts as breakage
-            stream.Position = HeaderByteLength;
-            if (!TryReadAlphamap(out var alphamap) || !TryReadDetailMaps(out var detailMaps))
+            // 復元しながらハッシュを積む。検算が合うまで結果を外へ出さないので、壊れたキャッシュが見た目へ流れることはない
+            // The hash accumulates while restoring; nothing leaves this method until it matches, so a broken cache never reaches the visuals
+            using var payloadHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            // 長さ検査後の短読は同時書き換えを示すため、破損として拒否する
+            // A short read after the length check indicates a concurrent rewrite, so reject it as corruption
+            if (!TryReadHeights(out var displayHeights) || !TryReadAlphamapPlanes(out var alphamapPlanes) ||
+                !TryReadDetailMaps(out var detailMaps))
             {
                 brokenReason = "payload ended before the length it declared and passed";
                 return false;
             }
 
-            tileVisual = new TerrainTileVisual(alphamap, detailMaps);
+            var checksum = payloadHash.GetHashAndReset();
+            for (var index = 0; index < PayloadChecksumByteLength; index++)
+            {
+                if (headerBytes[PayloadChecksumOffset + index] == checksum[index]) continue;
+                brokenReason = "payload checksum disagrees with the header";
+                return false;
+            }
+
+            var alphamap = TileAlphamap.Create(alphamapPlanes, alphamapResolution, layerCount);
+            tileVisual = new TerrainTileVisual(displayHeights, alphamap, detailMaps);
             return true;
 
             #region Internal
 
-            static bool ReadExactly(FileStream stream, byte[] bytes)
+            static bool ReadExactly(FileStream stream, byte[] bytes, int byteLength)
             {
                 var offset = 0;
-                while (offset < bytes.Length)
+                while (offset < byteLength)
                 {
-                    var bytesRead = stream.Read(bytes, offset, bytes.Length - offset);
+                    var bytesRead = stream.Read(bytes, offset, byteLength - offset);
                     if (bytesRead == 0) return false;
                     offset += bytesRead;
                 }
@@ -114,45 +124,35 @@ namespace Game.MapGeneration.Cache
                 return true;
             }
 
-            static bool HasSaneDimensions(int alphamapResolution, int layerCount, int detailResolution, int detailMapCount)
+            bool TryReadHeights(out float[,] heights)
             {
-                return 0 < alphamapResolution && alphamapResolution <= MaximumAlphamapResolution &&
-                       0 < layerCount && layerCount <= MaximumLayerCount &&
-                       0 <= detailResolution && detailResolution <= MaximumDetailResolution &&
-                       0 <= detailMapCount && detailMapCount <= MaximumDetailMapCount &&
-                       (detailMapCount == 0 || 0 < detailResolution);
-            }
-
-            static bool MatchesPayloadChecksum(FileStream stream, byte[] headerBytes)
-            {
-                const int checksumBufferByteLength = 1024 * 1024;
-                using var payloadHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-                var buffer = new byte[checksumBufferByteLength];
-                while (stream.Position < stream.Length)
+                heights = new float[heightmapResolution, heightmapResolution];
+                var rowBytes = new byte[heightmapResolution * HeightBytesPerPixel];
+                for (var z = 0; z < heightmapResolution; z++)
                 {
-                    var bytesRead = stream.Read(buffer, 0, (int)Math.Min(buffer.Length, stream.Length - stream.Position));
-                    if (bytesRead == 0) return false;
-                    payloadHash.AppendData(buffer, 0, bytesRead);
+                    if (!ReadExactly(stream, rowBytes, rowBytes.Length)) return false;
+                    payloadHash.AppendData(rowBytes);
+                    var rowOffset = 0;
+                    for (var x = 0; x < heightmapResolution; x++)
+                    {
+                        var quantizedHeight = (ushort)(rowBytes[rowOffset] | (rowBytes[rowOffset + 1] << 8));
+                        heights[z, x] = quantizedHeight / HeightQuantizeScale;
+                        rowOffset += HeightBytesPerPixel;
+                    }
                 }
-
-                var checksum = payloadHash.GetHashAndReset();
-                for (var index = 0; index < PayloadChecksumByteLength; index++)
-                    if (headerBytes[PayloadChecksumOffset + index] != checksum[index]) return false;
 
                 return true;
             }
 
-            bool TryReadAlphamap(out float[,,] alphamap)
+            bool TryReadAlphamapPlanes(out byte[][] planes)
             {
-                alphamap = new float[alphamapResolution, alphamapResolution, layerCount];
-                var rowBytes = new byte[alphamapResolution * layerCount];
-                for (var z = 0; z < alphamapResolution; z++)
+                var planeByteLength = (int)AlphamapPlaneByteLength(alphamapResolution);
+                planes = new byte[AlphamapPlaneCount(layerCount)][];
+                for (var planeIndex = 0; planeIndex < planes.Length; planeIndex++)
                 {
-                    if (!ReadExactly(stream, rowBytes)) return false;
-                    var rowOffset = 0;
-                    for (var x = 0; x < alphamapResolution; x++)
-                    for (var layer = 0; layer < layerCount; layer++)
-                        alphamap[z, x, layer] = rowBytes[rowOffset++] / WeightQuantizeScale;
+                    planes[planeIndex] = new byte[planeByteLength];
+                    if (!ReadExactly(stream, planes[planeIndex], planeByteLength)) return false;
+                    payloadHash.AppendData(planes[planeIndex]);
                 }
 
                 return true;
@@ -167,7 +167,8 @@ namespace Game.MapGeneration.Cache
                     var detailMap = new int[detailResolution, detailResolution];
                     for (var z = 0; z < detailResolution; z++)
                     {
-                        if (!ReadExactly(stream, rowBytes)) return false;
+                        if (!ReadExactly(stream, rowBytes, rowBytes.Length)) return false;
+                        payloadHash.AppendData(rowBytes);
                         var rowOffset = 0;
                         for (var x = 0; x < detailResolution; x++)
                         {
