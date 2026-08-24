@@ -61,7 +61,7 @@
 - Consumes: `PlacementHaloChannel`（既存・変更なし）
 - Produces: `public class PlacementHaloChannelMap { public PlacementHaloChannel Get(string veinGuid); }`／`PlacementHaloStore.ItemVeinCenters` と `PlacementHaloStore.FluidVeinCenters` の型が `PlacementHaloChannelMap` になる（Task 2 が使用）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Game.MapGeneration.Pipeline.Tiling;
@@ -89,12 +89,12 @@ namespace Tests.UnitTest.Game.MapGeneration
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `PlacementHaloChannelMap` が存在しない旨のコンパイルエラー（CS0246）
 
-- [ ] **Step 3: PlacementHaloChannelMap を実装する**
+- [x] **Step 3: PlacementHaloChannelMap を実装する**
 
 ```csharp
 using System.Collections.Generic;
@@ -120,7 +120,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
 }
 ```
 
-- [ ] **Step 4: PlacementHaloStore の中心チャネル2つをマップ型へ変更する**
+- [x] **Step 4: PlacementHaloStore の中心チャネル2つをマップ型へ変更する**
 
 `PlacementHaloStore.cs` の該当2行を変更（Members系・Trees・Objectsはそのまま）:
 
@@ -140,12 +140,12 @@ namespace Game.MapGeneration.Pipeline.Tiling
     // Veins split members from centers, and centers further split per veinGuid so center exclusion stays within an entry.
 ```
 
-- [ ] **Step 5: コンパイルする（この時点では参照側エラーが残ってよい）**
+- [x] **Step 5: コンパイルする（この時点では参照側エラーが残ってよい）**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `VeinPlacementCore.Generate` 呼び出し（`OrePlacementStage.cs:25` / `FluidVeinPlacementStage.cs:28`）で `PlacementHaloChannelMap` を `PlacementHaloChannel` へ渡せない型エラー（CS1503）。これは Task 2 で解消するので、このタスクではエラーが**この2箇所（と `VeinPlacementCore` 内部）に限られる**ことだけ確認する
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.MapGeneration/Pipeline/Tiling/PlacementHaloChannelMap.cs moorestech_server/Assets/Scripts/Game.MapGeneration/Pipeline/Tiling/PlacementHaloStore.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Vein/PlacementHaloChannelMapTest.cs
@@ -167,7 +167,7 @@ git commit -m "feat: 鉱脈中心haloをveinGuid別チャネルマップへ分�
 - Consumes: Task 1 の `PlacementHaloChannelMap.Get(string veinGuid)`
 - Produces: `VeinPlacementCore.Generate(..., PlacementHaloChannel memberHalo, PlacementHaloChannelMap centerHalos)`／`OrePlacementGenerator.GenerateForWorld(..., PlacementHaloChannel memberHalo, PlacementHaloChannelMap centerHalos, float haloRadius)`（`OreEntryPlacer.Place` のシグネチャは不変）
 
-- [ ] **Step 1: 失敗する回帰テストを書く**
+- [x] **Step 1: 失敗する回帰テストを書く**
 
 本バグの再現テスト。同一バンド設定の2エントリを同一マスクで生成し、両方が配置されることを検証する。現行の共有グリッド実装では2番目のエントリがほぼ全滅するため失敗する（新シグネチャで書くので、実装前はまずコンパイルエラーとして失敗する）。
 
@@ -309,12 +309,12 @@ namespace Tests.UnitTest.Game.MapGeneration
 - `BiomeFlags.Grassland` は `Game.MapGeneration.Pipeline.Biomes` 名前空間（`BiomeFlags.cs:12`）。`OrePlacementGenerator` はマスクを直接受け取るので biomes の値自体は配置結果に影響しない（非Noneであればよい）
 - `PlacementEntry.MapObjectGuid` に veinGuid が入る（`OreEntryPlacer.PlaceClusterMembers` → `PlacementEntry.CreateVein(entry.veinGuid, ...)`）
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `GenerateForWorld` の引数型不一致（CS1503。現行第10引数は `PlacementHaloChannel centerHalo`）
 
-- [ ] **Step 3: VeinPlacementCore.Generate の引数型を変更する**
+- [x] **Step 3: VeinPlacementCore.Generate の引数型を変更する**
 
 `VeinPlacementCore.cs` の変更は1箇所（20行目・引数宣言）。呼び出し（45行目）は変数名そのままで型が変わるだけ:
 
@@ -330,7 +330,7 @@ Expected: `GenerateForWorld` の引数型不一致（CS1503。現行第10引数�
                 memberHalo, centerHalos, tile.Halo.Radius);
 ```
 
-- [ ] **Step 4: OrePlacementGenerator を エントリ別グリッドへ書き換える**
+- [x] **Step 4: OrePlacementGenerator を エントリ別グリッドへ書き換える**
 
 `GenerateForWorld` のシグネチャ（27行目）を変更:
 
@@ -380,26 +380,26 @@ Expected: `GenerateForWorld` の引数型不一致（CS1503。現行第10引数�
 
 クラス冒頭のdocコメント（現行49-50行相当の「クラスター中心の共有間隔」コメント）は削除される。`OreEntryPlacer.Place` は無変更（受け取る実体がエントリ別になるだけ）。
 
-- [ ] **Step 5: コンパイルして全エラー解消を確認する**
+- [x] **Step 5: コンパイルして全エラー解消を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0（`OrePlacementStage.cs` / `FluidVeinPlacementStage.cs` は `tile.Halo.ItemVeinCenters` / `FluidVeinCenters` を渡しており、型がマップに変わっても呼び出し記述は不変）
 
-- [ ] **Step 6: 新テストを実行して通ることを確認する**
+- [x] **Step 6: 新テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "VeinClusterCenterSeparationTest|PlacementHaloChannelMapTest"`
 Expected: 3件 PASS（`SecondEntryIsNotCrowdedOutByFirstEntry` / `AdjacentTileWithSeededHaloStillPlacesBothEntries` / `SameGuidReturnsSameChannelAndDifferentGuidReturnsDifferentChannel`）
 
 閾値40%で不安定な場合（Poissonのseed次第で振れる場合）はテストの `Assert` を緩めるのではなく、`density` を上げて候補数を増やす方向で安定させる（例: 3→4）。それでも振れるなら seed 値（42/123）を変えて再現性のある組を選ぶ。
 
-- [ ] **Step 7: 既存の鉱脈・マップ生成テストで回帰がないことを確認する**
+- [x] **Step 7: 既存の鉱脈・マップ生成テストで回帰がないことを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "Tests\.UnitTest\.Game\.MapGeneration"`
 Expected: 全件 PASS（特に `FluidVeinPlacementStageTest` / `MapGenerationPipelineTest` / `MultiTileMapObjectTransferTest` / `WorldProvisionerTest`）
 
 注意: 本修正で鉱脈の配置結果（乱数消費列は不変だが排他判定の結果）が変わる。既存テストが「特定座標に鉱脈がある」形で固定値を検証している場合は、期待値がバグ前提だったことを確認したうえで新しい生成結果に合わせて更新し、コミットメッセージにその旨を書く。
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.MapGeneration/Pipeline/Stages/Vein/VeinPlacementCore.cs moorestech_server/Assets/Scripts/Game.MapGeneration/Pipeline/Generators/Ore/OrePlacementGenerator.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Vein/VeinClusterCenterSeparationTest.cs
@@ -417,7 +417,7 @@ git commit -m "fix: 鉱脈クラスタ中心の排他グリッドをエントリ
 **Interfaces:**
 - Consumes: Task 2 の `OrePlacementGenerator.GenerateForWorld` 新シグネチャと同テストクラスのヘルパー（`CreateFullMask` 等）
 
-- [ ] **Step 1: 実マスタの締め出し構図を模したテストを書く**
+- [x] **Step 1: 実マスタの締め出し構図を模したテストを書く**
 
 実際に起きた「原木3.6 → 石3.6 → 青銅1.8 の順で処理し3番手が全滅」の構図を縮小再現する。`VeinClusterCenterSeparationTest` クラスに追加:
 
@@ -469,12 +469,12 @@ git commit -m "fix: 鉱脈クラスタ中心の排他グリッドをエントリ
         }
 ```
 
-- [ ] **Step 2: テストを実行して通ることを確認する**
+- [x] **Step 2: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "VeinClusterCenterSeparationTest"`
 Expected: 全件 PASS（修正済みコードでは3番手も生成される。もしこのテストをTask 2より先に走らせたら `ThirdEntryWithHalfDensitySurvivesDenseFirstEntries` は FAIL する—それがバグ再現の証明）
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add -A moorestech_server/Assets/Scripts/Tests/UnitTest/Game/MapGeneration/Vein moorestech_server/Assets/Scripts/Tests.Module/TestMod
@@ -485,11 +485,11 @@ git commit -m "test: 実マスタ構図（高密度2件+半分密度1件）で3�
 
 ### Task 4: 全ブランチレビュー（必須・省略不可）
 
-- [ ] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
+- [x] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
 
 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。moorestech のレビュースキル `moores-code-review` を使用する。
 
-- [ ] **Step 2: レビュー指摘の機械的修正を適用し、再コンパイル・対象テスト再実行のうえコミットする**
+- [x] **Step 2: レビュー指摘の機械的修正を適用し、再コンパイル・対象テスト再実行のうえコミットする**
 
 ```bash
 uloop compile --project-path ./moorestech_client
@@ -497,6 +497,16 @@ uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-
 git add -A
 git commit -m "review: moores-code-review指摘の修正を適用"
 ```
+
+レビュー実測: agent 22/22・Codex 3/3を回収し、機械修正8件を適用。追加裁定は既存planと照合し、`veinGuid`一意性検証と回帰テスト、halo分離理由コメントを追加した。最終compile 0 errors / 0 warnings、対象282/282 PASS、Errorログ0件。
+
+---
+
+### Task 5: PR作成とタスク完了
+
+- [ ] **Step 1: 最終差分をコミットし、baseブランチとの競合を確認する**
+- [ ] **Step 2: ブランチをpushし、通常マージ用PRを作成する**
+- [ ] **Step 3: Beadsタスクを実装・検証・レビュー・PRの証跡付きでcloseする**
 
 ---
 

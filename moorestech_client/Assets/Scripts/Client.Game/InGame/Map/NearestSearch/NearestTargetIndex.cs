@@ -16,8 +16,14 @@ namespace Client.Game.InGame.Map.NearestSearch
         // Rebuild a key only past this tombstone ratio; the threshold is what keeps per-removal rebuilds (allocation and sorting) away
         private const float RebuildTombstoneRatio = 0.5f;
 
+        // 追記が1割か64件で再構築する
+        // Rebuild a key only once appends reach one tenth of its tree or 64 entries
+        private const float RebuildAppendRatio = 0.1f;
+        private const int MaxLinearScanAppends = 64;
+
         private readonly Dictionary<Guid, List<T>> _targetsByKey = new();
         private readonly Dictionary<Guid, KdTree<T>> _treesByKey = new();
+        private readonly Dictionary<Guid, List<T>> _appendedTargetsByKey = new();
         private readonly Dictionary<Guid, int> _tombstoneCountByKey = new();
         private readonly HashSet<Guid> _dirtyKeys = new();
 
@@ -33,10 +39,26 @@ namespace Client.Game.InGame.Map.NearestSearch
                 _targetsByKey.Add(key, targets);
             }
 
-            // 登録はフレーム分散で来るので、そのたびdirtyにして最初の探索で一括構築する
-            // Registration arrives spread across frames, so mark dirty each time and build once on the first search
             targets.Add(target);
-            _dirtyKeys.Add(key);
+            if (!_treesByKey.ContainsKey(key))
+            {
+                _dirtyKeys.Add(key);
+                return;
+            }
+
+            // 小さな追記は線形走査する
+            // Scan small appends linearly instead of rebuilding the tree every frame
+            if (!_appendedTargetsByKey.TryGetValue(key, out var appendedTargets))
+            {
+                appendedTargets = new List<T>();
+                _appendedTargetsByKey.Add(key, appendedTargets);
+            }
+
+            appendedTargets.Add(target);
+            var treeTargetCount = targets.Count - appendedTargets.Count;
+            if (MaxLinearScanAppends <= appendedTargets.Count ||
+                treeTargetCount * RebuildAppendRatio <= appendedTargets.Count)
+                _dirtyKeys.Add(key);
         }
 
         /// <summary>
@@ -61,7 +83,22 @@ namespace Client.Game.InGame.Map.NearestSearch
             if (!_targetsByKey.TryGetValue(key, out var targets)) return false;
 
             if (_dirtyKeys.Remove(key)) Rebuild(key, targets);
-            return _treesByKey[key].TrySearchNearest(position, out target, out sqrDistance);
+            _treesByKey[key].TrySearchNearest(position, out target, out sqrDistance);
+
+            // 未再構築の追記分も同じ最近傍競争へ加える
+            // Add unreconstructed appends to the same nearest-target race
+            if (!_appendedTargetsByKey.TryGetValue(key, out var appendedTargets)) return target != null;
+            foreach (var appendedTarget in appendedTargets)
+            {
+                if (!appendedTarget.IsSearchable) continue;
+                var appendedSqrDistance = (appendedTarget.GetIndexPosition() - position).sqrMagnitude;
+                if (sqrDistance <= appendedSqrDistance) continue;
+
+                target = appendedTarget;
+                sqrDistance = appendedSqrDistance;
+            }
+
+            return target != null;
         }
 
         private void Rebuild(Guid key, List<T> targets)
@@ -77,6 +114,7 @@ namespace Client.Game.InGame.Map.NearestSearch
             targets.Clear();
             targets.AddRange(_searchableBuffer);
             _tombstoneCountByKey[key] = 0;
+            if (_appendedTargetsByKey.TryGetValue(key, out var appendedTargets)) appendedTargets.Clear();
             _treesByKey[key] = new KdTree<T>(_searchableBuffer);
         }
     }

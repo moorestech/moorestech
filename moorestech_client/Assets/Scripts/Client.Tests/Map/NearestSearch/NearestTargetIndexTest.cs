@@ -88,5 +88,20 @@ namespace Client.Tests.Map.NearestSearch
             Assert.IsTrue(index.TrySearchNearest(TreeGuid, Vector3.zero, out var second, out _));
             Assert.AreSame(near, second);
         }
+
+        [Test]
+        public void 少数追記は木と線形候補を横断して最近傍を返す()
+        {
+            var index = new NearestTargetIndex<NearestSearchTestTarget>();
+            for (var offset = 0; offset < 20; offset++)
+                index.Register(TreeGuid, new NearestSearchTestTarget(new Vector3(100f + offset, 0f, 0f)));
+            Assert.IsTrue(index.TrySearchNearest(TreeGuid, Vector3.zero, out _, out _));
+
+            var appended = new NearestSearchTestTarget(new Vector3(1f, 0f, 0f));
+            index.Register(TreeGuid, appended);
+
+            Assert.IsTrue(index.TrySearchNearest(TreeGuid, Vector3.zero, out var actual, out _));
+            Assert.AreSame(appended, actual);
+        }
     }
 }

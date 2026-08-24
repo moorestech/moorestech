@@ -7,6 +7,7 @@ using Client.Game.InGame.Environment.Terrain;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.Outcrop;
+using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.UI.Challenge;
@@ -75,8 +76,12 @@ namespace Client.Starter.Initialization
 
             await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
 
-            // ピンが探す対象の生成後に適用する
-            // Apply only once the objects a pin searches for exist
+            // 近傍完了後に後着生成を明示開始する
+            // Explicitly start background instantiation after the near field settles
+            resolver.Resolve<MapObjectGameObjectDatastore>().StartBackgroundInstantiation();
+
+            // ピンが探す対象は近傍分だけ揃っている。遠方分の後着完了はピン側がdatastoreの完了通知を購読して待つ
+            // Only the near-field share of a pin's targets exists here; the pin itself subscribes to the datastore's completion for the rest
             resolver.Resolve<ChallengeManager>().ApplyInitialTutorials();
 
             // 車両の生成まで終えてから自機を保存座標へ置く。乗車セーブの復帰先が未生成だと支えが無く落下する（ADR#16）
