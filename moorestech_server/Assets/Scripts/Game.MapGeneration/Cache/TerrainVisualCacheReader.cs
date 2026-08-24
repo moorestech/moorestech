@@ -88,6 +88,8 @@ namespace Game.MapGeneration.Cache
             // 復元しながらハッシュを積む。検算が合うまで結果を外へ出さないので、壊れたキャッシュが見た目へ流れることはない
             // The hash accumulates while restoring; nothing leaves this method until it matches, so a broken cache never reaches the visuals
             using var payloadHash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            // 長さ検査後の短読は同時書き換えを示すため、破損として拒否する
+            // A short read after the length check indicates a concurrent rewrite, so reject it as corruption
             if (!TryReadHeights(out var displayHeights) || !TryReadAlphamapPlanes(out var alphamapPlanes) ||
                 !TryReadDetailMaps(out var detailMaps))
             {

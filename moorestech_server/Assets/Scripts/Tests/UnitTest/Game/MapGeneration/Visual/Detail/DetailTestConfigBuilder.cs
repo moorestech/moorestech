@@ -14,8 +14,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Detail
     /// </summary>
     public static class DetailTestConfigBuilder
     {
-        // Unity受理:高さ17/detail16
-        // Unity-stable: height 17, detail 16.
+        // 解像度をずらし、座標変換の取り違えを露出させる
+        // Different resolutions expose coordinate-conversion mix-ups
         public const int HeightmapResolution = 17;
         public const int DetailResolution = 16;
 
