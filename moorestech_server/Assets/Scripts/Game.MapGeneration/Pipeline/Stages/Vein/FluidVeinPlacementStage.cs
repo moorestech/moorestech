@@ -24,7 +24,8 @@ namespace Game.MapGeneration.Pipeline.Stages
             var placement = VeinPlacementCore.Generate(
                 ore.fluidEntries, ore.borderMargin,
                 config, masks, biomeTypes, heights2D, treeEntries, objectPlacements,
-                FluidVeinRngSeedOffset, tile.Halo.CreateConfirmedVeinSnapshot(),
+                FluidVeinRngSeedOffset, tile.Halo.CreateConfirmedVeinSnapshot(
+                    config.worldOffsetX, config.worldOffsetZ, config.terrainWidth, config.terrainLength),
                 tile, tile.Halo.FluidVeinMembers, tile.Halo.FluidVeinCenters);
             tile.Halo.CommitFluidVeins(placement);
             return placement.Veins;
