@@ -27,6 +27,7 @@
       "maxExpandIterations": 4
     },
     "resolutionPreset": "_256",
+    "detailResolution": 256,
     "terrainHeight": 600,
     "terrainWidth": 1000,
     "terrainLength": 1000,

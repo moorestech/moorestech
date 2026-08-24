@@ -21,17 +21,19 @@ namespace Game.MapGeneration.Provisioning
         {
             // ここで組み直すselected/configは現在のマスタ由来。転送メタの指紋と食い違えば台帳と無関係な見た目を焼くので、その前に止める
             // The selected/config rebuilt here come from the current master; disagreeing with the transfer meta's fingerprint would bake visuals unrelated to the ledger, so stop before that
-            terrainMeta.ThrowIfGenerationMasterDiffers(serverDataDirectory);
+            var generatedPayload = terrainMeta.GeneratedPayload;
+            generatedPayload.ThrowIfGenerationMasterDiffers(serverDataDirectory);
 
             // クライアントのOpenと同じ組み立て（原点注入つきconfig）を通す。探索書き戻し後のconfigと同値になり、両者の焼き上がりが一致する
             // Go through the very assembly the client's Open uses (a config with the settled origins injected); it equals the post-write-back config, so both sides bake alike
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, terrainMeta.Origins);
+                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins);
 
             // 高さ源にワールド本体のterrain/を選ぶ入口。共有キャッシュを高さ源にするクライアントとは入口ごと分かれている
             // The entry choosing the world's own terrain/ as the height source; a client, whose source is the shared cache, goes through a different entry entirely
-            var factoryResult = TileVisualBakerFactory.CreateForPrebake(config, terrainMeta, ledger, selectedGeneration, worldDataDirectory);
+            var factoryResult = TileVisualBakerFactory.CreateForPrebake(
+                config, terrainMeta, generatedPayload, ledger, selectedGeneration, worldDataDirectory);
 
             var tileCoordinates = TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount);
             foreach (var (tileX, tileZ) in tileCoordinates)

@@ -186,6 +186,10 @@ namespace Tests.UnitTest.Game.MapGeneration
                 // 指紋は必須契約だがチャンク読み出しの対象外
                 // The fingerprint is a required contract but out of scope for this chunk-reading test
                 GenerationMasterFingerprint = "synthetic-fingerprint",
+
+                // 台帳の指紋も同じく必須契約。チャンク読み出しは見た目キャッシュを引かないので値は問わない
+                // The ledger digest is a required contract too; chunk reading never touches the visual cache, so its value is immaterial here
+                PlacementLedgerDigest = "synthetic-ledger-digest",
             };
             File.WriteAllText(worldDataDirectory.WorldMetaFilePath, JsonConvert.SerializeObject(worldMeta, Formatting.Indented));
             return worldDataDirectory;

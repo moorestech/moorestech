@@ -4,6 +4,6 @@ namespace Game.MapGeneration.Transfer
     // The single definition of the generatorVersion shared by world.json and the wire; bump it whenever the transferred file layout changes
     public static class WorldGeneratorVersion
     {
-        public const string Current = "3.0.0";
+        public const string Current = "4.0.0";
     }
 }

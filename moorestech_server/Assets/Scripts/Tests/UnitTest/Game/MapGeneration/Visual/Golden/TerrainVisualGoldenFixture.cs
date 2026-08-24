@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using Game.MapGeneration.Pipeline.Visual.Detail;
@@ -6,6 +7,7 @@ using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using Game.MapGeneration.Pipeline.Visual.Source;
 using Game.MapGeneration.Pipeline.Visual.Splat;
 using Game.MapGeneration.Pipeline.Visual.Surround;
+using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
@@ -76,6 +78,21 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
             // Tree and rock positions and clusters come from VanillaGenerator
             var run = new VanillaGenerator().Generate(config);
             return (config, sections, run);
+        }
+
+        // 生byte平面はint化せず畳む
+        // Folds raw byte planes without int conversion.
+        public static string Sha256(byte[] bytes)
+        {
+            using var sha256 = SHA256.Create();
+            return BitConverter.ToString(sha256.ComputeHash(bytes)).Replace("-", string.Empty).ToLowerInvariant();
+        }
+
+        public static string Sha256(IReadOnlyList<ReadOnlyMemory<byte>> planes)
+        {
+            using var sha256 = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+            foreach (var plane in planes) sha256.AppendData(plane.Span);
+            return BitConverter.ToString(sha256.GetHashAndReset()).Replace("-", string.Empty).ToLowerInvariant();
         }
 
         public static string Sha256(Array values)

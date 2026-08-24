@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual;
 using Game.Paths;
 using NUnit.Framework;
 using static Game.MapGeneration.Cache.TerrainVisualCacheFormat;
@@ -14,9 +15,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
     /// </summary>
     public class TerrainVisualCachePayloadIntegrityTest
     {
+        private const int HeightmapResolution = 17;
         private const int AlphamapResolution = 4;
         private const int LayerCount = 3;
-        private const int DetailResolution = 3;
+        private const int DetailResolution = 16;
         private const int DetailMapCount = 2;
         private const int TileX = 1;
         private const int TileZ = 2;
@@ -37,14 +39,27 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
         }
 
         [Test]
+        public void MissesWhenOneHeightPayloadBitChangesWithoutChangingLength()
+        {
+            var cache = CreateCache();
+            cache.Save(TileX, TileZ, CreateTileVisual());
+
+            // 表示用高さもキャッシュが持つ区画なので、ここが化けると地面の形だけが静かに壊れる
+            // The display heights are a cached section too, so corruption here quietly breaks the ground shape alone
+            FlipPayloadBit(HeaderByteLength);
+
+            Assert.That(TryLoad(cache), Is.False);
+        }
+
+        [Test]
         public void MissesWhenOneAlphamapPayloadBitChangesWithoutChangingLength()
         {
             var cache = CreateCache();
             cache.Save(TileX, TileZ, CreateTileVisual());
 
-            FlipPayloadBit(HeaderByteLength);
+            FlipPayloadBit(HeaderByteLength + (int)HeightsByteLength(HeightmapResolution));
 
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
+            Assert.That(TryLoad(cache), Is.False);
         }
 
         [Test]
@@ -53,9 +68,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             var cache = CreateCache();
             cache.Save(TileX, TileZ, CreateTileVisual());
 
-            FlipPayloadBit(HeaderByteLength + AlphamapResolution * AlphamapResolution * LayerCount);
+            FlipPayloadBit(HeaderByteLength + (int)HeightsByteLength(HeightmapResolution) +
+                           (int)(AlphamapPlaneCount(LayerCount) * AlphamapPlaneByteLength(AlphamapResolution)));
 
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
+            Assert.That(TryLoad(cache), Is.False);
+        }
+
+        private static bool TryLoad(TerrainVisualCache cache)
+        {
+            return cache.TryLoad(TileX, TileZ, HeightmapResolution, AlphamapResolution, LayerCount, DetailResolution,
+                DetailMapCount, out _);
         }
 
         private TerrainVisualCache CreateCache()
@@ -73,12 +95,16 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
 
         private static TerrainTileVisual CreateTileVisual()
         {
+            var displayHeights = new float[HeightmapResolution, HeightmapResolution];
             var alphamap = new float[AlphamapResolution, AlphamapResolution, LayerCount];
             var detailMaps = new List<int[,]>(DetailMapCount);
             for (var mapIndex = 0; mapIndex < DetailMapCount; mapIndex++)
                 detailMaps.Add(new int[DetailResolution, DetailResolution]);
 
-            return new TerrainTileVisual(alphamap, detailMaps);
+            return new TerrainTileVisual(
+                displayHeights,
+                TileAlphamap.Create(StoredAlphamapWeights.ToPlanes(alphamap), AlphamapResolution, LayerCount),
+                detailMaps);
         }
     }
 }

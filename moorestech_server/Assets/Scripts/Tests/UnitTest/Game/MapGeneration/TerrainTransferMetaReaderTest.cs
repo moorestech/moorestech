@@ -56,7 +56,9 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
             Assert.AreEqual(seed, worldMeta.Seed, "前提: 指定したseedがworld.jsonに記録されている");
 
-            Assert.AreEqual(seed, TerrainTransferMetaReader.Read(worldDataDirectory).WorldSeed);
+            var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
+            Assert.AreEqual(seed, terrainMeta.WorldSeed);
+            Assert.IsNotNull(terrainMeta.GeneratedPayload);
         }
 
         // キー欠損を0として読み進めると、探索無効ワールドの正当な0と区別が付かないまま別の場所の地形を配ることになる
@@ -66,6 +68,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [TestCase("terrainSceneOriginX")]
         [TestCase("terrainSceneOriginZ")]
         [TestCase("generationMasterFingerprint")]
+        [TestCase("placementLedgerDigest")]
         public void generatedのworld_jsonに原点キーが欠けていたら0で補わず例外を投げる(string missingKey)
         {
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
@@ -99,6 +102,8 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 読み手はパケット応答経路で例外を握り潰されるため、ログ1行からどのworld.jsonをどうするか分かる必要がある
             // The caller sits on a packet path that swallows exceptions, so the single log line must say which world.json to act on
             Assert.That(exception.Message, Does.Contain(worldDataDirectory.WorldMetaFilePath));
+            Assert.That(exception.Message, Does.Contain("placementLedgerDigest"));
+            Assert.That(exception.Message, Does.Not.Contain("biome_x_z"));
         }
 
         // templateは地形を生成せず原点という概念自体が無い。旧バージョンが書いたキー無しのworld.jsonも読めねばならない
@@ -116,8 +121,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var meta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
             Assert.AreEqual(WorldMapMode.Template, meta.MapMode);
-            Assert.AreEqual(Vector2.zero, meta.Origins.NoiseOrigin);
-            Assert.AreEqual(Vector2.zero, meta.Origins.SceneOrigin);
+            Assert.IsNull(meta.GeneratedPayload);
         }
 
         [Test]

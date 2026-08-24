@@ -150,6 +150,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
             var config = new TerrainGenerationConfig
             {
                 overrideResolution = Resolution,
+                detailResolution = 1024,
                 terrainWidth = TerrainSize,
                 terrainLength = TerrainSize,
                 terrainHeight = TerrainHeight,

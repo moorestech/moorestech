@@ -46,6 +46,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
             // 出力・地形サイズ・シード
             // Output / terrain size / seed
             cfg.resolutionPreset = RuntimeConvert.ToResolutionPreset(vp.ResolutionPreset);
+            cfg.detailResolution = vp.DetailResolution;
             cfg.terrainHeight = vp.TerrainHeight;
             cfg.terrainWidth = vp.TerrainWidth;
             cfg.terrainLength = vp.TerrainLength;
