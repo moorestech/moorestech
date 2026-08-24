@@ -107,7 +107,7 @@ namespace Client.Game.InGame.Map.MapObject
 
         private void OnDestroy()
         {
-            _distanceVisibilityController.Shutdown();
+            _distanceVisibilityController?.Shutdown();
         }
     }
 
