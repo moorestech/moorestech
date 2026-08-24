@@ -44,7 +44,8 @@
         "Unity.Addressables",
         "UniTask.Addressables",
         "Unity.ResourceManager",
-        "UniTask"
+        "UniTask",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
