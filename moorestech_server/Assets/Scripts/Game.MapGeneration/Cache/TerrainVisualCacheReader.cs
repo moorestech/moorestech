@@ -144,8 +144,6 @@ namespace Game.MapGeneration.Cache
                 return true;
             }
 
-            // 読込RGBA8配列をそのまま返す
-            // Returns the loaded RGBA8 arrays directly.
             bool TryReadAlphamapPlanes(out byte[][] planes)
             {
                 var planeByteLength = (int)AlphamapPlaneByteLength(alphamapResolution);
