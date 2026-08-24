@@ -16,7 +16,8 @@
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
       "soundEffectType": "stone",
       "miningType": "PickUp",
-      "miningParam": {}
+      "miningParam": {},
+      "distanceVisibilityType": "cullable"
     },
     {
       "earnItemHpInterval": 10,
@@ -54,7 +55,8 @@
           }
         ]
       },
-      "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf"
+      "mapObjectGuid": "ec05d9a1-0b7d-49e6-ad80-d6c63094bbaf",
+      "distanceVisibilityType": "cullable"
     },
     {
       "earnItemHpInterval": 10,
@@ -89,7 +91,8 @@
         ]
       },
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "soundEffectType": "tree"
+      "soundEffectType": "tree",
+      "distanceVisibilityType": "cullable"
     },
     {
       "earnItemHpInterval": 10,
@@ -119,7 +122,8 @@
           "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
         }
       ],
-      "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165"
+      "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165",
+      "distanceVisibilityType": "cullable"
     }
   ],
   "mapVeins": [
