@@ -337,7 +337,7 @@
       "action": "Add",
       "position": [
         -5.670013,
-        -0.1662913,
+        1.6937087,
         -15.559998
       ],
       "rotation": [
@@ -346,6 +346,38 @@
         0
       ],
       "id": 74
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "Position": [
+        -4.343013,
+        2.6537087,
+        -8.149998
+      ],
+      "Rotation": [
+        288.015,
+        132.9489,
+        315.6128
+      ],
+      "id": 140
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "Position": [
+        -4.302013,
+        2.1497087,
+        -9.033998
+      ],
+      "Rotation": [
+        0,
+        270,
+        0
+      ],
+      "id": 141
     },
     {
       "type": "skitObjectControl",
@@ -369,7 +401,7 @@
       "fieldOfView": 60,
       "Position": [
         -4.973313,
-        1.4293087,
+        3.2893087,
         -7.688248
       ],
       "Rotation": [
@@ -403,7 +435,7 @@
       "easing": "InOutSine",
       "StartPosition": [
         -4.973313,
-        1.4293087,
+        3.2893087,
         -7.688248
       ],
       "StartRotation": [
@@ -413,7 +445,7 @@
       ],
       "EndPosition": [
         -5.021013,
-        1.8394987,
+        3.6994987,
         -9.739818
       ],
       "EndRotation": [
@@ -445,7 +477,7 @@
       "fieldOfView": 60,
       "Position": [
         -5.640513,
-        1.5295187,
+        3.3895187,
         -8.485528
       ],
       "Rotation": [
@@ -484,7 +516,7 @@
       "fieldOfView": 60,
       "Position": [
         -4.168113,
-        2.2522487,
+        4.1122487,
         -9.287778
       ],
       "Rotation": [
@@ -508,7 +540,7 @@
       "fieldOfView": 60,
       "Position": [
         -5.503913,
-        1.7434987,
+        3.6034987,
         -8.297258
       ],
       "Rotation": [
@@ -531,7 +563,7 @@
       "fieldOfView": 60,
       "Position": [
         -4.168113,
-        2.2522487,
+        4.1122487,
         -9.287778
       ],
       "Rotation": [
