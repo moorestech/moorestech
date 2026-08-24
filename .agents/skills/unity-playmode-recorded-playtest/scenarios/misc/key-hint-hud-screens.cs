@@ -32,8 +32,12 @@ return PlaytestRunner.Run("key-hint-hud-screens", options, async p =>
     await Shot(UIStateEnum.DeleteBar, "05-delete-bar");
     await Shot(UIStateEnum.PauseMenu, "06-pause-menu");
 
+    // ポーズ中はBを拾わないため、配置モードへ入る前にGameScreenへ戻す
+    // The pause menu ignores B, so return to GameScreen before entering placement mode
+    await Shot(UIStateEnum.GameScreen, "07-game-screen-again");
+
     // 配置モードはビルドメニュー経由でのみ安定して入れる
     // Placement mode is only reachable reliably through the build menu
     await p.OpenBuildMenuAndSelectBlock("木のチェスト");
-    await p.Screenshot("07-place-block");
+    await p.Screenshot("08-place-block");
 });

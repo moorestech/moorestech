@@ -1,5 +1,5 @@
 import { Topics, useTopic } from "@/bridge";
-import { LocalizedShortcutHint, useI18n, type TranslationKey } from "@/shared/i18n";
+import { translateExternalKey, useI18n } from "@/shared/i18n";
 import styles from "./keyHint.module.css";
 
 // 現画面のヒントをC#から受け取ってそのまま積む。画面名で内容を導出しない（ADR-0032）
@@ -12,15 +12,14 @@ export function KeyHintHud() {
   const hints = uiState?.keyHints ?? [];
   if (hints.length === 0) return null;
 
+  // キー名も文言もホスト由来の外部キーなので、辞書に無ければ声高なplaceholderへ落とす
+  // Both the key name and the text are host-supplied external keys, so an unknown one falls back to a loud placeholder
   return (
     <div className={`keyHintText ${styles.keyHints}`} data-testid="key-hints">
       {hints.map((hint) => (
         <div key={`${hint.keyNameKey}:${hint.textKey}`} className={styles.hint}>
-          <LocalizedShortcutHint
-            layout="prefix"
-            shortcut={t(hint.keyNameKey as TranslationKey)}
-            translationKey={hint.textKey as TranslationKey}
-          />
+          <kbd>{translateExternalKey(hint.keyNameKey, t, {})}</kbd>
+          {translateExternalKey(hint.textKey, t, {})}
         </div>
       ))}
     </div>

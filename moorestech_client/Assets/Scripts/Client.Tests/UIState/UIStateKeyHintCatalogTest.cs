@@ -60,25 +60,39 @@ namespace Client.Tests.UIState
             Assert.AreEqual(3, TrainHudGameScreenSubStateHints.Hints.Count);
         }
 
-        // 自明除外の裁定（ESC・移動・デバッグキー）をキー名側で機械的に固定する
-        // Mechanically pin the "obvious operations are excluded" ruling on the key-name side
+        // 自明除外の裁定（ESC・移動・左クリック・デバッグキー・T）を許可リストで固定する。
+        // Pin the "obvious operations are excluded" ruling with an allow-list of declarable key names.
+        // 除外キー名を直接列挙する形だと別名（esc/keyEsc等）で足された瞬間すり抜けるため、
+        // A deny-list of key names would be bypassed the moment someone adds it under another name,
+        // 宣言してよいキー名の側を閉じ、新キー追加時にこの一覧とADR-0032の裁定を必ず読ませる。
+        // so the declarable side is closed instead, forcing any new key past this list and the ADR-0032 ruling.
         [Test]
-        public void NoScreenDeclaresExcludedKeys()
+        public void EveryDeclaredKeyNameIsOnTheAdrAllowList()
         {
-            var excluded = new[]
+            var allowed = new[]
             {
-                "escape", "f1", "f2", "f3", "ctrlU", "wasd", "space", "shift", "t",
-            }.Select(name => $"ui.keyHint.key.{name}").ToArray();
+                LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Key.B,
+                LocalizationKeys.Ui.KeyHint.Key.G, LocalizationKeys.Ui.KeyHint.Key.R,
+                LocalizationKeys.Ui.KeyHint.Key.V, LocalizationKeys.Ui.KeyHint.Key.Q,
+                LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Key.Digits,
+                LocalizationKeys.Ui.KeyHint.Key.CtrlZ, LocalizationKeys.Ui.KeyHint.Key.DriveKeys,
+                LocalizationKeys.Ui.KeyHint.Key.BranchKeys, LocalizationKeys.Ui.KeyHint.Key.LeftAltHold,
+                LocalizationKeys.Ui.KeyHint.Key.LeftAltMiddleClick, LocalizationKeys.Ui.KeyHint.Key.MiddleClick,
+                LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Key.RightClick,
+                LocalizationKeys.Ui.KeyHint.Key.DoubleClick, LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick,
+            }.Select(key => key.Key).ToArray();
 
-            var all = new[]
-            {
-                GameScreenStateHints.Hints, PlaceBlockStateHints.Hints, DeleteObjectStateHints.Hints,
-                PlayerInventoryStateHints.Hints, SubInventoryStateHints.Hints, ResearchTreeStateHints.Hints,
-                BuildMenuStateHints.Hints, ChallengeListStateHints.Hints, TrainHudGameScreenSubStateHints.Hints,
-            }.SelectMany(hints => hints).Select(hint => hint.KeyNameKey.Key);
+            var declared = AllHints.Select(hint => hint.KeyNameKey.Key).Distinct().ToArray();
 
-            CollectionAssert.IsEmpty(all.Intersect(excluded).ToArray());
+            CollectionAssert.IsEmpty(declared.Except(allowed).ToArray(), "ADR-0032の許可リストに無いキー名が宣言されている");
         }
+
+        private static readonly IReadOnlyList<KeyHint> AllHints = new[]
+        {
+            GameScreenStateHints.Hints, PlaceBlockStateHints.Hints, DeleteObjectStateHints.Hints,
+            PlayerInventoryStateHints.Hints, SubInventoryStateHints.Hints, ResearchTreeStateHints.Hints,
+            BuildMenuStateHints.Hints, ChallengeListStateHints.Hints, TrainHudGameScreenSubStateHints.Hints,
+        }.SelectMany(hints => hints).ToArray();
 
         private static void AssertHints((LocalizationKey keyNameKey, LocalizationKey textKey)[] expected, IReadOnlyList<KeyHint> actual)
         {
