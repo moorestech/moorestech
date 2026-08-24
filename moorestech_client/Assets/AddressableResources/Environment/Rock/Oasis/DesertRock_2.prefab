@@ -54,8 +54,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -270,6 +270,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1552520085188580276, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1552520085188580276, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1765521316028498477, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1765521316028498477, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2324761946523954390, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
       propertyPath: m_Name
       value: DesertRock_2
@@ -316,6 +332,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3100981234396280428, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5762630107843680377, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5762630107843680377, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}
+      propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8247429158850356611, guid: a36a5d75f71d418b8728e42595064a2f, type: 3}

@@ -54,8 +54,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -275,6 +275,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 4017769082527040636, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4017769082527040636, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5708069991153008012, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -290,6 +298,22 @@ PrefabInstance:
     - target: {fileID: 6103333730783410710, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6222922708420898181, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6222922708420898181, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6241059015719677284, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6241059015719677284, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6317027350656032213, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
       propertyPath: m_Layer
@@ -333,6 +357,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6915476361363677356, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8821943209295305887, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8821943209295305887, guid: 2710d69ff17649c4a4bb85e9bc33592a, type: 3}
+      propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

@@ -54,8 +54,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -270,6 +270,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2223772186633600103, guid: 268bfe55f1924a86801a3aea4ef68e71, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2223772186633600103, guid: 268bfe55f1924a86801a3aea4ef68e71, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2616343245676790581, guid: 268bfe55f1924a86801a3aea4ef68e71, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -322,6 +330,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 4595622099835501627, guid: 268bfe55f1924a86801a3aea4ef68e71, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4595622099835501627, guid: 268bfe55f1924a86801a3aea4ef68e71, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5288685164839595675, guid: 268bfe55f1924a86801a3aea4ef68e71, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -329,6 +345,14 @@ PrefabInstance:
     - target: {fileID: 6834914726556597467, guid: 268bfe55f1924a86801a3aea4ef68e71, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8372935847383455718, guid: 268bfe55f1924a86801a3aea4ef68e71, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8372935847383455718, guid: 268bfe55f1924a86801a3aea4ef68e71, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

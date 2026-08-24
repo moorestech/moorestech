@@ -54,8 +54,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -197,6 +197,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4255876677074700790, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4255876677074700790, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4345560189405312249, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4345560189405312249, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4837287753337966970, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -247,6 +263,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6838398874697352293, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7603345618667935736, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7603345618667935736, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
+      propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8532474749138014599, guid: e0c7015ec24d4f4b93eff1e47ce91468, type: 3}
