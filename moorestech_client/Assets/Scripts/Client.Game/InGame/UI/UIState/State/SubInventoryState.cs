@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Mooresmaster.Localization.Generated;
 using System;
 using System.Threading;
 using Client.Common.Asset;
@@ -5,7 +7,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;
 using Cysharp.Threading.Tasks;
@@ -102,7 +103,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // サブインベントリを生成し、データを取得、表示する
             // Create sub inventory, fetch data, and display
             LoadInventory().Forget();
-            KeyControlDescription.Instance.SetText("Esc: インベントリを閉じる");
 
             #region Internal
 
@@ -173,5 +173,22 @@ namespace Client.Game.InGame.UI.UIState.State
             _currentView = null;
             _subInventorySource = null;
         }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return SubInventoryStateHints.Hints;
+        }
+    }
+
+    internal static class SubInventoryStateHints
+    {
+        public static readonly IReadOnlyList<KeyHint> Hints = new[]
+        {
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.Close),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick, LocalizationKeys.Ui.KeyHint.Text.BulkMove),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.RightClick, LocalizationKeys.Ui.KeyHint.Text.HalveOrPlaceOne),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Text.DistributeEvenly),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.DoubleClick, LocalizationKeys.Ui.KeyHint.Text.GatherSameItem),
+        };
     }
 }

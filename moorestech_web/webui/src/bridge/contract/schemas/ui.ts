@@ -13,11 +13,16 @@ export const ProgressDataSchema = z.object({
   visible: z.boolean(), progress: z.number(), label: z.string().optional(),
 });
 
+// キー名も文言もローカライズキーで届く。内容の正はC#のUIState（ADR-0032）
+// Both the key name and the text arrive as localization keys; C#'s UIState owns the content (ADR-0032)
+export const KeyHintSchema = z.object({ keyNameKey: z.string(), textKey: z.string() });
+
 // 未知のstate名は画面ルータが安全側へ処理するため文字列全体を受理する
 // Accept every state name because the screen router handles unknown names safely
 export const UiStateDataSchema = z.object({
   state: z.string(),
   subState: z.enum(["GameScreen", "PauseMenuScreen"]).optional(),
+  keyHints: z.array(KeyHintSchema).default([]),
 });
 export const TrainRidingDataSchema = z.object({
   riding: z.boolean(),

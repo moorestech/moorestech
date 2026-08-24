@@ -143,7 +143,7 @@ export function createMockHttpServer(): Server {
       const params = new URL(url, "http://x").searchParams;
       const uiState = params.get("state") ?? "PlayerInventory";
       const subState = params.get("subState") ?? undefined;
-      state.currentUiState = { state: uiState, subState: subState as "GameScreen" | "PauseMenuScreen" | undefined };
+      state.currentUiState = { state: uiState, subState: subState as "GameScreen" | "PauseMenuScreen" | undefined, keyHints: fx.uiStateKeyHints };
       for (const ws of subscribersOf(Topics.uiState)) send(ws, { op: "event", topic: Topics.uiState, data: state.currentUiState });
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ ok: true }));

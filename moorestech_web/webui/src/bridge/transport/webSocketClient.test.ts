@@ -120,7 +120,7 @@ describe("WebSocket bridge initialization", () => {
       sockets[1].receive({ op: "snapshot", topic, revision: 0, data: fixtureFor(topic) });
     }
     expect(useTopicStore.getState().status).toBe("open");
-    expect(useTopicStore.getState().topics[Topics.uiState]).toEqual({ state: "GameScreen" });
+    expect(useTopicStore.getState().topics[Topics.uiState]).toEqual({ state: "GameScreen", keyHints: [] });
   });
 
   it("pong が途絶えると socket を閉じて再接続状態へ移る", async () => {

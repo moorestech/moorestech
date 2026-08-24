@@ -1,5 +1,6 @@
+using System.Collections.Generic;
+using Mooresmaster.Localization.Generated;
 using Client.Game.InGame.UI.Challenge;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using UnityEngine;
 
@@ -18,7 +19,6 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _challengeListView.SetActive(true);
             InputManager.MouseCursorVisible(true);
-            KeyControlDescription.Instance.SetText("T: リストを閉じる");
         }
 
         public UITransitContext GetNextUpdate()
@@ -34,5 +34,17 @@ namespace Client.Game.InGame.UI.UIState.State
             _challengeListView.SetActive(false);
             InputManager.MouseCursorVisible(false);
         }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return ChallengeListStateHints.Hints;
+        }
+    }
+
+    // Tが機能停止中で入口が無いため、この画面にはヒントを置かない（ADR-0032）
+    // T is disabled so this screen has no entry point; it carries no hints (ADR-0032)
+    internal static class ChallengeListStateHints
+    {
+        public static readonly IReadOnlyList<KeyHint> Hints = System.Array.Empty<KeyHint>();
     }
 }

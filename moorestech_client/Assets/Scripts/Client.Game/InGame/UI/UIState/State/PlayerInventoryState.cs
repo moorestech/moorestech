@@ -1,10 +1,11 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using Mooresmaster.Localization.Generated;
+using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
@@ -55,7 +56,6 @@ namespace Client.Game.InGame.UI.UIState.State
             UpdatePlayerInventory(_cancellationTokenSource.Token).Forget();
 
             InputManager.MouseCursorVisible(true);
-            KeyControlDescription.Instance.SetText("Tab/ECS: インベントリを閉じる\nR: リサーチツリー");
         }
         
         public void OnExit()
@@ -86,5 +86,23 @@ namespace Client.Game.InGame.UI.UIState.State
             _localPlayerInventoryController.SetGrabItem(response.GrabItem);
             _localPlayerEquipment.Initialize(response.Equipment, response.SelectedEquipmentIndex);
         }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return PlayerInventoryStateHints.Hints;
+        }
+    }
+
+    internal static class PlayerInventoryStateHints
+    {
+        public static readonly IReadOnlyList<KeyHint> Hints = new[]
+        {
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.CloseInventory),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.R, LocalizationKeys.Ui.KeyHint.Text.ResearchTree),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick, LocalizationKeys.Ui.KeyHint.Text.BulkMove),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.RightClick, LocalizationKeys.Ui.KeyHint.Text.HalveOrPlaceOne),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Text.DistributeEvenly),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.DoubleClick, LocalizationKeys.Ui.KeyHint.Text.GatherSameItem),
+        };
     }
 }

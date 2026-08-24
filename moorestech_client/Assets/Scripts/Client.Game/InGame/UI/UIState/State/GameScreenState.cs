@@ -1,8 +1,9 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using Mooresmaster.Localization.Generated;
+using System;
 using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
@@ -99,7 +100,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // Sync legacy uGUI HUD visibility when returning to GameScreen.
             GameStateController.ChangeState(GameStateType.InGame);
 
-            KeyControlDescription.Instance.SetText("Tab: インベントリ\n1~9: 建築ショートカット（同キーで解除）\nV: 視点切替\n左Alt(長押し): カーソル解放(三人称のみ)\nB: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nT: チャレンジ一覧\nR: リサーチツリー\nF3: デバッグモード\n");
         }
 
         public void OnExit()
@@ -113,5 +113,27 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _cameraPolicyService.RestoreAfterApplicationFocus();
         }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return GameScreenStateHints.Hints;
+        }
+    }
+
+    // ADR-0032: ゲーム画面のヒント。移動・左クリック・ESC・デバッグキー・T・Eは載せない
+    // ADR-0032: game screen hints; movement, left click, ESC, debug keys, T and E are excluded
+    internal static class GameScreenStateHints
+    {
+        public static readonly IReadOnlyList<KeyHint> Hints = new[]
+        {
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.Inventory),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Digits, LocalizationKeys.Ui.KeyHint.Text.BuildShortcut),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.B, LocalizationKeys.Ui.KeyHint.Text.BuildMenu),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.G, LocalizationKeys.Ui.KeyHint.Text.DeleteMode),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.R, LocalizationKeys.Ui.KeyHint.Text.ResearchTree),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.V, LocalizationKeys.Ui.KeyHint.Text.ToggleView),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftAltHold, LocalizationKeys.Ui.KeyHint.Text.FreeCursor),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftAltMiddleClick, LocalizationKeys.Ui.KeyHint.Text.PickPlacedObject),
+        };
     }
 }

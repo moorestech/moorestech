@@ -1,6 +1,7 @@
+using System.Collections.Generic;
+using Mooresmaster.Localization.Generated;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.UI.BuildMenu;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Input;
 using UnityEngine;
@@ -25,7 +26,6 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService.EnterMenu();
 
             _buildMenuView.SetActive(true);
-            KeyControlDescription.Instance.SetText("クリック: 設置ブロック選択  B: 閉じる");
         }
 
         public UITransitContext GetNextUpdate()
@@ -48,5 +48,19 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _cameraPolicyService.RestoreAfterApplicationFocus();
         }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return BuildMenuStateHints.Hints;
+        }
+    }
+
+    internal static class BuildMenuStateHints
+    {
+        public static readonly IReadOnlyList<KeyHint> Hints = new[]
+        {
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.Inventory),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.B, LocalizationKeys.Ui.KeyHint.Text.Close),
+        };
     }
 }

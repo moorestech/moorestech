@@ -85,6 +85,11 @@ namespace Client.Tests.UIState
             {
                 ExitCount++;
             }
+
+            public IReadOnlyList<KeyHint> GetKeyHints()
+            {
+                return System.Array.Empty<KeyHint>();
+            }
         }
     }
 }
