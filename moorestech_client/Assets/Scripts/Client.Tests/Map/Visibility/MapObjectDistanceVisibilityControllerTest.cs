@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using Client.Game.InGame.Map.MapObject;
 using NUnit.Framework;
@@ -105,6 +106,26 @@ namespace Client.Tests.Map.Visibility
             Assert.IsTrue(renderer.enabled);
         }
 
+        [UnityTest]
+        public IEnumerator 距離bandが変わらないculling通知はqueueへ積まない()
+        {
+            var camera = CreateCamera(Vector3.zero);
+            var controller = CreateController(1, camera);
+            var mapObject = CreateMapObject(Vector3.zero, out _);
+            controller.Register(mapObject, false);
+            yield return null;
+            yield return null;
+            Assert.AreEqual(0, PendingIndexCount(controller));
+
+            // 視錐台の出入りだけの通知は距離bandが同じなので破棄される
+            // A frustum-only notification keeps the distance band and must be discarded
+            RaiseStateChanged(controller, 0, 2, 2);
+            Assert.AreEqual(0, PendingIndexCount(controller));
+
+            RaiseStateChanged(controller, 0, 2, 0);
+            Assert.AreEqual(1, PendingIndexCount(controller));
+        }
+
         private MapObjectDistanceVisibilityController CreateController(int capacity, Camera camera)
         {
             var controller = new MapObjectDistanceVisibilityController(capacity, CancellationToken.None);
@@ -119,6 +140,40 @@ namespace Client.Tests.Map.Visibility
             _roots.Add(root);
             root.transform.position = position;
             return root.AddComponent<Camera>();
+        }
+
+        private static int PendingIndexCount(MapObjectDistanceVisibilityController controller)
+        {
+            var field = typeof(MapObjectDistanceVisibilityController)
+                .GetField("_pendingIndices", BindingFlags.Instance | BindingFlags.NonPublic);
+            return ((Queue<int>)field.GetValue(controller)).Count;
+        }
+
+        private static void RaiseStateChanged(MapObjectDistanceVisibilityController controller, int index, int previousDistance, int currentDistance)
+        {
+            var method = typeof(MapObjectDistanceVisibilityController)
+                .GetMethod("OnStateChanged", BindingFlags.Instance | BindingFlags.NonPublic);
+            method.Invoke(controller, new object[] { CreateStateChangedEvent(index, previousDistance, currentDistance) });
+        }
+
+        private static CullingGroupEvent CreateStateChangedEvent(int index, int previousDistance, int currentDistance)
+        {
+            // CullingGroupEventはnativeだけが組み立てるため、privateフィールドを直接埋めて再現する
+            // Only native code builds CullingGroupEvent, so fill its private fields to reproduce one
+            var fields = typeof(CullingGroupEvent).GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.AreEqual(3, fields.Length);
+            object boxed = default(CullingGroupEvent);
+            fields[0].SetValue(boxed, index);
+            fields[1].SetValue(boxed, (byte)previousDistance);
+            fields[2].SetValue(boxed, (byte)currentDistance);
+
+            // layoutが変わったら黙って通り抜けないよう、公開値で組み立て結果を検証する
+            // Verify through public values so a layout change fails loudly instead of passing silently
+            var sphereEvent = (CullingGroupEvent)boxed;
+            Assert.AreEqual(index, sphereEvent.index);
+            Assert.AreEqual(previousDistance, sphereEvent.previousDistance);
+            Assert.AreEqual(currentDistance, sphereEvent.currentDistance);
+            return sphereEvent;
         }
 
         private MapObjectGameObject CreateMapObject(Vector3 position, out MeshRenderer renderer)

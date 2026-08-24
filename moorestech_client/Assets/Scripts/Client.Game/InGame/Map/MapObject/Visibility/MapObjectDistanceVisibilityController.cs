@@ -114,6 +114,9 @@ namespace Client.Game.InGame.Map.MapObject
 
         private void OnStateChanged(CullingGroupEvent sphereEvent)
         {
+            // 視錐台の出入りだけでも通知が来るため、距離bandが変わらない通知はqueueへ積まない
+            // Notifications also fire for frustum transitions, so drop events that keep the distance band
+            if (sphereEvent.previousDistance == sphereEvent.currentDistance) return;
             ApplyDistanceBand(sphereEvent.index, sphereEvent.currentDistance);
         }
 
