@@ -15,7 +15,7 @@ export const ProgressDataSchema = z.object({
 
 // キー名も文言もローカライズキーで届く。内容の正はC#のUIState（ADR-0032）
 // Both the key name and the text arrive as localization keys; C#'s UIState owns the content (ADR-0032)
-export const KeyHintSchema = z.object({ keyNameKey: z.string(), textKey: z.string() });
+const KeyHintSchema = z.object({ keyNameKey: z.string(), textKey: z.string() });
 
 // 未知のstate名は画面ルータが安全側へ処理するため文字列全体を受理する
 // Accept every state name because the screen router handles unknown names safely
