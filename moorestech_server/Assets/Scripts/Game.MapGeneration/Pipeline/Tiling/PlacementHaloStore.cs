@@ -30,9 +30,20 @@ namespace Game.MapGeneration.Pipeline.Tiling
 
         // 先行タイルと先行種別の確定AABBを後着鉱脈の排他入力にする。
         // Snapshots confirmed AABBs from earlier tiles and kinds for later-vein exclusion.
-        internal List<PlacedVein> CreateConfirmedVeinSnapshot()
+        internal List<PlacedVein> CreateConfirmedVeinSnapshot(
+            float tileWorldOffsetX, float tileWorldOffsetZ,
+            float tileWidth, float tileLength)
         {
-            return new List<PlacedVein>(_confirmedVeins);
+            // 遠隔履歴を候補範囲で除外する。
+            // Excludes remote history that cannot touch any candidate AABB in this tile.
+            var snapshot = new List<PlacedVein>();
+            foreach (var vein in _confirmedVeins)
+            {
+                if (!VeinAabbBuilder.CanOverlapAnyCandidateInTile(
+                        vein, tileWorldOffsetX, tileWorldOffsetZ, tileWidth, tileLength)) continue;
+                snapshot.Add(vein);
+            }
+            return snapshot;
         }
 
         internal void CommitItemVeins(ConfirmedVeinPlacementBatch placement)
