@@ -1,10 +1,11 @@
 using System.Linq;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
+using Client.Network.API;
 using Client.Playtest;
 using Client.Playtest.Operations;
-using Cysharp.Threading.Tasks;
-using Game.Map.Interface.MapObject;
 using UnityEngine;
+using VContainer;
 
 // P2: mapObjectがシーンベイクではなくLayout応答から実行時Instantiateされることを実v8ワールドで検証する
 // P2: verifies map objects are instantiated at runtime from the layout response on the real v8 world
@@ -25,16 +26,14 @@ return PlaytestRunner.Run("map-object-runtime-instantiate", options, async p =>
     var clientDatastore = UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>();
     p.Assert(clientDatastore != null, "クライアントのMapObjectGameObjectDatastoreがシーンに存在する");
 
-    // 生成ループ完走で完了する保持タスク。skip+continue化後は失敗個体があっても必ず完走する
-    // The retained task completed on loop completion; after skip+continue it always completes even with failing items
-    await p.Until(() => clientDatastore.WaitForInitialApplyAsync().Status.IsCompletedSuccessfully(), 180f, "mapObject生成ループが完走する");
+    await p.Until(() => clientDatastore.IsNearFieldInstantiated.Value, 180f, "mapObject近傍生成が完了する");
 
     p.Note("サーバーのmapObject件数とクライアント生成数を突き合わせる");
 
-    // ServerService(=main ServiceProvider)にはIMapObjectDatastore未登録のためServerContextの静的参照を使う
-    // The main ServiceProvider doesn't register IMapObjectDatastore, so use the ServerContext static handle
-    var serverDatastore = Game.Context.ServerContext.MapObjectDatastore;
-    var serverCount = serverDatastore.MapObjects.Count;
+    var handshake = ClientDIContext.DIContainer.DIContainerResolver.Resolve<InitialHandshakeResponse>();
+    var nearFieldOrder = MapObjectLayoutDistanceOrder.SortNearFieldFirst(
+        handshake.MapLayout.MapObjects, handshake.PlayerPos);
+    var serverCount = nearFieldOrder.NearFieldCount;
     var clientCount = clientDatastore.transform.childCount;
     p.Note($"server mapObjects={serverCount} / client instantiated={clientCount}");
 
@@ -55,7 +54,7 @@ return PlaytestRunner.Run("map-object-runtime-instantiate", options, async p =>
 
     // 検索APIが実体を引けること＝生成物がワールド座標に正しく配置されていることの確認
     // The search API returning a hit means instances are placed at correct world positions
-    var sampleGuid = serverDatastore.MapObjects.First().MapObjectGuid;
+    var sampleGuid = new System.Guid(nearFieldOrder.Entries[0].Layout.MapObjectGuid);
     var nearest = clientDatastore.SearchNearestMapObject(new HashSet<Guid> { sampleGuid }, p.PlayerPosition);
     p.Assert(nearest != null, "SearchNearestMapObjectが生成済みmapObjectを引ける");
 

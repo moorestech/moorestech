@@ -25,8 +25,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
     /// </summary>
     public class TileVisualBakerCacheParityTest
     {
-        private const int Resolution = 9;
+        private const int Resolution = 33;
         private const int AlphamapResolution = Resolution - 1;
+        private const int DetailResolution = 16;
         private const float TileSize = 100f;
         private const int TileX = 0;
         private const int TileZ = 0;
@@ -71,25 +72,26 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             // ヒットは書き戻さない。更新時刻が動いていないことが2回目がキャッシュを引いた証拠になる
             // A hit never writes back, so an unmoved timestamp is the evidence the second bake read the cache
             Assert.That(File.GetLastWriteTimeUtc(cacheFilePath), Is.EqualTo(writeTimeAfterFirstBake), "2回目がキャッシュを引かないと往復を検証できない");
-            Assert.That(HasFractionalWeight(first.Alphamap), Is.True, "0か1しかない盤面では量子化の有無が現れない");
+            Assert.That(HasFractionalWeight(first.Alphamap.Planes), Is.True, "0か1しかない盤面では量子化の有無が現れない");
 
-            for (var z = 0; z < AlphamapResolution; z++)
-            for (var x = 0; x < AlphamapResolution; x++)
-            for (var layer = 0; layer < first.Alphamap.GetLength(2); layer++)
-                Assert.That(
-                    second.Alphamap[z, x, layer], Is.EqualTo(first.Alphamap[z, x, layer]),
-                    $"z={z} x={x} layer={layer}");
+            Assert.That(second.Alphamap.Planes.Count, Is.EqualTo(first.Alphamap.Planes.Count));
+            for (var planeIndex = 0; planeIndex < first.Alphamap.Planes.Count; planeIndex++)
+                Assert.That(second.Alphamap.Planes[planeIndex].ToArray(),
+                    Is.EqualTo(first.Alphamap.Planes[planeIndex].ToArray()), $"plane={planeIndex}");
+
+            // 木摂動もキャッシュ往復一致
+            // Keeps tree perturbations equal across the cache round trip.
+            for (var z = 0; z < Resolution; z++)
+            for (var x = 0; x < Resolution; x++)
+                Assert.That(second.DisplayHeights[z, x], Is.EqualTo(first.DisplayHeights[z, x]).Within(1f / ushort.MaxValue),
+                    $"height z={z} x={x}");
         }
 
-        private static bool HasFractionalWeight(float[,,] alphamap)
+        private static bool HasFractionalWeight(System.Collections.Generic.IReadOnlyList<ReadOnlyMemory<byte>> alphamapPlanes)
         {
-            for (var z = 0; z < AlphamapResolution; z++)
-            for (var x = 0; x < AlphamapResolution; x++)
-            for (var layer = 0; layer < alphamap.GetLength(2); layer++)
-            {
-                var weight = alphamap[z, x, layer];
-                if (0f < weight && weight < 1f) return true;
-            }
+            foreach (var plane in alphamapPlanes)
+            foreach (var weight in plane.Span)
+                if (0 < weight && weight < byte.MaxValue) return true;
 
             return false;
         }
@@ -104,8 +106,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
                 visualSections.SurroundTextureConfigs, treeSurroundSpecies, Array.Empty<string>());
 
             return new TileVisualBaker(
-                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, EmptyLedger,
-                _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
+                config, BiomeTypes, visualSections, layerTable, treeSurroundSpecies, new MaterializedPlacementLedgerSource(EmptyLedger),
+                EmptyLedger.ComputeDigest(), _worldCacheDirectory, new TerrainVisualCache(_worldCacheDirectory, CacheKey));
         }
 
         private static TerrainGenerationConfig CreateConfig()
@@ -113,6 +115,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             return new TerrainGenerationConfig
             {
                 overrideResolution = Resolution,
+                detailResolution = DetailResolution,
                 seed = 12345,
                 terrainWidth = TileSize,
                 terrainLength = TileSize,

@@ -167,12 +167,9 @@ namespace Client.Tests.UnitTest
         {
             return new TerrainGenerationConfig
             {
-                overrideResolution = Resolution,
-                seed = 12345,
-                grasslandEnabled = true,
-                forestEnabled = false,
-                savannaEnabled = false,
-                desertEnabled = false,
+                overrideResolution = Resolution, detailResolution = 1024, seed = 12345,
+                grasslandEnabled = true, forestEnabled = false,
+                savannaEnabled = false, desertEnabled = false,
                 mesaEnabled = false,
                 alpineEnabled = false,
                 jungleEnabled = false,

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Game.MapGeneration.Cache;
+using Game.MapGeneration.Pipeline.Visual;
 using Game.Paths;
 using NUnit.Framework;
 using UnityEngine;
@@ -18,9 +19,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
     /// </summary>
     public class TerrainVisualCacheTest
     {
+        // 高さとalphamapは別解像度にする。同じ値だと区画の取り違えが往復で相殺されて見えなくなる
+        // Heights and the alphamap take different resolutions; equal ones would let a section mix-up cancel out across the round trip
+        private const int HeightmapResolution = 17;
         private const int AlphamapResolution = 4;
         private const int LayerCount = 3;
-        private const int DetailResolution = 3;
+        private const int DetailResolution = 16;
         private const int DetailMapCount = 2;
         private const int TileX = 1;
         private const int TileZ = 2;
@@ -45,21 +49,29 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
         }
 
         [Test]
-        public void RestoresTheAlphamapAndDetailMapsItSaved()
+        public void RestoresTheHeightsAlphamapAndDetailMapsItSaved()
         {
             var cache = CreateCache(CacheKey);
             cache.Save(TileX, TileZ, CreateTileVisual());
 
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out var loaded), Is.True);
+            Assert.That(TryLoad(cache, out var loaded), Is.True);
 
             var saved = CreateTileVisual();
-            for (var z = 0; z < AlphamapResolution; z++)
-            for (var x = 0; x < AlphamapResolution; x++)
-            for (var layer = 0; layer < LayerCount; layer++)
-                // 1バイト量子化ぶんの誤差だけを許す。層や画素が入れ替わればこの範囲には収まらない
-                // Only the one-byte quantization error is allowed; a swapped layer or pixel never lands inside it
-                Assert.That(loaded.Alphamap[z, x, layer], Is.EqualTo(saved.Alphamap[z, x, layer]).Within(1f / 255f),
-                    $"z={z} x={x} layer={layer}");
+            for (var z = 0; z < HeightmapResolution; z++)
+            for (var x = 0; x < HeightmapResolution; x++)
+                // 高さはushort量子化ぶんの誤差だけを許す。行や列が入れ替わればこの範囲には収まらない
+                // Heights allow only the ushort quantization error; a swapped row or column never lands inside it
+                Assert.That(loaded.DisplayHeights[z, x], Is.EqualTo(saved.DisplayHeights[z, x]).Within(1f / ushort.MaxValue),
+                    $"height z={z} x={x}");
+
+            Assert.That(loaded.Alphamap.Resolution, Is.EqualTo(AlphamapResolution));
+            Assert.That(loaded.Alphamap.LayerCount, Is.EqualTo(LayerCount));
+            Assert.That(loaded.Alphamap.Planes.Count, Is.EqualTo(saved.Alphamap.Planes.Count));
+            for (var planeIndex = 0; planeIndex < saved.Alphamap.Planes.Count; planeIndex++)
+                // 平面はそのままテクスチャへ載る。1バイトも動いてはいけない
+                // A plane goes onto a texture verbatim, so not one byte may move
+                Assert.That(loaded.Alphamap.Planes[planeIndex].ToArray(),
+                    Is.EqualTo(saved.Alphamap.Planes[planeIndex].ToArray()), $"plane={planeIndex}");
 
             Assert.That(loaded.DetailMaps.Count, Is.EqualTo(saved.DetailMaps.Count));
             for (var mapIndex = 0; mapIndex < saved.DetailMaps.Count; mapIndex++)
@@ -76,7 +88,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
 
             // マスタや地形が動けばキーが変わる。同じファイルでも別物として取り逃す
             // A moved master or terrain changes the key, so the same file is missed as a different thing
-            Assert.That(CreateCache(OtherCacheKey).TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
+            Assert.That(TryLoad(CreateCache(OtherCacheKey), out _), Is.False);
         }
 
         [Test]
@@ -84,7 +96,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
         {
             CreateCache(CacheKey).Save(TileX, TileZ, CreateTileVisual());
 
-            Assert.That(CreateCache(CacheKey).TryLoad(TileX, TileZ + 1, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
+            Assert.That(CreateCache(CacheKey).TryLoad(TileX, TileZ + 1, HeightmapResolution, AlphamapResolution, LayerCount,
+                DetailResolution, DetailMapCount, out _), Is.False);
         }
 
         [Test]
@@ -101,7 +114,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             // 切り詰めは以降の全画素を1バイトずらす。黙って読むと草も地面も別物になる
             // A truncation shifts every later pixel by a byte; reading it silently would draw different ground and grass
             LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
+            Assert.That(TryLoad(cache, out _), Is.False);
         }
 
         [Test]
@@ -116,7 +129,20 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             // ヘッダ途中のファイルも完成済みとして扱うと、次の起動で壊れた見た目を再利用してしまう
             // Treating a partial header as complete would reuse broken visuals on the next boot
             LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
+            Assert.That(TryLoad(cache, out _), Is.False);
+        }
+
+        [Test]
+        public void MissesWithAWarningWhenTheHeightmapResolutionDisagrees()
+        {
+            var cache = CreateCache(CacheKey);
+            cache.Save(TileX, TileZ, CreateTileVisual());
+
+            // 高さの解像度が違えば区画の境界がずれ、alphamapとdetailを高さのバイト列から読み始める
+            // A differing heightmap resolution shifts every section boundary and starts reading the alphamap and detail inside the height bytes
+            LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
+            Assert.That(cache.TryLoad(TileX, TileZ, HeightmapResolution + 1, AlphamapResolution, LayerCount,
+                DetailResolution, DetailMapCount, out _), Is.False);
         }
 
         [Test]
@@ -126,7 +152,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             cache.Save(TileX, TileZ, CreateTileVisual());
 
             LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution + 1, LayerCount, DetailResolution, DetailMapCount, out _), Is.False);
+            Assert.That(cache.TryLoad(TileX, TileZ, HeightmapResolution, AlphamapResolution + 1, LayerCount,
+                DetailResolution, DetailMapCount, out _), Is.False);
         }
 
         [Test]
@@ -138,7 +165,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             // 層数がTerrainDataのterrainLayersと違うまま流すと、全画素が別のテクスチャで描かれる
             // Letting a layer count differ from TerrainData.terrainLayers would draw every pixel with a different texture
             LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount + 1, DetailResolution, DetailMapCount, out _), Is.False);
+            Assert.That(cache.TryLoad(TileX, TileZ, HeightmapResolution, AlphamapResolution, LayerCount + 1,
+                DetailResolution, DetailMapCount, out _), Is.False);
         }
 
         [Test]
@@ -150,7 +178,14 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             // detail mapはprototypeと同じ順番で結び付く。数が違うキャッシュをhitにすると草種がずれる
             // Detail maps pair with prototypes in order; hitting a count-mismatched cache shifts vegetation types
             LogAssert.Expect(LogType.Warning, new Regex("Discarding"));
-            Assert.That(cache.TryLoad(TileX, TileZ, AlphamapResolution, LayerCount, DetailResolution, DetailMapCount + 1, out _), Is.False);
+            Assert.That(cache.TryLoad(TileX, TileZ, HeightmapResolution, AlphamapResolution, LayerCount,
+                DetailResolution, DetailMapCount + 1, out _), Is.False);
+        }
+
+        private static bool TryLoad(TerrainVisualCache cache, out TerrainTileVisual tileVisual)
+        {
+            return cache.TryLoad(TileX, TileZ, HeightmapResolution, AlphamapResolution, LayerCount, DetailResolution,
+                DetailMapCount, out tileVisual);
         }
 
         private TerrainVisualCache CreateCache(string cacheKey)
@@ -162,6 +197,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
         // Every pixel gets a distinct value so any broken ordering fails some comparison
         private static TerrainTileVisual CreateTileVisual()
         {
+            var displayHeights = new float[HeightmapResolution, HeightmapResolution];
+            for (var z = 0; z < HeightmapResolution; z++)
+            for (var x = 0; x < HeightmapResolution; x++)
+                displayHeights[z, x] = (z * HeightmapResolution + x) /
+                                       (float)(HeightmapResolution * HeightmapResolution - 1);
+
             var alphamap = new float[AlphamapResolution, AlphamapResolution, LayerCount];
             for (var z = 0; z < AlphamapResolution; z++)
             for (var x = 0; x < AlphamapResolution; x++)
@@ -179,7 +220,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
                 detailMaps.Add(detailMap);
             }
 
-            return new TerrainTileVisual(alphamap, detailMaps);
+            return new TerrainTileVisual(
+                displayHeights,
+                TileAlphamap.Create(StoredAlphamapWeights.ToPlanes(alphamap), AlphamapResolution, LayerCount),
+                detailMaps);
         }
     }
 }

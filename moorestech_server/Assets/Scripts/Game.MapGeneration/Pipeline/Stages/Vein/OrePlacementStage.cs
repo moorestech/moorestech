@@ -18,11 +18,14 @@ namespace Game.MapGeneration.Pipeline.Stages
         {
             var ore = config.oreConfig;
             if (!config.generateOre || ore.entries.Length == 0) return new List<PlacedVein>();
-            return VeinPlacementCore.Generate(
+            var placement = VeinPlacementCore.Generate(
                 ore.entries, ore.borderMargin,
                 config, masks, biomeTypes, heights2D, treeEntries, objectPlacements,
-                ItemVeinRngSeedOffset, System.Array.Empty<PlacedVein>(),
+                ItemVeinRngSeedOffset, tile.Halo.CreateConfirmedVeinSnapshot(
+                    config.worldOffsetX, config.worldOffsetZ, config.terrainWidth, config.terrainLength),
                 tile, tile.Halo.ItemVeinMembers, tile.Halo.ItemVeinCenters);
+            tile.Halo.CommitItemVeins(placement);
+            return placement.Veins;
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
+using Game.MapGeneration.Pipeline.Visual;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -70,7 +71,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
         }
 
         [UnityTest]
-        public IEnumerator LeavesTheDefaultAlphamapWhenTheAlphamapIsNull()
+        public IEnumerator LeavesTheDefaultAlphamapWhenNoLayerWasBaked()
         {
             yield return Assemble(null);
 
@@ -80,16 +81,49 @@ namespace Client.Tests.UnitTest.Terrain.Build
             Assert.That(_terrainData.alphamapResolution, Is.Not.EqualTo(AlphamapResolution));
         }
 
-        private IEnumerator Assemble(float[,,] alphamap)
+        [TestCase(1)]
+        [TestCase(15)]
+        [TestCase(17)]
+        [TestCase(48)]
+        public void RejectsDetailResolutionUnityWouldRound(int detailResolution)
+        {
+            var task = AssembleWithDetailMaps(new List<int[,]> { new int[detailResolution, detailResolution] });
+
+            Assert.Throws<System.InvalidOperationException>(() => task.GetAwaiter().GetResult());
+        }
+
+        [Test]
+        public void RejectsDetailMapsWithDifferentShapes()
+        {
+            var task = AssembleWithDetailMaps(new List<int[,]> { new int[16, 16], new int[16, 15] });
+
+            Assert.Throws<System.InvalidOperationException>(() => task.GetAwaiter().GetResult());
+        }
+
+        private IEnumerator Assemble(TileAlphamap alphamap)
         {
             var layout = WorldTerrainLayout.CreateTileMaps(
                 new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
                 new List<string>(), new List<DetailPrototypeSpec>());
-            var tile = new BakedTerrainTile(Vector3.zero, CreateHeights(), alphamap, new List<int[,]>());
+            var tile = new BakedTerrainTile(
+                Vector3.zero, CreateHeights(), alphamap, new List<int[,]>());
 
             var assembleTask = TerrainDataAssembler.AssembleAsync(layout, tile, new List<DetailPrototype>(), _terrainLayers);
 
             yield return assembleTask.ToCoroutine(terrainData => _terrainData = terrainData);
+        }
+
+        private static UniTask<TerrainData> AssembleWithDetailMaps(IReadOnlyList<int[,]> detailMaps)
+        {
+            var layout = WorldTerrainLayout.CreateTileMaps(
+                new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
+                new List<string>(), new List<DetailPrototypeSpec>());
+            var tile = new BakedTerrainTile(
+                Vector3.zero, CreateHeights(), null, detailMaps);
+            var prototypes = new List<DetailPrototype>();
+            for (var index = 0; index < detailMaps.Count; index++) prototypes.Add(new DetailPrototype());
+
+            return TerrainDataAssembler.AssembleAsync(layout, tile, prototypes, System.Array.Empty<TerrainLayer>());
         }
 
         private static float[,] CreateHeights()
@@ -104,14 +138,15 @@ namespace Client.Tests.UnitTest.Terrain.Build
 
         // 0番レイヤーだけに全重みを寄せる。適用されたかどうかを1画素の重みで見分けられる形
         // All weight goes to layer 0 so a single pixel's weight tells whether the apply happened
-        private static float[,,] CreateAlphamap()
+        private static TileAlphamap CreateAlphamap()
         {
-            var alphamap = new float[AlphamapResolution, AlphamapResolution, LayerCount];
-            for (var z = 0; z < AlphamapResolution; z++)
-            for (var x = 0; x < AlphamapResolution; x++)
-                alphamap[z, x, 0] = 1f;
+            // 平面は[z][x][rgba]の生バイト。焼き側の変換に依存させず、この並びを直に組んで期待値を固定する
+            // A plane is raw [z][x][rgba] bytes; building the order here rather than through the baker pins the expectation itself
+            var plane = new byte[AlphamapResolution * AlphamapResolution * 4];
+            for (var pixel = 0; pixel < AlphamapResolution * AlphamapResolution; pixel++)
+                plane[pixel * 4] = byte.MaxValue;
 
-            return alphamap;
+            return TileAlphamap.Create(new[] { plane }, AlphamapResolution, LayerCount);
         }
     }
 }

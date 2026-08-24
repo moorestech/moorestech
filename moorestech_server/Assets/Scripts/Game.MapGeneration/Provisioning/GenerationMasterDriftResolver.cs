@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using Core.Master;
@@ -25,27 +26,32 @@ namespace Game.MapGeneration.Provisioning
         // Positions round-trip through map.json as floats, so the keys quantise to 1mm; a placement that really moved shifts by metres
         private const int PositionKeyUnitsPerMeter = 1000;
 
+        // scaleは配置台帳digestと同じくfloatの全精度を保つ。位置の1mm許容を流用すると小さな見た目差を同一配置と誤認する
+        // Scale keeps full float precision as the placement-ledger digest does; reusing position's 1mm tolerance would hide small visual changes
+        private const string ScaleRoundTripFormat = "R";
+
         public static void Resolve(WorldDataDirectory worldDataDirectory, string serverDataDirectory, TerrainTransferMeta terrainMeta)
         {
             // ここは指紋を突き合わせるだけでなく、進める新しい値としても要るので算出結果を手元に持つ
             // The fingerprint is needed here not only to match but as the new value to advance to, so the computation is kept at hand
-            var currentFingerprint = terrainMeta.ComputeCurrentGenerationMasterFingerprint(serverDataDirectory);
-            if (currentFingerprint == terrainMeta.GenerationMasterFingerprint) return;
+            var generatedPayload = terrainMeta.GeneratedPayload;
+            var currentFingerprint = generatedPayload.ComputeCurrentGenerationMasterFingerprint(serverDataDirectory);
+            if (currentFingerprint == generatedPayload.GenerationMasterFingerprint) return;
 
             // クライアントのOpenと同じ組み立てでpass-1を回し直す。ここを通れば、クライアントも同じ台帳へ辿り着く
             // Re-run pass-1 through the very assembly the client's Open uses, so passing here means the client reaches the same ledger
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, terrainMeta.Origins);
+                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins);
             var run = MapGenerationPipeline.Generate(selectedGeneration, config);
 
             // 窓が動いていたら配置以前に別のワールドなので、集合の比較より先に止める
             // A moved window is a different world before any placement is compared, so stop ahead of the set comparison
-            terrainMeta.ThrowIfOriginsDiffer(run.Output.NoiseOrigin, run.Output.SceneOrigin);
+            generatedPayload.ThrowIfOriginsDiffer(new TerrainOrigins(run.Output.NoiseOrigin, run.Output.SceneOrigin));
             ThrowIfMapObjectsMoved(worldDataDirectory, run.Output);
 
             DropSharedVisualCache(terrainMeta.WorldId);
-            AdvanceRecordedFingerprint(worldDataDirectory, currentFingerprint);
+            AdvanceRecordedFingerprint(worldDataDirectory, currentFingerprint, run.Ledger.ComputeDigest());
             Debug.Log(
                 $"[GenerationMasterDriftResolver] World '{terrainMeta.WorldId}' kept its placements across a generation master change; " +
                 "its shared visual cache was dropped and will be rebuilt.");
@@ -60,14 +66,14 @@ namespace Game.MapGeneration.Provisioning
             {
                 var recordedMapInfo = JsonConvert.DeserializeObject<MapInfoJson>(File.ReadAllText(worldDataDirectory.MapJsonFilePath));
                 var recordedKeys = SortedPlacementKeys(recordedMapInfo.MapObjects.Select(
-                    mapObject => PlacementKey(mapObject.MapObjectGuidStr, mapObject.Position)));
+                    mapObject => PlacementKey(mapObject.MapObjectGuidStr, mapObject.Position, mapObject.Scale)));
                 var regeneratedKeys = SortedPlacementKeys(output.MapObjects.Select(
-                    mapObject => PlacementKey(mapObject.MapObjectGuid, mapObject.Position)));
+                    mapObject => PlacementKey(mapObject.MapObjectGuid, mapObject.Position, mapObject.Scale)));
                 if (recordedKeys.SequenceEqual(regeneratedKeys)) return;
 
                 throw new InvalidOperationException(
                     $"The generation master moved the placements of world '{worldDataDirectory.Root}': map.json records {recordedKeys.Count} " +
-                    $"map objects while the current master generates {regeneratedKeys.Count} with a different (guid, position) set. " +
+                    $"map objects while the current master generates {regeneratedKeys.Count} with a different (guid, position, scale) set. " +
                     "Delete the world directory and generate the world again.");
             }
 
@@ -76,14 +82,20 @@ namespace Game.MapGeneration.Provisioning
                 return keys.OrderBy(key => key, StringComparer.Ordinal).ToList();
             }
 
-            static string PlacementKey(string mapObjectGuid, Vector3 position)
+            static string PlacementKey(string mapObjectGuid, Vector3 position, Vector3 scale)
             {
-                return $"{mapObjectGuid}:{RoundToKeyUnits(position.x)}:{RoundToKeyUnits(position.y)}:{RoundToKeyUnits(position.z)}";
+                return $"{mapObjectGuid}:{RoundToKeyUnits(position.x)}:{RoundToKeyUnits(position.y)}:{RoundToKeyUnits(position.z)}:" +
+                       $"{FormatScale(scale.x)}:{FormatScale(scale.y)}:{FormatScale(scale.z)}";
             }
 
             static int RoundToKeyUnits(float meters)
             {
                 return Mathf.RoundToInt(meters * PositionKeyUnitsPerMeter);
+            }
+
+            static string FormatScale(float scale)
+            {
+                return scale.ToString(ScaleRoundTripFormat, CultureInfo.InvariantCulture);
             }
 
             // 見た目キャッシュは指紋を鍵に含むので放置しても引かれないが、二度と使えないファイルは残さない
@@ -96,10 +108,15 @@ namespace Game.MapGeneration.Provisioning
 
             // world.jsonはコミットマーカーなので上書きしない。プロビジョニングと同じ一時ディレクトリへ書いてから置換する
             // world.json is the commit marker and is never overwritten in place: it is written into provisioning's own temp directory and then replaced
-            static void AdvanceRecordedFingerprint(WorldDataDirectory worldDataDirectory, string currentFingerprint)
+            static void AdvanceRecordedFingerprint(
+                WorldDataDirectory worldDataDirectory, string currentFingerprint, string currentPlacementLedgerDigest)
             {
                 var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
                 worldMeta.GenerationMasterFingerprint = currentFingerprint;
+
+                // 見た目が動いた台帳は指紋も動く。指紋を据え置くと、捨てたキャッシュを新しい見た目で焼き直せない
+                // A ledger whose visuals moved has a moved digest too; holding it back would keep the dropped cache from being rebaked with the new look
+                worldMeta.PlacementLedgerDigest = currentPlacementLedgerDigest;
 
                 var temporaryDataDirectory = WorldDataDirectory.FromWorldRoot(worldDataDirectory.ProvisioningTempDirectory);
                 Directory.CreateDirectory(temporaryDataDirectory.Root);

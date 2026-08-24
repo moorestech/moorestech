@@ -1,5 +1,6 @@
 using System;
 using Game.MapGeneration.Transfer;
+using MessagePack;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
@@ -14,7 +15,9 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void ワイヤメタからのモード解釈は単一入口で完結する()
         {
             var template = new TerrainTransferMetaMessagePack(TerrainTransferMeta.CreateTemplate("world-a", 42), string.Empty);
-            Assert.IsTrue(template.ToTerrainTransferMeta().IsTemplate);
+            var templateMeta = template.ToTerrainTransferMeta();
+            Assert.IsTrue(templateMeta.IsTemplate);
+            Assert.IsNull(templateMeta.GeneratedPayload);
 
             var generated = new TerrainTransferMetaMessagePack(CreateGeneratedMeta(), "hash");
             Assert.IsFalse(generated.ToTerrainTransferMeta().IsTemplate);
@@ -28,20 +31,62 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.Throws<InvalidOperationException>(() => unknown.ToTerrainTransferMeta());
         }
 
-        // 生成器の版はワイヤを往復する。落とすと別ビルドのサーバーに繋いだクライアントが違いを検出できない
-        // The generator version round-trips over the wire; dropping it would blind a client connected to a server on another build
+        // generated専用値はpayload単位でワイヤ往復し、別ビルドや別ノイズ窓の検出材料を落とさない
+        // Generated-only values round-trip as one payload so no evidence of another build or noise window is lost
         [Test]
-        public void 生成器の版はワイヤを往復する()
+        public void generatedPayloadはワイヤを往復する()
         {
-            var generated = new TerrainTransferMetaMessagePack(CreateGeneratedMeta(), "hash");
-            Assert.AreEqual("9.9.9", generated.GeneratorVersion);
-            Assert.AreEqual("9.9.9", generated.ToTerrainTransferMeta().GeneratorVersion);
+            var wire = new TerrainTransferMetaMessagePack(CreateGeneratedMeta(), "hash");
+            var bytes = MessagePackSerializer.Serialize(wire);
+            var restoredWire = MessagePackSerializer.Deserialize<TerrainTransferMetaMessagePack>(bytes);
+            var payload = restoredWire.ToTerrainTransferMeta().GeneratedPayload;
+
+            Assert.AreEqual(new Vector2(10f, 20f), payload.Origins.NoiseOrigin);
+            Assert.AreEqual(new Vector2(30f, 40f), payload.Origins.SceneOrigin);
+            Assert.AreEqual("fingerprint", payload.GenerationMasterFingerprint);
+            Assert.AreEqual("9.9.9", payload.GeneratorVersion);
+            Assert.AreEqual("ledger-digest", payload.PlacementLedgerDigest);
+        }
+
+        [Test]
+        public void templateのワイヤは従来の空値を書くがドメインにpayloadを作らない()
+        {
+            var wire = new TerrainTransferMetaMessagePack(TerrainTransferMeta.CreateTemplate("world-a", 42), string.Empty);
+
+            Assert.AreEqual(Vector2.zero, (Vector2)wire.NoiseOrigin);
+            Assert.AreEqual(Vector2.zero, (Vector2)wire.SceneOrigin);
+            Assert.AreEqual(string.Empty, wire.GenerationMasterFingerprint);
+            Assert.AreEqual(string.Empty, wire.GeneratorVersion);
+            Assert.AreEqual(string.Empty, wire.PlacementLedgerDigest);
+            Assert.IsNull(wire.ToTerrainTransferMeta().GeneratedPayload);
+        }
+
+        [Test]
+        public void generatedPayloadは必須文字列の空値を拒否する()
+        {
+            var origins = new TerrainOrigins(Vector2.zero, Vector2.zero);
+
+            Assert.Throws<ArgumentException>(() => new GeneratedTerrainTransferPayload(origins, null, "version", "digest"));
+            Assert.Throws<ArgumentException>(() => new GeneratedTerrainTransferPayload(origins, string.Empty, "version", "digest"));
+            Assert.Throws<ArgumentException>(() => new GeneratedTerrainTransferPayload(origins, "fingerprint", null, "digest"));
+            Assert.Throws<ArgumentException>(() => new GeneratedTerrainTransferPayload(origins, "fingerprint", string.Empty, "digest"));
+            Assert.Throws<ArgumentException>(() => new GeneratedTerrainTransferPayload(origins, "fingerprint", "version", null));
+            Assert.Throws<ArgumentException>(() => new GeneratedTerrainTransferPayload(origins, "fingerprint", "version", string.Empty));
+        }
+
+        [Test]
+        public void generatedメタはpayloadなしで構築できない()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+                TerrainTransferMeta.CreateGenerated("world-b", 513, 4, 3, 42, null));
         }
 
         private static TerrainTransferMeta CreateGeneratedMeta()
         {
             return TerrainTransferMeta.CreateGenerated(
-                "world-b", 513, 4, 3, 42, new TerrainOrigins(Vector2.zero, Vector2.zero), "fingerprint", "9.9.9");
+                "world-b", 513, 4, 3, 42,
+                new GeneratedTerrainTransferPayload(
+                    new TerrainOrigins(new Vector2(10f, 20f), new Vector2(30f, 40f)), "fingerprint", "9.9.9", "ledger-digest"));
         }
     }
 }

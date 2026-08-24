@@ -20,6 +20,10 @@ namespace Game.MapGeneration.Pipeline.Config
         public TerrainResolutionPreset resolutionPreset = TerrainResolutionPreset._256;
         public int overrideResolution = 0;
 
+        // detailの密度マップ解像度。heightmapに揃えると1タイルのdetailだけで200MB級になるため、マスタで独立に決める
+        // The detail density maps' resolution; matching the heightmap alone costs a couple hundred MB per tile, so the master settles it independently
+        public int detailResolution;
+
         // overrideResolution>0 ならプリセットを無視して直接解像度を使う。
         // When overrideResolution>0 the preset is ignored and the value is used directly.
         public int Resolution => overrideResolution > 0 ? overrideResolution : (int)resolutionPreset + 1;

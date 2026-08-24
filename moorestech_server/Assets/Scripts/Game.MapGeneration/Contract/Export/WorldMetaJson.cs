@@ -29,5 +29,11 @@ namespace Game.MapGeneration.Export
         // 生成マスタの指紋(JSON原文+配置ノイズPNG)。generatedのみ書く。templateはnullで「概念自体が無い」を表明する
         // The generation master's fingerprint (JSON text + placement-noise PNGs), written only for generated; null for template declares the concept itself is absent
         [JsonProperty("generationMasterFingerprint")] public string GenerationMasterFingerprint;
+
+        // ワールド作成時のpass-1が確定させた配置台帳の指紋。generatedのみ書く
+        // クライアントはこれを見た目キャッシュの鍵に使い、鍵のためだけの再生成をしない
+        // The digest of the placement ledger the world-creation pass-1 settled, written only for generated
+        // A client keys its visual cache on it and never regenerates merely to obtain a key
+        [JsonProperty("placementLedgerDigest")] public string PlacementLedgerDigest;
     }
 }

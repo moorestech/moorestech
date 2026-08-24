@@ -33,10 +33,10 @@ namespace Game.MapGeneration.Transfer
                     throw new InvalidOperationException(
                         $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' was written by generator '{worldMeta.GeneratorVersion}', " +
                         $"but this build is '{WorldGeneratorVersion.Current}'. The transferred terrain file layout changed " +
-                        "(biome_x_z.bin output/transfer removed, clusters no longer leave the generation system). Delete the world directory and generate the world again."),
+                        "(placementLedgerDigest now identifies the placement-dependent visual cache). Delete the world directory and generate the world again."),
                 WorldMapMode.Generated => TerrainTransferMeta.CreateGenerated(
                     CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
-                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedOrigins(), ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion),
+                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedPayload()),
                 WorldMapMode.Template => TerrainTransferMeta.CreateTemplate(CalculateWorldId(), worldMeta.Seed),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
@@ -51,6 +51,14 @@ namespace Game.MapGeneration.Transfer
                 using var sha256 = SHA256.Create();
                 var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{worldMeta.Seed}:{worldMeta.CreatedAt}"));
                 return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant().Substring(0, worldIdHexDigits);
+            }
+
+            GeneratedTerrainTransferPayload ReadGeneratedPayload()
+            {
+                // generated専用値を1回だけ読み、欠損のないpayloadとしてドメインへ渡す
+                // Read generated-only values once and hand the domain one complete payload
+                return new GeneratedTerrainTransferPayload(
+                    ReadGeneratedOrigins(), ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion, ReadPlacementLedgerDigest());
             }
 
             // 原点は生成時にしか決まらず0でも補えない。旧バージョンのworld.jsonはキーごと欠けるので作り直しを促す
@@ -77,6 +85,17 @@ namespace Game.MapGeneration.Transfer
                         $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' has no generationMasterFingerprint key. " +
                         "It predates the generation master fingerprint; delete the world directory and generate the world again.");
                 return worldMeta.GenerationMasterFingerprint;
+            }
+
+            // 台帳の指紋も生成時にしか決まらない。欠けたまま鍵を作ると全タイルが取り逃しになり、静かに毎回焼き直す
+            // The ledger digest, too, exists only at generation; keying without it would miss every tile and silently rebake on every start
+            string ReadPlacementLedgerDigest()
+            {
+                if (worldMeta.PlacementLedgerDigest == null)
+                    throw new InvalidOperationException(
+                        $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' has no placementLedgerDigest key. " +
+                        "It predates the ledger digest transfer; delete the world directory and generate the world again.");
+                return worldMeta.PlacementLedgerDigest;
             }
 
             int CalculateChunkTotal()

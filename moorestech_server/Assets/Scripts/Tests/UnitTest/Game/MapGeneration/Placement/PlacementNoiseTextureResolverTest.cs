@@ -46,7 +46,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 全バイオームの全ノイズ枠のPNGを画素へ展開する()
         {
-            var config = new TerrainGenerationConfig();
+            var config = new TerrainGenerationConfig { detailResolution = 1024 };
             var grasslandEntry = CreateEntryWithTexturePath();
             var woodsEntry = CreateEntryWithTexturePath();
             config.grassland.treePlacement.prototypes = new[] { grasslandEntry };
@@ -71,7 +71,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 空のパスならテクスチャを読み込まない()
         {
-            var config = new TerrainGenerationConfig();
+            var config = new TerrainGenerationConfig { detailResolution = 1024 };
             var entry = new TreePrototypeEntry();
             config.grassland.treePlacement.prototypes = new[] { entry };
 
@@ -86,7 +86,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void パスが指すPNGが無ければ例外にする()
         {
-            var config = new TerrainGenerationConfig();
+            var config = new TerrainGenerationConfig { detailResolution = 1024 };
             var entry = new TreePrototypeEntry();
             entry.clusterNoise.texturePngPath = "mapGenerate/missing.png";
             config.grassland.treePlacement.prototypes = new[] { entry };
@@ -103,7 +103,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 手書きバイリニアはUnityのGetPixelBilinearと半テクセルずれを除いて一致する()
         {
-            var config = new TerrainGenerationConfig();
+            var config = new TerrainGenerationConfig { detailResolution = 1024 };
             var entry = CreateEntryWithTexturePath();
             config.grassland.treePlacement.prototypes = new[] { entry };
             PlacementNoiseTextureResolver.Resolve(config, _serverDataDirectory);

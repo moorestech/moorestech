@@ -22,8 +22,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Distance
     /// </summary>
     public static class DistanceFieldTestScene
     {
-        public const int Resolution = 5;
-        public const int DetailResolution = Resolution - 1;
+        public const int Resolution = 33;
+        public const int DetailResolution = 16;
+        public const int ProductionAlphamapResolution = 2048;
+        public const int ProductionDetailResolution = 1024;
         public const int MaxDensity = 8;
         public const float TileSize = 100f;
 
@@ -55,7 +57,20 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Distance
             var heights = new float[Resolution, Resolution];
 
             return TerrainDetailBuilder.Build(
-                config, BiomeTypes, visualSections, heights, heights, CreateWinnerMasks(), null,
+                config, BiomeTypes, visualSections, heights, heights, CreateWinnerMasks(Resolution), null,
+                placements, TilePosition, 0, 0);
+        }
+
+        // 本番の2048 alphamapと1024 detailを保ち、距離場だけをdetail解像度で持つ入力
+        // Keeps production's 2048 alphamap and 1024 detail while allocating distance fields only at detail resolution
+        public static List<int[,]> BuildAtProductionResolution(
+            BiomeVisualSections visualSections, params LedgerPlacement[] placements)
+        {
+            var config = CreateProductionConfig();
+            var heights = new float[config.Resolution, config.Resolution];
+
+            return TerrainDetailBuilder.Build(
+                config, BiomeTypes, visualSections, heights, heights, CreateWinnerMasks(config.Resolution), null,
                 placements, TilePosition, 0, 0);
         }
 
@@ -71,6 +86,15 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Distance
             var entry = DetailTestConfigBuilder.CreateEntry(1f, MaxDensity);
             entry.objectDistanceFilter = CreateDistanceFilter();
             return CreateSections(entry);
+        }
+
+        public static BiomeVisualSections TreeAndObjectDistanceSections()
+        {
+            var treeEntry = DetailTestConfigBuilder.CreateEntry(1f, MaxDensity);
+            treeEntry.treeDistanceFilter = CreateDistanceFilter();
+            var objectEntry = DetailTestConfigBuilder.CreateEntry(1f, MaxDensity);
+            objectEntry.objectDistanceFilter = CreateDistanceFilter();
+            return CreateSections(treeEntry, objectEntry);
         }
 
         // 引数はタイルローカル。シーン絶対座標へ戻して渡し、切り出しのローカル化まで通しで検証する
@@ -104,11 +128,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Distance
             return filter;
         }
 
-        private static BiomeVisualSections CreateSections(DetailEntry entry)
+        private static BiomeVisualSections CreateSections(params DetailEntry[] entries)
         {
             var detailConfig = new BiomeDetailConfig
             {
-                entries = new[] { entry }, filterRejectThreshold = 0.01f, borderMargin = 0f,
+                entries = entries, filterRejectThreshold = 0.01f, borderMargin = 0f,
             };
 
             return new BiomeVisualSections(
@@ -120,16 +144,29 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Distance
         {
             return new TerrainGenerationConfig
             {
-                overrideResolution = Resolution, seed = 4321,
+                overrideResolution = Resolution, detailResolution = DetailResolution, seed = 4321,
                 terrainWidth = TileSize, terrainLength = TileSize, terrainHeight = 50f,
             };
         }
 
-        private static bool[][,] CreateWinnerMasks()
+        private static TerrainGenerationConfig CreateProductionConfig()
         {
-            var mask = new bool[Resolution, Resolution];
-            for (var z = 0; z < Resolution; z++)
-            for (var x = 0; x < Resolution; x++)
+            return new TerrainGenerationConfig
+            {
+                overrideResolution = ProductionAlphamapResolution + 1,
+                detailResolution = ProductionDetailResolution,
+                seed = 4321,
+                terrainWidth = TileSize,
+                terrainLength = TileSize,
+                terrainHeight = 50f,
+            };
+        }
+
+        private static bool[][,] CreateWinnerMasks(int resolution)
+        {
+            var mask = new bool[resolution, resolution];
+            for (var z = 0; z < resolution; z++)
+            for (var x = 0; x < resolution; x++)
                 mask[z, x] = true;
 
             return new[] { mask };

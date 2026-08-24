@@ -12,6 +12,11 @@ namespace Game.MapGeneration.Pipeline.Config
         public readonly float WorldOffsetX;
         public readonly float WorldOffsetZ;
         public readonly int Resolution;
+
+        // 独立detail密度解像度
+        // Independent detail-density resolution.
+        public readonly int DetailResolution;
+
         public readonly float SeaLevel;
         public readonly float ShoreMinHeight;
         public readonly int Seed;
@@ -30,7 +35,7 @@ namespace Game.MapGeneration.Pipeline.Config
         public TerrainDimensions(
             float terrainWidth, float terrainLength, float terrainHeight,
             float worldOffsetX, float worldOffsetZ,
-            int resolution, float seaLevel, float shoreMinHeight, int seed,
+            int resolution, int detailResolution, float seaLevel, float shoreMinHeight, int seed,
             float spawnWorldX, float spawnWorldZ,
             int tileIndexX, int tileIndexZ, int gridSizeX, int gridSizeZ)
         {
@@ -40,6 +45,7 @@ namespace Game.MapGeneration.Pipeline.Config
             WorldOffsetX = worldOffsetX;
             WorldOffsetZ = worldOffsetZ;
             Resolution = resolution;
+            DetailResolution = detailResolution;
             SeaLevel = seaLevel;
             ShoreMinHeight = shoreMinHeight;
             Seed = seed;
@@ -93,7 +99,7 @@ namespace Game.MapGeneration.Pipeline.Config
             return new TerrainDimensions(
                 config.terrainWidth, config.terrainLength, config.terrainHeight,
                 config.worldOffsetX, config.worldOffsetZ,
-                config.Resolution, config.seaLevel,
+                config.Resolution, config.detailResolution, config.seaLevel,
                 config.seaLevel + waterMargin, config.seed,
                 config.spawnWorldPosition.x, config.spawnWorldPosition.y,
                 tileIndexX, tileIndexZ, config.gridSizeX, config.gridSizeZ);
