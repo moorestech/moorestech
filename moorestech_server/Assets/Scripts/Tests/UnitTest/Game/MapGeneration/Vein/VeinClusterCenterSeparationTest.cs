@@ -61,15 +61,28 @@ namespace Tests.UnitTest.Game.MapGeneration
             entryB.bands = new[] { CreateBand(-1f, 12f, 100f) };
             var halo = CreateHalo(40f);
 
-            // 複数bandの中心をproduction経路で生成し、中心haloから実座標を読み戻す。
-            // Generates multiple bands through production and reads their actual coordinates back from the center halo.
+            // 複数bandの実中心間隔を検証。
+            // Verifies actual center spacing across bands.
             Generate(new[] { entryA, entryB }, 0f, halo, 42);
             var centers = ReadCenters(halo, VeinGuidA, 0f);
             Assert.That(centers.Count, Is.GreaterThan(1));
-            float minimumDistance = MinimumPairDistance(centers);
+            float minimumDistance = MinimumPairDistance();
 
             Assert.That(minimumDistance, Is.GreaterThanOrEqualTo(10f));
             Assert.That(minimumDistance, Is.LessThan(30f));
+
+            #region Internal
+
+            float MinimumPairDistance()
+            {
+                float minimum = float.PositiveInfinity;
+                for (int first = 0; first < centers.Count; first++)
+                    for (int second = first + 1; second < centers.Count; second++)
+                        minimum = Mathf.Min(minimum, Vector2.Distance(centers[first], centers[second]));
+                return minimum;
+            }
+
+            #endregion
         }
 
         [Test]
@@ -138,9 +151,27 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TileSize, TileSize, 100f, worldOffsetX, 0f,
                 HeightRes, 0f, 0f, 123, 0f, 0f,
                 (int)(worldOffsetX / TileSize), 0, 2, 1);
-            return OrePlacementGenerator.GenerateForWorld(
+            var placement = OrePlacementGenerator.GenerateForWorld(
                 entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),
                 null, null, halo.ItemVeinMembers, halo.ItemVeinCenters, halo.Radius);
+            var result = placement.Clusters.SelectMany(cluster => cluster.Members).ToList();
+            foreach (var cluster in placement.Clusters)
+                halo.ItemVeinCenters.Get(cluster.VeinGuid).Add(cluster.WorldCenter.x, cluster.WorldCenter.y);
+            halo.ItemVeinMembers.AddPlacements(result, 0f, 0f);
+            return result;
+
+            #region Internal
+
+            bool[,] CreateFullMask()
+            {
+                var mask = new bool[HeightRes, HeightRes];
+                for (int z = 0; z < HeightRes; z++)
+                    for (int x = 0; x < HeightRes; x++)
+                        mask[z, x] = true;
+                return mask;
+            }
+
+            #endregion
         }
 
         private static OreEntry CreateEntry(string veinGuid)
@@ -176,22 +207,5 @@ namespace Tests.UnitTest.Game.MapGeneration
             return grid.GetAllPoints();
         }
 
-        private static float MinimumPairDistance(IReadOnlyList<Vector2> points)
-        {
-            float minimum = float.PositiveInfinity;
-            for (int first = 0; first < points.Count; first++)
-                for (int second = first + 1; second < points.Count; second++)
-                    minimum = Mathf.Min(minimum, Vector2.Distance(points[first], points[second]));
-            return minimum;
-        }
-
-        private static bool[,] CreateFullMask()
-        {
-            var mask = new bool[HeightRes, HeightRes];
-            for (int z = 0; z < HeightRes; z++)
-                for (int x = 0; x < HeightRes; x++)
-                    mask[z, x] = true;
-            return mask;
-        }
     }
 }

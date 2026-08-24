@@ -109,7 +109,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 itemVeins = OrePlacementStage.Generate(
                     tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile);
                 fluidVeins = FluidVeinPlacementStage.Generate(
-                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, itemVeins, tile);
+                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile);
             }
 
             void AppendMapObjects(List<PlacementEntry> entries)

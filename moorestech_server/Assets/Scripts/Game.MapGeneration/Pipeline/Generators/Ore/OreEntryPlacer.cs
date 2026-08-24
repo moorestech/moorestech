@@ -24,15 +24,26 @@ namespace Game.MapGeneration.Pipeline.Generators
             SpatialGrid treeSpatialGrid,
             SpatialGrid objectSpatialGrid,
             SpatialGrid oreGrid,
-            SpatialGrid clusterCenterGrid,
-            float centerSpacing,
-            PlacementHaloChannel centerHalo,
-            List<PlacementEntry> result)
+            PlacementHaloChannelMap centerHalos,
+            float haloRadius,
+            VeinPlacementBatch result)
         {
             float w = dims.TerrainWidth;
             float l = dims.TerrainLength;
             int hRes = dims.Resolution;
             float minDist = entry.minDistanceFromOthers;
+
+            // 中心排他の設定はエントリと同じ責務に閉じる。
+            // Keeps center-exclusion setup with the entry that owns the invariant.
+            float centerSpacing = 0f;
+            if (entry.bands != null)
+                foreach (var band in entry.bands)
+                    if (band != null) centerSpacing = Mathf.Max(centerSpacing,
+                        OrePlacementMath.CalculateClusterCenterSpacing(band.clusterRadius));
+
+            var clusterCenterGrid = new SpatialGrid(w, l, Mathf.Max(w / 50f, 5f));
+            centerHalos.Get(entry.veinGuid).SeedGrid(
+                clusterCenterGrid, dims.WorldOffsetX, dims.WorldOffsetZ, w, l, haloRadius);
 
             // 地形への効き方はmapVeinsマスタが正本。veinGuidの解決はGenerationMasterのバリデーションが保証する
             // The mapVeins master owns the terrain effect; GenerationMaster validation guarantees the veinGuid resolves
@@ -101,10 +112,15 @@ namespace Game.MapGeneration.Pipeline.Generators
                             continue;
                     }
 
-                    clusterCenterGrid.Add(localX, localZ);
-                    centerHalo.Add(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ);
+                    var cluster = new VeinPlacementCluster(
+                        entry.veinGuid, new Vector2(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ));
+                    PlaceClusterMembers(band, localX, localZ, cluster.Members);
+                    if (cluster.Members.Count == 0) continue;
 
-                    PlaceClusterMembers(band, localX, localZ);
+                    // 実メンバーを持つ中心だけを同タイル後続候補の排他に使う。
+                    // Only centers with real members exclude later candidates in this tile.
+                    clusterCenterGrid.Add(localX, localZ);
+                    result.Clusters.Add(cluster);
                 }
             }
 
@@ -112,7 +128,8 @@ namespace Game.MapGeneration.Pipeline.Generators
 
             // クラスターメンバーを極座標で配置（ワールド整数座標にスナップ）。
             // Place cluster members in polar coordinates, snapped to integer world coordinates.
-            void PlaceClusterMembers(OreBand targetBand, float centerX, float centerZ)
+            void PlaceClusterMembers(
+                OreBand targetBand, float centerX, float centerZ, List<PlacementEntry> clusterMembers)
             {
                 int clusterCount = rng.Next(1, targetBand.maxObjectsPerCluster + 1);
                 float oreMinDist = targetBand.minDistanceBetweenOres;
@@ -139,7 +156,7 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     float my = OrePlacementMath.SampleHeight(heights, mx, mz, w, l, hRes) * dims.TerrainHeight;
 
-                    result.Add(PlacementEntry.CreateVein(
+                    clusterMembers.Add(PlacementEntry.CreateVein(
                         entry.veinGuid,
                         new Vector3(mx + dims.WorldOffsetX, my, mz + dims.WorldOffsetZ),
                         surroundEffect));
