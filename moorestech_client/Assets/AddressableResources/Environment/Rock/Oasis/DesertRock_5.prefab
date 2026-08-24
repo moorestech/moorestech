@@ -153,8 +153,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -274,6 +274,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 5018819390994724739, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5018819390994724739, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7335465068584378703, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
       propertyPath: m_Name
       value: DesertRock_5
@@ -281,6 +289,14 @@ PrefabInstance:
     - target: {fileID: 7335465068584378703, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7570696668350663403, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7570696668350663403, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7964367665889442805, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
       propertyPath: m_LocalPosition.x
@@ -320,6 +336,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7964367665889442805, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8413045758893830350, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8413045758893830350, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}
+      propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8669405443848947474, guid: b90e42f67aeb4fc6b997a83f3621b354, type: 3}

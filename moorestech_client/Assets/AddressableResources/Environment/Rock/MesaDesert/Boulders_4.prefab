@@ -86,8 +86,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -201,9 +201,33 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 3004321289460972182, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3004321289460972182, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3165299520798503738, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3165299520798503738, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3497809367982371908, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3561224373679037211, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3561224373679037211, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4959588469489783703, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
       propertyPath: m_Layer
@@ -251,6 +275,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7215072133935576283, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7555310076872230304, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7555310076872230304, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8013250230639858459, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8013250230639858459, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8028446217807392353, guid: 8291ce25404a44089300bf11d5e223d5, type: 3}

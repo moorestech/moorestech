@@ -54,8 +54,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -197,6 +197,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 824537312817861962, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 824537312817861962, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2092172806602500470, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2092172806602500470, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3710704705371756740, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
       propertyPath: m_Name
       value: DesertRock_8
@@ -243,6 +259,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4050076268425478782, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6615843273648615181, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6615843273648615181, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}
+      propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7427662884859700928, guid: b14911a57d544a0aa9c9e2941b16d536, type: 3}

@@ -153,8 +153,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -198,6 +198,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1171254047257774372, guid: 0062ca68a1ca4469acc93231d3c8a6f5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1171254047257774372, guid: 0062ca68a1ca4469acc93231d3c8a6f5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2572151004996586063, guid: 0062ca68a1ca4469acc93231d3c8a6f5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2572151004996586063, guid: 0062ca68a1ca4469acc93231d3c8a6f5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2690272868475620332, guid: 0062ca68a1ca4469acc93231d3c8a6f5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -236,6 +252,14 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2690272868475620332, guid: 0062ca68a1ca4469acc93231d3c8a6f5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2889444842765159313, guid: 0062ca68a1ca4469acc93231d3c8a6f5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2889444842765159313, guid: 0062ca68a1ca4469acc93231d3c8a6f5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3267051274436855559, guid: 0062ca68a1ca4469acc93231d3c8a6f5, type: 3}

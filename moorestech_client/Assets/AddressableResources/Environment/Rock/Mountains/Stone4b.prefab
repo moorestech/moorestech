@@ -54,8 +54,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -201,6 +201,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 5382411187143847961, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5382411187143847961, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5520919669302703805, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -208,6 +216,14 @@ PrefabInstance:
     - target: {fileID: 5951364436744770834, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6227401208230629693, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6227401208230629693, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6259354151592416434, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
       propertyPath: m_LocalPosition.x
@@ -256,6 +272,14 @@ PrefabInstance:
     - target: {fileID: 6743684983853420040, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7982266486060472212, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7982266486060472212, guid: fd99a1ccd6f24462a46af1637a7dc306, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

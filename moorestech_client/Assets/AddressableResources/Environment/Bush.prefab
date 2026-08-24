@@ -86,8 +86,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -120,6 +120,7 @@ MeshRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
+  m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1001 &2581802329879183850
 PrefabInstance:
@@ -246,13 +247,29 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 1536709545366867151, guid: 14babb438b254654495b18071dceadf6, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1536709545366867151, guid: 14babb438b254654495b18071dceadf6, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1967767189651506515, guid: 14babb438b254654495b18071dceadf6, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1967767189651506515, guid: 14babb438b254654495b18071dceadf6, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2925902453360712356, guid: 14babb438b254654495b18071dceadf6, type: 3}
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 3695907468697396758, guid: 14babb438b254654495b18071dceadf6, type: 3}
       propertyPath: m_Name
-      value: Bush01
+      value: Bush
       objectReference: {fileID: 0}
     - target: {fileID: 3695907468697396758, guid: 14babb438b254654495b18071dceadf6, type: 3}
       propertyPath: m_Layer

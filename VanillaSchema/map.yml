@@ -81,6 +81,12 @@ properties:
             - key: attackSpeed
               type: number
               default: 1
+    - key: distanceVisibilityType
+      type: enum
+      default: cullable
+      options:
+      - cullable
+      - landmark
 - key: mapVeins
   type: array
   overrideCodeGeneratePropertyName: MapVeinMasterElement
