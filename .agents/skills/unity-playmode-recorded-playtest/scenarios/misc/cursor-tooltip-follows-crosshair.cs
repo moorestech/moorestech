@@ -35,7 +35,7 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
     // Aim at a pebble to raise the PickUp tooltip ("Left-click to pick up")
     var mapObjectDatastore = UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>();
     p.Assert(mapObjectDatastore != null, "MapObjectGameObjectDatastoreが起動した");
-    await p.Until(() => mapObjectDatastore.WaitForInitialApplyAsync().Status.IsCompletedSuccessfully(), 180f, "mapObject生成ループが完走する");
+    await p.Until(() => mapObjectDatastore.IsNearFieldInstantiated.Value, 180f, "mapObject近傍生成が完了する");
 
     var pebble = mapObjectDatastore.SearchNearestMapObject(new HashSet<Guid> { pebbleMapObject }, p.PlayerPosition);
     p.Assert(pebble != null, "最寄りの小石mapObjectを解決できる");

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Client.Common;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
@@ -22,8 +21,7 @@ namespace Client.Game.InGame.Tutorial
         // Empty candidates before apply and after completion, so the per-frame search needs no null branch
         private static readonly HashSet<Guid> EmptyTargets = new HashSet<Guid>();
 
-        private InGameCameraController _inGameCameraController;
-        private MapObjectGameObjectDatastore _mapObjectGameObjectDatastore;
+        private MapObjectPinTargetResolver _targetResolver;
         private TutorialWorldPinVisibility _visibility;
 
         // ピンは非活性で置かれAwakeが走らないまま表示要求が届くため、初回要求時に組み立てる
@@ -38,24 +36,22 @@ namespace Client.Game.InGame.Tutorial
         // Reporting "no candidate left" every frame would bury the log, so report once until the target changes
         private bool _missingReported;
 
+        // 配信中かどうか。指す先を失った後にRemovePinを毎フレーム叩き続けないための番人
+        // Whether a pin is being published; guards RemovePin from running every frame after the target is lost
+        private bool _publishing;
+
         [Inject]
-        public void Construct(InGameCameraController inGameCameraController, MapObjectGameObjectDatastore mapObjectGameObjectDatastore)
+        public void Initialize(IMapObjectPinTargetSource targetSource)
         {
-            _inGameCameraController = inGameCameraController;
-            _mapObjectGameObjectDatastore = mapObjectGameObjectDatastore;
+            _targetResolver = new MapObjectPinTargetResolver(targetSource);
         }
 
         private void Update()
         {
             if (_currentTutorialParam == null) return;
 
-            // Y軸を常にカメラに向ける
-            // Face the camera on the Y axis only
-            transform.LookAt(_inGameCameraController.Position);
-            transform.rotation = Quaternion.Euler(0, transform.rotation.eulerAngles.y, 0);
-
-            // 追えなければ非表示済みなので配信しない
-            // Nothing to publish once tracking failed and the pin got hidden
+            // 追えなければ配信するべき座標が無いので止める
+            // Nothing to publish when tracking failed, so stop here
             if (!TryTrackNearestMapObject()) return;
             PublishWebWorldPin();
 
@@ -66,30 +62,34 @@ namespace Client.Game.InGame.Tutorial
                 // 候補集合中の最寄り未破壊にピン
                 // Pin the nearest undestroyed candidate
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var mapObject = _mapObjectGameObjectDatastore.SearchNearestMapObject(_targetMapObjectGuids, playerPos);
-
-                if (mapObject == null)
+                if (!_targetResolver.TryResolve(
+                        _targetMapObjectGuids,
+                        playerPos,
+                        _missingReported,
+                        out var mapObject,
+                        out var shouldReportMissing))
                 {
-                    HideForMissingMapObject();
+                    HideForMissingMapObject(shouldReportMissing);
                     return false;
                 }
 
-                transform.position = mapObject.GetPosition();
+                _missingReported = false;
+                transform.position = mapObject.transform.position;
                 return true;
             }
 
-            void HideForMissingMapObject()
+            void HideForMissingMapObject(bool shouldReportMissing)
             {
-                // 指す先無しは非表示、報告は初回のみ
-                // Hide when there is nothing to point at; report only once
-                if (!_missingReported)
-                {
-                    _missingReported = true;
-                    Debug.LogError($"未破壊のMapObject（tutorialGuid={_pinTutorialGuid}、候補{_targetMapObjectGuids.Count}件）が存在しません");
-                }
+                // 指す先無しのまま配信を続けると前回チュートリアルの座標を指し続ける。消すのは配信中の1回だけ
+                // Publishing on with nothing to point at keeps showing the previous tutorial's position; the removal runs only once per publishing streak
+                if (_publishing) RemoveWorldPin();
 
-                SetActive(false);
-                WorldPinStateStore.Instance.RemovePin(WebPinId);
+                // 非活性化は更新を止め復帰を阻む
+                // SetActive(false) stops Update and prevents recovery, so only publishing stops
+                if (!shouldReportMissing) return;
+
+                _missingReported = true;
+                Debug.LogError($"未破壊のMapObject（tutorialGuid={_pinTutorialGuid}、候補{_targetMapObjectGuids.Count}件）が存在しません");
             }
 
             void PublishWebWorldPin()
@@ -101,6 +101,7 @@ namespace Client.Game.InGame.Tutorial
 
                 var projection = WorldPinScreenProjection.Project(camera, transform.position);
                 WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
+                _publishing = true;
             }
 
             #endregion
@@ -125,6 +126,12 @@ namespace Client.Game.InGame.Tutorial
             SetActive(false);
             _currentTutorialParam = null;
             _targetMapObjectGuids = EmptyTargets;
+            RemoveWorldPin();
+        }
+
+        private void RemoveWorldPin()
+        {
+            _publishing = false;
             WorldPinStateStore.Instance.RemovePin(WebPinId);
         }
 
@@ -145,16 +152,16 @@ namespace Client.Game.InGame.Tutorial
             Visibility.EndSkitSuppress();
         }
 
-        // スキットの一時抑止でもWebピンを確実に消す（RemovePinは冪等）
-        // Temporary skit suppression must also clear the web pin; RemovePin is idempotent
+        // スキットの一時抑止でもWebピンを確実に消す
+        // Temporary skit suppression must also clear the web pin
         private void OnDisable()
         {
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            RemoveWorldPin();
         }
 
         private void OnDestroy()
         {
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            RemoveWorldPin();
         }
     }
 }

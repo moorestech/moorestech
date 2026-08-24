@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System;
 using Game.SaveLoad.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,8 +18,10 @@ namespace Server.Protocol.PacketResponse
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
-            _worldSaveRequest.RequestSave();
-            return null;
+            // 要求番号を返し、クライアントが書き出し完了イベントと突き合わせられるようにする
+            // Return the generation so the client can match it against the write-completed event
+            var requestedSaveGeneration = _worldSaveRequest.RequestSave();
+            return new SaveProtocolResponseMessagePack(requestedSaveGeneration);
         }
         
         
@@ -29,6 +31,21 @@ namespace Server.Protocol.PacketResponse
             public SaveProtocolMessagePack()
             {
                 Tag = ProtocolTag;
+            }
+        }
+        
+        [MessagePackObject]
+        public class SaveProtocolResponseMessagePack : ProtocolMessagePackBase
+        {
+            [Key(2)] public long RequestedSaveGeneration { get; set; }
+            
+            [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
+            public SaveProtocolResponseMessagePack() { }
+            
+            public SaveProtocolResponseMessagePack(long requestedSaveGeneration)
+            {
+                Tag = ProtocolTag;
+                RequestedSaveGeneration = requestedSaveGeneration;
             }
         }
     }

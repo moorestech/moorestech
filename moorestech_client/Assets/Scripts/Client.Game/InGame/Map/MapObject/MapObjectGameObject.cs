@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Map.NearestSearch;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
 using Core.Master;
@@ -16,7 +17,7 @@ namespace Client.Game.InGame.Map.MapObject
     ///     MapObjectのGameObjectを表すクラス
     ///     TODO 今はUnity上に直接おいているので、今後はちゃんとサーバーからデータを受け取って生成するようにする
     /// </summary>
-    public class MapObjectGameObject : MonoBehaviour, IMiningTargetObject
+    public class MapObjectGameObject : MonoBehaviour, IMiningTargetObject, INearestSearchTarget
     {
         [SerializeField] private GameObject outlineObject;
         [SerializeField] private MapObjectHpBarView hpBarView;
@@ -26,18 +27,30 @@ namespace Client.Game.InGame.Map.MapObject
         // ツール不要の対象では推奨ツールが空になるため、毎回の確保を避けて共有する
         // Targets that need no tool return an empty recommendation, so share one instance instead of allocating
         private static readonly List<ItemId> EmptyToolItemIds = new();
-        
+
         public bool IsDestroyed { get; private set; }
         public int CurrentHp { get; private set; }
-        
+
         public int InstanceId => instanceId;
-        public Guid MapObjectGuid => new(mapObjectGuid);
+
+        // 最寄り探索が毎フレーム比較するため、文字列guidは注入時に1回だけパースして保持する
+        // Nearest search compares this every frame, so parse the string guid once at injection and keep it
+        public Guid MapObjectGuid { get; private set; }
         public MapObjectMasterElement MapObjectMasterElement { get; private set; }
         public GameObject GameObject => gameObject;
+
+        // 破壊済みは指す先にならない。索引が墓標として飛ばす条件そのもの
+        // A destroyed object is nothing to point at; this is exactly what the index skips as a tombstone
+        public bool IsSearchable => !IsDestroyed;
 
         // マスタ欠損時は対象として扱わない
         // A master-less object is not a target
         public bool IsAvailable => !IsDestroyed && MapObjectMasterElement != null;
+
+        public Vector3 GetIndexPosition()
+        {
+            return transform.position;
+        }
 
         public SoundEffectType DestroySoundType
         {
@@ -66,6 +79,7 @@ namespace Client.Game.InGame.Map.MapObject
         {
             this.instanceId = instanceId;
             this.mapObjectGuid = mapObjectGuid;
+            MapObjectGuid = new Guid(mapObjectGuid);
         }
 
         public void Initialize(GetMapObjectInfoProtocol.MapObjectsInfoMessagePack mapObjectInfo)
@@ -86,7 +100,9 @@ namespace Client.Game.InGame.Map.MapObject
             
             UpdateHpBar();
             
-            var rayTargets = GetComponentsInChildren<MapObjectRayTarget>();
+            // 開幕スキットの非活性窓で生成される近傍個体があるため、非活性の子も走査する（2026-08-23裁定）
+            // Near-field objects can be born inside the opening skit's inactive window, so inactive children are scanned too (adjudicated 2026-08-23)
+            var rayTargets = GetComponentsInChildren<MapObjectRayTarget>(true);
             foreach (var rayTarget in rayTargets)
             {
                 rayTarget.Initialize(this);
@@ -148,8 +164,9 @@ namespace Client.Game.InGame.Map.MapObject
         public void DestroyMapObject()
         {
             IsDestroyed = true;
-            //自分を含む全ての子のコライダーとレンダラーを無効化する
-            foreach (var child in GetComponentsInChildren<Transform>())
+            //自分を含む全ての子のコライダーとレンダラーを無効化する。非活性下で生成された個体も確実に落とす
+            // Disable colliders and renderers on self and every child, including ones born while inactive
+            foreach (var child in GetComponentsInChildren<Transform>(true))
             {
                 var collider = child.GetComponent<Collider>();
                 if (collider != null) collider.enabled = false;
@@ -158,11 +175,6 @@ namespace Client.Game.InGame.Map.MapObject
             }
             
             _onDestroyMapObject.OnNext(Unit.Default);
-        }
-        
-        public Vector3 GetPosition()
-        {
-            return transform.position;
         }
         
         public void UpdateHp(int newHp)

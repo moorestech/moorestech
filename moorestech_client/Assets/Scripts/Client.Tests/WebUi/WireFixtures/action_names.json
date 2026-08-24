@@ -19,7 +19,7 @@
     "block_inventory.collect",
     "ui_state.request",
     "pause_menu.save",
-    "pause_menu.back_to_main_menu",
+    "pause_menu.save_and_quit",
     "research.complete",
     "machine_recipe.select",
     "filter_splitter.set_mode",

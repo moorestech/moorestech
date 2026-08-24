@@ -1,5 +1,6 @@
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
+using Game.MapGeneration.Pipeline.Generators;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Tiling
@@ -66,8 +67,8 @@ namespace Game.MapGeneration.Pipeline.Tiling
             return radius;
         }
 
-        // クラスター中心の間隔は OrePlacementGenerator と同じ clusterRadius*2.5 で、鉱脈側の最大到達になる。
-        // The cluster-center spacing is OrePlacementGenerator's clusterRadius*2.5, the widest reach on the vein side.
+        // クラスター中心間隔を鉱脈側の最大到達距離に含める。
+        // Includes the cluster-center spacing in the vein-side maximum reach.
         static float VeinReach(OreEntry[] entries)
         {
             var radius = 0f;
@@ -81,7 +82,8 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 {
                     if (band == null) continue;
                     radius = Mathf.Max(radius, band.minDistanceBetweenOres);
-                    radius = Mathf.Max(radius, band.clusterRadius * 2.5f);
+                    radius = Mathf.Max(radius,
+                        OrePlacementMath.CalculateClusterCenterSpacing(band.clusterRadius));
                 }
             }
             return radius;

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Mooresmaster.Model.BiomeObjectConfigModule;
 using Mooresmaster.Model.GenerationModule;
 using Mooresmaster.Model.MapModule;
@@ -15,6 +16,7 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += VeinTypeValidation();
+            errorLogs += VeinGuidUniquenessValidation();
             errorLogs += OreSpacingValidation();
             errorLogs += SpawnDistanceBandValidation();
             errorLogs += DetailResolutionValidation();
@@ -61,6 +63,33 @@ namespace Core.Master.Validator
                     {
                         logs += $"[GenerationMaster] FluidVeinEntry VeinGuid:{fluidEntry.VeinGuid} references a non-fluid vein (veinName:{vein.VeinName})\n";
                     }
+                }
+
+                return logs;
+            }
+
+            // oreとfluidは独立した設定なので、それぞれの内部だけでveinGuid重複を弾く
+            // Ore and fluid are independent configs, so reject duplicate veinGuids only within each collection
+            string VeinGuidUniquenessValidation()
+            {
+                if (generation.AlgorithmParam is not VanillaGeneratorAlgorithmParam vanillaGenerator)
+                {
+                    return "";
+                }
+
+                var logs = "";
+                var oreVeinGuids = new HashSet<System.Guid>();
+                foreach (var oreEntry in vanillaGenerator.OreConfig.Entries)
+                {
+                    if (oreVeinGuids.Add(oreEntry.VeinGuid)) continue;
+                    logs += $"[GenerationMaster] oreConfig.entries has duplicate VeinGuid:{oreEntry.VeinGuid}\n";
+                }
+
+                var fluidVeinGuids = new HashSet<System.Guid>();
+                foreach (var fluidEntry in vanillaGenerator.OreConfig.FluidEntries)
+                {
+                    if (fluidVeinGuids.Add(fluidEntry.VeinGuid)) continue;
+                    logs += $"[GenerationMaster] oreConfig.fluidEntries has duplicate VeinGuid:{fluidEntry.VeinGuid}\n";
                 }
 
                 return logs;

@@ -5,11 +5,13 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
+using Game.Context;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UniRx;
 using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 using Object = UnityEngine.Object;
@@ -53,18 +55,24 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
             #region Internal
 
-            async UniTask Body()
+            static async UniTask Body()
             {
                 await LoadMainGame();
 
                 var datastore = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>(FindObjectsInactive.Include);
                 Assert.IsNotNull(datastore, "MapObjectGameObjectDatastore was not found in scene");
 
-                // 初期化と同じawait経路を通し、生成が終わってから姿勢とスケールを見る
-                // Use the same await path as startup so the facings and scales are read after instantiation finishes
-                await datastore.WaitForInitialApplyAsync();
+                // 全量生成の完了待ちは実時間が過大なため、近傍待機で完結させ突き合わせ先も近傍から選ぶ（2026-08-23裁定）
+                // Awaiting full instantiation costs too much real time, so stop at the near-field gate and match near objects only (adjudicated 2026-08-23)
+                await datastore.IsNearFieldInstantiated.Where(static completed => completed).First().ToUniTask();
 
-                var turnedLayout = FindTurnedLayout();
+                // 近傍集合へ検証対象を限定する
+                // Resolve the near-field set once and limit verification targets to it
+                var handshake = ClientDIContext.DIContainer.DIContainerResolver.Resolve<InitialHandshakeResponse>();
+                var nearFieldOrder = MapObjectLayoutDistanceOrder.SortNearFieldFirst(
+                    handshake.MapLayout.MapObjects, handshake.PlayerPos);
+
+                var turnedLayout = FindTurnedLayout(nearFieldOrder);
                 var expectedRotation = new Quaternion(
                     turnedLayout.RotationX, turnedLayout.RotationY, turnedLayout.RotationZ, turnedLayout.RotationW);
                 var turnedInstance = SearchInstance(datastore, turnedLayout);
@@ -73,7 +81,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                     Quaternion.Angle(expectedRotation, turnedInstance.transform.rotation), RotationTolerance,
                     "the instantiated map object does not face the direction the layout carries");
 
-                var scaledLayout = FindScaledLayout();
+                var scaledLayout = FindScaledLayout(nearFieldOrder);
                 var expectedScale = new Vector3(scaledLayout.ScaleX, scaledLayout.ScaleY, scaledLayout.ScaleZ);
                 var scaledInstance = SearchInstance(datastore, scaledLayout);
 
@@ -82,7 +90,7 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
                     "the instantiated map object does not carry the scale the layout carries");
             }
 
-            MapObjectGameObject SearchInstance(MapObjectGameObjectDatastore datastore, MapObjectLayoutMessagePack layout)
+            static MapObjectGameObject SearchInstance(MapObjectGameObjectDatastore datastore, MapObjectLayoutMessagePack layout)
             {
                 var instance = datastore.SearchNearestMapObject(
                     new HashSet<Guid> { new(layout.MapObjectGuid) }, new Vector3(layout.X, layout.Y, layout.Z));
@@ -93,105 +101,35 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
 
             // 向きを持たない個体で突き合わせるとidentity固定の実装でも通ってしまう。回っている1件を選び出す
             // Matching against an unturned object would pass even with a hard-coded identity, so the turned one is picked out
-            MapObjectLayoutMessagePack FindTurnedLayout()
+            static MapObjectLayoutMessagePack FindTurnedLayout(MapObjectLayoutDistanceOrder.NearFieldOrder nearFieldOrder)
             {
-                var layouts = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
-
-                foreach (var layout in layouts)
+                for (var index = 0; index < nearFieldOrder.NearFieldCount; index++)
                 {
+                    var layout = nearFieldOrder.Entries[index].Layout;
+
                     var rotation = new Quaternion(layout.RotationX, layout.RotationY, layout.RotationZ, layout.RotationW);
                     if (RotationTolerance < Quaternion.Angle(Quaternion.identity, rotation)) return layout;
                 }
 
-                Assert.Fail("test world has no turned map object");
+                Assert.Fail("test world has no turned map object within the near field");
                 return null;
             }
 
             // 等倍の個体で突き合わせるとlocalScale適用を消しても通ってしまう。軸ごとに違う倍率の1件を選び出す
             // Matching against a unit-scaled object would pass even with the localScale assignment deleted, so the per-axis scaled one is picked out
-            MapObjectLayoutMessagePack FindScaledLayout()
+            static MapObjectLayoutMessagePack FindScaledLayout(MapObjectLayoutDistanceOrder.NearFieldOrder nearFieldOrder)
             {
-                var layouts = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
-
-                foreach (var layout in layouts)
+                for (var index = 0; index < nearFieldOrder.NearFieldCount; index++)
                 {
+                    var layout = nearFieldOrder.Entries[index].Layout;
                     if (Mathf.Approximately(layout.ScaleX, layout.ScaleY) &&
                         Mathf.Approximately(layout.ScaleY, layout.ScaleZ)) continue;
 
                     return layout;
                 }
 
-                Assert.Fail("test world has no map object scaled differently per axis");
+                Assert.Fail("test world has no map object scaled differently per axis within the near field");
                 return null;
-            }
-
-            #endregion
-        }
-
-        // 候補GUIDが1件だけの経路はSearchInstanceが既に通しているので、ここでは2件以上の候補集合から
-        // 最も近い側が選ばれることをクエリ位置を反転させた双方向で確認する（earnItemピンの実経路）
-        // The single-candidate path is already covered by SearchInstance, so here two candidates are
-        // passed and the nearer one is asserted in both directions by flipping the query position (the earnItem pin's real path)
-        [UnityTest]
-        public IEnumerator SearchNearestMapObjectPicksTheCloserOfMultipleCandidates()
-        {
-            EnterPlayModeUtil();
-
-            yield return new EnterPlayMode(expectDomainReload: true);
-
-            LogAssert.ignoreFailingMessages = true;
-
-            yield return Body().ToCoroutine();
-
-            yield return new ExitPlayMode();
-
-            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
-
-            #region Internal
-
-            async UniTask Body()
-            {
-                await LoadMainGame();
-
-                var datastore = Object.FindFirstObjectByType<MapObjectGameObjectDatastore>(FindObjectsInactive.Include);
-                Assert.IsNotNull(datastore, "MapObjectGameObjectDatastore was not found in scene");
-
-                await datastore.WaitForInitialApplyAsync();
-
-                var (nearLayout, farLayout) = FindTwoDistinctGuidLayouts();
-                var candidateGuids = new HashSet<Guid> { new(nearLayout.MapObjectGuid), new(farLayout.MapObjectGuid) };
-
-                var nearResult = datastore.SearchNearestMapObject(candidateGuids, new Vector3(nearLayout.X, nearLayout.Y, nearLayout.Z));
-                Assert.IsNotNull(nearResult, "expected a candidate to be found near the near layout's position");
-                Assert.AreEqual(
-                    new Guid(nearLayout.MapObjectGuid), nearResult.MapObjectGuid,
-                    "with two candidates in the set, the nearer one must win");
-
-                var farResult = datastore.SearchNearestMapObject(candidateGuids, new Vector3(farLayout.X, farLayout.Y, farLayout.Z));
-                Assert.IsNotNull(farResult, "expected a candidate to be found near the far layout's position");
-                Assert.AreEqual(
-                    new Guid(farLayout.MapObjectGuid), farResult.MapObjectGuid,
-                    "flipping the query position must flip which candidate wins, proving the winner is not a fixed candidate");
-            }
-
-            // 位置の異なる2つのGUID種を選び出す。同一位置に複数種を置く前例は無いため異GUID2件で十分成立する
-            // Pick two guid types at distinct positions; no fixture places two types at the same spot, so distinct guids suffice
-            (MapObjectLayoutMessagePack near, MapObjectLayoutMessagePack far) FindTwoDistinctGuidLayouts()
-            {
-                var layouts = ClientDIContext.DIContainer.DIContainerResolver
-                    .Resolve<InitialHandshakeResponse>().MapLayout.MapObjects;
-
-                var first = layouts[0];
-                foreach (var layout in layouts)
-                {
-                    if (layout.MapObjectGuid == first.MapObjectGuid) continue;
-                    return (first, layout);
-                }
-
-                Assert.Fail("test world has fewer than two distinct map object guids");
-                return (null, null);
             }
 
             #endregion

@@ -6,9 +6,9 @@ namespace Game.MapGeneration.Pipeline.Stages
     // Builds a fixed-size AABB centred on the point (ADR-0023).
     public static class VeinAabbBuilder
     {
-        // 中心から各軸へ張り出す量。XZは3セル、Yは中心1セルのみの3x1x3。
-        // The per-axis reach from the centre; XZ span three cells while Y stays a single centre cell, giving 3x1x3.
-        static readonly Vector3Int Extent = new(1, 0, 1);
+        // 中心から全軸へ1セル張り出し、点中心の固定AABBにする。
+        // Reaches one cell on every axis to form the fixed point-centred AABB.
+        static readonly Vector3Int Extent = new(1, 1, 1);
 
         public static PlacedVein Build(string veinGuid, Vector3 worldPosition)
         {
