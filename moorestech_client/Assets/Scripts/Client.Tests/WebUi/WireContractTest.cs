@@ -138,12 +138,17 @@ namespace Client.Tests.WebUi
             Assert.AreEqual(shared.Count, new HashSet<string>(shared).Count, "error_codes.json に重複コードがある / duplicate codes");
             Assert.That(new HashSet<string>(shared), Is.EquivalentTo(expected), "error_codes.json が C# のエラーコード集合と不一致 / mismatch with the C# error-code set");
         }
-        // ui_state: 列挙名文字列1フィールドの最小契約（INFRA-6）
-        // ui_state: the minimal one-field enum-name contract (INFRA-6)
+        // ui_state: 列挙名文字列と、その画面が宣言した操作ヒント配列の契約（INFRA-6 / ADR-0032）
+        // ui_state: the enum-name string plus the key-hint array the screen declares (INFRA-6 / ADR-0032)
         [Test]
         public void UiStateMatchesFixture()
         {
-            AssertMatchesFixture(new UiStateDto { State = "PlayerInventory" }, "ui_state.json");
+            var dto = new UiStateDto
+            {
+                State = "PlayerInventory",
+                KeyHints = new[] { new KeyHintDto { KeyNameKey = "ui.keyHint.key.tab", TextKey = "ui.keyHint.text.closeInventory" } },
+            };
+            AssertMatchesFixture(dto, "ui_state.json");
         }
 
         // ポーズメニューは切断表示に必要な状態だけを配信する

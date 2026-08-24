@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef } from "react";
 import { Button, Loader, Overlay, Portal, Stack, Text } from "@mantine/core";
-import { InventoryPanel, EquipmentPanel, GrabOverlay, InventoryScreenChrome } from "@/features/inventory";
+import { InventoryPanel, EquipmentPanel, GrabOverlay } from "@/features/inventory";
 import { HotbarPanel } from "@/features/hotbar";
 import { RecipeViewer, ItemListPanel, RecipeSelectionKeyHandler } from "@/features/recipe";
 import { ToastHost } from "@/features/toast";
@@ -8,7 +8,8 @@ import { NotificationHost } from "@/features/notification";
 import { ModalHost } from "@/features/modal";
 import { ProgressBar } from "@/features/progress";
 import { BlockInventoryKeyHandler, BlockInventoryPanel } from "@/features/blockInventory";
-import { ResearchTreePanel, ResearchScreenChrome } from "@/features/research";
+import { ResearchTreePanel } from "@/features/research";
+import { KeyHintHud } from "@/features/keyHint";
 import { BuildMenuPanel } from "@/features/buildMenu";
 import { ChallengePanel, CurrentChallengeHud } from "@/features/challenge";
 import { PauseMenuPanel } from "@/features/pauseMenu";
@@ -106,8 +107,7 @@ export default function App() {
           {uiState === UiStateNames.placeBlock && <PlacementModeHud />}
           {uiState === UiStateNames.deleteBar && <DeleteModeWarningBands />}
           <CurrentChallengeHud />
-          {inventoryScreen && <InventoryScreenChrome />}
-          {researchScreen && <ResearchScreenChrome />}
+          <KeyHintHud />
           {/* 常時表示HUD族の可否は screenAllowsGrab と対称にここで合成する */}
           {/* The always-on HUD family is gated here, symmetric with screenAllowsGrab */}
           {screenShowsAlwaysOnHud(screen) && <HotbarPanel />}

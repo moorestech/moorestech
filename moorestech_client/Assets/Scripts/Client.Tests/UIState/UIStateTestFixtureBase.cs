@@ -6,7 +6,6 @@ using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
@@ -33,7 +32,6 @@ namespace Client.Tests.UIState
             base.Setup();
             MouseDevice = InputSystem.AddDevice<Mouse>();
             KeyboardDevice = InputSystem.AddDevice<Keyboard>();
-            InvokeAwake(CreateComponent<KeyControlDescription>("KeyControl"));
         }
 
         public override void TearDown()

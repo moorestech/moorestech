@@ -1,7 +1,8 @@
+using System.Collections.Generic;
+using Mooresmaster.Localization.Generated;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
@@ -37,7 +38,6 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService.EnterBuildMode();
 
             _deleteBarObject.gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
-            KeyControlDescription.Instance.SetText("ドラッグ: まとめて選択\n離す: まとめて削除\nV: 視点切替\nESC: 選択キャンセル\nG: 破壊モード終了\nB: 設置モード\nミドルクリック: 設置物をスポイト\nTab: インベントリ\nCtrl+Z: 元に戻す");
         }
 
         public UITransitContext GetNextUpdate()
@@ -100,5 +100,24 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _cameraPolicyService.RestoreAfterApplicationFocus();
         }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return DeleteObjectStateHints.Hints;
+        }
+    }
+
+    internal static class DeleteObjectStateHints
+    {
+        public static readonly IReadOnlyList<KeyHint> Hints = new[]
+        {
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Text.DragSelect),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.G, LocalizationKeys.Ui.KeyHint.Text.ExitDeleteMode),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.B, LocalizationKeys.Ui.KeyHint.Text.BuildMenu),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.Inventory),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.MiddleClick, LocalizationKeys.Ui.KeyHint.Text.PickPlacedObject),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.CtrlZ, LocalizationKeys.Ui.KeyHint.Text.Undo),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.V, LocalizationKeys.Ui.KeyHint.Text.ToggleView),
+        };
     }
 }

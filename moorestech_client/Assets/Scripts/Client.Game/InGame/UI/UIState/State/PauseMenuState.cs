@@ -1,4 +1,5 @@
-﻿using Client.Game.InGame.UI.UIState.State.PauseMenu;
+﻿using System.Collections.Generic;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
@@ -24,6 +25,11 @@ namespace Client.Game.InGame.UI.UIState.State
         public void OnExit()
         {
             _pauseMenuStateService.OnExit();
+        }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return System.Array.Empty<KeyHint>();
         }
     }
 }

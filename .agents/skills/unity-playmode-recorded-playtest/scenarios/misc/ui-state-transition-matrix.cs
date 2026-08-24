@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Reflection;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State;
 using Client.Playtest;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -66,6 +68,29 @@ return PlaytestRunner.Run("ui-state-transition-matrix", options, async p =>
     await Case(UIStateEnum.DeleteBar, Key.G, UIStateEnum.GameScreen);
     await Case(UIStateEnum.GameScreen, Key.Escape, UIStateEnum.PauseMenu);
     await Case(UIStateEnum.PauseMenu, Key.Escape, UIStateEnum.GameScreen);
+
+    // 各画面のヒント件数をADR-0032の表と突き合わせる
+    // Cross-check each screen's hint count against the table in ADR-0032
+    var dictionaryField = typeof(UIStateControl).GetField("_uiStateDictionary", BindingFlags.Instance | BindingFlags.NonPublic);
+    var dictionary = (UIStateDictionary)dictionaryField.GetValue(control);
+
+    var expectedCounts = new (UIStateEnum state, int count)[]
+    {
+        (UIStateEnum.GameScreen, 8),
+        (UIStateEnum.DeleteBar, 7),
+        (UIStateEnum.PlayerInventory, 6),
+        (UIStateEnum.SubInventory, 5),
+        (UIStateEnum.ResearchTree, 2),
+        (UIStateEnum.BuildMenu, 2),
+        (UIStateEnum.ChallengeList, 0),
+        (UIStateEnum.PauseMenu, 0),
+    };
+    foreach (var (state, count) in expectedCounts)
+    {
+        var actual = dictionary.GetState(state).GetKeyHints().Count;
+        log.Add($"{(actual == count ? "PASS" : "FAIL")}  {state} hints => expected {count}, actual {actual}");
+        p.Assert(actual == count, $"{state} hint count {actual} (expected {count})");
+    }
 
     p.Note("=== RESULT ===");
     foreach (var line in log) p.Note(line);

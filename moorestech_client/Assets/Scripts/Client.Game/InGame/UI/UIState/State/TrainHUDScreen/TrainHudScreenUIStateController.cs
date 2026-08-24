@@ -43,6 +43,11 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
             _onStateChanged.OnNext(CurrentState);
         }
 
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return _states[CurrentState].GetKeyHints();
+        }
+
         public void RequestClosePauseMenu()
         {
             if (CurrentState != TrainHudScreenUIStateEnum.PauseMenuScreen) return;

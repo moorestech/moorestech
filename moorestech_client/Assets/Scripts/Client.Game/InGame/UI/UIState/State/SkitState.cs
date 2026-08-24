@@ -1,6 +1,6 @@
+using System.Collections.Generic;
 using Client.Game.Common;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.Skit;
 using Client.Input;
 
@@ -31,7 +31,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // スキット状態へ遷移
             GameStateController.ChangeState(GameStateType.Skit);
 
-            KeyControlDescription.Instance.SetText("");
         }
 
         public UITransitContext GetNextUpdate()
@@ -48,6 +47,11 @@ namespace Client.Game.InGame.UI.UIState.State
             
             // ゲーム状態をInGameに戻す
             GameStateController.ChangeState(GameStateType.InGame);
+        }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return System.Array.Empty<KeyHint>();
         }
     }
 }

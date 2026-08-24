@@ -1,0 +1,18 @@
+/* 左下へ操作ヒントを固定する。文字様式は共有の keyHintText が持つ（§7） */
+/* Fix the key hints to the bottom-left; the shared keyHintText class owns the text style (§7) */
+.keyHints {
+  position: absolute;
+  left: 7px;
+  bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  z-index: var(--z-stage-overlay-panel-chrome);
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: var(--tutorial-key-hint-kbd-gap);
+}

@@ -1,7 +1,6 @@
 key,Source,english,japanese
 ui.mainMenu.playLocally,Play locally,Play locally,ローカルでプレイ
 ui.mainMenu.exitGame,Exit Game,Exit Game,ゲームを終了
-ui.game.howToControl,WASD : Move\nTab : Inventory\nG : Destroy Mode\n1~9 : Block Placement\nR : Rotate when placing,WASD : Move\nTab : Inventory\nG : Destroy Mode\n1~9 : Block Placement\nR : Rotate when placing,WASD : 移動\nTab : インベントリ\nG : 破壊モード\n1～9 : ブロック設置\nR : 設置時回転
 ui.game.saveGame,Save this game,Save this game,ゲームをセーブする
 ui.game.saveAndQuit,Save and Quit,Save and Quit,セーブして終了
 ui.game.disconnectedFromServer,"Disconnected from server!\nIf you could send us the log data, it would help us in our development.\nPlease contact us on the official Discord with your feedback as well!","Disconnected from server!\nIf you could send us the log data, it would help us in our development.\nPlease contact us on the official Discord with your feedback as well!",サーバーから切断されました！\nログデータを送っていただけると開発の助けになります。\n公式Discordにもフィードバックをよろしくお願いします！
@@ -65,8 +64,6 @@ ui.challenge.title,Challenges,Challenges,チャレンジ
 ui.challenge.currentTitle,Current Challenges,Current Challenges,現在のチャレンジ
 ui.inventory.title,Inventory,Inventory,持ち物
 ui.inventory.sort,Sort,Sort,整理
-ui.inventory.closeHint,{shortcut}: Close Inventory,{shortcut}: Close Inventory,{shortcut}: インベントリを閉じる
-ui.inventory.researchHint,{shortcut}: Research Tree,{shortcut}: Research Tree,{shortcut}: リサーチツリー
 ui.modeHud.deleteModeTitle,Delete Mode,Delete Mode,削除モード
 ui.modeHud.placementModeTitle,Placement Mode,Placement Mode,設置モード
 ui.modeHud.selectedBlock,Selected: {name},Selected: {name},選択中: {name}
@@ -131,8 +128,6 @@ ui.research.clickToResearch,Click to research,Click to research,クリックし�
 ui.research.missingItems,Not enough research items.,Not enough research items.,研究アイテムが足りません。
 ui.research.missingPrerequisites,Prerequisite research is not complete.,Prerequisite research is not complete.,前提研究が完了していません。
 ui.research.missingItemsAndPrerequisites,Not enough research items.\nPrerequisite research is not complete.,Not enough research items.\nPrerequisite research is not complete.,研究アイテムが足りません。\n前提研究が完了していません。
-ui.research.inventoryHint,{shortcut}: Inventory,{shortcut}: Inventory,{shortcut}: インベントリ
-ui.research.closeHint,{shortcut}: Close,{shortcut}: Close,{shortcut}: 閉じる
 ui.research.title,Research,Research,研究
 ui.research.consumeItemsLabel,Required items,Required items,必要アイテム
 ui.research.consumeItemTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}
@@ -147,7 +142,6 @@ ui.skit.skip,Skip,Skip,スキップ
 ui.skit.hideUi,Hide UI,Hide UI,UIを非表示
 ui.skit.showUi,Show UI,Show UI,UIを表示
 ui.trainHud.title,Riding Train,Riding Train,列車に乗車中
-ui.trainHud.controls,W/S: Drive  A/D: Select branch  E: Dismount  Esc: Menu,W/S: Drive  A/D: Select branch  E: Dismount  Esc: Menu,W/S: 運転  A/D: 分岐選択  E: 降車  Esc: メニュー
 ui.trainHud.branchSelection,Selected branch {current}/{count},Selected branch {current}/{count},選択中の分岐 {current}/{count}
 ui.mainMenu.resetAllData,Reset All Data,Reset All Data,全データをリセット
 ui.mainMenu.resetConfirmMessage,Reset all data?\nThis will delete your current world data and settings.\nBackups will not be deleted. This action cannot be undone.,Reset all data?\nThis will delete your current world data and settings.\nBackups will not be deleted. This action cannot be undone.,全データをリセットしますか？\n現在のワールドデータと設定が削除されます。\nバックアップは削除されません。この操作は元に戻せません。
@@ -172,3 +166,45 @@ ui.delete.railHasVehicle,A vehicle is on this rail.,A vehicle is on this rail.,�
 ui.delete.blockDeleteFailed,Failed to delete the block.,Failed to delete the block.,ブロックを削除できませんでした。
 ui.delete.stationInternalRail,Rails inside a station cannot be deleted.,Rails inside a station cannot be deleted.,駅内部のレールは削除できません。
 ui.delete.unknownError,Unknown error,Unknown error,不明なエラー
+ui.keyHint.key.tab,Tab,Tab,Tab
+ui.keyHint.key.b,B,B,B
+ui.keyHint.key.g,G,G,G
+ui.keyHint.key.r,R,R,R
+ui.keyHint.key.v,V,V,V
+ui.keyHint.key.q,Q,Q,Q
+ui.keyHint.key.e,E,E,E
+ui.keyHint.key.digits,1-9,1-9,1~9
+ui.keyHint.key.ctrlZ,Ctrl+Z,Ctrl+Z,Ctrl+Z
+ui.keyHint.key.driveKeys,W/S,W/S,W/S
+ui.keyHint.key.branchKeys,A/D,A/D,A/D
+ui.keyHint.key.leftAltHold,Left Alt (Hold),Left Alt (Hold),左Alt（長押し）
+ui.keyHint.key.middleClick,Middle Click,Middle Click,中クリック
+ui.keyHint.key.leftDrag,Left Drag,Left Drag,左ドラッグ
+ui.keyHint.key.rightClick,Right Click,Right Click,右クリック
+ui.keyHint.key.doubleClick,Double Click,Double Click,ダブルクリック
+ui.keyHint.key.shiftLeftClick,Shift + Left Click,Shift + Left Click,Shift+左クリック
+ui.keyHint.text.inventory,Inventory,Inventory,インベントリ
+ui.keyHint.text.closeInventory,Close Inventory,Close Inventory,インベントリを閉じる
+ui.keyHint.text.close,Close,Close,閉じる
+ui.keyHint.text.researchTree,Research Tree,Research Tree,リサーチツリー
+ui.keyHint.text.buildMenu,Build Menu,Build Menu,ビルドメニュー
+ui.keyHint.text.buildShortcut,Build Shortcut,Build Shortcut,建築ショートカット
+ui.keyHint.text.deleteMode,Delete Mode,Delete Mode,破壊モード
+ui.keyHint.text.exitDeleteMode,Exit Delete Mode,Exit Delete Mode,破壊モード終了
+ui.keyHint.text.exitPlaceMode,Exit Placement Mode,Exit Placement Mode,配置モード終了
+ui.keyHint.text.selectBlock,Select Block,Select Block,ブロック選択
+ui.keyHint.text.toggleView,Toggle View,Toggle View,視点切替
+ui.keyHint.text.freeCursor,Free Cursor,Free Cursor,カーソル解放
+ui.keyHint.text.pickPlacedObject,Pick Placed Object,Pick Placed Object,設置物をスポイト
+ui.keyHint.text.rotate,Rotate,Rotate,回転
+ui.keyHint.text.lowerHeight,Lower Placement Height,Lower Placement Height,設置高さを下げる
+ui.keyHint.text.raiseHeight,Raise Placement Height,Raise Placement Height,設置高さを上げる
+ui.keyHint.text.undo,Undo,Undo,元に戻す
+ui.keyHint.text.dragSelect,Select Together,Select Together,まとめて選択
+ui.keyHint.text.bulkMove,Move All,Move All,一括移動
+ui.keyHint.text.halveOrPlaceOne,Take Half / Place One,Take Half / Place One,半分取る / 1個置く
+ui.keyHint.text.distributeEvenly,Distribute Evenly,Distribute Evenly,均等分配
+ui.keyHint.text.gatherSameItem,Gather Same Item,Gather Same Item,同じアイテムをかき集め
+ui.keyHint.text.trainDrive,Drive,Drive,運転
+ui.keyHint.text.trainSelectBranch,Select Branch,Select Branch,分岐選択
+ui.keyHint.text.trainDismount,Dismount,Dismount,降車
