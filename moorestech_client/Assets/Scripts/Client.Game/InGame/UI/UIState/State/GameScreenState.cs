@@ -133,7 +133,7 @@ namespace Client.Game.InGame.UI.UIState.State
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.R, LocalizationKeys.Ui.KeyHint.Text.ResearchTree),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.V, LocalizationKeys.Ui.KeyHint.Text.ToggleView),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftAltHold, LocalizationKeys.Ui.KeyHint.Text.FreeCursor),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.LeftAltMiddleClick, LocalizationKeys.Ui.KeyHint.Text.PickPlacedObject),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.MiddleClick, LocalizationKeys.Ui.KeyHint.Text.PickPlacedObject),
         };
     }
 }

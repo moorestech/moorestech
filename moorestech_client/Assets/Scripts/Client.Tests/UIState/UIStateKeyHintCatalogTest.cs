@@ -25,7 +25,7 @@ namespace Client.Tests.UIState
                 (LocalizationKeys.Ui.KeyHint.Key.R, LocalizationKeys.Ui.KeyHint.Text.ResearchTree),
                 (LocalizationKeys.Ui.KeyHint.Key.V, LocalizationKeys.Ui.KeyHint.Text.ToggleView),
                 (LocalizationKeys.Ui.KeyHint.Key.LeftAltHold, LocalizationKeys.Ui.KeyHint.Text.FreeCursor),
-                (LocalizationKeys.Ui.KeyHint.Key.LeftAltMiddleClick, LocalizationKeys.Ui.KeyHint.Text.PickPlacedObject),
+                (LocalizationKeys.Ui.KeyHint.Key.MiddleClick, LocalizationKeys.Ui.KeyHint.Text.PickPlacedObject),
             };
             AssertHints(expected, GameScreenStateHints.Hints);
         }
@@ -77,7 +77,7 @@ namespace Client.Tests.UIState
                 LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Key.Digits,
                 LocalizationKeys.Ui.KeyHint.Key.CtrlZ, LocalizationKeys.Ui.KeyHint.Key.DriveKeys,
                 LocalizationKeys.Ui.KeyHint.Key.BranchKeys, LocalizationKeys.Ui.KeyHint.Key.LeftAltHold,
-                LocalizationKeys.Ui.KeyHint.Key.LeftAltMiddleClick, LocalizationKeys.Ui.KeyHint.Key.MiddleClick,
+                LocalizationKeys.Ui.KeyHint.Key.MiddleClick,
                 LocalizationKeys.Ui.KeyHint.Key.LeftDrag, LocalizationKeys.Ui.KeyHint.Key.RightClick,
                 LocalizationKeys.Ui.KeyHint.Key.DoubleClick, LocalizationKeys.Ui.KeyHint.Key.ShiftLeftClick,
             }.Select(key => key.Key).ToArray();

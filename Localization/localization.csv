@@ -178,7 +178,6 @@ ui.keyHint.key.ctrlZ,Ctrl+Z,Ctrl+Z,Ctrl+Z
 ui.keyHint.key.driveKeys,W/S,W/S,W/S
 ui.keyHint.key.branchKeys,A/D,A/D,A/D
 ui.keyHint.key.leftAltHold,Left Alt (Hold),Left Alt (Hold),左Alt（長押し）
-ui.keyHint.key.leftAltMiddleClick,Left Alt + Middle Click,Left Alt + Middle Click,左Alt+中クリック
 ui.keyHint.key.middleClick,Middle Click,Middle Click,中クリック
 ui.keyHint.key.leftDrag,Left Drag,Left Drag,左ドラッグ
 ui.keyHint.key.rightClick,Right Click,Right Click,右クリック
