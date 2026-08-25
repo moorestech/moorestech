@@ -7,6 +7,8 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter.Initialization
 {
@@ -64,7 +66,7 @@ namespace Client.Starter.Initialization
                 blockImageContainer.AddBlockView(blockId, new ItemViewData(textures[i], blockMaster.Name));
             }
 
-            _loadingLog.text += $"\nブロックスクリーンショット完了  {_loadingStopwatch.Elapsed}";
+            _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.BlockScreenshotsCaptured, new[] { _loadingStopwatch.Elapsed.ToString() });
             return blockImageContainer;
         }
 
@@ -83,7 +85,7 @@ namespace Client.Starter.Initialization
             for (var i = 0; i < _trainCarIconTargets.Count; i++)
                 trainCarImageContainer.AddTrainCarView(_trainCarIconTargets[i].TrainCarGuid, new ItemViewData(textures[i], targets[i].debugName));
 
-            _loadingLog.text += $"\n車両スクリーンショット完了  {_loadingStopwatch.Elapsed}";
+            _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.TrainCarScreenshotsCaptured, new[] { _loadingStopwatch.Elapsed.ToString() });
             return trainCarImageContainer;
         }
     }

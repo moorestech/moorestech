@@ -2,8 +2,10 @@
 using System.Net;
 using System.Net.Sockets;
 using Client.Common;
+using Client.Localization;
 using Client.MainMenu.PopUp;
 using Client.Starter;
+using Mooresmaster.Localization.Generated;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -29,20 +31,20 @@ namespace Client.MainMenu
         {
             if (!IPAddress.TryParse(serverIp.text, out var address))
             {
-                serverConnectPopup.SetText("IPアドレスが正しくありません");
+                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectInvalidIp));
                 return;
             }
             
             var port = int.Parse(serverPort.text);
             if (65535 < port)
             {
-                serverConnectPopup.SetText("ポート番号は65535以下である必要があります");
+                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectPortTooLarge));
                 return;
             }
             
             if (port <= 1024)
             {
-                serverConnectPopup.SetText("ポート番号は1024以上である必要があります");
+                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectPortTooSmall));
                 return;
             }
             
@@ -64,7 +66,7 @@ namespace Client.MainMenu
             }
             catch (Exception e)
             {
-                serverConnectPopup.SetText("サーバーへの接続に失敗しました\n" + e);
+                serverConnectPopup.SetText(Localize.GetFormatted(LocalizationKeys.Ui.MainMenu.ConnectFailed, new[] { e.ToString() }));
             }
         }
         

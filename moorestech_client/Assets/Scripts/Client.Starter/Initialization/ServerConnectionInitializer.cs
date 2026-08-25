@@ -10,6 +10,8 @@ using Server.Boot;
 using Server.Boot.Args;
 using TMPro;
 using UnityEngine;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter.Initialization
 {
@@ -37,7 +39,7 @@ namespace Client.Starter.Initialization
             //サーバーとの接続を確立
             var serverCommunicator = await ConnectionToServer();
 
-            _loadingLog.text += $"\nサーバーとの接続完了  {_loadingStopwatch.Elapsed}";
+            _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.ServerConnected, new[] { _loadingStopwatch.Elapsed.ToString() });
 
             //データの受付開始
             var packetSender = new PacketSender(serverCommunicator);
@@ -55,7 +57,7 @@ namespace Client.Starter.Initialization
             // Fetch the initial data bundle
             var handshakeResponse = await vanillaApi.Response.InitialHandShake(_playerConnectionSetting.PlayerId, default);
 
-            _loadingLog.text += $"\n初期データ取得完了  {_loadingStopwatch.Elapsed}";
+            _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.InitialDataFetched, new[] { _loadingStopwatch.Elapsed.ToString() });
 
             return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse };
 

@@ -233,3 +233,17 @@ ui.tooltip.placeRailCurveTooTight,Curve is too tight,Curve is too tight,カー�
 ui.tooltip.placeRailFailed,Cannot connect rail,Cannot connect rail,レールを接続できません
 ui.tooltip.placeTrainCarNoRoute,No rail for the train length,No rail for the train length,列車の長さ分のレールがありません
 ui.tooltip.placeTrainCarOverlapsTrain,Overlaps an existing train,Overlaps an existing train,既存の列車と重なります
+ui.loading.serverConnected,Connected to server  {p0},Connected to server  {p0},サーバーとの接続完了  {p0}
+ui.loading.initialDataFetched,Initial data received  {p0},Initial data received  {p0},初期データ取得完了  {p0}
+ui.loading.blockAssetsLoaded,Block assets loaded  {p0},Block assets loaded  {p0},ブロックアセットロード完了  {p0}
+ui.loading.itemImagesLoaded,Item images loaded  {p0},Item images loaded  {p0},アイテム画像ロード完了  {p0}
+ui.loading.connectToolImagesLoaded,Connect tool images loaded  {p0},Connect tool images loaded  {p0},接続ツール画像ロード完了  {p0}
+ui.loading.fluidImagesLoaded,Fluid images loaded  {p0},Fluid images loaded  {p0},液体画像ロード完了  {p0}
+ui.loading.blockScreenshotsCaptured,Block screenshots captured  {p0},Block screenshots captured  {p0},ブロックスクリーンショット完了  {p0}
+ui.loading.trainCarScreenshotsCaptured,Train car screenshots captured  {p0},Train car screenshots captured  {p0},車両スクリーンショット完了  {p0}
+ui.loading.terrainReady,Terrain data ready ({p0} chunks)  {p1},Terrain data ready ({p0} chunks)  {p1},地形データ準備完了({p0}チャンク取得)  {p1}
+ui.loading.initializationFailed,Initialization failed. Returning to the main menu.,Initialization failed. Returning to the main menu.,初期化に失敗しました。メインメニューに戻ります。
+ui.mainMenu.connectInvalidIp,The IP address is not valid.,The IP address is not valid.,IPアドレスが正しくありません。
+ui.mainMenu.connectPortTooLarge,The port number must be 65535 or lower.,The port number must be 65535 or lower.,ポート番号は65535以下である必要があります。
+ui.mainMenu.connectPortTooSmall,The port number must be greater than 1024.,The port number must be greater than 1024.,ポート番号は1024より大きい必要があります。
+ui.mainMenu.connectFailed,Failed to connect to the server.\n{p0},Failed to connect to the server.\n{p0},サーバーへの接続に失敗しました。\n{p0}

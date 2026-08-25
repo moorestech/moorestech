@@ -17,6 +17,8 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter
 {
@@ -137,7 +139,7 @@ namespace Client.Starter
                 // Fold the embedded server that already started; leaving it doubles the authority writing the same save
                 GameShutdownEvent.FireGameShutdown();
 
-                loadingLog.text += "\n初期化に失敗しました。メインメニューに戻ります。";
+                loadingLog.text += "\n" + Localize.Get(LocalizationKeys.Ui.Loading.InitializationFailed);
                 await UniTask.Delay(2000);
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
@@ -163,7 +165,7 @@ namespace Client.Starter
             {
                 var connectionResult = await serverInitializer.RunAsync();
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response).RunAsync(connectionResult.HandshakeResponse.MapLayout);
-                loadingLog.text += $"\n地形データ準備完了({fetchedChunkCount}チャンク取得)  {loadingStopwatch.Elapsed}";
+                loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { fetchedChunkCount.ToString(), loadingStopwatch.Elapsed.ToString() });
                 return connectionResult;
             }
 

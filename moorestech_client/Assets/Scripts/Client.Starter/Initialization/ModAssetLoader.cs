@@ -8,6 +8,8 @@ using Core.Master;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using Client.Localization;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter.Initialization
 {
@@ -102,7 +104,7 @@ namespace Client.Starter.Initialization
             {
                 // TODo この辺も必要な時に必要なだけロードする用にしたいなぁ
                 _blockContainer = await BlockGameObjectPrefabContainer.CreateAndLoadBlockGameObjectContainer(_missingBlockIdObject);
-                _loadingLog.text += $"\nブロックアセットロード完了  {_loadingStopwatch.Elapsed}";
+                _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.BlockAssetsLoaded, new[] { _loadingStopwatch.Elapsed.ToString() });
             }
 
             UniTask LoadItemAssets()
@@ -111,7 +113,7 @@ namespace Client.Starter.Initialization
                 //TODO 非同期で実行できるようにする
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(modDirectory);
-                _loadingLog.text += $"\nアイテム画像ロード完了  {_loadingStopwatch.Elapsed}";
+                _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.ItemImagesLoaded, new[] { _loadingStopwatch.Elapsed.ToString() });
                 return UniTask.CompletedTask;
             }
 
@@ -121,7 +123,7 @@ namespace Client.Starter.Initialization
                 // Load connect-tool icons from imagePath
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _connectToolImageContainer = ConnectToolImageContainer.CreateAndLoadConnectToolImageContainer(modDirectory);
-                _loadingLog.text += $"\n接続ツール画像ロード完了  {_loadingStopwatch.Elapsed}";
+                _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.ConnectToolImagesLoaded, new[] { _loadingStopwatch.Elapsed.ToString() });
                 return UniTask.CompletedTask;
             }
 
@@ -131,7 +133,7 @@ namespace Client.Starter.Initialization
                 //TODO 非同期で実行できるようにする
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _fluidImageContainer = FluidImageContainer.CreateAndLoadFluidImageContainer(modDirectory);
-                _loadingLog.text += $"\n液体画像ロード完了  {_loadingStopwatch.Elapsed}";
+                _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.FluidImagesLoaded, new[] { _loadingStopwatch.Elapsed.ToString() });
                 return UniTask.CompletedTask;
             }
 
