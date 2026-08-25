@@ -26,6 +26,7 @@ namespace Client.Tests.Mining
     public class MiningFocusStateTest : InputTestFixture
     {
         private static readonly System.Guid ToolItemGuid = new("00000000-0000-0000-1234-000000000001");
+        private static readonly System.Guid EarnItemGuid = new("00000000-0000-0000-9999-000000000001");
 
         private readonly List<GameObject> _stubTargetObjects = new();
         private GameObject _tooltipObject;
@@ -110,15 +111,71 @@ namespace Client.Tests.Mining
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.HoldToGet.Key, MouseCursorTooltip.Instance.GetPresentation().Lines[0].Key.Key);
         }
 
+        [Test]
+        public void 取得物のある採掘可能な対象には名前つきの長押し文言を出す()
+        {
+            var focusState = new MiningFocusState();
+            var next = RunFocusState(MiningStartOutcome.Ready, focusState, new[] { EarnItemGuid });
+
+            Assert.AreSame(focusState, next);
+            var presentation = MouseCursorTooltip.Instance.GetPresentation();
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.NamedMineHold.Key, presentation.TextKey);
+            CollectionAssert.AreEqual(
+                new[] { Localize.GetContent(ContentLocalizationKeys.ItemName(EarnItemGuid)) },
+                presentation.TextParams);
+        }
+
+        [Test]
+        public void 取得物のあるPickUp対象には名前つきの単クリック文言を出す()
+        {
+            var focusState = new MiningFocusState();
+            var next = RunFocusState(MiningStartOutcome.InstantPickUp, focusState, new[] { EarnItemGuid });
+
+            Assert.AreSame(focusState, next);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.NamedMineClick.Key, MouseCursorTooltip.Instance.GetPresentation().TextKey);
+        }
+
+        [Test]
+        public void 取得物のある手掘り不可の対象には名前つきの不可文言を出す()
+        {
+            var focusState = new MiningFocusState();
+            var next = RunFocusState(MiningStartOutcome.HandMiningNotAllowed, focusState, new[] { EarnItemGuid });
+
+            Assert.AreSame(focusState, next);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.NamedCannotHandMine.Key, MouseCursorTooltip.Instance.GetPresentation().TextKey);
+        }
+
+        [Test]
+        public void 取得物のある装備不一致の対象には名前を先頭に必要ツールを続ける()
+        {
+            var focusState = new MiningFocusState();
+            var next = RunFocusState(MiningStartOutcome.ToolMismatch, focusState, new[] { EarnItemGuid });
+
+            Assert.AreSame(focusState, next);
+            var presentation = MouseCursorTooltip.Instance.GetPresentation();
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.NamedRequiredItems.Key, presentation.TextKey);
+
+            // 名前が{p0}・必要ツールが{p1}という並びを固定する
+            // Pin the ordering: the name is {p0} and the required tools are {p1}
+            Assert.AreEqual(2, presentation.TextParams.Count);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(EarnItemGuid)), presentation.TextParams[0]);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(ToolItemGuid)), presentation.TextParams[1]);
+        }
+
         private IMiningState RunFocusState(MiningStartOutcome outcome)
         {
-            return RunFocusState(outcome, new MiningFocusState());
+            return RunFocusState(outcome, new MiningFocusState(), System.Array.Empty<System.Guid>());
         }
 
         private IMiningState RunFocusState(MiningStartOutcome outcome, MiningFocusState focusState)
         {
+            return RunFocusState(outcome, focusState, System.Array.Empty<System.Guid>());
+        }
+
+        private IMiningState RunFocusState(MiningStartOutcome outcome, MiningFocusState focusState, IReadOnlyList<System.Guid> earnItemGuids)
+        {
             var context = new MiningControllerContext(CreateEquipmentHoldingTool());
-            var stubTarget = new OutcomeStubMiningTarget(outcome, MasterHolder.ItemMaster.GetItemId(ToolItemGuid));
+            var stubTarget = new OutcomeStubMiningTarget(outcome, MasterHolder.ItemMaster.GetItemId(ToolItemGuid), earnItemGuids);
             _stubTargetObjects.Add(stubTarget.GameObject);
             context.SetFocusTarget(stubTarget);
 
@@ -168,11 +225,13 @@ namespace Client.Tests.Mining
 
             public GameObject GameObject { get; }
             public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
+            public IReadOnlyList<System.Guid> EarnItemGuids { get; }
 
-            public OutcomeStubMiningTarget(MiningStartOutcome outcome, ItemId recommendedToolItemId)
+            public OutcomeStubMiningTarget(MiningStartOutcome outcome, ItemId recommendedToolItemId, IReadOnlyList<System.Guid> earnItemGuids)
             {
                 _outcome = outcome;
                 _recommendedToolItemIds = new List<ItemId> { recommendedToolItemId };
+                EarnItemGuids = earnItemGuids;
                 GameObject = new GameObject("OutcomeStubMiningTarget");
             }
 

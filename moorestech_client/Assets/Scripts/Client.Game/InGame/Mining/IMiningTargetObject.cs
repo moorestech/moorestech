@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.SoundEffect;
 using Core.Master;
@@ -40,6 +41,10 @@ namespace Client.Game.InGame.Mining
     {
         GameObject GameObject { get; }
         SoundEffectType DestroySoundType { get; }
+
+        // tooltipへ出す取得物の名前解決用。文言の組み立ては呼び出し側が持つ
+        // Identifies what this target yields for the tooltip; the caller composes the text
+        IReadOnlyList<Guid> EarnItemGuids { get; }
 
         // 可否・種別・ツール解決を1回の問い合わせへ畳み、成立しない組み合わせを呼び出し側に作らせない
         // Fold availability, kind and tool resolution into one query so callers cannot build impossible combinations

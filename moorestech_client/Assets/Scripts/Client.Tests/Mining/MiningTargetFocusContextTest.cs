@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
+using Client.Localization;
 using Core.Master;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -9,6 +12,9 @@ namespace Client.Tests.Mining
 {
     public class MiningTargetFocusContextTest
     {
+        private static readonly Guid FirstEarnItemGuid = new("00000000-0000-0000-9999-000000000001");
+        private static readonly Guid SecondEarnItemGuid = new("00000000-0000-0000-9999-000000000002");
+
         [Test]
         public void SetFocusTargetPushesOnlyWhenTargetChanges()
         {
@@ -16,9 +22,9 @@ namespace Client.Tests.Mining
             var focusEventLog = new List<string>();
             var sharedGameObject = new GameObject("SharedTarget");
             var secondGameObject = new GameObject("SecondTarget");
-            var firstTarget = new FocusTrackingMiningTarget("first", sharedGameObject, focusEventLog);
-            var sameObjectWrapper = new FocusTrackingMiningTarget("same-object-wrapper", sharedGameObject, focusEventLog);
-            var secondTarget = new FocusTrackingMiningTarget("second", secondGameObject, focusEventLog);
+            var firstTarget = new FocusTrackingMiningTarget("first", sharedGameObject, focusEventLog, Array.Empty<Guid>());
+            var sameObjectWrapper = new FocusTrackingMiningTarget("same-object-wrapper", sharedGameObject, focusEventLog, Array.Empty<Guid>());
+            var secondTarget = new FocusTrackingMiningTarget("second", secondGameObject, focusEventLog, Array.Empty<Guid>());
 
             // 同一実体は再通知しない
             // Same object sends no repeat
@@ -51,25 +57,61 @@ namespace Client.Tests.Mining
             Assert.AreEqual(1, secondTarget.FocusDisabledCount);
             Assert.IsNull(context.CurrentFocusTarget);
 
-            Object.DestroyImmediate(sharedGameObject);
-            Object.DestroyImmediate(secondGameObject);
+            UnityEngine.Object.DestroyImmediate(sharedGameObject);
+            UnityEngine.Object.DestroyImmediate(secondGameObject);
+        }
+
+        [Test]
+        public void 取得アイテム名はフォーカス変化時に組み立てて保持される()
+        {
+            // 実辞書を通す。未登録キーは[!key]へ落ちるが、連結と保持の検証には十分
+            // Resolve through the real dictionary; unknown keys fall back to [!key], which is enough here
+            Localize.Initialize();
+
+            var context = new MiningControllerContext(null);
+            var focusEventLog = new List<string>();
+            var twoItemObject = new GameObject("TwoItemTarget");
+            var noItemObject = new GameObject("NoItemTarget");
+            var twoItemTarget = new FocusTrackingMiningTarget("two", twoItemObject, focusEventLog, new[] { FirstEarnItemGuid, SecondEarnItemGuid });
+            var noItemTarget = new FocusTrackingMiningTarget("none", noItemObject, focusEventLog, Array.Empty<Guid>());
+
+            Assert.AreEqual(string.Empty, context.CurrentFocusTargetEarnItemNames);
+
+            context.SetFocusTarget(twoItemTarget);
+            var expected =
+                $"{Localize.GetContent(ContentLocalizationKeys.ItemName(FirstEarnItemGuid))}, " +
+                $"{Localize.GetContent(ContentLocalizationKeys.ItemName(SecondEarnItemGuid))}";
+            Assert.AreEqual(expected, context.CurrentFocusTargetEarnItemNames);
+
+            // 取得物ゼロの対象では名前欄を空に戻す
+            // A target that yields nothing clears the name slot
+            context.SetFocusTarget(noItemTarget);
+            Assert.AreEqual(string.Empty, context.CurrentFocusTargetEarnItemNames);
+
+            context.SetFocusTarget(null);
+            Assert.AreEqual(string.Empty, context.CurrentFocusTargetEarnItemNames);
+
+            UnityEngine.Object.DestroyImmediate(twoItemObject);
+            UnityEngine.Object.DestroyImmediate(noItemObject);
         }
 
         private class FocusTrackingMiningTarget : IMiningTargetObject
         {
             public GameObject GameObject { get; }
             public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
+            public IReadOnlyList<Guid> EarnItemGuids { get; }
             public int FocusEnabledCount { get; private set; }
             public int FocusDisabledCount { get; private set; }
             private readonly List<ItemId> _recommendedToolItemIds = new();
             private readonly string _name;
             private readonly List<string> _focusEventLog;
 
-            public FocusTrackingMiningTarget(string name, GameObject gameObject, List<string> focusEventLog)
+            public FocusTrackingMiningTarget(string name, GameObject gameObject, List<string> focusEventLog, IReadOnlyList<Guid> earnItemGuids)
             {
                 _name = name;
                 GameObject = gameObject;
                 _focusEventLog = focusEventLog;
+                EarnItemGuids = earnItemGuids;
             }
 
             public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)

@@ -7,6 +7,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Input;
+using Client.Localization;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -39,6 +40,10 @@ namespace Client.Tests.Mining
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _mouse = InputSystem.AddDevice<Mouse>();
             ResetInputManagerCache();
+
+            // フォーカス時に取得アイテム名を引くため辞書を立てる。実行時はRuntimeInitializeOnLoadMethodが担う
+            // Focusing resolves earned item names, so stand up the dictionary that RuntimeInitializeOnLoadMethod provides at runtime
+            Localize.Initialize();
             CreatePlayerSystem();
             CreateProgressBarView();
             _soundEffectFixture = new MiningCompleteSoundEffectFixture();

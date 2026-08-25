@@ -28,6 +28,13 @@ namespace Client.Game.InGame.Map.MapObject
         // Targets that need no tool return an empty recommendation, so share one instance instead of allocating
         private static readonly List<ItemId> EmptyToolItemIds = new();
 
+        // 取得物ゼロのmapObjectが多数あるため、空の共有インスタンスを使い回す
+        // Many map objects yield nothing, so one shared empty instance is reused
+        private static readonly IReadOnlyList<Guid> NoEarnItemGuids = Array.Empty<Guid>();
+
+        private IReadOnlyList<Guid> _earnItemGuids = NoEarnItemGuids;
+        public IReadOnlyList<Guid> EarnItemGuids => _earnItemGuids;
+
         public bool IsDestroyed { get; private set; }
         public int CurrentHp { get; private set; }
 
@@ -92,6 +99,14 @@ namespace Client.Game.InGame.Map.MapObject
                 Debug.LogError($"MapObject GUID {MapObjectGuid} is not found");
                 return;
             }
+
+            // 取得物はマスタ確定時に1度だけ拾う。毎フレームの解決を避けるための前倒し
+            // Resolve the yields once when the master is settled, so nothing resolves per frame
+            var earnItems = MapObjectMasterElement.EarnItems;
+            var earnItemGuids = new Guid[earnItems.Length];
+            for (var index = 0; index < earnItems.Length; index++) earnItemGuids[index] = earnItems[index].ItemGuid;
+            _earnItemGuids = earnItemGuids;
+
             
             if (mapObjectInfo.IsDestroyed)
             {
