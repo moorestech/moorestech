@@ -58,17 +58,9 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
-        // 辞書テンプレートの{p0}プレースホルダを埋める（Web側translatorと同じ規約）
-        // Fill the {p0} placeholders of the dictionary template, matching the web translator convention
         public static string GetFormatted(LocalizationKey key, IReadOnlyList<string> textParams)
         {
-            var text = Get(key);
-            for (var index = 0; index < textParams.Count; index++)
-            {
-                text = text.Replace($"{{p{index}}}", textParams[index]);
-            }
-
-            return text;
+            return LocalizationTextInterpolator.Interpolate(Get(key), textParams);
         }
 
         // mod順とMaster原文は呼び出し側が決め、基盤は辞書だけを合成する
