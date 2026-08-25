@@ -186,7 +186,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
             // 設置可能セルだけを送る（不可セルはサーバーでも拒否されるため送らない）
             // Send only placeable cells; blocked cells would be rejected by the server anyway
-            SendPlaceBlockProtocol(currentPlaceInfos.Where(info => info.Placeable).ToList());
+            var placeableInfos = currentPlaceInfos.Where(info => info.Placeable).ToList();
+
+            // 1セルも置けないなら空パケットも設置音も出さない（鉱脈外の採掘機クリックが毎回音を鳴らすのを防ぐ）
+            // With no placeable cell, send no empty packet and play no sound (an off-vein miner click would otherwise sound every time)
+            if (placeableInfos.Count == 0) return false;
+
+            SendPlaceBlockProtocol(placeableInfos);
             return true;
         }
     }
