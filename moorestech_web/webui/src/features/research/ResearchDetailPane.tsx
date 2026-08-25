@@ -55,7 +55,7 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
                       {/* 不足時は数値も赤で示す(ADR 0014決定4・CraftRecipeView同型)。所持数未受信中は数値自体を出さない */}
                       {/* Shortages also color the count red (ADR 0014 decision 4; mirrors CraftRecipeView); the number is hidden while owned counts are unknown */}
                       {owned && (
-                        <span className={styles.consumeCount} data-lack={lacking || undefined}>
+                        <span className={`iconTextOutlineLight ${styles.consumeCount}`} data-lack={lacking || undefined}>
                           {t(L.ui.recipe.itemCountSummary, { ownedCount: ownedCountOf(owned, c.itemId), requiredCount: c.count })}
                         </span>
                       )}

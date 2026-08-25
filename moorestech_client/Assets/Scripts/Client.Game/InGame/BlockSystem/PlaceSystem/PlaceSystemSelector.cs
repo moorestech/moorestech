@@ -14,9 +14,9 @@ using Mooresmaster.Model.BlocksModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
 {
-    public class PlaceSystemSelector
+    public class PlaceSystemSelector : IPlaceSystemSelector
     {
-        public readonly EmptyPlaceSystem EmptyPlaceSystem;
+        public IPlaceSystem EmptyPlaceSystem { get; }
         private readonly CommonBlockPlaceSystem _commonBlockPlaceSystem;
         private readonly BeltConveyorPlaceSystem _beltConveyorPlaceSystem;
         private readonly TrainRailPlaceSystem _trainRailPlaceSystem;

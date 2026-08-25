@@ -14,12 +14,14 @@ namespace Client.Game.InGame.UI.Tooltip
 {
     public interface IMouseCursorTooltip
     {
-        // TODO hotbarから毎フレーム呼び出されると常にfalseになってしまうので、何か実装方法を考えたいな、、
-        public void Hide();
-        public void Show(LocalizationKey key);
-        public void Show(LocalizationKey key, IReadOnlyList<string> textParams);
+        // 表示も非表示も所有者トークン付きで呼ぶ（現所有者以外のHideは他者の表示を消さない）
+        // Both show and hide carry an owner token, so a Hide from anyone else never clears the current tooltip
+        public void Hide(TooltipOwner owner);
+        public void Show(TooltipOwner owner, LocalizationKey key);
+        public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<string> textParams);
+        public void Show(TooltipOwner owner, IReadOnlyList<TooltipLine> lines);
     }
-    
+
     /// <summary>
     ///     マウスカーソルのそばにアイテム名やTips、その他文章を表示するシステム
     /// </summary>
@@ -28,38 +30,72 @@ namespace Client.Game.InGame.UI.Tooltip
         [SerializeField] private GameObject itemNameBar;
         [SerializeField] private TMP_Text itemName;
         [SerializeField] private CanvasGroup canvasGroup;
-        
-        
+
+
         public static MouseCursorTooltip Instance { get; private set; }
         private readonly ReactiveProperty<TooltipPresentation> _presentation =
             new(TooltipPresentation.Hidden);
 
+        private TooltipOwner _currentOwner;
+
         public IObservable<TooltipPresentation> OnPresentationChanged => _presentation;
         public TooltipPresentation GetPresentation() => _presentation.Value;
-        
+
         private void Awake()
         {
             Instance = this;
-        }
-        
-        public void Show(LocalizationKey key)
-        {
-            Show(key, Array.Empty<string>());
+            // Webモードではこのビューは恒久非表示。以後uGUIへは一切書き込まないためここで一度だけ消す
+            // In web mode this view stays hidden forever, so it is cleared once here and never written again
+            if (WebUiScreenGate.IsWebUiMode) canvasGroup.alpha = 0;
         }
 
-        public void Show(LocalizationKey key, IReadOnlyList<string> textParams)
+        public void Show(TooltipOwner owner, LocalizationKey key)
         {
-            canvasGroup.alpha = WebUiScreenGate.IsWebUiMode ? 0 : 1;
-            itemName.text = InterpolateTextParams(Localize.Get(key), textParams);
-            _presentation.Value = new TooltipPresentation(true, key.Key, textParams);
+            Show(owner, key, Array.Empty<string>());
         }
-        
-        public void Hide()
+
+        public void Show(TooltipOwner owner, LocalizationKey key, IReadOnlyList<string> textParams)
         {
-            canvasGroup.alpha = 0;
+            Show(owner, new[] { new TooltipLine(key, textParams) });
+        }
+
+        // 表示したものは最後に呼んだ主体のものになる（所有権は毎回Showした側へ移る）
+        // What is shown belongs to the last caller; ownership moves to whoever showed it
+        public void Show(TooltipOwner owner, IReadOnlyList<TooltipLine> lines)
+        {
+            // 行が無い表示要求は非表示と同義（表示状態は行の有無から導出されるため）
+            // A show request without lines means hidden, because visibility is derived from the lines
+            if (lines.Count == 0)
+            {
+                Hide(owner);
+                return;
+            }
+
+            _currentOwner = owner;
+            _presentation.Value = new TooltipPresentation(lines);
+
+            // Webモードでは描画されないTMPへ表示文字列を組み立てない（毎フレーム呼ばれる経路のため）
+            // In web mode no display string is built for the TMP that never renders, since this runs every frame
+            if (WebUiScreenGate.IsWebUiMode) return;
+
+            canvasGroup.alpha = 1;
+            // uGUI側は行を改行連結して描画
+            // The uGUI side joins lines with newlines
+            itemName.text = string.Join("\n", lines.Select(line => InterpolateTextParams(Localize.Get(line.Key), line.TextParams)));
+        }
+
+        // 自分が出していない表示は消さない（毎フレームHideする書き手が他者の表示を潰さないため）
+        // Never clear a tooltip shown by someone else, so writers that hide every frame cannot stomp on others
+        public void Hide(TooltipOwner owner)
+        {
+            if (_currentOwner != owner) return;
+
+            _currentOwner = null;
             _presentation.Value = TooltipPresentation.Hidden;
+
+            if (!WebUiScreenGate.IsWebUiMode) canvasGroup.alpha = 0;
         }
-        
+
         // 辞書テンプレートの{p0}プレースホルダを埋める（Web側translatorと同じ規約）
         // Fill the {p0} placeholders of the dictionary template, matching the web translator convention
         private static string InterpolateTextParams(string template, IReadOnlyList<string> textParams)
@@ -69,7 +105,7 @@ namespace Client.Game.InGame.UI.Tooltip
             {
                 text = text.Replace($"{{p{index}}}", textParams[index]);
             }
-            
+
             return text;
         }
     }
@@ -80,23 +116,22 @@ namespace Client.Game.InGame.UI.Tooltip
     /// </summary>
     public readonly struct TooltipPresentation : IEquatable<TooltipPresentation>
     {
-        public static readonly TooltipPresentation Hidden =
-            new(false, "", Array.Empty<string>());
+        public static readonly TooltipPresentation Hidden = new(Array.Empty<TooltipLine>());
 
-        public readonly bool Visible;
-        public readonly string TextKey;
-        public readonly IReadOnlyList<string> TextParams;
+        public readonly IReadOnlyList<TooltipLine> Lines;
 
-        public TooltipPresentation(bool visible, string textKey, IReadOnlyList<string> textParams)
+        // 表示状態は行から導出する（行が無いのに表示中という矛盾した状態を作らせない）
+        // Visibility is derived from the lines, so a contradictory "visible with no lines" state cannot exist
+        public bool Visible => 0 < Lines.Count;
+
+        public TooltipPresentation(IReadOnlyList<TooltipLine> lines)
         {
-            Visible = visible;
-            TextKey = textKey;
-            TextParams = textParams;
+            Lines = lines;
         }
 
         public bool Equals(TooltipPresentation other)
         {
-            return Visible == other.Visible && TextKey == other.TextKey && TextParams.SequenceEqual(other.TextParams);
+            return Lines.SequenceEqual(other.Lines);
         }
 
         public override bool Equals(object obj)
@@ -106,8 +141,8 @@ namespace Client.Game.InGame.UI.Tooltip
 
         public override int GetHashCode()
         {
-            var hash = HashCode.Combine(Visible, TextKey, TextParams.Count);
-            foreach (var textParam in TextParams) hash = HashCode.Combine(hash, textParam);
+            var hash = Lines.Count;
+            foreach (var line in Lines) hash = HashCode.Combine(hash, line);
             return hash;
         }
     }

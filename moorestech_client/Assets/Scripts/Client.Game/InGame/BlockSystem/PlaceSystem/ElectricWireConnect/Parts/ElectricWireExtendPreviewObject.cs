@@ -1,27 +1,21 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
-using TMPro;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 {
     /// <summary>
-    /// 起点と接続先を結ぶプレビュー用ワイヤーをランタイム生成し、可否色と消費電線数を表示する
-    /// Runtime-built preview wire connecting origin and target, showing placeability color and wire cost
+    /// 起点-接続先間のワイヤーを可否色で生成表示
+    /// Runtime wire between origin and target, colored by placeability
     /// </summary>
     public class ElectricWireExtendPreviewObject
     {
         // 端点はElectricWireEndpointResolver、垂れ量はCatenaryWireMeshBuilder.Buildが内部で決め、実描画と同一計算になる
         // Endpoints come from ElectricWireEndpointResolver and the sag is decided inside CatenaryWireMeshBuilder.Build, matching the actual rendering
-        private const float CostLabelFontSize = 3f;
-        private static readonly Vector3 CostLabelOffset = new(0f, 0.5f, 0f);
-
-        private readonly Camera _mainCamera;
         private readonly GameObject _gameObject;
         private readonly MeshFilter _meshFilter;
         private readonly Material _material;
-        private readonly TextMeshPro _costLabel;
         private Mesh _mesh;
 
         // 直前の描画パラメータを保持して不要な再構築を避ける
@@ -31,10 +25,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         private bool _cachedPlaceable;
         private bool _hasCache;
 
-        public ElectricWireExtendPreviewObject(Camera mainCamera)
+        public ElectricWireExtendPreviewObject()
         {
-            _mainCamera = mainCamera;
-
             // プレビュー用GameObjectを構築
             // Build a dedicated preview GameObject with mesh-rendering components
             _gameObject = new GameObject("ElectricWireExtendPreview");
@@ -46,14 +38,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             _material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial());
             renderer.sharedMaterial = _material;
 
-            // 消費電線数のワールド空間ラベルを子として生成する
-            // Create a world-space wire cost label as a child
-            var labelObject = new GameObject("WireCostLabel");
-            labelObject.transform.SetParent(_gameObject.transform, false);
-            _costLabel = labelObject.AddComponent<TextMeshPro>();
-            _costLabel.fontSize = CostLabelFontSize;
-            _costLabel.alignment = TextAlignmentOptions.Center;
-
             _gameObject.SetActive(false);
         }
 
@@ -64,13 +48,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         }
 
         /// <summary>
-        /// 解決済みのワールド端点からワイヤープレビューと消費電線数・不可理由を表示する
-        /// Show the wire preview, wire cost and failure reason from resolved world-space endpoints
+        /// 端点からワイヤーを可否色で表示
+        /// Shows the wire from endpoints, colored by placeability
         /// </summary>
-        public void Show(Vector3 startWorldPos, Vector3 endWorldPos, bool placeable, int wireCostCount, string failureText)
+        public void Show(Vector3 startWorldPos, Vector3 endWorldPos, bool placeable)
         {
             _gameObject.SetActive(true);
-            UpdateCostLabel();
 
             // 変化が無ければメッシュは再構築しない
             // Skip mesh rebuild when nothing changed
@@ -91,33 +74,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             _cachedEnd = endWorldPos;
             _cachedPlaceable = placeable;
             _hasCache = true;
-
-            #region Internal
-
-            // 消費電線数と不可理由をワイヤー中点に置き、カメラへ向けて可否色と同期させる
-            // Place the wire cost / failure reason label at the wire midpoint, billboard it to the camera and sync its color
-            void UpdateCostLabel()
-            {
-                if (wireCostCount <= 0 && string.IsNullOrEmpty(failureText))
-                {
-                    _costLabel.gameObject.SetActive(false);
-                    return;
-                }
-
-                _costLabel.gameObject.SetActive(true);
-                // 不可時は理由があればコストの下に併記する。コスト0の不可なら理由のみ表示する
-                // On failure, append the reason below the cost only when present; with zero cost show only the reason
-                _costLabel.text = placeable || string.IsNullOrEmpty(failureText) ? $"電線 x{wireCostCount}"
-                    : wireCostCount <= 0 ? failureText
-                    : $"電線 x{wireCostCount}\n{failureText}";
-                _costLabel.color = placeable ? MaterialConst.PlaceableColor : MaterialConst.NotPlaceableColor;
-
-                var labelTransform = _costLabel.transform;
-                labelTransform.position = (startWorldPos + endWorldPos) * 0.5f + CostLabelOffset;
-                labelTransform.rotation = Quaternion.LookRotation(labelTransform.position - _mainCamera.transform.position);
-            }
-
-            #endregion
         }
     }
 }

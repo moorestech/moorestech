@@ -13,9 +13,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
     {
         private readonly ConveyorObstacleScanner _scanner = new();
 
-        public void Raise(List<PlaceInfo> placeInfos, int cornerIndex, Func<Vector3Int, bool> isOccupied)
+        // 戻り値は「立体交差が組めずこの呼び出しで設置不可にしたセル」の列（placeInfosと同じ添字）。理由の文言は呼び出し側が持つ
+        // Returns the per-cell column of "cells this call made unplaceable because no overpass fits" (indexed like placeInfos); the wording belongs to the caller
+        public IReadOnlyList<bool> Raise(List<PlaceInfo> placeInfos, int cornerIndex, Func<Vector3Int, bool> isOccupied)
         {
-            if (placeInfos.Count == 0) return;
+            var overpassBlocked = new bool[placeInfos.Count];
+            if (placeInfos.Count == 0) return overpassBlocked;
 
             // 障害物下限から最終ベルト高さプロファイルと端点可否を求める
             // Compute the final belt-height profile and endpoint feasibility from the obstacle lower bounds.
@@ -36,8 +39,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass
                 info.Position = pos;
 
                 if (NeighborhoodChanged(i)) info.VerticalDirection = ResolveVertical(i);
-                if (!feasible[i]) info.Placeable = false;
+
+                // 端点を固定できず立体交差が組めないセル（セル自体は空でも置けない）
+                // Cells where the endpoints cannot be pinned, so no overpass fits (unplaceable even on an empty cell)
+                if (info.Placeable && !feasible[i])
+                {
+                    info.Placeable = false;
+                    overpassBlocked[i] = true;
+                }
             }
+
+            return overpassBlocked;
 
             #region Internal
 

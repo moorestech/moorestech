@@ -90,7 +90,6 @@
   line-height: 13px;
   color: #e2e5ee;
   text-align: center;
-  text-shadow: 0.3px 0 0 rgb(0 0 0 / 80%), -0.3px 0 0 rgb(0 0 0 / 80%), 0 0.3px 0 rgb(0 0 0 / 80%), 0 -0.3px 0 rgb(0 0 0 / 80%);
 }
 
 /* 未解決(未解放・削除済みBP)の割当は使用不可を減光で示す。前例 SlotFrameのdata-insufficient・研究のlocked */

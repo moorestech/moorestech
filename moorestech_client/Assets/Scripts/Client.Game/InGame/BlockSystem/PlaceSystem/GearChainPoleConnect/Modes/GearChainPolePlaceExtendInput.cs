@@ -20,6 +20,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         // ゴースト候補（レイ命中かつ設置距離内のときのみ有効）
         // Ghost candidate (valid only when the ray hits within placeable distance)
         public bool HasGhost;
+
+        // 距離超過でゴーストを出さなかった
+        // No ghost because the cursor is beyond the placeable distance
+        public bool GhostTooFar;
+
         public PlaceInfo GhostPlaceInfo;
         public bool GhostGroundClear;
         public Vector3 GhostCenter;
