@@ -234,3 +234,7 @@ ui.tooltip.placeRailCurveTooTight,Curve is too tight,Curve is too tight,カー�
 ui.tooltip.placeRailFailed,Cannot connect rail,Cannot connect rail,レールを接続できません
 ui.tooltip.placeTrainCarNoRoute,No rail for the train length,No rail for the train length,列車の長さ分のレールがありません
 ui.tooltip.placeTrainCarOverlapsTrain,Overlaps an existing train,Overlaps an existing train,既存の列車と重なります
+ui.tooltip.namedMineHold,{p0} : Hold left-click to mine,{p0} : Hold left-click to mine,{p0} : 左クリック長押しで採掘
+ui.tooltip.namedMineClick,{p0} : Left-click to mine,{p0} : Left-click to mine,{p0} : 左クリックで採掘
+ui.tooltip.namedRequiredItems,{p0} : Requires: {p1},{p0} : Requires: {p1},{p0} : このアイテムが必要です: {p1}
+ui.tooltip.namedCannotHandMine,{p0} : Cannot be mined by hand,{p0} : Cannot be mined by hand,{p0} : 手掘りできません
