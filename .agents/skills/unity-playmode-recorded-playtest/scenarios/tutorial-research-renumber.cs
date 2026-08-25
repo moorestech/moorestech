@@ -117,8 +117,14 @@ return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
     var r4RecipeGuids = r4Recipes.SelectMany(a => ((Mooresmaster.Model.GameActionModule.UnlockMachineRecipeGameActionParam)a.GameActionParam).UnlockMachineRecipeGuids).ToList();
     p.Assert(r4RecipeGuids.Count == 1 && r4RecipeGuids[0] == brickRecipe, "研究4の機械レシピ解放は 粘土+原木→レンガ の1本だけ");
     var chain = new[] { research4, research5Guid, research6, research7, research8, research9 };
-    var chainOk = Enumerable.Range(1, chain.Length - 1).All(i => Core.Master.MasterHolder.ResearchMaster.ResearchElements[chain[i]].PrevResearchNodeGuids.Contains(chain[i - 1]));
-    p.Assert(chainOk, "研究4→5→6→7→8→9 が prev で直列に繋がっている");
+    var chainNames = new[] { "原始研究4", "原始研究5", "原始研究6", "原始研究7", "原始研究8", "原始研究9" };
+    var chainOk = Enumerable.Range(0, chain.Length).All(i =>
+    {
+        var node = Core.Master.MasterHolder.ResearchMaster.ResearchElements[chain[i]];
+        var prevOk = i == 0 || (node.PrevResearchNodeGuids.Length == 1 && node.PrevResearchNodeGuids[0] == chain[i - 1]);
+        return prevOk && node.ResearchNodeName == chainNames[i];
+    });
+    p.Assert(chainOk, "研究4→5→6→7→8→9 が単一prevで直列に繋がり、各GUIDの名称が期待どおり");
     var challenges = Core.Master.MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements.SelectMany(c => c.Challenges).ToList();
     var noDrag = new[] { placeWindDrill, placeFurnace }.All(g => challenges.First(c => c.ChallengeGuid == g).Tutorials.All(t => t.TutorialType != "uiDragGuide"));
     p.Assert(noDrag, "風力掘削機設置・石窯設置に uiDragGuide が無い");
