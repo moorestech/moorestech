@@ -30,7 +30,15 @@ return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
     var api = Client.Game.InGame.Context.ClientContext.VanillaApi.SendOnly;
 
     p.Note("開幕スキットを飛ばし、研究3完了までをサーバー直付与で消化する");
-    await p.SkipOpeningSkit();
+    // スキットは固定world入口では再生されないことがあるため、Skipは受理されなくても続行する
+    // The opening skit may not play on the fixed-world entry, so continue even if Skip is never accepted
+    var skitStore = Client.Skit.UI.SkitPresentationStateStore.Instance;
+    var skipAccepted = await PollUntil(() =>
+    {
+        var s = skitStore.GetCurrent();
+        return skitStore.TrySkip(s.SessionId, s.SceneRevision).Ok;
+    }, 10);
+    p.Note(skipAccepted ? "開幕スキットをSkipした" : "開幕スキットは再生されていない（Skip不要）");
     p.GiveItemDirect("小石", 3);
     await p.WaitSeconds(1f);
     api.Craft(stoneToolRecipe);
