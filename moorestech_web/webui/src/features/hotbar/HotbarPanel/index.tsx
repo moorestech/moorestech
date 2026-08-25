@@ -66,7 +66,7 @@ function HotbarCell({ index, slot, selected, selectAccepted }: CellProps) {
 
   return (
     <div className={styles.cell} data-hotbar-slot-index={index} data-unresolved={slot?.kind === "unresolved" ? "true" : undefined}>
-      <span className={styles.num}>{index + 1}</span>
+      <span className={`iconTextOutlineDark ${styles.num}`}>{index + 1}</span>
       <SlotFrame filled={slot !== null} selected={selected} testId={`hotbar-slot-${index}`} {...dragHandlers}>
         {slotBody()}
       </SlotFrame>
