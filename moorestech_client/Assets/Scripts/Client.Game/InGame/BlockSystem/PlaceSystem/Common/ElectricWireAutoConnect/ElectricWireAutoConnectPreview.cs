@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
-using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
@@ -40,20 +41,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         private BlockId _cachedBlockId;
         private bool _hasCacheKey;
 
-        public ElectricWireAutoConnectPreview(Camera mainCamera, BlockGameObjectDataStore blockDataStore, IPlacementPreviewBlockGameObjectController previewBlockController, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery)
+        public ElectricWireAutoConnectPreview(BlockGameObjectDataStore blockDataStore, IPlacementPreviewBlockGameObjectController previewBlockController, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery)
         {
             _blockDataStore = blockDataStore;
             _previewBlockController = previewBlockController;
             _gameUnlockStateData = gameUnlockStateData;
             _constructionWalletQuery = constructionWalletQuery;
-            _renderer = new AutoConnectWirePreviewRenderer(mainCamera);
+            _renderer = new AutoConnectWirePreviewRenderer();
         }
 
         /// <summary>
         /// 電気系なら各セルの自動接続を評価してPlaceableを上書きし、表示を更新する。戻り値は設置クリック可否
         /// For electric blocks, evaluates auto-connect per cell, overrides Placeable and updates visuals. Returns click placeability
         /// </summary>
-        public bool ApplyAutoConnect(List<PlaceInfo> placeInfos, BlockId blockId, BlockDirection direction, ILocalPlayerInventory inventory, Vector3Int cursorCell)
+        // cursorIndexは呼び出し側がPlacementCursorCellResolverで解決済み（このメソッド内では再解決しない）
+        // cursorIndex is already resolved by the caller via PlacementCursorCellResolver (not re-resolved here)
+        public bool ApplyAutoConnect(List<PlaceInfo> placeInfos, BlockId blockId, BlockDirection direction, ILocalPlayerInventory inventory, int cursorIndex, PlacementFeedback feedback)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
 
@@ -82,7 +85,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, _constructionWalletQuery.GetItemsToConsume(blockId));
             var totalCost = 0;
             var anyPlaceable = false;
-            var cursorIndex = -1;
             var cursorWirePlaceable = true;
             var cursorRawTargetCount = 0;
             for (var i = 0; i < placeInfos.Count; i++)
@@ -98,11 +100,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                     totalCost += cellCost;
                     anyPlaceable = true;
                 }
-                // カーソルセルが確定するまでは毎セル上書きし、一致セルが無い末尾フォールバック時も通知が末尾セルの値になるようにする
-                // Overwrite every cell until the cursor cell is fixed, so the last-cell fallback also carries that cell's values
-                if (cursorIndex < 0 || placeInfo.Position == cursorCell)
+                // カーソルセル添字のときだけ記録
+                // Records the notice only for the cursor cell index
+                if (i == cursorIndex)
                 {
-                    if (placeInfo.Position == cursorCell) cursorIndex = i;
                     cursorWirePlaceable = wirePlaceable;
                     // 地形干渉や建設コスト不足によるPlaceable=falseと無関係な、生の接続候補数
                     // Raw candidate count, independent of Placeable=false caused by ground/build-cost issues
@@ -110,46 +111,31 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 }
             }
 
-            // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、ラベルは全セル合計を表示する
-            // Draw wires only for the cursor cell (all cells would be excessive); the label shows the drag-wide total
-            if (cursorIndex < 0) cursorIndex = placeInfos.Count - 1;
+            // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、コスト行は全セル合計を表示する
+            // Draw wires only for the cursor cell (all cells would be excessive); the cost line shows the drag-wide total
             var cursorInfo = placeInfos[cursorIndex];
             var originEndpoint = ResolveOriginEndpoint(cursorIndex, cursorInfo);
             var cursorTargets = cursorInfo.Placeable ? ResolveTargetEndpoints(cursorInfo.Position) : EmptyTargets;
-            ShowCursorNotice();
+
+            // 近傍走査は全ブロック走査で重いため、案内に必要なときだけ実行する
+            // The neighbor scan walks every block, so run it only when the notice actually needs it
+            var hasOutOfRangeNeighbor = AutoConnectNoticeLines.NeedsOutOfRangeProbe(cursorWirePlaceable, cursorRawTargetCount) &&
+                                        ClientElectricWireAutoConnectCollector.ExistsElectricNeighborOutOfConnectionRange(blockId, cursorInfo.Position, direction, _blockDataStore);
+
+            // どの案内行を積むかの判断は純関数へ委ね、線描画だけここに残す
+            // The notice-line judgement lives in the pure helper; only the wire drawing stays here
+            var isWireShortage = AutoConnectNoticeLines.Report(cursorWirePlaceable, cursorRawTargetCount, hasOutOfRangeNeighbor, totalCost, feedback);
+
+            // 電線不足時のみ「足りていればどこへ張られたか」を不可色の線で見せる
+            // Only on wire shortage, failure-colored wires show where they would have run
+            if (isWireShortage) _renderer.Show(originEndpoint, ResolveTargetEndpoints(cursorInfo.Position), true);
+            else _renderer.Show(originEndpoint, cursorTargets, false);
 
             // 設置可能なセルが1つでも残っていればクリック許可（不可セルはサーバーが個別に拒否する既存方針に揃える）
             // Allow the click when any cell remains placeable (bad cells are rejected per-cell by the server, matching existing policy)
             return anyPlaceable;
 
             #region Internal
-
-            // カーソルセルの状態に応じてコスト表示・拒否理由・範囲外案内のいずれかを描画する
-            // Renders the cost, the rejection reason, or an out-of-range notice depending on the cursor cell's state
-            void ShowCursorNotice()
-            {
-                // 電線不足は自動接続プレビューが唯一拒否する理由であり、不可色で表示する
-                // Insufficient wire is the only rejection reason for the auto-connect preview, shown in the failure color
-                if (!cursorWirePlaceable)
-                {
-                    // 電線不足のセルはPlaceable=falseになりcursorTargetsが空になるため、ここで解決し直して
-                    // 「電線が足りていればどこへ張られたか」を不可色の線で見せる
-                    // A wire-short cell has Placeable=false so cursorTargets is empty; resolve them again here
-                    // to show in the failure color where the wires would have run if wire were available
-                    _renderer.ShowFailure(originEndpoint, ResolveTargetEndpoints(cursorInfo.Position), ElectricWirePlacementFailureText.ToText(ElectricWirePlacementFailureReason.NoWireItem));
-                    return;
-                }
-
-                // 1件も配線されず、かつ範囲判定で落ちた近傍が実在するときだけ、設置許可のまま範囲外を案内する
-                // Only when nothing gets wired and a neighbor actually failed the range check, keep placement allowed and report out-of-range
-                if (cursorRawTargetCount == 0 && ClientElectricWireAutoConnectCollector.ExistsElectricNeighborOutOfConnectionRange(blockId, cursorInfo.Position, direction, _blockDataStore))
-                {
-                    _renderer.ShowNotice(originEndpoint, cursorTargets, "接続範囲外のため配線されません");
-                    return;
-                }
-
-                _renderer.ShowCost(originEndpoint, cursorTargets, totalCost);
-            }
 
             void InvalidateCacheOnKeyChange()
             {

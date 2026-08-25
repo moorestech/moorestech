@@ -17,14 +17,16 @@ namespace Client.Game.InGame.UI.Tooltip
         /// </summary>
         [SerializeField] private bool displayEnable = true;
 
+        private readonly TooltipOwner _tooltipOwner = new();
+
         public void OnCursorEnter()
         {
-            if (displayEnable) MouseCursorTooltip.Instance.Show(new LocalizationKey(textKey));
+            if (displayEnable) MouseCursorTooltip.Instance.Show(_tooltipOwner, new LocalizationKey(textKey));
         }
         
         public void OnCursorExit()
         {
-            MouseCursorTooltip.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide(_tooltipOwner);
         }
     }
 }

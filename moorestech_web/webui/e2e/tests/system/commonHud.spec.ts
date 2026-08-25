@@ -76,6 +76,17 @@ test("採掘進捗・クロスヘア・tooltipのtopic eventを表示する", as
   await expect(page.locator('[data-tutorial-anchor~="game.crosshair"]')).toBeHidden();
 });
 
+test("ツールチップは複数行を順序どおり縦積みで表示する", async ({ page }) => {
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+  await setTopicScenario(page, "tooltipMultiLine");
+
+  const lines = page.getByTestId("cursor-tooltip-line");
+  await expect(lines).toHaveCount(2);
+  await expect(lines.nth(0)).toHaveText("地形に埋まっています");
+  await expect(lines.nth(1)).toHaveText("遠すぎます");
+});
+
 test("ui.visibility=falseでPortalを含む全UIを退避し復帰する", async ({ page }) => {
   await setTopicScenario(page, "tooltip");
   await page.goto("/");

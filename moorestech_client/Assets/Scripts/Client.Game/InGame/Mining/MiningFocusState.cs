@@ -30,7 +30,7 @@ namespace Client.Game.InGame.Mining
                 case MiningStartOutcome.HandMiningNotAllowed:
                     // 掘れない理由を出して維持する
                     // Show why it cannot be mined and keep focus
-                    MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.CannotHandMine);
+                    MouseCursorTooltip.Instance.Show(MiningControllerContext.TooltipOwner, LocalizationKeys.Ui.Tooltip.CannotHandMine);
                     return this;
                 case MiningStartOutcome.ToolMismatch:
                     // 無効装備ならフォーカス維持
@@ -43,13 +43,13 @@ namespace Client.Game.InGame.Mining
             // If not clicked, maintain focus
             if (!InputManager.Playable.ScreenLeftClick.GetKey)
             {
-                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.HoldToGet);
+                MouseCursorTooltip.Instance.Show(MiningControllerContext.TooltipOwner, LocalizationKeys.Ui.Tooltip.HoldToGet);
                 return this;
             }
 
             // マイニング状態に遷移
             // Transition to mining state
-            MouseCursorTooltip.Instance.Hide();
+            MouseCursorTooltip.Instance.Hide(MiningControllerContext.TooltipOwner);
             return new MiningProgressState(currentTarget, usableMiningTool);
 
             #region Internal
@@ -58,13 +58,13 @@ namespace Client.Game.InGame.Mining
             {
                 if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
                 {
-                    MouseCursorTooltip.Instance.Hide();
+                    MouseCursorTooltip.Instance.Hide(MiningControllerContext.TooltipOwner);
                     return new MiningCompleteState(pickUpContext.CurrentFocusTarget);
                 }
 
                 // 左クリックがされていなければ現状を維持
                 // If left click is not pressed, maintain the current state
-                MouseCursorTooltip.Instance.Show(LocalizationKeys.Ui.Tooltip.PickUpLeftClick);
+                MouseCursorTooltip.Instance.Show(MiningControllerContext.TooltipOwner, LocalizationKeys.Ui.Tooltip.PickUpLeftClick);
                 return this;
             }
 
@@ -81,6 +81,7 @@ namespace Client.Game.InGame.Mining
                 // 必要アイテム名をパラメータにまとめ、文言全体は表示側で解決する
                 // Join required item names as a parameter and let the presentation resolve the full sentence
                 MouseCursorTooltip.Instance.Show(
+                    MiningControllerContext.TooltipOwner,
                     LocalizationKeys.Ui.Tooltip.RequiredItems,
                     new[] { string.Join(", ", localizedToolNames) });
             }

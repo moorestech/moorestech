@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Cysharp.Threading.Tasks;
 using Game.Train.Unit;
@@ -39,7 +42,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _previewController.SetActive(true);
         }
 
-        protected override void ManualUpdate(TrainCarPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(TrainCarPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // 選択変更時は候補選択を初期化する
             // Reset route selection when the build-menu selection changes
@@ -63,6 +66,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
                 return;
             }
 
+            // 距離外なら理由のみ出しプレビュー無し
+            // Beyond range, show only the reason and no preview
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(PlaceSystemUtil.SnapHitPointToCell(hit.HitPosition)))
+            {
+                _previewController.SetActive(false);
+                feedback.AddTooFar();
+                return;
+            }
+
             // 既存列車へのスナップ対象はこのフレームだけハイライトを要求する
             // Request current-frame highlight for existing trains that are snap targets
             RequestPlacementOverlapHighlight(hit.OverlapTrainUnitInstanceIds);
@@ -74,6 +86,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             _previewController.SetActive(hasPreview);
             if (!hit.IsPlaceable)
             {
+                // 候補が立たない理由をツールチップへ積む
+                // Push why no placement candidate holds into the tooltip
+                feedback.Add(new TooltipLine(TrainCarPlacementBlockReasonTooltipKey.ToKey(hit.BlockReason)));
                 return;
             }
 

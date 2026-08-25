@@ -59,7 +59,7 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
             var placeInfos = BeltConveyorPlacePointCalculator.CalculatePoint(
                 start, end, false, BlockDirection.East, holding,
                 (info, _) => !world.Exists(info.Position),
-                cell => world.Exists(cell));
+                cell => world.Exists(cell), out _, out _);
 
             // プロファイルを確認する（中央セルが想定の高さへ橋渡しされている）
             // Confirm the profile bridged the middle cell to the expected height.

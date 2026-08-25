@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
@@ -22,9 +25,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden);
             }
 
-            // ゴースト位置なし（レイ非命中・距離外）は何も表示しない
-            // Show nothing when there is no ghost position (no ray hit or out of range)
-            if (!input.HasGhost) return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden);
+            // 位置なしは非表示。距離外のみ理由を出す
+            // Shows nothing without a position; reports a reason only when out of range
+            if (!input.HasGhost)
+            {
+                var noGhostLines = input.GhostTooFar ? new[] { PlacementFeedback.TooFarLine() } : Array.Empty<TooltipLine>();
+                return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden, noGhostLines);
+            }
 
             if (input.SourcePole == null) return DecideIsolatedPlace(input);
             return DecideExtendPlace(input);
@@ -41,7 +48,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 return GearChainPoleFrameResult.SendExtend(new GearChainPoleExtendSendCommand(null, input.PoleBlockId, input.GhostPlaceInfo, Guid.Empty, canContinue));
             }
 
-            return GearChainPoleFrameResult.Show(null, GearChainPolePreviewCommand.Ghost(placeable));
+            return GearChainPoleFrameResult.Show(null, GearChainPolePreviewCommand.Ghost(placeable), BuildLines(input.GhostGroundClear, GearChainPoleExtendPreviewData.Invalid));
         }
 
         private static GearChainPoleFrameResult DecideExtendPlace(in GearChainPolePlaceExtendInput input)
@@ -57,7 +64,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 return GearChainPoleFrameResult.SendExtend(new GearChainPoleExtendSendCommand(input.SourcePolePos, input.PoleBlockId, input.GhostPlaceInfo, input.ConnectToolGuid, canContinue));
             }
 
-            return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.GhostAndLine(placeable, input.SourcePoleCenter, input.GhostCenter));
+            return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.GhostAndLine(placeable, input.SourcePoleCenter, input.GhostCenter), BuildLines(input.GhostGroundClear, input.ExtendPreview));
+        }
+
+        // 不可理由を 地形 → チェーン判定 の順で行にする
+        // Build the reason lines in order: terrain → chain judgement
+        private static IReadOnlyList<TooltipLine> BuildLines(bool ghostGroundClear, GearChainPoleExtendPreviewData extendPreview)
+        {
+            var lines = new List<TooltipLine>();
+            if (!ghostGroundClear) lines.Add(PlacementFeedback.BlockedByTerrainLine());
+            if (extendPreview.IsValid) lines.AddRange(GearChainPlacementFailureTooltipKey.BuildFailureLines(extendPreview.IsPlaceable, extendPreview.FailureReason));
+            return lines;
         }
 
         private static bool CanSend(in GearChainPolePlaceExtendInput input, bool placeable)

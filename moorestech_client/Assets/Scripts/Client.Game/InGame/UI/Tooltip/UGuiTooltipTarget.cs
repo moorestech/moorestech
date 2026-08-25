@@ -28,6 +28,8 @@ namespace Client.Game.InGame.UI.Tooltip
         [SerializeField] private bool displayEnable;
 
         private bool _pointerStay;
+
+        private readonly TooltipOwner _tooltipOwner = new();
         
         public void OnPointerMove(PointerEventData eventData)
         {
@@ -54,13 +56,13 @@ namespace Client.Game.InGame.UI.Tooltip
             //表示する設定で、ポインターが乗ったので表示
             if (_pointerStay && displayEnable)
             {
-                MouseCursorTooltip.Instance.Show(new LocalizationKey(textKey), textParams);
+                MouseCursorTooltip.Instance.Show(_tooltipOwner, new LocalizationKey(textKey), textParams);
                 return;
             }
             
             if (!_pointerStay || //ポインターから外れたので非表示
                 _pointerStay && !displayEnable) //ポインターからは外れてないけど非表示設定なったから非表示
-                MouseCursorTooltip.Instance.Hide();
+                MouseCursorTooltip.Instance.Hide(_tooltipOwner);
         }
         
         

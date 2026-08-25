@@ -105,12 +105,16 @@ namespace Client.Tests.PlaceSystem.ConveyorOverpass
             // A height-2 obstacle has no room to ramp within 3 cells (note: a height-1 obstacle in 3 cells IS crossable).
             var infos = FlatHorizontalPath(3);
             var occupied = new HashSet<Vector3Int> { new(1, 0, 0), new(1, 1, 0) };
-            new ConveyorOverpassRaiser().Raise(infos, 2, occupied.Contains);
+            var overpassBlocked = new ConveyorOverpassRaiser().Raise(infos, 2, occupied.Contains);
 
             // 端点を固定高さに戻しきれず両端が設置不可になる
             // The endpoints cannot return to the fixed height, so both ends become unplaceable.
             Assert.IsFalse(infos[0].Placeable);
             Assert.IsFalse(infos[2].Placeable);
+
+            // 不可にしたセルは戻り値の列に立ち、理由の写像は呼び出し側が行う
+            // The cells it blocked stand in the returned column; mapping them to wording is the caller's job
+            Assert.AreEqual(new[] { true, false, true }, overpassBlocked);
         }
     }
 }

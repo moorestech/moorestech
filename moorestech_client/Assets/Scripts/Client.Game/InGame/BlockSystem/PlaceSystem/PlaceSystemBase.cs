@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
@@ -19,9 +20,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         {
             // Selectorが型を保証する。違えば即例外＝振り分けバグ
             // The selector guarantees the type; a mismatch throws immediately = routing bug
-            ManualUpdate((TTarget)context.Target, context.IsSelectionChanged);
+            ManualUpdate((TTarget)context.Target, context.IsSelectionChanged, context.Feedback);
         }
 
-        protected abstract void ManualUpdate(TTarget target, bool isSelectionChanged);
+        protected abstract void ManualUpdate(TTarget target, bool isSelectionChanged, PlacementFeedback feedback);
     }
 }

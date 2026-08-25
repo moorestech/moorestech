@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
@@ -19,12 +20,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         
-        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
+        // blockCausesはPlaceInfo列と同じ添字で並走するセル毎の設置不可原因（表示側へ明示的に渡すための列）
+        // blockCauses is the per-cell block cause column indexed like the PlaceInfo list, handed explicitly to the display side
+        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, out List<PlacementBlockCause> blockCauses)
         {
-            return CalculatePoint(startPoint, endPoint, blockDirection, holdingBlockMasterElement, IsNotExistBlock);
+            return CalculatePoint(startPoint, endPoint, blockDirection, holdingBlockMasterElement, IsNotExistBlock, out blockCauses);
         }
 
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock)
+        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, out List<PlacementBlockCause> blockCauses)
         {
             // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var blockSize = holdingBlockMasterElement.BlockSize;
@@ -33,7 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             List<PlaceInfo> placeInfos = CalcPlaceDirection(positions);
 
-            placeInfos = CalcPlaceable(placeInfos);
+            blockCauses = CalcPlaceable(placeInfos);
 
             return placeInfos;
 
@@ -108,10 +111,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 return placeInfos;
             }
 
-            List<PlaceInfo> CalcPlaceable(List<PlaceInfo> infos)
+            List<PlacementBlockCause> CalcPlaceable(List<PlaceInfo> infos)
             {
-                foreach (var info in infos)
+                var causes = new List<PlacementBlockCause>(infos.Count);
+                for (var i = 0; i < infos.Count; i++)
                 {
+                    var info = infos[i];
+                    causes.Add(PlacementBlockCause.None);
+
                     // ゼロGuidは実ブロックに解決されない未解決値として扱う（純粋ロジックテストのモック要素）
                     // A zero Guid is treated as an unresolved value that never resolves to a real block (used by pure-logic test mocks)
                     if (holdingBlockMasterElement.BlockGuid != Guid.Empty)
@@ -120,10 +127,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     }
 
                     //TODO ブロックの数が足りているかどうか
-                    info.Placeable = info.Placeable && isNotExistBlock(info, holdingBlockMasterElement);
+                    if (info.Placeable && !isNotExistBlock(info, holdingBlockMasterElement))
+                    {
+                        info.Placeable = false;
+                        causes[i] = PlacementBlockCause.ExistingBlock;
+                    }
                 }
 
-                return infos;
+                return causes;
             }
 
             #endregion

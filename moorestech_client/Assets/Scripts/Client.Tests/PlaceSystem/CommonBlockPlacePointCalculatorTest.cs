@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
@@ -20,7 +21,7 @@ namespace Client.Tests.PlaceSystem
 
             var actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), BlockDirection.East,
-                blockMasterElement, (_, _) => true);
+                blockMasterElement, (_, _) => true, out _);
 
             Assert.AreEqual(3, actual.Count);
             foreach (var info in actual)
@@ -40,7 +41,7 @@ namespace Client.Tests.PlaceSystem
 
             var actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(4, 0, 0), BlockDirection.North,
-                blockMasterElement, (_, _) => true);
+                blockMasterElement, (_, _) => true, out _);
 
             Assert.AreEqual(3, actual.Count);
             Assert.AreEqual(new Vector3Int(0, 0, 0), actual[0].Position);
@@ -58,11 +59,17 @@ namespace Client.Tests.PlaceSystem
 
             var actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), BlockDirection.East,
-                blockMasterElement, (info, _) => info.Position != occupied);
+                blockMasterElement, (info, _) => info.Position != occupied, out var blockCauses);
 
             Assert.IsTrue(actual[0].Placeable);
             Assert.IsFalse(actual[1].Placeable);
             Assert.IsTrue(actual[2].Placeable);
+
+            // 不可原因の列はPlaceInfo列と同じ添字で並走する
+            // The block cause column runs alongside the PlaceInfo list on the same index
+            Assert.AreEqual(PlacementBlockCause.None, blockCauses[0]);
+            Assert.AreEqual(PlacementBlockCause.ExistingBlock, blockCauses[1]);
+            Assert.AreEqual(PlacementBlockCause.None, blockCauses[2]);
         }
 
         private static BlockMasterElement MakeBlock(Vector3Int blockSize)

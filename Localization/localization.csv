@@ -208,3 +208,28 @@ ui.keyHint.text.gatherSameItem,Gather Same Item,Gather Same Item,同じアイテ
 ui.keyHint.text.trainDrive,Drive,Drive,運転
 ui.keyHint.text.trainSelectBranch,Select Branch,Select Branch,分岐選択
 ui.keyHint.text.trainDismount,Dismount,Dismount,降車
+ui.tooltip.placeBlockedByTerrain,Blocked by terrain,Blocked by terrain,地形に埋まっています
+ui.tooltip.placeBlockedByExistingBlock,Position is occupied,Position is occupied,設置位置が埋まっています
+ui.tooltip.placeTooFar,Too far away,Too far away,遠すぎます
+ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません
+ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません
+ui.tooltip.placeMaterialShortage,{p0} {p1}/{p2},{p0} {p1}/{p2},{p0} {p1}/{p2}
+ui.tooltip.placeWireCost,Wire x{p0},Wire x{p0},電線 x{p0}
+ui.tooltip.placeWireOutOfRangeNotice,Out of connection range: no wire will be placed,Out of connection range: no wire will be placed,接続範囲外のため配線されません
+ui.tooltip.placeWireNoWireItem,Not enough wire,Not enough wire,電線が足りません
+ui.tooltip.placeWireOutOfRange,Out of connection range,Out of connection range,接続範囲外です
+ui.tooltip.placeWireAlreadyConnected,Already connected,Already connected,接続済みです
+ui.tooltip.placeWireConnectionLimit,Connection limit reached,Connection limit reached,接続上限です
+ui.tooltip.placeWireInvalidTarget,Cannot connect to this target,Cannot connect to this target,接続できない対象です
+ui.tooltip.placeWireFailed,Cannot place,Cannot place,設置できません
+ui.tooltip.placeGearChainTooFar,Out of connection range,Out of connection range,接続範囲外です
+ui.tooltip.placeGearChainAlreadyConnected,Already connected,Already connected,接続済みです
+ui.tooltip.placeGearChainConnectionLimit,Connection limit reached,Connection limit reached,接続上限です
+ui.tooltip.placeGearChainNoItem,Not enough chain,Not enough chain,チェーンが足りません
+ui.tooltip.placeGearChainFailed,Cannot connect,Cannot connect,接続できません
+ui.tooltip.placeRailLengthExceeded,Rail is too long,Rail is too long,レールが長すぎます
+ui.tooltip.placeRailNotEnoughRailItem,Not enough rail,Not enough rail,レールが足りません
+ui.tooltip.placeRailCurveTooTight,Curve is too tight,Curve is too tight,カーブがきつすぎます
+ui.tooltip.placeRailFailed,Cannot connect rail,Cannot connect rail,レールを接続できません
+ui.tooltip.placeTrainCarNoRoute,No rail for the train length,No rail for the train length,列車の長さ分のレールがありません
+ui.tooltip.placeTrainCarOverlapsTrain,Overlaps an existing train,Overlaps an existing train,既存の列車と重なります
