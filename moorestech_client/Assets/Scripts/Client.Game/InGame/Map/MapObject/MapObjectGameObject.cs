@@ -28,6 +28,8 @@ namespace Client.Game.InGame.Map.MapObject
         // Targets that need no tool return an empty recommendation, so share one instance instead of allocating
         private static readonly List<ItemId> EmptyToolItemIds = new();
 
+        public IReadOnlyList<Guid> EarnItemGuids { get; private set; } = Array.Empty<Guid>();
+
         public bool IsDestroyed { get; private set; }
         public int CurrentHp { get; private set; }
 
@@ -52,22 +54,7 @@ namespace Client.Game.InGame.Map.MapObject
             return transform.position;
         }
 
-        public SoundEffectType DestroySoundType
-        {
-            get
-            {
-                switch (MapObjectMasterElement.SoundEffectType)
-                {
-                    case MapObjectMasterElement.SoundEffectTypeConst.stone:
-                        return SoundEffectType.DestroyStone;
-                    case MapObjectMasterElement.SoundEffectTypeConst.tree:
-                        return SoundEffectType.DestroyTree;
-                    default:
-                        Debug.LogError("採掘音が設定されていません");
-                        return SoundEffectType.DestroyStone;
-                }
-            }
-        }
+        public SoundEffectType DestroySoundType => MapObjectMiningPresentation.GetDestroySoundType(MapObjectMasterElement);
         
         public IObservable<Unit> OnDestroyMapObject => _onDestroyMapObject;
         private readonly Subject<Unit> _onDestroyMapObject = new();
@@ -92,6 +79,11 @@ namespace Client.Game.InGame.Map.MapObject
                 Debug.LogError($"MapObject GUID {MapObjectGuid} is not found");
                 return;
             }
+
+            // 取得物はマスタ確定時に1度だけ拾う
+            // Resolve the yields once the master is settled
+            EarnItemGuids = MapObjectMiningPresentation.GetEarnItemGuids(MapObjectMasterElement);
+
             
             if (mapObjectInfo.IsDestroyed)
             {
