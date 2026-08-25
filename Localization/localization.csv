@@ -246,4 +246,5 @@ ui.loading.initializationFailed,Initialization failed. Returning to the main men
 ui.mainMenu.connectInvalidIp,The IP address is not valid.,The IP address is not valid.,IPアドレスが正しくありません。,Die IP-Adresse ist ungültig.
 ui.mainMenu.connectPortTooLarge,The port number must be 65535 or lower.,The port number must be 65535 or lower.,ポート番号は65535以下である必要があります。,Die Portnummer darf höchstens 65535 betragen.
 ui.mainMenu.connectPortTooSmall,The port number must be greater than 1024.,The port number must be greater than 1024.,ポート番号は1024より大きい必要があります。,Die Portnummer muss größer als 1024 sein.
+ui.mainMenu.connectInvalidPort,The port number is not valid.,The port number is not valid.,ポート番号が正しくありません。,Die Portnummer ist ungültig.
 ui.mainMenu.connectFailed,Failed to connect to the server.\n{p0},Failed to connect to the server.\n{p0},サーバーへの接続に失敗しました。\n{p0},Verbindung zum Server fehlgeschlagen.\n{p0}

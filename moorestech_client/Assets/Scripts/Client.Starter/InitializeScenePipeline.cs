@@ -93,6 +93,7 @@ namespace Client.Starter
 
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
+            var loadingProgressLog = new LoadingProgressLog(loadingLog, loadingStopwatch);
 
             // Addressablesを初期化し、並列ロードでハングするアセットを先に読む
             // Initialize Addressables and pre-load assets that hang during parallel loading
@@ -117,8 +118,8 @@ namespace Client.Starter
 
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
-            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingLog, loadingStopwatch, playerConnectionSetting);
-            var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingLog, loadingStopwatch);
+            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, playerConnectionSetting);
+            var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingProgressLog);
 
             ServerConnectionResult serverResult;
             ModAssetLoadResult assetResult;
@@ -139,7 +140,7 @@ namespace Client.Starter
                 // Fold the embedded server that already started; leaving it doubles the authority writing the same save
                 GameShutdownEvent.FireGameShutdown();
 
-                loadingLog.text += "\n" + Localize.Get(LocalizationKeys.Ui.Loading.InitializationFailed);
+                loadingProgressLog.Append(LocalizationKeys.Ui.Loading.InitializationFailed);
                 await UniTask.Delay(2000);
                 SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 return;
@@ -165,7 +166,7 @@ namespace Client.Starter
             {
                 var connectionResult = await serverInitializer.RunAsync();
                 var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response).RunAsync(connectionResult.HandshakeResponse.MapLayout);
-                loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { fetchedChunkCount.ToString(), loadingStopwatch.Elapsed.ToString() });
+                loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
                 return connectionResult;
             }
 

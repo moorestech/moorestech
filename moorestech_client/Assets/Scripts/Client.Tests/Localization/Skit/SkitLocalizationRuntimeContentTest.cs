@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Client.Tests.Support;
+using Mooresmaster.Localization.Generated;
 using Mooresmaster.LocalizationCsv;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -18,8 +21,14 @@ namespace Client.Tests.Localization.Skit
             "SKIT JAPANESE",
         };
 
-        [TestCase("english")]
-        [TestCase("japanese")]
+        // LanguageCatalog由来で全言語を走査しgerman等の未検査を防ぐ
+        // Drive from LanguageCatalog so german and future languages are never left unchecked
+        private static IEnumerable<string> LanguageCodes()
+        {
+            return LanguageCatalog.Languages.Select(language => language.Code);
+        }
+
+        [TestCaseSource(nameof(LanguageCodes))]
         public void AddressableSkitRuntimeValuesExcludeQaSentinels(string languageCode)
         {
             var path = Path.Combine(

@@ -6,9 +6,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using TMPro;
 using UnityEngine;
-using Client.Localization;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter.Initialization
@@ -23,22 +21,20 @@ namespace Client.Starter.Initialization
         private readonly BlockGameObject _missingBlockIdObject;
         private readonly BlockIconImagePhotographer _blockIconImagePhotographer;
         private readonly List<TrainCarIconTarget> _trainCarIconTargets;
-        private readonly TMP_Text _loadingLog;
-        private readonly System.Diagnostics.Stopwatch _loadingStopwatch;
+        private readonly LoadingProgressLog _loadingProgressLog;
 
         private BlockGameObjectPrefabContainer _blockContainer;
         private ItemImageContainer _itemImageContainer;
         private ConnectToolImageContainer _connectToolImageContainer;
         private FluidImageContainer _fluidImageContainer;
 
-        public ModAssetLoader(string serverDirectory, BlockGameObject missingBlockIdObject, BlockIconImagePhotographer blockIconImagePhotographer, List<TrainCarIconTarget> trainCarIconTargets, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch)
+        public ModAssetLoader(string serverDirectory, BlockGameObject missingBlockIdObject, BlockIconImagePhotographer blockIconImagePhotographer, List<TrainCarIconTarget> trainCarIconTargets, LoadingProgressLog loadingProgressLog)
         {
             _serverDirectory = serverDirectory;
             _missingBlockIdObject = missingBlockIdObject;
             _blockIconImagePhotographer = blockIconImagePhotographer;
             _trainCarIconTargets = trainCarIconTargets;
-            _loadingLog = loadingLog;
-            _loadingStopwatch = loadingStopwatch;
+            _loadingProgressLog = loadingProgressLog;
         }
 
         // Addressables の並列ロードでハングするアセットを初期化直後に事前ロードする（詳細は下記）
@@ -84,7 +80,7 @@ namespace Client.Starter.Initialization
 
             // ブロック・列車画像を生成
             // Generate block and train icons
-            var iconLoader = new ModAssetIconLoader(_blockContainer, _trainCarIconTargets, _blockIconImagePhotographer, _loadingLog, _loadingStopwatch);
+            var iconLoader = new ModAssetIconLoader(_blockContainer, _trainCarIconTargets, _blockIconImagePhotographer, _loadingProgressLog);
             var iconResult = await iconLoader.RunAsync();
             Debug.Log("[InitializeScenePipeline] mod icon capture completed");
 
@@ -104,7 +100,7 @@ namespace Client.Starter.Initialization
             {
                 // TODo この辺も必要な時に必要なだけロードする用にしたいなぁ
                 _blockContainer = await BlockGameObjectPrefabContainer.CreateAndLoadBlockGameObjectContainer(_missingBlockIdObject);
-                _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.BlockAssetsLoaded, new[] { _loadingStopwatch.Elapsed.ToString() });
+                _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.BlockAssetsLoaded);
             }
 
             UniTask LoadItemAssets()
@@ -113,7 +109,7 @@ namespace Client.Starter.Initialization
                 //TODO 非同期で実行できるようにする
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _itemImageContainer = ItemImageContainer.CreateAndLoadItemImageContainer(modDirectory);
-                _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.ItemImagesLoaded, new[] { _loadingStopwatch.Elapsed.ToString() });
+                _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.ItemImagesLoaded);
                 return UniTask.CompletedTask;
             }
 
@@ -123,7 +119,7 @@ namespace Client.Starter.Initialization
                 // Load connect-tool icons from imagePath
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _connectToolImageContainer = ConnectToolImageContainer.CreateAndLoadConnectToolImageContainer(modDirectory);
-                _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.ConnectToolImagesLoaded, new[] { _loadingStopwatch.Elapsed.ToString() });
+                _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.ConnectToolImagesLoaded);
                 return UniTask.CompletedTask;
             }
 
@@ -133,7 +129,7 @@ namespace Client.Starter.Initialization
                 //TODO 非同期で実行できるようにする
                 var modDirectory = ServerConst.CreateServerModsDirectory(_serverDirectory);
                 _fluidImageContainer = FluidImageContainer.CreateAndLoadFluidImageContainer(modDirectory);
-                _loadingLog.text += "\n" + Localize.GetFormatted(LocalizationKeys.Ui.Loading.FluidImagesLoaded, new[] { _loadingStopwatch.Elapsed.ToString() });
+                _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.FluidImagesLoaded);
                 return UniTask.CompletedTask;
             }
 

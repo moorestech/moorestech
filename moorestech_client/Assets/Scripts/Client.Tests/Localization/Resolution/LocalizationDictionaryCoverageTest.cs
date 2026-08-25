@@ -39,12 +39,16 @@ namespace Client.Tests.Localization.Resolution
         {
             Localize.Initialize();
 
+            // フィルタ前のキー集合を正準とし空訳の取りこぼしを検出する
+            // Use the pre-filter key set as canonical so dropped empty entries are still caught
             foreach (var languageCode in Localize.GetLanguageCodes())
             {
                 Assert.IsTrue(Localize.TryGetDictionary(languageCode, out var dictionary), languageCode);
-                foreach (var pair in dictionary)
+                foreach (var key in VanillaLocalizationTable.SourceTexts.Keys)
                 {
-                    Assert.IsNotEmpty(pair.Value, $"{languageCode}:{pair.Key}");
+                    var hasKey = dictionary.TryGetValue(key, out var text);
+                    Assert.IsTrue(hasKey, $"{languageCode}:{key}");
+                    Assert.IsNotEmpty(text, $"{languageCode}:{key}");
                 }
             }
         }

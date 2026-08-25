@@ -1,4 +1,3 @@
-using System;
 using Client.Localization;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
@@ -12,8 +11,8 @@ namespace Client.Tests.Localization.Resolution
         {
             Localize.Initialize();
 
-            // {p0}を持つ既存キーで位置パラメータ埋めを確認する
-            // Verify positional filling with an existing key that carries {p0}
+            // {p0}キーで埋め込みを確認
+            // Verify filling an existing {p0} key
             var text = Localize.GetFormatted(LocalizationKeys.Ui.Tooltip.PlaceWireCost, new[] { "3" });
 
             StringAssert.Contains("3", text);
@@ -21,13 +20,16 @@ namespace Client.Tests.Localization.Resolution
         }
 
         [Test]
-        public void GetFormattedLeavesTemplateIntactWithoutParams()
+        public void GetFormattedLeavesUnmatchedPlaceholderWhenArgCountIsShort()
         {
             Localize.Initialize();
 
-            Assert.AreEqual(
-                Localize.Get(LocalizationKeys.Ui.Common.Close),
-                Localize.GetFormatted(LocalizationKeys.Ui.Common.Close, Array.Empty<string>()));
+            // 1個渡すと{p1}が残存する
+            // One arg leaves {p1} unmatched
+            var text = Localize.GetFormatted(LocalizationKeys.Ui.Loading.TerrainReady, new[] { "3" });
+
+            StringAssert.Contains("3", text);
+            StringAssert.Contains("{p1}", text);
         }
     }
 }
