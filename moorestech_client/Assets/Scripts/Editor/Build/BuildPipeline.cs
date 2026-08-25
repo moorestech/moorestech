@@ -105,6 +105,17 @@ namespace Client.Editor.Build
                 options = buildOptionsFlags,
             };
 
+            // Addressablesはアクティブターゲット向けに焼かれるため、先にターゲットを合わせる
+            // Addressables bakes for the active target, so switch the target before building content
+            // 不一致のまま焼くと別APIのシェーダしか入らず、実機が全マゼンタになる
+            // A mismatch bakes shaders for the wrong graphics API and the player renders everything magenta
+            if (EditorUserBuildSettings.activeBuildTarget != request.Target &&
+                !EditorUserBuildSettings.SwitchActiveBuildTarget(UnityEditor.BuildPipeline.GetBuildTargetGroup(request.Target), request.Target))
+            {
+                Debug.LogError("Build target switch failed: " + request.Target);
+                return PlayerBuildOutcome.PlayerBuildFailed;
+            }
+
             // Addressablesコンテンツをクリーンビルドする
             // Clean build Addressables content before building the player
             AddressableAssetSettings.CleanPlayerContent();

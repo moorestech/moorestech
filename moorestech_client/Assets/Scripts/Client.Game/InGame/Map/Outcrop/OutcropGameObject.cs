@@ -18,6 +18,9 @@ namespace Client.Game.InGame.Map.Outcrop
     public class OutcropGameObject : MonoBehaviour, IMiningTargetObject, INearestSearchTarget
     {
         private static readonly HandMiningToolsElement[] NoHandMiningTools = Array.Empty<HandMiningToolsElement>();
+        private static readonly IReadOnlyList<Guid> NoEarnItemGuids = Array.Empty<Guid>();
+
+        public IReadOnlyList<Guid> EarnItemGuids { get; private set; } = NoEarnItemGuids;
 
         private HandMiningToolsElement[] _handMiningTools = NoHandMiningTools;
         private bool _handMiningAllowed;
@@ -48,6 +51,12 @@ namespace Client.Game.InGame.Map.Outcrop
             var minableParam = element.HandMiningParam as MinableHandMiningParam;
             _handMiningAllowed = minableParam != null;
             _handMiningTools = _handMiningAllowed ? minableParam.HandMiningTools : NoHandMiningTools;
+
+            // 液体鉱脈は名前を持たない
+            // A fluid vein has no item name, so its name slot stays empty (ADR 0033)
+            EarnItemGuids = element.VeinParam is ItemVeinParam itemVeinParam
+                ? new[] { itemVeinParam.ItemGuid }
+                : NoEarnItemGuids;
 
             // 音種は鉱脈マスタ準拠
             // Resolve sound from vein master

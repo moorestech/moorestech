@@ -12,8 +12,8 @@ namespace Client.Game.InGame.Map.MapObject
     /// </summary>
     internal sealed class MapObjectDistanceVisibilityController
     {
-        private const float RestoreDistance = 10f;
-        private const float HideDistance = 20f;
+        private const float RestoreDistance = 340f;
+        private const float HideDistance = 350f;
         private const double FrameBudgetMilliseconds = 1.0;
         private static readonly float[] DistanceBands = { RestoreDistance, HideDistance };
 
