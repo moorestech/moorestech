@@ -28,11 +28,7 @@ namespace Client.Game.InGame.Map.MapObject
         // Targets that need no tool return an empty recommendation, so share one instance instead of allocating
         private static readonly List<ItemId> EmptyToolItemIds = new();
 
-        // 取得物ゼロのmapObjectが多数あるため、空の共有インスタンスを使い回す
-        // Many map objects yield nothing, so one shared empty instance is reused
-        private static readonly IReadOnlyList<Guid> NoEarnItemGuids = Array.Empty<Guid>();
-
-        private IReadOnlyList<Guid> _earnItemGuids = NoEarnItemGuids;
+        private IReadOnlyList<Guid> _earnItemGuids = Array.Empty<Guid>();
         public IReadOnlyList<Guid> EarnItemGuids => _earnItemGuids;
 
         public bool IsDestroyed { get; private set; }
@@ -59,22 +55,7 @@ namespace Client.Game.InGame.Map.MapObject
             return transform.position;
         }
 
-        public SoundEffectType DestroySoundType
-        {
-            get
-            {
-                switch (MapObjectMasterElement.SoundEffectType)
-                {
-                    case MapObjectMasterElement.SoundEffectTypeConst.stone:
-                        return SoundEffectType.DestroyStone;
-                    case MapObjectMasterElement.SoundEffectTypeConst.tree:
-                        return SoundEffectType.DestroyTree;
-                    default:
-                        Debug.LogError("採掘音が設定されていません");
-                        return SoundEffectType.DestroyStone;
-                }
-            }
-        }
+        public SoundEffectType DestroySoundType => MapObjectMiningPresentation.GetDestroySoundType(MapObjectMasterElement);
         
         public IObservable<Unit> OnDestroyMapObject => _onDestroyMapObject;
         private readonly Subject<Unit> _onDestroyMapObject = new();
@@ -100,12 +81,9 @@ namespace Client.Game.InGame.Map.MapObject
                 return;
             }
 
-            // 取得物はマスタ確定時に1度だけ拾う。毎フレームの解決を避けるための前倒し
-            // Resolve the yields once when the master is settled, so nothing resolves per frame
-            var earnItems = MapObjectMasterElement.EarnItems;
-            var earnItemGuids = new Guid[earnItems.Length];
-            for (var index = 0; index < earnItems.Length; index++) earnItemGuids[index] = earnItems[index].ItemGuid;
-            _earnItemGuids = earnItemGuids;
+            // 取得物はマスタ確定時に1度だけ拾う
+            // Resolve the yields once the master is settled
+            _earnItemGuids = MapObjectMiningPresentation.GetEarnItemGuids(MapObjectMasterElement);
 
             
             if (mapObjectInfo.IsDestroyed)

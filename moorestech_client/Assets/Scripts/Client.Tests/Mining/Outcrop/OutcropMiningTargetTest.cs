@@ -102,8 +102,8 @@ namespace Client.Tests.Mining.Outcrop
         [Test]
         public void アイテム鉱脈の露頭は取得アイテムのGuidを返す()
         {
-            // 表示名の出所は鉱脈マスタのitemGuid。veinNameは英語のマスタ名なので使わない（ADR 0033）
-            // The display name comes from the vein master's itemGuid; veinName is an English master name (ADR 0033)
+            // 表示名の出所はitemGuid（ADR 0033）
+            // The display name comes from the vein master's itemGuid, not the English veinName (ADR 0033)
             CollectionAssert.AreEqual(new[] { IronVeinEarnItemGuid }, _outcrop.EarnItemGuids);
         }
 
@@ -112,7 +112,7 @@ namespace Client.Tests.Mining.Outcrop
         {
             var waterOutcrop = CreateOutcrop(WaterVeinGuid, out _);
 
-            // 液体はアイテム名を持たないので名前欄を空にする（ADR 0033）
+            // 液体は名前を持たない（ADR 0033）
             // A fluid has no item name, so the name slot stays empty (ADR 0033)
             CollectionAssert.IsEmpty(waterOutcrop.EarnItemGuids);
         }
@@ -122,7 +122,7 @@ namespace Client.Tests.Mining.Outcrop
         {
             var unmineableOutcrop = CreateOutcrop(UnmineableVeinGuid, out _);
 
-            // 掘れなくても何が埋まっているかは見せる（ADR 0033）
+            // 掘れなくても中身は見せる（ADR 0033）
             // Even an unmineable vein still reveals what it holds (ADR 0033)
             CollectionAssert.AreEqual(new[] { UnmineableVeinEarnItemGuid }, unmineableOutcrop.EarnItemGuids);
         }

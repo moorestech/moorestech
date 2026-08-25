@@ -155,7 +155,7 @@ namespace Client.Tests.Mining
             var presentation = MouseCursorTooltip.Instance.GetPresentation();
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.NamedRequiredItems.Key, presentation.TextKey);
 
-            // 名前が{p0}・必要ツールが{p1}という並びを固定する
+            // 名前が{p0}・必要ツールが{p1}
             // Pin the ordering: the name is {p0} and the required tools are {p1}
             Assert.AreEqual(2, presentation.TextParams.Count);
             Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(EarnItemGuid)), presentation.TextParams[0]);

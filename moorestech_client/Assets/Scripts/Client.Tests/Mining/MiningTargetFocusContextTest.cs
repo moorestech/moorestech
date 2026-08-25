@@ -64,7 +64,7 @@ namespace Client.Tests.Mining
         [Test]
         public void 取得アイテム名はフォーカス変化時に組み立てて保持される()
         {
-            // 実辞書を通す。未登録キーは[!key]へ落ちるが、連結と保持の検証には十分
+            // 実辞書を通す。未登録キーは[!key]
             // Resolve through the real dictionary; unknown keys fall back to [!key], which is enough here
             Localize.Initialize();
 

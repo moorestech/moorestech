@@ -41,7 +41,7 @@ namespace Client.Tests.Mining
             _mouse = InputSystem.AddDevice<Mouse>();
             ResetInputManagerCache();
 
-            // フォーカス時に取得アイテム名を引くため辞書を立てる。実行時はRuntimeInitializeOnLoadMethodが担う
+            // 取得アイテム名の解決に辞書が要る
             // Focusing resolves earned item names, so stand up the dictionary that RuntimeInitializeOnLoadMethod provides at runtime
             Localize.Initialize();
             CreatePlayerSystem();
