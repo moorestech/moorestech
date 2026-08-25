@@ -102,7 +102,7 @@ namespace Client.Tests.Mining.Outcrop
         [Test]
         public void アイテム鉱脈の露頭は取得アイテムのGuidを返す()
         {
-            // 表示名の出所はitemGuid（ADR 0033）
+            // 表示名の出所はitemGuid
             // The display name comes from the vein master's itemGuid, not the English veinName (ADR 0033)
             CollectionAssert.AreEqual(new[] { IronVeinEarnItemGuid }, _outcrop.EarnItemGuids);
         }

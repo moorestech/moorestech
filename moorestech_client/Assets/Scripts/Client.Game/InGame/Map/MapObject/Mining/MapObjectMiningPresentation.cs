@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Map.MapObject
     ///     mapObjectマスタから採掘UIに見せる値を引く
     ///     Reads the values the mining UI shows from the map object master
     /// </summary>
-    public static class MapObjectMiningPresentation
+    internal static class MapObjectMiningPresentation
     {
         // 取得物ゼロの個体が多い
         // Many objects yield nothing
