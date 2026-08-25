@@ -25,7 +25,7 @@ namespace Client.Tests.Mining
             targetType.GetField($"<{propertyName}>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, value);
         }
 
-        // InputTestFixtureがInputSystemを差し替えるため、他セッションの入力アセットは捨てて張り直す
+        // 他セッションの入力アセットは張り直す
         // InputTestFixture swaps the InputSystem, so an input asset built in another session must be dropped and rebuilt
         public static void ResetInputManagerCache()
         {

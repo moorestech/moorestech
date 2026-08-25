@@ -48,7 +48,7 @@
   棄却案: 先頭1件だけ
 - 区切りは依頼原文どおり半角スペース＋コロン＋半角スペース（` : `）とする（agent前提: 原文の見た目をそのまま採る）。
 - 名前あり文言は `Localization/localization.csv` に名前つきバリアントのキーを新設して3言語ぶん持ち、名前が無い対象は既存キーへ落とす（agent前提: `MouseCursorTooltip.Show(key, textParams)` が1キー＋`{p0}`置換の機構であり、キーを分けるのが前例どおり）。
-- **`IMiningTargetObject` が公開するのは取得アイテムの `ItemId` 列（マスタ由来のデータ）までとし、ローカライズと連結は行わない。** 「何が取れるか」の判断は具体側にあり、`MapObjectGameObject` は `EarnItems` を、`OutcropGameObject` は `ItemVeinParam` を解決する。**液体鉱脈（`FluidVeinParam`）は空列を返す**という判断も `OutcropGameObject` 側に置く（agent前提: 設計原則「汎用基盤にドメイン語彙を持ち込まない。判断は具体側で行う」）。
+- **`IMiningTargetObject` が公開するのは取得アイテムの `Guid` 列（マスタ由来のデータ）までとし、ローカライズと連結は行わない。** 名前解決は `ContentLocalizationKeys.ItemName(Guid)` が `Guid` を直接取るため、`ItemId` へ変換せず `Guid` のまま渡す（実装時に確定・出所: agent前提）。 「何が取れるか」の判断は具体側にあり、`MapObjectGameObject` は `EarnItems` を、`OutcropGameObject` は `ItemVeinParam` を解決する。**液体鉱脈（`FluidVeinParam`）は空列を返す**という判断も `OutcropGameObject` 側に置く（agent前提: 設計原則「汎用基盤にドメイン語彙を持ち込まない。判断は具体側で行う」）。
 - **ローカライズ文字列の組み立ては `MiningControllerContext` がフォーカス実体の変化時に1回だけ行い、結果を保持する。** `MiningFocusState.GetNextUpdate` は毎フレーム走るため、フォーカス中ずっと `Localize.GetContent` と `string.Join` を回してはならない（agent前提: 設計原則「`Update()` 内で毎tickの同値判定をしない／変化を起こす操作の直後にプッシュする」。`SetFocusTarget` は既に実体変更時だけを検出しており、そこが唯一の変化点）。
 - **言語切り替え時は保持中の文字列を作り直す。** `MiningControllerContext` が `Localize.OnLanguageChanged` を1本だけ購読して再解決する（agent前提: UniRx購読が標準機構。対象個体ごとの購読は数千個体に膨れるため採らない）。
 
@@ -56,4 +56,5 @@
 
 - Web UI 側は `TooltipTopic` が `TooltipPresentation`（キー＋params）をそのまま配るため、辞書追加だけで追従する。翻訳キーの新設漏れがそのまま両画面の不具合になる。
 - `Client.Tests/Mining/MiningFocusStateTest` の期待文言が全面的に変わる。空ドロップ・液体鉱脈・複数ドロップの3分岐はテストで固定する。
-- 「取得する」という語がゲーム内から消え、PickUp（小石を拾う）も「採掘」と呼ばれることになる。これはユーザーがプレビュー付きで選んだ帰結として受け入れる。
+- 名前を出す対象では「取得する」の語が「採掘」へ変わり、PickUp（小石を拾う）も「採掘」と呼ばれることになる。これはユーザーがプレビュー付きで選んだ帰結として受け入れる。ただし `earnItems` が空のmapObject（約60件）と液体鉱脈は既存キーへ落ちるため、従来の「取得」文言はゲーム内に残る。
+- 実装は master の `MouseCursorTooltip.Show(TooltipOwner, key, textParams)`（PR #1224 で導入された所有者トークン付きAPI）へ載せる。採掘系統は `MiningControllerContext.TooltipOwner` を共有する（実装時に確定・出所: agent前提）。

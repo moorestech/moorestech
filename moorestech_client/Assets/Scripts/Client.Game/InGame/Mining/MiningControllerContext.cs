@@ -18,7 +18,7 @@ namespace Client.Game.InGame.Mining
 
         public IMiningTargetObject CurrentFocusTarget { get; private set; }
 
-        // 毎フレームの再解決を避けるためフォーカス変化時だけ組み立てる
+        // フォーカス変化時だけ組み立てる
         // Built only when focus changes so no per-frame re-resolution happens
         public string CurrentFocusTargetEarnItemNames { get; private set; } = string.Empty;
 

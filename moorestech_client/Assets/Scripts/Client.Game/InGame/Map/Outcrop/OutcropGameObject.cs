@@ -52,7 +52,7 @@ namespace Client.Game.InGame.Map.Outcrop
             _handMiningAllowed = minableParam != null;
             _handMiningTools = _handMiningAllowed ? minableParam.HandMiningTools : NoHandMiningTools;
 
-            // 液体鉱脈は名前を持たない（ADR 0033）
+            // 液体鉱脈は名前を持たない
             // A fluid vein has no item name, so its name slot stays empty (ADR 0033)
             EarnItemGuids = element.VeinParam is ItemVeinParam itemVeinParam
                 ? new[] { itemVeinParam.ItemGuid }

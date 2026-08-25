@@ -7,9 +7,9 @@ using NUnit.Framework;
 namespace Client.Tests.Mining
 {
     /// <summary>
-    ///     取得物を持つ対象へ、名前を前置した文言が結果ごとに選ばれることを検証（ADR 0033）
+    ///     取得物ありの対象へ名前つき文言を出す（ADR 0033）
     ///     Verify the name-prefixed sentence is chosen per outcome for targets that yield items (ADR 0033)
-    ///     EditModeではmod辞書が載らないため名前は欠落マーカーへ解決される。ここで固定するのはGUIDの経路と並び順
+    ///     EditModeは名前が欠落マーカーになる
     ///     No mod dictionary is loaded in EditMode, so names resolve to the miss marker; what is pinned here is GUID routing and ordering
     /// </summary>
     public class MiningFocusStateEarnItemNameTest : MiningFocusStateTestFixture
@@ -63,7 +63,7 @@ namespace Client.Tests.Mining
             Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(EarnItemGuid)), shownParams[0]);
             Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(ToolItemGuid)), shownParams[1]);
 
-            // 取得物名とツール名が同一文字列なら経路の取り違えを検出できない
+            // 同一文字列だと取り違えを見逃す
             // Identical strings would hide a swapped route, so the two must differ
             Assert.AreNotEqual(shownParams[0], shownParams[1]);
         }

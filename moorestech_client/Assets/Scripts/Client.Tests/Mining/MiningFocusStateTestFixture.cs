@@ -37,7 +37,7 @@ namespace Client.Tests.Mining
             InputSystem.AddDevice<Mouse>();
             MiningTestReflection.ResetInputManagerCache();
 
-            // 文言解決は実辞書を通す。キーが辞書から外れた退行もここで落ちる
+            // 文言解決は実辞書を通す
             // Resolve text through the real dictionary so a key dropped from it fails here too
             Localize.Initialize();
             CreateTooltip();
@@ -81,7 +81,7 @@ namespace Client.Tests.Mining
             _stubTargetObjects.Add(stubTarget.GameObject);
             context.SetFocusTarget(stubTarget);
 
-            // 入力アセットを状態イベントより先に生成しないとバインドが解決されない
+            // 入力アセットは状態イベントより先に作る
             // The input asset must be created before the state event, otherwise its bindings never resolve
             Assert.IsFalse(InputManager.Playable.ScreenLeftClick.GetKey, "左クリックが押されていない前提が崩れている");
             return focusState.GetNextUpdate(context, 0.01f);

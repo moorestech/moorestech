@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Client.Tests.Mining
 {
     /// <summary>
-    ///     取得物を持たない対象で、フォーカス状態が結果ごとの遷移と従来文言を選ぶことを検証
+    ///     取得物なしの対象は従来文言を選ぶ
     ///     Verify the focus state picks the right transition and the nameless sentence for yield-less targets
     /// </summary>
     public class MiningFocusStateTest : MiningFocusStateTestFixture
