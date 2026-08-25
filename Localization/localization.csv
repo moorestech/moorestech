@@ -41,7 +41,7 @@ ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity
 ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze
 ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute
 ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden
-ui.blockInventory.recipeSelectionHint,Hover for details and click to select a recipe,Hover for details and click to select a recipe,レシピをホバーで詳細、クリックで選択,"Zeigen Sie für Details darauf und klicken Sie, um ein Rezept zu wählen"
+ui.blockInventory.recipeSelectionHint,Hover for details and click to select a recipe,Hover for details and click to select a recipe,レシピをホバーで詳細、クリックで選択,"Bewegen Sie den Mauszeiger darüber, um Details anzuzeigen, und klicken Sie, um ein Rezept auszuwählen"
 ui.blockInventory.electricToGearFulfillment,Fulfillment,Fulfillment,充足率,Deckung
 ui.blockInventory.electricToGearConsumedPower,Power consumption: {power} W,Power consumption: {power} W,消費電力: {power} W,Energieverbrauch: {power} W
 ui.blockInventory.electricToGearOutputMode,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} U/min / {torque} Nm / {power} W
@@ -50,7 +50,7 @@ ui.blockInventory.filterWhitelist,Whitelist,Whitelist,ホワイトリスト,Posi
 ui.blockInventory.filterBlacklist,Blacklist,Blacklist,ブラックリスト,Sperrliste
 ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index}
 ui.buildMenu.blueprintCopy,Blueprint Copy,Blueprint Copy,ブループリントコピー,Bauplan kopieren
-ui.buildMenu.detailHint,Hover over an item to view details,Hover over an item to view details,カーソルを合わせると詳細を表示します,"Zeigen Sie auf einen Eintrag, um Details zu sehen"
+ui.buildMenu.detailHint,Hover over an item to view details,Hover over an item to view details,カーソルを合わせると詳細を表示します,"Bewegen Sie den Mauszeiger über einen Eintrag, um Details anzuzeigen"
 ui.buildMenu.title,Build Menu,Build Menu,ビルドメニュー,Baumenü
 ui.buildMenu.noResults,No results,No results,該当なし,Keine Treffer
 ui.buildMenu.searchPlaceholder,Search,Search,検索,Suchen
@@ -82,13 +82,13 @@ ui.notification.researchNotCompletable,Cannot complete research (prerequisites o
 ui.notification.craftResultFull,Cannot craft: inventory is full,Cannot craft: inventory is full,クラフトできません: インベントリが満杯です,Herstellen nicht möglich: Inventar ist voll
 ui.notification.craftMaterialShortage,Cannot craft: not enough materials,Cannot craft: not enough materials,クラフトできません: 素材が不足しています,Herstellen nicht möglich: zu wenig Materialien
 ui.notification.removeTrainCarInventoryFull,Cannot remove train car: inventory is full,Cannot remove train car: inventory is full,車両を取り外せません: インベントリが満杯です,Waggon nicht entfernbar: Inventar ist voll
-ui.notification.miningInventoryFull,Some mined items were lost: inventory is full,Some mined items were lost: inventory is full,採掘したアイテムを一部失いました: インベントリが満杯です,Ein Teil des Abbaus ging verloren: Inventar ist voll
+ui.notification.miningInventoryFull,Some mined items were lost: inventory is full,Some mined items were lost: inventory is full,採掘したアイテムを一部失いました: インベントリが満杯です,Einige abgebaute Gegenstände gingen verloren: Inventar ist voll
 ui.notification.placeBlockNotUnlocked,Some blocks were not placed: not unlocked yet,Some blocks were not placed: not unlocked yet,一部のブロックを設置できませんでした: 未解放です,Einige Blöcke wurden nicht gesetzt: noch nicht freigeschaltet
 ui.notification.placeBlockCostShortage,Some blocks were not placed: not enough materials,Some blocks were not placed: not enough materials,一部のブロックを設置できませんでした: 素材が不足しています,Einige Blöcke wurden nicht gesetzt: zu wenig Materialien
 ui.notification.placeBlockWireShortage,Some blocks were not placed: not enough wires,Some blocks were not placed: not enough wires,一部のブロックを設置できませんでした: 電線が不足しています,Einige Blöcke wurden nicht gesetzt: zu wenig Kabel
 ui.notification.railEditInvalidNode,Rail edit failed: invalid rail node,Rail edit failed: invalid rail node,レール編集に失敗しました: 無効なレールノードです,Gleisbearbeitung fehlgeschlagen: ungültiger Gleisknoten
 ui.notification.railEditNodeInUseByTrain,Rail edit failed: a train is using this rail,Rail edit failed: a train is using this rail,レール編集に失敗しました: このレールを車両が使用中です,Gleisbearbeitung fehlgeschlagen: ein Zug benutzt dieses Gleis
-ui.notification.railEditStationInternalEdge,Rail edit failed: cannot edit station internal rail,Rail edit failed: cannot edit station internal rail,レール編集に失敗しました: 駅内部のレールは編集できません,Gleisbearbeitung fehlgeschlagen: Bahnhofsinternes Gleis ist nicht bearbeitbar
+ui.notification.railEditStationInternalEdge,Rail edit failed: cannot edit station internal rail,Rail edit failed: cannot edit station internal rail,レール編集に失敗しました: 駅内部のレールは編集できません,Gleisbearbeitung fehlgeschlagen: bahnhofsinternes Gleis kann nicht bearbeitet werden
 ui.notification.railEditInvalidMode,Rail edit failed,Rail edit failed,レール編集に失敗しました,Gleisbearbeitung fehlgeschlagen
 ui.notification.railEditNotEnoughRailItem,Rail edit failed: not enough rail materials,Rail edit failed: not enough rail materials,レール編集に失敗しました: レール素材が不足しています,Gleisbearbeitung fehlgeschlagen: zu wenig Gleismaterial
 ui.notification.railEditNotEnoughInventorySpace,Rail edit failed: inventory is full,Rail edit failed: inventory is full,レール編集に失敗しました: インベントリが満杯です,Gleisbearbeitung fehlgeschlagen: Inventar ist voll
@@ -179,7 +179,7 @@ ui.keyHint.key.driveKeys,W/S,W/S,W/S,W/S
 ui.keyHint.key.branchKeys,A/D,A/D,A/D,A/D
 ui.keyHint.key.leftAltHold,Left Alt (Hold),Left Alt (Hold),左Alt（長押し）,Alt links (halten)
 ui.keyHint.key.middleClick,Middle Click,Middle Click,中クリック,Mittelklick
-ui.keyHint.key.leftDrag,Left Drag,Left Drag,左ドラッグ,Links ziehen
+ui.keyHint.key.leftDrag,Left Drag,Left Drag,左ドラッグ,Mit links ziehen
 ui.keyHint.key.rightClick,Right Click,Right Click,右クリック,Rechtsklick
 ui.keyHint.key.doubleClick,Double Click,Double Click,ダブルクリック,Doppelklick
 ui.keyHint.key.shiftLeftClick,Shift + Left Click,Shift + Left Click,Shift+左クリック,Umschalt + Linksklick
@@ -232,7 +232,7 @@ ui.tooltip.placeRailNotEnoughRailItem,Not enough rail,Not enough rail,レール�
 ui.tooltip.placeRailCurveTooTight,Curve is too tight,Curve is too tight,カーブがきつすぎます,Kurve ist zu eng
 ui.tooltip.placeRailFailed,Cannot connect rail,Cannot connect rail,レールを接続できません,Gleis kann nicht verbunden werden
 ui.tooltip.placeTrainCarNoRoute,No rail for the train length,No rail for the train length,列車の長さ分のレールがありません,Kein Gleis für diese Zuglänge
-ui.tooltip.placeTrainCarOverlapsTrain,Overlaps an existing train,Overlaps an existing train,既存の列車と重なります,Überschneidet einen vorhandenen Zug
+ui.tooltip.placeTrainCarOverlapsTrain,Overlaps an existing train,Overlaps an existing train,既存の列車と重なります,Überschneidet sich mit einem vorhandenen Zug
 ui.loading.serverConnected,Connected to server  {p0},Connected to server  {p0},サーバーとの接続完了  {p0},Mit Server verbunden  {p0}
 ui.loading.initialDataFetched,Initial data received  {p0},Initial data received  {p0},初期データ取得完了  {p0},Anfangsdaten empfangen  {p0}
 ui.loading.blockAssetsLoaded,Block assets loaded  {p0},Block assets loaded  {p0},ブロックアセットロード完了  {p0},Block-Assets geladen  {p0}
