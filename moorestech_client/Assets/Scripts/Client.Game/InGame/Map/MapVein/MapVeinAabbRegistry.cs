@@ -34,10 +34,14 @@ namespace Client.Game.InGame.Map.MapVein
             }
         }
 
-        public bool IsInsideAnyVein(Vector3Int cell)
+        /// <summary>
+        ///     指定セルがその種別の鉱脈に入っているか。種別を跨いだ判定は採掘機/ポンプの掘れる条件とずれるため持たない
+        ///     Whether the cell sits inside a vein of that kind; no cross-kind query exists because it would diverge from what miners/pumps can actually extract
+        /// </summary>
+        public bool IsInsideVein(Vector3Int cell, MapVeinKind kind)
         {
             foreach (var vein in _veins)
-                if (vein.ContainsCell(cell))
+                if (vein.Kind == kind && vein.ContainsCell(cell))
                     return true;
 
             return false;

@@ -6,10 +6,10 @@ using UnityEngine;
 namespace Tests.UnitTest.Game
 {
     /// <summary>
-    ///     ドリル位置がコネクターのoffsetと同じ規約で回転換算されることを検証する
-    ///     Verifies the drill position rotates with the same convention as connector offsets
+    ///     ブロックローカルセルの回転換算を検証する（採掘機のドリル位置とコネクターのoffsetが共有する規約）
+    ///     Verifies the block-local cell conversion shared by miner drill positions and connector offsets
     /// </summary>
-    public class MinerDrillPositionCalculatorTest
+    public class BlockPositionInfoLocalToWorldCellTest
     {
         private static readonly Vector3Int BlockSize = new(2, 1, 3);
         private static readonly Vector3Int OriginPos = new(10, 4, -7);
@@ -34,7 +34,7 @@ namespace Tests.UnitTest.Game
             for (var x = 0; x < BlockSize.x; x++)
             for (var y = 0; y < BlockSize.y; y++)
             for (var z = 0; z < BlockSize.z; z++)
-                drillCells.Add(MinerDrillPositionCalculator.Calculate(blockPositionInfo, new Vector3Int(x, y, z)));
+                drillCells.Add(blockPositionInfo.ConvertBlockLocalToWorldCell(new Vector3Int(x, y, z)));
 
             CollectionAssert.AreEquivalent(occupiedCells, drillCells, $"drill cells do not cover the block footprint for {direction}");
         }
@@ -46,12 +46,12 @@ namespace Tests.UnitTest.Game
         [Test]
         public void 同じローカル位置でも向きが変わればワールドセルが変わる()
         {
-            var drillLocalPosition = new Vector3Int(1, 0, 2);
+            var blockLocalCell = new Vector3Int(1, 0, 2);
 
-            var north = MinerDrillPositionCalculator.Calculate(new BlockPositionInfo(OriginPos, BlockDirection.North, BlockSize), drillLocalPosition);
-            var east = MinerDrillPositionCalculator.Calculate(new BlockPositionInfo(OriginPos, BlockDirection.East, BlockSize), drillLocalPosition);
+            var north = new BlockPositionInfo(OriginPos, BlockDirection.North, BlockSize).ConvertBlockLocalToWorldCell(blockLocalCell);
+            var east = new BlockPositionInfo(OriginPos, BlockDirection.East, BlockSize).ConvertBlockLocalToWorldCell(blockLocalCell);
 
-            Assert.AreEqual(OriginPos + drillLocalPosition, north, "north placement must map the local cell straight onto the origin");
+            Assert.AreEqual(OriginPos + blockLocalCell, north, "north placement must map the local cell straight onto the origin");
             Assert.AreNotEqual(north, east, "east placement returned the same world cell as north");
         }
     }

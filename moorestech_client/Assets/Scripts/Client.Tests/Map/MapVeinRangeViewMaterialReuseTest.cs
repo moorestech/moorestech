@@ -81,13 +81,17 @@ namespace Client.Tests.Map
 
             for (var cycle = 0; cycle < ShowHideCycleCount; cycle++)
             {
-                service.SetVisibleVeinKind(null);
-                service.SetVisibleVeinKind(MapVeinKind.Item);
-                service.SetVisibleVeinKind(MapVeinKind.Fluid);
+                // 種別ごとに同じMaterialインスタンスが戻ってくること。表示毎の作り直しは命名にも破棄挙動にも依らずここで落ちる
+                // The very same Material instance must come back for each kind; per-show rebuilding fails here without relying on naming or destroy behaviour
+                var cycleMaterials = new HashSet<Material>();
+                foreach (var veinKind in new[] { MapVeinKind.Item, MapVeinKind.Fluid })
+                {
+                    service.SetVisibleVeinKind(null);
+                    service.SetVisibleVeinKind(veinKind);
+                    cycleMaterials.UnionWith(CollectVisibleBoxMaterials(root));
+                }
 
-                // 同じMaterialインスタンスが戻ってくること。表示毎の作り直しは命名にも破棄挙動にも依らずここで落ちる
-                // The very same Material instances must come back; per-show rebuilding fails here without relying on naming or destroy behaviour
-                Assert.IsTrue(sharedMaterials.IsSupersetOf(CollectVisibleBoxMaterials(root)), $"range box materials were rebuilt on cycle {cycle}");
+                Assert.IsTrue(sharedMaterials.SetEquals(cycleMaterials), $"range box materials were rebuilt on cycle {cycle}");
                 Assert.AreEqual(materialBaseline, CountRangeBoxMaterials(), $"range box materials increased on cycle {cycle}");
                 Assert.AreEqual(boxBaseline, root.childCount, $"range box objects increased on cycle {cycle}");
             }

@@ -73,7 +73,7 @@ namespace Game.Block.Blocks.Miner
             {
                 // 掘れるかどうかは見た目上のドリルが重なっているveinで決まる
                 // What can be mined is decided by the vein the visual drill overlaps
-                var drillPos = MinerDrillPositionCalculator.Calculate(blockPositionInfo, drillLocalPosition);
+                var drillPos = blockPositionInfo.ConvertBlockLocalToWorldCell(drillLocalPosition);
                 List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetOverVeins(drillPos);
                 foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
                 if (veins.Count == 0) return;

@@ -66,9 +66,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // Take the placement target and its origin as one pair from the transition payload and hand them to the owner (falls back to Empty when absent)
             if (context.TryGetContext<PlacementSelection>(out var selection)) _placeSystemStateController.SetTarget(selection.Target, selection.Origin);
 
-            // 表示種別は設置対象の購読がプッシュ済み。ここでは何も押し込まない
-            // The target subscription already pushed the vein kind, so nothing is pushed here
-
             // 視点別カーソル/回転ポリシーを適用
             // Apply the per-view-mode cursor/rotation policy
             _cameraPolicyService.EnterBuildMode();
@@ -133,8 +130,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
             _placeSystemStateController.ManualUpdate();
 
-            // カメラ追従の距離カリングだけを駆動する。表示のON/OFFはOnEnter/OnExitがプッシュ済み
-            // Drive only the camera-following distance culling; visibility was already pushed by OnEnter/OnExit
+            // カメラ追従の距離カリングだけを駆動する。表示種別は設置対象の購読がプッシュ済み
+            // Drive only the camera-following distance culling; the vein kind was already pushed by the target subscription
             _mapVeinRangeView.ManualUpdate();
 
             // Ctrl+Z判定はサービス内部
@@ -162,7 +159,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // 離脱時点の押下状態を持ち越さない。復帰後の誤長押し判定を防ぐ
             // Discard the press state as of this exit so a later re-entry can't misfire a long press
             _hotbarInputService.ResetKeyState();
-
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {

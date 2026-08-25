@@ -59,6 +59,12 @@ defineInterface:
   # Block-local cell occupied by the visual drill; mining works when it overlaps a vein
   - key: drillLocalPosition
     type: vector3Int
+- interfaceName: IPumpParam
+  properties:
+  - key: generateFluid
+    ref: generateFluids
+  - key: innerTankCapacity
+    type: number
 - interfaceName: IInventoryConnectors
   properties:
   - key: inventoryConnectors
@@ -875,6 +881,7 @@ properties:
       - when: GearPump
         type: object
         implementationInterface:
+        - IPumpParam
         - IGearConnectors
         properties:
         - key: generateFluid
@@ -891,6 +898,7 @@ properties:
       - when: ElectricPump
         type: object
         implementationInterface:
+        - IPumpParam
         - IElectricWireConnectParam
         properties:
         - key: generateFluid
