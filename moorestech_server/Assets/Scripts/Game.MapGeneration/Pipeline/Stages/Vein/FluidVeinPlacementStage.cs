@@ -14,18 +14,21 @@ namespace Game.MapGeneration.Pipeline.Stages
         public static List<PlacedVein> Generate(
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
-            IReadOnlyList<PlacedVein> itemVeins, TilePlacementContext tile)
+            TilePlacementContext tile)
         {
             var ore = config.oreConfig;
             if (!config.generateOre || ore.fluidEntries.Length == 0) return new List<PlacedVein>();
 
             // item鉱脈とは別の乱数列を使い、同一seedでも配置候補列を独立させる
             // Use a distinct random stream so item and fluid candidate sequences stay independent under the same seed
-            return VeinPlacementCore.Generate(
+            var placement = VeinPlacementCore.Generate(
                 ore.fluidEntries, ore.borderMargin,
                 config, masks, biomeTypes, heights2D, treeEntries, objectPlacements,
-                FluidVeinRngSeedOffset, itemVeins,
+                FluidVeinRngSeedOffset, tile.Halo.CreateConfirmedVeinSnapshot(
+                    config.worldOffsetX, config.worldOffsetZ, config.terrainWidth, config.terrainLength),
                 tile, tile.Halo.FluidVeinMembers, tile.Halo.FluidVeinCenters);
+            tile.Halo.CommitFluidVeins(placement);
+            return placement.Veins;
         }
     }
 }

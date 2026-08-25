@@ -9,6 +9,11 @@ type Props = { entry: BuildMenuDisplayEntry | null };
 // §8.11 sticky detail sidebar; shows a hint when nothing is selected
 export function BuildMenuDetailSidebar({ entry }: Props) {
   const { t } = useI18n();
+
+  // 複数設置はホストが財布判定済みの setPlacement で届く。有無だけで分岐する
+  // Multi-placement arrives as the host's already-decided setPlacement; branch on presence alone
+  const setPlacement = entry !== null && entry.kind === "block" ? entry.setPlacement ?? null : null;
+
   return (
     <div className={styles.detail} data-testid="build-menu-detail">
       {entry === null ? (
@@ -22,13 +27,22 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
           <FadeRule />
           {entry.requiredItems.length > 0 && (
             <>
-              <span className={styles.detailCostLabel}>{t(L.ui.buildMenu.requiredItems)}</span>
+              <span className={styles.detailCostLabel}>
+                {setPlacement !== null
+                  ? t(L.ui.buildMenu.requiredItemsPerSet, { count: setPlacement.perCost })
+                  : t(L.ui.buildMenu.requiredItems)}
+              </span>
               <SlotGrid cols={3}>
                 {entry.requiredItems.map((item) => (
                   <ItemSlot key={item.itemId} itemId={item.itemId} count={item.count} />
                 ))}
               </SlotGrid>
             </>
+          )}
+          {setPlacement !== null && (
+            <span className={styles.detailCostLabel} data-testid="build-menu-remaining-placements">
+              {t(L.ui.buildMenu.remainingPlacementCount, { count: setPlacement.remaining })}
+            </span>
           )}
         </>
       )}

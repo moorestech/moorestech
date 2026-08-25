@@ -82,6 +82,15 @@ namespace Core.Master.Validator
                                 }
                                 break;
                             }
+                            case EquipItemTaskParam equipItem:
+                            {
+                                var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(equipItem.ItemGuid);
+                                if (itemId == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.ItemGuid:{equipItem.ItemGuid}\n";
+                                }
+                                break;
+                            }
                             default:
                                 logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated TaskParam type:{challenge.TaskParam?.GetType().Name}\n";
                                 break;
@@ -105,10 +114,37 @@ namespace Core.Master.Validator
                             {
                                 case MapObjectPinTutorialParam mapObjectPin:
                                 {
-                                    var mapObject = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mapObjectPin.MapObjectGuid);
-                                    if (mapObject == null)
+                                    // 狙い先のitemGuidは他5caseと同形にItemMasterで先に突き合わせる
+                                    // The target itemGuid is checked against ItemMaster first, matching the other five cases
+                                    if (mapObjectPin.PinTargetParam is EarnItemPinTargetParam byEarnItem &&
+                                        MasterHolder.ItemMaster.GetItemIdOrNull(byEarnItem.ItemGuid) == null)
                                     {
-                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.MapObjectGuid:{mapObjectPin.MapObjectGuid}\n";
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.ItemGuid:{byEarnItem.ItemGuid}\n";
+                                        break;
+                                    }
+
+                                    // 狙い先の解決規則はChallengeMasterが唯一の持ち主。種別が増えてもこのブロックは変えない
+                                    // ChallengeMaster owns the only resolution rule, so adding a target kind never touches this block
+                                    if (!MasterHolder.ChallengeMaster.TryResolvePinTargets(mapObjectPin, out var pinTargets))
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated PinTargetParam type:{mapObjectPin.PinTargetParam?.GetType().Name}\n";
+                                        break;
+                                    }
+
+                                    // 解決先が空のピンは指す先が永久に現れず達成不能なチュートリアルになる
+                                    // A pin resolving to nothing never gets a target, making the tutorial impossible to complete
+                                    if (pinTargets.Count == 0)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has a mapObjectPin resolving to no MapObject. PinTargetType:{mapObjectPin.PinTargetType}\n";
+                                        break;
+                                    }
+
+                                    foreach (var pinTarget in pinTargets)
+                                    {
+                                        if (MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(pinTarget) == null)
+                                        {
+                                            logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.MapObjectGuid:{pinTarget}\n";
+                                        }
                                     }
                                     break;
                                 }

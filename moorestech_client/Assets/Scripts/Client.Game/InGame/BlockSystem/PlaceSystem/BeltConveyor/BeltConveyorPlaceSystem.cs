@@ -14,6 +14,7 @@ using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
+using Game.Construction;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
@@ -29,6 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
     {
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _localPlayerInventory;
+        private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlacePointCalculator _blockPlacePointCalculator;
 
@@ -38,11 +40,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory)
+        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
+            _constructionWalletQuery = constructionWalletQuery;
             _blockPlacePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
         }
 
@@ -111,7 +114,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-            PlacementCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(_currentPlaceInfos, _localPlayerInventory, feedback);
+            // ファミリー内は建設コストと設置数/1セットが一致する（マスタ検証済み）ので先頭の設置可セルを代表にする
+            // Cost and placementsPerCost match within a family (validated at master load), so the first placeable cell is representative
+            var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
+            if (0 <= representativeIndex)
+            {
+                var representativeBlockId = _currentPlaceInfos[representativeIndex].BlockId;
+                ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
+                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory);
+            }
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state

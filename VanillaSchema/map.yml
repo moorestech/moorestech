@@ -32,19 +32,6 @@ properties:
       options:
       - tree
       - stone
-    # このMapObjectが周囲の地形へ及ぼす見た目の効果。treeRootPatchは根元へ土の斑を塗り木用半径で草を間引き、
-    # rockBareGroundは周囲を裸地へ塗り替えオブジェクト用半径で草を間引く。rockNoBareGroundは裸地を塗らずオブジェクト用半径で草だけ間引く
-    # （移植元MapMakingはBoulder/Cliff名の岩だけ裸地化するため、瓦礫・メサ・小岩はこちら）。効果音の分類(soundEffectType)とは別軸
-    # The visual effect this MapObject has on the terrain around it: treeRootPatch paints a soil patch at the base and thins
-    # grass at the tree radius, rockBareGround repaints the surroundings as bare ground and thins grass at the object radius, and
-    # rockNoBareGround only thins grass at the object radius without bare ground (the source MapMaking repaints only Boulder/Cliff
-    # rocks, so rubble, mesas and small rocks go here). A separate axis from the sound classification (soundEffectType)
-    - key: terrainSurroundEffectType
-      type: enum
-      options:
-      - treeRootPatch
-      - rockBareGround
-      - rockNoBareGround
     - key: earnItems
       type: array
       items:
@@ -94,6 +81,12 @@ properties:
             - key: attackSpeed
               type: number
               default: 1
+    - key: distanceVisibilityType
+      type: enum
+      default: cullable
+      options:
+      - cullable
+      - landmark
 - key: mapVeins
   type: array
   overrideCodeGeneratePropertyName: MapVeinMasterElement
@@ -140,6 +133,13 @@ properties:
       options:
       - tree
       - stone
+    - key: terrainSurroundEffectType
+      type: enum
+      options:
+      - rockBareGround
+      - rockNoBareGround
+      # 鉱脈の配置点が地形へ与える効き方。岩と同じ2値で、裸地を塗るか距離場だけに乗せるかを選ぶ
+      # How a vein's placement affects the terrain: the same two rock values, choosing bare-ground painting or the distance field alone
     - key: handMiningType
       type: enum
       options:

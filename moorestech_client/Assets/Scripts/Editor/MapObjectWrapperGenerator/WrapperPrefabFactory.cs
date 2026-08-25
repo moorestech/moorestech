@@ -5,6 +5,7 @@ using Client.Common;
 using Client.Game.InGame.Map.MapObject;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 
 // BKへアウトライン・レイターゲット・HPバーを付与
@@ -57,9 +58,21 @@ public static class WrapperPrefabFactory
         serializedMapObject.FindProperty("mapObjectGuid").stringValue = species.mapObjectGuid;
         serializedMapObject.ApplyModifiedPropertiesWithoutUndo();
 
+        // 静的mapObjectは動的probe補間を使わず、全Rendererを同じauthoring規則へ揃える
+        // Static map objects skip dynamic probe interpolation, applying one authoring rule to every Renderer
+        DisableProbeSampling(root);
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(species.wrapperPath)));
         PrefabUtility.SaveAsPrefabAsset(root, species.wrapperPath);
         UnityEngine.Object.DestroyImmediate(root);
+    }
+
+    private static void DisableProbeSampling(GameObject root)
+    {
+        foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
+        {
+            renderer.lightProbeUsage = LightProbeUsage.Off;
+            renderer.reflectionProbeUsage = ReflectionProbeUsage.Off;
+        }
     }
 
     // BKが持つ当たり判定がDefaultレイヤーに残ると設置レイなど汎用レイキャストが樹木へ刺さるので、既存Tree.prefabと同じくMapObjectへ寄せる

@@ -54,8 +54,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -197,6 +197,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2013211040353621210, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2013211040353621210, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3815834745431764686, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3815834745431764686, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5208725457735019876, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -252,6 +268,14 @@ PrefabInstance:
     - target: {fileID: 7962962427466982767, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8296628191883380461, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8296628191883380461, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8933079369970610402, guid: 0d75acab84264e798532b33ee0a54722, type: 3}
       propertyPath: m_Layer
@@ -318,7 +342,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.1890168
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.z

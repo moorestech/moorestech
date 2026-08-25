@@ -12,6 +12,8 @@ using Game.Block.Interface.Event;
 using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom;
+using Game.Construction;
+using Server.Protocol.PacketResponse.Util.Construction;
 using Game.Context;
 using Game.Crafting.Interface;
 using Game.EnergySystem;
@@ -198,6 +200,11 @@ namespace Server.Boot
             services.AddSingleton<HotbarAssignmentDatastore>();
             services.AddSingleton<IHotbarAssignmentLookup>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
             services.AddSingleton<IHotbarAssignmentMutation>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
+            services.AddSingleton<RemainingPlacementCountDataStore>();
+            services.AddSingleton<IRemainingPlacementCountLookup>(provider => provider.GetRequiredService<RemainingPlacementCountDataStore>());
+            services.AddSingleton<IRemainingPlacementCountMutation>(provider => provider.GetRequiredService<RemainingPlacementCountDataStore>());
+            services.AddSingleton<ConstructionPayerDataStore>();
+            services.AddSingleton<ConstructionWalletService>();
 
             services.AddSingleton<ResearchEvent>();
 
@@ -242,6 +249,7 @@ namespace Server.Boot
             // Save requests (auto-save and client requests) funnel into the coordinator; execution happens only at the tick-end stable point
             services.AddSingleton<WorldSaveCoordinator>();
             services.AddSingleton<IWorldSaveRequest>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
+            services.AddSingleton<IWorldSaveCompletionNotifier>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
 
             //イベントを登録
             // Register events.
@@ -263,9 +271,11 @@ namespace Server.Boot
             services.AddSingleton<CompletedChallengeEventPacket>();
             services.AddSingleton<ResearchCompleteEventPacket>();
             services.AddSingleton<ItemStackLevelUnlockEventPacket>();
+            services.AddSingleton<WorldSaveCompletedEventPacket>();
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<HotbarUpdateEventPacket>();
+            services.AddSingleton<RemainingPlacementCountChangedEventPacket>();
             services.AddSingleton<UnlockedEventPacket>();
             services.AddSingleton<RailNodeCreatedEventPacket>();
             services.AddSingleton<RailConnectionCreatedEventPacket>();

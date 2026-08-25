@@ -1,4 +1,7 @@
 using System.IO;
+using Core.Master;
+using Mod.Config;
+using Mod.Loader;
 using Mooresmaster.Loader.GenerationModule;
 using Mooresmaster.Model.GenerationModule;
 using Newtonsoft.Json.Linq;
@@ -55,21 +58,42 @@ namespace Tests.UnitTest.Game.MapGeneration
         // Builds with arbitrary algorithmParam fields replaced, for tests varying a single coordinate-system condition.
         public static Generation CreateWithAlgorithmParamOverrides(SpawnSearchSetup spawnSearchSetup, JObject algorithmParamOverrides)
         {
-            return CreateWithMapObjectGuid(spawnSearchSetup, algorithmParamOverrides, TestMapObjectGuid);
+            return GenerationLoader.Load(CreateJsonWithMapObjectGuid(spawnSearchSetup, algorithmParamOverrides, TestMapObjectGuid));
         }
 
         // 任意のMapObject GUIDを1件だけ持つ生成設定を作り、変換境界の検査に使う。
         // Build generation config with one arbitrary MapObject GUID for conversion-boundary validation.
         public static Generation CreateWithMapObjectGuid(string mapObjectGuid)
         {
-            return CreateWithMapObjectGuid(SpawnSearchSetup.Enabled, new JObject(), mapObjectGuid);
+            return GenerationLoader.Load(CreateJsonWithMapObjectGuid(SpawnSearchSetup.Enabled, new JObject(), mapObjectGuid));
         }
 
-        private static Generation CreateWithMapObjectGuid(
+        // scale差だけのmasterでdrift検証
+        // Loads a scale-only master change for drift verification.
+        public static void LoadMasterWithMapObjectScaleForProvisioning(float scale)
+        {
+            var root = CreateJsonWithMapObjectGuid(SpawnSearchSetup.Enabled, new JObject(), TestMapObjectGuid);
+            var algorithmParam = (JObject)root["algorithmParam"];
+            var entries = (JArray)((JObject)((JObject)algorithmParam["grassland"])["objectConfig"])["entries"];
+            ((JObject)entries[0])["scaleRange"] = new JArray(scale, scale);
+
+            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
+            var masterContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
+            masterContainer.ConfigJsons[0].JsonContents[new JsonFileName("generation")] =
+                root.ToString(Newtonsoft.Json.Formatting.None);
+            MasterHolder.Load(masterContainer);
+        }
+
+        private static JObject CreateJsonWithMapObjectGuid(
             SpawnSearchSetup spawnSearchSetup,
             JObject algorithmParamOverrides,
             string mapObjectGuid)
         {
+            // 鉱脈配置段がveinGuidでmapVeinsマスタを引くため、同じmodのマスタを先にロードする
+            // The vein placement stage resolves mapVeins by veinGuid, so load the same mod's masters first
+            var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
+            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
+
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
                 "mods", "forUnitTest", "master", "generation.json");
             var root = JObject.Parse(File.ReadAllText(path));
@@ -78,6 +102,10 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 小さく速い1タイルマップにする（プリセット無視・直接解像度指定）。
             // Make a small, fast single-tile map (bypass preset, set resolution directly).
             ap["overrideResolution"] = spawnSearchSetup == SpawnSearchSetup.Disabled ? 129 : 0;
+
+            // detail解像度はheightmapとは独立なので、解像度を落としたら一緒に落とす。masterの値のままだとheightmapより細かくなる
+            // The detail resolution is independent of the heightmap, so lowering one lowers the other; the master's value would otherwise out-resolve the heightmap
+            if (spawnSearchSetup == SpawnSearchSetup.Disabled) ap["detailResolution"] = 128;
 
             // forUnitTest の generation.json は 5x5 なので、多タイルを要らないテストのために 1x1 へ落とす。
             // 5x5 を要るテスト（スポーン探索系）は algorithmParamOverrides で明示的に戻すこと。
@@ -120,7 +148,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             foreach (var overrideProperty in algorithmParamOverrides.Properties())
                 ap[overrideProperty.Name] = overrideProperty.Value;
 
-            return GenerationLoader.Load(root);
+            return root;
 
             #region Internal
 
@@ -159,7 +187,24 @@ namespace Tests.UnitTest.Game.MapGeneration
                 return new JObject
                 {
                     ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = mapObjectGuid }),
-                    ["density"] = 1.0,
+                    ["terrainSurroundEffectType"] = "rockNoBareGround",
+                    // 外半径・densityが互いに違う2帯にして、帯とリングの対応が入れ替わる改変を転写テストで捕まえる
+                    // Two bands differing in both radius and density, so a mix-up between bands and rings fails the transcription test
+                    ["placementMode"] = "scatter",
+                    ["placementParam"] = new JObject
+                    {
+                        ["bands"] = new JArray(
+                            new JObject
+                            {
+                                ["outerRadiusMeters"] = 250.0,
+                                ["pointsPerHectare"] = 2.0,
+                            },
+                            new JObject
+                            {
+                                ["outerRadiusMeters"] = -1,
+                                ["pointsPerHectare"] = 1.0,
+                            }),
+                    },
                     ["scaleRange"] = new JArray(1.0, 1.0),
                     ["slopeAlignment"] = 0.0,
                     ["sinkRange"] = new JArray(0.0, 0.0),
@@ -171,10 +216,6 @@ namespace Tests.UnitTest.Game.MapGeneration
                     ["slopeMin"] = 0.0,
                     ["slopeMax"] = 90.0,
                     ["slopeSmoothness"] = 4.0,
-                    ["useClusterMode"] = false,
-                    ["clusterCount"] = 8,
-                    ["objectsPerCluster"] = 4,
-                    ["clusterRadius"] = 12.0,
                     ["minDistanceFromTree"] = 0.0,
                     ["maxDistanceFromTree"] = 0.0,
                 };

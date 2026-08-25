@@ -27,6 +27,7 @@
       "maxExpandIterations": 4
     },
     "resolutionPreset": "_512",
+    "detailResolution": 512,
     "terrainHeight": 600,
     "terrainWidth": 1000,
     "terrainLength": 1000,
@@ -73,19 +74,7 @@
       "boundaryNoiseHighWeight": 0.3
     },
     "oreConfig": {
-      "entries": [
-        {
-          "veinGuid": "22222222-0000-0000-0000-000000000001",
-          "biomes": [
-            "Grassland"
-          ],
-          "bands": [],
-          "useSlopeFilter": true,
-          "slopeMax": 30,
-          "slopeSmoothness": 5,
-          "minDistanceFromOthers": 3
-        }
-      ],
+      "entries": [],
       "fluidEntries": [],
       "borderMargin": 5
     },

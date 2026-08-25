@@ -12,14 +12,14 @@ namespace Game.MapGeneration.Pipeline.Stages
     // Shared placement independent of vein type
     public static class VeinPlacementCore
     {
-        public static List<PlacedVein> Generate(
+        internal static ConfirmedVeinPlacementBatch Generate(
             OreEntry[] entries, float borderMargin,
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
             int rngSeedOffset, IReadOnlyList<PlacedVein> excludedVeins,
-            TilePlacementContext tile, PlacementHaloChannel memberHalo, PlacementHaloChannel centerHalo)
+            TilePlacementContext tile, PlacementHaloChannel memberHalo, PlacementHaloChannelMap centerHalos)
         {
-            if (entries.Length == 0) return new List<PlacedVein>();
+            if (entries.Length == 0) return new ConfirmedVeinPlacementBatch();
 
             int biomeCount = biomeTypes.Length;
             int res = config.Resolution;
@@ -40,27 +40,40 @@ namespace Game.MapGeneration.Pipeline.Stages
             var dims = TerrainDimensions.From(config, 0f, tile.TileIndexX, tile.TileIndexZ);
             var rng = new System.Random(TileSeedMixer.Mix(
                 config.seed + rngSeedOffset, tile.TileIndexX, tile.TileIndexZ));
-            var members = OrePlacementGenerator.GenerateForWorld(
+            var placement = OrePlacementGenerator.GenerateForWorld(
                 entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid,
-                memberHalo, centerHalo, tile.Halo.Radius);
+                memberHalo, centerHalos, tile.Halo.Radius);
 
             // 点ごとに固定サイズの鉱脈を生成。
             // Emit one fixed-size vein per point.
-            return BuildVeins(members);
+            return BuildVeins(placement);
 
             #region Internal
 
-            List<PlacedVein> BuildVeins(List<PlacementEntry> placedMembers)
+            ConfirmedVeinPlacementBatch BuildVeins(VeinPlacementBatch generated)
             {
                 // 配置順をそのまま出力順にする
                 // The placement order becomes the output order
-                var veins = new List<PlacedVein>();
-                foreach (var member in placedMembers)
+                var confirmed = new ConfirmedVeinPlacementBatch();
+                foreach (var generatedCluster in generated.Clusters)
                 {
-                    var vein = VeinAabbBuilder.Build(member.MapObjectGuid, member.WorldPosition);
-                    if (!OverlapsExcludedVein(vein)) veins.Add(vein);
+                    var confirmedCluster = new ConfirmedVeinCluster(
+                        generatedCluster.VeinGuid, generatedCluster.WorldCenter);
+                    foreach (var member in generatedCluster.Members)
+                    {
+                        var vein = VeinAabbBuilder.Build(member.MapObjectGuid, member.WorldPosition);
+                        if (OverlapsExcludedVein(vein)) continue;
+
+                        confirmed.Veins.Add(vein);
+                        confirmedCluster.Members.Add(member);
+                    }
+
+                    // 全メンバーが除外された中心はhaloへcommitしない。
+                    // A center whose members were all excluded never commits to the halo.
+                    if (confirmedCluster.Members.Count != 0)
+                        confirmed.Clusters.Add(confirmedCluster);
                 }
-                return veins;
+                return confirmed;
             }
 
             bool OverlapsExcludedVein(PlacedVein candidate)

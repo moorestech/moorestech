@@ -1,8 +1,9 @@
 using System.Collections.Generic;
-using Client.Game.InGame.Environment.Terrain.Visual;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
+using Tests.UnitTest.Game.MapGeneration.Visual.Detail;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest
@@ -30,18 +31,18 @@ namespace Client.Tests.UnitTest
         [Test]
         public void LeavesMaskedOutHeightmapCellEmptyAtItsMappedDetailPixel()
         {
-            // detail x=2 は round(2/3*4)=3 で heightmap x=3 に写る。zとxを取り違えるとこの1点が動く
-            // Detail x=2 maps to heightmap x=3 via round(2/3*4); swapping z and x moves this single hole
+            // detail x=8 は round(8/15*16)=9 で heightmap x=9 に写る。zとxを取り違えるとこの1点が動く
+            // Detail x=8 maps to heightmap x=9 via round(8/15*16); swapping z and x moves this single hole
             var mask = DetailTestConfigBuilder.CreateFullMask();
-            mask[0, 3] = false;
+            mask[0, 9] = false;
 
             var maps = Generate(mask, DetailTestConfigBuilder.CreateFlatSlopes(0f), DetailTestConfigBuilder.CreateEntry(1f, 16));
 
-            Assert.That(maps[0][0, 2], Is.EqualTo(0));
+            Assert.That(maps[0][0, 8], Is.EqualTo(0));
             Assert.That(maps[0][0, 0], Is.EqualTo(16));
             Assert.That(maps[0][0, 1], Is.EqualTo(16));
             Assert.That(maps[0][0, 3], Is.EqualTo(16));
-            Assert.That(maps[0][2, 2], Is.EqualTo(16), "z方向のマスクは落としていないので残る");
+            Assert.That(maps[0][8, 8], Is.EqualTo(16), "z方向のマスクは落としていないので残る");
         }
 
         [Test]
@@ -50,7 +51,7 @@ namespace Client.Tests.UnitTest
             // 傾斜45度は range(0,10) の外なのでフィルタ0となり棄却される
             // A 45-degree slope sits outside range(0,10), so the filter yields 0 and the pixel is rejected
             var slopes = DetailTestConfigBuilder.CreateFlatSlopes(0f);
-            slopes[0, 3] = 45f;
+            slopes[0, 9] = 45f;
 
             var entry = DetailTestConfigBuilder.CreateEntry(1f, 16);
             entry.slopeFilter.enabled = true;
@@ -59,8 +60,33 @@ namespace Client.Tests.UnitTest
 
             var maps = Generate(DetailTestConfigBuilder.CreateFullMask(), slopes, entry);
 
-            Assert.That(maps[0][0, 2], Is.EqualTo(0));
+            Assert.That(maps[0][0, 8], Is.EqualTo(0));
             Assert.That(maps[0][0, 0], Is.EqualTo(16));
+        }
+
+        [TestCase(-16)]
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(15)]
+        [TestCase(17)]
+        [TestCase(32)]
+        public void RejectsDetailResolutionOutsideTheRuntimeContract(int detailResolution)
+        {
+            // 不正値は配列確保や座標除算へ進めずruntime境界で拒否する
+            // Reject invalid values at the runtime boundary before allocation or coordinate division
+            var dimensions = new TerrainDimensions(
+                100f, 100f, 50f, 0f, 0f, HeightmapResolution, detailResolution,
+                0f, 0f, 1, 0f, 0f, 0, 0, 1, 1);
+            var detailConfig = new BiomeDetailConfig
+            {
+                entries = new[] { DetailTestConfigBuilder.CreateEntry(1f, 16) },
+                filterRejectThreshold = 0.01f,
+            };
+
+            Assert.Throws<System.InvalidOperationException>(() => DetailRuntimeGenerator.GenerateForBiome(
+                DetailTestConfigBuilder.CreateFullMask(), new float[HeightmapResolution, HeightmapResolution],
+                DetailTestConfigBuilder.CreateFlatSlopes(0f), dimensions, detailConfig, new System.Random(1),
+                null, null, null));
         }
 
         [Test]
@@ -111,8 +137,8 @@ namespace Client.Tests.UnitTest
         [Test]
         public void KeepsMapsInTheEntryOrder()
         {
-            // mapsの並びはentriesの並びそのもの。TerrainDetailPrototypeListが同じ並びでプロトタイプを組む前提
-            // The map order is exactly the entry order, the premise TerrainDetailPrototypeList builds its prototypes on
+            // mapsの並びはentriesの並びそのもの。DetailPrototypeAssetResolverが同じ並びでプロトタイプを組む前提
+            // The map order is exactly the entry order, the premise DetailPrototypeAssetResolver builds its prototypes on
             var firstEntry = DetailTestConfigBuilder.CreateEntry(1f, 16);
             var secondEntry = DetailTestConfigBuilder.CreateEntry(0.5f, 16);
 
@@ -135,7 +161,7 @@ namespace Client.Tests.UnitTest
             return DetailRuntimeGenerator.GenerateForBiome(
                 mask, new float[HeightmapResolution, HeightmapResolution], slopes,
                 DetailTestConfigBuilder.CreateDimensions(), detailConfig, new System.Random(1),
-                null, null, null, null);
+                null, null, null);
         }
     }
 }

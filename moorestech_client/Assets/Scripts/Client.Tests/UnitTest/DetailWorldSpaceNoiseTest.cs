@@ -1,8 +1,9 @@
-using Client.Game.InGame.Environment.Terrain.Visual;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Detail.Filter;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using NUnit.Framework;
+using Tests.UnitTest.Game.MapGeneration.Visual.Detail;
 using UnityEngine;
 
 namespace Client.Tests.UnitTest
@@ -90,7 +91,7 @@ namespace Client.Tests.UnitTest
             var dimensions = new TerrainDimensions(
                 terrainWidth: TerrainWidth, terrainLength: TerrainLength, terrainHeight: 50f,
                 worldOffsetX: worldOffsetX, worldOffsetZ: worldOffsetZ,
-                resolution: HeightmapResolution, seaLevel: 0f, shoreMinHeight: 0f, seed: 1,
+                resolution: HeightmapResolution, detailResolution: DetailResolution, seaLevel: 0f, shoreMinHeight: 0f, seed: 1,
                 spawnWorldX: 0f, spawnWorldZ: 0f,
                 tileIndexX: 0, tileIndexZ: 0, gridSizeX: 1, gridSizeZ: 1);
 
@@ -104,7 +105,7 @@ namespace Client.Tests.UnitTest
             return DetailRuntimeGenerator.GenerateForBiome(
                 DetailTestConfigBuilder.CreateFullMask(), new float[HeightmapResolution, HeightmapResolution],
                 DetailTestConfigBuilder.CreateFlatSlopes(0f), dimensions, detailConfig,
-                new System.Random(DetailSeed), null, null, null, null)[0];
+                new System.Random(DetailSeed), null, null, null)[0];
         }
     }
 }

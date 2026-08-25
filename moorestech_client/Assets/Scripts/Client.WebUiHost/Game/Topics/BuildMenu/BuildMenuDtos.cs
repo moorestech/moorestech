@@ -32,6 +32,10 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         public string SubCategoryGuid;
         public List<BuildMenuRequiredItemDto> RequiredItems;
 
+        // 財布を使うブロックだけが設置数/1セットと残り設置数を持つ。判定はホスト側の財布が済ませ、null でキー省略される
+        // Only wallet-backed blocks carry the per-set count and the remainder; the host-side wallet decides, and null omits the key
+        public BuildMenuSetPlacementDto SetPlacement;
+
         // アイコン無し（BP・BPコピー）は null でキー省略される
         // Null (thus key-omitted) for icon-less entries: blueprints and the copy tool
         public string IconUrl;
@@ -41,5 +45,11 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         public int ItemId;
         public int Count;
+    }
+
+    public class BuildMenuSetPlacementDto
+    {
+        public int PerCost;
+        public int Remaining;
     }
 }

@@ -1,0 +1,421 @@
+// ドラッグガイド矢印の中核ゲート（両anchor ready時のみ描画）を検証する
+// Verifies the drag-guide's core gate: it renders only while both anchors are ready
+import { createElement } from "react";
+import { act, create } from "react-test-renderer";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ResolvedAnchor } from "@/shared/tutorialAnchor";
+import { dispatchAction } from "@/bridge";
+import type { TutorialPresentationData } from "@/bridge";
+
+const mockState = vi.hoisted(() => ({
+  presentation: null as TutorialPresentationData | null,
+  // anchorId -> このanchorを購読しているリスナー集合
+  // anchorId -> the set of listeners subscribed to it
+  listeners: new Map<string, Set<(value: ResolvedAnchor) => void>>(),
+  itemMaster: new Map<number, unknown>() as Map<number, unknown> | null,
+}));
+
+vi.mock("@/bridge", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/bridge")>();
+  return {
+    ...actual,
+    useTopic: () => mockState.presentation,
+    useItemMaster: () => mockState.itemMaster,
+    dispatchAction: vi.fn(),
+  };
+});
+
+// 実DOM解決を持たないフェイクレジストリ。テストからanchorIdごとに値を直接プッシュする
+// Fake registry with no real DOM resolution; the test pushes values per anchorId directly
+vi.mock("@/shared/tutorialAnchor", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/shared/tutorialAnchor")>();
+  return {
+    ...actual,
+    TutorialAnchorRegistry: class {
+      subscribe(anchorId: string, listener: (value: ResolvedAnchor) => void) {
+        const set = mockState.listeners.get(anchorId) ?? new Set();
+        set.add(listener);
+        mockState.listeners.set(anchorId, set);
+        return () => set.delete(listener);
+      }
+      dispose() {}
+    },
+  };
+});
+
+vi.mock("@/shared/i18n", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/shared/i18n")>();
+  return { ...actual, useI18n: () => ({ t: (key: string) => `T:${key}` }) };
+});
+
+// vitestはnode環境でdocumentを持たないため、CSS変数の読み書きをテスト用へ差し替える
+// vitest runs in a node environment with no document, so the CSS variable reads and writes are swapped out for tests
+vi.mock("./highlightGlowToken", () => ({
+  readTutorialHighlightGlowPx: () => 4,
+}));
+vi.mock("./labelGapToken", () => ({
+  readTutorialHighlightLabelGapPx: () => 4,
+}));
+
+import { TutorialOverlay } from "./TutorialOverlay";
+
+// ラベルは自分の寸法を実測して配置側を決めるため、host refに矩形を持つノードを与える
+// The label measures its own size to pick a side, so give host refs a node that reports a rect
+const LABEL_HEIGHT_PX = 20;
+const LABEL_WIDTH_PX = 60;
+// mockした labelGapToken と同値。判定・描画の両方に効くため定数で持つ
+// The same value the mocked labelGapToken returns; it feeds both the test and the placement, so keep it as a constant
+const LABEL_GAP_PX = 4;
+const nodeMock = { getBoundingClientRect: () => ({ height: LABEL_HEIGHT_PX, width: LABEL_WIDTH_PX }) };
+const renderOverlay = () => create(createElement(TutorialOverlay), { createNodeMock: () => nodeMock });
+
+const FULL_CLIP = { left: -100, top: -100, right: 1280, bottom: 820 };
+const ready = (left: number, clip = FULL_CLIP): ResolvedAnchor => ({
+  status: "ready", reason: "mounted",
+  rect: { left, top: 0, width: 10, height: 10 } as DOMRectReadOnly,
+  clip,
+});
+const hidden: ResolvedAnchor = { status: "hidden", reason: "display-none" };
+
+function pushAnchor(anchorId: string, value: ResolvedAnchor) {
+  act(() => { for (const listener of mockState.listeners.get(anchorId) ?? []) listener(value); });
+}
+
+const outline = (elementId: string, anchorId: string) => ({
+  kind: "outline" as const, elementId, anchorId, paddingPx: 0, blocksPointerInput: false,
+});
+const dragGuide = (elementId: string, fromAnchorId: string, toAnchorId: string) => ({
+  kind: "dragGuide" as const, elementId, fromAnchorId, toAnchorId,
+});
+const keyControl = (elementId: string) => ({
+  kind: "keyControl" as const, elementId, tutorialGuid: "22222222-2222-4222-8222-222222222222",
+  keyName: "Tab", uiState: "GameScreen",
+});
+const presentation = (revision: number, sessions: TutorialPresentationData["sessions"]) => ({ revision, sessions });
+
+describe("TutorialOverlay drag guides", () => {
+  afterEach(() => {
+    mockState.presentation = null;
+    mockState.listeners.clear();
+  });
+
+  it("両anchorがreadyのときだけ tutorial-drag-guide を1件描画する", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [dragGuide("guide-1", "hotbar.hud", "recipe.craft-button")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+
+    expect(renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" }).length).toBe(0);
+
+    pushAnchor("hotbar.hud", ready(10));
+    expect(renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" }).length).toBe(0);
+
+    pushAnchor("recipe.craft-button", ready(100));
+    const guides = renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" });
+    expect(guides.length).toBe(1);
+    expect(guides[0].props.style.left).toBe(15);
+  });
+
+  it("片方のanchorが未解決に戻ると非表示になる", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [dragGuide("guide-1", "hotbar.hud", "recipe.craft-button")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    pushAnchor("hotbar.hud", ready(10));
+    pushAnchor("recipe.craft-button", ready(100));
+    expect(renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" }).length).toBe(1);
+
+    pushAnchor("recipe.craft-button", hidden);
+    expect(renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" }).length).toBe(0);
+  });
+});
+
+describe("TutorialOverlay anchor resolution", () => {
+  afterEach(() => {
+    mockState.presentation = null;
+    mockState.listeners.clear();
+    mockState.itemMaster = new Map<number, unknown>();
+    vi.mocked(dispatchAction).mockClear();
+  });
+
+  // master未ロード中のmissingは「未所持」ではなく未確定。サーバのチュートリアル条件へ流さない
+  // A missing resolved before the master loads is indeterminate, not "unowned", so it must not reach the server's tutorial conditions
+  it("item master未ロード中は所持アンカーのackを送らず、到着後に送り直す", () => {
+    const ownedAnchorId = "inventory.item-a0000000-0000-4000-8000-000000000001";
+    mockState.itemMaster = null;
+    mockState.presentation = presentation(7, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", ownedAnchorId)] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+
+    pushAnchor(ownedAnchorId, { status: "not-found", reason: "missing" });
+    expect(vi.mocked(dispatchAction)).not.toHaveBeenCalled();
+
+    mockState.itemMaster = new Map<number, unknown>();
+    act(() => { renderer.update(createElement(TutorialOverlay)); });
+    pushAnchor(ownedAnchorId, { status: "not-found", reason: "missing" });
+
+    expect(vi.mocked(dispatchAction).mock.calls.map(([, payload]) => payload)).toEqual([
+      { tutorialSessionId: "s1", revision: 7, elementId: "highlight-1", anchorId: ownedAnchorId,
+        status: "not-found", reason: "missing" },
+    ]);
+  });
+
+  // 同一anchorを指す複数highlightが全てackされる（先着1件で潰さない）
+  // Every highlight pointing at the same anchor is acked, not just the first one found
+  it("同一anchorを共有する全highlightへackを配る", () => {
+    mockState.presentation = presentation(4, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
+      { tutorialSessionId: "s2", challengeId: "c2", elements: [outline("highlight-2", "recipe.craft-button")] },
+    ]);
+    act(() => { renderOverlay(); });
+
+    pushAnchor("recipe.craft-button", ready(10));
+
+    const acked = vi.mocked(dispatchAction).mock.calls.map(([, payload]) => payload);
+    expect(acked).toEqual([
+      { tutorialSessionId: "s1", revision: 4, elementId: "highlight-1", anchorId: "recipe.craft-button",
+        status: "ready", reason: "mounted" },
+      { tutorialSessionId: "s2", revision: 4, elementId: "highlight-2", anchorId: "recipe.craft-button",
+        status: "ready", reason: "mounted" },
+    ]);
+  });
+
+  // revision更新で解決済みanchorを全消去せず、表示中の要素を消灯させない
+  // A revision bump keeps already-resolved anchors so visible elements do not blink off
+  it("revision更新でも購読が続くanchorの解決状態を保つ", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    pushAnchor("recipe.craft-button", ready(10));
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(1);
+
+    mockState.presentation = presentation(2, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        outline("highlight-1", "recipe.craft-button"), outline("highlight-2", "hotbar.hud"),
+      ] },
+    ]);
+    act(() => { renderer.update(createElement(TutorialOverlay)); });
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(1);
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" })[0].props.style.left).toBe(10);
+  });
+
+  // 購読が切れたanchorの解決状態は落とす
+  // Anchors that left the subscription set are dropped
+  it("購読対象外になったanchorの解決状態は落とす", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    pushAnchor("recipe.craft-button", ready(10));
+
+    mockState.presentation = presentation(2, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "hotbar.hud")] },
+    ]);
+    act(() => { renderer.update(createElement(TutorialOverlay)); });
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(0);
+  });
+
+  // 同値のrectが再通知されても再描画しない（参照等価では常にfalseになる死んだ分岐だった）
+  // Re-notifying an equal-valued rect must not re-render; reference equality made that branch dead
+  it("同値rectの再解決では再描画しない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "recipe.craft-button")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    pushAnchor("recipe.craft-button", ready(10));
+    const styleBefore = renderer.root.findByProps({ "data-kind": "outline" }).props.style;
+
+    pushAnchor("recipe.craft-button", ready(10));
+
+    expect(renderer.root.findByProps({ "data-kind": "outline" }).props.style).toBe(styleBefore);
+
+    pushAnchor("recipe.craft-button", ready(20));
+    expect(renderer.root.findByProps({ "data-kind": "outline" }).props.style).not.toBe(styleBefore);
+  });
+});
+
+describe("TutorialOverlay outline labels", () => {
+  afterEach(() => { mockState.presentation = null; mockState.listeners.clear(); });
+
+  // labelGuid時のみラベル描画
+  // Label renders only when labelGuid is set
+  it("labelTutorialGuid がある枠線だけラベルを描く", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+        outline("h2", "hotbar.hud"),
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    pushAnchor("recipe.craft-button", ready(10));
+    pushAnchor("hotbar.hud", ready(100));
+
+    const labels = renderer.root.findAllByProps({ "data-testid": "tutorial-highlight-label" });
+    expect(labels.length).toBe(1);
+    expect(labels[0].children).toEqual(["T:challengeTutorial.11111111-1111-4111-8111-111111111111.text"]);
+    // top=枠線下辺+隙間
+    // top = outline bottom + gap
+    expect(labels[0].props.style.top).toBe(10 + LABEL_GAP_PX);
+    expect(labels[0].props.style.left).toBe(10);
+  });
+
+  // 下に収まらない時だけ枠線の上へ反転する（下端でラベルがクリップ外へ被る症状の是正・裁定 2026-08-22）
+  // Flips above the ring only when it does not fit below, curing the label overhanging the clip at the bottom edge (ruling 2026-08-22)
+  it("ラベルが下に収まらない時は枠線の上へ反転する", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+
+    // アンカーは 0..10。下端がラベル高より近いclipでは上へ、余裕があるclipでは下へ置く
+    // The anchor spans 0..10; a clip whose bottom is nearer than the label height flips it up, a roomy one keeps it down
+    pushAnchor("recipe.craft-button", ready(10, { ...FULL_CLIP, bottom: 10 + LABEL_GAP_PX + LABEL_HEIGHT_PX - 1 }));
+    expect(renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" }).props.style.top).toBe(-LABEL_GAP_PX - LABEL_HEIGHT_PX);
+
+    pushAnchor("recipe.craft-button", ready(10, { ...FULL_CLIP, bottom: 10 + LABEL_GAP_PX + LABEL_HEIGHT_PX }));
+    expect(renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" }).props.style.top).toBe(10 + LABEL_GAP_PX);
+  });
+
+  // 右端寄りのアンカーではラベルを器の内側へ押し戻す（clipとの突き合わせが無いと素通しで外へ延びる）
+  // A near-right anchor pushes the label back inside the container; with no clip check it would run straight past it
+  it("ラベルが右端を越える時はclip内へ押し戻し、器より広い時は折り返して左端に収まる", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    const label = () => renderer.root.findByProps({ "data-testid": "tutorial-highlight-label" });
+
+    // 右端から実測幅ぶん内側へ寄せる。折り返し上限は常に器の幅
+    // Tuck it inward from the right edge by the measured width; the wrap limit is always the container width
+    const narrowClip = { left: 0, top: -100, right: 100, bottom: 820 };
+    pushAnchor("recipe.craft-button", ready(80, narrowClip));
+    expect(label().props.style.left).toBe(narrowClip.right - LABEL_WIDTH_PX);
+    expect(label().props.style.maxWidth).toBe(narrowClip.right - narrowClip.left);
+
+    // 器がラベルより狭い時は左端へ揃え、折り返しに任せる
+    // When the container is narrower than the label, align to its left edge and let it wrap
+    const tinyClip = { left: 0, top: -100, right: LABEL_WIDTH_PX - 20, bottom: 820 };
+    pushAnchor("recipe.craft-button", ready(10, tinyClip));
+    expect(label().props.style.left).toBe(tinyClip.left);
+  });
+
+  it("anchor未解決の枠線はラベルも描かない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        { ...outline("h1", "recipe.craft-button"), labelTutorialGuid: "11111111-1111-4111-8111-111111111111" },
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    pushAnchor("recipe.craft-button", hidden);
+    expect(renderer.root.findAllByProps({ "data-testid": "tutorial-highlight-label" }).length).toBe(0);
+  });
+});
+
+describe("TutorialOverlay keyControl exclusion", () => {
+  afterEach(() => { mockState.presentation = null; mockState.listeners.clear(); });
+
+  // keyControl混在でも件数不変
+  // Count is unchanged when keyControl is mixed in
+  it("keyControlが混在してもoutline描画件数は変わらない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [
+        outline("h1", "recipe.craft-button"), keyControl("k1"),
+      ] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    pushAnchor("recipe.craft-button", ready(10));
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(1);
+    expect(renderer.root.findAllByProps({ "data-testid": "key-control-hint" }).length).toBe(0);
+  });
+});
+
+describe("TutorialOverlay outline clipping", () => {
+  afterEach(() => {
+    mockState.presentation = null;
+    mockState.listeners.clear();
+  });
+
+  it("祖先クリップの外へ出た辺はclip-pathで切られる", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+
+    // rectは left:100 top:0 の 10x10、paddingPx:0 なのでboxは 100..110 / 0..10。右辺だけがclipに掛かる
+    // The rect is 10x10 at left:100 top:0 with paddingPx:0 so the box spans 100..110 / 0..10; only the right side clips
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 104, bottom: 820 }));
+
+    const outlines = renderer.root.findAllByProps({ "data-kind": "outline" });
+    expect(outlines.length).toBe(1);
+    expect(outlines[0].props.style.clipPath).toBe("inset(-4px 6px -4px -4px)");
+  });
+
+  it("完全にクリップされた枠は要素ごと描かない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 50, bottom: 820 }));
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(0);
+  });
+
+  // clip.rightがboxのすぐ外（グロー幅未満）にあるとクランプ済みinset値では非交差を見逃す
+  // clip.right just outside the box (within the glow width) must not slip past the clamped-inset check
+  it("グロー幅未満だけ外れた枠は要素ごと描かない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+
+    // boxは100..110。clip.rightが99なので実際は完全にclipの外だが、-4pxクランプ後の和では素通りしうる
+    // box spans 100..110; clip.right=99 puts it fully outside, but the -4px-clamped sum could let it through
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 99, bottom: 820 }));
+
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" }).length).toBe(0);
+  });
+
+  // clipだけが変わった場合（コンテナのリサイズ等）に再描画されないとマスクが古いまま残る
+  // A clip-only change (container resize etc.) must still re-render, or the mask goes stale
+  it("rectが同値でもclipが変われば再描画する", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [outline("highlight-1", "research.node-a")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+
+    // クリップが遠い＝どの辺も切らない。グロー4pxを残すため全辺 -4px になる
+    // A far-away clip cuts no side, so every side is -4px to preserve the 4px glow
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 1280, bottom: 820 }));
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" })[0].props.style.clipPath)
+      .toBe("inset(-4px -4px -4px -4px)");
+
+    pushAnchor("research.node-a", ready(100, { left: -100, top: -100, right: 104, bottom: 820 }));
+    expect(renderer.root.findAllByProps({ "data-kind": "outline" })[0].props.style.clipPath)
+      .toBe("inset(-4px 6px -4px -4px)");
+  });
+});

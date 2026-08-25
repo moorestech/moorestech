@@ -38,13 +38,8 @@ namespace Game.Paths
             return Path.Combine(TerrainDirectory, $"height_{tileX}_{tileZ}.r16");
         }
 
-        public string TerrainBiomeFilePath(int tileX, int tileZ)
-        {
-            return Path.Combine(TerrainDirectory, $"biome_{tileX}_{tileZ}.bin");
-        }
-
-        // 高さ・バイオームから再構築できる見た目(splatmap/detail)の置き場。terrainとは別に消せるよう分けてある
-        // Holds the visuals (splatmap/detail) rebuildable from heights and biomes, kept apart from terrain so it can be dropped alone
+        // 高さから再構築できる見た目(splatmap/detail)の置き場。terrainとは別に消せるよう分けてある
+        // Holds the visuals (splatmap/detail) rebuildable from heights, kept apart from terrain so it can be dropped alone
         public string TerrainVisualCacheFilePath(int tileX, int tileZ)
         {
             return Path.Combine(TerrainVisualDirectory, $"visual_{tileX}_{tileZ}.bin");
@@ -75,6 +70,13 @@ namespace Game.Paths
                 cacheDirectory,
                 Path.Combine(cacheDirectory, "README.txt"),
                 normalizedRoot + ".provisioning");
+        }
+
+        // 同一PCで先焼きとクライアント焼きが共有するワールドキャッシュ。worldIdからの導出はここだけが持つ
+        // The world cache shared by the prebake and the client bake on one PC; deriving it from a worldId lives only here
+        public static WorldDataDirectory ForWorldCache(string worldId)
+        {
+            return FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(worldId));
         }
 
         // レガシー形: ワールドディレクトリを持たない構成(テスト427箇所・クライアント早期DI)。

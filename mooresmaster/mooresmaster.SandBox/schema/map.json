@@ -119,6 +119,14 @@
                 }
               }
             ]
+          },
+          "distanceVisibilityType": {
+            "type": "string",
+            "default": "cullable",
+            "enum": [
+              "cullable",
+              "landmark"
+            ]
           }
         }
       }

@@ -171,7 +171,7 @@ test("研究パネルは持ち物の右隣から画面端までを占有し持�
   // 持ち物はクリック可能なまま
   // The inventory stays clickable
   await page.getByTestId("main-grid").locator(":scope > *").first().click({ trial: true });
-  await expect(page.getByTestId("research-key-hints")).toBeVisible();
+  await expect(page.getByTestId("key-hints")).toBeVisible();
 });
 
 test("研究画面では持ち物がstage左paddingぶん左へ寄る", async ({ page }) => {
@@ -203,7 +203,7 @@ test("研究パネル展開中も常駐チャレンジHUDとキーヒントが�
   const challengeHud = page.getByTestId("challenge-hud");
   await expect(challengeHud).toBeVisible();
   await expectHitTestWithin(challengeHud);
-  await expectHitTestWithin(page.getByTestId("research-key-hints"));
+  await expectHitTestWithin(page.getByTestId("key-hints"));
 });
 
 test("研究パネル展開中も採掘進捗バーが遮蔽されない（.viewportOverlayのz封じ込めに依存する回帰ガード）", async ({ page }) => {

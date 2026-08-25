@@ -25,9 +25,9 @@
       "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_1_SpaceShip",
       "action": "Add",
       "position": [
-        314.0,
-        -0.053709,
-        537.401
+        -187.710013,
+        -15.0222913,
+        46.030002
       ],
       "rotation": [
         0,
@@ -49,9 +49,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        494.0574,
-        4.998231,
-        479.78545
+        -7.652613,
+        -9.9703513,
+        -11.585548
       ],
       "Rotation": [
         358.213,
@@ -65,9 +65,9 @@
       "backgroundColor": "#ffffff",
       "character": "chr_001",
       "Position": [
-        497.367,
-        15.762291,
-        483.221
+        -4.343013,
+        0.7937087,
+        -8.149998
       ],
       "Rotation": [
         288.015,
@@ -81,9 +81,9 @@
       "backgroundColor": "#ffffff",
       "character": "chr_002",
       "Position": [
-        497.408,
-        15.258291,
-        482.337
+        -4.302013,
+        0.2897087,
+        -9.033998
       ],
       "Rotation": [
         0,
@@ -97,9 +97,9 @@
       "backgroundColor": "#ffffff",
       "character": "chr_003",
       "Position": [
-        312.546522,
-        -100.053709,
-        536.680365
+        -189.163491,
+        -115.0222913,
+        45.309367
       ],
       "Rotation": [
         0,
@@ -180,9 +180,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        496.3469,
-        16.384191,
-        482.62902
+        -5.363113,
+        1.4156087,
+        -8.741978
       ],
       "Rotation": [
         27.08996,
@@ -204,9 +204,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        496.784,
-        16.781881,
-        481.92367
+        -4.926013,
+        1.8132987,
+        -9.447328
       ],
       "Rotation": [
         358.0412,
@@ -257,9 +257,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        502.4598,
-        4.148123,
-        482.02231
+        0.749787,
+        -10.8204593,
+        -9.348688
       ],
       "Rotation": [
         353.2283,
@@ -336,9 +336,9 @@
       "skitEnvironmentAddressablePath": "Vanilla/Skit/Environment/100_start_2_SpaceShip_Interior",
       "action": "Add",
       "position": [
-        496.04,
-        14.802291,
-        475.811
+        -5.670013,
+        1.6937087,
+        -15.559998
       ],
       "rotation": [
         0,
@@ -346,6 +346,38 @@
         0
       ],
       "id": 74
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_001",
+      "Position": [
+        -4.343013,
+        2.6537087,
+        -8.149998
+      ],
+      "Rotation": [
+        288.015,
+        132.9489,
+        315.6128
+      ],
+      "id": 140
+    },
+    {
+      "type": "characterTransform",
+      "backgroundColor": "#ffffff",
+      "character": "chr_002",
+      "Position": [
+        -4.302013,
+        2.1497087,
+        -9.033998
+      ],
+      "Rotation": [
+        0,
+        270,
+        0
+      ],
+      "id": 141
     },
     {
       "type": "skitObjectControl",
@@ -368,9 +400,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        496.7367,
-        16.397891,
-        483.68275
+        -4.973313,
+        3.2893087,
+        -7.688248
       ],
       "Rotation": [
         359.0725,
@@ -402,9 +434,9 @@
       "duration": 3,
       "easing": "InOutSine",
       "StartPosition": [
-        496.7367,
-        16.397891,
-        483.68275
+        -4.973313,
+        3.2893087,
+        -7.688248
       ],
       "StartRotation": [
         359.0725,
@@ -412,9 +444,9 @@
         0.01336524
       ],
       "EndPosition": [
-        496.689,
-        16.808081,
-        481.63118
+        -5.021013,
+        3.6994987,
+        -9.739818
       ],
       "EndRotation": [
         12.48,
@@ -444,9 +476,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        496.0695,
-        16.498101,
-        482.88547
+        -5.640513,
+        3.3895187,
+        -8.485528
       ],
       "Rotation": [
         46.51343,
@@ -483,9 +515,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        497.5419,
-        17.220831,
-        482.08322
+        -4.168113,
+        4.1122487,
+        -9.287778
       ],
       "Rotation": [
         42.04444,
@@ -507,9 +539,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        496.2061,
-        16.712081,
-        483.07374
+        -5.503913,
+        3.6034987,
+        -8.297258
       ],
       "Rotation": [
         62.84259,
@@ -530,9 +562,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        497.5419,
-        17.220831,
-        482.08322
+        -4.168113,
+        4.1122487,
+        -9.287778
       ],
       "Rotation": [
         42.04444,
@@ -578,9 +610,9 @@
       "backgroundColor": "#ffffff",
       "character": "chr_001",
       "Position": [
-        498.453,
-        14.465553,
-        477.625
+        -3.257013,
+        1.3569707,
+        -13.745998
       ],
       "Rotation": [
         0,
@@ -611,9 +643,9 @@
       "backgroundColor": "#ffffff",
       "character": "chr_002",
       "Position": [
-        498.58,
-        14.621195,
-        479.173
+        -3.130013,
+        1.5126127,
+        -12.197998
       ],
       "Rotation": [
         0,
@@ -627,9 +659,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        498.5986,
-        15.959484,
-        478.18431
+        -3.111413,
+        2.8509017,
+        -13.186688
       ],
       "Rotation": [
         344.9777,
@@ -657,9 +689,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        498.886,
-        16.170204,
-        478.35373
+        -2.824013,
+        3.0616217,
+        -13.017268
       ],
       "Rotation": [
         4.057205,
@@ -707,9 +739,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 43,
       "Position": [
-        498.8304,
-        16.134924,
-        478.55492
+        -2.879613,
+        3.0263417,
+        -12.816078
       ],
       "Rotation": [
         0.4475534,
@@ -730,9 +762,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 18,
       "Position": [
-        498.9841,
-        16.207864,
-        480.16749
+        -2.725913,
+        3.0992817,
+        -11.203508
       ],
       "Rotation": [
         2.510181,
@@ -780,9 +812,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 47,
       "Position": [
-        498.487,
-        16.132084,
-        478.31834
+        -3.223013,
+        3.0235017,
+        -13.052658
       ],
       "Rotation": [
         4.91653,
@@ -803,9 +835,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 47,
       "Position": [
-        498.6846,
-        16.177964,
-        477.14594
+        -3.025413,
+        3.0693817,
+        -14.225058
       ],
       "Rotation": [
         5.947936,
@@ -834,9 +866,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 24,
       "Position": [
-        501.1472,
-        16.002614,
-        475.77486
+        -0.562813,
+        2.8940317,
+        -15.596138
       ],
       "Rotation": [
         4.74471,
@@ -874,9 +906,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        498.7434,
-        16.171674,
-        478.3609
+        -2.966613,
+        3.0630917,
+        -13.010098
       ],
       "Rotation": [
         15.22981,
@@ -898,9 +930,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 49,
       "Position": [
-        498.7672,
-        16.102924,
-        478.44308
+        -2.942813,
+        2.9943417,
+        -12.927918
       ],
       "Rotation": [
         1.478832,
@@ -921,9 +953,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 18,
       "Position": [
-        498.9841,
-        16.207864,
-        480.16749
+        -2.725913,
+        3.0992817,
+        -11.203508
       ],
       "Rotation": [
         2.510181,
@@ -977,9 +1009,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        498.4727,
-        15.990364,
-        478.23708
+        -3.237313,
+        2.8817817,
+        -13.133918
       ],
       "Rotation": [
         349.9624,
@@ -1034,9 +1066,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 60,
       "Position": [
-        498.5488,
-        16.057724,
-        478.64799
+        -3.161213,
+        2.9491417,
+        -12.723008
       ],
       "Rotation": [
         353.2282,
@@ -1058,9 +1090,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 36,
       "Position": [
-        498.4513,
-        16.083984,
-        478.39152
+        -3.258713,
+        2.9754017,
+        -12.979478
       ],
       "Rotation": [
         359.0724,
@@ -1081,9 +1113,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 36,
       "Position": [
-        498.4646,
-        16.073714,
-        478.21871
+        -3.245413,
+        2.9651317,
+        -13.152288
       ],
       "Rotation": [
         359.0723,
@@ -1105,9 +1137,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 36,
       "Position": [
-        498.4513,
-        16.083984,
-        478.39152
+        -3.258713,
+        2.9754017,
+        -12.979478
       ],
       "Rotation": [
         359.0724,
@@ -1135,9 +1167,9 @@
       "backgroundColor": "#ffffff",
       "fieldOfView": 36,
       "Position": [
-        498.9641,
-        15.941114,
-        479.95467
+        -2.745913,
+        2.8325317,
+        -11.416328
       ],
       "Rotation": [
         1.136204,

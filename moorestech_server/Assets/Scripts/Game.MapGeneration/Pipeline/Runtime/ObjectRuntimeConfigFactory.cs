@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
 using GenObject = Mooresmaster.Model.BiomeObjectConfigModule.BiomeObjectConfig;
+using GenScatterParam = Mooresmaster.Model.BiomeObjectConfigModule.ScatterPlacementParam;
+using GenClusterParam = Mooresmaster.Model.BiomeObjectConfigModule.ClusterPlacementParam;
 
 namespace Game.MapGeneration.Pipeline.Runtime
 {
@@ -29,6 +31,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
                 var cluster = new ObjectClusterEntry
                 {
                     primary = primaryGuids,
+                    terrainSurroundEffectType = RuntimeConvert.ToTerrainSurroundEffectType(ce.TerrainSurroundEffectType, "objectConfig.clusterEntries.terrainSurroundEffectType"),
                     density = ce.Density,
                     scaleRange = ce.ScaleRange,
                     slopeAlignment = ce.SlopeAlignment,
@@ -59,6 +62,7 @@ namespace Game.MapGeneration.Pipeline.Runtime
                     {
                         mode = RuntimeConvert.ToSecondaryMode(s.Mode),
                         mapObjectGuids = secondaryGuids,
+                        terrainSurroundEffectType = RuntimeConvert.ToTerrainSurroundEffectType(s.TerrainSurroundEffectType, "objectConfig.clusterEntries.secondaries.terrainSurroundEffectType"),
                         scaleRange = s.ScaleRange,
                         slopeAlignment = s.SlopeAlignment,
                         sinkRange = s.SinkRange,
@@ -90,7 +94,10 @@ namespace Game.MapGeneration.Pipeline.Runtime
                 entries.Add(new BiomeObjectConfig.ObjectEntry
                 {
                     mapObjectGuids = entryGuids,
-                    density = e.Density,
+                    terrainSurroundEffectType = RuntimeConvert.ToTerrainSurroundEffectType(e.TerrainSurroundEffectType, "objectConfig.entries.terrainSurroundEffectType"),
+                    placement = e.PlacementParam is GenClusterParam genCluster
+                        ? BuildCluster(genCluster)
+                        : BuildScatter((GenScatterParam)e.PlacementParam),
                     scaleRange = e.ScaleRange,
                     slopeAlignment = e.SlopeAlignment,
                     sinkRange = e.SinkRange,
@@ -102,10 +109,6 @@ namespace Game.MapGeneration.Pipeline.Runtime
                     slopeMin = e.SlopeMin,
                     slopeMax = e.SlopeMax,
                     slopeSmoothness = e.SlopeSmoothness,
-                    useClusterMode = e.UseClusterMode,
-                    clusterCount = e.ClusterCount,
-                    objectsPerCluster = e.ObjectsPerCluster,
-                    clusterRadius = e.ClusterRadius,
                     minDistanceFromTree = e.MinDistanceFromTree,
                     maxDistanceFromTree = e.MaxDistanceFromTree
                 });
@@ -134,6 +137,41 @@ namespace Game.MapGeneration.Pipeline.Runtime
             ac.clusterSpacingFactor = a.ClusterSpacingFactor;
 
             return result;
+
+            #region Internal
+
+            // 配置方式ごとのパラメータを、bandsの並び順を保ったまま実行時型へ写す。
+            // Transcribes the per-mode placement parameters into runtime types, keeping the band order.
+            ObjectPlacementParam BuildScatter(GenScatterParam genScatter)
+            {
+                var scatterBands = new ObjectScatterBand[genScatter.Bands.Length];
+                for (var i = 0; i < genScatter.Bands.Length; i++)
+                    scatterBands[i] = new ObjectScatterBand
+                    {
+                        outerRadiusMeters = genScatter.Bands[i].OuterRadiusMeters,
+                        pointsPerHectare = genScatter.Bands[i].PointsPerHectare
+                    };
+                return new ObjectScatterParam { bands = scatterBands };
+            }
+
+            ObjectPlacementParam BuildCluster(GenClusterParam genCluster)
+            {
+                var clusterBands = new ObjectClusterBand[genCluster.Bands.Length];
+                for (var i = 0; i < genCluster.Bands.Length; i++)
+                    clusterBands[i] = new ObjectClusterBand
+                    {
+                        outerRadiusMeters = genCluster.Bands[i].OuterRadiusMeters,
+                        clusterCentersPerHectare = genCluster.Bands[i].ClusterCentersPerHectare
+                    };
+                return new ObjectClusterParam
+                {
+                    bands = clusterBands,
+                    objectsPerCluster = genCluster.ObjectsPerCluster,
+                    clusterRadius = genCluster.ClusterRadius
+                };
+            }
+
+            #endregion
         }
     }
 }

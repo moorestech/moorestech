@@ -161,3 +161,26 @@ test("グリッドは8列を保ち中央列に収まる", async ({ page }) => {
   expect(fit.reserve).toBeGreaterThan(0);
   expect(fit.gridWidth).toBeLessThanOrEqual(fit.contentWidth);
 });
+
+// アンカーを含むスクロール領域はチュートリアル枠の逃げを取る（§8.10・ユーザー裁定 2026-08-22）
+// A scroller holding anchors reserves the tutorial ring's clearance (§8.10, user ruling 2026-08-22)
+test("スクロール領域のクリップ境界をハイライト枠の逃げぶんセルから離す", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  // 逃げはリテラルでなく関係式で見る。マスタのpaddingPxが変わってもこの検査が番人であり続けるため
+  // Assert the relation rather than literals so this stays a guard even when the master's paddingPx changes
+  const clearance = await page.locator(".mantine-ScrollArea-viewport").first().evaluate((element) => {
+    const cell = element.querySelector('[data-tutorial-anchor^="build-menu.entry-"]')!.getBoundingClientRect();
+    const clip = element.getBoundingClientRect();
+    const root = getComputedStyle(document.documentElement);
+    const readPx = (name: string) => Number.parseFloat(root.getPropertyValue(name));
+    return {
+      top: cell.top - clip.top, left: cell.left - clip.left,
+      required: readPx("--tutorial-anchor-padding") + readPx("--tutorial-highlight-glow"),
+    };
+  });
+  expect(clearance.required).toBeGreaterThan(0);
+  expect(clearance.left).toBeGreaterThanOrEqual(clearance.required);
+  expect(clearance.top).toBeGreaterThanOrEqual(clearance.required);
+});

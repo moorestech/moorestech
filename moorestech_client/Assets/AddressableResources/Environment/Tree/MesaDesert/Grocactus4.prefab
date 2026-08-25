@@ -86,8 +86,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -206,6 +206,14 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 2559532492784769494, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2559532492784769494, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2702371402449421608, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -257,6 +265,30 @@ PrefabInstance:
     - target: {fileID: 3195636844391667869, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3856087733902035181, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3856087733902035181, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5272619967283281924, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5272619967283281924, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6941097764373567455, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6941097764373567455, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8029409333888403569, guid: 31a64cbae4e94ff28e41de9eb586feed, type: 3}
       propertyPath: m_Layer
@@ -323,7 +355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.568729
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.z

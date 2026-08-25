@@ -21,8 +21,8 @@ namespace Client.Editor.Build
             // The source of truth is ../moorestech_master/server_v8 beside this repository
             var sourceDirectory = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "moorestech_master", "server_v8"));
 
-            // 必須構成（config/map/mods）が欠けた成果物を出さない
-            // Never ship an artifact missing the required config/map/mods layout
+            // 必須構成（map/mods）が欠けた成果物を出さない
+            // Never ship an artifact missing the required map/mods layout
             var missingPath = FindMissingRequiredPath();
             if (missingPath != string.Empty)
             {
@@ -47,12 +47,16 @@ namespace Client.Editor.Build
                 var modsDirectory = Path.Combine(sourceDirectory, "mods");
                 if (!Directory.Exists(modsDirectory)) return modsDirectory;
 
-                // ランタイムのLocalize.csが読むのはconfig/localization.csvの1点だけ
-                // Localize.cs at runtime reads exactly one file: config/localization.csv
-                var localizationCsv = Path.Combine(sourceDirectory, "config", "localization.csv");
-                if (!File.Exists(localizationCsv)) return localizationCsv;
+                // ランタイムはmodごとのlocalization/localization.csvをマージするので1件も無ければ欠損
+                // At runtime each mod's localization/localization.csv is merged, so zero files means missing
+                var modDirectories = Directory.GetDirectories(modsDirectory);
+                var anyLocalizationCsvPath = Path.Combine(modsDirectory, "*", "localization", "localization.csv");
+                foreach (var modDirectory in modDirectories)
+                {
+                    if (File.Exists(Path.Combine(modDirectory, "localization", "localization.csv"))) return string.Empty;
+                }
 
-                return string.Empty;
+                return anyLocalizationCsvPath;
             }
 
             #endregion

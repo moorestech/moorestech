@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.Common;
+using Client.Game.InGame.Map.NearestSearch;
 using Client.Network.API;
 using CommandForgeGenerator.Command;
 using Core.Master;
@@ -31,7 +32,10 @@ namespace Client.Game.InGame.Map.Outcrop
         // 同一アドレスを複数のveinが共有するため、guidではなくアドレスでキャッシュする
         // Several veins share one address, so cache by address rather than by guid
         private readonly Dictionary<string, GameObject> _prefabCacheByAddress = new();
-        private readonly OutcropGuidIndex _outcropGuidIndex = new();
+
+        // 露頭は破壊されないので、生成のたび索引へ登録すれば最初の探索で1回だけ木が焼かれる
+        // Outcrops are never destroyed, so registering each one as it spawns bakes the tree exactly once, on the first search
+        private readonly NearestTargetIndex<OutcropGameObject> _nearestIndex = new();
         private InitialHandshakeResponse _handshakeResponse;
         private UniTask? _initializationTask;
 
@@ -109,7 +113,7 @@ namespace Client.Game.InGame.Map.Outcrop
 
                 var outcrop = instance.GetComponent<OutcropGameObject>();
                 if (outcrop == null) outcrop = instance.AddComponent<OutcropGameObject>();
-                _outcropGuidIndex.Add(veinGuid, outcrop);
+                _nearestIndex.Register(veinGuid, outcrop);
 
                 // 不可の鉱脈も提示対象なので初期化する
                 // An unmineable vein still has to say so
@@ -149,7 +153,7 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public OutcropGameObject SearchNearestOutcrop(Guid veinGuid, Vector3 position)
         {
-            return _outcropGuidIndex.SearchNearest(veinGuid, position);
+            return _nearestIndex.TrySearchNearest(veinGuid, position, out var outcrop, out _) ? outcrop : null;
         }
 
         public void SetActive(bool enable)

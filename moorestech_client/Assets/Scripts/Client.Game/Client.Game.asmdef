@@ -18,6 +18,8 @@
         "Game.Entity.Interface",
         "Game.Paths",
         "Game.MapGeneration",
+        "Game.MapGeneration.Contract",
+        "Game.MapGeneration.Facade",
         "Game.PlayerInventory",
         "Game.PlayerInventory.Interface",
         "Game.SaveLoad",
@@ -68,7 +70,8 @@
         "Unity.InputSystem",
         "Game.Blueprint",
         "Game.PlacementTarget",
-        "Game.Hotbar"
+        "Game.Hotbar",
+        "Game.Construction"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

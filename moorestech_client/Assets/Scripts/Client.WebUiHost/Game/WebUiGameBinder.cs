@@ -14,6 +14,7 @@ using Client.Game.InGame.Hotbar;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
+using Game.Construction;
 using Game.UnlockState;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -78,7 +79,7 @@ namespace Client.WebUiHost.Game
 
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
-            var uiStateTopic = new UiStateTopic(hub, uiStateControl, trainHudState);
+            var uiStateTopic = new UiStateTopic(hub, uiStateControl, resolver.Resolve<UIStateDictionary>(), trainHudState);
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
             C4WebUiRegistration.Register(hub);
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
@@ -151,7 +152,8 @@ namespace Client.WebUiHost.Game
             var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
             var buildMenuView = resolver.Resolve<BuildMenuView>();
             var blueprintNameInputView = resolver.Resolve<BlueprintNameInputView>();
-            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver);
+            var constructionWalletQuery = resolver.Resolve<ConstructionWalletQuery>();
+            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
             new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
 
@@ -189,7 +191,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuView));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<SaveButton>()));
-            hub.RegisterAction(new PauseMenuBackToMainMenuActionHandler(resolver.Resolve<BackToMainMenu>()));
+            hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
         }
     }
 }

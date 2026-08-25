@@ -1,4 +1,17 @@
-.viewport { flex: 1; min-height: 0; overflow: hidden; touch-action: none; cursor: grab; }
+/* クリップ境界をノード外周からハイライトの逃げぶん離す。足りないと端のノードの枠が辺ごと削られる（§8.10）
+   広げた分は同量の負マージンで相殺し、キャンバスの位置と可視領域の寸法は一切動かさない */
+/* Push the clip edge away from the nodes by the tutorial ring's clearance; too little shaves a whole side off an edge node (§8.10).
+   An equal negative margin cancels the widening so the canvas position and the visible area stay exactly as they were */
+.viewport {
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  padding: var(--tutorial-anchor-clip-inset);
+  margin: calc(-1 * var(--tutorial-anchor-clip-inset));
+}
 .viewportPanning { cursor: grabbing; }
 .canvas { position: relative; transform-origin: 0 0; }
 .line {

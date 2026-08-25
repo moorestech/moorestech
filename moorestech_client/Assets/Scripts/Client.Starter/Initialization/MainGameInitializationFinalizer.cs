@@ -4,12 +4,15 @@ using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Environment.Terrain;
+using Client.Game.InGame.Construction;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Map.Outcrop;
+using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Network.API;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using UnityEngine;
@@ -20,10 +23,12 @@ namespace Client.Starter.Initialization
     public class MainGameInitializationFinalizer
     {
         private readonly ServerConnectionResult _serverResult;
+        private readonly string _localMasterDirectory;
 
-        public MainGameInitializationFinalizer(ServerConnectionResult serverResult)
+        public MainGameInitializationFinalizer(ServerConnectionResult serverResult, string localMasterDirectory)
         {
             _serverResult = serverResult;
+            _localMasterDirectory = localMasterDirectory;
         }
 
         public async UniTask RunAsync()
@@ -44,6 +49,15 @@ namespace Client.Starter.Initialization
             // The initial hotbar assignments ride along with the handshake; applied before event dispatch starts, same as the main inventory
             resolver.Resolve<ClientHotbarDatastore>().ApplyAssignments(_serverResult.HandshakeResponse.HotbarAssignments);
 
+            // 残り設置数もhandshake同梱。イベント購読開始前に適用する。生intからtyped BlockIdへの変換はここ(ワイヤ境界)で行う
+            // Remaining placements ride along with the handshake too; applied before event dispatch starts. Raw int → typed BlockId conversion happens here, at the wire boundary
+            var remainingPlacementCounts = new Dictionary<BlockId, int>();
+            foreach (var count in _serverResult.HandshakeResponse.RemainingPlacementCounts)
+            {
+                remainingPlacementCounts[new BlockId(count.WalletBlockId)] = count.RemainingCount;
+            }
+            resolver.Resolve<ClientRemainingPlacementCountDatastore>().ApplyAll(remainingPlacementCounts);
+
             // BP割当の解決元をログイン時に1度満たす。ビルドメニュー入場までBP枠が未解決に見えるのを防ぐ
             // Fill the blueprint assignments' resolution source once at login so blueprint slots are not unresolved until the build menu is opened
             await resolver.Resolve<ClientBlueprintLibrary>().Refresh(default);
@@ -54,7 +68,7 @@ namespace Client.Starter.Initialization
 
             // 露頭を含むワールドオブジェクトの生成前にTerrainを構築する
             // Build Terrain before instantiating world objects including outcrops
-            await TerrainRuntimeBuilder.BuildAsync(_serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform);
+            await TerrainRuntimeBuilder.BuildAsync(_serverResult.HandshakeResponse.MapLayout, starter.EnvironmentRoot.transform, _localMasterDirectory);
 
             // 露頭生成はTerrain完成後に明示開始する。完了待ちは下の待機境界が一括で担う（ADR#15）
             // Outcrop instantiation starts explicitly after the terrain is ready; the wait boundary below waits for it with the rest (ADR#15)
@@ -62,8 +76,12 @@ namespace Client.Starter.Initialization
 
             await InitialEventApplyWaiter.WaitAllAsync(resolver.Resolve<IReadOnlyList<IInitialEventApplyWaitTarget>>());
 
-            // ピンが探す対象の生成後に適用する
-            // Apply only once the objects a pin searches for exist
+            // 近傍完了後に後着生成を明示開始する
+            // Explicitly start background instantiation after the near field settles
+            resolver.Resolve<MapObjectGameObjectDatastore>().StartBackgroundInstantiation();
+
+            // ピンが探す対象は近傍分だけ揃っている。遠方分の後着完了はピン側がdatastoreの完了通知を購読して待つ
+            // Only the near-field share of a pin's targets exists here; the pin itself subscribes to the datastore's completion for the rest
             resolver.Resolve<ChallengeManager>().ApplyInitialTutorials();
 
             // 車両の生成まで終えてから自機を保存座標へ置く。乗車セーブの復帰先が未生成だと支えが無く落下する（ADR#16）

@@ -264,6 +264,14 @@ PrefabInstance:
       value: -11.209
       objectReference: {fileID: 0}
     - target: {fileID: 2020743494139321406, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2020743494139321406, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2020743494139321406, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
       objectReference: {fileID: 2100000, guid: b90a66031b12c4047b83b2be6d7c7273, type: 2}
@@ -348,6 +356,14 @@ PrefabInstance:
     - target: {fileID: 882762000588138321, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: -11.209
+      objectReference: {fileID: 0}
+    - target: {fileID: 2020743494139321406, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2020743494139321406, guid: b2bc0b77cb1a94d4f9a3e8f09246b8f1, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

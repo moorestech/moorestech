@@ -3,7 +3,7 @@ using Client.DebugSystem.Environment;
 using Client.Starter;
 using Client.Starter.Editor;
 using Common.Debug;
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using NUnit.Framework;
 using Server.Boot;
@@ -53,7 +53,7 @@ namespace Client.Tests.Starter
 
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
             Assert.That(settings.WorldDirectory, Is.EqualTo(GameSystemPaths.GetSaveFilePath("world_generated")));
-            Assert.That(settings.MapMode, Is.EqualTo(WorldProvisioner.GeneratedMapMode));
+            Assert.That(settings.MapMode, Is.EqualTo(WorldMapMode.Generated));
             Assert.That(settings.AutoSave, Is.True);
         }
 
@@ -81,7 +81,7 @@ namespace Client.Tests.Starter
             var original = new StartServerSettings
             {
                 WorldDirectory = "/tmp/moorestech-test-world",
-                MapMode = WorldProvisioner.TemplateMapMode,
+                MapMode = WorldMapMode.Template,
                 Seed = 4321,
                 Port = 21564,
                 AutoSave = false,
@@ -94,7 +94,7 @@ namespace Client.Tests.Starter
 
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
             Assert.That(settings.WorldDirectory, Is.EqualTo(GameSystemPaths.GetSaveFilePath("world_generated")));
-            Assert.That(settings.MapMode, Is.EqualTo(WorldProvisioner.GeneratedMapMode));
+            Assert.That(settings.MapMode, Is.EqualTo(WorldMapMode.Generated));
             Assert.That(settings.Seed, Is.EqualTo(4321));
             Assert.That(settings.Port, Is.EqualTo(21564));
             Assert.That(settings.AutoSave, Is.False);

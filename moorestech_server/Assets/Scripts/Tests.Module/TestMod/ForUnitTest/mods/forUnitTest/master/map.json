@@ -14,9 +14,9 @@
       ],
       "mapObjectGuid": "8c0e1339-be75-4690-99cd-58b5385a17cd",
       "soundEffectType": "tree",
-      "terrainSurroundEffectType": "treeRootPatch",
       "miningType": "PickUp",
-      "miningParam": {}
+      "miningParam": {},
+      "distanceVisibilityType": "cullable"
     },
     {
       "earnItemHpInterval": 10,
@@ -24,7 +24,6 @@
       "mapObjectName": "vanilla:TreeTest",
       "addressablePath": "Vanilla/Environment/TreeTest",
       "soundEffectType": "tree",
-      "terrainSurroundEffectType": "treeRootPatch",
       "miningType": "PickUp",
       "earnItems": [
         {
@@ -34,7 +33,8 @@
         }
       ],
       "mapObjectGuid": "00000000-0000-1111-0000-000000000001",
-      "miningParam": {}
+      "miningParam": {},
+      "distanceVisibilityType": "cullable"
     },
     {
       "earnItemHpInterval": 10,
@@ -42,7 +42,6 @@
       "mapObjectName": "vanilla:TestMiningRock",
       "addressablePath": "Vanilla/Environment/Tree",
       "soundEffectType": "stone",
-      "terrainSurroundEffectType": "rockBareGround",
       "miningType": "Mining",
       "earnItems": [
         {
@@ -60,7 +59,8 @@
             "attackSpeed": 0.2
           }
         ]
-      }
+      },
+      "distanceVisibilityType": "cullable"
     },
     {
       "earnItemHpInterval": 1,
@@ -68,7 +68,6 @@
       "mapObjectName": "vanilla:TestRubbleRock",
       "addressablePath": "Vanilla/Environment/Tree",
       "soundEffectType": "stone",
-      "terrainSurroundEffectType": "rockNoBareGround",
       "miningType": "PickUp",
       "earnItems": [
         {
@@ -79,7 +78,8 @@
       ],
       "mapObjectGuid": "00000000-0000-3333-0000-000000000001",
       "miningParam": {},
-      "#memo": "裸地を塗らない岩(rockNoBareGround)。距離場には岩として乗るが裸地テクスチャは描かれないことをテストで確認する。Mining型を単一に保つテストがあるためPickUp"
+      "#memo": "裸地を塗らない岩(rockNoBareGround)。距離場には岩として乗るが裸地テクスチャは描かれないことをテストで確認する。Mining型を単一に保つテストがあるためPickUp",
+      "distanceVisibilityType": "cullable"
     }
   ],
   "mapVeins": [
@@ -92,6 +92,7 @@
       },
       "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Iron",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
       "handMiningType": "minable",
       "handMiningParam": {
         "handMiningTools": [
@@ -113,6 +114,7 @@
       },
       "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
       "handMiningType": "none",
       "handMiningParam": null
     },
@@ -125,6 +127,7 @@
       },
       "outcropAddressablePath": "Vanilla/Environment/Vein/Fluid/Water",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
       "handMiningType": "none",
       "handMiningParam": null
     },
@@ -137,6 +140,7 @@
       },
       "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Stone",
       "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
       "handMiningType": "none",
       "handMiningParam": null
     }

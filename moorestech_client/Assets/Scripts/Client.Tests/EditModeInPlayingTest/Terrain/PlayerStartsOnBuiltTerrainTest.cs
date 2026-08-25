@@ -10,7 +10,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using NUnit.Framework;
 using UniRx;
@@ -83,7 +83,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 var tracing = TraceLowestPlayerYUntilInitialized();
 
                 var worldDirectory = Path.Combine(Path.GetTempPath(), $"moorestech_player_start_terrain_test_{Guid.NewGuid()}");
-                await LoadMainGameWithMapMode(null, worldDirectory, WorldProvisioner.GeneratedMapMode);
+                await LoadMainGameWithMapMode(null, worldDirectory, WorldMapMode.Generated);
                 await UniTask.WaitUntil(() => isInitialized).Timeout(TimeSpan.FromSeconds(InitializationTimeoutSeconds));
 
                 AssertPlayerStandsOnTerrain(await tracing);

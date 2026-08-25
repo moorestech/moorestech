@@ -145,6 +145,24 @@
 .scroll {
   flex: 1;
   min-height: 0;
+  /* viewport側で広げたクリップ領域を打ち消し、グリッド本体の位置と寸法を変えない */
+  /* Cancels the clip region widened on the viewport so the grid keeps its position and size */
+  margin: calc(-1 * var(--tutorial-anchor-clip-inset));
+}
+
+/* クリップ境界をチュートリアル枠の逃げぶんセル外周から離す。0だと最左列・最上段の枠が辺ごと削られる（§8.10） */
+/* Push the clip edge away from the cells by the tutorial ring's clearance; at 0 the leftmost and top cells lose a whole side (§8.10) */
+.scroll :global(.mantine-ScrollArea-viewport) {
+  box-sizing: border-box;
+  padding: var(--tutorial-anchor-clip-inset);
+}
+
+/* 広げたクリップ領域のぶんトラックを詰め、つまみの位置と長さを変えない */
+/* Inset the track by the widened clip region so the thumb keeps its position and length */
+.scroll :global(.mantine-ScrollArea-scrollbar[data-orientation="vertical"]) {
+  top: var(--tutorial-anchor-clip-inset);
+  bottom: calc(var(--tutorial-anchor-clip-inset) + var(--sa-corner-width));
+  right: var(--tutorial-anchor-clip-inset);
 }
 
 /* §8.10 カスタムスクロールバー（ItemListPanel前例のネイビートーン版） */

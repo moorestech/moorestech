@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Input;
 
@@ -27,6 +28,13 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         public void OnExit()
         {
             _pauseMenuStateService.OnExit();
+        }
+
+        // ESCは全画面で載せないためポーズ中はヒントごと空になる（ADR-0032）
+        // ESC is excluded on every screen, so the pause sub-state carries no hints at all (ADR-0032)
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return System.Array.Empty<KeyHint>();
         }
     }
 }

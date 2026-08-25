@@ -3,6 +3,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
+using Game.Construction;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
@@ -17,13 +18,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _inventory;
         private readonly CommonBlockPlacePointCalculator _pointCalculator;
+        private readonly ConstructionWalletQuery _walletQuery;
 
-        public ElectricWirePoleGhostPart(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, CommonBlockPlacePointCalculator pointCalculator)
+        public ElectricWirePoleGhostPart(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, ILocalPlayerInventory inventory, CommonBlockPlacePointCalculator pointCalculator, ConstructionWalletQuery walletQuery)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _inventory = inventory;
             _pointCalculator = pointCalculator;
+            _walletQuery = walletQuery;
         }
 
         /// <summary>
@@ -36,9 +39,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             if (!selection.TryGetSelectedPole(out var poleBlockId, out var poleMaster)) return false;
 
-            // 電柱1本分のコスト不足を所持素材から算出
-            // Computes one pole's cost shortage from owned materials
-            var materialShortages = ConstructionCostShortageCalculator.Calculate(poleMaster.RequiredItems, 1, _inventory);
+            // 電柱1本分の不足素材。財布の残りで賄えるなら必要セット数0となり不足は出ない
+            // One pole's material shortage; a wallet-covered pole needs zero cost sets and shows no shortage
+            var requiredCostSets = _walletQuery.GetRequiredCostSets(poleBlockId, 1);
+            var materialShortages = ConstructionCostShortageCalculator.Calculate(poleMaster.RequiredItems, requiredCostSets, _inventory);
 
             // 地面レイキャストで座標算出。距離超過は理由のみ出す
             // Computes the position via ground raycast; beyond range shows only the reason

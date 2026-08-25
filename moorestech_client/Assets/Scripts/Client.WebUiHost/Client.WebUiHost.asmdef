@@ -18,6 +18,7 @@
         "Game.Block.Interface",
         "Game.Gear",
         "Game.Context",
+        "Game.Construction",
         "Server.Protocol",
         "Game.PlayerInventory.Interface",
         "Game.Research",

@@ -13,7 +13,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Game.MapGeneration.Provisioning;
+using Game.MapGeneration.Transfer;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Boot.Args;
@@ -41,7 +41,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
         
         public static async UniTask LoadMainGame(string serverDirectory = null, string worldDirectory = null)
         {
-            await LoadMainGameWithMapMode(serverDirectory, worldDirectory, WorldProvisioner.TemplateMapMode);
+            await LoadMainGameWithMapMode(serverDirectory, worldDirectory, WorldMapMode.Template);
         }
 
         // 地形生成を伴うワールドで起動したいテスト向けにmapModeを明示する入口

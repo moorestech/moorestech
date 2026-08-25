@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Core.Master;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
+using Game.MapGeneration.Pipeline.Runtime;
 using Game.MapGeneration.Pipeline.Tiling;
 using UnityEngine;
 
@@ -22,45 +24,56 @@ namespace Game.MapGeneration.Pipeline.Generators
             SpatialGrid treeSpatialGrid,
             SpatialGrid objectSpatialGrid,
             SpatialGrid oreGrid,
-            SpatialGrid clusterCenterGrid,
-            float centerSpacing,
-            PlacementHaloChannel centerHalo,
-            List<PlacementEntry> result)
+            PlacementHaloChannelMap centerHalos,
+            float haloRadius,
+            VeinPlacementBatch result)
         {
-            // バンド未設定は生成器側で警告してスキップ（OreBandPlanner は純粋関数のため）。
-            // Warn and skip when bands are missing (OreBandPlanner stays a pure function).
-            if (entry.bands == null || entry.bands.Length == 0)
-            {
-                Debug.LogWarning($"[OrePlacement] vein '{entry.veinGuid}' has no distance bands; skipping.");
-                return;
-            }
-            var seenKeys = new HashSet<float>();
-            foreach (var b in entry.bands)
-            {
-                if (b == null) continue;
-                if (b.outerRadiusMeters < 0f && b.outerRadiusMeters != -1f)
-                    Debug.LogWarning($"[OrePlacement] '{entry.veinGuid}' has a negative outer radius ({b.outerRadiusMeters}) other than -1; treated as infinite.");
-                float key = b.outerRadiusMeters < 0f ? float.PositiveInfinity : b.outerRadiusMeters;
-                if (!seenKeys.Add(key))
-                    Debug.LogWarning($"[OrePlacement] '{entry.veinGuid}' has bands with duplicate outer radius ({b.outerRadiusMeters}); later ones degenerate.");
-            }
-
             float w = dims.TerrainWidth;
             float l = dims.TerrainLength;
             int hRes = dims.Resolution;
             float minDist = entry.minDistanceFromOthers;
-            float sx = dims.SpawnWorldX;
-            float sz = dims.SpawnWorldZ;
 
-            var ranges = OreBandPlanner.BuildRanges(entry.bands);
+            // 中心排他の設定はエントリと同じ責務に閉じる。
+            // Keeps center-exclusion setup with the entry that owns the invariant.
+            float centerSpacing = 0f;
+            if (entry.bands != null)
+                foreach (var band in entry.bands)
+                    if (band != null) centerSpacing = Mathf.Max(centerSpacing,
+                        OrePlacementMath.CalculateClusterCenterSpacing(band.clusterRadius));
 
-            foreach (var range in ranges)
+            var clusterCenterGrid = new SpatialGrid(w, l, Mathf.Max(w / 50f, 5f));
+            centerHalos.Get(entry.veinGuid).SeedGrid(
+                clusterCenterGrid, dims.WorldOffsetX, dims.WorldOffsetZ, w, l, haloRadius);
+
+            // 地形への効き方はmapVeinsマスタが正本。veinGuidの解決はGenerationMasterのバリデーションが保証する
+            // The mapVeins master owns the terrain effect; GenerationMaster validation guarantees the veinGuid resolves
+            var veinElement = MasterHolder.MapVeinMaster.GetElementOrNull(System.Guid.Parse(entry.veinGuid));
+            var surroundEffect = RuntimeConvert.ToTerrainSurroundEffectType(
+                veinElement.TerrainSurroundEffectType, "mapVeins.terrainSurroundEffectType");
+
+            var rings = SpawnDistanceRingPlanner.BuildRings(entry.bands);
+            dims.SpawnDistanceRangeXz(out var tileNearestDistance, out var tileFarthestDistance);
+
+            foreach (var range in rings)
             {
                 var band = range.Band;
 
+                // density<=0は「この帯には置かない」宣言。Maxクランプで拾うと1個分の間隔が残り黙って湧く。
+                // A density of zero or less declares "place nothing in this band"; the Max clamp would leave one cluster's spacing and spawn silently.
+                if (band.density <= 0f) continue;
+
+                // タイルに掛からないリングは全中心が捨てられるだけなので、種だけ引いて飛ばす（乱数消費数＝出力を変えない）。
+                // A ring that misses this tile would have every centre discarded, so draw the seed and skip (output and RNG consumption stay identical).
+                if (!range.OverlapsDistanceRange(tileNearestDistance, tileFarthestDistance))
+                {
+                    rng.Next();
+                    continue;
+                }
+
                 float poissonArea = w * l;
-                float adjustedMinDist = Mathf.Sqrt(poissonArea / Mathf.Max(band.density * 100f, 1f));
-                adjustedMinDist = Mathf.Max(adjustedMinDist, band.clusterRadius * 2.5f);
+                float adjustedMinDist = Mathf.Sqrt(poissonArea / (band.density * 100f));
+                adjustedMinDist = Mathf.Max(adjustedMinDist,
+                    OrePlacementMath.CalculateClusterCenterSpacing(band.clusterRadius));
 
                 var candidates = PoissonDiskSampler.Generate(w, l, adjustedMinDist, rng.Next());
 
@@ -71,10 +84,7 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     // リング判定（ワールド座標距離・クラスター中心のみ）。
                     // Ring test (world-distance of the cluster center only).
-                    float dx = (localX + dims.WorldOffsetX) - sx;
-                    float dz = (localZ + dims.WorldOffsetZ) - sz;
-                    float dist = Mathf.Sqrt(dx * dx + dz * dz);
-                    if (!range.Contains(dist)) continue;
+                    if (!range.Contains(dims.DistanceFromSpawnXz(localX, localZ))) continue;
 
                     int px = Mathf.Clamp(Mathf.RoundToInt(localX / w * (hRes - 1)), 0, hRes - 1);
                     int pz = Mathf.Clamp(Mathf.RoundToInt(localZ / l * (hRes - 1)), 0, hRes - 1);
@@ -102,10 +112,15 @@ namespace Game.MapGeneration.Pipeline.Generators
                             continue;
                     }
 
-                    clusterCenterGrid.Add(localX, localZ);
-                    centerHalo.Add(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ);
+                    var cluster = new VeinPlacementCluster(
+                        entry.veinGuid, new Vector2(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ));
+                    PlaceClusterMembers(band, localX, localZ, cluster.Members);
+                    if (cluster.Members.Count == 0) continue;
 
-                    PlaceClusterMembers(band, localX, localZ);
+                    // 実メンバーを持つ中心だけを同タイル後続候補の排他に使う。
+                    // Only centers with real members exclude later candidates in this tile.
+                    clusterCenterGrid.Add(localX, localZ);
+                    result.Clusters.Add(cluster);
                 }
             }
 
@@ -113,7 +128,8 @@ namespace Game.MapGeneration.Pipeline.Generators
 
             // クラスターメンバーを極座標で配置（ワールド整数座標にスナップ）。
             // Place cluster members in polar coordinates, snapped to integer world coordinates.
-            void PlaceClusterMembers(OreBand targetBand, float centerX, float centerZ)
+            void PlaceClusterMembers(
+                OreBand targetBand, float centerX, float centerZ, List<PlacementEntry> clusterMembers)
             {
                 int clusterCount = rng.Next(1, targetBand.maxObjectsPerCluster + 1);
                 float oreMinDist = targetBand.minDistanceBetweenOres;
@@ -140,18 +156,10 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                     float my = OrePlacementMath.SampleHeight(heights, mx, mz, w, l, hRes) * dims.TerrainHeight;
 
-                    result.Add(new PlacementEntry
-                    {
-                        MapObjectGuid = entry.veinGuid,
-                        WorldPosition = new Vector3(
-                            mx + dims.WorldOffsetX,
-                            my,
-                            mz + dims.WorldOffsetZ),
-                        Rotation = Quaternion.identity,
-                        Scale = Vector3.one,
-                        Sink = 0f,
-                        Cluster = null
-                    });
+                    clusterMembers.Add(PlacementEntry.CreateVein(
+                        entry.veinGuid,
+                        new Vector3(mx + dims.WorldOffsetX, my, mz + dims.WorldOffsetZ),
+                        surroundEffect));
 
                     oreGrid.Add(mx, mz);
                 }

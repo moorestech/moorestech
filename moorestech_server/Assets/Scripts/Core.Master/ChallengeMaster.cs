@@ -33,6 +33,42 @@ namespace Core.Master
             ChallengeMasterUtil.Initialize(Challenges, out _challengeCategoryGuidMap, out _challengeGuidMap, out _challengeToCategoryMap, out _nextChallenges);
         }
         
+        /// <summary>
+        ///     ピンの狙い先指定を候補mapObjectGuid集合へ解決する（client/server共通の唯一の規則）
+        ///     Resolves a pin target param into candidate mapObjectGuids; the single rule shared by client and server.
+        /// </summary>
+        public HashSet<Guid> ResolvePinTargets(MapObjectPinTutorialParam param)
+        {
+            if (!TryResolvePinTargets(param, out var pinTargets))
+            {
+                throw new InvalidOperationException($"Unknown pinTargetType: {param.PinTargetType}");
+            }
+
+            return pinTargets;
+        }
+
+        /// <summary>
+        ///     未知の狙い先指定でも例外にせず解決可否を返す（マスタ検証は落ちずに報告する必要がある）
+        ///     Reports whether the target param resolves instead of throwing, because master validation must report, not crash.
+        /// </summary>
+        public bool TryResolvePinTargets(MapObjectPinTutorialParam param, out HashSet<Guid> pinTargets)
+        {
+            switch (param.PinTargetParam)
+            {
+                case MapObjectPinTargetParam byMapObject:
+                    pinTargets = new HashSet<Guid> { byMapObject.MapObjectGuid };
+                    return true;
+                // そのアイテムを落とす全mapObjectが候補。木の種類が増えてもマスタ側の列挙は不要
+                // Every mapObject dropping the item is a candidate, so new tree species need no master enumeration
+                case EarnItemPinTargetParam byEarnItem:
+                    pinTargets = MasterHolder.MapObjectMaster.GetMapObjectGuidsByEarnItem(byEarnItem.ItemGuid);
+                    return true;
+                default:
+                    pinTargets = new HashSet<Guid>();
+                    return false;
+            }
+        }
+
         public List<ChallengeMasterElement> GetNextChallenges(Guid challengeGuid)
         {
             if (!_nextChallenges.TryGetValue(challengeGuid, out var nextChallenges))

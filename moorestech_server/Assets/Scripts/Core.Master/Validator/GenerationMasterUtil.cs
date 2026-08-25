@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Mooresmaster.Model.BiomeObjectConfigModule;
 using Mooresmaster.Model.GenerationModule;
 using Mooresmaster.Model.MapModule;
 
@@ -8,12 +10,16 @@ namespace Core.Master.Validator
         // AABBは点の±1なので軸差3未満は重なる。丸め1を見込み間隔の下限を4とする
         // An AABB spans the point +/-1, so axis gaps under 3 overlap; allowing one for rounding puts the floor at 4
         private const float MinOreSpacing = 4f;
+        private const int DetailResolutionPerPatch = 16;
 
         public static bool Validate(Generation generation, out string errorLogs)
         {
             errorLogs = "";
             errorLogs += VeinTypeValidation();
+            errorLogs += VeinGuidUniquenessValidation();
             errorLogs += OreSpacingValidation();
+            errorLogs += SpawnDistanceBandValidation();
+            errorLogs += DetailResolutionValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -62,6 +68,33 @@ namespace Core.Master.Validator
                 return logs;
             }
 
+            // oreとfluidは独立した設定なので、それぞれの内部だけでveinGuid重複を弾く
+            // Ore and fluid are independent configs, so reject duplicate veinGuids only within each collection
+            string VeinGuidUniquenessValidation()
+            {
+                if (generation.AlgorithmParam is not VanillaGeneratorAlgorithmParam vanillaGenerator)
+                {
+                    return "";
+                }
+
+                var logs = "";
+                var oreVeinGuids = new HashSet<System.Guid>();
+                foreach (var oreEntry in vanillaGenerator.OreConfig.Entries)
+                {
+                    if (oreVeinGuids.Add(oreEntry.VeinGuid)) continue;
+                    logs += $"[GenerationMaster] oreConfig.entries has duplicate VeinGuid:{oreEntry.VeinGuid}\n";
+                }
+
+                var fluidVeinGuids = new HashSet<System.Guid>();
+                foreach (var fluidEntry in vanillaGenerator.OreConfig.FluidEntries)
+                {
+                    if (fluidVeinGuids.Add(fluidEntry.VeinGuid)) continue;
+                    logs += $"[GenerationMaster] oreConfig.fluidEntries has duplicate VeinGuid:{fluidEntry.VeinGuid}\n";
+                }
+
+                return logs;
+            }
+
             // 最小配置間隔が下限未満の帯を弾く
             // Reject bands whose spacing is under the floor
             string OreSpacingValidation()
@@ -90,7 +123,107 @@ namespace Core.Master.Validator
                 return logs;
             }
 
+            // リング化できない帯（空・-1以外の負値・外半径重複）をマスタロード時に弾く
+            // Reject bands that cannot become rings (empty, negative other than -1, duplicate outer radius) at master load
+            string SpawnDistanceBandValidation()
+            {
+                if (generation.AlgorithmParam is not VanillaGeneratorAlgorithmParam vanillaGenerator)
+                {
+                    return "";
+                }
+
+                var logs = "";
+
+                foreach (var oreEntry in vanillaGenerator.OreConfig.Entries)
+                    logs += DiagnoseBands($"OreEntry VeinGuid:{oreEntry.VeinGuid}", OuterRadiiOf(oreEntry.Bands));
+
+                foreach (var fluidEntry in vanillaGenerator.OreConfig.FluidEntries)
+                    logs += DiagnoseBands($"FluidVeinEntry VeinGuid:{fluidEntry.VeinGuid}", OuterRadiiOf(fluidEntry.Bands));
+
+                foreach (var (biomeName, objectConfig) in GenerationBiomeObjectConfigCatalog.Of(vanillaGenerator))
+                for (var i = 0; i < objectConfig.Entries.Length; i++)
+                {
+                    // 帯は配置方式ごとのパラメータが持つため、方式で取り出し先を選ぶ
+                    // The bands live inside the per-mode placement parameters, so the mode decides where to read them from
+                    var placementParam = objectConfig.Entries[i].PlacementParam;
+                    var radii = placementParam is ClusterPlacementParam cluster
+                        ? OuterRadiiOf(cluster.Bands)
+                        : OuterRadiiOf(((ScatterPlacementParam)placementParam).Bands);
+                    logs += DiagnoseBands($"{biomeName}.objectConfig.entries[{i}]", radii);
+                }
+
+                return logs;
+            }
+
+            // Unity受理かつ高さ内のdetailのみ許可
+            // Allows only Unity-stable detail sizes within the heightmap.
+            string DetailResolutionValidation()
+            {
+                if (generation.AlgorithmParam is not VanillaGeneratorAlgorithmParam vanillaGenerator)
+                {
+                    return "";
+                }
+
+                var detailResolution = vanillaGenerator.DetailResolution;
+                if (detailResolution < DetailResolutionPerPatch)
+                    return $"[GenerationMaster] detailResolution:{detailResolution} must be at least {DetailResolutionPerPatch}\n";
+                if (detailResolution % DetailResolutionPerPatch != 0)
+                    return $"[GenerationMaster] detailResolution:{detailResolution} must be a multiple of {DetailResolutionPerPatch}\n";
+
+                var maximumDetailResolution = 0 < vanillaGenerator.OverrideResolution
+                    ? vanillaGenerator.OverrideResolution - 1
+                    : vanillaGenerator.ResolutionPreset switch
+                    {
+                        "_256" => 256,
+                        "_512" => 512,
+                        "_1024" => 1024,
+                        "_2048" => 2048,
+                        _ => 0,
+                    };
+                return maximumDetailResolution < detailResolution
+                    ? $"[GenerationMaster] detailResolution:{detailResolution} exceeds heightmap sample limit:{maximumDetailResolution}\n"
+                    : "";
+            }
+
             #endregion
+        }
+
+        private static string DiagnoseBands(string subject, float[] outerRadiusMeters)
+        {
+            var logs = "";
+            foreach (var problem in SpawnDistanceRingPlanner.Diagnose(outerRadiusMeters))
+                logs += $"[GenerationMaster] {subject} {problem}\n";
+            return logs;
+        }
+
+        // 生成型は帯ごとに別クラスになるため、外半径の取り出しだけ型別に用意する
+        // The generated model gives each band its own class, so only the radius extraction is written per type
+        private static float[] OuterRadiiOf(OreBandElement[] bands)
+        {
+            var radii = new float[bands.Length];
+            for (var i = 0; i < bands.Length; i++) radii[i] = bands[i].OuterRadiusMeters;
+            return radii;
+        }
+
+        private static float[] OuterRadiiOf(FluidOreBandElement[] bands)
+        {
+            var radii = new float[bands.Length];
+            for (var i = 0; i < bands.Length; i++) radii[i] = bands[i].OuterRadiusMeters;
+            return radii;
+        }
+
+        private static float[] OuterRadiiOf(ObjectScatterBandElement[] bands)
+        {
+            var radii = new float[bands.Length];
+            for (var i = 0; i < bands.Length; i++) radii[i] = bands[i].OuterRadiusMeters;
+            return radii;
+        }
+
+        private static float[] OuterRadiiOf(ObjectClusterBandElement[] bands)
+        {
+            var radii = new float[bands.Length];
+            for (var i = 0; i < bands.Length; i++) radii[i] = bands[i].OuterRadiusMeters;
+            return radii;
         }
     }
 }

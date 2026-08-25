@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.WebUiHost.Game.Icons;
 using Core.Master;
+using Game.Construction;
 using Game.PlacementTarget;
 using Mooresmaster.Model.BuildMenuModule;
 
@@ -17,12 +18,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         // 解放判定はResolverが持つ唯一の供給点へ委ね、ここは変換だけを担う
         // Delegates the unlock decision to the resolver's single supply point; this file only converts
-        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver)
+        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery)
         {
-            return CreateDtos(placementTargetResolver.CreateUnlockedTargets());
+            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery);
         }
 
-        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets)
+        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery)
         {
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
@@ -44,6 +45,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
                     RequiredItems = CreateRequiredItemDtos(target),
+                    SetPlacement = ResolveSetPlacement(target),
                     IconUrl = ResolveIconUrl(target),
                 });
             }
@@ -81,6 +83,25 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     itemDtos.Add(new BuildMenuRequiredItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(), Count = count });
                 }
                 return itemDtos;
+            }
+
+            // ブロックかどうかの供給源はKindのenum一本に揃える
+            // The single supply point for "is this a block" is the Kind enum
+            BlockPlacementTarget ResolveBlockTarget(IPlacementTarget target)
+            {
+                return target.Kind == PlacementTargetKind.Block ? (BlockPlacementTarget)target : null;
+            }
+
+            // 財布の有無も残数も財布へ問い合わせる。非ブロックは財布を持たない
+            // Both whether a wallet exists and how much remains come from the wallet itself; non-block kinds have none
+            BuildMenuSetPlacementDto ResolveSetPlacement(IPlacementTarget target)
+            {
+                var block = ResolveBlockTarget(target);
+                if (block == null) return null;
+
+                var status = walletQuery.GetWalletStatus(block.BlockId);
+                if (status == null) return null;
+                return new BuildMenuSetPlacementDto { PerCost = status.Value.PlacementsPerCost, Remaining = status.Value.RemainingCount };
             }
 
             #endregion

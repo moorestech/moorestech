@@ -191,6 +191,11 @@ properties:
         - key: count
           type: integer
           default: 1
+    # 建設コスト1セットで設置できる個数。ベルトのみ>1。財布はベルトファミリー単位（ADR 0026）
+    # Placements granted per one construction-cost set; >1 only for belts. Wallet is per belt family (ADR 0026)
+    - key: placementsPerCost
+      type: integer
+      default: 1
     - key: imagePath
       type: string
       optional: true

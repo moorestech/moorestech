@@ -9,7 +9,6 @@ export function TrainRidingHud() {
   const { t } = useI18n();
   if (!riding?.riding) return null;
   const title = t(L.ui.trainHud.title);
-  const controls = t(L.ui.trainHud.controls);
   const branchSelection = t(L.ui.trainHud.branchSelection, {
     current: riding.selectedBranchIndex + 1,
     count: riding.branchCandidateCount,
@@ -20,7 +19,6 @@ export function TrainRidingHud() {
     <Paper className={styles.hud} data-testid="train-riding-hud" {...tutorialAnchor(TutorialAnchorIds.trainHudStatus)}>
       <Stack gap={4}>
         <Title order={2} size="h4">{title}</Title>
-        <Text>{controls}</Text>
         {showBranchSelection && (
           <Text data-testid="train-branch-selection">
             {branchSelection}

@@ -121,8 +121,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -197,6 +197,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 788145115814425742, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 788145115814425742, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 942762261387038785, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 942762261387038785, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2501264641900623440, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -208,6 +224,14 @@ PrefabInstance:
     - target: {fileID: 5015745088969067659, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5231475020304158713, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5231475020304158713, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8393773038410138007, guid: 1ad2dae3f0724f93810097d49f7c99b5, type: 3}
       propertyPath: m_Name
@@ -318,7 +342,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.531654
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.z

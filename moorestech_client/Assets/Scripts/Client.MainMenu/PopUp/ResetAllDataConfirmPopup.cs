@@ -1,5 +1,4 @@
-using System.IO;
-using Server.Boot;
+using Game.Paths;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,8 +28,7 @@ namespace Client.MainMenu.PopUp
         private void ResetAllData()
         {
             // サーバーと同じ既定ワールドディレクトリを削除（バックアップは残す） / Delete the server's default world directory, keeping backups
-            var worldDirectory = new StartServerSettings().WorldDirectory;
-            if (Directory.Exists(worldDirectory)) Directory.Delete(worldDirectory, true);
+            GameSystemPaths.DeleteDefaultWorldDirectory();
 
             // PlayerPrefsも全削除して初期状態に戻す / Delete all PlayerPrefs to restore initial state
             PlayerPrefs.DeleteAll();

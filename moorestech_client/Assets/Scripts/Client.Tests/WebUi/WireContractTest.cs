@@ -138,12 +138,17 @@ namespace Client.Tests.WebUi
             Assert.AreEqual(shared.Count, new HashSet<string>(shared).Count, "error_codes.json に重複コードがある / duplicate codes");
             Assert.That(new HashSet<string>(shared), Is.EquivalentTo(expected), "error_codes.json が C# のエラーコード集合と不一致 / mismatch with the C# error-code set");
         }
-        // ui_state: 列挙名文字列1フィールドの最小契約（INFRA-6）
-        // ui_state: the minimal one-field enum-name contract (INFRA-6)
+        // ui_state: 列挙名文字列と、その画面が宣言した操作ヒント配列の契約（INFRA-6 / ADR-0032）
+        // ui_state: the enum-name string plus the key-hint array the screen declares (INFRA-6 / ADR-0032)
         [Test]
         public void UiStateMatchesFixture()
         {
-            AssertMatchesFixture(new UiStateDto { State = "PlayerInventory" }, "ui_state.json");
+            var dto = new UiStateDto
+            {
+                State = "PlayerInventory",
+                KeyHints = new[] { new KeyHintDto { KeyNameKey = "ui.keyHint.key.tab", TextKey = "ui.keyHint.text.closeInventory" } },
+            };
+            AssertMatchesFixture(dto, "ui_state.json");
         }
 
         // ポーズメニューは切断表示に必要な状態だけを配信する
@@ -170,7 +175,7 @@ namespace Client.Tests.WebUi
                 },
                 Entries = new List<BuildMenuEntryDto>
                 {
-                    new() { Id = "30000000-0000-4000-8000-000000000001", Kind = "block", CategoryGuid = "10000000-0000-4000-8000-000000000001", SubCategoryGuid = "20000000-0000-4000-8000-000000000001", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5 } }, IconUrl = "/api/block-icons/1.png" },
+                    new() { Id = "30000000-0000-4000-8000-000000000001", Kind = "block", CategoryGuid = "10000000-0000-4000-8000-000000000001", SubCategoryGuid = "20000000-0000-4000-8000-000000000001", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5 } }, SetPlacement = new BuildMenuSetPlacementDto { PerCost = 3, Remaining = 2 }, IconUrl = "/api/block-icons/1.png" },
                     new() { Id = "8f9c2a51-0000-4000-8000-000000000001", Kind = "trainCar", CategoryGuid = "10000000-0000-4000-8000-000000000002", SubCategoryGuid = "20000000-0000-4000-8000-000000000003", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 7, Count = 2 } }, IconUrl = "/api/train-car-icons/8f9c2a51-0000-4000-8000-000000000001.png" },
                     new() { Id = "40000000-0000-4000-8000-000000000001", Kind = "connectTool", CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuid = "20000000-0000-4000-8000-000000000004", RequiredItems = new List<BuildMenuRequiredItemDto>(), IconUrl = "/api/connect-tool-icons/40000000-0000-4000-8000-000000000001.png" },
                     new() { Id = "50000000-0000-4000-8000-000000000001", Kind = "blueprintCopy", CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuid = "20000000-0000-4000-8000-000000000005", RequiredItems = new List<BuildMenuRequiredItemDto>() },

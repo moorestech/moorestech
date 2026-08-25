@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using Game.Construction;
 using Game.Context;
 using Game.PlayerInventory.Interface;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +32,7 @@ namespace Tests.UnitTest.Server
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Material1Guid), 2));
             inventory.SetItem(1, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Material2Guid), 1));
 
-            Assert.IsTrue(ConstructionCostService.HasRequiredItems(ConstructionCostService.ToItemCounts(requiredItems), inventory.InventoryItems));
+            Assert.IsTrue(ConstructionCostService.HasRequiredItems(ConstructionCostItems.ToItemCounts(requiredItems), inventory.InventoryItems));
         }
 
         [Test]
@@ -44,7 +45,7 @@ namespace Tests.UnitTest.Server
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Material1Guid), 1));
             inventory.SetItem(1, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Material2Guid), 1));
 
-            Assert.IsFalse(ConstructionCostService.HasRequiredItems(ConstructionCostService.ToItemCounts(requiredItems), inventory.InventoryItems));
+            Assert.IsFalse(ConstructionCostService.HasRequiredItems(ConstructionCostItems.ToItemCounts(requiredItems), inventory.InventoryItems));
         }
 
         [Test]
@@ -62,7 +63,7 @@ namespace Tests.UnitTest.Server
             inventory.SetItem(5, ServerContext.ItemStackFactory.Create(material1Id, 3));
             inventory.SetItem(1, ServerContext.ItemStackFactory.Create(material2Id, 2));
 
-            ConstructionCostService.ConsumeRequiredItems(ConstructionCostService.ToItemCounts(requiredItems), inventory);
+            ConstructionCostService.ConsumeRequiredItems(ConstructionCostItems.ToItemCounts(requiredItems), inventory);
 
             Assert.AreEqual(0, inventory.GetItem(0).Count);
             Assert.AreEqual(2, inventory.GetItem(5).Count);
@@ -75,7 +76,7 @@ namespace Tests.UnitTest.Server
             CreateServer();
             var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId).RequiredItems;
 
-            var refundItems = ConstructionCostService.CreateRefundItems(ConstructionCostService.ToItemCounts(requiredItems));
+            var refundItems = ConstructionCostService.CreateRefundItems(ConstructionCostItems.ToItemCounts(requiredItems));
 
             Assert.AreEqual(2, refundItems.Count);
             Assert.AreEqual(MasterHolder.ItemMaster.GetItemId(Material1Guid), refundItems[0].Id);
@@ -103,7 +104,7 @@ namespace Tests.UnitTest.Server
         public void requiredItemsがnullなら空のItemCountsを返す()
         {
             CreateServer();
-            Assert.AreEqual(0, ConstructionCostService.ToItemCounts((ConstructionRequiredItemElement[])null).Length);
+            Assert.AreEqual(0, ConstructionCostItems.ToItemCounts((ConstructionRequiredItemElement[])null).Length);
         }
 
         private static ServiceProvider CreateServer()

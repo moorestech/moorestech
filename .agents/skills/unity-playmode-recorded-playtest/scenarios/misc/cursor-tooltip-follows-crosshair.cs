@@ -11,6 +11,7 @@
 // Why not the post-skit moment: the Web UI unmounts during the skit, leaving the pointer at its initial
 // (0,0), so the corner precondition itself cannot be confirmed in the DOM (measurements in task-5-report.md).
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Tooltip;
@@ -34,9 +35,9 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
     // Aim at a pebble to raise the PickUp tooltip ("Left-click to pick up")
     var mapObjectDatastore = UnityEngine.Object.FindFirstObjectByType<MapObjectGameObjectDatastore>();
     p.Assert(mapObjectDatastore != null, "MapObjectGameObjectDatastoreが起動した");
-    await p.Until(() => mapObjectDatastore.WaitForInitialApplyAsync().Status.IsCompletedSuccessfully(), 180f, "mapObject生成ループが完走する");
+    await p.Until(() => mapObjectDatastore.IsNearFieldInstantiated.Value, 180f, "mapObject近傍生成が完了する");
 
-    var pebble = mapObjectDatastore.SearchNearestMapObject(pebbleMapObject, p.PlayerPosition);
+    var pebble = mapObjectDatastore.SearchNearestMapObject(new HashSet<Guid> { pebbleMapObject }, p.PlayerPosition);
     p.Assert(pebble != null, "最寄りの小石mapObjectを解決できる");
     var pebbleCollider = pebble.GetComponentInChildren<Collider>(true);
     p.Assert(pebbleCollider != null, "小石に照準用Colliderがある");

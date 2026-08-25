@@ -45,7 +45,7 @@ export type ActionPayloads = {
   "block_inventory.collect": { slot: BlockSlotRef };
   "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
   "pause_menu.save": Record<string, never>;
-  "pause_menu.back_to_main_menu": Record<string, never>;
+  "pause_menu.save_and_quit": Record<string, never>;
   "localization.setLocale": { locale: string };
   "research.complete": { researchGuid: string };
   "machine_recipe.select": { operation: "set" | "clear"; recipeGuid?: string };
@@ -90,7 +90,7 @@ export const ACTION_TYPES = [
   "block_inventory.collect",
   "ui_state.request",
   "pause_menu.save",
-  "pause_menu.back_to_main_menu",
+  "pause_menu.save_and_quit",
   "localization.setLocale",
   "research.complete",
   "machine_recipe.select",

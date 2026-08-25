@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -18,15 +19,17 @@ namespace Client.WebUiHost.Game.Topics
 
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
+        private readonly UIStateDictionary _uiStateDictionary;
         private readonly TrainHUDScreenState _trainHudState;
         private readonly IDisposable _trainStateSubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, TrainHUDScreenState trainHudState)
+        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary, TrainHUDScreenState trainHudState)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
+            _uiStateDictionary = uiStateDictionary;
             _trainHudState = trainHudState;
 
             // state遷移を購読して push する
@@ -75,11 +78,20 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            var trainHud = _uiStateControl.CurrentState == UIStateEnum.TrainHUDScreen;
+            var currentState = _uiStateControl.CurrentState;
+            var trainHud = currentState == UIStateEnum.TrainHUDScreen;
+
+            // 現stateが自分で宣言したヒントをそのまま配る（内容の正はstate側・ADR-0032）
+            // Publish the hints the current state declares for itself; the state owns the content (ADR-0032)
+            var keyHints = _uiStateDictionary.GetState(currentState).GetKeyHints()
+                .Select(hint => new KeyHintDto { KeyNameKey = hint.KeyNameKey.Key, TextKey = hint.TextKey.Key })
+                .ToArray();
+
             return WebUiJson.Serialize(new UiStateDto
             {
-                State = _uiStateControl.CurrentState.ToString(),
+                State = currentState.ToString(),
                 SubState = trainHud ? _trainHudState.SubState.ToString() : null,
+                KeyHints = keyHints,
             });
         }
     }
@@ -92,5 +104,16 @@ namespace Client.WebUiHost.Game.Topics
     {
         public string State;
         public string SubState;
+        public KeyHintDto[] KeyHints;
+    }
+
+    /// <summary>
+    /// 操作ヒント1件の配信 DTO。キー名も文言もローカライズキーで運ぶ
+    /// Payload DTO for one key hint; both the key name and the text travel as localization keys
+    /// </summary>
+    public class KeyHintDto
+    {
+        public string KeyNameKey;
+        public string TextKey;
     }
 }

@@ -1,5 +1,6 @@
 import type { HTMLAttributes } from "react";
-import { Tooltip, type TooltipProps } from "@mantine/core";
+import type { TooltipProps } from "@mantine/core";
+import HoverTooltip from "../HoverTooltip";
 import ItemIcon from "../ItemIcon";
 import SlotFrame from "../SlotFrame";
 import styles from "./style.module.css";
@@ -42,8 +43,8 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
 
   return (
     // Tooltip は子要素をラップせず cloneElement するため DOM 構造（grid > div）は不変
-    // Tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
-    <Tooltip label={tooltip ?? resolvedName} disabled={!hasItem || (!tooltip && !resolvedName)}>
+    // The tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
+    <HoverTooltip label={tooltip ?? resolvedName} disabled={!hasItem || (!tooltip && !resolvedName)}>
       <SlotFrame
         {...divProps}
         testId={testId}
@@ -65,6 +66,6 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
           </>
         ) : null}
       </SlotFrame>
-    </Tooltip>
+    </HoverTooltip>
   );
 }

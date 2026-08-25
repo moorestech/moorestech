@@ -17,10 +17,24 @@ const BuildMenuEntryCommonFields = {
   iconUrl: z.string().optional(),
 };
 
+// 財布を使うブロックだけが持つ。ホスト側が財布判定を済ませた形で届く
+// Present only on wallet-backed blocks; the host has already made the wallet decision
+export const BuildMenuSetPlacementSchema = z.object({
+  perCost: z.number().int().min(2),
+  remaining: z.number().int().min(0),
+});
+
+const BuildMenuBlockEntryDataSchema = z.object({
+  kind: z.literal("block"),
+  ...BuildMenuEntryCommonFields,
+  setPlacement: BuildMenuSetPlacementSchema.optional(),
+  label: z.never().optional(),
+}).strict();
+
 // マスタ由来名はGuid導出キーで解決し、ホストから表示名を運ばない
 // Resolve master-derived names through GUID-derived keys without host-provided labels
 const BuildMenuDictionaryResolvedEntryDataSchema = z.object({
-  kind: z.enum(["block", "trainCar", "connectTool"]),
+  kind: z.enum(["trainCar", "connectTool"]),
   ...BuildMenuEntryCommonFields,
   label: z.never().optional(),
 }).strict();
@@ -38,6 +52,7 @@ const BuildMenuBlueprintEntryDataSchema = z.object({
 }).strict();
 
 export const BuildMenuEntryDataSchema = z.discriminatedUnion("kind", [
+  BuildMenuBlockEntryDataSchema,
   BuildMenuDictionaryResolvedEntryDataSchema,
   BuildMenuBlueprintCopyEntryDataSchema,
   BuildMenuBlueprintEntryDataSchema,

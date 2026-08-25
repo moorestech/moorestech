@@ -134,7 +134,13 @@ export const progressSample = {
 
 // INFRA-6: 既定はインベントリ画面（既存 e2e が前提とする表示状態を保つ）
 // INFRA-6: default to the inventory screen (keeps the visibility existing e2e tests assume)
-export const uiState = { state: "PlayerInventory" } satisfies UiStateData;
+// C#のUIStateが配るヒント配列の代役。画面名から導出せず固定の2件を返す
+// Stands in for the hint array C# publishes; a fixed pair, never derived from the screen name
+export const uiStateKeyHints = [
+  { keyNameKey: "ui.keyHint.key.tab", textKey: "ui.keyHint.text.inventory" },
+  { keyNameKey: "ui.keyHint.key.r", textKey: "ui.keyHint.text.researchTree" },
+];
+export const uiState = { state: "PlayerInventory", keyHints: uiStateKeyHints } satisfies UiStateData;
 
 // DEMO(採点用): 60件=10段分。可視7段+スクロール余剰でノブ比が正本(≈70%)と揃う
 // DEMO (scoring): 60 items = 10 rows; 7 visible + overflow puts the thumb ratio at the reference's ~70%

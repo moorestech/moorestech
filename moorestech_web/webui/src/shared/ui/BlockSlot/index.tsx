@@ -1,4 +1,4 @@
-import { Tooltip } from "@mantine/core";
+import HoverTooltip from "../HoverTooltip";
 import BlockIcon from "../BlockIcon";
 import SlotFrame from "../SlotFrame";
 import styles from "./style.module.css";
@@ -15,10 +15,10 @@ export default function BlockSlot({ blockId, name, testId }: Props) {
   // 白面化は後続較正へ送る
   // Defer the white face to uGUI comparison and omit data-filled here
   return (
-    <Tooltip label={name} disabled={!name}>
+    <HoverTooltip label={name} disabled={!name}>
       <SlotFrame testId={testId}>
         <BlockIcon blockId={blockId} alt={name} className={styles.icon} />
       </SlotFrame>
-    </Tooltip>
+    </HoverTooltip>
   );
 }

@@ -15,7 +15,8 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void FluidVeinsAreGeneratedWithinTerrainBounds()
         {
             var generation = TestGenerationConfigFactory.CreateSmall();
-            var output = MapGenerationPipeline.Generate(generation, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var runtimeConfig = MapGenerationPipeline.BuildConfig(generation, 12345, TestGenerationConfigFactory.ServerDataDirectory);
+            var output = MapGenerationPipeline.Generate(generation, runtimeConfig).Output;
 
             Assert.That(output.FluidVeins, Is.Not.Empty);
 
@@ -36,6 +37,8 @@ namespace Tests.UnitTest.Game.MapGeneration
             {
                 Assert.That(vein.VeinGuid, Is.EqualTo(TestGenerationConfigFactory.TestFluidVeinGuid));
 
+                // AABBは全軸差2の点中心固定サイズ（ADR-0023）
+                // The AABB has a fixed point-centred two-unit span on every axis (ADR-0023)
                 Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
 
                 Assert.That(vein.Min.x, Is.GreaterThanOrEqualTo(minWorldX - margin));

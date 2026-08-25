@@ -153,8 +153,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -208,7 +208,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 7.573768
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.z
@@ -271,6 +271,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 310859695448190843, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 310859695448190843, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 529244369027922067, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -323,6 +331,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3482839458277941711, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3482839458277941711, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4412856571012387533, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -334,6 +350,22 @@ PrefabInstance:
     - target: {fileID: 5436405045996399493, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6216204850952916286, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6216204850952916286, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9161383756109358393, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9161383756109358393, guid: a218bdd2ae7d4fcfb7eb0cf779c359b7, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

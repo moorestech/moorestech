@@ -4,6 +4,7 @@ using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using Game.MapGeneration.Pipeline.Jobs;
 using Game.MapGeneration.Pipeline.Stages;
+using Game.MapGeneration.Pipeline.Visual.Placement;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Tiling
@@ -20,6 +21,10 @@ namespace Game.MapGeneration.Pipeline.Tiling
         private readonly Vector3 _sceneSpawn;
         private readonly MapGenerationOutput _output;
 
+        // pass-2(見た目)へ渡す配置台帳。生成システムの外へは出ない
+        // The placement ledger handed to pass-2 (visuals); it never leaves the generation system
+        private readonly PlacementLedger _ledger;
+
         // 格子で1つの halo 帳面。タイルを順に回す間、確定済みの配置を持ち回して次のタイルの近傍判定へ渡す。
         // One halo ledger for the whole grid, carried through the tile loop so confirmed placements reach the next tile's neighbour tests.
         private readonly PlacementHaloStore _halo;
@@ -31,7 +36,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
         public TilePlacementRunner(
             BiomePlacementHelper helper, BiomeType[] biomeTypes,
             Vector2 noiseToSceneShift, Vector3 sceneSpawn, MapGenerationOutput output,
-            PlacementHaloStore halo)
+            PlacementHaloStore halo, PlacementLedger ledger)
         {
             _helper = helper;
             _biomeTypes = biomeTypes;
@@ -39,13 +44,12 @@ namespace Game.MapGeneration.Pipeline.Tiling
             _sceneSpawn = sceneSpawn;
             _output = output;
             _halo = halo;
+            _ledger = ledger;
         }
 
-        // buffers は PaddedWindowStage がクロップ済みの分類で、ここで分類を回し直すと転送する分類と境界で食い違う。
-        // 戻り値はこのタイルの biomeIndices（heights と同じくクロップ済み分類から作る）。
-        // buffers carry PaddedWindowStage's cropped classification; re-running it here would disagree with the transferred one at the borders.
-        // The return value is this tile's biomeIndices, built from that same cropped classification.
-        public byte[] Run(
+        // buffers は PaddedWindowStage がクロップ済みの分類。配置の絵合わせ(木・物体・鉱脈)にだけ使い、戻り値には出さない。
+        // buffers carry PaddedWindowStage's cropped classification, used only to place trees/objects/veins; nothing is returned from it.
+        public void Run(
             TerrainGenerationConfig tileConfig, JobBuffers buffers, float[] heights, Vector2 tileScene,
             int tileIndexX, int tileIndexZ)
         {
@@ -91,9 +95,6 @@ namespace Game.MapGeneration.Pipeline.Tiling
             _output.ItemVeins.AddRange(itemVeins);
             _output.FluidVeins.AddRange(fluidVeins);
 
-            return PlacementInputBuilder.BuildBiomeIndices(
-                buffers.winnerBiomeIndex, buffers.landMask, buffers.beachFactor, _biomeTypes, res * res);
-
             #region Internal
 
             // objectPlacements はノイズ座標のままシーン座標化した objectEntries と混ざるため、消費者ごとこの中へ閉じ込める。
@@ -108,7 +109,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 itemVeins = OrePlacementStage.Generate(
                     tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile);
                 fluidVeins = FluidVeinPlacementStage.Generate(
-                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, itemVeins, tile);
+                    tileConfig, masks, _biomeTypes, heights2D, treeEntries, objectPlacements, tile);
             }
 
             void AppendMapObjects(List<PlacementEntry> entries)
@@ -118,20 +119,26 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 // このタイルの書き出し開始時点のオフセットを固定して使う。木呼び出しはクラスタを持たないため素通りする。
                 // Freeze the offset as of this tile's write start; the tree call carries no cluster so it passes through untouched.
                 var offset = _nextClusterIdOffset;
-                var maxLocalClusterId = -1;
 
                 foreach (var entry in entries)
                 {
                     if (string.IsNullOrEmpty(entry.MapObjectGuid)) continue;
 
-                    // 独立配置は Cluster を -1 の空情報で持つため、オフセットを掛けると隣タイルの実クラスタIDへ化ける。
-                    // An independent placement carries an empty -1 Cluster, so offsetting it would morph into a neighbouring tile's real id.
-                    var hasCluster = entry.Cluster.HasValue && 0 <= entry.Cluster.Value.ClusterId;
-                    var clusterId = hasCluster ? entry.Cluster.Value.ClusterId + offset : -1;
-                    var clusterCenter = hasCluster
-                        ? new Vector2(entry.Cluster.Value.Center.x, entry.Cluster.Value.Center.z)
-                        : Vector2.zero;
-                    if (hasCluster) maxLocalClusterId = Mathf.Max(maxLocalClusterId, entry.Cluster.Value.ClusterId);
+                    // クラスタ無し(null)にオフセットを掛けると隣タイルの実クラスタIDへ化けるので、そのまま素通しする。
+                    // Offsetting a "no cluster" (null) would morph it into a neighbouring tile's real id, so it passes straight through.
+                    PlacementCluster? cluster = null;
+                    if (entry.Cluster.HasValue)
+                    {
+                        var entryCluster = entry.Cluster.Value;
+                        cluster = new PlacementCluster(
+                            entryCluster.ClusterId + offset,
+                            new Vector2(entryCluster.Center.x, entryCluster.Center.z));
+
+                        // 次タイルの採番は書き出した最大IDの次から始める。クラスタが1件も無いタイルはオフセットを進めない。
+                        // The next tile numbers from just past the largest id written; a tile holding no cluster leaves the offset where it is.
+                        _nextClusterIdOffset = Mathf.Max(
+                            _nextClusterIdOffset, offset + entryCluster.ClusterId + 1);
+                    }
 
                     _output.MapObjects.Add(new PlacedMapObject
                     {
@@ -139,12 +146,11 @@ namespace Game.MapGeneration.Pipeline.Tiling
                         Position = entry.WorldPosition,
                         Rotation = entry.Rotation,
                         Scale = entry.Scale,
-                        ClusterId = clusterId,
-                        ClusterCenter = clusterCenter,
                     });
-                }
 
-                if (0 <= maxLocalClusterId) _nextClusterIdOffset = offset + maxLocalClusterId + 1;
+                    _ledger.Add(new LedgerPlacement(entry.MapObjectGuid, entry.WorldPosition, entry.Scale,
+                        entry.SurroundEffect, cluster));
+                }
             }
 
             #endregion

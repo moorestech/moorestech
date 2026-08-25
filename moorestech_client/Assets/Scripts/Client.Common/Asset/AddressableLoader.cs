@@ -47,6 +47,7 @@ namespace Client.Common.Asset
             }
             catch (Exception e)
             {
+                if (e is OperationCanceledException) throw;
                 Debug.LogError($"Addressables Load Error: {address}\n{e.Message}\n{e.StackTrace}");
                 return null;
             }

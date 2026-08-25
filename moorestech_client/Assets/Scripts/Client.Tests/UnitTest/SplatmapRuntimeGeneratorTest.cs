@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Environment.Terrain.Build.Placement;
-using Client.Game.InGame.Environment.Terrain.Visual.Detail;
-using Client.Game.InGame.Environment.Terrain.Visual.Source;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat;
-using Client.Game.InGame.Environment.Terrain.Visual.Splat.Surround;
-using Client.Tests.UnitTest.Terrain.Surround;
+using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Pipeline.Visual.Placement;
+using Game.MapGeneration.Pipeline.Visual.Detail;
+using Game.MapGeneration.Pipeline.Visual.Source;
+using Game.MapGeneration.Pipeline.Visual.Splat;
+using Game.MapGeneration.Pipeline.Visual.Surround;
+using Tests.UnitTest.Game.MapGeneration.Visual.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using NUnit.Framework;
-using Server.Protocol.PacketResponse.MapData;
 using Unity.Collections;
 using UnityEngine;
 
@@ -111,7 +111,7 @@ namespace Client.Tests.UnitTest
             transferredBiomeIndices[1, 0] = (byte)BiomeType.Grassland;
             transferredBiomeIndices[1, 1] = (byte)BiomeType.Forest;
 
-            TransferredWinnerBiomeWriter.Overwrite(
+            WinnerBiomeIndexWriter.Overwrite(
                 winnerBiomeIndex, transferredBiomeIndices, new[] { BiomeType.Grassland, BiomeType.Forest }, 2);
 
             Assert.That(winnerBiomeIndex[0], Is.EqualTo(-1), "Ocean は海ピクセル");
@@ -131,7 +131,7 @@ namespace Client.Tests.UnitTest
             var transferredBiomeIndices = new byte[1, 1];
             transferredBiomeIndices[0, 0] = (byte)BiomeType.Desert;
 
-            Assert.Throws<InvalidOperationException>(() => TransferredWinnerBiomeWriter.Overwrite(
+            Assert.Throws<InvalidOperationException>(() => WinnerBiomeIndexWriter.Overwrite(
                 winnerBiomeIndex, transferredBiomeIndices, new[] { BiomeType.Grassland }, 1));
 
             winnerBiomeIndex.Dispose();
@@ -154,25 +154,22 @@ namespace Client.Tests.UnitTest
 
             // 分類は呼び出し側の持ち物になった。1回の生成につき1個をusingで抱える本番と同じ形
             // The classification now belongs to the caller, held one per generation in a using as production does
-            using var classification = new TerrainClassificationContext(config, biomeTypes);
+            using var classification = new TileClassificationContext(config, biomeTypes);
             classification.Initialize();
-            return SplatmapRuntimeGenerator.Generate(
+            return SplatmapStage.Generate(
                 config, biomeTypes, classification, layerTable, visualSections,
                 SurroundTestFixtures.CreateTreeSurroundSpecies(),
                 CreateHeights(), transferredBiomeIndices, AlphamapResolution,
-                new List<MapObjectLayoutMessagePack>(), Vector3.zero);
+                new List<LedgerPlacement>(), Vector3.zero);
         }
 
         private static TerrainGenerationConfig CreateConfig()
         {
             return new TerrainGenerationConfig
             {
-                overrideResolution = Resolution,
-                seed = 12345,
-                grasslandEnabled = true,
-                forestEnabled = false,
-                savannaEnabled = false,
-                desertEnabled = false,
+                overrideResolution = Resolution, detailResolution = 1024, seed = 12345,
+                grasslandEnabled = true, forestEnabled = false,
+                savannaEnabled = false, desertEnabled = false,
                 mesaEnabled = false,
                 alpineEnabled = false,
                 jungleEnabled = false,

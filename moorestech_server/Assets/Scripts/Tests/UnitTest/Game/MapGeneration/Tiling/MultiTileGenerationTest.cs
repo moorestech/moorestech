@@ -23,7 +23,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.AreEqual(GridSide * GridSide, output.Tiles.Count);
 
@@ -40,10 +40,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             Assert.IsTrue(indices.Contains(new Vector2Int(1, 1)), "中心タイルが無い");
 
             foreach (var tile in output.Tiles)
-            {
                 Assert.AreEqual(config.Resolution * config.Resolution, tile.Heights.Length);
-                Assert.AreEqual(config.Resolution * config.Resolution, tile.BiomeIndices.Length);
-            }
         }
 
         // 転送層のEnumerateTileCoordinatesは正方格子前提。非正方はindexとcoordの対応が崩れるので生成側で先に弾く
@@ -71,7 +68,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         {
             var config = MultiTileTestWorld.BuildConfig(1, Seed);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.AreEqual(1, output.Tiles.Count);
             Assert.AreEqual(Vector2.zero, output.SceneOrigin);
@@ -82,7 +79,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         [Test]
         public void 隣接タイルは別のノイズ窓を見て異なる高さになる()
         {
-            var output = new VanillaGenerator().Generate(MultiTileTestWorld.BuildConfig(GridSide, Seed));
+            var output = new VanillaGenerator().Generate(MultiTileTestWorld.BuildConfig(GridSide, Seed)).Output;
 
             var center = output.Tiles.Single(tile => tile.TileX == 1 && tile.TileZ == 1);
             var right = output.Tiles.Single(tile => tile.TileX == 2 && tile.TileZ == 1);
@@ -98,7 +95,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
             MultiTileTestWorld.EnableTrees(config);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.IsNotEmpty(output.MapObjects);
             var buckets = new HashSet<Vector2Int>();
@@ -119,7 +116,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.IsNotEmpty(output.ItemVeins);
             var buckets = new HashSet<Vector2Int>();
@@ -139,22 +136,33 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         {
             var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.IsNotEmpty(output.ItemVeins);
-            MultiTileTestWorld.AssertNoOverlappingVeins(output.ItemVeins);
-            MultiTileTestWorld.AssertNoOverlappingVeins(output.FluidVeins);
+            MultiTileTestWorld.AssertNoOverlappingVeins(
+                output.ItemVeins.Concat(output.FluidVeins).ToList());
         }
 
         // シーン座標化の基準が探索の戻り値(探索無効なら0)だと、地形の窓原点だけが master worldOffset ぶん進む。
         // A basis taken from the search result (zero when disabled) advances only the terrain window origin by the master worldOffset.
         [Test]
-        public void 探索無効かつmaster_worldOffsetありでも地形と配置物とスポーンが同じフレームに乗る()
+        public void 探索無効かつmaster_worldOffsetありでも地形と配置物とスポーンと鉱脈AABBが同じフレームに乗る()
         {
-            var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
+            var config = MultiTileTestWorld.BuildConfig(2, 1);
             MultiTileTestWorld.EnableTrees(config);
             config.worldOffsetX = MasterWorldOffset;
             config.worldOffsetZ = MasterWorldOffset;
+            config.oreConfig.borderMargin = 0f;
+
+            // 種類別haloだけでは防げない境界AABB候補を増やし、統一台帳の座標frameを検査する。
+            // Densify seam AABB candidates that per-kind halos cannot reject, exercising the unified ledger's coordinate frame.
+            foreach (var entry in config.oreConfig.entries.Concat(config.oreConfig.fluidEntries))
+            {
+                entry.bands[0].density = 5f;
+                entry.bands[0].maxObjectsPerCluster = 1;
+                entry.bands[0].clusterRadius = 0f;
+                entry.bands[0].minDistanceBetweenOres = 0f;
+            }
 
             // spawnWorldPosition はノイズ座標なので窓原点 + 中心タイルの1/4点に置く（シーンでは1/4点そのもの）
             // spawnWorldPosition is noise-space, so place it at the window origin plus the center tile's quarter point
@@ -162,7 +170,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
                 MasterWorldOffset + config.terrainWidth * 0.25f,
                 MasterWorldOffset + config.terrainLength * 0.25f);
 
-            var output = new VanillaGenerator().Generate(config);
+            var output = new VanillaGenerator().Generate(config).Output;
 
             Assert.AreEqual(new Vector2(MasterWorldOffset, MasterWorldOffset), output.NoiseOrigin - output.SceneOrigin);
 
@@ -180,6 +188,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             {
                 MultiTileTestWorld.AssertVeinInsideGrid(vein, config);
             }
+
+            MultiTileTestWorld.AssertNoOverlappingVeins(
+                output.ItemVeins.Concat(output.FluidVeins).ToList());
         }
     }
 }

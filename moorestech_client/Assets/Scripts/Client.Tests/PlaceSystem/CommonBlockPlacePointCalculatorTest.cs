@@ -80,6 +80,7 @@ namespace Client.Tests.PlaceSystem
                 "TestBlock",
                 "TestBlockType",
                                 null,
+                1, // placementsPerCost
                 null,
                 "テスト",
                 "テスト",

@@ -13,6 +13,7 @@ using Client.Input;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Construction;
 using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -29,6 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     {
         private readonly IPlacementPreviewBlockGameObjectController _previewBlockController;
         private readonly ILocalPlayerInventory _localPlayerInventory;
+        private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly Camera _mainCamera;
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
         private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
@@ -38,13 +40,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData)
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery)
         {
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
+            _constructionWalletQuery = constructionWalletQuery;
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
-            _autoConnectPreview = new ElectricWireAutoConnectPreview(blockGameObjectDataStore, previewBlockController, gameUnlockStateData);
+            _autoConnectPreview = new ElectricWireAutoConnectPreview(blockGameObjectDataStore, previewBlockController, gameUnlockStateData, constructionWalletQuery);
         }
         
         public override void Enable()
@@ -125,7 +128,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
                 // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
-                PlacementCostPreviewMarker.MarkInsufficientEntitiesAsNotPlaceable(_currentPlaceInfos, _localPlayerInventory, feedback);
+                ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
+                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory);
 
                 // 各セルの自動接続を評価し表示更新。cursorIndexは上で解決済みのため再解決しない
                 // Evaluate auto-connect per cell and update the preview; cursorIndex is already resolved above so it is not re-resolved

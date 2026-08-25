@@ -24,7 +24,11 @@ export default function RecipeViewer() {
   // iter6: nudge the measured craft-panel bbox (1209,301,2072,1407) toward the reference (1210,300,2071,1405).
   // Trim width by 0.78 CSS px (≈2 screenshot px) so centering pulls both edges in evenly, and trim minHeight
   // by the same amount for the bottom edge
-  const panelMinHeight = loaded && selectedItemId !== null ? 432.983 : 300;
+  // 高さはfloorではなく確定値。floorだとレシピ件数でパネルごと伸び、
+  // 「パネルからはみ出した時に初めてスクロール」が成立しない（ユーザー裁定 2026-08-22）
+  // A settled height, not a floor: a floor lets the panel grow with the recipe count and
+  // "scroll only once it overflows the panel" never holds (user ruling 2026-08-22)
+  const panelHeight = loaded && selectedItemId !== null ? 432.983 : 300;
 
   return (
     <GamePanel
@@ -32,7 +36,7 @@ export default function RecipeViewer() {
       variant="craft"
       // marginTopのみ: craft-tabゾーン(y<298)へパネル上端の暗色50%規則が滲むのを避けるための余白
       // marginTop only: keeps the panel's dark-50%-rule top edge out of the craft-tab detection zone (y<298)
-      style={{ alignSelf: "start", justifySelf: "center", width: 337.2, minWidth: 0, minHeight: panelMinHeight, marginTop: 2, transform: "translate(0.391px, -0.391px)" }}
+      style={{ alignSelf: "start", justifySelf: "center", width: 337.2, minWidth: 0, height: panelHeight, marginTop: 2, transform: "translate(0.391px, -0.391px)" }}
     >
       {!loaded ? (
         <ConnectingPlaceholder m="auto" />

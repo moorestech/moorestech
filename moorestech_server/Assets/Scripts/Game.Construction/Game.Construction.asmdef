@@ -1,0 +1,19 @@
+{
+    "name": "Game.Construction",
+    "rootNamespace": "",
+    "references": [
+        "Core.Master",
+        "Core.Item.Interface",
+        "Game.Block.Interface",
+        "UniRx"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

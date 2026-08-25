@@ -1,0 +1,97 @@
+using System;
+using System.Collections.Generic;
+using Client.Game.InGame.Construction;
+using Core.Master;
+using Game.Construction;
+using Game.Context;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
+using UniRx;
+
+namespace Client.Tests.Construction
+{
+    public class ConstructionAffordabilityTest
+    {
+        private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003"); // Test3(コスト×2)
+        private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004"); // Test4(コスト×1)
+
+        [Test]
+        public void 素材所持数から設置可能セル数を算出する()
+        {
+            CreateServer();
+            var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId).RequiredItems;
+
+            // 5個+2個→賄えるのは2セル
+            // 5 + 2 afford exactly 2 cells
+            var inventory = CreateInventory(5, 2);
+
+            Assert.AreEqual(2, ConstructionMaterialAffordability.CalculateAffordableCellCount(requiredItems, inventory));
+        }
+
+        [Test]
+        public void コスト未定義ならMaxValueを返す()
+        {
+            CreateServer();
+            var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).RequiredItems;
+
+            Assert.AreEqual(int.MaxValue, ConstructionMaterialAffordability.CalculateAffordableCellCount(requiredItems, new List<global::Core.Item.Interface.IItemStack>()));
+        }
+
+        [Test]
+        public void 素材が1種でも足りなければ0セル()
+        {
+            CreateServer();
+            var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId).RequiredItems;
+
+            // Test4を持っていないため0セル
+            // Zero cells because no Test4 is held
+            var inventory = CreateInventory(10, 0);
+
+            Assert.AreEqual(0, ConstructionMaterialAffordability.CalculateAffordableCellCount(requiredItems, inventory));
+        }
+
+        [Test]
+        public void 坂ベルトの残り設置数は直線代表の財布から引く()
+        {
+            CreateServer();
+            var datastore = new ClientRemainingPlacementCountDatastore();
+            datastore.ApplyAll(new Dictionary<BlockId, int> { { ForUnitTestModBlockId.GearBeltConveyor, 2 } });
+
+            // 財布キーを知らずに坂ベルトIDを渡せる
+            // Slope belt id can be passed without knowing wallet keys
+            Assert.AreEqual(2, datastore.GetRemainingCount(ForUnitTestModBlockId.TestGearBeltConveyorUp));
+        }
+
+        [Test]
+        public void ApplyAllとApplyは購読者へ変化通知を送る()
+        {
+            CreateServer();
+            var datastore = new ClientRemainingPlacementCountDatastore();
+
+            var changedCount = 0;
+            using (datastore.OnWalletChanged.Subscribe(_ => changedCount++))
+            {
+                datastore.ApplyAll(new Dictionary<BlockId, int> { { ForUnitTestModBlockId.GearBeltConveyor, 1 } });
+                datastore.Apply(ForUnitTestModBlockId.GearBeltConveyor, 2);
+            }
+
+            Assert.AreEqual(2, changedCount);
+            Assert.AreEqual(2, datastore.GetRemainingCount(ForUnitTestModBlockId.GearBeltConveyor));
+        }
+
+        private static List<global::Core.Item.Interface.IItemStack> CreateInventory(int material1Count, int material2Count)
+        {
+            var factory = ServerContext.ItemStackFactory;
+            var inventory = new List<global::Core.Item.Interface.IItemStack>();
+            if (0 < material1Count) inventory.Add(factory.Create(MasterHolder.ItemMaster.GetItemId(Material1Guid), material1Count));
+            if (0 < material2Count) inventory.Add(factory.Create(MasterHolder.ItemMaster.GetItemId(Material2Guid), material2Count));
+            return inventory;
+        }
+
+        private static void CreateServer()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+        }
+    }
+}

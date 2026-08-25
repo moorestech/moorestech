@@ -7,6 +7,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
+using Game.Construction;
 using Game.UnlockState;
 using UnityEngine;
 
@@ -35,11 +36,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
         // The gear chain tool never reads scroll, so it must not block equipment switching
         public bool OwnsWheelInput => false;
 
-        public GearChainPoleConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, IGameUnlockStateData gameUnlockStateData)
+        public GearChainPoleConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery walletQuery)
         {
             _previewObject = new GearChainPoleExtendPreviewObject(previewBlockController);
             _requestSender = new GearChainPoleExtendRequestSender(blockGameObjectDataStore);
-            _inputCollector = new GearChainPoleFrameInputCollector(mainCamera, localPlayerInventory.LocalPlayerInventory, blockGameObjectDataStore, _previewObject);
+            _inputCollector = new GearChainPoleFrameInputCollector(mainCamera, localPlayerInventory.LocalPlayerInventory, blockGameObjectDataStore, _previewObject, walletQuery);
             _gameUnlockStateData = gameUnlockStateData;
         }
 

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Mooresmaster.Localization.Generated;
 using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Input;
 using UnityEngine;
@@ -43,5 +45,19 @@ namespace Client.Game.InGame.UI.UIState.State
             _researchTreeViewManager.SetActive(false);
             InputManager.MouseCursorVisible(false);
         }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return ResearchTreeStateHints.Hints;
+        }
+    }
+
+    internal static class ResearchTreeStateHints
+    {
+        public static readonly IReadOnlyList<KeyHint> Hints = new[]
+        {
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.Inventory),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.R, LocalizationKeys.Ui.KeyHint.Text.Close),
+        };
     }
 }

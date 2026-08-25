@@ -18,7 +18,9 @@
     "Game.Train",
     "Game.PlayerRiding.Interface",
     "Game.Blueprint",
-    "Game.Hotbar"
+    "Game.Hotbar",
+    "Game.Construction",
+    "UniRx"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

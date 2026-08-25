@@ -3,12 +3,12 @@
         {
             "key": "moorestech_master",
             "relativePath": "../moorestech_master",
-            "commitHash": "6551a6fb8d93346428926907c2247408188da12c"
+            "commitHash": "274b6d9fb8828e06a27c906d6122d8504dcaa9ce"
         },
         {
             "key": "moorestech_client_private",
             "relativePath": "moorestech_client/Assets/PersonalAssets/moorestech-client-private",
-            "commitHash": "40cdf1ad0d5d6b8526e08a6e78b75bdd9f3b5f5b"
+            "commitHash": "34f269ec595245d87105e9d8c4c09eba533bb5f6"
         }
     ]
 }

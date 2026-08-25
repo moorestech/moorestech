@@ -54,8 +54,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -198,6 +198,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1798023416193108278, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1798023416193108278, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2388542378541184261, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2388542378541184261, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2413055860653984920, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -244,6 +260,22 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7267480956145120679, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7688175019833583183, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7688175019833583183, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7785359129704523745, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7785359129704523745, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
+      propertyPath: m_ReflectionProbeUsage
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8039092187226599197, guid: 7be0c21edd994cd8abeea83c90b4d50c, type: 3}
@@ -323,7 +355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 11.425482
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5938972570524110259, guid: 8cf9677c0dc7f460faa78f3b80aabde7, type: 3}
       propertyPath: m_LocalPosition.z

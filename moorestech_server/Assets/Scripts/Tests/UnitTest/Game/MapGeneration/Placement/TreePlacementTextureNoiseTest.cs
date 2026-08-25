@@ -67,7 +67,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         // Place a single prototype on one perfectly flat, fully masked tile and observe only the placement count.
         private static int PlaceCount(TreePrototypeEntry entry)
         {
-            var dims = new TerrainDimensions(TerrainSize, TerrainSize, 100f, 0f, 0f, Resolution, 0f, 0f, 1, 0f, 0f, 0, 0, 1, 1);
+            var dims = new TerrainDimensions(TerrainSize, TerrainSize, 100f, 0f, 0f, Resolution, Resolution - 1, 0f, 0f, 1, 0f, 0f, 0, 0, 1, 1);
             var heights = new float[Resolution * Resolution];
             var mask = new bool[Resolution, Resolution];
             for (int z = 0; z < Resolution; z++)

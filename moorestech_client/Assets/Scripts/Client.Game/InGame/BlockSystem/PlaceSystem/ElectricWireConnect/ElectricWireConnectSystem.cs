@@ -10,6 +10,7 @@ using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Master;
+using Game.Construction;
 using Game.UnlockState;
 using UnityEngine;
 
@@ -34,7 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         // Consume the wheel only while pole types can be cycled; with one or none it yields to equipment switching
         public override bool OwnsWheelInput => _context.PoleSelection.CanCyclePoleType;
 
-        public ElectricWireConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, IGameUnlockStateData gameUnlockStateData)
+        public ElectricWireConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery walletQuery)
         {
             _gameUnlockStateData = gameUnlockStateData;
 
@@ -42,7 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             var requestSender = new ElectricWireExtendRequestSender(blockGameObjectDataStore);
             var poleSelection = new ElectricWirePoleSelection();
             var pointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
-            var poleGhostPart = new ElectricWirePoleGhostPart(mainCamera, previewBlockController, localPlayerInventory.LocalPlayerInventory, pointCalculator);
+            var poleGhostPart = new ElectricWirePoleGhostPart(mainCamera, previewBlockController, localPlayerInventory.LocalPlayerInventory, pointCalculator, walletQuery);
             _context = new ElectricWireToolContext(mainCamera, previewBlockController, localPlayerInventory.LocalPlayerInventory, blockGameObjectDataStore, wirePreview, requestSender, poleSelection, poleGhostPart);
 
             _editMode = new ElectricWireEditMode(_context);

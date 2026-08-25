@@ -1,6 +1,7 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
 {
@@ -21,7 +22,6 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
             // While driving, enable camera control and hide the cursor.
             _inGameCameraController.SetControllable(true);
             InputManager.MouseCursorVisible(false);
-            KeyControlDescription.Instance.SetText("E: 降車\nW/A/S/D: 列車操作\nEsc: メニュー\n");
         }
 
         public TrainHudScreenUIStateEnum? GetNextUpdate()
@@ -36,5 +36,20 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         {
             _inGameCameraController.SetControllable(false);
         }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return TrainHudGameScreenSubStateHints.Hints;
+        }
+    }
+
+    internal static class TrainHudGameScreenSubStateHints
+    {
+        public static readonly IReadOnlyList<KeyHint> Hints = new[]
+        {
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.DriveKeys, LocalizationKeys.Ui.KeyHint.Text.TrainDrive),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.BranchKeys, LocalizationKeys.Ui.KeyHint.Text.TrainSelectBranch),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Text.TrainDismount),
+        };
     }
 }

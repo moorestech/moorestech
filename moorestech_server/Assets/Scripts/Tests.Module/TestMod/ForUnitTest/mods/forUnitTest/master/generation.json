@@ -27,6 +27,7 @@
       "maxExpandIterations": 4
     },
     "resolutionPreset": "_256",
+    "detailResolution": 256,
     "terrainHeight": 600,
     "terrainWidth": 1000,
     "terrainLength": 1000,
@@ -56,7 +57,7 @@
       "beachLandTerrainRadius": 10,
       "beachSeaTextureRadius": 14,
       "beachSeaTerrainRadius": 11,
-      "beachLayerAddressablePath": "",
+      "beachLayerAddressablePath": "test/terrain-layer/Beach",
       "beachThreshold": 0.01,
       "deepSeaThreshold": 0.005,
       "sandBlendThreshold": 0.01,
@@ -142,7 +143,7 @@
     "boundaryWarpFrequency": 0.0024,
     "boundaryNoiseAmount": 0.207,
     "boundaryNoiseFrequency": 1,
-    "rockLayerAddressablePath": "",
+    "rockLayerAddressablePath": "test/terrain-layer/Rock",
     "generateHeightmap": true,
     "generateTexture": true,
     "generateDetail": true,
@@ -215,7 +216,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "test/terrain-layer/GrasslandSurround",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -329,7 +330,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "test/terrain-layer/ForestSurround",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -435,7 +436,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "test/terrain-layer/SavannaSurround",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -544,7 +545,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "test/terrain-layer/DesertSurround",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -666,7 +667,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "test/terrain-layer/MesaSurround",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -799,7 +800,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "test/terrain-layer/AlpineSurround",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -915,7 +916,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "test/terrain-layer/JungleSurround",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,
@@ -1020,7 +1021,7 @@
         },
         "surroundTextureConfig": {
           "enabled": true,
-          "surroundLayerAddressablePath": "",
+          "surroundLayerAddressablePath": "test/terrain-layer/WoodsSurround",
           "coreRadius": 5,
           "coreBlendMin": 0.8,
           "coreBlendMax": 0.95,

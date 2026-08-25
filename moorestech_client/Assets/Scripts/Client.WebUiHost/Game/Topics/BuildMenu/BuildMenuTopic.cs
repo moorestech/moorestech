@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
+using Game.Construction;
 using UniRx;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
@@ -22,21 +23,25 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         private readonly UIStateControl _uiStateControl;
         private readonly ClientBlueprintLibrary _blueprintLibrary;
         private readonly PlacementTargetResolver _placementTargetResolver;
+        private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly IDisposable _librarySubscription;
+        private readonly IDisposable _remainingSubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public BuildMenuTopic(WebSocketHub hub, UIStateControl uiStateControl, ClientBlueprintLibrary blueprintLibrary, PlacementTargetResolver placementTargetResolver)
+        public BuildMenuTopic(WebSocketHub hub, UIStateControl uiStateControl, ClientBlueprintLibrary blueprintLibrary, PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery constructionWalletQuery)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
             _blueprintLibrary = blueprintLibrary;
             _placementTargetResolver = placementTargetResolver;
+            _constructionWalletQuery = constructionWalletQuery;
 
-            // BuildMenu入場で再配信、BPライブラリ更新でも再配信する
-            // Republish on BuildMenu entry and on blueprint-library updates
+            // 入場・BP更新・残数変化で再配信
+            // Republish on entry, BP updates, and remaining-count changes
             _uiStateControl.OnStateChanged += OnStateChanged;
             _librarySubscription = _blueprintLibrary.OnChanged.Subscribe(_ => SchedulePublish());
+            _remainingSubscription = _constructionWalletQuery.OnWalletChanged.Subscribe(_ => SchedulePublish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -49,6 +54,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _librarySubscription.Dispose();
+            _remainingSubscription.Dispose();
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -87,7 +93,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             var dto = new BuildMenuTopicDto
             {
                 Categories = BuildMenuEntryDtoFactory.CreateCategoryDtos(),
-                Entries = BuildMenuEntryDtoFactory.CreateDtos(_placementTargetResolver),
+                Entries = BuildMenuEntryDtoFactory.CreateDtos(_placementTargetResolver, _constructionWalletQuery),
             };
             return WebUiJson.Serialize(dto);
         }
