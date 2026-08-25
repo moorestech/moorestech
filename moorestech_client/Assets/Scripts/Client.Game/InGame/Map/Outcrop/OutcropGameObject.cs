@@ -20,8 +20,7 @@ namespace Client.Game.InGame.Map.Outcrop
         private static readonly HandMiningToolsElement[] NoHandMiningTools = Array.Empty<HandMiningToolsElement>();
         private static readonly IReadOnlyList<Guid> NoEarnItemGuids = Array.Empty<Guid>();
 
-        private IReadOnlyList<Guid> _earnItemGuids = NoEarnItemGuids;
-        public IReadOnlyList<Guid> EarnItemGuids => _earnItemGuids;
+        public IReadOnlyList<Guid> EarnItemGuids { get; private set; } = NoEarnItemGuids;
 
         private HandMiningToolsElement[] _handMiningTools = NoHandMiningTools;
         private bool _handMiningAllowed;
@@ -55,7 +54,7 @@ namespace Client.Game.InGame.Map.Outcrop
 
             // 液体鉱脈は名前を持たない（ADR 0033）
             // A fluid vein has no item name, so its name slot stays empty (ADR 0033)
-            _earnItemGuids = element.VeinParam is ItemVeinParam itemVeinParam
+            EarnItemGuids = element.VeinParam is ItemVeinParam itemVeinParam
                 ? new[] { itemVeinParam.ItemGuid }
                 : NoEarnItemGuids;
 

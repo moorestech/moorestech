@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
@@ -39,7 +38,7 @@ namespace Client.Tests.Mining
             base.Setup();
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _mouse = InputSystem.AddDevice<Mouse>();
-            ResetInputManagerCache();
+            MiningTestReflection.ResetInputManagerCache();
 
             // 取得アイテム名の解決に辞書が要る
             // Focusing resolves earned item names, so stand up the dictionary that RuntimeInitializeOnLoadMethod provides at runtime
@@ -54,11 +53,11 @@ namespace Client.Tests.Mining
                 _playerObject = new GameObject("PlayerSystem");
                 var grabItemManager = _playerObject.AddComponent<PlayerGrabItemManager>();
                 var playerController = _playerObject.AddComponent<PlayerObjectController>();
-                SetField(playerController, "animator", _playerObject.AddComponent<Animator>());
+                MiningTestReflection.SetField(playerController, "animator", _playerObject.AddComponent<Animator>());
                 var container = _playerObject.AddComponent<PlayerSystemContainer>();
-                SetField(container, "playerGrabItemManager", grabItemManager);
-                SetField(container, "playerObjectController", playerController);
-                InvokePrivate(container, "Awake");
+                MiningTestReflection.SetField(container, "playerGrabItemManager", grabItemManager);
+                MiningTestReflection.SetField(container, "playerObjectController", playerController);
+                MiningTestReflection.InvokePrivate(container, "Awake");
             }
             void CreateProgressBarView()
             {
@@ -66,9 +65,9 @@ namespace Client.Tests.Mining
                 var view = _progressBarObject.AddComponent<ProgressBarView>();
                 var viewRoot = new GameObject("ViewRoot");
                 viewRoot.transform.SetParent(_progressBarObject.transform);
-                SetField(view, "viewRoot", viewRoot);
-                SetField(view, "scrollbar", _progressBarObject.AddComponent<Scrollbar>());
-                InvokePrivate(view, "Awake");
+                MiningTestReflection.SetField(view, "viewRoot", viewRoot);
+                MiningTestReflection.SetField(view, "scrollbar", _progressBarObject.AddComponent<Scrollbar>());
+                MiningTestReflection.InvokePrivate(view, "Awake");
             }
 
             #endregion
@@ -77,20 +76,13 @@ namespace Client.Tests.Mining
         public override void TearDown()
         {
             ProgressBarView.Instance = null;
-            SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
+            MiningTestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
             UnityEngine.Object.DestroyImmediate(_mapObjectObject);
             _soundEffectFixture.Destroy();
             UnityEngine.Object.DestroyImmediate(_progressBarObject);
             UnityEngine.Object.DestroyImmediate(_playerObject);
-            ResetInputManagerCache();
+            MiningTestReflection.ResetInputManagerCache();
             base.TearDown();
-            #region Internal
-            static void SetStaticProperty(Type targetType, string propertyName, object value)
-            {
-                var field = targetType.GetField($"<{propertyName}>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic);
-                field.SetValue(null, value);
-            }
-            #endregion
         }
         [Test]
         public void 採掘中に装備を持ち替えるとフォーカス状態へ戻る()
@@ -180,26 +172,5 @@ namespace Client.Tests.Mining
             Assert.IsTrue(leftClick.GetKey, "左クリックの押下がInputSystemへ届いていない");
         }
 
-        // InputTestFixtureがInputSystemを差し替えるため、他セッションで作られた入力アセットは捨てて張り直す
-        // InputTestFixture swaps the InputSystem, so an input asset built in another session must be dropped and rebuilt
-        private static void ResetInputManagerCache()
-        {
-            foreach (var fieldName in new[] { "_instance", "player", "playable", "ui" })
-            {
-                typeof(InputManager).GetField(fieldName, BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, null);
-            }
-        }
-
-        private static void InvokePrivate(object target, string methodName)
-        {
-            var method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic);
-            method.Invoke(target, null);
-        }
-
-        private static void SetField(object target, string fieldName, object value)
-        {
-            var field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
-            field.SetValue(target, value);
-        }
     }
 }
