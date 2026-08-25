@@ -18,7 +18,6 @@ namespace Game.Block.Component
         public static Dictionary<Vector3Int, List<(Vector3Int position, IBlockConnector connector)>> CalculateConnectorToConnectPosList(IReadOnlyList<IBlockConnector> inputConnectors, BlockPositionInfo blockPositionInfo)
         {
             var blockDirection = blockPositionInfo.BlockDirection;
-            var blockBaseOriginPos = blockDirection.GetBlockBaseOriginPos(blockPositionInfo);
             var result = new Dictionary<Vector3Int, List<(Vector3Int position, IBlockConnector connector)>>();
 
             if (inputConnectors == null) return result;
@@ -26,7 +25,7 @@ namespace Game.Block.Component
             {
                 var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
 
-                var inputConnectorPos = blockBaseOriginPos + blockPosConvertAction(inputConnectSetting.Offset);
+                var inputConnectorPos = blockPositionInfo.ConvertBlockLocalToWorldCell(inputConnectSetting.Offset);
                 var directions = inputConnectSetting.Directions;
                 if (directions == null)
                 {
