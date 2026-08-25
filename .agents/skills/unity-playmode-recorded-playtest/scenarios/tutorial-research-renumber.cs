@@ -17,6 +17,13 @@ var stoneAxeRecipe = new Guid("04932724-b122-45ea-8cb1-642d9c834444");
 var placeWindDrill = new Guid("a6497c0b-82eb-5280-82c7-d339bc32de14"); // 風力掘削機を設置する
 var completeResearch4 = new Guid("7b9ddaf3-2d63-5876-83ed-03602bf44742"); // 原始研究4を完了する
 var obtainClay = new Guid("14f3b765-be4d-51ef-983f-685c043c265b"); // 粘土を入手する
+var placeFurnace = new Guid("603e84c0-10b1-501f-a03d-598584d34d58"); // 石窯を設置する
+var brickRecipe = new Guid("3e0459d2-71b7-419a-84d6-6d33c193c9bd"); // 石窯: 粘土+原木→レンガ
+var research5Guid = new Guid("b47c5e3c-1b58-42c5-a477-d485d2eae747"); // 旧4.5
+var research6 = new Guid("bc5e7786-6759-4271-8095-836703b54490");
+var research7 = new Guid("0d76f2e5-be1c-4ad4-b460-97a8aad0495f");
+var research8 = new Guid("48f75a7e-36f3-4845-a0bc-f8de8b3d7baf");
+var research9 = new Guid("3bca3b97-14d7-4cc1-a661-2266670bb6cb");
 var windDrillPinTutorial = "a62599e4-4a0f-5773-b134-c51038475c19"; // 風力掘削機設置 slot0 veinPin
 var clayPinTutorial = "39473729-f5d0-5d7d-b6b9-a6c8940437d5"; // 粘土入手 slot0 veinPin
 var logVein = new Guid("56ab3155-1479-49fa-a656-922021e4556a"); // 原木鉱脈
@@ -107,7 +114,16 @@ return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
     p.Assert(new[] { "原始研究5", "原始研究6", "原始研究7", "原始研究8", "原始研究9" }.All(names.Contains), "原始研究5〜9が存在する");
     var r4 = Core.Master.MasterHolder.ResearchMaster.ResearchElements[research4];
     var r4Recipes = r4.ClearedActions.items.Where(a => a.GameActionType == "unlockMachineRecipe").ToList();
-    p.Assert(r4Recipes.Count == 1, "研究4のunlockMachineRecipeアクションは1つ");
+    var r4RecipeGuids = r4Recipes.SelectMany(a => ((Mooresmaster.Model.GameActionModule.UnlockMachineRecipeGameActionParam)a.GameActionParam).UnlockMachineRecipeGuids).ToList();
+    p.Assert(r4RecipeGuids.Count == 1 && r4RecipeGuids[0] == brickRecipe, "研究4の機械レシピ解放は 粘土+原木→レンガ の1本だけ");
+    var chain = new[] { research4, research5Guid, research6, research7, research8, research9 };
+    var chainOk = Enumerable.Range(1, chain.Length - 1).All(i => Core.Master.MasterHolder.ResearchMaster.ResearchElements[chain[i]].PrevResearchNodeGuids.Contains(chain[i - 1]));
+    p.Assert(chainOk, "研究4→5→6→7→8→9 が prev で直列に繋がっている");
+    var challenges = Core.Master.MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements.SelectMany(c => c.Challenges).ToList();
+    var noDrag = new[] { placeWindDrill, placeFurnace }.All(g => challenges.First(c => c.ChallengeGuid == g).Tutorials.All(t => t.TutorialType != "uiDragGuide"));
+    p.Assert(noDrag, "風力掘削機設置・石窯設置に uiDragGuide が無い");
+    var nearestClayNow = outcrops != null ? outcrops.SearchNearestOutcrop(clayVein, p.PlayerPosition) : null;
+    p.Assert(nearestClayNow != null && veinPin != null && (veinPin.transform.position - nearestClayNow.transform.position).sqrMagnitude < 0.001f, "粘土ピンが最寄りの粘土露頭を指している");
     p.Note("検証完了");
 
     #region Internal
