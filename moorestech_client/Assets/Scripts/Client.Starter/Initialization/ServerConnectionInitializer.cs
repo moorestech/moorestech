@@ -8,8 +8,8 @@ using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
 using Server.Boot.Args;
-using TMPro;
 using UnityEngine;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter.Initialization
 {
@@ -20,15 +20,13 @@ namespace Client.Starter.Initialization
     public class ServerConnectionInitializer
     {
         private readonly InitializeProprieties _proprieties;
-        private readonly TMP_Text _loadingLog;
-        private readonly System.Diagnostics.Stopwatch _loadingStopwatch;
+        private readonly LoadingProgressLog _loadingProgressLog;
         private readonly PlayerConnectionSetting _playerConnectionSetting;
 
-        public ServerConnectionInitializer(InitializeProprieties proprieties, TMP_Text loadingLog, System.Diagnostics.Stopwatch loadingStopwatch, PlayerConnectionSetting playerConnectionSetting)
+        public ServerConnectionInitializer(InitializeProprieties proprieties, LoadingProgressLog loadingProgressLog, PlayerConnectionSetting playerConnectionSetting)
         {
             _proprieties = proprieties;
-            _loadingLog = loadingLog;
-            _loadingStopwatch = loadingStopwatch;
+            _loadingProgressLog = loadingProgressLog;
             _playerConnectionSetting = playerConnectionSetting;
         }
 
@@ -37,7 +35,7 @@ namespace Client.Starter.Initialization
             //サーバーとの接続を確立
             var serverCommunicator = await ConnectionToServer();
 
-            _loadingLog.text += $"\nサーバーとの接続完了  {_loadingStopwatch.Elapsed}";
+            _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.ServerConnected);
 
             //データの受付開始
             var packetSender = new PacketSender(serverCommunicator);
@@ -55,7 +53,7 @@ namespace Client.Starter.Initialization
             // Fetch the initial data bundle
             var handshakeResponse = await vanillaApi.Response.InitialHandShake(_playerConnectionSetting.PlayerId, default);
 
-            _loadingLog.text += $"\n初期データ取得完了  {_loadingStopwatch.Elapsed}";
+            _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.InitialDataFetched);
 
             return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse };
 

@@ -1320,6 +1320,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8f6910e84d4ef49d5b4ea142895113b6
+    m_Address: Vanilla/Skit/i18n/german
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 900506f7965554d9a94fe4604059ed00
     m_Address: Vanilla/Environment/Rock/MesaDesert/BigMesa_4
     m_ReadOnly: 0
