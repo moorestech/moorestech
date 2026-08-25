@@ -58,6 +58,11 @@ namespace Client.Localization
             return LocalizationTextResolver.Resolve(snapshot, currentLanguageCode, key.Key);
         }
 
+        public static string GetFormatted(LocalizationKey key, IReadOnlyList<string> textParams)
+        {
+            return LocalizationTextInterpolator.Interpolate(Get(key), textParams);
+        }
+
         // mod順とMaster原文は呼び出し側が決め、基盤は辞書だけを合成する
         // Callers decide mod order and Master sources; the foundation only composes dictionaries
         public static void MergeGameDictionaries(

@@ -2,8 +2,10 @@
 using System.Net;
 using System.Net.Sockets;
 using Client.Common;
+using Client.Localization;
 using Client.MainMenu.PopUp;
 using Client.Starter;
+using Mooresmaster.Localization.Generated;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,71 +15,80 @@ namespace Client.MainMenu
 {
     public class ConnectServer : MonoBehaviour
     {
+        // ポート番号の許容範囲（実装とlocalization.csvの文言が二重に持つ値のSSOT）
+        // Allowed port range (single source of truth shared with the localization.csv wording)
+        private const int MinExclusivePort = 1024;
+        private const int MaxPort = 65535;
+
         [SerializeField] private TMP_InputField serverIp;
         [SerializeField] private TMP_InputField serverPort;
-        
+
         [SerializeField] private ServerConnectPopup serverConnectPopup;
-        
+
         [SerializeField] private Button connectButton;
-        
+
+        private int _connectedPort;
+
         private void Start()
         {
             connectButton.onClick.AddListener(Connect);
         }
-        
+
         private void Connect()
         {
             if (!IPAddress.TryParse(serverIp.text, out var address))
             {
-                serverConnectPopup.SetText("IPアドレスが正しくありません");
+                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectInvalidIp));
                 return;
             }
-            
-            var port = int.Parse(serverPort.text);
-            if (65535 < port)
+
+            if (!int.TryParse(serverPort.text, out var port))
             {
-                serverConnectPopup.SetText("ポート番号は65535以下である必要があります");
+                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectInvalidPort));
                 return;
             }
-            
-            if (port <= 1024)
+
+            if (MaxPort < port)
             {
-                serverConnectPopup.SetText("ポート番号は1024以上である必要があります");
+                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectPortTooLarge));
                 return;
             }
-            
+
+            if (port <= MinExclusivePort)
+            {
+                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectPortTooSmall));
+                return;
+            }
+
             try
             {
                 var remoteEndPoint = new IPEndPoint(address, port);
                 var socket = new Socket(remoteEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                
+
+                // Connectは失敗時に必ず例外を投げるため、ここへ来た時点で接続は成立している
+                // Connect always throws on failure, so reaching this line means the connection succeeded
                 socket.Connect(remoteEndPoint);
-                
-                if (socket.Connected)
-                {
-                    //接続が確認出来たのでソケットを閉じて実際にゲームに移行
-                    socket.Close();
-                    
-                    SceneManager.sceneLoaded += OnMainGameSceneLoaded;
-                    SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
-                }
+                socket.Close();
+
+                _connectedPort = port;
+                SceneManager.sceneLoaded += OnMainGameSceneLoaded;
+                SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
             }
             catch (Exception e)
             {
-                serverConnectPopup.SetText("サーバーへの接続に失敗しました\n" + e);
+                serverConnectPopup.SetText(Localize.GetFormatted(LocalizationKeys.Ui.MainMenu.ConnectFailed, new[] { e.ToString() }));
             }
         }
-        
+
         private void OnMainGameSceneLoaded(Scene scene, LoadSceneMode mode)
         {
             SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
             var starter = FindObjectOfType<InitializeScenePipeline>();
-            
+
             var ip = serverIp.text;
-            var port = int.Parse(serverPort.text);
             var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
-            
-            var properties = InitializeProprieties.CreateRemoteConnection(ip, port, playerId);
+
+            var properties = InitializeProprieties.CreateRemoteConnection(ip, _connectedPort, playerId);
             
             starter.SetProperty(properties);
         }
