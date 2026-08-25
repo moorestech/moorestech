@@ -20,6 +20,7 @@ using MessagePack;
 using Mooresmaster.Model.MineSettingsModule;
 using Newtonsoft.Json;
 using UniRx;
+using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Miner
@@ -52,7 +53,7 @@ namespace Game.Block.Blocks.Miner
         private VanillaMinerState _lastMinerState;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
         
-        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings, Vector3Int drillLocalPosition)
         {
             _blockInstanceId = blockInstanceId;
             _baseRequestEnergy = requestPower;
@@ -70,7 +71,10 @@ namespace Game.Block.Blocks.Miner
 
             void SetMiningItem()
             {
-                List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetOverVeins(blockPositionInfo.OriginalPos);
+                // 掘れるかどうかは見た目上のドリルが重なっているveinで決まる
+                // What can be mined is decided by the vein the visual drill overlaps
+                var drillPos = MinerDrillPositionCalculator.Calculate(blockPositionInfo, drillLocalPosition);
+                List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetOverVeins(drillPos);
                 foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
                 if (veins.Count == 0) return;
 
@@ -87,8 +91,8 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
-            : this(blockInstanceId, requestPower, idlePowerRate, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
+        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings, Vector3Int drillLocalPosition)
+            : this(blockInstanceId, requestPower, idlePowerRate, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings, drillLocalPosition)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(componentStates[SaveKey]);
 

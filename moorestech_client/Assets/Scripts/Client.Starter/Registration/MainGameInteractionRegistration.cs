@@ -79,6 +79,7 @@ namespace Client.Starter.Registration
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
             builder.Register<IPlaceSystemSelector, PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
+            builder.Register<MapVeinAabbRegistry>(Lifetime.Singleton);
             builder.Register<MapVeinRangeViewService>(Lifetime.Singleton).As<IMapVeinRangeView>();
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);

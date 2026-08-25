@@ -1,5 +1,6 @@
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
@@ -55,22 +56,26 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void PlaceBlockPushesVeinRangeVisibilityOnlyOnEnterAndExit()
+        public void PlaceBlockPushesVeinKindOnlyOnTargetChange()
         {
             var mapVeinRangeView = new FakeMapVeinRangeView();
             var state = CreatePlaceBlockState(new FakePlayerCameraInteractionApplier(), mapVeinRangeView);
 
+            // 設置対象を載せない遷移では表示種別も変わらない。滞在するだけでは何もプッシュしない
+            // A transition without a placement target changes no vein kind; merely entering pushes nothing
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
-            CollectionAssert.AreEqual(new[] { true }, mapVeinRangeView.ShowPushes);
+            CollectionAssert.IsEmpty(mapVeinRangeView.VeinKindPushes);
 
-            // 表示ON/OFFは変化時だけプッシュし、毎フレームはカメラ距離カリングのManualUpdateだけを回す
-            // Visibility is pushed only on change; each frame drives just ManualUpdate for the camera distance culling
+            // 表示種別は対象変化時だけプッシュし、毎フレームはカメラ距離カリングのManualUpdateだけを回す
+            // The vein kind is pushed only when the target changes; each frame drives just ManualUpdate for the camera distance culling
             for (var frame = 0; frame < 3; frame++) state.GetNextUpdate();
-            CollectionAssert.AreEqual(new[] { true }, mapVeinRangeView.ShowPushes);
+            CollectionAssert.IsEmpty(mapVeinRangeView.VeinKindPushes);
             Assert.AreEqual(3, mapVeinRangeView.ManualUpdateCount);
 
+            // 離脱は対象がnullになる通知経由で畳む
+            // Leaving folds the view through the null-target notification
             state.OnExit();
-            CollectionAssert.AreEqual(new[] { true, false }, mapVeinRangeView.ShowPushes);
+            CollectionAssert.AreEqual(new MapVeinKind?[] { null }, mapVeinRangeView.VeinKindPushes);
         }
 
         [Test]

@@ -511,7 +511,12 @@
         },
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "drillLocalPosition": [
+          0,
+          0,
+          0
+        ]
       },
       "blockGuid": "00000000-0000-0000-0000-000000000006",
       "category": "テスト",
@@ -2898,7 +2903,12 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        }
+        },
+        "drillLocalPosition": [
+          0,
+          0,
+          0
+        ]
       },
       "blockSize": [
         1,

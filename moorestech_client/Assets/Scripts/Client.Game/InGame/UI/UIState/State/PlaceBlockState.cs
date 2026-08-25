@@ -49,6 +49,10 @@ namespace Client.Game.InGame.UI.UIState.State
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
             _hotbarInputService = hotbarInputService;
+
+            // 設置対象が変わった時だけ表示種別をプッシュする。毎フレームの再導出はしない
+            // Push the vein kind only when the placement target changes; never re-derive it every frame
+            _placeSystemStateController.OnTargetChanged.Subscribe(target => _mapVeinRangeView.SetVisibleVeinKind(PlacementVeinViewKindResolver.Resolve(target)));
         }
 
         public void OnEnter(UITransitContext context)
@@ -62,9 +66,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Take the placement target and its origin as one pair from the transition payload and hand them to the owner (falls back to Empty when absent)
             if (context.TryGetContext<PlacementSelection>(out var selection)) _placeSystemStateController.SetTarget(selection.Target, selection.Origin);
 
-            // 対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenu/GameScreen/DeleteObject)が必ずtargetを載せる
-            // Show the range view for the whole stay even without a target; every entry (BuildMenu/GameScreen/DeleteObject) carries one
-            _mapVeinRangeView.Show(true);
+            // 表示種別は設置対象の購読がプッシュ済み。ここでは何も押し込まない
+            // The target subscription already pushed the vein kind, so nothing is pushed here
 
             // 視点別カーソル/回転ポリシーを適用
             // Apply the per-view-mode cursor/rotation policy
@@ -151,16 +154,15 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService.ExitToNeutral();
 
             // 設置対象と由来枠はここで同時に落ちる。由来枠だけの明示リセットは持たない
+            // 対象がnullになる通知で鉱脈範囲表示も畳まれる（表示種別のプッシュ元は購読1本に絞る）
             // The placement target and its origin drop together here; no separate origin reset is needed
+            // The null-target notification also folds the vein range view (the vein kind has a single push source)
             _placeSystemStateController.Disable();
 
             // 離脱時点の押下状態を持ち越さない。復帰後の誤長押し判定を防ぐ
             // Discard the press state as of this exit so a later re-entry can't misfire a long press
             _hotbarInputService.ResetKeyState();
 
-            // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
-            // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box
-            _mapVeinRangeView.Show(false);
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
