@@ -5,4 +5,10 @@
   bottom: 1rem;
   right: 1rem;
   z-index: var(--z-portal-toast);
+  /* stage外のPortal層なのでstageと同率で拡縮し、実解像度に依らず見かけの大きさを保つ */
+  /* This portal layer is outside the stage, so it scales at the stage's rate and keeps its apparent size across resolutions */
+  transform: scale(var(--ui-scale, 1));
+  /* 固定している右下の角を原点にして内側へ伸ばす */
+  /* Use the pinned bottom-right corner as the origin and grow inward */
+  transform-origin: right bottom;
 }

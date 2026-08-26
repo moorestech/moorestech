@@ -12,6 +12,12 @@
   /* stretchだと行が親のshrink-to-fit幅に揃い固定幅が最長行に負ける */
   /* Stretch would align rows to the parent's shrink-to-fit width, letting the longest row override the fixed width */
   align-items: flex-start;
+  /* stage外に置かれた層なのでstageと同率で拡縮し、実解像度に依らず見かけの大きさを保つ */
+  /* This layer sits outside the stage, so it scales at the stage's rate and keeps its apparent size across resolutions */
+  transform: scale(var(--ui-scale, 1));
+  /* 上端の中央線と左端を固定したまま下方向へ伸ばす */
+  /* Pin the top center line and the left edge while growing downward */
+  transform-origin: left top;
 }
 
 /* 研究ノードカード同族の半透明ネイビー面+1px寒色枠（直角・影なし）。文字影は世界が透ける面上の可読性補助 */
