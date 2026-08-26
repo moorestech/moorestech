@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 
@@ -30,8 +29,7 @@ namespace Client.Editor.Build
                 BundleLocalGameData = true,
             };
 
-            var execute = typeof(BuildPipeline).GetMethod("Execute", BindingFlags.NonPublic | BindingFlags.Static);
-            var outcome = (PlayerBuildOutcome)execute.Invoke(null, new object[] { request });
+            var outcome = BuildPipeline.Execute(request);
             Debug.Log($"[ReleaseLocalBuildCli] outcome={outcome}");
             EditorApplication.Exit(outcome == PlayerBuildOutcome.Succeeded ? 0 : 1);
         }

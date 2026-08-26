@@ -105,7 +105,7 @@ describe("CursorTooltip", () => {
       innerHeight: 720,
     });
     const renderer = create(createElement(CursorTooltip), {
-      createNodeMock: () => ({ offsetWidth: 120, offsetHeight: 40 }),
+      createNodeMock: () => ({ getBoundingClientRect: () => ({ width: 120, height: 40 }) }),
     });
     const initialCalls = testState.clamp.mock.calls.length;
 
