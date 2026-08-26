@@ -996,13 +996,10 @@
       "id": 128
     },
     {
-      "type": "text",
+      "type": "wait",
       "backgroundColor": "#ffffff",
-      "characterId": "chr_001",
-      "body": "パチン！",
-      "id": 31,
-      "isOverrideCharacterName": true,
-      "overrideCharacterName": "　"
+      "seconds": 0.5,
+      "id": 142
     },
     {
       "type": "cameraWarp",
