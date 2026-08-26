@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud, type UiScreen } from "./uiScreenRouting";
+import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, type UiScreen } from "./uiScreenRouting";
 
 describe("screenForUiState", () => {
   it("PlayerInventory はインベントリ画面", () => {
@@ -75,5 +75,47 @@ describe("screenShowsAlwaysOnHud", () => {
 
   it.each(Object.entries(expectations))("%s の常時表示HUD可否は %s", (screen, shown) => {
     expect(screenShowsAlwaysOnHud(screen as UiScreen)).toBe(shown);
+  });
+});
+
+describe("screenShowsPauseMenu", () => {
+  // Record<UiScreen, boolean> なので画面種別が増えたらこの表が型エラーになり、更新漏れが防がれる
+  // Typing it as Record<UiScreen, boolean> makes a new screen a compile error here, so the table cannot go stale
+  const expectations: Record<UiScreen, boolean> = {
+    none: false,
+    playerInventory: false,
+    subInventory: false,
+    researchTree: false,
+    buildMenu: false,
+    challengeList: false,
+    pauseMenu: true,
+    trainHud: false,
+    trainPause: true,
+    skitPause: true,
+  };
+
+  it.each(Object.entries(expectations))("%s のポーズメニュー表示可否は %s", (screen, shown) => {
+    expect(screenShowsPauseMenu(screen as UiScreen)).toBe(shown);
+  });
+});
+
+describe("screenShowsBackdrop", () => {
+  // Record<UiScreen, boolean> なので画面種別が増えたらこの表が型エラーになり、更新漏れが防がれる
+  // Typing it as Record<UiScreen, boolean> makes a new screen a compile error here, so the table cannot go stale
+  const expectations: Record<UiScreen, boolean> = {
+    none: false,
+    playerInventory: true,
+    subInventory: true,
+    researchTree: true,
+    buildMenu: true,
+    challengeList: true,
+    pauseMenu: true,
+    trainHud: false,
+    trainPause: true,
+    skitPause: true,
+  };
+
+  it.each(Object.entries(expectations))("%s の背景ディム表示可否は %s", (screen, shown) => {
+    expect(screenShowsBackdrop(screen as UiScreen)).toBe(shown);
   });
 });

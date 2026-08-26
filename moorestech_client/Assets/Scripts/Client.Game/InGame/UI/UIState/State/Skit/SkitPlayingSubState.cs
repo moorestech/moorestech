@@ -1,11 +1,10 @@
 using Client.Game.Skit;
 using Client.Input;
-using Client.Skit.UI;
 
 namespace Client.Game.InGame.UI.UIState.State.Skit
 {
-    // スキット再生中のサブステート。Escは会話UI復帰を優先し、表示中ならポーズメニューを開く
-    // Sub-state while the skit plays. Esc restores the hidden dialogue UI first; when visible, it opens the pause menu
+    // スキット再生中のサブステート
+    // Sub-state while the skit plays
     public class SkitPlayingSubState : ISkitScreenSubState
     {
         private readonly SkitManager _skitManager;
@@ -17,26 +16,19 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
         
         public void OnEnter()
         {
-            // スキット中はカーソルを表示してUIを操作できるようにする
-            // Keep the cursor visible during the skit so the UI stays operable
+            // カーソルをUI操作可能に表示
+            // Show the cursor for UI operability
             InputManager.MouseCursorVisible(true);
         }
         
         public SkitScreenUIStateEnum? GetNextUpdate()
         {
             if (!InputManager.UI.OpenMenu.GetKeyDown) return null;
-            
-            // 会話UIが隠れているなら復帰のみ。メニューは次のEscで開く（Web側の非表示はstore経由で戻す）
-            // If the dialogue UI is hidden, only restore it; the next Esc opens the menu (web-side hiding is undone via the store)
-            var store = SkitPresentationStateStore.Instance;
-            var current = store.GetCurrent();
-            if (_skitManager.IsSkitUiHidden || current.PresentationState.UiHidden)
-            {
-                _skitManager.ShowHiddenSkitUi();
-                store.TrySetUiHidden(current.SessionId, current.SceneRevision, false);
-                return null;
-            }
-            
+
+            // 会話UIの復帰に成功した回だけメニューを開かない。失敗時はEscを握り潰さずメニューへ進む
+            // Only skip opening the menu when restoring the dialogue UI actually succeeds; on failure, fall through instead of swallowing Esc
+            if (_skitManager.TryRestoreHiddenSkitUi()) return null;
+
             return SkitScreenUIStateEnum.PauseMenu;
         }
         

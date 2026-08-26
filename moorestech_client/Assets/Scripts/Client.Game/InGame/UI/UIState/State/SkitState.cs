@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.Common;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.Skit;
 using Client.Game.Skit;
 using Client.Input;
@@ -16,16 +17,18 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly SkitScreenUIStateController _subStateController;
         private readonly Subject<Unit> _onPresentationChanged = new();
         
-        // Web側(UiStateTopic)が入れ子stateを配信するための窓口。列車HUDと同型
-        // Window for the web side (UiStateTopic) to publish the nested state. Same shape as the train HUD
+        // Web配信用の入れ子state窓口
+        // Window for the web side to publish the nested state
         public SkitScreenUIStateEnum SubState => _subStateController.CurrentState;
         public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
         
-        public SkitState(SkitManager skitManager, PlayerInventoryViewController playerInventoryViewController, SkitScreenUIStateController subStateController)
+        public SkitState(SkitManager skitManager, PlayerInventoryViewController playerInventoryViewController, PauseMenuStateService pauseMenuStateService)
         {
             _skitManager = skitManager;
             _playerInventoryViewController = playerInventoryViewController;
-            _subStateController = subStateController;
+            // 所有者専用の入れ子ステートマシンなのでDI登録せずここでnewする（前例: TrainHUDScreenState）
+            // A nested state machine owned exclusively here, so it is newed directly instead of DI-registered (precedent: TrainHUDScreenState)
+            _subStateController = new SkitScreenUIStateController(skitManager, pauseMenuStateService);
             _subStateController.OnStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
         }
         
@@ -42,8 +45,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Switch the game state to Skit
             GameStateController.ChangeState(GameStateType.Skit);
             
-            // 再生サブステートから開始（カーソル表示はサブステート側が担う）
-            // Start from the playing sub-state (the sub-state owns cursor visibility)
+            // 再生サブステートから開始
+            // Start from the playing sub-state
             _subStateController.StartSubState();
         }
         
@@ -59,8 +62,8 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public void OnExit()
         {
-            // 入れ子サブステートを終了（開いていればポーズメニューを閉じる）
-            // Tear down the nested sub-state (closes the pause menu if open)
+            // 入れ子サブステートを終了
+            // Tear down the nested sub-state
             _subStateController.ShutdownSubState();
             
             // スキット終了時はカーソルを非表示に戻す

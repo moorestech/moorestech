@@ -7,7 +7,7 @@ namespace Client.Skit.UI
     {
         private readonly UIDocument _skitUiDocument;
         
-        public bool IsUIHidden { get; private set; }
+        internal bool IsUIHidden { get; private set; }
         
         public SkitUITools(UIDocument skitUiDocument, ISkitActionController skitActionController)
         {
@@ -53,7 +53,7 @@ namespace Client.Skit.UI
         
         // 非表示にした会話UIを戻す。Esc判定はUIステート側（SkitPlayingSubState）が持つ
         // Restore the hidden dialogue UI. The Esc decision lives in the UI state (SkitPlayingSubState)
-        public void ShowUI()
+        internal void ShowUI()
         {
             IsUIHidden = false;
             _skitUiDocument.rootVisualElement.style.display = DisplayStyle.Flex;

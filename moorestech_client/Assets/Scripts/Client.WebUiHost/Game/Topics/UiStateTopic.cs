@@ -81,15 +81,6 @@ namespace Client.WebUiHost.Game.Topics
             #endregion
         }
 
-        // 入れ子stateを持つ画面（列車HUD・スキット）だけsubStateを配る
-        // Only screens with a nested state (train HUD, skit) carry a subState
-        private string ResolveSubState(UIStateEnum currentState)
-        {
-            if (currentState == UIStateEnum.TrainHUDScreen) return _trainHudState.SubState.ToString();
-            if (currentState == UIStateEnum.Story) return _skitState.SubState.ToString();
-            return null;
-        }
-        
         private string BuildJson()
         {
             var currentState = _uiStateControl.CurrentState;
@@ -106,6 +97,19 @@ namespace Client.WebUiHost.Game.Topics
                 SubState = ResolveSubState(currentState),
                 KeyHints = keyHints,
             });
+
+            #region Internal
+
+            // 入れ子screenだけsubStateを配る
+            // Only nested screens carry a subState
+            string ResolveSubState(UIStateEnum state)
+            {
+                if (state == UIStateEnum.TrainHUDScreen) return _trainHudState.SubState.ToString();
+                if (state == UIStateEnum.Story) return _skitState.SubState.ToString();
+                return null;
+            }
+
+            #endregion
         }
     }
 

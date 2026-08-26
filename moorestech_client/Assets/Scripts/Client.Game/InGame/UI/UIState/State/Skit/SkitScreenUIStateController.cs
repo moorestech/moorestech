@@ -6,8 +6,8 @@ using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State.Skit
 {
-    // スキット画面専用の入れ子ステートマシン。TrainHudScreenUIStateControllerと同型
-    // Nested state machine dedicated to the skit screen. Same shape as TrainHudScreenUIStateController
+    // スキット画面用の入れ子ステートマシン
+    // Nested state machine for the skit screen
     public class SkitScreenUIStateController
     {
         private readonly Dictionary<SkitScreenUIStateEnum, ISkitScreenSubState> _states;
@@ -43,8 +43,8 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
             _onStateChanged.OnNext(CurrentState);
         }
         
-        // Web側のポーズメニュー閉じ要求。列車HUDと同じく入れ子だけを閉じスキットは続行する
-        // Close request from the web pause menu. Like the train HUD, only the nested state closes and the skit continues
+        // Web側の閉じ要求。入れ子だけ閉じスキット継続
+        // Close request from the web side. Only the nested state closes; the skit continues
         public void RequestClosePauseMenu()
         {
             if (CurrentState != SkitScreenUIStateEnum.PauseMenu) return;
@@ -54,8 +54,8 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
             _onStateChanged.OnNext(CurrentState);
         }
         
-        // スキット終了時に呼ぶ。メニューが開いていれば閉じる（ADR 0035: 終了時はGameScreenへ）
-        // Called when the skit ends. Closes the pause menu if open (ADR 0035: return to GameScreen on end)
+        // スキット終了時に呼ぶ（開いていれば閉じる）
+        // Called when the skit ends (closes the pause menu if open)
         public void ShutdownSubState()
         {
             _states[CurrentState].OnExit();

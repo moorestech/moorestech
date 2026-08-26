@@ -38,6 +38,25 @@ export function screenAllowsGrab(screen: UiScreen): boolean {
   return screen === "playerInventory" || screen === "subInventory" || screen === "researchTree";
 }
 
+// ポーズメニューを出す画面族
+// The family of screens that show the pause menu
+export function screenShowsPauseMenu(screen: UiScreen): boolean {
+  return screen === "pauseMenu" || screen === "trainPause" || screen === "skitPause";
+}
+
+// 背景ディムを出す画面族（trainHud除く）
+// The family of screens that show the dim backdrop (excluding trainHud)
+export function screenShowsBackdrop(screen: UiScreen): boolean {
+  return (
+    screen === "playerInventory" ||
+    screen === "subInventory" ||
+    screen === "researchTree" ||
+    screen === "buildMenu" ||
+    screen === "challengeList" ||
+    screenShowsPauseMenu(screen)
+  );
+}
+
 // 常時表示族は研究画面でだけ引っ込む
 // The always-on family withdraws only on the research screen
 // 常駐チャレンジHUDと採掘進捗バーはこの族に含まず、研究画面でも出したままにする

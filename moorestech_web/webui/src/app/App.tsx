@@ -21,7 +21,7 @@ import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud } from "@/shared/uiState";
+import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
@@ -68,13 +68,10 @@ export default function App() {
   const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
   const cutScene = useTopicSelector(Topics.gameState, (d) => d?.state === "CutScene");
   const stageRef = useUiScale(uiVisible);
-  // プレイヤーインベントリ本体を出すのは uGUI 準拠で持ち物・サブインベントリ画面のみ
-  // Show the player inventory itself only on the inventory / sub-inventory screens, matching uGUI
-  const inventoryScreen = screen === "playerInventory" || screen === "subInventory";
   const researchScreen = screen === "researchTree";
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
-  const modalScreen = inventoryScreen || screen === "researchTree" || screen === "buildMenu" || screen === "challengeList" || screen === "pauseMenu" || screen === "trainPause" || screen === "skitPause";
+  const modalScreen = screenShowsBackdrop(screen);
 
   // Ctrl+U中はPortalを含む全Web UIをunmountする
   // Unmount the entire Web UI, including portals, while Ctrl+U is active
@@ -95,9 +92,7 @@ export default function App() {
         {screen === "researchTree" && <ResearchTreePanel />}
         {screen === "buildMenu" && <BuildMenuPanel />}
         {screen === "challengeList" && <ChallengePanel />}
-        {screen === "pauseMenu" && <PauseMenuPanel />}
-        {screen === "trainPause" && <PauseMenuPanel />}
-        {screen === "skitPause" && <PauseMenuPanel />}
+        {screenShowsPauseMenu(screen) && <PauseMenuPanel />}
         {(screen === "trainHud" || screen === "trainPause") && <TrainRidingHud />}
         <Crosshair />
         <CursorTooltip />

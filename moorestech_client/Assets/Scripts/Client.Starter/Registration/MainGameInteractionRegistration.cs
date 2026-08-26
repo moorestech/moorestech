@@ -117,7 +117,6 @@ namespace Client.Starter.Registration
             builder.Register<PlacementTargetPickService>(Lifetime.Singleton);
             builder.Register<RideVehicleInputService>(Lifetime.Singleton);
             builder.Register<PauseMenuStateService>(Lifetime.Singleton);
-            builder.Register<SkitScreenUIStateController>(Lifetime.Singleton);
 
             builder.Register<NormalPlayerState>(Lifetime.Singleton);
             builder.Register<TrainCarRideFollowTargetResolver>(Lifetime.Singleton).As<IRideFollowTargetResolver>();
