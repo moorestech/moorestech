@@ -8,7 +8,12 @@ namespace Client.Common
         
         public const string PreviewPlaceBlockMaterial = "PreviewPlaceBlock";
 
+        // 半透明版はアセットとして持つ。実行時にキーワードで透過へ切り替えるとビルドでバリアントが焼かれない
+        // The translucent variant lives as an asset; flipping the keyword at runtime leaves the build without that variant
+        public const string PreviewPlaceBlockTransparentMaterial = "PreviewPlaceBlockTransparent";
+
         private static Material _previewPlaceBlockMaterial;
+        private static Material _previewPlaceBlockTransparentMaterial;
         private static Material _placeBlockAnimationMaterial;
 
         // チュートリアル用プレビューマテリアルのAddressableパス
@@ -25,6 +30,14 @@ namespace Client.Common
             // Load the shared preview material once and reuse it
             _previewPlaceBlockMaterial ??= Resources.Load<Material>(PreviewPlaceBlockMaterial);
             return _previewPlaceBlockMaterial;
+        }
+
+        public static Material GetPreviewPlaceBlockTransparentMaterial()
+        {
+            // 半透明プレビュー材質も一度だけロードして再利用する
+            // Load the translucent preview material once and reuse it
+            _previewPlaceBlockTransparentMaterial ??= Resources.Load<Material>(PreviewPlaceBlockTransparentMaterial);
+            return _previewPlaceBlockTransparentMaterial;
         }
 
         public static Material GetPlaceBlockAnimationMaterial()
