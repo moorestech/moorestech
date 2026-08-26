@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.Common;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State.Skit;
 using Client.Game.Skit;
 using Client.Input;
+using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
@@ -12,12 +14,19 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly SkitManager _skitManager;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
         private readonly SkitScreenUIStateController _subStateController;
+        private readonly Subject<Unit> _onPresentationChanged = new();
+        
+        // Web側(UiStateTopic)が入れ子stateを配信するための窓口。列車HUDと同型
+        // Window for the web side (UiStateTopic) to publish the nested state. Same shape as the train HUD
+        public SkitScreenUIStateEnum SubState => _subStateController.CurrentState;
+        public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
         
         public SkitState(SkitManager skitManager, PlayerInventoryViewController playerInventoryViewController, SkitScreenUIStateController subStateController)
         {
             _skitManager = skitManager;
             _playerInventoryViewController = playerInventoryViewController;
             _subStateController = subStateController;
+            _subStateController.OnStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
         }
         
         public void OnEnter(UITransitContext context)
@@ -61,6 +70,11 @@ namespace Client.Game.InGame.UI.UIState.State
             // ゲーム状態をInGameに戻す
             // Return the game state to InGame
             GameStateController.ChangeState(GameStateType.InGame);
+        }
+        
+        public void RequestClosePauseMenu()
+        {
+            _subStateController.RequestClosePauseMenu();
         }
         
         public IReadOnlyList<KeyHint> GetKeyHints()

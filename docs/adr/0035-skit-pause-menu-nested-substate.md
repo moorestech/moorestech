@@ -26,3 +26,9 @@ Accepted (2026-08-26)
 - `SkitUITools` の「UIが非表示か」を `SkitState` から参照できる窓口が必要（Escの優先順位判定）。`Input.GetKeyDown(KeyCode.Escape)` 直読みは `InputManager.UI.CloseUI` へ寄せる候補。
 - ポーズメニュー表示中もスキットUI(UIToolkit)がクリックを受ける可能性があるため、メニューのレイキャスト遮蔽を確認する。
 - 関連: [[2026-08-26-スキット中のポーズメニューは入れ子ステートで背後再生継続]]
+
+## 追記 2026-08-26: uGUIモードは存在しない — Web側へも出す
+
+`WebUiScreenGate.IsWebUiMode` はuGUI廃止Phase1で恒久 `true`（docs/webui/ugui-retirement-plan.md）。「uGUIモードのみ」の裁定は前提が誤っていたため、列車HUD(`trainPause`)同型でWeb UIに表示する。
+C#: `SkitPlayingSubState` のwebガード撤去／`SkitState.SubState`・`OnPresentationChanged` 公開／`UiStateTopic` がStory中もsubStateを配信／`UiStateActions` はStory中のGameScreen要求で入れ子のみ閉じる。Web: `uiScreenRouting` に `skitPause`、`App.tsx` で `PauseMenuPanel`。
+出所: ユーザー裁定 2026-08-26「Web側にも出す（列車HUD同型）」（.decisions/2026-08-26-スキット中ポーズメニューはWeb側にも出す（uGUIモードは存在しない）.md）

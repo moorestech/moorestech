@@ -1,5 +1,6 @@
 using Client.Game.Skit;
 using Client.Input;
+using Client.Skit.UI;
 
 namespace Client.Game.InGame.UI.UIState.State.Skit
 {
@@ -25,15 +26,14 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
         {
             if (!InputManager.UI.OpenMenu.GetKeyDown) return null;
             
-            // webモードのポーズメニューはSkitPresentationStateStoreのブロック対象なので開かない（ADR 0035）
-            // The web-mode pause menu is blocked by SkitPresentationStateStore, so do not open it (ADR 0035)
-            if (WebUiScreenGate.IsWebUiMode) return null;
-            
-            // 会話UIが隠れているなら復帰のみ。メニューは次のEscで開く
-            // If the dialogue UI is hidden, only restore it; the next Esc opens the menu
-            if (_skitManager.IsSkitUiHidden)
+            // 会話UIが隠れているなら復帰のみ。メニューは次のEscで開く（Web側の非表示はstore経由で戻す）
+            // If the dialogue UI is hidden, only restore it; the next Esc opens the menu (web-side hiding is undone via the store)
+            var store = SkitPresentationStateStore.Instance;
+            var current = store.GetCurrent();
+            if (_skitManager.IsSkitUiHidden || current.PresentationState.UiHidden)
             {
                 _skitManager.ShowHiddenSkitUi();
+                store.TrySetUiHidden(current.SessionId, current.SceneRevision, false);
                 return null;
             }
             

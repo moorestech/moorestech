@@ -16,11 +16,13 @@ namespace Client.WebUiHost.Game.Actions
 
         private readonly UIStateControl _uiStateControl;
         private readonly TrainHUDScreenState _trainHudState;
+        private readonly SkitState _skitState;
 
-        public RequestUiStateActionHandler(UIStateControl uiStateControl, TrainHUDScreenState trainHudState)
+        public RequestUiStateActionHandler(UIStateControl uiStateControl, TrainHUDScreenState trainHudState, SkitState skitState)
         {
             _uiStateControl = uiStateControl;
             _trainHudState = trainHudState;
+            _skitState = skitState;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -38,6 +40,14 @@ namespace Client.WebUiHost.Game.Actions
             if (_uiStateControl.CurrentState == UIStateEnum.TrainHUDScreen && stateName == nameof(UIStateEnum.GameScreen))
             {
                 _trainHudState.RequestClosePauseMenu();
+                return UniTask.FromResult(ActionResult.Success());
+            }
+
+            // スキット中ポーズのGameScreen要求も入れ子だけを閉じ、スキットは続行する（ADR 0035）
+            // A GameScreen request during skit pause likewise closes only the nested pause; the skit continues (ADR 0035)
+            if (_uiStateControl.CurrentState == UIStateEnum.Story && stateName == nameof(UIStateEnum.GameScreen))
+            {
+                _skitState.RequestClosePauseMenu();
                 return UniTask.FromResult(ActionResult.Success());
             }
 

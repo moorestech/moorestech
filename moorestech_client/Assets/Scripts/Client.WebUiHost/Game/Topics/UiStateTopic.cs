@@ -21,21 +21,25 @@ namespace Client.WebUiHost.Game.Topics
         private readonly UIStateControl _uiStateControl;
         private readonly UIStateDictionary _uiStateDictionary;
         private readonly TrainHUDScreenState _trainHudState;
+        private readonly SkitState _skitState;
         private readonly IDisposable _trainStateSubscription;
+        private readonly IDisposable _skitStateSubscription;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary, TrainHUDScreenState trainHudState)
+        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary, TrainHUDScreenState trainHudState, SkitState skitState)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
             _uiStateDictionary = uiStateDictionary;
             _trainHudState = trainHudState;
+            _skitState = skitState;
 
             // state遷移を購読して push する
             // Subscribe to state transitions and push them
             _uiStateControl.OnStateChanged += OnStateChanged;
             _trainStateSubscription = _trainHudState.OnPresentationChanged.Subscribe(_ => SchedulePublish());
+            _skitStateSubscription = _skitState.OnPresentationChanged.Subscribe(_ => SchedulePublish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -48,6 +52,7 @@ namespace Client.WebUiHost.Game.Topics
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
             _trainStateSubscription.Dispose();
+            _skitStateSubscription.Dispose();
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -76,10 +81,18 @@ namespace Client.WebUiHost.Game.Topics
             #endregion
         }
 
+        // 入れ子stateを持つ画面（列車HUD・スキット）だけsubStateを配る
+        // Only screens with a nested state (train HUD, skit) carry a subState
+        private string ResolveSubState(UIStateEnum currentState)
+        {
+            if (currentState == UIStateEnum.TrainHUDScreen) return _trainHudState.SubState.ToString();
+            if (currentState == UIStateEnum.Story) return _skitState.SubState.ToString();
+            return null;
+        }
+        
         private string BuildJson()
         {
             var currentState = _uiStateControl.CurrentState;
-            var trainHud = currentState == UIStateEnum.TrainHUDScreen;
 
             // 現stateが自分で宣言したヒントをそのまま配る（内容の正はstate側・ADR-0032）
             // Publish the hints the current state declares for itself; the state owns the content (ADR-0032)
@@ -90,7 +103,7 @@ namespace Client.WebUiHost.Game.Topics
             return WebUiJson.Serialize(new UiStateDto
             {
                 State = currentState.ToString(),
-                SubState = trainHud ? _trainHudState.SubState.ToString() : null,
+                SubState = ResolveSubState(currentState),
                 KeyHints = keyHints,
             });
         }

@@ -51,6 +51,7 @@ namespace Client.WebUiHost.Game
             var uiStateControl = resolver.Resolve<UIStateControl>();
             var subInventoryState = resolver.Resolve<SubInventoryState>();
             var trainHudState = resolver.Resolve<TrainHUDScreenState>();
+            var skitState = resolver.Resolve<SkitState>();
             var localPlayerEquipment = resolver.Resolve<LocalPlayerEquipment>();
 
             // インベントリトピックを生成・登録
@@ -79,7 +80,7 @@ namespace Client.WebUiHost.Game
 
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
-            var uiStateTopic = new UiStateTopic(hub, uiStateControl, resolver.Resolve<UIStateDictionary>(), trainHudState);
+            var uiStateTopic = new UiStateTopic(hub, uiStateControl, resolver.Resolve<UIStateDictionary>(), trainHudState, skitState);
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
             C4WebUiRegistration.Register(hub);
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
@@ -181,7 +182,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
-            hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl, trainHudState));
+            hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl, trainHudState, skitState));
             hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));

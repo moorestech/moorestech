@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.Skit;
+using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State.Skit
 {
@@ -9,8 +11,10 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
     public class SkitScreenUIStateController
     {
         private readonly Dictionary<SkitScreenUIStateEnum, ISkitScreenSubState> _states;
+        private readonly Subject<SkitScreenUIStateEnum> _onStateChanged = new();
         
         public SkitScreenUIStateEnum CurrentState { get; private set; }
+        public IObservable<SkitScreenUIStateEnum> OnStateChanged => _onStateChanged;
         
         public SkitScreenUIStateController(SkitManager skitManager, PauseMenuStateService pauseMenuStateService)
         {
@@ -25,6 +29,7 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
         {
             CurrentState = SkitScreenUIStateEnum.Playing;
             _states[CurrentState].OnEnter();
+            _onStateChanged.OnNext(CurrentState);
         }
         
         public void Update()
@@ -35,6 +40,18 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
             _states[CurrentState].OnExit();
             CurrentState = next.Value;
             _states[CurrentState].OnEnter();
+            _onStateChanged.OnNext(CurrentState);
+        }
+        
+        // Web側のポーズメニュー閉じ要求。列車HUDと同じく入れ子だけを閉じスキットは続行する
+        // Close request from the web pause menu. Like the train HUD, only the nested state closes and the skit continues
+        public void RequestClosePauseMenu()
+        {
+            if (CurrentState != SkitScreenUIStateEnum.PauseMenu) return;
+            _states[CurrentState].OnExit();
+            CurrentState = SkitScreenUIStateEnum.Playing;
+            _states[CurrentState].OnEnter();
+            _onStateChanged.OnNext(CurrentState);
         }
         
         // スキット終了時に呼ぶ。メニューが開いていれば閉じる（ADR 0035: 終了時はGameScreenへ）

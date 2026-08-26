@@ -22,6 +22,10 @@ describe("screenForUiState", () => {
     expect(screenForUiState("TrainHUDScreen", "GameScreen")).toBe("trainHud");
     expect(screenForUiState("TrainHUDScreen", "PauseMenuScreen")).toBe("trainPause");
   });
+  it("Story は入れ子のPauseMenuだけをskitPause画面にする", () => {
+    expect(screenForUiState("Story", "Playing")).toBe("none");
+    expect(screenForUiState("Story", "PauseMenu")).toBe("skitPause");
+  });
   it("PlaceBlock は画面を占有しないHUD stateとして扱う", () => {
     expect(screenForUiState("PlaceBlock")).toBe("none");
   });
@@ -45,6 +49,7 @@ describe("screenAllowsGrab", () => {
     pauseMenu: false,
     trainHud: false,
     trainPause: false,
+    skitPause: false,
   };
 
   it.each(Object.entries(expectations))("%s の grab 成立可否は %s", (screen, allowed) => {
@@ -65,6 +70,7 @@ describe("screenShowsAlwaysOnHud", () => {
     pauseMenu: true,
     trainHud: true,
     trainPause: true,
+    skitPause: true,
   };
 
   it.each(Object.entries(expectations))("%s の常時表示HUD可否は %s", (screen, shown) => {

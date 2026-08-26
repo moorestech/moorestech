@@ -74,7 +74,7 @@ export default function App() {
   const researchScreen = screen === "researchTree";
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
-  const modalScreen = inventoryScreen || screen === "researchTree" || screen === "buildMenu" || screen === "challengeList" || screen === "pauseMenu" || screen === "trainPause";
+  const modalScreen = inventoryScreen || screen === "researchTree" || screen === "buildMenu" || screen === "challengeList" || screen === "pauseMenu" || screen === "trainPause" || screen === "skitPause";
 
   // Ctrl+U中はPortalを含む全Web UIをunmountする
   // Unmount the entire Web UI, including portals, while Ctrl+U is active
@@ -97,6 +97,7 @@ export default function App() {
         {screen === "challengeList" && <ChallengePanel />}
         {screen === "pauseMenu" && <PauseMenuPanel />}
         {screen === "trainPause" && <PauseMenuPanel />}
+        {screen === "skitPause" && <PauseMenuPanel />}
         {(screen === "trainHud" || screen === "trainPause") && <TrainRidingHud />}
         <Crosshair />
         <CursorTooltip />
