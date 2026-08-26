@@ -451,7 +451,7 @@ git commit -m "feat(ui): スキット中にEscでポーズメニューを開閉�
 **Files:**
 - なし（検証のみ。unity-playmode-recorded-playtest スキル参照）
 
-- [ ] **Step 1: スキット中のEsc挙動を確認する**
+- [x] **Step 1: スキット中のEsc挙動を確認する**
 
 unity-playmode-recorded-playtest のDSLで新規ゲーム開始→開幕スキット中に以下を実行し録画する:
 1. Esc → `PauseMenuObject` がアクティブ（R1）、背後で会話が進む（R2）
@@ -461,7 +461,7 @@ unity-playmode-recorded-playtest のDSLで新規ゲーム開始→開幕スキ�
 
 Expected: 4項目すべて録画で確認。失敗した項目はbdへ `bd create --deps=discovered-from:<本タスクid>` で積む。
 
-- [ ] **Step 2: ログにErrorが無いことを確認**
+- [x] **Step 2: ログにErrorが無いことを確認**
 
 Run: `uloop get-logs --project-path ./moorestech_client --log-type Error`
 Expected: 本変更由来のエラー 0
@@ -481,6 +481,12 @@ bd close <本タスクid> --reason="PR #<番号> 作成"
 ```
 
 ---
+
+## 実行時の逸脱記録（2026-08-26）
+
+- 「uGUIモードのみ」の前提が崩れていた（`WebUiScreenGate.IsWebUiMode` 恒久true）ためユーザー裁定でWeb側にも出す方針へ変更。詳細は `.decisions/2026-08-26-スキット中ポーズメニューはWeb側にも出す（uGUIモードは存在しない）.md` とADR 0035追記
+- Task 4 はWebモード前提で実施: `SkitManager.IsSkitUiHidden` のNRE・`ShutdownSubState` のSubState残留・WebスキーマのsubState拒否の3件を実走で検出し修正。シナリオ `scenarios/misc/skit-pause-menu-esc.cs`（14 assert全PASS・録画あり）
+- 固定マップ(map.json)はmasterピン274b6d9で存在しないMapObject GUIDを参照し初期化失敗するため `PLAYTEST_MAP_MODE=generated` で実行した（本変更と無関係・別件）
 
 ## 判断記録（ADR）
 
