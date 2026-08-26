@@ -59,6 +59,11 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
         public void ShutdownSubState()
         {
             _states[CurrentState].OnExit();
+            
+            // 終了後に入れ子stateがPauseMenuのまま残らないようPlayingへ戻す（SubState公開値の正しさを保つ）
+            // Reset to Playing so the nested state does not linger on PauseMenu after shutdown (keeps the exposed SubState truthful)
+            CurrentState = SkitScreenUIStateEnum.Playing;
+            _onStateChanged.OnNext(CurrentState);
         }
     }
 }

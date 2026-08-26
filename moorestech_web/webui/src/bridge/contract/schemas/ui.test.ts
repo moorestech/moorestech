@@ -33,6 +33,11 @@ describe("UiStateDataSchema", () => {
     expect(parsed.success).toBe(true);
   });
 
+  it("スキットの入れ子state(Playing/PauseMenu)を受理する", () => {
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "Playing" }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "PauseMenu" }).success).toBe(true);
+  });
+
   it("keyHints未着のペイロードも受理する", () => {
     const parsed = UiStateDataSchema.safeParse({ state: "GameScreen" });
     expect(parsed.success).toBe(true);

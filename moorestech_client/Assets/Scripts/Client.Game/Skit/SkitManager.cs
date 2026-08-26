@@ -43,10 +43,13 @@ namespace Client.Game.Skit
         
         // 会話UIの非表示状態をUIステートへ公開する（Escの優先順位判定に使う）
         // Expose the hidden state of the dialogue UI to the UI state (used to prioritize Esc handling)
-        public bool IsSkitUiHidden => skitUI.IsUIHidden;
+        // WebモードではuGUI会話UIは起動しない（SetActive(false)のままStartが走らない）ので、非アクティブ時は非表示扱いにしない
+        // In web mode the uGUI dialogue UI never starts (stays SetActive(false)), so an inactive UI never counts as hidden
+        public bool IsSkitUiHidden => skitUI.gameObject.activeSelf && skitUI.IsUIHidden;
         
         public void ShowHiddenSkitUi()
         {
+            if (!skitUI.gameObject.activeSelf) return;
             skitUI.ShowHiddenUI();
         }
         private bool _isSkip;
