@@ -4,6 +4,7 @@ using System.Threading;
 using Client.Common.Asset;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Mooresmaster.Model.MapModule;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.MapData;
 using UnityEngine;
@@ -15,21 +16,24 @@ namespace Client.Game.InGame.Map.MapObject
     ///     layoutから個体生成しスナップショット適用・登録簿への登録を行う
     ///     Instantiates a map object from a layout, applies its snapshot, and hands it to the registry
     /// </summary>
-    public sealed class MapObjectLayoutInstantiator
+    internal sealed class MapObjectLayoutInstantiator
     {
         private readonly Transform _parent;
         private readonly MapObjectRegistry _registry;
         private readonly Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> _snapshotByInstanceId;
+        private readonly MapObjectDistanceVisibilityController _distanceVisibilityController;
         private readonly Dictionary<Guid, GameObject> _prefabCacheByMapObjectGuid = new();
 
         public MapObjectLayoutInstantiator(
             Transform parent,
             MapObjectRegistry registry,
-            Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> snapshotByInstanceId)
+            Dictionary<int, GetMapObjectInfoProtocol.MapObjectsInfoMessagePack> snapshotByInstanceId,
+            MapObjectDistanceVisibilityController distanceVisibilityController)
         {
             _parent = parent;
             _registry = registry;
             _snapshotByInstanceId = snapshotByInstanceId;
+            _distanceVisibilityController = distanceVisibilityController;
         }
 
         /// <summary>
@@ -120,6 +124,12 @@ namespace Client.Game.InGame.Map.MapObject
                 Object.Destroy(instance);
                 return false;
             }
+
+            // master区分を具体側で解釈し、汎用表示基盤へboolだけを渡す
+            // Interpret the master category here and pass only a boolean into the generic visibility mechanism
+            var isLandmark = mapObject.MapObjectMasterElement.DistanceVisibilityType ==
+                             MapObjectMasterElement.DistanceVisibilityTypeConst.landmark;
+            _distanceVisibilityController.Register(mapObject, isLandmark);
 
             return true;
         }

@@ -86,8 +86,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -270,6 +270,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 545896804554279933, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 545896804554279933, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1300857067182251285, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1300857067182251285, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2757713146606956548, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2757713146606956548, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3655575204992600520, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
       propertyPath: m_Name
       value: DesertBoulder_1
@@ -321,6 +345,14 @@ PrefabInstance:
     - target: {fileID: 4211529104062467616, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4327822852478024603, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4327822852478024603, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6663882448862459443, guid: 6702ceda9bdc48e2bf9485d74932400a, type: 3}
       propertyPath: m_Layer

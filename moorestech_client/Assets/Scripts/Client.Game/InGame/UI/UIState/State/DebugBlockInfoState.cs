@@ -1,9 +1,9 @@
+using System.Collections.Generic;
+using Mooresmaster.Localization.Generated;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Input;
 using Client.Localization;
-using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State
@@ -23,7 +23,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // マウス自由操作モードに入り、右ドラッグでカメラ操作
             // Enter free-cursor mode; right-drag controls the camera
             InputManager.MouseCursorVisible(true);
-            KeyControlDescription.Instance.SetText("左クリック: ブロック情報をログ出力\nESC / F3: デバッグモード終了");
         }
 
         public UITransitContext GetNextUpdate()
@@ -124,6 +123,11 @@ namespace Client.Game.InGame.UI.UIState.State
             // 右ボタン押下中に抜けても回転が残らないよう必ず解除する
             // Always clear rotation so it does not linger when exiting mid right-press
             _inGameCameraController.SetControllable(false);
+        }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return System.Array.Empty<KeyHint>();
         }
     }
 }

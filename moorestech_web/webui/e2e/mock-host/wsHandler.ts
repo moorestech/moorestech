@@ -150,7 +150,7 @@ export function attachWsHandlers(wss: WebSocketServer) {
           if (requestedState !== UiStateNames.gameScreen && requestedState !== UiStateNames.playerInventory) {
             error = "transition_not_allowed";
           } else {
-            state.currentUiState = { state: requestedState };
+            state.currentUiState = { state: requestedState, keyHints: fx.uiStateKeyHints };
             if (requestedState === UiStateNames.gameScreen) state.currentBlock = clone(fx.blockClosed);
             setTimeout(() => {
               for (const sub of subscribersOf(Topics.uiState)) send(sub, { op: "event", topic: Topics.uiState, data: state.currentUiState });

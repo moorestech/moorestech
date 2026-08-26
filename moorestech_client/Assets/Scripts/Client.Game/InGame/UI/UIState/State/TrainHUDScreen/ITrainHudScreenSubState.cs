@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
 {
     // 列車HUD専用のサブステートインターフェース。IUIStateの簡易版
@@ -11,5 +13,9 @@ namespace Client.Game.InGame.UI.UIState.State.TrainHUDScreen
         TrainHudScreenUIStateEnum? GetNextUpdate();
 
         void OnExit();
+
+        // このサブステートの操作ヒント。遷移判定と同じ場所で宣言する（ADR-0032）
+        // This sub-state's key hints, declared beside its transition checks (ADR-0032)
+        IReadOnlyList<KeyHint> GetKeyHints();
     }
 }

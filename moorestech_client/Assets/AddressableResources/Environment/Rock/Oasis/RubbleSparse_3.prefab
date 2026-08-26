@@ -153,8 +153,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -200,6 +200,14 @@ PrefabInstance:
     - target: {fileID: 660540898414505440, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 931727207967350339, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 931727207967350339, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3925144872683212182, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
       propertyPath: m_Name
@@ -252,6 +260,22 @@ PrefabInstance:
     - target: {fileID: 4424247410214711612, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6185053913123263127, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6185053913123263127, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7882337665325765400, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7882337665325765400, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8447425423112549644, guid: 8f7dab6a27b1492db4de2671438fd139, type: 3}
       propertyPath: m_Layer

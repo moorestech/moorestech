@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.InGame.Mining;
@@ -11,6 +12,11 @@ namespace Client.Tests.Mining
     {
         public GameObject GameObject { get; }
         public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
+
+        // 打撃回数だけを見るfixtureなので取得物は持たない
+        // This fixture only counts attacks, so it yields nothing
+        public IReadOnlyList<Guid> EarnItemGuids => Array.Empty<Guid>();
+
         public int AttackCallCount { get; private set; }
         private readonly List<ItemId> _recommendedToolItemIds = new();
 
@@ -77,8 +83,8 @@ namespace Client.Tests.Mining
 
         public void Destroy()
         {
-            Object.DestroyImmediate(_soundEffectObject);
-            Object.DestroyImmediate(_soundEffectClip);
+            UnityEngine.Object.DestroyImmediate(_soundEffectObject);
+            UnityEngine.Object.DestroyImmediate(_soundEffectClip);
             var instanceField = typeof(SoundEffectManager).GetField("<Instance>k__BackingField", BindingFlags.Static | BindingFlags.NonPublic);
             instanceField.SetValue(null, null);
         }

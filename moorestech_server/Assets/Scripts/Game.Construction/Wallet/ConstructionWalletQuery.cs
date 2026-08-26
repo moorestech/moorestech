@@ -47,6 +47,14 @@ namespace Game.Construction
             return ConstructionCostItems.ToItemCounts(MasterHolder.BlockMaster.GetBlockMaster(blockId).RequiredItems);
         }
 
+        // 表示中のセル数に対し実際に払うコストセット数
+        // The cost sets actually paid for the cells being previewed
+        public int GetRequiredCostSets(BlockId blockId, int cellCount)
+        {
+            var placementsPerCost = MasterHolder.BlockMaster.GetBlockMaster(blockId).PlacementsPerCost;
+            return ConstructionWalletUtil.CalculateRequiredCostSets(_reader.GetRemainingCount(blockId), cellCount, placementsPerCost);
+        }
+
         // 残りと所持素材で何セル置けるか
         // How many cells the remainder plus the held materials can cover
         public int GetAffordablePlacementCount(BlockId blockId, IEnumerable<IItemStack> inventoryItems)

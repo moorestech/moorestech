@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Client.Common;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using CommandForgeGenerator.Command;
@@ -22,6 +23,7 @@ namespace Client.Game.InGame.Map.MapObject
         private readonly MapObjectRegistry _registry = new();
         private readonly ReactiveProperty<bool> _isWorldObjectActive = new(true);
         private MapObjectInstantiationRunner _instantiationRunner;
+        private MapObjectDistanceVisibilityController _distanceVisibilityController;
 
         public IReadOnlyReactiveProperty<bool> IsNearFieldInstantiated => _instantiationRunner.IsNearFieldInstantiated;
         public IReadOnlyReactiveProperty<bool> IsAllInstantiated => _instantiationRunner.IsAllInstantiated;
@@ -36,7 +38,18 @@ namespace Client.Game.InGame.Map.MapObject
             // 初期データをrunnerへ束ねる
             // Bind snapshots and layouts into the instantiation runner
             var snapshotByInstanceId = handshakeResponse.MapObjects.ToDictionary(info => info.InstanceId);
-            var instantiator = new MapObjectLayoutInstantiator(transform, _registry, snapshotByInstanceId);
+            var cancellationToken = this.GetCancellationTokenOnDestroy();
+            _distanceVisibilityController = new MapObjectDistanceVisibilityController(
+                handshakeResponse.MapLayout.MapObjects.Count, cancellationToken);
+            CameraManager.OnMainCameraChanged
+                .Subscribe(gameCamera => _distanceVisibilityController.SetCamera(gameCamera?.Camera))
+                .AddTo(this);
+            _distanceVisibilityController.SetCamera(CameraManager.MainCamera?.Camera);
+
+            // 表示制御を個体登録経路へ渡して生成直後から距離状態へ揃える
+            // Pass visibility control into registration so each instance is aligned immediately after creation
+            var instantiator = new MapObjectLayoutInstantiator(
+                transform, _registry, snapshotByInstanceId, _distanceVisibilityController);
             var nearFieldOrder = MapObjectLayoutDistanceOrder.SortNearFieldFirst(
                 handshakeResponse.MapLayout.MapObjects, handshakeResponse.PlayerPos);
 
@@ -45,7 +58,7 @@ namespace Client.Game.InGame.Map.MapObject
                 nearFieldOrder,
                 _registry,
                 _isWorldObjectActive,
-                this.GetCancellationTokenOnDestroy());
+                cancellationToken);
             _instantiationRunner.StartNearFieldInstantiation();
         }
 
@@ -90,6 +103,11 @@ namespace Client.Game.InGame.Map.MapObject
         public MapObjectGameObject SearchNearestMapObject(HashSet<Guid> mapObjectGuids, Vector3 position)
         {
             return _registry.SearchNearest(mapObjectGuids, position);
+        }
+
+        private void OnDestroy()
+        {
+            _distanceVisibilityController?.Shutdown();
         }
     }
 

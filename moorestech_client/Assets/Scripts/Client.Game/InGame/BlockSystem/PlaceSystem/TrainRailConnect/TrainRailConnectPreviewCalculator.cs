@@ -107,27 +107,37 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
     public struct TrainRailConnectPreviewData : IEquatable<TrainRailConnectPreviewData>
     {
-        public static TrainRailConnectPreviewData Invalid => new(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, Guid.Empty, false, false);
-        
+        // ノード解決に失敗した状態を表すため、名前付き引数で「無効かつ設置不可」を明示する
+        // Represents a node resolution failure, so named arguments state "invalid and not placeable" explicitly
+        public static TrainRailConnectPreviewData Invalid => new(
+            startPoint: Vector3.zero,
+            startControlPoint: Vector3.zero,
+            endControlPoint: Vector3.zero,
+            endPoint: Vector3.zero,
+            railTypeGuid: Guid.Empty,
+            isValid: false,
+            failureReason: RailConnectionEditProtocol.RailConnectionEditFailureReason.InvalidNode,
+            isCurvePlaceable: false);
+
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;
         public Vector3 EndControlPoint;
         public Vector3 EndPoint;
         public Guid RailTypeGuid;
         public bool IsValid;
-        public bool IsPlaceable;
+        public RailConnectionEditProtocol.RailConnectionEditFailureReason FailureReason;
+        public bool IsCurvePlaceable;
 
-        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, RailPlacementJudgement judgement)
-            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, judgement.IsPlaceable, true)
-        {
-        }
-        
+        // 可否は失敗理由とカーブ可否から導出する（「不可なのに理由None」という状態を型で表現不能にする）
+        // Placeability is derived from the failure reason and curve placeability (makes "blocked with no reason" unrepresentable)
+        public bool IsPlaceable => FailureReason == RailConnectionEditProtocol.RailConnectionEditFailureReason.None && IsCurvePlaceable;
+
         public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, RailPlacementJudgement judgement, bool isClientCurvePlaceable)
-            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, judgement.IsPlaceable && isClientCurvePlaceable, true)
+            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, true, judgement.FailureReason, isClientCurvePlaceable)
         {
         }
 
-        private TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, Guid railTypeGuid, bool isPlaceable, bool isValid)
+        private TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, Guid railTypeGuid, bool isValid, RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, bool isCurvePlaceable)
         {
             StartPoint = startPoint;
             StartControlPoint = startControlPoint;
@@ -135,11 +145,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             EndPoint = endPoint;
             IsValid = isValid;
             RailTypeGuid = railTypeGuid;
-            IsPlaceable = isPlaceable;
+            FailureReason = failureReason;
+            IsCurvePlaceable = isCurvePlaceable;
         }
         public bool Equals(TrainRailConnectPreviewData other)
         {
-            return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint) && RailTypeGuid.Equals(other.RailTypeGuid) && IsPlaceable == other.IsPlaceable;
+            return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint) && RailTypeGuid.Equals(other.RailTypeGuid) && IsValid == other.IsValid && FailureReason == other.FailureReason && IsCurvePlaceable == other.IsCurvePlaceable;
         }
         public override bool Equals(object obj)
         {
@@ -147,7 +158,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         }
         public override int GetHashCode()
         {
-            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint, RailTypeGuid, IsPlaceable);
+            return HashCode.Combine(StartPoint, StartControlPoint, EndControlPoint, EndPoint, RailTypeGuid, IsValid, FailureReason, IsCurvePlaceable);
         }
         public override string ToString()
         {

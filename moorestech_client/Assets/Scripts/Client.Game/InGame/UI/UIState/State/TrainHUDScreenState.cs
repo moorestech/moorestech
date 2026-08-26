@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Train.Unit;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.TrainHUDScreen;
 using Client.Input;
@@ -229,6 +229,13 @@ namespace Client.Game.InGame.UI.UIState.State
         public void RestoreAfterApplicationFocus()
         {
             _subStateController.RestoreAfterApplicationFocus();
+        }
+
+        // 表示中のサブステートが宣言したヒントをそのまま返す
+        // Return the hints declared by whichever sub-state is currently showing
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return _subStateController.GetKeyHints();
         }
 
         public void RequestClosePauseMenu()

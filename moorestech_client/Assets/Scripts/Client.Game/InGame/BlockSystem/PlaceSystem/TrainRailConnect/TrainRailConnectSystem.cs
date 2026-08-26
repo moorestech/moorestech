@@ -4,6 +4,7 @@ using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -43,7 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         public override void Enable() { _connectFromArea = null; }
-        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             _trainRailPlaceSystemService.Disable();
             // 接続元が未選択なら接続元を選択する
@@ -89,9 +90,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         // 橋脚がある場合は設置可能。配置予定の TrainRail ブロックの最大長を参照する
                         // Pier available: pass the placing TrainRail block's max length
                         var pierMaxLength = TrainRailConnectPreviewCalculator.GetMaxConnectableRailLength(pierBlockMaster);
-                        var placeInfo = _trainRailPlaceSystemService.ManualUpdate(pierBlockId);
+                        var placeInfo = _trainRailPlaceSystemService.ManualUpdate(pierBlockId, feedback);
+
+                        // 距離外でピアが立たないならConnectorPositionが古いので接続プレビューごと止める（理由行はサービスが積み済み）
+                        // No pier means a stale ConnectorPosition, so stop the connect preview too (the service already pushed the reason)
+                        if (placeInfo == null) { _previewObject.SetActive(false); return; }
+
                         var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, connectToolGuid);
                         ShowPreview(previewData);
+
+                        // 地面干渉でピアが設置不可なら接続も送らない
+                        // Do not send the connect when the pier cell is terrain-blocked
+                        if (!placeInfo.Placeable) return;
 
                         if (!previewData.IsPlaceable) return;
 
@@ -134,6 +144,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 _previewObject.SetActive(true);
                 _previewObject.ShowPreview(previewData);
+                TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
             }
             void SendConnectRailProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
             {

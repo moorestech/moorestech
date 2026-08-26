@@ -1,10 +1,10 @@
-using System;
 using System.Collections.Generic;
+using Mooresmaster.Localization.Generated;
+using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Map.MapVein;
-using Client.Game.InGame.UI.KeyControl;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
@@ -49,6 +49,10 @@ namespace Client.Game.InGame.UI.UIState.State
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
             _hotbarInputService = hotbarInputService;
+
+            // 設置対象が変わった時だけ表示種別をプッシュする。毎フレームの再導出はしない
+            // Push the vein kind only when the placement target changes; never re-derive it every frame
+            _placeSystemStateController.OnTargetChanged.Subscribe(target => _mapVeinRangeView.SetVisibleVeinKind(PlacementVeinViewKindResolver.Resolve(target)));
         }
 
         public void OnEnter(UITransitContext context)
@@ -62,10 +66,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // Take the placement target and its origin as one pair from the transition payload and hand them to the owner (falls back to Empty when absent)
             if (context.TryGetContext<PlacementSelection>(out var selection)) _placeSystemStateController.SetTarget(selection.Target, selection.Origin);
 
-            // 対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenu/GameScreen/DeleteObject)が必ずtargetを載せる
-            // Show the range view for the whole stay even without a target; every entry (BuildMenu/GameScreen/DeleteObject) carries one
-            _mapVeinRangeView.Show(true);
-
             // 視点別カーソル/回転ポリシーを適用
             // Apply the per-view-mode cursor/rotation policy
             _cameraPolicyService.EnterBuildMode();
@@ -77,7 +77,6 @@ namespace Client.Game.InGame.UI.UIState.State
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
 
-            KeyControlDescription.Instance.SetText("Tab: ブロック選択\nV: 視点切替\nQ: 設置高さ上げる\nE: ブロック高さ下げる\nB: 配置モード終了\n左クリック: ブロック配置\nG:ブロック削除\nミドルクリック: 設置物をスポイト\nCtrl+Z: 元に戻す");
 
             #region Internal
 
@@ -131,8 +130,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
             _placeSystemStateController.ManualUpdate();
 
-            // カメラ追従の距離カリングだけを駆動する。表示のON/OFFはOnEnter/OnExitがプッシュ済み
-            // Drive only the camera-following distance culling; visibility was already pushed by OnEnter/OnExit
+            // カメラ追従の距離カリングだけを駆動する。表示種別は設置対象の購読がプッシュ済み
+            // Drive only the camera-following distance culling; the vein kind was already pushed by the target subscription
             _mapVeinRangeView.ManualUpdate();
 
             // Ctrl+Z判定はサービス内部
@@ -152,16 +151,14 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService.ExitToNeutral();
 
             // 設置対象と由来枠はここで同時に落ちる。由来枠だけの明示リセットは持たない
+            // 対象がnullになる通知で鉱脈範囲表示も畳まれる（表示種別のプッシュ元は購読1本に絞る）
             // The placement target and its origin drop together here; no separate origin reset is needed
+            // The null-target notification also folds the vein range view (the vein kind has a single push source)
             _placeSystemStateController.Disable();
 
             // 離脱時点の押下状態を持ち越さない。復帰後の誤長押し判定を防ぐ
             // Discard the press state as of this exit so a later re-entry can't misfire a long press
             _hotbarInputService.ResetKeyState();
-
-            // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
-            // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box
-            _mapVeinRangeView.Show(false);
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {
@@ -176,5 +173,26 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _cameraPolicyService.RestoreAfterApplicationFocus();
         }
+
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return PlaceBlockStateHints.Hints;
+        }
+    }
+
+    internal static class PlaceBlockStateHints
+    {
+        public static readonly IReadOnlyList<KeyHint> Hints = new[]
+        {
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.SelectBlock),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.B, LocalizationKeys.Ui.KeyHint.Text.ExitPlaceMode),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.G, LocalizationKeys.Ui.KeyHint.Text.DeleteMode),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.R, LocalizationKeys.Ui.KeyHint.Text.Rotate),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Q, LocalizationKeys.Ui.KeyHint.Text.LowerHeight),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Text.RaiseHeight),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.MiddleClick, LocalizationKeys.Ui.KeyHint.Text.PickPlacedObject),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.CtrlZ, LocalizationKeys.Ui.KeyHint.Text.Undo),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.V, LocalizationKeys.Ui.KeyHint.Text.ToggleView),
+        };
     }
 }

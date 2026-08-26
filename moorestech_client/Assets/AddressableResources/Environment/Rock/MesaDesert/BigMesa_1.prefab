@@ -153,8 +153,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -197,6 +197,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 95239246834838208, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 95239246834838208, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1266480455795793142, guid: 76f4d666b1df466db079133c9160805c, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -237,6 +245,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1398135748606443242, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1398135748606443242, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1764627545482497629, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1764627545482497629, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1934474088497972812, guid: 76f4d666b1df466db079133c9160805c, type: 3}
       propertyPath: m_Name
       value: BigMesa_1
@@ -252,6 +276,22 @@ PrefabInstance:
     - target: {fileID: 4130523386805569383, guid: 76f4d666b1df466db079133c9160805c, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6395878062391851548, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6395878062391851548, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6815170420117716584, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6815170420117716584, guid: 76f4d666b1df466db079133c9160805c, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8234792726088229831, guid: 76f4d666b1df466db079133c9160805c, type: 3}
       propertyPath: m_Layer

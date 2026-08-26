@@ -15,13 +15,6 @@ namespace Client.Tests.Localization.Skit
 {
     public class SkitLocalizationDynamicLoadContractTest
     {
-        private const string EnglishAddress = "Vanilla/Skit/i18n/english";
-        private const string JapaneseAddress = "Vanilla/Skit/i18n/japanese";
-        private const string EnglishAssetPath =
-            "Assets/AddressableResources/Skit/i18n/english.json";
-        private const string JapaneseAssetPath =
-            "Assets/AddressableResources/Skit/i18n/japanese.json";
-
         [Test]
         public void AddressableSettingsContainOnlySupportedSkitDictionaryAddresses()
         {
@@ -55,12 +48,17 @@ namespace Client.Tests.Localization.Skit
             // address対応とGUID差替え拒否
             // Pin address mappings and reject GUID replacement
             CollectionAssert.AreEquivalent(expectedAddresses, addresses);
-            Assert.AreEqual(EnglishAssetPath, assetPaths[EnglishAddress]);
-            Assert.AreEqual(JapaneseAssetPath, assetPaths[JapaneseAddress]);
-            Assert.IsTrue(File.Exists(GetI18nPath("english")));
-            Assert.IsTrue(File.Exists(GetI18nPath("english") + ".meta"));
-            Assert.IsTrue(File.Exists(GetI18nPath("japanese")));
-            Assert.IsTrue(File.Exists(GetI18nPath("japanese") + ".meta"));
+
+            // 全言語のfile/meta実在を検査
+            // Verify file/meta existence per language
+            foreach (var language in LanguageCatalog.Languages)
+            {
+                var address = "Vanilla/Skit/i18n/" + language.Code;
+                var expectedAssetPath = "Assets/AddressableResources/Skit/i18n/" + language.Code + ".json";
+                Assert.AreEqual(expectedAssetPath, assetPaths[address], language.Code);
+                Assert.IsTrue(File.Exists(GetI18nPath(language.Code)), language.Code);
+                Assert.IsTrue(File.Exists(GetI18nPath(language.Code) + ".meta"), language.Code);
+            }
         }
 
         [Test]
@@ -96,7 +94,7 @@ namespace Client.Tests.Localization.Skit
             // address対応を固定した実ファイルを本番parserへ通す
             // Parse the real file pinned by the address mapping through the production parser
             var dictionary = SkitLocalizationDictionaryLoader.Parse(
-                JapaneseAddress,
+                "Vanilla/Skit/i18n/japanese",
                 File.ReadAllText(GetI18nPath("japanese")));
 
             Assert.AreEqual(

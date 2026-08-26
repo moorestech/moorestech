@@ -69,7 +69,8 @@ namespace Client.Tests.WebUi.Localization
                     Assert.IsTrue(JToken.DeepEquals(
                         JArray.Parse(
                             "[{\"code\":\"english\",\"displayName\":\"English\"}," +
-                            "{\"code\":\"japanese\",\"displayName\":\"日本語\"}]"),
+                            "{\"code\":\"japanese\",\"displayName\":\"日本語\"}," +
+                            "{\"code\":\"german\",\"displayName\":\"Deutsch\"}]"),
                         JArray.Parse(body)));
                 }
                 finally

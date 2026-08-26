@@ -511,7 +511,12 @@
         },
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9
+        "connectionHeightRange": 9,
+        "drillLocalPosition": [
+          0,
+          0,
+          0
+        ]
       },
       "blockGuid": "00000000-0000-0000-0000-000000000006",
       "category": "テスト",
@@ -2898,7 +2903,12 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        }
+        },
+        "drillLocalPosition": [
+          0,
+          0,
+          0
+        ]
       },
       "blockSize": [
         1,
@@ -5012,6 +5022,90 @@
       "blockGuid": "e08acf92-9d43-4db0-b43a-bcec773f22dc",
       "category": "テスト",
       "subCategory": "CleanRoomMachine",
+      "placementsPerCost": 1
+    },
+    {
+      "modelTransform": {
+        "scale": [
+          1,
+          1,
+          1
+        ],
+        "rotation": [
+          0,
+          0,
+          0
+        ],
+        "position": [
+          0,
+          0,
+          0
+        ]
+      },
+      "blockSize": [
+        2,
+        1,
+        3
+      ],
+      "name": "TestOffsetDrillMiner",
+      "blockType": "ElectricMiner",
+      "blockParam": {
+        "outputItemSlotCount": 3,
+        "requiredPower": 100,
+        "idlePowerRate": 0.2,
+        "mineSettings": [
+          {
+            "time": 1,
+            "itemGuid": "00000000-0000-0000-1234-000000000001"
+          }
+        ],
+        "inventoryConnectors": {
+          "outputConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "connectorGuid": "468dc4db-04ed-48e0-9042-beb3f7da4833"
+            }
+          ],
+          "inputConnects": []
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 9,
+        "connectionHeightRange": 9,
+        "drillLocalPosition": [
+          1,
+          0,
+          2
+        ]
+      },
+      "blockGuid": "00000000-0000-0000-0000-000000000060",
+      "category": "テスト",
+      "subCategory": "ElectricMiner",
       "placementsPerCost": 1
     }
   ],

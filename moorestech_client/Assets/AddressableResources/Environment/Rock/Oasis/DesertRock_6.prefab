@@ -153,8 +153,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -245,6 +245,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2817279611745652454, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2817279611745652454, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3780872135277252279, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3780872135277252279, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4609202512912614562, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -256,6 +272,14 @@ PrefabInstance:
     - target: {fileID: 7055004768483213781, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 8556544037389530638, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8556544037389530638, guid: 77c841b718f64a2a96dfc2e112c68f77, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -79,7 +79,7 @@ namespace Client.WebUiHost.Game
 
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
-            var uiStateTopic = new UiStateTopic(hub, uiStateControl, trainHudState);
+            var uiStateTopic = new UiStateTopic(hub, uiStateControl, resolver.Resolve<UIStateDictionary>(), trainHudState);
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
             C4WebUiRegistration.Register(hub);
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));

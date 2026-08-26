@@ -8,6 +8,7 @@ import { state, subscribersOf } from "../state";
 const languages = [
   { code: "english", displayName: "English" },
   { code: "japanese", displayName: "日本語" },
+  { code: "german", displayName: "Deutsch" },
 ];
 
 export function serveLanguageCatalog(url: string, response: ServerResponse): boolean {

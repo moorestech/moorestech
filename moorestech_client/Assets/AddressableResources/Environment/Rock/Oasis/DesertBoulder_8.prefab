@@ -153,8 +153,8 @@ MeshRenderer:
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
-  m_LightProbeUsage: 1
-  m_ReflectionProbeUsage: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
   m_RayTracingAccelStructBuildFlagsOverride: 0
@@ -270,9 +270,41 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 433230715779225782, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 433230715779225782, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 565626028558585711, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
       propertyPath: m_Layer
       value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 1278400425169622139, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1278400425169622139, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3490904190992059920, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3490904190992059920, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4072482561823752708, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
+      propertyPath: m_LightProbeUsage
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4072482561823752708, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
+      propertyPath: m_ReflectionProbeUsage
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5885377026503307483, guid: ac4c0a02ae5042d5abd2ab47b6659b99, type: 3}
       propertyPath: m_Name

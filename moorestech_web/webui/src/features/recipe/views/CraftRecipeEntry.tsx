@@ -55,7 +55,7 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
               </span>}
               onLeftDown={() => onSelect(r.itemId)}
             />
-            <Text className={styles.materialCount} data-lack={ownedCountOf(counts, r.itemId) < r.count || undefined}>
+            <Text className={`iconTextOutlineLight ${styles.materialCount}`} data-lack={ownedCountOf(counts, r.itemId) < r.count || undefined}>
               {t(L.ui.recipe.itemCountSummary, { ownedCount: ownedCountOf(counts, r.itemId), requiredCount: r.count })}
             </Text>
           </Box>

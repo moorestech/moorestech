@@ -165,6 +165,13 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - ホバープレビュー（ホバー中スロットの詳細を別領域へ出す）は SlotFrame/ItemSlot の `onHoverChange` を使う。機能側で生の onMouseEnter/Leave をスロットに生やさない。
 - **用途の異なるスロット群を同一パネル内に並置する時は、ラベル（`--text-muted`）または `FadeRule` の区切りで必ず区別する。** 無札の並置は入出力と誤読されるため禁止（例: アップグレードスロット）。
 - **左右のスロット数が非対称になり得る行の中央要素（進捗矢印等）は `1fr auto 1fr` グリッドで中央に固定する。** 行全体のflex中央寄せは個数差で中央要素がずれるため使わない。
+- **アイコンの上に重なるテキストは、文字色の反対色の縁で浮かせる**（ADR 0033）。黒文字には白縁、白文字には黒縁。
+  太さは `--icon-text-stroke-width` の1本で全系統共通、色は `--icon-text-stroke-light` / `--icon-text-stroke-dark`。
+  縁は `-webkit-text-stroke` + `paint-order: stroke fill` の真のストロークで描き、`text-shadow` による擬似縁・ぼかし影は使わない。
+  適用は tokens.css の共有クラス `iconTextOutlineLight` / `iconTextOutlineDark` を TSX で合成して行い（前例 `keyHintText`）、
+  featureのCSSは位置決めと文字色だけを持つ。現在の適用先は `ItemSlot .count` / `RecipeBox .materialCount` /
+  `research .consumeCount` / `FluidSlot .amount` / `HotbarPanel .num` の5箇所。
+  アイコンに重なっていない文字（通知・キーヒント・目標HUD・ボタンラベル）はこの様式の対象外で、従来の文字影のままにする。
 
 ## 5. 色・トーン
 

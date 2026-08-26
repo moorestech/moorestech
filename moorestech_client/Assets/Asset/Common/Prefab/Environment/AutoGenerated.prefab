@@ -326,15 +326,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1482871220023697614, guid: eb1faa4728c8f4cfcb4d9833ccd9cd02, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 496.4395
+      value: 495.36
       objectReference: {fileID: 0}
     - target: {fileID: 1482871220023697614, guid: eb1faa4728c8f4cfcb4d9833ccd9cd02, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 15.731
+      value: 15.31
       objectReference: {fileID: 0}
     - target: {fileID: 1482871220023697614, guid: eb1faa4728c8f4cfcb4d9833ccd9cd02, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 497.97632
+      value: 483.22
       objectReference: {fileID: 0}
     - target: {fileID: 1482871220023697614, guid: eb1faa4728c8f4cfcb4d9833ccd9cd02, type: 3}
       propertyPath: m_LocalRotation.w
@@ -515,7 +515,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1926623616552158096, guid: f8e4ed5f108f01d4f8a3113e26ddb3a1, type: 3}
       propertyPath: baseWindPower
-      value: 1
+      value: 0.085
+      objectReference: {fileID: 0}
+    - target: {fileID: 1926623616552158096, guid: f8e4ed5f108f01d4f8a3113e26ddb3a1, type: 3}
+      propertyPath: baseWindSpeed
+      value: 0.3
       objectReference: {fileID: 0}
     - target: {fileID: 1926623616552158096, guid: f8e4ed5f108f01d4f8a3113e26ddb3a1, type: 3}
       propertyPath: microFrequency
