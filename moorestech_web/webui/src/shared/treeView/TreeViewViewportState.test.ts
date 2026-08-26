@@ -37,7 +37,6 @@ const baseProps = (props: Partial<Parameters<typeof TreeView<TestNode>>[0]>) => 
   getPosition: (node: TestNode) => ({ x: node.x, y: node.y }),
   getPrevIds: (node: TestNode) => node.prevIds,
   renderNode: () => createElement("span", null, "node"),
-  nodeTargetSelector: "[data-node]",
   testIdPrefix: "test",
   ...props,
 });

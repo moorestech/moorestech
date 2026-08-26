@@ -36,7 +36,6 @@ describe("TreeView render cache", () => {
       getPosition,
       getPrevIds,
       renderNode,
-      nodeTargetSelector: "[data-node]",
       testIdPrefix: "test",
     }));
     const viewport = renderer.root.findByProps({ "data-testid": "test-viewport" });
@@ -84,7 +83,6 @@ describe("TreeView render cache", () => {
       getPosition,
       getPrevIds,
       renderNode: firstRenderNode,
-      nodeTargetSelector: "[data-node]",
       testIdPrefix: "test",
     }));
 
@@ -94,7 +92,6 @@ describe("TreeView render cache", () => {
       getPosition,
       getPrevIds,
       renderNode: secondRenderNode,
-      nodeTargetSelector: "[data-node]",
       testIdPrefix: "test",
     })));
 

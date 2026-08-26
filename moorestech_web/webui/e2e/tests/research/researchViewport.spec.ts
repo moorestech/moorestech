@@ -151,3 +151,48 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
   expect(afterNodeDrag!.x).toBe(beforeNodeDrag!.x);
   expect(afterNodeDrag!.y).toBe(beforeNodeDrag!.y);
 });
+
+test("ノードを掴んだドラッグもパンになり、詳細ペインは開かない", async ({ page }) => {
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  const node = page.getByTestId(RESEARCHABLE_NODE);
+  await expect(node).toBeVisible();
+  const beforePan = await settleBoundingBox(page, node);
+  // カード中心＝アイコン周辺を掴む。ノードが密で空背景を取れない実プレイと同じ掴み方
+  // Grip the card center (around its icon), the way real play must when nodes leave no empty background
+  const grip = { x: beforePan.x + beforePan.width / 2, y: beforePan.y + beforePan.height / 2 };
+  await page.mouse.move(grip.x, grip.y);
+  await page.mouse.down();
+  await page.mouse.move(grip.x - 60, grip.y + 30, { steps: 5 });
+  await page.mouse.up();
+  const settled = await settleBoundingBox(page, node);
+  expect(settled.x - beforePan.x).toBeLessThanOrEqual(-59.5);
+  expect(settled.x - beforePan.x).toBeGreaterThan(-60 - MAX_GLIDE_PX - 1);
+  expect(settled.y - beforePan.y).toBeGreaterThanOrEqual(29.5);
+  expect(settled.y - beforePan.y).toBeLessThan(30 + MAX_GLIDE_PX + 1);
+  // ドラッグに至った押下は選択しない
+  // A press that became a drag never selects
+  await expect(page.getByTestId("research-detail-pane")).toHaveCount(0);
+});
+
+test("閾値未満のノード押下はタップとして詳細ペインを開く", async ({ page }) => {
+  await setUiState(page, "ResearchTree");
+  await page.goto("/");
+  const node = page.getByTestId(RESEARCHABLE_NODE);
+  await expect(node).toBeVisible();
+  const box = await settleBoundingBox(page, node);
+  const press = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  await page.mouse.move(press.x, press.y);
+  await page.mouse.down();
+  // 手ぶれ相当の3pxは閾値(5px)未満なのでタップのまま
+  // A 3px tremor stays under the 5px threshold and remains a tap
+  await page.mouse.move(press.x + 2, press.y + 2);
+  await page.mouse.up();
+  await expect(page.getByTestId("research-detail-pane")).toBeVisible();
+  await waitForFrame(page);
+  // タップはパンを起こさない
+  // A tap never pans
+  const after = await node.boundingBox();
+  expect(Math.abs(after!.x - box.x)).toBeLessThanOrEqual(0.5);
+  expect(Math.abs(after!.y - box.y)).toBeLessThanOrEqual(0.5);
+});
