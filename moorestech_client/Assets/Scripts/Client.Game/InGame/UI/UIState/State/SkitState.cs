@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.Common;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.Skit;
 using Client.Game.Skit;
@@ -10,16 +11,16 @@ using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
-    public class SkitState : IUIState
+    public class SkitState : IUIState, INestedPauseScreenState
     {
         private readonly SkitManager _skitManager;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
-        private readonly SkitScreenUIStateController _subStateController;
+        private readonly NestedPauseSubStateController _subStateController;
         private readonly Subject<Unit> _onPresentationChanged = new();
         
         // Web配信用の入れ子state窓口
         // Window for the web side to publish the nested state
-        public SkitScreenUIStateEnum SubState => _subStateController.CurrentState;
+        public string SubStateName => _subStateController.CurrentState.ToString();
         public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
         
         public SkitState(SkitManager skitManager, PlayerInventoryViewController playerInventoryViewController, PauseMenuStateService pauseMenuStateService)
@@ -28,7 +29,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _playerInventoryViewController = playerInventoryViewController;
             // 所有者専用の入れ子ステートマシンなのでDI登録せずここでnewする（前例: TrainHUDScreenState）
             // A nested state machine owned exclusively here, so it is newed directly instead of DI-registered (precedent: TrainHUDScreenState)
-            _subStateController = new SkitScreenUIStateController(skitManager, pauseMenuStateService);
+            _subStateController = new NestedPauseSubStateController(new SkitGameScreenSubState(skitManager), pauseMenuStateService);
             _subStateController.OnStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
         }
         
@@ -75,14 +76,16 @@ namespace Client.Game.InGame.UI.UIState.State
             GameStateController.ChangeState(GameStateType.InGame);
         }
         
-        public void RequestClosePauseMenu()
+        public bool RequestClosePauseMenu()
         {
-            _subStateController.RequestClosePauseMenu();
+            return _subStateController.RequestClosePauseMenu();
         }
         
+        // 表示中のサブステートが宣言したヒントをそのまま返す
+        // Return the hints declared by whichever sub-state is currently showing
         public IReadOnlyList<KeyHint> GetKeyHints()
         {
-            return System.Array.Empty<KeyHint>();
+            return _subStateController.GetKeyHints();
         }
     }
 }

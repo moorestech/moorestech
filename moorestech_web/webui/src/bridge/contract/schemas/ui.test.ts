@@ -33,9 +33,10 @@ describe("UiStateDataSchema", () => {
     expect(parsed.success).toBe(true);
   });
 
-  it("スキットの入れ子state(Playing/PauseMenu)を受理する", () => {
-    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "Playing" }).success).toBe(true);
-    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "PauseMenu" }).success).toBe(true);
+  it("入れ子stateは既知語彙も未知語彙も受理する（未知値の解釈はscreenForUiStateのfail-safe）", () => {
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "GameScreen" }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "PauseMenuScreen" }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "UnknownSubState" }).success).toBe(true);
   });
 
   it("keyHints未着のペイロードも受理する", () => {

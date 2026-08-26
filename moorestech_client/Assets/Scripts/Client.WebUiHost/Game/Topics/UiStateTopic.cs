@@ -1,10 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
-using Client.Game.InGame.UI.UIState.State;
 using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
@@ -20,26 +20,23 @@ namespace Client.WebUiHost.Game.Topics
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly UIStateDictionary _uiStateDictionary;
-        private readonly TrainHUDScreenState _trainHudState;
-        private readonly SkitState _skitState;
-        private readonly IDisposable _trainStateSubscription;
-        private readonly IDisposable _skitStateSubscription;
+        private readonly IReadOnlyList<IDisposable> _nestedStateSubscriptions;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary, TrainHUDScreenState trainHudState, SkitState skitState)
+        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
             _uiStateDictionary = uiStateDictionary;
-            _trainHudState = trainHudState;
-            _skitState = skitState;
 
-            // state遷移を購読して push する
-            // Subscribe to state transitions and push them
+            // state遷移と、入れ子ポーズを持つ全画面の表示変化を購読して push する
+            // Subscribe to state transitions and to every nested-pause screen's presentation changes, then push
             _uiStateControl.OnStateChanged += OnStateChanged;
-            _trainStateSubscription = _trainHudState.OnPresentationChanged.Subscribe(_ => SchedulePublish());
-            _skitStateSubscription = _skitState.OnPresentationChanged.Subscribe(_ => SchedulePublish());
+            _nestedStateSubscriptions = _uiStateDictionary.GetAllStates()
+                .OfType<INestedPauseScreenState>()
+                .Select(nested => nested.OnPresentationChanged.Subscribe(_ => SchedulePublish()))
+                .ToArray();
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -51,8 +48,7 @@ namespace Client.WebUiHost.Game.Topics
         {
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
-            _trainStateSubscription.Dispose();
-            _skitStateSubscription.Dispose();
+            foreach (var subscription in _nestedStateSubscriptions) subscription.Dispose();
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -104,9 +100,7 @@ namespace Client.WebUiHost.Game.Topics
             // Only nested screens carry a subState
             string ResolveSubState(UIStateEnum state)
             {
-                if (state == UIStateEnum.TrainHUDScreen) return _trainHudState.SubState.ToString();
-                if (state == UIStateEnum.Story) return _skitState.SubState.ToString();
-                return null;
+                return _uiStateDictionary.GetState(state) is INestedPauseScreenState nested ? nested.SubStateName : null;
             }
 
             #endregion

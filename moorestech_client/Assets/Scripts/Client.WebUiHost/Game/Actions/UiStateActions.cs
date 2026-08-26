@@ -1,6 +1,5 @@
 using System;
 using Client.Game.InGame.UI.UIState;
-using Client.Game.InGame.UI.UIState.State;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -15,14 +14,12 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "ui_state.request";
 
         private readonly UIStateControl _uiStateControl;
-        private readonly TrainHUDScreenState _trainHudState;
-        private readonly SkitState _skitState;
+        private readonly UIStateDictionary _uiStateDictionary;
 
-        public RequestUiStateActionHandler(UIStateControl uiStateControl, TrainHUDScreenState trainHudState, SkitState skitState)
+        public RequestUiStateActionHandler(UIStateControl uiStateControl, UIStateDictionary uiStateDictionary)
         {
             _uiStateControl = uiStateControl;
-            _trainHudState = trainHudState;
-            _skitState = skitState;
+            _uiStateDictionary = uiStateDictionary;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -35,20 +32,14 @@ namespace Client.WebUiHost.Game.Actions
             var stateName = (string)stateValue;
             if (stateName != nameof(UIStateEnum.GameScreen) && stateName != nameof(UIStateEnum.PlayerInventory)) return UniTask.FromResult(ActionResult.Fail("unsupported_state"));
 
-            // 乗車中ポーズのGameScreen要求は入れ子だけを閉じ、降車させない
-            // A GameScreen request during riding pause closes only the nested pause and never dismounts.
-            if (_uiStateControl.CurrentState == UIStateEnum.TrainHUDScreen && stateName == nameof(UIStateEnum.GameScreen))
+            // 入れ子ポーズを持つ画面のGameScreen要求は、その入れ子だけを閉じて画面自体は維持する（ADR 0035）
+            // A GameScreen request on a nested-pause screen closes only that nested pause and keeps the screen itself (ADR 0035)
+            if (stateName == nameof(UIStateEnum.GameScreen) && _uiStateDictionary.GetState(_uiStateControl.CurrentState) is INestedPauseScreenState nestedScreen)
             {
-                _trainHudState.RequestClosePauseMenu();
-                return UniTask.FromResult(ActionResult.Success());
-            }
-
-            // スキット中ポーズのGameScreen要求も入れ子だけを閉じ、スキットは続行する（ADR 0035）
-            // A GameScreen request during skit pause likewise closes only the nested pause; the skit continues (ADR 0035)
-            if (_uiStateControl.CurrentState == UIStateEnum.Story && stateName == nameof(UIStateEnum.GameScreen))
-            {
-                _skitState.RequestClosePauseMenu();
-                return UniTask.FromResult(ActionResult.Success());
+                // 閉じるものが無い要求は成功に見せず拒否する
+                // A request with nothing to close is rejected instead of reported as success
+                var closed = nestedScreen.RequestClosePauseMenu();
+                return UniTask.FromResult(closed ? ActionResult.Success() : ActionResult.Fail("transition_not_allowed"));
             }
 
             var requested = Enum.Parse<UIStateEnum>(stateName);

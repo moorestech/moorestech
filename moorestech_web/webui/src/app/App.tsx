@@ -21,7 +21,7 @@ import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu } from "@/shared/uiState";
+import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu } from "@/shared/uiState";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
@@ -112,7 +112,7 @@ export default function App() {
           {/* The mining gauge stacks on the hotbar's floor, so it belongs to the same viewport family */}
           <ProgressBar />
           <KeyControlHintHud />
-          <SkitPresentation />
+          <SkitPresentation interactive={screenAllowsSkitInput(screen)} />
         </div>
         <ModalHost />
         <BlockInventoryKeyHandler />

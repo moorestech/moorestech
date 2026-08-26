@@ -80,11 +80,14 @@ test("横長画面で会話帯を全幅に広げツールを実画面右上へ�
 test("Escでポーズメニューを開いても会話UIは背後で表示され続ける", async ({ page }) => {
   await page.goto("/");
   await setSkitStage(page, "text");
-  await setUiState(page, "Story", "PauseMenu");
+  await setUiState(page, "Story", "PauseMenuScreen");
 
   await expect(page.getByTestId("pause-menu")).toBeVisible();
   await expect(page.getByTestId("blocking-skit")).toBeVisible();
+  // 表示は続くが入力は死ぬ。会話窓をクリックしても送りは飛ばない
+  // It keeps drawing but takes no input; clicking the window sends no advance
+  await expect(page.getByTestId("blocking-skit")).toHaveCSS("pointer-events", "none");
 
-  await setUiState(page, "Story", "Playing");
+  await setUiState(page, "Story", "GameScreen");
   await expect(page.getByTestId("pause-menu")).toHaveCount(0);
 });

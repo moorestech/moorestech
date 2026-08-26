@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.Skit;
 using Client.Input;
 
@@ -5,11 +8,11 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
 {
     // スキット再生中のサブステート
     // Sub-state while the skit plays
-    public class SkitPlayingSubState : ISkitScreenSubState
+    public class SkitGameScreenSubState : INestedPauseSubState
     {
         private readonly SkitManager _skitManager;
         
-        public SkitPlayingSubState(SkitManager skitManager)
+        public SkitGameScreenSubState(SkitManager skitManager)
         {
             _skitManager = skitManager;
         }
@@ -21,7 +24,7 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
             InputManager.MouseCursorVisible(true);
         }
         
-        public SkitScreenUIStateEnum? GetNextUpdate()
+        public NestedPauseSubStateEnum? GetNextUpdate()
         {
             if (!InputManager.UI.OpenMenu.GetKeyDown) return null;
 
@@ -29,11 +32,18 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
             // Only skip opening the menu when restoring the dialogue UI actually succeeds; on failure, fall through instead of swallowing Esc
             if (_skitManager.TryRestoreHiddenSkitUi()) return null;
 
-            return SkitScreenUIStateEnum.PauseMenu;
+            return NestedPauseSubStateEnum.PauseMenuScreen;
         }
         
         public void OnExit()
         {
+        }
+        
+        // スキット中の操作はWeb側の会話UIが担うためキーヒントは持たない
+        // Skit interaction lives in the web dialogue UI, so this sub-state carries no key hints
+        public IReadOnlyList<KeyHint> GetKeyHints()
+        {
+            return Array.Empty<KeyHint>();
         }
     }
 }

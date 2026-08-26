@@ -136,13 +136,6 @@ namespace Client.Skit.UI
             }
         }
         
-        public bool IsUIHidden => _skitUITools.IsUIHidden;
-        
-        public void ShowHiddenUI()
-        {
-            _skitUITools.ShowUI();
-        }
-        
         private T GetElement<T>(string elementName) where T : VisualElement
         {
             return skitUiDocument.rootVisualElement.Q<T>(elementName);

@@ -11,13 +11,19 @@ export function screenForUiState(state: string | null, subState?: string): UiScr
   if (state === UiStateNames.buildMenu) return "buildMenu";
   if (state === UiStateNames.challengeList) return "challengeList";
   if (state === UiStateNames.pauseMenu) return "pauseMenu";
-  if (state === UiStateNames.trainHud) return subState === "PauseMenuScreen" ? "trainPause" : "trainHud";
+  if (state === UiStateNames.trainHud) return isNestedPauseSubState(subState) ? "trainPause" : "trainHud";
   // スキット本体はskitPresentationトピックが描くので、Storyはポーズ入れ子だけを画面に昇格させる
   // The skit itself is drawn from the skitPresentation topic, so Story only promotes its nested pause to a screen
-  if (state === UiStateNames.story) return subState === "PauseMenu" ? "skitPause" : "none";
+  if (state === UiStateNames.story) return isNestedPauseSubState(subState) ? "skitPause" : "none";
   // GameScreen・未対応state・未受信はパネル無し（前方互換: 未知state名も安全側に倒す)
   // GameScreen, unsupported states and pre-snapshot are panel-less (forward-compat: unknown names fail safe)
   return "none";
+}
+
+// 入れ子ポーズ画面のサブstate語彙は列車HUDとスキットで共通（C#のNestedPauseSubStateEnum）
+// Nested-pause screens share one sub-state vocabulary between the train HUD and the skit (C#'s NestedPauseSubStateEnum)
+function isNestedPauseSubState(subState: string | undefined): boolean {
+  return subState === "PauseMenuScreen";
 }
 
 // マスタ由来のuiState名がUnityのUIStateEnum語彙に載っているか。載らない値は照合せず捨てる
@@ -42,6 +48,12 @@ export function screenAllowsGrab(screen: UiScreen): boolean {
 // The family of screens that show the pause menu
 export function screenShowsPauseMenu(screen: UiScreen): boolean {
   return screen === "pauseMenu" || screen === "trainPause" || screen === "skitPause";
+}
+
+// スキット表示層が入力を受け付ける画面族。ポーズ中は表示を続けたまま入力口だけ閉じる
+// The family of screens where the skit layer takes input; during pause it keeps drawing but closes every input path
+export function screenAllowsSkitInput(screen: UiScreen): boolean {
+  return screen !== "skitPause";
 }
 
 // 背景ディムを出す画面族（trainHud除く）

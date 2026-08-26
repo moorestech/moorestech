@@ -5,6 +5,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.TrainHUDScreen;
 using Client.Input;
@@ -21,11 +22,11 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     // 列車に乗車中の HUD ステート。状態遷移と列車系UI処理の呼び出しを担当する
     // Train HUD state, responsible for state transitions and dispatching train UI work while riding.
-    public class TrainHUDScreenState : IUIState, IApplicationFocusRestorer
+    public class TrainHUDScreenState : IUIState, IApplicationFocusRestorer, INestedPauseScreenState
     {
         private readonly PlayerStateController _playerStateController;
         private readonly TrainUnitClientCache _trainUnitClientCache;
-        private readonly TrainHudScreenUIStateController _subStateController;
+        private readonly NestedPauseSubStateController _subStateController;
         private readonly TrainRidingInputSender _trainRidingInputSender = new();
         private readonly TrainBranchRoutePreviewController _branchRoutePreviewController = new();
 
@@ -38,7 +39,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private int _lastBranchCandidateCount;
 
         public bool IsRiding => _rideContext != null && !_isDismountTrain;
-        public TrainHudScreenUIStateEnum SubState => _subStateController.CurrentState;
+        public string SubStateName => _subStateController.CurrentState.ToString();
         public int BranchCandidateCount => _branchRoutePreviewController.BranchCandidateCount;
         public int SelectedBranchIndex { get; private set; }
         public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
@@ -48,7 +49,7 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _playerStateController = playerStateController;
             _trainUnitClientCache = trainUnitClientCache;
-            _subStateController = new TrainHudScreenUIStateController(pauseMenuStateService, inGameCameraController);
+            _subStateController = new NestedPauseSubStateController(new TrainHudGameScreenSubState(inGameCameraController), pauseMenuStateService);
             _subStateController.OnStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
         }
 
@@ -154,7 +155,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // TrainHUD内部のサブUIステートを実行
             // Run the nested sub-state for the Train HUD.
             _subStateController.Update();
-            if (_subStateController.CurrentState != TrainHudScreenUIStateEnum.GameScreen)
+            if (_subStateController.CurrentState != NestedPauseSubStateEnum.GameScreen)
             {
                 _branchRoutePreviewController.Hide();
                 return null;
@@ -238,9 +239,9 @@ namespace Client.Game.InGame.UI.UIState.State
             return _subStateController.GetKeyHints();
         }
 
-        public void RequestClosePauseMenu()
+        public bool RequestClosePauseMenu()
         {
-            _subStateController.RequestClosePauseMenu();
+            return _subStateController.RequestClosePauseMenu();
         }
 
         // fire-and-forget RPC の例外を UnobservedTaskException 経由 log のみに頼らず明示的に拾う。

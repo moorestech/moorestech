@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, type UiScreen } from "./uiScreenRouting";
+import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, type UiScreen } from "./uiScreenRouting";
 
 describe("screenForUiState", () => {
   it("PlayerInventory はインベントリ画面", () => {
@@ -22,9 +22,10 @@ describe("screenForUiState", () => {
     expect(screenForUiState("TrainHUDScreen", "GameScreen")).toBe("trainHud");
     expect(screenForUiState("TrainHUDScreen", "PauseMenuScreen")).toBe("trainPause");
   });
-  it("Story は入れ子のPauseMenuだけをskitPause画面にする", () => {
-    expect(screenForUiState("Story", "Playing")).toBe("none");
-    expect(screenForUiState("Story", "PauseMenu")).toBe("skitPause");
+  it("Story は入れ子のPauseMenuScreenだけをskitPause画面にする（語彙は列車HUDと共通）", () => {
+    expect(screenForUiState("Story", "GameScreen")).toBe("none");
+    expect(screenForUiState("Story", "PauseMenuScreen")).toBe("skitPause");
+    expect(screenForUiState("Story", "UnknownSubState")).toBe("none");
   });
   it("PlaceBlock は画面を占有しないHUD stateとして扱う", () => {
     expect(screenForUiState("PlaceBlock")).toBe("none");
@@ -75,6 +76,27 @@ describe("screenShowsAlwaysOnHud", () => {
 
   it.each(Object.entries(expectations))("%s の常時表示HUD可否は %s", (screen, shown) => {
     expect(screenShowsAlwaysOnHud(screen as UiScreen)).toBe(shown);
+  });
+});
+
+describe("screenAllowsSkitInput", () => {
+  // Record<UiScreen, boolean> なので画面種別が増えたらこの表が型エラーになり、更新漏れが防がれる
+  // Typing it as Record<UiScreen, boolean> makes a new screen a compile error here, so the table cannot go stale
+  const expectations: Record<UiScreen, boolean> = {
+    none: true,
+    playerInventory: true,
+    subInventory: true,
+    researchTree: true,
+    buildMenu: true,
+    challengeList: true,
+    pauseMenu: true,
+    trainHud: true,
+    trainPause: true,
+    skitPause: false,
+  };
+
+  it.each(Object.entries(expectations))("%s のスキット入力受理可否は %s", (screen, allowed) => {
+    expect(screenAllowsSkitInput(screen as UiScreen)).toBe(allowed);
   });
 });
 

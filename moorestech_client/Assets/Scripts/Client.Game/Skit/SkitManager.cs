@@ -41,18 +41,14 @@ namespace Client.Game.Skit
         
         public bool IsPlayingSkit { get; private set; }
         
-        // 隠れた会話UIの復帰をuGUI・storeの両バックエンドへ集約し、失敗を握り潰さず呼び出し元へ返す
-        // Consolidate hidden-dialogue restoration across both the uGUI and store backends, surfacing failure to the caller instead of swallowing it
-        // WebモードではuGUI会話UIは起動しない（SetActive(false)のままStartが走らない）ので、非アクティブ時は非表示扱いにしない
-        // In web mode the uGUI dialogue UI never starts (stays SetActive(false)), so an inactive UI never counts as hidden
+        // 会話UIの表示状態はstoreが単一の正。失敗を握り潰さず呼び出し元へ返す
+        // The store is the single source of truth for dialogue-UI visibility; failure is surfaced to the caller instead of swallowed
         public bool TryRestoreHiddenSkitUi()
         {
             var store = SkitPresentationStateStore.Instance;
             var current = store.GetCurrent();
-            var isUiHidden = skitUI.gameObject.activeSelf && skitUI.IsUIHidden;
-            if (!isUiHidden && !current.PresentationState.UiHidden) return false;
+            if (!current.PresentationState.UiHidden) return false;
 
-            if (skitUI.gameObject.activeSelf) skitUI.ShowHiddenUI();
             return store.TrySetUiHidden(current.SessionId, current.SceneRevision, false).Ok;
         }
         private bool _isSkip;

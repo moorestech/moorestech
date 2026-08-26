@@ -32,3 +32,13 @@ Accepted (2026-08-26)
 `WebUiScreenGate.IsWebUiMode` はuGUI廃止Phase1で恒久 `true`（docs/webui/ugui-retirement-plan.md）。「uGUIモードのみ」の裁定は前提が誤っていたため、列車HUD(`trainPause`)同型でWeb UIに表示する。
 C#: `SkitPlayingSubState` のwebガード撤去／`SkitState.SubState`・`OnPresentationChanged` 公開／`UiStateTopic` がStory中もsubStateを配信／`UiStateActions` はStory中のGameScreen要求で入れ子のみ閉じる。Web: `uiScreenRouting` に `skitPause`、`App.tsx` で `PauseMenuPanel`。
 出所: ユーザー裁定 2026-08-26「Web側にも出す（列車HUD同型）」（.decisions/2026-08-26-スキット中ポーズメニューはWeb側にも出す（uGUIモードは存在しない）.md）
+
+## 追記 2026-08-27: 入れ子ポーズを型で束ね、Web契約は寛容に
+
+レビュー裁定4件（.decisions/2026-08-27-入れ子ポーズ画面はINestedPauseScreenStateで束ねWeb契約は寛容にする.md）を実装した。
+
+- 「入れ子ポーズを持つ画面」を `INestedPauseScreenState`（`SubStateName` / `OnPresentationChanged` / `bool RequestClosePauseMenu()`）で束ね、`TrainHUDScreenState` と `SkitState` が実装する。`UiStateTopic` の subState 解決と購読、`UiStateActions` の閉じ分岐はいずれも `is INestedPauseScreenState` の1本に畳んだ
+- サブステート実体は `State/NestedPause/`（`NestedPauseSubStateEnum` / `INestedPauseSubState` / `NestedPauseSubStateController` / `PauseMenuNestedSubState`）へ共通化し、語彙は `GameScreen`/`PauseMenuScreen` に統一。`SkitState.GetKeyHints()` はサブステートへ委譲
+- 閉じ要求は実際に閉じたときだけ `true`。閉じるものが無い要求は `transition_not_allowed` で拒否する
+- Web: `UiStateDataSchema.subState` は `z.string().optional()`（未知値の解釈は `screenForUiState` のfail-safe）。skitPause 中は `SkitPresentation` を `pointer-events: none` にして表示と自動送りだけ継続させる
+- 到達不能だったuGUI会話UI復帰枝（`SkitUITools.IsUIHidden`/`ShowUI`・`SkitUI.ShowHiddenUI`）は削除し、`SkitManager.TryRestoreHiddenSkitUi` は store 一本で判定する

@@ -39,5 +39,12 @@ namespace Client.Game.InGame.UI.UIState
         {
             return _stateDictionary[state];
         }
+        
+        // 全stateを役割IFで横断購読するための列挙口
+        // Enumeration entry point for subscribing across every state by role interface
+        public IEnumerable<IUIState> GetAllStates()
+        {
+            return _stateDictionary.Values;
+        }
     }
 }

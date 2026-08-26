@@ -21,13 +21,9 @@ const KeyHintSchema = z.object({ keyNameKey: z.string(), textKey: z.string() });
 // Accept every state name because the screen router handles unknown names safely
 export const UiStateDataSchema = z.object({
   state: z.string(),
-  // 入れ子state語彙:
-  // - 列車HUD: GameScreen/PauseMenuScreen
-  // - スキット: Playing/PauseMenu
-  // Nested-state vocabulary:
-  // - train HUD: GameScreen/PauseMenuScreen
-  // - skit: Playing/PauseMenu
-  subState: z.enum(["GameScreen", "PauseMenuScreen", "Playing", "PauseMenu"]).optional(),
+  // 入れ子state名もstateと同じく寛容に受ける。語彙追加でui_stateごと捨てないため
+  // The nested state name is accepted as leniently as state, so a new value never discards the whole ui_state payload
+  subState: z.string().optional(),
   keyHints: z.array(KeyHintSchema).default([]),
 });
 export const TrainRidingDataSchema = z.object({
