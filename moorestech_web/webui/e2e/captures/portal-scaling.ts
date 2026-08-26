@@ -55,6 +55,12 @@ async function main() {
       await page.getByTestId("world-pin-map-object-pin").waitFor();
     });
 
+    await capture(page, viewport.name, "tutorial-outline-label", async () => {
+      await page.request.get(`http://127.0.0.1:${PORT}/__topic-control?scenario=tutorialOutlineWithLabel`);
+      await page.getByTestId("tutorial-highlight-label").waitFor();
+    });
+    await page.request.get(`http://127.0.0.1:${PORT}/__topic-control?scenario=tutorialEmpty`);
+
     await capture(page, viewport.name, "world-pin-edge-arrow", async () => {
       await page.request.get(`http://127.0.0.1:${PORT}/__worldpin?on=0&dx=1&dy=-0.35`);
       await page.getByTestId("world-pin-arrow-map-object-pin").waitFor();

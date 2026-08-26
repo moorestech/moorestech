@@ -1,10 +1,12 @@
 /* カーソル追従(CursorTooltip)と同じ面・書式を共有トークンから引く。Mantine既定の白い角丸は出さない（§9） */
 /* Pulls the same face and format as the cursor-following CursorTooltip from shared tokens; Mantine's default white rounded box never shows (§9) */
+/* CursorTooltipと同じくstage同率で拡縮する。位置をMantineがtransformで与えるため、transformでなくcalcで寸法を伸ばす */
+/* Scales at the stage's rate like CursorTooltip; Mantine supplies the position via transform, so the sizes grow through calc instead */
 .tooltip {
-  max-width: var(--tooltip-max-width);
-  padding: var(--tooltip-padding-block) var(--tooltip-padding-inline);
+  max-width: calc(var(--tooltip-max-width) * var(--ui-scale, 1));
+  padding: calc(var(--tooltip-padding-block) * var(--ui-scale, 1)) calc(var(--tooltip-padding-inline) * var(--ui-scale, 1));
   border-radius: 0;
-  font-size: var(--tooltip-font-size);
+  font-size: calc(var(--tooltip-font-size) * var(--ui-scale, 1));
   color: white;
   white-space: pre-line;
   background: var(--tooltip-face);

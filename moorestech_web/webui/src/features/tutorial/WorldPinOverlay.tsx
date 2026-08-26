@@ -1,8 +1,8 @@
-import { useMemo } from "react";
 import { useViewportSize } from "@mantine/hooks";
 import { Topics, useTopic, type WorldPinPresentationData } from "@/bridge";
 import { challengeTutorialTextKey, useI18n } from "@/shared/i18n";
 import { useBlockingSkitActive } from "@/shared/uiState";
+import { useUiScale } from "@/shared/uiScale";
 import styles from "./worldPin.module.css";
 
 type WorldPin = WorldPinPresentationData["pins"][number];
@@ -15,9 +15,10 @@ export function WorldPinOverlay() {
   // Pins paint above the dialogue window from the portal layer, so they withdraw and let a blocking skit own the screen
   const blockingSkitActive = useBlockingSkitActive();
   const { width, height } = useViewportSize();
+  const uiScale = useUiScale();
   // 矢印は--ui-scaleで拡大するため端クランプの余白も同率で広げないと画面外へ食い込む
   // The arrow grows with --ui-scale, so the edge-clamp margin must widen at the same rate or the arrow overruns the screen
-  const edgeMargin = useMemo(() => readEdgeMargin() * readUiScale(), [width, height]);
+  const edgeMargin = readEdgeMargin() * uiScale;
   if (blockingSkitActive) return null;
   if (!data || data.pins.length === 0) return null;
   return (
@@ -79,11 +80,4 @@ function readEdgeMargin(): number {
   }
   cachedEdgeMargin = parsedMargin;
   return cachedEdgeMargin;
-}
-
-// 余白と違い--ui-scaleはリサイズで変わるためキャッシュせず、viewport変化時の再計算だけで読み直す
-// Unlike the margin, --ui-scale changes on resize, so it is read fresh on each viewport change instead of cached
-function readUiScale(): number {
-  const parsedScale = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ui-scale"));
-  return Number.isFinite(parsedScale) && parsedScale > 0 ? parsedScale : 1;
 }

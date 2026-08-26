@@ -8,11 +8,13 @@
 .highlight {
   position: fixed;
   box-sizing: border-box;
-  border: 3px solid #ffdd57;
-  border-radius: 8px;
+  /* 枠の外形はstage拡縮済みのアンカー実測値で決まるため、線幅と角丸だけをstage同率へ揃える */
+  /* The ring's outline comes from the stage-scaled anchor measurement, so only the stroke and corner follow the stage's rate */
+  border: calc(3px * var(--ui-scale, 1)) solid #ffdd57;
+  border-radius: calc(8px * var(--ui-scale, 1));
   /* グロー幅はtokens.cssの--tutorial-highlight-glowが単一の値源。clip-path計算も同じ変数を読む */
   /* The glow width's single source is tokens.css's --tutorial-highlight-glow; the clip-path math reads the same variable */
-  box-shadow: 0 0 0 var(--tutorial-highlight-glow) rgb(255 221 87 / 24%);
+  box-shadow: 0 0 0 calc(var(--tutorial-highlight-glow) * var(--ui-scale, 1)) rgb(255 221 87 / 24%);
   pointer-events: none;
 }
 
@@ -20,9 +22,12 @@
 /* Cursor arrow for D&D instruction; loops the move from the from-anchor to the to-anchor (webui-design §8.17) */
 .dragGuide {
   position: fixed;
-  width: var(--tutorial-drag-guide-size);
-  height: var(--tutorial-drag-guide-size);
-  margin: calc(var(--tutorial-drag-guide-size) / -2) 0 0 calc(var(--tutorial-drag-guide-size) / -2);
+  /* 移動量はアンカー間の実画面距離で与えられるため、矢印自身の寸法だけをstage同率へ揃える */
+  /* The travel distance comes from the real screen gap between anchors, so only the arrow's own size follows the stage's rate */
+  --drag-guide-scaled-size: calc(var(--tutorial-drag-guide-size) * var(--ui-scale, 1));
+  width: var(--drag-guide-scaled-size);
+  height: var(--drag-guide-scaled-size);
+  margin: calc(var(--drag-guide-scaled-size) / -2) 0 0 calc(var(--drag-guide-scaled-size) / -2);
   pointer-events: none;
   animation: drag-guide-loop var(--tutorial-drag-guide-duration) ease-in-out infinite;
 }
@@ -52,4 +57,8 @@
   background: var(--world-pin-face);
   font-size: var(--label-face-font-size);
   pointer-events: none;
+  /* 面と文字をstage同率へ揃える。left/topが枠線基準の角なのでその角を固定して外側へ伸ばす */
+  /* Scale the face and its text at the stage's rate; left/top is the ring-anchored corner, so pin it and grow outward */
+  transform: scale(var(--ui-scale, 1));
+  transform-origin: top left;
 }

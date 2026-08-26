@@ -13,6 +13,7 @@ const TOLERANCE_PX = 2;
 test.afterEach(async ({ page, request }) => {
   await request.get("/__worldpin?clear=1");
   await setTopicScenario(page, "notificationClear");
+  await setTopicScenario(page, "tutorialEmpty");
   await setUiState(page, "PlayerInventory");
 });
 
@@ -56,6 +57,33 @@ test("ワールドピンは高解像度で拡大しても先端が射影座標�
     // The bottom-center origin keeps the tip on the projected point even when enlarged
     expect(Math.abs(box.x + box.width / 2 - HIGH.width * 0.25)).toBeLessThanOrEqual(TOLERANCE_PX);
     expect(Math.abs(box.y + box.height - HIGH.height * 0.4)).toBeLessThanOrEqual(TOLERANCE_PX);
+  }).toPass();
+});
+
+test("チュートリアルの枠線ラベルは高解像度で拡大しても枠線に付いたまま", async ({ page }) => {
+  await setUiState(page, "GameScreen");
+  await page.goto("/");
+  await expect(page.getByTestId("hotbar-grid")).toBeVisible();
+  await setTopicScenario(page, "tutorialOutlineWithLabel");
+
+  const label = page.getByTestId("tutorial-highlight-label");
+  const ring = page.getByTestId("tutorial-overlay").locator("[data-kind='outline']");
+  await expect(label).toBeVisible();
+
+  await page.setViewportSize(BASE);
+  const baseLabel = (await label.boundingBox())!;
+
+  // 枠はstage拡縮済みのアンカー実測値から作られるため、ラベルだけ固定pxだと高解像度で豆粒になる
+  // The ring is built from a stage-scaled anchor measurement, so a fixed-px label alone shrinks to a speck at high resolutions
+  await page.setViewportSize(HIGH);
+  await expect(async () => {
+    const highLabel = (await label.boundingBox())!;
+    expect(Math.abs(highLabel.height - baseLabel.height * HIGH_SCALE)).toBeLessThanOrEqual(TOLERANCE_PX);
+    // 拡大しても枠線の下辺に付いたままで、離れも食い込みもしない
+    // Even enlarged it stays attached below the ring, neither drifting away nor overlapping it
+    const highRing = (await ring.boundingBox())!;
+    expect(highLabel.y).toBeGreaterThanOrEqual(highRing.y + highRing.height);
+    expect(highLabel.y - (highRing.y + highRing.height)).toBeLessThanOrEqual(8 * HIGH_SCALE);
   }).toPass();
 });
 
