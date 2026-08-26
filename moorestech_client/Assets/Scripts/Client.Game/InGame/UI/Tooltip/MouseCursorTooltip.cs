@@ -81,7 +81,7 @@ namespace Client.Game.InGame.UI.Tooltip
             canvasGroup.alpha = 1;
             // uGUI側は行を改行連結して描画
             // The uGUI side joins lines with newlines
-            itemName.text = string.Join("\n", lines.Select(line => InterpolateTextParams(Localize.Get(line.Key), line.TextParams)));
+            itemName.text = string.Join("\n", lines.Select(line => Localize.GetFormatted(line.Key, line.TextParams)));
         }
 
         // 自分が出していない表示は消さない（毎フレームHideする書き手が他者の表示を潰さないため）
@@ -94,19 +94,6 @@ namespace Client.Game.InGame.UI.Tooltip
             _presentation.Value = TooltipPresentation.Hidden;
 
             if (!WebUiScreenGate.IsWebUiMode) canvasGroup.alpha = 0;
-        }
-
-        // 辞書テンプレートの{p0}プレースホルダを埋める（Web側translatorと同じ規約）
-        // Fill the {p0} placeholders of the dictionary template, matching the web translator convention
-        private static string InterpolateTextParams(string template, IReadOnlyList<string> textParams)
-        {
-            var text = template;
-            for (var index = 0; index < textParams.Count; index++)
-            {
-                text = text.Replace($"{{p{index}}}", textParams[index]);
-            }
-
-            return text;
         }
     }
 

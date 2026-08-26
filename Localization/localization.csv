@@ -1,239 +1,255 @@
-key,Source,english,japanese
-ui.mainMenu.playLocally,Play locally,Play locally,ローカルでプレイ
-ui.mainMenu.exitGame,Exit Game,Exit Game,ゲームを終了
-ui.game.saveGame,Save this game,Save this game,ゲームをセーブする
-ui.game.saveAndQuit,Save and Quit,Save and Quit,セーブして終了
-ui.game.disconnectedFromServer,"Disconnected from server!\nIf you could send us the log data, it would help us in our development.\nPlease contact us on the official Discord with your feedback as well!","Disconnected from server!\nIf you could send us the log data, it would help us in our development.\nPlease contact us on the official Discord with your feedback as well!",サーバーから切断されました！\nログデータを送っていただけると開発の助けになります。\n公式Discordにもフィードバックをよろしくお願いします！
-ui.common.close,Close,Close,閉じる
-ui.common.connecting,Connecting...,Connecting...,接続中...
-ui.common.itemFallback,Item {itemId},Item {itemId},アイテム {itemId}
-ui.common.blockFallback,Block {blockId},Block {blockId},ブロック {blockId}
-ui.common.iconIdFallback,#{id},#{id},#{id}
-ui.common.rightArrow,→,→,→
-ui.tooltip.worldTarget,World Target,World Target,世界の対象
-ui.tooltip.holdToGet,Press and hold left-click to get,Press and hold left-click to get,左クリック長押しで取得する
-ui.error.reconnecting,Reconnecting...,Reconnecting...,再接続中...
-ui.error.uiErrorOccurred,A UI error occurred,A UI error occurred,UIエラーが発生しました
-ui.error.renderFailed,There was a problem rendering the screen. Please reload.,There was a problem rendering the screen. Please reload.,画面の描画中に問題が発生しました。再読み込みしてください。
-ui.error.reload,Reload,Reload,再読み込み
-ui.blockInventory.trainNoItemContainer,This train has no item container,This train has no item container,この列車にはアイテムコンテナがありません
-ui.blockInventory.trainNotFound,Train not found,Train not found,列車が見つかりません
-ui.blockInventory.trainOpenFailed,Could not open train inventory,Could not open train inventory,列車のインベントリを開けませんでした
-ui.blockInventory.trainInventory,Train Inventory,Train Inventory,列車インベントリ
-ui.blockInventory.gearTorqueSummary,Torque {current} / {required},Torque {current} / {required},トルク {current} / {required}
-ui.blockInventory.gearRpmSummary,RPM {current} / {required},RPM {current} / {required},RPM {current} / {required}
-ui.blockInventory.generatorOperatingRate,Operating rate {rate}%,Operating rate {rate}%,稼働率 {rate}%
-ui.blockInventory.inventoryTab,Inventory,Inventory,インベントリ
-ui.blockInventory.recipeSelectionTab,Select Recipe,Select Recipe,レシピ選択
-ui.blockInventory.itemsPerMinute,{itemsPerMinute}/min,{itemsPerMinute}/min,{itemsPerMinute}/分
-ui.blockInventory.noDemand,No demand,No demand,需要なし
-ui.blockInventory.electricNetworkSummary,"{generated} / demand {required} (consuming {count}, supply rate {rate}%)","{generated} / demand {required} (consuming {count}, supply rate {rate}%)","発電 {generated} / 需要 {required}（消費 {count}件, 供給率 {rate}%）"
-ui.blockInventory.gearNetworkSummary,Supply {generated} / required {required},Supply {generated} / required {required},供給 {generated} / 要求 {required}
-ui.blockInventory.stopReasonLocked,Locked,Locked,ロック
-ui.blockInventory.stopReasonInsufficientPower,Insufficient power,Insufficient power,パワー不足
-ui.blockInventory.powerRateSummary,Power {rate}% ({current}/{required}),Power {rate}% ({current}/{required}),電力 {rate}% ({current}/{required})
-ui.blockInventory.machineStateIdle,Standby,Standby,待機中
-ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中
-ui.blockInventory.machineStateHalted,Halted,Halted,停止中
-ui.blockInventory.trainPlatformLoad,Load,Load,積込
-ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し
-ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity},容量: {capacity}
-ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット
-ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数
-ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒
-ui.blockInventory.recipeSelectionHint,Hover for details and click to select a recipe,Hover for details and click to select a recipe,レシピをホバーで詳細、クリックで選択
-ui.blockInventory.electricToGearFulfillment,Fulfillment,Fulfillment,充足率
-ui.blockInventory.electricToGearConsumedPower,Power consumption: {power} W,Power consumption: {power} W,消費電力: {power} W
-ui.blockInventory.electricToGearOutputMode,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W
-ui.blockInventory.filterDefault,Default,Default,デフォルト
-ui.blockInventory.filterWhitelist,Whitelist,Whitelist,ホワイトリスト
-ui.blockInventory.filterBlacklist,Blacklist,Blacklist,ブラックリスト
-ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index}
-ui.buildMenu.blueprintCopy,Blueprint Copy,Blueprint Copy,ブループリントコピー
-ui.buildMenu.detailHint,Hover over an item to view details,Hover over an item to view details,カーソルを合わせると詳細を表示します
-ui.buildMenu.title,Build Menu,Build Menu,ビルドメニュー
-ui.buildMenu.noResults,No results,No results,該当なし
-ui.buildMenu.searchPlaceholder,Search,Search,検索
-ui.buildMenu.requiredItems,Required Items,Required Items,必要素材
-ui.buildMenu.requiredItemsPerSet,Required Items (per {count}),Required Items (per {count}),必要素材（{count}個分）
-ui.buildMenu.remainingPlacementCount,Remaining placements: {count},Remaining placements: {count},残り設置数: {count}
-ui.challenge.stateLocked,Locked,Locked,未解放
-ui.challenge.stateCurrent,In Progress,In Progress,進行中
-ui.challenge.stateCompleted,Completed,Completed,完了
-ui.challenge.title,Challenges,Challenges,チャレンジ
-ui.challenge.currentTitle,Current Challenges,Current Challenges,現在のチャレンジ
-ui.inventory.title,Inventory,Inventory,持ち物
-ui.inventory.sort,Sort,Sort,整理
-ui.modeHud.deleteModeTitle,Delete Mode,Delete Mode,削除モード
-ui.modeHud.placementModeTitle,Placement Mode,Placement Mode,設置モード
-ui.modeHud.selectedBlock,Selected: {name},Selected: {name},選択中: {name}
-ui.modeHud.placementHeight,Height: {height},Height: {height},高さ: {height}
-ui.notification.researchCompleted,Research completed: {p0},Research completed: {p0},研究完了: {p0}
-ui.notification.challengeCompleted,Challenge completed: {p0},Challenge completed: {p0},チャレンジ完了: {p0}
-ui.notification.unlockedItem,New item unlocked,New item unlocked,新しいアイテムを解放しました
-ui.notification.unlockedCraftRecipe,New crafting recipe unlocked,New crafting recipe unlocked,新しいクラフトレシピを解放しました
-ui.notification.unlockedMachineRecipe,New machine recipe unlocked,New machine recipe unlocked,新しい機械レシピを解放しました
-ui.notification.unlockedBlock,New block unlocked,New block unlocked,新しいブロックを解放しました
-ui.notification.unlockedTrainCar,New train car unlocked,New train car unlocked,新しい車両を解放しました
-ui.notification.unlockedConnectTool,New connect tool unlocked,New connect tool unlocked,新しい接続ツールを解放しました
-ui.notification.unlockedBlueprint,Blueprint unlocked,Blueprint unlocked,ブループリントが解放されました
-ui.notification.blueprintNotUnlocked,Blueprint failed: blueprint is not unlocked,Blueprint failed: blueprint is not unlocked,ブループリント操作に失敗しました: ブループリントが未解放です
-ui.notification.researchNotCompletable,Cannot complete research (prerequisites or materials missing),Cannot complete research (prerequisites or materials missing),研究を完了できません（前提条件または素材が不足しています）
-ui.notification.craftResultFull,Cannot craft: inventory is full,Cannot craft: inventory is full,クラフトできません: インベントリが満杯です
-ui.notification.craftMaterialShortage,Cannot craft: not enough materials,Cannot craft: not enough materials,クラフトできません: 素材が不足しています
-ui.notification.removeTrainCarInventoryFull,Cannot remove train car: inventory is full,Cannot remove train car: inventory is full,車両を取り外せません: インベントリが満杯です
-ui.notification.miningInventoryFull,Some mined items were lost: inventory is full,Some mined items were lost: inventory is full,採掘したアイテムを一部失いました: インベントリが満杯です
-ui.notification.placeBlockNotUnlocked,Some blocks were not placed: not unlocked yet,Some blocks were not placed: not unlocked yet,一部のブロックを設置できませんでした: 未解放です
-ui.notification.placeBlockCostShortage,Some blocks were not placed: not enough materials,Some blocks were not placed: not enough materials,一部のブロックを設置できませんでした: 素材が不足しています
-ui.notification.placeBlockWireShortage,Some blocks were not placed: not enough wires,Some blocks were not placed: not enough wires,一部のブロックを設置できませんでした: 電線が不足しています
-ui.notification.railEditInvalidNode,Rail edit failed: invalid rail node,Rail edit failed: invalid rail node,レール編集に失敗しました: 無効なレールノードです
-ui.notification.railEditNodeInUseByTrain,Rail edit failed: a train is using this rail,Rail edit failed: a train is using this rail,レール編集に失敗しました: このレールを車両が使用中です
-ui.notification.railEditStationInternalEdge,Rail edit failed: cannot edit station internal rail,Rail edit failed: cannot edit station internal rail,レール編集に失敗しました: 駅内部のレールは編集できません
-ui.notification.railEditInvalidMode,Rail edit failed,Rail edit failed,レール編集に失敗しました
-ui.notification.railEditNotEnoughRailItem,Rail edit failed: not enough rail materials,Rail edit failed: not enough rail materials,レール編集に失敗しました: レール素材が不足しています
-ui.notification.railEditNotEnoughInventorySpace,Rail edit failed: inventory is full,Rail edit failed: inventory is full,レール編集に失敗しました: インベントリが満杯です
-ui.notification.railEditRailLengthExceeded,Rail edit failed: rail is too long,Rail edit failed: rail is too long,レール編集に失敗しました: レールが長すぎます
-ui.notification.railEditNotUnlocked,Rail edit failed: connect tool not unlocked,Rail edit failed: connect tool not unlocked,レール編集に失敗しました: 接続ツールが未解放です
-ui.notification.railEditUnknownError,Rail edit failed,Rail edit failed,レール編集に失敗しました
-ui.notification.electricWireExtendOutOfRange,Wiring failed: out of connection range,Wiring failed: out of connection range,接続範囲外のため配線できませんでした
-ui.notification.electricWireExtendAlreadyConnected,Wiring failed: already connected,Wiring failed: already connected,すでに接続されています
-ui.notification.electricWireExtendConnectionLimit,Wiring failed: connection limit reached,Wiring failed: connection limit reached,接続上限のため配線できませんでした
-ui.notification.electricWireExtendNoWireItem,Wiring failed: not enough wires,Wiring failed: not enough wires,電線が不足しているため配線できませんでした
-ui.notification.electricWireExtendNoPoleItem,Placement failed: not enough poles,Placement failed: not enough poles,電柱が不足しているため設置できませんでした
-ui.notification.electricWireExtendInvalidTarget,Wiring failed: invalid target,Wiring failed: invalid target,接続できない対象のため配線できませんでした
-ui.notification.electricWireExtendPositionOccupied,Placement failed: position is occupied,Placement failed: position is occupied,設置位置が埋まっているため設置できませんでした
-ui.notification.electricWireExtendNotUnlocked,Wiring failed: connect tool not unlocked,Wiring failed: connect tool not unlocked,接続ツールが未解放のため配線できませんでした
-ui.notification.electricWireExtendInsufficientItems,Placement failed: not enough materials,Placement failed: not enough materials,素材が不足しているため設置できませんでした
-ui.notification.electricWireExtendFailed,Wiring failed,Wiring failed,配線に失敗しました
-ui.notification.electricWireDisconnectNotConnected,Disconnect failed: not connected,Disconnect failed: not connected,接続されていないため切断できませんでした
-ui.notification.electricWireDisconnectInventoryFull,Disconnect failed: inventory is full,Disconnect failed: inventory is full,インベントリが満杯のため切断できませんでした
-ui.notification.electricWireDisconnectFailed,Disconnect failed,Disconnect failed,切断に失敗しました
-ui.notification.itemEarned,{itemName} +{count},{itemName} +{count},{itemName} +{count}
-ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notification: {messageId},不明な通知: {messageId}
-ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー
-ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました
-ui.settings.language,Language,Language,言語
-ui.recipe.catalogTitle,CRAFT RECIPE,CRAFT RECIPE,クラフトレシピ
-ui.recipe.selectItemHint,Select an item from the list on the right,Select an item from the list on the right,右のリストからアイテムを選択してください
-ui.recipe.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}\nクリックでこのアイテムのレシピを確認
-ui.recipe.itemCountSummary,{ownedCount}/{requiredCount},{ownedCount}/{requiredCount},{ownedCount}/{requiredCount}
-ui.recipe.duration,{seconds} seconds,{seconds} seconds,{seconds}秒
-ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to craft (keep holding to craft continuously),長押しでクラフト（押し続けで連続クラフト）
-ui.recipe.craftButtonLabel,Craft,Craft,クラフト
-ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません
-ui.research.closeSymbol,×,×,×
-ui.research.completed,Researched,Researched,研究済み
-ui.research.action,Research,Research,研究
-ui.research.clickToResearch,Click to research,Click to research,クリックして研究
-ui.research.missingItems,Not enough research items.,Not enough research items.,研究アイテムが足りません。
-ui.research.missingPrerequisites,Prerequisite research is not complete.,Prerequisite research is not complete.,前提研究が完了していません。
-ui.research.missingItemsAndPrerequisites,Not enough research items.\nPrerequisite research is not complete.,Not enough research items.\nPrerequisite research is not complete.,研究アイテムが足りません。\n前提研究が完了していません。
-ui.research.title,Research,Research,研究
-ui.research.consumeItemsLabel,Required items,Required items,必要アイテム
-ui.research.consumeItemTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}
-ui.research.unlockBlocksLabel,Unlocks: Blocks,Unlocks: Blocks,解放: ブロック
-ui.research.unlockMachineRecipesLabel,Unlocks: Machine recipes,Unlocks: Machine recipes,解放: 機械レシピ
-ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム
-ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム
-ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他
-ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
-ui.skit.auto,Auto,Auto,自動
-ui.skit.skip,Skip,Skip,スキップ
-ui.skit.hideUi,Hide UI,Hide UI,UIを非表示
-ui.skit.showUi,Show UI,Show UI,UIを表示
-ui.trainHud.title,Riding Train,Riding Train,列車に乗車中
-ui.trainHud.branchSelection,Selected branch {current}/{count},Selected branch {current}/{count},選択中の分岐 {current}/{count}
-ui.mainMenu.resetAllData,Reset All Data,Reset All Data,全データをリセット
-ui.mainMenu.resetConfirmMessage,Reset all data?\nThis will delete your current world data and settings.\nBackups will not be deleted. This action cannot be undone.,Reset all data?\nThis will delete your current world data and settings.\nBackups will not be deleted. This action cannot be undone.,全データをリセットしますか？\n現在のワールドデータと設定が削除されます。\nバックアップは削除されません。この操作は元に戻せません。
-ui.mainMenu.resetConfirmButton,Reset,Reset,リセットする
-ui.common.cancel,Cancel,Cancel,キャンセル
-ui.mainMenu.connectServer,Connect to Server,Connect to Server,サーバーに接続
-ui.mainMenu.serverIpPlaceholder,Server IP,Server IP,サーバーIP
-ui.mainMenu.serverPortPlaceholder,Port,Port,ポート
-ui.blueprint.nameInputTitle,Enter Blueprint Name,Enter Blueprint Name,ブループリント名を入力
-ui.blueprint.nameInputPlaceholder,Enter a name...,Enter a name...,名前を入力...
-ui.blueprint.nameInputConfirm,Register,Register,登録
-ui.blueprint.webModalTitle,Blueprint Name,Blueprint Name,ブループリント名
-ui.blueprint.webModalMessage,Enter a name for the blueprint you want to save,Enter a name for the blueprint you want to save,保存するブループリントの名前を入力してください
-ui.blueprint.webModalConfirm,Save,Save,保存
-ui.tooltip.pickUpLeftClick,Left-click to pick up,Left-click to pick up,左クリックで取得
-ui.tooltip.requiredItems,Requires: {p0},Requires: {p0},このアイテムが必要です: {p0}
-ui.tooltip.cannotHandMine,Cannot be mined by hand,Cannot be mined by hand,手掘りできません
-ui.tooltip.craftCannotByItemShortage,Not enough items to craft,Not enough items to craft,アイテムが足りないためクラフトできません
-ui.tooltip.retiredUguiSlotText,{p0},{p0},{p0}
-ui.delete.differentCategorySelection,Blocks from different categories cannot be selected at the same time.,Blocks from different categories cannot be selected at the same time.,別カテゴリーのブロックは同時に選択できません。
-ui.delete.railHasVehicle,A vehicle is on this rail.,A vehicle is on this rail.,レール上に車両があります。
-ui.delete.blockDeleteFailed,Failed to delete the block.,Failed to delete the block.,ブロックを削除できませんでした。
-ui.delete.stationInternalRail,Rails inside a station cannot be deleted.,Rails inside a station cannot be deleted.,駅内部のレールは削除できません。
-ui.delete.unknownError,Unknown error,Unknown error,不明なエラー
-ui.keyHint.key.tab,Tab,Tab,Tab
-ui.keyHint.key.b,B,B,B
-ui.keyHint.key.g,G,G,G
-ui.keyHint.key.r,R,R,R
-ui.keyHint.key.v,V,V,V
-ui.keyHint.key.q,Q,Q,Q
-ui.keyHint.key.e,E,E,E
-ui.keyHint.key.digits,1-9,1-9,1~9
-ui.keyHint.key.ctrlZ,Ctrl+Z,Ctrl+Z,Ctrl+Z
-ui.keyHint.key.driveKeys,W/S,W/S,W/S
-ui.keyHint.key.branchKeys,A/D,A/D,A/D
-ui.keyHint.key.leftAltHold,Left Alt (Hold),Left Alt (Hold),左Alt（長押し）
-ui.keyHint.key.middleClick,Middle Click,Middle Click,中クリック
-ui.keyHint.key.leftDrag,Left Drag,Left Drag,左ドラッグ
-ui.keyHint.key.rightClick,Right Click,Right Click,右クリック
-ui.keyHint.key.doubleClick,Double Click,Double Click,ダブルクリック
-ui.keyHint.key.shiftLeftClick,Shift + Left Click,Shift + Left Click,Shift+左クリック
-ui.keyHint.text.inventory,Inventory,Inventory,インベントリ
-ui.keyHint.text.closeInventory,Close Inventory,Close Inventory,インベントリを閉じる
-ui.keyHint.text.close,Close,Close,閉じる
-ui.keyHint.text.researchTree,Research Tree,Research Tree,リサーチツリー
-ui.keyHint.text.buildMenu,Build Menu,Build Menu,ビルドメニュー
-ui.keyHint.text.buildShortcut,Build Shortcut,Build Shortcut,建築ショートカット
-ui.keyHint.text.deleteMode,Delete Mode,Delete Mode,破壊モード
-ui.keyHint.text.exitDeleteMode,Exit Delete Mode,Exit Delete Mode,破壊モード終了
-ui.keyHint.text.exitPlaceMode,Exit Placement Mode,Exit Placement Mode,配置モード終了
-ui.keyHint.text.selectBlock,Select Block,Select Block,ブロック選択
-ui.keyHint.text.toggleView,Toggle View,Toggle View,視点切替
-ui.keyHint.text.freeCursor,Free Cursor,Free Cursor,カーソル解放
-ui.keyHint.text.pickPlacedObject,Pick Placed Object,Pick Placed Object,設置物をスポイト
-ui.keyHint.text.rotate,Rotate,Rotate,回転
-ui.keyHint.text.lowerHeight,Lower Placement Height,Lower Placement Height,設置高さを下げる
-ui.keyHint.text.raiseHeight,Raise Placement Height,Raise Placement Height,設置高さを上げる
-ui.keyHint.text.undo,Undo,Undo,元に戻す
-ui.keyHint.text.dragSelect,Select Together,Select Together,まとめて選択
-ui.keyHint.text.bulkMove,Move All,Move All,一括移動
-ui.keyHint.text.halveOrPlaceOne,Take Half / Place One,Take Half / Place One,半分取る / 1個置く
-ui.keyHint.text.distributeEvenly,Distribute Evenly,Distribute Evenly,均等分配
-ui.keyHint.text.gatherSameItem,Gather Same Item,Gather Same Item,同じアイテムをかき集め
-ui.keyHint.text.trainDrive,Drive,Drive,運転
-ui.keyHint.text.trainSelectBranch,Select Branch,Select Branch,分岐選択
-ui.keyHint.text.trainDismount,Dismount,Dismount,降車
-ui.tooltip.placeBlockedByTerrain,Blocked by terrain,Blocked by terrain,地形に埋まっています
-ui.tooltip.placeBlockedByExistingBlock,Position is occupied,Position is occupied,設置位置が埋まっています
-ui.tooltip.placeTooFar,Too far away,Too far away,遠すぎます
-ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません
-ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません
-ui.tooltip.placeMaterialShortage,{p0} {p1}/{p2},{p0} {p1}/{p2},{p0} {p1}/{p2}
-ui.tooltip.placeWireCost,Wire x{p0},Wire x{p0},電線 x{p0}
-ui.tooltip.placeWireOutOfRangeNotice,Out of connection range: no wire will be placed,Out of connection range: no wire will be placed,接続範囲外のため配線されません
-ui.tooltip.placeWireNoWireItem,Not enough wire,Not enough wire,電線が足りません
-ui.tooltip.placeWireOutOfRange,Out of connection range,Out of connection range,接続範囲外です
-ui.tooltip.placeWireAlreadyConnected,Already connected,Already connected,接続済みです
-ui.tooltip.placeWireConnectionLimit,Connection limit reached,Connection limit reached,接続上限です
-ui.tooltip.placeWireInvalidTarget,Cannot connect to this target,Cannot connect to this target,接続できない対象です
-ui.tooltip.placeWireFailed,Cannot place,Cannot place,設置できません
-ui.tooltip.placeGearChainTooFar,Out of connection range,Out of connection range,接続範囲外です
-ui.tooltip.placeGearChainAlreadyConnected,Already connected,Already connected,接続済みです
-ui.tooltip.placeGearChainConnectionLimit,Connection limit reached,Connection limit reached,接続上限です
-ui.tooltip.placeGearChainNoItem,Not enough chain,Not enough chain,チェーンが足りません
-ui.tooltip.placeGearChainFailed,Cannot connect,Cannot connect,接続できません
-ui.tooltip.placeRailLengthExceeded,Rail is too long,Rail is too long,レールが長すぎます
-ui.tooltip.placeRailNotEnoughRailItem,Not enough rail,Not enough rail,レールが足りません
-ui.tooltip.placeRailCurveTooTight,Curve is too tight,Curve is too tight,カーブがきつすぎます
-ui.tooltip.placeRailFailed,Cannot connect rail,Cannot connect rail,レールを接続できません
-ui.tooltip.placeTrainCarNoRoute,No rail for the train length,No rail for the train length,列車の長さ分のレールがありません
-ui.tooltip.placeTrainCarOverlapsTrain,Overlaps an existing train,Overlaps an existing train,既存の列車と重なります
-ui.tooltip.namedMineHold,{p0} : Hold left-click to mine,{p0} : Hold left-click to mine,{p0} : 左クリック長押しで採掘
-ui.tooltip.namedMineClick,{p0} : Left-click to mine,{p0} : Left-click to mine,{p0} : 左クリックで採掘
-ui.tooltip.namedRequiredItems,{p0} : Requires: {p1},{p0} : Requires: {p1},{p0} : このアイテムが必要です: {p1}
-ui.tooltip.namedCannotHandMine,{p0} : Cannot be mined by hand,{p0} : Cannot be mined by hand,{p0} : 手掘りできません
+key,Source,english,japanese,german
+ui.mainMenu.playLocally,Play locally,Play locally,ローカルでプレイ,Lokal spielen
+ui.mainMenu.exitGame,Exit Game,Exit Game,ゲームを終了,Spiel beenden
+ui.game.saveGame,Save this game,Save this game,ゲームをセーブする,Dieses Spiel speichern
+ui.game.saveAndQuit,Save and Quit,Save and Quit,セーブして終了,Speichern und beenden
+ui.game.disconnectedFromServer,"Disconnected from server!\nIf you could send us the log data, it would help us in our development.\nPlease contact us on the official Discord with your feedback as well!","Disconnected from server!\nIf you could send us the log data, it would help us in our development.\nPlease contact us on the official Discord with your feedback as well!",サーバーから切断されました！\nログデータを送っていただけると開発の助けになります。\n公式Discordにもフィードバックをよろしくお願いします！,"Verbindung zum Server getrennt!\nWenn Sie uns die Logdaten schicken, hilft uns das bei der Entwicklung.\nTeilen Sie uns Ihr Feedback auch gern im offiziellen Discord mit!"
+ui.common.close,Close,Close,閉じる,Schließen
+ui.common.connecting,Connecting...,Connecting...,接続中...,Verbindung wird hergestellt …
+ui.common.itemFallback,Item {itemId},Item {itemId},アイテム {itemId},Gegenstand {itemId}
+ui.common.blockFallback,Block {blockId},Block {blockId},ブロック {blockId},Block {blockId}
+ui.common.iconIdFallback,#{id},#{id},#{id},#{id}
+ui.common.rightArrow,→,→,→,→
+ui.tooltip.worldTarget,World Target,World Target,世界の対象,Ziel in der Welt
+ui.tooltip.holdToGet,Press and hold left-click to get,Press and hold left-click to get,左クリック長押しで取得する,Linksklick gedrückt halten zum Aufnehmen
+ui.error.reconnecting,Reconnecting...,Reconnecting...,再接続中...,Verbindung wird wiederhergestellt …
+ui.error.uiErrorOccurred,A UI error occurred,A UI error occurred,UIエラーが発生しました,Es ist ein UI-Fehler aufgetreten
+ui.error.renderFailed,There was a problem rendering the screen. Please reload.,There was a problem rendering the screen. Please reload.,画面の描画中に問題が発生しました。再読み込みしてください。,Beim Darstellen des Bildschirms ist ein Problem aufgetreten. Bitte laden Sie neu.
+ui.error.reload,Reload,Reload,再読み込み,Neu laden
+ui.blockInventory.trainNoItemContainer,This train has no item container,This train has no item container,この列車にはアイテムコンテナがありません,Dieser Zug hat keinen Gegenstandsbehälter
+ui.blockInventory.trainNotFound,Train not found,Train not found,列車が見つかりません,Zug nicht gefunden
+ui.blockInventory.trainOpenFailed,Could not open train inventory,Could not open train inventory,列車のインベントリを開けませんでした,Zuginventar konnte nicht geöffnet werden
+ui.blockInventory.trainInventory,Train Inventory,Train Inventory,列車インベントリ,Zuginventar
+ui.blockInventory.gearTorqueSummary,Torque {current} / {required},Torque {current} / {required},トルク {current} / {required},Drehmoment {current} / {required}
+ui.blockInventory.gearRpmSummary,RPM {current} / {required},RPM {current} / {required},RPM {current} / {required},U/min {current} / {required}
+ui.blockInventory.generatorOperatingRate,Operating rate {rate}%,Operating rate {rate}%,稼働率 {rate}%,Auslastung {rate} %
+ui.blockInventory.inventoryTab,Inventory,Inventory,インベントリ,Inventar
+ui.blockInventory.recipeSelectionTab,Select Recipe,Select Recipe,レシピ選択,Rezept wählen
+ui.blockInventory.itemsPerMinute,{itemsPerMinute}/min,{itemsPerMinute}/min,{itemsPerMinute}/分,{itemsPerMinute}/min
+ui.blockInventory.noDemand,No demand,No demand,需要なし,Kein Bedarf
+ui.blockInventory.electricNetworkSummary,"{generated} / demand {required} (consuming {count}, supply rate {rate}%)","{generated} / demand {required} (consuming {count}, supply rate {rate}%)","発電 {generated} / 需要 {required}（消費 {count}件, 供給率 {rate}%）","{generated} / Bedarf {required} (Verbraucher {count}, Deckung {rate} %)"
+ui.blockInventory.gearNetworkSummary,Supply {generated} / required {required},Supply {generated} / required {required},供給 {generated} / 要求 {required},Angebot {generated} / benötigt {required}
+ui.blockInventory.stopReasonLocked,Locked,Locked,ロック,Gesperrt
+ui.blockInventory.stopReasonInsufficientPower,Insufficient power,Insufficient power,パワー不足,Zu wenig Energie
+ui.blockInventory.powerRateSummary,Power {rate}% ({current}/{required}),Power {rate}% ({current}/{required}),電力 {rate}% ({current}/{required}),Energie {rate} % ({current}/{required})
+ui.blockInventory.machineStateIdle,Standby,Standby,待機中,Bereit
+ui.blockInventory.machineStateProcessing,Operating,Operating,稼働中,In Betrieb
+ui.blockInventory.machineStateHalted,Halted,Halted,停止中,Gestoppt
+ui.blockInventory.trainPlatformLoad,Load,Load,積込,Beladen
+ui.blockInventory.trainPlatformUnload,Unload,Unload,卸し,Entladen
+ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity},容量: {capacity},Kapazität: {capacity}
+ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze
+ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute
+ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden
+ui.blockInventory.recipeSelectionHint,Hover for details and click to select a recipe,Hover for details and click to select a recipe,レシピをホバーで詳細、クリックで選択,"Bewegen Sie den Mauszeiger darüber, um Details anzuzeigen, und klicken Sie, um ein Rezept auszuwählen"
+ui.blockInventory.electricToGearFulfillment,Fulfillment,Fulfillment,充足率,Deckung
+ui.blockInventory.electricToGearConsumedPower,Power consumption: {power} W,Power consumption: {power} W,消費電力: {power} W,Energieverbrauch: {power} W
+ui.blockInventory.electricToGearOutputMode,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} U/min / {torque} Nm / {power} W
+ui.blockInventory.filterDefault,Default,Default,デフォルト,Standard
+ui.blockInventory.filterWhitelist,Whitelist,Whitelist,ホワイトリスト,Positivliste
+ui.blockInventory.filterBlacklist,Blacklist,Blacklist,ブラックリスト,Sperrliste
+ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index}
+ui.buildMenu.blueprintCopy,Blueprint Copy,Blueprint Copy,ブループリントコピー,Bauplan kopieren
+ui.buildMenu.detailHint,Hover over an item to view details,Hover over an item to view details,カーソルを合わせると詳細を表示します,"Bewegen Sie den Mauszeiger über einen Eintrag, um Details anzuzeigen"
+ui.buildMenu.title,Build Menu,Build Menu,ビルドメニュー,Baumenü
+ui.buildMenu.noResults,No results,No results,該当なし,Keine Treffer
+ui.buildMenu.searchPlaceholder,Search,Search,検索,Suchen
+ui.buildMenu.requiredItems,Required Items,Required Items,必要素材,Benötigte Gegenstände
+ui.buildMenu.requiredItemsPerSet,Required Items (per {count}),Required Items (per {count}),必要素材（{count}個分）,Benötigte Gegenstände (pro {count})
+ui.buildMenu.remainingPlacementCount,Remaining placements: {count},Remaining placements: {count},残り設置数: {count},Verbleibende Platzierungen: {count}
+ui.challenge.stateLocked,Locked,Locked,未解放,Gesperrt
+ui.challenge.stateCurrent,In Progress,In Progress,進行中,Laufend
+ui.challenge.stateCompleted,Completed,Completed,完了,Abgeschlossen
+ui.challenge.title,Challenges,Challenges,チャレンジ,Aufgaben
+ui.challenge.currentTitle,Current Challenges,Current Challenges,現在のチャレンジ,Aktuelle Aufgaben
+ui.inventory.title,Inventory,Inventory,持ち物,Inventar
+ui.inventory.sort,Sort,Sort,整理,Sortieren
+ui.modeHud.deleteModeTitle,Delete Mode,Delete Mode,削除モード,Abbaumodus
+ui.modeHud.placementModeTitle,Placement Mode,Placement Mode,設置モード,Baumodus
+ui.modeHud.selectedBlock,Selected: {name},Selected: {name},選択中: {name},Ausgewählt: {name}
+ui.modeHud.placementHeight,Height: {height},Height: {height},高さ: {height},Höhe: {height}
+ui.notification.researchCompleted,Research completed: {p0},Research completed: {p0},研究完了: {p0},Forschung abgeschlossen: {p0}
+ui.notification.challengeCompleted,Challenge completed: {p0},Challenge completed: {p0},チャレンジ完了: {p0},Aufgabe abgeschlossen: {p0}
+ui.notification.unlockedItem,New item unlocked,New item unlocked,新しいアイテムを解放しました,Neuer Gegenstand freigeschaltet
+ui.notification.unlockedCraftRecipe,New crafting recipe unlocked,New crafting recipe unlocked,新しいクラフトレシピを解放しました,Neues Handwerksrezept freigeschaltet
+ui.notification.unlockedMachineRecipe,New machine recipe unlocked,New machine recipe unlocked,新しい機械レシピを解放しました,Neues Maschinenrezept freigeschaltet
+ui.notification.unlockedBlock,New block unlocked,New block unlocked,新しいブロックを解放しました,Neuer Block freigeschaltet
+ui.notification.unlockedTrainCar,New train car unlocked,New train car unlocked,新しい車両を解放しました,Neuer Waggon freigeschaltet
+ui.notification.unlockedConnectTool,New connect tool unlocked,New connect tool unlocked,新しい接続ツールを解放しました,Neues Verbindungswerkzeug freigeschaltet
+ui.notification.unlockedBlueprint,Blueprint unlocked,Blueprint unlocked,ブループリントが解放されました,Bauplan freigeschaltet
+ui.notification.blueprintNotUnlocked,Blueprint failed: blueprint is not unlocked,Blueprint failed: blueprint is not unlocked,ブループリント操作に失敗しました: ブループリントが未解放です,Bauplan fehlgeschlagen: Bauplan ist nicht freigeschaltet
+ui.notification.researchNotCompletable,Cannot complete research (prerequisites or materials missing),Cannot complete research (prerequisites or materials missing),研究を完了できません（前提条件または素材が不足しています）,Forschung nicht abschließbar (Voraussetzungen oder Materialien fehlen)
+ui.notification.craftResultFull,Cannot craft: inventory is full,Cannot craft: inventory is full,クラフトできません: インベントリが満杯です,Herstellen nicht möglich: Inventar ist voll
+ui.notification.craftMaterialShortage,Cannot craft: not enough materials,Cannot craft: not enough materials,クラフトできません: 素材が不足しています,Herstellen nicht möglich: zu wenig Materialien
+ui.notification.removeTrainCarInventoryFull,Cannot remove train car: inventory is full,Cannot remove train car: inventory is full,車両を取り外せません: インベントリが満杯です,Waggon nicht entfernbar: Inventar ist voll
+ui.notification.miningInventoryFull,Some mined items were lost: inventory is full,Some mined items were lost: inventory is full,採掘したアイテムを一部失いました: インベントリが満杯です,Einige abgebaute Gegenstände gingen verloren: Inventar ist voll
+ui.notification.placeBlockNotUnlocked,Some blocks were not placed: not unlocked yet,Some blocks were not placed: not unlocked yet,一部のブロックを設置できませんでした: 未解放です,Einige Blöcke wurden nicht gesetzt: noch nicht freigeschaltet
+ui.notification.placeBlockCostShortage,Some blocks were not placed: not enough materials,Some blocks were not placed: not enough materials,一部のブロックを設置できませんでした: 素材が不足しています,Einige Blöcke wurden nicht gesetzt: zu wenig Materialien
+ui.notification.placeBlockWireShortage,Some blocks were not placed: not enough wires,Some blocks were not placed: not enough wires,一部のブロックを設置できませんでした: 電線が不足しています,Einige Blöcke wurden nicht gesetzt: zu wenig Kabel
+ui.notification.railEditInvalidNode,Rail edit failed: invalid rail node,Rail edit failed: invalid rail node,レール編集に失敗しました: 無効なレールノードです,Gleisbearbeitung fehlgeschlagen: ungültiger Gleisknoten
+ui.notification.railEditNodeInUseByTrain,Rail edit failed: a train is using this rail,Rail edit failed: a train is using this rail,レール編集に失敗しました: このレールを車両が使用中です,Gleisbearbeitung fehlgeschlagen: ein Zug benutzt dieses Gleis
+ui.notification.railEditStationInternalEdge,Rail edit failed: cannot edit station internal rail,Rail edit failed: cannot edit station internal rail,レール編集に失敗しました: 駅内部のレールは編集できません,Gleisbearbeitung fehlgeschlagen: bahnhofsinternes Gleis kann nicht bearbeitet werden
+ui.notification.railEditInvalidMode,Rail edit failed,Rail edit failed,レール編集に失敗しました,Gleisbearbeitung fehlgeschlagen
+ui.notification.railEditNotEnoughRailItem,Rail edit failed: not enough rail materials,Rail edit failed: not enough rail materials,レール編集に失敗しました: レール素材が不足しています,Gleisbearbeitung fehlgeschlagen: zu wenig Gleismaterial
+ui.notification.railEditNotEnoughInventorySpace,Rail edit failed: inventory is full,Rail edit failed: inventory is full,レール編集に失敗しました: インベントリが満杯です,Gleisbearbeitung fehlgeschlagen: Inventar ist voll
+ui.notification.railEditRailLengthExceeded,Rail edit failed: rail is too long,Rail edit failed: rail is too long,レール編集に失敗しました: レールが長すぎます,Gleisbearbeitung fehlgeschlagen: Gleis ist zu lang
+ui.notification.railEditNotUnlocked,Rail edit failed: connect tool not unlocked,Rail edit failed: connect tool not unlocked,レール編集に失敗しました: 接続ツールが未解放です,Gleisbearbeitung fehlgeschlagen: Verbindungswerkzeug nicht freigeschaltet
+ui.notification.railEditUnknownError,Rail edit failed,Rail edit failed,レール編集に失敗しました,Gleisbearbeitung fehlgeschlagen
+ui.notification.electricWireExtendOutOfRange,Wiring failed: out of connection range,Wiring failed: out of connection range,接続範囲外のため配線できませんでした,Verkabelung fehlgeschlagen: außerhalb der Verbindungsreichweite
+ui.notification.electricWireExtendAlreadyConnected,Wiring failed: already connected,Wiring failed: already connected,すでに接続されています,Verkabelung fehlgeschlagen: bereits verbunden
+ui.notification.electricWireExtendConnectionLimit,Wiring failed: connection limit reached,Wiring failed: connection limit reached,接続上限のため配線できませんでした,Verkabelung fehlgeschlagen: Verbindungsgrenze erreicht
+ui.notification.electricWireExtendNoWireItem,Wiring failed: not enough wires,Wiring failed: not enough wires,電線が不足しているため配線できませんでした,Verkabelung fehlgeschlagen: zu wenig Kabel
+ui.notification.electricWireExtendNoPoleItem,Placement failed: not enough poles,Placement failed: not enough poles,電柱が不足しているため設置できませんでした,Platzieren fehlgeschlagen: zu wenig Masten
+ui.notification.electricWireExtendInvalidTarget,Wiring failed: invalid target,Wiring failed: invalid target,接続できない対象のため配線できませんでした,Verkabelung fehlgeschlagen: ungültiges Ziel
+ui.notification.electricWireExtendPositionOccupied,Placement failed: position is occupied,Placement failed: position is occupied,設置位置が埋まっているため設置できませんでした,Platzieren fehlgeschlagen: Position ist belegt
+ui.notification.electricWireExtendNotUnlocked,Wiring failed: connect tool not unlocked,Wiring failed: connect tool not unlocked,接続ツールが未解放のため配線できませんでした,Verkabelung fehlgeschlagen: Verbindungswerkzeug nicht freigeschaltet
+ui.notification.electricWireExtendInsufficientItems,Placement failed: not enough materials,Placement failed: not enough materials,素材が不足しているため設置できませんでした,Platzieren fehlgeschlagen: zu wenig Materialien
+ui.notification.electricWireExtendFailed,Wiring failed,Wiring failed,配線に失敗しました,Verkabelung fehlgeschlagen
+ui.notification.electricWireDisconnectNotConnected,Disconnect failed: not connected,Disconnect failed: not connected,接続されていないため切断できませんでした,Trennen fehlgeschlagen: nicht verbunden
+ui.notification.electricWireDisconnectInventoryFull,Disconnect failed: inventory is full,Disconnect failed: inventory is full,インベントリが満杯のため切断できませんでした,Trennen fehlgeschlagen: Inventar ist voll
+ui.notification.electricWireDisconnectFailed,Disconnect failed,Disconnect failed,切断に失敗しました,Trennen fehlgeschlagen
+ui.notification.itemEarned,{itemName} +{count},{itemName} +{count},{itemName} +{count},{itemName} +{count}
+ui.notification.unknownMessage,Unknown notification: {messageId},Unknown notification: {messageId},不明な通知: {messageId},Unbekannte Benachrichtigung: {messageId}
+ui.pauseMenu.title,Pause Menu,Pause Menu,ポーズメニュー,Pausenmenü
+ui.pauseMenu.disconnected,Disconnected from server,Disconnected from server,サーバーから切断されました,Verbindung zum Server getrennt
+ui.settings.language,Language,Language,言語,Sprache
+ui.recipe.catalogTitle,CRAFT RECIPE,CRAFT RECIPE,クラフトレシピ,HANDWERKSREZEPT
+ui.recipe.selectItemHint,Select an item from the list on the right,Select an item from the list on the right,右のリストからアイテムを選択してください,Wählen Sie einen Gegenstand aus der Liste rechts
+ui.recipe.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount}\nClick to view recipes for this item,{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount}\nクリックでこのアイテムのレシピを確認,"{itemName}\nBestand: {ownedCount}\nBenötigt: {requiredCount}\nKlicken Sie, um Rezepte für diesen Gegenstand zu sehen"
+ui.recipe.itemCountSummary,{ownedCount}/{requiredCount},{ownedCount}/{requiredCount},{ownedCount}/{requiredCount},{ownedCount}/{requiredCount}
+ui.recipe.duration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden
+ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to craft (keep holding to craft continuously),長押しでクラフト（押し続けで連続クラフト）,Zum Herstellen gedrückt halten (weiter halten für fortlaufendes Herstellen)
+ui.recipe.craftButtonLabel,Craft,Craft,クラフト,Herstellen
+ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません,Für diesen Gegenstand gibt es keine Rezepte
+ui.research.closeSymbol,×,×,×,×
+ui.research.completed,Researched,Researched,研究済み,Erforscht
+ui.research.action,Research,Research,研究,Erforschen
+ui.research.clickToResearch,Click to research,Click to research,クリックして研究,Zum Erforschen klicken
+ui.research.missingItems,Not enough research items.,Not enough research items.,研究アイテムが足りません。,Zu wenig Forschungsgegenstände.
+ui.research.missingPrerequisites,Prerequisite research is not complete.,Prerequisite research is not complete.,前提研究が完了していません。,Die vorausgesetzte Forschung ist nicht abgeschlossen.
+ui.research.missingItemsAndPrerequisites,Not enough research items.\nPrerequisite research is not complete.,Not enough research items.\nPrerequisite research is not complete.,研究アイテムが足りません。\n前提研究が完了していません。,Zu wenig Forschungsgegenstände.\nDie vorausgesetzte Forschung ist nicht abgeschlossen.
+ui.research.title,Research,Research,研究,Forschung
+ui.research.consumeItemsLabel,Required items,Required items,必要アイテム,Benötigte Gegenstände
+ui.research.consumeItemTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount},{itemName}\nBestand: {ownedCount}\nBenötigt: {requiredCount}
+ui.research.unlockBlocksLabel,Unlocks: Blocks,Unlocks: Blocks,解放: ブロック,Schaltet frei: Blöcke
+ui.research.unlockMachineRecipesLabel,Unlocks: Machine recipes,Unlocks: Machine recipes,解放: 機械レシピ,Schaltet frei: Maschinenrezepte
+ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム,Schaltet frei: Gegenstände
+ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム,Belohnungsgegenstände
+ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他,Schaltet frei: Sonstiges
+ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
+ui.skit.auto,Auto,Auto,自動,Auto
+ui.skit.skip,Skip,Skip,スキップ,Überspringen
+ui.skit.hideUi,Hide UI,Hide UI,UIを非表示,UI ausblenden
+ui.skit.showUi,Show UI,Show UI,UIを表示,UI einblenden
+ui.trainHud.title,Riding Train,Riding Train,列車に乗車中,Zugfahrt
+ui.trainHud.branchSelection,Selected branch {current}/{count},Selected branch {current}/{count},選択中の分岐 {current}/{count},Gewählte Abzweigung {current}/{count}
+ui.mainMenu.resetAllData,Reset All Data,Reset All Data,全データをリセット,Alle Daten zurücksetzen
+ui.mainMenu.resetConfirmMessage,Reset all data?\nThis will delete your current world data and settings.\nBackups will not be deleted. This action cannot be undone.,Reset all data?\nThis will delete your current world data and settings.\nBackups will not be deleted. This action cannot be undone.,全データをリセットしますか？\n現在のワールドデータと設定が削除されます。\nバックアップは削除されません。この操作は元に戻せません。,Alle Daten zurücksetzen?\nIhre aktuellen Weltdaten und Einstellungen werden gelöscht.\nSicherungen werden nicht gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.
+ui.mainMenu.resetConfirmButton,Reset,Reset,リセットする,Zurücksetzen
+ui.common.cancel,Cancel,Cancel,キャンセル,Abbrechen
+ui.mainMenu.connectServer,Connect to Server,Connect to Server,サーバーに接続,Mit Server verbinden
+ui.mainMenu.serverIpPlaceholder,Server IP,Server IP,サーバーIP,Server-IP
+ui.mainMenu.serverPortPlaceholder,Port,Port,ポート,Port
+ui.blueprint.nameInputTitle,Enter Blueprint Name,Enter Blueprint Name,ブループリント名を入力,Bauplannamen eingeben
+ui.blueprint.nameInputPlaceholder,Enter a name...,Enter a name...,名前を入力...,Namen eingeben …
+ui.blueprint.nameInputConfirm,Register,Register,登録,Registrieren
+ui.blueprint.webModalTitle,Blueprint Name,Blueprint Name,ブループリント名,Bauplanname
+ui.blueprint.webModalMessage,Enter a name for the blueprint you want to save,Enter a name for the blueprint you want to save,保存するブループリントの名前を入力してください,Geben Sie einen Namen für den zu speichernden Bauplan ein
+ui.blueprint.webModalConfirm,Save,Save,保存,Speichern
+ui.tooltip.pickUpLeftClick,Left-click to pick up,Left-click to pick up,左クリックで取得,Linksklick zum Aufnehmen
+ui.tooltip.requiredItems,Requires: {p0},Requires: {p0},このアイテムが必要です: {p0},Benötigt: {p0}
+ui.tooltip.cannotHandMine,Cannot be mined by hand,Cannot be mined by hand,手掘りできません,Kann nicht von Hand abgebaut werden
+ui.tooltip.craftCannotByItemShortage,Not enough items to craft,Not enough items to craft,アイテムが足りないためクラフトできません,Zu wenig Gegenstände zum Herstellen
+ui.tooltip.retiredUguiSlotText,{p0},{p0},{p0},{p0}
+ui.delete.differentCategorySelection,Blocks from different categories cannot be selected at the same time.,Blocks from different categories cannot be selected at the same time.,別カテゴリーのブロックは同時に選択できません。,Blöcke aus verschiedenen Kategorien können nicht gleichzeitig ausgewählt werden.
+ui.delete.railHasVehicle,A vehicle is on this rail.,A vehicle is on this rail.,レール上に車両があります。,Auf diesem Gleis steht ein Fahrzeug.
+ui.delete.blockDeleteFailed,Failed to delete the block.,Failed to delete the block.,ブロックを削除できませんでした。,Der Block konnte nicht entfernt werden.
+ui.delete.stationInternalRail,Rails inside a station cannot be deleted.,Rails inside a station cannot be deleted.,駅内部のレールは削除できません。,Gleise innerhalb eines Bahnhofs können nicht entfernt werden.
+ui.delete.unknownError,Unknown error,Unknown error,不明なエラー,Unbekannter Fehler
+ui.keyHint.key.tab,Tab,Tab,Tab,Tab
+ui.keyHint.key.b,B,B,B,B
+ui.keyHint.key.g,G,G,G,G
+ui.keyHint.key.r,R,R,R,R
+ui.keyHint.key.v,V,V,V,V
+ui.keyHint.key.q,Q,Q,Q,Q
+ui.keyHint.key.e,E,E,E,E
+ui.keyHint.key.digits,1-9,1-9,1~9,1-9
+ui.keyHint.key.ctrlZ,Ctrl+Z,Ctrl+Z,Ctrl+Z,Strg+Z
+ui.keyHint.key.driveKeys,W/S,W/S,W/S,W/S
+ui.keyHint.key.branchKeys,A/D,A/D,A/D,A/D
+ui.keyHint.key.leftAltHold,Left Alt (Hold),Left Alt (Hold),左Alt（長押し）,Alt links (halten)
+ui.keyHint.key.middleClick,Middle Click,Middle Click,中クリック,Mittelklick
+ui.keyHint.key.leftDrag,Left Drag,Left Drag,左ドラッグ,Mit links ziehen
+ui.keyHint.key.rightClick,Right Click,Right Click,右クリック,Rechtsklick
+ui.keyHint.key.doubleClick,Double Click,Double Click,ダブルクリック,Doppelklick
+ui.keyHint.key.shiftLeftClick,Shift + Left Click,Shift + Left Click,Shift+左クリック,Umschalt + Linksklick
+ui.keyHint.text.inventory,Inventory,Inventory,インベントリ,Inventar
+ui.keyHint.text.closeInventory,Close Inventory,Close Inventory,インベントリを閉じる,Inventar schließen
+ui.keyHint.text.close,Close,Close,閉じる,Schließen
+ui.keyHint.text.researchTree,Research Tree,Research Tree,リサーチツリー,Forschungsbaum
+ui.keyHint.text.buildMenu,Build Menu,Build Menu,ビルドメニュー,Baumenü
+ui.keyHint.text.buildShortcut,Build Shortcut,Build Shortcut,建築ショートカット,Bau-Schnellwahl
+ui.keyHint.text.deleteMode,Delete Mode,Delete Mode,破壊モード,Abbaumodus
+ui.keyHint.text.exitDeleteMode,Exit Delete Mode,Exit Delete Mode,破壊モード終了,Abbaumodus verlassen
+ui.keyHint.text.exitPlaceMode,Exit Placement Mode,Exit Placement Mode,配置モード終了,Baumodus verlassen
+ui.keyHint.text.selectBlock,Select Block,Select Block,ブロック選択,Block auswählen
+ui.keyHint.text.toggleView,Toggle View,Toggle View,視点切替,Ansicht wechseln
+ui.keyHint.text.freeCursor,Free Cursor,Free Cursor,カーソル解放,Freier Zeiger
+ui.keyHint.text.pickPlacedObject,Pick Placed Object,Pick Placed Object,設置物をスポイト,Gesetztes Objekt übernehmen
+ui.keyHint.text.rotate,Rotate,Rotate,回転,Drehen
+ui.keyHint.text.lowerHeight,Lower Placement Height,Lower Placement Height,設置高さを下げる,Bauhöhe senken
+ui.keyHint.text.raiseHeight,Raise Placement Height,Raise Placement Height,設置高さを上げる,Bauhöhe erhöhen
+ui.keyHint.text.undo,Undo,Undo,元に戻す,Rückgängig
+ui.keyHint.text.dragSelect,Select Together,Select Together,まとめて選択,Gemeinsam auswählen
+ui.keyHint.text.bulkMove,Move All,Move All,一括移動,Alles verschieben
+ui.keyHint.text.halveOrPlaceOne,Take Half / Place One,Take Half / Place One,半分取る / 1個置く,Hälfte nehmen / einzeln ablegen
+ui.keyHint.text.distributeEvenly,Distribute Evenly,Distribute Evenly,均等分配,Gleichmäßig verteilen
+ui.keyHint.text.gatherSameItem,Gather Same Item,Gather Same Item,同じアイテムをかき集め,Gleiche Gegenstände sammeln
+ui.keyHint.text.trainDrive,Drive,Drive,運転,Fahren
+ui.keyHint.text.trainSelectBranch,Select Branch,Select Branch,分岐選択,Abzweigung wählen
+ui.keyHint.text.trainDismount,Dismount,Dismount,降車,Aussteigen
+ui.tooltip.placeBlockedByTerrain,Blocked by terrain,Blocked by terrain,地形に埋まっています,Vom Gelände blockiert
+ui.tooltip.placeBlockedByExistingBlock,Position is occupied,Position is occupied,設置位置が埋まっています,Position ist belegt
+ui.tooltip.placeTooFar,Too far away,Too far away,遠すぎます,Zu weit entfernt
+ui.tooltip.placeMinerOutsideVein,The drill must be over a vein,The drill must be over a vein,ドリルを鉱脈に重ねてください,Der Bohrer muss über einer Erzader liegen
+ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden
+ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません,Für diese Baureihe gibt es kein Schrägband
+ui.tooltip.placeMaterialShortage,{p0} {p1}/{p2},{p0} {p1}/{p2},{p0} {p1}/{p2},{p0} {p1}/{p2}
+ui.tooltip.placeWireCost,Wire x{p0},Wire x{p0},電線 x{p0},Kabel x{p0}
+ui.tooltip.placeWireOutOfRangeNotice,Out of connection range: no wire will be placed,Out of connection range: no wire will be placed,接続範囲外のため配線されません,Außerhalb der Verbindungsreichweite: es wird kein Kabel verlegt
+ui.tooltip.placeWireNoWireItem,Not enough wire,Not enough wire,電線が足りません,Zu wenig Kabel
+ui.tooltip.placeWireOutOfRange,Out of connection range,Out of connection range,接続範囲外です,Außerhalb der Verbindungsreichweite
+ui.tooltip.placeWireAlreadyConnected,Already connected,Already connected,接続済みです,Bereits verbunden
+ui.tooltip.placeWireConnectionLimit,Connection limit reached,Connection limit reached,接続上限です,Verbindungsgrenze erreicht
+ui.tooltip.placeWireInvalidTarget,Cannot connect to this target,Cannot connect to this target,接続できない対象です,Verbindung mit diesem Ziel nicht möglich
+ui.tooltip.placeWireFailed,Cannot place,Cannot place,設置できません,Platzieren nicht möglich
+ui.tooltip.placeGearChainTooFar,Out of connection range,Out of connection range,接続範囲外です,Außerhalb der Verbindungsreichweite
+ui.tooltip.placeGearChainAlreadyConnected,Already connected,Already connected,接続済みです,Bereits verbunden
+ui.tooltip.placeGearChainConnectionLimit,Connection limit reached,Connection limit reached,接続上限です,Verbindungsgrenze erreicht
+ui.tooltip.placeGearChainNoItem,Not enough chain,Not enough chain,チェーンが足りません,Zu wenig Kette
+ui.tooltip.placeGearChainFailed,Cannot connect,Cannot connect,接続できません,Verbinden nicht möglich
+ui.tooltip.placeRailLengthExceeded,Rail is too long,Rail is too long,レールが長すぎます,Gleis ist zu lang
+ui.tooltip.placeRailNotEnoughRailItem,Not enough rail,Not enough rail,レールが足りません,Zu wenig Gleis
+ui.tooltip.placeRailCurveTooTight,Curve is too tight,Curve is too tight,カーブがきつすぎます,Kurve ist zu eng
+ui.tooltip.placeRailFailed,Cannot connect rail,Cannot connect rail,レールを接続できません,Gleis kann nicht verbunden werden
+ui.tooltip.placeTrainCarNoRoute,No rail for the train length,No rail for the train length,列車の長さ分のレールがありません,Kein Gleis für diese Zuglänge
+ui.tooltip.placeTrainCarOverlapsTrain,Overlaps an existing train,Overlaps an existing train,既存の列車と重なります,Überschneidet sich mit einem vorhandenen Zug
+ui.loading.serverConnected,Connected to server  {p0},Connected to server  {p0},サーバーとの接続完了  {p0},Mit Server verbunden  {p0}
+ui.loading.initialDataFetched,Initial data received  {p0},Initial data received  {p0},初期データ取得完了  {p0},Anfangsdaten empfangen  {p0}
+ui.loading.blockAssetsLoaded,Block assets loaded  {p0},Block assets loaded  {p0},ブロックアセットロード完了  {p0},Block-Assets geladen  {p0}
+ui.loading.itemImagesLoaded,Item images loaded  {p0},Item images loaded  {p0},アイテム画像ロード完了  {p0},Gegenstandsbilder geladen  {p0}
+ui.loading.connectToolImagesLoaded,Connect tool images loaded  {p0},Connect tool images loaded  {p0},接続ツール画像ロード完了  {p0},Bilder der Verbindungswerkzeuge geladen  {p0}
+ui.loading.fluidImagesLoaded,Fluid images loaded  {p0},Fluid images loaded  {p0},液体画像ロード完了  {p0},Flüssigkeitsbilder geladen  {p0}
+ui.loading.blockScreenshotsCaptured,Block screenshots captured  {p0},Block screenshots captured  {p0},ブロックスクリーンショット完了  {p0},Block-Screenshots erstellt  {p0}
+ui.loading.trainCarScreenshotsCaptured,Train car screenshots captured  {p0},Train car screenshots captured  {p0},車両スクリーンショット完了  {p0},Waggon-Screenshots erstellt  {p0}
+ui.loading.terrainReady,Terrain data ready ({p0} chunks)  {p1},Terrain data ready ({p0} chunks)  {p1},地形データ準備完了({p0}チャンク取得)  {p1},Geländedaten bereit ({p0} Chunks)  {p1}
+ui.loading.initializationFailed,Initialization failed. Returning to the main menu.,Initialization failed. Returning to the main menu.,初期化に失敗しました。メインメニューに戻ります。,Initialisierung fehlgeschlagen. Rückkehr zum Hauptmenü.
+ui.mainMenu.connectInvalidIp,The IP address is not valid.,The IP address is not valid.,IPアドレスが正しくありません。,Die IP-Adresse ist ungültig.
+ui.mainMenu.connectPortTooLarge,The port number must be 65535 or lower.,The port number must be 65535 or lower.,ポート番号は65535以下である必要があります。,Die Portnummer darf höchstens 65535 betragen.
+ui.mainMenu.connectPortTooSmall,The port number must be greater than 1024.,The port number must be greater than 1024.,ポート番号は1024より大きい必要があります。,Die Portnummer muss größer als 1024 sein.
+ui.mainMenu.connectInvalidPort,The port number is not valid.,The port number is not valid.,ポート番号が正しくありません。,Die Portnummer ist ungültig.
+ui.mainMenu.connectFailed,Failed to connect to the server.\n{p0},Failed to connect to the server.\n{p0},サーバーへの接続に失敗しました。\n{p0},Verbindung zum Server fehlgeschlagen.\n{p0}
+ui.tooltip.namedMineHold,{p0} : Hold left-click to mine,{p0} : Hold left-click to mine,{p0} : 左クリック長押しで採掘,{p0} : Zum Abbauen Linksklick gedrückt halten
+ui.tooltip.namedMineClick,{p0} : Left-click to mine,{p0} : Left-click to mine,{p0} : 左クリックで採掘,{p0} : Linksklick zum Abbauen
+ui.tooltip.namedRequiredItems,{p0} : Requires: {p1},{p0} : Requires: {p1},{p0} : このアイテムが必要です: {p1},{p0} : Benötigt: {p1}
+ui.tooltip.namedCannotHandMine,{p0} : Cannot be mined by hand,{p0} : Cannot be mined by hand,{p0} : 手掘りできません,{p0} : Kann nicht von Hand abgebaut werden
