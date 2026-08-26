@@ -42,7 +42,9 @@ fi
 # Balance Client fixtures that transition PlayMode into roughly three-minute groups using PR #1256 CI timings.
 client_play_1='Client\.Tests\.EditModeInPlayingTest\.MapObjects\.MapObjectNearestSearchTest|Client\.Tests\.EditModeInPlayingTest\.PlayerStartsOnBuiltTerrainTest|Client\.Tests\.EditModeInPlayingTest\.MachineModuleSlotUITest|Client\.Tests\.EditModeInPlayingTest\.MapObjects\.MapObjectRotationTest|Client\.Tests\.EditModeInPlayingTest\.DebugParametersIsolationAcrossDomainReloadTest|Client\.Tests\.EditModeInPlayingTest\.OsInputSpoofTest|Client\.Tests\.StartGameTest\.StartGameCheckTest'
 client_play_2='Client\.Tests\.EditModeInPlayingTest\.ElectricToGearModeSelectUITest|Client\.Tests\.EditModeInPlayingTest\.TerrainCacheFetchTest|Client\.Tests\.EditModeInPlayingTest\.MachineRecipeSelectionUITest|Client\.Tests\.EditModeInPlayingTest\.MapVeinOutcropAndRangeViewTest|Client\.Tests\.EditModeInPlayingTest\.Skit\.SkitWorldObjectRegistrationTest'
-client_play_3='Client\.Tests\.EditModeInPlayingTest\.LocalPlayEmbeddedServerBootTest|Client\.Tests\.EditModeInPlayingTest\.BlockClickColliderTest|Client\.Tests\.EditModeInPlayingTest\.ChallengeListUITest|Client\.Tests\.EditModeInPlayingTest\.MachineRecipeSelectionGearUITest|Client\.Tests\.EditModeInPlayingTest\.EquipmentSelectionSynchronizationTest'
+# 未解決アドレス検証はAddressablesの初期化済み実行環境を要るのでPlayMode群へ同居させる。
+# The unresolved-address test needs an initialized Addressables runtime, so it rides along with a PlayMode group.
+client_play_3='Client\.Tests\.EditModeInPlayingTest\.LocalPlayEmbeddedServerBootTest|Client\.Tests\.EditModeInPlayingTest\.BlockClickColliderTest|Client\.Tests\.EditModeInPlayingTest\.ChallengeListUITest|Client\.Tests\.EditModeInPlayingTest\.MachineRecipeSelectionGearUITest|Client\.Tests\.EditModeInPlayingTest\.EquipmentSelectionSynchronizationTest|Client\.Tests\.UnitTest\.Terrain\.DetailPrototypeAssetResolverTest'
 
 # 残余で不安定なnear-field起動を隔離し、単独実行不能なstart-gameはPlayMode群へ含める。
 # Isolate near-field startup from the remainder while keeping start-game in a PlayMode group because it cannot run alone.

@@ -11,7 +11,7 @@
 ## Requirements
 
 - **R1.** ClientとServerの全EditModeテストを同一ジョブで直列実行しない。**受け入れ基準:** `run_test.yml` が9要素のmatrixを持ち、`Client.Tests` 5 shardと`Server.Tests` 4 shardが`fail-fast: false`で並列実行される。
-- **R2.** 2026-08-23のPR #1256 XMLで支配的だったClient EditModeInPlaying群を分離する。**受け入れ基準:** 専用3 shardの実測test-case duration合計が188.248秒・212.767秒・204.477秒で、残余内のnear-field起動40.084秒は単独隔離、単独ではcallbackを失うstart-game 35.428秒は最短PlayMode群へ含め、その他はclient-remainderへ流れる。
+- **R2.** 2026-08-23のPR #1256 XMLで支配的だったClient EditModeInPlaying群を分離する。**受け入れ基準:** 専用3 shardの実測test-case duration合計が188.248秒・212.767秒・204.477秒で、残余内のnear-field起動40.084秒は単独隔離、単独ではcallbackを失うstart-game 35.428秒は最短PlayMode群へ含め、Addressables初期化済み実行環境を要するDetailPrototypeAssetResolverTest（非シャード実行0.020秒に対し残余内では73.792秒）も同様にPlayMode群へ含め、その他はclient-remainderへ流れる。
 - **R3.** 同XMLで約8分だったServer MapGeneration重量fixtureを3 shardへ均等化する。**受け入れ基準:** 専用3 shardの実測test-case duration合計が152.594秒・153.247秒・156.512秒で、未列挙のMapGenerationおよび全Server残余はserver-remainderへ流れる。
 - **R4.** テスト範囲を削らない。**受け入れ基準:** 専用filterはassemblyを問わない正の完全修飾クラス名regex、2個のremainderは既知assembly内で全専用集合だけを除く。現行CIに含まれる`Unity.Addressables.DocExampleCode.Editor.Tests`の1件はserver-remainderへ含め、すべてのshardに`!IgnoreCI` category除外が適用される。
 - **R5.** 将来fixture・test assemblyを追加・移動してもCIから無音で漏れない。**受け入れ基準:** 専用FQNはassembly移動後も専用shardへ残り、新しいproject-owned test asmdefはallowlist guardが全shardを実行前に失敗させて割当更新を要求する。
