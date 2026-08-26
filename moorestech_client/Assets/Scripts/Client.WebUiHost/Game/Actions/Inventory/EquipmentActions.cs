@@ -23,8 +23,8 @@ namespace Client.WebUiHost.Game.Actions
         {
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
 
-            // index は int 範囲の整数のみ許可する（素手を表す -1 も正当な値）
-            // index must be an int-range integer (-1 for bare hands is a legitimate value)
+            // index は int 範囲の整数のみ許可する
+            // index must be an int-range integer
             if (payload["index"] is not JValue { Value: long indexLong } || indexLong < int.MinValue || int.MaxValue < indexLong)
                 return UniTask.FromResult(ActionResult.Fail("invalid_index"));
 

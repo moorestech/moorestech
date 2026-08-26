@@ -38,8 +38,8 @@ namespace Game.PlayerInventory.ItemManaged
                 InvokeEvent, ServerContext.ItemStackFactory,
                 MasterHolder.ItemMaster.Items.EquipmentSlotCount);
 
-            // 初期選択は先頭スロットだが、装備スロットが無いマスタでは素手へ丸める
-            // The initial selection is the first slot, clamped to bare hands when master has no equipment slot
+            // 初期選択は先頭スロット
+            // The initial selection is the first slot
             ApplySelectedEquipmentIndexWithoutEvent(0);
         }
 
@@ -54,18 +54,14 @@ namespace Game.PlayerInventory.ItemManaged
 
         private void ApplySelectedEquipmentIndexWithoutEvent(int index)
         {
-            // -1(素手)からスロット末尾までにクランプする
-            // Clamp between -1 (bare hands) and the last slot
-            SelectedEquipmentIndex = Math.Clamp(index, IEquipmentInventory.BareHandsIndex, GetSlotSize() - 1);
+            // 先頭からスロット末尾までにクランプする（未装備という状態は持たない）
+            // Clamp between the first and the last slot; there is no unequipped state
+            SelectedEquipmentIndex = Math.Clamp(index, 0, GetSlotSize() - 1);
         }
 
         public IItemStack GetSelectedItem()
         {
-            // 素手のときは空スタックを返す
-            // Return an empty stack when bare hands are selected
-            return SelectedEquipmentIndex == IEquipmentInventory.BareHandsIndex
-                ? ServerContext.ItemStackFactory.CreatEmpty()
-                : GetItem(SelectedEquipmentIndex);
+            return GetItem(SelectedEquipmentIndex);
         }
 
         /// <summary>
