@@ -470,11 +470,11 @@ Expected: 本変更由来のエラー 0
 
 ### Task 5: 全ブランチレビュー（必須・省略不可）
 
-- [ ] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
+- [x] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
 
 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。指摘の機械的修正を適用し、設計判断はAskUserQuestionで仰ぐ。
 
-- [ ] **Step 2: pr-create スキルでPRを作成し、bd close する**
+- [x] **Step 2: pr-create スキルでPRを作成し、bd close する**
 
 ```bash
 bd close <本タスクid> --reason="PR #<番号> 作成"
