@@ -61,7 +61,11 @@ namespace Client.Editor.Build
             if (report.summary.result == BuildResult.Succeeded)
             {
                 CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
-                if (request.BundleLocalGameData) GameDataBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
+                if (request.BundleLocalGameData)
+                {
+                    GameDataBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
+                    WorldSnapshotBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
+                }
 
                 // 展示会の起動ループはmacの.commandなので、mac向けのローカル配布成果物にだけ入れる
                 // The exhibition loop is a mac .command, so it ships only with mac local-distribution artifacts
