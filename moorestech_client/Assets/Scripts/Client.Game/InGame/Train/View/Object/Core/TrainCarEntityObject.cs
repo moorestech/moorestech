@@ -152,7 +152,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
             // Dispatch the same context to all runtime-only processors
             for (var i = 0; i < _processors.Length; i++)
             {
-                _processors[i].Update(context);
+                _processors[i].ManualUpdate(context);
             }
         }
 

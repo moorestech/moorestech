@@ -18,7 +18,7 @@ namespace Client.Game.InGame.Train.View.Object.Processors
             _isReady = true;
         }
 
-        public void Update(TrainCarContext context)
+        public void ManualUpdate(TrainCarContext context)
         {
             // 初期化が終わった後だけ煙を更新する
             // Update smoke only after initialization completes
