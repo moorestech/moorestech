@@ -21,7 +21,7 @@ namespace Client.Game.InGame.Train.View.Object.Processors
             _isReady = true;
         }
 
-        public void Update(TrainCarContext context)
+        public void ManualUpdate(TrainCarContext context)
         {
             // 初期化完了後だけアニメ速度を更新する
             // Update animation speed only after initialization completes
