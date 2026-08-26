@@ -136,9 +136,11 @@ namespace Client.Skit.UI
             }
         }
         
-        private void Update()
+        public bool IsUIHidden => _skitUITools.IsUIHidden;
+        
+        public void ShowHiddenUI()
         {
-            _skitUITools.ManualUpdate();
+            _skitUITools.ShowUI();
         }
         
         private T GetElement<T>(string elementName) where T : VisualElement

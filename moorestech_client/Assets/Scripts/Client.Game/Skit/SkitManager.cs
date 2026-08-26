@@ -40,6 +40,15 @@ namespace Client.Game.Skit
         [Inject] private SkitOrigin skitOrigin;
         
         public bool IsPlayingSkit { get; private set; }
+        
+        // 会話UIの非表示状態をUIステートへ公開する（Escの優先順位判定に使う）
+        // Expose the hidden state of the dialogue UI to the UI state (used to prioritize Esc handling)
+        public bool IsSkitUiHidden => skitUI.IsUIHidden;
+        
+        public void ShowHiddenSkitUi()
+        {
+            skitUI.ShowHiddenUI();
+        }
         private bool _isSkip;
         
         // 執筆ツールが本編・SkitTestの双方で同じ原点を引けるよう、シーン上の実体から公開する

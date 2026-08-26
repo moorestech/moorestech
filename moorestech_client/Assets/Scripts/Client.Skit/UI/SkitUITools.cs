@@ -1,5 +1,4 @@
 using Client.Skit.Skit;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Skit.UI
@@ -8,7 +7,7 @@ namespace Client.Skit.UI
     {
         private readonly UIDocument _skitUiDocument;
         
-        private bool _isUIHidden = false;
+        public bool IsUIHidden { get; private set; }
         
         public SkitUITools(UIDocument skitUiDocument, ISkitActionController skitActionController)
         {
@@ -47,20 +46,17 @@ namespace Client.Skit.UI
         
         private void HideUI()
         {
-            _isUIHidden = true;
+            IsUIHidden = true;
             _skitUiDocument.rootVisualElement.style.display = DisplayStyle.None;
         }
 
         
-        public void ManualUpdate()
+        // 非表示にした会話UIを戻す。Esc判定はUIステート側（SkitPlayingSubState）が持つ
+        // Restore the hidden dialogue UI. The Esc decision lives in the UI state (SkitPlayingSubState)
+        public void ShowUI()
         {
-            //TODO InputManagerに移す
-            if (_isUIHidden && Input.GetKeyDown(KeyCode.Escape))
-            {
-                _skitUiDocument.rootVisualElement.style.display = DisplayStyle.Flex;
-            }
+            IsUIHidden = false;
+            _skitUiDocument.rootVisualElement.style.display = DisplayStyle.Flex;
         }
-        
-        
     }
 }
