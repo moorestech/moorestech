@@ -67,7 +67,7 @@
 - Produces: `SkitUITools.IsUIHidden : bool`（`{ get; private set; }`）、`SkitUITools.ShowUI()`、`SkitUI.IsUIHidden : bool`、`SkitUI.ShowHiddenUI()`、`SkitManager.IsSkitUiHidden : bool`、`SkitManager.ShowHiddenSkitUi()`
 - Consumes: なし
 
-- [ ] **Step 1: SkitUITools を書き換える**
+- [x] **Step 1: SkitUITools を書き換える**
 
 `_isUIHidden` フィールドを `{ get; private set; }` プロパティに畳み、`ManualUpdate` を `ShowUI` に置き換える:
 
@@ -93,7 +93,7 @@
 
 `ManualUpdate` メソッドと `using UnityEngine;`（`Input` 用。他に使用が無ければ）を削除する。
 
-- [ ] **Step 2: SkitUI の Update を撤去し、窓口を追加する**
+- [x] **Step 2: SkitUI の Update を撤去し、窓口を追加する**
 
 `private void Update() { _skitUITools.ManualUpdate(); }` を削除し、以下を追加:
 
@@ -106,7 +106,7 @@
         }
 ```
 
-- [ ] **Step 3: SkitManager に窓口を追加する**
+- [x] **Step 3: SkitManager に窓口を追加する**
 
 `IsPlayingSkit` の直下に追加:
 
@@ -121,12 +121,12 @@
         }
 ```
 
-- [ ] **Step 4: コンパイル**
+- [x] **Step 4: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Skit/UI/SkitUITools.cs moorestech_client/Assets/Scripts/Client.Skit/UI/SkitUI.cs moorestech_client/Assets/Scripts/Client.Game/Skit/SkitManager.cs
@@ -148,7 +148,7 @@ git commit -m "refactor(skit): 会話UIのEsc復帰判定をUIステート側へ
 - Consumes: `SkitManager.IsSkitUiHidden` / `ShowHiddenSkitUi()`（Task 1）、`PauseMenuStateService.OnEnter/OnExit/IsClosePause()`（既存）
 - Produces: `SkitScreenUIStateController(SkitManager, PauseMenuStateService)` に `StartSubState()`, `Update()`, `ShutdownSubState()`, `CurrentState`
 
-- [ ] **Step 1: インターフェースとenum**
+- [x] **Step 1: インターフェースとenum**
 
 `ISkitScreenSubState.cs`:
 ```csharp
@@ -181,7 +181,7 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
 }
 ```
 
-- [ ] **Step 2: SkitPlayingSubState**
+- [x] **Step 2: SkitPlayingSubState**
 
 ```csharp
 using Client.Game.Skit;
@@ -233,7 +233,7 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
 }
 ```
 
-- [ ] **Step 3: SkitPauseMenuSubState**
+- [x] **Step 3: SkitPauseMenuSubState**
 
 ```csharp
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
@@ -269,7 +269,7 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
 }
 ```
 
-- [ ] **Step 4: SkitScreenUIStateController**
+- [x] **Step 4: SkitScreenUIStateController**
 
 ```csharp
 using System.Collections.Generic;
@@ -321,12 +321,12 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
 }
 ```
 
-- [ ] **Step 5: コンパイル**
+- [x] **Step 5: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0（未使用クラスのwarningは可）
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/Skit
@@ -344,7 +344,7 @@ git commit -m "feat(ui): スキット画面用の入れ子サブステート（�
 **Interfaces:**
 - Consumes: `SkitScreenUIStateController`（Task 2）
 
-- [ ] **Step 1: SkitState を書き換える**
+- [x] **Step 1: SkitState を書き換える**
 
 ```csharp
 using Client.Game.Common;
@@ -413,7 +413,7 @@ namespace Client.Game.InGame.UI.UIState.State
 }
 ```
 
-- [ ] **Step 2: DI登録**
+- [x] **Step 2: DI登録**
 
 `MainGameInteractionRegistration.cs` の `builder.Register<PauseMenuStateService>(Lifetime.Singleton);` の直後に追加:
 
@@ -423,12 +423,12 @@ namespace Client.Game.InGame.UI.UIState.State
 
 （`TrainHudScreenUIStateController` の登録行があれば同じ並びに置く。`using Client.Game.InGame.UI.UIState.State.Skit;` を追加）
 
-- [ ] **Step 3: コンパイル**
+- [x] **Step 3: コンパイル**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
 
-- [ ] **Step 4: 既存テスト（Web UIゲート分類）を回す**
+- [x] **Step 4: 既存テスト（Web UIゲート分類）を回す**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "WebUiGate"`
 Expected: PASS。`SkitPlayingSubState.cs` が `WebUiScreenGate` を参照するため分類ルールが未登録で失敗する場合は、`Client.Tests/WebUi/Gate/WebUiGateClassification.cs` の `PauseMenuStateService` 行（80行目付近）の並びに以下を追加する:
@@ -437,7 +437,7 @@ Expected: PASS。`SkitPlayingSubState.cs` が `WebUiScreenGate` を参照する�
             new Rule("Client.Game/InGame/UI/UIState/State/Skit/SkitPlayingSubState.cs", Category.GatedRoot, "スキット中ポーズメニュー (C2)"),
 ```
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts
