@@ -78,7 +78,9 @@ namespace Tests.Module
 
         // 全タイル用modで1x1既定値を維持
         // Creates a dedicated low-resolution mod for all-tile traversal without changing the shared test mod's fast 1x1 default
-        public WorldDataDirectory ProvisionGeneratedWorld(int seed, int gridSide, int heightmapResolution)
+        // detailResolutionはheightmapに従属するのでGenerationMaster検証と同じ制約で呼び出し側が指定する
+        // detailResolution is bound to the heightmap, so callers state it under the same constraint GenerationMaster validates
+        public WorldDataDirectory ProvisionGeneratedWorld(int seed, int gridSide, int heightmapResolution, int detailResolution)
         {
             var serverDataDirectory = Path.Combine(Path.GetTempPath(), $"{_label}_ServerData_{Guid.NewGuid()}");
             _createdServerDataDirectories.Add(serverDataDirectory);
@@ -90,6 +92,7 @@ namespace Tests.Module
             algorithmParam["gridSizeX"] = gridSide;
             algorithmParam["gridSizeZ"] = gridSide;
             algorithmParam["overrideResolution"] = heightmapResolution;
+            algorithmParam["detailResolution"] = detailResolution;
             File.WriteAllText(generationJsonPath, generationJson.ToString());
 
             new MoorestechServerDIContainerGenerator()

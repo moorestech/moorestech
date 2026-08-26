@@ -21,10 +21,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         {
             const int MultiTileGridSide = 2;
             const int MultiTileResolution = 129;
+            const int MultiTileDetailResolution = 128;
             var scope = new TerrainTransferTestScope(nameof(生成ワールドの先焼きで共有キャッシュへ全タイルの見た目ファイルが書き出される));
             try
             {
-                var worldDirectory = scope.ProvisionGeneratedWorld(777, MultiTileGridSide, MultiTileResolution);
+                var worldDirectory = scope.ProvisionGeneratedWorld(777, MultiTileGridSide, MultiTileResolution, MultiTileDetailResolution);
                 var meta = TerrainTransferMetaReader.Read(worldDirectory);
                 var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
                 try

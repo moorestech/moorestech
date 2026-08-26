@@ -39,10 +39,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         {
             const int MultiTileGridSide = 2;
             const int MultiTileResolution = 129;
+            const int MultiTileDetailResolution = 128;
             var scope = new TerrainTransferTestScope(nameof(GeneratedWorldBakesEveryTile));
             try
             {
-                var worldDirectory = scope.ProvisionGeneratedWorld(5, MultiTileGridSide, MultiTileResolution);
+                var worldDirectory = scope.ProvisionGeneratedWorld(5, MultiTileGridSide, MultiTileResolution, MultiTileDetailResolution);
                 var meta = TerrainTransferMetaReader.Read(worldDirectory);
                 var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
 
