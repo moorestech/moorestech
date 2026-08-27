@@ -18,11 +18,17 @@ client_test_assembly='Client.Tests'
 server_test_assembly='Server.Tests'
 addressables_test_assembly='Unity.Addressables.DocExampleCode.Editor.Tests'
 known_project_test_assemblies=";${client_test_assembly};${server_test_assembly};"
+
+# asmdefのreferencesはUnityが名前とGUIDのどちらでも書くため、TestRunnerの実GUIDでも照合する。
+# Unity writes asmdef references either as names or GUIDs, so match TestRunner by its real GUID too.
+unity_engine_test_runner_guid='GUID:27619889b8ba8c24980f49ee34dbb44a'
+unity_editor_test_runner_guid='GUID:0acc523941302664db1f4e527237feb3'
 repo_root=$(cd "$(dirname "$0")/../.." && pwd)
 project_test_assemblies=$(
   find "$repo_root/moorestech_client/Assets" "$repo_root/moorestech_server/Assets" -name '*.asmdef' -type f -print0 |
     while IFS= read -r -d '' asmdef; do
-      jq -r 'select((([.references[]?] | any(. == "UnityEngine.TestRunner" or . == "UnityEditor.TestRunner"))) or (([.precompiledReferences[]?] | any(. == "nunit.framework.dll"))) or (([.optionalUnityReferences[]?] | any(. == "TestAssemblies")))) | .name' "$asmdef"
+      jq -r --arg engineGuid "$unity_engine_test_runner_guid" --arg editorGuid "$unity_editor_test_runner_guid" \
+        'select((([.references[]?] | any(. == "UnityEngine.TestRunner" or . == "UnityEditor.TestRunner" or . == $engineGuid or . == $editorGuid))) or (([.precompiledReferences[]?] | any(. == "nunit.framework.dll"))) or (([.optionalUnityReferences[]?] | any(. == "TestAssemblies")))) | .name' "$asmdef"
     done |
     sort -u
 )
