@@ -93,28 +93,44 @@ namespace Client.Game.InGame.BlockSystem
             return groundPoint;
         }
 
-        public static float GetBlockFourCornerMaxHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize)
+        // 四隅すべての地表が取れたときだけ最高点を返す。探査失敗を呼び出し側が扱えるようにbool戻り
+        // Returns the max height only when all four corners hit ground; the bool lets callers handle a failed probe
+        public static bool TryGetBlockFourCornerMaxHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize, out float maxHeight)
         {
+            maxHeight = 0f;
             var (minPos, maxPos) = blockPos.GetWorldBlockBoundingBox(blockDirection, blockSize);
 
             // boundingBoxは3次元なので水平の四隅はXとZで組む。Vector2の暗黙変換に任せると鉛直Yを渡してz=0を探査してしまう
             // The bounding box is 3D, so the horizontal corners pair X with Z; the Vector2 conversion would pass the vertical Y and probe z=0
-            var minXMinZ = ProbeCornerHeight(minPos.x, minPos.z);
-            var minXMaxZ = ProbeCornerHeight(minPos.x, maxPos.z);
-            var maxXMinZ = ProbeCornerHeight(maxPos.x, minPos.z);
-            var maxXMaxZ = ProbeCornerHeight(maxPos.x, maxPos.z);
+            if (!TryProbeCornerHeight(minPos.x, minPos.z, out var minXMinZ)) return false;
+            if (!TryProbeCornerHeight(minPos.x, maxPos.z, out var minXMaxZ)) return false;
+            if (!TryProbeCornerHeight(maxPos.x, minPos.z, out var maxXMinZ)) return false;
+            if (!TryProbeCornerHeight(maxPos.x, maxPos.z, out var maxXMaxZ)) return false;
 
-            return Mathf.Max(Mathf.Max(minXMinZ, minXMaxZ), Mathf.Max(maxXMinZ, maxXMaxZ));
+            maxHeight = Mathf.Max(Mathf.Max(minXMinZ, minXMaxZ), Mathf.Max(maxXMinZ, maxXMaxZ));
+            return true;
 
             #region Internal
 
-            float ProbeCornerHeight(float worldX, float worldZ)
+            bool TryProbeCornerHeight(float worldX, float worldZ, out float height)
             {
-                if (TryGetGroundPoint(worldX, worldZ, out var groundPoint)) return groundPoint.y;
-                throw new InvalidOperationException($"四隅の地表が見つかりませんでした x:{worldX} z:{worldZ}");
+                if (!TryGetGroundPoint(worldX, worldZ, out var groundPoint))
+                {
+                    height = 0f;
+                    return false;
+                }
+                height = groundPoint.y;
+                return true;
             }
 
             #endregion
+        }
+
+        public static float GetBlockFourCornerMaxHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize)
+        {
+            if (!TryGetBlockFourCornerMaxHeight(blockPos, blockDirection, blockSize, out var maxHeight))
+                throw new InvalidOperationException($"四隅の地表が見つかりませんでした blockPos:{blockPos}");
+            return maxHeight;
         }
         
         private static Vector3 GetBlockFrontRayOffset(BlockDirection blockDirection)

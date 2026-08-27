@@ -4,6 +4,7 @@ using System.Linq;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
@@ -42,6 +43,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             if (!TryGetRayHitPosition(mainCamera, out var hitPos, out surface)) return false;
             
             pos = CalcPlacePoint(holdingBlock, hitPos, heightOffset, currentBlockDirection, surface);
+            
+            // 地面ヒットのYはレイの当たった高さでなく占有範囲の地形最高点から決める（ADR 0037）。ブロック面ヒットは整数グリッド上なので触らない
+            // A ground hit decides Y from the footprint's terrain max height, not the ray height (ADR 0037); block-face hits sit on the integer grid and stay untouched
+            if (surface == null) pos = PlacementGroundCellResolver.ResolveCellFromGround(pos, currentBlockDirection, holdingBlock.BlockSize, heightOffset);
             
             return true;
         }

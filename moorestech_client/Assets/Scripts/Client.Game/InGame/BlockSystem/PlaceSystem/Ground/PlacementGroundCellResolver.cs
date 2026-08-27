@@ -1,3 +1,4 @@
+using Game.Block.Interface;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
@@ -17,6 +18,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
         public static int ResolveCellY(float groundMaxHeight, int heightOffset)
         {
             return Mathf.CeilToInt(groundMaxHeight - IntegerGroundTolerance) + heightOffset;
+        }
+
+        // セルの占有範囲の地形最高点からYを決め直す。地表が取れなければ元のセルを返す
+        // Re-decides Y from the footprint's terrain max height; returns the original cell when no ground is found
+        public static Vector3Int ResolveCellFromGround(Vector3Int cellPosition, BlockDirection blockDirection, Vector3Int blockSize, int heightOffset)
+        {
+            if (!SlopeBlockPlaceSystem.TryGetBlockFourCornerMaxHeight(cellPosition, blockDirection, blockSize, out var groundMaxHeight)) return cellPosition;
+
+            return new Vector3Int(cellPosition.x, ResolveCellY(groundMaxHeight, heightOffset), cellPosition.z);
         }
     }
 }
