@@ -54,5 +54,23 @@ namespace Tests.UnitTest.Core.Map
             Assert.IsFalse(master.Validate(out var logs));
             StringAssert.Contains(expectedLog, logs);
         }
+
+        [Test]
+        public void earnItemsが空のmapObjectがあると失敗する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "map.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var miningMapObject = ((JArray)json["mapObjects"]).Children<JObject>()
+                .Single(element => (string)element["miningType"] == "Mining");
+
+            // 実在定義のearnItemsだけを空にし、他のマスタ整合性から独立させる
+            // Empty only earnItems on a valid definition so other master consistency remains intact
+            miningMapObject["earnItems"] = new JArray();
+            var master = new MapObjectMaster(json);
+
+            Assert.IsFalse(master.Validate(out var logs));
+            StringAssert.Contains("has empty EarnItems", logs);
+        }
     }
 }
