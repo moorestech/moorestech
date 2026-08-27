@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.GearConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.Control;
@@ -38,6 +39,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
         private readonly MapVeinAabbRegistry _veinAabbRegistry;
         private readonly VeinRestrictedPlacementState _veinRestrictedPlacementState;
+        private readonly GearConnectPreview _gearConnectPreview;
 
         private readonly CommonBlockPlaceDragState _dragState = new();
 
@@ -52,6 +54,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _constructionWalletQuery = constructionWalletQuery;
             _veinAabbRegistry = veinAabbRegistry;
             _veinRestrictedPlacementState = veinRestrictedPlacementState;
+            _gearConnectPreview = new GearConnectPreview(blockGameObjectDataStore);
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
             _autoConnectPreview = new ElectricWireAutoConnectPreview(blockGameObjectDataStore, previewBlockController, gameUnlockStateData, constructionWalletQuery);
         }
@@ -68,6 +71,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             {
                 _previewBlockController.SetActive(false);
                 _autoConnectPreview.Hide();
+                _gearConnectPreview.Hide();
             }
 
             // 連続設置状態をリセット
@@ -111,11 +115,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) { _autoConnectPreview.Hide(); return; }
+                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) { _autoConnectPreview.Hide(); _gearConnectPreview.Hide(); return; }
 
                 // 距離外なら理由のみ出しプレビュー無し
                 // Beyond range, show only the reason and no preview
-                if (!IsPlaceableFromPlayer(placePoint)) { _autoConnectPreview.Hide(); feedback.AddTooFar(); return; }
+                if (!IsPlaceableFromPlayer(placePoint)) { _autoConnectPreview.Hide(); _gearConnectPreview.Hide(); feedback.AddTooFar(); return; }
 
                 _previewBlockController.SetActive(true);
 
@@ -148,6 +152,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // 各セルの自動接続を評価し表示更新。cursorIndexは上で解決済みのため再解決しない
                 // Evaluate auto-connect per cell and update the preview; cursorIndex is already resolved above so it is not re-resolved
                 var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, cursorIndex, feedback);
+
+                // 歯車はどの座標同士が噛み合うかを線で示す。設置可否には関与しない
+                // Gears show which cells mesh with which via lines; this never affects placeability
+                _gearConnectPreview.Apply(_currentPlaceInfos, target.BlockId, cursorIndex);
 
                 // 最終的なPlaceable状態でプレビュー色を更新
                 // Update preview colors based on the final Placeable state
