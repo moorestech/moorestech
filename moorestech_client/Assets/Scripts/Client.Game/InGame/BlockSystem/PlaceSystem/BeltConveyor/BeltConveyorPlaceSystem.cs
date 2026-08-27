@@ -89,7 +89,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) return;
+            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) return;
 
             // 設置可能な距離かどうか
             if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return; }
@@ -97,7 +97,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController.SetActive(true);
 
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint);
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, hitSurface == null);
 
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground

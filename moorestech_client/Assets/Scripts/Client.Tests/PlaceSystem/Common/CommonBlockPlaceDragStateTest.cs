@@ -28,7 +28,7 @@ namespace Client.Tests.PlaceSystem.Common
         {
             var dragState = new CommonBlockPlaceDragState();
             dragState.SetClickStartHeightOffset(-1);
-            dragState.BeginDrag(new Vector3Int(1, 2, 3));
+            dragState.BeginDrag(new Vector3Int(1, 2, 3), true);
 
             Assert.IsTrue(dragState.EndDrag());
             Assert.AreEqual(0, dragState.HeightOffset);
@@ -38,7 +38,7 @@ namespace Client.Tests.PlaceSystem.Common
         public void 同じ解放を二度受けても二度目は成立しない()
         {
             var dragState = new CommonBlockPlaceDragState();
-            dragState.BeginDrag(new Vector3Int(1, 2, 3));
+            dragState.BeginDrag(new Vector3Int(1, 2, 3), true);
 
             Assert.IsTrue(dragState.EndDrag());
             Assert.IsFalse(dragState.EndDrag());
@@ -52,7 +52,7 @@ namespace Client.Tests.PlaceSystem.Common
 
             Assert.AreEqual(placePoint, dragState.ResolveDragStartPoint(placePoint));
 
-            dragState.BeginDrag(new Vector3Int(1, 0, 1));
+            dragState.BeginDrag(new Vector3Int(1, 0, 1), true);
             Assert.AreEqual(new Vector3Int(1, 0, 1), dragState.ResolveDragStartPoint(placePoint));
 
             dragState.EndDrag();

@@ -76,3 +76,19 @@
 - 地形プローブが単体設置1回／ドラッグ時セル数分に増える。プローブ回数の設計はplan側で詰める。
 - 既存の「地形に埋まっています」ツールチップ（`PlacementFeedback.AddBlockedByTerrain`）の発火頻度が下がる。
   めり込み判定（`GroundCollisionDetector` のトリガー方式）自体の欠陥修理は今回の範囲外。
+
+## 追補（2026-08-28 コードレビュー後の裁定）
+
+裁定記録: `.decisions/2026-08-28-地形追従の適用範囲とドラッグ規則.md`
+
+- 地形追従の適用は通常ブロック設置の入口（`CommonBlockPlaceSystem.GroundClickControl`）に限る。
+  共有ユーティリティ `PlaceSystemUtil.TryGetRayHitBlockPosition` へ入れると、ベルト・レール・電柱・歯車ポールの
+  Y決定まで無言で変わり、本ADRが非目標と定めた範囲を侵すため。
+  出所: ユーザー裁定 2026-08-28（moores-code-review C1・11系統一致）
+- Y軸へ伸びたドラッグ列（Q/Eの縦積み）は地形追従の対象外とする。追従させると全セルが同一の地形高さへ
+  潰れ、同一座標のPlaceInfoが複数生成される。列の伸長軸は `CommonBlockPlacePointCalculator` が
+  `PlacementRunAxis` で返し、判断は `PlacementGroundFollowPolicy` が行う。
+  出所: ユーザー裁定 2026-08-28 選択「縦積み列は地形追従しない」
+- 地面ヒットかブロック面ヒットかはドラッグ押下時に凍結し、ドラッグ中は列全体へ同じ種別を適用する。
+  毎フレーム判定では面と地面をまたぐ瞬間に列全体の挙動が往復する。
+  出所: ユーザー裁定 2026-08-28 選択「ドラッグ開始時の面で固定する」

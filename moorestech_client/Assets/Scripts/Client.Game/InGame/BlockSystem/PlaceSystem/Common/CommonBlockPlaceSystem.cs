@@ -112,13 +112,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
                 if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) { _autoConnectPreview.Hide(); return; }
 
-                // 地面ヒットのときだけ地形追従する
-                // Follow the terrain only on a ground hit
-                var isGroundHit = hitSurface == null;
+                // ドラッグ中は押下時の面種別で通す
+                // A drag keeps the surface kind from its press
+                var isGroundHit = _dragState.ResolveIsGroundHit(hitSurface == null);
 
                 // 地面ヒットのYは地形最高点から決める
                 // A ground hit decides Y from the terrain max height
-                if (isGroundHit) placePoint = PlacementGroundCellResolver.ResolveCellFromGround(placePoint, _currentBlockDirection, holdingBlockMaster.BlockSize, _dragState.HeightOffset);
+                if (PlacementGroundFollowPolicy.ShouldFollowCursorCell(isGroundHit)) placePoint = PlacementGroundCellResolver.ResolveCellFromGround(placePoint, _currentBlockDirection, holdingBlockMaster.BlockSize, _dragState.HeightOffset);
 
                 // 距離外なら理由のみ出しプレビュー無し
                 // Beyond range, show only the reason and no preview
@@ -127,15 +127,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 _previewBlockController.SetActive(true);
 
                 //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint);
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, isGroundHit);
 
                 //プレビュー表示と地面との接触を取得する
                 //display preview and get collision with ground
-                var placeCauses = UpdateCurrentPlaceInfos(placePoint, holdingBlockMaster);
+                var placeCauses = UpdateCurrentPlaceInfos(placePoint, holdingBlockMaster, out var runAxis);
 
                 // 各セルのYを真下の地形へ追従させる
                 // Make each cell's Y follow the terrain beneath it
-                if (isGroundHit)
+                if (PlacementGroundFollowPolicy.ShouldFollowRunCells(isGroundHit, runAxis))
                 {
                     PlacementGroundCellResolver.ApplyGroundCellY(_currentPlaceInfos, holdingBlockMaster.BlockSize, _dragState.HeightOffset);
 
@@ -174,9 +174,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             // 設置点列を更新し、セル毎の不可原因の列を返す（PlaceInfo列と同じ添字）
             // Updates the placement point list and returns the per-cell block cause column (indexed like the PlaceInfo list)
-            List<PlacementBlockCause> UpdateCurrentPlaceInfos(Vector3Int placePoint, BlockMasterElement holdingBlockMaster)
+            List<PlacementBlockCause> UpdateCurrentPlaceInfos(Vector3Int placePoint, BlockMasterElement holdingBlockMaster, out PlacementRunAxis runAxis)
             {
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_dragState.ResolveDragStartPoint(placePoint), placePoint, _currentBlockDirection, holdingBlockMaster, out var placeCauses);
+                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_dragState.ResolveDragStartPoint(placePoint), placePoint, _currentBlockDirection, holdingBlockMaster, out var placeCauses, out runAxis);
                 return placeCauses;
             }
 

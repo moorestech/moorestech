@@ -15,6 +15,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public int HeightOffset { get; private set; }
 
         private Vector3Int? _clickStartPosition;
+        private bool _clickStartIsGroundHit;
         private int _clickStartHeightOffset;
         private BlockId? _previousSelectedBlockId;
 
@@ -47,10 +48,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _previousSelectedBlockId = blockId;
         }
 
-        public void BeginDrag(Vector3Int clickStartPosition)
+        public void BeginDrag(Vector3Int clickStartPosition, bool isGroundHit)
         {
             _clickStartPosition = clickStartPosition;
+            _clickStartIsGroundHit = isGroundHit;
             _clickStartHeightOffset = HeightOffset;
+        }
+
+        // ドラッグ中は押下時の面種別を使う。毎フレーム判定だと面と地面をまたいだ瞬間に列全体の挙動が往復する
+        // A drag keeps the surface kind from its press; judging per frame makes the whole run flip as the cursor crosses between faces and ground
+        public bool ResolveIsGroundHit(bool currentIsGroundHit)
+        {
+            return _clickStartPosition.HasValue ? _clickStartIsGroundHit : currentIsGroundHit;
         }
 
         public Vector3Int ResolveDragStartPoint(Vector3Int placePoint)

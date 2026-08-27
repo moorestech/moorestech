@@ -29,7 +29,7 @@ namespace Client.Tests.PlaceSystem
 
             var actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), BlockDirection.East,
-                blockMasterElement, (_, _) => true, out _);
+                blockMasterElement, (_, _) => true, out _, out _);
 
             Assert.AreEqual(3, actual.Count);
             foreach (var info in actual)
@@ -49,7 +49,7 @@ namespace Client.Tests.PlaceSystem
 
             var actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(4, 0, 0), BlockDirection.North,
-                blockMasterElement, (_, _) => true, out _);
+                blockMasterElement, (_, _) => true, out _, out _);
 
             Assert.AreEqual(3, actual.Count);
             Assert.AreEqual(new Vector3Int(0, 0, 0), actual[0].Position);
@@ -67,7 +67,7 @@ namespace Client.Tests.PlaceSystem
 
             var actual = CommonBlockPlacePointCalculator.CalculatePoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), BlockDirection.East,
-                blockMasterElement, (info, _) => info.Position != occupied, out var blockCauses);
+                blockMasterElement, (info, _) => info.Position != occupied, out var blockCauses, out _);
 
             Assert.IsTrue(actual[0].Placeable);
             Assert.IsFalse(actual[1].Placeable);
@@ -161,6 +161,28 @@ namespace Client.Tests.PlaceSystem
 
             UnityEngine.Object.DestroyImmediate(existingBlockObject.gameObject);
             UnityEngine.Object.DestroyImmediate(dataStoreObject);
+        }
+
+        // 伸長軸を呼び出し側へ返す（地面ヒットの縦積み列を追従から外すのに使う）
+        // Reports the extended axis to the caller, used to exclude vertical stacking runs from terrain following
+        [Test]
+        public void CalculatePoint_ReportsExtendedRunAxis()
+        {
+            var blockMasterElement = MakeBlock(Vector3Int.one);
+
+            CommonBlockPlacePointCalculator.CalculatePoint(
+                Vector3Int.zero, new Vector3Int(2, 0, 0), BlockDirection.North,
+                blockMasterElement, (_, _) => true, out _, out var xAxis);
+            CommonBlockPlacePointCalculator.CalculatePoint(
+                Vector3Int.zero, new Vector3Int(0, 0, 2), BlockDirection.North,
+                blockMasterElement, (_, _) => true, out _, out var zAxis);
+            CommonBlockPlacePointCalculator.CalculatePoint(
+                Vector3Int.zero, new Vector3Int(0, 2, 0), BlockDirection.North,
+                blockMasterElement, (_, _) => true, out _, out var yAxis);
+
+            Assert.AreEqual(PlacementRunAxis.X, xAxis);
+            Assert.AreEqual(PlacementRunAxis.Z, zAxis);
+            Assert.AreEqual(PlacementRunAxis.Y, yAxis);
         }
 
         // 自動プロパティのバッキングフィールドへ直接書き、Initializeの外部依存を避ける
