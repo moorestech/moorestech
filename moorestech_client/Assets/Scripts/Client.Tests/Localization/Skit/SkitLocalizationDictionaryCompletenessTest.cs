@@ -17,7 +17,6 @@ namespace Client.Tests.Localization.Skit
         {
             "skit.100_start_game.1.body", "skit.100_start_game.2.body",
             "skit.100_start_game.3.body", "skit.100_start_game.4.body",
-            "skit.100_start_game.31.overrideCharacterName",
             "skit.sample_short.9.Option1Tag", "skit.sample_short.9.Option2Tag",
             "skit.sample_short.9.Option3Tag",
             "skit.200_star_background.1.body",
