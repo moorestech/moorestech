@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
 import type { ReactTestRenderer } from "react-test-renderer";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 // node環境はdocumentを持たないため、CSS変数の読み取りをテスト用の逃げ量へ差し替える
 // The node environment has no document, so the CSS variable read is swapped for a test clearance
@@ -37,7 +37,6 @@ const baseProps = (props: Partial<Parameters<typeof TreeView<TestNode>>[0]>) => 
   getPosition: (node: TestNode) => ({ x: node.x, y: node.y }),
   getPrevIds: (node: TestNode) => node.prevIds,
   renderNode: () => createElement("span", null, "node"),
-  nodeTargetSelector: "[data-node]",
   testIdPrefix: "test",
   ...props,
 });
@@ -62,7 +61,7 @@ const pan = (renderer: ReactTestRenderer, moves: Array<{ x: number; y: number }>
   for (const move of moves) {
     act(() => viewport.props.onPointerMove({ pointerId: 1, clientX: move.x, clientY: move.y, currentTarget: pointerTarget }));
   }
-  act(() => viewport.props.onPointerUp({ pointerId: 1 }));
+  act(() => viewport.props.onPointerUp({ pointerId: 1, button: 0 }));
 };
 
 // 滑走速度を作る等速ドラッグ(upなし)
@@ -81,9 +80,6 @@ const dragFast = (renderer: ReactTestRenderer, advance: (ms: number) => void) =>
 };
 
 describe("TreeView viewport state", () => {
-  // node環境にはElementが無いためinstanceof判定用に埋める
-  // Node env lacks Element, so stub it for the instanceof check
-  beforeEach(() => vi.stubGlobal("Element", class TestElement {}));
   afterEach(() => {
     wheelHandlers.length = 0;
     vi.unstubAllGlobals();
@@ -162,7 +158,7 @@ describe("TreeView viewport state", () => {
 
     const renderer = mount({});
     const viewport = dragFast(renderer, (ms) => { now += ms; });
-    act(() => viewport.props.onPointerUp({ pointerId: 1 }));
+    act(() => viewport.props.onPointerUp({ pointerId: 1, button: 0 }));
     expect(frameQueue.length).toBe(1);
 
     // rAFで滑走し減衰しきって停止

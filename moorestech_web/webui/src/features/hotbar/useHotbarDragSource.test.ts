@@ -48,7 +48,7 @@ describe("useHotbarDragSource", () => {
 
     act(() => view.props.onPointerDown({ isPrimary: true, button: 0, pointerId: 1, clientX: 0, clientY: 0, preventDefault, currentTarget: ct }));
     act(() => view.props.onPointerMove({ pointerId: 1, clientX: 2, clientY: 2 }));
-    act(() => view.props.onPointerUp({ pointerId: 1, clientX: 2, clientY: 2 }));
+    act(() => view.props.onPointerUp({ pointerId: 1, button: 0, clientX: 2, clientY: 2 }));
 
     expect(preventDefault).toHaveBeenCalled();
     expect(ct.setPointerCapture).toHaveBeenCalledWith(1);
@@ -65,7 +65,7 @@ describe("useHotbarDragSource", () => {
 
     act(() => view.props.onPointerDown({ isPrimary: true, button: 0, pointerId: 1, clientX: 0, clientY: 0, preventDefault: vi.fn(), currentTarget: ct }));
     act(() => view.props.onPointerMove({ pointerId: 1, clientX: 10, clientY: 0 }));
-    act(() => view.props.onPointerUp({ pointerId: 1, clientX: 10, clientY: 0 }));
+    act(() => view.props.onPointerUp({ pointerId: 1, button: 0, clientX: 10, clientY: 0 }));
 
     expect(onTap).not.toHaveBeenCalled();
   });
@@ -78,7 +78,7 @@ describe("useHotbarDragSource", () => {
 
     act(() => view.props.onPointerDown({ isPrimary: true, button: 0, pointerId: 1, clientX: 0, clientY: 0, preventDefault: vi.fn(), currentTarget: ct }));
     act(() => view.props.onPointerMove({ pointerId: 1, clientX: 10, clientY: 0 }));
-    act(() => view.props.onPointerUp({ pointerId: 1, clientX: 10, clientY: 0 }));
+    act(() => view.props.onPointerUp({ pointerId: 1, button: 0, clientX: 10, clientY: 0 }));
 
     expect(host.dispatchAction).toHaveBeenCalledWith("hotbar.clear", { slot: 3 });
   });
@@ -92,7 +92,7 @@ describe("useHotbarDragSource", () => {
 
     act(() => view.props.onPointerDown({ isPrimary: true, button: 0, pointerId: 1, clientX: 0, clientY: 0, preventDefault: vi.fn(), currentTarget: ct }));
     act(() => view.props.onPointerMove({ pointerId: 1, clientX: 10, clientY: 0 }));
-    act(() => view.props.onPointerUp({ pointerId: 1, clientX: 10, clientY: 0 }));
+    act(() => view.props.onPointerUp({ pointerId: 1, button: 0, clientX: 10, clientY: 0 }));
 
     expect(host.dispatchAction).toHaveBeenCalledWith("hotbar.swap", { from: 3, to: 5 });
   });
@@ -106,7 +106,7 @@ describe("useHotbarDragSource", () => {
 
     act(() => view.props.onPointerDown({ isPrimary: true, button: 0, pointerId: 1, clientX: 0, clientY: 0, preventDefault: vi.fn(), currentTarget: ct }));
     act(() => view.props.onPointerMove({ pointerId: 1, clientX: 10, clientY: 0 }));
-    act(() => view.props.onPointerUp({ pointerId: 1, clientX: 10, clientY: 0 }));
+    act(() => view.props.onPointerUp({ pointerId: 1, button: 0, clientX: 10, clientY: 0 }));
 
     expect(host.dispatchAction).toHaveBeenCalledWith("hotbar.assign", { slot: 2, id: "guid-a" });
   });
@@ -120,7 +120,7 @@ describe("useHotbarDragSource", () => {
 
     act(() => view.props.onPointerDown({ isPrimary: true, button: 0, pointerId: 1, clientX: 0, clientY: 0, preventDefault: vi.fn(), currentTarget: ct }));
     act(() => view.props.onPointerMove({ pointerId: 1, clientX: 40, clientY: 0 }));
-    act(() => view.props.onPointerUp({ pointerId: 1, clientX: 40, clientY: 0 }));
+    act(() => view.props.onPointerUp({ pointerId: 1, button: 0, clientX: 40, clientY: 0 }));
 
     expect(onTap).not.toHaveBeenCalled();
     expect(host.dispatchAction).not.toHaveBeenCalled();

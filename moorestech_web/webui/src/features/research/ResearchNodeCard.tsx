@@ -10,25 +10,24 @@ type Props = {
   left: number;
   top: number;
   selected: boolean;
-  onSelect: (guid: string) => void;
 };
 
 // モック準拠の「研究名+アイコン」ノードカード。詳細は選択時の詳細ペインが担う
 // Mock-compliant "name + icon" node card; details live in the selection detail pane
-export default function ResearchNodeCard({ node, left, top, selected, onSelect }: Props) {
+// 選択の入口はTreeViewのタップ判定へ一本化しているのでカード自身は押下を受けない(ADR 0033)
+// TreeView's tap detection is the single entry for selection, so the card itself takes no press (ADR 0033)
+export default function ResearchNodeCard({ node, left, top, selected }: Props) {
   const cardState = deriveNodeCardState(node);
   const { t } = useI18n();
   return (
     <div
       className={styles.node}
       style={{ left, top }}
-      data-research-node
       data-selected={selected || undefined}
       data-completed={cardState.completed || undefined}
       data-ready={cardState.ready || undefined}
       data-locked={cardState.locked || undefined}
       data-testid={`research-node-${node.guid}`}
-      onClick={() => onSelect(node.guid)}
       {...tutorialAnchor(researchNodeAnchorId(node.guid))}
     >
       <span className={styles.nodeName}>{t(researchNameKey(node.guid))}</span>
