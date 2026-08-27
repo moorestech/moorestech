@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Context;
 using Game.PlayerInventory.Event;
 using Game.PlayerInventory.Interface;
 using Game.PlayerInventory.Interface.Event;
@@ -51,6 +52,16 @@ namespace Game.PlayerInventory
                 var main = new MainOpenableInventoryData(playerId, _mainInventoryUpdateEvent, _slotLevelDataStore.CurrentSlotCount);
                 var grab = new GrabInventoryData(playerId, _grabInventoryUpdateEvent);
                 var equipment = new EquipmentInventoryData(playerId, _equipmentInventoryUpdateEvent);
+
+                // 新規プレイヤーだけが通る分岐。接続前にイベントを飛ばさないため無イベント復元と同じ経路で入れる
+                // Only brand-new players reach here; use the event-free restore path so nothing is sent before the client connects
+                var initialStacks = InitialEquipmentMasterUtil.CreateInitialEquipmentStacks(ServerContext.ItemStackFactory);
+                var overflowInitialItems = equipment.RestoreFromSave(initialStacks, 0);
+                foreach (var overflow in overflowInitialItems)
+                {
+                    if (overflow.Count == 0) continue;
+                    Debug.LogError($"初期装備が装備スロットに収まりません playerId:{playerId} itemId:{overflow.Id} count:{overflow.Count}");
+                }
 
                 _playerInventoryData.Add(playerId, new PlayerInventoryData(main, grab, equipment));
             }
