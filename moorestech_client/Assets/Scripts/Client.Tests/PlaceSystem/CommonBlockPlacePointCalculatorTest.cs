@@ -1,9 +1,16 @@
 using System;
+using System.Collections.Generic;
+using Client.Game.InGame.Block;
+using Core.Master;
+using Game.Context;
+using Tests.Module.TestMod;
+using Server.Protocol.PacketResponse;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
+using Server.Boot;
 using UnityEngine;
 
 namespace Client.Tests.PlaceSystem
@@ -70,6 +77,41 @@ namespace Client.Tests.PlaceSystem
             Assert.AreEqual(PlacementBlockCause.None, blockCauses[0]);
             Assert.AreEqual(PlacementBlockCause.ExistingBlock, blockCauses[1]);
             Assert.AreEqual(PlacementBlockCause.None, blockCauses[2]);
+        }
+
+
+        // Y確定後に既存ブロック判定を取り直すと、古い位置由来の不可フラグが解除されること
+        // Re-checking after Y is final clears a not-placeable flag left over from the old position
+        [Test]
+        public void RecalculateExistingBlockCauses_ClearsStaleCause()
+        {
+            // 重なり判定がMasterHolderからブロックサイズを引くため、マスタをロードした状態で回す
+            // The overlap check pulls the block size from MasterHolder, so the masters are loaded first
+            new MoorestechServerDIContainerGenerator().Create(
+                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var dataStoreObject = new GameObject("BlockGameObjectDataStore");
+            var calculator = new CommonBlockPlacePointCalculator(dataStoreObject.AddComponent<BlockGameObjectDataStore>());
+
+            var blockElement = MasterHolder.BlockMaster.Blocks.Data[0];
+            var placeInfos = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = new Vector3Int(0, 5, 0),
+                    Direction = BlockDirection.North,
+                    BlockId = MasterHolder.BlockMaster.GetBlockId(blockElement.BlockGuid),
+                    Placeable = false,
+                },
+            };
+            var blockCauses = new List<PlacementBlockCause> { PlacementBlockCause.ExistingBlock };
+
+            calculator.RecalculateExistingBlockCauses(placeInfos, blockElement, blockCauses);
+
+            Assert.IsTrue(placeInfos[0].Placeable);
+            Assert.AreEqual(PlacementBlockCause.None, blockCauses[0]);
+
+            UnityEngine.Object.DestroyImmediate(dataStoreObject);
         }
 
         private static BlockMasterElement MakeBlock(Vector3Int blockSize)

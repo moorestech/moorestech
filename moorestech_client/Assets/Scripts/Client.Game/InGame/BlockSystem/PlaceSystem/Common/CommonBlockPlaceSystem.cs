@@ -130,7 +130,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // 各セルのYを自分の真下の地形へ追従させる（ドラッグ開始セルのYコピーを打ち消す。ADR 0037）
                 // Make each cell's Y follow the terrain beneath it, cancelling the drag start cell's Y copy (ADR 0037)
-                if (isGroundHit) PlacementGroundCellResolver.ApplyGroundCellY(_currentPlaceInfos, holdingBlockMaster.BlockSize, _dragState.HeightOffset);
+                if (isGroundHit)
+                {
+                    PlacementGroundCellResolver.ApplyGroundCellY(_currentPlaceInfos, holdingBlockMaster.BlockSize, _dragState.HeightOffset);
+
+                    // 既存ブロックとの重なりはY確定前に判定済みなので、追従後の位置で取り直す
+                    // The overlap with existing blocks was judged before Y was final, so it is re-taken at the followed positions
+                    _blockPlacePointCalculator.RecalculateExistingBlockCauses(_currentPlaceInfos, holdingBlockMaster, placeCauses);
+                }
 
                 var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
