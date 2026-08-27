@@ -30,7 +30,7 @@ describe("useDragScroll", () => {
 
     act(() => view.props.onPointerDown({ isPrimary: true, button: 0, pointerId: 1, clientX: 0, clientY: 0, target, currentTarget: vp }));
     act(() => view.props.onPointerMove({ pointerId: 1, clientX: 2, clientY: 2, currentTarget: vp }));
-    act(() => view.props.onPointerUp({ pointerId: 1, clientX: 2, clientY: 2, currentTarget: vp }));
+    act(() => view.props.onPointerUp({ pointerId: 1, button: 0, clientX: 2, clientY: 2, currentTarget: vp }));
 
     // 押下時点で捕捉するので、窓外リリースでもup/cancelが届きジェスチャが残らない
     // Capture at press time so up/cancel always arrive even on an outside release; no gesture leak
@@ -49,7 +49,7 @@ describe("useDragScroll", () => {
     // 上へ30pxドラッグ: scrollTop = 100 - (170 - 200) = 130
     // Drag 30px up: scrollTop = 100 - (170 - 200) = 130
     act(() => view.props.onPointerMove({ pointerId: 1, clientX: 0, clientY: 170, currentTarget: vp }));
-    act(() => view.props.onPointerUp({ pointerId: 1, clientX: 0, clientY: 170, currentTarget: vp }));
+    act(() => view.props.onPointerUp({ pointerId: 1, button: 0, clientX: 0, clientY: 170, currentTarget: vp }));
 
     expect(vp.setPointerCapture).toHaveBeenCalledWith(1);
     expect(vp.scrollTop).toBe(130);
