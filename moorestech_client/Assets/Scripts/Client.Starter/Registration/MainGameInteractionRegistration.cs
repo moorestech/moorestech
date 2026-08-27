@@ -16,6 +16,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Player.StateController.State;
@@ -80,6 +81,7 @@ namespace Client.Starter.Registration
             builder.Register<IPlaceSystemSelector, PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
             builder.Register<MapVeinAabbRegistry>(Lifetime.Singleton);
+            builder.Register<VeinRestrictedPlacementState>(Lifetime.Singleton);
             builder.Register<MapVeinRangeViewService>(Lifetime.Singleton).As<IMapVeinRangeView>();
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);

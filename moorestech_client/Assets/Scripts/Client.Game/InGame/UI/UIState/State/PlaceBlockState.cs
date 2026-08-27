@@ -3,7 +3,10 @@ using Mooresmaster.Localization.Generated;
 using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
+using Core.Master;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
@@ -25,6 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
+        private readonly VeinRestrictedPlacementState _veinRestrictedPlacementState;
         private readonly HotbarTapInputService _hotbarInputService;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
@@ -39,6 +43,7 @@ namespace Client.Game.InGame.UI.UIState.State
             UiStateCameraPolicyService cameraPolicyService,
             BuildUndoService buildUndoService,
             IMapVeinRangeView mapVeinRangeView,
+            VeinRestrictedPlacementState veinRestrictedPlacementState,
             HotbarTapInputService hotbarInputService)
         {
             _skitManager = skitManager;
@@ -48,11 +53,32 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService = cameraPolicyService;
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
+            _veinRestrictedPlacementState = veinRestrictedPlacementState;
             _hotbarInputService = hotbarInputService;
 
-            // 設置対象が変わった時だけ表示種別をプッシュする。毎フレームの再導出はしない
-            // Push the vein kind only when the placement target changes; never re-derive it every frame
-            _placeSystemStateController.OnTargetChanged.Subscribe(target => _mapVeinRangeView.SetVisibleVeinKind(PlacementVeinViewKindResolver.Resolve(target)));
+            // 設置対象か制限が変わった時だけ表示種別と強調鉱脈をプッシュする。毎フレームの再導出はしない
+            // Push the vein kind and the highlighted vein only when the target or the restriction changes; never re-derive per frame
+            _placeSystemStateController.OnTargetChanged.Subscribe(PushVeinView);
+            _veinRestrictedPlacementState.OnChanged.Subscribe(_ => PushVeinView(_placeSystemStateController.CurrentTarget));
+
+            #region Internal
+
+            void PushVeinView(IPlacementTarget target)
+            {
+                _mapVeinRangeView.SetVisibleVeinKind(PlacementVeinViewKindResolver.Resolve(target));
+                _mapVeinRangeView.SetHighlightedVein(ResolveHighlightedVein(target));
+            }
+
+            // 制限対象ブロックを持っている間だけ対象鉱脈を強調する
+            // Highlight the target vein only while the restricted block is the placement target
+            Guid? ResolveHighlightedVein(IPlacementTarget target)
+            {
+                if (target is not BlockPlacementTarget blockTarget) return null;
+                var blockId = MasterHolder.BlockMaster.GetBlockId(blockTarget.BlockGuid);
+                return _veinRestrictedPlacementState.IsRestrictedBlock(blockId) ? _veinRestrictedPlacementState.VeinGuid : null;
+            }
+
+            #endregion
         }
 
         public void OnEnter(UITransitContext context)
