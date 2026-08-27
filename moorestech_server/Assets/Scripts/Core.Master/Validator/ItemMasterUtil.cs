@@ -17,6 +17,7 @@ namespace Core.Master.Validator
             errorLogs += ModulesValidation();
             errorLogs += LevelFamiliesValidation();
             errorLogs += StackLevelTableValidation();
+            errorLogs += InitialEquipmentValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -131,6 +132,26 @@ namespace Core.Master.Validator
                 foreach (var item in items.Data)
                     if (!tableGuids.Contains(item.StackLevelTableGuid))
                         logs += $"[ItemMaster.data] Name:{item.Name} references missing StackLevelTableGuid:{item.StackLevelTableGuid}\n";
+
+                return logs;
+            }
+
+            // 初期装備は未定義アイテムを指せない。装備スロットを超える分は投入時に捨てられるためここで弾く
+            // Initial equipment must reference defined items; entries beyond the equipment slot count would be dropped on grant, so reject them here
+            string InitialEquipmentValidation()
+            {
+                var logs = "";
+                if (items.InitialEquipmentItems == null) return logs;
+
+                foreach (var initial in items.InitialEquipmentItems)
+                {
+                    if (!allItemGuids.Contains(initial.ItemGuid))
+                        logs += $"[ItemMaster.initialEquipmentItems] has invalid ItemGuid:{initial.ItemGuid}\n";
+                    if (initial.ItemCount <= 0)
+                        logs += $"[ItemMaster.initialEquipmentItems] ItemGuid:{initial.ItemGuid} has non-positive ItemCount:{initial.ItemCount}\n";
+                }
+                if (items.EquipmentSlotCount < items.InitialEquipmentItems.Length)
+                    logs += $"[ItemMaster.initialEquipmentItems] count:{items.InitialEquipmentItems.Length} exceeds EquipmentSlotCount:{items.EquipmentSlotCount}\n";
 
                 return logs;
             }

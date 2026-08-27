@@ -91,6 +91,28 @@ namespace Core.Master.Validator
                                 }
                                 break;
                             }
+                            case BlockPlaceOnVeinTaskParam blockPlaceOnVein:
+                            {
+                                // 対象ブロックと対象鉱脈の両方が実在しないと永久に達成不能になる
+                                // The challenge is impossible unless both the block and the vein exist
+                                if (MasterHolder.BlockMaster.GetBlockIdOrNull(blockPlaceOnVein.BlockGuid) == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.BlockGuid:{blockPlaceOnVein.BlockGuid}\n";
+                                }
+                                if (MasterHolder.MapVeinMaster.GetElementOrNull(blockPlaceOnVein.VeinGuid) == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.VeinGuid:{blockPlaceOnVein.VeinGuid}\n";
+                                }
+                                break;
+                            }
+                            case GearConnectedBlockTaskParam gearConnectedBlock:
+                            {
+                                if (MasterHolder.BlockMaster.GetBlockIdOrNull(gearConnectedBlock.BlockGuid) == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.BlockGuid:{gearConnectedBlock.BlockGuid}\n";
+                                }
+                                break;
+                            }
                             default:
                                 logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated TaskParam type:{challenge.TaskParam?.GetType().Name}\n";
                                 break;
@@ -180,6 +202,32 @@ namespace Core.Master.Validator
                                     if (blockId == null)
                                     {
                                         logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.BlockGuid:{blockPlacePreview.BlockGuid}\n";
+                                    }
+                                    break;
+                                }
+                                case VeinRestrictedPlacementTutorialParam veinRestricted:
+                                {
+                                    // 強調と設置許可の対象。どちらが欠けても設置不能なチュートリアルになる
+                                    // Both targets gate highlighting and placement; a missing one makes placement impossible
+                                    if (MasterHolder.MapVeinMaster.GetElementOrNull(veinRestricted.VeinGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.VeinGuid:{veinRestricted.VeinGuid}\n";
+                                    }
+                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(veinRestricted.BlockGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.BlockGuid:{veinRestricted.BlockGuid}\n";
+                                    }
+                                    break;
+                                }
+                                case RelativeBlockPlacePreviewTutorialParam relativePreview:
+                                {
+                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(relativePreview.AnchorBlockGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.AnchorBlockGuid:{relativePreview.AnchorBlockGuid}\n";
+                                    }
+                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(relativePreview.BlockGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.BlockGuid:{relativePreview.BlockGuid}\n";
                                     }
                                     break;
                                 }
