@@ -50,8 +50,8 @@ namespace Core.Master.Validator
 
             string EarnItemsValidation()
             {
-                // 取得アイテムのないmapObjectは殴っても何も出ない
-                // A map object without earn items yields nothing when mined
+                // 取得アイテム無しは殴っても空振り
+                // Empty earn items yield nothing when mined
                 var logs = "";
                 foreach (var mapObjectElement in map.MapObjects)
                 {

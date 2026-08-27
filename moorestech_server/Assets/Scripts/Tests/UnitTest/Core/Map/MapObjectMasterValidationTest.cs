@@ -64,8 +64,8 @@ namespace Tests.UnitTest.Core.Map
             var miningMapObject = ((JArray)json["mapObjects"]).Children<JObject>()
                 .Single(element => (string)element["miningType"] == "Mining");
 
-            // 実在定義のearnItemsだけを空にし、他のマスタ整合性から独立させる
-            // Empty only earnItems on a valid definition so other master consistency remains intact
+            // earnItemsだけを空にする
+            // Empty only earnItems on a valid definition
             miningMapObject["earnItems"] = new JArray();
             var master = new MapObjectMaster(json);
 
