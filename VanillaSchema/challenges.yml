@@ -76,6 +76,8 @@ properties:
           - blockPlace
           - completeResearch
           - equipItem
+          - blockPlaceOnVein
+          - gearConnectedBlock
         - key: taskParam
           isDefaultOpen: true
           switch: ./taskCompletionType
@@ -131,6 +133,30 @@ properties:
                 schemaId: items
                 foreignKeyIdPath: /data/[*]/itemGuid
                 displayElementPath: /data/[*]/name
+          - when: blockPlaceOnVein
+            type: object
+            properties:
+            - key: blockGuid
+              type: uuid
+              foreignKey:
+                schemaId: blocks
+                foreignKeyIdPath: /data/[*]/blockGuid
+                displayElementPath: /data/[*]/name
+            - key: veinGuid
+              type: uuid
+              foreignKey:
+                schemaId: map
+                foreignKeyIdPath: /mapVeins/[*]/veinGuid
+                displayElementPath: /mapVeins/[*]/veinName
+          - when: gearConnectedBlock
+            type: object
+            properties:
+            - key: blockGuid
+              type: uuid
+              foreignKey:
+                schemaId: blocks
+                foreignKeyIdPath: /data/[*]/blockGuid
+                displayElementPath: /data/[*]/name
         - key: tutorials
           type: array
           isDefaultOpen: true
@@ -151,6 +177,8 @@ properties:
               - itemViewHighLight
               - blockPlacePreview
               - uiDragGuide
+              - veinRestrictedPlacement
+              - relativeBlockPlacePreview
             - key: tutorialParam
               switch: ./tutorialType
               cases:
@@ -286,6 +314,58 @@ properties:
                 - key: toAnchorId
                   type: string
                   default: to web anchor id
+              - when: veinRestrictedPlacement
+                type: object
+                properties:
+                - key: veinGuid
+                  type: uuid
+                  foreignKey:
+                    schemaId: map
+                    foreignKeyIdPath: /mapVeins/[*]/veinGuid
+                    displayElementPath: /mapVeins/[*]/veinName
+                - key: blockGuid
+                  type: uuid
+                  foreignKey:
+                    schemaId: blocks
+                    foreignKeyIdPath: /data/[*]/blockGuid
+                    displayElementPath: /data/[*]/name
+              - when: relativeBlockPlacePreview
+                type: object
+                openedByDefault: true
+                properties:
+                - key: anchorBlockGuid
+                  type: uuid
+                  foreignKey:
+                    schemaId: blocks
+                    foreignKeyIdPath: /data/[*]/blockGuid
+                    displayElementPath: /data/[*]/name
+                - key: blockGuid
+                  type: uuid
+                  foreignKey:
+                    schemaId: blocks
+                    foreignKeyIdPath: /data/[*]/blockGuid
+                    displayElementPath: /data/[*]/name
+                - key: offset
+                  type: vector3Int
+                - key: blockDirection
+                  type: enum
+                  default: North
+                  options:
+                  - UpNorth
+                  - UpEast
+                  - UpSouth
+                  - UpWest
+                  - North
+                  - East
+                  - South
+                  - West
+                  - DownNorth
+                  - DownEast
+                  - DownSouth
+                  - DownWest
+                - key: message
+                  type: string
+                  default: Place the block next to the highlighted one
         - key: startedActions
           ref: gameAction
         - key: clearedActions
