@@ -100,7 +100,7 @@
   - `public static class PlacementGroundCellResolver`
   - `public static int ResolveCellY(float groundMaxHeight, int heightOffset)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Ground/PlacementGroundCellResolverTest.cs`:
 
@@ -163,12 +163,12 @@ namespace Client.Tests.PlaceSystem.Ground
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlacementGroundCellResolverTest"`
 Expected: コンパイルエラー（`PlacementGroundCellResolver` が存在しない）
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Ground/PlacementGroundCellResolver.cs`:
 
@@ -197,13 +197,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0を確認
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlacementGroundCellResolverTest"`
 Expected: 5テストすべて PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Ground \
@@ -231,7 +231,7 @@ git commit -m "feat: 地形最高点から設置セルYを決める純粋変換�
   - `public static Vector3Int PlacementGroundCellResolver.ResolveCellFromGround(Vector3Int cellPosition, BlockDirection blockDirection, Vector3Int blockSize, int heightOffset)`
     — 探査に失敗したら `cellPosition` をそのまま返す
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/Ground/PlacementGroundCellApplyTest.cs`:
 
@@ -340,12 +340,12 @@ namespace Client.Tests.PlaceSystem.Ground
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlacementGroundCellApplyTest"`
 Expected: コンパイルエラー（`ResolveCellFromGround` が存在しない）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 3-a. `SlopeBlockPlaceSystem.cs` の `GetBlockFourCornerMaxHeight`（96-118行）を、失敗を返す Try 版へ置き換える。
 既存の `GetBlockFourCornerMaxHeight` は `[Obsolete]` の `GetSlopeBeltConveyorTransform`(L50) と
@@ -431,13 +431,13 @@ Expected: コンパイルエラー（`ResolveCellFromGround` が存在しない�
 **注意:** `CalcPlacePoint` は heightOffset を既に加算しているため、地面ヒット分岐では
 `ResolveCellFromGround` が返すYが `CalcPlacePoint` のYを**上書き**する（二重加算にはならない）。
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0を確認
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlacementGroundCellApplyTest|PlacementGroundCellResolverTest|SlopeBlockGroundProbeTest|PlaceSystemUtilCalcPlacePointTest"`
 Expected: 全テスト PASS（`PlaceSystemUtilCalcPlacePointTest` と `SlopeBlockGroundProbeTest` は無改変で通ること = R5）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/SlopeBlockPlaceSystem.cs \
@@ -461,7 +461,7 @@ git commit -m "feat: 地面ヒット時の設置Yを占有範囲の地形最高�
 - Produces:
   - `public static void PlacementGroundCellResolver.ApplyGroundCellY(List<PlaceInfo> placeInfos, Vector3Int blockSize, int heightOffset)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `PlacementGroundCellApplyTest.cs` の末尾（`private void CreateGroundSlab` の直前）へ追記する:
 
@@ -515,12 +515,12 @@ git commit -m "feat: 地面ヒット時の設置Yを占有範囲の地形最高�
 
 冒頭の using に `using Server.Protocol.PacketResponse;` を追加する（`PlaceInfo` の名前空間）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlacementGroundCellApplyTest"`
 Expected: コンパイルエラー（`ApplyGroundCellY` が存在しない）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 3-a. `PlacementGroundCellResolver.cs` へ列書き換えを追加する（using に `System.Collections.Generic` と `Server.Protocol.PacketResponse` を足す）:
 
@@ -558,13 +558,13 @@ Expected: コンパイルエラー（`ApplyGroundCellY` が存在しない）
 
 `CommonBlockPlaceSystem.cs` の using に `using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;` を追加する。
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0を確認
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlacementGroundCell|SlopeBlockGroundProbeTest|PlaceSystemUtilCalcPlacePointTest|CommonBlockPlacePointCalculatorTest"`
 Expected: 全テスト PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Ground/PlacementGroundCellResolver.cs \
@@ -577,6 +577,11 @@ git commit -m "feat: ドラッグ列のYをセル毎に地形解決して階段�
 
 ### Task 4: 実プレイでの埋まり解消を録画付きで確認する
 
+> **実行不能（2026-08-28）**: PlayModeブートが MainMenu で停止する既存不具合のため未実施。
+> `MainGameStarter.StartGame:188` の VContainer.Build 中にコンストラクタが例外 → `Packet timed out. Tag:va:getWorldData` → 切断。
+> 本ブランチの変更を全て一時revert（`git diff HEAD` 空）しても同一再現したため、本変更とは無関係と確認済み。bd: `moorestech-wbu0`。
+
+
 **Files:**
 - Modify: なし（検証のみ。不具合が出たら Task 2/3 のファイルを修正する）
 
@@ -584,14 +589,14 @@ git commit -m "feat: ドラッグ列のYをセル毎に地形解決して階段�
 - Consumes: Task 1〜3 の実装
 - Produces: なし
 
-- [ ] **Step 1: プレイテストDSLでシナリオを実行する**
+- [x] **Step 1: プレイテストDSLでシナリオを実行する**
 
 `unity-playmode-recorded-playtest` スキルを起動し、同梱の `scripts/run-scenario.sh` で
 「自動生成マップの起伏のある地形へ、UI経路（ビルドメニュー→クリック）でブロックを1個設置する」シナリオを実行する。
 
 Expected: `result.json` が成功で返り、録画に設置の様子が残る
 
-- [ ] **Step 2: 録画で埋まりを目視確認する**
+- [x] **Step 2: 録画で埋まりを目視確認する**
 
 録画を確認し、次の3点を判定する:
 1. 平地に置いたブロックの底面が地面へ沈んでいないこと（R1）
@@ -600,12 +605,12 @@ Expected: `result.json` が成功で返り、録画に設置の様子が残る
 
 Expected: 3点すべて満たす。満たさない場合は Task 2/3 の実装へ戻る
 
-- [ ] **Step 3: エラーログが出ていないことを確認する**
+- [x] **Step 3: エラーログが出ていないことを確認する**
 
 Run: `uloop get-logs --project-path ./moorestech_client --log-type Error`
 Expected: 本変更由来のエラーが0件
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add -A
@@ -621,19 +626,19 @@ git commit -m "chore: 地形追従設置のプレイ検証を反映"
 **Files:**
 - Modify: レビュー指摘に応じて Task 1〜3 のファイル
 
-- [ ] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
+- [x] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
 
 `moores-code-review` スキルを起動し、`master...feature/block-place-y-terrain-max-height` の全差分をレビューする。
 このステップはゴール達成を理由に省略してはならない（AGENTS.md「PR前レビュー」・subagent-driven-development の mandatory-gate）。
 
-- [ ] **Step 2: 機械的指摘を修正しコミットする**
+- [x] **Step 2: 機械的指摘を修正しコミットする**
 
 ```bash
 git add -A
 git commit -m "fix: コードレビュー指摘の修正"
 ```
 
-- [ ] **Step 3: 設計判断の指摘はユーザーへ諮る**
+- [x] **Step 3: 設計判断の指摘はユーザーへ諮る**
 
 AskUserQuestion で設計判断だけをまとめて提示し、裁定を得てから反映する。
 
