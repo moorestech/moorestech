@@ -35,8 +35,8 @@ namespace Client.Tests.PlaceSystem
             // The high slab under the single corner (11,21); only taking the max returns this height
             _highStep = CreateGroundSlab(new Vector3(11f, 34f, 21f), Vector3.one);
 
-            var height = SlopeBlockPlaceSystem.GetBlockFourCornerMaxHeight(
-                blockPos, BlockDirection.North, Vector3Int.one);
+            Assert.IsTrue(SlopeBlockPlaceSystem.TryGetBlockFourCornerMaxHeight(
+                blockPos, BlockDirection.North, Vector3Int.one, out var height));
 
             Assert.AreEqual(34.5f, height, 0.001f, "四隅の最大を取れていない");
         }

@@ -95,8 +95,8 @@ namespace Client.Tests.PlaceSystem.Ground
         [Test]
         public void ドラッグ列は各セルがそれぞれの地形へ追従する()
         {
-            // 隣接セルは四隅を共有するため薄い柱で段差を作る
-            // Adjacent cells share corners, so thin pillars form the steps
+            // 隣接セルは四隅共有のため薄い柱で段差
+            // Adjacent cells share corners, forming thin-pillar steps
             CreateGroundSlab(new Vector3(1001.5f, 9.9f, 1100.5f), new Vector3(8f, 1f, 6f));
             CreateGroundSlab(new Vector3(1002f, 13.9f, 1100.5f), new Vector3(0.2f, 1f, 6f));
             CreateGroundSlab(new Vector3(1003f, 17.9f, 1100.5f), new Vector3(0.2f, 1f, 6f));
@@ -110,8 +110,8 @@ namespace Client.Tests.PlaceSystem.Ground
 
             PlacementGroundCellResolver.ApplyGroundCellY(placeInfos, Vector3Int.one, 0);
 
-            // 最高点 10.4/14.4/18.4 からY 11/15/19
-            // Maxima 10.4/14.4/18.4 give cell Ys 11/15/19
+            // 最高点→Y: 11/15/19
+            // Maxima → Y: 11/15/19
             Assert.AreEqual(11, placeInfos[0].Position.y);
             Assert.AreEqual(15, placeInfos[1].Position.y);
             Assert.AreEqual(19, placeInfos[2].Position.y);

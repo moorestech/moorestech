@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Client.Game.InGame.Block;
 using Core.Master;
 using Game.Context;
@@ -112,6 +113,63 @@ namespace Client.Tests.PlaceSystem
             Assert.AreEqual(PlacementBlockCause.None, blockCauses[0]);
 
             UnityEngine.Object.DestroyImmediate(dataStoreObject);
+        }
+
+        // 既存ブロックへ重なると不可扱い
+        // Overlapping an existing block is treated as blocked
+        [Test]
+        public void RecalculateExistingBlockCauses_DetectsOverlap()
+        {
+            // 重なり判定がマスタを引くため先にロード
+            // The overlap check reads MasterHolder, so load the masters first
+            new MoorestechServerDIContainerGenerator().Create(
+                new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var dataStoreObject = new GameObject("BlockGameObjectDataStore");
+            var dataStore = dataStoreObject.AddComponent<BlockGameObjectDataStore>();
+            var calculator = new CommonBlockPlacePointCalculator(dataStore);
+
+            var blockElement = MasterHolder.BlockMaster.Blocks.Data[0];
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockElement.BlockGuid);
+            var overlapPosition = new Vector3Int(0, 5, 0);
+
+            // PlaceBlockもBlockGameObject.Initializeもプレハブロードとサーバー購読を要するため、辞書へ直接1件登録する
+            // Both PlaceBlock and BlockGameObject.Initialize need a prefab load and a server subscription, so register one entry directly
+            var existingBlockObject = new GameObject("ExistingBlock").AddComponent<BlockGameObject>();
+            SetBlockPosInfo(existingBlockObject, new BlockPositionInfo(overlapPosition, BlockDirection.North, blockElement.BlockSize));
+            var dictionary = (Dictionary<Vector3Int, BlockGameObject>)typeof(BlockGameObjectDataStore)
+                .GetField("_blockObjectsDictionary", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(dataStore);
+            dictionary.Add(overlapPosition, existingBlockObject);
+
+            var placeInfos = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = overlapPosition,
+                    Direction = BlockDirection.North,
+                    BlockId = blockId,
+                    Placeable = true,
+                },
+            };
+            var blockCauses = new List<PlacementBlockCause> { PlacementBlockCause.None };
+
+            calculator.RecalculateExistingBlockCauses(placeInfos, blockElement, blockCauses);
+
+            Assert.IsFalse(placeInfos[0].Placeable);
+            Assert.AreEqual(PlacementBlockCause.ExistingBlock, blockCauses[0]);
+
+            UnityEngine.Object.DestroyImmediate(existingBlockObject.gameObject);
+            UnityEngine.Object.DestroyImmediate(dataStoreObject);
+        }
+
+        // 自動プロパティのバッキングフィールドへ直接書き、Initializeの外部依存を避ける
+        // Writes the auto-property backing field directly, avoiding Initialize's external dependencies
+        private static void SetBlockPosInfo(BlockGameObject blockGameObject, BlockPositionInfo posInfo)
+        {
+            typeof(BlockGameObject)
+                .GetField($"<{nameof(BlockGameObject.BlockPosInfo)}>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(blockGameObject, posInfo);
         }
 
         private static BlockMasterElement MakeBlock(Vector3Int blockSize)

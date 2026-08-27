@@ -116,6 +116,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Follow the terrain only on a ground hit
                 var isGroundHit = hitSurface == null;
 
+                // 地面ヒットのYは地形最高点から決める
+                // A ground hit decides Y from the terrain max height
+                if (isGroundHit) placePoint = PlacementGroundCellResolver.ResolveCellFromGround(placePoint, _currentBlockDirection, holdingBlockMaster.BlockSize, _dragState.HeightOffset);
+
                 // 距離外なら理由のみ出しプレビュー無し
                 // Beyond range, show only the reason and no preview
                 if (!IsPlaceableFromPlayer(placePoint)) { _autoConnectPreview.Hide(); feedback.AddTooFar(); return; }

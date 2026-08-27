@@ -16,12 +16,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     {
         public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
         {
-            // セル毎BlockId付きでPlaceInfoをサーバーに送信
-            // Send PlaceInfo to server; each cell already carries its own BlockId
+            // PlaceInfoをサーバー送信
+            // Send PlaceInfo to server
             ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
 
-            // Ctrl+Z用に設置バッチを履歴へ記録する（全セル設置不能の空バッチは積まない）
-            // Record the place batch into the undo history for Ctrl+Z (skip empty batches where no cell was placeable)
+            // Ctrl+Z用に空でない設置バッチを記録
+            // Record a non-empty place batch into the undo history for Ctrl+Z
             var record = PlaceOperationRecord.CreateFrom(currentPlaceInfos);
             if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
 
@@ -34,8 +34,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             if (UiPointerHitTest.IsPointerOverAnyUi() || !wirePlaceable) return false;
 
-            // 設置可能セルだけを送る（不可セルはサーバーでも拒否されるため送らない）
-            // Send only placeable cells; blocked cells would be rejected by the server anyway
+            // 設置可能セルのみ送信
+            // Send only placeable cells
             var placeableInfos = currentPlaceInfos.Where(info => info.Placeable).ToList();
 
             // 1セルも置けないなら空パケットも設置音も出さない（鉱脈外の採掘機クリックが毎回音を鳴らすのを防ぐ）

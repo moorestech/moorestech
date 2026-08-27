@@ -1,4 +1,3 @@
-using System;
 using Client.Common;
 using Core.Master;
 using Game.Block.Interface;
@@ -30,39 +29,6 @@ namespace Client.Game.InGame.BlockSystem
             var originPos = blockDirection.GetBlockModelOriginPos(blockPosition, blockSize);
             
             return originPos;
-        }
-        
-        [Obsolete("一応残してある")]
-        public static (Vector3 position, Quaternion rotation, Vector3 scale) GetSlopeBeltConveyorTransform(string blockType, Vector3Int blockPosition, BlockDirection blockDirection, Vector3Int blockSize)
-        {
-            //実際のブロックのモデルは+0.5した値が中心になる
-            var blockObjectPos = blockPosition.AddBlockPlaceOffset(); //TODo ←システムが変わったのでおそらくこの行は不要
-            
-            var frontRayPos = GetBlockFrontRayOffset(blockDirection) + blockObjectPos;
-            var backRayPos = -GetBlockFrontRayOffset(blockDirection) + blockObjectPos;
-            var frontPoint = GetGroundPoint(frontRayPos.x, frontRayPos.z).Value; //TODO null check
-            var backPoint = GetGroundPoint(backRayPos.x, backRayPos.z).Value;
-            
-            //斜辺の長さを求める
-            var hypotenuse = Vector3.Distance(frontPoint, backPoint);
-            //高さを求める
-            var height = Mathf.Abs(frontPoint.y - backPoint.y);
-            var blockY = GetBlockFourCornerMaxHeight(blockPosition, blockDirection, blockSize);
-            //角度を求める
-            var blockAngle = Mathf.Asin(height / hypotenuse) * Mathf.Rad2Deg;
-            
-            
-            var resultBlockPos = new Vector3(blockObjectPos.x, blockY + 0.3f, blockObjectPos.z);
-            var blockRotation = GetRotation(blockDirection, blockAngle, frontPoint.y > backPoint.y);
-            var blockScale = new Vector3(1, 1, hypotenuse);
-            
-            if (!BlockSlopeDeformationType.IsDeformation(blockType))
-            {
-                blockRotation = blockDirection.GetRotation();
-                blockScale = Vector3.one;
-            }
-            
-            return (resultBlockPos, blockRotation, blockScale);
         }
         
         // 地表探査の単一エントリポイント。XZだけを取りY成分の取り違えを署名で封じる。露頭など大量プローブ用にログ無しで成否を返す
@@ -124,32 +90,6 @@ namespace Client.Game.InGame.BlockSystem
             }
 
             #endregion
-        }
-
-        public static float GetBlockFourCornerMaxHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize)
-        {
-            if (!TryGetBlockFourCornerMaxHeight(blockPos, blockDirection, blockSize, out var maxHeight))
-                throw new InvalidOperationException($"四隅の地表が見つかりませんでした blockPos:{blockPos}");
-            return maxHeight;
-        }
-        
-        private static Vector3 GetBlockFrontRayOffset(BlockDirection blockDirection)
-        {
-            return blockDirection switch
-            {
-                BlockDirection.North => new Vector3(0, 0, 0.5f),
-                BlockDirection.East => new Vector3(0.5f, 0, 0),
-                BlockDirection.South => new Vector3(0, 0, -0.5f),
-                BlockDirection.West => new Vector3(-0.5f, 0, 0),
-                _ => throw new ArgumentOutOfRangeException(nameof(blockDirection), blockDirection, null),
-            };
-        }
-        
-        private static Quaternion GetRotation(BlockDirection blockDirection, float blockAngle, bool isFrontUp)
-        {
-            blockAngle = isFrontUp ? -blockAngle : blockAngle;
-            var defaultAngle = blockDirection.GetRotation().eulerAngles;
-            return Quaternion.Euler(blockAngle, defaultAngle.y, defaultAngle.z);
         }
     }
 }
