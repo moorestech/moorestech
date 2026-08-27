@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Client.Game.InGame.Tutorial;
+using Client.Game.InGame.Tutorial.PlacementGuide;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Core.Master;
 using Mooresmaster.Model.ChallengesModule;
@@ -76,7 +77,9 @@ namespace Client.Tests.UnitTest.Tutorial
                 _root.AddComponent<KeyControlTutorialManager>(),
                 _root.AddComponent<ItemViewHighLightTutorialManager>(),
                 _root.AddComponent<BlockPlacePreviewTutorialManager>(),
-                _root.AddComponent<UiDragGuideTutorialManager>());
+                _root.AddComponent<UiDragGuideTutorialManager>(),
+                _root.AddComponent<VeinRestrictedPlacementTutorialManager>(),
+                _root.AddComponent<RelativeBlockPlacePreviewTutorialManager>());
 
             manager.ApplyTutorial(ChallengeGuid);
 

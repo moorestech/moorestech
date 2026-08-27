@@ -17,6 +17,7 @@ using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Riding;
 using Client.Game.InGame.Skit;
 using Client.Game.InGame.Tutorial;
+using Client.Game.InGame.Tutorial.PlacementGuide;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Challenge;
@@ -94,6 +95,8 @@ namespace Client.Starter
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         [SerializeField] private BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager;
         [SerializeField] private UiDragGuideTutorialManager uiDragGuideTutorialManager;
+        [SerializeField] private VeinRestrictedPlacementTutorialManager veinRestrictedPlacementTutorialManager;
+        [SerializeField] private RelativeBlockPlacePreviewTutorialManager relativeBlockPlacePreviewTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
@@ -170,6 +173,8 @@ namespace Client.Starter
             builder.RegisterComponent(itemViewHighLightTutorialManager);
             builder.RegisterComponent(blockPlacePreviewTutorialManager);
             builder.RegisterComponent(uiDragGuideTutorialManager);
+            builder.RegisterComponent(veinRestrictedPlacementTutorialManager);
+            builder.RegisterComponent(relativeBlockPlacePreviewTutorialManager);
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();

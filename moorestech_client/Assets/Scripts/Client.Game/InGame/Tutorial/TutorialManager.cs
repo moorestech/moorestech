@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Tutorial.PlacementGuide;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Core.Master;
 using Game.Context;
@@ -23,7 +24,9 @@ namespace Client.Game.InGame.Tutorial
             KeyControlTutorialManager keyControlTutorialManager,
             ItemViewHighLightTutorialManager itemViewHighLightTutorialManager,
             BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager,
-            UiDragGuideTutorialManager uiDragGuideTutorialManager
+            UiDragGuideTutorialManager uiDragGuideTutorialManager,
+            VeinRestrictedPlacementTutorialManager veinRestrictedPlacementTutorialManager,
+            RelativeBlockPlacePreviewTutorialManager relativeBlockPlacePreviewTutorialManager
             )
         {
             foreach (var worldPin in worldPins) _tutorialViewManagers.Add(worldPin.TutorialType, worldPin);
@@ -32,6 +35,8 @@ namespace Client.Game.InGame.Tutorial
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.itemViewHighLight, itemViewHighLightTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.blockPlacePreview, blockPlacePreviewTutorialManager);
             _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiDragGuide, uiDragGuideTutorialManager);
+            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.veinRestrictedPlacement, veinRestrictedPlacementTutorialManager);
+            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.relativeBlockPlacePreview, relativeBlockPlacePreviewTutorialManager);
         }
         
         public void ApplyTutorial(Guid challengeGuid)
