@@ -45,6 +45,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var miningService = serviceProvider.GetService<VeinHandMiningService>();
+
+            // マスタの初期装備が既にツールなので、素手の検証は装備を外してから行う
+            // The master's initial equipment is already a tool, so unequip before checking the bare-hands case
+            playerInventory.EquipmentInventory.SetItem(0, ServerContext.ItemStackFactory.CreatEmpty());
             var equipped = playerInventory.EquipmentInventory.GetSelectedItem();
 
             // 素手はNoTool
