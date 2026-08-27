@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Map.MapVein;
 
@@ -10,11 +11,17 @@ namespace Client.Tests.UIState.Fakes
     public class FakeMapVeinRangeView : IMapVeinRangeView
     {
         public readonly List<MapVeinKind?> VeinKindPushes = new();
+        public readonly List<Guid?> HighlightPushes = new();
         public int ManualUpdateCount;
 
         public void SetVisibleVeinKind(MapVeinKind? veinKind)
         {
             VeinKindPushes.Add(veinKind);
+        }
+
+        public void SetHighlightedVein(Guid? veinGuid)
+        {
+            HighlightPushes.Add(veinGuid);
         }
 
         public void ManualUpdate()

@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.MapVein
@@ -18,13 +19,15 @@ namespace Client.Game.InGame.Map.MapVein
     /// </summary>
     public class MapVeinAabb
     {
+        public readonly Guid VeinGuid;
         public readonly Vector3Int MinCell;
         public readonly Vector3Int MaxCell;
         public readonly MapVeinKind Kind;
         public readonly Bounds Bounds;
 
-        public MapVeinAabb(Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind)
+        public MapVeinAabb(Guid veinGuid, Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind)
         {
+            VeinGuid = veinGuid;
             MinCell = minCell;
             MaxCell = maxCell;
             Kind = kind;

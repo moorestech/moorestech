@@ -30,7 +30,7 @@ namespace Client.Game.InGame.Map.MapVein
                 var maxCell = new Vector3Int(layout.MaxX, layout.MaxY, layout.MaxZ);
                 var kind = element.VeinParam is FluidVeinParam ? MapVeinKind.Fluid : MapVeinKind.Item;
 
-                _veins.Add(new MapVeinAabb(minCell, maxCell, kind));
+                _veins.Add(new MapVeinAabb(veinGuid, minCell, maxCell, kind));
             }
         }
 
@@ -42,6 +42,19 @@ namespace Client.Game.InGame.Map.MapVein
         {
             foreach (var vein in _veins)
                 if (vein.Kind == kind && vein.ContainsCell(cell))
+                    return true;
+
+            return false;
+        }
+
+        /// <summary>
+        ///     指定セルがその鉱脈（GUID）に入っているか。チュートリアルの「この鉱脈にだけ置く」制限が使う
+        ///     Whether the cell sits inside that specific vein; used by the tutorial's "place only on this vein" restriction
+        /// </summary>
+        public bool IsInsideVein(Vector3Int cell, Guid veinGuid)
+        {
+            foreach (var vein in _veins)
+                if (vein.VeinGuid == veinGuid && vein.ContainsCell(cell))
                     return true;
 
             return false;

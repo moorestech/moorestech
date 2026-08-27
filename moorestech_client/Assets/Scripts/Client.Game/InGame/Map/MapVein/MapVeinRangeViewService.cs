@@ -39,6 +39,10 @@ namespace Client.Game.InGame.Map.MapVein
         // Vein kind to display; null means hidden
         private MapVeinKind? _visibleVeinKind;
 
+        // 強調中の鉱脈。指定があると種別表示より優先する
+        // The highlighted vein; while set it takes precedence over the kind view
+        private Guid? _highlightedVeinGuid;
+
         public MapVeinRangeViewService(MapVeinAabbRegistry veinAabbRegistry, Camera mainCamera)
         {
             _mainCamera = mainCamera;
@@ -54,7 +58,7 @@ namespace Client.Game.InGame.Map.MapVein
             foreach (var vein in veinAabbRegistry.Veins)
             {
                 var material = vein.Kind == MapVeinKind.Fluid ? _boxMaterials.FluidMaterial : _boxMaterials.ItemMaterial;
-                _entries.Add(new VeinRangeEntry(vein.Kind, vein.Bounds, material));
+                _entries.Add(new VeinRangeEntry(vein.VeinGuid, vein.Kind, vein.Bounds, material));
             }
         }
 
@@ -70,6 +74,16 @@ namespace Client.Game.InGame.Map.MapVein
             ManualUpdate();
         }
 
+        /// <summary>
+        ///     チュートリアルが指す1鉱脈だけを描く強調モード。nullで通常の種別表示へ戻す
+        ///     Highlight mode drawing only the vein a tutorial points at; null returns to the normal kind view
+        /// </summary>
+        public void SetHighlightedVein(Guid? veinGuid)
+        {
+            _highlightedVeinGuid = veinGuid;
+            ManualUpdate();
+        }
+
         public void ManualUpdate()
         {
             var cameraPosition = _mainCamera.transform.position;
@@ -78,12 +92,20 @@ namespace Client.Game.InGame.Map.MapVein
             {
                 // 対象外の種別と非表示中は距離を問わず全消し。範囲内だけボックスを持たせ、外れたものはプールへ返す
                 // Other kinds and the hidden state go regardless of distance; only in-range veins keep a box and the rest return to the pool
-                var isVisible = entry.Kind == _visibleVeinKind && IsWithinVisibleRadius(entry.Bounds, cameraPosition);
+                var isVisible = IsTargetVein(entry) && IsWithinVisibleRadius(entry.Bounds, cameraPosition);
                 if (isVisible) ShowEntry(entry);
                 else HideEntry(entry);
             }
 
             #region Internal
+
+            // 強調中はその鉱脈だけ、通常は表示種別の鉱脈だけを対象にする
+            // While highlighting, only that vein qualifies; otherwise only veins of the visible kind do
+            bool IsTargetVein(VeinRangeEntry entry)
+            {
+                if (_highlightedVeinGuid.HasValue) return entry.VeinGuid == _highlightedVeinGuid.Value;
+                return entry.Kind == _visibleVeinKind;
+            }
 
             bool IsWithinVisibleRadius(Bounds bounds, Vector3 position)
             {
@@ -94,10 +116,16 @@ namespace Client.Game.InGame.Map.MapVein
 
             void ShowEntry(VeinRangeEntry entry)
             {
+                var material = _highlightedVeinGuid.HasValue ? _boxMaterials.HighlightMaterial : entry.Material;
+
                 // veinは動かないので既存ボックスは置き直さない。これが再入時の二重表示を防ぐ
                 // Veins never move, so an existing box is never re-placed; this is what prevents duplicates on re-entry
-                if (entry.ViewObject != null) return;
-                entry.ViewObject = RentBox(entry.Bounds, entry.Material);
+                if (entry.ViewObject != null)
+                {
+                    entry.ViewObject.GetComponent<MeshRenderer>().sharedMaterial = material;
+                    return;
+                }
+                entry.ViewObject = RentBox(entry.Bounds, material);
             }
 
             void HideEntry(VeinRangeEntry entry)
@@ -142,13 +170,15 @@ namespace Client.Game.InGame.Map.MapVein
         // Bundle fixed vein data and view state
         private class VeinRangeEntry
         {
+            public readonly Guid VeinGuid;
             public readonly MapVeinKind Kind;
             public readonly Bounds Bounds;
             public readonly Material Material;
             public GameObject ViewObject;
 
-            public VeinRangeEntry(MapVeinKind kind, Bounds bounds, Material material)
+            public VeinRangeEntry(Guid veinGuid, MapVeinKind kind, Bounds bounds, Material material)
             {
+                VeinGuid = veinGuid;
                 Kind = kind;
                 Bounds = bounds;
                 Material = material;
