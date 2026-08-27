@@ -18,6 +18,7 @@ using Game.Construction;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
+using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceBlockProtocolSender;
 using static Client.Game.DebugConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor

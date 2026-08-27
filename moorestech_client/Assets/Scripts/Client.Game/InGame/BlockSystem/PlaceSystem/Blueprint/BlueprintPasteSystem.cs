@@ -122,7 +122,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
                 }
 
                 if (placeInfos.Count == 0) return;
-                PlaceSystemUtil.SendPlaceBlockProtocol(placeInfos);
+                PlaceBlockProtocolSender.SendPlaceBlockProtocol(placeInfos);
             }
 
             PlaceInfo ToPlaceInfo(BlueprintPlacementElement placement)

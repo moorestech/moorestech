@@ -7,8 +7,8 @@ namespace Client.Tests.PlaceSystem.Ground
     // Verify the pure conversion from the terrain max height to a cell Y
     public class PlacementGroundCellResolverTest
     {
-        // 端数のある地表は上のセルへ切り上げる（埋まるくらいなら浮かせる）
-        // Fractional ground rounds up to the cell above, floating rather than sinking
+        // 端数のある地表は上のセルへ切り上げる
+        // Fractional ground rounds up to the cell above
         [Test]
         public void 端数のある地表は上のセルへ切り上げる()
         {
@@ -44,8 +44,8 @@ namespace Client.Tests.PlaceSystem.Ground
             Assert.AreEqual(-4, PlacementGroundCellResolver.ResolveCellY(-4f, 0));
         }
 
-        // 手動高さオフセットは地形解決後のセルYへ加算される
-        // The manual height offset is added on top of the terrain-resolved cell Y
+        // 手動オフセットは地形解決後に加算する
+        // The manual offset is added after the terrain resolution
         [Test]
         public void 手動オフセットは地形解決後に加算される()
         {

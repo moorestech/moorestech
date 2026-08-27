@@ -45,8 +45,8 @@ namespace Client.Tests.PlaceSystem.Ground
             var resolved = PlacementGroundCellResolver.ResolveCellFromGround(
                 new Vector3Int(300, 0, 400), BlockDirection.North, Vector3Int.one, 0);
 
-            // 高い段の上面は 14.2 + 0.5 = 14.7 なのでセルYは15
-            // The high slab's top is 14.2 + 0.5 = 14.7, so the cell Y is 15
+            // 高い段の上面14.7からセルYは15
+            // The high slab's top 14.7 gives cell Y 15
             Assert.AreEqual(15, resolved.y);
         }
 
@@ -63,7 +63,7 @@ namespace Client.Tests.PlaceSystem.Ground
             Assert.AreEqual(24, resolved.y);
         }
 
-        // 地表が無いセルは元のY（=呼び出し側の値）を保つ
+        // 地表が無いセルは元のYを保つ
         // A cell with no ground keeps its original Y
         [Test]
         public void 地表が無いセルは元のYを保つ()
@@ -90,13 +90,13 @@ namespace Client.Tests.PlaceSystem.Ground
             Assert.AreEqual(800, resolved.z);
         }
 
-        // ドラッグ列は各セルがそれぞれの地形高さへ追従する
-        // Each cell of a drag run follows its own terrain height
+        // 各セルがそれぞれの地形へ追従する
+        // Each cell follows its own terrain height
         [Test]
         public void ドラッグ列は各セルがそれぞれの地形へ追従する()
         {
-            // 隣接セルは四隅を共有するため、段差はセル境界のX平面に薄い柱で立てる
-            // Adjacent cells share corners, so the steps are thin pillars standing on the cell-boundary X planes
+            // 隣接セルは四隅を共有するため薄い柱で段差を作る
+            // Adjacent cells share corners, so thin pillars form the steps
             CreateGroundSlab(new Vector3(1001.5f, 9.9f, 1100.5f), new Vector3(8f, 1f, 6f));
             CreateGroundSlab(new Vector3(1002f, 13.9f, 1100.5f), new Vector3(0.2f, 1f, 6f));
             CreateGroundSlab(new Vector3(1003f, 17.9f, 1100.5f), new Vector3(0.2f, 1f, 6f));
@@ -110,15 +110,15 @@ namespace Client.Tests.PlaceSystem.Ground
 
             PlacementGroundCellResolver.ApplyGroundCellY(placeInfos, Vector3Int.one, 0);
 
-            // 四隅の最高点は 10.4 / 14.4 / 18.4 なのでセルYは 11 / 15 / 19
-            // The four-corner maxima are 10.4 / 14.4 / 18.4, so the cell Ys are 11 / 15 / 19
+            // 最高点 10.4/14.4/18.4 からY 11/15/19
+            // Maxima 10.4/14.4/18.4 give cell Ys 11/15/19
             Assert.AreEqual(11, placeInfos[0].Position.y);
             Assert.AreEqual(15, placeInfos[1].Position.y);
             Assert.AreEqual(19, placeInfos[2].Position.y);
         }
 
-        // 地表の無いセルは元のYを保ったまま他セルの解決を妨げない
-        // A cell with no ground keeps its Y and does not stop the others from resolving
+        // 地表の無いセルは他セルを妨げない
+        // A cell with no ground does not stop the others
         [Test]
         public void 地表の無いセルが混じっても他セルは解決される()
         {

@@ -80,13 +80,13 @@ namespace Client.Tests.PlaceSystem
         }
 
 
-        // Y確定後に既存ブロック判定を取り直すと、古い位置由来の不可フラグが解除されること
-        // Re-checking after Y is final clears a not-placeable flag left over from the old position
+        // 取り直すと古い不可フラグが解除される
+        // Re-checking clears a stale not-placeable flag
         [Test]
         public void RecalculateExistingBlockCauses_ClearsStaleCause()
         {
-            // 重なり判定がMasterHolderからブロックサイズを引くため、マスタをロードした状態で回す
-            // The overlap check pulls the block size from MasterHolder, so the masters are loaded first
+            // 重なり判定がマスタを引くため先にロード
+            // The overlap check reads MasterHolder, so load the masters first
             new MoorestechServerDIContainerGenerator().Create(
                 new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 

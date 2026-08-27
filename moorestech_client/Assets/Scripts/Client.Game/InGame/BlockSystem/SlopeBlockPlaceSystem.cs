@@ -93,8 +93,8 @@ namespace Client.Game.InGame.BlockSystem
             return groundPoint;
         }
 
-        // 四隅すべての地表が取れたときだけ最高点を返す。探査失敗を呼び出し側が扱えるようにbool戻り
-        // Returns the max height only when all four corners hit ground; the bool lets callers handle a failed probe
+        // 四隅すべて取れたときだけ最高点を返す
+        // Returns the max height only when all four corners hit ground
         public static bool TryGetBlockFourCornerMaxHeight(Vector3Int blockPos, BlockDirection blockDirection, Vector3Int blockSize, out float maxHeight)
         {
             maxHeight = 0f;

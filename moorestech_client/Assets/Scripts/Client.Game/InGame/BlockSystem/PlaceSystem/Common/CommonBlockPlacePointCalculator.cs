@@ -140,12 +140,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             #endregion
         }
         
-        // Y確定後の位置で既存ブロックとの重なりを判定し直す。地形追従でYが変わると判定済みの結果が古くなるため
-        // Re-checks overlaps with existing blocks once Y is final, because terrain following invalidates the earlier result
+        // Y確定後に既存ブロックとの重なりを取り直す
+        // Re-checks overlaps with existing blocks once Y is final
         public void RecalculateExistingBlockCauses(List<PlaceInfo> placeInfos, BlockMasterElement holdingBlockMasterElement, List<PlacementBlockCause> blockCauses)
         {
-            // この段階の不可原因はExistingBlockのみなので、一度戻してから判定し直せる
-            // ExistingBlock is the only cause at this stage, so the flags can be reset before re-checking
+            // 不可原因は既存ブロックのみなので戻せる
+            // ExistingBlock is the only cause here, so the flags can be reset
             for (var i = 0; i < placeInfos.Count; i++)
             {
                 var placeInfo = placeInfos[i];

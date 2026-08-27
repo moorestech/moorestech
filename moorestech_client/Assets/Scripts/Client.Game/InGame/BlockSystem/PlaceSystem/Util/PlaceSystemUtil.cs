@@ -1,16 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.SoundEffect;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
@@ -44,8 +40,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             
             pos = CalcPlacePoint(holdingBlock, hitPos, heightOffset, currentBlockDirection, surface);
             
-            // 地面ヒットのYはレイの当たった高さでなく占有範囲の地形最高点から決める（ADR 0037）。ブロック面ヒットは整数グリッド上なので触らない
-            // A ground hit decides Y from the footprint's terrain max height, not the ray height (ADR 0037); block-face hits sit on the integer grid and stay untouched
+            // 地面ヒットのYは地形最高点から決める
+            // A ground hit decides Y from the terrain max height
             if (surface == null) pos = PlacementGroundCellResolver.ResolveCellFromGround(pos, currentBlockDirection, holdingBlock.BlockSize, heightOffset);
             
             return true;
@@ -167,38 +163,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // Q/Eの上下オフセットを面ヒット時にも一括で反映する
             // Apply Q/E vertical offset uniformly even when hitting an existing block face
             return snapped + new Vector3Int(0, heightOffset, 0);
-        }
-        
-        public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
-        {
-            // セル毎BlockId付きでPlaceInfoをサーバーに送信
-            // Send PlaceInfo to server; each cell already carries its own BlockId
-            ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
-
-            // Ctrl+Z用に設置バッチを履歴へ記録する（全セル設置不能の空バッチは積まない）
-            // Record the place batch into the undo history for Ctrl+Z (skip empty batches where no cell was placeable)
-            var record = PlaceOperationRecord.CreateFrom(currentPlaceInfos);
-            if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
-
-            SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
-        }
-
-        // 左クリック解放時の設置送信。UI上か電線不足なら送らない。戻り値は送信したか
-        // Sends the placement on left-click release; skipped over UI or when wire is short. Returns whether it sent
-        public static bool TrySendOnClickRelease(List<PlaceInfo> currentPlaceInfos, bool wirePlaceable)
-        {
-            if (UiPointerHitTest.IsPointerOverAnyUi() || !wirePlaceable) return false;
-
-            // 設置可能セルだけを送る（不可セルはサーバーでも拒否されるため送らない）
-            // Send only placeable cells; blocked cells would be rejected by the server anyway
-            var placeableInfos = currentPlaceInfos.Where(info => info.Placeable).ToList();
-
-            // 1セルも置けないなら空パケットも設置音も出さない（鉱脈外の採掘機クリックが毎回音を鳴らすのを防ぐ）
-            // With no placeable cell, send no empty packet and play no sound (an off-vein miner click would otherwise sound every time)
-            if (placeableInfos.Count == 0) return false;
-
-            SendPlaceBlockProtocol(placeableInfos);
-            return true;
         }
     }
 }

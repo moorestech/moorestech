@@ -21,6 +21,7 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
+using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceBlockProtocolSender;
 using static Client.Game.DebugConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
@@ -111,8 +112,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
                 if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) { _autoConnectPreview.Hide(); return; }
 
-                // 地面ヒットのときだけ地形追従する。ブロック面ヒット（積み重ね）は整数グリッド上なので触らない
-                // Follow the terrain only on a ground hit; block-face hits (stacking) sit on the integer grid and stay untouched
+                // 地面ヒットのときだけ地形追従する
+                // Follow the terrain only on a ground hit
                 var isGroundHit = hitSurface == null;
 
                 // 距離外なら理由のみ出しプレビュー無し
@@ -128,14 +129,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 //display preview and get collision with ground
                 var placeCauses = UpdateCurrentPlaceInfos(placePoint, holdingBlockMaster);
 
-                // 各セルのYを自分の真下の地形へ追従させる（ドラッグ開始セルのYコピーを打ち消す。ADR 0037）
-                // Make each cell's Y follow the terrain beneath it, cancelling the drag start cell's Y copy (ADR 0037)
+                // 各セルのYを真下の地形へ追従させる
+                // Make each cell's Y follow the terrain beneath it
                 if (isGroundHit)
                 {
                     PlacementGroundCellResolver.ApplyGroundCellY(_currentPlaceInfos, holdingBlockMaster.BlockSize, _dragState.HeightOffset);
 
-                    // 既存ブロックとの重なりはY確定前に判定済みなので、追従後の位置で取り直す
-                    // The overlap with existing blocks was judged before Y was final, so it is re-taken at the followed positions
+                    // 重なり判定は追従後の位置で取り直す
+                    // The overlap check is re-taken at the followed positions
                     _blockPlacePointCalculator.RecalculateExistingBlockCauses(_currentPlaceInfos, holdingBlockMaster, placeCauses);
                 }
 
