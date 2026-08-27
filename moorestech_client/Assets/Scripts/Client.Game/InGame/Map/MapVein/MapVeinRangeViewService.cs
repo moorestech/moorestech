@@ -122,7 +122,10 @@ namespace Client.Game.InGame.Map.MapVein
                 // Veins never move, so an existing box is never re-placed; this is what prevents duplicates on re-entry
                 if (entry.ViewObject != null)
                 {
-                    entry.ViewObject.GetComponent<MeshRenderer>().sharedMaterial = material;
+                    // 強調⇔通常の切替はマテリアル差し替えだけで済ませ、同じ材質なら触らない
+                    // Switching highlight and normal only swaps the material, and an unchanged material is left alone
+                    var renderer = entry.ViewObject.GetComponent<MeshRenderer>();
+                    if (renderer.sharedMaterial != material) renderer.sharedMaterial = material;
                     return;
                 }
                 entry.ViewObject = RentBox(entry.Bounds, material);

@@ -4,6 +4,7 @@ using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
+using UniRx;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.GearConnect
@@ -17,9 +18,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.GearConnect
         private readonly BlockGameObjectDataStore _blockDataStore;
         private readonly GearConnectPreviewRenderer _renderer = new();
 
+        // 解決結果はカーソルの設置内容とワールドの両方が変わらない限り同じなので、変化時だけ解き直す
+        // The resolution only changes when the cursor placement or the world does, so it is recomputed on change alone
+        private (BlockId blockId, Vector3Int position, BlockDirection direction)? _resolvedFor;
+        private bool _worldChanged = true;
+
         public GearConnectPreview(BlockGameObjectDataStore blockDataStore)
         {
             _blockDataStore = blockDataStore;
+
+            // 隣接ブロックの増減で接続先が変わるため、設置と撤去で解決結果を捨てる
+            // Placing or removing a neighbour changes the partners, so both drop the cached resolution
+            _blockDataStore.OnBlockPlaced.Subscribe(_ => _worldChanged = true);
+            _blockDataStore.OnBlockRemoved.Subscribe(_ => _worldChanged = true);
         }
 
         public void Apply(List<PlaceInfo> placeInfos, BlockId blockId, int cursorIndex)
@@ -32,6 +43,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.GearConnect
             }
 
             var cursor = placeInfos[cursorIndex];
+            var resolveKey = (blockId, cursor.Position, cursor.Direction);
+            if (!_worldChanged && _resolvedFor == resolveKey) return;
+
+            _worldChanged = false;
+            _resolvedFor = resolveKey;
+
             var selfPositionInfo = new BlockPositionInfo(cursor.Position, cursor.Direction, blockMaster.BlockSize);
             _renderer.Show(GearConnectPairResolver.Resolve(blockId, selfPositionInfo, CollectNeighbours(selfPositionInfo)));
 
@@ -63,6 +80,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.GearConnect
 
         public void Hide()
         {
+            // 非表示のまま同じセルへ戻ったときに線が消えたままにならないよう、解決済みの記憶も落とす
+            // Drop the cached resolution too, so returning to the same cell after a hide redraws the lines
+            _resolvedFor = null;
             _renderer.Hide();
         }
     }

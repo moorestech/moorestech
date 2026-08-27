@@ -3,10 +3,8 @@ using Mooresmaster.Localization.Generated;
 using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
-using Core.Master;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
@@ -58,27 +56,9 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 設置対象か制限が変わった時だけ表示種別と強調鉱脈をプッシュする。毎フレームの再導出はしない
             // Push the vein kind and the highlighted vein only when the target or the restriction changes; never re-derive per frame
-            _placeSystemStateController.OnTargetChanged.Subscribe(PushVeinView);
-            _veinRestrictedPlacementState.OnChanged.Subscribe(_ => PushVeinView(_placeSystemStateController.CurrentTarget));
-
-            #region Internal
-
-            void PushVeinView(IPlacementTarget target)
-            {
-                _mapVeinRangeView.SetVisibleVeinKind(PlacementVeinViewKindResolver.Resolve(target));
-                _mapVeinRangeView.SetHighlightedVein(ResolveHighlightedVein(target));
-            }
-
-            // 制限対象ブロックを持っている間だけ対象鉱脈を強調する
-            // Highlight the target vein only while the restricted block is the placement target
-            Guid? ResolveHighlightedVein(IPlacementTarget target)
-            {
-                if (target is not BlockPlacementTarget blockTarget) return null;
-                var blockId = MasterHolder.BlockMaster.GetBlockId(blockTarget.BlockGuid);
-                return _veinRestrictedPlacementState.IsRestrictedBlock(blockId) ? _veinRestrictedPlacementState.VeinGuid : null;
-            }
-
-            #endregion
+            var veinViewPusher = new PlacementVeinViewPusher(mapVeinRangeView, veinRestrictedPlacementState);
+            _placeSystemStateController.OnTargetChanged.Subscribe(veinViewPusher.Push);
+            _veinRestrictedPlacementState.OnChanged.Subscribe(_ => veinViewPusher.Push(_placeSystemStateController.CurrentTarget));
         }
 
         public void OnEnter(UITransitContext context)
