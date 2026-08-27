@@ -37,8 +37,8 @@ import ResearchTreePanel from "./ResearchTreePanel";
 type TreeViewInstance = ReactTestInstance & {
   props: {
     renderNode: (node: ResearchNodeData, point: { x: number; y: number }) => ReactElement<{ selected: boolean }>;
-    // 選択はTreeViewのタップ判定から届く(ADR 0033)
-    // Selection arrives from TreeView's tap detection (ADR 0033)
+    // 選択はTreeViewのタップから届く(ADR 0033)
+    // Selection arrives from a TreeView tap (ADR 0033)
     onNodeTap: (node: ResearchNodeData) => void;
   };
 };

@@ -139,17 +139,6 @@ test("research tree zooms with the wheel and pans by dragging its empty backgrou
   const afterRightDrag = await node.boundingBox();
   expect(afterRightDrag!.x).toBe(beforeRightDrag!.x);
   expect(afterRightDrag!.y).toBe(beforeRightDrag!.y);
-
-  const beforeNodeDrag = await node.boundingBox();
-  const nodeDragStart = { x: beforeNodeDrag!.x + 16, y: beforeNodeDrag!.y + 16 };
-  await page.mouse.move(nodeDragStart.x, nodeDragStart.y);
-  await page.mouse.down();
-  await page.mouse.move(nodeDragStart.x - 80, nodeDragStart.y - 50, { steps: 5 });
-  await page.mouse.up();
-  await waitForFrame(page);
-  const afterNodeDrag = await node.boundingBox();
-  expect(afterNodeDrag!.x).toBe(beforeNodeDrag!.x);
-  expect(afterNodeDrag!.y).toBe(beforeNodeDrag!.y);
 });
 
 test("ノードを掴んだドラッグもパンになり、詳細ペインは開かない", async ({ page }) => {
@@ -184,8 +173,8 @@ test("閾値未満のノード押下はタップとして詳細ペインを開�
   const press = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
   await page.mouse.move(press.x, press.y);
   await page.mouse.down();
-  // 手ぶれ相当の3pxは閾値(5px)未満なのでタップのまま
-  // A 3px tremor stays under the 5px threshold and remains a tap
+  // 3px移動は閾値未満でタップのまま
+  // A 3px move stays under the threshold and remains a tap
   await page.mouse.move(press.x + 2, press.y + 2);
   await page.mouse.up();
   await expect(page.getByTestId("research-detail-pane")).toBeVisible();

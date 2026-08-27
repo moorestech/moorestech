@@ -12,8 +12,10 @@ type Props<T> = {
   getPosition: (node: T) => TreePoint;
   getPrevIds: (node: T) => string[];
   renderNode: (node: T, point: TreePoint) => ReactNode;
-  // 閾値未満で離した押下をノードのタップとして通知する(省略でノード選択なし)
-  // Reports a press released under the threshold as a node tap (omit for trees with no selection)
+  // タップ判定時に通知(省略で選択なし)
+  // Reports a tap-classified press (omit for trees with no selection)
+  // ビューポートが押下時にポインタを捕捉するため、ノード内のnative clickは届かない。押下由来の操作はここへ配線する
+  // The viewport captures the pointer at press time, so a native click inside a node never fires; wire press-driven actions here
   onNodeTap?: (node: T) => void;
   testIdPrefix: string;
   // ビューポート保持キー(省略で無効)
@@ -42,25 +44,27 @@ export default function TreeView<T>(props: Props<T>) {
     [nodes, getId, getPosition],
   );
   const byId = useMemo(() => new Map(nodes.map((node) => [getId(node), node])), [nodes, getId]);
-  // 掴み操作(パン/タップ選択)はフックが持ち、ここはビューポート状態と描画に徹する
-  // The hook owns the grab gesture (pan / tap selection) so this component sticks to viewport state and rendering
+  // 掴み操作はフックへ委譲、描画に徹する
+  // The hook owns the grab gesture; this component sticks to rendering
   const gesture = useTreePanGesture({ panBy, inertia, byId, onNodeTap });
-  // ノードと接続線は意味のある入力が変わるまで同じReact要素を再利用する
-  // Reuse node and connection React elements until a semantic input changes
-  const renderedScene = useMemo(() => (
-    <>
-      {nodes.flatMap((node) => getPrevIds(node).map((prevId) => {
-        const prev = byId.get(prevId);
-        if (!prev) return null;
-        const line = lineBetween(toTreeCanvasPoint(getPosition(node), bounds), toTreeCanvasPoint(getPosition(prev), bounds));
-        return <div key={`${getId(node)}-${prevId}`} className={styles.line}
-          style={{ left: line.x, top: line.y, width: line.length, transform: `rotate(${line.angleDeg}deg)` }} />;
-      }))}
-      {nodes.map((node) => <div key={getId(node)} {...{ [NODE_ID_ATTRIBUTE]: getId(node) }}>
-        {renderNode(node, toTreeCanvasPoint(getPosition(node), bounds))}
-      </div>)}
-    </>
-  ), [bounds, byId, getId, getPosition, getPrevIds, nodes, renderNode]);
+  // 接続線は描画関数に依らない。選択のたび作り直さないようノードと別のキャッシュにする
+  // Lines do not depend on the node renderer, so they cache apart from nodes and survive every selection toggle
+  const renderedLines = useMemo(() => (
+    nodes.flatMap((node) => getPrevIds(node).map((prevId) => {
+      const prev = byId.get(prevId);
+      if (!prev) return null;
+      const line = lineBetween(toTreeCanvasPoint(getPosition(node), bounds), toTreeCanvasPoint(getPosition(prev), bounds));
+      return <div key={`${getId(node)}-${prevId}`} className={styles.line}
+        style={{ left: line.x, top: line.y, width: line.length, transform: `rotate(${line.angleDeg}deg)` }} />;
+    }))
+  ), [bounds, byId, getId, getPosition, getPrevIds, nodes]);
+  // ノードは意味のある入力が変わるまで同じReact要素を再利用する
+  // Reuse node React elements until a semantic input changes
+  const renderedNodes = useMemo(() => (
+    nodes.map((node) => <div key={getId(node)} {...{ [NODE_ID_ATTRIBUTE]: getId(node) }}>
+      {renderNode(node, toTreeCanvasPoint(getPosition(node), bounds))}
+    </div>)
+  ), [bounds, getId, getPosition, nodes, renderNode]);
 
   // 保存が無い初回のみ、注目点が定まった最初の機会に中央へ据える（以後の状態変化で視界を飛ばさない）
   // Center once when a focus point first exists without a stored viewport (later state changes never jump the view)
@@ -110,7 +114,8 @@ export default function TreeView<T>(props: Props<T>) {
       data-testid={`${testIdPrefix}-viewport`} {...gesture.viewportHandlers}>
       <div className={styles.canvas} data-testid={`${testIdPrefix}-canvas`}
         style={{ width: bounds.width, height: bounds.height, transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})` }}>
-        {renderedScene}
+        {renderedLines}
+        {renderedNodes}
       </div>
     </div>
   );
