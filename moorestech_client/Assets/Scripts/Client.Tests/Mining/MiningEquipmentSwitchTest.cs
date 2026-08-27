@@ -10,7 +10,6 @@ using Client.Localization;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
-using Game.PlayerInventory.Interface;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
@@ -94,9 +93,9 @@ namespace Client.Tests.Mining
             // 装備が変わらない限り採掘は継続する（この土台が無いと切替検知の失敗を検出できない）
             // Mining continues while the equipment is unchanged; without this baseline a broken switch check is invisible
             Assert.AreSame(miningState, miningState.GetNextUpdate(context, 0.01f));
-            // サーバーは現在の装備でGUID照合するため、素手へ持ち替えた時点で進捗を進めてはいけない
-            // The server matches the GUID of the current equipment, so progress must stop the moment bare hands are selected
-            context.LocalPlayerEquipment.ApplySelected(IEquipmentInventory.BareHandsIndex);
+            // サーバーは現在の装備でGUID照合するため、空スロットへ持ち替えた時点で進捗を進めてはいけない
+            // The server matches the GUID of the current equipment, so progress must stop the moment an empty slot is selected
+            context.LocalPlayerEquipment.ApplySelected(1);
             Assert.IsInstanceOf<MiningFocusState>(miningState.GetNextUpdate(context, 0.01f));
         }
         [Test]

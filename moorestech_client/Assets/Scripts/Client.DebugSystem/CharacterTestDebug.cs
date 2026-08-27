@@ -8,7 +8,6 @@ using Core.Item.Interface;
 using Core.Master;
 using Game.Hotbar;
 using Game.MapGeneration.Transfer;
-using Game.PlayerInventory.Interface;
 using Game.Research;
 using Server.Event.EventReceive;
 using Server.Protocol.PacketResponse;
@@ -47,7 +46,7 @@ namespace Client.DebugSystem
                 var worldData = new WorldDataResponse(new List<BlockInfo>(), new List<EntityResponse>());
                 var emptyItem = new ItemMessagePack(ItemMaster.EmptyItemId, 0);
                 var inventory = new PlayerInventoryResponse(new PlayerInventoryResponseProtocol.PlayerInventoryResponseProtocolMessagePack(
-                    0, Array.Empty<ItemMessagePack>(), emptyItem, Array.Empty<ItemMessagePack>(), IEquipmentInventory.BareHandsIndex));
+                    0, Array.Empty<ItemMessagePack>(), emptyItem, Array.Empty<ItemMessagePack>(), 0));
                 var unlockState = new UnlockStateResponse(
                     lockedCraftRecipeGuids: new List<Guid>(),
                     unlockedCraftRecipeGuids: new List<Guid>(),

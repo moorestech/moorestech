@@ -2,23 +2,23 @@ import { describe, expect, it } from "vitest";
 import { accumulateWheelSteps, cycleEquipment } from "./equipmentLogic";
 
 describe("cycleEquipment", () => {
-  it("下方向で0→1→2→空(-1)→0と循環する", () => {
+  it("下方向で0→1→2→0と循環し未装備には落ちない", () => {
     expect(cycleEquipment(0, 1, 3)).toBe(1);
-    expect(cycleEquipment(2, 1, 3)).toBe(-1); // -1 = 素手（空選択）
-    expect(cycleEquipment(-1, 1, 3)).toBe(0);
+    expect(cycleEquipment(2, 1, 3)).toBe(0);
   });
   it("上方向で逆順に循環する", () => {
-    expect(cycleEquipment(0, -1, 3)).toBe(-1);
-    expect(cycleEquipment(-1, -1, 3)).toBe(2);
+    expect(cycleEquipment(0, -1, 3)).toBe(2);
+    expect(cycleEquipment(2, -1, 3)).toBe(1);
   });
-  it("スロット数が変わっても周期が追随する", () => {
-    expect(cycleEquipment(0, 1, 1)).toBe(-1);
-    expect(cycleEquipment(4, 1, 5)).toBe(-1);
-    expect(cycleEquipment(-1, -1, 5)).toBe(4);
+  it("スロット数が変わっても周期が追随し1枠では動かない", () => {
+    expect(cycleEquipment(0, 1, 1)).toBe(0);
+    expect(cycleEquipment(0, -1, 1)).toBe(0);
+    expect(cycleEquipment(4, 1, 5)).toBe(0);
+    expect(cycleEquipment(0, -1, 5)).toBe(4);
   });
   it("周期を超える delta も1周として畳み込む", () => {
-    expect(cycleEquipment(0, 4, 3)).toBe(0);
-    expect(cycleEquipment(0, -4, 3)).toBe(0);
+    expect(cycleEquipment(0, 3, 3)).toBe(0);
+    expect(cycleEquipment(0, -3, 3)).toBe(0);
   });
 });
 

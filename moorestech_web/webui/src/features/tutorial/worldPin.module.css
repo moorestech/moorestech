@@ -12,7 +12,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform: translate(-50%, -100%);
+  /* stage外のPortal層なのでstageと同率で拡縮し、実解像度に依らず見かけの大きさを保つ */
+  /* This portal layer sits outside the stage, so it scales at the stage's rate and keeps its apparent size across resolutions */
+  /* 下端中央を原点にすることで、拡縮してもマーカー先端は射影座標に留まる */
+  /* A bottom-center origin keeps the marker tip on the projected point at any scale */
+  transform: translate(-50%, -100%) scale(var(--ui-scale, 1));
+  transform-origin: bottom center;
 }
 
 .label {

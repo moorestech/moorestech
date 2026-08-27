@@ -63,8 +63,10 @@ export default function EquipmentPanel() {
     // Build tools that own the wheel suppress equipment switching; the subscribed value never degrades to null
     if (wheelOwnedByBuildTool) return;
 
+    // 1枠以下は切り替え先が無いのでホイールは装備に触れず、要求も送らない
+    // With one slot or fewer there is nothing to switch to, so the wheel leaves equipment alone and sends nothing
     const latest = readTopic(Topics.inventory);
-    if (!latest || latest.equipment.length === 0) return;
+    if (!latest || latest.equipment.length <= 1) return;
     const accumulated = accumulateWheelSteps(wheelRemainder.current, e.deltaY, e.deltaMode);
     wheelRemainder.current = accumulated.remainder;
     if (accumulated.steps === 0) return;
@@ -86,8 +88,8 @@ export default function EquipmentPanel() {
   // Hide the whole HUD until the first snapshot, matching HotbarPanel
   if (!inventory) return null;
 
-  // 素手でも解決するHUD自体のアンカーを常時出す
-  // The HUD's own anchor stays mounted so it resolves even with bare hands
+  // HUD自体のアンカーを常時出す
+  // The HUD's own anchor stays mounted
   // クリックは他のスロットと同じアイテム移動。装備の選択はホイール専用にする
   // Clicks are ordinary item moves like every other slot; equipment selection belongs to the wheel alone
   return (
