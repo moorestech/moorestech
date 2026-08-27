@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -23,24 +24,36 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
 
-        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster)
+        // blockCauses・beltReasonsはPlaceInfo列と同じ添字で並走する不可原因の列（共有原因とベルト固有理由を分けて渡す）
+        // blockCauses and beltReasons are block-cause columns indexed like the PlaceInfo list, separating shared causes from belt-specific reasons
+        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
         {
-            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied);
+            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied, out blockCauses, out beltReasons);
         }
 
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied)
+        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
         {
             var (placeInfos, startToCornerDistance) = BeltConveyorPathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection);
 
             // 障害物を自動で跨ぐ立体交差プロファイルを後段で重ねる
             // Layer the auto-overpass profile that steps over obstacles
-            new ConveyorOverpassRaiser().Raise(placeInfos, startToCornerDistance, isOccupied);
+            var overpassBlocked = new ConveyorOverpassRaiser().Raise(placeInfos, startToCornerDistance, isOccupied);
+
+            blockCauses = new List<PlacementBlockCause>(placeInfos.Count);
+            beltReasons = new List<BeltConveyorPlacementBlockReason>(placeInfos.Count);
 
             // Raiserが立体交差不能で立てた設置不可フラグを残したまま、占有判定を重ねる
             // Keep the infeasibility flag the Raiser set for an impossible overpass, then AND in occupancy.
-            foreach (var info in placeInfos)
+            for (var i = 0; i < placeInfos.Count; i++)
             {
-                info.Placeable = info.Placeable && isNotExistBlock(info, straightBlockMaster);
+                blockCauses.Add(PlacementBlockCause.None);
+                beltReasons.Add(overpassBlocked[i] ? BeltConveyorPlacementBlockReason.ImpossibleOverpass : BeltConveyorPlacementBlockReason.None);
+
+                var info = placeInfos[i];
+                if (!info.Placeable || isNotExistBlock(info, straightBlockMaster)) continue;
+
+                info.Placeable = false;
+                blockCauses[i] = PlacementBlockCause.ExistingBlock;
             }
 
             return placeInfos;

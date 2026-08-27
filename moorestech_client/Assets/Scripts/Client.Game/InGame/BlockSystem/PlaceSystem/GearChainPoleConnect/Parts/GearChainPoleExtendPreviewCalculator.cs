@@ -37,7 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 
             var distance = Vector3Int.Distance(fromPos, toPos);
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, toInfo.MaxConnectionDistance, alreadyConnected, fromInfo.IsConnectionFull || toInfo.IsConnectionFull, connectToolGuid, playerInventory, null);
-            return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(toPos), judgement.IsPlaceable);
+            return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(toPos), judgement);
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             var anyConnectionFull = fromInfo.IsConnectionFull || placingPoleParam.MaxConnectionCount < 1;
             var distance = Vector3Int.Distance(fromPos, placePos);
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, anyConnectionFull, connectToolGuid, playerInventory, ConnectToolMaterialConsumer.ToMaterials(reservedItemCounts));
-            return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(placePos), judgement.IsPlaceable);
+            return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(placePos), judgement);
         }
 
         /// <summary>
@@ -108,23 +108,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     /// </summary>
     public readonly struct GearChainPoleExtendPreviewData
     {
-        public static GearChainPoleExtendPreviewData Invalid => new(Vector3.zero, Vector3.zero, false, false);
+        public static GearChainPoleExtendPreviewData Invalid => new(Vector3.zero, Vector3.zero, false, false, string.Empty);
 
         public readonly Vector3 StartPoint;
         public readonly Vector3 EndPoint;
         public readonly bool IsPlaceable;
         public readonly bool IsValid;
 
-        public GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, bool isPlaceable) : this(startPoint, endPoint, isPlaceable, true)
+        // 不可理由(Evaluator定数)。可なら空
+        // Failure reason (Evaluator constant); empty when placeable
+        public readonly string FailureReason;
+
+        public GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, GearChainPlacementJudgement judgement) : this(startPoint, endPoint, judgement.IsPlaceable, true, judgement.FailureReason)
         {
         }
 
-        private GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, bool isPlaceable, bool isValid)
+        private GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, bool isPlaceable, bool isValid, string failureReason)
         {
             StartPoint = startPoint;
             EndPoint = endPoint;
             IsPlaceable = isPlaceable;
             IsValid = isValid;
+            FailureReason = failureReason;
         }
     }
 }

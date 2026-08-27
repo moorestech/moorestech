@@ -361,6 +361,11 @@
   /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
   /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
   --count-text: #111;
+  /* アイコンに重なるテキストの縁。太さは全系統共通の1本で、色だけ文字色の反対色を選ぶ（ADR 0033） */
+  /* The outline for text overlaying an icon; one shared width, with only the color flipped against the text (ADR 0033) */
+  --icon-text-stroke-width: 2px;
+  --icon-text-stroke-light: #fff;
+  --icon-text-stroke-dark: #000;
 }
 
 /* キー操作ヒントの文字様式は3画面が共有する1宣言に畳む。各画面のCSSは位置決めだけを持つ（§7） */
@@ -381,4 +386,20 @@
 :where(.keyHintText) kbd {
   font: inherit;
   color: var(--text-high-contrast);
+}
+
+/* アイコンに重なるテキストの縁は5箇所が共有する1宣言に畳む。各featureのCSSは位置決めと文字色だけを持つ（ADR 0033） */
+/* The icon-overlay outline collapses into one declaration shared by 5 sites; each feature's CSS keeps only positioning and color (ADR 0033) */
+/* paint-order で塗りを縁の上へ重ね、文字が痩せないようにする */
+/* paint-order draws the fill over the stroke so the glyph never thins out */
+/* :where()で詳細度0にし、機能側の位置決めクラスと衝突させない */
+/* :where() keeps the specificity at zero so it never fights a feature's positioning class */
+:where(.iconTextOutlineLight) {
+  -webkit-text-stroke: var(--icon-text-stroke-width) var(--icon-text-stroke-light);
+  paint-order: stroke fill;
+}
+
+:where(.iconTextOutlineDark) {
+  -webkit-text-stroke: var(--icon-text-stroke-width) var(--icon-text-stroke-dark);
+  paint-order: stroke fill;
 }

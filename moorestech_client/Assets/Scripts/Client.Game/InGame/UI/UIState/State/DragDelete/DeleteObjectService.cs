@@ -11,8 +11,8 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
     public class DeleteObjectService
     {
         private readonly DragDeleteSelection _selection;
+        private readonly TooltipOwner _tooltipOwner = new();
         private IDeleteTarget _deleteTargetObject;
-        private bool _isRemoveDeniedReasonShown;
         private bool _isDragging;
 
         public DeleteObjectService(BuildOperationHistory buildOperationHistory)
@@ -22,13 +22,9 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
 
         public void Update()
         {
-            // 拒否理由ツールチップを毎フレーム先に消す
-            // Reset the denial-reason tooltip at the start of each frame
-            if (_isRemoveDeniedReasonShown)
-            {
-                MouseCursorTooltip.Instance.Hide();
-                _isRemoveDeniedReasonShown = false;
-            }
+            // 拒否理由ツールチップを毎フレーム先に消す（自分が出した分だけ消えるので他者の表示は残る）
+            // Reset the denial-reason tooltip at the start of each frame (only our own showing clears, others survive)
+            MouseCursorTooltip.Instance.Hide(_tooltipOwner);
 
             // カーソル下の削除対象を取得（無ければnull）
             // Resolve the target hovered this frame (null when nothing hit)
@@ -123,8 +119,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
             {
                 if (!denyReasonKey.HasValue) return;
 
-                MouseCursorTooltip.Instance.Show(denyReasonKey.Value);
-                _isRemoveDeniedReasonShown = true;
+                MouseCursorTooltip.Instance.Show(_tooltipOwner, denyReasonKey.Value);
             }
 
             #endregion
@@ -154,8 +149,7 @@ namespace Client.Game.InGame.UI.UIState.State.DragDelete
                 _deleteTargetObject = null;
             }
 
-            MouseCursorTooltip.Instance.Hide();
-            _isRemoveDeniedReasonShown = false;
+            MouseCursorTooltip.Instance.Hide(_tooltipOwner);
             _isDragging = false;
         }
     }

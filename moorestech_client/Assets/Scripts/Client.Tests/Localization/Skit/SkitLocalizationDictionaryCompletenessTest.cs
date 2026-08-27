@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using Client.Skit.Localization;
+using Mooresmaster.Localization.Generated;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -15,20 +17,32 @@ namespace Client.Tests.Localization.Skit
         {
             "skit.100_start_game.1.body", "skit.100_start_game.2.body",
             "skit.100_start_game.3.body", "skit.100_start_game.4.body",
-            "skit.100_start_game.31.overrideCharacterName",
             "skit.sample_short.9.Option1Tag", "skit.sample_short.9.Option2Tag",
             "skit.sample_short.9.Option3Tag",
             "skit.200_star_background.1.body",
         };
+
         // count/hashは列車をworldObjectEnable側へ移した後のroot値とソート済みCommandForge key/valueを正本とする
         // Baseline is the root values and sorted CommandForge key/value pairs after trains moved to worldObjectEnable
-        [TestCase("english", 143, "37060d89c2b4261de3d674e65767085449474bd3d115e6ceabd80abfaec28fd6")]
-        [TestCase("japanese", 208, "c702afae428b48ffd8d8f8f57a65c00250258430805e79890e636016ce533fd4")]
-        public void CommandForgeDictionaryKeepsRootFlatTranslationsAndBaselineValues(
-            string languageCode,
-            int expectedBaselineCount,
-            string expectedBaselineHash)
+        private static readonly Dictionary<string, (int Count, string Hash)> Baselines = new()
         {
+            ["english"] = (143, "37060d89c2b4261de3d674e65767085449474bd3d115e6ceabd80abfaec28fd6"),
+            ["japanese"] = (208, "c702afae428b48ffd8d8f8f57a65c00250258430805e79890e636016ce533fd4"),
+            ["german"] = (143, "741d48331d47583b7e00751a80607d8e7774ec64defabb07811f86a86d355d7c"),
+        };
+
+        // LanguageCatalog由来で全言語を走査し新規言語追加時にbaseline未登録を検知する
+        // Drive from LanguageCatalog so adding a language surfaces a missing baseline entry
+        private static IEnumerable<string> LanguageCodes()
+        {
+            return LanguageCatalog.Languages.Select(language => language.Code);
+        }
+
+        [TestCaseSource(nameof(LanguageCodes))]
+        public void CommandForgeDictionaryKeepsRootFlatTranslationsAndBaselineValues(
+            string languageCode)
+        {
+            var (expectedBaselineCount, expectedBaselineHash) = Baselines[languageCode];
             var root = LoadI18nRoot(languageCode);
             var rootNames = new List<string>();
             foreach (var property in root.Properties()) rootNames.Add(property.Name);

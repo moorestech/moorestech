@@ -9,12 +9,12 @@ namespace Client.Tests.UIState.Fakes
     /// </summary>
     public class FakeMapVeinRangeView : IMapVeinRangeView
     {
-        public readonly List<bool> ShowPushes = new();
+        public readonly List<MapVeinKind?> VeinKindPushes = new();
         public int ManualUpdateCount;
 
-        public void Show(bool isVisible)
+        public void SetVisibleVeinKind(MapVeinKind? veinKind)
         {
-            ShowPushes.Add(isVisible);
+            VeinKindPushes.Add(veinKind);
         }
 
         public void ManualUpdate()

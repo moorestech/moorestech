@@ -1,5 +1,6 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Control;
 using Client.Input;
@@ -23,7 +24,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
         /// 起点未選択の1フレーム更新。選択できた起点ブロックを返す（切断・孤立設置・未選択時はnull）
         /// One-frame update while no origin is selected; returns the newly selected origin block (null on disconnect, isolated placement or none)
         /// </summary>
-        public BlockGameObject Update()
+        public BlockGameObject Update(PlacementFeedback feedback)
         {
             // 起点が無い状態では接続線プレビューは表示しない
             // No connection preview while there is no origin
@@ -50,13 +51,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
             // 何もない空間なら電柱の孤立設置ゴーストを表示し、クリックで設置する
             // Over empty space, show the isolated pole ghost and place it on click
-            if (!_context.PoleGhostPart.TryEvaluateGhost(_context.PoleSelection, out var evaluation))
+            if (!_context.PoleGhostPart.TryEvaluateGhost(_context.PoleSelection, feedback, out var evaluation))
             {
                 _context.PreviewBlockController.SetActive(false);
                 return null;
             }
 
-            var placeable = evaluation.GroundClear && evaluation.CanAffordPole;
+            var placeable = evaluation.IsGhostPlaceable;
             evaluation.PlaceInfo.Placeable = placeable;
             _context.PreviewBlockController.UpdatePlaceableColors(evaluation.PlaceInfos);
 
@@ -75,7 +76,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
             void HideGhost()
             {
                 _context.PreviewBlockController.SetActive(false);
-                _context.PoleGhostPart.SetNameLabelActive(false);
             }
 
             void Disconnect(ElectricWireLineViewElement wireElement)

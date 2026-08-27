@@ -1,4 +1,5 @@
 using System.Threading;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Control;
@@ -77,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             _visualizer ??= new BlueprintAreaVisualizer();
         }
 
-        protected override void ManualUpdate(BlueprintCopyPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(BlueprintCopyPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // 名前入力中はドラッグを停止
             // Freeze drag interaction while the name dialog is open

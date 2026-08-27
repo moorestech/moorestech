@@ -64,7 +64,7 @@ describe("ItemSlot", () => {
   it("countがundefinedの時はバッジを表示しない", () => {
     const markup = renderItemSlot(undefined, undefined);
 
-    expect(markup).not.toContain(`class="${styles.count}"`);
+    expect(markup).not.toMatch(new RegExp(`<span class="[^"]*\\b${styles.count}\\b`));
   });
 
   // アイコンを描くcatalogでも0はバッジ非表示
@@ -73,12 +73,14 @@ describe("ItemSlot", () => {
     const markup = renderItemSlot(undefined, 0, true);
 
     expect(markup).toContain("<img");
-    expect(markup).not.toContain(`class="${styles.count}"`);
+    expect(markup).not.toMatch(new RegExp(`<span class="[^"]*\\b${styles.count}\\b`));
   });
 
   it("countが正の数の時はバッジを表示する", () => {
     const markup = renderItemSlot(undefined, 5);
 
-    expect(markup).toContain(`<span class="${styles.count}">5</span>`);
+    // 縁は共有クラスの合成で乗る（ADR 0033）
+    // The outline arrives through a shared class (ADR 0033)
+    expect(markup).toContain(`<span class="iconTextOutlineLight ${styles.count}">5</span>`);
   });
 });
