@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Game.Block.Interface;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
@@ -27,6 +29,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
             if (!SlopeBlockPlaceSystem.TryGetBlockFourCornerMaxHeight(cellPosition, blockDirection, blockSize, out var groundMaxHeight)) return cellPosition;
 
             return new Vector3Int(cellPosition.x, ResolveCellY(groundMaxHeight, heightOffset), cellPosition.z);
+        }
+
+        // ドラッグ列の各セルを自分の真下の地形へ追従させる。開始セルのYコピーをここで打ち消す
+        // Makes each cell of a drag run follow the terrain beneath it, cancelling the start cell's Y copy
+        public static void ApplyGroundCellY(List<PlaceInfo> placeInfos, Vector3Int blockSize, int heightOffset)
+        {
+            foreach (var placeInfo in placeInfos)
+            {
+                placeInfo.Position = ResolveCellFromGround(placeInfo.Position, placeInfo.Direction, blockSize, heightOffset);
+            }
         }
     }
 }

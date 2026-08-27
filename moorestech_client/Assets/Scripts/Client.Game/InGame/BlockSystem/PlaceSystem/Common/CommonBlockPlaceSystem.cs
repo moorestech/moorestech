@@ -3,6 +3,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
@@ -108,7 +109,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) { _autoConnectPreview.Hide(); return; }
+                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) { _autoConnectPreview.Hide(); return; }
+
+                // 地面ヒットのときだけ地形追従する。ブロック面ヒット（積み重ね）は整数グリッド上なので触らない
+                // Follow the terrain only on a ground hit; block-face hits (stacking) sit on the integer grid and stay untouched
+                var isGroundHit = hitSurface == null;
 
                 // 距離外なら理由のみ出しプレビュー無し
                 // Beyond range, show only the reason and no preview
@@ -122,6 +127,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 //プレビュー表示と地面との接触を取得する
                 //display preview and get collision with ground
                 var placeCauses = UpdateCurrentPlaceInfos(placePoint, holdingBlockMaster);
+
+                // 各セルのYを自分の真下の地形へ追従させる（ドラッグ開始セルのYコピーを打ち消す。ADR 0037）
+                // Make each cell's Y follow the terrain beneath it, cancelling the drag start cell's Y copy (ADR 0037)
+                if (isGroundHit) PlacementGroundCellResolver.ApplyGroundCellY(_currentPlaceInfos, holdingBlockMaster.BlockSize, _dragState.HeightOffset);
 
                 var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 

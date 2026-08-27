@@ -2,6 +2,7 @@ using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Game.Block.Interface;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 using System.Collections.Generic;
 
@@ -87,6 +88,52 @@ namespace Client.Tests.PlaceSystem.Ground
 
             Assert.AreEqual(700, resolved.x);
             Assert.AreEqual(800, resolved.z);
+        }
+
+        // ドラッグ列は各セルがそれぞれの地形高さへ追従する
+        // Each cell of a drag run follows its own terrain height
+        [Test]
+        public void ドラッグ列は各セルがそれぞれの地形へ追従する()
+        {
+            // 隣接セルは四隅を共有するため、段差はセル境界のX平面に薄い柱で立てる
+            // Adjacent cells share corners, so the steps are thin pillars standing on the cell-boundary X planes
+            CreateGroundSlab(new Vector3(1001.5f, 9.9f, 1100.5f), new Vector3(8f, 1f, 6f));
+            CreateGroundSlab(new Vector3(1002f, 13.9f, 1100.5f), new Vector3(0.2f, 1f, 6f));
+            CreateGroundSlab(new Vector3(1003f, 17.9f, 1100.5f), new Vector3(0.2f, 1f, 6f));
+
+            var placeInfos = new List<PlaceInfo>
+            {
+                new() { Position = new Vector3Int(1000, 0, 1100), Direction = BlockDirection.North, Placeable = true },
+                new() { Position = new Vector3Int(1001, 0, 1100), Direction = BlockDirection.North, Placeable = true },
+                new() { Position = new Vector3Int(1002, 0, 1100), Direction = BlockDirection.North, Placeable = true },
+            };
+
+            PlacementGroundCellResolver.ApplyGroundCellY(placeInfos, Vector3Int.one, 0);
+
+            // 四隅の最高点は 10.4 / 14.4 / 18.4 なのでセルYは 11 / 15 / 19
+            // The four-corner maxima are 10.4 / 14.4 / 18.4, so the cell Ys are 11 / 15 / 19
+            Assert.AreEqual(11, placeInfos[0].Position.y);
+            Assert.AreEqual(15, placeInfos[1].Position.y);
+            Assert.AreEqual(19, placeInfos[2].Position.y);
+        }
+
+        // 地表の無いセルは元のYを保ったまま他セルの解決を妨げない
+        // A cell with no ground keeps its Y and does not stop the others from resolving
+        [Test]
+        public void 地表の無いセルが混じっても他セルは解決される()
+        {
+            CreateGroundSlab(new Vector3(1200.5f, 5.9f, 1300.5f), new Vector3(4f, 1f, 4f));
+
+            var placeInfos = new List<PlaceInfo>
+            {
+                new() { Position = new Vector3Int(1200, 0, 1300), Direction = BlockDirection.North, Placeable = true },
+                new() { Position = new Vector3Int(1900, 42, 1900), Direction = BlockDirection.North, Placeable = true },
+            };
+
+            PlacementGroundCellResolver.ApplyGroundCellY(placeInfos, Vector3Int.one, 0);
+
+            Assert.AreEqual(7, placeInfos[0].Position.y);
+            Assert.AreEqual(42, placeInfos[1].Position.y);
         }
 
         private void CreateGroundSlab(Vector3 position, Vector3 scale)
