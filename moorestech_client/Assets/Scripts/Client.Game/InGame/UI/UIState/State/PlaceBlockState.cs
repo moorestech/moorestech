@@ -26,7 +26,6 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
-        private readonly VeinRestrictedPlacementState _veinRestrictedPlacementState;
         private readonly HotbarTapInputService _hotbarInputService;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
@@ -51,14 +50,13 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService = cameraPolicyService;
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
-            _veinRestrictedPlacementState = veinRestrictedPlacementState;
             _hotbarInputService = hotbarInputService;
 
             // 設置対象か制限が変わった時だけ表示種別と強調鉱脈をプッシュする。毎フレームの再導出はしない
             // Push the vein kind and the highlighted vein only when the target or the restriction changes; never re-derive per frame
             var veinViewPusher = new PlacementVeinViewPusher(mapVeinRangeView, veinRestrictedPlacementState);
             _placeSystemStateController.OnTargetChanged.Subscribe(veinViewPusher.Push);
-            _veinRestrictedPlacementState.OnChanged.Subscribe(_ => veinViewPusher.Push(_placeSystemStateController.CurrentTarget));
+            veinRestrictedPlacementState.OnChanged.Subscribe(_ => veinViewPusher.Push(_placeSystemStateController.CurrentTarget));
         }
 
         public void OnEnter(UITransitContext context)
@@ -82,7 +80,6 @@ namespace Client.Game.InGame.UI.UIState.State
                 blockGameObject.EnablePreviewOnlyObjects(true, true);
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
-
 
             #region Internal
 
