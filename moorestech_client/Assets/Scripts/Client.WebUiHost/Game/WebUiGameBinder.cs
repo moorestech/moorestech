@@ -153,7 +153,7 @@ namespace Client.WebUiHost.Game
             var buildMenuView = resolver.Resolve<BuildMenuView>();
             var blueprintNameInputView = resolver.Resolve<BlueprintNameInputView>();
             var constructionWalletQuery = resolver.Resolve<ConstructionWalletQuery>();
-            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery);
+            var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery, controller);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
             new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
 

@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.WebUiHost.Game.Icons;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Construction;
 using Game.PlacementTarget;
@@ -18,15 +20,19 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         // 解放判定はResolverが持つ唯一の供給点へ委ね、ここは変換だけを担う
         // Delegates the unlock decision to the resolver's single supply point; this file only converts
-        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery)
+        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)
         {
-            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery);
+            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery, inventoryItems);
         }
 
-        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery)
+        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)
         {
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
+
+            // 所持集計は全エントリで共有する（エントリごとの再走査を避ける）
+            // The held tally is shared across every entry, avoiding a rescan per entry
+            var heldByItem = ConstructionMaterialHeldCounts.Tally(inventoryItems);
 
             // 共有カタログの列挙順（ブロック→車両→接続ツール→BPコピー→BP）がそのまま表示順
             // The shared catalog's order (blocks, train cars, connect tools, blueprint copy, blueprints) is the display order
@@ -44,7 +50,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
-                    RequiredItems = CreateRequiredItemDtos(target),
+                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, walletQuery, heldByItem),
                     SetPlacement = ResolveSetPlacement(target),
                     IconUrl = ResolveIconUrl(target),
                 });
@@ -71,18 +77,6 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     PlacementTargetKind.Blueprint => BuildMenuSubCategoryElement.EntrySourceConst.savedBlueprints,
                     _ => throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null),
                 });
-            }
-
-            // 建設費をItemIdへ変換
-            // Convert costs to ItemIds
-            List<BuildMenuRequiredItemDto> CreateRequiredItemDtos(IPlacementTarget target)
-            {
-                var itemDtos = new List<BuildMenuRequiredItemDto>();
-                foreach (var (itemGuid, count) in target.CreateRequiredItems())
-                {
-                    itemDtos.Add(new BuildMenuRequiredItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(), Count = count });
-                }
-                return itemDtos;
             }
 
             // ブロックかどうかの供給源はKindのenum一本に揃える

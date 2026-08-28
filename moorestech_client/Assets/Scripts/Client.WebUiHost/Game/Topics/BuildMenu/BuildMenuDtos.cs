@@ -45,6 +45,11 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         public int ItemId;
         public int Count;
+
+        // 所持数と不足フラグはホストが決め切って配る。Web側は財布も所持も再計算しない
+        // The host settles the held count and the shortage flag; the web side recomputes neither wallet nor holdings
+        public int Held;
+        public bool Lacking;
     }
 
     public class BuildMenuSetPlacementDto

@@ -41,14 +41,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
                 }
             }
 
-            // 所持数を集計する
-            // Tally held counts
-            var heldByItem = new Dictionary<ItemId, int>();
-            foreach (var stack in inventoryItems)
-            {
-                heldByItem.TryGetValue(stack.Id, out var current);
-                heldByItem[stack.Id] = current + stack.Count;
-            }
+            // 所持集計は唯一の供給点へ委ねる
+            // Delegate the held tally to its single supply point
+            var heldByItem = ConstructionMaterialHeldCounts.Tally(inventoryItems);
 
             // 所持が必要に満たない素材だけを返す
             // Return only materials whose held count is below the required count
