@@ -11,6 +11,7 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += ItemGuidValidation();
+            errorLogs += EarnItemsValidation();
             errorLogs += MiningToolValidation();
             return string.IsNullOrEmpty(errorLogs);
 
@@ -41,6 +42,22 @@ namespace Core.Master.Validator
                                 logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has invalid ToolItemGuid:{miningTool.ToolItemGuid}\n";
                             }
                         }
+                    }
+                }
+
+                return logs;
+            }
+
+            string EarnItemsValidation()
+            {
+                // 取得アイテム無しは殴っても空振り
+                // Empty earn items yield nothing when mined
+                var logs = "";
+                foreach (var mapObjectElement in map.MapObjects)
+                {
+                    if (mapObjectElement.EarnItems.Length == 0)
+                    {
+                        logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has empty EarnItems\n";
                     }
                 }
 

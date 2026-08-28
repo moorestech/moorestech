@@ -4,8 +4,8 @@ import { GuidSchema, SlotDataSchema } from "./common";
 export const PlayerInventoryDataSchema = z.object({
   mainSlots: z.array(SlotDataSchema),
   grab: SlotDataSchema,
-  // 装備枠は可変長、-1は素手
-  // Equipment is variable-length; -1 means bare hands
+  // 装備枠は可変長、選択は常に 0..枠数-1 の実スロット
+  // Equipment is variable-length; the selection is always a real slot in 0..slotCount-1
   equipment: z.array(SlotDataSchema),
   selectedEquipment: z.number(),
   equipmentSelectionConfirmationRevision: z.number().int().nonnegative(),

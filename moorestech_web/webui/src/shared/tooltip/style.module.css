@@ -9,4 +9,10 @@
   pointer-events: none;
   background: var(--tooltip-face);
   border: var(--tooltip-border);
+  /* stage外のPortal層なので寸法が実解像度に取り残される。stageと同率で拡縮して見かけの大きさを揃える */
+  /* This portal layer lives outside the stage, so its size lags the real resolution; scale it at the stage's rate to keep its apparent size constant */
+  transform: scale(var(--ui-scale, 1));
+  /* left/topがカーソル基準の角なので、その角を固定して外側へ伸ばす */
+  /* left/top is the cursor-anchored corner, so pin that corner and grow outward */
+  transform-origin: top left;
 }

@@ -50,6 +50,12 @@ namespace Game.MapGeneration.Provisioning
                 throw new InvalidOperationException(
                     $"World directory is corrupted: '{worldDataDirectory.Root}' exists but world.json is missing.");
 
+            // generatedのIDは生成前に決まる。スナップショットが命中すれば生成も先焼きも要らない
+            // A generated world's id is settled before generation; a snapshot hit needs neither generation nor prebake
+            var generatedWorldId = settings.MapMode == WorldMapMode.Generated ? CalculateGeneratedWorldId(settings) : null;
+            if (generatedWorldId != null && WorldSnapshotStore.TryRestore(worldDataDirectory, settings.ServerDataDirectory, generatedWorldId))
+                return;
+
             var tempDataDirectory = WorldDataDirectory.FromWorldRoot(worldDataDirectory.ProvisioningTempDirectory);
             Directory.CreateDirectory(tempDataDirectory.Root);
 
@@ -76,9 +82,17 @@ namespace Game.MapGeneration.Provisioning
             {
                 var generatedTerrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
                 TerrainVisualPrebake.BakeAll(worldDataDirectory, settings.ServerDataDirectory, generatedTerrainMeta, generatedLedger);
+                WorldSnapshotStore.Store(worldDataDirectory, generatedTerrainMeta.WorldId);
             }
 
             #region Internal
+
+            static string CalculateGeneratedWorldId(WorldProvisionSettings settings)
+            {
+                var fingerprint = GenerationMasterFingerprint.Compute(
+                    MasterHolder.GenerationMaster.SourceJsonText, MasterHolder.GenerationMaster.SelectedGeneration, settings.ServerDataDirectory);
+                return WorldIdentity.CalculateGenerated(settings.Seed, fingerprint, WorldGeneratorVersion.Current);
+            }
 
             static WorldMetaJson BuildGenerated(
                 WorldDataDirectory tempDataDirectory, WorldProvisionSettings settings, out PlacementLedger ledger)

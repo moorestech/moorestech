@@ -93,22 +93,22 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void 選択インデックスは素手を含む範囲にクランプされる()
+        public void 選択インデックスは実スロット範囲にクランプされる()
         {
             var (_, playerInventory) = CreateServerWithPlayerInventory();
             var equipmentInventory = playerInventory.EquipmentInventory;
             var toolItemId = ToolItemId();
             equipmentInventory.SetItem(1, toolItemId, 1);
 
-            // スロット数を超える指定は末尾スロットへ、負値は素手(-1)へ丸める
-            // Indexes beyond the slot count clamp to the last slot and negatives clamp to bare hands (-1)
+            // スロット数を超える指定は末尾スロットへ、負値は先頭(0)へ丸める
+            // Indexes beyond the slot count clamp to the last slot and negatives clamp to the first slot (0)
             equipmentInventory.SetSelectedEquipmentIndex(99);
             Assert.AreEqual(equipmentInventory.GetSlotSize() - 1, equipmentInventory.SelectedEquipmentIndex);
             equipmentInventory.SetSelectedEquipmentIndex(-5);
-            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipmentInventory.SelectedEquipmentIndex);
+            Assert.AreEqual(0, equipmentInventory.SelectedEquipmentIndex);
 
-            // 素手のときは空スタック、装備スロット選択時はそのアイテムを返す
-            // Bare hands returns an empty stack while a selected slot returns its item
+            // 空スロット選択時は空スタック、ツールのあるスロット選択時はそのアイテムを返す
+            // An empty selected slot returns an empty stack while a slot holding a tool returns its item
             Assert.AreEqual(0, equipmentInventory.GetSelectedItem().Count);
             equipmentInventory.SetSelectedEquipmentIndex(1);
             Assert.AreEqual(toolItemId, equipmentInventory.GetSelectedItem().Id);

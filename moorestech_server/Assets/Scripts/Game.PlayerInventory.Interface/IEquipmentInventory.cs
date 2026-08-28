@@ -9,10 +9,8 @@ namespace Game.PlayerInventory.Interface
     /// </summary>
     public interface IEquipmentInventory : IOpenableInventory
     {
-        public const int BareHandsIndex = -1;
-
-        // -1は素手を表す
-        // -1 means bare hands
+        // 常に 0..スロット数-1 の実スロットを指す
+        // Always points at a real slot in 0..slotCount-1
         public int SelectedEquipmentIndex { get; }
 
         public void SetSelectedEquipmentIndex(int index);

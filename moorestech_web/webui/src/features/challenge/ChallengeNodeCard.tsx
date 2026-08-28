@@ -16,7 +16,7 @@ export default function ChallengeNodeCard({ node, left, top }: { node: Challenge
   // 拡縮・位置を保ち翻訳状態を描画する
   // Render the localized state while preserving scale and position
   return (
-    <Paper className={`${styles.node} ${styles[node.state]}`} data-challenge-node
+    <Paper className={`${styles.node} ${styles[node.state]}`}
       data-testid={`challenge-node-${node.guid}`}
       {...tutorialAnchor(challengeNodeAnchorId(node.guid))}
       style={{ left, top, transform: `translate(-50%, -50%) scale(${node.scale.x}, ${node.scale.y})` }}>
