@@ -1,7 +1,7 @@
 import { FadeRule, ItemSlot, SlotGrid } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
 import { useMaterialTooltipText } from "@/shared/materialTooltipText";
-import type { BuildMenuDisplayEntry } from "./buildMenuGrouping";
+import type { BuildMenuDisplayEntry } from "./logic/buildMenuGrouping";
 import styles from "./style.module.css";
 
 type Props = { entry: BuildMenuDisplayEntry | null };

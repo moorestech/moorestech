@@ -1,6 +1,6 @@
-import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
-import type { TranslationKey } from "../../shared/i18n";
-import { localizeSelectableTargetName, placementTargetOf } from "../../shared/placementTarget";
+import type { BuildMenuCategory, BuildMenuEntryData } from "../../../bridge/contract/payloadTypes";
+import type { TranslationKey } from "../../../shared/i18n";
+import { localizeSelectableTargetName, placementTargetOf } from "../../../shared/placementTarget";
 
 export type BuildMenuSection = {
   categoryGuid: string;

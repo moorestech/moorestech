@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
+import type { BuildMenuCategory, BuildMenuEntryData } from "../../../bridge/contract/payloadTypes";
 import { connectToolNameKey, trainCarNameKey } from "@/shared/i18n";
 import {
   localizeBuildMenuEntries,

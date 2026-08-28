@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import type { BuildMenuDisplayEntry } from "./buildMenuGrouping";
+import type { BuildMenuDisplayEntry } from "./logic/buildMenuGrouping";
 
 vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),

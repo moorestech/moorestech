@@ -10,7 +10,7 @@ import {
   sectionsForCategory,
   visibleCategories,
   type BuildMenuDisplayEntry,
-} from "./buildMenuGrouping";
+} from "./logic/buildMenuGrouping";
 import { BuildMenuCategoryGrid } from "./BuildMenuCategoryGrid";
 import { BuildMenuDetailSidebar } from "./BuildMenuDetailSidebar";
 import { BuildMenuSearchInput } from "./BuildMenuSearchInput";
