@@ -23,11 +23,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
         public void AddBlockedByTerrain() => _lines.Add(BlockedByTerrainLine());
         public void AddBlockedByExistingBlock() => _lines.Add(BlockedByExistingBlockLine());
         public void AddTooFar() => _lines.Add(TooFarLine());
+        public void AddGroundNotFound() => _lines.Add(GroundNotFoundLine());
 
         // 共通不可理由の行を生成する。シンクを持たない純関数の判断側もここからキーを得る
         // Builds the shared block-reason lines so sink-less pure decision code takes its keys from here too
         public static TooltipLine BlockedByTerrainLine() => new(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain);
         public static TooltipLine BlockedByExistingBlockLine() => new(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock);
         public static TooltipLine TooFarLine() => new(LocalizationKeys.Ui.Tooltip.PlaceTooFar);
+        public static TooltipLine GroundNotFoundLine() => new(LocalizationKeys.Ui.Tooltip.PlaceGroundNotFound);
     }
 }

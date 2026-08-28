@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run
 {
     /// <summary>
     ///     ドラッグ列がどの軸へ伸びたか

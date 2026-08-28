@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Client.Game.Common;
 using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
 using Client.Network.API;
@@ -114,7 +115,7 @@ namespace Client.Tests.EditModeInPlayingTest
             {
                 var handshakePosition = ClientDIContext.DIContainer.DIContainerResolver.Resolve<InitialHandshakeResponse>().PlayerPos;
                 var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-                var hasGround = SlopeBlockPlaceSystem.TryGetGroundPoint(playerPosition.x, playerPosition.z, out var groundPoint);
+                var hasGround = GroundHeightProbe.TryGetGroundPoint(playerPosition.x, playerPosition.z, out var groundPoint);
                 Debug.Log($"[PlayerStartsOnBuiltTerrainTest] handshake:{handshakePosition} player:{playerPosition} ground:{hasGround}/{groundPoint} lowestY:{lowestObservedY}");
 
                 // 地形構築より前に解放されていれば、この閾値を割った上でスポーンへ飛ばされる
