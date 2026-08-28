@@ -59,12 +59,12 @@ namespace Client.Tests.UnitTest.Tutorial
 
             manager.ApplyTutorial(ChallengeGuid);
 
-            Assert.IsTrue(state.TryGetRestrictedVein(ForUnitTestModBlockId.ElectricMinerId, out var veinGuid));
+            Assert.IsTrue(state.TryGetRestrictedVeinType(ForUnitTestModBlockId.ElectricMinerId, out var veinGuid));
             Assert.AreEqual(Guid.Parse("11111111-0000-0000-0000-000000000001"), veinGuid);
 
             manager.CompleteChallenge(ChallengeGuid);
 
-            Assert.IsFalse(state.TryGetRestrictedVein(ForUnitTestModBlockId.ElectricMinerId, out _));
+            Assert.IsFalse(state.TryGetRestrictedVeinType(ForUnitTestModBlockId.ElectricMinerId, out _));
         }
 
         [Test]

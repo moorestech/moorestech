@@ -82,6 +82,56 @@ namespace Client.Tests.EditModeInPlayingTest
             #endregion
         }
 
+        [UnityTest]
+        public IEnumerator ロード中に完了したゴーストは点灯しない()
+        {
+            EnterPlayModeUtil();
+
+            // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと
+            // Always call yield return new EnterPlayMode directly under the [UnityTest] function
+            yield return new EnterPlayMode(expectDomainReload: true);
+
+            LogAssert.ignoreFailingMessages = true;
+
+            yield return Body().ToCoroutine();
+
+            yield return new ExitPlayMode();
+
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+
+            #region Internal
+
+            async UniTask Body()
+            {
+                await LoadMainGame();
+
+                var manager = Object.FindFirstObjectByType<RelativeBlockPlacePreviewTutorialManager>(FindObjectsInactive.Include);
+                Assert.IsNotNull(manager, "the scene has no RelativeBlockPlacePreviewTutorialManager");
+
+                var ghostOwner = Object.FindFirstObjectByType<BlockPlacePreviewTutorialManager>(FindObjectsInactive.Include);
+                Assert.IsNotNull(ghostOwner, "the scene has no BlockPlacePreviewTutorialManager");
+
+                PlaceBlock("無限歯車ジェネレーター", AnchorPosition, BlockDirection.North);
+                await WaitBlockGameObjectSpawn(AnchorPosition);
+
+                // Addressableロードが終わる前に完了させる。1フレームしか進めないのがこのテストの肝
+                // Complete before the Addressable load finishes; advancing only one frame is the point of this test
+                manager.ApplyTutorial(CreateTutorial("無限歯車ジェネレーター", "シャフト", Offset, "North"));
+                await UniTask.Yield();
+                manager.CompleteTutorial();
+
+                // 遅れて着地したゴーストが後から点灯しないことを見る
+                // Watches that a late-landing ghost never lights up afterwards
+                for (var i = 0; i < 300; i++)
+                {
+                    Assert.IsNull(ghostOwner.GetComponentInChildren<TutorialBlockPreviewObject>(false), "a ghost lit up after the tutorial had completed");
+                    await UniTask.Yield();
+                }
+            }
+
+            #endregion
+        }
+
         // テストmodのchallenges.jsonへ相対座標プレビューのチュートリアルを1件差し込み、生成型として取り出す
         // Insert one relative-placement-preview tutorial into the test mod's challenges.json and take it back as the generated type
         private static TutorialsElement CreateTutorial(string anchorBlockName, string blockName, Vector3Int offset, string direction)

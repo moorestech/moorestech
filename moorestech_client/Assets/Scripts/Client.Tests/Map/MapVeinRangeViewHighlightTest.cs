@@ -51,7 +51,7 @@ namespace Client.Tests.Map
             service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Item));
             Assert.AreEqual(2, CountVisibleBoxes(root));
 
-            service.SetVeinDisplay(VeinDisplay.Single(ItemVeinA));
+            service.SetVeinDisplay(VeinDisplay.OfVeinType(ItemVeinA));
 
             Assert.AreEqual(1, CountVisibleBoxes(root), "highlight mode must show exactly the target vein");
             foreach (Transform child in root)
@@ -67,7 +67,7 @@ namespace Client.Tests.Map
             var (service, root) = CreateService();
             service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Fluid));
 
-            service.SetVeinDisplay(VeinDisplay.Single(ItemVeinB));
+            service.SetVeinDisplay(VeinDisplay.OfVeinType(ItemVeinB));
 
             Assert.AreEqual(1, CountVisibleBoxes(root));
         }
@@ -77,7 +77,7 @@ namespace Client.Tests.Map
         {
             var (service, root) = CreateService();
             service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Item));
-            service.SetVeinDisplay(VeinDisplay.Single(ItemVeinB));
+            service.SetVeinDisplay(VeinDisplay.OfVeinType(ItemVeinB));
 
             service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Item));
 
@@ -94,9 +94,9 @@ namespace Client.Tests.Map
         {
             var registry = new MapVeinAabbRegistry(CreateHandshakeResponse());
 
-            Assert.IsTrue(registry.IsInsideVein(new Vector3Int(1, 1, 1), ItemVeinA));
-            Assert.IsFalse(registry.IsInsideVein(new Vector3Int(1, 1, 1), ItemVeinB));
-            Assert.IsTrue(registry.IsInsideVein(new Vector3Int(30, 0, 30), ItemVeinB));
+            Assert.IsTrue(registry.IsInsideAnyVeinOfType(new Vector3Int(1, 1, 1), ItemVeinA));
+            Assert.IsFalse(registry.IsInsideAnyVeinOfType(new Vector3Int(1, 1, 1), ItemVeinB));
+            Assert.IsTrue(registry.IsInsideAnyVeinOfType(new Vector3Int(30, 0, 30), ItemVeinB));
         }
 
         private (MapVeinRangeViewService service, Transform root) CreateService()

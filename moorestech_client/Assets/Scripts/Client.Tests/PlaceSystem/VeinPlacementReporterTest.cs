@@ -201,15 +201,15 @@ namespace Client.Tests.PlaceSystem
             using var subscription = state.OnChanged.Subscribe(_ => notified++);
 
             state.SetRestriction(RestrictionTutorialGuid, Guid.Parse(ItemVeinBGuid), ForUnitTestModBlockId.ElectricMinerId);
-            Assert.IsTrue(state.TryGetRestrictedVein(ForUnitTestModBlockId.ElectricMinerId, out var veinGuid));
+            Assert.IsTrue(state.TryGetRestrictedVeinType(ForUnitTestModBlockId.ElectricMinerId, out var veinGuid));
             Assert.AreEqual(Guid.Parse(ItemVeinBGuid), veinGuid);
-            Assert.IsFalse(state.TryGetRestrictedVein(ForUnitTestModBlockId.ChestId, out _));
+            Assert.IsFalse(state.TryGetRestrictedVeinType(ForUnitTestModBlockId.ChestId, out _));
 
             state.Clear(Guid.Parse("22222222-0000-0000-0000-000000000009"));
-            Assert.IsTrue(state.TryGetRestrictedVein(ForUnitTestModBlockId.ElectricMinerId, out _), "another tutorial cleared a restriction it never set");
+            Assert.IsTrue(state.TryGetRestrictedVeinType(ForUnitTestModBlockId.ElectricMinerId, out _), "another tutorial cleared a restriction it never set");
 
             state.Clear(RestrictionTutorialGuid);
-            Assert.IsFalse(state.TryGetRestrictedVein(ForUnitTestModBlockId.ElectricMinerId, out _));
+            Assert.IsFalse(state.TryGetRestrictedVeinType(ForUnitTestModBlockId.ElectricMinerId, out _));
             Assert.AreEqual(2, notified);
         }
 

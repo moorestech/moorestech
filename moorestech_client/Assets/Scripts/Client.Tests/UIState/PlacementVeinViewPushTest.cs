@@ -38,19 +38,19 @@ namespace Client.Tests.UIState
             state.SetRestriction(TutorialGuid, TargetVeinGuid, MasterHolder.BlockMaster.GetBlockId(MinerBlockGuid));
 
             PlacementVeinViewKindResolver.PushToView(view, state, new BlockPlacementTarget(MinerBlockGuid, null));
-            Assert.AreEqual(TargetVeinGuid, view.DisplayPushes[^1].SingleVeinGuid);
+            Assert.AreEqual(TargetVeinGuid, view.DisplayPushes[^1].VeinTypeGuid);
 
             // 制限対象でないブロックは種別表示のまま。制限を無条件に効かせる実装はここで落ちる
             // A block outside the restriction keeps the kind view; an unconditional restriction fails here
             PlacementVeinViewKindResolver.PushToView(view, state, new BlockPlacementTarget(ChestBlockGuid, null));
-            Assert.IsNull(view.DisplayPushes[^1].SingleVeinGuid);
+            Assert.IsNull(view.DisplayPushes[^1].VeinTypeGuid);
             Assert.IsNull(view.DisplayPushes[^1].Kind);
 
             // 制限解除後は同じブロックでも単一表示へ戻らない
             // Once cleared, the very same block no longer shows the single vein
             state.Clear(TutorialGuid);
             PlacementVeinViewKindResolver.PushToView(view, state, new BlockPlacementTarget(MinerBlockGuid, null));
-            Assert.IsNull(view.DisplayPushes[^1].SingleVeinGuid);
+            Assert.IsNull(view.DisplayPushes[^1].VeinTypeGuid);
             Assert.AreEqual(MapVeinKind.Item, view.DisplayPushes[^1].Kind);
         }
     }

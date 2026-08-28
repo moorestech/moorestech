@@ -11,8 +11,8 @@ using UniRx;
 namespace Game.Challenge.Task
 {
     /// <summary>
-    ///     指定ブロックが指定鉱脈の上に置かれた時に達成する（採掘機はドリルセル、他は占有セルのいずれかで判定）
-    ///     Completes when the block is placed over the vein (drill cell for miners, any footprint cell otherwise)
+    ///     指定ブロックが指定種別の鉱脈の上に置かれた時に達成する（採掘機はドリルセル、他は占有セルのいずれかで判定）
+    ///     Completes when the block is placed over any vein of the type (drill cell for miners, any footprint cell otherwise)
     /// </summary>
     public class BlockPlaceOnVeinChallengeTask : IChallengeTask
     {
@@ -32,7 +32,7 @@ namespace Game.Challenge.Task
         private readonly List<IBlock> _blocksToCheck = new();
 
         private readonly Guid _targetBlockGuid;
-        private readonly Guid _targetVeinGuid;
+        private readonly Guid _targetVeinTypeGuid;
 
         public static IChallengeTask Create(ChallengeMasterElement challengeMasterElement)
         {
@@ -45,7 +45,7 @@ namespace Game.Challenge.Task
 
             var param = (BlockPlaceOnVeinTaskParam)challengeMasterElement.TaskParam;
             _targetBlockGuid = param.BlockGuid;
-            _targetVeinGuid = param.VeinGuid;
+            _targetVeinTypeGuid = param.VeinGuid;
 
             _blockPlaceSubscription = ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
         }
@@ -58,7 +58,7 @@ namespace Game.Challenge.Task
 
             foreach (var block in _blocksToCheck)
             {
-                if (!IsOverTargetVein(block)) continue;
+                if (!IsOverTargetVeinType(block)) continue;
                 _completed = true;
                 break;
             }
@@ -86,7 +86,7 @@ namespace Game.Challenge.Task
 
             // 判定セル列の正本は BlockPositionInfoExtension 側。クライアントの設置制限と同じ規則で解く
             // The judged cells come from BlockPositionInfoExtension, the same rule the client placement restriction uses
-            bool IsOverTargetVein(IBlock block)
+            bool IsOverTargetVeinType(IBlock block)
             {
                 if (block.BlockGuid != _targetBlockGuid) return false;
 
@@ -95,7 +95,7 @@ namespace Game.Challenge.Task
                 {
                     foreach (var vein in ServerContext.ItemMapVeinDatastore.GetOverVeins(cell))
                     {
-                        if (vein.VeinGuid == _targetVeinGuid) return true;
+                        if (vein.VeinGuid == _targetVeinTypeGuid) return true;
                     }
                 }
                 return false;

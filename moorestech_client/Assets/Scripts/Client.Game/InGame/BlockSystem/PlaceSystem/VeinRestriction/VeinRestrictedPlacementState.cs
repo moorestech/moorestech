@@ -5,8 +5,8 @@ using UniRx;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction
 {
     /// <summary>
-    ///     「このブロックはこの鉱脈にしか置けない」という設置制限の共有状態。書き手はチュートリアル、読み手は設置判定と鉱脈表示
-    ///     Shared "this block may only go on this vein" restriction; written by the tutorial, read by placement checks and the vein view
+    ///     「このブロックはこの種別の鉱脈にしか置けない」という設置制限の共有状態。書き手はチュートリアル、読み手は設置判定と鉱脈表示
+    ///     Shared "this block may only go on veins of this type" restriction; written by the tutorial, read by placement checks and the vein view
     /// </summary>
     public class VeinRestrictedPlacementState
     {
@@ -36,10 +36,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction
         }
 
         /// <summary>
-        ///     そのブロックが制限対象なら、置いてよい唯一の鉱脈を返す。判定の入口はこの1本だけ
-        ///     Returns the only vein the block may go on when it is restricted; this is the sole entry point of the check
+        ///     そのブロックが制限対象なら、置いてよい鉱脈種別を返す。同種インスタンスは全て許可される
+        ///     Returns the vein type the block may go on when it is restricted; every instance of that type is allowed
         /// </summary>
-        public bool TryGetRestrictedVein(BlockId blockId, out Guid veinGuid)
+        public bool TryGetRestrictedVeinType(BlockId blockId, out Guid veinGuid)
         {
             veinGuid = _veinGuid;
             return _ownerTutorialGuid.HasValue && _blockId == blockId;

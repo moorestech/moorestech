@@ -22,15 +22,15 @@ namespace Client.Game.InGame.Map.MapVein
             // Veins never move, so fix their ranges at the initial handshake and drop later master lookups
             foreach (var layout in handshakeResponse.MapLayout.MapVeins)
             {
-                var veinGuid = new Guid(layout.VeinGuid);
-                var element = MasterHolder.MapVeinMaster.GetElementOrNull(veinGuid);
-                if (element == null) throw new InvalidOperationException($"[MapVeinAabbRegistry] mapVeinsマスタにveinGuid:{veinGuid}がありません");
+                var veinTypeGuid = new Guid(layout.VeinGuid);
+                var element = MasterHolder.MapVeinMaster.GetElementOrNull(veinTypeGuid);
+                if (element == null) throw new InvalidOperationException($"[MapVeinAabbRegistry] mapVeinsマスタにveinGuid:{veinTypeGuid}がありません");
 
                 var minCell = new Vector3Int(layout.MinX, layout.MinY, layout.MinZ);
                 var maxCell = new Vector3Int(layout.MaxX, layout.MaxY, layout.MaxZ);
                 var kind = element.VeinParam is FluidVeinParam ? MapVeinKind.Fluid : MapVeinKind.Item;
 
-                _veins.Add(new MapVeinAabb(veinGuid, minCell, maxCell, kind));
+                _veins.Add(new MapVeinAabb(veinTypeGuid, minCell, maxCell, kind));
             }
         }
 
@@ -38,7 +38,7 @@ namespace Client.Game.InGame.Map.MapVein
         ///     指定セルがその種別の鉱脈に入っているか。種別を跨いだ判定は採掘機/ポンプの掘れる条件とずれるため持たない
         ///     Whether the cell sits inside a vein of that kind; no cross-kind query exists because it would diverge from what miners/pumps can actually extract
         /// </summary>
-        public bool IsInsideVein(Vector3Int cell, MapVeinKind kind)
+        public bool IsInsideAnyVeinOfKind(Vector3Int cell, MapVeinKind kind)
         {
             foreach (var vein in _veins)
                 if (vein.Kind == kind && vein.ContainsCell(cell))
@@ -51,10 +51,10 @@ namespace Client.Game.InGame.Map.MapVein
         ///     指定セルがその鉱脈（GUID）に入っているか。チュートリアルの「この鉱脈にだけ置く」制限が使う
         ///     Whether the cell sits inside that specific vein; used by the tutorial's "place only on this vein" restriction
         /// </summary>
-        public bool IsInsideVein(Vector3Int cell, Guid veinGuid)
+        public bool IsInsideAnyVeinOfType(Vector3Int cell, Guid veinTypeGuid)
         {
             foreach (var vein in _veins)
-                if (vein.VeinGuid == veinGuid && vein.ContainsCell(cell))
+                if (vein.VeinTypeGuid == veinTypeGuid && vein.ContainsCell(cell))
                     return true;
 
             return false;

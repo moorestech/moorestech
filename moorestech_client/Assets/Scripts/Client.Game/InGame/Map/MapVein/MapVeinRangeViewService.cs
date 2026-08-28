@@ -54,7 +54,7 @@ namespace Client.Game.InGame.Map.MapVein
             foreach (var vein in veinAabbRegistry.Veins)
             {
                 var material = vein.Kind == MapVeinKind.Fluid ? _boxMaterials.FluidMaterial : _boxMaterials.ItemMaterial;
-                _entries.Add(new VeinRangeEntry(vein.VeinGuid, vein.Kind, vein.Bounds, material));
+                _entries.Add(new VeinRangeEntry(vein.VeinTypeGuid, vein.Kind, vein.Bounds, material));
             }
         }
 
@@ -78,18 +78,18 @@ namespace Client.Game.InGame.Map.MapVein
             {
                 // 対象外の種別と非表示中は距離を問わず全消し。範囲内だけボックスを持たせ、外れたものはプールへ返す
                 // Other kinds and the hidden state go regardless of distance; only in-range veins keep a box and the rest return to the pool
-                var isVisible = IsTargetVein(entry) && IsWithinVisibleRadius(entry.Bounds, cameraPosition);
+                var isVisible = IsDisplayTargetVein(entry) && IsWithinVisibleRadius(entry.Bounds, cameraPosition);
                 if (isVisible) ShowEntry(entry);
                 else HideEntry(entry);
             }
 
             #region Internal
 
-            // 単一表示中はその鉱脈だけ、通常は表示種別の鉱脈だけを対象にする
-            // In single mode only that vein qualifies; otherwise only veins of the displayed kind do
-            bool IsTargetVein(VeinRangeEntry entry)
+            // 種別GUID表示中は同種の鉱脈すべて、通常は表示kindの鉱脈だけを対象にする
+            // In vein-type mode every vein of that type qualifies; otherwise only veins of the displayed kind do
+            bool IsDisplayTargetVein(VeinRangeEntry entry)
             {
-                if (_display.SingleVeinGuid.HasValue) return entry.VeinGuid == _display.SingleVeinGuid.Value;
+                if (_display.VeinTypeGuid.HasValue) return entry.VeinTypeGuid == _display.VeinTypeGuid.Value;
                 return entry.Kind == _display.Kind;
             }
 
@@ -102,7 +102,7 @@ namespace Client.Game.InGame.Map.MapVein
 
             void ShowEntry(VeinRangeEntry entry)
             {
-                var material = _display.SingleVeinGuid.HasValue ? _boxMaterials.HighlightMaterial : entry.Material;
+                var material = _display.VeinTypeGuid.HasValue ? _boxMaterials.HighlightMaterial : entry.Material;
 
                 // veinは動かないので既存ボックスは置き直さない。これが再入時の二重表示を防ぐ
                 // Veins never move, so an existing box is never re-placed; this is what prevents duplicates on re-entry
@@ -159,15 +159,15 @@ namespace Client.Game.InGame.Map.MapVein
         // Bundle fixed vein data and view state
         private class VeinRangeEntry
         {
-            public readonly Guid VeinGuid;
+            public readonly Guid VeinTypeGuid;
             public readonly MapVeinKind Kind;
             public readonly Bounds Bounds;
             public readonly Material Material;
             public GameObject ViewObject;
 
-            public VeinRangeEntry(Guid veinGuid, MapVeinKind kind, Bounds bounds, Material material)
+            public VeinRangeEntry(Guid veinTypeGuid, MapVeinKind kind, Bounds bounds, Material material)
             {
-                VeinGuid = veinGuid;
+                VeinTypeGuid = veinTypeGuid;
                 Kind = kind;
                 Bounds = bounds;
                 Material = material;

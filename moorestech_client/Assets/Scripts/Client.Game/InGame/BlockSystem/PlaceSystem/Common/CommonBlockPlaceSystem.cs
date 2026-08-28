@@ -74,13 +74,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))
             {
                 _previewBlockController.SetActive(false);
-                _autoConnectPreview.Hide();
-                _gearConnectPreview.Hide();
+                HideConnectPreviews();
             }
 
             // 連続設置状態をリセット
             _dragState.ClearDrag();
             _currentPlaceInfos.Clear();
+        }
+
+        // 電線と歯車のプレビューは必ず同時に畳む。片方だけ残すと実際の接続と食い違う線が残る
+        // The wire and gear previews always fold together; leaving one behind strands lines that no longer match any connection
+        private void HideConnectPreviews()
+        {
+            _autoConnectPreview.Hide();
+            _gearConnectPreview.Hide();
         }
         
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
@@ -119,7 +126,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { _autoConnectPreview.Hide(); _gearConnectPreview.Hide(); EndDragWithoutPlacing(); return; }
+                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { HideConnectPreviews(); EndDragWithoutPlacing(); return; }
 
                 // ドラッグ中は押下時の面種別で通す
                 // A drag keeps the surface kind from its press
@@ -146,7 +153,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // 距離外なら理由のみ出しプレビュー無し
                 // Beyond range, show only the reason and no preview
-                if (!IsPlaceableFromPlayer(placePoint)) { _autoConnectPreview.Hide(); _gearConnectPreview.Hide(); feedback.AddTooFar(); EndDragWithoutPlacing(); return; }
+                if (!IsPlaceableFromPlayer(placePoint)) { HideConnectPreviews(); feedback.AddTooFar(); EndDragWithoutPlacing(); return; }
 
                 _previewBlockController.SetActive(true);
 
@@ -205,9 +212,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Clear the continuous-placement state on mouse release (a release without a registered press stops here)
                 if (!_dragState.EndDrag()) return;
 
-                // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
-                // Placement changes the world and inventory, so drop the auto-connect evaluation cache
-                if (TrySendOnClickRelease(_currentPlaceInfos, wirePlaceable)) _autoConnectPreview.Hide();
+                // 設置でワールドとインベントリが変わるため、接続プレビューの評価キャッシュを破棄する
+                // Placement changes the world and inventory, so drop the connect preview evaluation caches
+                if (TrySendOnClickRelease(_currentPlaceInfos, wirePlaceable)) HideConnectPreviews();
             }
 
             #endregion

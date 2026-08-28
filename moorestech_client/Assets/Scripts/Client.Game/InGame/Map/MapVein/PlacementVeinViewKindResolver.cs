@@ -17,15 +17,15 @@ namespace Client.Game.InGame.Map.MapVein
         }
 
         /// <summary>
-        ///     制限対象ブロックを持っている間はその鉱脈だけを、それ以外は設置が見たい種別を出す。採掘機はアイテム鉱脈、ポンプは流体鉱脈
-        ///     While the restricted block is held only its vein shows; otherwise the kind the placement wants — item veins for miners, fluid veins for pumps
+        ///     制限対象ブロックを持っている間はその種別の鉱脈を、それ以外は設置が見たいkindを出す。採掘機はアイテム鉱脈、ポンプは流体鉱脈
+        ///     While the restricted block is held every vein of its type shows; otherwise the kind the placement wants — item veins for miners, fluid veins for pumps
         /// </summary>
         public static VeinDisplay Resolve(VeinRestrictedPlacementState veinRestrictedPlacementState, IPlacementTarget target)
         {
             if (target is not BlockPlacementTarget blockTarget) return VeinDisplay.Hidden;
 
             var blockId = MasterHolder.BlockMaster.GetBlockId(blockTarget.BlockGuid);
-            if (veinRestrictedPlacementState.TryGetRestrictedVein(blockId, out var restrictedVeinGuid)) return VeinDisplay.Single(restrictedVeinGuid);
+            if (veinRestrictedPlacementState.TryGetRestrictedVeinType(blockId, out var restrictedVeinTypeGuid)) return VeinDisplay.OfVeinType(restrictedVeinTypeGuid);
 
             var blockParam = MasterHolder.BlockMaster.GetBlockMaster(blockTarget.BlockGuid).BlockParam;
             return blockParam switch
