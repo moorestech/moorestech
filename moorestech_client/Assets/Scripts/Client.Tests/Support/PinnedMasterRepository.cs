@@ -37,7 +37,7 @@ namespace Client.Tests.Support
             // A per-call destination; sharing lets a sibling worktree's half-extracted tree be read
             var extractionRoot = Path.Combine(Path.GetTempPath(), "moorestech-pinned-master", $"{commitHash}-{Guid.NewGuid():N}");
 
-            // git archiveは実チェックアウトに依存しない
+            // 実チェックアウトに依存しない
             // Going through git archive depends on no checkout state and yields exactly the committed pin
             var archivePath = extractionRoot + ".zip";
             Directory.CreateDirectory(Path.GetDirectoryName(archivePath));
