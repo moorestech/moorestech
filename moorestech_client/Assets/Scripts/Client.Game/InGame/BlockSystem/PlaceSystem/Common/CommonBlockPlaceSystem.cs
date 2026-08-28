@@ -158,13 +158,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Existing blocks and missing ground are the only causes set by this point; apply ground overlaps and report the cursor cell's reasons in one call
                 var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
 
-                // 採掘機はドリルが鉱脈に重なるセルだけに制限する。素材チェックより前に落として枠を消費させない
-                // Miners are restricted to cells where the drill overlaps a vein; drop them before the material check so they don't consume quota
-                MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, feedback);
-
-                // チュートリアルの鉱脈限定は採掘機制限の直後に重ねる。理由行はカーソルセルに1行だけ足す
-                // The tutorial vein restriction stacks right after the miner one; it adds at most one reason line for the cursor cell
-                VeinRestrictedPlacementReporter.MarkOutsideTargetVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, _veinRestrictedPlacementState, feedback);
+                // 鉱脈由来の設置制限（採掘機のドリル位置とチュートリアルの鉱脈限定）をまとめて課す
+                // Apply both vein-bound placement restrictions at once: the miner drill cell and the tutorial vein limit
+                // 素材チェックより前に落として枠を消費させない
+                // They run before the material check so blocked cells don't consume quota
+                VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, _veinRestrictedPlacementState, feedback);
 
                 // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
                 // Check item count after ground filtering (so ground-blocked cells don't consume item quota)

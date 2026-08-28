@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Core.Master;
 using Mooresmaster.Model.ChallengesModule;
@@ -12,7 +13,10 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
     /// </summary>
     public class VeinRestrictedPlacementTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
+        public string TutorialType => TutorialsElement.TutorialTypeConst.veinRestrictedPlacement;
+
         private VeinRestrictedPlacementState _state;
+        private Guid _appliedTutorialGuid;
 
         [Inject]
         public void Construct(VeinRestrictedPlacementState state)
@@ -24,13 +28,14 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
         {
             var param = (VeinRestrictedPlacementTutorialParam)tutorial.TutorialParam;
             var blockId = MasterHolder.BlockMaster.GetBlockId(param.BlockGuid);
-            _state.SetRestriction(param.VeinGuid, blockId);
+            _appliedTutorialGuid = tutorial.TutorialGuid;
+            _state.SetRestriction(_appliedTutorialGuid, param.VeinGuid, blockId);
             return this;
         }
 
         public void CompleteTutorial()
         {
-            _state.Clear();
+            _state.Clear(_appliedTutorialGuid);
         }
     }
 }

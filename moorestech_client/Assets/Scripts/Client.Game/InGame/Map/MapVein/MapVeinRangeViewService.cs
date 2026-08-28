@@ -35,13 +35,9 @@ namespace Client.Game.InGame.Map.MapVein
         private readonly Mesh _boxMesh;
         private readonly Transform _root;
 
-        // 表示対象の鉱脈種別。nullなら非表示
-        // Vein kind to display; null means hidden
-        private MapVeinKind? _visibleVeinKind;
-
-        // 強調中の鉱脈。指定があると種別表示より優先する
-        // The highlighted vein; while set it takes precedence over the kind view
-        private Guid? _highlightedVeinGuid;
+        // 表示状態。既定は非表示
+        // The display state; hidden by default
+        private VeinDisplay _display = VeinDisplay.Hidden;
 
         public MapVeinRangeViewService(MapVeinAabbRegistry veinAabbRegistry, Camera mainCamera)
         {
@@ -63,24 +59,14 @@ namespace Client.Game.InGame.Map.MapVein
         }
 
         /// <summary>
-        ///     表示したい鉱脈種別を受け取り、対象veinの絞り込みと描画はこのクラス内で完結させる
-        ///     Takes the vein kind to display; vein filtering and rendering stay inside this class
+        ///     表示したい状態を受け取り、対象veinの絞り込みと描画はこのクラス内で完結させる
+        ///     Takes the wanted display state; vein filtering and rendering stay inside this class
         /// </summary>
-        public void SetVisibleVeinKind(MapVeinKind? veinKind)
+        public void SetVeinDisplay(VeinDisplay display)
         {
-            _visibleVeinKind = veinKind;
+            _display = display;
             // 非表示への遷移を次フレームまで残さない。離脱時の残存ボックスを即座に畳む
             // Never carry a hide transition into the next frame; stray boxes fold immediately on exit
-            ManualUpdate();
-        }
-
-        /// <summary>
-        ///     チュートリアルが指す1鉱脈だけを描く強調モード。nullで通常の種別表示へ戻す
-        ///     Highlight mode drawing only the vein a tutorial points at; null returns to the normal kind view
-        /// </summary>
-        public void SetHighlightedVein(Guid? veinGuid)
-        {
-            _highlightedVeinGuid = veinGuid;
             ManualUpdate();
         }
 
@@ -99,12 +85,12 @@ namespace Client.Game.InGame.Map.MapVein
 
             #region Internal
 
-            // 強調中はその鉱脈だけ、通常は表示種別の鉱脈だけを対象にする
-            // While highlighting, only that vein qualifies; otherwise only veins of the visible kind do
+            // 単一表示中はその鉱脈だけ、通常は表示種別の鉱脈だけを対象にする
+            // In single mode only that vein qualifies; otherwise only veins of the displayed kind do
             bool IsTargetVein(VeinRangeEntry entry)
             {
-                if (_highlightedVeinGuid.HasValue) return entry.VeinGuid == _highlightedVeinGuid.Value;
-                return entry.Kind == _visibleVeinKind;
+                if (_display.SingleVeinGuid.HasValue) return entry.VeinGuid == _display.SingleVeinGuid.Value;
+                return entry.Kind == _display.Kind;
             }
 
             bool IsWithinVisibleRadius(Bounds bounds, Vector3 position)
@@ -116,7 +102,7 @@ namespace Client.Game.InGame.Map.MapVein
 
             void ShowEntry(VeinRangeEntry entry)
             {
-                var material = _highlightedVeinGuid.HasValue ? _boxMaterials.HighlightMaterial : entry.Material;
+                var material = _display.SingleVeinGuid.HasValue ? _boxMaterials.HighlightMaterial : entry.Material;
 
                 // veinは動かないので既存ボックスは置き直さない。これが再入時の二重表示を防ぐ
                 // Veins never move, so an existing box is never re-placed; this is what prevents duplicates on re-entry

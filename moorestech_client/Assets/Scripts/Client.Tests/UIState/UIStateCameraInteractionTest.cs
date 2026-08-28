@@ -57,7 +57,7 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void PlaceBlockPushesVeinKindOnlyOnTargetChange()
+        public void PlaceBlockPushesVeinDisplayOnlyOnTargetChange()
         {
             var mapVeinRangeView = new FakeMapVeinRangeView();
             var state = CreatePlaceBlockState(new FakePlayerCameraInteractionApplier(), mapVeinRangeView);
@@ -65,18 +65,18 @@ namespace Client.Tests.UIState
             // 設置対象を載せない遷移では表示種別も変わらない。滞在するだけでは何もプッシュしない
             // A transition without a placement target changes no vein kind; merely entering pushes nothing
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
-            CollectionAssert.IsEmpty(mapVeinRangeView.VeinKindPushes);
+            CollectionAssert.IsEmpty(mapVeinRangeView.DisplayPushes);
 
             // 表示種別は対象変化時だけプッシュし、毎フレームはカメラ距離カリングのManualUpdateだけを回す
             // The vein kind is pushed only when the target changes; each frame drives just ManualUpdate for the camera distance culling
             for (var frame = 0; frame < 3; frame++) state.GetNextUpdate();
-            CollectionAssert.IsEmpty(mapVeinRangeView.VeinKindPushes);
+            CollectionAssert.IsEmpty(mapVeinRangeView.DisplayPushes);
             Assert.AreEqual(3, mapVeinRangeView.ManualUpdateCount);
 
             // 離脱は対象がnullになる通知経由で畳む
             // Leaving folds the view through the null-target notification
             state.OnExit();
-            CollectionAssert.AreEqual(new MapVeinKind?[] { null }, mapVeinRangeView.VeinKindPushes);
+            CollectionAssert.AreEqual(new[] { VeinDisplay.Hidden }, mapVeinRangeView.DisplayPushes);
         }
 
         [Test]

@@ -10,29 +10,39 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction
     /// </summary>
     public class VeinRestrictedPlacementState
     {
-        public Guid? VeinGuid { get; private set; }
-        public BlockId? BlockId { get; private set; }
-
         public IObservable<Unit> OnChanged => _onChanged;
         private readonly Subject<Unit> _onChanged = new();
 
-        public void SetRestriction(Guid veinGuid, BlockId blockId)
+        // 制限を入れたチュートリアル。解除は入れた本人だけに許し、入れ替わり時の取り違えを防ぐ
+        // The tutorial that set the restriction; only it may clear, so an overlapping tutorial cannot drop someone else's
+        private Guid? _ownerTutorialGuid;
+        private Guid _veinGuid;
+        private BlockId _blockId;
+
+        public void SetRestriction(Guid tutorialGuid, Guid veinGuid, BlockId blockId)
         {
-            VeinGuid = veinGuid;
-            BlockId = blockId;
+            _ownerTutorialGuid = tutorialGuid;
+            _veinGuid = veinGuid;
+            _blockId = blockId;
             _onChanged.OnNext(Unit.Default);
         }
 
-        public void Clear()
+        public void Clear(Guid tutorialGuid)
         {
-            VeinGuid = null;
-            BlockId = null;
+            if (_ownerTutorialGuid != tutorialGuid) return;
+
+            _ownerTutorialGuid = null;
             _onChanged.OnNext(Unit.Default);
         }
 
-        public bool IsRestrictedBlock(BlockId blockId)
+        /// <summary>
+        ///     そのブロックが制限対象なら、置いてよい唯一の鉱脈を返す。判定の入口はこの1本だけ
+        ///     Returns the only vein the block may go on when it is restricted; this is the sole entry point of the check
+        /// </summary>
+        public bool TryGetRestrictedVein(BlockId blockId, out Guid veinGuid)
         {
-            return VeinGuid.HasValue && BlockId.HasValue && BlockId.Value == blockId;
+            veinGuid = _veinGuid;
+            return _ownerTutorialGuid.HasValue && _blockId == blockId;
         }
     }
 }
