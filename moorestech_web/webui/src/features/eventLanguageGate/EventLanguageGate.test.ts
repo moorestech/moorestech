@@ -83,6 +83,38 @@ describe("EventLanguageGate", () => {
     expect(testIds(renderer)).toContain("event-language-gate-retry");
     act(() => renderer.unmount());
   });
+
+  it("選択肢ゼロ件はエラー扱いになり選択ボタンを描かない", async () => {
+    setDictionaries("english", {}, {}, {});
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve([]) })));
+
+    const renderer = await renderGate();
+
+    expect(testIds(renderer)).toContain("event-language-gate-error");
+    expect(optionNodes(renderer)).toHaveLength(0);
+    act(() => renderer.unmount());
+  });
+
+  it("再試行ボタンで再取得し成功したら選択肢へ復帰する", async () => {
+    setDictionaries("english", {}, {}, {});
+    const fetchMock = vi.fn()
+      .mockImplementationOnce(() => Promise.resolve({ ok: false, status: 500 }))
+      .mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve(languagesResponse) }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const renderer = await renderGate();
+    expect(testIds(renderer)).toContain("event-language-gate-error");
+
+    await act(async () => {
+      renderer.root.findAllByType("mock-button" as never)
+        .find((node) => node.props["data-testid"] === "event-language-gate-retry")!
+        .props.onClick();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(optionLabels(renderer)).toEqual(["English", "日本語", "Deutsch"]);
+    act(() => renderer.unmount());
+  });
 });
 
 function stubLanguagesFetch() {

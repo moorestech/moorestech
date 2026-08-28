@@ -11,15 +11,15 @@ namespace Client.WebUiHost.Game.Actions.EventMode
     /// </summary>
     public static class EventLanguageGateActions
     {
-        public static void Register(WebSocketHub hub, EventLanguageGate gate)
+        internal static void Register(WebSocketHub hub, EventLanguageGate gate)
         {
             hub.RegisterAction(new SelectEventLanguageActionHandler(gate));
         }
     }
 
     /// <summary>
-    /// 来場者の言語選択をゲートへ渡し、可否の判断はゲートへ集約する。
-    /// Hands the visitor's choice to the gate, which owns the accept/reject judgement.
+    /// 来場者の選択をゲートへ渡し判断を集約する
+    /// Hands the visitor's choice to the gate, which owns the judgement
     /// </summary>
     public class SelectEventLanguageActionHandler : IActionHandler
     {
@@ -36,11 +36,12 @@ namespace Client.WebUiHost.Game.Actions.EventMode
         {
             var locale = payload?["locale"]?.ToString();
 
-            // 選択可否の判定はゲート側に集約し、結果を失敗契約へ写す
-            // Delegate the selectability judgement to the gate and map the result to the failure contract
-            return UniTask.FromResult(_gate.TrySelectLanguage(locale)
-                ? ActionResult.Success()
-                : ActionResult.Fail("unknown_locale"));
+            // 判定をゲートに委譲し失敗契約へ変換
+            // Delegate the judgement to the gate and map it to the failure contract
+            var result = _gate.TrySelectLanguage(locale);
+            return UniTask.FromResult(result == EventLanguageSelectionResult.UnknownLanguage
+                ? ActionResult.Fail("unknown_locale")
+                : ActionResult.Success());
         }
     }
 }

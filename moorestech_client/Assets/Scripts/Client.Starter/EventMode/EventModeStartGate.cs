@@ -13,11 +13,17 @@ namespace Client.Starter.EventMode
         public static async UniTask WaitForLanguageSelectionAsync()
         {
             var settings = EventExhibitionSettings.FromEnvironment();
+
+            // topicの登録は出展モードか否かに関わらず無条件に行う。条件付き登録だとWeb側の購読が固着する
+            // Registration happens unconditionally regardless of exhibition mode; conditional registration would wedge the web-side subscription
+            var hub = Client.WebUiHost.Boot.WebUiHost.Hub;
+            EventLanguageGate gate = null;
+            if (hub != null) gate = EventLanguageGateBinder.Bind(hub, settings.IsEnabled);
+
             if (!settings.IsEnabled) return;
 
             // 画面を出せないなら無人ブースを止めない方を採る。英語のまま開始し監視だけ始める
             // With no screen to show, keeping the unattended booth alive wins: start in English and only begin watching
-            var hub = Client.WebUiHost.Boot.WebUiHost.Hub;
             if (hub == null)
             {
                 Debug.LogError("EventModeStartGate: WebUiHostが起動しておらず言語選択を出せないため英語のまま開始します");
@@ -25,8 +31,11 @@ namespace Client.Starter.EventMode
                 return;
             }
 
-            var gate = EventLanguageGateBinder.Bind(hub);
             await gate.WaitForSelectionAsync();
+
+            // 選択の継続はaction処理スタックの中で走る。ここで手放さないと初期化の間WSの受信ループが止まる
+            // The continuation resumes inside the action's stack, so yielding here keeps the WS receive loop alive during initialization
+            await UniTask.Yield();
 
             // 監視の生成が武装そのもの。待機中は個体が存在しないので無操作終了は起こり得ない
             // Creating the watcher is the arming itself: no instance exists while waiting, so an idle quit cannot fire

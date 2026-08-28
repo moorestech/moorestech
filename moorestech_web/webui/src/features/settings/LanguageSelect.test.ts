@@ -58,6 +58,17 @@ describe("LanguageSelect", () => {
     act(() => renderer.unmount());
   });
 
+  it("選択肢ゼロ件はエラー扱いになりModeSwitchを描かない", async () => {
+    setDictionaries("english", {}, {}, {});
+    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve([]) })));
+
+    const renderer = await renderLanguageSelect();
+
+    expect(textsByTestId(renderer, "language-list-error")).toHaveLength(1);
+    expect(renderer.root.findAllByType("mock-mode-switch" as never)).toEqual([]);
+    act(() => renderer.unmount());
+  });
+
   it("再試行ボタンで再取得し、成功したらoptionsへ復帰する", async () => {
     setDictionaries("english", {}, {}, {});
     const fetchMock = vi.fn()

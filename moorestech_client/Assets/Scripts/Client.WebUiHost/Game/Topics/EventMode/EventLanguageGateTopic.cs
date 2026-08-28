@@ -8,8 +8,8 @@ using UniRx;
 namespace Client.WebUiHost.Game.Topics.EventMode
 {
     /// <summary>
-    /// 出展モードの言語選択待ちを snapshot と revision 付き event で配信する。
-    /// Publishes the event-mode language selection wait as a snapshot and revisioned events.
+    /// 言語選択待ちをsnapshotとeventで配信する
+    /// Publishes the language selection wait as a snapshot and events
     /// </summary>
     public class EventLanguageGateTopic : ITopicHandler, IDisposable
     {

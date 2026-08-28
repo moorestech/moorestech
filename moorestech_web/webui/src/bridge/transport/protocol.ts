@@ -72,8 +72,8 @@ export const Topics = {
   // ゲーム内通知も一時イベント
   // In-game notifications are also transient events
   notification: "notification.events",
-  // 出展モードの言語選択ゲート。待機中だけ全画面で操作を塞ぐ
-  // The event-mode language gate; blocks all input full-screen while waiting
+  // 待機中は全画面で操作を塞ぐゲート
+  // Blocks all input full-screen while waiting
   eventLanguageGate: "event_mode.language_gate",
 } as const;
 

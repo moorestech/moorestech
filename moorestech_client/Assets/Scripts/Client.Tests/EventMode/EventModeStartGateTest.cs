@@ -16,8 +16,6 @@ namespace Client.Tests.EventMode
             Environment.SetEnvironmentVariable("MOORESTECH_EVENT_MODE_EDITOR", null);
         }
 
-        // 出展モードでない起動は1フレームも待たず、無操作監視も作らない
-        // A non-event-mode boot waits zero frames and creates no idle watcher
         [Test]
         public void 出展モードでなければ即座に完了し監視も作らない()
         {
