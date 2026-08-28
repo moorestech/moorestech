@@ -1,6 +1,9 @@
-import { PlacementTargetFace, SlotFrame } from "@/shared/ui";
+import { HoverTooltip, PlacementTargetFace, SlotFrame } from "@/shared/ui";
 import { tutorialAnchor, buildMenuEntryAnchorId } from "@/shared/tutorialAnchor";
 import { useHotbarDragSource } from "@/features/hotbar";
+import { L, useI18n } from "@/shared/i18n";
+import { useMaterialTooltipText } from "@/shared/materialTooltipText";
+import { shortageItemsOf } from "./buildMenuShortage";
 import type { BuildMenuDisplayEntry } from "./buildMenuGrouping";
 
 type Props = {
@@ -17,17 +20,33 @@ type Props = {
 // One build-menu slot, rendering an image or a text label depending on icon presence.
 // The left press routes through the shared hotbar-D&D pointer control (tap = select, past-threshold drag = a hotbar-assign drag source)
 export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange }: Props) {
+  const { t } = useI18n();
+  const materialTooltipText = useMaterialTooltipText();
   const dragHandlers = useHotbarDragSource({ kind: "buildMenuEntry", id: entry.id }, onLeftClick);
+
+  // 不足がある時だけ、見出し1行＋不足素材行のツールチップを出す
+  // Only when something is short: a heading line plus one line per missing material
+  const shortages = shortageItemsOf(entry);
+  const shortageTooltip = (
+    <span style={{ whiteSpace: "pre-line" }}>
+      {[t(L.ui.buildMenu.materialShortageTitle)]
+        .concat(shortages.map((item) => materialTooltipText(L.ui.buildMenu.materialShortageLine, item.itemId, item.count, new Map([[item.itemId, item.held]]))))
+        .join("\n")}
+    </span>
+  );
+
   return (
-    <SlotFrame
-      filled
-      testId={`build-menu-entry-${entry.kind}-${entry.id}`}
-      onRightDown={onRightClick}
-      onHoverChange={onHoverChange}
-      {...dragHandlers}
-      {...tutorialAnchor(buildMenuEntryAnchorId(entry.kind, entry.id))}
-    >
-      <PlacementTargetFace iconUrl={entry.iconUrl} displayName={entry.displayLabel} />
-    </SlotFrame>
+    <HoverTooltip label={shortageTooltip} disabled={shortages.length === 0}>
+      <SlotFrame
+        filled
+        testId={`build-menu-entry-${entry.kind}-${entry.id}`}
+        onRightDown={onRightClick}
+        onHoverChange={onHoverChange}
+        {...dragHandlers}
+        {...tutorialAnchor(buildMenuEntryAnchorId(entry.kind, entry.id))}
+      >
+        <PlacementTargetFace iconUrl={entry.iconUrl} displayName={entry.displayLabel} />
+      </SlotFrame>
+    </HoverTooltip>
   );
 }
