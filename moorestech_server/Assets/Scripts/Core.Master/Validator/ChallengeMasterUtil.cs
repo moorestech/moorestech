@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.ChallengesModule;
 using Mooresmaster.Model.GameActionModule;
 using Mooresmaster.Model.MapModule;
@@ -107,9 +108,18 @@ namespace Core.Master.Validator
                             }
                             case GearConnectedBlockTaskParam gearConnectedBlock:
                             {
-                                if (MasterHolder.BlockMaster.GetBlockIdOrNull(gearConnectedBlock.BlockGuid) == null)
+                                var gearBlockId = MasterHolder.BlockMaster.GetBlockIdOrNull(gearConnectedBlock.BlockGuid);
+                                if (gearBlockId == null)
                                 {
                                     logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.BlockGuid:{gearConnectedBlock.BlockGuid}\n";
+                                    break;
+                                }
+
+                                // 歯車コネクタを持たないブロックは永久に回り出さないため達成不能になる
+                                // A block without gear connectors never starts spinning, so the challenge would be impossible
+                                if (MasterHolder.BlockMaster.GetBlockMaster(gearBlockId.Value).BlockParam is not IGearConnectors)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has non-gear TaskParam.BlockGuid:{gearConnectedBlock.BlockGuid}\n";
                                 }
                                 break;
                             }
