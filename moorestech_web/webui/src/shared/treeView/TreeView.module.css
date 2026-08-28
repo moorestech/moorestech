@@ -12,7 +12,10 @@
   padding: var(--tutorial-anchor-clip-inset);
   margin: calc(-1 * var(--tutorial-anchor-clip-inset));
 }
+/* パン中はノード側の指カーソル(.node)より強い指定で掴んだ手に統一する */
+/* While panning, outrank the node's own pointer cursor (.node) so the whole tree reads as grabbed */
 .viewportPanning { cursor: grabbing; }
+.viewportPanning [data-tree-node-id] * { cursor: grabbing; }
 .canvas { position: relative; transform-origin: 0 0; }
 .line {
   position: absolute;

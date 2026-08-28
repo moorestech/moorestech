@@ -211,6 +211,7 @@ ui.keyHint.text.trainDismount,Dismount,Dismount,降車,Aussteigen
 ui.tooltip.placeBlockedByTerrain,Blocked by terrain,Blocked by terrain,地形に埋まっています,Vom Gelände blockiert
 ui.tooltip.placeBlockedByExistingBlock,Position is occupied,Position is occupied,設置位置が埋まっています,Position ist belegt
 ui.tooltip.placeTooFar,Too far away,Too far away,遠すぎます,Zu weit entfernt
+ui.tooltip.placeGroundNotFound,No ground below,No ground below,地面が見つかりません,Kein Boden darunter
 ui.tooltip.placeMinerOutsideVein,The drill must be over a vein,The drill must be over a vein,ドリルを鉱脈に重ねてください,Der Bohrer muss über einer Erzader liegen
 ui.tooltip.placeOutsideTutorialVein,Place it on the highlighted vein,Place it on the highlighted vein,ハイライトされた鉱脈の上に設置してください,Platziere es auf der hervorgehobenen Erzader
 ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden

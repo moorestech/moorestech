@@ -1,12 +1,24 @@
 import { dispatchAction } from "@/bridge";
 import { asElement } from "@/shared/pointerGesture/dragThreshold";
-import { useDragSource } from "@/shared/pointerGesture/useDragSource";
+import { usePressGesture } from "@/shared/pointerGesture/usePressGesture";
 import { resolveDropAction, type HotbarDragSource, type HotbarDropTarget } from "./hotbarDnd";
 
 // 汎用のポインタ判定へホットバー固有のドロップ解決だけを与える
 // Supplies the hotbar-specific drop resolution to the generic pointer classification
 export function useHotbarDragSource(source: HotbarDragSource | null, onTap: () => void) {
-  return useDragSource(source, onTap, resolveAndDispatchDrop);
+  // pointerdownでテキスト選択・フォーカス移動を抑止する
+  // preventDefault on pointerdown suppresses text selection over the label/icon and focus shift
+  const press = usePressGesture({
+    onPressStart: (event) => event.preventDefault(),
+    // ドラッグ確定後は、掴む物が無ければ何も起こさない（タップへは落とさない）
+    // Once a drag is settled, an absent source simply does nothing; it never falls back to a tap
+    onDragEnd: (event) => {
+      if (source !== null) resolveAndDispatchDrop(source, event.clientX, event.clientY);
+    },
+    onTap: () => onTap(),
+  });
+
+  return press.handlers;
 }
 
 // 解放点のDOMをresolveDropActionへ

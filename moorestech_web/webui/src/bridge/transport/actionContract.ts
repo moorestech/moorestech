@@ -23,8 +23,8 @@ export type ActionPayloads = {
   "inventory.collect": { slot: SlotRef };
   "inventory.split_drag": { slots: SlotRef[] };
   "inventory.sort": Record<string, never>;
-  // index は -1（素手）から装備スロット数-1 まで
-  // index ranges from -1 (bare hands) to the equipment slot count minus one
+  // index は 0 から装備スロット数-1 まで
+  // index ranges from 0 to the equipment slot count minus one
   "inventory.select_equipment": { index: number };
   "craft.execute": { recipeGuid: string };
   // text は input モーダルの確定時のみ付与する

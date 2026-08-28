@@ -57,7 +57,7 @@ namespace Game.Map
                 return MiningAttackResult.Success;
             }
 
-            // 素手ではどのminingToolsにも一致しないので早期に弾く（空IDはItemMaster参照で例外になる）
+            // 装備スロットが空ならどのminingToolsにも一致しないので早期に弾く（空IDはItemMaster参照で例外になる）
             // Bare hands match no miningTools, so reject early; the empty id would throw in ItemMaster
             if (equippedItem.Id == ItemMaster.EmptyItemId) return MiningAttackResult.NoTool;
 

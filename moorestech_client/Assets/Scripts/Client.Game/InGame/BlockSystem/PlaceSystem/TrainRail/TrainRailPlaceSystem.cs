@@ -36,7 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             if (placeInfo == null || !placeInfo.Placeable) return;
             if (!InputManager.Playable.ScreenLeftClick.GetKeyUp || UiPointerHitTest.IsPointerOverAnyUi()) return;
 
-            PlaceSystemUtil.SendPlaceBlockProtocol(new List<PlaceInfo> { placeInfo });
+            PlaceBlockProtocolSender.SendPlaceBlockProtocol(new List<PlaceInfo> { placeInfo });
         }
         
         public override void Disable()

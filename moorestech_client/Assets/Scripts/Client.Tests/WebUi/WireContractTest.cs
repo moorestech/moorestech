@@ -38,9 +38,7 @@ namespace Client.Tests.WebUi
                 MainSlots = new List<SlotDto> { new SlotDto { ItemId = 1, Count = 10 }, new SlotDto { ItemId = 2, Count = 5 }, new SlotDto { ItemId = 3, Count = 1 } },
                 Grab = new SlotDto { ItemId = 0, Count = 0 },
                 Equipment = new List<SlotDto> { new SlotDto { ItemId = 4, Count = 1 }, new SlotDto { ItemId = 0, Count = 0 } },
-                // 素手(-1)を正準形に含め、負値がそのまま配信されることを固定する
-                // Include bare hands (-1) in the canonical form, pinning that the negative value ships as-is
-                SelectedEquipment = -1,
+                SelectedEquipment = 1,
                 EquipmentSelectionConfirmationRevision = 7,
             };
             AssertMatchesFixture(dto, "inventory_snapshot.json");

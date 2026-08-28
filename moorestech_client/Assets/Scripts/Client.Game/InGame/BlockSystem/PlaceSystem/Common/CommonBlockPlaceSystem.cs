@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -22,6 +23,7 @@ using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
+using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceBlockProtocolSender;
 using static Client.Game.DebugConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
@@ -38,6 +40,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
         private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
         private readonly MapVeinAabbRegistry _veinAabbRegistry;
+        private readonly IPlacementGroundFollower _groundFollower;
         private readonly VeinRestrictedPlacementState _veinRestrictedPlacementState;
         private readonly GearConnectPreview _gearConnectPreview;
 
@@ -46,9 +49,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, VeinRestrictedPlacementState veinRestrictedPlacementState)
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState)
         {
             _mainCamera = mainCamera;
+            _groundFollower = groundFollower;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
@@ -61,7 +65,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         
         public override void Enable()
         {
-            _dragState.SetClickStartHeightOffset(-1);
+            _dragState.ClearDrag();
         }
         public override void Disable()
         {
@@ -115,25 +119,43 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) { _autoConnectPreview.Hide(); _gearConnectPreview.Hide(); return; }
+                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { _autoConnectPreview.Hide(); _gearConnectPreview.Hide(); EndDragWithoutPlacing(); return; }
+
+                // ドラッグ中は押下時の面種別で通す
+                // A drag keeps the surface kind from its press
+                var surfaceKind = _dragState.ResolveSurfaceKind(hitSurface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace);
+
+                //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(cursorCell, surfaceKind);
+
+                // 列の骨格は地形を混ぜない生のグリッドで決める。地形由来のYを混ぜると水平ドラッグがY軸列と判定される
+                // The run skeleton is decided on the raw grid; a terrain-derived Y would make a horizontal drag look like a Y-axis run
+                var run = CommonBlockPlacePointCalculator.CalculateRun(_dragState.ResolveDragStartCell(cursorCell), cursorCell, _currentBlockDirection, holdingBlockMaster);
+
+                // Yの確定はこの1箇所だけで行う
+                // This is the only place that finalizes Y
+                _groundFollower.FollowGround(run, surfaceKind, holdingBlockMaster.BlockSize, _dragState.HeightOffset);
+
+                // 重なり判定はY確定後に1度だけ行う
+                // The overlap check runs exactly once, after Y is final
+                _blockPlacePointCalculator.EvaluateExistingBlockCauses(run);
+
+                _currentPlaceInfos = run.Cells;
+                var placeCauses = run.BlockCauses;
+                var placePoint = run.Cells[run.CursorIndex].Position;
 
                 // 距離外なら理由のみ出しプレビュー無し
                 // Beyond range, show only the reason and no preview
-                if (!IsPlaceableFromPlayer(placePoint)) { _autoConnectPreview.Hide(); _gearConnectPreview.Hide(); feedback.AddTooFar(); return; }
+                if (!IsPlaceableFromPlayer(placePoint)) { _autoConnectPreview.Hide(); _gearConnectPreview.Hide(); feedback.AddTooFar(); EndDragWithoutPlacing(); return; }
 
                 _previewBlockController.SetActive(true);
 
-                //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint);
-
                 //プレビュー表示と地面との接触を取得する
                 //display preview and get collision with ground
-                var placeCauses = UpdateCurrentPlaceInfos(placePoint, holdingBlockMaster);
-
                 var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
 
-                // この時点の不可原因はExistingBlockのみ（CommonBlockPlacePointCalculator）。地面との接触反映とカーソルセルの理由集約を1回で行う
-                // ExistingBlock is the only cause set by this point (CommonBlockPlacePointCalculator); apply ground overlaps and report the cursor cell's reasons in one call
+                // この時点の不可原因は既存ブロックと地表欠落のみ。地面との接触反映とカーソルセルの理由集約を1回で行う
+                // Existing blocks and missing ground are the only causes set by this point; apply ground overlaps and report the cursor cell's reasons in one call
                 var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
 
                 // 採掘機はドリルが鉱脈に重なるセルだけに制限する。素材チェックより前に落として枠を消費させない
@@ -166,12 +188,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 PlaceBlock(wirePlaceable);
             }
 
-            // 設置点列を更新し、セル毎の不可原因の列を返す（PlaceInfo列と同じ添字）
-            // Updates the placement point list and returns the per-cell block cause column (indexed like the PlaceInfo list)
-            List<PlacementBlockCause> UpdateCurrentPlaceInfos(Vector3Int placePoint, BlockMasterElement holdingBlockMaster)
+            // 設置できないまま解放されたドラッグを畳む。残すと次フレームに古い開始点から列が伸びる
+            // Folds a drag released with nothing to place; leaving it would extend a run from the stale start next frame
+            void EndDragWithoutPlacing()
             {
-                _currentPlaceInfos = _blockPlacePointCalculator.CalculatePoint(_dragState.ResolveDragStartPoint(placePoint), placePoint, _currentBlockDirection, holdingBlockMaster, out var placeCauses);
-                return placeCauses;
+                if (InputManager.Playable.ScreenLeftClick.GetKeyUp) _dragState.EndDrag();
             }
 
             void PlaceBlock(bool wirePlaceable)

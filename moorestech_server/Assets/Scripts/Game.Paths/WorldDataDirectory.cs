@@ -52,6 +52,13 @@ namespace Game.Paths
             return Path.Combine(serverDataDirectory, "map", "map.json");
         }
 
+        // ビルドに同梱された生成済みワールドのスナップショット置き場。共有キャッシュと同じレイアウトでゲームデータ内に置く
+        // Where a build ships a pre-generated world snapshot; it sits inside the game data with the shared cache's layout
+        public static WorldDataDirectory ForBundledSnapshot(string serverDataDirectory, string worldId)
+        {
+            return FromWorldRoot(Path.Combine(serverDataDirectory, "worldSnapshots", worldId));
+        }
+
         // 本来形: ワールドディレクトリのルートから全レイアウトを導出する
         // Canonical form: derive the full layout from a world root directory
         public static WorldDataDirectory FromWorldRoot(string worldRootDirectory)
