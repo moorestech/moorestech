@@ -99,6 +99,27 @@
   color: var(--text-muted);
 }
 
+/* 必要素材1枠。所持/必要の数値を絶対配置で載せる（ResearchDetailPaneの.consumeSlot同型） */
+/* One required-material cell; the owned/required numbers sit absolutely over it (same as ResearchDetailPane's .consumeSlot) */
+.materialSlot {
+  position: relative;
+}
+
+.materialCount {
+  position: absolute;
+  right: -2px;
+  bottom: -4px;
+  z-index: 2;
+  color: var(--count-text);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.materialCount[data-lack="true"] {
+  color: var(--text-insufficient);
+}
+
 .noHit,
 .sectionHeading {
   color: var(--text-muted);
