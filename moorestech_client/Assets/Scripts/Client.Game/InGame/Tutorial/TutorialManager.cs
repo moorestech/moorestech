@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Tutorial.UIHighlight;
 using Core.Master;
 using Game.Context;
 using Mooresmaster.Model.ChallengesModule;
@@ -17,21 +16,11 @@ namespace Client.Game.InGame.Tutorial
         // Initial application can arrive after a challenge completed during startup, so remember completions and make applying idempotent
         private readonly HashSet<Guid> _completedChallengeGuids = new();
 
-        public TutorialManager(
-            IReadOnlyList<ITutorialWorldPin> worldPins,
-            UIHighlightTutorialManager uiHighlightTutorialManager,
-            KeyControlTutorialManager keyControlTutorialManager,
-            ItemViewHighLightTutorialManager itemViewHighLightTutorialManager,
-            BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager,
-            UiDragGuideTutorialManager uiDragGuideTutorialManager
-            )
+        // 種別ごとの手配線は持たず、各managerの自己申告で引き当てる。種別追加はmanagerの登録1箇所で済む
+        // No per-type wiring is kept; each manager names its own type, so adding one only touches its registration
+        public TutorialManager(IReadOnlyList<ITutorialViewManager> tutorialViewManagers)
         {
-            foreach (var worldPin in worldPins) _tutorialViewManagers.Add(worldPin.TutorialType, worldPin);
-            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiHighLight, uiHighlightTutorialManager);
-            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.keyControl, keyControlTutorialManager);
-            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.itemViewHighLight, itemViewHighLightTutorialManager);
-            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.blockPlacePreview, blockPlacePreviewTutorialManager);
-            _tutorialViewManagers.Add(TutorialsElement.TutorialTypeConst.uiDragGuide, uiDragGuideTutorialManager);
+            foreach (var tutorialViewManager in tutorialViewManagers) _tutorialViewManagers.Add(tutorialViewManager.TutorialType, tutorialViewManager);
         }
         
         public void ApplyTutorial(Guid challengeGuid)

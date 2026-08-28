@@ -7,6 +7,8 @@ namespace Client.Game.InGame.Tutorial
     // uiState matching is web-side; this just publishes values
     public class KeyControlTutorialManager : MonoBehaviour, ITutorialViewManager
     {
+        public string TutorialType => TutorialsElement.TutorialTypeConst.keyControl;
+
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             var param = (KeyControlTutorialParam)tutorial.TutorialParam;

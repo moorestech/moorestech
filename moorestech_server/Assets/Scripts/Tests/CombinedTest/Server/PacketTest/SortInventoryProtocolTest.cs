@@ -162,6 +162,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             var equipmentInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).EquipmentInventory;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
+            // マスタの初期装備が前方スロットを埋めるため、空き前提を作り直してから検証する
+            // The master's initial equipment fills the front slots, so rebuild the empty precondition first
+            for (var slot = 0; slot < equipmentInventory.GetSlotSize(); slot++)
+                equipmentInventory.SetItem(slot, itemStackFactory.CreatEmpty());
+
             // 前方に空きを残して装備を置き、選択インデックス2が指す中身を固定する
             // Leave the front slots empty so the content pointed at by selected index 2 is pinned
             var lastSlot = equipmentInventory.GetSlotSize() - 1;

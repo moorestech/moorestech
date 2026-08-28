@@ -1,3 +1,4 @@
+using System.Threading;
 using Client.Game.InGame.Context;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -12,10 +13,10 @@ namespace Client.Game.InGame.Tutorial.TutorialBlock
     public static class TutorialPreviewBlockCreator
     {
         /// <summary>
-        /// チュートリアル用プレビューオブジェクトを非同期で作成
-        /// Asynchronously create tutorial preview object
+        /// チュートリアル用プレビューオブジェクトを非同期で作成する。生成中にキャンセルされた場合はnullを返す
+        /// Asynchronously creates the tutorial preview object; returns null when cancelled mid-creation
         /// </summary>
-        public static async UniTask<TutorialBlockPreviewObject> CreateAsync(BlockId blockId)
+        public static async UniTask<TutorialBlockPreviewObject> CreateAsync(BlockId blockId, CancellationToken cancellationToken)
         {
             // ブロックの作成
             // Create block
@@ -26,6 +27,14 @@ namespace Client.Game.InGame.Tutorial.TutorialBlock
             // Add and initialize tutorial preview component
             var previewObject = block.AddComponent<TutorialBlockPreviewObject>();
             await previewObject.InitializeAsync(blockId);
+
+            // 生成中に対象が変わっていたら作りかけを畳んで何も返さない。呼び手が古い対象へ書き戻すのを防ぐ
+            // A target changed mid-creation folds the half-built ghost and returns nothing, so the caller cannot write back a stale one
+            if (cancellationToken.IsCancellationRequested)
+            {
+                previewObject.DestroyPreview();
+                return null;
+            }
 
             return previewObject;
         }
