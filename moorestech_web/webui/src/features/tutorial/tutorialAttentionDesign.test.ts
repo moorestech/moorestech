@@ -6,6 +6,8 @@ import { describe, expect, it } from "vitest";
 const tokens = read("../../app/tokens.css");
 const keyHint = read("./keyControlHint.module.css");
 const overlay = read("./overlay/style.module.css");
+const worldPin = read("./worldPin.module.css");
+const worldPinOverlay = read("./WorldPinOverlay.tsx");
 
 describe("tutorial attention tokens", () => {
   it("原色赤・グロー・周期はtokensが唯一の正", () => {
@@ -73,6 +75,44 @@ describe("tutorial highlight ring", () => {
     const dragRule = overlay.slice(overlay.indexOf(".dragGuide {"), overlay.indexOf(".dragGuide svg"));
     expect(dragRule).toContain("animation: drag-guide-loop var(--tutorial-drag-guide-duration) ease-in-out infinite");
     expect(dragRule).not.toContain("tutorial-attention-pulse");
+  });
+});
+
+describe("world-pin off-screen arrow", () => {
+  it("塗りは原色赤トークンで、世界分離用の縁取りは残す", () => {
+    const svgRule = worldPin.slice(worldPin.indexOf(".arrow svg {"));
+    expect(svgRule).toContain("fill: var(--tutorial-attention-red)");
+    expect(svgRule).toContain("stroke: var(--world-pin-face)");
+  });
+
+  it("脈動はsvg側に付け、1.08で回す", () => {
+    const svgRule = worldPin.slice(worldPin.indexOf(".arrow svg {"));
+    expect(svgRule).toContain("--tutorial-pulse-scale: 1.08");
+    expect(svgRule).toContain("animation: tutorial-attention-pulse var(--tutorial-pulse-duration) ease-in-out infinite");
+  });
+
+  it(".arrow div側にはanimationを付けない（インラインtransformを潰さないため）", () => {
+    // 宣言ブロックだけを切り出す。ルール外のコメントまで含めると本文中の語に反応して誤検知する
+    // Slice only the declaration block; including the comment above the rule would trip on its prose
+    const arrowStart = worldPin.indexOf(".arrow {");
+    const divRule = worldPin.slice(arrowStart, worldPin.indexOf("}", arrowStart));
+    expect(divRule).not.toContain("animation");
+    expect(divRule).not.toContain("transform");
+  });
+
+  it("矢印の位置と回転はTSXのインラインtransformが持ち続ける", () => {
+    expect(worldPinOverlay).toContain("translate(-50%, -50%) rotate(${angle}deg) scale(var(--ui-scale, 1))");
+  });
+
+  it("機能側CSSに色リテラルと秒数リテラルを直書きしない", () => {
+    expect(worldPin).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+    expect(worldPin).not.toMatch(/\d+m?s\b/);
+  });
+
+  it("ピン本体のラベル・マーカーは据え置く", () => {
+    const markerRule = worldPin.slice(worldPin.indexOf(".marker {"), worldPin.indexOf(".arrow {"));
+    expect(markerRule).toContain("fill: var(--world-pin-face)");
+    expect(markerRule).not.toContain("tutorial-attention");
   });
 });
 

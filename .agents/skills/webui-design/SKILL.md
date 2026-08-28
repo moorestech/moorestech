@@ -286,7 +286,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - **座標の正はUnity。** Unityがワールド座標を正規化ビューポート座標（0..1、左上原点）と画面中心からの方向ベクトルへ毎フレーム射影し、`tutorial.world_pins` トピックで配信する。Web側は受信値を描くだけで、3D射影・カメラ知識を一切持たない。
 - 表示は常時表示HUD族（§1の例外）。パネル面を持たず「浮いている」表現とし、`pointer-events: none` で入力を素通しする。
 - **画面内ピン**: 指定座標にインラインSVGの下向きマーカー + 直上のテキストラベル。ラベル面は `--world-pin-face`（半透明ネイビー族）、文字は `--text-high-contrast`。マーカー先端が指定座標に一致するよう配置する。
-- **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGの軸付き塗りつぶし矢印を置く。`--text-high-contrast` の塗りと `--world-pin-face` の輪郭を使い、世界背景から分離する最小限の影を許可する。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。
+- **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGの軸付き塗りつぶし矢印を置く。塗りは `--tutorial-attention-red`（`#ff0000`）、輪郭は `--world-pin-face` で、世界背景から分離する最小限の影を許可する（塗りを原色赤へ引き上げたのはユーザー裁定 2026-08-28 / ADR 0039）。`tutorial-attention-pulse` を `--tutorial-pulse-scale: 1.08` ・ `--tutorial-pulse-duration`（1200ms）で回すが、**脈動は子の `svg` に付ける**: 位置決めの `translate/rotate/scale(--ui-scale)` は `WorldPinOverlay` がインラインstyleで書いており、`.arrow` div 側で `transform` をアニメートするとカスケード上インラインstyleに勝って回転と位置が消える。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。ピン本体のラベル・マーカーは赤化しない。
 - 色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
 
 ## 8.9 検索入力
