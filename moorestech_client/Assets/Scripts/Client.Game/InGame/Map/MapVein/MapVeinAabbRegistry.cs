@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using Client.Network.API;
 using Core.Master;
-using Game.Block.Interface;
-using Game.Block.Interface.Vein;
 using Mooresmaster.Model.MapModule;
 using UnityEngine;
 
@@ -31,22 +29,11 @@ namespace Client.Game.InGame.Map.MapVein
                 var minCell = new Vector3Int(layout.MinX, layout.MinY, layout.MinZ);
                 var maxCell = new Vector3Int(layout.MaxX, layout.MaxY, layout.MaxZ);
                 var kind = element.VeinParam is FluidVeinParam ? MapVeinKind.Fluid : MapVeinKind.Item;
+                var veinItemId = element.VeinParam is ItemVeinParam itemVeinParam ? MasterHolder.ItemMaster.GetItemId(itemVeinParam.ItemGuid) : (ItemId?)null;
 
-                _veins.Add(new MapVeinAabb(minCell, maxCell, kind));
+                _veins.Add(new MapVeinAabb(minCell, maxCell, kind, veinItemId));
             }
         }
 
-        /// <summary>
-        ///     底面フットプリントがその種別の鉱脈とXZで重なるか。種別を跨いだ判定は採掘機/ポンプの掘れる条件とずれるため持たない
-        ///     Whether the footprint overlaps a vein of that kind in XZ; no cross-kind query exists because it would diverge from what miners/pumps can actually extract
-        /// </summary>
-        public bool IsOverlappingFootprint(BlockPositionInfo footprint, MapVeinKind kind)
-        {
-            foreach (var vein in _veins)
-                if (vein.Kind == kind && MinerVeinFootprintJudge.OverlapsXz(footprint, vein.MinCell, vein.MaxCell))
-                    return true;
-
-            return false;
-        }
     }
 }

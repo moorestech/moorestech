@@ -1,6 +1,6 @@
 # 採掘機の鉱脈判定を底面フットプリントXZ重なりの共有ロジックへ Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: subagent-driven-development スキルを使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
+> **For agentic workers:** REQUIRED SUB-SKILL: subagent-driven-development スキルを使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [x]`）記法で進捗管理する。
 
 **Goal:** 採掘機の設置可否（クライアント）と採掘対象vein（サーバー）を、底面フットプリントとアイテム鉱脈AABBのXZ重なりで決める共有判定1本に統一し、Q/E高さオフセット残留と`drillLocalPosition`を除去する。
 
@@ -36,7 +36,7 @@
 **Interfaces:**
 - Produces: `public static bool OverlapsXz(BlockPositionInfo footprint, Vector3Int veinMinCell, Vector3Int veinMaxCell)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Game.Block.Interface;
@@ -86,9 +86,9 @@ namespace Tests.UnitTest.Game
 }
 ```
 
-- [ ] **Step 2: コンパイルで失敗を確認** — `uloop compile --project-path ./moorestech_client` → `MinerVeinFootprintJudge` 未定義エラー
+- [x] **Step 2: コンパイルで失敗を確認** — `uloop compile --project-path ./moorestech_client` → `MinerVeinFootprintJudge` 未定義エラー
 
-- [ ] **Step 3: 実装**
+- [x] **Step 3: 実装**
 
 ```csharp
 using UnityEngine;
@@ -114,8 +114,8 @@ namespace Game.Block.Interface.Vein
 }
 ```
 
-- [ ] **Step 4: テスト実行** — `--filter-value "MinerVeinFootprintJudgeTest"` → 4件PASS
-- [ ] **Step 5: コミット** `feat: 採掘機の鉱脈判定をフットプリントXZ重なりの共有ロジックに新設`
+- [x] **Step 4: テスト実行** — `--filter-value "MinerVeinFootprintJudgeTest"` → 4件PASS
+- [x] **Step 5: コミット** `feat: 採掘機の鉱脈判定をフットプリントXZ重なりの共有ロジックに新設`
 
 ### Task 2: サーバー採掘対象をフットプリント判定へ
 
@@ -129,7 +129,7 @@ namespace Game.Block.Interface.Vein
 **Interfaces:**
 - Produces: `List<IItemMapVein> GetVeinsOverlappingFootprint(BlockPositionInfo footprint)` on `IItemMapVeinDatastore`
 
-- [ ] **Step 1: インターフェースとDatastoreへ追加**（`Game.Map.Interface.asmdef`が`Game.Block.Interface`を参照していなければ参照を追加）
+- [x] **Step 1: インターフェースとDatastoreへ追加**（`Game.Map.Interface.asmdef`が`Game.Block.Interface`を参照していなければ参照を追加）
 
 ```csharp
 public List<IItemMapVein> GetVeinsOverlappingFootprint(BlockPositionInfo footprint)
@@ -142,15 +142,15 @@ public List<IItemMapVein> GetVeinsOverlappingFootprint(BlockPositionInfo footpri
 }
 ```
 
-- [ ] **Step 2: `VanillaMinerProcessorComponent`** — 両ctorから`Vector3Int drillLocalPosition`引数を削除し、`SetMiningItem`を
+- [x] **Step 2: `VanillaMinerProcessorComponent`** — 両ctorから`Vector3Int drillLocalPosition`引数を削除し、`SetMiningItem`を
 ```csharp
 // 掘れるかどうかは底面が重なっている鉱脈で決まる
 // What can be mined is decided by the veins the footprint overlaps
 List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetVeinsOverlappingFootprint(blockPositionInfo);
 ```
 に変更。2つのTemplateの呼び出しから`minerParam.DrillLocalPosition`引数を外す
-- [ ] **Step 3: コンパイル**（この時点ではDrillLocalPositionがBlockMasterUtilに残っていてよい）→ `MinerMiningTest` PASS
-- [ ] **Step 4: コミット** `refactor: サーバー採掘対象veinをフットプリント判定へ統一`
+- [x] **Step 3: コンパイル**（この時点ではDrillLocalPositionがBlockMasterUtilに残っていてよい）→ `MinerMiningTest` PASS
+- [x] **Step 4: コミット** `refactor: サーバー採掘対象veinをフットプリント判定へ統一`
 
 ### Task 3: クライアント設置判定をフットプリント判定へ＋HeightOffsetリセット
 
@@ -160,7 +160,7 @@ List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetVeinsOverlappin
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/CommonBlockPlaceDragState.cs:39-47`
 - Test: `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/MinerVeinPlacementReporterTest.cs`
 
-- [ ] **Step 1: テスト差し替え** — `判定は原点ではなく回転後のドリルセルで行う`を削除し、以下を追加（`OffsetDrillMinerId`=2x1x3、AABBは(0,0,0)-(2,2,2)）
+- [x] **Step 1: テスト差し替え** — `判定は原点ではなく回転後のドリルセルで行う`を削除し、以下を追加（`OffsetDrillMinerId`=2x1x3、AABBは(0,0,0)-(2,2,2)）
 
 ```csharp
 [Test]
@@ -184,7 +184,7 @@ public void 底面が1セルでも重なれば向きに関わらず設置可でY
 }
 ```
 
-- [ ] **Step 2: Registryへ追加**
+- [x] **Step 2: Registryへ追加**
 ```csharp
 public bool IsOverlappingFootprint(BlockPositionInfo footprint, MapVeinKind kind)
 {
@@ -196,15 +196,15 @@ public bool IsOverlappingFootprint(BlockPositionInfo footprint, MapVeinKind kind
 ```
 `IsInsideVein`は他に利用者がなければ削除。`MapVeinAabb.ContainsCell`も同様
 
-- [ ] **Step 3: Reporter書き換え** — ドリルオフセット計算を削除し、セル毎に
+- [x] **Step 3: Reporter書き換え** — ドリルオフセット計算を削除し、セル毎に
 ```csharp
 var footprint = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, holdingBlockMaster.BlockSize);
 if (veinAabbRegistry.IsOverlappingFootprint(footprint, MapVeinKind.Item)) continue;
 ```
 クラスsummaryも「底面が鉱脈に重なるセル」に更新
 
-- [ ] **Step 4: HeightOffsetリセット** — `SyncSelectedBlock`の`if`内に`HeightOffset = 0;`を追加し`_clickStartHeightOffset = 0`。コメント「ブロック切替でQ/Eの高さを引き継がない」
-- [ ] **Step 5: コンパイル→ `MinerVeinPlacementReporterTest` PASS → コミット** `fix: 採掘機の設置判定をフットプリントへ統一しQ/E高さ残留を解消`
+- [x] **Step 4: HeightOffsetリセット** — `SyncSelectedBlock`の`if`内に`HeightOffset = 0;`を追加し`_clickStartHeightOffset = 0`。コメント「ブロック切替でQ/Eの高さを引き継がない」
+- [x] **Step 5: コンパイル→ `MinerVeinPlacementReporterTest` PASS → コミット** `fix: 採掘機の設置判定をフットプリントへ統一しQ/E高さ残留を解消`
 
 ### Task 4: drillLocalPositionの全削除とマスタPR
 
@@ -216,17 +216,21 @@ if (veinAabbRegistry.IsOverlappingFootprint(footprint, MapVeinKind.Item)) contin
 - Modify（別repo）: `../moorestech_master/server_v8/mods/moorestechAlphaMod_8/master/blocks.json`（4か所削除）→ ブランチ`remove-drill-local-position`でpush・PR
 - Modify: `.moorestech-external-revisions.json`（moorestech_masterピンを上記コミットへ）
 
-- [ ] **Step 1:** blocks.ymlの3か所と2行コメントを削除 → `uloop compile`（SourceGenerator再生成でDrillLocalPositionが消え、BlockMasterUtilがエラー）
-- [ ] **Step 2:** `MinerDrillLocalPositionValidation`と呼び出し(17行目)を削除、テストファイル削除、JSON4ファイルからキー削除 → コンパイル成功
-- [ ] **Step 3:** `MinerMiningTest|MinerVeinPlacementReporterTest|MinerVeinFootprintJudgeTest|BlockMaster` 実行PASS
-- [ ] **Step 4:** moorestech_masterをコミット・push・PR作成、ピン更新 → コミット `chore: drillLocalPositionをスキーマ・マスタから削除`
+- [x] **Step 1:** blocks.ymlの3か所と2行コメントを削除 → `uloop compile`（SourceGenerator再生成でDrillLocalPositionが消え、BlockMasterUtilがエラー）
+- [x] **Step 2:** `MinerDrillLocalPositionValidation`と呼び出し(17行目)を削除、テストファイル削除、JSON4ファイルからキー削除 → コンパイル成功
+- [x] **Step 3:** `MinerMiningTest|MinerVeinPlacementReporterTest|MinerVeinFootprintJudgeTest|BlockMaster` 実行PASS
+- [x] **Step 4:** moorestech_masterをコミット・push・PR作成、ピン更新 → コミット `chore: drillLocalPositionをスキーマ・マスタから削除`
 
 ### Task 5: 全ブランチレビュー（必須・省略不可）
 
-- [ ] moores-code-review スキルで全ブランチレビューを実行し、機械的修正を適用してからPR作成（pr-create）。PR後に`moores-wt rm`
+- [x] moores-code-review スキルで全ブランチレビューを実行し、機械的修正を適用してからPR作成（pr-create）。PR後に`moores-wt rm`
 
 ## 判断記録（ADR）
 - 設計: `docs/adr/0039-miner-vein-footprint-xz-judge.md`、裁定: `.decisions/2026-08-28-採掘機の設置可否は底面フットプリントのXZ重なりで決めYは見ない.md`
 - 判定クラスを`Game.Block.Interface/Vein`に置く: 出所 agent前提（`BlockPositionInfo`と同アセンブリで、クライアント・サーバー双方が既に参照している。鉱脈の語彙はmin/maxセルのみで、Game.Map依存を作らない）
 - `GetOverVeins(Vector3Int)`は残す: 出所 agent前提（`VeinHandMiningService`が手掘りで使用）
 - テスト用ブロック`TestOffsetDrillMiner`（2x1x3）は名前を変えず流用: 出所 agent前提（改名はJSON・ID定数の波及だけで価値がない）
+
+## 実装後の補足（2026-08-28 レビュー裁定）
+- D1: mineSettings一致veinのみ採掘・1種1個・最遅時間・クライアントも同基準（ユーザー裁定 `.decisions/2026-08-28-採掘機はmineSettings一致の鉱脈だけ採掘し設置可否も同基準にする.md`）
+- D2: 鉱脈層はBlock層を参照せず `Veins` を公開、判定は呼び出し側で `MinerVeinFootprintJudge`（agent前提・案A）。Task 2 の `GetVeinsOverlappingFootprint` は廃止

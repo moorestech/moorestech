@@ -129,8 +129,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // ExistingBlock is the only cause set by this point (CommonBlockPlacePointCalculator); apply ground overlaps and report the cursor cell's reasons in one call
                 var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
 
-                // 採掘機はドリルが鉱脈に重なるセルだけに制限する。素材チェックより前に落として枠を消費させない
-                // Miners are restricted to cells where the drill overlaps a vein; drop them before the material check so they don't consume quota
+                // 採掘機は底面が掘れる鉱脈に重なるセルだけに制限する。素材チェックより前に落として枠を消費させない
+                // Miners are restricted to cells whose footprint overlaps a minable vein; drop them before the material check so they don't consume quota
                 MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, feedback);
 
                 // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）

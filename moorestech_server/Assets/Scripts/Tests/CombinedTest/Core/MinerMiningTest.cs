@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Core.Item.Interface;
 using Core.Update;
@@ -101,13 +102,54 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(2, chestComponent.InventoryItems[0].Count);
         }
         
+        // 原点セルは鉱脈AABBの外だが、多セル採掘機の底面フットプリントは鉱脈にXZで重なる配置を検証する
+        // Verify a multi-cell miner whose origin cell sits outside the vein AABB but whose footprint overlaps it in XZ
+        [Test]
+        public void 原点は鉱脈の外でも底面フットプリントが重なれば採掘対象になる()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var (vein, foundPos) = GetItemMapVein();
+
+            // OffsetDrillMinerId（blockSize 2,1,3・North）の原点をvein最小X-1に置き、原点セルは鉱脈の外だが底面(x方向2セル)が鉱脈へ食い込むようにする
+            // Place OffsetDrillMinerId (blockSize 2,1,3, North) so the origin cell misses the vein but its 2-cell-wide footprint reaches into it
+            var originPos = new Vector3Int(vein.VeinRangeMin.x - 1, foundPos.y, foundPos.z);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            Assert.IsTrue(worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OffsetDrillMinerId, originPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var minerBlock));
+
+            var minerComponent = minerBlock.GetComponent<VanillaMinerProcessorComponent>();
+            var miningItems = (List<IItemStack>)typeof(VanillaMinerProcessorComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+            var miningTicks = (uint)typeof(VanillaMinerProcessorComponent).GetField("_defaultMiningTicks", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+
+            Assert.AreEqual(1, miningItems.Count);
+            Assert.AreEqual(vein.VeinItemId, miningItems[0].Id);
+            Assert.Greater(miningTicks, 0u);
+        }
+
+        // mineSettingsに無い鉱脈の上では何も掘らない（採掘時間0のまま毎tick産出する無限増殖の再発防止）
+        // A vein missing from mineSettings yields nothing (guards the every-tick yield with a zero mining time)
+        [Test]
+        public void mineSettingsに無い鉱脈の上では採掘対象が空になる()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var unmineableVein = ServerContext.ItemMapVeinDatastore.Veins.First(v => v.VeinGuid == new Guid("11111111-0000-0000-0000-000000000004"));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            Assert.IsTrue(worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, unmineableVein.VeinRangeMin, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var minerBlock));
+
+            var minerComponent = minerBlock.GetComponent<VanillaMinerProcessorComponent>();
+            var miningItems = (List<IItemStack>)typeof(VanillaMinerProcessorComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+
+            Assert.AreEqual(0, miningItems.Count);
+        }
+
         public static (IItemMapVein mapVein, Vector3Int pos) GetItemMapVein()
         {
             var pos = new Vector3Int(0, 0);
             for (var i = 0; i < 500; i++)
             for (var j = 0; j < 500; j++)
             {
-                List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetOverVeins(new Vector3Int(i, j));
+                List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetVeinsContainingCell(new Vector3Int(i, j));
                 if (veins.Count == 0) continue;
                 
                 return (veins[0], new Vector3Int(i, j));

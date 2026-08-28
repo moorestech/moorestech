@@ -11,6 +11,7 @@ using Game.Block.Blocks.Util;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
+using Game.Block.Interface.Vein;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
@@ -71,20 +72,25 @@ namespace Game.Block.Blocks.Miner
 
             void SetMiningItem()
             {
-                // 掘れるかどうかは底面がXZで重なっている鉱脈で決まる（ADR 0039）
-                // What can be mined is decided by the veins the footprint overlaps in XZ (ADR 0039)
-                List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetVeinsOverlappingFootprint(blockPositionInfo);
-                foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
-                if (veins.Count == 0) return;
+                // 底面がXZで重なりmineSettingsにある鉱脈だけを対象にし、同一アイテムは1種1個にまとめる
+                // Only veins overlapping the footprint in XZ and listed in mineSettings count; each item appears once
+                var minableItemIds = new HashSet<ItemId>();
+                foreach (var vein in ServerContext.ItemMapVeinDatastore.Veins)
+                {
+                    if (!MinerVeinFootprintJudge.OverlapsXz(blockPositionInfo, vein.VeinRangeMin, vein.VeinRangeMax)) continue;
+                    if (!MinerVeinFootprintJudge.CanMine(mineSettings, vein.VeinItemId)) continue;
+                    if (minableItemIds.Add(vein.VeinItemId)) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
+                }
 
+                // 採掘時間は一致した鉱脈の中で最も遅い値。順序非依存にしてマスタの並びで変わらないようにする
+                // The mining time is the slowest among matched veins, independent of master ordering
                 foreach (var miningSetting in mineSettings.items)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(miningSetting.ItemGuid);
-                    if (itemId != veins[0].VeinItemId) continue;
-                    _defaultMiningTicks = GameUpdater.SecondsToTicks(miningSetting.Time);
-                    _remainingTicks = _defaultMiningTicks;
-                    break;
+                    if (!minableItemIds.Contains(itemId)) continue;
+                    _defaultMiningTicks = Math.Max(_defaultMiningTicks, GameUpdater.SecondsToTicks(miningSetting.Time));
                 }
+                _remainingTicks = _defaultMiningTicks;
             }
 
             #endregion

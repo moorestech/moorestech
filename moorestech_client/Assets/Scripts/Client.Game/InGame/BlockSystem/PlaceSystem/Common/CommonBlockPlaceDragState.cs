@@ -25,7 +25,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
         public void ClearDrag()
         {
+            // 配置跨ぎ再選択でも高さ基準を維持しない
+            // A reselect across place systems keeps no height baseline
             _clickStartPosition = null;
+            _previousSelectedBlockId = null;
         }
 
         public void UpdateHeightOffsetByInput()
@@ -41,8 +44,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             if (_previousSelectedBlockId != blockId)
             {
-                // ブロック切替でQ/Eの高さを引き継がない。残すと採掘機が浮いて鉱脈判定から外れる
-                // A block switch never inherits the Q/E height; carrying it floats the miner off the vein check
+                // 切替後の高さは常に地表基準に戻す
+                // A block switch always returns the height to ground level
                 _clickStartPosition = null;
                 HeightOffset = 0;
                 _clickStartHeightOffset = 0;

@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Core.Master;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -57,6 +58,51 @@ namespace Client.Tests.PlaceSystem.Common
 
             dragState.EndDrag();
             Assert.AreEqual(placePoint, dragState.ResolveDragStartPoint(placePoint));
+        }
+
+        [Test]
+        public void 別ブロックへ切替えると高さオフセットが0へ戻る()
+        {
+            var dragState = new CommonBlockPlaceDragState();
+            dragState.SyncSelectedBlock(new BlockId(1));
+            dragState.BeginDrag(new Vector3Int(0, 0, 0));
+            dragState.SetClickStartHeightOffset(5);
+            dragState.EndDrag();
+
+            dragState.SyncSelectedBlock(new BlockId(2));
+
+            Assert.AreEqual(0, dragState.HeightOffset);
+        }
+
+        [Test]
+        public void 同じブロックの再選択では高さオフセットが保たれる()
+        {
+            var dragState = new CommonBlockPlaceDragState();
+            dragState.SyncSelectedBlock(new BlockId(1));
+            dragState.BeginDrag(new Vector3Int(0, 0, 0));
+            dragState.SetClickStartHeightOffset(5);
+            dragState.EndDrag();
+
+            dragState.SyncSelectedBlock(new BlockId(1));
+
+            Assert.AreEqual(5, dragState.HeightOffset);
+        }
+
+        [Test]
+        public void ClearDragを挟んだ同一ブロックの再選択でも高さオフセットが0へ戻る()
+        {
+            var dragState = new CommonBlockPlaceDragState();
+            dragState.SyncSelectedBlock(new BlockId(1));
+            dragState.BeginDrag(new Vector3Int(0, 0, 0));
+            dragState.SetClickStartHeightOffset(5);
+            dragState.EndDrag();
+
+            // 配置システムを跨いだDisable相当の解除
+            // Simulates the Disable-equivalent teardown across place systems
+            dragState.ClearDrag();
+            dragState.SyncSelectedBlock(new BlockId(1));
+
+            Assert.AreEqual(0, dragState.HeightOffset);
         }
     }
 }

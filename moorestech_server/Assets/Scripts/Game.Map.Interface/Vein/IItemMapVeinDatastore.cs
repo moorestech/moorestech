@@ -1,17 +1,16 @@
 using System.Collections.Generic;
-using Game.Block.Interface;
 using UnityEngine;
 
 namespace Game.Map.Interface.Vein
 {
     public interface IItemMapVeinDatastore
     {
-        public List<IItemMapVein> GetOverVeins(Vector3Int pos);
+        // 手掘り用セル包含判定（Y込み）。採掘機には未使用
+        // Cell-containment check for hand mining (Y-inclusive); unused by miners
+        public List<IItemMapVein> GetVeinsContainingCell(Vector3Int cell);
 
-        /// <summary>
-        ///     採掘機の底面フットプリントとXZで重なる鉱脈を全て返す（ADR 0039）
-        ///     Returns every vein whose XZ range overlaps the miner footprint (ADR 0039)
-        /// </summary>
-        public List<IItemMapVein> GetVeinsOverlappingFootprint(BlockPositionInfo footprint);
+        // 採掘機の判定は鉱脈側では持たず、呼び出し側がMinerVeinFootprintJudgeで絞る（ADR 0039）
+        // Miner judgement is not owned by the vein layer; callers filter with MinerVeinFootprintJudge (ADR 0039)
+        public IReadOnlyList<IItemMapVein> Veins { get; }
     }
 }

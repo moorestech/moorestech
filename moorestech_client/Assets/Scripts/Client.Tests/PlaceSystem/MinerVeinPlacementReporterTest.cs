@@ -27,11 +27,13 @@ namespace Client.Tests.PlaceSystem
         // Vein GUIDs defined in ForUnitTest map.json
         private const string ItemVeinGuid = "11111111-0000-0000-0000-000000000001";
         private const string FluidVeinGuid = "11111111-0000-0000-0000-000000000002";
+        private const string UnmineableItemVeinGuid = "11111111-0000-0000-0000-000000000004";
 
         private static readonly Vector3Int VeinMinCell = new(0, 0, 0);
         private static readonly Vector3Int VeinMaxCell = new(2, 2, 2);
         private static readonly Vector3Int OutsideVeinCell = new(5, 0, 5);
         private static readonly Vector3Int FluidVeinCell = new(20, 0, 20);
+        private static readonly Vector3Int UnmineableVeinCell = new(40, 0, 40);
 
         [Test]
         public void 鉱脈外の採掘機セルをPlaceableFalseにしカーソルセルだけ理由を出す()
@@ -72,8 +74,18 @@ namespace Client.Tests.PlaceSystem
             MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(corner, minerMaster, -1, registry, new PlacementFeedback());
             Assert.IsTrue(corner[0].Placeable, "a footprint touching the vein corner was rejected");
 
-            // 東向き原点(3,0,0): x:3..5 で隣接のみ
-            // East at (3,0,0) spans x:3..5, merely adjacent
+            // 原点(-2,0,-1)は向きで可否が反転する: 東はAABB角(0,0,0)に掛かり可、北は掛からず不可
+            // Origin (-2,0,-1) flips by direction: East touches AABB corner (0,0,0) and is placeable, North misses it
+            var eastTouchesCorner = new List<PlaceInfo> { CreatePlaceInfo(new Vector3Int(-2, 0, -1), BlockDirection.East) };
+            MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(eastTouchesCorner, minerMaster, -1, registry, new PlacementFeedback());
+            Assert.IsTrue(eastTouchesCorner[0].Placeable, "an East footprint touching the vein corner was rejected");
+
+            var northMissesVein = new List<PlaceInfo> { CreatePlaceInfo(new Vector3Int(-2, 0, -1), BlockDirection.North) };
+            MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(northMissesVein, minerMaster, -1, registry, new PlacementFeedback());
+            Assert.IsFalse(northMissesVein[0].Placeable, "MarkOutsideVeinCellsAsNotPlaceable ignored PlaceInfo.Direction");
+
+            // 隣接のみ（重ならない）は向きに関係なく不可のまま
+            // A merely-adjacent footprint stays not placeable regardless of direction
             var adjacent = new List<PlaceInfo> { CreatePlaceInfo(new Vector3Int(3, 0, 0), BlockDirection.East) };
             MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(adjacent, minerMaster, -1, registry, new PlacementFeedback());
             Assert.IsFalse(adjacent[0].Placeable, "an adjacent footprint was accepted");
@@ -93,6 +105,22 @@ namespace Client.Tests.PlaceSystem
             MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(placeInfos, minerMaster, -1, CreateRegistry(), new PlacementFeedback());
 
             Assert.IsFalse(placeInfos[0].Placeable, "a fluid vein made a miner placeable");
+        }
+
+        /// <summary>
+        ///     置けるのに掘らない採掘機を作らないため、mineSettingsに無いアイテム鉱脈の上も設置不可
+        ///     An item vein missing from mineSettings is not placeable either, so a placed miner always mines
+        /// </summary>
+        [Test]
+        public void mineSettingsに無いアイテム鉱脈の上は採掘機を設置可にしない()
+        {
+            CreateServer();
+            var minerMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricMinerId);
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(UnmineableVeinCell, BlockDirection.North) };
+
+            MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(placeInfos, minerMaster, -1, CreateRegistry(), new PlacementFeedback());
+
+            Assert.IsFalse(placeInfos[0].Placeable, "an unmineable item vein made a miner placeable");
         }
 
         [Test]
@@ -128,6 +156,7 @@ namespace Client.Tests.PlaceSystem
             {
                 new(ItemVeinGuid, VeinMinCell.x, VeinMinCell.y, VeinMinCell.z, VeinMaxCell.x, VeinMaxCell.y, VeinMaxCell.z),
                 new(FluidVeinGuid, FluidVeinCell.x, FluidVeinCell.y, FluidVeinCell.z, FluidVeinCell.x, FluidVeinCell.y, FluidVeinCell.z),
+                new(UnmineableItemVeinGuid, UnmineableVeinCell.x, UnmineableVeinCell.y, UnmineableVeinCell.z, UnmineableVeinCell.x, UnmineableVeinCell.y, UnmineableVeinCell.z),
             };
             var mapLayout = new GetMapDataProtocol.ResponseMapDataMessagePack(new Vector3MessagePack(Vector3.zero),
                 new List<MapObjectLayoutMessagePack>(), veinLayouts, TerrainTransferMeta.CreateWithoutWorldDirectory(), string.Empty);
