@@ -36,6 +36,9 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.buildMenu]: () => fx.buildMenu,
   [Topics.hotbar]: () => fx.hotbar,
   [Topics.localization]: () => ({ locale: "japanese", revision: 1 }),
+  // 通常のe2eは出展モードではないので待機しない。欠けると全画面ゲートが被って全操作が塞がる
+  // Regular e2e is not event mode, so it never waits; a missing entry would cover everything with the gate
+  [Topics.eventLanguageGate]: () => ({ waiting: false }),
   [Topics.challengeTree]: () => fx.challengeTree,
   [Topics.challengeCurrent]: () => fx.challengeCurrent,
   [Topics.pauseMenu]: () => ({ disconnected: false }),

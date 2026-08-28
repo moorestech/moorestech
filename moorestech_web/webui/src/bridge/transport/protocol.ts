@@ -3,7 +3,7 @@ import type {
   RecipeViewerItemListData,
   ModalData, ProgressData, BlockInventoryData,
   UiStateData, ResearchTreeData, BuildMenuData, HotbarData,
-  LocalizationData, ChallengeTreeData,
+  LocalizationData, EventLanguageGateData, ChallengeTreeData,
   ChallengeCurrentData, PauseMenuData, PlacementModeData,
   CrosshairData,
   UiVisibilityData, TooltipData,
@@ -72,6 +72,9 @@ export const Topics = {
   // ゲーム内通知も一時イベント
   // In-game notifications are also transient events
   notification: "notification.events",
+  // 出展モードの言語選択ゲート。待機中だけ全画面で操作を塞ぐ
+  // The event-mode language gate; blocks all input full-screen while waiting
+  eventLanguageGate: "event_mode.language_gate",
 } as const;
 
 // topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
@@ -89,6 +92,7 @@ export type TopicPayloads = {
   [Topics.buildMenu]: BuildMenuData;
   [Topics.hotbar]: HotbarData;
   [Topics.localization]: LocalizationData;
+  [Topics.eventLanguageGate]: EventLanguageGateData;
   [Topics.challengeTree]: ChallengeTreeData;
   [Topics.challengeCurrent]: ChallengeCurrentData;
   [Topics.pauseMenu]: PauseMenuData;

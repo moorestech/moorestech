@@ -49,6 +49,7 @@ import type {
   SlotRefSchema,
   UiStateDataSchema,
   LocalizationDataSchema,
+  EventLanguageGateDataSchema,
   ChallengeNodeStateSchema,
   ChallengeNodeDataSchema,
   ChallengeCategoryDataSchema,
@@ -84,6 +85,7 @@ export type ModalData = z.infer<typeof ModalDataSchema>;
 export type ProgressData = z.infer<typeof ProgressDataSchema>;
 export type UiStateData = z.infer<typeof UiStateDataSchema>;
 export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
+export type EventLanguageGateData = z.infer<typeof EventLanguageGateDataSchema>;
 export type PauseMenuData = z.infer<typeof PauseMenuDataSchema>;
 export type PlacementModeData = z.infer<typeof PlacementModeDataSchema>;
 export type CrosshairData = z.infer<typeof CrosshairDataSchema>;

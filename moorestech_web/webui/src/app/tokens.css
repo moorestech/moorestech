@@ -83,6 +83,9 @@
   --z-portal-toast: 300;
   --z-portal-tutorial: 900;
   --z-portal-reconnect: 2000;
+  /* 出展モードの言語選択ゲートは再接続オーバーレイより前へ出す（待機中は再接続表示より優先） */
+  /* The event-mode language gate stands ahead of the reconnect overlay while waiting */
+  --z-portal-event-language-gate: 2500;
   --text-default: #eee;
   --text-high-contrast: #fff;
   /* 従属テキストには通常テキストより抑えた寒色グレーを使う */

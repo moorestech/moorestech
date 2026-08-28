@@ -47,6 +47,7 @@ export type ActionPayloads = {
   "pause_menu.save": Record<string, never>;
   "pause_menu.save_and_quit": Record<string, never>;
   "localization.setLocale": { locale: string };
+  "event_mode.select_language": { locale: string };
   "research.complete": { researchGuid: string };
   "machine_recipe.select": { operation: "set" | "clear"; recipeGuid?: string };
   "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
@@ -92,6 +93,7 @@ export const ACTION_TYPES = [
   "pause_menu.save",
   "pause_menu.save_and_quit",
   "localization.setLocale",
+  "event_mode.select_language",
   "research.complete",
   "machine_recipe.select",
   "filter_splitter.set_mode",
