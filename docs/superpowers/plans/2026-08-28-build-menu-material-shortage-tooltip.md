@@ -130,7 +130,7 @@
   - `BuildMenuRequiredItemDto` に `public int Held;` と `public bool Lacking;`
   - `BuildMenuEntryDtoFactory.CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems) : List<BuildMenuEntryDto>` と `CreateDtos(PlacementTargetResolver, ConstructionWalletQuery, IEnumerable<IItemStack>)`（どちらもデフォルト引数なし）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BuildMenuEntryDtoFactoryTest.cs` の末尾（`BlueprintDeleteServiceStub` クラス定義の直前）に、以下の3テストを追加する。
 
@@ -239,12 +239,12 @@ using Game.Context;
 
 既存の3箇所の `BuildMenuEntryDtoFactory.CreateDtos(targets, walletQuery)` 呼び出し（`CreateDtosは全件が…`、`CreateDtosは財布キー正規化後の…`、`財布を使わないブロックはSetPlacementを持たない`）を `BuildMenuEntryDtoFactory.CreateDtos(targets, walletQuery, Array.Empty<IItemStack>())` へ書き換える。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BuildMenuEntryDtoFactoryTest"`
 Expected: コンパイルエラー（`CreateDtos` に3引数のオーバーロードが無い、`BuildMenuRequiredItemDto.Held` / `.Lacking` が無い）
 
-- [ ] **Step 3: 所持数集計の共有クラスを作る**
+- [x] **Step 3: 所持数集計の共有クラスを作る**
 
 Create `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionMaterialHeldCounts.cs`:
 
@@ -275,7 +275,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 }
 ```
 
-- [ ] **Step 4: 既存の重複集計を共有クラスへ差し替える**
+- [x] **Step 4: 既存の重複集計を共有クラスへ差し替える**
 
 Modify `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/ConstructionCostShortageCalculator.cs`: 以下のブロックを
 
@@ -298,7 +298,7 @@ Modify `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSys
             var heldByItem = ConstructionMaterialHeldCounts.Tally(inventoryItems);
 ```
 
-- [ ] **Step 5: DTO に Held / Lacking を足す**
+- [x] **Step 5: DTO に Held / Lacking を足す**
 
 Modify `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuDtos.cs`: `BuildMenuRequiredItemDto` を次に置き換える。
 
@@ -315,7 +315,7 @@ Modify `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/
     }
 ```
 
-- [ ] **Step 6: 不足判定クラスを作る**
+- [x] **Step 6: 不足判定クラスを作る**
 
 Create `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuMaterialAvailability.cs`:
 
@@ -369,7 +369,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
 `PlacementTargetKind` は `Game.PlacementTarget` 名前空間にあるため、必要なら `using Game.PlacementTarget;` を足す。
 
-- [ ] **Step 7: DTO ファクトリを配線する**
+- [x] **Step 7: DTO ファクトリを配線する**
 
 Modify `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuEntryDtoFactory.cs`:
 
@@ -406,7 +406,7 @@ using Core.Item.Interface;
 
 `#region Internal` 内のローカル関数 `CreateRequiredItemDtos` は不要になるため、その定義（コメント2行を含む）を削除する。
 
-- [ ] **Step 8: ワイヤ正準形（fixture）を更新する**
+- [x] **Step 8: ワイヤ正準形（fixture）を更新する**
 
 Modify `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireContractTest.cs` の `BuildMenuMatchesFixture`: 必要素材を持つ2エントリの `RequiredItems` を次へ置き換える。
 
@@ -439,7 +439,7 @@ Modify `moorestech_client/Assets/Scripts/Client.Tests/WebUi/WireFixtures/build_m
 
 へ置き換える。
 
-- [ ] **Step 9: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 9: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -447,7 +447,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BuildMenuEntryDtoFactoryTest|WireContractTest"`
 Expected: 全PASS
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu moorestech_client/Assets/Scripts/Client.Tests/WebUi
@@ -468,7 +468,7 @@ git commit -m "feat: build_menu.entries へ素材の所持数と不足フラグ�
 - Consumes: Task 1 の `BuildMenuEntryDtoFactory.CreateDtos(PlacementTargetResolver, ConstructionWalletQuery, IEnumerable<IItemStack>)`、`Client.Game.InGame.UI.Inventory.Main.LocalPlayerInventoryController.LocalPlayerInventory : ILocalPlayerInventory`、`LocalPlayerInventoryController.OnInventoryRefreshed : IObservable<Unit>`、`ILocalPlayerInventory.OnItemChange : IObservable<int>`
 - Produces: `BuildMenuTopic(WebSocketHub hub, UIStateControl uiStateControl, ClientBlueprintLibrary blueprintLibrary, PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery constructionWalletQuery, LocalPlayerInventoryController inventoryController)` と `public class BuildMenuInventoryRepublishGate` の `public bool ShouldRepublish()`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 Create `moorestech_client/Assets/Scripts/Client.Tests/WebUi/BuildMenuTopicRepublishTest.cs`:
 
@@ -519,12 +519,12 @@ namespace Client.Tests.WebUi
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BuildMenuTopicRepublishTest"`
 Expected: コンパイルエラー（`BuildMenuInventoryRepublishGate` が存在しない）
 
-- [ ] **Step 3: 再配信ゲートを実装する**
+- [x] **Step 3: 再配信ゲートを実装する**
 
 Create `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuInventoryRepublishGate.cs`:
 
@@ -554,12 +554,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BuildMenuTopicRepublishTest"`
 Expected: PASS
 
-- [ ] **Step 5: BuildMenuTopic へ購読を足す**
+- [x] **Step 5: BuildMenuTopic へ購読を足す**
 
 Modify `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/BuildMenuTopic.cs`:
 
@@ -620,7 +620,7 @@ Modify `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BuildMenu/
                 Entries = BuildMenuEntryDtoFactory.CreateDtos(_placementTargetResolver, _constructionWalletQuery, _inventoryController.LocalPlayerInventory),
 ```
 
-- [ ] **Step 6: DI 配線を更新する**
+- [x] **Step 6: DI 配線を更新する**
 
 Modify `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.cs:156`: 該当行を次へ置き換える（`controller` は同ファイル50行目で解決済みの `LocalPlayerInventoryController`）。
 
@@ -628,7 +628,7 @@ Modify `moorestech_client/Assets/Scripts/Client.WebUiHost/Game/WebUiGameBinder.c
             var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery, controller);
 ```
 
-- [ ] **Step 7: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 7: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -636,7 +636,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BuildMenu|WireContractTest"`
 Expected: 全PASS
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_client/Assets/Scripts/Client.Tests/WebUi
@@ -655,7 +655,7 @@ git commit -m "feat: ビルドメニュー表示中の所持変化で build_menu
 - Consumes: Task 1 が配信する `held: number` / `lacking: boolean`
 - Produces: `BuildMenuRequiredItem` 型が `{ itemId: number; count: number; held: number; lacking: boolean }` になる
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_web/webui/src/bridge/contract/schemas/buildMenu.test.ts` の `describe("BuildMenuEntryDataSchema", ...)` 末尾に次を追加する。
 
@@ -684,12 +684,12 @@ git commit -m "feat: ビルドメニュー表示中の所持変化で build_menu
   });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && npm run test -- buildMenu.test`
 Expected: 「held/lackingを欠いた必要アイテムは拒否する」が FAIL（現スキーマは追加キーを無視し、欠落も許す）
 
-- [ ] **Step 3: スキーマを更新する**
+- [x] **Step 3: スキーマを更新する**
 
 Modify `moorestech_web/webui/src/bridge/contract/schemas/buildMenu.ts`: `BuildMenuRequiredItemSchema` を次へ置き換える。
 
@@ -704,12 +704,12 @@ export const BuildMenuRequiredItemSchema = z.object({
 });
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && npm run test -- buildMenu.test wireContract.test`
 Expected: 全PASS（`wireContract.test.ts` は Task 1 で更新した fixture を読む）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/bridge/contract/schemas
@@ -727,7 +727,7 @@ git commit -m "feat: build_menu 必要アイテム契約へ held/lacking を必�
 **Interfaces:**
 - Produces: `L.ui.buildMenu.materialShortageTitle` / `L.ui.buildMenu.materialShortageLine` / `L.ui.buildMenu.materialTooltip`
 
-- [ ] **Step 1: CSV へ3行追加する**
+- [x] **Step 1: CSV へ3行追加する**
 
 Modify `Localization/localization.csv`: `ui.buildMenu.remainingPlacementCount` の行（59行目）の直後に次の3行を挿入する。
 
@@ -737,22 +737,22 @@ ui.buildMenu.materialShortageLine,{itemName} {ownedCount}/{requiredCount},{itemN
 ui.buildMenu.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount},{itemName}\nBestand: {ownedCount}\nBenötigt: {requiredCount}
 ```
 
-- [ ] **Step 2: 生成キーを再生成する**
+- [x] **Step 2: 生成キーを再生成する**
 
 Run: `cd moorestech_web/webui && npm run gen:i18n`
 Expected: `src/shared/i18n/generated/localizationKeys.ts` に3キーが現れる
 
-- [ ] **Step 3: 鮮度テストを実行して通ることを確認する**
+- [x] **Step 3: 鮮度テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && npm run test -- localizationKeysFreshness allScreensI18n`
 Expected: PASS
 
-- [ ] **Step 4: Unity 側の生成キーも同期する**
+- [x] **Step 4: Unity 側の生成キーも同期する**
 
 Run: `uloop compile --project-path ./moorestech_client --force-recompile`
 Expected: エラー0件（CSV 追加で `Mooresmaster.Localization.Generated.LocalizationKeys` が再生成される。触っていないキーの CS0117 が出た場合は CSV 再生成漏れなので、このコマンドをもう一度実行する）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated
@@ -773,7 +773,7 @@ git commit -m "feat: ビルドメニュー素材不足の表示文言3キーを�
 - Consumes: Task 3 の `BuildMenuRequiredItem`（`held` / `lacking`）、Task 4 の `L.ui.buildMenu.materialTooltip`、既存 `useMaterialTooltipText`、`L.ui.recipe.itemCountSummary`
 - Produces: `MaterialTooltipKey` が `typeof L.ui.recipe.materialTooltip | typeof L.ui.research.consumeItemTooltip | typeof L.ui.buildMenu.materialTooltip | typeof L.ui.buildMenu.materialShortageLine` になる
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 Create `moorestech_web/webui/src/features/buildMenu/BuildMenuDetailSidebar.test.ts`:
 
@@ -827,12 +827,12 @@ describe("BuildMenuDetailSidebar", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && npm run test -- BuildMenuDetailSidebar`
 Expected: FAIL（`insufficient` も `data-lack` も出ておらず、`"count":5` が残っている）
 
-- [ ] **Step 3: 素材ツールチップキーの union を広げる**
+- [x] **Step 3: 素材ツールチップキーの union を広げる**
 
 Modify `moorestech_web/webui/src/shared/materialTooltipText.ts`: `MaterialTooltipKey` を次へ置き換える。
 
@@ -844,7 +844,7 @@ export type MaterialTooltipKey =
   | typeof L.ui.buildMenu.materialShortageLine;
 ```
 
-- [ ] **Step 4: CSS を追加する**
+- [x] **Step 4: CSS を追加する**
 
 Modify `moorestech_web/webui/src/features/buildMenu/style.module.css`: `.detailHint,` ブロックの直後に次を追加する。
 
@@ -871,7 +871,7 @@ Modify `moorestech_web/webui/src/features/buildMenu/style.module.css`: `.detailH
 }
 ```
 
-- [ ] **Step 5: サイドバーを research/craft 同型へ置き換える**
+- [x] **Step 5: サイドバーを research/craft 同型へ置き換える**
 
 Modify `moorestech_web/webui/src/features/buildMenu/BuildMenuDetailSidebar.tsx`: 冒頭の import に次を追加する。
 
@@ -906,7 +906,7 @@ import { useMaterialTooltipText } from "@/shared/materialTooltipText";
                 ))}
 ```
 
-- [ ] **Step 6: テストを実行して通ることを確認する**
+- [x] **Step 6: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && npm run test -- BuildMenuDetailSidebar`
 Expected: PASS
@@ -914,7 +914,7 @@ Expected: PASS
 Run: `cd moorestech_web/webui && npm run lint && npx tsc -b`
 Expected: エラー0件
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/buildMenu moorestech_web/webui/src/shared/materialTooltipText.ts
@@ -935,7 +935,7 @@ git commit -m "feat: ビルドメニュー詳細サイドバーの必要素材�
 - Consumes: Task 3 の `BuildMenuRequiredItem`、Task 4 の `L.ui.buildMenu.materialShortageTitle` / `L.ui.buildMenu.materialShortageLine`、Task 5 で union を広げた `useMaterialTooltipText`、既存 `HoverTooltip`
 - Produces: `shortageItemsOf(entry: BuildMenuDisplayEntry): BuildMenuRequiredItem[]`
 
-- [ ] **Step 1: 失敗するテストを書く（純関数）**
+- [x] **Step 1: 失敗するテストを書く（純関数）**
 
 Create `moorestech_web/webui/src/features/buildMenu/buildMenuShortage.test.ts`:
 
@@ -973,12 +973,12 @@ describe("shortageItemsOf", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && npm run test -- buildMenuShortage`
 Expected: FAIL（`./buildMenuShortage` が解決できない）
 
-- [ ] **Step 3: 純関数を実装する**
+- [x] **Step 3: 純関数を実装する**
 
 Create `moorestech_web/webui/src/features/buildMenu/buildMenuShortage.ts`:
 
@@ -993,12 +993,12 @@ export function shortageItemsOf(entry: BuildMenuDisplayEntry): BuildMenuRequired
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && npm run test -- buildMenuShortage`
 Expected: PASS
 
-- [ ] **Step 5: 失敗するテストを書く（スロット描画）**
+- [x] **Step 5: 失敗するテストを書く（スロット描画）**
 
 Create `moorestech_web/webui/src/features/buildMenu/BuildMenuSlot.test.ts`:
 
@@ -1062,12 +1062,12 @@ describe("BuildMenuSlot", () => {
 });
 ```
 
-- [ ] **Step 6: テストを実行して失敗を確認する**
+- [x] **Step 6: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && npm run test -- BuildMenuSlot`
 Expected: FAIL（`mock-hover-tooltip` が描画されない）
 
-- [ ] **Step 7: エントリスロットへツールチップを足す**
+- [x] **Step 7: エントリスロットへツールチップを足す**
 
 Modify `moorestech_web/webui/src/features/buildMenu/BuildMenuSlot.tsx`: 全体を次へ置き換える。
 
@@ -1126,7 +1126,7 @@ export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange 
 }
 ```
 
-- [ ] **Step 8: テストを実行して通ることを確認する**
+- [x] **Step 8: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && npm run test`
 Expected: 全PASS
@@ -1134,14 +1134,14 @@ Expected: 全PASS
 Run: `cd moorestech_web/webui && npm run lint && npx tsc -b`
 Expected: エラー0件
 
-- [ ] **Step 9: 実機で確認する**
+- [ ] **Step 9: 実機で確認する**（未実施: ビルドメニューはWeb UI描画で、PlayMode録画は素材不足の再現に別途セットアップが要るため保留。単体テスト＋契約テストで代替）
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
 unity-playmode-recorded-playtest スキルのプレイテストDSL（`scripts/run-scenario.sh`）で PlayMode を起動し、B キーでビルドメニューを開いてエントリをホバーする。素材が足りないエントリでツールチップに見出しと不足行が出ること、足りているエントリで出ないこと、詳細サイドバーに `所持/必要` と赤枠が出ることを録画で確認する。
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/buildMenu
