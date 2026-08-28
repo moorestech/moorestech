@@ -68,7 +68,7 @@ namespace Client.Playtest.Operations
 
             #region Internal
 
-            // カメラレイはマーカーで、地表探査はGroundレイヤーで地面を見る。両方揃って初めて足場が地面になる
+            // 地面と認められるにはマーカーとGroundレイヤーの両方が要る
             // The camera ray reads the marker and the ground probe reads the Ground layer; a scaffold needs both
             GameObject MarkAsGround(GameObject target)
             {

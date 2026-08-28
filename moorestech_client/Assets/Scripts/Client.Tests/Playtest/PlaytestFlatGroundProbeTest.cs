@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Client.Tests.Playtest
 {
     /// <summary>
-    ///     プレイテストの平坦足場が地表探査に見えることを検証する（見えないと設置Yが実地形へ落ちる）
+    ///     プレイテストの平坦足場が地表探査に見えるか検証する
     ///     Verifies the playtest flat scaffold is visible to the ground probe; otherwise the placement Y drops to the real terrain
     /// </summary>
     public class PlaytestFlatGroundProbeTest
@@ -17,7 +17,7 @@ namespace Client.Tests.Playtest
         // The scaffold's top face, the reference placement Y that scenarios use
         private static readonly float ScaffoldTopHeight = PlaytestSetup.GroundCenter.y + PlaytestSetup.GroundSize.y / 2f;
 
-        // 上面より十分下の入力Y。resolverが素通しならこの値が残り検出できる
+        // 上面より下の入力Y。素通し改変ならこの値が残る
         // An input Y well below the top face, so a pass-through resolver leaves it behind and is caught
         private static readonly Vector3Int ProbeCell = new(3, 5, 2);
 

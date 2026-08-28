@@ -26,18 +26,18 @@ namespace Client.Tests.Support
         }
 
         /// <summary>
-        ///     ピン済みコミットの指定ディレクトリを一時領域へ展開し、その根を返す
+        ///     ピン済みコミットの指定ディレクトリを一時領域へ展開する
         ///     Extracts the given directories of the pinned commit into a temp area and returns the extraction root
         /// </summary>
         public static string ExtractPinnedDirectories(params string[] directoriesInMasterRepository)
         {
             var (masterRepositoryRoot, commitHash) = ResolvePinnedMaster();
 
-            // 展開先は呼び出しごとに固有。共有すると別worktreeの展開途中を掴む
+            // 展開先は呼び出しごとに固有にする
             // A per-call destination; sharing lets a sibling worktree's half-extracted tree be read
             var extractionRoot = Path.Combine(Path.GetTempPath(), "moorestech-pinned-master", $"{commitHash}-{Guid.NewGuid():N}");
 
-            // git archive経由なら実チェックアウトに依存せずピンの中身だけが出る
+            // git archiveは実チェックアウトに依存しない
             // Going through git archive depends on no checkout state and yields exactly the committed pin
             var archivePath = extractionRoot + ".zip";
             Directory.CreateDirectory(Path.GetDirectoryName(archivePath));

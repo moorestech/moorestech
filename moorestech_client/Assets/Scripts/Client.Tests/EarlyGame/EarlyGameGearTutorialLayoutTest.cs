@@ -19,7 +19,7 @@ using UnityEngine;
 namespace Client.Tests.EarlyGame
 {
     /// <summary>
-    ///     接続チュートリアルの相対座標が歯車動力を実際に伝えることを確かめる
+    ///     接続チュートリアルの相対座標が動力を伝えるか確かめる
     ///     Proves the connection tutorial's relative layout (windmill → shaft → crusher) really carries gear power on the pinned v8 master
     /// </summary>
     public class EarlyGameGearTutorialLayoutTest
@@ -39,8 +39,8 @@ namespace Client.Tests.EarlyGame
         [TearDown]
         public void DeleteExtractedMaster()
         {
-            // 展開先は呼び出しごとに固有なので、消さないと実行のたびに一時領域へ積み上がる
-            // The destination is unique per call, so leaving it piles up in the temp area on every run
+            // 展開先は呼び出しごとに固有。消さないと積み上がる
+            // The destination is unique per call and piles up unless deleted
             if (Directory.Exists(_extractionRoot)) Directory.Delete(_extractionRoot, true);
         }
 
@@ -53,7 +53,7 @@ namespace Client.Tests.EarlyGame
             var previews = CollectRelativePlacePreviews();
             Assert.AreEqual(2, previews.Count, "the connection tutorial no longer has exactly two relative placement previews");
 
-            // 2本が同じアンカーを基準にしないと配置検証が成り立たない
+            // 同じアンカー基準でないと配置検証が成り立たない
             // The layout check only holds if both previews share one anchor block
             var anchorGuid = previews[0].AnchorBlockGuid;
             Assert.IsTrue(previews.All(preview => preview.AnchorBlockGuid == anchorGuid), "the two placement previews use different anchor blocks");
