@@ -527,6 +527,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   落として先頭へ戻る。
 - `pointer-events: none` を維持し、z層は既存の tutorial overlay 内（新しい `--z-*` を増やさない）。
 - e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
+- **枠線ハイライト本体の色と脈動**: 枠線は `--tutorial-attention-red`（`#ff0000`）、外側グローは `--tutorial-attention-glow`（`rgb(255 0 0 / 24%)`）で、グロー幅は `--tutorial-highlight-glow` が単一の値源（clip-path計算も同じ変数を読む）。`tutorial-attention-pulse` を `--tutorial-pulse-scale: 1.03` ・ `--tutorial-pulse-duration`（1200ms）で回し、脈動は**内側ノードを足さず `.highlight` 自身の `transform`** に付ける（ユーザー裁定 2026-08-28 / ADR 0039）。同じ要素に載る `clip-path` も一緒に拡縮し、祖先スクロール枠の境界が同周期で±1px程度呼吸するのは受容済みの帰結であり、2段構成へ"改善"しない。
 - **枠線ハイライトの文言ラベル**: `tutorial.presentation` の outline に `labelTutorialGuid` があるとき、`TutorialOverlay` が枠線の下辺外側・左揃えに `t(challengeTutorial.<guid>.text)` のラベルを描く（ユーザー裁定 2026-08-20）。面は `--world-pin-face`、文字は `--text-high-contrast`、間隔は `--tutorial-highlight-label-gap`、padding・文字サイズはワールドピンのラベルと共有する `--label-face-padding` / `--label-face-font-size`。枠線が非表示ならラベルも出さない。ラベルの可視判定はアンカー実体で行う（枠のpaddingリングが削れただけでラベルを落とさない）。ラベル自身はclip-pathを持たないため、**下辺に収まらず上辺側に収まるときは枠線の上へ反転配置**して容器の外へ出さない（ユーザー裁定 2026-08-22）。`t()` の解決結果が空（辞書未着など）のときもラベル面ごと出さない。吹き出し矢印・光彩・アニメーションは付けない。
 
 ## 8.19 キー操作ヒントHUD（チュートリアルの keyControl）

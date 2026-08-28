@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const tokens = read("../../app/tokens.css");
 const keyHint = read("./keyControlHint.module.css");
+const overlay = read("./overlay/style.module.css");
 
 describe("tutorial attention tokens", () => {
   it("原色赤・グロー・周期はtokensが唯一の正", () => {
@@ -39,6 +40,39 @@ describe("keyControl hint HUD", () => {
     expect(shared).toContain("color: var(--text-high-contrast)");
     expect(shared).not.toContain("--tutorial-attention-red");
     expect(shared).not.toContain("tutorial-attention-pulse");
+  });
+});
+
+describe("tutorial highlight ring", () => {
+  it("枠線とグローの両方が原色赤トークンを指し、旧来の黄が残らない", () => {
+    expect(overlay).toContain("solid var(--tutorial-attention-red)");
+    expect(overlay).toContain("var(--tutorial-attention-glow)");
+    expect(overlay).not.toContain("#ffdd57");
+    expect(overlay).not.toContain("255 221 87");
+  });
+
+  it("拡縮は1.03で、内側ノードを足さず既存の.highlight自身に付ける", () => {
+    const rule = overlay.slice(overlay.indexOf(".highlight {"), overlay.indexOf(".dragGuide"));
+    expect(rule).toContain("--tutorial-pulse-scale: 1.03");
+    expect(rule).toContain("animation: tutorial-attention-pulse var(--tutorial-pulse-duration) ease-in-out infinite");
+  });
+
+  it("ラベル面は脈動せず、既存のstage同率スケールを保つ", () => {
+    const labelRule = overlay.slice(overlay.indexOf(".highlightLabel {"));
+    expect(labelRule).toContain("transform: scale(var(--ui-scale, 1))");
+    expect(labelRule).not.toContain("tutorial-attention-pulse");
+    expect(labelRule).not.toContain("--tutorial-attention-red");
+  });
+
+  it("機能側CSSに色リテラルと秒数リテラルを直書きしない", () => {
+    expect(overlay).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+    expect(overlay).not.toMatch(/\d+m?s\b/);
+  });
+
+  it("ドラッグガイド矢印は対象外で、移動ループのまま据え置く", () => {
+    const dragRule = overlay.slice(overlay.indexOf(".dragGuide {"), overlay.indexOf(".dragGuide svg"));
+    expect(dragRule).toContain("animation: drag-guide-loop var(--tutorial-drag-guide-duration) ease-in-out infinite");
+    expect(dragRule).not.toContain("tutorial-attention-pulse");
   });
 });
 
