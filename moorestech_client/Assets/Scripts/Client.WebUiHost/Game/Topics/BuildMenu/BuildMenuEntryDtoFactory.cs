@@ -46,6 +46,13 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             foreach (var target in targets)
             {
                 var (categoryGuid, subCategoryGuid) = ResolveCategoryPair(target);
+
+                // 財布へは1エントリ1回だけ問い合わせ、設置数表示と支払い免除の両方をここから導く
+                // Ask the wallet once per entry and derive both the set display and the payment waiver from it
+                var block = ResolveBlockTarget(target);
+                var walletStatus = block == null ? null : walletQuery.GetWalletStatus(block.BlockId);
+                var paymentSkipped = freeBlockPlacement || (walletStatus != null && ConstructionWalletUtil.IsCoveredByWallet(walletStatus.Value.RemainingCount));
+
                 dtos.Add(new BuildMenuEntryDto
                 {
                     // 設置対象IDはGuid文字列1本。kindは表示・振る舞い用で識別子ではない
@@ -55,8 +62,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
-                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, freeBlockPlacement, walletQuery, heldByItem),
-                    SetPlacement = ResolveSetPlacement(target),
+                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, paymentSkipped, heldByItem),
+                    SetPlacement = ResolveSetPlacement(walletStatus),
                     IconUrl = ResolveIconUrl(target),
                 });
             }
@@ -84,26 +91,22 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 });
             }
 
-            // ブロックかどうかの供給源はKindのenum一本に揃える
-            // The single supply point for "is this a block" is the Kind enum
-            BlockPlacementTarget ResolveBlockTarget(IPlacementTarget target)
+            // 財布を持たないブロックと非ブロックはnull状態のまま配信でキーごと省略される
+            // Blocks without a wallet and non-block kinds stay null, which omits the key on the wire
+            BuildMenuSetPlacementDto ResolveSetPlacement(ConstructionWalletStatus? status)
             {
-                return target.Kind == PlacementTargetKind.Block ? (BlockPlacementTarget)target : null;
-            }
-
-            // 財布の有無も残数も財布へ問い合わせる。非ブロックは財布を持たない
-            // Both whether a wallet exists and how much remains come from the wallet itself; non-block kinds have none
-            BuildMenuSetPlacementDto ResolveSetPlacement(IPlacementTarget target)
-            {
-                var block = ResolveBlockTarget(target);
-                if (block == null) return null;
-
-                var status = walletQuery.GetWalletStatus(block.BlockId);
                 if (status == null) return null;
                 return new BuildMenuSetPlacementDto { PerCost = status.Value.PlacementsPerCost, Remaining = status.Value.RemainingCount };
             }
 
             #endregion
+        }
+
+        // ブロックかどうかの供給源はKindのenum一本に揃える
+        // The single supply point for "is this a block" is the Kind enum
+        private static BlockPlacementTarget ResolveBlockTarget(IPlacementTarget target)
+        {
+            return target.Kind == PlacementTargetKind.Block ? (BlockPlacementTarget)target : null;
         }
 
         public static List<BuildMenuCategoryDto> CreateCategoryDtos()

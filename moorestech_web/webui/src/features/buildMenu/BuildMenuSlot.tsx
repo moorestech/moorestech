@@ -3,7 +3,6 @@ import { tutorialAnchor, buildMenuEntryAnchorId } from "@/shared/tutorialAnchor"
 import { useHotbarDragSource } from "@/features/hotbar";
 import { L, useI18n } from "@/shared/i18n";
 import { useMaterialTooltipText } from "@/shared/materialTooltipText";
-import { shortageItemsOf } from "./logic/buildMenuShortage";
 import type { BuildMenuDisplayEntry } from "./logic/buildMenuGrouping";
 
 type Props = {
@@ -26,7 +25,7 @@ export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange 
 
   // 不足時のみツールチップ表示
   // Show tooltip only when something is short
-  const shortages = shortageItemsOf(entry);
+  const shortages = entry.requiredItems.filter((item) => item.lacking);
   const shortageTooltip = (
     <span style={{ whiteSpace: "pre-line" }}>
       {[t(L.ui.buildMenu.materialShortageTitle)]

@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Core.Master;
-using Game.Construction;
-using Game.PlacementTarget;
 
 namespace Client.WebUiHost.Game.Topics.BuildMenu
 {
@@ -12,34 +10,39 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     /// </summary>
     public static class BuildMenuMaterialAvailability
     {
-        public static List<BuildMenuRequiredItemDto> CreateRequiredItemDtos(IPlacementTarget target, bool freeBlockPlacement, ConstructionWalletQuery walletQuery, IReadOnlyDictionary<ItemId, int> heldByItem)
+        public static List<BuildMenuRequiredItemDto> CreateRequiredItemDtos(IPlacementTarget target, bool paymentSkipped, IReadOnlyDictionary<ItemId, int> heldByItem)
         {
-            // 支払いスキップ時は不足を立てない
-            // Skip raising shortage when payment is skipped
-            var paymentSkipped = freeBlockPlacement || IsCoveredByWallet(target, walletQuery);
-
-            var itemDtos = new List<BuildMenuRequiredItemDto>();
+            // 同一アイテムの必要数は初出順で合算する（設置時判定と同じ数え方）
+            // Required counts of the same item sum in first-seen order, matching how placement decides
+            var requiredByItem = new Dictionary<ItemId, int>();
+            var itemOrder = new List<ItemId>();
             foreach (var (itemGuid, count) in target.CreateRequiredItems())
             {
                 var itemId = MasterHolder.ItemMaster.GetItemId(itemGuid);
+                if (!requiredByItem.ContainsKey(itemId))
+                {
+                    requiredByItem[itemId] = 0;
+                    itemOrder.Add(itemId);
+                }
+                requiredByItem[itemId] += count;
+            }
+
+            var itemDtos = new List<BuildMenuRequiredItemDto>();
+            foreach (var itemId in itemOrder)
+            {
                 heldByItem.TryGetValue(itemId, out var held);
+                var required = requiredByItem[itemId];
                 itemDtos.Add(new BuildMenuRequiredItemDto
                 {
                     ItemId = itemId.AsPrimitive(),
-                    Count = count,
+                    Count = required,
                     Held = held,
-                    Lacking = !paymentSkipped && held < count,
+                    // 支払いスキップ時は不足を立てない
+                    // Skip raising shortage when payment is skipped
+                    Lacking = !paymentSkipped && held < required,
                 });
             }
             return itemDtos;
-        }
-
-        // 財布無しの種別は常に支払う
-        // Kinds without a wallet always pay
-        private static bool IsCoveredByWallet(IPlacementTarget target, ConstructionWalletQuery walletQuery)
-        {
-            if (target.Kind != PlacementTargetKind.Block) return false;
-            return walletQuery.IsCoveredByWallet(((BlockPlacementTarget)target).BlockId);
         }
     }
 }
