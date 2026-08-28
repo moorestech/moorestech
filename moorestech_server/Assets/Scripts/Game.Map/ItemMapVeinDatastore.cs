@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Game.Block.Interface;
+using Game.Block.Interface.Vein;
 using Core.Master;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.Vein;
@@ -47,6 +49,16 @@ namespace Game.Map
                 if (vein.VeinRangeMin.x <= pos.x && pos.x <= vein.VeinRangeMax.x &&
                     vein.VeinRangeMin.y <= pos.y && pos.y <= vein.VeinRangeMax.y &&
                     vein.VeinRangeMin.z <= pos.z && pos.z <= vein.VeinRangeMax.z)
+                    veins.Add(vein);
+
+            return veins;
+        }
+
+        public List<IItemMapVein> GetVeinsOverlappingFootprint(BlockPositionInfo footprint)
+        {
+            var veins = new List<IItemMapVein>();
+            foreach (var vein in _mapVeins)
+                if (MinerVeinFootprintJudge.OverlapsXz(footprint, vein.VeinRangeMin, vein.VeinRangeMax))
                     veins.Add(vein);
 
             return veins;

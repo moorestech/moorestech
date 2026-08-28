@@ -35,15 +35,5 @@ namespace Client.Game.InGame.Map.MapVein
             Bounds.SetMinMax(minCell, maxCell + Vector3Int.one);
         }
 
-        /// <summary>
-        ///     サーバーのItemMapVeinDatastore.GetOverVeinsと同じinclusive判定
-        ///     The same inclusive test as the server's ItemMapVeinDatastore.GetOverVeins
-        /// </summary>
-        public bool ContainsCell(Vector3Int cell)
-        {
-            return MinCell.x <= cell.x && cell.x <= MaxCell.x &&
-                   MinCell.y <= cell.y && cell.y <= MaxCell.y &&
-                   MinCell.z <= cell.z && cell.z <= MaxCell.z;
-        }
     }
 }

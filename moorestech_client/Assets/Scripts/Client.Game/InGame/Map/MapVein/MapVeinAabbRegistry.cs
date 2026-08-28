@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using Client.Network.API;
 using Core.Master;
+using Game.Block.Interface;
+using Game.Block.Interface.Vein;
 using Mooresmaster.Model.MapModule;
 using UnityEngine;
 
@@ -35,13 +37,13 @@ namespace Client.Game.InGame.Map.MapVein
         }
 
         /// <summary>
-        ///     指定セルがその種別の鉱脈に入っているか。種別を跨いだ判定は採掘機/ポンプの掘れる条件とずれるため持たない
-        ///     Whether the cell sits inside a vein of that kind; no cross-kind query exists because it would diverge from what miners/pumps can actually extract
+        ///     底面フットプリントがその種別の鉱脈とXZで重なるか。種別を跨いだ判定は採掘機/ポンプの掘れる条件とずれるため持たない
+        ///     Whether the footprint overlaps a vein of that kind in XZ; no cross-kind query exists because it would diverge from what miners/pumps can actually extract
         /// </summary>
-        public bool IsInsideVein(Vector3Int cell, MapVeinKind kind)
+        public bool IsOverlappingFootprint(BlockPositionInfo footprint, MapVeinKind kind)
         {
             foreach (var vein in _veins)
-                if (vein.Kind == kind && vein.ContainsCell(cell))
+                if (vein.Kind == kind && MinerVeinFootprintJudge.OverlapsXz(footprint, vein.MinCell, vein.MaxCell))
                     return true;
 
             return false;

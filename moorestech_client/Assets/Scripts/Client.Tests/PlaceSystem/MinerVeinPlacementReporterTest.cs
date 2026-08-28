@@ -59,33 +59,24 @@ namespace Client.Tests.PlaceSystem
             CollectionAssert.AreEqual(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceMinerOutsideVein) }, feedback.Lines);
         }
 
-        /// <summary>
-        ///     判定はブロック原点ではなくドリルセルで行う。原点で判定する実装はここで落ちる
-        ///     The check runs on the drill cell, not the block origin; an origin-based implementation fails here
-        /// </summary>
         [Test]
-        public void 判定は原点ではなく回転後のドリルセルで行う()
+        public void 底面が1セルでも重なれば向きに関わらず設置可でYは見ない()
         {
             CreateServer();
             var minerMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.OffsetDrillMinerId);
+            var registry = CreateRegistry();
 
-            // 北向き: 原点は鉱脈内だがドリル(1,0,2)は鉱脈外
-            // North: the origin is inside the vein while the drill at (1,0,2) is outside it
-            var originInsideDrillOutside = new List<PlaceInfo> { CreatePlaceInfo(VeinMaxCell, BlockDirection.North) };
-            MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(originInsideDrillOutside, minerMaster, -1, CreateRegistry(), new PlacementFeedback());
-            Assert.IsFalse(originInsideDrillOutside[0].Placeable, "the check used the block origin instead of the drill cell");
+            // 北向き原点(-1,7,-2): x:-1..0 z:-2..0 でAABB角(0,0)に掛かる。Y=7は無視される
+            // North at (-1,7,-2) spans x:-1..0 z:-2..0 and touches AABB corner (0,0); Y=7 is ignored
+            var corner = new List<PlaceInfo> { CreatePlaceInfo(new Vector3Int(-1, 7, -2), BlockDirection.North) };
+            MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(corner, minerMaster, -1, registry, new PlacementFeedback());
+            Assert.IsTrue(corner[0].Placeable, "a footprint touching the vein corner was rejected");
 
-            // 北向き: 原点は鉱脈外だがドリルは鉱脈内
-            // North: the origin is outside the vein while the drill lands inside it
-            var originOutsideDrillInside = new List<PlaceInfo> { CreatePlaceInfo(VeinMinCell - new Vector3Int(1, 0, 2), BlockDirection.North) };
-            MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(originOutsideDrillInside, minerMaster, -1, CreateRegistry(), new PlacementFeedback());
-            Assert.IsTrue(originOutsideDrillInside[0].Placeable, "a miner whose drill sits on the vein was rejected");
-
-            // 同じ原点でも向きが変わればドリルセルが動くので判定も変わる
-            // The same origin with a different direction moves the drill cell, so the verdict changes with it
-            var rotated = new List<PlaceInfo> { CreatePlaceInfo(VeinMinCell - new Vector3Int(1, 0, 2), BlockDirection.East) };
-            MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(rotated, minerMaster, -1, CreateRegistry(), new PlacementFeedback());
-            Assert.IsFalse(rotated[0].Placeable, "rotation did not move the drill cell");
+            // 東向き原点(3,0,0): x:3..5 で隣接のみ
+            // East at (3,0,0) spans x:3..5, merely adjacent
+            var adjacent = new List<PlaceInfo> { CreatePlaceInfo(new Vector3Int(3, 0, 0), BlockDirection.East) };
+            MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(adjacent, minerMaster, -1, registry, new PlacementFeedback());
+            Assert.IsFalse(adjacent[0].Placeable, "an adjacent footprint was accepted");
         }
 
         /// <summary>

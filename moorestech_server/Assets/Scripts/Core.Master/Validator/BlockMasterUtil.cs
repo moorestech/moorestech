@@ -14,7 +14,6 @@ namespace Core.Master.Validator
             errorLogs += BlockParamValidation();
             errorLogs += BlockRequiredItemsValidation();
             errorLogs += PlacementsPerCostValidation();
-            errorLogs += MinerDrillLocalPositionValidation();
             errorLogs += GearConsumptionValidation();
             errorLogs += BlockDestructionCategoryValidation();
             errorLogs += BlockCategoryReferenceValidation();
@@ -231,24 +230,6 @@ namespace Core.Master.Validator
                 return logs;
             }
 
-            string MinerDrillLocalPositionValidation()
-            {
-                // ドリルはブロックが占める範囲の中に無ければならない。外に出ると自分が乗っていない鉱脈を掘る
-                // The drill must sit inside the block footprint; outside it the machine would mine a vein it is not standing on
-                var logs = "";
-                foreach (var block in blocks.Data)
-                {
-                    if (block.BlockParam is not IMinerParam minerParam) continue;
-
-                    var drill = minerParam.DrillLocalPosition;
-                    var size = block.BlockSize;
-                    if (drill.x < 0 || size.x <= drill.x ||
-                        drill.y < 0 || size.y <= drill.y ||
-                        drill.z < 0 || size.z <= drill.z)
-                        logs += $"[BlockMaster] Name:{block.Name} has DrillLocalPosition:{drill} outside BlockSize:{size}\n";
-                }
-                return logs;
-            }
 
             string GearConsumptionValidation()
             {

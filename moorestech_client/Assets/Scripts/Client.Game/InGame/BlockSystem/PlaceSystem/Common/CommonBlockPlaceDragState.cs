@@ -41,8 +41,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             if (_previousSelectedBlockId != blockId)
             {
+                // ブロック切替でQ/Eの高さを引き継がない。残すと採掘機が浮いて鉱脈判定から外れる
+                // A block switch never inherits the Q/E height; carrying it floats the miner off the vein check
                 _clickStartPosition = null;
-                _clickStartHeightOffset = HeightOffset;
+                HeightOffset = 0;
+                _clickStartHeightOffset = 0;
             }
             _previousSelectedBlockId = blockId;
         }

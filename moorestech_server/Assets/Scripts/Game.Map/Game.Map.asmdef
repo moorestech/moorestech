@@ -2,6 +2,7 @@
   "name": "Game.Map",
   "rootNamespace": "",
   "references": [
+    "Game.Block.Interface",
     "Game.Map.Interface",
     "Core.Item.Interface",
     "Core.Item",
