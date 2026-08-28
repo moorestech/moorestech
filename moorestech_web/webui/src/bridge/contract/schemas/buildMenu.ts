@@ -4,9 +4,13 @@ import { z } from "zod";
 // kind classifies display/behavior only; identity of a placement target lives solely in id (a GUID)
 export const BuildMenuEntryKindSchema = z.enum(["block", "trainCar", "connectTool", "blueprintCopy", "blueprint"]);
 
+// held/lacking はホストが財布判定まで済ませた結果。web は再計算せずそのまま読む
+// held/lacking arrive already settled by the host's wallet decision; the web reads them without recomputing
 export const BuildMenuRequiredItemSchema = z.object({
   itemId: z.number().int(),
   count: z.number().int(),
+  held: z.number().int().min(0),
+  lacking: z.boolean(),
 });
 
 const BuildMenuEntryCommonFields = {

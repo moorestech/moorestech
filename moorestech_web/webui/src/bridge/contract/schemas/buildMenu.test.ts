@@ -66,7 +66,7 @@ describe("BuildMenuEntryDataSchema", () => {
       kind: "block" as const,
       categoryGuid: "10000000-0000-4000-8000-000000000001",
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
-      requiredItems: [{ itemId: 3, count: 1 }],
+      requiredItems: [{ itemId: 3, count: 1, held: 1, lacking: false }],
     };
 
     const entry = BuildMenuEntryDataSchema.parse({ ...blockEntryBase, setPlacement: { perCost: 3, remaining: 2 } });
@@ -80,6 +80,29 @@ describe("BuildMenuEntryDataSchema", () => {
     expect(walletlessEntry.setPlacement).toBeUndefined();
 
     expect(() => BuildMenuEntryDataSchema.parse({ ...blockEntryBase, setPlacement: { perCost: 1, remaining: 0 } })).toThrow();
+  });
+
+  it("必要アイテムはheldとlackingを必須で持つ", () => {
+    const entry = BuildMenuEntryDataSchema.parse({
+      id: "30000000-0000-4000-8000-000000000001",
+      kind: "block",
+      categoryGuid: "10000000-0000-4000-8000-000000000001",
+      subCategoryGuid: "20000000-0000-4000-8000-000000000001",
+      requiredItems: [{ itemId: 3, count: 5, held: 2, lacking: true }],
+    });
+    assert(entry.kind === "block");
+    expect(entry.requiredItems[0].held).toBe(2);
+    expect(entry.requiredItems[0].lacking).toBe(true);
+  });
+
+  it("held/lackingを欠いた必要アイテムは拒否する", () => {
+    expect(() => BuildMenuEntryDataSchema.parse({
+      id: "30000000-0000-4000-8000-000000000001",
+      kind: "block",
+      categoryGuid: "10000000-0000-4000-8000-000000000001",
+      subCategoryGuid: "20000000-0000-4000-8000-000000000001",
+      requiredItems: [{ itemId: 3, count: 5 }],
+    })).toThrow();
   });
 
   it("block以外へsetPlacementを載せたpayloadは拒否する", () => {

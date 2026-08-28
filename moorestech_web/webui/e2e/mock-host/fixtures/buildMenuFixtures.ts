@@ -86,11 +86,11 @@ export const buildMenu = {
   // 本番同形のアイコン経路を使う
   // Uses the mock host's production-shaped icon route
   entries: [
-    { id: buildMenuEntryIds.woodChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [{ itemId: 1, count: 4 }], iconUrl: blockIconUrl(1) },
+    { id: buildMenuEntryIds.woodChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [{ itemId: 1, count: 4, held: 4, lacking: false }], iconUrl: blockIconUrl(1) },
     { id: buildMenuEntryIds.ironChest, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000001", requiredItems: [], iconUrl: blockIconUrl(2) },
     // 唯一の複数設置エントリ。財布正規化も検証
     // The sole multi-placement entry; also verifies wallet-key normalization
-    { id: buildMenuEntryIds.beltConveyor, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [{ itemId: 1, count: 1 }], setPlacement: { perCost: 3, remaining: 2 }, iconUrl: blockIconUrl(3) },
+    { id: buildMenuEntryIds.beltConveyor, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000001", subCategoryGuid: "52000000-0000-4000-8000-000000000002", requiredItems: [{ itemId: 1, count: 1, held: 1, lacking: false }], setPlacement: { perCost: 3, remaining: 2 }, iconUrl: blockIconUrl(3) },
     { id: buildMenuEntryIds.rail, kind: "block", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: blockIconUrl(4) },
     { id: buildMenuEntryIds.cargoCar, kind: "trainCar", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000004", requiredItems: [], iconUrl: blockIconUrl(5) },
     { id: buildMenuEntryIds.wireConnectTool, kind: "connectTool", categoryGuid: "51000000-0000-4000-8000-000000000002", subCategoryGuid: "52000000-0000-4000-8000-000000000003", requiredItems: [], iconUrl: blockIconUrl(6) },
@@ -102,7 +102,7 @@ export const buildMenu = {
       kind: "block" as const,
       categoryGuid,
       subCategoryGuid,
-      requiredItems: [{ itemId: 1, count: 2 }],
+      requiredItems: [{ itemId: 1, count: 2, held: 2, lacking: false }],
       iconUrl: blockIconUrl(1),
     })),
   ],
