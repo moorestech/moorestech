@@ -38,9 +38,9 @@ namespace Game.PlayerInventory.ItemManaged
                 InvokeEvent, ServerContext.ItemStackFactory,
                 MasterHolder.ItemMaster.Items.EquipmentSlotCount);
 
-            // 初期選択は先頭スロット
-            // The initial selection is the first slot
-            ApplySelectedEquipmentIndexWithoutEvent(0);
+            // 初期選択は既定スロット
+            // The initial selection is the default slot
+            ApplySelectedEquipmentIndexWithoutEvent(IEquipmentInventory.DefaultSelectedIndex);
         }
 
         public void SetSelectedEquipmentIndex(int index)
@@ -70,24 +70,35 @@ namespace Game.PlayerInventory.ItemManaged
         /// </summary>
         public List<IItemStack> RestoreFromSave(List<IItemStack> savedItems, int selectedEquipmentIndex)
         {
-            // スロット数はマスタ由来で保存されないため、マスタが縮んだ場合は入る分だけ復元する
-            // The slot count comes from master and is not saved, so restore only what fits when master shrank
-            var restoreCount = Math.Min(savedItems.Count, GetSlotSize());
-            for (var slot = 0; slot < restoreCount; slot++)
-                _openableInventoryService.SetItemWithoutEvent(slot, savedItems[slot]);
-
-            // あふれた装備は捨てずに呼び出し元へ返し、プレイヤーのアイテム消失を防ぐ
-            // Overflowing equipment is handed back to the caller instead of dropped so the player loses nothing
-            var overflowItems = new List<IItemStack>();
-            for (var index = restoreCount; index < savedItems.Count; index++)
-            {
-                if (savedItems[index].Count == 0) continue;
-                overflowItems.Add(savedItems[index]);
-            }
+            var overflowItems = SetItemsWithoutEvent(savedItems);
 
             // 復元はアイテムも選択も無発火で揃え、ロード時に差分イベントを積まない
             // Restoring keeps both items and selection event-free so loading queues no diff events
             ApplySelectedEquipmentIndexWithoutEvent(selectedEquipmentIndex);
+
+            return overflowItems;
+        }
+
+        /// <summary>
+        ///     スロット順のアイテム列を無発火で入れ、入り切らなかった分を返す。復元と初期装備投入が共有する
+        ///     Sets a slot-ordered item list without events and returns what did not fit; shared by restore and the initial grant
+        /// </summary>
+        public List<IItemStack> SetItemsWithoutEvent(List<IItemStack> items)
+        {
+            // スロット数はマスタ由来で保存されないため、マスタが縮んだ場合は入る分だけ入れる
+            // The slot count comes from master and is not saved, so only what fits is set when master shrank
+            var setCount = Math.Min(items.Count, GetSlotSize());
+            for (var slot = 0; slot < setCount; slot++)
+                _openableInventoryService.SetItemWithoutEvent(slot, items[slot]);
+
+            // あふれた装備は捨てずに呼び出し元へ返し、プレイヤーのアイテム消失を防ぐ
+            // Overflowing equipment is handed back to the caller instead of dropped so the player loses nothing
+            var overflowItems = new List<IItemStack>();
+            for (var index = setCount; index < items.Count; index++)
+            {
+                if (items[index].Count == 0) continue;
+                overflowItems.Add(items[index]);
+            }
 
             return overflowItems;
         }

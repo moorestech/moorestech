@@ -6,6 +6,8 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
 {
     public class UIHighlightTutorialManager : MonoBehaviour, ITutorialViewManager
     {
+        public string TutorialType => TutorialsElement.TutorialTypeConst.uiHighLight;
+
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             var highlightParam = (UiHighLightTutorialParam)tutorial.TutorialParam;

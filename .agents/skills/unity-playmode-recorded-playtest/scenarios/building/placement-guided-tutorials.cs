@@ -156,18 +156,18 @@ return PlaytestRunner.Run("placement-guided-tutorials", options, async p =>
 
     // 原木鉱脈があればそれを、無ければ最寄りの鉱脈を強調対象にする
     // Prefer the log vein when the world has one; otherwise highlight the nearest vein instead
-    var logVeins = registry.Veins.Where(vein => vein.VeinGuid == logVeinGuid).ToList();
+    var logVeins = registry.Veins.Where(vein => vein.VeinTypeGuid == logVeinGuid).ToList();
     // 海中の露頭は絵に映らないので、同種のうち最も標高の高い1件を強調対象にする
     // A submerged vein would not show on camera, so highlight the highest one of its kind
     var targetVein = (logVeins.Count > 0 ? logVeins : registry.Veins.ToList())
         .OrderByDescending(vein => vein.Bounds.max.y).First();
-    var targetVeinGuid = targetVein.VeinGuid;
-    var targetVeinName = MasterHolder.MapVeinMaster.GetElementOrNull(targetVeinGuid)?.VeinName;
+    var targetVeinTypeGuid = targetVein.VeinTypeGuid;
+    var targetVeinName = MasterHolder.MapVeinMaster.GetElementOrNull(targetVeinTypeGuid)?.VeinName;
     p.Note($"強調対象の鉱脈: {targetVeinName}（同種{logVeins.Count}件のうち最寄り）");
 
     var minerBlockId = MasterHolder.BlockMaster.GetBlockId(BlockGuidOf(minerName));
     var restrictionState = ClientDIContext.DIContainer.DIContainerResolver.Resolve<VeinRestrictedPlacementState>();
-    restrictionState.SetRestriction(targetVeinGuid, minerBlockId);
+    restrictionState.SetRestriction(targetVeinTypeGuid, minerBlockId);
     p.Assert(restrictionState.IsRestrictedBlock(minerBlockId), "風力掘削機に対象鉱脈限定の制限がかかった");
 
     var veinCenter = targetVein.Bounds.center;
@@ -196,8 +196,8 @@ return PlaytestRunner.Run("placement-guided-tutorials", options, async p =>
     // The restriction runs on the registry's per-GUID test, so a cell outside the vein falls on the not-placeable side
     var insideCell = Vector3Int.FloorToInt(veinCenter);
     var outsideCell = insideCell + new Vector3Int(200, 0, 200);
-    p.Assert(registry.IsInsideVein(insideCell, targetVeinGuid), "鉱脈中心のセルは対象鉱脈の内側と判定される");
-    p.Assert(!registry.IsInsideVein(outsideCell, targetVeinGuid), "遠く離れたセルは対象鉱脈の外側と判定される");
+    p.Assert(registry.IsInsideAnyVeinOfType(insideCell, targetVeinTypeGuid), "鉱脈中心のセルは対象鉱脈の内側と判定される");
+    p.Assert(!registry.IsInsideAnyVeinOfType(outsideCell, targetVeinTypeGuid), "遠く離れたセルは対象鉱脈の外側と判定される");
     await p.Screenshot("05-vein-restricted-highlight");
 
     p.Note("制限を解除し、鉱脈表示が種別表示へ戻ることを確認する");

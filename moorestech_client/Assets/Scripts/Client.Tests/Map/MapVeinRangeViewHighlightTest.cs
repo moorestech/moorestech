@@ -48,10 +48,10 @@ namespace Client.Tests.Map
         public void 強調鉱脈を指定するとその鉱脈だけを別マテリアルで描く()
         {
             var (service, root) = CreateService();
-            service.SetVisibleVeinKind(MapVeinKind.Item);
+            service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Item));
             Assert.AreEqual(2, CountVisibleBoxes(root));
 
-            service.SetHighlightedVein(ItemVeinA);
+            service.SetVeinDisplay(VeinDisplay.OfVeinType(ItemVeinA));
 
             Assert.AreEqual(1, CountVisibleBoxes(root), "highlight mode must show exactly the target vein");
             foreach (Transform child in root)
@@ -65,9 +65,9 @@ namespace Client.Tests.Map
         public void 強調は表示種別を無視して対象鉱脈を描く()
         {
             var (service, root) = CreateService();
-            service.SetVisibleVeinKind(MapVeinKind.Fluid);
+            service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Fluid));
 
-            service.SetHighlightedVein(ItemVeinB);
+            service.SetVeinDisplay(VeinDisplay.OfVeinType(ItemVeinB));
 
             Assert.AreEqual(1, CountVisibleBoxes(root));
         }
@@ -76,10 +76,10 @@ namespace Client.Tests.Map
         public void 強調を解除すると種別表示へ戻る()
         {
             var (service, root) = CreateService();
-            service.SetVisibleVeinKind(MapVeinKind.Item);
-            service.SetHighlightedVein(ItemVeinB);
+            service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Item));
+            service.SetVeinDisplay(VeinDisplay.OfVeinType(ItemVeinB));
 
-            service.SetHighlightedVein(null);
+            service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Item));
 
             Assert.AreEqual(2, CountVisibleBoxes(root));
             foreach (Transform child in root)
@@ -94,9 +94,9 @@ namespace Client.Tests.Map
         {
             var registry = new MapVeinAabbRegistry(CreateHandshakeResponse());
 
-            Assert.IsTrue(registry.IsInsideVein(new Vector3Int(1, 1, 1), ItemVeinA));
-            Assert.IsFalse(registry.IsInsideVein(new Vector3Int(1, 1, 1), ItemVeinB));
-            Assert.IsTrue(registry.IsInsideVein(new Vector3Int(30, 0, 30), ItemVeinB));
+            Assert.IsTrue(registry.IsInsideAnyVeinOfType(new Vector3Int(1, 1, 1), ItemVeinA));
+            Assert.IsFalse(registry.IsInsideAnyVeinOfType(new Vector3Int(1, 1, 1), ItemVeinB));
+            Assert.IsTrue(registry.IsInsideAnyVeinOfType(new Vector3Int(30, 0, 30), ItemVeinB));
         }
 
         private (MapVeinRangeViewService service, Transform root) CreateService()

@@ -36,6 +36,7 @@
 ## 決定3: 鉱脈と歯車接続は設置システム側で案内し、完了判定を2種新設する
 
 - **木の鉱脈チュートリアル**: 最初の掘削機設置の直後に「木の鉱脈に風力掘削機を設置する」を置く。進行中は設置プレビューで原木鉱脈だけをハイライトし、掘削機の設置先をその鉱脈上に限定する（新チュートリアルtype `veinRestrictedPlacement`：veinGuid＋blockGuid）。完了判定は新設 `blockPlaceOnVein`。鉱脈名の常設ラベルは保留
+- **鉱脈限定は「種別」単位という制約**: `veinGuid` は鉱脈の種類を指す識別子で、マップ上の1本を指さない（生成ワールド実測: mapVeins 1601件 / distinct veinGuid 9件、最大618インスタンス）。`MapVeinInfoJson` に `instanceId` は無いため、原木鉱脈を指すと同種618本が全て光り、そのどれに置いても制限を通過しチャレンジも達成する。instanceId の導入は見送り、種別基準であることを名前とコメントで表明する（[[2026-08-28-鉱脈の同一性は種別で持ち単一インスタンス限定はしない.md]]）
 - **歯車接続の常設明示**: 歯車系ブロックの設置プレビューで、接続できる面と接続相手を強調表示する（チュートリアル限定ではない常設機能）
 - **相対座標チュートリアル**: 新type `relativeBlockPlacePreview`（基準blockGuid＋オフセット＋向き）。既存 `blockPlacePreview` は絶対座標で生成マップに合わない
 - **接続チュートリアル3段**（新研究3直後）: 燃料式風車を設置（blockPlace）→ 木のシャフトで繋ぐ（relativeBlockPlacePreview）→ 粉砕機を設置して動かす（新設 `gearConnectedBlock` + relativeBlockPlacePreview）

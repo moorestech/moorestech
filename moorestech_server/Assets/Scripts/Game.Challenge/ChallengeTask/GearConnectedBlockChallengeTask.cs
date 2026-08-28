@@ -11,8 +11,8 @@ using UniRx;
 namespace Game.Challenge.Task
 {
     /// <summary>
-    ///     指定ブロックが歯車ネットワークに繋がって実際に回り出した時に達成する
-    ///     Completes when the target block is wired into a gear network and actually starts spinning
+    ///     指定ブロックが回り出した（RPMが正になった）時に達成する。接続の有無そのものは見ない
+    ///     Completes once the target block starts spinning (RPM turns positive); the connection itself is never inspected
     /// </summary>
     public class GearConnectedBlockChallengeTask : IChallengeTask
     {
@@ -23,9 +23,15 @@ namespace Game.Challenge.Task
         private bool _completed;
         private bool _initialCollectDone;
 
+        // 完了後にイベントを受け続けないよう購読を持ち、達成した瞬間に切る
+        // Hold the subscriptions so events stop arriving the moment the challenge completes
+        private readonly CompositeDisposable _blockEventSubscriptions = new();
+
         // 回転は設置と無関係なティックで始まるため、対象ブロックを溜めて毎ティックRPMを見る
+        // 同一ブロックの再登録と、撤去時に別インスタンスを落とす事故を防ぐため集合で持つ
         // Rotation starts on a tick unrelated to placement, so keep the target blocks and read RPM every tick
-        private readonly List<IBlock> _targetBlocks = new();
+        // A set prevents both duplicate registration and removing the wrong instance on block removal
+        private readonly HashSet<IBlock> _targetBlocks = new();
 
         private readonly Guid _targetBlockGuid;
 
@@ -41,8 +47,8 @@ namespace Game.Challenge.Task
             var param = (GearConnectedBlockTaskParam)challengeMasterElement.TaskParam;
             _targetBlockGuid = param.BlockGuid;
 
-            ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace);
-            ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove);
+            _blockEventSubscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace));
+            _blockEventSubscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove));
         }
 
         public void ManualUpdate()
@@ -58,7 +64,12 @@ namespace Game.Challenge.Task
                 break;
             }
 
-            if (_completed) _onChallengeComplete.OnNext(this);
+            if (_completed)
+            {
+                _blockEventSubscriptions.Dispose();
+                _targetBlocks.Clear();
+                _onChallengeComplete.OnNext(this);
+            }
 
             #region Internal
 
@@ -85,12 +96,16 @@ namespace Game.Challenge.Task
 
         private void OnBlockPlace(BlockPlaceProperties properties)
         {
+            if (_completed) return;
+
             var block = properties.BlockData.Block;
             if (block.BlockGuid == _targetBlockGuid) _targetBlocks.Add(block);
         }
 
         private void OnBlockRemove(BlockRemoveProperties properties)
         {
+            if (_completed) return;
+
             var block = properties.BlockData.Block;
             if (block.BlockGuid == _targetBlockGuid) _targetBlocks.Remove(block);
         }

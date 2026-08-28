@@ -19,8 +19,8 @@ namespace Client.Game.InGame.Map.MapVein
         private static readonly Color ItemVeinColor = new(0.95f, 0.72f, 0.25f, 1f);
         private static readonly Color FluidVeinColor = new(0.25f, 0.62f, 0.95f, 1f);
 
-        // チュートリアルが指す1つの鉱脈だけを別色で描き、他の鉱脈と取り違えないようにする
-        // The single vein a tutorial points at gets its own color so it cannot be mistaken for another
+        // チュートリアルが指す種別の鉱脈を全て別色で描き、他種別と取り違えないようにする
+        // Every vein of the type a tutorial points at gets this color so the type cannot be mistaken for another
         private static readonly Color HighlightVeinColor = new(0.3f, 0.95f, 0.35f, 1f);
 
         // PreviewPlaceBlockのalphaは_PreviewColorではなくこのfloatが持つ。色のalphaを変えても効かない
