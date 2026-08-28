@@ -63,7 +63,7 @@
   - 利用側が指定するローカル変数 `--tutorial-pulse-scale`（未指定時のフォールバックは持たせない。指定漏れを無音で1.0にせず、必ず利用側に書かせる）
   - テストファイル `tutorialAttentionDesign.test.ts` とその `read()` ヘルパー（Task 2・3 が describe を追記する）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 新規ファイル `moorestech_web/webui/src/features/tutorial/tutorialAttentionDesign.test.ts`:
 
@@ -117,12 +117,12 @@ function read(relativePath: string) {
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/features/tutorial/tutorialAttentionDesign.test.ts`
 Expected: FAIL。`--tutorial-attention-red: #ff0000` が見つからない旨のアサーション失敗が並ぶ。
 
-- [ ] **Step 3: tokens.css にトークンを追加する**
+- [x] **Step 3: tokens.css にトークンを追加する**
 
 `src/app/tokens.css` の `--tutorial-highlight-glow: 4px;` の**直後**（`:root` ブロック内）へ挿入する:
 
@@ -134,7 +134,7 @@ Expected: FAIL。`--tutorial-attention-red: #ff0000` が見つからない旨の
   --tutorial-pulse-duration: 1200ms;
 ```
 
-- [ ] **Step 4: tokens.css にキーフレームを追加する**
+- [x] **Step 4: tokens.css にキーフレームを追加する**
 
 同ファイルの `:root { ... }` ブロックの閉じ括弧の**直後**、キー操作ヒントの共有様式コメント（`/* キー操作ヒントの文字様式は3画面が共有する1宣言に畳む…`）の**直前**へ挿入する（コメントとその直下の `:where(.keyHintText)` を引き離さないこと）:
 
@@ -150,7 +150,7 @@ Expected: FAIL。`--tutorial-attention-red: #ff0000` が見つからない旨の
 }
 ```
 
-- [ ] **Step 5: キーヒントの色トークンを差し替える**
+- [x] **Step 5: キーヒントの色トークンを差し替える**
 
 `src/app/tokens.css` の既存2行（コメント含む）を置き換える。変更前:
 
@@ -168,7 +168,7 @@ Expected: FAIL。`--tutorial-attention-red: #ff0000` が見つからない旨の
   --tutorial-key-hint-color: var(--tutorial-attention-red);
 ```
 
-- [ ] **Step 6: keyControlヒントに脈動を付ける**
+- [x] **Step 6: keyControlヒントに脈動を付ける**
 
 `src/features/tutorial/keyControlHint.module.css` の `.hint` ルールを置き換える。変更前:
 
@@ -194,17 +194,17 @@ Expected: FAIL。`--tutorial-attention-red: #ff0000` が見つからない旨の
 }
 ```
 
-- [ ] **Step 7: テストを実行して通ることを確認する**
+- [x] **Step 7: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/features/tutorial/tutorialAttentionDesign.test.ts`
 Expected: PASS（6 passed）
 
-- [ ] **Step 8: 既存のチュートリアルテストが壊れていないことを確認する**
+- [x] **Step 8: 既存のチュートリアルテストが壊れていないことを確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/features/tutorial`
 Expected: PASS。`KeyControlHintHud.test.ts` の描画ゲート検証が従来どおり通る。
 
-- [ ] **Step 9: webui-design SKILL.md の §8.19 を改訂する**
+- [x] **Step 9: webui-design SKILL.md の §8.19 を改訂する**
 
 `.agents/skills/webui-design/SKILL.md` の §8.19 最終行、次の部分を書き換える。変更前（該当箇所のみ）:
 
@@ -218,7 +218,7 @@ Expected: PASS。`KeyControlHintHud.test.ts` の描画ゲート検証が従来�
 **文字色だけは `--tutorial-key-hint-color`（原色赤 `--tutorial-attention-red` = `#ff0000` を参照）で上書きする**: 面を持たずワールド上に浮くため白文字では埋もれる（ユーザー裁定 2026-08-22、色を原色赤へ引き上げたのはユーザー裁定 2026-08-28 / ADR 0039）。赤の適用はこのHUDだけで、共有様式 `:where(.keyHintText)` の白は変えない（インベントリ画面左下・研究画面左下は白のまま）。面・枠・光彩は持たず `pointer-events: none`。**拡縮ループは持つ**: `tutorial-attention-pulse`（tokens.css のグローバルキーフレーム）を `--tutorial-pulse-scale: 1.08` ・ `--tutorial-pulse-duration`（1200ms）・`ease-in-out` ・ `infinite` で回す（ユーザー裁定 2026-08-28。従来の「アニメーションは持たず」は撤回）。
 ```
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/app/tokens.css \
@@ -241,7 +241,7 @@ git commit -m "feat(webui): チュートリアルのキーヒントHUDを原色�
 - Consumes（Task 1 が定義）: `--tutorial-attention-red` / `--tutorial-attention-glow` / `--tutorial-pulse-duration` / キーフレーム `tutorial-attention-pulse` / ローカル変数 `--tutorial-pulse-scale`
 - Produces: なし（Task 3 は Task 1 の成果だけに依存する）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/tutorial/tutorialAttentionDesign.test.ts` の `function read` の**上**（既存の describe 群の下）へ追記する。ファイル冒頭の `const keyHint = ...` の直後に読み込み行も足す:
 
@@ -286,12 +286,12 @@ describe("tutorial highlight ring", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/features/tutorial/tutorialAttentionDesign.test.ts`
 Expected: FAIL。`solid var(--tutorial-attention-red)` が見つからない旨のアサーション失敗。
 
-- [ ] **Step 3: `.highlight` を赤化し脈動を付ける**
+- [x] **Step 3: `.highlight` を赤化し脈動を付ける**
 
 `src/features/tutorial/overlay/style.module.css` の `.highlight` ルールを置き換える。変更前:
 
@@ -331,17 +331,17 @@ Expected: FAIL。`solid var(--tutorial-attention-red)` が見つからない旨�
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/features/tutorial/tutorialAttentionDesign.test.ts`
 Expected: PASS（11 passed）
 
-- [ ] **Step 5: オーバーレイの既存テストが壊れていないことを確認する**
+- [x] **Step 5: オーバーレイの既存テストが壊れていないことを確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/features/tutorial`
 Expected: PASS。`TutorialOverlay.test.ts` のドラッグガイド描画ゲート・ack検証が従来どおり通る。
 
-- [ ] **Step 6: webui-design SKILL.md の §8.17 に枠線ハイライトの色と脈動を書く**
+- [x] **Step 6: webui-design SKILL.md の §8.17 に枠線ハイライトの色と脈動を書く**
 
 `.agents/skills/webui-design/SKILL.md` の §8.17「**枠線ハイライトの文言ラベル**」の箇条書きの**直前**へ、新しい箇条書きを1つ挿入する:
 
@@ -351,7 +351,7 @@ Expected: PASS。`TutorialOverlay.test.ts` のドラッグガイド描画ゲー�
 
 なお同項末尾の「吹き出し矢印・光彩・アニメーションは付けない」は**ラベル面**についての記述であり正しいままなので変更しない。
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/tutorial/overlay/style.module.css \
@@ -373,7 +373,7 @@ git commit -m "feat(webui): チュートリアルのUIハイライト枠を原�
 - Consumes（Task 1 が定義）: `--tutorial-attention-red` / `--tutorial-pulse-duration` / キーフレーム `tutorial-attention-pulse` / ローカル変数 `--tutorial-pulse-scale`
 - Produces: なし
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `src/features/tutorial/tutorialAttentionDesign.test.ts` のファイル冒頭の読み込み群へ追記する:
 
@@ -424,12 +424,12 @@ describe("world-pin off-screen arrow", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/features/tutorial/tutorialAttentionDesign.test.ts`
 Expected: FAIL。`fill: var(--tutorial-attention-red)` が見つからない旨のアサーション失敗。
 
-- [ ] **Step 3: `.arrow svg` を赤化し脈動を付ける**
+- [x] **Step 3: `.arrow svg` を赤化し脈動を付ける**
 
 `src/features/tutorial/worldPin.module.css` の `.arrow svg` ルールを置き換える。変更前:
 
@@ -465,12 +465,12 @@ Expected: FAIL。`fill: var(--tutorial-attention-red)` が見つからない旨�
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && npx vitest run src/features/tutorial/tutorialAttentionDesign.test.ts`
 Expected: PASS（17 passed）
 
-- [ ] **Step 5: webui全体のテストとlint・型検査を通す**
+- [x] **Step 5: webui全体のテストとlint・型検査を通す**
 
 Run: `cd moorestech_web/webui && npm test`
 Expected: PASS（全スイート緑）
@@ -481,7 +481,7 @@ Expected: エラー0件
 Run: `cd moorestech_web/webui && npx tsc -b --noEmit`
 Expected: エラー0件
 
-- [ ] **Step 6: webui-design SKILL.md の §8.8 を改訂する**
+- [x] **Step 6: webui-design SKILL.md の §8.8 を改訂する**
 
 `.agents/skills/webui-design/SKILL.md` §8.8 の「**画面外矢印**」の箇条書きを置き換える。変更前:
 
@@ -495,7 +495,7 @@ Expected: エラー0件
 - **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGの軸付き塗りつぶし矢印を置く。塗りは `--tutorial-attention-red`（`#ff0000`）、輪郭は `--world-pin-face` で、世界背景から分離する最小限の影を許可する（塗りを原色赤へ引き上げたのはユーザー裁定 2026-08-28 / ADR 0039）。`tutorial-attention-pulse` を `--tutorial-pulse-scale: 1.08` ・ `--tutorial-pulse-duration`（1200ms）で回すが、**脈動は子の `svg` に付ける**: 位置決めの `translate/rotate/scale(--ui-scale)` は `WorldPinOverlay` がインラインstyleで書いており、`.arrow` div 側で `transform` をアニメートするとカスケード上インラインstyleに勝って回転と位置が消える。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。ピン本体のラベル・マーカーは赤化しない。
 ```
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/tutorial/worldPin.module.css \
