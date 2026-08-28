@@ -196,7 +196,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   6. 黄黒の斜線警告帯（uGUI `delete bar.png` 由来。**削除モードの画面上下端限定**・§8.15。画像は移植せずCSS反復グラデーションで再現する）
 - 新しい装飾モチーフ（光彩、パーティクル、角丸カード、ドロップシャドウの多用等）を増やさない。
 - 装飾アニメーションは基本入れない。トランジションを入れる場合もe2eが同期検証できること（モーダルは duration 0）。
-  - **例外は通知の出入り（§8）だけ**。入場＝左から `--notification-shift` のスライド＋フェード、退場＝その逆再生で、色相・形・光彩は動かさない。
+  - **例外は通知の出入り（§8）と、チュートリアル誘導の脈動（§8.8/§8.17/§8.19・ADR 0039）**。通知は入場＝左から `--notification-shift` のスライド＋フェード、退場＝その逆再生で、色相・形・光彩は動かさない。
   - アニメーションを足す場合、テスト時に尺をゼロへ落とす抜け道は作らない（実挙動と乖離するため）。計算値の `animation-name` はCSS Modulesがハッシュ化するので、e2eでは部分一致で照合する。
 
 ## 7. 文字
@@ -215,7 +215,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - **`CursorTooltip` の書式はWeb側トークンが唯一の正**（ADR 0019）: フォント18px・padding 6/10px・max-width 320px。ホストは辞書キーと位置パラメータだけを送り、寸法値（fontSize等）はwireに載せない。
 - **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもなく、`--ui-scale` に追従しない。
 - **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
-- **NotificationHostの出入りは唯一の装飾アニメーション例外**（§6）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
+- **NotificationHostの出入りは§6の例外のひとつ**（もう一方はチュートリアル誘導の脈動・§8.8/§8.17/§8.19）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
 - 進捗矢印は `ProgressArrowBar`（採掘機・流体行の帯状ゲージ）。クラフト画面と機械の加工行は §8.13 の矢印グリフゲージを使う。器が帯か矢印グリフかを名前で区別する。
 
@@ -287,7 +287,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - 表示は常時表示HUD族（§1の例外）。パネル面を持たず「浮いている」表現とし、`pointer-events: none` で入力を素通しする。
 - **画面内ピン**: 指定座標にインラインSVGの下向きマーカー + 直上のテキストラベル。ラベル面は `--world-pin-face`（半透明ネイビー族）、文字は `--text-high-contrast`。マーカー先端が指定座標に一致するよう配置する。
 - **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGの軸付き塗りつぶし矢印を置く。塗りは `--tutorial-attention-red`（`#ff0000`）、輪郭は `--world-pin-face` で、世界背景から分離する最小限の影を許可する（塗りを原色赤へ引き上げたのはユーザー裁定 2026-08-28 / ADR 0039）。`tutorial-attention-pulse` を `--tutorial-pulse-scale: 1.08` ・ `--tutorial-pulse-duration`（1200ms）で回すが、**脈動は子の `svg` に付ける**: 位置決めの `translate/rotate/scale(--ui-scale)` は `WorldPinOverlay` がインラインstyleで書いており、`.arrow` div 側で `transform` をアニメートするとカスケード上インラインstyleに勝って回転と位置が消える。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。ピン本体のラベル・マーカーは赤化しない。
-- 色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
+- **前項で規定した赤と脈動（ADR 0039）以外の**色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
 
 ## 8.9 検索入力
 
