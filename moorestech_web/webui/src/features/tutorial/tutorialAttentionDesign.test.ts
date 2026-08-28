@@ -1,4 +1,4 @@
-// 誘導表示の赤と脈動が単一の値源から来ていることを検証する
+// 誘導表示の赤と脈動を単一の正にする検証
 // Verifies the attention red and the pulse come from one source
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
@@ -92,7 +92,7 @@ describe("world-pin off-screen arrow", () => {
   });
 
   it(".arrow div側にはanimationを付けない（インラインtransformを潰さないため）", () => {
-    // 宣言ブロックだけを切り出す。ルール外のコメントまで含めると本文中の語に反応して誤検知する
+    // 外のコメントを含めず宣言ブロックだけ切る
     // Slice only the declaration block; including the comment above the rule would trip on its prose
     const arrowStart = worldPin.indexOf(".arrow {");
     const divRule = worldPin.slice(arrowStart, worldPin.indexOf("}", arrowStart));
