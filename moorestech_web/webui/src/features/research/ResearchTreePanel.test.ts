@@ -36,10 +36,10 @@ import ResearchTreePanel from "./ResearchTreePanel";
 
 type TreeViewInstance = ReactTestInstance & {
   props: {
-    renderNode: (node: ResearchNodeData, point: { x: number; y: number }) => ReactElement<{
-      selected: boolean;
-      onSelect: (guid: string) => void;
-    }>;
+    renderNode: (node: ResearchNodeData, point: { x: number; y: number }) => ReactElement<{ selected: boolean }>;
+    // 選択はTreeViewのタップから届く(ADR 0033)
+    // Selection arrives from a TreeView tap (ADR 0033)
+    onNodeTap: (node: ResearchNodeData) => void;
   };
 };
 
@@ -78,17 +78,17 @@ describe("ResearchTreePanel selection toggle", () => {
     expect(card.props.selected).toBe(false);
     expect(renderer.root.findAllByType("mock-research-detail-pane" as never).length).toBe(0);
 
-    // ノード選択で詳細ペインが開く
-    // Selecting a node opens the detail pane
-    act(() => card.props.onSelect(node.guid));
+    // ノードのタップで詳細ペインが開く
+    // Tapping a node opens the detail pane
+    act(() => firstTree.props.onNodeTap(node));
     expect(renderer.root.findAllByType("mock-research-detail-pane" as never).length).toBe(1);
     const selectedTree = renderer.root.findByProps({ "data-testid": "mock-tree-view" }) as TreeViewInstance;
     expect(selectedTree.props.renderNode).not.toBe(firstRenderNode);
     expect(selectedTree.props.renderNode(node, node.position).props.selected).toBe(true);
 
-    // 同ノード再選択で閉じる
-    // Re-selecting the same node closes it
-    act(() => selectedTree.props.renderNode(node, node.position).props.onSelect(node.guid));
+    // 同ノード再タップで閉じる
+    // Tapping the same node again closes it
+    act(() => selectedTree.props.onNodeTap(node));
     expect(renderer.root.findAllByType("mock-research-detail-pane" as never).length).toBe(0);
   });
 
@@ -96,7 +96,7 @@ describe("ResearchTreePanel selection toggle", () => {
     mockState.inventory = null;
     const renderer = create(createElement(ResearchTreePanel));
     const tree = renderer.root.findByProps({ "data-testid": "mock-tree-view" }) as TreeViewInstance;
-    act(() => tree.props.renderNode(node, node.position).props.onSelect(node.guid));
+    act(() => tree.props.onNodeTap(node));
     const pane = renderer.root.findByType("mock-research-detail-pane" as never);
     expect((pane.props as unknown as { owned: Map<number, number> | null }).owned).toBeNull();
   });

@@ -41,15 +41,15 @@ namespace Tests.CombinedTest.Game
 
             var equipmentInventory = inventoryDataStore.GetInventoryData(PlayerId).EquipmentInventory;
             equipmentInventory.SetSelectedEquipmentIndex(1);
-            equipmentInventory.SetSelectedEquipmentIndex(IEquipmentInventory.BareHandsIndex);
+            equipmentInventory.SetSelectedEquipmentIndex(-5);
 
             Assert.AreEqual(2, updatedProperties.Count);
             Assert.AreEqual(PlayerId, updatedProperties[0].PlayerId);
             Assert.AreEqual(1, updatedProperties[0].SelectedEquipmentIndex);
 
-            // 素手やクランプ後の値もそのまま通知される
-            // Bare hands and clamped values are notified as they are
-            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, updatedProperties[1].SelectedEquipmentIndex);
+            // クランプ後の値(負値→0)が通知される
+            // The clamped value (negative to 0) is what gets notified
+            Assert.AreEqual(0, updatedProperties[1].SelectedEquipmentIndex);
         }
 
         [Test]

@@ -26,8 +26,8 @@ namespace Client.Tests.Inventory
     /// </summary>
     public class PlayerInventoryStateEquipmentApplyTest
     {
-        // 装備モデルの初期値は素手(-1)なので、それと区別できるスロットを選んでおく
-        // The equipment model starts at bare hands (-1), so pick a slot that is distinguishable from it
+        // 装備モデルの初期値は先頭(0)なので、それと区別できるスロットを選んでおく
+        // The equipment model starts at the first slot (0), so pick a slot that is distinguishable from it
         private const int SelectedSlot = 1;
         private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 

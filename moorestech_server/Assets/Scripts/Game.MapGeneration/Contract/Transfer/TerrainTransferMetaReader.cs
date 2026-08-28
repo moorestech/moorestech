@@ -1,8 +1,6 @@
 using System;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using Game.MapGeneration.Export;
 using Game.Paths;
 using Newtonsoft.Json;
@@ -35,23 +33,14 @@ namespace Game.MapGeneration.Transfer
                         $"but this build is '{WorldGeneratorVersion.Current}'. The transferred terrain file layout changed " +
                         "(placementLedgerDigest now identifies the placement-dependent visual cache). Delete the world directory and generate the world again."),
                 WorldMapMode.Generated => TerrainTransferMeta.CreateGenerated(
-                    CalculateWorldId(), worldMeta.TerrainResolution, worldMeta.TerrainTileCount,
-                    CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedPayload()),
-                WorldMapMode.Template => TerrainTransferMeta.CreateTemplate(CalculateWorldId(), worldMeta.Seed),
+                    WorldIdentity.CalculateGenerated(worldMeta.Seed, ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion),
+                    worldMeta.TerrainResolution, worldMeta.TerrainTileCount, CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedPayload()),
+                WorldMapMode.Template => TerrainTransferMeta.CreateTemplate(
+                    WorldIdentity.CalculateTemplate(worldMeta.Seed, worldMeta.CreatedAt), worldMeta.Seed),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };
 
             #region Internal
-
-            // ワールド同一性IDはseedとcreatedAtの1式で決まる。読み手はここだけなので式もここに置く
-            // The world identity id comes from the one seed-and-createdAt formula; this is its only reader, so the formula lives here
-            string CalculateWorldId()
-            {
-                const int worldIdHexDigits = 16;
-                using var sha256 = SHA256.Create();
-                var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes($"{worldMeta.Seed}:{worldMeta.CreatedAt}"));
-                return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant().Substring(0, worldIdHexDigits);
-            }
 
             GeneratedTerrainTransferPayload ReadGeneratedPayload()
             {
