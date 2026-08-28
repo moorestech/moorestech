@@ -72,3 +72,37 @@ CSSアニメーションはカスケード上インラインstyleに勝つため
 - webui-design SKILL.md §8.19 の「面・枠・光彩・**アニメーションは持たず**」は本裁定で撤回し、拡縮ループを持つ様式へ改める。
 - 誘導表示3種が同じ赤と同じ周期で脈打つため、チュートリアル中の視界は現行より強く動く。
 - ハイライト枠はスクロールコンテナ端でクリップ境界が微小に呼吸する（上記の受容済み帰結）。
+
+## 実装レビューで確定した追補（2026-08-28・PR #1288 の moores-code-review より）
+
+### 5. 共有キーフレームは名前トークン経由で参照する（実装上の必須事項）
+
+CSS Modules は `animation` 宣言の中の識別子もローカルスコープへハッシュ化する。
+`animation: tutorial-attention-pulse …` と素名で書くと `_tutorial-attention-pulse_<hash>_1` に書き換えられ、
+対応する `@keyframes` はどこにも出力されないため、**赤くなるだけで一切脈動しない**（テストは変換前テキストしか見ないので全件緑になる）。
+利用側は `animation: var(--tutorial-pulse-strong|subtle) …` と CSS変数経由で名前を渡す（`var()` は書き換えの対象外）。
+出所: agent前提（Vite の `preprocessCSS` を当該worktreeで実行した実測。レビューの2系統一致 + 統合側の再現）
+
+### 6. 振幅は実数値でキーフレームに焼く（`var()` 注入を採らない）
+
+`@keyframes tutorial-attention-pulse-strong`（1.08）/ `-subtle`（1.03）を tokens.css に実数値で置き、
+利用側は名前を選ぶだけにする。振幅を `scale(var(--tutorial-pulse-scale))` で利用側から注入する形は採らない。
+理由: (1) 変数の書き忘れで 50% の宣言だけが無効化され、その要素の既存 `transform`（`translate`・`scale(--ui-scale)`）ごと
+無言で消える — §3 で矢印について記した罠と同一機序が、将来ラベルやピンへ横展開したときに再発する。
+(2) 未解決のカスタムプロパティ参照を含むキーフレームは合成スレッドに載らず、表示中は毎フレーム再ペイントが走る。
+(3) 振幅 1.08 が2ファイルに無名で重複する。
+出所: ユーザー裁定 2026-08-28 AskUserQuestion結果「実値キーフレーム2本に分ける」（棄却: フォールバック付きvar()注入 / 現状維持）
+
+### 7. グローは赤から導出する
+
+`--tutorial-attention-glow: rgb(from var(--tutorial-attention-red) r g b / 24%)`。
+2リテラルで持つと「赤を少し暗くして」で枠線だけが変わりグローが取り残され、枠とグローで色相がずれる。
+出所: ユーザー裁定 2026-08-28 AskUserQuestion結果「グローを赤から導出する」（棄却: 2リテラルのままテストで整合検査 / 現状維持）
+
+### 8. 脈動下のe2e計測は位相を固定する
+
+脈動する枠・矢印の矩形を実測する検査（`tutorialHighlightClip.spec.ts` の 1.5px 許容、`portalLayerScaling.spec.ts` の
+ラベル付着検査、視覚QAのスクショ採取2本）は、拡大の山に当たると許容を超えて位相次第で赤緑が入れ替わる。
+`e2e/support/pulseFreeze.ts` の `freezeAttentionPulse(page)` で誘導表示の脈動だけを `currentTime = 0` で pause し、
+`scale(1)` の静止位相で測る。**尺をゼロへ落とす抜け道は作らない**（webui-design §6 と両立させるため、止めるのは位相だけ）。
+出所: ユーザー裁定 2026-08-28 AskUserQuestion結果「計測直前に位相を0で止める」（棄却: スイート全体で `animation: none` / 許容値を1.5px→3.0pxへ緩和）

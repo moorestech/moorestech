@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import { resetResearch, setTopicScenario, setUiState } from "../../support/mockControl";
 import { settleBoundingBox } from "../../support/panSettle";
+import { freezeAttentionPulse } from "../../support/pulseFreeze";
 import { researchableNodeGuid } from "../../mock-host/researchFixtures";
 import { TUTORIAL_RESEARCH_NODE_PADDING_PX } from "../../mock-host/topics/topicControls";
 import { PAN_RELEASE_STALL_MS } from "../../../src/shared/treeView/viewport/viewport";
@@ -40,6 +41,7 @@ async function anchorRects(page: Page, testId: string) {
 // boundingBoxとclip-pathから可視矩形を復元
 // Reconstruct the visible rect from boundingBox and clip-path
 async function highlightVisibleRect(page: Page) {
+  await freezeAttentionPulse(page);
   return page.evaluate(() => {
     const element = document.querySelector('[data-testid="tutorial-overlay"] [data-kind="outline"]');
     if (!element) return null;

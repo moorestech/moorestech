@@ -26,6 +26,5 @@
   display: flex;
   align-items: center;
   gap: var(--tutorial-key-hint-kbd-gap);
-  --tutorial-pulse-scale: 1.08;
-  animation: var(--tutorial-pulse-name) var(--tutorial-pulse-duration) ease-in-out infinite;
+  animation: var(--tutorial-pulse-strong) var(--tutorial-pulse-duration) ease-in-out infinite;
 }

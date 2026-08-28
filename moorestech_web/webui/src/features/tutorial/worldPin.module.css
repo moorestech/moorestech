@@ -54,6 +54,5 @@
   stroke-linejoin: round;
   paint-order: stroke fill;
   filter: drop-shadow(0 2px 3px var(--world-pin-arrow-shadow));
-  --tutorial-pulse-scale: 1.08;
-  animation: var(--tutorial-pulse-name) var(--tutorial-pulse-duration) ease-in-out infinite;
+  animation: var(--tutorial-pulse-strong) var(--tutorial-pulse-duration) ease-in-out infinite;
 }

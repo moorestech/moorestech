@@ -18,8 +18,7 @@
   /* The glow width's single source is tokens.css's --tutorial-highlight-glow; the clip-path math reads the same variable */
   box-shadow: 0 0 0 calc(var(--tutorial-highlight-glow) * var(--ui-scale, 1)) var(--tutorial-attention-glow);
   pointer-events: none;
-  --tutorial-pulse-scale: 1.03;
-  animation: var(--tutorial-pulse-name) var(--tutorial-pulse-duration) ease-in-out infinite;
+  animation: var(--tutorial-pulse-subtle) var(--tutorial-pulse-duration) ease-in-out infinite;
 }
 
 /* D&D説明のカーソル矢印。fromからtoへの移動をループする（webui-design §8.17） */
