@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { setTopicScenario, setUiState } from "../../support/mockControl";
 
-const expectedOutlineBoxShadow = "rgba(255, 221, 87, 0.24) 0px 0px 0px 4px";
+const expectedOutlineBoxShadow = "rgba(255, 0, 0, 0.24) 0px 0px 0px 4px";
 
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "tutorialEmpty");
@@ -15,7 +15,7 @@ test("tutorial outline highlights the target without dimming the rest of the scr
   const highlight = overlay.locator("[data-kind]");
   await expect(highlight).toBeVisible();
   await expect(highlight).toHaveAttribute("data-kind", "outline");
-  await expect(highlight).toHaveCSS("border-top-color", "rgb(255, 221, 87)");
+  await expect(highlight).toHaveCSS("border-top-color", "rgb(255, 0, 0)");
   await expect(highlight).toHaveCSS("box-shadow", expectedOutlineBoxShadow);
   await expect(overlay).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(overlay).toHaveCSS("background-image", "none");
