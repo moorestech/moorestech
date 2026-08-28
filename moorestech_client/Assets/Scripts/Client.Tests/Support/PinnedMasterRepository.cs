@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -19,6 +21,41 @@ namespace Client.Tests.Support
 
         public static string ReadPinnedFile(string pathInMasterRepository)
         {
+            var (masterRepositoryRoot, commitHash) = ResolvePinnedMaster();
+            return RunGit(masterRepositoryRoot, $"show {commitHash}:{pathInMasterRepository}");
+        }
+
+        /// <summary>
+        ///     ピン済みコミットの指定ディレクトリ群を一時領域へ取り出し、その展開ルートを返す
+        ///     Extracts the given directories of the pinned commit into a temp area and returns the extraction root
+        /// </summary>
+        public static string ExtractPinnedDirectories(params string[] directoriesInMasterRepository)
+        {
+            var (masterRepositoryRoot, commitHash) = ResolvePinnedMaster();
+
+            // 展開先をコミットで名付けるので、同じピンなら全worktreeで使い回せて別ピンと混ざらない
+            // Naming the destination by commit lets every worktree reuse one pin and never mixes two pins
+            var extractionRoot = Path.Combine(Path.GetTempPath(), "moorestech-pinned-master", commitHash);
+            if (directoriesInMasterRepository.All(directory => Directory.Exists(Path.Combine(extractionRoot, directory)))) return extractionRoot;
+
+            // git archive経由なら実チェックアウトの状態に一切依存せず、コミット済みピンの中身だけが出る
+            // Going through git archive depends on no checkout state and yields exactly the committed pin
+            var archivePath = Path.Combine(Path.GetTempPath(), $"moorestech-pinned-master-{commitHash}.zip");
+            if (File.Exists(archivePath)) File.Delete(archivePath);
+            RunGit(masterRepositoryRoot, $"archive --format=zip -o \"{archivePath}\" {commitHash} {string.Join(" ", directoriesInMasterRepository)}");
+            ZipFile.ExtractToDirectory(archivePath, extractionRoot, true);
+            File.Delete(archivePath);
+
+            foreach (var directory in directoriesInMasterRepository)
+            {
+                Assert.IsTrue(Directory.Exists(Path.Combine(extractionRoot, directory)), $"Pinned directory is missing in the archive: {directory}");
+            }
+
+            return extractionRoot;
+        }
+
+        private static (string masterRepositoryRoot, string commitHash) ResolvePinnedMaster()
+        {
             // 作業ツリーのピンはUnityが実チェックアウト値へ書き戻すので、コミット済みの値だけを信じる
             // Unity rewrites the working-tree pin to the resolved checkout, so only the committed value is trusted
             var repositoryRoot = Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
@@ -32,7 +69,7 @@ namespace Client.Tests.Support
             var masterRepositoryRoot = Path.GetFullPath(Path.Combine(primaryRepositoryRoot, (string)revision["relativePath"]));
             Assert.IsTrue(Directory.Exists(masterRepositoryRoot), $"Pinned master repository not found: {masterRepositoryRoot}");
 
-            return RunGit(masterRepositoryRoot, $"show {(string)revision["commitHash"]}:{pathInMasterRepository}");
+            return (masterRepositoryRoot, (string)revision["commitHash"]);
         }
 
         private static JObject FindMasterRevision(JObject revisionRoot)
