@@ -65,19 +65,15 @@ namespace Client.Playtest.Operations
             ground.transform.localScale = GroundSize;
 
             return MarkAsGround(ground);
+        }
 
-            #region Internal
-
-            // 地面と認められるにはマーカーとGroundレイヤーの両方が要る
-            // The camera ray reads the marker and the ground probe reads the Ground layer; a scaffold needs both
-            GameObject MarkAsGround(GameObject target)
-            {
-                if (!target.TryGetComponent<GroundGameObject>(out _)) target.AddComponent<GroundGameObject>();
-                target.layer = LayerConst.GroundLayer;
-                return target;
-            }
-
-            #endregion
+        // 地面と認められるにはマーカーとGroundレイヤーの両方が要る
+        // The camera ray reads the marker and the ground probe reads the Ground layer; a scaffold needs both
+        public static GameObject MarkAsGround(GameObject target)
+        {
+            if (!target.TryGetComponent<GroundGameObject>(out _)) target.AddComponent<GroundGameObject>();
+            target.layer = LayerConst.GroundLayer;
+            return target;
         }
 
         public static void WarpPlayer(Vector3 position)

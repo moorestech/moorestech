@@ -25,9 +25,13 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     p.Note("デバッグ環境を構築し、通知イベントをクライアント側で購読する");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
 
-    // 初回研究ノード(原始研究1)
-    // First research node (原始研究1)
-    var firstResearchGuid = Guid.Parse("837e9697-8586-406e-a0f6-16a010050218");
+    // 開幕スキットはHUDを覆い通知の可視化待ちを潰すため、共通のSkip経路で先に飛ばす
+    // The opening skit covers the HUD and breaks the notification visibility wait, so skip it first
+    await p.SkipOpeningSkit();
+
+    // 初回研究ノード(原始研究1)。ADR 0038の改番で旧原始研究4のGUIDが根ノードになった
+    // First research node; the ADR 0038 renumbering made the old 原始研究4 GUID the root
+    var firstResearchGuid = Guid.Parse("858bcb10-b8ba-478e-9bc5-473ca61281a2");
 
     // EventTagをクライアントで購読し、届いた通知の実ペイロードを蓄積する(NotificationTopicとは別の観測用購読)
     // Subscribe to the EventTag on the client and accumulate delivered payloads (observer sub, separate from NotificationTopic)
@@ -66,9 +70,10 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
 
     // === Goal2: 実績通知 ===
     // === Goal2: achievement notification ===
-    p.Note("研究に必要な素材(木の板x5・木の棒x5)を付与する");
-    p.GiveItemDirect("木の板", 5);
-    p.GiveItemDirect("木の棒", 5);
+    p.Note("研究に必要な素材(木の板x3・木の棒x3・砕いた石材x2)を付与する");
+    p.GiveItemDirect("木の板", 3);
+    p.GiveItemDirect("木の棒", 3);
+    p.GiveItemDirect("砕いた石材", 2);
     await p.WaitSeconds(0.5f);
 
     var achievementBefore = AchievementResearchCount();

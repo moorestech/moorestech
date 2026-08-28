@@ -32,6 +32,14 @@ namespace Client.Tests.EarlyGame
         // A free coordinate that collides with nothing; the value itself carries no meaning
         private static readonly Vector3Int AnchorOrigin = new(100, 0, 100);
 
+        // GUIDはkey由来で安定。表示名は変わるので同定子にしない
+        // Challenge GUIDs are key-derived and stable, unlike display names, so they identify the tutorial
+        private static readonly Guid[] ConnectionTutorialChallengeGuids =
+        {
+            new("c78e653e-c5e0-506e-afcf-75ffa9f9f3c7"),
+            new("401afc60-25c8-5418-8617-f026335b887a")
+        };
+
         private static readonly int FuelBurnTicks = (int)GameUpdater.SecondsToTicks(1);
 
         private string _extractionRoot;
@@ -50,8 +58,7 @@ namespace Client.Tests.EarlyGame
             _extractionRoot = PinnedMasterRepository.ExtractPinnedDirectories(MapDirectoryPath, MasterDirectoryPath);
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(Path.Combine(_extractionRoot, ServerDirectoryName)));
 
-            var previews = CollectRelativePlacePreviews();
-            Assert.AreEqual(2, previews.Count, "the connection tutorial no longer has exactly two relative placement previews");
+            var previews = ConnectionTutorialChallengeGuids.Select(CollectSingleRelativePlacePreview).ToList();
 
             // 同じアンカー基準でないと配置検証が成り立たない
             // The layout check only holds if both previews share one anchor block
@@ -86,17 +93,20 @@ namespace Client.Tests.EarlyGame
 
             #region Internal
 
-            List<RelativeBlockPlacePreviewTutorialParam> CollectRelativePlacePreviews()
+            RelativeBlockPlacePreviewTutorialParam CollectSingleRelativePlacePreview(Guid challengeGuid)
             {
-                var collected = new List<RelativeBlockPlacePreviewTutorialParam>();
-                foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
-                foreach (var challenge in category.Challenges)
-                foreach (var tutorial in challenge.Tutorials)
-                {
-                    if (tutorial.TutorialParam is RelativeBlockPlacePreviewTutorialParam relativePreview) collected.Add(relativePreview);
-                }
+                var challenge = MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements
+                    .SelectMany(category => category.Challenges)
+                    .FirstOrDefault(element => element.ChallengeGuid == challengeGuid);
+                Assert.IsNotNull(challenge, $"the connection tutorial challenge {challengeGuid} is gone from the master");
 
-                return collected;
+                var relativePreviews = challenge.Tutorials
+                    .Select(tutorial => tutorial.TutorialParam)
+                    .OfType<RelativeBlockPlacePreviewTutorialParam>()
+                    .ToList();
+                Assert.AreEqual(1, relativePreviews.Count, $"challenge {challengeGuid} no longer has exactly one relative placement preview");
+
+                return relativePreviews[0];
             }
 
             void InsertFirstFuelItem(IBlock windmill)

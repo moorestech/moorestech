@@ -2,7 +2,6 @@
 // プレビュー中の各条件を実プレイ経路で作り、MouseCursorTooltip.GetPresentation()の行キーを直接assertする
 // End-to-end check of the placement-reason cursor tooltip (ADR0026): each condition is produced through the real
 // play route, and the tooltip line keys are asserted directly from MouseCursorTooltip.GetPresentation()
-using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Playtest;
 using Client.Playtest.Input;
@@ -30,13 +29,13 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     bump.name = "PlaytestTerrainBump";
     bump.transform.position = new Vector3(9.5f, 30.9f, 9.5f);
     bump.transform.localScale = new Vector3(3f, 4f, 3f);
-    bump.AddComponent<GroundGameObject>();
+    PlaytestSetup.MarkAsGround(bump);
 
     var farGround = GameObject.CreatePrimitive(PrimitiveType.Cube);
     farGround.name = "PlaytestFarGround";
     farGround.transform.position = new Vector3(0f, 30f, 145f);
     farGround.transform.localScale = new Vector3(60f, 4f, 60f);
-    farGround.AddComponent<GroundGameObject>();
+    PlaytestSetup.MarkAsGround(farGround);
 
     string Snapshot()
     {
