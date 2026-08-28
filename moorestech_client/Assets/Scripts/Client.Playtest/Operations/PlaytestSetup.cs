@@ -1,3 +1,4 @@
+using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
@@ -66,6 +67,10 @@ namespace Client.Playtest.Operations
             // 設置プレビューのレイキャストが地面として認識できるようにマーカーを付与する
             // Attach the marker so the placement-preview raycast recognizes this as ground
             ground.AddComponent<GroundGameObject>();
+
+            // 地表探査はGroundレイヤーのみを撃つ。既定レイヤーのままだと設置Yが足場を無視して実地形へ落ちる
+            // The ground probe casts against the Ground layer alone; on the default layer the placement Y ignores the scaffold and drops to the real terrain
+            ground.layer = LayerConst.GroundLayer;
             return ground;
         }
 
