@@ -19,7 +19,7 @@ using UnityEngine;
 namespace Client.Tests.EarlyGame
 {
     /// <summary>
-    ///     接続チュートリアル（風車→シャフト→粉砕機）の相対座標が実際に歯車動力を伝えることを、ピン済みv8マスタで確かめる
+    ///     接続チュートリアルの相対座標が歯車動力を実際に伝えることを確かめる
     ///     Proves the connection tutorial's relative layout (windmill → shaft → crusher) really carries gear power on the pinned v8 master
     /// </summary>
     public class EarlyGameGearTutorialLayoutTest
@@ -34,17 +34,27 @@ namespace Client.Tests.EarlyGame
 
         private static readonly int FuelBurnTicks = (int)GameUpdater.SecondsToTicks(1);
 
+        private string _extractionRoot;
+
+        [TearDown]
+        public void DeleteExtractedMaster()
+        {
+            // 展開先は呼び出しごとに固有なので、消さないと実行のたびに一時領域へ積み上がる
+            // The destination is unique per call, so leaving it piles up in the temp area on every run
+            if (Directory.Exists(_extractionRoot)) Directory.Delete(_extractionRoot, true);
+        }
+
         [Test]
         public void 接続チュートリアルの相対座標に置いたブロックが風車の動力で回る()
         {
-            var extractionRoot = PinnedMasterRepository.ExtractPinnedDirectories(MapDirectoryPath, MasterDirectoryPath);
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(Path.Combine(extractionRoot, ServerDirectoryName)));
+            _extractionRoot = PinnedMasterRepository.ExtractPinnedDirectories(MapDirectoryPath, MasterDirectoryPath);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(Path.Combine(_extractionRoot, ServerDirectoryName)));
 
             var previews = CollectRelativePlacePreviews();
             Assert.AreEqual(2, previews.Count, "the connection tutorial no longer has exactly two relative placement previews");
 
-            // 2本のプレビューが同じアンカー（燃料式風車）を基準にしていないと、この配置検証は成り立たない
-            // The layout check only holds if both previews share one anchor block, the fuel windmill
+            // 2本が同じアンカーを基準にしないと配置検証が成り立たない
+            // The layout check only holds if both previews share one anchor block
             var anchorGuid = previews[0].AnchorBlockGuid;
             Assert.IsTrue(previews.All(preview => preview.AnchorBlockGuid == anchorGuid), "the two placement previews use different anchor blocks");
 
@@ -62,8 +72,8 @@ namespace Client.Tests.EarlyGame
                 placedBlocks.Add(block);
             }
 
-            // 風車は燃料を燃やして初めて回るので、マスタが認める燃料を入れてから動力を待つ
-            // The windmill only turns once it burns fuel, so insert a master-approved fuel and then wait for the power
+            // 風車は燃料を燃やして初めて回る
+            // The windmill only turns once it burns fuel
             InsertFirstFuelItem(anchorBlock);
             for (var tick = 0; tick < FuelBurnTicks; tick++) GameUpdater.UpdateOneTick();
 
@@ -73,28 +83,32 @@ namespace Client.Tests.EarlyGame
                 var name = MasterHolder.BlockMaster.GetBlockMaster(placed.BlockId).Name;
                 Assert.Greater(placed.GetComponent<IGearEnergyTransformer>().CurrentRpm.AsPrimitive(), 0f, $"the tutorial layout does not carry gear power to {name}");
             }
-        }
 
-        private static List<RelativeBlockPlacePreviewTutorialParam> CollectRelativePlacePreviews()
-        {
-            var previews = new List<RelativeBlockPlacePreviewTutorialParam>();
-            foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
-            foreach (var challenge in category.Challenges)
-            foreach (var tutorial in challenge.Tutorials)
+            #region Internal
+
+            List<RelativeBlockPlacePreviewTutorialParam> CollectRelativePlacePreviews()
             {
-                if (tutorial.TutorialParam is RelativeBlockPlacePreviewTutorialParam preview) previews.Add(preview);
+                var collected = new List<RelativeBlockPlacePreviewTutorialParam>();
+                foreach (var category in MasterHolder.ChallengeMaster.ChallengeCategoryMasterElements)
+                foreach (var challenge in category.Challenges)
+                foreach (var tutorial in challenge.Tutorials)
+                {
+                    if (tutorial.TutorialParam is RelativeBlockPlacePreviewTutorialParam relativePreview) collected.Add(relativePreview);
+                }
+
+                return collected;
             }
 
-            return previews;
-        }
+            void InsertFirstFuelItem(IBlock windmill)
+            {
+                var blockParam = (FuelGearGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(windmill.BlockId).BlockParam;
+                Assert.Greater(blockParam.GearFuelItems.Length, 0, "the anchor block accepts no item fuel");
 
-        private static void InsertFirstFuelItem(IBlock windmill)
-        {
-            var blockParam = (FuelGearGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(windmill.BlockId).BlockParam;
-            Assert.Greater(blockParam.GearFuelItems.Length, 0, "the anchor block accepts no item fuel");
+                var fuelItemId = MasterHolder.ItemMaster.GetItemId(blockParam.GearFuelItems[0].ItemGuid);
+                windmill.GetComponent<IBlockInventory>().SetItem(0, ServerContext.ItemStackFactory.Create(fuelItemId, 1));
+            }
 
-            var itemId = MasterHolder.ItemMaster.GetItemId(blockParam.GearFuelItems[0].ItemGuid);
-            windmill.GetComponent<IBlockInventory>().SetItem(0, ServerContext.ItemStackFactory.Create(itemId, 1));
+            #endregion
         }
     }
 }

@@ -57,21 +57,27 @@ namespace Client.Playtest.Operations
             // 既存の足場があれば再利用する（多重生成防止）
             // Reuse an existing scaffold if present (prevents duplicates)
             var existing = GameObject.Find(GroundObjectName);
-            if (existing != null) return existing;
+            if (existing != null) return MarkAsGround(existing);
 
             var ground = GameObject.CreatePrimitive(PrimitiveType.Cube);
             ground.name = GroundObjectName;
             ground.transform.position = GroundCenter;
             ground.transform.localScale = GroundSize;
 
-            // 設置プレビューのレイキャストが地面として認識できるようにマーカーを付与する
-            // Attach the marker so the placement-preview raycast recognizes this as ground
-            ground.AddComponent<GroundGameObject>();
+            return MarkAsGround(ground);
 
-            // 地表探査はGroundレイヤーのみを撃つ。既定レイヤーのままだと設置Yが足場を無視して実地形へ落ちる
-            // The ground probe casts against the Ground layer alone; on the default layer the placement Y ignores the scaffold and drops to the real terrain
-            ground.layer = LayerConst.GroundLayer;
-            return ground;
+            #region Internal
+
+            // カメラレイはマーカーで、地表探査はGroundレイヤーで地面を見る。両方揃って初めて足場が地面になる
+            // The camera ray reads the marker and the ground probe reads the Ground layer; a scaffold needs both
+            GameObject MarkAsGround(GameObject target)
+            {
+                if (!target.TryGetComponent<GroundGameObject>(out _)) target.AddComponent<GroundGameObject>();
+                target.layer = LayerConst.GroundLayer;
+                return target;
+            }
+
+            #endregion
         }
 
         public static void WarpPlayer(Vector3 position)

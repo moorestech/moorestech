@@ -1,7 +1,7 @@
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -26,22 +26,21 @@ namespace Client.Tests.Support
         }
 
         /// <summary>
-        ///     ピン済みコミットの指定ディレクトリ群を一時領域へ取り出し、その展開ルートを返す
+        ///     ピン済みコミットの指定ディレクトリを一時領域へ展開し、その根を返す
         ///     Extracts the given directories of the pinned commit into a temp area and returns the extraction root
         /// </summary>
         public static string ExtractPinnedDirectories(params string[] directoriesInMasterRepository)
         {
             var (masterRepositoryRoot, commitHash) = ResolvePinnedMaster();
 
-            // 展開先をコミットで名付けるので、同じピンなら全worktreeで使い回せて別ピンと混ざらない
-            // Naming the destination by commit lets every worktree reuse one pin and never mixes two pins
-            var extractionRoot = Path.Combine(Path.GetTempPath(), "moorestech-pinned-master", commitHash);
-            if (directoriesInMasterRepository.All(directory => Directory.Exists(Path.Combine(extractionRoot, directory)))) return extractionRoot;
+            // 展開先は呼び出しごとに固有。共有すると別worktreeの展開途中を掴む
+            // A per-call destination; sharing lets a sibling worktree's half-extracted tree be read
+            var extractionRoot = Path.Combine(Path.GetTempPath(), "moorestech-pinned-master", $"{commitHash}-{Guid.NewGuid():N}");
 
-            // git archive経由なら実チェックアウトの状態に一切依存せず、コミット済みピンの中身だけが出る
+            // git archive経由なら実チェックアウトに依存せずピンの中身だけが出る
             // Going through git archive depends on no checkout state and yields exactly the committed pin
-            var archivePath = Path.Combine(Path.GetTempPath(), $"moorestech-pinned-master-{commitHash}.zip");
-            if (File.Exists(archivePath)) File.Delete(archivePath);
+            var archivePath = extractionRoot + ".zip";
+            Directory.CreateDirectory(Path.GetDirectoryName(archivePath));
             RunGit(masterRepositoryRoot, $"archive --format=zip -o \"{archivePath}\" {commitHash} {string.Join(" ", directoriesInMasterRepository)}");
             ZipFile.ExtractToDirectory(archivePath, extractionRoot, true);
             File.Delete(archivePath);

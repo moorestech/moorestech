@@ -13,9 +13,13 @@ namespace Client.Tests.Playtest
     /// </summary>
     public class PlaytestFlatGroundProbeTest
     {
-        // 足場の上面。シナリオが絶対座標で使う設置Yの基準
-        // The scaffold's top face, the reference placement Y that scenarios use as an absolute coordinate
-        private const float ScaffoldTopHeight = 32f;
+        // 足場の上面。シナリオが設置Yに使う基準
+        // The scaffold's top face, the reference placement Y that scenarios use
+        private static readonly float ScaffoldTopHeight = PlaytestSetup.GroundCenter.y + PlaytestSetup.GroundSize.y / 2f;
+
+        // 上面より十分下の入力Y。resolverが素通しならこの値が残り検出できる
+        // An input Y well below the top face, so a pass-through resolver leaves it behind and is caught
+        private static readonly Vector3Int ProbeCell = new(3, 5, 2);
 
         private GameObject _flatGround;
 
@@ -41,7 +45,7 @@ namespace Client.Tests.Playtest
         [Test]
         public void 平坦足場の上で地表探査は足場上面の高さを返す()
         {
-            var probed = GroundHeightProbe.TryGetFootprintMaxGroundHeight(new Vector3Int(3, 32, 2), BlockDirection.North, Vector3Int.one, out var groundHeight);
+            var probed = GroundHeightProbe.TryGetFootprintMaxGroundHeight(ProbeCell, BlockDirection.North, Vector3Int.one, out var groundHeight);
 
             Assert.IsTrue(probed, "the ground probe found no ground above the playtest scaffold");
             Assert.AreEqual(ScaffoldTopHeight, groundHeight, 0.01f, "the ground probe returned the real terrain height instead of the scaffold top");
@@ -50,10 +54,10 @@ namespace Client.Tests.Playtest
         [Test]
         public void 平坦足場の上で設置セルは足場上面のグリッドへ揃う()
         {
-            var resolved = PlacementGroundCellResolver.TryResolveCellFromGround(new Vector3Int(3, 32, 2), BlockDirection.North, Vector3Int.one, 0, out var resolvedPosition);
+            var resolved = PlacementGroundCellResolver.TryResolveCellFromGround(ProbeCell, BlockDirection.North, Vector3Int.one, 0, out var resolvedPosition);
 
             Assert.IsTrue(resolved, "the placement cell could not be resolved from the playtest scaffold");
-            Assert.AreEqual(new Vector3Int(3, 32, 2), resolvedPosition, "terrain following moved the placement cell off the playtest scaffold");
+            Assert.AreEqual(new Vector3Int(ProbeCell.x, Mathf.RoundToInt(ScaffoldTopHeight), ProbeCell.z), resolvedPosition, "the placement cell did not land on the playtest scaffold's top face");
         }
     }
 }
