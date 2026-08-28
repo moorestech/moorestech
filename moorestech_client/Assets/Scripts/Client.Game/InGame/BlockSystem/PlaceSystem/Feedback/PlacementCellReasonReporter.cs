@@ -29,6 +29,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
                 case PlacementBlockCause.ExistingBlock:
                     feedback.AddBlockedByExistingBlock();
                     break;
+                case PlacementBlockCause.GroundNotFound:
+                    feedback.AddGroundNotFound();
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(cursorCause), cursorCause, null);
             }

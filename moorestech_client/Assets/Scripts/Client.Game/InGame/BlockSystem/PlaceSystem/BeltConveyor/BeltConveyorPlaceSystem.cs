@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
@@ -18,6 +19,7 @@ using Game.Construction;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
 using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceSystemUtil;
+using static Client.Game.InGame.BlockSystem.PlaceSystem.Util.PlaceBlockProtocolSender;
 using static Client.Game.DebugConst;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
@@ -51,7 +53,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         public override void Enable()
         {
-            _dragState.SetClickStartHeightOffset(-1);
+            _dragState.ClearDrag();
         }
 
         public override void Disable()
@@ -88,7 +90,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out _)) return;
+            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) return;
 
             // 設置可能な距離かどうか
             if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return; }
@@ -96,7 +98,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController.SetActive(true);
 
             //クリックされてたらUIがゲームスクリーンの時にホットバーにあるブロックの設置
-            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint);
+            if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) _dragState.BeginDrag(placePoint, hitSurface == null ? PlacementHitSurfaceKind.Ground : PlacementHitSurfaceKind.BlockFace);
 
             //プレビュー表示と地面との接触を取得する
             //display preview and get collision with ground
@@ -148,7 +150,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Updates the placement point list and returns the per-cell shared cause and belt reason columns (indexed like the PlaceInfo list)
             (List<PlacementBlockCause> placeCauses, List<BeltConveyorPlacementBlockReason> beltReasons) UpdateCurrentPlaceInfos()
             {
-                var dragStartPoint = _dragState.ResolveDragStartPoint(placePoint);
+                var dragStartPoint = _dragState.ResolveDragStartCell(placePoint);
                 if (dragStartPoint == placePoint)
                 {
                     _isStartZDirection = null;
