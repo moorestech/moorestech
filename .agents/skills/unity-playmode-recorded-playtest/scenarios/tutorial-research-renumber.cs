@@ -13,6 +13,7 @@ using Client.Game.InGame.Map.MapVein;
 using Client.Playtest;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using VContainer;
 
 var research1 = new Guid("858bcb10-b8ba-478e-9bc5-473ca61281a2"); // 旧原始研究4
 var research2 = new Guid("b47c5e3c-1b58-42c5-a477-d485d2eae747"); // 旧5
@@ -86,7 +87,7 @@ return PlaytestRunner.Run("tutorial-research-renumber", options, async p =>
     p.Note("原木鉱脈の内側へ風力掘削機を置く");
     var veinRegistry = ClientDIContext.DIContainer.DIContainerResolver.Resolve<MapVeinAabbRegistry>();
     var logVeinAabb = veinRegistry.Veins.Where(vein => vein.VeinGuid == logVein)
-        .OrderByDescending(vein => vein.Bounds.max.y).FirstOrDefault();
+        .OrderBy(vein => (vein.Bounds.center - p.PlayerPosition).sqrMagnitude).FirstOrDefault();
     p.Assert(logVeinAabb != null, "ワールドレイアウトに原木鉱脈がある");
     if (logVeinAabb != null)
     {

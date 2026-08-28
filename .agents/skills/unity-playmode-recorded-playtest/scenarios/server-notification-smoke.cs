@@ -60,7 +60,7 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
 
     // 通知ホストの可視化を待って撮影(HUDはpointer-events:noneのためクリック可能待ちは使えない)
     // Wait for the notification host to render, then capture (the HUD is pointer-events:none, so the clickable wait cannot be used)
-    await UntilHudVisible("notification-host", 10f);
+    p.Assert(await UntilHudVisible("notification-host", 10f), "操作拒否の通知ホストがWeb HUDに描画された");
     p.Assert(received.Last().MessageId == "denied.researchNotCompletable", $"直近通知が操作拒否である 実際:{received.Last().MessageId}");
     await p.Screenshot("01-denied-notification");
 
@@ -77,30 +77,32 @@ return PlaytestRunner.Run("server-notification-smoke", options, async p =>
     await p.WaitSeconds(0.5f);
 
     var achievementBefore = AchievementResearchCount();
-    p.Note("研究を完了する。実績通知『Research completed: 原始研究1』が届くはず");
+    p.Note("研究を完了する。実績通知(achievement.researchCompleted)が届くはず");
     ClientContext.VanillaApi.SendOnly.CompleteResearch(firstResearchGuid);
     await p.Until(() => achievementBefore < AchievementResearchCount(), 10f, "研究完了で実績通知(achievement.researchCompleted)がクライアントに届く");
 
-    // 実ペイロードの研究名パラメータまで検証する(Web側テンプレ「Research completed: {p0}」に流し込まれる値)
-    // Assert the actual research-name param carried in the payload (fed into the web template "Research completed: {p0}")
+    // 実ペイロードの研究GUIDを検証する(表示名はWeb側の辞書が解決するためサーバーはGUIDを送る)
+    // Assert the research GUID in the payload; the server sends a GUID and the web dictionary resolves the display name
     var achievement = received.Last(n => n.Category == NotificationCategory.Achievement && n.MessageId == "achievement.researchCompleted");
-    p.Assert(1 <= achievement.MessageParams.Length && achievement.MessageParams[0] == "原始研究1", $"実績通知の研究名パラメータが『原始研究1』 実際:{string.Join(",", achievement.MessageParams)}");
+    p.Assert(1 <= achievement.MessageParams.Length && achievement.MessageParams[0] == firstResearchGuid.ToString(), $"実績通知のパラメータが原始研究1のGUID 実際:{string.Join(",", achievement.MessageParams)}");
 
-    await UntilHudVisible("notification-host", 10f);
+    p.Assert(await UntilHudVisible("notification-host", 10f), "実績の通知ホストがWeb HUDに描画された");
     await p.Screenshot("03-achievement-notification");
 
-    // HUD要素の「存在+矩形あり」だけを待つ(空のホストは幅0のため、通知1件以上の描画完了と等価)
-    // Wait only for presence + a non-empty rect (an empty host has zero width, so this equals "at least one notification rendered")
-    async UniTask UntilHudVisible(string testid, float timeoutSeconds)
+    // HUD要素の「存在+矩形あり」を待つ(空のホストは幅0のため、通知1件以上の描画完了と等価)
+    // Wait for presence + a non-empty rect (an empty host has zero width, so this equals "at least one notification rendered")
+    // 未描画は例外にせずboolで返す。ここで中断すると後続のサーバー側検証まで巻き添えで落ちる
+    // Return a bool instead of throwing; aborting here would take the later server-side assertions down with it
+    async UniTask<bool> UntilHudVisible(string testid, float timeoutSeconds)
     {
         var deadline = UnityEngine.Time.realtimeSinceStartup + timeoutSeconds;
         while (UnityEngine.Time.realtimeSinceStartup < deadline)
         {
             var result = await Client.Playtest.WebUi.PlaytestDomQuery.Query(testid, 2f);
-            if (result.Found && 0 < result.Width) return;
+            if (result.Found && 0 < result.Width) return true;
             await UniTask.Delay(TimeSpan.FromMilliseconds(250), ignoreTimeScale: true);
         }
-        throw new Exception($"HUD要素が可視にならない: {testid}");
+        return false;
     }
 
     // 後片付け: 観測用購読を破棄する
