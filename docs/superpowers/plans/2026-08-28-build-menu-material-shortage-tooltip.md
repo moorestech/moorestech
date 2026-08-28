@@ -1155,15 +1155,15 @@ git commit -m "feat: ビルドメニューのエントリホバーで素材不�
 **Files:**
 - 参照: 本ブランチの全差分
 
-- [ ] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
+- [x] **Step 1: moores-code-review スキルで全ブランチレビューを実行する**
 
 moores-code-review スキルを起動し、本ブランチの全差分をレビューする。これは無条件に実行する必須ゲートであり、「変更が小さい」「テストが通った」を理由に省略してはならない。
 
-- [ ] **Step 2: 指摘へ対応する**
+- [x] **Step 2: 指摘へ対応する**
 
 機械的修正は適用し、設計判断は AskUserQuestion でユーザーへ諮る。対応後に `uloop compile --project-path ./moorestech_client` と `cd moorestech_web/webui && npm run test` を再実行して緑を確認する。
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add -A
