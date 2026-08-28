@@ -252,8 +252,8 @@ namespace Client.Tests.WebUi
             var walletQuery = new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
             var targets = new IPlacementTarget[] { new BlockPlacementTarget(straightGuid, null) };
 
-            // 必要素材の1件目だけを必要数-1だけ持たせ、不足が1件だけ立つ状態を作る
-            // Hold one less than required of the first material so exactly one shortage stands
+            // 1件目だけ-1個で不足1件作る
+            // Give the first item one less than required, creating one shortage
             var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(straightGuid).RequiredItems;
             var firstItemId = MasterHolder.ItemMaster.GetItemId(requiredItems[0].ItemGuid);
             var heldCount = requiredItems[0].Count - 1;

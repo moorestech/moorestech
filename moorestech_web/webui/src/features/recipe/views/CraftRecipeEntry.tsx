@@ -51,7 +51,7 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
               itemId={r.itemId}
               insufficient={ownedCountOf(counts, r.itemId) < r.count}
               tooltip={<span style={{ whiteSpace: "pre-line" }}>
-                {materialTooltipText(L.ui.recipe.materialTooltip, r.itemId, r.count, counts)}
+                {materialTooltipText(L.ui.recipe.materialTooltip, r.itemId, r.count, ownedCountOf(counts, r.itemId))}
               </span>}
               onLeftDown={() => onSelect(r.itemId)}
             />

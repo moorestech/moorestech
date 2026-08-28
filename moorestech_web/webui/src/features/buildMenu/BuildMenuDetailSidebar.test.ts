@@ -23,12 +23,12 @@ import { BuildMenuDetailSidebar } from "./BuildMenuDetailSidebar";
 
 const entry = (lacking: boolean, held: number): BuildMenuDisplayEntry => ({
   id: "30000000-0000-4000-8000-000000000001",
-  kind: "block",
+  kind: "block" as const,
   categoryGuid: "10000000-0000-4000-8000-000000000001",
   subCategoryGuid: "20000000-0000-4000-8000-000000000001",
   requiredItems: [{ itemId: 3, count: 5, held, lacking }],
   displayLabel: "belt",
-}) as BuildMenuDisplayEntry;
+});
 
 describe("BuildMenuDetailSidebar", () => {
   it("不足素材は赤枠と赤字の所持/必要を出す", () => {
@@ -37,8 +37,8 @@ describe("BuildMenuDetailSidebar", () => {
     expect(json).toContain('"insufficient":true');
     expect(json).toContain('"data-lack":true');
     expect(json).toContain("ui.buildMenu.materialTooltip");
-    // 必要数バッジ(count)は廃止し、所持/必要のテキストへ置き換わっている
-    // The required-count badge is gone, replaced by the owned/required text
+    // countバッジ廃止・所持/必要へ置換
+    // The count badge is gone, replaced by owned/required text
     expect(json).not.toContain('"count":5');
   });
 

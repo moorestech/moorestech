@@ -26,10 +26,10 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         private readonly PlacementTargetResolver _placementTargetResolver;
         private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly LocalPlayerInventoryController _inventoryController;
-        private readonly BuildMenuInventoryRepublishGate _republishGate;
         private readonly IDisposable _librarySubscription;
         private readonly IDisposable _remainingSubscription;
         private readonly IDisposable _inventorySubscription;
+        private bool _buildMenuActive;
         private bool _publishScheduled;
         private bool _disposed;
 
@@ -41,7 +41,6 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             _placementTargetResolver = placementTargetResolver;
             _constructionWalletQuery = constructionWalletQuery;
             _inventoryController = inventoryController;
-            _republishGate = new BuildMenuInventoryRepublishGate(uiStateControl);
 
             // 入場・BP更新・残数変化で再配信
             // Republish on entry, BP updates, and remaining-count changes
@@ -72,7 +71,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
         private void OnStateChanged(UIStateEnum state)
         {
-            if (state != UIStateEnum.BuildMenu) return;
+            _buildMenuActive = state == UIStateEnum.BuildMenu;
+            if (!_buildMenuActive) return;
 
             // uGUIビュー非表示時のBP更新はここが担う（更新完了は OnChanged 経由で再配信される）
             // While the uGUI view is hidden, this refresh path keeps blueprints fresh (completion republishes via OnChanged)
@@ -84,7 +84,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         // Inventory moves while the menu is closed are covered by the republish on the next entry
         private void SchedulePublishWhileBuildMenuActive()
         {
-            if (!_republishGate.ShouldRepublish()) return;
+            if (!_buildMenuActive) return;
             SchedulePublish();
         }
 

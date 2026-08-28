@@ -35,15 +35,15 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
                   : t(L.ui.buildMenu.requiredItems)}
               </span>
               <SlotGrid cols={3}>
-                {entry.requiredItems.map((item) => (
-                  <div key={item.itemId} className={styles.materialSlot}>
+                {entry.requiredItems.map((item, index) => (
+                  <div key={`${item.itemId}-${index}`} className={styles.materialSlot}>
                     {/* 不足判定はホストのlackingが唯一の正。所持と必要の比較をここでやり直さない */}
                     {/* The host's lacking flag is the sole authority; no owned-vs-required comparison happens here */}
                     <ItemSlot
                       itemId={item.itemId}
                       insufficient={item.lacking}
                       tooltip={<span style={{ whiteSpace: "pre-line" }}>
-                        {materialTooltipText(L.ui.buildMenu.materialTooltip, item.itemId, item.count, new Map([[item.itemId, item.held]]))}
+                        {materialTooltipText(L.ui.buildMenu.materialTooltip, item.itemId, item.count, item.held)}
                       </span>}
                     />
                     <span className={`iconTextOutlineLight ${styles.materialCount}`} data-lack={item.lacking || undefined}>

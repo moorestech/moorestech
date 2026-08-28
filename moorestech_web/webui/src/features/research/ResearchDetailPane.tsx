@@ -48,7 +48,7 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
                         insufficient={lacking}
                         tooltip={owned
                           ? <span style={{ whiteSpace: "pre-line" }}>
-                              {materialTooltipText(L.ui.research.consumeItemTooltip, c.itemId, c.count, owned)}
+                              {materialTooltipText(L.ui.research.consumeItemTooltip, c.itemId, c.count, ownedCountOf(owned, c.itemId))}
                             </span>
                           : undefined}
                       />

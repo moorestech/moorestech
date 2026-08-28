@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.WebUiHost.Game.Icons;
+using Common.Debug;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Construction;
@@ -30,9 +31,13 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
 
-            // 所持集計は全エントリで共有する（エントリごとの再走査を避ける）
-            // The held tally is shared across every entry, avoiding a rescan per entry
+            // 所持集計は全エントリで共有
+            // Share the held tally across all entries
             var heldByItem = ConstructionMaterialHeldCounts.Tally(inventoryItems);
+
+            // デバッグ設定はpublish毎に1回解決
+            // Resolve the debug flag once per publish
+            var freeBlockPlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
             // 共有カタログの列挙順（ブロック→車両→接続ツール→BPコピー→BP）がそのまま表示順
             // The shared catalog's order (blocks, train cars, connect tools, blueprint copy, blueprints) is the display order
@@ -50,7 +55,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
-                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, walletQuery, heldByItem),
+                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, freeBlockPlacement, walletQuery, heldByItem),
                     SetPlacement = ResolveSetPlacement(target),
                     IconUrl = ResolveIconUrl(target),
                 });

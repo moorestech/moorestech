@@ -24,12 +24,12 @@ import { BuildMenuSlot } from "./BuildMenuSlot";
 
 const entryWith = (requiredItems: BuildMenuDisplayEntry["requiredItems"]): BuildMenuDisplayEntry => ({
   id: "30000000-0000-4000-8000-000000000001",
-  kind: "block",
+  kind: "block" as const,
   categoryGuid: "10000000-0000-4000-8000-000000000001",
   subCategoryGuid: "20000000-0000-4000-8000-000000000001",
   requiredItems,
   displayLabel: "belt",
-}) as BuildMenuDisplayEntry;
+});
 
 const render = (entry: BuildMenuDisplayEntry) => JSON.stringify(create(createElement(BuildMenuSlot, {
   entry,

@@ -24,13 +24,13 @@ export function BuildMenuSlot({ entry, onLeftClick, onRightClick, onHoverChange 
   const materialTooltipText = useMaterialTooltipText();
   const dragHandlers = useHotbarDragSource({ kind: "buildMenuEntry", id: entry.id }, onLeftClick);
 
-  // 不足がある時だけ、見出し1行＋不足素材行のツールチップを出す
-  // Only when something is short: a heading line plus one line per missing material
+  // 不足時のみツールチップ表示
+  // Show tooltip only when something is short
   const shortages = shortageItemsOf(entry);
   const shortageTooltip = (
     <span style={{ whiteSpace: "pre-line" }}>
       {[t(L.ui.buildMenu.materialShortageTitle)]
-        .concat(shortages.map((item) => materialTooltipText(L.ui.buildMenu.materialShortageLine, item.itemId, item.count, new Map([[item.itemId, item.held]]))))
+        .concat(shortages.map((item) => materialTooltipText(L.ui.buildMenu.materialShortageLine, item.itemId, item.count, item.held)))
         .join("\n")}
     </span>
   );
