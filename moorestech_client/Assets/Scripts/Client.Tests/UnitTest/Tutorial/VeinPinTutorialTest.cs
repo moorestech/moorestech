@@ -71,15 +71,18 @@ namespace Client.Tests.UnitTest.Tutorial
         public void TutorialManagerはveinPinを専用managerへdispatchする()
         {
             var veinPin = new RecordingVeinPin();
-            var manager = new TutorialManager(
-                new List<ITutorialWorldPin> { new RecordingMapObjectPin(), veinPin },
+            var manager = new TutorialManager(new List<ITutorialViewManager>
+            {
+                new RecordingMapObjectPin(),
+                veinPin,
                 _root.AddComponent<UIHighlightTutorialManager>(),
                 _root.AddComponent<KeyControlTutorialManager>(),
                 _root.AddComponent<ItemViewHighLightTutorialManager>(),
                 _root.AddComponent<BlockPlacePreviewTutorialManager>(),
                 _root.AddComponent<UiDragGuideTutorialManager>(),
                 _root.AddComponent<VeinRestrictedPlacementTutorialManager>(),
-                _root.AddComponent<RelativeBlockPlacePreviewTutorialManager>());
+                _root.AddComponent<RelativeBlockPlacePreviewTutorialManager>(),
+            });
 
             manager.ApplyTutorial(ChallengeGuid);
 

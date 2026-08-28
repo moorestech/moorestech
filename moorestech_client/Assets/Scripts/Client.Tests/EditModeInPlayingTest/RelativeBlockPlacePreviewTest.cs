@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.IO;
 using System.Reflection;
+using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.PlacementGuide;
 using Client.Game.InGame.Tutorial.TutorialBlock;
 using Core.Master;
@@ -55,6 +56,11 @@ namespace Client.Tests.EditModeInPlayingTest
                 var manager = Object.FindFirstObjectByType<RelativeBlockPlacePreviewTutorialManager>(FindObjectsInactive.Include);
                 Assert.IsNotNull(manager, "the scene has no RelativeBlockPlacePreviewTutorialManager");
 
+                // ゴーストの実体はBlockPlacePreviewTutorialManagerが持つ。相対側は目標セルを押し出すだけ
+                // The ghost itself lives under BlockPlacePreviewTutorialManager; the relative side only pushes the target cell
+                var ghostOwner = Object.FindFirstObjectByType<BlockPlacePreviewTutorialManager>(FindObjectsInactive.Include);
+                Assert.IsNotNull(ghostOwner, "the scene has no BlockPlacePreviewTutorialManager");
+
                 PlaceBlock("無限歯車ジェネレーター", AnchorPosition, BlockDirection.North);
                 await WaitBlockGameObjectSpawn(AnchorPosition);
 
@@ -65,7 +71,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 TutorialBlockPreviewObject ghost = null;
                 for (var i = 0; i < 300 && ghost == null; i++)
                 {
-                    ghost = manager.GetComponentInChildren<TutorialBlockPreviewObject>(false);
+                    ghost = ghostOwner.GetComponentInChildren<TutorialBlockPreviewObject>(false);
                     await UniTask.Yield();
                 }
 

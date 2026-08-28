@@ -166,15 +166,15 @@ namespace Client.Starter
             builder.RegisterComponent(challengeListView);
             builder.RegisterComponent(researchTreeViewManager);
 
-            builder.RegisterComponent(mapObjectPin).AsSelf().As<ITutorialWorldPin>();
-            builder.RegisterComponent(veinPin).AsSelf().As<ITutorialWorldPin>();
-            builder.RegisterComponent(uiHighlightTutorialManager);
-            builder.RegisterComponent(keyControlTutorialManager);
-            builder.RegisterComponent(itemViewHighLightTutorialManager);
-            builder.RegisterComponent(blockPlacePreviewTutorialManager);
-            builder.RegisterComponent(uiDragGuideTutorialManager);
-            builder.RegisterComponent(veinRestrictedPlacementTutorialManager);
-            builder.RegisterComponent(relativeBlockPlacePreviewTutorialManager);
+            builder.RegisterComponent(mapObjectPin).AsSelf().As<ITutorialWorldPin>().As<ITutorialViewManager>();
+            builder.RegisterComponent(veinPin).AsSelf().As<ITutorialWorldPin>().As<ITutorialViewManager>();
+            builder.RegisterComponent(uiHighlightTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(keyControlTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(itemViewHighLightTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(blockPlacePreviewTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(uiDragGuideTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(veinRestrictedPlacementTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(relativeBlockPlacePreviewTutorialManager).AsSelf().As<ITutorialViewManager>();
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();

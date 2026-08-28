@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.PlacementGuide;
 using Client.Game.InGame.Tutorial.UIHighlight;
@@ -54,17 +55,16 @@ namespace Client.Tests.UnitTest.Tutorial
             var state = new VeinRestrictedPlacementState();
             var veinRestricted = _root.AddComponent<VeinRestrictedPlacementTutorialManager>();
             veinRestricted.Construct(state);
-            var manager = CreateTutorialManager(veinRestricted, _root.AddComponent<RelativeBlockPlacePreviewTutorialManager>());
+            var manager = CreateTutorialManager(veinRestricted, CreateRelativeManager());
 
             manager.ApplyTutorial(ChallengeGuid);
 
-            Assert.IsTrue(state.IsRestrictedBlock(ForUnitTestModBlockId.ElectricMinerId));
-            Assert.AreEqual(Guid.Parse("11111111-0000-0000-0000-000000000001"), state.VeinGuid);
+            Assert.IsTrue(state.TryGetRestrictedVein(ForUnitTestModBlockId.ElectricMinerId, out var veinGuid));
+            Assert.AreEqual(Guid.Parse("11111111-0000-0000-0000-000000000001"), veinGuid);
 
             manager.CompleteChallenge(ChallengeGuid);
 
-            Assert.IsNull(state.VeinGuid);
-            Assert.IsFalse(state.IsRestrictedBlock(ForUnitTestModBlockId.ElectricMinerId));
+            Assert.IsFalse(state.TryGetRestrictedVein(ForUnitTestModBlockId.ElectricMinerId, out _));
         }
 
         [Test]
@@ -78,27 +78,49 @@ namespace Client.Tests.UnitTest.Tutorial
                 ["blockDirection"] = "North",
                 ["message"] = "テスト",
             });
-            var relative = _root.AddComponent<RelativeBlockPlacePreviewTutorialManager>();
-            var manager = CreateTutorialManager(_root.AddComponent<VeinRestrictedPlacementTutorialManager>(), relative);
+            var relative = CreateRelativeManager();
+            var veinRestricted = _root.AddComponent<VeinRestrictedPlacementTutorialManager>();
+            veinRestricted.Construct(new VeinRestrictedPlacementState());
+            var manager = CreateTutorialManager(veinRestricted, relative);
 
+            // 専用managerへ振り分けられた時だけViewが返り、完了で解除される。dispatchが外れれば戻り値がnullになって落ちる
+            // A view comes back only when the dedicated manager received the dispatch, and completion releases it; a broken dispatch returns null and fails here
             manager.ApplyTutorial(ChallengeGuid);
-            Assert.IsTrue(relative.IsApplied);
+            Assert.AreSame(relative, GetAppliedView(manager));
 
             manager.CompleteChallenge(ChallengeGuid);
-            Assert.IsFalse(relative.IsApplied);
+            Assert.IsNull(GetAppliedView(manager));
         }
 
         private TutorialManager CreateTutorialManager(VeinRestrictedPlacementTutorialManager veinRestricted, RelativeBlockPlacePreviewTutorialManager relative)
         {
-            return new TutorialManager(
-                new List<ITutorialWorldPin>(),
+            return new TutorialManager(new List<ITutorialViewManager>
+            {
                 _root.AddComponent<UIHighlightTutorialManager>(),
                 _root.AddComponent<KeyControlTutorialManager>(),
                 _root.AddComponent<ItemViewHighLightTutorialManager>(),
                 _root.AddComponent<BlockPlacePreviewTutorialManager>(),
                 _root.AddComponent<UiDragGuideTutorialManager>(),
                 veinRestricted,
-                relative);
+                relative,
+            });
+        }
+
+        private RelativeBlockPlacePreviewTutorialManager CreateRelativeManager()
+        {
+            var blockGameObjectDataStore = _root.AddComponent<BlockGameObjectDataStore>();
+            var relative = _root.AddComponent<RelativeBlockPlacePreviewTutorialManager>();
+            relative.Construct(blockGameObjectDataStore, _root.AddComponent<BlockPlacePreviewTutorialManager>());
+            return relative;
+        }
+
+        // 適用中のViewは外向きAPIに現れないため、TutorialManagerが保持している実体を読み出して突き合わせる
+        // The applied view is not exposed by the public API, so the instance TutorialManager holds is read back for comparison
+        private static ITutorialView GetAppliedView(TutorialManager manager)
+        {
+            var views = (Dictionary<Guid, List<ITutorialView>>)typeof(TutorialManager)
+                .GetField("_tutorialViews", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(manager);
+            return views.TryGetValue(ChallengeGuid, out var applied) ? applied[0] : null;
         }
 
         // challenges.json の最初のチャレンジのチュートリアルを1件だけ差し替えて ChallengeMaster を作り直す

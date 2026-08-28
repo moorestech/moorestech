@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Map.NearestSearch;
 using CommandForgeGenerator.Command;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -27,6 +28,10 @@ namespace Client.Game.InGame.Block
         
         public IObservable<Vector3Int> OnBlockRemoved => _onBlockRemoved;
         private readonly Subject<Vector3Int> _onBlockRemoved = new();
+
+        // ブロックGUID別の最近傍索引。全ブロック走査での最寄り探索を毎フレーム回さないため（前例: OutcropGameObjectDatastore）
+        // Per-block-GUID nearest index, so no per-frame full scan is needed for nearest lookups (precedent: OutcropGameObjectDatastore)
+        private readonly NearestTargetIndex<BlockGameObject> _nearestIndex = new();
         
         
         public BlockGameObject GetBlockGameObject(Vector3Int position)
@@ -47,6 +52,15 @@ namespace Client.Game.InGame.Block
         public bool TryGetBlockGameObject(BlockInstanceId blockInstanceId, out BlockGameObject blockGameObject)
         {
             return _blockObjectsByInstanceIdDictionary.TryGetValue(blockInstanceId, out blockGameObject);
+        }
+
+        /// <summary>
+        ///     指定GUIDのブロックのうち、その座標から最も近いものを返す。1つも無ければnull
+        ///     Returns the block of that GUID nearest to the position, or null when there is none
+        /// </summary>
+        public BlockGameObject SearchNearestBlock(Guid blockGuid, Vector3 position)
+        {
+            return _nearestIndex.TrySearchNearest(blockGuid, position, out var block, out _) ? block : null;
         }
 
         public void SetActive(bool active)
@@ -71,6 +85,7 @@ namespace Client.Game.InGame.Block
                 // Delete because the ID is different (also remove from BlockInstanceId dictionary)
                 var oldBlock = _blockObjectsDictionary[blockPosition];
                 _blockObjectsByInstanceIdDictionary.Remove(oldBlock.BlockInstanceId);
+                DropFromNearestIndex(oldBlock);
                 Destroy(oldBlock.gameObject);
                 _blockObjectsDictionary.Remove(blockPosition);
             }
@@ -90,6 +105,7 @@ namespace Client.Game.InGame.Block
             
             _blockObjectsDictionary.Add(blockPosition, block);
             _blockObjectsByInstanceIdDictionary.Add(blockInstanceId, block);
+            _nearestIndex.Register(block.BlockMasterElement.BlockGuid, block);
             _onBlockPlaced.OnNext(block);
         }
         
@@ -102,6 +118,7 @@ namespace Client.Game.InGame.Block
             var block = _blockObjectsDictionary[blockPosition];
             block.DestroyBlock().Forget();
             _blockObjectsByInstanceIdDictionary.Remove(block.BlockInstanceId);
+            DropFromNearestIndex(block);
             _blockObjectsDictionary.Remove(blockPosition);
             
             // ブロック削除イベントを発行
@@ -109,6 +126,14 @@ namespace Client.Game.InGame.Block
             _onBlockRemoved.OnNext(blockPosition);
         }
         
+        // 索引は墓標で外す。破棄アニメ中も探索対象へ戻らないよう、辞書から消すのと同じ瞬間に立てる
+        // The index drops it as a tombstone, raised the moment it leaves the dictionary so a destroy animation never keeps it searchable
+        private void DropFromNearestIndex(BlockGameObject block)
+        {
+            block.MarkUnsearchable();
+            _nearestIndex.NotifyTargetUnsearchable(block.BlockMasterElement.BlockGuid);
+        }
+
         public bool IsOverlapPositionInfo(BlockPositionInfo target)
         {
             foreach (var block in _blockObjectsDictionary.Values)
