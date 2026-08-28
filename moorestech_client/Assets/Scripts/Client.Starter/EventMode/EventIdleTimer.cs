@@ -12,13 +12,6 @@ namespace Client.Starter.EventMode
             _idleTimeoutSeconds = idleTimeoutSeconds;
         }
 
-        // 起動所要時間を無操作時間に数えないため、ロード完了時点から計り直す
-        // Restart the measurement when loading completes so boot time is not counted as idle
-        public void Reset()
-        {
-            _idleSeconds = 0f;
-        }
-
         // 押しっぱなしは操作とみなさない。キーアップが失われた個体で無操作復帰が二度と起きなくなるため
         // A sustained hold is not activity: with a lost key-up the kiosk would never return to its initial state
         public bool AdvanceAndCheckTimeout(bool hasInputChanged, float deltaSeconds)

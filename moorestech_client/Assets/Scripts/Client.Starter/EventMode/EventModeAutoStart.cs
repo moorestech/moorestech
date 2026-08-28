@@ -30,7 +30,6 @@ namespace Client.Starter.EventMode
             // Regenerate world; PlayerPrefs kept
             GameSystemPaths.DeleteDefaultWorldDirectory();
             if (!Localize.TrySetLanguage(Localize.DefaultLanguageCode)) Debug.LogError($"EventModeAutoStart: failed to set language to {Localize.DefaultLanguageCode}");
-            EventIdleQuitWatcher.Create(settings.IdleTimeoutSeconds);
             LocalGameLauncher.StartLocalGame();
         }
     }

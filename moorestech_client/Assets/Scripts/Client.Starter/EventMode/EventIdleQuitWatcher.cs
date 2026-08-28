@@ -1,7 +1,6 @@
 using System;
 using Client.Game.Common;
 using Cysharp.Threading.Tasks;
-using UniRx;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -14,8 +13,8 @@ namespace Client.Starter.EventMode
     {
         private EventIdleTimer _idleTimer;
 
-        // タイムアウト値の無い個体を作らせないため、生成はこの口だけに絞る
-        // The only creation entry point, so no instance can exist without its timeout
+        // 生成が武装そのもの。言語選択後にだけ作られるため、待機中は無操作終了が起こり得ない
+        // Creation is the arming itself: built only after the language is chosen, so an idle quit cannot fire while waiting
         public static EventIdleQuitWatcher Create(int idleTimeoutSeconds)
         {
             var watcherObject = new GameObject(nameof(EventIdleQuitWatcher));
@@ -23,13 +22,6 @@ namespace Client.Starter.EventMode
             var watcher = watcherObject.AddComponent<EventIdleQuitWatcher>();
             watcher._idleTimer = new EventIdleTimer(idleTimeoutSeconds);
             return watcher;
-        }
-
-        private void Start()
-        {
-            // 起動所要時間を無操作時間に数えない。ロード完了時点から計り直す
-            // Boot time must not count as idle time, so restart the measurement when loading completes
-            GameInitializedEvent.OnGameInitialized.Subscribe(_ => _idleTimer.Reset()).AddTo(this);
         }
 
         private void Update()
