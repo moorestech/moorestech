@@ -41,29 +41,33 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.GearConnect
                 _lines[i].SetPosition(0, pairs[i].SelfConnectorCell + CellCenter);
                 _lines[i].SetPosition(1, pairs[i].TargetConnectorCell + CellCenter);
             }
+
+            #region Internal
+
+            LineRenderer CreateLine()
+            {
+                // マテリアルは線ごとに作らず1枚を共有する。設置中は毎フレーム呼ばれるため作り捨ては溜まる
+                // One shared material instead of one per line; this runs every frame while placing, so per-line creation would accumulate
+                _lineMaterial ??= new Material(Shader.Find("Sprites/Default")) { color = LineColor };
+
+                var line = new GameObject(LineName).AddComponent<LineRenderer>();
+                line.transform.SetParent(_root, false);
+                line.positionCount = 2;
+                line.startWidth = LineWidth;
+                line.endWidth = LineWidth;
+                line.useWorldSpace = true;
+                line.sharedMaterial = _lineMaterial;
+                line.startColor = LineColor;
+                line.endColor = LineColor;
+                return line;
+            }
+
+            #endregion
         }
 
         public void Hide()
         {
             _root.gameObject.SetActive(false);
-        }
-
-        private LineRenderer CreateLine()
-        {
-            // マテリアルは線ごとに作らず1枚を共有する。設置中は毎フレーム呼ばれるため作り捨ては溜まる
-            // One shared material instead of one per line; this runs every frame while placing, so per-line creation would accumulate
-            _lineMaterial ??= new Material(Shader.Find("Sprites/Default")) { color = LineColor };
-
-            var line = new GameObject(LineName).AddComponent<LineRenderer>();
-            line.transform.SetParent(_root, false);
-            line.positionCount = 2;
-            line.startWidth = LineWidth;
-            line.endWidth = LineWidth;
-            line.useWorldSpace = true;
-            line.sharedMaterial = _lineMaterial;
-            line.startColor = LineColor;
-            line.endColor = LineColor;
-            return line;
         }
     }
 }
