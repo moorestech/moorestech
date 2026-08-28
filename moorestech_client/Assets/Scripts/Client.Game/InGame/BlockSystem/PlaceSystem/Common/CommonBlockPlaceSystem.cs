@@ -40,16 +40,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly CommonBlockPlacePointCalculator _blockPlacePointCalculator;
         private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
         private readonly MapVeinAabbRegistry _veinAabbRegistry;
+        private readonly IPlacementGroundFollower _groundFollower;
         private readonly VeinRestrictedPlacementState _veinRestrictedPlacementState;
         private readonly GearConnectPreview _gearConnectPreview;
-        private readonly IPlacementGroundFollower _groundFollower;
 
         private readonly CommonBlockPlaceDragState _dragState = new();
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, VeinRestrictedPlacementState veinRestrictedPlacementState, IPlacementGroundFollower groundFollower)
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState)
         {
             _mainCamera = mainCamera;
             _groundFollower = groundFollower;

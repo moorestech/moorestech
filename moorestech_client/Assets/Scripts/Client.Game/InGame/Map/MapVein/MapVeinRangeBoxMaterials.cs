@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Map.MapVein
 {
     /// <summary>
-    ///     範囲表示ボックス用の半透明マテリアルをitem/fluidの2枚だけ作って共有する
-    ///     Creates exactly two translucent materials, one for item veins and one for fluid veins, and shares them
+    ///     範囲表示ボックス用の半透明マテリアルをitem/fluid/highlightの3枚だけ作って共有する
+    ///     Creates exactly three translucent materials, for item veins, fluid veins and the tutorial highlight, and shares them
     /// </summary>
     public class MapVeinRangeBoxMaterials : IDisposable
     {
