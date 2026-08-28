@@ -14,8 +14,10 @@ namespace Server.Boot
 
         // ワールド新規作成時の生成モード（"template" | "generated"）
         // Provisioning mode for a fresh world ("template" | "generated")
+        // 未指定は自動生成。templateは地形を作らないオーサリングマップのコピーで、明示した呼び手だけが使う
+        // Unspecified means generated; template copies the authored map without terrain, so only explicit callers use it
         [Option(isFlag: false, "--mapMode")]
-        public string MapMode { get; set; } = WorldMapMode.Template;
+        public string MapMode { get; set; } = WorldMapMode.Generated;
 
         // generatedモードのシード。未指定(null)なら196を使い、0も有効なseed値として扱う
         // Seed for generated mode; an unspecified value (null) resolves to 196, while zero remains valid

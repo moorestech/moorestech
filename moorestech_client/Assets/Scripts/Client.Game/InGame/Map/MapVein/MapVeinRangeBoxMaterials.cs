@@ -1,7 +1,6 @@
 using System;
 using Client.Common;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Client.Game.InGame.Map.MapVein
 {
@@ -29,19 +28,7 @@ namespace Client.Game.InGame.Map.MapVein
         private const string AlphaPropertyName = "_Alpha";
         private const float BoxAlpha = 0.5f;
 
-        // 元素材は不透明設定なのでマテリアル側で透過へ切り替える。shadergraphがAllow Material Overrideなので実行時に効く
-        // The source material is opaque, so flip it to transparent at the material level; the shadergraph allows material override
-        private const string SurfacePropertyName = "_Surface";
-        private const string SrcBlendPropertyName = "_SrcBlend";
-        private const string DstBlendPropertyName = "_DstBlend";
-        private const string DstBlendAlphaPropertyName = "_DstBlendAlpha";
-        private const string ZWritePropertyName = "_ZWrite";
-        private const string TransparentKeyword = "_SURFACE_TYPE_TRANSPARENT";
-        private const string RenderTypeTagName = "RenderType";
-        private const string TransparentRenderType = "Transparent";
         private const string ShadowCasterPassName = "ShadowCaster";
-        private const float TransparentSurfaceValue = 1f;
-        private const float ZWriteOff = 0f;
 
         public readonly Material FluidMaterial;
         public readonly Material ItemMaterial;
@@ -57,20 +44,11 @@ namespace Client.Game.InGame.Map.MapVein
 
             Material CreateTranslucentMaterial(string veinTypeName, Color color)
             {
-                var material = new Material(MaterialConst.GetPreviewPlaceBlockMaterial()) { name = MaterialNamePrefix + veinTypeName };
+                // 透過設定済みのアセットを複製する。実行時にキーワードで透過へ切り替えるとビルドにそのバリアントが焼かれず不透明になる
+                // Copy the pre-authored translucent asset; enabling the keyword at runtime leaves the build without that variant
+                var material = new Material(MaterialConst.GetPreviewPlaceBlockTransparentMaterial()) { name = MaterialNamePrefix + veinTypeName };
                 material.SetColor(MaterialConst.PreviewColorPropertyName, color);
                 material.SetFloat(AlphaPropertyName, BoxAlpha);
-
-                // URP Litの透過設定一式。ブレンド式とキューまで揃えないと不透明のまま描かれる
-                // The full URP Lit transparency set; without the blend equation and the queue it still draws opaque
-                material.SetFloat(SurfacePropertyName, TransparentSurfaceValue);
-                material.SetFloat(SrcBlendPropertyName, (float)BlendMode.SrcAlpha);
-                material.SetFloat(DstBlendPropertyName, (float)BlendMode.OneMinusSrcAlpha);
-                material.SetFloat(DstBlendAlphaPropertyName, (float)BlendMode.OneMinusSrcAlpha);
-                material.SetFloat(ZWritePropertyName, ZWriteOff);
-                material.EnableKeyword(TransparentKeyword);
-                material.SetOverrideTag(RenderTypeTagName, TransparentRenderType);
-                material.renderQueue = (int)RenderQueue.Transparent;
 
                 // 半透明の範囲表示が地面に影を落とすと地形が読めなくなる
                 // A translucent range box casting shadows would hide the terrain it is meant to annotate

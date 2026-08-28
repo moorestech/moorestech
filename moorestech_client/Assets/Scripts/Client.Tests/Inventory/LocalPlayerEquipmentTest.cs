@@ -32,12 +32,12 @@ namespace Client.Tests.Inventory
         private static readonly System.Guid ToolItemGuid = System.Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
-        public void 装備と素手の選択インデックスがインベントリ応答から復元される()
+        public void 装備と選択インデックスがインベントリ応答から復元される()
         {
             var (packet, serviceProvider) = CreateServer();
             var equipmentInventory = GetEquipmentInventory(serviceProvider);
             equipmentInventory.SetItem(0, ToolItemId(), 1);
-            equipmentInventory.SetSelectedEquipmentIndex(IEquipmentInventory.BareHandsIndex);
+            equipmentInventory.SetSelectedEquipmentIndex(1);
 
             // 応答messagepack→クライアントDTOの変換で装備が落ちないことを確かめる
             // Ensures equipment survives the response messagepack to client DTO conversion
@@ -46,12 +46,12 @@ namespace Client.Tests.Inventory
             equipment.Initialize(clientResponse.Equipment, clientResponse.SelectedEquipmentIndex);
 
             Assert.AreEqual(ToolItemId(), equipment.Slots[0].Id);
-            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipment.SelectedIndex);
+            Assert.AreEqual(1, equipment.SelectedIndex);
             Assert.AreEqual(ItemMaster.EmptyItemId, equipment.SelectedItem.Id);
         }
 
         [Test]
-        public void 素手への選択変更がプロトコルとイベントを往復してモデルへ届く()
+        public void 選択変更がプロトコルとイベントを往復してモデルへ届く()
         {
             var (packet, serviceProvider) = CreateServer();
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
@@ -59,14 +59,14 @@ namespace Client.Tests.Inventory
             var apiEvent = CreateSubscribedApiEvent(equipment);
             equipment.Initialize(new List<IItemStack> { ServerContext.ItemStackFactory.Create(ToolItemId(), 1) }, 0);
 
-            // 素手(-1)は装備選択の特別値なので、送信→サーバー→イベント→適用まで通す
-            // Bare hands (-1) is the special value of this design, so it is driven through send, server, event and apply
-            var request = MessagePackSerializer.Serialize(new SetSelectedEquipmentIndexMessagePack(PlayerId, IEquipmentInventory.BareHandsIndex));
+            // 空スロット(1)への切替を送信→サーバー→イベント→適用まで通す
+            // Drive a switch to the empty slot (1) through send, server, event and apply
+            var request = MessagePackSerializer.Serialize(new SetSelectedEquipmentIndexMessagePack(PlayerId, 1));
             packet.GetPacketResponse(request, new PacketResponseContext(null));
             apiEvent.Dispatch(EquipmentSelectedIndexUpdateEventPacket.EventTag, TakeSelectedIndexPayload(sink));
 
-            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, GetEquipmentInventory(serviceProvider).SelectedEquipmentIndex);
-            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipment.SelectedIndex);
+            Assert.AreEqual(1, GetEquipmentInventory(serviceProvider).SelectedEquipmentIndex);
+            Assert.AreEqual(1, equipment.SelectedIndex);
             Assert.AreEqual(ItemMaster.EmptyItemId, equipment.SelectedItem.Id);
 
             // 選択イベントはスロットを変えない
@@ -94,7 +94,7 @@ namespace Client.Tests.Inventory
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var equipment = new LocalPlayerEquipment();
             var apiEvent = CreateSubscribedApiEvent(equipment);
-            equipment.ApplySelected(IEquipmentInventory.BareHandsIndex);
+            equipment.ApplySelected(2);
 
             GetEquipmentInventory(serviceProvider).SetItem(1, ToolItemId(), 1);
             apiEvent.Dispatch(EquipmentSlotUpdateEventPacket.EventTag, TakeSlotPayload(sink));
@@ -102,7 +102,7 @@ namespace Client.Tests.Inventory
             // スロットイベントは選択位置を変えない
             // Slot events do not alter the selection
             Assert.AreEqual(ToolItemId(), equipment.Slots[1].Id);
-            Assert.AreEqual(IEquipmentInventory.BareHandsIndex, equipment.SelectedIndex);
+            Assert.AreEqual(2, equipment.SelectedIndex);
             Assert.AreEqual(ItemMaster.EmptyItemId, equipment.SelectedItem.Id);
 
             #region Internal

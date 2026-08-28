@@ -1,18 +1,10 @@
-// 装備選択の純粋ロジック。素手(-1)を含む循環移動とホイール量の累積を担う
-// Pure equipment-selection logic: circular cycling that includes bare hands (-1), plus wheel accumulation
+// 装備選択の純粋ロジック。実スロット間の循環移動とホイール量の累積を担う
+// Pure equipment-selection logic: circular cycling across real slots, plus wheel accumulation
 
-// C#の素手定数と同値
-// Matches the C# bare-hands constant
-export const BARE_HANDS_INDEX = -1;
-
-// -1..slotCount-1 を周期 slotCount+1 で循環させる（負の delta でも同じ環を逆走する）
-// Cycle -1..slotCount-1 over a period of slotCount+1, walking the same ring backwards for negative delta
+// 0..slotCount-1 を周期 slotCount で循環させる（負の delta でも同じ環を逆走する）
+// Cycle 0..slotCount-1 over a period of slotCount, walking the same ring backwards for negative delta
 export function cycleEquipment(current: number, delta: number, slotCount: number): number {
-  const period = slotCount + 1;
-  // 素手を先頭に寄せた 0..slotCount の序数へ移してから剰余を取る
-  // Shift to a 0..slotCount ordinal with bare hands first, then take the remainder there
-  const ordinal = current - BARE_HANDS_INDEX;
-  return ((((ordinal + delta) % period) + period) % period) + BARE_HANDS_INDEX;
+  return (((current + delta) % slotCount) + slotCount) % slotCount;
 }
 
 // deltaModeごとのノッチ換算量。OSやデバイスでdelta値の桁が変わるため単位側で正規化する

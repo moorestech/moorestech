@@ -886,7 +886,9 @@ namespace Tests.UnitTest.Server
             var result = CliConvert.Parse<StartServerSettings>(args);
             
             Assert.AreEqual(GameSystemPaths.GetSaveFilePath("world_1"), result.WorldDirectory);
-            Assert.AreEqual("template", result.MapMode);
+            // 未指定の新規ワールドは自動生成（ADR 0035）。速さが要るテストだけがtemplateを明示する
+            // An unspecified new world is generated (ADR 0035); only speed-sensitive tests state template
+            Assert.AreEqual("generated", result.MapMode);
             // 未指定は null（0 は有効な seed 値なので既定値には使わない）
             // Unspecified is null (0 is a valid seed, so it is not the default sentinel)
             Assert.IsNull(result.Seed);

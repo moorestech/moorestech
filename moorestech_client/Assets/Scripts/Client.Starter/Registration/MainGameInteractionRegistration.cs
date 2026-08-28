@@ -7,6 +7,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
@@ -68,6 +69,7 @@ namespace Client.Starter.Registration
 
         private static void RegisterPlacement(ContainerBuilder builder)
         {
+            builder.Register<IPlacementGroundFollower, PlacementGroundFollowStep>(Lifetime.Singleton);
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
             builder.Register<BeltConveyorPlaceSystem>(Lifetime.Singleton);
             builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { dispatchAction, Topics, useItemMaster, useTopic } from "@/bridge";
 import { challengeTutorialTextKey, useI18n, type TranslationKey } from "@/shared/i18n";
 import { TutorialAnchorRegistry, TutorialAnchorDynamicPrefixes, clipPathInset, type ClipRect, type ResolvedAnchor } from "@/shared/tutorialAnchor";
+import { useUiScale } from "@/shared/uiScale";
 import DragGuide from "./DragGuide";
 import HighlightLabel from "./HighlightLabel";
 import { readTutorialHighlightGlowPx } from "./highlightGlowToken";
@@ -14,6 +15,9 @@ type AckTarget = { tutorialSessionId: string; elementId: string };
 export function TutorialOverlay() {
   const presentation = useTopic(Topics.tutorialPresentation);
   const { t } = useI18n();
+  // アンカー実測値は実画面座標なので、stage基準で書かれた余白・グローを同じ座標系へ直す
+  // Anchor measurements are in real screen coordinates, so stage-authored padding and glow are converted into the same space
+  const uiScale = useUiScale();
   // 所持アンカーはguid→itemIdの解決にitem masterが要る。未ロード中の解決結果は所持有無を表さない
   // Owned-item anchors need the item master to resolve guid to itemId, so a resolution taken before it loads says nothing about ownership
   const itemMasterLoaded = useItemMaster() !== null;
@@ -109,7 +113,7 @@ export function TutorialOverlay() {
       const key = tutorialElementKey(session.tutorialSessionId, element.elementId);
       switch (element.kind) {
         case "outline":
-          return renderOutline(key, element, resolved[element.anchorId], t);
+          return renderOutline(key, element, resolved[element.anchorId], t, uiScale);
         case "dragGuide":
           return <DragGuide key={key} from={resolved[element.fromAnchorId]} to={resolved[element.toAnchorId]} />;
         case "keyControl":
@@ -123,9 +127,9 @@ export function TutorialOverlay() {
   </div>;
 }
 
-function renderOutline(key: string, element: TutorialOutlineElement, value: ResolvedAnchor | undefined, t: (key: TranslationKey) => string) {
+function renderOutline(key: string, element: TutorialOutlineElement, value: ResolvedAnchor | undefined, t: (key: TranslationKey) => string, uiScale: number) {
   if (!value || value.status !== "ready") return null;
-  const padding = element.paddingPx;
+  const padding = element.paddingPx * uiScale;
   const box = {
     left: value.rect.left - padding, top: value.rect.top - padding,
     right: value.rect.left + value.rect.width + padding,
@@ -133,7 +137,7 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
   };
   // 祖先のoverflowで完全に隠れている間は要素ごと出さず、DOMと見た目を一致させる
   // While ancestor overflow hides it entirely, omit the element so the DOM matches what is painted
-  const clipPath = clipPathInset({ box, clip: value.clip, outsetPx: readTutorialHighlightGlowPx() });
+  const clipPath = clipPathInset({ box, clip: value.clip, outsetPx: readTutorialHighlightGlowPx() * uiScale });
   if (clipPath === null) return null;
   const outline = <div key={key} className={styles.highlight} data-kind={element.kind}
     style={{ left: box.left, top: box.top, width: box.right - box.left, height: box.bottom - box.top, clipPath }} />;
@@ -151,7 +155,7 @@ function renderOutline(key: string, element: TutorialOutlineElement, value: Reso
   // An empty dictionary result renders no label face at all
   const labelText = t(challengeTutorialTextKey(element.labelTutorialGuid));
   if (!labelText) return outline;
-  return [outline, <HighlightLabel key={`${key}:label`} box={box} clip={value.clip} text={labelText} />];
+  return [outline, <HighlightLabel key={`${key}:label`} box={box} clip={value.clip} text={labelText} uiScale={uiScale} />];
 }
 
 // ラベルはclip-pathを持たないため、アンカーが一部でも隠れている時点で描かない判定に使う

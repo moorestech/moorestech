@@ -19,9 +19,9 @@ describe("nextScrollTop", () => {
   // ポインタを上へ動かすとscrollTopが増え、下へ動かすと減る
   // Moving the pointer up increases scrollTop; moving down decreases it
   it("上へドラッグでscrollTop増加", () => {
-    expect(nextScrollTop(100, 200, 170)).toBe(130);
+    expect(nextScrollTop(100, -30)).toBe(130);
   });
   it("下へドラッグでscrollTop減少", () => {
-    expect(nextScrollTop(100, 200, 240)).toBe(60);
+    expect(nextScrollTop(100, 40)).toBe(60);
   });
 });

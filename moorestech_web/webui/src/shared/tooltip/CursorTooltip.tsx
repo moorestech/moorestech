@@ -26,7 +26,10 @@ export function CursorTooltip() {
   useLayoutEffect(() => {
     const element = elementRef.current;
     if (!element) return;
-    setPosition(clampTooltipPosition(pointer.x, pointer.y, element.offsetWidth, element.offsetHeight, window.innerWidth, window.innerHeight));
+    // offsetWidthはtransform前の実装寸法なので、--ui-scale拡縮後の実寸を返すrectで画面端を判定する
+    // offsetWidth is the pre-transform layout size, so the rect's post-scale dimensions decide the screen-edge clamp
+    const rect = element.getBoundingClientRect();
+    setPosition(clampTooltipPosition(pointer.x, pointer.y, rect.width, rect.height, window.innerWidth, window.innerHeight));
   }, [pointer, data, text, locale]);
 
   if (!data?.visible) return null;

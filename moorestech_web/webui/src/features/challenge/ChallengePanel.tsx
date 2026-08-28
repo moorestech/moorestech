@@ -30,7 +30,7 @@ export default function ChallengePanel() {
         ))}
       </Group>
       {selected && <TreeView nodes={selected.nodes} getId={(node) => node.guid} getPosition={(node) => node.position}
-        getPrevIds={(node) => node.prevGuids} nodeTargetSelector="[data-challenge-node]" testIdPrefix="challenge"
+        getPrevIds={(node) => node.prevGuids} testIdPrefix="challenge"
         renderNode={(node, point) => <ChallengeNodeCard node={node} left={point.x} top={point.y} />} />}
     </section>
   );
