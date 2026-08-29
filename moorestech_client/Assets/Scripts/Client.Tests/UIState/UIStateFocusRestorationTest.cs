@@ -114,7 +114,8 @@ namespace Client.Tests.UIState
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
-            return new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null));
+            var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
+            return new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService);
         }
 
         // 鉱脈ゼロの台帳。PlaceBlockStateはコンストラクタで表示を解決するため実体が要る
