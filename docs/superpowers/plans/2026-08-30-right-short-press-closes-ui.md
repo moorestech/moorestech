@@ -354,7 +354,7 @@ git commit -m "feat: RightShortPressInputServiceを追加しDI登録"
 **Interfaces:**
 - Produces: `IPlaceSystem.bool TryCancelInProgressOperation()`（解除したものがあればtrue）、`PlaceSystemStateController.bool TryCancelInProgressOperation()`（現在の設置系へ委譲）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -433,12 +433,12 @@ namespace Client.Tests.PlaceSystem
 
 （`IPlaceSystemSelector` / `IPlacementFeedbackPresenter` のメンバー名は `PlaceSystemStateControllerFeedbackTest.cs` の `FakePlaceSystemSelector` / `FakePlacementFeedbackPresenter` と同じ形にする。差異があればそちらを正として合わせる）
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `TryCancelInProgressOperation` 未定義のエラー。同時に `PlaceSystemStateControllerFeedbackTest.FakePlaceSystem` も interface 未実装で失敗する
 
-- [ ] **Step 3: interface と基底・Empty・Controller に追加する**
+- [x] **Step 3: interface と基底・Empty・Controller に追加する**
 
 `IPlaceSystem.cs` の `Disable();` の後に:
 
@@ -471,7 +471,7 @@ Expected: `TryCancelInProgressOperation` 未定義のエラー。同時に `Plac
 
 `PlaceSystemStateControllerFeedbackTest.cs` の `FakePlaceSystem` にも `public bool TryCancelInProgressOperation() => false;` を追加する。
 
-- [ ] **Step 4: 電線ツールの右押下即解除を置き換える**
+- [x] **Step 4: 電線ツールの右押下即解除を置き換える**
 
 `ElectricWireConnectSystem.cs:76-84` の `if (InputManager.Playable.ScreenRightClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) { ... }` ブロック（コメント2行含む）を**削除**し、`Disable()` の直前に追加:
 
@@ -489,7 +489,7 @@ Expected: `TryCancelInProgressOperation` 未定義のエラー。同時に `Plac
 
 `IsAwaitingResponse` は `ElectricWireConnect/Parts/ElectricWireExtendRequestSender.cs:33` に既存（`{ get; private set; }`）。不要になった `using Client.Game.InGame.Control;` / `Client.Input` があれば削除。
 
-- [ ] **Step 5: 歯車チェーンポールとBPコピーにも実装する**
+- [x] **Step 5: 歯車チェーンポールとBPコピーにも実装する**
 
 `GearChainPoleConnectSystem.cs` の `Disable()` の直後に:
 
@@ -515,12 +515,12 @@ Expected: `TryCancelInProgressOperation` 未定義のエラー。同時に `Plac
         }
 ```
 
-- [ ] **Step 6: テストを実行して通ることを確認する**
+- [x] **Step 6: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlaceSystemStateController"`
 Expected: `PlaceSystemStateControllerCancelTest` 3件 + `PlaceSystemStateControllerFeedbackTest` 3件 PASS
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem
