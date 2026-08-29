@@ -12,13 +12,10 @@ export const scrollSettleTolerancePx = 1;
 export function activeCategoryAtScroll(offsets: CategoryHeadingOffset[], scrollTop: number): string | null {
   if (offsets.length === 0) return null;
   let active: string | null = null;
-  for (let i = 0; i < offsets.length; i++) {
-    const offset = offsets[i];
-    const isLastHeading = i === offsets.length - 1;
-    // 末尾の見出しだけtolerance適用。その他は完全一致
-    // Apply tolerance only to last heading; others require exact match
-    const threshold = isLastHeading ? offset.top - scrollSettleTolerancePx : offset.top;
-    if (threshold <= scrollTop) {
+  for (const offset of offsets) {
+    // 全見出しに一律で±1pxの許容を適用
+    // Apply the ±1px tolerance uniformly to every heading
+    if (offset.top - scrollSettleTolerancePx <= scrollTop) {
       active = offset.categoryGuid;
     }
   }

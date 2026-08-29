@@ -12,12 +12,15 @@ describe("activeCategoryAtScroll", () => {
     expect(activeCategoryAtScroll(offsets, 0)).toBe("a");
   });
   it("見出しの間は直前の見出しのカテゴリ", () => {
-    expect(activeCategoryAtScroll(offsets, 299)).toBe("a");
+    expect(activeCategoryAtScroll(offsets, 298)).toBe("a");
     expect(activeCategoryAtScroll(offsets, 500)).toBe("b");
   });
   it("見出し上端ちょうど（±1px）はその見出しのカテゴリ", () => {
     expect(activeCategoryAtScroll(offsets, 300)).toBe("b");
     expect(activeCategoryAtScroll(offsets, 719)).toBe("c");
+  });
+  it("許容は全見出しに一律適用される", () => {
+    expect(activeCategoryAtScroll(offsets, 299)).toBe("b");
   });
   it("末尾を越えても末尾カテゴリ", () => {
     expect(activeCategoryAtScroll(offsets, 5000)).toBe("c");
