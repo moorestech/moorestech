@@ -1,9 +1,11 @@
 using System;
 using System.Linq;
 using Core.Inventory;
+using Core.Item;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.RecipeSelection;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
@@ -56,7 +58,7 @@ namespace Tests.CombinedTest.Core
             var (_, selector, processor, inventory) = MachineRecipeChangeRefundTestHelper.PlaceMachine(recipe);
 
             MachineRecipeChangeRefundTestHelper.StartProcessing(selector, processor, inventory, recipe, overflow);
-            MachineRecipeChangeRefundTestHelper.FillInputSlotsWithFiller(inventory, new Guid("00000000-0000-0000-1234-000000000003"));
+            MachineRecipeChangeRefundTestHelper.FillInputSlotsToCapacity(inventory, recipe);
 
             Assert.AreEqual(MachineRecipeSelectionResult.Success, selector.SetSelectedRecipe(next, overflow));
             foreach (var inputItem in recipe.InputItems)
@@ -77,7 +79,7 @@ namespace Tests.CombinedTest.Core
             var (_, selector, processor, inventory) = MachineRecipeChangeRefundTestHelper.PlaceMachine(recipe);
 
             MachineRecipeChangeRefundTestHelper.StartProcessing(selector, processor, inventory, recipe, overflow);
-            MachineRecipeChangeRefundTestHelper.FillInputSlotsWithFiller(inventory, new Guid("00000000-0000-0000-1234-000000000003"));
+            MachineRecipeChangeRefundTestHelper.FillInputSlotsToCapacity(inventory, recipe);
             var (inputBefore, _) = MachineRecipeChangeRefundTestHelper.GetNonEmptySlots(inventory);
             var beforeSnapshot = inputBefore.Select(i => (i.Id, i.Count)).ToList();
 
@@ -186,6 +188,38 @@ namespace Tests.CombinedTest.Core
             // 溢れた分は消失すること
             // Overflow beyond tank capacity is discarded and not preserved in total
             Assert.Less(expected0 + expected1, before0 + before1 + recipe.InputFluids[0].Amount + recipe.InputFluids[1].Amount);
+        }
+
+        [Test]
+        // 返却シミュレーション(CanRefundAllItems)が実挿入(InsertItem)と同じ束縛規則を使うことを確認する回帰テスト
+        // 修正前は汎用の空きスロット探索でシミュレートしており、束縛外スロットへ仮置きした結果が実挿入と食い違っていた
+        // Regression test verifying the refund simulation uses the same binding rule as the real insert (ADR 0042 C7)
+        // Before the fix it simulated with a generic free-slot search and could place refunds into an unbound slot, diverging from the real insert
+        public void CanRefundAllItemsMatchesBoundInsertOutcomeTest()
+        {
+            MachineRecipeChangeRefundTestHelper.InitDi();
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
+            var (_, selector, _, inventory) = MachineRecipeChangeRefundTestHelper.PlaceMachine(recipe);
+            selector.SetSelectedRecipe(recipe, MachineRecipeChangeRefundTestHelper.CreateOverflow(0));
+
+            // スロット0(素材0の束縛先)を束縛外の異物で塞ぐ。スロット1(素材1の束縛先)は空のまま
+            // Block slot 0 (input 0's bound slot) with a foreign item; slot 1 (input 1's bound slot) stays empty
+            var input = MachineRecipeChangeRefundTestHelper.GetInputInventory(inventory);
+            var foreignItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
+            input.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(foreignItemId, 1));
+
+            // 溢れ先の唯一のスロットも別種のアイテムで満杯にし、素材0の入る余地を無くす
+            // Fill the overflow's sole slot with yet another item type, leaving no room for input 0
+            var overflow = MachineRecipeChangeRefundTestHelper.CreateOverflow(1);
+            var input1ItemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[1].ItemGuid);
+            var input1MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(input1ItemId);
+            overflow.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(input1ItemId, input1MaxStack));
+
+            var refunds = MachineRecipeRefundUtil.CreateRefundStacks(recipe);
+
+            // 素材0はスロット0が異物で塞がり、溢れ先も別種で埋まっているため全量収容できない
+            // Input 0 cannot fit anywhere: its bound slot holds a foreign item and the overflow is full of yet another type
+            Assert.IsFalse(MachineRecipeRefundUtil.CanRefundAllItems(input, overflow, refunds));
         }
     }
 }

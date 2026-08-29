@@ -15,7 +15,6 @@ namespace Game.Block.Blocks.Machine.Inventory
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
-        private readonly VanillaMachineModuleInventory _vanillaMachineModuleInventory;
 
         // 統合スロット順のサブインベントリ列
         // Sub-inventories in unified slot order
@@ -25,7 +24,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
-            _vanillaMachineModuleInventory = vanillaMachineModuleInventory;
             _subInventories = new IVanillaMachineSubInventory[] { vanillaMachineInputInventory, vanillaMachineOutputInventory, vanillaMachineModuleInventory };
         }
 
@@ -40,19 +38,14 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
         }
 
-        /// <summary>
-        ///     モジュールスロットは整理対象から除外する
-        ///     Module slots are excluded from sorting
-        /// </summary>
+        // スロットは全て束縛済みで整理対象にならない（ADR 0042）
+        // Every slot is recipe-bound, so none participates in sorting (ADR 0042)
         public IReadOnlyCollection<int> SortExcludedSlots
         {
             get
             {
                 BlockException.CheckDestroy(this);
-
-                var moduleSlotCount = _vanillaMachineModuleInventory.ModuleSlot.Count;
-                var moduleRangeStart = GetSlotSize() - moduleSlotCount;
-                return Enumerable.Range(moduleRangeStart, moduleSlotCount).ToList();
+                return Enumerable.Range(0, GetSlotSize()).ToList();
             }
         }
 
@@ -95,11 +88,14 @@ namespace Game.Block.Blocks.Machine.Inventory
             return subInventory.Items[localSlot];
         }
 
+        // 入れ替え経路（move service の全量swap）も束縛を守る。ロード復元はサブインベントリの SetItemWithoutEvent を使うため影響しない
+        // The swap path (full-stack swap in the move service) also honors the binding; load restore uses the sub-inventory's SetItemWithoutEvent and is unaffected
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
 
             var (subInventory, localSlot) = ResolveSlot(slot);
+            if (!subInventory.IsAllowedToPlace(localSlot, itemStack)) return;
             subInventory.SetItem(localSlot, itemStack);
         }
 
@@ -153,6 +149,11 @@ namespace Game.Block.Blocks.Machine.Inventory
             BlockException.CheckDestroy(this);
 
             var (subInventory, localSlot) = ResolveSlot(slot);
+
+            // 束縛外のスロットへは置けず、そのまま返す（プレイヤー移動プロトコルの入口）
+            // A stack that violates the binding bounces back untouched (entry point of the player move protocol)
+            if (!subInventory.IsAllowedToPlace(localSlot, itemStack)) return itemStack;
+
             var current = subInventory.Items[localSlot];
 
             // アイテムIDが同じ時はスタックして余りを返し、違う場合はそのまま入れ替える

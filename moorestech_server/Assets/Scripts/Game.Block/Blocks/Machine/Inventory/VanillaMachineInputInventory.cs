@@ -76,6 +76,13 @@ namespace Game.Block.Blocks.Machine.Inventory
             return _slotBinding.IsFluidAllowedAt(tankIndex, fluidId);
         }
 
+        // このアイテムが積まれるスロット番号を公開する（返却シミュレーション等、束縛規則を外部から再現する用途）
+        // Expose the bound slot for this item (used by callers, e.g. refund simulation, that must mirror the binding rule)
+        public int ResolveSlot(IItemStack itemStack)
+        {
+            return _slotBinding.ResolveSlot(itemStack);
+        }
+
         public bool IsAllowedToStartProcess(MachineRecipeMasterElement recipe)
         {
             // 選択済みレシピの材料充足のみを確認する（レシピ探索は行わない）
@@ -117,27 +124,15 @@ namespace Game.Block.Blocks.Machine.Inventory
                 _itemDataStoreService.SetItem(i, InputSlot[i].SubItem(item.Count));
             }
 
-            //inputスロットから液体を減らす
-            foreach (var inputFluid in recipe.InputFluids)
+            // 液体iはタンクiから減らす（束縛済みなので探索しない）
+            // Consume fluid i from tank i (bound, so no search)
+            for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
-                var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
-                
-                // 任意のスロットから必要な液体を減らす
-                for (var i = 0; i < _fluidContainers.Length; i++)
-                {
-                    if (_fluidContainers[i].FluidId == fluidId && _fluidContainers[i].Amount >= inputFluid.Amount)
-                    {
-                        _fluidContainers[i].Amount -= inputFluid.Amount;
-                        
-                        // If the container is now empty, reset the fluid ID
-                        if (_fluidContainers[i].Amount <= 0)
-                        {
-                            _fluidContainers[i].Amount = 0;
-                            _fluidContainers[i].FluidId = FluidMaster.EmptyFluidId;
-                        }
-                        break; // 一つのスロットから減らしたら次の液体へ
-                    }
-                }
+                var container = _fluidContainers[i];
+                container.Amount -= recipe.InputFluids[i].Amount;
+                if (container.Amount > 0) continue;
+                container.Amount = 0;
+                container.FluidId = FluidMaster.EmptyFluidId;
             }
         }
         

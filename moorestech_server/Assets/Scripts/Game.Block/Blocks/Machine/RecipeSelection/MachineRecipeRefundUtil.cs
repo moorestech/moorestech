@@ -31,24 +31,36 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             return stacks;
         }
 
-        // 入力→溢れ先の順で全量収容判定(アイテムのみ)
-        // Whether all item refunds fit into the input inventory then the overflow inventory (fluids excluded)
+        // 入力→溢れ先の順で全量収容判定(アイテムのみ)。入力側は実挿入(InsertItem)と同じ束縛規則でシミュレートする
+        // Whether all item refunds fit into the input inventory then the overflow inventory (fluids excluded).
+        // The input side is simulated with the same binding rule as the real insert (InsertItem)
         public static bool CanRefundAllItems(VanillaMachineInputInventory input, IOpenableInventory overflow, List<IItemStack> refunds)
         {
-            var inputRemainder = CopyMachineInput().InsertItem(refunds);
+            var inputRemainder = SimulateInputInsert();
             var overflowRemainder = CopyOverflow().InsertItem(FilterNonEmpty(inputRemainder));
             return FilterNonEmpty(overflowRemainder).Count == 0;
 
             #region Internal
 
-            // 機械入力インベントリの挿入規則（同一アイテム複数スタック禁止）を再現したコピー
-            // Copy that mirrors the machine input insertion rule (no multiple stacks per item)
-            OpenableInventoryItemDataStoreService CopyMachineInput()
+            // 束縛先スロット(ResolveSlot)のみへ積む。束縛外(-1)はそのまま溢れ先へ回す
+            // Stack only into the bound slot (ResolveSlot); unbound (-1) items pass straight through to the overflow
+            List<IItemStack> SimulateInputInsert()
             {
-                var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
-                var sim = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, input.InputSlot.Count, option);
-                for (var i = 0; i < input.InputSlot.Count; i++) sim.SetItemWithoutEvent(i, input.InputSlot[i]);
-                return sim;
+                var simulated = new List<IItemStack>(input.InputSlot);
+                var remainders = new List<IItemStack>(refunds.Count);
+                foreach (var stack in refunds)
+                {
+                    var slot = input.ResolveSlot(stack);
+                    if (slot < 0)
+                    {
+                        remainders.Add(stack);
+                        continue;
+                    }
+                    var result = simulated[slot].AddItem(stack);
+                    simulated[slot] = result.ProcessResultItemStack;
+                    remainders.Add(result.RemainderItemStack);
+                }
+                return remainders;
             }
 
             OpenableInventoryItemDataStoreService CopyOverflow()

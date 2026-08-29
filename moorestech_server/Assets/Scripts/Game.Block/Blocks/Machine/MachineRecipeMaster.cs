@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Core.Item.Interface;
 using Game.Fluid;
 using Mooresmaster.Model.MachineRecipesModule;
@@ -18,42 +17,23 @@ namespace Core.Master
             var recipeBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
             if (recipeBlockId != blockId) return false;
 
-            // アイテムが十分な数満たされている数が、必要とする数と一致するか
-            // Check that enough item slots satisfy the required counts
-            var okCnt = 0;
-            foreach (var slot in inputSlot)
+            // 素材iはスロットiに束縛されているので番号で照合する
+            // Input i is bound to slot i, so match by index
+            for (var i = 0; i < recipe.InputItems.Length; i++)
             {
-                if (slot.Id == ItemMaster.EmptyItemId)
-                {
-                    continue;
-                }
-                var slotGuid = MasterHolder.ItemMaster.GetItemMaster(slot.Id).ItemGuid;
-                okCnt += recipe.InputItems.Count(input => slotGuid == input.ItemGuid && input.Count <= slot.Count);
+                if (inputSlot.Count <= i) return false;
+                var required = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[i].ItemGuid);
+                if (inputSlot[i].Id != required || inputSlot[i].Count < recipe.InputItems[i].Count) return false;
             }
 
-            if (okCnt != recipe.InputItems.Length) return false;
-
-            // 液体が十分な数満たされているかチェック
-            // Check that fluid inputs are satisfied
-            foreach (var inputFluid in recipe.InputFluids)
+            // 液体iはタンクiに束縛されているので番号で照合する
+            // Fluid i is bound to tank i, so match by index
+            for (var i = 0; i < recipe.InputFluids.Length; i++)
             {
-                var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
-                var found = false;
-
-                // 任意のスロットに必要な液体があるかチェック
-                // Check any slot for the required fluid amount
-                foreach (var fluidContainer in fluidInputSlot)
-                {
-                    if (fluidContainer.FluidId == fluidId && fluidContainer.Amount >= inputFluid.Amount)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) return false;
+                if (fluidInputSlot.Count <= i) return false;
+                var required = MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[i].FluidGuid);
+                if (fluidInputSlot[i].FluidId != required || fluidInputSlot[i].Amount < recipe.InputFluids[i].Amount) return false;
             }
-
             return true;
         }
     }
