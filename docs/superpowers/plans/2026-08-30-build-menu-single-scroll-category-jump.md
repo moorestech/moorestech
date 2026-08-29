@@ -212,7 +212,7 @@ describe("activeCategoryAtScroll", () => {
     expect(activeCategoryAtScroll(offsets, 0)).toBe("a");
   });
   it("見出しの間は直前の見出しのカテゴリ", () => {
-    expect(activeCategoryAtScroll(offsets, 299)).toBe("a");
+    expect(activeCategoryAtScroll(offsets, 298)).toBe("a");
     expect(activeCategoryAtScroll(offsets, 500)).toBe("b");
   });
   it("見出し上端ちょうど（±1px）はその見出しのカテゴリ", () => {
@@ -311,7 +311,7 @@ git commit -m "feat(webui): add build menu scroll-spy math"
 **Interfaces:**
 - Produces: `ModeSwitchOption.disabled?: boolean`（そのボタンだけ `disabled` 属性＋`data-option-disabled="true"`。root の `disabled` は従来どおり全体減衰）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `index.test.ts` の `describe("ModeSwitch", …)` 内に追加:
 
@@ -337,12 +337,12 @@ git commit -m "feat(webui): add build menu scroll-spy math"
   });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `pnpm vitest run src/shared/ui/ModeSwitch/index.test.ts`
 Expected: FAIL（`buttons[1].props.disabled` が undefined）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `index.tsx`:
 
@@ -387,12 +387,12 @@ export type ModeSwitchOption = {
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `pnpm vitest run src/shared/ui/ModeSwitch/index.test.ts`
 Expected: PASS（既存3件＋新規1件）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add src/shared/ui/ModeSwitch/
@@ -410,7 +410,7 @@ git commit -m "feat(webui): ModeSwitch supports per-option disabled"
 **Interfaces:**
 - Produces: `BuildMenuSessionState = { query: string; scrollTop: number; hoveredEntryId: string | null }`。`loadBuildMenuSessionState` / `updateBuildMenuSessionState` のシグネチャは不変
 
-- [ ] **Step 1: テストを書き換える**
+- [x] **Step 1: テストを書き換える**
 
 `buildMenuSessionState.test.ts` を以下の全文にする:
 
@@ -453,12 +453,12 @@ describe("buildMenuSessionState", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `pnpm vitest run src/features/buildMenu/sessionState/buildMenuSessionState.test.ts`
 Expected: FAIL（`toEqual` に `categoryGuid: null` が余分）
 
-- [ ] **Step 3: 実装を書き換える**
+- [x] **Step 3: 実装を書き換える**
 
 `buildMenuSessionState.ts` の型と初期値から `categoryGuid` を削除:
 
@@ -478,12 +478,12 @@ const initialState: BuildMenuSessionState = {
 };
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `pnpm vitest run src/features/buildMenu/sessionState/buildMenuSessionState.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add src/features/buildMenu/sessionState/
@@ -514,7 +514,7 @@ git commit -m "refactor(webui): drop categoryGuid from build menu session state"
   ```
   `visibleCategoryGuids` は表示中の群の順序付きGUID列（絞り込み後）。変わるたびにoffsetを取り直す
 
-- [ ] **Step 1: 実装を書く**
+- [x] **Step 1: 実装を書く**
 
 ```ts
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
@@ -612,12 +612,12 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
 }
 ```
 
-- [ ] **Step 2: 型チェックとlintを通す**
+- [x] **Step 2: 型チェックとlintを通す**
 
 Run: `pnpm exec tsc --noEmit -p tsconfig.json && pnpm lint`
 Expected: このファイルに関するエラーなし（`BuildMenuPanel.tsx` の Task 1 由来の型エラーは Task 6 で解消するため、ここではファイル名で切り分けて確認する）
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add src/features/buildMenu/hooks/useBuildMenuCategoryScroll.ts
@@ -643,7 +643,7 @@ git commit -m "feat(webui): add build menu category scroll hook (scroll-spy + sm
   - `BuildMenuCategoryGrid` props: `{ sections; onSelect; onDelete; onEntryHovered }`（`compositeHeading` 削除。見出しはサブカテゴリ名のみ）
   - `CategorySidebar` props: `{ categories: { categoryGuid: string; disabled: boolean }[]; selected: string; onSelect }`（`disabled` 全体フラグは削除）
 
-- [ ] **Step 1: リスト部品の失敗するテストを書く**
+- [x] **Step 1: リスト部品の失敗するテストを書く**
 
 `BuildMenuCategoryList.test.ts`:
 
@@ -704,12 +704,12 @@ describe("BuildMenuCategoryList", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `pnpm vitest run src/features/buildMenu/BuildMenuCategoryList.test.ts`
 Expected: FAIL（モジュール未存在）
 
-- [ ] **Step 3: BuildMenuCategoryGrid から compositeHeading を外す**
+- [x] **Step 3: BuildMenuCategoryGrid から compositeHeading を外す**
 
 `BuildMenuCategoryGrid.tsx` を以下の全文にする:
 
@@ -761,7 +761,7 @@ export function BuildMenuCategoryGrid({ sections, onSelect, onDelete, onEntryHov
 }
 ```
 
-- [ ] **Step 4: BuildMenuCategoryList を作る**
+- [x] **Step 4: BuildMenuCategoryList を作る**
 
 ```tsx
 import { FadeRule } from "@/shared/ui";
@@ -818,12 +818,12 @@ export function BuildMenuCategoryList({ groups, spacerHeight, attachHeading, att
 }
 ```
 
-- [ ] **Step 5: テストを実行して通ることを確認する**
+- [x] **Step 5: テストを実行して通ることを確認する**
 
 Run: `pnpm vitest run src/features/buildMenu/BuildMenuCategoryList.test.ts`
 Expected: PASS
 
-- [ ] **Step 6: CategorySidebar をジャンプ用に書き換える**
+- [x] **Step 6: CategorySidebar をジャンプ用に書き換える**
 
 `CategorySidebar.tsx` 全文:
 
@@ -867,7 +867,7 @@ export function CategorySidebar({ categories, selected, onSelect }: Props) {
 }
 ```
 
-- [ ] **Step 7: BuildMenuPanel を配線し直す**
+- [x] **Step 7: BuildMenuPanel を配線し直す**
 
 `BuildMenuPanel.tsx` 全文:
 
@@ -1018,7 +1018,7 @@ export function BuildMenuPanel() {
 
 注: フックは `if (!data) return null` より前に無条件で呼ぶ（Hooksの呼び出し順序規則）。`data` が無い間は空配列を渡す。
 
-- [ ] **Step 8: CSSを追加する**
+- [x] **Step 8: CSSを追加する**
 
 `style.module.css` の `.sectionHeading { font-size: 12px; … }` ブロックの直後に追加:
 
@@ -1065,12 +1065,12 @@ export function BuildMenuPanel() {
   --build-menu-category-gap: 20px;
 ```
 
-- [ ] **Step 9: 型・lint・全単体テストを通す**
+- [x] **Step 9: 型・lint・全単体テストを通す**
 
 Run: `pnpm exec tsc --noEmit -p tsconfig.json && pnpm lint && pnpm test`
 Expected: すべて成功。`pnpm test` で `buildMenuGrouping` / `buildMenuScrollSpy` / `BuildMenuCategoryList` / `buildMenuSessionState` / `ModeSwitch` / `BuildMenuSlot` / `BuildMenuDetailSidebar` が緑
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add src/features/buildMenu/ src/app/tokens.css
@@ -1090,7 +1090,7 @@ git commit -m "feat(webui): build menu becomes one scroll with category-jump sid
 **Interfaces:**
 - Consumes: Task 6 の testid（`build-menu-category-heading-<guid>`、`build-menu-category-<guid>-group`、`build-menu-trailing-spacer`、`build-menu-category-<guid>` ボタン、`build-menu-sidebar`）
 
-- [ ] **Step 1: buildMenu.spec.ts のテストを書き換える**
+- [x] **Step 1: buildMenu.spec.ts のテストを書き換える**
 
 (a) `test("カテゴリ切替でセクションが入れ替わる", …)` を丸ごと以下に置き換える:
 
@@ -1168,18 +1168,18 @@ test("検索は同じリストを絞り込み、ヒットの無いカテゴリ�
 
 (e) `test("エントリ選択とBP右クリック削除のアクション契約", …)` の `await page.getByTestId(\`build-menu-category-${buildMenuCategoryIds.blueprint}\`).click();` 行は残す（ジャンプ後にクリックする形で成立）。
 
-- [ ] **Step 2: capture-buildmenu.ts のコメントと手順を合わせる**
+- [x] **Step 2: capture-buildmenu.ts のコメントと手順を合わせる**
 
 - 「1. 既定表示（先頭カテゴリ選択・カーソル退避）」→「1. 既定表示（先頭カテゴリが視口上端・カーソル退避）」/ 英語 `(first category at viewport top, cursor parked off-screen)`
 - 「2.検索中(複合見出し)」→「2.検索中(絞り込み)」/ `2. Searching (filtered)`
 - 「4.8列グリッドが埋まるカテゴリ」の後に、click後 `await page.waitForTimeout(600);`（スムーズスクロール完了待ち）を `waitFor()` の直後へ追加
 
-- [ ] **Step 3: e2eを実行する**
+- [x] **Step 3: e2eを実行する**
 
 Run: `pnpm test:e2e buildMenu`
 Expected: `buildMenu.spec.ts` と `buildMenuLayout.spec.ts` がすべてPASS。失敗した場合は失敗specとメッセージを記録し、ポート5273衝突でないことを確認してから修正する
 
-- [ ] **Step 4: webui-design §8.11 を改定する**
+- [x] **Step 4: webui-design §8.11 を改定する**
 
 `.agents/skills/webui-design/SKILL.md` の §8.11 で以下を書き換える:
 
@@ -1190,7 +1190,7 @@ Expected: `buildMenu.spec.ts` と `buildMenuLayout.spec.ts` がすべてPASS。�
 - 「**セッション内状態保持**: 選択カテゴリ・検索文字列・スクロール位置・詳細sticky表示は」→「**セッション内状態保持**: 検索文字列・スクロール位置・詳細sticky表示は」（選択カテゴリを削除）
 - §8.6 ModeSwitch の項に1行追加: 「  - **`ModeSwitchOption.disabled?: boolean`**: 選択肢単位の無効化（`data-option-disabled`）。rootの `disabled` と同じ減衰で、他の選択肢は生かす。判断は利用側が持つ。」
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add e2e/tests/regression/buildMenu.spec.ts e2e/capture-buildmenu.ts ../../.agents/skills/webui-design/SKILL.md
