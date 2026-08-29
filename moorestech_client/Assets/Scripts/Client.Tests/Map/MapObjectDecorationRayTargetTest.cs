@@ -36,7 +36,7 @@ namespace Client.Tests.Map
         [Test]
         public void 装飾物はレイターゲットのコライダーが無効化され採掘開始もUnavailableになる()
         {
-            var (mapObject, rayCollider) = Build(DecorationGuid);
+            var (mapObject, rayCollider) = Build(DecorationGuid, false);
 
             Assert.IsFalse(rayCollider.enabled);
             Assert.IsFalse(mapObject.IsAvailable);
@@ -46,13 +46,22 @@ namespace Client.Tests.Map
         [Test]
         public void 採掘可能なmapObjectはレイターゲットのコライダーが有効のまま()
         {
-            var (mapObject, rayCollider) = Build(MiningRockGuid);
+            var (mapObject, rayCollider) = Build(MiningRockGuid, false);
 
             Assert.IsTrue(rayCollider.enabled);
             Assert.IsTrue(mapObject.IsAvailable);
         }
 
-        private (MapObjectGameObject mapObject, Collider rayCollider) Build(Guid mapObjectGuid)
+        [Test]
+        public void 破壊済みの採掘可能mapObjectはレイターゲットのコライダーが無効のまま()
+        {
+            var (mapObject, rayCollider) = Build(MiningRockGuid, true);
+
+            Assert.IsFalse(rayCollider.enabled);
+            Assert.IsFalse(mapObject.IsAvailable);
+        }
+
+        private (MapObjectGameObject mapObject, Collider rayCollider) Build(Guid mapObjectGuid, bool isDestroyed)
         {
             // 生成prefabと同じく子にレイターゲット(コライダー+マーカー)を持つ最小構成
             // Minimal shape matching generated prefabs: a child ray target with collider and marker
@@ -64,7 +73,7 @@ namespace Client.Tests.Map
 
             var mapObject = _root.AddComponent<MapObjectGameObject>();
             mapObject.SetRuntimeIdentity(1, mapObjectGuid.ToString());
-            mapObject.Initialize(new GetMapObjectInfoProtocol.MapObjectsInfoMessagePack(1, false, 10));
+            mapObject.Initialize(new GetMapObjectInfoProtocol.MapObjectsInfoMessagePack(1, isDestroyed, 10));
             return (mapObject, rayCollider);
         }
     }

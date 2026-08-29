@@ -86,22 +86,24 @@ namespace Client.Game.InGame.Map.MapObject
             // Resolve the yields once the master is settled
             EarnItemGuids = MapObjectMiningPresentation.GetEarnItemGuids(MapObjectMasterElement);
 
-            
-            if (mapObjectInfo.IsDestroyed)
-            {
-                DestroyMapObject();
-            }
-            
-            UpdateHpBar();
-            
+
             // 開幕スキットの非活性窓で生成される近傍個体があるため、非活性の子も走査する（2026-08-23裁定）
             // Near-field objects can be born inside the opening skit's inactive window, so inactive children are scanned too (adjudicated 2026-08-23)
+            // DestroyMapObject()の破壊処理より先に行う。破壊は最終状態として最後に勝つ必要がある（2026-08-30裁定）
+            // Runs before DestroyMapObject() so destruction, as the final state, wins last (adjudicated 2026-08-30)
             var rayTargets = GetComponentsInChildren<MapObjectRayTarget>(true);
             foreach (var rayTarget in rayTargets)
             {
                 rayTarget.Initialize(this);
                 rayTarget.SetInteractable(!IsDecoration);
             }
+
+            if (mapObjectInfo.IsDestroyed)
+            {
+                DestroyMapObject();
+            }
+
+            UpdateHpBar();
 
             // 個体スケールがUI表示に波及しないようHPバーは逆スケールで等倍を保つ（姿勢と同様、補正はView自身の責務）
             // Counter-scale the HP bar so per-instance scaling never distorts the UI (correction is the View's own responsibility, like its rotation)
