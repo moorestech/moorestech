@@ -79,13 +79,20 @@ namespace Client.Input
         public readonly InputKey ClickPosition;
         public readonly InputKey ScreenLeftClick;
         public readonly InputKey ScreenRightClick;
-        
+        public readonly InputKey Interact;
+        public readonly InputKey Ride;
+
         public PlayableInputManager(MoorestechInputSettings settings)
         {
             ScreenLeftClick = new InputKey(settings.Playable.ScreenLeftClick);
             ScreenRightClick = new InputKey(settings.Playable.ScreenRightClick);
             ClickPosition = new InputKey(settings.Playable.ClickPosition);
             BlockPlaceRotation = new InputKey(settings.Playable.BlockPlaceRotation, InputSuppressionScope.Keyboard);
+
+            // Web UIのテキスト入力中に世界へ漏れないようキーボード抑止スコープに入れる
+            // Keep both under the keyboard suppression scope so Web UI text input never leaks into the world
+            Interact = new InputKey(settings.Playable.Interact, InputSuppressionScope.Keyboard);
+            Ride = new InputKey(settings.Playable.Ride, InputSuppressionScope.Keyboard);
         }
     }
     
