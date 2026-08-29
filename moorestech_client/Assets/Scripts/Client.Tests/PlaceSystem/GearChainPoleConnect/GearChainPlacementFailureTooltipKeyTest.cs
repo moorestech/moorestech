@@ -1,4 +1,6 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Util.GearChain;
@@ -19,7 +21,6 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.TooFarError).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.AlreadyConnectedError).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.ConnectionLimitError).Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainNoItem.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.NoItemError).Key);
         }
 
         [Test]
@@ -27,6 +28,9 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // Reasons the client judgement never returns fall back to the default cannot-connect text
         public void UnreachableReasonFallsBackToFailedKeyTest()
         {
+            // 素材不足は写像を持たず、名指しの行が作れないときの落とし先と同じ既定文言になる
+            // The material shortage has no mapping of its own and lands on the same default used when no named line can be built
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.NoItemError).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.InvalidTargetError).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.NotUnlockedError).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(string.Empty).Key);
@@ -44,13 +48,13 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
                 (false, GearChainPlacementEvaluator.TooFarError, LocalizationKeys.Ui.Tooltip.PlaceGearChainTooFar.Key),
                 (false, GearChainPlacementEvaluator.AlreadyConnectedError, LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key),
                 (false, GearChainPlacementEvaluator.ConnectionLimitError, LocalizationKeys.Ui.Tooltip.PlaceGearChainConnectionLimit.Key),
-                (false, GearChainPlacementEvaluator.NoItemError, LocalizationKeys.Ui.Tooltip.PlaceGearChainNoItem.Key),
+                (false, GearChainPlacementEvaluator.NoItemError, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key),
                 (false, GearChainPlacementEvaluator.NotUnlockedError, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key),
             };
 
             foreach (var testCase in cases)
             {
-                var lines = GearChainPlacementFailureTooltipKey.BuildFailureLines(testCase.IsPlaceable, testCase.FailureReason);
+                var lines = GearChainPlacementFailureTooltipKey.BuildFailureLines(testCase.IsPlaceable, testCase.FailureReason, Array.Empty<ConstructionMaterialShortage>());
                 var message = $"isPlaceable={testCase.IsPlaceable} failureReason={testCase.FailureReason}";
                 if (testCase.IsPlaceable)
                 {

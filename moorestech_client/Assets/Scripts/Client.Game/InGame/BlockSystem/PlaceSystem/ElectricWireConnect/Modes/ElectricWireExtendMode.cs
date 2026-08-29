@@ -71,7 +71,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 // 不可理由と電線消費数を積む
                 // Pushes the failure reason and wire cost
-                ElectricWirePlacementFailureTooltipKey.Report(judgement, connectToolGuid, distance, feedback);
+                ElectricWirePlacementFailureTooltipKey.Report(judgement, connectToolGuid, distance, _context.Inventory, feedback);
 
                 // 可否OK かつクリックで接続する。起点は応答確認後に接続先へ移る
                 // The origin moves to the target after the response confirms
@@ -108,7 +108,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 // ゴーストの不可理由はTryEvaluateGhostが積み済みなので、続けてワイヤー判定の理由と消費電線数を積む
                 // TryEvaluateGhost already pushed the ghost reasons, so push the wire judgement reason and cost next
-                ElectricWirePlacementFailureTooltipKey.Report(judgement, connectToolGuid, distance, feedback);
+                ElectricWirePlacementFailureTooltipKey.Report(judgement, connectToolGuid, distance, _context.Inventory, feedback);
                 _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), endEndpoint, placeable);
 
                 // 可否OK かつクリックで延長設置する。応答待ち中は多重送信を防ぐため送信しない

@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect.Feedback
 {
@@ -13,13 +15,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         /// カーソルセルの案内行を積む。戻り値は「電線不足を積んだか」で、呼び出し元の線描画色の分岐に使う
         /// Pushes the cursor cell's notice line; the return value says whether wire shortage was pushed, which drives the caller's wire coloring
         /// </summary>
-        public static bool Report(bool cursorWirePlaceable, int cursorRawTargetCount, bool hasOutOfRangeNeighbor, int totalCost, PlacementFeedback feedback)
+        public static bool Report(bool cursorWirePlaceable, int cursorRawTargetCount, bool hasOutOfRangeNeighbor, int totalCost, IReadOnlyList<ConstructionMaterialShortage> cursorWireShortages, PlacementFeedback feedback)
         {
             // 電線不足は自動接続プレビューが唯一拒否する理由なので他の案内より優先する
             // Insufficient wire is the only rejection reason here, so it takes precedence over the other notices
             if (!cursorWirePlaceable)
             {
-                feedback.Add(ElectricWireFeedbackLines.WireShortage());
+                feedback.AddLines(ElectricWireFeedbackLines.WireShortageLines(cursorWireShortages));
                 return true;
             }
 

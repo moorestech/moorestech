@@ -19,6 +19,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 
         public void Clear() => _lines.Clear();
         public void Add(TooltipLine line) => _lines.Add(line);
+        public void AddLines(IReadOnlyList<TooltipLine> lines) => _lines.AddRange(lines);
 
         public void AddBlockedByTerrain() => _lines.Add(BlockedByTerrainLine());
         public void AddBlockedByExistingBlock() => _lines.Add(BlockedByExistingBlockLine());

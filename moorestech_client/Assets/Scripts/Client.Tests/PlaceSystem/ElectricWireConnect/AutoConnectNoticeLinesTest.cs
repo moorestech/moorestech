@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 
@@ -13,12 +14,14 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
     /// </summary>
     public class AutoConnectNoticeLinesTest
     {
+        // 不足素材は空で渡すため、電線不足の期待キーは汎用の設置不可文言になる（不足素材ごとの行はElectricWireFeedbackLinesTestで検証）
+        // The shortages are passed empty, so the wire-shortage rows expect the generic wording (the per-material lines are covered by ElectricWireFeedbackLinesTest)
         // cursorWirePlaceable / cursorRawTargetCount / hasOutOfRangeNeighbor / totalCost / 期待キー(nullは行なし) / 期待戻り値
         // cursorWirePlaceable / cursorRawTargetCount / hasOutOfRangeNeighbor / totalCost / expected key (null means no line) / expected return
         private static readonly object[] ReportCases =
         {
-            new object[] { false, 0, false, 0, LocalizationKeys.Ui.Tooltip.PlaceWireNoWireItem.Key, true },
-            new object[] { false, 2, true, 5, LocalizationKeys.Ui.Tooltip.PlaceWireNoWireItem.Key, true },
+            new object[] { false, 0, false, 0, LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, true },
+            new object[] { false, 2, true, 5, LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, true },
             new object[] { true, 0, true, 0, LocalizationKeys.Ui.Tooltip.PlaceWireOutOfRangeNotice.Key, false },
             new object[] { true, 0, true, 5, LocalizationKeys.Ui.Tooltip.PlaceWireOutOfRangeNotice.Key, false },
             new object[] { true, 0, false, 0, null, false },
@@ -32,7 +35,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             var feedback = new PlacementFeedback();
 
-            var isWireShortage = AutoConnectNoticeLines.Report(cursorWirePlaceable, cursorRawTargetCount, hasOutOfRangeNeighbor, totalCost, feedback);
+            var isWireShortage = AutoConnectNoticeLines.Report(cursorWirePlaceable, cursorRawTargetCount, hasOutOfRangeNeighbor, totalCost, Array.Empty<ConstructionMaterialShortage>(), feedback);
 
             Assert.AreEqual(expectedIsWireShortage, isWireShortage);
             CollectionAssert.AreEqual(expectedKey == null ? Array.Empty<string>() : new[] { expectedKey }, feedback.Lines.Select(line => line.Key.Key).ToArray());
@@ -43,7 +46,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             var feedback = new PlacementFeedback();
 
-            AutoConnectNoticeLines.Report(true, 2, false, 7, feedback);
+            AutoConnectNoticeLines.Report(true, 2, false, 7, Array.Empty<ConstructionMaterialShortage>(), feedback);
 
             CollectionAssert.AreEqual(new[] { "7" }, feedback.Lines[0].TextParams);
         }

@@ -1,6 +1,7 @@
 using System.Reflection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Localization;
 using Mooresmaster.Localization.Generated;
@@ -75,7 +76,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             var presenter = new PlacementFeedbackTooltipPresenter();
             var feedback = new PlacementFeedback();
             feedback.AddBlockedByTerrain();
-            feedback.Add(ElectricWireFeedbackLines.WireShortage());
+            feedback.AddLines(ElectricWireFeedbackLines.WireShortageLines(System.Array.Empty<ConstructionMaterialShortage>()));
 
             presenter.Present(feedback);
 
@@ -83,7 +84,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             Assert.IsTrue(presentation.Visible);
             Assert.AreEqual(2, presentation.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, presentation.Lines[0].Key.Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireNoWireItem.Key, presentation.Lines[1].Key.Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, presentation.Lines[1].Key.Key);
 
             feedback.Clear();
             presenter.Present(feedback);

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Block;
@@ -82,8 +83,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     {
                         // 橋脚未定義の場合は設置不可。仮にデフォルトの最大長で判定する
                         // No pier defined: still preview with default max length
-                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, connectToolGuid);
-                        ShowPreview(previewData);
+                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, connectToolGuid, out var noPierMaterialShortages);
+                        ShowPreview(previewData, noPierMaterialShortages);
                     }
                     else
                     {
@@ -96,8 +97,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         // No pier means a stale ConnectorPosition, so stop the connect preview too (the service already pushed the reason)
                         if (placeInfo == null) { _previewObject.SetActive(false); return; }
 
-                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, connectToolGuid);
-                        ShowPreview(previewData);
+                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, connectToolGuid, out var pierMaterialShortages);
+                        ShowPreview(previewData, pierMaterialShortages);
 
                         // 地面干渉でピアが設置不可なら接続も送らない
                         // Do not send the connect when the pier cell is terrain-blocked
@@ -127,15 +128,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     _connectFromArea = null;
                     return;
                 }
-                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, connectToolGuid);
-                ShowPreview(previewData);
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, connectToolGuid, out var materialShortages);
+                ShowPreview(previewData, materialShortages);
 
                 if (!previewData.IsPlaceable) return;
 
                 SendConnectRailProtocol(fromNode, toNode, previewData.RailTypeGuid);
             }
             #region Internal
-            void ShowPreview(TrainRailConnectPreviewData previewData)
+            void ShowPreview(TrainRailConnectPreviewData previewData, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
             {
                 if (!previewData.IsValid)
                 {
@@ -144,7 +145,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 _previewObject.SetActive(true);
                 _previewObject.ShowPreview(previewData);
-                TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
+                TrainRailPlacementFailureTooltipKey.Report(previewData, materialShortages, feedback);
             }
             void SendConnectRailProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
             {

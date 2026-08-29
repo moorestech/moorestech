@@ -1,6 +1,6 @@
-// 通常設置の電線不足ゲートE2E(受け入れ6): 電線を持たずに既存設備の近くへ電柱を通常設置すると「アイテム不足： 電線」が出て設置されない
+// 通常設置の電線不足ゲートE2E(受け入れ6): 電線を持たずに既存設備の近くへ電柱を通常設置すると「アイテム不足： 銅のワイヤー」が出て設置されない
 // 検証項目: 電線不足時のラベル文言と設置拒否、対照として電線を補充すると同じ操作で設置できる
-// Normal placement wire-shortage gate E2E (acceptance 6): placing a pole near existing equipment without wire shows アイテム不足： 電線 and is refused.
+// Normal placement wire-shortage gate E2E (acceptance 6): placing a pole near existing equipment without wire shows アイテム不足： 銅のワイヤー and is refused.
 // Verifies: the shortage label and the refused placement, plus a control showing the same click succeeds once wire is supplied.
 using System;
 using System.Linq;
@@ -69,7 +69,7 @@ return PlaytestRunner.Run("electric-wire-normal-place-wire-shortage-via-ui", opt
 
     // 電線不足の文言が自動接続プレビューのラベルに出る
     // The shortage text appears on the auto-connect preview label
-    await p.Until(() => AutoConnectLabelText().Contains("アイテム不足： 電線"), 10f, "受け入れ6: 電線不足時に『アイテム不足： 電線』が表示される");
+    await p.Until(() => AutoConnectLabelText().Contains("アイテム不足： 銅のワイヤー"), 10f, "受け入れ6: 電線不足時に『アイテム不足： 銅のワイヤー』が表示される");
     p.Note($"自動接続プレビューのラベル表示='{AutoConnectLabelText()}'");
     await p.Screenshot("01-wire-shortage-label");
 

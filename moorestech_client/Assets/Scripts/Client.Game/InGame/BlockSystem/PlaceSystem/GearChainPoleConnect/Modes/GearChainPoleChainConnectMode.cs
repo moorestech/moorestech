@@ -46,7 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 
             // 接続不可なら判定の理由を行にする
             // Turn the judgement reason into a line when the connection is not possible
-            var lines = GearChainPlacementFailureTooltipKey.BuildFailureLines(input.PoleToPolePreview.IsPlaceable, input.PoleToPolePreview.FailureReason);
+            var lines = GearChainPlacementFailureTooltipKey.BuildFailureLines(input.PoleToPolePreview.IsPlaceable, input.PoleToPolePreview.FailureReason, input.PoleToPolePreview.MaterialShortages);
             return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Line(input.PoleToPolePreview.StartPoint, input.PoleToPolePreview.EndPoint, input.PoleToPolePreview.IsPlaceable), lines);
         }
     }

@@ -73,7 +73,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         {
             var lines = new List<TooltipLine>();
             if (!ghostGroundClear) lines.Add(PlacementFeedback.BlockedByTerrainLine());
-            if (extendPreview.IsValid) lines.AddRange(GearChainPlacementFailureTooltipKey.BuildFailureLines(extendPreview.IsPlaceable, extendPreview.FailureReason));
+            if (extendPreview.IsValid) lines.AddRange(GearChainPlacementFailureTooltipKey.BuildFailureLines(extendPreview.IsPlaceable, extendPreview.FailureReason, extendPreview.MaterialShortages));
             return lines;
         }
 

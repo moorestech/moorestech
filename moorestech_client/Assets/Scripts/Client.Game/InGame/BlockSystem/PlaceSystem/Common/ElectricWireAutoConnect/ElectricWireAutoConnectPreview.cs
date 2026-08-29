@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
@@ -87,6 +89,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             var anyPlaceable = false;
             var cursorWirePlaceable = true;
             var cursorRawTargetCount = 0;
+            IReadOnlyList<ConstructionMaterialShortage> cursorWireShortages = Array.Empty<ConstructionMaterialShortage>();
             for (var i = 0; i < placeInfos.Count; i++)
             {
                 var placeInfo = placeInfos[i];
@@ -108,6 +111,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                     // 地形干渉や建設コスト不足によるPlaceable=falseと無関係な、生の接続候補数
                     // Raw candidate count, independent of Placeable=false caused by ground/build-cost issues
                     cursorRawTargetCount = targets.Count;
+
+                    // 不足行は仮想在庫（建設コスト予約込み）に対して算出し、判定と同じ基準で「所持/必要」を出す
+                    // The shortage lines are computed against the virtual inventory (reservation included) so held/required matches the judgement
+                    if (!wirePlaceable) cursorWireShortages = virtualInventory.CalculateShortages(cellMaterials);
                 }
             }
 
@@ -124,7 +131,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // どの案内行を積むかの判断は純関数へ委ね、線描画だけここに残す
             // The notice-line judgement lives in the pure helper; only the wire drawing stays here
-            var isWireShortage = AutoConnectNoticeLines.Report(cursorWirePlaceable, cursorRawTargetCount, hasOutOfRangeNeighbor, totalCost, feedback);
+            var isWireShortage = AutoConnectNoticeLines.Report(cursorWirePlaceable, cursorRawTargetCount, hasOutOfRangeNeighbor, totalCost, cursorWireShortages, feedback);
 
             // 電線不足時のみ「足りていればどこへ張られたか」を不可色の線で見せる
             // Only on wire shortage, failure-colored wires show where they would have run

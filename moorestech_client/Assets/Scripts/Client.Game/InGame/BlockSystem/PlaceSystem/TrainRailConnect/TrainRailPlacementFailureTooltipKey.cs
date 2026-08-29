@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse;
@@ -16,7 +18,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             return reason switch
             {
                 RailConnectionEditProtocol.RailConnectionEditFailureReason.RailLengthExceeded => LocalizationKeys.Ui.Tooltip.PlaceRailLengthExceeded,
-                RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem => LocalizationKeys.Ui.Tooltip.PlaceRailNotEnoughRailItem,
+                // 素材不足(NotEnoughRailItem)は名指しの行を素材ごとに積むためここでは写像しない
+                // Material shortage (NotEnoughRailItem) is not mapped here; it becomes one named line per material
                 // 上記以外（未解放・サーバー側のみの理由）はクライアントの接続判定では発生しないため既定文言へ
                 // Everything else (not-unlocked, server-only reasons) never arises in client connection judgement, so fall back
                 _ => LocalizationKeys.Ui.Tooltip.PlaceRailFailed,
@@ -25,9 +28,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
         // 判定の失敗理由とカーブ半径不足を個別行でツールチップへ積む
         // Push the judgement failure reason and the too-tight curve as separate tooltip lines
-        public static void Report(TrainRailConnectPreviewData previewData, PlacementFeedback feedback)
+        public static void Report(TrainRailConnectPreviewData previewData, IReadOnlyList<ConstructionMaterialShortage> materialShortages, PlacementFeedback feedback)
         {
-            if (previewData.FailureReason != RailConnectionEditProtocol.RailConnectionEditFailureReason.None) feedback.Add(new TooltipLine(ToKey(previewData.FailureReason)));
+            // レールは複数素材を消費するため、素材不足だけは不足アイテムごとの行になる
+            // A rail consumes several materials, so only the shortage turns into one line per short item
+            if (previewData.FailureReason == RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem) feedback.AddLines(ConstructionMaterialShortageLine.ToLines(materialShortages, LocalizationKeys.Ui.Tooltip.PlaceRailFailed));
+            else if (previewData.FailureReason != RailConnectionEditProtocol.RailConnectionEditFailureReason.None) feedback.Add(new TooltipLine(ToKey(previewData.FailureReason)));
+
             if (!previewData.IsCurvePlaceable) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight));
         }
     }

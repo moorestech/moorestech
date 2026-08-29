@@ -4,24 +4,25 @@
 
 **Goal:** 設置ゴーストのカーソルツールチップの不足表示を「アイテム不足： 素材名 所持/必要」書式にし、電線・チェーン・レール不足の行も同書式へ統一する。
 
-**Architecture:** ツールチップ文言は `Localization/localization.csv` の key+params 契約で持ち、C#（`ConstructionMaterialShortageLine` 等）はキーとパラメータを渡すだけ、描画はWeb側（`CursorTooltip`）。本変更は CSV の4キーの文言のみを書き換え、キー名・パラメータ構成・配線は一切変えない。
+**Architecture:** ツールチップ文言は `Localization/localization.csv` の key+params 契約で持ち、C#（`ConstructionMaterialShortageLine` 等）はキーとパラメータを渡すだけ、描画はWeb側（`CursorTooltip`）。CSV の文言変更に加え、レビュー Critical C1 の裁定（2026-08-30）により電線・チェーン・レールの専用3キーを削除し、C#の配線を実アイテム名＋所持/必要へ合流させる。
 
 **Tech Stack:** localization.csv → Mooresmaster生成 `LocalizationKeys`（Unity, force-recompile必要）／webui `scripts/generate-localization-keys.mjs`（`npm run gen:i18n`）。
 
 ## Requirements
 
 - `ui.tooltip.placeMaterialShortage` を ja `アイテム不足： {p0} {p1}/{p2}` / en・Source `Missing item: {p0} {p1}/{p2}` / de `Fehlender Gegenstand: {p0} {p1}/{p2}` にする（受け入れ: 鉄板3所持・10必要で「アイテム不足： 鉄板 3/10」）
-- `ui.tooltip.placeWireNoWireItem` → ja `アイテム不足： 電線` / en `Missing item: Wire` / de `Fehlender Gegenstand: Kabel`
-- `ui.tooltip.placeGearChainNoItem` → ja `アイテム不足： チェーン` / en `Missing item: Chain` / de `Fehlender Gegenstand: Kette`
-- `ui.tooltip.placeRailNotEnoughRailItem` → ja `アイテム不足： レール` / en `Missing item: Rail` / de `Fehlender Gegenstand: Gleis`
-- キー名・パラメータ数・C#/Web の配線は変えない。個数表記（所持/必要）は維持する
-- やらないこと: ビルドメニュー側ツールチップ（ADR 0041）の文言、電線等への個数付与、見出し行の追加
+- `ui.tooltip.placeWireNoWireItem` / `placeGearChainNoItem` / `placeRailNotEnoughRailItem` の3キーを**削除**し、電線・歯車チェーン・レールの不足行も `ui.tooltip.placeMaterialShortage` へ合流させる（受け入れ: 銅のワイヤー0所持・1必要で「アイテム不足： 銅のワイヤー 0/1」、レールは補強棒材・鉄板の2行）
+- 不足素材が1件も算出できないときは `PlaceWireFailed` / `PlaceGearChainFailed` / `PlaceRailFailed` の1行へ落とし、無言の失敗にしない
+- 個数表記（所持/必要）は全系統で維持する
+- やらないこと: ビルドメニュー側ツールチップ（ADR 0041）の文言、見出し行の追加、トースト通知側の語彙統一
+
+> **非目標の変更（2026-08-30 ユーザー裁定）:** 当初の非目標「キー名・パラメータ数・C#/Web の配線は変えない」および「電線等3行は個数なし」は、レビュー Critical C1（3行の名前が接続ツール名でありアイテム名と一致しない）への裁定で明示的に上書きされた。配線変更を伴う案Aを採る。
 
 ## Global Constraints
 
 - 作業は `moores-wt new feature/placement-material-shortage-tooltip-prefix` で切った新規worktreeで行い、PR作成直後に `moores-wt rm` で畳む
-- localization.csv 変更後は webui `npm run gen:i18n` を実行し、生成物差分が無いことを確認（キー追加は無い）。Unity側は `uloop compile --project-path ./moorestech_client --force-recompile`（[[localization-csv-needs-force-recompile]]）
-- コメント規約・200行制約は本変更に該当コード変更なし
+- localization.csv 変更後は webui `npm run gen:i18n` を実行し、生成物差分をコミットに含める（3キー削除により差分が出る）。Unity側は `uloop compile --project-path ./moorestech_client --force-recompile`（[[localization-csv-needs-force-recompile]]）
+- 接続ツールの必要素材はサーバー共有の `ConnectToolCostCalculator`、不足の突き合わせは `ConstructionCostShortageCalculator` を再利用し、判定の重複定義を作らない
 
 ---
 
@@ -74,6 +75,22 @@ git add Localization/localization.csv
 git commit -m "feat: 設置素材不足ツールチップに「アイテム不足：」接頭辞を付け電線/チェーン/レール不足も統一 (ADR 0045)"
 ```
 
+### Task 1b: 接続ツール不足行の実アイテム名合流（レビューC1裁定・追加）
+
+**Files:**
+- Add: `moorestech_client/.../PlaceSystem/Util/ConnectToolMaterialShortageCalculator.cs`
+- Modify: `PlaceSystem/Util/ConstructionCostShortageCalculator.cs`（ItemId基準の突き合わせ／`ToShortages` 抽出）, `ConstructionMaterialShortageLine.cs`（`ToLines` と落とし先キー）, `Feedback/PlacementFeedback.cs`（`AddLines`）
+- Modify: 電線（`ElectricWireFeedbackLines` / `ElectricWirePlacementFailureTooltipKey` / `ElectricWireExtendMode` / `AutoConnectNoticeLines` / `ElectricWireAutoConnectPreview` / `ElectricWireAutoConnectVirtualInventory` / `ElectricWireAutoConnectToolSelector`）
+- Modify: 歯車チェーン（`GearChainPlacementFailureTooltipKey` / `GearChainPoleExtendPreviewCalculator` / 両Mode）
+- Modify: レール（`TrainRailPlacementFailureTooltipKey` / `TrainRailConnectPreviewCalculator` / `TrainRailConnectSystem`）
+- Modify: `Localization/localization.csv`（3キー削除）, `moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts`
+- Test: `Client.Tests/PlaceSystem/Util/ConnectToolMaterialShortageCalculatorTest.cs`（新規）と既存6テストの追随
+
+- [x] **Step 1: 不足算出の共有ロジックを置く**（`ConnectToolCostCalculator` + 所持集計 + `CalculateRequirements` の再利用）
+- [x] **Step 2: 3系統の呼び出し側を不足素材の行群へ変える**（素材不足以外の失敗理由は従来どおり理由キー1行）
+- [x] **Step 3: CSV の3キー削除と `npm run gen:i18n`**
+- [x] **Step 4: テスト追随＋新規テスト、compile と EditMode テスト**
+
 ### Task 2: 全ブランチレビュー（必須・省略不可）
 
 - [ ] 必ず最後に moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）
@@ -90,4 +107,4 @@ git commit -m "feat: 設置素材不足ツールチップに「アイテム不�
 
 - 設計: `docs/adr/0045-placement-material-shortage-tooltip-prefix.md` / `.decisions/2026-08-30-設置素材不足tooltipはアイテム不足接頭辞を付け所持必要を維持する.md`
 - 独語訳 `Fehlender Gegenstand:`、英語 `Missing item:` の語選択 — 出所: agent前提（既存 de 列の語彙 Kabel/Kette/Gleis を流用）
-- 電線等3行は個数なしの接頭辞＋名前のみ — 出所: agent前提（既存行にパラメータが無い帰結、ADR 0045 記載）
+- 電線等3行の実アイテム名＋個数への合流 — 出所: ユーザー裁定 2026-08-30（レビュー Critical C1）。`.decisions/2026-08-30-接続ツールの不足行も実アイテム名と個数で出す.md`

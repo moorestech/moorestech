@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
@@ -22,8 +24,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         /// 終点がノードの場合
         /// When the endpoint is a node
         /// </summary>
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, Guid connectToolGuid)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, Guid connectToolGuid, out IReadOnlyList<ConstructionMaterialShortage> materialShortages)
         {
+            materialShortages = Array.Empty<ConstructionMaterialShortage>();
+
             // 始点ノードを取得
             // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
@@ -44,6 +48,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var fromMax = ResolveMaxConnectableRailLength(from, blockGameObjectDataStore);
             var toMax = ResolveMaxConnectableRailLength(to, blockGameObjectDataStore);
             var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, toMax, playerInventory, connectToolGuid);
+            materialShortages = ResolveMaterialShortages(judgement, connectToolGuid, length, playerInventory);
 
             // 描画用の制御点を生成
             // Build render control points
@@ -52,8 +57,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement, isCurvePlaceable);
         }
 
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 placePosition, RailComponentDirection direction, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, float placingBlockMaxConnectableRailLength, Guid connectToolGuid)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 placePosition, RailComponentDirection direction, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, float placingBlockMaxConnectableRailLength, Guid connectToolGuid, out IReadOnlyList<ConstructionMaterialShortage> materialShortages)
         {
+            materialShortages = Array.Empty<ConstructionMaterialShortage>();
+
             // 始点ノードを取得
             // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
@@ -84,9 +91,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             var fromMax = ResolveMaxConnectableRailLength(from, blockGameObjectDataStore);
             var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, placingBlockMaxConnectableRailLength, playerInventory, connectToolGuid);
+            materialShortages = ResolveMaterialShortages(judgement, connectToolGuid, length, playerInventory);
 
             var isCurvePlaceable = TrainRailCurvePlacementRule.IsPlaceable(p0, p1, p2, p3);
             return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement, isCurvePlaceable);
+        }
+
+        // 素材不足で落ちたときだけ、判定と同じ長さと所持から不足素材を算出する（他の理由では行が不要）
+        // Only on a material-shortage failure, derive the short materials from the very length and inventory the judgement used
+        private static IReadOnlyList<ConstructionMaterialShortage> ResolveMaterialShortages(RailPlacementJudgement judgement, Guid connectToolGuid, float railLength, ILocalPlayerInventory playerInventory)
+        {
+            if (judgement.FailureReason != RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem) return Array.Empty<ConstructionMaterialShortage>();
+            return ConnectToolMaterialShortageCalculator.Calculate(connectToolGuid, railLength, playerInventory, null);
         }
 
         // ConnectionDestination が指すブロックから MaxConnectableRailLength を解決する

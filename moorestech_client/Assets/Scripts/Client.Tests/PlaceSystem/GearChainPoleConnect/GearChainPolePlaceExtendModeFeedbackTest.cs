@@ -1,5 +1,7 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Util.GearChain;
@@ -35,7 +37,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
-            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.TooFarError));
+            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.TooFarError), Array.Empty<ConstructionMaterialShortage>());
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
 
@@ -46,18 +48,20 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         [Test]
         // 地形干渉と判定失敗が同時なら地形→チェーン判定の順で並ぶ
         // With both failures the order is terrain then chain judgement
+        // 不足素材が空の素材不足は汎用の接続不可文言へ落ちる
+        // A material shortage with no short material falls back to the generic cannot-connect wording
         public void TerrainAndExtendFailureReportsLinesInOrderTest()
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
             input.GhostGroundClear = false;
-            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.NoItemError));
+            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.NoItemError), Array.Empty<ConstructionMaterialShortage>());
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
 
             Assert.AreEqual(2, result.FeedbackLines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, result.FeedbackLines[0].Key.Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainNoItem.Key, result.FeedbackLines[1].Key.Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, result.FeedbackLines[1].Key.Key);
         }
 
         [Test]

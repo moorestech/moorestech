@@ -19,6 +19,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         /// <summary>
         /// 全ターゲットを賄えるconnectToolをSortPriority順に選ぶ（サーバーと同じ選定規則）
         /// Picks the connectTool covering all targets in SortPriority order (same rule as the server)
+        /// selectedMaterialsは選ばれたツールの素材。どれも賄えなかったときは最優先ツールの必要素材が入り、不足行の算出に使える
+        /// selectedMaterials holds the picked tool's materials; when none is affordable it holds the top-priority tool's requirement, so the shortage lines can be derived from it
         /// </summary>
         public static bool TrySelect(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, IGameUnlockStateData gameUnlockStateData, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost)
         {
@@ -39,9 +41,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // With zero unlocked tools, allow placement without auto-connect (matches the server's unlockedTools.Count == 0 branch)
             if (electricWireTools.Count == 0) return true;
 
+            // 最優先で算出できたツールの必要素材を控えておき、どれも賄えなかったときの不足表示に使う
+            // Remember the top-priority tool whose cost is computable, to describe the shortage when nothing is affordable
+            IReadOnlyList<ConnectToolMaterialCost> preferredMaterials = null;
             foreach (var element in electricWireTools)
             {
                 if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
+                preferredMaterials ??= materials;
                 if (!virtualInventory.CanAfford(materials)) continue;
 
                 selectedMaterials = materials;
@@ -49,6 +55,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 return true;
             }
 
+            selectedMaterials = preferredMaterials;
             return false;
 
             #region Internal
