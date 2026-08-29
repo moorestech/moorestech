@@ -54,10 +54,17 @@ properties:
       options:
       - PickUp
       - Mining
+      - None
     - key: miningParam
       switch: ./miningType
       cases:
       - when: PickUp
+        type: object
+        optional: true
+        properties: []
+      # 装飾物。狙えず落とさず、earnItemsは空を強制する
+      # Decoration: cannot be aimed at or drop anything; earnItems is forced empty
+      - when: None
         type: object
         optional: true
         properties: []
