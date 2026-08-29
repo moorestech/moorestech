@@ -163,7 +163,7 @@ git commit -m "docs(webui-design): §8.7を機械UI2モード仕様へ改訂 (AD
 - Produces: `MachineProcessContext.BindSelectedRecipe(MachineRecipeMasterElement recipe)`、`SelectedRecipe { get; private set; }`
 - Produces: `IVanillaMachineSubInventory.IsAllowedToPlace(int localSlot, IItemStack itemStack)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Tests/CombinedTest/Core/MachineSlotBindingTest.cs`（`MachineIOTest` と同じ初期化。レシピは `ForUnitTestModMachineRecipeId` 相当が無いため `MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0]`＝TestElectricMachine: 入力 Test1×3, Test2×1 / 出力 Test3×1、機械スロットは入2/出3）:
 
@@ -285,12 +285,12 @@ namespace Tests.CombinedTest.Core
 
 `Setup` で使う `GetComponent<VanillaMachineBlockInventoryComponent>()` は `MachineIOTest` と同じ `Game.Block.Interface.Extension` の拡張。`GameUpdater.SecondsToTicks` は `Core.Update`（AGENTS.md「時間に関して」）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MachineSlotBindingTest"`
 Expected: `UnselectedMachineRejectsAllInserts` / `ReplaceItemIntoWrongSlotIsRejected` / `SelectedMachineRejectsItemNotInRecipe` が FAIL（現状は何でも入る）
 
-- [ ] **Step 3: 純関数 util を作る**
+- [x] **Step 3: 純関数 util を作る**
 
 `Game.Block/Blocks/Machine/RecipeSelection/MachineRecipeSlotBindingUtil.cs`:
 
@@ -335,7 +335,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 }
 ```
 
-- [ ] **Step 4: `IVanillaMachineSubInventory` に配置可否を足す**
+- [x] **Step 4: `IVanillaMachineSubInventory` に配置可否を足す**
 
 ```csharp
 // 既存メンバーの下に追加
@@ -347,7 +347,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 
 `VanillaMachineModuleInventory` には `public bool IsAllowedToPlace(int localSlot, IItemStack itemStack) => true;` を追加（モジュール判定は既存の装備プロトコル側が持つため変えない）。
 
-- [ ] **Step 5: `VanillaMachineInputInventory` を束縛対応にする**
+- [x] **Step 5: `VanillaMachineInputInventory` を束縛対応にする**
 
 フィールド追加とメソッド差し替え（既存の `InsertItem(IItemStack)`, `InsertItem(List)`, `InsertionCheck`, `ReduceInputSlot` のアイテム部分を置換）:
 
@@ -428,7 +428,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 
 `using Game.Block.Blocks.Machine.RecipeSelection;` を追加。
 
-- [ ] **Step 6: `VanillaMachineOutputInventory` を束縛対応にする**
+- [x] **Step 6: `VanillaMachineOutputInventory` を束縛対応にする**
 
 ```csharp
         private MachineRecipeMasterElement _boundRecipe;
@@ -495,7 +495,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             }
 ```
 
-- [ ] **Step 7: `MachineProcessContext.BindSelectedRecipe` と呼び出し側**
+- [x] **Step 7: `MachineProcessContext.BindSelectedRecipe` と呼び出し側**
 
 `MachineProcessContext`:
 
@@ -514,12 +514,12 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 
 `VanillaMachineProcessorComponent.cs:58` と `CleanRoomMachineProcessorComponent.cs:50` の `{ SelectedRecipe = selectedRecipe }` 初期化子を削除し、直後に `_context.BindSelectedRecipe(selectedRecipe);` を呼ぶ。両 `ChangeSelection` の `_context.SelectedRecipe = recipe;` を `_context.BindSelectedRecipe(recipe);` に置換。
 
-- [ ] **Step 8: コンパイルしてテストを通す**
+- [x] **Step 8: コンパイルしてテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MachineSlotBindingTest|MachineIOTest|MachineRecipeChangeRefundTest|MachineRecipeSelectionTest|QualityModuleOutputTest"`
 Expected: 全PASS（`ReplaceItemIntoWrongSlotIsRejected` は Task 2 まで FAIL のままでよい）
 
-- [ ] **Step 9: コミット**
+- [x] **Step 9: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineSlotBindingTest.cs*
