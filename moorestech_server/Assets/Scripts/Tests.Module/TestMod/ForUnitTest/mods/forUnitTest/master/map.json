@@ -80,6 +80,19 @@
       "miningParam": {},
       "#memo": "裸地を塗らない岩(rockNoBareGround)。距離場には岩として乗るが裸地テクスチャは描かれないことをテストで確認する。Mining型を単一に保つテストがあるためPickUp",
       "distanceVisibilityType": "cullable"
+    },
+    {
+      "earnItemHpInterval": 10,
+      "hp": 10,
+      "mapObjectName": "vanilla:TestDecoration",
+      "addressablePath": "Vanilla/Environment/Tree",
+      "soundEffectType": "tree",
+      "miningType": "None",
+      "earnItems": [],
+      "mapObjectGuid": "00000000-0000-4444-0000-000000000001",
+      "miningParam": {},
+      "#memo": "装飾物。狙えず落とさない。配置(map/map.json)には置かない(GetMapDataProtocolTestが6件固定)",
+      "distanceVisibilityType": "cullable"
     }
   ],
   "mapVeins": [
