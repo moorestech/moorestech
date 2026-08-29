@@ -127,7 +127,7 @@ namespace Client.Tests.WebUi
                 "invalid_id", "invalid_result", "no_pending_modal",
                 "invalid_state", "unsupported_state",
                 "invalid_guid", "research_failed", "block_not_open",
-                "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale",
+                "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale", "already_selected",
                 "stale_session", "stale_revision", "intent_not_allowed", "unknown_choice",
                 "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed",
             };

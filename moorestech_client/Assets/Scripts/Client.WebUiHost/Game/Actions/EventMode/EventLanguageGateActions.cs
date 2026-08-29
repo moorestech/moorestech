@@ -36,12 +36,20 @@ namespace Client.WebUiHost.Game.Actions.EventMode
         {
             var locale = payload?["locale"]?.ToString();
 
-            // 判定をゲートに委譲し失敗契約へ変換
-            // Delegate the judgement to the gate and map it to the failure contract
+            // 判定をゲートに委譲し、全variantを並べた写像で失敗契約へ変換する
+            // Delegate the judgement to the gate and map every variant to the failure contract
             var result = _gate.TrySelectLanguage(locale);
-            return UniTask.FromResult(result == EventLanguageSelectionResult.UnknownLanguage
-                ? ActionResult.Fail("unknown_locale")
-                : ActionResult.Success());
+            return UniTask.FromResult(result switch
+            {
+                EventLanguageSelectionResult.Applied => ActionResult.Success(),
+                // 二重クリックと再送は言語を変えないので成功へ丸めない
+                // A double click or a resend changes no language, so it is not folded into success
+                EventLanguageSelectionResult.AlreadySelected => ActionResult.Fail("already_selected"),
+                EventLanguageSelectionResult.UnknownLanguage => ActionResult.Fail("unknown_locale"),
+                // enumは宣言外の値も取り得るため、未知の選択結果は未知localeと同じ失敗へ倒す
+                // An enum can hold an undeclared value, so an unknown outcome falls into the same failure as an unknown locale
+                _ => ActionResult.Fail("unknown_locale"),
+            });
         }
     }
 }
