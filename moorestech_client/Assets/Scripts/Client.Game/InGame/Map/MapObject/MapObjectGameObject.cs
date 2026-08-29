@@ -45,8 +45,8 @@ namespace Client.Game.InGame.Map.MapObject
         // A destroyed object is nothing to point at; this is exactly what the index skips as a tombstone
         public bool IsSearchable => !IsDestroyed;
 
-        // マスタ欠損と装飾物(None)は対象として扱わない
-        // A master-less object and a decoration (None) are not targets
+        // マスタ欠損・装飾物(None)は対象外
+        // A master-less object or a decoration (None) is not a target
         public bool IsAvailable => !IsDestroyed && MapObjectMasterElement != null && !IsDecoration;
 
         private bool IsDecoration => MapObjectMasterElement.MiningType == MapObjectMasterElement.MiningTypeConst.None;

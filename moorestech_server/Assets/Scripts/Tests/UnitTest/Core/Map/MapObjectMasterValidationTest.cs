@@ -101,8 +101,8 @@ namespace Tests.UnitTest.Core.Map
             var json = JObject.Parse(File.ReadAllText(path));
             var master = new MapObjectMaster(json);
 
-            // テストマスタはNoneの装飾物を1件含んだまま検証を通る
-            // The test master passes validation while holding one None decoration
+            // Noneの装飾物含みで検証成功
+            // Validation succeeds with a None decoration included
             Assert.IsTrue(master.Validate(out var logs), logs);
         }
     }

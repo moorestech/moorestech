@@ -16,8 +16,8 @@ using UnityEngine;
 namespace Tests.CombinedTest.Server.PacketTest
 {
     /// <summary>
-    ///     装飾物(miningType None)への攻撃がサーバーで拒否されることを検証する
-    ///     Verifies the server rejects an attack on a decoration (miningType None)
+    ///     装飾物(None)攻撃をサーバーが拒否することを検証
+    ///     Verifies the server rejects an attack on a None decoration
     /// </summary>
     public class MapObjectNotInteractableMiningTest
     {

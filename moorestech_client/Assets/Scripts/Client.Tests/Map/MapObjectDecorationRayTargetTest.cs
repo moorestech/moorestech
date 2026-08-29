@@ -11,8 +11,8 @@ using UnityEngine;
 namespace Client.Tests.Map
 {
     /// <summary>
-    ///     装飾物(miningType None)がレイターゲットから外れ採掘を始められないことを検証する
-    ///     Verifies a decoration (miningType None) drops out of the ray target and can never start mining
+    ///     装飾物(None)はレイ対象外で採掘不可を検証
+    ///     Verifies a None decoration drops out of the ray target and cannot mine
     /// </summary>
     public class MapObjectDecorationRayTargetTest
     {
@@ -63,8 +63,8 @@ namespace Client.Tests.Map
 
         private (MapObjectGameObject mapObject, Collider rayCollider) Build(Guid mapObjectGuid, bool isDestroyed)
         {
-            // 生成prefabと同じく子にレイターゲット(コライダー+マーカー)を持つ最小構成
-            // Minimal shape matching generated prefabs: a child ray target with collider and marker
+            // prefabと同じ最小構成
+            // Minimal shape matching generated prefabs
             _root = new GameObject("MapObjectDecorationRayTargetTestRoot");
             var rayTargetObject = new GameObject("RayTarget");
             rayTargetObject.transform.SetParent(_root.transform, false);
