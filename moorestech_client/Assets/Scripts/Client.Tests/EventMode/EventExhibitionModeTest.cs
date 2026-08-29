@@ -1,3 +1,4 @@
+using System;
 using Client.Common;
 using Client.Starter.EventMode;
 using NUnit.Framework;
@@ -6,7 +7,18 @@ namespace Client.Tests.EventMode
 {
     public class EventExhibitionModeTest
     {
+        private const string EnableEnvKey = "MOORESTECH_EVENT_MODE";
+        private const string LanguageEnvKey = "MOORESTECH_EVENT_LANGUAGE";
         private static readonly string[] Codes = { "english", "japanese", "german" };
+
+        [TearDown]
+        public void TearDown()
+        {
+            // 環境変数はテストごとに元へ戻す
+            // Restore env vars after each test
+            Environment.SetEnvironmentVariable(EnableEnvKey, null);
+            Environment.SetEnvironmentVariable(LanguageEnvKey, null);
+        }
 
         [Test]
         public void Parse_LanguageCode_FallsBackToEnglishForUnsetOrUnknown()
@@ -43,6 +55,24 @@ namespace Client.Tests.EventMode
             Assert.IsFalse(EventExhibitionSettings.Parse("1", null, "0", true, null, Codes).IsEnabled);
             Assert.IsTrue(EventExhibitionSettings.Parse("1", null, "1", true, null, Codes).IsEnabled);
             Assert.IsFalse(EventExhibitionSettings.Parse(null, null, "1", true, null, Codes).IsEnabled);
+        }
+
+        [Test]
+        public void FromEnvironment_LanguageCode_ReadsEnvVariable()
+        {
+            Environment.SetEnvironmentVariable(EnableEnvKey, "1");
+            Environment.SetEnvironmentVariable(LanguageEnvKey, "german");
+
+            Assert.AreEqual("german", EventExhibitionSettings.FromEnvironment().LanguageCode);
+        }
+
+        [Test]
+        public void FromEnvironment_LanguageCode_DefaultsToEnglishWhenUnset()
+        {
+            Environment.SetEnvironmentVariable(EnableEnvKey, "1");
+            Environment.SetEnvironmentVariable(LanguageEnvKey, null);
+
+            Assert.AreEqual("english", EventExhibitionSettings.FromEnvironment().LanguageCode);
         }
 
         [Test]
