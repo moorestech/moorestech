@@ -13,5 +13,12 @@ namespace Client.Game.InGame.Map.MapObject
         {
             MapObjectGameObject = mapObjectGameObject;
         }
+
+        // 装飾物はレイに乗せない。歩行用の物理コライダーは別オブジェクトなので影響しない
+        // A decoration stays off the ray; the walking collider lives on another object and is untouched
+        public void SetInteractable(bool interactable)
+        {
+            GetComponent<Collider>().enabled = interactable;
+        }
     }
 }

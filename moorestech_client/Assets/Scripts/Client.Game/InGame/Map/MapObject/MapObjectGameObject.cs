@@ -45,9 +45,11 @@ namespace Client.Game.InGame.Map.MapObject
         // A destroyed object is nothing to point at; this is exactly what the index skips as a tombstone
         public bool IsSearchable => !IsDestroyed;
 
-        // マスタ欠損時は対象として扱わない
-        // A master-less object is not a target
-        public bool IsAvailable => !IsDestroyed && MapObjectMasterElement != null;
+        // マスタ欠損と装飾物(None)は対象として扱わない
+        // A master-less object and a decoration (None) are not targets
+        public bool IsAvailable => !IsDestroyed && MapObjectMasterElement != null && !IsDecoration;
+
+        private bool IsDecoration => MapObjectMasterElement.MiningType == MapObjectMasterElement.MiningTypeConst.None;
 
         public Vector3 GetIndexPosition()
         {
@@ -98,6 +100,7 @@ namespace Client.Game.InGame.Map.MapObject
             foreach (var rayTarget in rayTargets)
             {
                 rayTarget.Initialize(this);
+                rayTarget.SetInteractable(!IsDecoration);
             }
 
             // 個体スケールがUI表示に波及しないようHPバーは逆スケールで等倍を保つ（姿勢と同様、補正はView自身の責務）
