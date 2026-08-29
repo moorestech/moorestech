@@ -57,6 +57,9 @@ ui.buildMenu.searchPlaceholder,Search,Search,検索,Suchen
 ui.buildMenu.requiredItems,Required Items,Required Items,必要素材,Benötigte Gegenstände
 ui.buildMenu.requiredItemsPerSet,Required Items (per {count}),Required Items (per {count}),必要素材（{count}個分）,Benötigte Gegenstände (pro {count})
 ui.buildMenu.remainingPlacementCount,Remaining placements: {count},Remaining placements: {count},残り設置数: {count},Verbleibende Platzierungen: {count}
+ui.buildMenu.materialShortageTitle,Not enough materials,Not enough materials,素材が足りません,Nicht genug Materialien
+ui.buildMenu.materialShortageLine,{itemName} {ownedCount}/{requiredCount},{itemName} {ownedCount}/{requiredCount},{itemName} {ownedCount}/{requiredCount},{itemName} {ownedCount}/{requiredCount}
+ui.buildMenu.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount},{itemName}\nBestand: {ownedCount}\nBenötigt: {requiredCount}
 ui.challenge.stateLocked,Locked,Locked,未解放,Gesperrt
 ui.challenge.stateCurrent,In Progress,In Progress,進行中,Laufend
 ui.challenge.stateCompleted,Completed,Completed,完了,Abgeschlossen

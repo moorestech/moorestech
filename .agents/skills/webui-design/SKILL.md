@@ -169,8 +169,12 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   太さは `--icon-text-stroke-width` の1本で全系統共通、色は `--icon-text-stroke-light` / `--icon-text-stroke-dark`。
   縁は `-webkit-text-stroke` + `paint-order: stroke fill` の真のストロークで描き、`text-shadow` による擬似縁・ぼかし影は使わない。
   適用は tokens.css の共有クラス `iconTextOutlineLight` / `iconTextOutlineDark` を TSX で合成して行い（前例 `keyHintText`）、
-  featureのCSSは位置決めと文字色だけを持つ。現在の適用先は `ItemSlot .count` / `RecipeBox .materialCount` /
-  `research .consumeCount` / `FluidSlot .amount` / `HotbarPanel .num` の5箇所。
+  featureのCSSは位置決めと文字色だけを持つ。現在の適用先は `ItemSlot .count` / `ItemSlot .shortageCount` /
+  `FluidSlot .amount` / `HotbarPanel .num` の4箇所。
+- **素材の「所持/必要」は `ItemSlot` の `shortage`（`{ ownedCount, requiredCount, tooltipKey }`）だけが描く。**
+  クラフト・研究・建設メニューの3系統はこの1箇所へ集約済みで、feature側に絶対配置のカウント要素とそのCSSを複製しない。
+  赤字にするかは呼び出し側の `insufficient` が決め（免除等の合成は呼び出し側の責務）、位置だけ
+  `--shortage-count-right` / `--shortage-count-bottom` で用途ごとに寄せる（レシピ行はスロット内へ収める・§8.17）。
   アイコンに重なっていない文字（通知・キーヒント・目標HUD・ボタンラベル）はこの様式の対象外で、従来の文字影のままにする。
 
 ## 5. 色・トーン
@@ -493,7 +497,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   ことし、`%` は不可（スロットの親が内容依存幅で循環し、実測で0.8pxまで潰れた）。
   **`--slot-size` をコンテナ自身の `grid-template-columns` で使ってはいけない**（`cqw` が祖先の
   コンテナを見にいき解決に失敗する。実測でスロットが縮まず溢れた）。列幅は `auto` にしてスロット実寸へ追従させる。
-- 所持/必要テキストはスロットの外へ出さない。右へはみ出すと最終列で枠の実効幅を超え中央列へ食い込む。
+- 所持/必要テキストはスロットの外へ出さない（`ItemSlot` の `shortage` へ `--shortage-count-*` を 0 で注入する）。右へはみ出すと最終列で枠の実効幅を超え中央列へ食い込む。
 - **クラフトレシピエントリ**は「素材`ItemSlot`列 → 中央列 → 結果`ItemSlot`」の1段構成。
   中央列の操作はクラフト実行ボタン（青グラデ `--recipe-action-background`）で、幅は矢印幅の1.5倍
   （`--recipe-craft-button-width`）固定。この値は矢印を中心に置いたまま素材2点をフルサイズで並べられる上限。ラベルは操作名のみで秒数を含めない（秒数は矢印上が唯一の出所）。

@@ -1,6 +1,7 @@
 import { FadeRule, ItemSlot, SlotGrid } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
-import type { BuildMenuDisplayEntry } from "./buildMenuGrouping";
+import type { BuildMenuDisplayEntry } from "./logic/buildMenuGrouping";
+import { isItemInsufficient } from "./logic/buildMenuShortage";
 import styles from "./style.module.css";
 
 type Props = { entry: BuildMenuDisplayEntry | null };
@@ -33,8 +34,15 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
                   : t(L.ui.buildMenu.requiredItems)}
               </span>
               <SlotGrid cols={3}>
-                {entry.requiredItems.map((item) => (
-                  <ItemSlot key={item.itemId} itemId={item.itemId} count={item.count} />
+                {entry.requiredItems.map((item, index) => (
+                  // 不足の表示はホストのlackingと支払い免除の合成。所持と必要の比較をここでやり直さない
+                  // The display shortage composes the host's lacking with the payment waiver; no owned-vs-required comparison happens here
+                  <ItemSlot
+                    key={`${item.itemId}-${index}`}
+                    itemId={item.itemId}
+                    insufficient={isItemInsufficient(entry, item)}
+                    shortage={{ ownedCount: item.held, requiredCount: item.count, tooltipKey: L.ui.buildMenu.materialTooltip }}
+                  />
                 ))}
               </SlotGrid>
             </>

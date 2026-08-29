@@ -1,6 +1,6 @@
-import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
-import type { TranslationKey } from "../../shared/i18n";
-import { localizeSelectableTargetName, placementTargetOf } from "../../shared/placementTarget";
+import type { BuildMenuCategory, BuildMenuEntryData } from "../../../bridge/contract/payloadTypes";
+import type { TranslationKey } from "../../../shared/i18n";
+import { localizeSelectableTargetName, placementTargetOf } from "../../../shared/placementTarget";
 
 export type BuildMenuSection = {
   categoryGuid: string;
@@ -22,7 +22,7 @@ export function localizeBuildMenuEntries(
   }));
 }
 
-// エントリが1件以上あるカテゴリのみを定義順で返す（unlock進行で自然に増える）
+// エントリのあるカテゴリを定義順で返す
 // Return only categories with entries, preserving definition order
 export function visibleCategories(categories: BuildMenuCategory[], entries: BuildMenuDisplayEntry[]): BuildMenuCategory[] {
   return categories.filter((category) => entries.some((entry) => entry.categoryGuid === category.categoryGuid));

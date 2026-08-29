@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { BuildMenuCategory, BuildMenuEntryData } from "../../bridge/contract/payloadTypes";
+import type { BuildMenuCategory, BuildMenuEntryData } from "../../../bridge/contract/payloadTypes";
 import { connectToolNameKey, trainCarNameKey } from "@/shared/i18n";
 import {
   localizeBuildMenuEntries,
@@ -21,7 +21,7 @@ const connectToolGuid = "40000000-0000-4000-8000-000000000001";
 const trainCarGuid = "8f9c2a51-0000-4000-8000-000000000001";
 
 const blockEntry = (id: string, categoryGuid: string, subCategoryGuid: string): BuildMenuEntryData => ({
-  kind: "block", id, categoryGuid, subCategoryGuid, requiredItems: [],
+  kind: "block", id, categoryGuid, subCategoryGuid, requiredItems: [], paymentWaived: false,
 });
 
 const categories: BuildMenuCategory[] = [
@@ -108,6 +108,7 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
+      paymentWaived: false,
     };
 
     expect(localizeBuildMenuEntries([blueprintCopy], () => expected)[0].displayLabel).toBe(expected);
@@ -121,6 +122,7 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
+      paymentWaived: false,
     };
     expect(localizeBuildMenuEntries([blueprint], () => "unused")[0].displayLabel).toBe("starter-base");
   });
@@ -132,6 +134,7 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
+      paymentWaived: false,
     };
 
     const displayLabel = localizeBuildMenuEntries(
@@ -148,6 +151,7 @@ describe("localizeBuildMenuEntries", () => {
       categoryGuid: logisticsCategoryGuid,
       subCategoryGuid: chestSubCategoryGuid,
       requiredItems: [],
+      paymentWaived: false,
     };
 
     const displayLabel = localizeBuildMenuEntries(
