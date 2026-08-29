@@ -738,16 +738,16 @@ git commit -m "chore: moorestech_masterピンを装飾mapObject対応コミッ�
 
 **Files:** ブランチ全体
 
-- [ ] **Step 1: 関連テストを一括で回す**
+- [x] **Step 1: 関連テストを一括で回す**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObject|Mining|ChallengeMasterValidation|GetMapDataProtocol"`
 Expected: 全件 PASS。
 
-- [ ] **Step 2: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+- [x] **Step 2: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
 `moores-code-review` スキルを起動し、指摘の機械的修正を適用、設計判断は AskUserQuestion で仰ぐ。
 
-- [ ] **Step 3: PR作成と撤収**
+- [x] **Step 3: PR作成と撤収**
 
 `pr-create` スキルでPRを作る（本文に master 側PRのURLを併記）。作成後 `moores-wt rm feature/decoration-map-objects-none` で worktree を畳む。
 
