@@ -35,9 +35,13 @@ namespace Client.Game.InGame.Map.MapVein
         private readonly Mesh _boxMesh;
         private readonly Transform _root;
 
-        // 表示対象の鉱脈種別。nullなら非表示
-        // Vein kind to display; null means hidden
-        private MapVeinKind? _visibleVeinKind;
+        // 表示状態。既定は非表示
+        // The display state; hidden by default
+        private VeinDisplay _display = VeinDisplay.Hidden;
+
+        // 表示対象veinの引き当て用。SetVeinDisplayでだけ書き換える
+        // Lookup set for the veins on display; written only by SetVeinDisplay
+        private readonly HashSet<MapVeinAabb> _displayTargets = new();
 
         public MapVeinRangeViewService(MapVeinAabbRegistry veinAabbRegistry, Camera mainCamera)
         {
@@ -54,17 +58,25 @@ namespace Client.Game.InGame.Map.MapVein
             foreach (var vein in veinAabbRegistry.Veins)
             {
                 var material = vein.Kind == MapVeinKind.Fluid ? _boxMaterials.FluidMaterial : _boxMaterials.ItemMaterial;
-                _entries.Add(new VeinRangeEntry(vein.Kind, vein.Bounds, material));
+                _entries.Add(new VeinRangeEntry(vein, material));
             }
         }
 
         /// <summary>
-        ///     表示したい鉱脈種別を受け取り、対象veinの絞り込みと描画はこのクラス内で完結させる
-        ///     Takes the vein kind to display; vein filtering and rendering stay inside this class
+        ///     表示したい状態を受け取り、対象veinの絞り込みと描画はこのクラス内で完結させる
+        ///     Takes the wanted display state; vein filtering and rendering stay inside this class
         /// </summary>
-        public void SetVisibleVeinKind(MapVeinKind? veinKind)
+        public void SetVeinDisplay(VeinDisplay display)
         {
-            _visibleVeinKind = veinKind;
+            _display = display;
+
+            // 毎フレームの線形探索を避けるため、表示対象は状態変化のこの1回だけ集合へ畳む
+            // Fold the target veins into a set here, on the state change alone, so no frame does a linear scan
+            _displayTargets.Clear();
+            if (display.Veins != null)
+                foreach (var vein in display.Veins)
+                    _displayTargets.Add(vein);
+
             // 非表示への遷移を次フレームまで残さない。離脱時の残存ボックスを即座に畳む
             // Never carry a hide transition into the next frame; stray boxes fold immediately on exit
             ManualUpdate();
@@ -78,7 +90,7 @@ namespace Client.Game.InGame.Map.MapVein
             {
                 // 対象外の種別と非表示中は距離を問わず全消し。範囲内だけボックスを持たせ、外れたものはプールへ返す
                 // Other kinds and the hidden state go regardless of distance; only in-range veins keep a box and the rest return to the pool
-                var isVisible = entry.Kind == _visibleVeinKind && IsWithinVisibleRadius(entry.Bounds, cameraPosition);
+                var isVisible = _displayTargets.Contains(entry.Vein) && IsWithinVisibleRadius(entry.Vein.Bounds, cameraPosition);
                 if (isVisible) ShowEntry(entry);
                 else HideEntry(entry);
             }
@@ -94,10 +106,19 @@ namespace Client.Game.InGame.Map.MapVein
 
             void ShowEntry(VeinRangeEntry entry)
             {
+                var material = _display.Highlight ? _boxMaterials.HighlightMaterial : entry.Material;
+
                 // veinは動かないので既存ボックスは置き直さない。これが再入時の二重表示を防ぐ
                 // Veins never move, so an existing box is never re-placed; this is what prevents duplicates on re-entry
-                if (entry.ViewObject != null) return;
-                entry.ViewObject = RentBox(entry.Bounds, entry.Material);
+                if (entry.ViewObject != null)
+                {
+                    // 強調⇔通常の切替はマテリアル差し替えだけで済ませ、同じ材質なら触らない
+                    // Switching highlight and normal only swaps the material, and an unchanged material is left alone
+                    var renderer = entry.ViewObject.GetComponent<MeshRenderer>();
+                    if (renderer.sharedMaterial != material) renderer.sharedMaterial = material;
+                    return;
+                }
+                entry.ViewObject = RentBox(entry.Vein.Bounds, material);
             }
 
             void HideEntry(VeinRangeEntry entry)
@@ -142,15 +163,13 @@ namespace Client.Game.InGame.Map.MapVein
         // Bundle fixed vein data and view state
         private class VeinRangeEntry
         {
-            public readonly MapVeinKind Kind;
-            public readonly Bounds Bounds;
+            public readonly MapVeinAabb Vein;
             public readonly Material Material;
             public GameObject ViewObject;
 
-            public VeinRangeEntry(MapVeinKind kind, Bounds bounds, Material material)
+            public VeinRangeEntry(MapVeinAabb vein, Material material)
             {
-                Kind = kind;
-                Bounds = bounds;
+                Vein = vein;
                 Material = material;
             }
         }

@@ -196,8 +196,10 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   6. 黄黒の斜線警告帯（uGUI `delete bar.png` 由来。**削除モードの画面上下端限定**・§8.15。画像は移植せずCSS反復グラデーションで再現する）
 - 新しい装飾モチーフ（光彩、パーティクル、角丸カード、ドロップシャドウの多用等）を増やさない。
 - 装飾アニメーションは基本入れない。トランジションを入れる場合もe2eが同期検証できること（モーダルは duration 0）。
-  - **例外は通知の出入り（§8）だけ**。入場＝左から `--notification-shift` のスライド＋フェード、退場＝その逆再生で、色相・形・光彩は動かさない。
+  - **例外は通知の出入り（§8）と、チュートリアル誘導の脈動（§8.8/§8.17/§8.19・ADR 0039）**。通知は入場＝左から `--notification-shift` のスライド＋フェード、退場＝その逆再生で、色相・形・光彩は動かさない。
   - アニメーションを足す場合、テスト時に尺をゼロへ落とす抜け道は作らない（実挙動と乖離するため）。計算値の `animation-name` はCSS Modulesがハッシュ化するので、e2eでは部分一致で照合する。
+  - **チュートリアル誘導の脈動は tokens.css が正本**: 実数値を焼いた `@keyframes tutorial-attention-pulse-strong`（1.08）/ `-subtle`（1.03）と、周期 `--tutorial-pulse-duration`（1200ms）を置く。利用側は `animation: var(--tutorial-pulse-strong|subtle) …` と名前トークン経由で参照する（**素名を直書きすると CSS Modules がハッシュ化してキーフレームに届かず、無言で脈動しない**）。振幅を `var()` で利用側から注入する形は採らない — 書き忘れた要素の既存 `transform` ごと無言で消え、合成スレッドにも載らないため（ADR 0039）。
+  - 脈動する要素の矩形をe2eで実測するときは `e2e/support/pulseFreeze.ts` の `freezeAttentionPulse(page)` で位相を `scale(1)` に固定してから測る（尺は殺さない）。
 
 ## 7. 文字
 
@@ -215,7 +217,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - **`CursorTooltip` の書式はWeb側トークンが唯一の正**（ADR 0019）: フォント18px・padding 6/10px・max-width 320px。ホストは辞書キーと位置パラメータだけを送り、寸法値（fontSize等）はwireに載せない。
 - **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもなく、`--ui-scale` に追従しない。
 - **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
-- **NotificationHostの出入りは唯一の装飾アニメーション例外**（§6）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
+- **NotificationHostの出入りは§6の例外のひとつ**（もう一方はチュートリアル誘導の脈動・§8.8/§8.17/§8.19）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
 - 進捗矢印は `ProgressArrowBar`（採掘機・流体行の帯状ゲージ）。クラフト画面と機械の加工行は §8.13 の矢印グリフゲージを使う。器が帯か矢印グリフかを名前で区別する。
 
@@ -286,8 +288,8 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - **座標の正はUnity。** Unityがワールド座標を正規化ビューポート座標（0..1、左上原点）と画面中心からの方向ベクトルへ毎フレーム射影し、`tutorial.world_pins` トピックで配信する。Web側は受信値を描くだけで、3D射影・カメラ知識を一切持たない。
 - 表示は常時表示HUD族（§1の例外）。パネル面を持たず「浮いている」表現とし、`pointer-events: none` で入力を素通しする。
 - **画面内ピン**: 指定座標にインラインSVGの下向きマーカー + 直上のテキストラベル。ラベル面は `--world-pin-face`（半透明ネイビー族）、文字は `--text-high-contrast`。マーカー先端が指定座標に一致するよう配置する。
-- **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGの軸付き塗りつぶし矢印を置く。`--text-high-contrast` の塗りと `--world-pin-face` の輪郭を使い、世界背景から分離する最小限の影を許可する。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。
-- 色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
+- **画面外矢印**: 方向ベクトルを画面端（マージン `--world-pin-edge-margin` の固定長）へクランプした位置に、方向へ回転したインラインSVGの軸付き塗りつぶし矢印を置く。塗りは `--tutorial-attention-red`（`#ff0000`）、輪郭は `--world-pin-face` で、世界背景から分離する最小限の影を許可する（塗りを原色赤へ引き上げたのはユーザー裁定 2026-08-28 / ADR 0039）。脈動は `animation: var(--tutorial-pulse-strong) var(--tutorial-pulse-duration) ease-in-out infinite`（1.08 / 1200ms）で回すが、**脈動は子の `svg` に付ける**: 位置決めの `translate/rotate/scale(--ui-scale)` は `WorldPinOverlay` がインラインstyleで書いており、`.arrow` div 側で `transform` をアニメートするとカスケード上インラインstyleに勝って回転と位置が消える。テキストラベルは付けない（uGUI版HudArrowと同じ責務分担）。ピン本体のラベル・マーカーは赤化しない。
+- **前項で規定した赤と脈動（ADR 0039）以外の**色相・光彩・アニメーションは追加しない。z層は `--z-world-pin` トークンのみで制御する。
 
 ## 8.9 検索入力
 
@@ -527,13 +529,14 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   落として先頭へ戻る。
 - `pointer-events: none` を維持し、z層は既存の tutorial overlay 内（新しい `--z-*` を増やさない）。
 - e2e/スクリーンショット検証はアニメーション非同期のため座標一致を要求しない（表示有無のみ検証する）。
+- **枠線ハイライト本体の色と脈動**: 枠線は `--tutorial-attention-red`（`#ff0000`）、外側グローは `--tutorial-attention-glow`（赤から `rgb(from …)` で導出した24%）で、グロー幅は `--tutorial-highlight-glow` が単一の値源（clip-path計算も同じ変数を読む）。脈動は `animation: var(--tutorial-pulse-subtle) var(--tutorial-pulse-duration) ease-in-out infinite`（1.03 / 1200ms）で回し、**内側ノードを足さず `.highlight` 自身の `transform`** に付ける（ユーザー裁定 2026-08-28 / ADR 0039）。同じ要素に載る `clip-path` も一緒に拡縮し、祖先スクロール枠の境界が同周期で±1px程度呼吸するのは受容済みの帰結であり、2段構成へ"改善"しない。
 - **枠線ハイライトの文言ラベル**: `tutorial.presentation` の outline に `labelTutorialGuid` があるとき、`TutorialOverlay` が枠線の下辺外側・左揃えに `t(challengeTutorial.<guid>.text)` のラベルを描く（ユーザー裁定 2026-08-20）。面は `--world-pin-face`、文字は `--text-high-contrast`、間隔は `--tutorial-highlight-label-gap`、padding・文字サイズはワールドピンのラベルと共有する `--label-face-padding` / `--label-face-font-size`。枠線が非表示ならラベルも出さない。ラベルの可視判定はアンカー実体で行う（枠のpaddingリングが削れただけでラベルを落とさない）。ラベル自身はclip-pathを持たないため、**下辺に収まらず上辺側に収まるときは枠線の上へ反転配置**して容器の外へ出さない（ユーザー裁定 2026-08-22）。`t()` の解決結果が空（辞書未着など）のときもラベル面ごと出さない。吹き出し矢印・光彩・アニメーションは付けない。
 
 ## 8.19 キー操作ヒントHUD（チュートリアルの keyControl）
 
 - `tutorial.presentation` の kind `keyControl`（tutorialGuid / keyName / uiState）を `KeyControlHintHud` が描く。表示は `ui_state.current` の `state` が `uiState` と一致する間だけで、blockingスキット中は出さない（ユーザー裁定 2026-08-20）。
 - 配置は常時表示HUD族の `.viewportOverlay` 内・画面下中央で、ホットバーの床（`--hotbar-floor-offset`）から `--tutorial-key-hint-hotbar-gap` だけ上に置き、採掘ゲージと重ねない。複数は `--tutorial-key-hint-gap` で縦積み。床位置の計算式（`--hotbar-floor-offset` + 各HUD固有のgap）は採掘プログレスバー（§8.18）と共有する。
-- 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。**文字色だけは `--tutorial-key-hint-color`（共通の赤 `--text-insufficient` を参照）で上書きする**: 面を持たずワールド上に浮くため白文字では埋もれる（ユーザー裁定 2026-08-22）。新しい色相は増やさない。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
+- 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。**文字色だけは `--tutorial-key-hint-color`（原色赤 `--tutorial-attention-red` = `#ff0000` を参照）で上書きする**: 面を持たずワールド上に浮くため白文字では埋もれる（ユーザー裁定 2026-08-22、色を原色赤へ引き上げたのはユーザー裁定 2026-08-28 / ADR 0039）。赤の適用はこのHUDだけで、共有様式 `:where(.keyHintText)` の白は変えない（インベントリ画面左下・研究画面左下は白のまま）。面・枠・光彩は持たず `pointer-events: none`。**拡縮ループは持つ**: `animation: var(--tutorial-pulse-strong) var(--tutorial-pulse-duration) ease-in-out infinite`（1.08 / 1200ms）（ユーザー裁定 2026-08-28。従来の「アニメーションは持たず」は撤回）。
 
 ## 9. やらないことリスト（再掲・明示）
 

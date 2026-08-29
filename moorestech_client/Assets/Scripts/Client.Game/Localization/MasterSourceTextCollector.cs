@@ -128,6 +128,10 @@ namespace Client.Game.Localization
                     UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
                     ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,
                     BlockPlacePreviewTutorialParam blockPlacePreview => blockPlacePreview.Message,
+                    RelativeBlockPlacePreviewTutorialParam relativePreview => relativePreview.Message,
+                    // veinRestrictedPlacementは強調対象の指定のみで表示文言フィールドを持たない
+                    // veinRestrictedPlacement only names the highlight targets and has no display-text field
+                    VeinRestrictedPlacementTutorialParam => null,
                     // uiDragGuideはfrom/toのanchorIdのみで表示文言フィールドを持たない
                     // uiDragGuide has only from/to anchorIds and no display-text field
                     UiDragGuideTutorialParam => null,

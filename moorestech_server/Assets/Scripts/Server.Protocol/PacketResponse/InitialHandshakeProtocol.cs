@@ -6,6 +6,7 @@ using Game.Construction;
 using Game.Entity.Interface;
 using Game.Hotbar;
 using Game.PlayerConnection;
+using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.World.Interface.DataStore;
 using MessagePack;
@@ -31,6 +32,7 @@ namespace Server.Protocol.PacketResponse
         private readonly IItemStackLevelLookup _itemStackLevelLookup;
         private readonly IHotbarAssignmentLookup _hotbarAssignmentLookup;
         private readonly IRemainingPlacementCountLookup _remainingPlacementCountLookup;
+        private readonly IPlayerInventoryDataStore _playerInventoryDataStore;
 
         public InitialHandshakeProtocol(ServiceProvider serviceProvider)
         {
@@ -43,6 +45,7 @@ namespace Server.Protocol.PacketResponse
             _eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             _hotbarAssignmentLookup = serviceProvider.GetService<IHotbarAssignmentLookup>();
             _remainingPlacementCountLookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
+            _playerInventoryDataStore = serviceProvider.GetService<IPlayerInventoryDataStore>();
         }
         
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -57,6 +60,10 @@ namespace Server.Protocol.PacketResponse
                 _eventProtocolProvider.UnregisterPlayer(data.PlayerId, context.EventSink);
                 _connectionRegistry.Unregister(data.PlayerId);
             }
+
+            // 初期装備は新規プレイヤーの接続確定時にだけ配る。インベントリ取得は副作用を持たない
+            // The initial equipment is granted only when a brand-new player connects; fetching an inventory has no side effect
+            _playerInventoryDataStore.GrantInitialEquipmentIfNewPlayer(data.PlayerId);
 
             var response = CreateResponse();
 

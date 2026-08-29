@@ -20,6 +20,7 @@ namespace Core.Master.Validator
             errorLogs += ConnectorSettingsValidation();
             errorLogs += ConnectorShapeGuidValidation();
             errorLogs += MeshingAxisValidation();
+            errorLogs += MinerOutputSlotCountValidation();
             errorLogs += BeltConveyorFamilyValidator.Validate(blocks);
             return string.IsNullOrEmpty(errorLogs);
 
@@ -355,6 +356,24 @@ namespace Core.Master.Validator
                     if (shapeGuid == null || ExistsConnectorShape(shapeGuid.Value)) return "";
                     return $"[BlockMaster] Name:{blockName} has invalid connector ShapeGuid:{shapeGuid}\n";
                 }
+            }
+
+            string MinerOutputSlotCountValidation()
+            {
+                // 採掘機は跨いだ鉱脈のアイテムを1種1スロットで同時に出す。枠が足りないとInsertionCheckが通らず永久Idleになる
+                // A miner outputs one slot per straddled vein item at once; too few slots fail InsertionCheck and leave it idle forever
+                var logs = "";
+                foreach (var block in blocks.Data)
+                {
+                    if (block.BlockParam is not IMinerParam minerParam) continue;
+
+                    var uniqueItemGuids = new HashSet<Guid>();
+                    foreach (var miningSetting in minerParam.MineSettings.items) uniqueItemGuids.Add(miningSetting.ItemGuid);
+
+                    if (minerParam.OutputItemSlotCount < uniqueItemGuids.Count)
+                        logs += $"[BlockMaster] Name:{block.Name} has outputItemSlotCount:{minerParam.OutputItemSlotCount} smaller than the {uniqueItemGuids.Count} unique mineSettings items\n";
+                }
+                return logs;
             }
 
             string MeshingAxisValidation()

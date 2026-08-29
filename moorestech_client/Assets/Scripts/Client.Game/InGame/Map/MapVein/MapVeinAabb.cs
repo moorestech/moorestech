@@ -1,3 +1,4 @@
+using System;
 using Core.Master;
 using UnityEngine;
 
@@ -14,11 +15,12 @@ namespace Client.Game.InGame.Map.MapVein
     }
 
     /// <summary>
-    ///     1つの鉱脈の占有範囲。セル座標(inclusive)とワールドAABBの両方を持つ
-    ///     One vein's occupied range, held as both inclusive cell coords and a world AABB
+    ///     鉱脈1インスタンスの占有範囲。GUIDは種別なので同じ値のインスタンスが多数ある
+    ///     One vein instance's occupied range; the guid is a type, so many instances share the same value
     /// </summary>
     public class MapVeinAabb
     {
+        public readonly Guid VeinTypeGuid;
         public readonly Vector3Int MinCell;
         public readonly Vector3Int MaxCell;
         public readonly MapVeinKind Kind;
@@ -28,8 +30,9 @@ namespace Client.Game.InGame.Map.MapVein
         // The item an item vein yields; null for fluid veins
         public readonly ItemId? VeinItemId;
 
-        public MapVeinAabb(Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind, ItemId? veinItemId)
+        public MapVeinAabb(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind, ItemId? veinItemId)
         {
+            VeinTypeGuid = veinTypeGuid;
             MinCell = minCell;
             MaxCell = maxCell;
             Kind = kind;
@@ -40,6 +43,5 @@ namespace Client.Game.InGame.Map.MapVein
             Bounds = new Bounds();
             Bounds.SetMinMax(minCell, maxCell + Vector3Int.one);
         }
-
     }
 }

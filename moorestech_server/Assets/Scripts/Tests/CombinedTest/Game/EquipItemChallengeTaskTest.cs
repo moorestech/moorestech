@@ -3,6 +3,7 @@ using System.Linq;
 using Core.Master;
 using Core.Update;
 using Game.Challenge;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,10 @@ namespace Tests.CombinedTest.Game
             var challengeDatastore = serviceProvider.GetService<ChallengeDatastore>();
             challengeDatastore.InitializeCurrentChallenges();
             var equipment = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).EquipmentInventory;
+
+            // マスタの初期装備が既に達成条件を満たすため、非装備状態から検証を始める
+            // The master's initial equipment already satisfies the goal, so start from an unequipped state
+            ClearEquipment(equipment);
 
             equipment.SetSelectedEquipmentIndex(0);
             equipment.SetItem(1, MasterHolder.ItemMaster.GetItemId(Test1ItemGuid), 1);
@@ -103,6 +108,10 @@ namespace Tests.CombinedTest.Game
             var mainInventory = inventoryData.MainOpenableInventory;
             var equipment = inventoryData.EquipmentInventory;
 
+            // マスタの初期装備が既に達成条件を満たすため、非装備状態から検証を始める
+            // The master's initial equipment already satisfies the goal, so start from an unequipped state
+            ClearEquipment(equipment);
+
             equipment.SetSelectedEquipmentIndex(0);
             mainInventory.SetItem(0, MasterHolder.ItemMaster.GetItemId(Test1ItemGuid), 1);
             GameUpdater.UpdateOneTick();
@@ -115,6 +124,12 @@ namespace Tests.CombinedTest.Game
 
             GameUpdater.UpdateOneTick();
             Assert.IsTrue(IsCompleted(challengeDatastore));
+        }
+
+        private static void ClearEquipment(IEquipmentInventory equipment)
+        {
+            for (var slot = 0; slot < equipment.GetSlotSize(); slot++)
+                equipment.SetItem(slot, ServerContext.ItemStackFactory.CreatEmpty());
         }
 
         private static bool IsCompleted(ChallengeDatastore challengeDatastore)

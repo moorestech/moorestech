@@ -6,6 +6,7 @@ using Client.Common.Asset;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Map.NearestSearch;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -18,7 +19,7 @@ using UnityEngine.VFX;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockGameObject : MonoBehaviour
+    public class BlockGameObject : MonoBehaviour, INearestSearchTarget
     {
         public BlockId BlockId { get; private set; }
         public BlockInstanceId BlockInstanceId { get; private set; }
@@ -26,6 +27,10 @@ namespace Client.Game.InGame.Block
         public BlockPositionInfo BlockPosInfo { get; private set; }
         public List<IBlockStateChangeProcessor> BlockStateChangeProcessors { get; private set; }
         
+        // 最近傍索引の墓標。撤去済みのブロックを木の組み直し無しに候補から外す
+        // Tombstone for the nearest index; a removed block leaves the candidates without rebuilding the tree
+        public bool IsSearchable { get; private set; } = true;
+
         public IObservable<BlockGameObject> OnFinishedPlaceAnimation => _onFinishedPlaceAnimation;
         private readonly Subject<BlockGameObject> _onFinishedPlaceAnimation = new();
         
@@ -38,6 +43,18 @@ namespace Client.Game.InGame.Block
         private BlockStateMessagePack _blockStateMessagePack;
         private bool _isShaderAnimating;
         
+        // 索引の構築時に1度だけ読まれる座標。ブロックは動かないので設置位置をそのまま返す
+        // The position read once when the index is built; blocks never move, so the placed position is returned as is
+        public Vector3 GetIndexPosition()
+        {
+            return transform.position;
+        }
+
+        public void MarkUnsearchable()
+        {
+            IsSearchable = false;
+        }
+
         public void Initialize(BlockMasterElement blockMasterElement, BlockPositionInfo posInfo, BlockInstanceId blockInstanceId)
         {
             BlockPosInfo = posInfo;

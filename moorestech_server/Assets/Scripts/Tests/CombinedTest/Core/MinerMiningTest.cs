@@ -10,8 +10,11 @@ using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.State;
 using Game.Context;
 using Game.EnergySystem;
+using Core.Master;
+using MessagePack;
 using Game.Map.Interface.Vein;
 using NUnit.Framework;
 using Server.Boot;
@@ -124,6 +127,39 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(1, miningItems.Count);
             Assert.AreEqual(vein.VeinItemId, miningItems[0].Id);
             Assert.Greater(miningTicks, 0u);
+        }
+
+        // 複数種の鉱脈を跨いだ採掘機の採掘対象と採掘時間の合成規則を、本番の設置経路で検証する
+        // Verify how a miner straddling several vein types composes its targets and mining time, through the production placement path
+        [Test]
+        public void 複数種の鉱脈を跨ぐと1種1個の対象になり採掘時間は最遅値になる()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // ForUnitTestのmapは(0,5,0)と(0,5,1)に鉄鉱脈、(1,5,0)に第2鉱脈を置く。原点(0,5,0)のOffsetDrillMiner(2,1,3・North)は3本すべてに重なる
+            // The ForUnitTest map puts iron veins at (0,5,0) and (0,5,1) and the second vein at (1,5,0); an OffsetDrillMiner (2,1,3, North) at (0,5,0) overlaps all three
+            var originPos = new Vector3Int(0, 5, 0);
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            Assert.IsTrue(worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.OffsetDrillMinerId, originPos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var minerBlock));
+
+            var minerComponent = minerBlock.GetComponent<VanillaMinerProcessorComponent>();
+            var miningItems = (List<IItemStack>)typeof(VanillaMinerProcessorComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+            var miningTicks = (uint)typeof(VanillaMinerProcessorComponent).GetField("_defaultMiningTicks", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(minerComponent);
+
+            // 同じ鉄鉱脈2インスタンスは1個へ畳まれ、種別ごとに1個だけ並ぶ
+            // The two iron instances collapse into one, leaving exactly one entry per item
+            var firstItemId = MasterHolder.ItemMaster.GetItemId(new Guid("00000000-0000-0000-1234-000000000001"));
+            var secondItemId = MasterHolder.ItemMaster.GetItemId(new Guid("00000000-0000-0000-1234-000000000002"));
+            CollectionAssert.AreEquivalent(new[] { firstItemId, secondItemId }, miningItems.Select(item => item.Id).ToList());
+
+            // 採掘時間は跨いだ鉱脈の最遅値（第2鉱脈の3秒）。速い方に引っ張られるとここで落ちる
+            // The mining time is the slowest among the straddled veins (the second vein's 3 seconds); being pulled to the faster one fails here
+            Assert.AreEqual(GameUpdater.SecondsToTicks(3), miningTicks);
+
+            // クライアントの分間採掘数はこの実効採掘時間を読む。マスタの個別timeに戻ると表示がサーバーと乖離する
+            // The client's per-minute count reads this effective time; falling back to the per-item master time would diverge from the server
+            var minerStateDetail = minerComponent.GetBlockStateDetails().First(detail => detail.Key == CommonMinerBlockStateDetail.BlockStateDetailKey);
+            Assert.AreEqual(3d, MessagePackSerializer.Deserialize<CommonMinerBlockStateDetail>(minerStateDetail.Value).MiningSeconds, 0.001d);
         }
 
         // mineSettingsに無い鉱脈の上では何も掘らない（採掘時間0のまま毎tick産出する無限増殖の再発防止）
