@@ -7,6 +7,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
@@ -27,6 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
         private readonly HotbarTapInputService _hotbarInputService;
+        private readonly RightShortPressInputService _rightShortPressInputService;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
         public IObservable<int> OnPlacementHeightChanged => _placementHeight;
@@ -42,7 +44,8 @@ namespace Client.Game.InGame.UI.UIState.State
             IMapVeinRangeView mapVeinRangeView,
             MapVeinAabbRegistry veinAabbRegistry,
             VeinRestrictedPlacementState veinRestrictedPlacementState,
-            HotbarTapInputService hotbarInputService)
+            HotbarTapInputService hotbarInputService,
+            RightShortPressInputService rightShortPressInputService)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
@@ -52,6 +55,7 @@ namespace Client.Game.InGame.UI.UIState.State
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
             _hotbarInputService = hotbarInputService;
+            _rightShortPressInputService = rightShortPressInputService;
 
             // 設置対象か制限が変わった時だけ表示状態をプッシュする。毎フレームの再導出はしない
             // Push the display state only when the target or the restriction changes; never re-derive per frame
@@ -64,6 +68,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // 他UIState滞在中は数字キーがpollされないため、復帰直後の古い押下状態を破棄する
             // Digit keys aren't polled while another UIState is active, so discard any stale press state on return
             _hotbarInputService.ResetKeyState();
+            _rightShortPressInputService.ResetPressState();
 
             _placementHeight.Value = 0;
             // 遷移payloadから設置対象と由来を1組で受け取り所有者へ渡す（無ければEmptyに落ちる）
@@ -98,6 +103,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            // パネル外の右短押し状態を毎フレーム取得（ManualUpdateが走る前に）
+            // Evaluate right short press state every frame before early returns (ManualUpdate runs internally)
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
 
             // TabはOpenInventoryと同キーだが、配置モード中はビルドメニュー再表示を優先する
@@ -105,6 +114,13 @@ namespace Client.Game.InGame.UI.UIState.State
             if (HybridInput.GetKeyDown(KeyCode.Tab)) return new UITransitContext(UIStateEnum.BuildMenu);
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
+
+            // パネル外の右短押しはEscと同じ二段階。起点/選択があればそれだけ解除し、無ければ建築モードを抜ける
+            // A right short press outside UI mirrors Esc: cancel only an in-progress operation, otherwise leave build mode
+            if (isRightShortPressed && !_placeSystemStateController.TryCancelInProgressOperation())
+            {
+                return new UITransitContext(UIStateEnum.GameScreen);
+            }
 
             // キー/Web選択を共通3分岐へ
             // Route a digit-key or web-originated tap into the shared 3-way branch (same slot / different slot / empty slot)

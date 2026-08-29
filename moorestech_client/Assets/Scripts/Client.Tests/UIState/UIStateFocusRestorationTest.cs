@@ -7,6 +7,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
@@ -103,7 +104,8 @@ namespace Client.Tests.UIState
             var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), CreateVeinAabbRegistry(), new VeinRestrictedPlacementState(), hotbarInputService);
+            var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), CreateVeinAabbRegistry(), new VeinRestrictedPlacementState(), hotbarInputService, rightShortPressInputService);
         }
 
         private DeleteObjectState CreateDeleteObjectState(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
