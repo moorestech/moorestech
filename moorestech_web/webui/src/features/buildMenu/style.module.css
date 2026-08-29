@@ -110,6 +110,26 @@
   margin: 0;
 }
 
+/* カテゴリ大見出しは本文色・大きめで、muted小見出しと階層差を出す（ADR 0045） */
+/* Category headings use the body color at a larger size to read above the muted sub-headings (ADR 0045) */
+.categoryHeading {
+  color: var(--text-default);
+  font-size: var(--label-face-font-size);
+  font-weight: 400;
+  margin: 0;
+}
+
+/* 大見出し→FadeRule→サブカテゴリ群の縦積み。群同士はカテゴリ間余白で切る */
+/* Stacks heading, FadeRule, and sub-category sections; groups are separated by the inter-category gap */
+.categoryGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.categoryGroup + .categoryGroup {
+  margin-top: var(--build-menu-category-gap);
+}
+
 /* 見出し→FadeRule→SlotGridの縦積み。gapで一定間隔を保つ（§8.11） */
 /* Stacks heading, FadeRule, and SlotGrid; gap keeps consistent spacing (§8.11) */
 .section {
@@ -155,6 +175,9 @@
 .scroll :global(.mantine-ScrollArea-viewport) {
   box-sizing: border-box;
   padding: var(--tutorial-anchor-clip-inset);
+  /* 見出しoffsetTopの基準を視口にする（scroll-spy） */
+  /* Make the viewport the offsetParent for heading offsetTop (scroll-spy) */
+  position: relative;
 }
 
 /* 広げたクリップ領域のぶんトラックを詰め、つまみの位置と長さを変えない */

@@ -1,19 +1,24 @@
 import { ModeSwitch } from "@/shared/ui";
-import type { BuildMenuCategory } from "@/bridge";
 import { buildMenuCategoryNameKey, useI18n } from "@/shared/i18n";
 
-type Props = {
-  categories: BuildMenuCategory[];
-  selected: string;
-  // 検索中はサイドバー無効
-  // Disabled while searching
+export type CategorySidebarItem = {
+  categoryGuid: string;
+  // 検索でヒットが無いカテゴリは押せない
+  // Categories with no search hit cannot be pressed
   disabled: boolean;
+};
+
+type Props = {
+  categories: CategorySidebarItem[];
+  // scroll-spyの現在地（ジャンプ中は目標）
+  // Scroll-spy current category (the target while jumping)
+  selected: string;
   onSelect: (categoryGuid: string) => void;
 };
 
-// §8.6の縦ModeSwitchをカテゴリ切替サイドバーへ転用する
-// Reuses the §8.6 vertical ModeSwitch as the category-switch sidebar
-export function CategorySidebar({ categories, selected, disabled, onSelect }: Props) {
+// §8.6の縦ModeSwitchをカテゴリ見出しへのジャンプサイドバーとして転用する（ADR 0045）
+// Reuses the §8.6 vertical ModeSwitch as the jump-to-category-heading sidebar (ADR 0045)
+export function CategorySidebar({ categories, selected, onSelect }: Props) {
   const { t } = useI18n();
   return (
     <ModeSwitch
@@ -22,10 +27,10 @@ export function CategorySidebar({ categories, selected, disabled, onSelect }: Pr
         value: category.categoryGuid,
         label: t(buildMenuCategoryNameKey(category.categoryGuid)),
         testId: `build-menu-category-${category.categoryGuid}`,
+        disabled: category.disabled,
       }))}
       onChange={onSelect}
       orientation="vertical"
-      disabled={disabled}
       testId="build-menu-sidebar"
     />
   );
