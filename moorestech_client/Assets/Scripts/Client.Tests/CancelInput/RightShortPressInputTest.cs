@@ -79,5 +79,42 @@ namespace Client.Tests.CancelInput
 
             Assert.IsFalse(input.TryConsumeShortPress());
         }
+
+        [Test]
+        public void 押下中にResetを二度呼んでも押下は蘇らない()
+        {
+            var input = new RightShortPressInput();
+
+            input.ManualUpdate(true, Origin, false);
+            input.Reset();
+            input.Reset();
+            input.ManualUpdate(true, Origin, false);
+            input.ManualUpdate(false, Origin, false);
+
+            Assert.IsFalse(input.TryConsumeShortPress());
+        }
+
+        [Test]
+        public void 閾値ちょうど8pxでドラッグになる()
+        {
+            var input = new RightShortPressInput();
+
+            input.ManualUpdate(true, Origin, false);
+            input.ManualUpdate(true, Origin + new Vector2(RightShortPressInput.MoveThresholdPixels, 0f), false);
+            input.ManualUpdate(false, Origin + new Vector2(RightShortPressInput.MoveThresholdPixels, 0f), false);
+
+            Assert.IsFalse(input.TryConsumeShortPress(), "ちょうど閾値でドラッグになるため短押しは不成立");
+        }
+
+        [Test]
+        public void UI外で押してUI上で離すと短押しが成立する()
+        {
+            var input = new RightShortPressInput();
+
+            input.ManualUpdate(true, Origin, false);
+            input.ManualUpdate(false, Origin, true);
+
+            Assert.IsTrue(input.TryConsumeShortPress());
+        }
     }
 }

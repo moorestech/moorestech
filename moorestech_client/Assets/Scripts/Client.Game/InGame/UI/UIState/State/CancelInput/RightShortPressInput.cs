@@ -47,7 +47,7 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
                 if (!nextHeld && _isArmed) _shortPressPending = true;
 
                 _isHeld = nextHeld;
-                _pressStartPosition = pointerPosition;
+                if (nextHeld) _pressStartPosition = pointerPosition;
                 _isArmed = nextHeld && !isPointerOverUi;
             }
 
@@ -78,7 +78,7 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
         // Marks the held press consumed so a transition cannot produce a false short press
         public void Reset()
         {
-            _isDeadPress = _isHeld;
+            if (_isHeld) _isDeadPress = true;
             _isHeld = false;
             _isArmed = false;
             _shortPressPending = false;
