@@ -103,6 +103,8 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
     持ち物パネルとは重ならない（重畳ではなく棲み分け）。研究画面では持ち物をstage左paddingごと画面左端へ寄せ、
     常時表示族のホットバー・装備HUDは描画しない。チャレンジHUD・キー操作ヒント・採掘進捗バーは
     このパネルより上の層（`.viewportOverlay` の `--z-stage-overlay-panel-chrome`）に残す。
+  - 例外（ADR 0040・出展モードの言語選択ゲート・§8.20）: 出展モード（`MOORESTECH_EVENT_MODE=1`）の
+    言語選択ゲートのみ、全画面を不透明黒（`--event-language-gate-face`）で塗り潰してよい。
 - **背景ディムは App の screen backdrop 1枚だけが担う。** 各パネルが独自に画面を暗くしない。
 - **常時の縁ヴィネットは App の実viewport全面が担う。** 1280基準stageへ置くと横長画面の途中で切れるため、stage背景へ戻さない。ヴィネットの楕円寸法・中心・停止位置だけは、縦横比が異なる実viewportの四辺へ同じ比率で沿わせる必要があるため、固定長原則の例外としてviewport比例の`%`トークンを使う。
 - **重なり順は `index.css` の `--z-*` トークンのみで制御する。** 数値のz-index直書き禁止。
@@ -535,9 +537,20 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - 配置は常時表示HUD族の `.viewportOverlay` 内・画面下中央で、ホットバーの床（`--hotbar-floor-offset`）から `--tutorial-key-hint-hotbar-gap` だけ上に置き、採掘ゲージと重ねない。複数は `--tutorial-key-hint-gap` で縦積み。床位置の計算式（`--hotbar-floor-offset` + 各HUD固有のgap）は採掘プログレスバー（§8.18）と共有する。
 - 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。**文字色だけは `--tutorial-key-hint-color`（共通の赤 `--text-insufficient` を参照）で上書きする**: 面を持たずワールド上に浮くため白文字では埋もれる（ユーザー裁定 2026-08-22）。新しい色相は増やさない。面・枠・光彩・アニメーションは持たず `pointer-events: none`。
 
+## 8.20 出展モードの言語選択ゲート
+
+- **§1「画面全体を不透明な面で塗り潰す禁止」の2つ目の例外**（ADR 0040）。出展モード（`MOORESTECH_EVENT_MODE=1`）で
+  ロード完了後・オープニングスキット前に出し、言語が選ばれるまで待つ。世界を透かすと来場者が
+  「まだ遊べる」と誤解して操作でき、その入力が最初の操作として無操作タイマーを誤武装するため、面は不透明にする。
+- 面色は `--event-language-gate-face`（不透明黒）、z層は `--z-portal-event-language-gate` で
+  再接続オーバーレイより前。トースト・再接続表示はこの下に隠れるため、押下が通らなかったことは
+  ゲート自身が辞書非依存の1行（`DictionaryIndependentText`）で伝える。
+- 見出しは英語固定リテラル、選択肢は各言語の母国語表記。選び直し導線は置かない（誤選択は無操作復帰で回収する）。
+- 待機中だけ本体をマウントし、通常起動では言語一覧を取りに行かない。
+
 ## 9. やらないことリスト（再掲・明示）
 
-- 全画面UI・不透明な面での塗り潰し（唯一の例外は §8.12 のスキット暗転）
+- 全画面UI・不透明な面での塗り潰し（例外は §8.12 のスキット暗転と §8.20 の出展モード言語選択ゲートだけ）
 - Mantine標準テーマ剥き出しの見た目
 - UI装飾のための画像アセット追加
 - GamePanel 以外のパネル背景 / shared/ui 以外のスロット表現

@@ -3,10 +3,17 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { setDictionaries } from "@/shared/i18n/i18nStore";
 
+const mocks = vi.hoisted(() => ({ entries: null as unknown }));
+
 vi.mock("@/bridge", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/bridge")>()),
   useTopic: () => ({ locale: "english", revision: 1 }),
   dispatchAction: vi.fn(),
+  // 一覧の出所はストアなので、フックの代わりに購読結果だけを差し替える
+  // The list comes from the store, so only the subscription result is swapped in place of the hook
+  useLanguageList: () => (mocks.entries === null
+    ? { status: "loading" }
+    : { status: "ready", entries: mocks.entries }),
 }));
 vi.mock("@mantine/core", () => ({
   Title: ({ children, ...props }: { children: unknown }) => createElement("mock-title", props, children as never),
@@ -20,72 +27,37 @@ vi.mock("@/shared/ui", () => ({
 
 import { LanguageSelect } from "./LanguageSelect";
 
-const languagesResponse = [
+const languageEntries = [
   { code: "english", displayName: "English" },
   { code: "japanese", displayName: "日本語" },
 ];
 
 afterEach(() => {
-  vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  mocks.entries = null;
 });
 
 describe("LanguageSelect", () => {
-  it("一覧取得に成功したら配信順のoptionsを並べる", async () => {
+  it("一覧が届いたら配信順のoptionsを並べる", async () => {
     setDictionaries("english", {}, {}, {});
-    vi.stubGlobal("fetch", vi.fn(() =>
-      Promise.resolve({ ok: true, json: () => Promise.resolve(languagesResponse) })));
+    mocks.entries = languageEntries;
 
     const renderer = await renderLanguageSelect();
 
     expect(optionValues(renderer)).toEqual(["english", "japanese"]);
-    expect(textsByTestId(renderer, "language-list-error")).toEqual([]);
+    expect(textsByTestId(renderer, "language-list-loading")).toEqual([]);
     act(() => renderer.unmount());
   });
 
-  it("一覧取得に失敗したら辞書非依存リテラルのエラーと再試行ボタンを描画する", async () => {
+  it("一覧が届くまでは辞書非依存リテラルの読み込み中を出しModeSwitchを描かない", async () => {
     // 辞書は空のままなのでt()経由なら描画は壊れる。リテラルであることの証明になる
     // The dictionary stays empty, so anything routed through t() would break: this proves the literal path
     setDictionaries("english", {}, {}, {});
-    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: false, status: 500 })));
 
     const renderer = await renderLanguageSelect();
 
-    expect(textsByTestId(renderer, "language-list-error"))
-      .toEqual(["Failed to load the language list. / 言語一覧の読み込みに失敗しました。"]);
-    expect(textsByTestId(renderer, "language-list-retry")).toEqual(["Retry / 再試行"]);
+    expect(textsByTestId(renderer, "language-list-loading")).toEqual(["Loading… / 読み込み中…"]);
     expect(renderer.root.findAllByType("mock-mode-switch" as never)).toEqual([]);
-    act(() => renderer.unmount());
-  });
-
-  it("選択肢ゼロ件はエラー扱いになりModeSwitchを描かない", async () => {
-    setDictionaries("english", {}, {}, {});
-    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve({ ok: true, json: () => Promise.resolve([]) })));
-
-    const renderer = await renderLanguageSelect();
-
-    expect(textsByTestId(renderer, "language-list-error")).toHaveLength(1);
-    expect(renderer.root.findAllByType("mock-mode-switch" as never)).toEqual([]);
-    act(() => renderer.unmount());
-  });
-
-  it("再試行ボタンで再取得し、成功したらoptionsへ復帰する", async () => {
-    setDictionaries("english", {}, {}, {});
-    const fetchMock = vi.fn()
-      .mockImplementationOnce(() => Promise.resolve({ ok: false, status: 500 }))
-      .mockImplementationOnce(() => Promise.resolve({ ok: true, json: () => Promise.resolve(languagesResponse) }));
-    vi.stubGlobal("fetch", fetchMock);
-
-    const renderer = await renderLanguageSelect();
-    expect(textsByTestId(renderer, "language-list-error")).toHaveLength(1);
-
-    await act(async () => {
-      retryButton(renderer).props.onClick();
-    });
-
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(optionValues(renderer)).toEqual(["english", "japanese"]);
-    expect(textsByTestId(renderer, "language-list-error")).toEqual([]);
     act(() => renderer.unmount());
   });
 });
@@ -105,10 +77,6 @@ function optionValues(renderer: ReactTestRenderer): string[] {
 
 function textsByTestId(renderer: ReactTestRenderer, testId: string): string[] {
   return hostNodesByTestId(renderer, testId).map((node) => String(node.children[0]));
-}
-
-function retryButton(renderer: ReactTestRenderer) {
-  return hostNodesByTestId(renderer, "language-list-retry")[0];
 }
 
 function hostNodesByTestId(renderer: ReactTestRenderer, testId: string) {
