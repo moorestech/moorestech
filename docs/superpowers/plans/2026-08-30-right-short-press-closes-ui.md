@@ -38,7 +38,7 @@
 
 **Files:** なし（環境準備）
 
-- [ ] **Step 1: worktree作成とEditor起動**
+- [x] **Step 1: worktree作成とEditor起動**
 
 ```bash
 pwd   # メインworktreeであることを確認
@@ -48,7 +48,7 @@ pwd
 bd update moorestech-1yza --claim
 ```
 
-- [ ] **Step 2: 初回コンパイルが通ることを確認**
+- [x] **Step 2: 初回コンパイルが通ることを確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
@@ -64,7 +64,7 @@ Expected: errors 0
 **Interfaces:**
 - Produces: `public class RightShortPressInput` — `public void ManualUpdate(bool isRightHeld, Vector2 pointerPosition, bool isPointerOverUi)` / `public bool TryConsumeShortPress()` / `public void Reset()` / `public const float MoveThresholdPixels = 8f`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -152,12 +152,12 @@ namespace Client.Tests.CancelInput
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `RightShortPressInput` 未定義のコンパイルエラー（型が無いので失敗）
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```csharp
 using UnityEngine;
@@ -249,12 +249,12 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "RightShortPressInputTest"`
 Expected: 5 tests PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/CancelInput moorestech_client/Assets/Scripts/Client.Tests/CancelInput
