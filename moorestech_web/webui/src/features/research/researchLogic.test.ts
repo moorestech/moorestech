@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   deriveNodeCardState,
+  deriveNodeStateLabelKey,
   deriveResearchButton,
   findInitialFocusNode,
   isConsumeItemLacking,
@@ -131,5 +132,19 @@ describe("deriveNodeCardState", () => {
   it("researchableはready", () => {
     expect(deriveNodeCardState(node("a", 0, 0, { state: "researchable" })))
       .toEqual({ completed: false, ready: true, locked: false });
+  });
+});
+
+describe("deriveNodeStateLabelKey", () => {
+  it("completedは完了済みラベル", () => {
+    expect(deriveNodeStateLabelKey(node("a", 0, 0, { state: "completed" }))).toBe(L.ui.research.stateCompleted);
+  });
+  it("researchableは研究可能ラベル", () => {
+    expect(deriveNodeStateLabelKey(node("a", 0, 0, { state: "researchable" }))).toBe(L.ui.research.stateAvailable);
+  });
+  it("不可3状態はすべて研究不可ラベルへ畳む", () => {
+    for (const state of ["unresearchableNotEnoughItem", "unresearchableNotEnoughPreNode", "unresearchableAllReasons"] as const) {
+      expect(deriveNodeStateLabelKey(node("a", 0, 0, { state }))).toBe(L.ui.research.stateUnavailable);
+    }
   });
 });
