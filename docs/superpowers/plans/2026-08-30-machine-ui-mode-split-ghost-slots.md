@@ -38,6 +38,23 @@
 
 ---
 
+## 事前計画レビューでの補正（2026-08-30・各タスク本文より優先する）
+
+タスク1派遣前の事前計画レビューで検出した10件。**以下は各Taskの本文記述を上書きする拘束条件**である。
+
+- **C1（Task 5/6・ディレクトリ規約）** `details/machine/` は現存7ファイル。plan通りに作ると11ファイルになりAGENTS.md「1ディレクトリ10ファイルまで」に違反する。レシピ選択行リスト一式（`MachineRecipeSelectionRow.tsx` / `.test.ts` / `MachineRecipeSelectionList.tsx` / `machineRecipeSelectionList.module.css`）は `details/machine/recipeSelection/` サブディレクトリへ置く。`SelectedRecipeHeader.tsx` と `machineSlotGhosts.ts`(+`.test.ts`) は `details/machine/` 直下でよい。
+- **C2（Task 1・出力束縛／ユーザー裁定 2026-08-30）** R5の「出力スロット j = k % 生産物数」は**ItemId一致では判定しない**。`MachineOutputFactoryUtil.CreateRealizedOutputs` はベースセットと追加出力セットで `ApplyQualityLevel` を独立に抽選するため、実現出力 k と k+生産物数 が別ItemIdになり得るからである。スロット j は「**生産物 j のレベルファミリーに属するアイテム**」を受け入れる枠とし、既存物とスタックできない変種が来た場合は「スロットが埋まっている」扱いで `CanStoreOutputs` を false にして機械を待機させる（既存の出力詰まり挙動）。判定に必要な `Core.Master.ItemMaster` へ `public IReadOnlyList<ItemId> GetLevelVariants(ItemId baseItemId)`（ファミリー無しなら `baseItemId` 1件）を追加し、含有判定は `MachineRecipeSlotBindingUtil` 側で行う。裁定: `.decisions/2026-08-30-機械の出力スロットはレベルファミリー枠として束縛し変種違いは待機させる.md`
+- **C3（Task 2・液体テスト）** `VanillaMachineFluidInventoryComponent.GetFluidInventory()` は `Amount > 0` のタンクだけを返すためタンク番号順ではない。液体束縛テストは戻り値の index で読まず、入力インベントリが保持する生タンク列（`FluidInputSlot` 等）を index で読むこと。
+- **C4（Task 2・液体テスト）** plan L567-578 の後半アサートは `AddLiquid` より前に取得したスナップショットを判定しており常に成立する死んだアサート。`AddLiquid` 後に再取得したタンク列で「束縛外タンクが空のまま」を検証する形へ書き換える（`designatedRemainder` の検証だけで済ませない）。
+- **C5（Task 3・型ゲート）** `MachineRecipeSelectionTab.test.ts` は `MachineRecipe` のファクトリを持つため、`inputFluids`/`outputFluids` 必須化で `npm run typecheck` が落ちる。Task 3 で同ファイルのファクトリにも `inputFluids: [], outputFluids: []` を足す（Task 6 でファイルごと削除されるが型ゲートを通すため必要）。
+- **C6（Task 1/2・200行規約）** `VanillaMachineBlockInventoryComponent.cs`(198行) / `VanillaMachineProcessorComponent.cs`(200行) / `VanillaMachineFluidInventoryComponent.cs`(217行) は追記で200行を超える。**束縛ガードを別クラス（例 `Inventory/` 配下の専用クラス）へ切り出して200行以下を守る**こと。partial は禁止。
+- **C7（Task 2・返却の乖離）** `MachineRecipeRefundUtil.CanRefundAllItems` は汎用 `OpenableInventoryItemDataStoreService`（空きスロットならどこでも可）でシミュレートするのに、`ExecuteRefund` が呼ぶ `input.InsertItem` は本planで束縛規則へ変わるため、乖離時に `Debug.LogError("返却シミュレーションと実挿入の乖離でアイテムが消失した")` へ落ちる。**`CanRefundAllItems` のシミュレーションも束縛規則で行うよう Task 2 で修正し、回帰テストを1本足す**。
+- **C8（Task 1・Step 8のExpected）** 「全PASS」と「`ReplaceItemIntoWrongSlotIsRejected` は FAIL のままでよい」が同一行で矛盾している。Expected は「**`ReplaceItemIntoWrongSlotIsRejected` 以外は全PASS**」に一本化する（同テストは Task 2 で通す）。
+- **C9（Task 6・代表出力ガード）** 現行 `buildMachineRecipeSelectionRows` は代表アイコンが取れないレシピを `flatMap` で除外している。新版でも**代表出力の存在ガードを残す**こと（`filter(blockGuid)` だけにしない）。`SelectedRecipeHeader` の `itemId ?? 0` フォールバックは作らず、代表出力が無いレシピはヘッダを出さない。
+- **C10（Task 5・液体スロットのクランプ）** レシピの液体数が機械の実タンク数を超えると `data.fluidSlots[i]` が `undefined` になり `FluidSlot` が `fluid.kind` 参照で落ちる。`buildMachineSlotView` に実タンク数（`SlotLayoutDto` 由来）を渡し、`fluidIndices` を実在範囲へクランプする（「無いものは描かない」）。
+
+---
+
 ## File Structure
 
 サーバー（`moorestech_server/Assets/Scripts/`）
@@ -81,7 +98,7 @@ Web（`moorestech_web/webui/`）
 **Files:**
 - Modify: `.agents/skills/webui-design/SKILL.md:145`, `:271-282`
 
-- [ ] **Step 1: worktree作成とbd claim**
+- [x] **Step 1: worktree作成とbd claim**
 
 ```bash
 pwd
@@ -90,7 +107,7 @@ cd ~/moorestech-worktrees/feature-machine-ui-mode-split-ghost-slots   # moores-w
 bd update moorestech-j2kx --claim
 ```
 
-- [ ] **Step 2: §2 の大型パネル行を書き換える**
+- [x] **Step 2: §2 の大型パネル行を書き換える**
 
 `SKILL.md:145` の「中身は `ModeSwitch` を横向きタブバーとした「インベントリ / レシピ選択」の2タブ切替（§8.7）。」を次に置換:
 
@@ -98,7 +115,7 @@ bd update moorestech-j2kx --claim
 中身はタブを持たず「レシピ選択モード / インベントリモード」の2画面をSatisfactory方式で往復する（§8.7）。
 ```
 
-- [ ] **Step 3: §8.7 を全面置換する**
+- [x] **Step 3: §8.7 を全面置換する**
 
 `## 8.7 機械レシピ選択タブ` から `## 8.8` の直前までを次に置換:
 
@@ -117,7 +134,7 @@ bd update moorestech-j2kx --claim
 - **レシピ選択モードは行リスト。** 各行は §8.17 の共有 `RecipeRow` を流用し、中央列は所要秒数＋静止矢印（`arrowValue={null}`）のみ、操作欄は空。ブロックアイコン/名は開いている機械自身なので出さない。レシピ名（出力アイテム名）は行の上辺に `--text-muted` のテキストで置く。行全体（`data-testid="machine-recipe-<guid>"`）が左クリック対象で、行内の `ItemSlot` は操作を持たない。選択中行は `data-selected="true"` で示し、新しい色相・光彩は足さない。ホバー詳細プレビュー領域・9列アイコングリッドは廃止済みで復活させない。
 ```
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add .agents/skills/webui-design/SKILL.md
