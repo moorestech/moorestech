@@ -22,12 +22,36 @@ namespace Client.Starter.EventMode
 
         // 未知の言語コードはログだけ残し起動は止めない
         // An unknown language code only logs and never stops boot
-        public static LanguageApplyResult ApplyLaunchLanguage(EventExhibitionSettings settings)
+        public static void ApplyLaunchLanguage(EventExhibitionSettings settings)
         {
-            var result = LocalizeLanguageApplier.ApplyOrDefault(settings.RequestedLanguageCode);
-            if (result.Resolution == LanguageResolution.UnknownFallback)
-                Debug.LogError($"EventModeAutoStart: unknown MOORESTECH_EVENT_LANGUAGE={settings.RequestedLanguageCode}, falling back to {result.AppliedLanguageCode}");
-            return result;
+            var requestedLanguageCode = settings.RequestedLanguageCode;
+
+            // 未指定は既定言語を適用して正常扱い
+            // Unset applies the default language and counts as normal
+            if (string.IsNullOrEmpty(requestedLanguageCode))
+            {
+                ApplyDefaultLanguage();
+                return;
+            }
+
+            // 可否判定はTrySetLanguage（公開辞書）だけに任せる
+            // Acceptance is decided only by TrySetLanguage against the published dictionary
+            if (Localize.TrySetLanguage(requestedLanguageCode)) return;
+
+            Debug.LogError($"EventModeAutoStart: unknown {EventExhibitionSettings.LanguageEnvKey}={requestedLanguageCode}, falling back to {Localize.DefaultLanguageCode}");
+            ApplyDefaultLanguage();
+
+            #region Internal
+
+            void ApplyDefaultLanguage()
+            {
+                // 既定言語の適用失敗も握り潰さない
+                // A failed default apply is never swallowed either
+                if (!Localize.TrySetLanguage(Localize.DefaultLanguageCode))
+                    Debug.LogError($"EventModeAutoStart: failed to set language to {Localize.DefaultLanguageCode}");
+            }
+
+            #endregion
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Client.Localization;
 using Client.Starter.EventMode;
 using NUnit.Framework;
@@ -6,8 +7,8 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.EventMode
 {
-    // 起動言語の適用（AutoStartの適用行）が要求どおり実言語へ反映されることを守る
-    // Guards that the launch-language apply step actually switches the real language
+    // 起動言語が実言語へ反映されるか
+    // Whether the launch language reaches the real language
     public class EventModeLaunchLanguageTest
     {
         private bool hadSavedLanguageCode;
@@ -24,8 +25,8 @@ namespace Client.Tests.EventMode
         [TearDown]
         public void TearDown()
         {
-            // PlayerPrefsの言語をテスト前の状態へ正確に戻す
-            // Restore the persisted language exactly as it was before the test
+            // 言語をテスト前の値へ戻す
+            // Restore the language to its pre-test value
             if (hadSavedLanguageCode) PlayerPrefs.SetString(Localize.LanguagePreferenceKey, savedLanguageCode);
             else PlayerPrefs.DeleteKey(Localize.LanguagePreferenceKey);
             PlayerPrefs.Save();
@@ -34,15 +35,21 @@ namespace Client.Tests.EventMode
 
         private static EventExhibitionSettings SettingsWithLanguage(string language)
         {
-            return EventExhibitionSettings.Parse(new EventModeEnvironmentValues("1", null, null, language), false);
+            var raw = new EventModeEnvironmentValues
+            {
+                Enable = "1",
+                IdleTimeoutSeconds = null,
+                EditorOptIn = null,
+                Language = language,
+            };
+            return EventExhibitionSettings.Parse(raw, false);
         }
 
         [Test]
         public void ApplyLaunchLanguage_KnownCode_SwitchesCurrentLanguage()
         {
-            var result = EventModeAutoStart.ApplyLaunchLanguage(SettingsWithLanguage("german"));
+            EventModeAutoStart.ApplyLaunchLanguage(SettingsWithLanguage("german"));
 
-            Assert.AreEqual(LanguageResolution.Accepted, result.Resolution);
             Assert.AreEqual("german", Localize.GetCurrentLanguageCode());
         }
 
@@ -51,9 +58,8 @@ namespace Client.Tests.EventMode
         {
             Localize.TrySetLanguage("japanese");
 
-            var result = EventModeAutoStart.ApplyLaunchLanguage(SettingsWithLanguage(null));
+            EventModeAutoStart.ApplyLaunchLanguage(SettingsWithLanguage(null));
 
-            Assert.AreEqual(LanguageResolution.Unset, result.Resolution);
             Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
         }
 
@@ -61,11 +67,10 @@ namespace Client.Tests.EventMode
         public void ApplyLaunchLanguage_UnknownCode_FallsBackToDefaultAndLogsError()
         {
             Localize.TrySetLanguage("japanese");
-            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("unknown MOORESTECH_EVENT_LANGUAGE=germn"));
+            LogAssert.Expect(LogType.Error, new Regex($"unknown {EventExhibitionSettings.LanguageEnvKey}=germn"));
 
-            var result = EventModeAutoStart.ApplyLaunchLanguage(SettingsWithLanguage("germn"));
+            EventModeAutoStart.ApplyLaunchLanguage(SettingsWithLanguage("germn"));
 
-            Assert.AreEqual(LanguageResolution.UnknownFallback, result.Resolution);
             Assert.AreEqual(Localize.DefaultLanguageCode, Localize.GetCurrentLanguageCode());
         }
     }

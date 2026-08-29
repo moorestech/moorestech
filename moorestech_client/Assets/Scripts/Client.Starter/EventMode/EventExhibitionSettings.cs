@@ -3,14 +3,17 @@ using UnityEngine;
 
 namespace Client.Starter.EventMode
 {
-    // イベント出展モードの有効判定と設定値（起動スクリプトが環境変数で注入）
-    // Event exhibition mode's enable flag and settings, injected through env vars by the launch script
+    // 出展モードの有効判定と設定値
+    // Exhibition mode enable decision and settings
     public readonly struct EventExhibitionSettings
     {
         private const string EnableEnvKey = "MOORESTECH_EVENT_MODE";
         private const string EditorOptInEnvKey = "MOORESTECH_EVENT_MODE_EDITOR";
         private const string IdleTimeoutEnvKey = "MOORESTECH_EVENT_IDLE_TIMEOUT_SECONDS";
-        private const string LanguageEnvKey = "MOORESTECH_EVENT_LANGUAGE";
+
+        // ログとテストで同じキー名を参照する
+        // Logs and tests reference the same key name
+        internal const string LanguageEnvKey = "MOORESTECH_EVENT_LANGUAGE";
         private const int DefaultIdleTimeoutSeconds = 180;
 
         public readonly bool IsEnabled;
@@ -29,11 +32,13 @@ namespace Client.Starter.EventMode
 
         public static EventExhibitionSettings FromEnvironment()
         {
-            var raw = new EventModeEnvironmentValues(
-                Environment.GetEnvironmentVariable(EnableEnvKey),
-                Environment.GetEnvironmentVariable(IdleTimeoutEnvKey),
-                Environment.GetEnvironmentVariable(EditorOptInEnvKey),
-                Environment.GetEnvironmentVariable(LanguageEnvKey));
+            var raw = new EventModeEnvironmentValues
+            {
+                Enable = Environment.GetEnvironmentVariable(EnableEnvKey),
+                IdleTimeoutSeconds = Environment.GetEnvironmentVariable(IdleTimeoutEnvKey),
+                EditorOptIn = Environment.GetEnvironmentVariable(EditorOptInEnvKey),
+                Language = Environment.GetEnvironmentVariable(LanguageEnvKey),
+            };
             return Parse(raw, Application.isEditor);
         }
 

@@ -8,20 +8,44 @@ namespace Client.Tests.EventMode
     public class EventExhibitionModeTest
     {
         private const string EnableEnvKey = "MOORESTECH_EVENT_MODE";
+        private const string EditorOptInEnvKey = "MOORESTECH_EVENT_MODE_EDITOR";
+        private const string IdleTimeoutEnvKey = "MOORESTECH_EVENT_IDLE_TIMEOUT_SECONDS";
         private const string LanguageEnvKey = "MOORESTECH_EVENT_LANGUAGE";
+
+        private static readonly string[] SavedEnvKeys = { EnableEnvKey, EditorOptInEnvKey, IdleTimeoutEnvKey, LanguageEnvKey };
+        private readonly string[] savedEnvValues = new string[SavedEnvKeys.Length];
+
+        [SetUp]
+        public void SetUp()
+        {
+            // テスト前の環境変数を退避する
+            // Save env vars as they were before the test
+            for (var i = 0; i < SavedEnvKeys.Length; i++) savedEnvValues[i] = Environment.GetEnvironmentVariable(SavedEnvKeys[i]);
+        }
 
         [TearDown]
         public void TearDown()
         {
-            // 環境変数はテストごとに元へ戻す
-            // Restore env vars after each test
-            Environment.SetEnvironmentVariable(EnableEnvKey, null);
-            Environment.SetEnvironmentVariable(LanguageEnvKey, null);
+            // 退避した値へ正確に書き戻す
+            // Write the saved values back exactly
+            for (var i = 0; i < SavedEnvKeys.Length; i++) Environment.SetEnvironmentVariable(SavedEnvKeys[i], savedEnvValues[i]);
         }
 
         private static EventExhibitionSettings Parse(string enable, string idleTimeout, string editorOptIn, bool isEditor)
         {
-            return EventExhibitionSettings.Parse(new EventModeEnvironmentValues(enable, idleTimeout, editorOptIn, null), isEditor);
+            return ParseWithLanguage(enable, idleTimeout, editorOptIn, null, isEditor);
+        }
+
+        private static EventExhibitionSettings ParseWithLanguage(string enable, string idleTimeout, string editorOptIn, string language, bool isEditor)
+        {
+            var raw = new EventModeEnvironmentValues
+            {
+                Enable = enable,
+                IdleTimeoutSeconds = idleTimeout,
+                EditorOptIn = editorOptIn,
+                Language = language,
+            };
+            return EventExhibitionSettings.Parse(raw, isEditor);
         }
 
         [Test]
@@ -55,8 +79,8 @@ namespace Client.Tests.EventMode
         [Test]
         public void Parse_RequestedLanguageCode_PassesRawValueThrough()
         {
-            Assert.AreEqual("german", EventExhibitionSettings.Parse(new EventModeEnvironmentValues("1", null, null, "german"), false).RequestedLanguageCode);
-            Assert.IsNull(EventExhibitionSettings.Parse(new EventModeEnvironmentValues("1", null, null, null), false).RequestedLanguageCode);
+            Assert.AreEqual("german", ParseWithLanguage("1", null, null, "german", false).RequestedLanguageCode);
+            Assert.IsNull(ParseWithLanguage("1", null, null, null, false).RequestedLanguageCode);
         }
 
         [Test]

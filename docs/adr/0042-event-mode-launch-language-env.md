@@ -10,8 +10,9 @@ ADR 0030 の出展モードは起動のたびに言語を英語へ強制リセ�
 
 - `EventExhibitionSettings` に `MOORESTECH_EVENT_LANGUAGE` を追加する。値は言語コード（`english` / `japanese` / `german`）
 - 環境変数の生値は `EventModeEnvironmentValues`（名前付き readonly struct）で束ねて `Parse` に渡す。同型 string の位置引数を並べない
-- `EventExhibitionSettings` は言語を生値 `RequestedLanguageCode` として運ぶだけで可否判定を持たない。可否判定は `LocalizeLanguageApplier.ApplyOrDefault`（`Localize.TrySetLanguage` の公開辞書）に一元化し、結果は `LanguageResolution { Unset, Accepted, UnknownFallback }` の型で返す
-- `EventModeAutoStart.ApplyLaunchLanguage(settings)` が適用の窓口。`UnknownFallback` のときだけ `Debug.LogError` を出し english で起動を続ける（環境変数は外部入力なのでフォールバックを許容する）
+- `EventExhibitionSettings` は言語を生値 `RequestedLanguageCode` として運ぶだけで可否判定を持たない。可否判定は基盤の `Localize.TrySetLanguage(string): bool`（公開辞書）だけが持つ
+- 出展モードのフォールバック方針は具体側の `EventModeAutoStart.ApplyLaunchLanguage(settings)` に畳む。汎用アセンブリ `Client.Localization` へ出展モードの方針型（applier・結果 enum）は置かない
+- 未知コードのときだけ `Debug.LogError` を出し english で起動を続ける（環境変数は外部入力なのでフォールバックを許容する）。既定言語の適用にすら失敗した場合も握り潰さず `Debug.LogError` を残す
 - C# 側の既定は english のまま。gamescom 用スクリプトだけが `export MOORESTECH_EVENT_LANGUAGE=german` を書く
 - ADR 0040 実装後もこの環境変数は「言語選択ゲートが出るまでのロード画面言語」として残す。ゲートで来場者が選んだ言語が以後は勝つ。ADR 0040 の「起動ごとの英語強制リセット」は「環境変数の起動言語へリセット」と読み替える
 
@@ -22,7 +23,8 @@ ADR 0030 の出展モードは起動のたびに言語を英語へ強制リセ�
 - ADR 0040 後もロード画面言語として残す: ユーザー裁定 2026-08-29 選択「ゲート表示前のロード画面言語として残す」
 - 未知値で LogError を出すこと: agent前提（既存 `EventModeAutoStart` の TrySetLanguage 失敗時 LogError と同形）
 - 可否判定を Localize 側へ集約: ユーザー裁定 2026-08-29 レビュー後 AskUserQuestion 選択「Localize に集約」
-- 結果種別を enum で運ぶ: ユーザー裁定 2026-08-29 選択「enum で運ぶ」
+- フォールバック方針を具体側へ畳み結果型を持たない: 独立レビュー裁定 2026-08-30（PR #1291 F02/F04 案A）。production に読み手のいない結果型を汎用アセンブリへ置かない
+- 既定適用の失敗を握り潰さない: 独立レビュー裁定 2026-08-30（PR #1291 F01 案A）
 - env 生値を束ね型にする（今回実施）: ユーザー裁定 2026-08-29 選択「今回やる」
 - 適用行を `ApplyLaunchLanguage` に切り出しテストする: ユーザー裁定 2026-08-29 選択「ApplyLaunchLanguage を切り出しテスト」
 
@@ -35,6 +37,7 @@ ADR 0030 の出展モードは起動のたびに言語を英語へ強制リセ�
 
 - 可否判定を `Parse` に言語集合を引数注入して行う（初版実装）— 判定が Parse と TrySetLanguage の2系統に割れるためレビュー指摘で棄却（ユーザー裁定 2026-08-29）
 - `Parse` に既定値だけ注入する最小案 / AutoStart に english 二段フォールバックだけ足す案 — 分裂が残るため棄却（同上）
+- 結果種別 `LanguageResolution` を enum で運ぶ（初版実装）— production に受益者がおらずテストのためだけの型になるため独立レビュー裁定 2026-08-30 で棄却
 - 束ね型を ADR 0040 実装時まで見送る案 — 棄却し今回実施（同上）
 - 適用行の検証を録画プレイテスト1本で行う / 未検証で受け入れる案 — 棄却（同上）
 
