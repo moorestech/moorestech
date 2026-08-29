@@ -633,7 +633,7 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
 
 各ファイルで同じ3点を行う（`using Client.Game.InGame.UI.UIState.State.CancelInput;`／フィールド `private readonly RightShortPressInputService _rightShortPressInputService;`／ctor引数末尾に追加して代入／`OnEnter` 先頭に `_rightShortPressInputService.ResetPressState();`）。
 
-- [ ] **Step 1: BuildMenuState**
+- [x] **Step 1: BuildMenuState**
 
 ```csharp
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B) || _rightShortPressInputService.TryConsumeShortPressOutsideUi()) return new UITransitContext(UIStateEnum.GameScreen, null);
@@ -641,7 +641,7 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
 
 ただし短絡回避のため、先頭で `var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();` を評価してから条件に `|| isRightShortPressed` を足す（以下3画面も同じ形）。`TryConsumeSelectedEntry` の分岐より**後**に置く（エントリ選択が優先）。
 
-- [ ] **Step 2: PlayerInventoryState**
+- [x] **Step 2: PlayerInventoryState**
 
 `GetNextUpdate` を:
 
@@ -661,7 +661,7 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
         }
 ```
 
-- [ ] **Step 3: SubInventoryState**
+- [x] **Step 3: SubInventoryState**
 
 ```csharp
         public UITransitContext GetNextUpdate()
@@ -676,7 +676,7 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
         }
 ```
 
-- [ ] **Step 4: ChallengeListState**
+- [x] **Step 4: ChallengeListState**
 
 ```csharp
         public UITransitContext GetNextUpdate()
@@ -690,12 +690,12 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
         }
 ```
 
-- [ ] **Step 5: コンパイルして既存テストを回す**
+- [x] **Step 5: コンパイルして既存テストを回す**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "UIState|Hotbar|PlaceSystemStateController|RightShortPress"`
 Expected: すべて PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/{BuildMenuState,PlayerInventoryState,SubInventoryState,ChallengeListState}.cs
