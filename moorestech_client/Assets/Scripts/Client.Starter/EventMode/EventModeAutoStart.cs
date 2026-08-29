@@ -6,8 +6,8 @@ using UnityEngine.SceneManagement;
 
 namespace Client.Starter.EventMode
 {
-    // 起動時にワールド削除・英語化・自動開始
-    // On boot: delete world, reset to English, auto-start
+    // 起動時にワールド削除・起動言語の適用・自動開始
+    // On boot: delete world, apply the launch language, auto-start
     public static class EventModeAutoStart
     {
         // 起動フックから切り離した発火条件。ワールド削除の是非をここだけで決める
@@ -29,7 +29,7 @@ namespace Client.Starter.EventMode
             // 新規生成（PlayerPrefs維持）
             // Regenerate world; PlayerPrefs kept
             GameSystemPaths.DeleteDefaultWorldDirectory();
-            if (!Localize.TrySetLanguage(Localize.DefaultLanguageCode)) Debug.LogError($"EventModeAutoStart: failed to set language to {Localize.DefaultLanguageCode}");
+            if (!Localize.TrySetLanguage(settings.LanguageCode)) Debug.LogError($"EventModeAutoStart: failed to set language to {settings.LanguageCode}");
             EventIdleQuitWatcher.Create(settings.IdleTimeoutSeconds);
             LocalGameLauncher.StartLocalGame();
         }
