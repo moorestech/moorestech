@@ -12,6 +12,7 @@ using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
+using Client.Tests.Map.Vein;
 using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
 
@@ -140,7 +141,14 @@ namespace Client.Tests.UIState
             var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, new VeinRestrictedPlacementState(), hotbarInputService);
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, CreateVeinAabbRegistry(), new VeinRestrictedPlacementState(), hotbarInputService);
+        }
+
+        // 鉱脈ゼロの台帳。PlaceBlockStateはコンストラクタで表示を解決するため実体が要る
+        // A registry with no veins; PlaceBlockState resolves the display in its constructor and needs a real one
+        private static MapVeinAabbRegistry CreateVeinAabbRegistry()
+        {
+            return MapVeinAabbRegistryFixture.Create();
         }
     }
 }

@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.Pump
         // Resolve entries that exist in both the FluidMapVein at this position and the master generateFluid table, once at block creation
         public static List<FluidGenerationEntry> ResolveGenerationEntries(Element[] generateFluids, Vector3Int blockPos)
         {
-            var veins = ServerContext.FluidMapVeinDatastore.GetOverVeins(blockPos);
+            var veins = ServerContext.FluidMapVeinDatastore.GetVeinsContainingCell(blockPos);
             if (generateFluids == null || generateFluids.Length == 0 || veins.Count == 0) return new List<FluidGenerationEntry>();
 
             var veinFluidIds = new HashSet<FluidId>();

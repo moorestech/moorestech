@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using Core.Master;
-using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
 namespace Game.Block.Interface.Extension
@@ -25,20 +23,17 @@ namespace Game.Block.Interface.Extension
         }
 
         /// <summary>
-        ///     鉱脈の上かを判定するセル列。採掘機は実際に掘るドリルセルだけ、他は占有セル全域を見る
-        ///     Cells judged against a vein: a miner's actual drill cell only, every occupied cell otherwise
-        ///     この規則の正本はここ1箇所で、サーバーのチャレンジ判定とクライアントの設置制限が同じものを呼ぶ
-        ///     This is the single source of the rule, called by both the server challenge check and the client placement restriction
+        ///     「鉱脈の上か」の唯一の規則。底面フットプリントと鉱脈AABBのXZ重なりだけを見る（ADR 0039）
+        ///     The single rule for "is it over a vein": the footprint and the vein AABB overlapping in XZ, nothing else (ADR 0039)
+        ///     ブロックは地表に置く前提なので、斜面でfloor(hit.y)が鉱脈AABBのYから外れても掘れる／達成する
+        ///     Blocks sit on the surface, so a slope pushing floor(hit.y) outside the vein's Y range must not block mining or completion
+        ///     クライアントの設置制限・サーバーの採掘対象・チャレンジ達成判定がこの1本を共有する
+        ///     The client placement restriction, the server mining target and the challenge completion check all share this one rule
         /// </summary>
-        public static IEnumerable<Vector3Int> EnumerateVeinJudgeCells(this BlockPositionInfo self, BlockMasterElement blockMaster)
+        public static bool OverlapsVeinXz(this BlockPositionInfo self, Vector3Int veinMinCell, Vector3Int veinMaxCell)
         {
-            if (blockMaster.BlockParam is IMinerParam minerParam)
-            {
-                yield return self.ConvertBlockLocalToWorldCell(minerParam.DrillLocalPosition);
-                yield break;
-            }
-
-            foreach (var cell in self.EnumeratePositions()) yield return cell;
+            return self.MinPos.x <= veinMaxCell.x && veinMinCell.x <= self.MaxPos.x &&
+                   self.MinPos.z <= veinMaxCell.z && veinMinCell.z <= self.MaxPos.z;
         }
     }
 }

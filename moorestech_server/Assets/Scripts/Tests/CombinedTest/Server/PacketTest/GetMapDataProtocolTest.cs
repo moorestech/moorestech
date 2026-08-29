@@ -62,9 +62,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(0.0f, object5.Y);
             Assert.AreEqual(100.0f, object5.Z);
 
-            // 4本のvein範囲を検証
-            // Verify all four vein AABBs
-            Assert.AreEqual(4, response.MapVeins.Count);
+            // 6本のvein範囲を検証
+            // Verify all six vein AABBs
+            Assert.AreEqual(6, response.MapVeins.Count);
 
             var vein0 = response.MapVeins[0];
             Assert.AreEqual("11111111-0000-0000-0000-000000000001", vein0.VeinGuid);
@@ -101,6 +101,28 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(20, vein3.MaxX);
             Assert.AreEqual(5, vein3.MaxY);
             Assert.AreEqual(0, vein3.MaxZ);
+
+            // 採掘機が複数種の鉱脈を跨ぐ配置を作るための2本。(0,5,0)の鉄鉱脈とXZで隣り合う
+            // Two veins that let a miner straddle several types; they sit next to the iron vein at (0,5,0) in XZ
+            var vein4 = response.MapVeins[4];
+            Assert.AreEqual("11111111-0000-0000-0000-000000000005", vein4.VeinGuid);
+            Assert.AreEqual(1, vein4.MinX);
+            Assert.AreEqual(5, vein4.MinY);
+            Assert.AreEqual(0, vein4.MinZ);
+            Assert.AreEqual(1, vein4.MaxX);
+            Assert.AreEqual(5, vein4.MaxY);
+            Assert.AreEqual(0, vein4.MaxZ);
+
+            // 同じ鉱脈GUIDの2インスタンス目。採掘対象が1種1個へ畳まれることの土台
+            // A second instance of the same vein guid; the basis for collapsing mining targets to one entry per item
+            var vein5 = response.MapVeins[5];
+            Assert.AreEqual("11111111-0000-0000-0000-000000000001", vein5.VeinGuid);
+            Assert.AreEqual(0, vein5.MinX);
+            Assert.AreEqual(5, vein5.MinY);
+            Assert.AreEqual(1, vein5.MinZ);
+            Assert.AreEqual(0, vein5.MaxX);
+            Assert.AreEqual(5, vein5.MaxY);
+            Assert.AreEqual(1, vein5.MaxZ);
 
             // ワールドディレクトリを持たない構成では地形を持たずWorldIdも定まらない
             // A config without a world directory owns no terrain and has no world identity

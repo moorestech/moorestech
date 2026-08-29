@@ -40,6 +40,7 @@ namespace Client.Game.InGame.UI.UIState.State
             UiStateCameraPolicyService cameraPolicyService,
             BuildUndoService buildUndoService,
             IMapVeinRangeView mapVeinRangeView,
+            MapVeinAabbRegistry veinAabbRegistry,
             VeinRestrictedPlacementState veinRestrictedPlacementState,
             HotbarTapInputService hotbarInputService)
         {
@@ -54,8 +55,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 設置対象か制限が変わった時だけ表示状態をプッシュする。毎フレームの再導出はしない
             // Push the display state only when the target or the restriction changes; never re-derive per frame
-            _placeSystemStateController.OnTargetChanged.Subscribe(target => PlacementVeinViewKindResolver.PushToView(mapVeinRangeView, veinRestrictedPlacementState, target));
-            veinRestrictedPlacementState.OnChanged.Subscribe(_ => PlacementVeinViewKindResolver.PushToView(mapVeinRangeView, veinRestrictedPlacementState, _placeSystemStateController.CurrentTarget));
+            _placeSystemStateController.OnTargetChanged.Subscribe(target => PlacementVeinViewResolver.PushToView(mapVeinRangeView, veinAabbRegistry, veinRestrictedPlacementState, target));
+            veinRestrictedPlacementState.OnChanged.Subscribe(_ => PlacementVeinViewResolver.PushToView(mapVeinRangeView, veinAabbRegistry, veinRestrictedPlacementState, _placeSystemStateController.CurrentTarget));
         }
 
         public void OnEnter(UITransitContext context)

@@ -165,8 +165,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Existing blocks and missing ground are the only causes set by this point; apply ground overlaps and report the cursor cell's reasons in one call
                 var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
 
-                // 鉱脈由来の設置制限（採掘機のドリル位置とチュートリアルの鉱脈限定）をまとめて課す
-                // Apply both vein-bound placement restrictions at once: the miner drill cell and the tutorial vein limit
+                // 鉱脈由来の設置制限（採掘機の底面XZ重なりとチュートリアルの鉱脈限定）をまとめて課す
+                // Apply both vein-bound placement restrictions at once: the miner's footprint XZ overlap and the tutorial vein limit
                 // 素材チェックより前に落として枠を消費させない
                 // They run before the material check so blocked cells don't consume quota
                 VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, _veinRestrictedPlacementState, feedback);

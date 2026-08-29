@@ -1,4 +1,5 @@
 using System;
+using Core.Master;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.MapVein
@@ -25,28 +26,22 @@ namespace Client.Game.InGame.Map.MapVein
         public readonly MapVeinKind Kind;
         public readonly Bounds Bounds;
 
-        public MapVeinAabb(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind)
+        // アイテム鉱脈の産出アイテム。流体鉱脈はnull
+        // The item an item vein yields; null for fluid veins
+        public readonly ItemId? VeinItemId;
+
+        public MapVeinAabb(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind, ItemId? veinItemId)
         {
             VeinTypeGuid = veinTypeGuid;
             MinCell = minCell;
             MaxCell = maxCell;
             Kind = kind;
+            VeinItemId = veinItemId;
 
             // min/maxは内包セル座標なのでmax側に1セル分足してワールドAABBにする
             // min/max are inclusive cell coords, so add one cell on the max side to build the world AABB
             Bounds = new Bounds();
             Bounds.SetMinMax(minCell, maxCell + Vector3Int.one);
-        }
-
-        /// <summary>
-        ///     サーバーのItemMapVeinDatastore.GetOverVeinsと同じinclusive判定
-        ///     The same inclusive test as the server's ItemMapVeinDatastore.GetOverVeins
-        /// </summary>
-        public bool ContainsCell(Vector3Int cell)
-        {
-            return MinCell.x <= cell.x && cell.x <= MaxCell.x &&
-                   MinCell.y <= cell.y && cell.y <= MaxCell.y &&
-                   MinCell.z <= cell.z && cell.z <= MaxCell.z;
         }
     }
 }
