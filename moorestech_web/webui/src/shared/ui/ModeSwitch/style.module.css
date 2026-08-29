@@ -45,16 +45,9 @@
   outline-offset: var(--bevel-1);
 }
 
-/* disabled時は全選択肢を従属テキストへ減衰させ、クリックを不可にする */
-/* When disabled, fade every option to secondary text and block clicks */
-.root[data-disabled] .option {
-  color: var(--text-muted);
-  cursor: default;
-  pointer-events: none;
-}
-
-/* 選択肢単位の無効化はroot無効化と同じ減衰で示し、他の選択肢は生かす */
-/* Per-option disabling uses the same fade as root disabling while the other options stay live */
+/* root無効化は全選択肢を、選択肢単位の無効化はその1つだけを従属テキストへ減衰させクリックを不可にする */
+/* Root disabling fades every option and per-option disabling fades just that one, blocking clicks in both cases */
+.root[data-disabled] .option,
 .option[data-option-disabled] {
   color: var(--text-muted);
   cursor: default;
