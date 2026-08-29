@@ -32,7 +32,7 @@ namespace Client.Tests.UIState
 
             var menuApplier = new FakePlayerCameraInteractionApplier();
             var menuView = new FakeBuildMenuView();
-            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier));
+            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier), new RightShortPressInputService(new RightShortPressInput()));
             menuState.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, menuApplier.Calls);
             Assert.IsTrue(menuView.IsActive);

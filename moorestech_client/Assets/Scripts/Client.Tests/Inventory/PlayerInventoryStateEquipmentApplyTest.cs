@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Network.API;
 using Core.Item.Interface;
 using Core.Master;
@@ -87,7 +88,7 @@ namespace Client.Tests.Inventory
 
                 new PlayerInventoryState(recipeViewerView, viewController,
                     new LocalPlayerInventoryController(new LocalPlayerInventory(), playerEquipment),
-                    playerEquipment, initialHandshake);
+                    playerEquipment, initialHandshake, new RightShortPressInputService(new RightShortPressInput()));
             }
 
             T CreateComponent<T>(string name) where T : Component
