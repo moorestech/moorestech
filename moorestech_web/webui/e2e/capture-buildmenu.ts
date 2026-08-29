@@ -39,14 +39,14 @@ async function main() {
   await page.getByTestId("build-menu-panel").waitFor();
   await page.evaluate("document.fonts.ready.then(() => undefined)");
 
-  // 1. 既定表示（先頭カテゴリ選択・カーソル退避）
-  // 1. Default view (first category selected, cursor parked off-screen)
+  // 1. 既定表示（先頭カテゴリが視口上端・カーソル退避）
+  // 1. Default view (first category at viewport top, cursor parked off-screen)
   await page.mouse.move(2, 2);
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-1-default.png` });
 
-  // 2.検索中(複合見出し)
-  // 2. Searching (composite headings)
+  // 2.検索中(絞り込み)
+  // 2. Searching (filtered)
   await page.getByTestId("build-menu-search").fill("鉄");
   await page.getByTestId(
     `build-menu-section-${buildMenuCategoryIds.transport}-${buildMenuSubCategoryIds.rail}`,
@@ -67,6 +67,9 @@ async function main() {
   // 4. Fills all 8 cols
   await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).waitFor();
+  // スムーズスクロール完了待ち
+  // Wait for smooth scrolling to settle
+  await page.waitForTimeout(600);
   await page.mouse.move(2, 2);
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-4-grid.png` });

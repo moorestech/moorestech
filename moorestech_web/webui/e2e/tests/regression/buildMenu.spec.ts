@@ -11,13 +11,15 @@ test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
 });
 
-test("ui_stateでビルドメニューを開閉し既定カテゴリのエントリを表示する", async ({ page }) => {
+// ADR 0045で「既定カテゴリだけ表示」は廃止。他カテゴリのエントリもDOMに載る
+// ADR 0045 drops "only the default category renders"; other categories' entries are attached too
+test("ui_stateでビルドメニューを開閉し全カテゴリのエントリが1本スクロールに載る", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
   await expect(page.getByTestId("build-menu-panel")).toBeVisible();
   await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`)).toBeVisible();
-  await expect(page.getByTestId(`build-menu-entry-trainCar-${buildMenuEntryIds.cargoCar}`)).toBeHidden();
+  await expect(page.getByTestId(`build-menu-entry-trainCar-${buildMenuEntryIds.cargoCar}`)).toBeAttached();
 
   await setUiState(page, "GameScreen");
   await expect(page.getByTestId("build-menu-panel")).toBeHidden();
@@ -44,38 +46,66 @@ test("閉じるボタンはGameScreen遷移を要求する", async ({ page }) =>
   await expect(page.getByTestId("build-menu-panel")).toBeHidden();
 });
 
-test("カテゴリ切替でセクションが入れ替わる", async ({ page }) => {
+// 全カテゴリが同時にDOMへ載り、サイドバーは見出しへのジャンプになる（ADR 0045）
+// Every category is in the DOM at once; the sidebar jumps to headings (ADR 0045)
+test("全カテゴリが1本スクロールに並び、サイドバー押下で見出しへジャンプしハイライトが追従する", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  await expect(page.getByTestId(
-    `build-menu-section-${buildMenuCategoryIds.logistics}-${buildMenuSubCategoryIds.chest}`,
-  )).toBeVisible();
-  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeHidden();
+  await expect(page.getByTestId(`build-menu-category-heading-${buildMenuCategoryIds.logistics}`)).toBeVisible();
+  await expect(page.getByTestId(`build-menu-category-heading-${buildMenuCategoryIds.transport}`)).toBeAttached();
+  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeAttached();
 
   await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
-  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeVisible();
-  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.woodChest}`)).toBeHidden();
+  const viewport = page.getByTestId("build-menu-panel").locator(".mantine-ScrollArea-viewport");
+  const headingTop = await page
+    .getByTestId(`build-menu-category-heading-${buildMenuCategoryIds.transport}`)
+    .evaluate((el: HTMLElement) => el.offsetTop);
+  // スムーズスクロールの停止を待つ
+  // Wait for smooth scrolling to settle
+  await expect.poll(() => viewport.evaluate((el, top) => Math.abs(el.scrollTop - top) <= 1, headingTop)).toBe(true);
+  await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`)).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.logistics}`)).toHaveAttribute("aria-pressed", "false");
+
+  // 手スクロールでもハイライトが追従する
+  // Highlight follows manual scrolling too
+  await viewport.evaluate((el) => { el.scrollTop = 0; });
+  await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.logistics}`)).toHaveAttribute("aria-pressed", "true");
 });
 
-test("横断検索は複合見出しで区切りサイドバーを無効化する", async ({ page }) => {
+test("末尾カテゴリへジャンプしても見出しが視口上端に来る", async ({ page }) => {
+  await setUiState(page, "BuildMenu");
+  await page.goto("/");
+
+  const lastButton = page.getByTestId("build-menu-sidebar").locator("button").last();
+  const lastGuid = (await lastButton.getAttribute("data-testid"))!.replace("build-menu-category-", "");
+  await lastButton.click();
+  const viewport = page.getByTestId("build-menu-panel").locator(".mantine-ScrollArea-viewport");
+  const headingTop = await page.getByTestId(`build-menu-category-heading-${lastGuid}`).evaluate((el: HTMLElement) => el.offsetTop);
+  await expect.poll(() => viewport.evaluate((el, top) => Math.abs(el.scrollTop - top) <= 1, headingTop)).toBe(true);
+  await expect(lastButton).toHaveAttribute("aria-pressed", "true");
+});
+
+test("検索は同じリストを絞り込み、ヒットの無いカテゴリだけサイドバーで無効になる", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
   await page.getByTestId("build-menu-search").fill("鉄");
-  await expect(page.getByTestId(
-    `build-menu-section-${buildMenuCategoryIds.logistics}-${buildMenuSubCategoryIds.chest}`,
-  )).toBeVisible();
+  await expect(page.getByTestId(`build-menu-category-heading-${buildMenuCategoryIds.logistics}`)).toBeVisible();
   await expect(page.getByTestId(
     `build-menu-section-${buildMenuCategoryIds.transport}-${buildMenuSubCategoryIds.rail}`,
-  )).toBeVisible();
-  await expect(page.getByTestId("build-menu-sidebar")).toHaveAttribute("data-disabled", "true");
-
-  await page.getByTestId("build-menu-search").fill("");
-  await expect(page.getByTestId("build-menu-sidebar")).not.toHaveAttribute("data-disabled", "true");
+  )).toBeAttached();
+  // 複合見出しは廃止。サブカテゴリ見出しにカテゴリ名を含めない
+  // Composite headings are gone; sub-category headings never carry the category name
   await expect(page.getByTestId(
     `build-menu-section-${buildMenuCategoryIds.logistics}-${buildMenuSubCategoryIds.chest}`,
-  )).toBeVisible();
+  ).locator("h3")).not.toContainText("/");
+  await expect(page.getByTestId("build-menu-sidebar")).not.toHaveAttribute("data-disabled", "true");
+  await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`)).toBeEnabled();
+  await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.blueprint}`)).toBeDisabled();
+
+  await page.getByTestId("build-menu-search").fill("");
+  await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.blueprint}`)).toBeEnabled();
 });
 
 test("検索0件は該当なし表示", async ({ page }) => {
@@ -112,13 +142,10 @@ test("エントリの無いカテゴリはサイドバーに出ない", async ({
   await expect(page.getByTestId("build-menu-sidebar").locator("button")).toHaveCount(10);
 });
 
-test("閉じて開き直すとタブ・検索・スクロール・詳細stickyが復元される", async ({ page }) => {
+test("閉じて開き直すと検索・スクロール・詳細stickyが復元される", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
 
-  // タブ+sticky+スクロール構築
-  // Build state, then close
-  await page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`).click();
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).hover();
   // 合成scrollイベントは使わない
   // No synthetic scroll event
@@ -130,7 +157,7 @@ test("閉じて開き直すとタブ・検索・スクロール・詳細sticky�
   await expect(page.getByTestId("build-menu-panel")).toBeHidden();
 
   await setUiState(page, "BuildMenu");
-  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeVisible();
+  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeAttached();
   await expect(page.getByTestId("build-menu-detail")).toContainText("鉄道レール");
   await expect
     .poll(() =>
@@ -170,5 +197,5 @@ test("検索文字列も閉じて開き直すと復元される", async ({ page 
   await setUiState(page, "BuildMenu");
 
   await expect(page.getByTestId("build-menu-search")).toHaveValue("鉄");
-  await expect(page.getByTestId("build-menu-sidebar")).toHaveAttribute("data-disabled", "true");
+  await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.blueprint}`)).toBeDisabled();
 });
