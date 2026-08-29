@@ -37,7 +37,7 @@
 **Interfaces:**
 - Produces: `L.ui.research.stateCompleted` / `L.ui.research.stateAvailable` / `L.ui.research.stateUnavailable`（`TranslationKey` 型の定数）
 
-- [ ] **Step 1: CSVに3行追加する**
+- [x] **Step 1: CSVに3行追加する**
 
 `Localization/localization.csv` の `ui.research.unlockFluidSummary,...` 行の直後に追記（列順は `key,Source,english,japanese,german`）:
 
@@ -47,22 +47,22 @@ ui.research.stateAvailable,Available,Available,研究可能,Verfügbar
 ui.research.stateUnavailable,Unavailable,Unavailable,研究不可,Nicht verfügbar
 ```
 
-- [ ] **Step 2: 鮮度テストが失敗することを確認する**
+- [x] **Step 2: 鮮度テストが失敗することを確認する**
 
 Run: `cd moorestech_web/webui && pnpm test -- src/shared/i18n/localizationKeysFreshness.test.ts`
 Expected: FAIL（生成物にキーが無く古い旨）
 
-- [ ] **Step 3: 生成物を再生成する**
+- [x] **Step 3: 生成物を再生成する**
 
 Run: `cd moorestech_web/webui && pnpm gen:i18n`
 Expected: `localizationKeys.ts` の `research: {...}` に `stateCompleted`, `stateAvailable`, `stateUnavailable` が増える（`git diff --stat` で当該1ファイルのみ変化）
 
-- [ ] **Step 4: 鮮度テストが通ることを確認する**
+- [x] **Step 4: 鮮度テストが通ることを確認する**
 
 Run: `cd moorestech_web/webui && pnpm test -- src/shared/i18n/localizationKeysFreshness.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts
@@ -83,7 +83,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: Task 1 の `L.ui.research.state*`、既存 `deriveNodeCardState(node): NodeCardState`
 - Produces: `export function deriveNodeStateLabelKey(node: ResearchNodeData): TranslationKey`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `researchLogic.test.ts` の import に `deriveNodeStateLabelKey` を追加し、ファイル末尾に追記:
 
@@ -103,12 +103,12 @@ describe("deriveNodeStateLabelKey", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && pnpm test -- src/features/research/researchLogic.test.ts`
 Expected: FAIL（`deriveNodeStateLabelKey` is not a function / export無し）
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `researchLogic.ts` の `deriveNodeCardState` 定義の直後に追加:
 
@@ -123,12 +123,12 @@ export function deriveNodeStateLabelKey(node: ResearchNodeData): TranslationKey 
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && pnpm test -- src/features/research/researchLogic.test.ts`
 Expected: PASS（既存テスト含め全件）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/research/researchLogic.ts moorestech_web/webui/src/features/research/researchLogic.test.ts
@@ -150,7 +150,7 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - Consumes: Task 2 の `deriveNodeStateLabelKey(node)`
 - Produces: `data-testid="research-node-state-<guid>"` の `<span>`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `ResearchNodeCard.test.ts` を新規作成（`ResearchDetailPane.test.ts` と同じスタブ流儀）:
 
@@ -200,12 +200,12 @@ describe("ResearchNodeCard", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `cd moorestech_web/webui && pnpm test -- src/features/research/ResearchNodeCard.test.ts`
 Expected: FAIL（`research-node-state-...` の要素が見つからない）
 
-- [ ] **Step 3: カードにラベル行を追加する**
+- [x] **Step 3: カードにラベル行を追加する**
 
 `ResearchNodeCard.tsx` の import を `import { deriveNodeCardState, deriveNodeStateLabelKey } from "./researchLogic";` にし、JSX を以下へ:
 
@@ -230,17 +230,17 @@ Expected: FAIL（`research-node-state-...` の要素が見つからない）
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `cd moorestech_web/webui && pnpm test`
 Expected: PASS（全件）
 
-- [ ] **Step 5: 型・lintを通す**
+- [x] **Step 5: 型・lintを通す**
 
 Run: `cd moorestech_web/webui && pnpm tsc -b && pnpm lint`
 Expected: エラー0
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/features/research/ResearchNodeCard.tsx moorestech_web/webui/src/features/research/style.module.css moorestech_web/webui/src/features/research/ResearchNodeCard.test.ts
@@ -256,18 +256,18 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 **Files:**
 - 変更なし（確認のみ）
 
-- [ ] **Step 1: C#側のLocalizationKeys再生成を含めてコンパイルする**
+- [x] **Step 1: C#側のLocalizationKeys再生成を含めてコンパイルする**
 
 localization.csvはAssetDatabase外のため force-recompile が必須（memory: localization-csv-needs-force-recompile）:
 
 Run: `uloop compile --project-path ./moorestech_client --force-recompile true --wait-for-domain-reload true` の後 `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 2: 研究画面の実表示でカードの重なりを確認する**
+- [x] **Step 2: 研究画面の実表示でカードの重なりを確認する**
 
 `unity-playmode-recorded-playtest` スキルで PlayMode 起動し研究画面（Rキー）を開いてスクリーンショットを取る。各カードのアイコン下にラベルが出ること、隣接ノードとカードが重ならないことを目視確認する。重なりが出た場合はplanを止めてユーザーへ報告する（座標はマスタ由来のため独断で調整しない）。
 
-- [ ] **Step 3: bd note に確認結果を残す**
+- [x] **Step 3: bd note に確認結果を残す**
 
 Run: `bd note moorestech-8sbd "実表示確認: <結果1行>"`
 
