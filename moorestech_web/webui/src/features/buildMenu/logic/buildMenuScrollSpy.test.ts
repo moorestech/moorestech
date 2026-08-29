@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activeCategoryAtScroll, isJumpSettled, trailingSpacerHeight } from "./buildMenuScrollSpy";
+import { activeCategoryAtScroll, isJumpAbandoned, isJumpSettled, trailingSpacerHeight } from "./buildMenuScrollSpy";
 
 const offsets = [
   { categoryGuid: "a", top: 0 },
@@ -44,6 +44,18 @@ describe("isJumpSettled", () => {
   });
   it("それ以上離れていれば未到達", () => {
     expect(isJumpSettled(297, 300)).toBe(false);
+  });
+});
+
+describe("isJumpAbandoned", () => {
+  it("目標へ近づいていれば介入ではない", () => {
+    expect(isJumpAbandoned(0, 200, 400)).toBe(false);
+  });
+  it("目標から離れたら介入とみなす", () => {
+    expect(isJumpAbandoned(200, 100, 400)).toBe(true);
+  });
+  it("距離が変わらなければ介入とみなす", () => {
+    expect(isJumpAbandoned(200, 200, 400)).toBe(true);
   });
 });
 

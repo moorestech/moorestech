@@ -1,6 +1,7 @@
 import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import {
   activeCategoryAtScroll,
+  isJumpAbandoned,
   isJumpSettled,
   trailingSpacerHeight,
   type CategoryHeadingOffset,
@@ -22,14 +23,20 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const headingsRef = useRef(new Map<string, HTMLElement>());
   const lastGroupRef = useRef<HTMLElement | null>(null);
-  // ジャンプ中はハイライトを目標に固定し、到達でscroll-spyへ戻す
-  // While jumping, pin the highlight to the target and release it to scroll-spy on arrival
-  const jumpTargetRef = useRef<{ categoryGuid: string; top: number } | null>(null);
+  // ジャンプ中はハイライトを目標に固定し、到達か介入でscroll-spyへ戻す
+  // While jumping, pin the highlight to the target and release it to scroll-spy on arrival or intervention
+  const jumpTargetRef = useRef<{ categoryGuid: string; top: number; previousScrollTop: number } | null>(null);
   const [activeCategoryGuid, setActiveCategoryGuid] = useState<string | null>(null);
   const [spacerHeight, setSpacerHeight] = useState(0);
 
+  // 呼び出し側の配列identityに依存せず、内容が変わった時だけeffectを走らせる
+  // Key on contents so a caller's fresh array identity does not retrigger these effects
+  const visibleKey = visibleCategoryGuids.join(",");
+
   // 見出しの上端は視口内容座標(offsetTop)で読む。viewportがoffsetParentになるようCSSで position:relative を与える
   // Heading tops are read in viewport content coordinates (offsetTop); CSS makes the viewport the offsetParent
+  // ref と props だけを読むので、deps に含めなくても最新の値を返す
+  // Reads only refs and props, so it stays current without being listed as a dep
   const headingOffsets = (): CategoryHeadingOffset[] =>
     visibleCategoryGuids
       .map((categoryGuid) => {
@@ -38,16 +45,22 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
       })
       .filter((offset): offset is CategoryHeadingOffset => offset !== null);
 
-  const spy = useCallback((scrollTop: number) => {
+  const handleScroll = useCallback((scrollTop: number) => {
     const target = jumpTargetRef.current;
     if (target !== null) {
-      if (!isJumpSettled(scrollTop, target.top)) return;
-      jumpTargetRef.current = null;
+      if (isJumpSettled(scrollTop, target.top)) {
+        jumpTargetRef.current = null;
+      } else if (isJumpAbandoned(target.previousScrollTop, scrollTop, target.top)) {
+        // 目標へ近づかなくなった＝ユーザーの介入なので固定を解除しscroll-spyへ戻す
+        // Distance stopped shrinking, meaning the user intervened; release the pin back to scroll-spy
+        jumpTargetRef.current = null;
+      } else {
+        jumpTargetRef.current = { ...target, previousScrollTop: scrollTop };
+        return;
+      }
     }
     setActiveCategoryGuid(activeCategoryAtScroll(headingOffsets(), scrollTop));
-  // headingOffsets は ref と props だけを読む
-  // headingOffsets reads only refs and props
-  }, [visibleCategoryGuids]);
+  }, [visibleKey]);
 
   // 表示群が変わったら末尾スペーサと現在地を取り直す
   // Recompute the trailing spacer and current category whenever the visible groups change
@@ -58,7 +71,7 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     setSpacerHeight(trailingSpacerHeight(viewport.clientHeight, lastGroupHeight));
     jumpTargetRef.current = null;
     setActiveCategoryGuid(activeCategoryAtScroll(headingOffsets(), viewport.scrollTop));
-  }, [visibleCategoryGuids]);
+  }, [visibleKey]);
 
   const attachViewport = useCallback((viewport: HTMLDivElement | null) => {
     viewportRef.current = viewport;
@@ -78,7 +91,7 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     // 末尾スペーサ込みでも到達できない場合は最大スクロール位置を目標にして到達判定を成立させる
     // If even the spacer cannot reach the top, target the max scroll so the settle check can succeed
     const top = Math.min(heading.offsetTop, viewport.scrollHeight - viewport.clientHeight);
-    jumpTargetRef.current = { categoryGuid, top };
+    jumpTargetRef.current = { categoryGuid, top, previousScrollTop: viewport.scrollTop };
     setActiveCategoryGuid(categoryGuid);
     if (isJumpSettled(viewport.scrollTop, top)) {
       jumpTargetRef.current = null;
@@ -87,5 +100,5 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     viewport.scrollTo({ top, behavior: "smooth" });
   }, []);
 
-  return { activeCategoryGuid, spacerHeight, attachViewport, attachHeading, attachLastGroup, jumpTo, handleScroll: spy };
+  return { activeCategoryGuid, spacerHeight, attachViewport, attachHeading, attachLastGroup, jumpTo, handleScroll };
 }
