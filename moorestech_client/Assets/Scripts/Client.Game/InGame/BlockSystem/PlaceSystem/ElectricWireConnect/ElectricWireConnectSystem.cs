@@ -6,9 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Input;
 using Core.Master;
 using Game.Construction;
 using Game.UnlockState;
@@ -75,14 +73,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             // is assigned and the origin is released: keeping the stale one would re-draw the server's wire and consume wire twice
             if (_context.RequestSender.TryConsumeOutcome(out var outcome) && outcome.IsSuccess) _sourceBlock = outcome.Endpoint;
 
-            // 右クリックで起点を解除し、進行中の応答を無効化する。起点なしの孤立設置の応答待ちも明示キャンセルとして止める
-            // Release the origin on right click and invalidate any pending response, including an originless isolated placement still awaiting one
-            if (InputManager.Playable.ScreenRightClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
-            {
-                _sourceBlock = null;
-                _context.RequestSender.Invalidate();
-            }
-
             // 起点未選択なら選択・切断・孤立設置、選択済みなら接続・延長を処理する
             // No origin: select, disconnect or isolated-place; with origin: connect or extend
             if (_sourceBlock == null)
@@ -98,6 +88,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             }
 
             _extendMode.Update(new PlaceSystemUpdateContext(target, isSelectionChanged, feedback), _sourceBlock);
+        }
+
+        // 右短押し/Escで起点を解除し、進行中の応答を無効化する。起点なしの孤立設置の応答待ちも明示キャンセルとして止める
+        // A right short press / Esc releases the origin and invalidates any pending response, including an originless isolated placement still awaiting one
+        public override bool TryCancelInProgressOperation()
+        {
+            var hadInProgress = _sourceBlock != null || _context.RequestSender.IsAwaitingResponse;
+            _sourceBlock = null;
+            _context.RequestSender.Invalidate();
+            return hadInProgress;
         }
 
         public override void Disable()

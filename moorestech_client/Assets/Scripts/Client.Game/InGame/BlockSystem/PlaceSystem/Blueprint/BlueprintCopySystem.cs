@@ -87,7 +87,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             HandleDragStart();
             UpdateDrag();
             HandleRelease();
-            HandleCancel();
 
             #region Internal
 
@@ -132,14 +131,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
                 _nameInputView.Open();
             }
 
-            void HandleCancel()
-            {
-                // 現状はPlaceBlockStateがESCを先に消費するため未到達（他状態から駆動された場合の保険として残置）
-                // Currently unreachable because PlaceBlockState consumes ESC first; kept as insurance when driven from other states
-                if (!InputManager.UI.CloseUI.GetKeyDown) return;
-                ResetSelection();
-            }
-
             float ReadScrollDelta()
             {
                 if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
@@ -157,6 +148,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             ResetSelection();
             _nameInputView.Close();
             _isAwaitingName = false;
+        }
+
+        // 右短押し/Escで範囲選択中のドラッグだけを解除する。ドラッグしていなければ解除対象なし
+        // A right short press / Esc cancels only an in-progress box drag; without a drag there is nothing to cancel
+        public override bool TryCancelInProgressOperation()
+        {
+            if (!_isDragging) return false;
+
+            ResetSelection();
+            return true;
         }
 
         private (Vector3Int min, Vector3Int max) CalcBox()
