@@ -20,6 +20,10 @@ namespace Game.Map
         // 取得物を受け取れないため採掘を成立させない
         // Mining is refused because the drops could not be received
         InventoryFull,
+
+        // 装飾物(miningType None)は攻撃対象でない。クライアント側のレイ除外と二重の防御
+        // A decoration (miningType None) is not attackable; second line of defense behind the client's ray exclusion
+        NotInteractable,
     }
 
     /// <summary>
@@ -43,9 +47,14 @@ namespace Game.Map
             // A hit on an already destroyed object does nothing; this also cuts off the debug flag file IO
             if (mapObject.IsDestroyed) return MiningAttackResult.AlreadyDestroyed;
 
+            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
+
+            // 装飾物は偽造要求でも削れない
+            // A decoration cannot be worn down even by a forged request
+            if (mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.None) return MiningAttackResult.NotInteractable;
+
             // 受け取れない取得物は消滅するので、対象を削る前に空きを確かめる
             // Undeliverable drops would vanish, so verify the free space before wearing the target down
-            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
             if (!CanReceiveEarnItems(mapObjectElement)) return MiningAttackResult.InventoryFull;
 
             // PickUpと高速採掘デバッグはツール照合もクールダウンも介さず一撃で破壊する

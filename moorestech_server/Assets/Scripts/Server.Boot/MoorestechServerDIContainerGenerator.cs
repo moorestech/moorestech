@@ -169,6 +169,9 @@ namespace Server.Boot
             var railGraphDatastore = initializerProvider.GetService<RailGraphDatastore>();
             var trainUnitDatastore = initializerProvider.GetService<TrainUnitDatastore>();
             services.AddSingleton(initializerProvider.GetService<IWorldBlockDatastore>());
+            // initializerCollectionのみの登録では外側のserviceProvider経由(テスト等)から解決できないため転送する
+            // Forward it since a registration on initializerCollection alone is unreachable from the outer serviceProvider (e.g. tests)
+            services.AddSingleton(initializerProvider.GetService<IMapObjectFactory>());
             services.AddSingleton(initializerProvider.GetService<GearNetworkDatastore>());
             services.AddSingleton<IGearNetworkDatastore>(provider => provider.GetRequiredService<GearNetworkDatastore>());
             services.AddSingleton(initializerProvider.GetService<FluidNetworkDatastore>());
