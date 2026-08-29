@@ -52,3 +52,11 @@
   cursor: default;
   pointer-events: none;
 }
+
+/* 選択肢単位の無効化はroot無効化と同じ減衰で示し、他の選択肢は生かす */
+/* Per-option disabling uses the same fade as root disabling while the other options stay live */
+.option[data-option-disabled] {
+  color: var(--text-muted);
+  cursor: default;
+  pointer-events: none;
+}

@@ -7,6 +7,9 @@ export type ModeSwitchOption = {
   value: string;
   label: ReactNode;
   testId?: string;
+  // この選択肢だけ押せなくする。rootのdisabledは全体減衰で別物
+  // Disables only this option; the root-level disabled is the whole-switch fade
+  disabled?: boolean;
 };
 
 type Props = {
@@ -28,15 +31,17 @@ export default function ModeSwitch({ value, options, onChange, orientation = "ho
     >
       {options.map((option) => {
         const selected = option.value === value;
+        const optionDisabled = disabled || option.disabled === true;
         return (
           <button
             className={styles.option}
             data-selected={selected ? "true" : undefined}
+            data-option-disabled={option.disabled ? "true" : undefined}
             data-testid={option.testId}
             aria-pressed={selected}
             key={option.value}
             type="button"
-            disabled={disabled}
+            disabled={optionDisabled}
             onClick={() => onChange(option.value)}
           >
             {option.label}

@@ -51,7 +51,7 @@
   - `localizeBuildMenuEntries` / `BuildMenuDisplayEntry` は既存のまま
   - 削除: `visibleCategories` / `resolveSelectedCategory` / `sectionsForCategory` / `searchSections`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `buildMenuGrouping.test.ts` の `describe("visibleCategories")` / `describe("resolveSelectedCategory")` / `describe("sectionsForCategory")` / `describe("searchSections")` ブロックを削除し、importを差し替えて以下を追加する（`localizeBuildMenuEntries` 系の既存describeは残す）:
 
@@ -96,12 +96,12 @@ describe("searchBuildMenuEntries", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `pnpm vitest run src/features/buildMenu/logic/buildMenuGrouping.test.ts`
 Expected: FAIL（`groupBuildMenuCategories is not a function` 等）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 `buildMenuGrouping.ts` を以下の全文で置き換える:
 
@@ -167,12 +167,12 @@ export function searchBuildMenuEntries(query: string, entries: BuildMenuDisplayE
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `pnpm vitest run src/features/buildMenu/logic/buildMenuGrouping.test.ts`
 Expected: PASS（この時点で `BuildMenuPanel.tsx` は型エラーだが、vitestは単体ファイルなので影響なし）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add src/features/buildMenu/logic/buildMenuGrouping.ts src/features/buildMenu/logic/buildMenuGrouping.test.ts
@@ -195,7 +195,7 @@ git commit -m "refactor(webui): build menu grouping returns category groups for 
   - `trailingSpacerHeight(viewportHeight: number, lastGroupHeight: number): number`
   - `export const scrollSettleTolerancePx = 1`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -248,12 +248,12 @@ describe("trailingSpacerHeight", () => {
 });
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `pnpm vitest run src/features/buildMenu/logic/buildMenuScrollSpy.test.ts`
 Expected: FAIL（モジュール未存在）
 
-- [ ] **Step 3: 実装を書く**
+- [x] **Step 3: 実装を書く**
 
 ```ts
 // scroll-spy・ジャンプ到達・末尾スペーサの判定。DOMを持たずフックから呼ばれる
@@ -287,12 +287,12 @@ export function trailingSpacerHeight(viewportHeight: number, lastGroupHeight: nu
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `pnpm vitest run src/features/buildMenu/logic/buildMenuScrollSpy.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add src/features/buildMenu/logic/buildMenuScrollSpy.ts src/features/buildMenu/logic/buildMenuScrollSpy.test.ts
