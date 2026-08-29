@@ -581,11 +581,11 @@ git commit -m "feat: 建築モードをパネル外の右短押しで解除す�
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs:24-40,64-80`
 
-- [ ] **Step 1: 注入とOnEnterリセット**
+- [x] **Step 1: 注入とOnEnterリセット**
 
 `using Client.Game.InGame.UI.UIState.State.CancelInput;` 追加。フィールド `private readonly RightShortPressInputService _rightShortPressInputService;` 追加。ctor引数末尾に `RightShortPressInputService rightShortPressInputService` を追加し代入。`OnEnter` 先頭に `_rightShortPressInputService.ResetPressState();` を追加。
 
-- [ ] **Step 2: HandleTransitionのEsc判定を右短押しと共有する**
+- [x] **Step 2: HandleTransitionのEsc判定を右短押しと共有する**
 
 `HandleTransition()` 内の
 
@@ -611,7 +611,7 @@ git commit -m "feat: 建築モードをパネル外の右短押しで解除す�
 
 `HandleTransition()` は `GetNextUpdate()` の先頭で毎フレーム呼ばれるため、この位置で押下追跡が途切れることはない。
 
-- [ ] **Step 3: コンパイルしてコミットする**
+- [x] **Step 3: コンパイルしてコミットする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
