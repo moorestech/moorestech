@@ -214,7 +214,6 @@ describe("useBuildMenuCategoryScroll", () => {
 
   it("視口や末尾群のリサイズにspacerHeightがResizeObserver経由で追従する(カテゴリ集合は変わらない)", () => {
     const originalResizeObserver = globalThis.ResizeObserver;
-    // @ts-expect-error テスト用スタブでnode環境の欠落を埋める
     globalThis.ResizeObserver = FakeResizeObserver;
     FakeResizeObserver.instances = [];
 
