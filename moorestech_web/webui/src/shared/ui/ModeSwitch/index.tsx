@@ -7,8 +7,8 @@ export type ModeSwitchOption = {
   value: string;
   label: ReactNode;
   testId?: string;
-  // この選択肢だけ押せなくする。rootのdisabledは全体減衰で別物
-  // Disables only this option; the root-level disabled is the whole-switch fade
+  // root全体無効とは別物
+  // Distinct from the root-level whole-switch disabled
   disabled?: boolean;
 };
 

@@ -10,8 +10,11 @@ import {
 type BuildMenuCategoryScroll = {
   activeCategoryGuid: string | null;
   spacerHeight: number;
+  // 末尾スペーサが実測を1回終えたか。呼び出し側はこれを見てから復元代入する
+  // Whether the trailing spacer has completed its first real measurement; callers gate restoration on this
+  spacerMeasured: boolean;
   attachViewport: (viewport: HTMLDivElement | null) => void;
-  attachHeading: (categoryGuid: string, element: HTMLElement | null) => void;
+  headingRef: (categoryGuid: string) => (element: HTMLElement | null) => void;
   attachLastGroup: (element: HTMLElement | null) => void;
   jumpTo: (categoryGuid: string) => void;
   handleScroll: (scrollTop: number) => void;
@@ -28,6 +31,10 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
   const jumpTargetRef = useRef<{ categoryGuid: string; top: number; previousScrollTop: number } | null>(null);
   const [activeCategoryGuid, setActiveCategoryGuid] = useState<string | null>(null);
   const [spacerHeight, setSpacerHeight] = useState(0);
+  const [spacerMeasured, setSpacerMeasured] = useState(false);
+  // guid毎に安定したref callbackをここへキャッシュし、identity churnによるRO付け外しを防ぐ
+  // Caches a stable ref callback per guid here so identity churn does not thrash the observer
+  const headingRefCallbacksRef = useRef(new Map<string, (element: HTMLElement | null) => void>());
 
   // viewportと末尾カテゴリ群の寸法変化を監視するObserver本体。要素の入れ替えはattach*で張り替える
   // Observer watching viewport and trailing-group dimensions; attach* callbacks re-target it when elements change
@@ -41,6 +48,7 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     if (viewport === null) return;
     const lastGroupHeight = lastGroupRef.current?.offsetHeight ?? 0;
     setSpacerHeight(trailingSpacerHeight(viewport.clientHeight, lastGroupHeight));
+    setSpacerMeasured(true);
   };
   remeasureSpacerRef.current = remeasureSpacer;
 
@@ -91,8 +99,8 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     setActiveCategoryGuid(activeCategoryAtScroll(headingOffsets(), scrollTop));
   }, [visibleKey]);
 
-  // 表示群が変わったら末尾スペーサと現在地を取り直す
-  // Recompute the trailing spacer and current category whenever the visible groups change
+  // 表示群変化でスペーサ・現在地を再計算
+  // Recomputes the trailing spacer and current category on visible-group change
   useLayoutEffect(() => {
     const viewport = viewportRef.current;
     if (viewport === null) return;
@@ -107,9 +115,17 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     viewportRef.current = viewport;
     if (viewport !== null) observer?.observe(viewport);
   }, []);
-  const attachHeading = useCallback((categoryGuid: string, element: HTMLElement | null) => {
-    if (element === null) headingsRef.current.delete(categoryGuid);
-    else headingsRef.current.set(categoryGuid, element);
+  // guid毎の安定callbackを返す
+  // Returns a stable callback per guid
+  const headingRef = useCallback((categoryGuid: string) => {
+    const cached = headingRefCallbacksRef.current.get(categoryGuid);
+    if (cached !== undefined) return cached;
+    const callback = (element: HTMLElement | null) => {
+      if (element === null) headingsRef.current.delete(categoryGuid);
+      else headingsRef.current.set(categoryGuid, element);
+    };
+    headingRefCallbacksRef.current.set(categoryGuid, callback);
+    return callback;
   }, []);
   const attachLastGroup = useCallback((element: HTMLElement | null) => {
     const observer = ensureResizeObserver();
@@ -134,5 +150,5 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     viewport.scrollTo({ top, behavior: "smooth" });
   }, []);
 
-  return { activeCategoryGuid, spacerHeight, attachViewport, attachHeading, attachLastGroup, jumpTo, handleScroll };
+  return { activeCategoryGuid, spacerHeight, spacerMeasured, attachViewport, headingRef, attachLastGroup, jumpTo, handleScroll };
 }

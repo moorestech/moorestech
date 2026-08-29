@@ -39,8 +39,8 @@ async function main() {
   await page.getByTestId("build-menu-panel").waitFor();
   await page.evaluate("document.fonts.ready.then(() => undefined)");
 
-  // 1. 既定表示（先頭カテゴリが視口上端・カーソル退避）
-  // 1. Default view (first category at viewport top, cursor parked off-screen)
+  // 1. 既定表示（先頭が上端）
+  // 1. Default view (first at top)
   await page.mouse.move(2, 2);
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-1-default.png` });

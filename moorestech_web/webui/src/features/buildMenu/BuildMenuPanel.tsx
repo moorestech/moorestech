@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { ScrollArea } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
@@ -17,8 +17,8 @@ import { CategorySidebar } from "./CategorySidebar";
 import { loadBuildMenuSessionState, updateBuildMenuSessionState } from "./sessionState/buildMenuSessionState";
 import styles from "./style.module.css";
 
-// BuildMenuViewのweb版・3カラム(§8.11)。中央は全カテゴリ1本スクロール（ADR 0045）
-// Web version of BuildMenuView; 3 columns (§8.11). The middle is one scroll over every category (ADR 0045)
+// web版3カラム、中央は1本スクロール(ADR0045)
+// Web 3-column layout; center is one scroll (ADR 0045)
 export function BuildMenuPanel() {
   const { t } = useI18n();
   const data = useTopic(Topics.buildMenu);
@@ -36,23 +36,29 @@ export function BuildMenuPanel() {
   const shownGuids = shownGroups.map((group) => group.categoryGuid);
   const scroll = useBuildMenuCategoryScroll(shownGuids);
 
-  // 視口アタッチ時に1回復元
-  // Restore once via the viewport attach callback
+  // ref callbackはidentityを固定し、毎レンダーのRO付け外し・強制レイアウト読みを防ぐ
+  // Fix the ref callback's identity so re-renders don't thrash the observer with forced-layout reads
   const scrollRestoredRef = useRef(false);
   const scrollViewportRef = useRef<HTMLDivElement | null>(null);
-  const attachScrollViewport = (viewport: HTMLDivElement | null) => {
+  const attachScrollViewport = useCallback((viewport: HTMLDivElement | null) => {
     scroll.attachViewport(viewport);
-    if (viewport === null) return;
-    // 保存先は常に最新視口
-    // Save target always tracks the latest viewport
+    // 保存先は常に最新視口（nullも含めアンマウント検出に使う）
+    // Save target always tracks the latest viewport, including null for unmount detection
     scrollViewportRef.current = viewport;
+  }, [scroll.attachViewport]);
+  // 末尾スペーサの実測完了後に1回だけ復元する。計測前に代入するとクランプ値でストアを潰す
+  // Restore only after the trailing spacer has been measured once; assigning before that corrupts the store with a clamped value
+  useLayoutEffect(() => {
     if (scrollRestoredRef.current) return;
+    if (!scroll.spacerMeasured) return;
+    const viewport = scrollViewportRef.current;
+    if (viewport === null) return;
     scrollRestoredRef.current = true;
     viewport.scrollTop = loadBuildMenuSessionState().scrollTop;
     // クランプ後の実効値へ揃え直す
     // Realign the store with the clamped effective value
     updateBuildMenuSessionState({ scrollTop: viewport.scrollTop });
-  };
+  }, [scroll.spacerMeasured]);
   // scrollイベントは次フレームまで合体されアンマウントに間に合わないため、DOM除去前の実効値を確定保存する
   // Scroll events coalesce until the next frame and miss the unmount, so persist the effective value before DOM removal
   useLayoutEffect(() => () => {
@@ -124,7 +130,7 @@ export function BuildMenuPanel() {
                   <BuildMenuCategoryList
                     groups={shownGroups}
                     spacerHeight={scroll.spacerHeight}
-                    attachHeading={scroll.attachHeading}
+                    headingRef={scroll.headingRef}
                     attachLastGroup={scroll.attachLastGroup}
                     onSelect={select}
                     onDelete={remove}

@@ -19,8 +19,8 @@ function Harness({
   return null;
 }
 
-// clientHeight/scrollHeight/scrollTop を保持し scrollTo をスタブした疑似viewport要素
-// A fake viewport element holding clientHeight/scrollHeight/scrollTop and stubbing scrollTo
+// スタブ疑似viewport要素
+// A stubbed fake viewport element
 function fakeViewport(overrides: Partial<{ clientHeight: number; scrollHeight: number; scrollTop: number }> = {}) {
   return {
     clientHeight: 600,
@@ -77,16 +77,16 @@ describe("useBuildMenuCategoryScroll", () => {
     const vp = fakeViewport();
     act(() => {
       latest.attachViewport(vp);
-      latest.attachHeading("a", fakeHeading(0));
-      latest.attachHeading("b", fakeHeading(400));
+      latest.headingRef("a")(fakeHeading(0));
+      latest.headingRef("b")(fakeHeading(400));
     });
 
     act(() => latest.jumpTo("b"));
     expect(vp.scrollTo).toHaveBeenCalledWith({ top: 400, behavior: "smooth" });
     expect(latest.activeCategoryGuid).toBe("b");
 
-    // 目標(400)へ近づく途中(200)ではハイライトはbのまま固定される
-    // While still closing in on the target (200), the highlight stays pinned to b
+    // 距離200では固定のまま
+    // Still pinned at distance 200
     act(() => latest.handleScroll(200));
     expect(latest.activeCategoryGuid).toBe("b");
   });
@@ -99,16 +99,16 @@ describe("useBuildMenuCategoryScroll", () => {
     const vp = fakeViewport();
     act(() => {
       latest.attachViewport(vp);
-      latest.attachHeading("a", fakeHeading(0));
-      latest.attachHeading("b", fakeHeading(400));
+      latest.headingRef("a")(fakeHeading(0));
+      latest.headingRef("b")(fakeHeading(400));
     });
 
     act(() => latest.jumpTo("b"));
     act(() => latest.handleScroll(400));
     expect(latest.activeCategoryGuid).toBe("b");
 
-    // 固定解除後はscroll-spyが再開し、手スクロールでハイライトが変わる
-    // After release, scroll-spy resumes and manual scrolling changes the highlight again
+    // 解除後は手スクロールに追従
+    // After release, tracks manual scrolling
     act(() => latest.handleScroll(0));
     expect(latest.activeCategoryGuid).toBe("a");
   });
@@ -121,15 +121,15 @@ describe("useBuildMenuCategoryScroll", () => {
     const vp = fakeViewport({ scrollTop: 400 });
     act(() => {
       latest.attachViewport(vp);
-      latest.attachHeading("a", fakeHeading(0));
-      latest.attachHeading("b", fakeHeading(400));
+      latest.headingRef("a")(fakeHeading(0));
+      latest.headingRef("b")(fakeHeading(400));
     });
 
     act(() => latest.jumpTo("b"));
     expect(vp.scrollTo).not.toHaveBeenCalled();
 
-    // 固定は即座に解除されているので、手スクロールが即座にハイライトへ反映される
-    // The pin was released immediately, so manual scrolling reflects on the highlight right away
+    // 即解除、手スクロール即反映
+    // Released immediately; manual scroll reflects right away
     act(() => latest.handleScroll(0));
     expect(latest.activeCategoryGuid).toBe("a");
   });
@@ -142,18 +142,18 @@ describe("useBuildMenuCategoryScroll", () => {
     const vp = fakeViewport();
     act(() => {
       latest.attachViewport(vp);
-      latest.attachHeading("a", fakeHeading(0));
-      latest.attachHeading("b", fakeHeading(400));
+      latest.headingRef("a")(fakeHeading(0));
+      latest.headingRef("b")(fakeHeading(400));
     });
 
     act(() => latest.jumpTo("b"));
-    // 200まで近づく(距離400→200): まだ固定
-    // Closes to 200 (distance 400 -> 200): still pinned
+    // 200まで近づく: まだ固定
+    // Closes to 200: still pinned
     act(() => latest.handleScroll(200));
     expect(latest.activeCategoryGuid).toBe("b");
 
-    // 100まで戻る(距離200→300): 目標から離れたのでユーザー介入とみなし固定解除
-    // Drifts back to 100 (distance 200 -> 300): moved away, so treat it as user intervention and release
+    // 100まで離れ介入とみなす
+    // Drifts to 100; treated as user intervention
     act(() => latest.handleScroll(100));
     expect(latest.activeCategoryGuid).toBe("a");
   });
@@ -166,15 +166,15 @@ describe("useBuildMenuCategoryScroll", () => {
     const vp = fakeViewport();
     act(() => {
       latest.attachViewport(vp);
-      latest.attachHeading("a", fakeHeading(0));
-      latest.attachHeading("b", fakeHeading(400));
+      latest.headingRef("a")(fakeHeading(0));
+      latest.headingRef("b")(fakeHeading(400));
     });
 
     act(() => latest.jumpTo("b"));
     expect(latest.activeCategoryGuid).toBe("b");
 
-    // 内容は同じだが参照が別の新規配列で再レンダー
-    // Re-render with a fresh array instance that carries the same contents
+    // 同内容・別配列で再レンダー
+    // Re-render with the same contents in a new array
     act(() => {
       renderer.update(
         createElement(Harness, { visibleCategoryGuids: ["a", "b"], onRender: (result) => { latest = result; } }),
@@ -201,7 +201,7 @@ describe("useBuildMenuCategoryScroll", () => {
     });
     expect(latest.spacerHeight).toBe(400);
 
-    // 末尾群が視口以上に高ければ0にクランプされる
+    // 末尾群が視口以上で0クランプ
     // Clamps to 0 when the last group is at least as tall as the viewport
     act(() => {
       latest.attachLastGroup(fakeLastGroup(900));
@@ -231,16 +231,16 @@ describe("useBuildMenuCategoryScroll", () => {
       });
       expect(latest.spacerHeight).toBe(400);
 
-      // カテゴリ集合(visibleKey)は変えずウィンドウリサイズだけを模す: 視口高が変わりResizeObserverが発火
-      // Keep visibleKey unchanged and only simulate a window resize: viewport height changes and ResizeObserver fires
+      // 集合不変でリサイズのみ模す
+      // Simulate only a resize, with visibleKey unchanged
       (vp as unknown as { clientHeight: number }).clientHeight = 900;
       act(() => {
         for (const observer of FakeResizeObserver.instances) observer.fire();
       });
       expect(latest.spacerHeight).toBe(700);
 
-      // 末尾カテゴリ群の高さ変化(ブループリント削除等)も同じ経路で追従する
-      // A trailing-group height change (e.g. deleting a blueprint) tracks through the same path
+      // 末尾群の高さ変化も追従
+      // A trailing-group height change tracks through the same path
       (lastGroup as unknown as { offsetHeight: number }).offsetHeight = 800;
       act(() => {
         for (const observer of FakeResizeObserver.instances) observer.fire();
@@ -249,5 +249,27 @@ describe("useBuildMenuCategoryScroll", () => {
     } finally {
       globalThis.ResizeObserver = originalResizeObserver;
     }
+  });
+
+  it("開いた直後、scrollイベントを一度も発火せずに初期ハイライトが視口位置から決まる", () => {
+    let latest!: HookResult;
+    const renderer = create(
+      createElement(Harness, { visibleCategoryGuids: ["a"], onRender: (result) => { latest = result; } }),
+    );
+    const vp = fakeViewport({ scrollTop: 400 });
+    act(() => {
+      latest.attachViewport(vp);
+      latest.headingRef("a")(fakeHeading(0));
+      latest.headingRef("b")(fakeHeading(400));
+    });
+
+    // scroll無しで初期ハイライト確定
+    // Settles the initial highlight via layout effect alone, without calling handleScroll
+    act(() => {
+      renderer.update(
+        createElement(Harness, { visibleCategoryGuids: ["a", "b"], onRender: (result) => { latest = result; } }),
+      );
+    });
+    expect(latest.activeCategoryGuid).toBe("b");
   });
 });

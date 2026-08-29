@@ -25,10 +25,8 @@ const groups: BuildMenuCategoryGroup[] = [
   { categoryGuid: "cat-b", sections: [{ categoryGuid: "cat-b", subCategoryGuid: "sub-2", entries: [entry("e2", "cat-b", "sub-2")] }] },
 ];
 
-// host要素のtestidだけを持つモックノードを返す。attachLastGroup/attachHeadingが
-// どの要素に付いたかをtestid経由で実際に検証できるようにする
-// Mocks host nodes down to their testid so attachLastGroup/attachHeading assertions
-// can verify which element the ref actually landed on
+// refの付与先をtestidで検証
+// Verifies ref targets via testid
 const createNodeMock = (element: { props: Record<string, unknown> }) => ({
   testid: element.props["data-testid"],
 });
@@ -36,11 +34,12 @@ const createNodeMock = (element: { props: Record<string, unknown> }) => ({
 describe("BuildMenuCategoryList", () => {
   it("カテゴリ群ごとに大見出しを置き、末尾群のsectionと各見出しのh2をrefへ登録し、末尾スペーサ高を反映する", () => {
     const attachHeading = vi.fn();
+    const headingRef = (categoryGuid: string) => (element: unknown) => attachHeading(categoryGuid, element);
     const attachLastGroup = vi.fn();
     const renderer = create(createElement(BuildMenuCategoryList, {
       groups,
       spacerHeight: 123,
-      attachHeading,
+      headingRef,
       attachLastGroup,
       onSelect: () => undefined,
       onDelete: () => undefined,
@@ -53,8 +52,8 @@ describe("BuildMenuCategoryList", () => {
     ]);
     const spacer = renderer.root.findByProps({ "data-testid": "build-menu-trailing-spacer" });
     expect(spacer.props.style).toEqual({ minHeight: 123 });
-    // attachHeadingは各<h2>実体に、attachLastGroupは末尾groupの<section>実体にのみ付く
-    // attachHeading lands on each <h2> node; attachLastGroup lands only on the trailing group's <section>
+    // refの付与先を確認
+    // Checks where each ref lands
     expect(attachHeading).toHaveBeenCalledWith("cat-a", { testid: "build-menu-category-heading-cat-a" });
     expect(attachHeading).toHaveBeenCalledWith("cat-b", { testid: "build-menu-category-heading-cat-b" });
     expect(attachLastGroup).toHaveBeenCalledTimes(1);
@@ -63,11 +62,12 @@ describe("BuildMenuCategoryList", () => {
 
   it("groupsが空でもクラッシュせずスペーサのみ出す", () => {
     const attachHeading = vi.fn();
+    const headingRef = (categoryGuid: string) => (element: unknown) => attachHeading(categoryGuid, element);
     const attachLastGroup = vi.fn();
     const renderer = create(createElement(BuildMenuCategoryList, {
       groups: [],
       spacerHeight: 42,
-      attachHeading,
+      headingRef,
       attachLastGroup,
       onSelect: () => undefined,
       onDelete: () => undefined,

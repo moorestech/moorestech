@@ -10,8 +10,8 @@ export type BuildMenuSection = {
 
 export type BuildMenuDisplayEntry = BuildMenuEntryData & { displayLabel: string };
 
-// 1本スクロールの単位。カテゴリ大見出し1つとその下のサブカテゴリ群
-// Unit of the single scroll: one category heading and its sub-category sections
+// 1本スクロールの群単位
+// A unit of the single scroll
 export type BuildMenuCategoryGroup = {
   categoryGuid: string;
   sections: BuildMenuSection[];

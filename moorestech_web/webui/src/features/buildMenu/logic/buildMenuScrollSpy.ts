@@ -1,14 +1,14 @@
-// scroll-spy・ジャンプ到達・末尾スペーサの判定。DOMを持たずフックから呼ばれる
-// Scroll-spy, jump-settled, and trailing-spacer math; DOM-free, called from the hook
+// 判定はDOM非依存(scroll-spy等)
+// DOM-free judgments (scroll-spy etc.), called from the hook
 
 export type CategoryHeadingOffset = { categoryGuid: string; top: number };
 
 // スムーズスクロールの停止位置は小数で揺れるため±1pxを同値とみなす
 // Smooth scrolling settles on fractional positions, so treat ±1px as equal
-export const scrollSettleTolerancePx = 1;
+const scrollSettleTolerancePx = 1;
 
-// 視口上端（許容内）以上にある最後の見出しが現在地。先頭より上なら先頭
-// The last heading at or above the viewport top (within tolerance) is current; above the first means the first
+// 許容内で最後の見出しが現在地
+// The last heading within tolerance of the top is current
 export function activeCategoryAtScroll(offsets: CategoryHeadingOffset[], scrollTop: number): string | null {
   if (offsets.length === 0) return null;
   let active = offsets[0].categoryGuid;

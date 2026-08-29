@@ -11,8 +11,8 @@ test.afterEach(async ({ page }) => {
   await setUiState(page, "PlayerInventory");
 });
 
-// ADR 0045で「既定カテゴリだけ表示」は廃止。他カテゴリのエントリもDOMに載る
-// ADR 0045 drops "only the default category renders"; other categories' entries are attached too
+// 全カテゴリ常時DOM化(ADR0045)
+// All categories stay attached (ADR 0045)
 test("ui_stateでビルドメニューを開閉し全カテゴリのエントリが1本スクロールに載る", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
@@ -46,8 +46,8 @@ test("閉じるボタンはGameScreen遷移を要求する", async ({ page }) =>
   await expect(page.getByTestId("build-menu-panel")).toBeHidden();
 });
 
-// 全カテゴリが同時にDOMへ載り、サイドバーは見出しへのジャンプになる（ADR 0045）
-// Every category is in the DOM at once; the sidebar jumps to headings (ADR 0045)
+// 全カテゴリ+見出しジャンプ(ADR0045)
+// All categories + jump to heading (ADR 0045)
 test("全カテゴリが1本スクロールに並び、サイドバー押下で見出しへジャンプしハイライトが追従する", async ({ page }) => {
   await setUiState(page, "BuildMenu");
   await page.goto("/");
@@ -95,8 +95,8 @@ test("検索は同じリストを絞り込み、ヒットの無いカテゴリ�
   await expect(page.getByTestId(
     `build-menu-section-${buildMenuCategoryIds.transport}-${buildMenuSubCategoryIds.rail}`,
   )).toBeAttached();
-  // 複合見出しは廃止。サブカテゴリ見出しにカテゴリ名を含めない
-  // Composite headings are gone; sub-category headings never carry the category name
+  // 複合見出し廃止(ADR0045)
+  // Composite headings removed (ADR 0045)
   await expect(page.getByTestId(
     `build-menu-section-${buildMenuCategoryIds.logistics}-${buildMenuSubCategoryIds.chest}`,
   ).locator("h3")).not.toContainText("/");
