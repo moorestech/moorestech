@@ -72,5 +72,38 @@ namespace Tests.UnitTest.Core.Map
             Assert.IsFalse(master.Validate(out var logs));
             StringAssert.Contains("has empty EarnItems", logs);
         }
+
+        [Test]
+        public void Noneのmapobjectがearnitemsを持つと失敗する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "map.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var decoration = ((JArray)json["mapObjects"]).Children<JObject>()
+                .Single(element => (string)element["miningType"] == "None");
+            var miningMapObject = ((JArray)json["mapObjects"]).Children<JObject>()
+                .Single(element => (string)element["miningType"] == "Mining");
+
+            // 実在するearnItemを装飾物へ複製し、foreignKey成功と矛盾失敗を分離する
+            // Copy a valid earn item onto the decoration so foreign-key success is isolated from the contradiction failure
+            decoration["earnItems"] = miningMapObject["earnItems"].DeepClone();
+            var master = new MapObjectMaster(json);
+
+            Assert.IsFalse(master.Validate(out var logs));
+            StringAssert.Contains("None must have empty EarnItems", logs);
+        }
+
+        [Test]
+        public void Noneのmapobjectはearnitemsが空でも成功する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "map.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var master = new MapObjectMaster(json);
+
+            // テストマスタはNoneの装飾物を1件含んだまま検証を通る
+            // The test master passes validation while holding one None decoration
+            Assert.IsTrue(master.Validate(out var logs), logs);
+        }
     }
 }

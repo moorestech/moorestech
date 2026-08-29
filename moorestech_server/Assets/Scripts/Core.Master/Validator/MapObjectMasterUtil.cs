@@ -50,12 +50,18 @@ namespace Core.Master.Validator
 
             string EarnItemsValidation()
             {
-                // 取得アイテム無しは殴っても空振り
-                // Empty earn items yield nothing when mined
+                // 装飾物(None)はドロップを持たず、それ以外は殴っても空振りしないよう必須
+                // A decoration (None) must not drop anything; everything else must, or mining it would be a whiff
                 var logs = "";
                 foreach (var mapObjectElement in map.MapObjects)
                 {
-                    if (mapObjectElement.EarnItems.Length == 0)
+                    var isDecoration = mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.None;
+                    var hasEarnItems = mapObjectElement.EarnItems.Length != 0;
+                    if (isDecoration && hasEarnItems)
+                    {
+                        logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} miningType None must have empty EarnItems\n";
+                    }
+                    if (!isDecoration && !hasEarnItems)
                     {
                         logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has empty EarnItems\n";
                     }
