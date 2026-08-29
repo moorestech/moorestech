@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -11,8 +10,8 @@ using UniRx;
 namespace Game.Challenge.Task
 {
     /// <summary>
-    ///     指定ブロックが指定種別の鉱脈の上に置かれた時に達成する（採掘機はドリルセル、他は占有セルのいずれかで判定）
-    ///     Completes when the block is placed over any vein of the type (drill cell for miners, any footprint cell otherwise)
+    ///     指定ブロックが指定種別の鉱脈の上に置かれた時に達成する（底面フットプリントのXZ重なりで判定しYは見ない）
+    ///     Completes when the block is placed over any vein of the type, judged by footprint XZ overlap with Y ignored
     /// </summary>
     public class BlockPlaceOnVeinChallengeTask : IChallengeTask
     {
@@ -84,19 +83,16 @@ namespace Game.Challenge.Task
                 }
             }
 
-            // 判定セル列の正本は BlockPositionInfoExtension 側。クライアントの設置制限と同じ規則で解く
-            // The judged cells come from BlockPositionInfoExtension, the same rule the client placement restriction uses
+            // 判定規則の正本は BlockPositionInfoExtension.OverlapsVeinXz。クライアントの設置制限と同じ1本を呼ぶ
+            // BlockPositionInfoExtension.OverlapsVeinXz owns the rule; this calls the very same one the client placement restriction uses
             bool IsOverTargetVeinType(IBlock block)
             {
                 if (block.BlockGuid != _targetBlockGuid) return false;
 
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(block.BlockId);
-                foreach (var cell in block.BlockPositionInfo.EnumerateVeinJudgeCells(blockMaster))
+                foreach (var vein in ServerContext.ItemMapVeinDatastore.Veins)
                 {
-                    foreach (var vein in ServerContext.ItemMapVeinDatastore.GetOverVeins(cell))
-                    {
-                        if (vein.VeinGuid == _targetVeinTypeGuid) return true;
-                    }
+                    if (vein.VeinGuid != _targetVeinTypeGuid) continue;
+                    if (block.BlockPositionInfo.OverlapsVeinXz(vein.VeinRangeMin, vein.VeinRangeMax)) return true;
                 }
                 return false;
             }

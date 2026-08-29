@@ -1,39 +1,34 @@
-using System;
+using System.Collections.Generic;
 
 namespace Client.Game.InGame.Map.MapVein
 {
     /// <summary>
-    ///     鉱脈範囲表示が取りうる3つの状態。非表示・kindまとめ表示・種別GUID指定表示を1つの値で表す
-    ///     The three states of the vein range view — hidden, a whole kind, or one vein type — carried as one value
-    ///     優先規則を値の作り方で表現し、実装側に「どちらが勝つか」を持たせない
-    ///     The precedence rule lives in how the value is built, so no implementation decides which side wins
+    ///     鉱脈範囲表示が描くべき鉱脈そのものを運ぶ値。表示側に「どの鉱脈が対象か」を導出させない
+    ///     Carries the very veins the range view must draw, so the view never derives "which veins qualify" itself
+    ///     設置判定と同じ絞り込み結果をプッシュすることで、ボックスは出るのに置けない食い違いを構造的に無くす（ADR 0039）
+    ///     Pushing the same filtered set the placement check uses structurally removes "a box is shown but placement is refused" (ADR 0039)
     /// </summary>
     public readonly struct VeinDisplay
     {
-        // kind表示のときだけ値を持つ。種別GUID表示・非表示ではnull
-        // Carries a value only in kind mode; null for vein-type and hidden
-        public readonly MapVeinKind? Kind;
+        // 描く鉱脈。非表示はnull
+        // The veins to draw; null means hidden
+        public readonly IReadOnlyList<MapVeinAabb> Veins;
 
-        // 種別GUID表示のときだけ値を持つ。指定中はkindを問わずその種別の鉱脈すべてを描く
-        // Carries a value only in vein-type mode; while set, every vein of that type is drawn regardless of kind
-        public readonly Guid? VeinTypeGuid;
+        // チュートリアルの鉱脈限定中だけ強調色にする
+        // Only the tutorial's vein restriction draws in the highlight color
+        public readonly bool Highlight;
 
-        private VeinDisplay(MapVeinKind? kind, Guid? veinTypeGuid)
+        private VeinDisplay(IReadOnlyList<MapVeinAabb> veins, bool highlight)
         {
-            Kind = kind;
-            VeinTypeGuid = veinTypeGuid;
+            Veins = veins;
+            Highlight = highlight;
         }
 
-        public static VeinDisplay Hidden => new(null, null);
+        public static VeinDisplay Hidden => new(null, false);
 
-        public static VeinDisplay OfKind(MapVeinKind kind)
+        public static VeinDisplay OfVeins(IReadOnlyList<MapVeinAabb> veins, bool highlight)
         {
-            return new VeinDisplay(kind, null);
-        }
-
-        public static VeinDisplay OfVeinType(Guid veinTypeGuid)
-        {
-            return new VeinDisplay(null, veinTypeGuid);
+            return new VeinDisplay(veins, highlight);
         }
     }
 }

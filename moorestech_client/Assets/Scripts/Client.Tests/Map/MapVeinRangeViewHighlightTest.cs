@@ -14,8 +14,8 @@ using UnityEngine;
 namespace Client.Tests.Map
 {
     /// <summary>
-    ///     チュートリアルが指す1鉱脈だけを描く強調モードと、GUID指定の内包判定を検証する
-    ///     Verifies the highlight mode that draws only the vein a tutorial points at, and the per-GUID containment query
+    ///     チュートリアルが指す1鉱脈だけを描く強調モードと、台帳のGUID絞り込みを検証する
+    ///     Verifies the highlight mode that draws only the vein a tutorial points at, and the registry's per-GUID selection
     /// </summary>
     public class MapVeinRangeViewHighlightTest
     {
@@ -47,11 +47,11 @@ namespace Client.Tests.Map
         [Test]
         public void 強調鉱脈を指定するとその鉱脈だけを別マテリアルで描く()
         {
-            var (service, root) = CreateService();
-            service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Item));
+            var (service, root, registry) = CreateService();
+            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Item), false));
             Assert.AreEqual(2, CountVisibleBoxes(root));
 
-            service.SetVeinDisplay(VeinDisplay.OfVeinType(ItemVeinA));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfType(ItemVeinA), true));
 
             Assert.AreEqual(1, CountVisibleBoxes(root), "highlight mode must show exactly the target vein");
             foreach (Transform child in root)
@@ -64,10 +64,10 @@ namespace Client.Tests.Map
         [Test]
         public void 強調は表示種別を無視して対象鉱脈を描く()
         {
-            var (service, root) = CreateService();
-            service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Fluid));
+            var (service, root, registry) = CreateService();
+            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Fluid), false));
 
-            service.SetVeinDisplay(VeinDisplay.OfVeinType(ItemVeinB));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfType(ItemVeinB), true));
 
             Assert.AreEqual(1, CountVisibleBoxes(root));
         }
@@ -75,11 +75,11 @@ namespace Client.Tests.Map
         [Test]
         public void 強調を解除すると種別表示へ戻る()
         {
-            var (service, root) = CreateService();
-            service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Item));
-            service.SetVeinDisplay(VeinDisplay.OfVeinType(ItemVeinB));
+            var (service, root, registry) = CreateService();
+            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Item), false));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfType(ItemVeinB), true));
 
-            service.SetVeinDisplay(VeinDisplay.OfKind(MapVeinKind.Item));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Item), false));
 
             Assert.AreEqual(2, CountVisibleBoxes(root));
             foreach (Transform child in root)
@@ -90,19 +90,20 @@ namespace Client.Tests.Map
         }
 
         [Test]
-        public void 台帳はGUID指定の内包判定を返す()
+        public void 台帳はGUID指定で同種別の鉱脈だけを返す()
         {
             var registry = new MapVeinAabbRegistry(CreateHandshakeResponse());
 
-            Assert.IsTrue(registry.IsInsideAnyVeinOfType(new Vector3Int(1, 1, 1), ItemVeinA));
-            Assert.IsFalse(registry.IsInsideAnyVeinOfType(new Vector3Int(1, 1, 1), ItemVeinB));
-            Assert.IsTrue(registry.IsInsideAnyVeinOfType(new Vector3Int(30, 0, 30), ItemVeinB));
+            CollectionAssert.AreEqual(new[] { ItemVeinA }, registry.SelectVeinsOfType(ItemVeinA).ConvertAll(vein => vein.VeinTypeGuid));
+            CollectionAssert.AreEqual(new[] { ItemVeinB }, registry.SelectVeinsOfType(ItemVeinB).ConvertAll(vein => vein.VeinTypeGuid));
+            Assert.AreEqual(2, registry.SelectVeinsOfKind(MapVeinKind.Item).Count);
         }
 
-        private (MapVeinRangeViewService service, Transform root) CreateService()
+        private (MapVeinRangeViewService service, Transform root, MapVeinAabbRegistry registry) CreateService()
         {
-            var service = new MapVeinRangeViewService(new MapVeinAabbRegistry(CreateHandshakeResponse()), _camera);
-            return (service, GameObject.Find(MapVeinRangeViewService.RootObjectName).transform);
+            var registry = new MapVeinAabbRegistry(CreateHandshakeResponse());
+            var service = new MapVeinRangeViewService(registry, _camera);
+            return (service, GameObject.Find(MapVeinRangeViewService.RootObjectName).transform, registry);
         }
 
         private static int CountVisibleBoxes(Transform rangeViewRoot)

@@ -134,7 +134,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // ②採掘機の設置開始で範囲表示が現れ、item vein1本につき1個だけになる
                 // (2) Starting a miner placement makes the range view appear, exactly one box per item vein
-                await DriveRangeViewFrames(rangeView, nearVeins, VeinDisplay.OfKind(MapVeinKind.Item));
+                await DriveRangeViewFrames(rangeView, nearVeins, VeinDisplay.OfVeins(itemVeins, false));
                 Assert.AreEqual(itemVeins.Count, await CountVisibleRangeViewObjects(), "range view object count does not match the item vein count while previewing");
 
                 // プール込みの総数を基準に取る。以降これが増えたら表示のたびに作り直している
@@ -150,7 +150,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 // (4) Three show/hide cycles keep one box per vein; both duplication and missed hides fail here
                 for (var i = 0; i < 3; i++)
                 {
-                    await DriveRangeViewFrames(rangeView, nearVeins, VeinDisplay.OfKind(MapVeinKind.Item));
+                    await DriveRangeViewFrames(rangeView, nearVeins, VeinDisplay.OfVeins(itemVeins, false));
                     Assert.AreEqual(itemVeins.Count, await CountVisibleRangeViewObjects(), $"range view object count changed on cycle {i}");
                     Assert.AreEqual(pooledTotalBaseline, FindRangeViewRoot().childCount, $"range view boxes accumulated on cycle {i}");
 
@@ -160,9 +160,9 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // プレビュー中でも遠ざかれば消える。表示条件がプレビュー有無だけに退化していないことを見る
                 // Moving far away clears them even while previewing, proving the visibility rule is not just the preview flag
-                await DriveRangeViewFrames(rangeView, nearVeins, VeinDisplay.OfKind(MapVeinKind.Item));
+                await DriveRangeViewFrames(rangeView, nearVeins, VeinDisplay.OfVeins(itemVeins, false));
                 Assert.AreEqual(itemVeins.Count, await CountVisibleRangeViewObjects(), "range view did not reappear near the veins");
-                await DriveRangeViewFrames(rangeView, farAway, VeinDisplay.OfKind(MapVeinKind.Item));
+                await DriveRangeViewFrames(rangeView, farAway, VeinDisplay.OfVeins(itemVeins, false));
                 Assert.AreEqual(0, await CountVisibleRangeViewObjects(), "range view survived while the camera was far from every vein");
             }
 

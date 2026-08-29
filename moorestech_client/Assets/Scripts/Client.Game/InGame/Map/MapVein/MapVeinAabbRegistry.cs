@@ -28,36 +28,46 @@ namespace Client.Game.InGame.Map.MapVein
 
                 var minCell = new Vector3Int(layout.MinX, layout.MinY, layout.MinZ);
                 var maxCell = new Vector3Int(layout.MaxX, layout.MaxY, layout.MaxZ);
-                var kind = element.VeinParam is FluidVeinParam ? MapVeinKind.Fluid : MapVeinKind.Item;
 
-                _veins.Add(new MapVeinAabb(veinTypeGuid, minCell, maxCell, kind));
+                // 種別と産出アイテムはマスタの判別共用体から1度で決める。逆極性の2式に分けると片方だけ更新される
+                // Kind and yielded item come from the master's discriminated union in one place; two opposite-polarity expressions would drift apart
+                var (kind, veinItemId) = element.VeinParam switch
+                {
+                    ItemVeinParam itemVeinParam => (MapVeinKind.Item, (ItemId?)MasterHolder.ItemMaster.GetItemId(itemVeinParam.ItemGuid)),
+                    FluidVeinParam => (MapVeinKind.Fluid, (ItemId?)null),
+                    _ => throw new InvalidOperationException($"[MapVeinAabbRegistry] 未対応のVeinParam:{element.VeinParam.GetType().Name} veinGuid:{veinTypeGuid}"),
+                };
+
+                _veins.Add(new MapVeinAabb(veinTypeGuid, minCell, maxCell, kind, veinItemId));
             }
         }
 
         /// <summary>
-        ///     指定セルがその種別の鉱脈に入っているか。種別を跨いだ判定は採掘機/ポンプの掘れる条件とずれるため持たない
-        ///     Whether the cell sits inside a vein of that kind; no cross-kind query exists because it would diverge from what miners/pumps can actually extract
+        ///     その種別（アイテム/流体）の鉱脈を集める。ポンプのように「掘れる種別まるごと」を見たい側が使う
+        ///     Collects every vein of that kind; used by callers such as the pump that want a whole extractable kind
         /// </summary>
-        public bool IsInsideAnyVeinOfKind(Vector3Int cell, MapVeinKind kind)
+        public List<MapVeinAabb> SelectVeinsOfKind(MapVeinKind kind)
         {
+            var veins = new List<MapVeinAabb>();
             foreach (var vein in _veins)
-                if (vein.Kind == kind && vein.ContainsCell(cell))
-                    return true;
+                if (vein.Kind == kind)
+                    veins.Add(vein);
 
-            return false;
+            return veins;
         }
 
         /// <summary>
-        ///     指定セルがその鉱脈（GUID）に入っているか。チュートリアルの「この鉱脈にだけ置く」制限が使う
-        ///     Whether the cell sits inside that specific vein; used by the tutorial's "place only on this vein" restriction
+        ///     その鉱脈GUIDのインスタンスを集める。チュートリアルの「この鉱脈にだけ置く」制限が使う
+        ///     Collects every instance of that vein type; used by the tutorial's "place only on this vein" restriction
         /// </summary>
-        public bool IsInsideAnyVeinOfType(Vector3Int cell, Guid veinTypeGuid)
+        public List<MapVeinAabb> SelectVeinsOfType(Guid veinTypeGuid)
         {
+            var veins = new List<MapVeinAabb>();
             foreach (var vein in _veins)
-                if (vein.VeinTypeGuid == veinTypeGuid && vein.ContainsCell(cell))
-                    return true;
+                if (vein.VeinTypeGuid == veinTypeGuid)
+                    veins.Add(vein);
 
-            return false;
+            return veins;
         }
     }
 }

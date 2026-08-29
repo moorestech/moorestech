@@ -143,6 +143,28 @@
       "terrainSurroundEffectType": "rockNoBareGround",
       "handMiningType": "none",
       "handMiningParam": null
+    },
+    {
+      "veinGuid": "11111111-0000-0000-0000-000000000005",
+      "veinName": "test:SecondItemVein",
+      "veinType": "item",
+      "veinParam": {
+        "itemGuid": "00000000-0000-0000-1234-000000000002"
+      },
+      "outcropAddressablePath": "Vanilla/Environment/Vein/Item/VeinPrefab_Iron",
+      "soundEffectType": "stone",
+      "terrainSurroundEffectType": "rockNoBareGround",
+      "handMiningType": "minable",
+      "handMiningParam": {
+        "handMiningTools": [
+          {
+            "toolItemGuid": "00000000-0000-0000-1234-000000000001",
+            "attackSpeed": 0.2
+          }
+        ],
+        "minCount": 1,
+        "maxCount": 1
+      }
     }
   ]
 }

@@ -511,12 +511,7 @@
         },
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9,
-        "drillLocalPosition": [
-          0,
-          0,
-          0
-        ]
+        "connectionHeightRange": 9
       },
       "blockGuid": "00000000-0000-0000-0000-000000000006",
       "category": "テスト",
@@ -2903,12 +2898,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "drillLocalPosition": [
-          0,
-          0,
-          0
-        ]
+        }
       },
       "blockSize": [
         1,
@@ -5057,6 +5047,10 @@
           {
             "time": 1,
             "itemGuid": "00000000-0000-0000-1234-000000000001"
+          },
+          {
+            "itemGuid": "00000000-0000-0000-1234-000000000002",
+            "time": 3
           }
         ],
         "inventoryConnectors": {
@@ -5096,12 +5090,7 @@
         },
         "maxWireConnectionCount": 2,
         "connectionRange": 9,
-        "connectionHeightRange": 9,
-        "drillLocalPosition": [
-          1,
-          0,
-          2
-        ]
+        "connectionHeightRange": 9
       },
       "blockGuid": "00000000-0000-0000-0000-000000000060",
       "category": "テスト",
