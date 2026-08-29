@@ -38,8 +38,8 @@ namespace Client.Starter.EventMode
                 languageRawValue,
                 Localize.GetLanguageCodes());
 
-            // 未知の言語コードは起動を止めずにログだけ残す（起動スクリプトの設定ミス検知用）
-            // An unknown language code only leaves a log without stopping boot, to catch launch-script typos
+            // 未知の言語コードはログだけ残し起動は止めない
+            // An unknown language code only logs and never stops boot
             if (!string.IsNullOrEmpty(languageRawValue) && settings.LanguageCode != languageRawValue)
                 Debug.LogError($"EventExhibitionSettings: unknown {LanguageEnvKey}={languageRawValue}, falling back to {settings.LanguageCode}");
             return settings;
@@ -49,8 +49,8 @@ namespace Client.Starter.EventMode
         // Enable accepts "1" alone; the timeout accepts positive ints only and otherwise falls back to the default
         // Editorは開発機のワールドを不可逆に消すため、専用キーの明示opt-inが無い限り無効にする
         // The Editor wipes a developer's world irreversibly, so it stays off without the dedicated opt-in key
-        // 言語は生成テーブルにあるコードのみ受理し他はenglishへ落とす
-        // The language accepts only codes in the generated table and otherwise falls back to english
+        // 言語は既知コードのみ受理し他はenglishへ落とす
+        // The language accepts known codes only and otherwise falls back to english
         public static EventExhibitionSettings Parse(string enableRawValue, string idleTimeoutRawValue, string editorOptInRawValue, bool isEditor, string languageRawValue, IReadOnlyCollection<string> supportedLanguageCodes)
         {
             var isEnabled = enableRawValue == "1" && (!isEditor || editorOptInRawValue == "1");
