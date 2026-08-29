@@ -537,11 +537,11 @@ git commit -m "feat: IPlaceSystem.TryCancelInProgressOperationを追加し電線
 **Interfaces:**
 - Consumes: `RightShortPressInputService.TryConsumeShortPressOutsideUi()` / `ResetPressState()`、`PlaceSystemStateController.TryCancelInProgressOperation()`
 
-- [ ] **Step 1: ctorとフィールドに注入する**
+- [x] **Step 1: ctorとフィールドに注入する**
 
 `using Client.Game.InGame.UI.UIState.State.CancelInput;` を追加。フィールド `private readonly RightShortPressInputService _rightShortPressInputService;` を `_hotbarInputService` の下に追加。ctor末尾の引数に `RightShortPressInputService rightShortPressInputService` を追加し `_rightShortPressInputService = rightShortPressInputService;` を代入。
 
-- [ ] **Step 2: OnEnterでリセットする**
+- [x] **Step 2: OnEnterでリセットする**
 
 `OnEnter` の `_hotbarInputService.ResetKeyState();` の直後に:
 
@@ -549,7 +549,7 @@ git commit -m "feat: IPlaceSystem.TryCancelInProgressOperationを追加し電線
             _rightShortPressInputService.ResetPressState();
 ```
 
-- [ ] **Step 3: GetNextUpdateのEsc判定の隣に追加する**
+- [x] **Step 3: GetNextUpdateのEsc判定の隣に追加する**
 
 `if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);` の直後に:
 
@@ -562,12 +562,12 @@ git commit -m "feat: IPlaceSystem.TryCancelInProgressOperationを追加し電線
             }
 ```
 
-- [ ] **Step 4: コンパイルする**
+- [x] **Step 4: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs
