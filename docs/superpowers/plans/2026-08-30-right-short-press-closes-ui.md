@@ -275,7 +275,7 @@ git commit -m "feat: 右短押しを判別するRightShortPressInput状態機械
 - Consumes: Task 1 の `RightShortPressInput`
 - Produces: `public class RightShortPressInputService` — `public bool TryConsumeShortPressOutsideUi()` / `public void ResetPressState()`
 
-- [ ] **Step 1: サービスを書く**
+- [x] **Step 1: サービスを書く**
 
 ```csharp
 using Client.Game.InGame.Control;
@@ -314,7 +314,7 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
 }
 ```
 
-- [ ] **Step 2: DI登録を追加する**
+- [x] **Step 2: DI登録を追加する**
 
 `MainGameInteractionRegistration.cs` の `builder.Register<HotbarTapInputService>(Lifetime.Singleton);` の直後に追加:
 
@@ -325,12 +325,12 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
 
 （`using Client.Game.InGame.UI.UIState.State.CancelInput;` をファイル先頭に追加）
 
-- [ ] **Step 3: コンパイルする**
+- [x] **Step 3: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/CancelInput moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs
