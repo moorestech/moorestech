@@ -89,7 +89,7 @@
 - Consumes: なし
 - Produces: 生成型 `MapObjectMasterElement.MiningTypeConst.None`（string定数）、`Mooresmaster.Model.MapModule.NoneMiningParam`（空クラス、`MiningParam` のswitch結果型）。既存生成の `NoneHandMiningParam` / `PickUpMiningParam` と同じ命名規則
 
-- [ ] **Step 1: map.yml を編集する**
+- [x] **Step 1: map.yml を編集する**
 
 `- key: miningType` の `options` に `None` を、`miningParam` の `cases` に `None` を足す。
 
@@ -119,18 +119,18 @@
         - key: miningTools
 ```
 
-- [ ] **Step 2: `_CompileRequester.cs` の印を更新する**
+- [x] **Step 2: `_CompileRequester.cs` の印を更新する**
 
 ```csharp
     private const string dummyText = "2026-08-30-map-mining-type-none";
 ```
 
-- [ ] **Step 3: コンパイルして生成型を確認する**
+- [x] **Step 3: コンパイルして生成型を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0。続けて `strings moorestech_client/Library/ScriptAssemblies/Core.Master.dll | grep -E "^NoneMiningParam$"` が `NoneMiningParam` を出力する。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add VanillaSchema/map.yml moorestech_server/Assets/Scripts/Core.Master/_CompileRequester.cs
@@ -148,7 +148,7 @@ git commit -m "feat: mapObjectのminingTypeにNone（装飾物）を追加する
 - Consumes: Task 1 の `None`
 - Produces: テスト用GUID `00000000-0000-4444-0000-000000000001`（`vanilla:TestDecoration`）。Task 3・4・5 のテストがこのGUIDを使う。**配置（`ForUnitTest/map/map.json`）には追加しない**（`GetMapDataProtocolTest` が配置6件を固定している）
 
-- [ ] **Step 1: mapObjects 配列の末尾（`vanilla:TestRubbleRock` の後）に1要素を追記する**
+- [x] **Step 1: mapObjects 配列の末尾（`vanilla:TestRubbleRock` の後）に1要素を追記する**
 
 既存要素と同じ4スペースインデントで、配列の閉じ `]` の直前に追加する。
 
@@ -168,17 +168,17 @@ git commit -m "feat: mapObjectのminingTypeにNone（装飾物）を追加する
         }
 ```
 
-- [ ] **Step 2: JSONとして壊れていないことを確認する**
+- [x] **Step 2: JSONとして壊れていないことを確認する**
 
 Run: `python3 -c "import json;d=json.load(open('moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/map.json'));print(len(d['mapObjects']), d['mapObjects'][-1]['miningType'])"`
 Expected: `5 None`
 
-- [ ] **Step 3: 既存のマスタ関連テストがまだ通る（この時点では earnItems 空検査が None にも効くので失敗するはず）ことを確認する**
+- [x] **Step 3: 既存のマスタ関連テストがまだ通る（この時点では earnItems 空検査が None にも効くので失敗するはず）ことを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectMasterValidationTest|MapObjectPinTargetResolutionTest"`
 Expected: 両方とも `SetUp` のDI起動で `MasterHolder.InitializeMaster` が `Master data validation failed: ... has empty EarnItems` を投げて FAIL（Task 3 で直す）。この失敗が出ないなら `MasterHolder.cs:109` の検証が走っていないので原因を調べる。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/mods/forUnitTest/master/map.json
@@ -197,7 +197,7 @@ git commit -m "test: テスト用マスタにminingType Noneの装飾mapObject�
 - Consumes: Task 1 の `MapObjectMasterElement.MiningTypeConst.None`、Task 2 の `vanilla:TestDecoration`
 - Produces: ログ文言 `None must have empty EarnItems`（R2）。既存文言 `has empty EarnItems` は非Noneに限定（R3）
 
-- [ ] **Step 1: 失敗するテスト2本を `MapObjectMasterValidationTest` に追加する**
+- [x] **Step 1: 失敗するテスト2本を `MapObjectMasterValidationTest` に追加する**
 
 ```csharp
         [Test]
@@ -234,12 +234,12 @@ git commit -m "test: テスト用マスタにminingType Noneの装飾mapObject�
         }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectMasterValidationTest"`
 Expected: `Noneのmapobjectがearnitemsを持つと失敗する` は文言不一致で FAIL、`Noneのmapobjectはearnitemsが空でも成功する` は `has empty EarnItems` で FAIL。
 
-- [ ] **Step 3: `EarnItemsValidation` を書き換える**
+- [x] **Step 3: `EarnItemsValidation` を書き換える**
 
 `MapObjectMasterUtil.cs` の `EarnItemsValidation()` ローカル関数を差し替える。
 
@@ -267,13 +267,13 @@ Expected: `Noneのmapobjectがearnitemsを持つと失敗する` は文言不一
             }
 ```
 
-- [ ] **Step 4: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 4: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectMasterValidationTest|MapObjectPinTargetResolutionTest|ChallengeMasterValidationTest"`
 Expected: 全件 PASS（既存3本＋新規2本、ピン解決・チャレンジ検証も無傷）。
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Core.Master/Validator/MapObjectMasterUtil.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Core/Map/MapObjectMasterValidationTest.cs
@@ -293,7 +293,7 @@ git commit -m "feat: マスタ検証でminingType NoneのearnItems空を強制�
 - Consumes: Task 2 のGUID `00000000-0000-4444-0000-000000000001`、`IMapObjectFactory.Create(int instanceId, Guid mapObjectGuid, int currentHp, bool isDestroyed, Vector3 position)`
 - Produces: `MiningAttackResult.NotInteractable`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using System;
@@ -346,12 +346,12 @@ namespace Tests.CombinedTest.Game
 
 `using Game.Context;` を先頭のusingに加える（`ServerContext`）。`00000000-0000-0000-1234-000000000001` は `vanilla:TestMiningRock` の `miningTools[0].toolItemGuid` で、テストマスタに実在する。`IMapObject.CurrentHp` は `Game.Map.Interface/MapObject/IMapObject.cs:37` に存在する。
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `MiningAttackResult` に `NotInteractable` が無い旨のコンパイルエラー。
 
-- [ ] **Step 3: `MapObjectMiningService` に `NotInteractable` を追加して拒否する**
+- [x] **Step 3: `MapObjectMiningService` に `NotInteractable` を追加して拒否する**
 
 enum:
 
@@ -380,7 +380,7 @@ enum:
 
 （既存の `var mapObjectElement = ...` 行は上に移動するので重複させない）
 
-- [ ] **Step 4: `MiningProtocol.MineMapObject` の switch に case を足す**
+- [x] **Step 4: `MiningProtocol.MineMapObject` の switch に case を足す**
 
 ```csharp
                     case MiningAttackResult.InventoryFull:
@@ -389,13 +389,13 @@ enum:
                         return null;
 ```
 
-- [ ] **Step 5: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 5: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectNotInteractableMiningTest|MapObjectMiningDestroyGuardTest|MapObjectAcquisitionProtocolTest"`
 Expected: 全件 PASS。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Map/MapObjectMiningService.cs moorestech_server/Assets/Scripts/Server.Protocol/PacketResponse/MiningProtocol.cs "moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/MapObjectNotInteractableMiningTest.cs" "moorestech_server/Assets/Scripts/Tests/CombinedTest/Game/MapObjectNotInteractableMiningTest.cs.meta"
@@ -415,7 +415,7 @@ git commit -m "feat: サーバーがminingType Noneの装飾物への攻撃をNo
 - Consumes: Task 2 のGUID `00000000-0000-4444-0000-000000000001`（None）と既存 `00000000-0000-2222-0000-000000000001`（Mining）
 - Produces: `MapObjectRayTarget.SetInteractable(bool interactable)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using System;
@@ -491,13 +491,13 @@ namespace Client.Tests.Map
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectDecorationRayTargetTest"`
 Expected: 装飾物側が `rayCollider.enabled == true` で FAIL（`IsAvailable` も true）。
 
-- [ ] **Step 3: `MapObjectRayTarget` に `SetInteractable` を足す**
+- [x] **Step 3: `MapObjectRayTarget` に `SetInteractable` を足す**
 
 ```csharp
 using Client.Game.InGame.Mining;
@@ -528,7 +528,7 @@ namespace Client.Game.InGame.Map.MapObject
 
 （既存の `using` は現ファイルのものを維持する。`Collider` は `UnityEngine`）
 
-- [ ] **Step 4: `MapObjectGameObject` を変更する**
+- [x] **Step 4: `MapObjectGameObject` を変更する**
 
 `IsAvailable` を差し替える:
 
@@ -555,13 +555,13 @@ namespace Client.Game.InGame.Map.MapObject
 
 `TryBeginHandMining` は先頭の `if (!IsAvailable) return MiningStartOutcome.Unavailable;` が `IsDecoration` を含むので変更不要（`MiningMiningParam` キャストに到達しない）。
 
-- [ ] **Step 5: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 5: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MapObjectDecorationRayTargetTest|MapObjectHpBarScaleTest|MiningFocusStateTest|MiningAimTest"`
 Expected: 全件 PASS。
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectRayTarget.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapObject/MapObjectGameObject.cs moorestech_client/Assets/Scripts/Client.Tests/Map/MapObjectDecorationRayTargetTest.cs moorestech_client/Assets/Scripts/Client.Tests/Map/MapObjectDecorationRayTargetTest.cs.meta
@@ -580,7 +580,7 @@ git commit -m "feat: クライアントがminingType Noneの装飾物をレイ�
 - Consumes: Task 1 の `None`（スキーマ）
 - Produces: `feature/decoration-map-objects-none` ブランチのpush済みコミットハッシュ。Task 7 が使う
 
-- [ ] **Step 1: master リポジトリでブランチを切る**
+- [x] **Step 1: master リポジトリでブランチを切る**
 
 ```bash
 cd ../moorestech_master
@@ -592,7 +592,7 @@ git status --short
 
 Expected: HEADが `origin/master` の最新（2026-08-30時点 `bb00878`）。`git status --short` は空。
 
-- [ ] **Step 2: 書き換えスクリプトを `<scratchpad>/set_none.py` に書いて実行する**
+- [x] **Step 2: 書き換えスクリプトを `<scratchpad>/set_none.py` に書いて実行する**
 
 ```python
 # 39件をminingType Noneの装飾物へ。それ以外は触らない
@@ -644,7 +644,7 @@ print("updated", hit)
 Run: `cd <scratchpad> && python3 set_none.py`
 Expected: `updated 39`
 
-- [ ] **Step 3: 期待状態をアサーションで検証する（`<scratchpad>/assert_none.py`）**
+- [x] **Step 3: 期待状態をアサーションで検証する（`<scratchpad>/assert_none.py`）**
 
 ```python
 import json, subprocess
@@ -667,7 +667,7 @@ print("OK", names)
 Run: `python3 assert_none.py`
 Expected: `OK [...]` と `--numstat` の行が map.json 1ファイルのみ。削除行数が異常に多い（数千行）場合は整形が崩れているので Step 2 の `indent=2` を確認する。
 
-- [ ] **Step 4: コミット・push・PR作成**
+- [x] **Step 4: コミット・push・PR作成**
 
 ```bash
 cd ../moorestech_master
@@ -698,7 +698,7 @@ Expected: PR URL が出力され、最後に40桁のハッシュが出る。こ�
 - Consumes: Task 6 のコミットハッシュ
 - Produces: なし
 
-- [ ] **Step 1: ピンを書き換える**
+- [x] **Step 1: ピンを書き換える**
 
 `"key": "moorestech_master"` の `commitHash` を Task 6 のハッシュに置き換える。
 
@@ -718,14 +718,14 @@ git -C ../moorestech_master ls-remote origin feature/decoration-map-objects-none
 
 Expected: diff が `commitHash` の1行だけ。`ls-remote` が同じハッシュを返す（push済み＝R9）。整形（4スペース・末尾改行）が既存とずれて全行差分になったら、`git diff` を見て手で戻す。
 
-- [ ] **Step 2: 実マスタで検証を通す**
+- [x] **Step 2: 実マスタで検証を通す**
 
 worktree の Unity で PlayMode を起動し、マスタロードで `[MapObjectMaster]` / `[ChallengeMaster]` のエラーが出ないことを確認する。
 
 Run: `uloop get-logs --project-path ./moorestech_client --log-type Error`（PlayMode 起動→停止の後）
 Expected: `MapObjectMaster` `ChallengeMaster` を含むエラー0件。特に「木を伐採」ピン（earnItem 原木）が `resolving to no MapObject` にならないこと（木は原木を落とし続けるので候補が残る）。
 
-- [ ] **Step 3: コミットする**
+- [x] **Step 3: コミットする**
 
 ```bash
 git add .moorestech-external-revisions.json
