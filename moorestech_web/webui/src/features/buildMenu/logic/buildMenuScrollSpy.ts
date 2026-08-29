@@ -11,13 +11,11 @@ export const scrollSettleTolerancePx = 1;
 // The last heading at or above the viewport top (within tolerance) is current; above the first means the first
 export function activeCategoryAtScroll(offsets: CategoryHeadingOffset[], scrollTop: number): string | null {
   if (offsets.length === 0) return null;
-  let active: string | null = null;
+  let active = offsets[0].categoryGuid;
   for (const offset of offsets) {
     // 全見出しに一律で±1pxの許容を適用
     // Apply the ±1px tolerance uniformly to every heading
-    if (offset.top - scrollSettleTolerancePx <= scrollTop) {
-      active = offset.categoryGuid;
-    }
+    if (offset.top - scrollSettleTolerancePx <= scrollTop) active = offset.categoryGuid;
   }
   return active;
 }

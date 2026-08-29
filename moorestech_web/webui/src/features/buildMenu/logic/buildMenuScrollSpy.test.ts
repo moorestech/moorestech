@@ -28,6 +28,13 @@ describe("activeCategoryAtScroll", () => {
   it("見出しが無ければnull", () => {
     expect(activeCategoryAtScroll([], 10)).toBeNull();
   });
+  it("先頭見出しのtopが0でなくても先頭より上は先頭カテゴリ", () => {
+    const paddedOffsets = [
+      { categoryGuid: "a", top: 24 },
+      { categoryGuid: "b", top: 300 },
+    ];
+    expect(activeCategoryAtScroll(paddedOffsets, 0)).toBe("a");
+  });
 });
 
 describe("isJumpSettled", () => {
