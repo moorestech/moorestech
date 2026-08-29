@@ -12,5 +12,12 @@ namespace Game.Construction
             PlacementsPerCost = placementsPerCost;
             RemainingCount = remainingCount;
         }
+
+        // 次の1セルを残りで賄えるか。残数の解釈は呼び出し元に作らせない
+        // Whether the remainder covers the next cell; callers never reinterpret the raw count
+        public bool CoversNextPlacement()
+        {
+            return ConstructionWalletUtil.IsCoveredByWallet(RemainingCount);
+        }
     }
 }

@@ -32,6 +32,10 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         public string SubCategoryGuid;
         public List<BuildMenuRequiredItemDto> RequiredItems;
 
+        // 素材を払わずに置ける局面か（無料設置デバッグ・財布の残り）。素材の不足そのものはRequiredItemsが持つ
+        // Whether this placement skips paying materials (free-placement debug or wallet remainder); the material shortage itself stays in RequiredItems
+        public bool PaymentWaived;
+
         // 財布を使うブロックだけが設置数/1セットと残り設置数を持つ。判定はホスト側の財布が済ませ、null でキー省略される
         // Only wallet-backed blocks carry the per-set count and the remainder; the host-side wallet decides, and null omits the key
         public BuildMenuSetPlacementDto SetPlacement;
@@ -46,8 +50,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
         public int ItemId;
         public int Count;
 
-        // 所持数と不足フラグはホストが決め切って配る。Web側は財布も所持も再計算しない
-        // The host settles the held count and the shortage flag; the web side recomputes neither wallet nor holdings
+        // 所持数と素材不足はホストが決め切って配る。Web側は所持を再計算しない
+        // The host settles the held count and the material shortage; the web side never recomputes holdings
         public int Held;
         public bool Lacking;
     }

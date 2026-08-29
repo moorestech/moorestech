@@ -49,9 +49,12 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
                 // 財布へは1エントリ1回だけ問い合わせ、設置数表示と支払い免除の両方をここから導く
                 // Ask the wallet once per entry and derive both the set display and the payment waiver from it
-                var block = ResolveBlockTarget(target);
+                var block = target as BlockPlacementTarget;
                 var walletStatus = block == null ? null : walletQuery.GetWalletStatus(block.BlockId);
-                var paymentSkipped = freeBlockPlacement || (walletStatus != null && ConstructionWalletUtil.IsCoveredByWallet(walletStatus.Value.RemainingCount));
+
+                // 無料設置デバッグはブロック設置だけを免除する（車両設置はこのフラグを見ない）
+                // The free-placement debug flag waives block placement only; train-car placement ignores it
+                var paymentWaived = (freeBlockPlacement && block != null) || (walletStatus?.CoversNextPlacement() ?? false);
 
                 dtos.Add(new BuildMenuEntryDto
                 {
@@ -62,7 +65,8 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
-                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, paymentSkipped, heldByItem),
+                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, heldByItem),
+                    PaymentWaived = paymentWaived,
                     SetPlacement = ResolveSetPlacement(walletStatus),
                     IconUrl = ResolveIconUrl(target),
                 });
@@ -102,13 +106,6 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             #endregion
         }
 
-        // ブロックかどうかの供給源はKindのenum一本に揃える
-        // The single supply point for "is this a block" is the Kind enum
-        private static BlockPlacementTarget ResolveBlockTarget(IPlacementTarget target)
-        {
-            return target.Kind == PlacementTargetKind.Block ? (BlockPlacementTarget)target : null;
-        }
-
         public static List<BuildMenuCategoryDto> CreateCategoryDtos()
         {
             // buildMenuマスタcategoriesの配列順そのままが表示順の正
@@ -137,34 +134,25 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             };
         }
 
-        // アイコンURL解決もホットバートピックと共有する唯一の解決点
-        // The single resolution point for icon URLs, shared with the hotbar topic
+        // アイコンURL解決もホットバートピックと共有する唯一の解決点。種別の判定は型で行う
+        // The single resolution point for icon URLs, shared with the hotbar topic; the kind check is by type
         public static string ResolveIconUrl(IPlacementTarget target)
         {
-            switch (target.Kind)
+            switch (target)
             {
-                case PlacementTargetKind.Block:
-                {
-                    var block = (BlockPlacementTarget)target;
-                    // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
-                    // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
+                // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
+                // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
+                case BlockPlacementTarget block:
                     return $"{BlockIconSource.PathPrefixConst}{block.BlockId.AsPrimitive()}{IconEndpoint.PathSuffix}";
-                }
-                case PlacementTargetKind.TrainCar:
-                {
-                    var trainCar = (TrainCarPlacementTarget)target;
+                case TrainCarPlacementTarget trainCar:
                     return $"{TrainCarIconSource.PathPrefixConst}{trainCar.TrainCarGuid}{IconEndpoint.PathSuffix}";
-                }
-                case PlacementTargetKind.ConnectTool:
-                {
-                    var connectTool = (ConnectToolPlacementTarget)target;
+                case ConnectToolPlacementTarget connectTool:
                     return $"{ConnectToolIconSource.PathPrefixConst}{connectTool.ConnectToolGuid}{IconEndpoint.PathSuffix}";
-                }
-                case PlacementTargetKind.BlueprintCopy:
-                case PlacementTargetKind.Blueprint:
+                case BlueprintCopyPlacementTarget:
+                case BlueprintPlacementTarget:
                     return null;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null);
+                    throw new ArgumentOutOfRangeException(nameof(target), target, null);
             }
         }
     }

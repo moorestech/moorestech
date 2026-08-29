@@ -222,7 +222,7 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
-        public void 財布に残りがあるブロックは所持ゼロでも不足にならない()
+        public void 財布に残りがあるブロックは支払い免除として配る()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
@@ -235,11 +235,14 @@ namespace Client.Tests.WebUi
             var targets = new IPlacementTarget[] { new BlockPlacementTarget(straightGuid, null) };
             var dto = BuildMenuEntryDtoFactory.CreateDtos(targets, walletQuery, Array.Empty<IItemStack>())[0];
 
+            // 素材は事実として不足のまま、免除はエントリ単位で立てる
+            // Materials stay factually short while the waiver is raised per entry
+            Assert.IsTrue(dto.PaymentWaived);
             Assert.Greater(dto.RequiredItems.Count, 0);
             foreach (var requiredItem in dto.RequiredItems)
             {
                 Assert.AreEqual(0, requiredItem.Held);
-                Assert.IsFalse(requiredItem.Lacking, "残りがある間は不足にしない");
+                Assert.IsTrue(requiredItem.Lacking);
             }
         }
 
@@ -261,13 +264,14 @@ namespace Client.Tests.WebUi
 
             var dto = BuildMenuEntryDtoFactory.CreateDtos(targets, walletQuery, inventory)[0];
 
+            Assert.IsFalse(dto.PaymentWaived);
             var first = dto.RequiredItems.Single(item => item.ItemId == firstItemId.AsPrimitive());
             Assert.AreEqual(heldCount, first.Held);
             Assert.IsTrue(first.Lacking);
         }
 
         [Test]
-        public void 無料設置デバッグ中は所持ゼロでも不足にしない()
+        public void 無料設置デバッグ中のブロックは支払い免除として配る()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
@@ -282,12 +286,39 @@ namespace Client.Tests.WebUi
             {
                 var dto = BuildMenuEntryDtoFactory.CreateDtos(targets, walletQuery, Array.Empty<IItemStack>())[0];
 
+                Assert.IsTrue(dto.PaymentWaived);
                 Assert.Greater(dto.RequiredItems.Count, 0);
                 foreach (var requiredItem in dto.RequiredItems)
                 {
                     Assert.AreEqual(0, requiredItem.Held);
-                    Assert.IsFalse(requiredItem.Lacking, "無料設置中は不足にしない");
+                    Assert.IsTrue(requiredItem.Lacking);
                 }
+            }
+            finally
+            {
+                DebugParameters.RemoveBool(DebugParameterKeys.FreeBlockPlacement);
+            }
+        }
+
+        [Test]
+        public void 無料設置デバッグ中でも車両は支払い免除にしない()
+        {
+            var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var walletQuery = new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
+            var trainCarGuid = MasterHolder.TrainUnitMaster.Train.TrainCars[0].TrainCarGuid;
+            var targets = new IPlacementTarget[] { new TrainCarPlacementTarget(trainCarGuid) };
+
+            // 車両設置プロトコルはこのフラグを見ないため、表示だけ免除すると実挙動と食い違う
+            // The train-car placement protocol ignores this flag, so waiving it only in the display would contradict the real behavior
+            DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, true);
+            try
+            {
+                var dto = BuildMenuEntryDtoFactory.CreateDtos(targets, walletQuery, Array.Empty<IItemStack>())[0];
+
+                Assert.IsFalse(dto.PaymentWaived);
+                Assert.Greater(dto.RequiredItems.Count, 0);
+                foreach (var requiredItem in dto.RequiredItems) Assert.IsTrue(requiredItem.Lacking);
             }
             finally
             {
@@ -309,6 +340,7 @@ namespace Client.Tests.WebUi
             var targets = new IPlacementTarget[] { new BlockPlacementTarget(blockGuid, null) };
             var dto = BuildMenuEntryDtoFactory.CreateDtos(targets, walletQuery, inventory)[0];
 
+            Assert.IsFalse(dto.PaymentWaived);
             var first = dto.RequiredItems.Single(item => item.ItemId == firstItemId.AsPrimitive());
             Assert.AreEqual(requiredItems[0].Count, first.Held);
             Assert.IsFalse(first.Lacking);

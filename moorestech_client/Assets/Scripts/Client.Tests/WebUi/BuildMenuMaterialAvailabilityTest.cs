@@ -27,7 +27,7 @@ namespace Client.Tests.WebUi
 
             // 行ごとなら4/3で足りるが、合算6に対しては不足する
             // Per row 4/3 suffices, but against the summed 6 it falls short
-            var dtos = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, false, new Dictionary<ItemId, int> { { itemId, 4 } });
+            var dtos = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, new Dictionary<ItemId, int> { { itemId, 4 } });
 
             Assert.AreEqual(1, dtos.Count);
             Assert.AreEqual(6, dtos[0].Count);
@@ -36,17 +36,19 @@ namespace Client.Tests.WebUi
         }
 
         [Test]
-        public void 支払いが免除される局面では所持ゼロでも不足にしない()
+        public void 素材の不足は支払い免除と無関係に所持と必要の突き合わせで決まる()
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var itemGuid = MasterHolder.ItemMaster.Items.Data[0].ItemGuid;
             var target = new DuplicatedRequiredItemTarget(new[] { (itemGuid, 5) });
 
-            var dtos = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, true, new Dictionary<ItemId, int>());
+            // 免除はエントリ側のPaymentWaivedが持つため、素材行は事実のみを載せる
+            // The waiver lives in the entry's PaymentWaived, so the material row carries the fact alone
+            var dtos = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, new Dictionary<ItemId, int>());
 
             Assert.AreEqual(0, dtos[0].Held);
-            Assert.IsFalse(dtos[0].Lacking);
+            Assert.IsTrue(dtos[0].Lacking);
         }
 
         /// <summary>
