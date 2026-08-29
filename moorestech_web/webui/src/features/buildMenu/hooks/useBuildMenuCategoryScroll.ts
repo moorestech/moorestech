@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   activeCategoryAtScroll,
   isJumpAbandoned,
@@ -28,6 +28,35 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
   const jumpTargetRef = useRef<{ categoryGuid: string; top: number; previousScrollTop: number } | null>(null);
   const [activeCategoryGuid, setActiveCategoryGuid] = useState<string | null>(null);
   const [spacerHeight, setSpacerHeight] = useState(0);
+
+  // viewportと末尾カテゴリ群の寸法変化を監視するObserver本体。要素の入れ替えはattach*で張り替える
+  // Observer watching viewport and trailing-group dimensions; attach* callbacks re-target it when elements change
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  // Observerのコールバックは生成時ではなく呼び出し時にこのrefを経由するので、常に最新の測り直し処理を指す
+  // The observer callback dereferences this ref at call time rather than construction time, so it always runs the latest remeasure logic
+  const remeasureSpacerRef = useRef<() => void>(() => {});
+
+  const remeasureSpacer = (): void => {
+    const viewport = viewportRef.current;
+    if (viewport === null) return;
+    const lastGroupHeight = lastGroupRef.current?.offsetHeight ?? 0;
+    setSpacerHeight(trailingSpacerHeight(viewport.clientHeight, lastGroupHeight));
+  };
+  remeasureSpacerRef.current = remeasureSpacer;
+
+  // ResizeObserverはテスト環境等では未定義のことがあるため存在確認してから使う(visualViewport?.と同じ考え方)
+  // ResizeObserver can be absent in some environments (e.g. tests), so check before use (same idea as visualViewport?.)
+  const ensureResizeObserver = (): ResizeObserver | null => {
+    if (typeof ResizeObserver === "undefined") return null;
+    if (resizeObserverRef.current === null) {
+      resizeObserverRef.current = new ResizeObserver(() => remeasureSpacerRef.current());
+    }
+    return resizeObserverRef.current;
+  };
+
+  useEffect(() => {
+    return () => resizeObserverRef.current?.disconnect();
+  }, []);
 
   // 呼び出し側の配列identityに依存せず、内容が変わった時だけeffectを走らせる
   // Key on contents so a caller's fresh array identity does not retrigger these effects
@@ -67,21 +96,26 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
   useLayoutEffect(() => {
     const viewport = viewportRef.current;
     if (viewport === null) return;
-    const lastGroupHeight = lastGroupRef.current?.offsetHeight ?? 0;
-    setSpacerHeight(trailingSpacerHeight(viewport.clientHeight, lastGroupHeight));
+    remeasureSpacer();
     jumpTargetRef.current = null;
     setActiveCategoryGuid(activeCategoryAtScroll(headingOffsets(), viewport.scrollTop));
   }, [visibleKey]);
 
   const attachViewport = useCallback((viewport: HTMLDivElement | null) => {
+    const observer = ensureResizeObserver();
+    if (viewportRef.current !== null) observer?.unobserve(viewportRef.current);
     viewportRef.current = viewport;
+    if (viewport !== null) observer?.observe(viewport);
   }, []);
   const attachHeading = useCallback((categoryGuid: string, element: HTMLElement | null) => {
     if (element === null) headingsRef.current.delete(categoryGuid);
     else headingsRef.current.set(categoryGuid, element);
   }, []);
   const attachLastGroup = useCallback((element: HTMLElement | null) => {
+    const observer = ensureResizeObserver();
+    if (lastGroupRef.current !== null) observer?.unobserve(lastGroupRef.current);
     lastGroupRef.current = element;
+    if (element !== null) observer?.observe(element);
   }, []);
 
   const jumpTo = useCallback((categoryGuid: string) => {

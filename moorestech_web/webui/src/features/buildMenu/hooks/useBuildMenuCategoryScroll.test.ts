@@ -39,6 +39,35 @@ function fakeLastGroup(offsetHeight: number) {
   return { offsetHeight } as unknown as HTMLElement;
 }
 
+// テスト環境(node)にはResizeObserverが無いためのスタブ。observeされた要素とコールバックを保持し、手動で発火できる
+// Stub for the ResizeObserver missing in the node test environment; keeps observed elements/callback so a test can fire it manually
+class FakeResizeObserver {
+  static instances: FakeResizeObserver[] = [];
+  readonly callback: ResizeObserverCallback;
+  readonly observed = new Set<unknown>();
+
+  constructor(callback: ResizeObserverCallback) {
+    this.callback = callback;
+    FakeResizeObserver.instances.push(this);
+  }
+
+  observe(target: unknown) {
+    this.observed.add(target);
+  }
+
+  unobserve(target: unknown) {
+    this.observed.delete(target);
+  }
+
+  disconnect() {
+    this.observed.clear();
+  }
+
+  fire() {
+    this.callback([] as unknown as ResizeObserverEntry[], this as unknown as ResizeObserver);
+  }
+}
+
 describe("useBuildMenuCategoryScroll", () => {
   it("jumpTo後、目標未到達のscrollではハイライトが動かない", () => {
     let latest!: HookResult;
@@ -181,5 +210,45 @@ describe("useBuildMenuCategoryScroll", () => {
       );
     });
     expect(latest.spacerHeight).toBe(0);
+  });
+
+  it("視口や末尾群のリサイズにspacerHeightがResizeObserver経由で追従する(カテゴリ集合は変わらない)", () => {
+    const originalResizeObserver = globalThis.ResizeObserver;
+    // @ts-expect-error テスト用スタブでnode環境の欠落を埋める
+    globalThis.ResizeObserver = FakeResizeObserver;
+    FakeResizeObserver.instances = [];
+
+    try {
+      let latest!: HookResult;
+      create(
+        createElement(Harness, { visibleCategoryGuids: ["a"], onRender: (result) => { latest = result; } }),
+      );
+      const vp = fakeViewport({ clientHeight: 600 });
+      const lastGroup = fakeLastGroup(200);
+      act(() => {
+        latest.attachViewport(vp);
+        latest.attachLastGroup(lastGroup);
+        for (const observer of FakeResizeObserver.instances) observer.fire();
+      });
+      expect(latest.spacerHeight).toBe(400);
+
+      // カテゴリ集合(visibleKey)は変えずウィンドウリサイズだけを模す: 視口高が変わりResizeObserverが発火
+      // Keep visibleKey unchanged and only simulate a window resize: viewport height changes and ResizeObserver fires
+      (vp as unknown as { clientHeight: number }).clientHeight = 900;
+      act(() => {
+        for (const observer of FakeResizeObserver.instances) observer.fire();
+      });
+      expect(latest.spacerHeight).toBe(700);
+
+      // 末尾カテゴリ群の高さ変化(ブループリント削除等)も同じ経路で追従する
+      // A trailing-group height change (e.g. deleting a blueprint) tracks through the same path
+      (lastGroup as unknown as { offsetHeight: number }).offsetHeight = 800;
+      act(() => {
+        for (const observer of FakeResizeObserver.instances) observer.fire();
+      });
+      expect(latest.spacerHeight).toBe(100);
+    } finally {
+      globalThis.ResizeObserver = originalResizeObserver;
+    }
   });
 });
