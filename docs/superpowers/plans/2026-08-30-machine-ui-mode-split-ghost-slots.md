@@ -541,7 +541,7 @@ git commit -m "feat(server): 機械の入出力スロットを選択レシピの
 **Interfaces:**
 - Consumes: Task 1 の `IsAllowedToPlace` / `IsFluidAllowedAt`
 
-- [ ] **Step 1: 液体束縛テストを書く**
+- [x] **Step 1: 液体束縛テストを書く**
 
 `Tests/CombinedTest/Core/MachineFluidSlotBindingTest.cs`（FluidMachine: 入力タンク3・出力タンク2、レシピ `38dfacce-1234-4612-8c7c-29112c12409a`: 入力液体 [fluid1×1, fluid2×2]、出力液体 [fluid3×4]）:
 
@@ -612,12 +612,12 @@ namespace Tests.CombinedTest.Core
 
 `MachineFluidTestUtil.ConnectedToTank(int)` は `MachineFluidIOTest` にタンク指定の `ConnectedInfo` を組む前例があればそれを `Tests/Util/MachineFluidTestUtil.cs` へ切り出して使う。前例が無ければ `ConnectedInfo` と `IFluidConnector.Option.ConnectTankIndex` を満たす最小スタブを同ファイルに書く（`VanillaMachineFluidInventoryComponent.AddLiquid` の `connectedInfo.TargetConnector is IFluidConnector receiverConnector` 分岐を通す）。`GetFluidInventory()` の返却順が入力タンク順であることを実装で確認し、違えば `_inputInventory.FluidInputSlot` を直接読む形にテストを直す。
 
-- [ ] **Step 2: 実行して失敗を確認**
+- [x] **Step 2: 実行して失敗を確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MachineFluidSlotBindingTest"`
 Expected: FAIL（現状は任意タンクへ入る）
 
-- [ ] **Step 3: 液体の束縛を実装する**
+- [x] **Step 3: 液体の束縛を実装する**
 
 `VanillaMachineFluidInventoryComponent.AddLiquid` を置換:
 
@@ -696,7 +696,7 @@ Expected: FAIL（現状は任意タンクへ入る）
             }
 ```
 
-- [ ] **Step 4: プレイヤー操作と整理のゲート**
+- [x] **Step 4: プレイヤー操作と整理のゲート**
 
 `VanillaMachineBlockInventoryComponent`:
 
@@ -747,12 +747,12 @@ Expected: FAIL（現状は任意タンクへ入る）
         }
 ```
 
-- [ ] **Step 5: コンパイルと機械系全テスト**
+- [x] **Step 5: コンパイルと機械系全テスト**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Machine|BlockInventory|SortInventory|CleanRoom|Gear.*Machine|Blueprint"`
 Expected: `MachineSlotBindingTest`・`MachineFluidSlotBindingTest` PASS。`RequestBlockInventoryTest`・`BlockInventoryUpdateEventPacketTest`・`SortInventoryProtocolTest` 等、未選択機械へ `SetItem` する前提のテストが FAIL する。
 
-- [ ] **Step 6: 失敗した既存テストを新仕様へ更新する**
+- [x] **Step 6: 失敗した既存テストを新仕様へ更新する**
 
 方針: 機械へ任意アイテムを `SetItem` しているテストは、`MachineRecipeSelectTestUtil.SelectRecipe(block, MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0])` を先に呼び、置く位置とIDを `recipe.InputItems[i]`（スロットi）・`recipe.OutputItems[j]`（スロット `InputItems.Length + j`）から取る。例（`RequestBlockInventoryTest.cs:43-44`）:
 
@@ -770,7 +770,7 @@ Expected: `MachineSlotBindingTest`・`MachineFluidSlotBindingTest` PASS。`Reque
 Run: 同上フィルタ
 Expected: 全PASS
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts
