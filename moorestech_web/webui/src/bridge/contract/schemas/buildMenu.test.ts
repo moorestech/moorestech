@@ -9,6 +9,7 @@ describe("BuildMenuEntryDataSchema", () => {
       categoryGuid: "10000000-0000-4000-8000-000000000001",
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
       requiredItems: [],
+      paymentWaived: false,
     });
     expect(entry.id).toBe("3f8f6de0-0000-4000-8000-000000000001");
   });
@@ -57,6 +58,7 @@ describe("BuildMenuEntryDataSchema", () => {
       categoryGuid: "10000000-0000-4000-8000-000000000001",
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
       requiredItems: [],
+      paymentWaived: false,
     }).label).toBe("starter-base");
   });
 
@@ -67,6 +69,7 @@ describe("BuildMenuEntryDataSchema", () => {
       categoryGuid: "10000000-0000-4000-8000-000000000001",
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
       requiredItems: [{ itemId: 3, count: 1, held: 1, lacking: false }],
+      paymentWaived: false,
     };
 
     const entry = BuildMenuEntryDataSchema.parse({ ...blockEntryBase, setPlacement: { perCost: 3, remaining: 2 } });
@@ -89,6 +92,7 @@ describe("BuildMenuEntryDataSchema", () => {
       categoryGuid: "10000000-0000-4000-8000-000000000001",
       subCategoryGuid: "20000000-0000-4000-8000-000000000001",
       requiredItems: [{ itemId: 3, count: 5, held: 2, lacking: true }],
+      paymentWaived: false,
     });
     assert(entry.kind === "block");
     expect(entry.requiredItems[0].held).toBe(2);

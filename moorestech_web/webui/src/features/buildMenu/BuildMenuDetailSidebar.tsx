@@ -1,7 +1,7 @@
 import { FadeRule, ItemSlot, SlotGrid } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
-import { useMaterialTooltipText } from "@/shared/materialTooltipText";
 import type { BuildMenuDisplayEntry } from "./logic/buildMenuGrouping";
+import { isItemInsufficient } from "./logic/buildMenuShortage";
 import styles from "./style.module.css";
 
 type Props = { entry: BuildMenuDisplayEntry | null };
@@ -10,7 +10,6 @@ type Props = { entry: BuildMenuDisplayEntry | null };
 // §8.11 sticky detail sidebar; shows a hint when nothing is selected
 export function BuildMenuDetailSidebar({ entry }: Props) {
   const { t } = useI18n();
-  const materialTooltipText = useMaterialTooltipText();
 
   // 複数設置はホストが財布判定済みの setPlacement で届く。有無だけで分岐する
   // Multi-placement arrives as the host's already-decided setPlacement; branch on presence alone
@@ -36,20 +35,14 @@ export function BuildMenuDetailSidebar({ entry }: Props) {
               </span>
               <SlotGrid cols={3}>
                 {entry.requiredItems.map((item, index) => (
-                  <div key={`${item.itemId}-${index}`} className={styles.materialSlot}>
-                    {/* 不足判定はホストのlackingが唯一の正。所持と必要の比較をここでやり直さない */}
-                    {/* The host's lacking flag is the sole authority; no owned-vs-required comparison happens here */}
-                    <ItemSlot
-                      itemId={item.itemId}
-                      insufficient={item.lacking}
-                      tooltip={<span style={{ whiteSpace: "pre-line" }}>
-                        {materialTooltipText(L.ui.buildMenu.materialTooltip, item.itemId, item.count, item.held)}
-                      </span>}
-                    />
-                    <span className={`iconTextOutlineLight ${styles.materialCount}`} data-lack={item.lacking || undefined}>
-                      {t(L.ui.recipe.itemCountSummary, { ownedCount: item.held, requiredCount: item.count })}
-                    </span>
-                  </div>
+                  // 不足の表示はホストのlackingと支払い免除の合成。所持と必要の比較をここでやり直さない
+                  // The display shortage composes the host's lacking with the payment waiver; no owned-vs-required comparison happens here
+                  <ItemSlot
+                    key={`${item.itemId}-${index}`}
+                    itemId={item.itemId}
+                    insufficient={isItemInsufficient(entry, item)}
+                    shortage={{ ownedCount: item.held, requiredCount: item.count, tooltipKey: L.ui.buildMenu.materialTooltip }}
+                  />
                 ))}
               </SlotGrid>
             </>

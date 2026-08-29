@@ -22,12 +22,13 @@ vi.mock("@/features/hotbar", () => ({ useHotbarDragSource: () => ({}) }));
 
 import { BuildMenuSlot } from "./BuildMenuSlot";
 
-const entryWith = (requiredItems: BuildMenuDisplayEntry["requiredItems"]): BuildMenuDisplayEntry => ({
+const entryWith = (requiredItems: BuildMenuDisplayEntry["requiredItems"], paymentWaived = false): BuildMenuDisplayEntry => ({
   id: "30000000-0000-4000-8000-000000000001",
   kind: "block" as const,
   categoryGuid: "10000000-0000-4000-8000-000000000001",
   subCategoryGuid: "20000000-0000-4000-8000-000000000001",
   requiredItems,
+  paymentWaived,
   displayLabel: "belt",
 });
 
@@ -38,16 +39,22 @@ const render = (entry: BuildMenuDisplayEntry) => JSON.stringify(create(createEle
 })).toJSON());
 
 describe("BuildMenuSlot", () => {
+  // 所持と必要が入れ替わっても行は出るため、順序込みの完全文字列で対応を固定する
+  // The line renders even if owned and required are swapped, so the full ordered string pins the correspondence
   it("不足時は見出しと不足行だけをツールチップに出す", () => {
     const json = render(entryWith([
       { itemId: 3, count: 5, held: 2, lacking: true },
       { itemId: 4, count: 1, held: 9, lacking: false },
     ]));
     expect(json).toContain("ui.buildMenu.materialShortageTitle");
-    expect(json).toContain("ui.buildMenu.materialShortageLine");
-    expect(json).toContain("item-3");
+    expect(json).toContain("ui.buildMenu.materialShortageLine item-3 2 5");
     expect(json).not.toContain("item-4");
     expect(json).toContain('"disabled":false');
+  });
+
+  it("支払い免除中は素材が足りなくてもツールチップを無効にする", () => {
+    const json = render(entryWith([{ itemId: 3, count: 5, held: 2, lacking: true }], true));
+    expect(json).toContain('"disabled":true');
   });
 
   it("充足時はツールチップを無効にする", () => {

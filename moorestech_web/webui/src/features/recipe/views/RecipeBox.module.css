@@ -64,27 +64,11 @@
   --count-letter-spacing: 0.12em;
 }
 
+/* 所持/必要をスロットの外へ出さない。右へ2px出すと最終列で枠の実効幅を超え中央列へ食い込む（実測1.9px・§8.17） */
+/* Keep the owned/required text inside the slot; 2px to the right pushes the last column past the track into the center column (measured 1.9px, §8.17) */
 .materialSlot {
-  position: relative;
-}
-
-/* 下端をスロット外(暗面)へはみ出させない。§8.17の明色面前提を満たすため0px床にする */
-/* Keep the bottom edge from spilling onto the dark box; floor at 0px per §8.17's light-face rule */
-/* スロットの外へ出さない。右へ2px出すと最終列で枠の実効幅を超え、中央列へ食い込む（実測1.9px） */
-/* Never bleed outside the slot; 2px to the right pushes the last column past the track and into the center column (measured 1.9px) */
-.materialCount {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  z-index: 2;
-  color: var(--count-text);
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.materialCount[data-lack="true"] {
-  color: var(--text-insufficient);
+  --shortage-count-right: 0;
+  --shortage-count-bottom: 0;
 }
 
 /* 中央列は秒数→矢印→操作の縦積み。行のcenter揃えのままアイコン列と矢印の高さを合わせる */

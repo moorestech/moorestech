@@ -1,4 +1,4 @@
-import { Box, Button, Text } from "@mantine/core";
+import { Box, Button } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { ItemSlot } from "@/shared/ui";
 import type { CraftRecipe } from "@/bridge";
@@ -9,7 +9,6 @@ import { useHoldCraft } from "../logic/useHoldCraft";
 import RecipeRow from "./RecipeRow";
 import styles from "./RecipeBox.module.css";
 import { L, useI18n } from "@/shared/i18n";
-import { useMaterialTooltipText } from "@/shared/materialTooltipText";
 
 type Props = {
   recipe: CraftRecipe;
@@ -27,7 +26,6 @@ type Props = {
 // Material-arrow-result row with the duration above the arrow and the craft button below it
 export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tutorialAnchorProps }: Props) {
   const { t } = useI18n();
-  const materialTooltipText = useMaterialTooltipText();
   const isCraftable = craftable(recipe, counts);
 
   // 長押し1周ごとにクラフト要求を送信
@@ -50,14 +48,9 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
             <ItemSlot
               itemId={r.itemId}
               insufficient={ownedCountOf(counts, r.itemId) < r.count}
-              tooltip={<span style={{ whiteSpace: "pre-line" }}>
-                {materialTooltipText(L.ui.recipe.materialTooltip, r.itemId, r.count, ownedCountOf(counts, r.itemId))}
-              </span>}
+              shortage={{ ownedCount: ownedCountOf(counts, r.itemId), requiredCount: r.count, tooltipKey: L.ui.recipe.materialTooltip }}
               onLeftDown={() => onSelect(r.itemId)}
             />
-            <Text className={`iconTextOutlineLight ${styles.materialCount}`} data-lack={ownedCountOf(counts, r.itemId) < r.count || undefined}>
-              {t(L.ui.recipe.itemCountSummary, { ownedCount: ownedCountOf(counts, r.itemId), requiredCount: r.count })}
-            </Text>
           </Box>
         ))}
         action={(

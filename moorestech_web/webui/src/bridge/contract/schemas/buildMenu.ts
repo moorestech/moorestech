@@ -4,8 +4,8 @@ import { z } from "zod";
 // kind classifies display/behavior only; identity of a placement target lives solely in id (a GUID)
 export const BuildMenuEntryKindSchema = z.enum(["block", "trainCar", "connectTool", "blueprintCopy", "blueprint"]);
 
-// held/lacking はホストが財布判定まで済ませた結果。web は再計算せずそのまま読む
-// held/lacking arrive already settled by the host's wallet decision; the web reads them without recomputing
+// held/lacking は所持と必要の突き合わせ結果。web は再計算せずそのまま読む
+// held/lacking arrive as the host's held-vs-required result; the web reads them without recomputing
 export const BuildMenuRequiredItemSchema = z.object({
   itemId: z.number().int(),
   count: z.number().int(),
@@ -18,6 +18,9 @@ const BuildMenuEntryCommonFields = {
   categoryGuid: z.string().uuid(),
   subCategoryGuid: z.string().uuid(),
   requiredItems: z.array(BuildMenuRequiredItemSchema),
+  // 素材を払わずに置ける局面か。素材不足の表示はこれと lacking の合成で決まる
+  // Whether this placement skips paying materials; the shortage display composes this with lacking
+  paymentWaived: z.boolean(),
   iconUrl: z.string().optional(),
 };
 

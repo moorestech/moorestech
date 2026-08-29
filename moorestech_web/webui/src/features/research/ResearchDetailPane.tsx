@@ -10,7 +10,6 @@ import {
   researchNameKey,
   useI18n,
 } from "@/shared/i18n";
-import { useMaterialTooltipText } from "@/shared/materialTooltipText";
 import styles from "./style.module.css";
 
 type Props = {
@@ -23,7 +22,6 @@ type Props = {
 // Floating pane for selected-node details and research execution (not affected by pan/zoom)
 export default function ResearchDetailPane({ node, owned, onClose }: Props) {
   const { t } = useI18n();
-  const materialTooltipText = useMaterialTooltipText();
   const button = deriveResearchButton(node);
   return (
     <div className={styles.detailPane} data-testid="research-detail-pane">
@@ -43,23 +41,15 @@ export default function ResearchDetailPane({ node, owned, onClose }: Props) {
                 {node.consumeItems.map((c, i) => {
                   const lacking = isConsumeItemLacking(node, c.itemId, c.count, owned);
                   return (
-                    <div key={`consume-${c.itemId}-${i}`} className={styles.consumeSlot}>
-                      <ItemSlot itemId={c.itemId}
-                        insufficient={lacking}
-                        tooltip={owned
-                          ? <span style={{ whiteSpace: "pre-line" }}>
-                              {materialTooltipText(L.ui.research.consumeItemTooltip, c.itemId, c.count, ownedCountOf(owned, c.itemId))}
-                            </span>
-                          : undefined}
-                      />
-                      {/* 不足時は数値も赤で示す(ADR 0014決定4・CraftRecipeView同型)。所持数未受信中は数値自体を出さない */}
-                      {/* Shortages also color the count red (ADR 0014 decision 4; mirrors CraftRecipeView); the number is hidden while owned counts are unknown */}
-                      {owned && (
-                        <span className={`iconTextOutlineLight ${styles.consumeCount}`} data-lack={lacking || undefined}>
-                          {t(L.ui.recipe.itemCountSummary, { ownedCount: ownedCountOf(owned, c.itemId), requiredCount: c.count })}
-                        </span>
-                      )}
-                    </div>
+                    // 不足時は数値も赤で示す(ADR 0014決定4・CraftRecipeView同型)。所持数未受信中は数値自体を出さない
+                    // Shortages also color the count red (ADR 0014 decision 4; mirrors CraftRecipeView); the number is hidden while owned counts are unknown
+                    <ItemSlot key={`consume-${c.itemId}-${i}`}
+                      itemId={c.itemId}
+                      insufficient={lacking}
+                      shortage={owned
+                        ? { ownedCount: ownedCountOf(owned, c.itemId), requiredCount: c.count, tooltipKey: L.ui.research.consumeItemTooltip }
+                        : undefined}
+                    />
                   );
                 })}
               </div>
