@@ -187,3 +187,12 @@ git commit -m "feat: gamescom起動スクリプトをドイツ語起動にしADR
 - 設計: `docs/adr/0042-event-mode-launch-language-env.md`、`.decisions/2026-08-29-出展モードの起動言語は環境変数で指定し既定はスクリプト側でgermanにする.md`
 - `Parse` に `supportedLanguageCodes` を引数で渡す（`Localize` を Parse 内で直接呼ばない）: agent前提（既存 Parse が `isEditor` を引数で受けて純粋性を保つ前例と同形。テストで生成テーブルへ依存しない）
 - LogError を `FromEnvironment` に置く: agent前提（Parse を純粋に保つ Global Constraints から）
+
+## レビュー後の裁定による改修（2026-08-29）
+
+moores-code-review の設計判断 D1〜D4 をユーザー裁定で確定し実装済み（出所: ユーザー裁定 2026-08-29 AskUserQuestion）:
+- D1 Localize に集約 → `Client.Localization/LocalizeLanguageApplier.ApplyOrDefault`
+- D2 enum で運ぶ → `Client.Localization/LanguageApplyResult.cs`（`LanguageResolution`）
+- D3 今回やる → `EventMode/EventModeEnvironmentValues.cs`、`Parse(raw, isEditor)`
+- D4 切り出しテスト → `EventModeAutoStart.ApplyLaunchLanguage`、`Client.Tests/EventMode/EventModeLaunchLanguageTest.cs`
+これにより本plan Task 1 の「`Parse` に `supportedLanguageCodes` を渡す」「`LanguageCode`」「`FromEnvironment` で LogError」は置き換えられた。

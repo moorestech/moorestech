@@ -20,6 +20,16 @@ namespace Client.Starter.EventMode
             return activeSceneName == SceneConstant.MainMenuSceneName;
         }
 
+        // 未知の言語コードはログだけ残し起動は止めない
+        // An unknown language code only logs and never stops boot
+        public static LanguageApplyResult ApplyLaunchLanguage(EventExhibitionSettings settings)
+        {
+            var result = LocalizeLanguageApplier.ApplyOrDefault(settings.RequestedLanguageCode);
+            if (result.Resolution == LanguageResolution.UnknownFallback)
+                Debug.LogError($"EventModeAutoStart: unknown MOORESTECH_EVENT_LANGUAGE={settings.RequestedLanguageCode}, falling back to {result.AppliedLanguageCode}");
+            return result;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         public static void AutoStartIfEventMode()
         {
@@ -29,7 +39,7 @@ namespace Client.Starter.EventMode
             // 新規生成（PlayerPrefs維持）
             // Regenerate world; PlayerPrefs kept
             GameSystemPaths.DeleteDefaultWorldDirectory();
-            if (!Localize.TrySetLanguage(settings.LanguageCode)) Debug.LogError($"EventModeAutoStart: failed to set language to {settings.LanguageCode}");
+            ApplyLaunchLanguage(settings);
             EventIdleQuitWatcher.Create(settings.IdleTimeoutSeconds);
             LocalGameLauncher.StartLocalGame();
         }
