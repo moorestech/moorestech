@@ -12,6 +12,7 @@ using Client.Playtest;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Gear.Common;
 using Mooresmaster.Model.ChallengesModule;
 using Newtonsoft.Json.Linq;
@@ -192,12 +193,13 @@ return PlaytestRunner.Run("placement-guided-tutorials", options, async p =>
     p.Assert(highlightedBoxes >= 1, $"対象の{targetVeinName}が強調マテリアルで描かれた（{highlightedBoxes}件）");
     p.Assert(visibleBoxes == highlightedBoxes, $"強調中は対象鉱脈以外が描かれない（表示{visibleBoxes}件・うち強調{highlightedBoxes}件）");
 
-    // 制限は台帳のGUID判定で効く。鉱脈外セルは設置不可側になる
-    // The restriction runs on the registry's per-GUID test, so a cell outside the vein falls on the not-placeable side
+    // 制限は台帳のGUID絞り込みと底面XZ重なりで効く。鉱脈外セルは設置不可側になる
+    // The restriction runs on the registry's per-GUID selection plus the footprint XZ overlap, so a cell outside the vein falls on the not-placeable side
     var insideCell = Vector3Int.FloorToInt(veinCenter);
     var outsideCell = insideCell + new Vector3Int(200, 0, 200);
-    p.Assert(registry.IsInsideAnyVeinOfType(insideCell, targetVeinTypeGuid), "鉱脈中心のセルは対象鉱脈の内側と判定される");
-    p.Assert(!registry.IsInsideAnyVeinOfType(outsideCell, targetVeinTypeGuid), "遠く離れたセルは対象鉱脈の外側と判定される");
+    var targetVeins = registry.SelectVeinsOfType(targetVeinTypeGuid);
+    p.Assert(targetVeins.Any(vein => new BlockPositionInfo(insideCell, BlockDirection.North, Vector3Int.one).OverlapsVeinXz(vein.MinCell, vein.MaxCell)), "鉱脈中心のセルは対象鉱脈の内側と判定される");
+    p.Assert(!targetVeins.Any(vein => new BlockPositionInfo(outsideCell, BlockDirection.North, Vector3Int.one).OverlapsVeinXz(vein.MinCell, vein.MaxCell)), "遠く離れたセルは対象鉱脈の外側と判定される");
     await p.Screenshot("05-vein-restricted-highlight");
 
     p.Note("制限を解除し、鉱脈表示が種別表示へ戻ることを確認する");

@@ -11,6 +11,7 @@ using Game.Block.Blocks.Util;
 using Game.Block.Component;
 using Game.Block.Event;
 using Game.Block.Interface;
+using Game.Block.Interface.Vein;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Block.Interface.State;
@@ -53,7 +54,7 @@ namespace Game.Block.Blocks.Miner
         private VanillaMinerState _lastMinerState;
         private VanillaMinerState _currentState = VanillaMinerState.Idle;
         
-        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings, Vector3Int drillLocalPosition)
+        public VanillaMinerProcessorComponent(BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
         {
             _blockInstanceId = blockInstanceId;
             _baseRequestEnergy = requestPower;
@@ -71,28 +72,32 @@ namespace Game.Block.Blocks.Miner
 
             void SetMiningItem()
             {
-                // 掘れるかどうかは見た目上のドリルが重なっているveinで決まる
-                // What can be mined is decided by the vein the visual drill overlaps
-                var drillPos = blockPositionInfo.ConvertBlockLocalToWorldCell(drillLocalPosition);
-                List<IItemMapVein> veins = ServerContext.ItemMapVeinDatastore.GetOverVeins(drillPos);
-                foreach (var vein in veins) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
-                if (veins.Count == 0) return;
+                // 掘れる鉱脈かの合成規則はクライアントの設置判定と同じ1本。同一アイテムは1種1個にまとめる
+                // The same composed rule the client placement check uses decides a minable vein; each item appears once
+                var minableItemIds = MinerVeinFootprintJudge.ResolveMinableItemIds(mineSettings);
+                var targetItemIds = new HashSet<ItemId>();
+                foreach (var vein in ServerContext.ItemMapVeinDatastore.Veins)
+                {
+                    if (!MinerVeinFootprintJudge.IsMinableVein(blockPositionInfo, minableItemIds, vein.VeinRangeMin, vein.VeinRangeMax, vein.VeinItemId)) continue;
+                    if (targetItemIds.Add(vein.VeinItemId)) _miningItems.Add(itemStackFactory.Create(vein.VeinItemId, 1));
+                }
 
+                // 採掘時間は一致した鉱脈の中で最も遅い値。順序非依存にしてマスタの並びで変わらないようにする
+                // The mining time is the slowest among matched veins, independent of master ordering
                 foreach (var miningSetting in mineSettings.items)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(miningSetting.ItemGuid);
-                    if (itemId != veins[0].VeinItemId) continue;
-                    _defaultMiningTicks = GameUpdater.SecondsToTicks(miningSetting.Time);
-                    _remainingTicks = _defaultMiningTicks;
-                    break;
+                    if (!targetItemIds.Contains(itemId)) continue;
+                    _defaultMiningTicks = Math.Max(_defaultMiningTicks, GameUpdater.SecondsToTicks(miningSetting.Time));
                 }
+                _remainingTicks = _defaultMiningTicks;
             }
 
             #endregion
         }
         
-        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings, Vector3Int drillLocalPosition)
-            : this(blockInstanceId, requestPower, idlePowerRate, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings, drillLocalPosition)
+        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+            : this(blockInstanceId, requestPower, idlePowerRate, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
         {
             var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(componentStates[SaveKey]);
 
@@ -104,9 +109,27 @@ namespace Game.Block.Blocks.Miner
                 _openableInventoryItemDataStoreService.SetItemWithoutEvent(i, itemStack);
             }
 
+            // 採掘対象が変わったセーブは旧タイマーを引き継がない。1サイクルの長さが変わっており進捗率が範囲外になる
+            // A save whose mining targets changed must not inherit the old timer; the cycle length differs and the progress rate would fall outside its range
+            if (!IsSameMiningTarget(saveJsonObject.MiningItemGuids)) return;
+
             // 秒数からtickに変換して復元
             // Convert seconds back to ticks for restoration
-            _remainingTicks = GameUpdater.SecondsToTicks(saveJsonObject.RemainingSeconds);
+            _remainingTicks = Math.Min(GameUpdater.SecondsToTicks(saveJsonObject.RemainingSeconds), _defaultMiningTicks);
+        }
+
+        // セーブ時の採掘対象と今の対象が一致するか。旧セーブはGUIDを持たないため不一致として扱う
+        // Whether the saved mining targets match the current ones; an older save carries no GUIDs and counts as a mismatch
+        private bool IsSameMiningTarget(List<string> savedMiningItemGuids)
+        {
+            if (savedMiningItemGuids == null || savedMiningItemGuids.Count != _miningItems.Count) return false;
+
+            var savedGuids = new HashSet<string>(savedMiningItemGuids);
+            foreach (var miningItem in _miningItems)
+                if (!savedGuids.Contains(MasterHolder.ItemMaster.GetItemMaster(miningItem.Id).ItemGuid.ToString()))
+                    return false;
+
+            return true;
         }
         
         // tick内限定の内部経路。電気機械は供給率導出値を、歯車機械はRPM・トルク由来の電力相当値を渡す
@@ -135,6 +158,7 @@ namespace Game.Block.Blocks.Miner
             var saveData = new VanillaElectricMinerSaveJsonObject
             {
                 RemainingSeconds = GameUpdater.TicksToSeconds(_remainingTicks),
+                MiningItemGuids = _miningItems.Select(item => MasterHolder.ItemMaster.GetItemMaster(item.Id).ItemGuid.ToString()).ToList(),
                 Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
 
@@ -266,7 +290,7 @@ namespace Game.Block.Blocks.Miner
             
             BlockStateDetail GetMinerBlockStateDetail()
             {
-                var stateDetail = new CommonMinerBlockStateDetail(_miningItems);
+                var stateDetail = new CommonMinerBlockStateDetail(_miningItems, GameUpdater.TicksToSeconds(_defaultMiningTicks));
                 var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
                 return new BlockStateDetail(CommonMinerBlockStateDetail.BlockStateDetailKey, stateDetailBytes);
             }
@@ -409,5 +433,10 @@ namespace Game.Block.Blocks.Miner
         // Save as seconds (to handle tick rate changes)
         [JsonProperty("remainingSeconds")]
         public double RemainingSeconds;
+
+        // 復元時に採掘対象が変わっていないかを見るための対象アイテム
+        // The target items, used on load to see whether the mining targets changed
+        [JsonProperty("miningItemGuids")]
+        public List<string> MiningItemGuids;
     }
 }

@@ -20,6 +20,12 @@ namespace Game.Block.Interface.State
         /// </summary>
         [Key(0)] public int[] CurrentMiningItemIdInts;
         
+        /// <summary>
+        ///     1サイクルの実効採掘時間（秒）。跨いだ鉱脈のうち最も遅い設定が全アイテム共通で効くため、マスタの個別時間からは導けない
+        ///     Effective seconds per cycle; the slowest straddled vein governs every item, so it cannot be derived from the per-item master times
+        /// </summary>
+        [Key(1)] public double MiningSeconds;
+        
         public List<ItemId> GetCurrentMiningItemIds()
         {
             var miningItemIds = new List<ItemId>();
@@ -30,13 +36,14 @@ namespace Game.Block.Interface.State
             return miningItemIds;
         }
         
-        public CommonMinerBlockStateDetail(List<IItemStack> miningItemIds)
+        public CommonMinerBlockStateDetail(List<IItemStack> miningItemIds, double miningSeconds)
         {
             CurrentMiningItemIdInts = new int[miningItemIds.Count];
             for (var i = 0; i < miningItemIds.Count; i++)
             {
                 CurrentMiningItemIdInts[i] = miningItemIds[i].Id.AsPrimitive();
             }
+            MiningSeconds = miningSeconds;
         }
         
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

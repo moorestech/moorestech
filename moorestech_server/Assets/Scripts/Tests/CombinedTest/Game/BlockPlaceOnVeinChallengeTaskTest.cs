@@ -34,6 +34,22 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(IsCompleted(challengeDatastore));
         }
 
+        /// <summary>
+        ///     判定は底面フットプリントのXZ重なりだけを見る。斜面でYが鉱脈AABBから外れても達成する（ADR 0039）
+        ///     The check looks only at the footprint's XZ overlap, so a slope pushing Y outside the vein AABB still completes (ADR 0039)
+        /// </summary>
+        [Test]
+        public void 鉱脈とXZが重なればYが外れていても完了する()
+        {
+            var challengeDatastore = CreateAndStart();
+
+            var aboveVein = new Vector3Int(VeinCell.x, VeinCell.y + 4, VeinCell.z);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, aboveVein, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            GameUpdater.UpdateOneTick();
+
+            Assert.IsTrue(IsCompleted(challengeDatastore));
+        }
+
         [Test]
         public void 鉱脈外に設置しても完了しない()
         {

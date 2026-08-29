@@ -9,6 +9,7 @@ namespace Game.Map
 {
     public class ItemMapVeinDatastore : IItemMapVeinDatastore
     {
+        public IReadOnlyList<IItemMapVein> Veins => _mapVeins;
         private readonly List<IItemMapVein> _mapVeins = new();
 
         public ItemMapVeinDatastore(MapInfoJson mapInfoJson)
@@ -40,16 +41,17 @@ namespace Game.Map
             }
         }
 
-        public List<IItemMapVein> GetOverVeins(Vector3Int pos)
+        public List<IItemMapVein> GetVeinsContainingCell(Vector3Int cell)
         {
             var veins = new List<IItemMapVein>();
             foreach (var vein in _mapVeins)
-                if (vein.VeinRangeMin.x <= pos.x && pos.x <= vein.VeinRangeMax.x &&
-                    vein.VeinRangeMin.y <= pos.y && pos.y <= vein.VeinRangeMax.y &&
-                    vein.VeinRangeMin.z <= pos.z && pos.z <= vein.VeinRangeMax.z)
+                if (vein.VeinRangeMin.x <= cell.x && cell.x <= vein.VeinRangeMax.x &&
+                    vein.VeinRangeMin.y <= cell.y && cell.y <= vein.VeinRangeMax.y &&
+                    vein.VeinRangeMin.z <= cell.z && cell.z <= vein.VeinRangeMax.z)
                     veins.Add(vein);
 
             return veins;
         }
+
     }
 }
