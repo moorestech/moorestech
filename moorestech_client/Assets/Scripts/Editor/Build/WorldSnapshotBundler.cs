@@ -1,8 +1,6 @@
 using System;
 using System.IO;
 using Core.Master;
-using Game.MapGeneration.Provisioning;
-using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Mod.Config;
 using Mod.Loader;
@@ -49,9 +47,7 @@ namespace Client.Editor.Build
                 var temporaryRoot = Path.Combine(GameSystemPaths.TmpFileDirectory, "world-snapshot-bundle");
                 if (Directory.Exists(temporaryRoot)) Directory.Delete(temporaryRoot, true);
                 var worldDataDirectory = WorldDataDirectory.FromWorldRoot(temporaryRoot);
-                WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
-                    worldDataDirectory, serverDataDirectory, WorldMapMode.Generated, ServerInstanceManager.DefaultGeneratedSeed));
-                var worldId = TerrainTransferMetaReader.Read(worldDataDirectory).WorldId;
+                var worldId = DefaultGeneratedWorldProvisioner.EnsureWorld(worldDataDirectory, serverDataDirectory);
                 Directory.Delete(temporaryRoot, true);
                 return worldId;
             }
