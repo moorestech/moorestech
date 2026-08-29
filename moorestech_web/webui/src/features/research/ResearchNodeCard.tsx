@@ -12,8 +12,8 @@ type Props = {
   selected: boolean;
 };
 
-// モック準拠の「研究名+アイコン」ノードカード。詳細は選択時の詳細ペインが担う
-// Mock-compliant "name + icon" node card; details live in the selection detail pane
+// モック準拠カード。詳細は選択時の詳細ペインへ
+// Mock-compliant card; details live in the detail pane on selection
 // 選択の入口はTreeViewのタップ判定へ一本化しているのでカード自身は押下を受けない(ADR 0033)
 // TreeView's tap detection is the single entry for selection, so the card itself takes no press (ADR 0033)
 export default function ResearchNodeCard({ node, left, top, selected }: Props) {

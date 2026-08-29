@@ -22,22 +22,31 @@ const node = (state: ResearchNodeData["state"]): ResearchNodeData => ({
   unlockBlocks: [], unlockMachineRecipes: [], unlockConnectToolGuids: [], unlockTrainCarGuids: [],
 });
 
-function renderStateText(state: ResearchNodeData["state"]): string {
+function renderCard(state: ResearchNodeData["state"]) {
   const renderer = create(createElement(ResearchNodeCard, { node: node(state), left: 0, top: 0, selected: false }));
-  return renderer.root.findByProps({ "data-testid": `research-node-state-${guid}` }).props.children;
+  return renderer.root.findByProps({ "data-testid": `research-node-${guid}` });
 }
 
 describe("ResearchNodeCard", () => {
-  it("状態ラベルを完了済み/研究可能/研究不可の3語で描く", () => {
-    expect(renderStateText("completed")).toBe("ui.research.stateCompleted");
-    expect(renderStateText("researchable")).toBe("ui.research.stateAvailable");
-    expect(renderStateText("unresearchableNotEnoughItem")).toBe("ui.research.stateUnavailable");
-    expect(renderStateText("unresearchableNotEnoughPreNode")).toBe("ui.research.stateUnavailable");
+  it("状態ラベルはnodeState classNameでアイコン直下に描く", () => {
+    const card = renderCard("completed");
+    const [nameEl, itemEl, stateEl] = card.children as unknown as Array<{ type: { name?: string }; props: Record<string, unknown> }>;
+    expect(nameEl.props.className).toBe("nodeName");
+    expect(itemEl.type.name).toBe("ItemSlot");
+    expect(stateEl.props.className).toBe("nodeState");
+    expect(stateEl.props.children).toBe("ui.research.stateCompleted");
   });
-  it("枠色用のdata属性は従来どおり付く", () => {
-    const renderer = create(createElement(ResearchNodeCard, { node: node("researchable"), left: 0, top: 0, selected: false }));
-    const card = renderer.root.findByProps({ "data-testid": `research-node-${guid}` });
-    expect(card.props["data-ready"]).toBe(true);
-    expect(card.props["data-completed"]).toBeUndefined();
+  type FrameFlags = { ready?: true; completed?: true; locked?: true };
+  it.each<[ResearchNodeData["state"], FrameFlags]>([
+    ["researchable", { ready: true }],
+    ["completed", { completed: true }],
+    ["unresearchableNotEnoughPreNode", { locked: true }],
+    ["unresearchableNotEnoughItem", {}],
+    ["unresearchableAllReasons", { locked: true }],
+  ])("枠色用のdata属性は%sで従来どおり付く", (state, expected) => {
+    const card = renderCard(state);
+    expect(card.props["data-ready"]).toBe(expected.ready);
+    expect(card.props["data-completed"]).toBe(expected.completed);
+    expect(card.props["data-locked"]).toBe(expected.locked);
   });
 });
