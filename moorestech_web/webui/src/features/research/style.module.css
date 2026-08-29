@@ -51,6 +51,12 @@
   font-size: 14px;
   color: var(--text-default);
 }
+/* 状態ラベルは本文色固定。状態別の色付けはしない（ADR 0044） */
+/* State label stays in the default text color; no per-state coloring (ADR 0044) */
+.nodeState {
+  font-size: 12px;
+  color: var(--text-default);
+}
 
 /* 詳細ペイン: グラフパネル内の右上固定フロート。パン・ズーム非追従 */
 /* Detail pane: fixed float at the graph panel's top-right, unaffected by pan/zoom */
