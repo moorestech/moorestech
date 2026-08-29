@@ -1,15 +1,12 @@
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import TreeView from "./TreeView";
 
 type TestNode = { id: string; x: number; y: number; prevIds: string[] };
 
 describe("TreeView render cache", () => {
-  afterEach(() => vi.unstubAllGlobals());
-
   it("does not rebuild nodes when only the viewport moves", () => {
-    vi.stubGlobal("Element", class TestElement {});
     const nodes: TestNode[] = [
       { id: "node-a", x: 10, y: 20, prevIds: [] },
       { id: "node-b", x: 30, y: 40, prevIds: ["node-a"] },
@@ -36,7 +33,6 @@ describe("TreeView render cache", () => {
       getPosition,
       getPrevIds,
       renderNode,
-      nodeTargetSelector: "[data-node]",
       testIdPrefix: "test",
     }));
     const viewport = renderer.root.findByProps({ "data-testid": "test-viewport" });
@@ -84,7 +80,6 @@ describe("TreeView render cache", () => {
       getPosition,
       getPrevIds,
       renderNode: firstRenderNode,
-      nodeTargetSelector: "[data-node]",
       testIdPrefix: "test",
     }));
 
@@ -94,7 +89,6 @@ describe("TreeView render cache", () => {
       getPosition,
       getPrevIds,
       renderNode: secondRenderNode,
-      nodeTargetSelector: "[data-node]",
       testIdPrefix: "test",
     })));
 

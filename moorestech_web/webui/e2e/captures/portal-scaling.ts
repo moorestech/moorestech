@@ -5,6 +5,7 @@ import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium, type Page } from "@playwright/test";
 import { WebSocketServer } from "ws";
+import { freezeAttentionPulse } from "../support/pulseFreeze";
 
 const PORT = Number(process.env.CAPTURE_PORT ?? 5403);
 const OUT_DIR = process.env.CAPTURE_OUT_DIR ?? "/tmp/portal-scaling-qa";
@@ -77,6 +78,7 @@ async function main() {
 
   async function capture(page: Page, viewportName: string, subject: string, arrange: () => Promise<void>) {
     await arrange();
+    await freezeAttentionPulse(page);
     await page.screenshot({ path: join(OUT_DIR, `${subject}--${viewportName}.png`) });
   }
 }

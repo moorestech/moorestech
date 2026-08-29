@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Input;
 using Core.Master;
 using UnityEngine;
@@ -5,8 +6,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
-    /// ドラッグ状態と高さオフセットを保持
-    /// Holds the drag state and height offset
+    /// ドラッグ中のセッションと高さオフセットを保持
+    /// Holds the running drag session and the height offset
     /// 終了時に高さは開始値へ戻す
     /// Ending a drag restores the starting height
     /// </summary>
@@ -14,18 +15,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     {
         public int HeightOffset { get; private set; }
 
-        private Vector3Int? _clickStartPosition;
-        private int _clickStartHeightOffset;
+        private PlacementDragSession _session;
         private BlockId? _previousSelectedBlockId;
-
-        public void SetClickStartHeightOffset(int clickStartHeightOffset)
-        {
-            _clickStartHeightOffset = clickStartHeightOffset;
-        }
 
         public void ClearDrag()
         {
-            _clickStartPosition = null;
+            _session = null;
         }
 
         public void UpdateHeightOffsetByInput()
@@ -35,39 +30,41 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             else if (HybridInput.GetKeyDown(KeyCode.E)) HeightOffset++;
         }
 
-        // 選択ブロック変更時に連続設置状態と高さ基準をリセット
-        // Resets drag state and the height anchor when the selected block changes
+        // 選択ブロック変更時に連続設置状態をリセット
+        // Resets the drag session when the selected block changes
         public void SyncSelectedBlock(BlockId blockId)
         {
-            if (_previousSelectedBlockId != blockId)
-            {
-                _clickStartPosition = null;
-                _clickStartHeightOffset = HeightOffset;
-            }
+            if (_previousSelectedBlockId != blockId) _session = null;
             _previousSelectedBlockId = blockId;
         }
 
-        public void BeginDrag(Vector3Int clickStartPosition)
+        public void BeginDrag(Vector3Int startCell, PlacementHitSurfaceKind surfaceKind)
         {
-            _clickStartPosition = clickStartPosition;
-            _clickStartHeightOffset = HeightOffset;
+            _session = new PlacementDragSession(startCell, surfaceKind, HeightOffset);
         }
 
-        public Vector3Int ResolveDragStartPoint(Vector3Int placePoint)
+        // ドラッグ中は押下時の面種別を使う。毎フレーム判定だと面と地面をまたいだ瞬間に列全体の挙動が往復する
+        // A drag keeps the surface kind from its press; judging per frame makes the whole run flip as the cursor crosses between faces and ground
+        public PlacementHitSurfaceKind ResolveSurfaceKind(PlacementHitSurfaceKind currentSurfaceKind)
         {
-            return _clickStartPosition ?? placePoint;
+            return _session == null ? currentSurfaceKind : _session.SurfaceKind;
+        }
+
+        public Vector3Int ResolveDragStartCell(Vector3Int cursorCell)
+        {
+            return _session == null ? cursorCell : _session.StartCell;
         }
 
         // マウスアップで連続設置解除、高さを開始時へ戻す。戻り値は押下が登録されていたか
-        // Clears the drag state on mouse-up and restores the starting height; returns whether a press was registered
+        // Clears the drag session on mouse-up and restores the starting height; returns whether a press was registered
         public bool EndDrag()
         {
-            // 押下未登録の解放は無視する（ビルドメニュー選択クリックの解放が漏れ、Enableのセンチネル-1を高さへ書き込むのを防ぐ）
-            // Ignore releases without a registered press (a leaked build-menu click release would write Enable's -1 sentinel into the height)
-            if (!_clickStartPosition.HasValue) return false;
+            // 押下未登録の解放は無視する（ビルドメニュー選択クリックの解放が漏れても高さを書き換えない）
+            // Ignore releases without a registered press, so a leaked build-menu click release never rewrites the height
+            if (_session == null) return false;
 
-            HeightOffset = _clickStartHeightOffset;
-            _clickStartPosition = null;
+            HeightOffset = _session.StartHeightOffset;
+            _session = null;
             return true;
         }
     }

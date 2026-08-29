@@ -25,7 +25,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject
                 foreach (var gearConnect in gear.GearConnects)
                 {
                     var endPos = gearConnect.Offset;
-                    if (gearConnect.Directions == null) return;
+                    // 方向無制限のコネクタは線を描けないが、残りのコネクタは描き続ける
+                    // An unrestricted connector has no line to draw, but the remaining connectors still do
+                    if (gearConnect.Directions == null) continue;
                     
                     foreach (var direction in gearConnect.Directions)
                     {

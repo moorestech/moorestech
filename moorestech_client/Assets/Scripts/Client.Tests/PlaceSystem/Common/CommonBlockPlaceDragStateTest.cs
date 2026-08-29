@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -15,10 +16,6 @@ namespace Client.Tests.PlaceSystem.Common
         {
             var dragState = new CommonBlockPlaceDragState();
 
-            // Enableのセンチネル-1が高さへ漏れると以後の設置が1段沈む
-            // Leaking Enable's -1 sentinel into the height would sink later placements by one step
-            dragState.SetClickStartHeightOffset(-1);
-
             Assert.IsFalse(dragState.EndDrag());
             Assert.AreEqual(0, dragState.HeightOffset);
         }
@@ -27,8 +24,7 @@ namespace Client.Tests.PlaceSystem.Common
         public void 押下済みの解放はドラッグ終了として成立し高さを開始値へ戻す()
         {
             var dragState = new CommonBlockPlaceDragState();
-            dragState.SetClickStartHeightOffset(-1);
-            dragState.BeginDrag(new Vector3Int(1, 2, 3));
+            dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
 
             Assert.IsTrue(dragState.EndDrag());
             Assert.AreEqual(0, dragState.HeightOffset);
@@ -38,7 +34,7 @@ namespace Client.Tests.PlaceSystem.Common
         public void 同じ解放を二度受けても二度目は成立しない()
         {
             var dragState = new CommonBlockPlaceDragState();
-            dragState.BeginDrag(new Vector3Int(1, 2, 3));
+            dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
 
             Assert.IsTrue(dragState.EndDrag());
             Assert.IsFalse(dragState.EndDrag());
@@ -48,15 +44,15 @@ namespace Client.Tests.PlaceSystem.Common
         public void 押下位置は開始点として返り解放後は現在位置へ戻る()
         {
             var dragState = new CommonBlockPlaceDragState();
-            var placePoint = new Vector3Int(5, 0, 5);
+            var cursorCell = new Vector3Int(5, 0, 5);
 
-            Assert.AreEqual(placePoint, dragState.ResolveDragStartPoint(placePoint));
+            Assert.AreEqual(cursorCell, dragState.ResolveDragStartCell(cursorCell));
 
-            dragState.BeginDrag(new Vector3Int(1, 0, 1));
-            Assert.AreEqual(new Vector3Int(1, 0, 1), dragState.ResolveDragStartPoint(placePoint));
+            dragState.BeginDrag(new Vector3Int(1, 0, 1), PlacementHitSurfaceKind.Ground);
+            Assert.AreEqual(new Vector3Int(1, 0, 1), dragState.ResolveDragStartCell(cursorCell));
 
             dragState.EndDrag();
-            Assert.AreEqual(placePoint, dragState.ResolveDragStartPoint(placePoint));
+            Assert.AreEqual(cursorCell, dragState.ResolveDragStartCell(cursorCell));
         }
     }
 }

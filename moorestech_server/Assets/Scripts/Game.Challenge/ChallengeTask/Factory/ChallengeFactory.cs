@@ -16,6 +16,8 @@ namespace Game.Challenge.Task.Factory
             _taskCreators.Add(VanillaChallengeType.BlockPlaceTask,BlockPlaceChallengeTask.Create);
             _taskCreators.Add(VanillaChallengeType.CompleteResearchTask,CompleteResearchChallengeTask.Create);
             _taskCreators.Add(VanillaChallengeType.EquipItemTask,EquipItemChallengeTask.Create);
+            _taskCreators.Add(VanillaChallengeType.BlockPlaceOnVeinTask,BlockPlaceOnVeinChallengeTask.Create);
+            _taskCreators.Add(VanillaChallengeType.GearConnectedBlockTask,GearConnectedBlockChallengeTask.Create);
         }
         
         public IChallengeTask CreateChallengeTask(ChallengeMasterElement challengeElement)

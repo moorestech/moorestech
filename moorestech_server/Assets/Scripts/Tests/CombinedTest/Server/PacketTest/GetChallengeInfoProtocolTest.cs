@@ -44,8 +44,8 @@ namespace Tests.CombinedTest.Server.PacketTest
             challengeDatastore.InitializeCurrentChallenges();
             var currentChallengeInfo = challengeDatastore.CurrentChallengeInfo;
             
-            // 最初は5件（1,2,3,101,102）
-            Assert.AreEqual(5, currentChallengeInfo.CurrentChallenges.Count);
+            // 最初は7件（1,2,3,101,102,103,104）
+            Assert.AreEqual(7, currentChallengeInfo.CurrentChallenges.Count);
             
             // チャレンジ1だけをクリア
             var challenge1 = currentChallengeInfo.CurrentChallenges.First(c => c.ChallengeMasterElement.ChallengeGuid == Guid.Parse(Challenge1Guid));
@@ -67,10 +67,10 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(allCompletedChallenges.Contains(Guid.Parse(Challenge1Guid)));
             
             // チャレンジ1がクリアされたので、チャレンジ4が開始されているはず
-            // 残り2,3,101,102で計5件
+            // 残り2,3,101,102,103,104で計7件
             // Categories内のすべてのCurrentChallengeを集計
             var allCurrentChallenges = challengeInfo.Categories.SelectMany(c => c.CurrentChallengeGuids).ToList();
-            Assert.AreEqual(5, allCurrentChallenges.Count);
+            Assert.AreEqual(7, allCurrentChallenges.Count);
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge4Guid)));
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge2Guid)));
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge3Guid)));
@@ -110,9 +110,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.IsTrue(allCompletedChallenges.Contains(Guid.Parse(Challenge3Guid)));
             Assert.IsTrue(allCompletedChallenges.Contains(Guid.Parse(Challenge4Guid)));
             
-            // 5,101,102が現在のチャレンジ（未クリア）
+            // 5,101,102,103,104が現在のチャレンジ（未クリア）
             allCurrentChallenges = challengeInfo.Categories.SelectMany(c => c.CurrentChallengeGuids).ToList();
-            Assert.AreEqual(3, allCurrentChallenges.Count);
+            Assert.AreEqual(5, allCurrentChallenges.Count);
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(Challenge5Guid)));
             Assert.IsTrue(allCurrentChallenges.Contains(Guid.Parse(EquipItemChallengeGuid)));
         }

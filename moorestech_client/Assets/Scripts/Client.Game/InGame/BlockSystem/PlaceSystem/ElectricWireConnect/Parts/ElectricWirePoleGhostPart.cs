@@ -55,7 +55,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             // 通常設置と同じ計算でPlaceInfo生成。この時点のPlaceable=falseは既存ブロック重複
             // Build the pole PlaceInfo like normal placement; Placeable=false here means existing-block overlap
-            var placeInfos = _pointCalculator.CalculatePoint(placePoint, placePoint, selection.CurrentDirection, poleMaster, out _);
+            var run = CommonBlockPlacePointCalculator.CalculateRun(placePoint, placePoint, selection.CurrentDirection, poleMaster);
+            _pointCalculator.EvaluateExistingBlockCauses(run);
+            var placeInfos = run.Cells;
             var isPositionFree = placeInfos[0].Placeable;
 
             // 地面判定はゴーストの物理接触を読むため、判定前に有効化する（前例: GearChainPoleExtendPreviewObject.PositionGhost）

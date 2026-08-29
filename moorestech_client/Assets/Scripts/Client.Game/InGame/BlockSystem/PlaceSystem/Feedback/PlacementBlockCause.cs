@@ -10,5 +10,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
     {
         None,
         ExistingBlock,
+        GroundNotFound,
     }
 }

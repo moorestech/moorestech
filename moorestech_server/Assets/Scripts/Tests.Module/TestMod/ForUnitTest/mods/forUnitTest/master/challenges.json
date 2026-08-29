@@ -246,6 +246,61 @@
             ],
             "IconItem": "00000000-0000-0000-1234-000000000001"
           }
+        },
+        {
+          "summary": "鉱脈上に設置する",
+          "title": "鉱脈上に設置する",
+          "taskCompletionType": "blockPlaceOnVein",
+          "taskParam": {
+            "blockGuid": "00000000-0000-0000-0000-000000000001",
+            "veinGuid": "11111111-0000-0000-0000-000000000001"
+          },
+          "challengeGuid": "00000000-0000-0000-4567-000000000103",
+          "tutorials": [],
+          "clearedActions": [],
+          "displayListParam": {
+            "UIPosition": [
+              0,
+              0
+            ],
+            "UIScale": [
+              0,
+              0,
+              0
+            ],
+            "IconItem": "00000000-0000-0000-1234-000000000001"
+          },
+          "prevChallengeGuids": [],
+          "initialUnlocked": true,
+          "unlockAllPreviousChallengeComplete": true,
+          "startedActions": []
+        },
+        {
+          "summary": "シャフトを回す",
+          "title": "シャフトを回す",
+          "taskCompletionType": "gearConnectedBlock",
+          "taskParam": {
+            "blockGuid": "00000000-0000-0000-0000-00000000000e"
+          },
+          "challengeGuid": "00000000-0000-0000-4567-000000000104",
+          "tutorials": [],
+          "clearedActions": [],
+          "displayListParam": {
+            "UIPosition": [
+              0,
+              0
+            ],
+            "UIScale": [
+              0,
+              0,
+              0
+            ],
+            "IconItem": "00000000-0000-0000-1234-000000000001"
+          },
+          "prevChallengeGuids": [],
+          "initialUnlocked": true,
+          "unlockAllPreviousChallengeComplete": true,
+          "startedActions": []
         }
       ]
     },

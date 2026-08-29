@@ -7,6 +7,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
@@ -16,6 +17,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Player.StateController.State;
@@ -67,6 +69,7 @@ namespace Client.Starter.Registration
 
         private static void RegisterPlacement(ContainerBuilder builder)
         {
+            builder.Register<IPlacementGroundFollower, PlacementGroundFollowStep>(Lifetime.Singleton);
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
             builder.Register<BeltConveyorPlaceSystem>(Lifetime.Singleton);
             builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);
@@ -80,6 +83,7 @@ namespace Client.Starter.Registration
             builder.Register<IPlaceSystemSelector, PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
             builder.Register<MapVeinAabbRegistry>(Lifetime.Singleton);
+            builder.Register<VeinRestrictedPlacementState>(Lifetime.Singleton);
             builder.Register<MapVeinRangeViewService>(Lifetime.Singleton).As<IMapVeinRangeView>();
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
