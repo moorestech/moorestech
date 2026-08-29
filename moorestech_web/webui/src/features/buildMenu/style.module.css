@@ -95,16 +95,13 @@
 }
 
 .detailHint,
-.detailCostLabel {
-  color: var(--text-muted);
-}
-
-.noHit,
-.sectionHeading {
+.detailCostLabel,
+.noHit {
   color: var(--text-muted);
 }
 
 .sectionHeading {
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 400;
   margin: 0;
@@ -119,23 +116,25 @@
   margin: 0;
 }
 
-/* 大見出し→FadeRule→サブカテゴリ群の縦積み。群同士はカテゴリ間余白で切る */
-/* Stacks heading, FadeRule, and sub-category sections; groups are separated by the inter-category gap */
-.categoryGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.categoryGroup + .categoryGroup {
-  margin-top: var(--build-menu-category-gap);
-}
-
-/* 見出し→FadeRule→SlotGridの縦積み。gapで一定間隔を保つ（§8.11） */
-/* Stacks heading, FadeRule, and SlotGrid; gap keeps consistent spacing (§8.11) */
+/* 大見出し→FadeRule→サブカテゴリ群の縦積み／見出し→FadeRule→SlotGridの縦積み。群同士は.gridAreaのgapで切る（Important 2裁定） */
+/* Stacks heading→FadeRule→sub-category sections, and heading→FadeRule→SlotGrid; groups are separated by .gridArea's own gap (Important 2 ruling) */
+.categoryGroup,
 .section {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* サブカテゴリ節同士は12pxを維持する（6pxのgapへ6px足す）。旧.gridArea直下と同値に戻す非回帰修正（Important 1裁定） */
+/* Keep section-to-section spacing at 12px (add 6px atop the 6px gap), restoring the pre-refactor value (Important 1 ruling) */
+.categoryGroup > .section + .section {
+  margin-top: 6px;
+}
+
+/* flex-shrinkを止め、算出済みの余白を必ず確保する（heightでなくmin-heightで意図を正確に表す） */
+/* Disables flex-shrink so the computed room is always kept (min-height states the intent precisely, unlike height) */
+.trailingSpacer {
+  flex-shrink: 0;
 }
 
 .slotIcon {
@@ -158,7 +157,7 @@
 .gridArea {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--build-menu-category-gap);
   padding-right: var(--build-menu-grid-scrollbar-reserve);
 }
 

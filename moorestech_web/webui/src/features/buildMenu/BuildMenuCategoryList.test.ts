@@ -25,8 +25,16 @@ const groups: BuildMenuCategoryGroup[] = [
   { categoryGuid: "cat-b", sections: [{ categoryGuid: "cat-b", subCategoryGuid: "sub-2", entries: [entry("e2", "cat-b", "sub-2")] }] },
 ];
 
+// host要素のtestidだけを持つモックノードを返す。attachLastGroup/attachHeadingが
+// どの要素に付いたかをtestid経由で実際に検証できるようにする
+// Mocks host nodes down to their testid so attachLastGroup/attachHeading assertions
+// can verify which element the ref actually landed on
+const createNodeMock = (element: { props: Record<string, unknown> }) => ({
+  testid: element.props["data-testid"],
+});
+
 describe("BuildMenuCategoryList", () => {
-  it("カテゴリ群ごとに大見出しを置き、末尾群と各見出しをrefへ登録し、末尾スペーサ高を反映する", () => {
+  it("カテゴリ群ごとに大見出しを置き、末尾群のsectionと各見出しのh2をrefへ登録し、末尾スペーサ高を反映する", () => {
     const attachHeading = vi.fn();
     const attachLastGroup = vi.fn();
     const renderer = create(createElement(BuildMenuCategoryList, {
@@ -37,18 +45,38 @@ describe("BuildMenuCategoryList", () => {
       onSelect: () => undefined,
       onDelete: () => undefined,
       onEntryHovered: () => undefined,
-    }));
+    }), { createNodeMock });
     const headings = renderer.root.findAllByType("h2");
     expect(headings.map((h) => h.props["data-testid"])).toEqual([
       "build-menu-category-heading-cat-a",
       "build-menu-category-heading-cat-b",
     ]);
     const spacer = renderer.root.findByProps({ "data-testid": "build-menu-trailing-spacer" });
-    expect(spacer.props.style).toEqual({ height: 123 });
-    // ref callback はマウント時にelement付きで呼ばれる（react-test-renderer では null）
-    // Ref callbacks fire on mount (react-test-renderer passes null)
-    expect(attachHeading).toHaveBeenCalledWith("cat-a", null);
-    expect(attachHeading).toHaveBeenCalledWith("cat-b", null);
+    expect(spacer.props.style).toEqual({ minHeight: 123 });
+    // attachHeadingは各<h2>実体に、attachLastGroupは末尾groupの<section>実体にのみ付く
+    // attachHeading lands on each <h2> node; attachLastGroup lands only on the trailing group's <section>
+    expect(attachHeading).toHaveBeenCalledWith("cat-a", { testid: "build-menu-category-heading-cat-a" });
+    expect(attachHeading).toHaveBeenCalledWith("cat-b", { testid: "build-menu-category-heading-cat-b" });
     expect(attachLastGroup).toHaveBeenCalledTimes(1);
+    expect(attachLastGroup).toHaveBeenCalledWith({ testid: "build-menu-category-cat-b-group" });
+  });
+
+  it("groupsが空でもクラッシュせずスペーサのみ出す", () => {
+    const attachHeading = vi.fn();
+    const attachLastGroup = vi.fn();
+    const renderer = create(createElement(BuildMenuCategoryList, {
+      groups: [],
+      spacerHeight: 42,
+      attachHeading,
+      attachLastGroup,
+      onSelect: () => undefined,
+      onDelete: () => undefined,
+      onEntryHovered: () => undefined,
+    }), { createNodeMock });
+    expect(renderer.root.findAllByType("h2")).toEqual([]);
+    const spacer = renderer.root.findByProps({ "data-testid": "build-menu-trailing-spacer" });
+    expect(spacer.props.style).toEqual({ minHeight: 42 });
+    expect(attachHeading).not.toHaveBeenCalled();
+    expect(attachLastGroup).not.toHaveBeenCalled();
   });
 });
