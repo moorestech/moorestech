@@ -55,8 +55,8 @@ namespace Game.Block.Blocks.Machine
 
         private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs, MachineRecipeMasterElement selectedRecipe)
         {
-            _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate) { SelectedRecipe = selectedRecipe };
-
+            _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
+            _context.BindSelectedRecipe(selectedRecipe);
             // 加工状態を復元
             // Restore processing state
             CurrentState = currentState;
@@ -119,7 +119,7 @@ namespace Game.Block.Blocks.Machine
             }
 
             if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;
-            _context.SelectedRecipe = recipe;
+            _context.BindSelectedRecipe(recipe);
 
             // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
             // The state was rewritten, so re-derive the published denominator on the new state before notifying

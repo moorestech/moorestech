@@ -11,6 +11,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Game.Fluid;
+using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 using Game.Block.Interface.Component.ConnectJudge;
 
@@ -29,7 +30,11 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly int _inputSlotSize;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly FluidContainer[] _fluidContainers;
-        
+
+        // 選択レシピへのスロット束縛判定。スロットjは生産物jのレベルファミリー枠（2026-08-30裁定）
+        // Slot-binding decision against the selected recipe; slot j is output j's level-family frame (ruling 2026-08-30)
+        private readonly MachineOutputSlotBinding _slotBinding = new();
+
         public VanillaMachineOutputInventory(int outputSlot, int outputTankCount, float innerTankCapacity, IItemStackFactory itemStackFactory,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent)
         {
@@ -46,6 +51,18 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
         }
 
+        public void SetBoundRecipe(MachineRecipeMasterElement recipe)
+        {
+            _slotBinding.SetRecipe(recipe);
+        }
+
+        // 出力スロットjは生産物jのレベルファミリーだけ置ける。プレイヤー操作の可否判定
+        // Output slot j accepts only output j's level family; used for player-placement checks
+        public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
+        {
+            return _slotBinding.IsAllowedToPlace(localSlot, itemStack);
+        }
+
         /// <summary>
         ///     産出スタック列を格納できるか仮想挿入で判定する
         ///     Check via virtual insertion whether the output stacks fit
@@ -56,22 +73,16 @@ namespace Game.Block.Blocks.Machine.Inventory
             // Check fluid output space first
             if (!IsFluidOutputAllowed()) return false;
 
-            // スロット複製へ仮想挿入して空きを判定（実挿入と同順）
-            // Virtually insert into copied slots (same order as the real insert)
+            // 実現出力kは出力スロット(k % 生産物数)へ固定で積む
+            // Realized output k always lands in output slot (k % output count)
             var simulatedSlots = OutputSlot.ToList();
-            foreach (var outputItemStack in itemOutputs)
+            for (var k = 0; k < itemOutputs.Count; k++)
             {
-                var inserted = false;
-                for (var i = 0; i < simulatedSlots.Count; i++)
-                {
-                    if (!simulatedSlots[i].IsAllowedToAdd(outputItemStack)) continue;
-
-                    simulatedSlots[i] = simulatedSlots[i].AddItem(outputItemStack).ProcessResultItemStack;
-                    inserted = true;
-                    break;
-                }
-
-                if (!inserted) return false;
+                var slot = _slotBinding.ResolveSlot(k);
+                if (slot < 0 || !simulatedSlots[slot].IsAllowedToAdd(itemOutputs[k])) return false;
+                var result = simulatedSlots[slot].AddItem(itemOutputs[k]);
+                if (result.RemainderItemStack.Count != 0) return false;
+                simulatedSlots[slot] = result.ProcessResultItemStack;
             }
 
             return true;
@@ -128,15 +139,11 @@ namespace Game.Block.Blocks.Machine.Inventory
 
             void InsertItemOutputs()
             {
-                foreach (var outputItemStack in itemOutputs)
-                    for (var i = 0; i < OutputSlot.Count; i++)
-                    {
-                        if (!OutputSlot[i].IsAllowedToAdd(outputItemStack)) continue;
-
-                        var item = OutputSlot[i].AddItem(outputItemStack).ProcessResultItemStack;
-                        _itemDataStoreService.SetItem(i, item);
-                        break;
-                    }
+                for (var k = 0; k < itemOutputs.Count; k++)
+                {
+                    var slot = _slotBinding.ResolveSlot(k);
+                    _itemDataStoreService.SetItem(slot, OutputSlot[slot].AddItem(itemOutputs[k]).ProcessResultItemStack);
+                }
             }
 
             #endregion

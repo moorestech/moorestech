@@ -18,7 +18,7 @@ namespace Game.Block.Blocks.Machine.State
 
         // プレイヤーが選択したレシピ。未選択はnullで、その間は加工しない
         // Recipe selected by the player; null means unselected and the machine never processes
-        public MachineRecipeMasterElement SelectedRecipe;
+        public MachineRecipeMasterElement SelectedRecipe { get; private set; }
 
         // このtickで各電力セグメントから供給された電力の加算器（次のUpdateでCurrentPowerへ確定）
         // Accumulator of power supplied by each energy segment this tick (latched into CurrentPower on the next Update)
@@ -99,6 +99,15 @@ namespace Game.Block.Blocks.Machine.State
         {
             CurrentPower = 0f;
             PublishedRequestPower = 0f;
+        }
+
+        // 選択レシピを保持し、入出力インベントリへスロット束縛をプッシュする
+        // Store the selection and push the slot binding into the input/output inventories
+        public void BindSelectedRecipe(MachineRecipeMasterElement recipe)
+        {
+            SelectedRecipe = recipe;
+            InputInventory.SetBoundRecipe(recipe);
+            OutputInventory.SetBoundRecipe(recipe);
         }
     }
 }

@@ -47,7 +47,8 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             _blockInstanceId = blockInstanceId;
             _moduleInventory = module;
             CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out _cycleCount, out var selectedRecipe);
-            _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate) { SelectedRecipe = selectedRecipe };
+            _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
+            _context.BindSelectedRecipe(selectedRecipe);
             CurrentState = restoredState;
             _processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs);
             _stateHandlers = new IMachineProcessState[]
@@ -56,7 +57,6 @@ namespace Game.Block.Blocks.CleanRoom.Machine
                     _processingState,
                     new HaltedMachineProcessState(_processingState, () => _cleanRoomEffect.CanOperate),
                 }.ToDictionary(handler => handler.State);
-
             // 初回GetBlockStateDetailsがUpdate前に呼ばれても妥当な値を返せるよう初期化する
             // Initialize so GetBlockStateDetails returns a sane value even if called before the first Update
             _context.RelatchPublishedRequestPower(CurrentState);
@@ -188,7 +188,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される
             // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions
             if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;
-            _context.SelectedRecipe = recipe;
+            _context.BindSelectedRecipe(recipe);
 
             // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
             // The state was rewritten, so re-derive the published denominator on the new state before notifying
