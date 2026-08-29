@@ -140,6 +140,9 @@ ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム,
 ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム,Belohnungsgegenstände
 ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他,Schaltet frei: Sonstiges
 ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
+ui.research.stateCompleted,Completed,Completed,完了済み,Abgeschlossen
+ui.research.stateAvailable,Available,Available,研究可能,Verfügbar
+ui.research.stateUnavailable,Unavailable,Unavailable,研究不可,Nicht verfügbar
 ui.skit.auto,Auto,Auto,自動,Auto
 ui.skit.skip,Skip,Skip,スキップ,Überspringen
 ui.skit.hideUi,Hide UI,Hide UI,UIを非表示,UI ausblenden
