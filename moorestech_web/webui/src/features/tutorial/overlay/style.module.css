@@ -5,17 +5,20 @@
   pointer-events: none;
 }
 
+/* 拡縮は同じ要素のclip-pathも一緒に動かし、スクロール枠の境界が同周期で呼吸する。振幅1.03での漏れは受容済み（ADR 0039） */
+/* The scale moves this element's clip-path too, so the scroll boundary breathes in step; the leak at 1.03 is accepted (ADR 0039) */
 .highlight {
   position: fixed;
   box-sizing: border-box;
   /* 枠の外形はstage拡縮済みのアンカー実測値で決まるため、線幅と角丸だけをstage同率へ揃える */
   /* The ring's outline comes from the stage-scaled anchor measurement, so only the stroke and corner follow the stage's rate */
-  border: calc(3px * var(--ui-scale, 1)) solid #ffdd57;
+  border: calc(3px * var(--ui-scale, 1)) solid var(--tutorial-attention-red);
   border-radius: calc(8px * var(--ui-scale, 1));
   /* グロー幅はtokens.cssの--tutorial-highlight-glowが単一の値源。clip-path計算も同じ変数を読む */
   /* The glow width's single source is tokens.css's --tutorial-highlight-glow; the clip-path math reads the same variable */
-  box-shadow: 0 0 0 calc(var(--tutorial-highlight-glow) * var(--ui-scale, 1)) rgb(255 221 87 / 24%);
+  box-shadow: 0 0 0 calc(var(--tutorial-highlight-glow) * var(--ui-scale, 1)) var(--tutorial-attention-glow);
   pointer-events: none;
+  animation: var(--tutorial-pulse-subtle) var(--tutorial-pulse-duration) ease-in-out infinite;
 }
 
 /* D&D説明のカーソル矢印。fromからtoへの移動をループする（webui-design §8.17） */

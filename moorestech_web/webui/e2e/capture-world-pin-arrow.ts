@@ -6,6 +6,7 @@ import { readFile, mkdir, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { chromium } from "@playwright/test";
 import { WebSocketServer } from "ws";
+import { freezeAttentionPulse } from "./support/pulseFreeze";
 
 const PORT = Number(process.env.CAPTURE_PORT ?? 5402);
 const OUT_DIR = process.env.CAPTURE_OUT_DIR ?? "/tmp/world-pin-arrow-qa";
@@ -68,6 +69,7 @@ async function main() {
     await page.locator("#__worldbg").evaluate((element, background) => {
       (element as HTMLElement).style.background = background;
     }, capture.background);
+    await freezeAttentionPulse(page);
     await page.screenshot({ path: join(OUT_DIR, capture.name) });
   }
 

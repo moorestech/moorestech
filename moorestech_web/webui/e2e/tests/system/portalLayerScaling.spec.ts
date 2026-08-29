@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { setTopicScenario, setUiState } from "../../support/mockControl";
+import { freezeAttentionPulse } from "../../support/pulseFreeze";
 
 // stage外のPortal層が--ui-scaleへ追従し、解像度が変わっても見かけの大きさが一定であることを検証する
 // Verify that portal layers outside the stage follow --ui-scale so their apparent size stays constant across resolutions
@@ -81,6 +82,7 @@ test("チュートリアルの枠線ラベルは高解像度で拡大しても�
     expect(Math.abs(highLabel.height - baseLabel.height * HIGH_SCALE)).toBeLessThanOrEqual(TOLERANCE_PX);
     // 拡大しても枠線の下辺に付いたままで、離れも食い込みもしない
     // Even enlarged it stays attached below the ring, neither drifting away nor overlapping it
+    await freezeAttentionPulse(page);
     const highRing = (await ring.boundingBox())!;
     expect(highLabel.y).toBeGreaterThanOrEqual(highRing.y + highRing.height);
     expect(highLabel.y - (highRing.y + highRing.height)).toBeLessThanOrEqual(8 * HIGH_SCALE);

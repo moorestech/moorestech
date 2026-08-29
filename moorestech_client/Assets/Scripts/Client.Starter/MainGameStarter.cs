@@ -17,6 +17,7 @@ using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Riding;
 using Client.Game.InGame.Skit;
 using Client.Game.InGame.Tutorial;
+using Client.Game.InGame.Tutorial.PlacementGuide;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Challenge;
@@ -94,6 +95,8 @@ namespace Client.Starter
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         [SerializeField] private BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager;
         [SerializeField] private UiDragGuideTutorialManager uiDragGuideTutorialManager;
+        [SerializeField] private VeinRestrictedPlacementTutorialManager veinRestrictedPlacementTutorialManager;
+        [SerializeField] private RelativeBlockPlacePreviewTutorialManager relativeBlockPlacePreviewTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
@@ -163,13 +166,15 @@ namespace Client.Starter
             builder.RegisterComponent(challengeListView);
             builder.RegisterComponent(researchTreeViewManager);
 
-            builder.RegisterComponent(mapObjectPin).AsSelf().As<ITutorialWorldPin>();
-            builder.RegisterComponent(veinPin).AsSelf().As<ITutorialWorldPin>();
-            builder.RegisterComponent(uiHighlightTutorialManager);
-            builder.RegisterComponent(keyControlTutorialManager);
-            builder.RegisterComponent(itemViewHighLightTutorialManager);
-            builder.RegisterComponent(blockPlacePreviewTutorialManager);
-            builder.RegisterComponent(uiDragGuideTutorialManager);
+            builder.RegisterComponent(mapObjectPin).AsSelf().As<ITutorialWorldPin>().As<ITutorialViewManager>();
+            builder.RegisterComponent(veinPin).AsSelf().As<ITutorialWorldPin>().As<ITutorialViewManager>();
+            builder.RegisterComponent(uiHighlightTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(keyControlTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(itemViewHighLightTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(blockPlacePreviewTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(uiDragGuideTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(veinRestrictedPlacementTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(relativeBlockPlacePreviewTutorialManager).AsSelf().As<ITutorialViewManager>();
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();

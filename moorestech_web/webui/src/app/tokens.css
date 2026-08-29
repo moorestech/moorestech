@@ -245,15 +245,26 @@
   --tutorial-key-hint-hotbar-gap: 72px;
   --tutorial-key-hint-gap: 6px;
   --tutorial-key-hint-kbd-gap: 10px;
-  /* keyControlヒントはワールド上に面無しで浮くため白では埋もれる。共通の赤で文字色を立てる（webui-design §8.19） */
-  /* The keyControl hint floats faceless over the world and drowns in white, so it uses the shared red (webui-design §8.19) */
-  --tutorial-key-hint-color: var(--text-insufficient);
+  /* keyControlヒントはワールド上に面無しで浮くため白では埋もれる。原色赤で文字色を立てる（webui-design §8.19） */
+  /* The keyControl hint floats faceless over the world and drowns in white, so it uses the attention red (webui-design §8.19) */
+  --tutorial-key-hint-color: var(--tutorial-attention-red);
   /* ドラッグガイド矢印を世界背景から分離する最小限の影（world-pin矢印と同族） */
   /* Minimal shadow separating the drag guide arrow from the world background, same family as the world-pin arrow */
   --tutorial-drag-guide-shadow: rgb(0 0 0 / 65%);
   /* ハイライト枠の外側グロー幅。clip-pathの計算もこの値を読むため単一の値源として扱う */
   /* Outer glow width of the highlight frame; the clip-path math also reads this value as the single source */
   --tutorial-highlight-glow: 4px;
+  /* チュートリアル誘導表示（キーヒント・ハイライト枠・画面外矢印）が共有する原色赤と脈動の諸元（ADR 0039） */
+  /* The attention red and pulse spec shared by the tutorial cues: key hint, highlight ring, off-screen arrow (ADR 0039) */
+  --tutorial-attention-red: #ff0000;
+  /* グローは赤から導出する。2リテラルに分けると赤の再調整で枠とグローの色相がずれる */
+  /* The glow derives from the red; two literals would drift apart the moment the red is retuned */
+  --tutorial-attention-glow: rgb(from var(--tutorial-attention-red) r g b / 24%);
+  --tutorial-pulse-duration: 1200ms;
+  /* CSS Modulesはanimation宣言内の識別子もローカルスコープへハッシュ化するため、素名の直書きでは共有キーフレームに届かない */
+  /* CSS Modules hashes identifiers inside animation declarations too, so a bare name never reaches the shared keyframes */
+  --tutorial-pulse-strong: tutorial-attention-pulse-strong;
+  --tutorial-pulse-subtle: tutorial-attention-pulse-subtle;
   /* モード選択肢を独立したボタンとして見せる間隔を確保する */
   /* Separates mode options so each reads as an independent button */
   --mode-switch-gap: 4px;
@@ -368,6 +379,22 @@
   --icon-text-stroke-width: 2px;
   --icon-text-stroke-light: #fff;
   --icon-text-stroke-dark: #000;
+}
+
+/* 誘導表示3種が共有する脈動。CSS Modulesはキーフレーム名をファイル毎にスコープするため、共有分はここへ置く */
+/* The pulse shared by the 3 cues; CSS Modules scope keyframe names per file, so the shared one lives here */
+/* 振幅は実数値で焼く。var()参照だと書き忘れた要素の既存transformごと無言で消え、合成スレッドにも載らない（ADR 0039） */
+/* The amplitudes are baked in: a var() reference would silently erase a caller's existing transform and drop compositing (ADR 0039) */
+@keyframes tutorial-attention-pulse-strong {
+  0%,
+  100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes tutorial-attention-pulse-subtle {
+  0%,
+  100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
 }
 
 /* キー操作ヒントの文字様式は3画面が共有する1宣言に畳む。各画面のCSSは位置決めだけを持つ（§7） */

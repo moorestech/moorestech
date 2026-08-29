@@ -13,6 +13,8 @@
     "Game.Block.Interface",
     "Game.World",
     "Game.World.Interface",
+    "Game.Map.Interface",
+    "Game.Gear",
     "Core.Master",
     "Game.UnlockState",
     "Game.Action",
