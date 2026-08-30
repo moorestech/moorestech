@@ -237,6 +237,23 @@ namespace Core.Master.Validator
                                     }
                                     break;
                                 }
+                                case ChainBlockPlacePreviewTutorialParam chainPreview:
+                                {
+                                    // アンカーと連結ゴースト全件のブロック実在を検証
+                                    // Validate the anchor and every chain ghost block exists
+                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(chainPreview.AnchorBlockGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.AnchorBlockGuid:{chainPreview.AnchorBlockGuid}\n";
+                                    }
+                                    foreach (var chainBlock in chainPreview.ChainBlocks)
+                                    {
+                                        if (MasterHolder.BlockMaster.GetBlockIdOrNull(chainBlock.BlockGuid) == null)
+                                        {
+                                            logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.ChainBlocks.BlockGuid:{chainBlock.BlockGuid}\n";
+                                        }
+                                    }
+                                    break;
+                                }
                                 case VeinRestrictedPlacementTutorialParam veinRestricted:
                                 {
                                     // 強調と設置許可の対象。どちらが欠けても設置不能なチュートリアルになる

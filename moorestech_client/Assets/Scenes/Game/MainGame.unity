@@ -715,6 +715,7 @@ GameObject:
   m_Component:
   - component: {fileID: 899836594}
   - component: {fileID: 899836593}
+  - component: {fileID: 899836595}
   m_Layer: 0
   m_Name: RelativeBlockPlacePreviewTutorialManager
   m_TagString: Untagged
@@ -749,6 +750,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1061182519}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &899836595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 899836592}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1e276a27155a4dfeb17a2ad1de67446, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.Tutorial.PlacementGuide.ChainBlockPlacePreviewTutorialManager
 --- !u!4 &1061182519 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8466354111555762101, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
@@ -27010,7 +27023,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3113640872113815408, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 130.55
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3113640872113815408, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: m_SizeDelta.y
@@ -27022,7 +27035,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3113640872113815408, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -29.515
+      value: -5
       objectReference: {fileID: 0}
     - target: {fileID: 3139309947690259291, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: m_AnchorMax.y
@@ -30092,6 +30105,10 @@ PrefabInstance:
       propertyPath: trainEntityObjectDatastore
       value: 
       objectReference: {fileID: 285216840}
+    - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
+      propertyPath: chainBlockPlacePreviewTutorialManager
+      value: 
+      objectReference: {fileID: 899836595}
     - target: {fileID: 6110538852407209855, guid: efa1e9567bd6a46cc9bb22790eef4693, type: 3}
       propertyPath: veinRestrictedPlacementTutorialManager
       value: 

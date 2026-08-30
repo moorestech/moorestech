@@ -199,6 +199,7 @@ properties:
               - uiDragGuide
               - veinRestrictedPlacement
               - relativeBlockPlacePreview
+              - chainBlockPlacePreview
             - key: tutorialParam
               switch: ./tutorialType
               cases:
@@ -386,6 +387,49 @@ properties:
                 - key: message
                   type: string
                   default: Place the block next to the highlighted one
+              - when: chainBlockPlacePreview
+                type: object
+                openedByDefault: true
+                properties:
+                # 連結ゴーストを出す対象＝これから設置するブロック
+                # The block being placed, which anchors the chain ghosts
+                - key: anchorBlockGuid
+                  type: uuid
+                  foreignKey:
+                    schemaId: blocks
+                    foreignKeyIdPath: /data/[*]/blockGuid
+                    displayElementPath: /data/[*]/name
+                # 設置中ブロックのNorth基準ローカルで連結ゴースト群を定義する
+                # Chain ghosts defined in the being-placed block's North-basis local frame
+                - key: chainBlocks
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                    - key: blockGuid
+                      type: uuid
+                      foreignKey:
+                        schemaId: blocks
+                        foreignKeyIdPath: /data/[*]/blockGuid
+                        displayElementPath: /data/[*]/name
+                    - key: offset
+                      type: vector3Int
+                    - key: blockDirection
+                      type: enum
+                      default: North
+                      options:
+                      - UpNorth
+                      - UpEast
+                      - UpSouth
+                      - UpWest
+                      - North
+                      - East
+                      - South
+                      - West
+                      - DownNorth
+                      - DownEast
+                      - DownSouth
+                      - DownWest
         - key: startedActions
           ref: gameAction
         - key: clearedActions

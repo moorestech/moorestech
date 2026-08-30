@@ -9,6 +9,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.GearConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.SoundEffect;
@@ -43,13 +44,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly IPlacementGroundFollower _groundFollower;
         private readonly VeinRestrictedPlacementState _veinRestrictedPlacementState;
         private readonly GearConnectPreview _gearConnectPreview;
+        private readonly ChainPlacePreviewState _chainPlacePreviewState;
+        private readonly IChainGroundQuery _chainGroundQuery;
+        private readonly ChainPlacementPreviewPart _chainPlacementPreviewPart;
 
         private readonly CommonBlockPlaceDragState _dragState = new();
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState)
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState, ChainPlacePreviewState chainPlacePreviewState, IChainGroundQuery chainGroundQuery)
         {
             _mainCamera = mainCamera;
             _groundFollower = groundFollower;
@@ -61,6 +65,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _gearConnectPreview = new GearConnectPreview(blockGameObjectDataStore);
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
             _autoConnectPreview = new ElectricWireAutoConnectPreview(blockGameObjectDataStore, previewBlockController, gameUnlockStateData, constructionWalletQuery);
+            _chainPlacePreviewState = chainPlacePreviewState;
+            _chainGroundQuery = chainGroundQuery;
+            _chainPlacementPreviewPart = new ChainPlacementPreviewPart(chainPlacePreviewState, _blockPlacePointCalculator, chainGroundQuery);
         }
         
         public override void Enable()
@@ -88,6 +95,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             _autoConnectPreview.Hide();
             _gearConnectPreview.Hide();
+            _chainPlacementPreviewPart.Hide();
         }
         
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
@@ -167,6 +175,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // They run before the material check so blocked cells don't consume quota
                 VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, _veinRestrictedPlacementState, feedback);
 
+                // チュートリアルの連結レイアウトが置けない設置を弾く（鉱脈制限と同じくクライアント側のみ）
+                // Reject placements whose tutorial chain layout cannot fit (client-side only, like the vein limit)
+                ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _chainPlacePreviewState, _blockPlacePointCalculator, _chainGroundQuery, feedback);
+
                 // 鉱脈・既存ブロックで落ちたセルがアイテム枠を消費しないよう、フィルタ後にチェックする
                 // Check after filtering so cells dropped by veins or existing blocks don't consume item quota
                 ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
@@ -179,6 +191,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // 歯車はどの座標同士が噛み合うかを線で示す。設置可否には関与しない
                 // Gears show which cells mesh with which via lines; this never affects placeability
                 _gearConnectPreview.Apply(_currentPlaceInfos, target.BlockId, cursorIndex);
+
+                // 連結ゴーストをカーソルへ追従表示する
+                // Follow the cursor with the chain ghosts
+                _chainPlacementPreviewPart.Apply(_currentPlaceInfos[cursorIndex], holdingBlockMaster);
 
                 // 最終的なPlaceable状態でプレビュー色を更新
                 // Update preview colors based on the final Placeable state
