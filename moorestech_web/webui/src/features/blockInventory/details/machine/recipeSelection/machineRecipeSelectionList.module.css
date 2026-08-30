@@ -1,0 +1,18 @@
+/* 行全体がクリック対象。名前は行の上辺に置き、選択中は枠の外周を選択シアンで示す */
+/* The whole row is the click target; the name sits on the top edge and a selected row shows the selection cyan on its outline */
+.row {
+  cursor: pointer;
+  min-width: 0;
+}
+
+.name {
+  color: var(--text-muted);
+  font-size: var(--recipe-info-text-size);
+  line-height: 1;
+  padding: 0 0.75rem 0.25rem;
+}
+
+.row[data-selected="true"] {
+  outline: 1px solid var(--select-cyan);
+  outline-offset: -1px;
+}

@@ -1,44 +1,24 @@
-// 開いている機械に対応するレシピを選択タブの表示データへ変換する
-// Converts recipes for the open machine into selection-tab display data
+// 開いている機械に対応するレシピを選択行データへ変換する
+// Converts the open machine's recipes into selection-row data
 import type { MachineRecipe } from "@/bridge";
 
 const emptyGuid = "00000000-0000-0000-0000-000000000000";
 
-export type MachineRecipeSelectionRowData = {
-  recipeGuid: string;
-  iconItemId: number;
-  iconCount: number;
-  selected: boolean;
-};
+export type MachineRecipeSelectionRowData = { recipe: MachineRecipe; selected: boolean };
 
 export function buildMachineRecipeSelectionRows(
   recipes: readonly MachineRecipe[],
   blockGuid: string,
   selectedRecipeGuid: string,
 ): MachineRecipeSelectionRowData[] {
-  const hasSelection = !isEmptyGuid(selectedRecipeGuid);
-
-  // blockGuid一致と代表アイコンの存在を同時に保証し、空スロットを作らない
-  // Require both a matching blockGuid and a representative icon so no empty slot is created
-  return recipes.flatMap((recipe) => {
-    if (recipe.blockGuid !== blockGuid) return [];
-    const icon = recipe.outputItems[0] ?? recipe.inputItems[0];
-    if (icon === undefined) return [];
-    return [{
-      recipeGuid: recipe.recipeGuid,
-      iconItemId: icon.itemId,
-      iconCount: icon.count,
-      selected: hasSelection && recipe.recipeGuid === selectedRecipeGuid,
-    }];
-  });
+  const hasSelection = hasSelectedRecipe(selectedRecipeGuid);
+  // blockGuid一致と代表出力（行名・ヘッダ両方の出所）の存在を同時に保証する
+  // Require both a matching blockGuid and a representative output, which both the row name and header rely on
+  return recipes
+    .filter((recipe) => recipe.blockGuid === blockGuid && recipe.outputItems.length > 0)
+    .map((recipe) => ({ recipe, selected: hasSelection && recipe.recipeGuid === selectedRecipeGuid }));
 }
 
-function isEmptyGuid(guid: string): boolean {
-  return guid === emptyGuid;
-}
-
-// 未選択機械はレシピ選択タブから開始（ADR 0010）
-// A machine opened with no recipe selected starts on the recipe tab (user ruling in the ADR 0010 session)
-export function machineInitialTab(selectedRecipeGuid: string): "inventory" | "recipes" {
-  return isEmptyGuid(selectedRecipeGuid) ? "recipes" : "inventory";
+export function hasSelectedRecipe(selectedRecipeGuid: string): boolean {
+  return selectedRecipeGuid !== emptyGuid;
 }

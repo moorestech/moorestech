@@ -2,85 +2,52 @@ import { useState } from "react";
 import { Group, Stack } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
-import { ItemSlot, ModeSwitch } from "@/shared/ui";
-import { L, useI18n } from "@/shared/i18n";
+import { useI18n } from "@/shared/i18n";
 import LackHighlightText from "./LackHighlightText";
 import PowerRateText from "./PowerRateText";
 import { machineStateDisplay } from "./detailLogic";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
-import MachineRecipeSelectionTab from "./machine/MachineRecipeSelectionTab";
-import { buildMachineRecipeSelectionRows, machineInitialTab } from "./machine/machineRecipeSelectionLogic";
+import MachineRecipeSelectionList from "./machine/recipeSelection/MachineRecipeSelectionList";
+import SelectedRecipeHeader from "./machine/SelectedRecipeHeader";
+import { buildMachineRecipeSelectionRows, hasSelectedRecipe } from "./machine/machineRecipeSelectionLogic";
 
-// 機械: レシピ有りはインベントリ/レシピ選択の2タブ、レシピ無しは従来スタック
-// Machine: recipe-capable machines get inventory/recipe tabs; others keep the plain stack
+// 機械: 未選択→レシピ選択モード、選択済→インベントリモード。ヘッダで選択モードへ戻れる（ADR 0042）
+// Machine: unselected → recipe-selection mode, selected → inventory mode; the header returns to selection (ADR 0042)
 export default function MachineSection({ data, machine }: { data: BlockInventoryOpen; machine: MachineDetailData }) {
   const machineRecipes = useTopic(Topics.machineRecipes);
-  const [tab, setTab] = useState<string>(() => machineInitialTab(machine.selectedRecipeGuid));
+  // プレイヤーが選択画面へ戻った状態。選択が届いた時点で自動的にインベントリへ戻る
+  // Whether the player returned to the selection screen; a new selection drops back to inventory automatically
+  const [changingRecipe, setChangingRecipe] = useState(false);
   const { t } = useI18n();
 
-  const rows = buildMachineRecipeSelectionRows(
-    machineRecipes?.recipes ?? [],
-    machine.blockGuid,
-    machine.selectedRecipeGuid,
-  );
-  // インベントリ本体のゴースト導出には選択中レシピの全データ（液体含む）が要る。行データは代表アイコンしか持たない
-  // The inventory body's ghost derivation needs the full selected recipe (fluids included); the row data only carries the icon
-  const selectedRecipe = machineRecipes?.recipes.find((r) => r.recipeGuid === machine.selectedRecipeGuid) ?? null;
+  const rows = buildMachineRecipeSelectionRows(machineRecipes?.recipes ?? [], machine.blockGuid, machine.selectedRecipeGuid);
+  const selectedRow = rows.find((row) => row.selected);
   // 状態ラベル+充足率を共通フッタに表示
-  // The state label and satisfaction rate stay visible on both tabs as the shared footer (ADR 0010)
+  // The state label and satisfaction rate stay visible in both modes as the shared footer (ADR 0010)
   const stateDisplay = machineStateDisplay(machine.currentState);
-  const powerRate = (
+  const footer = (
     <Group justify="center" gap="xs">
-      <LackHighlightText insufficient={stateDisplay.insufficient} size="sm" testId="machine-state-label">
-        {t(stateDisplay.labelKey)}
-      </LackHighlightText>
-      {stateDisplay.showPowerRate && (
-        <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />
-      )}
+      <LackHighlightText insufficient={stateDisplay.insufficient} size="sm" testId="machine-state-label">{t(stateDisplay.labelKey)}</LackHighlightText>
+      {stateDisplay.showPowerRate && <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />}
     </Group>
   );
 
   if (rows.length === 0) {
-    return (
-      <Stack gap="xs" data-testid="machine-section">
-        <MachineInventoryBody data={data} recipe={selectedRecipe} />
-        {powerRate}
-      </Stack>
-    );
+    return <Stack gap="xs" data-testid="machine-section"><MachineInventoryBody data={data} recipe={null} />{footer}</Stack>;
   }
 
-  // 選択中レシピの生産物はインベントリタブでも1個表示する（個数バッジ無し）
-  // The selected recipe's product also shows on the inventory tab as one badge-less slot
-  const selectedRow = rows.find((row) => row.selected);
-
+  const showSelection = !hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || changingRecipe;
   return (
     <Stack gap="sm" data-testid="machine-section">
-      <ModeSwitch
-        value={tab}
-        onChange={setTab}
-        options={[
-          { value: "recipes", label: t(L.ui.blockInventory.recipeSelectionTab), testId: "machine-tab-recipes" },
-          { value: "inventory", label: t(L.ui.blockInventory.inventoryTab), testId: "machine-tab-inventory" },
-        ]}
-        testId="machine-tab-switch"
-      />
-      {tab === "inventory" ? (
-        <>
-          {selectedRow && (
-            <Group justify="center" data-testid="machine-selected-product">
-              <ItemSlot itemId={selectedRow.iconItemId} />
-            </Group>
-          )}
-          <MachineInventoryBody data={data} recipe={selectedRecipe} />
-        </>
+      {showSelection ? (
+        <MachineRecipeSelectionList rows={rows} onSelected={() => setChangingRecipe(false)} />
       ) : (
-        <MachineRecipeSelectionTab
-          rows={rows}
-          recipes={machineRecipes?.recipes ?? []}
-          onSelected={() => setTab("inventory")}
-        />
+        <>
+          <SelectedRecipeHeader recipe={selectedRow.recipe} onChangeRecipe={() => setChangingRecipe(true)} />
+          <MachineInventoryBody data={data} recipe={selectedRow.recipe} />
+        </>
       )}
-      {powerRate}
+      {footer}
     </Stack>
   );
 }
