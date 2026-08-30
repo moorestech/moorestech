@@ -46,7 +46,7 @@ namespace Client.Tests.Interact
             var log = new List<string>();
             var first = CreateTrackingInteractable("first", log);
             var second = CreateTrackingInteractable("second", log);
-            var selector = new ScriptedSelector();
+            var selector = new ScriptedInteractTargetSelector();
             var controller = new InteractController(null, selector);
 
             // 同じ対象を掴み続けても点灯は一度きり
@@ -72,7 +72,8 @@ namespace Client.Tests.Interact
             selector.SetNext(first);
             controller.ManualUpdate();
             controller.Disable();
-            Assert.AreEqual("first:false", log[^1]);
+            CollectionAssert.AreEqual(
+                new[] { "first:true", "first:false", "second:true", "second:false", "first:true", "first:false" }, log);
         }
 
         private HighlightTrackingInteractable CreateTrackingInteractable(string name, List<string> log)
@@ -80,23 +81,6 @@ namespace Client.Tests.Interact
             var gameObject = new GameObject(name);
             _createdObjects.Add(gameObject);
             return new HighlightTrackingInteractable(gameObject, name, log);
-        }
-
-        // 選定結果だけを差し替えて、コントローラのハイライト差分だけを見る
-        // Replaces only the selection outcome so the test observes just the controller's highlight diffing
-        private sealed class ScriptedSelector : InteractTargetSelector
-        {
-            private IInteractable _next;
-
-            public void SetNext(IInteractable next)
-            {
-                _next = next;
-            }
-
-            public override IInteractable Select()
-            {
-                return _next;
-            }
         }
 
         // 単押しも採掘も持たない対象。ハイライト以外の経路を走らせない

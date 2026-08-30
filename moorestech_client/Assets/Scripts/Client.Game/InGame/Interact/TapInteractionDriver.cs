@@ -24,7 +24,9 @@ namespace Client.Game.InGame.Interact
             {
                 // 押されたアクションはヒントを畳んで即実行する（先に並べたヒントも用済み）
                 // A pressed action folds the hints away and runs at once, discarding the ones already queued
-                if (GetLatch(action.Key).WasPressedThisFrame)
+                // 掛け金は購読を張った次フレームから効くため、本番の押下判定も併記して初回フレームを取りこぼさない
+                // The latch only works from the frame after it subscribes, so the production press check covers the first frame
+                if (GetLatch(action.Key).WasPressedThisFrame || action.Key.GetKeyDown)
                 {
                     Clear();
                     return action.Execute();

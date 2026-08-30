@@ -15,6 +15,11 @@ namespace Client.Tests.Common
             target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
         }
 
+        public static T GetField<T>(object target, string fieldName)
+        {
+            return (T)target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(target);
+        }
+
         public static void InvokePrivate(object target, string methodName)
         {
             target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, null);

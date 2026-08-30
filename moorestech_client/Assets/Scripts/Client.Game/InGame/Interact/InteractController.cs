@@ -44,8 +44,11 @@ namespace Client.Game.InGame.Interact
         {
             ApplyHighlight(null);
             _tapDriver.Clear();
+
+            // 採掘中のステートを捨てると進捗バーとアニメが戻らないため、フォーカスを外してIdleまでFSMを正規遷移させる
+            // Discarding a live mining state would strand the progress bar and animation, so drop focus and run the FSM down to Idle
             _miningContext.SetFocusTarget(null);
-            _miningState = new MiningIdleState();
+            while (_miningState is not MiningIdleState) _miningState = _miningState.GetNextUpdate(_miningContext, 0f);
         }
 
         private void ApplyHighlight(IInteractable target)
