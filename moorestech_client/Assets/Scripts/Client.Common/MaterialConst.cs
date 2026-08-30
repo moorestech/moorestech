@@ -12,8 +12,8 @@ namespace Client.Common
         // The translucent variant lives as an asset; flipping the keyword at runtime leaves the build without that variant
         public const string PreviewPlaceBlockTransparentMaterial = "PreviewPlaceBlockTransparent";
 
-        // インタラクト対象の実行時アウトライン複製に使う材質
-        // Material used by the runtime outline duplicate for interact targets
+        // インタラクト対象のアウトライン材質（ステンシル方式。URPのOutlinePassが描く）
+        // Outline material for interact targets (stencil based, drawn by the URP OutlinePass)
         public const string InteractOutlineMaterial = "InteractOutline";
 
         private static Material _previewPlaceBlockMaterial;

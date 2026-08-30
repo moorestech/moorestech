@@ -20,15 +20,25 @@ namespace Client.Tests.Mining
         {
             var context = new MiningControllerContext(null);
             var sharedGameObject = new GameObject("SharedTarget");
-            var firstTarget = new FocusTrackingMiningTarget("first", sharedGameObject, new List<string>(), Array.Empty<Guid>());
-            var secondTarget = new FocusTrackingMiningTarget("second", new GameObject("Second"), new List<string>(), Array.Empty<Guid>());
+            var firstTarget = new StubMiningTarget(sharedGameObject, Array.Empty<Guid>());
+            var secondTarget = new StubMiningTarget(new GameObject("Second"), Array.Empty<Guid>());
+
             context.SetFocusTarget(firstTarget);
+            Assert.AreEqual(1, firstTarget.EarnItemGuidsAccessCount);
+
+            // 同一対象への再設定はEarnItemGuidsを再解決しない（アクセス回数が増えないことで検証する）
+            // Re-setting the same target must not re-resolve EarnItemGuids (verified by the access count staying flat)
             context.SetFocusTarget(firstTarget);
+            Assert.AreEqual(1, firstTarget.EarnItemGuidsAccessCount);
             Assert.AreSame(firstTarget, context.CurrentFocusTarget);
+
             context.SetFocusTarget(secondTarget);
+            Assert.AreEqual(1, secondTarget.EarnItemGuidsAccessCount);
             Assert.AreSame(secondTarget, context.CurrentFocusTarget);
+
             context.SetFocusTarget(null);
             Assert.IsNull(context.CurrentFocusTarget);
+
             UnityEngine.Object.DestroyImmediate(sharedGameObject);
             UnityEngine.Object.DestroyImmediate(secondTarget.GameObject);
         }
@@ -41,11 +51,10 @@ namespace Client.Tests.Mining
             Localize.Initialize();
 
             var context = new MiningControllerContext(null);
-            var focusEventLog = new List<string>();
             var twoItemObject = new GameObject("TwoItemTarget");
             var noItemObject = new GameObject("NoItemTarget");
-            var twoItemTarget = new FocusTrackingMiningTarget("two", twoItemObject, focusEventLog, new[] { FirstEarnItemGuid, SecondEarnItemGuid });
-            var noItemTarget = new FocusTrackingMiningTarget("none", noItemObject, focusEventLog, Array.Empty<Guid>());
+            var twoItemTarget = new StubMiningTarget(twoItemObject, new[] { FirstEarnItemGuid, SecondEarnItemGuid });
+            var noItemTarget = new StubMiningTarget(noItemObject, Array.Empty<Guid>());
 
             Assert.AreEqual(string.Empty, context.CurrentFocusTargetEarnItemNames);
 
@@ -67,30 +76,38 @@ namespace Client.Tests.Mining
             UnityEngine.Object.DestroyImmediate(noItemObject);
         }
 
-        private class FocusTrackingMiningTarget : IMiningTargetObject
+        private class StubMiningTarget : IMiningTargetObject
         {
             public GameObject GameObject { get; }
             public bool IsInteractAvailable => true;
             public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
-            public IReadOnlyList<Guid> EarnItemGuids { get; }
-            public int FocusEnabledCount { get; private set; }
-            public int FocusDisabledCount { get; private set; }
-            private readonly List<ItemId> _recommendedToolItemIds = new();
-            private readonly string _name;
-            private readonly List<string> _focusEventLog;
 
-            public FocusTrackingMiningTarget(string name, GameObject gameObject, List<string> focusEventLog, IReadOnlyList<Guid> earnItemGuids)
+            // 取得回数を数えることで、SetFocusTargetの再解決有無をテストから観測できるようにする
+            // Counts reads so tests can observe whether SetFocusTarget re-resolved this target
+            public int EarnItemGuidsAccessCount { get; private set; }
+
+            private readonly IReadOnlyList<Guid> _earnItemGuids;
+            private readonly List<ItemId> _recommendedToolItemIds = new();
+
+            public IReadOnlyList<Guid> EarnItemGuids
             {
-                _name = name;
+                get
+                {
+                    EarnItemGuidsAccessCount++;
+                    return _earnItemGuids;
+                }
+            }
+
+            public StubMiningTarget(GameObject gameObject, IReadOnlyList<Guid> earnItemGuids)
+            {
                 GameObject = gameObject;
-                _focusEventLog = focusEventLog;
-                EarnItemGuids = earnItemGuids;
+                _earnItemGuids = earnItemGuids;
             }
 
             public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
             {
-                // フォーカス通知だけを見るfixtureなので採掘可否は問わない
-                // This fixture only observes focus notifications, so minability is irrelevant
+                // フォーカス解決だけを見るfixtureなので採掘可否は問わない
+                // This fixture only observes focus resolution, so minability is irrelevant
                 tool = default;
                 recommendedToolItemIds = _recommendedToolItemIds;
                 return MiningStartOutcome.ToolMismatch;
@@ -98,11 +115,6 @@ namespace Client.Tests.Mining
 
             public void SetHighlighted(bool highlighted)
             {
-                _focusEventLog.Add($"{_name}:{highlighted.ToString().ToLowerInvariant()}");
-                if (highlighted)
-                    FocusEnabledCount++;
-                else
-                    FocusDisabledCount++;
             }
 
             public void SendAttack()
