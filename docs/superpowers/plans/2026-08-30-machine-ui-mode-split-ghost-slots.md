@@ -1191,7 +1191,7 @@ git commit -m "feat(webui): 機械インベントリをレシピ分スロット�
 - Produces: `MachineRecipeSelectionRowData = { recipe: MachineRecipe; selected: boolean }`、`buildMachineRecipeSelectionRows(recipes, blockGuid, selectedRecipeGuid)`（アイコン列は廃止）
 - Produces: `MachineRecipeSelectionRow({ row, onSelect: (recipeGuid: string) => void })`、`MachineRecipeSelectionList({ rows, onSelected: () => void })`、`SelectedRecipeHeader({ recipe, onChangeRecipe: () => void })`
 
-- [ ] **Step 1: ローカライズキー**
+- [x] **Step 1: ローカライズキー**
 
 `Localization/localization.csv` の `ui.blockInventory.inventoryTab` / `ui.blockInventory.recipeSelectionTab` / `ui.blockInventory.recipeSelectionHint` の3行を削除し、次を追加:
 
@@ -1204,7 +1204,7 @@ cd moorestech_web/webui && npm run gen:i18n && npx vitest run src/shared/i18n
 ```
 Expected: PASS（`recipeSelectionHint` を参照する箇所は Task 6 で消える。残れば typecheck が指摘する）
 
-- [ ] **Step 2: 行データロジックを書き換える（テスト先行）**
+- [x] **Step 2: 行データロジックを書き換える（テスト先行）**
 
 `machineRecipeSelectionLogic.test.ts` を次に置換:
 
@@ -1264,7 +1264,7 @@ export function hasSelectedRecipe(selectedRecipeGuid: string): boolean {
 Run: `npx vitest run src/features/blockInventory/details/machine/machineRecipeSelectionLogic.test.ts`
 Expected: PASS
 
-- [ ] **Step 3: 選択行のテストを書く**
+- [x] **Step 3: 選択行のテストを書く**
 
 `MachineRecipeSelectionRow.test.ts`（`MachineRecipeSelectionTab.test.ts` と同じモック様式）:
 
@@ -1315,7 +1315,7 @@ describe("MachineRecipeSelectionRow", () => {
 Run: `npx vitest run src/features/blockInventory/details/machine/MachineRecipeSelectionRow.test.ts`
 Expected: FAIL（モジュール無し）
 
-- [ ] **Step 4: 行・リスト・ヘッダを実装する**
+- [x] **Step 4: 行・リスト・ヘッダを実装する**
 
 `MachineRecipeSelectionRow.tsx`:
 
@@ -1444,7 +1444,7 @@ export default function SelectedRecipeHeader({ recipe, onChangeRecipe }: Props) 
 Run: `npx vitest run src/features/blockInventory/details/machine/MachineRecipeSelectionRow.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: MachineSection を2モードへ**
+- [x] **Step 5: MachineSection を2モードへ**
 
 `MachineSection.test.ts` を次の観点で書き直す（既存のモック様式を踏襲し、`./machine/MachineRecipeSelectionList`・`./machine/SelectedRecipeHeader`・`./machine/MachineInventoryBody` をモック）:
 
@@ -1584,7 +1584,7 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
 Run: `npx vitest run && npm run typecheck && npm run lint`
 Expected: PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add -A moorestech_web/webui Localization
