@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
 using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using Game.Block.Interface;
@@ -13,23 +14,20 @@ using VContainer;
 namespace Client.Game.InGame.Tutorial
 {
     /// <summary>
-    ///     tutorialGuidごとにゴースト管理
-    ///     セル指定は呼び手が決める
-    ///     Owns one target-cell ghost per tutorialGuid
-    ///     Which cell to point at is the caller's decision
+    ///     設置目標セルのゴーストをtutorialGuidごとに持ち、その生成・移動・破棄を引き受ける。どのセルを指すかは呼び手が決める
+    ///     Owns one target-cell ghost per tutorialGuid with its creation, movement and teardown; which cell to point at is the caller's decision
     /// </summary>
-    public class BlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
+    public class BlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialViewManager
     {
         public string TutorialType => TutorialsElement.TutorialTypeConst.blockPlacePreview;
         
-        private readonly Dictionary<string, TutorialGhostEntry> _entries = new();
+        private readonly Dictionary<string, PlacementGhostEntry> _entries = new();
+        
+        // 絶対座標型（blockPlacePreview）として適用された分の設置検知購読。guidごとに独立して持つ
+        // Placement-detection subscriptions for absolute blockPlacePreview applications, held independently per guid
+        private readonly Dictionary<string, IDisposable> _placedSubscriptions = new();
         
         private BlockGameObjectDataStore _blockGameObjectDataStore;
-        private IDisposable _blockPlacedDisposable;
-        
-        // 絶対座標型適用時のエントリキー
-        // Entry key used when this manager itself is applied as the absolute blockPlacePreview type
-        private string _ownTutorialGuid = "";
         
         [Inject]
         public void Construct(BlockGameObjectDataStore blockGameObjectDataStore)
@@ -45,11 +43,10 @@ namespace Client.Game.InGame.Tutorial
         {
             if (!_entries.TryGetValue(tutorialGuid, out var entry))
             {
-                entry = new TutorialGhostEntry(tutorialGuid);
+                entry = new PlacementGhostEntry($"block-place-preview-pin-{tutorialGuid}");
                 _entries.Add(tutorialGuid, entry);
             }
             
-            if (entry.IsSameTarget(blockId, cell, direction)) return;
             entry.SetTarget(blockId, cell, direction, transform);
         }
         
@@ -74,12 +71,13 @@ namespace Client.Game.InGame.Tutorial
             var camera = CameraManager.MainCamera.Camera;
             if (!camera) return;
             
-            foreach (var entry in _entries.Values)
+            foreach (var pair in _entries)
             {
+                var entry = pair.Value;
                 if (entry.TargetCell == null || entry.PreviewObject == null) continue;
                 
                 var projection = WorldPinScreenProjection.Project(camera, entry.PreviewObject.transform.position);
-                WorldPinStateStore.Instance.SetPin(entry.WebPinId, entry.TutorialGuid, projection);
+                WorldPinStateStore.Instance.SetPin(entry.WebPinId, pair.Key, projection);
             }
         }
         
@@ -88,16 +86,16 @@ namespace Client.Game.InGame.Tutorial
             var param = (BlockPlacePreviewTutorialParam)tutorial.TutorialParam;
             var blockId = MasterHolder.BlockMaster.GetBlockId(param.BlockGuid);
             var direction = Enum.Parse<BlockDirection>(param.BlockDirection);
+            var tutorialGuid = tutorial.TutorialGuid.ToString("D");
             
             // 既に目標ブロックが配置済みなら早期終了
             // Exit early when the target block already exists
             if (IsTargetBlockPlaced()) return null;
             
-            _ownTutorialGuid = tutorial.TutorialGuid.ToString("D");
-            SetTargetCell(blockId, param.Position, direction, _ownTutorialGuid);
+            SetTargetCell(blockId, param.Position, direction, tutorialGuid);
             SubscribePlacementEvent();
             
-            return this;
+            return new BlockPlacePreviewTutorialView(this, tutorialGuid);
             
             #region Internal
             
@@ -106,28 +104,32 @@ namespace Client.Game.InGame.Tutorial
                 return _blockGameObjectDataStore.TryGetBlockGameObject(param.Position, out var block) && block.BlockId == blockId;
             }
             
-            // 指定座標への対象ブロック設置で完了する
-            // Completes when the target block lands on the specified position
+            // 指定座標への対象ブロック設置で該当guidだけを完了する
+            // Completes only this guid when the target block lands on the specified position
             void SubscribePlacementEvent()
             {
-                _blockPlacedDisposable?.Dispose();
-                _blockPlacedDisposable = _blockGameObjectDataStore.OnBlockPlaced.Subscribe(block =>
+                if (_placedSubscriptions.TryGetValue(tutorialGuid, out var previous)) previous.Dispose();
+                _placedSubscriptions[tutorialGuid] = _blockGameObjectDataStore.OnBlockPlaced.Subscribe(block =>
                 {
                     if (block.BlockId != blockId) return;
                     if (block.BlockPosInfo.OriginalPos != param.Position) return;
                     
-                    CompleteTutorial();
+                    Complete(tutorialGuid);
                 });
             }
             
             #endregion
         }
         
-        public void CompleteTutorial()
+        public void Complete(string tutorialGuid)
         {
-            _blockPlacedDisposable?.Dispose();
-            _blockPlacedDisposable = null;
-            if (_ownTutorialGuid != "") ClearTarget(_ownTutorialGuid);
+            if (_placedSubscriptions.TryGetValue(tutorialGuid, out var subscription))
+            {
+                subscription.Dispose();
+                _placedSubscriptions.Remove(tutorialGuid);
+            }
+            
+            ClearTarget(tutorialGuid);
         }
         
         private void OnDestroy()
@@ -138,6 +140,9 @@ namespace Client.Game.InGame.Tutorial
                 WorldPinStateStore.Instance.RemovePin(entry.WebPinId);
             }
             _entries.Clear();
+            
+            foreach (var subscription in _placedSubscriptions.Values) subscription.Dispose();
+            _placedSubscriptions.Clear();
         }
     }
 }

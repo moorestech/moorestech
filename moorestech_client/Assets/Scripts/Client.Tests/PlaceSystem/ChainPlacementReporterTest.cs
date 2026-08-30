@@ -36,7 +36,7 @@ namespace Client.Tests.PlaceSystem
             // North設置なので連結セルは無回転の CursorCell + ChainOffset に載る
             // Placing North keeps the chain cell at the unrotated CursorCell + ChainOffset
             var occupied = new StubExistingBlockQuery(CursorCell + ChainOffset);
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), occupied, new AlwaysAlignedGroundQuery(), feedback);
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), occupied, new AlwaysAlignedGroundQuery(), true, 0, feedback);
 
             Assert.IsFalse(placeInfos[0].Placeable, "a blocked chain cell left the anchor placeable");
             CollectionAssert.AreEqual(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceChainBlocked) }, feedback.Lines);
@@ -50,7 +50,7 @@ namespace Client.Tests.PlaceSystem
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
             var feedback = new PlacementFeedback();
 
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new AlwaysAlignedGroundQuery(), feedback);
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new AlwaysAlignedGroundQuery(), true, 0, feedback);
 
             Assert.IsTrue(placeInfos[0].Placeable, "an open chain cell blocked the anchor");
             CollectionAssert.IsEmpty(feedback.Lines);
@@ -67,7 +67,7 @@ namespace Client.Tests.PlaceSystem
             // The North-basis (-1,0,2) rotates away under an East placement, so a cell blocking North must not block East
             var eastInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.East) };
             var occupiedNorthCell = new StubExistingBlockQuery(CursorCell + ChainOffset);
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(eastInfos, chestMaster, 0, state, occupiedNorthCell, new AlwaysAlignedGroundQuery(), new PlacementFeedback());
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(eastInfos, chestMaster, 0, state, occupiedNorthCell, new AlwaysAlignedGroundQuery(), true, 0, new PlacementFeedback());
             Assert.IsTrue(eastInfos[0].Placeable, "the chain cell did not rotate with the placement direction");
 
             // 回転後の実セルを塞ぐと不可になる。実セルは本番と同じ換算（ConvertBlockLocalToWorldCell）で得る
@@ -75,7 +75,7 @@ namespace Client.Tests.PlaceSystem
             var footprint = new BlockPositionInfo(CursorCell, BlockDirection.East, chestMaster.BlockSize);
             var rotatedCell = footprint.ConvertBlockLocalToWorldCell(ChainOffset);
             var eastInfos2 = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.East) };
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(eastInfos2, chestMaster, 0, state, new StubExistingBlockQuery(rotatedCell), new AlwaysAlignedGroundQuery(), new PlacementFeedback());
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(eastInfos2, chestMaster, 0, state, new StubExistingBlockQuery(rotatedCell), new AlwaysAlignedGroundQuery(), true, 0, new PlacementFeedback());
             Assert.IsFalse(eastInfos2[0].Placeable, "the rotated chain cell was not checked");
         }
 
@@ -86,7 +86,7 @@ namespace Client.Tests.PlaceSystem
             var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
 
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new NeverAlignedGroundQuery(), new PlacementFeedback());
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new NeverAlignedGroundQuery(), true, 0, new PlacementFeedback());
 
             Assert.IsFalse(placeInfos[0].Placeable, "misaligned ground left the anchor placeable");
         }
@@ -102,10 +102,54 @@ namespace Client.Tests.PlaceSystem
 
             // チェスト用の連結定義しか無いので発電機は素通り
             // Only the chest anchors a chain, so the generator passes untouched
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, generatorMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(CursorCell + ChainOffset), new NeverAlignedGroundQuery(), feedback);
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, generatorMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(CursorCell + ChainOffset), new NeverAlignedGroundQuery(), true, 0, feedback);
 
             Assert.IsTrue(placeInfos[0].Placeable);
             CollectionAssert.IsEmpty(feedback.Lines);
+        }
+
+        [Test]
+        public void 連結中はドラッグ複数設置がカーソルセル以外不可になる()
+        {
+            CreateServer();
+            var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
+            var placeInfos = new List<PlaceInfo>
+            {
+                CreatePlaceInfo(CursorCell, BlockDirection.North),
+                CreatePlaceInfo(CursorCell + Vector3Int.right, BlockDirection.North),
+            };
+
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new AlwaysAlignedGroundQuery(), true, 0, new PlacementFeedback());
+
+            Assert.IsTrue(placeInfos[0].Placeable, "the cursor cell was blocked during chain placement");
+            Assert.IsFalse(placeInfos[1].Placeable, "a non-cursor drag cell stayed placeable during chain placement");
+        }
+
+        [Test]
+        public void 設置高さオフセットが地形判定へそのまま渡る()
+        {
+            CreateServer();
+            var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
+            var capture = new HeightOffsetCapturingGroundQuery();
+
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), capture, true, 3, new PlacementFeedback());
+
+            Assert.AreEqual(3, capture.LastHeightOffset, "the height offset did not reach the ground query");
+        }
+
+        [Test]
+        public void ブロック面スタック設置中は地形判定を呼ばない()
+        {
+            CreateServer();
+            var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
+
+            // 地表基準でない設置では NeverAligned でも塞がれない
+            // With no ground basis, even a never-aligned query must not block the placement
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new NeverAlignedGroundQuery(), false, 0, new PlacementFeedback());
+
+            Assert.IsTrue(placeInfos[0].Placeable, "block-face stacking was blocked by the terrain check");
         }
 
         private static ChainPlacePreviewState CreateChainState(Mooresmaster.Model.BlocksModule.BlockMasterElement anchorMaster)
@@ -144,12 +188,23 @@ namespace Client.Tests.PlaceSystem
 
         private class AlwaysAlignedGroundQuery : IChainGroundQuery
         {
-            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize) => true;
+            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => true;
+        }
+
+        private class HeightOffsetCapturingGroundQuery : IChainGroundQuery
+        {
+            public int LastHeightOffset { get; private set; } = int.MinValue;
+
+            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
+            {
+                LastHeightOffset = heightOffset;
+                return true;
+            }
         }
 
         private class NeverAlignedGroundQuery : IChainGroundQuery
         {
-            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize) => false;
+            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => false;
         }
     }
 }

@@ -278,7 +278,7 @@
     {
      "summary": "シャフトを回す",
      "title": "シャフトを回す",
-     "taskCompletionType": "gearConnectedBlock",
+     "taskCompletionType": "gearSpinning",
      "taskParam": {
       "blockGuid": "00000000-0000-0000-0000-00000000000e"
      },
@@ -305,7 +305,7 @@
     {
      "summary": "シャフトをベルトに繋ぐ",
      "title": "シャフトをベルトに繋ぐ",
-     "taskCompletionType": "gearConnectToBlock",
+     "taskCompletionType": "gearConnectedTo",
      "taskParam": {
       "blockGuid": "00000000-0000-0000-0000-00000000000e",
       "connectedBlockGuid": "00000000-0000-0000-0000-000000000015"

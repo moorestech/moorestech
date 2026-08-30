@@ -106,44 +106,20 @@ namespace Core.Master.Validator
                                 }
                                 break;
                             }
-                            case GearConnectedBlockTaskParam gearConnectedBlock:
+                            case GearSpinningTaskParam gearSpinning:
                             {
-                                var gearBlockId = MasterHolder.BlockMaster.GetBlockIdOrNull(gearConnectedBlock.BlockGuid);
-                                if (gearBlockId == null)
-                                {
-                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.BlockGuid:{gearConnectedBlock.BlockGuid}\n";
-                                    break;
-                                }
-
                                 // 歯車コネクタを持たないブロックは永久に回り出さないため達成不能になる
                                 // A block without gear connectors never starts spinning, so the challenge would be impossible
-                                if (MasterHolder.BlockMaster.GetBlockMaster(gearBlockId.Value).BlockParam is not IGearConnectors)
-                                {
-                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has non-gear TaskParam.BlockGuid:{gearConnectedBlock.BlockGuid}\n";
-                                }
+                                logs += ValidateGearBlock(challenge.Title, gearSpinning.BlockGuid, "BlockGuid");
                                 break;
                             }
-                            case GearConnectToBlockTaskParam gearConnectTo:
+                            case GearConnectedToTaskParam gearConnectedTo:
                             {
                                 // 双方が歯車コネクタ持ちでなければ接続は永久に成立せず達成不能になる
                                 // Both sides must own gear connectors, or the connection never forms and the challenge is impossible
-                                ValidateGearBlock(gearConnectTo.BlockGuid, "BlockGuid");
-                                ValidateGearBlock(gearConnectTo.ConnectedBlockGuid, "ConnectedBlockGuid");
+                                logs += ValidateGearBlock(challenge.Title, gearConnectedTo.BlockGuid, "BlockGuid");
+                                logs += ValidateGearBlock(challenge.Title, gearConnectedTo.ConnectedBlockGuid, "ConnectedBlockGuid");
                                 break;
-
-                                void ValidateGearBlock(System.Guid blockGuid, string label)
-                                {
-                                    var gearBlockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
-                                    if (gearBlockId == null)
-                                    {
-                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.{label}:{blockGuid}\n";
-                                        return;
-                                    }
-                                    if (MasterHolder.BlockMaster.GetBlockMaster(gearBlockId.Value).BlockParam is not IGearConnectors)
-                                    {
-                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has non-gear TaskParam.{label}:{blockGuid}\n";
-                                    }
-                                }
                             }
                             default:
                                 logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated TaskParam type:{challenge.TaskParam?.GetType().Name}\n";
@@ -241,9 +217,9 @@ namespace Core.Master.Validator
                                 {
                                     // アンカー・連結ゴーストの実在検証
                                     // Validate the anchor and every chain ghost block exists
-                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(chainPreview.AnchorBlockGuid) == null)
+                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(chainPreview.PlacingBlockGuid) == null)
                                     {
-                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.AnchorBlockGuid:{chainPreview.AnchorBlockGuid}\n";
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.PlacingBlockGuid:{chainPreview.PlacingBlockGuid}\n";
                                     }
                                     foreach (var chainBlock in chainPreview.ChainBlocks)
                                     {
@@ -272,7 +248,7 @@ namespace Core.Master.Validator
                                 {
                                     if (MasterHolder.BlockMaster.GetBlockIdOrNull(relativePreview.AnchorBlockGuid) == null)
                                     {
-                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.AnchorBlockGuid:{relativePreview.AnchorBlockGuid}\n";
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.PlacingBlockGuid:{relativePreview.AnchorBlockGuid}\n";
                                     }
                                     if (MasterHolder.BlockMaster.GetBlockIdOrNull(relativePreview.BlockGuid) == null)
                                     {
@@ -556,6 +532,22 @@ namespace Core.Master.Validator
                     }
                 }
             }
+        }
+
+        // 歯車系チャレンジ共通のブロック検証。実在しない・歯車コネクタ無しを達成不能として弾く
+        // Shared gear-challenge block validation; missing blocks and connector-less blocks are impossible to complete
+        private static string ValidateGearBlock(string challengeTitle, Guid blockGuid, string label)
+        {
+            var gearBlockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
+            if (gearBlockId == null)
+            {
+                return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid TaskParam.{label}:{blockGuid}\n";
+            }
+            if (MasterHolder.BlockMaster.GetBlockMaster(gearBlockId.Value).BlockParam is not IGearConnectors)
+            {
+                return $"[ChallengeMaster] Challenge:{challengeTitle} has non-gear TaskParam.{label}:{blockGuid}\n";
+            }
+            return "";
         }
     }
 }

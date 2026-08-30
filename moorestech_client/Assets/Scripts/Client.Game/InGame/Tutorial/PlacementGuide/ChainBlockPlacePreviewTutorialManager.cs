@@ -10,17 +10,14 @@ using VContainer;
 namespace Client.Game.InGame.Tutorial.PlacementGuide
 {
     /// <summary>
-    ///     連結レイアウト定義を共有状態へ書き完了で下ろす
-    ///     判定・描画は設置システム側の担当
-    ///     Writes the tutorial's chain layout into the shared state and clears it on completion
-    ///     Checks and rendering live in the placement system
+    ///     チュートリアルの連結レイアウト定義を共有状態へ書き、完了した本人の分だけ下ろす。判定と描画は設置システム側が担う
+    ///     Writes each tutorial's chain layout into the shared state and clears only its own on completion; checks and rendering live in the placement system
     /// </summary>
-    public class ChainBlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
+    public class ChainBlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialViewManager
     {
         public string TutorialType => TutorialsElement.TutorialTypeConst.chainBlockPlacePreview;
         
         private ChainPlacePreviewState _state;
-        private Guid _appliedTutorialGuid;
         
         [Inject]
         public void Construct(ChainPlacePreviewState state)
@@ -31,9 +28,8 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             var param = (ChainBlockPlacePreviewTutorialParam)tutorial.TutorialParam;
-            _appliedTutorialGuid = tutorial.TutorialGuid;
             
-            var anchorBlockId = MasterHolder.BlockMaster.GetBlockId(param.AnchorBlockGuid);
+            var placingBlockId = MasterHolder.BlockMaster.GetBlockId(param.PlacingBlockGuid);
             var chain = new List<ChainGhost>();
             foreach (var element in param.ChainBlocks)
             {
@@ -41,13 +37,8 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
                 chain.Add(new ChainGhost(blockId, element.Offset, Enum.Parse<BlockDirection>(element.BlockDirection)));
             }
             
-            _state.SetChain(_appliedTutorialGuid, anchorBlockId, chain);
-            return this;
-        }
-        
-        public void CompleteTutorial()
-        {
-            _state.Clear(_appliedTutorialGuid);
+            _state.SetChain(tutorial.TutorialGuid, placingBlockId, chain);
+            return new ChainBlockPlacePreviewTutorialView(_state, tutorial.TutorialGuid);
         }
     }
 }

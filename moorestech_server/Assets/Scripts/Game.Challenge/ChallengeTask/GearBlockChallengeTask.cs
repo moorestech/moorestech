@@ -11,10 +11,10 @@ using UniRx;
 namespace Game.Challenge.Task
 {
     /// <summary>
-    ///     対象ブロックが接続先種別へ歯車接続した時に達成する。回転（RPM）は見ない
-    ///     Completes when the target block gear-connects to the target kind; RPM is never inspected
+    ///     歯車ブロックの状態で達成するチャレンジ。gearSpinning=対象が回り出した時（接続は見ない）、gearConnectedTo=接続先種別へ歯車接続した時（回転は見ない）
+    ///     Gear-block state challenge: gearSpinning completes when the target starts turning (connection ignored), gearConnectedTo when it gear-connects to the target kind (RPM ignored)
     /// </summary>
-    public class GearConnectToBlockChallengeTask : IChallengeTask
+    public class GearBlockChallengeTask : IChallengeTask
     {
         public ChallengeMasterElement ChallengeMasterElement { get; }
         public IObservable<IChallengeTask> OnChallengeComplete => _onChallengeComplete;
@@ -27,25 +27,47 @@ namespace Game.Challenge.Task
         // Hold the subscriptions so events stop arriving the moment the challenge completes
         private readonly CompositeDisposable _blockEventSubscriptions = new();
         
-        // 接続は設置と別ティックで確定するため、対象ブロックを溜めて毎ティック接続先を見る
-        // Connections settle on a tick after placement, so keep target blocks and read their connects every tick
+        // 回転・接続とも設置と別ティックで確定するため、対象ブロックを溜めて毎ティック判定する
+        // 同一ブロックの再登録と、撤去時に別インスタンスを落とす事故を防ぐため集合で持つ
+        // Both spinning and connection settle on ticks after placement, so keep target blocks and judge every tick
+        // A set prevents both duplicate registration and removing the wrong instance on block removal
         private readonly HashSet<IBlock> _targetBlocks = new();
         
+        private readonly CompletionMode _mode;
         private readonly Guid _targetBlockGuid;
         private readonly Guid _connectedBlockGuid;
         
-        public static IChallengeTask Create(ChallengeMasterElement challengeMasterElement)
+        private enum CompletionMode
         {
-            return new GearConnectToBlockChallengeTask(challengeMasterElement);
+            Spinning,
+            ConnectedTo,
         }
         
-        private GearConnectToBlockChallengeTask(ChallengeMasterElement challengeMasterElement)
+        public static IChallengeTask Create(ChallengeMasterElement challengeMasterElement)
+        {
+            return new GearBlockChallengeTask(challengeMasterElement);
+        }
+        
+        private GearBlockChallengeTask(ChallengeMasterElement challengeMasterElement)
         {
             ChallengeMasterElement = challengeMasterElement;
             
-            var param = (GearConnectToBlockTaskParam)challengeMasterElement.TaskParam;
-            _targetBlockGuid = param.BlockGuid;
-            _connectedBlockGuid = param.ConnectedBlockGuid;
+            // 完了モードはTaskParamの型で決まる
+            // The completion mode derives from the TaskParam type
+            switch (challengeMasterElement.TaskParam)
+            {
+                case GearSpinningTaskParam spinning:
+                    _mode = CompletionMode.Spinning;
+                    _targetBlockGuid = spinning.BlockGuid;
+                    break;
+                case GearConnectedToTaskParam connectedTo:
+                    _mode = CompletionMode.ConnectedTo;
+                    _targetBlockGuid = connectedTo.BlockGuid;
+                    _connectedBlockGuid = connectedTo.ConnectedBlockGuid;
+                    break;
+                default:
+                    throw new InvalidOperationException($"Unsupported gear challenge TaskParam: {challengeMasterElement.TaskParam?.GetType().Name}");
+            }
             
             _blockEventSubscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockPlaceEvent.Subscribe(OnBlockPlace));
             _blockEventSubscriptions.Add(ServerContext.WorldBlockUpdateEvent.OnBlockRemoveEvent.Subscribe(OnBlockRemove));
@@ -59,7 +81,7 @@ namespace Game.Challenge.Task
             
             foreach (var block in _targetBlocks)
             {
-                if (!IsConnectedToTargetKind(block)) continue;
+                if (!IsSatisfied(block)) continue;
                 _completed = true;
                 break;
             }
@@ -85,11 +107,14 @@ namespace Game.Challenge.Task
                 }
             }
             
-            // 1ホップの歯車接続相手に接続先種別が居るかを見る
-            // Look for the target kind among the one-hop gear connections
-            bool IsConnectedToTargetKind(IBlock block)
+            bool IsSatisfied(IBlock block)
             {
                 if (!block.TryGetComponent<IGearEnergyTransformer>(out var transformer)) return false;
+                
+                // Spinning=RPMが正になった時、ConnectedTo=1ホップの接続相手に対象種別が居る時
+                // Spinning: RPM turned positive. ConnectedTo: the target kind sits among one-hop gear connections
+                if (_mode == CompletionMode.Spinning) return 0 < transformer.CurrentRpm.AsPrimitive();
+                
                 foreach (var connect in transformer.GetGearConnects())
                 {
                     var connectedBlock = ServerContext.WorldBlockDatastore.GetBlock(connect.Transformer.BlockInstanceId);

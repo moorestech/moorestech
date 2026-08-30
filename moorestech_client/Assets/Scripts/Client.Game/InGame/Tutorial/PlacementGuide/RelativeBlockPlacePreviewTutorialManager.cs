@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Player;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
@@ -40,6 +41,8 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
             
             // 目標セルへの対象ブロック設置で該当エントリだけを完了する（購読は全エントリで1本）
             // One shared subscription completes only the entry whose target cell received its block
+            // 目標セルはアンカー追従で毎フレーム動くため、購読時の値ではなく現在の entry.TargetCell と突き合わせる
+            // Target cells move with anchor tracking every frame, so compare against the current entry.TargetCell, not a captured value
             _blockPlacedDisposable ??= _blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnBlockPlaced);
             return entry;
         }

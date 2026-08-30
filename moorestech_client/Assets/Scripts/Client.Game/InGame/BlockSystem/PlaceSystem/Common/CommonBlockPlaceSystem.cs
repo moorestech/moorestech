@@ -177,7 +177,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // チュートリアルの連結レイアウトが置けない設置を弾く（鉱脈制限と同じくクライアント側のみ）
                 // Reject placements whose tutorial chain layout cannot fit (client-side only, like the vein limit)
-                ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _chainPlacePreviewState, _blockPlacePointCalculator, _chainGroundQuery, feedback);
+                ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _chainPlacePreviewState, _blockPlacePointCalculator, _chainGroundQuery, surfaceKind == PlacementHitSurfaceKind.Ground, _dragState.HeightOffset, feedback);
 
                 // 鉱脈・既存ブロックで落ちたセルがアイテム枠を消費しないよう、フィルタ後にチェックする
                 // Check after filtering so cells dropped by veins or existing blocks don't consume item quota
@@ -194,7 +194,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // 連結ゴーストをカーソルへ追従表示する
                 // Follow the cursor with the chain ghosts
-                _chainPlacementPreviewPart.Apply(_currentPlaceInfos[cursorIndex], holdingBlockMaster);
+                _chainPlacementPreviewPart.Apply(_currentPlaceInfos[cursorIndex], holdingBlockMaster, surfaceKind == PlacementHitSurfaceKind.Ground, _dragState.HeightOffset);
 
                 // 最終的なPlaceable状態でプレビュー色を更新
                 // Update preview colors based on the final Placeable state

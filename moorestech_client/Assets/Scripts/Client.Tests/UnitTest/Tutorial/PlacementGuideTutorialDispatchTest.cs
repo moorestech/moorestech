@@ -127,7 +127,7 @@ namespace Client.Tests.UnitTest.Tutorial
         {
             SetTutorial("chainBlockPlacePreview", new JObject
             {
-                ["anchorBlockGuid"] = "00000000-0000-0000-0000-000000000014",
+                ["placingBlockGuid"] = "00000000-0000-0000-0000-000000000014",
                 ["chainBlocks"] = new JArray
                 {
                     new JObject
@@ -151,7 +151,7 @@ namespace Client.Tests.UnitTest.Tutorial
             // Verifies the shared state was written per the JSON chain layout, and clears on completion
             var anchorBlockId = MasterHolder.BlockMaster.GetBlockId(Guid.Parse("00000000-0000-0000-0000-000000000014"));
             var expectedGhostBlockId = MasterHolder.BlockMaster.GetBlockId(Guid.Parse("00000000-0000-0000-0000-00000000000e"));
-            Assert.IsTrue(state.TryGetChain(anchorBlockId, out var resultChain));
+            Assert.IsTrue(state.TryGetChain(anchorBlockId, out var resultChain, out _));
             Assert.AreEqual(1, resultChain.Count);
             Assert.AreEqual(expectedGhostBlockId, resultChain[0].BlockId);
             Assert.AreEqual(new Vector3Int(0, 0, 1), resultChain[0].Offset);
@@ -159,7 +159,7 @@ namespace Client.Tests.UnitTest.Tutorial
 
             manager.CompleteChallenge(ChallengeGuid);
 
-            Assert.IsFalse(state.TryGetChain(anchorBlockId, out _));
+            Assert.IsFalse(state.TryGetChain(anchorBlockId, out _, out _));
         }
 
         [Test]
@@ -246,7 +246,7 @@ namespace Client.Tests.UnitTest.Tutorial
         // The per-guid ghost entries are likewise unexposed in production, so reflection reads them back
         private static bool HasGhostEntry(BlockPlacePreviewTutorialManager manager, string tutorialGuid)
         {
-            var entries = (Dictionary<string, TutorialGhostEntry>)typeof(BlockPlacePreviewTutorialManager)
+            var entries = (Dictionary<string, Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost.PlacementGhostEntry>)typeof(BlockPlacePreviewTutorialManager)
                 .GetField("_entries", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(manager);
             return entries.ContainsKey(tutorialGuid);
         }

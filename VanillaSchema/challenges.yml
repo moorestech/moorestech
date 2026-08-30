@@ -77,8 +77,8 @@ properties:
           - completeResearch
           - equipItem
           - blockPlaceOnVein
-          - gearConnectedBlock
-          - gearConnectToBlock
+          - gearSpinning
+          - gearConnectedTo
         - key: taskParam
           isDefaultOpen: true
           switch: ./taskCompletionType
@@ -149,7 +149,7 @@ properties:
                 schemaId: map
                 foreignKeyIdPath: /mapVeins/[*]/veinGuid
                 displayElementPath: /mapVeins/[*]/veinName
-          - when: gearConnectedBlock
+          - when: gearSpinning
             type: object
             properties:
             - key: blockGuid
@@ -158,7 +158,7 @@ properties:
                 schemaId: blocks
                 foreignKeyIdPath: /data/[*]/blockGuid
                 displayElementPath: /data/[*]/name
-          - when: gearConnectToBlock
+          - when: gearConnectedTo
             type: object
             properties:
             # 設置して繋ぐ側のブロック
@@ -393,7 +393,7 @@ properties:
                 properties:
                 # 連結ゴーストを出す対象＝これから設置するブロック
                 # The block being placed, which anchors the chain ghosts
-                - key: anchorBlockGuid
+                - key: placingBlockGuid
                   type: uuid
                   foreignKey:
                     schemaId: blocks

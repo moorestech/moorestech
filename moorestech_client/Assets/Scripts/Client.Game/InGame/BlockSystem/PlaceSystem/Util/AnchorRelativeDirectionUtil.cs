@@ -2,7 +2,7 @@ using System;
 using Game.Block.Interface;
 using UnityEngine;
 
-namespace Client.Game.InGame.Tutorial.PlacementGuide
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     /// <summary>
     ///     ローカル向きをアンカー向きで回しワールド向きへ変換

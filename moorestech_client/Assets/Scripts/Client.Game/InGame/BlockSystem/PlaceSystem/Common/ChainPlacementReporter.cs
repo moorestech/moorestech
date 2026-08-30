@@ -19,38 +19,41 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         // Reused resolution buffer; the placement preview runs every frame
         private static readonly List<ChainLayoutResolver.ResolvedChainGhost> ResolvedBuffer = new();
         
-        public static void MarkChainBlockedCellsAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster, int cursorIndex, ChainPlacePreviewState state, IExistingBlockQuery existingBlockQuery, IChainGroundQuery groundQuery, PlacementFeedback feedback)
+        public static void MarkChainBlockedCellsAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster, int cursorIndex, ChainPlacePreviewState state, IExistingBlockQuery existingBlockQuery, IChainGroundQuery groundQuery, bool groundBased, int heightOffset, PlacementFeedback feedback)
         {
             // 連結対象でないブロックは無関係なので素通しする
             // A block that anchors no chain layout is unrelated, so let it pass
             var holdingBlockId = MasterHolder.BlockMaster.GetBlockId(holdingBlockMaster.BlockGuid);
-            if (!state.TryGetChain(holdingBlockId, out var chain)) return;
+            if (!state.TryGetChain(holdingBlockId, out var chain, out _)) return;
             
             for (var i = 0; i < currentPlaceInfos.Count; i++)
             {
                 var placeInfo = currentPlaceInfos[i];
-                if (!IsChainPlaceable(placeInfo)) 
+                
+                // 連結中はドラッグ複数設置を認めない。同一ドラッグ内の予定地同士は互いを見られないため、カーソルセル1基に限定する
+                // No multi-cell drag while chaining: planned cells cannot see each other, so only the cursor cell may place
+                if (i != cursorIndex && currentPlaceInfos.Count > 1)
                 {
                     placeInfo.Placeable = false;
-                    if (i == cursorIndex) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceChainBlocked));
+                    continue;
                 }
+                
+                ChainLayoutResolver.Resolve(placeInfo.Position, placeInfo.Direction, holdingBlockMaster.BlockSize, chain, existingBlockQuery, groundQuery, groundBased, heightOffset, ResolvedBuffer);
+                if (!HasBlockedGhost()) continue;
+                
+                placeInfo.Placeable = false;
+                if (i == cursorIndex) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceChainBlocked));
             }
             
             #region Internal
             
-            // 連結セルが1つでも塞がっていれば不成立
-            // The layout fails when any chain cell is blocked by an existing block or misaligned ground
-            bool IsChainPlaceable(PlaceInfo placeInfo)
+            bool HasBlockedGhost()
             {
-                ChainLayoutResolver.Resolve(placeInfo.Position, placeInfo.Direction, holdingBlockMaster.BlockSize, chain, ResolvedBuffer);
                 foreach (var resolved in ResolvedBuffer)
                 {
-                    var chainBlockSize = MasterHolder.BlockMaster.GetBlockMaster(resolved.Ghost.BlockId).BlockSize;
-                    var chainPlaceInfo = new PlaceInfo { Position = resolved.WorldCell, Direction = resolved.WorldDirection, BlockId = resolved.Ghost.BlockId };
-                    if (existingBlockQuery.IsOverlapping(chainPlaceInfo)) return false;
-                    if (!groundQuery.IsGroundAligned(resolved.WorldCell, resolved.WorldDirection, chainBlockSize)) return false;
+                    if (resolved.Blocked) return true;
                 }
-                return true;
+                return false;
             }
             
             #endregion
