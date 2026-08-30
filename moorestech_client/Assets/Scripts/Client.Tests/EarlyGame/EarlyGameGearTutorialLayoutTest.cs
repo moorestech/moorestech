@@ -20,7 +20,7 @@ using UnityEngine;
 namespace Client.Tests.EarlyGame
 {
     /// <summary>
-    ///     接続チュートリアルの相対座標が風車の全4方位で動力を伝えるか、ピン済みv8マスタで確かめる
+    ///     連結相対座標が全4方位で伝わるかv8マスタで確認
     ///     Proves the connection tutorial's relative layout carries gear power for all four windmill directions on the pinned v8 master
     /// </summary>
     public class EarlyGameGearTutorialLayoutTest
@@ -123,7 +123,7 @@ namespace Client.Tests.EarlyGame
             var cell = AnchorRelativeOriginUtil.ResolveWorldOrigin(belt.BlockPositionInfo, preview.Offset, direction, shaftSize);
             Assert.IsTrue(world.TryAddBlock(shaftBlockId, cell, direction, Array.Empty<BlockCreateParam>(), out var shaft), "failed to place the shaft");
 
-            // 回転は不要。接続の成立だけを見る（gearConnectToBlock判定と同じ規則）
+            // 回転不要。接続成立のみ見る
             // No rotation needed; only the connection matters, same rule as the gearConnectToBlock judge
             Assert.IsTrue(shaft.TryGetComponent<IGearEnergyTransformer>(out var transformer), "the shaft has no gear transformer");
             var connectedIds = transformer.GetGearConnects().Select(connect => connect.Transformer.BlockInstanceId).ToList();

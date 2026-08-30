@@ -10,7 +10,7 @@ using VContainer;
 namespace Client.Game.InGame.Tutorial.PlacementGuide
 {
     /// <summary>
-    ///     最寄りのアンカーブロック基準の相対セルを目標として押し出す。複数エントリを同時に追従できる
+    ///     最寄りアンカー基準の相対セルへ複数追従表示
     ///     Pushes anchor-relative cells as targets, tracking multiple entries at once
     ///     ゴーストそのものの生成と破棄は BlockPlacePreviewTutorialManager が持つ
     ///     BlockPlacePreviewTutorialManager owns creating and tearing down the ghosts themselves
@@ -56,11 +56,6 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
             _blockPlacedDisposable = null;
         }
         
-        public bool HasActiveEntry(Guid tutorialGuid)
-        {
-            return _entries.ContainsKey(tutorialGuid);
-        }
-        
         private void OnBlockPlaced(BlockGameObject block)
         {
             _completedBuffer.Clear();
@@ -92,7 +87,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
                     continue;
                 }
                 
-                // アンカーの向きで回したローカルセル・向きを使う（gearConnectsと同じ換算）
+                // アンカー向きで回したローカル値を使う
                 // Use the anchor-rotated local cell and direction (same conversion as gearConnects)
                 var targetCell = AnchorRelativeOriginUtil.ResolveWorldOrigin(anchor.BlockPosInfo, entry.Offset, entry.LocalDirection, entry.TargetBlockSize);
                 entry.SetTargetCell(targetCell);

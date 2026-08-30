@@ -38,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             
             #region Internal
             
-            // 連結セルが1つでも塞がっている（既存ブロック・地形の埋まり/浮き）なら不成立
+            // 連結セルが1つでも塞がっていれば不成立
             // The layout fails when any chain cell is blocked by an existing block or misaligned ground
             bool IsChainPlaceable(PlaceInfo placeInfo)
             {

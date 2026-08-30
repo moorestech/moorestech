@@ -10,7 +10,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Tutorial
 {
     /// <summary>
-    ///     チュートリアルゴースト1体分の実体。WebピンIDはtutorialGuid由来で他エントリと独立する
+    ///     ゴースト1体の実体。WebピンIDはtutorialGuid由来
     ///     One tutorial ghost instance; its web pin id derives from the tutorialGuid so entries stay independent
     /// </summary>
     public class TutorialGhostEntry
@@ -66,7 +66,7 @@ namespace Client.Game.InGame.Tutorial
         
         private async UniTaskVoid ShowPreviewAsync(Transform parent, CancellationToken cancellationToken)
         {
-            // 対象ブロックが変わった時だけゴーストを作り直す
+            // 対象変更時のみゴースト再生成
             // Recreate the ghost only when the target block kind changed
             if (PreviewObject == null || _previewObjectBlockId != TargetBlockId)
             {

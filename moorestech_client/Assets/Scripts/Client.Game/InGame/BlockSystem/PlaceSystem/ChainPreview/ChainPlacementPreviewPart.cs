@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
 {
     /// <summary>
-    ///     設置カーソルへ連結ゴースト群を追従表示する。塞がったセルのゴーストは設置不可色にする
+    ///     連結ゴースト群をカーソルへ追従表示、塞がりは不可色
     ///     Follows the placement cursor with the chain ghosts; a blocked cell's ghost turns the not-placeable color
     /// </summary>
     public class ChainPlacementPreviewPart
@@ -53,6 +53,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
                 var blocked = _existingBlockQuery.IsOverlapping(chainPlaceInfo) || !_groundQuery.IsGroundAligned(resolved.WorldCell, resolved.WorldDirection, chainBlockSize);
                 entry.PreviewObject.SetPlaceableColor(!blocked);
             }
+
+            // 連結数が減った分の余剰ゴーストを隠す
+            // Hide surplus ghosts left over from a shrunken chain
+            for (var i = _resolvedBuffer.Count; i < _ghostEntries.Count; i++) _ghostEntries[i].Hide();
         }
         
         public void Hide()

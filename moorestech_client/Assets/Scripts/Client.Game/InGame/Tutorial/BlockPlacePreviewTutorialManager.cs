@@ -13,8 +13,10 @@ using VContainer;
 namespace Client.Game.InGame.Tutorial
 {
     /// <summary>
-    ///     設置目標セルのゴーストをtutorialGuidごとに持ち、その生成・移動・破棄を引き受ける。どのセルを指すかは呼び手が決める
-    ///     Owns one target-cell ghost per tutorialGuid with its creation, movement and teardown; which cell to point at is the caller's decision
+    ///     tutorialGuidごとにゴースト管理
+    ///     セル指定は呼び手が決める
+    ///     Owns one target-cell ghost per tutorialGuid
+    ///     Which cell to point at is the caller's decision
     /// </summary>
     public class BlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
     {
@@ -25,7 +27,7 @@ namespace Client.Game.InGame.Tutorial
         private BlockGameObjectDataStore _blockGameObjectDataStore;
         private IDisposable _blockPlacedDisposable;
         
-        // 絶対座標型（blockPlacePreview）として自分が適用された時のエントリキー
+        // 絶対座標型適用時のエントリキー
         // Entry key used when this manager itself is applied as the absolute blockPlacePreview type
         private string _ownTutorialGuid = "";
         

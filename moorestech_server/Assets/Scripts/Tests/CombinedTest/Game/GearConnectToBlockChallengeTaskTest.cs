@@ -22,7 +22,7 @@ namespace Tests.CombinedTest.Game
             var challengeDatastore = CreateAndStart();
             var world = ServerContext.WorldBlockDatastore;
 
-            // 発電機なし＝RPMは0のまま。接続成立だけで完了することを見る
+            // 接続成立のみで完了しRPMは見ない
             // No generator, so RPM stays 0; completion must come from the connection alone
             world.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             world.TryAddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);

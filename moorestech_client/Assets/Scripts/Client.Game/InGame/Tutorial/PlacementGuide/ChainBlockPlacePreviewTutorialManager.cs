@@ -10,8 +10,10 @@ using VContainer;
 namespace Client.Game.InGame.Tutorial.PlacementGuide
 {
     /// <summary>
-    ///     チュートリアルの連結レイアウト定義を共有状態へ書き、完了で下ろす。判定と描画は設置システム側が担う
-    ///     Writes the tutorial's chain layout into the shared state and clears it on completion; checks and rendering live in the placement system
+    ///     連結レイアウト定義を共有状態へ書き完了で下ろす
+    ///     判定・描画は設置システム側の担当
+    ///     Writes the tutorial's chain layout into the shared state and clears it on completion
+    ///     Checks and rendering live in the placement system
     /// </summary>
     public class ChainBlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
     {

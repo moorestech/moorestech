@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Tutorial.PlacementGuide
 {
     /// <summary>
-    ///     相対ゴースト1件分の状態。完了はmanager経由で自分のエントリだけを畳む
+    ///     相対ゴースト1件の状態。完了はmanager経由で畳む
     ///     State for one relative ghost; completing it folds only this entry via the manager
     /// </summary>
     public class RelativeBlockPlacePreviewEntry : ITutorialView

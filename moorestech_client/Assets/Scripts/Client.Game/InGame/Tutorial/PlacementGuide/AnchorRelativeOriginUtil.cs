@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Tutorial.PlacementGuide
 {
     /// <summary>
-    ///     アンカーNorth基準のローカル原点を、対象ブロックの占有域ごと回してワールド原点へ写す
+    ///     ローカル原点を占有域ごと回しワールド原点へ変換
     ///     Maps an anchor-North-basis local origin into world space by rotating the target block's whole footprint
     /// </summary>
     public static class AnchorRelativeOriginUtil

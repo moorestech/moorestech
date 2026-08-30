@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
 {
     /// <summary>
-    ///     通常設置と同じ地表解決（ADR 0047のfloor規則）で連結セルの整合を判定する本番実装
+    ///     通常設置と同じ地表解決（ADR0047）の本番実装
     ///     Production ground query using the same terrain resolution (ADR 0047 floor rule) as normal placement
     /// </summary>
     public class PlacementChainGroundQuery : IChainGroundQuery

@@ -5,8 +5,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
 {
     /// <summary>
-    ///     連結ゴースト1件分の定義。offset/directionは設置中ブロックのNorth基準ローカル
-    ///     One chain ghost definition; offset/direction are in the being-placed block's North-basis local frame
+    ///     連結ゴースト1件の定義（North基準ローカル）
+    ///     One chain ghost definition (North-basis local frame)
     /// </summary>
     public readonly struct ChainGhost
     {

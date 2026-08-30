@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
 {
     /// <summary>
-    ///     設置中ブロックの原点と向きから、連結ゴースト群のワールドセル・向きを解決する
+    ///     原点・向きから連結ゴーストのワールド座標を解決
     ///     Resolves chain ghosts' world cells and directions from the being-placed block's origin and direction
     /// </summary>
     public static class ChainLayoutResolver

@@ -239,7 +239,7 @@ namespace Core.Master.Validator
                                 }
                                 case ChainBlockPlacePreviewTutorialParam chainPreview:
                                 {
-                                    // アンカーと連結ゴースト全件のブロック実在を検証
+                                    // アンカー・連結ゴーストの実在検証
                                     // Validate the anchor and every chain ghost block exists
                                     if (MasterHolder.BlockMaster.GetBlockIdOrNull(chainPreview.AnchorBlockGuid) == null)
                                     {

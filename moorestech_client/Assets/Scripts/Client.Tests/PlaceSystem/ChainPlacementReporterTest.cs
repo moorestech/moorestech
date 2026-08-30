@@ -16,7 +16,7 @@ using UnityEngine;
 namespace Client.Tests.PlaceSystem
 {
     /// <summary>
-    ///     連結レイアウト（アンカー＋ゴースト群）が置けない設置を弾く検査を検証する
+    ///     連結レイアウトの設置不可検査を検証
     ///     Verifies that placements whose chain layout cannot fit are rejected
     /// </summary>
     public class ChainPlacementReporterTest
