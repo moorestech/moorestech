@@ -136,7 +136,7 @@ namespace Client.Tests.Mining
                 _targetObject.transform.position = ray.GetPoint(1f);
                 _targetObject.AddComponent<SphereCollider>().radius = 0.05f;
                 var mapObject = _targetObject.AddComponent<MapObjectGameObject>();
-                _targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject);
+                _targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject, interactable: true);
                 Physics.SyncTransforms();
                 return mapObject;
             }

@@ -110,6 +110,7 @@ namespace Server.Protocol.PacketResponse
                     case MiningAttackResult.ToolMismatch:
                     case MiningAttackResult.CooldownNotElapsed:
                     case MiningAttackResult.InventoryFull:
+                    case MiningAttackResult.NotInteractable:
                         Debug.Log($"Mining attack rejected. playerId:{data.PlayerId} instanceId:{data.InstanceId} result:{result}");
                         return null;
                     default:
