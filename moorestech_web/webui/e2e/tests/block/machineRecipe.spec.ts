@@ -8,90 +8,58 @@ test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
 });
 
-test("レシピ有り機械は大型パネルでインベントリ/レシピ選択タブを切り替える", async ({ page }) => {
+test("選択済機械は大型パネルでヘッダ＋レシピ分スロット＋ゴーストを出し、タブを持たない", async ({ page }) => {
   await setBlock(page, "machine");
   await page.goto("/");
-
-  // 選択済み機械のデフォルトはインベントリタブ
-  // A machine with a selected recipe defaults to the inventory tab
   await expect(page.getByTestId("block-inventory")).toHaveAttribute("data-large", "true");
-  await expect(page.getByTestId("machine-tab-switch")).toBeVisible();
-  await expect(page.getByTestId("machine-tab-inventory")).toHaveAttribute("aria-pressed", "true");
-  // レシピ選択タブが先頭（ADR 0010）
-  // The recipe tab comes first (ruling from the ADR 0010 session)
-  const tabButtons = page.getByTestId("machine-tab-switch").locator("button");
-  await expect(tabButtons.first()).toHaveAttribute("data-testid", "machine-tab-recipes");
-  await expect(page.getByTestId("machine-input-slots")).toBeVisible();
-  await expect(page.getByTestId("machine-progress-arrow")).toBeVisible();
-  await expect(page.getByTestId("machine-recipe-selection")).toHaveCount(0);
-  // 選択中レシピの生産物がインベントリタブにも1個表示される
-  // The selected recipe's product also shows on the inventory tab as one slot
-  await expect(page.getByTestId("machine-selected-product")).toBeVisible();
-  // 電力率はタブ外の共通フッタとして常時表示される
-  // The power rate stays visible as a common footer outside the tabs
+  await expect(page.getByTestId("machine-tab-switch")).toHaveCount(0);
+  await expect(page.getByTestId("machine-selected-recipe")).toBeVisible();
+  await expect(page.getByTestId("machine-selected-recipe-time")).toContainText("10");
+  // 入力は素材数(1)・出力は生産物数(1)だけ描く（機械は入2/出1）
+  // Draw only recipe-count slots: 1 input, 1 output (the machine itself has 2/1)
+  await expect(page.getByTestId("machine-input-slots").locator("> div")).toHaveCount(1);
+  await expect(page.getByTestId("machine-output-slots").locator("> div")).toHaveCount(1);
+  // 空の出力スロットはゴースト、実物のある入力スロットはゴースト無し
+  // The empty output slot is a ghost; the occupied input slot is not
+  await expect(page.getByTestId("machine-output-slots").locator('[data-ghost="true"]')).toHaveCount(1);
+  await expect(page.getByTestId("machine-input-slots").locator('[data-ghost="true"]')).toHaveCount(0);
+  await expect(page.getByTestId("machine-fluid-slots").locator('[data-ghost="true"]')).toHaveCount(1);
   await expect(page.getByTestId("machine-power-rate")).toBeVisible();
-  // 稼働状態ラベルが電力率の隣に表示
-  // The machine state label sits next to the power rate (fixture is processing)
   await expect(page.getByTestId("machine-state-label")).toBeVisible();
-
-  await page.getByTestId("machine-tab-recipes").click();
-  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
-  await expect(page.getByTestId("machine-input-slots")).toHaveCount(0);
-  await expect(page.getByTestId("machine-power-rate")).toBeVisible();
-
-  await page.getByTestId("machine-tab-inventory").click();
-  await expect(page.getByTestId("machine-input-slots")).toBeVisible();
 });
 
-test("機械レシピ3件を表示し、ホバー詳細・解除・選択時のタブ遷移を反映する", async ({ page }) => {
+test("ヘッダクリックでレシピ選択モードへ戻り、行クリックでインベントリモードへ戻る", async ({ page }) => {
   await setBlock(page, "machine");
   await page.goto("/");
-  await page.getByTestId("machine-tab-recipes").click();
-
+  await page.getByTestId("machine-selected-recipe").click();
   const selection = page.getByTestId("machine-recipe-selection");
-  const slots = selection.locator('[data-testid^="machine-recipe-"]:not([data-testid^="machine-recipe-detail"])');
   await expect(selection).toBeVisible();
-  await expect(slots).toHaveCount(3);
-  await expect(selection.locator('[data-selected="true"]')).toHaveCount(1);
+  await expect(page.getByTestId("machine-inventory-body")).toHaveCount(0);
+  await expect(selection.locator('[data-testid^="machine-recipe-"][data-testid$="-name"]')).toHaveCount(3);
+  await expect(page.getByTestId(selectedRecipeTestId)).toHaveAttribute("data-selected", "true");
+  await expect(page.getByTestId(`${selectedRecipeTestId}-row-duration`)).toContainText("10");
+
+  // 右クリックは解除を送らない（選択が残る）
+  // Right-click never clears (the selection stays)
+  await page.getByTestId(selectedRecipeTestId).click({ button: "right" });
   await expect(page.getByTestId(selectedRecipeTestId)).toHaveAttribute("data-selected", "true");
 
-  // 既定の詳細プレビューは選択中レシピ。ホバー中はホバー先を優先する
-  // The default detail preview is the selected recipe; hover takes precedence
-  await expect(page.getByTestId("machine-recipe-detail")).toBeVisible();
-  await expect(page.getByTestId("machine-recipe-detail-time")).toContainText("10");
-  await page.getByTestId(firstRecipeTestId).hover();
-  await expect(page.getByTestId("machine-recipe-detail-time")).toContainText("5");
-  await page.getByTestId("machine-recipe-detail").hover();
-  await expect(page.getByTestId("machine-recipe-detail-time")).toContainText("10");
-
-  // 右クリック解除後、ホバーを外すと詳細は案内文へ戻る
-  // After right-click clearing, leaving hover swaps the detail for the guidance text
-  await page.getByTestId(selectedRecipeTestId).click({ button: "right" });
-  await expect(selection.locator('[data-selected="true"]')).toHaveCount(0);
-  await page.getByTestId("machine-recipe-detail").hover();
-  await expect(page.getByTestId("machine-recipe-detail")).toHaveCount(0);
-  await expect(page.getByTestId("machine-recipe-detail-empty")).toBeVisible();
-
-  // 左クリック選択で選択が反映され、インベントリタブへ自動遷移する
-  // Left-click selection applies and automatically jumps to the inventory tab
   await page.getByTestId(firstRecipeTestId).click();
-  await expect(page.getByTestId("machine-tab-inventory")).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId("machine-input-slots")).toBeVisible();
-  await expect(page.getByTestId("machine-selected-product")).toBeVisible();
+  await expect(page.getByTestId("machine-inventory-body")).toBeVisible();
+  await expect(page.getByTestId("machine-selected-recipe-time")).toContainText("5");
 });
 
-test("レシピ未選択の機械はレシピ選択タブで開く", async ({ page }) => {
+test("レシピ未選択の機械はレシピ選択モードで開く", async ({ page }) => {
   await setBlock(page, "gearMachine");
   await page.goto("/");
-  await expect(page.getByTestId("machine-tab-recipes")).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+  await expect(page.getByTestId("machine-inventory-body")).toHaveCount(0);
 });
 
-test("レシピ無しブロックは小型パネルのままタブを出さない", async ({ page }) => {
+test("レシピ無しブロックは小型パネルのまま", async ({ page }) => {
   await setBlock(page, "generator");
   await page.goto("/");
-
   await expect(page.getByTestId("block-inventory")).toBeVisible();
   await expect(page.getByTestId("block-inventory")).not.toHaveAttribute("data-large", "true");
-  await expect(page.getByTestId("machine-tab-switch")).toHaveCount(0);
+  await expect(page.getByTestId("machine-recipe-selection")).toHaveCount(0);
 });

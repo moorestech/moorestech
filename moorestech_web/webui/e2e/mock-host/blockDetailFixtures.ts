@@ -12,8 +12,10 @@ export const blockMachine = {
   blockType: "ElectricMachine",
   identifier: "block:3",
   blockGuid: BlockGuids.ELECTRIC_MACHINE_BLOCK_GUID,
-  itemSlots: [{ itemId: 3, count: 5 }, empty(), { itemId: 7, count: 1 }, empty()],
-  fluidSlots: [{ fluidId: 1, amount: 25.5, capacity: 100.0, fluidGuid: WATER_FLUID_GUID }],
+  // 選択中(bbbbbbbb)の素材itemId2をスロット0に置き、出力/液体スロットは空にしてゴースト描画を検証する
+  // Places selected recipe (bbbbbbbb)'s material itemId 2 in slot 0 and leaves the output/fluid slots empty to exercise ghost rendering
+  itemSlots: [{ itemId: 2, count: 5 }, empty(), empty(), empty()],
+  fluidSlots: [{ fluidId: 0, amount: 0, capacity: 100.0, fluidGuid: "" }],
   progress: 0.42,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",
