@@ -71,7 +71,7 @@
 **Interfaces:**
 - Produces: `InputManager.Playable.Interact : InputKey`（`GetKeyDown` / `GetKey`）、`InputManager.Playable.Ride : InputKey`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Client.Input;
@@ -108,12 +108,12 @@ namespace Client.Tests.Input
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `'PlayableInputManager' does not contain a definition for 'Interact'` のコンパイルエラー
 
-- [ ] **Step 3: .inputactions にアクションとバインドを追加する**
+- [x] **Step 3: .inputactions にアクションとバインドを追加する**
 
 `moorestechInputSettings.inputactions` の `Playable` マップ `actions` 配列末尾に2要素、`bindings` 配列末尾に2要素を追加する（idは `uuidgen | tr A-Z a-z` で新規発行。既存idの複製禁止）:
 
@@ -165,7 +165,7 @@ Expected: `'PlayableInputManager' does not contain a definition for 'Interact'` 
 
 `.inputactions.meta` は `generateWrapperCode: 1` なので、Unityの再インポートで `Client.Input/moorestechInputSettings.cs` が自動再生成される（手編集しない）。再生成されない場合は `uloop execute-dynamic-code` で `UnityEditor.AssetDatabase.ImportAsset("Assets/Asset/Common/moorestechInputSettings.inputactions", UnityEditor.ImportAssetOptions.ForceUpdate);` を実行する。
 
-- [ ] **Step 4: InputManager に公開する**
+- [x] **Step 4: InputManager に公開する**
 
 `PlayableInputManager` を次に置き換える:
 
@@ -194,13 +194,13 @@ Expected: `'PlayableInputManager' does not contain a definition for 'Interact'` 
     }
 ```
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlayableInteractInputTest"`
 Expected: 2件 PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Asset/Common/moorestechInputSettings.inputactions moorestech_client/Assets/Scripts/Client.Input/ moorestech_client/Assets/Scripts/Client.Tests/Input/
@@ -232,7 +232,7 @@ git commit -m "feat: InputSystemにInteract(F)とRide(E)アクションを追加
   ```
 - Consumes: なし
 
-- [ ] **Step 1: 契約ファイルを書く**
+- [x] **Step 1: 契約ファイルを書く**
 
 `Interact/IInteractable.cs`:
 ```csharp
@@ -272,7 +272,7 @@ namespace Client.Game.InGame.Interact
 }
 ```
 
-- [ ] **Step 2: IMiningTargetObject を IInteractable 継承に変える**
+- [x] **Step 2: IMiningTargetObject を IInteractable 継承に変える**
 
 `IMiningTargetObject.cs` の interface 宣言を次に置換（`GameObject` と `SetFocused` を削除、`using Client.Game.InGame.Interact;` 追加）:
 
@@ -295,7 +295,7 @@ namespace Client.Game.InGame.Interact
     }
 ```
 
-- [ ] **Step 3: MapObjectGameObject / MapObjectRayTarget を追従させる**
+- [x] **Step 3: MapObjectGameObject / MapObjectRayTarget を追従させる**
 
 `MapObjectGameObject.cs`: `SetFocused` を `SetHighlighted` にリネームし、`IsInteractAvailable` を追加:
 ```csharp
@@ -331,7 +331,7 @@ namespace Client.Game.InGame.Map.MapObject
 }
 ```
 
-- [ ] **Step 4: OutcropGameObject / OutcropRayTarget を追従させる**
+- [x] **Step 4: OutcropGameObject / OutcropRayTarget を追従させる**
 
 `OutcropGameObject.cs`: `SetFocused` を削除し、以下を追加（アウトライン生成はTask 4で `RuntimeOutlineFactory` を接続するまで空のままにせず、この時点では未実装のため `_outlineObject` フィールドとON/OFFだけ書く）:
 ```csharp
@@ -376,7 +376,7 @@ namespace Client.Game.InGame.Map.Outcrop
 }
 ```
 
-- [ ] **Step 5: MiningControllerContext からハイライト呼び出しを外す**
+- [x] **Step 5: MiningControllerContext からハイライト呼び出しを外す**
 
 ハイライトは `InteractController` が全種別に対して一箇所で行うため、`SetFocusTarget` を次に置換:
 ```csharp
@@ -391,7 +391,7 @@ namespace Client.Game.InGame.Map.Outcrop
         }
 ```
 
-- [ ] **Step 6: テストのスタブを追従させる**
+- [x] **Step 6: テストのスタブを追従させる**
 
 - `MiningFocusStateTestFixture.OutcomeStubMiningTarget`: `SetFocused` → `SetHighlighted(bool highlighted) { }`、`public bool IsInteractAvailable => true;` を追加
 - `MiningEquipmentSwitchTest.AttackTrackingMiningTarget`・`MiningTargetFocusContextTest.FocusTrackingMiningTarget`: 同様に追従。`FocusTrackingMiningTarget` は `SetHighlighted` で `FocusEnabledCount/FocusDisabledCount` を数える形に置換
@@ -417,13 +417,13 @@ namespace Client.Game.InGame.Map.Outcrop
 ```
 - `MapObjectRayTargetTest.cs`: `IMiningRayTarget` を `IInteractRayTarget`、`.MiningTargetObject` を `.Interactable` に置換
 
-- [ ] **Step 7: コンパイルとテスト**
+- [x] **Step 7: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → `MiningController.cs` の `rayTarget.MiningTargetObject` 参照エラーが出るので、その1行を `rayTarget.Interactable as IMiningTargetObject` に暫定置換（Task 6 で削除される）→ エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Mining(Focus|TargetFocus|Equipment)"`
 Expected: すべて PASS
 
-- [ ] **Step 8: コミット**
+- [x] **Step 8: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/Interact moorestech_client/Assets/Scripts/Client.Game/InGame/Mining moorestech_client/Assets/Scripts/Client.Game/InGame/Map moorestech_client/Assets/Scripts/Client.Tests/Mining moorestech_client/Assets/Scripts/Client.Tests/Map
@@ -446,7 +446,7 @@ git commit -m "refactor: IInteractable契約を新設し採掘対象を載せ替
 - Consumes: `InputManager.Playable.Interact`（Task 1）
 - Produces: `LocalizationKeys.Ui.Tooltip.PickUpInteract`（改名）
 
-- [ ] **Step 1: CSV を書き換える**
+- [x] **Step 1: CSV を書き換える**
 
 ```csv
 ui.tooltip.holdToGet,Hold F to get,Hold F to get,F長押しで取得する,F gedrückt halten zum Aufnehmen
@@ -456,13 +456,13 @@ ui.tooltip.namedMineClick,{p0} : Press F to mine,{p0} : Press F to mine,{p0} : F
 ```
 （14行目・162行目・257行目・258行目を上記でそれぞれ置換。`pickUpLeftClick` は改名）
 
-- [ ] **Step 2: 生成物を更新する**
+- [x] **Step 2: 生成物を更新する**
 
 Run: `cd moorestech_web/webui && npm run gen:i18n && cd -`
 Run: `uloop compile --project-path ./moorestech_client --force-recompile`
 Expected: `LocalizationKeys.Ui.Tooltip.PickUpLeftClick` 参照箇所（`MiningFocusState.cs:67`）で CS0117
 
-- [ ] **Step 3: 採掘ステートの入力とキーを差し替える**
+- [x] **Step 3: 採掘ステートの入力とキーを差し替える**
 
 `MiningFocusState.cs`:
 - 44行目 `if (!InputManager.Playable.ScreenLeftClick.GetKey)` → `if (!InputManager.Playable.Interact.GetKey)`（直前コメントを「// Fが押されていない場合はフォーカスを維持 / // Keep focus while F is not held」に）
@@ -471,7 +471,7 @@ Expected: `LocalizationKeys.Ui.Tooltip.PickUpLeftClick` 参照箇所（`MiningFo
 
 `MiningProgressState.cs:56`: `if (!InputManager.Playable.ScreenLeftClick.GetKey)` → `if (!InputManager.Playable.Interact.GetKey)`（コメント「// Fを離したらフォーカス状態に遷移 / // Releasing F returns to the focus state」）
 
-- [ ] **Step 4: テストの入力をFへ**
+- [x] **Step 4: テストの入力をFへ**
 
 `MiningEquipmentSwitchTest.cs`: `_mouse` を `Keyboard _keyboard` に、`Setup` の `InputSystem.AddDevice<Mouse>()` を `AddDevice<Keyboard>()` に。`PressLeftClick` を次に置換:
 ```csharp
@@ -494,13 +494,13 @@ Expected: `LocalizationKeys.Ui.Tooltip.PickUpLeftClick` 参照箇所（`MiningFo
 
 `PickUpLeftClick` を参照するテストのキー名を `PickUpInteract` に置換。
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Mining"`
 Expected: すべて PASS（`MiningAimTest` はTask 6で削除するまで暫定置換のまま通る）
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated moorestech_client/Assets/Scripts/Client.Game/InGame/Mining moorestech_client/Assets/Scripts/Client.Tests/Mining
@@ -522,7 +522,7 @@ git commit -m "feat: 採掘の入力を左クリックからFへ差し替え文�
 - Produces: `static GameObject RuntimeOutlineFactory.Create(GameObject root)` — `root` 直下に `Outline` レイヤの非活性子 `Outline` を作り返す。`MaterialConst.GetInteractOutlineMaterial()`
 - Consumes: `LayerConst.OutlineLayer`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Client.Common;
@@ -561,12 +561,12 @@ namespace Client.Tests.Interact
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認**
+- [x] **Step 2: コンパイルして失敗を確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `RuntimeOutlineFactory` / `GetInteractOutlineMaterial` 未定義エラー
 
-- [ ] **Step 3: 材質を移設し、MaterialConst と WrapperPrefabFactory を更新**
+- [x] **Step 3: 材質を移設し、MaterialConst と WrapperPrefabFactory を更新**
 
 ```bash
 git mv moorestech_client/Assets/Asset/Common/Shader/Outline/Outline.mat moorestech_client/Assets/Resources/InteractOutline.mat
@@ -589,7 +589,7 @@ git mv moorestech_client/Assets/Asset/Common/Shader/Outline/Outline.mat.meta moo
 
 `WrapperPrefabFactory.cs:16`: `private const string OutlineMaterialPath = "Assets/Resources/InteractOutline.mat";`
 
-- [ ] **Step 4: RuntimeOutlineFactory を書く**
+- [x] **Step 4: RuntimeOutlineFactory を書く**
 
 ```csharp
 using System.Collections.Generic;
@@ -673,13 +673,13 @@ namespace Client.Game.InGame.Interact.Outline
 }
 ```
 
-- [ ] **Step 5: コンパイルとテスト**
+- [x] **Step 5: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "RuntimeOutlineFactoryTest"`
 Expected: PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Resources moorestech_client/Assets/Asset/Common/Shader/Outline moorestech_client/Assets/Scripts/Client.Common/MaterialConst.cs moorestech_client/Assets/Scripts/Editor/MapObjectWrapperGenerator/WrapperPrefabFactory.cs moorestech_client/Assets/Scripts/Client.Game/InGame/Interact moorestech_client/Assets/Scripts/Client.Tests/Interact
@@ -713,7 +713,7 @@ git commit -m "feat: 実行時アウトライン生成を追加しOutline材質�
   新キー: `LocalizationKeys.Ui.Tooltip.InteractOpenBlock`（{p0}=ブロック名）、`InteractOpenTrainInventory`、`InteractRideTrain`
 - Consumes: `InputManager.Playable.Interact/Ride`（Task 1）、`RuntimeOutlineFactory`（Task 4）、既存 `BlockSubInventorySource` / `TrainSubInventorySource` / `RideTrainCarRequest`
 
-- [ ] **Step 1: CSV にヒントキーを追加**
+- [x] **Step 1: CSV にヒントキーを追加**
 
 `ui.tooltip.namedRequiredItems` 行の直後に追加:
 ```csv
@@ -723,7 +723,7 @@ ui.tooltip.interactRideTrain,[E] Ride,[E] Ride,[E] 乗車,[E] Einsteigen
 ```
 Run: `cd moorestech_web/webui && npm run gen:i18n && cd -` / `uloop compile --project-path ./moorestech_client --force-recompile`
 
-- [ ] **Step 2: 失敗するテストを書く**
+- [x] **Step 2: 失敗するテストを書く**
 
 ```csharp
 using System.Linq;
@@ -785,7 +785,7 @@ namespace Client.Tests.Interact
 ```
 ※ `OpenableBlockName` / `PlainBlockName` は `moorestech_server/Assets/Scripts/Tests.Module/TestMod/ForUnitTest/master/blocks.json` を開き、`blockUIAddressablesPath` が非空のブロック名と空のブロック名を実際に確認して置き換えること（名前が違えばテストは即失敗するので誤りは検出される）。`BlockGameObject.Initialize` は `ClientContext.VanillaApi` を触るため、テストで例外が出る場合は `BlockInteractable.Initialize(BlockGameObject)` を直接呼ぶ形に変え、`blockGameObject` は `SetField` で `BlockMasterElement` を差し込む（`MiningTestReflection.SetField` 利用）。
 
-- [ ] **Step 3: 契約2ファイルを書く**
+- [x] **Step 3: 契約2ファイルを書く**
 
 `Interact/ITapInteractAction.cs`:
 ```csharp
@@ -830,7 +830,7 @@ namespace Client.Game.InGame.Interact
 }
 ```
 
-- [ ] **Step 4: ブロック側を書く**
+- [x] **Step 4: ブロック側を書く**
 
 `Block/BlockOpenInteractAction.cs`:
 ```csharp
@@ -927,7 +927,7 @@ namespace Client.Game.InGame.Block
 ```
 BlockGameObject.cs は204行なので、この追加と引き換えに `SubscribeBlockState` 内の例外ログ文字列を1行に畳むか、`LoadBoundingBox` を `BlockPreviewBoundingBoxLoader` として分離して200行以下にする（分離する場合は `Block/BlockPreviewBoundingBoxLoader.cs` を新設し `static async UniTask<IPreviewOnlyObject> LoadAsync(BlockGameObject owner, BlockMasterElement master, BlockPositionInfo posInfo)` を持たせる）。
 
-- [ ] **Step 5: 列車側を書く**
+- [x] **Step 5: 列車側を書く**
 
 `Train/View/Object/Core/TrainCarInteractActions.cs`:
 ```csharp
@@ -1037,13 +1037,13 @@ namespace Client.Game.InGame.Train.View.Object.Core
                 trainObject.AddComponent<TrainCarInteractable>().Initialize(trainEntityObject);
 ```
 
-- [ ] **Step 6: コンパイルとテスト**
+- [x] **Step 6: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BlockInteractableTest"`
 Expected: PASS
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add -A Localization/localization.csv moorestech_web/webui/src/shared/i18n/generated moorestech_client/Assets/Scripts/Client.Game/InGame/Interact moorestech_client/Assets/Scripts/Client.Game/InGame/Block moorestech_client/Assets/Scripts/Client.Game/InGame/Train/View/Object/Core moorestech_client/Assets/Scripts/Client.Tests/Interact
@@ -1076,7 +1076,7 @@ git commit -m "feat: ブロックと列車にITapInteractableを実装"
   ```
 - Consumes: Task 2〜5 のすべて、`MiningControllerContext` / `Mining*State`、`BlockClickDetectUtil` と同じ `AimPointProvider.GetAimScreenPoint()` / `UiPointerHitTest.IsPointerOverAnyUi()`、`PlayerSystemContainer.Instance.PlayerObjectController.Position`
 
-- [ ] **Step 1: 選定テストを書く（`MiningAimTest` / `OutcropMiningAimTest` の土台を流用）**
+- [x] **Step 1: 選定テストを書く（`MiningAimTest` / `OutcropMiningAimTest` の土台を流用）**
 
 `Client.Tests/Interact/InteractTargetSelectorTest.cs`（Setup/TearDown は `MiningAimTest.cs:26-101` のカメラ・EventSystem・PlayerSystem 生成をそのままコピーし、`_miningObject` を除く）:
 ```csharp
@@ -1150,7 +1150,7 @@ git commit -m "feat: ブロックと列車にITapInteractableを実装"
 ```
 ※ `MapObjectGameObject.IsAvailable` は `MapObjectMasterElement != null` を要求するため、テストでは `MiningTestReflection.SetField`（`BindingFlags`で自動プロパティのバッキングフィールド `<MapObjectMasterElement>k__BackingField`）に `MasterHolder.MapObjectMaster` の任意要素を差し込む。`Setup` で `new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));` を呼び、`MasterHolder.MapObjectMaster.MapObjects.Data[0]` を使う。
 
-- [ ] **Step 2: tap駆動とハイライト差分のテストを書く**
+- [x] **Step 2: tap駆動とハイライト差分のテストを書く**
 
 `Client.Tests/Interact/TapInteractionDriverTest.cs`（`MiningFocusStateTestFixture` と同じ tooltip 生成を `Setup` にコピー）:
 ```csharp
@@ -1204,12 +1204,12 @@ git commit -m "feat: ブロックと列車にITapInteractableを実装"
 ```
 ※ このテストのために `InteractTargetSelector.Select()` は `virtual` にし、`ScriptedSelector : InteractTargetSelector` が `Next` を返す。`HighlightTrackingInteractable` は `ITapInteractable` で `Actions` 空（tapもminingも走らない）。`InteractController` のコンストラクタ第1引数 `LocalPlayerEquipment` は `MiningControllerContext` へ渡すだけなので null 可（`MiningControllerContext(null)` は既存テストで実績あり）。
 
-- [ ] **Step 3: コンパイルして失敗を確認**
+- [x] **Step 3: コンパイルして失敗を確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `InteractTargetSelector` 等の未定義エラー
 
-- [ ] **Step 4: InteractableResolver を書く**
+- [x] **Step 4: InteractableResolver を書く**
 
 ```csharp
 using Client.Game.InGame.Block;
@@ -1248,7 +1248,7 @@ namespace Client.Game.InGame.Interact
 }
 ```
 
-- [ ] **Step 5: InteractTargetSelector を書く**
+- [x] **Step 5: InteractTargetSelector を書く**
 
 ```csharp
 using System;
@@ -1349,7 +1349,7 @@ namespace Client.Game.InGame.Interact
 ```
 （`OverlapSphere` の重複コライダ除外は `best` との比較だけでは不十分なので、実装時は `HashSet<GameObject>` をフィールドに持ち `Clear()` してから使う。上記の `if (best != null && ...)` 行はその `HashSet.Add` 判定に置き換える。）
 
-- [ ] **Step 6: TapInteractionDriver を書く**
+- [x] **Step 6: TapInteractionDriver を書く**
 
 ```csharp
 using System.Collections.Generic;
@@ -1393,7 +1393,7 @@ namespace Client.Game.InGame.Interact
 ```
 （`TooltipLine` のコンストラクタ形は `MouseCursorTooltip.cs` の `TooltipLine` 定義を読んで合わせる。`Show(owner, lines)` は `IReadOnlyList<TooltipLine>` を受ける既存API）
 
-- [ ] **Step 7: InteractController を書く**
+- [x] **Step 7: InteractController を書く**
 
 ```csharp
 using Client.Game.InGame.Mining;
@@ -1458,7 +1458,7 @@ namespace Client.Game.InGame.Interact
 ```
 `MiningIdleState` のコンストラクタは `MouseCursorTooltip.Instance.Hide(...)` を呼ぶため、テストで `MouseCursorTooltip.Instance` が無い場合は `InteractControllerHighlightTest` の Setup で `MiningFocusStateTestFixture` と同じ tooltip 生成を行う。
 
-- [ ] **Step 8: GameScreenState を接続し、旧サービスを削除する**
+- [x] **Step 8: GameScreenState を接続し、旧サービスを削除する**
 
 `GameScreenState.cs`: フィールド `_subInventoryInteractService` / `_rideVehicleInputService` を `private readonly InteractController _interactController;` に置換し、コンストラクタ引数も `InteractController interactController` に。`GetNextUpdate` の乗車・ブロック判定2行を次に置換:
 ```csharp
@@ -1504,13 +1504,13 @@ return "removed missing scripts: " + removed;'
 
 `OutcropMiningAimTest.cs`: `MiningController` の生成・`Update` 呼び出しを `new InteractTargetSelector().Select()` の戻り値検証に置き換える（露頭とmapObjectの優先はレイの最前面に従う、という既存の意図を維持）。
 
-- [ ] **Step 9: コンパイルと全関連テスト**
+- [x] **Step 9: コンパイルと全関連テスト**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0、`grep -rn "KeyCode.E\b\|ScreenLeftClick" moorestech_client/Assets/Scripts/Client.Game/InGame/Mining` が0件
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Interact|Mining|UIState(CameraInteraction|FocusRestoration|KeyHintCatalog)"`
 Expected: すべて PASS
 
-- [ ] **Step 10: コミット**
+- [x] **Step 10: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts moorestech_client/Assets/Asset/Common/Prefab/GameSystem.prefab
@@ -1528,13 +1528,13 @@ git commit -m "feat: InteractControllerをGameScreenStateから駆動し旧ク�
 
 **Interfaces:** なし（データのみ）
 
-- [ ] **Step 1: masterリポジトリを現ピンから分岐する**
+- [x] **Step 1: masterリポジトリを現ピンから分岐する**
 
 ```bash
 cd ../moorestech_master && git fetch origin && git checkout -b feature/interact-key-pickup-text 6fdf04d978543f9c40074ba1281fdaf45a843f9f
 ```
 
-- [ ] **Step 2: 文言を置換する**
+- [x] **Step 2: 文言を置換する**
 
 - `challenges.json:14` `"summary": "地面の小石を左クリックで1個拾おう"` → `"summary": "地面の小石をFで1個拾おう"`
 - `challenges.json:26` `"pinText": "左クリックで拾う"` → `"pinText": "Fで拾う"`
@@ -1543,7 +1543,7 @@ cd ../moorestech_master && git fetch origin && git checkout -b feature/interact-
 
 `grep -rn "左クリック" server_v8/mods` が0件になることを確認。
 
-- [ ] **Step 3: コミット・push・PR作成**
+- [x] **Step 3: コミット・push・PR作成**
 
 ```bash
 git add -A && git commit -m "master: 小石チャレンジの左クリック文言をFに変更（moorestech ADR 0046）" && git push -u origin feature/interact-key-pickup-text
@@ -1551,7 +1551,7 @@ gh pr create --title "小石チャレンジの左クリック文言をFに変更
 git rev-parse HEAD
 ```
 
-- [ ] **Step 4: 本repoのピンを更新する**
+- [x] **Step 4: 本repoのピンを更新する**
 
 `.moorestech-external-revisions.json` の `moorestech_master.commitHash` を Step 3 の `git rev-parse HEAD` の値に置換（Unityがピンを書き戻すことがあるため `git diff` で当該1行だけの差分であることを確認 — [[unity-rewrites-master-pin-file]]）。
 
@@ -1571,7 +1571,7 @@ cd ../moorestech && git add .moorestech-external-revisions.json && git commit -m
 - Produces: `p.PressInteract()`, `p.HoldInteract(float seconds)`, `p.PressRide()`
 - Consumes: `SemanticInput.KeyDown/KeyUp/TapKey`（既存）
 
-- [ ] **Step 1: DSLを書く**
+- [x] **Step 1: DSLを書く**
 
 ```csharp
 using Client.Playtest.Input;
@@ -1612,7 +1612,7 @@ namespace Client.Playtest.Operations
 }
 ```
 
-- [ ] **Step 2: スキル参照表に3行追加**
+- [x] **Step 2: スキル参照表に3行追加**
 
 `write-scenario.md` の操作表（`ClickPlace()` 行の直後）に:
 ```
@@ -1621,7 +1621,7 @@ namespace Client.Playtest.Operations
 | `PressRide()` | Eを単押し（列車に乗る） |
 ```
 
-- [ ] **Step 3: コンパイルとコミット**
+- [x] **Step 3: コンパイルとコミット**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0
 ```bash
@@ -1636,19 +1636,19 @@ git commit -m "feat: プレイテストDSLにインタラクト操作(F/E)を追
 **Files:**
 - Create（一時。結果確認後に削除するか `Client.Playtest/Scenarios/` の既存配置規約に従う）: `moorestech_client/Assets/Scripts/Client.Playtest/Scenarios/InteractKeyUnificationScenario.cs`
 
-- [ ] **Step 1: シナリオを書く**
+- [x] **Step 1: シナリオを書く**
 
 `unity-playmode-recorded-playtest` スキルの `references/write-scenario.md` の雛形に従い:
 1. `SetupFlatGround()` → 小石mapObjectの最寄りへ `WarpPlayer` → `AimAt(小石)` → `PressInteract()` → `CountItem("小石")` が1増えること
 2. 石窯を `PlaceBlockDirect` → 隣へワープ → `AimAt(石窯)` → 2フレーム待って `MouseCursorTooltip.Instance.GetPresentation().Lines[0].Key.Key == "ui.tooltip.interactOpenBlock"` → `PressInteract()` → `WaitUiState(UIStateEnum.SubInventory, 5f)`
 3. `ExitToGameScreen()` → 石窯から3m離れてAim → tooltipが `Hidden` であること（2m制限）
 
-- [ ] **Step 2: 実行**
+- [x] **Step 2: 実行**
 
 Run: `.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh InteractKeyUnificationScenario`（スキル本文の手順どおり）
 Expected: `result.json` が success。録画で石窯にアウトラインが出ていることを目視確認し、スクリーンショットをPR本文に添付する
 
-- [ ] **Step 3: コミット**
+- [x] **Step 3: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Playtest/Scenarios/InteractKeyUnificationScenario.cs*
