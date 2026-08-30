@@ -31,12 +31,12 @@ namespace Client.Tests.Mining
         private GameObject _progressBarObject;
         private GameObject _mapObjectObject;
         private MiningCompleteSoundEffectFixture _soundEffectFixture;
-        private Mouse _mouse;
+        private Keyboard _keyboard;
         public override void Setup()
         {
             base.Setup();
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            _mouse = InputSystem.AddDevice<Mouse>();
+            _keyboard = InputSystem.AddDevice<Keyboard>();
             MiningTestReflection.ResetInputManagerCache();
 
             // 取得アイテム名の解決に辞書が要る
@@ -89,7 +89,7 @@ namespace Client.Tests.Mining
             var context = new MiningControllerContext(CreateEquipmentHoldingTool());
             context.SetFocusTarget(CreateMiningMapObject());
             var miningState = new MiningProgressState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
-            PressLeftClick();
+            PressInteract();
             // 装備が変わらない限り採掘は継続する（この土台が無いと切替検知の失敗を検出できない）
             // Mining continues while the equipment is unchanged; without this baseline a broken switch check is invisible
             Assert.AreSame(miningState, miningState.GetNextUpdate(context, 0.01f));
@@ -107,7 +107,7 @@ namespace Client.Tests.Mining
             context.SetFocusTarget(startedTarget);
             var miningTool = new MiningToolCandidate(context.LocalPlayerEquipment.SelectedItem.Id, 0.01f);
             var miningState = new MiningProgressState(startedTarget, miningTool);
-            PressLeftClick();
+            PressInteract();
             var completeState = miningState.GetNextUpdate(context, miningTool.AttackSpeed);
             Assert.IsInstanceOf<MiningCompleteState>(completeState);
 
@@ -125,7 +125,7 @@ namespace Client.Tests.Mining
             var context = new MiningControllerContext(CreateEquipmentHoldingTool());
             context.SetFocusTarget(CreateMiningMapObject());
             var miningState = new MiningProgressState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
-            PressLeftClick();
+            PressInteract();
 
             context.SetFocusTarget(CreateMiningMapObject());
 
@@ -158,17 +158,17 @@ namespace Client.Tests.Mining
             return miningTool;
         }
 
-        private void PressLeftClick()
+        private void PressInteract()
         {
             // 入力アセットの生成(Enable)を状態イベントより先に済ませないとバインドが解決されない
             // The input asset must be created (and enabled) before the state event, otherwise its bindings never resolve
-            var leftClick = InputManager.Playable.ScreenLeftClick;
+            var interact = InputManager.Playable.Interact;
             InputSystem.Update();
-            Press(_mouse.leftButton);
+            Press(_keyboard.fKey);
             InputSystem.Update();
             // 押下が届いていないと全遷移がフォーカス復帰に化けてテストが無意味になるため前提を固定する
             // Without the press landing every transition collapses into a focus fallback and the test proves nothing
-            Assert.IsTrue(leftClick.GetKey, "左クリックの押下がInputSystemへ届いていない");
+            Assert.IsTrue(interact.GetKey, "Fの押下がInputSystemへ届いていない");
         }
 
     }

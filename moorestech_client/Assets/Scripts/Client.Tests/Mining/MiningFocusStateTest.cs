@@ -60,7 +60,7 @@ namespace Client.Tests.Mining
             var next = RunFocusState(MiningStartOutcome.InstantPickUp, focusState);
 
             Assert.AreSame(focusState, next);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PickUpLeftClick.Key, ShownTooltipKey());
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PickUpInteract.Key, ShownTooltipKey());
         }
     }
 }

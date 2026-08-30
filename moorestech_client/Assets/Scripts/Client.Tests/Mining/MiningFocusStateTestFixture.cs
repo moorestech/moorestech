@@ -34,7 +34,7 @@ namespace Client.Tests.Mining
         {
             base.Setup();
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            InputSystem.AddDevice<Mouse>();
+            InputSystem.AddDevice<Keyboard>();
             MiningTestReflection.ResetInputManagerCache();
 
             // 文言解決は実辞書を通す
@@ -83,7 +83,7 @@ namespace Client.Tests.Mining
 
             // 入力アセットは状態イベントより先に作る
             // The input asset must be created before the state event, otherwise its bindings never resolve
-            Assert.IsFalse(InputManager.Playable.ScreenLeftClick.GetKey, "左クリックが押されていない前提が崩れている");
+            Assert.IsFalse(InputManager.Playable.Interact.GetKey, "Fが押されていない前提が崩れている");
             return focusState.GetNextUpdate(context, 0.01f);
         }
 
