@@ -140,8 +140,14 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             //ブロックを設置し、返却対象となるアイテムを1つ入れておく（本体返却なし仕様のため）
             //Place a block and put one item inside so there is something to refund (no body refund anymore)
-            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
-            block.GetComponent<IBlockInventory>().InsertItem(itemStackFactory.Create(new ItemId(3), 1), InsertItemContext.Empty);
+            //機械はレシピ未選択だと入力を全拒否するため、先にレシピを選び束縛された素材を投入する
+            //An unselected machine rejects every input, so select a recipe first and insert one of its bound materials
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
+            var machineBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            worldBlock.TryAddBlock(machineBlockId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
+            var boundInput = recipe.InputItems[0];
+            block.GetComponent<IBlockInventory>().InsertItem(itemStackFactory.Create(boundInput.ItemGuid, 1), InsertItemContext.Empty);
             
             
             //プロトコルを使ってブロックを削除
