@@ -25,6 +25,15 @@ namespace Client.Input
             return Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : UnityEngine.Input.mousePosition;
         }
 
+        // カーソルロック中は座標が凍結するため、移動量はdeltaで読む
+        // Cursor lock freezes the position, so movement must be read as a delta
+        public static Vector2 GetMouseDelta()
+        {
+            return Mouse.current != null
+                ? Mouse.current.delta.ReadValue()
+                : new Vector2(UnityEngine.Input.GetAxis("Mouse X"), UnityEngine.Input.GetAxis("Mouse Y"));
+        }
+
         public static bool GetKeyDown(KeyCode keyCode)
         {
             var key = ToInputSystemKey(keyCode);

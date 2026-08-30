@@ -5,21 +5,21 @@ using UnityEngine;
 namespace Client.Tests.CancelInput
 {
     /// <summary>
-    ///     右短押し/右ドラッグ/パネル上押下の判別とReset契約の回帰試験
-    ///     Regression tests for short-press vs drag vs press-over-UI classification and the Reset contract
+    ///     右短押し/右ドラッグ/パネル上押下の判別とReset契約の回帰試験。入力はフレーム毎のマウス移動量で与える
+    ///     Regression tests for short-press vs drag vs press-over-UI classification and the Reset contract; input is given as per-frame mouse deltas
     /// </summary>
     public class RightShortPressInputTest
     {
-        private static readonly Vector2 Origin = new(100f, 100f);
+        private static readonly Vector2 NoMove = Vector2.zero;
 
         [Test]
         public void パネル外で動かさず離すと短押しが1回だけ成立する()
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(true, Origin + new Vector2(2f, 1f), false);
-            input.ManualUpdate(false, Origin + new Vector2(2f, 1f), false);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(true, new Vector2(2f, 1f), false);
+            input.ManualUpdate(false, NoMove, false);
 
             Assert.IsTrue(input.TryConsumeShortPress());
             Assert.IsFalse(input.TryConsumeShortPress(), "短押しは1度だけ消費される");
@@ -30,14 +30,28 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(true, Origin + new Vector2(RightShortPressInput.MoveThresholdPixels + 1f, 0f), false);
-            // 戻ってきても一度ドラッグになった押下は短押しに復帰しない
-            // Once a press became a drag it never turns back into a short press, even if the pointer returns
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(false, Origin, false);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(true, new Vector2(RightShortPressInput.MoveThresholdPixels + 1f, 0f), false);
+            // 逆向きに戻しても一度ドラッグになった押下は短押しに復帰しない
+            // Once a press became a drag it never turns back into a short press, even when the pointer moves back
+            input.ManualUpdate(true, new Vector2(-(RightShortPressInput.MoveThresholdPixels + 1f), 0f), false);
+            input.ManualUpdate(false, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress());
+        }
+
+        [Test]
+        public void 一度に閾値未満でも累積が閾値を超えるとドラッグ扱いになる()
+        {
+            var input = new RightShortPressInput();
+
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(true, new Vector2(3f, 0f), false);
+            input.ManualUpdate(true, new Vector2(3f, 0f), false);
+            input.ManualUpdate(true, new Vector2(3f, 0f), false);
+            input.ManualUpdate(false, NoMove, false);
+
+            Assert.IsFalse(input.TryConsumeShortPress(), "3pxを3回で累積9pxとなりドラッグ扱い");
         }
 
         [Test]
@@ -45,9 +59,9 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, Origin, true);
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(false, Origin, false);
+            input.ManualUpdate(true, NoMove, true);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(false, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress());
         }
@@ -57,14 +71,14 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, Origin, false);
+            input.ManualUpdate(true, NoMove, false);
             input.Reset();
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(false, Origin, false);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(false, NoMove, false);
             Assert.IsFalse(input.TryConsumeShortPress(), "Reset前からの押下は捨てる");
 
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(false, Origin, false);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(false, NoMove, false);
             Assert.IsTrue(input.TryConsumeShortPress(), "離してからの新しい押下は成立する");
         }
 
@@ -73,8 +87,8 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(false, Origin, false);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(false, NoMove, false);
             input.Reset();
 
             Assert.IsFalse(input.TryConsumeShortPress());
@@ -85,23 +99,23 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, Origin, false);
+            input.ManualUpdate(true, NoMove, false);
             input.Reset();
             input.Reset();
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(false, Origin, false);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(false, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress());
         }
 
         [Test]
-        public void 閾値ちょうど8pxでドラッグになる()
+        public void 累積ちょうど8pxでドラッグになる()
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(true, Origin + new Vector2(RightShortPressInput.MoveThresholdPixels, 0f), false);
-            input.ManualUpdate(false, Origin + new Vector2(RightShortPressInput.MoveThresholdPixels, 0f), false);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(true, new Vector2(RightShortPressInput.MoveThresholdPixels, 0f), false);
+            input.ManualUpdate(false, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress(), "ちょうど閾値でドラッグになるため短押しは不成立");
         }
@@ -111,8 +125,8 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, Origin, false);
-            input.ManualUpdate(false, Origin, true);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(false, NoMove, true);
 
             Assert.IsTrue(input.TryConsumeShortPress());
         }

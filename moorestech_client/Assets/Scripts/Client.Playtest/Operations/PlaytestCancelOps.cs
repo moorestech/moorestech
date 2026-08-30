@@ -22,10 +22,11 @@ namespace Client.Playtest.Operations
         public static async UniTask RightDrag(this PlaytestDriver p, Vector2 deltaPixels)
         {
             p.Note("右ドラッグ");
-            var start = SemanticInput.CurrentMousePosition();
             SemanticInput.MouseButtonDown(1);
             await UniTask.DelayFrame(2);
-            SemanticInput.MouseMoveTo(start + deltaPixels);
+            // 回転中はカーソルがロックされ座標が凍結するため、移動はdeltaで伝える
+            // The cursor is locked while looking and its position freezes, so movement is conveyed as a delta
+            SemanticInput.MouseDragBy(deltaPixels);
             await UniTask.DelayFrame(2);
             SemanticInput.MouseButtonUp(1);
             await UniTask.DelayFrame(2);

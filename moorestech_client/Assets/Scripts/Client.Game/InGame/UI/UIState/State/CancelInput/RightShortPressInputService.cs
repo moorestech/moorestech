@@ -20,7 +20,7 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
         // Call every frame; true only on the frame a short press outside UI is confirmed
         public bool TryConsumeShortPressOutsideUi()
         {
-            _rightShortPressInput.ManualUpdate(HybridInput.GetMouseButton(1), HybridInput.GetMousePosition(), UiPointerHitTest.IsPointerOverAnyUi());
+            _rightShortPressInput.ManualUpdate(HybridInput.GetMouseButton(1), HybridInput.GetMouseDelta(), UiPointerHitTest.IsPointerOverAnyUi());
             return _rightShortPressInput.TryConsumeShortPress();
         }
 

@@ -5,13 +5,19 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
     /// <summary>
     ///     右ボタンの押下を「短押し（動かさず離す）」と「ドラッグ」に判別する状態機械。入力読取は呼び出し側がプッシュする
     ///     State machine classifying a right-button press as a short press (released without moving) or a drag; the caller pushes the input
+    ///
+    ///     移動量は絶対座標でなくフレーム毎のdeltaを累積する。TPS右押下でカーソルがロックされ座標が凍結するため。
+    ///     Movement accumulates per-frame deltas instead of absolute positions, because the TPS right press locks the cursor and freezes its position.
     /// </summary>
     public class RightShortPressInput
     {
         public const float MoveThresholdPixels = 8f;
 
         private bool _isHeld;
-        private Vector2 _pressStartPosition;
+
+        // 押下開始からの移動軌跡長。往復して戻っても減らない
+        // Path length travelled since the press started; it never shrinks when the pointer returns
+        private float _movedDistance;
 
         // 押下がまだ短押し候補か。パネル上で押した・閾値以上動いた時点でfalseに落ちる
         // Whether the current press is still a short-press candidate; drops to false when pressed over UI or moved past the threshold
@@ -25,7 +31,7 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
 
         // 押下継続を1フレーム進め、離した瞬間に短押しを確定する
         // Advances the press by one frame and confirms a short press at the moment of release
-        public void ManualUpdate(bool isRightHeld, Vector2 pointerPosition, bool isPointerOverUi)
+        public void ManualUpdate(bool isRightHeld, Vector2 pointerDelta, bool isPointerOverUi)
         {
             if (!isRightHeld) _isDeadPress = false;
             var isActiveHeld = isRightHeld && !_isDeadPress;
@@ -47,16 +53,18 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
                 if (!nextHeld && _isArmed) _shortPressPending = true;
 
                 _isHeld = nextHeld;
-                if (nextHeld) _pressStartPosition = pointerPosition;
+                if (nextHeld) _movedDistance = 0f;
                 _isArmed = nextHeld && !isPointerOverUi;
             }
 
-            // 閾値以上動いたらドラッグとみなし、この押下では二度と成立させない
-            // Moving past the threshold makes it a drag; this press can never become a short press again
+            // 累積移動が閾値に達したらドラッグとみなし、この押下では二度と成立させない
+            // Once the accumulated movement reaches the threshold it is a drag; this press can never become a short press again
             void DisarmIfMoved()
             {
                 if (!_isHeld || !_isArmed) return;
-                if ((pointerPosition - _pressStartPosition).sqrMagnitude < MoveThresholdPixels * MoveThresholdPixels) return;
+
+                _movedDistance += pointerDelta.magnitude;
+                if (_movedDistance < MoveThresholdPixels) return;
 
                 _isArmed = false;
             }
