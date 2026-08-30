@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Interact
     {
         GameObject GameObject { get; }
 
-        // 破壊済み・マスタ欠損・開けないブロック等は候補にならない
+        // 破壊済み・マスタ欠損等は対象外
         // Destroyed, master-less or non-openable things never become candidates
         bool IsInteractAvailable { get; }
 

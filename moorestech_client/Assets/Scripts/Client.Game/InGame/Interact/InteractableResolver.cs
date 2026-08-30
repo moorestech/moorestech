@@ -7,12 +7,12 @@ using UnityEngine;
 namespace Client.Game.InGame.Interact
 {
     /// <summary>
-    ///     当たったコライダからインタラクト対象を解決する。種別ごとの探し方はここに閉じる
+    ///     コライダから対象を解決。種別分岐はここに閉じる
     ///     Resolves the interactable behind a hit collider; per-kind lookup lives only here
     /// </summary>
     public static class InteractableResolver
     {
-        public static bool TryResolve(Collider collider, out IInteractable interactable)
+        internal static bool TryResolve(Collider collider, out IInteractable interactable)
         {
             interactable = ResolveByKind();
 
@@ -27,7 +27,7 @@ namespace Client.Game.InGame.Interact
 
             IInteractable ResolveByKind()
             {
-                // mapObject・露頭はコライダ上のマーカーで案内される
+                // mapObject・露頭はマーカーで案内
                 // Map objects and outcrops are pointed at by a marker on the collider
                 if (collider.TryGetComponent(out IInteractRayTarget rayTarget)) return rayTarget.Interactable;
 
@@ -36,7 +36,7 @@ namespace Client.Game.InGame.Interact
                 var blockChild = collider.GetComponentInParent<BlockGameObjectChild>();
                 if (blockChild != null) return blockChild.BlockGameObject.GetComponent<BlockInteractable>();
 
-                // 列車はレンダラー子から車両本体のインタラクト面へ
+                // 列車はレンダラー子から車両面へ
                 // Train cars climb from the renderer child to the car's interact face
                 var trainChild = collider.GetComponentInParent<TrainCarEntityChildrenObject>();
                 if (trainChild != null) return trainChild.TrainCarEntityObject.GetComponent<TrainCarInteractable>();

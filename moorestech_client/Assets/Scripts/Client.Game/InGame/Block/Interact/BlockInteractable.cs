@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Block.Interact
 {
     /// <summary>
-    ///     開けるブロックのインタラクト面。BlockGameObjectPrefabContainerが開けるブロックにのみ付与する
+    ///     開けるブロックの面。付与はPrefabContainerが判断
     ///     Interact face of an openable block; BlockGameObjectPrefabContainer attaches it only to openable blocks
     /// </summary>
     public class BlockInteractable : MonoBehaviour, ITapInteractable
@@ -30,7 +30,7 @@ namespace Client.Game.InGame.Block.Interact
             var openAction = new BlockOpenInteractAction(blockGameObject);
             Actions = new ITapInteractAction[] { openAction };
 
-            // 言語切替時にヒントのブロック名を再解決してプッシュする
+            // 言語切替時にヒント名を再解決
             // Re-resolve and push the hint's block name whenever the language changes
             Localize.OnLanguageChanged.Subscribe(_ => openAction.RefreshHintParams()).AddTo(this);
         }

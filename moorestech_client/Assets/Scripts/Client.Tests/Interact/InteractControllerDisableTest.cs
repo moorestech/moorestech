@@ -23,7 +23,7 @@ using UnityEngine.UI;
 namespace Client.Tests.Interact
 {
     /// <summary>
-    ///     他UIステートへ抜ける時の後始末を検証。採掘FSMは捨てずにIdleまで正規遷移させる
+    ///     他UIステート離脱時の後始末を検証
     ///     Verifies the teardown when leaving for another UI state: the mining FSM is walked down to Idle, never discarded
     /// </summary>
     public class InteractControllerDisableTest : InputTestFixture
@@ -110,7 +110,7 @@ namespace Client.Tests.Interact
             selector.SetNext(CreateReadyMiningTarget());
             PressInteract();
 
-            // Idle→Focus→Progressまで正規に進める
+            // Idle→Focus→Progressへ進行
             // Walk up through Idle, Focus and into Progress
             controller.ManualUpdate();
             controller.ManualUpdate();

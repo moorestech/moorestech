@@ -44,7 +44,7 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
 
-            // インタラクト対象の選定・ハイライト・F/Eの実行を1箇所で駆動し、遷移があれば返す
+            // インタラクト選定・ハイライト・F/E実行を駆動
             // Drive target selection, highlight and F/E execution in one place and return any transition
             var interactTransit = _interactController.ManualUpdate();
             if (interactTransit != null) return interactTransit;
@@ -98,7 +98,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
-            // 他UIステート滞在中は選定もハイライトもtooltipも出さない
+            // 他UIステート中は選定/ハイライト/tooltip停止
             // No selection, highlight or tooltip survives into another UI state
             _interactController.Disable();
 

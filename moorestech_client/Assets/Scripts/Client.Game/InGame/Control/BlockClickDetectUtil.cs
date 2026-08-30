@@ -56,21 +56,33 @@ namespace Client.Game.InGame.Control
         /// </summary>
         public static bool TryGetCursorOnComponent<T>(out T component)
         {
+            component = default;
+            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, out var hit)) return false;
+
             // 最前面ヒットの子要素から解決する
             // Resolve from the frontmost hit's children
-            return TryGetCursorOnHit(hit => hit.collider.gameObject.GetComponentInChildren<T>(), out component);
+            component = hit.collider.gameObject.GetComponentInChildren<T>();
+            return component is not null;
         }
 
         public static bool TryGetCursorOnComponentInParent<T>(out T component)
         {
+            component = default;
+            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, out var hit)) return false;
+
             // 列車の当たり判定コライダーは本体コンポーネントを子に持たないため親方向へ辿る
             // Train hit colliders do not hold the entity component in their children, so climb toward parents
-            return TryGetCursorOnHit(hit => hit.collider.GetComponentInParent<T>(), out component);
+            component = hit.collider.GetComponentInParent<T>();
+            return component is not null;
         }
 
-        private static bool TryGetCursorOnHit<T>(System.Func<RaycastHit, T> resolveComponent, out T component)
+        /// <summary>
+        ///     照準レイの最前面の実体ヒットを返す。設置ゴーストのみ貫通する（InteractTargetSelectorと共通の規則）
+        ///     Returns the aim ray's frontmost solid hit; only placement ghosts are penetrated (shared rule with InteractTargetSelector)
+        /// </summary>
+        public static bool TryGetFrontmostSolidHit(int layerMask, out RaycastHit frontmostHit)
         {
-            component = default;
+            frontmostHit = default;
 
             // 25/11/4 そもそもCamera.mainを使ってていいのか？これも検討したい
             var camera = Camera.main;
@@ -80,7 +92,7 @@ namespace Client.Game.InGame.Control
             // The aim point is resolved centrally by AimPointProvider per view mode
             var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
 
-            var hits = Physics.RaycastAll(ray, 100, LayerConst.BlockOnlyLayerMask);
+            var hits = Physics.RaycastAll(ray, 100, layerMask);
             if (hits.Length == 0) return false;
 
             // 手前のプレビューゴーストだけを貫通対象にする
@@ -91,10 +103,8 @@ namespace Client.Game.InGame.Control
             {
                 if (hit.collider.GetComponentInParent<BlockPreviewObject>() != null) continue;
 
-                component = resolveComponent(hit);
-                if (component is not null) return true;
-
-                return false;
+                frontmostHit = hit;
+                return true;
             }
 
             return false;

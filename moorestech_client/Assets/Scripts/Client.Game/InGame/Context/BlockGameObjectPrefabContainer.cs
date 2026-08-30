@@ -129,7 +129,7 @@ namespace Client.Game.InGame.Context
 
                 blockObj.gameObject.SetActive(true);
                 var blockType = blockMasterElement.BlockType;
-                // ブロックが開けるものの場合はインタラクト面を付与する
+                // 開けるブロックに面を付与する
                 // If the block is openable, attach the interact face
                 BlockInteractableAttacher.AttachIfOpenable(block.gameObject, blockMasterElement);
                 // 機械の場合はそのプロセッサを付与する

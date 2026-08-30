@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Client.Tests.Interact
 {
     /// <summary>
-    ///     ハイライトが対象変化時だけ切り替わることを検証（旧MiningControllerContextの実体判定の移設先）
+    ///     ハイライトは対象変化時のみ切替（旧実装の移設先）
     ///     Verifies the highlight toggles only when the target changes; moved here from the old MiningControllerContext
     /// </summary>
     public class InteractControllerHighlightTest
@@ -67,7 +67,7 @@ namespace Client.Tests.Interact
             controller.ManualUpdate();
             CollectionAssert.AreEqual(new[] { "first:true", "first:false", "second:true", "second:false" }, log);
 
-            // 他UIステートへ抜ける時は掴んでいた対象を消す
+            // 他UIステート離脱時は対象を消す
             // Leaving for another UI state extinguishes whatever was held
             selector.SetNext(first);
             controller.ManualUpdate();

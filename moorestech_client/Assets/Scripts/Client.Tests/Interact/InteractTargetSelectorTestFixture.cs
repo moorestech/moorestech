@@ -17,7 +17,7 @@ using UnityEngine.InputSystem.UI;
 namespace Client.Tests.Interact
 {
     /// <summary>
-    ///     選定テストが共有する土台（実カメラ・実EventSystem・実マスタ・実Physics）
+    ///     選定テストの土台（実カメラ・EventSystem等）
     ///     Shared ground for the selection tests: real camera, EventSystem, master data and physics
     /// </summary>
     public abstract class InteractTargetSelectorTestFixture : InputTestFixture
@@ -100,7 +100,7 @@ namespace Client.Tests.Interact
             UnityEngine.Object.DestroyImmediate(_eventSystemObject);
             UnityEngine.Object.DestroyImmediate(CameraObject);
 
-            // 他テストが所有するMainCameraタグを必ず元へ戻す
+            // 他テストのMainCameraタグを復元
             // Restore every MainCamera tag owned by another test
             foreach (var cameraObject in _previousMainCameraObjects)
                 if (cameraObject != null) cameraObject.tag = "MainCamera";

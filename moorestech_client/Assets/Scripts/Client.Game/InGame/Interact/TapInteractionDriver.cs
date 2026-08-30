@@ -39,20 +39,24 @@ namespace Client.Game.InGame.Interact
             // The presentation suppresses notifications by value comparison, so hand it a fixed array instead of the reused list
             MouseCursorTooltip.Instance.Show(TooltipOwner, _lines.ToArray());
             return null;
+
+            #region Internal
+
+            TapKeyPressLatch GetLatch(InputKey key)
+            {
+                if (_latches.TryGetValue(key, out var latch)) return latch;
+
+                latch = new TapKeyPressLatch(key);
+                _latches.Add(key, latch);
+                return latch;
+            }
+
+            #endregion
         }
 
         public void Clear()
         {
             MouseCursorTooltip.Instance.Hide(TooltipOwner);
-        }
-
-        private TapKeyPressLatch GetLatch(InputKey key)
-        {
-            if (_latches.TryGetValue(key, out var latch)) return latch;
-
-            latch = new TapKeyPressLatch(key);
-            _latches.Add(key, latch);
-            return latch;
         }
 
         /// <summary>

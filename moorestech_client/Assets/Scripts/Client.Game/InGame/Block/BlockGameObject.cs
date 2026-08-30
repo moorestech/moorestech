@@ -70,7 +70,7 @@ namespace Client.Game.InGame.Block
             // Initialize child BlockGameObjectChild components (include inactive ones that may be activated later)
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>(true)) child.Init(this);
 
-            // 開けるブロックだけ付与済みのインタラクト面を初期化する（付与自体はBlockGameObjectPrefabContainerが判断）
+            // 開けるブロックのみ面を初期化する
             // Initialize the interact face only when one was attached; attachment itself is decided by BlockGameObjectPrefabContainer
             if (gameObject.TryGetComponent<BlockInteractable>(out var interactable)) interactable.Initialize(this);
 
@@ -139,7 +139,7 @@ namespace Client.Game.InGame.Block
             
             async UniTask AddBoundingBox()
             {
-                _previewOnlyObjects.Add(await BlockPreviewBoundingBoxLoader.LoadAsync(this, blockMasterElement, posInfo));
+                _previewOnlyObjects.Add(await BlockPreviewBoundingBoxLoader.LoadAsync(this, blockMasterElement, posInfo, this.GetCancellationTokenOnDestroy()));
             }
 
             #endregion

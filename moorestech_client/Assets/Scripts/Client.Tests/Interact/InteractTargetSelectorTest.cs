@@ -62,7 +62,7 @@ namespace Client.Tests.Interact
             CameraObject.transform.rotation = Quaternion.LookRotation(Vector3.forward);
             PlayerObject.transform.position = Vector3.zero;
 
-            // 前方1.5m（角度0）と、より近い右横1.0m（角度90）
+            // 前方1.5m/角度0、右1.0m/角度90
             // One 1.5m ahead (angle 0) and a closer one 1.0m to the right (angle 90)
             var ahead = CreateMapObjectTarget(new Vector3(0f, 0f, 1.5f));
             CreateMapObjectTarget(new Vector3(1.0f, 0f, 0f));
@@ -77,7 +77,7 @@ namespace Client.Tests.Interact
             var target = CreateMapObjectTarget(AimRay().GetPoint(1f));
             PlayerObject.transform.position = target.transform.position;
 
-            // 選定はIsInteractAvailableを通る。マスタ未解決なら照準に当たっていても対象にならない
+            // マスタ未解決なら対象にならない
             // Selection passes through IsInteractAvailable, so a master-less object under the aim is no target
             TestReflection.SetField(target, "<MapObjectMasterElement>k__BackingField", null);
             Assert.IsNull(new InteractTargetSelector().Select());
@@ -88,7 +88,7 @@ namespace Client.Tests.Interact
         {
             AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
 
-            // インタラクト面が付かないブロック（ベルトコンベア等）は解決先が無い
+            // 面が無いブロックは解決先が無い
             // A block with no interact face attached, such as a belt conveyor, resolves to nothing
             var blockObject = new GameObject("PlainBlock");
             blockObject.transform.position = AimRay().GetPoint(1f);

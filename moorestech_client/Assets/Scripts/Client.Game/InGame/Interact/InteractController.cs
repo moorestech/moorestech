@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Interact
 {
     /// <summary>
-    ///     GameScreenStateから毎フレーム駆動される司令塔。選定・ハイライト・単押し/長押しの振り分けを一箇所で行う
+    ///     毎フレーム駆動の司令塔。選定/ハイライト/タップ長押しを一元化
     ///     Driven every frame by GameScreenState: selection, highlight and tap/hold dispatch in one place
     /// </summary>
     public class InteractController
@@ -16,6 +16,7 @@ namespace Client.Game.InGame.Interact
         private readonly TapInteractionDriver _tapDriver = new();
 
         private IInteractable _highlighted;
+        private GameObject _highlightedGameObject;
         private IMiningState _miningState = new MiningIdleState();
 
         public InteractController(LocalPlayerEquipment localPlayerEquipment, InteractTargetSelector selector)
@@ -53,11 +54,15 @@ namespace Client.Game.InGame.Interact
 
         private void ApplyHighlight(IInteractable target)
         {
+            // 破棄済みGameObjectはUnityのfake-null判定を通してから墓標を捨てる（interface型のまま比較すると偽陽性でMissingReferenceException）
+            // Discard a destroyed target's tombstone through Unity's fake-null check first; comparing via the interface type alone false-positives into MissingReferenceException
+            if (_highlightedGameObject == null) _highlighted = null;
+
             if (ReferenceEquals(_highlighted, target)) return;
 
             // 別実体でも同じGameObjectを指すなら見た目は変わらない
             // Different instances pointing at one GameObject show the same outline, so nothing toggles
-            var isSameObject = _highlighted != null && target != null && _highlighted.GameObject == target.GameObject;
+            var isSameObject = _highlightedGameObject != null && target != null && _highlightedGameObject == target.GameObject;
             if (!isSameObject)
             {
                 _highlighted?.SetHighlighted(false);
@@ -65,6 +70,7 @@ namespace Client.Game.InGame.Interact
             }
 
             _highlighted = target;
+            _highlightedGameObject = target?.GameObject;
         }
     }
 }

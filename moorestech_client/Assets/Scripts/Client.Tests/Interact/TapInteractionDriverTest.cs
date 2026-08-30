@@ -69,7 +69,7 @@ namespace Client.Tests.Interact
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory.Key, lines[0].Key.Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.InteractRideTrain.Key, lines[1].Key.Key);
 
-            // 押されたキーのアクションだけが走り、ヒントは畳まれる
+            // 押下キーのみ実行しヒントは畳む
             // Only the pressed key's action runs and the hints fold away
             Press(keyboard.eKey);
             InputSystem.Update();

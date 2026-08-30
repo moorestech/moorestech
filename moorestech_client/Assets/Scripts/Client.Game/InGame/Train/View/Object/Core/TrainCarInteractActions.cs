@@ -21,7 +21,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
         public LocalizationKey HintKey => LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory;
         public IReadOnlyList<string> HintParams => Array.Empty<string>();
 
-        public TrainCarOpenInventoryInteractAction(TrainCarEntityObject trainCar)
+        internal TrainCarOpenInventoryInteractAction(TrainCarEntityObject trainCar)
         {
             _trainCar = trainCar;
         }
@@ -45,14 +45,14 @@ namespace Client.Game.InGame.Train.View.Object.Core
         public LocalizationKey HintKey => LocalizationKeys.Ui.Tooltip.InteractRideTrain;
         public IReadOnlyList<string> HintParams => Array.Empty<string>();
 
-        public TrainCarRideInteractAction(TrainCarEntityObject trainCar)
+        internal TrainCarRideInteractAction(TrainCarEntityObject trainCar)
         {
             _trainCar = trainCar;
         }
 
         public UITransitContext Execute()
         {
-            // TODO ほかプレイヤーが列車に乗っているかどうかをチェックする（旧RideVehicleInputServiceから継承）
+            // TODO 他プレイヤーの乗車チェック（旧サービスから継承）
             // TODO check whether another player is already riding the train (inherited from RideVehicleInputService)
             var container = UITransitContextContainer.Create(new RideTrainCarRequest(_trainCar.TrainCarInstanceId));
             return new UITransitContext(UIStateEnum.TrainHUDScreen, container);

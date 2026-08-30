@@ -21,7 +21,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
         // A car always carries its two actions from creation, so it is always a candidate
         public bool IsInteractAvailable => true;
 
-        public void Initialize(TrainCarEntityObject trainCarEntityObject)
+        internal void Initialize(TrainCarEntityObject trainCarEntityObject)
         {
             Actions = new ITapInteractAction[]
             {

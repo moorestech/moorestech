@@ -19,12 +19,12 @@ using UnityEngine;
 namespace Client.Tests.Interact
 {
     /// <summary>
-    ///     ブロックのインタラクト面が開ける機械だけを候補にすることを検証
+    ///     ブロックの面は開ける機械のみ候補に
     ///     Verifies the block interact face only offers openable machines as candidates
     /// </summary>
     public class BlockInteractableTest
     {
-        // ForUnitTestでUIパスを持つブロックと持たないブロック
+        // UIパス有無のForUnitTestブロック
         // A ForUnitTest block with a UI path and one without
         private const string OpenableBlockName = "TestElectricMachine";
         private const string PlainBlockName = "TestBeltConveyor";

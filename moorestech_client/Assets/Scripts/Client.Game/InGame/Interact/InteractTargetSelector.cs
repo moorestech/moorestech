@@ -1,8 +1,5 @@
-using System;
 using Client.Common;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Player;
 using UnityEngine;
 
@@ -16,9 +13,6 @@ namespace Client.Game.InGame.Interact
     {
         public const float InteractDistance = 2f;
 
-        // レイはカメラ始点で三人称ではプレイヤーの背後から伸びるため、到達距離はインタラクト距離より十分長く取る
-        // The ray starts at the camera, which sits behind the player in third person, so it must reach well beyond the interact distance
-        private const float RayLength = 100f;
         private const int OverlapBufferSize = 64;
 
         private static readonly int InteractLayerMask = LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask;
@@ -38,24 +32,14 @@ namespace Client.Game.InGame.Interact
 
             IInteractable SelectByAimRay()
             {
-                var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
-                var hits = Physics.RaycastAll(ray, RayLength, InteractLayerMask);
-                if (hits.Length == 0) return null;
-                Array.Sort(hits, (left, right) => left.distance.CompareTo(right.distance));
+                // 手順はBlockClickDetectUtilに集約済み
+                // Ray creation, distance sort and ghost penetration are centralized in BlockClickDetectUtil
+                if (!BlockClickDetectUtil.TryGetFrontmostSolidHit(InteractLayerMask, out var hit)) return null;
 
-                foreach (var hit in hits)
-                {
-                    // 手前の設置ゴーストだけ貫通する（BlockClickDetectUtilと同じ規則）
-                    // Only the placement ghost in front is see-through (same rule as BlockClickDetectUtil)
-                    if (hit.collider.GetComponentInParent<BlockPreviewObject>() != null) continue;
-
-                    // 最前面の実体が届く対象でなければ照準ヒット無しとして近傍探索へ回す
-                    // If the frontmost solid is not a reachable target, fall through to the nearby search
-                    if (!InteractableResolver.TryResolve(hit.collider, out var interactable)) return null;
-                    return IsWithinReach(interactable) ? interactable : null;
-                }
-
-                return null;
+                // 届かなければ近傍探索へフォールバック
+                // If the frontmost solid is not a reachable target, fall through to the nearby search
+                if (!InteractableResolver.TryResolve(hit.collider, out var interactable)) return null;
+                return IsWithinReach(interactable) ? interactable : null;
             }
 
             IInteractable SelectNearbyByViewAngle()

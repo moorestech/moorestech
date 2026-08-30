@@ -15,23 +15,22 @@ namespace Client.Game.InGame.Block.Interact
     public class BlockOpenInteractAction : ITapInteractAction
     {
         private readonly BlockGameObject _blockGameObject;
-        private IReadOnlyList<string> _hintParams;
 
         public InputKey Key => InputManager.Playable.Interact;
         public LocalizationKey HintKey => LocalizationKeys.Ui.Tooltip.InteractOpenBlock;
-        public IReadOnlyList<string> HintParams => _hintParams;
+        public IReadOnlyList<string> HintParams { get; private set; }
 
-        public BlockOpenInteractAction(BlockGameObject blockGameObject)
+        internal BlockOpenInteractAction(BlockGameObject blockGameObject)
         {
             _blockGameObject = blockGameObject;
             RefreshHintParams();
         }
 
-        // 言語切替後にヒントのブロック名を再解決する（呼び出しはBlockInteractableのOnLanguageChanged購読）
+        // 言語切替後にヒントのブロック名を再解決する
         // Re-resolve the hint's block name after a language change (invoked from BlockInteractable's OnLanguageChanged subscription)
         internal void RefreshHintParams()
         {
-            _hintParams = new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid)) };
+            HintParams = new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid)) };
         }
 
         public UITransitContext Execute()
