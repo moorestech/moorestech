@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.View.Object.Core
 {
     /// <summary>
-    ///     列車車両のインタラクト面。F=車両インベントリ、E=乗車の2アクション
+    ///     列車車両のインタラクト面。F=車両インベントリ、E=乗車
     ///     Interact face of a train car: F opens the car inventory, E boards it
     /// </summary>
     public class TrainCarInteractable : MonoBehaviour, ITapInteractable

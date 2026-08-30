@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Interact
 {
     /// <summary>
-    ///     毎フレーム駆動の司令塔。選定/ハイライト/タップ長押しを一元化
-    ///     Driven every frame by GameScreenState: selection, highlight and tap/hold dispatch in one place
+    ///     毎フレームの司令塔。選定/ハイライト/タップ長押しを一元化
+    ///     Driven every frame: selection, highlight and tap/hold dispatch in one place
     /// </summary>
     public class InteractController
     {

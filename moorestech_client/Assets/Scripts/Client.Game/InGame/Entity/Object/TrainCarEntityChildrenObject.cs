@@ -13,8 +13,8 @@ namespace Client.Game.InGame.Entity.Object
     {
         public TrainCarEntityObject TrainCarEntityObject { get; private set; }
 
-        // renderer子に当たったレイも車両のインタラクト面へ案内する
-        // A ray hitting a renderer child is pointed at the car's interact face as well
+        // renderer子のレイも車両インタラクト面へ案内
+        // A ray hitting a renderer child is pointed at the car's interact face too
         public IInteractable Interactable => TrainCarEntityObject.GetComponent<TrainCarInteractable>();
 
         private TrainCarMaterialController _materialController;

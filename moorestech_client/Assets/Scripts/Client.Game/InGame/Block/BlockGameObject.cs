@@ -70,8 +70,8 @@ namespace Client.Game.InGame.Block
             // Initialize child BlockGameObjectChild components (include inactive ones that may be activated later)
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>(true)) child.Init(this);
 
-            // 開けるブロックにだけインタラクト面を付けて初期化する
-            // Attach and initialize the interact face only for openable blocks
+            // 開けるブロックのみインタラクト面を初期化
+            // Initialize the interact face only for openable blocks
             if (blockMasterElement.IsBlockOpenable()) gameObject.AddComponent<BlockInteractable>().Initialize(this);
 
             // 地面との衝突判定を無効化

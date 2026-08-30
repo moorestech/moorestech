@@ -18,8 +18,8 @@ namespace Client.Game.InGame.Train.View.Object.Core
     {
         public TrainCarInstanceId TrainCarInstanceId { get; private set; }
 
-        // 当たり判定だけを持つ子（CargoCarのCollision等）から車両のインタラクト面へ案内する
-        // Points a collider-only child, such as CargoCar's Collision, at the car's interact face
+        // 当たり判定だけの子から車両のインタラクト面へ案内する
+        // Points a collider-only child at the car's interact face
         public IInteractable Interactable => GetComponent<TrainCarInteractable>();
 
         private TrainCarMasterElement _trainCarMasterElement;
