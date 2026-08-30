@@ -11,7 +11,6 @@ using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.Outcrop;
-using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Riding;
@@ -65,10 +64,6 @@ namespace Client.Starter
         // Runtime terrain construction runs outside DI in the finalizer, so only read access to the mount point is exposed
         public EnvironmentRoot EnvironmentRoot => environmentRoot;
         
-        // 対象非依存へrename済み。prefabに残る旧キーからそのまま引き継ぐ
-        // Renamed to a target-agnostic name; the old key still in the prefab carries over as is
-        [FormerlySerializedAs("mapObjectMiningController")]
-        [SerializeField] private MiningController miningController;
         [SerializeField] private PlayerSystemContainer playerSystemContainer;
         
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
@@ -152,7 +147,6 @@ namespace Client.Starter
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(saveAndQuitPresenter);
             builder.RegisterComponent(networkDisconnectPresenter);
-            builder.RegisterComponent(miningController);
             
             builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(trainCarObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();

@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control.ViewMode;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
@@ -24,8 +25,9 @@ namespace Client.Tests.UIState
         public void GameScreenExitReturnsToNeutralBeforeDirectInventoryTransition()
         {
             SetUpGameStateController();
+            SetUpMouseCursorTooltip();
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new GameScreenState(null, null, null, null, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
+            var state = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
 
             applier.Calls.Clear();

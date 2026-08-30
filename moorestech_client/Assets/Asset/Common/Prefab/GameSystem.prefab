@@ -702,7 +702,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3329606519850311358}
   - component: {fileID: 2378660713236389372}
-  - component: {fileID: 6370490414090957468}
   m_Layer: 0
   m_Name: MapObject
   m_TagString: Untagged
@@ -737,19 +736,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aaf49e0debf54768bdc588120fbe9d4b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &6370490414090957468
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7604784965301785748}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a95c0ce86d154fb096f10920706da476, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  miningDistance: 2.5
 --- !u!1 &8881494043226809023
 GameObject:
   m_ObjectHideFlags: 0
@@ -820,7 +806,6 @@ MonoBehaviour:
   mapObjectGameObjectDatastore: {fileID: 2378660713236389372}
   outcropGameObjectDatastore: {fileID: 0}
   environmentRoot: {fileID: 0}
-  miningController: {fileID: 6370490414090957468}
   playerSystemContainer: {fileID: 9095410978574352372}
   entityObjectDatastore: {fileID: 9004822369202094949}
   trainCarObjectDatastore: {fileID: 7885969649220293225}
@@ -844,10 +829,12 @@ MonoBehaviour:
   itemViewHighLightTutorialManager: {fileID: 5778655673289165689}
   blockPlacePreviewTutorialManager: {fileID: 7928357057976155080}
   uiDragGuideTutorialManager: {fileID: 8694145142195592791}
+  veinRestrictedPlacementTutorialManager: {fileID: 0}
+  relativeBlockPlacePreviewTutorialManager: {fileID: 0}
   previewBlockController: {fileID: 5250938589678043889}
   railConnectPreviewObject: {fileID: 8373410826899010315}
   saveButton: {fileID: 773343225977944571}
-  backToMainMenu: {fileID: 7635949962361503415}
+  saveAndQuitPresenter: {fileID: 7635949962361503415}
   networkDisconnectPresenter: {fileID: 3760452863612925393}
   challengeManager: {fileID: 5423992904397564507}
   trainRailObjectManager: {fileID: 8673118626874321022}

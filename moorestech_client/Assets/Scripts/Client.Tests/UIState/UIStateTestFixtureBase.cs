@@ -4,6 +4,7 @@ using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Tooltip;
@@ -12,7 +13,9 @@ using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Tests.UIState.Fakes;
 using Client.Tests.ViewMode;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
 
 namespace Client.Tests.UIState
 {
@@ -54,6 +57,13 @@ namespace Client.Tests.UIState
             return new HotbarTapInputService(new ClientHotbarDatastore(), null, placeStateController, new HotbarKeyInput());
         }
 
+        // 装備はハイライト・遷移の検証に関与しないためnullで組む（採掘の可否判定まで踏み込むテストは別系統）
+        // Equipment plays no part in highlight or transition checks, so it is built with null; mining outcome tests live elsewhere
+        protected static InteractController CreateInteractController()
+        {
+            return new InteractController(null, new InteractTargetSelector());
+        }
+
         protected static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)
         {
             return CreateCameraPolicy(applier, new PlayerViewModeController(new FakePlayerViewApplier()));
@@ -70,6 +80,15 @@ namespace Client.Tests.UIState
             SetField(tooltip, "canvasGroup", tooltip.gameObject.AddComponent<CanvasGroup>());
             tooltip.gameObject.SetActive(true);
             InvokeAwake(tooltip);
+        }
+
+        // インタラクト選定は本番と同じUI重なり判定を通るため、EventSystemの実体が要る
+        // Interact selection goes through the production UI-overlap check, so a real EventSystem is required
+        protected void SetUpEventSystem()
+        {
+            var eventSystem = CreateComponent<EventSystem>("EventSystem");
+            eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
+            InvokePrivate(eventSystem, "OnEnable");
         }
 
         protected void SetUpGameStateController()
@@ -114,9 +133,14 @@ namespace Client.Tests.UIState
             target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
         }
 
+        protected static void InvokePrivate(object target, string methodName)
+        {
+            target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, null);
+        }
+
         protected static void InvokeAwake(object target)
         {
-            target.GetType().GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, null);
+            InvokePrivate(target, "Awake");
         }
     }
 }
