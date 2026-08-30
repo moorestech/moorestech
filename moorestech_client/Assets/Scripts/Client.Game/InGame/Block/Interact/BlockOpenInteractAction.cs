@@ -29,7 +29,7 @@ namespace Client.Game.InGame.Block.Interact
 
         // 言語切替後にヒントのブロック名を再解決する（呼び出しはBlockInteractableのOnLanguageChanged購読）
         // Re-resolve the hint's block name after a language change (invoked from BlockInteractable's OnLanguageChanged subscription)
-        public void RefreshHintParams()
+        internal void RefreshHintParams()
         {
             _hintParams = new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid)) };
         }

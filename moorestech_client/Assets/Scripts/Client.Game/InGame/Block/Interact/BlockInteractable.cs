@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.Interact.Outline;
@@ -17,7 +18,7 @@ namespace Client.Game.InGame.Block.Interact
         private GameObject _outlineObject;
 
         public GameObject GameObject => gameObject;
-        public IReadOnlyList<ITapInteractAction> Actions { get; private set; }
+        public IReadOnlyList<ITapInteractAction> Actions { get; private set; } = Array.Empty<ITapInteractAction>();
 
         // 撤去済み（索引の墓標）は候補から外す
         // A removed block (index tombstone) leaves the candidates

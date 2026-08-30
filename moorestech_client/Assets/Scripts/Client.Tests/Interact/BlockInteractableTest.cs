@@ -74,18 +74,30 @@ namespace Client.Tests.Interact
             Assert.IsFalse(openable.IsInteractAvailable);
         }
 
-        // BlockGameObjectPrefabContainerはAddressablesのプレハブロードを伴いテストで再現しづらいため、
-        // 実際の付与条件（IsBlockOpenable）をそこと同じ形で直接検証する
-        // BlockGameObjectPrefabContainer loads prefabs via Addressables and is hard to reproduce in a test,
-        // so the actual attachment condition (IsBlockOpenable) is verified directly in the same shape it is used there
+        // BlockGameObjectPrefabContainerが呼ぶのと同じBlockInteractableAttacherを直接叩き、実際の付与経路を検証する
+        // Call the same BlockInteractableAttacher that BlockGameObjectPrefabContainer uses to verify the real attach path
         [Test]
-        public void 開けないブロックはBlockInteractableの付与条件を満たさない()
+        public void 開けないブロックにはBlockInteractableが付与されない()
         {
             var plainMaster = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == PlainBlockName);
-            var openableMaster = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == OpenableBlockName);
+            var gameObject = new GameObject(PlainBlockName);
+            _createdObjects.Add(gameObject);
 
-            Assert.IsFalse(plainMaster.IsBlockOpenable());
-            Assert.IsTrue(openableMaster.IsBlockOpenable());
+            BlockInteractableAttacher.AttachIfOpenable(gameObject, plainMaster);
+
+            Assert.IsFalse(gameObject.TryGetComponent<BlockInteractable>(out _));
+        }
+
+        [Test]
+        public void 開けるブロックにはBlockInteractableが付与される()
+        {
+            var openableMaster = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == OpenableBlockName);
+            var gameObject = new GameObject(OpenableBlockName);
+            _createdObjects.Add(gameObject);
+
+            BlockInteractableAttacher.AttachIfOpenable(gameObject, openableMaster);
+
+            Assert.IsTrue(gameObject.TryGetComponent<BlockInteractable>(out _));
         }
 
         // BlockGameObject.Initializeはサーバ接続を伴うため、マスタだけ差し込んでインタラクト面を直接初期化する

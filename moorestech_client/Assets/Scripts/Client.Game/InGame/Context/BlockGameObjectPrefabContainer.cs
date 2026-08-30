@@ -131,7 +131,7 @@ namespace Client.Game.InGame.Context
                 var blockType = blockMasterElement.BlockType;
                 // ブロックが開けるものの場合はインタラクト面を付与する
                 // If the block is openable, attach the interact face
-                if (blockMasterElement.IsBlockOpenable()) block.gameObject.AddComponent<BlockInteractable>();
+                BlockInteractableAttacher.AttachIfOpenable(block.gameObject, blockMasterElement);
                 // 機械の場合はそのプロセッサを付与する
                 // If it's a machine, add the corresponding processor
                 if (IsCommonMachine(blockType)) block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>();
