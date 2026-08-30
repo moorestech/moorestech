@@ -61,13 +61,18 @@ export function deriveNodeCardState(node: ResearchNodeData): NodeCardState {
   };
 }
 
-// カードの状態ラベル。ADR 0044: 不可の理由（不足/前提未達）は詳細ペインが担うのでカードでは3語へ畳む
-// Card state label. ADR 0044: the reason for "unavailable" lives in the detail pane, so the card collapses to 3 words
+// カードの状態ラベル表。ADR 0044: 不可の理由（不足/前提未達）は詳細ペインが担うのでカードでは3語へ畳む
+// Card state label table. ADR 0044: the reason for "unavailable" lives in the detail pane, so the card collapses to 3 words
+const NODE_STATE_LABEL_KEYS: Record<ResearchNodeState, TranslationKey> = {
+  completed: L.ui.research.stateCompleted,
+  researchable: L.ui.research.stateAvailable,
+  unresearchableNotEnoughItem: L.ui.research.stateUnavailable,
+  unresearchableNotEnoughPreNode: L.ui.research.stateUnavailable,
+  unresearchableAllReasons: L.ui.research.stateUnavailable,
+};
+
 export function deriveNodeStateLabelKey(node: ResearchNodeData): TranslationKey {
-  const cardState = deriveNodeCardState(node);
-  if (cardState.completed) return L.ui.research.stateCompleted;
-  if (cardState.ready) return L.ui.research.stateAvailable;
-  return L.ui.research.stateUnavailable;
+  return NODE_STATE_LABEL_KEYS[node.state];
 }
 
 // 初期フォーカス: 研究可能優先、無ければ素材待ち最前線
