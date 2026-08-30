@@ -59,7 +59,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             // 地形干渉・重複で既に不可のセルは「今回の設置セル」に数えないため素材行も出さない（前例: ConstructionMaterialShortageReporter）
             // A cell already blocked by terrain/overlap is not a placing cell, so no material line either (precedent: ConstructionMaterialShortageReporter)
             if (!IsGroundClear || !IsPositionFree) return;
-            foreach (var shortage in MaterialShortages) feedback.Add(ConstructionMaterialShortageLine.ToLine(shortage));
+            // 電線判定側も同じアイテムの不足を積みうるため、畳み込む関門へ渡す
+            // The wire judgement can push a shortage for the same item, so this goes through the folding gate
+            feedback.AddMaterialShortages(MaterialShortages);
         }
     }
 }

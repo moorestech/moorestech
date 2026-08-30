@@ -21,7 +21,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // Insufficient wire is the only rejection reason here, so it takes precedence over the other notices
             if (!cursorWirePlaceable)
             {
-                feedback.AddLines(ElectricWireFeedbackLines.WireShortageLines(cursorWireShortages));
+                ElectricWireFeedbackLines.ReportWireShortages(cursorWireShortages, feedback);
                 return true;
             }
 

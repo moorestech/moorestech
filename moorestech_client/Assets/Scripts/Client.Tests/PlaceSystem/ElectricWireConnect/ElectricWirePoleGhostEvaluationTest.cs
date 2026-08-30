@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Localization;
@@ -9,6 +10,7 @@ using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 using Tests.Module.TestMod;
 using UnityEngine;
 
@@ -87,6 +89,31 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             BuildEvaluation(true, true, new List<ConstructionMaterialShortage>()).PushBlockReasons(feedback);
 
             Assert.IsEmpty(feedback.Lines);
+        }
+
+        [Test]
+        // 電柱の建設コストと電線コストが同じアイテムなら、2つの出所から積まれても1行に畳む
+        // When the pole's construction cost and the wire cost are the same item, the two sources still produce one line
+        public void 電柱の建設コスト行と電線の不足行が同一アイテムなら1行に畳まれる()
+        {
+            CreateServer();
+            var itemId = MasterHolder.ItemMaster.GetItemId(Material1Guid);
+            var feedback = new PlacementFeedback();
+
+            // 電柱ゴーストが建設コスト不足(0/10)を積んだ後、電線判定が予約込みの不足(0/11)を積む
+            // The pole ghost pushes its construction shortage (0/10), then the wire judgement pushes the reservation-inclusive one (0/11)
+            BuildEvaluation(true, true, new List<ConstructionMaterialShortage> { new(itemId, 0, 10) }).PushBlockReasons(feedback);
+            var judgement = ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
+            var wireShortages = new List<ConstructionMaterialShortage> { new(itemId, 0, 11) };
+            ElectricWirePlacementFailureTooltipKey.Report(new ElectricWireExtendPreviewData(judgement, wireShortages, 1), feedback);
+
+            // 素材行は1本だけで、必要数は予約分を含む合計側になる
+            // Only one material line remains and its required count is the reservation-inclusive total
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
+            Assert.AreEqual("0", feedback.Lines[0].TextParams[1]);
+            Assert.AreEqual("11", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireCost.Key, feedback.Lines[1].Key.Key);
+            Assert.AreEqual(2, feedback.Lines.Count);
         }
 
         private static ElectricWirePoleGhostEvaluation BuildEvaluation(bool isGroundClear, bool isPositionFree, IReadOnlyList<ConstructionMaterialShortage> shortages)

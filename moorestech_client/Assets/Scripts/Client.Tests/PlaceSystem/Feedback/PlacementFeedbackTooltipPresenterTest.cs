@@ -76,7 +76,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             var presenter = new PlacementFeedbackTooltipPresenter();
             var feedback = new PlacementFeedback();
             feedback.AddBlockedByTerrain();
-            feedback.AddLines(ElectricWireFeedbackLines.WireShortageLines(System.Array.Empty<ConstructionMaterialShortage>()));
+            ElectricWireFeedbackLines.ReportWireShortages(System.Array.Empty<ConstructionMaterialShortage>(), feedback);
 
             presenter.Present(feedback);
 

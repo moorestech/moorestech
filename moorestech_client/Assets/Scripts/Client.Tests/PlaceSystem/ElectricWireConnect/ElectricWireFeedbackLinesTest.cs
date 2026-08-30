@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Localization;
 using Core.Master;
@@ -40,7 +41,9 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
                 new ConstructionMaterialShortage(MasterHolder.ItemMaster.GetItemId(Material2Guid), 0, 2),
             };
 
-            var lines = ElectricWireFeedbackLines.WireShortageLines(shortages);
+            var feedback = new PlacementFeedback();
+            ElectricWireFeedbackLines.ReportWireShortages(shortages, feedback);
+            var lines = feedback.Lines;
 
             Assert.AreEqual(2, lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, lines[0].Key.Key);
@@ -66,7 +69,9 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         [Test]
         public void 不足素材が算出できないときは汎用の設置不可行へ落ちる()
         {
-            var lines = ElectricWireFeedbackLines.WireShortageLines(Array.Empty<ConstructionMaterialShortage>());
+            var feedback = new PlacementFeedback();
+            ElectricWireFeedbackLines.ReportWireShortages(Array.Empty<ConstructionMaterialShortage>(), feedback);
+            var lines = feedback.Lines;
 
             Assert.AreEqual(1, lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, lines[0].Key.Key);

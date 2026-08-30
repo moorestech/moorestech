@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
@@ -15,9 +16,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.F
         // The wire shortage lines carry real item names with held/required; this is the single owner of the fallback key when nothing can be computed
         // 不足素材は判定側（自動接続プレビュー・延長プレビュー）が算出したものだけを受け取り、ここでは算出しない
         // The shortages only ever arrive from the judgement side (auto-connect and extend previews) so the two can never spell them differently
-        public static IReadOnlyList<TooltipLine> WireShortageLines(IReadOnlyList<ConstructionMaterialShortage> shortages)
+        // 行の生成と同一アイテムの畳み込みはPlacementFeedback側の関門が担う
+        // Building the lines and folding duplicates of the same item is the PlacementFeedback gate's job
+        public static void ReportWireShortages(IReadOnlyList<ConstructionMaterialShortage> shortages, PlacementFeedback feedback)
         {
-            return ConstructionMaterialShortageLine.ToLines(shortages, LocalizationKeys.Ui.Tooltip.PlaceWireFailed);
+            feedback.AddMaterialShortagesOrFallback(shortages, LocalizationKeys.Ui.Tooltip.PlaceWireFailed);
         }
 
         public static TooltipLine WireOutOfRangeNotice()

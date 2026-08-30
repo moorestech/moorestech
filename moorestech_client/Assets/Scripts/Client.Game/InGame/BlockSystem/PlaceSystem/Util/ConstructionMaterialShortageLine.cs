@@ -17,6 +17,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         /// <summary>
         /// 不足素材の行群を作る。不足が1件も無いとき（接続ツールのマスタ欠損など）は無言にせず汎用の不可文言1行へ落とす
         /// Builds the shortage lines; with no shortage at all (e.g. a missing connect tool master) it falls back to one generic line instead of staying silent
+        /// PlacementFeedbackを持たない純関数の判断層専用。feedbackへ積む側は同一アイテムを畳むPlacementFeedbackの関門を使うこと
+        /// For the pure decision layer that holds no PlacementFeedback; anything pushing into a feedback must use its gate, which folds the same item into one line
         /// </summary>
         public static IReadOnlyList<TooltipLine> ToLines(IReadOnlyList<ConstructionMaterialShortage> shortages, LocalizationKey emptyFallbackKey)
         {

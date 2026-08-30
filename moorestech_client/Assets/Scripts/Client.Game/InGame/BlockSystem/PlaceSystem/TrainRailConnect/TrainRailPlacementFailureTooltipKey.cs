@@ -1,5 +1,4 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse;
@@ -31,7 +30,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         {
             // レールは複数素材消費で複数行になる
             // A rail's multi-material cost becomes multiple lines
-            if (previewData.FailureReason == RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem) feedback.AddLines(ConstructionMaterialShortageLine.ToLines(previewData.MaterialShortages, LocalizationKeys.Ui.Tooltip.PlaceRailFailed));
+            // 橋脚の建設コストと同じアイテムが並ばないよう、行生成と畳み込みは関門へ委ねる
+            // Building and folding the lines is delegated to the gate so the pier's construction cost never doubles the same item
+            if (previewData.FailureReason == RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem) feedback.AddMaterialShortagesOrFallback(previewData.MaterialShortages, LocalizationKeys.Ui.Tooltip.PlaceRailFailed);
             else if (previewData.FailureReason != RailConnectionEditProtocol.RailConnectionEditFailureReason.None) feedback.Add(new TooltipLine(ToKey(previewData.FailureReason)));
 
             if (!previewData.IsCurvePlaceable) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight));

@@ -38,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.F
             // Material shortage alone can span multiple lines
             if (!preview.IsPlaceable)
             {
-                if (preview.Judgement.FailureReason == ElectricWirePlacementFailureReason.NoWireItem) feedback.AddLines(ElectricWireFeedbackLines.WireShortageLines(preview.MaterialShortages));
+                if (preview.Judgement.FailureReason == ElectricWirePlacementFailureReason.NoWireItem) ElectricWireFeedbackLines.ReportWireShortages(preview.MaterialShortages, feedback);
                 else feedback.Add(new TooltipLine(ToKey(preview.Judgement.FailureReason)));
             }
 
