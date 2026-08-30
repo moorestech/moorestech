@@ -171,9 +171,16 @@ namespace Core.Master.Validator
 
                                     foreach (var pinTarget in pinTargets)
                                     {
-                                        if (MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(pinTarget) == null)
+                                        var pinTargetElement = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(pinTarget);
+                                        if (pinTargetElement == null)
                                         {
                                             logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.MapObjectGuid:{pinTarget}\n";
+                                        }
+                                        // 狙えない装飾物を指すピンは達成不能なチュートリアルになる
+                                        // A pin aimed at an unmineable decoration makes the tutorial impossible to complete
+                                        else if (MapObjectMaster.IsDecoration(pinTargetElement))
+                                        {
+                                            logs += $"[ChallengeMaster] Challenge:{challenge.Title} points Tutorial.MapObjectGuid:{pinTarget} which forbids mining\n";
                                         }
                                     }
                                     break;

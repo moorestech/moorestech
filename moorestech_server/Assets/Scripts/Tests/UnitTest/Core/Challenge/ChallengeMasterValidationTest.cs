@@ -67,6 +67,33 @@ namespace Tests.UnitTest.Core.Challenge
         }
 
         [Test]
+        public void mapObject直指定ピンが装飾物を参照すると失敗する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "challenges.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var tutorial = (JObject)json["data"][0]["challenges"][0]["tutorials"][0];
+
+            // 装飾物は実在するが狙えない。実在チェックだけでは通ってしまう形を突く
+            // The decoration exists yet can never be aimed at, hitting the case an existence check alone lets through
+            tutorial["tutorialType"] = "mapObjectPin";
+            tutorial["tutorialParam"] = new JObject
+            {
+                ["pinTargetType"] = "mapObject",
+                ["pinTargetParam"] = new JObject
+                {
+                    ["mapObjectGuid"] = "00000000-0000-4444-0000-000000000001",
+                },
+                ["pinText"] = "unmineable decoration pin",
+            };
+
+            var master = new ChallengeMaster(json);
+
+            Assert.IsFalse(master.Validate(out var logs));
+            StringAssert.Contains("which forbids mining", logs);
+        }
+
+        [Test]
         public void completeResearchが存在しないresearchNodeGuidを参照すると失敗する()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,

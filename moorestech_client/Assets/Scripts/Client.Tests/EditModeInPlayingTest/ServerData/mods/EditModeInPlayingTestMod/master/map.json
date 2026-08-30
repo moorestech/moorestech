@@ -2,46 +2,47 @@
   "mapObjects": [
     {
       "maxStack": 100,
-      "earnItemHpInterval": 1,
-      "hp": 1,
       "mapObjectName": "Pebble",
       "addressablePath": "Vanilla/Environment/Pebble",
-      "earnItems": [
-        {
-          "maxCount": 1,
-          "minCount": 1,
-          "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
-        }
-      ],
       "mapObjectGuid": "12081941-baa5-42b1-a3ee-5f97f5ee5871",
-      "soundEffectType": "stone",
       "miningType": "PickUp",
-      "miningParam": {},
+      "miningParam": {
+        "hp": 1,
+        "earnItemHpInterval": 1,
+        "soundEffectType": "stone",
+        "earnItems": [
+          {
+            "maxCount": 1,
+            "minCount": 1,
+            "itemGuid": "b0017e14-cc4c-4aef-98ca-64e485a8ab87"
+          }
+        ]
+      },
       "distanceVisibilityType": "cullable"
     },
     {
-      "earnItemHpInterval": 10,
-      "hp": 10,
       "mapObjectName": "Bush",
       "addressablePath": "Vanilla/Environment/BushPlaceholder",
       "initialUnlocked": true,
       "sortPriority": 100,
       "maxStack": 100,
-      "soundEffectType": "tree",
       "miningType": "Mining",
-      "earnItems": [
-        {
-          "maxCount": 2,
-          "minCount": 1,
-          "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4"
-        },
-        {
-          "maxCount": 5,
-          "minCount": 3,
-          "itemGuid": "91458a7e-5eaa-47fd-b79e-8390af20bb84"
-        }
-      ],
       "miningParam": {
+        "hp": 10,
+        "earnItemHpInterval": 10,
+        "soundEffectType": "tree",
+        "earnItems": [
+          {
+            "maxCount": 2,
+            "minCount": 1,
+            "itemGuid": "b74c4061-93fa-48e8-a82d-adbcb6c7e0c4"
+          },
+          {
+            "maxCount": 5,
+            "minCount": 3,
+            "itemGuid": "91458a7e-5eaa-47fd-b79e-8390af20bb84"
+          }
+        ],
         "miningTools": [
           {
             "attackSpeed": 6,
@@ -59,24 +60,25 @@
       "distanceVisibilityType": "cullable"
     },
     {
-      "earnItemHpInterval": 10,
-      "hp": 30,
       "mapObjectName": "Tree",
       "addressablePath": "Vanilla/Environment/Tree",
-      "earnItems": [
-        {
-          "maxCount": 3,
-          "minCount": 2,
-          "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
-        },
-        {
-          "maxCount": 2,
-          "minCount": 1,
-          "itemGuid": "91458a7e-5eaa-47fd-b79e-8390af20bb84"
-        }
-      ],
       "miningType": "Mining",
       "miningParam": {
+        "hp": 30,
+        "earnItemHpInterval": 10,
+        "soundEffectType": "tree",
+        "earnItems": [
+          {
+            "maxCount": 3,
+            "minCount": 2,
+            "itemGuid": "2600a9c6-b365-4754-ad08-0e3d89f9c12d"
+          },
+          {
+            "maxCount": 2,
+            "minCount": 1,
+            "itemGuid": "91458a7e-5eaa-47fd-b79e-8390af20bb84"
+          }
+        ],
         "miningTools": [
           {
             "attackSpeed": 6,
@@ -91,17 +93,23 @@
         ]
       },
       "mapObjectGuid": "240ed0ad-e493-4df4-b28f-a25908d45b0b",
-      "soundEffectType": "tree",
       "distanceVisibilityType": "cullable"
     },
     {
-      "earnItemHpInterval": 10,
-      "hp": 20,
       "mapObjectName": "Stone",
       "addressablePath": "Vanilla/Environment/StoneVein",
       "miningType": "Mining",
-      "soundEffectType": "stone",
       "miningParam": {
+        "hp": 20,
+        "earnItemHpInterval": 10,
+        "soundEffectType": "stone",
+        "earnItems": [
+          {
+            "maxCount": 2,
+            "minCount": 1,
+            "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
+          }
+        ],
         "miningTools": [
           {
             "attackSpeed": 8,
@@ -115,13 +123,6 @@
           }
         ]
       },
-      "earnItems": [
-        {
-          "maxCount": 2,
-          "minCount": 1,
-          "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70"
-        }
-      ],
       "mapObjectGuid": "20eb0c7e-51d3-4f4a-ba28-c974bc96e165",
       "distanceVisibilityType": "cullable"
     }

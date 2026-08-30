@@ -109,7 +109,7 @@ namespace Client.Tests.Mining.Outcrop
         {
             var collider = CreateAimedCollider("MapObjectTarget");
             var mapObject = collider.gameObject.AddComponent<MapObjectGameObject>();
-            collider.gameObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject);
+            collider.gameObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject, interactable: true);
             Physics.SyncTransforms();
 
             // 解決経路が対象種別によらず1本であることを固定する

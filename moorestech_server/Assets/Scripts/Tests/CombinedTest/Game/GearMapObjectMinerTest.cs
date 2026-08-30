@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Core.Update;
 using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
