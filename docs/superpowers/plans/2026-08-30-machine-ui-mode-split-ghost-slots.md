@@ -790,7 +790,7 @@ git commit -m "feat(server): プレイヤー操作・整理・液体タンクに
 **Interfaces:**
 - Produces: `MachineRecipe.inputFluids: { fluidId: number; fluidGuid: string; amount: number }[]`、`outputFluids` 同型（`payloadTypes.ts` の `MachineRecipe` は zod 推論なので自動追従）
 
-- [ ] **Step 1: zod に失敗するテストを足す**
+- [x] **Step 1: zod に失敗するテストを足す**
 
 `src/bridge/contract/schemas/guidValidation.test.ts` の `machineRecipe` フィクスチャに `inputFluids: [], outputFluids: []` を足し、`cases` に次を追加:
 
@@ -798,12 +798,12 @@ git commit -m "feat(server): プレイヤー操作・整理・液体タンクに
     { label: "machine recipe inputFluids fluidGuid", schema: MachineRecipeSchema, payload: { ...machineRecipe, inputFluids: [{ fluidId: 1, amount: 1, fluidGuid: invalidGuid }] } },
 ```
 
-- [ ] **Step 2: 実行して失敗を確認**
+- [x] **Step 2: 実行して失敗を確認**
 
 Run: `cd moorestech_web/webui && npx vitest run src/bridge/contract/schemas/guidValidation.test.ts`
 Expected: FAIL（`.strict()` で `inputFluids` が unrecognized key）
 
-- [ ] **Step 3: スキーマを拡張する**
+- [x] **Step 3: スキーマを拡張する**
 
 `recipes.ts` の `MachineRecipeSchema` を置換:
 
@@ -827,7 +827,7 @@ export const MachineRecipeSchema = z.object({
 }).strict();
 ```
 
-- [ ] **Step 4: 全リテラルへ `inputFluids: [], outputFluids: []` を足す**
+- [x] **Step 4: 全リテラルへ `inputFluids: [], outputFluids: []` を足す**
 
 ```bash
 cd moorestech_web/webui && grep -rln "inputItems: \[" src e2e
@@ -838,7 +838,7 @@ cd moorestech_web/webui && grep -rln "inputItems: \[" src e2e
 Run: `npx vitest run && npm run typecheck`
 Expected: PASS
 
-- [ ] **Step 5: C# DTO を拡張する**
+- [x] **Step 5: C# DTO を拡張する**
 
 `MachineRecipesTopic.cs` の `MachineRecipeDto` に追加し、`BuildJson` で詰める:
 
@@ -885,7 +885,7 @@ Expected: PASS
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_web/webui
