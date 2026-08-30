@@ -52,5 +52,21 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
                 inputInventory.SetItem(slot, remainder);
             }
         }
+
+        // レシピ変更の共通フロー：進行中ジョブの返却→束縛差し替え→非束縛スロットの返却。状態遷移と派生束縛の広げは呼び出し側の責務
+        // Shared recipe-change flow: refund the running job, rebind, and refund newly-unbound slots; state transition and any derived binding widening stay with the caller
+        public static MachineRecipeSelectionResult ApplyRecipeChange(MachineProcessContext context, ProcessingMachineProcessState processingState, MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
+        {
+            if (!TryCancelRunningJobWithRefund(context.InputInventory, processingState, refundOverflowInventory))
+            {
+                return MachineRecipeSelectionResult.RefundFailed;
+            }
+
+            context.BindSelectedRecipe(recipe);
+
+            if (recipe != null) RefundUnboundInputItems(context.InputInventory, refundOverflowInventory);
+
+            return MachineRecipeSelectionResult.Success;
+        }
     }
 }

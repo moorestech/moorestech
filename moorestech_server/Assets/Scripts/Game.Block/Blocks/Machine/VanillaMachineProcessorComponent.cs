@@ -111,19 +111,12 @@ namespace Game.Block.Blocks.Machine
 
         private MachineRecipeSelectionResult ChangeSelection(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
         {
-            // 進行中ジョブは返却して中断する。返却しきれなければ変更自体を中止する
-            // Cancel the running job with refund; abort the whole change when the refund does not fit
-            if (!MachineRecipeSelectionUtil.TryCancelRunningJobWithRefund(_context.InputInventory, _processingState, refundOverflowInventory))
-            {
-                return MachineRecipeSelectionResult.RefundFailed;
-            }
+            // 共通フロー（ジョブ返却→束縛差し替え→非束縛スロット返却）はutilへ委譲する
+            // Delegate the shared flow (job refund, rebind, unbound-slot refund) to the util
+            var result = MachineRecipeSelectionUtil.ApplyRecipeChange(_context, _processingState, recipe, refundOverflowInventory);
+            if (result != MachineRecipeSelectionResult.Success) return result;
 
             if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;
-            _context.BindSelectedRecipe(recipe);
-
-            // 束縛外になった入力スロットの未消費アイテムを返却する。null解除はUIが全スロットを描くため対象外
-            // Refund unbound input-slot leftovers; skipped on clear-to-null since the UI already shows every slot
-            if (recipe != null) MachineRecipeSelectionUtil.RefundUnboundInputItems(_context.InputInventory, refundOverflowInventory);
 
             // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
             // The state was rewritten, so re-derive the published denominator on the new state before notifying

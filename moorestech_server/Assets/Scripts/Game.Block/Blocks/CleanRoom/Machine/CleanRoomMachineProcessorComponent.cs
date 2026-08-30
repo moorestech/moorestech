@@ -2,8 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Inventory;
-using Core.Item.Interface;
-using Core.Master;
+using Game.Block.Blocks.CleanRoom.Machine.RecipeSelection;
 using Game.Block.Blocks.Machine;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
@@ -51,7 +50,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out _cycleCount, out var selectedRecipe);
             _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
             _context.BindSelectedRecipe(selectedRecipe);
-            WidenOutputBindingWithChips(selectedRecipe);
+            CleanRoomChipOutputBindingUtil.Widen(_context, selectedRecipe);
             CurrentState = restoredState;
             _processingState = new ProcessingMachineProcessState(_context, remainingTicks, recipe, pendingOutputs);
             _stateHandlers = new IMachineProcessState[]
@@ -181,53 +180,21 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 
         private MachineRecipeSelectionResult ChangeSelection(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
         {
-            // 進行中ジョブは返却して中断する。返却しきれなければ変更自体を中止する
-            // Cancel the running job with refund; abort the whole change when the refund does not fit
-            if (!MachineRecipeSelectionUtil.TryCancelRunningJobWithRefund(_context.InputInventory, _processingState, refundOverflowInventory))
-            {
-                return MachineRecipeSelectionResult.RefundFailed;
-            }
+            // 共通フロー（ジョブ返却→束縛差し替え→非束縛スロット返却）はutilへ委譲する
+            // Delegate the shared flow (job refund, rebind, unbound-slot refund) to the util
+            var result = MachineRecipeSelectionUtil.ApplyRecipeChange(_context, _processingState, recipe, refundOverflowInventory);
+            if (result != MachineRecipeSelectionResult.Success) return result;
 
             // Halted含む非IdleはIdleへ戻し、次Updateで清浄室条件が再評価される
             // Non-Idle including Halted returns to Idle so the next Update re-evaluates clean-room conditions
             if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;
-            _context.BindSelectedRecipe(recipe);
-            WidenOutputBindingWithChips(recipe);
-
-            // 束縛外になった入力スロットの未消費アイテムを返却する。null解除はUIが全スロットを描くため対象外
-            // Refund unbound input-slot leftovers; skipped on clear-to-null since the UI already shows every slot
-            if (recipe != null) MachineRecipeSelectionUtil.RefundUnboundInputItems(_context.InputInventory, refundOverflowInventory);
+            CleanRoomChipOutputBindingUtil.Widen(_context, recipe);
 
             // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
             // The state was rewritten, so re-derive the published denominator on the new state before notifying
             _context.RelatchPublishedRequestPower(CurrentState);
             _changeState.OnNext(Unit.Default);
             return MachineRecipeSelectionResult.Success;
-        }
-
-        // 出力スロットの許可集合を「生産物ファミリー∪当該レシピの全ChipItemGuid」へ広げる（2026-08-30裁定D3）。
-        // チップ差し替えは完了直前(OnExit)に起きるため、束縛は開始時から広げておく必要がある
-        // Widen the output slot's allowed set to "output level family ∪ every chip item guid of the recipe" (2026-08-30 ruling D3).
-        // Chip replacement happens right before completion (OnExit), so the binding must already be widened at selection time
-        private void WidenOutputBindingWithChips(MachineRecipeMasterElement recipe)
-        {
-            if (recipe == null || !MasterHolder.CleanRoomMaster.TryGetChipDraw(recipe.MachineRecipeGuid, out var chipDraw)) return;
-
-            var widened = MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(recipe)
-                .Select(allowed => new HashSet<ItemId>(allowed))
-                .ToList();
-
-            foreach (var distribution in chipDraw.OutputDistributions)
-            {
-                var outputItemId = MasterHolder.ItemMaster.GetItemId(distribution.OutputItemGuid);
-                for (var i = 0; i < recipe.OutputItems.Length; i++)
-                {
-                    if (MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[i].ItemGuid) != outputItemId) continue;
-                    foreach (var level in distribution.Levels) widened[i].Add(MasterHolder.ItemMaster.GetItemId(level.ChipItemGuid));
-                }
-            }
-
-            _context.OutputInventory.SetBoundOutputs(widened);
         }
     }
 }
