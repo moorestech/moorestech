@@ -1,14 +1,12 @@
-// ビルドメニューのセッション内状態
-// In-session build menu state
+// ビルドメニューのセッション内状態。現在地はscrollTopから再現できるためカテゴリは持たない
+// In-session build menu state; the current category is derivable from scrollTop, so it is not stored
 type BuildMenuSessionState = {
-  categoryGuid: string | null;
   query: string;
   scrollTop: number;
   hoveredEntryId: string | null;
 };
 
 const initialState: BuildMenuSessionState = {
-  categoryGuid: null,
   query: "",
   scrollTop: 0,
   hoveredEntryId: null,

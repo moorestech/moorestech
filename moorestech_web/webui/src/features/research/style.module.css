@@ -22,8 +22,8 @@
   min-height: 0;
   height: 100%;
 }
-/* ノードカード: 名前+アイコンの縦積み。面と枠はトークン、状態はdata属性 */
-/* Node card: name + icon stack; face/border via tokens, states via data attributes */
+/* ノードカード: 名前+アイコン+状態ラベルの縦積み。面と枠はトークン、状態はdata属性 */
+/* Node card: name + icon + state label stack; face/border via tokens, states via data attributes */
 .node {
   position: absolute;
   width: 132px;
@@ -49,6 +49,16 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-size: 14px;
+  color: var(--text-default);
+}
+/* 状態ラベルは本文色固定。状態別の色付けはしない（ADR 0044） */
+/* State label stays in the default text color; no per-state coloring (ADR 0044) */
+.nodeState {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
   color: var(--text-default);
 }
 

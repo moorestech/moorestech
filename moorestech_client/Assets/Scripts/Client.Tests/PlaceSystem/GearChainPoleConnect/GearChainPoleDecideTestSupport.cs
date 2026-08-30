@@ -1,5 +1,7 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Core.Master;
 using Server.Protocol.PacketResponse;
 using Server.Protocol.PacketResponse.Util.GearChain;
@@ -49,12 +51,14 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
                 PoleBlockId = new BlockId(5),
                 ConnectToolGuid = TestConnectToolGuid,
                 MaxConnectionCount = 4,
+                GhostAffordable = true,
+                GhostMaterialShortages = Array.Empty<ConstructionMaterialShortage>(),
             };
             if (sourcePole != null)
             {
                 input.SourcePolePos = sourcePole.GetBlockPosition();
                 input.SourcePoleCenter = input.SourcePolePos + new Vector3(0.5f, 0.5f, 0.5f);
-                input.ExtendPreview = new GearChainPoleExtendPreviewData(input.SourcePoleCenter, input.GhostCenter, GearChainPlacementJudgement.Success(default));
+                input.ExtendPreview = new GearChainPoleExtendPreviewData(input.SourcePoleCenter, input.GhostCenter, GearChainPlacementJudgement.Success(default), Array.Empty<ConstructionMaterialShortage>());
             }
 
             return input;

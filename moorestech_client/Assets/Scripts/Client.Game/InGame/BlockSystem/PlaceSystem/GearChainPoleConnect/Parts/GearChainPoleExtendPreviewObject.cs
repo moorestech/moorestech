@@ -42,7 +42,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             // 地面判定はゴーストの物理接触を読むため、配置と有効化が必要
             // Ground detect reads the ghost's physics contact, so it must be positioned and activated
             _ghostController.SetActive(true);
-            var groundOverlapList = _ghostController.SetPreviewAndGroundDetect(_positionedPlaceInfos, poleBlockMaster);
+            _ghostController.SetPreview(_positionedPlaceInfos, poleBlockMaster);
+            var groundOverlapList = _ghostController.DetectGroundOverlaps();
             return !groundOverlapList[0];
         }
 

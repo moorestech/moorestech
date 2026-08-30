@@ -131,9 +131,9 @@ test("research button sends research.complete and node becomes completed", async
       return payloads[0];
     })
     .toEqual({ researchGuid: researchableNodeGuid });
-  // mock が completed へ書換えて push → ボタンが研究済みに変わる
+  // mock が completed へ書換えて push → ボタンが完了済みに変わる
   // The mock rewrites the node to completed and pushes; the button flips to the completed label
-  await expect(page.getByTestId(`research-button-${researchableNodeGuid}`)).toContainText("研究済み");
+  await expect(page.getByTestId(`research-button-${researchableNodeGuid}`)).toContainText("完了済み");
 });
 
 test("研究パネルは持ち物の右隣から画面端までを占有し持ち物と重ならない", async ({ page }) => {

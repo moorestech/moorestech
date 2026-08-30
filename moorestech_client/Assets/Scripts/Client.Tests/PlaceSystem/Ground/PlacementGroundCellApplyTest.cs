@@ -20,21 +20,21 @@ namespace Client.Tests.PlaceSystem.Ground
             _slabs.Clear();
         }
 
-        // 地表32.4のセルはY33へ持ち上がる
-        // A cell over ground at 32.4 is lifted to Y 33
+        // 地表32.4のセルは、その最高点を含むY32へ収まる
+        // A cell over ground at 32.4 lands on Y 32, the cell containing that max
         [Test]
-        public void 端数のある地表は上のセルへ切り上げる()
+        public void 端数のある地表は最高点を含むセルへ収める()
         {
             CreateGroundSlab(new Vector3(100.5f, 31.9f, 200.5f), new Vector3(6f, 1f, 6f));
 
             Assert.IsTrue(TryResolve(new Vector3Int(100, 0, 200), 0, out var resolved));
-            Assert.AreEqual(new Vector3Int(100, 33, 200), resolved);
+            Assert.AreEqual(new Vector3Int(100, 32, 200), resolved);
         }
 
-        // 整数ちょうどの地表は浮かせない
-        // Ground exactly on an integer must not float
+        // 整数ちょうどの地表は沈めない
+        // Ground exactly on an integer must not sink
         [Test]
-        public void 整数ちょうどの地表は浮かせない()
+        public void 整数ちょうどの地表は沈めない()
         {
             CreateGroundSlab(new Vector3(300.5f, 31.5f, 400.5f), new Vector3(6f, 1f, 6f));
 
@@ -50,21 +50,21 @@ namespace Client.Tests.PlaceSystem.Ground
             CreateGroundSlab(new Vector3(500.5f, 19.9f, 600.5f), new Vector3(6f, 1f, 6f));
 
             Assert.IsTrue(TryResolve(new Vector3Int(500, 0, 600), 3, out var resolvedUp));
-            Assert.AreEqual(24, resolvedUp.y);
+            Assert.AreEqual(23, resolvedUp.y);
 
             Assert.IsTrue(TryResolve(new Vector3Int(500, 0, 600), -2, out var resolvedDown));
-            Assert.AreEqual(19, resolvedDown.y);
+            Assert.AreEqual(18, resolvedDown.y);
         }
 
-        // 負の高さでも切り上げ規約は変わらない
-        // The round-up convention is unchanged for negative heights
+        // 負の高さでも切り捨て規約は変わらない
+        // The round-down convention is unchanged for negative heights
         [Test]
-        public void 負の高さでも切り上げる()
+        public void 負の高さでも切り捨てる()
         {
             CreateGroundSlab(new Vector3(700.5f, -3.9f, 800.5f), new Vector3(6f, 1f, 6f));
 
             Assert.IsTrue(TryResolve(new Vector3Int(700, 0, 800), 0, out var resolved));
-            Assert.AreEqual(-3, resolved.y);
+            Assert.AreEqual(-4, resolved.y);
         }
 
         // XZは書き換えない

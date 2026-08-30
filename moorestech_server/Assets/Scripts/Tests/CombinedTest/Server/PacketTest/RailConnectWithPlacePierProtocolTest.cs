@@ -24,6 +24,10 @@ namespace Tests.CombinedTest.Server.PacketTest
         private static readonly Vector3Int FromRailPosition = Vector3Int.zero;
         private static readonly Vector3Int PierPosition = new(10, 0, 0);
 
+        // 橋脚を置く位置。最大接続長の検証だけは既定より遠くへ置く
+        // Where the pier goes; only the max-length check moves it beyond the default
+        private Vector3Int _pierPosition = PierPosition;
+
         // レール種はrail connectTool（lengthPerUnit=5, 補強棒材x12＋鉄板x5/単位）を使う
         // Rail type uses the rail connectTool (lengthPerUnit=5, reinforce x12 + plate x5 per unit)
         private static readonly Guid RailConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000002");
@@ -54,6 +58,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 起点レールを直接設置しfromNodeとインベントリを準備する
             // Place the from rail directly and prepare fromNode and the inventory
             _environment = TrainTestHelper.CreateEnvironment();
+            _pierPosition = PierPosition;
             var fromRailComponent = TrainTestHelper.PlaceRail(_environment, FromRailPosition, BlockDirection.North);
             _fromNode = fromRailComponent.FrontNode;
             _inventory = _environment.ServiceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId).MainOpenableInventory;
@@ -146,6 +151,20 @@ namespace Tests.CombinedTest.Server.PacketTest
             AssertFailedWithoutStateChange(response, expectedReinforce: ReinforcePlenty, expectedPlate: PlatePlenty);
         }
 
+        [Test]
+        // 両端の最大接続長(TestTrainRailは100)を超える距離は、素材が潤沢でも共有判定で拒否されロールバックされる
+        // A distance beyond both endpoints' max connectable length (100 for TestTrainRail) is rejected by the shared judgement and rolled back even with ample materials
+        public void 最大接続長を超える距離は失敗しロールバックされる()
+        {
+            UnlockRailConnectTool();
+            SetInventory(reinforce: ReinforcePlenty, plate: PlatePlenty);
+            _pierPosition = new Vector3Int(200, 0, 0);
+
+            var response = Send(ForUnitTestModBlockId.TestTrainRail);
+
+            AssertFailedWithoutStateChange(response, expectedReinforce: ReinforcePlenty, expectedPlate: PlatePlenty);
+        }
+
         // 設置後のtoNodeまでのレール長から必要単位数を算出する
         // Compute the required unit count from the rail length up to the placed toNode
         private int UnitsFor(global::Game.Train.RailGraph.RailNode toNode)
@@ -179,7 +198,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var createParams = new[] { new BlockCreateParam(RailBridgePierComponentStateDetail.StateDetailKey, MessagePackSerializer.Serialize(stateDetail)) };
             var placeInfo = new PlaceInfo
             {
-                Position = PierPosition,
+                Position = _pierPosition,
                 Direction = BlockDirection.North,
                 VerticalDirection = BlockVerticalDirection.Horizontal,
                 CreateParams = createParams,
@@ -194,7 +213,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 失敗時に橋脚もアイテム消費も残らないことを検証する
             // Verify failures leave neither a pier nor any item consumption
             Assert.IsFalse(response.Success, "失敗応答を返すべき / Should return a failure response");
-            Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(PierPosition), "橋脚は設置されないべき / Pier should not be placed");
+            Assert.IsFalse(ServerContext.WorldBlockDatastore.Exists(_pierPosition), "橋脚は設置されないべき / Pier should not be placed");
             Assert.AreEqual(expectedReinforce, CountItem(_reinforceItemId), "補強棒材は消費されないべき / Reinforce should not be consumed");
             Assert.AreEqual(expectedPlate, CountItem(_plateItemId), "鉄板は消費されないべき / Plate should not be consumed");
         }

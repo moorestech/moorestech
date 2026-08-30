@@ -103,6 +103,8 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
     持ち物パネルとは重ならない（重畳ではなく棲み分け）。研究画面では持ち物をstage左paddingごと画面左端へ寄せ、
     常時表示族のホットバー・装備HUDは描画しない。チャレンジHUD・キー操作ヒント・採掘進捗バーは
     このパネルより上の層（`.viewportOverlay` の `--z-stage-overlay-panel-chrome`）に残す。
+  - 例外（ADR 0040・出展モードの言語選択ゲート・§8.20）: 出展モード（`MOORESTECH_EVENT_MODE=1`）の
+    言語選択ゲートのみ、全画面を不透明黒（`--event-language-gate-face`）で塗り潰してよい。
 - **背景ディムは App の screen backdrop 1枚だけが担う。** 各パネルが独自に画面を暗くしない。
 - **常時の縁ヴィネットは App の実viewport全面が担う。** 1280基準stageへ置くと横長画面の途中で切れるため、stage背景へ戻さない。ヴィネットの楕円寸法・中心・停止位置だけは、縦横比が異なる実viewportの四辺へ同じ比率で沿わせる必要があるため、固定長原則の例外としてviewport比例の`%`トークンを使う。
 - **重なり順は `index.css` の `--z-*` トークンのみで制御する。** 数値のz-index直書き禁止。
@@ -228,7 +230,8 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 ## 8.5 グラフビュー（研究ツリー等のノードグラフ）
 
 - グラフの置き場は `GamePanel variant="default"` + タイトル罫線。body内で `shared/treeView` のパン・ズームを使う。
-- **研究ノードカード**: 「名前1行(ellipsis) + `ItemSlot`アイコン」の縦積みのみ。説明・消費・報酬・ボタンはカードに載せない。
+- **研究ノードカード**: 「名前1行(ellipsis) + `ItemSlot`アイコン + 状態ラベル1行」の縦積みのみ。説明・消費・報酬・ボタンはカードに載せない。
+  状態ラベルは`ui.research.completed/stateAvailable/stateUnavailable`の3語のみ、`--text-default`固定・状態別の色付けなし・12px（ADR 0044）。
   面は `--research-node-face`、枠は `--research-node-border`（tokens.cssのトークン）。
   状態はdata属性で4値を表す（ADR 0014）:
   `data-locked`（前提未達）=opacity減衰45% / 無印（前提充足・アイテム不足）=通常グレー枠 /
@@ -269,6 +272,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - **ModeSwitch**: `option.value` / `option.label` / `onChange` の汎用I/Fを持つ択一モード切替。選択中は `data-selected`（`--text-high-contrast` + 寒色面）、非選択は `--text-muted` とし、各選択肢は間隔を空けて独立したボタンとして示す。青グラデは禁止。
   - **縦利用（`orientation="vertical"`）はサイドバーナビとして使ってよい。** カテゴリ切替のような縦積み択一に、新規コンポーネントを作らずこれを転用する。
   - **`disabled?: boolean`**: root に `data-disabled` を付与し全ボタンを `disabled` にする汎用減衰。選択肢は `--text-muted` 系へさらに減衰しクリック不可（`pointer-events: none`）。判断（いつdisabledにするか）は利用側が持ち、ModeSwitch自体はドメイン語彙を持たない。
+  - **`ModeSwitchOption.disabled?: boolean`**: 選択肢単位の無効化（`data-option-disabled`）。rootの `disabled` と同じ減衰で、他の選択肢は生かす。判断は利用側が持つ。
 - **PanelActionButton**: パネルへ付随する副次アクションの押しボタン。面は検索入力（§8.9）同族の `--gauge-track`、文字は `--text-high-contrast`、hoverは色相を変えず面だけを明化、`:focus-visible` は ModeSwitch 踏襲。寸法は `--panel-action-button-*` 固定長トークン。主要アクションの青グラデ（`RecipeActionButton`・§5）へ寄せない。置き場は `GamePanel` の `titleAction`（前例: 持ち物パネルの「整理」）。`onClick` / `children` だけを受け、ドメイン語彙は持たない。
   - `PauseMenuPanel` / `ChallengePanel` / `ModalHost` には素の Mantine `Button` が残っている。同語彙へ寄せる候補だが未着手の負債であり、**前例として引用しない**。
 - **IconButton**: 面を持たない浮遊アイコンボタン。`children` 省略時は既定の×（従来の PanelCloseButton）で、閉じる以外の用途は呼び出し側がインラインSVGを渡す。寸法は `--icon-button-size` / `--icon-button-icon-size` の局所上書きで変え、共有側にドメイン語彙は持たせない。
@@ -320,26 +324,27 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   水平センターに置く。stageはレターボックスで常に画面中央にあるため全解像度で画面中央に一致する。
   縦は上端 `--menu-upper-safe-area`・高さ `--menu-content-height`（他メニューの上端揃えを維持）。
   持ち物画面の左詰めgrid（`inv/viewer/items`列）には参加しない（ADR-0007）。
-- **3カラム構成**: 1枚のGamePanel内で「カテゴリ | 検索+グリッド | 詳細サイドバー」。
+- **3カラム構成**: 1枚のGamePanel内で「カテゴリジャンプ | 検索+全カテゴリ1本スクロール | 詳細サイドバー」（ADR 0045）。
   詳細サイドバー幅は `--build-menu-detail-width`（固定長）。
-- **縦ModeSwitchサイドバー**: カテゴリ切替は §8.6 の縦向き ModeSwitch を左サイドバーとして使う。
+- **縦ModeSwitchサイドバー（ジャンプ＋scroll-spy）**: 左サイドバーは §8.6 の縦向き ModeSwitch。押すとそのカテゴリ大見出しが視口上端に来るようスムーズスクロールし、ハイライト（`data-selected`）は視口上端にあるカテゴリへ追従する（ジャンプ中は目標に固定）。タブ（表示切替）ではない。
   幅は `--build-menu-sidebar-width`（固定長）。**各ボタンは `--build-menu-category-height` の固定高・
   上詰め**とし、パネル高さ・カテゴリ数に比例して伸縮させない（縦ModeSwitchの高さは
   `--mode-switch-option-height` 変数で利用側が注入する）。
   **カテゴリ名は全ロケールで1行に収まる長さを前提とし、折り返しは想定しない。**
   幅は日本語名でなく最長の英訳（実マスタv8の `Building Materials`）を基準に決める。
   収まらない名前が現れたら `--build-menu-sidebar-width` と `--build-menu-panel-width` をセットで見直す。
-- **検索**: §8.9 の検索入力を中央カラム上部に置く。
+- **検索**: §8.9 の検索入力を中央カラム上部に置く。検索は同じ1本スクロールの絞り込みで、ヒットの無いカテゴリ/サブカテゴリは非表示、サイドバーはヒットの無いカテゴリ項目だけ `ModeSwitchOption.disabled` で無効化する。複合見出しは使わない。
 - **sticky詳細サイドバー**: ホバー中エントリを表示し、カーソルが離れても直前エントリを表示し続ける。
   初回ホバー前のみ `--text-muted` の案内テキスト。内容は「アイコン → 名前 → `FadeRule` →
   必要素材ラベル（`--text-muted`）+ `ItemSlot` 群」の縦積み。説明文は出さない（マスタに存在しない）。
   閉じる✕がこの列の右上に重なるため、上端に `--build-menu-detail-top-safe-area` の安全帯を空ける（§2の安全帯前例と同族）。
+- **カテゴリ大見出し**: 各カテゴリ群の先頭に `--text-default`・`--label-face-font-size` のラベル + `FadeRule`。群同士は `--build-menu-category-gap` で区切る。リスト末尾には末尾カテゴリの見出しが視口上端まで上がれるよう「視口高−末尾群高」のスペーサを置く。
 - **サブカテゴリ見出し**: グリッド内のサブカテゴリ区切りは `--text-muted` のラベル + `FadeRule`
   （§8.6と同一部品）。無札の並置は禁止（§4のスロット群区別ルールに従う）。
 - グリッド本体は `SlotGrid` を使い独自gridを作らない。端の安全余白は `--build-menu-edge-safe-area`。
   グリッド右端はオーバーレイ縦スクロールバー分の `--build-menu-grid-scrollbar-reserve` を予約し、
   列幅を削らずその分 `--build-menu-panel-width` を広げる。
-- **セッション内状態保持**: 選択カテゴリ・検索文字列・スクロール位置・詳細sticky表示は
+- **セッション内状態保持**: 検索文字列・スクロール位置・詳細sticky表示は
   セッション内ストア（§8.5のviewport保持と同族・リロードで消える・永続化なし）で保持し、
   閉じて開き直しても復元する。
 
@@ -542,9 +547,20 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - 配置は常時表示HUD族の `.viewportOverlay` 内・画面下中央で、ホットバーの床（`--hotbar-floor-offset`）から `--tutorial-key-hint-hotbar-gap` だけ上に置き、採掘ゲージと重ねない。複数は `--tutorial-key-hint-gap` で縦積み。床位置の計算式（`--hotbar-floor-offset` + 各HUD固有のgap）は採掘プログレスバー（§8.18）と共有する。
 - 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。**文字色だけは `--tutorial-key-hint-color`（原色赤 `--tutorial-attention-red` = `#ff0000` を参照）で上書きする**: 面を持たずワールド上に浮くため白文字では埋もれる（ユーザー裁定 2026-08-22、色を原色赤へ引き上げたのはユーザー裁定 2026-08-28 / ADR 0039）。赤の適用はこのHUDだけで、共有様式 `:where(.keyHintText)` の白は変えない（インベントリ画面左下・研究画面左下は白のまま）。面・枠・光彩は持たず `pointer-events: none`。**拡縮ループは持つ**: `animation: var(--tutorial-pulse-strong) var(--tutorial-pulse-duration) ease-in-out infinite`（1.08 / 1200ms）（ユーザー裁定 2026-08-28。従来の「アニメーションは持たず」は撤回）。
 
+## 8.20 出展モードの言語選択ゲート
+
+- **§1「画面全体を不透明な面で塗り潰す禁止」の2つ目の例外**（ADR 0040）。出展モード（`MOORESTECH_EVENT_MODE=1`）で
+  ロード完了後・オープニングスキット前に出し、言語が選ばれるまで待つ。世界を透かすと来場者が
+  「まだ遊べる」と誤解して操作でき、その入力が最初の操作として無操作タイマーを誤武装するため、面は不透明にする。
+- 面色は `--event-language-gate-face`（不透明黒）、z層は `--z-portal-event-language-gate` で
+  再接続オーバーレイより前。トースト・再接続表示はこの下に隠れるため、押下が通らなかったことは
+  ゲート自身が辞書非依存の1行（`DictionaryIndependentText`）で伝える。
+- 見出しは英語固定リテラル、選択肢は各言語の母国語表記。選び直し導線は置かない（誤選択は無操作復帰で回収する）。
+- 待機中だけ本体をマウントし、通常起動では言語一覧を取りに行かない。
+
 ## 9. やらないことリスト（再掲・明示）
 
-- 全画面UI・不透明な面での塗り潰し（唯一の例外は §8.12 のスキット暗転）
+- 全画面UI・不透明な面での塗り潰し（例外は §8.12 のスキット暗転と §8.20 の出展モード言語選択ゲートだけ）
 - Mantine標準テーマ剥き出しの見た目
 - UI装飾のための画像アセット追加
 - GamePanel 以外のパネル背景 / shared/ui 以外のスロット表現
