@@ -26,15 +26,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public void UpdateHeightOffsetByInput()
         {
             if (HybridInput.GetKeyDown(KeyCode.Q)) //TODO InputManagerに移す
-                HeightOffset--;
-            else if (HybridInput.GetKeyDown(KeyCode.E)) HeightOffset++;
+                AdjustHeightOffset(-1);
+            else if (HybridInput.GetKeyDown(KeyCode.E)) AdjustHeightOffset(1);
+        }
+
+        // 高さオフセットを動かす唯一の入口。入力の解釈と値の保持を分ける
+        // The only entry that moves the height offset, keeping input interpretation apart from the stored value
+        public void AdjustHeightOffset(int delta)
+        {
+            HeightOffset += delta;
         }
 
         // 選択ブロック変更時に連続設置状態をリセット
         // Resets the drag session when the selected block changes
         public void SyncSelectedBlock(BlockId blockId)
         {
-            if (_previousSelectedBlockId != blockId) _session = null;
+            if (_previousSelectedBlockId != blockId)
+            {
+                // 切替後の高さは常に地表基準に戻す
+                // A block switch always returns the height to ground level
+                _session = null;
+                HeightOffset = 0;
+            }
             _previousSelectedBlockId = blockId;
         }
 

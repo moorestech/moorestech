@@ -5,19 +5,23 @@ using UnityEngine;
 namespace Client.Game.InGame.Map.MapVein
 {
     /// <summary>
-    ///     範囲表示ボックス用の半透明マテリアルをitem/fluidの2枚だけ作って共有する
-    ///     Creates exactly two translucent materials, one for item veins and one for fluid veins, and shares them
+    ///     範囲表示ボックス用の半透明マテリアルをitem/fluid/highlightの3枚だけ作って共有する
+    ///     Creates exactly three translucent materials, for item veins, fluid veins and the tutorial highlight, and shares them
     /// </summary>
     public class MapVeinRangeBoxMaterials : IDisposable
     {
-        // テストがこの接頭辞でマテリアル枚数を数える。2枚を超えていたら作り捨てが復活している
-        // Tests count materials by this prefix; more than two means per-box material creation came back
+        // テストがこの接頭辞でマテリアル枚数を数える。3枚を超えていたら作り捨てが復活している
+        // Tests count materials by this prefix; more than three means per-box material creation came back
         public const string MaterialNamePrefix = "MapVeinRangeBox_";
 
         // 種別の色分けはveinTypeから導出する。汎用のプレビュー色とは別物なのでここで持つ
         // Type coloring derives from veinType; these are distinct from the generic preview colors so they live here
         private static readonly Color ItemVeinColor = new(0.95f, 0.72f, 0.25f, 1f);
         private static readonly Color FluidVeinColor = new(0.25f, 0.62f, 0.95f, 1f);
+
+        // チュートリアルが指す種別の鉱脈を全て別色で描き、他種別と取り違えないようにする
+        // Every vein of the type a tutorial points at gets this color so the type cannot be mistaken for another
+        private static readonly Color HighlightVeinColor = new(0.3f, 0.95f, 0.35f, 1f);
 
         // PreviewPlaceBlockのalphaは_PreviewColorではなくこのfloatが持つ。色のalphaを変えても効かない
         // PreviewPlaceBlock takes its alpha from this float, not from _PreviewColor, so tinting the color's alpha does nothing
@@ -28,11 +32,13 @@ namespace Client.Game.InGame.Map.MapVein
 
         public readonly Material FluidMaterial;
         public readonly Material ItemMaterial;
+        public readonly Material HighlightMaterial;
 
         public MapVeinRangeBoxMaterials()
         {
             ItemMaterial = CreateTranslucentMaterial("Item", ItemVeinColor);
             FluidMaterial = CreateTranslucentMaterial("Fluid", FluidVeinColor);
+            HighlightMaterial = CreateTranslucentMaterial("Highlight", HighlightVeinColor);
 
             #region Internal
 
@@ -57,6 +63,7 @@ namespace Client.Game.InGame.Map.MapVein
         {
             UnityEngine.Object.Destroy(ItemMaterial);
             UnityEngine.Object.Destroy(FluidMaterial);
+            UnityEngine.Object.Destroy(HighlightMaterial);
         }
     }
 }

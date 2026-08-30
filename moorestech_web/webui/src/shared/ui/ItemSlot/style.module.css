@@ -21,3 +21,26 @@
   letter-spacing: var(--count-letter-spacing, normal);
   color: var(--count-text);
 }
+
+/* 所持/必要は枠外へはみ出し不足減光も受けないため、枠を包む外側の層に置く */
+/* The owned/required text overflows the frame and escapes its dimming, so it sits in a wrapping layer outside it */
+.shortageSlot {
+  position: relative;
+}
+
+/* 位置だけ用途側が --shortage-count-* で寄せる（レシピ行はスロット内へ収める・§8.17） */
+/* Only the offsets are tuned per usage via --shortage-count-* (recipe rows keep it inside the slot, §8.17) */
+.shortageCount {
+  position: absolute;
+  right: var(--shortage-count-right, -2px);
+  bottom: var(--shortage-count-bottom, -4px);
+  z-index: 2;
+  color: var(--count-text);
+  font-size: 11px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.shortageCount[data-lack="true"] {
+  color: var(--text-insufficient);
+}

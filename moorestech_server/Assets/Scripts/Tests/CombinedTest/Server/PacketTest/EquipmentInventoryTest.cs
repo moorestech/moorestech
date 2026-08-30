@@ -1,5 +1,6 @@
 using System;
 using Core.Master;
+using Game.Context;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
@@ -117,7 +118,15 @@ namespace Tests.CombinedTest.Server.PacketTest
         private (PacketResponseCreator packet, PlayerInventoryData playerInventory) CreateServerWithPlayerInventory()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            return (packet, serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+
+            // マスタの初期装備が入った状態を前提にしないよう、装備スロットを空にしてから検証する
+            // Clear the equipment slots so these cases do not depend on the master's initial equipment
+            var equipmentInventory = playerInventory.EquipmentInventory;
+            for (var slot = 0; slot < equipmentInventory.GetSlotSize(); slot++)
+                equipmentInventory.SetItem(slot, ServerContext.ItemStackFactory.CreatEmpty());
+
+            return (packet, playerInventory);
         }
 
         private byte[] MoveItemPacket(int count, int fromMainSlot, int toEquipmentSlot, ItemMoveType itemMoveType)

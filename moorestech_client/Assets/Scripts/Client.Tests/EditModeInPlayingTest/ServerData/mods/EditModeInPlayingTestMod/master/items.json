@@ -591,5 +591,6 @@
             ]
         }
     ],
-    "equipmentSlotCount": 3
+    "equipmentSlotCount": 3,
+    "initialEquipmentItems": []
 }

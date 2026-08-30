@@ -55,10 +55,6 @@ defineInterface:
     type: integer
   - key: mineSettings
     ref: mineSettings
-  # 見た目上のドリルが占めるブロックローカルセル。このセルが鉱脈に重なると採掘できる
-  # Block-local cell occupied by the visual drill; mining works when it overlaps a vein
-  - key: drillLocalPosition
-    type: vector3Int
 - interfaceName: IPumpParam
   properties:
   - key: generateFluid
@@ -426,8 +422,6 @@ properties:
           default: 3
         - key: mineSettings
           ref: mineSettings
-        - key: drillLocalPosition
-          type: vector3Int
         - key: inventoryConnectors
           ref: inventoryConnects
         - key: maxWireConnectionCount
@@ -686,8 +680,6 @@ properties:
           default: 3
         - key: mineSettings
           ref: mineSettings
-        - key: drillLocalPosition
-          type: vector3Int
         - key: inventoryConnectors
           ref: inventoryConnects
         - key: gear

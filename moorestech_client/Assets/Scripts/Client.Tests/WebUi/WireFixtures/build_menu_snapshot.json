@@ -36,9 +36,12 @@
       "requiredItems": [
         {
           "itemId": 3,
-          "count": 5
+          "count": 5,
+          "held": 2,
+          "lacking": true
         }
       ],
+      "paymentWaived": true,
       "iconUrl": "/api/block-icons/1.png",
       "setPlacement": {
         "perCost": 3,
@@ -53,9 +56,12 @@
       "requiredItems": [
         {
           "itemId": 7,
-          "count": 2
+          "count": 2,
+          "held": 4,
+          "lacking": false
         }
       ],
+      "paymentWaived": false,
       "iconUrl": "/api/train-car-icons/8f9c2a51-0000-4000-8000-000000000001.png"
     },
     {
@@ -64,6 +70,7 @@
       "categoryGuid": "10000000-0000-4000-8000-000000000003",
       "subCategoryGuid": "20000000-0000-4000-8000-000000000004",
       "requiredItems": [],
+      "paymentWaived": false,
       "iconUrl": "/api/connect-tool-icons/40000000-0000-4000-8000-000000000001.png"
     },
     {
@@ -71,7 +78,8 @@
       "kind": "blueprintCopy",
       "categoryGuid": "10000000-0000-4000-8000-000000000003",
       "subCategoryGuid": "20000000-0000-4000-8000-000000000005",
-      "requiredItems": []
+      "requiredItems": [],
+      "paymentWaived": false
     },
     {
       "id": "60000000-0000-4000-8000-000000000001",
@@ -79,7 +87,8 @@
       "label": "starter-base",
       "categoryGuid": "10000000-0000-4000-8000-000000000004",
       "subCategoryGuid": "20000000-0000-4000-8000-000000000006",
-      "requiredItems": []
+      "requiredItems": [],
+      "paymentWaived": false
     }
   ]
 }

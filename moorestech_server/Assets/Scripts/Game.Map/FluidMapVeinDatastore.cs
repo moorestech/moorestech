@@ -40,13 +40,13 @@ namespace Game.Map
             }
         }
 
-        public List<IFluidMapVein> GetOverVeins(Vector3Int pos)
+        public List<IFluidMapVein> GetVeinsContainingCell(Vector3Int cell)
         {
             var veins = new List<IFluidMapVein>();
             foreach (var vein in _fluidVeins)
-                if (vein.VeinRangeMin.x <= pos.x && pos.x <= vein.VeinRangeMax.x &&
-                    vein.VeinRangeMin.y <= pos.y && pos.y <= vein.VeinRangeMax.y &&
-                    vein.VeinRangeMin.z <= pos.z && pos.z <= vein.VeinRangeMax.z)
+                if (vein.VeinRangeMin.x <= cell.x && cell.x <= vein.VeinRangeMax.x &&
+                    vein.VeinRangeMin.y <= cell.y && cell.y <= vein.VeinRangeMax.y &&
+                    vein.VeinRangeMin.z <= cell.z && cell.z <= vein.VeinRangeMax.z)
                     veins.Add(vein);
 
             return veins;

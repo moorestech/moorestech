@@ -22,8 +22,8 @@
   min-height: 0;
   height: 100%;
 }
-/* ノードカード: 名前+アイコンの縦積み。面と枠はトークン、状態はdata属性 */
-/* Node card: name + icon stack; face/border via tokens, states via data attributes */
+/* ノードカード: 名前+アイコン+状態ラベルの縦積み。面と枠はトークン、状態はdata属性 */
+/* Node card: name + icon + state label stack; face/border via tokens, states via data attributes */
 .node {
   position: absolute;
   width: 132px;
@@ -49,6 +49,16 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   font-size: 14px;
+  color: var(--text-default);
+}
+/* 状態ラベルは本文色固定。状態別の色付けはしない（ADR 0044） */
+/* State label stays in the default text color; no per-state coloring (ADR 0044) */
+.nodeState {
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
   color: var(--text-default);
 }
 
@@ -92,26 +102,6 @@
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
-}
-/* 消費アイテム1枠。不足数値の赤文字を絶対配置で載せる(CraftRecipeView同型・ADR 0014決定4) */
-/* One consume-item cell; the shortage count sits absolutely over it (mirrors CraftRecipeView, ADR 0014 decision 4) */
-.consumeSlot {
-  position: relative;
-}
-/* 個数バッジは明色スロット面に載るため黒(ユーザー裁定2026-08-17・RecipeBoxの.materialCount同型)。縁は共有のiconTextOutlineLightが持つ */
-/* The badge sits on the light slot face, so it stays black (user ruling 2026-08-17; same as RecipeBox .materialCount); the outline comes from the shared iconTextOutlineLight */
-.consumeCount {
-  position: absolute;
-  right: -2px;
-  bottom: -4px;
-  z-index: 2;
-  color: var(--count-text);
-  font-size: 11px;
-  line-height: 1;
-  white-space: nowrap;
-}
-.consumeCount[data-lack="true"] {
-  color: var(--text-insufficient);
 }
 /* 主要アクション: 青グラデはこのボタン限定 */
 /* Primary action: the blue gradient is exclusive to this button */

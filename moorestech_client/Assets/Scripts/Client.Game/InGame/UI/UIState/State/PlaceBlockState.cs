@@ -4,6 +4,7 @@ using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
@@ -39,6 +40,8 @@ namespace Client.Game.InGame.UI.UIState.State
             UiStateCameraPolicyService cameraPolicyService,
             BuildUndoService buildUndoService,
             IMapVeinRangeView mapVeinRangeView,
+            MapVeinAabbRegistry veinAabbRegistry,
+            VeinRestrictedPlacementState veinRestrictedPlacementState,
             HotbarTapInputService hotbarInputService)
         {
             _skitManager = skitManager;
@@ -50,9 +53,10 @@ namespace Client.Game.InGame.UI.UIState.State
             _mapVeinRangeView = mapVeinRangeView;
             _hotbarInputService = hotbarInputService;
 
-            // 設置対象が変わった時だけ表示種別をプッシュする。毎フレームの再導出はしない
-            // Push the vein kind only when the placement target changes; never re-derive it every frame
-            _placeSystemStateController.OnTargetChanged.Subscribe(target => _mapVeinRangeView.SetVisibleVeinKind(PlacementVeinViewKindResolver.Resolve(target)));
+            // 設置対象か制限が変わった時だけ表示状態をプッシュする。毎フレームの再導出はしない
+            // Push the display state only when the target or the restriction changes; never re-derive per frame
+            _placeSystemStateController.OnTargetChanged.Subscribe(target => PlacementVeinViewResolver.PushToView(mapVeinRangeView, veinAabbRegistry, veinRestrictedPlacementState, target));
+            veinRestrictedPlacementState.OnChanged.Subscribe(_ => PlacementVeinViewResolver.PushToView(mapVeinRangeView, veinAabbRegistry, veinRestrictedPlacementState, _placeSystemStateController.CurrentTarget));
         }
 
         public void OnEnter(UITransitContext context)
@@ -76,7 +80,6 @@ namespace Client.Game.InGame.UI.UIState.State
                 blockGameObject.EnablePreviewOnlyObjects(true, true);
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
-
 
             #region Internal
 

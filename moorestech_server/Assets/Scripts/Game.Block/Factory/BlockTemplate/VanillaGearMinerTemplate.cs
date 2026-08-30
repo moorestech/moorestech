@@ -43,8 +43,8 @@ namespace Game.Block.Factory.BlockTemplate
             var outputSlot = minerParam.OutputItemSlotCount;
             var inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(minerParam.InventoryConnectors, blockPositionInfo);
             var minerProcessorComponent = componentStates == null ?
-                new VanillaMinerProcessorComponent(blockInstanceId, requestPower, gearConsumption.IdlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings, minerParam.DrillLocalPosition) :
-                new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower, gearConsumption.IdlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings, minerParam.DrillLocalPosition);
+                new VanillaMinerProcessorComponent(blockInstanceId, requestPower, gearConsumption.IdlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings) :
+                new VanillaMinerProcessorComponent(componentStates, blockInstanceId, requestPower, gearConsumption.IdlePowerRate, outputSlot, _blockOpenableInventoryUpdateEvent, inventoryConnectorComponent, blockPositionInfo, miningSettings);
             var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
 
             var gearMinerComponent = new VanillaGearMinerComponent(minerProcessorComponent, gearEnergyTransformer, gearConsumption.IdlePowerRate);

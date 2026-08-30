@@ -34,9 +34,7 @@ namespace Game.Construction
         // Whether the remainder covers this cell; blocks that bypass the wallet are always false
         public bool IsCoveredByWallet(BlockId blockId)
         {
-            var placementsPerCost = MasterHolder.BlockMaster.GetBlockMaster(blockId).PlacementsPerCost;
-            if (!ConstructionWalletUtil.UsesWallet(placementsPerCost)) return false;
-            return ConstructionWalletUtil.IsCoveredByWallet(_reader.GetRemainingCount(blockId));
+            return GetWalletStatus(blockId)?.CoversNextPlacement() ?? false;
         }
 
         // このセルを置くと実際に消費する素材。残りで賄うなら空

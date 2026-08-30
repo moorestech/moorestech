@@ -82,7 +82,7 @@ namespace Game.Map
                 foundParam = null;
 
                 var anyVeinAtPosition = false;
-                foreach (var overVein in ServerContext.ItemMapVeinDatastore.GetOverVeins(pos))
+                foreach (var overVein in ServerContext.ItemMapVeinDatastore.GetVeinsContainingCell(pos))
                 {
                     anyVeinAtPosition = true;
 

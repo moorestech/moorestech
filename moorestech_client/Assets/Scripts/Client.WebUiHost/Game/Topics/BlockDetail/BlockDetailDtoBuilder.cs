@@ -151,16 +151,17 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
         private static List<MiningItemDto> BuildMiningItems(CommonMinerBlockStateDetail miner, IMinerParam minerParam)
         {
-            // uGUI MinerBlockInventoryView.cs:126-140 と同じ算出（60/Time を分間数に）
-            // Same derivation as uGUI MinerBlockInventoryView.cs:126-140 (60/Time per minute)
+            // uGUI MinerBlockInventoryView と同じ算出（サーバーの実効採掘時間から 60/秒 を分間数に）
+            // Same derivation as uGUI MinerBlockInventoryView (60 / the server's effective seconds, per minute)
             var result = new List<MiningItemDto>();
             var currentIds = miner.GetCurrentMiningItemIds();
+            if (miner.MiningSeconds <= 0) return result;
+
             foreach (var settings in minerParam.MineSettings.items)
             {
                 var itemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
                 if (!currentIds.Contains(itemId)) continue;
-                if (settings.Time <= 0f) continue;
-                result.Add(new MiningItemDto { ItemId = itemId.AsPrimitive(), ItemsPerMinute = 60f / (float)settings.Time });
+                result.Add(new MiningItemDto { ItemId = itemId.AsPrimitive(), ItemsPerMinute = (float)(60 / miner.MiningSeconds) });
             }
             return result;
         }

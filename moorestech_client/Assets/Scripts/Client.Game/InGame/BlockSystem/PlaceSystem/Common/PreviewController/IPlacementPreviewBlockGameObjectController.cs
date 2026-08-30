@@ -12,7 +12,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
     {
         bool IsActive { get; }
         
-        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster);
+        /// <summary>
+        /// プレビューブロックを配置する。地形を設置不可の理由にするかは呼び出し側が決める
+        /// Places the preview blocks; whether terrain blocks placement is the caller's decision
+        /// </summary>
+        public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster);
+
+        /// <summary>
+        /// 直前のSetPreviewで置いたプレビューが地形へ接触しているかを同じ並び順で返す
+        /// Returns whether each preview placed by the preceding SetPreview touches the terrain, in the same order
+        /// </summary>
+        public IReadOnlyList<bool> DetectGroundOverlaps();
 
         /// <summary>
         /// PlaceInfoのPlaceable状態に基づいてプレビューブロックの色を更新する
@@ -23,8 +33,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         public void SetActive(bool active);
 
         /// <summary>
-        /// アクティブなプレビューブロックをインデックスで取り出す（SetPreviewAndGroundDetectの順序と一致）
-        /// Fetch an active preview block by index, matching SetPreviewAndGroundDetect ordering
+        /// 直前のSetPreviewの並び順と一致
+        /// Matches the ordering of the preceding SetPreview call
         /// </summary>
         public bool TryGetPreviewBlock(int index, out BlockPreviewObject previewBlock);
     }

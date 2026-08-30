@@ -1,7 +1,10 @@
 # ADR 0037: ブロック設置Yは占有範囲の地形最高点を上回る最初のセルにする
 
-- Status: Accepted
+- Status: Superseded by ADR 0047
 - Date: 2026-08-28
+
+> ADR 0047 が中核決定（切り上げ／浮かせる）を上書きした。設置Yは「地形最高点を上回る」ではなく「地形最高点を含むセル（floor）」へ反転している。
+> ADR 0047 supersedes the core decision here (ceil / float above terrain): placement Y now uses the cell containing the terrain max height (floor), not the first cell above it.
 
 ## Context
 

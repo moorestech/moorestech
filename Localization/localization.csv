@@ -57,6 +57,9 @@ ui.buildMenu.searchPlaceholder,Search,Search,検索,Suchen
 ui.buildMenu.requiredItems,Required Items,Required Items,必要素材,Benötigte Gegenstände
 ui.buildMenu.requiredItemsPerSet,Required Items (per {count}),Required Items (per {count}),必要素材（{count}個分）,Benötigte Gegenstände (pro {count})
 ui.buildMenu.remainingPlacementCount,Remaining placements: {count},Remaining placements: {count},残り設置数: {count},Verbleibende Platzierungen: {count}
+ui.buildMenu.materialShortageTitle,Not enough materials,Not enough materials,素材が足りません,Nicht genug Materialien
+ui.buildMenu.materialShortageLine,{itemName} {ownedCount}/{requiredCount},{itemName} {ownedCount}/{requiredCount},{itemName} {ownedCount}/{requiredCount},{itemName} {ownedCount}/{requiredCount}
+ui.buildMenu.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount},{itemName}\nBestand: {ownedCount}\nBenötigt: {requiredCount}
 ui.challenge.stateLocked,Locked,Locked,未解放,Gesperrt
 ui.challenge.stateCurrent,In Progress,In Progress,進行中,Laufend
 ui.challenge.stateCompleted,Completed,Completed,完了,Abgeschlossen
@@ -122,7 +125,7 @@ ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to
 ui.recipe.craftButtonLabel,Craft,Craft,クラフト,Herstellen
 ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません,Für diesen Gegenstand gibt es keine Rezepte
 ui.research.closeSymbol,×,×,×,×
-ui.research.completed,Researched,Researched,研究済み,Erforscht
+ui.research.completed,Completed,Completed,完了済み,Abgeschlossen
 ui.research.action,Research,Research,研究,Erforschen
 ui.research.clickToResearch,Click to research,Click to research,クリックして研究,Zum Erforschen klicken
 ui.research.missingItems,Not enough research items.,Not enough research items.,研究アイテムが足りません。,Zu wenig Forschungsgegenstände.
@@ -137,6 +140,8 @@ ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム,
 ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム,Belohnungsgegenstände
 ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他,Schaltet frei: Sonstiges
 ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
+ui.research.stateAvailable,Available,Available,研究可能,Verfügbar
+ui.research.stateUnavailable,Unavailable,Unavailable,研究不可,Nicht verfügbar
 ui.skit.auto,Auto,Auto,自動,Auto
 ui.skit.skip,Skip,Skip,スキップ,Überspringen
 ui.skit.hideUi,Hide UI,Hide UI,UIを非表示,UI ausblenden
@@ -213,6 +218,7 @@ ui.tooltip.placeBlockedByExistingBlock,Position is occupied,Position is occupied
 ui.tooltip.placeTooFar,Too far away,Too far away,遠すぎます,Zu weit entfernt
 ui.tooltip.placeGroundNotFound,No ground below,No ground below,地面が見つかりません,Kein Boden darunter
 ui.tooltip.placeMinerOutsideVein,The drill must be over a vein,The drill must be over a vein,ドリルを鉱脈に重ねてください,Der Bohrer muss über einer Erzader liegen
+ui.tooltip.placeOutsideTutorialVein,Place it on the highlighted vein,Place it on the highlighted vein,ハイライトされた鉱脈の上に設置してください,Platziere es auf der hervorgehobenen Erzader
 ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden
 ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません,Für diese Baureihe gibt es kein Schrägband
 ui.tooltip.placeMaterialShortage,{p0} {p1}/{p2},{p0} {p1}/{p2},{p0} {p1}/{p2},{p0} {p1}/{p2}

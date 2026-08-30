@@ -7,6 +7,8 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.GearConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.SoundEffect;
@@ -39,13 +41,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly ElectricWireAutoConnectPreview _autoConnectPreview;
         private readonly MapVeinAabbRegistry _veinAabbRegistry;
         private readonly IPlacementGroundFollower _groundFollower;
+        private readonly VeinRestrictedPlacementState _veinRestrictedPlacementState;
+        private readonly GearConnectPreview _gearConnectPreview;
 
         private readonly CommonBlockPlaceDragState _dragState = new();
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower)
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState)
         {
             _mainCamera = mainCamera;
             _groundFollower = groundFollower;
@@ -53,6 +57,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
             _veinAabbRegistry = veinAabbRegistry;
+            _veinRestrictedPlacementState = veinRestrictedPlacementState;
+            _gearConnectPreview = new GearConnectPreview(blockGameObjectDataStore);
             _blockPlacePointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
             _autoConnectPreview = new ElectricWireAutoConnectPreview(blockGameObjectDataStore, previewBlockController, gameUnlockStateData, constructionWalletQuery);
         }
@@ -68,12 +74,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))
             {
                 _previewBlockController.SetActive(false);
-                _autoConnectPreview.Hide();
+                HideConnectPreviews();
             }
 
             // 連続設置状態をリセット
             _dragState.ClearDrag();
             _currentPlaceInfos.Clear();
+        }
+
+        // 電線と歯車のプレビューは必ず同時に畳む。片方だけ残すと実際の接続と食い違う線が残る
+        // The wire and gear previews always fold together; leaving one behind strands lines that no longer match any connection
+        private void HideConnectPreviews()
+        {
+            _autoConnectPreview.Hide();
+            _gearConnectPreview.Hide();
         }
         
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
@@ -112,7 +126,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { _autoConnectPreview.Hide(); EndDragWithoutPlacing(); return; }
+                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { HideConnectPreviews(); EndDragWithoutPlacing(); return; }
 
                 // ドラッグ中は押下時の面種別で通す
                 // A drag keeps the surface kind from its press
@@ -139,30 +153,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // 距離外なら理由のみ出しプレビュー無し
                 // Beyond range, show only the reason and no preview
-                if (!IsPlaceableFromPlayer(placePoint)) { _autoConnectPreview.Hide(); feedback.AddTooFar(); EndDragWithoutPlacing(); return; }
+                if (!IsPlaceableFromPlayer(placePoint)) { HideConnectPreviews(); feedback.AddTooFar(); EndDragWithoutPlacing(); return; }
 
                 _previewBlockController.SetActive(true);
 
-                //プレビュー表示と地面との接触を取得する
-                //display preview and get collision with ground
-                var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
+                // プレビュー投入とカーソル理由集約。地形との重なりは設置不可の理由にしない（ADR 0047）
+                // Submit the preview and report the cursor reasons; terrain overlap never blocks placement (ADR 0047)
+                var cursorIndex = NormalPlacementPreviewStep.Apply(_previewBlockController, _currentPlaceInfos, placeCauses, placePoint, holdingBlockMaster, feedback);
 
-                // この時点の不可原因は既存ブロックと地表欠落のみ。地面との接触反映とカーソルセルの理由集約を1回で行う
-                // Existing blocks and missing ground are the only causes set by this point; apply ground overlaps and report the cursor cell's reasons in one call
-                var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
+                // 鉱脈由来の設置制限（採掘機の底面XZ重なりとチュートリアルの鉱脈限定）をまとめて課す
+                // Apply both vein-bound placement restrictions at once: the miner's footprint XZ overlap and the tutorial vein limit
+                // 素材チェックより前に落として枠を消費させない
+                // They run before the material check so blocked cells don't consume quota
+                VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, _veinRestrictedPlacementState, feedback);
 
-                // 採掘機はドリルが鉱脈に重なるセルだけに制限する。素材チェックより前に落として枠を消費させない
-                // Miners are restricted to cells where the drill overlaps a vein; drop them before the material check so they don't consume quota
-                MinerVeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, feedback);
-
-                // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
-                // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
+                // 鉱脈・既存ブロックで落ちたセルがアイテム枠を消費しないよう、フィルタ後にチェックする
+                // Check after filtering so cells dropped by veins or existing blocks don't consume item quota
                 ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
                 ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory);
 
                 // 各セルの自動接続を評価し表示更新。cursorIndexは上で解決済みのため再解決しない
                 // Evaluate auto-connect per cell and update the preview; cursorIndex is already resolved above so it is not re-resolved
                 var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, cursorIndex, feedback);
+
+                // 歯車はどの座標同士が噛み合うかを線で示す。設置可否には関与しない
+                // Gears show which cells mesh with which via lines; this never affects placeability
+                _gearConnectPreview.Apply(_currentPlaceInfos, target.BlockId, cursorIndex);
 
                 // 最終的なPlaceable状態でプレビュー色を更新
                 // Update preview colors based on the final Placeable state
@@ -192,9 +208,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Clear the continuous-placement state on mouse release (a release without a registered press stops here)
                 if (!_dragState.EndDrag()) return;
 
-                // 設置でワールドとインベントリが変わるため、自動接続の評価キャッシュを破棄する
-                // Placement changes the world and inventory, so drop the auto-connect evaluation cache
-                if (TrySendOnClickRelease(_currentPlaceInfos, wirePlaceable)) _autoConnectPreview.Hide();
+                // 設置でワールドとインベントリが変わるため、接続プレビューの評価キャッシュを破棄する
+                // Placement changes the world and inventory, so drop the connect preview evaluation caches
+                if (TrySendOnClickRelease(_currentPlaceInfos, wirePlaceable)) HideConnectPreviews();
             }
 
             #endregion

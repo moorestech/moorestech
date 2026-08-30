@@ -61,6 +61,13 @@ export function deriveNodeCardState(node: ResearchNodeData): NodeCardState {
   };
 }
 
+// 状態ラベルは枠色と同じ導出結果から引く。ADR 0044: 不可の理由（不足/前提未達）は詳細ペインが担うのでカードでは3語へ畳む
+// The state label reads the same derivation as the border color; ADR 0044 leaves the "unavailable" reason to the detail pane
+export function deriveNodeStateLabelKey(cardState: NodeCardState): TranslationKey {
+  if (cardState.completed) return L.ui.research.completed;
+  return cardState.ready ? L.ui.research.stateAvailable : L.ui.research.stateUnavailable;
+}
+
 // 初期フォーカス: 研究可能優先、無ければ素材待ち最前線
 // Initial focus: researchable first, else the item-lacking frontier
 export function findInitialFocusNode(nodes: ResearchNodeData[]): ResearchNodeData | null {

@@ -1512,12 +1512,7 @@
           "torqueExponentUnder": 2,
           "torqueExponentOver": 1.585,
           "idlePowerRate": 0.2
-        },
-        "drillLocalPosition": [
-          0,
-          0,
-          0
-        ]
+        }
       },
       "blockPrefabAddressablesPath": "Vanilla/Block/bronze_miner",
       "blockUIAddressablesPath": "Vanilla/UI/Block/GearMinerBlockInventory",
