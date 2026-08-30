@@ -211,6 +211,9 @@
   /* 床の明示でバンドが482pxへ縮んだため、33px×10+gap4px×9=366pxを利用可能高372.6pxへ収め直した */
   /* The explicit floor shrank the band to 482px, so 33px x 10 + 4px gap x 9 = 366px now fits the 372.6px available height */
   --build-menu-category-height: 2.0625rem;
+  /* 1本スクロール内のカテゴリ群同士の縦間隔（ADR 0045） */
+  /* Vertical gap between category groups inside the single scroll (ADR 0045) */
+  --build-menu-category-gap: 20px;
   /* 閉じる✕は詳細列の右上に重なるため、1行目を✕の下端より下へ逃がす安全帯（✕上端 --bevel-3 + ✕実寸 --icon-button-size + 縦積みgap 8px） */
   /* Safe area dropping the detail column's first line below the close cross that overlaps its top-right (cross top --bevel-3 + cross size --icon-button-size + the 8px stack gap) */
   --build-menu-detail-top-safe-area: calc(var(--bevel-3) + var(--icon-button-size) + 8px);

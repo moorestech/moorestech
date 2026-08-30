@@ -39,11 +39,11 @@ namespace Client.Tests.PlaceSystem.Ground
 
             _followStep.FollowGround(run, PlacementHitSurfaceKind.Ground, Vector3Int.one, 0);
 
-            // 最高点→Y: 11/15/19
-            // Maxima → Y: 11/15/19
-            Assert.AreEqual(11, run.Cells[0].Position.y);
-            Assert.AreEqual(15, run.Cells[1].Position.y);
-            Assert.AreEqual(19, run.Cells[2].Position.y);
+            // 最高点→Y: 10/14/18
+            // Maxima → Y: 10/14/18
+            Assert.AreEqual(10, run.Cells[0].Position.y);
+            Assert.AreEqual(14, run.Cells[1].Position.y);
+            Assert.AreEqual(18, run.Cells[2].Position.y);
         }
 
         // ブロック面から始めた列は整数グリッドのまま触らない
@@ -88,7 +88,7 @@ namespace Client.Tests.PlaceSystem.Ground
 
             _followStep.FollowGround(run, PlacementHitSurfaceKind.Ground, Vector3Int.one, 0);
 
-            Assert.AreEqual(7, run.Cells[0].Position.y);
+            Assert.AreEqual(6, run.Cells[0].Position.y);
             Assert.IsTrue(run.Cells[0].Placeable);
             Assert.AreEqual(PlacementBlockCause.None, run.BlockCauses[0]);
 

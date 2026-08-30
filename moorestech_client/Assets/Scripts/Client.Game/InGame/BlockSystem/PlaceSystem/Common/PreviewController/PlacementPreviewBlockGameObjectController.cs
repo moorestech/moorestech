@@ -21,9 +21,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             SetActive(false);
         }
         
-        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
+        public void SetPreview(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
         {
             // さっきと違うブロックだったら削除する
+            // Destroy the pooled previews when the held block changed
             if (_previewBlockMasterElement == null || _previewBlockMasterElement.BlockGuid != holdingBlockMaster.BlockGuid)
             {
                 _previewBlockMasterElement = holdingBlockMaster;
@@ -35,7 +36,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
 
             // プレビューブロックの位置を設定
             // Set preview block positions
-            var isGroundDetectedList = new List<bool>();
             foreach (var placeInfo in placePointInfos)
             {
                 var blockId = placeInfo.BlockId;
@@ -46,14 +46,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 var previewBlock = _blockPlacePreviewObjectPool.GetObject(blockId);
                 _activePreviewBlocks.Add(previewBlock);
                 previewBlock.SetTransform(pos,rot);
-                var isGroundDetected = previewBlock.IsCollisionGround;
-                isGroundDetectedList.Add(isGroundDetected);
 
-                previewBlock.SetPlaceableColor(!isGroundDetected && placeInfo.Placeable);
+                previewBlock.SetPlaceableColor(placeInfo.Placeable);
                 previewBlock.SetPreviewStateDetail(placeInfo);
             }
+        }
+        
+        public IReadOnlyList<bool> DetectGroundOverlaps()
+        {
+            // 接触を答えるだけで可否も色も決めない。判断は呼び出し側が持つ
+            // Only answers the contact; placeability and color stay with the caller
+            var groundOverlaps = new List<bool>(_activePreviewBlocks.Count);
+            foreach (var previewBlock in _activePreviewBlocks) groundOverlaps.Add(previewBlock.IsCollisionGround);
 
-            return isGroundDetectedList;
+            return groundOverlaps;
         }
         
         public void UpdatePlaceableColors(List<PlaceInfo> placeInfos)
@@ -71,8 +77,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
 
         public bool TryGetPreviewBlock(int index, out BlockPreviewObject previewBlock)
         {
-            // アクティブなプレビューブロックをインデックスで取り出す（SetPreviewAndGroundDetectの順序と一致）
-            // Fetch an active preview block by index, matching SetPreviewAndGroundDetect ordering
+            // 直前のSetPreviewの並び順と一致
+            // Matches the ordering of the preceding SetPreview call
             previewBlock = 0 <= index && index < _activePreviewBlocks.Count ? _activePreviewBlocks[index] : null;
             return previewBlock != null;
         }
