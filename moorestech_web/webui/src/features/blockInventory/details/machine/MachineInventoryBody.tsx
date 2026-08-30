@@ -19,7 +19,7 @@ export default function MachineInventoryBody({ data, recipe }: { data: BlockInve
   if (!data.machine) return null;
   const machine = data.machine;
   const { module } = splitSlotIndices(machine.slotLayout, data.itemSlots.length);
-  const view = buildMachineSlotView(recipe, machine.slotLayout, { totalItemSlots: data.itemSlots.length, totalFluidSlots: data.fluidSlots.length });
+  const view = buildMachineSlotView(recipe, machine.slotLayout, { totalItemSlots: data.itemSlots.length, totalFluidSlots: data.fluidSlots.length }, data.itemSlots);
   const inputSlots = view.inputs;
   const outputSlots = view.outputs;
   const fluids = view.fluids.map((f) => data.fluidSlots[f.index]);

@@ -1,4 +1,5 @@
 using Core.Inventory;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.State;
@@ -35,6 +36,21 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             MachineRecipeRefundUtil.ExecuteRefund(inputInventory, refundOverflowInventory, refunds, runningRecipe);
             processingState.CancelProcessing();
             return true;
+        }
+
+        // 新しい束縛の対象外になった入力スロットの未消費アイテムをプレイヤーへ返却する。戻せない分は元スロットへそのまま残す（消失させない）
+        // Refund input slots that fell outside the new binding to the player; whatever does not fit stays in its original slot (never lost)
+        public static void RefundUnboundInputItems(VanillaMachineInputInventory inputInventory, IOpenableInventory refundOverflowInventory)
+        {
+            for (var slot = 0; slot < inputInventory.InputSlot.Count; slot++)
+            {
+                var item = inputInventory.InputSlot[slot];
+                if (item.Id == ItemMaster.EmptyItemId || item.Count == 0) continue;
+                if (inputInventory.IsAllowedToPlace(slot, item)) continue;
+
+                var remainder = refundOverflowInventory.InsertItem(item);
+                inputInventory.SetItem(slot, remainder);
+            }
         }
     }
 }

@@ -135,7 +135,11 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        public void IsRemainInputIsNotRefundedTest()
+        // isRemain素材はジョブ返却の対象外(消費されていない)だが、新レシピの束縛から外れれば
+        // 「束縛外になった入力スロットの未消費アイテム」としてプレイヤーへ自動返却される(2026-08-30裁定)
+        // An isRemain material is never job-refunded (it was never consumed), but once the new recipe
+        // unbinds its slot it counts as a leftover unconsumed input and is auto-refunded to the player (2026-08-30 ruling)
+        public void IsRemainInputIsRefundedWhenUnboundByNewRecipeTest()
         {
             MachineRecipeChangeRefundTestHelper.InitDi();
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
@@ -151,7 +155,67 @@ namespace Tests.CombinedTest.Core
             var remain = recipe.InputItems.First(i => i.IsRemain.HasValue && i.IsRemain.Value);
             var remainId = MasterHolder.ItemMaster.GetItemId(remain.ItemGuid);
             var (input, _) = MachineRecipeChangeRefundTestHelper.GetNonEmptySlots(inventory);
-            Assert.AreEqual(remain.Count, MachineRecipeChangeRefundTestHelper.CountItem(input, remainId));
+            Assert.AreEqual(0, MachineRecipeChangeRefundTestHelper.CountItem(input, remainId));
+            Assert.AreEqual(remain.Count, MachineRecipeChangeRefundTestHelper.CountOverflowItem(overflow, remainId));
+        }
+
+        [Test]
+        // ジョブに一度も入らなかった(未消費の)入力スロットの素材も、新レシピで束縛外になれば
+        // プレイヤーへ自動返却されることを検証する(2026-08-30裁定)
+        // Verifies a material that was never consumed by any job is also auto-refunded to the player
+        // once the new recipe's binding no longer covers its slot (2026-08-30 ruling)
+        public void UnboundLeftoverInputIsRefundedToPlayerTest()
+        {
+            MachineRecipeChangeRefundTestHelper.InitDi();
+            var next = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
+                .First(r => r.InputItems.Any(i => i.IsRemain.HasValue && i.IsRemain.Value));
+            var recipe = MachineRecipeChangeRefundTestHelper.FindAlternateRecipe(next);
+            Assert.IsNotNull(recipe);
+            var overflow = MachineRecipeChangeRefundTestHelper.CreateOverflow(10);
+            var (_, selector, _, inventory) = MachineRecipeChangeRefundTestHelper.PlaceMachine(recipe);
+
+            // recipeを選択し、素材1(=recipe.InputItems[1])を入力スロットへ置くだけで一度も処理しない
+            // Select recipe and place material 1 (recipe.InputItems[1]) in its slot without ever processing
+            Assert.AreEqual(MachineRecipeSelectionResult.Success, selector.SetSelectedRecipe(recipe, overflow));
+            var leftover = recipe.InputItems[1];
+            var leftoverItemId = MasterHolder.ItemMaster.GetItemId(leftover.ItemGuid);
+            inventory.InsertItem(ServerContext.ItemStackFactory.Create(leftoverItemId, leftover.Count));
+
+            // nextでは同じスロットが別素材へ束縛されるため、素材1は束縛外の残留として返却される
+            // next binds the same slot to a different material, so material 1 becomes an unbound leftover and gets refunded
+            Assert.AreEqual(MachineRecipeSelectionResult.Success, selector.SetSelectedRecipe(next, overflow));
+
+            var (input, _) = MachineRecipeChangeRefundTestHelper.GetNonEmptySlots(inventory);
+            Assert.AreEqual(0, MachineRecipeChangeRefundTestHelper.CountItem(input, leftoverItemId));
+            Assert.AreEqual(leftover.Count, MachineRecipeChangeRefundTestHelper.CountOverflowItem(overflow, leftoverItemId));
+        }
+
+        [Test]
+        // 返却先(プレイヤーのインベントリ)が満杯なら、束縛外になった素材は機械に残り消失しないことを検証する(2026-08-30裁定)
+        // Verifies an unbound leftover material stays on the machine (never lost) when the player's inventory is full (2026-08-30 ruling)
+        public void UnboundLeftoverInputStaysOnMachineWhenOverflowFullTest()
+        {
+            MachineRecipeChangeRefundTestHelper.InitDi();
+            var next = MasterHolder.MachineRecipesMaster.MachineRecipes.Data
+                .First(r => r.InputItems.Any(i => i.IsRemain.HasValue && i.IsRemain.Value));
+            var recipe = MachineRecipeChangeRefundTestHelper.FindAlternateRecipe(next);
+            Assert.IsNotNull(recipe);
+            var roomyOverflow = MachineRecipeChangeRefundTestHelper.CreateOverflow(10);
+            var fullOverflow = MachineRecipeChangeRefundTestHelper.CreateOverflow(0);
+            var (_, selector, _, inventory) = MachineRecipeChangeRefundTestHelper.PlaceMachine(recipe);
+
+            Assert.AreEqual(MachineRecipeSelectionResult.Success, selector.SetSelectedRecipe(recipe, roomyOverflow));
+            var leftover = recipe.InputItems[1];
+            var leftoverItemId = MasterHolder.ItemMaster.GetItemId(leftover.ItemGuid);
+            inventory.InsertItem(ServerContext.ItemStackFactory.Create(leftoverItemId, leftover.Count));
+
+            // 返却先に空きが無いため、束縛外になっても機械側のスロットへ残る（消失しない）
+            // No room to refund into, so the unbound material stays in the machine's slot (never lost)
+            Assert.AreEqual(MachineRecipeSelectionResult.Success, selector.SetSelectedRecipe(next, fullOverflow));
+
+            var (input, _) = MachineRecipeChangeRefundTestHelper.GetNonEmptySlots(inventory);
+            Assert.AreEqual(leftover.Count, MachineRecipeChangeRefundTestHelper.CountItem(input, leftoverItemId));
+            Assert.AreEqual(0, MachineRecipeChangeRefundTestHelper.CountOverflowItem(fullOverflow, leftoverItemId));
         }
 
         [Test]
