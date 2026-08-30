@@ -41,9 +41,9 @@ namespace Client.Game.InGame.Map.MapObject
         public MapObjectMasterElement MapObjectMasterElement { get; private set; }
         public GameObject GameObject => gameObject;
 
-        // 破壊済みは指す先にならない。索引が墓標として飛ばす条件そのもの
-        // A destroyed object is nothing to point at; this is exactly what the index skips as a tombstone
-        public bool IsSearchable => !IsDestroyed;
+        // 指す先になれる条件は狙える条件と同じ。装飾物へピンを向けないためマスタ検証と実機挙動を揃える
+        // Being pointable is the same condition as being aimable, so a pin never targets a decoration
+        public bool IsSearchable => IsAvailable;
 
         // マスタ欠損・装飾物(None)は対象外
         // A master-less object or a decoration (None) is not a target
@@ -79,6 +79,9 @@ namespace Client.Game.InGame.Map.MapObject
             if (MapObjectMasterElement == null)
             {
                 Debug.LogError($"MapObject GUID {MapObjectGuid} is not found");
+                // マスタ欠損個体も狙えない。prefab既定の有効コライダーを残すと照準を遮る
+                // A master-less object is not aimable either; leaving the prefab's enabled collider would block aiming
+                ApplyRayTargetInteractable(false);
                 return;
             }
 
@@ -87,15 +90,9 @@ namespace Client.Game.InGame.Map.MapObject
             EarnItemGuids = MapObjectMiningPresentation.GetEarnItemGuids(MapObjectMasterElement);
 
 
-            // 開幕スキットの非活性窓で生成される近傍個体があるため、非活性の子も走査する（2026-08-23裁定）
-            // Near-field objects can be born inside the opening skit's inactive window, so inactive children are scanned too (adjudicated 2026-08-23)
-            // DestroyMapObject()の破壊処理より先に行う。破壊は最終状態として最後に勝つ必要がある（2026-08-30裁定）
-            // Runs before DestroyMapObject() so destruction, as the final state, wins last (adjudicated 2026-08-30)
-            var rayTargets = GetComponentsInChildren<MapObjectRayTarget>(true);
-            foreach (var rayTarget in rayTargets)
-            {
-                rayTarget.Initialize(this, !IsDecoration);
-            }
+            // 装飾物と破壊済みはどちらも狙えない。可否を先に畳み、文の並び順へ依存させない
+            // Neither a decoration nor a destroyed object is aimable; folding both first removes any dependence on statement order
+            ApplyRayTargetInteractable(!IsDecoration && !mapObjectInfo.IsDestroyed);
 
             if (mapObjectInfo.IsDestroyed)
             {
@@ -120,7 +117,11 @@ namespace Client.Game.InGame.Map.MapObject
             // PickUp is acquired in a single action without any tool
             if (MapObjectMasterElement.MiningType == MapObjectMasterElement.MiningTypeConst.PickUp) return MiningStartOutcome.InstantPickUp;
 
-            var miningTools = ((MiningMiningParam)MapObjectMasterElement.MiningParam).MiningTools;
+            // 採掘設定を持たない対象はここに来ない想定だが、型で守りダウンキャストの前提を並び順から外す
+            // Targets without mining settings should not reach here, so guard by type instead of relying on statement order
+            if (MapObjectMasterElement.MiningParam is not MiningMiningParam miningParam) return MiningStartOutcome.Unavailable;
+
+            var miningTools = miningParam.MiningTools;
             if (!MapObjectMiningService.TryResolveUsableTool(equippedItemId, miningTools, out var usableTool))
             {
                 recommendedToolItemIds = ToItemIds(miningTools);
@@ -157,6 +158,16 @@ namespace Client.Game.InGame.Map.MapObject
             ClientContext.VanillaApi.SendOnly.AttackMapObject(InstanceId);
         }
         
+        // 開幕スキットの非活性窓で生成される近傍個体があるため、非活性の子も走査する（2026-08-23裁定）
+        // Near-field objects can be born inside the opening skit's inactive window, so inactive children are scanned too (adjudicated 2026-08-23)
+        private void ApplyRayTargetInteractable(bool interactable)
+        {
+            foreach (var rayTarget in GetComponentsInChildren<MapObjectRayTarget>(true))
+            {
+                rayTarget.Initialize(this, interactable);
+            }
+        }
+
         public void DestroyMapObject()
         {
             IsDestroyed = true;
@@ -181,10 +192,13 @@ namespace Client.Game.InGame.Map.MapObject
         
         private void UpdateHpBar()
         {
-            if (hpBarView)
-            {
-                hpBarView.SetHp(CurrentHp, MapObjectMasterElement.Hp);
-            }
+            if (!hpBarView) return;
+
+            // 装飾物はHPを持たず、削れないのでバーも出さない
+            // A decoration has no HP and is never worn down, so no bar is shown
+            if (MapObjectMasterElement.MiningParam is not IMinableMapObjectParam minableParam) return;
+
+            hpBarView.SetHp(CurrentHp, minableParam.Hp);
         }
     }
 }

@@ -27,6 +27,12 @@ namespace Game.Map.Interface.MapObject
         public bool IsDestroyed { get; }
         
         /// <summary>
+        ///     狙えず削れない装飾物ならtrue
+        ///     True when the object is a decoration that can never be aimed at or worn down
+        /// </summary>
+        public bool IsDecoration { get; }
+        
+        /// <summary>
         ///     オブジェクトが存在する座標
         /// </summary>
         Vector3 Position { get; }

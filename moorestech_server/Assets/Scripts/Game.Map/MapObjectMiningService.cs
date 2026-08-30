@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Common.Debug;
 using Core.Inventory;
 using Core.Item.Interface;
@@ -49,12 +49,16 @@ namespace Game.Map
 
             // 装飾物は偽造要求でも削れない
             // A decoration cannot be worn down even by a forged request
+            if (mapObject.IsDecoration) return MiningAttackResult.NotInteractable;
+
+            // 装飾物以外は採掘設定を必ず持つ。型で受けてダウンキャストの前提を文の並び順から外す
+            // Everything but a decoration carries mining settings, so take it by type instead of relying on statement order
             var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
-            if (MapObjectMaster.IsDecoration(mapObjectElement)) return MiningAttackResult.NotInteractable;
+            if (mapObjectElement.MiningParam is not IMinableMapObjectParam minableParam) return MiningAttackResult.NotInteractable;
 
             // 受け取れない取得物は消滅するので、対象を削る前に空きを確かめる
             // Undeliverable drops would vanish, so verify the free space before wearing the target down
-            if (!CanReceiveEarnItems(mapObjectElement)) return MiningAttackResult.InventoryFull;
+            if (!CanReceiveEarnItems(minableParam)) return MiningAttackResult.InventoryFull;
 
             // PickUpと高速採掘デバッグはツール照合もクールダウンも介さず一撃で破壊する
             // PickUp and the debug super-mine destroy in one hit without tool matching or cooldown
@@ -69,10 +73,13 @@ namespace Game.Map
             // Bare hands match no miningTools, so reject early; the empty id would throw in ItemMaster
             if (equippedItem.Id == ItemMaster.EmptyItemId) return MiningAttackResult.NoTool;
 
+            // PickUpはここより手前で返るため、残るのは道具を要求するMiningだけ。型で受けて並び順への依存を断つ
+            // PickUp returns earlier, so only tool-requiring Mining remains; take it by type to drop the ordering dependence
+            if (minableParam is not MiningMiningParam miningParam) return MiningAttackResult.NotInteractable;
+
             // 装備中ツールとminingToolsを照合しダメージを解決する
             // Resolve damage by matching the equipped tool against miningTools
-            var miningTools = ((MiningMiningParam)mapObjectElement.MiningParam).MiningTools;
-            if (!TryResolveUsableTool(equippedItem.Id, miningTools, out var usableTool))
+            if (!TryResolveUsableTool(equippedItem.Id, miningParam.MiningTools, out var usableTool))
                 return MiningAttackResult.ToolMismatch;
 
             // 前回打撃からattackSpeed×許容率tick未満の連打は捨てる
@@ -85,12 +92,12 @@ namespace Game.Map
 
             #region Internal
 
-            bool CanReceiveEarnItems(MapObjectMasterElement element)
+            bool CanReceiveEarnItems(IMinableMapObjectParam minable)
             {
                 // 実際の取得は閾値通過時のみだが、通過し得る最大量で見ておけば消滅は起きない
                 // The real drop happens only on a threshold crossing, but checking the largest possible amount rules out any loss
                 var maximumEarnItems = new List<IItemStack>();
-                foreach (var earnItem in element.EarnItems)
+                foreach (var earnItem in minable.EarnItems.items)
                 {
                     var itemId = MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid);
                     maximumEarnItems.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(itemId, earnItem.MaxCount));
