@@ -1,6 +1,7 @@
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using Core.Master;
+using Mooresmaster.Model.MapModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
@@ -66,7 +67,7 @@ namespace Tests.UnitTest.Core.Map
 
             // earnItemsだけを空にする
             // Empty only earnItems on a valid definition
-            miningMapObject["earnItems"] = new JArray();
+            miningMapObject["miningParam"]["earnItems"] = new JArray();
             var master = new MapObjectMaster(json);
 
             Assert.IsFalse(master.Validate(out var logs));
@@ -74,23 +75,18 @@ namespace Tests.UnitTest.Core.Map
         }
 
         [Test]
-        public void Noneのmapobjectがearnitemsを持つと失敗する()
+        public void Noneのmapobjectは採掘設定を構造上持てない()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
                 "mods", "forUnitTest", "master", "map.json");
             var json = JObject.Parse(File.ReadAllText(path));
-            var decoration = ((JArray)json["mapObjects"]).Children<JObject>()
-                .Single(element => (string)element["miningType"] == "None");
-            var miningMapObject = ((JArray)json["mapObjects"]).Children<JObject>()
-                .Single(element => (string)element["miningType"] == "Mining");
-
-            // 実在するearnItemを装飾物へ複製し、foreignKey成功と矛盾失敗を分離する
-            // Copy a valid earn item onto the decoration so foreign-key success is isolated from the contradiction failure
-            decoration["earnItems"] = miningMapObject["earnItems"].DeepClone();
             var master = new MapObjectMaster(json);
+            var decoration = master.Map.MapObjects
+                .Single(element => element.MiningType == MapObjectMasterElement.MiningTypeConst.None);
 
-            Assert.IsFalse(master.Validate(out var logs));
-            StringAssert.Contains("None must have empty EarnItems", logs);
+            // hp・earnItems等は判別子の内側にしか存在しないため、装飾物は矛盾した値を持ちようがない
+            // hp, earnItems and the rest exist only inside the discriminator, so a decoration cannot hold a contradicting value
+            Assert.IsFalse(decoration.MiningParam is IMinableMapObjectParam);
         }
 
         [Test]

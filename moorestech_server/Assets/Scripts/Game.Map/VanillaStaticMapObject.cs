@@ -19,13 +19,16 @@ namespace Game.Map
         public int InstanceId { get; }
         public Guid MapObjectGuid { get; }
         public bool IsDestroyed { get; private set; }
+        public bool IsDecoration => MapObjectMaster.IsDecoration(_mapObjectConfig);
         public Vector3 Position { get; }
         public int CurrentHp { get; private set; }
 
         public event Action OnDestroy;
 
-        private readonly int _earnItemHpInterval;
         private readonly MapObjectMasterElement _mapObjectConfig;
+        // 装飾物では採掘設定が存在しない。Attackの装飾物ガードを抜けた先でだけ参照する
+        // Mining settings are absent for a decoration; referenced only past the decoration guard in Attack
+        private readonly IMinableMapObjectParam _minableParam;
         private readonly Random _random;
 
         public VanillaStaticMapObject(int instanceId, Guid mapObjectGuid, bool isDestroyed, int currentHp, Vector3 position)
@@ -39,14 +42,18 @@ namespace Game.Map
             Position = position;
             CurrentHp = currentHp;
 
-            // アイテム付与間隔と乱数生成器を準備する
-            // Prepare the item reward interval and random generator
-            _earnItemHpInterval = _mapObjectConfig.EarnItemHpInterval;
+            // 採掘設定と乱数生成器を準備する
+            // Prepare the mining settings and the random generator
+            _minableParam = _mapObjectConfig.MiningParam as IMinableMapObjectParam;
             _random = new Random();
         }
         
         public List<IItemStack> Attack(int damage)
         {
+            // 装飾物はHP境界も取得物も持たないため、どの経路から殴られても成立しない
+            // A decoration has neither HP thresholds nor drops, so a hit from any path does nothing
+            if (IsDecoration) return new List<IItemStack>();
+
             // 与えられたダメージを適用して破壊状態を判定する
             // Apply incoming damage and determine the destroyed state
             var lastHp = CurrentHp;
@@ -78,13 +85,14 @@ namespace Game.Map
 
                 // 直前HPに基づく開始境界を設定する
                 // Determine the starting threshold based on the previous HP
-                var threshold = ((beforeHp - 1) / _earnItemHpInterval) * _earnItemHpInterval;
+                var earnItemHpInterval = _minableParam.EarnItemHpInterval;
+                var threshold = ((beforeHp - 1) / earnItemHpInterval) * earnItemHpInterval;
                 var crossedCount = 0;
 
                 while (threshold >= 0 && afterHp <= threshold)
                 {
                     crossedCount++;
-                    threshold -= _earnItemHpInterval;
+                    threshold -= earnItemHpInterval;
                 }
 
                 return crossedCount;
@@ -94,7 +102,7 @@ namespace Game.Map
             {
                 // 設定に基づいて毎回ランダムな数量のアイテムを生成
                 // Generate items with random quantity based on configuration each time
-                foreach (var earnItemConfig in _mapObjectConfig.EarnItems)
+                foreach (var earnItemConfig in _minableParam.EarnItems.items)
                 {
                     var itemCount = _random.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
                     var itemId = MasterHolder.ItemMaster.GetItemId(earnItemConfig.ItemGuid);

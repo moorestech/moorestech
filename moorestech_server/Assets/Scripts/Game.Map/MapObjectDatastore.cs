@@ -6,6 +6,7 @@ using Game.Context;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.SaveLoad.Json;
+using Mooresmaster.Model.MapModule;
 using UnityEngine;
 
 namespace Game.Map
@@ -33,7 +34,9 @@ namespace Game.Map
                     Debug.Log($"マップに guid:{mapObjectInfo.MapObjectGuid} instanceId:{mapObjectInfo.InstanceId} の設定がありましたが、マスターにそのMapObjectが存在しませんでした。");
                     continue;
                 }
-                var hp = mapObjectConfig.Hp;
+                // 装飾物は削れないためHPを持たない。初期HPは採掘できる個体だけが持つ
+                // A decoration is never worn down and carries no HP; only a minable object has an initial HP
+                var hp = mapObjectConfig.MiningParam is IMinableMapObjectParam minableParam ? minableParam.Hp : 0;
                 
                 var mapObject = _mapObjectFactory.Create(mapObjectInfo.InstanceId, mapObjectInfo.MapObjectGuid, hp, false, mapObjectInfo.Position);
                 _mapObjects.Add(mapObject.InstanceId, mapObject);
