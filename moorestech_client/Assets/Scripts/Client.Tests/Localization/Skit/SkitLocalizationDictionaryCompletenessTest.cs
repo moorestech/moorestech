@@ -26,9 +26,9 @@ namespace Client.Tests.Localization.Skit
         // Baseline is the root values and sorted CommandForge key/value pairs after trains moved to worldObjectEnable
         private static readonly Dictionary<string, (int Count, string Hash)> Baselines = new()
         {
-            ["english"] = (143, "37060d89c2b4261de3d674e65767085449474bd3d115e6ceabd80abfaec28fd6"),
+            ["english"] = (208, "2fd4b035c0cdc46e456953d41bd9f55061da6ec946818e434ded3cd26d94565b"),
             ["japanese"] = (208, "c702afae428b48ffd8d8f8f57a65c00250258430805e79890e636016ce533fd4"),
-            ["german"] = (143, "741d48331d47583b7e00751a80607d8e7774ec64defabb07811f86a86d355d7c"),
+            ["german"] = (208, "e4d5bac0b52a6c509e71a2148301dfdb486761b0bbcf5d1e9bb7f4a8506e067a"),
         };
 
         // LanguageCatalog由来で全言語を走査し新規言語追加時にbaseline未登録を検知する
