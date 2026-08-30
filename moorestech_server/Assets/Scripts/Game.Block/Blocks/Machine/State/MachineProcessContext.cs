@@ -2,6 +2,7 @@ using System;
 using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
+using Game.Block.Blocks.Machine.RecipeSelection;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.State
@@ -101,13 +102,13 @@ namespace Game.Block.Blocks.Machine.State
             PublishedRequestPower = 0f;
         }
 
-        // 選択レシピを保持し、入出力インベントリへスロット束縛をプッシュする
-        // Store the selection and push the slot binding into the input/output inventories
+        // 選択レシピを保持し、入出力インベントリへスロット束縛をプッシュする。出力側は既定でレベルファミリーのみ許可する
+        // Store the selection and push the slot binding into the input/output inventories; output defaults to level-family only
         internal void BindSelectedRecipe(MachineRecipeMasterElement recipe)
         {
             SelectedRecipe = recipe;
             InputInventory.SetBoundRecipe(recipe);
-            OutputInventory.SetBoundRecipe(recipe);
+            OutputInventory.SetBoundOutputs(MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(recipe));
         }
     }
 }

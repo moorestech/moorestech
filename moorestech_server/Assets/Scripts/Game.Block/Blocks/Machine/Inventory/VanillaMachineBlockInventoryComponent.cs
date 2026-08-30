@@ -11,7 +11,7 @@ using Game.Context;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots
+    public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots, ISlotPlacementRestriction
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
@@ -88,15 +88,24 @@ namespace Game.Block.Blocks.Machine.Inventory
             return subInventory.Items[localSlot];
         }
 
-        // 入れ替え経路（move service の全量swap）も束縛を守る。ロード復元はサブインベントリの SetItemWithoutEvent を使うため影響しない
-        // The swap path (full-stack swap in the move service) also honors the binding; load restore uses the sub-inventory's SetItemWithoutEvent and is unaffected
+        // SetItemは言われたとおりに書き込む。束縛の可否判定は呼び出し側がIsAllowedToPlaceで事前に問い合わせる（ISlotPlacementRestriction）
+        // SetItem always writes as instructed; callers query IsAllowedToPlace beforehand via ISlotPlacementRestriction
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
 
             var (subInventory, localSlot) = ResolveSlot(slot);
-            if (!subInventory.IsAllowedToPlace(localSlot, itemStack)) return;
             subInventory.SetItem(localSlot, itemStack);
+        }
+
+        // 移動/挿入サービスが書き込み前に問い合わせる能力インターフェースの実装
+        // Implementation of the capability interface move/insert services query before writing
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
+        {
+            BlockException.CheckDestroy(this);
+
+            var (subInventory, localSlot) = ResolveSlot(slot);
+            return subInventory.IsAllowedToPlace(localSlot, itemStack);
         }
 
         public void SetItem(int slot, ItemId itemId, int count)

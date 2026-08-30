@@ -1,5 +1,5 @@
 import { dispatchAction, readItemMaster, readTopic, Topics } from "@/bridge";
-import type { PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
+import type { BlockInventoryData, PlayerInventoryData, SlotData, SlotRef } from "@/bridge";
 import {
   dispatchPlanned,
   planPlayerDoubleClick,
@@ -7,6 +7,7 @@ import {
   planPlayerRightClick,
   type PlayerSlotContext,
 } from "@/shared/itemMove";
+import { boundMachineInputSlotsForItem } from "@/features/blockInventory/details/machine/machineSlotGhosts";
 import { SplitDragSession } from "./splitDrag";
 
 const splitDrag = new SplitDragSession((slots) => void dispatchAction("inventory.split_drag", { slots }));
@@ -37,6 +38,7 @@ export const slotActions: SlotActions = {
       inventory,
       maxStack: readItemMaster()?.get(slot.itemId)?.maxStack,
       blockItemSlots: block?.open ? block.itemSlots : null,
+      blockBoundSlotsForItem: resolveBlockBoundSlotsForItem(block),
     };
     const plan = planPlayerLeftClick(ref, slot, shiftKey, ctx);
     if (plan.kind === "beginSplitDrag") { splitDrag.begin(ref); return; }
@@ -80,4 +82,15 @@ function resolveSlot(inventory: PlayerInventoryData, ref: SlotRef): SlotData | u
   if (ref.area === "grab") return inventory.grab;
   if (ref.area === "equipment") return inventory.equipment[ref.slot];
   return inventory.mainSlots[ref.slot];
+}
+
+// 開いているブロックが機械かつレシピ選択済みのときだけ束縛先indexへ絞る関数を返す。それ以外(チェスト等)はundefined＝無制限
+// Return a function narrowing candidates to bound indices only when the open block is a machine with a selected recipe; otherwise undefined (chests etc. stay unrestricted)
+function resolveBlockBoundSlotsForItem(block: BlockInventoryData | null): ((itemId: number) => number[] | null) | undefined {
+  if (!block?.open || block.source !== "block" || !block.machine) return undefined;
+  const machine = block.machine;
+  const itemSlotCount = block.itemSlots.length;
+  const recipe = readTopic(Topics.machineRecipes)?.recipes.find((r) => r.recipeGuid === machine.selectedRecipeGuid);
+  if (!recipe) return undefined;
+  return (itemId) => boundMachineInputSlotsForItem(recipe, machine.slotLayout, itemSlotCount, itemId);
 }

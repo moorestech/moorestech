@@ -2,24 +2,28 @@
 // Selected-recipe header atop the inventory mode; clicking returns to recipe selection (ADR 0042 R2)
 import { Group, Text } from "@mantine/core";
 import type { MachineRecipe } from "@/bridge";
-import { HoverTooltip, ItemSlot } from "@/shared/ui";
-import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
+import { FluidIcon, HoverTooltip, ItemSlot } from "@/shared/ui";
+import { L, fluidNameKey, useI18n, useItemNameResolver } from "@/shared/i18n";
+import type { RecipeDisplaySubject } from "./machineRecipeSelectionLogic";
 
-type Props = { recipe: MachineRecipe; onChangeRecipe: () => void };
+type Props = { recipe: MachineRecipe; subject: RecipeDisplaySubject; onChangeRecipe: () => void };
 
-// 代表出力（先頭の生産物）はbuildMachineRecipeSelectionRowsが既にガードしているため、
-// このレシピが渡ってくる時点で必ず存在する。フォールバックは持たない（C9）
-// buildMachineRecipeSelectionRows already guards the representative output, so any
-// recipe reaching here is guaranteed to have one; no fallback icon is kept here (C9)
-export default function SelectedRecipeHeader({ recipe, onChangeRecipe }: Props) {
+// 代表出力（アイテム優先、無ければ液体）はbuildMachineRecipeSelectionRowsが既にガードしているため、
+// このレシピが渡ってくる時点で必ず存在する（D2）
+// The representative output (item first, fluid otherwise) is already guarded by buildMachineRecipeSelectionRows,
+// so any recipe reaching here is guaranteed to have one (D2)
+export default function SelectedRecipeHeader({ recipe, subject, onChangeRecipe }: Props) {
   const { t } = useI18n();
   const resolveItemName = useItemNameResolver();
-  const outputItemId = recipe.outputItems[0].itemId;
+  const name = subject.kind === "item"
+    ? (resolveItemName(subject.itemId) ?? t(L.ui.common.itemFallback, { itemId: subject.itemId }))
+    : t(fluidNameKey(subject.fluidGuid));
+
   return (
-    <HoverTooltip label={t(L.ui.blockInventory.changeRecipe)} disabled={false}>
+    <HoverTooltip label={t(L.ui.blockInventory.changeRecipe)}>
       <Group justify="center" gap="xs" role="button" data-testid="machine-selected-recipe" style={{ cursor: "pointer" }} onClick={onChangeRecipe}>
-        <ItemSlot itemId={outputItemId} />
-        <Text data-testid="machine-selected-recipe-name">{resolveItemName(outputItemId) ?? t(L.ui.common.itemFallback, { itemId: outputItemId })}</Text>
+        {subject.kind === "item" ? <ItemSlot itemId={subject.itemId} /> : <FluidIcon fluidGuid={subject.fluidGuid} />}
+        <Text data-testid="machine-selected-recipe-name">{name}</Text>
         <Text c="dimmed" size="sm" data-testid="machine-selected-recipe-time">{t(L.ui.blockInventory.recipeDuration, { seconds: recipe.time })}</Text>
       </Group>
     </HoverTooltip>

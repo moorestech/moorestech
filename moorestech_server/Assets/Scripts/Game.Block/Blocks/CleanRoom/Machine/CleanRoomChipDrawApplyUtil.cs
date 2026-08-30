@@ -15,8 +15,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
     {
         public static void ApplyChipDrawOnCompletion(ProcessingMachineProcessState processingState, CleanRoomEffect cleanRoomEffect, BlockInstanceId blockInstanceId, ref uint cycleCount)
         {
-            // チップはレシピ出力の置き換えで個数は増えないため、開始時の容量判定は素の出力のままで有効
-            // Chips only swap recipe outputs in place without increasing counts, so start-time capacity checks stay valid
+            // チップはレシピ出力の置き換えで個数は増えない。出力スロットの束縛は選択時点で生産物ファミリー∪全ChipItemGuidへ
+            // 広げ済み（CleanRoomMachineProcessorComponent.WidenOutputBindingWithChips）なので、開始時の容量判定はチップ差し替え後も有効
+            // Chips only swap recipe outputs in place without increasing counts. The output slot binding is already widened to
+            // family ∪ every ChipItemGuid at selection time (CleanRoomMachineProcessorComponent.WidenOutputBindingWithChips),
+            // so the start-time capacity check stays valid even after the chip swap
             var recipeGuid = processingState.RecipeGuid;
             if (recipeGuid == Guid.Empty) return;
             if (!MasterHolder.CleanRoomMaster.TryGetChipDraw(recipeGuid, out var chipDraw)) return;

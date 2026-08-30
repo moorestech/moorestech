@@ -1,30 +1,21 @@
+using System.Collections.Generic;
 using Core.Master;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.RecipeSelection
 {
     /// <summary>
-    ///     選択レシピとスロット番号の対応（入力スロットi＝素材i、出力スロットj＝生産物j）を引く純関数
-    ///     Pure lookups for the recipe-to-slot binding (input slot i = input i, output slot j = output j)
+    ///     選択レシピとスロット番号の対応（入力スロットi＝素材i、出力スロットj＝生産物jのレベルファミリー枠）を引く純関数
+    ///     Pure lookups for the recipe-to-slot binding (input slot i = input i, output slot j = output j's level-family frame)
     /// </summary>
     internal static class MachineRecipeSlotBindingUtil
     {
-        // 素材のスロット番号。レシピに無いアイテムは-1
-        // Input slot index for the item; -1 when the recipe does not use it
-        public static int FindInputSlotIndex(MachineRecipeMasterElement recipe, ItemId itemId)
+        // スロットslotIndexが素材itemIdの束縛先か
+        // Whether slot slotIndex is bound to input itemId
+        public static bool IsInputBoundTo(MachineRecipeMasterElement recipe, int slotIndex, ItemId itemId)
         {
-            for (var i = 0; i < recipe.InputItems.Length; i++)
-            {
-                if (MasterHolder.ItemMaster.GetItemId(recipe.InputItems[i].ItemGuid) == itemId) return i;
-            }
-            return -1;
-        }
-
-        // 実現出力k（追加セット込み）の出力スロット番号。品質変種でIDが変わるため番号で引く
-        // Output slot for realized output k (extra sets included); indexed, since quality variants change the id
-        public static int FindOutputSlotIndex(MachineRecipeMasterElement recipe, int realizedOutputIndex)
-        {
-            return realizedOutputIndex % recipe.OutputItems.Length;
+            if (slotIndex < 0 || recipe.InputItems.Length <= slotIndex) return false;
+            return MasterHolder.ItemMaster.GetItemId(recipe.InputItems[slotIndex].ItemGuid) == itemId;
         }
 
         // 入力タンクiが受け入れる液体か
@@ -44,6 +35,21 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
                 if (variant == itemId) return true;
             }
             return false;
+        }
+
+        // 出力スロットごとの既定許可集合（生産物のレベルファミリーのみ）。レシピ未選択は空
+        // Default allowed-item set per output slot (level family only); empty when unselected
+        public static IReadOnlyList<IReadOnlyCollection<ItemId>> BuildDefaultOutputBinding(MachineRecipeMasterElement recipe)
+        {
+            if (recipe == null) return System.Array.Empty<IReadOnlyCollection<ItemId>>();
+
+            var binding = new List<IReadOnlyCollection<ItemId>>(recipe.OutputItems.Length);
+            foreach (var outputItem in recipe.OutputItems)
+            {
+                var baseItemId = MasterHolder.ItemMaster.GetItemId(outputItem.ItemGuid);
+                binding.Add(new HashSet<ItemId>(MasterHolder.ItemMaster.GetLevelVariants(baseItemId)));
+            }
+            return binding;
         }
     }
 }

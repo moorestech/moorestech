@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
@@ -22,10 +22,10 @@ namespace Game.Block.Blocks.Machine.Inventory
         public IReadOnlyList<IItemStack> InputSlot => _itemDataStoreService.InventoryItems;
         IReadOnlyList<IItemStack> IVanillaMachineSubInventory.Items => InputSlot;
         public IReadOnlyList<FluidContainer> FluidInputSlot => _fluidContainers;
-        
+
         private readonly BlockId _blockId;
         private readonly BlockInstanceId _blockInstanceId;
-        
+
         private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdate;
         private readonly FluidContainer[] _fluidContainers;
         private readonly IGameUnlockStateData _gameUnlockStateData;
@@ -48,17 +48,18 @@ namespace Game.Block.Blocks.Machine.Inventory
             _blockInventoryUpdate = blockInventoryUpdate;
             _blockInstanceId = blockInstanceId;
             _gameUnlockStateData = gameUnlockStateData;
-            
+
             var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot, option);
-            
+            _slotBinding.SetSlotCount(inputSlot);
+
             _fluidContainers = new FluidContainer[innerTankCount];
             for (var i = 0; i < innerTankCount; i++)
             {
                 _fluidContainers[i] = new FluidContainer(innerTankCapacity);
             }
         }
-        
+
         public BlockId BlockId => _blockId;
 
         internal void SetBoundRecipe(MachineRecipeMasterElement recipe)
@@ -69,18 +70,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
         {
             return _slotBinding.IsAllowedToPlace(localSlot, itemStack);
-        }
-
-        internal bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)
-        {
-            return _slotBinding.IsFluidAllowedAt(tankIndex, fluidId);
-        }
-
-        // このアイテムが積まれるスロット番号を公開する（返却シミュレーション等、束縛規則を外部から再現する用途）
-        // Expose the bound slot for this item (used by callers, e.g. refund simulation, that must mirror the binding rule)
-        internal int ResolveSlot(IItemStack itemStack)
-        {
-            return _slotBinding.ResolveSlot(itemStack);
         }
 
         public bool IsAllowedToStartProcess(MachineRecipeMasterElement recipe)
@@ -97,20 +86,66 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         public IItemStack InsertItem(IItemStack itemStack)
         {
-            // 素材iはスロットiにだけ積む。レシピ外・未選択はそのまま返す
-            // Input i stacks only into slot i; foreign items and unselected machines bounce it back
-            var slot = _slotBinding.ResolveSlot(itemStack);
-            if (slot < 0) return itemStack;
-            var result = InputSlot[slot].AddItem(itemStack);
-            _itemDataStoreService.SetItem(slot, result.ProcessResultItemStack);
-            return result.RemainderItemStack;
+            return InsertItem(new List<IItemStack> { itemStack })[0];
         }
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            var remainders = new List<IItemStack>(itemStacks.Count);
-            foreach (var stack in itemStacks) remainders.Add(InsertItem(stack));
+            var (slots, touchedSlots, remainders) = SimulateInsertCore(itemStacks);
+            foreach (var slot in touchedSlots) _itemDataStoreService.SetItem(slot, slots[slot]);
             return remainders;
+        }
+
+        // 実挿入と同じ束縛規則で仮想挿入した際の残余を返す（書き込みは行わない）。返却シミュレーション等が使う唯一の口
+        // Return the remainders of a virtual insert under the same binding rule as the real insert (no write). The single entry point for refund simulation etc.
+        public List<IItemStack> SimulateInsert(IReadOnlyList<IItemStack> itemStacks)
+        {
+            return SimulateInsertCore(itemStacks).remainders;
+        }
+
+        public bool InsertionCheck(List<IItemStack> itemStacks)
+        {
+            foreach (var remainder in SimulateInsert(itemStacks))
+            {
+                if (remainder.Count != 0) return false;
+            }
+            return true;
+        }
+
+        // 束縛タンクへ液体を挿入する。指定タンクは束縛時のみ受け、指定無しは束縛タンクへ直行する（ADR 0042 R5）
+        // Insert fluid into the bound tank; a designated tank only when bound, undesignated inflow goes straight to the bound tank (ADR 0042 R5)
+        public FluidStack InsertFluid(FluidStack fluidStack, int designatedTankIndex, out bool changed)
+        {
+            var index = ResolveFluidTargetIndex(designatedTankIndex, fluidStack.FluidId);
+            if (index < 0)
+            {
+                changed = false;
+                return fluidStack;
+            }
+
+            var result = FluidInputSlot[index].AddLiquid(fluidStack);
+            changed = 0 < result.AcceptedAmount;
+            return result.Remainder;
+
+            #region Internal
+
+            // タンク指定ありは束縛の合否のみ、指定無しは束縛タンクを先頭から探索する
+            // A designated tank is judged solely on the binding; undesignated inflow scans for the bound tank from the front
+            int ResolveFluidTargetIndex(int designated, FluidId fluidId)
+            {
+                if (0 <= designated && designated < FluidInputSlot.Count)
+                {
+                    return IsFluidAllowedAt(designated, fluidId) ? designated : -1;
+                }
+
+                for (var i = 0; i < FluidInputSlot.Count; i++)
+                {
+                    if (IsFluidAllowedAt(i, fluidId)) return i;
+                }
+                return -1;
+            }
+
+            #endregion
         }
 
         public void ReduceInputSlot(MachineRecipeMasterElement recipe)
@@ -135,7 +170,7 @@ namespace Game.Block.Blocks.Machine.Inventory
                 container.FluidId = FluidMaster.EmptyFluidId;
             }
         }
-        
+
         public void SetItem(int slot, IItemStack itemStack)
         {
             _itemDataStoreService.SetItem(slot, itemStack);
@@ -146,22 +181,36 @@ namespace Game.Block.Blocks.Machine.Inventory
             _itemDataStoreService.SetItemWithoutEvent(slot, itemStack);
         }
 
-        public bool InsertionCheck(List<IItemStack> itemStacks)
+        // 束縛規則で全itemStacksを仮想挿入し、変更後スロット値・触れたスロット・各要求ごとの残余を返す（副作用なし）
+        // Virtually insert every itemStack under the binding rule and return the post-insert slots, touched slots, and per-request remainders (no side effects)
+        private (List<IItemStack> slots, List<int> touchedSlots, List<IItemStack> remainders) SimulateInsertCore(IReadOnlyList<IItemStack> itemStacks)
         {
-            // 実挿入と同じ束縛規則でスロット複製へ仮想挿入する
-            // Virtually insert into copied slots under the same binding rule as the real insert
-            var simulated = new List<IItemStack>(InputSlot);
+            var slots = new List<IItemStack>(InputSlot);
+            var touchedSlots = new List<int>();
+            var remainders = new List<IItemStack>(itemStacks.Count);
+
             foreach (var stack in itemStacks)
             {
-                var slot = _slotBinding.ResolveSlot(stack);
-                if (slot < 0) return false;
-                var result = simulated[slot].AddItem(stack);
-                if (result.RemainderItemStack.Count != 0) return false;
-                simulated[slot] = result.ProcessResultItemStack;
+                var remaining = stack;
+                foreach (var slot in _slotBinding.ResolveBoundSlots(remaining.Id))
+                {
+                    if (remaining.Count == 0) break;
+                    var result = slots[slot].AddItem(remaining);
+                    slots[slot] = result.ProcessResultItemStack;
+                    remaining = result.RemainderItemStack;
+                    if (!touchedSlots.Contains(slot)) touchedSlots.Add(slot);
+                }
+                remainders.Add(remaining);
             }
-            return true;
+
+            return (slots, touchedSlots, remainders);
         }
-        
+
+        private bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)
+        {
+            return _slotBinding.IsFluidAllowedAt(tankIndex, fluidId);
+        }
+
         private void InvokeEvent(int slot, IItemStack itemStack)
         {
             _blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(

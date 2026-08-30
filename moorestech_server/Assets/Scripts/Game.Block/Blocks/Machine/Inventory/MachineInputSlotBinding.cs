@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine.RecipeSelection;
@@ -12,18 +14,30 @@ namespace Game.Block.Blocks.Machine.Inventory
     internal class MachineInputSlotBinding
     {
         private MachineRecipeMasterElement _recipe;
+        private int _slotCount;
+
+        // 物理スロット数を固定する（コンストラクタ相当。マスタ超過の素材数を境界内へ切り詰めるため）
+        // Fix the physical slot count once (guards against a recipe with more inputs than the machine has slots)
+        public void SetSlotCount(int slotCount)
+        {
+            _slotCount = slotCount;
+        }
 
         public void SetRecipe(MachineRecipeMasterElement recipe)
         {
             _recipe = recipe;
         }
 
-        // このアイテムが積まれるスロット番号。未選択・レシピ外は-1
-        // Slot the item stacks into; -1 when unselected or the recipe does not use it
-        public int ResolveSlot(IItemStack itemStack)
+        // 束縛済みスロットを先頭から走査して列挙する（同一itemGuidが複数スロットに束縛されていても全て試せる）
+        // Enumerate bound slots for the item from the front (so a duplicated itemGuid across slots can all be tried)
+        public IEnumerable<int> ResolveBoundSlots(ItemId itemId)
         {
-            if (_recipe == null) return -1;
-            return MachineRecipeSlotBindingUtil.FindInputSlotIndex(_recipe, itemStack.Id);
+            if (_recipe == null) yield break;
+            var boundCount = Math.Min(_recipe.InputItems.Length, _slotCount);
+            for (var i = 0; i < boundCount; i++)
+            {
+                if (MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, i, itemId)) yield return i;
+            }
         }
 
         // 空アイテムは取り出しなのでどのスロットでも許す
@@ -31,7 +45,8 @@ namespace Game.Block.Blocks.Machine.Inventory
         public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
         {
             if (itemStack.Id == ItemMaster.EmptyItemId) return true;
-            return ResolveSlot(itemStack) == localSlot;
+            if (_recipe == null) return false;
+            return MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, localSlot, itemStack.Id);
         }
 
         public bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)

@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using Core.Item.Interface;
 using Game.Block.Blocks.Machine.State.Util;
+using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.State
 {
@@ -8,6 +11,11 @@ namespace Game.Block.Blocks.Machine.State
     {
         private readonly MachineProcessContext _context;
         private readonly ProcessingMachineProcessState _processingState;
+
+        // 出力先が空くのを待つ間、確定済みの実現出力を保持する（レシピが変わるまで再抽選しない）
+        // Holds the already-realized outputs while waiting for output space (never re-rolled until the recipe changes)
+        private MachineRecipeMasterElement _pendingRecipe;
+        private List<IItemStack> _pendingOutputs;
 
         public IdleMachineProcessState(MachineProcessContext context, ProcessingMachineProcessState processingState)
         {
@@ -26,22 +34,39 @@ namespace Game.Block.Blocks.Machine.State
             var recipe = _context.SelectedRecipe;
             if (recipe == null || !_context.InputInventory.IsAllowedToStartProcess(recipe))
             {
+                ClearPendingOutputs();
                 return ProcessState.Idle;
             }
 
-            // 抽選を開始時に確定し実スタックで容量確認
-            // Fix rolls at start and check capacity with realized stacks
-            var effect = _context.EffectComponent.AggregateCurrent();
-            var realizedOutputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect);
-            if (!_context.OutputInventory.CanStoreOutputs(realizedOutputs, MachineOutputFactoryUtil.CreateFluidOutputs(recipe)))
+            // レシピが変わったときだけ新規に抽選する。同じレシピで待機している間は既存の実現結果を使い回す
+            // Roll only when the recipe changed; while waiting on the same recipe, reuse the already-realized result
+            if (_pendingRecipe != recipe)
+            {
+                var effect = _context.EffectComponent.AggregateCurrent();
+                _pendingOutputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect);
+                _pendingRecipe = recipe;
+            }
+
+            if (!_context.OutputInventory.CanStoreOutputs(_pendingOutputs, MachineOutputFactoryUtil.CreateFluidOutputs(recipe)))
             {
                 return ProcessState.Idle;
             }
 
             // ProcessingStateへ遷移
             // Hand the job to ProcessingState and transition
-            _processingState.SetProcessing(recipe, realizedOutputs);
+            _processingState.SetProcessing(recipe, _pendingOutputs);
+            ClearPendingOutputs();
             return ProcessState.Processing;
+
+            #region Internal
+
+            void ClearPendingOutputs()
+            {
+                _pendingRecipe = null;
+                _pendingOutputs = null;
+            }
+
+            #endregion
         }
     }
 }

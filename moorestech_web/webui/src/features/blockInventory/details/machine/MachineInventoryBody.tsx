@@ -19,10 +19,10 @@ export default function MachineInventoryBody({ data, recipe }: { data: BlockInve
   if (!data.machine) return null;
   const machine = data.machine;
   const { module } = splitSlotIndices(machine.slotLayout, data.itemSlots.length);
-  const view = buildMachineSlotView(recipe, machine.slotLayout, data.itemSlots.length, machine.slotLayout.inputTank, data.fluidSlots.length);
+  const view = buildMachineSlotView(recipe, machine.slotLayout, { totalItemSlots: data.itemSlots.length, totalFluidSlots: data.fluidSlots.length });
   const inputSlots = view.inputs;
   const outputSlots = view.outputs;
-  const fluids = view.fluidIndices.map((i) => data.fluidSlots[i]);
+  const fluids = view.fluids.map((f) => data.fluidSlots[f.index]);
 
   const slotAt = ({ index, ghost }: { index: number; ghost: GhostItem | undefined }) => {
     const slot = data.itemSlots[index];
@@ -62,7 +62,7 @@ export default function MachineInventoryBody({ data, recipe }: { data: BlockInve
       )}
       {/* 機械の流体行は従来どおり矢印なし（加工進捗は入出力グリッド間の矢印が担う） */}
       {/* The machine fluid row keeps no arrow; processing progress lives between the in/out grids */}
-      <FluidSlotRow fluids={fluids} ghosts={view.fluidGhosts} testId="machine-fluid-slots" />
+      <FluidSlotRow fluids={fluids} ghosts={view.fluids.map((f) => f.ghost)} testId="machine-fluid-slots" />
       {machine.outputItems.map((output) => {
         const rate = itemsPerMinute(output.count, machine.recipeTime);
         return rate === null ? null : (

@@ -87,16 +87,30 @@ namespace Game.Block.Blocks.Machine.State
             var effectiveRequestPower = _context.EffectiveRequestPower(ProcessState.Processing);
             var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_context.CurrentPower, effectiveRequestPower);
 
-            // 残りtickを使い切ったら完了して待機へ
-            // Once remaining ticks are exhausted, finish and return to idle
-            if (subTicks >= RemainingTicks)
+            if (RemainingTicks > 0)
             {
+                // 残りtickが尽きるまでは加工継続
+                // Keep processing until remaining ticks run out
+                if (subTicks < RemainingTicks)
+                {
+                    RemainingTicks -= subTicks;
+                    return ProcessState.Processing;
+                }
                 RemainingTicks = 0;
-                return ProcessState.Idle;
             }
 
-            RemainingTicks -= subTicks;
-            return ProcessState.Processing;
+            // 旧セーブで産出予定が無い場合はここで一度だけ確定させる（以後の保留tickで再抽選しないため）
+            // Old saves lacking pending outputs get rolled once here (so held ticks afterward never re-roll)
+            _pendingOutputs ??= MachineOutputFactoryUtil.CreateRealizedOutputs(CurrentRecipe, _context.EffectComponent.AggregateCurrent());
+
+            // tickは尽きたが出力先に確定済み産出物が収まらない間は、実現済みの変種のまま完了を保留する
+            // Ticks are exhausted, but while the realized outputs do not fit, hold completion with the same realized variants
+            if (!_context.OutputInventory.CanStoreOutputs(_pendingOutputs, MachineOutputFactoryUtil.CreateFluidOutputs(CurrentRecipe)))
+            {
+                return ProcessState.Processing;
+            }
+
+            return ProcessState.Idle;
         }
 
         // 完了時に産出物を払い出す（旧セーブは産出予定が無いため再抽選）

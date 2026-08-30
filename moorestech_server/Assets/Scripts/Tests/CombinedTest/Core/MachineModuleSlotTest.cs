@@ -84,11 +84,13 @@ namespace Tests.CombinedTest.Core
                 .GetValue(inventory);
             Assert.AreEqual(outputItem, outputInventory.OutputSlot[0]);
 
-            // 束縛外の出力スロット（生産物数を超える枠）へのセットは拒否され、空のまま残る
-            // A set into an unbound output slot (beyond the recipe's output count) is refused and stays empty
+            // 束縛外の出力スロット（生産物数を超える枠）はIsAllowedToPlaceがfalseを返す（2026-08-30裁定D1: 拒否可否は
+            // 書き込み前に能力インターフェースへ問い合わせる形へ変わり、SetItem自体は言われたとおり書き込む契約になった）
+            // An unbound output slot (beyond the recipe's output count) makes IsAllowedToPlace return false (2026-08-30
+            // ruling D1: rejection now happens via a pre-write capability-interface query; SetItem itself always writes as instructed)
             var unboundOutputSlot = InputSlotCount + OutputSlotCount - 1;
-            inventory.SetItem(unboundOutputSlot, ServerContext.ItemStackFactory.Create(outputItemId, 7));
-            Assert.AreEqual(ItemMaster.EmptyItemId, inventory.GetItem(unboundOutputSlot).Id);
+            var unboundItem = ServerContext.ItemStackFactory.Create(outputItemId, 7);
+            Assert.IsFalse(inventory.IsAllowedToPlace(unboundOutputSlot, unboundItem));
 
             // 設定した2つのモジュールスロット以外のモジュールレンジは空のまま
             // The module range except the two configured slots stays empty

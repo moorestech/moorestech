@@ -1,29 +1,31 @@
+using System.Collections.Generic;
+using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
-using Game.Block.Blocks.Machine.RecipeSelection;
-using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
     /// <summary>
-    ///     出力スロットを選択レシピの生産物順へ束縛する判定器。スロットjは生産物jのレベルファミリー枠（2026-08-30裁定）
-    ///     Decides the output slot binding; slot j is the level-family frame of output j (ruling 2026-08-30)
+    ///     出力スロットの許可アイテム集合を保持し束縛判定する。清浄室のようにチップ等でファミリー外を許す必要がある機械は
+    ///     呼び出し側が許可集合を組み立てて渡す（2026-08-30裁定D3）
+    ///     Holds the allowed-item set per output slot and decides the binding. Machines that must widen beyond the level
+    ///     family (e.g. clean-room chips) have the caller assemble the allowed set (2026-08-30 ruling D3)
     /// </summary>
     internal class MachineOutputSlotBinding
     {
-        private MachineRecipeMasterElement _recipe;
+        private IReadOnlyList<IReadOnlyCollection<ItemId>> _allowedItemsPerSlot = System.Array.Empty<IReadOnlyCollection<ItemId>>();
 
-        public void SetRecipe(MachineRecipeMasterElement recipe)
+        public void SetBoundOutputs(IReadOnlyList<IReadOnlyCollection<ItemId>> allowedItemsPerSlot)
         {
-            _recipe = recipe;
+            _allowedItemsPerSlot = allowedItemsPerSlot ?? System.Array.Empty<IReadOnlyCollection<ItemId>>();
         }
 
-        // 実現出力kが積まれるスロット番号。未選択は-1
-        // Slot realized output k lands in; -1 when unselected
+        // 実現出力realizedOutputIndexが積まれるスロット番号。束縛先が無ければ-1
+        // Slot realized output realizedOutputIndex lands in; -1 when no binding exists
         public int ResolveSlot(int realizedOutputIndex)
         {
-            if (_recipe == null) return -1;
-            return MachineRecipeSlotBindingUtil.FindOutputSlotIndex(_recipe, realizedOutputIndex);
+            if (_allowedItemsPerSlot.Count == 0) return -1;
+            return realizedOutputIndex % _allowedItemsPerSlot.Count;
         }
 
         // 空アイテムは取り出しなのでどのスロットでも許す
@@ -31,10 +33,8 @@ namespace Game.Block.Blocks.Machine.Inventory
         public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
         {
             if (itemStack.Id == ItemMaster.EmptyItemId) return true;
-            if (_recipe == null || _recipe.OutputItems.Length <= localSlot) return false;
-
-            var baseItemId = MasterHolder.ItemMaster.GetItemId(_recipe.OutputItems[localSlot].ItemGuid);
-            return MachineRecipeSlotBindingUtil.IsOutputVariantOf(baseItemId, itemStack.Id);
+            if (localSlot < 0 || _allowedItemsPerSlot.Count <= localSlot) return false;
+            return _allowedItemsPerSlot[localSlot].Contains(itemStack.Id);
         }
     }
 }

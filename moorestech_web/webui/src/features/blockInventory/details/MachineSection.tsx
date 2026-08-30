@@ -46,7 +46,7 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
         <MachineRecipeSelectionList rows={rows} />
       ) : (
         <>
-          <SelectedRecipeHeader recipe={selectedRow.recipe} onChangeRecipe={() => setOpenedFromGuid(machine.selectedRecipeGuid)} />
+          <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={() => setOpenedFromGuid(machine.selectedRecipeGuid)} />
           <MachineInventoryBody data={data} recipe={selectedRow.recipe} />
         </>
       )}

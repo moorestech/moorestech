@@ -132,9 +132,9 @@ namespace Game.Block.Blocks.Machine
                 ? receiverConnector.Option.ConnectTankIndex
                 : -1;
 
-            // 束縛判定・実挿入はゲートへ委譲する（レシピ未選択・束縛外のタンクは拒否）
-            // Delegate the binding check and the actual insert to the gate (rejects when unselected or unbound)
-            var remainder = MachineFluidInputGate.Add(_inputInventory, fluidStack, tankIndex, out var changed);
+            // 束縛判定・実挿入は入力インベントリへ委譲する（レシピ未選択・束縛外のタンクは拒否）
+            // Delegate the binding check and the actual insert to the input inventory (rejects when unselected or unbound)
+            var remainder = _inputInventory.InsertFluid(fluidStack, tankIndex, out var changed);
             if (changed) _onChangeBlockState.OnNext(Unit.Default);
             return remainder;
         }

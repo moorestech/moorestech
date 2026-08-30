@@ -36,32 +36,13 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
         // The input side is simulated with the same binding rule as the real insert (InsertItem)
         public static bool CanRefundAllItems(VanillaMachineInputInventory input, IOpenableInventory overflow, List<IItemStack> refunds)
         {
-            var inputRemainder = SimulateInputInsert();
+            // 入力側の仮想挿入は実挿入(InsertItem)と同じ束縛規則を持つSimulateInsertの1本に集約済み
+            // The input-side virtual insert is consolidated into the same SimulateInsert the real insert (InsertItem) uses
+            var inputRemainder = input.SimulateInsert(refunds);
             var overflowRemainder = CopyOverflow().InsertItem(FilterNonEmpty(inputRemainder));
             return FilterNonEmpty(overflowRemainder).Count == 0;
 
             #region Internal
-
-            // 束縛先スロット(ResolveSlot)のみへ積む。束縛外(-1)はそのまま溢れ先へ回す
-            // Stack only into the bound slot (ResolveSlot); unbound (-1) items pass straight through to the overflow
-            List<IItemStack> SimulateInputInsert()
-            {
-                var simulated = new List<IItemStack>(input.InputSlot);
-                var remainders = new List<IItemStack>(refunds.Count);
-                foreach (var stack in refunds)
-                {
-                    var slot = input.ResolveSlot(stack);
-                    if (slot < 0)
-                    {
-                        remainders.Add(stack);
-                        continue;
-                    }
-                    var result = simulated[slot].AddItem(stack);
-                    simulated[slot] = result.ProcessResultItemStack;
-                    remainders.Add(result.RemainderItemStack);
-                }
-                return remainders;
-            }
 
             OpenableInventoryItemDataStoreService CopyOverflow()
             {

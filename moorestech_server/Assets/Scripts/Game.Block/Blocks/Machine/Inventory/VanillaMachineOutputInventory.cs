@@ -51,9 +51,14 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
         }
 
-        internal void SetBoundRecipe(MachineRecipeMasterElement recipe)
+        // 出力スロットごとの許可アイテム集合を束縛する。物理スロット数を超える分は切り詰める（生産物数>出力スロット数のマスタ対策）
+        // Bind the allowed-item set per output slot; entries beyond the physical slot count are clipped (guards against a master with more outputs than slots)
+        internal void SetBoundOutputs(IReadOnlyList<IReadOnlyCollection<ItemId>> allowedItemsPerSlot)
         {
-            _slotBinding.SetRecipe(recipe);
+            var clipped = allowedItemsPerSlot.Count <= OutputSlot.Count
+                ? allowedItemsPerSlot
+                : allowedItemsPerSlot.Take(OutputSlot.Count).ToList();
+            _slotBinding.SetBoundOutputs(clipped);
         }
 
         // 出力スロットjは生産物jのレベルファミリーだけ置ける。プレイヤー操作の可否判定
@@ -145,7 +150,23 @@ namespace Game.Block.Blocks.Machine.Inventory
                     // 束縛が未解決(-1)なら書き込み先が無いため払い出しをスキップする
                     // Skip the payout when the binding is unresolved (-1) since there is no target slot
                     if (slot < 0) continue;
-                    _itemDataStoreService.SetItem(slot, OutputSlot[slot].AddItem(itemOutputs[k]).ProcessResultItemStack);
+
+                    // CanStoreOutputsと同じ判定を実挿入でも通す。呼び出し元は完了直前にCanStoreOutputsを確認済みだが、
+                    // 乖離があれば無言で捨てず loud に出す（MachineRecipeRefundUtilの前例と同型）
+                    // Run the same check the real insert must pass; the caller already verified CanStoreOutputs just before completion,
+                    // but if they drift, log loudly instead of silently discarding (mirrors the MachineRecipeRefundUtil precedent)
+                    if (!OutputSlot[slot].IsAllowedToAdd(itemOutputs[k]))
+                    {
+                        UnityEngine.Debug.LogError("出力確定直前のCanStoreOutputsを通過したのに実挿入で受け入れ不可判定になり生産物が消失した");
+                        continue;
+                    }
+
+                    var result = OutputSlot[slot].AddItem(itemOutputs[k]);
+                    if (result.RemainderItemStack.Count != 0)
+                    {
+                        UnityEngine.Debug.LogError("出力確定直前のCanStoreOutputsを通過したのに実挿入で残余が出て生産物が消失した");
+                    }
+                    _itemDataStoreService.SetItem(slot, result.ProcessResultItemStack);
                 }
             }
 
