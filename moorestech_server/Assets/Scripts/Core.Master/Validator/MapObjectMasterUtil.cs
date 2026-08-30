@@ -55,7 +55,7 @@ namespace Core.Master.Validator
                 var logs = "";
                 foreach (var mapObjectElement in map.MapObjects)
                 {
-                    var isDecoration = mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.None;
+                    var isDecoration = MapObjectMaster.IsDecoration(mapObjectElement);
                     var hasEarnItems = mapObjectElement.EarnItems.Length != 0;
                     if (isDecoration && hasEarnItems)
                     {

@@ -49,7 +49,7 @@ namespace Client.Game.InGame.Map.MapObject
         // A master-less object or a decoration (None) is not a target
         public bool IsAvailable => !IsDestroyed && MapObjectMasterElement != null && !IsDecoration;
 
-        private bool IsDecoration => MapObjectMasterElement.MiningType == MapObjectMasterElement.MiningTypeConst.None;
+        private bool IsDecoration => MapObjectMaster.IsDecoration(MapObjectMasterElement);
 
         public Vector3 GetIndexPosition()
         {
