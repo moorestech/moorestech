@@ -8,8 +8,8 @@ MapMaking プロジェクト（`TmpUnityPjt/MapMaking`）のバイオームプ�
 （treePlacement 同期）、`gen_generation_objectconfig.py`（objectConfig 同期＋generateObject 有効化）。
 ラッパープレハブは Unity メニュー `moorestech/MapObjectWrapper/Generate All`。
 
-`terrainSurroundEffectType` は kind と `bareGround` から機械決定する。移植元は objectConfig 配置のうち
-名前に Boulder/Cliff を含む岩だけ裸地化するため、それ以外の岩・小物は `rockNoBareGround`（距離場のみ）になる。
+`distanceVisibilityType` は `landmark-species.json` の宣言で決まる。`landmark` に載せた種だけが遠景でも
+残り、それ以外は `cullable` として距離カリングされる。どちらにも無い種は生成器が止まる。
 
 `earnItems` のドロップは kind ではなく `timber`（幹から原木が採れる樹種か）で決まる。kind=tree でも
 サボテン・低木は `timber: false` で原木を落とさず、既存「ブッシュ」に倣い `earnItems` は空になる。
@@ -22,7 +22,8 @@ This directory extracts the tree/rock inventory and `treePlacement` settings fro
 presets into `species-inventory.json`, the sole input for the follow-up map.json, wrapper prefab, and
 generation.json work. Log drops follow the `timber` flag rather than `kind`, so cacti and shrubs drop nothing.
 `miningType` likewise follows the `decoration-species.json` declaration: declared decoration species become
-`miningType: None` with empty drops and mining params, and an undeclared species stops the generator.
+`miningType: None` with an empty mining param, and an undeclared species stops the generator.
+`distanceVisibilityType` follows `landmark-species.json` the same way.
 
 ## 依存
 

@@ -14,7 +14,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from species_catalog import (  # noqa: E402
     DECORATION_SPECIES_PATH, DROP_CLASS_LOG, DROP_CLASS_NONE, DROP_CLASS_STONE,
-    INTERACTION_CLASS_DECORATION, TIMBER_SPECIES_PATH, declared_drop_class, declared_interaction_class)
+    INTERACTION_CLASS_DECORATION, LANDMARK_SPECIES_PATH, TIMBER_SPECIES_PATH,
+    declared_distance_visibility, declared_drop_class, declared_interaction_class)
 
 ROOT = Path(__file__).resolve().parents[2]
 INVENTORY = ROOT / "scripts/mapmaking-parity/species-inventory.json"
@@ -30,20 +31,15 @@ MINING_TOOLS = [
 # スキーマ上のmapObject要素のキー集合（この集合と完全一致しない生成物はfail-fastで弾く）
 # The exact key set of a mapObject element in the schema; anything else fails fast
 SCHEMA_KEYS = {
-    "mapObjectGuid", "mapObjectName", "addressablePath", "hp", "earnItemHpInterval",
-    "soundEffectType", "terrainSurroundEffectType", "earnItems", "miningType", "miningParam",
+    "mapObjectGuid", "mapObjectName", "addressablePath",
+    "miningType", "miningParam", "distanceVisibilityType",
 }
+# 採掘できる個体だけが持つminingParamのキー集合。装飾物(None)は空のminingParamになる
+# The miningParam key set only a minable object carries; a decoration (None) gets an empty miningParam
+MINABLE_PARAM_KEYS = {"hp", "earnItemHpInterval", "soundEffectType", "earnItems"}
 # kindごとの効果音。plantは低木・草なので木、propは小物なので石の音を鳴らす。未知のkindはfail-fastさせる
 # Sound per kind; plants are shrubs and grasses so they sound like trees, props sound like stone. Unknown kinds fail fast
 KIND_SOUND_EFFECTS = {"tree": "tree", "rock": "stone", "pebble": "stone", "plant": "tree", "prop": "stone"}
-
-# 木だけが木用距離場＋根元パッチ。それ以外はオブジェクト用距離場で、裸地を塗るのは移植元が裸地化する種（bareGround）に限る
-# Only trees feed the tree field with root patches; everything else feeds the object field, and bare ground is painted only for species the source repaints (bareGround)
-def terrain_surround_effect_type(species: dict) -> str:
-    if species["kind"] == "tree":
-        return "treeRootPatch"
-    return "rockBareGround" if species["bareGround"] else "rockNoBareGround"
-
 
 # 落とし物はdropClassだけが決める。個数だけは小石とそれ以外で分かれる
 # dropClass alone decides what drops; only the amount differs between pebbles and the rest
@@ -88,14 +84,31 @@ def validate_interaction_class_declaration(species_list: list) -> None:
         if declared != species["interactionClass"]:
             mismatches.append(f"{species['key']}: 宣言={declared} だが在庫JSON={species['interactionClass']}")
             continue
-        # 装飾物は削れないので、原木を落とす宣言が同時に立つと落とし物の宣言が黙って死ぬ
-        # Decoration cannot be mined, so a log declaration on the same species would silently die
-        if declared == INTERACTION_CLASS_DECORATION and species["dropClass"] == DROP_CLASS_LOG:
-            mismatches.append(f"{species['key']}: 装飾物だが{TIMBER_SPECIES_PATH.name}でtimber宣言されている")
+        # 装飾物は削れないので、何かを落とす宣言が同時に立つと落とし物の宣言が黙って死ぬ
+        # Decoration cannot be mined, so any drop declaration on the same species would silently die
+        if declared == INTERACTION_CLASS_DECORATION and species["dropClass"] != DROP_CLASS_NONE:
+            mismatches.append(f"{species['key']}: 装飾物だが{INVENTORY.name}でdropClass={species['dropClass']}が宣言されている")
 
     if mismatches:
         raise ValueError(
             f"{DECORATION_SPECIES_PATH.name}と{INVENTORY.name}のinteractionClassが食い違っています:\n  " + "\n  ".join(mismatches))
+
+
+# 遠景可視軸も宣言表が権威。在庫JSONが古いまま再生成するとlandmark設定が黙って消える
+# The distance-visibility axis is declared too; regenerating from a stale inventory would silently drop landmark settings
+def validate_distance_visibility_declaration(species_list: list) -> None:
+    mismatches = []
+    for species in species_list:
+        declared = declared_distance_visibility(species["key"])
+        if declared is None:
+            mismatches.append(f"{species['key']}: {LANDMARK_SPECIES_PATH.name}に未宣言")
+            continue
+        if declared != species["distanceVisibilityType"]:
+            mismatches.append(f"{species['key']}: 宣言={declared} だが在庫JSON={species['distanceVisibilityType']}")
+
+    if mismatches:
+        raise ValueError(
+            f"{LANDMARK_SPECIES_PATH.name}と{INVENTORY.name}のdistanceVisibilityTypeが食い違っています:\n  " + "\n  ".join(mismatches))
 
 
 def build_entry(species: dict) -> dict:
@@ -104,31 +117,44 @@ def build_entry(species: dict) -> dict:
         raise ValueError(f"unknown kind: {kind} ({species['key']})")
     sound_effect_type = KIND_SOUND_EFFECTS[kind]
 
-    # 装飾物はNone（狙えず落とさず道具設定も持たない）、小石はPickUp（HP1・道具不要）、残りはMining（既存「木」の設定を複製）
-    # Decoration is None (never aimed at, drops nothing, no tools); pebbles are picked up bare-handed; the rest are mined with the existing tree's settings
+    # 装飾物はNone（狙えず落とさず採掘設定を持たない）、小石はPickUp（HP1・道具不要）、残りはMining（既存「木」の設定を複製）
+    # Decoration is None (never aimed at, drops nothing, no mining settings); pebbles are picked up bare-handed; the rest are mined with the existing tree's settings
     is_decoration = species["interactionClass"] == INTERACTION_CLASS_DECORATION
     is_pebble = kind == "pebble"
     entry = {
         "mapObjectGuid": species["mapObjectGuid"],
         "mapObjectName": species["mapObjectName"],
         "addressablePath": species["address"],
-        "hp": 1 if is_pebble else 100,
-        "earnItemHpInterval": 1 if is_pebble else 10,
-        "soundEffectType": sound_effect_type,
-        "terrainSurroundEffectType": terrain_surround_effect_type(species),
-        "earnItems": [] if is_decoration else earn_items(species),
         "miningType": "None" if is_decoration else ("PickUp" if is_pebble else "Mining"),
-        "miningParam": {} if is_decoration or is_pebble else {"miningTools": [dict(t) for t in MINING_TOOLS]},
+        "miningParam": {} if is_decoration else mining_param(species, sound_effect_type, is_pebble),
+        "distanceVisibilityType": species["distanceVisibilityType"],
     }
     if set(entry) != SCHEMA_KEYS:
         raise ValueError(f"key set mismatch: {sorted(set(entry) ^ SCHEMA_KEYS)}")
     return entry
 
 
+# 採掘設定は判別子の内側にまとまる。道具を要るMiningだけがminingToolsを足す
+# The mining settings live inside the discriminator; only tool-requiring Mining adds miningTools
+def mining_param(species: dict, sound_effect_type: str, is_pebble: bool) -> dict:
+    param = {
+        "hp": 1 if is_pebble else 100,
+        "earnItemHpInterval": 1 if is_pebble else 10,
+        "soundEffectType": sound_effect_type,
+        "earnItems": earn_items(species),
+    }
+    if set(param) != MINABLE_PARAM_KEYS:
+        raise ValueError(f"miningParam key set mismatch: {sorted(set(param) ^ MINABLE_PARAM_KEYS)}")
+    if not is_pebble:
+        param["miningTools"] = [dict(t) for t in MINING_TOOLS]
+    return param
+
+
 def main() -> None:
     inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
     validate_drop_class_declaration(inventory["species"])
     validate_interaction_class_declaration(inventory["species"])
+    validate_distance_visibility_declaration(inventory["species"])
     master = json.loads(MASTER.read_text(encoding="utf-8"))
     by_guid = {o["mapObjectGuid"]: i for i, o in enumerate(master["mapObjects"])}
 
