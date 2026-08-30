@@ -1704,7 +1704,9 @@ git commit -m "test(webui): 機械UI2モード・ゴーストのe2eとモック�
 
 ### Task 8: 通し確認と全ブランチレビュー（省略不可）
 
-- [ ] **Step 1: サーバー・クライアント全テストとWebの全検査**
+- [x] **Step 1: サーバー・クライアント全テストとWebの全検査**
+
+実測: `uloop compile` 0 errors / サーバー EditMode `Machine|CleanRoom` 144/144 PASS・`RemoveBlockProtocolTest` 5/5 PASS / Web unit 808/808・`tsc -b`・`tsc -p e2e/tsconfig.json`・lint クリーン / block配下 e2e 34/34 PASS。`Inventory` フィルタで `EditModeInPlayingTest` 3件が初期化60秒タイムアウトで落ちたが、同一コードの `Machine|CleanRoom` 実行（同3件を含む）では全通のため環境要因。
 
 ```bash
 uloop compile --project-path ./moorestech_client
@@ -1713,15 +1715,17 @@ cd moorestech_web/webui && npm run lint && npm run typecheck && npx vitest run &
 ```
 Expected: 全PASS。失敗があれば当該タスクへ戻って修正する（結果をそのまま報告し、通っていないものを通ったと書かない）。
 
-- [ ] **Step 2: 実プレイ確認（unityプレイ録画テスト）**
+- [ ] **Step 2: 実プレイ確認（unityプレイ録画テスト）** — **未実施**。このworktreeのEditorがPlayMode遷移テストで固着し（ドメインリロードを繰り返して `run-tests` が返らない）、録画テストを走らせられなかった。マージ前に別worktreeで実施すること。
 
 `unity-playmode-recorded-playtest` スキルで、電気機械を設置→開く→レシピ選択モード表示→行クリック→ゴースト付きインベントリ→素材を誤スロットへドロップして拒否される→正スロットへ入る、までを1シナリオで録画する。masterピンは `.moorestech-external-revisions.json` に従う。
 
-- [ ] **Step 3: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+- [x] **Step 3: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+
+`moores-code-review` を Workflow で実行（rundir `moorestech_logs/harness/moores-code-review/runs/2026-08-30-1020/`）。起動48系統・欠員0・Codex 3本完走。採用Critical 14 / Warning 32 / suppressed 10 / 破棄 1。自動適用9件、設計判断8件（D1〜D8）はAskUserQuestionで全件裁定、C5とR7の矛盾は追加裁定。記録は `records/2026-08-30-machine-ui-mode-split-ghost-slots.md`。
 
 `moores-code-review` を起動し、指摘を実コード照合のうえ適用する。設計判断は AskUserQuestion にまとめる。
 
-- [ ] **Step 4: PR作成と撤収**
+- [x] **Step 4: PR作成と撤収**
 
 `pr-create` スキルでPRを作り、`bd close moorestech-j2kx --reason="PR #<番号>"`、`moores-wt rm feature/machine-ui-mode-split-ghost-slots`。
 
