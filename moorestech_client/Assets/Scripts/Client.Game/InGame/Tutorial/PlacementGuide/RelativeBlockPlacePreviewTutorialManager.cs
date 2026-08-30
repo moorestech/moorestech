@@ -91,7 +91,10 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
                 return;
             }
 
-            _targetCell = anchor.BlockPosInfo.OriginalPos + _currentParam.Offset;
+            // アンカーの向きで回したローカルセルを使う（gearConnectsと同じ換算）
+            // Use the anchor-rotated local cell (same conversion as gearConnects)
+            _targetCell = anchor.BlockPosInfo.ConvertBlockLocalToWorldCell(_currentParam.Offset);
+            var worldDirection = AnchorRelativeDirectionUtil.RotateByAnchor(_direction, anchor.BlockPosInfo.BlockDirection);
 
             // アンカーが動いた先に既に対象ブロックがあれば、設置イベントは二度と来ないのでここで完了させる
             // When the target block already sits where the anchor moved to, no placement event will ever come, so complete here
@@ -101,7 +104,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
                 return;
             }
 
-            _blockPlacePreviewTutorialManager.SetTargetCell(_targetBlockId, _targetCell.Value, _direction, _pinTutorialGuid);
+            _blockPlacePreviewTutorialManager.SetTargetCell(_targetBlockId, _targetCell.Value, worldDirection, _pinTutorialGuid);
         }
     }
 }
