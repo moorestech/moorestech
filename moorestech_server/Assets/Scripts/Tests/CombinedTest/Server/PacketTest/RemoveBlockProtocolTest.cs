@@ -41,9 +41,16 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 削除するためのブロックの生成
             // Create block to be removed
-            worldBlock.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            // 機械はレシピ未選択だと入力を全拒否するため、先にレシピを選び束縛された素材を投入する
+            // An unselected machine rejects every input, so select a recipe first and insert one of its bound materials
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
+            var machineBlockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            worldBlock.TryAddBlock(machineBlockId, new Vector3Int(0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
+            var boundInput = recipe.InputItems[0];
+            var boundInputId = MasterHolder.ItemMaster.GetItemId(boundInput.ItemGuid);
             var blockInventory = block.GetComponent<IBlockInventory>();
-            blockInventory.InsertItem(itemStackFactory.Create(new ItemId(10), 7), InsertItemContext.Empty);
+            blockInventory.InsertItem(itemStackFactory.Create(boundInputId, boundInput.Count), InsertItemContext.Empty);
 
             // プロトコルを使ってブロックを削除
             // Remove block using protocol
@@ -57,8 +64,8 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // requiredItems未定義ブロックは本体の返却なし。ブロックインベントリ内のアイテムのみ返る
             // Blocks without requiredItems refund nothing for the body; only block-inventory items return
-            Assert.AreEqual(10, playerInventoryData.MainOpenableInventory.GetItem(0).Id.AsPrimitive());
-            Assert.AreEqual(7, playerInventoryData.MainOpenableInventory.GetItem(0).Count);
+            Assert.AreEqual(boundInputId, playerInventoryData.MainOpenableInventory.GetItem(0).Id);
+            Assert.AreEqual(boundInput.Count, playerInventoryData.MainOpenableInventory.GetItem(0).Count);
 
             // スロット1は空のまま
             // Slot 1 stays empty
