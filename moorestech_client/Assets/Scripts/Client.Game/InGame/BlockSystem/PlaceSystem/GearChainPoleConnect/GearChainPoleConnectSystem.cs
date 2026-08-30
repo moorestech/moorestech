@@ -114,6 +114,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             ResetState();
         }
 
+        // 右短押しで延長起点のみ解除
+        // A right short press releases only the extension source pole
+        public bool TryCancelInProgressOperation()
+        {
+            if (_sourcePole == null) return false;
+
+            ResetState();
+            return true;
+        }
+
         private void ResetState()
         {
             // 起点・プレビュー・進行中の応答をすべてクリアする

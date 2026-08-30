@@ -13,6 +13,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // Most place systems never read the wheel, so the default is false; only the readers override it
         public virtual bool OwnsWheelInput => false;
 
+        // 進行中操作を持たない設置系が多数派なので既定はfalse。持つ側だけがoverrideする
+        // Most place systems hold no in-progress operation, so the default is false; only the holders override it
+        public virtual bool TryCancelInProgressOperation() => false;
+
         public abstract void Enable();
         public abstract void Disable();
 

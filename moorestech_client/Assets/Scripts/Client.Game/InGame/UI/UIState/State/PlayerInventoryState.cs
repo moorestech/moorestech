@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Input;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
@@ -19,15 +20,17 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         private readonly LocalPlayerEquipment _localPlayerEquipment;
         private readonly PlayerInventoryViewController _playerInventoryViewController;
+        private readonly RightShortPressInputService _rightShortPressInputService;
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        public PlayerInventoryState(RecipeViewerView recipeViewerView, PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, LocalPlayerEquipment localPlayerEquipment, InitialHandshakeResponse handshakeResponse)
+        public PlayerInventoryState(RecipeViewerView recipeViewerView, PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, LocalPlayerEquipment localPlayerEquipment, InitialHandshakeResponse handshakeResponse, RightShortPressInputService rightShortPressInputService)
         {
             _recipeViewerView = recipeViewerView;
             _playerInventoryViewController = playerInventoryViewController;
             _localPlayerInventoryController = localPlayerInventoryController;
             _localPlayerEquipment = localPlayerEquipment;
+            _rightShortPressInputService = rightShortPressInputService;
 
             _playerInventoryViewController.SetActive(false); //TODO この辺のオンオフをまとめたい
             _recipeViewerView.SetActive(false);
@@ -38,16 +41,24 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public UITransitContext GetNextUpdate()
         {
-            // Rでリサーチツリーへ、Tab/ESCでゲーム画面へ戻る
-            // Go to research tree with R, or back to game screen with Tab/ESC
+            // 毎フレーム押下を追跡するため先に評価する（短絡で押下開始を取りこぼさない）
+            // Evaluate first so the press is tracked every frame (short-circuiting would miss the press start)
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+
+            // Rでリサーチツリーへ、Tab/ESC/パネル外の右短押しでゲーム画面へ戻る
+            // Go to research tree with R, or back to game screen with Tab/ESC/right short press outside UI
             if (HybridInput.GetKeyDown(KeyCode.R)) return new UITransitContext(UIStateEnum.ResearchTree);
-            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.GameScreen);
+            if (InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown || isRightShortPressed) return new UITransitContext(UIStateEnum.GameScreen);
 
             return null;
         }
 
         public void OnEnter(UITransitContext context)
         {
+            // 他UIState滞在中は右短押しがpollされないため、復帰直後の古い押下状態を破棄する
+            // Right short press isn't polled while another UIState is active, so discard any stale press state on return
+            _rightShortPressInputService.ResetPressState();
+
             _recipeViewerView.SetActive(true);
             _playerInventoryViewController.SetActive(true);
             _playerInventoryViewController.SetSubInventory(new EmptySubInventory());
