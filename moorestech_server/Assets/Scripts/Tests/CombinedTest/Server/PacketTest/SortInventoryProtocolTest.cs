@@ -123,16 +123,18 @@ namespace Tests.CombinedTest.Server.PacketTest
             var worldDataStore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            // 機械（input=2, output=3, module=4）を設置し、レシピを選択してから束縛先スロットへ素材を配置する
-            // Place the machine (input=2, output=3, module=4), select the recipe, then place materials into their bound slots.
+            // 機械（input=2, output=3, module=4）を設置し、レシピを選択してから束縛先スロット1にだけ素材を配置する
+            // （スロット0は空のまま。両方埋めると「ソートで空きへ寄せる」旧挙動と「全スロット束縛でno-op」の
+            // 新挙動が同じ結果になり回帰を検知できないため。C12・mutation testing実測）
+            // Place the machine (input=2, output=3, module=4), select the recipe, then place material only into
+            // bound slot 1 (slot 0 stays empty; filling both would make the old "sort compacts into the gap"
+            // behavior and the new "every slot is bound, no-op" behavior indistinguishable. C12, per mutation testing)
             var machinePosition = new Vector3Int(5, 10);
             worldDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
             var machineComponent = machine.GetComponent<VanillaMachineBlockInventoryComponent>();
             var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid);
             MachineRecipeSelectTestUtil.SelectRecipe(machine, recipe);
-            var input0 = itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(recipe.InputItems[0].ItemGuid), 3);
             var input1 = itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(recipe.InputItems[1].ItemGuid), 4);
-            machineComponent.SetItem(0, input0);
             machineComponent.SetItem(1, input1);
 
             // モジュールレンジの先頭と末尾（slot5・slot8）にモジュールアイテムを装着する
@@ -147,9 +149,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Sort the machine inventory via the actual protocol packet.
             packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(machinePosition)), new PacketResponseContext(null));
 
-            // 全スロットが束縛済みのため、ソート後も入出力レンジの配置は一切変わらない
-            // Every slot is bound, so the input/output range is untouched after sorting.
-            Assert.AreEqual(input0, machineComponent.GetItem(0));
+            // 全スロットが束縛済みのため、ソートしてもスロット1の素材はスロット0へ寄らず、スロット0は空のまま
+            // Every slot is bound, so sorting never pulls slot 1's material into slot 0, which stays empty
+            Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(0).Id);
             Assert.AreEqual(input1, machineComponent.GetItem(1));
             Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(2).Id);
 

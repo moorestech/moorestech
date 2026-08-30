@@ -51,7 +51,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
         }
 
-        public void SetBoundRecipe(MachineRecipeMasterElement recipe)
+        internal void SetBoundRecipe(MachineRecipeMasterElement recipe)
         {
             _slotBinding.SetRecipe(recipe);
         }
@@ -142,6 +142,9 @@ namespace Game.Block.Blocks.Machine.Inventory
                 for (var k = 0; k < itemOutputs.Count; k++)
                 {
                     var slot = _slotBinding.ResolveSlot(k);
+                    // 束縛が未解決(-1)なら書き込み先が無いため払い出しをスキップする
+                    // Skip the payout when the binding is unresolved (-1) since there is no target slot
+                    if (slot < 0) continue;
                     _itemDataStoreService.SetItem(slot, OutputSlot[slot].AddItem(itemOutputs[k]).ProcessResultItemStack);
                 }
             }

@@ -212,8 +212,12 @@ namespace Tests.CombinedTest.Core
             // Fill the overflow's sole slot with yet another item type, leaving no room for input 0
             var overflow = MachineRecipeChangeRefundTestHelper.CreateOverflow(1);
             var input1ItemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[1].ItemGuid);
+            // 満杯ではなく1個分だけ空きを残す。満杯にすると「束縛外への仮置き」バグと「本来の拒否」が
+            // 同じ結果(false)になり回帰を検知できない(C12・mutation testing実測)
+            // Leave exactly one slot of room instead of filling it completely. A full stack makes the
+            // "placed into an unbound slot" bug and the correct rejection both return false, hiding the regression (C12, per mutation testing)
             var input1MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(input1ItemId);
-            overflow.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(input1ItemId, input1MaxStack));
+            overflow.SetItemWithoutEvent(0, ServerContext.ItemStackFactory.Create(input1ItemId, input1MaxStack - 1));
 
             var refunds = MachineRecipeRefundUtil.CreateRefundStacks(recipe);
 

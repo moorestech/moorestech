@@ -103,7 +103,7 @@ namespace Game.Block.Blocks.Machine.State
 
         // 選択レシピを保持し、入出力インベントリへスロット束縛をプッシュする
         // Store the selection and push the slot binding into the input/output inventories
-        public void BindSelectedRecipe(MachineRecipeMasterElement recipe)
+        internal void BindSelectedRecipe(MachineRecipeMasterElement recipe)
         {
             SelectedRecipe = recipe;
             InputInventory.SetBoundRecipe(recipe);

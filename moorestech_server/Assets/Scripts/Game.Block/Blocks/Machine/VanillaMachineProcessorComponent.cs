@@ -62,9 +62,9 @@ namespace Game.Block.Blocks.Machine
             CurrentState = currentState;
             _processingState = new ProcessingMachineProcessState(_context, remainingTicks, processingRecipe, pendingOutputs);
 
-            // レシピを復元できないProcessingセーブは破損データのためIdleへ戻す
-            // A Processing save without a restorable recipe is corrupt, so fall back to Idle
-            if (CurrentState == ProcessState.Processing && processingRecipe == null)
+            // 加工中レシピか選択レシピのいずれかが欠けたProcessingセーブは破損データのためIdleへ戻す
+            // A Processing save missing either the processing or selected recipe is corrupt, so fall back to Idle
+            if (CurrentState == ProcessState.Processing && (processingRecipe == null || selectedRecipe == null))
             {
                 CurrentState = ProcessState.Idle;
             }

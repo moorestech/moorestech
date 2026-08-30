@@ -15,7 +15,7 @@ export default function MachineRecipeSelectionRow({ row, onSelect }: Props) {
   const { recipe } = row;
   // レシピ名は代表出力（先頭の生産物）のアイテム名
   // The recipe name is the representative output's (first product's) item name
-  const name = recipe.outputItems.length > 0 ? resolveItemName(recipe.outputItems[0].itemId) : "";
+  const name = recipe.outputItems.length > 0 ? (resolveItemName(recipe.outputItems[0].itemId) ?? t(L.ui.common.itemFallback, { itemId: recipe.outputItems[0].itemId })) : "";
 
   return (
     <Box

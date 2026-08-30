@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
 
 const recipeGuid = "84000000-0000-4000-8000-000000000001";
+const otherRecipeGuid = "84000000-0000-4000-8000-000000000002";
 const blockGuid = "85000000-0000-4000-8000-000000000001";
 const otherBlockGuid = "85000000-0000-4000-8000-000000000002";
 const emptyGuid = "00000000-0000-0000-0000-000000000000";
@@ -11,11 +12,18 @@ const emptyGuid = "00000000-0000-0000-0000-000000000000";
 vi.mock("@/bridge", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/bridge")>()),
   useTopic: () => ({
-    recipes: [{
-      recipeGuid, blockGuid, blockId: 10, time: 7,
-      inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
-      inputFluids: [], outputFluids: [],
-    }],
+    recipes: [
+      {
+        recipeGuid, blockGuid, blockId: 10, time: 7,
+        inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
+        inputFluids: [], outputFluids: [],
+      },
+      {
+        recipeGuid: otherRecipeGuid, blockGuid, blockId: 10, time: 9,
+        inputItems: [{ itemId: 1, count: 3 }], outputItems: [{ itemId: 3, count: 1 }],
+        inputFluids: [], outputFluids: [],
+      },
+    ],
   }),
 }));
 vi.mock("@/shared/i18n", async (importOriginal) => ({
@@ -50,15 +58,25 @@ describe("MachineSection", () => {
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(0);
   });
 
-  it("選択済機械はヘッダ＋本体を出し、ヘッダのonChangeRecipeでリストへ戻り、onSelectedで本体へ戻る", () => {
+  it("選択済機械はヘッダ＋本体を出し、ヘッダのonChangeRecipeでリストへ戻り、selectedRecipeGuidが実際に変わるまで本体へ戻らない", () => {
     const tree = create(createElement(MachineSection, { data, machine: machine(recipeGuid, blockGuid) }));
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(1);
     const header = tree.root.findByType("mock-selected-recipe-header" as never);
     act(() => header.props.onChangeRecipe());
-    const list = tree.root.findByType("mock-recipe-selection-list" as never);
+    expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(1);
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(0);
-    act(() => list.props.onSelected());
+
+    // サーバー拒否等でselectedRecipeGuidが変わらない再レンダーでは選択モードのまま(C14)
+    // Stays in selection mode across a re-render where selectedRecipeGuid hasn't actually changed (C14, e.g. a server rejection)
+    act(() => { tree.update(createElement(MachineSection, { data, machine: machine(recipeGuid, blockGuid) })); });
+    expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(1);
+    expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(0);
+
+    // selectedRecipeGuidが実際に変わったら本体へ戻る
+    // Returns to the inventory body once selectedRecipeGuid actually changes
+    act(() => { tree.update(createElement(MachineSection, { data, machine: machine(otherRecipeGuid, blockGuid) })); });
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(1);
+    expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(0);
   });
 
   it("レシピ0件の機械はヘッダもリストも出さず本体だけ出す", () => {

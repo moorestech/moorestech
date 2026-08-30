@@ -13,13 +13,18 @@ const recipe: MachineRecipe = {
 };
 
 describe("buildMachineSlotView", () => {
-  it("入力は素材数・出力は生産物数だけを統合スロット番号付きで返す", () => {
+  it("全実スロットを列挙し、対応する品目が無いスロットはghost無しで返す（C5）", () => {
     const view = buildMachineSlotView(recipe, { input: 3, output: 3, module: 1 }, 7, 2, 3);
     expect(view.inputs).toEqual([
       { index: 0, ghost: { itemId: 1, count: 2 } },
       { index: 1, ghost: { itemId: 5, count: 1 } },
+      { index: 2, ghost: undefined },
     ]);
-    expect(view.outputs).toEqual([{ index: 3, ghost: { itemId: 2, count: 1 } }]);
+    expect(view.outputs).toEqual([
+      { index: 3, ghost: { itemId: 2, count: 1 } },
+      { index: 4, ghost: undefined },
+      { index: 5, ghost: undefined },
+    ]);
   });
 
   it("液体は入力タンク→出力タンクの順でレシピ分だけ返す", () => {
@@ -45,5 +50,21 @@ describe("buildMachineSlotView", () => {
     const view = buildMachineSlotView(withOutputFluid, { input: 3, output: 3, module: 1 }, 7, 2, 2);
     expect(view.fluidIndices).toEqual([]);
     expect(view.fluidGhosts).toEqual([]);
+  });
+
+  it("recipeがnullなら全実スロットをghost無しで返す（レシピ0件機械）", () => {
+    const view = buildMachineSlotView(null, { input: 3, output: 3, module: 1 }, 7, 2, 2);
+    expect(view.inputs).toEqual([
+      { index: 0, ghost: undefined },
+      { index: 1, ghost: undefined },
+      { index: 2, ghost: undefined },
+    ]);
+    expect(view.outputs).toEqual([
+      { index: 3, ghost: undefined },
+      { index: 4, ghost: undefined },
+      { index: 5, ghost: undefined },
+    ]);
+    expect(view.fluidIndices).toEqual([0, 1]);
+    expect(view.fluidGhosts).toEqual([undefined, undefined]);
   });
 });

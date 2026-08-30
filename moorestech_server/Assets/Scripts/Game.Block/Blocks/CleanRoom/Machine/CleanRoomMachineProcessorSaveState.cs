@@ -65,9 +65,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             pendingOutputs = saveData.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
             state = (ProcessState)saveData.State;
 
-            // Processingでレシピを復元できない場合だけ破損扱いでIdleへ戻す
-            // Only Processing without a restorable recipe is corrupt and falls back to Idle
-            if (state == ProcessState.Processing && recipe == null) state = ProcessState.Idle;
+            // Processingで加工中レシピか選択レシピのいずれかを復元できない場合は破損扱いでIdleへ戻す
+            // Processing missing either the processing or selected recipe is corrupt and falls back to Idle
+            if (state == ProcessState.Processing && (recipe == null || selectedRecipe == null)) state = ProcessState.Idle;
 
             #region Internal
 

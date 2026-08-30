@@ -5,12 +5,11 @@ import { dispatchAction } from "@/bridge";
 import type { MachineRecipeSelectionRowData } from "../machineRecipeSelectionLogic";
 import MachineRecipeSelectionRow from "./MachineRecipeSelectionRow";
 
-type Props = { rows: MachineRecipeSelectionRowData[]; onSelected: () => void };
+type Props = { rows: MachineRecipeSelectionRowData[] };
 
-export default function MachineRecipeSelectionList({ rows, onSelected }: Props) {
+export default function MachineRecipeSelectionList({ rows }: Props) {
   const onSelect = (recipeGuid: string) => {
     void dispatchAction("machine_recipe.select", { operation: "set", recipeGuid });
-    onSelected();
   };
   return (
     <Stack gap="xs" data-testid="machine-recipe-selection">

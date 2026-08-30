@@ -89,27 +89,25 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 
             #region Internal
 
-            // 液体は入力タンクへ戻せる分だけ戻し、収まらない分は消失させる（液体はインベントリで扱えないため）
-            // Fluids go back to input tanks as far as capacity allows; the overflow is lost (no fluid inventory exists)
+            // 液体iはタンクiへだけ戻す(他経路と同じ番号束縛)。収まらない分は消失させる（液体はインベントリで扱えないため）
+            // Fluid i goes back only to tank i (the same index binding other paths use); the overflow is lost (no fluid inventory exists)
             void RefundFluidsBestEffort()
             {
-                foreach (var inputFluid in recipe.InputFluids)
+                for (var i = 0; i < recipe.InputFluids.Length; i++)
                 {
+                    if (i >= input.FluidInputSlot.Count) break;
+
+                    var inputFluid = recipe.InputFluids[i];
                     var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
+                    var container = input.FluidInputSlot[i];
                     // レシピ側のAmountはfloatだがFluidContainerはdoubleのため揃えてから計算する
                     // The recipe's Amount is float while FluidContainer uses double, so widen before computing
                     double remaining = inputFluid.Amount;
-                    foreach (var container in input.FluidInputSlot)
-                    {
-                        if (remaining <= 0) break;
-                        if (container.FluidId != fluidId && container.FluidId != FluidMaster.EmptyFluidId) continue;
 
-                        var addable = Math.Min(remaining, container.Capacity - container.Amount);
-                        if (addable <= 0) continue;
-                        container.FluidId = fluidId;
-                        container.Amount += addable;
-                        remaining -= addable;
-                    }
+                    var addable = Math.Min(remaining, container.Capacity - container.Amount);
+                    if (addable <= 0) continue;
+                    container.FluidId = fluidId;
+                    container.Amount += addable;
                 }
             }
 

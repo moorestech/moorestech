@@ -180,20 +180,21 @@ namespace Tests.CombinedTest.Core
             var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
             MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
 
-            // 束縛先スロットへ素材を配置し、モジュールスロットにモジュールアイテムを装着する
-            // Place materials into their bound slots and equip a module item into a module slot
-            var input0 = itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(recipe.InputItems[0].ItemGuid), 1);
+            // 素材はスロット1にだけ置きスロット0は空のままにする。両方埋めると「ソートで空きへ寄せる」
+            // 旧挙動と「全スロット束縛でno-op」の新挙動が同じ結果になり回帰を検知できない(C12・mutation testing実測)
+            // Materials are placed only in slot 1, leaving slot 0 empty. Filling both would make the old
+            // "sort compacts into the gap" behavior and the new "every slot is bound, no-op" behavior
+            // indistinguishable, hiding the regression (C12, per mutation testing)
             var input1 = itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(recipe.InputItems[1].ItemGuid), 1);
-            inventory.SetItem(0, input0);
             inventory.SetItem(1, input1);
             var moduleItem = CreateModuleItem(1);
             inventory.SetItem(ModuleRangeStart, moduleItem);
 
             InventorySortService.Sort(inventory, inventory.SortExcludedSlots);
 
-            // 全スロットが束縛済みのため、ソート後も配置は一切変わらない
-            // Every slot is bound, so nothing moves after sorting
-            Assert.AreEqual(input0, inventory.GetItem(0));
+            // 全スロットが束縛済みのため、ソートしてもスロット1の素材はスロット0へ寄らず、スロット0は空のまま
+            // Every slot is bound, so sorting never pulls slot 1's material into slot 0, which stays empty
+            Assert.AreEqual(ItemMaster.EmptyItemId, inventory.GetItem(0).Id);
             Assert.AreEqual(input1, inventory.GetItem(1));
             Assert.AreEqual(moduleItem, inventory.GetItem(ModuleRangeStart));
             for (var i = ModuleRangeStart + 1; i < ModuleRangeStart + ModuleSlotCount; i++)

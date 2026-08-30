@@ -15,9 +15,11 @@ import { buildMachineRecipeSelectionRows, hasSelectedRecipe } from "./machine/ma
 // Machine: unselected → recipe-selection mode, selected → inventory mode; the header returns to selection (ADR 0042)
 export default function MachineSection({ data, machine }: { data: BlockInventoryOpen; machine: MachineDetailData }) {
   const machineRecipes = useTopic(Topics.machineRecipes);
-  // プレイヤーが選択画面へ戻った状態。選択が届いた時点で自動的にインベントリへ戻る
-  // Whether the player returned to the selection screen; a new selection drops back to inventory automatically
-  const [changingRecipe, setChangingRecipe] = useState(false);
+  // 選択モードを開いた時点のselectedRecipeGuidを覚える。サーバーの応答でこれが実際に変わるまでは
+  // 選択モードを閉じない（拒否時にサーバー未反映のままインベントリへ戻ることを防ぐ。C14）
+  // Remember selectedRecipeGuid at the moment selection mode was opened; it only closes once the
+  // server's response actually changes it (prevents returning to inventory on a rejected change. C14)
+  const [openedFromGuid, setOpenedFromGuid] = useState<string | null>(null);
   const { t } = useI18n();
 
   const rows = buildMachineRecipeSelectionRows(machineRecipes?.recipes ?? [], machine.blockGuid, machine.selectedRecipeGuid);
@@ -36,14 +38,15 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
     return <Stack gap="xs" data-testid="machine-section"><MachineInventoryBody data={data} recipe={null} />{footer}</Stack>;
   }
 
+  const changingRecipe = openedFromGuid !== null && machine.selectedRecipeGuid === openedFromGuid;
   const showSelection = !hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || changingRecipe;
   return (
     <Stack gap="sm" data-testid="machine-section">
       {showSelection ? (
-        <MachineRecipeSelectionList rows={rows} onSelected={() => setChangingRecipe(false)} />
+        <MachineRecipeSelectionList rows={rows} />
       ) : (
         <>
-          <SelectedRecipeHeader recipe={selectedRow.recipe} onChangeRecipe={() => setChangingRecipe(true)} />
+          <SelectedRecipeHeader recipe={selectedRow.recipe} onChangeRecipe={() => setOpenedFromGuid(machine.selectedRecipeGuid)} />
           <MachineInventoryBody data={data} recipe={selectedRow.recipe} />
         </>
       )}

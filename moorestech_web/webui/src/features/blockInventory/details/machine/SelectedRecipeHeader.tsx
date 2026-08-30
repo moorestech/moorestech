@@ -19,7 +19,7 @@ export default function SelectedRecipeHeader({ recipe, onChangeRecipe }: Props) 
     <HoverTooltip label={t(L.ui.blockInventory.changeRecipe)} disabled={false}>
       <Group justify="center" gap="xs" role="button" data-testid="machine-selected-recipe" style={{ cursor: "pointer" }} onClick={onChangeRecipe}>
         <ItemSlot itemId={outputItemId} />
-        <Text data-testid="machine-selected-recipe-name">{resolveItemName(outputItemId)}</Text>
+        <Text data-testid="machine-selected-recipe-name">{resolveItemName(outputItemId) ?? t(L.ui.common.itemFallback, { itemId: outputItemId })}</Text>
         <Text c="dimmed" size="sm" data-testid="machine-selected-recipe-time">{t(L.ui.blockInventory.recipeDuration, { seconds: recipe.time })}</Text>
       </Group>
     </HoverTooltip>

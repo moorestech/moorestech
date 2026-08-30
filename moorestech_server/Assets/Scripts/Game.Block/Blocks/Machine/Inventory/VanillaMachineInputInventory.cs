@@ -61,7 +61,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         
         public BlockId BlockId => _blockId;
 
-        public void SetBoundRecipe(MachineRecipeMasterElement recipe)
+        internal void SetBoundRecipe(MachineRecipeMasterElement recipe)
         {
             _slotBinding.SetRecipe(recipe);
         }
@@ -71,14 +71,14 @@ namespace Game.Block.Blocks.Machine.Inventory
             return _slotBinding.IsAllowedToPlace(localSlot, itemStack);
         }
 
-        public bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)
+        internal bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)
         {
             return _slotBinding.IsFluidAllowedAt(tankIndex, fluidId);
         }
 
         // このアイテムが積まれるスロット番号を公開する（返却シミュレーション等、束縛規則を外部から再現する用途）
         // Expose the bound slot for this item (used by callers, e.g. refund simulation, that must mirror the binding rule)
-        public int ResolveSlot(IItemStack itemStack)
+        internal int ResolveSlot(IItemStack itemStack)
         {
             return _slotBinding.ResolveSlot(itemStack);
         }
@@ -130,7 +130,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             {
                 var container = _fluidContainers[i];
                 container.Amount -= recipe.InputFluids[i].Amount;
-                if (container.Amount > 0) continue;
+                if (0 < container.Amount) continue;
                 container.Amount = 0;
                 container.FluidId = FluidMaster.EmptyFluidId;
             }
