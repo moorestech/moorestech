@@ -23,7 +23,7 @@
     "currentState": "processing",
     "currentPower": 80.0,
     "requestPower": 100.0,
-    "slotLayout": { "input": 2, "output": 1, "module": 1 }
+    "slotLayout": { "input": 2, "output": 1, "module": 1, "inputTank": 1 }
   },
   "electricNetwork": {
     "totalGeneratePower": 500.0,

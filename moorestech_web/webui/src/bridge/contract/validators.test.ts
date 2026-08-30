@@ -86,7 +86,7 @@ describe("validBlockInventory capability details", () => {
     const d = {
       ...openBase,
       progress: 0.5,
-      machine: { recipeGuid: "50000000-0000-4000-8000-000000000001", selectedRecipeGuid: "50000000-0000-4000-8000-000000000002", blockGuid: "40000000-0000-4000-8000-000000000001", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1 } },
+      machine: { recipeGuid: "50000000-0000-4000-8000-000000000001", selectedRecipeGuid: "50000000-0000-4000-8000-000000000002", blockGuid: "40000000-0000-4000-8000-000000000001", recipeTime: 15, outputItems: [{ itemId: 2, count: 3 }], currentState: "processing", currentPower: 10, requestPower: 20, slotLayout: { input: 2, output: 1, module: 1, inputTank: 0 } },
       electricNetwork: { totalGeneratePower: 100, totalRequiredPower: 50, consumerCount: 3, powerRate: 1 },
     };
     expect(parseTopicPayload(Topics.blockInventory, d).valid).toBe(true);

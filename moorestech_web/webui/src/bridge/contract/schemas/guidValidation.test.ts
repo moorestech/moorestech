@@ -26,7 +26,7 @@ const machineDetail = {
   currentState: "processing",
   currentPower: 10,
   requestPower: 20,
-  slotLayout: { input: 1, output: 1, module: 0 },
+  slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
 };
 
 const blockInventory = {

@@ -50,7 +50,7 @@ export const MachineDetailDataSchema = z.object({
   currentState: MachineProcessStateSchema,
   currentPower: z.number(),
   requestPower: z.number(),
-  slotLayout: z.object({ input: z.number(), output: z.number(), module: z.number() }),
+  slotLayout: z.object({ input: z.number(), output: z.number(), module: z.number(), inputTank: z.number() }),
 });
 
 export const GeneratorDetailDataSchema = z.object({

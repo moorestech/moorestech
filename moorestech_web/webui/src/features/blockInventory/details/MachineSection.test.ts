@@ -51,7 +51,7 @@ function machineData(selectedRecipeGuid: string, currentState: MachineDetailData
     currentState,
     currentPower: 50,
     requestPower: 100,
-    slotLayout: { input: 1, output: 1, module: 0 },
+    slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
   };
 }
 

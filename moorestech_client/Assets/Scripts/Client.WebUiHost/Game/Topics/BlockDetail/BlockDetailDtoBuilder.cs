@@ -40,7 +40,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                     CurrentState = ToCamelCase(common.CurrentStateType),
                     CurrentPower = common.CurrentPower,
                     RequestPower = common.RequestPower,
-                    SlotLayout = new SlotLayoutDto { Input = machineParam.InputSlotCount, Output = machineParam.OutputSlotCount, Module = machineParam.ModuleSlotCount },
+                    SlotLayout = new SlotLayoutDto { Input = machineParam.InputSlotCount, Output = machineParam.OutputSlotCount, Module = machineParam.ModuleSlotCount, InputTank = machineParam.InputTankCount },
                 };
             }
 

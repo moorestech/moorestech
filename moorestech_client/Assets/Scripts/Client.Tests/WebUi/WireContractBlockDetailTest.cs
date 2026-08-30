@@ -44,7 +44,7 @@ namespace Client.Tests.WebUi
                     CurrentState = "idle",
                     CurrentPower = 0f,
                     RequestPower = 0f,
-                    SlotLayout = new SlotLayoutDto { Input = 1, Output = 1, Module = 0 },
+                    SlotLayout = new SlotLayoutDto { Input = 1, Output = 1, Module = 0, InputTank = 0 },
                 },
                 Gear = new GearDetailDto { IsClockwise = true, CurrentRpm = 12.5f, CurrentTorque = 3f, BaseRpm = 20f, BaseTorque = 5f },
                 GearNetwork = new GearNetworkDto { TotalRequiredGearPower = 60f, TotalGenerateGearPower = 100f, StopReason = "none" },
@@ -86,7 +86,7 @@ namespace Client.Tests.WebUi
                     CurrentState = "processing",
                     CurrentPower = 80f,
                     RequestPower = 100f,
-                    SlotLayout = new SlotLayoutDto { Input = 2, Output = 1, Module = 1 },
+                    SlotLayout = new SlotLayoutDto { Input = 2, Output = 1, Module = 1, InputTank = 1 },
                 },
                 ElectricNetwork = new ElectricNetworkDto { TotalGeneratePower = 500f, TotalRequiredPower = 300f, ConsumerCount = 4, PowerRate = 1f },
             };

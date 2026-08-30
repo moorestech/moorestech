@@ -24,7 +24,7 @@ export const blockMachine = {
     currentState: "processing",
     currentPower: 80.0,
     requestPower: 100.0,
-    slotLayout: { input: 2, output: 1, module: 1 },
+    slotLayout: { input: 2, output: 1, module: 1, inputTank: 1 },
   },
   electricNetwork: { totalGeneratePower: 500.0, totalRequiredPower: 300.0, consumerCount: 4, powerRate: 1.0 },
 } satisfies BlockInventoryWireData;
@@ -49,7 +49,7 @@ export const blockGearMachine = {
     currentState: "idle",
     currentPower: 0.0,
     requestPower: 0.0,
-    slotLayout: { input: 1, output: 1, module: 0 },
+    slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
   },
   gear: { isClockwise: true, currentRpm: 12.5, currentTorque: 3.0, baseRpm: 20.0, baseTorque: 5.0 },
   gearNetwork: { totalRequiredGearPower: 60.0, totalGenerateGearPower: 100.0, stopReason: "none" },

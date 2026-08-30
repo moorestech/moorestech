@@ -34,6 +34,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public int Input;
         public int Output;
         public int Module;
+
+        // Web側のゴースト導出が液体表示indexを実タンク数へクランプするために必要
+        // Needed by the Web-side ghost derivation to clamp fluid display indices to the real tank count
+        public int InputTank;
     }
 
     public class GeneratorDetailDto

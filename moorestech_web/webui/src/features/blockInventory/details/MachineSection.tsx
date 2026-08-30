@@ -23,6 +23,9 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
     machine.blockGuid,
     machine.selectedRecipeGuid,
   );
+  // インベントリ本体のゴースト導出には選択中レシピの全データ（液体含む）が要る。行データは代表アイコンしか持たない
+  // The inventory body's ghost derivation needs the full selected recipe (fluids included); the row data only carries the icon
+  const selectedRecipe = machineRecipes?.recipes.find((r) => r.recipeGuid === machine.selectedRecipeGuid) ?? null;
   // 状態ラベル+充足率を共通フッタに表示
   // The state label and satisfaction rate stay visible on both tabs as the shared footer (ADR 0010)
   const stateDisplay = machineStateDisplay(machine.currentState);
@@ -40,7 +43,7 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
   if (rows.length === 0) {
     return (
       <Stack gap="xs" data-testid="machine-section">
-        <MachineInventoryBody data={data} />
+        <MachineInventoryBody data={data} recipe={selectedRecipe} />
         {powerRate}
       </Stack>
     );
@@ -68,7 +71,7 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
               <ItemSlot itemId={selectedRow.iconItemId} />
             </Group>
           )}
-          <MachineInventoryBody data={data} />
+          <MachineInventoryBody data={data} recipe={selectedRecipe} />
         </>
       ) : (
         <MachineRecipeSelectionTab
