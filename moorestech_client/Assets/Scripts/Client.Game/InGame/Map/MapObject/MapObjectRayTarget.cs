@@ -10,15 +10,11 @@ namespace Client.Game.InGame.Map.MapObject
 
         public IMiningTargetObject MiningTargetObject => MapObjectGameObject;
 
-        public void Initialize(MapObjectGameObject mapObjectGameObject)
+        // 相互作用可否はコライダー有効/無効で表す。歩行用は別objectで影響なし
+        // Interactability is expressed by the collider's enabled state; the walking collider is a separate object
+        public void Initialize(MapObjectGameObject mapObjectGameObject, bool interactable)
         {
             MapObjectGameObject = mapObjectGameObject;
-        }
-
-        // コライダー有効/無効を切替。歩行用は別objectで影響なし
-        // Toggles via the collider's enabled state; the walking collider is a separate object
-        internal void SetInteractable(bool interactable)
-        {
             GetComponent<Collider>().enabled = interactable;
         }
     }

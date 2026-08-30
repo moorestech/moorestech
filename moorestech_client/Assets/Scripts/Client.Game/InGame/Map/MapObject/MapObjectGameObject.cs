@@ -94,8 +94,7 @@ namespace Client.Game.InGame.Map.MapObject
             var rayTargets = GetComponentsInChildren<MapObjectRayTarget>(true);
             foreach (var rayTarget in rayTargets)
             {
-                rayTarget.Initialize(this);
-                rayTarget.SetInteractable(!IsDecoration);
+                rayTarget.Initialize(this, !IsDecoration);
             }
 
             if (mapObjectInfo.IsDestroyed)
