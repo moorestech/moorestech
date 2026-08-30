@@ -91,7 +91,7 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks)
         {
-            var (slots, touchedSlots, remainders) = SimulateInsertCore(itemStacks);
+            var (slots, touchedSlots, remainders) = VanillaMachineInputSimulationUtil.SimulateInsert(InputSlot, itemStacks, _slotBinding);
             foreach (var slot in touchedSlots) _itemDataStoreService.SetItem(slot, slots[slot]);
             return remainders;
         }
@@ -100,7 +100,7 @@ namespace Game.Block.Blocks.Machine.Inventory
         // Return the remainders of a virtual insert under the same binding rule as the real insert (no write). The single entry point for refund simulation etc.
         public List<IItemStack> SimulateInsert(IReadOnlyList<IItemStack> itemStacks)
         {
-            return SimulateInsertCore(itemStacks).remainders;
+            return VanillaMachineInputSimulationUtil.SimulateInsert(InputSlot, itemStacks, _slotBinding).remainders;
         }
 
         public bool InsertionCheck(List<IItemStack> itemStacks)
@@ -179,31 +179,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         public void SetItemWithoutEvent(int slot, IItemStack itemStack)
         {
             _itemDataStoreService.SetItemWithoutEvent(slot, itemStack);
-        }
-
-        // 束縛規則で全itemStacksを仮想挿入し、変更後スロット値・触れたスロット・各要求ごとの残余を返す（副作用なし）
-        // Virtually insert every itemStack under the binding rule and return the post-insert slots, touched slots, and per-request remainders (no side effects)
-        private (List<IItemStack> slots, List<int> touchedSlots, List<IItemStack> remainders) SimulateInsertCore(IReadOnlyList<IItemStack> itemStacks)
-        {
-            var slots = new List<IItemStack>(InputSlot);
-            var touchedSlots = new List<int>();
-            var remainders = new List<IItemStack>(itemStacks.Count);
-
-            foreach (var stack in itemStacks)
-            {
-                var remaining = stack;
-                foreach (var slot in _slotBinding.ResolveBoundSlots(remaining.Id))
-                {
-                    if (remaining.Count == 0) break;
-                    var result = slots[slot].AddItem(remaining);
-                    slots[slot] = result.ProcessResultItemStack;
-                    remaining = result.RemainderItemStack;
-                    if (!touchedSlots.Contains(slot)) touchedSlots.Add(slot);
-                }
-                remainders.Add(remaining);
-            }
-
-            return (slots, touchedSlots, remainders);
         }
 
         private bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)

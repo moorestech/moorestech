@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -178,25 +177,11 @@ namespace Game.Block.Blocks.Machine.Inventory
             return current;
         }
 
-        // スロット番号をサブインベントリとローカル番号へ解決
-        // Resolve a slot number to its sub-inventory and local index
+        // スロット番号をサブインベントリとローカル番号へ解決（実装はVanillaMachineSlotResolutionUtilへ委譲）
+        // Resolve a slot number to its sub-inventory and local index (delegated to VanillaMachineSlotResolutionUtil)
         private (IVanillaMachineSubInventory subInventory, int localSlot) ResolveSlot(int slot)
         {
-            // 負のスロットは境界で弾き、ローカル番号が負になるのを防ぐ
-            // Reject negative slots at the boundary to avoid a negative local index
-            if (slot < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(slot), slot, "スロット番号が負の値です。 The slot number is negative.");
-            }
-
-            var requestedSlot = slot;
-            foreach (var subInventory in _subInventories)
-            {
-                if (slot < subInventory.Items.Count) return (subInventory, slot);
-                slot -= subInventory.Items.Count;
-            }
-
-            throw new ArgumentOutOfRangeException(nameof(slot), requestedSlot, "スロット番号がインベントリサイズを超えています。 The slot number exceeds the inventory size.");
+            return VanillaMachineSlotResolutionUtil.ResolveSlot(_subInventories, slot);
         }
 
         public bool IsDestroy { get; private set; }
