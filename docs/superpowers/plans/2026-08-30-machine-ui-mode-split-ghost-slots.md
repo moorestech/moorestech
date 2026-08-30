@@ -909,14 +909,14 @@ git commit -m "feat(wire): machine_recipesにinputFluids/outputFluidsを追加 (
 - Produces: `FluidSlot` prop `ghost?: { fluidGuid: string; amount: number }`（`fluid.kind === "empty"` かつ ghost あり → ゴースト描画）
 - Produces: `FluidSlotRow` prop `ghosts?: ({ fluidGuid: string; amount: number } | undefined)[]`（index 対応）
 
-- [ ] **Step 1: SlotFrame テストを足す**
+- [x] **Step 1: SlotFrame テストを足す**
 
 `SlotFrame/index.test.ts` の最初の `it` に `ghost: true` を渡し、`expect(markup).toContain('data-ghost="true"');` を追加。
 
 Run: `npx vitest run src/shared/ui/SlotFrame`
 Expected: FAIL
 
-- [ ] **Step 2: SlotFrame に `ghost` を通す**
+- [x] **Step 2: SlotFrame に `ghost` を通す**
 
 `Props` に `ghost?: boolean;` を追加、`renderSlotFrame` の分割代入に `ghost` を足し、div に `data-ghost={ghost ? "true" : undefined}` を追加。`style.module.css` 末尾:
 
@@ -939,7 +939,7 @@ Expected: FAIL
 Run: `npx vitest run src/shared/ui/SlotFrame`
 Expected: PASS
 
-- [ ] **Step 3: ItemSlot に `ghost` を足す**
+- [x] **Step 3: ItemSlot に `ghost` を足す**
 
 `Props` に追加:
 
@@ -968,7 +968,7 @@ Expected: PASS
         ) : null}
 ```
 
-- [ ] **Step 4: FluidSlot / FluidSlotRow に `ghost` を足す**
+- [x] **Step 4: FluidSlot / FluidSlotRow に `ghost` を足す**
 
 `FluidSlot`:
 
@@ -1004,12 +1004,12 @@ export default function FluidSlot({ fluid, ghost }: { fluid: FluidSlotData; ghos
 
 `FluidSlotRow`: `ghosts?: ({ fluidGuid: string; amount: number } | undefined)[]` を Props に足し、`<FluidSlot key={i} fluid={fluid} ghost={ghosts?.[i]} />`。
 
-- [ ] **Step 5: 検証**
+- [x] **Step 5: 検証**
 
 Run: `npx vitest run src/shared && npm run typecheck && npm run lint`
 Expected: PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add src/app/slotTokens.css src/shared/ui
