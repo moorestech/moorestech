@@ -117,6 +117,25 @@ describe("TutorialOverlay drag guides", () => {
     expect(guides[0].props.style.left).toBe(15);
   });
 
+  it("起点が祖先クリップの外へスクロールしたら矢印を描かない", () => {
+    mockState.presentation = presentation(1, [
+      { tutorialSessionId: "s1", challengeId: "c1", elements: [dragGuide("guide-1", "hotbar.hud", "recipe.craft-button")] },
+    ]);
+    let renderer!: ReturnType<typeof create>;
+    act(() => { renderer = renderOverlay(); });
+    pushAnchor("recipe.craft-button", ready(100));
+
+    // 起点は 10..20（中心15）。clipが 40..1280 なので視口外へスクロールし切った状態
+    // The origin spans 10..20 (center 15) while the clip starts at 40, i.e. scrolled fully out of view
+    pushAnchor("hotbar.hud", ready(10, { left: 40, top: -100, right: 1280, bottom: 820 }));
+    expect(renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" }).length).toBe(0);
+
+    // 起点中心がclip内へ戻れば描き直す
+    // Redraws once the origin center is back inside the clip
+    pushAnchor("hotbar.hud", ready(10));
+    expect(renderer.root.findAllByProps({ "data-testid": "tutorial-drag-guide" }).length).toBe(1);
+  });
+
   it("片方のanchorが未解決に戻ると非表示になる", () => {
     mockState.presentation = presentation(1, [
       { tutorialSessionId: "s1", challengeId: "c1", elements: [dragGuide("guide-1", "hotbar.hud", "recipe.craft-button")] },

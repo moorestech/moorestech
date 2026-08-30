@@ -1,8 +1,8 @@
 import { FadeRule, ItemSlot, SlotGrid } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
-import type { BuildMenuDisplayEntry } from "./logic/buildMenuGrouping";
-import { isItemInsufficient } from "./logic/buildMenuShortage";
-import styles from "./style.module.css";
+import type { BuildMenuDisplayEntry } from "../logic/buildMenuGrouping";
+import { isItemInsufficient } from "../logic/buildMenuShortage";
+import styles from "../style.module.css";
 
 type Props = { entry: BuildMenuDisplayEntry | null };
 

@@ -3,8 +3,8 @@ import { tutorialAnchor, buildMenuEntryAnchorId } from "@/shared/tutorialAnchor"
 import { useHotbarDragSource } from "@/features/hotbar";
 import { L, useI18n } from "@/shared/i18n";
 import { useMaterialTooltipText } from "@/shared/materialTooltipText";
-import type { BuildMenuDisplayEntry } from "./logic/buildMenuGrouping";
-import { insufficientItems } from "./logic/buildMenuShortage";
+import type { BuildMenuDisplayEntry } from "../logic/buildMenuGrouping";
+import { insufficientItems } from "../logic/buildMenuShortage";
 
 type Props = {
   entry: BuildMenuDisplayEntry;
