@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
 {
@@ -11,7 +13,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     public class ElectricWireAutoConnectVirtualInventory
     {
         private readonly Dictionary<ItemId, int> _counts = new();
-        private readonly Dictionary<ItemId, int> _constructionCostPerCell = new();
+
+        // 予約分はサーバー標準の素材コスト列で持つ
+        // The reservation is kept as the server-standard material cost list
+        private readonly IReadOnlyList<ConnectToolMaterialCost> _constructionCostPerCell;
 
         public ElectricWireAutoConnectVirtualInventory(ILocalPlayerInventory inventory, IReadOnlyList<(ItemId itemId, int count)> constructionCostPerCell)
         {
@@ -23,25 +28,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 _counts[itemStack.Id] = _counts.GetValueOrDefault(itemStack.Id) + itemStack.Count;
             }
 
-            // セル1つ分の建設コストをID別に合算する。財布が賄うセルでは空で渡される
-            // Sum one cell's construction cost per item id; a wallet-covered cell arrives empty
-            foreach (var (itemId, count) in constructionCostPerCell)
-            {
-                _constructionCostPerCell[itemId] = _constructionCostPerCell.GetValueOrDefault(itemId) + count;
-            }
+            // 建設コストを予約素材へ変換する
+            // Convert one cell's construction cost into reserved materials
+            _constructionCostPerCell = ConnectToolMaterialConsumer.ToMaterials(constructionCostPerCell);
         }
 
         // サーバー同様、当該セルの建設コスト予約分を上乗せして各素材の所持数を判定する
         // Like the server, judge each material's count with this cell's construction reservation added on top
+        // 可否はサーバーと共通の正本へ委ね、クライアント側に第2の突き合わせ規則を作らない
+        // Affordability is delegated to the definition shared with the server so no second matching rule exists on the client
         public bool CanAfford(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
-            if (materials == null) return true;
-            foreach (var material in materials)
-            {
-                var requiredCount = material.Count + _constructionCostPerCell.GetValueOrDefault(material.ItemId);
-                if (_counts.GetValueOrDefault(material.ItemId) < requiredCount) return false;
-            }
-            return true;
+            return ConnectToolMaterialConsumer.HasEnough(materials, _counts, _constructionCostPerCell);
+        }
+
+        // 賄えない素材を「所持/必要」付きで返す。表示行を出すときだけ呼ぶ
+        // Returns the unaffordable materials with held/required; called only when a display line is needed
+        public List<ConstructionMaterialShortage> CalculateShortages(IReadOnlyList<ConnectToolMaterialCost> materials)
+        {
+            return ConnectToolMaterialShortageCalculator.Calculate(materials, _counts, _constructionCostPerCell);
         }
 
         // 設置確定セル分の電線素材と建設コストを仮想在庫から消費する
@@ -57,9 +62,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 }
             }
 
-            foreach (var (itemId, count) in _constructionCostPerCell)
+            foreach (var reserved in _constructionCostPerCell)
             {
-                _counts[itemId] = _counts.GetValueOrDefault(itemId) - count;
+                _counts[reserved.ItemId] = _counts.GetValueOrDefault(reserved.ItemId) - reserved.Count;
             }
         }
     }

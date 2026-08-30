@@ -90,7 +90,9 @@ namespace Server.Protocol.PacketResponse
 
                 // 長さ・両端ブロック上限・所持インベントリ・選択connectToolから設置可否と消費素材を一括確定
                 // Single placement evaluation shared with the client preview
-                var judgement = EvaluatePlacement(length, fromNode.MaxConnectableRailLength, toNode.MaxConnectableRailLength, inventory.InventoryItems, data.ConnectToolGuid);
+                // 既設ノード同士の接続はブロックを設置しないため予約は無い
+                // Connecting two existing nodes places no block, so there is nothing to reserve
+                var judgement = EvaluatePlacement(length, fromNode.MaxConnectableRailLength, toNode.MaxConnectableRailLength, inventory.InventoryItems, data.ConnectToolGuid, null);
                 if (!judgement.IsPlaceable)
                     return ResponseRailConnectionEditMessagePack.CreateFailure(judgement.FailureReason, data.Mode);
 
@@ -189,10 +191,12 @@ namespace Server.Protocol.PacketResponse
         /// 接続区間の長さ・両端ブロックの最大上限・所持インベントリ・選択connectToolから設置可否と消費素材を一括で確定する。
         /// サーバー・クライアント双方からこのメソッドだけを呼ぶことで、設置条件の追加がここに集約される。
         /// connectToolGuid が Guid.Empty のときは無コスト接続として扱う。
+        /// reservedMaterials は同一フレームで設置する橋脚の建設コスト等、レール素材より先に押さえられる分を必要数へ上乗せする。
         /// Single entry point for placement viability, shared by server and client.
         /// When connectToolGuid is Guid.Empty the connection is treated as costless.
+        /// reservedMaterials adds amounts claimed ahead of the rail cost (e.g. a pier placed in the same frame) on top of the requirement.
         /// </summary>
-        public static RailPlacementJudgement EvaluatePlacement(float railLength, float fromMaxConnectableRailLength, float toMaxConnectableRailLength, IEnumerable<IItemStack> inventoryItems, Guid connectToolGuid)
+        public static RailPlacementJudgement EvaluatePlacement(float railLength, float fromMaxConnectableRailLength, float toMaxConnectableRailLength, IEnumerable<IItemStack> inventoryItems, Guid connectToolGuid, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
         {
             // 両端の上限の min をその接続区間の許容最大長とする
             // Take the smaller endpoint limit as the allowed maximum for the segment
@@ -210,7 +214,7 @@ namespace Server.Protocol.PacketResponse
                 return new RailPlacementJudgement(RailConnectionEditFailureReason.NotEnoughRailItem, connectToolGuid, null);
 
             var items = inventoryItems as IReadOnlyList<IItemStack> ?? inventoryItems.ToList();
-            if (!ConnectToolMaterialConsumer.HasEnough(materials, items))
+            if (!ConnectToolMaterialConsumer.HasEnough(materials, items, reservedMaterials))
                 return new RailPlacementJudgement(RailConnectionEditFailureReason.NotEnoughRailItem, connectToolGuid, null);
 
             return new RailPlacementJudgement(RailConnectionEditFailureReason.None, connectToolGuid, materials);

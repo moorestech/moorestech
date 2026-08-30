@@ -53,6 +53,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
                 return false;
             }
 
+            // 電線判定へ渡す予約分。サーバーがPlaceBlockProtocolで plan.ItemsToConsume を押さえるのと同じ形
+            // The reservation handed to the wire judgement, the same shape the server claims as plan.ItemsToConsume
+            var poleConstructionItemCounts = _walletQuery.GetItemsToConsume(poleBlockId);
+
             // 通常設置と同じ計算でPlaceInfo生成。この時点のPlaceable=falseは既存ブロック重複
             // Build the pole PlaceInfo like normal placement; Placeable=false here means existing-block overlap
             var run = CommonBlockPlacePointCalculator.CalculateRun(placePoint, placePoint, selection.CurrentDirection, poleMaster);
@@ -76,7 +80,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
                 _previewBlockController.UpdatePlaceableColors(placeInfos);
             }
 
-            evaluation = new ElectricWirePoleGhostEvaluation(placeInfos, poleMaster, poleBlockId, isGroundClear, isPositionFree, materialShortages);
+            evaluation = new ElectricWirePoleGhostEvaluation(placeInfos, poleMaster, poleBlockId, isGroundClear, isPositionFree, materialShortages, poleConstructionItemCounts);
 
             // ゴーストを出せた時点でその不可理由を積む。呼び出し元は表示と送信だけを担う
             // Push the ghost's block reasons as soon as it is shown; callers only handle display and sending

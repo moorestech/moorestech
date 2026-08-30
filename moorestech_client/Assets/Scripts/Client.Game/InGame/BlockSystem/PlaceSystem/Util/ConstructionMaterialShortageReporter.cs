@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             if (requiredCostSets == 0) return;
 
             var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(representativeBlockId).RequiredItems;
-            foreach (var shortage in ConstructionCostShortageCalculator.Calculate(requiredItems, requiredCostSets, inventoryItems)) feedback.Add(ConstructionMaterialShortageLine.ToLine(shortage));
+            feedback.AddMaterialShortages(ConstructionCostShortageCalculator.Calculate(requiredItems, requiredCostSets, inventoryItems));
         }
     }
 }

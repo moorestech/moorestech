@@ -1,12 +1,11 @@
 using System;
-using System.Linq;
-using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
@@ -14,7 +13,7 @@ using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Master;
-using Cysharp.Threading.Tasks;
+using Game.Construction;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
@@ -33,12 +32,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         private readonly ILocalPlayerInventory _playerInventory;
         private readonly TrainRailPlaceSystemService _trainRailPlaceSystemService;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly ConstructionWalletQuery _constructionWalletQuery;
+        private readonly TrainRailConnectRequestSender _requestSender;
         private IRailComponentConnectAreaCollider _connectFromArea;
 
-        // 橋脚設置リクエストの世代トークン。中止や再送信の後に遅れて届いた応答が起点を復活させるのを防ぐ
-        // Generation token for the pier request; it stops a late response from restoring the origin after a cancel or re-send
-        private int _pierRequestGeneration;
-        public TrainRailConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController controller, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore)
+        public TrainRailConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController controller, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, ConstructionWalletQuery constructionWalletQuery)
         {
             _mainCamera = mainCamera;
             _previewObject = previewObject;
@@ -46,15 +44,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             _playerInventory = localPlayerInventory.LocalPlayerInventory;
             _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller);
             _blockGameObjectDataStore = blockGameObjectDataStore;
+            _constructionWalletQuery = constructionWalletQuery;
+            _requestSender = new TrainRailConnectRequestSender(cache, blockGameObjectDataStore);
         }
         public override void Enable()
         {
-            _connectFromArea = null;
-            _pierRequestGeneration++;
+            ResetState();
         }
+
         protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             _trainRailPlaceSystemService.Disable();
+            // 取込: 前フレームまでの橋脚設置応答を接続元へ反映する
+            // Consume: apply pier placement responses up to the previous frame to the origin
+            if (_requestSender.TryConsumePlacedPierArea(out var placedPierArea)) _connectFromArea = placedPierArea;
+
             // 接続元が未選択なら接続元を選択する
             // If the connection source is not selected, select the connection source.
             if (_connectFromArea == null)
@@ -90,8 +94,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     {
                         // 橋脚未定義の場合は設置不可。仮にデフォルトの最大長で判定する
                         // No pier defined: still preview with default max length
-                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, connectToolGuid);
-                        ShowPreview(previewData);
+                        ShowPreview(CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, connectToolGuid, Array.Empty<ConstructionRequiredItemElement>(), 0));
                     }
                     else
                     {
@@ -104,16 +107,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         // No pier means a stale ConnectorPosition, so stop the connect preview too (the service already pushed the reason)
                         if (placeInfo == null) { _previewObject.SetActive(false); return; }
 
-                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, connectToolGuid);
+                        // 橋脚の建設コストはレール素材より先に消費されるため、予約と橋脚自身の可否の双方をコストセット数から導く（サーバーのRailConnectWithPlacePierProtocolと同じ関門）
+                        // The pier's construction cost is consumed before the rail materials, so both the reservation and the pier's own affordability derive from the cost-set count (the same gate as the server's RailConnectWithPlacePierProtocol)
+                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, connectToolGuid, pierBlockMaster.RequiredItems, _constructionWalletQuery.GetRequiredCostSets(pierBlockId, 1));
                         ShowPreview(previewData);
 
-                        // 地面干渉でピアが設置不可なら接続も送らない
-                        // Do not send the connect when the pier cell is terrain-blocked
-                        if (!placeInfo.Placeable) return;
-
-                        if (!previewData.IsPlaceable) return;
-
-                        // 設置
+                        // 地面干渉・橋脚コスト不足・レール判定不可のいずれでも送らない（サーバーが拒否する組み合わせをここで塞ぐ）
+                        // Never send on terrain block, pier cost shortage or a failed rail judgement, closing every combination the server would reject
+                        if (!placeInfo.Placeable || !previewData.IsPlaceable) return;
                         SendConnectRailWithPlacePierProtocol(placeInfo, previewData.RailTypeGuid, pierBlockId);
                     }
                 }
@@ -137,9 +138,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, connectToolGuid);
                 ShowPreview(previewData);
-
                 if (!previewData.IsPlaceable) return;
-
                 SendConnectRailProtocol(fromNode, toNode, previewData.RailTypeGuid);
             }
             #region Internal
@@ -166,43 +165,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             {
                 if (!InputManager.Playable.ScreenLeftClick.GetKeyDown || UiPointerHitTest.IsPointerOverAnyUi()) return;
                 if (!TryResolveNode(fromDestination, out var fromNode)) return;
-
                 _previewObject.SetActive(false);
-
+                // 接続元は応答が引き継ぎ先を確定するまで空にする（引き継ぎは次フレーム以降の取込で行う）
+                // Clear the origin until the response settles the hand-off, which lands via consumption on a later frame
                 _connectFromArea = null;
-
-                var generation = ++_pierRequestGeneration;
-
-                UniTask.Create(async () =>
-                {
-                    var response = await ClientContext.VanillaApi.Response.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierBlockId, placeInfo, railTypeGuid, CancellationToken.None);
-                    if (!response.Success) return;
-                    await UniTask.WhenAny(
-                        UniTask.WaitForSeconds(1f),
-                        UniTask.WaitUntil(() => _cache.TryGetNode(response.ToNodeId, out _))
-                    );
-                    if (_cache.TryGetNode(response.ToNodeId, out var node))
-                    {
-                        var pierBlock = _blockGameObjectDataStore.GetBlockGameObject(node.ConnectionDestination.blockPosition);
-                        TrainRailConnectAreaCollider[] areas = pierBlock.gameObject.GetComponentsInChildren<TrainRailConnectAreaCollider>();
-                        var area = areas.FirstOrDefault(area =>
-                        {
-                            if (_cache.TryGetNodeId(area.CreateConnectionDestination(), out var nodeId) && _cache.TryGetNode(nodeId, out var clientNode))
-                            {
-                                return clientNode.NodeId == node.NodeId && clientNode.NodeGuid == node.NodeGuid;
-                            }
-                            return false;
-                        });
-                        if (area == null) return;
-
-                        // 世代が進んでいたら中止済みのリクエスト。起点を書き戻さずに捨てる
-                        // An advanced generation means the request was cancelled, so discard it without restoring the origin
-                        if (generation != _pierRequestGeneration) return;
-
-                        _connectFromArea = area;
-                        Debug.Log("PierBlock", pierBlock);
-                    }
-                });
+                _requestSender.SendPlacePierAndConnect(fromNode, pierBlockId, placeInfo, railTypeGuid);
             }
             IRailComponentConnectAreaCollider GetTrainRailConnectAreaCollider()
             {
@@ -222,7 +189,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         {
             // 飛行中の橋脚リクエストは可視の進行中操作に数えないが、遅着の起点復活だけは必ず断つ
             // An in-flight pier request is not a visible in-progress operation, but its late origin write-back must always be cut off
-            _pierRequestGeneration++;
+            _requestSender.Invalidate();
 
             if (_connectFromArea == null) return false;
 
@@ -233,10 +200,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
         public override void Disable()
         {
-            _connectFromArea = null;
-            _pierRequestGeneration++;
+            ResetState();
             _previewObject.SetActive(false);
             _trainRailPlaceSystemService.Disable();
+        }
+
+        private void ResetState()
+        {
+            _requestSender.Invalidate();
+            _connectFromArea = null;
         }
     }
 }
