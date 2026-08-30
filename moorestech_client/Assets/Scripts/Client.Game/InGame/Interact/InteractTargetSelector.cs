@@ -23,9 +23,14 @@ namespace Client.Game.InGame.Interact
 
         private readonly List<NearbyCandidate> _candidates = new();
 
+        // 直近のSelect()が集めた候補。キー収集とキー別選定は同じ走査結果の上で答える（毎フレームの物理問い合わせは1回だけ）
+        // Candidates from the latest Select(); key collection and per-key selection answer on that same scan, so physics is queried once per frame
+        private bool _hasScanned;
+        private IInteractable _scannedAimedTarget;
+
         public IInteractable Select()
         {
-            if (!TryCollectCandidates(out var aimedTarget)) return null;
+            if (!Scan(out var aimedTarget)) return null;
 
             // 照準の先の実体は、対象にならないなら「対象なし」で確定させる。近傍へ落とすと遮蔽物越しに機械を開ける
             // A solid under the aim settles the frame by itself; falling through would open a machine through the wall
@@ -34,12 +39,12 @@ namespace Client.Game.InGame.Interact
             return SelectBestByViewAngle(null);
         }
 
-        // 主対象が応じないキーだけがここへ来る。候補走査はSelect()と同じ規則を通す
-        // Only a key the primary target does not offer arrives here, and the candidate scan follows the same rule as Select()
+        // 主対象が応じないキーだけがここへ来る。直近のSelect()が集めた候補の上で答える
+        // Only a key the primary target does not offer arrives here, answered on the candidates the latest Select() collected
         public IInteractable SelectRespondingTo(InputKey key)
         {
-            if (!TryCollectCandidates(out var aimedTarget)) return null;
-            if (aimedTarget != null && RespondsTo(aimedTarget, key)) return aimedTarget;
+            if (!_hasScanned) return null;
+            if (_scannedAimedTarget != null && RespondsTo(_scannedAimedTarget, key)) return _scannedAimedTarget;
 
             return SelectBestByViewAngle(key);
         }
@@ -47,9 +52,9 @@ namespace Client.Game.InGame.Interact
         public void CollectCandidateKeys(List<InputKey> keys)
         {
             keys.Clear();
-            if (!TryCollectCandidates(out var aimedTarget)) return;
+            if (!_hasScanned) return;
 
-            if (aimedTarget != null) AddKeys(aimedTarget);
+            if (_scannedAimedTarget != null) AddKeys(_scannedAimedTarget);
             foreach (var candidate in _candidates) AddKeys(candidate.Interactable);
 
             #region Internal
@@ -68,20 +73,25 @@ namespace Client.Game.InGame.Interact
 
         // 照準ヒットと近傍候補を1回で集める。選定・キー収集・キー別選定が同じ候補を見る
         // Collects the aim hit and the nearby candidates once so selection, key collection and per-key selection all see the same set
-        private bool TryCollectCandidates(out IInteractable aimedTarget)
+        private bool Scan(out IInteractable aimedTarget)
         {
             aimedTarget = null;
+            _scannedAimedTarget = null;
+            _hasScanned = false;
             _candidates.Clear();
 
             var camera = Camera.main;
             if (camera == null) return false;
             if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
 
+            _hasScanned = true;
+
             var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
             if (BlockClickDetectUtil.TryGetFrontmostSolidHit(InteractLayerMask, out var hit))
             {
                 if (!InteractableResolver.TryResolve(hit.collider, playerPosition, out var interactable, out _)) return true;
                 if (Vector3.Distance(playerPosition, hit.point) <= InteractDistance) aimedTarget = interactable;
+                _scannedAimedTarget = aimedTarget;
                 return true;
             }
 
