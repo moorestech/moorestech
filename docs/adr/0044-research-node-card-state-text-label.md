@@ -19,10 +19,10 @@
   出所: ユーザー裁定 2026-08-30 選択「依頼どおり3語に畳む」
   棄却案: 枠色4状態と1対1の4語（アイテム不足・前提研究が未完了）
 
-- **文言は依頼原文どおり新規キー3件で持つ。** `ui.research.stateCompleted`=完了済み/Completed/Abgeschlossen、`ui.research.stateAvailable`=研究可能/Available/Verfügbar、`ui.research.stateUnavailable`=研究不可/Unavailable/Nicht verfügbar。既存 `ui.research.completed`（研究済み）はボタン用として残す。
-  出所: ユーザー裁定 2026-08-30 選択「依頼原文どおり」
-  棄却案: 既存語彙「研究済み」を再利用して3語を揃える
-  キー名・英独訳は agent前提（`ui.challenge.stateLocked/…` の命名前例）
+- **「完了」を指す語は1本に統一する。** 既存 `ui.research.completed` の文言を「完了済み/Completed/Abgeschlossen」へ寄せ、カード・詳細ペインのボタンが同じ語を使う。新規キーは `ui.research.stateAvailable`=研究可能/Available/Verfügbar、`ui.research.stateUnavailable`=研究不可/Unavailable/Nicht verfügbar の2件のみ。
+  出所: 独立レビュー裁定 2026-08-30（PR #1295 F01 案A）。初版は `ui.research.stateCompleted` を新設し「研究済み」と併存させていたが、完了ノードを選ぶと画面に2語が同時に出るため撤回した
+  棄却案: 2語彙を併存させ理由をコメントで明示する／カード側だけ既存キーを再利用する
+  英独訳は agent前提
 
 - **枠色4状態は現状維持し、文字は補助として重畳する。** ラベル色は `--text-default` のみで状態別の色付けはしない（webui-design の装飾語彙を増やさない）。
   出所: ユーザー裁定 2026-08-30 選択「枠色は現状維持し文字を追加」
@@ -30,7 +30,7 @@
 
 ## Consequences
 
-- `deriveNodeCardState` の `{completed, ready, locked}` から3語への写像を `researchLogic.ts` に置き、`ResearchNodeCard.tsx` が描く。ロジック側にユニットテストを足す
-- `Localization/localization.csv` にキー3件を追加し、生成物（webui `localizationKeys.ts`・C#側）を再生成する（localization.csv は force-recompile が要る）
+- `deriveNodeCardState` の `{completed, ready}` から3語への写像を `researchLogic.ts` に置き、`ResearchNodeCard.tsx` が描く。枠色と文字が同じ導出結果を見るので片方だけずれることがない。ロジック側にユニットテストを足す
+- `Localization/localization.csv` にキー2件を追加し `ui.research.completed` の文言を差し替え、生成物（webui `localizationKeys.ts`・C#側）を再生成する（localization.csv は force-recompile が要る）
 - カード高さが1行分伸びる。ノード配置座標はマスタ由来なので重なりが出ないか実表示で確認する
 - 裁定記録: `.decisions/2026-08-30-研究ノードカードに状態を3語の文字ラベルで明示する.md`

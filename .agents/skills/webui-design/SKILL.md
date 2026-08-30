@@ -229,7 +229,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 
 - グラフの置き場は `GamePanel variant="default"` + タイトル罫線。body内で `shared/treeView` のパン・ズームを使う。
 - **研究ノードカード**: 「名前1行(ellipsis) + `ItemSlot`アイコン + 状態ラベル1行」の縦積みのみ。説明・消費・報酬・ボタンはカードに載せない。
-  状態ラベルは`ui.research.stateCompleted/stateAvailable/stateUnavailable`の3語のみ、`--text-default`固定・状態別の色付けなし・12px（ADR 0044）。
+  状態ラベルは`ui.research.completed/stateAvailable/stateUnavailable`の3語のみ、`--text-default`固定・状態別の色付けなし・12px（ADR 0044）。
   面は `--research-node-face`、枠は `--research-node-border`（tokens.cssのトークン）。
   状態はdata属性で4値を表す（ADR 0014）:
   `data-locked`（前提未達）=opacity減衰45% / 無印（前提充足・アイテム不足）=通常グレー枠 /

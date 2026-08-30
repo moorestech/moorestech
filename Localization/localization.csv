@@ -125,7 +125,7 @@ ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to
 ui.recipe.craftButtonLabel,Craft,Craft,クラフト,Herstellen
 ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません,Für diesen Gegenstand gibt es keine Rezepte
 ui.research.closeSymbol,×,×,×,×
-ui.research.completed,Researched,Researched,研究済み,Erforscht
+ui.research.completed,Completed,Completed,完了済み,Abgeschlossen
 ui.research.action,Research,Research,研究,Erforschen
 ui.research.clickToResearch,Click to research,Click to research,クリックして研究,Zum Erforschen klicken
 ui.research.missingItems,Not enough research items.,Not enough research items.,研究アイテムが足りません。,Zu wenig Forschungsgegenstände.
@@ -140,7 +140,6 @@ ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム,
 ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム,Belohnungsgegenstände
 ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他,Schaltet frei: Sonstiges
 ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
-ui.research.stateCompleted,Completed,Completed,完了済み,Abgeschlossen
 ui.research.stateAvailable,Available,Available,研究可能,Verfügbar
 ui.research.stateUnavailable,Unavailable,Unavailable,研究不可,Nicht verfügbar
 ui.skit.auto,Auto,Auto,自動,Auto

@@ -35,7 +35,7 @@ export default function ResearchNodeCard({ node, left, top, selected }: Props) {
       {/* 状態ラベル。枠色4状態を補助する3語表示（ADR 0044） */}
       {/* State label; 3-word text that supplements the 4-state border color (ADR 0044) */}
       <span className={styles.nodeState} data-testid={`research-node-state-${node.guid}`}>
-        {t(deriveNodeStateLabelKey(node))}
+        {t(deriveNodeStateLabelKey(cardState))}
       </span>
     </div>
   );

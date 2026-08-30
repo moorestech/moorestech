@@ -27,26 +27,32 @@ function renderCard(state: ResearchNodeData["state"]) {
   return renderer.root.findByProps({ "data-testid": `research-node-${guid}` });
 }
 
+// 状態ラベルは本番DOMのtestidで引く（兄弟テストResearchDetailPane.test.tsと同じ引き方）
+// The state label is pulled by the production testid, matching the sibling ResearchDetailPane.test.ts
+function stateLabelOf(card: ReturnType<typeof renderCard>) {
+  return card.findByProps({ "data-testid": `research-node-state-${guid}` });
+}
+
 describe("ResearchNodeCard", () => {
   it("状態ラベルはnodeState classNameでアイコン直下に描く", () => {
     const card = renderCard("completed");
-    const [nameEl, itemEl, stateEl] = card.children as unknown as Array<{ type: { name?: string }; props: Record<string, unknown> }>;
+    const [nameEl, itemEl] = card.children as unknown as Array<{ type: { name?: string }; props: Record<string, unknown> }>;
     expect(nameEl.props.className).toBe("nodeName");
     expect(itemEl.type.name).toBe("ItemSlot");
-    expect(stateEl.props.className).toBe("nodeState");
-    expect(stateEl.props.children).toBe("ui.research.stateCompleted");
+    expect(stateLabelOf(card).props.className).toBe("nodeState");
   });
   type FrameFlags = { ready?: true; completed?: true; locked?: true };
-  it.each<[ResearchNodeData["state"], FrameFlags]>([
-    ["researchable", { ready: true }],
-    ["completed", { completed: true }],
-    ["unresearchableNotEnoughPreNode", { locked: true }],
-    ["unresearchableNotEnoughItem", {}],
-    ["unresearchableAllReasons", { locked: true }],
-  ])("枠色用のdata属性は%sで従来どおり付く", (state, expected) => {
+  it.each<[ResearchNodeData["state"], FrameFlags, string]>([
+    ["researchable", { ready: true }, "ui.research.stateAvailable"],
+    ["completed", { completed: true }, "ui.research.completed"],
+    ["unresearchableNotEnoughPreNode", { locked: true }, "ui.research.stateUnavailable"],
+    ["unresearchableNotEnoughItem", {}, "ui.research.stateUnavailable"],
+    ["unresearchableAllReasons", { locked: true }, "ui.research.stateUnavailable"],
+  ])("枠色用のdata属性と状態ラベルは%sで揃って付く", (state, expected, labelKey) => {
     const card = renderCard(state);
     expect(card.props["data-ready"]).toBe(expected.ready);
     expect(card.props["data-completed"]).toBe(expected.completed);
     expect(card.props["data-locked"]).toBe(expected.locked);
+    expect(stateLabelOf(card).props.children).toBe(labelKey);
   });
 });

@@ -136,15 +136,17 @@ describe("deriveNodeCardState", () => {
 });
 
 describe("deriveNodeStateLabelKey", () => {
+  const labelKeyOf = (state: ResearchNodeData["state"]) =>
+    deriveNodeStateLabelKey(deriveNodeCardState(node("a", 0, 0, { state })));
   it("completedは完了済みラベル", () => {
-    expect(deriveNodeStateLabelKey(node("a", 0, 0, { state: "completed" }))).toBe(L.ui.research.stateCompleted);
+    expect(labelKeyOf("completed")).toBe(L.ui.research.completed);
   });
   it("researchableは研究可能ラベル", () => {
-    expect(deriveNodeStateLabelKey(node("a", 0, 0, { state: "researchable" }))).toBe(L.ui.research.stateAvailable);
+    expect(labelKeyOf("researchable")).toBe(L.ui.research.stateAvailable);
   });
   it("不可3状態はすべて研究不可ラベルへ畳む", () => {
     for (const state of ["unresearchableNotEnoughItem", "unresearchableNotEnoughPreNode", "unresearchableAllReasons"] as const) {
-      expect(deriveNodeStateLabelKey(node("a", 0, 0, { state }))).toBe(L.ui.research.stateUnavailable);
+      expect(labelKeyOf(state)).toBe(L.ui.research.stateUnavailable);
     }
   });
 });
