@@ -12,17 +12,19 @@ using UnityEngine;
 
 namespace Tests.CombinedTest.Game
 {
-    public class GearConnectedBlockChallengeTaskTest
+    public class GearConnectedToChallengeTaskTest
     {
-        private static readonly Guid ChallengeGuid = Guid.Parse("00000000-0000-0000-4567-000000000104");
+        private static readonly Guid ChallengeGuid = Guid.Parse("00000000-0000-0000-4567-000000000105");
 
         [Test]
-        public void 発電機に繋がってシャフトが回ったら完了する()
+        public void シャフトをベルトの横に置くと回転していなくても完了する()
         {
             var challengeDatastore = CreateAndStart();
             var world = ServerContext.WorldBlockDatastore;
 
-            world.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            // 接続成立のみで完了しRPMは見ない
+            // No generator, so RPM stays 0; completion must come from the connection alone
+            world.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             world.TryAddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
 
             GameUpdater.UpdateOneTick();

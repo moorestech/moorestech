@@ -6,13 +6,13 @@ using Cysharp.Threading.Tasks;
 using Mooresmaster.Model.BlocksModule;
 using UnityEngine;
 
-namespace Client.Game.InGame.Tutorial.TutorialBlock
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost
 {
     /// <summary>
     /// チュートリアル専用のブロックプレビューオブジェクト
     /// Tutorial-specific block preview object
     /// </summary>
-    public class TutorialBlockPreviewObject : MonoBehaviour
+    public class PreviewGhostObject : MonoBehaviour
     {
         public BlockMasterElement BlockMasterElement { get; private set; }
 

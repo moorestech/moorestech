@@ -92,6 +92,7 @@ namespace Client.Starter
         [SerializeField] private UiDragGuideTutorialManager uiDragGuideTutorialManager;
         [SerializeField] private VeinRestrictedPlacementTutorialManager veinRestrictedPlacementTutorialManager;
         [SerializeField] private RelativeBlockPlacePreviewTutorialManager relativeBlockPlacePreviewTutorialManager;
+        [SerializeField] private ChainBlockPlacePreviewTutorialManager chainBlockPlacePreviewTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
@@ -169,6 +170,7 @@ namespace Client.Starter
             builder.RegisterComponent(uiDragGuideTutorialManager).AsSelf().As<ITutorialViewManager>();
             builder.RegisterComponent(veinRestrictedPlacementTutorialManager).AsSelf().As<ITutorialViewManager>();
             builder.RegisterComponent(relativeBlockPlacePreviewTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(chainBlockPlacePreviewTutorialManager).AsSelf().As<ITutorialViewManager>();
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();

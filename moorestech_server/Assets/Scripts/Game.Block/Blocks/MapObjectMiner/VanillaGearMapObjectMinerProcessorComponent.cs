@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
@@ -50,7 +50,14 @@ namespace Game.Block.Blocks.MapObjectMiner
                 {
                     continue;
                 }
-                
+
+                // 装飾物は削れない不変条件を採掘機経路にも通す。マスタが誤って載せても対象にしない
+                // Carries the "a decoration cannot be worn down" invariant into the miner path even if the master lists one
+                if (mapObject.IsDecoration)
+                {
+                    continue;
+                }
+
                 if (_miningTargetInfos.TryGetValue(guid, out var currentInfo))
                 {
                     currentInfo.MapObjects.Add(mapObject);

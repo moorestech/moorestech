@@ -219,6 +219,7 @@ ui.tooltip.placeTooFar,Too far away,Too far away,遠すぎます,Zu weit entfern
 ui.tooltip.placeGroundNotFound,No ground below,No ground below,地面が見つかりません,Kein Boden darunter
 ui.tooltip.placeMinerOutsideVein,The drill must be over a vein,The drill must be over a vein,ドリルを鉱脈に重ねてください,Der Bohrer muss über einer Erzader liegen
 ui.tooltip.placeOutsideTutorialVein,Place it on the highlighted vein,Place it on the highlighted vein,ハイライトされた鉱脈の上に設置してください,Platziere es auf der hervorgehobenen Erzader
+ui.tooltip.placeChainBlocked,Space for the connected layout is blocked,Space for the connected layout is blocked,接続先のスペースが埋まっています,Der Platz für die verbundene Anordnung ist blockiert
 ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden
 ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません,Für diese Baureihe gibt es kein Schrägband
 ui.tooltip.placeMaterialShortage,Missing item: {p0} {p1}/{p2},Missing item: {p0} {p1}/{p2},アイテム不足： {p0} {p1}/{p2},Fehlender Gegenstand: {p0} {p1}/{p2}

@@ -116,7 +116,7 @@ namespace Client.Tests.Mining.Outcrop
         {
             var collider = CreateAimedCollider("MapObjectTarget");
             var mapObject = collider.gameObject.AddComponent<MapObjectGameObject>();
-            collider.gameObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject);
+            collider.gameObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject, interactable: true);
             TestReflection.SetField(mapObject, "<MapObjectMasterElement>k__BackingField", MasterHolder.MapObjectMaster.GetMapObjectElement(TreeMapObjectGuid));
             Physics.SyncTransforms();
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mooresmaster.Model.MapModule;
@@ -22,12 +22,15 @@ namespace Core.Master.Validator
                 var logs = "";
                 foreach (var mapObjectElement in map.MapObjects)
                 {
-                    foreach (var earnItemsElement in mapObjectElement.EarnItems)
+                    if (mapObjectElement.MiningParam is IMinableMapObjectParam minableParam)
                     {
-                        var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(earnItemsElement.ItemGuid);
-                        if (itemId == null)
+                        foreach (var earnItemsElement in minableParam.EarnItems.items)
                         {
-                            logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has invalid ItemGuid:{earnItemsElement.ItemGuid}\n";
+                            var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(earnItemsElement.ItemGuid);
+                            if (itemId == null)
+                            {
+                                logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has invalid ItemGuid:{earnItemsElement.ItemGuid}\n";
+                            }
                         }
                     }
 
@@ -50,12 +53,14 @@ namespace Core.Master.Validator
 
             string EarnItemsValidation()
             {
-                // 取得アイテム無しは殴っても空振り
-                // Empty earn items yield nothing when mined
+                // 採掘できる個体は殴っても空振りしないようドロップ必須。装飾物(None)はearnItemsを構造上持てない
+                // A minable object must drop something or mining it would be a whiff; a decoration (None) cannot carry earnItems at all
                 var logs = "";
                 foreach (var mapObjectElement in map.MapObjects)
                 {
-                    if (mapObjectElement.EarnItems.Length == 0)
+                    if (mapObjectElement.MiningParam is not IMinableMapObjectParam minableParam) continue;
+
+                    if (minableParam.EarnItems.items.Length == 0)
                     {
                         logs += $"[MapObjectMaster] Name:{mapObjectElement.MapObjectName} has empty EarnItems\n";
                     }
@@ -97,7 +102,9 @@ namespace Core.Master.Validator
             mapObjectGuidsByEarnItem = new Dictionary<Guid, HashSet<Guid>>();
             foreach (var mapObjectElement in map.MapObjects)
             {
-                foreach (var earnItem in mapObjectElement.EarnItems)
+                if (mapObjectElement.MiningParam is not IMinableMapObjectParam minableParam) continue;
+
+                foreach (var earnItem in minableParam.EarnItems.items)
                 {
                     if (!mapObjectGuidsByEarnItem.TryGetValue(earnItem.ItemGuid, out var mapObjectGuids))
                     {
