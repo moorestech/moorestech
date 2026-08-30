@@ -1,5 +1,6 @@
 using Client.Game.Common;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
 using Client.Game.InGame.UI.UIState.State;
@@ -8,9 +9,13 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Entity.Object
 {
-    public class TrainCarEntityChildrenObject : MonoBehaviour, IDeleteTarget
+    public class TrainCarEntityChildrenObject : MonoBehaviour, IDeleteTarget, IInteractRayTarget
     {
         public TrainCarEntityObject TrainCarEntityObject { get; private set; }
+
+        // renderer子に当たったレイも車両のインタラクト面へ案内する
+        // A ray hitting a renderer child is pointed at the car's interact face as well
+        public IInteractable Interactable => TrainCarEntityObject.GetComponent<TrainCarInteractable>();
 
         private TrainCarMaterialController _materialController;
 

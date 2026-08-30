@@ -42,16 +42,24 @@ namespace Client.Game.InGame.Interact.Outline
                 var lodGroup = collectTarget.GetComponentInChildren<LODGroup>(true);
                 if (lodGroup == null)
                 {
-                    // 既にOutlineレイヤの子は複製対象から除く
-                    // Excludes children already on the Outline layer (a baked-in outline) from duplication
                     foreach (var renderer in collectTarget.GetComponentsInChildren<MeshRenderer>(true))
-                        if (renderer.gameObject.layer != LayerConst.OutlineLayer) renderers.Add(renderer);
+                        if (IsOutlineSource(renderer)) renderers.Add(renderer);
                     return renderers;
                 }
 
                 foreach (var renderer in lodGroup.GetLODs()[0].renderers)
-                    if (renderer != null) renderers.Add(renderer);
+                    if (renderer != null && IsOutlineSource(renderer)) renderers.Add(renderer);
                 return renderers;
+            }
+
+            // 見えているメッシュだけを輪郭の元にする。既存の輪郭と設置プレビュー箱は元にしない
+            // Only visible meshes seed the outline; a baked-in outline and the placement preview box never do
+            bool IsOutlineSource(Renderer renderer)
+            {
+                if (!renderer.gameObject.activeInHierarchy) return false;
+
+                var layer = renderer.gameObject.layer;
+                return layer != LayerConst.OutlineLayer && layer != LayerConst.BlockBoundingBoxLayer;
             }
 
             void CreateOutlineMesh(Transform parent, Renderer sourceRenderer, MeshFilter sourceFilter, Material material)

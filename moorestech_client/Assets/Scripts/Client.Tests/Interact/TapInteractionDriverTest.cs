@@ -55,7 +55,7 @@ namespace Client.Tests.Interact
         [Test]
         public void アクションのヒントが行として出てキー押下で遷移が返る()
         {
-            var keyboard = InputSystem.AddDevice<Keyboard>();
+            InputSystem.AddDevice<Keyboard>();
             var target = new StubTapInteractable(
                 _targetObject,
                 new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory, UIStateEnum.SubInventory),
@@ -71,9 +71,9 @@ namespace Client.Tests.Interact
 
             // 押下キーのみ実行しヒントは畳む
             // Only the pressed key's action runs and the hints fold away
-            Press(keyboard.eKey);
-            InputSystem.Update();
+            InputManager.Playable.Ride.SetKeyDownForTest(true);
             var transit = driver.Step(target);
+            InputManager.Playable.Ride.SetKeyDownForTest(false);
             Assert.AreEqual(UIStateEnum.TrainHUDScreen, transit.NextStateEnum);
             Assert.IsFalse(MouseCursorTooltip.Instance.GetPresentation().Visible);
         }

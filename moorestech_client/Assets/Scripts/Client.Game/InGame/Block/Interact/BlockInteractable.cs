@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Game.InGame.Block.Interact
 {
     /// <summary>
-    ///     開けるブロックの面。付与はPrefabContainerが判断
-    ///     Interact face of an openable block; BlockGameObjectPrefabContainer attaches it only to openable blocks
+    ///     開けるブロックの面。付与も初期化もBlockGameObject.Initializeが行う
+    ///     Interact face of an openable block; BlockGameObject.Initialize both attaches and initializes it
     /// </summary>
     public class BlockInteractable : MonoBehaviour, ITapInteractable
     {

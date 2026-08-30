@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
+using Client.Game.Common;
 using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.StateProcessor;
@@ -63,16 +64,15 @@ namespace Client.Game.InGame.Block
             BlockStateChangeProcessors = gameObject.GetComponentsInChildren<IBlockStateChangeProcessor>().ToList();
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();
             _rendererShaderAnimation = gameObject.AddComponent<RendererShaderAnimation>();
-           
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             
             // 子供のBlockGameObjectChildを初期化（非アクティブな子も後から有効化され得るため対象に含める）
             // Initialize child BlockGameObjectChild components (include inactive ones that may be activated later)
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>(true)) child.Init(this);
 
-            // 開けるブロックのみ面を初期化する
-            // Initialize the interact face only when one was attached; attachment itself is decided by BlockGameObjectPrefabContainer
-            if (gameObject.TryGetComponent<BlockInteractable>(out var interactable)) interactable.Initialize(this);
+            // 開けるブロックにだけインタラクト面を付けて初期化する
+            // Attach and initialize the interact face only for openable blocks
+            if (blockMasterElement.IsBlockOpenable()) gameObject.AddComponent<BlockInteractable>().Initialize(this);
 
             // 地面との衝突判定を無効化
             foreach (var groundCollisionDetector in gameObject.GetComponentsInChildren<GroundCollisionDetector>(true))

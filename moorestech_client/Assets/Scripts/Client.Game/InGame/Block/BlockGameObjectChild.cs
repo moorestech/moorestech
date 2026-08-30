@@ -1,5 +1,7 @@
 using Client.Game.Common;
+using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.UIState.State;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
@@ -8,11 +10,15 @@ using UnityEngine;
 
 namespace Client.Game.InGame.Block
 {
-    public class BlockGameObjectChild : MonoBehaviour, IDeleteTarget
+    public class BlockGameObjectChild : MonoBehaviour, IDeleteTarget, IInteractRayTarget
     {
         private const float RemoveDeniedReasonDisplaySeconds = 2f;
 
         public BlockGameObject BlockGameObject { get; private set; }
+
+        // インタラクト面は開けるブロックにしか付かないので、開けないブロックはここでnullになる
+        // The interact face exists only on openable blocks, so a non-openable block resolves to null here
+        public IInteractable Interactable => BlockGameObject.GetComponent<BlockInteractable>();
         private bool _isDeleteRequesting;
         private LocalizationKey? _removeDeniedReason;
         private float _removeDeniedReasonUntil;

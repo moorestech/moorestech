@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Client.Common.Asset;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
@@ -129,9 +128,6 @@ namespace Client.Game.InGame.Context
 
                 blockObj.gameObject.SetActive(true);
                 var blockType = blockMasterElement.BlockType;
-                // 開けるブロックに面を付与する
-                // If the block is openable, attach the interact face
-                BlockInteractableAttacher.AttachIfOpenable(block.gameObject, blockMasterElement);
                 // 機械の場合はそのプロセッサを付与する
                 // If it's a machine, add the corresponding processor
                 if (IsCommonMachine(blockType)) block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>();

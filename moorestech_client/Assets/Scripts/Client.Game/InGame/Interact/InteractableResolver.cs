@@ -1,20 +1,19 @@
-using Client.Game.InGame.Block;
-using Client.Game.InGame.Block.Interact;
-using Client.Game.InGame.Entity.Object;
-using Client.Game.InGame.Train.View.Object.Core;
 using UnityEngine;
 
 namespace Client.Game.InGame.Interact
 {
     /// <summary>
-    ///     コライダから対象を解決。種別分岐はここに閉じる
-    ///     Resolves the interactable behind a hit collider; per-kind lookup lives only here
+    ///     コライダから対象を解決。種別は知らずマーカーだけを辿る
+    ///     Resolves the interactable behind a hit collider by following markers only, without knowing the kinds
     /// </summary>
     public static class InteractableResolver
     {
         internal static bool TryResolve(Collider collider, out IInteractable interactable)
         {
-            interactable = ResolveByKind();
+            // コライダ自身か祖先のマーカーが対象を案内する
+            // The marker on the collider or one of its ancestors points at the target
+            var rayTarget = collider.GetComponentInParent<IInteractRayTarget>();
+            interactable = rayTarget?.Interactable;
 
             // 解決できても選定可能でなければ対象にしない（ハイライトと選定が同じ関門を通る）
             // A resolved but unavailable target is no target, so highlight and selection share one gate
@@ -22,29 +21,6 @@ namespace Client.Game.InGame.Interact
 
             interactable = null;
             return false;
-
-            #region Internal
-
-            IInteractable ResolveByKind()
-            {
-                // mapObject・露頭はマーカーで案内
-                // Map objects and outcrops are pointed at by a marker on the collider
-                if (collider.TryGetComponent(out IInteractRayTarget rayTarget)) return rayTarget.Interactable;
-
-                // ブロックはメッシュ子から親のインタラクト面へ。開けないブロックには面が無い
-                // Blocks climb from a mesh child to the parent's interact face; a non-openable block has none
-                var blockChild = collider.GetComponentInParent<BlockGameObjectChild>();
-                if (blockChild != null) return blockChild.BlockGameObject.GetComponent<BlockInteractable>();
-
-                // 列車はレンダラー子から車両面へ
-                // Train cars climb from the renderer child to the car's interact face
-                var trainChild = collider.GetComponentInParent<TrainCarEntityChildrenObject>();
-                if (trainChild != null) return trainChild.TrainCarEntityObject.GetComponent<TrainCarInteractable>();
-
-                return null;
-            }
-
-            #endregion
         }
     }
 }

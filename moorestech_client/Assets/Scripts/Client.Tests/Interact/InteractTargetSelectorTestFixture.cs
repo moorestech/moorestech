@@ -4,8 +4,10 @@ using Client.Common;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.Train.View.Object.Core;
 using Client.Tests.Common;
 using Core.Master;
+using Game.Train.Unit;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -129,6 +131,34 @@ namespace Client.Tests.Interact
             TargetObjects.Add(targetObject);
             Physics.SyncTransforms();
             return mapObject;
+        }
+
+        // CargoCar.prefabの構造を模した車両を作る。当たり判定はMeshRendererを持たないBlockレイヤのCollision子だけが持つ
+        // Builds a car mimicking CargoCar.prefab: only the renderer-less Block-layer Collision child carries a collider
+        protected TrainCarInteractable CreateTrainCarTarget(Vector3 position)
+        {
+            var carObject = new GameObject("CargoCar");
+            carObject.transform.position = position;
+            carObject.AddComponent<Rigidbody>();
+
+            var entityObject = carObject.AddComponent<TrainCarEntityObject>();
+            entityObject.Initialize(TrainCarInstanceId.Create(), null);
+            var interactable = carObject.AddComponent<TrainCarInteractable>();
+            interactable.Initialize(entityObject);
+
+            // メッシュ子はDefaultレイヤなのでレイにも近傍探索にも掛からない
+            // Mesh children sit on the Default layer, so neither the ray nor the nearby search ever sees them
+            var meshChild = new GameObject("Mesh");
+            meshChild.transform.SetParent(carObject.transform, false);
+            meshChild.AddComponent<MeshRenderer>();
+
+            var collisionChild = new GameObject("Collision") { layer = LayerConst.BlockLayer };
+            collisionChild.transform.SetParent(carObject.transform, false);
+            collisionChild.AddComponent<BoxCollider>().size = Vector3.one * 0.1f;
+
+            TargetObjects.Add(carObject);
+            Physics.SyncTransforms();
+            return interactable;
         }
     }
 }

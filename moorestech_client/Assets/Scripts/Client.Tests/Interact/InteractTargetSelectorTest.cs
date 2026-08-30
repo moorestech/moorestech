@@ -84,6 +84,17 @@ namespace Client.Tests.Interact
         }
 
         [Test]
+        public void 列車は当たり判定子からでも車両のインタラクト面が選ばれる()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
+            var interactable = CreateTrainCarTarget(AimRay().GetPoint(1f));
+            PlayerObject.transform.position = interactable.transform.position;
+            Physics.SyncTransforms();
+
+            Assert.AreSame(interactable, new InteractTargetSelector().Select());
+        }
+
+        [Test]
         public void 開けないブロックは照準に当たっても選ばれない()
         {
             AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);

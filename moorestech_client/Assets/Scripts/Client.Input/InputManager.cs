@@ -132,6 +132,10 @@ namespace Client.Input
     {
         private readonly InputAction _inputAction;
         private readonly InputSuppressionScope? _suppressionScope;
+
+        // EditModeテストではInputSystemの押下がWasPressedThisFrameへ届かないため、押下だけをテストから差し込む
+        // In EditMode tests an Input System press never reaches WasPressedThisFrame, so tests inject the press itself
+        private bool _isTestKeyDown;
         
         public InputKey(InputAction key) : this(key, null)
         {
@@ -150,7 +154,7 @@ namespace Client.Input
             key.canceled += _ => { if (!IsSuppressed()) OnGetKeyUp?.Invoke(); };
         }
         
-        public bool GetKeyDown => ReadButton(_inputAction.WasPressedThisFrame());
+        public bool GetKeyDown => ReadButton(_isTestKeyDown || _inputAction.WasPressedThisFrame());
         public bool GetKey => ReadButton(_inputAction.IsPressed());
         public bool GetKeyUp => ReadButton(_inputAction.WasReleasedThisFrame());
         
@@ -158,6 +162,11 @@ namespace Client.Input
         public event Action OnGetKey;
         public event Action OnGetKeyUp;
         
+        internal void SetKeyDownForTest(bool isKeyDown)
+        {
+            _isTestKeyDown = isKeyDown;
+        }
+
         public TValue ReadValue<TValue>() where TValue : struct
         {
             var value = _inputAction.ReadValue<TValue>();

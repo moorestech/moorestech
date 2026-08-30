@@ -11,6 +11,7 @@ using Client.Tests.Common;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -74,37 +75,20 @@ namespace Client.Tests.Interact
             Assert.IsFalse(openable.IsInteractAvailable);
         }
 
-        // BlockGameObjectPrefabContainerが呼ぶのと同じBlockInteractableAttacherを直接叩き、実際の付与経路を検証する
-        // Call the same BlockInteractableAttacher that BlockGameObjectPrefabContainer uses to verify the real attach path
+        // BlockGameObject.Initializeはサーバ接続を伴い呼べないため、そこが付与判断に使う条件を実マスタで検証する
+        // BlockGameObject.Initialize cannot run without a server, so verify the very condition it attaches on, against the real master
         [Test]
-        public void 開けないブロックにはBlockInteractableが付与されない()
+        public void インタラクト面は開けるブロックのマスタにだけ付与条件が立つ()
         {
-            var plainMaster = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == PlainBlockName);
-            var gameObject = new GameObject(PlainBlockName);
-            _createdObjects.Add(gameObject);
-
-            BlockInteractableAttacher.AttachIfOpenable(gameObject, plainMaster);
-
-            Assert.IsFalse(gameObject.TryGetComponent<BlockInteractable>(out _));
-        }
-
-        [Test]
-        public void 開けるブロックにはBlockInteractableが付与される()
-        {
-            var openableMaster = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == OpenableBlockName);
-            var gameObject = new GameObject(OpenableBlockName);
-            _createdObjects.Add(gameObject);
-
-            BlockInteractableAttacher.AttachIfOpenable(gameObject, openableMaster);
-
-            Assert.IsTrue(gameObject.TryGetComponent<BlockInteractable>(out _));
+            Assert.IsTrue(FindMaster(OpenableBlockName).IsBlockOpenable());
+            Assert.IsFalse(FindMaster(PlainBlockName).IsBlockOpenable());
         }
 
         // BlockGameObject.Initializeはサーバ接続を伴うため、マスタだけ差し込んでインタラクト面を直接初期化する
         // BlockGameObject.Initialize talks to the server, so only the master is injected and the interact face is initialized directly
         private BlockInteractable CreateBlockInteractable(string blockName)
         {
-            var master = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == blockName);
+            var master = FindMaster(blockName);
             var gameObject = new GameObject(blockName);
             _createdObjects.Add(gameObject);
 
@@ -115,6 +99,11 @@ namespace Client.Tests.Interact
             var interactable = gameObject.AddComponent<BlockInteractable>();
             interactable.Initialize(blockGameObject);
             return interactable;
+        }
+
+        private static BlockMasterElement FindMaster(string blockName)
+        {
+            return MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == blockName);
         }
     }
 }
