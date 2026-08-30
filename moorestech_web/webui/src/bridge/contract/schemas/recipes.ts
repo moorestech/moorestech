@@ -15,6 +15,13 @@ export const CraftRecipeSchema = z.object({
 export const CraftRecipesDataSchema = z.object({ recipes: z.array(CraftRecipeSchema) });
 
 export const MachineRecipeItemSchema = z.object({ itemId: z.number(), count: z.number() });
+// 液体は研究側 ResearchUnlockFluidSchema と同型（fluidGuid で名前・色を解決する）
+// Fluids share the shape of ResearchUnlockFluidSchema (name/color resolve via fluidGuid)
+export const MachineRecipeFluidSchema = z.object({
+  fluidId: z.number(),
+  fluidGuid: GuidSchema,
+  amount: z.number(),
+}).strict();
 export const MachineRecipeSchema = z.object({
   recipeGuid: GuidSchema,
   blockGuid: GuidSchema,
@@ -22,6 +29,8 @@ export const MachineRecipeSchema = z.object({
   time: z.number(),
   inputItems: z.array(MachineRecipeItemSchema),
   outputItems: z.array(MachineRecipeItemSchema),
+  inputFluids: z.array(MachineRecipeFluidSchema),
+  outputFluids: z.array(MachineRecipeFluidSchema),
 }).strict();
 export const MachineRecipesDataSchema = z.object({ recipes: z.array(MachineRecipeSchema) });
 export const RecipeViewerItemListDataSchema = z.object({ itemIds: z.array(z.number()) });

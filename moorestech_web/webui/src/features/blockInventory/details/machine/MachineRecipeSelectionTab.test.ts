@@ -38,6 +38,7 @@ function recipe(recipeGuid: string, itemId: number, time: number): MachineRecipe
   return {
     recipeGuid, blockGuid, blockId: 10, time,
     inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId, count: 1 }],
+    inputFluids: [], outputFluids: [],
   };
 }
 

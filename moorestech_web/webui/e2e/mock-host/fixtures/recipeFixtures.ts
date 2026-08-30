@@ -2,6 +2,7 @@
 // Mock snapshots for crafting, machine recipes, and the recipe viewer item list
 import type { CraftRecipesData, MachineRecipesData, RecipeViewerItemListData } from "../../../src/bridge/contract/payloadTypes";
 import { ELECTRIC_MACHINE_BLOCK_GUID, GEAR_MACHINE_BLOCK_GUID } from "./blockLocalizationFixtures";
+import { WATER_FLUID_GUID } from "./contentLocalizationFixtures";
 
 export const craftRecipes = {
   recipes: [
@@ -49,30 +50,37 @@ export const machineRecipes = {
       blockGuid: GEAR_MACHINE_BLOCK_GUID,
       blockId: 4, time: 8,
       inputItems: [{ itemId: 2, count: 1 }], outputItems: [{ itemId: 100, count: 1 }],
+      inputFluids: [], outputFluids: [],
     },
     {
       recipeGuid: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       blockGuid: ELECTRIC_MACHINE_BLOCK_GUID,
       blockId: 3, time: 5,
       inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 3, count: 1 }],
+      inputFluids: [], outputFluids: [],
     },
     {
       recipeGuid: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
       blockGuid: ELECTRIC_MACHINE_BLOCK_GUID,
       blockId: 3, time: 10,
       inputItems: [{ itemId: 2, count: 3 }], outputItems: [{ itemId: 7, count: 2 }],
+      // 液体ゴーストスロットのe2e用に水インプットを1件持たせる
+      // Carries one water input so the fluid ghost-slot e2e has a fixture to assert on
+      inputFluids: [{ fluidId: 1, fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [],
     },
     {
       recipeGuid: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       blockGuid: ELECTRIC_MACHINE_BLOCK_GUID,
       blockId: 3, time: 15,
       inputItems: [{ itemId: 1, count: 1 }, { itemId: 2, count: 1 }], outputItems: [{ itemId: 11, count: 4 }],
+      inputFluids: [], outputFluids: [],
     },
     {
       recipeGuid: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
       blockGuid: GEAR_MACHINE_BLOCK_GUID,
       blockId: 4, time: 20,
       inputItems: [{ itemId: 3, count: 2 }], outputItems: [{ itemId: 7, count: 1 }],
+      inputFluids: [], outputFluids: [],
     },
   ],
 } satisfies MachineRecipesData;
@@ -87,6 +95,7 @@ export const overflowingMachineRecipes = {
       blockGuid: ELECTRIC_MACHINE_BLOCK_GUID,
       blockId: 3, time: index + 1,
       inputItems: [{ itemId: 2, count: index + 1 }], outputItems: [{ itemId: 100, count: 1 }],
+      inputFluids: [], outputFluids: [],
     })),
   ],
 } satisfies MachineRecipesData;

@@ -62,6 +62,8 @@ namespace Client.WebUiHost.Game.Topics
                     Time = recipe.Time,
                     InputItems = BuildInputItems(recipe),
                     OutputItems = BuildOutputItems(recipe),
+                    InputFluids = BuildInputFluids(recipe),
+                    OutputFluids = BuildOutputFluids(recipe),
                 });
             }
             return WebUiJson.Serialize(dto);
@@ -96,6 +98,36 @@ namespace Client.WebUiHost.Game.Topics
                 return items;
             }
 
+            List<RecipeFluidDto> BuildInputFluids(MachineRecipeMasterElement element)
+            {
+                var fluids = new List<RecipeFluidDto>();
+                foreach (var inputFluid in element.InputFluids)
+                {
+                    fluids.Add(new RecipeFluidDto
+                    {
+                        FluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid).AsPrimitive(),
+                        FluidGuid = inputFluid.FluidGuid.ToString("D"),
+                        Amount = inputFluid.Amount,
+                    });
+                }
+                return fluids;
+            }
+
+            List<RecipeFluidDto> BuildOutputFluids(MachineRecipeMasterElement element)
+            {
+                var fluids = new List<RecipeFluidDto>();
+                foreach (var outputFluid in element.OutputFluids)
+                {
+                    fluids.Add(new RecipeFluidDto
+                    {
+                        FluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid).AsPrimitive(),
+                        FluidGuid = outputFluid.FluidGuid.ToString("D"),
+                        Amount = outputFluid.Amount,
+                    });
+                }
+                return fluids;
+            }
+
             #endregion
         }
     }
@@ -117,11 +149,20 @@ namespace Client.WebUiHost.Game.Topics
         public double Time;
         public List<RecipeItemDto> InputItems;
         public List<RecipeItemDto> OutputItems;
+        public List<RecipeFluidDto> InputFluids;
+        public List<RecipeFluidDto> OutputFluids;
     }
 
     public class RecipeItemDto
     {
         public int ItemId;
         public int Count;
+    }
+
+    public class RecipeFluidDto
+    {
+        public int FluidId;
+        public string FluidGuid;
+        public double Amount;
     }
 }

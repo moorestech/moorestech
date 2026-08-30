@@ -156,6 +156,7 @@ describe("validMachineRecipes", () => {
   const recipe = {
     recipeGuid: "50000000-0000-4000-8000-000000000001", blockGuid: "40000000-0000-4000-8000-000000000001", blockId: 12, time: 1,
     inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
+    inputFluids: [], outputFluids: [],
   };
 
   it("accepts BlockId and rejects the removed blockItemId contract", () => {

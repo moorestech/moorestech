@@ -15,6 +15,7 @@ vi.mock("@/bridge", async (importOriginal) => ({
     recipes: [{
       recipeGuid, blockGuid, blockId: 10, time: 7,
       inputItems: [{ itemId: 1, count: 2 }], outputItems: [{ itemId: 2, count: 1 }],
+      inputFluids: [], outputFluids: [],
     }],
   }),
 }));

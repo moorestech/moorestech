@@ -9,6 +9,8 @@ const machineRecipe = {
   time: 1,
   inputItems: [{ itemId: 1, count: 2 }],
   outputItems: [{ itemId: 2, count: 1 }],
+  inputFluids: [],
+  outputFluids: [],
 };
 
 describe("content Guid contracts", () => {
