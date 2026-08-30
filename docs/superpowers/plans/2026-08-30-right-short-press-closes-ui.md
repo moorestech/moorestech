@@ -714,7 +714,7 @@ git commit -m "feat: パネル型UI4画面をパネル外の右短押しで閉�
 - Consumes: `SemanticInput.MouseButtonDown(int)` / `MouseButtonUp(int)` / `MouseMoveTo(Vector2)` / `CurrentMousePosition()`、`PlaytestDriver.Note`、`p.Hotbar.AssignHotbar` / `p.Hotbar.EnterBuildMode`、`p.WaitUiState`、`p.CurrentUiState`、`p.PressKey`
 - Produces: `RightShortClick(this PlaytestDriver p)`、`RightDrag(this PlaytestDriver p, Vector2 deltaPixels)`
 
-- [ ] **Step 1: 操作を追加する**
+- [x] **Step 1: 操作を追加する**
 
 ```csharp
 using Client.Playtest.Input;
@@ -755,7 +755,7 @@ namespace Client.Playtest.Operations
 
 （`Client.Playtest/Operations` は本ファイルで8ファイル。10ファイル規約内）
 
-- [ ] **Step 2: シナリオを書く**
+- [x] **Step 2: シナリオを書く**
 
 ```csharp
 // 右短押しでの解除検証: 建築モード→右短押しで抜ける / 右ドラッグでは抜けない / インベントリ→パネル外右短押しで閉じる
@@ -810,7 +810,7 @@ return PlaytestRunner.Run("right-short-press-cancel", options, async p =>
 
 （`p.Hotbar.EnterBuildMode` / `WaitUiState` / `PressKey` / `Screenshot` の正確なシグネチャは `write-scenario.md` の Driver API 表と `scenarios/connect/gear-chain-pole-via-ui.cs` を正とし、差異があれば合わせる。ホットバー割当名「チェスト」が未アンロックで失敗する場合は `p.UnlockBlock("チェスト")` を `AssignHotbar` の前に足す）
 
-- [ ] **Step 3: 実行する**
+- [x] **Step 3: 実行する**
 
 ```bash
 uloop control-play-mode --project-path ./moorestech_client --action stop
@@ -820,7 +820,7 @@ SKILL=.claude/skills/unity-playmode-recorded-playtest
 
 Expected: result.json の assert 3件すべて pass。失敗したら `troubleshooting.md` を読んで原因を切り分ける（masterピンworktree未作成が最頻）。閾値8pxで右ドラッグが短押し扱いになる場合は `RightDrag` の delta を増やすのではなく、注入の移動が `ManualUpdate` に届いているか（`HybridInput.GetMousePosition()` が注入値か）を先に疑う。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Playtest/Operations .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/right-short-press-cancel.cs
