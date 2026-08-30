@@ -18,7 +18,7 @@ namespace Client.Game.InGame.Block
 
         // インタラクト面は開けるブロックにしか付かないので、開けないブロックはここでnullになる
         // The interact face exists only on openable blocks, so a non-openable block resolves to null here
-        public IInteractable Interactable => BlockGameObject.GetComponent<BlockInteractable>();
+        public IInteractable Interactable => BlockGameObject.Interactable;
         private bool _isDeleteRequesting;
         private LocalizationKey? _removeDeniedReason;
         private float _removeDeniedReasonUntil;

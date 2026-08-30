@@ -32,6 +32,10 @@ namespace Client.Game.InGame.Block
         // Tombstone for the nearest index; a removed block leaves the candidates without rebuilding the tree
         public bool IsSearchable { get; private set; } = true;
 
+        // 開けないブロックはnull。子のレイ案内が毎フレーム引くのでInitializeで一度だけ解決する
+        // Null on a non-openable block; the children's ray marker reads it every frame, so it is resolved once in Initialize
+        public BlockInteractable Interactable { get; private set; }
+
         public IObservable<BlockGameObject> OnFinishedPlaceAnimation => _onFinishedPlaceAnimation;
         private readonly Subject<BlockGameObject> _onFinishedPlaceAnimation = new();
         
@@ -72,7 +76,11 @@ namespace Client.Game.InGame.Block
 
             // 開けるブロックのみインタラクト面を初期化
             // Initialize the interact face only for openable blocks
-            if (blockMasterElement.IsBlockOpenable()) gameObject.AddComponent<BlockInteractable>().Initialize(this);
+            if (blockMasterElement.IsBlockOpenable())
+            {
+                Interactable = gameObject.AddComponent<BlockInteractable>();
+                Interactable.Initialize(this);
+            }
 
             // 地面との衝突判定を無効化
             foreach (var groundCollisionDetector in gameObject.GetComponentsInChildren<GroundCollisionDetector>(true))

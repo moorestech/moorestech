@@ -61,9 +61,11 @@ namespace Client.Tests.Interact
                 new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory, UIStateEnum.SubInventory),
                 new StubAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen));
             var driver = new TapInteractionDriver();
+            var selector = new ScriptedInteractTargetSelector();
+            selector.SetNext(target);
             InputSystem.Update();
 
-            Assert.IsNull(driver.Step(target));
+            Assert.IsFalse(driver.Step(target, selector).IsHandled);
             var lines = MouseCursorTooltip.Instance.GetPresentation().Lines;
             Assert.AreEqual(2, lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory.Key, lines[0].Key.Key);
@@ -72,9 +74,10 @@ namespace Client.Tests.Interact
             // 押下キーのみ実行しヒントは畳む
             // Only the pressed key's action runs and the hints fold away
             InputManager.Playable.Ride.SetKeyDownForTest(true);
-            var transit = driver.Step(target);
+            var result = driver.Step(target, selector);
             InputManager.Playable.Ride.SetKeyDownForTest(false);
-            Assert.AreEqual(UIStateEnum.TrainHUDScreen, transit.NextStateEnum);
+            Assert.IsTrue(result.IsHandled);
+            Assert.AreEqual(UIStateEnum.TrainHUDScreen, result.TransitContext.NextStateEnum);
             Assert.IsFalse(MouseCursorTooltip.Instance.GetPresentation().Visible);
         }
 
@@ -86,9 +89,11 @@ namespace Client.Tests.Interact
                 _targetObject,
                 new StubAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen));
             var driver = new TapInteractionDriver();
+            var selector = new ScriptedInteractTargetSelector();
+            selector.SetNext(target);
             InputSystem.Update();
 
-            Assert.IsNull(driver.Step(target));
+            Assert.IsFalse(driver.Step(target, selector).IsHandled);
             Assert.IsTrue(MouseCursorTooltip.Instance.GetPresentation().Visible);
 
             // 対象から離れたらヒントも消える
@@ -129,9 +134,9 @@ namespace Client.Tests.Interact
                 _nextState = nextState;
             }
 
-            public UITransitContext Execute()
+            public InteractExecuteResult Execute()
             {
-                return new UITransitContext(_nextState);
+                return InteractExecuteResult.Transit(new UITransitContext(_nextState));
             }
         }
     }

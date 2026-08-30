@@ -17,9 +17,9 @@ namespace Client.Game.InGame.Train.View.Object.Core
         public GameObject GameObject => gameObject;
         public IReadOnlyList<ITapInteractAction> Actions { get; private set; } = Array.Empty<ITapInteractAction>();
 
-        // 車両は生成時に必ず2アクションを積むので、常にインタラクト対象になる
-        // A car always carries its two actions from creation, so it is always a candidate
-        public bool IsInteractAvailable => true;
+        // アクションが積まれる前（Initialize前）は候補にしない
+        // Before Initialize stocks the actions there is nothing to do, so it is not a candidate
+        public bool IsInteractAvailable => 0 < Actions.Count;
 
         internal void Initialize(TrainCarEntityObject trainCarEntityObject)
         {
@@ -32,10 +32,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
 
         public void SetHighlighted(bool highlighted)
         {
-            // 初回ハイライト時だけ複製メッシュを作る
-            // Build the duplicate mesh only on the first highlight
-            if (highlighted && _outlineObject == null) _outlineObject = RuntimeOutlineFactory.Create(gameObject);
-            if (_outlineObject != null) _outlineObject.SetActive(highlighted);
+            RuntimeOutlineFactory.Apply(gameObject, ref _outlineObject, highlighted);
         }
     }
 }

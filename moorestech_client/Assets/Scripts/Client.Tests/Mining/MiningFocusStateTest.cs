@@ -62,5 +62,15 @@ namespace Client.Tests.Mining
             Assert.AreSame(focusState, next);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PickUpInteract.Key, ShownTooltipKey());
         }
+
+        [Test]
+        public void PickUp対象はF押下で完了状態へ抜けツールチップを畳む()
+        {
+            var focusState = new MiningFocusState();
+            var next = RunFocusStateWithInteractPressed(MiningStartOutcome.InstantPickUp, focusState);
+
+            Assert.IsInstanceOf<MiningCompleteState>(next);
+            Assert.IsFalse(MouseCursorTooltip.Instance.GetPresentation().Visible);
+        }
     }
 }

@@ -46,8 +46,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // 選定・ハイライト・F/E実行を駆動
             // Drive selection, highlight and F/E execution, returning any transition
-            var interactTransit = _interactController.ManualUpdate();
-            if (interactTransit != null) return interactTransit;
+            var interactResult = _interactController.ManualUpdate();
+            if (interactResult.IsHandled) return interactResult.TransitContext;
 
             // ミドルクリックで設置物をスポイトし配置モードへ入る
             // Middle-click eyedrops a placed object and enters placement mode

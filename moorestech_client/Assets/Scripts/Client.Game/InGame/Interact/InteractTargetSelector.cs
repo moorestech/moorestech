@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Player;
+using Client.Input;
 using UnityEngine;
 
 namespace Client.Game.InGame.Interact
@@ -9,74 +11,161 @@ namespace Client.Game.InGame.Interact
     ///     インタラクト対象を常に1件だけ選ぶ。照準レイのヒットを優先し、無ければ半径2m内で視線角度が最小のもの（ADR 0046）
     ///     Picks exactly one interactable: the aim-ray hit first, else the smallest view angle within 2m (ADR 0046)
     /// </summary>
-    public class InteractTargetSelector
+    public class InteractTargetSelector : IInteractTargetSelector
     {
         public const float InteractDistance = 2f;
 
-        private const int OverlapBufferSize = 64;
+        private const int InitialOverlapBufferSize = 64;
 
         private static readonly int InteractLayerMask = LayerConst.BlockOnlyLayerMask | LayerConst.MapObjectOnlyLayerMask;
 
-        private readonly Collider[] _overlapBuffer = new Collider[OverlapBufferSize];
+        private Collider[] _overlapBuffer = new Collider[InitialOverlapBufferSize];
 
-        public virtual IInteractable Select()
+        private readonly List<NearbyCandidate> _candidates = new();
+
+        public IInteractable Select()
         {
-            var camera = Camera.main;
-            if (camera == null) return null;
-            if (UiPointerHitTest.IsPointerOverAnyUi()) return null;
+            if (!TryCollectCandidates(out var aimedTarget)) return null;
 
-            var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-            return SelectByAimRay() ?? SelectNearbyByViewAngle();
+            // 照準の先の実体は、対象にならないなら「対象なし」で確定させる。近傍へ落とすと遮蔽物越しに機械を開ける
+            // A solid under the aim settles the frame by itself; falling through would open a machine through the wall
+            if (aimedTarget != null) return aimedTarget;
+
+            return SelectBestByViewAngle(null);
+        }
+
+        // 主対象が応じないキーだけがここへ来る。候補走査はSelect()と同じ規則を通す
+        // Only a key the primary target does not offer arrives here, and the candidate scan follows the same rule as Select()
+        public IInteractable SelectRespondingTo(InputKey key)
+        {
+            if (!TryCollectCandidates(out var aimedTarget)) return null;
+            if (aimedTarget != null && RespondsTo(aimedTarget, key)) return aimedTarget;
+
+            return SelectBestByViewAngle(key);
+        }
+
+        public void CollectCandidateKeys(List<InputKey> keys)
+        {
+            keys.Clear();
+            if (!TryCollectCandidates(out var aimedTarget)) return;
+
+            if (aimedTarget != null) AddKeys(aimedTarget);
+            foreach (var candidate in _candidates) AddKeys(candidate.Interactable);
 
             #region Internal
 
-            IInteractable SelectByAimRay()
+            void AddKeys(IInteractable interactable)
             {
-                // 手順はBlockClickDetectUtilに集約済み
-                // Ray creation, distance sort and ghost penetration are centralized in BlockClickDetectUtil
-                if (!BlockClickDetectUtil.TryGetFrontmostSolidHit(InteractLayerMask, out var hit)) return null;
+                if (interactable is not ITapInteractable tapInteractable) return;
 
-                // 届かなければ近傍探索へフォールバック
-                // If the frontmost solid is not a reachable target, fall through to the nearby search
-                if (!InteractableResolver.TryResolve(hit.collider, out var interactable)) return null;
-                return IsWithinReach(interactable) ? interactable : null;
-            }
-
-            IInteractable SelectNearbyByViewAngle()
-            {
-                var hitCount = Physics.OverlapSphereNonAlloc(playerPosition, InteractDistance, _overlapBuffer, InteractLayerMask);
-                var forward = camera.transform.forward;
-                IInteractable best = null;
-                var bestAngle = float.PositiveInfinity;
-                var bestSqrDistance = float.PositiveInfinity;
-
-                for (var index = 0; index < hitCount; index++)
-                {
-                    if (!InteractableResolver.TryResolve(_overlapBuffer[index], out var candidate)) continue;
-
-                    var toCandidate = candidate.GameObject.transform.position - playerPosition;
-                    var angle = Vector3.Angle(forward, toCandidate);
-                    var sqrDistance = toCandidate.sqrMagnitude;
-
-                    // 角度が小さい方を優先し、同角度なら近い方。同一対象の複数コライダはどちらも成り立たず最初の1件が残る
-                    // Prefer the smaller angle and the closer one on a tie; extra colliders of one target satisfy neither and the first survives
-                    var isBetter = angle < bestAngle || (Mathf.Approximately(angle, bestAngle) && sqrDistance < bestSqrDistance);
-                    if (!isBetter) continue;
-
-                    best = candidate;
-                    bestAngle = angle;
-                    bestSqrDistance = sqrDistance;
-                }
-
-                return best;
-            }
-
-            bool IsWithinReach(IInteractable interactable)
-            {
-                return Vector3.Distance(playerPosition, interactable.GameObject.transform.position) <= InteractDistance;
+                foreach (var action in tapInteractable.Actions)
+                    if (!keys.Contains(action.Key))
+                        keys.Add(action.Key);
             }
 
             #endregion
+        }
+
+        // 照準ヒットと近傍候補を1回で集める。選定・キー収集・キー別選定が同じ候補を見る
+        // Collects the aim hit and the nearby candidates once so selection, key collection and per-key selection all see the same set
+        private bool TryCollectCandidates(out IInteractable aimedTarget)
+        {
+            aimedTarget = null;
+            _candidates.Clear();
+
+            var camera = Camera.main;
+            if (camera == null) return false;
+            if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
+
+            var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+            if (BlockClickDetectUtil.TryGetFrontmostSolidHit(InteractLayerMask, out var hit))
+            {
+                if (!InteractableResolver.TryResolve(hit.collider, playerPosition, out var interactable, out _)) return true;
+                if (Vector3.Distance(playerPosition, hit.point) <= InteractDistance) aimedTarget = interactable;
+                return true;
+            }
+
+            var hitCount = OverlapNearby(playerPosition);
+            for (var index = 0; index < hitCount; index++)
+            {
+                if (!InteractableResolver.TryResolve(_overlapBuffer[index], playerPosition, out var candidate, out var candidatePoint)) continue;
+
+                // 同一対象の複数コライダは最初の1件だけ残す
+                // Extra colliders of one target collapse into its first entry
+                if (!ContainsCandidate(candidate)) _candidates.Add(new NearbyCandidate(candidate, candidatePoint));
+            }
+
+            return true;
+
+            #region Internal
+
+            // 飽和したまま返すと取りこぼした候補次第で選定が変わるため、バッファを倍にして採り直す
+            // A saturated buffer would make the pick depend on which candidates were dropped, so it is doubled and re-queried
+            int OverlapNearby(Vector3 center)
+            {
+                while (true)
+                {
+                    var count = Physics.OverlapSphereNonAlloc(center, InteractDistance, _overlapBuffer, InteractLayerMask);
+                    if (count < _overlapBuffer.Length) return count;
+
+                    _overlapBuffer = new Collider[_overlapBuffer.Length * 2];
+                }
+            }
+
+            #endregion
+        }
+
+        // 視線角度が最小のものを選ぶ。keyを渡すとそのキーに応じる候補だけが対象になる
+        // Picks the smallest view angle; passing a key narrows the candidates to the ones answering it
+        private IInteractable SelectBestByViewAngle(InputKey key)
+        {
+            var camera = Camera.main;
+            var forward = camera.transform.forward;
+            var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+
+            IInteractable best = null;
+            var bestAngle = float.PositiveInfinity;
+            var bestSqrDistance = float.PositiveInfinity;
+
+            foreach (var candidate in _candidates)
+            {
+                if (key != null && !RespondsTo(candidate.Interactable, key)) continue;
+
+                var toCandidate = candidate.Point - playerPosition;
+                var angle = Vector3.Angle(forward, toCandidate);
+                var sqrDistance = toCandidate.sqrMagnitude;
+
+                // 角度が小さい方を優先し、同角度なら近い方
+                // Prefer the smaller angle and the closer one on a tie
+                var isBetter = angle < bestAngle || (Mathf.Approximately(angle, bestAngle) && sqrDistance < bestSqrDistance);
+                if (!isBetter) continue;
+
+                best = candidate.Interactable;
+                bestAngle = angle;
+                bestSqrDistance = sqrDistance;
+            }
+
+            return best;
+        }
+
+        private bool ContainsCandidate(IInteractable interactable)
+        {
+            foreach (var candidate in _candidates)
+                if (ReferenceEquals(candidate.Interactable, interactable))
+                    return true;
+
+            return false;
+        }
+
+        private static bool RespondsTo(IInteractable interactable, InputKey key)
+        {
+            if (interactable is not ITapInteractable tapInteractable) return false;
+
+            foreach (var action in tapInteractable.Actions)
+                if (action.Key == key)
+                    return true;
+
+            return false;
         }
     }
 }

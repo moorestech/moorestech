@@ -13,7 +13,6 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Map.MapObject;
-using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
@@ -41,7 +40,7 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
     p.Assert(pebble != null, "最寄りの小石mapObjectを解決できる");
     var pebbleCollider = pebble.GetComponentInChildren<Collider>(true);
     p.Assert(pebbleCollider != null, "小石に照準用Colliderがある");
-    await p.Until(() => UnityEngine.Object.FindFirstObjectByType<MiningController>() != null && Camera.main != null, 10f, "採掘ControllerとMainCameraの起動");
+    await p.Until(() => MouseCursorTooltip.Instance != null && Camera.main != null, 10f, "ツールチップとMainCameraの起動");
 
     // 照準はロック中ScreenCenter固定のため、カーソルを動かさず立ち位置だけで小石を捉える
     // The aim source is fixed to ScreenCenter while locked, so catch the pebble by standing position alone

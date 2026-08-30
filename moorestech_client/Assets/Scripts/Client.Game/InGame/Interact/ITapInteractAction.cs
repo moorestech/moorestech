@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using Mooresmaster.Localization.Generated;
 
@@ -15,8 +14,8 @@ namespace Client.Game.InGame.Interact
         LocalizationKey HintKey { get; }
         IReadOnlyList<string> HintParams { get; }
 
-        // UI遷移を伴わないアクションはnullを返す
-        // Actions without a UI transition return null
-        UITransitContext Execute();
+        // 実行した事実は結果型が保持する。UI遷移の有無はHandled/Transitで表す
+        // The result type carries the fact that it ran; Handled and Transit tell whether a UI transition follows
+        InteractExecuteResult Execute();
     }
 }

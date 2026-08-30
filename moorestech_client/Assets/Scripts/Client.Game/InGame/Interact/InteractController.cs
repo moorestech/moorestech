@@ -12,20 +12,20 @@ namespace Client.Game.InGame.Interact
     public class InteractController
     {
         private readonly MiningControllerContext _miningContext;
-        private readonly InteractTargetSelector _selector;
+        private readonly IInteractTargetSelector _selector;
         private readonly TapInteractionDriver _tapDriver = new();
 
         private IInteractable _highlighted;
         private GameObject _highlightedGameObject;
         private IMiningState _miningState = new MiningIdleState();
 
-        public InteractController(LocalPlayerEquipment localPlayerEquipment, InteractTargetSelector selector)
+        public InteractController(LocalPlayerEquipment localPlayerEquipment, IInteractTargetSelector selector)
         {
             _selector = selector;
             _miningContext = new MiningControllerContext(localPlayerEquipment);
         }
 
-        public UITransitContext ManualUpdate()
+        public InteractExecuteResult ManualUpdate()
         {
             var target = _selector.Select();
             ApplyHighlight(target);
@@ -35,10 +35,7 @@ namespace Client.Game.InGame.Interact
             _miningContext.SetFocusTarget(target as IMiningTargetObject);
             _miningState = _miningState.GetNextUpdate(_miningContext, Time.deltaTime);
 
-            if (target is ITapInteractable tapTarget) return _tapDriver.Step(tapTarget);
-
-            _tapDriver.Clear();
-            return null;
+            return _tapDriver.Step(target as ITapInteractable, _selector);
         }
 
         public void Disable()
@@ -60,14 +57,8 @@ namespace Client.Game.InGame.Interact
 
             if (ReferenceEquals(_highlighted, target)) return;
 
-            // 別実体でも同じGameObjectを指すなら見た目は変わらない
-            // Different instances pointing at one GameObject show the same outline, so nothing toggles
-            var isSameObject = _highlightedGameObject != null && target != null && _highlightedGameObject == target.GameObject;
-            if (!isSameObject)
-            {
-                _highlighted?.SetHighlighted(false);
-                target?.SetHighlighted(true);
-            }
+            _highlighted?.SetHighlighted(false);
+            target?.SetHighlighted(true);
 
             _highlighted = target;
             _highlightedGameObject = target?.GameObject;

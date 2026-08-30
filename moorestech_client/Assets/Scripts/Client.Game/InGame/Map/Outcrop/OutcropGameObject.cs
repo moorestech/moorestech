@@ -105,10 +105,7 @@ namespace Client.Game.InGame.Map.Outcrop
 
         public void SetHighlighted(bool highlighted)
         {
-            // 初回ハイライト時に複製メッシュを作る
-            // Build the duplicate mesh on first highlight
-            if (highlighted && _outlineObject == null) _outlineObject = RuntimeOutlineFactory.Create(gameObject);
-            if (_outlineObject != null) _outlineObject.SetActive(highlighted);
+            RuntimeOutlineFactory.Apply(gameObject, ref _outlineObject, highlighted);
         }
 
         public void SendAttack()

@@ -1,17 +1,18 @@
 // ライブv8採掘smoke
 // Live v8 mining smoke
 using System;
-using System.Reflection;
 using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Map.Outcrop;
-using Client.Game.InGame.Mining;
+using Client.Game.InGame.Interact;
 using Client.Playtest;
 using Client.Playtest.Input;
+using Client.Playtest.Operations;
 using Cysharp.Threading.Tasks;
 using Core.Master;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 var stoneVeinGuid = new Guid("735633b7-7aac-4fb8-8b42-022f6bfb9e53");
 var expectedMasterVeinCount = 11;
@@ -73,17 +74,11 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
 
     // 2方向の照準を検証
     // Verify aiming from two directions
-    await p.Until(
-        () => UnityEngine.Object.FindFirstObjectByType<MiningController>() != null && Camera.main != null,
-        10f,
-        "採掘ControllerとMainCameraの起動");
-    var controller = UnityEngine.Object.FindFirstObjectByType<MiningController>();
-    var contextField = typeof(MiningController).GetField("_context", BindingFlags.Instance | BindingFlags.NonPublic);
-    p.Assert(controller != null, "有効なMiningControllerを解決した");
-    p.Assert(contextField != null, "採掘Controllerのcontextフィールドを解決した");
-    if (contextField == null) throw new InvalidOperationException("MiningController._context was not found");
-    await p.Until(() => contextField.GetValue(controller) != null, 10f, "採掘Controller contextのDI完了");
-    var context = (MiningControllerContext)contextField.GetValue(controller);
+    await p.Until(() => Camera.main != null, 10f, "MainCameraの起動");
+
+    // 選定は本番と同じInteractTargetSelectorへ問い合わせる（旧MiningControllerは廃止済み）
+    // Selection is queried through the production InteractTargetSelector; the old MiningController is gone
+    var selector = new InteractTargetSelector();
     var mainCamera = Camera.main;
     var cameraForward = Vector3.ProjectOnPlane(mainCamera.transform.forward, Vector3.up).normalized;
     if (cameraForward.sqrMagnitude < 0.1f) cameraForward = Vector3.forward;
@@ -92,7 +87,7 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     p.WarpPlayer(stoneOutcrop.transform.position - cameraForward * 1.4f + Vector3.up * 0.5f);
     await p.WaitSeconds(0.5f);
     await p.AimAt(stoneCollider.bounds.center);
-    await p.Until(() => ReferenceEquals(context.CurrentFocusTarget, stoneOutcrop), 10f, "正面照準で本番focusが石露頭と一致");
+    await p.Until(() => ReferenceEquals(selector.Select(), stoneOutcrop), 10f, "正面照準で本番選定が石露頭と一致");
 
     // 本番focus確認後だけ輪郭を表示する
     // Show the evidence outline only after production focus matches
@@ -126,16 +121,14 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
         p.WarpPlayer(stoneOutcrop.transform.position - angleDirection * 1.4f + Vector3.up * 0.5f);
         await p.WaitSeconds(0.5f);
         await p.AimAt(stoneCollider.bounds.center);
-        await p.Until(() => ReferenceEquals(context.CurrentFocusTarget, stoneOutcrop), 10f, "45度照準で本番focusが石露頭と一致");
+        await p.Until(() => ReferenceEquals(selector.Select(), stoneOutcrop), 10f, "45度照準で本番選定が石露頭と一致");
         await p.Screenshot("02-stone-outcrop-angle-focus");
 
         // 採掘後の石増加を待つ
         // Wait for stone increase after mining
         var stoneBefore = p.CountItem("石");
-        p.Note("本番入力の左クリックを保持し、va:miningで石露頭を1回掘る");
-        SemanticInput.MouseButtonDown(0);
-        await p.WaitSeconds(1.2f);
-        SemanticInput.MouseButtonUp(0);
+        p.Note("本番入力のFを保持し、va:miningで石露頭を1回掘る");
+        await p.HoldInteract(1.2f);
         await p.WaitSeconds(0.5f);
         await p.Until(() => stoneBefore < p.CountItem("石"), 15f, "va:mining応答で石在庫が増加");
         p.Assert(stoneBefore < p.CountItem("石"), "露頭採掘後に石インベントリが増えた");
@@ -146,7 +139,7 @@ return PlaytestRunner.Run("vein-hand-mining-smoke", options, async p =>
     {
         // 失敗時も入力と証跡を確実に解除する
         // Always release input and evidence artifacts on failure
-        SemanticInput.MouseButtonUp(0);
+        SemanticInput.KeyUp(Key.F);
         UnityEngine.Object.Destroy(outlineObject);
         UnityEngine.Object.Destroy(outlineMaterial);
     }

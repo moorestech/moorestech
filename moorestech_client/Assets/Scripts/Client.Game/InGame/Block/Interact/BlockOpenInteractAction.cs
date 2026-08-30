@@ -12,31 +12,26 @@ namespace Client.Game.InGame.Block.Interact
     ///     Fで機械UIを開く
     ///     Opens the machine UI with F
     /// </summary>
-    public class BlockOpenInteractAction : ITapInteractAction
+    internal class BlockOpenInteractAction : ITapInteractAction
     {
         private readonly BlockGameObject _blockGameObject;
 
         public InputKey Key => InputManager.Playable.Interact;
         public LocalizationKey HintKey => LocalizationKeys.Ui.Tooltip.InteractOpenBlock;
-        public IReadOnlyList<string> HintParams { get; private set; }
+
+        // 読まれるのは対象が変わった瞬間だけなので、購読で保持せずその場で解決する（言語切替も自動で乗る）
+        // Read only when the target changes, so it resolves on the spot instead of caching through a subscription, which also picks up a language switch
+        public IReadOnlyList<string> HintParams => new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid)) };
 
         internal BlockOpenInteractAction(BlockGameObject blockGameObject)
         {
             _blockGameObject = blockGameObject;
-            RefreshHintParams();
         }
 
-        // 言語切替後にヒントのブロック名を再解決する
-        // Re-resolve the hint's block name after a language change (invoked from BlockInteractable's OnLanguageChanged subscription)
-        internal void RefreshHintParams()
-        {
-            HintParams = new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(_blockGameObject.BlockMasterElement.BlockGuid)) };
-        }
-
-        public UITransitContext Execute()
+        public InteractExecuteResult Execute()
         {
             var container = UITransitContextContainer.Create<ISubInventorySource>(new BlockSubInventorySource(_blockGameObject));
-            return new UITransitContext(UIStateEnum.SubInventory, container);
+            return InteractExecuteResult.Transit(new UITransitContext(UIStateEnum.SubInventory, container));
         }
     }
 }

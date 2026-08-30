@@ -127,7 +127,7 @@ namespace Client.Starter.Registration
             builder.Register<BuildUndoService>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<PlacementTargetPickService>(Lifetime.Singleton);
-            builder.Register<InteractTargetSelector>(Lifetime.Singleton);
+            builder.Register<IInteractTargetSelector, InteractTargetSelector>(Lifetime.Singleton);
             builder.Register<InteractController>(Lifetime.Singleton);
             builder.Register<PauseMenuStateService>(Lifetime.Singleton);
 

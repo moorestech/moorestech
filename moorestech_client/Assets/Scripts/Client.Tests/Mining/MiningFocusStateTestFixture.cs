@@ -88,6 +88,21 @@ namespace Client.Tests.Mining
             return focusState.GetNextUpdate(context, 0.01f);
         }
 
+        // F押下下でフォーカス状態を1回進める。押下分岐そのものを検証する唯一の経路
+        // Advances the focus state once with F held down; the only path that exercises the press branch itself
+        protected IMiningState RunFocusStateWithInteractPressed(MiningStartOutcome outcome, MiningFocusState focusState)
+        {
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
+            var stubTarget = new OutcomeStubMiningTarget(outcome, MasterHolder.ItemMaster.GetItemId(ToolItemGuid), Array.Empty<Guid>());
+            _stubTargetObjects.Add(stubTarget.GameObject);
+            context.SetFocusTarget(stubTarget);
+
+            InputManager.Playable.Interact.SetKeyDownForTest(true);
+            var next = focusState.GetNextUpdate(context, 0.01f);
+            InputManager.Playable.Interact.SetKeyDownForTest(false);
+            return next;
+        }
+
         // 表示中の1行目のキー文字列（提示は1行構成が前提）
         // Key string of the first shown line; the presentation is expected to be one line
         protected static string ShownTooltipKey()

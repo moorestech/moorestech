@@ -61,5 +61,18 @@ namespace Client.Tests.Interact
 
             Object.DestroyImmediate(root);
         }
+
+        [Test]
+        public void 複製できるメッシュが無ければnullを返し空の輪郭を残さない()
+        {
+            var root = new GameObject("Root");
+
+            var outline = RuntimeOutlineFactory.Create(root);
+
+            Assert.IsNull(outline);
+            Assert.AreEqual(0, root.transform.childCount);
+
+            Object.DestroyImmediate(root);
+        }
     }
 }

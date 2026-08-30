@@ -13,7 +13,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
     ///     Fで車両インベントリを開く
     ///     Opens the car inventory with F
     /// </summary>
-    public class TrainCarOpenInventoryInteractAction : ITapInteractAction
+    internal class TrainCarOpenInventoryInteractAction : ITapInteractAction
     {
         private readonly TrainCarEntityObject _trainCar;
 
@@ -26,10 +26,10 @@ namespace Client.Game.InGame.Train.View.Object.Core
             _trainCar = trainCar;
         }
 
-        public UITransitContext Execute()
+        public InteractExecuteResult Execute()
         {
             var container = UITransitContextContainer.Create<ISubInventorySource>(new TrainSubInventorySource(_trainCar));
-            return new UITransitContext(UIStateEnum.SubInventory, container);
+            return InteractExecuteResult.Transit(new UITransitContext(UIStateEnum.SubInventory, container));
         }
     }
 
@@ -37,7 +37,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
     ///     Eで乗車する
     ///     Boards the car with E
     /// </summary>
-    public class TrainCarRideInteractAction : ITapInteractAction
+    internal class TrainCarRideInteractAction : ITapInteractAction
     {
         private readonly TrainCarEntityObject _trainCar;
 
@@ -50,12 +50,12 @@ namespace Client.Game.InGame.Train.View.Object.Core
             _trainCar = trainCar;
         }
 
-        public UITransitContext Execute()
+        public InteractExecuteResult Execute()
         {
             // TODO 他プレイヤーの乗車チェック（旧サービスから継承）
             // TODO check whether another player is already riding the train (inherited from RideVehicleInputService)
             var container = UITransitContextContainer.Create(new RideTrainCarRequest(_trainCar.TrainCarInstanceId));
-            return new UITransitContext(UIStateEnum.TrainHUDScreen, container);
+            return InteractExecuteResult.Transit(new UITransitContext(UIStateEnum.TrainHUDScreen, container));
         }
     }
 }
