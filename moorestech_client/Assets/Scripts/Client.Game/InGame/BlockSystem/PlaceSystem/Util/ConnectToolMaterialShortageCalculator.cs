@@ -30,35 +30,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         /// </summary>
         public static List<ConstructionMaterialShortage> Calculate(IReadOnlyList<ConnectToolMaterialCost> materials, IReadOnlyDictionary<ItemId, int> heldByItem, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
         {
-            if (materials == null) return new List<ConstructionMaterialShortage>();
-
-            var requiredItems = new List<(ItemId itemId, int count)>(materials.Count);
-            foreach (var material in materials) requiredItems.Add((material.ItemId, RequiredCount(material, reservedMaterials)));
-
+            // 必要数の合算は可否判定と同じ正本を通す。集計単位が割れると可否と表示が食い違う
+            // The requirement goes through the very definition the affordability judgement uses; a differing unit would split verdict from display
+            var requiredItems = ConnectToolMaterialConsumer.SumRequiredByItem(materials, reservedMaterials);
             return ConstructionCostShortageCalculator.ToShortages(ConstructionCostShortageCalculator.CalculateRequirements(requiredItems, heldByItem));
-        }
-
-        /// <summary>
-        /// 不足が1件でもあるかだけを返す。可否判定だけが要る呼び出し元がリストを作って捨てないための入口
-        /// Returns only whether anything falls short, so affordability-only callers never build a list to throw away
-        /// </summary>
-        public static bool HasAnyShortage(IReadOnlyList<ConnectToolMaterialCost> materials, IReadOnlyDictionary<ItemId, int> heldByItem, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
-        {
-            if (materials == null) return false;
-
-            foreach (var material in materials)
-            {
-                heldByItem.TryGetValue(material.ItemId, out var held);
-                if (held < RequiredCount(material, reservedMaterials)) return true;
-            }
-            return false;
-        }
-
-        // 予約分を上乗せした必要数。CalculateとHasAnyShortageで式を1つに保つ
-        // The requirement with the reservation added on top, keeping one formula for Calculate and HasAnyShortage
-        private static int RequiredCount(ConnectToolMaterialCost material, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
-        {
-            return material.Count + ConnectToolMaterialConsumer.SumReserved(reservedMaterials, material.ItemId);
         }
     }
 }

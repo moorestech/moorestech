@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 {
@@ -44,10 +45,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             // Send the connect protocol when clicked in a connectable state
             if (input.PoleToPolePreview.IsPlaceable && input.Clicked) return GearChainPoleFrameResult.SendChainConnect(new GearChainConnectSendCommand(input.SourcePolePos, input.HitPolePos, input.ConnectToolGuid));
 
-            // 接続不可なら判定の理由を行にする
-            // Turn the judgement reason into a line when the connection is not possible
-            var lines = GearChainPlacementFailureTooltipKey.BuildFailureLines(input.PoleToPolePreview.IsPlaceable, input.PoleToPolePreview.FailureReason, input.PoleToPolePreview.MaterialShortages);
-            return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Line(input.PoleToPolePreview.StartPoint, input.PoleToPolePreview.EndPoint, input.PoleToPolePreview.IsPlaceable), lines);
+            // 接続不可なら判定の理由を行にする。素材不足は行にせず不足リストのまま関門へ運ぶ
+            // Turn the judgement reason into a line when the connection is not possible; a material shortage travels to the gate as data instead
+            var preview = GearChainPolePreviewCommand.Line(input.PoleToPolePreview.StartPoint, input.PoleToPolePreview.EndPoint, input.PoleToPolePreview.IsPlaceable);
+            var lines = GearChainPlacementFailureTooltipKey.BuildFailureLines(input.PoleToPolePreview.IsPlaceable, input.PoleToPolePreview.FailureReason);
+            if (input.PoleToPolePreview.IsPlaceable || !GearChainPlacementFailureTooltipKey.IsMaterialShortage(input.PoleToPolePreview.FailureReason)) return GearChainPoleFrameResult.Show(input.SourcePole, preview, lines);
+
+            return GearChainPoleFrameResult.ShowWithMaterialShortages(input.SourcePole, preview, lines, input.PoleToPolePreview.MaterialShortages, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed);
         }
     }
 }

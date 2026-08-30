@@ -38,35 +38,12 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
             if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, distance, out var materials))
                 return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
-            // 各素材について、予約分を上乗せした必要数を所持が満たすか確認する
-            // For each material, verify held count covers the requirement plus any reservation
-            foreach (var material in materials)
-            {
-                var reserved = ConnectToolMaterialConsumer.SumReserved(reservedMaterials, material.ItemId);
-                if (!HasEnoughItem(material.ItemId, material.Count + reserved))
-                    return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
-            }
+            // 予約分を上乗せした必要数を所持が満たすかは共有の正本へ委ねる
+            // Whether the held count covers the requirement plus the reservation is delegated to the shared definition
+            if (!ConnectToolMaterialConsumer.HasEnough(materials, items, reservedMaterials))
+                return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             return ElectricWirePlacementJudgement.Success(new ElectricWireConnectionCost(materials));
-
-            #region Internal
-
-            bool HasEnoughItem(ItemId itemId, int required)
-            {
-                // 対象アイテムの合計所持数が必要数を満たすか確認する
-                // Check whether the summed count of the target item meets the requirement
-                var total = 0;
-                foreach (var itemStack in items)
-                {
-                    if (itemStack.Id != itemId) continue;
-                    total += itemStack.Count;
-                    if (required <= total) return true;
-                }
-
-                return required <= total;
-            }
-
-            #endregion
         }
 
         public static bool TryCalculateWireCost(Guid connectToolGuid, float distance, out ElectricWireConnectionCost cost)

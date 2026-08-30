@@ -20,6 +20,13 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
     /// </summary>
     public class TrainRailPlacementFailureTooltipKeyTest
     {
+        [SetUp]
+        public void CreateServer()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            Localize.Initialize();
+        }
+
         private static readonly Guid RailMaterial1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003");
         private static readonly Guid RailMaterial2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004");
 
@@ -96,7 +103,6 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
         // A material shortage becomes one real-item-name line per material, followed by the curve reason line
         public void 素材不足は不足素材ごとの行になりカーブ理由行が後に続く()
         {
-            CreateServer();
             var feedback = new PlacementFeedback();
             var shortages = new[]
             {
@@ -118,15 +124,44 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             Assert.AreEqual("5", feedback.Lines[1].TextParams[2]);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight.Key, feedback.Lines[2].Key.Key);
 
-            #region Internal
+        }
 
-            void CreateServer()
-            {
-                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-                Localize.Initialize();
-            }
+        [Test]
+        // 橋脚自身の建設コスト不足は設置不可にし、レール素材と同じアイテムなら関門が1行へ畳む
+        // The pier's own construction cost shortage blocks placement, and the gate folds it with the rail material when the item matches
+        public void 橋脚コスト不足は設置不可になり同一アイテムはレール不足と1行に畳まれる()
+        {
+            var railItemId = MasterHolder.ItemMaster.GetItemId(RailMaterial1Guid);
+            var railShortages = new[] { new ConstructionMaterialShortage(railItemId, 1, 12) };
+            var pierShortages = new[] { new ConstructionMaterialShortage(railItemId, 1, 4) };
+            var previewData = CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem, true, railShortages, pierShortages);
+            var feedback = new PlacementFeedback();
 
-            #endregion
+            TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
+
+            Assert.IsFalse(previewData.IsPlaceable);
+            Assert.AreEqual(1, feedback.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
+            Assert.AreEqual("12", feedback.Lines[0].TextParams[2]);
+
+        }
+
+        [Test]
+        // 判定も曲線も通っていても橋脚コストが足りなければ設置不可になる
+        // Even with the judgement and the curve passing, an unaffordable pier makes it unplaceable
+        public void 橋脚コスト不足だけでも設置不可になる()
+        {
+            var pierShortages = new[] { new ConstructionMaterialShortage(MasterHolder.ItemMaster.GetItemId(RailMaterial1Guid), 0, 4) };
+            var previewData = CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason.None, true, Array.Empty<ConstructionMaterialShortage>(), pierShortages);
+            var feedback = new PlacementFeedback();
+
+            TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
+
+            Assert.IsFalse(previewData.IsPlaceable);
+            Assert.AreEqual(1, feedback.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
+            Assert.AreEqual("4", feedback.Lines[0].TextParams[2]);
+
         }
 
         // テスト用にPreviewDataを組み立てる
@@ -138,8 +173,13 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
 
         private static TrainRailConnectPreviewData CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, bool isCurvePlaceable, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
         {
+            return CreatePreviewData(failureReason, isCurvePlaceable, materialShortages, Array.Empty<ConstructionMaterialShortage>());
+        }
+
+        private static TrainRailConnectPreviewData CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, bool isCurvePlaceable, IReadOnlyList<ConstructionMaterialShortage> materialShortages, IReadOnlyList<ConstructionMaterialShortage> pierMaterialShortages)
+        {
             var judgement = new RailPlacementJudgement(failureReason, Guid.NewGuid(), Array.Empty<ConnectToolMaterialCost>());
-            return new TrainRailConnectPreviewData(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, judgement, isCurvePlaceable, materialShortages);
+            return new TrainRailConnectPreviewData(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, judgement, isCurvePlaceable, materialShortages, pierMaterialShortages);
         }
     }
 }

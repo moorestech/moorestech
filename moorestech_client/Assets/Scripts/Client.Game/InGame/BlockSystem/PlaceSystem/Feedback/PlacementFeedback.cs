@@ -31,7 +31,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
         }
 
         public void Add(TooltipLine line) => _lines.Add(line);
-        public void AddLines(IReadOnlyList<TooltipLine> lines) => _lines.AddRange(lines);
 
         /// <summary>
         /// 不足素材行を積む唯一の関門。建設コストと接続コストのように出所が複数あっても同一アイテムは1行に畳む
@@ -40,6 +39,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
         public void AddMaterialShortages(IReadOnlyList<ConstructionMaterialShortage> shortages)
         {
             foreach (var shortage in shortages) AddMaterialShortage(shortage);
+
+            #region Internal
+
+            // 既に同じアイテムの行があれば厳しい方へ書き換える。必要数は予約分を含む合計の方＝大きい方を採る（足すと二重計上になる）
+            // Rewrites an existing line for the same item to the harsher one; the required count takes the larger value, which already includes the reservation (adding them would double count)
+            // 所持数は同じ在庫から数えるので一致するはずだが、食い違ったら集めるべき量を過小に見せない小さい方を採る
+            // The held count comes from the same inventory so it should match, but on a mismatch the smaller value wins so the amount left to gather is never understated
+            void AddMaterialShortage(ConstructionMaterialShortage shortage)
+            {
+                if (!_materialShortageLines.TryGetValue(shortage.ItemId, out var existing))
+                {
+                    _materialShortageLines[shortage.ItemId] = (_lines.Count, shortage);
+                    _lines.Add(ConstructionMaterialShortageLine.ToLine(shortage));
+                    return;
+                }
+
+                var merged = new ConstructionMaterialShortage(
+                    shortage.ItemId,
+                    existing.shortage.Held < shortage.Held ? existing.shortage.Held : shortage.Held,
+                    existing.shortage.Required < shortage.Required ? shortage.Required : existing.shortage.Required);
+
+                _materialShortageLines[shortage.ItemId] = (existing.lineIndex, merged);
+                _lines[existing.lineIndex] = ConstructionMaterialShortageLine.ToLine(merged);
+            }
+
+            #endregion
         }
 
         /// <summary>
@@ -55,28 +80,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
             }
 
             AddMaterialShortages(shortages);
-        }
-
-        // 既に同じアイテムの行があれば厳しい方へ書き換える。必要数は予約分を含む合計の方＝大きい方を採る（足すと二重計上になる）
-        // Rewrites an existing line for the same item to the harsher one; the required count takes the larger value, which already includes the reservation (adding them would double count)
-        // 所持数は同じ在庫から数えるので一致するはずだが、食い違ったら集めるべき量を過小に見せない小さい方を採る
-        // The held count comes from the same inventory so it should match, but on a mismatch the smaller value wins so the amount left to gather is never understated
-        private void AddMaterialShortage(ConstructionMaterialShortage shortage)
-        {
-            if (!_materialShortageLines.TryGetValue(shortage.ItemId, out var existing))
-            {
-                _materialShortageLines[shortage.ItemId] = (_lines.Count, shortage);
-                _lines.Add(ConstructionMaterialShortageLine.ToLine(shortage));
-                return;
-            }
-
-            var merged = new ConstructionMaterialShortage(
-                shortage.ItemId,
-                existing.shortage.Held < shortage.Held ? existing.shortage.Held : shortage.Held,
-                existing.shortage.Required < shortage.Required ? shortage.Required : existing.shortage.Required);
-
-            _materialShortageLines[shortage.ItemId] = (existing.lineIndex, merged);
-            _lines[existing.lineIndex] = ConstructionMaterialShortageLine.ToLine(merged);
         }
 
         public void AddBlockedByTerrain() => _lines.Add(BlockedByTerrainLine());

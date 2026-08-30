@@ -76,8 +76,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             if (!ElectricConnectionRangeService.IsMutuallyConnectable(source.BlockPosInfo, sourceProfile, sourceIsPole, poleGhostInfo, ConnectionRangeProfile.CreatePole(poleParam), true))
                 return BuildPreview(ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.OutOfRange), connectToolGuid, distance, inventoryItems, reservedMaterials);
 
-            var sourceFull = IsConnectionFull(source, sourceMaxConnectionCount);
+            return BuildNewPolePreview(distance, IsConnectionFull(source, sourceMaxConnectionCount), connectToolGuid, inventoryItems, poleConstructionItemCounts);
+        }
 
+        /// <summary>
+        /// 範囲判定を通った後の電線判定と表示値を、電柱の建設コストを予約に載せて確定する
+        /// Settles the wire judgement and its display values after the range check, with the pole's construction cost carried as a reservation
+        /// 幾何もワールド状態も見ない純関数のため、EditModeテストからそのまま呼べる
+        /// A pure function reading neither geometry nor world state, so EditMode tests call it directly
+        /// </summary>
+        public static ElectricWireExtendPreviewData BuildNewPolePreview(float distance, bool sourceFull, Guid connectToolGuid, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<(ItemId itemId, int count)> poleConstructionItemCounts)
+        {
+            var reservedMaterials = ConnectToolMaterialConsumer.ToMaterials(poleConstructionItemCounts);
             var judgement = ElectricWirePlacementEvaluator.EvaluateWireConnection(
                 distance, false, sourceFull, connectToolGuid, inventoryItems, reservedMaterials);
             return BuildPreview(judgement, connectToolGuid, distance, inventoryItems, reservedMaterials);

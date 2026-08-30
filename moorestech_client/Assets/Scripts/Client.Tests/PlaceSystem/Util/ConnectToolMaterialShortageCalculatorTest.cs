@@ -89,6 +89,49 @@ namespace Client.Tests.PlaceSystem.Util
             Assert.IsEmpty(shortages);
         }
 
+        [Test]
+        // 同一アイテムが複数エントリに割れていても、合算してから可否と不足の双方を出す
+        // A single item split across entries is summed before both the verdict and the shortage are produced
+        public void 同一アイテムの複数エントリは合算してから判定と不足を出す()
+        {
+            var itemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
+            var materials = new List<ConnectToolMaterialCost> { new(itemId, 3), new(itemId, 4) };
+            var heldByItem = new Dictionary<ItemId, int> { { itemId, 5 } };
+
+            // エントリごとに比べると5≧3・5≧4で可になるが、合算7に対して所持5は不足
+            // Compared per entry it would pass (5≥3 and 5≥4), but the summed 7 against 5 held falls short
+            Assert.IsFalse(ConnectToolMaterialConsumer.HasEnough(materials, heldByItem, null));
+
+            var shortages = ConnectToolMaterialShortageCalculator.Calculate(materials, heldByItem, null);
+            Assert.AreEqual(1, shortages.Count);
+            Assert.AreEqual(5, shortages[0].Held);
+            Assert.AreEqual(7, shortages[0].Required);
+        }
+
+        [Test]
+        // 予約はアイテムごとに1回だけ上乗せし、エントリ数ぶん多重計上しない
+        // The reservation is added once per item and never multiplied by the entry count
+        public void 予約は同一アイテムのエントリ数だけ多重計上されない()
+        {
+            var itemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
+            var materials = new List<ConnectToolMaterialCost> { new(itemId, 2), new(itemId, 3) };
+            var reserved = new List<ConnectToolMaterialCost> { new(itemId, 10) };
+            var heldByItem = new Dictionary<ItemId, int> { { itemId, 14 } };
+
+            // 必要は2+3+10=15。予約を2回数えた25にはならない
+            // The requirement is 2+3+10=15, never the 25 a doubly counted reservation would give
+            var shortages = ConnectToolMaterialShortageCalculator.Calculate(materials, heldByItem, reserved);
+            Assert.AreEqual(1, shortages.Count);
+            Assert.AreEqual(15, shortages[0].Required);
+            Assert.IsFalse(ConnectToolMaterialConsumer.HasEnough(materials, heldByItem, reserved));
+
+            // 所持15なら可否も不足も一致して充足になる
+            // With 15 held both the verdict and the shortage agree that it is covered
+            var enoughHeld = new Dictionary<ItemId, int> { { itemId, 15 } };
+            Assert.IsTrue(ConnectToolMaterialConsumer.HasEnough(materials, enoughHeld, reserved));
+            Assert.IsEmpty(ConnectToolMaterialShortageCalculator.Calculate(materials, enoughHeld, reserved));
+        }
+
         private static void AssertShortage(ConstructionMaterialShortage shortage, Guid expectedItemGuid, int expectedHeld, int expectedRequired)
         {
             Assert.AreEqual(MasterHolder.ItemMaster.GetItemId(expectedItemGuid), shortage.ItemId);

@@ -45,13 +45,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // どのツールも賄えなかったときに出す不足は、最初にコスト算出できたツールのものを使う
             // When no tool is affordable, the shortage shown is the one from the first tool whose cost could be computed
-            IReadOnlyList<ConstructionMaterialShortage> firstShortages = null;
+            // ループ中は素材を控えるだけにする。仮想在庫はループ内で変化しないため、失敗確定後の1回算出と同値になる
+            // The loop only remembers the materials; the virtual inventory never changes inside it, so one calculation after the failure is equivalent
+            IReadOnlyList<ConnectToolMaterialCost> firstUnaffordableMaterials = null;
             foreach (var element in electricWireTools)
             {
                 if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
                 if (!virtualInventory.CanAfford(materials))
                 {
-                    firstShortages ??= virtualInventory.CalculateShortages(materials);
+                    firstUnaffordableMaterials ??= materials;
                     continue;
                 }
 
@@ -62,7 +64,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // 1件もコスト算出できなかったときは空のまま返し、呼び出し元が汎用文言へ落とす
             // With no computable cost at all the shortage stays empty and the caller falls back to the generic wording
-            shortages = firstShortages ?? Array.Empty<ConstructionMaterialShortage>();
+            if (firstUnaffordableMaterials != null) shortages = virtualInventory.CalculateShortages(firstUnaffordableMaterials);
             return false;
 
             #region Internal

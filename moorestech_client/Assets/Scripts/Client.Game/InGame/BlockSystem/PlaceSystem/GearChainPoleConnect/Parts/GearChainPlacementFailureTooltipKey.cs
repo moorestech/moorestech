@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse.Util.GearChain;
@@ -13,12 +12,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     /// </summary>
     public static class GearChainPlacementFailureTooltipKey
     {
-        // 可:行なし／不足:素材ごと／他:理由1行
-        // Placeable: none / Shortage: per-material / Other: one reason line
-        public static IReadOnlyList<TooltipLine> BuildFailureLines(bool isPlaceable, string failureReason, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
+        // 素材不足は行を作らず不足リストのまま関門へ渡す。行にした瞬間に同一アイテムの畳み込みが効かなくなる
+        // A material shortage is never turned into lines here; it goes to the gate as data, since lines can no longer be folded per item
+        public static bool IsMaterialShortage(string failureReason)
+        {
+            return failureReason == GearChainPlacementEvaluator.NoItemError;
+        }
+
+        // 可:行なし／素材不足:行なし（関門が出す）／他:理由1行
+        // Placeable: none / material shortage: none (the gate emits it) / otherwise: one reason line
+        public static IReadOnlyList<TooltipLine> BuildFailureLines(bool isPlaceable, string failureReason)
         {
             if (isPlaceable) return Array.Empty<TooltipLine>();
-            if (failureReason == GearChainPlacementEvaluator.NoItemError) return ConstructionMaterialShortageLine.ToLines(materialShortages, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed);
+            if (IsMaterialShortage(failureReason)) return Array.Empty<TooltipLine>();
             return new[] { new TooltipLine(ToKey(failureReason)) };
         }
 

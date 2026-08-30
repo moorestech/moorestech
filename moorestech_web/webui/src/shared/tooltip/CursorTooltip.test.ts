@@ -71,8 +71,10 @@ describe("CursorTooltip", () => {
   it("renders every line in order", () => {
     setDictionaries("english", {
       [L.ui.tooltip.placeBlockedByTerrain]: "Blocked by terrain",
-      // 実辞書と同じ接頭辞つき書式を使う（webui側は{pN}補間のみを担う）
-      // Uses the same prefixed wording as the real dictionary; the webui side only interpolates {pN}
+      // 注入した書式を検証する自己充足アサーションであり、接頭辞そのものの回帰検知はC#側（localization.csvを読むテスト）が担う
+      // This is a self-contained assertion over an injected format; regression of the prefix itself is covered on the C# side, which reads localization.csv
+      // ここで検証しているのは{pN}補間の責務のみ
+      // Only the {pN} interpolation responsibility is verified here
       [L.ui.tooltip.placeMaterialShortage]: "Missing item: {p0} {p1}/{p2}",
     }, {}, {});
 

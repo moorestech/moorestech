@@ -28,6 +28,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         // Push the judgement failure reason and the too-tight curve as separate tooltip lines
         public static void Report(TrainRailConnectPreviewData previewData, PlacementFeedback feedback)
         {
+            // 新設橋脚自身の建設コスト不足を先に積む（サーバーが設置前に拒否する分で、レール素材と同じアイテムなら関門が畳む）
+            // Push the new pier's own construction cost shortage first; the server rejects on it before placing and the gate folds it with the rail material when the item matches
+            feedback.AddMaterialShortages(previewData.PierMaterialShortages);
+
             // レールは複数素材消費で複数行になる
             // A rail's multi-material cost becomes multiple lines
             // 橋脚の建設コストと同じアイテムが並ばないよう、行生成と畳み込みは関門へ委ねる

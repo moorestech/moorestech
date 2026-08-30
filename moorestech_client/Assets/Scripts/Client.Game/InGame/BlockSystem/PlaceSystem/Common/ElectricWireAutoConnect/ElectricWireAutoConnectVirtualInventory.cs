@@ -35,11 +35,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
         // サーバー同様、当該セルの建設コスト予約分を上乗せして各素材の所持数を判定する
         // Like the server, judge each material's count with this cell's construction reservation added on top
-        // 可否だけが要るのでリストは作らない。必要数の式は不足算出と共有する
-        // Only affordability is needed here so no list is built; the requirement formula is shared with the shortage calculation
+        // 可否はサーバーと共通の正本へ委ね、クライアント側に第2の突き合わせ規則を作らない
+        // Affordability is delegated to the definition shared with the server so no second matching rule exists on the client
         public bool CanAfford(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
-            return !ConnectToolMaterialShortageCalculator.HasAnyShortage(materials, _counts, _constructionCostPerCell);
+            return ConnectToolMaterialConsumer.HasEnough(materials, _counts, _constructionCostPerCell);
         }
 
         // 賄えない素材を「所持/必要」付きで返す。表示行を出すときだけ呼ぶ

@@ -53,46 +53,11 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
             // Calculate the required multi-material count from the connectTool master
             if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, connectionDistance, out var materials)) return GearChainPlacementJudgement.Failure(NoItemError);
 
-            // 各素材について、予約分を上乗せした必要数を所持が満たすか確認する
-            // For each material, verify held count covers the requirement plus any reservation
-            foreach (var material in materials)
-            {
-                var reserved = SumReserved(material.ItemId);
-                if (CountItem(material.ItemId) < material.Count + reserved) return GearChainPlacementJudgement.Failure(NoItemError);
-            }
+            // 予約分を上乗せした必要数を所持が満たすかは共有の正本へ委ねる
+            // Whether the held count covers the requirement plus the reservation is delegated to the shared definition
+            if (!ConnectToolMaterialConsumer.HasEnough(materials, stacks, reservedMaterials)) return GearChainPlacementJudgement.Failure(NoItemError);
 
             return GearChainPlacementJudgement.Success(new GearChainConnectionCost(materials));
-
-            #region Internal
-
-            int SumReserved(ItemId itemId)
-            {
-                // 予約リスト中の同一アイテム数を合計する
-                // Sum the reserved amount of the same item in the reservation list
-                if (reservedMaterials == null) return 0;
-                var reserved = 0;
-                foreach (var material in reservedMaterials)
-                {
-                    if (material.ItemId == itemId) reserved += material.Count;
-                }
-                return reserved;
-            }
-
-            int CountItem(ItemId itemId)
-            {
-                // 対象アイテムの合計所持数を数える
-                // Count total owned amount of the item
-                var total = 0;
-                foreach (var stack in stacks)
-                {
-                    if (stack.Id != itemId) continue;
-                    total += stack.Count;
-                }
-
-                return total;
-            }
-
-            #endregion
         }
     }
 
