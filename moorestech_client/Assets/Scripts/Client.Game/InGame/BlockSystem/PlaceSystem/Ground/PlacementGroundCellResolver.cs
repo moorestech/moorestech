@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 {
     /// <summary>
-    ///     地形の高さから設置セルYを決める（ADR 0047。ADR 0037の「上回る最初のセル」を上書き）
-    ///     Decides the placement cell Y from the terrain height (ADR 0047, superseding ADR 0037's "first cell above")
+    ///     地形の高さから設置セルYを決める（ADR 0047）
+    ///     Decides the placement cell Y from the terrain height (ADR 0047)
     /// </summary>
     public static class PlacementGroundCellResolver
     {

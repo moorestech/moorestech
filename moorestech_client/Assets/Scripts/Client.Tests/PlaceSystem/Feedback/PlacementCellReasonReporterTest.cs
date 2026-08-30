@@ -106,8 +106,8 @@ namespace Client.Tests.PlaceSystem.Feedback
             Assert.IsEmpty(feedback.Lines);
         }
 
-        // 地形を見ない入口は地形の理由を積まず、どのセルも落とさない
-        // The terrain-blind entry pushes no terrain line and drops no cell
+        // どのセルも設置可のまま残る
+        // Every cell stays placeable
         [Test]
         public void 地形を見ない入口は地形の理由を積まない()
         {

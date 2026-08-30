@@ -52,22 +52,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             }
         }
         
-        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
+        public IReadOnlyList<bool> DetectGroundOverlaps()
         {
-            SetPreview(placePointInfos, holdingBlockMaster);
+            // 接触を答えるだけで可否も色も決めない。判断は呼び出し側が持つ
+            // Only answers the contact; placeability and color stay with the caller
+            var groundOverlaps = new List<bool>(_activePreviewBlocks.Count);
+            foreach (var previewBlock in _activePreviewBlocks) groundOverlaps.Add(previewBlock.IsCollisionGround);
 
-            // 地形接触を見る系統だけが初期色にも接触を織り込む
-            // Only the terrain-aware systems fold contact into the initial color as well
-            var isGroundDetectedList = new List<bool>();
-            for (var i = 0; i < _activePreviewBlocks.Count; i++)
-            {
-                var isGroundDetected = _activePreviewBlocks[i].IsCollisionGround;
-                isGroundDetectedList.Add(isGroundDetected);
-
-                _activePreviewBlocks[i].SetPlaceableColor(!isGroundDetected && placePointInfos[i].Placeable);
-            }
-
-            return isGroundDetectedList;
+            return groundOverlaps;
         }
         
         public void UpdatePlaceableColors(List<PlaceInfo> placeInfos)
@@ -85,8 +77,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
 
         public bool TryGetPreviewBlock(int index, out BlockPreviewObject previewBlock)
         {
-            // アクティブなプレビューブロックをインデックスで取り出す（SetPreviewAndGroundDetectの順序と一致）
-            // Fetch an active preview block by index, matching SetPreviewAndGroundDetect ordering
+            // 直前のSetPreviewの並び順と一致
+            // Matches the ordering of the preceding SetPreview call
             previewBlock = 0 <= index && index < _activePreviewBlocks.Count ? _activePreviewBlocks[index] : null;
             return previewBlock != null;
         }

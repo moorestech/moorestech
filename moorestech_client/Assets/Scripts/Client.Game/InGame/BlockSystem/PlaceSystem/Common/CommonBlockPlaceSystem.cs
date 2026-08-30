@@ -157,13 +157,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 _previewBlockController.SetActive(true);
 
-                //プレビューを表示する。通常設置では地形との重なりを設置不可の理由にしない（ADR 0047）
-                //Display the preview; normal placement never blocks on terrain overlap (ADR 0047)
-                _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
-
-                // この時点の不可原因は既存ブロックと地表欠落のみ。カーソルセルの理由集約だけを行う
-                // Existing blocks and missing ground are the only causes set by this point; only the cursor cell's reasons are reported
-                var cursorIndex = PlacementCellReasonReporter.ResolveCursorAndReportCauses(_currentPlaceInfos, placeCauses, placePoint, feedback);
+                // プレビュー投入とカーソル理由集約。地形との重なりは設置不可の理由にしない（ADR 0047）
+                // Submit the preview and report the cursor reasons; terrain overlap never blocks placement (ADR 0047)
+                var cursorIndex = NormalPlacementPreviewStep.Apply(_previewBlockController, _currentPlaceInfos, placeCauses, placePoint, holdingBlockMaster, feedback);
 
                 // 鉱脈由来の設置制限（採掘機の底面XZ重なりとチュートリアルの鉱脈限定）をまとめて課す
                 // Apply both vein-bound placement restrictions at once: the miner's footprint XZ overlap and the tutorial vein limit

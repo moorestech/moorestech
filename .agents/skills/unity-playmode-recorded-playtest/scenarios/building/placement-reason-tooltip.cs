@@ -108,11 +108,9 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     p.GiveItemDirect("鉄板", 20);
     await p.WaitSeconds(1f);
     var bumpSnapshot = await AimAndSnapshot(new Vector3(9.5f, 32.9f, 9.5f), "地形干渉");
-    // 現状FAILする。地形干渉の判定元 GroundCollisionDetector が現行マスタの参照するブロックプレハブに1つも付いておらず、
-    // ランタイムでは blockGroundOverlapList が常にfalseになる（本planより前からの既存ギャップ）
-    // This currently FAILS: no block prefab referenced by the live master carries GroundCollisionDetector,
-    // so blockGroundOverlapList is always false at runtime (a gap that predates this plan)
-    p.Assert(HasKey("ui.tooltip.placeBlockedByTerrain"), "地形に埋まる位置で地形干渉行が出る（既知ギャップ: GroundCollisionDetector未装着）");
+    // ADR 0047で通常設置から地形ゲートを外したため、この経路には地形干渉行が出ないのが正
+    // ADR 0047 removed the terrain gate from normal placement, so this path never emits a terrain-overlap line by design
+    p.Assert(!HasKey("ui.tooltip.placeBlockedByTerrain"), "通常設置では地形に埋まる位置でも地形干渉行が出ない（ADR 0047）");
     await p.Screenshot("02-blocked-by-terrain");
 
     p.Note("フェーズ2b: 既存ブロックを踏むフットプリント → 「設置位置が埋まっています」");

@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 {
     /// <summary>
-    ///     カーソル下セルの共有理由（地形干渉 → 共有の設置不可原因）をこの順でツールチップ行に積む。設置系で共用
-    ///     Pushes the cursor cell's shared reasons (terrain overlap, then the shared block cause) in that order; shared by every placement system
+    ///     地形を見る入口（ApplyGroundOverlapsAndReport）と見ない入口（ResolveCursorAndReportCauses・ADR 0047）の2系統を持つ
+    ///     Exposes a terrain-aware entry (ApplyGroundOverlapsAndReport) and a terrain-blind entry (ResolveCursorAndReportCauses, ADR 0047)
     ///     設置系固有の理由は積まない。共有行の後にその系自身が積む
     ///     System-specific reasons are not pushed here; each system pushes its own after these shared lines
     /// </summary>
