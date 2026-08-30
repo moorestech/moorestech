@@ -279,9 +279,9 @@ Run: `bd note moorestech-8sbd "実表示確認: <結果1行>"`
 
 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。指摘の機械的修正は適用し、設計判断はユーザーへ。
 
-- [ ] **Step 2: pr-create スキルでPRを作成し、`moores-wt rm` でworktreeを畳む**
+- [x] **Step 2: pr-create スキルでPRを作成し、`moores-wt rm` でworktreeを畳む**
 
-- [ ] **Step 3: `bd close moorestech-8sbd --reason="PR #<番号>"`**
+- [x] **Step 3: `bd close moorestech-8sbd --reason="PR #<番号>"`**
 
 ---
 
