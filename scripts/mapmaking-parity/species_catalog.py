@@ -30,6 +30,10 @@ BARE_GROUND_NAME_MARKERS = ("Boulder", "Cliff")
 # Declared table of log-dropping species; names are never guessed, since a misread would pass silently (user adjudication 2026-08-23)
 TIMBER_SPECIES_PATH = pathlib.Path(__file__).with_name("timber-species.json")
 
+# 装飾物（狙えず削れない種）の宣言表。装飾かどうかは上流のプリセットに情報源が無く人手宣言だけが権威
+# Declared table of decoration species; nothing upstream records it, so the human declaration is the only authority
+DECORATION_SPECIES_PATH = pathlib.Path(__file__).with_name("decoration-species.json")
+
 
 def _load_timber_declaration() -> tuple[frozenset[str], frozenset[str]]:
     document = json.loads(TIMBER_SPECIES_PATH.read_text(encoding="utf-8"))
@@ -45,6 +49,21 @@ def _load_timber_declaration() -> tuple[frozenset[str], frozenset[str]]:
 
 TIMBER_KEYS, NON_TIMBER_KEYS = _load_timber_declaration()
 
+
+def _load_decoration_declaration() -> tuple[frozenset[str], frozenset[str]]:
+    document = json.loads(DECORATION_SPECIES_PATH.read_text(encoding="utf-8"))
+    decoration = frozenset(document["decoration"])
+    interactive = frozenset(document["interactive"])
+
+    overlap = decoration & interactive
+    if overlap:
+        raise ValueError(f"decorationとinteractiveの両方に宣言された種: {sorted(overlap)}")
+
+    return decoration, interactive
+
+
+DECORATION_KEYS, INTERACTIVE_KEYS = _load_decoration_declaration()
+
 # ドロップ軸の値。earn_itemsはこの値だけを見て落とし物を決める
 # Drop-axis values; earn_items decides drops from this value alone
 DROP_CLASS_LOG = "log"
@@ -59,6 +78,22 @@ def declared_drop_class(key: str) -> str | None:
         return DROP_CLASS_LOG
     if key in NON_TIMBER_KEYS:
         return DROP_CLASS_NONE
+    return None
+
+
+# 相互作用軸の値。miningTypeはこの値と kind だけを見て決まる
+# Interaction-axis values; miningType is decided from this value and the kind alone
+INTERACTION_CLASS_DECORATION = "decoration"
+INTERACTION_CLASS_INTERACTIVE = "interactive"
+
+
+def declared_interaction_class(key: str) -> str | None:
+    """宣言表が定める相互作用軸を返す（未宣言はNone）。生成器と検証で同じ規則を共有する。
+    Returns the interaction class the declaration assigns, or None when undeclared; shared by the generator and its validation."""
+    if key in DECORATION_KEYS:
+        return INTERACTION_CLASS_DECORATION
+    if key in INTERACTIVE_KEYS:
+        return INTERACTION_CLASS_INTERACTIVE
     return None
 
 
@@ -97,6 +132,16 @@ class Species:
             return DROP_CLASS_NONE
         return DROP_CLASS_STONE
 
+    # 狙える種か装飾物か。上流に情報源が無いため宣言表だけが決め、未宣言は静かに採掘対象にせず止める
+    # Whether the species can be aimed at or is decoration; only the declaration decides, and an undeclared species stops generation instead of silently becoming minable
+    @property
+    def interaction_class(self) -> str:
+        declared = declared_interaction_class(self.key)
+        if declared is None:
+            raise ValueError(
+                f"相互作用軸が未宣言の種 {self.key}: {DECORATION_SPECIES_PATH.name} の decoration / interactive のどちらかへ足すこと")
+        return declared
+
     @property
     def bare_ground(self) -> bool:
         return self.referenced_by_object_config and any(
@@ -114,6 +159,7 @@ class Species:
             "mapObjectName": self.name,
             "bareGround": self.bare_ground,
             "dropClass": self.drop_class,
+            "interactionClass": self.interaction_class,
         }
 
 

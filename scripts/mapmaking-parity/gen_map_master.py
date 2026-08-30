@@ -13,7 +13,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from species_catalog import (  # noqa: E402
-    DROP_CLASS_LOG, DROP_CLASS_NONE, DROP_CLASS_STONE, TIMBER_SPECIES_PATH, declared_drop_class)
+    DECORATION_SPECIES_PATH, DROP_CLASS_LOG, DROP_CLASS_NONE, DROP_CLASS_STONE,
+    INTERACTION_CLASS_DECORATION, TIMBER_SPECIES_PATH, declared_drop_class, declared_interaction_class)
 
 ROOT = Path(__file__).resolve().parents[2]
 INVENTORY = ROOT / "scripts/mapmaking-parity/species-inventory.json"
@@ -75,14 +76,37 @@ def validate_drop_class_declaration(species_list: list) -> None:
             f"{TIMBER_SPECIES_PATH.name}と{INVENTORY.name}のdropClassが食い違っています:\n  " + "\n  ".join(mismatches))
 
 
+# 装飾物の宣言も在庫JSONより新しいことがあるため、生成前に突き合わせて止める
+# The decoration declaration can also outrun the inventory JSON, so a mismatch stops generation first
+def validate_interaction_class_declaration(species_list: list) -> None:
+    mismatches = []
+    for species in species_list:
+        declared = declared_interaction_class(species["key"])
+        if declared is None:
+            mismatches.append(f"{species['key']}: {DECORATION_SPECIES_PATH.name}に未宣言")
+            continue
+        if declared != species["interactionClass"]:
+            mismatches.append(f"{species['key']}: 宣言={declared} だが在庫JSON={species['interactionClass']}")
+            continue
+        # 装飾物は削れないので、原木を落とす宣言が同時に立つと落とし物の宣言が黙って死ぬ
+        # Decoration cannot be mined, so a log declaration on the same species would silently die
+        if declared == INTERACTION_CLASS_DECORATION and species["dropClass"] == DROP_CLASS_LOG:
+            mismatches.append(f"{species['key']}: 装飾物だが{TIMBER_SPECIES_PATH.name}でtimber宣言されている")
+
+    if mismatches:
+        raise ValueError(
+            f"{DECORATION_SPECIES_PATH.name}と{INVENTORY.name}のinteractionClassが食い違っています:\n  " + "\n  ".join(mismatches))
+
+
 def build_entry(species: dict) -> dict:
     kind = species["kind"]
     if kind not in KIND_SOUND_EFFECTS:
         raise ValueError(f"unknown kind: {kind} ({species['key']})")
     sound_effect_type = KIND_SOUND_EFFECTS[kind]
 
-    # 小石はPickUp（HP1・道具不要）、樹木・低木と岩・小物はMining（既存「木」の設定を複製）
-    # Pebbles are picked up bare-handed; trees/plants and rocks/props are mined with the existing tree's settings
+    # 装飾物はNone（狙えず落とさず道具設定も持たない）、小石はPickUp（HP1・道具不要）、残りはMining（既存「木」の設定を複製）
+    # Decoration is None (never aimed at, drops nothing, no tools); pebbles are picked up bare-handed; the rest are mined with the existing tree's settings
+    is_decoration = species["interactionClass"] == INTERACTION_CLASS_DECORATION
     is_pebble = kind == "pebble"
     entry = {
         "mapObjectGuid": species["mapObjectGuid"],
@@ -92,9 +116,9 @@ def build_entry(species: dict) -> dict:
         "earnItemHpInterval": 1 if is_pebble else 10,
         "soundEffectType": sound_effect_type,
         "terrainSurroundEffectType": terrain_surround_effect_type(species),
-        "earnItems": earn_items(species),
-        "miningType": "PickUp" if is_pebble else "Mining",
-        "miningParam": {} if is_pebble else {"miningTools": [dict(t) for t in MINING_TOOLS]},
+        "earnItems": [] if is_decoration else earn_items(species),
+        "miningType": "None" if is_decoration else ("PickUp" if is_pebble else "Mining"),
+        "miningParam": {} if is_decoration or is_pebble else {"miningTools": [dict(t) for t in MINING_TOOLS]},
     }
     if set(entry) != SCHEMA_KEYS:
         raise ValueError(f"key set mismatch: {sorted(set(entry) ^ SCHEMA_KEYS)}")
@@ -104,6 +128,7 @@ def build_entry(species: dict) -> dict:
 def main() -> None:
     inventory = json.loads(INVENTORY.read_text(encoding="utf-8"))
     validate_drop_class_declaration(inventory["species"])
+    validate_interaction_class_declaration(inventory["species"])
     master = json.loads(MASTER.read_text(encoding="utf-8"))
     by_guid = {o["mapObjectGuid"]: i for i, o in enumerate(master["mapObjects"])}
 
