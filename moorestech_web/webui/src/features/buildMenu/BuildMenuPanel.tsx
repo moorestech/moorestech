@@ -4,6 +4,7 @@ import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
 import {
+  categoriesWithEntries,
   groupBuildMenuCategories,
   localizeBuildMenuEntries,
   searchBuildMenuEntries,
@@ -29,10 +30,14 @@ export function BuildMenuPanel() {
   const [hoveredId, setHoveredId] = useState<string | null>(stored.hoveredEntryId);
 
   // 表示名を一度解決し全表示へ共有。サイドバーは絞り込み前、リストは絞り込み後の群を見る
-  // Resolve display names once; the sidebar sees unfiltered groups, the list sees filtered ones
+  // Resolve display names once; the sidebar sees unfiltered categories, the list sees filtered groups
   const displayEntries = data ? localizeBuildMenuEntries(data.entries, t) : [];
-  const allGroups = data ? groupBuildMenuCategories(data.categories, displayEntries) : [];
-  const shownGroups = data ? groupBuildMenuCategories(data.categories, searchBuildMenuEntries(query, displayEntries)) : [];
+  const searching = query !== "";
+  // 非検索時はsearchBuildMenuEntries("")が入力をそのまま返すため、絞り込み計算自体を省く
+  // searchBuildMenuEntries("") returns the input unchanged, so skip the filtering step entirely outside search
+  const shownGroups = data
+    ? groupBuildMenuCategories(data.categories, searching ? searchBuildMenuEntries(query, displayEntries) : displayEntries)
+    : [];
   const shownGuids = shownGroups.map((group) => group.categoryGuid);
   const scroll = useBuildMenuCategoryScroll(shownGuids);
 
@@ -67,10 +72,9 @@ export function BuildMenuPanel() {
   }, []);
   if (!data) return null;
 
-  const searching = query !== "";
-  const sidebarItems = allGroups.map((group) => ({
-    categoryGuid: group.categoryGuid,
-    disabled: !shownGuids.includes(group.categoryGuid),
+  const sidebarItems = categoriesWithEntries(data.categories, displayEntries).map((categoryGuid) => ({
+    categoryGuid,
+    disabled: !shownGuids.includes(categoryGuid),
   }));
 
   // sticky:離脱で消さず引き直す

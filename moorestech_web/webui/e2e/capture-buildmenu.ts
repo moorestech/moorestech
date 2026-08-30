@@ -1,7 +1,7 @@
 // 目視QA:5状態を撮影
 // Visual QA: capture 5 BuildMenu states
 
-import { chromium } from "@playwright/test";
+import { chromium, type Page } from "@playwright/test";
 import { WebSocketServer } from "ws";
 // fixtures は型と定数のみでMOCK_DEMOを読まないため、静的importしてよい
 // fixtures holds only types and constants and never reads MOCK_DEMO, so a static import is safe
@@ -10,6 +10,25 @@ import {
   buildMenuEntryIds,
   buildMenuSubCategoryIds,
 } from "./mock-host/fixtures";
+
+// regression spec と同じ「見出しoffsetTopと視口scrollTopの一致」で到達を待つ。名前なしの固定msウェイトは使わない
+// Waits for arrival the same way the regression spec does (heading offsetTop matches viewport scrollTop); never a nameless fixed-ms wait
+async function waitForScrollSettled(page: Page, headingTestId: string): Promise<void> {
+  const deadline = Date.now() + 5000;
+  for (;;) {
+    const settled = await page.evaluate((testId) => {
+      const heading = document.querySelector(`[data-testid="${testId}"]`) as HTMLElement | null;
+      const viewport = document.querySelector(
+        '[data-testid="build-menu-panel"] .mantine-ScrollArea-viewport',
+      ) as HTMLElement | null;
+      if (heading === null || viewport === null) return false;
+      return Math.abs(viewport.scrollTop - heading.offsetTop) <= 1;
+    }, headingTestId);
+    if (settled) return;
+    if (Date.now() >= deadline) throw new Error(`smooth scroll did not settle for ${headingTestId}`);
+    await page.waitForTimeout(50);
+  }
+}
 
 const PORT = Number(process.env.CAPTURE_PORT ?? 5401);
 const OUT_DIR = process.env.CAPTURE_OUT_DIR ?? ".";
@@ -69,7 +88,7 @@ async function main() {
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).waitFor();
   // スムーズスクロール完了待ち
   // Wait for smooth scrolling to settle
-  await page.waitForTimeout(600);
+  await waitForScrollSettled(page, `build-menu-category-heading-${buildMenuCategoryIds.transport}`);
   await page.mouse.move(2, 2);
   await page.waitForTimeout(300);
   await page.screenshot({ path: `${OUT_DIR}/buildmenu-4-grid.png` });

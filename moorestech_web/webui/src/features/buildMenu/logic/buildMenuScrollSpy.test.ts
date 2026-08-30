@@ -35,6 +35,18 @@ describe("activeCategoryAtScroll", () => {
     ];
     expect(activeCategoryAtScroll(paddedOffsets, 0)).toBe("a");
   });
+  it("top昇順でない配列でも視口位置から正しいカテゴリを選ぶ", () => {
+    // わざとtop降順で渡す。配列順ではなくtopの大小で判定できているかを検証する
+    // Deliberately pass them in descending top order to verify selection uses magnitude, not array order
+    const unorderedOffsets = [
+      { categoryGuid: "c", top: 720 },
+      { categoryGuid: "a", top: 0 },
+      { categoryGuid: "b", top: 300 },
+    ];
+    expect(activeCategoryAtScroll(unorderedOffsets, 0)).toBe("a");
+    expect(activeCategoryAtScroll(unorderedOffsets, 500)).toBe("b");
+    expect(activeCategoryAtScroll(unorderedOffsets, 5000)).toBe("c");
+  });
 });
 
 describe("isJumpSettled", () => {

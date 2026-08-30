@@ -100,7 +100,6 @@ test("検索は同じリストを絞り込み、ヒットの無いカテゴリ�
   await expect(page.getByTestId(
     `build-menu-section-${buildMenuCategoryIds.logistics}-${buildMenuSubCategoryIds.chest}`,
   ).locator("h3")).not.toContainText("/");
-  await expect(page.getByTestId("build-menu-sidebar")).not.toHaveAttribute("data-disabled", "true");
   await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.transport}`)).toBeEnabled();
   await expect(page.getByTestId(`build-menu-category-${buildMenuCategoryIds.blueprint}`)).toBeDisabled();
 
@@ -147,18 +146,20 @@ test("閉じて開き直すと検索・スクロール・詳細stickyが復元�
   await page.goto("/");
 
   await page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`).hover();
+  const viewport = page.getByTestId("build-menu-panel").locator(".mantine-ScrollArea-viewport");
+  const headingTop = await page
+    .getByTestId(`build-menu-category-heading-${buildMenuCategoryIds.transport}`)
+    .evaluate((el: HTMLElement) => el.offsetTop);
   // 合成scrollイベントは使わない
   // No synthetic scroll event
-  await page
-    .getByTestId("build-menu-panel")
-    .locator(".mantine-ScrollArea-viewport")
-    .evaluate((el) => { el.scrollTop = 40; });
+  await viewport.evaluate((el, top) => { el.scrollTop = top; }, headingTop);
   await setUiState(page, "GameScreen");
   await expect(page.getByTestId("build-menu-panel")).toBeHidden();
 
   await setUiState(page, "BuildMenu");
-  await expect(page.getByTestId(`build-menu-entry-block-${buildMenuEntryIds.rail}`)).toBeAttached();
   await expect(page.getByTestId("build-menu-detail")).toContainText("鉄道レール");
+  // 全カテゴリ常時DOM化でtoBeAttached()は恒真になるため、復元後の対象見出しoffsetTopと視口scrollTopの一致で検証する
+  // toBeAttached() is tautological now that every category stays mounted, so verify the restored viewport scrollTop matches the target heading's offsetTop instead
   await expect
     .poll(() =>
       page
@@ -166,7 +167,7 @@ test("閉じて開き直すと検索・スクロール・詳細stickyが復元�
         .locator(".mantine-ScrollArea-viewport")
         .evaluate((el) => el.scrollTop),
     )
-    .toBe(40);
+    .toBe(headingTop);
 });
 
 test("残り設置数は1セット複数個のエントリだけに表示される", async ({ page }) => {

@@ -93,7 +93,9 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     jumpTargetRef.current = { categoryGuid: target.categoryGuid, top };
     if (isJumpSettled(viewport.scrollTop, top)) {
       jumpTargetRef.current = null;
-      recomputeActiveCategory();
+      // クランプで到達先が動いた局面ではscroll-spy判定に任せず目標自身を確定させる
+      // When clamping shifts the arrival point, settle on the target itself rather than deferring to scroll-spy
+      setActiveCategoryGuid(target.categoryGuid);
       return;
     }
     viewport.scrollTo({ top, behavior: "smooth" });
@@ -106,7 +108,11 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     if (jumpTargetRef.current !== null) retargetJump();
     else recomputeActiveCategory();
   };
-  layoutChangeRef.current = handleLayoutChange;
+  // レンダー本体で直接代入せず、コミット後のlayout effectでrefへ反映する
+  // Assign in a post-commit layout effect rather than directly in the render body
+  useLayoutEffect(() => {
+    layoutChangeRef.current = handleLayoutChange;
+  });
 
   // ResizeObserverはテスト環境等では未定義のことがあるため存在確認してから使う(visualViewport?.と同じ考え方)
   // ResizeObserver can be absent in some environments (e.g. tests), so check before use (same idea as visualViewport?.)
@@ -127,11 +133,13 @@ export function useBuildMenuCategoryScroll(visibleCategoryGuids: string[]): Buil
     if (target !== null) {
       if (isJumpSettled(scrollTop, target.top)) {
         jumpTargetRef.current = null;
-      } else {
-        // 未到達の間はscroll-spy判定を無視し、固定を保つ(解除は操作イベントかretargetJumpが担う)
-        // While not settled, ignore scroll-spy resolution and keep the pin (release comes from an interaction event or retargetJump)
-        return;
+        // クランプで到達先が動いた局面ではscroll-spy判定に任せず目標自身を確定させる
+        // When clamping shifts the arrival point, settle on the target itself rather than deferring to scroll-spy
+        setActiveCategoryGuid(target.categoryGuid);
       }
+      // 未到達の間はscroll-spy判定を無視し、固定を保つ(解除は操作イベントかretargetJumpが担う)
+      // While not settled, ignore scroll-spy resolution and keep the pin (release comes from an interaction event or retargetJump)
+      return;
     }
     setActiveCategoryGuid(activeCategoryAtScroll(headingOffsets(), scrollTop));
   }, [visibleKey]);

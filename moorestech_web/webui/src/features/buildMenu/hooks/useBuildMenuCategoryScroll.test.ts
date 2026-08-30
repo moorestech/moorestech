@@ -305,6 +305,29 @@ describe("useBuildMenuCategoryScroll", () => {
     });
   });
 
+  it("末尾付近でクランプが効いても到達後は目標カテゴリがハイライトされる", () => {
+    let latest!: HookResult;
+    create(
+      createElement(Harness, { visibleCategoryGuids: ["a", "b"], onRender: (result) => { latest = result; } }),
+    );
+    // scrollHeight(500) < clientHeight(600)のため最大スクロール位置がマイナスへクランプされる
+    // scrollHeight(500) < clientHeight(600), so the max scroll position clamps below zero
+    const vp = fakeViewport({ clientHeight: 600, scrollHeight: 500 });
+    act(() => {
+      latest.attachViewport(vp);
+      latest.headingRef("a")(fakeHeading(0));
+      latest.headingRef("b")(fakeHeading(400));
+    });
+
+    act(() => latest.jumpTo("b"));
+    expect(vp.scrollTo).toHaveBeenCalledWith({ top: -100, behavior: "smooth" });
+
+    // クランプされた目標(-100)へ到達した時点で、activeCategoryAtScrollの再計算ではなく目標自身が確定する
+    // On arriving at the clamped target (-100), settle on the target itself rather than re-deriving via activeCategoryAtScroll
+    act(() => latest.handleScroll(-100));
+    expect(latest.activeCategoryGuid).toBe("b");
+  });
+
   it("開いた直後、scrollイベントを一度も発火せずに初期ハイライトが視口位置から決まる", () => {
     let latest!: HookResult;
     const renderer = create(

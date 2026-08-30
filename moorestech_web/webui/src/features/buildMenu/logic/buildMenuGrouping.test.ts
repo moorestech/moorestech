@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../../bridge/contract/payloadTypes";
 import { connectToolNameKey, trainCarNameKey } from "@/shared/i18n";
 import {
+  categoriesWithEntries,
   groupBuildMenuCategories,
   localizeBuildMenuEntries,
   searchBuildMenuEntries,
@@ -54,12 +55,45 @@ describe("groupBuildMenuCategories", () => {
   it("エントリが空なら空配列", () => {
     expect(groupBuildMenuCategories(categories, [])).toEqual([]);
   });
+  it("同一サブカテゴリ内はソートせずentries引数の並び順をそのまま維持する", () => {
+    const orderEntries = localizeBuildMenuEntries(
+      [
+        blockEntry("70000000-0000-4000-8000-000000000002", logisticsCategoryGuid, chestSubCategoryGuid),
+        blockEntry("70000000-0000-4000-8000-000000000001", logisticsCategoryGuid, chestSubCategoryGuid),
+      ],
+      (key) => (key === "block.70000000-0000-4000-8000-000000000002.name" ? "Zチェスト" : "Aチェスト"),
+    );
+    const chestSection = groupBuildMenuCategories(categories, orderEntries)
+      .find((g) => g.categoryGuid === logisticsCategoryGuid)!
+      .sections.find((s) => s.subCategoryGuid === chestSubCategoryGuid)!;
+    // 辞書順ならA→Zだが、配信順(Z→A)がそのまま出ることを確認する
+    // Dictionary order would be A then Z; verify the delivery order (Z then A) survives untouched
+    expect(chestSection.entries.map((e) => e.displayLabel)).toEqual(["Zチェスト", "Aチェスト"]);
+  });
+});
+
+describe("categoriesWithEntries", () => {
+  it("エントリを持つカテゴリのguidを定義順で返す", () => {
+    expect(categoriesWithEntries(categories, entries)).toEqual([miningCategoryGuid, logisticsCategoryGuid]);
+  });
+  it("エントリが空なら空配列", () => {
+    expect(categoriesWithEntries(categories, [])).toEqual([]);
+  });
 });
 
 describe("searchBuildMenuEntries", () => {
   it("表示名の部分一致で大文字小文字を無視して絞り込む", () => {
     expect(searchBuildMenuEntries("鉄", entries).map((e) => e.displayLabel)).toEqual(["鉄の採掘機"]);
     expect(searchBuildMenuEntries("ベルト", entries).map((e) => e.displayLabel)).toEqual(["ベルトコンベア"]);
+  });
+  it("英字ラベルでも大文字小文字を無視して絞り込む", () => {
+    // toLowerCase()を落とすと"iron"は"Iron Chest"にケース一致せず検出漏れになる
+    // Dropping toLowerCase() would make "iron" fail to case-match "Iron Chest" and go undetected
+    const englishEntries = localizeBuildMenuEntries(
+      [blockEntry("70000000-0000-4000-8000-000000000003", miningCategoryGuid, minerSubCategoryGuid)],
+      () => "Iron Chest",
+    );
+    expect(searchBuildMenuEntries("iron", englishEntries).map((e) => e.displayLabel)).toEqual(["Iron Chest"]);
   });
   it("空文字は全件を返す", () => {
     expect(searchBuildMenuEntries("", entries)).toHaveLength(3);
