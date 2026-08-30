@@ -18,6 +18,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
         public BlockId TargetBlockId { get; }
         public BlockDirection LocalDirection { get; }
         public Vector3Int Offset { get; }
+        public Vector3Int TargetBlockSize { get; }
         public Vector3Int? TargetCell { get; private set; }
         
         private readonly RelativeBlockPlacePreviewTutorialManager _manager;
@@ -31,6 +32,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
             TargetBlockId = MasterHolder.BlockMaster.GetBlockId(param.BlockGuid);
             LocalDirection = Enum.Parse<BlockDirection>(param.BlockDirection);
             Offset = param.Offset;
+            TargetBlockSize = MasterHolder.BlockMaster.GetBlockMaster(TargetBlockId).BlockSize;
             _manager = manager;
         }
         

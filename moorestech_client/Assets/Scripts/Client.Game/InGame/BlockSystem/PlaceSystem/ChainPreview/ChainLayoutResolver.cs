@@ -34,7 +34,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
             var footprint = new BlockPositionInfo(originPosition, placeDirection, anchorBlockSize);
             foreach (var ghost in chain)
             {
-                var worldCell = footprint.ConvertBlockLocalToWorldCell(ghost.Offset);
+                var ghostBlockSize = Core.Master.MasterHolder.BlockMaster.GetBlockMaster(ghost.BlockId).BlockSize;
+                var worldCell = AnchorRelativeOriginUtil.ResolveWorldOrigin(footprint, ghost.Offset, ghost.LocalDirection, ghostBlockSize);
                 var worldDirection = AnchorRelativeDirectionUtil.RotateByAnchor(ghost.LocalDirection, placeDirection);
                 results.Add(new ResolvedChainGhost(ghost, worldCell, worldDirection));
             }

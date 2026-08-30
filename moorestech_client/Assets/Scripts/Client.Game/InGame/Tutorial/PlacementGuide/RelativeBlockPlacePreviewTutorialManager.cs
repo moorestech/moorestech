@@ -94,7 +94,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
                 
                 // アンカーの向きで回したローカルセル・向きを使う（gearConnectsと同じ換算）
                 // Use the anchor-rotated local cell and direction (same conversion as gearConnects)
-                var targetCell = anchor.BlockPosInfo.ConvertBlockLocalToWorldCell(entry.Offset);
+                var targetCell = AnchorRelativeOriginUtil.ResolveWorldOrigin(anchor.BlockPosInfo, entry.Offset, entry.LocalDirection, entry.TargetBlockSize);
                 entry.SetTargetCell(targetCell);
                 
                 // アンカーが動いた先に既に対象ブロックがあれば、設置イベントは二度と来ないのでここで完了させる
