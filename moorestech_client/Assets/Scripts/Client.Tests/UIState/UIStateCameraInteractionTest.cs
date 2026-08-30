@@ -8,6 +8,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -31,7 +32,7 @@ namespace Client.Tests.UIState
 
             var menuApplier = new FakePlayerCameraInteractionApplier();
             var menuView = new FakeBuildMenuView();
-            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier));
+            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier), new RightShortPressInputService(new RightShortPressInput()));
             menuState.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, menuApplier.Calls);
             Assert.IsTrue(menuView.IsActive);
@@ -89,7 +90,8 @@ namespace Client.Tests.UIState
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
-            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null));
+            var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
+            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 
@@ -141,7 +143,8 @@ namespace Client.Tests.UIState
             var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, CreateVeinAabbRegistry(), new VeinRestrictedPlacementState(), hotbarInputService);
+            var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, CreateVeinAabbRegistry(), new VeinRestrictedPlacementState(), hotbarInputService, rightShortPressInputService);
         }
 
         // 鉱脈ゼロの台帳。PlaceBlockStateはコンストラクタで表示を解決するため実体が要る

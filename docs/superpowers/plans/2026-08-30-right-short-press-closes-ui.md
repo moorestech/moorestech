@@ -38,7 +38,7 @@
 
 **Files:** なし（環境準備）
 
-- [ ] **Step 1: worktree作成とEditor起動**
+- [x] **Step 1: worktree作成とEditor起動**
 
 ```bash
 pwd   # メインworktreeであることを確認
@@ -48,7 +48,7 @@ pwd
 bd update moorestech-1yza --claim
 ```
 
-- [ ] **Step 2: 初回コンパイルが通ることを確認**
+- [x] **Step 2: 初回コンパイルが通ることを確認**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
@@ -64,7 +64,7 @@ Expected: errors 0
 **Interfaces:**
 - Produces: `public class RightShortPressInput` — `public void ManualUpdate(bool isRightHeld, Vector2 pointerPosition, bool isPointerOverUi)` / `public bool TryConsumeShortPress()` / `public void Reset()` / `public const float MoveThresholdPixels = 8f`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -152,12 +152,12 @@ namespace Client.Tests.CancelInput
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `RightShortPressInput` 未定義のコンパイルエラー（型が無いので失敗）
 
-- [ ] **Step 3: 最小限の実装を書く**
+- [x] **Step 3: 最小限の実装を書く**
 
 ```csharp
 using UnityEngine;
@@ -249,12 +249,12 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
 }
 ```
 
-- [ ] **Step 4: テストを実行して通ることを確認する**
+- [x] **Step 4: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "RightShortPressInputTest"`
 Expected: 5 tests PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/CancelInput moorestech_client/Assets/Scripts/Client.Tests/CancelInput
@@ -275,7 +275,7 @@ git commit -m "feat: 右短押しを判別するRightShortPressInput状態機械
 - Consumes: Task 1 の `RightShortPressInput`
 - Produces: `public class RightShortPressInputService` — `public bool TryConsumeShortPressOutsideUi()` / `public void ResetPressState()`
 
-- [ ] **Step 1: サービスを書く**
+- [x] **Step 1: サービスを書く**
 
 ```csharp
 using Client.Game.InGame.Control;
@@ -314,7 +314,7 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
 }
 ```
 
-- [ ] **Step 2: DI登録を追加する**
+- [x] **Step 2: DI登録を追加する**
 
 `MainGameInteractionRegistration.cs` の `builder.Register<HotbarTapInputService>(Lifetime.Singleton);` の直後に追加:
 
@@ -325,12 +325,12 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
 
 （`using Client.Game.InGame.UI.UIState.State.CancelInput;` をファイル先頭に追加）
 
-- [ ] **Step 3: コンパイルする**
+- [x] **Step 3: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/CancelInput moorestech_client/Assets/Scripts/Client.Starter/Registration/MainGameInteractionRegistration.cs
@@ -354,7 +354,7 @@ git commit -m "feat: RightShortPressInputServiceを追加しDI登録"
 **Interfaces:**
 - Produces: `IPlaceSystem.bool TryCancelInProgressOperation()`（解除したものがあればtrue）、`PlaceSystemStateController.bool TryCancelInProgressOperation()`（現在の設置系へ委譲）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -433,12 +433,12 @@ namespace Client.Tests.PlaceSystem
 
 （`IPlaceSystemSelector` / `IPlacementFeedbackPresenter` のメンバー名は `PlaceSystemStateControllerFeedbackTest.cs` の `FakePlaceSystemSelector` / `FakePlacementFeedbackPresenter` と同じ形にする。差異があればそちらを正として合わせる）
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `TryCancelInProgressOperation` 未定義のエラー。同時に `PlaceSystemStateControllerFeedbackTest.FakePlaceSystem` も interface 未実装で失敗する
 
-- [ ] **Step 3: interface と基底・Empty・Controller に追加する**
+- [x] **Step 3: interface と基底・Empty・Controller に追加する**
 
 `IPlaceSystem.cs` の `Disable();` の後に:
 
@@ -471,7 +471,7 @@ Expected: `TryCancelInProgressOperation` 未定義のエラー。同時に `Plac
 
 `PlaceSystemStateControllerFeedbackTest.cs` の `FakePlaceSystem` にも `public bool TryCancelInProgressOperation() => false;` を追加する。
 
-- [ ] **Step 4: 電線ツールの右押下即解除を置き換える**
+- [x] **Step 4: 電線ツールの右押下即解除を置き換える**
 
 `ElectricWireConnectSystem.cs:76-84` の `if (InputManager.Playable.ScreenRightClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi()) { ... }` ブロック（コメント2行含む）を**削除**し、`Disable()` の直前に追加:
 
@@ -489,7 +489,7 @@ Expected: `TryCancelInProgressOperation` 未定義のエラー。同時に `Plac
 
 `IsAwaitingResponse` は `ElectricWireConnect/Parts/ElectricWireExtendRequestSender.cs:33` に既存（`{ get; private set; }`）。不要になった `using Client.Game.InGame.Control;` / `Client.Input` があれば削除。
 
-- [ ] **Step 5: 歯車チェーンポールとBPコピーにも実装する**
+- [x] **Step 5: 歯車チェーンポールとBPコピーにも実装する**
 
 `GearChainPoleConnectSystem.cs` の `Disable()` の直後に:
 
@@ -515,12 +515,12 @@ Expected: `TryCancelInProgressOperation` 未定義のエラー。同時に `Plac
         }
 ```
 
-- [ ] **Step 6: テストを実行して通ることを確認する**
+- [x] **Step 6: テストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlaceSystemStateController"`
 Expected: `PlaceSystemStateControllerCancelTest` 3件 + `PlaceSystemStateControllerFeedbackTest` 3件 PASS
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem
@@ -537,11 +537,11 @@ git commit -m "feat: IPlaceSystem.TryCancelInProgressOperationを追加し電線
 **Interfaces:**
 - Consumes: `RightShortPressInputService.TryConsumeShortPressOutsideUi()` / `ResetPressState()`、`PlaceSystemStateController.TryCancelInProgressOperation()`
 
-- [ ] **Step 1: ctorとフィールドに注入する**
+- [x] **Step 1: ctorとフィールドに注入する**
 
 `using Client.Game.InGame.UI.UIState.State.CancelInput;` を追加。フィールド `private readonly RightShortPressInputService _rightShortPressInputService;` を `_hotbarInputService` の下に追加。ctor末尾の引数に `RightShortPressInputService rightShortPressInputService` を追加し `_rightShortPressInputService = rightShortPressInputService;` を代入。
 
-- [ ] **Step 2: OnEnterでリセットする**
+- [x] **Step 2: OnEnterでリセットする**
 
 `OnEnter` の `_hotbarInputService.ResetKeyState();` の直後に:
 
@@ -549,7 +549,7 @@ git commit -m "feat: IPlaceSystem.TryCancelInProgressOperationを追加し電線
             _rightShortPressInputService.ResetPressState();
 ```
 
-- [ ] **Step 3: GetNextUpdateのEsc判定の隣に追加する**
+- [x] **Step 3: GetNextUpdateのEsc判定の隣に追加する**
 
 `if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);` の直後に:
 
@@ -562,12 +562,12 @@ git commit -m "feat: IPlaceSystem.TryCancelInProgressOperationを追加し電線
             }
 ```
 
-- [ ] **Step 4: コンパイルする**
+- [x] **Step 4: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlaceBlockState.cs
@@ -581,11 +581,11 @@ git commit -m "feat: 建築モードをパネル外の右短押しで解除す�
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs:24-40,64-80`
 
-- [ ] **Step 1: 注入とOnEnterリセット**
+- [x] **Step 1: 注入とOnEnterリセット**
 
 `using Client.Game.InGame.UI.UIState.State.CancelInput;` 追加。フィールド `private readonly RightShortPressInputService _rightShortPressInputService;` 追加。ctor引数末尾に `RightShortPressInputService rightShortPressInputService` を追加し代入。`OnEnter` 先頭に `_rightShortPressInputService.ResetPressState();` を追加。
 
-- [ ] **Step 2: HandleTransitionのEsc判定を右短押しと共有する**
+- [x] **Step 2: HandleTransitionのEsc判定を右短押しと共有する**
 
 `HandleTransition()` 内の
 
@@ -611,7 +611,7 @@ git commit -m "feat: 建築モードをパネル外の右短押しで解除す�
 
 `HandleTransition()` は `GetNextUpdate()` の先頭で毎フレーム呼ばれるため、この位置で押下追跡が途切れることはない。
 
-- [ ] **Step 3: コンパイルしてコミットする**
+- [x] **Step 3: コンパイルしてコミットする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: errors 0
@@ -633,7 +633,7 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
 
 各ファイルで同じ3点を行う（`using Client.Game.InGame.UI.UIState.State.CancelInput;`／フィールド `private readonly RightShortPressInputService _rightShortPressInputService;`／ctor引数末尾に追加して代入／`OnEnter` 先頭に `_rightShortPressInputService.ResetPressState();`）。
 
-- [ ] **Step 1: BuildMenuState**
+- [x] **Step 1: BuildMenuState**
 
 ```csharp
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B) || _rightShortPressInputService.TryConsumeShortPressOutsideUi()) return new UITransitContext(UIStateEnum.GameScreen, null);
@@ -641,7 +641,7 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
 
 ただし短絡回避のため、先頭で `var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();` を評価してから条件に `|| isRightShortPressed` を足す（以下3画面も同じ形）。`TryConsumeSelectedEntry` の分岐より**後**に置く（エントリ選択が優先）。
 
-- [ ] **Step 2: PlayerInventoryState**
+- [x] **Step 2: PlayerInventoryState**
 
 `GetNextUpdate` を:
 
@@ -661,7 +661,7 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
         }
 ```
 
-- [ ] **Step 3: SubInventoryState**
+- [x] **Step 3: SubInventoryState**
 
 ```csharp
         public UITransitContext GetNextUpdate()
@@ -676,7 +676,7 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
         }
 ```
 
-- [ ] **Step 4: ChallengeListState**
+- [x] **Step 4: ChallengeListState**
 
 ```csharp
         public UITransitContext GetNextUpdate()
@@ -690,12 +690,12 @@ git commit -m "feat: 破壊モードをパネル外の右短押しでEsc同型�
         }
 ```
 
-- [ ] **Step 5: コンパイルして既存テストを回す**
+- [x] **Step 5: コンパイルして既存テストを回す**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "UIState|Hotbar|PlaceSystemStateController|RightShortPress"`
 Expected: すべて PASS
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/{BuildMenuState,PlayerInventoryState,SubInventoryState,ChallengeListState}.cs
@@ -714,7 +714,7 @@ git commit -m "feat: パネル型UI4画面をパネル外の右短押しで閉�
 - Consumes: `SemanticInput.MouseButtonDown(int)` / `MouseButtonUp(int)` / `MouseMoveTo(Vector2)` / `CurrentMousePosition()`、`PlaytestDriver.Note`、`p.Hotbar.AssignHotbar` / `p.Hotbar.EnterBuildMode`、`p.WaitUiState`、`p.CurrentUiState`、`p.PressKey`
 - Produces: `RightShortClick(this PlaytestDriver p)`、`RightDrag(this PlaytestDriver p, Vector2 deltaPixels)`
 
-- [ ] **Step 1: 操作を追加する**
+- [x] **Step 1: 操作を追加する**
 
 ```csharp
 using Client.Playtest.Input;
@@ -755,7 +755,7 @@ namespace Client.Playtest.Operations
 
 （`Client.Playtest/Operations` は本ファイルで8ファイル。10ファイル規約内）
 
-- [ ] **Step 2: シナリオを書く**
+- [x] **Step 2: シナリオを書く**
 
 ```csharp
 // 右短押しでの解除検証: 建築モード→右短押しで抜ける / 右ドラッグでは抜けない / インベントリ→パネル外右短押しで閉じる
@@ -810,7 +810,7 @@ return PlaytestRunner.Run("right-short-press-cancel", options, async p =>
 
 （`p.Hotbar.EnterBuildMode` / `WaitUiState` / `PressKey` / `Screenshot` の正確なシグネチャは `write-scenario.md` の Driver API 表と `scenarios/connect/gear-chain-pole-via-ui.cs` を正とし、差異があれば合わせる。ホットバー割当名「チェスト」が未アンロックで失敗する場合は `p.UnlockBlock("チェスト")` を `AssignHotbar` の前に足す）
 
-- [ ] **Step 3: 実行する**
+- [x] **Step 3: 実行する**
 
 ```bash
 uloop control-play-mode --project-path ./moorestech_client --action stop
@@ -820,7 +820,7 @@ SKILL=.claude/skills/unity-playmode-recorded-playtest
 
 Expected: result.json の assert 3件すべて pass。失敗したら `troubleshooting.md` を読んで原因を切り分ける（masterピンworktree未作成が最頻）。閾値8pxで右ドラッグが短押し扱いになる場合は `RightDrag` の delta を増やすのではなく、注入の移動が `ManualUpdate` に届いているか（`HybridInput.GetMousePosition()` が注入値か）を先に疑う。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Playtest/Operations .agents/skills/unity-playmode-recorded-playtest/scenarios/misc/right-short-press-cancel.cs
@@ -831,11 +831,11 @@ git commit -m "test: 右短押し解除の録画プレイテストシナリオ�
 
 ### Task 8: 全ブランチレビュー（必須・省略不可）
 
-- [ ] **Step 1: moores-code-review を実行する**
+- [x] **Step 1: moores-code-review を実行する**
 
 必ず最後にコードレビュースキル（moores-code-review）で全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。指摘の機械的修正を適用し、設計判断だけをユーザーへ提示する。
 
-- [ ] **Step 2: PR作成と撤収**
+- [x] **Step 2: PR作成と撤収**
 
 ```bash
 # pr-create スキルでPRを作成（本文にADR-0046と.decisions 5件をリンク）

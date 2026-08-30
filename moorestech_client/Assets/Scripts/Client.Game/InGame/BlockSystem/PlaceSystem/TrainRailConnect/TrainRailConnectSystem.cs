@@ -34,6 +34,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         private readonly TrainRailPlaceSystemService _trainRailPlaceSystemService;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         private IRailComponentConnectAreaCollider _connectFromArea;
+
+        // 橋脚設置リクエストの世代トークン。中止や再送信の後に遅れて届いた応答が起点を復活させるのを防ぐ
+        // Generation token for the pier request; it stops a late response from restoring the origin after a cancel or re-send
+        private int _pierRequestGeneration;
         public TrainRailConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController controller, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _mainCamera = mainCamera;
@@ -43,7 +47,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller);
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
-        public override void Enable() { _connectFromArea = null; }
+        public override void Enable()
+        {
+            _connectFromArea = null;
+            _pierRequestGeneration++;
+        }
         protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             _trainRailPlaceSystemService.Disable();
@@ -163,6 +171,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
                 _connectFromArea = null;
 
+                var generation = ++_pierRequestGeneration;
+
                 UniTask.Create(async () =>
                 {
                     var response = await ClientContext.VanillaApi.Response.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierBlockId, placeInfo, railTypeGuid, CancellationToken.None);
@@ -175,7 +185,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     {
                         var pierBlock = _blockGameObjectDataStore.GetBlockGameObject(node.ConnectionDestination.blockPosition);
                         TrainRailConnectAreaCollider[] areas = pierBlock.gameObject.GetComponentsInChildren<TrainRailConnectAreaCollider>();
-                        var area = areas.First(area =>
+                        var area = areas.FirstOrDefault(area =>
                         {
                             if (_cache.TryGetNodeId(area.CreateConnectionDestination(), out var nodeId) && _cache.TryGetNode(nodeId, out var clientNode))
                             {
@@ -183,6 +193,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                             }
                             return false;
                         });
+                        if (area == null) return;
+
+                        // 世代が進んでいたら中止済みのリクエスト。起点を書き戻さずに捨てる
+                        // An advanced generation means the request was cancelled, so discard it without restoring the origin
+                        if (generation != _pierRequestGeneration) return;
+
                         _connectFromArea = area;
                         Debug.Log("PierBlock", pierBlock);
                     }
@@ -200,8 +216,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             }
             #endregion
         }
+        // 右短押しで接続の起点だけを解除し、起点基準のプレビューも消す。起点が無ければ解除対象なし
+        // A right short press releases only the connection origin and hides its preview; without an origin there is nothing to cancel
+        public override bool TryCancelInProgressOperation()
+        {
+            // 飛行中の橋脚リクエストは可視の進行中操作に数えないが、遅着の起点復活だけは必ず断つ
+            // An in-flight pier request is not a visible in-progress operation, but its late origin write-back must always be cut off
+            _pierRequestGeneration++;
+
+            if (_connectFromArea == null) return false;
+
+            _connectFromArea = null;
+            _previewObject.SetActive(false);
+            return true;
+        }
+
         public override void Disable()
         {
+            _connectFromArea = null;
+            _pierRequestGeneration++;
             _previewObject.SetActive(false);
             _trainRailPlaceSystemService.Disable();
         }

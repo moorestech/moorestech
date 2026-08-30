@@ -12,6 +12,7 @@ using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Tests.UIState.Fakes;
 using Client.Tests.ViewMode;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Client.Tests.UIState
@@ -32,6 +33,10 @@ namespace Client.Tests.UIState
             base.Setup();
             MouseDevice = InputSystem.AddDevice<Mouse>();
             KeyboardDevice = InputSystem.AddDevice<Keyboard>();
+
+            // UI上判定はEventSystem.currentを引くため、テスト毎に空のEventSystemを立てる
+            // The over-UI check reads EventSystem.current, so give every test its own empty EventSystem
+            CreateObject("EventSystem", true).AddComponent<EventSystem>();
         }
 
         public override void TearDown()
