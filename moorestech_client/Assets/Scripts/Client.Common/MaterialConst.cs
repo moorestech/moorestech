@@ -12,9 +12,14 @@ namespace Client.Common
         // The translucent variant lives as an asset; flipping the keyword at runtime leaves the build without that variant
         public const string PreviewPlaceBlockTransparentMaterial = "PreviewPlaceBlockTransparent";
 
+        // インタラクト対象の実行時アウトライン複製に使う材質
+        // Material used by the runtime outline duplicate for interact targets
+        public const string InteractOutlineMaterial = "InteractOutline";
+
         private static Material _previewPlaceBlockMaterial;
         private static Material _previewPlaceBlockTransparentMaterial;
         private static Material _placeBlockAnimationMaterial;
+        private static Material _interactOutlineMaterial;
 
         // チュートリアル用プレビューマテリアルのAddressableパス
         // Tutorial preview block material addressable path
@@ -46,6 +51,14 @@ namespace Client.Common
             // Avoid repeated resource loads for placement animation material
             _placeBlockAnimationMaterial ??= Resources.Load<Material>(PlaceBlockAnimationMaterial);
             return _placeBlockAnimationMaterial;
+        }
+
+        public static Material GetInteractOutlineMaterial()
+        {
+            // インタラクトアウトライン材質も一度だけロードして再利用する
+            // Load the interact outline material once and reuse it
+            _interactOutlineMaterial ??= Resources.Load<Material>(InteractOutlineMaterial);
+            return _interactOutlineMaterial;
         }
     }
 }

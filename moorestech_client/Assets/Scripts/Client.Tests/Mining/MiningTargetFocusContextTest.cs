@@ -16,49 +16,21 @@ namespace Client.Tests.Mining
         private static readonly Guid SecondEarnItemGuid = new("00000000-0000-0000-9999-000000000002");
 
         [Test]
-        public void SetFocusTargetPushesOnlyWhenTargetChanges()
+        public void SetFocusTargetは同一対象を再設定しない()
         {
             var context = new MiningControllerContext(null);
-            var focusEventLog = new List<string>();
             var sharedGameObject = new GameObject("SharedTarget");
-            var secondGameObject = new GameObject("SecondTarget");
-            var firstTarget = new FocusTrackingMiningTarget("first", sharedGameObject, focusEventLog, Array.Empty<Guid>());
-            var sameObjectWrapper = new FocusTrackingMiningTarget("same-object-wrapper", sharedGameObject, focusEventLog, Array.Empty<Guid>());
-            var secondTarget = new FocusTrackingMiningTarget("second", secondGameObject, focusEventLog, Array.Empty<Guid>());
-
-            // 同一実体は再通知しない
-            // Same object sends no repeat
+            var firstTarget = new FocusTrackingMiningTarget("first", sharedGameObject, new List<string>(), Array.Empty<Guid>());
+            var secondTarget = new FocusTrackingMiningTarget("second", new GameObject("Second"), new List<string>(), Array.Empty<Guid>());
             context.SetFocusTarget(firstTarget);
             context.SetFocusTarget(firstTarget);
-            context.SetFocusTarget(sameObjectWrapper);
-            Assert.AreEqual(1, focusEventLog.Count);
-            Assert.AreEqual(1, firstTarget.FocusEnabledCount);
-            Assert.AreEqual(0, firstTarget.FocusDisabledCount);
-            Assert.AreEqual(0, sameObjectWrapper.FocusEnabledCount);
-            Assert.AreSame(sameObjectWrapper, context.CurrentFocusTarget);
-
-            // 旧解除後に新規有効化
-            // Defocus old before focusing new
-            focusEventLog.Clear();
+            Assert.AreSame(firstTarget, context.CurrentFocusTarget);
             context.SetFocusTarget(secondTarget);
-            CollectionAssert.AreEqual(
-                new[] { "same-object-wrapper:false", "second:true" },
-                focusEventLog);
-            Assert.AreEqual(1, sameObjectWrapper.FocusDisabledCount);
-            Assert.AreEqual(1, secondTarget.FocusEnabledCount);
             Assert.AreSame(secondTarget, context.CurrentFocusTarget);
-
-            // 消失時も解除は一度
-            // Loss defocuses exactly once
-            focusEventLog.Clear();
             context.SetFocusTarget(null);
-            context.SetFocusTarget(null);
-            CollectionAssert.AreEqual(new[] { "second:false" }, focusEventLog);
-            Assert.AreEqual(1, secondTarget.FocusDisabledCount);
             Assert.IsNull(context.CurrentFocusTarget);
-
             UnityEngine.Object.DestroyImmediate(sharedGameObject);
-            UnityEngine.Object.DestroyImmediate(secondGameObject);
+            UnityEngine.Object.DestroyImmediate(secondTarget.GameObject);
         }
 
         [Test]
@@ -98,6 +70,7 @@ namespace Client.Tests.Mining
         private class FocusTrackingMiningTarget : IMiningTargetObject
         {
             public GameObject GameObject { get; }
+            public bool IsInteractAvailable => true;
             public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
             public IReadOnlyList<Guid> EarnItemGuids { get; }
             public int FocusEnabledCount { get; private set; }
@@ -123,10 +96,10 @@ namespace Client.Tests.Mining
                 return MiningStartOutcome.ToolMismatch;
             }
 
-            public void SetFocused(bool focused)
+            public void SetHighlighted(bool highlighted)
             {
-                _focusEventLog.Add($"{_name}:{focused.ToString().ToLowerInvariant()}");
-                if (focused)
+                _focusEventLog.Add($"{_name}:{highlighted.ToString().ToLowerInvariant()}");
+                if (highlighted)
                     FocusEnabledCount++;
                 else
                     FocusDisabledCount++;

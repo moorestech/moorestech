@@ -142,10 +142,14 @@ namespace Client.Game.InGame.Map.MapObject
             #endregion
         }
 
-        public void SetFocused(bool focused)
+        // 採掘の可用性と同じ条件で候補になる
+        // Becomes a candidate under the same condition as mining availability
+        public bool IsInteractAvailable => IsAvailable;
+
+        public void SetHighlighted(bool highlighted)
         {
-            if (outlineObject) outlineObject.SetActive(focused);
-            if (hpBarView) hpBarView.SetActive(focused);
+            if (outlineObject) outlineObject.SetActive(highlighted);
+            if (hpBarView) hpBarView.SetActive(highlighted);
         }
 
         public void SendAttack()

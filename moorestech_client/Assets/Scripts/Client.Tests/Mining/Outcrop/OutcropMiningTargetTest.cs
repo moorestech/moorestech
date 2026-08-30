@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
@@ -56,7 +57,7 @@ namespace Client.Tests.Mining.Outcrop
             var rayTarget = _colliderChild.GetComponent<OutcropRayTarget>();
             Assert.IsNotNull(rayTarget);
             Assert.AreSame(_outcrop, rayTarget.OutcropGameObject);
-            Assert.AreSame(_outcrop, ((IMiningRayTarget)rayTarget).MiningTargetObject);
+            Assert.AreSame(_outcrop, ((IInteractRayTarget)rayTarget).Interactable);
         }
 
         [Test]

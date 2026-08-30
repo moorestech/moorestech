@@ -1,6 +1,7 @@
 ﻿using Client.Common;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using UnityEngine;
@@ -49,8 +50,10 @@ namespace Client.Game.InGame.Mining
 
                 // 対象種別を問わず共通マーカーから解決する
                 // Resolve from the shared marker regardless of the target kind
-                if (!hit.collider.gameObject.TryGetComponent(out IMiningRayTarget rayTarget)) return null;
-                var target = rayTarget.MiningTargetObject;
+                if (!hit.collider.gameObject.TryGetComponent(out IInteractRayTarget rayTarget)) return null;
+                // Task 6でIInteractRayTarget解決に置き換わるまでのつなぎ
+                // Bridge until Task 6 replaces this with a proper IInteractRayTarget resolution
+                var target = rayTarget.Interactable as IMiningTargetObject;
                 if (target == null) return null;
 
                 var playerPos = PlayerSystemContainer.Instance.PlayerObjectController.Position;

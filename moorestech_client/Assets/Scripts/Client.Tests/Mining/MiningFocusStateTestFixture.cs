@@ -113,6 +113,7 @@ namespace Client.Tests.Mining
             private readonly List<ItemId> _recommendedToolItemIds;
 
             public GameObject GameObject { get; }
+            public bool IsInteractAvailable => true;
             public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
             public IReadOnlyList<Guid> EarnItemGuids { get; }
 
@@ -131,7 +132,7 @@ namespace Client.Tests.Mining
                 return _outcome;
             }
 
-            public void SetFocused(bool focused)
+            public void SetHighlighted(bool highlighted)
             {
             }
 

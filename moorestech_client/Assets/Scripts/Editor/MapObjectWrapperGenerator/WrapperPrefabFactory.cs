@@ -13,7 +13,7 @@ using UnityEngine.SceneManagement;
 public static class WrapperPrefabFactory
 {
     private const string HpBarPrefabPath = "Assets/Asset/Environment/Prefab/MapObjectHpBar.prefab";
-    private const string OutlineMaterialPath = "Assets/Asset/Common/Shader/Outline/Outline.mat";
+    private const string OutlineMaterialPath = "Assets/Resources/InteractOutline.mat";
     private const string OutlineObjectName = "Outline";
 
     // HPバーが樹冠へ埋まらないよう頂部から離す高さ
