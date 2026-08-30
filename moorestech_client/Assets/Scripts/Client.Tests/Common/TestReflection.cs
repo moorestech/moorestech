@@ -2,13 +2,13 @@ using System;
 using System.Reflection;
 using Client.Input;
 
-namespace Client.Tests.Mining
+namespace Client.Tests.Common
 {
     /// <summary>
-    ///     採掘テストが共有する非公開メンバー操作
-    ///     Private-member access shared by the mining tests
+    ///     テスト横断で共有する非公開メンバー操作
+    ///     Private-member access shared across tests
     /// </summary>
-    internal static class MiningTestReflection
+    internal static class TestReflection
     {
         public static void SetField(object target, string fieldName, object value)
         {
