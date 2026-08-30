@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Client.Localization;
+using Client.Tests.Common;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -35,7 +36,7 @@ namespace Client.Tests.Mining
             base.Setup();
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             InputSystem.AddDevice<Keyboard>();
-            MiningTestReflection.ResetInputManagerCache();
+            TestReflection.ResetInputManagerCache();
 
             // 文言解決は実辞書を通す
             // Resolve text through the real dictionary so a key dropped from it fails here too
@@ -49,10 +50,10 @@ namespace Client.Tests.Mining
                 _tooltipObject = new GameObject("MouseCursorTooltip");
                 _tooltipObject.SetActive(false);
                 var tooltip = _tooltipObject.AddComponent<MouseCursorTooltip>();
-                MiningTestReflection.SetField(tooltip, "canvasGroup", _tooltipObject.AddComponent<CanvasGroup>());
-                MiningTestReflection.SetField(tooltip, "itemName", _tooltipObject.AddComponent<TextMeshProUGUI>());
+                TestReflection.SetField(tooltip, "canvasGroup", _tooltipObject.AddComponent<CanvasGroup>());
+                TestReflection.SetField(tooltip, "itemName", _tooltipObject.AddComponent<TextMeshProUGUI>());
                 _tooltipObject.SetActive(true);
-                MiningTestReflection.InvokePrivate(tooltip, "Awake");
+                TestReflection.InvokePrivate(tooltip, "Awake");
             }
 
             #endregion
@@ -64,8 +65,8 @@ namespace Client.Tests.Mining
                 UnityEngine.Object.DestroyImmediate(stubTargetObject);
             _stubTargetObjects.Clear();
             UnityEngine.Object.DestroyImmediate(_tooltipObject);
-            MiningTestReflection.SetStaticProperty(typeof(MouseCursorTooltip), "Instance", null);
-            MiningTestReflection.ResetInputManagerCache();
+            TestReflection.SetStaticProperty(typeof(MouseCursorTooltip), "Instance", null);
+            TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
 

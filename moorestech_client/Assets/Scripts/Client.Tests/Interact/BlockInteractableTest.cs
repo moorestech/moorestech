@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;
 using Client.Localization;
-using Client.Tests.Mining;
+using Client.Tests.Common;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
@@ -65,21 +66,26 @@ namespace Client.Tests.Interact
         }
 
         [Test]
-        public void 開けないブロックは候補にならない()
-        {
-            var plain = CreateBlockInteractable(PlainBlockName);
-
-            Assert.IsFalse(plain.IsInteractAvailable);
-            Assert.AreEqual(0, plain.Actions.Count);
-        }
-
-        [Test]
         public void 撤去済みのブロックは候補から外れる()
         {
             var openable = CreateBlockInteractable(OpenableBlockName);
             openable.GetComponent<BlockGameObject>().MarkUnsearchable();
 
             Assert.IsFalse(openable.IsInteractAvailable);
+        }
+
+        // BlockGameObjectPrefabContainerはAddressablesのプレハブロードを伴いテストで再現しづらいため、
+        // 実際の付与条件（IsBlockOpenable）をそこと同じ形で直接検証する
+        // BlockGameObjectPrefabContainer loads prefabs via Addressables and is hard to reproduce in a test,
+        // so the actual attachment condition (IsBlockOpenable) is verified directly in the same shape it is used there
+        [Test]
+        public void 開けないブロックはBlockInteractableの付与条件を満たさない()
+        {
+            var plainMaster = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == PlainBlockName);
+            var openableMaster = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == OpenableBlockName);
+
+            Assert.IsFalse(plainMaster.IsBlockOpenable());
+            Assert.IsTrue(openableMaster.IsBlockOpenable());
         }
 
         // BlockGameObject.Initializeはサーバ接続を伴うため、マスタだけ差し込んでインタラクト面を直接初期化する
@@ -91,8 +97,8 @@ namespace Client.Tests.Interact
             _createdObjects.Add(gameObject);
 
             var blockGameObject = gameObject.AddComponent<BlockGameObject>();
-            MiningTestReflection.SetField(blockGameObject, "<BlockMasterElement>k__BackingField", master);
-            MiningTestReflection.SetField(blockGameObject, "<BlockPosInfo>k__BackingField", new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+            TestReflection.SetField(blockGameObject, "<BlockMasterElement>k__BackingField", master);
+            TestReflection.SetField(blockGameObject, "<BlockPosInfo>k__BackingField", new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
 
             var interactable = gameObject.AddComponent<BlockInteractable>();
             interactable.Initialize(blockGameObject);

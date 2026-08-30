@@ -11,7 +11,7 @@ namespace Client.Game.InGame.Block
     ///     設置プレビュー用のバウンディングボックスを非同期で読み込み、ブロック配下に組み付ける
     ///     Loads the placement preview bounding box asynchronously and attaches it under the block
     /// </summary>
-    public static class BlockPreviewBoundingBoxLoader
+    internal static class BlockPreviewBoundingBoxLoader
     {
         private const string PreviewBoundingBoxAddressablePath = "Vanilla/Block/Util/BlockPreviewBoundingBox";
 

@@ -7,6 +7,7 @@ using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Input;
 using Client.Localization;
+using Client.Tests.Common;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -37,7 +38,7 @@ namespace Client.Tests.Mining
             base.Setup();
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             _keyboard = InputSystem.AddDevice<Keyboard>();
-            MiningTestReflection.ResetInputManagerCache();
+            TestReflection.ResetInputManagerCache();
 
             // 取得アイテム名の解決に辞書が要る
             // Focusing resolves earned item names, so stand up the dictionary that RuntimeInitializeOnLoadMethod provides at runtime
@@ -52,11 +53,11 @@ namespace Client.Tests.Mining
                 _playerObject = new GameObject("PlayerSystem");
                 var grabItemManager = _playerObject.AddComponent<PlayerGrabItemManager>();
                 var playerController = _playerObject.AddComponent<PlayerObjectController>();
-                MiningTestReflection.SetField(playerController, "animator", _playerObject.AddComponent<Animator>());
+                TestReflection.SetField(playerController, "animator", _playerObject.AddComponent<Animator>());
                 var container = _playerObject.AddComponent<PlayerSystemContainer>();
-                MiningTestReflection.SetField(container, "playerGrabItemManager", grabItemManager);
-                MiningTestReflection.SetField(container, "playerObjectController", playerController);
-                MiningTestReflection.InvokePrivate(container, "Awake");
+                TestReflection.SetField(container, "playerGrabItemManager", grabItemManager);
+                TestReflection.SetField(container, "playerObjectController", playerController);
+                TestReflection.InvokePrivate(container, "Awake");
             }
             void CreateProgressBarView()
             {
@@ -64,9 +65,9 @@ namespace Client.Tests.Mining
                 var view = _progressBarObject.AddComponent<ProgressBarView>();
                 var viewRoot = new GameObject("ViewRoot");
                 viewRoot.transform.SetParent(_progressBarObject.transform);
-                MiningTestReflection.SetField(view, "viewRoot", viewRoot);
-                MiningTestReflection.SetField(view, "scrollbar", _progressBarObject.AddComponent<Scrollbar>());
-                MiningTestReflection.InvokePrivate(view, "Awake");
+                TestReflection.SetField(view, "viewRoot", viewRoot);
+                TestReflection.SetField(view, "scrollbar", _progressBarObject.AddComponent<Scrollbar>());
+                TestReflection.InvokePrivate(view, "Awake");
             }
 
             #endregion
@@ -75,12 +76,12 @@ namespace Client.Tests.Mining
         public override void TearDown()
         {
             ProgressBarView.Instance = null;
-            MiningTestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
+            TestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
             UnityEngine.Object.DestroyImmediate(_mapObjectObject);
             _soundEffectFixture.Destroy();
             UnityEngine.Object.DestroyImmediate(_progressBarObject);
             UnityEngine.Object.DestroyImmediate(_playerObject);
-            MiningTestReflection.ResetInputManagerCache();
+            TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
         [Test]

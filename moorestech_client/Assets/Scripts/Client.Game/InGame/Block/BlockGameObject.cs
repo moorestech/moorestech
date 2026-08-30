@@ -70,9 +70,9 @@ namespace Client.Game.InGame.Block
             // Initialize child BlockGameObjectChild components (include inactive ones that may be activated later)
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>(true)) child.Init(this);
 
-            // インタラクト面を付ける（開けるかは面側が判断する）
-            // Attach the interact face; whether it opens is decided there
-            gameObject.AddComponent<BlockInteractable>().Initialize(this);
+            // 開けるブロックだけ付与済みのインタラクト面を初期化する（付与自体はBlockGameObjectPrefabContainerが判断）
+            // Initialize the interact face only when one was attached; attachment itself is decided by BlockGameObjectPrefabContainer
+            if (gameObject.TryGetComponent<BlockInteractable>(out var interactable)) interactable.Initialize(this);
 
             // 地面との衝突判定を無効化
             foreach (var groundCollisionDetector in gameObject.GetComponentsInChildren<GroundCollisionDetector>(true))

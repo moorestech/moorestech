@@ -1,5 +1,5 @@
 using Client.Input;
-using Client.Tests.Mining;
+using Client.Tests.Common;
 using NUnit.Framework;
 using UnityEngine.InputSystem;
 
@@ -13,12 +13,12 @@ namespace Client.Tests.Input
 
             // 他テストが張ったInputManagerの静的キャッシュは破棄済みデバイスを参照したままなので張り直す
             // Drop InputManager's static cache so it doesn't keep referencing a device disposed by an earlier test
-            MiningTestReflection.ResetInputManagerCache();
+            TestReflection.ResetInputManagerCache();
         }
 
         public override void TearDown()
         {
-            MiningTestReflection.ResetInputManagerCache();
+            TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
 
