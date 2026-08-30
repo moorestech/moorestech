@@ -116,9 +116,9 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // Addressableロードが終わる前に完了させる。1フレームしか進めないのがこのテストの肝
                 // Complete before the Addressable load finishes; advancing only one frame is the point of this test
-                manager.ApplyTutorial(CreateTutorial("無限歯車ジェネレーター", "シャフト", Offset, "North"));
+                var view = manager.ApplyTutorial(CreateTutorial("無限歯車ジェネレーター", "シャフト", Offset, "North"));
                 await UniTask.Yield();
-                manager.CompleteTutorial();
+                view.CompleteTutorial();
 
                 // 遅れて着地したゴーストが後から点灯しないことを見る
                 // Watches that a late-landing ghost never lights up afterwards
