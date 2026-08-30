@@ -93,8 +93,8 @@ git commit -m "feat: 設置素材不足ツールチップに「アイテム不�
 
 ### Task 2: 全ブランチレビュー（必須・省略不可）
 
-- [ ] 必ず最後に moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）
-- [ ] pr-create で PR 作成 → `moores-wt rm` で worktree を畳む → `bd close` 対象タスクを閉じる
+- [x] 必ず最後に moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可） — 3周実行（41系統×3・欠員0）。Critical 計22件を裁定のうえ全件対応
+- [x] pr-create で PR 作成 → `moores-wt rm` で worktree を畳む → `bd close` 対象タスクを閉じる
 
 ---
 
