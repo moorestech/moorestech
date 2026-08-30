@@ -90,14 +90,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             _extendMode.Update(new PlaceSystemUpdateContext(target, isSelectionChanged, feedback), _sourceBlock);
         }
 
-        // 右短押しで起点解除と応答無効化（孤立設置含む）
-        // A right short press releases the origin and invalidates any pending response, including an isolated placement
+        // 右短押しで起点だけを解除する。見えない応答待ちは進行中に数えず、起点が無ければ解除対象なし
+        // A right short press releases only the origin; an invisible pending response does not count, so without an origin there is nothing to cancel
         public override bool TryCancelInProgressOperation()
         {
-            var hadInProgress = _sourceBlock != null || _context.RequestSender.IsAwaitingResponse;
+            if (_sourceBlock == null) return false;
+
             _sourceBlock = null;
             _context.RequestSender.Invalidate();
-            return hadInProgress;
+            return true;
         }
 
         public override void Disable()

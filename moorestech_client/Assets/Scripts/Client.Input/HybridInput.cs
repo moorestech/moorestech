@@ -25,13 +25,14 @@ namespace Client.Input
             return Mouse.current != null ? (Vector3)Mouse.current.position.ReadValue() : UnityEngine.Input.mousePosition;
         }
 
-        // カーソルロック中は座標が凍結するため、移動量はdeltaで読む
-        // Cursor lock freezes the position, so movement must be read as a delta
+        // このAPIが返す移動量の単位はピクセル。カーソルロック中は座標が凍結するため移動量はdeltaで読む
+        // This API returns movement in pixels; the cursor lock freezes the position, so movement must be read as a delta
+        //
+        // legacy軸値はピクセルでなく正規化値のためフォールバックしない。Mouse不在時は移動量そのものが未計測
+        // No legacy fallback: GetAxis returns normalized values, not pixels, so without a Mouse there is simply no measurement
         public static Vector2 GetMouseDelta()
         {
-            return Mouse.current != null
-                ? Mouse.current.delta.ReadValue()
-                : new Vector2(UnityEngine.Input.GetAxis("Mouse X"), UnityEngine.Input.GetAxis("Mouse Y"));
+            return Mouse.current != null ? Mouse.current.delta.ReadValue() : Vector2.zero;
         }
 
         public static bool GetKeyDown(KeyCode keyCode)

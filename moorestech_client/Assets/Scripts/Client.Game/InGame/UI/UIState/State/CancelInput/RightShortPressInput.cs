@@ -56,6 +56,11 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
                 {
                     _movedDistance += pointerDelta.magnitude;
                     if (MoveThresholdPixels <= _movedDistance) _isArmed = false;
+
+                    // 離した位置がパネル上なら成立させない。開始・終了のどちらかがパネル上ならUI操作として扱う
+                    // A release over a panel never confirms: a press whose start or end is over UI counts as a UI operation
+                    if (isPointerOverUi) _isArmed = false;
+
                     if (_isArmed) _shortPressPending = true;
                 }
 
@@ -91,9 +96,12 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
 
         // 押下中の押下を消費済みにし、遷移直後の誤発火を防ぐ
         // Marks the held press consumed so a transition cannot produce a false short press
-        public void Reset()
+        //
+        // isRightHeldNowは呼び出し時点の物理押下。pollされていない状態で始まった押下は_isHeldに現れないため外から渡す
+        // isRightHeldNow is the physical button state at call time: a press started while nothing polled never shows up in _isHeld
+        public void Reset(bool isRightHeldNow)
         {
-            if (_isHeld) _isDeadPress = true;
+            if (_isHeld || isRightHeldNow) _isDeadPress = true;
             _isHeld = false;
             _isArmed = false;
             _shortPressPending = false;

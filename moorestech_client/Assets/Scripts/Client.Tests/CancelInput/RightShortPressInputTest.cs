@@ -72,7 +72,7 @@ namespace Client.Tests.CancelInput
             var input = new RightShortPressInput();
 
             input.ManualUpdate(true, NoMove, false);
-            input.Reset();
+            input.Reset(true);
             input.ManualUpdate(true, NoMove, false);
             input.ManualUpdate(false, NoMove, false);
             Assert.IsFalse(input.TryConsumeShortPress(), "Reset前からの押下は捨てる");
@@ -89,7 +89,7 @@ namespace Client.Tests.CancelInput
 
             input.ManualUpdate(true, NoMove, false);
             input.ManualUpdate(false, NoMove, false);
-            input.Reset();
+            input.Reset(false);
 
             Assert.IsFalse(input.TryConsumeShortPress());
         }
@@ -100,8 +100,8 @@ namespace Client.Tests.CancelInput
             var input = new RightShortPressInput();
 
             input.ManualUpdate(true, NoMove, false);
-            input.Reset();
-            input.Reset();
+            input.Reset(true);
+            input.Reset(true);
             input.ManualUpdate(true, NoMove, false);
             input.ManualUpdate(false, NoMove, false);
 
@@ -134,14 +134,28 @@ namespace Client.Tests.CancelInput
         }
 
         [Test]
-        public void UI外で押してUI上で離すと短押しが成立する()
+        public void UI外で押してUI上で離すと成立しない()
         {
             var input = new RightShortPressInput();
 
             input.ManualUpdate(true, NoMove, false);
             input.ManualUpdate(false, NoMove, true);
 
-            Assert.IsTrue(input.TryConsumeShortPress());
+            Assert.IsFalse(input.TryConsumeShortPress(), "解放時点がパネル上ならUI操作として扱う");
+        }
+
+        [Test]
+        public void pollされていない押下中にResetすると離しても成立しない()
+        {
+            var input = new RightShortPressInput();
+
+            // 他UIState滞在中に押し始めた押下を再現する（ManualUpdateを一度も通していない）
+            // Reproduce a press started while another UIState was active, so ManualUpdate never observed it
+            input.Reset(true);
+            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(false, NoMove, false);
+
+            Assert.IsFalse(input.TryConsumeShortPress(), "Resetに渡した物理押下も死んだ押下として扱う");
         }
     }
 }

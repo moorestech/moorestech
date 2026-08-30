@@ -28,7 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
         // Drops the held press on every UIState transition; nothing polls while another state is active, so this prevents a stale fire on return
         public void ResetPressState()
         {
-            _rightShortPressInput.Reset();
+            _rightShortPressInput.Reset(HybridInput.GetMouseButton(1));
         }
     }
 }

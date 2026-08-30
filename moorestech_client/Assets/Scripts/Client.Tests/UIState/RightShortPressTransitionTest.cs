@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.UI.Challenge;
+using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -83,6 +84,20 @@ namespace Client.Tests.UIState
             var state = new ChallengeListState(challengeListView, rightShortPressInputService);
             state.OnEnter(new UITransitContext(UIStateEnum.ChallengeList));
 
+            var transit = PressAndReleaseRightButton(state);
+
+            Assert.AreEqual(UIStateEnum.GameScreen, transit?.NextStateEnum);
+        }
+
+        [Test]
+        public void ResearchTree右短押しでゲーム画面へ抜ける()
+        {
+            var researchTreeViewManager = CreateComponent<ResearchTreeViewManager>("ResearchTree");
+            var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
+            var state = new ResearchTreeState(researchTreeViewManager, rightShortPressInputService);
+
+            // OnEnterはSetActive(true)がサーバー問い合わせを起こすためEditModeでは通さない。遷移条件の配線だけを見る
+            // OnEnter is skipped: SetActive(true) issues a server request unusable in EditMode, so only the transition wiring is exercised
             var transit = PressAndReleaseRightButton(state);
 
             Assert.AreEqual(UIStateEnum.GameScreen, transit?.NextStateEnum);
