@@ -257,4 +257,7 @@ ui.mainMenu.connectFailed,Failed to connect to the server.\n{p0},Failed to conne
 ui.tooltip.namedMineHold,{p0} : Hold F to mine,{p0} : Hold F to mine,{p0} : F長押しで採掘,{p0} : Zum Abbauen F gedrückt halten
 ui.tooltip.namedMineClick,{p0} : Press F to mine,{p0} : Press F to mine,{p0} : Fで採掘,{p0} : F drücken zum Abbauen
 ui.tooltip.namedRequiredItems,{p0} : Requires: {p1},{p0} : Requires: {p1},{p0} : このアイテムが必要です: {p1},{p0} : Benötigt: {p1}
+ui.tooltip.interactOpenBlock,[F] Open {p0},[F] Open {p0},[F] {p0}を開く,[F] {p0} öffnen
+ui.tooltip.interactOpenTrainInventory,[F] Open car inventory,[F] Open car inventory,[F] 車両インベントリを開く,[F] Wageninventar öffnen
+ui.tooltip.interactRideTrain,[E] Ride,[E] Ride,[E] 乗車,[E] Einsteigen
 ui.tooltip.namedCannotHandMine,{p0} : Cannot be mined by hand,{p0} : Cannot be mined by hand,{p0} : 手掘りできません,{p0} : Kann nicht von Hand abgebaut werden

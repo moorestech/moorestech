@@ -66,6 +66,10 @@ namespace Client.Game.InGame.Train.View.Object.Core
                 var trainEntityObject = trainObject.AddComponent<TrainCarEntityObject>();
                 trainEntityObject.Initialize(carSnapshot.TrainCarInstanceId, trainCarMasterElement);
 
+                // インタラクト面（開く・乗車）を付ける
+                // Attach the interact face (open / ride)
+                trainObject.AddComponent<TrainCarInteractable>().Initialize(trainEntityObject);
+
                 // animation processor と座席 resolver は Prefab 構造から補完する
                 // Add animation processors and seat resolver from the Prefab structure
                 AttachAnimationProcessorIfNeeded(trainObject);

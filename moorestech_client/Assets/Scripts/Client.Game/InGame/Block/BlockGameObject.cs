@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
-using Client.Common.Asset;
+using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
@@ -38,8 +38,7 @@ namespace Client.Game.InGame.Block
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private List<VisualEffect> _visualEffects = new();
         private List<IPreviewOnlyObject> _previewOnlyObjects = new();
-        private const string PreviewBoundingBoxAddressablePath = "Vanilla/Block/Util/BlockPreviewBoundingBox";
-        
+
         private BlockStateMessagePack _blockStateMessagePack;
         private bool _isShaderAnimating;
         
@@ -70,7 +69,11 @@ namespace Client.Game.InGame.Block
             // 子供のBlockGameObjectChildを初期化（非アクティブな子も後から有効化され得るため対象に含める）
             // Initialize child BlockGameObjectChild components (include inactive ones that may be activated later)
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>(true)) child.Init(this);
-            
+
+            // インタラクト面を付ける（開けるかは面側が判断する）
+            // Attach the interact face; whether it opens is decided there
+            gameObject.AddComponent<BlockInteractable>().Initialize(this);
+
             // 地面との衝突判定を無効化
             foreach (var groundCollisionDetector in gameObject.GetComponentsInChildren<GroundCollisionDetector>(true))
             {
@@ -91,8 +94,8 @@ namespace Client.Game.InGame.Block
             
             // バウンディングボックス用オブジェクトを作成
             // Create a bounding box object
-            LoadBoundingBox().Forget();
-            
+            AddBoundingBox().Forget();
+
             #region Internal
             
             void OffPreviewOnlyObjectsActive()
@@ -134,18 +137,11 @@ namespace Client.Game.InGame.Block
                 ClientContext.VanillaApi.SendOnly.RequestBlockState(BlockPosInfo.OriginalPos);
             }
             
-            async UniTask LoadBoundingBox()
+            async UniTask AddBoundingBox()
             {
-                var previewBoundingBoxPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(PreviewBoundingBoxAddressablePath);
-                var previewBoundingBoxObj = Instantiate(previewBoundingBoxPrefab, transform);
-                previewBoundingBoxObj.GetComponent<BlockPreviewBoundingBox>().SetBoundingBox(blockMasterElement.BlockSize, posInfo.BlockDirection, this);
-                
-                var previewOnlyObject = previewBoundingBoxObj.GetComponent<PreviewOnlyObject>();
-                previewOnlyObject.Initialize(BlockId);
-                previewOnlyObject.SetActive(false);
-                _previewOnlyObjects.Add(previewOnlyObject);
+                _previewOnlyObjects.Add(await BlockPreviewBoundingBoxLoader.LoadAsync(this, blockMasterElement, posInfo));
             }
-            
+
             #endregion
         }
         
