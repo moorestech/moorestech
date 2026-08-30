@@ -129,8 +129,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
         // Failure reason (Evaluator constant); empty when placeable
         public readonly string FailureReason;
 
-        // 素材不足で落ちたときの不足素材。それ以外は空
-        // The short materials when the judgement failed on materials; empty otherwise
+        // 不足時のみ非空、他は空
+        // Non-empty only on shortage; empty otherwise
         public readonly IReadOnlyList<ConstructionMaterialShortage> MaterialShortages;
 
         public GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, GearChainPlacementJudgement judgement, IReadOnlyList<ConstructionMaterialShortage> materialShortages) : this(startPoint, endPoint, judgement.IsPlaceable, true, judgement.FailureReason, materialShortages)

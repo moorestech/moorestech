@@ -65,17 +65,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Already-connected and connection-full judgements are delegated to the calculator
                 var toPos = targetBlock.BlockPosInfo.OriginalPos;
                 var distance = Vector3Int.Distance(fromPos, toPos);
-                var judgement = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, distance, connectToolGuid, _context.Inventory);
+                var preview = ElectricWireExtendPreviewCalculator.Evaluate(source, targetBlock, sourceMaxCount, targetMaxConnectionCount, distance, connectToolGuid, _context.Inventory);
 
-                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), ElectricWireEndpointResolver.Resolve(targetBlock), judgement.IsPlaceable);
+                _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), ElectricWireEndpointResolver.Resolve(targetBlock), preview.IsPlaceable);
 
                 // 不可理由と電線消費数を積む
                 // Pushes the failure reason and wire cost
-                ElectricWirePlacementFailureTooltipKey.Report(judgement, connectToolGuid, distance, _context.Inventory, feedback);
+                ElectricWirePlacementFailureTooltipKey.Report(preview, feedback);
 
                 // 可否OK かつクリックで接続する。起点は応答確認後に接続先へ移る
                 // The origin moves to the target after the response confirms
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && judgement.IsPlaceable && !_context.RequestSender.IsAwaitingResponse) _context.RequestSender.SendConnect(fromPos, toPos, connectToolGuid);
+                if (InputManager.Playable.ScreenLeftClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi() && preview.IsPlaceable && !_context.RequestSender.IsAwaitingResponse) _context.RequestSender.SendConnect(fromPos, toPos, connectToolGuid);
             }
 
             void ExtendToEmptySpace()
@@ -87,14 +87,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 }
 
                 // 新設電柱側の判定はCalculator内部に委ねる
-                // 電柱は建設コスト充足を別途判定するためワイヤー判定へはポールアイテム所持前提を渡さない
-                // Judgement for the newly placed pole is delegated to the calculator; pole affordability is judged separately
+                // 電柱の建設コストは同一フレームで先に消費されるため、予約としてワイヤー判定と不足算出へ渡す（サーバーのHasEnoughWireMaterialsと同じ合算）
+                // The pole's construction cost is consumed first in the same frame, so it is reserved for the wire judgement and shortage calculation (the same sum the server's HasEnoughWireMaterials makes)
                 // 新設電柱の仮AABBを構築して範囲相互判定込みで評価する
                 // Build the new pole's ghost AABB and evaluate including the mutual range check
                 var poleGhostInfo = new BlockPositionInfo(evaluation.PlaceInfo.Position, _context.PoleSelection.CurrentDirection, evaluation.PoleMaster.BlockSize);
                 var distance = Vector3Int.Distance(fromPos, evaluation.PlaceInfo.Position);
-                var judgement = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, evaluation.PoleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory);
-                var placeable = evaluation.IsGhostPlaceable && judgement.IsPlaceable;
+                var preview = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, evaluation.PoleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory, evaluation.PoleConstructionItemCounts);
+                var placeable = evaluation.IsGhostPlaceable && preview.IsPlaceable;
 
                 // ゴーストとワイヤー線を可否色で表示する
                 // Show the ghost and wire line colored by placeability
@@ -108,7 +108,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 // ゴーストの不可理由はTryEvaluateGhostが積み済みなので、続けてワイヤー判定の理由と消費電線数を積む
                 // TryEvaluateGhost already pushed the ghost reasons, so push the wire judgement reason and cost next
-                ElectricWirePlacementFailureTooltipKey.Report(judgement, connectToolGuid, distance, _context.Inventory, feedback);
+                ElectricWirePlacementFailureTooltipKey.Report(preview, feedback);
                 _context.WirePreview.Show(ElectricWireEndpointResolver.Resolve(source), endEndpoint, placeable);
 
                 // 可否OK かつクリックで延長設置する。応答待ち中は多重送信を防ぐため送信しない

@@ -10,6 +10,7 @@ using Game.Train.RailCalc;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
+using Server.Protocol.PacketResponse.Util.ConnectTool;
 using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
@@ -24,10 +25,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         /// 終点がノードの場合
         /// When the endpoint is a node
         /// </summary>
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, Guid connectToolGuid, out IReadOnlyList<ConstructionMaterialShortage> materialShortages)
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, ConnectionDestination to, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, Guid connectToolGuid)
         {
-            materialShortages = Array.Empty<ConstructionMaterialShortage>();
-
             // 始点ノードを取得
             // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
@@ -47,20 +46,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             var length = BezierUtility.GetBezierCurveLength(fromNode, toNode, 64);
             var fromMax = ResolveMaxConnectableRailLength(from, blockGameObjectDataStore);
             var toMax = ResolveMaxConnectableRailLength(to, blockGameObjectDataStore);
-            var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, toMax, playerInventory, connectToolGuid);
-            materialShortages = ResolveMaterialShortages(judgement, connectToolGuid, length, playerInventory);
+            // ノード同士の接続はブロックを設置しないため予約は無い
+            // Connecting two nodes places no block, so there is nothing to reserve
+            var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, toMax, playerInventory, connectToolGuid, null);
+            var materialShortages = ResolveMaterialShortages(judgement, connectToolGuid, length, playerInventory, null);
 
             // 描画用の制御点を生成
             // Build render control points
             BezierUtility.BuildRenderControlPoints(fromNode.FrontControlPoint, toNode.BackControlPoint, out var p0, out var p1, out var p2, out var p3);
             var isCurvePlaceable = TrainRailCurvePlacementRule.IsPlaceable(p0, p1, p2, p3);
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement, isCurvePlaceable);
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement, isCurvePlaceable, materialShortages);
         }
 
-        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 placePosition, RailComponentDirection direction, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, float placingBlockMaxConnectableRailLength, Guid connectToolGuid, out IReadOnlyList<ConstructionMaterialShortage> materialShortages)
+        /// <summary>
+        /// 終点が新設橋脚の場合。橋脚の建設コストは同一フレームで先に消費されるため予約として判定と不足算出の双方へ渡す
+        /// When the endpoint is a newly placed pier; its construction cost is consumed first in the same frame, so it is reserved for both the judgement and the shortage calculation
+        /// </summary>
+        public static TrainRailConnectPreviewData CalculatePreviewData(ConnectionDestination from, Vector3 placePosition, RailComponentDirection direction, RailGraphClientCache cache, ILocalPlayerInventory playerInventory, BlockGameObjectDataStore blockGameObjectDataStore, float placingBlockMaxConnectableRailLength, Guid connectToolGuid, IReadOnlyList<(ItemId itemId, int count)> pierConstructionItemCounts)
         {
-            materialShortages = Array.Empty<ConstructionMaterialShortage>();
-
             // 始点ノードを取得
             // Get the start node
             if (!cache.TryGetNodeId(from, out var fromNodeId) || !cache.TryGetNode(fromNodeId, out var fromNode))
@@ -90,19 +93,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             // Share server-side judgement using source block limit, placing block limit, and the held rail item
             var length = BezierUtility.GetBezierCurveLength(p0, p1, p2, p3, 64);
             var fromMax = ResolveMaxConnectableRailLength(from, blockGameObjectDataStore);
-            var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, placingBlockMaxConnectableRailLength, playerInventory, connectToolGuid);
-            materialShortages = ResolveMaterialShortages(judgement, connectToolGuid, length, playerInventory);
+            var reservedMaterials = ConnectToolMaterialConsumer.ToMaterials(pierConstructionItemCounts);
+            var judgement = RailConnectionEditProtocol.EvaluatePlacement(length, fromMax, placingBlockMaxConnectableRailLength, playerInventory, connectToolGuid, reservedMaterials);
+            var materialShortages = ResolveMaterialShortages(judgement, connectToolGuid, length, playerInventory, reservedMaterials);
 
             var isCurvePlaceable = TrainRailCurvePlacementRule.IsPlaceable(p0, p1, p2, p3);
-            return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement, isCurvePlaceable);
+            return new TrainRailConnectPreviewData(p0, p1, p2, p3, judgement, isCurvePlaceable, materialShortages);
         }
 
-        // 素材不足で落ちたときだけ、判定と同じ長さと所持から不足素材を算出する（他の理由では行が不要）
-        // Only on a material-shortage failure, derive the short materials from the very length and inventory the judgement used
-        private static IReadOnlyList<ConstructionMaterialShortage> ResolveMaterialShortages(RailPlacementJudgement judgement, Guid connectToolGuid, float railLength, ILocalPlayerInventory playerInventory)
+        // 素材不足で落ちたときだけ、判定と同じ長さ・所持・予約から不足素材を算出する（他の理由では行が不要）
+        // Only on a material-shortage failure, derive the short materials from the very length, inventory and reservation the judgement used
+        private static IReadOnlyList<ConstructionMaterialShortage> ResolveMaterialShortages(RailPlacementJudgement judgement, Guid connectToolGuid, float railLength, ILocalPlayerInventory playerInventory, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
         {
             if (judgement.FailureReason != RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem) return Array.Empty<ConstructionMaterialShortage>();
-            return ConnectToolMaterialShortageCalculator.Calculate(connectToolGuid, railLength, playerInventory, null);
+            return ConnectToolMaterialShortageCalculator.Calculate(connectToolGuid, railLength, playerInventory, reservedMaterials);
         }
 
         // ConnectionDestination が指すブロックから MaxConnectableRailLength を解決する
@@ -133,7 +137,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             railTypeGuid: Guid.Empty,
             isValid: false,
             failureReason: RailConnectionEditProtocol.RailConnectionEditFailureReason.InvalidNode,
-            isCurvePlaceable: false);
+            isCurvePlaceable: false,
+            materialShortages: Array.Empty<ConstructionMaterialShortage>());
 
         public Vector3 StartPoint;
         public Vector3 StartControlPoint;
@@ -144,16 +149,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         public RailConnectionEditProtocol.RailConnectionEditFailureReason FailureReason;
         public bool IsCurvePlaceable;
 
+        // 素材不足時のみ非空、他は空。FailureReasonに従属する派生値なので等値比較には含めない
+        // Non-empty only on a material shortage; it derives from FailureReason so it stays out of the equality comparison
+        public IReadOnlyList<ConstructionMaterialShortage> MaterialShortages;
+
         // 可否は失敗理由とカーブ可否から導出する（「不可なのに理由None」という状態を型で表現不能にする）
         // Placeability is derived from the failure reason and curve placeability (makes "blocked with no reason" unrepresentable)
         public bool IsPlaceable => FailureReason == RailConnectionEditProtocol.RailConnectionEditFailureReason.None && IsCurvePlaceable;
 
-        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, RailPlacementJudgement judgement, bool isClientCurvePlaceable)
-            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, true, judgement.FailureReason, isClientCurvePlaceable)
+        public TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, RailPlacementJudgement judgement, bool isClientCurvePlaceable, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
+            : this(startPoint, startControlPoint, endControlPoint, endPoint, judgement.SelectedRailTypeGuid, true, judgement.FailureReason, isClientCurvePlaceable, materialShortages)
         {
         }
 
-        private TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, Guid railTypeGuid, bool isValid, RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, bool isCurvePlaceable)
+        private TrainRailConnectPreviewData(Vector3 startPoint, Vector3 startControlPoint, Vector3 endControlPoint, Vector3 endPoint, Guid railTypeGuid, bool isValid, RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, bool isCurvePlaceable, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
         {
             StartPoint = startPoint;
             StartControlPoint = startControlPoint;
@@ -163,7 +172,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             RailTypeGuid = railTypeGuid;
             FailureReason = failureReason;
             IsCurvePlaceable = isCurvePlaceable;
+            MaterialShortages = materialShortages;
         }
+
+        // MaterialShortagesを含めないのは、RailConnectPreviewObjectが毎フレームの同値スキップにこの比較を使うため（新しいリスト参照で毎回不一致になりメッシュを作り直す）
+        // MaterialShortages is excluded because RailConnectPreviewObject uses this comparison to skip identical frames (a fresh list reference would mismatch every frame and rebuild the mesh)
         public bool Equals(TrainRailConnectPreviewData other)
         {
             return StartPoint.Equals(other.StartPoint) && StartControlPoint.Equals(other.StartControlPoint) && EndControlPoint.Equals(other.EndControlPoint) && EndPoint.Equals(other.EndPoint) && RailTypeGuid.Equals(other.RailTypeGuid) && IsValid == other.IsValid && FailureReason == other.FailureReason && IsCurvePlaceable == other.IsCurvePlaceable;

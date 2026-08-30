@@ -1,9 +1,13 @@
 using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Localization;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using Server.Boot;
 using Server.Protocol.PacketResponse.Util.GearChain;
+using Tests.Module.TestMod;
 
 namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 {
@@ -13,6 +17,8 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
     /// </summary>
     public class GearChainPlacementFailureTooltipKeyTest
     {
+        private static readonly Guid ChainMaterialGuid = Guid.Parse("00000000-0000-0000-1234-000000000003");
+
         [Test]
         // 失敗理由定数ごとに個別のツールチップキーへ写像する
         // Each failure reason constant maps to its own tooltip key
@@ -28,8 +34,8 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // Reasons the client judgement never returns fall back to the default cannot-connect text
         public void UnreachableReasonFallsBackToFailedKeyTest()
         {
-            // 素材不足は写像を持たず、名指しの行が作れないときの落とし先と同じ既定文言になる
-            // The material shortage has no mapping of its own and lands on the same default used when no named line can be built
+            // 素材不足の期待キーは既定の不可文言になる
+            // The material shortage's expected key is the default cannot-place text
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.NoItemError).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.InvalidTargetError).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, GearChainPlacementFailureTooltipKey.ToKey(GearChainPlacementEvaluator.NotUnlockedError).Key);
@@ -66,6 +72,33 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
                 Assert.AreEqual(testCase.ExpectedKey, lines[0].Key.Key, message);
                 Assert.AreEqual(0, lines[0].TextParams.Count, message);
             }
+        }
+
+        [Test]
+        // 素材不足には実アイテム名と所持/必要の行を返す
+        // A material shortage returns a line with the real item name and held/required
+        public void BuildFailureLinesReturnsMaterialShortageLineTest()
+        {
+            CreateServer();
+            var shortages = new[] { new ConstructionMaterialShortage(MasterHolder.ItemMaster.GetItemId(ChainMaterialGuid), 1, 4) };
+
+            var lines = GearChainPlacementFailureTooltipKey.BuildFailureLines(false, GearChainPlacementEvaluator.NoItemError, shortages);
+
+            Assert.AreEqual(1, lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, lines[0].Key.Key);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(ChainMaterialGuid)), lines[0].TextParams[0]);
+            Assert.AreEqual("1", lines[0].TextParams[1]);
+            Assert.AreEqual("4", lines[0].TextParams[2]);
+
+            #region Internal
+
+            void CreateServer()
+            {
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+                Localize.Initialize();
+            }
+
+            #endregion
         }
     }
 }

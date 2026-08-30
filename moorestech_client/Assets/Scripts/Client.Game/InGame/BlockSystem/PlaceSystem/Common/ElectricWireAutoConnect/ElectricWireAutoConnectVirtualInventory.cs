@@ -14,8 +14,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
     {
         private readonly Dictionary<ItemId, int> _counts = new();
 
-        // 予約分は不足算出へそのまま渡せるようサーバー標準の素材コスト列で持つ
-        // The reservation is kept as the server-standard material cost list so it can be handed to the shortage calculation as is
+        // 予約分はサーバー標準の素材コスト列で持つ
+        // The reservation is kept as the server-standard material cost list
         private readonly IReadOnlyList<ConnectToolMaterialCost> _constructionCostPerCell;
 
         public ElectricWireAutoConnectVirtualInventory(ILocalPlayerInventory inventory, IReadOnlyList<(ItemId itemId, int count)> constructionCostPerCell)
@@ -28,20 +28,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 _counts[itemStack.Id] = _counts.GetValueOrDefault(itemStack.Id) + itemStack.Count;
             }
 
-            // セル1つ分の建設コストを予約素材へ変換する。財布が賄うセルでは空で渡される
-            // Convert one cell's construction cost into reserved materials; a wallet-covered cell arrives empty
+            // 建設コストを予約素材へ変換する
+            // Convert one cell's construction cost into reserved materials
             _constructionCostPerCell = ConnectToolMaterialConsumer.ToMaterials(constructionCostPerCell);
         }
 
         // サーバー同様、当該セルの建設コスト予約分を上乗せして各素材の所持数を判定する
         // Like the server, judge each material's count with this cell's construction reservation added on top
+        // 可否だけが要るのでリストは作らない。必要数の式は不足算出と共有する
+        // Only affordability is needed here so no list is built; the requirement formula is shared with the shortage calculation
         public bool CanAfford(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
-            return CalculateShortages(materials).Count == 0;
+            return !ConnectToolMaterialShortageCalculator.HasAnyShortage(materials, _counts, _constructionCostPerCell);
         }
 
-        // 賄えない素材を「所持/必要」付きで返す。可否判定はこの結果が空かどうかで決まる
-        // Returns the unaffordable materials with held/required; affordability is defined as this result being empty
+        // 賄えない素材を「所持/必要」付きで返す。表示行を出すときだけ呼ぶ
+        // Returns the unaffordable materials with held/required; called only when a display line is needed
         public List<ConstructionMaterialShortage> CalculateShortages(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
             return ConnectToolMaterialShortageCalculator.Calculate(materials, _counts, _constructionCostPerCell);

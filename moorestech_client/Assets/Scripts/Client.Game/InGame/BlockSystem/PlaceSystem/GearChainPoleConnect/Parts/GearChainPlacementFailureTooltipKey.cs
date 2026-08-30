@@ -13,8 +13,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     /// </summary>
     public static class GearChainPlacementFailureTooltipKey
     {
-        // 接続判定の結果を行へ変換する。可なら行なし、素材不足なら不足素材ごとの行、それ以外は理由キー1行
-        // Turns a connection judgement into lines: none when placeable, one line per short material on a shortage, one reason-key line otherwise
+        // 可:行なし／不足:素材ごと／他:理由1行
+        // Placeable: none / Shortage: per-material / Other: one reason line
         public static IReadOnlyList<TooltipLine> BuildFailureLines(bool isPlaceable, string failureReason, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
         {
             if (isPlaceable) return Array.Empty<TooltipLine>();

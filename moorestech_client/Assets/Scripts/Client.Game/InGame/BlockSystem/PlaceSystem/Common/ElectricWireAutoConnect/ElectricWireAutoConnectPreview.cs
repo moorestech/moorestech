@@ -94,7 +94,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             {
                 var placeInfo = placeInfos[i];
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
-                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, _gameUnlockStateData, out var cellMaterials, out var cellCost);
+                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, _gameUnlockStateData, out var cellMaterials, out var cellCost, out var cellShortages);
                 if (!wirePlaceable) placeInfo.Placeable = false;
 
                 if (placeInfo.Placeable)
@@ -112,9 +112,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                     // Raw candidate count, independent of Placeable=false caused by ground/build-cost issues
                     cursorRawTargetCount = targets.Count;
 
-                    // 不足行は仮想在庫（建設コスト予約込み）に対して算出し、判定と同じ基準で「所持/必要」を出す
-                    // The shortage lines are computed against the virtual inventory (reservation included) so held/required matches the judgement
-                    if (!wirePlaceable) cursorWireShortages = virtualInventory.CalculateShortages(cellMaterials);
+                    // 不足行は選定が仮想在庫（建設コスト予約込み）で算出したものをそのまま使い、判定と同じ基準で「所持/必要」を出す
+                    // The shortage lines come straight from the selection's own virtual-inventory (reservation included) calculation so held/required matches the judgement
+                    cursorWireShortages = cellShortages;
                 }
             }
 

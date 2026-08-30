@@ -72,7 +72,7 @@ Expected: 全PASS
 
 ```bash
 git add Localization/localization.csv
-git commit -m "feat: 設置素材不足ツールチップに「アイテム不足：」接頭辞を付け電線/チェーン/レール不足も統一 (ADR 0045)"
+git commit -m "feat: 設置素材不足ツールチップに「アイテム不足：」接頭辞を付け電線/チェーン/レール不足も統一 (ADR 0047)"
 ```
 
 ### Task 1b: 接続ツール不足行の実アイテム名合流（レビューC1裁定・追加）
@@ -105,6 +105,6 @@ git commit -m "feat: 設置素材不足ツールチップに「アイテム不�
 
 ## 判断記録（ADR）
 
-- 設計: `docs/adr/0045-placement-material-shortage-tooltip-prefix.md` / `.decisions/2026-08-30-設置素材不足tooltipはアイテム不足接頭辞を付け所持必要を維持する.md`
+- 設計: `docs/adr/0047-placement-material-shortage-tooltip-prefix.md` / `.decisions/2026-08-30-設置素材不足tooltipはアイテム不足接頭辞を付け所持必要を維持する.md`
 - 独語訳 `Fehlender Gegenstand:`、英語 `Missing item:` の語選択 — 出所: agent前提（既存 de 列の語彙 Kabel/Kette/Gleis を流用）
 - 電線等3行の実アイテム名＋個数への合流 — 出所: ユーザー裁定 2026-08-30（レビュー Critical C1）。`.decisions/2026-08-30-接続ツールの不足行も実アイテム名と個数で出す.md`

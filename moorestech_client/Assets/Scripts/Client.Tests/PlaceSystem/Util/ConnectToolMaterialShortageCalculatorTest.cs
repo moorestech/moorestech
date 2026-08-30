@@ -19,11 +19,11 @@ namespace Client.Tests.PlaceSystem.Util
     /// </summary>
     public class ConnectToolMaterialShortageCalculatorTest
     {
-        // TestRail: lengthPerUnit=5、2素材（1単位あたり×12と×5）
+        // lengthPerUnit=5、2素材(×12と×5)
         // TestRail: lengthPerUnit=5 with two materials, x12 and x5 per unit
         private static readonly Guid RailConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000002");
 
-        // TestElectricWire: lengthPerUnit=1、単一素材×1
+        // lengthPerUnit=1、単一素材×1
         // TestElectricWire: lengthPerUnit=1 with a single material x1
         private static readonly Guid WireConnectToolGuid = Guid.Parse("c0000000-0000-0000-0000-000000000001");
 
@@ -40,8 +40,8 @@ namespace Client.Tests.PlaceSystem.Util
         [Test]
         public void 距離を単位長で割り上げた単位数だけ素材ごとの必要数が増える()
         {
-            // 距離6はlengthPerUnit=5で2単位。24個と10個が要る
-            // A distance of 6 is 2 units at lengthPerUnit=5, requiring 24 and 10
+            // 距離6は2単位。24個と10個必要
+            // A distance of 6 is 2 units, requiring 24 and 10
             var shortages = ConnectToolMaterialShortageCalculator.Calculate(RailConnectToolGuid, 6f, BuildInventory((RailMaterial1Guid, 0), (RailMaterial2Guid, 0)), null);
 
             Assert.AreEqual(2, shortages.Count);
@@ -52,8 +52,8 @@ namespace Client.Tests.PlaceSystem.Util
         [Test]
         public void 足りている素材は不足行に出ず足りない素材だけが残る()
         {
-            // 1つ目の素材だけ十分に持たせると2つ目の不足1件だけが残る
-            // Holding plenty of the first material leaves only the second as short
+            // 1つ目十分・2つ目だけ不足が残る
+            // First plenty, only the second stays short
             var shortages = ConnectToolMaterialShortageCalculator.Calculate(RailConnectToolGuid, 5f, BuildInventory((RailMaterial1Guid, 50), (RailMaterial2Guid, 2)), null);
 
             Assert.AreEqual(1, shortages.Count);
@@ -71,8 +71,8 @@ namespace Client.Tests.PlaceSystem.Util
         [Test]
         public void 予約素材は必要数へ上乗せされる()
         {
-            // 所持3・必要1でも、同じアイテムの予約が3あれば不足になる
-            // Holding 3 against a requirement of 1 still falls short once 3 of the same item are reserved
+            // 予約3があれば所持3必要1でも不足
+            // With 3 reserved it falls short even holding 3 against 1
             var reserved = new List<ConnectToolMaterialCost> { new(MasterHolder.ItemMaster.GetItemId(WireMaterialGuid), 3) };
 
             var shortages = ConnectToolMaterialShortageCalculator.Calculate(WireConnectToolGuid, 1f, BuildInventory((WireMaterialGuid, 3)), reserved);

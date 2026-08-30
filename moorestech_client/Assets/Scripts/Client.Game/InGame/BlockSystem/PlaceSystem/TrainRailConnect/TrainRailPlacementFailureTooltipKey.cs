@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Tooltip;
@@ -28,11 +27,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
 
         // 判定の失敗理由とカーブ半径不足を個別行でツールチップへ積む
         // Push the judgement failure reason and the too-tight curve as separate tooltip lines
-        public static void Report(TrainRailConnectPreviewData previewData, IReadOnlyList<ConstructionMaterialShortage> materialShortages, PlacementFeedback feedback)
+        public static void Report(TrainRailConnectPreviewData previewData, PlacementFeedback feedback)
         {
-            // レールは複数素材を消費するため、素材不足だけは不足アイテムごとの行になる
-            // A rail consumes several materials, so only the shortage turns into one line per short item
-            if (previewData.FailureReason == RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem) feedback.AddLines(ConstructionMaterialShortageLine.ToLines(materialShortages, LocalizationKeys.Ui.Tooltip.PlaceRailFailed));
+            // レールは複数素材消費で複数行になる
+            // A rail's multi-material cost becomes multiple lines
+            if (previewData.FailureReason == RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem) feedback.AddLines(ConstructionMaterialShortageLine.ToLines(previewData.MaterialShortages, LocalizationKeys.Ui.Tooltip.PlaceRailFailed));
             else if (previewData.FailureReason != RailConnectionEditProtocol.RailConnectionEditFailureReason.None) feedback.Add(new TooltipLine(ToKey(previewData.FailureReason)));
 
             if (!previewData.IsCurvePlaceable) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight));

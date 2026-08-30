@@ -7,8 +7,8 @@ using Server.Protocol.PacketResponse.Util.ConnectTool;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     /// <summary>
-    /// 接続ツール（電線・歯車チェーン・レール）の必要素材を所持と突き合わせ、不足素材だけを返す
-    /// Matches a connect tool's (wire / gear chain / rail) required materials against held counts and returns only the shortages
+    /// 接続ツールの必要素材と所持を突き合わせ不足を返す
+    /// Matches a connect tool's required materials against held counts and returns the shortages
     /// 必要数の算出はサーバーと共有のConnectToolCostCalculator、突き合わせはConstructionCostShortageCalculatorに委ねる
     /// The requirement comes from the server-shared ConnectToolCostCalculator and the match from ConstructionCostShortageCalculator
     /// </summary>
@@ -33,26 +33,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             if (materials == null) return new List<ConstructionMaterialShortage>();
 
             var requiredItems = new List<(ItemId itemId, int count)>(materials.Count);
-            foreach (var material in materials) requiredItems.Add((material.ItemId, material.Count + SumReserved(material.ItemId)));
+            foreach (var material in materials) requiredItems.Add((material.ItemId, RequiredCount(material, reservedMaterials)));
 
             return ConstructionCostShortageCalculator.ToShortages(ConstructionCostShortageCalculator.CalculateRequirements(requiredItems, heldByItem));
+        }
 
-            #region Internal
+        /// <summary>
+        /// 不足が1件でもあるかだけを返す。可否判定だけが要る呼び出し元がリストを作って捨てないための入口
+        /// Returns only whether anything falls short, so affordability-only callers never build a list to throw away
+        /// </summary>
+        public static bool HasAnyShortage(IReadOnlyList<ConnectToolMaterialCost> materials, IReadOnlyDictionary<ItemId, int> heldByItem, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
+        {
+            if (materials == null) return false;
 
-            int SumReserved(ItemId itemId)
+            foreach (var material in materials)
             {
-                // 予約リスト中の同一アイテム数を合計する
-                // Sum the reserved amount of the same item in the reservation list
-                if (reservedMaterials == null) return 0;
-                var reserved = 0;
-                foreach (var reservedMaterial in reservedMaterials)
-                {
-                    if (reservedMaterial.ItemId == itemId) reserved += reservedMaterial.Count;
-                }
-                return reserved;
+                heldByItem.TryGetValue(material.ItemId, out var held);
+                if (held < RequiredCount(material, reservedMaterials)) return true;
             }
+            return false;
+        }
 
-            #endregion
+        // 予約分を上乗せした必要数。CalculateとHasAnyShortageで式を1つに保つ
+        // The requirement with the reservation added on top, keeping one formula for Calculate and HasAnyShortage
+        private static int RequiredCount(ConnectToolMaterialCost material, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
+        {
+            return material.Count + ConnectToolMaterialConsumer.SumReserved(reservedMaterials, material.ItemId);
         }
     }
 }

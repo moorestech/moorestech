@@ -94,15 +94,12 @@ namespace Server.Protocol.PacketResponse
                     return RailConnectWithPlacePierResponse.CreateFailedResponse();
                 }
 
-                foreach (var material in railMaterials)
+                // 所持判定は予約対応の共有定義へ委ね、クライアントプレビューと同じ式で判定する
+                // Delegate the ownership check to the reservation-aware shared definition, the same formula the client preview uses
+                if (!ConnectToolMaterialConsumer.HasEnough(railMaterials, inventory.InventoryItems, ConnectToolMaterialConsumer.ToMaterials(pierItemCounts)))
                 {
-                    var reserved = pierItemCounts.Where(pair => pair.itemId == material.ItemId).Sum(pair => pair.count);
-                    var owned = inventory.InventoryItems.Where(stack => stack.Id == material.ItemId).Sum(stack => stack.Count);
-                    if (owned < material.Count + reserved)
-                    {
-                        ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
-                        return RailConnectWithPlacePierResponse.CreateFailedResponse();
-                    }
+                    ServerContext.WorldBlockDatastore.RemoveBlock(placePosition, BlockRemoveReason.ManualRemove);
+                    return RailConnectWithPlacePierResponse.CreateFailedResponse();
                 }
             }
 

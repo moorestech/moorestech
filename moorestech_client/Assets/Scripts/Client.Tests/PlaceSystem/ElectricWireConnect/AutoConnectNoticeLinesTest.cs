@@ -14,8 +14,8 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
     /// </summary>
     public class AutoConnectNoticeLinesTest
     {
-        // 不足素材は空で渡すため、電線不足の期待キーは汎用の設置不可文言になる（不足素材ごとの行はElectricWireFeedbackLinesTestで検証）
-        // The shortages are passed empty, so the wire-shortage rows expect the generic wording (the per-material lines are covered by ElectricWireFeedbackLinesTest)
+        // 素材不足時は既定の不可文言になる
+        // On material shortage it falls back to the default cannot-place text
         // cursorWirePlaceable / cursorRawTargetCount / hasOutOfRangeNeighbor / totalCost / 期待キー(nullは行なし) / 期待戻り値
         // cursorWirePlaceable / cursorRawTargetCount / hasOutOfRangeNeighbor / totalCost / expected key (null means no line) / expected return
         private static readonly object[] ReportCases =

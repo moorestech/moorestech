@@ -43,13 +43,14 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             // Every connectTool in the test mod is initialUnlocked=false, so all start locked
             Assert.IsTrue(_unlockState.ConnectToolUnlockStateInfos.Values.All(info => !info.IsUnlocked));
 
-            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, out var materials, out var cost);
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, out var materials, out var cost, out var shortages);
 
             // 接続先はあるが解放済みツールが無いため、配線なしで設置だけ許可される
             // Targets exist but nothing is unlocked, so placement is allowed with no wiring at all
             Assert.IsTrue(selected);
             Assert.AreEqual(0, cost);
             Assert.IsNull(materials);
+            Assert.AreEqual(0, shortages.Count);
         }
 
         [Test]
@@ -57,7 +58,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             _unlockState.UnlockConnectTool(FirstElectricWireToolGuid());
 
-            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, out var materials, out var cost);
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, out var materials, out var cost, out var shortages);
 
             // 解放済みツールが選ばれ、距離に応じた電線コストと消費素材が返る
             // The unlocked tool is picked, returning the distance-based wire cost and the materials to consume
@@ -65,6 +66,35 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             Assert.Less(0, cost);
             Assert.IsNotNull(materials);
             Assert.IsTrue(materials.Any(material => material.ItemId == MasterHolder.ItemMaster.GetItemId(WireItemGuid) && 0 < material.Count));
+
+            // 成功時は消費素材だけが有効で、不足は空になる
+            // On success only the materials to consume are valid and the shortage stays empty
+            Assert.AreEqual(0, shortages.Count);
+        }
+
+        [Test]
+        // 失敗時は消費素材を返さず、表示用の不足素材だけをoutへ残す
+        // On failure no materials to consume are returned; only the display-side shortage stays in out
+        public void electricWireを解放していても電線0個なら選定失敗し不足素材をoutへ残す()
+        {
+            _unlockState.UnlockConnectTool(FirstElectricWireToolGuid());
+            var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
+            var emptyInventory = new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(ServerContext.ItemStackFactory.Create(wireItemId, 0)), Array.Empty<(ItemId itemId, int count)>());
+
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), emptyInventory, _unlockState, out var materials, out var cost, out var shortages);
+
+            Assert.IsFalse(selected);
+            Assert.AreEqual(0, cost);
+
+            // 消費素材は成功時のみ有効という契約なので失敗時はnullのまま
+            // Materials to consume are valid on success only, so they stay null on failure
+            Assert.IsNull(materials);
+
+            // 不足は実アイテムの所持0と必要数で返る
+            // The shortage carries the real item with zero held and its requirement
+            var wireShortage = shortages.First(shortage => shortage.ItemId == wireItemId);
+            Assert.AreEqual(0, wireShortage.Held);
+            Assert.Less(0, wireShortage.Required);
         }
 
         #region TestUtil

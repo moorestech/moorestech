@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
@@ -16,6 +14,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Input;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Construction;
 using Game.Train.RailGraph;
 using Game.Train.SaveLoad;
 using Mooresmaster.Model.BlocksModule;
@@ -34,8 +33,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         private readonly ILocalPlayerInventory _playerInventory;
         private readonly TrainRailPlaceSystemService _trainRailPlaceSystemService;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly ConstructionWalletQuery _constructionWalletQuery;
         private IRailComponentConnectAreaCollider _connectFromArea;
-        public TrainRailConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController controller, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore)
+        public TrainRailConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController controller, RailConnectPreviewObject previewObject, RailGraphClientCache cache, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, ConstructionWalletQuery constructionWalletQuery)
         {
             _mainCamera = mainCamera;
             _previewObject = previewObject;
@@ -43,6 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             _playerInventory = localPlayerInventory.LocalPlayerInventory;
             _trainRailPlaceSystemService = new TrainRailPlaceSystemService(mainCamera, controller);
             _blockGameObjectDataStore = blockGameObjectDataStore;
+            _constructionWalletQuery = constructionWalletQuery;
         }
         public override void Enable() { _connectFromArea = null; }
         protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
@@ -83,8 +84,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     {
                         // 橋脚未定義の場合は設置不可。仮にデフォルトの最大長で判定する
                         // No pier defined: still preview with default max length
-                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, connectToolGuid, out var noPierMaterialShortages);
-                        ShowPreview(previewData, noPierMaterialShortages);
+                        var previewData = CalculatePreviewData(fromDestination, position, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, float.MaxValue, connectToolGuid, null);
+                        ShowPreview(previewData);
                     }
                     else
                     {
@@ -97,8 +98,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         // No pier means a stale ConnectorPosition, so stop the connect preview too (the service already pushed the reason)
                         if (placeInfo == null) { _previewObject.SetActive(false); return; }
 
-                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, connectToolGuid, out var pierMaterialShortages);
-                        ShowPreview(previewData, pierMaterialShortages);
+                        // 橋脚の建設コストはレール素材より先に消費されるため予約として渡す（サーバーのRailConnectWithPlacePierProtocolと同じ合算）
+                        // The pier's construction cost is consumed before the rail materials, so it is passed as a reservation (the same sum the server's RailConnectWithPlacePierProtocol makes)
+                        var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, connectToolGuid, _constructionWalletQuery.GetItemsToConsume(pierBlockId));
+                        ShowPreview(previewData);
 
                         // 地面干渉でピアが設置不可なら接続も送らない
                         // Do not send the connect when the pier cell is terrain-blocked
@@ -128,15 +131,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     _connectFromArea = null;
                     return;
                 }
-                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, connectToolGuid, out var materialShortages);
-                ShowPreview(previewData, materialShortages);
+                var previewData = CalculatePreviewData(fromDestination, toDestination, _cache, _playerInventory, _blockGameObjectDataStore, connectToolGuid);
+                ShowPreview(previewData);
 
                 if (!previewData.IsPlaceable) return;
 
                 SendConnectRailProtocol(fromNode, toNode, previewData.RailTypeGuid);
             }
             #region Internal
-            void ShowPreview(TrainRailConnectPreviewData previewData, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
+            void ShowPreview(TrainRailConnectPreviewData previewData)
             {
                 if (!previewData.IsValid)
                 {
@@ -145,7 +148,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 _previewObject.SetActive(true);
                 _previewObject.ShowPreview(previewData);
-                TrainRailPlacementFailureTooltipKey.Report(previewData, materialShortages, feedback);
+                TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
             }
             void SendConnectRailProtocol(IRailNode from, IRailNode to, Guid railTypeGuid)
             {
@@ -168,25 +171,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 {
                     var response = await ClientContext.VanillaApi.Response.PlaceRailWithPier(fromNode.NodeId, fromNode.NodeGuid, pierBlockId, placeInfo, railTypeGuid, CancellationToken.None);
                     if (!response.Success) return;
-                    await UniTask.WhenAny(
-                        UniTask.WaitForSeconds(1f),
-                        UniTask.WaitUntil(() => _cache.TryGetNode(response.ToNodeId, out _))
-                    );
-                    if (_cache.TryGetNode(response.ToNodeId, out var node))
-                    {
-                        var pierBlock = _blockGameObjectDataStore.GetBlockGameObject(node.ConnectionDestination.blockPosition);
-                        TrainRailConnectAreaCollider[] areas = pierBlock.gameObject.GetComponentsInChildren<TrainRailConnectAreaCollider>();
-                        var area = areas.First(area =>
-                        {
-                            if (_cache.TryGetNodeId(area.CreateConnectionDestination(), out var nodeId) && _cache.TryGetNode(nodeId, out var clientNode))
-                            {
-                                return clientNode.NodeId == node.NodeId && clientNode.NodeGuid == node.NodeGuid;
-                            }
-                            return false;
-                        });
-                        _connectFromArea = area;
-                        Debug.Log("PierBlock", pierBlock);
-                    }
+
+                    // 設置済み橋脚の接続エリアが解決できたときだけ接続元を引き継ぐ
+                    // Hand the origin over only when the placed pier's connect area could be resolved
+                    var placedArea = await PlacedPierConnectAreaResolver.Resolve(_cache, _blockGameObjectDataStore, response.ToNodeId);
+                    if (placedArea != null) _connectFromArea = placedArea;
                 });
             }
             IRailComponentConnectAreaCollider GetTrainRailConnectAreaCollider()

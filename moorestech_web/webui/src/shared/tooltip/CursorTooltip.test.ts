@@ -71,7 +71,9 @@ describe("CursorTooltip", () => {
   it("renders every line in order", () => {
     setDictionaries("english", {
       [L.ui.tooltip.placeBlockedByTerrain]: "Blocked by terrain",
-      [L.ui.tooltip.placeMaterialShortage]: "{p0} {p1}/{p2}",
+      // 実辞書と同じ接頭辞つき書式を使う（webui側は{pN}補間のみを担う）
+      // Uses the same prefixed wording as the real dictionary; the webui side only interpolates {pN}
+      [L.ui.tooltip.placeMaterialShortage]: "Missing item: {p0} {p1}/{p2}",
     }, {}, {});
 
     expect(resolveTooltipLines({
@@ -80,7 +82,7 @@ describe("CursorTooltip", () => {
         { textKey: L.ui.tooltip.placeBlockedByTerrain, textParams: [] },
         { textKey: L.ui.tooltip.placeMaterialShortage, textParams: ["Iron Plate", "3", "10"] },
       ],
-    }, createTranslator(getI18nSnapshot()))).toEqual(["Blocked by terrain", "Iron Plate 3/10"]);
+    }, createTranslator(getI18nSnapshot()))).toEqual(["Blocked by terrain", "Missing item: Iron Plate 3/10"]);
   });
 
   it("shows a loud marker for an unknown localized key", () => {

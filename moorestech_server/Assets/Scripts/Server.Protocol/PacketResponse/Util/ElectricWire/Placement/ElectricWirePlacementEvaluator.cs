@@ -42,7 +42,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
             // For each material, verify held count covers the requirement plus any reservation
             foreach (var material in materials)
             {
-                var reserved = SumReserved(material.ItemId);
+                var reserved = ConnectToolMaterialConsumer.SumReserved(reservedMaterials, material.ItemId);
                 if (!HasEnoughItem(material.ItemId, material.Count + reserved))
                     return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
             }
@@ -50,19 +50,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
             return ElectricWirePlacementJudgement.Success(new ElectricWireConnectionCost(materials));
 
             #region Internal
-
-            int SumReserved(ItemId itemId)
-            {
-                // 予約リスト中の同一アイテム数を合計する
-                // Sum the reserved amount of the same item in the reservation list
-                if (reservedMaterials == null) return 0;
-                var reserved = 0;
-                foreach (var material in reservedMaterials)
-                {
-                    if (material.ItemId == itemId) reserved += material.Count;
-                }
-                return reserved;
-            }
 
             bool HasEnoughItem(ItemId itemId, int required)
             {

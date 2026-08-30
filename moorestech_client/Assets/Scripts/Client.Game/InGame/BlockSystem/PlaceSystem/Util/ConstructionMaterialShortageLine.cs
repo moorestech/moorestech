@@ -7,8 +7,8 @@ using Mooresmaster.Localization.Generated;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     /// <summary>
-    /// 不足素材1件を、アイテム名・所持数・必要数のパラメータを持つ素材不足キーの行へ写像する
-    /// Maps one short construction material to the material-shortage key line carrying item name, held and required params
+    /// 不足素材1件をアイテム名・所持・必要のパラメータへ写像する
+    /// Maps one short material to a line with item name, held and required params
     /// 表示文言（接頭辞や並び）の正本はlocalization.csv側にある
     /// The wording itself (prefix and ordering) is owned by localization.csv
     /// </summary>

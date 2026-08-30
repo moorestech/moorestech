@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.UI.Tooltip;
-using Core.Item.Interface;
 using Mooresmaster.Localization.Generated;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 
@@ -33,25 +30,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.F
 
         // 判定の失敗理由と消費電線数を積む（接続・延長設置の両モードで共有する手順）
         // Push the judgement failure reason and the wire cost (the shape both connect and extend modes shared)
-        public static void Report(ElectricWirePlacementJudgement judgement, Guid connectToolGuid, float distance, IEnumerable<IItemStack> inventoryItems, PlacementFeedback feedback)
+        // 不足素材は判定と同じ入力から算出済みのものを受け取る（表示層が再算出すると予約分を取りこぼす）
+        // The shortages arrive already derived from the judgement's own inputs; recomputing here would drop the reservation
+        public static void Report(ElectricWireExtendPreviewData preview, PlacementFeedback feedback)
         {
-            // 素材不足だけは不足アイテムを名指しするため行が複数になりうる
-            // Only the material shortage names the actual items, so it can span several lines
-            if (!judgement.IsPlaceable)
+            // 素材不足は複数行になりうる
+            // Material shortage alone can span multiple lines
+            if (!preview.IsPlaceable)
             {
-                if (judgement.FailureReason == ElectricWirePlacementFailureReason.NoWireItem) feedback.AddLines(ElectricWireFeedbackLines.WireShortageLines(connectToolGuid, distance, inventoryItems));
-                else feedback.Add(new TooltipLine(ToKey(judgement.FailureReason)));
+                if (preview.Judgement.FailureReason == ElectricWirePlacementFailureReason.NoWireItem) feedback.AddLines(ElectricWireFeedbackLines.WireShortageLines(preview.MaterialShortages));
+                else feedback.Add(new TooltipLine(ToKey(preview.Judgement.FailureReason)));
             }
 
-            if (ElectricWireFeedbackLines.TryWireCost(ResolveCostCount(judgement, connectToolGuid, distance), out var costLine)) feedback.Add(costLine);
-        }
-
-        // 成功/失敗どちらもコストを返す(失敗時は距離算出)
-        // Returns a cost on success or failure (failure derives it from distance)
-        private static int ResolveCostCount(ElectricWirePlacementJudgement judgement, Guid connectToolGuid, float distance)
-        {
-            if (judgement.IsPlaceable) return judgement.WireCost.TotalCount;
-            return ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var cost) ? cost.TotalCount : 0;
+            if (ElectricWireFeedbackLines.TryWireCost(preview.WireCostCount, out var costLine)) feedback.Add(costLine);
         }
     }
 }

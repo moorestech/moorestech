@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Core.Master;
 using Game.UnlockState;
 using Mooresmaster.Model.BuildMenuModule;
@@ -19,13 +20,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         /// <summary>
         /// 全ターゲットを賄えるconnectToolをSortPriority順に選ぶ（サーバーと同じ選定規則）
         /// Picks the connectTool covering all targets in SortPriority order (same rule as the server)
-        /// selectedMaterialsは選ばれたツールの素材。どれも賄えなかったときは最優先ツールの必要素材が入り、不足行の算出に使える
-        /// selectedMaterials holds the picked tool's materials; when none is affordable it holds the top-priority tool's requirement, so the shortage lines can be derived from it
+        /// selectedMaterialsは選ばれたツールの素材で成功時のみ有効。shortagesは失敗時のみ非空で、表示専用の不足素材を運ぶ
+        /// selectedMaterials holds the picked tool's materials and is valid on success only; shortages is non-empty on failure only and carries the display-side shortage
         /// </summary>
-        public static bool TrySelect(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, IGameUnlockStateData gameUnlockStateData, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost)
+        public static bool TrySelect(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, IGameUnlockStateData gameUnlockStateData, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost, out IReadOnlyList<ConstructionMaterialShortage> shortages)
         {
             selectedMaterials = null;
             selectedCost = 0;
+            shortages = Array.Empty<ConstructionMaterialShortage>();
 
             // 接続先なし・electricWire未設定マスタは自動接続なしで設置可
             // No targets or no configured electricWire connectTool allows placement without auto-connect
@@ -41,21 +43,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // With zero unlocked tools, allow placement without auto-connect (matches the server's unlockedTools.Count == 0 branch)
             if (electricWireTools.Count == 0) return true;
 
-            // 最優先で算出できたツールの必要素材を控えておき、どれも賄えなかったときの不足表示に使う
-            // Remember the top-priority tool whose cost is computable, to describe the shortage when nothing is affordable
-            IReadOnlyList<ConnectToolMaterialCost> preferredMaterials = null;
+            // どのツールも賄えなかったときに出す不足は、最初にコスト算出できたツールのものを使う
+            // When no tool is affordable, the shortage shown is the one from the first tool whose cost could be computed
+            IReadOnlyList<ConstructionMaterialShortage> firstShortages = null;
             foreach (var element in electricWireTools)
             {
                 if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
-                preferredMaterials ??= materials;
-                if (!virtualInventory.CanAfford(materials)) continue;
+                if (!virtualInventory.CanAfford(materials))
+                {
+                    firstShortages ??= virtualInventory.CalculateShortages(materials);
+                    continue;
+                }
 
                 selectedMaterials = materials;
                 selectedCost = cost;
                 return true;
             }
 
-            selectedMaterials = preferredMaterials;
+            // 1件もコスト算出できなかったときは空のまま返し、呼び出し元が汎用文言へ落とす
+            // With no computable cost at all the shortage stays empty and the caller falls back to the generic wording
+            shortages = firstShortages ?? Array.Empty<ConstructionMaterialShortage>();
             return false;
 
             #region Internal

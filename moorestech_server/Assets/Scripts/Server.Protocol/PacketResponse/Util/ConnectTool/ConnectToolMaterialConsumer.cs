@@ -24,9 +24,22 @@ namespace Server.Protocol.PacketResponse.Util.ConnectTool
             return list;
         }
 
-        // 各素材の所持合計が必要数を満たすか
-        // Whether the summed held count of each material meets its requirement
-        public static bool HasEnough(IReadOnlyList<ConnectToolMaterialCost> materials, IReadOnlyList<IItemStack> inventoryItems)
+        // 予約リスト中の同一アイテム数を合計する。判定・不足算出が必要数へ上乗せする唯一の定義
+        // The single definition of the reserved amount per item that judgements and shortage calculations add on top
+        public static int SumReserved(IReadOnlyList<ConnectToolMaterialCost> reservedMaterials, ItemId itemId)
+        {
+            if (reservedMaterials == null) return 0;
+            var reserved = 0;
+            foreach (var reservedMaterial in reservedMaterials)
+            {
+                if (reservedMaterial.ItemId == itemId) reserved += reservedMaterial.Count;
+            }
+            return reserved;
+        }
+
+        // 各素材の所持合計が、予約分を上乗せした必要数を満たすか
+        // Whether the summed held count of each material meets its requirement plus the reservation
+        public static bool HasEnough(IReadOnlyList<ConnectToolMaterialCost> materials, IReadOnlyList<IItemStack> inventoryItems, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
         {
             if (materials == null) return true;
             foreach (var material in materials)
@@ -37,7 +50,7 @@ namespace Server.Protocol.PacketResponse.Util.ConnectTool
                     if (stack.Id != material.ItemId) continue;
                     total += stack.Count;
                 }
-                if (total < material.Count) return false;
+                if (total < material.Count + SumReserved(reservedMaterials, material.ItemId)) return false;
             }
             return true;
         }

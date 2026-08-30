@@ -1,11 +1,15 @@
 using System;
+using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Localization;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using Server.Boot;
 using Server.Protocol.PacketResponse;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.TrainRailConnect
@@ -16,12 +20,15 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
     /// </summary>
     public class TrainRailPlacementFailureTooltipKeyTest
     {
+        private static readonly Guid RailMaterial1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003");
+        private static readonly Guid RailMaterial2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004");
+
         [Test]
         public void 失敗理由ごとにツールチップキーへ写像する()
         {
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailLengthExceeded.Key, TrainRailPlacementFailureTooltipKey.ToKey(RailConnectionEditProtocol.RailConnectionEditFailureReason.RailLengthExceeded).Key);
-            // 素材不足は写像を持たず、名指しの行が作れないときの落とし先と同じ既定文言になる
-            // The material shortage has no mapping of its own and lands on the same default used when no named line can be built
+            // 素材不足の期待キーは既定の不可文言になる
+            // The material shortage's expected key is the default cannot-place text
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailFailed.Key, TrainRailPlacementFailureTooltipKey.ToKey(RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailFailed.Key, TrainRailPlacementFailureTooltipKey.ToKey(RailConnectionEditProtocol.RailConnectionEditFailureReason.InvalidNode).Key);
         }
@@ -34,7 +41,7 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             var previewData = CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason.RailLengthExceeded, true);
             var feedback = new PlacementFeedback();
 
-            TrainRailPlacementFailureTooltipKey.Report(previewData, Array.Empty<ConstructionMaterialShortage>(), feedback);
+            TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailLengthExceeded.Key, feedback.Lines[0].Key.Key);
@@ -50,7 +57,7 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             var previewData = CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem, false);
             var feedback = new PlacementFeedback();
 
-            TrainRailPlacementFailureTooltipKey.Report(previewData, Array.Empty<ConstructionMaterialShortage>(), feedback);
+            TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
 
             Assert.AreEqual(2, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailFailed.Key, feedback.Lines[0].Key.Key);
@@ -65,7 +72,7 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             var previewData = CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason.None, false);
             var feedback = new PlacementFeedback();
 
-            TrainRailPlacementFailureTooltipKey.Report(previewData, Array.Empty<ConstructionMaterialShortage>(), feedback);
+            TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight.Key, feedback.Lines[0].Key.Key);
@@ -79,17 +86,60 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
             var previewData = CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason.None, true);
             var feedback = new PlacementFeedback();
 
-            TrainRailPlacementFailureTooltipKey.Report(previewData, Array.Empty<ConstructionMaterialShortage>(), feedback);
+            TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
 
             Assert.AreEqual(0, feedback.Lines.Count);
+        }
+
+        [Test]
+        // 素材不足は不足素材ごとの実アイテム名行になり、カーブ理由行はその後に続く
+        // A material shortage becomes one real-item-name line per material, followed by the curve reason line
+        public void 素材不足は不足素材ごとの行になりカーブ理由行が後に続く()
+        {
+            CreateServer();
+            var feedback = new PlacementFeedback();
+            var shortages = new[]
+            {
+                new ConstructionMaterialShortage(MasterHolder.ItemMaster.GetItemId(RailMaterial1Guid), 1, 12),
+                new ConstructionMaterialShortage(MasterHolder.ItemMaster.GetItemId(RailMaterial2Guid), 2, 5),
+            };
+            var previewData = CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason.NotEnoughRailItem, false, shortages);
+
+            TrainRailPlacementFailureTooltipKey.Report(previewData, feedback);
+
+            Assert.AreEqual(3, feedback.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(RailMaterial1Guid)), feedback.Lines[0].TextParams[0]);
+            Assert.AreEqual("1", feedback.Lines[0].TextParams[1]);
+            Assert.AreEqual("12", feedback.Lines[0].TextParams[2]);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[1].Key.Key);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(RailMaterial2Guid)), feedback.Lines[1].TextParams[0]);
+            Assert.AreEqual("2", feedback.Lines[1].TextParams[1]);
+            Assert.AreEqual("5", feedback.Lines[1].TextParams[2]);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceRailCurveTooTight.Key, feedback.Lines[2].Key.Key);
+
+            #region Internal
+
+            void CreateServer()
+            {
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+                Localize.Initialize();
+            }
+
+            #endregion
         }
 
         // テスト用にPreviewDataを組み立てる
         // Builds a PreviewData for testing
         private static TrainRailConnectPreviewData CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, bool isCurvePlaceable)
         {
+            return CreatePreviewData(failureReason, isCurvePlaceable, Array.Empty<ConstructionMaterialShortage>());
+        }
+
+        private static TrainRailConnectPreviewData CreatePreviewData(RailConnectionEditProtocol.RailConnectionEditFailureReason failureReason, bool isCurvePlaceable, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
+        {
             var judgement = new RailPlacementJudgement(failureReason, Guid.NewGuid(), Array.Empty<ConnectToolMaterialCost>());
-            return new TrainRailConnectPreviewData(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, judgement, isCurvePlaceable);
+            return new TrainRailConnectPreviewData(Vector3.zero, Vector3.zero, Vector3.zero, Vector3.zero, judgement, isCurvePlaceable, materialShortages);
         }
     }
 }

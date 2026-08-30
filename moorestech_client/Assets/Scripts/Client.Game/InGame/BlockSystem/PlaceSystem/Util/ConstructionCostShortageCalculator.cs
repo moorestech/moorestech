@@ -49,8 +49,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return shortages;
         }
 
-        // guid指定の必要数はitemIdへ解決してから同じ突き合わせに載せる
-        // Guid-keyed requirements are resolved to item ids and fed to the same match
+        // guidをitemIdへ解決してから突き合わせる
+        // Resolves guids to item ids before the same match
         public static List<(ItemId itemId, int held, int required)> CalculateRequirements(IReadOnlyList<(Guid itemGuid, int count)> requiredItems, IReadOnlyDictionary<ItemId, int> heldByItem)
         {
             var resolved = new List<(ItemId itemId, int count)>(requiredItems.Count);

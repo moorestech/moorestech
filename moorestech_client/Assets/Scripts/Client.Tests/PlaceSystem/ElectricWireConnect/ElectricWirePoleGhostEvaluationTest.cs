@@ -93,7 +93,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             var poleBlockId = ForUnitTestModBlockId.ElectricPoleId;
             var placeInfos = new List<PlaceInfo> { new() { Position = Vector3Int.zero, Placeable = isGroundClear && isPositionFree } };
-            return new ElectricWirePoleGhostEvaluation(placeInfos, MasterHolder.BlockMaster.GetBlockMaster(poleBlockId), poleBlockId, isGroundClear, isPositionFree, shortages);
+            return new ElectricWirePoleGhostEvaluation(placeInfos, MasterHolder.BlockMaster.GetBlockMaster(poleBlockId), poleBlockId, isGroundClear, isPositionFree, shortages, Array.Empty<(ItemId itemId, int count)>());
         }
 
         private static List<ConstructionMaterialShortage> BuildShortages()
