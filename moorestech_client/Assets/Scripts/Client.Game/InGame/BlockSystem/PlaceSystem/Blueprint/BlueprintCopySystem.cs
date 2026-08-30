@@ -150,8 +150,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             _isAwaitingName = false;
         }
 
-        // 右短押し/Escで範囲選択中のドラッグだけを解除する。ドラッグしていなければ解除対象なし
-        // A right short press / Esc cancels only an in-progress box drag; without a drag there is nothing to cancel
+        // 右短押しでドラッグ中の範囲選択を解除
+        // A right short press cancels an in-progress box drag
         public override bool TryCancelInProgressOperation()
         {
             if (!_isDragging) return false;

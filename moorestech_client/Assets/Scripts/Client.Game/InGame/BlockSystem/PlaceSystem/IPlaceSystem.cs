@@ -15,8 +15,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 
         public void Disable();
 
-        // 進行中の操作（起点保持・範囲選択等）だけを解除する。解除したものがあればtrue。無ければfalseで呼び出し側がモードを閉じる
-        // Cancels only an in-progress operation (held origin, box selection, ...); true when something was cancelled, false lets the caller close the mode
+        // 進行中操作を解除、false時は呼出元が閉じる
+        // Cancels only an in-progress operation; true when something was cancelled, false lets the caller close the mode
         public bool TryCancelInProgressOperation();
     }
 

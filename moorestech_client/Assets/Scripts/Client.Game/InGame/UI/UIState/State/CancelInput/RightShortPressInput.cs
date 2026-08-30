@@ -11,7 +11,7 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
     /// </summary>
     public class RightShortPressInput
     {
-        public const float MoveThresholdPixels = 8f;
+        private const float MoveThresholdPixels = 8f;
 
         private bool _isHeld;
 
@@ -50,7 +50,14 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
             // Arms on press start (unless over UI) and confirms on release only while still armed
             void HandleHeldChanged(bool nextHeld)
             {
-                if (!nextHeld && _isArmed) _shortPressPending = true;
+                // 離しフレームの移動も確定前に加算する。高速ドラッグの移動が離しフレームに集中しても閾値判定から漏れない
+                // Accumulate the release frame's movement before confirming, so a fast drag whose movement lands on the release frame is still caught
+                if (!nextHeld)
+                {
+                    _movedDistance += pointerDelta.magnitude;
+                    if (MoveThresholdPixels <= _movedDistance) _isArmed = false;
+                    if (_isArmed) _shortPressPending = true;
+                }
 
                 _isHeld = nextHeld;
                 if (nextHeld) _movedDistance = 0f;

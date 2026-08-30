@@ -110,8 +110,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
             ResetState();
         }
 
-        // 右短押し/Escで延長の起点だけを解除する。起点が無ければ解除対象なし
-        // A right short press / Esc releases only the extension source pole; without one there is nothing to cancel
+        // 右短押しで延長起点のみ解除
+        // A right short press releases only the extension source pole
         public bool TryCancelInProgressOperation()
         {
             if (_sourcePole == null) return false;

@@ -200,8 +200,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             }
             #endregion
         }
-        // 右短押し/Escで接続の起点だけを解除し、起点基準のプレビューも消す。起点が無ければ解除対象なし
-        // A right short press / Esc releases only the connection origin and hides its preview; without an origin there is nothing to cancel
+        // 右短押しで接続の起点だけを解除し、起点基準のプレビューも消す。起点が無ければ解除対象なし
+        // A right short press releases only the connection origin and hides its preview; without an origin there is nothing to cancel
         public override bool TryCancelInProgressOperation()
         {
             if (_connectFromArea == null) return false;

@@ -90,8 +90,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             _extendMode.Update(new PlaceSystemUpdateContext(target, isSelectionChanged, feedback), _sourceBlock);
         }
 
-        // 右短押し/Escで起点を解除し、進行中の応答を無効化する。起点なしの孤立設置の応答待ちも明示キャンセルとして止める
-        // A right short press / Esc releases the origin and invalidates any pending response, including an originless isolated placement still awaiting one
+        // 右短押しで起点解除と応答無効化（孤立設置含む）
+        // A right short press releases the origin and invalidates any pending response, including an isolated placement
         public override bool TryCancelInProgressOperation()
         {
             var hadInProgress = _sourceBlock != null || _context.RequestSender.IsAwaitingResponse;
