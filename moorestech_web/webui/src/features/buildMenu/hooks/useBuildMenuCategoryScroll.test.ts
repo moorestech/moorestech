@@ -1,7 +1,8 @@
 import { createElement } from "react";
 import { act, create } from "react-test-renderer";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useBuildMenuCategoryScroll } from "./useBuildMenuCategoryScroll";
+import { loadBuildMenuSessionState, updateBuildMenuSessionState } from "../sessionState/buildMenuSessionState";
 
 type HookResult = ReturnType<typeof useBuildMenuCategoryScroll>;
 
@@ -92,6 +93,12 @@ function withFakeResizeObserver(run: () => void) {
 }
 
 describe("useBuildMenuCategoryScroll", () => {
+  // 復元・保存はフックが担うため、保存位置をテスト間で持ち越さない
+  // The hook owns restore and save, so the saved position must not carry across tests
+  beforeEach(() => {
+    updateBuildMenuSessionState({ scrollTop: 0 });
+  });
+
   it("jumpTo後、目標未到達のscrollではハイライトが動かない", () => {
     let latest!: HookResult;
     create(
@@ -245,6 +252,9 @@ describe("useBuildMenuCategoryScroll", () => {
       create(
         createElement(Harness, { visibleCategoryGuids: ["a", "b"], onRender: (result) => { latest = result; } }),
       );
+      // 視口の初期位置は保存位置の復元で決まるため、両者を揃えて開き直し直後を模す
+      // The viewport's initial position comes from restoring the saved one, so keep both in sync to model a reopen
+      updateBuildMenuSessionState({ scrollTop: 350 });
       const vp = fakeViewport({ scrollTop: 350 });
       const headingA = fakeHeading(0);
       const headingB = fakeHeading(400);
@@ -348,5 +358,92 @@ describe("useBuildMenuCategoryScroll", () => {
       );
     });
     expect(latest.activeCategoryGuid).toBe("b");
+  });
+  it("末尾群が未マウントの間は復元も保存位置の上書きもしない", () => {
+    updateBuildMenuSessionState({ scrollTop: 250 });
+    let latest!: HookResult;
+    const renderer = create(
+      createElement(Harness, { visibleCategoryGuids: ["z", "a"], onRender: (result) => { latest = result; } }),
+    );
+    const vp = fakeViewport({ clientHeight: 600 });
+    act(() => { latest.attachViewport(vp); });
+
+    // 末尾群が無い＝スペーサ実測不能。ここで実測済み扱いにすると保存位置がクランプで0へ潰れる
+    // No trailing group means the spacer is unmeasurable; treating it as measured clamps the saved position to 0
+    expect(latest.spacerHeight).toBe(0);
+    expect(vp.scrollTop).toBe(0);
+    expect(loadBuildMenuSessionState().scrollTop).toBe(250);
+
+    act(() => {
+      latest.attachGroup("a")(fakeGroup(200));
+      renderer.update(
+        createElement(Harness, { visibleCategoryGuids: ["y", "a"], onRender: (result) => { latest = result; } }),
+      );
+    });
+    // 実測が済んだ時点でフック自身が保存位置へ戻す
+    // Once measured, the hook itself restores the saved position
+    expect(latest.spacerHeight).toBe(400);
+    expect(vp.scrollTop).toBe(250);
+    expect(loadBuildMenuSessionState().scrollTop).toBe(250);
+  });
+
+  it("表示群が入れ替わった後のwheel解除でも最新の見出し集合で現在地を測り直す", () => {
+    let latest!: HookResult;
+    const renderer = create(
+      createElement(Harness, { visibleCategoryGuids: ["a"], onRender: (result) => { latest = result; } }),
+    );
+    const vp = fakeViewport();
+    act(() => {
+      latest.attachViewport(vp);
+      latest.headingRef("a")(fakeHeading(0));
+    });
+    act(() => {
+      renderer.update(
+        createElement(Harness, { visibleCategoryGuids: ["a", "b"], onRender: (result) => { latest = result; } }),
+      );
+      latest.headingRef("b")(fakeHeading(400));
+    });
+
+    act(() => latest.jumpTo("b"));
+    act(() => {
+      vp.scrollTop = 400;
+      vp.dispatch("wheel");
+    });
+    // 初期クロージャを購読へ焼くと見出し集合が["a"]のままで、必ず"a"へ落ちる
+    // Freezing the first closure into the subscription keeps the heading set at ["a"] and always falls back to "a"
+    expect(latest.activeCategoryGuid).toBe("b");
+  });
+
+  it("末尾ジャンプ中にスペーサが伸びたら、反映後の高さで目標を引き直す", () => {
+    withFakeResizeObserver(() => {
+      updateBuildMenuSessionState({ scrollTop: 0 });
+      let latest!: HookResult;
+      create(
+        createElement(Harness, { visibleCategoryGuids: ["a", "b"], onRender: (result) => { latest = result; } }),
+      );
+      const vp = fakeViewport({ clientHeight: 600 });
+      // 内容高700に確定済みスペーサを足したものがscrollHeight。latestはコミット済みの値なのでDOM反映を模せる
+      // scrollHeight is the 700px content plus the committed spacer; latest holds the committed value, so it models the DOM
+      Object.defineProperty(vp, "scrollHeight", { get: () => 700 + latest.spacerHeight });
+      act(() => {
+        latest.attachViewport(vp);
+        latest.headingRef("a")(fakeHeading(0));
+        latest.headingRef("b")(fakeHeading(300));
+      });
+
+      // スペーサ未実測では最大スクロールが100しかなく、目標はクランプされる
+      // Without the spacer the max scroll is only 100, so the target is clamped
+      act(() => latest.jumpTo("b"));
+      expect(vp.scrollTo).toHaveBeenLastCalledWith({ top: 100, behavior: "smooth" });
+
+      act(() => {
+        latest.attachGroup("b")(fakeGroup(100));
+        for (const observer of FakeResizeObserver.instances) observer.fire();
+      });
+      // 反映前のscrollHeightで引き直すと100のまま到達扱いになり、見出しは視口上端へ来ない
+      // Re-targeting on the pre-commit scrollHeight keeps 100 and calls it arrived, leaving the heading short of the top
+      expect(latest.spacerHeight).toBe(500);
+      expect(vp.scrollTo).toHaveBeenLastCalledWith({ top: 300, behavior: "smooth" });
+    });
   });
 });

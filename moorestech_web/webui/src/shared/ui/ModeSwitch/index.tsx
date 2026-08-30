@@ -13,7 +13,9 @@ export type ModeSwitchOption = {
 };
 
 type Props = {
-  value: string;
+  // 無選択はnull。空文字センチネルを呼び出し側へ広げない
+  // No selection is null; this keeps an empty-string sentinel from spreading to callers
+  value: string | null;
   options: ModeSwitchOption[];
   onChange: (value: string) => void;
   orientation?: "horizontal" | "vertical";

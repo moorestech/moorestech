@@ -35,28 +35,31 @@ export function groupBuildMenuCategories(
   categories: BuildMenuCategory[],
   entries: BuildMenuDisplayEntry[],
 ): BuildMenuCategoryGroup[] {
-  return categories
-    .map((category) => ({
-      categoryGuid: category.categoryGuid,
-      sections: category.subCategoryGuids
-        .map((subCategoryGuid) => ({
-          categoryGuid: category.categoryGuid,
-          subCategoryGuid,
-          entries: entries.filter((entry) =>
-            entry.categoryGuid === category.categoryGuid && entry.subCategoryGuid === subCategoryGuid),
-        }))
-        .filter((section) => section.entries.length > 0),
-    }))
-    .filter((group) => group.sections.length > 0);
-}
+  // 全カテゴリ常時マウントでは総当たり走査が操作1回ごとに全スロット分効くため、1パスのバケツ分けで配る
+  // With every category mounted, a nested rescan runs across all slots on each interaction, so bucket the entries in one pass
+  const bucketsByCategory = new Map<string, Map<string, BuildMenuDisplayEntry[]>>();
+  for (const entry of entries) {
+    const buckets = bucketsByCategory.get(entry.categoryGuid) ?? new Map<string, BuildMenuDisplayEntry[]>();
+    bucketsByCategory.set(entry.categoryGuid, buckets);
+    const bucket = buckets.get(entry.subCategoryGuid) ?? [];
+    buckets.set(entry.subCategoryGuid, bucket);
+    bucket.push(entry);
+  }
 
-// エントリを1件以上持つカテゴリのguidを定義順で返す（サイドバー表示専用、sectionsは組まない）
-// Returns guids, in definition order, of categories that have at least one entry (sidebar-only; does not build sections)
-export function categoriesWithEntries(categories: BuildMenuCategory[], entries: BuildMenuDisplayEntry[]): string[] {
-  const guidsWithEntries = new Set(entries.map((entry) => entry.categoryGuid));
-  return categories
-    .filter((category) => guidsWithEntries.has(category.categoryGuid))
-    .map((category) => category.categoryGuid);
+  const groups: BuildMenuCategoryGroup[] = [];
+  for (const category of categories) {
+    const buckets = bucketsByCategory.get(category.categoryGuid);
+    if (buckets === undefined) continue;
+    const sections: BuildMenuSection[] = [];
+    for (const subCategoryGuid of category.subCategoryGuids) {
+      const sectionEntries = buckets.get(subCategoryGuid);
+      if (sectionEntries === undefined) continue;
+      sections.push({ categoryGuid: category.categoryGuid, subCategoryGuid, entries: sectionEntries });
+    }
+    if (sections.length === 0) continue;
+    groups.push({ categoryGuid: category.categoryGuid, sections });
+  }
+  return groups;
 }
 
 // 表示名の部分一致検索（大文字小文字無視）。空文字は全件

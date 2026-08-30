@@ -1,10 +1,9 @@
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ScrollArea } from "@mantine/core";
 import { useTopic, dispatchAction, Topics, UiStateNames } from "@/bridge";
 import { GamePanel, IconButton } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
 import {
-  categoriesWithEntries,
   groupBuildMenuCategories,
   localizeBuildMenuEntries,
   searchBuildMenuEntries,
@@ -30,51 +29,24 @@ export function BuildMenuPanel() {
   const [hoveredId, setHoveredId] = useState<string | null>(stored.hoveredEntryId);
 
   // 表示名を一度解決し全表示へ共有。サイドバーは絞り込み前、リストは絞り込み後の群を見る
-  // Resolve display names once; the sidebar sees unfiltered categories, the list sees filtered groups
+  // Resolve display names once; the sidebar sees unfiltered groups, the list sees filtered ones
   const displayEntries = data ? localizeBuildMenuEntries(data.entries, t) : [];
   const searching = query !== "";
+  // 「中身のあるカテゴリ」の判定を群化1本へ寄せる。別基準を持つとサイドバーに恒久disabledのカテゴリが出る
+  // Derives "categories with content" from the one grouping; a second criterion leaves permanently disabled categories in the sidebar
+  const allGroups = data ? groupBuildMenuCategories(data.categories, displayEntries) : [];
   // 非検索時はsearchBuildMenuEntries("")が入力をそのまま返すため、絞り込み計算自体を省く
   // searchBuildMenuEntries("") returns the input unchanged, so skip the filtering step entirely outside search
-  const shownGroups = data
-    ? groupBuildMenuCategories(data.categories, searching ? searchBuildMenuEntries(query, displayEntries) : displayEntries)
-    : [];
+  const shownGroups = data && searching
+    ? groupBuildMenuCategories(data.categories, searchBuildMenuEntries(query, displayEntries))
+    : allGroups;
   const shownGuids = shownGroups.map((group) => group.categoryGuid);
   const scroll = useBuildMenuCategoryScroll(shownGuids);
-
-  // ref callbackはidentityを固定し、毎レンダーのRO付け外し・強制レイアウト読みを防ぐ
-  // Fix the ref callback's identity so re-renders don't thrash the observer with forced-layout reads
-  const scrollRestoredRef = useRef(false);
-  const scrollViewportRef = useRef<HTMLDivElement | null>(null);
-  const attachScrollViewport = useCallback((viewport: HTMLDivElement | null) => {
-    scroll.attachViewport(viewport);
-    // 保存先は常に最新視口（nullも含めアンマウント検出に使う）
-    // Save target always tracks the latest viewport, including null for unmount detection
-    scrollViewportRef.current = viewport;
-  }, [scroll.attachViewport]);
-  // 末尾スペーサの実測完了後に1回だけ復元する。計測前に代入するとクランプ値でストアを潰す
-  // Restore only after the trailing spacer has been measured once; assigning before that corrupts the store with a clamped value
-  useLayoutEffect(() => {
-    if (scrollRestoredRef.current) return;
-    if (!scroll.spacerMeasured) return;
-    const viewport = scrollViewportRef.current;
-    if (viewport === null) return;
-    scrollRestoredRef.current = true;
-    viewport.scrollTop = loadBuildMenuSessionState().scrollTop;
-    // クランプ後の実効値へ揃え直す
-    // Realign the store with the clamped effective value
-    updateBuildMenuSessionState({ scrollTop: viewport.scrollTop });
-  }, [scroll.spacerMeasured]);
-  // scrollイベントは次フレームまで合体されアンマウントに間に合わないため、DOM除去前の実効値を確定保存する
-  // Scroll events coalesce until the next frame and miss the unmount, so persist the effective value before DOM removal
-  useLayoutEffect(() => () => {
-    if (scrollViewportRef.current === null) return;
-    updateBuildMenuSessionState({ scrollTop: scrollViewportRef.current.scrollTop });
-  }, []);
   if (!data) return null;
 
-  const sidebarItems = categoriesWithEntries(data.categories, displayEntries).map((categoryGuid) => ({
-    categoryGuid,
-    disabled: !shownGuids.includes(categoryGuid),
+  const sidebarItems = allGroups.map((group) => ({
+    categoryGuid: group.categoryGuid,
+    disabled: !shownGuids.includes(group.categoryGuid),
   }));
 
   // sticky:離脱で消さず引き直す
@@ -90,11 +62,6 @@ export function BuildMenuPanel() {
     setQuery(next);
     updateBuildMenuSessionState({ query: next });
   };
-  const onScroll = (y: number) => {
-    updateBuildMenuSessionState({ scrollTop: y });
-    scroll.handleScroll(y);
-  };
-
   const select = (entry: BuildMenuDisplayEntry) =>
     void dispatchAction("build_menu.select", { id: entry.id });
   // BPのGuidを設置対象と削除対象の共通identityとして使う
@@ -116,7 +83,7 @@ export function BuildMenuPanel() {
             <div className={styles.sidebar}>
               <CategorySidebar
                 categories={sidebarItems}
-                selected={scroll.activeCategoryGuid ?? ""}
+                selected={scroll.activeCategoryGuid}
                 onSelect={scroll.jumpTo}
               />
             </div>
@@ -125,8 +92,8 @@ export function BuildMenuPanel() {
               <ScrollArea
                 className={styles.scroll}
                 type="auto"
-                viewportRef={attachScrollViewport}
-                onScrollPositionChange={({ y }) => onScroll(y)}
+                viewportRef={scroll.attachViewport}
+                onScrollPositionChange={({ y }) => scroll.handleScroll(y)}
               >
                 {shownGroups.length === 0 && searching ? (
                   <span className={styles.noHit}>{t(L.ui.buildMenu.noResults)}</span>

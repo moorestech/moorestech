@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../../bridge/contract/payloadTypes";
 import { connectToolNameKey, trainCarNameKey } from "@/shared/i18n";
 import {
-  categoriesWithEntries,
   groupBuildMenuCategories,
   localizeBuildMenuEntries,
   searchBuildMenuEntries,
@@ -55,6 +54,15 @@ describe("groupBuildMenuCategories", () => {
   it("エントリが空なら空配列", () => {
     expect(groupBuildMenuCategories(categories, [])).toEqual([]);
   });
+  it("カテゴリ定義に無いサブカテゴリのエントリしか無いカテゴリは群にならない", () => {
+    // サイドバーがカテゴリ一致だけで判定すると、この群に出ないカテゴリが恒久disabledで並ぶ
+    // Judging the sidebar on a category match alone would leave this ungrouped category permanently disabled
+    const strayEntries = localizeBuildMenuEntries(
+      [blockEntry("70000000-0000-4000-8000-000000000004", buildingCategoryGuid, chestSubCategoryGuid)],
+      () => "迷子ブロック",
+    );
+    expect(groupBuildMenuCategories(categories, strayEntries)).toEqual([]);
+  });
   it("同一サブカテゴリ内はソートせずentries引数の並び順をそのまま維持する", () => {
     const orderEntries = localizeBuildMenuEntries(
       [
@@ -69,15 +77,6 @@ describe("groupBuildMenuCategories", () => {
     // 辞書順ならA→Zだが、配信順(Z→A)がそのまま出ることを確認する
     // Dictionary order would be A then Z; verify the delivery order (Z then A) survives untouched
     expect(chestSection.entries.map((e) => e.displayLabel)).toEqual(["Zチェスト", "Aチェスト"]);
-  });
-});
-
-describe("categoriesWithEntries", () => {
-  it("エントリを持つカテゴリのguidを定義順で返す", () => {
-    expect(categoriesWithEntries(categories, entries)).toEqual([miningCategoryGuid, logisticsCategoryGuid]);
-  });
-  it("エントリが空なら空配列", () => {
-    expect(categoriesWithEntries(categories, [])).toEqual([]);
   });
 });
 

@@ -10,9 +10,9 @@ type CategorySidebarItem = {
 
 type Props = {
   categories: CategorySidebarItem[];
-  // 現在地(ジャンプ中は目標)
-  // Current category (target while jumping)
-  selected: string;
+  // 現在地(ジャンプ中は目標)。未確定はnull
+  // Current category (target while jumping); null until it is settled
+  selected: string | null;
   onSelect: (categoryGuid: string) => void;
 };
 
