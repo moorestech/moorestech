@@ -1600,11 +1600,11 @@ git commit -m "feat(webui): 機械UIをタブ廃止の2モード＋レシピ名�
 - Modify: `moorestech_web/webui/e2e/tests/block/machineRecipe.spec.ts`
 - Modify: `moorestech_web/webui/e2e/tests/block/machineGestures.spec.ts`（必要時）
 
-- [ ] **Step 1: フィクスチャを新仕様と整合させる**
+- [x] **Step 1: フィクスチャを新仕様と整合させる**
 
 `blockMachine`: `itemSlots` を `[{ itemId: 2, count: 5 }, empty(), empty(), empty()]`（選択中 `bbbbbbbb` の素材 itemId 2 がスロット0、出力スロットは空）、`fluidSlots` を `[empty fluid (fluidId 0, amount 0, capacity 100, fluidGuid "")]` にして液体ゴーストが出る状態にし、`slotLayout` に `inputTank: 1` を足す（Task 5 のワイヤ変更）。他フィクスチャの `slotLayout` にも `inputTank: 0` を足す。
 
-- [ ] **Step 2: machineRecipe.spec.ts を書き直す**
+- [x] **Step 2: machineRecipe.spec.ts を書き直す**
 
 ```ts
 import { test, expect } from "@playwright/test";
@@ -1676,7 +1676,7 @@ test("レシピ無しブロックは小型パネルのまま", async ({ page }) 
 
 `SlotGrid` の直下要素が `ItemSlot` の div でない（Tooltip ラッパ等）場合は `locator("> div")` を `locator('[data-testid^="slot"]')` 等、実DOMに合わせて調整する（`SlotGrid`/`ItemSlot` の実装で確認）。
 
-- [ ] **Step 3: machineGestures.spec.ts と blockDetails.spec.ts を確認・修正**
+- [x] **Step 3: machineGestures.spec.ts と blockDetails.spec.ts を確認・修正**
 
 ```bash
 grep -n "machine-tab\|machine-selected-product\|machine-recipe-detail" e2e/tests/**/*.ts e2e/support/*.ts
@@ -1686,14 +1686,14 @@ grep -n "machine-tab\|machine-selected-product\|machine-recipe-detail" e2e/tests
 Run: `npm run test:e2e -- e2e/tests/block/machineRecipe.spec.ts e2e/tests/block/machineGestures.spec.ts e2e/tests/block/blockDetails.spec.ts e2e/tests/block/fluidSlot.spec.ts`（e2eポート衝突に注意: 並列worktreeがあれば `webui-e2e-port-collision` メモリ参照）
 Expected: PASS
 
-- [ ] **Step 4: チュートリアルアンカーの追従確認**
+- [x] **Step 4: チュートリアルアンカーの追従確認**
 
 ```bash
 grep -rn "machine-tab\|machine-selected-product\|machine-recipe" ../moorestech_master/server_v8 moorestech_web/webui/src/shared/anchors* 2>/dev/null
 ```
 ヒットがあればアンカー語彙とマスタJSONを新testIdへ更新し、`../moorestech_master` 側は別PRを作ってピン（`.moorestech-external-revisions.json`）を更新する（AGENTS.md 関連リポジトリ規約）。ヒット0ならこのステップは完了。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_web/webui
