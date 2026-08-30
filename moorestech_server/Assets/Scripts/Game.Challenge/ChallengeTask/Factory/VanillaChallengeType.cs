@@ -9,5 +9,6 @@ namespace Game.Challenge.Task.Factory
         public const string EquipItemTask = "equipItem";
         public const string BlockPlaceOnVeinTask = "blockPlaceOnVein";
         public const string GearConnectedBlockTask = "gearConnectedBlock";
+        public const string GearConnectToBlockTask = "gearConnectToBlock";
     }
 }

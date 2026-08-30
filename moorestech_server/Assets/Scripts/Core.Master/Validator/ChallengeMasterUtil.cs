@@ -123,6 +123,28 @@ namespace Core.Master.Validator
                                 }
                                 break;
                             }
+                            case GearConnectToBlockTaskParam gearConnectTo:
+                            {
+                                // 双方が歯車コネクタ持ちでなければ接続は永久に成立せず達成不能になる
+                                // Both sides must own gear connectors, or the connection never forms and the challenge is impossible
+                                ValidateGearBlock(gearConnectTo.BlockGuid, "BlockGuid");
+                                ValidateGearBlock(gearConnectTo.ConnectedBlockGuid, "ConnectedBlockGuid");
+                                break;
+
+                                void ValidateGearBlock(System.Guid blockGuid, string label)
+                                {
+                                    var gearBlockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
+                                    if (gearBlockId == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.{label}:{blockGuid}\n";
+                                        return;
+                                    }
+                                    if (MasterHolder.BlockMaster.GetBlockMaster(gearBlockId.Value).BlockParam is not IGearConnectors)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has non-gear TaskParam.{label}:{blockGuid}\n";
+                                    }
+                                }
+                            }
                             default:
                                 logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated TaskParam type:{challenge.TaskParam?.GetType().Name}\n";
                                 break;

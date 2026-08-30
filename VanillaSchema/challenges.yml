@@ -78,6 +78,7 @@ properties:
           - equipItem
           - blockPlaceOnVein
           - gearConnectedBlock
+          - gearConnectToBlock
         - key: taskParam
           isDefaultOpen: true
           switch: ./taskCompletionType
@@ -152,6 +153,25 @@ properties:
             type: object
             properties:
             - key: blockGuid
+              type: uuid
+              foreignKey:
+                schemaId: blocks
+                foreignKeyIdPath: /data/[*]/blockGuid
+                displayElementPath: /data/[*]/name
+          - when: gearConnectToBlock
+            type: object
+            properties:
+            # 設置して繋ぐ側のブロック
+            # The block the player places to connect
+            - key: blockGuid
+              type: uuid
+              foreignKey:
+                schemaId: blocks
+                foreignKeyIdPath: /data/[*]/blockGuid
+                displayElementPath: /data/[*]/name
+            # 接続先のブロック種別。回転は問わず接続成立で完了する
+            # Target block kind; completes on connection regardless of rotation
+            - key: connectedBlockGuid
               type: uuid
               foreignKey:
                 schemaId: blocks
