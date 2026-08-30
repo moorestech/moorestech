@@ -25,6 +25,7 @@
     "filter_request_failed",
     "unknown_entry",
     "unknown_locale",
+    "already_selected",
     "stale_session",
     "stale_revision",
     "intent_not_allowed",

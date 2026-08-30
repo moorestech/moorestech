@@ -83,6 +83,12 @@
   --z-portal-toast: 300;
   --z-portal-tutorial: 900;
   --z-portal-reconnect: 2000;
+  /* 出展モードの言語選択ゲートは再接続オーバーレイより前へ出す（待機中は再接続表示より優先） */
+  /* The event-mode language gate stands ahead of the reconnect overlay while waiting */
+  --z-portal-event-language-gate: 2500;
+  /* 出展モードの言語選択ゲートだけは全画面の不透明黒（§1の例外・ADR 0040） */
+  /* The event-mode language gate alone is opaque full-screen black (the §1 exception, ADR 0040) */
+  --event-language-gate-face: rgb(0 0 0);
   --text-default: #eee;
   --text-high-contrast: #fff;
   /* 従属テキストには通常テキストより抑えた寒色グレーを使う */

@@ -209,3 +209,12 @@ describe("validModal input flag", () => {
     expect(parseTopicPayload(Topics.modal, { modal: { ...base, input: "yes" } }).valid).toBe(false);
   });
 });
+
+describe("event_mode.language_gate schema", () => {
+  it("boolean の waiting だけを受理する", () => {
+    expect(parseTopicPayload(Topics.eventLanguageGate, { waiting: true }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.eventLanguageGate, { waiting: false }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.eventLanguageGate, {}).valid).toBe(false);
+    expect(parseTopicPayload(Topics.eventLanguageGate, { waiting: "true" }).valid).toBe(false);
+  });
+});
