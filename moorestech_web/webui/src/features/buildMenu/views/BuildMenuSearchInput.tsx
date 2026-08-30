@@ -1,5 +1,5 @@
 import { L, useI18n } from "@/shared/i18n";
-import styles from "./style.module.css";
+import styles from "../style.module.css";
 
 type Props = { value: string; onChange: (value: string) => void };
 

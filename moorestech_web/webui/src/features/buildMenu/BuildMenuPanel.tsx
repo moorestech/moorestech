@@ -10,10 +10,10 @@ import {
   type BuildMenuDisplayEntry,
 } from "./logic/buildMenuGrouping";
 import { useBuildMenuCategoryScroll } from "./hooks/useBuildMenuCategoryScroll";
-import { BuildMenuCategoryList } from "./BuildMenuCategoryList";
-import { BuildMenuDetailSidebar } from "./BuildMenuDetailSidebar";
-import { BuildMenuSearchInput } from "./BuildMenuSearchInput";
-import { CategorySidebar } from "./CategorySidebar";
+import { BuildMenuCategoryList } from "./views/BuildMenuCategoryList";
+import { BuildMenuDetailSidebar } from "./views/BuildMenuDetailSidebar";
+import { BuildMenuSearchInput } from "./views/BuildMenuSearchInput";
+import { CategorySidebar } from "./views/CategorySidebar";
 import { loadBuildMenuSessionState, updateBuildMenuSessionState } from "./sessionState/buildMenuSessionState";
 import styles from "./style.module.css";
 
@@ -131,7 +131,7 @@ export function BuildMenuPanel() {
                     groups={shownGroups}
                     spacerHeight={scroll.spacerHeight}
                     headingRef={scroll.headingRef}
-                    attachLastGroup={scroll.attachLastGroup}
+                    attachGroup={scroll.attachGroup}
                     onSelect={select}
                     onDelete={remove}
                     onEntryHovered={hover}

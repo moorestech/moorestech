@@ -1,14 +1,14 @@
 import { FadeRule } from "@/shared/ui";
 import { buildMenuCategoryNameKey, useI18n } from "@/shared/i18n";
-import type { BuildMenuCategoryGroup, BuildMenuDisplayEntry } from "./logic/buildMenuGrouping";
+import type { BuildMenuCategoryGroup, BuildMenuDisplayEntry } from "../logic/buildMenuGrouping";
 import { BuildMenuCategoryGrid } from "./BuildMenuCategoryGrid";
-import styles from "./style.module.css";
+import styles from "../style.module.css";
 
 type Props = {
   groups: BuildMenuCategoryGroup[];
   spacerHeight: number;
   headingRef: (categoryGuid: string) => (element: HTMLElement | null) => void;
-  attachLastGroup: (element: HTMLElement | null) => void;
+  attachGroup: (categoryGuid: string) => (element: HTMLElement | null) => void;
   onSelect: (entry: BuildMenuDisplayEntry) => void;
   onDelete: (entry: BuildMenuDisplayEntry) => void;
   onEntryHovered: (entry: BuildMenuDisplayEntry) => void;
@@ -16,18 +16,17 @@ type Props = {
 
 // 大見出し→サブカテゴリで1本化(ADR0045)
 // Heading → sub-categories in one scroll (ADR 0045)
-export function BuildMenuCategoryList({ groups, spacerHeight, headingRef, attachLastGroup, onSelect, onDelete, onEntryHovered }: Props) {
+export function BuildMenuCategoryList({ groups, spacerHeight, headingRef, attachGroup, onSelect, onDelete, onEntryHovered }: Props) {
   const { t } = useI18n();
-  const lastIndex = groups.length - 1;
 
   return (
     <div className={styles.gridArea} data-testid="build-menu-sections">
-      {groups.map((group, index) => (
+      {groups.map((group) => (
         <section
           key={group.categoryGuid}
           className={styles.categoryGroup}
           data-testid={`build-menu-category-${group.categoryGuid}-group`}
-          ref={index === lastIndex ? attachLastGroup : undefined}
+          ref={attachGroup(group.categoryGuid)}
         >
           <h2
             className={styles.categoryHeading}

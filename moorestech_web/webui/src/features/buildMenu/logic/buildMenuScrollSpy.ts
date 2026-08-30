@@ -24,14 +24,6 @@ export function isJumpSettled(scrollTop: number, targetTop: number): boolean {
   return Math.abs(scrollTop - targetTop) <= scrollSettleTolerancePx;
 }
 
-// スムーズスクロールは目標へ単調に近づく。距離が縮まなければユーザーの介入とみなす
-// Smooth scroll monotonically approaches the target; a non-shrinking distance means the user intervened
-export function isJumpAbandoned(previousScrollTop: number, scrollTop: number, targetTop: number): boolean {
-  const previousDistance = Math.abs(previousScrollTop - targetTop);
-  const distance = Math.abs(scrollTop - targetTop);
-  return distance >= previousDistance;
-}
-
 // 末尾カテゴリの見出しを視口上端まで持ち上げられるよう不足分を埋める
 // Fill the shortfall so the last category heading can still reach the viewport top
 export function trailingSpacerHeight(viewportHeight: number, lastGroupHeight: number): number {

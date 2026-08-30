@@ -1,8 +1,8 @@
 import { FadeRule, SlotGrid } from "@/shared/ui";
 import { buildMenuSubCategoryNameKey, useI18n } from "@/shared/i18n";
-import type { BuildMenuDisplayEntry, BuildMenuSection } from "./logic/buildMenuGrouping";
+import type { BuildMenuDisplayEntry, BuildMenuSection } from "../logic/buildMenuGrouping";
 import { BuildMenuSlot } from "./BuildMenuSlot";
-import styles from "./style.module.css";
+import styles from "../style.module.css";
 
 type Props = {
   sections: BuildMenuSection[];

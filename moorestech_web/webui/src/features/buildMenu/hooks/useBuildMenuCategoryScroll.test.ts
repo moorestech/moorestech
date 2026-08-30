@@ -19,23 +19,35 @@ function Harness({
   return null;
 }
 
-// スタブ疑似viewport要素
-// A stubbed fake viewport element
+// スタブ疑似viewport要素。addEventListener/removeEventListenerは手動発火できるよう記録する
+// A stubbed fake viewport element; addEventListener/removeEventListener are recorded so a test can fire them manually
 function fakeViewport(overrides: Partial<{ clientHeight: number; scrollHeight: number; scrollTop: number }> = {}) {
+  const listeners = new Map<string, Set<EventListener>>();
   return {
     clientHeight: 600,
     scrollHeight: 1200,
     scrollTop: 0,
     scrollTo: vi.fn(),
+    addEventListener: vi.fn((type: string, listener: EventListener) => {
+      const set = listeners.get(type) ?? new Set();
+      set.add(listener);
+      listeners.set(type, set);
+    }),
+    removeEventListener: vi.fn((type: string, listener: EventListener) => {
+      listeners.get(type)?.delete(listener);
+    }),
+    dispatch(type: string) {
+      for (const listener of listeners.get(type) ?? []) listener({} as Event);
+    },
     ...overrides,
-  } as unknown as HTMLDivElement;
+  } as unknown as HTMLDivElement & { dispatch: (type: string) => void };
 }
 
 function fakeHeading(offsetTop: number) {
   return { offsetTop } as unknown as HTMLElement;
 }
 
-function fakeLastGroup(offsetHeight: number) {
+function fakeGroup(offsetHeight: number) {
   return { offsetHeight } as unknown as HTMLElement;
 }
 
@@ -65,6 +77,17 @@ class FakeResizeObserver {
 
   fire() {
     this.callback([] as unknown as ResizeObserverEntry[], this as unknown as ResizeObserver);
+  }
+}
+
+function withFakeResizeObserver(run: () => void) {
+  const originalResizeObserver = globalThis.ResizeObserver;
+  globalThis.ResizeObserver = FakeResizeObserver;
+  FakeResizeObserver.instances = [];
+  try {
+    run();
+  } finally {
+    globalThis.ResizeObserver = originalResizeObserver;
   }
 }
 
@@ -134,7 +157,7 @@ describe("useBuildMenuCategoryScroll", () => {
     expect(latest.activeCategoryGuid).toBe("a");
   });
 
-  it("スムーズスクロール中にユーザーが介入し目標へ近づかなくなると固定が解除される", () => {
+  it("ジャンプ中にviewportへwheelを送ると、目標未到達でも固定が解除されscroll-spyへ戻る(D2案A)", () => {
     let latest!: HookResult;
     create(
       createElement(Harness, { visibleCategoryGuids: ["a", "b"], onRender: (result) => { latest = result; } }),
@@ -147,15 +170,20 @@ describe("useBuildMenuCategoryScroll", () => {
     });
 
     act(() => latest.jumpTo("b"));
-    // 200まで近づく: まだ固定
-    // Closes to 200: still pinned
-    act(() => latest.handleScroll(200));
     expect(latest.activeCategoryGuid).toBe("b");
 
-    // 100まで離れ介入とみなす
-    // Drifts to 100; treated as user intervention
-    act(() => latest.handleScroll(100));
+    // 目標(400)には遠く及ばない位置で操作イベントが発火しても即解除
+    // Even far from the target (400), the interaction event releases the pin immediately
+    act(() => {
+      vp.scrollTop = 50;
+      vp.dispatch("wheel");
+    });
     expect(latest.activeCategoryGuid).toBe("a");
+
+    // 解除後はscroll-spyがそのまま追従する
+    // After release, scroll-spy tracking resumes normally
+    act(() => latest.handleScroll(400));
+    expect(latest.activeCategoryGuid).toBe("b");
   });
 
   it("visibleCategoryGuidsが同内容の別配列で再レンダーされてもジャンプ固定が維持される", () => {
@@ -185,18 +213,17 @@ describe("useBuildMenuCategoryScroll", () => {
 
   it("spacerHeightは視口高から末尾群高を引いた値になる(0クランプ込み)", () => {
     let latest!: HookResult;
+    // 末尾GUIDは常に"a"に固定し、先頭側だけ入れ替えてvisibleKeyを動かし直す
+    // Keep the trailing guid fixed at "a" and vary only the leading one to nudge visibleKey
     const renderer = create(
-      createElement(Harness, { visibleCategoryGuids: ["a"], onRender: (result) => { latest = result; } }),
+      createElement(Harness, { visibleCategoryGuids: ["z", "a"], onRender: (result) => { latest = result; } }),
     );
     const vp = fakeViewport({ clientHeight: 600 });
     act(() => {
       latest.attachViewport(vp);
-      latest.attachLastGroup(fakeLastGroup(200));
-    });
-
-    act(() => {
+      latest.attachGroup("a")(fakeGroup(200));
       renderer.update(
-        createElement(Harness, { visibleCategoryGuids: ["a", "b"], onRender: (result) => { latest = result; } }),
+        createElement(Harness, { visibleCategoryGuids: ["y", "a"], onRender: (result) => { latest = result; } }),
       );
     });
     expect(latest.spacerHeight).toBe(400);
@@ -204,35 +231,64 @@ describe("useBuildMenuCategoryScroll", () => {
     // 末尾群が視口以上で0クランプ
     // Clamps to 0 when the last group is at least as tall as the viewport
     act(() => {
-      latest.attachLastGroup(fakeLastGroup(900));
+      latest.attachGroup("a")(fakeGroup(900));
       renderer.update(
-        createElement(Harness, { visibleCategoryGuids: ["a"], onRender: (result) => { latest = result; } }),
+        createElement(Harness, { visibleCategoryGuids: ["x", "a"], onRender: (result) => { latest = result; } }),
       );
     });
     expect(latest.spacerHeight).toBe(0);
   });
 
-  it("視口や末尾群のリサイズにspacerHeightがResizeObserver経由で追従する(カテゴリ集合は変わらない)", () => {
-    const originalResizeObserver = globalThis.ResizeObserver;
-    globalThis.ResizeObserver = FakeResizeObserver;
-    FakeResizeObserver.instances = [];
+  it("上方カテゴリのエントリが減って見出し位置がずれると、ハイライトがResizeObserver経由で追従する(D1案C回帰)", () => {
+    withFakeResizeObserver(() => {
+      let latest!: HookResult;
+      create(
+        createElement(Harness, { visibleCategoryGuids: ["a", "b"], onRender: (result) => { latest = result; } }),
+      );
+      const vp = fakeViewport({ scrollTop: 350 });
+      const headingA = fakeHeading(0);
+      const headingB = fakeHeading(400);
+      const groupA = fakeGroup(400);
+      act(() => {
+        latest.attachViewport(vp);
+        latest.headingRef("a")(headingA);
+        latest.headingRef("b")(headingB);
+        latest.attachGroup("a")(groupA);
+        latest.attachGroup("b")(fakeGroup(200));
+        for (const observer of FakeResizeObserver.instances) observer.fire();
+      });
+      // scrollTop 350はb(400)未満なのでまだa
+      // scrollTop 350 is still below b(400), so it's still a
+      expect(latest.activeCategoryGuid).toBe("a");
 
-    try {
+      // 上方カテゴリaのエントリが減り、bの見出しが300まで上がる。GUID集合もclientHeight/lastGroupも不変
+      // Category a shrinks and b's heading rises to 300; the guid set and clientHeight/lastGroup stay unchanged
+      (headingB as unknown as { offsetTop: number }).offsetTop = 300;
+      (groupA as unknown as { offsetHeight: number }).offsetHeight = 300;
+      act(() => {
+        for (const observer of FakeResizeObserver.instances) observer.fire();
+      });
+      expect(latest.activeCategoryGuid).toBe("b");
+    });
+  });
+
+  it("視口や末尾群のリサイズにspacerHeightがResizeObserver経由で追従する(カテゴリ集合は変わらない)", () => {
+    withFakeResizeObserver(() => {
       let latest!: HookResult;
       create(
         createElement(Harness, { visibleCategoryGuids: ["a"], onRender: (result) => { latest = result; } }),
       );
       const vp = fakeViewport({ clientHeight: 600 });
-      const lastGroup = fakeLastGroup(200);
+      const group = fakeGroup(200);
       act(() => {
         latest.attachViewport(vp);
-        latest.attachLastGroup(lastGroup);
+        latest.attachGroup("a")(group);
         for (const observer of FakeResizeObserver.instances) observer.fire();
       });
       expect(latest.spacerHeight).toBe(400);
 
-      // 集合不変でリサイズのみ模す
-      // Simulate only a resize, with visibleKey unchanged
+      // 集合不変でウィンドウ(viewport)高のリサイズのみ模す
+      // Simulate only a viewport-height resize, with the guid set unchanged
       (vp as unknown as { clientHeight: number }).clientHeight = 900;
       act(() => {
         for (const observer of FakeResizeObserver.instances) observer.fire();
@@ -241,14 +297,12 @@ describe("useBuildMenuCategoryScroll", () => {
 
       // 末尾群の高さ変化も追従
       // A trailing-group height change tracks through the same path
-      (lastGroup as unknown as { offsetHeight: number }).offsetHeight = 800;
+      (group as unknown as { offsetHeight: number }).offsetHeight = 800;
       act(() => {
         for (const observer of FakeResizeObserver.instances) observer.fire();
       });
       expect(latest.spacerHeight).toBe(100);
-    } finally {
-      globalThis.ResizeObserver = originalResizeObserver;
-    }
+    });
   });
 
   it("開いた直後、scrollイベントを一度も発火せずに初期ハイライトが視口位置から決まる", () => {

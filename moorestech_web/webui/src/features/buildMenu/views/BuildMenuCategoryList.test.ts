@@ -1,7 +1,7 @@
 import { createElement } from "react";
 import { create } from "react-test-renderer";
 import { describe, expect, it, vi } from "vitest";
-import type { BuildMenuCategoryGroup } from "./logic/buildMenuGrouping";
+import type { BuildMenuCategoryGroup } from "../logic/buildMenuGrouping";
 
 vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
@@ -32,15 +32,16 @@ const createNodeMock = (element: { props: Record<string, unknown> }) => ({
 });
 
 describe("BuildMenuCategoryList", () => {
-  it("カテゴリ群ごとに大見出しを置き、末尾群のsectionと各見出しのh2をrefへ登録し、末尾スペーサ高を反映する", () => {
+  it("カテゴリ群ごとに大見出しを置き、全群のsectionと各見出しのh2をrefへ登録し、末尾スペーサ高を反映する", () => {
     const attachHeading = vi.fn();
     const headingRef = (categoryGuid: string) => (element: unknown) => attachHeading(categoryGuid, element);
-    const attachLastGroup = vi.fn();
+    const attachedGroup = vi.fn();
+    const attachGroup = (categoryGuid: string) => (element: unknown) => attachedGroup(categoryGuid, element);
     const renderer = create(createElement(BuildMenuCategoryList, {
       groups,
       spacerHeight: 123,
       headingRef,
-      attachLastGroup,
+      attachGroup,
       onSelect: () => undefined,
       onDelete: () => undefined,
       onEntryHovered: () => undefined,
@@ -56,19 +57,22 @@ describe("BuildMenuCategoryList", () => {
     // Checks where each ref lands
     expect(attachHeading).toHaveBeenCalledWith("cat-a", { testid: "build-menu-category-heading-cat-a" });
     expect(attachHeading).toHaveBeenCalledWith("cat-b", { testid: "build-menu-category-heading-cat-b" });
-    expect(attachLastGroup).toHaveBeenCalledTimes(1);
-    expect(attachLastGroup).toHaveBeenCalledWith({ testid: "build-menu-category-cat-b-group" });
+    // D1案C: 末尾群だけでなく全群のsectionが監視対象になる
+    // D1 option C: every group's section is observed, not only the trailing one
+    expect(attachedGroup).toHaveBeenCalledWith("cat-a", { testid: "build-menu-category-cat-a-group" });
+    expect(attachedGroup).toHaveBeenCalledWith("cat-b", { testid: "build-menu-category-cat-b-group" });
   });
 
   it("groupsが空でもクラッシュせずスペーサのみ出す", () => {
     const attachHeading = vi.fn();
     const headingRef = (categoryGuid: string) => (element: unknown) => attachHeading(categoryGuid, element);
-    const attachLastGroup = vi.fn();
+    const attachedGroup = vi.fn();
+    const attachGroup = (categoryGuid: string) => (element: unknown) => attachedGroup(categoryGuid, element);
     const renderer = create(createElement(BuildMenuCategoryList, {
       groups: [],
       spacerHeight: 42,
       headingRef,
-      attachLastGroup,
+      attachGroup,
       onSelect: () => undefined,
       onDelete: () => undefined,
       onEntryHovered: () => undefined,
@@ -77,6 +81,6 @@ describe("BuildMenuCategoryList", () => {
     const spacer = renderer.root.findByProps({ "data-testid": "build-menu-trailing-spacer" });
     expect(spacer.props.style).toEqual({ minHeight: 42 });
     expect(attachHeading).not.toHaveBeenCalled();
-    expect(attachLastGroup).not.toHaveBeenCalled();
+    expect(attachedGroup).not.toHaveBeenCalled();
   });
 });
