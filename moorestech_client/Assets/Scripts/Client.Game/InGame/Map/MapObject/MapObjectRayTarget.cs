@@ -1,14 +1,14 @@
-﻿using Client.Game.InGame.Mining;
+using Client.Game.InGame.Interact;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.MapObject
 {
     [RequireComponent(typeof(Collider))]
-    public class MapObjectRayTarget : MonoBehaviour, IMiningRayTarget
+    public class MapObjectRayTarget : MonoBehaviour, IInteractRayTarget
     {
         public MapObjectGameObject MapObjectGameObject { get; private set; }
 
-        public IMiningTargetObject MiningTargetObject => MapObjectGameObject;
+        public IInteractable Interactable => MapObjectGameObject;
 
         // 相互作用可否はコライダー有効/無効で表す。歩行用は別objectで影響なし
         // Interactability is expressed by the collider's enabled state; the walking collider is a separate object

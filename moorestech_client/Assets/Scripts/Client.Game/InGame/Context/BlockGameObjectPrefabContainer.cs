@@ -128,9 +128,6 @@ namespace Client.Game.InGame.Context
 
                 blockObj.gameObject.SetActive(true);
                 var blockType = blockMasterElement.BlockType;
-                // ブロックが開けるものの場合はそのコンポーネントを付与する
-                // If the block is openable, add the corresponding component
-                if (blockMasterElement.IsBlockOpenable()) block.gameObject.AddComponent<OpenableInventoryBlock>();
                 // 機械の場合はそのプロセッサを付与する
                 // If it's a machine, add the corresponding processor
                 if (IsCommonMachine(blockType)) block.gameObject.AddComponent<CommonMachineBlockStateChangeProcessor>();

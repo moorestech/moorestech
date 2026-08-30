@@ -11,6 +11,7 @@ namespace Client.Tests.Mining
     internal sealed class AttackTrackingMiningTarget : IMiningTargetObject
     {
         public GameObject GameObject { get; }
+        public bool IsInteractAvailable => true;
         public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
 
         // 打撃回数だけを見るfixtureなので取得物は持たない
@@ -35,7 +36,7 @@ namespace Client.Tests.Mining
             return MiningStartOutcome.Ready;
         }
 
-        public void SetFocused(bool focused)
+        public void SetHighlighted(bool highlighted)
         {
         }
 

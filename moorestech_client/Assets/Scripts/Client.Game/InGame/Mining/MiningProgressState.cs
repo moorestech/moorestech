@@ -51,9 +51,9 @@ namespace Client.Game.InGame.Mining
                 return new MiningFocusState();
             }
 
-            // 左クリックされていない場合はフォーカス状態に遷移
-            // If left click is not pressed, transition to focus state
-            if (!InputManager.Playable.ScreenLeftClick.GetKey)
+            // Fを離したらフォーカス状態に遷移
+            // Releasing F returns to the focus state
+            if (!InputManager.Playable.Interact.GetKey)
             {
                 return new MiningFocusState();
             }

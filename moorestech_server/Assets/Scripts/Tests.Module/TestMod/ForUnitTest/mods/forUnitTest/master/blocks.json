@@ -25,6 +25,7 @@
         1
       ],
       "name": "TestElectricMachine",
+      "blockUIAddressablesPath": "ForUnitTest/TestElectricMachineUI",
       "blockType": "ElectricMachine",
       "blockParam": {
         "moduleSlotCount": 4,

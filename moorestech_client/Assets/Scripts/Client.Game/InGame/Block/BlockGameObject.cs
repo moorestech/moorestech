@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
-using Client.Common.Asset;
+using Client.Game.Common;
+using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Context;
@@ -31,6 +32,10 @@ namespace Client.Game.InGame.Block
         // Tombstone for the nearest index; a removed block leaves the candidates without rebuilding the tree
         public bool IsSearchable { get; private set; } = true;
 
+        // 開けないブロックはnull。子のレイ案内が毎フレーム引くのでInitializeで一度だけ解決する
+        // Null on a non-openable block; the children's ray marker reads it every frame, so it is resolved once in Initialize
+        public BlockInteractable Interactable { get; private set; }
+
         public IObservable<BlockGameObject> OnFinishedPlaceAnimation => _onFinishedPlaceAnimation;
         private readonly Subject<BlockGameObject> _onFinishedPlaceAnimation = new();
         
@@ -38,8 +43,7 @@ namespace Client.Game.InGame.Block
         private RendererMaterialReplacerController _rendererMaterialReplacerController;
         private List<VisualEffect> _visualEffects = new();
         private List<IPreviewOnlyObject> _previewOnlyObjects = new();
-        private const string PreviewBoundingBoxAddressablePath = "Vanilla/Block/Util/BlockPreviewBoundingBox";
-        
+
         private BlockStateMessagePack _blockStateMessagePack;
         private bool _isShaderAnimating;
         
@@ -64,13 +68,20 @@ namespace Client.Game.InGame.Block
             BlockStateChangeProcessors = gameObject.GetComponentsInChildren<IBlockStateChangeProcessor>().ToList();
             _visualEffects = gameObject.GetComponentsInChildren<VisualEffect>(true).ToList();
             _rendererShaderAnimation = gameObject.AddComponent<RendererShaderAnimation>();
-           
             _rendererMaterialReplacerController = new RendererMaterialReplacerController(gameObject);
             
             // 子供のBlockGameObjectChildを初期化（非アクティブな子も後から有効化され得るため対象に含める）
             // Initialize child BlockGameObjectChild components (include inactive ones that may be activated later)
             foreach (var child in gameObject.GetComponentsInChildren<BlockGameObjectChild>(true)) child.Init(this);
-            
+
+            // 開けるブロックのみインタラクト面を初期化
+            // Initialize the interact face only for openable blocks
+            if (blockMasterElement.IsBlockOpenable())
+            {
+                Interactable = gameObject.AddComponent<BlockInteractable>();
+                Interactable.Initialize(this);
+            }
+
             // 地面との衝突判定を無効化
             foreach (var groundCollisionDetector in gameObject.GetComponentsInChildren<GroundCollisionDetector>(true))
             {
@@ -91,8 +102,8 @@ namespace Client.Game.InGame.Block
             
             // バウンディングボックス用オブジェクトを作成
             // Create a bounding box object
-            LoadBoundingBox().Forget();
-            
+            AddBoundingBox().Forget();
+
             #region Internal
             
             void OffPreviewOnlyObjectsActive()
@@ -134,18 +145,11 @@ namespace Client.Game.InGame.Block
                 ClientContext.VanillaApi.SendOnly.RequestBlockState(BlockPosInfo.OriginalPos);
             }
             
-            async UniTask LoadBoundingBox()
+            async UniTask AddBoundingBox()
             {
-                var previewBoundingBoxPrefab = await AddressableLoader.LoadAsyncDefault<GameObject>(PreviewBoundingBoxAddressablePath);
-                var previewBoundingBoxObj = Instantiate(previewBoundingBoxPrefab, transform);
-                previewBoundingBoxObj.GetComponent<BlockPreviewBoundingBox>().SetBoundingBox(blockMasterElement.BlockSize, posInfo.BlockDirection, this);
-                
-                var previewOnlyObject = previewBoundingBoxObj.GetComponent<PreviewOnlyObject>();
-                previewOnlyObject.Initialize(BlockId);
-                previewOnlyObject.SetActive(false);
-                _previewOnlyObjects.Add(previewOnlyObject);
+                _previewOnlyObjects.Add(await BlockPreviewBoundingBoxLoader.LoadAsync(this, blockMasterElement, posInfo, this.GetCancellationTokenOnDestroy()));
             }
-            
+
             #endregion
         }
         

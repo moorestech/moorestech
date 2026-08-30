@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.Map.MapObject;
 using NUnit.Framework;
 using UnityEditor;
@@ -16,9 +17,8 @@ namespace Client.Tests.Map
     [Category("IgnoreCI")]
     public class MapObjectRayTargetTest
     {
-        // 採掘可能距離(MiningController.miningDistance=2.5)とカメラの背後距離(PlayerSystem.prefabのm_CameraDistance=3.5)
-        // The mining reach (MiningController.miningDistance = 2.5) and the camera's follow distance (PlayerSystem.prefab m_CameraDistance = 3.5)
-        private const float MiningDistance = 2.5f;
+        // 届く距離は選定側が唯一の出所。カメラの背後距離だけはPlayerSystem.prefabのm_CameraDistance=3.5から写す
+        // The reach comes solely from the selector; only the camera follow distance is copied from PlayerSystem.prefab m_CameraDistance = 3.5
         private const float CameraDistance = 3.5f;
 
         // 手書き前例のレイターゲットは最も細いTree.prefabでも見た目シルエット半径の13%(0.35m / 2.68m)あり、全前例がこの比率を満たす
@@ -50,9 +50,9 @@ namespace Client.Tests.Map
         [Test]
         public void レイターゲットが採掘レンジから狙える太さでBK自前コライダーを包んでいる()
         {
-            // カメラがコライダー内部に入るとUnityはそのコライダーへレイを当てないため、採掘レンジで届く距離より太いレイターゲットは採掘不能になる
-            // Unity never hits a collider from inside it, so a ray target wider than the camera can get is impossible to mine
-            var allowedReach = MiningDistance + CameraDistance;
+            // カメラがコライダー内部に入るとUnityはそのコライダーへレイを当てないため、インタラクトで届く距離より太いレイターゲットは狙えなくなる
+            // Unity never hits a collider from inside it, so a ray target wider than the camera can get is impossible to aim at
+            var allowedReach = InteractTargetSelector.InteractDistance + CameraDistance;
 
             // 全species分の失敗を集めループ内でAssertを投げない（最初の1件で止まらず116件分を1回で見せる）
             // Failures are collected across every species instead of throwing inside the loop, so all 116 show up in one run instead of stopping at the first

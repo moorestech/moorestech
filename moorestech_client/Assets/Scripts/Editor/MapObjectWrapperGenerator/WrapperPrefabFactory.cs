@@ -2,19 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Client.Common;
+using Client.Game.InGame.Interact.Outline;
 using Client.Game.InGame.Map.MapObject;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
-using UnityEngine.SceneManagement;
 
 // BKへアウトライン・レイターゲット・HPバーを付与
 // Builds one wrapper prefab: BK plus its outline, ray target, and HP bar
 public static class WrapperPrefabFactory
 {
     private const string HpBarPrefabPath = "Assets/Asset/Environment/Prefab/MapObjectHpBar.prefab";
-    private const string OutlineMaterialPath = "Assets/Asset/Common/Shader/Outline/Outline.mat";
-    private const string OutlineObjectName = "Outline";
+    private const string OutlineMaterialPath = "Assets/Resources/InteractOutline.mat";
 
     // HPバーが樹冠へ埋まらないよう頂部から離す高さ
     // Height that lifts the HP bar clear of the canopy top
@@ -37,10 +36,10 @@ public static class WrapperPrefabFactory
         root.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
 
         var localBounds = CalculateLocalBounds(root);
-        var nearestLodRenderers = CollectNearestLodRenderers(root);
+        var nearestLodRenderers = RuntimeOutlineFactory.CollectNearestLodRenderers(root);
         ApplyMapObjectLayer(root);
         var mapObject = root.AddComponent<MapObjectGameObject>();
-        var outlineObject = CreateOutline(root, nearestLodRenderers);
+        var outlineObject = CreateOutline(root);
 
         // レイターゲットはBKの当たり判定を測るので、後から足す物を巻き込まないようHPバーより先に作る
         // The ray target measures BK's own colliders, so it is built before the HP bar and never sees anything added later
@@ -82,33 +81,16 @@ public static class WrapperPrefabFactory
         foreach (var child in root.GetComponentsInChildren<Transform>(true)) child.gameObject.layer = LayerConst.MapObjectLayer;
     }
 
-    private static GameObject CreateOutline(GameObject root, List<Renderer> nearestLodRenderers)
+    private static GameObject CreateOutline(GameObject root)
     {
         var outlineMaterial = AssetDatabase.LoadAssetAtPath<Material>(OutlineMaterialPath);
         if (outlineMaterial == null) throw new InvalidOperationException($"outline material not found: {OutlineMaterialPath}");
 
-        var outlineRoot = new GameObject(OutlineObjectName) { layer = LayerConst.OutlineLayer };
-        SceneManager.MoveGameObjectToScene(outlineRoot, root.scene);
-        outlineRoot.transform.SetParent(root.transform, false);
+        // 実行時ハイライトと同じ手順で焼き込む。焼き込みでは輪郭が無いプレハブを出荷できないので失敗は例外にする
+        // Bakes through the same procedure the runtime highlight uses; a prefab without an outline must never ship, so a failure throws here
+        var outlineRoot = RuntimeOutlineFactory.Create(root, outlineMaterial);
+        if (outlineRoot == null) throw new InvalidOperationException($"no outline mesh could be built for {root.name}");
 
-        foreach (var sourceRenderer in nearestLodRenderers)
-        {
-            var sourceFilter = sourceRenderer.GetComponent<MeshFilter>();
-            if (sourceFilter == null || sourceFilter.sharedMesh == null) continue;
-
-            var outlineMesh = new GameObject(sourceRenderer.name) { layer = LayerConst.OutlineLayer };
-            outlineMesh.transform.SetParent(outlineRoot.transform, false);
-            CopyWorldTransform(sourceRenderer.transform, outlineMesh.transform);
-
-            outlineMesh.AddComponent<MeshFilter>().sharedMesh = sourceFilter.sharedMesh;
-            outlineMesh.AddComponent<MeshRenderer>().sharedMaterials = FillOutlineMaterials(sourceRenderer.sharedMaterials.Length, outlineMaterial);
-        }
-
-        if (outlineRoot.transform.childCount == 0) throw new InvalidOperationException($"no outline mesh could be built for {root.name}");
-
-        // フォーカス時にMapObjectGameObjectが点ける
-        // MapObjectGameObject turns this on while the object is focused
-        outlineRoot.SetActive(false);
         return outlineRoot;
     }
 
@@ -136,45 +118,5 @@ public static class WrapperPrefabFactory
         if (!localBounds.HasPoint) throw new InvalidOperationException($"no renderer under {root.name}");
 
         return localBounds.GetBounds();
-    }
-
-    // 最近接LODのレンダラーだけをアウトライン化する。遠景LODまで複製すると輪郭が二重になる
-    // Only the nearest LOD is outlined; duplicating the far LODs too would double the silhouette
-    private static List<Renderer> CollectNearestLodRenderers(GameObject root)
-    {
-        var renderers = new List<Renderer>();
-        var lodGroup = root.GetComponentInChildren<LODGroup>(true);
-        if (lodGroup == null)
-        {
-            renderers.AddRange(root.GetComponentsInChildren<MeshRenderer>(true));
-            return renderers;
-        }
-
-        foreach (var renderer in lodGroup.GetLODs()[0].renderers)
-            if (renderer != null)
-                renderers.Add(renderer);
-        return renderers;
-    }
-
-    private static void CopyWorldTransform(Transform source, Transform target)
-    {
-        target.SetPositionAndRotation(source.position, source.rotation);
-
-        // localScaleは親の合成拡縮を打ち消してから入れる
-        // Cancel out the parent's accumulated scale before assigning localScale
-        var parentScale = target.parent.lossyScale;
-        if (parentScale.x == 0f || parentScale.y == 0f || parentScale.z == 0f) throw new InvalidOperationException($"parent of {target.name} is flattened to zero scale, so world scale cannot be reproduced");
-
-        var sourceScale = source.lossyScale;
-        target.localScale = new Vector3(sourceScale.x / parentScale.x, sourceScale.y / parentScale.y, sourceScale.z / parentScale.z);
-    }
-
-    private static Material[] FillOutlineMaterials(int sourceMaterialCount, Material outlineMaterial)
-    {
-        // サブメッシュごとにスロットが要るので、元と同数（最低1枚）を全部アウトラインで埋める
-        // Every submesh needs a slot, so fill as many as the source had, never fewer than one
-        var materials = new Material[Mathf.Max(1, sourceMaterialCount)];
-        for (var index = 0; index < materials.Length; index++) materials[index] = outlineMaterial;
-        return materials;
     }
 }

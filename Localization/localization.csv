@@ -11,7 +11,7 @@ ui.common.blockFallback,Block {blockId},Block {blockId},ブロック {blockId},B
 ui.common.iconIdFallback,#{id},#{id},#{id},#{id}
 ui.common.rightArrow,→,→,→,→
 ui.tooltip.worldTarget,World Target,World Target,世界の対象,Ziel in der Welt
-ui.tooltip.holdToGet,Press and hold left-click to get,Press and hold left-click to get,左クリック長押しで取得する,Linksklick gedrückt halten zum Aufnehmen
+ui.tooltip.holdToGet,Hold F to get,Hold F to get,F長押しで取得する,F gedrückt halten zum Aufnehmen
 ui.error.reconnecting,Reconnecting...,Reconnecting...,再接続中...,Verbindung wird wiederhergestellt …
 ui.error.uiErrorOccurred,A UI error occurred,A UI error occurred,UIエラーが発生しました,Es ist ein UI-Fehler aufgetreten
 ui.error.renderFailed,There was a problem rendering the screen. Please reload.,There was a problem rendering the screen. Please reload.,画面の描画中に問題が発生しました。再読み込みしてください。,Beim Darstellen des Bildschirms ist ein Problem aufgetreten. Bitte laden Sie neu.
@@ -161,7 +161,7 @@ ui.blueprint.nameInputConfirm,Register,Register,登録,Registrieren
 ui.blueprint.webModalTitle,Blueprint Name,Blueprint Name,ブループリント名,Bauplanname
 ui.blueprint.webModalMessage,Enter a name for the blueprint you want to save,Enter a name for the blueprint you want to save,保存するブループリントの名前を入力してください,Geben Sie einen Namen für den zu speichernden Bauplan ein
 ui.blueprint.webModalConfirm,Save,Save,保存,Speichern
-ui.tooltip.pickUpLeftClick,Left-click to pick up,Left-click to pick up,左クリックで取得,Linksklick zum Aufnehmen
+ui.tooltip.pickUpInteract,Press F to pick up,Press F to pick up,Fで取得,F drücken zum Aufnehmen
 ui.tooltip.requiredItems,Requires: {p0},Requires: {p0},このアイテムが必要です: {p0},Benötigt: {p0}
 ui.tooltip.cannotHandMine,Cannot be mined by hand,Cannot be mined by hand,手掘りできません,Kann nicht von Hand abgebaut werden
 ui.tooltip.craftCannotByItemShortage,Not enough items to craft,Not enough items to craft,アイテムが足りないためクラフトできません,Zu wenig Gegenstände zum Herstellen
@@ -254,7 +254,10 @@ ui.mainMenu.connectPortTooLarge,The port number must be 65535 or lower.,The port
 ui.mainMenu.connectPortTooSmall,The port number must be greater than 1024.,The port number must be greater than 1024.,ポート番号は1024より大きい必要があります。,Die Portnummer muss größer als 1024 sein.
 ui.mainMenu.connectInvalidPort,The port number is not valid.,The port number is not valid.,ポート番号が正しくありません。,Die Portnummer ist ungültig.
 ui.mainMenu.connectFailed,Failed to connect to the server.\n{p0},Failed to connect to the server.\n{p0},サーバーへの接続に失敗しました。\n{p0},Verbindung zum Server fehlgeschlagen.\n{p0}
-ui.tooltip.namedMineHold,{p0} : Hold left-click to mine,{p0} : Hold left-click to mine,{p0} : 左クリック長押しで採掘,{p0} : Zum Abbauen Linksklick gedrückt halten
-ui.tooltip.namedMineClick,{p0} : Left-click to mine,{p0} : Left-click to mine,{p0} : 左クリックで採掘,{p0} : Linksklick zum Abbauen
+ui.tooltip.namedMineHold,{p0} : Hold F to mine,{p0} : Hold F to mine,{p0} : F長押しで採掘,{p0} : Zum Abbauen F gedrückt halten
+ui.tooltip.namedMineClick,{p0} : Press F to mine,{p0} : Press F to mine,{p0} : Fで採掘,{p0} : F drücken zum Abbauen
 ui.tooltip.namedRequiredItems,{p0} : Requires: {p1},{p0} : Requires: {p1},{p0} : このアイテムが必要です: {p1},{p0} : Benötigt: {p1}
+ui.tooltip.interactOpenBlock,[F] Open {p0},[F] Open {p0},[F] {p0}を開く,[F] {p0} öffnen
+ui.tooltip.interactOpenTrainInventory,[F] Open car inventory,[F] Open car inventory,[F] 車両インベントリを開く,[F] Wageninventar öffnen
+ui.tooltip.interactRideTrain,[E] Ride,[E] Ride,[E] 乗車,[E] Einsteigen
 ui.tooltip.namedCannotHandMine,{p0} : Cannot be mined by hand,{p0} : Cannot be mined by hand,{p0} : 手掘りできません,{p0} : Kann nicht von Hand abgebaut werden

@@ -17,6 +17,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.Map.MapVein;
@@ -125,9 +126,9 @@ namespace Client.Starter.Registration
             builder.Register<BuildOperationHistory>(Lifetime.Singleton);
             builder.Register<BuildUndoService>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
-            builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             builder.Register<PlacementTargetPickService>(Lifetime.Singleton);
-            builder.Register<RideVehicleInputService>(Lifetime.Singleton);
+            builder.Register<IInteractTargetSelector, InteractTargetSelector>(Lifetime.Singleton);
+            builder.Register<InteractController>(Lifetime.Singleton);
             builder.Register<PauseMenuStateService>(Lifetime.Singleton);
 
             builder.Register<NormalPlayerState>(Lifetime.Singleton);

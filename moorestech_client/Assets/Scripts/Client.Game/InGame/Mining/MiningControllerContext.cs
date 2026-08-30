@@ -35,19 +35,9 @@ namespace Client.Game.InGame.Mining
 
         public void SetFocusTarget(IMiningTargetObject target)
         {
-            // 同一対象なら通知も再解決も要らない
-            // The same target needs neither notification nor re-resolution
+            // 同一対象なら再解決も要らない
+            // The same target needs no re-resolution
             if (ReferenceEquals(CurrentFocusTarget, target)) return;
-
-            // 実体変更時だけ通知
-            // Notify only on concrete change
-            var currentGameObject = CurrentFocusTarget?.GameObject;
-            var nextGameObject = target?.GameObject;
-            if (currentGameObject != nextGameObject)
-            {
-                CurrentFocusTarget?.SetFocused(false);
-                target?.SetFocused(true);
-            }
 
             CurrentFocusTarget = target;
             ResolveEarnItemNames();
