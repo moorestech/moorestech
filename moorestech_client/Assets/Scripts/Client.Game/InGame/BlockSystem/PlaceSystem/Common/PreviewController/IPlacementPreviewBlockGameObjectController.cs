@@ -12,6 +12,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
     {
         bool IsActive { get; }
         
+        /// <summary>
+        /// プレビューブロックを配置する。地形との接触は見ない
+        /// Places the preview blocks without looking at terrain contact
+        /// </summary>
+        public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster);
+
         public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster);
 
         /// <summary>

@@ -106,6 +106,39 @@ namespace Client.Tests.PlaceSystem.Feedback
             Assert.IsEmpty(feedback.Lines);
         }
 
+        // 地形を見ない入口は地形の理由を積まず、どのセルも落とさない
+        // The terrain-blind entry pushes no terrain line and drops no cell
+        [Test]
+        public void 地形を見ない入口は地形の理由を積まない()
+        {
+            var placeInfos = BuildDragCells(3);
+            var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.None, PlacementBlockCause.None };
+            var feedback = new PlacementFeedback();
+
+            var cursorIndex = PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, new Vector3Int(1, 0, 0), feedback);
+
+            Assert.AreEqual(1, cursorIndex);
+            Assert.IsTrue(placeInfos[0].Placeable);
+            Assert.IsTrue(placeInfos[1].Placeable);
+            Assert.IsTrue(placeInfos[2].Placeable);
+            Assert.IsEmpty(feedback.Lines);
+        }
+
+        // 地形以外の共有原因は地形を見ない入口でも積まれる
+        // Non-terrain shared causes are still reported by the terrain-blind entry
+        [Test]
+        public void 地形を見ない入口でも既存ブロックの理由は積む()
+        {
+            var placeInfos = BuildDragCells(3);
+            var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.ExistingBlock, PlacementBlockCause.None };
+            var feedback = new PlacementFeedback();
+
+            PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, new Vector3Int(1, 0, 0), feedback);
+
+            Assert.AreEqual(1, feedback.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
+        }
+
         private static List<PlaceInfo> BuildDragCells(int cellCount)
         {
             var placeInfos = new List<PlaceInfo>(cellCount);

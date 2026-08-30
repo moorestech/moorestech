@@ -157,13 +157,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 _previewBlockController.SetActive(true);
 
-                //プレビュー表示と地面との接触を取得する
-                //display preview and get collision with ground
-                var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
+                //プレビューを表示する。通常設置では地形との重なりを設置不可の理由にしない（ADR 0047）
+                //Display the preview; normal placement never blocks on terrain overlap (ADR 0047)
+                _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
 
-                // この時点の不可原因は既存ブロックと地表欠落のみ。地面との接触反映とカーソルセルの理由集約を1回で行う
-                // Existing blocks and missing ground are the only causes set by this point; apply ground overlaps and report the cursor cell's reasons in one call
-                var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
+                // この時点の不可原因は既存ブロックと地表欠落のみ。カーソルセルの理由集約だけを行う
+                // Existing blocks and missing ground are the only causes set by this point; only the cursor cell's reasons are reported
+                var cursorIndex = PlacementCellReasonReporter.ResolveCursorAndReportCauses(_currentPlaceInfos, placeCauses, placePoint, feedback);
 
                 // 鉱脈由来の設置制限（採掘機の底面XZ重なりとチュートリアルの鉱脈限定）をまとめて課す
                 // Apply both vein-bound placement restrictions at once: the miner's footprint XZ overlap and the tutorial vein limit
@@ -171,8 +171,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // They run before the material check so blocked cells don't consume quota
                 VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, _veinRestrictedPlacementState, feedback);
 
-                // 地面フィルタ後にアイテム数チェック（地面に埋まったブロックがアイテム枠を消費しないようにする）
-                // Check item count after ground filtering (so ground-blocked cells don't consume item quota)
+                // 鉱脈・既存ブロックで落ちたセルがアイテム枠を消費しないよう、フィルタ後にチェックする
+                // Check after filtering so cells dropped by veins or existing blocks don't consume item quota
                 ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
                 ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory);
 

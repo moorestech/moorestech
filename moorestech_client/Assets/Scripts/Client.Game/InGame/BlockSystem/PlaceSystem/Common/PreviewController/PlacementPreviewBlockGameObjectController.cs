@@ -21,9 +21,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             SetActive(false);
         }
         
-        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
+        public void SetPreview(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
         {
             // さっきと違うブロックだったら削除する
+            // Destroy the pooled previews when the held block changed
             if (_previewBlockMasterElement == null || _previewBlockMasterElement.BlockGuid != holdingBlockMaster.BlockGuid)
             {
                 _previewBlockMasterElement = holdingBlockMaster;
@@ -35,7 +36,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
 
             // プレビューブロックの位置を設定
             // Set preview block positions
-            var isGroundDetectedList = new List<bool>();
             foreach (var placeInfo in placePointInfos)
             {
                 var blockId = placeInfo.BlockId;
@@ -46,11 +46,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 var previewBlock = _blockPlacePreviewObjectPool.GetObject(blockId);
                 _activePreviewBlocks.Add(previewBlock);
                 previewBlock.SetTransform(pos,rot);
-                var isGroundDetected = previewBlock.IsCollisionGround;
+
+                previewBlock.SetPlaceableColor(placeInfo.Placeable);
+                previewBlock.SetPreviewStateDetail(placeInfo);
+            }
+        }
+        
+        public List<bool> SetPreviewAndGroundDetect(List<PlaceInfo> placePointInfos, BlockMasterElement holdingBlockMaster)
+        {
+            SetPreview(placePointInfos, holdingBlockMaster);
+
+            // 地形接触を見る系統だけが初期色にも接触を織り込む
+            // Only the terrain-aware systems fold contact into the initial color as well
+            var isGroundDetectedList = new List<bool>();
+            for (var i = 0; i < _activePreviewBlocks.Count; i++)
+            {
+                var isGroundDetected = _activePreviewBlocks[i].IsCollisionGround;
                 isGroundDetectedList.Add(isGroundDetected);
 
-                previewBlock.SetPlaceableColor(!isGroundDetected && placeInfo.Placeable);
-                previewBlock.SetPreviewStateDetail(placeInfo);
+                _activePreviewBlocks[i].SetPlaceableColor(!isGroundDetected && placePointInfos[i].Placeable);
             }
 
             return isGroundDetectedList;
