@@ -8,6 +8,7 @@ using Game.Block.Blocks.Util;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using Game.Map;
 using Game.Map.Interface.MapObject;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MapObjectMineSettingsModule;
@@ -50,7 +51,14 @@ namespace Game.Block.Blocks.MapObjectMiner
                 {
                     continue;
                 }
-                
+
+                // 装飾物は削れない不変条件を採掘機経路にも通す。マスタが誤って載せても対象にしない
+                // Carries the "a decoration cannot be worn down" invariant into the miner path even if the master lists one
+                if (MapObjectMiningService.IsDecoration(mapObject))
+                {
+                    continue;
+                }
+
                 if (_miningTargetInfos.TryGetValue(guid, out var currentInfo))
                 {
                     currentInfo.MapObjects.Add(mapObject);

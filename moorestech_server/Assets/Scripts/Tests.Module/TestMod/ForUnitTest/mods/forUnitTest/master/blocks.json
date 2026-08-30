@@ -3159,6 +3159,12 @@
             "attackHp": 10,
             "miningTime": 2,
             "mapObjectGuid": "00000000-0000-1111-0000-000000000001"
+          },
+          {
+            "attackHp": 10,
+            "miningTime": 2,
+            "mapObjectGuid": "00000000-0000-4444-0000-000000000001",
+            "#memo": "装飾物を誤って載せた設定。採掘機が対象から弾くことをGearMapObjectMinerTestで確認する"
           }
         ],
         "inventoryConnectors": {

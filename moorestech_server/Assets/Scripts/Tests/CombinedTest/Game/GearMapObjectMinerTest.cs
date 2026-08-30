@@ -4,6 +4,7 @@ using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.Map;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -13,6 +14,10 @@ namespace Tests.CombinedTest.Game
 {
     public class GearMapObjectMinerTest
     {
+        // テストマスタの装飾物。配置には無いので直接構築する
+        // The decoration in the test master; it has no placement, so it is constructed directly
+        private static readonly Guid DecorationMapObjectGuid = Guid.Parse("00000000-0000-4444-0000-000000000001");
+
         [Test]
         public void MapObjectMinerMiningTest()
         {
@@ -62,6 +67,30 @@ namespace Tests.CombinedTest.Game
             // インベントリのアイテムが増えていることを確認する
             // Make sure the inventory items have increased
             Assert.AreEqual(4, (int)blockInChestComponent.InventoryItems[0].Count);
+        }
+
+        [Test]
+        public void 採掘設定に載った装飾物は採掘機の対象から外れHPも減らない()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // 採掘機の生成前に採掘範囲内へ装飾物を置く。対象収集は構築時に1回だけ走る
+            // Place the decoration inside the mining area before the miner is built; targets are collected once at construction
+            var decoration = new VanillaStaticMapObject(200, DecorationMapObjectGuid, false, 10, Vector3.zero);
+            ServerContext.MapObjectDatastore.Add(decoration);
+
+            var gearMapObjectMinerPosition = Vector3Int.zero;
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearMapObjectMiner, gearMapObjectMinerPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var infinityTorqueSimpleGearGeneratorPosition = new Vector3Int(1, 0, 0);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, infinityTorqueSimpleGearGeneratorPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+
+            // 採掘サイクル(1.0s)を複数回跨ぐまで回す。弾けていなければ初回サイクルでattackHp10により破壊される
+            // Run past several 1.0s mining cycles; if it were not excluded the first cycle would destroy it with attackHp 10
+            var threeSecondTicks = 3 * GameUpdater.TicksPerSecond;
+            for (var i = 0; i < threeSecondTicks; i++) GameUpdater.RunFrames(1);
+
+            Assert.IsFalse(decoration.IsDestroyed);
+            Assert.AreEqual(10, decoration.CurrentHp);
         }
     }
 }

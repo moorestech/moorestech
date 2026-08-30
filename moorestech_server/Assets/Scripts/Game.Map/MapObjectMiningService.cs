@@ -47,11 +47,11 @@ namespace Game.Map
             // A hit on an already destroyed object does nothing; this also cuts off the debug flag file IO
             if (mapObject.IsDestroyed) return MiningAttackResult.AlreadyDestroyed;
 
-            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
-
             // 装飾物は偽造要求でも削れない
             // A decoration cannot be worn down even by a forged request
-            if (mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.None) return MiningAttackResult.NotInteractable;
+            if (IsDecoration(mapObject)) return MiningAttackResult.NotInteractable;
+
+            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
 
             // 受け取れない取得物は消滅するので、対象を削る前に空きを確かめる
             // Undeliverable drops would vanish, so verify the free space before wearing the target down
@@ -101,6 +101,16 @@ namespace Game.Map
             }
 
             #endregion
+        }
+
+        /// <summary>
+        ///     装飾物(miningType None)判定。削れない不変条件を全採掘経路が同じ規則で参照する
+        ///     Decides whether an object is a decoration (miningType None) so every mining path shares one rule
+        /// </summary>
+        public static bool IsDecoration(IMapObject mapObject)
+        {
+            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObject.MapObjectGuid);
+            return mapObjectElement.MiningType == MapObjectMasterElement.MiningTypeConst.None;
         }
 
         public static bool TryResolveUsableTool(ItemId equippedItemId, MiningToolsElement[] miningTools, out MiningToolsElement usableTool)
