@@ -1042,7 +1042,7 @@ export type MachineSlotView = {
 export function buildMachineSlotView(recipe: MachineRecipe, layout: { input: number; output: number; module: number }, totalItemSlots: number, inputTankCount: number): MachineSlotView;
 ```
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1086,7 +1086,7 @@ describe("buildMachineSlotView", () => {
 Run: `npx vitest run src/features/blockInventory/details/machine/machineSlotGhosts.test.ts`
 Expected: FAIL（モジュール無し）
 
-- [ ] **Step 2: 実装**
+- [x] **Step 2: 実装**
 
 ```ts
 // 選択レシピから「描くスロット」と各スロットのゴースト内容を導出する（ADR 0042 R7/R8）
@@ -1131,7 +1131,7 @@ export function buildMachineSlotView(
 Run: `npx vitest run src/features/blockInventory && npm run typecheck && uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "WireContractBlockDetailTest"`
 Expected: PASS
 
-- [ ] **Step 3: MachineInventoryBody をレシピ分スロット＋ゴーストにする**
+- [x] **Step 3: MachineInventoryBody をレシピ分スロット＋ゴーストにする**
 
 `MachineInventoryBody` の Props を `{ data: BlockInventoryOpen; recipe: MachineRecipe }` に変え（レシピ0件機械は Task 6 で従来通り `recipe` 無しの経路を残すため、`recipe: MachineRecipe | null` とし null なら現行の全スロット描画）、本体の入出力部分を置換:
 
@@ -1163,7 +1163,7 @@ Expected: PASS
 Run: `npx vitest run src/features/blockInventory && npm run typecheck && npm run lint`
 Expected: PASS（`MachineSection.test.ts` は Task 6 で書き直すため、この時点で型エラーが出るなら `MachineSection.tsx` の呼び出しに `recipe={selectedRecipe ?? null}` を仮で足す）
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add -A moorestech_web/webui/src moorestech_client/Assets/Scripts
