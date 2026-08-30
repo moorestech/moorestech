@@ -64,7 +64,6 @@ namespace Client.Starter.EventMode
             // Regenerate world; PlayerPrefs kept
             GameSystemPaths.DeleteDefaultWorldDirectory();
             ApplyLaunchLanguage(settings);
-            EventIdleQuitWatcher.Create(settings.IdleTimeoutSeconds);
             LocalGameLauncher.StartLocalGame();
         }
     }

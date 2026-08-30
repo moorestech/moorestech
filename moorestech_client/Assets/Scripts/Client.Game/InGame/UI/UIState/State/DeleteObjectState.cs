@@ -4,6 +4,7 @@ using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -17,22 +18,28 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly DeleteBarObject _deleteBarObject;
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly PlacementTargetPickService _placementTargetPickService;
+        private readonly RightShortPressInputService _rightShortPressInputService;
 
         private readonly DeleteObjectService _deleteObjectService;
         private readonly BuildUndoService _buildUndoService;
 
-        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService, PlacementTargetPickService placementTargetPickService)
+        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService, PlacementTargetPickService placementTargetPickService, RightShortPressInputService rightShortPressInputService)
         {
             _deleteBarObject = deleteBarObject;
             _cameraPolicyService = cameraPolicyService;
             _deleteObjectService = new DeleteObjectService(buildOperationHistory);
             _buildUndoService = buildUndoService;
             _placementTargetPickService = placementTargetPickService;
+            _rightShortPressInputService = rightShortPressInputService;
             deleteBarObject.gameObject.SetActive(false);
         }
 
         public void OnEnter(UITransitContext context)
         {
+            // 他UIState滞在中は右短押しがpollされないため、復帰直後の古い押下状態を破棄する
+            // Right short press isn't polled while another UIState is active, so discard any stale press state on return
+            _rightShortPressInputService.ResetPressState();
+
             // 視点別カーソル/回転ポリシーを適用
             // Apply the per-view-mode cursor/rotation policy
             _cameraPolicyService.EnterBuildMode();
@@ -42,9 +49,13 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            // パネル外の右短押し状態を毎フレーム取得（ManualUpdateが走る前に）
+            // Evaluate right short press state every frame before early returns (ManualUpdate runs internally)
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+
             // モード遷移を判定する（ESCはモードを抜けず削除サービス側で選択キャンセルに使う）
             // Handle mode transitions (ESC stays in the mode and is used as selection cancel by the delete service)
-            var transit = HandleTransition();
+            var transit = HandleTransition(isRightShortPressed);
             if (transit != null) return transit;
 
             // TPSのみ右ドラッグで削除照準回転
@@ -63,7 +74,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
             #region Internal
 
-            UITransitContext HandleTransition()
+            UITransitContext HandleTransition(bool isRightShortPressed)
             {
                 // OpenMenu(ポーズ)もESCにbindされ、ここで拾うとESCの選択キャンセル/モード終了が死ぬため破壊モードでは扱わない
                 // OpenMenu(pause) is also bound to ESC; handling it here would shadow ESC's cancel/exit, so skip it in destroy mode
@@ -71,9 +82,10 @@ namespace Client.Game.InGame.UI.UIState.State
                 if (HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.BuildMenu);
                 if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
 
-                // ESCはまず削除選択のキャンセルに使い、キャンセルする選択が無ければ破壊モードを抜ける
-                // ESC is used first to cancel the delete selection; with nothing to cancel it leaves destroy mode
-                if (InputManager.UI.CloseUI.GetKeyDown && !_deleteObjectService.TryCancelSelection())
+                // ESC/パネル外の右短押しはまず削除選択のキャンセルに使い、キャンセルする選択が無ければ破壊モードを抜ける
+                // ESC and a right short press outside UI first cancel the delete selection; with nothing to cancel they leave destroy mode
+                var isCancelRequested = InputManager.UI.CloseUI.GetKeyDown || isRightShortPressed;
+                if (isCancelRequested && !_deleteObjectService.TryCancelSelection())
                 {
                     return new UITransitContext(UIStateEnum.GameScreen);
                 }

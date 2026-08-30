@@ -34,6 +34,7 @@ using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
@@ -92,6 +93,8 @@ namespace Client.Starter.Registration
             builder.Register<PlacementTargetResolver>(Lifetime.Singleton);
             builder.Register<HotbarKeyInput>(Lifetime.Singleton);
             builder.Register<HotbarTapInputService>(Lifetime.Singleton);
+            builder.Register<RightShortPressInput>(Lifetime.Singleton);
+            builder.Register<RightShortPressInputService>(Lifetime.Singleton);
             builder.Register<HotbarSelectionReconciler>(Lifetime.Singleton);
         }
 

@@ -56,6 +56,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
             _isWheelOwnedByTool.Value = isOwned;
         }
 
+        // 右短押しの二段階解除。true時は遷移しない
+        // Two-stage cancel for a right short press; the caller does not transition on true
+        public bool TryCancelInProgressOperation()
+        {
+            return _currentPlaceSystem.TryCancelInProgressOperation();
+        }
+
         public void Disable()
         {
             _currentPlaceSystem.Disable();

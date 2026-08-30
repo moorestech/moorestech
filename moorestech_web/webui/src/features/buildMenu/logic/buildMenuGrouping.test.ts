@@ -2,11 +2,9 @@ import { describe, expect, it } from "vitest";
 import type { BuildMenuCategory, BuildMenuEntryData } from "../../../bridge/contract/payloadTypes";
 import { connectToolNameKey, trainCarNameKey } from "@/shared/i18n";
 import {
+  groupBuildMenuCategories,
   localizeBuildMenuEntries,
-  resolveSelectedCategory,
-  searchSections,
-  sectionsForCategory,
-  visibleCategories,
+  searchBuildMenuEntries,
 } from "./buildMenuGrouping";
 
 const miningCategoryGuid = "10000000-0000-4000-8000-000000000001";
@@ -42,54 +40,69 @@ const translations: Record<string, string> = {
 };
 const entries = localizeBuildMenuEntries(rawEntries, (key) => translations[key]);
 
-describe("visibleCategories", () => {
-  it("エントリの無いカテゴリを除外し定義順を維持する", () => {
-    expect(visibleCategories(categories, entries).map((c) => c.categoryGuid)).toEqual([
-      miningCategoryGuid,
-      logisticsCategoryGuid,
-    ]);
+describe("groupBuildMenuCategories", () => {
+  it("エントリの無いカテゴリを除外し定義順のカテゴリ群を返す", () => {
+    const groups = groupBuildMenuCategories(categories, entries);
+    expect(groups.map((g) => g.categoryGuid)).toEqual([miningCategoryGuid, logisticsCategoryGuid]);
+  });
+  it("各カテゴリ内はサブカテゴリ定義順で空サブカテゴリを除外する", () => {
+    const logistics = groupBuildMenuCategories(categories, entries)[1];
+    expect(logistics.sections.map((s) => s.subCategoryGuid)).toEqual([chestSubCategoryGuid, conveyorSubCategoryGuid]);
+    expect(logistics.sections[0].entries.map((e) => e.displayLabel)).toEqual(["木のチェスト"]);
+    expect(logistics.sections[0].categoryGuid).toBe(logisticsCategoryGuid);
+  });
+  it("エントリが空なら空配列", () => {
+    expect(groupBuildMenuCategories(categories, [])).toEqual([]);
+  });
+  it("カテゴリ定義に無いサブカテゴリのエントリしか無いカテゴリは群にならない", () => {
+    // サイドバーがカテゴリ一致だけで判定すると、この群に出ないカテゴリが恒久disabledで並ぶ
+    // Judging the sidebar on a category match alone would leave this ungrouped category permanently disabled
+    const strayEntries = localizeBuildMenuEntries(
+      [blockEntry("70000000-0000-4000-8000-000000000004", buildingCategoryGuid, chestSubCategoryGuid)],
+      () => "迷子ブロック",
+    );
+    expect(groupBuildMenuCategories(categories, strayEntries)).toEqual([]);
+  });
+  it("同一サブカテゴリ内はソートせずentries引数の並び順をそのまま維持する", () => {
+    const orderEntries = localizeBuildMenuEntries(
+      [
+        blockEntry("70000000-0000-4000-8000-000000000002", logisticsCategoryGuid, chestSubCategoryGuid),
+        blockEntry("70000000-0000-4000-8000-000000000001", logisticsCategoryGuid, chestSubCategoryGuid),
+      ],
+      (key) => (key === "block.70000000-0000-4000-8000-000000000002.name" ? "Zチェスト" : "Aチェスト"),
+    );
+    const chestSection = groupBuildMenuCategories(categories, orderEntries)
+      .find((g) => g.categoryGuid === logisticsCategoryGuid)!
+      .sections.find((s) => s.subCategoryGuid === chestSubCategoryGuid)!;
+    // 辞書順ならA→Zだが、配信順(Z→A)がそのまま出ることを確認する
+    // Dictionary order would be A then Z; verify the delivery order (Z then A) survives untouched
+    expect(chestSection.entries.map((e) => e.displayLabel)).toEqual(["Zチェスト", "Aチェスト"]);
   });
 });
 
-describe("resolveSelectedCategory", () => {
-  it("nullなら先頭カテゴリへフォールバックする", () => {
-    expect(resolveSelectedCategory(null, visibleCategories(categories, entries))).toBe(miningCategoryGuid);
+describe("searchBuildMenuEntries", () => {
+  it("表示名の部分一致で大文字小文字を無視して絞り込む", () => {
+    expect(searchBuildMenuEntries("鉄", entries).map((e) => e.displayLabel)).toEqual(["鉄の採掘機"]);
+    expect(searchBuildMenuEntries("ベルト", entries).map((e) => e.displayLabel)).toEqual(["ベルトコンベア"]);
   });
-  it("表示対象外のカテゴリ名なら先頭へフォールバックする", () => {
-    expect(resolveSelectedCategory(buildingCategoryGuid, visibleCategories(categories, entries))).toBe(miningCategoryGuid);
-  });
-  it("表示中のカテゴリ名は維持する", () => {
-    expect(resolveSelectedCategory(logisticsCategoryGuid, visibleCategories(categories, entries))).toBe(logisticsCategoryGuid);
-  });
-  it("表示カテゴリが無ければnull", () => {
-    expect(resolveSelectedCategory(logisticsCategoryGuid, [])).toBeNull();
-  });
-});
-
-describe("sectionsForCategory", () => {
-  it("サブカテゴリ定義順で空サブカテゴリを除外する", () => {
-    const sections = sectionsForCategory(logisticsCategoryGuid, categories, entries);
-    expect(sections.map((s) => s.subCategoryGuid)).toEqual([chestSubCategoryGuid, conveyorSubCategoryGuid]);
-    expect(sections[0].entries.map((e) => e.displayLabel)).toEqual(["木のチェスト"]);
-  });
-});
-
-describe("searchSections", () => {
-  it("横断部分一致でカテゴリ定義順にグループ化する", () => {
-    const sections = searchSections("鉄", categories, entries);
-    expect(sections.map((s) => `${s.categoryGuid}/${s.subCategoryGuid}`)).toEqual([
-      `${miningCategoryGuid}/${minerSubCategoryGuid}`,
-    ]);
-  });
-  it("大文字小文字を無視する", () => {
-    const en = localizeBuildMenuEntries(
-      [blockEntry("30000000-0000-4000-8000-000000000004", logisticsCategoryGuid, chestSubCategoryGuid)],
+  it("英字ラベルでも大文字小文字を無視して絞り込む", () => {
+    // toLowerCase()を落とすと"iron"は"Iron Chest"にケース一致せず検出漏れになる
+    // Dropping toLowerCase() would make "iron" fail to case-match "Iron Chest" and go undetected
+    const englishEntries = localizeBuildMenuEntries(
+      [blockEntry("70000000-0000-4000-8000-000000000003", miningCategoryGuid, minerSubCategoryGuid)],
       () => "Iron Chest",
     );
-    expect(searchSections("iron", categories, en)).toHaveLength(1);
+    expect(searchBuildMenuEntries("iron", englishEntries).map((e) => e.displayLabel)).toEqual(["Iron Chest"]);
   });
-  it("0件なら空配列", () => {
-    expect(searchSections("存在しない", categories, entries)).toEqual([]);
+  it("空文字は全件を返す", () => {
+    expect(searchBuildMenuEntries("", entries)).toHaveLength(3);
+  });
+  it("不一致は空配列", () => {
+    expect(searchBuildMenuEntries("存在しない", entries)).toEqual([]);
+  });
+  it("絞り込み結果をグルーピングするとヒットの無いカテゴリが消える", () => {
+    const groups = groupBuildMenuCategories(categories, searchBuildMenuEntries("鉄", entries));
+    expect(groups.map((g) => g.categoryGuid)).toEqual([miningCategoryGuid]);
   });
 });
 

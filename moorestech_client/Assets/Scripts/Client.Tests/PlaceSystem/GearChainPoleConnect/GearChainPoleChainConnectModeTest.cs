@@ -1,5 +1,7 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Util.GearChain;
@@ -146,7 +148,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
             var input = CreateConnectablePairInput(sourcePole);
-            input.PoleToPolePreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.AlreadyConnectedError));
+            input.PoleToPolePreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.AlreadyConnectedError), Array.Empty<ConstructionMaterialShortage>());
 
             var result = GearChainPoleChainConnectMode.Decide(input);
 
@@ -182,7 +184,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
                 SourcePolePos = sourcePos,
                 SourcePoleCenter = sourcePos + new Vector3(0.5f, 0.5f, 0.5f),
                 HitPolePos = hitPos,
-                PoleToPolePreview = new GearChainPoleExtendPreviewData(sourcePos + new Vector3(0.5f, 0.5f, 0.5f), hitPos + new Vector3(0.5f, 0.5f, 0.5f), GearChainPlacementJudgement.Success(default)),
+                PoleToPolePreview = new GearChainPoleExtendPreviewData(sourcePos + new Vector3(0.5f, 0.5f, 0.5f), hitPos + new Vector3(0.5f, 0.5f, 0.5f), GearChainPlacementJudgement.Success(default), Array.Empty<ConstructionMaterialShortage>()),
             };
         }
     }

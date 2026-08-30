@@ -1,5 +1,8 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Util.GearChain;
@@ -35,7 +38,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
-            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.TooFarError));
+            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.TooFarError), Array.Empty<ConstructionMaterialShortage>());
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
 
@@ -44,20 +47,58 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         }
 
         [Test]
-        // 地形干渉と判定失敗が同時なら地形→チェーン判定の順で並ぶ
-        // With both failures the order is terrain then chain judgement
-        public void TerrainAndExtendFailureReportsLinesInOrderTest()
+        // 地形干渉と素材不足が同時なら、地形は理由行に・素材不足は関門へ渡す不足リストに振り分けられる
+        // With both a terrain block and a material shortage, the terrain becomes a reason line while the shortage is routed to the gate
+        // 不足素材が空でも運搬自体は成立し、関門が汎用の接続不可文言へ落とす
+        // The shortage channel opens even with no short material so the gate falls back to the generic cannot-connect wording
+        public void TerrainAndMaterialShortageAreRoutedSeparatelyTest()
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
             input.GhostGroundClear = false;
-            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.NoItemError));
+            input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.NoItemError), Array.Empty<ConstructionMaterialShortage>());
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
 
-            Assert.AreEqual(2, result.FeedbackLines.Count);
+            Assert.AreEqual(1, result.FeedbackLines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, result.FeedbackLines[0].Key.Key);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainNoItem.Key, result.FeedbackLines[1].Key.Key);
+            Assert.IsTrue(result.MaterialShortageFallbackKey.HasValue);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, result.MaterialShortageFallbackKey.Value.Key);
+            Assert.AreEqual(0, result.MaterialShortages.Count);
+        }
+
+        [Test]
+        // ポール自身の建設コストが不足なら設置不可になり、不足行は関門へ渡される
+        // A pole whose own construction cost is short becomes unplaceable and its shortage is routed to the gate
+        public void PoleConstructionCostShortageBlocksPlacementTest()
+        {
+            var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
+            input.Clicked = true;
+            input.GhostAffordable = false;
+            input.GhostMaterialShortages = new[] { new ConstructionMaterialShortage(new ItemId(7), 1, 4) };
+
+            var result = GearChainPolePlaceExtendMode.Decide(input);
+
+            // 送信されず、ゴーストも不可色になる
+            // Nothing is sent and the ghost turns unplaceable
+            Assert.IsFalse(result.ExtendSend.HasValue);
+            Assert.IsFalse(result.Preview.GhostPlaceable);
+            Assert.AreEqual(1, result.MaterialShortages.Count);
+            Assert.AreEqual(4, result.MaterialShortages[0].Required);
+            Assert.IsTrue(result.MaterialShortageFallbackKey.HasValue);
+        }
+
+        [Test]
+        // ポール建設コストが足りていれば従来どおり送信される
+        // With the pole cost affordable the request is sent as before
+        public void AffordablePoleIsSentTest()
+        {
+            var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
+            input.Clicked = true;
+
+            var result = GearChainPolePlaceExtendMode.Decide(input);
+
+            Assert.IsTrue(result.ExtendSend.HasValue);
         }
 
         [Test]

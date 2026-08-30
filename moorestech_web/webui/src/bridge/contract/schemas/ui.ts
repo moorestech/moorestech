@@ -33,6 +33,7 @@ export const LocalizationDataSchema = z.object({
   locale: z.string().min(1),
   revision: z.number().int().nonnegative(),
 });
+export const EventLanguageGateDataSchema = z.object({ waiting: z.boolean() });
 export const PauseMenuDataSchema = z.object({ disconnected: z.boolean() });
 const PlacementModeCommonFields = {
   height: z.number().int(),

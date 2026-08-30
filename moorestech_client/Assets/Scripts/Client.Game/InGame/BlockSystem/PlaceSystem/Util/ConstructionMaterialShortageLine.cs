@@ -6,8 +6,10 @@ using Mooresmaster.Localization.Generated;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     /// <summary>
-    /// 不足素材1件を「名前 所持/必要」のツールチップ行へ写像する
-    /// Maps one short construction material to a "name held/required" tooltip line
+    /// 不足素材1件をアイテム名・所持・必要のパラメータへ写像する
+    /// Maps one short material to a line with item name, held and required params
+    /// 表示文言（接頭辞や並び）の正本はlocalization.csv側にある
+    /// The wording itself (prefix and ordering) is owned by localization.csv
     /// </summary>
     public static class ConstructionMaterialShortageLine
     {

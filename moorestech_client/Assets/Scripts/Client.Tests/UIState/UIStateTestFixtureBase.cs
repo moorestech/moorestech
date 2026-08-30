@@ -26,6 +26,7 @@ namespace Client.Tests.UIState
     public abstract class UIStateTestFixtureBase : InputTestFixture
     {
         private readonly List<GameObject> _objects = new();
+        private EventSystem _eventSystem;
 
         protected Mouse MouseDevice { get; private set; }
         protected Keyboard KeyboardDevice { get; private set; }
@@ -35,6 +36,10 @@ namespace Client.Tests.UIState
             base.Setup();
             MouseDevice = InputSystem.AddDevice<Mouse>();
             KeyboardDevice = InputSystem.AddDevice<Keyboard>();
+
+            // UI上判定はEventSystem.currentを引くため、テスト毎に空のEventSystemを立てる
+            // The over-UI check reads EventSystem.current, so give every test its own empty EventSystem
+            _eventSystem = CreateObject("EventSystem", true).AddComponent<EventSystem>();
         }
 
         public override void TearDown()
@@ -82,13 +87,12 @@ namespace Client.Tests.UIState
             InvokeAwake(tooltip);
         }
 
-        // インタラクト選定は本番と同じUI重なり判定を通るため、EventSystemの実体が要る
-        // Interact selection goes through the production UI-overlap check, so a real EventSystem is required
-        protected void SetUpEventSystem()
+        // インタラクト選定は本番と同じUI重なり判定を通るため、Setupで立てたEventSystemを入力モジュール付きで有効化する
+        // Interact selection runs the production UI-overlap check, so activate the Setup EventSystem with an input module
+        protected void SetUpEventSystemInputModule()
         {
-            var eventSystem = CreateComponent<EventSystem>("EventSystem");
-            eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
-            InvokePrivate(eventSystem, "OnEnable");
+            _eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
+            InvokePrivate(_eventSystem, "OnEnable");
         }
 
         protected void SetUpGameStateController()

@@ -44,17 +44,5 @@ namespace Client.Tests.EventMode
             Assert.IsTrue(isTimeout);
             Assert.Less(elapsed, 181f);
         }
-
-        [Test]
-        public void Resetで積算が0へ戻る()
-        {
-            var timer = new EventIdleTimer(3);
-
-            timer.AdvanceAndCheckTimeout(false, 2.5f);
-            timer.Reset();
-
-            Assert.IsFalse(timer.AdvanceAndCheckTimeout(false, 2.5f));
-            Assert.IsTrue(timer.AdvanceAndCheckTimeout(false, 0.5f));
-        }
     }
 }

@@ -22,6 +22,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         public readonly bool IsPositionFree;
         public readonly IReadOnlyList<ConstructionMaterialShortage> MaterialShortages;
 
+        // この電柱1本を置くと実際に消費する素材。電線判定へ予約として渡す（財布が賄うなら空）
+        // The materials this single pole actually consumes, handed to the wire judgement as a reservation (empty when the wallet covers it)
+        public readonly IReadOnlyList<(ItemId itemId, int count)> PoleConstructionItemCounts;
+
         // 電柱ゴーストは常に1セルなので、設置情報と電柱パラメータは保持元から都度導出する
         // The pole ghost is always a single cell, so the place info and pole param are derived from their source on demand
         public bool CanAffordPole => MaterialShortages.Count == 0;
@@ -32,7 +36,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
         // The pole ghost's own placeability (the judgement both isolated and extend placement callers shared)
         public bool IsGhostPlaceable => IsGroundClear && IsPositionFree && CanAffordPole;
 
-        public ElectricWirePoleGhostEvaluation(List<PlaceInfo> placeInfos, BlockMasterElement poleMaster, BlockId poleBlockId, bool isGroundClear, bool isPositionFree, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
+        public ElectricWirePoleGhostEvaluation(List<PlaceInfo> placeInfos, BlockMasterElement poleMaster, BlockId poleBlockId, bool isGroundClear, bool isPositionFree, IReadOnlyList<ConstructionMaterialShortage> materialShortages, IReadOnlyList<(ItemId itemId, int count)> poleConstructionItemCounts)
         {
             PlaceInfos = placeInfos;
             PoleMaster = poleMaster;
@@ -40,6 +44,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             IsGroundClear = isGroundClear;
             IsPositionFree = isPositionFree;
             MaterialShortages = materialShortages;
+            PoleConstructionItemCounts = poleConstructionItemCounts;
         }
 
         // ゴーストの不可理由をプッシュ順（地形 → 重複 → 素材）でツールチップへ積む
@@ -54,7 +59,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             // 地形干渉・重複で既に不可のセルは「今回の設置セル」に数えないため素材行も出さない（前例: ConstructionMaterialShortageReporter）
             // A cell already blocked by terrain/overlap is not a placing cell, so no material line either (precedent: ConstructionMaterialShortageReporter)
             if (!IsGroundClear || !IsPositionFree) return;
-            foreach (var shortage in MaterialShortages) feedback.Add(ConstructionMaterialShortageLine.ToLine(shortage));
+            // 電線判定側も同じアイテムの不足を積みうるため、畳み込む関門へ渡す
+            // The wire judgement can push a shortage for the same item, so this goes through the folding gate
+            feedback.AddMaterialShortages(MaterialShortages);
         }
     }
 }

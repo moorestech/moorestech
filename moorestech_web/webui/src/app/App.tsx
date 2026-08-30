@@ -20,6 +20,7 @@ import { CursorTooltip } from "@/shared/tooltip";
 import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
+import { EventLanguageGate } from "@/features/eventLanguageGate";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud } from "@/shared/uiState";
 import { useUiScaleStore } from "@/shared/uiScale";
@@ -161,6 +162,9 @@ export default function App() {
           </Overlay>
         </Portal>
       )}
+      {/* 出展モードの開始ゲート。再接続表示より前へ出し、待機中の操作を全て塞ぐ */}
+      {/* The event-mode start gate; sits ahead of the reconnect overlay and blocks every input while waiting */}
+      <EventLanguageGate />
     </div>
   );
 }
