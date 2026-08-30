@@ -1663,7 +1663,7 @@ git commit -m "test: Fキーインタラクトの通しプレイテストシナ�
 
 `moores-code-review` スキルを起動し、ブランチ全体（Task 1〜9）をレビュー対象にする。指摘の機械的修正を適用し、設計判断だけ AskUserQuestion で仰ぐ。
 
-- [ ] **Step 2: PR作成と撤収**
+- [x] **Step 2: PR作成と撤収**
 
 `pr-create` スキルでPRを作る（本文にADR 0046・裁定4件・master側PRのURL・録画スクリーンショットを記載）。作成直後に `moores-wt rm feature/interact-key-unification`。`bd close moorestech-3cbt --reason="PR #<番号>"`。
 
