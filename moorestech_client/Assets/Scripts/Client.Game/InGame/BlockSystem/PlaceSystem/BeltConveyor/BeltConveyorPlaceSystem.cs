@@ -104,7 +104,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             //display preview and get collision with ground
             var (placeCauses, beltReasons) = UpdateCurrentPlaceInfos();
 
-            var blockGroundOverlapList = _previewBlockController.SetPreviewAndGroundDetect(_currentPlaceInfos, holdingBlockMaster);
+            _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
+            var blockGroundOverlapList = _previewBlockController.DetectGroundOverlaps();
 
             // 共有の不可原因（既存重複）は共通Reporterが積む
             // The shared block cause (existing overlap) is pushed by the shared reporter
