@@ -61,7 +61,7 @@ namespace Client.Tests.Interact
             var blockGuid = openable.GetComponent<BlockGameObject>().BlockMasterElement.BlockGuid;
             Assert.AreEqual(new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(blockGuid)) }, openable.Actions[0].HintParams);
 
-            var transit = openable.Actions[0].Execute();
+            var transit = openable.Actions[0].Execute().TransitContext;
             Assert.AreEqual(UIStateEnum.SubInventory, transit.NextStateEnum);
             Assert.IsInstanceOf<BlockSubInventorySource>(transit.GetContext<ISubInventorySource>());
         }
