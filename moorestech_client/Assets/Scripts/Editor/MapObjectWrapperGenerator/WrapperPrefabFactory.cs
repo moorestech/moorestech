@@ -7,6 +7,7 @@ using Client.Game.InGame.Map.MapObject;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 // BKへアウトライン・レイターゲット・HPバーを付与
 // Builds one wrapper prefab: BK plus its outline, ray target, and HP bar
