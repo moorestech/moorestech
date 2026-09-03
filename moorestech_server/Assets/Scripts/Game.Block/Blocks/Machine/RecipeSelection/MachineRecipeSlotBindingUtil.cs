@@ -26,17 +26,6 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             return MasterHolder.FluidMaster.GetFluidId(recipe.InputFluids[tankIndex].FluidGuid) == fluidId;
         }
 
-        // 生産物のレベルファミリー（品質モジュールの変種）に属するアイテムか
-        // Whether the item belongs to the output's level family (quality module variants)
-        public static bool IsOutputVariantOf(ItemId baseItemId, ItemId itemId)
-        {
-            foreach (var variant in MasterHolder.ItemMaster.GetLevelVariants(baseItemId))
-            {
-                if (variant == itemId) return true;
-            }
-            return false;
-        }
-
         // 出力スロットごとの既定許可集合（生産物のレベルファミリーのみ）。レシピ未選択は空
         // Default allowed-item set per output slot (level family only); empty when unselected
         public static IReadOnlyList<IReadOnlyCollection<ItemId>> BuildDefaultOutputBinding(MachineRecipeMasterElement recipe)

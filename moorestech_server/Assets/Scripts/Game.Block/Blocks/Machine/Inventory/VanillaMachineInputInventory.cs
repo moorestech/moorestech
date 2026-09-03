@@ -51,7 +51,6 @@ namespace Game.Block.Blocks.Machine.Inventory
 
             var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, inputSlot, option);
-            _slotBinding.SetSlotCount(inputSlot);
 
             _fluidContainers = new FluidContainer[innerTankCount];
             for (var i = 0; i < innerTankCount; i++)
@@ -112,37 +111,65 @@ namespace Game.Block.Blocks.Machine.Inventory
             return true;
         }
 
-        // 束縛タンクへ液体を挿入する。指定タンクは束縛時のみ受け、指定無しは束縛タンクへ直行する（ADR 0042 R5）
-        // Insert fluid into the bound tank; a designated tank only when bound, undesignated inflow goes straight to the bound tank (ADR 0042 R5)
+        // 束縛タンクへ液体を挿入する。指定タンクは束縛時のみ受け、指定無しは必要量→余剰容量の2パスで束縛タンクを満たす（ADR 0042 R5）
+        // Insert fluid into the bound tanks; a designated tank only when bound, undesignated inflow fills bound tanks in two passes: requirement first, spare capacity second (ADR 0042 R5)
         public FluidStack InsertFluid(FluidStack fluidStack, int designatedTankIndex, out bool changed)
         {
-            var index = ResolveFluidTargetIndex(designatedTankIndex, fluidStack.FluidId);
-            if (index < 0)
+            // レシピ未選択の機械はどのタンクも受け入れない
+            // An unselected machine accepts nothing in any tank
+            if (!_slotBinding.IsBound())
             {
                 changed = false;
                 return fluidStack;
             }
 
-            var result = FluidInputSlot[index].AddLiquid(fluidStack);
-            changed = 0 < result.AcceptedAmount;
-            return result.Remainder;
+            if (0 <= designatedTankIndex && designatedTankIndex < FluidInputSlot.Count)
+            {
+                return InsertIntoDesignatedTank(designatedTankIndex, out changed);
+            }
+
+            // 先頭タンクへ全量入れると、同一液体を複数タンクが要求するレシピで後続タンクが永久に空のままになる
+            // Dumping everything into the first tank leaves later tanks empty forever when several tanks require the same fluid
+            var remaining = fluidStack;
+            remaining = FillBoundTanks(remaining, true);
+            remaining = FillBoundTanks(remaining, false);
+
+            changed = remaining.Amount < fluidStack.Amount;
+            return remaining;
 
             #region Internal
 
-            // タンク指定ありは束縛の合否のみ、指定無しは束縛タンクを先頭から探索する
-            // A designated tank is judged solely on the binding; undesignated inflow scans for the bound tank from the front
-            int ResolveFluidTargetIndex(int designated, FluidId fluidId)
+            FluidStack InsertIntoDesignatedTank(int designated, out bool designatedChanged)
             {
-                if (0 <= designated && designated < FluidInputSlot.Count)
+                if (!_slotBinding.IsFluidAllowedAt(designated, fluidStack.FluidId))
                 {
-                    return IsFluidAllowedAt(designated, fluidId) ? designated : -1;
+                    designatedChanged = false;
+                    return fluidStack;
                 }
 
-                for (var i = 0; i < FluidInputSlot.Count; i++)
+                var result = FluidInputSlot[designated].AddLiquid(fluidStack);
+                designatedChanged = 0 < result.AcceptedAmount;
+                return result.Remainder;
+            }
+
+            // limitToRequirementがtrueならレシピ必要量まで、falseならタンク容量まで満たす
+            // With limitToRequirement the fill stops at the recipe requirement; otherwise it runs to the tank capacity
+            FluidStack FillBoundTanks(FluidStack incoming, bool limitToRequirement)
+            {
+                foreach (var tankIndex in _slotBinding.ResolveBoundTanks(incoming.FluidId))
                 {
-                    if (IsFluidAllowedAt(i, fluidId)) return i;
+                    if (incoming.Amount <= 0) break;
+
+                    var container = FluidInputSlot[tankIndex];
+                    var acceptable = limitToRequirement
+                        ? Math.Min(incoming.Amount, _slotBinding.RequiredFluidAmountAt(tankIndex) - container.Amount)
+                        : incoming.Amount;
+                    if (acceptable <= 0) continue;
+
+                    var result = container.AddLiquid(new FluidStack(acceptable, incoming.FluidId));
+                    incoming = new FluidStack(incoming.Amount - result.AcceptedAmount, incoming.FluidId);
                 }
-                return -1;
+                return incoming;
             }
 
             #endregion
@@ -179,11 +206,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         public void SetItemWithoutEvent(int slot, IItemStack itemStack)
         {
             _itemDataStoreService.SetItemWithoutEvent(slot, itemStack);
-        }
-
-        private bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)
-        {
-            return _slotBinding.IsFluidAllowedAt(tankIndex, fluidId);
         }
 
         private void InvokeEvent(int slot, IItemStack itemStack)

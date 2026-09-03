@@ -5,7 +5,7 @@ namespace Game.Block.Blocks.Machine.Inventory
 {
     // スロット番号をサブインベントリ列から解決する共通ロジック（VanillaMachineBlockInventoryComponentの内部詰め物）
     // Common logic to resolve a slot number against a chain of sub-inventories (internal helper for VanillaMachineBlockInventoryComponent)
-    public static class VanillaMachineSlotResolutionUtil
+    internal static class VanillaMachineSlotResolutionUtil
     {
         public static (IVanillaMachineSubInventory subInventory, int localSlot) ResolveSlot(IReadOnlyList<IVanillaMachineSubInventory> subInventories, int slot)
         {

@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
+using Core.Item.Interface;
+using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.Module;
-using Game.Block.Blocks.Machine.RecipeSelection;
+using Game.Block.Blocks.Machine.State.Util;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Game.Block.Blocks.Machine.State
@@ -29,6 +32,10 @@ namespace Game.Block.Blocks.Machine.State
         // 分子CurrentPowerと同位置で確定するstate公開用の要求電力
         // Request power published to the state, latched at the same point as the numerator CurrentPower
         public float PublishedRequestPower { get; private set; }
+
+        // 実現出力の差し替え口。清浄室のみが差し込み、通常機械はnullのまま
+        // Realized-output rewrite hook; only the clean room installs one and the normal machine leaves it null
+        private IRealizedOutputDecorator _realizedOutputDecorator;
 
         private float _processingPowerMultiplier;
         private ulong _processingPowerMultiplierTick = ulong.MaxValue;
@@ -69,6 +76,9 @@ namespace Game.Block.Blocks.Machine.State
                 ProcessState.Halted => 0f,
                 ProcessState.Processing => ProcessingPowerMultiplier,
                 ProcessState.Idle => IdlePowerRate,
+                // 出力詰まりは手が止まっているので待機と同じ率にする（満額要求のまま居座らせない）
+                // Output blockage stands still, so it requests the idle rate instead of squatting on full power
+                ProcessState.OutputBlocked => IdlePowerRate,
                 _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
             };
         }
@@ -102,13 +112,28 @@ namespace Game.Block.Blocks.Machine.State
             PublishedRequestPower = 0f;
         }
 
-        // 選択レシピを保持し、入出力インベントリへスロット束縛をプッシュする。出力側は既定でレベルファミリーのみ許可する
-        // Store the selection and push the slot binding into the input/output inventories; output defaults to level-family only
-        internal void BindSelectedRecipe(MachineRecipeMasterElement recipe)
+        // 選択レシピを保持し、入出力インベントリへスロット束縛をプッシュする。出力の許可集合は呼び出し側が組み立てて渡す（1フェーズ）
+        // Store the selection and push the slot binding into the input/output inventories; the caller assembles the allowed output set (single phase)
+        internal void BindSelectedRecipe(MachineRecipeMasterElement recipe, IReadOnlyList<IReadOnlyCollection<ItemId>> allowedOutputItemsPerSlot)
         {
             SelectedRecipe = recipe;
             InputInventory.SetBoundRecipe(recipe);
-            OutputInventory.SetBoundOutputs(MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(recipe));
+            OutputInventory.SetBoundOutputs(allowedOutputItemsPerSlot);
+        }
+
+        // 実現出力を作る唯一の口。容量判定も実挿入も必ずこの戻り値を使うので、判定した物と挿入する物が食い違わない
+        // The only place realized outputs are built; both the capacity check and the real insert use this result, so they can never diverge
+        internal List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe)
+        {
+            var outputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, EffectComponent.AggregateCurrent());
+            return _realizedOutputDecorator == null ? outputs : _realizedOutputDecorator.Decorate(recipe, outputs);
+        }
+
+        // 実現出力の差し替え口を差し込む（清浄室のチップ抽選）。未設定なら抽選結果をそのまま使う
+        // Install the realized-output rewrite hook (clean-room chip draw); without one the rolled result is used as-is
+        internal void SetRealizedOutputDecorator(IRealizedOutputDecorator decorator)
+        {
+            _realizedOutputDecorator = decorator;
         }
     }
 }

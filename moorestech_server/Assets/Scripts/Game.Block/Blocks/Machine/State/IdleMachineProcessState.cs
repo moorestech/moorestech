@@ -42,8 +42,7 @@ namespace Game.Block.Blocks.Machine.State
             // Roll only when the recipe changed; while waiting on the same recipe, reuse the already-realized result
             if (_pendingRecipe != recipe)
             {
-                var effect = _context.EffectComponent.AggregateCurrent();
-                _pendingOutputs = MachineOutputFactoryUtil.CreateRealizedOutputs(recipe, effect);
+                _pendingOutputs = _context.CreateRealizedOutputs(recipe);
                 _pendingRecipe = recipe;
             }
 

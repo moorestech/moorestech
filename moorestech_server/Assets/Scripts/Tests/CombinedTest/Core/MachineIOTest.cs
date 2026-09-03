@@ -139,7 +139,7 @@ namespace Tests.CombinedTest.Core
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.InputItems.Length > 0 && r.OutputItems.Length > 0);
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => 0 < r.InputItems.Length && 0 < r.OutputItems.Length);
             var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
             var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(outputItemId);
 

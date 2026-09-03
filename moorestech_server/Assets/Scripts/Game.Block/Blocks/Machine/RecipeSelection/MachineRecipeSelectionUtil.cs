@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
@@ -53,16 +54,16 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             }
         }
 
-        // レシピ変更の共通フロー：進行中ジョブの返却→束縛差し替え→非束縛スロットの返却。状態遷移と派生束縛の広げは呼び出し側の責務
-        // Shared recipe-change flow: refund the running job, rebind, and refund newly-unbound slots; state transition and any derived binding widening stay with the caller
-        public static MachineRecipeSelectionResult ApplyRecipeChange(MachineProcessContext context, ProcessingMachineProcessState processingState, MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
+        // レシピ変更の共通フロー：進行中ジョブの返却→束縛差し替え→非束縛スロットの返却。状態遷移は呼び出し側の責務
+        // Shared recipe-change flow: refund the running job, rebind, and refund newly-unbound slots; the state transition stays with the caller
+        public static MachineRecipeSelectionResult ApplyRecipeChange(MachineProcessContext context, ProcessingMachineProcessState processingState, MachineRecipeMasterElement recipe, IReadOnlyList<IReadOnlyCollection<ItemId>> allowedOutputItemsPerSlot, IOpenableInventory refundOverflowInventory)
         {
             if (!TryCancelRunningJobWithRefund(context.InputInventory, processingState, refundOverflowInventory))
             {
                 return MachineRecipeSelectionResult.RefundFailed;
             }
 
-            context.BindSelectedRecipe(recipe);
+            context.BindSelectedRecipe(recipe, allowedOutputItemsPerSlot);
 
             if (recipe != null) RefundUnboundInputItems(context.InputInventory, refundOverflowInventory);
 

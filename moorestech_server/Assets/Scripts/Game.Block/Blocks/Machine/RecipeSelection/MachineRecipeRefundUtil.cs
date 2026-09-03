@@ -76,11 +76,20 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             {
                 for (var i = 0; i < recipe.InputFluids.Length; i++)
                 {
-                    if (i >= input.FluidInputSlot.Count) break;
+                    if (input.FluidInputSlot.Count <= i) break;
 
                     var inputFluid = recipe.InputFluids[i];
                     var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
                     var container = input.FluidInputSlot[i];
+
+                    // 別液体が残っているタンクへは戻せない。IDを上書きすると残留液体がその場で別液体へ化ける
+                    // A tank holding another fluid cannot take the refund; overwriting the id would transmute the leftover on the spot
+                    if (container.FluidId != FluidMaster.EmptyFluidId && container.FluidId != fluidId)
+                    {
+                        UnityEngine.Debug.LogError("返却先タンクに別の液体が残っているため液体を返却できず消失した");
+                        continue;
+                    }
+
                     // レシピ側のAmountはfloatだがFluidContainerはdoubleのため揃えてから計算する
                     // The recipe's Amount is float while FluidContainer uses double, so widen before computing
                     double remaining = inputFluid.Amount;

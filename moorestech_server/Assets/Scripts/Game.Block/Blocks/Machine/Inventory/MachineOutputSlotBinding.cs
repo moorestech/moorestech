@@ -20,11 +20,10 @@ namespace Game.Block.Blocks.Machine.Inventory
             _allowedItemsPerSlot = allowedItemsPerSlot ?? System.Array.Empty<IReadOnlyCollection<ItemId>>();
         }
 
-        // 実現出力realizedOutputIndexが積まれるスロット番号。束縛先が無ければ-1
-        // Slot realized output realizedOutputIndex lands in; -1 when no binding exists
+        // 実現出力realizedOutputIndexが積まれるスロット番号。追加産出セットは同じ束縛枠へ折り返す
+        // Slot realized output realizedOutputIndex lands in; the extra output set wraps back onto the same bound frames
         public int ResolveSlot(int realizedOutputIndex)
         {
-            if (_allowedItemsPerSlot.Count == 0) return -1;
             return realizedOutputIndex % _allowedItemsPerSlot.Count;
         }
 

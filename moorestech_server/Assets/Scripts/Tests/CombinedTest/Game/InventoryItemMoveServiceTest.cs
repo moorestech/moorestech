@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.InputItems.Length > 0);
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => 0 < r.InputItems.Length);
             var boundItemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[0].ItemGuid);
             var unboundItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
             Assert.AreNotEqual(boundItemId, unboundItemId, "テスト前提: 入力素材と出力生産物は別アイテムであること");

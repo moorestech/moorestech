@@ -51,14 +51,11 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
         }
 
-        // 出力スロットごとの許可アイテム集合を束縛する。物理スロット数を超える分は切り詰める（生産物数>出力スロット数のマスタ対策）
-        // Bind the allowed-item set per output slot; entries beyond the physical slot count are clipped (guards against a master with more outputs than slots)
+        // 出力スロットごとの許可アイテム集合を束縛する。品目数が物理スロット数を超えないことはマスタ検証が保証する
+        // Bind the allowed-item set per output slot; master validation guarantees the item count never exceeds the physical slots
         internal void SetBoundOutputs(IReadOnlyList<IReadOnlyCollection<ItemId>> allowedItemsPerSlot)
         {
-            var clipped = allowedItemsPerSlot.Count <= OutputSlot.Count
-                ? allowedItemsPerSlot
-                : allowedItemsPerSlot.Take(OutputSlot.Count).ToList();
-            _slotBinding.SetBoundOutputs(clipped);
+            _slotBinding.SetBoundOutputs(allowedItemsPerSlot);
         }
 
         // 出力スロットjは生産物jのレベルファミリーだけ置ける。プレイヤー操作の可否判定
@@ -74,17 +71,51 @@ namespace Game.Block.Blocks.Machine.Inventory
         /// </summary>
         public bool CanStoreOutputs(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
         {
-            // 液体出力のスペースを先に確認する
-            // Check fluid output space first
+            return TrySimulateOutputs(itemOutputs, fluidOutputs, out _);
+        }
+
+        /// <summary>
+        ///     アイテム出力と液体出力を格納する
+        ///     Insert the item and fluid outputs
+        /// </summary>
+        public void InsertOutputSlot(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
+        {
+            // 仮判定と実挿入で同じシミュレータを通すので、通過した結果をそのままコミットするだけでよい
+            // The check and the real insert share one simulator, so a passing result is simply committed
+            if (!TrySimulateOutputs(itemOutputs, fluidOutputs, out var simulatedSlots))
+            {
+                UnityEngine.Debug.LogError("出力確定直前のCanStoreOutputsを通過したのに実挿入で受け入れ不可判定になり生産物が消失した");
+                return;
+            }
+
+            for (var slot = 0; slot < simulatedSlots.Count; slot++)
+            {
+                // 積まれなかったスロットは同じインスタンスのままなので、更新イベントを出さない
+                // A slot nothing landed in keeps the same instance, so it emits no update event
+                if (ReferenceEquals(simulatedSlots[slot], OutputSlot[slot])) continue;
+                _itemDataStoreService.SetItem(slot, simulatedSlots[slot]);
+            }
+
+            for (var i = 0; i < fluidOutputs.Count; i++)
+            {
+                _fluidContainers[i].AddLiquid(fluidOutputs[i]);
+            }
+        }
+
+        // アイテムと液体を出力先の複製へ積む唯一のシミュレータ。仮判定と実挿入がこれを共有するため両者は乖離しない
+        // The single simulator that stacks items and fluids into a copy of the outputs; the check and the real insert share it and can never diverge
+        private bool TrySimulateOutputs(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs, out List<IItemStack> simulatedSlots)
+        {
+            simulatedSlots = OutputSlot.ToList();
             if (!IsFluidOutputAllowed()) return false;
 
             // 実現出力kは出力スロット(k % 生産物数)へ固定で積む
             // Realized output k always lands in output slot (k % output count)
-            var simulatedSlots = OutputSlot.ToList();
             for (var k = 0; k < itemOutputs.Count; k++)
             {
                 var slot = _slotBinding.ResolveSlot(k);
-                if (slot < 0 || !simulatedSlots[slot].IsAllowedToAdd(itemOutputs[k])) return false;
+                if (!simulatedSlots[slot].IsAllowedToAdd(itemOutputs[k])) return false;
+
                 var result = simulatedSlots[slot].AddItem(itemOutputs[k]);
                 if (result.RemainderItemStack.Count != 0) return false;
                 simulatedSlots[slot] = result.ProcessResultItemStack;
@@ -100,8 +131,6 @@ namespace Game.Block.Blocks.Machine.Inventory
                 // Check output space for fluids
                 for (var i = 0; i < fluidOutputs.Count; i++)
                 {
-                    if (i >= _fluidContainers.Length) return false;
-
                     var outputFluid = fluidOutputs[i];
 
                     // 既に異なる液体が入っている場合、または容量が不足している場合
@@ -118,56 +147,6 @@ namespace Game.Block.Blocks.Machine.Inventory
                 }
 
                 return true;
-            }
-
-            #endregion
-        }
-
-        /// <summary>
-        ///     アイテム出力と液体出力を格納する
-        ///     Insert the item and fluid outputs
-        /// </summary>
-        public void InsertOutputSlot(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
-        {
-            //アウトプットスロットにアイテムを格納する
-            InsertItemOutputs();
-
-            //アウトプットスロットに液体を格納する
-            for (var i = 0; i < fluidOutputs.Count; i++)
-            {
-                if (i >= _fluidContainers.Length) break;
-
-                _fluidContainers[i].AddLiquid(fluidOutputs[i]);
-            }
-
-            #region Internal
-
-            void InsertItemOutputs()
-            {
-                for (var k = 0; k < itemOutputs.Count; k++)
-                {
-                    var slot = _slotBinding.ResolveSlot(k);
-                    // 束縛が未解決(-1)なら書き込み先が無いため払い出しをスキップする
-                    // Skip the payout when the binding is unresolved (-1) since there is no target slot
-                    if (slot < 0) continue;
-
-                    // CanStoreOutputsと同じ判定を実挿入でも通す。呼び出し元は完了直前にCanStoreOutputsを確認済みだが、
-                    // 乖離があれば無言で捨てず loud に出す（MachineRecipeRefundUtilの前例と同型）
-                    // Run the same check the real insert must pass; the caller already verified CanStoreOutputs just before completion,
-                    // but if they drift, log loudly instead of silently discarding (mirrors the MachineRecipeRefundUtil precedent)
-                    if (!OutputSlot[slot].IsAllowedToAdd(itemOutputs[k]))
-                    {
-                        UnityEngine.Debug.LogError("出力確定直前のCanStoreOutputsを通過したのに実挿入で受け入れ不可判定になり生産物が消失した");
-                        continue;
-                    }
-
-                    var result = OutputSlot[slot].AddItem(itemOutputs[k]);
-                    if (result.RemainderItemStack.Count != 0)
-                    {
-                        UnityEngine.Debug.LogError("出力確定直前のCanStoreOutputsを通過したのに実挿入で残余が出て生産物が消失した");
-                    }
-                    _itemDataStoreService.SetItem(slot, result.ProcessResultItemStack);
-                }
             }
 
             #endregion
