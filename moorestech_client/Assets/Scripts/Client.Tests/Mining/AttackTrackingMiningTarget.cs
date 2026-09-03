@@ -27,12 +27,13 @@ namespace Client.Tests.Mining
             GameObject.transform.SetParent(parent);
         }
 
-        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
+        public IReadOnlyList<ItemId> RecommendedToolItemIds => _recommendedToolItemIds;
+
+        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool)
         {
             // 打撃回数だけを見るfixtureなので常に採掘可能として応じる
             // This fixture only counts attacks, so it always reports itself as minable
             tool = new MiningToolCandidate(equippedItemId, 0.01f);
-            recommendedToolItemIds = _recommendedToolItemIds;
             return MiningStartOutcome.Ready;
         }
 

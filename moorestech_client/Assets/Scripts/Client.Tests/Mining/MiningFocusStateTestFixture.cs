@@ -141,10 +141,11 @@ namespace Client.Tests.Mining
                 GameObject = new GameObject("OutcomeStubMiningTarget");
             }
 
-            public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
+            public IReadOnlyList<ItemId> RecommendedToolItemIds => _recommendedToolItemIds;
+
+            public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool)
             {
                 tool = new MiningToolCandidate(equippedItemId, 1f);
-                recommendedToolItemIds = _recommendedToolItemIds;
                 return _outcome;
             }
 

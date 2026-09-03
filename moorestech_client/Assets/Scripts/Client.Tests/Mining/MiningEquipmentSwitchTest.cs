@@ -155,7 +155,7 @@ namespace Client.Tests.Mining
         {
             var target = context.CurrentFocusTarget;
             var equippedItemId = context.LocalPlayerEquipment.SelectedItem.Id;
-            Assert.AreEqual(MiningStartOutcome.Ready, target.TryBeginHandMining(equippedItemId, out var miningTool, out _));
+            Assert.AreEqual(MiningStartOutcome.Ready, target.TryBeginHandMining(equippedItemId, out var miningTool));
             return miningTool;
         }
 
