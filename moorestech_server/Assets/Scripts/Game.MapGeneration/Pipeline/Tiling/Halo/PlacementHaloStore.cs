@@ -4,10 +4,10 @@ using Game.MapGeneration.Pipeline.Generators;
 namespace Game.MapGeneration.Pipeline.Tiling
 {
     // 格子1つぶんの halo 帳面。確定済みタイルの配置を種類ごとに溜め、以降のタイルの近傍判定へ供給する。
-    // 鉱脈のメンバー点がタイル境界の中心間隔判定へ混ざらないよう中心と分け、中心はveinGuid別に持つ。
+    // 中心の間隔判定にメンバー座標を混ぜると境界の帯だけ過剰に空くため中心と分け、中心はveinGuid別に持つ。
     // 確定AABB台帳だけは点チャネルとは別の境界で絞る（_confirmedVeins のコメント参照）。
     // One grid's halo ledgers, holding confirmed placements per kind and feeding later tiles' neighbour tests.
-    // Vein members stay separate so they never enter cross-tile center-spacing checks; centers are also split per veinGuid.
+    // Mixing member coordinates into the center-spacing test would over-thin the seam band, so centers stay separate and are further split per veinGuid.
     // The confirmed-AABB ledger alone uses a different bound than the point channels (see the _confirmedVeins comment).
     public class PlacementHaloStore
     {
@@ -61,7 +61,7 @@ namespace Game.MapGeneration.Pipeline.Tiling
             // Commits AABBs and distance-test points at the same confirmation boundary.
             foreach (var cluster in placement.Clusters)
             {
-                channels.Centers.Get(cluster.VeinGuid).Add(cluster.WorldCenter.x, cluster.WorldCenter.y);
+                channels.Centers.GetOrCreate(cluster.VeinGuid).Add(cluster.WorldCenter.x, cluster.WorldCenter.y);
                 channels.Members.AddPlacements(cluster.Members, 0f, 0f);
             }
         }

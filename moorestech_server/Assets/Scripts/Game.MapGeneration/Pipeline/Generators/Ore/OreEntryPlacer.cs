@@ -34,8 +34,8 @@ namespace Game.MapGeneration.Pipeline.Generators
             int hRes = dims.Resolution;
             float minDist = entry.minDistanceFromOthers;
 
-            // 中心排他の設定はエントリと同じ責務に閉じる。
-            // Keeps center-exclusion setup with the entry that owns the invariant.
+            // 中心グリッドは全bandで共有するのでband最大の間隔を採る。band値まで下げると小半径の中心が大クラスタの内側へ入る。
+            // The center grid is shared by every band, so it takes the band-maximum spacing; lowering it to each band's own value would let a small-radius center sit inside a large cluster.
             float centerSpacing = 0f;
             if (entry.bands != null)
                 foreach (var band in entry.bands)
@@ -43,7 +43,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                         OrePlacementMath.CalculateClusterCenterSpacing(band.clusterRadius));
 
             var clusterCenterGrid = new SpatialGrid(w, l, Mathf.Max(w / 50f, 5f));
-            centerHalos.Get(entry.veinGuid).SeedGrid(
+            centerHalos.GetOrCreate(entry.veinGuid).SeedGrid(
                 clusterCenterGrid, dims.WorldOffsetX, dims.WorldOffsetZ, w, l, haloRadius);
 
             // 地形への効き方はmapVeinsマスタが正本。veinGuidの解決はGenerationMasterのバリデーションが保証する

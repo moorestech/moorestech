@@ -102,7 +102,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var seededCenter = new Vector2(-1f, sameGuidCenter.y);
             var differentGuidCenter = probeB.First(point => Vector2.Distance(point, seededCenter) < DefaultCenterSpacing);
             var seededHalo = CreateHalo(20f);
-            seededHalo.ItemVeins.Centers.Get(VeinGuidA).Add(TileSize + seededCenter.x, seededCenter.y);
+            seededHalo.ItemVeins.Centers.GetOrCreate(VeinGuidA).Add(TileSize + seededCenter.x, seededCenter.y);
 
             Generate(entries, TileSize, seededHalo, 43);
             var generatedA = ReadCenters(seededHalo, VeinGuidA, TileSize).Where(point => 0f <= point.x).ToList();
@@ -203,7 +203,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         private static List<Vector2> ReadCenters(PlacementHaloStore halo, string veinGuid, float worldOffsetX)
         {
             var grid = new SpatialGrid(TileSize, TileSize, 5f);
-            halo.ItemVeins.Centers.Get(veinGuid).SeedGrid(
+            halo.ItemVeins.Centers.GetOrCreate(veinGuid).SeedGrid(
                 grid, worldOffsetX, 0f, TileSize, TileSize, halo.Radius);
             return grid.GetAllPoints();
         }
