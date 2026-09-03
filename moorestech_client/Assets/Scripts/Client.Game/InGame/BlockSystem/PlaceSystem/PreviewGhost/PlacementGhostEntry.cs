@@ -82,6 +82,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost
         
         public void Hide()
         {
+            // 生成中に隠すと生成物は捨てられるので要求も取り消す。残すと同種別の次回SetTargetが「要求済み」で素通りし二度と出ない
+            // Hiding mid-creation discards the result, so drop the request too; keeping it makes the next same-kind SetTarget skip as "requested" and the ghost never returns
+            if (_previewCancellation != null) _requestedBlockId = null;
             CancelPendingPreview();
             TargetCell = null;
             if (PreviewObject != null) PreviewObject.SetActive(false);

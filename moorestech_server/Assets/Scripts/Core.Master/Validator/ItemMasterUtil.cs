@@ -160,6 +160,10 @@ namespace Core.Master.Validator
                 }
                 if (items.EquipmentSlotCount < items.InitialEquipmentItems.Length)
                     logs += $"[ItemMaster.initialEquipmentItems] count:{items.InitialEquipmentItems.Length} exceeds EquipmentSlotCount:{items.EquipmentSlotCount}\n";
+                // 装備選択は「未装備なし」で常に1枠を指すため、枠0は選択インデックスのクランプが成立せず起動不能になる
+                // Equipment selection always points at a slot (no unequipped state), so zero slots breaks the index clamp and the boot
+                if (items.EquipmentSlotCount < 1)
+                    logs += $"[ItemMaster.equipmentSlotCount] must be at least 1 but was {items.EquipmentSlotCount}\n";
 
                 return logs;
 

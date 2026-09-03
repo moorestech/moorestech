@@ -134,6 +134,33 @@ namespace Client.Tests.CancelInput
         }
 
         [Test]
+        public void 押下フレームに閾値以上のdeltaを与えると成立しない()
+        {
+            var input = new RightShortPressInput();
+
+            // 移動の大半が押下フレームに乗る高速フリックを再現
+            // Reproduce a fast flick whose movement lands mostly on the press frame
+            input.ManualUpdate(true, new Vector2(9f, 0f), false);
+            input.ManualUpdate(false, NoMove, false);
+
+            Assert.IsFalse(input.TryConsumeShortPress(), "押下フレームのdeltaも解放フレームと対称に累積するため成立しない");
+        }
+
+        [Test]
+        public void 押下フレームの小さな移動は次の押下へ持ち越さない()
+        {
+            var input = new RightShortPressInput();
+
+            input.ManualUpdate(true, new Vector2(5f, 0f), false);
+            input.ManualUpdate(false, NoMove, false);
+            Assert.IsTrue(input.TryConsumeShortPress());
+
+            input.ManualUpdate(true, new Vector2(5f, 0f), false);
+            input.ManualUpdate(false, NoMove, false);
+            Assert.IsTrue(input.TryConsumeShortPress(), "累積は押下ごとに押下フレームのdeltaから始まる");
+        }
+
+        [Test]
         public void UI外で押してUI上で離すと成立しない()
         {
             var input = new RightShortPressInput();
