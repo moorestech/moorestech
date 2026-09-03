@@ -11,8 +11,8 @@ describe("notificationMessages", () => {
   it("未知のmessageIdは専用キーで可視化する", () => {
     expect(resolveNotificationKey("unknown.id")).toBe(L.ui.notification.unknownMessage);
   });
-  it("獲得通知は専用キーを返す", () => {
-    expect(resolveNotificationKey("itemEarned.mined")).toBe(L.ui.notification.itemEarned);
+  it("獲得通知のmessageIdは表から到達できない", () => {
+    expect(resolveNotificationKey("itemEarned.mined")).toBe(L.ui.notification.unknownMessage);
   });
   it("messageIdとparamsを補間値へ変換する", () => {
     expect(buildInterpolationValues("known.id", ["a", "b"])).toEqual({
@@ -35,6 +35,26 @@ describe("notificationMessages", () => {
       translate,
       resolveItemDisplayName,
     )).toEqual({ key: L.ui.notification.craftResultFull, values: { messageId: "denied.craftResultFull", p0: "a" } });
+  });
+
+  it("獲得通知はmessageIdに依らず獲得テンプレートを使う", () => {
+    const translate = (key: string) => `resolved:${key}`;
+    expect(resolveNotificationText(
+      { category: "itemEarned", messageId: "itemEarned.drifted", messageParams: [], itemId: 7, count: 3, id: 1, lifetimeEpoch: 0 },
+      translate,
+      (itemId: number) => `item:${itemId}`,
+    )).toEqual({ key: L.ui.notification.itemEarned, values: { messageId: "itemEarned.drifted", itemName: "item:7", count: 3 } });
+  });
+
+  it("獲得messageIdがmessage系categoryで来たら未知通知へ落とす", () => {
+    const translate = (key: string) => `resolved:${key}`;
+    const { key, values } = resolveNotificationText(
+      { category: "achievement", messageId: "itemEarned.mined", messageParams: [], itemId: null, id: 2, lifetimeEpoch: 0 },
+      translate,
+      (itemId: number) => `item:${itemId}`,
+    );
+    expect(key).toBe(L.ui.notification.unknownMessage);
+    expect(values).not.toHaveProperty("itemName");
   });
 
   it("獲得通知以外はアイテム名を解決しない", () => {

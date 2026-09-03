@@ -63,6 +63,9 @@ describe("ItemSlot", () => {
   it("item master のGuidから辞書名をtooltipと代替テキストへ使う", () => {
     const markup = renderItemSlot(undefined);
     expect(markup).toContain("辞書アイテム");
+    // altが未解決フォールバックへ落ちると本文と呼び名が食い違う
+    // A fallback alt would make the icon and the text name the same item differently
+    expect(markup).toContain('alt="辞書アイテム"');
     expect(markup).not.toContain("Source item");
   });
 
