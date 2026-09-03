@@ -63,6 +63,9 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 | `PressKey(key)` | 任意キーのタップ（UnityEngine.InputSystem.Key） |
 | `AimAt(worldPos)` / `AimAtPlaceOrigin(name, origin)` | マウス絶対座標照準（後者は設置原点→フットプリント中心の逆算込み） |
 | `ClickPlace()` | 左クリック（押下→2フレーム→解放。設置はGetKeyUpで確定するため解放必須） |
+| `PressInteract()` | Fを単押し（機械を開く・小石を拾う） |
+| `HoldInteract(seconds)` | Fを指定秒押し続ける（採掘・手掘り） |
+| `PressRide()` | Eを単押し（列車に乗る） |
 | `MiddleClick()` | ミドルクリック（スポイト。押下→2フレーム→解放） |
 | `PickWithAltHold(worldPos)` | 通常モードのスポイト1組（左Alt押下→照準→ミドルクリック→解放）。**GameScreenでのスポイトは必ずこれを使う** |
 | `CurrentUiState` / `WaitUiState(state, timeout)` | UIState確認/遷移待ち |

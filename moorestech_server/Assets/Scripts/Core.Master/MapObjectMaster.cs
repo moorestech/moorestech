@@ -65,5 +65,12 @@ namespace Core.Master
         {
             return Array.Find(Map.MapObjects, x => x.MapObjectGuid == guid);
         }
+
+        // 装飾物(None)は削れず落とさない。全採掘経路と検証が同じ規則を参照する
+        // A decoration (None) can neither be worn down nor drop; every mining path and validation shares this rule
+        public static bool IsDecoration(MapObjectMasterElement element)
+        {
+            return element.MiningType == MapObjectMasterElement.MiningTypeConst.None;
+        }
     }
 }

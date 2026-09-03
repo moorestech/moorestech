@@ -5,12 +5,11 @@ using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
-using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
-using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
 using Client.Tests.Map.Vein;
@@ -25,8 +24,9 @@ namespace Client.Tests.UIState
         public void GameScreenAndBuildMenuPushTheirOnEnterPolicies()
         {
             SetUpGameStateController();
+            SetUpMouseCursorTooltip();
             var gameApplier = new FakePlayerCameraInteractionApplier();
-            var gameState = new GameScreenState(null, null, null, null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null));
+            var gameState = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null));
             gameState.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
             CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, gameApplier.Calls);
 
@@ -109,6 +109,8 @@ namespace Client.Tests.UIState
         public void GameScreenDelegatesLeftAltFreeCursorToPolicyService()
         {
             SetUpGameStateController();
+            SetUpMouseCursorTooltip();
+            SetUpEventSystemInputModule();
             var applier = new FakePlayerCameraInteractionApplier();
             var state = CreateGameScreenState(applier);
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
@@ -129,10 +131,8 @@ namespace Client.Tests.UIState
         private GameScreenState CreateGameScreenState(FakePlayerCameraInteractionApplier applier)
         {
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
-            var subInventoryInteractService = new GameScreenSubInventoryInteractService(null);
-            var rideVehicleInputService = new RideVehicleInputService();
             var placementTargetPickService = new PlacementTargetPickService(null);
-            return new GameScreenState(skitManager, subInventoryInteractService, rideVehicleInputService, placementTargetPickService, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
+            return new GameScreenState(skitManager, CreateInteractController(), placementTargetPickService, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
         }
 
         private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, FakeMapVeinRangeView mapVeinRangeView)

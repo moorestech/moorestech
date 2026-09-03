@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Material;
 using Client.Game.InGame.Train.View.Object.Pose;
@@ -13,9 +14,13 @@ using UnityEngine;
 namespace Client.Game.InGame.Train.View.Object.Core
 {
     [RequireComponent(typeof(Rigidbody))]
-    public class TrainCarEntityObject : MonoBehaviour
+    public class TrainCarEntityObject : MonoBehaviour, IInteractRayTarget
     {
         public TrainCarInstanceId TrainCarInstanceId { get; private set; }
+
+        // 当たり判定だけの子から車両のインタラクト面へ案内する
+        // Points a collider-only child at the car's interact face
+        public IInteractable Interactable => GetComponent<TrainCarInteractable>();
 
         private TrainCarMasterElement _trainCarMasterElement;
         private ITrainCarPoseUpdater _poseUpdater;

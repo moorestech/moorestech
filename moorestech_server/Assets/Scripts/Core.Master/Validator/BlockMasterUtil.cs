@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Mooresmaster.Model.BlocksModule;
@@ -21,6 +21,7 @@ namespace Core.Master.Validator
             errorLogs += ConnectorShapeGuidValidation();
             errorLogs += MeshingAxisValidation();
             errorLogs += MinerOutputSlotCountValidation();
+            errorLogs += MapObjectMineSettingsValidation();
             errorLogs += BeltConveyorFamilyValidator.Validate(blocks);
             return string.IsNullOrEmpty(errorLogs);
 
@@ -372,6 +373,29 @@ namespace Core.Master.Validator
 
                     if (minerParam.OutputItemSlotCount < uniqueItemGuids.Count)
                         logs += $"[BlockMaster] Name:{block.Name} has outputItemSlotCount:{minerParam.OutputItemSlotCount} smaller than the {uniqueItemGuids.Count} unique mineSettings items\n";
+                }
+                return logs;
+            }
+
+            string MapObjectMineSettingsValidation()
+            {
+                // 装飾物は削れないので、採掘機が対象に載せても永久に何も採れない誤設定になる
+                // A decoration can never be worn down, so listing one as a miner target mines nothing forever
+                var logs = "";
+                foreach (var block in blocks.Data)
+                {
+                    if (block.BlockParam is not GearMapObjectMinerBlockParam mapObjectMinerParam) continue;
+
+                    foreach (var mineSetting in mapObjectMinerParam.MapObjectMineSettings.items)
+                    {
+                        var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mineSetting.MapObjectGuid);
+                        if (mapObjectElement == null) continue;
+
+                        if (MapObjectMaster.IsDecoration(mapObjectElement))
+                        {
+                            logs += $"[BlockMaster] Name:{block.Name} points MapObjectMineSettings.MapObjectGuid:{mineSetting.MapObjectGuid} which forbids mining\n";
+                        }
+                    }
                 }
                 return logs;
             }

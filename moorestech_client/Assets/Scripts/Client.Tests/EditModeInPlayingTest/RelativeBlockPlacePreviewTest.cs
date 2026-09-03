@@ -4,7 +4,7 @@ using System.IO;
 using System.Reflection;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.PlacementGuide;
-using Client.Game.InGame.Tutorial.TutorialBlock;
+using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -68,10 +68,10 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // ゴーストはAddressableの非同期ロード後に立つため、生成を待ってから座標を見る
                 // The ghost appears after an async Addressable load, so wait for it before reading the position
-                TutorialBlockPreviewObject ghost = null;
+                PreviewGhostObject ghost = null;
                 for (var i = 0; i < 300 && ghost == null; i++)
                 {
-                    ghost = ghostOwner.GetComponentInChildren<TutorialBlockPreviewObject>(false);
+                    ghost = ghostOwner.GetComponentInChildren<PreviewGhostObject>(false);
                     await UniTask.Yield();
                 }
 
@@ -116,15 +116,15 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // Addressableロードが終わる前に完了させる。1フレームしか進めないのがこのテストの肝
                 // Complete before the Addressable load finishes; advancing only one frame is the point of this test
-                manager.ApplyTutorial(CreateTutorial("無限歯車ジェネレーター", "シャフト", Offset, "North"));
+                var view = manager.ApplyTutorial(CreateTutorial("無限歯車ジェネレーター", "シャフト", Offset, "North"));
                 await UniTask.Yield();
-                manager.CompleteTutorial();
+                view.CompleteTutorial();
 
                 // 遅れて着地したゴーストが後から点灯しないことを見る
                 // Watches that a late-landing ghost never lights up afterwards
                 for (var i = 0; i < 300; i++)
                 {
-                    Assert.IsNull(ghostOwner.GetComponentInChildren<TutorialBlockPreviewObject>(false), "a ghost lit up after the tutorial had completed");
+                    Assert.IsNull(ghostOwner.GetComponentInChildren<PreviewGhostObject>(false), "a ghost lit up after the tutorial had completed");
                     await UniTask.Yield();
                 }
             }

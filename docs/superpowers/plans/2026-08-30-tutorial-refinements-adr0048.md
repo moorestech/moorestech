@@ -94,7 +94,7 @@ moorestech_master（データ、新ブランチ `feature/tutorial-chain-refineme
 - Produces: `static BlockDirection AnchorRelativeDirectionUtil.RotateByAnchor(BlockDirection localDirection, BlockDirection anchorDirection)`（水平4方位を回す。垂直系はそのまま返す）
 - Produces（変更後の意味）: `RelativeBlockPlacePreviewTutorialParam.Offset/BlockDirection` は「アンカーNorth基準ローカル」
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using Game.Block.Interface;
@@ -122,12 +122,12 @@ namespace Client.Tests.UnitTest.Tutorial
 
 期待値はクォータニオン合成の地上真値（North=+Z基準の時計回り合成）。もしテスト実行で `GetCoordinateConvertAction` の回転規約と食い違ったら、**テスト期待値ではなく実装のマッピングを直す前に**、`BlockDirection.GetRotation()` の実装（`Game.Block.Interface/BlockDirection.cs:33`）を読んで正しい合成規約をテスト側コメントに記録して揃える。
 
-- [ ] **Step 2: 実行して失敗を確認**
+- [x] **Step 2: 実行して失敗を確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "AnchorRelativeDirectionUtilTest"`
 Expected: コンパイルエラー（AnchorRelativeDirectionUtil 未定義）
 
-- [ ] **Step 3: 実装**
+- [x] **Step 3: 実装**
 
 ```csharp
 using Game.Block.Interface;
@@ -175,13 +175,13 @@ _blockPlacePreviewTutorialManager.SetTargetCell(_targetBlockId, _targetCell.Valu
 
 注意: `ConvertBlockLocalToWorldCell` は原点補正込み（アンカーの回転でブロック原点が動く分を吸収する）。既存の `OriginalPos + Offset`（無回転）と North アンカーで同値になることを確認する（North なら回転行列が単位で origin 補正もゼロのはず。違えばマスタ側 offset の基準がズレるので Task 6 のレイアウトテストで捕まえる）。
 
-- [ ] **Step 4: コンパイル＋テストPASS確認**
+- [x] **Step 4: コンパイル＋テストPASS確認**
 
 Run: `uloop compile --project-path ./moorestech_client` → エラー0
 Run: Step 2 と同じテストコマンド
 Expected: PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/Tutorial/PlacementGuide moorestech_client/Assets/Scripts/Client.Tests/UnitTest/Tutorial
@@ -201,7 +201,7 @@ git commit -m "feat(tutorial): 相対ゴーストのoffsetと向きをアンカ�
 - Produces: `BlockPlacePreviewTutorialManager.SetTargetCell(BlockId blockId, Vector3Int cell, BlockDirection direction, string tutorialGuid)` — **シグネチャ不変**だが tutorialGuid ごとに独立したゴースト/Webピンを持つ。`ClearTarget(string tutorialGuid)` へ引数追加（現 `ClearTarget()` の全呼び出し元を更新）
 - Produces: `RelativeBlockPlacePreviewTutorialManager.ApplyTutorial` は tutorialGuid ごとの `RelativeBlockPlacePreviewEntry`（`ITutorialView` 実装）を返し、同時複数エントリを `Update()` で全件追従する
 
-- [ ] **Step 1: 失敗するテストを書く** — `PlacementGuideTutorialDispatchTest` に追加（既存テストの `TutorialsElement` 構築ヘルパを流用）:
+- [x] **Step 1: 失敗するテストを書く** — `PlacementGuideTutorialDispatchTest` に追加（既存テストの `TutorialsElement` 構築ヘルパを流用）:
 
 ```csharp
 [Test]
@@ -222,9 +222,9 @@ public void TwoRelativePreviewsInOneChallengeBothStayActive()
 
 `HasActiveEntry(Guid)` はテスト可視のための public 読み取り（`{ get; private set; }` 相当のクエリ）。既存テストの構築方法（`RelativeBlockPlacePreviewTest.cs` / `PlacementGuideTutorialDispatchTest.cs` の param 生成）に合わせて `CreateRelativeTutorial` を書く。
 
-- [ ] **Step 2: 失敗確認** — Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlacementGuideTutorialDispatchTest"` → FAIL/コンパイルエラー
+- [x] **Step 2: 失敗確認** — Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlacementGuideTutorialDispatchTest"` → FAIL/コンパイルエラー
 
-- [ ] **Step 3: 実装**
+- [x] **Step 3: 実装**
 
 `TutorialGhostEntry.cs`（ゴースト1体分。現 BlockPlacePreviewTutorialManager の `_previewObject`/`_targetCell`/`_previewCancellation` 群をこのクラスへ移す）:
 
@@ -243,10 +243,10 @@ namespace Client.Game.InGame.Tutorial
 
 `RelativeBlockPlacePreviewTutorialManager`: 単数フィールド群を `Dictionary<Guid, RelativeBlockPlacePreviewEntry> _entries` へ。`ApplyTutorial` はエントリ生成して返す。`Update()` は全エントリを追従（アンカー最寄り取得→回転→SetTargetCell）。`OnBlockPlaced` 購読は manager が1本持ち、設置イベントで全エントリと照合。エントリの `CompleteTutorial()` は manager の `Complete(guid)` を呼び、`ClearTarget(guid)` して辞書から除去。200行制限のため判定ローカル関数は `#region Internal` に。
 
-- [ ] **Step 4: コンパイル＋テストPASS** — Task 1 と同形。既存 `RelativeBlockPlacePreviewTest`・`PlacementGuideTutorialDispatchTest` 全件PASSも確認:
+- [x] **Step 4: コンパイル＋テストPASS** — Task 1 と同形。既存 `RelativeBlockPlacePreviewTest`・`PlacementGuideTutorialDispatchTest` 全件PASSも確認:
 `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "RelativeBlockPlacePreview|PlacementGuideTutorialDispatch|BlockPlacePreview"`
 
-- [ ] **Step 5: コミット** — `git commit -m "feat(tutorial): 相対ゴーストをtutorialGuidキーで複数同時表示できるようにする"`
+- [x] **Step 5: コミット** — `git commit -m "feat(tutorial): 相対ゴーストをtutorialGuidキーで複数同時表示できるようにする"`
 
 ### Task 3: サーバー新完了判定 gearConnectToBlock
 
@@ -263,7 +263,7 @@ namespace Client.Game.InGame.Tutorial
 - Produces: taskCompletionType 文字列 `gearConnectToBlock`、TaskParam `GearConnectToBlockTaskParam { Guid BlockGuid /*設置して繋ぐ側*/, Guid ConnectedBlockGuid /*接続先種別*/ }`（Mooresmaster 生成）
 - Consumes: `IGearEnergyTransformer.GetGearConnects()`（`Game.Gear/Common/IGearEnergyTransformer.cs:24`）
 
-- [ ] **Step 1: スキーマ追加** — challenges.yml の options に `- gearConnectToBlock`、cases に:
+- [x] **Step 1: スキーマ追加** — challenges.yml の options に `- gearConnectToBlock`、cases に:
 
 ```yaml
               - when: gearConnectToBlock
@@ -287,7 +287,7 @@ namespace Client.Game.InGame.Tutorial
 
 `_CompileRequester.cs` の dummyText を書き換え → `uloop compile --project-path ./moorestech_client` → `Mooresmaster.Model.ChallengesModule.GearConnectToBlockTaskParam` が生成されることを確認（`grep -r "GearConnectToBlockTaskParam" moorestech_server/Assets/Scripts` 等）。
 
-- [ ] **Step 2: 失敗するテストを書く** — `GearConnectedBlockChallengeTaskTest.cs` を雛形に（DI生成→`InitializeCurrentChallenges()`→`TryAddBlock`→`GameUpdater.UpdateOneTick()`→完了GUID検査）。forUnitTest challenges.json に新チャレンジを追加（既存 gearConnectedBlock 例 :278-291 を複製し guid 例 `00000000-0000-0000-4567-000000000105`、taskCompletionType `gearConnectToBlock`、blockGuid=Shaft、connectedBlockGuid=GearBeltConveyor 相当のテストブロック。forUnitTest blocks.json に GearBeltConveyor が無ければ gearConnects を持つ既存の別種ブロック（Gear等）を接続先に使う）:
+- [x] **Step 2: 失敗するテストを書く** — `GearConnectedBlockChallengeTaskTest.cs` を雛形に（DI生成→`InitializeCurrentChallenges()`→`TryAddBlock`→`GameUpdater.UpdateOneTick()`→完了GUID検査）。forUnitTest challenges.json に新チャレンジを追加（既存 gearConnectedBlock 例 :278-291 を複製し guid 例 `00000000-0000-0000-4567-000000000105`、taskCompletionType `gearConnectToBlock`、blockGuid=Shaft、connectedBlockGuid=GearBeltConveyor 相当のテストブロック。forUnitTest blocks.json に GearBeltConveyor が無ければ gearConnects を持つ既存の別種ブロック（Gear等）を接続先に使う）:
 
 ```csharp
 [Test]
@@ -305,9 +305,9 @@ public void シャフトを対象ブロックの横に置くと回転してい�
 public void シャフト単体では完了しない() { /* シャフトだけ置いて1tick回し、未完了をassert */ }
 ```
 
-- [ ] **Step 3: 失敗確認** — Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "GearConnectToBlockChallengeTaskTest"` → FAIL（type未登録でマスタ検証 or Factory例外）
+- [x] **Step 3: 失敗確認** — Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "GearConnectToBlockChallengeTaskTest"` → FAIL（type未登録でマスタ検証 or Factory例外）
 
-- [ ] **Step 4: 実装** — `GearConnectToBlockChallengeTask.cs`（`BlockPlaceOnVeinChallengeTask` の骨格を写す）:
+- [x] **Step 4: 実装** — `GearConnectToBlockChallengeTask.cs`（`BlockPlaceOnVeinChallengeTask` の骨格を写す）:
 
 ```csharp
 /// <summary>
@@ -325,8 +325,8 @@ public class GearConnectToBlockChallengeTask : IChallengeTask
 `VanillaChallengeType.cs` に `public const string GearConnectToBlock = "gearConnectToBlock";`、`ChallengeFactory` に `_taskCreators.Add(VanillaChallengeType.GearConnectToBlock, GearConnectToBlockChallengeTask.Create);`。
 `ChallengeMasterUtil.TaskParamValidation` に case 追加（両GUIDの実在＋双方 `BlockParam is not IGearConnectors` なら error。gearConnectedBlock case :109-125 を雛形に）。
 
-- [ ] **Step 5: テストPASS＋マスタ検証テスト** — Run: `uloop run-tests ... --filter-value "GearConnectToBlockChallengeTaskTest|ChallengeMasterValidationTest"` → PASS
-- [ ] **Step 6: コミット** — `git commit -m "feat(challenge): 歯車接続成立で完了するgearConnectToBlock判定を追加する"`
+- [x] **Step 5: テストPASS＋マスタ検証テスト** — Run: `uloop run-tests ... --filter-value "GearConnectToBlockChallengeTaskTest|ChallengeMasterValidationTest"` → PASS
+- [x] **Step 6: コミット** — `git commit -m "feat(challenge): 歯車接続成立で完了するgearConnectToBlock判定を追加する"`
 
 ### Task 4: 連結設置検査＋連結ゴースト（chainBlockPlacePreview）
 
@@ -347,7 +347,7 @@ public class GearConnectToBlockChallengeTask : IChallengeTask
 - Produces: `ChainPlacePreviewState.SetChain(Guid tutorialGuid, BlockId anchorBlockId, IReadOnlyList<ChainGhost> chain)` / `Clear(Guid)` / `TryGetChain(BlockId holdingBlockId, out IReadOnlyList<ChainGhost>)`
 - Produces: `static void ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(List<PlaceInfo> placeInfos, BlockMasterElement holdingBlockMaster, int cursorIndex, ChainPlacePreviewState state, IExistingBlockQuery existingBlockQuery, PlacementFeedback feedback)`
 
-- [ ] **Step 1: スキーマ追加＋再生成** — challenges.yml cases に:
+- [x] **Step 1: スキーマ追加＋再生成** — challenges.yml cases に:
 
 ```yaml
               - when: chainBlockPlacePreview
@@ -377,7 +377,7 @@ public class GearConnectToBlockChallengeTask : IChallengeTask
 
 （enum options の正確な並びは既存 relativeBlockPlacePreview case :350-366 を逐語コピー）。`_CompileRequester` バンプ→compile→生成型確認。array<object> の書式は `VanillaSchema` の既存前例（blocks.yml の gearConnects 等）に合わせ、`edit-schema` スキルを必ず参照する。
 
-- [ ] **Step 2: 失敗するテストを書く** — `ChainPlacementReporterTest.cs`（`Client.Tests/PlaceSystem/` の既存 `PlacementTargetCatalogTest` 同様の pure C# 形式。`IExistingBlockQuery` をテストダブルで差し替え）:
+- [x] **Step 2: 失敗するテストを書く** — `ChainPlacementReporterTest.cs`（`Client.Tests/PlaceSystem/` の既存 `PlacementTargetCatalogTest` 同様の pure C# 形式。`IExistingBlockQuery` をテストダブルで差し替え）:
 
 ```csharp
 [Test]
@@ -401,8 +401,8 @@ public void 設置向きを東へ回すと連結セルも回る() { /* direction
 
 （`LocalizationKeys` の実キー名・`feedback.Lines` の読み口は既存 `VeinPlacementReporter` のテスト（05d234b4e が追加したテスト群）を開いて同じ流儀に合わせる）
 
-- [ ] **Step 3: 失敗確認** → コンパイルエラー
-- [ ] **Step 4: 実装**
+- [x] **Step 3: 失敗確認** → コンパイルエラー
+- [x] **Step 4: 実装**
 
 `ChainPlacePreviewState`（`VeinRestrictedPlacementState.cs:11` を雛形に、tutorialGuid オーナートークン方式）。
 `ChainBlockPlacePreviewTutorialManager`（`VeinRestrictedPlacementTutorialManager` 同型。ApplyTutorial で param→`ChainGhost`（BlockId, Vector3Int offset, BlockDirection）リスト化して SetChain、CompleteTutorial で Clear）。
@@ -412,8 +412,8 @@ localization.csv（vanilla）へ1行追加→`_CompileRequester`バンプ→`pnp
 `MasterSourceTextCollector.GetTutorialDisplayText` に `ChainBlockPlacePreviewTutorialParam => null` の case。`ChallengeMasterUtil.TutorialValidation` に各 chainBlocks の blockGuid 実在チェック case。
 DI: `MainGameStarter` に SerializeField+`RegisterComponent(...).AsSelf().As<ITutorialViewManager>()`（:176-177 の並び）。シーンへの AddComponent は `uloop execute-dynamic-code` で行う（Prefab/シーンの直編集禁止）。
 
-- [ ] **Step 5: コンパイル＋テストPASS** — `uloop run-tests ... --filter-value "ChainPlacementReporterTest|LocalizationKeysFreshness|ChallengeMasterValidationTest"`（webui側は `cd moorestech_web/webui && pnpm test -- localizationKeysFreshness` 相当。CIで赤にならないことをローカルで確認）
-- [ ] **Step 6: コミット** — `git commit -m "feat(place): 風車設置時に連結ゴーストを表示し連結セルが塞がれていれば設置不可にする"`
+- [x] **Step 5: コンパイル＋テストPASS** — `uloop run-tests ... --filter-value "ChainPlacementReporterTest|LocalizationKeysFreshness|ChallengeMasterValidationTest"`（webui側は `cd moorestech_web/webui && pnpm test -- localizationKeysFreshness` 相当。CIで赤にならないことをローカルで確認）
+- [x] **Step 6: コミット** — `git commit -m "feat(place): 風車設置時に連結ゴーストを表示し連結セルが塞がれていれば設置不可にする"`
 
 ### Task 5: マスタデータ再編（moorestech_master）
 
@@ -426,7 +426,7 @@ DI: `MainGameStarter` に SerializeField+`RegisterComponent(...).AsSelf().As<ITu
 - Consumes: Task 3 の `gearConnectToBlock`、Task 4 の `chainBlockPlacePreview`（文字列は逐語一致必須）
 - Produces: 28本の新チェーン＋push済みコミットhash（Task 6 が使う）
 
-- [ ] **Step 1: generate_challenges.py の CHALLENGES 表を再編**（key不変・新規は新key。ヘルパ追加: `chain_preview(entries)`＝chainBlockPlacePreview、task種 `gearConnectTo`→`gearConnectToBlock`＋`connectedBlockGuid` 出力）:
+- [x] **Step 1: generate_challenges.py の CHALLENGES 表を再編**（key不変・新規は新key。ヘルパ追加: `chain_preview(entries)`＝chainBlockPlacePreview、task種 `gearConnectTo`→`gearConnectToBlock`＋`connectedBlockGuid` 出力）:
 
 変更一覧（順序どおり）:
 1. key `木を伐採して原木を入手する`: title→`原木を3個入手する`（summary・count=3 据え置き）
@@ -439,9 +439,9 @@ DI: `MainGameStarter` に SerializeField+`RegisterComponent(...).AsSelf().As<ITu
 8. key `青銅シートを作る`・`木釘を3本作る`・`合板を作る` の3行を削除（prev連結は生成側が並び順で張るため自動で繋がることを確認。明示prevなら付け替え）
 9. `原始研究7を完了する`（新番号4）の直後に新規2行: key `歯車ベルトコンベアを設置する`（task=blockPlace, blockGuid=直線歯車ベルトコンベア, `key('GameScreen','B','ビルドメニューを開く')`）→ key `木のシャフトをベルトの横に設置する`（task=gearConnectTo, blockGuid=木のシャフト, connectedBlockGuid=直線歯車ベルトコンベア, `relative_preview(直線歯車ベルトコンベア,木のシャフト,(0,0,1),'North','ベルトの横に置くと繋がる')`）
 
-- [ ] **Step 2: 再生成＋冪等確認** — `python3 tools/tutorial_v3_port/generate_challenges.py` → `OK: 28 challenges`（32→…→28: +2 -1 -3 +2）。再実行で `git status --short` 差分ゼロ
-- [ ] **Step 3: localization.csv 追随** — plan `2026-08-28-early-game-compression-master-data.md:430-540` の Task M4 heredoc パターンを流用: 削除チャレンジのキー行削除・新規チャレンジ/チュートリアルのキー行追加・文言変更行の Source/japanese/english/german 更新。整合スクリプト（同plan Task M4 Step 1/3）で `challenge.*`==28本・orphan 0 を確認
-- [ ] **Step 4: コミット＋push＋PR** — `git checkout -b feature/tutorial-chain-refinements-adr0048 origin/master`（moorestech_master 側）→ commit → push → `gh pr create`（本文に moorestech ADR 0048 参照、🤖 Generated with [Claude Code](https://claude.com/claude-code) 付き）。**PR無しのpush止まり禁止**
+- [x] **Step 2: 再生成＋冪等確認** — `python3 tools/tutorial_v3_port/generate_challenges.py` → `OK: 28 challenges`（32→…→28: +2 -1 -3 +2）。再実行で `git status --short` 差分ゼロ
+- [x] **Step 3: localization.csv 追随** — plan `2026-08-28-early-game-compression-master-data.md:430-540` の Task M4 heredoc パターンを流用: 削除チャレンジのキー行削除・新規チャレンジ/チュートリアルのキー行追加・文言変更行の Source/japanese/english/german 更新。整合スクリプト（同plan Task M4 Step 1/3）で `challenge.*`==28本・orphan 0 を確認
+- [x] **Step 4: コミット＋push＋PR** — `git checkout -b feature/tutorial-chain-refinements-adr0048 origin/master`（moorestech_master 側）→ commit → push → `gh pr create`（本文に moorestech ADR 0048 参照、🤖 Generated with [Claude Code](https://claude.com/claude-code) 付き）。**PR無しのpush止まり禁止**
 
 ### Task 6: ピン更新＋レイアウト検証テスト
 
@@ -452,15 +452,15 @@ DI: `MainGameStarter` に SerializeField+`RegisterComponent(...).AsSelf().As<ITu
 **Interfaces:**
 - Consumes: `PinnedMasterRepository`（`Client.Tests/Support/PinnedMasterRepository.cs`、`git show <hash>:<path>` でピン済みマスタを読む）
 
-- [ ] **Step 1: 閉PR#1286 のテストを復活** — `git show feature/early-game-compression-master:moorestech_client/Assets/Scripts/Client.Tests/EarlyGame/EarlyGameGearTutorialLayoutTest.cs > <新規パス>` で取得し、新チェーンへ改修:
+- [x] **Step 1: 閉PR#1286 のテストを復活** — `git show feature/early-game-compression-master:moorestech_client/Assets/Scripts/Client.Tests/EarlyGame/EarlyGameGearTutorialLayoutTest.cs > <新規パス>` で取得し、新チェーンへ改修:
   - 統合チャレンジ（key `シャフトと粉砕機を設置して動かす` の uuid5 GUID）から relative_preview 2件を読む形へ
   - **4方位パラメタライズ**: 風車を North/East/South/West で設置し、`ConvertBlockLocalToWorldCell`＋`AnchorRelativeDirectionUtil` で解決したセル・向きにシャフト・粉砕機を置き、風車に原木投入で粉砕機の `CurrentRpm > 0` を検証
   - ベルト段: ベルト設置→ピン済み offset(0,0,1) にシャフト設置→ `GetGearConnects()` にベルトが含まれることを検証（RPM不要）
-- [ ] **Step 2: ピン更新前に FAIL することを確認**（旧ピンは統合チャレンジが無い）→ Expected: FAIL/Ignore
-- [ ] **Step 3: ピン更新** — `.moorestech-external-revisions.json` の commitHash を Task 5 コミットへ書き換えてコミット（他フィールド不変）
-- [ ] **Step 4: テストPASS＋マスタ整合一式** — `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "EarlyGameGearTutorialLayoutTest|TutorialAnchorContractTest|ChallengeMasterValidationTest|LocalizeContent|GameDictionaryRecomposition"`
+- [x] **Step 2: ピン更新前に FAIL することを確認**（旧ピンは統合チャレンジが無い）→ Expected: FAIL/Ignore
+- [x] **Step 3: ピン更新** — `.moorestech-external-revisions.json` の commitHash を Task 5 コミットへ書き換えてコミット（他フィールド不変）
+- [x] **Step 4: テストPASS＋マスタ整合一式** — `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "EarlyGameGearTutorialLayoutTest|TutorialAnchorContractTest|ChallengeMasterValidationTest|LocalizeContent|GameDictionaryRecomposition"`
   - FAILした場合の座標是正: 旧plan `2026-08-28-early-game-compression-master-data.md:648` の手順（gearConnects 印字→セル再計算→generate スクリプト修正→再生成→ピン再更新）
-- [ ] **Step 5: コミット** — `git commit -m "test: 接続チュートリアル4方位とベルト隣接のレイアウト検証を追加しマスタピンを更新する"`
+- [x] **Step 5: コミット** — `git commit -m "test: 接続チュートリアル4方位とベルト隣接のレイアウト検証を追加しマスタピンを更新する"`
 
 ### Task 7: unityプレイ録画テストで通し確認
 

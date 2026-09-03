@@ -40,9 +40,9 @@ namespace Client.Game.InGame.Mining
                     return this;
             }
 
-            // クリックしていない場合はフォーカスを維持
-            // If not clicked, maintain focus
-            if (!InputManager.Playable.ScreenLeftClick.GetKey)
+            // Fが押されていない場合はフォーカスを維持
+            // Keep focus while F is not held
+            if (!InputManager.Playable.Interact.GetKey)
             {
                 ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedMineHold, LocalizationKeys.Ui.Tooltip.HoldToGet);
                 return this;
@@ -57,15 +57,15 @@ namespace Client.Game.InGame.Mining
 
             IMiningState PickUpProcess(MiningControllerContext pickUpContext)
             {
-                if (InputManager.Playable.ScreenLeftClick.GetKeyDown)
+                if (InputManager.Playable.Interact.GetKeyDown)
                 {
                     MouseCursorTooltip.Instance.Hide(MiningControllerContext.TooltipOwner);
                     return new MiningCompleteState(pickUpContext.CurrentFocusTarget);
                 }
 
-                // 左クリックがされていなければ現状を維持
-                // If left click is not pressed, maintain the current state
-                ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedMineClick, LocalizationKeys.Ui.Tooltip.PickUpLeftClick);
+                // Fが押されていなければ現状を維持
+                // Keep the current state while F is not pressed
+                ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedMineClick, LocalizationKeys.Ui.Tooltip.PickUpInteract);
                 return this;
             }
 
