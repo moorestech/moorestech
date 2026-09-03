@@ -22,22 +22,22 @@ test("小さいホイール入力を累積し閾値を越えた時だけ切り�
   await expect.poll(async () => (await payloadsOf(page, "inventory.select_equipment")).length).toBe(before + 1);
 });
 
-test("ホイールは末尾スロットの次に素手(-1)を挟む", async ({ page }) => {
+test("ホイールは末尾スロットの次に先頭スロットへ回る", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("equipment-slots")).toBeVisible();
 
-  // fixture は素手(-1)開始。3枠を1周すると -1 へ戻り、どの枠も選択されない
-  // The fixture starts at bare hands (-1); one lap over three slots returns to -1 with no slot selected
+  // fixture は先頭スロット(0)開始。3枠を1周すると先頭へ戻る（素手の中継は無い）
+  // The fixture starts at the first slot (0); one lap over three slots returns to the first, with no bare-hands stop
   // 次の起点は最新スナップショットの選択値なので、1段ごとに反映を待ってから次のホイールを送る
   // Each step's origin is the selection in the latest snapshot, so wait for it to land before sending the next wheel
-  for (let step = 0; step < 3; step++) {
+  for (let step = 1; step < 3; step++) {
     await page.mouse.wheel(0, 100);
     await expect(equipmentSlots(page).nth(step)).toHaveAttribute("data-selected", "true");
   }
 
   await page.mouse.wheel(0, 100);
-  await expect.poll(() => payloadsOf(page, "inventory.select_equipment")).toContainEqual({ index: -1 });
-  await expect(equipmentSlots(page).nth(2)).not.toHaveAttribute("data-selected", "true");
+  await expect.poll(() => payloadsOf(page, "inventory.select_equipment")).toContainEqual({ index: 0 });
+  await expect(equipmentSlots(page).nth(0)).toHaveAttribute("data-selected", "true");
 });
 
 // 装備へアイテムを入れる唯一のUI経路。これが壊れると実プレイで装備が永久に空になり採掘が成立しない
@@ -85,12 +85,10 @@ test("装備へ移したアイテムをホイールで選択できる", async ({
   await equipmentSlots(page).nth(1).click();
   await expect(equipmentSlots(page).nth(1)).toContainText("10");
 
-  // 素手(-1)起点でホイール2段進めると装備[1]が選択状態になる
-  // Starting from bare hands (-1), two wheel steps land the selection on equipment[1]
-  for (let step = 0; step < 2; step++) {
-    await page.mouse.wheel(0, 100);
-    await expect(equipmentSlots(page).nth(step)).toHaveAttribute("data-selected", "true");
-  }
+  // 先頭スロット(0)起点でホイール1段進めると装備[1]が選択状態になる
+  // Starting from the first slot (0), one wheel step lands the selection on equipment[1]
+  await page.mouse.wheel(0, 100);
+  await expect(equipmentSlots(page).nth(1)).toHaveAttribute("data-selected", "true");
 });
 
 test("装備HUDの上でもホイールで装備が切り替わる", async ({ page }) => {
