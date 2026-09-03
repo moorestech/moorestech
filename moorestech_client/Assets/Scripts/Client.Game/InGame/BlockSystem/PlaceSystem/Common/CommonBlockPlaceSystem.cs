@@ -74,6 +74,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             _dragState.ClearDrag();
         }
+        // ドラッグ中の右短押し/Escは進行中のドラッグだけを畳み、建築モードには留まる
+        // A right short press or Esc during a drag folds only that drag and stays in build mode
+        public override bool TryCancelInProgressOperation()
+        {
+            if (!_dragState.IsDragging) return false;
+
+            _dragState.EndDrag();
+            return true;
+        }
+
         public override void Disable()
         {
             // デバッグモード時はプレビューを維持
