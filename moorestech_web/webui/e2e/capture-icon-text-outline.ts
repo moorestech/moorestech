@@ -22,7 +22,7 @@ async function open(page: Page, state: string, block: string) {
 // 縁がCSSで効いていることを該当要素すべてについて数値で押さえる
 // Measure the resolved stroke on every matching element, not just the first
 async function measureAll(page: Page, selector: string) {
-  return page.evaluate((sel) => [...document.querySelectorAll(sel)].map((el) => {
+  return page.evaluate((sel) => Array.from(document.querySelectorAll(sel)).map((el) => {
     const cs = getComputedStyle(el);
     return {
       text: el.textContent,
