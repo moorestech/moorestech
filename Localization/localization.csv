@@ -198,6 +198,7 @@ ui.keyHint.text.deleteMode,Delete Mode,Delete Mode,破壊モード,Abbaumodus
 ui.keyHint.text.exitDeleteMode,Exit Delete Mode,Exit Delete Mode,破壊モード終了,Abbaumodus verlassen
 ui.keyHint.text.exitPlaceMode,Exit Placement Mode,Exit Placement Mode,配置モード終了,Baumodus verlassen
 ui.keyHint.text.selectBlock,Select Block,Select Block,ブロック選択,Block auswählen
+ui.keyHint.text.swapTarget,Swap Block,Swap Block,ブロック持ち替え,Block wechseln
 ui.keyHint.text.toggleView,Toggle View,Toggle View,視点切替,Ansicht wechseln
 ui.keyHint.text.freeCursor,Free Cursor,Free Cursor,カーソル解放,Freier Zeiger
 ui.keyHint.text.pickPlacedObject,Pick Placed Object,Pick Placed Object,設置物をスポイト,Gesetztes Objekt übernehmen
