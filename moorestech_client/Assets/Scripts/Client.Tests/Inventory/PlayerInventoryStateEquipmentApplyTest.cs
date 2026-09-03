@@ -5,6 +5,7 @@ using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Network.API;
 using Core.Item.Interface;
 using Core.Master;
@@ -26,8 +27,8 @@ namespace Client.Tests.Inventory
     /// </summary>
     public class PlayerInventoryStateEquipmentApplyTest
     {
-        // 装備モデルの初期値は素手(-1)なので、それと区別できるスロットを選んでおく
-        // The equipment model starts at bare hands (-1), so pick a slot that is distinguishable from it
+        // 装備モデルの初期値は先頭(0)なので、それと区別できるスロットを選んでおく
+        // The equipment model starts at the first slot (0), so pick a slot that is distinguishable from it
         private const int SelectedSlot = 1;
         private static readonly Guid ToolItemGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
@@ -87,7 +88,7 @@ namespace Client.Tests.Inventory
 
                 new PlayerInventoryState(recipeViewerView, viewController,
                     new LocalPlayerInventoryController(new LocalPlayerInventory(), playerEquipment),
-                    playerEquipment, initialHandshake);
+                    playerEquipment, initialHandshake, new RightShortPressInputService(new RightShortPressInput()));
             }
 
             T CreateComponent<T>(string name) where T : Component

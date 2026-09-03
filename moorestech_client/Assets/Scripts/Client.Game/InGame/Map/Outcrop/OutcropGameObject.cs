@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Interact.Outline;
 using Client.Game.InGame.Map.NearestSearch;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
@@ -18,6 +19,9 @@ namespace Client.Game.InGame.Map.Outcrop
     public class OutcropGameObject : MonoBehaviour, IMiningTargetObject, INearestSearchTarget
     {
         private static readonly HandMiningToolsElement[] NoHandMiningTools = Array.Empty<HandMiningToolsElement>();
+        private static readonly IReadOnlyList<Guid> NoEarnItemGuids = Array.Empty<Guid>();
+
+        public IReadOnlyList<Guid> EarnItemGuids { get; private set; } = NoEarnItemGuids;
 
         private HandMiningToolsElement[] _handMiningTools = NoHandMiningTools;
         private bool _handMiningAllowed;
@@ -25,6 +29,8 @@ namespace Client.Game.InGame.Map.Outcrop
         private Vector3Int _minePosition;
 
         private readonly List<ItemId> _usableToolItemIds = new();
+
+        private GameObject _outlineObject;
 
         public GameObject GameObject => gameObject;
         public SoundEffectType DestroySoundType { get; private set; }
@@ -48,6 +54,12 @@ namespace Client.Game.InGame.Map.Outcrop
             var minableParam = element.HandMiningParam as MinableHandMiningParam;
             _handMiningAllowed = minableParam != null;
             _handMiningTools = _handMiningAllowed ? minableParam.HandMiningTools : NoHandMiningTools;
+
+            // 液体鉱脈は名前を持たない
+            // A fluid vein has no item name, so its name slot stays empty (ADR 0033)
+            EarnItemGuids = element.VeinParam is ItemVeinParam itemVeinParam
+                ? new[] { itemVeinParam.ItemGuid }
+                : NoEarnItemGuids;
 
             // 音種は鉱脈マスタ準拠
             // Resolve sound from vein master
@@ -87,10 +99,13 @@ namespace Client.Game.InGame.Map.Outcrop
             return MiningStartOutcome.Ready;
         }
 
-        public void SetFocused(bool focused)
+        // 露頭は無限資源で消えないので常に候補
+        // An outcrop never disappears, so it is always a candidate
+        public bool IsInteractAvailable => true;
+
+        public void SetHighlighted(bool highlighted)
         {
-            // 露頭演出は後続対応
-            // Outcrop visuals follow later
+            RuntimeOutlineFactory.Apply(gameObject, ref _outlineObject, highlighted);
         }
 
         public void SendAttack()

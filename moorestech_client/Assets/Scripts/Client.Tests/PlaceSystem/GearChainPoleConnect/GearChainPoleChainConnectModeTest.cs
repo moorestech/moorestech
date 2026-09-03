@@ -1,7 +1,10 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
-using Core.Master;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using Server.Protocol.PacketResponse.Util.GearChain;
 using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.GearChainPoleConnect
@@ -138,6 +141,34 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             Assert.IsFalse(result.ChainConnectSend.HasValue);
         }
 
+        [Test]
+        // ポール間接続の判定失敗は理由キーの行を返す
+        // A failed pole-to-pole judgement returns the reason-key line
+        public void PoleToPoleFailureReasonReportsFeedbackLineTest()
+        {
+            var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
+            var input = CreateConnectablePairInput(sourcePole);
+            input.PoleToPolePreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.AlreadyConnectedError), Array.Empty<ConstructionMaterialShortage>());
+
+            var result = GearChainPoleChainConnectMode.Decide(input);
+
+            Assert.AreEqual(1, result.FeedbackLines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key, result.FeedbackLines[0].Key.Key);
+        }
+
+        [Test]
+        // 接続可能なポール間では行を出さない
+        // A connectable pole pair reports no line
+        public void ConnectablePairReportsNoFeedbackLineTest()
+        {
+            var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
+            var input = CreateConnectablePairInput(sourcePole);
+
+            var result = GearChainPoleChainConnectMode.Decide(input);
+
+            Assert.AreEqual(0, result.FeedbackLines.Count);
+        }
+
         private static GearChainPoleChainConnectInput CreateConnectablePairInput(FakeGearChainPole sourcePole)
         {
             // 起点と命中ポールが接続可能な標準入力を作る
@@ -153,7 +184,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
                 SourcePolePos = sourcePos,
                 SourcePoleCenter = sourcePos + new Vector3(0.5f, 0.5f, 0.5f),
                 HitPolePos = hitPos,
-                PoleToPolePreview = new GearChainPoleExtendPreviewData(sourcePos + new Vector3(0.5f, 0.5f, 0.5f), hitPos + new Vector3(0.5f, 0.5f, 0.5f), true),
+                PoleToPolePreview = new GearChainPoleExtendPreviewData(sourcePos + new Vector3(0.5f, 0.5f, 0.5f), hitPos + new Vector3(0.5f, 0.5f, 0.5f), GearChainPlacementJudgement.Success(default), Array.Empty<ConstructionMaterialShortage>()),
             };
         }
     }

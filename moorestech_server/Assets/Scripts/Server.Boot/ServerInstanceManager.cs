@@ -28,7 +28,7 @@ namespace Server.Boot
 {
     public class ServerInstanceManager : IDisposable
     {
-        private const int DefaultGeneratedSeed = 196;
+        public const int DefaultGeneratedSeed = 196;
 
         private Thread _connectionUpdateThread;
         private Thread _gameUpdateThread;
@@ -88,6 +88,10 @@ namespace Server.Boot
             // Provision the world directory before DI container construction
             WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
                 worldDataDirectory, settings.ServerDataDirectory, settings.MapMode, seed));
+
+            // 共有キャッシュは現在のワールド1つ分だけ残す。テストはEnsureWorldを直接呼ぶのでここ(製品起動)にだけ置く
+            // Keep the shared cache to the current world alone; tests call EnsureWorld directly, so this lives only on the product boot path
+            StaleWorldCacheCollector.Collect(TerrainTransferMetaReader.Read(worldDataDirectory).WorldId);
 
             var serverDirectory = settings.ServerDataDirectory;
             var options = new MoorestechServerDIContainerOptions(serverDirectory)

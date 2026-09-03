@@ -12,7 +12,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  transform: translate(-50%, -100%);
+  /* stage外のPortal層なのでstageと同率で拡縮し、実解像度に依らず見かけの大きさを保つ */
+  /* This portal layer sits outside the stage, so it scales at the stage's rate and keeps its apparent size across resolutions */
+  /* 下端中央を原点にすることで、拡縮してもマーカー先端は射影座標に留まる */
+  /* A bottom-center origin keeps the marker tip on the projected point at any scale */
+  transform: translate(-50%, -100%) scale(var(--ui-scale, 1));
+  transform-origin: bottom center;
 }
 
 .label {
@@ -38,13 +43,16 @@
   height: var(--world-pin-arrow-size);
 }
 
+/* 位置と回転は.arrowのインラインtransformが持つため、脈動は子のsvgへ付けて両者を合成する（ADR 0039） */
+/* The inline transform on .arrow owns position and rotation, so the pulse goes on the child svg and the two compose (ADR 0039) */
 .arrow svg {
   width: 100%;
   height: 100%;
-  fill: var(--text-high-contrast);
+  fill: var(--tutorial-attention-red);
   stroke: var(--world-pin-face);
   stroke-width: 1.5;
   stroke-linejoin: round;
   paint-order: stroke fill;
   filter: drop-shadow(0 2px 3px var(--world-pin-arrow-shadow));
+  animation: var(--tutorial-pulse-strong) var(--tutorial-pulse-duration) ease-in-out infinite;
 }

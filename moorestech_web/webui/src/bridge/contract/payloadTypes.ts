@@ -49,6 +49,7 @@ import type {
   SlotRefSchema,
   UiStateDataSchema,
   LocalizationDataSchema,
+  EventLanguageGateDataSchema,
   ChallengeNodeStateSchema,
   ChallengeNodeDataSchema,
   ChallengeCategoryDataSchema,
@@ -60,6 +61,7 @@ import type {
   CrosshairDataSchema,
   UiVisibilityDataSchema,
   TooltipDataSchema,
+  TooltipLineSchema,
   GameStateDataSchema,
   TutorialPresentationDataSchema,
   WorldPinPresentationDataSchema,
@@ -83,11 +85,16 @@ export type ModalData = z.infer<typeof ModalDataSchema>;
 export type ProgressData = z.infer<typeof ProgressDataSchema>;
 export type UiStateData = z.infer<typeof UiStateDataSchema>;
 export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
+export type EventLanguageGateData = z.infer<typeof EventLanguageGateDataSchema>;
 export type PauseMenuData = z.infer<typeof PauseMenuDataSchema>;
 export type PlacementModeData = z.infer<typeof PlacementModeDataSchema>;
 export type CrosshairData = z.infer<typeof CrosshairDataSchema>;
 export type UiVisibilityData = z.infer<typeof UiVisibilityDataSchema>;
 export type TooltipData = z.infer<typeof TooltipDataSchema>;
+// 表示中の枝だけを受ける型。行が空の枝を渡せないことを型で保証する
+// The visible branch alone; the type makes an empty-line payload unpassable
+export type VisibleTooltipData = Extract<TooltipData, { visible: true }>;
+export type TooltipLine = z.infer<typeof TooltipLineSchema>;
 export type GameStateData = z.infer<typeof GameStateDataSchema>;
 export type TutorialPresentationData = z.infer<typeof TutorialPresentationDataSchema>;
 export type WorldPinPresentationData = z.infer<typeof WorldPinPresentationDataSchema>;

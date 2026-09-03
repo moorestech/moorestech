@@ -23,10 +23,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
     /// </summary>
     public class GearChainPoleFrameInputCollector
     {
-        // 通常ブロック設置と同等の設置可能距離
-        // Placeable distance equivalent to common block placement
-        private const float PlaceableMaxDistance = 100f;
-
         private readonly Camera _mainCamera;
         private readonly ILocalPlayerInventory _playerInventory;
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
@@ -63,6 +59,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 PoleBlockId = poleBlockId,
                 ConnectToolGuid = connectToolGuid,
                 MaxConnectionCount = poleParam.MaxConnectionCount,
+                GhostAffordable = true,
+                GhostMaterialShortages = Array.Empty<ConstructionMaterialShortage>(),
             };
             if (sourcePole != null)
             {
@@ -77,7 +75,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             // ゴースト位置を算出し距離内か確認
             // Calculate ghost position and ensure it is within placeable distance
             if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, 0, BlockDirection.North, poleBlockMaster, out var placePos, out _)) return input;
-            if (PlaceableMaxDistance < Vector3.Distance(_mainCamera.transform.position, placePos)) return input;
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePos))
+            {
+                input.GhostTooFar = true;
+                return input;
+            }
 
             input.HasGhost = true;
             // BlockId未設定だとプレビュー生成がBlockElement not foundで毎フレーム死ぬ（セル毎BlockId化への追従漏れ）
@@ -85,6 +87,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             input.GhostPlaceInfo = new PlaceInfo { Position = placePos, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal, Placeable = true, BlockId = poleBlockId };
             input.GhostGroundClear = _previewObject.PositionGhost(input.GhostPlaceInfo, poleBlockMaster);
             input.GhostCenter = GearChainPoleExtendPreviewCalculator.GetPoleCenter(placePos);
+
+            // ポール1本分の建設コスト不足。財布の残りで賄えるなら必要セット数0となり不足は出ない
+            // One pole's construction cost shortage; a wallet-covered pole needs zero cost sets and shows no shortage
+            input.GhostMaterialShortages = ConstructionCostShortageCalculator.Calculate(poleBlockMaster.RequiredItems, _walletQuery.GetRequiredCostSets(poleBlockId, 1), _playerInventory);
+            input.GhostAffordable = input.GhostMaterialShortages.Count == 0;
 
             // 起点があれば延長の設置可否を評価しておく
             // Pre-evaluate extension placeability when a source exists

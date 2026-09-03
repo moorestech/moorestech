@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.UI.Tooltip;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using Core.Master;
@@ -162,26 +163,36 @@ namespace Client.Tests.WebUi
                 new TooltipDto
                 {
                     Visible = true,
-                    TextKey = "ui.tooltip.requiredItems",
-                    TextParams = new[] { "Iron Pickaxe" },
+                    Lines = new[] { new TooltipLineDto { TextKey = "ui.tooltip.requiredItems", TextParams = new[] { "Iron Pickaxe" } } },
                 },
                 "tooltip.json");
         }
 
-        // 寸法値はWeb側が持つため、wireへ出るtooltipは表示状態と辞書キーだけを運ぶ
-        // The web side owns sizes, so the tooltip reaching the wire carries only visibility and the dictionary key
+        // 寸法値はWeb側が持つため、wireへ出るtooltipは表示状態と行（辞書キー＋params）だけを運ぶ
+        // The web side owns sizes, so the tooltip reaching the wire carries only visibility and lines (dictionary key + params)
         [Test]
-        public void TooltipWireCarriesOnlyVisibilityKeyAndParams()
+        public void TooltipWireCarriesOnlyVisibilityAndLines()
         {
             var wire = JToken.Parse(WebUiJson.Serialize(new TooltipDto
             {
                 Visible = true,
-                TextKey = "ui.tooltip.requiredItems",
-                TextParams = new[] { "Iron Pickaxe" },
+                Lines = new[] { new TooltipLineDto { TextKey = "ui.tooltip.requiredItems", TextParams = new[] { "Iron Pickaxe" } } },
             }));
             var wireKeys = wire.Children<JProperty>().Select(property => property.Name).OrderBy(name => name).ToArray();
+            var lineKeys = wire["lines"][0].Children<JProperty>().Select(property => property.Name).OrderBy(name => name).ToArray();
 
-            CollectionAssert.AreEqual(new[] { "textKey", "textParams", "visible" }, wireKeys);
+            CollectionAssert.AreEqual(new[] { "lines", "visible" }, wireKeys);
+            CollectionAssert.AreEqual(new[] { "textKey", "textParams" }, lineKeys);
+        }
+
+        // 非表示時も lines は空配列で出る（NullValueHandling.Ignore でキーが落ちない）
+        // Hidden presentations still emit lines as an empty array (the key must not be dropped by NullValueHandling.Ignore)
+        [Test]
+        public void HiddenTooltipEmitsEmptyLines()
+        {
+            var wire = JToken.Parse(WebUiJson.Serialize(TooltipTopic.ToDto(TooltipPresentation.Hidden)));
+            Assert.IsFalse(wire.Value<bool>("visible"));
+            Assert.AreEqual(0, wire["lines"].Count());
         }
 
         private static void AssertMatches(object dto, string fixtureName)

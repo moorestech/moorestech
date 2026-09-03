@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.SoundEffect;
 using Core.Master;
-using UnityEngine;
 
 namespace Client.Game.InGame.Mining
 {
@@ -36,16 +37,17 @@ namespace Client.Game.InGame.Mining
     ///     手掘りFSMが扱う採掘対象の抽象
     ///     Abstraction of a hand-mining target handled by the mining FSM
     /// </summary>
-    public interface IMiningTargetObject
+    public interface IMiningTargetObject : IInteractable
     {
-        GameObject GameObject { get; }
         SoundEffectType DestroySoundType { get; }
+
+        // tooltipに出す取得物の識別
+        // Identifies what this target yields for the tooltip
+        IReadOnlyList<Guid> EarnItemGuids { get; }
 
         // 可否・種別・ツール解決を1回の問い合わせへ畳み、成立しない組み合わせを呼び出し側に作らせない
         // Fold availability, kind and tool resolution into one query so callers cannot build impossible combinations
         MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds);
-
-        void SetFocused(bool focused);
 
         // ダメージ算出はサーバ権威のため、打撃対象だけを送る
         // Damage is computed by the server authority, so only the struck target is sent

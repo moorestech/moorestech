@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.ChallengesModule;
 using Mooresmaster.Model.GameActionModule;
 using Mooresmaster.Model.MapModule;
@@ -91,6 +92,35 @@ namespace Core.Master.Validator
                                 }
                                 break;
                             }
+                            case BlockPlaceOnVeinTaskParam blockPlaceOnVein:
+                            {
+                                // 対象ブロックと対象鉱脈の両方が実在しないと永久に達成不能になる
+                                // The challenge is impossible unless both the block and the vein exist
+                                if (MasterHolder.BlockMaster.GetBlockIdOrNull(blockPlaceOnVein.BlockGuid) == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.BlockGuid:{blockPlaceOnVein.BlockGuid}\n";
+                                }
+                                if (MasterHolder.MapVeinMaster.GetElementOrNull(blockPlaceOnVein.VeinGuid) == null)
+                                {
+                                    logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid TaskParam.VeinGuid:{blockPlaceOnVein.VeinGuid}\n";
+                                }
+                                break;
+                            }
+                            case GearSpinningTaskParam gearSpinning:
+                            {
+                                // 歯車コネクタを持たないブロックは永久に回り出さないため達成不能になる
+                                // A block without gear connectors never starts spinning, so the challenge would be impossible
+                                logs += ValidateGearBlock(challenge.Title, gearSpinning.BlockGuid, "BlockGuid");
+                                break;
+                            }
+                            case GearConnectedToTaskParam gearConnectedTo:
+                            {
+                                // 双方が歯車コネクタ持ちでなければ接続は永久に成立せず達成不能になる
+                                // Both sides must own gear connectors, or the connection never forms and the challenge is impossible
+                                logs += ValidateGearBlock(challenge.Title, gearConnectedTo.BlockGuid, "BlockGuid");
+                                logs += ValidateGearBlock(challenge.Title, gearConnectedTo.ConnectedBlockGuid, "ConnectedBlockGuid");
+                                break;
+                            }
                             default:
                                 logs += $"[ChallengeMaster] Challenge:{challenge.Title} has unvalidated TaskParam type:{challenge.TaskParam?.GetType().Name}\n";
                                 break;
@@ -141,9 +171,16 @@ namespace Core.Master.Validator
 
                                     foreach (var pinTarget in pinTargets)
                                     {
-                                        if (MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(pinTarget) == null)
+                                        var pinTargetElement = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(pinTarget);
+                                        if (pinTargetElement == null)
                                         {
                                             logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.MapObjectGuid:{pinTarget}\n";
+                                        }
+                                        // 狙えない装飾物を指すピンは達成不能なチュートリアルになる
+                                        // A pin aimed at an unmineable decoration makes the tutorial impossible to complete
+                                        else if (MapObjectMaster.IsDecoration(pinTargetElement))
+                                        {
+                                            logs += $"[ChallengeMaster] Challenge:{challenge.Title} points Tutorial.MapObjectGuid:{pinTarget} which forbids mining\n";
                                         }
                                     }
                                     break;
@@ -180,6 +217,49 @@ namespace Core.Master.Validator
                                     if (blockId == null)
                                     {
                                         logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.BlockGuid:{blockPlacePreview.BlockGuid}\n";
+                                    }
+                                    break;
+                                }
+                                case ChainBlockPlacePreviewTutorialParam chainPreview:
+                                {
+                                    // アンカー・連結ゴーストの実在検証
+                                    // Validate the anchor and every chain ghost block exists
+                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(chainPreview.PlacingBlockGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.PlacingBlockGuid:{chainPreview.PlacingBlockGuid}\n";
+                                    }
+                                    foreach (var chainBlock in chainPreview.ChainBlocks)
+                                    {
+                                        if (MasterHolder.BlockMaster.GetBlockIdOrNull(chainBlock.BlockGuid) == null)
+                                        {
+                                            logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.ChainBlocks.BlockGuid:{chainBlock.BlockGuid}\n";
+                                        }
+                                    }
+                                    break;
+                                }
+                                case VeinRestrictedPlacementTutorialParam veinRestricted:
+                                {
+                                    // 強調と設置許可の対象。どちらが欠けても設置不能なチュートリアルになる
+                                    // Both targets gate highlighting and placement; a missing one makes placement impossible
+                                    if (MasterHolder.MapVeinMaster.GetElementOrNull(veinRestricted.VeinGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.VeinGuid:{veinRestricted.VeinGuid}\n";
+                                    }
+                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(veinRestricted.BlockGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.BlockGuid:{veinRestricted.BlockGuid}\n";
+                                    }
+                                    break;
+                                }
+                                case RelativeBlockPlacePreviewTutorialParam relativePreview:
+                                {
+                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(relativePreview.AnchorBlockGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.PlacingBlockGuid:{relativePreview.AnchorBlockGuid}\n";
+                                    }
+                                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(relativePreview.BlockGuid) == null)
+                                    {
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.BlockGuid:{relativePreview.BlockGuid}\n";
                                     }
                                     break;
                                 }
@@ -459,6 +539,22 @@ namespace Core.Master.Validator
                     }
                 }
             }
+        }
+
+        // 歯車系チャレンジ共通のブロック検証。実在しない・歯車コネクタ無しを達成不能として弾く
+        // Shared gear-challenge block validation; missing blocks and connector-less blocks are impossible to complete
+        private static string ValidateGearBlock(string challengeTitle, Guid blockGuid, string label)
+        {
+            var gearBlockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
+            if (gearBlockId == null)
+            {
+                return $"[ChallengeMaster] Challenge:{challengeTitle} has invalid TaskParam.{label}:{blockGuid}\n";
+            }
+            if (MasterHolder.BlockMaster.GetBlockMaster(gearBlockId.Value).BlockParam is not IGearConnectors)
+            {
+                return $"[ChallengeMaster] Challenge:{challengeTitle} has non-gear TaskParam.{label}:{blockGuid}\n";
+            }
+            return "";
         }
     }
 }

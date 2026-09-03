@@ -1,0 +1,97 @@
+# ADR 0037: ブロック設置Yは占有範囲の地形最高点を上回る最初のセルにする
+
+- Status: Superseded by ADR 0047
+- Date: 2026-08-28
+
+> ADR 0047 が中核決定（切り上げ／浮かせる）を上書きした。設置Yは「地形最高点を上回る」ではなく「地形最高点を含むセル（floor）」へ反転している。
+> ADR 0047 supersedes the core decision here (ceil / float above terrain): placement Y now uses the cell containing the terrain max height (floor), not the first cell above it.
+
+## Context
+
+ブロック設置時に地形へ大きく埋まる。単体設置でも斜面でも起きる。
+
+原因は2つ。
+
+1. **設置Yが地形を見ておらず、レイのヒット点を切り捨てている。**
+   `PlaceSystemUtil.CalcPlacePoint`（`moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Util/PlaceSystemUtil.cs:135`）が
+   `point.y = Mathf.FloorToInt(hitPoint.y + 0.001f)` のみでYを決める。地形は連続高（float）なので、
+   地表 y=32.4 にヒットするとセル32（底面 y=32.0）に置かれ 0.4 埋まる。平地でも常に 0〜1 セル埋まる。
+2. **ドラッグ範囲設置がドラッグ開始セルのYを全セルへコピーしている。**
+   `CommonBlockPlacePointCalculator.CalcPositions`（同 `PlaceSystem/Common/CommonBlockPlacePointCalculator.cs:47-89`）が
+   最長軸のみ進め、他2軸は startPoint 固定。斜面を横断すると上り側が系統的に埋まる。
+
+なお四隅の地表最高点を返す `SlopeBlockPlaceSystem.GetBlockFourCornerMaxHeight`
+（`.../BlockSystem/SlopeBlockPlaceSystem.cs:96-118`）は既に存在するが、`[Obsolete]` 経路とテストからしか呼ばれておらず、
+現行の設置経路からは切り離されている。
+
+サーバー（`WorldBlockDatastore` / `PlaceBlockProtocol`）は地形を一切知らず、クライアントが送ったYがそのまま真になる。
+よって是正はクライアント側のY決定ロジックで行う。
+
+## Decision
+
+**設置セルYを「占有範囲の地形最高点を上回る最初の整数セル」にする。**
+
+- 占有フットプリントの地形高さをプローブし、その最高点より上のセルへ置く。
+- 埋まるくらいなら浮かせる。地面との間に隙間が空くのは許容する。
+- ドラッグ範囲設置では、開始セルのYコピーをやめ、**セルごとに地形高さを解決して階段状に追従**させる。
+
+出所: ユーザー裁定 2026-08-27 原文「ブロック設置時にめっちゃ地形にうまる問題を解決しない ほとんど埋まらないようにしたい」
+／原文「すごく単純な話。どのy軸に設置するか、いい感じに決めるだけ、オフセットとか変なことはしない、ある程度埋まらないように空間を開けて設置できるようにする」
+→ 選択「占有範囲の地形最高点を上回る最初のセルに置く」「セルごとに地形高さを解決して階段状に追従」
+
+### 適用範囲
+
+通常ブロック設置（`CommonBlockPlaceSystem` 経由の単体設置＋ドラッグ範囲設置）のみ。
+
+出所: ユーザー裁定 2026-08-28 選択「通常ブロック設置（単体＋ドラッグ）」
+
+ベルトコンベア／レール専用経路（`BeltConveyorPlaceSystem` / `TrainRailPlaceService`）と設計図(BP)貼り付け
+（`BlueprintPasteSystem`。地形チェックが無く、アンカーYの丸めも `RoundToInt` で通常設置の `FloorToInt` と不一致）は
+今回の範囲外。別タスクとする。
+
+## Considered Options
+
+### 1. 論理セルと見た目のYを分離する（棄却）
+
+サーバーへ送る座標は整数セルのまま、クライアントのモデル描画のみ地形に合わせて連続Yへ下げる案。
+埋まりも浮きも消えるが、(a) 積み重ね時にレイが見た目コライダーへ当たり面スナップが下段と同じセルを返す、
+(b) 隣接セルでオフセットが異なりベルトの繋ぎ目が段差になる、(c) 斜面では結局「少しだけ埋める」が成立しない、
+という3つの破綻を抱える。
+
+棄却理由: ユーザー裁定 2026-08-28 原文「すごく単純な話。（中略）オフセットとか変なことはしない」。
+複雑さに見合わないと判断された。
+
+### 2. 地形を整数段に量子化する（棄却）
+
+地形の高さ自体をブロックグリッドへ揃え、不一致を原理的に消す案。全経路が同時に直るが、地形の見た目が階段状に激変する。
+棄却理由: 見た目への副作用が大きすぎる。
+
+### 3. 四隅の平均高さを基準にする（棄却）
+
+低い側の隙間と高い側の埋まりを半分ずつにする案。斜面では確実に一部が埋まるため、
+依頼の「ほとんど埋まらないようにしたい」を満たさない。
+
+## Consequences
+
+- 平地での常時 0〜1 セルの埋まりが消える。
+- 斜面では低い側に地面との隙間ができる。これは意図した割り切り。
+- ドラッグ範囲設置が水平ラインでなく地形追従の階段状になるため、既存のベルト敷設の操作感が変わる。
+- 地形プローブが単体設置1回／ドラッグ時セル数分に増える。プローブ回数の設計はplan側で詰める。
+- 既存の「地形に埋まっています」ツールチップ（`PlacementFeedback.AddBlockedByTerrain`）の発火頻度が下がる。
+  めり込み判定（`GroundCollisionDetector` のトリガー方式）自体の欠陥修理は今回の範囲外。
+
+## 追補（2026-08-28 コードレビュー後の裁定）
+
+裁定記録: `.decisions/2026-08-28-地形追従の適用範囲とドラッグ規則.md`
+
+- 地形追従の適用は通常ブロック設置の入口（`CommonBlockPlaceSystem.GroundClickControl`）に限る。
+  共有ユーティリティ `PlaceSystemUtil.TryGetRayHitBlockPosition` へ入れると、ベルト・レール・電柱・歯車ポールの
+  Y決定まで無言で変わり、本ADRが非目標と定めた範囲を侵すため。
+  出所: ユーザー裁定 2026-08-28（moores-code-review C1・11系統一致）
+- Y軸へ伸びたドラッグ列（Q/Eの縦積み）は地形追従の対象外とする。追従させると全セルが同一の地形高さへ
+  潰れ、同一座標のPlaceInfoが複数生成される。列の伸長軸は `CommonBlockPlacePointCalculator` が
+  `PlacementRunAxis` で返し、判断は `PlacementGroundFollowPolicy` が行う。
+  出所: ユーザー裁定 2026-08-28 選択「縦積み列は地形追従しない」
+- 地面ヒットかブロック面ヒットかはドラッグ押下時に凍結し、ドラッグ中は列全体へ同じ種別を適用する。
+  毎フレーム判定では面と地面をまたぐ瞬間に列全体の挙動が往復する。
+  出所: ユーザー裁定 2026-08-28 選択「ドラッグ開始時の面で固定する」

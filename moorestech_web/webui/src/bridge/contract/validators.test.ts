@@ -44,17 +44,29 @@ describe("common HUD schemas", () => {
 });
 
 describe("tooltip schema", () => {
-  it("requires a complete cursor-tooltip snapshot", () => {
+  it("requires a complete cursor-tooltip snapshot with lines", () => {
     expect(parseTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"],
+      visible: true, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: ["Iron Pickaxe"] }],
     }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.tooltip, { visible: false, lines: [] }).valid).toBe(true);
     expect(parseTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "Cannot remove",
+      visible: true, textKey: "ui.tooltip.requiredItems", textParams: [],
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.tooltip, {
+      visible: true, lines: [{ textKey: "Cannot remove" }],
     }).valid).toBe(false);
   });
-  it("rejects sizes smuggled in alongside the dictionary key", () => {
+  // 表示状態はホスト側で行から導出されるため、行と食い違うスナップショットは境界で弾く
+  // Visibility is derived from the lines on the host, so a snapshot disagreeing with them is rejected at the boundary
+  it("rejects a visibility flag that disagrees with the lines", () => {
+    expect(parseTopicPayload(Topics.tooltip, { visible: true, lines: [] }).valid).toBe(false);
     expect(parseTopicPayload(Topics.tooltip, {
-      visible: true, textKey: "ui.tooltip.requiredItems", textParams: [], width: 240,
+      visible: false, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: [] }],
+    }).valid).toBe(false);
+  });
+  it("rejects sizes smuggled in alongside the lines", () => {
+    expect(parseTopicPayload(Topics.tooltip, {
+      visible: true, lines: [{ textKey: "ui.tooltip.requiredItems", textParams: [] }], width: 240,
     }).valid).toBe(false);
   });
 });
@@ -195,5 +207,14 @@ describe("validModal input flag", () => {
   });
   it("rejects a non-bool input", () => {
     expect(parseTopicPayload(Topics.modal, { modal: { ...base, input: "yes" } }).valid).toBe(false);
+  });
+});
+
+describe("event_mode.language_gate schema", () => {
+  it("boolean の waiting だけを受理する", () => {
+    expect(parseTopicPayload(Topics.eventLanguageGate, { waiting: true }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.eventLanguageGate, { waiting: false }).valid).toBe(true);
+    expect(parseTopicPayload(Topics.eventLanguageGate, {}).valid).toBe(false);
+    expect(parseTopicPayload(Topics.eventLanguageGate, { waiting: "true" }).valid).toBe(false);
   });
 });

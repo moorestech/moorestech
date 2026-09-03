@@ -4,7 +4,6 @@ using Client.Game.InGame.Context;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
-using Game.PlayerInventory.Interface;
 using UniRx;
 using UnityEngine;
 
@@ -29,9 +28,7 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
         ///     The item currently held. A selected event is not dispatched when the selected slot's content changes,
         ///     so this is derived from the slot list and the selected index every time instead of being cached.
         /// </summary>
-        public IItemStack SelectedItem => SelectedIndex == IEquipmentInventory.BareHandsIndex
-            ? ServerContext.ItemStackFactory.CreatEmpty()
-            : _slots[SelectedIndex];
+        public IItemStack SelectedItem => _slots[SelectedIndex];
 
         // スロット内容の更新と選択スロットの変更のどちらでも発火する
         // Fires both on slot content updates and on selected-slot changes
@@ -47,9 +44,9 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
             var itemStackFactory = ServerContext.ItemStackFactory;
             for (var slot = 0; slot < MasterHolder.ItemMaster.Items.EquipmentSlotCount; slot++) _slots.Add(itemStackFactory.CreatEmpty());
 
-            // 初期データ到着までは素手。実値はInitializeが上書きする
-            // Bare hands until the initial data arrives; Initialize overwrites it with the real value
-            SelectedIndex = IEquipmentInventory.BareHandsIndex;
+            // 初期データ到着までは先頭スロット。実値はInitializeが上書きする
+            // The first slot until the initial data arrives; Initialize overwrites it with the real value
+            SelectedIndex = 0;
         }
 
         public void Initialize(IReadOnlyList<IItemStack> equipmentSlots, int selectedIndex)
@@ -106,9 +103,9 @@ namespace Client.Game.InGame.UI.Inventory.Equipment
 
         private int ClampIndex(int index)
         {
-            // 素手(-1)から末尾スロットまでに丸める。サーバーのクランプ範囲と一致させる
-            // Clamp between bare hands (-1) and the last slot, matching the server's clamp range
-            return Math.Clamp(index, IEquipmentInventory.BareHandsIndex, _slots.Count - 1);
+            // 先頭から末尾スロットまでに丸める。サーバーのクランプ範囲と一致させる
+            // Clamp between the first and the last slot, matching the server's clamp range
+            return Math.Clamp(index, 0, _slots.Count - 1);
         }
     }
 }

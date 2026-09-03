@@ -1,6 +1,7 @@
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using Core.Master;
+using Mooresmaster.Model.MapModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
@@ -53,6 +54,52 @@ namespace Tests.UnitTest.Core.Map
 
             Assert.IsFalse(master.Validate(out var logs));
             StringAssert.Contains(expectedLog, logs);
+        }
+
+        [Test]
+        public void earnItemsが空のmapObjectがあると失敗する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "map.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var miningMapObject = ((JArray)json["mapObjects"]).Children<JObject>()
+                .Single(element => (string)element["miningType"] == "Mining");
+
+            // earnItemsだけを空にする
+            // Empty only earnItems on a valid definition
+            miningMapObject["miningParam"]["earnItems"] = new JArray();
+            var master = new MapObjectMaster(json);
+
+            Assert.IsFalse(master.Validate(out var logs));
+            StringAssert.Contains("has empty EarnItems", logs);
+        }
+
+        [Test]
+        public void Noneのmapobjectは採掘設定を構造上持てない()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "map.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var master = new MapObjectMaster(json);
+            var decoration = master.Map.MapObjects
+                .Single(element => element.MiningType == MapObjectMasterElement.MiningTypeConst.None);
+
+            // hp・earnItems等は判別子の内側にしか存在しないため、装飾物は矛盾した値を持ちようがない
+            // hp, earnItems and the rest exist only inside the discriminator, so a decoration cannot hold a contradicting value
+            Assert.IsFalse(decoration.MiningParam is IMinableMapObjectParam);
+        }
+
+        [Test]
+        public void Noneのmapobjectはearnitemsが空でも成功する()
+        {
+            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory,
+                "mods", "forUnitTest", "master", "map.json");
+            var json = JObject.Parse(File.ReadAllText(path));
+            var master = new MapObjectMaster(json);
+
+            // Noneの装飾物含みで検証成功
+            // Validation succeeds with a None decoration included
+            Assert.IsTrue(master.Validate(out var logs), logs);
         }
     }
 }

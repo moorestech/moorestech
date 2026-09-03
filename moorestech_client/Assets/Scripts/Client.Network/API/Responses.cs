@@ -34,8 +34,8 @@ namespace Client.Network.API
         public List<IItemStack> MainInventory { get; }
         public IItemStack GrabItem { get; }
 
-        // 装備スロットの中身と、選択中スロット（-1は素手）
-        // Equipment slot contents and the selected slot (-1 means bare hands)
+        // 装備スロットの中身と、選択中スロット
+        // Equipment slot contents and the selected slot
         public List<IItemStack> Equipment { get; }
         public int SelectedEquipmentIndex { get; }
     }

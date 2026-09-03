@@ -135,7 +135,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.ConnectionLimit);
                 if (!ElectricWirePlacementEvaluator.TryCalculateWireCost(connectToolGuid, distance, out var wireCost))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
-                if (!HasEnoughWireMaterials(wireCost))
+                // 建設コストの予約分を上乗せした所持判定は共有の正本へ委ねる
+                // The held check with the construction cost reserved on top is delegated to the shared definition
+                if (!ConnectToolMaterialConsumer.HasEnough(wireCost.Materials, inventory.InventoryItems, ConnectToolMaterialConsumer.ToMaterials(costItemCounts)))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
                 // 検証をすべて通過したのでここから状態を変更する
@@ -160,19 +162,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 constructionWallet.FlushRemainingCountChanges();
 
                 return ElectricWireExtendResult.Success(polePlaceInfo.Position, selfConnector.BlockInstanceId.AsPrimitive());
-            }
-
-            // 電線素材が建設コストの予約分と合わせて足りるかを素材ごとに判定する
-            // Check per material whether the wire cost fits alongside the amount reserved by the construction cost
-            bool HasEnoughWireMaterials(ElectricWireConnectionCost wireCost)
-            {
-                if (wireCost.Materials == null) return true;
-                foreach (var material in wireCost.Materials)
-                {
-                    var reserved = costItemCounts.Where(cost => cost.itemId == material.ItemId).Sum(cost => cost.count);
-                    if (ElectricWireSystemUtil.CountItem(inventory, material.ItemId) < material.Count + reserved) return false;
-                }
-                return true;
             }
 
             // 起点なし設置。自動接続は行わず電柱単体のみを設置する

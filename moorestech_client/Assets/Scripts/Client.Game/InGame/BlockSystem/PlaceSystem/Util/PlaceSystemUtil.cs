@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using ClassLibrary;
 using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewObject;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
-using Client.Game.InGame.Context;
+using Client.Game.InGame.Control;
 using Client.Game.InGame.Control.ViewMode;
-using Client.Game.InGame.SoundEffect;
+using Client.Game.InGame.Player;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
@@ -17,6 +16,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
     public class PlaceSystemUtil
     {
+        // 全PlaceSystem共通の設置距離
+        // Placement distance shared by all PlaceSystems
+        private const float PlaceableMaxDistance = 100f;
+
+        // プレイヤー位置基準で設置距離を判定する（起点をカメラ位置にすると視点の引き方で判定が食い違う）
+        // Judge placeable distance from the player position (a camera-based origin would disagree as the view is pulled back)
+        public static bool IsPlaceableFromPlayer(Vector3Int placePoint)
+        {
+            var placePosition = (Vector3)placePoint;
+            var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+
+            return Vector3.Distance(playerPosition, placePosition) <= PlaceableMaxDistance;
+        }
+
         public static bool TryGetRayHitBlockPosition(Camera mainCamera, int heightOffset, BlockDirection currentBlockDirection, BlockMasterElement holdingBlock, out Vector3Int pos, out BlockPreviewBoundingBoxSurface surface)
         {
             pos = Vector3Int.zero;
@@ -25,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             if (!TryGetRayHitPosition(mainCamera, out var hitPos, out surface)) return false;
             
             pos = CalcPlacePoint(holdingBlock, hitPos, heightOffset, currentBlockDirection, surface);
-            
+
             return true;
         }
         
@@ -145,20 +158,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // Q/Eの上下オフセットを面ヒット時にも一括で反映する
             // Apply Q/E vertical offset uniformly even when hitting an existing block face
             return snapped + new Vector3Int(0, heightOffset, 0);
-        }
-        
-        public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
-        {
-            // セル毎BlockId付きでPlaceInfoをサーバーに送信
-            // Send PlaceInfo to server; each cell already carries its own BlockId
-            ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
-
-            // Ctrl+Z用に設置バッチを履歴へ記録する（全セル設置不能の空バッチは積まない）
-            // Record the place batch into the undo history for Ctrl+Z (skip empty batches where no cell was placeable)
-            var record = PlaceOperationRecord.CreateFrom(currentPlaceInfos);
-            if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
-
-            SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
         }
     }
 }

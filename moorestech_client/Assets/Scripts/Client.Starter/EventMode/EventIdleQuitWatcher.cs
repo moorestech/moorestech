@@ -1,7 +1,6 @@
 using System;
 using Client.Game.Common;
 using Cysharp.Threading.Tasks;
-using UniRx;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Controls;
@@ -12,37 +11,22 @@ namespace Client.Starter.EventMode
     // Quit after input silence; the external script restarts it
     public class EventIdleQuitWatcher : MonoBehaviour
     {
-        private float _idleSeconds;
-        private int _idleTimeoutSeconds;
+        private EventIdleTimer _idleTimer;
 
-        // タイムアウト値の無い個体を作らせないため、生成はこの口だけに絞る
-        // The only creation entry point, so no instance can exist without its timeout
+        // 生成が武装そのもの。言語選択後にだけ作られるため、待機中は無操作終了が起こり得ない
+        // Creation is the arming itself: built only after the language is chosen, so an idle quit cannot fire while waiting
         public static EventIdleQuitWatcher Create(int idleTimeoutSeconds)
         {
             var watcherObject = new GameObject(nameof(EventIdleQuitWatcher));
             DontDestroyOnLoad(watcherObject);
             var watcher = watcherObject.AddComponent<EventIdleQuitWatcher>();
-            watcher._idleTimeoutSeconds = idleTimeoutSeconds;
+            watcher._idleTimer = new EventIdleTimer(idleTimeoutSeconds);
             return watcher;
-        }
-
-        private void Start()
-        {
-            // 起動所要時間を無操作時間に数えない。ロード完了時点から計り直す
-            // Boot time must not count as idle time, so restart the measurement when loading completes
-            GameInitializedEvent.OnGameInitialized.Subscribe(_ => _idleSeconds = 0f).AddTo(this);
         }
 
         private void Update()
         {
-            if (HasAnyInput())
-            {
-                _idleSeconds = 0f;
-                return;
-            }
-
-            _idleSeconds += Time.unscaledDeltaTime;
-            if (_idleSeconds < _idleTimeoutSeconds) return;
+            if (!_idleTimer.AdvanceAndCheckTimeout(HasInputChanged(), Time.unscaledDeltaTime)) return;
 
             // 以後は毎フレームQuitを呼び続けない（Editorではno-opのためPlayModeが終わらなくなる）
             // Stop re-triggering every frame (Application.Quit is a no-op in the Editor, which would hang PlayMode)
@@ -51,16 +35,16 @@ namespace Client.Starter.EventMode
 
             #region Internal
 
-            bool HasAnyInput()
+            bool HasInputChanged()
             {
                 var keyboard = Keyboard.current;
-                // 押しっぱなしと、1フレーム内で完結した押下離しの両方を拾う
-                // Catches both a held key and a press that started and ended inside one frame
-                if (keyboard != null && (keyboard.anyKey.isPressed || keyboard.anyKey.wasPressedThisFrame || keyboard.anyKey.wasReleasedThisFrame)) return true;
+                // 押下と離しの遷移だけを拾う。isPressedを含めると押しっぱなしで無操作復帰が止まる
+                // Only press and release transitions count; including isPressed lets a held key stop the idle reset
+                if (keyboard != null && (keyboard.anyKey.wasPressedThisFrame || keyboard.anyKey.wasReleasedThisFrame)) return true;
 
                 var mouse = Mouse.current;
                 if (mouse == null) return false;
-                if (IsButtonActive(mouse.leftButton) || IsButtonActive(mouse.rightButton) || IsButtonActive(mouse.middleButton)) return true;
+                if (IsButtonChanged(mouse.leftButton) || IsButtonChanged(mouse.rightButton) || IsButtonChanged(mouse.middleButton)) return true;
 
                 // ロック中はpositionが凍結するためdeltaとscrollで移動・ホイールを検知する
                 // Position freezes while locked, so use delta and scroll to detect motion and wheel input
@@ -68,9 +52,9 @@ namespace Client.Starter.EventMode
                 return mouse.scroll.ReadValue() != Vector2.zero;
             }
 
-            bool IsButtonActive(ButtonControl button)
+            bool IsButtonChanged(ButtonControl button)
             {
-                return button.isPressed || button.wasPressedThisFrame || button.wasReleasedThisFrame;
+                return button.wasPressedThisFrame || button.wasReleasedThisFrame;
             }
 
             #endregion

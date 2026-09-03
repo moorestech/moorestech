@@ -347,6 +347,24 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""f6f657d5-7b0f-4ed9-a32f-65fb9aa8106b"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Ride"",
+                    ""type"": ""Button"",
+                    ""id"": ""8e295750-855e-459a-bd2b-047e71e67941"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -391,6 +409,28 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
                     ""processors"": """",
                     ""groups"": ""KeyboardMouse"",
                     ""action"": ""ScreenRightClick"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4c055188-7f8d-4967-8093-627b29f8c180"",
+                    ""path"": ""<Keyboard>/f"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""74953fd9-92be-4d16-80f1-63f4c189d396"",
+                    ""path"": ""<Keyboard>/e"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""KeyboardMouse"",
+                    ""action"": ""Ride"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -826,6 +866,8 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
         m_Playable_ScreenRightClick = m_Playable.FindAction("ScreenRightClick", throwIfNotFound: true);
         m_Playable_ClickPosition = m_Playable.FindAction("ClickPosition", throwIfNotFound: true);
         m_Playable_BlockPlaceRotation = m_Playable.FindAction("BlockPlaceRotation", throwIfNotFound: true);
+        m_Playable_Interact = m_Playable.FindAction("Interact", throwIfNotFound: true);
+        m_Playable_Ride = m_Playable.FindAction("Ride", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_OpenMenu = m_UI.FindAction("OpenMenu", throwIfNotFound: true);
@@ -1056,6 +1098,8 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
     private readonly InputAction m_Playable_ScreenRightClick;
     private readonly InputAction m_Playable_ClickPosition;
     private readonly InputAction m_Playable_BlockPlaceRotation;
+    private readonly InputAction m_Playable_Interact;
+    private readonly InputAction m_Playable_Ride;
     /// <summary>
     /// Provides access to input actions defined in input action map "Playable".
     /// </summary>
@@ -1083,6 +1127,14 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
         /// Provides access to the underlying input action "Playable/BlockPlaceRotation".
         /// </summary>
         public InputAction @BlockPlaceRotation => m_Wrapper.m_Playable_BlockPlaceRotation;
+        /// <summary>
+        /// Provides access to the underlying input action "Playable/Interact".
+        /// </summary>
+        public InputAction @Interact => m_Wrapper.m_Playable_Interact;
+        /// <summary>
+        /// Provides access to the underlying input action "Playable/Ride".
+        /// </summary>
+        public InputAction @Ride => m_Wrapper.m_Playable_Ride;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -1121,6 +1173,12 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
             @BlockPlaceRotation.started += instance.OnBlockPlaceRotation;
             @BlockPlaceRotation.performed += instance.OnBlockPlaceRotation;
             @BlockPlaceRotation.canceled += instance.OnBlockPlaceRotation;
+            @Interact.started += instance.OnInteract;
+            @Interact.performed += instance.OnInteract;
+            @Interact.canceled += instance.OnInteract;
+            @Ride.started += instance.OnRide;
+            @Ride.performed += instance.OnRide;
+            @Ride.canceled += instance.OnRide;
         }
 
         /// <summary>
@@ -1144,6 +1202,12 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
             @BlockPlaceRotation.started -= instance.OnBlockPlaceRotation;
             @BlockPlaceRotation.performed -= instance.OnBlockPlaceRotation;
             @BlockPlaceRotation.canceled -= instance.OnBlockPlaceRotation;
+            @Interact.started -= instance.OnInteract;
+            @Interact.performed -= instance.OnInteract;
+            @Interact.canceled -= instance.OnInteract;
+            @Ride.started -= instance.OnRide;
+            @Ride.performed -= instance.OnRide;
+            @Ride.canceled -= instance.OnRide;
         }
 
         /// <summary>
@@ -1528,6 +1592,20 @@ public partial class @MoorestechInputSettings: IInputActionCollection2, IDisposa
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnBlockPlaceRotation(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Interact" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnInteract(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Ride" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRide(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

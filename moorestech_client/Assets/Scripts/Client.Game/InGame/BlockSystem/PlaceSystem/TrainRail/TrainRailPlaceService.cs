@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Input;
 using Core.Master;
@@ -30,25 +31,40 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             _previewBlockController = previewBlockController;
         }
         
-        public PlaceInfo ManualUpdate(BlockId blockId)
+        public PlaceInfo ManualUpdate(BlockId blockId, PlacementFeedback feedback)
         {
             _previewBlockController.SetActive(false);
 
             if (!_isActive) return null;
 
             var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out var boundingBoxSurface)) return null;
+            if (!PlaceSystemUtil.TryGetRayHitBlockPosition(_mainCamera, HeightOffset, DefaultBlockDirection, holdingBlockMaster, out var placePoint, out _)) return null;
+
+            // 距離外なら理由のみ出しプレビュー無し
+            // Beyond range, show only the reason and no preview
+            if (!PlaceSystemUtil.IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return null; }
+
             PlacePosition = placePoint;
             
             _previewBlockController.SetActive(true);
             
             RotationRailComponent();
             
-            var placeInfo = CreatePlaceInfo();
-            _previewBlockController.SetPreviewAndGroundDetect(new List<PlaceInfo> { placeInfo }, holdingBlockMaster);
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo() };
+            _previewBlockController.SetPreview(placeInfos, holdingBlockMaster);
+            var groundOverlaps = _previewBlockController.DetectGroundOverlaps();
+
+            // 地面に埋まるセルを設置不可にし、その理由を積む。レール1セルは共有原因を判定しないためNone列を渡す
+            // Mark ground-buried cells unplaceable and report that reason; the single rail cell judges no shared cause, so a None column is passed
+            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, new[] { PlacementBlockCause.None }, placePoint, groundOverlaps, feedback);
+
+            // 最終的なPlaceable状態でプレビュー色を更新
+            // Update preview colors based on the final Placeable state
+            _previewBlockController.UpdatePlaceableColors(placeInfos);
+
             ConnectorPosition = GetConnectorPosition(holdingBlockMaster);
             
-            return placeInfo;
+            return placeInfos[0];
             
             #region Internal
             

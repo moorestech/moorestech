@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
@@ -21,6 +22,9 @@ namespace Client.Tests.Mining.Outcrop
         private static readonly Guid UnmineableVeinGuid = new("11111111-0000-0000-0000-000000000004");
         private static readonly Guid ToolItemGuid = new("00000000-0000-0000-1234-000000000001");
         private static readonly Guid UnmatchedToolItemGuid = new("00000000-0000-0000-1234-000000000004");
+        private static readonly Guid WaterVeinGuid = new("11111111-0000-0000-0000-000000000002");
+        private static readonly Guid IronVeinEarnItemGuid = new("00000000-0000-0000-1234-000000000001");
+        private static readonly Guid UnmineableVeinEarnItemGuid = new("00000000-0000-0000-1234-000000000003");
 
         private readonly List<GameObject> _createdObjects = new();
         private GameObject _colliderChild;
@@ -53,7 +57,7 @@ namespace Client.Tests.Mining.Outcrop
             var rayTarget = _colliderChild.GetComponent<OutcropRayTarget>();
             Assert.IsNotNull(rayTarget);
             Assert.AreSame(_outcrop, rayTarget.OutcropGameObject);
-            Assert.AreSame(_outcrop, ((IMiningRayTarget)rayTarget).MiningTargetObject);
+            Assert.AreSame(_outcrop, ((IInteractRayTarget)rayTarget).Interactable);
         }
 
         [Test]
@@ -94,6 +98,34 @@ namespace Client.Tests.Mining.Outcrop
             var rayTarget = colliderChild.GetComponent<OutcropRayTarget>();
             Assert.IsNotNull(rayTarget);
             Assert.AreSame(unmineableOutcrop, rayTarget.OutcropGameObject);
+        }
+
+        [Test]
+        public void アイテム鉱脈の露頭は取得アイテムのGuidを返す()
+        {
+            // 表示名の出所はitemGuid
+            // The display name comes from the vein master's itemGuid, not the English veinName (ADR 0033)
+            CollectionAssert.AreEqual(new[] { IronVeinEarnItemGuid }, _outcrop.EarnItemGuids);
+        }
+
+        [Test]
+        public void 液体鉱脈の露頭は取得アイテムを持たない()
+        {
+            var waterOutcrop = CreateOutcrop(WaterVeinGuid, out _);
+
+            // 液体は名前を持たない（ADR 0033）
+            // A fluid has no item name, so the name slot stays empty (ADR 0033)
+            CollectionAssert.IsEmpty(waterOutcrop.EarnItemGuids);
+        }
+
+        [Test]
+        public void 手掘り不可のアイテム鉱脈でも取得アイテムのGuidは返す()
+        {
+            var unmineableOutcrop = CreateOutcrop(UnmineableVeinGuid, out _);
+
+            // 掘れなくても中身は見せる（ADR 0033）
+            // Even an unmineable vein still reveals what it holds (ADR 0033)
+            CollectionAssert.AreEqual(new[] { UnmineableVeinEarnItemGuid }, unmineableOutcrop.EarnItemGuids);
         }
 
         [Test]

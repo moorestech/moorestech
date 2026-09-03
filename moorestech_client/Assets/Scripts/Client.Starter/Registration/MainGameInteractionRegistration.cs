@@ -5,7 +5,9 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
@@ -15,6 +17,9 @@ using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.Interact;
+using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.Player.StateController;
 using Client.Game.InGame.Player.StateController.State;
@@ -30,6 +35,7 @@ using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
@@ -67,6 +73,7 @@ namespace Client.Starter.Registration
 
         private static void RegisterPlacement(ContainerBuilder builder)
         {
+            builder.Register<IPlacementGroundFollower, PlacementGroundFollowStep>(Lifetime.Singleton);
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
             builder.Register<BeltConveyorPlaceSystem>(Lifetime.Singleton);
             builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);
@@ -75,9 +82,14 @@ namespace Client.Starter.Registration
             builder.Register<TrainRailConnectSystem>(Lifetime.Singleton);
             builder.Register<GearChainPoleConnectSystem>(Lifetime.Singleton);
             builder.Register<ElectricWireConnectSystem>(Lifetime.Singleton);
+            builder.Register<IPlacementFeedbackPresenter, PlacementFeedbackTooltipPresenter>(Lifetime.Singleton);
             builder.Register<PlaceSystemStateController>(Lifetime.Singleton);
-            builder.Register<PlaceSystemSelector>(Lifetime.Singleton);
+            builder.Register<IPlaceSystemSelector, PlaceSystemSelector>(Lifetime.Singleton);
             builder.Register<ClientBlueprintLibrary>(Lifetime.Singleton);
+            builder.Register<MapVeinAabbRegistry>(Lifetime.Singleton);
+            builder.Register<VeinRestrictedPlacementState>(Lifetime.Singleton);
+            builder.Register<ChainPlacePreviewState>(Lifetime.Singleton);
+            builder.Register<IChainGroundQuery, PlacementChainGroundQuery>(Lifetime.Singleton);
             builder.Register<MapVeinRangeViewService>(Lifetime.Singleton).As<IMapVeinRangeView>();
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
@@ -85,6 +97,8 @@ namespace Client.Starter.Registration
             builder.Register<PlacementTargetResolver>(Lifetime.Singleton);
             builder.Register<HotbarKeyInput>(Lifetime.Singleton);
             builder.Register<HotbarTapInputService>(Lifetime.Singleton);
+            builder.Register<RightShortPressInput>(Lifetime.Singleton);
+            builder.Register<RightShortPressInputService>(Lifetime.Singleton);
             builder.Register<HotbarSelectionReconciler>(Lifetime.Singleton);
         }
 
@@ -113,9 +127,9 @@ namespace Client.Starter.Registration
             builder.Register<BuildOperationHistory>(Lifetime.Singleton);
             builder.Register<BuildUndoService>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
-            builder.Register<GameScreenSubInventoryInteractService>(Lifetime.Singleton);
             builder.Register<PlacementTargetPickService>(Lifetime.Singleton);
-            builder.Register<RideVehicleInputService>(Lifetime.Singleton);
+            builder.Register<IInteractTargetSelector, InteractTargetSelector>(Lifetime.Singleton);
+            builder.Register<InteractController>(Lifetime.Singleton);
             builder.Register<PauseMenuStateService>(Lifetime.Singleton);
 
             builder.Register<NormalPlayerState>(Lifetime.Singleton);

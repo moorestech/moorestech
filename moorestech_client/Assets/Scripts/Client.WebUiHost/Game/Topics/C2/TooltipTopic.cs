@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.UI.Tooltip;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
@@ -26,21 +27,28 @@ namespace Client.WebUiHost.Game.Topics
         public void Dispose() => _subscription.Dispose();
         private void Publish() => _hub.Publish(TopicName, BuildJson());
 
-        private string BuildJson()
+        private string BuildJson() => WebUiJson.Serialize(ToDto(_tooltip.GetPresentation()));
+
+        // 行は常に配列で出す（非表示時も空配列）。Web側スキーマは lines 必須
+        // Lines are always emitted as an array (empty when hidden); the web schema requires lines
+        public static TooltipDto ToDto(TooltipPresentation presentation)
         {
-            var presentation = _tooltip.GetPresentation();
-            return WebUiJson.Serialize(new TooltipDto
+            return new TooltipDto
             {
                 Visible = presentation.Visible,
-                TextKey = presentation.TextKey,
-                TextParams = presentation.TextParams,
-            });
+                Lines = presentation.Lines.Select(line => new TooltipLineDto { TextKey = line.Key.Key, TextParams = line.TextParams }).ToArray(),
+            };
         }
     }
 
     public class TooltipDto
     {
         public bool Visible;
+        public IReadOnlyList<TooltipLineDto> Lines;
+    }
+
+    public class TooltipLineDto
+    {
         public string TextKey;
         public IReadOnlyList<string> TextParams;
     }

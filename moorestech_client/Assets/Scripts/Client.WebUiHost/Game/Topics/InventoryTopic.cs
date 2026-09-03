@@ -82,8 +82,8 @@ namespace Client.WebUiHost.Game.Topics
             {
                 MainSlots = new List<SlotDto>(mainSlotCount),
                 Grab = ToDto(_controller.GrabInventory),
-                // 装備枠数はマスタ由来。素手は -1 のまま配信し、Web 側も -1 を素手として扱う
-                // The equipment slot count comes from the master; bare hands ships as -1 and the web side reads -1 the same way
+                // 装備枠数はマスタ由来。選択は常に実スロットのインデックス
+                // The equipment slot count comes from the master; the selection is always a real slot index
                 Equipment = new List<SlotDto>(_equipment.Slots.Count),
                 SelectedEquipment = _equipment.SelectedIndex,
                 EquipmentSelectionConfirmationRevision = _equipment.SelectionConfirmationRevision,

@@ -125,7 +125,9 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 BlockDirection.North,
                 blockMasterElement,
                 (_, _) => true,
-                _ => false
+                _ => false,
+                out _,
+                out _
             );
 
             Assert.AreEqual(testCase.ExpectedPoints.Length, actual.Count);
@@ -150,10 +152,15 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             // isNotExistBlock always returns true (no occupancy); the endpoints must still stay unplaceable.
             var actual = BeltConveyorPlacePointCalculator.CalculatePoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
-                blockMasterElement, (_, _) => true, obstacle.Contains);
+                blockMasterElement, (_, _) => true, obstacle.Contains, out _, out var beltReasons);
 
             Assert.IsFalse(actual[0].Placeable);
             Assert.IsFalse(actual[2].Placeable);
+
+            // 端点の不可理由はベルト固有の立体交差不能として並走列に立つ
+            // The endpoints' reason stands in the belt-specific column as an impossible overpass
+            Assert.AreEqual(BeltConveyorPlacementBlockReason.ImpossibleOverpass, beltReasons[0]);
+            Assert.AreEqual(BeltConveyorPlacementBlockReason.ImpossibleOverpass, beltReasons[2]);
         }
 
         private struct TestCase

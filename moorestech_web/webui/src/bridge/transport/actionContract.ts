@@ -24,8 +24,8 @@ export type ActionPayloads = {
   "inventory.collect": { slot: SlotRef };
   "inventory.split_drag": { slots: SlotRef[] };
   "inventory.sort": Record<string, never>;
-  // index は -1（素手）から装備スロット数-1 まで
-  // index ranges from -1 (bare hands) to the equipment slot count minus one
+  // index は 0 から装備スロット数-1 まで
+  // index ranges from 0 to the equipment slot count minus one
   "inventory.select_equipment": { index: number };
   "craft.execute": { recipeGuid: string };
   // text は input モーダルの確定時のみ付与する
@@ -48,6 +48,7 @@ export type ActionPayloads = {
   "pause_menu.save": Record<string, never>;
   "pause_menu.save_and_quit": Record<string, never>;
   "localization.setLocale": { locale: string };
+  "event_mode.select_language": { locale: string };
   "research.complete": { researchGuid: string };
   "machine_recipe.select": { operation: "set" | "clear"; recipeGuid?: string };
   "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
@@ -93,6 +94,7 @@ export const ACTION_TYPES = [
   "pause_menu.save",
   "pause_menu.save_and_quit",
   "localization.setLocale",
+  "event_mode.select_language",
   "research.complete",
   "machine_recipe.select",
   "filter_splitter.set_mode",

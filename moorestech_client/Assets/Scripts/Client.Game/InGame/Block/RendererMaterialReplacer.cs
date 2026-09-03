@@ -115,6 +115,11 @@ namespace Client.Game.InGame.Block
             for (var i = 0; i < _originalMaterials.Length; i++)
             {
                 var originalMaterial = _originalMaterials[i];
+
+                // 空マテリアルスロット（ParticleSystemのTrail未設定等）は写す見た目が無い
+                // An empty material slot (an unset ParticleSystem trail and the like) has no appearance to copy
+                if (originalMaterial == null) continue;
+
                 var replacedMaterial = replacedMaterials[i];
                 replacedMaterial.mainTexture = originalMaterial.mainTexture;
                 replacedMaterial.mainTextureOffset = originalMaterial.mainTextureOffset;

@@ -34,9 +34,7 @@ namespace Game.Construction
         // Whether the remainder covers this cell; blocks that bypass the wallet are always false
         public bool IsCoveredByWallet(BlockId blockId)
         {
-            var placementsPerCost = MasterHolder.BlockMaster.GetBlockMaster(blockId).PlacementsPerCost;
-            if (!ConstructionWalletUtil.UsesWallet(placementsPerCost)) return false;
-            return ConstructionWalletUtil.IsCoveredByWallet(_reader.GetRemainingCount(blockId));
+            return GetWalletStatus(blockId)?.CoversNextPlacement() ?? false;
         }
 
         // このセルを置くと実際に消費する素材。残りで賄うなら空
@@ -45,6 +43,14 @@ namespace Game.Construction
         {
             if (IsCoveredByWallet(blockId)) return Array.Empty<(ItemId, int)>();
             return ConstructionCostItems.ToItemCounts(MasterHolder.BlockMaster.GetBlockMaster(blockId).RequiredItems);
+        }
+
+        // 表示中のセル数に対し実際に払うコストセット数
+        // The cost sets actually paid for the cells being previewed
+        public int GetRequiredCostSets(BlockId blockId, int cellCount)
+        {
+            var placementsPerCost = MasterHolder.BlockMaster.GetBlockMaster(blockId).PlacementsPerCost;
+            return ConstructionWalletUtil.CalculateRequiredCostSets(_reader.GetRemainingCount(blockId), cellCount, placementsPerCost);
         }
 
         // 残りと所持素材で何セル置けるか

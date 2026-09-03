@@ -4,10 +4,9 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Input;
 using Core.Master;
 using Game.Construction;
 using Game.UnlockState;
@@ -38,7 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         {
             _gameUnlockStateData = gameUnlockStateData;
 
-            var wirePreview = new ElectricWireExtendPreviewObject(mainCamera);
+            var wirePreview = new ElectricWireExtendPreviewObject();
             var requestSender = new ElectricWireExtendRequestSender(blockGameObjectDataStore);
             var poleSelection = new ElectricWirePoleSelection();
             var pointCalculator = new CommonBlockPlacePointCalculator(blockGameObjectDataStore);
@@ -58,7 +57,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             _context.PoleSelection.RefreshUnlockedPoles(_gameUnlockStateData);
         }
 
-        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(ConnectToolPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // 選択変化時のみ解放済み電柱を再読込する（毎tickのLINQ再構築を避ける）
             // Reload unlocked poles only on selection change to avoid rebuilding the LINQ query every tick
@@ -74,19 +73,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             // is assigned and the origin is released: keeping the stale one would re-draw the server's wire and consume wire twice
             if (_context.RequestSender.TryConsumeOutcome(out var outcome) && outcome.IsSuccess) _sourceBlock = outcome.Endpoint;
 
-            // 右クリックで起点を解除し、進行中の応答を無効化する。起点なしの孤立設置の応答待ちも明示キャンセルとして止める
-            // Release the origin on right click and invalidate any pending response, including an originless isolated placement still awaiting one
-            if (InputManager.Playable.ScreenRightClick.GetKeyDown && !UiPointerHitTest.IsPointerOverAnyUi())
-            {
-                _sourceBlock = null;
-                _context.RequestSender.Invalidate();
-            }
-
             // 起点未選択なら選択・切断・孤立設置、選択済みなら接続・延長を処理する
             // No origin: select, disconnect or isolated-place; with origin: connect or extend
             if (_sourceBlock == null)
             {
-                _sourceBlock = _editMode.Update();
+                _sourceBlock = _editMode.Update(feedback);
 
                 // 明示選択した起点は、応答待ちの孤立設置が後から返す終点に黙って上書きさせない
                 // （上書きされるとプレイヤーが選んだブロックではなく新設電柱から配線され、電線が実消費される）
@@ -96,7 +87,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
                 return;
             }
 
-            _extendMode.Update(new PlaceSystemUpdateContext(target, isSelectionChanged), _sourceBlock);
+            _extendMode.Update(new PlaceSystemUpdateContext(target, isSelectionChanged, feedback), _sourceBlock);
+        }
+
+        // 右短押しで起点だけを解除する。見えない応答待ちは進行中に数えず、起点が無ければ解除対象なし
+        // A right short press releases only the origin; an invisible pending response does not count, so without an origin there is nothing to cancel
+        public override bool TryCancelInProgressOperation()
+        {
+            if (_sourceBlock == null) return false;
+
+            _sourceBlock = null;
+            _context.RequestSender.Invalidate();
+            return true;
         }
 
         public override void Disable()
@@ -107,7 +109,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
             _context.RequestSender.Invalidate();
             _context.WirePreview.SetActive(false);
             _context.PreviewBlockController.SetActive(false);
-            _context.PoleGhostPart.SetNameLabelActive(false);
         }
     }
 }

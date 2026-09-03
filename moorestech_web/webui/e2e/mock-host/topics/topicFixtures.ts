@@ -36,6 +36,9 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.buildMenu]: () => fx.buildMenu,
   [Topics.hotbar]: () => fx.hotbar,
   [Topics.localization]: () => ({ locale: "japanese", revision: 1 }),
+  // 通常のe2eは出展モードではないので待機しない。欠けるとsnapshotが返らずrestoringのまま全操作が塞がる
+  // Regular e2e is not event mode, so it never waits; a missing entry returns no snapshot and wedges everything in restoring
+  [Topics.eventLanguageGate]: () => ({ waiting: false }),
   [Topics.challengeTree]: () => fx.challengeTree,
   [Topics.challengeCurrent]: () => fx.challengeCurrent,
   [Topics.pauseMenu]: () => ({ disconnected: false }),
@@ -44,7 +47,7 @@ const topicFixtures: TopicFixtureRegistry = {
   }),
   [Topics.crosshair]: () => ({ visible: true }),
   [Topics.uiVisibility]: () => ({ visible: true }),
-  [Topics.tooltip]: () => ({ visible: false, textKey: "", textParams: [] }),
+  [Topics.tooltip]: () => ({ visible: false, lines: [] }),
   [Topics.gameState]: () => state.gameState,
   [Topics.tutorialPresentation]: () => fx.tutorialPresentation,
   [Topics.worldPins]: () => state.worldPins,

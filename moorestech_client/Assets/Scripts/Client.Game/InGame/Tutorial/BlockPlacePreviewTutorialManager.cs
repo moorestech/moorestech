@@ -1,13 +1,11 @@
 using System;
+using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem;
-using Client.Game.InGame.Tutorial.TutorialBlock;
+using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
 using Client.Game.InGame.UI.UIState;
 using Core.Master;
-using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 using UnityEngine;
@@ -15,129 +13,136 @@ using VContainer;
 
 namespace Client.Game.InGame.Tutorial
 {
-    public class BlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialView, ITutorialViewManager
+    /// <summary>
+    ///     設置目標セルのゴーストをtutorialGuidごとに持ち、その生成・移動・破棄を引き受ける。どのセルを指すかは呼び手が決める
+    ///     Owns one target-cell ghost per tutorialGuid with its creation, movement and teardown; which cell to point at is the caller's decision
+    /// </summary>
+    public class BlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialViewManager
     {
-        // WebオーバーレイでのピンID。BlockPlacePreviewTutorialManagerはシーンに1つなので固定IDでよい
-        // World-pin id on the web overlay; a single scene instance suffices, so the id is fixed
-        private const string WebPinId = "block-place-preview-pin";
-
+        public string TutorialType => TutorialsElement.TutorialTypeConst.blockPlacePreview;
+        
+        private readonly Dictionary<string, PlacementGhostEntry> _entries = new();
+        
+        // 絶対座標型（blockPlacePreview）として適用された分の設置検知購読。guidごとに独立して持つ
+        // Placement-detection subscriptions for absolute blockPlacePreview applications, held independently per guid
+        private readonly Dictionary<string, IDisposable> _placedSubscriptions = new();
+        
         private BlockGameObjectDataStore _blockGameObjectDataStore;
-        private TutorialBlockPreviewObject _previewObject;
-        private BlockPlacePreviewTutorialParam _currentParam;
-        private BlockId _currentBlockId;
-        private IDisposable _blockPlacedDisposable;
-        private string _pinTutorialGuid = "";
-
+        
         [Inject]
         public void Construct(BlockGameObjectDataStore blockGameObjectDataStore)
         {
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
-
+        
+        /// <summary>
+        ///     ゴーストを出す目標セルを差し替える。同じ目標なら何もしないので毎フレーム呼んでよい
+        ///     Replaces the target cell the ghost points at; an unchanged target is a no-op, so it is safe to call every frame
+        /// </summary>
+        public void SetTargetCell(BlockId blockId, Vector3Int cell, BlockDirection direction, string tutorialGuid)
+        {
+            if (!_entries.TryGetValue(tutorialGuid, out var entry))
+            {
+                entry = new PlacementGhostEntry($"block-place-preview-pin-{tutorialGuid}");
+                _entries.Add(tutorialGuid, entry);
+            }
+            
+            entry.SetTarget(blockId, cell, direction, transform);
+        }
+        
+        public void ClearTarget(string tutorialGuid)
+        {
+            if (!_entries.TryGetValue(tutorialGuid, out var entry)) return;
+            
+            entry.Destroy();
+            _entries.Remove(tutorialGuid);
+            
+            // Webピンは冪等に除去（未配信でも安全）
+            // Removing the web pin is idempotent, safe even when never published
+            WorldPinStateStore.Instance.RemovePin(entry.WebPinId);
+        }
+        
         private void Update()
         {
             // Webへ射影配信する（3Dプレビュー自体はUnity側に残置し、矢印/ピンのみWeb化）
             // Project and publish to the web overlay (the 3D preview stays in Unity; only the arrow/pin moves to web)
-            if (!WebUiScreenGate.IsWebUiMode || _currentParam == null || _previewObject == null) return;
-
+            if (!WebUiScreenGate.IsWebUiMode || _entries.Count == 0) return;
+            
             var camera = CameraManager.MainCamera.Camera;
             if (!camera) return;
-
-            var projection = WorldPinScreenProjection.Project(camera, _previewObject.transform.position);
-            WorldPinStateStore.Instance.SetPin(WebPinId, _pinTutorialGuid, projection);
+            
+            foreach (var pair in _entries)
+            {
+                var entry = pair.Value;
+                if (entry.TargetCell == null || entry.PreviewObject == null) continue;
+                
+                var projection = WorldPinScreenProjection.Project(camera, entry.PreviewObject.transform.position);
+                WorldPinStateStore.Instance.SetPin(entry.WebPinId, pair.Key, projection);
+            }
         }
-
+        
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
-            _currentParam = (BlockPlacePreviewTutorialParam)tutorial.TutorialParam;
-            _pinTutorialGuid = tutorial.TutorialGuid.ToString("D");
-            _currentBlockId = MasterHolder.BlockMaster.GetBlockId(_currentParam.BlockGuid);
-
+            var param = (BlockPlacePreviewTutorialParam)tutorial.TutorialParam;
+            var blockId = MasterHolder.BlockMaster.GetBlockId(param.BlockGuid);
+            var direction = Enum.Parse<BlockDirection>(param.BlockDirection);
+            var tutorialGuid = tutorial.TutorialGuid.ToString("D");
+            
             // 既に目標ブロックが配置済みなら早期終了
             // Exit early when the target block already exists
-            if (IsTargetBlockPlaced())
-            {
-                _currentParam = null;
-                return null;
-            }
-
-            CreateOrUpdatePreviewAsync().Forget();
+            if (IsTargetBlockPlaced()) return null;
+            
+            SetTargetCell(blockId, param.Position, direction, tutorialGuid);
             SubscribePlacementEvent();
-
-            return this;
-
+            
+            return new BlockPlacePreviewTutorialView(this, tutorialGuid);
+            
             #region Internal
-
+            
             bool IsTargetBlockPlaced()
             {
-                return _blockGameObjectDataStore.TryGetBlockGameObject(_currentParam.Position, out var block)
-                       && block.BlockId == _currentBlockId;
+                return _blockGameObjectDataStore.TryGetBlockGameObject(param.Position, out var block) && block.BlockId == blockId;
             }
-
-            async UniTaskVoid CreateOrUpdatePreviewAsync()
-            {
-                // プレビューオブジェクトを生成または再利用
-                // Create or reuse preview object
-                if (_previewObject == null || _previewObject.BlockMasterElement.BlockGuid != _currentParam.BlockGuid)
-                {
-                    if (_previewObject != null)
-                    {
-                        _previewObject.DestroyPreview();
-                    }
-
-                    _previewObject = await TutorialPreviewBlockCreator.CreateAsync(_currentBlockId);
-                    _previewObject.transform.SetParent(transform);
-                }
-
-                var blockDirection = Enum.Parse<BlockDirection>(_currentParam.BlockDirection);
-                var position = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(_currentParam.Position, blockDirection, _currentBlockId);
-                var rotation = blockDirection.GetRotation();
-
-                _previewObject.SetTransform(position, rotation);
-                _previewObject.SetPlaceableColor(true);
-                _previewObject.SetActive(true);
-            }
-
+            
+            // 指定座標への対象ブロック設置で該当guidだけを完了する
+            // Completes only this guid when the target block lands on the specified position
             void SubscribePlacementEvent()
             {
-                _blockPlacedDisposable?.Dispose();
-                
-                // 指定座標へのブロック設置を監視
-                // Watch for block placement at the specified position
-                _blockPlacedDisposable = _blockGameObjectDataStore.OnBlockPlaced.Subscribe(block =>
+                if (_placedSubscriptions.TryGetValue(tutorialGuid, out var previous)) previous.Dispose();
+                _placedSubscriptions[tutorialGuid] = _blockGameObjectDataStore.OnBlockPlaced.Subscribe(block =>
                 {
-                    if (block.BlockId != _currentBlockId) return;
-                    if (block.BlockPosInfo.OriginalPos != _currentParam.Position) return;
+                    if (block.BlockId != blockId) return;
+                    if (block.BlockPosInfo.OriginalPos != param.Position) return;
                     
-                    CompleteTutorial();
+                    Complete(tutorialGuid);
                 });
             }
             
             #endregion
         }
-
-        public void CompleteTutorial()
+        
+        public void Complete(string tutorialGuid)
         {
-            _blockPlacedDisposable?.Dispose();
-            _blockPlacedDisposable = null;
-
-            // プレビューを非表示にしてHUDを更新
-            // Hide the preview and update HUD state
-            if (_previewObject != null)
+            if (_placedSubscriptions.TryGetValue(tutorialGuid, out var subscription))
             {
-                _previewObject.SetActive(false);
+                subscription.Dispose();
+                _placedSubscriptions.Remove(tutorialGuid);
             }
-
-            // Webピンは冪等に除去（未配信でも安全）
-            // Removing the web pin is idempotent, safe even when never published
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
-
-            _currentParam = null;
+            
+            ClearTarget(tutorialGuid);
         }
-
+        
         private void OnDestroy()
         {
-            WorldPinStateStore.Instance.RemovePin(WebPinId);
+            foreach (var entry in _entries.Values)
+            {
+                entry.Destroy();
+                WorldPinStateStore.Instance.RemovePin(entry.WebPinId);
+            }
+            _entries.Clear();
+            
+            foreach (var subscription in _placedSubscriptions.Values) subscription.Dispose();
+            _placedSubscriptions.Clear();
         }
     }
 }

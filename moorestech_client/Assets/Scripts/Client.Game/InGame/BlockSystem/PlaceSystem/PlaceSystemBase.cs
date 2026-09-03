@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
@@ -12,6 +13,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // Most place systems never read the wheel, so the default is false; only the readers override it
         public virtual bool OwnsWheelInput => false;
 
+        // 進行中操作を持たない設置系が多数派なので既定はfalse。持つ側だけがoverrideする
+        // Most place systems hold no in-progress operation, so the default is false; only the holders override it
+        public virtual bool TryCancelInProgressOperation() => false;
+
         public abstract void Enable();
         public abstract void Disable();
 
@@ -19,9 +24,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         {
             // Selectorが型を保証する。違えば即例外＝振り分けバグ
             // The selector guarantees the type; a mismatch throws immediately = routing bug
-            ManualUpdate((TTarget)context.Target, context.IsSelectionChanged);
+            ManualUpdate((TTarget)context.Target, context.IsSelectionChanged, context.Feedback);
         }
 
-        protected abstract void ManualUpdate(TTarget target, bool isSelectionChanged);
+        protected abstract void ManualUpdate(TTarget target, bool isSelectionChanged, PlacementFeedback feedback);
     }
 }

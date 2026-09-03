@@ -33,8 +33,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
             if (Directory.Exists(_worldDataDirectory.ProvisioningTempDirectory)) Directory.Delete(_worldDataDirectory.ProvisioningTempDirectory, true);
         }
 
-        // 指紋不一致でも配置が保たれているなら見た目を焼き直せば済む。ワールドごと作り直させない
-        // A fingerprint mismatch over unchanged placements only needs the visuals rebaked, never recreating the whole world
+        // 指紋不一致でも配置が保たれているなら指紋を進めるだけで済む。ワールドごと作り直させない
+        // A fingerprint mismatch over unchanged placements only needs the fingerprint advanced, never recreating the whole world
         [Test]
         public void 指紋が不一致でも配置が同じならワールドを保ち指紋を現在値へ進める()
         {
@@ -51,11 +51,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
 
             var repairedWorldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(_worldDataDirectory.WorldMetaFilePath));
             Assert.AreEqual(currentFingerprint, repairedWorldMeta.GenerationMasterFingerprint);
-            Assert.IsFalse(Directory.Exists(sharedVisualDirectory), "見た目キャッシュは捨てて焼き直させる");
-
-            // 指紋を進める書き戻しがworldIdの素材(seed/createdAt)を動かすと、同一ワールドのキャッシュが丸ごと迷子になる
-            // Should the fingerprint write-back move the worldId's inputs (seed/createdAt), the very same world's cache would be orphaned wholesale
+            // worldIdは指紋由来なので、指紋を現在値へ戻せば元のIDへ戻り、現在の内容に対して有効な見た目キャッシュはそのまま残る
+            // The worldId derives from the fingerprint, so restoring it returns the original id and the visual cache valid for the current content stays
             Assert.AreEqual(terrainMeta.WorldId, TerrainTransferMetaReader.Read(_worldDataDirectory).WorldId);
+            Assert.IsTrue(Directory.Exists(sharedVisualDirectory), "現在の内容IDの見た目キャッシュは有効なので残る");
 
             DeleteSharedWorldCache(terrainMeta.WorldId);
         }

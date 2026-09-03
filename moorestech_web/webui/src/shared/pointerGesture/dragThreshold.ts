@@ -13,8 +13,8 @@ export function exceededThreshold(dx: number, dy: number): boolean {
 
 // 掴んだ位置を基準に、ポインタを下へ動かすと内容も下へ流れる自然なパン量
 // Natural pan: relative to the grabbed point, moving the pointer down slides the content down
-export function nextScrollTop(startScrollTop: number, startY: number, currentY: number): number {
-  return startScrollTop - (currentY - startY);
+export function nextScrollTop(startScrollTop: number, movedY: number): number {
+  return startScrollTop - movedY;
 }
 
 // 対象が要素なら返す。closestを持つかで判定しinstanceofのグローバル依存を避ける

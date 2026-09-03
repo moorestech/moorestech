@@ -1,4 +1,5 @@
 using System.Threading;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.Control;
@@ -77,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             _visualizer ??= new BlueprintAreaVisualizer();
         }
 
-        protected override void ManualUpdate(BlueprintCopyPlacementTarget target, bool isSelectionChanged)
+        protected override void ManualUpdate(BlueprintCopyPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             // 名前入力中はドラッグを停止
             // Freeze drag interaction while the name dialog is open
@@ -86,7 +87,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             HandleDragStart();
             UpdateDrag();
             HandleRelease();
-            HandleCancel();
 
             #region Internal
 
@@ -131,14 +131,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
                 _nameInputView.Open();
             }
 
-            void HandleCancel()
-            {
-                // 現状はPlaceBlockStateがESCを先に消費するため未到達（他状態から駆動された場合の保険として残置）
-                // Currently unreachable because PlaceBlockState consumes ESC first; kept as insurance when driven from other states
-                if (!InputManager.UI.CloseUI.GetKeyDown) return;
-                ResetSelection();
-            }
-
             float ReadScrollDelta()
             {
                 if (UiPointerHitTest.IsPointerOverAnyUi()) return 0f;
@@ -156,6 +148,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             ResetSelection();
             _nameInputView.Close();
             _isAwaitingName = false;
+        }
+
+        // 右短押しでドラッグ中の範囲選択を解除
+        // A right short press cancels an in-progress box drag
+        public override bool TryCancelInProgressOperation()
+        {
+            if (!_isDragging) return false;
+
+            ResetSelection();
+            return true;
         }
 
         private (Vector3Int min, Vector3Int max) CalcBox()

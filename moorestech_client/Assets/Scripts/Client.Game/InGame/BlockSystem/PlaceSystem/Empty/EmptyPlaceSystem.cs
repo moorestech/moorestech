@@ -7,5 +7,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Empty
         public void Enable() { }
         public void ManualUpdate(PlaceSystemUpdateContext context) { }
         public void Disable() { }
+        public bool TryCancelInProgressOperation() => false;
     }
 }

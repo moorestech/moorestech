@@ -5,6 +5,6 @@ export const DictionaryIndependentText = {
   uiErrorOccurred: "A UI error occurred / UIエラーが発生しました",
   renderFailed: "There was a problem rendering the screen. Please reload. / 画面の描画中に問題が発生しました。再読み込みしてください。",
   reload: "Reload / 再読み込み",
-  languageListLoadFailed: "Failed to load the language list. / 言語一覧の読み込みに失敗しました。",
-  retry: "Retry / 再試行",
+  languageListLoading: "Loading… / 読み込み中…",
+  languageSelectFailed: "Could not start. Please press again. / 開始できませんでした。もう一度押してください。",
 } as const;

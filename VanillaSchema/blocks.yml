@@ -55,6 +55,12 @@ defineInterface:
     type: integer
   - key: mineSettings
     ref: mineSettings
+- interfaceName: IPumpParam
+  properties:
+  - key: generateFluid
+    ref: generateFluids
+  - key: innerTankCapacity
+    type: number
 - interfaceName: IInventoryConnectors
   properties:
   - key: inventoryConnectors
@@ -867,6 +873,7 @@ properties:
       - when: GearPump
         type: object
         implementationInterface:
+        - IPumpParam
         - IGearConnectors
         properties:
         - key: generateFluid
@@ -883,6 +890,7 @@ properties:
       - when: ElectricPump
         type: object
         implementationInterface:
+        - IPumpParam
         - IElectricWireConnectParam
         properties:
         - key: generateFluid

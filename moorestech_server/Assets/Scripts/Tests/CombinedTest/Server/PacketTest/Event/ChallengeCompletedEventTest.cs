@@ -90,12 +90,16 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             
             // イベントを受け取り、テストする
             // Receive and test the event
+            // 初期装備の装備チャレンジも同じtickで完了するため、対象GUIDが含まれるかで検証する
+            // The initial-equipment challenge completes on the same tick, so assert the target GUID is among them
             var events = sink.TakeAll();
-            var challengeCompleted = events.First(e => e.Tag == CompletedChallengeEventPacket.EventTag);
-            var completedChallenge = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(challengeCompleted.Payload);
+            var completedChallengeGuids = events
+                .Where(e => e.Tag == CompletedChallengeEventPacket.EventTag)
+                .Select(e => MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(e.Payload).CompletedChallengeGuid)
+                .ToList();
             
             var challengeId = new Guid("00000000-0000-0000-4567-000000000002");
-            Assert.AreEqual(challengeId, completedChallenge.CompletedChallengeGuid);
+            CollectionAssert.Contains(completedChallengeGuids, challengeId);
         }
         
         [Test]

@@ -1,19 +1,22 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import type { PointerEvent, ReactNode } from "react";
-import { readTutorialAnchorClipInsetPx } from "@/shared/tutorialAnchor";
+import type { ReactNode } from "react";
 import { computeTreeCanvasBounds, lineBetween, toTreeCanvasPoint } from "./treeGeometry";
 import type { TreePoint } from "./treeGeometry";
-import { centerViewportOn, loadStoredViewport, saveStoredViewport, usePanInertia, zoomViewportAt } from "./viewport";
+import { NODE_ID_ATTRIBUTE, useTreePanGesture } from "./useTreePanGesture";
+import { centerViewportOn, loadStoredViewport, saveStoredViewport, toContentBox, toCssScale, usePanInertia, zoomViewportAt } from "./viewport";
 import styles from "./TreeView.module.css";
 
-type PanPointer = { pointerId: number; clientX: number; clientY: number };
 type Props<T> = {
   nodes: T[];
   getId: (node: T) => string;
   getPosition: (node: T) => TreePoint;
   getPrevIds: (node: T) => string[];
   renderNode: (node: T, point: TreePoint) => ReactNode;
-  nodeTargetSelector: string;
+  // タップ判定時に通知(省略で選択なし)
+  // Reports a tap-classified press (omit for trees with no selection)
+  // ビューポートが押下時にポインタを捕捉するため、ノード内のnative clickは届かない。押下由来の操作はここへ配線する
+  // The viewport captures the pointer at press time, so a native click inside a node never fires; wire press-driven actions here
+  onNodeTap?: (node: T) => void;
   testIdPrefix: string;
   // ビューポート保持キー(省略で無効)
   // マウント中は不変が契約。切り替える場合は key={viewportKey} で再マウントする
@@ -25,24 +28,10 @@ type Props<T> = {
   initialFocus?: TreePoint | null;
 };
 
-const toCssScale = (element: HTMLDivElement) => element.offsetWidth / element.getBoundingClientRect().width;
-// キャンバス原点はviewportの内容box。クリップ逃げのpaddingぶん枠線boxからずれるため座標計算はここを基準にする
-// The canvas sits at the viewport's content box, offset from the border box by the clip clearance, so all coordinate math uses it
-const toContentBox = (element: HTMLDivElement) => {
-  const insetPx = readTutorialAnchorClipInsetPx();
-  return {
-    left: insetPx, top: insetPx,
-    width: element.offsetWidth - insetPx * 2,
-    height: element.offsetHeight - insetPx * 2,
-  };
-};
-
 export default function TreeView<T>(props: Props<T>) {
-  const { nodes, getId, getPosition, getPrevIds, renderNode, nodeTargetSelector, testIdPrefix, viewportKey, initialFocus } = props;
+  const { nodes, getId, getPosition, getPrevIds, renderNode, onNodeTap, testIdPrefix, viewportKey, initialFocus } = props;
   const [storedAtMount] = useState(() => (viewportKey ? loadStoredViewport(viewportKey) : null));
   const [viewport, setViewport] = useState(storedAtMount ?? { x: 0, y: 0, scale: 1 });
-  const [isPanning, setIsPanning] = useState(false);
-  const panPointer = useRef<PanPointer | null>(null);
   const viewportElement = useRef<HTMLDivElement | null>(null);
   // パン移動は両経路ともこの1本を通る
   // Drag and inertia both pan through this
@@ -55,20 +44,27 @@ export default function TreeView<T>(props: Props<T>) {
     [nodes, getId, getPosition],
   );
   const byId = useMemo(() => new Map(nodes.map((node) => [getId(node), node])), [nodes, getId]);
-  // ノードと接続線は意味のある入力が変わるまで同じReact要素を再利用する
-  // Reuse node and connection React elements until a semantic input changes
-  const renderedScene = useMemo(() => (
-    <>
-      {nodes.flatMap((node) => getPrevIds(node).map((prevId) => {
-        const prev = byId.get(prevId);
-        if (!prev) return null;
-        const line = lineBetween(toTreeCanvasPoint(getPosition(node), bounds), toTreeCanvasPoint(getPosition(prev), bounds));
-        return <div key={`${getId(node)}-${prevId}`} className={styles.line}
-          style={{ left: line.x, top: line.y, width: line.length, transform: `rotate(${line.angleDeg}deg)` }} />;
-      }))}
-      {nodes.map((node) => <div key={getId(node)}>{renderNode(node, toTreeCanvasPoint(getPosition(node), bounds))}</div>)}
-    </>
-  ), [bounds, byId, getId, getPosition, getPrevIds, nodes, renderNode]);
+  // 掴み操作はフックへ委譲、描画に徹する
+  // The hook owns the grab gesture; this component sticks to rendering
+  const gesture = useTreePanGesture({ panBy, inertia, byId, onNodeTap });
+  // 接続線は描画関数に依らない。選択のたび作り直さないようノードと別のキャッシュにする
+  // Lines do not depend on the node renderer, so they cache apart from nodes and survive every selection toggle
+  const renderedLines = useMemo(() => (
+    nodes.flatMap((node) => getPrevIds(node).map((prevId) => {
+      const prev = byId.get(prevId);
+      if (!prev) return null;
+      const line = lineBetween(toTreeCanvasPoint(getPosition(node), bounds), toTreeCanvasPoint(getPosition(prev), bounds));
+      return <div key={`${getId(node)}-${prevId}`} className={styles.line}
+        style={{ left: line.x, top: line.y, width: line.length, transform: `rotate(${line.angleDeg}deg)` }} />;
+    }))
+  ), [bounds, byId, getId, getPosition, getPrevIds, nodes]);
+  // ノードは意味のある入力が変わるまで同じReact要素を再利用する
+  // Reuse node React elements until a semantic input changes
+  const renderedNodes = useMemo(() => (
+    nodes.map((node) => <div key={getId(node)} {...{ [NODE_ID_ATTRIBUTE]: getId(node) }}>
+      {renderNode(node, toTreeCanvasPoint(getPosition(node), bounds))}
+    </div>)
+  ), [bounds, getId, getPosition, nodes, renderNode]);
 
   // 保存が無い初回のみ、注目点が定まった最初の機会に中央へ据える（以後の状態変化で視界を飛ばさない）
   // Center once when a focus point first exists without a stored viewport (later state changes never jump the view)
@@ -113,48 +109,13 @@ export default function TreeView<T>(props: Props<T>) {
     return () => element.removeEventListener("wheel", handleWheel);
   }, [inertia]);
 
-  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    // ノード押下でも滑走停止(パン可否と独立)
-    // A node press also stops the glide
-    inertia.cancel();
-    const target = event.target;
-    if (!event.isPrimary || event.button !== 0 || (target instanceof Element && target.closest(nodeTargetSelector))) return;
-    event.currentTarget.setPointerCapture(event.pointerId);
-    panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
-    setIsPanning(true);
-  };
-  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const pan = panPointer.current;
-    if (!pan || pan.pointerId !== event.pointerId) return;
-    const scale = toCssScale(event.currentTarget);
-    const dx = (event.clientX - pan.clientX) * scale;
-    const dy = (event.clientY - pan.clientY) * scale;
-    inertia.trackMove(dx, dy);
-    panBy(dx, dy);
-    panPointer.current = { pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY };
-  };
-  const endPan = (event: PointerEvent<HTMLDivElement>) => {
-    if (panPointer.current?.pointerId !== event.pointerId) return false;
-    panPointer.current = null;
-    setIsPanning(false);
-    return true;
-  };
-  // pointerupのみ滑走、他は中断
-  // Only pointerup flings; the rest abort
-  const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
-    if (endPan(event)) inertia.release();
-  };
-  const handlePointerAbort = (event: PointerEvent<HTMLDivElement>) => {
-    if (endPan(event)) inertia.cancel();
-  };
-
   return (
-    <div ref={viewportElement} className={`${styles.viewport} ${isPanning ? styles.viewportPanning : ""}`}
-      data-testid={`${testIdPrefix}-viewport`} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp} onPointerCancel={handlePointerAbort} onLostPointerCapture={handlePointerAbort}>
+    <div ref={viewportElement} className={`${styles.viewport} ${gesture.isPanning ? styles.viewportPanning : ""}`}
+      data-testid={`${testIdPrefix}-viewport`} {...gesture.viewportHandlers}>
       <div className={styles.canvas} data-testid={`${testIdPrefix}-canvas`}
         style={{ width: bounds.width, height: bounds.height, transform: `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})` }}>
-        {renderedScene}
+        {renderedLines}
+        {renderedNodes}
       </div>
     </div>
   );

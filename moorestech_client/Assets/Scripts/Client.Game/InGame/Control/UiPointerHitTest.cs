@@ -12,7 +12,11 @@ namespace Client.Game.InGame.Control
             // A locked cursor has no OS pointer and therefore cannot be over UI
             if (Cursor.lockState == CursorLockMode.Locked) return false;
 
-            return EventSystem.current.IsPointerOverGameObject() || WebUiInputExclusivity.IsPointerOverWebUi;
+            // EventSystem未生成のフレームでもUI判定は要求される。uGUI側は「乗っていない」として扱う
+            // The over-UI check is asked for even on frames with no EventSystem; treat the uGUI side as not hovered
+            var isOverUguiPanel = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+
+            return isOverUguiPanel || WebUiInputExclusivity.IsPointerOverWebUi;
         }
     }
 }

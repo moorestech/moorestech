@@ -1,8 +1,6 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
-using Core.Master;
 using NUnit.Framework;
-using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.GearChainPoleConnect
@@ -13,15 +11,13 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
     /// </summary>
     public class GearChainPolePlaceExtendModeTest
     {
-        private static readonly System.Guid TestConnectToolGuid = System.Guid.NewGuid();
-
         [Test]
         // 既存ポールクリックで起点選択され進行中応答が無効化される
         // Clicking an existing pole selects the source and invalidates pending requests
         public void HitPoleClickSelectsSourceTest()
         {
             var hitPole = new FakeGearChainPole(new Vector3Int(1, 0, 1));
-            var input = CreateGhostReadyInput(sourcePole: null);
+            var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
             input.HitPole = hitPole;
             input.Clicked = true;
 
@@ -39,7 +35,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         public void HitPoleWithoutClickKeepsSourceTest()
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
-            var input = CreateGhostReadyInput(sourcePole);
+            var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
             input.HitPole = new FakeGearChainPole(new Vector3Int(1, 0, 1));
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
@@ -54,7 +50,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // Clicking with no source sends an isolated placement
         public void IsolatedPlaceSendTest()
         {
-            var input = CreateGhostReadyInput(sourcePole: null);
+            var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
             input.Clicked = true;
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
@@ -73,7 +69,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // No send happens on click while awaiting a response
         public void AwaitingResponseBlocksSendTest()
         {
-            var input = CreateGhostReadyInput(sourcePole: null);
+            var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
             input.Clicked = true;
             input.IsAwaitingResponse = true;
 
@@ -89,7 +85,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // Ground collision shows a red ghost and blocks sending
         public void GroundBlockedShowsUnplaceableGhostTest()
         {
-            var input = CreateGhostReadyInput(sourcePole: null);
+            var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
             input.Clicked = true;
             input.GhostGroundClear = false;
 
@@ -106,7 +102,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         public void ExtendPlaceSendTest()
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
-            var input = CreateGhostReadyInput(sourcePole);
+            var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
             input.Clicked = true;
             input.MaxConnectionCount = 1;
 
@@ -115,7 +111,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             Assert.IsTrue(result.ExtendSend.HasValue);
             var send = result.ExtendSend.Value;
             Assert.AreEqual(sourcePole.GetBlockPosition(), send.FromPos.Value);
-            Assert.AreEqual(TestConnectToolGuid, send.ConnectToolGuid);
+            Assert.AreEqual(GearChainPoleDecideInputs.TestConnectToolGuid, send.ConnectToolGuid);
             Assert.IsFalse(send.CanContinueExtension);
             Assert.IsNull(result.NextSourcePole);
         }
@@ -126,7 +122,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         public void ExtendUnplaceableShowsRedPreviewTest()
         {
             var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
-            var input = CreateGhostReadyInput(sourcePole);
+            var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole);
             input.Clicked = true;
             input.ExtendPreview = GearChainPoleExtendPreviewData.Invalid;
 
@@ -138,32 +134,6 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             Assert.IsFalse(result.Preview.GhostPlaceable);
             Assert.IsTrue(result.Preview.LineVisible);
             Assert.IsFalse(result.Preview.LinePlaceable);
-        }
-
-        private static GearChainPolePlaceExtendInput CreateGhostReadyInput(FakeGearChainPole sourcePole)
-        {
-            // ゴースト有効・地面クリア・設置可評価済みの標準入力を作る
-            // Build a standard input with a valid ghost, clear ground and placeable judgement
-            var placePos = new Vector3Int(3, 0, 3);
-            var input = new GearChainPolePlaceExtendInput
-            {
-                SourcePole = sourcePole,
-                HasGhost = true,
-                GhostPlaceInfo = new PlaceInfo { Position = placePos, Placeable = true },
-                GhostGroundClear = true,
-                GhostCenter = placePos + new Vector3(0.5f, 0.5f, 0.5f),
-                PoleBlockId = new BlockId(5),
-                ConnectToolGuid = TestConnectToolGuid,
-                MaxConnectionCount = 4,
-            };
-            if (sourcePole != null)
-            {
-                input.SourcePolePos = sourcePole.GetBlockPosition();
-                input.SourcePoleCenter = input.SourcePolePos + new Vector3(0.5f, 0.5f, 0.5f);
-                input.ExtendPreview = new GearChainPoleExtendPreviewData(input.SourcePoleCenter, input.GhostCenter, true);
-            }
-
-            return input;
         }
     }
 }

@@ -74,36 +74,31 @@ describe("ResearchDetailPane", () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it("所持数不足の消費アイテムはinsufficient=trueかつdata-lack付きの数値を出す", () => {
+  it("所持数不足の消費アイテムはinsufficient=trueで所持/必要をスロットへ渡す", () => {
     const renderer = create(createElement(ResearchDetailPane, {
       node, owned: new Map(), onClose: () => {},
     }));
     const slot = renderer.root.findByType("mock-item-slot" as never);
     expect(slot.props.insufficient).toBe(true);
-    expect(slot.props.tooltip).toBeTruthy();
-    const rendered = safeStringify(renderer.toJSON());
-    expect(rendered).toContain('"data-lack":true');
+    expect(slot.props.shortage).toEqual({ ownedCount: 0, requiredCount: 2, tooltipKey: "ui.research.consumeItemTooltip" });
   });
 
-  it("所持数が足りていればinsufficient=falseでdata-lackを出さない", () => {
+  it("所持数が足りていればinsufficient=falseで所持/必要をスロットへ渡す", () => {
     const renderer = create(createElement(ResearchDetailPane, {
       node, owned: new Map([[1, 2]]), onClose: () => {},
     }));
     const slot = renderer.root.findByType("mock-item-slot" as never);
     expect(slot.props.insufficient).toBe(false);
-    const rendered = safeStringify(renderer.toJSON());
-    expect(rendered).not.toContain('"data-lack"');
+    expect(slot.props.shortage).toEqual({ ownedCount: 2, requiredCount: 2, tooltipKey: "ui.research.consumeItemTooltip" });
   });
 
-  it("所持数未受信中(owned=null)は不足表示も数値もツールチップも出さない", () => {
+  it("所持数未受信中(owned=null)は不足表示も所持/必要も出さない", () => {
     const renderer = create(createElement(ResearchDetailPane, {
       node, owned: null, onClose: () => {},
     }));
     const slot = renderer.root.findByType("mock-item-slot" as never);
     expect(slot.props.insufficient).toBe(false);
-    expect(slot.props.tooltip).toBeUndefined();
-    const rendered = safeStringify(renderer.toJSON());
-    expect(rendered).not.toContain('"data-lack"');
+    expect(slot.props.shortage).toBeUndefined();
   });
 
   it("完了ノードは所持不足でも消費アイテムを不足強調しない", () => {

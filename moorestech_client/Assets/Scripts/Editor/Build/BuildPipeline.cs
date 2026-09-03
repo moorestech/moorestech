@@ -14,81 +14,7 @@ namespace Client.Editor.Build
     /// </summary>
     public class BuildPipeline
     {
-        private const string OutputPathKey = "WindowsBuildOutputPath";
-
-        [MenuItem("moorestech/Build/WindowsBuild")]
-        public static void WindowsBuild()
-        {
-            BuildInteractive(BuildTarget.StandaloneWindows64);
-        }
-
-        [MenuItem("moorestech/Build/MacOsBuild")]
-        public static void MacOsBuild()
-        {
-            BuildInteractive(BuildTarget.StandaloneOSX);
-        }
-
-        [MenuItem("moorestech/Build/LinuxBuild")]
-        public static void LinuxBuild()
-        {
-            // LinuxはCEFネイティブランタイムが無く同梱検証で必ず失敗するため、着手前に明示して同意を取る
-            // Linux has no CEF native runtime and always fails bundling, so state it and confirm before starting
-            var continuesAnyway = EditorUtility.DisplayDialog(
-                "Linux Build",
-                "LinuxにはCEFネイティブランタイムが提供されていないため、同梱検証で必ず失敗します。それでも実行しますか？",
-                "実行する",
-                "やめる");
-            if (!continuesAnyway) return;
-
-            BuildInteractive(BuildTarget.StandaloneLinux64);
-        }
-
-        private static void BuildInteractive(BuildTarget buildTarget)
-        {
-            // Development Buildかどうかを選択する
-            // Select whether to use Development Build
-            var isDevelopmentBuild = EditorUtility.DisplayDialog(
-                "Build Configuration",
-                "Development Buildで実行しますか？",
-                "Development Build",
-                "Release Build");
-
-            // 出力先を選択する（前回パスを記憶）
-            // Choose the output directory, remembering the previous path
-            var playerPrefsKey = OutputPathKey + buildTarget;
-            var outputDirectory = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey, ""), "");
-            if (outputDirectory == string.Empty) return;
-            PlayerPrefs.SetString(playerPrefsKey, outputDirectory);
-            PlayerPrefs.Save();
-
-            // ローカル配布用: 同梱失敗は即失敗・ゲームデータ必須
-            // Local distribution: bundling problems fail the build and game data is mandatory
-            var outcome = Execute(new PlayerBuildRequest
-            {
-                Target = buildTarget,
-                OutputDirectory = outputDirectory,
-                IsDevelopmentBuild = isDevelopmentBuild,
-                IsStrictBundling = true,
-                BundleLocalGameData = true,
-            });
-
-            // 失敗した成果物をFinderで開いて成功に見せない
-            // Never reveal a failed artifact as if the build had succeeded
-            switch (outcome)
-            {
-                case PlayerBuildOutcome.Succeeded:
-                    EditorUtility.RevealInFinder(outputDirectory);
-                    break;
-                case PlayerBuildOutcome.AddressablesBuildFailed:
-                    EditorUtility.DisplayDialog("Build Failed", "Addressablesのビルドに失敗しました。Consoleのエラーを確認してください。", "OK");
-                    break;
-                case PlayerBuildOutcome.PlayerBuildFailed:
-                    EditorUtility.DisplayDialog("Build Failed", "Playerのビルドに失敗しました。Consoleのエラーを確認してください。", "OK");
-                    break;
-            }
-        }
-
-        private static PlayerBuildOutcome Execute(PlayerBuildRequest request)
+        internal static PlayerBuildOutcome Execute(PlayerBuildRequest request)
         {
             Debug.Log("Build Start Time : " + DateTime.Now);
             var buildStartTime = DateTime.Now;
@@ -104,6 +30,17 @@ namespace Client.Editor.Build
                 scenes = EditorBuildSettings.scenes.Select(s => s.path).ToArray(),
                 options = buildOptionsFlags,
             };
+
+            // Addressablesはアクティブターゲット向けに焼かれるため、先にターゲットを合わせる
+            // Addressables bakes for the active target, so switch the target before building content
+            // 不一致のまま焼くと別APIのシェーダしか入らず、実機が全マゼンタになる
+            // A mismatch bakes shaders for the wrong graphics API and the player renders everything magenta
+            if (EditorUserBuildSettings.activeBuildTarget != request.Target &&
+                !EditorUserBuildSettings.SwitchActiveBuildTarget(UnityEditor.BuildPipeline.GetBuildTargetGroup(request.Target), request.Target))
+            {
+                Debug.LogError("Build target switch failed: " + request.Target);
+                return PlayerBuildOutcome.PlayerBuildFailed;
+            }
 
             // Addressablesコンテンツをクリーンビルドする
             // Clean build Addressables content before building the player
@@ -124,7 +61,16 @@ namespace Client.Editor.Build
             if (report.summary.result == BuildResult.Succeeded)
             {
                 CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
-                if (request.BundleLocalGameData) GameDataBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
+                if (request.BundleLocalGameData)
+                {
+                    GameDataBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
+                    WorldSnapshotBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
+                }
+
+                // 展示会の起動ループはmacの.commandなので、mac向けのローカル配布成果物にだけ入れる
+                // The exhibition loop is a mac .command, so it ships only with mac local-distribution artifacts
+                if (request.BundleLocalGameData && request.Target == BuildTarget.StandaloneOSX)
+                    EventLoopScriptBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
             }
 
             Debug.Log("Build Output Path :" + report.summary.outputPath);

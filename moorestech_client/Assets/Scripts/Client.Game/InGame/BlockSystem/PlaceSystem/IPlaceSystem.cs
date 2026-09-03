@@ -1,3 +1,4 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem
@@ -13,6 +14,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public void ManualUpdate(PlaceSystemUpdateContext context);
 
         public void Disable();
+
+        // 可視な進行中操作（起点・選択など）があればそれだけ解除してtrue。飛行中のサーバー要求は数えない
+        // Cancels only a visible in-progress operation (origin, selection, ...) and returns true; in-flight server requests do not count
+        // falseの時は解除するものが無く、副作用も起こさない。呼出元がモードごと閉じる
+        // On false nothing was cancelled and no side effect happened, so the caller closes the mode instead
+        public bool TryCancelInProgressOperation();
     }
 
     public readonly struct PlaceSystemUpdateContext
@@ -22,10 +29,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         public readonly IPlacementTarget Target;
         public readonly bool IsSelectionChanged;
 
-        public PlaceSystemUpdateContext(IPlacementTarget target, bool isSelectionChanged)
+        // このフレームの不可理由/案内の書き込み先
+        // Sink for this frame's block reasons/notices
+        public readonly PlacementFeedback Feedback;
+
+        public PlaceSystemUpdateContext(IPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             Target = target;
             IsSelectionChanged = isSelectionChanged;
+            Feedback = feedback;
         }
     }
 }

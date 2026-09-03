@@ -34,7 +34,7 @@ export default function FluidSlot({ fluid }: { fluid: FluidSlotData }) {
         {/* フィルの上に実アイコンを重ね、量バッジは最前面に残す */}
         {/* Layer the real icon over the fill, keeping the amount badge frontmost */}
         <FluidIcon fluidGuid={fluid.fluidGuid} className={styles.icon} />
-        <span className={styles.amount}>{formatAmount(fluid.amount)}</span>
+        <span className={`iconTextOutlineDark ${styles.amount}`}>{formatAmount(fluid.amount)}</span>
       </div>
     </HoverTooltip>
   );

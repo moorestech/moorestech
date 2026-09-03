@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Core.Item;
 using Core.Master;
@@ -53,7 +53,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var notifications = TakeItemEarnedNotifications(sink);
             Assert.AreEqual(1, notifications.Count);
 
-            var earnItem = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid).EarnItems[0];
+            var earnItem = GetMinableParam(PickUpMapObjectGuid).EarnItems.items[0];
             var earnItemId = MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid);
             Assert.AreEqual(earnItemId, notifications[0].ItemId);
             Assert.AreEqual(CountMainInventoryItem(serviceProvider, earnItemId), notifications[0].Count);
@@ -66,7 +66,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var mapObject = ServerContext.MapObjectDatastore.MapObjects.First(target => target.MapObjectGuid == PickUpMapObjectGuid);
-            var earnItem = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid).EarnItems[0];
+            var earnItem = GetMinableParam(PickUpMapObjectGuid).EarnItems.items[0];
             var earnItemId = MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid);
 
             // MaxCount1周分+1の空きは通る
@@ -92,7 +92,7 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
             var mapObject = ServerContext.MapObjectDatastore.MapObjects.First(target => target.MapObjectGuid == PickUpMapObjectGuid);
-            var earnItem = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid).EarnItems[0];
+            var earnItem = GetMinableParam(PickUpMapObjectGuid).EarnItems.items[0];
             var earnItemId = MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid);
 
             FillInventoryLeavingFreeSpace(playerInventory, earnItemId, earnItem.MaxCount + 1);
@@ -200,6 +200,15 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
                 Select(captured => MessagePackSerializer.Deserialize<NotificationMessagePack>(captured.Payload)).
                 Where(notification => notification.Category == category).
                 ToList();
+        }
+
+        /// <summary>
+        ///     採掘設定は判別子の内側にあるため、採掘できる個体としてほどいてから読む
+        ///     The mining settings live inside the discriminator, so they are unwrapped as a minable object first
+        /// </summary>
+        private static IMinableMapObjectParam GetMinableParam(Guid mapObjectGuid)
+        {
+            return (IMinableMapObjectParam)MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid).MiningParam;
         }
 
         private int CountMainInventoryItem(ServiceProvider serviceProvider, ItemId itemId)

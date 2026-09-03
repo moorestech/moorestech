@@ -1,4 +1,5 @@
 ﻿using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Ground;
 using StarterAssets;
 using UnityEngine;
 
@@ -85,12 +86,12 @@ namespace Client.Game.InGame.Player
         {
             // 真下に地表があれば同じXZへ戻す
             // Return to the same XZ when ground remains below
-            var fallenGround = SlopeBlockPlaceSystem.GetGroundPoint(fallenPosition.x, fallenPosition.z);
+            var fallenGround = GroundHeightProbe.GetGroundPoint(fallenPosition.x, fallenPosition.z);
             if (fallenGround.HasValue) return new Vector3(fallenPosition.x, fallenGround.Value.y, fallenPosition.z);
 
             // LayoutのSpawn Yではなく、そのXZにある実地表へ復帰する
             // Recover on the actual ground at the Spawn XZ instead of trusting the Layout Spawn Y
-            var spawnGround = SlopeBlockPlaceSystem.GetGroundPoint(spawnPosition.x, spawnPosition.z);
+            var spawnGround = GroundHeightProbe.GetGroundPoint(spawnPosition.x, spawnPosition.z);
             return spawnGround.HasValue
                 ? new Vector3(spawnPosition.x, spawnGround.Value.y, spawnPosition.z)
                 : spawnPosition;

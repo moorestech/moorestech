@@ -5,6 +5,8 @@ namespace Client.Game.InGame.Tutorial.UIHighlight
 {
     public class UiDragGuideTutorialManager : MonoBehaviour, ITutorialViewManager
     {
+        public string TutorialType => TutorialsElement.TutorialTypeConst.uiDragGuide;
+
         public ITutorialView ApplyTutorial(TutorialsElement tutorial)
         {
             var param = (UiDragGuideTutorialParam)tutorial.TutorialParam;

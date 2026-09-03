@@ -4,8 +4,10 @@ using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
+using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
@@ -26,6 +28,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly BuildUndoService _buildUndoService;
         private readonly IMapVeinRangeView _mapVeinRangeView;
         private readonly HotbarTapInputService _hotbarInputService;
+        private readonly RightShortPressInputService _rightShortPressInputService;
         private readonly ReactiveProperty<int> _placementHeight = new(0);
 
         public IObservable<int> OnPlacementHeightChanged => _placementHeight;
@@ -39,7 +42,10 @@ namespace Client.Game.InGame.UI.UIState.State
             UiStateCameraPolicyService cameraPolicyService,
             BuildUndoService buildUndoService,
             IMapVeinRangeView mapVeinRangeView,
-            HotbarTapInputService hotbarInputService)
+            MapVeinAabbRegistry veinAabbRegistry,
+            VeinRestrictedPlacementState veinRestrictedPlacementState,
+            HotbarTapInputService hotbarInputService,
+            RightShortPressInputService rightShortPressInputService)
         {
             _skitManager = skitManager;
             _blockGameObjectDataStore = blockGameObjectDataStore;
@@ -49,6 +55,12 @@ namespace Client.Game.InGame.UI.UIState.State
             _buildUndoService = buildUndoService;
             _mapVeinRangeView = mapVeinRangeView;
             _hotbarInputService = hotbarInputService;
+            _rightShortPressInputService = rightShortPressInputService;
+
+            // 設置対象か制限が変わった時だけ表示状態をプッシュする。毎フレームの再導出はしない
+            // Push the display state only when the target or the restriction changes; never re-derive per frame
+            _placeSystemStateController.OnTargetChanged.Subscribe(target => PlacementVeinViewResolver.PushToView(mapVeinRangeView, veinAabbRegistry, veinRestrictedPlacementState, target));
+            veinRestrictedPlacementState.OnChanged.Subscribe(_ => PlacementVeinViewResolver.PushToView(mapVeinRangeView, veinAabbRegistry, veinRestrictedPlacementState, _placeSystemStateController.CurrentTarget));
         }
 
         public void OnEnter(UITransitContext context)
@@ -56,15 +68,12 @@ namespace Client.Game.InGame.UI.UIState.State
             // 他UIState滞在中は数字キーがpollされないため、復帰直後の古い押下状態を破棄する
             // Digit keys aren't polled while another UIState is active, so discard any stale press state on return
             _hotbarInputService.ResetKeyState();
+            _rightShortPressInputService.ResetPressState();
 
             _placementHeight.Value = 0;
             // 遷移payloadから設置対象と由来を1組で受け取り所有者へ渡す（無ければEmptyに落ちる）
             // Take the placement target and its origin as one pair from the transition payload and hand them to the owner (falls back to Empty when absent)
             if (context.TryGetContext<PlacementSelection>(out var selection)) _placeSystemStateController.SetTarget(selection.Target, selection.Origin);
-
-            // 対象未選択でも滞在中は範囲表示を出す。遷移元(BuildMenu/GameScreen/DeleteObject)が必ずtargetを載せる
-            // Show the range view for the whole stay even without a target; every entry (BuildMenu/GameScreen/DeleteObject) carries one
-            _mapVeinRangeView.Show(true);
 
             // 視点別カーソル/回転ポリシーを適用
             // Apply the per-view-mode cursor/rotation policy
@@ -76,7 +85,6 @@ namespace Client.Game.InGame.UI.UIState.State
                 blockGameObject.EnablePreviewOnlyObjects(true, true);
             }
             _blockPlacedDisposable.Add(_blockGameObjectDataStore.OnBlockPlaced.Subscribe(OnPlaceBlock));
-
 
             #region Internal
 
@@ -95,6 +103,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
+            // パネル外の右短押し状態を毎フレーム取得（ManualUpdateが走る前に）
+            // Evaluate right short press state every frame before early returns (ManualUpdate runs internally)
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+
             if (_skitManager.IsPlayingSkit) return new UITransitContext(UIStateEnum.Story);
 
             // TabはOpenInventoryと同キーだが、配置モード中はビルドメニュー再表示を優先する
@@ -102,6 +114,13 @@ namespace Client.Game.InGame.UI.UIState.State
             if (HybridInput.GetKeyDown(KeyCode.Tab)) return new UITransitContext(UIStateEnum.BuildMenu);
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
+
+            // パネル外の右短押しはEscと同じ二段階。起点/選択があればそれだけ解除し、無ければ建築モードを抜ける
+            // A right short press outside UI mirrors Esc: cancel only an in-progress operation, otherwise leave build mode
+            if (isRightShortPressed && !_placeSystemStateController.TryCancelInProgressOperation())
+            {
+                return new UITransitContext(UIStateEnum.GameScreen);
+            }
 
             // キー/Web選択を共通3分岐へ
             // Route a digit-key or web-originated tap into the shared 3-way branch (same slot / different slot / empty slot)
@@ -130,8 +149,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
             _placeSystemStateController.ManualUpdate();
 
-            // カメラ追従の距離カリングだけを駆動する。表示のON/OFFはOnEnter/OnExitがプッシュ済み
-            // Drive only the camera-following distance culling; visibility was already pushed by OnEnter/OnExit
+            // カメラ追従の距離カリングだけを駆動する。表示種別は設置対象の購読がプッシュ済み
+            // Drive only the camera-following distance culling; the vein kind was already pushed by the target subscription
             _mapVeinRangeView.ManualUpdate();
 
             // Ctrl+Z判定はサービス内部
@@ -151,16 +170,14 @@ namespace Client.Game.InGame.UI.UIState.State
             _cameraPolicyService.ExitToNeutral();
 
             // 設置対象と由来枠はここで同時に落ちる。由来枠だけの明示リセットは持たない
+            // 対象がnullになる通知で鉱脈範囲表示も畳まれる（表示種別のプッシュ元は購読1本に絞る）
             // The placement target and its origin drop together here; no separate origin reset is needed
+            // The null-target notification also folds the vein range view (the vein kind has a single push source)
             _placeSystemStateController.Disable();
 
             // 離脱時点の押下状態を持ち越さない。復帰後の誤長押し判定を防ぐ
             // Discard the press state as of this exit so a later re-entry can't misfire a long press
             _hotbarInputService.ResetKeyState();
-
-            // 配置モード離脱で範囲表示も畳む。破棄漏れがそのまま残存ボックスになる
-            // Leaving placement mode folds the range view too; a missed destroy would linger as a stray box
-            _mapVeinRangeView.Show(false);
 
             foreach (var blockGameObject in _blockGameObjectDataStore.BlockGameObjectDictionary.Values)
             {

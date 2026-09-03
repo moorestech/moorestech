@@ -8,8 +8,18 @@ namespace Client.Common
         
         public const string PreviewPlaceBlockMaterial = "PreviewPlaceBlock";
 
+        // 半透明版はアセットとして持つ。実行時にキーワードで透過へ切り替えるとビルドでバリアントが焼かれない
+        // The translucent variant lives as an asset; flipping the keyword at runtime leaves the build without that variant
+        public const string PreviewPlaceBlockTransparentMaterial = "PreviewPlaceBlockTransparent";
+
+        // アウトライン材質（ステンシル方式）
+        // Outline material for interact targets (stencil based, drawn by the URP OutlinePass)
+        public const string InteractOutlineMaterial = "InteractOutline";
+
         private static Material _previewPlaceBlockMaterial;
+        private static Material _previewPlaceBlockTransparentMaterial;
         private static Material _placeBlockAnimationMaterial;
+        private static Material _interactOutlineMaterial;
 
         // チュートリアル用プレビューマテリアルのAddressableパス
         // Tutorial preview block material addressable path
@@ -27,12 +37,28 @@ namespace Client.Common
             return _previewPlaceBlockMaterial;
         }
 
+        public static Material GetPreviewPlaceBlockTransparentMaterial()
+        {
+            // 半透明プレビュー材質も一度だけロードして再利用する
+            // Load the translucent preview material once and reuse it
+            _previewPlaceBlockTransparentMaterial ??= Resources.Load<Material>(PreviewPlaceBlockTransparentMaterial);
+            return _previewPlaceBlockTransparentMaterial;
+        }
+
         public static Material GetPlaceBlockAnimationMaterial()
         {
             // 設置アニメーション材質も繰り返しロードしない
             // Avoid repeated resource loads for placement animation material
             _placeBlockAnimationMaterial ??= Resources.Load<Material>(PlaceBlockAnimationMaterial);
             return _placeBlockAnimationMaterial;
+        }
+
+        public static Material GetInteractOutlineMaterial()
+        {
+            // 一度だけロードし再利用する
+            // Load the interact outline material once and reuse it
+            _interactOutlineMaterial ??= Resources.Load<Material>(InteractOutlineMaterial);
+            return _interactOutlineMaterial;
         }
     }
 }

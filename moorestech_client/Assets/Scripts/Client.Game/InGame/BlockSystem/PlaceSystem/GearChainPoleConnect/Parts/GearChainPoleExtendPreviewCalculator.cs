@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
 using Game.Block.Blocks.GearChainPole;
@@ -37,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
 
             var distance = Vector3Int.Distance(fromPos, toPos);
             var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, toInfo.MaxConnectionDistance, alreadyConnected, fromInfo.IsConnectionFull || toInfo.IsConnectionFull, connectToolGuid, playerInventory, null);
-            return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(toPos), judgement.IsPlaceable);
+            return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(toPos), judgement, ResolveMaterialShortages(judgement, connectToolGuid, distance, playerInventory, null));
         }
 
         /// <summary>
@@ -52,8 +53,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
             // Treat the new pole as full only when its connection capacity is zero
             var anyConnectionFull = fromInfo.IsConnectionFull || placingPoleParam.MaxConnectionCount < 1;
             var distance = Vector3Int.Distance(fromPos, placePos);
-            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, anyConnectionFull, connectToolGuid, playerInventory, ConnectToolMaterialConsumer.ToMaterials(reservedItemCounts));
-            return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(placePos), judgement.IsPlaceable);
+            var reservedMaterials = ConnectToolMaterialConsumer.ToMaterials(reservedItemCounts);
+            var judgement = GearChainPlacementEvaluator.EvaluatePlacement(distance, fromInfo.MaxConnectionDistance, placingPoleParam.MaxConnectionDistance, false, anyConnectionFull, connectToolGuid, playerInventory, reservedMaterials);
+            return new GearChainPoleExtendPreviewData(GetPoleCenter(fromPos), GetPoleCenter(placePos), judgement, ResolveMaterialShortages(judgement, connectToolGuid, distance, playerInventory, reservedMaterials));
+        }
+
+        // 素材不足で落ちたときだけ、判定と同じ入力から不足素材を算出する（他の理由では行が不要）
+        // Only on a material-shortage failure, derive the short materials from the very inputs the judgement used
+        private static IReadOnlyList<ConstructionMaterialShortage> ResolveMaterialShortages(GearChainPlacementJudgement judgement, Guid connectToolGuid, float distance, ILocalPlayerInventory playerInventory, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
+        {
+            if (judgement.FailureReason != GearChainPlacementEvaluator.NoItemError) return Array.Empty<ConstructionMaterialShortage>();
+            return ConnectToolMaterialShortageCalculator.Calculate(connectToolGuid, distance, playerInventory, reservedMaterials);
         }
 
         /// <summary>
@@ -108,23 +118,33 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     /// </summary>
     public readonly struct GearChainPoleExtendPreviewData
     {
-        public static GearChainPoleExtendPreviewData Invalid => new(Vector3.zero, Vector3.zero, false, false);
+        public static GearChainPoleExtendPreviewData Invalid => new(Vector3.zero, Vector3.zero, false, false, string.Empty, Array.Empty<ConstructionMaterialShortage>());
 
         public readonly Vector3 StartPoint;
         public readonly Vector3 EndPoint;
         public readonly bool IsPlaceable;
         public readonly bool IsValid;
 
-        public GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, bool isPlaceable) : this(startPoint, endPoint, isPlaceable, true)
+        // 不可理由(Evaluator定数)。可なら空
+        // Failure reason (Evaluator constant); empty when placeable
+        public readonly string FailureReason;
+
+        // 不足時のみ非空、他は空
+        // Non-empty only on shortage; empty otherwise
+        public readonly IReadOnlyList<ConstructionMaterialShortage> MaterialShortages;
+
+        public GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, GearChainPlacementJudgement judgement, IReadOnlyList<ConstructionMaterialShortage> materialShortages) : this(startPoint, endPoint, judgement.IsPlaceable, true, judgement.FailureReason, materialShortages)
         {
         }
 
-        private GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, bool isPlaceable, bool isValid)
+        private GearChainPoleExtendPreviewData(Vector3 startPoint, Vector3 endPoint, bool isPlaceable, bool isValid, string failureReason, IReadOnlyList<ConstructionMaterialShortage> materialShortages)
         {
             StartPoint = startPoint;
             EndPoint = endPoint;
             IsPlaceable = isPlaceable;
             IsValid = isValid;
+            FailureReason = failureReason;
+            MaterialShortages = materialShortages;
         }
     }
 }

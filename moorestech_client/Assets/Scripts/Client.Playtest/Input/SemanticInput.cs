@@ -80,6 +80,19 @@ namespace Client.Playtest.Input
             });
         }
 
+        // カーソル移動をdelta付きで注入する。右ドラッグ回転のように移動量自体が意味を持つ操作で使う
+        // Injects a cursor move carrying its delta; used where the movement amount itself matters, such as right-drag look
+        public static void MouseDragBy(Vector2 deltaPixels)
+        {
+            EnsureDevices();
+            InputSystem.QueueStateEvent(Mouse.current, new MouseState
+            {
+                position = Mouse.current.position.ReadValue() + deltaPixels,
+                delta = deltaPixels,
+                buttons = CurrentButtons(),
+            });
+        }
+
         public static async UniTask MouseGlideTo(Vector2 targetScreenPosition, float durationSeconds)
         {
             EnsureDevices();

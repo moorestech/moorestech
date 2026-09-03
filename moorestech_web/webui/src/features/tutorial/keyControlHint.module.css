@@ -20,8 +20,11 @@
   color: var(--tutorial-key-hint-color);
 }
 
+/* 見落とし防止の脈動。振幅だけをここで与え、周期とキーフレームはtokens.cssが正本（ADR 0039） */
+/* A pulse against being missed; only the amplitude lives here while tokens.css owns the period and keyframes (ADR 0039) */
 .hint {
   display: flex;
   align-items: center;
   gap: var(--tutorial-key-hint-kbd-gap);
+  animation: var(--tutorial-pulse-strong) var(--tutorial-pulse-duration) ease-in-out infinite;
 }

@@ -36,6 +36,7 @@
         "Core.Inventory",
         "Server.Event",
         "Game.PlayerInventory.Interface",
+        "CommandForgeGeneratorUtil.Editor",
         "Client.WebUiHost",
         "Client.Playtest",
         "Client.Skit",

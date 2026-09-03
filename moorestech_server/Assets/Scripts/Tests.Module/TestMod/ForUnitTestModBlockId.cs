@@ -19,6 +19,10 @@ namespace Tests.Module.TestMod
         public static BlockId LockedElectricPoleId => GetBlock("00000000-0000-0000-0000-000000000101");
         public static BlockId GeneratorId => GetBlock("00000000-0000-0000-0000-000000000005");
         public static BlockId ElectricMinerId => GetBlock("00000000-0000-0000-0000-000000000006");
+
+        // 2x1x3・ドリル位置(1,0,2)。原点=ドリルの縮退でテストが素通りするのを防ぐ
+        // 2x1x3 with drill at (1,0,2); prevents tests from passing vacuously when the origin doubles as the drill
+        public static BlockId OffsetDrillMinerId => GetBlock("00000000-0000-0000-0000-000000000060");
         public static BlockId ChestId => GetBlock("00000000-0000-0000-0000-000000000007");
         public static BlockId InfinityGeneratorId => GetBlock("00000000-0000-0000-0000-000000000008");
         
