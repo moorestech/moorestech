@@ -61,11 +61,23 @@ test("off-screen world pin renders a 56px filled shaft arrow at the screen edge"
   await expect(arrow.locator("path")).toHaveAttribute("d", "M2 8 H13 V3 L22 12 L13 21 V16 H2 Z");
   const visualStyle = await arrow.locator("svg").evaluate((svg) => {
     const style = getComputedStyle(svg);
-    return { fill: style.fill, stroke: style.stroke, filter: style.filter };
+    // 実際に再生中のキーフレームまで拾い、ハッシュ化等で無言死した脈動を捕まえる
+    // Also collects the keyframes actually playing so a pulse killed silently by hashing is caught
+    const transforms = svg.getAnimations().flatMap((animation) =>
+      (animation.effect as KeyframeEffect).getKeyframes().map((frame) => String(frame.transform)));
+    return {
+      fill: style.fill, stroke: style.stroke, filter: style.filter, transforms,
+      animationName: style.animationName, animationDuration: style.animationDuration,
+      animationIterationCount: style.animationIterationCount,
+    };
   });
   expect(visualStyle.fill).toBe("rgb(255, 0, 0)");
   expect(visualStyle.stroke).toBe("rgba(10, 14, 27, 0.8)");
   expect(visualStyle.filter).toBe("drop-shadow(rgba(0, 0, 0, 0.65) 0px 2px 3px)");
+  expect(visualStyle.animationName).toBe("tutorial-attention-pulse-strong");
+  expect(visualStyle.animationDuration).toBe("1.2s");
+  expect(visualStyle.animationIterationCount).toBe("infinite");
+  expect(visualStyle.transforms).toContain("scale(1.08)");
 });
 
 test("off-screen arrow follows a diagonal direction to the corner region", async ({ page, request }) => {
