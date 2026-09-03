@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NestedPauseSubStateNames } from "@/bridge";
 import { NotificationDataSchema, UiStateDataSchema } from "./ui";
 
 describe("NotificationDataSchema", () => {
@@ -34,8 +35,8 @@ describe("UiStateDataSchema", () => {
   });
 
   it("入れ子stateは既知語彙も未知語彙も受理する（未知値の解釈はscreenForUiStateのfail-safe）", () => {
-    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "GameScreen" }).success).toBe(true);
-    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "PauseMenuScreen" }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: NestedPauseSubStateNames.gameScreen }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: NestedPauseSubStateNames.pauseMenuScreen }).success).toBe(true);
     expect(UiStateDataSchema.safeParse({ state: "Story", subState: "UnknownSubState" }).success).toBe(true);
   });
 

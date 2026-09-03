@@ -22,7 +22,7 @@ import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { EventLanguageGate } from "@/features/eventLanguageGate";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
-import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu } from "@/shared/uiState";
+import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud } from "@/shared/uiState";
 import { useUiScaleStore } from "@/shared/uiScale";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
@@ -98,7 +98,7 @@ export default function App() {
         {screen === "buildMenu" && <BuildMenuPanel />}
         {screen === "challengeList" && <ChallengePanel />}
         {screenShowsPauseMenu(screen) && <PauseMenuPanel />}
-        {(screen === "trainHud" || screen === "trainPause") && <TrainRidingHud />}
+        {screenShowsTrainHud(screen) && <TrainRidingHud />}
         <Crosshair />
         <CursorTooltip />
         <BlockInventoryPanel />
