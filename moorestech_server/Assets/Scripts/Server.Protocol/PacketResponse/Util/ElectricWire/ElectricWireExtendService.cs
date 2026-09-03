@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
+using Game.Construction;
 using Game.Context;
 using Game.EnergySystem;
 using Game.PlayerInventory.Interface;
@@ -137,7 +138,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
                 // 建設コストの予約分を上乗せした所持判定は共有の正本へ委ねる
                 // The held check with the construction cost reserved on top is delegated to the shared definition
-                if (!ConnectToolMaterialConsumer.HasEnough(wireCost.Materials, inventory.InventoryItems, ConnectToolMaterialConsumer.ToMaterials(costItemCounts)))
+                if (!ConstructionMaterialAccounting.HasEnough(wireCost.Materials, inventory.InventoryItems, ConnectToolMaterialConsumer.ToMaterials(costItemCounts)))
                     return ElectricWireExtendResult.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
                 // 検証をすべて通過したのでここから状態を変更する

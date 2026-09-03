@@ -14,9 +14,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts
     {
         // 素材不足は行を作らず不足リストのまま関門へ渡す。行にした瞬間に同一アイテムの畳み込みが効かなくなる
         // A material shortage is never turned into lines here; it goes to the gate as data, since lines can no longer be folded per item
-        public static bool IsMaterialShortage(string failureReason)
+        private static bool IsMaterialShortage(string failureReason)
         {
             return failureReason == GearChainPlacementEvaluator.NoItemError;
+        }
+
+        // チェーン判定が素材不足で落ちたフレームか。判定の中身はこの型の外へ出さない
+        // Whether the chain judgement failed on a material shortage; the judgement itself never leaves this type
+        public static bool IsChainMaterialShortage(GearChainPoleExtendPreviewData chainPreview)
+        {
+            if (!chainPreview.IsValid || chainPreview.IsPlaceable) return false;
+            return IsMaterialShortage(chainPreview.FailureReason);
         }
 
         // 可:行なし／素材不足:行なし（関門が出す）／他:理由1行

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Construction;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
@@ -32,7 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 
             // 所持集計は唯一の供給点へ委ねる
             // Delegate the held tally to its single supply point
-            var requirements = CalculateRequirements(requiredItems, ConstructionMaterialHeldCounts.Tally(inventoryItems));
+            var requirements = CalculateRequirements(requiredItems, ConstructionMaterialAccounting.TallyHeld(inventoryItems));
 
             return ToShortages(requirements);
         }

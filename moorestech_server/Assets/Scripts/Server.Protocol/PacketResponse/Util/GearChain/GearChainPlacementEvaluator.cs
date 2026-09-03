@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface.Component;
+using Game.Construction;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 using UnityEngine;
 
@@ -55,7 +56,7 @@ namespace Server.Protocol.PacketResponse.Util.GearChain
 
             // 予約分を上乗せした必要数を所持が満たすかは共有の正本へ委ねる
             // Whether the held count covers the requirement plus the reservation is delegated to the shared definition
-            if (!ConnectToolMaterialConsumer.HasEnough(materials, stacks, reservedMaterials)) return GearChainPlacementJudgement.Failure(NoItemError);
+            if (!ConstructionMaterialAccounting.HasEnough(materials, stacks, reservedMaterials)) return GearChainPlacementJudgement.Failure(NoItemError);
 
             return GearChainPlacementJudgement.Success(new GearChainConnectionCost(materials));
         }
