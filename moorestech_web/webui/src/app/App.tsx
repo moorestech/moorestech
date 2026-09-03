@@ -29,7 +29,7 @@ import styles from "./App.module.css";
 
 // 基準stageをviewportへ収める一様拡縮を同期する
 // Synchronize uniform scaling that fits the reference stage in the viewport
-function useUiScale(enabled: boolean) {
+function useStageScaleSync(enabled: boolean) {
   const stageRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -72,7 +72,7 @@ export default function App() {
   const uiState = useTopicSelector(Topics.uiState, (d) => d?.state ?? null);
   const uiVisible = useTopicSelector(Topics.uiVisibility, (d) => d?.visible ?? true);
   const cutScene = useTopicSelector(Topics.gameState, (d) => d?.state === "CutScene");
-  const stageRef = useUiScale(uiVisible);
+  const stageRef = useStageScaleSync(uiVisible);
   // プレイヤーインベントリ本体を出すのは uGUI 準拠で持ち物・サブインベントリ画面のみ
   // Show the player inventory itself only on the inventory / sub-inventory screens, matching uGUI
   const inventoryScreen = screen === "playerInventory" || screen === "subInventory";

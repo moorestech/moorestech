@@ -9,6 +9,7 @@ using Game.MapGeneration.Pipeline.Visual.Surround;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Tiling;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using UnityEngine;
 
@@ -158,13 +159,20 @@ namespace Game.MapGeneration.Pipeline.Visual
                     ? BuildDetailMaps(classification, alphamap, preHeights, postHeights)
                     : new List<int[,]>();
 
+                // 表示高さは保存でushort丸めされる。取り逃し側も同じ刻みへ落とし、hitとmissで返る値を完全に一致させる
+                // Storing rounds display heights to ushort steps, so the miss path lands on the same steps and hit and miss return identical values
+                for (var z = 0; z < postHeights.GetLength(0); z++)
+                for (var x = 0; x < postHeights.GetLength(1); x++)
+                    postHeights[z, x] = Mathf.Clamp(Mathf.RoundToInt(postHeights[z, x] * TerrainVisualCacheFormat.HeightQuantizeScale), 0, ushort.MaxValue)
+                                        / TerrainVisualCacheFormat.HeightQuantizeScale;
+
                 // Detailは移植元と同じ生の重みを読む。平面化はその後で、保存と適用に回る値だけをキャッシュ往復で不変にする
                 // Detail reads the same raw weights as the source; the flattening comes after it and only makes the stored, applied values survive a round trip
                 if (alphamap == null) return new TerrainTileVisual(postHeights, null, detailMaps);
 
                 return new TerrainTileVisual(
                     postHeights,
-                    TileAlphamap.Create(StoredAlphamapWeights.ToPlanes(alphamap), alphamap.GetLength(0), alphamap.GetLength(2)),
+                    TileAlphamap.CreateOwning(StoredAlphamapWeights.ToPlanes(alphamap), alphamap.GetLength(0), alphamap.GetLength(2)),
                     detailMaps);
             }
 

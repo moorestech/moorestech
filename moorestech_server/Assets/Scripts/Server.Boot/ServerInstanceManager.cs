@@ -28,8 +28,6 @@ namespace Server.Boot
 {
     public class ServerInstanceManager : IDisposable
     {
-        public const int DefaultGeneratedSeed = 196;
-
         private Thread _connectionUpdateThread;
         private Thread _gameUpdateThread;
         private CancellationTokenSource _cancellationTokenSource;
@@ -82,7 +80,7 @@ namespace Server.Boot
             // Fix the unspecified generated-mode seed so the same master always produces the same world
             // 明示指定なら0も含めそのまま使い、templateモードの従来値0も維持する
             // Preserve every explicit value including zero, as well as template mode's existing zero
-            var seed = settings.Seed ?? (settings.MapMode == WorldMapMode.Generated ? DefaultGeneratedSeed : 0);
+            var seed = settings.Seed ?? (settings.MapMode == WorldMapMode.Generated ? DefaultGeneratedWorldProvisioner.DefaultGeneratedSeed : 0);
 
             // ワールドディレクトリをDI構築前に整備する（無ければ生成/テンプレートコピー）
             // Provision the world directory before DI container construction
@@ -94,7 +92,7 @@ namespace Server.Boot
             // templateのIDは作成時刻由来で毎回変わりキャッシュも持たないため、template起動で生成済みキャッシュを消さない
             // A template id derives from createdAt and owns no cache, so a template boot must not wipe the generated caches
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
-            if (!terrainMeta.IsTemplate) StaleWorldCacheCollector.Collect(terrainMeta.WorldId);
+            if (!terrainMeta.IsTemplate) StaleWorldCacheCollector.Collect(GameSystemPaths.WorldCacheDirectory, terrainMeta.WorldId);
 
             var serverDirectory = settings.ServerDataDirectory;
             var options = new MoorestechServerDIContainerOptions(serverDirectory)

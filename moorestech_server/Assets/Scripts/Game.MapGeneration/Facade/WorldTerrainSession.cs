@@ -55,7 +55,7 @@ namespace Game.MapGeneration.Facade
 
             // 組み立てはサーバー先焼きと共有し、高さ源と遅延台帳源の決定をfactoryへ閉じる
             // Share assembly with the server prebake and keep both height-source and lazy-ledger-source decisions in the factory
-            var factoryResult = TileVisualBakerFactory.CreateForClient(config, terrainMeta, generatedPayload, selectedGeneration);
+            var factoryResult = TileVisualBakerFactory.CreateForClient(config, terrainMeta, selectedGeneration);
             var gridConfig = factoryResult.GridConfig;
 
             // 生成内部のdetail設定は境界を越えない。並びを保ったまま公開仕様へ写す

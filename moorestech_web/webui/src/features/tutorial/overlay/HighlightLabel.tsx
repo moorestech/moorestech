@@ -22,7 +22,7 @@ export default function HighlightLabel({ box, clip, text, uiScale }: Props) {
   useLayoutEffect(() => {
     const rect = faceRef.current!.getBoundingClientRect();
     setFace({ widthPx: rect.width, heightPx: rect.height });
-  }, [text, layoutMaxWidthPx]);
+  }, [text, layoutMaxWidthPx, uiScale]);
 
   // 枠線との隙間はCSSのmarginではなくここで足す。判定と描画が同じ値を見ないと、収まらない側へ反転する
   // The ring gap is added here rather than by a CSS margin: unless the test and the placement share one value, it flips to the side that does not fit

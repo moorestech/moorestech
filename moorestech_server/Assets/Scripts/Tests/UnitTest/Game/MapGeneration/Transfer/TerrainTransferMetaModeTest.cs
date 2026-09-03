@@ -44,7 +44,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.AreEqual(new Vector2(10f, 20f), payload.Origins.NoiseOrigin);
             Assert.AreEqual(new Vector2(30f, 40f), payload.Origins.SceneOrigin);
             Assert.AreEqual("fingerprint", payload.GenerationMasterFingerprint);
-            Assert.AreEqual("9.9.9", payload.GeneratorVersion);
+            Assert.AreEqual(WorldGeneratorVersion.Current, payload.GeneratorVersion);
             Assert.AreEqual("ledger-digest", payload.PlacementLedgerDigest);
         }
 
@@ -81,12 +81,24 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TerrainTransferMeta.CreateGenerated("world-b", 513, 4, 3, 42, null));
         }
 
+        // 旧ビルドのワイヤ値は必須項目が欠けたまま届く。payloadを先に組むと空文字の例外が先に出て版不一致の診断へ到達しない
+        // Another build's wire values arrive with required fields missing; building the payload first would raise an empty-string error before the version diagnosis
+        [Test]
+        public void 旧版のワイヤメタは必須項目が空でも版不一致で落ちる()
+        {
+            var exception = Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.FromWire(
+                WorldMapMode.Generated, "world-old", 513, 4, 3, 42,
+                new TerrainOrigins(Vector2.zero, Vector2.zero), "fingerprint", "3.0.0", string.Empty));
+
+            Assert.That(exception.Message, Does.Contain("connect to a server on the same build"));
+        }
+
         private static TerrainTransferMeta CreateGeneratedMeta()
         {
             return TerrainTransferMeta.CreateGenerated(
                 "world-b", 513, 4, 3, 42,
                 new GeneratedTerrainTransferPayload(
-                    new TerrainOrigins(new Vector2(10f, 20f), new Vector2(30f, 40f)), "fingerprint", "9.9.9", "ledger-digest"));
+                    new TerrainOrigins(new Vector2(10f, 20f), new Vector2(30f, 40f)), "fingerprint", WorldGeneratorVersion.Current, "ledger-digest"));
         }
     }
 }

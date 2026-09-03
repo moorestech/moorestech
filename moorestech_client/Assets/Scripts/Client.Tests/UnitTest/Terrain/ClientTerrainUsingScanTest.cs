@@ -41,5 +41,18 @@ namespace Client.Tests.UnitTest.Terrain
                 .ToList();
             Assert.That(offenders, Is.Empty, string.Join("\n", offenders));
         }
+
+        // 第一の防壁そのものを固定する。asmdefが本体を参照し直すと、using走査は緑のまま境界だけが開く
+        // Pins the first wall itself: if the asmdef references the implementation again, the using scan stays green while the boundary alone opens
+        [Test]
+        public void ClientGameAsmdefReferencesOnlyTheGenerationFacadeAndContract()
+        {
+            var asmdefPath = Path.Combine(Application.dataPath, "Scripts", "Client.Game", "Client.Game.asmdef");
+            var asmdef = File.ReadAllText(asmdefPath);
+
+            Assert.That(asmdef, Does.Contain("\"Game.MapGeneration.Facade\""));
+            Assert.That(asmdef, Does.Contain("\"Game.MapGeneration.Contract\""));
+            Assert.That(asmdef, Does.Not.Contain("\"Game.MapGeneration\""), "Client.Game must not reference the generation implementation assembly.");
+        }
     }
 }

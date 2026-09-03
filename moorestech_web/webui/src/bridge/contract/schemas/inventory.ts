@@ -7,7 +7,7 @@ export const PlayerInventoryDataSchema = z.object({
   // 装備枠は可変長、選択は常に 0..枠数-1 の実スロット
   // Equipment is variable-length; the selection is always a real slot in 0..slotCount-1
   equipment: z.array(SlotDataSchema),
-  selectedEquipment: z.number(),
+  selectedEquipment: z.number().int().nonnegative(),
   equipmentSelectionConfirmationRevision: z.number().int().nonnegative(),
 });
 

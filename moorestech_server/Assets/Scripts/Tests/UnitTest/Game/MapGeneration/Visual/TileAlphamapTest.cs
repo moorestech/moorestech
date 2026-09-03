@@ -1,5 +1,5 @@
 using System;
-using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Transfer;
 using NUnit.Framework;
 
 namespace Tests.UnitTest.Game.MapGeneration.Visual
@@ -80,6 +80,28 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             obtainedBytes[0] = 123;
 
             Assert.That(alphamap.Planes[0].Span[0], Is.EqualTo(0));
+        }
+
+        // 所有権を受け取る生成口も検証を素通ししない。ここが緩むと壊れた寸法の平面がそのままGPUへ載る
+        // The ownership-taking factory must not skip validation, or malformed planes would go straight to the GPU
+        [Test]
+        public void CreateOwningRejectsWrongPlaneCountOrByteLength()
+        {
+            Assert.Throws<ArgumentException>(() => TileAlphamap.CreateOwning(CreatePlanes(1, PlaneByteLength), Resolution, 5));
+            Assert.Throws<ArgumentException>(() => TileAlphamap.CreateOwning(CreatePlanes(1, PlaneByteLength - 1), Resolution, 4));
+        }
+
+        // 渡し切りなので写しは作らない。呼び出し側が保持し続けない前提を明示する
+        // Handing over means no copy is made, which pins the contract that the caller keeps no reference
+        [Test]
+        public void CreateOwningTakesThePlanesAsIs()
+        {
+            var planes = CreatePlanes(1, PlaneByteLength);
+            var alphamap = TileAlphamap.CreateOwning(planes, Resolution, 1);
+
+            planes[0][0] = 123;
+
+            Assert.That(alphamap.Planes[0].Span[0], Is.EqualTo(123));
         }
 
         private static byte[][] CreatePlanes(int planeCount, int planeByteLength)

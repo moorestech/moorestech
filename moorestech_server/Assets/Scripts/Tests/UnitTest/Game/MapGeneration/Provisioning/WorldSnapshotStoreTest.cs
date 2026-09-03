@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
         [SetUp]
         public void SetUp()
         {
-            _worldId = Guid.NewGuid().ToString("N").Substring(0, WorldIdentity.HexDigits);
+            _worldId = Guid.NewGuid().ToString("N").Substring(0, GameSystemPaths.WorldIdHexDigits);
             _source = WorldDataDirectory.FromWorldRoot(Path.Combine(Path.GetTempPath(), "WorldSnapshotStoreTest_src_" + _worldId));
             _restored = WorldDataDirectory.FromWorldRoot(Path.Combine(Path.GetTempPath(), "WorldSnapshotStoreTest_dst_" + _worldId));
             _serverDataDirectory = Path.Combine(Path.GetTempPath(), "WorldSnapshotStoreTest_server_" + _worldId);
@@ -59,6 +59,31 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
             Assert.IsFalse(Directory.Exists(sharedCache.ProvisioningTempDirectory));
             Assert.IsFalse(Directory.Exists(_restored.ProvisioningTempDirectory));
             Assert.AreEqual(new byte[] { 4, 5 }, File.ReadAllBytes(_restored.TerrainHeightFilePath(0, 0)));
+        }
+
+        [Test]
+        public void 共有キャッシュに本体だけある状態でも同梱源のvisualが取り込まれる()
+        {
+            var bundled = WorldDataDirectory.ForBundledSnapshot(_serverDataDirectory, _worldId);
+            Directory.CreateDirectory(bundled.TerrainDirectory);
+            Directory.CreateDirectory(bundled.TerrainVisualDirectory);
+            File.WriteAllText(bundled.MapJsonFilePath, "{\"map\":2}");
+            File.WriteAllBytes(bundled.TerrainHeightFilePath(0, 0), new byte[] { 4, 5 });
+            File.WriteAllBytes(bundled.TerrainVisualCacheFilePath(0, 0), new byte[] { 6 });
+            File.WriteAllText(bundled.WorldMetaFilePath, "{\"seed\":1,\"mapMode\":\"generated\",\"createdAt\":\"2000-01-01T00:00:00.0000000Z\"}");
+
+            // 共有キャッシュはvisualの無い本体だけ。ここで同梱源を無視すると先焼きが復活する
+            // The shared cache holds only the core with no visuals; ignoring the bundled source here brings the prebake back
+            Directory.CreateDirectory(_source.TerrainDirectory);
+            File.WriteAllText(_source.MapJsonFilePath, "{\"map\":1}");
+            File.WriteAllText(_source.WorldMetaFilePath, "{\"seed\":1,\"mapMode\":\"generated\",\"createdAt\":\"2000-01-01T00:00:00.0000000Z\"}");
+            WorldSnapshotStore.Store(_source, _worldId);
+
+            Assert.IsTrue(WorldSnapshotStore.TryRestore(_restored, _serverDataDirectory, _worldId));
+
+            var sharedCache = WorldDataDirectory.ForWorldCache(_worldId);
+            Assert.AreEqual(new byte[] { 6 }, File.ReadAllBytes(sharedCache.TerrainVisualCacheFilePath(0, 0)));
+            Assert.AreEqual("{\"map\":2}", File.ReadAllText(sharedCache.MapJsonFilePath), "共有キャッシュは同梱源の完全体で置き換わる");
         }
 
         [Test]
@@ -109,7 +134,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
         {
             var a = WorldIdentity.CalculateGenerated(196, "fp", "4.0.0");
             Assert.AreEqual(a, WorldIdentity.CalculateGenerated(196, "fp", "4.0.0"));
-            Assert.AreEqual(WorldIdentity.HexDigits, a.Length);
+            Assert.AreEqual(GameSystemPaths.WorldIdHexDigits, a.Length);
             Assert.AreNotEqual(a, WorldIdentity.CalculateGenerated(197, "fp", "4.0.0"));
             Assert.AreNotEqual(a, WorldIdentity.CalculateGenerated(196, "fp2", "4.0.0"));
             Assert.AreNotEqual(a, WorldIdentity.CalculateGenerated(196, "fp", "4.0.1"));

@@ -67,9 +67,13 @@ namespace Game.MapGeneration.Transfer
         {
             if (mapMode == WorldMapMode.Template) return CreateTemplate(worldId, worldSeed);
             if (mapMode == WorldMapMode.Generated)
+            {
+                WorldGeneratorVersion.ThrowIfDiffers(generatorVersion, worldId);
                 return CreateGenerated(
                     worldId, terrainResolution, terrainTileCount, terrainChunkTotal, worldSeed,
                     new GeneratedTerrainTransferPayload(origins, generationMasterFingerprint, generatorVersion, placementLedgerDigest));
+            }
+
             throw new InvalidOperationException($"[TerrainTransferMeta] Unknown map mode '{mapMode}'.");
         }
 
