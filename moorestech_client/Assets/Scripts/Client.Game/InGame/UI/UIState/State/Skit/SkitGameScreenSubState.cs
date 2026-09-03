@@ -28,9 +28,9 @@ namespace Client.Game.InGame.UI.UIState.State.Skit
         {
             if (!InputManager.UI.OpenMenu.GetKeyDown) return null;
 
-            // 会話UIの復帰に成功した回だけメニューを開かない。失敗時はEscを握り潰さずメニューへ進む
-            // Only skip opening the menu when restoring the dialogue UI actually succeeds; on failure, fall through instead of swallowing Esc
-            if (_skitManager.TryRestoreHiddenSkitUi()) return null;
+            // 隠れた会話UIがある間のEscは復帰専用に消費する。storeに拒否された回もメニューは開かない
+            // While the dialogue UI is hidden, Esc is spent on restoring it; a store refusal does not open the menu either
+            if (_skitManager.TryRestoreHiddenSkitUi() != SkitUiRestoreResult.NothingHidden) return null;
 
             return NestedPauseSubStateEnum.PauseMenuScreen;
         }

@@ -41,15 +41,16 @@ namespace Client.Game.Skit
         
         public bool IsPlayingSkit { get; private set; }
         
-        // 会話UIの表示状態はstoreが単一の正。失敗を握り潰さず呼び出し元へ返す
-        // The store is the single source of truth for dialogue-UI visibility; failure is surfaced to the caller instead of swallowed
-        public bool TryRestoreHiddenSkitUi()
+        // 会話UIの表示状態はstoreが単一の正。拒否と未隠蔽を畳まず帰結をそのまま呼び出し元へ返す
+        // The store is the single source of truth for dialogue-UI visibility; the outcome reaches the caller without folding refusal into "nothing hidden"
+        public SkitUiRestoreResult TryRestoreHiddenSkitUi()
         {
             var store = SkitPresentationStateStore.Instance;
             var current = store.GetCurrent();
-            if (!current.PresentationState.UiHidden) return false;
+            if (!current.PresentationState.UiHidden) return SkitUiRestoreResult.NothingHidden;
 
-            return store.TrySetUiHidden(current.SessionId, current.SceneRevision, false).Ok;
+            var result = store.TrySetUiHidden(current.SessionId, current.SceneRevision, false);
+            return result.Ok ? SkitUiRestoreResult.Restored : SkitUiRestoreResult.Rejected;
         }
         private bool _isSkip;
         
