@@ -30,7 +30,9 @@ namespace Game.MapGeneration.Pipeline.Generators
         }
 
         // タイル内で生成可能な全AABBの範囲へ履歴が届くか判定する。
+        // 候補中心はOreEntryPlacerがタイル矩形内へクランプしワールド整数へ丸めた点に限られ、この範囲導出はそれが前提。
         // Tests whether history can reach the bounds of any AABB producible inside the tile.
+        // Candidate centres are only the points OreEntryPlacer clamps into the tile rectangle and rounds to world integers, which this range derivation assumes.
         internal static bool CanOverlapAnyCandidateInTile(
             PlacedVein history, float tileWorldOffsetX, float tileWorldOffsetZ,
             float tileWidth, float tileLength)

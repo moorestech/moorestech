@@ -148,6 +148,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                         mx = Mathf.Round(centerX + Mathf.Cos(angle) * radius + dims.WorldOffsetX) - dims.WorldOffsetX;
                         mz = Mathf.Round(centerZ + Mathf.Sin(angle) * radius + dims.WorldOffsetZ) - dims.WorldOffsetZ;
 
+                        // このタイル矩形内かつワールド整数という制限が CanOverlapAnyCandidateInTile の候補範囲導出の前提。
+                        // Staying inside this tile rectangle on world integers is the premise CanOverlapAnyCandidateInTile derives its candidate range from.
                         if (mx < 0 || w <= mx || mz < 0 || l <= mz) continue;
                         if (0f < oreMinDist && oreGrid.HasNeighborWithin(mx, mz, oreMinDist))
                             continue;
