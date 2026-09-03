@@ -2,6 +2,7 @@ using Client.Game.Common;
 using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.UI.UIState.State;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;

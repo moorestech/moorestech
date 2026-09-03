@@ -36,11 +36,8 @@ namespace Game.MapGeneration.Pipeline.Stages
         public static void ToSceneSpace(List<PlacedVein> veins, Vector2 noiseToSceneShift)
         {
             var offset = Vector3Int.RoundToInt(new Vector3(noiseToSceneShift.x, 0f, noiseToSceneShift.y));
-            foreach (var vein in veins)
-            {
-                vein.Min -= offset;
-                vein.Max -= offset;
-            }
+            for (int i = 0; i < veins.Count; i++)
+                veins[i] = veins[i].Shifted(offset);
         }
     }
 }

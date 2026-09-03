@@ -39,7 +39,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Vein
         {
             var everywhere = new List<PlacedVein>
             {
-                new() { VeinGuid = "excluded", Min = new Vector3Int(-10000, -10000, -10000), Max = new Vector3Int(10000, 10000, 10000) },
+                new("excluded", new Vector3Int(-10000, -10000, -10000), new Vector3Int(10000, 10000, 10000)),
             };
 
             var placement = Generate(new[] { CreateEntry(VeinGuidA, 1, 0f, 0f) }, everywhere, 42);
@@ -54,7 +54,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Vein
             // 先にAだけ置いて位置を取り、その全点を除外AABBにした状態でA→Bを置く。Aは全滅し、Bは除外点の近傍(4セル未満)へ届く
             // Place A alone to learn its points, then exclude them all and place A then B; A dies out while B still reaches within 4 cells of those points
             var baseline = Generate(new[] { CreateEntry(VeinGuidA, 1, 0f, 4f) }, new List<PlacedVein>(), 42);
-            var excluded = baseline.Veins.Select(vein => new PlacedVein { VeinGuid = vein.VeinGuid, Min = vein.Min, Max = vein.Max }).ToList();
+            var excluded = baseline.Veins.ToList();
             Assert.That(excluded.Count, Is.GreaterThan(10));
 
             var placement = Generate(new[] { CreateEntry(VeinGuidA, 1, 0f, 4f), CreateEntry(VeinGuidB, 1, 0f, 4f) }, excluded, 42);
@@ -99,7 +99,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Vein
                 0, 0, 2, 1);
             return OrePlacementGenerator.GenerateForWorld(
                 entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),
-                null, null, halo.ItemVeinMembers, halo.ItemVeinCenters, halo.Radius, excludedVeins);
+                null, null, halo.ItemVeins, halo.Radius, excludedVeins);
 
             #region Internal
 

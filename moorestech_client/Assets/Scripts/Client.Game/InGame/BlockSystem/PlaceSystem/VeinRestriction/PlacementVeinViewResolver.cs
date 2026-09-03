@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
+using Client.Game.InGame.Map.MapVein;
 using Core.Master;
 using Game.Block.Interface.Vein;
 using Mooresmaster.Model.BlocksModule;
 
-namespace Client.Game.InGame.Map.MapVein
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction
 {
     /// <summary>
     ///     設置対象と鉱脈限定の状態から、鉱脈範囲表示へ渡す鉱脈の集合を決めてプッシュする
@@ -33,7 +33,7 @@ namespace Client.Game.InGame.Map.MapVein
             return blockParam switch
             {
                 IMinerParam minerParam => VeinDisplay.OfVeins(SelectMinableVeins(minerParam), false),
-                GearPumpBlockParam or ElectricPumpBlockParam => VeinDisplay.OfVeins(veinAabbRegistry.SelectVeinsOfKind(MapVeinKind.Fluid), false),
+                IPumpParam => VeinDisplay.OfVeins(veinAabbRegistry.SelectVeinsOfKind(MapVeinKind.Fluid), false),
                 _ => VeinDisplay.Hidden,
             };
 

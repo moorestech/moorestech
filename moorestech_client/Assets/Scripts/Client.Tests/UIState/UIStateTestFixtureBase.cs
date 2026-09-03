@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Equipment;

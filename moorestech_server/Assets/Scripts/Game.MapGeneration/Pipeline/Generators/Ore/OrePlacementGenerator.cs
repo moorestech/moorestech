@@ -25,8 +25,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             System.Random rng,
             SpatialGrid treeSpatialGrid,
             SpatialGrid objectSpatialGrid,
-            PlacementHaloChannel confirmedMemberHalo,
-            PlacementHaloChannelMap centerHalos,
+            VeinHaloChannels channels,
             float haloRadius,
             IReadOnlyList<PlacedVein> excludedVeins)
         {
@@ -45,7 +44,7 @@ namespace Game.MapGeneration.Pipeline.Generators
 
             // 確定済みの隣タイルの鉱脈を先に入れる。木と同じく、入れないと境界の帯だけ最小距離が破られる。
             // The already-confirmed neighbouring veins go in first; as with trees, the seam band would otherwise break the minimum distance.
-            confirmedMemberHalo.SeedGrid(oreGrid, dims.WorldOffsetX, dims.WorldOffsetZ, w, l, haloRadius);
+            channels.Members.SeedGrid(oreGrid, dims.WorldOffsetX, dims.WorldOffsetZ, w, l, haloRadius);
 
             for (int i = 0; i < entries.Length; i++)
             {
@@ -55,7 +54,7 @@ namespace Game.MapGeneration.Pipeline.Generators
 
                 OreEntryPlacer.Place(entry, entryMasks[i], heights, dims, rng,
                     borderPx, treeSpatialGrid, objectSpatialGrid,
-                    oreGrid, centerHalos, haloRadius, excludedVeins, result);
+                    oreGrid, channels.Centers, haloRadius, excludedVeins, result);
             }
 
             return result;
