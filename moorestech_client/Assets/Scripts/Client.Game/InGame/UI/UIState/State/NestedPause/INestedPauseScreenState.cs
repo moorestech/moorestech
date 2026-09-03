@@ -1,15 +1,15 @@
 using System;
 using UniRx;
 
-namespace Client.Game.InGame.UI.UIState
+namespace Client.Game.InGame.UI.UIState.State.NestedPause
 {
     // 入れ子ポーズメニューを持つ画面。Web境界はこのIFだけを見て分岐する
     // A screen that owns a nested pause menu; the web boundary branches on this interface alone
     public interface INestedPauseScreenState
     {
-        // Web配信用のサブステート名
-        // Sub-state name published to the web
-        string SubStateName { get; }
+        // 表示中のサブステート。Web語彙への文字列化は境界側だけが行う
+        // The sub-state currently showing; only the web boundary turns it into a string
+        NestedPauseSubStateEnum SubState { get; }
         
         IObservable<Unit> OnPresentationChanged { get; }
         

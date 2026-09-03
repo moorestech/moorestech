@@ -7,10 +7,13 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.Skit;
 using Client.Game.Skit;
 using Client.Input;
+using Client.Skit.UI;
 using UniRx;
 
 namespace Client.Game.InGame.UI.UIState.State
 {
+    // フォーカス復帰時の入場やり直しは持たない。スキット中のカーソル表示はサブステート入場だけで確定し、列車HUDのようなカメラ再取得が無い
+    // No focus-restore hook: the skit's cursor is settled by sub-state entry alone and has no camera re-acquisition like the train HUD
     public class SkitState : IUIState, INestedPauseScreenState
     {
         private readonly SkitManager _skitManager;
@@ -20,7 +23,7 @@ namespace Client.Game.InGame.UI.UIState.State
         
         // Web配信用の入れ子state窓口
         // Window for the web side to publish the nested state
-        public string SubStateName => _subStateController.CurrentState.ToString();
+        public NestedPauseSubStateEnum SubState => _subStateController.CurrentState;
         public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
         
         public SkitState(SkitManager skitManager, PlayerInventoryViewController playerInventoryViewController, PauseMenuStateService pauseMenuStateService)
@@ -30,7 +33,15 @@ namespace Client.Game.InGame.UI.UIState.State
             // 所有者専用の入れ子ステートマシンなのでDI登録せずここでnewする（前例: TrainHUDScreenState）
             // A nested state machine owned exclusively here, so it is newed directly instead of DI-registered (precedent: TrainHUDScreenState)
             _subStateController = new NestedPauseSubStateController(new SkitGameScreenSubState(skitManager), pauseMenuStateService);
-            _subStateController.OnStateChanged.Subscribe(_ => _onPresentationChanged.OnNext(Unit.Default));
+            _subStateController.OnStateChanged.Subscribe(OnSubStateChanged);
+        }
+        
+        // ポーズ中はスキットの入力口をstore側で閉じる。可否の正はAllowedIntentsのまま1箇所に保つ
+        // Pausing closes the skit's input paths in the store, keeping AllowedIntents the single authority
+        private void OnSubStateChanged(NestedPauseSubStateEnum subState)
+        {
+            SkitPresentationStateStore.Instance.SetInputSuspended(subState == NestedPauseSubStateEnum.PauseMenuScreen);
+            _onPresentationChanged.OnNext(Unit.Default);
         }
         
         public void OnEnter(UITransitContext context)

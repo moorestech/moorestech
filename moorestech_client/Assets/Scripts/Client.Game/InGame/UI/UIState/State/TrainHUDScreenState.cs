@@ -39,7 +39,7 @@ namespace Client.Game.InGame.UI.UIState.State
         private int _lastBranchCandidateCount;
 
         public bool IsRiding => _rideContext != null && !_isDismountTrain;
-        public string SubStateName => _subStateController.CurrentState.ToString();
+        public NestedPauseSubStateEnum SubState => _subStateController.CurrentState;
         public int BranchCandidateCount => _branchRoutePreviewController.BranchCandidateCount;
         public int SelectedBranchIndex { get; private set; }
         public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;

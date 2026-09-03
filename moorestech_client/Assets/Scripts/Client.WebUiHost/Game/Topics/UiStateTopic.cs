@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace Client.WebUiHost.Game.Topics
         private bool _publishScheduled;
         private bool _disposed;
 
-        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary)
+        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary, IReadOnlyList<INestedPauseScreenState> nestedPauseScreens)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
@@ -33,8 +34,7 @@ namespace Client.WebUiHost.Game.Topics
             // state遷移と、入れ子ポーズを持つ全画面の表示変化を購読して push する
             // Subscribe to state transitions and to every nested-pause screen's presentation changes, then push
             _uiStateControl.OnStateChanged += OnStateChanged;
-            _nestedStateSubscriptions = _uiStateDictionary.GetAllStates()
-                .OfType<INestedPauseScreenState>()
+            _nestedStateSubscriptions = nestedPauseScreens
                 .Select(nested => nested.OnPresentationChanged.Subscribe(_ => SchedulePublish()))
                 .ToArray();
         }
@@ -90,20 +90,16 @@ namespace Client.WebUiHost.Game.Topics
             return WebUiJson.Serialize(new UiStateDto
             {
                 State = currentState.ToString(),
-                SubState = ResolveSubState(currentState),
+                SubState = ResolveSubState(_uiStateControl.GetCurrentNestedPauseScreen()),
                 KeyHints = keyHints,
             });
+        }
 
-            #region Internal
-
-            // 入れ子screenだけsubStateを配る
-            // Only nested screens carry a subState
-            string ResolveSubState(UIStateEnum state)
-            {
-                return _uiStateDictionary.GetState(state) is INestedPauseScreenState nested ? nested.SubStateName : null;
-            }
-
-            #endregion
+        // 入れ子screenだけsubStateを配る。enumからWeb語彙への文字列化はここだけで起きる
+        // Only nested screens carry a subState; the enum becomes a web-vocabulary string here and nowhere else
+        public static string ResolveSubState(INestedPauseScreenState nestedPauseScreen)
+        {
+            return nestedPauseScreen?.SubState.ToString();
         }
     }
 

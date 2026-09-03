@@ -14,12 +14,10 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "ui_state.request";
 
         private readonly UIStateControl _uiStateControl;
-        private readonly UIStateDictionary _uiStateDictionary;
 
-        public RequestUiStateActionHandler(UIStateControl uiStateControl, UIStateDictionary uiStateDictionary)
+        public RequestUiStateActionHandler(UIStateControl uiStateControl)
         {
             _uiStateControl = uiStateControl;
-            _uiStateDictionary = uiStateDictionary;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -34,7 +32,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // 入れ子ポーズを持つ画面のGameScreen要求は、その入れ子だけを閉じて画面自体は維持する（ADR 0035）
             // A GameScreen request on a nested-pause screen closes only that nested pause and keeps the screen itself (ADR 0035)
-            if (stateName == nameof(UIStateEnum.GameScreen) && _uiStateDictionary.GetState(_uiStateControl.CurrentState) is INestedPauseScreenState nestedScreen)
+            if (stateName == nameof(UIStateEnum.GameScreen) && _uiStateControl.GetCurrentNestedPauseScreen() is { } nestedScreen)
             {
                 // 閉じるものが無い要求は成功に見せず拒否する
                 // A request with nothing to close is rejected instead of reported as success

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Game.PlacementTarget;
@@ -10,6 +11,7 @@ using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.Hotbar;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
@@ -80,7 +82,8 @@ namespace Client.WebUiHost.Game
 
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
-            var uiStateTopic = new UiStateTopic(hub, uiStateControl, uiStateDictionary);
+            var nestedPauseScreens = resolver.Resolve<IReadOnlyList<INestedPauseScreenState>>();
+            var uiStateTopic = new UiStateTopic(hub, uiStateControl, uiStateDictionary, nestedPauseScreens);
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
             C4WebUiRegistration.Register(hub);
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
@@ -182,7 +185,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockSplitGrabActionHandler(controller, subInventoryState));
             hub.RegisterAction(new BlockCollectActionHandler(controller, subInventoryState));
-            hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl, uiStateDictionary));
+            hub.RegisterAction(new RequestUiStateActionHandler(uiStateControl));
             hub.RegisterAction(new ResearchCompleteActionHandler(researchTopic));
             hub.RegisterAction(new FilterSplitterSetModeActionHandler(subInventoryState, blockInventoryTopic));
             hub.RegisterAction(new FilterSplitterSetFilterItemActionHandler(subInventoryState, controller, blockInventoryTopic));
