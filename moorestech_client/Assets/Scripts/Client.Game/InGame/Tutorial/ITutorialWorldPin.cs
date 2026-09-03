@@ -6,10 +6,6 @@ namespace Client.Game.InGame.Tutorial
     /// </summary>
     public interface ITutorialWorldPin : ITutorialViewManager, ITutorialView
     {
-        // どのtutorialTypeを担うピンかを自身が名乗る。型でピンを見分ける必要をなくす
-        // Each pin names the tutorialType it serves, so nothing has to tell pins apart by their type
-        string TutorialType { get; }
-
         void SetActive(bool active);
 
         // 抑止は入れ子で始まり得るので、真偽の代入ではなく深さの増減で表す

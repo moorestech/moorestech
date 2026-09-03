@@ -9,6 +9,6 @@
     { "itemId": 4, "count": 1 },
     { "itemId": 0, "count": 0 }
   ],
-  "selectedEquipment": -1,
+  "selectedEquipment": 1,
   "equipmentSelectionConfirmationRevision": 7
 }

@@ -57,7 +57,7 @@ namespace Game.Map
             var findResult = FindMinableVein(veinGuid, position, out var vein, out var minableParam);
             if (findResult != VeinMiningResult.Success) return findResult;
 
-            // 素手はどのツールにも一致しない
+            // 装備スロットが空ならどのツールにも一致しない
             // Bare hands match no tools
             if (equippedItem.Id == ItemMaster.EmptyItemId) return VeinMiningResult.NoTool;
 
@@ -82,7 +82,7 @@ namespace Game.Map
                 foundParam = null;
 
                 var anyVeinAtPosition = false;
-                foreach (var overVein in ServerContext.ItemMapVeinDatastore.GetOverVeins(pos))
+                foreach (var overVein in ServerContext.ItemMapVeinDatastore.GetVeinsContainingCell(pos))
                 {
                     anyVeinAtPosition = true;
 

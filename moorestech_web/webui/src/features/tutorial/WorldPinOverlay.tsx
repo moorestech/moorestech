@@ -2,6 +2,7 @@ import { useViewportSize } from "@mantine/hooks";
 import { Topics, useTopic, type WorldPinPresentationData } from "@/bridge";
 import { challengeTutorialTextKey, useI18n } from "@/shared/i18n";
 import { useBlockingSkitActive } from "@/shared/uiState";
+import { useUiScale } from "@/shared/uiScale";
 import styles from "./worldPin.module.css";
 
 type WorldPin = WorldPinPresentationData["pins"][number];
@@ -14,13 +15,17 @@ export function WorldPinOverlay() {
   // Pins paint above the dialogue window from the portal layer, so they withdraw and let a blocking skit own the screen
   const blockingSkitActive = useBlockingSkitActive();
   const { width, height } = useViewportSize();
+  const uiScale = useUiScale();
+  // 矢印は--ui-scaleで拡大するため端クランプの余白も同率で広げないと画面外へ食い込む
+  // The arrow grows with --ui-scale, so the edge-clamp margin must widen at the same rate or the arrow overruns the screen
+  const edgeMargin = readEdgeMargin() * uiScale;
   if (blockingSkitActive) return null;
   if (!data || data.pins.length === 0) return null;
   return (
     <div className={styles.overlay} data-testid="world-pin-overlay">
       {data.pins.map((pin) => pin.onScreen
         ? <OnScreenPin key={pin.pinId} pin={pin} />
-        : <EdgeArrow key={pin.pinId} pin={pin} width={width} height={height} />)}
+        : <EdgeArrow key={pin.pinId} pin={pin} width={width} height={height} edgeMargin={edgeMargin} />)}
     </div>
   );
 }
@@ -40,11 +45,10 @@ function OnScreenPin({ pin }: { pin: WorldPin }) {
 
 // 方向を画面端へクランプ配置
 // Clamp toward the screen edge
-function EdgeArrow({ pin, width, height }: { pin: WorldPin; width: number; height: number }) {
+function EdgeArrow({ pin, width, height, edgeMargin }: { pin: WorldPin; width: number; height: number; edgeMargin: number }) {
   if (width === 0 || height === 0) return null;
-  const margin = readEdgeMargin();
-  const maxX = width / 2 - margin;
-  const maxY = height / 2 - margin;
+  const maxX = width / 2 - edgeMargin;
+  const maxY = height / 2 - edgeMargin;
   const scaleX = Math.abs(pin.directionX) > 0.001 ? maxX / Math.abs(pin.directionX) : Number.MAX_VALUE;
   const scaleY = Math.abs(pin.directionY) > 0.001 ? maxY / Math.abs(pin.directionY) : Number.MAX_VALUE;
   const scale = Math.min(scaleX, scaleY);
@@ -53,7 +57,7 @@ function EdgeArrow({ pin, width, height }: { pin: WorldPin; width: number; heigh
   const angle = (Math.atan2(pin.directionY, pin.directionX) * 180) / Math.PI;
   return (
     <div className={styles.arrow} data-testid={`world-pin-arrow-${pin.pinId}`}
-      style={{ left, top, transform: `translate(-50%, -50%) rotate(${angle}deg)` }}>
+      style={{ left, top, transform: `translate(-50%, -50%) rotate(${angle}deg) scale(var(--ui-scale, 1))` }}>
       <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M2 8 H13 V3 L22 12 L13 21 V16 H2 Z" />
       </svg>

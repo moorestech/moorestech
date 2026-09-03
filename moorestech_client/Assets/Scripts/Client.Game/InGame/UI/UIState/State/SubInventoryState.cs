@@ -7,6 +7,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;
 using Cysharp.Threading.Tasks;
@@ -26,6 +27,7 @@ namespace Client.Game.InGame.UI.UIState.State
     public class SubInventoryState : IUIState
     {
         private readonly PlayerInventoryViewController _playerInventoryViewController;
+        private readonly RightShortPressInputService _rightShortPressInputService;
 
         private ISubInventorySource _subInventorySource;
 
@@ -44,9 +46,10 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly Subject<Unit> _onSubInventoryUpdated = new();
 
 
-        public SubInventoryState(PlayerInventoryViewController playerInventoryViewController)
+        public SubInventoryState(PlayerInventoryViewController playerInventoryViewController, RightShortPressInputService rightShortPressInputService)
         {
             _playerInventoryViewController = playerInventoryViewController;
+            _rightShortPressInputService = rightShortPressInputService;
 
             // 統一インベントリ更新イベントを購読
             // Subscribe to unified inventory update event
@@ -79,7 +82,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public UITransitContext GetNextUpdate()
         {
-            if (_shouldClose || InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown)
+            var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
+            if (_shouldClose || InputManager.UI.CloseUI.GetKeyDown || InputManager.UI.OpenInventory.GetKeyDown || isRightShortPressed)
             {
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
@@ -89,6 +93,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnEnter(UITransitContext context)
         {
+            // 他UIState滞在中は右短押しがpollされないため、復帰直後の古い押下状態を破棄する
+            // Right short press isn't polled while another UIState is active, so discard any stale press state on return
+            _rightShortPressInputService.ResetPressState();
+
             _shouldClose = false;
 
             // サブインベントリソースを取得

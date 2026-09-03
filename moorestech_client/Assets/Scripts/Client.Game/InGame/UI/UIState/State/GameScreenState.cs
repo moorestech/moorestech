@@ -3,11 +3,10 @@ using Mooresmaster.Localization.Generated;
 using System;
 using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
-using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
-using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.Skit;
 using Client.Input;
 using UnityEngine;
@@ -17,23 +16,20 @@ namespace Client.Game.InGame.UI.UIState.State
     public class GameScreenState : IUIState, IApplicationFocusRestorer
     {
         private readonly SkitManager _skitManager;
-        private readonly GameScreenSubInventoryInteractService _subInventoryInteractService;
-        private readonly RideVehicleInputService _rideVehicleInputService;
+        private readonly InteractController _interactController;
         private readonly PlacementTargetPickService _placementTargetPickService;
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly HotbarTapInputService _hotbarInputService;
 
         public GameScreenState(
             SkitManager skitManager,
-            GameScreenSubInventoryInteractService subInventoryInteractService,
-            RideVehicleInputService rideVehicleInputService,
+            InteractController interactController,
             PlacementTargetPickService placementTargetPickService,
             UiStateCameraPolicyService cameraPolicyService,
             HotbarTapInputService hotbarInputService)
         {
             _skitManager = skitManager;
-            _subInventoryInteractService = subInventoryInteractService;
-            _rideVehicleInputService = rideVehicleInputService;
+            _interactController = interactController;
             _placementTargetPickService = placementTargetPickService;
             _cameraPolicyService = cameraPolicyService;
             _hotbarInputService = hotbarInputService;
@@ -48,12 +44,10 @@ namespace Client.Game.InGame.UI.UIState.State
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory);
             if (InputManager.UI.OpenMenu.GetKeyDown) return new UITransitContext(UIStateEnum.PauseMenu);
 
-            // 列車に乗り込む範囲＋E押下を 1 行で判定し、TrainHUDScreen へ遷移する。
-            // One-line check for "in ride range + interact key pressed", transits to TrainHUDScreen.
-            if (_rideVehicleInputService.TryGetInteractTransit(out var rideContext)) return rideContext;
-
-            // ブロックや列車とインタラクトしたか
-            if (_subInventoryInteractService.TryGetSubInventoryInteractObject(out var context)) return context;
+            // 選定・ハイライト・F/E実行を駆動
+            // Drive selection, highlight and F/E execution, returning any transition
+            var interactResult = _interactController.ManualUpdate();
+            if (interactResult.IsHandled) return interactResult.TransitContext;
 
             // ミドルクリックで設置物をスポイトし配置モードへ入る
             // Middle-click eyedrops a placed object and enters placement mode
@@ -104,6 +98,10 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
+            // 他UI中はインタラクト操作を停止
+            // No interact operation survives into another UI state
+            _interactController.Disable();
+
             // 次のUIが背後のカメラ回転を継承しないよう停止する
             // Stop look rotation so the next UI does not inherit background camera movement
             _cameraPolicyService.ExitToNeutral();

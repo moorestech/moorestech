@@ -1,6 +1,13 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Localization;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
 
 namespace Client.Tests.PlaceSystem.ElectricWireConnect
 {
@@ -10,6 +17,9 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
     /// </summary>
     public class ElectricWireFeedbackLinesTest
     {
+        private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003");
+        private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004");
+
         [Test]
         public void 電線コスト0以下は行を作らない()
         {
@@ -22,9 +32,49 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         }
 
         [Test]
-        public void 電線不足行は失敗理由写像と同じキーを使う()
+        public void 電線不足行は不足素材ごとに実アイテム名と所持必要を載せる()
         {
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireNoWireItem.Key, ElectricWireFeedbackLines.WireShortage().Key.Key);
+            CreateServer();
+            var shortages = new[]
+            {
+                new ConstructionMaterialShortage(MasterHolder.ItemMaster.GetItemId(Material1Guid), 1, 4),
+                new ConstructionMaterialShortage(MasterHolder.ItemMaster.GetItemId(Material2Guid), 0, 2),
+            };
+
+            var feedback = new PlacementFeedback();
+            ElectricWireFeedbackLines.ReportWireShortages(shortages, feedback);
+            var lines = feedback.Lines;
+
+            Assert.AreEqual(2, lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, lines[0].Key.Key);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material1Guid)), lines[0].TextParams[0]);
+            CollectionAssert.AreEqual(new[] { "1", "4" }, new[] { lines[0].TextParams[1], lines[0].TextParams[2] });
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(Material2Guid)), lines[1].TextParams[0]);
+            CollectionAssert.AreEqual(new[] { "0", "2" }, new[] { lines[1].TextParams[1], lines[1].TextParams[2] });
+
+            #region Internal
+
+            void CreateServer()
+            {
+                new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+                // 実辞書でアイテム名を解決するため使う
+                // Goes through the real dictionary to resolve the item name
+                Localize.Initialize();
+            }
+
+            #endregion
+        }
+
+        [Test]
+        public void 不足素材が算出できないときは汎用の設置不可行へ落ちる()
+        {
+            var feedback = new PlacementFeedback();
+            ElectricWireFeedbackLines.ReportWireShortages(Array.Empty<ConstructionMaterialShortage>(), feedback);
+            var lines = feedback.Lines;
+
+            Assert.AreEqual(1, lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceWireFailed.Key, lines[0].Key.Key);
         }
 
         [Test]

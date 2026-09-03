@@ -1,0 +1,35 @@
+using System;
+using Game.Block.Interface;
+using UnityEngine;
+
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
+{
+    /// <summary>
+    ///     ローカル向きをアンカー向きで回しワールド向きへ変換
+    ///     Maps an anchor-North-basis local direction into world space using the placed anchor's direction
+    /// </summary>
+    public static class AnchorRelativeDirectionUtil
+    {
+        private static readonly BlockDirection[] HorizontalDirections =
+        {
+            BlockDirection.North, BlockDirection.East, BlockDirection.South, BlockDirection.West,
+        };
+        
+        public static BlockDirection RotateByAnchor(BlockDirection localDirection, BlockDirection anchorDirection)
+        {
+            // 水平配置のみ対象。垂直は素通し
+            // Only horizontal tutorial layouts are rotated; vertical variants pass through
+            if (Array.IndexOf(HorizontalDirections, localDirection) < 0) return localDirection;
+            if (Array.IndexOf(HorizontalDirections, anchorDirection) < 0) return localDirection;
+            
+            // 前方ベクトルを回転し水平方位へ変換
+            // Rotate the forward vector by the anchor rotation and map it back to a horizontal direction
+            var rotate = anchorDirection.GetCoordinateConvertAction();
+            var worldForward = rotate(localDirection.GetCoordinateConvertAction()(Vector3Int.forward));
+            foreach (var candidate in HorizontalDirections)
+                if (candidate.GetCoordinateConvertAction()(Vector3Int.forward) == worldForward)
+                    return candidate;
+            return localDirection;
+        }
+    }
+}

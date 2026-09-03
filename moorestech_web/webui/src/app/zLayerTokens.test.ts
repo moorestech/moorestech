@@ -55,4 +55,10 @@ describe("z-layer tokens: body直下Portal", () => {
     // Every Portal element is a body-level sibling competing directly in the root context, so this comparison is meaningful as-is
     expect(portalLayer("modal")).toBeLessThan(portalLayer("toast"));
   });
+
+  it("出展モードの言語選択ゲートは再接続オーバーレイより前に立つ", () => {
+    // ゲート待機中にWSが切れると再接続オーバーレイが被さり、言語ボタンが押せなくなる
+    // A WS drop during the wait would cover the language buttons with the reconnect overlay
+    expect(portalLayer("reconnect")).toBeLessThan(portalLayer("event-language-gate"));
+  });
 });

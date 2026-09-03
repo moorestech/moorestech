@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Client.Localization;
 using Client.Skit.Localization;
 using Mooresmaster.Localization.Generated;
 using Newtonsoft.Json.Linq;
@@ -13,11 +14,12 @@ namespace Client.Tests.Localization.Skit
 {
     public class SkitLocalizationDictionaryCompletenessTest
     {
+        private const string CanonicalKeyLanguageCode = "japanese";
+        private const string EnglishMirrorLanguageCode = "german";
         private static readonly string[] RequiredSampleKeys =
         {
             "skit.100_start_game.1.body", "skit.100_start_game.2.body",
             "skit.100_start_game.3.body", "skit.100_start_game.4.body",
-            "skit.100_start_game.31.overrideCharacterName",
             "skit.sample_short.9.Option1Tag", "skit.sample_short.9.Option2Tag",
             "skit.sample_short.9.Option3Tag",
             "skit.200_star_background.1.body",
@@ -27,9 +29,9 @@ namespace Client.Tests.Localization.Skit
         // Baseline is the root values and sorted CommandForge key/value pairs after trains moved to worldObjectEnable
         private static readonly Dictionary<string, (int Count, string Hash)> Baselines = new()
         {
-            ["english"] = (143, "37060d89c2b4261de3d674e65767085449474bd3d115e6ceabd80abfaec28fd6"),
-            ["japanese"] = (208, "c702afae428b48ffd8d8f8f57a65c00250258430805e79890e636016ce533fd4"),
-            ["german"] = (143, "741d48331d47583b7e00751a80607d8e7774ec64defabb07811f86a86d355d7c"),
+            [Localize.DefaultLanguageCode] = (162, "4ae1de4d73b56470e9abd475b3ecd07692e17305709b08c9f00bf07c2d8f5e76"),
+            [CanonicalKeyLanguageCode] = (162, "4a3ed5dd98c690235baa09cb6b1aa36250d4e23e94de03f29215f409d7a68315"),
+            [EnglishMirrorLanguageCode] = (162, "2534c6dd29dbbb302173017d2dce5aa6a40660cbc94142190bf3dc76c43fec55"),
         };
 
         // LanguageCatalog由来で全言語を走査し新規言語追加時にbaseline未登録を検知する
@@ -40,8 +42,7 @@ namespace Client.Tests.Localization.Skit
         }
 
         [TestCaseSource(nameof(LanguageCodes))]
-        public void CommandForgeDictionaryKeepsRootFlatTranslationsAndBaselineValues(
-            string languageCode)
+        public void CommandForgeDictionaryKeepsRootFlatTranslationsAndBaselineValues(string languageCode)
         {
             var (expectedBaselineCount, expectedBaselineHash) = Baselines[languageCode];
             var root = LoadI18nRoot(languageCode);
@@ -53,6 +54,16 @@ namespace Client.Tests.Localization.Skit
             Assert.IsNotEmpty((string)root["locale"]);
             Assert.IsNotEmpty((string)root["name"]);
             var translations = (JObject)root["translations"];
+            var japaneseTranslations = (JObject)LoadI18nRoot(CanonicalKeyLanguageCode)["translations"];
+            // 全言語の辞書キーを日本語と照合する
+            // Match every dictionary's keys against Japanese
+            CollectionAssert.AreEquivalent(
+                japaneseTranslations.Properties().Select(property => property.Name),
+                translations.Properties().Select(property => property.Name));
+            // 独語の翻訳値は英語複写を維持する
+            // Keep German translation values copied from English
+            if (languageCode == EnglishMirrorLanguageCode)
+                Assert.IsTrue(JToken.DeepEquals(LoadI18nRoot(Localize.DefaultLanguageCode)["translations"], translations));
             var baselineValues = new SortedDictionary<string, string>(StringComparer.Ordinal);
             foreach (var property in translations.Properties())
             {
@@ -79,20 +90,52 @@ namespace Client.Tests.Localization.Skit
                 Assert.AreEqual(runtimeTitle, (string)root["meta"]?["title"], path);
                 foreach (var command in (JArray)root["commands"])
                 {
-                    AddCommandKeys(validKeys, runtimeTitle, (JObject)command);
+                    AddCommandKeys(runtimeTitle, (JObject)command);
                 }
             }
-            // 両言語を同じ実commandへ照合
-            // Match both languages against the same real commands
-            var english = (JObject)LoadI18nRoot("english")["translations"];
-            var japanese = (JObject)LoadI18nRoot("japanese")["translations"];
-            foreach (var requiredKey in RequiredSampleKeys)
+            // 全言語を同じ実commandへ照合
+            // Match every language against the same real commands
+            foreach (var languageCode in LanguageCodes())
             {
-                Assert.IsNotNull(english.Property(requiredKey), $"english: {requiredKey}");
-                Assert.IsNotNull(japanese.Property(requiredKey), $"japanese: {requiredKey}");
+                var translations = (JObject)LoadI18nRoot(languageCode)["translations"];
+                foreach (var requiredKey in RequiredSampleKeys)
+                    Assert.IsNotNull(translations.Property(requiredKey), $"{languageCode}: {requiredKey}");
+                AssertSkitKeysAreValid(translations, languageCode);
             }
-            AssertSkitKeysAreValid(english, validKeys, "english");
-            AssertSkitKeysAreValid(japanese, validKeys, "japanese");
+            #region Internal
+
+            void AddCommandKeys(string title, JObject command)
+            {
+                var commandId = (int)command["id"];
+                var type = (string)command["type"];
+                if (type == "text" || type == "backgroundSkitText")
+                {
+                    validKeys.Add($"skit.{title}.{commandId}.body");
+                    if ((bool?)command["isOverrideCharacterName"] == true)
+                        validKeys.Add($"skit.{title}.{commandId}.overrideCharacterName");
+                    return;
+                }
+                if (type != "selection") return;
+                AddIfPresent("Option1Tag");
+                AddIfPresent("Option2Tag");
+                AddIfPresent("Option3Tag");
+
+                void AddIfPresent(string field)
+                {
+                    if (command[field] != null) validKeys.Add($"skit.{title}.{commandId}.{field}");
+                }
+            }
+
+            void AssertSkitKeysAreValid(JObject translations, string languageCode)
+            {
+                foreach (var property in translations.Properties())
+                {
+                    if (!property.Name.StartsWith("skit.", StringComparison.Ordinal)) continue;
+                    Assert.IsTrue(validKeys.Contains(property.Name), $"{languageCode}: {property.Name}");
+                }
+            }
+
+            #endregion
         }
 
         [Test]
@@ -119,43 +162,6 @@ namespace Client.Tests.Localization.Skit
                 }
             }
         }
-
-        private static void AddCommandKeys(
-            HashSet<string> keys,
-            string title,
-            JObject command)
-        {
-            var commandId = (int)command["id"];
-            var type = (string)command["type"];
-            if (type == "text" || type == "backgroundSkitText")
-            {
-                keys.Add($"skit.{title}.{commandId}.body");
-                if ((bool?)command["isOverrideCharacterName"] == true)
-                    keys.Add($"skit.{title}.{commandId}.overrideCharacterName");
-                return;
-            }
-            if (type != "selection") return;
-            AddIfPresent("Option1Tag");
-            AddIfPresent("Option2Tag");
-            AddIfPresent("Option3Tag");
-            #region Internal
-            void AddIfPresent(string field)
-            {
-                if (command[field] != null) keys.Add($"skit.{title}.{commandId}.{field}");
-            }
-            #endregion
-        }
-        private static void AssertSkitKeysAreValid(
-            JObject translations,
-            HashSet<string> validKeys,
-            string languageCode)
-        {
-            foreach (var property in translations.Properties())
-            {
-                if (!property.Name.StartsWith("skit.", StringComparison.Ordinal)) continue;
-                Assert.IsTrue(validKeys.Contains(property.Name), $"{languageCode}: {property.Name}");
-            }
-        }
         private static JObject LoadI18nRoot(string languageCode)
         {
             return JObject.Parse(File.ReadAllText(GetI18nPath(languageCode)));
@@ -169,9 +175,7 @@ namespace Client.Tests.Localization.Skit
                 "i18n",
                 languageCode + ".json");
         }
-        private static string CalculateBaselineHash(
-            JObject root,
-            SortedDictionary<string, string> sortedValues)
+        private static string CalculateBaselineHash(JObject root, SortedDictionary<string, string> sortedValues)
         {
             var canonical = new StringBuilder();
             AppendPair("locale", (string)root["locale"]);

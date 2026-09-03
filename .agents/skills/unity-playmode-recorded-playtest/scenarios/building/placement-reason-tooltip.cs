@@ -108,11 +108,9 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     p.GiveItemDirect("鉄板", 20);
     await p.WaitSeconds(1f);
     var bumpSnapshot = await AimAndSnapshot(new Vector3(9.5f, 32.9f, 9.5f), "地形干渉");
-    // 現状FAILする。地形干渉の判定元 GroundCollisionDetector が現行マスタの参照するブロックプレハブに1つも付いておらず、
-    // ランタイムでは blockGroundOverlapList が常にfalseになる（本planより前からの既存ギャップ）
-    // This currently FAILS: no block prefab referenced by the live master carries GroundCollisionDetector,
-    // so blockGroundOverlapList is always false at runtime (a gap that predates this plan)
-    p.Assert(HasKey("ui.tooltip.placeBlockedByTerrain"), "地形に埋まる位置で地形干渉行が出る（既知ギャップ: GroundCollisionDetector未装着）");
+    // ADR 0047で通常設置から地形ゲートを外したため、この経路には地形干渉行が出ないのが正
+    // ADR 0047 removed the terrain gate from normal placement, so this path never emits a terrain-overlap line by design
+    p.Assert(!HasKey("ui.tooltip.placeBlockedByTerrain"), "通常設置では地形に埋まる位置でも地形干渉行が出ない（ADR 0047）");
     await p.Screenshot("02-blocked-by-terrain");
 
     p.Note("フェーズ2b: 既存ブロックを踏むフットプリント → 「設置位置が埋まっています」");
@@ -132,7 +130,7 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     await p.Screenshot("03-blocked-by-existing-block");
 
     // ---------------------------------------------------------------- 3. 電線不足 / 電線コスト
-    p.Note("フェーズ3: 電柱プレビューの電線行を確認（銅のワイヤー0 → 素材不足＋電線不足の複数行）");
+    p.Note("フェーズ3: 電柱プレビューの電線行を確認（銅のワイヤー0 → 建設素材と電線素材の不足行が並ぶ）");
     p.UnlockBlock("電柱");
     var existingPole = new Vector3Int(-10, 32, 10);
     p.PlaceBlockDirect("電柱", existingPole, BlockDirection.North);
@@ -143,8 +141,10 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
 
     var nearPoleCell = new Vector3Int(-10, 32, 4);
     var noWireSnapshot = await AimAndSnapshot(PlaytestUiOps.PlaceAimPoint("電柱", nearPoleCell, BlockDirection.North), "電線なし");
-    p.Assert(HasKey("ui.tooltip.placeWireNoWireItem"), "電線素材が無いとき「電線が足りません」行が出る");
-    p.Assert(HasKey("ui.tooltip.placeMaterialShortage"), "同時に素材不足行も出る（複数理由が全部並ぶ）");
+    // 電線不足は専用キーを廃し実アイテム名＋所持/必要の素材不足行へ合流済み
+    // The wire shortage no longer has its own key; it merges into the material-shortage line with the real item name and held/required
+    p.Assert(HasKey("ui.tooltip.placeMaterialShortage"), "電線素材(銅のワイヤー)と建設素材の不足が「アイテム不足： 名前 所持/必要」行で並ぶ");
+    p.Assert(!HasKey("ui.tooltip.placeWireFailed"), "不足素材が算出できたので汎用の設置不可行へは落ちない");
     await p.Screenshot("04-wire-shortage");
 
     p.Note("フェーズ3b: 銅のワイヤーを付与 → 「電線 xN」の案内行");

@@ -39,6 +39,10 @@ namespace Client.Starter.Initialization
 
         private async UniTask FinalizeAsync()
         {
+            // 出展モードは言語が決まるまで開始を止める。スキットとチュートリアルが英語で走り出す前に挟む
+            // Event mode holds the start until a language is chosen, ahead of skits and tutorials starting in English
+            await EventMode.EventModeStartGate.WaitForLanguageSelectionAsync();
+
             var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
             var resolver = starter.StartGame(_serverResult.HandshakeResponse);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Interact.Outline;
 using Client.Game.InGame.Map.NearestSearch;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
@@ -28,6 +29,8 @@ namespace Client.Game.InGame.Map.Outcrop
         private Vector3Int _minePosition;
 
         private readonly List<ItemId> _usableToolItemIds = new();
+
+        private GameObject _outlineObject;
 
         public GameObject GameObject => gameObject;
         public SoundEffectType DestroySoundType { get; private set; }
@@ -96,10 +99,13 @@ namespace Client.Game.InGame.Map.Outcrop
             return MiningStartOutcome.Ready;
         }
 
-        public void SetFocused(bool focused)
+        // 露頭は無限資源で消えないので常に候補
+        // An outcrop never disappears, so it is always a candidate
+        public bool IsInteractAvailable => true;
+
+        public void SetHighlighted(bool highlighted)
         {
-            // 露頭演出は後続対応
-            // Outcrop visuals follow later
+            RuntimeOutlineFactory.Apply(gameObject, ref _outlineObject, highlighted);
         }
 
         public void SendAttack()

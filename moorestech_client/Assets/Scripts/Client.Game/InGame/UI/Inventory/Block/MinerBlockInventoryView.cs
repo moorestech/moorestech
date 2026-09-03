@@ -134,13 +134,13 @@ namespace Client.Game.InGame.UI.Inventory.Block
             _visibleMiningItems.Clear();
             foreach (var settings in mineSettings.items)
             {
-                // 現在表示されている分間採掘数を表示
-                // Display per-minute mining count for visible items
+                // 分間採掘数はサーバーの実効採掘時間から出す。跨いだ鉱脈は最も遅い1本のタイマーを共有する
+                // The per-minute count comes from the server's effective mining time; straddled veins share one timer, the slowest
                 var targetItemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
                 if (!currentMiningItemIds.Contains(targetItemId)) continue;
-                if (settings.Time <= 0f) continue;
+                if (state.MiningSeconds <= 0) continue;
                 
-                var perMinute = 60f / settings.Time;
+                var perMinute = (float)(60 / state.MiningSeconds);
                 _visibleMiningItems.Add((settings.ItemGuid, perMinute));
             }
             RefreshMiningItemCount();

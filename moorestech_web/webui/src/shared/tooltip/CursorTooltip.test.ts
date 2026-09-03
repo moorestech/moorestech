@@ -71,7 +71,11 @@ describe("CursorTooltip", () => {
   it("renders every line in order", () => {
     setDictionaries("english", {
       [L.ui.tooltip.placeBlockedByTerrain]: "Blocked by terrain",
-      [L.ui.tooltip.placeMaterialShortage]: "{p0} {p1}/{p2}",
+      // 注入した書式を検証する自己充足アサーションであり、接頭辞そのものの回帰検知はC#側（localization.csvを読むテスト）が担う
+      // This is a self-contained assertion over an injected format; regression of the prefix itself is covered on the C# side, which reads localization.csv
+      // ここで検証しているのは{pN}補間の責務のみ
+      // Only the {pN} interpolation responsibility is verified here
+      [L.ui.tooltip.placeMaterialShortage]: "Missing item: {p0} {p1}/{p2}",
     }, {}, {});
 
     expect(resolveTooltipLines({
@@ -80,7 +84,7 @@ describe("CursorTooltip", () => {
         { textKey: L.ui.tooltip.placeBlockedByTerrain, textParams: [] },
         { textKey: L.ui.tooltip.placeMaterialShortage, textParams: ["Iron Plate", "3", "10"] },
       ],
-    }, createTranslator(getI18nSnapshot()))).toEqual(["Blocked by terrain", "Iron Plate 3/10"]);
+    }, createTranslator(getI18nSnapshot()))).toEqual(["Blocked by terrain", "Missing item: Iron Plate 3/10"]);
   });
 
   it("shows a loud marker for an unknown localized key", () => {
@@ -105,7 +109,7 @@ describe("CursorTooltip", () => {
       innerHeight: 720,
     });
     const renderer = create(createElement(CursorTooltip), {
-      createNodeMock: () => ({ offsetWidth: 120, offsetHeight: 40 }),
+      createNodeMock: () => ({ getBoundingClientRect: () => ({ width: 120, height: 40 }) }),
     });
     const initialCalls = testState.clamp.mock.calls.length;
 

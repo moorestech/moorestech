@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using Common.Debug;
 using Core.Master;
@@ -9,6 +9,7 @@ using Game.Map.Interface.MapObject;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Mooresmaster.Model.MapModule;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
@@ -185,7 +186,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 跨いだ閾値の回数だけ[minCount, maxCount]の抽選が行われる
             // The [minCount, maxCount] roll happens once per crossed threshold
-            var earnItem = MasterHolder.MapObjectMaster.GetMapObjectElement(PickUpMapObjectGuid).EarnItems[0];
+            var earnItem = GetMinableParam(PickUpMapObjectGuid).EarnItems.items[0];
             var earnedCount = CountMainInventoryItem(playerInventory, MasterHolder.ItemMaster.GetItemId(earnItem.ItemGuid));
             var crossedThresholdCount = CalculateOneHitCrossedThresholdCount(PickUpMapObjectGuid);
             Assert.GreaterOrEqual(earnedCount, earnItem.MinCount * crossedThresholdCount);
@@ -239,8 +240,16 @@ namespace Tests.CombinedTest.Server.PacketTest
 
         private ItemId GetEarnItemId(Guid mapObjectGuid)
         {
-            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
-            return MasterHolder.ItemMaster.GetItemId(mapObjectElement.EarnItems[0].ItemGuid);
+            return MasterHolder.ItemMaster.GetItemId(GetMinableParam(mapObjectGuid).EarnItems.items[0].ItemGuid);
+        }
+
+        /// <summary>
+        ///     採掘設定は判別子の内側にあるため、採掘できる個体としてほどいてから読む
+        ///     The mining settings live inside the discriminator, so they are unwrapped as a minable object first
+        /// </summary>
+        private static IMinableMapObjectParam GetMinableParam(Guid mapObjectGuid)
+        {
+            return (IMinableMapObjectParam)MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid).MiningParam;
         }
 
         /// <summary>
@@ -249,8 +258,8 @@ namespace Tests.CombinedTest.Server.PacketTest
         /// </summary>
         private int CalculateOneHitCrossedThresholdCount(Guid mapObjectGuid)
         {
-            var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElement(mapObjectGuid);
-            return (mapObjectElement.Hp - 1) / mapObjectElement.EarnItemHpInterval + 1;
+            var minableParam = GetMinableParam(mapObjectGuid);
+            return (minableParam.Hp - 1) / minableParam.EarnItemHpInterval + 1;
         }
 
         private int CountMainInventoryItem(PlayerInventoryData playerInventory, ItemId itemId)

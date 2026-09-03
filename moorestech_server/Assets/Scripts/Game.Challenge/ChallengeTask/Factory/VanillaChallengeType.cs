@@ -7,5 +7,8 @@ namespace Game.Challenge.Task.Factory
         public const string BlockPlaceTask = "blockPlace";
         public const string CompleteResearchTask = "completeResearch";
         public const string EquipItemTask = "equipItem";
+        public const string BlockPlaceOnVeinTask = "blockPlaceOnVein";
+        public const string GearSpinningTask = "gearSpinning";
+        public const string GearConnectedToTask = "gearConnectedTo";
     }
 }

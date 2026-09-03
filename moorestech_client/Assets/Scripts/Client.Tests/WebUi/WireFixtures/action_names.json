@@ -33,7 +33,8 @@
     "skit.select",
     "skit.set_auto",
     "skit.skip",
-    "skit.set_ui_hidden"
+    "skit.set_ui_hidden",
+    "event_mode.select_language"
   ],
   "excludedFromWebContract": [
     "playtest.dom_query_result"

@@ -260,6 +260,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
+                },
+                {
+                    "name": "Interact",
+                    "type": "Button",
+                    "id": "f6f657d5-7b0f-4ed9-a32f-65fb9aa8106b",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Ride",
+                    "type": "Button",
+                    "id": "8e295750-855e-459a-bd2b-047e71e67941",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -304,6 +322,28 @@
                     "processors": "",
                     "groups": "KeyboardMouse",
                     "action": "ScreenRightClick",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4c055188-7f8d-4967-8093-627b29f8c180",
+                    "path": "<Keyboard>/f",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Interact",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "74953fd9-92be-4d16-80f1-63f4c189d396",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "KeyboardMouse",
+                    "action": "Ride",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

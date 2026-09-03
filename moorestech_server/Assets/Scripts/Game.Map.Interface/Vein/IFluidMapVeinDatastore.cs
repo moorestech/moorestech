@@ -5,6 +5,8 @@ namespace Game.Map.Interface.Vein
 {
     public interface IFluidMapVeinDatastore
     {
-        public List<IFluidMapVein> GetOverVeins(Vector3Int pos);
+        // 手掘り・露頭用のセル包含判定（Y込みinclusive）
+        // Cell-containment check for hand mining / exposed veins (Y-inclusive)
+        public List<IFluidMapVein> GetVeinsContainingCell(Vector3Int cell);
     }
 }

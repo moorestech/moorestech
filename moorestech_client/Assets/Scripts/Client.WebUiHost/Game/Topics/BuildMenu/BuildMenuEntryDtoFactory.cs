@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.WebUiHost.Game.Icons;
+using Common.Debug;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Construction;
 using Game.PlacementTarget;
@@ -18,15 +21,23 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
     {
         // 解放判定はResolverが持つ唯一の供給点へ委ね、ここは変換だけを担う
         // Delegates the unlock decision to the resolver's single supply point; this file only converts
-        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery)
+        public static List<BuildMenuEntryDto> CreateDtos(PlacementTargetResolver placementTargetResolver, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)
         {
-            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery);
+            return CreateDtos(placementTargetResolver.CreateUnlockedTargets(), walletQuery, inventoryItems);
         }
 
-        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery)
+        public static List<BuildMenuEntryDto> CreateDtos(IReadOnlyList<IPlacementTarget> targets, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems)
         {
             var dtos = new List<BuildMenuEntryDto>();
             var categoryMaster = MasterHolder.BuildMenuCategoryMaster;
+
+            // 所持集計は全エントリで共有
+            // Share the held tally across all entries
+            var heldByItem = ConstructionMaterialHeldCounts.Tally(inventoryItems);
+
+            // デバッグ設定はpublish毎に1回解決
+            // Resolve the debug flag once per publish
+            var freeBlockPlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
             // 共有カタログの列挙順（ブロック→車両→接続ツール→BPコピー→BP）がそのまま表示順
             // The shared catalog's order (blocks, train cars, connect tools, blueprint copy, blueprints) is the display order
@@ -35,6 +46,16 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             foreach (var target in targets)
             {
                 var (categoryGuid, subCategoryGuid) = ResolveCategoryPair(target);
+
+                // 財布へは1エントリ1回だけ問い合わせ、設置数表示と支払い免除の両方をここから導く
+                // Ask the wallet once per entry and derive both the set display and the payment waiver from it
+                var block = target as BlockPlacementTarget;
+                var walletStatus = block == null ? null : walletQuery.GetWalletStatus(block.BlockId);
+
+                // 無料設置デバッグはブロック設置だけを免除する（車両設置はこのフラグを見ない）
+                // The free-placement debug flag waives block placement only; train-car placement ignores it
+                var paymentWaived = (freeBlockPlacement && block != null) || (walletStatus?.CoversNextPlacement() ?? false);
+
                 dtos.Add(new BuildMenuEntryDto
                 {
                     // 設置対象IDはGuid文字列1本。kindは表示・振る舞い用で識別子ではない
@@ -44,8 +65,9 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                     Label = target.Kind == PlacementTargetKind.Blueprint ? target.DisplayName : null,
                     CategoryGuid = categoryGuid.ToString("D"),
                     SubCategoryGuid = subCategoryGuid.ToString("D"),
-                    RequiredItems = CreateRequiredItemDtos(target),
-                    SetPlacement = ResolveSetPlacement(target),
+                    RequiredItems = BuildMenuMaterialAvailability.CreateRequiredItemDtos(target, heldByItem),
+                    PaymentWaived = paymentWaived,
+                    SetPlacement = ResolveSetPlacement(walletStatus),
                     IconUrl = ResolveIconUrl(target),
                 });
             }
@@ -73,33 +95,10 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
                 });
             }
 
-            // 建設費をItemIdへ変換
-            // Convert costs to ItemIds
-            List<BuildMenuRequiredItemDto> CreateRequiredItemDtos(IPlacementTarget target)
+            // 財布を持たないブロックと非ブロックはnull状態のまま配信でキーごと省略される
+            // Blocks without a wallet and non-block kinds stay null, which omits the key on the wire
+            BuildMenuSetPlacementDto ResolveSetPlacement(ConstructionWalletStatus? status)
             {
-                var itemDtos = new List<BuildMenuRequiredItemDto>();
-                foreach (var (itemGuid, count) in target.CreateRequiredItems())
-                {
-                    itemDtos.Add(new BuildMenuRequiredItemDto { ItemId = MasterHolder.ItemMaster.GetItemId(itemGuid).AsPrimitive(), Count = count });
-                }
-                return itemDtos;
-            }
-
-            // ブロックかどうかの供給源はKindのenum一本に揃える
-            // The single supply point for "is this a block" is the Kind enum
-            BlockPlacementTarget ResolveBlockTarget(IPlacementTarget target)
-            {
-                return target.Kind == PlacementTargetKind.Block ? (BlockPlacementTarget)target : null;
-            }
-
-            // 財布の有無も残数も財布へ問い合わせる。非ブロックは財布を持たない
-            // Both whether a wallet exists and how much remains come from the wallet itself; non-block kinds have none
-            BuildMenuSetPlacementDto ResolveSetPlacement(IPlacementTarget target)
-            {
-                var block = ResolveBlockTarget(target);
-                if (block == null) return null;
-
-                var status = walletQuery.GetWalletStatus(block.BlockId);
                 if (status == null) return null;
                 return new BuildMenuSetPlacementDto { PerCost = status.Value.PlacementsPerCost, Remaining = status.Value.RemainingCount };
             }
@@ -135,34 +134,25 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
             };
         }
 
-        // アイコンURL解決もホットバートピックと共有する唯一の解決点
-        // The single resolution point for icon URLs, shared with the hotbar topic
+        // アイコンURL解決もホットバートピックと共有する唯一の解決点。種別の判定は型で行う
+        // The single resolution point for icon URLs, shared with the hotbar topic; the kind check is by type
         public static string ResolveIconUrl(IPlacementTarget target)
         {
-            switch (target.Kind)
+            switch (target)
             {
-                case PlacementTargetKind.Block:
-                {
-                    var block = (BlockPlacementTarget)target;
-                    // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
-                    // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
+                // block-icons はblock inventoryトピックのBlockIconと共有するため揮発BlockIdのまま（Guid化はplan Aのスコープ外）
+                // block-icons is shared with the block inventory topic's BlockIcon, so it stays volatile BlockId (GUID conversion is out of plan A's scope)
+                case BlockPlacementTarget block:
                     return $"{BlockIconSource.PathPrefixConst}{block.BlockId.AsPrimitive()}{IconEndpoint.PathSuffix}";
-                }
-                case PlacementTargetKind.TrainCar:
-                {
-                    var trainCar = (TrainCarPlacementTarget)target;
+                case TrainCarPlacementTarget trainCar:
                     return $"{TrainCarIconSource.PathPrefixConst}{trainCar.TrainCarGuid}{IconEndpoint.PathSuffix}";
-                }
-                case PlacementTargetKind.ConnectTool:
-                {
-                    var connectTool = (ConnectToolPlacementTarget)target;
+                case ConnectToolPlacementTarget connectTool:
                     return $"{ConnectToolIconSource.PathPrefixConst}{connectTool.ConnectToolGuid}{IconEndpoint.PathSuffix}";
-                }
-                case PlacementTargetKind.BlueprintCopy:
-                case PlacementTargetKind.Blueprint:
+                case BlueprintCopyPlacementTarget:
+                case BlueprintPlacementTarget:
                     return null;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(target.Kind), target.Kind, null);
+                    throw new ArgumentOutOfRangeException(nameof(target), target, null);
             }
         }
     }

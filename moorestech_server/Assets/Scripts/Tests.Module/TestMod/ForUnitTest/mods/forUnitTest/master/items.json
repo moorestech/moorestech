@@ -815,5 +815,11 @@
             "slotCount": 54
         }
     ],
-    "equipmentSlotCount": 3
+    "equipmentSlotCount": 3,
+    "initialEquipmentItems": [
+        {
+            "itemGuid": "00000000-0000-0000-1234-000000000001",
+            "itemCount": 1
+        }
+    ]
 }

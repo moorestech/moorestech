@@ -32,10 +32,12 @@ describe("icon overlay text outline", () => {
     expect(tokens.match(/-webkit-text-stroke:/g)).toHaveLength(2);
   });
 
-  it("黒文字3系統が白縁の共有クラスを持ち、擬似縁を残さない", () => {
-    expect(itemSlotTsx).toContain("iconTextOutlineLight");
-    expect(craftRecipeEntryTsx).toContain("iconTextOutlineLight");
-    expect(researchDetailTsx).toContain("iconTextOutlineLight");
+  // 素材の所持/必要は3系統ともItemSlotのshortageへ集約済みで、縁の合成もそこ1箇所が持つ
+  // All three material owned/required usages now live in ItemSlot's shortage, which composes the outline once
+  it("黒文字が白縁の共有クラスを持ち、擬似縁を残さない", () => {
+    expect(itemSlotTsx.match(/iconTextOutlineLight/g)).toHaveLength(2);
+    expect(craftRecipeEntryTsx).not.toContain("iconTextOutlineLight");
+    expect(researchDetailTsx).not.toContain("iconTextOutlineLight");
     expect(itemSlotCss).not.toContain("text-shadow");
     expect(researchCss).not.toContain("text-shadow");
     // .craftButton の擬似太字は対象外

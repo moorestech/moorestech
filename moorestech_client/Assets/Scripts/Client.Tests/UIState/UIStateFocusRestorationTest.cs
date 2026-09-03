@@ -1,14 +1,19 @@
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control.ViewMode;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
+using Client.Game.InGame.Map.MapVein;
+using Client.Tests.Map.Vein;
 using Client.Tests.UIState.Fakes;
 using Client.Tests.ViewMode;
 using NUnit.Framework;
@@ -21,8 +26,9 @@ namespace Client.Tests.UIState
         public void GameScreenExitReturnsToNeutralBeforeDirectInventoryTransition()
         {
             SetUpGameStateController();
+            SetUpMouseCursorTooltip();
             var applier = new FakePlayerCameraInteractionApplier();
-            var state = new GameScreenState(null, null, null, null, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
+            var state = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
 
             applier.Calls.Clear();
@@ -100,7 +106,8 @@ namespace Client.Tests.UIState
             var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), hotbarInputService);
+            var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), CreateVeinAabbRegistry(), new VeinRestrictedPlacementState(), hotbarInputService, rightShortPressInputService);
         }
 
         private DeleteObjectState CreateDeleteObjectState(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
@@ -109,7 +116,15 @@ namespace Client.Tests.UIState
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
-            return new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null));
+            var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
+            return new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService);
+        }
+
+        // 鉱脈ゼロの台帳。PlaceBlockStateはコンストラクタで表示を解決するため実体が要る
+        // A registry with no veins; PlaceBlockState resolves the display in its constructor and needs a real one
+        private static MapVeinAabbRegistry CreateVeinAabbRegistry()
+        {
+            return MapVeinAabbRegistryFixture.Create();
         }
     }
 }

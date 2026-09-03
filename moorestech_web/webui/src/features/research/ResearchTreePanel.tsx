@@ -29,15 +29,14 @@ export default function ResearchTreePanel() {
   // topic未受信はnullのまま渡し、読む側が「所持0」と取り違えられない形にする(D4)
   // Pass null through while the topic has not arrived, so no reader can mistake it for "owns zero" (D4)
   const owned = useMemo(() => (inventory ? buildOwnedCounts(inventory.mainSlots) : null), [inventory]);
-  // 同ノード再クリックで閉じるトグル選択
-  // Toggle selection: clicking the same node again closes the pane
-  const toggleSelect = useCallback((guid: string) => {
-    setSelectedGuid((current) => (current === guid ? null : guid));
+  // 同ノード再タップで閉じるトグル選択
+  // Toggle selection: tapping the same node again closes the pane
+  const toggleSelect = useCallback((node: ResearchNodeData) => {
+    setSelectedGuid((current) => (current === node.guid ? null : node.guid));
   }, []);
   const renderResearchNode = useCallback((node: ResearchNodeData, point: TreePoint) => (
-    <ResearchNodeCard node={node} left={point.x} top={point.y}
-      selected={node.guid === selectedGuid} onSelect={toggleSelect} />
-  ), [selectedGuid, toggleSelect]);
+    <ResearchNodeCard node={node} left={point.x} top={point.y} selected={node.guid === selectedGuid} />
+  ), [selectedGuid]);
   const selectedNode = nodes.find((node) => node.guid === selectedGuid);
   // 中央寄せはresearchLogic準拠
   // Centering target follows researchLogic
@@ -51,7 +50,7 @@ export default function ResearchTreePanel() {
       <GamePanel title={t(L.ui.research.title)} style={{ height: "100%", boxSizing: "border-box" }}>
         <div className={styles.treeContainer}>
           <TreeView nodes={nodes} getId={getResearchNodeId} getPosition={getResearchNodePosition}
-            getPrevIds={getPreviousResearchNodeIds} nodeTargetSelector="[data-research-node]" testIdPrefix="research"
+            getPrevIds={getPreviousResearchNodeIds} onNodeTap={toggleSelect} testIdPrefix="research"
             renderNode={renderResearchNode} viewportKey="research" initialFocus={initialFocus} />
         </div>
       </GamePanel>

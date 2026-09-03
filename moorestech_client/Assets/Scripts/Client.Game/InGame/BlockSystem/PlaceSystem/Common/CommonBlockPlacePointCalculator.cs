@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Core.Master;
 using Game.Block.Interface;
@@ -11,7 +11,13 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
-    public class CommonBlockPlacePointCalculator
+    /// <summary>
+    ///     ドラッグ列の生成と、確定した列への既存ブロック重なり評価を担う
+    ///     Builds a drag run and evaluates existing-block overlaps once the run is final
+    ///     生成と評価を分けているのは、両者の間で地形追従がYを書き換えるため
+    ///     They are separate because terrain following rewrites Y between the two
+    /// </summary>
+    public class CommonBlockPlacePointCalculator : IExistingBlockQuery
     {
         private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
         
@@ -20,29 +26,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _blockGameObjectDataStore = blockGameObjectDataStore;
         }
         
-        // blockCausesはPlaceInfo列と同じ添字で並走するセル毎の設置不可原因（表示側へ明示的に渡すための列）
-        // blockCauses is the per-cell block cause column indexed like the PlaceInfo list, handed explicitly to the display side
-        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, out List<PlacementBlockCause> blockCauses)
+        // 列の骨格だけを作る。この時点の不可原因はすべてNoneで、Yが確定してから評価される
+        // Builds only the run skeleton; every block cause is None here and gets evaluated once Y is final
+        public static PlacementRun CalculateRun(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement)
         {
-            return CalculatePoint(startPoint, endPoint, blockDirection, holdingBlockMasterElement, IsNotExistBlock, out blockCauses);
-        }
-
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, BlockMasterElement holdingBlockMasterElement, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, out List<PlacementBlockCause> blockCauses)
-        {
-            // ひとまず、XとZ方向に目的地に向かって1ずつ進む
             var blockSize = holdingBlockMasterElement.BlockSize;
 
-            List<Vector3Int> positions = CalcPositions(blockSize);
+            List<Vector3Int> positions = CalcPositions(blockSize, out var runAxis);
 
-            List<PlaceInfo> placeInfos = CalcPlaceDirection(positions);
+            List<PlaceInfo> cells = CalcPlaceCells(positions);
 
-            blockCauses = CalcPlaceable(placeInfos);
+            var blockCauses = new List<PlacementBlockCause>(cells.Count);
+            for (var i = 0; i < cells.Count; i++) blockCauses.Add(PlacementBlockCause.None);
 
-            return placeInfos;
+            return new PlacementRun(cells, blockCauses, runAxis, ResolveCursorIndex(positions));
 
             #region Internal
 
-            List<Vector3Int> CalcPositions(Vector3Int blockSize)
+            List<Vector3Int> CalcPositions(Vector3Int size, out PlacementRunAxis extendedAxis)
             {
                 var pointList = new List<Vector3Int>();
                 var currentPoint = startPoint;
@@ -56,7 +57,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 if (deltaX >= deltaY && deltaX >= deltaZ)
                 {
                     // X方向に伸ばす
-                    var stepX = blockSize.x;
+                    extendedAxis = PlacementRunAxis.X;
+                    var stepX = size.x;
                     var directionX = endPoint.x > startPoint.x ? 1 : -1;
                     
                     while (Mathf.Abs(currentPoint.x - endPoint.x) >= stepX)
@@ -68,7 +70,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 else if (deltaZ >= deltaX && deltaZ >= deltaY)
                 {
                     // Z方向に伸ばす
-                    var stepZ = blockSize.z;
+                    extendedAxis = PlacementRunAxis.Z;
+                    var stepZ = size.z;
                     var directionZ = endPoint.z > startPoint.z ? 1 : -1;
                     
                     while (Mathf.Abs(currentPoint.z - endPoint.z) >= stepZ)
@@ -80,7 +83,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 else
                 {
                     // Y方向に伸ばす
-                    var stepY = blockSize.y;
+                    extendedAxis = PlacementRunAxis.Y;
+                    var stepY = size.y;
                     var directionY = endPoint.y > startPoint.y ? 1 : -1;
                     
                     while (Mathf.Abs(currentPoint.y - endPoint.y) >= stepY)
@@ -93,60 +97,76 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 return pointList;
             }
             
-            List<PlaceInfo> CalcPlaceDirection(List<Vector3Int> placePositions)
+            List<PlaceInfo> CalcPlaceCells(List<Vector3Int> placePositions)
             {
                 var placeInfos = new List<PlaceInfo>(placePositions.Count);
 
                 foreach (var placePosition in placePositions)
                 {
-                    placeInfos.Add(new PlaceInfo
+                    var placeInfo = new PlaceInfo
                     {
                         Position = placePosition,
                         Direction = blockDirection,
                         VerticalDirection = BlockVerticalDirection.Horizontal,
                         Placeable = true,
-                    });
-                }
-
-                return placeInfos;
-            }
-
-            List<PlacementBlockCause> CalcPlaceable(List<PlaceInfo> infos)
-            {
-                var causes = new List<PlacementBlockCause>(infos.Count);
-                for (var i = 0; i < infos.Count; i++)
-                {
-                    var info = infos[i];
-                    causes.Add(PlacementBlockCause.None);
+                    };
 
                     // ゼロGuidは実ブロックに解決されない未解決値として扱う（純粋ロジックテストのモック要素）
                     // A zero Guid is treated as an unresolved value that never resolves to a real block (used by pure-logic test mocks)
                     if (holdingBlockMasterElement.BlockGuid != Guid.Empty)
                     {
-                        info.BlockId = MasterHolder.BlockMaster.GetBlockId(holdingBlockMasterElement.BlockGuid);
+                        placeInfo.BlockId = MasterHolder.BlockMaster.GetBlockId(holdingBlockMasterElement.BlockGuid);
                     }
 
-                    //TODO ブロックの数が足りているかどうか
-                    if (info.Placeable && !isNotExistBlock(info, holdingBlockMasterElement))
-                    {
-                        info.Placeable = false;
-                        causes[i] = PlacementBlockCause.ExistingBlock;
-                    }
+                    placeInfos.Add(placeInfo);
                 }
 
-                return causes;
+                return placeInfos;
+            }
+
+            // 終点は刻み幅で割り切れないと列に載らないため、一致が無ければ末尾セルを充てる
+            // The end point is not on the run when the step does not divide it, so the last cell stands in
+            int ResolveCursorIndex(List<Vector3Int> placePositions)
+            {
+                for (var i = 0; i < placePositions.Count; i++)
+                {
+                    if (placePositions[i] == endPoint) return i;
+                }
+
+                return placePositions.Count - 1;
             }
 
             #endregion
         }
         
+        // Y確定後の列へ既存ブロックの重なりを反映する。既に別の原因が立っているセルは触らない
+        // Applies existing-block overlaps to a run whose Y is final; cells that already carry another cause stay untouched
+        public static void EvaluateExistingBlockCauses(PlacementRun run, IExistingBlockQuery existingBlockQuery)
+        {
+            for (var i = 0; i < run.Cells.Count; i++)
+            {
+                var placeInfo = run.Cells[i];
+                if (run.BlockCauses[i] != PlacementBlockCause.None || !placeInfo.Placeable) continue;
+                if (!existingBlockQuery.IsOverlapping(placeInfo)) continue;
+
+                placeInfo.Placeable = false;
+                run.BlockCauses[i] = PlacementBlockCause.ExistingBlock;
+            }
+        }
+
+        public void EvaluateExistingBlockCauses(PlacementRun run)
+        {
+            EvaluateExistingBlockCauses(run, this);
+        }
+
         // 設置予定地にブロックが既に存在しているかどうか
-        private bool IsNotExistBlock(PlaceInfo placeInfo, BlockMasterElement holdingBlockMasterElement)
+        // Whether a block already occupies the planned placement cell
+        public bool IsOverlapping(PlaceInfo placeInfo)
         {
             var size = MasterHolder.BlockMaster.GetBlockMaster(placeInfo.BlockId).BlockSize;
             var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, size);
 
-            return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
+            return _blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
         }
     }
 }

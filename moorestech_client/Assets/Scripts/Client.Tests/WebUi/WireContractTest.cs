@@ -38,9 +38,7 @@ namespace Client.Tests.WebUi
                 MainSlots = new List<SlotDto> { new SlotDto { ItemId = 1, Count = 10 }, new SlotDto { ItemId = 2, Count = 5 }, new SlotDto { ItemId = 3, Count = 1 } },
                 Grab = new SlotDto { ItemId = 0, Count = 0 },
                 Equipment = new List<SlotDto> { new SlotDto { ItemId = 4, Count = 1 }, new SlotDto { ItemId = 0, Count = 0 } },
-                // 素手(-1)を正準形に含め、負値がそのまま配信されることを固定する
-                // Include bare hands (-1) in the canonical form, pinning that the negative value ships as-is
-                SelectedEquipment = -1,
+                SelectedEquipment = 1,
                 EquipmentSelectionConfirmationRevision = 7,
             };
             AssertMatchesFixture(dto, "inventory_snapshot.json");
@@ -129,7 +127,7 @@ namespace Client.Tests.WebUi
                 "invalid_id", "invalid_result", "no_pending_modal",
                 "invalid_state", "unsupported_state",
                 "invalid_guid", "research_failed", "block_not_open",
-                "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale",
+                "invalid_direction", "filter_request_failed", "unknown_entry", "unknown_locale", "already_selected",
                 "stale_session", "stale_revision", "intent_not_allowed", "unknown_choice",
                 "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed",
             };
@@ -175,8 +173,8 @@ namespace Client.Tests.WebUi
                 },
                 Entries = new List<BuildMenuEntryDto>
                 {
-                    new() { Id = "30000000-0000-4000-8000-000000000001", Kind = "block", CategoryGuid = "10000000-0000-4000-8000-000000000001", SubCategoryGuid = "20000000-0000-4000-8000-000000000001", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5 } }, SetPlacement = new BuildMenuSetPlacementDto { PerCost = 3, Remaining = 2 }, IconUrl = "/api/block-icons/1.png" },
-                    new() { Id = "8f9c2a51-0000-4000-8000-000000000001", Kind = "trainCar", CategoryGuid = "10000000-0000-4000-8000-000000000002", SubCategoryGuid = "20000000-0000-4000-8000-000000000003", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 7, Count = 2 } }, IconUrl = "/api/train-car-icons/8f9c2a51-0000-4000-8000-000000000001.png" },
+                    new() { Id = "30000000-0000-4000-8000-000000000001", Kind = "block", CategoryGuid = "10000000-0000-4000-8000-000000000001", SubCategoryGuid = "20000000-0000-4000-8000-000000000001", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 3, Count = 5, Held = 2, Lacking = true } }, PaymentWaived = true, SetPlacement = new BuildMenuSetPlacementDto { PerCost = 3, Remaining = 2 }, IconUrl = "/api/block-icons/1.png" },
+                    new() { Id = "8f9c2a51-0000-4000-8000-000000000001", Kind = "trainCar", CategoryGuid = "10000000-0000-4000-8000-000000000002", SubCategoryGuid = "20000000-0000-4000-8000-000000000003", RequiredItems = new List<BuildMenuRequiredItemDto> { new() { ItemId = 7, Count = 2, Held = 4, Lacking = false } }, IconUrl = "/api/train-car-icons/8f9c2a51-0000-4000-8000-000000000001.png" },
                     new() { Id = "40000000-0000-4000-8000-000000000001", Kind = "connectTool", CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuid = "20000000-0000-4000-8000-000000000004", RequiredItems = new List<BuildMenuRequiredItemDto>(), IconUrl = "/api/connect-tool-icons/40000000-0000-4000-8000-000000000001.png" },
                     new() { Id = "50000000-0000-4000-8000-000000000001", Kind = "blueprintCopy", CategoryGuid = "10000000-0000-4000-8000-000000000003", SubCategoryGuid = "20000000-0000-4000-8000-000000000005", RequiredItems = new List<BuildMenuRequiredItemDto>() },
                     new() { Id = "60000000-0000-4000-8000-000000000001", Kind = "blueprint", Label = "starter-base", CategoryGuid = "10000000-0000-4000-8000-000000000004", SubCategoryGuid = "20000000-0000-4000-8000-000000000006", RequiredItems = new List<BuildMenuRequiredItemDto>() },

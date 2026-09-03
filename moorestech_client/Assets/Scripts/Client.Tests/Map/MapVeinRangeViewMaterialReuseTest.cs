@@ -59,16 +59,17 @@ namespace Client.Tests.Map
         [Test]
         public void 表示と非表示を繰り返してもマテリアルとボックスが増えない()
         {
-            var service = new MapVeinRangeViewService(new MapVeinAabbRegistry(CreateHandshakeResponse()), _camera);
+            var registry = new MapVeinAabbRegistry(CreateHandshakeResponse());
+            var service = new MapVeinRangeViewService(registry, _camera);
             var root = GameObject.Find(MapVeinRangeViewService.RootObjectName).transform;
 
             // 指定した種別のveinだけが表示されること。種別の絞り込みが効かないと本数で落ちる
             // Only the requested kind shows; a broken kind filter fails on the count
-            service.SetVisibleVeinKind(MapVeinKind.Item);
+            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Item), false));
             Assert.AreEqual(ItemVeinCount, CountVisibleBoxes(root), "item veins did not get exactly one range view box each");
 
             var sharedMaterials = CollectVisibleBoxMaterials(root);
-            service.SetVisibleVeinKind(MapVeinKind.Fluid);
+            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Fluid), false));
             Assert.AreEqual(FluidVeinCount, CountVisibleBoxes(root), "fluid veins did not get exactly one range view box each");
 
             // item側とfluid側で材質は合計2枚だけ。ボックス毎に作っていれば3枚になり、数で分岐して落ちる
@@ -86,8 +87,8 @@ namespace Client.Tests.Map
                 var cycleMaterials = new HashSet<Material>();
                 foreach (var veinKind in new[] { MapVeinKind.Item, MapVeinKind.Fluid })
                 {
-                    service.SetVisibleVeinKind(null);
-                    service.SetVisibleVeinKind(veinKind);
+                    service.SetVeinDisplay(VeinDisplay.Hidden);
+                    service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(veinKind), false));
                     cycleMaterials.UnionWith(CollectVisibleBoxMaterials(root));
                 }
 

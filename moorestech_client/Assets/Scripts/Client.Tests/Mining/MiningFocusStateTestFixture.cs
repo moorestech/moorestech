@@ -6,6 +6,7 @@ using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Client.Localization;
+using Client.Tests.Common;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
@@ -34,8 +35,8 @@ namespace Client.Tests.Mining
         {
             base.Setup();
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            InputSystem.AddDevice<Mouse>();
-            MiningTestReflection.ResetInputManagerCache();
+            InputSystem.AddDevice<Keyboard>();
+            TestReflection.ResetInputManagerCache();
 
             // 文言解決は実辞書を通す
             // Resolve text through the real dictionary so a key dropped from it fails here too
@@ -49,10 +50,10 @@ namespace Client.Tests.Mining
                 _tooltipObject = new GameObject("MouseCursorTooltip");
                 _tooltipObject.SetActive(false);
                 var tooltip = _tooltipObject.AddComponent<MouseCursorTooltip>();
-                MiningTestReflection.SetField(tooltip, "canvasGroup", _tooltipObject.AddComponent<CanvasGroup>());
-                MiningTestReflection.SetField(tooltip, "itemName", _tooltipObject.AddComponent<TextMeshProUGUI>());
+                TestReflection.SetField(tooltip, "canvasGroup", _tooltipObject.AddComponent<CanvasGroup>());
+                TestReflection.SetField(tooltip, "itemName", _tooltipObject.AddComponent<TextMeshProUGUI>());
                 _tooltipObject.SetActive(true);
-                MiningTestReflection.InvokePrivate(tooltip, "Awake");
+                TestReflection.InvokePrivate(tooltip, "Awake");
             }
 
             #endregion
@@ -64,8 +65,8 @@ namespace Client.Tests.Mining
                 UnityEngine.Object.DestroyImmediate(stubTargetObject);
             _stubTargetObjects.Clear();
             UnityEngine.Object.DestroyImmediate(_tooltipObject);
-            MiningTestReflection.SetStaticProperty(typeof(MouseCursorTooltip), "Instance", null);
-            MiningTestReflection.ResetInputManagerCache();
+            TestReflection.SetStaticProperty(typeof(MouseCursorTooltip), "Instance", null);
+            TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
 
@@ -83,8 +84,23 @@ namespace Client.Tests.Mining
 
             // 入力アセットは状態イベントより先に作る
             // The input asset must be created before the state event, otherwise its bindings never resolve
-            Assert.IsFalse(InputManager.Playable.ScreenLeftClick.GetKey, "左クリックが押されていない前提が崩れている");
+            Assert.IsFalse(InputManager.Playable.Interact.GetKey, "Fが押されていない前提が崩れている");
             return focusState.GetNextUpdate(context, 0.01f);
+        }
+
+        // F押下下でフォーカス状態を1回進める。押下分岐そのものを検証する唯一の経路
+        // Advances the focus state once with F held down; the only path that exercises the press branch itself
+        protected IMiningState RunFocusStateWithInteractPressed(MiningStartOutcome outcome, MiningFocusState focusState)
+        {
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
+            var stubTarget = new OutcomeStubMiningTarget(outcome, MasterHolder.ItemMaster.GetItemId(ToolItemGuid), Array.Empty<Guid>());
+            _stubTargetObjects.Add(stubTarget.GameObject);
+            context.SetFocusTarget(stubTarget);
+
+            InputManager.Playable.Interact.SetKeyDownForTest(true);
+            var next = focusState.GetNextUpdate(context, 0.01f);
+            InputManager.Playable.Interact.SetKeyDownForTest(false);
+            return next;
         }
 
         // 表示中の1行目のキー文字列（提示は1行構成が前提）
@@ -113,6 +129,7 @@ namespace Client.Tests.Mining
             private readonly List<ItemId> _recommendedToolItemIds;
 
             public GameObject GameObject { get; }
+            public bool IsInteractAvailable => true;
             public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
             public IReadOnlyList<Guid> EarnItemGuids { get; }
 
@@ -131,7 +148,7 @@ namespace Client.Tests.Mining
                 return _outcome;
             }
 
-            public void SetFocused(bool focused)
+            public void SetHighlighted(bool highlighted)
             {
             }
 

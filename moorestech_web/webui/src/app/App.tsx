@@ -20,8 +20,10 @@ import { CursorTooltip } from "@/shared/tooltip";
 import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
+import { EventLanguageGate } from "@/features/eventLanguageGate";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenAllowsGrab, screenForUiState, screenShowsAlwaysOnHud } from "@/shared/uiState";
+import { useUiScaleStore } from "@/shared/uiScale";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
 
@@ -36,6 +38,9 @@ function useUiScale(enabled: boolean) {
       if (!stage) return;
       const scale = Math.min(window.innerWidth / stage.offsetWidth, window.innerHeight / stage.offsetHeight);
       document.documentElement.style.setProperty("--ui-scale", String(scale));
+      // JSで実画面座標を組み立てるPortal層へ同じ倍率を配る
+      // Hand the same factor to the portal layers that build real screen coordinates in JS
+      useUiScaleStore.getState().setScale(scale);
       // 実画面寸法をstage座標へ戻す
       // Convert the physical viewport back into stage coordinates for screen-edge HUDs
       document.documentElement.style.setProperty("--ui-viewport-width", `${window.innerWidth / scale}px`);
@@ -157,6 +162,9 @@ export default function App() {
           </Overlay>
         </Portal>
       )}
+      {/* 出展モードの開始ゲート。再接続表示より前へ出し、待機中の操作を全て塞ぐ */}
+      {/* The event-mode start gate; sits ahead of the reconnect overlay and blocks every input while waiting */}
+      <EventLanguageGate />
     </div>
   );
 }

@@ -11,12 +11,12 @@ using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.Outcrop;
-using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Riding;
 using Client.Game.InGame.Skit;
 using Client.Game.InGame.Tutorial;
+using Client.Game.InGame.Tutorial.PlacementGuide;
 using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Challenge;
@@ -64,10 +64,6 @@ namespace Client.Starter
         // Runtime terrain construction runs outside DI in the finalizer, so only read access to the mount point is exposed
         public EnvironmentRoot EnvironmentRoot => environmentRoot;
         
-        // 対象非依存へrename済み。prefabに残る旧キーからそのまま引き継ぐ
-        // Renamed to a target-agnostic name; the old key still in the prefab carries over as is
-        [FormerlySerializedAs("mapObjectMiningController")]
-        [SerializeField] private MiningController miningController;
         [SerializeField] private PlayerSystemContainer playerSystemContainer;
         
         [SerializeField] private EntityObjectDatastore entityObjectDatastore;
@@ -94,6 +90,9 @@ namespace Client.Starter
         [SerializeField] private ItemViewHighLightTutorialManager itemViewHighLightTutorialManager;
         [SerializeField] private BlockPlacePreviewTutorialManager blockPlacePreviewTutorialManager;
         [SerializeField] private UiDragGuideTutorialManager uiDragGuideTutorialManager;
+        [SerializeField] private VeinRestrictedPlacementTutorialManager veinRestrictedPlacementTutorialManager;
+        [SerializeField] private RelativeBlockPlacePreviewTutorialManager relativeBlockPlacePreviewTutorialManager;
+        [SerializeField] private ChainBlockPlacePreviewTutorialManager chainBlockPlacePreviewTutorialManager;
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
@@ -149,7 +148,6 @@ namespace Client.Starter
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(saveAndQuitPresenter);
             builder.RegisterComponent(networkDisconnectPresenter);
-            builder.RegisterComponent(miningController);
             
             builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(trainCarObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
@@ -163,13 +161,16 @@ namespace Client.Starter
             builder.RegisterComponent(challengeListView);
             builder.RegisterComponent(researchTreeViewManager);
 
-            builder.RegisterComponent(mapObjectPin).AsSelf().As<ITutorialWorldPin>();
-            builder.RegisterComponent(veinPin).AsSelf().As<ITutorialWorldPin>();
-            builder.RegisterComponent(uiHighlightTutorialManager);
-            builder.RegisterComponent(keyControlTutorialManager);
-            builder.RegisterComponent(itemViewHighLightTutorialManager);
-            builder.RegisterComponent(blockPlacePreviewTutorialManager);
-            builder.RegisterComponent(uiDragGuideTutorialManager);
+            builder.RegisterComponent(mapObjectPin).AsSelf().As<ITutorialWorldPin>().As<ITutorialViewManager>();
+            builder.RegisterComponent(veinPin).AsSelf().As<ITutorialWorldPin>().As<ITutorialViewManager>();
+            builder.RegisterComponent(uiHighlightTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(keyControlTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(itemViewHighLightTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(blockPlacePreviewTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(uiDragGuideTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(veinRestrictedPlacementTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(relativeBlockPlacePreviewTutorialManager).AsSelf().As<ITutorialViewManager>();
+            builder.RegisterComponent(chainBlockPlacePreviewTutorialManager).AsSelf().As<ITutorialViewManager>();
             
             builder.RegisterComponent(playerSystemContainer);
             builder.RegisterComponent(skitManager).As<IInitializable>();

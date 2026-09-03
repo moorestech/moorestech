@@ -2,15 +2,17 @@ using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
-using Client.Game.InGame.Train.Unit;
+using Client.Game.InGame.Interact;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
-using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
+using Client.Tests.Map.Vein;
 using Client.Tests.UIState.Fakes;
 using NUnit.Framework;
 
@@ -22,14 +24,15 @@ namespace Client.Tests.UIState
         public void GameScreenAndBuildMenuPushTheirOnEnterPolicies()
         {
             SetUpGameStateController();
+            SetUpMouseCursorTooltip();
             var gameApplier = new FakePlayerCameraInteractionApplier();
-            var gameState = new GameScreenState(null, null, null, null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null));
+            var gameState = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null));
             gameState.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
             CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, gameApplier.Calls);
 
             var menuApplier = new FakePlayerCameraInteractionApplier();
             var menuView = new FakeBuildMenuView();
-            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier));
+            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier), new RightShortPressInputService(new RightShortPressInput()));
             menuState.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, menuApplier.Calls);
             Assert.IsTrue(menuView.IsActive);
@@ -56,7 +59,7 @@ namespace Client.Tests.UIState
         }
 
         [Test]
-        public void PlaceBlockPushesVeinKindOnlyOnTargetChange()
+        public void PlaceBlockPushesVeinDisplayOnlyOnTargetChange()
         {
             var mapVeinRangeView = new FakeMapVeinRangeView();
             var state = CreatePlaceBlockState(new FakePlayerCameraInteractionApplier(), mapVeinRangeView);
@@ -64,18 +67,18 @@ namespace Client.Tests.UIState
             // 設置対象を載せない遷移では表示種別も変わらない。滞在するだけでは何もプッシュしない
             // A transition without a placement target changes no vein kind; merely entering pushes nothing
             state.OnEnter(new UITransitContext(UIStateEnum.PlaceBlock));
-            CollectionAssert.IsEmpty(mapVeinRangeView.VeinKindPushes);
+            CollectionAssert.IsEmpty(mapVeinRangeView.DisplayPushes);
 
             // 表示種別は対象変化時だけプッシュし、毎フレームはカメラ距離カリングのManualUpdateだけを回す
             // The vein kind is pushed only when the target changes; each frame drives just ManualUpdate for the camera distance culling
             for (var frame = 0; frame < 3; frame++) state.GetNextUpdate();
-            CollectionAssert.IsEmpty(mapVeinRangeView.VeinKindPushes);
+            CollectionAssert.IsEmpty(mapVeinRangeView.DisplayPushes);
             Assert.AreEqual(3, mapVeinRangeView.ManualUpdateCount);
 
             // 離脱は対象がnullになる通知経由で畳む
             // Leaving folds the view through the null-target notification
             state.OnExit();
-            CollectionAssert.AreEqual(new MapVeinKind?[] { null }, mapVeinRangeView.VeinKindPushes);
+            CollectionAssert.AreEqual(new[] { VeinDisplay.Hidden }, mapVeinRangeView.DisplayPushes);
         }
 
         [Test]
@@ -87,7 +90,8 @@ namespace Client.Tests.UIState
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
-            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null));
+            var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
+            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 
@@ -105,6 +109,8 @@ namespace Client.Tests.UIState
         public void GameScreenDelegatesLeftAltFreeCursorToPolicyService()
         {
             SetUpGameStateController();
+            SetUpMouseCursorTooltip();
+            SetUpEventSystemInputModule();
             var applier = new FakePlayerCameraInteractionApplier();
             var state = CreateGameScreenState(applier);
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
@@ -125,10 +131,8 @@ namespace Client.Tests.UIState
         private GameScreenState CreateGameScreenState(FakePlayerCameraInteractionApplier applier)
         {
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
-            var subInventoryInteractService = new GameScreenSubInventoryInteractService(null);
-            var rideVehicleInputService = new RideVehicleInputService();
             var placementTargetPickService = new PlacementTargetPickService(null);
-            return new GameScreenState(skitManager, subInventoryInteractService, rideVehicleInputService, placementTargetPickService, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
+            return new GameScreenState(skitManager, CreateInteractController(), placementTargetPickService, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
         }
 
         private PlaceBlockState CreatePlaceBlockState(FakePlayerCameraInteractionApplier applier, FakeMapVeinRangeView mapVeinRangeView)
@@ -139,7 +143,15 @@ namespace Client.Tests.UIState
             var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
-            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, hotbarInputService);
+            var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
+            return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier), new BuildUndoService(new BuildOperationHistory(), dataStore), mapVeinRangeView, CreateVeinAabbRegistry(), new VeinRestrictedPlacementState(), hotbarInputService, rightShortPressInputService);
+        }
+
+        // 鉱脈ゼロの台帳。PlaceBlockStateはコンストラクタで表示を解決するため実体が要る
+        // A registry with no veins; PlaceBlockState resolves the display in its constructor and needs a real one
+        private static MapVeinAabbRegistry CreateVeinAabbRegistry()
+        {
+            return MapVeinAabbRegistryFixture.Create();
         }
     }
 }

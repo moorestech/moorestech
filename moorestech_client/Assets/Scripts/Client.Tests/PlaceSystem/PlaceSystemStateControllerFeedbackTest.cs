@@ -66,6 +66,8 @@ namespace Client.Tests.PlaceSystem
             }
 
             public void Disable() { }
+
+            public bool TryCancelInProgressOperation() => false;
         }
 
         private class FakePlaceSystemSelector : IPlaceSystemSelector

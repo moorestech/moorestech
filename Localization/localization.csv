@@ -11,7 +11,7 @@ ui.common.blockFallback,Block {blockId},Block {blockId},ブロック {blockId},B
 ui.common.iconIdFallback,#{id},#{id},#{id},#{id}
 ui.common.rightArrow,→,→,→,→
 ui.tooltip.worldTarget,World Target,World Target,世界の対象,Ziel in der Welt
-ui.tooltip.holdToGet,Press and hold left-click to get,Press and hold left-click to get,左クリック長押しで取得する,Linksklick gedrückt halten zum Aufnehmen
+ui.tooltip.holdToGet,Hold F to get,Hold F to get,F長押しで取得する,F gedrückt halten zum Aufnehmen
 ui.error.reconnecting,Reconnecting...,Reconnecting...,再接続中...,Verbindung wird wiederhergestellt …
 ui.error.uiErrorOccurred,A UI error occurred,A UI error occurred,UIエラーが発生しました,Es ist ein UI-Fehler aufgetreten
 ui.error.renderFailed,There was a problem rendering the screen. Please reload.,There was a problem rendering the screen. Please reload.,画面の描画中に問題が発生しました。再読み込みしてください。,Beim Darstellen des Bildschirms ist ein Problem aufgetreten. Bitte laden Sie neu.
@@ -57,6 +57,9 @@ ui.buildMenu.searchPlaceholder,Search,Search,検索,Suchen
 ui.buildMenu.requiredItems,Required Items,Required Items,必要素材,Benötigte Gegenstände
 ui.buildMenu.requiredItemsPerSet,Required Items (per {count}),Required Items (per {count}),必要素材（{count}個分）,Benötigte Gegenstände (pro {count})
 ui.buildMenu.remainingPlacementCount,Remaining placements: {count},Remaining placements: {count},残り設置数: {count},Verbleibende Platzierungen: {count}
+ui.buildMenu.materialShortageTitle,Not enough materials,Not enough materials,素材が足りません,Nicht genug Materialien
+ui.buildMenu.materialShortageLine,{itemName} {ownedCount}/{requiredCount},{itemName} {ownedCount}/{requiredCount},{itemName} {ownedCount}/{requiredCount},{itemName} {ownedCount}/{requiredCount}
+ui.buildMenu.materialTooltip,{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\nOwned: {ownedCount}\nRequired: {requiredCount},{itemName}\n所持数: {ownedCount}\n必要数: {requiredCount},{itemName}\nBestand: {ownedCount}\nBenötigt: {requiredCount}
 ui.challenge.stateLocked,Locked,Locked,未解放,Gesperrt
 ui.challenge.stateCurrent,In Progress,In Progress,進行中,Laufend
 ui.challenge.stateCompleted,Completed,Completed,完了,Abgeschlossen
@@ -122,7 +125,7 @@ ui.recipe.holdToCraft,Hold to craft (keep holding to craft continuously),Hold to
 ui.recipe.craftButtonLabel,Craft,Craft,クラフト,Herstellen
 ui.recipe.noRecipes,There are no recipes for this item,There are no recipes for this item,このアイテムのレシピはありません,Für diesen Gegenstand gibt es keine Rezepte
 ui.research.closeSymbol,×,×,×,×
-ui.research.completed,Researched,Researched,研究済み,Erforscht
+ui.research.completed,Completed,Completed,完了済み,Abgeschlossen
 ui.research.action,Research,Research,研究,Erforschen
 ui.research.clickToResearch,Click to research,Click to research,クリックして研究,Zum Erforschen klicken
 ui.research.missingItems,Not enough research items.,Not enough research items.,研究アイテムが足りません。,Zu wenig Forschungsgegenstände.
@@ -137,6 +140,8 @@ ui.research.unlockItemsLabel,Unlocks: Items,Unlocks: Items,解放: アイテム,
 ui.research.rewardItemsLabel,Reward items,Reward items,報酬アイテム,Belohnungsgegenstände
 ui.research.unlockOthersLabel,Unlocks: Others,Unlocks: Others,解放: その他,Schaltet frei: Sonstiges
 ui.research.unlockFluidSummary,{fluidName} {amount},{fluidName} {amount},{fluidName} {amount},{fluidName} {amount}
+ui.research.stateAvailable,Available,Available,研究可能,Verfügbar
+ui.research.stateUnavailable,Unavailable,Unavailable,研究不可,Nicht verfügbar
 ui.skit.auto,Auto,Auto,自動,Auto
 ui.skit.skip,Skip,Skip,スキップ,Überspringen
 ui.skit.hideUi,Hide UI,Hide UI,UIを非表示,UI ausblenden
@@ -156,7 +161,7 @@ ui.blueprint.nameInputConfirm,Register,Register,登録,Registrieren
 ui.blueprint.webModalTitle,Blueprint Name,Blueprint Name,ブループリント名,Bauplanname
 ui.blueprint.webModalMessage,Enter a name for the blueprint you want to save,Enter a name for the blueprint you want to save,保存するブループリントの名前を入力してください,Geben Sie einen Namen für den zu speichernden Bauplan ein
 ui.blueprint.webModalConfirm,Save,Save,保存,Speichern
-ui.tooltip.pickUpLeftClick,Left-click to pick up,Left-click to pick up,左クリックで取得,Linksklick zum Aufnehmen
+ui.tooltip.pickUpInteract,Press F to pick up,Press F to pick up,Fで取得,F drücken zum Aufnehmen
 ui.tooltip.requiredItems,Requires: {p0},Requires: {p0},このアイテムが必要です: {p0},Benötigt: {p0}
 ui.tooltip.cannotHandMine,Cannot be mined by hand,Cannot be mined by hand,手掘りできません,Kann nicht von Hand abgebaut werden
 ui.tooltip.craftCannotByItemShortage,Not enough items to craft,Not enough items to craft,アイテムが足りないためクラフトできません,Zu wenig Gegenstände zum Herstellen
@@ -211,13 +216,15 @@ ui.keyHint.text.trainDismount,Dismount,Dismount,降車,Aussteigen
 ui.tooltip.placeBlockedByTerrain,Blocked by terrain,Blocked by terrain,地形に埋まっています,Vom Gelände blockiert
 ui.tooltip.placeBlockedByExistingBlock,Position is occupied,Position is occupied,設置位置が埋まっています,Position ist belegt
 ui.tooltip.placeTooFar,Too far away,Too far away,遠すぎます,Zu weit entfernt
+ui.tooltip.placeGroundNotFound,No ground below,No ground below,地面が見つかりません,Kein Boden darunter
 ui.tooltip.placeMinerOutsideVein,The drill must be over a vein,The drill must be over a vein,ドリルを鉱脈に重ねてください,Der Bohrer muss über einer Erzader liegen
+ui.tooltip.placeOutsideTutorialVein,Place it on the highlighted vein,Place it on the highlighted vein,ハイライトされた鉱脈の上に設置してください,Platziere es auf der hervorgehobenen Erzader
+ui.tooltip.placeChainBlocked,Space for the connected layout is blocked,Space for the connected layout is blocked,接続先のスペースが埋まっています,Der Platz für die verbundene Anordnung ist blockiert
 ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden
 ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません,Für diese Baureihe gibt es kein Schrägband
-ui.tooltip.placeMaterialShortage,{p0} {p1}/{p2},{p0} {p1}/{p2},{p0} {p1}/{p2},{p0} {p1}/{p2}
+ui.tooltip.placeMaterialShortage,Missing item: {p0} {p1}/{p2},Missing item: {p0} {p1}/{p2},アイテム不足： {p0} {p1}/{p2},Fehlender Gegenstand: {p0} {p1}/{p2}
 ui.tooltip.placeWireCost,Wire x{p0},Wire x{p0},電線 x{p0},Kabel x{p0}
 ui.tooltip.placeWireOutOfRangeNotice,Out of connection range: no wire will be placed,Out of connection range: no wire will be placed,接続範囲外のため配線されません,Außerhalb der Verbindungsreichweite: es wird kein Kabel verlegt
-ui.tooltip.placeWireNoWireItem,Not enough wire,Not enough wire,電線が足りません,Zu wenig Kabel
 ui.tooltip.placeWireOutOfRange,Out of connection range,Out of connection range,接続範囲外です,Außerhalb der Verbindungsreichweite
 ui.tooltip.placeWireAlreadyConnected,Already connected,Already connected,接続済みです,Bereits verbunden
 ui.tooltip.placeWireConnectionLimit,Connection limit reached,Connection limit reached,接続上限です,Verbindungsgrenze erreicht
@@ -226,10 +233,8 @@ ui.tooltip.placeWireFailed,Cannot place,Cannot place,設置できません,Platz
 ui.tooltip.placeGearChainTooFar,Out of connection range,Out of connection range,接続範囲外です,Außerhalb der Verbindungsreichweite
 ui.tooltip.placeGearChainAlreadyConnected,Already connected,Already connected,接続済みです,Bereits verbunden
 ui.tooltip.placeGearChainConnectionLimit,Connection limit reached,Connection limit reached,接続上限です,Verbindungsgrenze erreicht
-ui.tooltip.placeGearChainNoItem,Not enough chain,Not enough chain,チェーンが足りません,Zu wenig Kette
 ui.tooltip.placeGearChainFailed,Cannot connect,Cannot connect,接続できません,Verbinden nicht möglich
 ui.tooltip.placeRailLengthExceeded,Rail is too long,Rail is too long,レールが長すぎます,Gleis ist zu lang
-ui.tooltip.placeRailNotEnoughRailItem,Not enough rail,Not enough rail,レールが足りません,Zu wenig Gleis
 ui.tooltip.placeRailCurveTooTight,Curve is too tight,Curve is too tight,カーブがきつすぎます,Kurve ist zu eng
 ui.tooltip.placeRailFailed,Cannot connect rail,Cannot connect rail,レールを接続できません,Gleis kann nicht verbunden werden
 ui.tooltip.placeTrainCarNoRoute,No rail for the train length,No rail for the train length,列車の長さ分のレールがありません,Kein Gleis für diese Zuglänge
@@ -249,7 +254,10 @@ ui.mainMenu.connectPortTooLarge,The port number must be 65535 or lower.,The port
 ui.mainMenu.connectPortTooSmall,The port number must be greater than 1024.,The port number must be greater than 1024.,ポート番号は1024より大きい必要があります。,Die Portnummer muss größer als 1024 sein.
 ui.mainMenu.connectInvalidPort,The port number is not valid.,The port number is not valid.,ポート番号が正しくありません。,Die Portnummer ist ungültig.
 ui.mainMenu.connectFailed,Failed to connect to the server.\n{p0},Failed to connect to the server.\n{p0},サーバーへの接続に失敗しました。\n{p0},Verbindung zum Server fehlgeschlagen.\n{p0}
-ui.tooltip.namedMineHold,{p0} : Hold left-click to mine,{p0} : Hold left-click to mine,{p0} : 左クリック長押しで採掘,{p0} : Zum Abbauen Linksklick gedrückt halten
-ui.tooltip.namedMineClick,{p0} : Left-click to mine,{p0} : Left-click to mine,{p0} : 左クリックで採掘,{p0} : Linksklick zum Abbauen
+ui.tooltip.namedMineHold,{p0} : Hold F to mine,{p0} : Hold F to mine,{p0} : F長押しで採掘,{p0} : Zum Abbauen F gedrückt halten
+ui.tooltip.namedMineClick,{p0} : Press F to mine,{p0} : Press F to mine,{p0} : Fで採掘,{p0} : F drücken zum Abbauen
 ui.tooltip.namedRequiredItems,{p0} : Requires: {p1},{p0} : Requires: {p1},{p0} : このアイテムが必要です: {p1},{p0} : Benötigt: {p1}
+ui.tooltip.interactOpenBlock,[F] Open {p0},[F] Open {p0},[F] {p0}を開く,[F] {p0} öffnen
+ui.tooltip.interactOpenTrainInventory,[F] Open car inventory,[F] Open car inventory,[F] 車両インベントリを開く,[F] Wageninventar öffnen
+ui.tooltip.interactRideTrain,[E] Ride,[E] Ride,[E] 乗車,[E] Einsteigen
 ui.tooltip.namedCannotHandMine,{p0} : Cannot be mined by hand,{p0} : Cannot be mined by hand,{p0} : 手掘りできません,{p0} : Kann nicht von Hand abgebaut werden
