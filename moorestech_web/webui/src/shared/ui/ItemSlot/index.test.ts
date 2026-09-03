@@ -86,7 +86,7 @@ describe("ItemSlot", () => {
   it("countがundefinedの時はバッジを表示しない", () => {
     const markup = renderItemSlot(undefined, undefined);
 
-    expect(markup).not.toMatch(new RegExp(`<span class="[^"]*\\b${styles.count}\\b`));
+    expect(markup).not.toMatch(new RegExp(`class="[^"]*\\b${styles.count}\\b`));
   });
 
   // アイコンを描くcatalogでも0はバッジ非表示
@@ -95,7 +95,7 @@ describe("ItemSlot", () => {
     const markup = renderItemSlot(undefined, 0, true);
 
     expect(markup).toContain("<img");
-    expect(markup).not.toMatch(new RegExp(`<span class="[^"]*\\b${styles.count}\\b`));
+    expect(markup).not.toMatch(new RegExp(`class="[^"]*\\b${styles.count}\\b`));
   });
 
   it("countが正の数の時はバッジを表示する", () => {
