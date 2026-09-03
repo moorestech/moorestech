@@ -1,7 +1,7 @@
 using System.Linq;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Config;
-using Game.MapGeneration.Pipeline.Stages;
+using Game.MapGeneration.Pipeline.Generators;
 using Game.MapGeneration.Pipeline.Tiling;
 using NUnit.Framework;
 using UnityEngine;
@@ -14,7 +14,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         public void 確定鉱脈snapshotは現在タイルの候補AABBへ届く履歴だけを返す()
         {
             var store = new PlacementHaloStore(10f);
-            var placement = new ConfirmedVeinPlacementBatch();
+            var placement = new VeinPlacementBatch();
 
             // 四辺の接触を残し遠隔履歴を除く。
             // Keeps touching history on every edge while excluding history one cell farther away.

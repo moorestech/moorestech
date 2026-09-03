@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Game.MapGeneration.Pipeline.Config;
-using Game.MapGeneration.Pipeline.Stages;
+using Game.MapGeneration.Pipeline.Generators;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Tiling
@@ -46,18 +46,18 @@ namespace Game.MapGeneration.Pipeline.Tiling
             return snapshot;
         }
 
-        internal void CommitItemVeins(ConfirmedVeinPlacementBatch placement)
+        internal void CommitItemVeins(VeinPlacementBatch placement)
         {
             CommitVeins(placement, ItemVeinMembers, ItemVeinCenters);
         }
 
-        internal void CommitFluidVeins(ConfirmedVeinPlacementBatch placement)
+        internal void CommitFluidVeins(VeinPlacementBatch placement)
         {
             CommitVeins(placement, FluidVeinMembers, FluidVeinCenters);
         }
 
         private void CommitVeins(
-            ConfirmedVeinPlacementBatch placement,
+            VeinPlacementBatch placement,
             PlacementHaloChannel memberHalo,
             PlacementHaloChannelMap centerHalos)
         {
@@ -80,25 +80,6 @@ namespace Game.MapGeneration.Pipeline.Tiling
                 centerHalos.Get(cluster.VeinGuid).Add(cluster.WorldCenter.x, cluster.WorldCenter.y);
                 memberHalo.AddPlacements(cluster.Members, 0f, 0f);
             }
-        }
-    }
-
-    internal sealed class ConfirmedVeinPlacementBatch
-    {
-        public readonly List<PlacedVein> Veins = new();
-        public readonly List<ConfirmedVeinCluster> Clusters = new();
-    }
-
-    internal sealed class ConfirmedVeinCluster
-    {
-        public readonly string VeinGuid;
-        public readonly Vector2 WorldCenter;
-        public readonly List<PlacementEntry> Members = new();
-
-        public ConfirmedVeinCluster(string veinGuid, Vector2 worldCenter)
-        {
-            VeinGuid = veinGuid;
-            WorldCenter = worldCenter;
         }
     }
 }
