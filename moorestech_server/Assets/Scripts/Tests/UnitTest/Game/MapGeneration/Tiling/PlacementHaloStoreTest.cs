@@ -27,7 +27,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             placement.Veins.Add(CreateVein("far-right", new Vector3Int(151, 0, 120), new Vector3Int(153, 2, 122)));
             placement.Veins.Add(CreateVein("far-lower-z", new Vector3Int(120, 0, 96), new Vector3Int(122, 2, 98)));
             placement.Veins.Add(CreateVein("far-upper-z", new Vector3Int(120, 0, 151), new Vector3Int(122, 2, 153)));
-            store.CommitItemVeins(placement);
+            store.CommitVeins(store.ItemVeins, placement);
 
             var snapshot = store.CreateConfirmedVeinSnapshot(100f, 100f, 50f, 50f);
 
@@ -39,12 +39,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 
             PlacedVein CreateVein(string veinGuid, Vector3Int min, Vector3Int max)
             {
-                return new PlacedVein
-                {
-                    VeinGuid = veinGuid,
-                    Min = min,
-                    Max = max,
-                };
+                return new PlacedVein(veinGuid, min, max);
             }
 
             #endregion

@@ -17,7 +17,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
             int rngSeedOffset, IReadOnlyList<PlacedVein> excludedVeins,
-            TilePlacementContext tile, PlacementHaloChannel memberHalo, PlacementHaloChannelMap centerHalos)
+            TilePlacementContext tile, VeinHaloChannels channels)
         {
             if (entries.Length == 0) return new VeinPlacementBatch();
 
@@ -44,7 +44,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             // The AABB exclusion is settled inside member placement, so the returned placement is the confirmed set
             return OrePlacementGenerator.GenerateForWorld(
                 entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid,
-                memberHalo, centerHalos, tile.Halo.Radius, excludedVeins);
+                channels, tile.Halo.Radius, excludedVeins);
         }
 
         static bool[][,] BuildEntryMasks(

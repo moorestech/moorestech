@@ -14,12 +14,7 @@ namespace Game.MapGeneration.Pipeline.Generators
         public static PlacedVein Build(string veinGuid, Vector3 worldPosition)
         {
             var center = Vector3Int.RoundToInt(worldPosition);
-            return new PlacedVein
-            {
-                VeinGuid = veinGuid,
-                Min = center - Extent,
-                Max = center + Extent,
-            };
+            return new PlacedVein(veinGuid, center - Extent, center + Extent);
         }
 
         // 候補AABBが一覧のどれかと重なるか。除外集合と同バッチの確定分を同じ述語で見る。

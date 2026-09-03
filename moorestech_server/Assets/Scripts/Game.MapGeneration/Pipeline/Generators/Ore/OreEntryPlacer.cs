@@ -139,7 +139,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                 {
                     float mx = 0f, mz = 0f;
                     Vector3 worldPosition = default;
-                    PlacedVein vein = null;
+                    PlacedVein vein = default;
+                    bool veinFound = false;
                     for (int attempt = 0; attempt < retries; attempt++)
                     {
                         float angle = (float)(rng.NextDouble() * Mathf.PI * 2);
@@ -160,9 +161,10 @@ namespace Game.MapGeneration.Pipeline.Generators
                         if (VeinAabbBuilder.OverlapsAny(candidate, result.Veins)) continue;
 
                         vein = candidate;
+                        veinFound = true;
                         break;
                     }
-                    if (vein == null) continue;
+                    if (!veinFound) continue;
 
                     clusterMembers.Add(PlacementEntry.CreateVein(entry.veinGuid, worldPosition, surroundEffect));
                     result.Veins.Add(vein);

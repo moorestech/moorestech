@@ -21,13 +21,16 @@ namespace Game.MapGeneration.Pipeline.Stages
 
             // item鉱脈とは別の乱数列を使い、同一seedでも配置候補列を独立させる
             // Use a distinct random stream so item and fluid candidate sequences stay independent under the same seed
+            // seed先とcommit先へ同じ束を渡し、種別の取り違えを起こせなくする。
+            // The same bundle goes to seeding and to committing, so the kinds cannot be mismatched.
+            var channels = tile.Halo.FluidVeins;
             var placement = VeinPlacementCore.Generate(
                 ore.fluidEntries, ore.borderMargin,
                 config, masks, biomeTypes, heights2D, treeEntries, objectPlacements,
                 FluidVeinRngSeedOffset, tile.Halo.CreateConfirmedVeinSnapshot(
                     config.worldOffsetX, config.worldOffsetZ, config.terrainWidth, config.terrainLength),
-                tile, tile.Halo.FluidVeinMembers, tile.Halo.FluidVeinCenters);
-            tile.Halo.CommitFluidVeins(placement);
+                tile, channels);
+            tile.Halo.CommitVeins(channels, placement);
             return placement.Veins;
         }
     }
