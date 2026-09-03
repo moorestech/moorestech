@@ -1,4 +1,6 @@
 using System;
+using Core.Master.Validator;
+using Game.MapGeneration.Transfer;
 
 namespace Game.MapGeneration.Cache
 {
@@ -36,18 +38,12 @@ namespace Game.MapGeneration.Cache
         // Splat weights are quantized to one byte per pixel: Unity bakes alphamaps into 8-bit textures, so no precision is lost
         public const float WeightQuantizeScale = byte.MaxValue;
 
-        // 高さはr16と同じushort量子化で持つ。転送された高さ自体がこの刻みなので表示側の精度は落ちない
-        // Heights are held at the same ushort quantization as r16; the transferred heights already sit on that step, so display precision is unchanged
+        // 高さはr16と同じushort量子化で持つ。木の摂動後の表示高さはこの刻みに載っていないため、保存で最大1LSB丸められる
+        // Heights are held at the same ushort quantization as r16; post-perturbation display heights do not sit on that step, so storing rounds them by up to one LSB
         public const float HeightQuantizeScale = ushort.MaxValue;
         public const int HeightBytesPerPixel = 2;
 
         public const int DetailBytesPerCell = 2;
-        private const int DetailResolutionPerPatch = 16;
-
-        // Unity互換RGBA8平面（4層/面）
-        // Unity-compatible RGBA8 planes, four layers each.
-        public const int LayersPerAlphamapPlane = 4;
-        public const int AlphamapPlaneBytesPerPixel = 4;
 
         // ヘッダの5つの寸法はこの順で並ぶ
         // The header's five dimensions sit in this order
@@ -57,13 +53,6 @@ namespace Game.MapGeneration.Cache
         public const int DetailResolutionOffset = LayerCountOffset + 4;
         public const int DetailMapCountOffset = DetailResolutionOffset + 4;
         public const int PayloadChecksumOffset = DetailMapCountOffset + 4;
-
-        // レイヤー数から平面数を出す唯一の場所。UnityのalphamapTextureCountと同じ切り上げ規則
-        // The single place deriving the plane count from the layer count, with Unity's own alphamapTextureCount rounding
-        public static int AlphamapPlaneCount(int layerCount)
-        {
-            return (layerCount + LayersPerAlphamapPlane - 1) / LayersPerAlphamapPlane;
-        }
 
         public static void WriteInt(byte[] bytes, int offset, int value)
         {
@@ -87,7 +76,7 @@ namespace Game.MapGeneration.Cache
 
         public static long AlphamapPlaneByteLength(int alphamapResolution)
         {
-            return (long)alphamapResolution * alphamapResolution * AlphamapPlaneBytesPerPixel;
+            return (long)alphamapResolution * alphamapResolution * TileAlphamap.AlphamapPlaneBytesPerPixel;
         }
 
         private static long DetailMapByteLength(int detailResolution)
@@ -106,12 +95,11 @@ namespace Game.MapGeneration.Cache
                 detailResolution < 0 || MaximumDetailResolution < detailResolution ||
                 detailMapCount < 0 || MaximumDetailMapCount < detailMapCount ||
                 detailMapCount == 0 && detailResolution != 0 ||
-                0 < detailMapCount && (detailResolution < DetailResolutionPerPatch ||
-                    detailResolution % DetailResolutionPerPatch != 0 || heightmapResolution - 1 < detailResolution)) return false;
+                0 < detailMapCount && !GenerationMasterUtil.IsValidDetailResolution(detailResolution, heightmapResolution)) return false;
 
             payloadByteLength = checked(
                 HeightsByteLength(heightmapResolution) +
-                AlphamapPlaneCount(layerCount) * AlphamapPlaneByteLength(alphamapResolution) +
+                TileAlphamap.AlphamapPlaneCount(layerCount) * AlphamapPlaneByteLength(alphamapResolution) +
                 detailMapCount * DetailMapByteLength(detailResolution));
             return payloadByteLength <= int.MaxValue;
         }

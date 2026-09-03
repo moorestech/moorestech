@@ -1,3 +1,4 @@
+using Game.MapGeneration.Transfer;
 using UnityEngine;
 using static Game.MapGeneration.Cache.TerrainVisualCacheFormat;
 
@@ -26,11 +27,11 @@ namespace Game.MapGeneration.Cache
             var resolutionZ = alphamap.GetLength(0);
             var resolutionX = alphamap.GetLength(1);
             var layerCount = alphamap.GetLength(2);
-            var planeCount = AlphamapPlaneCount(layerCount);
+            var planeCount = TileAlphamap.AlphamapPlaneCount(layerCount);
 
             var planes = new byte[planeCount][];
             for (var planeIndex = 0; planeIndex < planeCount; planeIndex++)
-                planes[planeIndex] = new byte[resolutionZ * resolutionX * AlphamapPlaneBytesPerPixel];
+                planes[planeIndex] = new byte[resolutionZ * resolutionX * TileAlphamap.AlphamapPlaneBytesPerPixel];
 
             for (var z = 0; z < resolutionZ; z++)
             for (var x = 0; x < resolutionX; x++)
@@ -46,12 +47,12 @@ namespace Game.MapGeneration.Cache
                 var strongestLayer = 0;
                 var strongestWeight = float.MinValue;
 
-                var pixelOffset = (z * resolutionX + x) * AlphamapPlaneBytesPerPixel;
+                var pixelOffset = (z * resolutionX + x) * TileAlphamap.AlphamapPlaneBytesPerPixel;
                 for (var layer = 0; layer < layerCount; layer++)
                 {
                     var weight = Mathf.Clamp01(alphamap[z, x, layer] * ratioScale);
                     var quantizedWeight = Mathf.Clamp(Mathf.RoundToInt(weight * WeightQuantizeScale), 0, byte.MaxValue);
-                    planes[layer / LayersPerAlphamapPlane][pixelOffset + layer % LayersPerAlphamapPlane] = (byte)quantizedWeight;
+                    planes[layer / TileAlphamap.LayersPerAlphamapPlane][pixelOffset + layer % TileAlphamap.LayersPerAlphamapPlane] = (byte)quantizedWeight;
                     quantizedTotal += quantizedWeight;
                     if (strongestWeight < weight)
                     {
@@ -60,9 +61,12 @@ namespace Game.MapGeneration.Cache
                     }
                 }
 
-                var strongestPlane = strongestLayer / LayersPerAlphamapPlane;
-                var strongestOffset = pixelOffset + strongestLayer % LayersPerAlphamapPlane;
-                planes[strongestPlane][strongestOffset] = (byte)(planes[strongestPlane][strongestOffset] + byte.MaxValue - quantizedTotal);
+                var strongestPlane = strongestLayer / TileAlphamap.LayersPerAlphamapPlane;
+                var strongestOffset = pixelOffset + strongestLayer % TileAlphamap.LayersPerAlphamapPlane;
+                // 層数が多いと丸め残差の戻しが範囲外へ出るため、他の量子化と同じくClampで受ける
+                // With many layers the residue write-back can leave the byte range, so it is clamped like every other quantization here
+                planes[strongestPlane][strongestOffset] = (byte)Mathf.Clamp(
+                    planes[strongestPlane][strongestOffset] + byte.MaxValue - quantizedTotal, 0, byte.MaxValue);
             }
 
             return planes;

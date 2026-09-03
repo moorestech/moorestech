@@ -10,7 +10,26 @@ namespace Core.Master.Validator
         // AABBは点の±1なので軸差3未満は重なる。丸め1を見込み間隔の下限を4とする
         // An AABB spans the point +/-1, so axis gaps under 3 overlap; allowing one for rounding puts the floor at 4
         private const float MinOreSpacing = 4f;
-        private const int DetailResolutionPerPatch = 16;
+
+        // Unityのdetailパッチ粒度。マスタ検証・生成・適用が同じ規則を見るための正本
+        // Unity's detail patch granularity; the single rule master validation, generation and application all read
+        public const int DetailResolutionPerPatch = 16;
+
+        // detail解像度が満たすべき条件。パッチ粒度の倍数で、高さのサンプル数(=解像度-1)を超えない
+        // The condition a detail resolution must meet: a multiple of the patch granularity, never above the heightmap's sample count (resolution - 1)
+        public static bool IsValidDetailResolution(int detailResolution, int heightmapResolution)
+        {
+            return DetailResolutionPerPatch <= detailResolution &&
+                   detailResolution % DetailResolutionPerPatch == 0 &&
+                   detailResolution <= heightmapResolution - 1;
+        }
+
+        // 規則を破ったときの説明文。判定と文言を同じ持ち主に置き、片方だけ変わる形を作らない
+        // The explanation for a violated rule; keeping test and wording with one owner stops either from drifting alone
+        public static string DescribeDetailResolutionRule(int heightmapResolution)
+        {
+            return $"must be at least {DetailResolutionPerPatch}, a multiple of {DetailResolutionPerPatch}, and no greater than {heightmapResolution - 1}";
+        }
 
         public static bool Validate(Generation generation, out string errorLogs)
         {
@@ -170,19 +189,27 @@ namespace Core.Master.Validator
                 if (detailResolution % DetailResolutionPerPatch != 0)
                     return $"[GenerationMaster] detailResolution:{detailResolution} must be a multiple of {DetailResolutionPerPatch}\n";
 
-                var maximumDetailResolution = 0 < vanillaGenerator.OverrideResolution
-                    ? vanillaGenerator.OverrideResolution - 1
-                    : vanillaGenerator.ResolutionPreset switch
-                    {
-                        "_256" => 256,
-                        "_512" => 512,
-                        "_1024" => 1024,
-                        "_2048" => 2048,
-                        _ => 0,
-                    };
+                // 未知のpresetを上限0として扱うと、あらゆる解像度が別の理由で弾かれ真因がログから消える
+                // Treating an unknown preset as a limit of zero would reject every resolution for another reason, erasing the real cause from the log
+                var maximumDetailResolution = vanillaGenerator.OverrideResolution - 1;
+                if (vanillaGenerator.OverrideResolution <= 0 && !TryResolvePresetSampleLimit(out maximumDetailResolution))
+                    return $"[GenerationMaster] resolutionPreset:'{vanillaGenerator.ResolutionPreset}' is not a recognized preset\n";
+
                 return maximumDetailResolution < detailResolution
                     ? $"[GenerationMaster] detailResolution:{detailResolution} exceeds heightmap sample limit:{maximumDetailResolution}\n"
                     : "";
+
+                bool TryResolvePresetSampleLimit(out int sampleLimit)
+                {
+                    switch (vanillaGenerator.ResolutionPreset)
+                    {
+                        case "_256": sampleLimit = 256; return true;
+                        case "_512": sampleLimit = 512; return true;
+                        case "_1024": sampleLimit = 1024; return true;
+                        case "_2048": sampleLimit = 2048; return true;
+                        default: sampleLimit = 0; return false;
+                    }
+                }
             }
 
             #endregion

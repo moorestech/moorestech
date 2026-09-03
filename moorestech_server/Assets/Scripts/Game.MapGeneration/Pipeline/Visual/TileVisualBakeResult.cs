@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.MapGeneration.Transfer;
 using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Visual
