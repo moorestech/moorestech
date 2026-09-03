@@ -187,13 +187,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         // A right short press releases only the connection origin and hides its preview; without an origin there is nothing to cancel
         public override bool TryCancelInProgressOperation()
         {
-            // 飛行中の橋脚リクエストは可視の進行中操作に数えないが、遅着の起点復活だけは必ず断つ
-            // An in-flight pier request is not a visible in-progress operation, but its late origin write-back must always be cut off
-            _requestSender.Invalidate();
-
+            // 飛行中リクエストの打ち切りはDisable()側が担う。falseを返す経路では副作用を起こさない
+            // Cutting off an in-flight request is Disable()'s job; the false path must cause no side effects
             if (_connectFromArea == null) return false;
 
-            _connectFromArea = null;
+            ResetState();
             _previewObject.SetActive(false);
             return true;
         }

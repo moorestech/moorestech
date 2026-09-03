@@ -7,9 +7,17 @@ using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
+using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.Tooltip;
+using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
+using Client.Network.API;
+using Server.Util.MessagePack;
 using Client.Tests.UIState.Fakes;
 using Client.Tests.ViewMode;
 using UnityEngine;
@@ -77,6 +85,46 @@ namespace Client.Tests.UIState
         protected static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
         {
             return new UiStateCameraPolicyService(applier, viewModeController);
+        }
+
+        // 8px未満で押して離すだけの短押しをシミュレートする（移動なし）
+        // Simulates a short press below the 8px threshold (press then release with no movement)
+        protected UITransitContext PressAndReleaseRightButton(IUIState state)
+        {
+            Press(MouseDevice.rightButton);
+            state.GetNextUpdate();
+            Release(MouseDevice.rightButton);
+            return state.GetNextUpdate();
+        }
+
+        // PlayerInventoryStateのctorは初期応答の適用まで走るため、ビュー実体の注入込みで組み立てる
+        // PlayerInventoryState's ctor applies the initial response, so it is assembled together with the view instances it needs
+        protected PlayerInventoryState CreatePlayerInventoryState(LocalPlayerEquipment playerEquipment, InitialHandshakeResponse handshakeResponse)
+        {
+            // uGUIビューはSetActiveしか呼ばれないため最小の実体を渡す
+            // The uGUI views only receive SetActive, so pass minimal instances
+            var recipeViewerView = CreateComponent<RecipeViewerView>("RecipeViewer", false);
+            var viewController = CreateComponent<PlayerInventoryViewController>("PlayerInventoryView", false);
+            SetField(viewController, "mainInventoryObject", CreateObject("MainInventory", false));
+            SetField(viewController, "subInventoryParent", CreateObject("SubInventoryParent", false).transform);
+
+            return new PlayerInventoryState(recipeViewerView, viewController,
+                new LocalPlayerInventoryController(new LocalPlayerInventory(), playerEquipment),
+                playerEquipment, handshakeResponse, new RightShortPressInputService(new RightShortPressInput()));
+        }
+
+        // Handshakeは使用項目だけを設定する。残りはEditModeで組み立てられずPlayerInventoryStateも読まない
+        // Only the fields the handshake consumes are set; the rest cannot be assembled in EditMode and PlayerInventoryState never reads them
+        protected static InitialHandshakeResponse CreateHandshakeResponse(PlayerInventoryResponse inventory)
+        {
+#pragma warning disable CS0618
+            var initialHandshake = new global::Server.Protocol.PacketResponse.InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack
+            {
+                PlayerPos = new Vector3MessagePack(Vector3.zero),
+            };
+#pragma warning restore CS0618
+
+            return new InitialHandshakeResponse(initialHandshake, (null, null, inventory, null, null, null, null, null));
         }
 
         protected void SetUpMouseCursorTooltip()

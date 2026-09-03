@@ -78,14 +78,12 @@ namespace Client.Input
         public readonly InputKey BlockPlaceRotation;
         public readonly InputKey ClickPosition;
         public readonly InputKey ScreenLeftClick;
-        public readonly InputKey ScreenRightClick;
         public readonly InputKey Interact;
         public readonly InputKey Ride;
 
         public PlayableInputManager(MoorestechInputSettings settings)
         {
             ScreenLeftClick = new InputKey(settings.Playable.ScreenLeftClick);
-            ScreenRightClick = new InputKey(settings.Playable.ScreenRightClick);
             ClickPosition = new InputKey(settings.Playable.ClickPosition);
             BlockPlaceRotation = new InputKey(settings.Playable.BlockPlaceRotation, InputSuppressionScope.Keyboard);
 

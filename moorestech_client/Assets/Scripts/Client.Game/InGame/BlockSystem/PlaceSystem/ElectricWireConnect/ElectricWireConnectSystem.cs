@@ -50,10 +50,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
 
         public override void Enable()
         {
-            // 有効化のたびに起点選択をリセットし、進行中の応答を無効化し、解放済み電柱を再読込する
-            // Reset the origin selection, invalidate any pending response and reload unlocked poles each time the tool is enabled
-            _sourceBlock = null;
-            _context.RequestSender.Invalidate();
+            // 有効化のたびに起点選択をリセットし、解放済み電柱を再読込する
+            // Reset the origin selection and reload unlocked poles each time the tool is enabled
+            ResetSourceSelection();
             _context.PoleSelection.RefreshUnlockedPoles(_gameUnlockStateData);
         }
 
@@ -96,19 +95,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect
         {
             if (_sourceBlock == null) return false;
 
-            _sourceBlock = null;
-            _context.RequestSender.Invalidate();
+            ResetSourceSelection();
             return true;
         }
 
         public override void Disable()
         {
-            // ツール切替時のみ起点を解除し、進行中の応答を無効化してプレビューを消す
-            // Release the origin only on tool switch, invalidate any pending response and hide previews
-            _sourceBlock = null;
-            _context.RequestSender.Invalidate();
+            // ツール切替時のみ起点を解除し、プレビューを消す
+            // Release the origin only on tool switch and hide previews
+            ResetSourceSelection();
             _context.WirePreview.SetActive(false);
             _context.PreviewBlockController.SetActive(false);
+        }
+
+        // 起点解除は必ず応答の無効化と対にする。片方だけだと遅着応答が解除済みの起点を復活させる
+        // Releasing the origin always pairs with invalidating the response; alone, a late response would revive the cleared origin
+        private void ResetSourceSelection()
+        {
+            _sourceBlock = null;
+            _context.RequestSender.Invalidate();
         }
     }
 }
