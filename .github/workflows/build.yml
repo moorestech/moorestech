@@ -40,8 +40,10 @@ jobs:
     # (コミット55b9aa971の再発。裁定2026-08-22でmacOSだけ直列化し、Windowsは並列のまま残す)
     # unity-builder runs natively on macOS, so a simultaneous Server/Client activation fails license validation
     # (a regression of commit 55b9aa971; adjudicated 2026-08-22 to serialize macOS only, leaving Windows parallel)
+    # github.job はjob-level concurrencyでは空になるためジョブ種別をリテラルで書き分ける
+    # github.job resolves to empty in a job-level concurrency block, so the job kind is written out literally
     concurrency:
-      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-{0}-{1}-{2}', github.job, matrix.platform.name, github.run_id) }}
+      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-server-{0}-{1}', matrix.platform.name, github.run_id) }}
       cancel-in-progress: false
 
     strategy:
@@ -166,8 +168,10 @@ jobs:
     # (コミット55b9aa971の再発。裁定2026-08-22でmacOSだけ直列化し、Windowsは並列のまま残す)
     # unity-builder runs natively on macOS, so a simultaneous Server/Client activation fails license validation
     # (a regression of commit 55b9aa971; adjudicated 2026-08-22 to serialize macOS only, leaving Windows parallel)
+    # github.job はjob-level concurrencyでは空になるためジョブ種別をリテラルで書き分ける
+    # github.job resolves to empty in a job-level concurrency block, so the job kind is written out literally
     concurrency:
-      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-{0}-{1}-{2}', github.job, matrix.platform.name, github.run_id) }}
+      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-client-{0}-{1}', matrix.platform.name, github.run_id) }}
       cancel-in-progress: false
 
     strategy:
