@@ -45,7 +45,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticFileByteSize);
             var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(ExpectedStreamFilePathsOfFourTiles(worldDataDirectory));
 
-            var chunkTotal = TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal;
+            var chunkTotal = ReadGenerated(worldDataDirectory).TerrainChunkTotal;
             Assert.AreEqual(2, chunkTotal);
 
             var decompressedChunks = Enumerable.Range(0, chunkTotal)
@@ -77,7 +77,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void 生成済みワールドの全チャンクを連結すると実terrainファイルと一致する()
         {
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
-            var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
+            var terrainMeta = ReadGenerated(worldDataDirectory);
 
             // ForUnitTestModのgeneration.jsonはgridSizeX/Z=5固定なのでタイル数25を直書きできる
             // ForUnitTestMod's generation.json pins gridSizeX/Z=5, so the tile count 25 can be hardcoded here
@@ -95,7 +95,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void 範囲外のChunkIndexは空応答ではなく例外になる()
         {
             var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticFileByteSize);
-            var chunkTotal = TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal;
+            var chunkTotal = ReadGenerated(worldDataDirectory).TerrainChunkTotal;
 
             Assert.Throws<ArgumentOutOfRangeException>(() => TerrainChunkReader.Read(worldDataDirectory, chunkTotal));
             Assert.Throws<ArgumentOutOfRangeException>(() => TerrainChunkReader.Read(worldDataDirectory, -1));
@@ -117,7 +117,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 生成失敗や切り詰めで実ファイルが空になった状態。templateと同一視すると壊れたワールドを正常として配ってしまう
             // Terrain emptied by a failed generation or truncation; equating it with template would ship a broken world as healthy
             var worldDataDirectory = CreateSyntheticFourTileWorld(0);
-            var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
+            var terrainMeta = ReadGenerated(worldDataDirectory);
             Assert.AreEqual(WorldMapMode.Generated, terrainMeta.MapMode);
             Assert.AreEqual(0, terrainMeta.TerrainChunkTotal);
 
@@ -193,6 +193,13 @@ namespace Tests.UnitTest.Game.MapGeneration
             };
             File.WriteAllText(worldDataDirectory.WorldMetaFilePath, JsonConvert.SerializeObject(worldMeta, Formatting.Indented));
             return worldDataDirectory;
+        }
+
+        // 地形の寸法はgeneratedのメタにしか無い。generatedワールドを読んだ結果がその型であること自体が検証対象でもある
+        // Terrain dimensions live on the generated meta alone, and a generated world reading back as that type is itself part of what is verified
+        private static GeneratedTerrainTransferMeta ReadGenerated(WorldDataDirectory worldDataDirectory)
+        {
+            return (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(worldDataDirectory);
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
         {
             var settings = ProvisionGeneratedWorld();
 
-            var terrainMeta = TerrainTransferMetaReader.Read(_worldDataDirectory);
+            var terrainMeta = (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(_worldDataDirectory);
             var generatedPayload = terrainMeta.GeneratedPayload;
             var currentFingerprint = generatedPayload.ComputeCurrentGenerationMasterFingerprint(TestModDirectory.ForUnitTestModDirectory);
             var sharedVisualDirectory = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId).TerrainVisualDirectory;
@@ -130,7 +130,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
         // The ledger digest of a pass-1 re-run under the current master, assembled exactly as the resolver does
         private string CurrentPlacementLedgerDigest()
         {
-            var terrainMeta = TerrainTransferMetaReader.Read(_worldDataDirectory);
+            var terrainMeta = (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(_worldDataDirectory);
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
                 selectedGeneration, terrainMeta.WorldSeed, TestModDirectory.ForUnitTestModDirectory, terrainMeta.GeneratedPayload.Origins);

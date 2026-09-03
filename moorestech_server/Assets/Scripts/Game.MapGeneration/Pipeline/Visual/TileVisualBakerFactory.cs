@@ -43,7 +43,7 @@ namespace Game.MapGeneration.Pipeline.Visual
         // クライアントは自分の地形ファイルを持たない。高さ源は先焼きが書いた共有キャッシュで、その導出は呼び出し元に持たせない
         // A client owns no terrain files of its own: its height source is the shared cache the prebake wrote, and deriving it never falls to the caller
         public static Result CreateForClient(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, Generation selectedGeneration)
+            TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta, Generation selectedGeneration)
         {
             var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, config);
             return CreateWithHeightSource(
@@ -53,7 +53,7 @@ namespace Game.MapGeneration.Pipeline.Visual
         // 先焼きの高さ源はワールド本体のterrain/(生成した本人が唯一の正)。共有キャッシュへの複製は要らない
         // The prebake's height source is the world's own terrain/ (the generator itself is the sole truth); no copy into the shared cache is needed
         public static Result CreateForPrebake(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta,
+            TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta,
             PlacementLedger ledger, Generation selectedGeneration, WorldDataDirectory worldDataDirectory)
         {
             var ledgerSource = new MaterializedPlacementLedgerSource(ledger);
@@ -62,7 +62,7 @@ namespace Game.MapGeneration.Pipeline.Visual
         }
 
         private static Result CreateWithHeightSource(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta,
+            TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta,
             IPlacementLedgerSource ledgerSource, Generation selectedGeneration, WorldDataDirectory heightSource)
         {
             // payloadは常にメタの持ち物。別引数で受けると不整合な対を組める余地が残るのでここで1度だけ読む

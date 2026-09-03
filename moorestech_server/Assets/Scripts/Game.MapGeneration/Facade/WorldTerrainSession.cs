@@ -26,12 +26,13 @@ namespace Game.MapGeneration.Facade
         {
             // オーサリング済み地形は焼くタイルを持たない。焼ける口はTiledTerrainSessionにしか無く、判別子とnullで二重に持たない
             // An authored terrain owns no tile to bake; only TiledTerrainSession exposes baking, so no discriminator-plus-null pair states it twice
-            if (terrainMeta.IsTemplate) return new AuthoredTerrainSession(WorldTerrainLayout.CreateTerrainAsset());
+            if (terrainMeta is not GeneratedTerrainTransferMeta generatedMeta)
+                return new AuthoredTerrainSession(WorldTerrainLayout.CreateTerrainAsset());
 
             // 転送メタは別ビルドのサーバーからも届く。転送ファイル構成の版が違えばこの先の読み出しが全部ずれるので冒頭で止める
             // The meta can arrive from a server on another build; a differing transfer-layout version skews every read below, so stop at the head
-            var generatedPayload = terrainMeta.GeneratedPayload;
-            generatedPayload.ThrowIfGeneratorVersionDiffers(terrainMeta.WorldId);
+            var generatedPayload = generatedMeta.GeneratedPayload;
+            generatedPayload.ThrowIfGeneratorVersionDiffers(generatedMeta.WorldId);
 
             // 生成マスタ（JSON原文＋配置ノイズPNG）がワールド作成時と違えば台帳がサーバー正本とずれる。版・解像度と同じく例外で止める
             // If the generation master (JSON text + placement-noise PNGs) differs from world creation, the ledger drifts from the server's truth; fail as for version and resolution
@@ -43,8 +44,8 @@ namespace Game.MapGeneration.Facade
             // The spawn search alone is not recomputed: the origins settled at world creation are injected so the same window is addressed
             var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
             var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                selectedGeneration, terrainMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins);
-            terrainMeta.ThrowIfTerrainResolutionDiffers(config.Resolution);
+                selectedGeneration, generatedMeta.WorldSeed, serverDataDirectory, generatedPayload.Origins);
+            generatedMeta.ThrowIfTerrainResolutionDiffers(config.Resolution);
 
             // 原点は格子の寸法と注入したGだけで決まり、生成を回さなくても確かめられる
             // 崩れた原点は別の窓を指しているので、その窓で焼いた見た目をキャッシュへ書き込む前に止める
@@ -55,13 +56,13 @@ namespace Game.MapGeneration.Facade
 
             // 組み立てはサーバー先焼きと共有し、高さ源と遅延台帳源の決定をfactoryへ閉じる
             // Share assembly with the server prebake and keep both height-source and lazy-ledger-source decisions in the factory
-            var factoryResult = TileVisualBakerFactory.CreateForClient(config, terrainMeta, selectedGeneration);
+            var factoryResult = TileVisualBakerFactory.CreateForClient(config, generatedMeta, selectedGeneration);
             var gridConfig = factoryResult.GridConfig;
 
             // 生成内部のdetail設定は境界を越えない。並びを保ったまま公開仕様へ写す
             // The generation-internal detail configs never cross the boundary; they are copied into the public specs with their order intact
             var layout = WorldTerrainLayout.CreateTileMaps(
-                TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount),
+                TerrainTransferMeta.EnumerateTileCoordinates(generatedMeta.TerrainTileCount),
                 new Vector3(gridConfig.terrainWidth, gridConfig.terrainHeight, gridConfig.terrainLength), gridConfig.Resolution,
                 factoryResult.OrderedLayerAddresses, DetailPrototypeSpecCollector.Collect(factoryResult.Baker.DetailPrototypes));
             return new TiledTerrainSession(layout, factoryResult.Baker);

@@ -53,17 +53,16 @@ namespace Server.Protocol.PacketResponse.MapData
         {
             MapMode = terrainMeta.MapMode;
             WorldId = terrainMeta.WorldId;
-            TerrainResolution = terrainMeta.TerrainResolution;
-            TerrainTileCount = terrainMeta.TerrainTileCount;
-            TerrainChunkTotal = terrainMeta.TerrainChunkTotal;
             TerrainHash = terrainHash;
             WorldSeed = terrainMeta.WorldSeed;
 
-            // templateは従来のワイヤ空値を保つが、ドメインに生成専用sentinelは持たせない
-            // Templates preserve established empty wire values without putting generated-only sentinels in the domain
-            var generatedPayload = terrainMeta.GeneratedPayload;
-            if (generatedPayload == null)
+            // templateは地形も生成専用値も持たないので、従来のワイヤ空値をここで置く
+            // A template owns neither terrain nor generated-only values, so the established empty wire values are put here
+            if (terrainMeta is not GeneratedTerrainTransferMeta generatedMeta)
             {
+                TerrainResolution = 0;
+                TerrainTileCount = 0;
+                TerrainChunkTotal = 0;
                 NoiseOrigin = new Vector2MessagePack(0f, 0f);
                 SceneOrigin = new Vector2MessagePack(0f, 0f);
                 GenerationMasterFingerprint = string.Empty;
@@ -72,6 +71,11 @@ namespace Server.Protocol.PacketResponse.MapData
                 return;
             }
 
+            TerrainResolution = generatedMeta.TerrainResolution;
+            TerrainTileCount = generatedMeta.TerrainTileCount;
+            TerrainChunkTotal = generatedMeta.TerrainChunkTotal;
+
+            var generatedPayload = generatedMeta.GeneratedPayload;
             NoiseOrigin = new Vector2MessagePack(generatedPayload.Origins.NoiseOrigin);
             SceneOrigin = new Vector2MessagePack(generatedPayload.Origins.SceneOrigin);
             GenerationMasterFingerprint = generatedPayload.GenerationMasterFingerprint;

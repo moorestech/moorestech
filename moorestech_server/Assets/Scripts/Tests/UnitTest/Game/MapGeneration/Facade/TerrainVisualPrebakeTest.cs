@@ -19,7 +19,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         {
             var scope = new TerrainTransferTestScope(nameof(生成ワールドの先焼きで共有キャッシュへ全タイルの見た目ファイルが書き出される));
             var worldDirectory = scope.ProvisionGeneratedWorld(777);
-            var meta = TerrainTransferMetaReader.Read(worldDirectory);
+            var meta = (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(worldDirectory);
             var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
             try
             {
@@ -43,7 +43,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         {
             var scope = new TerrainTransferTestScope(nameof(先焼き済みキャッシュはOpen_BakeTileで再構築されずmtimeが変わらない));
             var worldDirectory = scope.ProvisionGeneratedWorld(778);
-            var meta = TerrainTransferMetaReader.Read(worldDirectory);
+            var meta = (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(worldDirectory);
             var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
             try
             {

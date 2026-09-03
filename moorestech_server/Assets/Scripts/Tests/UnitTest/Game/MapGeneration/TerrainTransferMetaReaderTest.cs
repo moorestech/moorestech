@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Game.MapGeneration.Export;
 using Game.MapGeneration.Transfer;
+using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -34,7 +35,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
 
-            var chunkTotalBeforeStrayFile = TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal;
+            var chunkTotalBeforeStrayFile = ReadGenerated(worldDataDirectory).TerrainChunkTotal;
             Assert.Greater(chunkTotalBeforeStrayFile, 0);
 
             // .DS_Store等の混入で総数がずれるとクライアントが存在しないチャンク番号を要求する。丸ごと1チャンク分の大きさで踏む
@@ -42,7 +43,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var strayFilePath = Path.Combine(worldDataDirectory.TerrainDirectory, ".DS_Store");
             File.WriteAllBytes(strayFilePath, new byte[TerrainTransferMeta.ChunkByteSize]);
 
-            Assert.AreEqual(chunkTotalBeforeStrayFile, TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal);
+            Assert.AreEqual(chunkTotalBeforeStrayFile, ReadGenerated(worldDataDirectory).TerrainChunkTotal);
         }
 
         [Test]
@@ -56,7 +57,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
             Assert.AreEqual(seed, worldMeta.Seed, "前提: 指定したseedがworld.jsonに記録されている");
 
-            var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
+            var terrainMeta = ReadGenerated(worldDataDirectory);
             Assert.AreEqual(seed, terrainMeta.WorldSeed);
             Assert.IsNotNull(terrainMeta.GeneratedPayload);
         }
@@ -121,7 +122,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var meta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
             Assert.AreEqual(WorldMapMode.Template, meta.MapMode);
-            Assert.IsNull(meta.GeneratedPayload);
+            Assert.IsInstanceOf<TemplateTerrainTransferMeta>(meta);
         }
 
         [Test]
@@ -171,6 +172,13 @@ namespace Tests.UnitTest.Game.MapGeneration
             // Zero is a perfect square and slips past the grid guard; never let it silently yield a zero-chunk wire value
             Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.EnumerateTileCoordinates(0));
             Assert.Throws<InvalidOperationException>(() => TerrainTransferMeta.EnumerateTileCoordinates(-1));
+        }
+
+        // generatedワールドを読んだ結果が生成メタであることは、地形の寸法を読む全テストの前提でもある
+        // Every test reading terrain dimensions also relies on a generated world reading back as the generated meta
+        private static GeneratedTerrainTransferMeta ReadGenerated(WorldDataDirectory worldDataDirectory)
+        {
+            return (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(worldDataDirectory);
         }
     }
 }
