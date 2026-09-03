@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
+using Client.Input;
 using Client.Tests.Common;
 using NUnit.Framework;
 using UnityEngine;
@@ -88,6 +91,67 @@ namespace Client.Tests.Interact
         {
             AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
             var interactable = CreateTrainCarTarget(AimRay().GetPoint(1f));
+            PlayerObject.transform.position = interactable.transform.position;
+            Physics.SyncTransforms();
+
+            Assert.AreSame(interactable, new InteractTargetSelector().Select());
+        }
+
+        [Test]
+        public void 照準ヒットが2mより遠いときは近傍候補が選ばれる()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
+            CameraObject.transform.position = Vector3.zero;
+            CameraObject.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+            PlayerObject.transform.position = Vector3.zero;
+
+            // 5m先の照準ヒットは手が届かず、横1mの候補が残る
+            // The aim hit 5m away is out of reach, leaving the candidate 1m to the side
+            CreateMapObjectTarget(AimRay().GetPoint(5f));
+            var nearby = CreateMapObjectTarget(new Vector3(1f, 0f, 0f));
+
+            Assert.AreSame(nearby, new InteractTargetSelector().Select());
+        }
+
+        [Test]
+        public void Select前の問い合わせは走査結果が無いので空で返る()
+        {
+            var selector = new InteractTargetSelector();
+            var keys = new List<InputKey> { InputManager.Playable.Interact };
+
+            selector.CollectCandidateKeys(keys);
+
+            Assert.IsEmpty(keys);
+            Assert.IsNull(selector.SelectRespondingTo(InputManager.Playable.Ride));
+        }
+
+        [Test]
+        public void 近傍候補のキーは重複なく集まりキーに応じる候補が返る()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
+            CameraObject.transform.position = new Vector3(0f, 1f, -5f);
+            CameraObject.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+            PlayerObject.transform.position = Vector3.zero;
+
+            // 正面の開けるブロック（F）と、右の車両（F・E）
+            // An openable block ahead (F) and a train car to the right (F and E)
+            var block = CreateOpenableBlockTarget(new Vector3(0f, 0f, 1.5f));
+            var trainCar = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
+
+            var selector = new InteractTargetSelector();
+            Assert.AreSame(block, selector.Select());
+
+            var keys = new List<InputKey>();
+            selector.CollectCandidateKeys(keys);
+            CollectionAssert.AreEquivalent(new[] { InputManager.Playable.Interact, InputManager.Playable.Ride }, keys);
+            Assert.AreSame(trainCar, selector.SelectRespondingTo(InputManager.Playable.Ride));
+        }
+
+        [Test]
+        public void 開けるブロックは当たり判定子からでもインタラクト面が選ばれる()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
+            var interactable = CreateOpenableBlockTarget(AimRay().GetPoint(1f));
             PlayerObject.transform.position = interactable.transform.position;
             Physics.SyncTransforms();
 

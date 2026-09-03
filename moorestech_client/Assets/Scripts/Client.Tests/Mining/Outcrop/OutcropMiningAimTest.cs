@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Player;

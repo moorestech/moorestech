@@ -18,6 +18,7 @@ using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.Map.MapVein;
