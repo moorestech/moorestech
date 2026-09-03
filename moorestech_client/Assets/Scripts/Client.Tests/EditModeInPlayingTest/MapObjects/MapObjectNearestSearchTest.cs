@@ -24,6 +24,9 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
     /// This test runs in EditMode but switches to PlayMode during execution.
     /// Verifies the nearest map-object index follows destruction and candidate sets against the real server.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay1")]
     public class MapObjectNearestSearchTest
     {
         [UnityTest]

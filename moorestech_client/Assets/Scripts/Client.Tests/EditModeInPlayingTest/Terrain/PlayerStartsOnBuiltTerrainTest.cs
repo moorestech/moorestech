@@ -29,6 +29,9 @@ namespace Client.Tests.EditModeInPlayingTest
     /// Runs the whole startup sequence for real, verifying the player lands at its handshake position over built terrain and that no initial-event wait target is missing from DI.
     /// Leaving startup LogErrors unswallowed is the point of this test, so ignoreFailingMessages is confined to the EnterPlayMode frame and teardown.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay1")]
     public class PlayerStartsOnBuiltTerrainTest
     {
         // 地表下に埋まった自機はCharacterControllerの押し出しでXZが数cm動く。Warpが抜ければ数百mずれるので1mで切れる

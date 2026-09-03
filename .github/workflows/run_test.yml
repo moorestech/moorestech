@@ -53,24 +53,38 @@ jobs:
           "$pnpm_binary" --dir webui exec tsc -p e2e/tsconfig.json --noEmit
           "$pnpm_binary" --dir webui exec vitest run
 
+  # shard集合の正本はresolverの配列1箇所。matrixをそこから生成し、両者の乖離が起こりえない形にする。
+  # The shard set has a single source in the resolver's arrays; generating the matrix from it makes divergence impossible.
+  resolve_unity_test_shards:
+    name: Resolve Unity test shards
+    runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.shards.outputs.shards }}
+    steps:
+      - name: Check out my unity project.
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          path: moorestech
+
+      - name: List Unity test shards.
+        id: shards
+        shell: bash
+        working-directory: moorestech
+        run: |
+          shards=$(bash .github/scripts/unity-test-shard-filter.sh --list-shards)
+          echo "shards=$shards" >> "$GITHUB_OUTPUT"
+
   # 重量fixtureを実測時間で分割し、未列挙テストはClient/Serverの残余shardへ必ず流す。
   # Split heavy fixtures by measured duration and always route unlisted tests into a Client or Server remainder shard.
   unity_test_shard:
     name: Unity Test - ${{ matrix.shard }}
+    needs: resolve_unity_test_shards
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        shard:
-          - client-play-1
-          - client-play-2
-          - client-play-3
-          - client-near-field-startup
-          - client-remainder
-          - server-map-1
-          - server-map-2
-          - server-map-3
-          - server-remainder
+        shard: ${{ fromJson(needs.resolve_unity_test_shards.outputs.shards) }}
     steps:
       # HEADしか参照しないテストなので履歴を取得せず、9 shard共通のcheckout固定費を抑える。
       # Tests only inspect HEAD, so skip history to reduce checkout overhead paid by all nine shards.
@@ -152,8 +166,8 @@ jobs:
           restore-keys: |
             Library_Test_client-
 
-      # 専用fixtureはFQNだけ、残余は検証済みassemblyも併用し、網羅性を保って探索固定費を抑える。
-      # Use FQNs alone for dedicated fixtures and verified assemblies for remainders to retain coverage with lower discovery overhead.
+      # 専用fixtureはCategoryだけ、残余は検証済みassemblyも併用し、網羅性を保って探索固定費を抑える。
+      # Use categories alone for dedicated fixtures and verified assemblies for remainders to retain coverage with lower discovery overhead.
       - name: Run Unity Test - ${{ matrix.shard }}
         uses: game-ci/unity-test-runner@v4
         env:
@@ -168,8 +182,7 @@ jobs:
           testMode: editmode
           customParameters: >-
             ${{ steps.shard.outputs.use_assembly_filter == 'true' && format('-assemblyNames "{0}"', steps.shard.outputs.assembly_names) || '' }}
-            -testFilter "${{ steps.shard.outputs.test_filter }}"
-            -testCategory "!IgnoreCI"
+            -testCategory "${{ steps.shard.outputs.test_category }}"
 
       # shard別artifact名で結果の上書きを防ぎ、全件同一性と所要時間を後から検証可能にする。
       # Use per-shard artifact names to prevent overwrites and preserve evidence for coverage and timing audits.
@@ -184,14 +197,21 @@ jobs:
   test:
     name: EditMode Test (Client + Server)
     if: always()
-    needs: unity_test_shard
+    needs: [resolve_unity_test_shards, unity_test_shard]
     runs-on: ubuntu-latest
     steps:
       - name: Require every Unity test shard to pass.
         shell: bash
         env:
+          RESOLVE_RESULT: ${{ needs.resolve_unity_test_shards.result }}
           SHARD_RESULT: ${{ needs.unity_test_shard.result }}
         run: |
+          # shard一覧の解決が落ちるとmatrixが空になり、shard側は「実行0件で成功」に見える
+          # A failed shard listing empties the matrix, which would otherwise look like a successful run of zero shards
+          if [[ "$RESOLVE_RESULT" != 'success' ]]; then
+            echo "Unity test shard resolution result: $RESOLVE_RESULT" >&2
+            exit 1
+          fi
           if [[ "$SHARD_RESULT" != 'success' ]]; then
             echo "Unity test shard result: $SHARD_RESULT" >&2
             exit 1

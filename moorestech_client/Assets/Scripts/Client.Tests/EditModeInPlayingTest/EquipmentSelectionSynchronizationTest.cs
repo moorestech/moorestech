@@ -11,6 +11,9 @@ using UnityEngine.TestTools;
 
 namespace Client.Tests.EditModeInPlayingTest
 {
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay3")]
     public class EquipmentSelectionSynchronizationTest
     {
         [UnityTest]
