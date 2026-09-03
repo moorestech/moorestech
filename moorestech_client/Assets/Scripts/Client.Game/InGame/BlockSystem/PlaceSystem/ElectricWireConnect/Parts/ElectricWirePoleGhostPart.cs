@@ -71,14 +71,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
             _previewBlockController.SetPreview(placeInfos, poleMaster);
             var groundOverlaps = _previewBlockController.DetectGroundOverlaps();
 
-            // 地形接触で落としたらゴーストも塗り直す。SetPreviewは接触を知らない
-            // Repaint the ghost when terrain contact drops it; SetPreview does not know the contact
+            // 接触は可否として返すだけ。塗りとPlaceableの確定はモード側が持つ
+            // Contact is only returned as a judgement; painting and Placeable stay with the mode
             var isGroundClear = !groundOverlaps[0];
-            if (!isGroundClear)
-            {
-                placeInfos[0].Placeable = false;
-                _previewBlockController.UpdatePlaceableColors(placeInfos);
-            }
 
             evaluation = new ElectricWirePoleGhostEvaluation(placeInfos, poleMaster, poleBlockId, isGroundClear, isPositionFree, materialShortages, poleConstructionItemCounts);
 
