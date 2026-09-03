@@ -43,8 +43,8 @@ namespace Client.Tests.Interact
 
             var transit = interactable.Actions[0].Execute();
 
-            Assert.AreEqual(UIStateEnum.SubInventory, transit.NextStateEnum);
-            Assert.IsInstanceOf<TrainSubInventorySource>(transit.GetContext<ISubInventorySource>());
+            Assert.AreEqual(UIStateEnum.SubInventory, transit.TransitContext.NextStateEnum);
+            Assert.IsInstanceOf<TrainSubInventorySource>(transit.TransitContext.GetContext<ISubInventorySource>());
         }
 
         [Test]
@@ -55,8 +55,8 @@ namespace Client.Tests.Interact
 
             var transit = interactable.Actions[1].Execute();
 
-            Assert.AreEqual(UIStateEnum.TrainHUDScreen, transit.NextStateEnum);
-            var request = transit.GetContext<RideTrainCarRequest>();
+            Assert.AreEqual(UIStateEnum.TrainHUDScreen, transit.TransitContext.NextStateEnum);
+            var request = transit.TransitContext.GetContext<RideTrainCarRequest>();
             Assert.AreEqual(trainCarEntityObject.TrainCarInstanceId, request.TargetCarId);
         }
 

@@ -122,7 +122,7 @@ namespace Client.Tests.Interact
             targetObject.transform.position = position;
             targetObject.AddComponent<SphereCollider>().radius = 0.05f;
             var mapObject = targetObject.AddComponent<MapObjectGameObject>();
-            targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject);
+            targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject, true);
 
             // マスタ解決済みのmapObjectだけが選定対象になるため、実マスタの要素を載せる
             // Only a map object with a resolved master is selectable, so put a real master element on it

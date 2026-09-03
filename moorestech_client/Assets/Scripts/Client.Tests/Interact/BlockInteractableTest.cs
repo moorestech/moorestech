@@ -62,8 +62,8 @@ namespace Client.Tests.Interact
             Assert.AreEqual(new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(blockGuid)) }, openable.Actions[0].HintParams);
 
             var transit = openable.Actions[0].Execute();
-            Assert.AreEqual(UIStateEnum.SubInventory, transit.NextStateEnum);
-            Assert.IsInstanceOf<BlockSubInventorySource>(transit.GetContext<ISubInventorySource>());
+            Assert.AreEqual(UIStateEnum.SubInventory, transit.TransitContext.NextStateEnum);
+            Assert.IsInstanceOf<BlockSubInventorySource>(transit.TransitContext.GetContext<ISubInventorySource>());
         }
 
         [Test]
