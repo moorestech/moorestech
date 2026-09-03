@@ -73,8 +73,8 @@ jobs:
           ref: ${{ steps.master_revision.outputs.commit_hash }}
           path: moorestech_master
 
-      # restoreとsaveを分離し、warmが完了したLibraryだけを公開する。
-      # Separate restore and save so only a successfully warmed Library is published.
+      # 約20分のwarm成果を1ステップの失敗で捨てないよう、restoreとsaveを分けsaveはLibraryの実体検査だけを条件にする（旧裁定を維持）
+      # Splitting restore from save keeps ~20 minutes of warming from being discarded by one failed step; the save gates on the Library itself, not the step outcome (the prior ruling stands)
       - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
@@ -98,9 +98,29 @@ jobs:
           testMode: editmode
           customParameters: '-testFilter __cache_warm_matches_nothing__'
 
+      # warmが落ちても実体のあるLibraryなら公開する。空・極小のLibraryを配ると全PRがそれをrestoreして壊れる
+      # Publish a Library with real substance even when warm failed; shipping an empty or tiny one would break every PR that restores it
+      - name: Check warmed client Library.
+        id: publishable
+        if: always()
+        shell: bash
+        env:
+          LIBRARY_PATH: moorestech/moorestech_client/Library
+          MINIMUM_LIBRARY_MEGABYTES: 512
+        run: |
+          publishable=false
+          if [[ -d "$LIBRARY_PATH/ScriptAssemblies" ]]; then
+            library_megabytes=$(du -sm "$LIBRARY_PATH" | cut -f1)
+            echo "Warmed Library size: ${library_megabytes}MB"
+            if [[ "$library_megabytes" -ge "$MINIMUM_LIBRARY_MEGABYTES" ]]; then
+              publishable=true
+            fi
+          fi
+          echo "publishable=$publishable" >> "$GITHUB_OUTPUT"
+
       - uses: actions/cache/save@v4
         id: save
-        if: steps.warm.outcome == 'success'
+        if: always() && steps.publishable.outputs.publishable == 'true'
         with:
           path: moorestech/moorestech_client/Library
           key: Library_Test_client-${{ github.sha }}
@@ -108,7 +128,7 @@ jobs:
       # 最新cacheの保存成功後だけmaster上の旧client cacheを消し、10GB枠内に保つ。
       # Delete old master client caches only after a successful warm and save to stay within the 10GB budget.
       - name: Delete older client test caches.
-        if: github.ref == 'refs/heads/master' && steps.warm.outcome == 'success' && steps.save.outcome == 'success'
+        if: github.ref == 'refs/heads/master' && steps.publishable.outputs.publishable == 'true' && steps.save.outcome == 'success'
         shell: bash
         working-directory: moorestech
         env:
@@ -177,8 +197,28 @@ jobs:
           versioning: None
           customParameters: '-expectedBuildTarget ${{ matrix.target }}'
 
+      # client側と同じく、warmの終了コードではなくLibraryの実体で公開可否を決める
+      # As on the client side, publishability is decided by the Library itself rather than by warm's exit code
+      - name: Check warmed server Library - ${{ matrix.target }}.
+        id: publishable
+        if: always()
+        shell: bash
+        env:
+          LIBRARY_PATH: moorestech_server/Library
+          MINIMUM_LIBRARY_MEGABYTES: 512
+        run: |
+          publishable=false
+          if [[ -d "$LIBRARY_PATH/ScriptAssemblies" ]]; then
+            library_megabytes=$(du -sm "$LIBRARY_PATH" | cut -f1)
+            echo "Warmed Library size: ${library_megabytes}MB"
+            if [[ "$library_megabytes" -ge "$MINIMUM_LIBRARY_MEGABYTES" ]]; then
+              publishable=true
+            fi
+          fi
+          echo "publishable=$publishable" >> "$GITHUB_OUTPUT"
+
       - uses: actions/cache/save@v4
-        if: steps.warm.outcome == 'success'
+        if: always() && steps.publishable.outputs.publishable == 'true'
         with:
           path: moorestech_server/Library
           key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}
