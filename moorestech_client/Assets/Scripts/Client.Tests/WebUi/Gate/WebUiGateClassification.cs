@@ -105,7 +105,6 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/Tutorial/MapObjectPin.cs", Category.Excluded, "ワールド座標ピンのためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/VeinPin.cs", Category.Excluded, "鉱脈露頭を指すワールド座標ピンのためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/BlockPlacePreviewTutorialManager.cs", Category.Excluded, "3D配置previewのためUnity残置"),
-            new Rule("Client.Game/InGame/Tutorial/TutorialBlock", Category.Excluded, "3D配置preview配下"),
             new Rule("Client.Game/InGame/Tutorial", Category.Infra, "challenge lifecycle・presentation state・interface"),
             new Rule("Client.Game/Skit/SkitWorldObjectControlGroup.cs", Category.Excluded, "Environment外のワールド表示物を束ねる切替でスクリーンUIを持たない"),
             new Rule("Client.Game/Skit/SkitVisibilityLedger.cs", Category.Excluded, "スキットが消したワールド表示の復元台帳でスクリーンUIを持たない"),

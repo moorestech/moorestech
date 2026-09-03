@@ -5,18 +5,27 @@ using Core.Master;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
 {
     /// <summary>
-    ///     「このブロックを置くときは連結レイアウト全体が置けること」という共有状態。書き手はチュートリアル、読み手は設置判定と連結ゴースト表示
-    ///     Shared "placing this block requires the whole chain layout to fit" state; written by the tutorial, read by placement checks and the chain ghosts
+    ///     連結レイアウト全体が置けることを要求する共有状態
+    ///     Shared state requiring the whole chain layout to fit; written by the tutorial, read by placement checks and the ghosts
     /// </summary>
     public class ChainPlacePreviewState
     {
-        // チュートリアルごとに独立した定義を持ち、完了した本人の分だけが下りる
+        // 定義はチュートリアルごとに独立し完了した分だけ下りる
         // Each tutorial owns an independent definition; only its own completion removes it
         private readonly Dictionary<Guid, ChainDefinition> _definitions = new();
         
         public void SetChain(Guid tutorialGuid, BlockId placingBlockId, IReadOnlyList<ChainGhost> chain)
         {
-            // 実体参照を外へ漏らさないよう配列へ写して凍結する
+            // 同一設置ブロックの定義が2件並ぶとTryGetChainの代表選択が辞書の列挙順任せになるので、適用時点で落とす
+            // Two definitions for one placing block would leave TryGetChain's pick to dictionary order, so fail at apply time
+            foreach (var pair in _definitions)
+            {
+                if (pair.Key == tutorialGuid) continue;
+                if (pair.Value.PlacingBlockId != placingBlockId) continue;
+                throw new InvalidOperationException($"Duplicate chain definition for BlockId:{placingBlockId} tutorials:{pair.Key} and {tutorialGuid}");
+            }
+
+            // 実体参照を漏らさないよう配列へ写す
             // Copy into an array so the live list never leaks outside
             var frozen = new ChainGhost[chain.Count];
             for (var i = 0; i < chain.Count; i++) frozen[i] = chain[i];
@@ -29,7 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
         }
         
         /// <summary>
-        ///     そのブロックが連結対象なら、一緒に置くべきゴースト群と定義元チュートリアルを返す
+        ///     連結対象なら一緒に置くゴースト群と定義元を返す
         ///     Returns the chain ghosts and their owning tutorial when the held block anchors a chain layout
         /// </summary>
         public bool TryGetChain(BlockId holdingBlockId, out IReadOnlyList<ChainGhost> chain, out Guid tutorialGuid)

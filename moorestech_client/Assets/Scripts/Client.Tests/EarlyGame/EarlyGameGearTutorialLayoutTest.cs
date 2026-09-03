@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative;
 using Client.Tests.Support;
 using Core.Master;
 using Core.Update;
@@ -45,7 +45,7 @@ namespace Client.Tests.EarlyGame
         [TearDown]
         public void DeleteExtractedMaster()
         {
-            // 展開先は呼び出しごとに固有。消さないと積み上がる
+            // 展開先は呼び出しごとに固有
             // The destination is unique per call and piles up unless deleted
             if (Directory.Exists(_extractionRoot)) Directory.Delete(_extractionRoot, true);
         }
@@ -72,7 +72,7 @@ namespace Client.Tests.EarlyGame
             var anchorBlockId = MasterHolder.BlockMaster.GetBlockId(anchorGuid);
             Assert.IsTrue(world.TryAddBlock(anchorBlockId, AnchorOrigin, windmillDirection, Array.Empty<BlockCreateParam>(), out var anchorBlock), "failed to place the anchor block");
 
-            // 本番と同じ換算（アンカー回転込み）で目標セルと向きを解決して設置する
+            // 本番と同じ換算で目標セルと向きを出す
             // Place at cells and directions resolved with the same anchor-rotated conversion production uses
             foreach (var preview in previews)
             {

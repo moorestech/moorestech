@@ -55,6 +55,10 @@ INIT_NAME_RE = re.compile(
     r"\s+[\w<>\[\],. ]+?\s+(?:Init|Setup|Construct|Initialise)\s*\(")
 OVERRIDE_RE = re.compile(r"\boverride\b")
 
+# VContainer注入メソッドの名前はConstruct固定 (2026-08-30裁定 W25/D9) なので[Inject]付きは対象外
+# VContainer injection methods must stay named Construct (2026-08-30 ruling W25/D9), so [Inject]-attributed ones are exempt
+INJECT_ATTRIBUTE_RE = re.compile(r"\bInject\b")
+
 DATETIME_CLOCK_RE = re.compile(r"\bDateTime\.(Now|UtcNow)\b")
 ELAPSED_MARKER_RE = re.compile(
     r"\bTimeSpan\b|\.Total(Seconds|Milliseconds|Minutes|Hours|Days)\b|Dictionary<[^>]*,\s*DateTime>")
@@ -75,14 +79,35 @@ def _init_method_naming(files: list[FileDiff]) -> list[dict]:
     for f in files:
         if not f.path.endswith(".cs") or _is_test_path(f.path):
             continue
-        for lineno, text in f.added():
+        # 削除行は新ファイルに残らないので、直前行の走査対象から外す
+        # Removed lines are absent from the new file, so they are excluded from the preceding-line scan
+        present = [entry for entry in f.lines if entry[0] != "-"]
+        for index, (marker, lineno, text) in enumerate(present):
+            if marker != "+" or lineno is None:
+                continue
             code = strip_line(text)
-            if INIT_NAME_RE.search(code) and not OVERRIDE_RE.search(code):
-                findings.append(_finding(
-                    "init-method-naming", f.path, lineno, text,
-                    "初期化メソッドの名前はInitialize固定 (AGENTS.md命名・構造の規約)。Init/Setup/Construct等の揺れは禁止。"
-                    "記述順はコンストラクタ→Initialize→以降の公開メソッド"))
+            if not INIT_NAME_RE.search(code) or OVERRIDE_RE.search(code):
+                continue
+            if _is_inject_attributed(present, index):
+                continue
+            findings.append(_finding(
+                "init-method-naming", f.path, lineno, text,
+                "初期化メソッドの名前はInitialize固定 (AGENTS.md命名・構造の規約)。Init/Setup/Construct等の揺れは禁止。"
+                "記述順はコンストラクタ→Initialize→以降の公開メソッド"))
     return findings
+
+
+def _is_inject_attributed(present: list[tuple[str, int | None, str]], index: int) -> bool:
+    """Walk the attribute lines directly above the method and report an [Inject] among them."""
+    for _, _, text in reversed(present[:index]):
+        code = strip_line(text).strip()
+        if not code:
+            continue
+        if not code.startswith("["):
+            return False
+        if INJECT_ATTRIBUTE_RE.search(code):
+            return True
+    return False
 
 
 def _server_realtime_api(files: list[FileDiff]) -> list[dict]:
