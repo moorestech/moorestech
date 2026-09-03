@@ -33,9 +33,8 @@ describe("UiStateDataSchema", () => {
     expect(parsed.success).toBe(true);
   });
 
-  it("keyHints未着のペイロードも受理する", () => {
+  it("keyHints未着のペイロードは契約破れとして弾く", () => {
     const parsed = UiStateDataSchema.safeParse({ state: "GameScreen" });
-    expect(parsed.success).toBe(true);
-    expect(parsed.success && parsed.data.keyHints).toEqual([]);
+    expect(parsed.success).toBe(false);
   });
 });

@@ -31,13 +31,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         public bool GhostGroundClear;
         public Vector3 GhostCenter;
 
-        // 設置するポール自身の建設コストを賄えるか（サーバーが設置前に検証する分）
-        // Whether the pole's own construction cost is affordable, the very amount the server validates before placing
-        public bool GhostAffordable;
-
         // 賄えないときの不足素材。行にはせず関門へ渡す
         // The shortage when it is not affordable; handed to the gate rather than turned into lines
         public IReadOnlyList<ConstructionMaterialShortage> GhostMaterialShortages;
+
+        // 設置するポール自身の建設コストを賄えるか。不足リストから導き二重保持しない
+        // Whether the pole's own construction cost is affordable, derived from the shortage list instead of stored twice
+        public bool GhostAffordable => GhostMaterialShortages == null || GhostMaterialShortages.Count == 0;
 
         // 起点情報（SourcePole != null のときのみ有効）
         // Source pole info (valid only when SourcePole is not null)

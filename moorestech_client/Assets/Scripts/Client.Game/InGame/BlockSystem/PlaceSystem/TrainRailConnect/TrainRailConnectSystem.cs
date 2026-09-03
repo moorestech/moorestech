@@ -69,6 +69,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 if (_connectFromArea != null)
                 {
+                    // 明示選択した起点は、応答待ちの橋脚設置が後から返す接続点に黙って上書きさせない
+                    // （上書きされるとプレイヤーが選んだ接続点ではなく新設橋脚からレールが伸びる）
+                    // An explicitly selected origin must not be silently overwritten by a pending pier placement's endpoint
+                    // (the rail would run from the new pier instead of the connection point the player picked)
+                    _requestSender.Invalidate();
+
                     var destination = _connectFromArea.CreateConnectionDestination();
                     var componentPosition = destination.blockPosition;
                     Debug.Log($"[TrainRailConnect] Select FROM: IsFront={_connectFromArea.IsFront} pos=({componentPosition.x},{componentPosition.y},{componentPosition.z})");
@@ -159,6 +165,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 _previewObject.SetActive(false);
                 Debug.Log($"Connecting rails: From NodeId={from.NodeId}, Guid={from.NodeGuid} To NodeId={to.NodeId}, Guid={to.NodeGuid}");
                 ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid, railTypeGuid);
+
+                // 橋脚なし接続で起点を空にした後、遅着の橋脚応答に起点を復活させない
+                // After clearing the origin on a pier-less connection, a late pier response must not resurrect it
+                _requestSender.Invalidate();
                 _connectFromArea = null;
             }
             void SendConnectRailWithPlacePierProtocol(PlaceInfo placeInfo, Guid railTypeGuid, BlockId pierBlockId)
