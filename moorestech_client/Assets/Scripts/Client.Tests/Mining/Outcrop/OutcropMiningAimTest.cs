@@ -142,7 +142,7 @@ namespace Client.Tests.Mining.Outcrop
         {
             _playerObject.transform.position = _targetObject.transform.position;
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
-            return new InteractTargetSelector().Select();
+            return new InteractTargetSelector().Scan().Primary;
         }
     }
 }

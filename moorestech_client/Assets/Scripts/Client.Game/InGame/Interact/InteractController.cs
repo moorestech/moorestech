@@ -29,7 +29,8 @@ namespace Client.Game.InGame.Interact
 
         public InteractExecuteResult ManualUpdate()
         {
-            var target = _selector.Select();
+            var selection = _selector.Scan();
+            var target = selection.Primary;
             ApplyHighlight(target);
 
             // 長押しは採掘FSMが担う。対象外はnullでIdleへ
@@ -37,7 +38,7 @@ namespace Client.Game.InGame.Interact
             _miningContext.SetFocusTarget(target as IMiningTargetObject);
             _miningState = _miningState.GetNextUpdate(_miningContext, Time.deltaTime);
 
-            return _tapDriver.Step(target as ITapInteractable, _selector);
+            return _tapDriver.Step(target as ITapInteractable, selection);
         }
 
         public void Disable()

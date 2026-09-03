@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Control;
-using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.Player;
-using Client.Input;
 using UnityEngine;
 
 namespace Client.Game.InGame.Interact.Selection
@@ -24,67 +22,25 @@ namespace Client.Game.InGame.Interact.Selection
 
         private readonly List<NearbyCandidate> _candidates = new();
 
-        // 直近のSelect()が集めた候補。キー収集とキー別選定は同じ走査結果の上で答える（毎フレームの物理問い合わせは1回だけ）
-        // Candidates from the latest Select(); key collection and per-key selection answer on that same scan, so physics is queried once per frame
-        private bool _hasScanned;
-        private IInteractable _scannedAimedTarget;
+        // 走査結果の器は使い回す。返した値が指すのは常に直近のScan1回分で、寿命はそのフレーム内
+        // The result holder is reused; a returned value always shows the latest single Scan and lives only for that frame
+        private readonly InteractSelection _selection = new();
 
-        public IInteractable Select()
+        // 照準ヒットと近傍候補を1回で集める。毎フレームの物理問い合わせはこの1回だけ
+        // Collects the aim hit and the nearby candidates once, which is the only physics query of the frame
+        public IInteractSelection Scan()
         {
-            if (!Scan(out var aimedTarget)) return null;
-            if (aimedTarget != null) return aimedTarget;
-
-            return SelectBestByViewAngle(null);
-        }
-
-        // 主対象が応じないキーを直近の走査結果で捌く
-        // Answers a key the primary target does not offer, on the latest scan's candidates
-        public IInteractable SelectRespondingTo(InputKey key)
-        {
-            if (!_hasScanned) return null;
-            if (_scannedAimedTarget != null && RespondsTo(_scannedAimedTarget, key)) return _scannedAimedTarget;
-
-            return SelectBestByViewAngle(key);
-        }
-
-        public void CollectCandidateKeys(List<InputKey> keys)
-        {
-            keys.Clear();
-            if (!_hasScanned) return;
-
-            if (_scannedAimedTarget != null) AddKeys(_scannedAimedTarget);
-            foreach (var candidate in _candidates) AddKeys(candidate.Interactable);
-
-            #region Internal
-
-            void AddKeys(IInteractable interactable)
-            {
-                if (interactable is not ITapInteractable tapInteractable) return;
-
-                foreach (var action in tapInteractable.Actions)
-                    if (!keys.Contains(action.Key))
-                        keys.Add(action.Key);
-            }
-
-            #endregion
-        }
-
-        // 照準ヒットと近傍候補を1回で集める
-        // Collects the aim hit and the nearby candidates once so every query sees the same set
-        private bool Scan(out IInteractable aimedTarget)
-        {
-            aimedTarget = null;
-            _scannedAimedTarget = null;
-            _hasScanned = false;
             _candidates.Clear();
 
             var camera = Camera.main;
-            if (camera == null) return false;
-            if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
-
-            _hasScanned = true;
+            if (camera == null || UiPointerHitTest.IsPointerOverAnyUi())
+            {
+                _selection.SetEmptyScanResult();
+                return _selection;
+            }
 
             var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
+            var viewForward = camera.transform.forward;
 
             // カメラ後退分を足した距離まで撃ち、到達判定はプレイヤーから測る
             // The ray spans the camera pull-back plus the reach, while the reach itself is measured from the player
@@ -94,10 +50,11 @@ namespace Client.Game.InGame.Interact.Selection
             {
                 // 手の届く実体は対象外でもそこで確定させる。近傍へ落とすと遮蔽物越しに機械を開ける
                 // A solid within reach settles the frame even when it is no target; falling through would open a machine through the wall
-                if (InteractableResolver.TryResolve(hit.collider, playerPosition, out var interactable, out _)) _scannedAimedTarget = interactable;
+                IInteractable aimedTarget = null;
+                if (InteractableResolver.TryResolve(hit.collider, playerPosition, out var interactable, out _)) aimedTarget = interactable;
 
-                aimedTarget = _scannedAimedTarget;
-                return true;
+                _selection.SetScanResult(aimedTarget, _candidates, viewForward, playerPosition);
+                return _selection;
             }
 
             var hitCount = OverlapNearby(playerPosition);
@@ -110,7 +67,8 @@ namespace Client.Game.InGame.Interact.Selection
                 if (!ContainsCandidate(candidate)) _candidates.Add(new NearbyCandidate(candidate, candidatePoint));
             }
 
-            return true;
+            _selection.SetScanResult(null, _candidates, viewForward, playerPosition);
+            return _selection;
 
             #region Internal
 
@@ -137,50 +95,6 @@ namespace Client.Game.InGame.Interact.Selection
             }
 
             #endregion
-        }
-
-        // 視線角度が最小の候補を選ぶ。keyで対象を絞る
-        // Picks the smallest view angle; a key narrows it to the candidates answering it
-        private IInteractable SelectBestByViewAngle(InputKey key)
-        {
-            var camera = Camera.main;
-            var forward = camera.transform.forward;
-            var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-
-            IInteractable best = null;
-            var bestAngle = float.PositiveInfinity;
-            var bestSqrDistance = float.PositiveInfinity;
-
-            foreach (var candidate in _candidates)
-            {
-                if (key != null && !RespondsTo(candidate.Interactable, key)) continue;
-
-                var toCandidate = candidate.Point - playerPosition;
-                var angle = Vector3.Angle(forward, toCandidate);
-                var sqrDistance = toCandidate.sqrMagnitude;
-
-                // 角度が小さい方を優先し、同角度なら近い方
-                // Prefer the smaller angle and the closer one on a tie
-                var isBetter = angle < bestAngle || (Mathf.Approximately(angle, bestAngle) && sqrDistance < bestSqrDistance);
-                if (!isBetter) continue;
-
-                best = candidate.Interactable;
-                bestAngle = angle;
-                bestSqrDistance = sqrDistance;
-            }
-
-            return best;
-        }
-
-        private static bool RespondsTo(IInteractable interactable, InputKey key)
-        {
-            if (interactable is not ITapInteractable tapInteractable) return false;
-
-            foreach (var action in tapInteractable.Actions)
-                if (action.Key == key)
-                    return true;
-
-            return false;
         }
     }
 }

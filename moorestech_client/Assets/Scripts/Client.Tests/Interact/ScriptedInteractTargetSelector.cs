@@ -10,11 +10,13 @@ namespace Client.Tests.Interact
     ///     選定結果だけを差し替えて、コントローラ側の振る舞いだけを見るための選定器
     ///     Selector that replaces only the selection outcome so tests observe just the controller's behaviour
     /// </summary>
-    internal sealed class ScriptedInteractTargetSelector : IInteractTargetSelector
+    internal sealed class ScriptedInteractTargetSelector : IInteractTargetSelector, IInteractSelection
     {
         private readonly List<IInteractable> _candidates = new();
 
         private IInteractable _next;
+
+        public IInteractable Primary => _next;
 
         public void SetNext(IInteractable next)
         {
@@ -28,9 +30,11 @@ namespace Client.Tests.Interact
             _candidates.Add(candidate);
         }
 
-        public IInteractable Select()
+        // 台本どおりの結果をそのまま1フレーム分の走査結果として返す
+        // Hands the scripted outcome back as the frame's scan result
+        public IInteractSelection Scan()
         {
-            return _next;
+            return this;
         }
 
         // 主対象が応じるならそれを、応じないなら最初に応じる別候補を返す
