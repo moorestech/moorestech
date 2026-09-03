@@ -6,6 +6,7 @@ export {
   planPlayerLeftClick,
   planPlayerRightClick,
   planPlayerDoubleClick,
+  type BlockSlotRestriction,
   type PlayerSlotContext,
   type PlayerLeftClickPlan,
 } from "./playerSlotPlan";

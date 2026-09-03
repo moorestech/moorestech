@@ -66,7 +66,7 @@ export const machineRecipes = {
       inputItems: [{ itemId: 2, count: 3 }], outputItems: [{ itemId: 7, count: 2 }],
       // 液体ゴーストスロットのe2e用に水インプットを1件持たせる
       // Carries one water input so the fluid ghost-slot e2e has a fixture to assert on
-      inputFluids: [{ fluidId: 1, fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [],
+      inputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [],
     },
     {
       recipeGuid: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",

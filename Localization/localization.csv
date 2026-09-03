@@ -39,6 +39,7 @@ ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity
 ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze
 ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute
 ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden
+ui.blockInventory.recipeNameWithOthers,{name} and {count} more,{name} and {count} more,{name} 他{count}件,{name} und {count} weitere
 ui.blockInventory.changeRecipe,Change recipe,Change recipe,レシピを変更,Rezept ändern
 ui.blockInventory.electricToGearFulfillment,Fulfillment,Fulfillment,充足率,Deckung
 ui.blockInventory.electricToGearConsumedPower,Power consumption: {power} W,Power consumption: {power} W,消費電力: {power} W,Energieverbrauch: {power} W

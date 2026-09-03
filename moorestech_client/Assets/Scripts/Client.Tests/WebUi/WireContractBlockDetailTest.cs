@@ -45,6 +45,8 @@ namespace Client.Tests.WebUi
                     CurrentPower = 0f,
                     RequestPower = 0f,
                     SlotLayout = new SlotLayoutDto { Input = 1, Output = 1, Module = 0, InputTank = 0 },
+                    SlotBindings = new List<MachineSlotBindingDto>(),
+                    TankBindings = new List<MachineTankBindingDto>(),
                 },
                 Gear = new GearDetailDto { IsClockwise = true, CurrentRpm = 12.5f, CurrentTorque = 3f, BaseRpm = 20f, BaseTorque = 5f },
                 GearNetwork = new GearNetworkDto { TotalRequiredGearPower = 60f, TotalGenerateGearPower = 100f, StopReason = "none" },
@@ -87,6 +89,15 @@ namespace Client.Tests.WebUi
                     CurrentPower = 80f,
                     RequestPower = 100f,
                     SlotLayout = new SlotLayoutDto { Input = 2, Output = 1, Module = 1, InputTank = 1 },
+                    SlotBindings = new List<MachineSlotBindingDto>
+                    {
+                        new() { Slot = 0, ItemId = 3, Count = 2 },
+                        new() { Slot = 2, ItemId = 7, Count = 3 },
+                    },
+                    TankBindings = new List<MachineTankBindingDto>
+                    {
+                        new() { Tank = 0, FluidGuid = "cccccccc-dddd-4eee-8fff-aaaaaaaaaaaa", Amount = 25.5 },
+                    },
                 },
                 ElectricNetwork = new ElectricNetworkDto { TotalGeneratePower = 500f, TotalRequiredPower = 300f, ConsumerCount = 4, PowerRate = 1f },
             };

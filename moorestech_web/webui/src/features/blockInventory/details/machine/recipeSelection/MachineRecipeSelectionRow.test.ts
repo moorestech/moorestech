@@ -44,7 +44,7 @@ describe("MachineRecipeSelectionRow", () => {
   // D2回帰: 液体のみ出力のレシピ（ボイラー等）も液体名を代表として描画できる
   // D2 regression: fluid-only-output recipes (e.g. boilers) also render with the fluid name as the representative
   it("代表が液体のときは液体名で行名を出す", () => {
-    const fluidOnlyRecipe: MachineRecipe = { ...recipe, outputItems: [], outputFluids: [{ fluidId: 9, fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 100 }] };
+    const fluidOnlyRecipe: MachineRecipe = { ...recipe, outputItems: [], outputFluids: [{ fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 100 }] };
     const row = { recipe: fluidOnlyRecipe, subject: { kind: "fluid" as const, fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 100 }, selected: false };
     const tree = create(createElement(MachineRecipeSelectionRow, { row, onSelect: vi.fn() }));
 

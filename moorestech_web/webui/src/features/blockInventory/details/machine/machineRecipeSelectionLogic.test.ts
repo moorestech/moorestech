@@ -42,7 +42,7 @@ describe("buildMachineRecipeSelectionRows", () => {
       "84000000-0000-4000-8000-000000000004",
       blockA,
       [],
-      [{ fluidId: 9, fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 100 }],
+      [{ fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 100 }],
     );
     expect(buildMachineRecipeSelectionRows([fluidOnly], blockA, emptyGuid)).toEqual([
       { recipe: fluidOnly, subject: { kind: "fluid", fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 100 }, selected: false },

@@ -2,22 +2,19 @@
 // Recipe selection row: recipe name on top, shared RecipeRow skeleton (center column = duration + static arrow only)
 import { Box, Text } from "@mantine/core";
 import { FluidIcon, ItemSlot } from "@/shared/ui";
-import { L, fluidNameKey, useI18n, useItemNameResolver } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 import RecipeRow from "@/features/recipe/views/RecipeRow";
-import type { MachineRecipeSelectionRowData } from "../machineRecipeSelectionLogic";
+import { useRecipeRowName, type MachineRecipeSelectionRowData } from "../machineRecipeSelectionLogic";
 import styles from "./machineRecipeSelectionList.module.css";
 
 type Props = { row: MachineRecipeSelectionRowData; onSelect: (recipeGuid: string) => void };
 
 export default function MachineRecipeSelectionRow({ row, onSelect }: Props) {
   const { t } = useI18n();
-  const resolveItemName = useItemNameResolver();
-  const { recipe, subject } = row;
-  // レシピ名は代表出力（アイテム優先、無ければ液体）の名前（D2）
-  // The recipe name is the representative output's name (item first, fluid otherwise) (D2)
-  const name = subject.kind === "item"
-    ? (resolveItemName(subject.itemId) ?? t(L.ui.common.itemFallback, { itemId: subject.itemId }))
-    : t(fluidNameKey(subject.fluidGuid));
+  const { recipe } = row;
+  // レシピ名は代表出力の名前。複数生産物なら他N件を添えてアイコン列との食い違いを消す（D2）
+  // The recipe name is the representative output's, plus the remainder count so it matches the icon row (D2)
+  const name = useRecipeRowName(row);
 
   return (
     <Box

@@ -47,6 +47,7 @@ function machine(selectedRecipeGuid: string, machineBlockGuid: string, currentSt
     recipeGuid: emptyGuid, selectedRecipeGuid, blockGuid: machineBlockGuid, recipeTime: 7,
     outputItems: [], currentState, currentPower: 0, requestPower: 0,
     slotLayout: { input: 2, output: 1, module: 0, inputTank: 0 },
+    slotBindings: [], tankBindings: [],
   };
 }
 const data = { open: true, itemSlots: [], fluidSlots: [], progress: null } as unknown as BlockInventoryOpen;
@@ -66,15 +67,31 @@ describe("MachineSection", () => {
     expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(1);
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(0);
 
-    // サーバー拒否等でselectedRecipeGuidが変わらない再レンダーでは選択モードのまま(C14)
-    // Stays in selection mode across a re-render where selectedRecipeGuid hasn't actually changed (C14, e.g. a server rejection)
+    // 別レシピを要求してもサーバーの選択が追いつくまでは選択モードのまま(C14: 拒否時に戻らない)
+    // Requesting another recipe keeps selection mode until the server's selection catches up (C14: a rejection never returns)
+    const list = tree.root.findByType("mock-recipe-selection-list" as never);
+    act(() => list.props.onSelected(otherRecipeGuid));
     act(() => { tree.update(createElement(MachineSection, { data, machine: machine(recipeGuid, blockGuid) })); });
     expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(1);
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(0);
 
-    // selectedRecipeGuidが実際に変わったら本体へ戻る
-    // Returns to the inventory body once selectedRecipeGuid actually changes
+    // 要求したレシピがサーバーの選択になったら本体へ戻る
+    // Returns to the inventory body once the requested recipe becomes the server's selection
     act(() => { tree.update(createElement(MachineSection, { data, machine: machine(otherRecipeGuid, blockGuid) })); });
+    expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(1);
+    expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(0);
+  });
+
+  it("同一レシピを選び直しても選択モードから戻れる（要求GUID一致で閉じる）", () => {
+    const tree = create(createElement(MachineSection, { data, machine: machine(recipeGuid, blockGuid) }));
+    const header = tree.root.findByType("mock-selected-recipe-header" as never);
+    act(() => header.props.onChangeRecipe());
+    expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(1);
+
+    // 選択中と同じレシピを選び直す。selectedRecipeGuidは変わらないが要求と一致するので閉じる
+    // Re-picking the already-selected recipe leaves selectedRecipeGuid unchanged, but it matches the request so the mode closes
+    const list = tree.root.findByType("mock-recipe-selection-list" as never);
+    act(() => list.props.onSelected(recipeGuid));
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(1);
     expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(0);
   });

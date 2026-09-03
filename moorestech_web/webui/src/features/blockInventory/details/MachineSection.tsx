@@ -15,11 +15,16 @@ import { buildMachineRecipeSelectionRows, hasSelectedRecipe } from "./machine/ma
 // Machine: unselected → recipe-selection mode, selected → inventory mode; the header returns to selection (ADR 0042)
 export default function MachineSection({ data, machine }: { data: BlockInventoryOpen; machine: MachineDetailData }) {
   const machineRecipes = useTopic(Topics.machineRecipes);
-  // 選択モードを開いた時点のselectedRecipeGuidを覚える。サーバーの応答でこれが実際に変わるまでは
-  // 選択モードを閉じない（拒否時にサーバー未反映のままインベントリへ戻ることを防ぐ。C14）
-  // Remember selectedRecipeGuid at the moment selection mode was opened; it only closes once the
-  // server's response actually changes it (prevents returning to inventory on a rejected change. C14)
-  const [openedFromGuid, setOpenedFromGuid] = useState<string | null>(null);
+  // 選択モードで最後に要求したレシピGUIDを覚える。サーバーの選択がこれと一致した時点で閉じるので、
+  // 同一レシピを選び直しても閉じられ、拒否された間は選択モードに留まる（C14）
+  // Remember the recipe GUID last requested in selection mode; the mode closes once the server's selection
+  // matches it, so re-picking the same recipe still closes and a rejection keeps the mode open (C14)
+  const [selectionOpened, setSelectionOpened] = useState(false);
+  const [requestedRecipeGuid, setRequestedRecipeGuid] = useState<string | null>(null);
+  const openSelection = () => {
+    setSelectionOpened(true);
+    setRequestedRecipeGuid(null);
+  };
   const { t } = useI18n();
 
   const rows = buildMachineRecipeSelectionRows(machineRecipes?.recipes ?? [], machine.blockGuid, machine.selectedRecipeGuid);
@@ -35,19 +40,22 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
   );
 
   if (rows.length === 0) {
-    return <Stack gap="xs" data-testid="machine-section"><MachineInventoryBody data={data} recipe={null} />{footer}</Stack>;
+    return <Stack gap="xs" data-testid="machine-section"><MachineInventoryBody data={data} />{footer}</Stack>;
   }
 
-  const changingRecipe = openedFromGuid !== null && machine.selectedRecipeGuid === openedFromGuid;
-  const showSelection = !hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || changingRecipe;
+  // 要求したレシピがサーバーの選択に一致するまで選択モードを閉じない（未要求＝開いた直後は留まる）
+  // Selection mode stays open until the requested recipe matches the server's selection (no request yet = keep waiting)
+  const requestApplied = requestedRecipeGuid !== null && machine.selectedRecipeGuid === requestedRecipeGuid;
+  const inSelectionMode = selectionOpened && !requestApplied;
+  const showSelection = !hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || inSelectionMode;
   return (
     <Stack gap="sm" data-testid="machine-section">
       {showSelection ? (
-        <MachineRecipeSelectionList rows={rows} />
+        <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} />
       ) : (
         <>
-          <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={() => setOpenedFromGuid(machine.selectedRecipeGuid)} />
-          <MachineInventoryBody data={data} recipe={selectedRow.recipe} />
+          <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />
+          <MachineInventoryBody data={data} />
         </>
       )}
       {footer}

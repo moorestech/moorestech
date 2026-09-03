@@ -105,7 +105,6 @@ namespace Client.WebUiHost.Game.Topics
                 {
                     fluids.Add(new RecipeFluidDto
                     {
-                        FluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid).AsPrimitive(),
                         FluidGuid = inputFluid.FluidGuid.ToString("D"),
                         Amount = inputFluid.Amount,
                     });
@@ -120,7 +119,6 @@ namespace Client.WebUiHost.Game.Topics
                 {
                     fluids.Add(new RecipeFluidDto
                     {
-                        FluidId = MasterHolder.FluidMaster.GetFluidId(outputFluid.FluidGuid).AsPrimitive(),
                         FluidGuid = outputFluid.FluidGuid.ToString("D"),
                         Amount = outputFluid.Amount,
                     });
@@ -161,7 +159,6 @@ namespace Client.WebUiHost.Game.Topics
 
     public class RecipeFluidDto
     {
-        public int FluidId;
         public string FluidGuid;
         public double Amount;
     }

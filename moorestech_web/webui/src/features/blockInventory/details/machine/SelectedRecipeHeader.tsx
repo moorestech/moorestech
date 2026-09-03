@@ -3,8 +3,8 @@
 import { Group, Text } from "@mantine/core";
 import type { MachineRecipe } from "@/bridge";
 import { FluidIcon, HoverTooltip, ItemSlot } from "@/shared/ui";
-import { L, fluidNameKey, useI18n, useItemNameResolver } from "@/shared/i18n";
-import type { RecipeDisplaySubject } from "./machineRecipeSelectionLogic";
+import { L, useI18n } from "@/shared/i18n";
+import { useRecipeDisplayName, type RecipeDisplaySubject } from "./machineRecipeSelectionLogic";
 
 type Props = { recipe: MachineRecipe; subject: RecipeDisplaySubject; onChangeRecipe: () => void };
 
@@ -14,10 +14,7 @@ type Props = { recipe: MachineRecipe; subject: RecipeDisplaySubject; onChangeRec
 // so any recipe reaching here is guaranteed to have one (D2)
 export default function SelectedRecipeHeader({ recipe, subject, onChangeRecipe }: Props) {
   const { t } = useI18n();
-  const resolveItemName = useItemNameResolver();
-  const name = subject.kind === "item"
-    ? (resolveItemName(subject.itemId) ?? t(L.ui.common.itemFallback, { itemId: subject.itemId }))
-    : t(fluidNameKey(subject.fluidGuid));
+  const name = useRecipeDisplayName(subject);
 
   return (
     <HoverTooltip label={t(L.ui.blockInventory.changeRecipe)}>

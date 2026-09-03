@@ -5,9 +5,11 @@ import {
   planPlayerDoubleClick,
   planPlayerLeftClick,
   planPlayerRightClick,
+  type BlockSlotRestriction,
   type PlayerSlotContext,
 } from "@/shared/itemMove";
 import { boundMachineInputSlotsForItem } from "@/features/blockInventory/details/machine/machineSlotGhosts";
+import { splitSlotIndices } from "@/features/blockInventory/details/detailLogic";
 import { SplitDragSession } from "./splitDrag";
 
 const splitDrag = new SplitDragSession((slots) => void dispatchAction("inventory.split_drag", { slots }));
@@ -38,7 +40,7 @@ export const slotActions: SlotActions = {
       inventory,
       maxStack: readItemMaster()?.get(slot.itemId)?.maxStack,
       blockItemSlots: block?.open ? block.itemSlots : null,
-      blockBoundSlotsForItem: resolveBlockBoundSlotsForItem(block),
+      blockSlotRestriction: resolveBlockSlotRestriction(block, slot.itemId),
     };
     const plan = planPlayerLeftClick(ref, slot, shiftKey, ctx);
     if (plan.kind === "beginSplitDrag") { splitDrag.begin(ref); return; }
@@ -84,13 +86,16 @@ function resolveSlot(inventory: PlayerInventoryData, ref: SlotRef): SlotData | u
   return inventory.mainSlots[ref.slot];
 }
 
-// 開いているブロックが機械かつレシピ選択済みのときだけ束縛先indexへ絞る関数を返す。それ以外(チェスト等)はundefined＝無制限
-// Return a function narrowing candidates to bound indices only when the open block is a machine with a selected recipe; otherwise undefined (chests etc. stay unrestricted)
-function resolveBlockBoundSlotsForItem(block: BlockInventoryData | null): ((itemId: number) => number[] | null) | undefined {
-  if (!block?.open || block.source !== "block" || !block.machine) return undefined;
+// 機械の入力帯だけを束縛で絞り、出力帯・モジュール帯は候補に残す（束縛はホスト配信のslotBindingsが正本）。
+// 機械以外（チェスト等）は無制限
+// Only the machine's input band is narrowed by the binding; the output and module bands stay candidates
+// (the host-published slotBindings are the source of truth). Non-machines (chests etc.) stay unrestricted
+function resolveBlockSlotRestriction(block: BlockInventoryData | null, itemId: number): BlockSlotRestriction {
+  if (!block?.open || block.source !== "block" || !block.machine) return { kind: "unrestricted" };
   const machine = block.machine;
-  const itemSlotCount = block.itemSlots.length;
-  const recipe = readTopic(Topics.machineRecipes)?.recipes.find((r) => r.recipeGuid === machine.selectedRecipeGuid);
-  if (!recipe) return undefined;
-  return (itemId) => boundMachineInputSlotsForItem(recipe, machine.slotLayout, itemSlotCount, itemId);
+  if (machine.slotBindings.length === 0) return { kind: "unrestricted" };
+
+  const { output, module } = splitSlotIndices(machine.slotLayout, block.itemSlots.length);
+  const boundInputs = boundMachineInputSlotsForItem(machine, block.itemSlots.length, itemId);
+  return { kind: "bound", candidateIndices: [...boundInputs, ...output, ...module] };
 }

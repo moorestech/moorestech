@@ -16,7 +16,9 @@
     "currentState": "idle",
     "currentPower": 0.0,
     "requestPower": 0.0,
-    "slotLayout": { "input": 1, "output": 1, "module": 0, "inputTank": 0 }
+    "slotLayout": { "input": 1, "output": 1, "module": 0, "inputTank": 0 },
+    "slotBindings": [],
+    "tankBindings": []
   },
   "gear": { "isClockwise": true, "currentRpm": 12.5, "currentTorque": 3.0, "baseRpm": 20.0, "baseTorque": 5.0 },
   "gearNetwork": { "totalRequiredGearPower": 60.0, "totalGenerateGearPower": 100.0, "stopReason": "none" }

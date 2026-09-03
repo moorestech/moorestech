@@ -5,11 +5,17 @@ import { dispatchAction } from "@/bridge";
 import type { MachineRecipeSelectionRowData } from "../machineRecipeSelectionLogic";
 import MachineRecipeSelectionRow from "./MachineRecipeSelectionRow";
 
-type Props = { rows: MachineRecipeSelectionRowData[] };
+type Props = { rows: MachineRecipeSelectionRowData[]; onSelected: (recipeGuid: string) => void };
 
-export default function MachineRecipeSelectionList({ rows }: Props) {
+export default function MachineRecipeSelectionList({ rows, onSelected }: Props) {
+  const selectedRecipeGuid = rows.find((row) => row.selected)?.recipe.recipeGuid;
+  // 選択中の行はサーバー状態が既に一致しているのでActionを送らず閉じるだけにする。
+  // 送った場合は送信したGUIDを親へ伝え、サーバーの選択が追いついた時点で閉じさせる
+  // The already-selected row needs no action since the server state matches; it just closes.
+  // Otherwise the dispatched GUID goes to the parent, which closes once the server catches up
   const onSelect = (recipeGuid: string) => {
-    void dispatchAction("machine_recipe.select", { operation: "set", recipeGuid });
+    if (recipeGuid !== selectedRecipeGuid) void dispatchAction("machine_recipe.select", { operation: "set", recipeGuid });
+    onSelected(recipeGuid);
   };
   return (
     <Stack gap="xs" data-testid="machine-recipe-selection">

@@ -21,6 +21,29 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public float CurrentPower;
         public float RequestPower;
         public SlotLayoutDto SlotLayout;
+
+        // 選択レシピが束縛するスロット・タンクの正本。Web側は束縛規則を再導出せずこれを読むだけにする
+        // The authoritative slot/tank binding of the selected recipe; the Web side reads it instead of re-deriving the rule
+        public List<MachineSlotBindingDto> SlotBindings;
+        public List<MachineTankBindingDto> TankBindings;
+    }
+
+    public class MachineSlotBindingDto
+    {
+        // 統合スロット番号（入力→出力→モジュールの連結順）
+        // Unified slot index (inputs, then outputs, then modules)
+        public int Slot;
+        public int ItemId;
+        public int Count;
+    }
+
+    public class MachineTankBindingDto
+    {
+        // 液体行index（入力タンク→出力タンクの連結順）
+        // Fluid row index (input tanks, then output tanks)
+        public int Tank;
+        public string FluidGuid;
+        public double Amount;
     }
 
     public class MachineOutputItemDto
