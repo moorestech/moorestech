@@ -1,6 +1,5 @@
 using System;
 using Core.Inventory;
-using Core.Item.Interface;
 using Game.Context;
 using UnityEngine;
 
@@ -66,18 +65,11 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             {
                 // 両側が書き込みを受け入れるか先に確認し、片方だけ書く複製・消失を防ぐ
                 // Confirm both sides accept the write first to avoid a one-sided write that duplicates or loses items
-                if (!CanPlace(toInventory, toSlot, originItem) || !CanPlace(fromInventory, fromSlot, destinationInventoryItem)) return;
+                if (!toInventory.IsAllowedToPlace(toSlot, originItem) || !fromInventory.IsAllowedToPlace(fromSlot, destinationInventoryItem)) return;
 
                 toInventory.SetItem(toSlot, originItem);
                 fromInventory.SetItem(fromSlot, destinationInventoryItem);
             }
-        }
-
-        // 対象インベントリがISlotPlacementRestrictionを実装していなければ制約なし
-        // No restriction when the target inventory does not implement ISlotPlacementRestriction
-        private static bool CanPlace(IOpenableInventory inventory, int slot, IItemStack itemStack)
-        {
-            return inventory is not ISlotPlacementRestriction restriction || restriction.IsAllowedToPlace(slot, itemStack);
         }
     }
 }

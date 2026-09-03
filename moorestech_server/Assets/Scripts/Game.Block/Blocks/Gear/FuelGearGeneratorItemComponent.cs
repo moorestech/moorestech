@@ -83,6 +83,13 @@ namespace Game.Block.Blocks.Gear
             return _inventoryService.GetItem(slot);
         }
 
+        // 配置制約を持たないインベントリはどのスロットも受け入れる
+        // An inventory without placement restrictions accepts every slot
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
+        {
+            return true;
+        }
+
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);

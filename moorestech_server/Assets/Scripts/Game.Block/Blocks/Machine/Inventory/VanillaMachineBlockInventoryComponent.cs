@@ -10,7 +10,7 @@ using Game.Context;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots, ISlotPlacementRestriction
+    public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
@@ -87,8 +87,8 @@ namespace Game.Block.Blocks.Machine.Inventory
             return subInventory.Items[localSlot];
         }
 
-        // SetItemは言われたとおりに書き込む。束縛の可否判定は呼び出し側がIsAllowedToPlaceで事前に問い合わせる（ISlotPlacementRestriction）
-        // SetItem always writes as instructed; callers query IsAllowedToPlace beforehand via ISlotPlacementRestriction
+        // SetItemは言われたとおりに書き込む。束縛の可否判定は呼び出し側がIsAllowedToPlaceで事前に問い合わせる
+        // SetItem always writes as instructed; callers query IsAllowedToPlace beforehand
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
@@ -97,8 +97,8 @@ namespace Game.Block.Blocks.Machine.Inventory
             subInventory.SetItem(localSlot, itemStack);
         }
 
-        // 移動/挿入サービスが書き込み前に問い合わせる能力インターフェースの実装
-        // Implementation of the capability interface move/insert services query before writing
+        // 移動/挿入サービスが書き込み前に問い合わせる配置可否。束縛外のスロットは受け付けない
+        // Placement check the move/insert services ask before writing; slots outside the binding refuse the stack
         public bool IsAllowedToPlace(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
