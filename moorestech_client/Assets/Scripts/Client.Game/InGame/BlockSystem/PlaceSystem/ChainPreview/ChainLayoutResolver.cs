@@ -20,16 +20,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
             public readonly Vector3Int WorldCell;
             public readonly BlockDirection WorldDirection;
 
-            // 可否は解決時に一度だけ確定し、設置判定とゴースト色が定義上一致する
-            // Blocked is decided once at resolution, so the placement check and the ghost color agree by definition
-            public readonly bool Blocked;
+            // 不可の原因は解決時に一度だけ確定し、設置判定・ゴースト色・文言が定義上一致する
+            // The block reason is decided once at resolution, so the placement check, the ghost color and the wording agree by definition
+            public readonly ChainCellBlockReason BlockReason;
 
-            public ResolvedChainGhost(ChainGhost ghost, Vector3Int worldCell, BlockDirection worldDirection, bool blocked)
+            public ResolvedChainGhost(ChainGhost ghost, Vector3Int worldCell, BlockDirection worldDirection, ChainCellBlockReason blockReason)
             {
                 Ghost = ghost;
                 WorldCell = worldCell;
                 WorldDirection = worldDirection;
-                Blocked = blocked;
+                BlockReason = blockReason;
             }
         }
         
@@ -45,19 +45,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
                 var ghostBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ghost.BlockId).BlockSize;
                 var worldCell = AnchorRelativeOriginUtil.ResolveWorldOrigin(footprint, ghost.Offset, ghost.LocalDirection, ghostBlockSize);
                 var worldDirection = AnchorRelativeDirectionUtil.RotateByAnchor(ghost.LocalDirection, placeDirection);
-                var blocked = IsBlocked(ghost, worldCell, worldDirection, ghostBlockSize);
-                results.Add(new ResolvedChainGhost(ghost, worldCell, worldDirection, blocked));
+                var blockReason = ResolveBlockReason(ghost, worldCell, worldDirection, ghostBlockSize);
+                results.Add(new ResolvedChainGhost(ghost, worldCell, worldDirection, blockReason));
             }
-            
+
             #region Internal
-            
-            // 既存ブロックの重なり、または地表との不整合（埋まり/浮き）で不成立。ブロック面スタック設置中は地表基準が無いので地形は見ない
-            // Blocked by an existing block overlap or misaligned ground; block-face stacking has no ground basis, so terrain is skipped there
-            bool IsBlocked(ChainGhost ghost, Vector3Int worldCell, BlockDirection worldDirection, Vector3Int ghostBlockSize)
+
+            // 既存ブロックの重なりを先に見て、次に地表との不整合（地表なし/高さ不一致）を見る。ブロック面スタック設置中は地表基準が無いので地形は見ない
+            // Check the existing block overlap first, then the ground mismatch (missing ground or height gap); block-face stacking has no ground basis, so terrain is skipped there
+            ChainCellBlockReason ResolveBlockReason(ChainGhost ghost, Vector3Int worldCell, BlockDirection worldDirection, Vector3Int ghostBlockSize)
             {
                 var chainPlaceInfo = new PlaceInfo { Position = worldCell, Direction = worldDirection, BlockId = ghost.BlockId };
-                if (existingBlockQuery.IsOverlapping(chainPlaceInfo)) return true;
-                return groundBased && !groundQuery.IsGroundAligned(worldCell, worldDirection, ghostBlockSize, heightOffset);
+                if (existingBlockQuery.IsOverlapping(chainPlaceInfo)) return ChainCellBlockReason.OverlappingBlock;
+                if (!groundBased) return ChainCellBlockReason.None;
+                return groundQuery.ResolveGroundAlignment(worldCell, worldDirection, ghostBlockSize, heightOffset);
             }
             
             #endregion

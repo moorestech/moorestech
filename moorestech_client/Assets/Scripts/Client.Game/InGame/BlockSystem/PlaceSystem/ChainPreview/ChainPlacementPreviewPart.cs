@@ -51,8 +51,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
                 entry.SetTarget(resolved.Ghost.BlockId, resolved.WorldCell, resolved.WorldDirection, null);
                 
                 // 塞がったセルのゴーストを不可色にする
-                // Only a blocked cell's ghost drops to the not-placeable color; Blocked was decided at resolution
-                if (entry.PreviewObject != null) entry.PreviewObject.SetPlaceableColor(!resolved.Blocked);
+                // Only a blocked cell's ghost drops to the not-placeable color; the reason was decided at resolution
+                if (entry.PreviewObject != null) entry.PreviewObject.SetPlaceableColor(resolved.BlockReason == ChainCellBlockReason.None);
                 
                 PublishWebPin(entry, tutorialGuid);
             }

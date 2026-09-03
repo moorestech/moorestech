@@ -107,10 +107,29 @@ namespace Client.Tests.PlaceSystem
             CreateServer();
             var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
+            var feedback = new PlacementFeedback();
 
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new NeverAlignedGroundQuery(), true, 0, new PlacementFeedback());
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new FixedReasonGroundQuery(ChainCellBlockReason.GroundHeightMismatch), true, 0, feedback);
 
             Assert.IsFalse(placeInfos[0].Placeable, "misaligned ground left the anchor placeable");
+
+            // 高さ不一致で「埋まっています」と断定させない
+            // A height mismatch must not claim the space is occupied
+            CollectionAssert.AreEqual(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceChainGroundHeightMismatch) }, feedback.Lines);
+        }
+
+        [Test]
+        public void 地面が取れない連結セルは地面なしの文言になる()
+        {
+            CreateServer();
+            var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
+            var feedback = new PlacementFeedback();
+
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new FixedReasonGroundQuery(ChainCellBlockReason.GroundNotFound), true, 0, feedback);
+
+            Assert.IsFalse(placeInfos[0].Placeable, "a groundless chain cell left the anchor placeable");
+            CollectionAssert.AreEqual(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceChainGroundNotFound) }, feedback.Lines);
         }
 
         [Test]
@@ -124,7 +143,7 @@ namespace Client.Tests.PlaceSystem
 
             // チェスト用の定義しか無く発電機は素通り
             // Only the chest anchors a chain, so the generator passes untouched
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, generatorMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(CursorCell + ChainOffset), new NeverAlignedGroundQuery(), true, 0, feedback);
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, generatorMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(CursorCell + ChainOffset), new FixedReasonGroundQuery(ChainCellBlockReason.GroundHeightMismatch), true, 0, feedback);
 
             Assert.IsTrue(placeInfos[0].Placeable);
             CollectionAssert.IsEmpty(feedback.Lines);
@@ -169,7 +188,7 @@ namespace Client.Tests.PlaceSystem
 
             // 地表基準が無ければ塞がれない
             // With no ground basis, even a never-aligned query must not block the placement
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new NeverAlignedGroundQuery(), false, 0, new PlacementFeedback());
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new FixedReasonGroundQuery(ChainCellBlockReason.GroundHeightMismatch), false, 0, new PlacementFeedback());
 
             Assert.IsTrue(placeInfos[0].Placeable, "block-face stacking was blocked by the terrain check");
         }
@@ -210,17 +229,17 @@ namespace Client.Tests.PlaceSystem
 
         private class AlwaysAlignedGroundQuery : IChainGroundQuery
         {
-            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => true;
+            public ChainCellBlockReason ResolveGroundAlignment(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => ChainCellBlockReason.None;
         }
 
         private class HeightOffsetCapturingGroundQuery : IChainGroundQuery
         {
             public int LastHeightOffset { get; private set; } = int.MinValue;
 
-            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
+            public ChainCellBlockReason ResolveGroundAlignment(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
             {
                 LastHeightOffset = heightOffset;
-                return true;
+                return ChainCellBlockReason.None;
             }
         }
 
@@ -230,16 +249,20 @@ namespace Client.Tests.PlaceSystem
         {
             public BlockDirection LastDirection { get; private set; }
 
-            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
+            public ChainCellBlockReason ResolveGroundAlignment(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
             {
                 LastDirection = direction;
-                return true;
+                return ChainCellBlockReason.None;
             }
         }
 
-        private class NeverAlignedGroundQuery : IChainGroundQuery
+        // 指定した地形の不可原因を返すテストダブル
+        // Ground-query double returning the given terrain block reason
+        private class FixedReasonGroundQuery : IChainGroundQuery
         {
-            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => false;
+            private readonly ChainCellBlockReason _reason;
+            public FixedReasonGroundQuery(ChainCellBlockReason reason) => _reason = reason;
+            public ChainCellBlockReason ResolveGroundAlignment(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => _reason;
         }
     }
 }

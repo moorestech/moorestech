@@ -9,6 +9,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
     /// </summary>
     public interface IChainGroundQuery
     {
-        bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset);
+        // 地表なしと高さ不一致を弁別して返す。揃っていればNone
+        // Distinguishes a missing ground from a height mismatch; None when the cell sits level
+        ChainCellBlockReason ResolveGroundAlignment(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset);
     }
 }
