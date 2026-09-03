@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Game.MapGeneration.Export;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
-using Newtonsoft.Json;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.MapData;
 using Tests.Module;
@@ -15,14 +13,11 @@ namespace Tests.UnitTest.Game.MapGeneration
 {
     // チャンクの唯一の契約は「全て解凍して連結すると元のterrainバイナリ列に戻る」こと。並び順と境界を実バイトで検証する
     // The only chunk contract is that decompressing and concatenating all of them reproduces the terrain binaries
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap3")]
     public class TerrainChunkReaderTest
     {
-        private const int SyntheticFileByteSize = 100 * 1024;
-
-        // 実生成は1x1、多タイルは合成で検証
-        // Keep ForUnitTestMod's default at a fast 1x1; the synthetic four-tile test above owns multi-tile ordering
-        private const int GridSideForUnitTestMod = 1;
-
         private TerrainTransferTestScope _testScope;
 
         [SetUp]
@@ -42,8 +37,9 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             // 4タイル×各100KBの400KBなのでチャンク境界(256KB)はファイルの途中に落ちる。並び順を取り違えれば内容が食い違う
             // With 4 tiles of 100KB each (400KB total) the 256KB boundary falls mid-file, so a wrong order changes the bytes
-            var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticFileByteSize);
-            var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(ExpectedStreamFilePathsOfFourTiles(worldDataDirectory));
+            var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticMultiTileWorldFactory.MultiChunkFileByteSize);
+            var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(
+                SyntheticMultiTileWorldFactory.ExpectedStreamFilePaths(worldDataDirectory));
 
             var chunkTotal = TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal;
             Assert.AreEqual(2, chunkTotal);
@@ -63,8 +59,9 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void TerrainStreamHasherは論理ストリーム全体のSHA256と一致する()
         {
-            var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticFileByteSize);
-            var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(ExpectedStreamFilePathsOfFourTiles(worldDataDirectory));
+            var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticMultiTileWorldFactory.MultiChunkFileByteSize);
+            var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(
+                SyntheticMultiTileWorldFactory.ExpectedStreamFilePaths(worldDataDirectory));
 
             using var sha256 = SHA256.Create();
             var expectedHash = BitConverter.ToString(sha256.ComputeHash(expectedStreamBytes)).Replace("-", string.Empty).ToLowerInvariant();
@@ -76,15 +73,16 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 生成済みワールドの全チャンクを連結すると実terrainファイルと一致する()
         {
-            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
+            // 合成ワールドは並びを自前で書くので実生成のtileX_tileZ取り違えを検出できない。ここだけ実生成を多タイルで通す
+            // A synthetic world spells its own order out and cannot catch a real tileX/tileZ mix-up, so this case generates multiple tiles for real
+            var worldDataDirectory = _testScope.ProvisionLowResolutionMultiTileGeneratedWorld(12345);
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
 
-            // 実生成との結合だけ1タイルで検証
-            // Verify real-generation integration with one tile; do not restore an expensive default for the multi-tile contract
-            Assert.AreEqual(GridSideForUnitTestMod * GridSideForUnitTestMod, terrainMeta.TerrainTileCount);
+            const int gridSide = TerrainTransferTestScope.LowResolutionMultiTileGridSide;
+            Assert.AreEqual(gridSide * gridSide, terrainMeta.TerrainTileCount);
 
             var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(
-                ExpectedStreamFilePathsOfGeneratedWorld(worldDataDirectory, GridSideForUnitTestMod));
+                ExpectedStreamFilePathsOfGeneratedWorld(worldDataDirectory, gridSide));
             var restoredStreamBytes = Enumerable.Range(0, terrainMeta.TerrainChunkTotal)
                 .SelectMany(chunkIndex => TerrainTransferTestScope.DecompressChunk(TerrainChunkReader.Read(worldDataDirectory, chunkIndex))).ToArray();
 
@@ -94,7 +92,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void 範囲外のChunkIndexは空応答ではなく例外になる()
         {
-            var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticFileByteSize);
+            var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticMultiTileWorldFactory.MultiChunkFileByteSize);
             var chunkTotal = TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal;
 
             Assert.Throws<ArgumentOutOfRangeException>(() => TerrainChunkReader.Read(worldDataDirectory, chunkTotal));
@@ -129,19 +127,6 @@ namespace Tests.UnitTest.Game.MapGeneration
 
         // 期待する並び順をテスト側に直書きする。実装の列挙メソッドを使うと並び順の検証が循環する
         // Spell the expected order out here; reusing the production enumerator would make the check circular
-        private static string[] ExpectedStreamFilePathsOfFourTiles(WorldDataDirectory worldDataDirectory)
-        {
-            return new[]
-            {
-                worldDataDirectory.TerrainHeightFilePath(0, 0),
-                worldDataDirectory.TerrainHeightFilePath(1, 0),
-                worldDataDirectory.TerrainHeightFilePath(0, 1),
-                worldDataDirectory.TerrainHeightFilePath(1, 1),
-            };
-        }
-
-        // 期待する並び順をテスト側に直書きする。実装の列挙メソッドを使うと並び順の検証が循環する
-        // Spell the expected order out here; reusing the production enumerator would make the check circular
         private static List<string> ExpectedStreamFilePathsOfGeneratedWorld(WorldDataDirectory worldDataDirectory, int gridSide)
         {
             var streamFilePaths = new List<string>(gridSide * gridSide);
@@ -151,48 +136,9 @@ namespace Tests.UnitTest.Game.MapGeneration
             return streamFilePaths;
         }
 
-        // 実生成を通さずタイル数と内容を制御した合成ワールドを作る。ファイルごとに異なる値で埋めて順序違反を検出可能にする
-        // Build a synthetic world with controlled tile count and content; distinct fill values expose any ordering slip
         private WorldDataDirectory CreateSyntheticFourTileWorld(int fileByteSize)
         {
-            var worldDataDirectory = _testScope.CreateEmptyWorldDataDirectory();
-            Directory.CreateDirectory(worldDataDirectory.TerrainDirectory);
-
-            var streamFilePaths = ExpectedStreamFilePathsOfFourTiles(worldDataDirectory);
-            for (var fileIndex = 0; fileIndex < streamFilePaths.Length; fileIndex++)
-            {
-                var fileBytes = new byte[fileByteSize];
-                for (var byteIndex = 0; byteIndex < fileBytes.Length; byteIndex++) fileBytes[byteIndex] = (byte)(fileIndex + 1);
-                File.WriteAllBytes(streamFilePaths[fileIndex], fileBytes);
-            }
-
-            var worldMeta = new WorldMetaJson
-            {
-                Seed = 1,
-                GeneratorVersion = WorldGeneratorVersion.Current,
-                Algorithm = "test",
-                MapMode = WorldMapMode.Generated,
-                CreatedAt = DateTime.UtcNow.ToString("O"),
-                TerrainResolution = 256,
-                TerrainTileCount = 4,
-
-                // generatedのworld.jsonは原点を必ず持つ契約。合成ワールドも原点0の実値として明示する
-                // A generated world.json always carries origins by contract, so the synthetic world states them explicitly as a real 0
-                TerrainNoiseOriginX = 0f,
-                TerrainNoiseOriginZ = 0f,
-                TerrainSceneOriginX = 0f,
-                TerrainSceneOriginZ = 0f,
-
-                // 指紋は必須契約だがチャンク読み出しの対象外
-                // The fingerprint is a required contract but out of scope for this chunk-reading test
-                GenerationMasterFingerprint = "synthetic-fingerprint",
-
-                // 台帳の指紋も同じく必須契約。チャンク読み出しは見た目キャッシュを引かないので値は問わない
-                // The ledger digest is a required contract too; chunk reading never touches the visual cache, so its value is immaterial here
-                PlacementLedgerDigest = "synthetic-ledger-digest",
-            };
-            File.WriteAllText(worldDataDirectory.WorldMetaFilePath, JsonConvert.SerializeObject(worldMeta, Formatting.Indented));
-            return worldDataDirectory;
+            return SyntheticMultiTileWorldFactory.Create(_testScope, fileByteSize);
         }
     }
 }

@@ -9,6 +9,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 {
     // gridSizeX/Z の格子ぶんタイルを生成し、原点・タイルindex・配置物のシーン座標が揃うことを検証する。
     // Verifies the generator emits one tile per gridSizeX/Z cell with consistent origins, indices, and scene-space placements.
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap1")]
     public class MultiTileGenerationTest
     {
         private const int GridSide = 3;

@@ -24,6 +24,9 @@ namespace Tests.UnitTest.Game.MapGeneration
     // Verifies WorldProvisioner.EnsureWorld's atomic commit, corruption detection, and no-op behavior
     // 格子数が契約でない実生成は1x1固定
     // Real generation includes the pipeline and prebake, so keep the test master's 1x1 whenever grid size is not the contract
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap3")]
     public class WorldProvisionerTest
     {
         private WorldDataDirectory _worldDataDirectory;
