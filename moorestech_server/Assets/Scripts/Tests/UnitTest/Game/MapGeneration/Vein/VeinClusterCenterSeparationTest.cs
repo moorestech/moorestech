@@ -178,7 +178,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var placement = OrePlacementGenerator.GenerateForWorld(
                 entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),
                 null, null, halo.ItemVeins, halo.Radius,
-                halo.CreateConfirmedVeinSnapshot(worldOffsetX, 0f, TileSize, TileSize));
+                halo.CreateConfirmedVeinSnapshot(TileCandidateAabbBounds.From(dims)));
             halo.CommitVeins(halo.ItemVeins, placement);
             return placement.Clusters.SelectMany(cluster => cluster.Members).ToList();
 
