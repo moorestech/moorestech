@@ -16,6 +16,7 @@ namespace Game.MapGeneration.Pipeline.Generators
     {
         public static void Place(
             OreEntry entry,
+            int entryIndex,
             bool[,] mask,
             float[,] heights,
             TerrainDimensions dims,
@@ -43,7 +44,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                         OrePlacementMath.CalculateClusterCenterSpacing(band.clusterRadius));
 
             var clusterCenterGrid = new SpatialGrid(w, l, Mathf.Max(w / 50f, 5f));
-            centerHalos.GetOrCreate(entry.veinGuid).SeedGrid(
+            centerHalos.GetOrCreate(entryIndex).SeedGrid(
                 clusterCenterGrid, dims.WorldOffsetX, dims.WorldOffsetZ, w, l, haloRadius);
 
             // 地形への効き方はmapVeinsマスタが正本。veinGuidの解決はGenerationMasterのバリデーションが保証する
@@ -114,7 +115,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                     }
 
                     var cluster = new VeinPlacementCluster(
-                        entry.veinGuid, new Vector2(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ));
+                        entryIndex, entry.veinGuid,
+                        new Vector2(localX + dims.WorldOffsetX, localZ + dims.WorldOffsetZ));
                     PlaceClusterMembers(band, localX, localZ, cluster.Members);
                     if (cluster.Members.Count == 0) continue;
 

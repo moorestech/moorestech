@@ -14,12 +14,17 @@ namespace Game.MapGeneration.Pipeline.Generators
 
     public sealed class VeinPlacementCluster
     {
+        // 中心haloの帳面を引く鍵。同じveinGuidを撒く2エントリを別チャネルにするため、guidでなく配置元エントリで同定する。
+        // The key for the center halo ledger; two entries scattering one veinGuid stay on separate channels, so identity is the source entry rather than the guid.
+        public readonly int EntryIndex;
+
         public readonly string VeinGuid;
         public readonly Vector2 WorldCenter;
         public readonly List<PlacementEntry> Members = new();
 
-        public VeinPlacementCluster(string veinGuid, Vector2 worldCenter)
+        public VeinPlacementCluster(int entryIndex, string veinGuid, Vector2 worldCenter)
         {
+            EntryIndex = entryIndex;
             VeinGuid = veinGuid;
             WorldCenter = worldCenter;
         }

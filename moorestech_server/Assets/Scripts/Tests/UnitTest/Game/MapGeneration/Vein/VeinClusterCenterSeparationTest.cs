@@ -65,7 +65,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 複数bandの実中心間隔を検証。
             // Verifies actual center spacing across bands.
             Generate(new[] { entryA, entryB }, 0f, halo, 42);
-            var centers = ReadCenters(halo, VeinGuidA, 0f);
+            var centers = ReadCenters(halo, 0, 0f);
             Assert.That(centers.Count, Is.GreaterThan(1));
             float minimumDistance = MinimumPairDistance();
 
@@ -87,30 +87,51 @@ namespace Tests.UnitTest.Game.MapGeneration
         }
 
         [Test]
-        public void AdjacentTileSeparatesOnlyTheSeededGuid()
+        public void AdjacentTileSeparatesOnlyTheSeededEntry()
         {
+            // エントリ配列の位置がチャネル鍵。Bが0番、Aが1番になる。
+            // The slot in the entry array is the channel key, so B is 0 and A is 1.
+            const int entryIndexB = 0;
+            const int entryIndexA = 1;
             var entries = new[] { CreateEntry(VeinGuidB), CreateEntry(VeinGuidA) };
             var probeHalo = CreateHalo(20f);
             Generate(entries, TileSize, probeHalo, 43);
-            var probeA = ReadCenters(probeHalo, VeinGuidA, TileSize);
-            var probeB = ReadCenters(probeHalo, VeinGuidB, TileSize);
+            var probeA = ReadCenters(probeHalo, entryIndexA, TileSize);
+            var probeB = ReadCenters(probeHalo, entryIndexB, TileSize);
 
-            // 隣タイル内の既知候補から、境界外の同GUID中心と別GUID中心の距離証人を固定する。
-            // Derives a fixed witness between a same-GUID center outside the seam and a different-GUID center inside.
-            var sameGuidCenter = probeA.First(point => point.x < DefaultCenterSpacing - 1f &&
+            // 隣タイル内の既知候補から、境界外の同エントリ中心と別エントリ中心の距離証人を固定する。
+            // Derives a fixed witness between a same-entry center outside the seam and a different-entry center inside.
+            var sameEntryCenter = probeA.First(point => point.x < DefaultCenterSpacing - 1f &&
                 probeB.Any(other => Vector2.Distance(other, new Vector2(-1f, point.y)) < DefaultCenterSpacing));
-            var seededCenter = new Vector2(-1f, sameGuidCenter.y);
-            var differentGuidCenter = probeB.First(point => Vector2.Distance(point, seededCenter) < DefaultCenterSpacing);
+            var seededCenter = new Vector2(-1f, sameEntryCenter.y);
+            var otherEntryCenter = probeB.First(point => Vector2.Distance(point, seededCenter) < DefaultCenterSpacing);
             var seededHalo = CreateHalo(20f);
-            seededHalo.ItemVeins.Centers.GetOrCreate(VeinGuidA).Add(TileSize + seededCenter.x, seededCenter.y);
+            seededHalo.ItemVeins.Centers.GetOrCreate(entryIndexA).Add(TileSize + seededCenter.x, seededCenter.y);
 
             Generate(entries, TileSize, seededHalo, 43);
-            var generatedA = ReadCenters(seededHalo, VeinGuidA, TileSize).Where(point => 0f <= point.x).ToList();
-            var generatedB = ReadCenters(seededHalo, VeinGuidB, TileSize);
+            var generatedA = ReadCenters(seededHalo, entryIndexA, TileSize).Where(point => 0f <= point.x).ToList();
+            var generatedB = ReadCenters(seededHalo, entryIndexB, TileSize);
 
             Assert.That(generatedA.All(point => DefaultCenterSpacing <= Vector2.Distance(point, seededCenter)), Is.True);
-            Assert.That(generatedB.Any(point => Vector2.Distance(point, differentGuidCenter) < 0.001f), Is.True);
-            Assert.That(Vector2.Distance(differentGuidCenter, seededCenter), Is.LessThan(DefaultCenterSpacing));
+            Assert.That(generatedB.Any(point => Vector2.Distance(point, otherEntryCenter) < 0.001f), Is.True);
+            Assert.That(Vector2.Distance(otherEntryCenter, seededCenter), Is.LessThan(DefaultCenterSpacing));
+        }
+
+        [Test]
+        public void 同一veinGuidの2エントリは互いの中心を締め出さない()
+        {
+            // veinGuidを鍵にしていた頃はこの構成が成立しなかった（マスタ検証が重複を拒否していた）。
+            // Back when the key was the veinGuid this configuration was rejected outright by master validation.
+            var halo = CreateHalo(20f);
+            var placements = Generate(
+                new[] { CreateEntry(VeinGuidA), CreateEntry(VeinGuidA) }, 0f, halo, 42);
+
+            Assert.That(placements.Count(p => p.MapObjectGuid == VeinGuidA), Is.GreaterThan(0));
+
+            // 2エントリぶんの中心が別チャネルへ入り、片方が空にならない。
+            // Each entry's centers land on their own channel, so neither side comes back empty.
+            Assert.That(ReadCenters(halo, 0, 0f).Count, Is.GreaterThan(0));
+            Assert.That(ReadCenters(halo, 1, 0f).Count, Is.GreaterThan(0));
         }
 
         [Test]
@@ -200,10 +221,12 @@ namespace Tests.UnitTest.Game.MapGeneration
             };
         }
 
-        private static List<Vector2> ReadCenters(PlacementHaloStore halo, string veinGuid, float worldOffsetX)
+        // 中心haloはエントリ配列上の位置で引く。同じveinGuidの2エントリを別チャネルとして読み分けられる。
+        // Center haloes are looked up by the entry's slot, so two entries sharing a veinGuid read back as separate channels.
+        private static List<Vector2> ReadCenters(PlacementHaloStore halo, int entryIndex, float worldOffsetX)
         {
             var grid = new SpatialGrid(TileSize, TileSize, 5f);
-            halo.ItemVeins.Centers.GetOrCreate(veinGuid).SeedGrid(
+            halo.ItemVeins.Centers.GetOrCreate(entryIndex).SeedGrid(
                 grid, worldOffsetX, 0f, TileSize, TileSize, halo.Radius);
             return grid.GetAllPoints();
         }
