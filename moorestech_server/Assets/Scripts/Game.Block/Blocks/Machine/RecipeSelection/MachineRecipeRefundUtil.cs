@@ -31,25 +31,18 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             return stacks;
         }
 
-        // 入力→溢れ先の順で全量収容判定(アイテムのみ)
-        // Whether all item refunds fit into the input inventory then the overflow inventory (fluids excluded)
+        // 入力→溢れ先の順で全量収容判定(アイテムのみ)。入力側は実挿入(InsertItem)と同じ束縛規則でシミュレートする
+        // Whether all item refunds fit into the input inventory then the overflow inventory (fluids excluded).
+        // The input side is simulated with the same binding rule as the real insert (InsertItem)
         public static bool CanRefundAllItems(VanillaMachineInputInventory input, IOpenableInventory overflow, List<IItemStack> refunds)
         {
-            var inputRemainder = CopyMachineInput().InsertItem(refunds);
+            // 入力側の仮想挿入は実挿入(InsertItem)と同じ束縛規則を持つSimulateInsertの1本に集約済み
+            // The input-side virtual insert is consolidated into the same SimulateInsert the real insert (InsertItem) uses
+            var inputRemainder = input.SimulateInsert(refunds);
             var overflowRemainder = CopyOverflow().InsertItem(FilterNonEmpty(inputRemainder));
             return FilterNonEmpty(overflowRemainder).Count == 0;
 
             #region Internal
-
-            // 機械入力インベントリの挿入規則（同一アイテム複数スタック禁止）を再現したコピー
-            // Copy that mirrors the machine input insertion rule (no multiple stacks per item)
-            OpenableInventoryItemDataStoreService CopyMachineInput()
-            {
-                var option = new OpenableInventoryItemDataStoreServiceOption { AllowMultipleStacksPerItemOnInsert = false };
-                var sim = new OpenableInventoryItemDataStoreService((_, _) => { }, ServerContext.ItemStackFactory, input.InputSlot.Count, option);
-                for (var i = 0; i < input.InputSlot.Count; i++) sim.SetItemWithoutEvent(i, input.InputSlot[i]);
-                return sim;
-            }
 
             OpenableInventoryItemDataStoreService CopyOverflow()
             {
@@ -77,27 +70,34 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 
             #region Internal
 
-            // 液体は入力タンクへ戻せる分だけ戻し、収まらない分は消失させる（液体はインベントリで扱えないため）
-            // Fluids go back to input tanks as far as capacity allows; the overflow is lost (no fluid inventory exists)
+            // 液体iはタンクiへだけ戻す(他経路と同じ番号束縛)。収まらない分は消失させる（液体はインベントリで扱えないため）
+            // Fluid i goes back only to tank i (the same index binding other paths use); the overflow is lost (no fluid inventory exists)
             void RefundFluidsBestEffort()
             {
-                foreach (var inputFluid in recipe.InputFluids)
+                for (var i = 0; i < recipe.InputFluids.Length; i++)
                 {
+                    if (input.FluidInputSlot.Count <= i) break;
+
+                    var inputFluid = recipe.InputFluids[i];
                     var fluidId = MasterHolder.FluidMaster.GetFluidId(inputFluid.FluidGuid);
+                    var container = input.FluidInputSlot[i];
+
+                    // 別液体が残っているタンクへは戻せない。IDを上書きすると残留液体がその場で別液体へ化ける
+                    // A tank holding another fluid cannot take the refund; overwriting the id would transmute the leftover on the spot
+                    if (container.FluidId != FluidMaster.EmptyFluidId && container.FluidId != fluidId)
+                    {
+                        UnityEngine.Debug.LogError("返却先タンクに別の液体が残っているため液体を返却できず消失した");
+                        continue;
+                    }
+
                     // レシピ側のAmountはfloatだがFluidContainerはdoubleのため揃えてから計算する
                     // The recipe's Amount is float while FluidContainer uses double, so widen before computing
                     double remaining = inputFluid.Amount;
-                    foreach (var container in input.FluidInputSlot)
-                    {
-                        if (remaining <= 0) break;
-                        if (container.FluidId != fluidId && container.FluidId != FluidMaster.EmptyFluidId) continue;
 
-                        var addable = Math.Min(remaining, container.Capacity - container.Amount);
-                        if (addable <= 0) continue;
-                        container.FluidId = fluidId;
-                        container.Amount += addable;
-                        remaining -= addable;
-                    }
+                    var addable = Math.Min(remaining, container.Capacity - container.Amount);
+                    if (addable <= 0) continue;
+                    container.FluidId = fluidId;
+                    container.Amount += addable;
                 }
             }
 

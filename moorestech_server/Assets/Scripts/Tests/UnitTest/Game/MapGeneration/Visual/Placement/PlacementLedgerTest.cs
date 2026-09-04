@@ -6,6 +6,9 @@ using Tests.UnitTest.Game.MapGeneration.Tiling;
 
 namespace Tests.UnitTest.Game.MapGeneration.Visual.Placement
 {
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap3")]
     public class PlacementLedgerTest
     {
         // 同じconfigを2回回して台帳が完全一致する。クライアントがサーバーと同じ配置を再現する前提そのもの

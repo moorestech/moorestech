@@ -158,13 +158,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             var processor = block.GetComponent<VanillaMachineProcessorComponent>();
             Assert.AreEqual(ProcessState.Processing, processor.CurrentState);
 
-            // 機械側を別アイテムで満杯にし塞ぐ
-            // Fill the machine's own inventory with a different item so refunds have nowhere to land
-            var machineFillerId = ForUnitTestItemId.ItemId3;
-            var machineFillerMaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(machineFillerId);
-            for (var i = 0; i < blockInventory.GetSlotSize(); i++)
+            // 束縛済み入力スロットをレシピ自身の素材の満杯スタックで埋めて塞ぐ（束縛外IDはスロットに置けないため）
+            // Fill the bound input slots to max stack with the recipe's own material (an off-recipe id cannot be placed there)
+            for (var i = 0; i < recipe.InputItems.Length; i++)
             {
-                blockInventory.SetItem(i, machineFillerId, machineFillerMaxStack);
+                var itemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[i].ItemGuid);
+                var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
+                blockInventory.SetItem(i, itemId, maxStack);
             }
 
             // プレイヤー側も満杯にし完全に塞ぐ

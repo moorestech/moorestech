@@ -4,7 +4,7 @@ import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Topics } from "../../src/bridge/transport/protocol";
 import { BLOCK_ICON_PREFIX, FLUID_ICON_PREFIX, ITEM_ICON_PREFIX } from "../../src/bridge/transport/httpEndpoints";
-import type { BlockInventoryWireData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryWireData, UiStateData } from "../../src/bridge/contract/payloadTypes";
 import * as fx from "./fixtures";
 import { send, clone } from "./wire";
 import { received, state, connections, subscribersOf } from "./state";
@@ -143,7 +143,7 @@ export function createMockHttpServer(): Server {
       const params = new URL(url, "http://x").searchParams;
       const uiState = params.get("state") ?? "PlayerInventory";
       const subState = params.get("subState") ?? undefined;
-      state.currentUiState = { state: uiState, subState: subState as "GameScreen" | "PauseMenuScreen" | undefined, keyHints: fx.uiStateKeyHints };
+      state.currentUiState = { state: uiState, subState: subState as UiStateData["subState"], keyHints: fx.uiStateKeyHints };
       for (const ws of subscribersOf(Topics.uiState)) send(ws, { op: "event", topic: Topics.uiState, data: state.currentUiState });
       res.setHeader("content-type", "application/json");
       res.end(JSON.stringify({ ok: true }));

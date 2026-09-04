@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
 using UnityEngine;
 using VContainer;
 
@@ -26,6 +27,13 @@ namespace Client.Game.InGame.UI.UIState
             _uiStateDictionary.GetState(CurrentState).OnEnter(initialContext);
         }
 
+        // 現stateが入れ子ポーズを持つ画面かの解決口。Web境界はこの1箇所だけを見る（ADR 0035）
+        // Single resolution point for whether the current state owns a nested pause; the web boundary looks only here (ADR 0035)
+        public INestedPauseScreenState GetCurrentNestedPauseScreen()
+        {
+            return _uiStateDictionary.GetState(CurrentState) as INestedPauseScreenState;
+        }
+        
         // Web UI からの遷移要求を受け付ける（次のUpdateで最優先消費）
         // Accept a transition request from the Web UI (consumed first in the next Update)
         public void RequestTransition(UIStateEnum nextState)
