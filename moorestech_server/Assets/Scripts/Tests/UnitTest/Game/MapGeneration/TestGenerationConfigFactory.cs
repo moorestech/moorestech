@@ -103,17 +103,13 @@ namespace Tests.UnitTest.Game.MapGeneration
             // Make a small, fast single-tile map (bypass preset, set resolution directly).
             ap["overrideResolution"] = spawnSearchSetup == SpawnSearchSetup.Disabled ? 129 : 0;
 
-            // detail解像度はheightmapとは独立なので、解像度を落としたら一緒に落とす。masterの値のままだとheightmapより細かくなる
-            // The detail resolution is independent of the heightmap, so lowering one lowers the other; the master's value would otherwise out-resolve the heightmap
+            // 通常テストはheightmapとdetailを共に縮小し、実生成を1x1へ固定する
+            // Shrink both heightmap and detail resolution for ordinary tests and pin real generation to 1x1.
             if (spawnSearchSetup == SpawnSearchSetup.Disabled) ap["detailResolution"] = 128;
-
-            // forUnitTest の generation.json は 5x5 なので、多タイルを要らないテストのために 1x1 へ落とす。
-            // 5x5 を要るテスト（スポーン探索系）は algorithmParamOverrides で明示的に戻すこと。
-            // The forUnitTest generation.json ships 5x5, so drop to 1x1 for tests that do not need multiple tiles.
-            // Tests that do need 5x5 (the spawn-search ones) restore it explicitly through algorithmParamOverrides.
             ap["gridSizeX"] = 1;
             ap["gridSizeZ"] = 1;
-
+            // スポーン探索だけはalgorithmParamOverridesから必要な5x5を明示する
+            // Spawn-search tests explicitly restore the required 5x5 through algorithmParamOverrides.
             ap["useSpawnOffsetSearch"] = spawnSearchSetup != SpawnSearchSetup.Disabled;
             ap["generateOre"] = true;
             ConfigureSpawnSearch((JObject)ap["spawnSearch"], spawnSearchSetup);
@@ -177,48 +173,8 @@ namespace Tests.UnitTest.Game.MapGeneration
 
                 // 独立散布オブジェクトを Grassland に1種置き、MapObjects が空にならないようにする。
                 // Place one independently scattered object in Grassland so MapObjects is never empty.
-                ((JArray)((JObject)((JObject)ap["grassland"])["objectConfig"])["entries"]).Add(BuildObjectEntry(mapObjectGuid));
-            }
-
-            // ノイズ・傘フィルタを全て無効にした素の散布エントリ。スキーマ既定値と同値でも明示的に埋める。
-            // A bare scatter entry with every noise/slope filter off; fields are written out even when equal to the schema defaults.
-            static JObject BuildObjectEntry(string mapObjectGuid)
-            {
-                return new JObject
-                {
-                    ["prefabs"] = new JArray(new JObject { ["mapObjectGuid"] = mapObjectGuid }),
-                    ["terrainSurroundEffectType"] = "rockNoBareGround",
-                    // 外半径・densityが互いに違う2帯にして、帯とリングの対応が入れ替わる改変を転写テストで捕まえる
-                    // Two bands differing in both radius and density, so a mix-up between bands and rings fails the transcription test
-                    ["placementMode"] = "scatter",
-                    ["placementParam"] = new JObject
-                    {
-                        ["bands"] = new JArray(
-                            new JObject
-                            {
-                                ["outerRadiusMeters"] = 250.0,
-                                ["pointsPerHectare"] = 2.0,
-                            },
-                            new JObject
-                            {
-                                ["outerRadiusMeters"] = -1,
-                                ["pointsPerHectare"] = 1.0,
-                            }),
-                    },
-                    ["scaleRange"] = new JArray(1.0, 1.0),
-                    ["slopeAlignment"] = 0.0,
-                    ["sinkRange"] = new JArray(0.0, 0.0),
-                    ["noiseType"] = "None",
-                    ["noiseFrequency"] = 10.0,
-                    ["noiseAmplitude"] = 1.0,
-                    ["noiseThreshold"] = 0.5,
-                    ["useSlopeFilter"] = false,
-                    ["slopeMin"] = 0.0,
-                    ["slopeMax"] = 90.0,
-                    ["slopeSmoothness"] = 4.0,
-                    ["minDistanceFromTree"] = 0.0,
-                    ["maxDistanceFromTree"] = 0.0,
-                };
+                ((JArray)((JObject)((JObject)ap["grassland"])["objectConfig"])["entries"])
+                    .Add(TestMapObjectEntryFactory.Create(mapObjectGuid));
             }
 
             static void ConfigureVeinEntry(JObject entry, string veinGuid)

@@ -29,6 +29,9 @@ namespace Client.Tests.EditModeInPlayingTest
     /// Instantiates the GearMachineBlockInventory prefab to verify the recipe panel wiring
     /// survives (slot generation); highlight behavior is already covered by the Electric-side test.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay3")]
     public class MachineRecipeSelectionGearUITest
     {
         private const string GearBlockName = "ふるい";

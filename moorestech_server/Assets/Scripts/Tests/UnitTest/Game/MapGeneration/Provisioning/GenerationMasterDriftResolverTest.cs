@@ -15,6 +15,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
 {
     // 生成マスタがワールド作成時から動いたときの解決を、EnsureWorldの既存ワールド判定を通して検証する
     // Verifies how a generation master that moved since world creation is resolved, through EnsureWorld's existing-world branch
+    // drift検証の実生成は1x1固定
+    // Drift checks do not need grid area; they generate repeatedly, so preserve the test master's 1x1 and do not make them multi-tile
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap1")]
     public class GenerationMasterDriftResolverTest
     {
         private WorldDataDirectory _worldDataDirectory;
