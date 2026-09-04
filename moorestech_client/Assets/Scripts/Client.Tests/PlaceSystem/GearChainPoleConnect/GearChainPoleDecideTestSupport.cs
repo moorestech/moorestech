@@ -51,7 +51,6 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
                 PoleBlockId = new BlockId(5),
                 ConnectToolGuid = TestConnectToolGuid,
                 MaxConnectionCount = 4,
-                GhostAffordable = true,
                 GhostMaterialShortages = Array.Empty<ConstructionMaterialShortage>(),
             };
             if (sourcePole != null)

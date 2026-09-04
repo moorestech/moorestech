@@ -85,12 +85,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 
             // 地形干渉で不可のセルは「今回の設置セル」に数えないためポール建設コストの行も出さない（前例: ElectricWirePoleGhostEvaluation.PushBlockReasons）
             // A cell blocked by terrain is not a placing cell, so no pole construction cost line either (precedent: ElectricWirePoleGhostEvaluation.PushBlockReasons)
-            var shortages = new List<ConstructionMaterialShortage>();
-            if (input.GhostGroundClear) shortages.AddRange(input.GhostMaterialShortages);
-            if (isChainShortage) shortages.AddRange(extendPreview.MaterialShortages);
+            var poleCostShortages = input.GhostGroundClear ? input.GhostMaterialShortages : Array.Empty<ConstructionMaterialShortage>();
 
-            if (!isChainShortage && shortages.Count == 0) return GearChainPoleFrameResult.Show(sourcePole, preview, lines);
-            return GearChainPoleFrameResult.ShowWithMaterialShortages(sourcePole, preview, lines, shortages, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed);
+            // ポール建設コストとチェーン素材は別枠で運ぶ。1本に混ぜるとチェーン0件の落とし先行がポール分に隠される
+            // The pole cost and the chain material travel in separate slots; merged into one list a zero-entry chain shortage would lose its fallback line
+            if (!isChainShortage)
+            {
+                if (poleCostShortages.Count == 0) return GearChainPoleFrameResult.Show(sourcePole, preview, lines);
+                return GearChainPoleFrameResult.ShowWithMaterialShortages(sourcePole, preview, lines, poleCostShortages);
+            }
+
+            return GearChainPoleFrameResult.ShowWithMaterialShortages(sourcePole, preview, lines, poleCostShortages, extendPreview.MaterialShortages, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed);
         }
 
         private static bool CanSend(in GearChainPolePlaceExtendInput input, bool placeable)

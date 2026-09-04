@@ -1,3 +1,4 @@
+using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
@@ -5,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.Control;
 using Client.Input;
+using Core.Master;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using UnityEngine;
@@ -93,7 +95,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
                 // Build the new pole's ghost AABB and evaluate including the mutual range check
                 var poleGhostInfo = new BlockPositionInfo(evaluation.PlaceInfo.Position, _context.PoleSelection.CurrentDirection, evaluation.PoleMaster.BlockSize);
                 var distance = Vector3Int.Distance(fromPos, evaluation.PlaceInfo.Position);
-                var preview = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, evaluation.PoleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory, evaluation.PoleConstructionItemCounts);
+
+                // 地形干渉・重複で不可のセルは電柱を置かないので建設コストも消費せず、電線の必要数へ乗せない
+                // A cell blocked by terrain or an existing block places no pole, so its construction cost is neither consumed nor added to the wire requirement
+                var poleReservation = evaluation.IsGroundClear && evaluation.IsPositionFree ? evaluation.PoleConstructionItemCounts : Array.Empty<(ItemId itemId, int count)>();
+                var preview = ElectricWireExtendPreviewCalculator.EvaluateNewPole(source, sourceMaxCount, evaluation.PoleParam, poleGhostInfo, distance, connectToolGuid, _context.Inventory, poleReservation);
                 var placeable = evaluation.IsGhostPlaceable && preview.IsPlaceable;
 
                 // ゴーストとワイヤー線を可否色で表示する

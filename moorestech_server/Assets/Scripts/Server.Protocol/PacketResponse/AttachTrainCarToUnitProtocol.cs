@@ -1,6 +1,7 @@
 using System;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Construction;
 using Game.PlayerInventory.Interface;
 using Game.Train.Event;
 using Game.Train.RailGraph;
@@ -66,7 +67,7 @@ namespace Server.Protocol.PacketResponse
                 // Validate construction cost across the whole inventory
                 var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
                 var mainInventory = inventoryData.MainOpenableInventory;
-                var costItemCounts = ConstructionCostService.ToItemCounts(trainCarMaster.RequiredItems);
+                var costItemCounts = ConstructionCostItems.ToItemCounts(trainCarMaster.RequiredItems);
                 if (!ConstructionCostService.HasRequiredItems(costItemCounts, mainInventory.InventoryItems))
                 {
                     return AttachTrainCarToUnitResponseMessagePack.CreateFailure(AttachTrainCarFailureType.InsufficientItems);
