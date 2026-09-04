@@ -140,5 +140,5 @@ function fixtureFor(topic: string) {
   if (topic === "ui.modal") return {};
   if (topic === "block_inventory.current") return { open: false };
   if (topic === "ui_state.current") return { state: "GameScreen", keyHints: [] };
-  return { mainSlots: [], grab: { itemId: 0, count: 0 }, equipment: [], selectedEquipment: -1, equipmentSelectionConfirmationRevision: 0 };
+  return { mainSlots: [], grab: { itemId: 0, count: 0 }, equipment: [], selectedEquipment: 0, equipmentSelectionConfirmationRevision: 0 };
 }

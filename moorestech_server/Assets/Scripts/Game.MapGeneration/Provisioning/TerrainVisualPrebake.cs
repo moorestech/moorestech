@@ -33,7 +33,7 @@ namespace Game.MapGeneration.Provisioning
             // 高さ源にワールド本体のterrain/を選ぶ入口。共有キャッシュを高さ源にするクライアントとは入口ごと分かれている
             // The entry choosing the world's own terrain/ as the height source; a client, whose source is the shared cache, goes through a different entry entirely
             var factoryResult = TileVisualBakerFactory.CreateForPrebake(
-                config, terrainMeta, generatedPayload, ledger, selectedGeneration, worldDataDirectory);
+                config, terrainMeta, ledger, selectedGeneration, worldDataDirectory);
 
             var tileCoordinates = TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount);
             foreach (var (tileX, tileZ) in tileCoordinates)

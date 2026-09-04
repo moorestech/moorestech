@@ -54,7 +54,7 @@ describe("InventoryPanel の所持アンカー", () => {
       mainSlots: [slot(0, 0), slot(7, 0), slot(3, 1), slot(7, 5)],
       grab: slot(0, 0),
       equipment: [],
-      selectedEquipment: -1,
+      selectedEquipment: 0,
       equipmentSelectionConfirmationRevision: 0,
     };
 
@@ -71,7 +71,7 @@ describe("InventoryPanel の所持アンカー", () => {
       mainSlots: [slot(0, 0), slot(7, 0), slot(3, 1), slot(7, 5)],
       grab: slot(0, 0),
       equipment: [],
-      selectedEquipment: -1,
+      selectedEquipment: 0,
       equipmentSelectionConfirmationRevision: 0,
     };
 

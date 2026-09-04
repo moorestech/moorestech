@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
-using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Transfer;
 using static Game.MapGeneration.Cache.TerrainVisualCacheFormat;
 
 namespace Game.MapGeneration.Cache
@@ -105,7 +105,7 @@ namespace Game.MapGeneration.Cache
                 return false;
             }
 
-            var alphamap = TileAlphamap.Create(alphamapPlanes, alphamapResolution, layerCount);
+            var alphamap = TileAlphamap.CreateOwning(alphamapPlanes, alphamapResolution, layerCount);
             tileVisual = new TerrainTileVisual(displayHeights, alphamap, detailMaps);
             return true;
 
@@ -147,7 +147,7 @@ namespace Game.MapGeneration.Cache
             bool TryReadAlphamapPlanes(out byte[][] planes)
             {
                 var planeByteLength = (int)AlphamapPlaneByteLength(alphamapResolution);
-                planes = new byte[AlphamapPlaneCount(layerCount)][];
+                planes = new byte[TileAlphamap.AlphamapPlaneCount(layerCount)][];
                 for (var planeIndex = 0; planeIndex < planes.Length; planeIndex++)
                 {
                     planes[planeIndex] = new byte[planeByteLength];

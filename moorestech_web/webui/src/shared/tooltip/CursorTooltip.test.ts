@@ -116,6 +116,9 @@ describe("CursorTooltip", () => {
       renderer.update(createElement(CursorTooltip));
     });
 
+    // 再計算されたことだけでなく、実測サイズと画面寸法が clamp へ渡る値まで固定する
+    // Pin not just that it recalculated but the measured size and viewport values handed to clamp
     expect(testState.clamp.mock.calls.length).toBeGreaterThan(initialCalls);
+    expect(testState.clamp).toHaveBeenLastCalledWith(0, 0, 120, 40, 1280, 720);
   });
 });

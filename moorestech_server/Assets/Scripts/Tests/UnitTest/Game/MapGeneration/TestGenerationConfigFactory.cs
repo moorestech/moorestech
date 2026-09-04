@@ -73,10 +73,28 @@ namespace Tests.UnitTest.Game.MapGeneration
         public static void LoadMasterWithMapObjectScaleForProvisioning(float scale)
         {
             var root = CreateJsonWithMapObjectGuid(SpawnSearchSetup.Enabled, new JObject(), TestMapObjectGuid);
+            ScatterObjectEntryOf(root)["scaleRange"] = new JArray(scale, scale);
+            LoadGenerationMaster(root);
+        }
+
+        // 見た目だけが動くmasterでdrift検証。terrainSurroundEffectTypeは配置台帳のdigestに入るが(GUID,座標,scale)集合は動かさない
+        // Loads a visuals-only master change for drift verification: terrainSurroundEffectType enters the ledger digest yet leaves the (guid, position, scale) set alone
+        public static void LoadMasterWithMapObjectSurroundEffectForProvisioning(string terrainSurroundEffectType)
+        {
+            var root = CreateJsonWithMapObjectGuid(SpawnSearchSetup.Enabled, new JObject(), TestMapObjectGuid);
+            ScatterObjectEntryOf(root)["terrainSurroundEffectType"] = terrainSurroundEffectType;
+            LoadGenerationMaster(root);
+        }
+
+        private static JObject ScatterObjectEntryOf(JObject root)
+        {
             var algorithmParam = (JObject)root["algorithmParam"];
             var entries = (JArray)((JObject)((JObject)algorithmParam["grassland"])["objectConfig"])["entries"];
-            ((JObject)entries[0])["scaleRange"] = new JArray(scale, scale);
+            return (JObject)entries[0];
+        }
 
+        private static void LoadGenerationMaster(JObject root)
+        {
             var modResource = new ModsResource(Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods"));
             var masterContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
             masterContainer.ConfigJsons[0].JsonContents[new JsonFileName("generation")] =
