@@ -43,7 +43,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             input.ExtendPreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.NoItemError), Array.Empty<ConstructionMaterialShortage>());
 
             var feedback = new PlacementFeedback();
-            GearChainPolePlaceExtendMode.Decide(input).PushMaterialShortages(feedback);
+            GearChainPolePlaceExtendMode.Decide(input).PushFeedback(feedback);
 
             Assert.AreEqual(2, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
@@ -60,7 +60,7 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             input.GhostMaterialShortages = new[] { new ConstructionMaterialShortage(MasterHolder.ItemMaster.GetItemId(MaterialGuid), 1, 4) };
 
             var feedback = new PlacementFeedback();
-            GearChainPolePlaceExtendMode.Decide(input).PushMaterialShortages(feedback);
+            GearChainPolePlaceExtendMode.Decide(input).PushFeedback(feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);

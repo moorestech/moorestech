@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Localization;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
 using UniRx;
 
@@ -22,6 +25,10 @@ namespace Client.Game.InGame.Mining
         // Built only when focus changes so no per-frame re-resolution happens
         public string CurrentFocusTargetEarnItemNames { get; private set; } = string.Empty;
 
+        // 推奨ツール名も取得物名と同じ契機でのみ組み立てる
+        // The recommended tool names are built on the very same trigger as the earned item names
+        public string CurrentFocusTargetRecommendedToolNames { get; private set; } = string.Empty;
+
         public readonly LocalPlayerEquipment LocalPlayerEquipment;
 
         public MiningControllerContext(LocalPlayerEquipment localPlayerEquipment)
@@ -30,7 +37,7 @@ namespace Client.Game.InGame.Mining
 
             // 言語切替で保持中の名前が古くなる
             // A language switch makes the cached names stale
-            Localize.OnLanguageChanged.Subscribe(_ => ResolveEarnItemNames());
+            Localize.OnLanguageChanged.Subscribe(_ => ResolveFocusTargetNames());
         }
 
         public void SetFocusTarget(IMiningTargetObject target)
@@ -40,28 +47,49 @@ namespace Client.Game.InGame.Mining
             if (ReferenceEquals(CurrentFocusTarget, target)) return;
 
             CurrentFocusTarget = target;
-            ResolveEarnItemNames();
+            ResolveFocusTargetNames();
         }
 
-        private void ResolveEarnItemNames()
+        // 表示名はここでしか組み立てない。フォーカス中のフレームでは一切解決し直さない
+        // Display names are assembled only here; not a single frame of focus re-resolves them
+        private void ResolveFocusTargetNames()
         {
-            var earnItemGuids = CurrentFocusTarget?.EarnItemGuids;
+            CurrentFocusTargetEarnItemNames = JoinItemNames(CurrentFocusTarget?.EarnItemGuids);
+            CurrentFocusTargetRecommendedToolNames = JoinToolNames(CurrentFocusTarget?.RecommendedToolItemIds);
+
+            #region Internal
 
             // 取得物を持たない対象は名前欄を空にする
             // A target that yields nothing leaves the name slot empty
-            if (earnItemGuids == null || earnItemGuids.Count == 0)
+            string JoinItemNames(IReadOnlyList<Guid> itemGuids)
             {
-                CurrentFocusTargetEarnItemNames = string.Empty;
-                return;
+                if (itemGuids == null || itemGuids.Count == 0) return string.Empty;
+
+                var itemNames = new string[itemGuids.Count];
+                for (var index = 0; index < itemGuids.Count; index++)
+                {
+                    itemNames[index] = Localize.GetContent(ContentLocalizationKeys.ItemName(itemGuids[index]));
+                }
+
+                return string.Join(", ", itemNames);
             }
 
-            var itemNames = new string[earnItemGuids.Count];
-            for (var index = 0; index < earnItemGuids.Count; index++)
+            // ツールを要求しない対象も同様に空欄にする
+            // A target requiring no tool leaves the slot empty as well
+            string JoinToolNames(IReadOnlyList<ItemId> toolItemIds)
             {
-                itemNames[index] = Localize.GetContent(ContentLocalizationKeys.ItemName(earnItemGuids[index]));
+                if (toolItemIds == null || toolItemIds.Count == 0) return string.Empty;
+
+                var toolGuids = new Guid[toolItemIds.Count];
+                for (var index = 0; index < toolItemIds.Count; index++)
+                {
+                    toolGuids[index] = MasterHolder.ItemMaster.GetItemMaster(toolItemIds[index]).ItemGuid;
+                }
+
+                return JoinItemNames(toolGuids);
             }
 
-            CurrentFocusTargetEarnItemNames = string.Join(", ", itemNames);
+            #endregion
         }
     }
 }

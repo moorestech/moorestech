@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Construction;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
@@ -21,7 +22,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         public static List<ConstructionMaterialShortage> Calculate(Guid connectToolGuid, float distance, IEnumerable<IItemStack> inventoryItems, IReadOnlyList<ConnectToolMaterialCost> reservedMaterials)
         {
             if (!ConnectToolCostCalculator.TryCalculate(connectToolGuid, distance, out var materials)) return new List<ConstructionMaterialShortage>();
-            return Calculate(materials, ConstructionMaterialHeldCounts.Tally(inventoryItems), reservedMaterials);
+            return Calculate(materials, ConstructionMaterialAccounting.TallyHeld(inventoryItems), reservedMaterials);
         }
 
         /// <summary>
@@ -32,7 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             // 必要数の合算は可否判定と同じ正本を通す。集計単位が割れると可否と表示が食い違う
             // The requirement goes through the very definition the affordability judgement uses; a differing unit would split verdict from display
-            var requiredItems = ConnectToolMaterialConsumer.SumRequiredByItem(materials, reservedMaterials);
+            var requiredItems = ConstructionMaterialAccounting.SumRequiredByItem(materials, reservedMaterials);
             return ConstructionCostShortageCalculator.ToShortages(ConstructionCostShortageCalculator.CalculateRequirements(requiredItems, heldByItem));
         }
     }

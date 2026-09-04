@@ -3,7 +3,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
-using Mooresmaster.Localization.Generated;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
 
@@ -39,21 +38,25 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 }
                 
                 ChainLayoutResolver.Resolve(placeInfo.Position, placeInfo.Direction, holdingBlockMaster.BlockSize, chain, existingBlockQuery, groundQuery, groundBased, heightOffset, ResolvedBuffer);
-                if (!HasBlockedGhost()) continue;
-                
+                var blockReason = FindFirstBlockReason();
+                if (blockReason == ChainCellBlockReason.None) continue;
+
                 placeInfo.Placeable = false;
-                if (i == cursorIndex) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceChainBlocked));
+
+                // 先に見つかった不可セルの原因をそのまま文言にする。占有と地形で断定が変わる
+                // The first blocked cell's reason becomes the wording, so an occupied cell and a terrain mismatch never claim the same thing
+                if (i == cursorIndex) feedback.Add(new TooltipLine(ChainCellBlockReasonTooltipKey.ToKey(blockReason)));
             }
-            
+
             #region Internal
-            
-            bool HasBlockedGhost()
+
+            ChainCellBlockReason FindFirstBlockReason()
             {
                 foreach (var resolved in ResolvedBuffer)
                 {
-                    if (resolved.Blocked) return true;
+                    if (resolved.BlockReason != ChainCellBlockReason.None) return resolved.BlockReason;
                 }
-                return false;
+                return ChainCellBlockReason.None;
             }
             
             #endregion

@@ -53,7 +53,7 @@ namespace Client.Tests.UIState
         [Test]
         public void EveryScreenHintCountMatchesAdr()
         {
-            Assert.AreEqual(9, PlaceBlockStateHints.Hints.Count);
+            Assert.AreEqual(10, PlaceBlockStateHints.Hints.Count);
             Assert.AreEqual(7, DeleteObjectStateHints.Hints.Count);
             Assert.AreEqual(6, PlayerInventoryStateHints.Hints.Count);
             Assert.AreEqual(5, SubInventoryStateHints.Hints.Count);

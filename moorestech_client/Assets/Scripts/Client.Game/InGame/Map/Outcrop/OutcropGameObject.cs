@@ -81,10 +81,13 @@ namespace Client.Game.InGame.Map.Outcrop
             }
         }
 
-        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
+        // 手掘りツールは鉱脈マスタで決まるので、フォーカス中に変わらない
+        // The hand-mining tools come from the vein master, so they never change while focused
+        public IReadOnlyList<ItemId> RecommendedToolItemIds => _usableToolItemIds;
+
+        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool)
         {
             tool = default;
-            recommendedToolItemIds = _usableToolItemIds;
 
             // 露頭は無限資源なので消滅せず、手掘り不可だけが不成立の理由になる
             // An outcrop never disappears, so the only refusal is a vein that forbids hand mining

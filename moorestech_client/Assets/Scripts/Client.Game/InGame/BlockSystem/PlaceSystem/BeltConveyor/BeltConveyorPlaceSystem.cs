@@ -56,6 +56,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _dragState.ClearDrag();
         }
 
+        // ドラッグ中の右短押し/Escは進行中のドラッグだけを畳み、建築モードには留まる
+        // A right short press or Esc during a drag folds only that drag and stays in build mode
+        public override bool TryCancelInProgressOperation()
+        {
+            if (!_dragState.IsDragging) return false;
+
+            // 列の軸決めもドラッグに属するため一緒に捨てる
+            // The run's axis choice belongs to the drag, so it is dropped together
+            _dragState.EndDrag();
+            _isStartZDirection = null;
+            return true;
+        }
+
         public override void Disable()
         {
             // デバッグモード時はプレビューを維持

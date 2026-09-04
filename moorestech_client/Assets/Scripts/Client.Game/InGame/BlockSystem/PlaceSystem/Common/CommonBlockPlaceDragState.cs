@@ -15,6 +15,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     {
         public int HeightOffset { get; private set; }
 
+        // 左ドラッグ設置は押下から解放までが目に見える進行中操作になる
+        // A left-drag placement is a visible in-progress operation from press to release
+        public bool IsDragging => _session != null;
+
         private PlacementDragSession _session;
         private BlockId? _previousSelectedBlockId;
 

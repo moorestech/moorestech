@@ -113,11 +113,14 @@ namespace Client.Game.InGame.UI.UIState.State
             // Tab shares the OpenInventory binding, but reopening the build menu takes precedence while placing
             if (HybridInput.GetKeyDown(KeyCode.Tab)) return new UITransitContext(UIStateEnum.BuildMenu);
             if (InputManager.UI.BlockDelete.GetKeyDown) return new UITransitContext(UIStateEnum.DeleteBar);
-            if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
+            // Bは二段階を持たない建築モード終了専用キーとして残す
+            // B stays a dedicated exit key with no two-stage cancel
+            if (HybridInput.GetKeyDown(KeyCode.B)) return new UITransitContext(UIStateEnum.GameScreen);
 
-            // パネル外の右短押しはEscと同じ二段階。起点/選択があればそれだけ解除し、無ければ建築モードを抜ける
-            // A right short press outside UI mirrors Esc: cancel only an in-progress operation, otherwise leave build mode
-            if (isRightShortPressed && !_placeSystemStateController.TryCancelInProgressOperation())
+            // Escとパネル外の右短押しは同型の二段階解除。起点/選択/ドラッグがあればそれだけ解除し、無ければ建築モードを抜ける
+            // Esc and a right short press outside UI share one two-stage cancel: drop only an in-progress operation, otherwise leave build mode
+            var isCancelRequested = InputManager.UI.CloseUI.GetKeyDown || isRightShortPressed;
+            if (isCancelRequested && !_placeSystemStateController.TryCancelInProgressOperation())
             {
                 return new UITransitContext(UIStateEnum.GameScreen);
             }
@@ -204,6 +207,7 @@ namespace Client.Game.InGame.UI.UIState.State
         public static readonly IReadOnlyList<KeyHint> Hints = new[]
         {
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.SelectBlock),
+            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Digits, LocalizationKeys.Ui.KeyHint.Text.SwapTarget),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.B, LocalizationKeys.Ui.KeyHint.Text.ExitPlaceMode),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.G, LocalizationKeys.Ui.KeyHint.Text.DeleteMode),
             new KeyHint(LocalizationKeys.Ui.KeyHint.Key.R, LocalizationKeys.Ui.KeyHint.Text.Rotate),

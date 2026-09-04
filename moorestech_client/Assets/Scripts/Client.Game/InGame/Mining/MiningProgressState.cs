@@ -68,7 +68,7 @@ namespace Client.Game.InGame.Mining
 
             // 採掘中に対象が進捗採掘の条件を失ったらフォーカス状態でやり直す
             // If the target stops satisfying progress mining mid-swing, restart from the focus state
-            if (_startedMiningTarget.TryBeginHandMining(equippedItemId, out _, out _) != MiningStartOutcome.Ready)
+            if (_startedMiningTarget.TryBeginHandMining(equippedItemId, out _) != MiningStartOutcome.Ready)
             {
                 return new MiningFocusState();
             }

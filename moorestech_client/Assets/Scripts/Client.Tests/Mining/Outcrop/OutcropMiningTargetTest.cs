@@ -69,11 +69,11 @@ namespace Client.Tests.Mining.Outcrop
 
             // 解決値をマスタへ固定
             // Pin resolution to master
-            Assert.AreEqual(MiningStartOutcome.Ready, _outcrop.TryBeginHandMining(toolItemId, out var tool, out var recommended));
+            Assert.AreEqual(MiningStartOutcome.Ready, _outcrop.TryBeginHandMining(toolItemId, out var tool));
             Assert.AreEqual(0.2f, tool.AttackSpeed, 0.0001f);
-            CollectionAssert.AreEqual(new[] { toolItemId }, recommended);
-            Assert.AreEqual(MiningStartOutcome.ToolMismatch, _outcrop.TryBeginHandMining(unmatchedItemId, out _, out _));
-            Assert.AreEqual(MiningStartOutcome.ToolMismatch, _outcrop.TryBeginHandMining(ItemMaster.EmptyItemId, out _, out _));
+            CollectionAssert.AreEqual(new[] { toolItemId }, _outcrop.RecommendedToolItemIds);
+            Assert.AreEqual(MiningStartOutcome.ToolMismatch, _outcrop.TryBeginHandMining(unmatchedItemId, out _));
+            Assert.AreEqual(MiningStartOutcome.ToolMismatch, _outcrop.TryBeginHandMining(ItemMaster.EmptyItemId, out _));
         }
 
         [Test]
@@ -84,9 +84,9 @@ namespace Client.Tests.Mining.Outcrop
             var unmineableOutcrop = CreateOutcrop(UnmineableVeinGuid, out _);
             var toolItemId = MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
 
-            Assert.AreEqual(MiningStartOutcome.HandMiningNotAllowed, unmineableOutcrop.TryBeginHandMining(toolItemId, out _, out var recommended));
-            Assert.IsEmpty(recommended);
-            Assert.AreEqual(MiningStartOutcome.HandMiningNotAllowed, unmineableOutcrop.TryBeginHandMining(ItemMaster.EmptyItemId, out _, out _));
+            Assert.AreEqual(MiningStartOutcome.HandMiningNotAllowed, unmineableOutcrop.TryBeginHandMining(toolItemId, out _));
+            Assert.IsEmpty(unmineableOutcrop.RecommendedToolItemIds);
+            Assert.AreEqual(MiningStartOutcome.HandMiningNotAllowed, unmineableOutcrop.TryBeginHandMining(ItemMaster.EmptyItemId, out _));
         }
 
         [Test]
