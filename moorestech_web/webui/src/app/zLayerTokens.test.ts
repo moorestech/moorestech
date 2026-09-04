@@ -47,6 +47,13 @@ describe("z-layer tokens: .stage内部", () => {
     expect(stageLayer("overlay-panel")).toBeLessThan(stageLayer("overlay-panel-chrome"));
     expect(stageLayer("overlay-panel-chrome")).toBeLessThan(stageLayer("tooltip"));
   });
+
+  it("ポーズメニューは.viewportOverlay一式より前・ツールチップより後ろに立つ", () => {
+    // chromeより後ろだとスキット表示層に沈み、ポーズ中の操作面が押せなくなる
+    // Behind the chrome layer it sinks under the skit layer, leaving the paused controls unclickable
+    expect(stageLayer("overlay-panel-chrome")).toBeLessThan(stageLayer("pause-menu"));
+    expect(stageLayer("pause-menu")).toBeLessThan(stageLayer("tooltip"));
+  });
 });
 
 describe("z-layer tokens: body直下Portal", () => {
