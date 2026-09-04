@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Client.Input;
 using Mooresmaster.Localization.Generated;
 
-namespace Client.Game.InGame.Interact
+namespace Client.Game.InGame.Interact.Tap
 {
     /// <summary>
     ///     単押しで実行するアクション。キー・ヒント・実行を対象側が定義し、駆動側は従うだけ

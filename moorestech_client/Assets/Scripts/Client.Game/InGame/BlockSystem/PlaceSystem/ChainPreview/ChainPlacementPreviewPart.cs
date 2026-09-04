@@ -3,7 +3,7 @@ using Client.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
 using Client.Game.InGame.Control;
-// ワールドピンの共有配信基盤（チュートリアルロジックではなくWeb表示の窓口）
+// ワールドピン配信の共有基盤
 // Shared world-pin publication store: a web-presentation port, not tutorial logic
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.UIState;
@@ -14,7 +14,7 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
 {
     /// <summary>
-    ///     設置カーソルへ連結ゴースト群を追従表示する。塞がったセルのゴーストは設置不可色にし、WebUIにはワールドピンを配信する
+    ///     設置カーソルへ連結ゴースト群を追従表示する
     ///     Follows the placement cursor with the chain ghosts; blocked cells turn the not-placeable color, and world pins go to the web UI
     /// </summary>
     public class ChainPlacementPreviewPart
@@ -50,20 +50,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
                 var entry = _ghostEntries[i];
                 entry.SetTarget(resolved.Ghost.BlockId, resolved.WorldCell, resolved.WorldDirection, null);
                 
-                // 塞がったセルのゴーストだけ不可色へ落とす（可否は解決時に確定済み）
+                // 塞がったセルのゴーストを不可色にする
                 // Only a blocked cell's ghost drops to the not-placeable color; Blocked was decided at resolution
                 if (entry.PreviewObject != null) entry.PreviewObject.SetPlaceableColor(!resolved.Blocked);
                 
                 PublishWebPin(entry, tutorialGuid);
             }
             
-            // 連結件数が減ったフレームで余剰ゴーストを畳む
+            // 連結件数が減ったら余剰ゴーストを畳む
             // Fold surplus ghosts on the frame the chain shrinks
             for (var i = _resolvedBuffer.Count; i < _ghostEntries.Count; i++) HideEntry(_ghostEntries[i]);
             
             #region Internal
             
-            // WebUIモードでは兄弟のチュートリアルゴーストと同様にワールドピンを配信する
+            // WebUIモードではワールドピンも配信する
             // In web UI mode, publish world pins the same way the sibling tutorial ghosts do
             void PublishWebPin(PlacementGhostEntry entry, System.Guid ownerTutorialGuid)
             {

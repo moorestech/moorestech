@@ -21,6 +21,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         // The master-side window origin that matters only when the search is disabled; zero cannot tell the two bases apart.
         private const float MasterWorldOffset = 500f;
 
+        // 境界にAABB候補を溢れさせる密度設定。3x3と組み合わせないので実行時間は増えない。
+        // The density that floods the seam with AABB candidates; it never pairs with 3x3, so runtime does not grow.
+        private const float SeamDenseDensity = 5f;
+        private const int SeamDenseGridSide = 2;
+        private const int SeamDenseSeed = 1;
+
         [Test]
         public void グリッド設定どおりのタイル数と原点が出力される()
         {
@@ -149,23 +155,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
         // シーン座標化の基準が探索の戻り値(探索無効なら0)だと、地形の窓原点だけが master worldOffset ぶん進む。
         // A basis taken from the search result (zero when disabled) advances only the terrain window origin by the master worldOffset.
         [Test]
-        public void 探索無効かつmaster_worldOffsetありでも地形と配置物とスポーンと鉱脈AABBが同じフレームに乗る()
+        public void 探索無効かつmaster_worldOffsetありでも地形と配置物とスポーンが同じフレームに乗る()
         {
-            var config = MultiTileTestWorld.BuildConfig(2, 1);
+            var config = MultiTileTestWorld.BuildConfig(GridSide, Seed);
             MultiTileTestWorld.EnableTrees(config);
             config.worldOffsetX = MasterWorldOffset;
             config.worldOffsetZ = MasterWorldOffset;
-            config.oreConfig.borderMargin = 0f;
-
-            // 種類別haloだけでは防げない境界AABB候補を増やし、統一台帳の座標frameを検査する。
-            // Densify seam AABB candidates that per-kind halos cannot reject, exercising the unified ledger's coordinate frame.
-            foreach (var entry in config.oreConfig.entries.Concat(config.oreConfig.fluidEntries))
-            {
-                entry.bands[0].density = 5f;
-                entry.bands[0].maxObjectsPerCluster = 1;
-                entry.bands[0].clusterRadius = 0f;
-                entry.bands[0].minDistanceBetweenOres = 0f;
-            }
 
             // spawnWorldPosition はノイズ座標なので窓原点 + 中心タイルの1/4点に置く（シーンでは1/4点そのもの）
             // spawnWorldPosition is noise-space, so place it at the window origin plus the center tile's quarter point
@@ -191,7 +186,26 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             {
                 MultiTileTestWorld.AssertVeinInsideGrid(vein, config);
             }
+        }
 
+        // 種類別haloだけでは防げない境界AABB候補を密にして、統一台帳の非重なりだけを見る。
+        // Densifies the seam AABB candidates that per-kind halos cannot reject and checks only the unified ledger's non-overlap.
+        [Test]
+        public void 密な境界AABB候補でも多タイルの鉱脈AABBは重ならない()
+        {
+            var config = MultiTileTestWorld.BuildConfig(SeamDenseGridSide, SeamDenseSeed);
+            config.oreConfig.borderMargin = 0f;
+            foreach (var entry in config.oreConfig.entries.Concat(config.oreConfig.fluidEntries))
+            {
+                entry.bands[0].density = SeamDenseDensity;
+                entry.bands[0].maxObjectsPerCluster = 1;
+                entry.bands[0].clusterRadius = 0f;
+                entry.bands[0].minDistanceBetweenOres = 0f;
+            }
+
+            var output = new VanillaGenerator().Generate(config).Output;
+
+            Assert.IsNotEmpty(output.ItemVeins);
             MultiTileTestWorld.AssertNoOverlappingVeins(
                 output.ItemVeins.Concat(output.FluidVeins).ToList());
         }

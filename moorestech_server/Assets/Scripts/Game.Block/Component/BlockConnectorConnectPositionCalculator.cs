@@ -23,8 +23,6 @@ namespace Game.Block.Component
             if (inputConnectors == null) return result;
             foreach (var inputConnectSetting in inputConnectors)
             {
-                var blockPosConvertAction = blockDirection.GetCoordinateConvertAction();
-
                 var inputConnectorPos = blockPositionInfo.ConvertBlockLocalToWorldCell(inputConnectSetting.Offset);
                 var directions = inputConnectSetting.Directions;
                 if (directions == null)
@@ -33,7 +31,7 @@ namespace Game.Block.Component
                     continue;
                 }
 
-                var targetPositions = directions.Select(c => (inputConnectorPos + blockPosConvertAction(c), inputConnectSetting)).ToList();
+                var targetPositions = directions.Select(c => (inputConnectorPos + blockDirection.ConvertLocalCell(c), inputConnectSetting)).ToList();
                 if (!result.TryAdd(inputConnectorPos, targetPositions)) result[inputConnectorPos] = result[inputConnectorPos].Concat(targetPositions).ToList();
             }
 

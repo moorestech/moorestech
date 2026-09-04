@@ -1,9 +1,9 @@
 using Client.Game.InGame.UI.UIState;
 
-namespace Client.Game.InGame.Interact
+namespace Client.Game.InGame.Interact.Tap
 {
     /// <summary>
-    ///     単押しアクションを実行したか、実行してUI遷移まで起きたかを区別して返す
+    ///     実行の有無とUI遷移の要否を区別して返す
     ///     Distinguishes "no action ran" from "an action ran" and from "an action ran and asks for a UI transition"
     /// </summary>
     public readonly struct InteractExecuteResult

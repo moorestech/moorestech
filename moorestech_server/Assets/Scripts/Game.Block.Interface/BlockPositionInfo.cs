@@ -31,12 +31,9 @@ namespace Game.Block.Interface
         /// </summary>
         public Vector3Int ConvertBlockLocalToWorldCell(Vector3Int blockLocalCell)
         {
-            // コネクターのoffsetと同じ換算。デリゲートを作らず行列を直に使い、毎フレーム呼ばれても確保を出さない
-            // The same conversion as connector offsets; uses the matrix directly instead of a delegate so per-frame calls allocate nothing
-            var rotationMatrix = Matrix4x4.Rotate(BlockDirection.GetRotation());
-            var rotated = Vector3Int.RoundToInt(rotationMatrix.MultiplyPoint3x4(blockLocalCell));
-            
-            return BlockDirection.GetBlockBaseOriginPos(this) + rotated;
+            // コネクターのoffsetと同じ換算を共通の回転関数へ委譲し、原点だけここで足す
+            // Delegates the same conversion as connector offsets to the shared rotation helper, adding only the origin here
+            return BlockDirection.GetBlockBaseOriginPos(this) + BlockDirection.ConvertLocalCell(blockLocalCell);
         }
         
         /// <summary>
