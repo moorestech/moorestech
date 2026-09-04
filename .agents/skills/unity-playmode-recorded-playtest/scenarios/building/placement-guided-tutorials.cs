@@ -3,11 +3,13 @@
 using System;
 using System.IO;
 using System.Linq;
+using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapVein;
+using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.PlacementGuide;
-using Client.Game.InGame.Tutorial.TutorialBlock;
 using Client.Playtest;
 using Core.Master;
 using Cysharp.Threading.Tasks;
@@ -82,16 +84,30 @@ return PlaytestRunner.Run("placement-guided-tutorials", options, async p =>
         ["message"] = "風車の隣にシャフトを置いてください",
     }));
 
-    TutorialBlockPreviewObject ghost = null;
+    // ゴースト実体は BlockPlacePreviewTutorialManager 配下に生成されるので、そちらから取る
+    // The ghost instances are created under BlockPlacePreviewTutorialManager, so look there
+    var ghostOwner = UnityEngine.Object.FindFirstObjectByType<BlockPlacePreviewTutorialManager>(FindObjectsInactive.Include);
+    p.Assert(ghostOwner != null, "BlockPlacePreviewTutorialManagerがMainGameシーンに結線されている");
+
+    PreviewGhostObject ghost = null;
     await p.Until(() =>
     {
-        ghost = relativeManager.GetComponentInChildren<TutorialBlockPreviewObject>(false);
+        ghost = ghostOwner.GetComponentInChildren<PreviewGhostObject>(false);
         return ghost != null;
     }, 30f, "相対座標ゴーストの生成");
+
+    // 期待セルと向きは本番と同じアンカー換算から出す。ローカルEastはアンカー向きで回る
+    // The expected cell and direction come from the same anchor conversion as production; a local East rotates with the anchor
     var shaftBlockId = MasterHolder.BlockMaster.GetBlockId(BlockGuidOf(shaftName));
-    var expectedGhostPosition = Client.Game.InGame.BlockSystem.SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(shaftOrigin, BlockDirection.East, shaftBlockId);
+    var shaftBlockSize = MasterHolder.BlockMaster.GetBlockMaster(shaftBlockId).BlockSize;
+    var anchorBlock = p.GetBlock(windmillOrigin);
+    var expectedShaftOrigin = AnchorRelativeOriginUtil.ResolveWorldOrigin(anchorBlock.BlockPositionInfo, shaftOffsetFromWindmill, BlockDirection.East, shaftBlockSize);
+    var expectedShaftDirection = AnchorRelativeDirectionUtil.RotateByAnchor(BlockDirection.East, anchorBlock.BlockPositionInfo.BlockDirection);
+    p.Assert(expectedShaftOrigin == shaftOrigin, $"アンカー換算のセルが手計算と一致する（実際 {expectedShaftOrigin} / 期待 {shaftOrigin}）");
+
+    var expectedGhostPosition = Client.Game.InGame.BlockSystem.SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(expectedShaftOrigin, expectedShaftDirection, shaftBlockId);
     p.Assert(Vector3.Distance(ghost.transform.position, expectedGhostPosition) < 0.01f,
-        $"ゴーストがアンカー原点+offset({shaftOrigin})に立った（実際 {ghost.transform.position} / 期待 {expectedGhostPosition}）");
+        $"ゴーストがアンカー原点+offset({expectedShaftOrigin})に立った（実際 {ghost.transform.position} / 期待 {expectedGhostPosition}）");
     await p.Screenshot("02-relative-ghost");
 
     // 4. 歯車接続の常設表示
@@ -127,8 +143,10 @@ return PlaytestRunner.Run("placement-guided-tutorials", options, async p =>
     await p.ClickPlace();
     await p.Until(() => p.GetBlock(shaftOrigin) != null, 30f, "シャフトの設置反映");
     await p.WaitBlockGameObject(shaftOrigin);
-    await p.Until(() => !relativeManager.IsApplied, 15f, "相対座標チュートリアルの完了");
-    p.Assert(!relativeManager.IsApplied, "ゴースト座標への設置でチュートリアルが完了した");
+    // 完了はエントリ解除でゴーストが破棄されることで観測する（IsAppliedは複数エントリ化で廃止済み）
+    // Completion is observed as the ghost being torn down when the entry is released (IsApplied went away with multi-entry support)
+    await p.Until(() => ghostOwner.GetComponentInChildren<PreviewGhostObject>(false) == null, 15f, "相対座標チュートリアルの完了");
+    p.Assert(ghostOwner.GetComponentInChildren<PreviewGhostObject>(false) == null, "ゴースト座標への設置でチュートリアルが完了した");
     await p.Hotbar.ExitBuildMode(0);
 
     // 6. 風車→シャフト→粉砕機が1つの歯車ネットワークになることを確認する

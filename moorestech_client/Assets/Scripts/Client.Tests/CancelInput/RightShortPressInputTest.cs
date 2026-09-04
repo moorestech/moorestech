@@ -17,9 +17,9 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(true, new Vector2(2f, 1f), false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(true, true, new Vector2(2f, 1f), false);
+            input.ManualUpdate(false, true, NoMove, false);
 
             Assert.IsTrue(input.TryConsumeShortPress());
             Assert.IsFalse(input.TryConsumeShortPress(), "短押しは1度だけ消費される");
@@ -30,12 +30,12 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(true, new Vector2(9f, 0f), false);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(true, true, new Vector2(9f, 0f), false);
             // 逆向きに戻しても一度ドラッグになった押下は短押しに復帰しない
             // Once a press became a drag it never turns back into a short press, even when the pointer moves back
-            input.ManualUpdate(true, new Vector2(-9f, 0f), false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, new Vector2(-9f, 0f), false);
+            input.ManualUpdate(false, true, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress());
         }
@@ -45,11 +45,11 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(true, new Vector2(3f, 0f), false);
-            input.ManualUpdate(true, new Vector2(3f, 0f), false);
-            input.ManualUpdate(true, new Vector2(3f, 0f), false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(true, true, new Vector2(3f, 0f), false);
+            input.ManualUpdate(true, true, new Vector2(3f, 0f), false);
+            input.ManualUpdate(true, true, new Vector2(3f, 0f), false);
+            input.ManualUpdate(false, true, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress(), "3pxを3回で累積9pxとなりドラッグ扱い");
         }
@@ -59,9 +59,9 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, true);
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, true);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(false, true, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress());
         }
@@ -71,14 +71,14 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
             input.Reset(true);
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(false, true, NoMove, false);
             Assert.IsFalse(input.TryConsumeShortPress(), "Reset前からの押下は捨てる");
 
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(false, true, NoMove, false);
             Assert.IsTrue(input.TryConsumeShortPress(), "離してからの新しい押下は成立する");
         }
 
@@ -87,8 +87,8 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(false, true, NoMove, false);
             input.Reset(false);
 
             Assert.IsFalse(input.TryConsumeShortPress());
@@ -99,11 +99,11 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
             input.Reset(true);
             input.Reset(true);
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(false, true, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress());
         }
@@ -113,9 +113,9 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(true, new Vector2(8f, 0f), false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(true, true, new Vector2(8f, 0f), false);
+            input.ManualUpdate(false, true, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress(), "ちょうど閾値でドラッグになるため短押しは不成立");
         }
@@ -125,10 +125,10 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
             // 移動の大半が解放フレームに乗る高速フリックを再現
             // Reproduce a fast flick whose movement lands mostly on the release frame
-            input.ManualUpdate(false, new Vector2(9f, 0f), false);
+            input.ManualUpdate(false, true, new Vector2(9f, 0f), false);
 
             Assert.IsFalse(input.TryConsumeShortPress(), "解放フレームのdeltaも累積判定に含めるため成立しない");
         }
@@ -140,8 +140,8 @@ namespace Client.Tests.CancelInput
 
             // 移動の大半が押下フレームに乗る高速フリックを再現
             // Reproduce a fast flick whose movement lands mostly on the press frame
-            input.ManualUpdate(true, new Vector2(9f, 0f), false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, new Vector2(9f, 0f), false);
+            input.ManualUpdate(false, true, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress(), "押下フレームのdeltaも解放フレームと対称に累積するため成立しない");
         }
@@ -151,12 +151,12 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, new Vector2(5f, 0f), false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, new Vector2(5f, 0f), false);
+            input.ManualUpdate(false, true, NoMove, false);
             Assert.IsTrue(input.TryConsumeShortPress());
 
-            input.ManualUpdate(true, new Vector2(5f, 0f), false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, new Vector2(5f, 0f), false);
+            input.ManualUpdate(false, true, NoMove, false);
             Assert.IsTrue(input.TryConsumeShortPress(), "累積は押下ごとに押下フレームのdeltaから始まる");
         }
 
@@ -165,8 +165,8 @@ namespace Client.Tests.CancelInput
         {
             var input = new RightShortPressInput();
 
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(false, NoMove, true);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(false, true, NoMove, true);
 
             Assert.IsFalse(input.TryConsumeShortPress(), "解放時点がパネル上ならUI操作として扱う");
         }
@@ -179,8 +179,8 @@ namespace Client.Tests.CancelInput
             // 他UIState滞在中に押し始めた押下を再現する（ManualUpdateを一度も通していない）
             // Reproduce a press started while another UIState was active, so ManualUpdate never observed it
             input.Reset(true);
-            input.ManualUpdate(true, NoMove, false);
-            input.ManualUpdate(false, NoMove, false);
+            input.ManualUpdate(true, true, NoMove, false);
+            input.ManualUpdate(false, true, NoMove, false);
 
             Assert.IsFalse(input.TryConsumeShortPress(), "Resetに渡した物理押下も死んだ押下として扱う");
         }
