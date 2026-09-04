@@ -6,6 +6,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Client.Starter.Initialization.Progress;
 using UnityEngine;
 using Mooresmaster.Localization.Generated;
 
