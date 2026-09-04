@@ -26,12 +26,12 @@ namespace Client.Tests.Interact
             PlayerObject.transform.position = target.transform.position;
 
             var selector = new InteractTargetSelector();
-            Assert.AreSame(target, selector.Select());
+            Assert.AreSame(target, selector.Scan().Primary);
 
             // 2mを超えると照準ヒットでも候補にならず、近傍にも無いのでnull
             // Beyond 2m the aim hit is discarded and nothing is nearby, so null
             PlayerObject.transform.position = target.transform.position + new Vector3(0f, 0f, InteractTargetSelector.InteractDistance + 0.5f);
-            Assert.IsNull(selector.Select());
+            Assert.IsNull(selector.Scan().Primary);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace Client.Tests.Interact
             PlayerObject.transform.position = target.transform.position;
             Physics.SyncTransforms();
 
-            Assert.AreSame(target, new InteractTargetSelector().Select());
+            Assert.AreSame(target, new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -70,7 +70,7 @@ namespace Client.Tests.Interact
             var ahead = CreateMapObjectTarget(new Vector3(0f, 0f, 1.5f));
             CreateMapObjectTarget(new Vector3(1.0f, 0f, 0f));
 
-            Assert.AreSame(ahead, new InteractTargetSelector().Select());
+            Assert.AreSame(ahead, new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -83,7 +83,7 @@ namespace Client.Tests.Interact
             // マスタ未解決なら対象にならない
             // Selection passes through IsInteractAvailable, so a master-less object under the aim is no target
             TestReflection.SetField(target, "<MapObjectMasterElement>k__BackingField", null);
-            Assert.IsNull(new InteractTargetSelector().Select());
+            Assert.IsNull(new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -94,7 +94,7 @@ namespace Client.Tests.Interact
             PlayerObject.transform.position = interactable.transform.position;
             Physics.SyncTransforms();
 
-            Assert.AreSame(interactable, new InteractTargetSelector().Select());
+            Assert.AreSame(interactable, new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -110,19 +110,7 @@ namespace Client.Tests.Interact
             CreateMapObjectTarget(AimRay().GetPoint(5f));
             var nearby = CreateMapObjectTarget(new Vector3(1f, 0f, 0f));
 
-            Assert.AreSame(nearby, new InteractTargetSelector().Select());
-        }
-
-        [Test]
-        public void Select前の問い合わせは走査結果が無いので空で返る()
-        {
-            var selector = new InteractTargetSelector();
-            var keys = new List<InputKey> { InputManager.Playable.Interact };
-
-            selector.CollectCandidateKeys(keys);
-
-            Assert.IsEmpty(keys);
-            Assert.IsNull(selector.SelectRespondingTo(InputManager.Playable.Ride));
+            Assert.AreSame(nearby, new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -138,13 +126,13 @@ namespace Client.Tests.Interact
             var block = CreateOpenableBlockTarget(new Vector3(0f, 0f, 1.5f));
             var trainCar = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
 
-            var selector = new InteractTargetSelector();
-            Assert.AreSame(block, selector.Select());
+            var selection = new InteractTargetSelector().Scan();
+            Assert.AreSame(block, selection.Primary);
 
             var keys = new List<InputKey>();
-            selector.CollectCandidateKeys(keys);
+            selection.CollectCandidateKeys(keys);
             CollectionAssert.AreEquivalent(new[] { InputManager.Playable.Interact, InputManager.Playable.Ride }, keys);
-            Assert.AreSame(trainCar, selector.SelectRespondingTo(InputManager.Playable.Ride));
+            Assert.AreSame(trainCar, selection.SelectRespondingTo(InputManager.Playable.Ride));
         }
 
         [Test]
@@ -155,7 +143,7 @@ namespace Client.Tests.Interact
             PlayerObject.transform.position = interactable.transform.position;
             Physics.SyncTransforms();
 
-            Assert.AreSame(interactable, new InteractTargetSelector().Select());
+            Assert.AreSame(interactable, new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -178,7 +166,7 @@ namespace Client.Tests.Interact
             PlayerObject.transform.position = blockObject.transform.position;
             Physics.SyncTransforms();
 
-            Assert.IsNull(new InteractTargetSelector().Select());
+            Assert.IsNull(new InteractTargetSelector().Scan().Primary);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Client.Game.InGame.Interact.Tap
         // The target the lines were built for
         private ITapInteractable _shownTarget;
 
-        public InteractExecuteResult Step(ITapInteractable target, IInteractTargetSelector selector)
+        public InteractExecuteResult Step(ITapInteractable target, IInteractSelection selection)
         {
             // 主対象の押下は主対象が引き受ける
             // A press the primary target offers is answered by the primary target
@@ -58,13 +58,13 @@ namespace Client.Game.InGame.Interact.Tap
             {
                 result = InteractExecuteResult.NotHandled;
 
-                selector.CollectCandidateKeys(_candidateKeys);
+                selection.CollectCandidateKeys(_candidateKeys);
                 foreach (var key in _candidateKeys)
                 {
                     if (!key.GetKeyDown) continue;
                     if (Offers(key)) continue;
 
-                    if (selector.SelectRespondingTo(key) is not ITapInteractable responder) continue;
+                    if (selection.SelectRespondingTo(key) is not ITapInteractable responder) continue;
                     if (!TryExecuteKey(responder, key, out result)) continue;
 
                     return true;

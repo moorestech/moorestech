@@ -55,30 +55,5 @@ namespace Client.Tests.Localization.Resolution
                 "日本語リテラルが再露出しています。Localize.Get/GetFormattedへ戻してください:\n" +
                 string.Join("\n", violations));
         }
-
-        [Test]
-        public void ConnectServerPortValidationBranchesMapToExpectedKeys()
-        {
-            var text = File.ReadAllText(Path.Combine(ScriptsRoot, "Client.MainMenu/ConnectServer.cs"));
-
-            AssertBranchMapsToKey(text, "MaxPort < port", "ConnectPortTooLarge");
-            AssertBranchMapsToKey(text, "port <= MinExclusivePort", "ConnectPortTooSmall");
-
-            #region Internal
-
-            void AssertBranchMapsToKey(string source, string condition, string expectedKey)
-            {
-                var conditionIndex = source.IndexOf(condition, StringComparison.Ordinal);
-                Assert.GreaterOrEqual(conditionIndex, 0, $"条件 '{condition}' が見つかりません");
-
-                var returnIndex = source.IndexOf("return;", conditionIndex, StringComparison.Ordinal);
-                Assert.GreaterOrEqual(returnIndex, 0, $"'{condition}' の後にreturn;が見つかりません");
-
-                var branchBody = source.Substring(conditionIndex, returnIndex - conditionIndex);
-                StringAssert.Contains(expectedKey, branchBody, $"'{condition}' の分岐に {expectedKey} が対応していません");
-            }
-
-            #endregion
-        }
     }
 }

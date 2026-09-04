@@ -69,7 +69,7 @@ namespace Client.Tests.Interact
             selector.SetNext(target);
             InputSystem.Update();
 
-            Assert.IsFalse(driver.Step(target, selector).IsHandled);
+            Assert.IsFalse(driver.Step(target, selector.Scan()).IsHandled);
             var lines = MouseCursorTooltip.Instance.GetPresentation().Lines;
             Assert.AreEqual(2, lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory.Key, lines[0].Key.Key);
@@ -78,7 +78,7 @@ namespace Client.Tests.Interact
             // 押下キーのみ実行しヒントは畳む
             // Only the pressed key's action runs and the hints fold away
             InputManager.Playable.Ride.SetKeyDownForTest(true);
-            var result = driver.Step(target, selector);
+            var result = driver.Step(target, selector.Scan());
             InputManager.Playable.Ride.SetKeyDownForTest(false);
             Assert.IsTrue(result.IsHandled);
             Assert.AreEqual(UIStateEnum.TrainHUDScreen, result.TransitContext.NextStateEnum);
@@ -97,7 +97,7 @@ namespace Client.Tests.Interact
             selector.SetNext(target);
             InputSystem.Update();
 
-            Assert.IsFalse(driver.Step(target, selector).IsHandled);
+            Assert.IsFalse(driver.Step(target, selector.Scan()).IsHandled);
             Assert.IsTrue(MouseCursorTooltip.Instance.GetPresentation().Visible);
 
             // 対象から離れたらヒントも消える
@@ -120,7 +120,7 @@ namespace Client.Tests.Interact
             InputSystem.Update();
 
             InputManager.Playable.Ride.SetKeyDownForTest(true);
-            var result = driver.Step(target, selector);
+            var result = driver.Step(target, selector.Scan());
             InputManager.Playable.Ride.SetKeyDownForTest(false);
 
             Assert.AreEqual(UIStateEnum.TrainHUDScreen, result.TransitContext.NextStateEnum);
@@ -142,7 +142,7 @@ namespace Client.Tests.Interact
             InputSystem.Update();
 
             InputManager.Playable.Interact.SetKeyDownForTest(true);
-            var result = driver.Step(target, selector);
+            var result = driver.Step(target, selector.Scan());
             InputManager.Playable.Interact.SetKeyDownForTest(false);
 
             Assert.AreEqual(UIStateEnum.SubInventory, result.TransitContext.NextStateEnum);
