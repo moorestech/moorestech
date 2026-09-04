@@ -29,6 +29,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             if (common != null && machineState != null && param is IMachineParam machineParam)
             {
                 var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse(machineState.MachineRecipeGuid));
+
+                // 束縛は選択レシピが決めるため、加工中レシピではなく選択レシピから引く
+                // The binding follows the selected recipe, so it resolves from the selection rather than the running job
+                var selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse(machineState.SelectedRecipeGuid));
                 dto.Progress = machineState.ProcessingRate;
                 dto.Machine = new MachineDetailDto
                 {
@@ -40,7 +44,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                     CurrentState = ToCamelCase(common.CurrentStateType),
                     CurrentPower = common.CurrentPower,
                     RequestPower = common.RequestPower,
-                    SlotLayout = new SlotLayoutDto { Input = machineParam.InputSlotCount, Output = machineParam.OutputSlotCount, Module = machineParam.ModuleSlotCount },
+                    SlotLayout = new SlotLayoutDto { Input = machineParam.InputSlotCount, Output = machineParam.OutputSlotCount, Module = machineParam.ModuleSlotCount, InputTank = machineParam.InputTankCount },
+                    SlotBindings = MachineSlotBindingDtoBuilder.BuildSlotBindings(selectedRecipe, machineParam),
+                    TankBindings = MachineSlotBindingDtoBuilder.BuildTankBindings(selectedRecipe, machineParam),
                 };
             }
 

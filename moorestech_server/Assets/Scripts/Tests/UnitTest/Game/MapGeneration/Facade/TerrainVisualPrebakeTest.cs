@@ -12,24 +12,34 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
     // ProvisionGeneratedWorld呼び出しだけで検証対象が走る
     // Verifies the shared-cache prebake (TerrainVisualPrebake) that runs right after world generation
     // Calling ProvisionGeneratedWorld alone already exercises the target
+    // 全タイル走査だけ低解像度2x2で検証
+    // Keep ordinary generation at 1x1; only the all-tiles traversal switches to the low-resolution 2x2 master
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap2")]
     public class TerrainVisualPrebakeTest
     {
         [Test]
         public void 生成ワールドの先焼きで共有キャッシュへ全タイルの見た目ファイルが書き出される()
         {
+            const int expectedTileCount =
+                TerrainTransferTestScope.LowResolutionMultiTileGridSide * TerrainTransferTestScope.LowResolutionMultiTileGridSide;
             var scope = new TerrainTransferTestScope(nameof(生成ワールドの先焼きで共有キャッシュへ全タイルの見た目ファイルが書き出される));
-            var worldDirectory = scope.ProvisionGeneratedWorld(777);
-            var meta = TerrainTransferMetaReader.Read(worldDirectory);
-            var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
             try
             {
+                var worldDirectory = scope.ProvisionLowResolutionMultiTileGeneratedWorld(777);
+                var meta = TerrainTransferMetaReader.Read(worldDirectory);
+                var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
+
+                Assert.AreEqual(expectedTileCount, meta.TerrainTileCount);
                 foreach (var (tileX, tileZ) in TerrainTransferMeta.EnumerateTileCoordinates(meta.TerrainTileCount))
                     Assert.IsTrue(File.Exists(shared.TerrainVisualCacheFilePath(tileX, tileZ)),
                         $"tile ({tileX},{tileZ}) should have been prebaked into the shared cache");
             }
             finally
             {
-                Directory.Delete(shared.Root, true);
+                // 共有キャッシュもワールドもEndが唯一の削除主体
+                // End alone owns deleting both the shared cache and the world, even when provisioning fails partway through
                 scope.End();
             }
         }
@@ -53,7 +63,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
 
                 // Openの高さ源は共有キャッシュなので、転送後と同じ状態を作る: world dir の terrain/ を共有キャッシュへ複製
                 // Open reads heights from the shared cache, so replicate the post-transfer state: copy the world dir's terrain/ into the shared cache
-                CopyDirectory(worldDirectory.TerrainDirectory, shared.TerrainDirectory);
+                TerrainTransferTestScope.CopyDirectory(worldDirectory.TerrainDirectory, shared.TerrainDirectory);
 
                 var session = (TiledTerrainSession)WorldTerrainSession.Open(meta, TestModDirectory.ForUnitTestModDirectory);
                 session.BakeTile(0, 0);
@@ -64,20 +74,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             }
             finally
             {
-                Directory.Delete(shared.Root, true);
                 scope.End();
             }
-        }
-
-        // テストが払い出した実ディレクトリ間だけを想定した単純な再帰コピー。シンボリックリンクは扱わない
-        // A simple recursive copy meant only for real directories this test hands out; symlinks are not handled
-        private static void CopyDirectory(string sourceDirectory, string destinationDirectory)
-        {
-            Directory.CreateDirectory(destinationDirectory);
-            foreach (var filePath in Directory.GetFiles(sourceDirectory))
-                File.Copy(filePath, Path.Combine(destinationDirectory, Path.GetFileName(filePath)), true);
-            foreach (var subDirectory in Directory.GetDirectories(sourceDirectory))
-                CopyDirectory(subDirectory, Path.Combine(destinationDirectory, Path.GetFileName(subDirectory)));
         }
     }
 }

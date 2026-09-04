@@ -24,6 +24,9 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
     /// This test runs in EditMode but switches to PlayMode during execution.
     /// Verifies the rotation and scale written in map.json reach the real instance.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay1")]
     public class MapObjectRotationTest
     {
         // 向きが一致しているとみなす許容角。float往復のぶんだけ緩めてある

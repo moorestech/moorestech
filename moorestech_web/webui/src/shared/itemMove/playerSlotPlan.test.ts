@@ -15,6 +15,7 @@ const ctx = (grabCount: number, blockItemSlots: { itemId: number; count: number 
   inventory: inv(grabCount),
   maxStack: 100,
   blockItemSlots,
+  blockSlotRestriction: { kind: "unrestricted" },
 });
 
 describe("planPlayerLeftClick", () => {

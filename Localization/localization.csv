@@ -23,8 +23,6 @@ ui.blockInventory.trainInventory,Train Inventory,Train Inventory,列車インベ
 ui.blockInventory.gearTorqueSummary,Torque {current} / {required},Torque {current} / {required},トルク {current} / {required},Drehmoment {current} / {required}
 ui.blockInventory.gearRpmSummary,RPM {current} / {required},RPM {current} / {required},RPM {current} / {required},U/min {current} / {required}
 ui.blockInventory.generatorOperatingRate,Operating rate {rate}%,Operating rate {rate}%,稼働率 {rate}%,Auslastung {rate} %
-ui.blockInventory.inventoryTab,Inventory,Inventory,インベントリ,Inventar
-ui.blockInventory.recipeSelectionTab,Select Recipe,Select Recipe,レシピ選択,Rezept wählen
 ui.blockInventory.itemsPerMinute,{itemsPerMinute}/min,{itemsPerMinute}/min,{itemsPerMinute}/分,{itemsPerMinute}/min
 ui.blockInventory.noDemand,No demand,No demand,需要なし,Kein Bedarf
 ui.blockInventory.electricNetworkSummary,"{generated} / demand {required} (consuming {count}, supply rate {rate}%)","{generated} / demand {required} (consuming {count}, supply rate {rate}%)","発電 {generated} / 需要 {required}（消費 {count}件, 供給率 {rate}%）","{generated} / Bedarf {required} (Verbraucher {count}, Deckung {rate} %)"
@@ -41,7 +39,8 @@ ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity
 ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze
 ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute
 ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden
-ui.blockInventory.recipeSelectionHint,Hover for details and click to select a recipe,Hover for details and click to select a recipe,レシピをホバーで詳細、クリックで選択,"Bewegen Sie den Mauszeiger darüber, um Details anzuzeigen, und klicken Sie, um ein Rezept auszuwählen"
+ui.blockInventory.recipeNameWithOthers,{name} and {count} more,{name} and {count} more,{name} 他{count}件,{name} und {count} weitere
+ui.blockInventory.changeRecipe,Change recipe,Change recipe,レシピを変更,Rezept ändern
 ui.blockInventory.electricToGearFulfillment,Fulfillment,Fulfillment,充足率,Deckung
 ui.blockInventory.electricToGearConsumedPower,Power consumption: {power} W,Power consumption: {power} W,消費電力: {power} W,Energieverbrauch: {power} W
 ui.blockInventory.electricToGearOutputMode,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} U/min / {torque} Nm / {power} W

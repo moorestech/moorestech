@@ -136,11 +136,6 @@ namespace Client.Skit.UI
             }
         }
         
-        private void Update()
-        {
-            _skitUITools.ManualUpdate();
-        }
-        
         private T GetElement<T>(string elementName) where T : VisualElement
         {
             return skitUiDocument.rootVisualElement.Q<T>(elementName);

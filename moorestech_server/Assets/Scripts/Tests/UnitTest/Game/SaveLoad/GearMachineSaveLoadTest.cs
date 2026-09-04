@@ -52,8 +52,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             //Start processing: gear values are derived-only, so feed the machine's power path directly to begin crafting
             gearMachineBlock.GetComponent<VanillaMachineProcessorComponent>().SupplyExternalPower(1_000_000f);
             GameUpdater.UpdateOneTick();
-            //別のアイテムを追加
-            machineInventory.InsertItem(itemStackFactory.Create(new ItemId(5), 6));
+            // 束縛スロットへ次周回分の素材を追加（レシピ外のIDはスロットに束縛されないため受け付けない）
+            // Add materials for the next run into the bound slots (an off-recipe id is not bound to any slot and is refused)
+            machineInventory.InsertItem(itemStackFactory.Create(new ItemId(1), 6));
             machineInventory.InsertItem(itemStackFactory.Create(new ItemId(2), 4));
             
             // Utilで機械の加工状態を設定
@@ -109,7 +110,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var inputInventoryField = (VanillaMachineInputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineInputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(loadMachineInventory);
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(5), 6), inputInventoryField.InputSlot[0]);
+            Assert.AreEqual(itemStackFactory.Create(new ItemId(1), 6), inputInventoryField.InputSlot[0]);
             Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 4), inputInventoryField.InputSlot[1]);
             
             //アウトプットスロットのチェック

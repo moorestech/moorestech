@@ -111,6 +111,26 @@ namespace Client.Tests.WebUi
             Assert.IsTrue(target.Executed);
         }
 
+        // ポーズ中は許可intentを空へ畳み、Web由来の操作を既存の可否判定だけで止める
+        // While paused the allowed intents collapse to empty, so the existing check alone stops web-side operations
+        [Test]
+        public void SuspendedInputRejectsEveryIntentAndRestoresThemOnResume()
+        {
+            _store.PresentBlockingText("Moore", "Hello");
+
+            _store.SetInputSuspended(true);
+            var suspended = _store.GetCurrent();
+            var whileSuspended = _store.TryAdvance(suspended.SessionId, suspended.SceneRevision);
+
+            _store.SetInputSuspended(false);
+            var resumed = _store.GetCurrent();
+
+            Assert.IsEmpty(suspended.AllowedIntents);
+            Assert.AreEqual("intent_not_allowed", whileSuspended.Error);
+            CollectionAssert.AreEqual(new[] { "advance", "set-auto", "skip", "set-ui-hidden" }, resumed.AllowedIntents);
+            Assert.IsTrue(_store.TryAdvance(resumed.SessionId, resumed.SceneRevision).Ok);
+        }
+
         private class StubSkitActionController : ISkitActionController
         {
             private readonly Subject<Unit> _onSkip = new();
