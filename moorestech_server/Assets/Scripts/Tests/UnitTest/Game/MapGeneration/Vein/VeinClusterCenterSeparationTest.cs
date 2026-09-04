@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Core.Master;
+using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators;
@@ -153,7 +154,7 @@ namespace Tests.UnitTest.Game.MapGeneration
                 (int)(worldOffsetX / TileSize), 0, 2, 1);
             var placement = OrePlacementGenerator.GenerateForWorld(
                 entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),
-                null, null, halo.ItemVeinMembers, halo.ItemVeinCenters, halo.Radius);
+                null, null, halo.ItemVeinMembers, halo.ItemVeinCenters, halo.Radius, new List<PlacedVein>());
             var result = placement.Clusters.SelectMany(cluster => cluster.Members).ToList();
             foreach (var cluster in placement.Clusters)
                 halo.ItemVeinCenters.Get(cluster.VeinGuid).Add(cluster.WorldCenter.x, cluster.WorldCenter.y);

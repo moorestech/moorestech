@@ -1,4 +1,4 @@
-using Game.MapGeneration.Pipeline.Stages;
+using Game.MapGeneration.Pipeline.Generators;
 using NUnit.Framework;
 using UnityEngine;
 

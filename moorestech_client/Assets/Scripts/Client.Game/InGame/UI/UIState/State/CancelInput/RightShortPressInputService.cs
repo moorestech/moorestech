@@ -1,5 +1,6 @@
 using Client.Game.InGame.Control;
 using Client.Input;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.UIState.State.CancelInput
 {
@@ -14,6 +15,10 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
         public RightShortPressInputService(RightShortPressInput rightShortPressInput)
         {
             _rightShortPressInput = rightShortPressInput;
+
+            // フォーカス喪失でInputSystemがマウスを離し扱いに戻すため、押したままのAlt+Tabが短押しに化ける前にここで押下を捨てる
+            // Focus loss makes the InputSystem report the mouse as released, so a held press is discarded here before Alt+Tab turns it into a short press
+            Application.focusChanged += OnApplicationFocusChanged;
         }
 
         // 毎フレーム呼ぶ。右短押しが成立したフレームだけtrue
@@ -29,6 +34,15 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
         public void ResetPressState()
         {
             _rightShortPressInput.Reset(HybridInput.GetMouseButton(1));
+        }
+
+        private void OnApplicationFocusChanged(bool hasFocus)
+        {
+            if (hasFocus) return;
+
+            // 喪失時点の物理押下はデバイスリセット後で読めないため、押下中とみなして死に押下にする
+            // The physical state is unreadable after the device reset, so treat the press as held and mark it dead
+            _rightShortPressInput.Reset(true);
         }
     }
 }

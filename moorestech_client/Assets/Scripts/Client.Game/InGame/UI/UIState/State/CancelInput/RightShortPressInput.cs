@@ -65,8 +65,13 @@ namespace Client.Game.InGame.UI.UIState.State.CancelInput
                 }
 
                 _isHeld = nextHeld;
-                if (nextHeld) _movedDistance = 0f;
                 _isArmed = nextHeld && !isPointerOverUi;
+
+                // 押下フレームの移動も離しフレームと対称に数える。押しながら振った高速フリックを短押しにしない
+                // The press frame's movement counts too, symmetric with release, so a fast flick started mid-motion is not a short press
+                if (!nextHeld) return;
+                _movedDistance = pointerDelta.magnitude;
+                if (MoveThresholdPixels <= _movedDistance) _isArmed = false;
             }
 
             // 累積移動が閾値に達したらドラッグとみなし、この押下では二度と成立させない
