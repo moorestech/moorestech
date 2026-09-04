@@ -46,6 +46,13 @@ namespace Game.Block.Blocks.Machine.Inventory
             _itemDataStoreService.SetItem(slot, itemStack);
         }
 
+        // モジュールの適合判定は装備プロトコル側が持つため、ここでは束縛しない
+        // The module fit check lives in the equipment protocol, so no binding here
+        public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
+        {
+            return true;
+        }
+
         public void SetItemWithoutEvent(int slot, IItemStack itemStack)
         {
             _itemDataStoreService.SetItemWithoutEvent(slot, itemStack);

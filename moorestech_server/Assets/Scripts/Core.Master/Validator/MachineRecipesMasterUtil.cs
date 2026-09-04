@@ -1,3 +1,4 @@
+using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
 
 namespace Core.Master.Validator
@@ -8,6 +9,7 @@ namespace Core.Master.Validator
         {
             errorLogs = "";
             errorLogs += RecipeValidation();
+            errorLogs += SlotCapacityValidation();
             return string.IsNullOrEmpty(errorLogs);
 
             #region Internal
@@ -90,6 +92,31 @@ namespace Core.Master.Validator
                     }
                 }
 
+                return logs;
+            }
+
+            // レシピ品目数がブロックの物理スロット数を超えないこと。超えると束縛先が無く機械が恒久停止する
+            // Recipe item counts must not exceed the block's physical slots; an overflow leaves no binding target and stalls the machine forever
+            string SlotCapacityValidation()
+            {
+                var logs = "";
+                foreach (var recipe in machineRecipes.Data)
+                {
+                    var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(recipe.BlockGuid);
+                    if (blockId == null) continue;
+                    if (MasterHolder.BlockMaster.GetBlockMaster(recipe.BlockGuid).BlockParam is not IMachineParam machineParam) continue;
+
+                    logs += CheckCapacity("inputItems", recipe.InputItems.Length, machineParam.InputSlotCount);
+                    logs += CheckCapacity("outputItems", recipe.OutputItems.Length, machineParam.OutputSlotCount);
+                    logs += CheckCapacity("inputFluids", recipe.InputFluids.Length, machineParam.InputTankCount);
+                    logs += CheckCapacity("outputFluids", recipe.OutputFluids.Length, machineParam.OutputTankCount);
+
+                    string CheckCapacity(string fieldName, int count, int slotCount)
+                    {
+                        if (count <= slotCount) return "";
+                        return $"[MachineRecipesMaster] Recipe GUID:{recipe.MachineRecipeGuid} has {count} {fieldName} but the block only has {slotCount} slots\n";
+                    }
+                }
                 return logs;
             }
 

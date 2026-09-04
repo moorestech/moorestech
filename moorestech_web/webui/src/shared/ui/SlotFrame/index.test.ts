@@ -9,6 +9,7 @@ describe("SlotFrame", () => {
       selected: true,
       filled: true,
       catalog: true,
+      ghost: true,
       testId: "slot-frame",
       children: createElement("span", null, "icon"),
     }));
@@ -17,6 +18,7 @@ describe("SlotFrame", () => {
     expect(markup).toContain('data-selected="true"');
     expect(markup).toContain('data-filled="true"');
     expect(markup).toContain('data-catalog="true"');
+    expect(markup).toContain('data-ghost="true"');
     expect(markup).toContain("<span>icon</span>");
   });
 

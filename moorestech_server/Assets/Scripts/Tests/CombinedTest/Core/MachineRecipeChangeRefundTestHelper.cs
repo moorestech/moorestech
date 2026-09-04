@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Core.Inventory;
+using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
 using Core.Update;
@@ -93,12 +94,15 @@ namespace Tests.CombinedTest.Core
             return total;
         }
 
-        public static void FillInputSlotsWithFiller(VanillaMachineBlockInventoryComponent inventory, Guid fillerItemGuid)
+        // 束縛済み入力スロットを、選択中レシピ自身の素材で満杯にする（返却が入力へ戻れない状況を作る）
+        // Fill each bound input slot to max stack with the currently selected recipe's own material (so a refund cannot re-enter the input)
+        public static void FillInputSlotsToCapacity(VanillaMachineBlockInventoryComponent inventory, MachineRecipeMasterElement recipe)
         {
-            var inputInv = GetInputInventory(inventory);
-            for (var i = 0; i < inputInv.InputSlot.Count; i++)
+            for (var i = 0; i < recipe.InputItems.Length; i++)
             {
-                inventory.SetItem(i, ServerContext.ItemStackFactory.Create(fillerItemGuid, 1));
+                var itemId = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[i].ItemGuid);
+                var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(itemId);
+                inventory.SetItem(i, ServerContext.ItemStackFactory.Create(itemId, maxStack));
             }
         }
 

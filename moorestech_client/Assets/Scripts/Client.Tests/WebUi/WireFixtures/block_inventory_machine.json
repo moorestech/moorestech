@@ -23,7 +23,9 @@
     "currentState": "processing",
     "currentPower": 80.0,
     "requestPower": 100.0,
-    "slotLayout": { "input": 2, "output": 1, "module": 1 }
+    "slotLayout": { "input": 2, "output": 1, "module": 1, "inputTank": 1 },
+    "slotBindings": [ { "slot": 0, "itemId": 3, "count": 2 }, { "slot": 2, "itemId": 7, "count": 3 } ],
+    "tankBindings": [ { "tank": 0, "fluidGuid": "cccccccc-dddd-4eee-8fff-aaaaaaaaaaaa", "amount": 25.5 } ]
   },
   "electricNetwork": {
     "totalGeneratePower": 500.0,

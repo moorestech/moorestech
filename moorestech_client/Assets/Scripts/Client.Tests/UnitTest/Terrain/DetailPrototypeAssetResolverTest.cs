@@ -15,6 +15,9 @@ namespace Client.Tests.UnitTest.Terrain
     ///     Verifies that an unresolved address throws (the success path needs a PersonalAssets-only asset that CI lacks and EditMode never finishes loading)
     ///     Verifying the side deciding order (DetailPrototypeRuntimeConfigCollector) is covered by the server-side test
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay3")]
     public class DetailPrototypeAssetResolverTest
     {
         [UnityTest]

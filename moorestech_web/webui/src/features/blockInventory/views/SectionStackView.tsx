@@ -53,7 +53,7 @@ export default function SectionStackView({ data }: { data: BlockInventoryOpen })
       <GearSection data={data} />
       <ElectricNetworkSection data={data} />
       <GearNetworkSection data={data} />
-      {config.fluidRowTestId && !data.machine ? <FluidSlotRow fluids={data.fluidSlots} progress={config.showFluidProgress ? data.progress : null} testId={config.fluidRowTestId} /> : null}
+      {config.fluidRowTestId && !data.machine ? <FluidSlotRow fluids={data.fluidSlots.map((fluid) => ({ fluid }))} progress={config.showFluidProgress ? data.progress : null} testId={config.fluidRowTestId} /> : null}
     </Stack>
   );
 }
