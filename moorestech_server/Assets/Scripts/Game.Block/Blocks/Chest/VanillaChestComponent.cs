@@ -86,6 +86,13 @@ namespace Game.Block.Blocks.Chest
             blockInventoryUpdate.OnInventoryUpdateInvoke(new BlockOpenableInventoryUpdateEventProperties(BlockInstanceId, slot, itemStack));
         }
         
+        // 配置制約を持たないインベントリはどのスロットも受け入れる
+        // An inventory without placement restrictions accepts every slot
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
+        {
+            return true;
+        }
+
         public void SetItem(int slot, IItemStack itemStack) { CheckDestroy(this); _itemDataStoreService.SetItem(slot, itemStack); }
         public IItemStack InsertItem(IItemStack itemStack) { CheckDestroy(this); return _itemDataStoreService.InsertItem(itemStack); }
         public IItemStack InsertItem(IItemStack itemStack, InsertItemContext context) { return InsertItem(itemStack); }

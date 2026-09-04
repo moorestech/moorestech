@@ -55,16 +55,17 @@ namespace Game.Block.Blocks.Machine
 
         private VanillaMachineProcessorComponent(VanillaMachineInputInventory input, VanillaMachineOutputInventory output, MachineModuleEffectComponent effect, float requestPower, float idlePowerRate, ProcessState currentState, uint remainingTicks, MachineRecipeMasterElement processingRecipe, List<IItemStack> pendingOutputs, MachineRecipeMasterElement selectedRecipe)
         {
-            _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate) { SelectedRecipe = selectedRecipe };
-
+            _context = new MachineProcessContext(input, output, effect, requestPower, idlePowerRate);
+            _context.BindSelectedRecipe(selectedRecipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(selectedRecipe));
             // 加工状態を復元
             // Restore processing state
             CurrentState = currentState;
             _processingState = new ProcessingMachineProcessState(_context, remainingTicks, processingRecipe, pendingOutputs);
 
-            // レシピを復元できないProcessingセーブは破損データのためIdleへ戻す
-            // A Processing save without a restorable recipe is corrupt, so fall back to Idle
-            if (CurrentState == ProcessState.Processing && processingRecipe == null)
+            // 加工中レシピか選択レシピのいずれかが欠けた加工中セーブ（出力詰まり含む）は破損データのためIdleへ戻す
+            // A mid-job save (output blockage included) missing either the processing or selected recipe is corrupt, so fall back to Idle
+            var isMidJob = CurrentState == ProcessState.Processing || CurrentState == ProcessState.OutputBlocked;
+            if (isMidJob && (processingRecipe == null || selectedRecipe == null))
             {
                 CurrentState = ProcessState.Idle;
             }
@@ -73,6 +74,7 @@ namespace Game.Block.Blocks.Machine
                 {
                     new IdleMachineProcessState(_context, _processingState),
                     _processingState,
+                    new OutputBlockedMachineProcessState(_processingState),
                 }.ToDictionary(handler => handler.State);
 
             // 初回GetBlockStateDetailsがUpdate前に呼ばれても妥当な値を返せるよう初期化する
@@ -111,15 +113,12 @@ namespace Game.Block.Blocks.Machine
 
         private MachineRecipeSelectionResult ChangeSelection(MachineRecipeMasterElement recipe, IOpenableInventory refundOverflowInventory)
         {
-            // 進行中ジョブは返却して中断する。返却しきれなければ変更自体を中止する
-            // Cancel the running job with refund; abort the whole change when the refund does not fit
-            if (!MachineRecipeSelectionUtil.TryCancelRunningJobWithRefund(_context.InputInventory, _processingState, refundOverflowInventory))
-            {
-                return MachineRecipeSelectionResult.RefundFailed;
-            }
+            // 共通フロー（ジョブ返却→束縛差し替え→非束縛スロット返却）はutilへ委譲する
+            // Delegate the shared flow (job refund, rebind, unbound-slot refund) to the util
+            var result = MachineRecipeSelectionUtil.ApplyRecipeChange(_context, _processingState, recipe, MachineRecipeSlotBindingUtil.BuildDefaultOutputBinding(recipe), refundOverflowInventory);
+            if (result != MachineRecipeSelectionResult.Success) return result;
 
-            if (CurrentState == ProcessState.Processing) CurrentState = ProcessState.Idle;
-            _context.SelectedRecipe = recipe;
+            if (CurrentState != ProcessState.Idle) CurrentState = ProcessState.Idle;
 
             // 状態を書き換えたので、公開中の分母を新状態基準へ取り直してから通知する
             // The state was rewritten, so re-derive the published denominator on the new state before notifying

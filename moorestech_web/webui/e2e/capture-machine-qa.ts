@@ -1,5 +1,5 @@
-// Task 7 目視QA: 機械UI改修（ADR 0010）の矢印グリフ・中心線・フッタ・タブ順を撮影して実測する
-// Task 7 visual QA: capture and measure the machine UI refresh (ADR 0010) arrow glyph, center line, footer, and tab order
+// 機械UI2モード分離（ADR 0042）の矢印グリフ・中心線・フッタ・ヘッダを撮影して実測する
+// Visual QA capturing and measuring the machine UI mode split (ADR 0042): arrow glyph, center line, footer, header
 
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
@@ -89,11 +89,10 @@ async function main() {
     await page.mouse.move(2, 2);
     await page.waitForTimeout(300);
 
-    // タブ順・初期タブの実測（レシピ選択が先頭・選択済みなのでインベントリが初期表示）
-    // Measure tab order and initial tab (recipes first; selected recipe defaults to the inventory tab)
-    const tabButtons = page.getByTestId("machine-tab-switch").locator("button");
-    manifest.machineTabOrder = await tabButtons.evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")));
-    manifest.machineInitialTabPressed = await page.getByTestId("machine-tab-inventory").getAttribute("aria-pressed");
+    // タブは廃止済み。選択済み機械は常にインベントリモードで開く（ADR 0042 R1）
+    // Tabs are gone; a machine with a selected recipe always opens directly into inventory mode (ADR 0042 R1)
+    manifest.machineSelectedRecipeHeaderVisible = await page.getByTestId("machine-selected-recipe").isVisible();
+    manifest.machineTabSwitchCount = await page.getByTestId("machine-tab-switch").count();
 
     const panel = page.getByTestId("block-inventory");
     const arrow = page.getByTestId("machine-progress-arrow");
@@ -143,10 +142,10 @@ async function main() {
     await page.mouse.move(2, 2);
     await page.waitForTimeout(300);
 
-    const tabButtons = page.getByTestId("machine-tab-switch").locator("button");
-    manifest.gearMachineTabOrder = await tabButtons.evaluateAll((els) => els.map((el) => el.getAttribute("data-testid")));
-    manifest.gearMachineInitialTabPressed = await page.getByTestId("machine-tab-recipes").getAttribute("aria-pressed");
+    // レシピ未選択の機械はレシピ選択モードで開く（ADR 0042 R1）
+    // A machine with no selected recipe opens directly into recipe-selection mode (ADR 0042 R1)
     manifest.gearMachineRecipeSelectionVisible = await page.getByTestId("machine-recipe-selection").isVisible();
+    manifest.gearMachineInventoryBodyCount = await page.getByTestId("machine-inventory-body").count();
 
     const stateLabel = page.getByTestId("machine-state-label");
     manifest.gearMachineStateLabelText = await stateLabel.textContent();
