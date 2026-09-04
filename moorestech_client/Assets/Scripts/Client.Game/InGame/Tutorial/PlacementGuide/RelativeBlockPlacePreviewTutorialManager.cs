@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative;
 using Client.Game.InGame.Player;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
@@ -39,7 +39,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
             var entry = new RelativeBlockPlacePreviewEntry(tutorial, this);
             _entries[entry.TutorialGuid] = entry;
             
-            // 目標セルへの対象ブロック設置で該当エントリだけを完了する（購読は全エントリで1本）
+            // 目標セルへの設置で該当分だけ完了する
             // One shared subscription completes only the entry whose target cell received its block
             // 目標セルはアンカー追従で毎フレーム動くため、購読時の値ではなく現在の entry.TargetCell と突き合わせる
             // Target cells move with anchor tracking every frame, so compare against the current entry.TargetCell, not a captured value
@@ -66,6 +66,10 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
             {
                 if (block.BlockId != entry.TargetBlockId) continue;
                 if (entry.TargetCell == null || block.BlockPosInfo.OriginalPos != entry.TargetCell.Value) continue;
+
+                // 向き違いでは繋がらないため残す
+                // A mismatched direction never connects the gears, so the guide stays up
+                if (block.BlockPosInfo.BlockDirection != entry.TargetDirection.Value) continue;
                 _completedBuffer.Add(entry.TutorialGuid);
             }
             
@@ -85,25 +89,25 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
                 var anchor = _blockGameObjectDataStore.SearchNearestBlock(entry.AnchorBlockGuid, playerPosition);
                 if (anchor == null)
                 {
-                    entry.SetTargetCell(null);
+                    entry.SetTarget(null, null);
                     _blockPlacePreviewTutorialManager.ClearTarget(entry.TutorialGuidString);
                     continue;
                 }
-                
+
                 // アンカー向きで回したローカル値を使う
                 // Use the anchor-rotated local cell and direction (same conversion as gearConnects)
                 var targetCell = AnchorRelativeOriginUtil.ResolveWorldOrigin(anchor.BlockPosInfo, entry.Offset, entry.LocalDirection, entry.TargetBlockSize);
-                entry.SetTargetCell(targetCell);
-                
-                // アンカーが動いた先に既に対象ブロックがあれば、設置イベントは二度と来ないのでここで完了させる
-                // When the target block already sits where the anchor moved to, no placement event will ever come, so complete here
-                if (_blockGameObjectDataStore.TryGetBlockGameObject(targetCell, out var existing) && existing.BlockId == entry.TargetBlockId)
+                var worldDirection = AnchorRelativeDirectionUtil.RotateByAnchor(entry.LocalDirection, anchor.BlockPosInfo.BlockDirection);
+                entry.SetTarget(targetCell, worldDirection);
+
+                // アンカーが動いた先に既に同じ向きで対象ブロックがあれば、設置イベントは来ないのでここで完了させる
+                // When the target block already sits with the same direction where the anchor moved to, no placement event will come, so complete here
+                if (_blockGameObjectDataStore.TryGetBlockGameObject(targetCell, out var existing) && existing.BlockId == entry.TargetBlockId && existing.BlockPosInfo.BlockDirection == worldDirection)
                 {
                     _completedBuffer.Add(entry.TutorialGuid);
                     continue;
                 }
-                
-                var worldDirection = AnchorRelativeDirectionUtil.RotateByAnchor(entry.LocalDirection, anchor.BlockPosInfo.BlockDirection);
+
                 _blockPlacePreviewTutorialManager.SetTargetCell(entry.TargetBlockId, targetCell, worldDirection, entry.TutorialGuidString);
             }
             

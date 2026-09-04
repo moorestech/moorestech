@@ -92,7 +92,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
 
             // 不足素材は電線・レールと同じく、同一アイテムを1行に畳む唯一の関門を通す
             // Material shortages go through the single folding gate, exactly as the wire and rail systems do
-            if (result.MaterialShortageFallbackKey.HasValue) context.Feedback.AddMaterialShortagesOrFallback(result.MaterialShortages, result.MaterialShortageFallbackKey.Value);
+            result.PushMaterialShortages(context.Feedback);
 
             // 送る: 無効化と送信指示を実行する
             // Send: execute invalidation and send commands

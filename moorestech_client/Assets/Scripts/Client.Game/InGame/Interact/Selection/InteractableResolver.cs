@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.InGame.Interact
+namespace Client.Game.InGame.Interact.Selection
 {
     /// <summary>
     ///     コライダから対象を解決。種別は知らずマーカーだけを辿る
@@ -14,7 +14,7 @@ namespace Client.Game.InGame.Interact
         {
             interactPoint = Vector3.zero;
 
-            // コライダ自身か祖先のマーカーが対象を案内する
+            // コライダか祖先のマーカーが対象を指す
             // The marker on the collider or one of its ancestors points at the target
             var rayTarget = collider.GetComponentInParent<IInteractRayTarget>();
             interactable = rayTarget?.Interactable;
@@ -23,7 +23,7 @@ namespace Client.Game.InGame.Interact
             // A tombstone pointing at a destroyed GameObject is dropped by Unity's fake-null compare, which an interface-typed null check alone misses
             if (interactable != null && interactable.GameObject != null && interactable.IsInteractAvailable)
             {
-                // 非凸MeshColliderでもエラーにならない境界上の最近点を代表点にする
+                // 非凸MeshColliderでも安全な境界上の最近点を使う
                 // The closest point on the bounds is used because it is safe even for a non-convex MeshCollider
                 interactPoint = collider.ClosestPointOnBounds(measureFrom);
                 return true;

@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Control;
+using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.Player;
 using Client.Input;
 using UnityEngine;
 
-namespace Client.Game.InGame.Interact
+namespace Client.Game.InGame.Interact.Selection
 {
     /// <summary>
     ///     インタラクト対象を常に1件だけ選ぶ。照準レイのヒットを優先し、無ければ半径2m内で視線角度が最小のもの（ADR 0046）
@@ -31,16 +32,13 @@ namespace Client.Game.InGame.Interact
         public IInteractable Select()
         {
             if (!Scan(out var aimedTarget)) return null;
-
-            // 照準の先の実体は、対象にならないなら「対象なし」で確定させる。近傍へ落とすと遮蔽物越しに機械を開ける
-            // A solid under the aim settles the frame by itself; falling through would open a machine through the wall
             if (aimedTarget != null) return aimedTarget;
 
             return SelectBestByViewAngle(null);
         }
 
-        // 主対象が応じないキーだけがここへ来る。直近のSelect()が集めた候補の上で答える
-        // Only a key the primary target does not offer arrives here, answered on the candidates the latest Select() collected
+        // 主対象が応じないキーを直近の走査結果で捌く
+        // Answers a key the primary target does not offer, on the latest scan's candidates
         public IInteractable SelectRespondingTo(InputKey key)
         {
             if (!_hasScanned) return null;
@@ -71,8 +69,8 @@ namespace Client.Game.InGame.Interact
             #endregion
         }
 
-        // 照準ヒットと近傍候補を1回で集める。選定・キー収集・キー別選定が同じ候補を見る
-        // Collects the aim hit and the nearby candidates once so selection, key collection and per-key selection all see the same set
+        // 照準ヒットと近傍候補を1回で集める
+        // Collects the aim hit and the nearby candidates once so every query sees the same set
         private bool Scan(out IInteractable aimedTarget)
         {
             aimedTarget = null;
@@ -87,11 +85,18 @@ namespace Client.Game.InGame.Interact
             _hasScanned = true;
 
             var playerPosition = PlayerSystemContainer.Instance.PlayerObjectController.Position;
-            if (BlockClickDetectUtil.TryGetFrontmostSolidHit(InteractLayerMask, out var hit))
+
+            // カメラ後退分を足した距離まで撃ち、到達判定はプレイヤーから測る
+            // The ray spans the camera pull-back plus the reach, while the reach itself is measured from the player
+            var rayDistance = Vector3.Distance(camera.transform.position, playerPosition) + InteractDistance;
+            if (BlockClickDetectUtil.TryGetFrontmostSolidHit(InteractLayerMask, rayDistance, out var hit) &&
+                Vector3.Distance(playerPosition, hit.point) <= InteractDistance)
             {
-                if (!InteractableResolver.TryResolve(hit.collider, playerPosition, out var interactable, out _)) return true;
-                if (Vector3.Distance(playerPosition, hit.point) <= InteractDistance) aimedTarget = interactable;
-                _scannedAimedTarget = aimedTarget;
+                // 手の届く実体は対象外でもそこで確定させる。近傍へ落とすと遮蔽物越しに機械を開ける
+                // A solid within reach settles the frame even when it is no target; falling through would open a machine through the wall
+                if (InteractableResolver.TryResolve(hit.collider, playerPosition, out var interactable, out _)) _scannedAimedTarget = interactable;
+
+                aimedTarget = _scannedAimedTarget;
                 return true;
             }
 
@@ -100,8 +105,8 @@ namespace Client.Game.InGame.Interact
             {
                 if (!InteractableResolver.TryResolve(_overlapBuffer[index], playerPosition, out var candidate, out var candidatePoint)) continue;
 
-                // 同一対象の複数コライダは最初の1件だけ残す
-                // Extra colliders of one target collapse into its first entry
+                // 同一対象の複数コライダは1件に畳む
+                // Extra colliders of one target collapse into a single entry
                 if (!ContainsCandidate(candidate)) _candidates.Add(new NearbyCandidate(candidate, candidatePoint));
             }
 
@@ -122,11 +127,20 @@ namespace Client.Game.InGame.Interact
                 }
             }
 
+            bool ContainsCandidate(IInteractable interactable)
+            {
+                foreach (var candidate in _candidates)
+                    if (ReferenceEquals(candidate.Interactable, interactable))
+                        return true;
+
+                return false;
+            }
+
             #endregion
         }
 
-        // 視線角度が最小のものを選ぶ。keyを渡すとそのキーに応じる候補だけが対象になる
-        // Picks the smallest view angle; passing a key narrows the candidates to the ones answering it
+        // 視線角度が最小の候補を選ぶ。keyで対象を絞る
+        // Picks the smallest view angle; a key narrows it to the candidates answering it
         private IInteractable SelectBestByViewAngle(InputKey key)
         {
             var camera = Camera.main;
@@ -156,15 +170,6 @@ namespace Client.Game.InGame.Interact
             }
 
             return best;
-        }
-
-        private bool ContainsCandidate(IInteractable interactable)
-        {
-            foreach (var candidate in _candidates)
-                if (ReferenceEquals(candidate.Interactable, interactable))
-                    return true;
-
-            return false;
         }
 
         private static bool RespondsTo(IInteractable interactable, InputKey key)

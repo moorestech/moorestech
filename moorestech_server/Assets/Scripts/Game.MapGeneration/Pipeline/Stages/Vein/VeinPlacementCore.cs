@@ -16,8 +16,7 @@ namespace Game.MapGeneration.Pipeline.Stages
             OreEntry[] entries, float borderMargin,
             TerrainGenerationConfig config, bool[][,] masks, BiomeType[] biomeTypes,
             float[,] heights2D, List<PlacementEntry> treeEntries, List<ObjectPlacementResult> objectPlacements,
-            int rngSeedOffset, IReadOnlyList<PlacedVein> excludedVeins,
-            TilePlacementContext tile, PlacementHaloChannel memberHalo, PlacementHaloChannelMap centerHalos)
+            int rngSeedOffset, TilePlacementContext tile, VeinHaloChannels channels)
         {
             if (entries.Length == 0) return new VeinPlacementBatch();
 
@@ -38,13 +37,19 @@ namespace Game.MapGeneration.Pipeline.Stages
                     config.terrainWidth, config.terrainLength, tile.Halo.Radius);
 
             var dims = TerrainDimensions.From(config, 0f, tile.TileIndexX, tile.TileIndexZ);
+
+            // 排他入力はタイル寸法から一意に決まるので、呼び出し元ではなくここで組む。
+            // The exclusion input follows uniquely from the tile bounds, so it is built here rather than at each call site.
+            var excludedVeins = tile.Halo.CreateConfirmedVeinSnapshot(
+                dims.WorldOffsetX, dims.WorldOffsetZ, dims.TerrainWidth, dims.TerrainLength);
+
             var rng = new System.Random(TileSeedMixer.Mix(
                 config.seed + rngSeedOffset, tile.TileIndexX, tile.TileIndexZ));
             // AABB排他はメンバー配置の内側で済んでいるので、返る配置がそのまま確定分になる
             // The AABB exclusion is settled inside member placement, so the returned placement is the confirmed set
             return OrePlacementGenerator.GenerateForWorld(
                 entries, entryMasks, borderMargin, heights2D, dims, rng, treeGrid, objectGrid,
-                memberHalo, centerHalos, tile.Halo.Radius, excludedVeins);
+                channels, tile.Halo.Radius, excludedVeins);
         }
 
         static bool[][,] BuildEntryMasks(

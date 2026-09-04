@@ -109,7 +109,7 @@ describe("WebSocket bridge initialization", () => {
       sockets[0].receive({ op: "snapshot", topic, revision: 1, data: fixtureFor(topic) });
     }
     expect(useTopicStore.getState().status).toBe("open");
-    sockets[0].receive({ op: "event", topic: Topics.uiState, revision: 2, data: { state: "PlayerInventory" } });
+    sockets[0].receive({ op: "event", topic: Topics.uiState, revision: 2, data: { state: "PlayerInventory", keyHints: [] } });
 
     sockets[0].close();
     expect(useTopicStore.getState().status).toBe("reconnecting");
@@ -139,6 +139,6 @@ describe("WebSocket bridge initialization", () => {
 function fixtureFor(topic: string) {
   if (topic === "ui.modal") return {};
   if (topic === "block_inventory.current") return { open: false };
-  if (topic === "ui_state.current") return { state: "GameScreen" };
+  if (topic === "ui_state.current") return { state: "GameScreen", keyHints: [] };
   return { mainSlots: [], grab: { itemId: 0, count: 0 }, equipment: [], selectedEquipment: 0, equipmentSelectionConfirmationRevision: 0 };
 }

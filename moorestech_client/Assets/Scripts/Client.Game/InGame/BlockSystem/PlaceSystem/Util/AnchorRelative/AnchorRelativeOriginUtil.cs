@@ -1,7 +1,7 @@
 using Game.Block.Interface;
 using UnityEngine;
 
-namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
+namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative
 {
     /// <summary>
     ///     ローカル原点を占有域ごと回しワールド原点へ変換

@@ -13,15 +13,15 @@ namespace Client.Tests.Localization.Resolution
         [Test]
         public void EveryKeyHasIdenticalPlaceholdersAcrossLanguages()
         {
-            // 原文の差し込み枠を正準とし、各言語がそれと同じ集合を持つことを要求する
-            // Treat the source placeholders as canonical and require every language to carry the same set
+            // 原文の枠集合を各言語へ要求
+            // Requires the source placeholder set in every language
             foreach (var sourceText in VanillaLocalizationTable.SourceTexts)
             {
                 var expected = ExtractPlaceholders(sourceText.Value);
                 foreach (var languageCode in VanillaLocalizationTable.LanguageCodes)
                 {
-                    VanillaLocalizationTable.TryGetLanguage(languageCode, out var table);
-                    if (!table.TryGetValue(sourceText.Key, out var text)) continue;
+                    Assert.IsTrue(VanillaLocalizationTable.TryGetLanguage(languageCode, out var table), languageCode);
+                    Assert.IsTrue(table.TryGetValue(sourceText.Key, out var text), $"{languageCode}:{sourceText.Key}");
 
                     CollectionAssert.AreEqual(
                         expected,

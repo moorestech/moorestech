@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Client.Game.InGame.Interact
+namespace Client.Game.InGame.Interact.Tap
 {
     /// <summary>
     ///     単押しアクションを1つ以上持つインタラクト対象

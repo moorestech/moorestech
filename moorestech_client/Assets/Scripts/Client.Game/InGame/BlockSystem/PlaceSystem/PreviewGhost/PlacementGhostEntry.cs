@@ -8,17 +8,18 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost
 {
     /// <summary>
-    ///     設置ゴースト1体分の実体。WebピンIDは呼び手が渡し、この型はチュートリアル同一性を知らない
+    ///     設置ゴースト1体分の実体。WebピンIDは呼び手が渡す
     ///     One placement ghost instance; the caller supplies the web pin id, so this type knows nothing about tutorial identity
     /// </summary>
     public class PlacementGhostEntry
     {
         public string WebPinId { get; }
         public PreviewGhostObject PreviewObject { get; private set; }
-        public BlockId TargetBlockId { get; private set; }
         public Vector3Int? TargetCell { get; private set; }
-        public BlockDirection TargetDirection { get; private set; }
-        
+
+        private BlockId _targetBlockId;
+        private BlockDirection _targetDirection;
+
         // 生成要求済みのブロック種別。種別が変わった時だけ作り直す（セル移動でキャンセルすると追従中に一度も出ない）
         // The requested block kind; recreate only when it changes (cancelling on cell moves would never show a ghost while tracking)
         private BlockId? _requestedBlockId;
@@ -33,18 +34,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost
         }
         
         /// <summary>
-        ///     ゴーストを出す目標セルを差し替える。同じ目標なら何もしないので毎フレーム呼んでよい
+        ///     ゴーストの目標セルを差し替える。毎フレーム呼んでよい
         ///     Replaces the target cell the ghost points at; an unchanged target is a no-op, so it is safe to call every frame
         /// </summary>
         public void SetTarget(BlockId blockId, Vector3Int cell, BlockDirection direction, Transform parent)
         {
-            if (TargetCell == cell && TargetBlockId == blockId && TargetDirection == direction) return;
-            
-            TargetBlockId = blockId;
+            if (TargetCell == cell && _targetBlockId == blockId && _targetDirection == direction) return;
+
+            _targetBlockId = blockId;
             TargetCell = cell;
-            TargetDirection = direction;
+            _targetDirection = direction;
             
-            // 同種別なら生成済みは同期移動、生成中は完了時に最新値へ着地させる
+            // 同種別は同期移動、生成中は完了時に着地
             // Same kind: move an existing ghost synchronously; an in-flight creation lands on the latest values when it completes
             if (_requestedBlockId == blockId)
             {
@@ -69,7 +70,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost
                 PreviewObject = created;
                 PreviewObject.transform.SetParent(parent);
                 
-                // 生成完了。await中に動いた最新の目標へ配置する
+                // await後の最新の目標へ配置する
                 // Creation done; place at the latest target that may have moved during the await
                 _previewCancellation?.Dispose();
                 _previewCancellation = null;
@@ -100,8 +101,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost
         
         private void ApplyTargetTransform()
         {
-            var position = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(TargetCell.Value, TargetDirection, TargetBlockId);
-            PreviewObject.SetTransform(position, TargetDirection.GetRotation());
+            var position = SlopeBlockPlaceSystem.GetBlockPositionToPlacePosition(TargetCell.Value, _targetDirection, _targetBlockId);
+            PreviewObject.SetTransform(position, _targetDirection.GetRotation());
             PreviewObject.SetActive(true);
         }
         
