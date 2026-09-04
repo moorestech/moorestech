@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Client.Game.InGame.Interact
+namespace Client.Game.InGame.Interact.Selection
 {
     /// <summary>
     ///     近傍候補と、距離・角度を測る代表点

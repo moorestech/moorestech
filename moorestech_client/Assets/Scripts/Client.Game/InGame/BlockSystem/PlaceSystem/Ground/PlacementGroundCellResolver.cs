@@ -26,7 +26,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Ground
 
         // 地形最高点を含むセルを返す
         // Returns the cell containing the terrain max height
-        private static int ResolveCellY(float groundMaxHeight, int heightOffset)
+        internal static int ResolveCellY(float groundMaxHeight, int heightOffset)
         {
             return Mathf.FloorToInt(groundMaxHeight + IntegerGroundTolerance) + heightOffset;
         }

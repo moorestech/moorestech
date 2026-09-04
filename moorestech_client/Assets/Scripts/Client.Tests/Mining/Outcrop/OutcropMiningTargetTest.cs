@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;

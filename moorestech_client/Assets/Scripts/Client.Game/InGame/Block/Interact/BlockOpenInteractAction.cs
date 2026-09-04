@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Input;

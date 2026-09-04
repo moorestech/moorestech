@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.UIState;
@@ -34,6 +36,15 @@ namespace Client.Tests.Interact
             Assert.AreEqual(2, interactable.Actions.Count);
             Assert.AreSame(InputManager.Playable.Interact, interactable.Actions[0].Key);
             Assert.AreSame(InputManager.Playable.Ride, interactable.Actions[1].Key);
+        }
+
+        [Test]
+        public void 当たり判定子からの案内は付与したインタラクト面と同一実体を返す()
+        {
+            var trainCarEntityObject = CreateTrainCarEntityObject();
+            var interactable = AttachTrainCarInteractable(trainCarEntityObject);
+
+            Assert.AreSame(interactable, ((IInteractRayTarget)trainCarEntityObject).Interactable);
         }
 
         [Test]
@@ -73,6 +84,7 @@ namespace Client.Tests.Interact
         {
             var interactable = trainCarEntityObject.gameObject.AddComponent<TrainCarInteractable>();
             interactable.Initialize(trainCarEntityObject);
+            trainCarEntityObject.SetInteractable(interactable);
             return interactable;
         }
 

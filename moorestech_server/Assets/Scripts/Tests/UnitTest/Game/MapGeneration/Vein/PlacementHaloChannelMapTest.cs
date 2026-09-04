@@ -10,9 +10,9 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             var map = new PlacementHaloChannelMap();
 
-            var channelA1 = map.Get("guid-a");
-            var channelA2 = map.Get("guid-a");
-            var channelB = map.Get("guid-b");
+            var channelA1 = map.GetOrCreate("guid-a");
+            var channelA2 = map.GetOrCreate("guid-a");
+            var channelB = map.GetOrCreate("guid-b");
 
             Assert.That(channelA2, Is.SameAs(channelA1));
             Assert.That(channelB, Is.Not.SameAs(channelA1));
