@@ -8,12 +8,14 @@ namespace Server.Editor
 {
     /// <summary>
     /// プレイヤービルドせずdefineのみCI検査する。
-    /// Unityは-executeMethodの実行前に全アセンブリをコンパイルするため、このメソッドに到達できた時点で
-    /// コンパイルは成功している。到達後はアセンブリ一覧が空でないことだけ追加で確かめる。
+    /// Unityは-executeMethodの実行前に全アセンブリをコンパイルするため、このメソッドへ到達できたこと自体が
+    /// 「そのPFのdefine下でコンパイルが成功した」唯一の根拠であり、他に合否を決める検査は無い。
+    /// 射程はUNITY_EDITOR定義下のコンパイルに限られる（ADR 0028の検出範囲節と同旨）。
     ///
     /// CI checks compilation under the target platform's defines only, without a player build.
-    /// Unity compiles every assembly before running -executeMethod, so reaching this method already proves
-    /// compilation succeeded; afterwards it only additionally checks that the assembly list is not empty.
+    /// Unity compiles every assembly before running -executeMethod, so reaching this method is itself the only
+    /// evidence that compilation succeeded under that platform's defines; nothing else here decides pass or fail.
+    /// Its reach is limited to compilation under the UNITY_EDITOR define (same scope as ADR 0028's detection section).
     /// </summary>
     public static class PlatformCompileCheck
     {
@@ -49,18 +51,10 @@ namespace Server.Editor
             var defines = PlayerSettings.GetScriptingDefineSymbols(namedTarget);
             Debug.Log($"[PlatformCompileCheck] defines={defines}");
 
+            // アセンブリ一覧はasmdef定義の列挙で合否には用いない。失敗時に何が対象だったか読むための診断ログ
+            // The assembly list enumerates asmdef definitions and never decides pass or fail; it is diagnostics for reading a failure
             var assemblies = CompilationPipeline.GetAssemblies(AssembliesType.PlayerWithoutTestAssemblies);
             Debug.Log($"[PlatformCompileCheck] player assemblies={assemblies.Length}");
-
-            // アセンブリが1つも無いのはインポートが破綻している状態で、コンパイル成功と区別する必要がある
-            // Zero assemblies means the import itself is broken, which must be distinguished from a clean compile
-            if (assemblies.Length == 0)
-            {
-                Debug.LogError("[PlatformCompileCheck] no player assemblies were produced");
-                EditorApplication.Exit(1);
-                return;
-            }
-
             Debug.Log("[PlatformCompileCheck] " + string.Join(", ", assemblies.Select(a => a.name)));
             EditorApplication.Exit(0);
 

@@ -26,7 +26,7 @@ const BuildMenuEntryCommonFields = {
 
 // 財布を使うブロックだけが持つ。ホスト側が財布判定を済ませた形で届く
 // Present only on wallet-backed blocks; the host has already made the wallet decision
-export const BuildMenuSetPlacementSchema = z.object({
+const BuildMenuSetPlacementSchema = z.object({
   perCost: z.number().int().min(2),
   remaining: z.number().int().min(0),
 });

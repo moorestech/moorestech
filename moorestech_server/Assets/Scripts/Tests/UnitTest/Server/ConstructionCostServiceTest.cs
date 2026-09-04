@@ -93,7 +93,7 @@ namespace Tests.UnitTest.Server
             // 車両用の生成型はblocks用と別型のため、変換オーバーロードで正準形に揃える
             // Train-car generated type differs from the blocks one, so the overload normalizes it
             var trainCar = MasterHolder.TrainUnitMaster.Train.TrainCars[0];
-            var itemCounts = ConstructionCostService.ToItemCounts(trainCar.RequiredItems);
+            var itemCounts = ConstructionCostItems.ToItemCounts(trainCar.RequiredItems);
 
             Assert.IsTrue(itemCounts.Length > 0);
             Assert.AreEqual(MasterHolder.ItemMaster.GetItemId(trainCar.RequiredItems[0].ItemGuid), itemCounts[0].itemId);

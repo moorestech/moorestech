@@ -118,7 +118,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   - **viewport族**: 実画面の辺へ位置が追従し、内容寸法だけが stage 拡縮に従う。`App.module.css` の `.viewportOverlay` 配下へ置く。
 - **常時表示HUD族（ホットバー・装備HUD・キーヒント・採掘プログレスバー・目標HUD・操作モードHUD）は viewport族。** stage絶対配置のまま `calc()` で補正しない（補正式がHUDの数だけ増殖して破綻する）。
 - **`.viewportOverlay` は `pointer-events: none`。** 配下へ置く操作可能要素（ホットバーのスロット列・装備HUD）は `pointer-events: auto` を明示する。忘れると操作が死ぬ。
-- **第三の所属として背面viewport族がある**（ADR 0017）。`.viewport` 直下・`.stage` の裏（`--z-viewport-behind-stage`）に置き、`--ui-scale` に追従しない。stage族でもviewport族でもない。現状の唯一の利用者は通知（§8）。
+- **第三の所属として背面viewport族がある**（ADR 0017）。`.viewport` 直下・`.stage` の裏（`--z-viewport-behind-stage`）に置く。stage族でもviewport族でもなく、`--ui-scale` は自前で掛ける（通知は掛けている・§8）。現状の唯一の利用者は通知（§8）。
 - 基準解像度1280×720では stage と viewport が一致するため、族の移動だけでは描画結果が変わらない。
 
 ## 2. パネル — GamePanel を使い回す
@@ -221,8 +221,8 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - **スロットのホバーツールチップは `shared/ui/HoverTooltip` だけを使う。** Mantine `Tooltip` を機能側から直接使わない。面・書式は `--tooltip-*` トークンで `CursorTooltip` と共有し、Mantine既定の白い角丸を出さない（§9）。
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・7秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
 - **`CursorTooltip` の書式はWeb側トークンが唯一の正**（ADR 0019）: フォント18px・padding 6/10px・max-width 320px。ホストは辞書キーと位置パラメータだけを送り、寸法値（fontSize等）はwireに載せない。
-- **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもなく、`--ui-scale` に追従しない。
-- **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
+- **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもないが、見かけの大きさを保つため自前で `transform: scale(var(--ui-scale))` を掛ける（2026-08-22以降）。
+- **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。幅は`--notification-width`（256px＝基準幅1280の20%の固定長。stage外の層なので `--ui-scale` で拡縮する。vw指定は拡縮と二重掛けになるため禁止）。収まらない文言は `.text` の `overflow-wrap: anywhere` で折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - **NotificationHostの出入りは§6の例外のひとつ**（もう一方はチュートリアル誘導の脈動・§8.8/§8.17/§8.19）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
 - 進捗矢印は `ProgressArrowBar`（採掘機・流体行の帯状ゲージ）。クラフト画面と機械の加工行は §8.13 の矢印グリフゲージを使う。器が帯か矢印グリフかを名前で区別する。

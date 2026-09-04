@@ -11,7 +11,7 @@ using UniRx;
 namespace Game.Challenge.Task
 {
     /// <summary>
-    ///     歯車ブロックの状態で達成するチャレンジ。gearSpinning=対象が回り出した時（接続は見ない）、gearConnectedTo=接続先種別へ歯車接続した時（回転は見ない）
+    ///     歯車ブロックの状態で達成するチャレンジ
     ///     Gear-block state challenge: gearSpinning completes when the target starts turning (connection ignored), gearConnectedTo when it gear-connects to the target kind (RPM ignored)
     /// </summary>
     public class GearBlockChallengeTask : IChallengeTask
@@ -52,7 +52,7 @@ namespace Game.Challenge.Task
         {
             ChallengeMasterElement = challengeMasterElement;
             
-            // 完了モードはTaskParamの型で決まる
+            // 完了モードはTaskParamで決まる
             // The completion mode derives from the TaskParam type
             switch (challengeMasterElement.TaskParam)
             {
@@ -111,7 +111,7 @@ namespace Game.Challenge.Task
             {
                 if (!block.TryGetComponent<IGearEnergyTransformer>(out var transformer)) return false;
                 
-                // Spinning=RPMが正になった時、ConnectedTo=1ホップの接続相手に対象種別が居る時
+                // モード別の成立条件
                 // Spinning: RPM turned positive. ConnectedTo: the target kind sits among one-hop gear connections
                 if (_mode == CompletionMode.Spinning) return 0 < transformer.CurrentRpm.AsPrimitive();
                 

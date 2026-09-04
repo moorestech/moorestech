@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Common;
+using Client.Game.InGame.Block;
+using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Tests.Common;
 using Core.Master;
+using Game.Block.Interface;
 using Game.Train.Unit;
 using NUnit.Framework;
 using Server.Boot;
@@ -25,6 +29,7 @@ namespace Client.Tests.Interact
     public abstract class InteractTargetSelectorTestFixture : InputTestFixture
     {
         protected static readonly Guid TreeMapObjectGuid = new("8c0e1339-be75-4690-99cd-58b5385a17cd");
+        private const string OpenableBlockName = "TestElectricMachine";
 
         private readonly List<GameObject> _previousMainCameraObjects = new();
         protected readonly List<GameObject> TargetObjects = new();
@@ -122,7 +127,7 @@ namespace Client.Tests.Interact
             targetObject.transform.position = position;
             targetObject.AddComponent<SphereCollider>().radius = 0.05f;
             var mapObject = targetObject.AddComponent<MapObjectGameObject>();
-            targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject, true);
+            targetObject.AddComponent<MapObjectRayTarget>().Initialize(mapObject, interactable: true);
 
             // マスタ解決済みのmapObjectだけが選定対象になるため、実マスタの要素を載せる
             // Only a map object with a resolved master is selectable, so put a real master element on it
@@ -131,6 +136,33 @@ namespace Client.Tests.Interact
             TargetObjects.Add(targetObject);
             Physics.SyncTransforms();
             return mapObject;
+        }
+
+        // BlockGameObject.Initializeはサーバ接続を伴うため、マスタだけ差し込んで面と当たり判定子を直接組む
+        // BlockGameObject.Initialize talks to the server, so only the master is injected and the face and hit child are wired directly
+        protected BlockInteractable CreateOpenableBlockTarget(Vector3 position)
+        {
+            var blockObject = new GameObject(OpenableBlockName);
+            blockObject.transform.position = position;
+            var blockGameObject = blockObject.AddComponent<BlockGameObject>();
+            var master = MasterHolder.BlockMaster.Blocks.Data.First(block => block.Name == OpenableBlockName);
+            TestReflection.SetField(blockGameObject, "<BlockMasterElement>k__BackingField", master);
+            TestReflection.SetField(blockGameObject, "<BlockPosInfo>k__BackingField", new BlockPositionInfo(Vector3Int.zero, BlockDirection.North, Vector3Int.one));
+
+            var interactable = blockObject.AddComponent<BlockInteractable>();
+            interactable.Initialize(blockGameObject);
+            TestReflection.SetField(blockGameObject, "<Interactable>k__BackingField", interactable);
+
+            // 当たり判定はBlockレイヤのメッシュ子だけが持ち、そこから面へ案内される
+            // Only the Block-layer mesh child carries a collider and points at the face from there
+            var meshChild = new GameObject("BlockMesh") { layer = LayerConst.BlockLayer };
+            meshChild.transform.SetParent(blockObject.transform, false);
+            meshChild.AddComponent<SphereCollider>().radius = 0.05f;
+            meshChild.AddComponent<BlockGameObjectChild>().Init(blockGameObject);
+
+            TargetObjects.Add(blockObject);
+            Physics.SyncTransforms();
+            return interactable;
         }
 
         // CargoCar.prefabの構造を模した車両を作る。当たり判定はMeshRendererを持たないBlockレイヤのCollision子だけが持つ
@@ -145,6 +177,7 @@ namespace Client.Tests.Interact
             entityObject.Initialize(TrainCarInstanceId.Create(), null);
             var interactable = carObject.AddComponent<TrainCarInteractable>();
             interactable.Initialize(entityObject);
+            entityObject.SetInteractable(interactable);
 
             // メッシュ子はDefaultレイヤなのでレイにも近傍探索にも掛からない
             // Mesh children sit on the Default layer, so neither the ray nor the nearby search ever sees them

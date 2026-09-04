@@ -41,7 +41,10 @@ async function anchorRects(page: Page, testId: string) {
 // boundingBoxとclip-pathから可視矩形を復元
 // Reconstruct the visible rect from boundingBox and clip-path
 async function highlightVisibleRect(page: Page) {
-  await freezeAttentionPulse(page);
+  // 凍結が空振りすると実測は位相依存のフレークへ戻るため、1件以上止めたことを課す
+  // A no-op freeze silently returns the measurement to phase-dependent flake, so demand at least one stopped
+  const frozen = await freezeAttentionPulse(page);
+  expect(frozen).toBeGreaterThan(0);
   return page.evaluate(() => {
     const element = document.querySelector('[data-testid="tutorial-overlay"] [data-kind="outline"]');
     if (!element) return null;

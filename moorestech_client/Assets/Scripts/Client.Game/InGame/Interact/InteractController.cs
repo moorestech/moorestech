@@ -1,3 +1,5 @@
+using Client.Game.InGame.Interact.Selection;
+using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.UIState;
@@ -30,7 +32,7 @@ namespace Client.Game.InGame.Interact
             var target = _selector.Select();
             ApplyHighlight(target);
 
-            // 長押し系は採掘FSMがそのまま担う（対象でなければnullが渡りIdleへ戻る）
+            // 長押しは採掘FSMが担う。対象外はnullでIdleへ
             // Hold interactions stay with the mining FSM; a non-mining target passes null and it idles
             _miningContext.SetFocusTarget(target as IMiningTargetObject);
             _miningState = _miningState.GetNextUpdate(_miningContext, Time.deltaTime);

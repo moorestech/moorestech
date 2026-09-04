@@ -1,4 +1,6 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
@@ -51,7 +53,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             var lines = GearChainPlacementFailureTooltipKey.BuildFailureLines(input.PoleToPolePreview.IsPlaceable, input.PoleToPolePreview.FailureReason);
             if (input.PoleToPolePreview.IsPlaceable || !GearChainPlacementFailureTooltipKey.IsMaterialShortage(input.PoleToPolePreview.FailureReason)) return GearChainPoleFrameResult.Show(input.SourcePole, preview, lines);
 
-            return GearChainPoleFrameResult.ShowWithMaterialShortages(input.SourcePole, preview, lines, input.PoleToPolePreview.MaterialShortages, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed);
+            // このモードはポールを設置しないので畳むだけの枠は常に空
+            // This mode never places a pole, so the fold-only slot is always empty
+            return GearChainPoleFrameResult.ShowWithMaterialShortages(input.SourcePole, preview, lines, Array.Empty<ConstructionMaterialShortage>(), input.PoleToPolePreview.MaterialShortages, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed);
         }
     }
 }

@@ -4,10 +4,11 @@ using UnityEngine;
 
 namespace Game.MapGeneration.Pipeline.Generators
 {
-    // 最終確定前の鉱脈クラスターを中心とメンバーの対応付きで持つ。
-    // Holds uncommitted vein clusters while preserving the center-to-member relationship.
+    // 1タイル分の確定済み鉱脈。AABBは配置と同時に確定し、中心とメンバーの対応も保つ。
+    // One tile's confirmed veins; AABBs are settled at placement time, and the center-to-member relationship is kept.
     public sealed class VeinPlacementBatch
     {
+        public readonly List<PlacedVein> Veins = new();
         public readonly List<VeinPlacementCluster> Clusters = new();
     }
 

@@ -225,6 +225,15 @@ function createDictionaries(): Map<string, Record<string, string>> {
   });
   for (let languageIndex = 0; languageIndex < csv.languageCodes.length; languageIndex += 1) {
     const languageCode = csv.languageCodes[languageIndex];
+    // 言語追加でfixture側が欠けたとき黙ってspreadがno-opになるため、ここで落として気付けるようにする
+    // A missing fixture would make the spread a silent no-op on a new language, so fail loudly here instead
+    for (const [name, dictionaries] of [
+      ["itemNameDictionaries", fx.itemNameDictionaries],
+      ["blockNameDictionaries", fx.blockNameDictionaries],
+      ["contentLocalizationDictionaries", fx.contentLocalizationDictionaries],
+    ] as const) {
+      if (dictionaries[languageCode] === undefined) throw new Error(`${name} has no entry for ${languageCode}`);
+    }
     result.set(
       languageCode,
       {

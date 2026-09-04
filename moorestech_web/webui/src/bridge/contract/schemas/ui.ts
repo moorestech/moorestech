@@ -24,7 +24,9 @@ export const UiStateDataSchema = z.object({
   // 入れ子state名もstateと同じく寛容に受ける。語彙追加でui_stateごと捨てないため
   // The nested state name is accepted as leniently as state, so a new value never discards the whole ui_state payload
   subState: z.string().optional(),
-  keyHints: z.array(KeyHintSchema).default([]),
+  // ホストは常に配列を載せるので欠損は契約破れ。既定値で吸収すると全画面のヒント消失が無言故障になる
+  // The host always sends the array, so a missing field is a contract break; a default would turn a full HUD loss into a silent failure
+  keyHints: z.array(KeyHintSchema),
 });
 export const TrainRidingDataSchema = z.object({
   riding: z.boolean(),

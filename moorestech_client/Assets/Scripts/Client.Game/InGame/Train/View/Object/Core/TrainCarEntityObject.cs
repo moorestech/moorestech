@@ -1,6 +1,7 @@
 using System;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Material;
 using Client.Game.InGame.Train.View.Object.Pose;
@@ -20,7 +21,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
 
         // 当たり判定だけの子から車両のインタラクト面へ案内する
         // Points a collider-only child at the car's interact face
-        public IInteractable Interactable => GetComponent<TrainCarInteractable>();
+        public IInteractable Interactable { get; private set; }
 
         private TrainCarMasterElement _trainCarMasterElement;
         private ITrainCarPoseUpdater _poseUpdater;
@@ -54,6 +55,11 @@ namespace Client.Game.InGame.Train.View.Object.Core
             }
 
             #endregion
+        }
+
+        public void SetInteractable(TrainCarInteractable interactable)
+        {
+            Interactable = interactable;
         }
 
         public TrainCarMasterElement GetTrainCarMasterElement()

@@ -7,8 +7,10 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Modal;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
+using Client.Starter.Initialization.Progress;
 using Cysharp.Threading.Tasks;
 using Game.Context;
+using Mooresmaster.Localization.Generated;
 using Server.Boot;
 using Server.Boot.Args;
 using Server.Util.MessagePack;
@@ -17,8 +19,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
-using Client.Localization;
-using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter
 {

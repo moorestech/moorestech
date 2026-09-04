@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -7,15 +8,23 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Block.Research;
+using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
+using Client.Network.API;
 using Client.Tests.Map.Vein;
 using Client.Tests.UIState.Fakes;
+using Core.Master;
 using NUnit.Framework;
+using Server.Boot;
+using Server.Util.MessagePack;
+using Tests.Module.TestMod;
+using UnityEngine;
+using static Server.Protocol.PacketResponse.PlayerInventoryResponseProtocol;
 
 namespace Client.Tests.UIState
 {
@@ -103,14 +112,38 @@ namespace Client.Tests.UIState
             Assert.AreEqual(UIStateEnum.GameScreen, transit?.NextStateEnum);
         }
 
-        // 8px未満で押して離すだけの短押しをシミュレートする（移動なし）
-        // Simulates a short press below the 8px threshold (press then release with no movement)
-        private UITransitContext PressAndReleaseRightButton(IUIState state)
+        [Test]
+        public void PlayerInventory右短押しでゲーム画面へ抜ける()
         {
-            Press(MouseDevice.rightButton);
-            state.GetNextUpdate();
-            Release(MouseDevice.rightButton);
-            return state.GetNextUpdate();
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var state = CreatePlayerInventoryState(new LocalPlayerEquipment(), CreateEmptyHandshakeResponse());
+
+            // OnEnterはサーバーへインベントリを問い合わせるためEditModeでは通さない。遷移条件の配線だけを見る
+            // OnEnter is skipped: it queries the server for the inventory, which EditMode cannot do, so only the transition wiring is exercised
+            var transit = PressAndReleaseRightButton(state);
+
+            Assert.AreEqual(UIStateEnum.GameScreen, transit?.NextStateEnum);
+        }
+
+        [Test]
+        public void SubInventory右短押しでゲーム画面へ抜ける()
+        {
+            // ctorが統一インベントリイベントを購読するためEditModeではnewできない。OnEnterも同じ理由で通さない
+            // The ctor subscribes to the unified inventory event, so EditMode cannot new it up; OnEnter is skipped for the same reason
+            var state = (SubInventoryState)FormatterServices.GetUninitializedObject(typeof(SubInventoryState));
+            SetField(state, "_rightShortPressInputService", new RightShortPressInputService(new RightShortPressInput()));
+
+            var transit = PressAndReleaseRightButton(state);
+
+            Assert.AreEqual(UIStateEnum.GameScreen, transit?.NextStateEnum);
+        }
+
+        // 装備・メインインベントリともに空の初期応答。右短押しの遷移だけを見るため中身は問わない
+        // An initial response empty in both equipment and main inventory; its contents are irrelevant to the right-short-press transition
+        private static InitialHandshakeResponse CreateEmptyHandshakeResponse()
+        {
+            return CreateHandshakeResponse(new PlayerInventoryResponse(new PlayerInventoryResponseProtocolMessagePack(
+                0, Array.Empty<ItemMessagePack>(), new ItemMessagePack(ItemMaster.EmptyItemId, 0), Array.Empty<ItemMessagePack>(), 0)));
         }
 
         private PlaceBlockState CreatePlaceBlockState(IPlaceSystemSelector selector)
