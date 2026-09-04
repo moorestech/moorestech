@@ -7,6 +7,13 @@
   pointer-events: none;
 }
 
+/* 入力を止める間は子孫の pointer-events: auto ごと殺す。表示と自動送りはそのまま続く */
+/* While input is refused, the descendants' pointer-events: auto is killed too; drawing and auto-advance continue */
+.inputBlocked,
+.inputBlocked * {
+  pointer-events: none;
+}
+
 /* 会話窓の中身。上端フェード帯に文字が載らないよう安全余白を足した上下余白を取る */
 /* Window content; its vertical padding adds a safe area so text never sits on the top fade band */
 .window {

@@ -15,6 +15,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
     ///     Pins that the ledger digest recorded into world.json equals the one the client's regeneration path produces.
     ///     TileVisualBaker turns a mismatch into a fail-closed exception, so a drift here locks the generated world out.
     /// </summary>
+    // 実生成を2回通すので、同じ払い出し系のdrift検証と同じshardへ寄せる
+    // It runs a real generation twice, so it shares the shard with the drift checks on the same provisioning path
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap1")]
     public class PlacementLedgerDigestParityTest
     {
         private TerrainTransferTestScope _testScope;

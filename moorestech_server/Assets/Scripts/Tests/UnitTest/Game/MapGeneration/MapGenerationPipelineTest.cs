@@ -10,6 +10,9 @@ namespace Tests.UnitTest.Game.MapGeneration
     // 鉱脈 AABB は配置点中心の固定サイズであること。
     // Verify pipeline determinism: same seed => identical output, different seed => different heights,
     // vein AABBs stay a fixed size centred on their placement point.
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap2")]
     public class MapGenerationPipelineTest
     {
         [Test]

@@ -63,6 +63,10 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             //一部入れ替え時は入れ替え作業は実行しない
             else if (itemCount == originItem.Count)
             {
+                // 両側が書き込みを受け入れるか先に確認し、片方だけ書く複製・消失を防ぐ
+                // Confirm both sides accept the write first to avoid a one-sided write that duplicates or loses items
+                if (!toInventory.IsAllowedToPlace(toSlot, originItem) || !fromInventory.IsAllowedToPlace(fromSlot, destinationInventoryItem)) return;
+
                 toInventory.SetItem(toSlot, originItem);
                 fromInventory.SetItem(fromSlot, destinationInventoryItem);
             }

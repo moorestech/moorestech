@@ -3,8 +3,12 @@ import type { FluidSlotData } from "@/bridge";
 import FluidSlot from "../FluidSlot";
 import ProgressArrowBar from "../ProgressArrowBar";
 
+// 実体とゴーストは必ず対で渡す。index対応の平行配列だと片方だけずれても型が守ってくれない
+// The slot and its ghost always arrive as a pair; index-aligned parallel arrays let one drift without the type noticing
+type FluidSlotEntry = { fluid: FluidSlotData; ghost?: { fluidGuid: string; amount: number } };
+
 type Props = {
-  fluids: FluidSlotData[];
+  fluids: FluidSlotEntry[];
   // 進捗矢印は progress が数値のときだけ描画する（null/undefined は非表示で統一）
   // Draw the progress arrow only for a numeric progress (null/undefined uniformly hides it)
   progress?: number | null;
@@ -17,8 +21,8 @@ export default function FluidSlotRow({ fluids, progress, testId }: Props) {
   if (fluids.length === 0) return null;
   return (
     <Group data-testid={testId} gap="xs" align="center">
-      {fluids.map((fluid, i) => (
-        <FluidSlot key={i} fluid={fluid} />
+      {fluids.map((entry, i) => (
+        <FluidSlot key={i} fluid={entry.fluid} ghost={entry.ghost} />
       ))}
       {progress != null ? <ProgressArrowBar value={progress} /> : null}
     </Group>

@@ -1,12 +1,24 @@
 # master上でLibraryキャッシュを焼く。Actionsのキャッシュスコープは「自分のref＋ベースブランチ」なので、
-# masterに焼かない限りPR側は永遠にコールドで走る（ADR 0028）。日次ビルドの1時間前に回す。
+# masterに焼かない限りPR側は永遠にコールドで走る（ADR 0028）。master更新時はclient、日次前は全系統を更新する。
 # Warm the Library caches on master. Actions cache scope is "own ref plus base branch", so PRs stay
-# cold forever unless master has them (ADR 0028). Runs one hour before the daily build.
+# cold forever unless master has them (ADR 0028). Refresh client test caches on master updates and all caches before the daily build.
 # 消費側(run_test.yml / platform-compile.yml)とジョブ定義が重複している。matrix・unityVersion・キャッシュのpath/key/restore-keysを変えるときは必ず両方を直す
 # The job definitions are duplicated with the consumers (run_test.yml / platform-compile.yml); change matrix, unityVersion, and the cache path/key/restore-keys in both
 name: Cache Warm
 
 on:
+  # Unity入力がmasterで変わるたびclient test cacheを更新し、次のPRを古いimportから解放する。
+  # Refresh the client test cache whenever Unity inputs change on master so the next PR avoids stale imports.
+  push:
+    branches:
+      - master
+    paths:
+      - 'moorestech_client/**'
+      - 'moorestech_server/**'
+      - '.moorestech-external-revisions.json'
+      - '.github/workflows/cache-warm.yml'
+      - '.github/workflows/run_test.yml'
+
   # UTC 18:00 = JST 翌03:00（日次ビルドの1時間前）
   # 18:00 UTC equals 03:00 JST the next day, one hour before the daily build
   schedule:
@@ -15,9 +27,15 @@ on:
   # 手動実行デバッグ用
   workflow_dispatch: {}
 
+# 全warmを直列化し、古いrunのcleanupが新しいrunのcacheを削除する競合を防ぐ。
+# Serialize every warm so cleanup from an older run cannot delete a cache produced by a newer run.
 concurrency:
-  group: ${{ github.workflow }}
+  group: cache-warm
   cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write
 
 jobs:
   # EditMode Testが使うclient Libraryを焼く
@@ -55,8 +73,8 @@ jobs:
           ref: ${{ steps.master_revision.outputs.commit_hash }}
           path: moorestech_master
 
-      # 約20分のwarm成果を1ステップの失敗で捨てないよう、restoreとsaveを分けてsaveをif: always()にする
-      # Splitting restore from an always-run save keeps ~20 minutes of warming from being discarded by one failed step
+      # 約20分のwarm成果を1ステップの失敗で捨てないよう、restoreとsaveを分けsaveはLibraryの実体検査だけを条件にする（旧裁定を維持）
+      # Splitting restore from save keeps ~20 minutes of warming from being discarded by one failed step; the save gates on the Library itself, not the step outcome (the prior ruling stands)
       - uses: actions/cache/restore@v4
         with:
           path: moorestech/moorestech_client/Library
@@ -67,6 +85,7 @@ jobs:
       # テストを1本も実行せずインポートだけ済ませる（Libraryを作るのが目的）
       # Import only, without running any test, since the goal is to produce the Library
       - name: Warm Library
+        id: warm
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -79,16 +98,69 @@ jobs:
           testMode: editmode
           customParameters: '-testFilter __cache_warm_matches_nothing__'
 
-      - uses: actions/cache/save@v4
+      # warmが落ちても実体のあるLibraryなら公開する。空・極小のLibraryを配ると全PRがそれをrestoreして壊れる
+      # Publish a Library with real substance even when warm failed; shipping an empty or tiny one would break every PR that restores it
+      - name: Check warmed client Library.
+        id: publishable
         if: always()
+        shell: bash
+        env:
+          LIBRARY_PATH: moorestech/moorestech_client/Library
+          MINIMUM_LIBRARY_MEGABYTES: 512
+        run: |
+          publishable=false
+          if [[ -d "$LIBRARY_PATH/ScriptAssemblies" ]]; then
+            library_megabytes=$(du -sm "$LIBRARY_PATH" | cut -f1)
+            echo "Warmed Library size: ${library_megabytes}MB"
+            if [[ "$library_megabytes" -ge "$MINIMUM_LIBRARY_MEGABYTES" ]]; then
+              publishable=true
+            fi
+          fi
+          echo "publishable=$publishable" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache/save@v4
+        id: save
+        if: always() && steps.publishable.outputs.publishable == 'true'
         with:
           path: moorestech/moorestech_client/Library
           key: Library_Test_client-${{ github.sha }}
+
+      # 最新cacheの保存成功後だけmaster上の旧client cacheを消し、10GB枠内に保つ。
+      # Delete old master client caches only after a successful warm and save to stay within the 10GB budget.
+      - name: Delete older client test caches.
+        if: github.ref == 'refs/heads/master' && steps.publishable.outputs.publishable == 'true' && steps.save.outcome == 'success'
+        shell: bash
+        working-directory: moorestech
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CURRENT_CACHE_KEY: Library_Test_client-${{ github.sha }}
+          CACHE_DELETE_BATCH_SIZE: 100
+        run: |
+          # save actionが警告終了しても旧cacheを消さないよう、現commitのcache実在を先に確認する。
+          # Verify the current commit's cache first so a warning-only save cannot cause deletion of every old cache.
+          current_cache_ids=$(gh cache list --key "$CURRENT_CACHE_KEY" --ref 'refs/heads/master' --limit "$CACHE_DELETE_BATCH_SIZE" --json id,key --jq ".[] | select(.key == \"$CURRENT_CACHE_KEY\") | .id")
+          if [[ -z "$current_cache_ids" ]]; then
+            echo "Current cache was not created: $CURRENT_CACHE_KEY" >&2
+            exit 1
+          fi
+
+          # 名前付き件数ずつ再取得し、上限で古いcacheが残らないよう空になるまで削除する。
+          # Re-fetch named-size batches until empty so a listing limit cannot leave older caches behind.
+          while true; do
+            cache_ids=$(gh cache list --key 'Library_Test_client-' --ref 'refs/heads/master' --limit "$CACHE_DELETE_BATCH_SIZE" --json id,key --jq ".[] | select(.key != \"$CURRENT_CACHE_KEY\") | .id")
+            if [[ -z "$cache_ids" ]]; then
+              break
+            fi
+            while IFS= read -r cache_id; do
+              gh cache delete "$cache_id"
+            done <<< "$cache_ids"
+          done
 
   # PF別コンパイル検査が使うserver Libraryをターゲットごとに焼く
   # Warm the server Library per target for the platform compile check
   warm-server-compile:
     name: Warm server Library - ${{ matrix.target }}
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -110,6 +182,7 @@ jobs:
             Library_compile_server_${{ matrix.target }}-
 
       - name: Warm Library - ${{ matrix.target }}
+        id: warm
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -124,8 +197,28 @@ jobs:
           versioning: None
           customParameters: '-expectedBuildTarget ${{ matrix.target }}'
 
-      - uses: actions/cache/save@v4
+      # client側と同じく、warmの終了コードではなくLibraryの実体で公開可否を決める
+      # As on the client side, publishability is decided by the Library itself rather than by warm's exit code
+      - name: Check warmed server Library - ${{ matrix.target }}.
+        id: publishable
         if: always()
+        shell: bash
+        env:
+          LIBRARY_PATH: moorestech_server/Library
+          MINIMUM_LIBRARY_MEGABYTES: 512
+        run: |
+          publishable=false
+          if [[ -d "$LIBRARY_PATH/ScriptAssemblies" ]]; then
+            library_megabytes=$(du -sm "$LIBRARY_PATH" | cut -f1)
+            echo "Warmed Library size: ${library_megabytes}MB"
+            if [[ "$library_megabytes" -ge "$MINIMUM_LIBRARY_MEGABYTES" ]]; then
+              publishable=true
+            fi
+          fi
+          echo "publishable=$publishable" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/cache/save@v4
+        if: always() && steps.publishable.outputs.publishable == 'true'
         with:
           path: moorestech_server/Library
           key: Library_compile_server_${{ matrix.target }}-${{ github.sha }}

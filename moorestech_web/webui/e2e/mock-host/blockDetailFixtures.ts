@@ -12,8 +12,10 @@ export const blockMachine = {
   blockType: "ElectricMachine",
   identifier: "block:3",
   blockGuid: BlockGuids.ELECTRIC_MACHINE_BLOCK_GUID,
-  itemSlots: [{ itemId: 3, count: 5 }, empty(), { itemId: 7, count: 1 }, empty()],
-  fluidSlots: [{ fluidId: 1, amount: 25.5, capacity: 100.0, fluidGuid: WATER_FLUID_GUID }],
+  // 選択中(bbbbbbbb)の素材itemId2をスロット0に置き、出力/液体スロットは空にしてゴースト描画を検証する
+  // Places selected recipe (bbbbbbbb)'s material itemId 2 in slot 0 and leaves the output/fluid slots empty to exercise ghost rendering
+  itemSlots: [{ itemId: 2, count: 5 }, empty(), empty(), empty()],
+  fluidSlots: [{ fluidId: 0, amount: 0, capacity: 100.0, fluidGuid: "" }],
   progress: 0.42,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",
@@ -24,7 +26,11 @@ export const blockMachine = {
     currentState: "processing",
     currentPower: 80.0,
     requestPower: 100.0,
-    slotLayout: { input: 2, output: 1, module: 1 },
+    slotLayout: { input: 2, output: 1, module: 1, inputTank: 1 },
+    // 選択中(bbbbbbbb)のレシピ束縛。ホストが配信する正本と同じ形をmockでも持たせる
+    // Binding of the selected recipe (bbbbbbbb); the mock carries the same shape the host publishes
+    slotBindings: [{ slot: 0, itemId: 2, count: 3 }, { slot: 2, itemId: 7, count: 2 }],
+    tankBindings: [{ tank: 0, fluidGuid: WATER_FLUID_GUID, amount: 10 }],
   },
   electricNetwork: { totalGeneratePower: 500.0, totalRequiredPower: 300.0, consumerCount: 4, powerRate: 1.0 },
 } satisfies BlockInventoryWireData;
@@ -49,7 +55,9 @@ export const blockGearMachine = {
     currentState: "idle",
     currentPower: 0.0,
     requestPower: 0.0,
-    slotLayout: { input: 1, output: 1, module: 0 },
+    slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
+    slotBindings: [],
+    tankBindings: [],
   },
   gear: { isClockwise: true, currentRpm: 12.5, currentTorque: 3.0, baseRpm: 20.0, baseTorque: 5.0 },
   gearNetwork: { totalRequiredGearPower: 60.0, totalGenerateGearPower: 100.0, stopReason: "none" },

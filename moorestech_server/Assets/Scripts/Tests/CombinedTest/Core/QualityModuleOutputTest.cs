@@ -95,8 +95,10 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        // 容量予約が変種IDで効くこと（基準は入るが変種が入らない場合は開始しない／変種が入る場合は開始する）を確認する
-        // Verify reservation uses the variant id (no start when only the base fits; start when the variant fits)
+        // 旧仕様は出力3枠を静的に持ち空きスロット探索で変種を吸収したが、ADR 0042の束縛で出力は生産物数(1枠)に固定された。
+        // The old spec had 3 static output slots absorbing variants via free-slot search; ADR 0042 binding now fixes output to 1 slot (the recipe's output count).
+        // 同じ物理スロットに基準アイテムが居るかどうかで、変種(別ID)が積めるか＝機械が開始できるかが決まる（容量予約が変種IDで効くことの検証）
+        // Whether the variant (a different id) can stack into that same physical slot now decides whether the machine starts (verifies reservation keys off the variant id)
         public void QualityReservationUsesVariantTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
@@ -105,29 +107,29 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var (baseItemId, lv2ItemId) = GetBaseAndLv2ItemIds(recipe);
             var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(baseItemId);
+            var roomLeft = maxStack - recipe.OutputItems[0].Count;
 
-            // 品質装着機・未装着機・変種空きあり装着機の3台を設置する
-            // Place three machines: quality-equipped, plain, and quality-equipped with variant space
+            // 品質装着機・未装着機・変種空きあり装着機の3台を設置し、先にレシピを選択する（束縛は選択後にのみ働くため）
+            // Place three machines: quality-equipped, plain, and quality-equipped with variant space; select the recipe first (binding only applies once selected)
             var (qualityBlock, qualityInventory, qualityProcessor) = PlaceMachine(new Vector3Int(1, 1, 1));
             var (plainBlock, plainInventory, plainProcessor) = PlaceMachine(new Vector3Int(5, 1, 1));
             var (variantFitBlock, variantFitInventory, variantFitProcessor) = PlaceMachine(new Vector3Int(9, 1, 1));
+            MachineRecipeSelectTestUtil.SelectRecipe(qualityBlock, recipe);
+            MachineRecipeSelectTestUtil.SelectRecipe(plainBlock, recipe);
+            MachineRecipeSelectTestUtil.SelectRecipe(variantFitBlock, recipe);
             qualityInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
             variantFitInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Quality));
 
-            // 出力を「基準アイテム1セット分の空きはあるが、別スタックの変種は入らない」状態まで埋める
-            // Fill outputs so one base set fits but the separately-stacking variant cannot
+            // 唯一の出力スロットへ、基準アイテムで余地(1セット分)を残して埋める
+            // Fill the sole output slot with the base item, leaving room for exactly one more set
             foreach (var inventory in new[] { qualityInventory, plainInventory })
             {
-                inventory.SetItem(InputSlotCount, itemStackFactory.Create(baseItemId, maxStack));
-                inventory.SetItem(InputSlotCount + 1, itemStackFactory.Create(baseItemId, maxStack));
-                inventory.SetItem(InputSlotCount + 2, itemStackFactory.Create(baseItemId, maxStack - recipe.OutputItems[0].Count));
+                inventory.SetItem(InputSlotCount, itemStackFactory.Create(baseItemId, roomLeft));
             }
 
-            // 変種空きあり装着機は最終スロットに変種の部分スタックを置き、変種が積み増しできる状態にする
-            // The variant-fit machine holds a partial variant stack in its last slot so the variant can stack up
-            variantFitInventory.SetItem(InputSlotCount, itemStackFactory.Create(baseItemId, maxStack));
-            variantFitInventory.SetItem(InputSlotCount + 1, itemStackFactory.Create(baseItemId, maxStack));
-            variantFitInventory.SetItem(InputSlotCount + 2, itemStackFactory.Create(lv2ItemId, 1));
+            // 変種空きあり装着機は同じ唯一スロットへ変種を置き、変種同士なら積み増しできる状態にする
+            // The variant-fit machine puts the variant into that same sole slot, so a same-variant addition can stack
+            variantFitInventory.SetItem(InputSlotCount, itemStackFactory.Create(lv2ItemId, 1));
 
             InsertRecipeInputs(qualityBlock, qualityInventory, recipe);
             InsertRecipeInputs(plainBlock, plainInventory, recipe);
@@ -135,13 +137,13 @@ namespace Tests.CombinedTest.Core
 
             AdvanceTicksWithFullPower(2, qualityProcessor, plainProcessor, variantFitProcessor);
 
-            // 品質装着機は変種の空きが無いため開始せず、インプットも消費されない
-            // The quality machine does not start (no space for the variant) and keeps its inputs
+            // 品質装着機は出力スロットが基準アイテムで埋まっており変種(別ID)が入らないため開始せず、インプットも消費されない
+            // The quality machine's output slot holds the base item, so the variant (a different id) cannot enter; it does not start and keeps its inputs
             Assert.AreEqual(ProcessState.Idle, qualityProcessor.CurrentState);
             Assert.AreNotEqual(ItemMaster.EmptyItemId, qualityInventory.GetItem(0).Id);
 
-            // 未装着機は基準アイテムの空きがあるため開始し、変種空きあり装着機も開始する
-            // The plain machine starts (base space available) and the variant-fit machine starts as well
+            // 未装着機は基準アイテム同士でスタックできるため開始し、変種空きあり装着機も変種同士で開始する
+            // The plain machine starts because it stacks base-with-base, and the variant-fit machine also starts because it stacks variant-with-variant
             Assert.AreEqual(ProcessState.Processing, plainProcessor.CurrentState);
             Assert.AreEqual(ProcessState.Processing, variantFitProcessor.CurrentState);
         }
@@ -152,14 +154,12 @@ namespace Tests.CombinedTest.Core
         public void MixedLevelRealizationReservesExactlyTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var itemStackFactory = ServerContext.ItemStackFactory;
 
             var recipe = GetMachineRecipe();
             var baseItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
             var lv2ItemId = MasterHolder.ItemMaster.GetLevelVariantItemId(baseItemId, 2);
             var lv3ItemId = MasterHolder.ItemMaster.GetLevelVariantItemId(baseItemId, 3);
             Assert.AreNotEqual(lv2ItemId, lv3ItemId);
-            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(baseItemId);
 
             // 前提: 品質1.0+0.4でシフト1.4（確定1段＋40%でもう1段）、生産性1.0で追加セット確定
             // Precondition: quality 1.0 + 0.4 gives shift 1.4 (one guaranteed + 40% one more); productivity 1.0 guarantees the extra set
@@ -168,8 +168,12 @@ namespace Tests.CombinedTest.Core
             var quality04 = qualityModules.First(m => Math.Abs(m.EffectValue - 0.4f) < 0.0001f);
             var productivity = GetModuleOfAxis(ModuleMasterElement.EffectAxisConst.Productivity);
 
-            // 出力空きスロットを1つだけ残した機械を多数並べる（混在ペアは2スロット必要なため開始できず、同レベルペアを引いたtickにのみ開始する）
-            // Place many machines with only one free output slot (a mixed pair needs two slots so it cannot start; a machine starts only on a tick that rolls a same-level pair)
+            // 旧仕様は出力3枠のうち2枠を満杯にし1枠だけ空けたが、ADR 0042の束縛で出力は生産物数(1枠)に固定された。
+            // The old spec filled 2 of 3 output slots and left 1 free; ADR 0042 binding now fixes output to 1 slot (the recipe's output count).
+            // その唯一の出力スロットは常に空から始まる。同レベルペアは1つのアイテムスタックへ収まるが、混在ペア(別ID)は
+            // 1スロットに2IDを同時に置けないため、その組み合わせが実現した機械だけ開始できない（消失ゼロという不変条件は変わらない）
+            // The sole output slot always starts empty. A same-level pair fits into one item stack, but a mixed pair (two ids)
+            // cannot occupy one slot at once, so only machines that roll that combination fail to start (the zero-loss invariant is unchanged)
             const int machineCount = 20;
             var machines = new (VanillaMachineBlockInventoryComponent inventory, VanillaMachineProcessorComponent processor)[machineCount];
             for (var i = 0; i < machineCount; i++)
@@ -178,11 +182,6 @@ namespace Tests.CombinedTest.Core
                 inventory.SetItem(ModuleRangeStart, CreateModuleItem(quality10));
                 inventory.SetItem(ModuleRangeStart + 1, CreateModuleItem(quality04));
                 inventory.SetItem(ModuleRangeStart + 2, CreateModuleItem(productivity));
-
-                // 基準アイテム満杯スロット2つ＋空きスロット1つ（同レベル2個は1スロットに収まるが、混在は2スロット必要）
-                // Two full base-item slots plus one free slot (two same-level items fit one slot; a mixed pair needs two)
-                inventory.SetItem(InputSlotCount, itemStackFactory.Create(baseItemId, maxStack));
-                inventory.SetItem(InputSlotCount + 1, itemStackFactory.Create(baseItemId, maxStack));
                 InsertRecipeInputs(block, inventory, recipe);
                 machines[i] = (inventory, processor);
             }
@@ -275,6 +274,10 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var (block, inventory, processor) = PlaceMachine(new Vector3Int(1, 1, 1));
             var (baseItemId, lv2ItemId) = GetBaseAndLv2ItemIds(recipe);
+
+            // 束縛(ADR 0042)のため、出力スロットへ置く前にレシピを選択する
+            // Binding (ADR 0042) requires selecting the recipe before placing into the output slot
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
 
             // 変種アイテムを出力スロットへ直接置いてセーブする
             // Place the variant item directly into an output slot and save

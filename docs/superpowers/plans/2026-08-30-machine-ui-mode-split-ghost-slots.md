@@ -38,6 +38,23 @@
 
 ---
 
+## 事前計画レビューでの補正（2026-08-30・各タスク本文より優先する）
+
+タスク1派遣前の事前計画レビューで検出した10件。**以下は各Taskの本文記述を上書きする拘束条件**である。
+
+- **C1（Task 5/6・ディレクトリ規約）** `details/machine/` は現存7ファイル。plan通りに作ると11ファイルになりAGENTS.md「1ディレクトリ10ファイルまで」に違反する。レシピ選択行リスト一式（`MachineRecipeSelectionRow.tsx` / `.test.ts` / `MachineRecipeSelectionList.tsx` / `machineRecipeSelectionList.module.css`）は `details/machine/recipeSelection/` サブディレクトリへ置く。`SelectedRecipeHeader.tsx` と `machineSlotGhosts.ts`(+`.test.ts`) は `details/machine/` 直下でよい。
+- **C2（Task 1・出力束縛／ユーザー裁定 2026-08-30）** R5の「出力スロット j = k % 生産物数」は**ItemId一致では判定しない**。`MachineOutputFactoryUtil.CreateRealizedOutputs` はベースセットと追加出力セットで `ApplyQualityLevel` を独立に抽選するため、実現出力 k と k+生産物数 が別ItemIdになり得るからである。スロット j は「**生産物 j のレベルファミリーに属するアイテム**」を受け入れる枠とし、既存物とスタックできない変種が来た場合は「スロットが埋まっている」扱いで `CanStoreOutputs` を false にして機械を待機させる（既存の出力詰まり挙動）。判定に必要な `Core.Master.ItemMaster` へ `public IReadOnlyList<ItemId> GetLevelVariants(ItemId baseItemId)`（ファミリー無しなら `baseItemId` 1件）を追加し、含有判定は `MachineRecipeSlotBindingUtil` 側で行う。裁定: `.decisions/2026-08-30-機械の出力スロットはレベルファミリー枠として束縛し変種違いは待機させる.md`
+- **C3（Task 2・液体テスト）** `VanillaMachineFluidInventoryComponent.GetFluidInventory()` は `Amount > 0` のタンクだけを返すためタンク番号順ではない。液体束縛テストは戻り値の index で読まず、入力インベントリが保持する生タンク列（`FluidInputSlot` 等）を index で読むこと。
+- **C4（Task 2・液体テスト）** plan L567-578 の後半アサートは `AddLiquid` より前に取得したスナップショットを判定しており常に成立する死んだアサート。`AddLiquid` 後に再取得したタンク列で「束縛外タンクが空のまま」を検証する形へ書き換える（`designatedRemainder` の検証だけで済ませない）。
+- **C5（Task 3・型ゲート）** `MachineRecipeSelectionTab.test.ts` は `MachineRecipe` のファクトリを持つため、`inputFluids`/`outputFluids` 必須化で `npm run typecheck` が落ちる。Task 3 で同ファイルのファクトリにも `inputFluids: [], outputFluids: []` を足す（Task 6 でファイルごと削除されるが型ゲートを通すため必要）。
+- **C6（Task 1/2・200行規約）** `VanillaMachineBlockInventoryComponent.cs`(198行) / `VanillaMachineProcessorComponent.cs`(200行) / `VanillaMachineFluidInventoryComponent.cs`(217行) は追記で200行を超える。**束縛ガードを別クラス（例 `Inventory/` 配下の専用クラス）へ切り出して200行以下を守る**こと。partial は禁止。
+- **C7（Task 2・返却の乖離）** `MachineRecipeRefundUtil.CanRefundAllItems` は汎用 `OpenableInventoryItemDataStoreService`（空きスロットならどこでも可）でシミュレートするのに、`ExecuteRefund` が呼ぶ `input.InsertItem` は本planで束縛規則へ変わるため、乖離時に `Debug.LogError("返却シミュレーションと実挿入の乖離でアイテムが消失した")` へ落ちる。**`CanRefundAllItems` のシミュレーションも束縛規則で行うよう Task 2 で修正し、回帰テストを1本足す**。
+- **C8（Task 1・Step 8のExpected）** 「全PASS」と「`ReplaceItemIntoWrongSlotIsRejected` は FAIL のままでよい」が同一行で矛盾している。Expected は「**`ReplaceItemIntoWrongSlotIsRejected` 以外は全PASS**」に一本化する（同テストは Task 2 で通す）。
+- **C9（Task 6・代表出力ガード）** 現行 `buildMachineRecipeSelectionRows` は代表アイコンが取れないレシピを `flatMap` で除外している。新版でも**代表出力の存在ガードを残す**こと（`filter(blockGuid)` だけにしない）。`SelectedRecipeHeader` の `itemId ?? 0` フォールバックは作らず、代表出力が無いレシピはヘッダを出さない。
+- **C10（Task 5・液体スロットのクランプ）** レシピの液体数が機械の実タンク数を超えると `data.fluidSlots[i]` が `undefined` になり `FluidSlot` が `fluid.kind` 参照で落ちる。`buildMachineSlotView` に実タンク数（`SlotLayoutDto` 由来）を渡し、`fluidIndices` を実在範囲へクランプする（「無いものは描かない」）。
+
+---
+
 ## File Structure
 
 サーバー（`moorestech_server/Assets/Scripts/`）
@@ -81,7 +98,7 @@ Web（`moorestech_web/webui/`）
 **Files:**
 - Modify: `.agents/skills/webui-design/SKILL.md:145`, `:271-282`
 
-- [ ] **Step 1: worktree作成とbd claim**
+- [x] **Step 1: worktree作成とbd claim**
 
 ```bash
 pwd
@@ -90,7 +107,7 @@ cd ~/moorestech-worktrees/feature-machine-ui-mode-split-ghost-slots   # moores-w
 bd update moorestech-j2kx --claim
 ```
 
-- [ ] **Step 2: §2 の大型パネル行を書き換える**
+- [x] **Step 2: §2 の大型パネル行を書き換える**
 
 `SKILL.md:145` の「中身は `ModeSwitch` を横向きタブバーとした「インベントリ / レシピ選択」の2タブ切替（§8.7）。」を次に置換:
 
@@ -98,7 +115,7 @@ bd update moorestech-j2kx --claim
 中身はタブを持たず「レシピ選択モード / インベントリモード」の2画面をSatisfactory方式で往復する（§8.7）。
 ```
 
-- [ ] **Step 3: §8.7 を全面置換する**
+- [x] **Step 3: §8.7 を全面置換する**
 
 `## 8.7 機械レシピ選択タブ` から `## 8.8` の直前までを次に置換:
 
@@ -117,7 +134,7 @@ bd update moorestech-j2kx --claim
 - **レシピ選択モードは行リスト。** 各行は §8.17 の共有 `RecipeRow` を流用し、中央列は所要秒数＋静止矢印（`arrowValue={null}`）のみ、操作欄は空。ブロックアイコン/名は開いている機械自身なので出さない。レシピ名（出力アイテム名）は行の上辺に `--text-muted` のテキストで置く。行全体（`data-testid="machine-recipe-<guid>"`）が左クリック対象で、行内の `ItemSlot` は操作を持たない。選択中行は `data-selected="true"` で示し、新しい色相・光彩は足さない。ホバー詳細プレビュー領域・9列アイコングリッドは廃止済みで復活させない。
 ```
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add .agents/skills/webui-design/SKILL.md
@@ -146,7 +163,7 @@ git commit -m "docs(webui-design): §8.7を機械UI2モード仕様へ改訂 (AD
 - Produces: `MachineProcessContext.BindSelectedRecipe(MachineRecipeMasterElement recipe)`、`SelectedRecipe { get; private set; }`
 - Produces: `IVanillaMachineSubInventory.IsAllowedToPlace(int localSlot, IItemStack itemStack)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Tests/CombinedTest/Core/MachineSlotBindingTest.cs`（`MachineIOTest` と同じ初期化。レシピは `ForUnitTestModMachineRecipeId` 相当が無いため `MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0]`＝TestElectricMachine: 入力 Test1×3, Test2×1 / 出力 Test3×1、機械スロットは入2/出3）:
 
@@ -268,12 +285,12 @@ namespace Tests.CombinedTest.Core
 
 `Setup` で使う `GetComponent<VanillaMachineBlockInventoryComponent>()` は `MachineIOTest` と同じ `Game.Block.Interface.Extension` の拡張。`GameUpdater.SecondsToTicks` は `Core.Update`（AGENTS.md「時間に関して」）。
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MachineSlotBindingTest"`
 Expected: `UnselectedMachineRejectsAllInserts` / `ReplaceItemIntoWrongSlotIsRejected` / `SelectedMachineRejectsItemNotInRecipe` が FAIL（現状は何でも入る）
 
-- [ ] **Step 3: 純関数 util を作る**
+- [x] **Step 3: 純関数 util を作る**
 
 `Game.Block/Blocks/Machine/RecipeSelection/MachineRecipeSlotBindingUtil.cs`:
 
@@ -318,7 +335,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 }
 ```
 
-- [ ] **Step 4: `IVanillaMachineSubInventory` に配置可否を足す**
+- [x] **Step 4: `IVanillaMachineSubInventory` に配置可否を足す**
 
 ```csharp
 // 既存メンバーの下に追加
@@ -330,7 +347,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 
 `VanillaMachineModuleInventory` には `public bool IsAllowedToPlace(int localSlot, IItemStack itemStack) => true;` を追加（モジュール判定は既存の装備プロトコル側が持つため変えない）。
 
-- [ ] **Step 5: `VanillaMachineInputInventory` を束縛対応にする**
+- [x] **Step 5: `VanillaMachineInputInventory` を束縛対応にする**
 
 フィールド追加とメソッド差し替え（既存の `InsertItem(IItemStack)`, `InsertItem(List)`, `InsertionCheck`, `ReduceInputSlot` のアイテム部分を置換）:
 
@@ -411,7 +428,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 
 `using Game.Block.Blocks.Machine.RecipeSelection;` を追加。
 
-- [ ] **Step 6: `VanillaMachineOutputInventory` を束縛対応にする**
+- [x] **Step 6: `VanillaMachineOutputInventory` を束縛対応にする**
 
 ```csharp
         private MachineRecipeMasterElement _boundRecipe;
@@ -478,7 +495,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             }
 ```
 
-- [ ] **Step 7: `MachineProcessContext.BindSelectedRecipe` と呼び出し側**
+- [x] **Step 7: `MachineProcessContext.BindSelectedRecipe` と呼び出し側**
 
 `MachineProcessContext`:
 
@@ -497,12 +514,12 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
 
 `VanillaMachineProcessorComponent.cs:58` と `CleanRoomMachineProcessorComponent.cs:50` の `{ SelectedRecipe = selectedRecipe }` 初期化子を削除し、直後に `_context.BindSelectedRecipe(selectedRecipe);` を呼ぶ。両 `ChangeSelection` の `_context.SelectedRecipe = recipe;` を `_context.BindSelectedRecipe(recipe);` に置換。
 
-- [ ] **Step 8: コンパイルしてテストを通す**
+- [x] **Step 8: コンパイルしてテストを通す**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MachineSlotBindingTest|MachineIOTest|MachineRecipeChangeRefundTest|MachineRecipeSelectionTest|QualityModuleOutputTest"`
 Expected: 全PASS（`ReplaceItemIntoWrongSlotIsRejected` は Task 2 まで FAIL のままでよい）
 
-- [ ] **Step 9: コミット**
+- [x] **Step 9: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/MachineSlotBindingTest.cs*
@@ -524,7 +541,7 @@ git commit -m "feat(server): 機械の入出力スロットを選択レシピの
 **Interfaces:**
 - Consumes: Task 1 の `IsAllowedToPlace` / `IsFluidAllowedAt`
 
-- [ ] **Step 1: 液体束縛テストを書く**
+- [x] **Step 1: 液体束縛テストを書く**
 
 `Tests/CombinedTest/Core/MachineFluidSlotBindingTest.cs`（FluidMachine: 入力タンク3・出力タンク2、レシピ `38dfacce-1234-4612-8c7c-29112c12409a`: 入力液体 [fluid1×1, fluid2×2]、出力液体 [fluid3×4]）:
 
@@ -595,12 +612,12 @@ namespace Tests.CombinedTest.Core
 
 `MachineFluidTestUtil.ConnectedToTank(int)` は `MachineFluidIOTest` にタンク指定の `ConnectedInfo` を組む前例があればそれを `Tests/Util/MachineFluidTestUtil.cs` へ切り出して使う。前例が無ければ `ConnectedInfo` と `IFluidConnector.Option.ConnectTankIndex` を満たす最小スタブを同ファイルに書く（`VanillaMachineFluidInventoryComponent.AddLiquid` の `connectedInfo.TargetConnector is IFluidConnector receiverConnector` 分岐を通す）。`GetFluidInventory()` の返却順が入力タンク順であることを実装で確認し、違えば `_inputInventory.FluidInputSlot` を直接読む形にテストを直す。
 
-- [ ] **Step 2: 実行して失敗を確認**
+- [x] **Step 2: 実行して失敗を確認**
 
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "MachineFluidSlotBindingTest"`
 Expected: FAIL（現状は任意タンクへ入る）
 
-- [ ] **Step 3: 液体の束縛を実装する**
+- [x] **Step 3: 液体の束縛を実装する**
 
 `VanillaMachineFluidInventoryComponent.AddLiquid` を置換:
 
@@ -679,7 +696,7 @@ Expected: FAIL（現状は任意タンクへ入る）
             }
 ```
 
-- [ ] **Step 4: プレイヤー操作と整理のゲート**
+- [x] **Step 4: プレイヤー操作と整理のゲート**
 
 `VanillaMachineBlockInventoryComponent`:
 
@@ -730,12 +747,12 @@ Expected: FAIL（現状は任意タンクへ入る）
         }
 ```
 
-- [ ] **Step 5: コンパイルと機械系全テスト**
+- [x] **Step 5: コンパイルと機械系全テスト**
 
 Run: `uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Machine|BlockInventory|SortInventory|CleanRoom|Gear.*Machine|Blueprint"`
 Expected: `MachineSlotBindingTest`・`MachineFluidSlotBindingTest` PASS。`RequestBlockInventoryTest`・`BlockInventoryUpdateEventPacketTest`・`SortInventoryProtocolTest` 等、未選択機械へ `SetItem` する前提のテストが FAIL する。
 
-- [ ] **Step 6: 失敗した既存テストを新仕様へ更新する**
+- [x] **Step 6: 失敗した既存テストを新仕様へ更新する**
 
 方針: 機械へ任意アイテムを `SetItem` しているテストは、`MachineRecipeSelectTestUtil.SelectRecipe(block, MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0])` を先に呼び、置く位置とIDを `recipe.InputItems[i]`（スロットi）・`recipe.OutputItems[j]`（スロット `InputItems.Length + j`）から取る。例（`RequestBlockInventoryTest.cs:43-44`）:
 
@@ -753,7 +770,7 @@ Expected: `MachineSlotBindingTest`・`MachineFluidSlotBindingTest` PASS。`Reque
 Run: 同上フィルタ
 Expected: 全PASS
 
-- [ ] **Step 7: コミット**
+- [x] **Step 7: コミット**
 
 ```bash
 git add moorestech_server/Assets/Scripts
@@ -773,7 +790,7 @@ git commit -m "feat(server): プレイヤー操作・整理・液体タンクに
 **Interfaces:**
 - Produces: `MachineRecipe.inputFluids: { fluidId: number; fluidGuid: string; amount: number }[]`、`outputFluids` 同型（`payloadTypes.ts` の `MachineRecipe` は zod 推論なので自動追従）
 
-- [ ] **Step 1: zod に失敗するテストを足す**
+- [x] **Step 1: zod に失敗するテストを足す**
 
 `src/bridge/contract/schemas/guidValidation.test.ts` の `machineRecipe` フィクスチャに `inputFluids: [], outputFluids: []` を足し、`cases` に次を追加:
 
@@ -781,12 +798,12 @@ git commit -m "feat(server): プレイヤー操作・整理・液体タンクに
     { label: "machine recipe inputFluids fluidGuid", schema: MachineRecipeSchema, payload: { ...machineRecipe, inputFluids: [{ fluidId: 1, amount: 1, fluidGuid: invalidGuid }] } },
 ```
 
-- [ ] **Step 2: 実行して失敗を確認**
+- [x] **Step 2: 実行して失敗を確認**
 
 Run: `cd moorestech_web/webui && npx vitest run src/bridge/contract/schemas/guidValidation.test.ts`
 Expected: FAIL（`.strict()` で `inputFluids` が unrecognized key）
 
-- [ ] **Step 3: スキーマを拡張する**
+- [x] **Step 3: スキーマを拡張する**
 
 `recipes.ts` の `MachineRecipeSchema` を置換:
 
@@ -810,7 +827,7 @@ export const MachineRecipeSchema = z.object({
 }).strict();
 ```
 
-- [ ] **Step 4: 全リテラルへ `inputFluids: [], outputFluids: []` を足す**
+- [x] **Step 4: 全リテラルへ `inputFluids: [], outputFluids: []` を足す**
 
 ```bash
 cd moorestech_web/webui && grep -rln "inputItems: \[" src e2e
@@ -821,7 +838,7 @@ cd moorestech_web/webui && grep -rln "inputItems: \[" src e2e
 Run: `npx vitest run && npm run typecheck`
 Expected: PASS
 
-- [ ] **Step 5: C# DTO を拡張する**
+- [x] **Step 5: C# DTO を拡張する**
 
 `MachineRecipesTopic.cs` の `MachineRecipeDto` に追加し、`BuildJson` で詰める:
 
@@ -868,7 +885,7 @@ Expected: PASS
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.WebUiHost moorestech_web/webui
@@ -892,14 +909,14 @@ git commit -m "feat(wire): machine_recipesにinputFluids/outputFluidsを追加 (
 - Produces: `FluidSlot` prop `ghost?: { fluidGuid: string; amount: number }`（`fluid.kind === "empty"` かつ ghost あり → ゴースト描画）
 - Produces: `FluidSlotRow` prop `ghosts?: ({ fluidGuid: string; amount: number } | undefined)[]`（index 対応）
 
-- [ ] **Step 1: SlotFrame テストを足す**
+- [x] **Step 1: SlotFrame テストを足す**
 
 `SlotFrame/index.test.ts` の最初の `it` に `ghost: true` を渡し、`expect(markup).toContain('data-ghost="true"');` を追加。
 
 Run: `npx vitest run src/shared/ui/SlotFrame`
 Expected: FAIL
 
-- [ ] **Step 2: SlotFrame に `ghost` を通す**
+- [x] **Step 2: SlotFrame に `ghost` を通す**
 
 `Props` に `ghost?: boolean;` を追加、`renderSlotFrame` の分割代入に `ghost` を足し、div に `data-ghost={ghost ? "true" : undefined}` を追加。`style.module.css` 末尾:
 
@@ -922,7 +939,7 @@ Expected: FAIL
 Run: `npx vitest run src/shared/ui/SlotFrame`
 Expected: PASS
 
-- [ ] **Step 3: ItemSlot に `ghost` を足す**
+- [x] **Step 3: ItemSlot に `ghost` を足す**
 
 `Props` に追加:
 
@@ -951,7 +968,7 @@ Expected: PASS
         ) : null}
 ```
 
-- [ ] **Step 4: FluidSlot / FluidSlotRow に `ghost` を足す**
+- [x] **Step 4: FluidSlot / FluidSlotRow に `ghost` を足す**
 
 `FluidSlot`:
 
@@ -987,12 +1004,12 @@ export default function FluidSlot({ fluid, ghost }: { fluid: FluidSlotData; ghos
 
 `FluidSlotRow`: `ghosts?: ({ fluidGuid: string; amount: number } | undefined)[]` を Props に足し、`<FluidSlot key={i} fluid={fluid} ghost={ghosts?.[i]} />`。
 
-- [ ] **Step 5: 検証**
+- [x] **Step 5: 検証**
 
 Run: `npx vitest run src/shared && npm run typecheck && npm run lint`
 Expected: PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add src/app/slotTokens.css src/shared/ui
@@ -1025,7 +1042,7 @@ export type MachineSlotView = {
 export function buildMachineSlotView(recipe: MachineRecipe, layout: { input: number; output: number; module: number }, totalItemSlots: number, inputTankCount: number): MachineSlotView;
 ```
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```ts
 import { describe, expect, it } from "vitest";
@@ -1069,7 +1086,7 @@ describe("buildMachineSlotView", () => {
 Run: `npx vitest run src/features/blockInventory/details/machine/machineSlotGhosts.test.ts`
 Expected: FAIL（モジュール無し）
 
-- [ ] **Step 2: 実装**
+- [x] **Step 2: 実装**
 
 ```ts
 // 選択レシピから「描くスロット」と各スロットのゴースト内容を導出する（ADR 0042 R7/R8）
@@ -1114,7 +1131,7 @@ export function buildMachineSlotView(
 Run: `npx vitest run src/features/blockInventory && npm run typecheck && uloop compile --project-path ./moorestech_client && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "WireContractBlockDetailTest"`
 Expected: PASS
 
-- [ ] **Step 3: MachineInventoryBody をレシピ分スロット＋ゴーストにする**
+- [x] **Step 3: MachineInventoryBody をレシピ分スロット＋ゴーストにする**
 
 `MachineInventoryBody` の Props を `{ data: BlockInventoryOpen; recipe: MachineRecipe }` に変え（レシピ0件機械は Task 6 で従来通り `recipe` 無しの経路を残すため、`recipe: MachineRecipe | null` とし null なら現行の全スロット描画）、本体の入出力部分を置換:
 
@@ -1146,7 +1163,7 @@ Expected: PASS
 Run: `npx vitest run src/features/blockInventory && npm run typecheck && npm run lint`
 Expected: PASS（`MachineSection.test.ts` は Task 6 で書き直すため、この時点で型エラーが出るなら `MachineSection.tsx` の呼び出しに `recipe={selectedRecipe ?? null}` を仮で足す）
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add -A moorestech_web/webui/src moorestech_client/Assets/Scripts
@@ -1174,7 +1191,7 @@ git commit -m "feat(webui): 機械インベントリをレシピ分スロット�
 - Produces: `MachineRecipeSelectionRowData = { recipe: MachineRecipe; selected: boolean }`、`buildMachineRecipeSelectionRows(recipes, blockGuid, selectedRecipeGuid)`（アイコン列は廃止）
 - Produces: `MachineRecipeSelectionRow({ row, onSelect: (recipeGuid: string) => void })`、`MachineRecipeSelectionList({ rows, onSelected: () => void })`、`SelectedRecipeHeader({ recipe, onChangeRecipe: () => void })`
 
-- [ ] **Step 1: ローカライズキー**
+- [x] **Step 1: ローカライズキー**
 
 `Localization/localization.csv` の `ui.blockInventory.inventoryTab` / `ui.blockInventory.recipeSelectionTab` / `ui.blockInventory.recipeSelectionHint` の3行を削除し、次を追加:
 
@@ -1187,7 +1204,7 @@ cd moorestech_web/webui && npm run gen:i18n && npx vitest run src/shared/i18n
 ```
 Expected: PASS（`recipeSelectionHint` を参照する箇所は Task 6 で消える。残れば typecheck が指摘する）
 
-- [ ] **Step 2: 行データロジックを書き換える（テスト先行）**
+- [x] **Step 2: 行データロジックを書き換える（テスト先行）**
 
 `machineRecipeSelectionLogic.test.ts` を次に置換:
 
@@ -1247,7 +1264,7 @@ export function hasSelectedRecipe(selectedRecipeGuid: string): boolean {
 Run: `npx vitest run src/features/blockInventory/details/machine/machineRecipeSelectionLogic.test.ts`
 Expected: PASS
 
-- [ ] **Step 3: 選択行のテストを書く**
+- [x] **Step 3: 選択行のテストを書く**
 
 `MachineRecipeSelectionRow.test.ts`（`MachineRecipeSelectionTab.test.ts` と同じモック様式）:
 
@@ -1298,7 +1315,7 @@ describe("MachineRecipeSelectionRow", () => {
 Run: `npx vitest run src/features/blockInventory/details/machine/MachineRecipeSelectionRow.test.ts`
 Expected: FAIL（モジュール無し）
 
-- [ ] **Step 4: 行・リスト・ヘッダを実装する**
+- [x] **Step 4: 行・リスト・ヘッダを実装する**
 
 `MachineRecipeSelectionRow.tsx`:
 
@@ -1427,7 +1444,7 @@ export default function SelectedRecipeHeader({ recipe, onChangeRecipe }: Props) 
 Run: `npx vitest run src/features/blockInventory/details/machine/MachineRecipeSelectionRow.test.ts`
 Expected: PASS
 
-- [ ] **Step 5: MachineSection を2モードへ**
+- [x] **Step 5: MachineSection を2モードへ**
 
 `MachineSection.test.ts` を次の観点で書き直す（既存のモック様式を踏襲し、`./machine/MachineRecipeSelectionList`・`./machine/SelectedRecipeHeader`・`./machine/MachineInventoryBody` をモック）:
 
@@ -1567,7 +1584,7 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
 Run: `npx vitest run && npm run typecheck && npm run lint`
 Expected: PASS
 
-- [ ] **Step 6: コミット**
+- [x] **Step 6: コミット**
 
 ```bash
 git add -A moorestech_web/webui Localization
@@ -1583,11 +1600,11 @@ git commit -m "feat(webui): 機械UIをタブ廃止の2モード＋レシピ名�
 - Modify: `moorestech_web/webui/e2e/tests/block/machineRecipe.spec.ts`
 - Modify: `moorestech_web/webui/e2e/tests/block/machineGestures.spec.ts`（必要時）
 
-- [ ] **Step 1: フィクスチャを新仕様と整合させる**
+- [x] **Step 1: フィクスチャを新仕様と整合させる**
 
 `blockMachine`: `itemSlots` を `[{ itemId: 2, count: 5 }, empty(), empty(), empty()]`（選択中 `bbbbbbbb` の素材 itemId 2 がスロット0、出力スロットは空）、`fluidSlots` を `[empty fluid (fluidId 0, amount 0, capacity 100, fluidGuid "")]` にして液体ゴーストが出る状態にし、`slotLayout` に `inputTank: 1` を足す（Task 5 のワイヤ変更）。他フィクスチャの `slotLayout` にも `inputTank: 0` を足す。
 
-- [ ] **Step 2: machineRecipe.spec.ts を書き直す**
+- [x] **Step 2: machineRecipe.spec.ts を書き直す**
 
 ```ts
 import { test, expect } from "@playwright/test";
@@ -1659,7 +1676,7 @@ test("レシピ無しブロックは小型パネルのまま", async ({ page }) 
 
 `SlotGrid` の直下要素が `ItemSlot` の div でない（Tooltip ラッパ等）場合は `locator("> div")` を `locator('[data-testid^="slot"]')` 等、実DOMに合わせて調整する（`SlotGrid`/`ItemSlot` の実装で確認）。
 
-- [ ] **Step 3: machineGestures.spec.ts と blockDetails.spec.ts を確認・修正**
+- [x] **Step 3: machineGestures.spec.ts と blockDetails.spec.ts を確認・修正**
 
 ```bash
 grep -n "machine-tab\|machine-selected-product\|machine-recipe-detail" e2e/tests/**/*.ts e2e/support/*.ts
@@ -1669,14 +1686,14 @@ grep -n "machine-tab\|machine-selected-product\|machine-recipe-detail" e2e/tests
 Run: `npm run test:e2e -- e2e/tests/block/machineRecipe.spec.ts e2e/tests/block/machineGestures.spec.ts e2e/tests/block/blockDetails.spec.ts e2e/tests/block/fluidSlot.spec.ts`（e2eポート衝突に注意: 並列worktreeがあれば `webui-e2e-port-collision` メモリ参照）
 Expected: PASS
 
-- [ ] **Step 4: チュートリアルアンカーの追従確認**
+- [x] **Step 4: チュートリアルアンカーの追従確認**
 
 ```bash
 grep -rn "machine-tab\|machine-selected-product\|machine-recipe" ../moorestech_master/server_v8 moorestech_web/webui/src/shared/anchors* 2>/dev/null
 ```
 ヒットがあればアンカー語彙とマスタJSONを新testIdへ更新し、`../moorestech_master` 側は別PRを作ってピン（`.moorestech-external-revisions.json`）を更新する（AGENTS.md 関連リポジトリ規約）。ヒット0ならこのステップは完了。
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_web/webui
@@ -1687,7 +1704,9 @@ git commit -m "test(webui): 機械UI2モード・ゴーストのe2eとモック�
 
 ### Task 8: 通し確認と全ブランチレビュー（省略不可）
 
-- [ ] **Step 1: サーバー・クライアント全テストとWebの全検査**
+- [x] **Step 1: サーバー・クライアント全テストとWebの全検査**
+
+実測: `uloop compile` 0 errors / サーバー EditMode `Machine|CleanRoom` 144/144 PASS・`RemoveBlockProtocolTest` 5/5 PASS / Web unit 808/808・`tsc -b`・`tsc -p e2e/tsconfig.json`・lint クリーン / block配下 e2e 34/34 PASS。`Inventory` フィルタで `EditModeInPlayingTest` 3件が初期化60秒タイムアウトで落ちたが、同一コードの `Machine|CleanRoom` 実行（同3件を含む）では全通のため環境要因。
 
 ```bash
 uloop compile --project-path ./moorestech_client
@@ -1696,15 +1715,17 @@ cd moorestech_web/webui && npm run lint && npm run typecheck && npx vitest run &
 ```
 Expected: 全PASS。失敗があれば当該タスクへ戻って修正する（結果をそのまま報告し、通っていないものを通ったと書かない）。
 
-- [ ] **Step 2: 実プレイ確認（unityプレイ録画テスト）**
+- [ ] **Step 2: 実プレイ確認（unityプレイ録画テスト）** — **未実施**。このworktreeのEditorがPlayMode遷移テストで固着し（ドメインリロードを繰り返して `run-tests` が返らない）、録画テストを走らせられなかった。マージ前に別worktreeで実施すること。
 
 `unity-playmode-recorded-playtest` スキルで、電気機械を設置→開く→レシピ選択モード表示→行クリック→ゴースト付きインベントリ→素材を誤スロットへドロップして拒否される→正スロットへ入る、までを1シナリオで録画する。masterピンは `.moorestech-external-revisions.json` に従う。
 
-- [ ] **Step 3: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+- [x] **Step 3: 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
+
+`moores-code-review` を Workflow で実行（rundir `moorestech_logs/harness/moores-code-review/runs/2026-08-30-1020/`）。起動48系統・欠員0・Codex 3本完走。採用Critical 14 / Warning 32 / suppressed 10 / 破棄 1。自動適用9件、設計判断8件（D1〜D8）はAskUserQuestionで全件裁定、C5とR7の矛盾は追加裁定。記録は `records/2026-08-30-machine-ui-mode-split-ghost-slots.md`。
 
 `moores-code-review` を起動し、指摘を実コード照合のうえ適用する。設計判断は AskUserQuestion にまとめる。
 
-- [ ] **Step 4: PR作成と撤収**
+- [x] **Step 4: PR作成と撤収**
 
 `pr-create` スキルでPRを作り、`bd close moorestech-j2kx --reason="PR #<番号>"`、`moores-wt rm feature/machine-ui-mode-split-ghost-slots`。
 

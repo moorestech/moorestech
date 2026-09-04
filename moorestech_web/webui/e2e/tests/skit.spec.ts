@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { payloadsOf } from "../support/actions";
-import { setSkitStage } from "../support/mockControl";
+import { setSkitStage, setUiState } from "../support/mockControl";
 
 test.beforeEach(async ({ page }) => {
   await setSkitStage(page, "none");
@@ -8,6 +8,7 @@ test.beforeEach(async ({ page }) => {
 
 test.afterEach(async ({ page }) => {
   await setSkitStage(page, "none");
+  await setUiState(page, "GameScreen");
 });
 
 test("blocking skit reveals, advances, and selects by choiceId", async ({ page }) => {
@@ -74,4 +75,19 @@ test("横長画面で会話帯を全幅に広げツールを実画面右上へ�
   expect(layout.toolTop).toBeLessThan(20);
   expect(layout.toolFilter).not.toBe("none");
   expect(layout.toolOpacity).toBe("1");
+});
+
+test("Escでポーズメニューを開いても会話UIは背後で表示され続ける", async ({ page }) => {
+  await page.goto("/");
+  await setSkitStage(page, "text");
+  await setUiState(page, "Story", "PauseMenuScreen");
+
+  await expect(page.getByTestId("pause-menu")).toBeVisible();
+  await expect(page.getByTestId("blocking-skit")).toBeVisible();
+  // 表示は続くが入力は死ぬ。会話窓をクリックしても送りは飛ばない
+  // It keeps drawing but takes no input; clicking the window sends no advance
+  await expect(page.getByTestId("blocking-skit")).toHaveCSS("pointer-events", "none");
+
+  await setUiState(page, "Story", "GameScreen");
+  await expect(page.getByTestId("pause-menu")).toHaveCount(0);
 });

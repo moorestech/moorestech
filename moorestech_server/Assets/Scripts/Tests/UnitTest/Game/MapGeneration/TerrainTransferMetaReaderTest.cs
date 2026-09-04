@@ -14,9 +14,33 @@ namespace Tests.UnitTest.Game.MapGeneration
 {
     // TerrainChunkTotalはワイヤ契約(クライアントが0..N-1を要求する)なので、実ファイルの増減で動かないことを検証する
     // TerrainChunkTotal is a wire contract (clients request 0..N-1), so verify unrelated files never move it
+    // メタ契約は合成を優先し実生成は1x1固定
+    // Real generation reruns the pipeline and prebake per case; prefer synthetic worlds for metadata contracts and never enlarge the 1x1 test master
+    // 実生成はfixtureで1回だけ行い、各caseはその複製を壊す
+    // Real generation runs once per fixture and each case mutates a copy, since every case here needs the same world
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap3")]
     public class TerrainTransferMetaReaderTest
     {
+        private const int GeneratedWorldSeed = 12345;
+
+        private TerrainTransferTestScope _fixtureScope;
+        private WorldDataDirectory _generatedWorldSnapshot;
         private TerrainTransferTestScope _testScope;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _fixtureScope = new TerrainTransferTestScope($"{nameof(TerrainTransferMetaReaderTest)}_Snapshot");
+            _generatedWorldSnapshot = _fixtureScope.ProvisionGeneratedWorld(GeneratedWorldSeed);
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
+            _fixtureScope.End();
+        }
 
         [SetUp]
         public void SetUp()
@@ -33,7 +57,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void terrainディレクトリに無関係なファイルが混ざってもチャンク総数は変わらない()
         {
-            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
+            var worldDataDirectory = _testScope.CopyProvisionedWorld(_generatedWorldSnapshot);
 
             var chunkTotalBeforeStrayFile = ReadGenerated(worldDataDirectory).TerrainChunkTotal;
             Assert.Greater(chunkTotalBeforeStrayFile, 0);
@@ -51,14 +75,13 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             // クライアントはこのseedで分類段を再実行する。別の値を載せると別ワールドの海岸線が転送地形に貼られる
             // Clients re-run the classification stage with this seed; any other value paints another world's coastline onto the transferred terrain
-            const int seed = 12345;
-            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(seed);
+            var worldDataDirectory = _testScope.CopyProvisionedWorld(_generatedWorldSnapshot);
 
             var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
-            Assert.AreEqual(seed, worldMeta.Seed, "前提: 指定したseedがworld.jsonに記録されている");
+            Assert.AreEqual(GeneratedWorldSeed, worldMeta.Seed, "前提: 指定したseedがworld.jsonに記録されている");
 
             var terrainMeta = ReadGenerated(worldDataDirectory);
-            Assert.AreEqual(seed, terrainMeta.WorldSeed);
+            Assert.AreEqual(GeneratedWorldSeed, terrainMeta.WorldSeed);
             Assert.IsNotNull(terrainMeta.GeneratedPayload);
         }
 
@@ -72,7 +95,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [TestCase("placementLedgerDigest")]
         public void generatedのworld_jsonに原点キーが欠けていたら0で補わず例外を投げる(string missingKey)
         {
-            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
+            var worldDataDirectory = _testScope.CopyProvisionedWorld(_generatedWorldSnapshot);
 
             var worldMeta = JObject.Parse(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
             Assert.IsTrue(worldMeta.Remove(missingKey), $"前提: world.jsonに'{missingKey}'が書かれている");
@@ -92,7 +115,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void generatedのworld_jsonのgeneratorVersionが不一致なら例外を投げる()
         {
-            var worldDataDirectory = _testScope.ProvisionGeneratedWorld(12345);
+            var worldDataDirectory = _testScope.CopyProvisionedWorld(_generatedWorldSnapshot);
 
             var worldMeta = JObject.Parse(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
             worldMeta["generatorVersion"] = "1.0.0";

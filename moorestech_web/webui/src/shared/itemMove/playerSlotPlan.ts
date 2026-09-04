@@ -5,11 +5,16 @@ import type { PlannedAction } from "./plannedAction";
 export const GRAB: SlotRef = { area: "grab", slot: 0 };
 
 // プレイヤースロット操作の判定材料。blockItemSlots はブロックUI開時のみ非null（Shift配分の宛先になる）
-// Inputs for player-slot decisions; blockItemSlots is non-null only while a block UI is open (Shift target)
+// blockSlotRestriction は「無制限」か「候補index列」かの2択を呼び出し側が値で確定させて渡す（判定は具体側の責務）
+// Inputs for player-slot decisions; blockItemSlots is non-null only while a block UI is open (Shift target).
+// blockSlotRestriction is settled by the caller as either unrestricted or an explicit candidate list (the decision belongs to the concrete side)
+export type BlockSlotRestriction = { kind: "unrestricted" } | { kind: "bound"; candidateIndices: number[] };
+
 export type PlayerSlotContext = {
   inventory: PlayerInventoryData;
   maxStack: number | undefined;
   blockItemSlots: SlotData[] | null;
+  blockSlotRestriction: BlockSlotRestriction;
 };
 
 // 左クリックの帰結。actionsは送信するプラン、beginSplitDragは呼び出し側にドラッグ開始を促す合図
@@ -46,10 +51,19 @@ export function planPlayerDoubleClick(ref: SlotRef): PlannedAction[] {
 // Shift+クリックでblockへ配分
 // Shift-click: allocate into the block while its UI is open; shift from equipment returns the stack to the main area (the old main<->hotbar swap is gone)
 function planShiftMove(from: SlotRef, slot: SlotData, ctx: PlayerSlotContext): PlannedAction[] {
-  if (ctx.blockItemSlots) {
-    return planDirectMoves(slot.count, slot.itemId, ctx.maxStack, ctx.blockItemSlots).map((m) => ({
+  const blockItemSlots = ctx.blockItemSlots;
+  if (blockItemSlots) {
+    // 候補が束縛で絞られている場合はそこだけを宛先にする。move_itemはスロット固定のswapのためサーバーが
+    // 束縛外を無言で拒否し、全スロットへ配分すると通信上は成功扱いで何も起きない
+    // A bound restriction narrows the destinations: move_item swaps a fixed slot and the server silently
+    // rejects an unbound one, so spreading across every slot looks like success but does nothing
+    const candidateIndices = ctx.blockSlotRestriction.kind === "bound"
+      ? ctx.blockSlotRestriction.candidateIndices
+      : blockItemSlots.map((_, i) => i);
+    const candidateSlots = candidateIndices.map((i) => blockItemSlots[i]);
+    return planDirectMoves(slot.count, slot.itemId, ctx.maxStack, candidateSlots).map((m) => ({
       type: "block_inventory.move_item",
-      payload: { from, to: { area: "block", slot: m.slot }, count: m.count },
+      payload: { from, to: { area: "block", slot: candidateIndices[m.slot] }, count: m.count },
     }));
   }
   if (from.area !== "equipment") return [];
