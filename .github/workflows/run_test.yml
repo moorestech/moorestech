@@ -81,6 +81,9 @@ jobs:
     name: Unity Test - ${{ matrix.shard }}
     needs: resolve_unity_test_shards
     runs-on: ubuntu-latest
+    # Unityはアセンブリリロード中に落ちても終了せず居座る。既定6時間だと1本のハングがPRを半日塞ぐ
+    # Unity can crash during an assembly reload yet never exit; at the 6-hour default one hang blocks a PR for half a day
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
