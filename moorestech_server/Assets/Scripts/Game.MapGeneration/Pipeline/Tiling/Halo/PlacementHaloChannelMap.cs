@@ -8,7 +8,9 @@ namespace Game.MapGeneration.Pipeline.Tiling
     {
         private readonly Dictionary<string, PlacementHaloChannel> _channels = new();
 
-        public PlacementHaloChannel Get(string veinGuid)
+        // 未登録キーは空チャネルを作って返す。最初のタイルは種なしで始まるのが正常系。
+        // An unknown key creates and returns an empty channel; the first tile legitimately starts with no seeds.
+        public PlacementHaloChannel GetOrCreate(string veinGuid)
         {
             if (!_channels.TryGetValue(veinGuid, out var channel))
             {

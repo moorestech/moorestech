@@ -14,8 +14,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     /// </summary>
     public static class PlaceBlockProtocolSender
     {
-        public static void SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
+        // 空バッチは送らないという不変条件を送信本体が持つ。戻り値は送信したか
+        // The "never send an empty batch" invariant lives here in the sender; returns whether it sent
+        public static bool SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
         {
+            if (currentPlaceInfos.Count == 0) return false;
+
             // PlaceInfoをサーバー送信
             // Send PlaceInfo to server
             ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
@@ -26,6 +30,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
 
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
+            return true;
         }
 
         // 左クリック解放時の設置送信。戻り値は送信したか
@@ -38,12 +43,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // Send only placeable cells
             var placeableInfos = currentPlaceInfos.Where(info => info.Placeable).ToList();
 
-            // 1セルも置けないなら空パケットも設置音も出さない（鉱脈外の採掘機クリックが毎回音を鳴らすのを防ぐ）
-            // With no placeable cell, send no empty packet and play no sound (an off-vein miner click would otherwise sound every time)
-            if (placeableInfos.Count == 0) return false;
-
-            SendPlaceBlockProtocol(placeableInfos);
-            return true;
+            return SendPlaceBlockProtocol(placeableInfos);
         }
     }
 }

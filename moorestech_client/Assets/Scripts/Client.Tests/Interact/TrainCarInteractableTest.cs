@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.UIState;
@@ -37,14 +39,24 @@ namespace Client.Tests.Interact
         }
 
         [Test]
+        public void 当たり判定子からの案内は付与したインタラクト面と同一実体を返す()
+        {
+            var trainCarEntityObject = CreateTrainCarEntityObject();
+            var interactable = AttachTrainCarInteractable(trainCarEntityObject);
+
+            Assert.AreSame(interactable, ((IInteractRayTarget)trainCarEntityObject).Interactable);
+        }
+
+        [Test]
         public void Fアクションは車両インベントリを開く()
         {
             var interactable = CreateTrainCarInteractable();
 
-            var transit = interactable.Actions[0].Execute().TransitContext;
+            var result = interactable.Actions[0].Execute();
 
-            Assert.AreEqual(UIStateEnum.SubInventory, transit.NextStateEnum);
-            Assert.IsInstanceOf<TrainSubInventorySource>(transit.GetContext<ISubInventorySource>());
+            Assert.IsTrue(result.IsHandled);
+            Assert.AreEqual(UIStateEnum.SubInventory, result.TransitContext.NextStateEnum);
+            Assert.IsInstanceOf<TrainSubInventorySource>(result.TransitContext.GetContext<ISubInventorySource>());
         }
 
         [Test]
@@ -53,10 +65,11 @@ namespace Client.Tests.Interact
             var trainCarEntityObject = CreateTrainCarEntityObject();
             var interactable = AttachTrainCarInteractable(trainCarEntityObject);
 
-            var transit = interactable.Actions[1].Execute().TransitContext;
+            var result = interactable.Actions[1].Execute();
 
-            Assert.AreEqual(UIStateEnum.TrainHUDScreen, transit.NextStateEnum);
-            var request = transit.GetContext<RideTrainCarRequest>();
+            Assert.IsTrue(result.IsHandled);
+            Assert.AreEqual(UIStateEnum.TrainHUDScreen, result.TransitContext.NextStateEnum);
+            var request = result.TransitContext.GetContext<RideTrainCarRequest>();
             Assert.AreEqual(trainCarEntityObject.TrainCarInstanceId, request.TargetCarId);
         }
 
@@ -71,6 +84,7 @@ namespace Client.Tests.Interact
         {
             var interactable = trainCarEntityObject.gameObject.AddComponent<TrainCarInteractable>();
             interactable.Initialize(trainCarEntityObject);
+            trainCarEntityObject.SetInteractable(interactable);
             return interactable;
         }
 

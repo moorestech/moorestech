@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.Interact
+namespace Client.Game.InGame.Interact.Selection
 {
     /// <summary>
     ///     レイが当たるコライダに付ける、インタラクト対象への案内

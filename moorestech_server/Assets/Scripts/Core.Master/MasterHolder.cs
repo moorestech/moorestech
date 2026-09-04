@@ -43,8 +43,13 @@ namespace Core.Master
             BuildMenuCategoryMaster = new BuildMenuCategoryMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
             InitializeMaster(BuildMenuCategoryMaster);
 
-            // ItemMaster, FluidMaster, BuildMenuCategoryMaster依存（category/subCategoryの参照を検証）
-            // Depends on ItemMaster, FluidMaster, BuildMenuCategoryMaster (validates category/subCategory references)
+            // ItemMaster依存。BlockMasterの検証がMapObjectMineSettingsの装飾物を引くため、BlockMasterより前に置く
+            // Depends on ItemMaster; it precedes BlockMaster because BlockMaster's validation looks up decorations through MapObjectMineSettings
+            MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("map")));
+            InitializeMaster(MapObjectMaster);
+
+            // ItemMaster, FluidMaster, BuildMenuCategoryMaster, MapObjectMaster依存（category/subCategoryの参照とMapObjectMineSettingsの装飾物を検証）
+            // Depends on ItemMaster, FluidMaster, BuildMenuCategoryMaster, MapObjectMaster (validates category/subCategory references and decorations in MapObjectMineSettings)
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
             InitializeMaster(BlockMaster);
 
@@ -60,9 +65,6 @@ namespace Core.Master
 
             BuildToolMaster = new BuildToolMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
             InitializeMaster(BuildToolMaster);
-
-            MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("map")));
-            InitializeMaster(MapObjectMaster);
 
             // ItemMaster, FluidMaster依存（veinParamのitemGuid/fluidGuidを検証）
             // Depends on ItemMaster, FluidMaster (validates veinParam itemGuid/fluidGuid)

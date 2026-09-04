@@ -14,7 +14,7 @@ using VContainer;
 namespace Client.Game.InGame.Tutorial
 {
     /// <summary>
-    ///     設置目標セルのゴーストをtutorialGuidごとに持ち、その生成・移動・破棄を引き受ける。どのセルを指すかは呼び手が決める
+    ///     ゴーストをguidごとに持ち生成・移動・破棄を担う
     ///     Owns one target-cell ghost per tutorialGuid with its creation, movement and teardown; which cell to point at is the caller's decision
     /// </summary>
     public class BlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialViewManager
@@ -23,7 +23,7 @@ namespace Client.Game.InGame.Tutorial
         
         private readonly Dictionary<string, PlacementGhostEntry> _entries = new();
         
-        // 絶対座標型（blockPlacePreview）として適用された分の設置検知購読。guidごとに独立して持つ
+        // 絶対座標型として適用された分の設置検知購読
         // Placement-detection subscriptions for absolute blockPlacePreview applications, held independently per guid
         private readonly Dictionary<string, IDisposable> _placedSubscriptions = new();
         

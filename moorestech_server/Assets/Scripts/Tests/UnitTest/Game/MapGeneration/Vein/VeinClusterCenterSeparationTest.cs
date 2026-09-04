@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Core.Master;
+using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Pipeline.Biomes;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators;
@@ -101,7 +102,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var seededCenter = new Vector2(-1f, sameGuidCenter.y);
             var differentGuidCenter = probeB.First(point => Vector2.Distance(point, seededCenter) < DefaultCenterSpacing);
             var seededHalo = CreateHalo(20f);
-            seededHalo.ItemVeinCenters.Get(VeinGuidA).Add(TileSize + seededCenter.x, seededCenter.y);
+            seededHalo.ItemVeins.Centers.GetOrCreate(VeinGuidA).Add(TileSize + seededCenter.x, seededCenter.y);
 
             Generate(entries, TileSize, seededHalo, 43);
             var generatedA = ReadCenters(seededHalo, VeinGuidA, TileSize).Where(point => 0f <= point.x).ToList();
@@ -151,14 +152,14 @@ namespace Tests.UnitTest.Game.MapGeneration
                 TileSize, TileSize, 100f, worldOffsetX, 0f,
                 HeightRes, HeightRes - 1, 0f, 0f, 123, 0f, 0f,
                 (int)(worldOffsetX / TileSize), 0, 2, 1);
+            // 確定はproductionのcommitへ通す。写経すると確定AABB台帳の更新が抜けて本番と別挙動になる。
+            // Confirmation goes through the production commit; a hand-copied one drops the AABB ledger update and diverges from the real run.
             var placement = OrePlacementGenerator.GenerateForWorld(
                 entries, masks, 0f, new float[HeightRes, HeightRes], dims, new System.Random(seed),
-                null, null, halo.ItemVeinMembers, halo.ItemVeinCenters, halo.Radius);
-            var result = placement.Clusters.SelectMany(cluster => cluster.Members).ToList();
-            foreach (var cluster in placement.Clusters)
-                halo.ItemVeinCenters.Get(cluster.VeinGuid).Add(cluster.WorldCenter.x, cluster.WorldCenter.y);
-            halo.ItemVeinMembers.AddPlacements(result, 0f, 0f);
-            return result;
+                null, null, halo.ItemVeins, halo.Radius,
+                halo.CreateConfirmedVeinSnapshot(worldOffsetX, 0f, TileSize, TileSize));
+            halo.CommitVeins(halo.ItemVeins, placement);
+            return placement.Clusters.SelectMany(cluster => cluster.Members).ToList();
 
             #region Internal
 
@@ -202,7 +203,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         private static List<Vector2> ReadCenters(PlacementHaloStore halo, string veinGuid, float worldOffsetX)
         {
             var grid = new SpatialGrid(TileSize, TileSize, 5f);
-            halo.ItemVeinCenters.Get(veinGuid).SeedGrid(
+            halo.ItemVeins.Centers.GetOrCreate(veinGuid).SeedGrid(
                 grid, worldOffsetX, 0f, TileSize, TileSize, halo.Radius);
             return grid.GetAllPoints();
         }

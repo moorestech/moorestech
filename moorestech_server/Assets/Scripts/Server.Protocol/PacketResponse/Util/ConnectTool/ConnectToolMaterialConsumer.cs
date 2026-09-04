@@ -26,7 +26,7 @@ namespace Server.Protocol.PacketResponse.Util.ConnectTool
 
         // 予約リスト中の同一アイテム数を合計する。判定・不足算出が必要数へ上乗せする唯一の定義
         // The single definition of the reserved amount per item that judgements and shortage calculations add on top
-        public static int SumReserved(IReadOnlyList<ConnectToolMaterialCost> reservedMaterials, ItemId itemId)
+        private static int SumReserved(IReadOnlyList<ConnectToolMaterialCost> reservedMaterials, ItemId itemId)
         {
             if (reservedMaterials == null) return 0;
             var reserved = 0;

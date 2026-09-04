@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
 using Game.Block.Interface;
@@ -80,6 +81,27 @@ namespace Client.Tests.PlaceSystem
         }
 
         [Test]
+        public void 連結ゴーストの向きは設置向きで回してから下流へ渡る()
+        {
+            CreateServer();
+            var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
+            var anchorBlockId = MasterHolder.BlockMaster.GetBlockId(chestMaster.BlockGuid);
+            const BlockDirection chainLocalDirection = BlockDirection.West;
+
+            var state = new ChainPlacePreviewState();
+            state.SetChain(ChainTutorialGuid, anchorBlockId, new List<ChainGhost> { new(ForUnitTestModBlockId.ChestId, ChainOffset, chainLocalDirection) });
+            var capture = new DirectionCapturingGroundQuery();
+
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.East) };
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, state, new StubExistingBlockQuery(null), capture, true, 0, new PlacementFeedback());
+
+            // ローカル向きのまま渡すと回転配線が死ぬので、合成結果と一致し素の値とは違うことを両方見る
+            // Passing the local direction through would kill the rotation wiring, so assert both the composed match and the difference from the raw value
+            Assert.AreEqual(AnchorRelativeDirectionUtil.RotateByAnchor(chainLocalDirection, BlockDirection.East), capture.LastDirection, "the chain ghost direction was not composed with the placement direction");
+            Assert.AreNotEqual(chainLocalDirection, capture.LastDirection, "the chain ghost direction stayed in the local frame");
+        }
+
+        [Test]
         public void 地形が揃わない連結セルは設置不可になる()
         {
             CreateServer();
@@ -100,7 +122,7 @@ namespace Client.Tests.PlaceSystem
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
             var feedback = new PlacementFeedback();
 
-            // チェスト用の連結定義しか無いので発電機は素通り
+            // チェスト用の定義しか無く発電機は素通り
             // Only the chest anchors a chain, so the generator passes untouched
             ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, generatorMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(CursorCell + ChainOffset), new NeverAlignedGroundQuery(), true, 0, feedback);
 
@@ -145,7 +167,7 @@ namespace Client.Tests.PlaceSystem
             var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
 
-            // 地表基準でない設置では NeverAligned でも塞がれない
+            // 地表基準が無ければ塞がれない
             // With no ground basis, even a never-aligned query must not block the placement
             ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new NeverAlignedGroundQuery(), false, 0, new PlacementFeedback());
 
@@ -198,6 +220,19 @@ namespace Client.Tests.PlaceSystem
             public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
             {
                 LastHeightOffset = heightOffset;
+                return true;
+            }
+        }
+
+        // 渡ったワールド向きを記録するテストダブル
+        // Ground-query double recording the world direction handed to the chain ghost
+        private class DirectionCapturingGroundQuery : IChainGroundQuery
+        {
+            public BlockDirection LastDirection { get; private set; }
+
+            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
+            {
+                LastDirection = direction;
                 return true;
             }
         }

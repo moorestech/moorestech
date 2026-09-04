@@ -78,14 +78,12 @@ namespace Client.Input
         public readonly InputKey BlockPlaceRotation;
         public readonly InputKey ClickPosition;
         public readonly InputKey ScreenLeftClick;
-        public readonly InputKey ScreenRightClick;
         public readonly InputKey Interact;
         public readonly InputKey Ride;
 
         public PlayableInputManager(MoorestechInputSettings settings)
         {
             ScreenLeftClick = new InputKey(settings.Playable.ScreenLeftClick);
-            ScreenRightClick = new InputKey(settings.Playable.ScreenRightClick);
             ClickPosition = new InputKey(settings.Playable.ClickPosition);
             BlockPlaceRotation = new InputKey(settings.Playable.BlockPlaceRotation, InputSuppressionScope.Keyboard);
 
@@ -150,11 +148,7 @@ namespace Client.Input
             key.canceled += _ => { if (!IsSuppressed()) OnGetKeyUp?.Invoke(); };
         }
         
-#if UNITY_EDITOR
-        public bool GetKeyDown => ReadButton(_isTestKeyDown || _inputAction.WasPressedThisFrame());
-#else
-        public bool GetKeyDown => ReadButton(_inputAction.WasPressedThisFrame());
-#endif
+        public bool GetKeyDown => ReadButton(_inputAction.WasPressedThisFrame() || TestKeyDown);
         public bool GetKey => ReadButton(_inputAction.IsPressed());
         public bool GetKeyUp => ReadButton(_inputAction.WasReleasedThisFrame());
         
@@ -188,12 +182,14 @@ namespace Client.Input
 #if UNITY_EDITOR
         // EditModeテストではInputSystemの押下がWasPressedThisFrameへ届かないため、押下だけをテストから差し込む
         // In EditMode tests an Input System press never reaches WasPressedThisFrame, so tests inject the press itself
-        private bool _isTestKeyDown;
+        private bool TestKeyDown { get; set; }
 
         internal void SetKeyDownForTest(bool isKeyDown)
         {
-            _isTestKeyDown = isKeyDown;
+            TestKeyDown = isKeyDown;
         }
+#else
+        private bool TestKeyDown => false;
 #endif
     }
 }

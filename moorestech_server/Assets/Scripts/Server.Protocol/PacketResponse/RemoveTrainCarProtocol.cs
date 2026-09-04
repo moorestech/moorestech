@@ -4,6 +4,7 @@ using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Context;
+using Game.Construction;
 using Game.PlayerInventory.Interface;
 using Game.Train.Event;
 using Game.Train.Unit;
@@ -131,7 +132,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 建設コスト全額を返却する（コスト未定義マスタは本体返却なし）
                 // Refund the full construction cost; masters without cost refund nothing for the body
-                var costItemCounts = ConstructionCostService.ToItemCounts(car.TrainCarMasterElement.RequiredItems);
+                var costItemCounts = ConstructionCostItems.ToItemCounts(car.TrainCarMasterElement.RequiredItems);
                 if (costItemCounts.Length > 0)
                 {
                     result.AddRange(ConstructionCostService.CreateRefundItems(costItemCounts));

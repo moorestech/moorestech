@@ -24,14 +24,28 @@ namespace Game.MapGeneration.Provisioning
             // The bundled source is complete down to the visuals; copy it into the shared cache, then treat the shared cache as the sole source
             if (IsSnapshot(bundled) && !IsSnapshot(sharedCache))
             {
-                CopyDirectory(bundled.Root, sharedCache.Root);
+                // 1.2GBのコピー途中で落ちるとworld.jsonだけ揃った半端がスナップショット扱いになり恒久起動不能になる。一時先へ写してからリネームで確定する
+                // A crash mid-way through the 1.2GB copy would leave a stub with world.json that passes as a snapshot and bricks boot; copy to a temp dir and commit by rename
+                var cacheTemp = WorldDataDirectory.FromWorldRoot(sharedCache.ProvisioningTempDirectory);
+                DiscardDirectory(cacheTemp.Root);
+                CopyDirectory(bundled.Root, cacheTemp.Root);
+
+                // ForWorldCacheが空のRootを作る副作用を持つため、リネーム先を空けてから確定する
+                // ForWorldCache creates an empty root as a side effect, so clear the rename target before committing
+                DiscardDirectory(sharedCache.Root);
+                Directory.Move(cacheTemp.Root, sharedCache.Root);
                 Debug.Log($"[WorldSnapshotStore] Copied bundled snapshot '{worldId}' into the shared cache.");
             }
 
             if (!IsSnapshot(sharedCache)) return false;
 
-            CopyWorldFiles(sharedCache, worldDataDirectory);
-            StampCreatedAt(worldDataDirectory);
+            // 本番Rootへの直書きはWorldProvisionerの「一時ディレクトリに書き切ってからDirectory.Moveで確定」の規約に揃える
+            // Writing straight into the production root would bypass WorldProvisioner's rule of writing to a temp dir and committing via Directory.Move
+            var worldTemp = WorldDataDirectory.FromWorldRoot(worldDataDirectory.ProvisioningTempDirectory);
+            DiscardDirectory(worldTemp.Root);
+            CopyWorldFiles(sharedCache, worldTemp);
+            StampCreatedAt(worldTemp);
+            Directory.Move(worldTemp.Root, worldDataDirectory.Root);
             Debug.Log($"[WorldSnapshotStore] Restored world '{worldId}' from the shared cache snapshot.");
             return true;
         }
@@ -66,6 +80,13 @@ namespace Game.MapGeneration.Provisioning
             var worldMeta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldDataDirectory.WorldMetaFilePath));
             worldMeta.CreatedAt = DateTime.UtcNow.ToString("O");
             File.WriteAllText(worldDataDirectory.WorldMetaFilePath, JsonConvert.SerializeObject(worldMeta, Formatting.Indented));
+        }
+
+        // 前回の中断で残った一時ディレクトリや空のリネーム先を捨てて再入を通す
+        // Drops a temp dir left by an earlier interruption, or an empty rename target, so the retry can proceed
+        private static void DiscardDirectory(string path)
+        {
+            if (Directory.Exists(path)) Directory.Delete(path, true);
         }
 
         private static void CopyDirectory(string source, string destination)
