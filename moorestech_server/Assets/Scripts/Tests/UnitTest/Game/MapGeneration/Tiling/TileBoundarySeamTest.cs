@@ -22,6 +22,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
     // SmallSeaRemoval と Alpine 台地の連結成分は到達が無制限で padding では直せず、全設定で無効化してある（bd moorestech-edd.8）。
     // This proves the crop mechanism and the padding derivation are correct, not that production is seam-free.
     // SmallSeaRemoval's and the alpine plateau's connected components have unbounded reach no padding can fix, and stay disabled here (bd moorestech-edd.8).
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap1")]
     public class TileBoundarySeamTest
     {
         private const int GridSide = 3;

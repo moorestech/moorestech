@@ -1,6 +1,5 @@
 using System;
 using Client.Game.InGame.UI.UIState;
-using Client.Game.InGame.UI.UIState.State;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
@@ -15,12 +14,10 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "ui_state.request";
 
         private readonly UIStateControl _uiStateControl;
-        private readonly TrainHUDScreenState _trainHudState;
 
-        public RequestUiStateActionHandler(UIStateControl uiStateControl, TrainHUDScreenState trainHudState)
+        public RequestUiStateActionHandler(UIStateControl uiStateControl)
         {
             _uiStateControl = uiStateControl;
-            _trainHudState = trainHudState;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -33,12 +30,14 @@ namespace Client.WebUiHost.Game.Actions
             var stateName = (string)stateValue;
             if (stateName != nameof(UIStateEnum.GameScreen) && stateName != nameof(UIStateEnum.PlayerInventory)) return UniTask.FromResult(ActionResult.Fail("unsupported_state"));
 
-            // 乗車中ポーズのGameScreen要求は入れ子だけを閉じ、降車させない
-            // A GameScreen request during riding pause closes only the nested pause and never dismounts.
-            if (_uiStateControl.CurrentState == UIStateEnum.TrainHUDScreen && stateName == nameof(UIStateEnum.GameScreen))
+            // 入れ子ポーズを持つ画面のGameScreen要求は、その入れ子だけを閉じて画面自体は維持する（ADR 0035）
+            // A GameScreen request on a nested-pause screen closes only that nested pause and keeps the screen itself (ADR 0035)
+            if (stateName == nameof(UIStateEnum.GameScreen) && _uiStateControl.GetCurrentNestedPauseScreen() is { } nestedScreen)
             {
-                _trainHudState.RequestClosePauseMenu();
-                return UniTask.FromResult(ActionResult.Success());
+                // 閉じるものが無い要求は成功に見せず拒否する
+                // A request with nothing to close is rejected instead of reported as success
+                var closed = nestedScreen.RequestClosePauseMenu();
+                return UniTask.FromResult(closed ? ActionResult.Success() : ActionResult.Fail("transition_not_allowed"));
             }
 
             var requested = Enum.Parse<UIStateEnum>(stateName);

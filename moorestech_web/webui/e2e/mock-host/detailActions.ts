@@ -1,5 +1,6 @@
-import type { BlockInventoryWireData, ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
+import type { BlockInventoryWireData, MachineRecipe, ResearchTreeData } from "../../src/bridge/contract/payloadTypes";
 import type { ActionPayloads } from "../../src/bridge/transport/protocol";
+import { overflowingMachineRecipes } from "./fixtures/recipeFixtures";
 
 // mock 用の固定 grab アイテムID。clear:false 時に C# 側が持ち手アイテムを設定するのを代替する
 // Fixed mock grab item id; stands in for the C# side assigning the currently grabbed item on clear:false
@@ -49,13 +50,38 @@ export function applyMachineRecipeSelect(block: BlockInventoryWireData, p: Actio
   if (!block.open || !("machine" in block) || !block.machine) return false;
   if (p.operation === "set") {
     block.machine.selectedRecipeGuid = p.recipeGuid ?? EMPTY_GUID;
+    rebuildMachineBindings(block.machine);
     return true;
   }
   if (p.operation === "clear") {
     block.machine.selectedRecipeGuid = EMPTY_GUID;
+    rebuildMachineBindings(block.machine);
     return true;
   }
   return false;
+}
+
+// 選択レシピからスロット束縛を組み直す。ホストと同じ規則（入力スロットi＝素材i、出力スロットj＝生産物j、タンクi＝液体i）を写す
+// Rebuild the slot binding from the selected recipe, mirroring the host's rule (input slot i = input i, output slot j = output j, tank i = fluid i)
+type MachineWireDetail = NonNullable<Extract<BlockInventoryWireData, { machine?: unknown }>["machine"]>;
+
+function rebuildMachineBindings(machine: MachineWireDetail): void {
+  const recipes: MachineRecipe[] = overflowingMachineRecipes.recipes;
+  const recipe = recipes.find((r) => r.recipeGuid === machine.selectedRecipeGuid);
+  if (!recipe) {
+    machine.slotBindings = [];
+    machine.tankBindings = [];
+    return;
+  }
+
+  machine.slotBindings = [
+    ...recipe.inputItems.map((item, i) => ({ slot: i, itemId: item.itemId, count: item.count })),
+    ...recipe.outputItems.map((item, j) => ({ slot: machine.slotLayout.input + j, itemId: item.itemId, count: item.count })),
+  ];
+  machine.tankBindings = [
+    ...recipe.inputFluids.map((fluid, i) => ({ tank: i, fluidGuid: fluid.fluidGuid, amount: fluid.amount })),
+    ...recipe.outputFluids.map((fluid, j) => ({ tank: machine.slotLayout.inputTank + j, fluidGuid: fluid.fluidGuid, amount: fluid.amount })),
+  ];
 }
 
 // research.complete: 該当 guid ノードを completed へ書換える。適用できたら true

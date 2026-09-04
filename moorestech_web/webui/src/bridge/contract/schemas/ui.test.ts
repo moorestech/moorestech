@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NestedPauseSubStateNames } from "@/bridge";
 import { NotificationDataSchema, UiStateDataSchema } from "./ui";
 
 describe("NotificationDataSchema", () => {
@@ -31,6 +32,12 @@ describe("UiStateDataSchema", () => {
       keyHints: [{ keyNameKey: "ui.keyHint.key.tab", textKey: "ui.keyHint.text.inventory" }],
     });
     expect(parsed.success).toBe(true);
+  });
+
+  it("入れ子stateは既知語彙も未知語彙も受理する（未知値の解釈はscreenForUiStateのfail-safe）", () => {
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: NestedPauseSubStateNames.gameScreen, keyHints: [] }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: NestedPauseSubStateNames.pauseMenuScreen, keyHints: [] }).success).toBe(true);
+    expect(UiStateDataSchema.safeParse({ state: "Story", subState: "UnknownSubState", keyHints: [] }).success).toBe(true);
   });
 
   it("keyHints未着のペイロードは契約破れとして弾く", () => {

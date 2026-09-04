@@ -90,12 +90,13 @@ describe("block inventory design whitelist", () => {
     expect(styles.modeSwitch).toContain("var(--mode-switch-selected-mix)");
   });
 
-  it("MachineSectionはレシピ有りでタブ切替、電力率を共通フッタに置く", () => {
+  it("MachineSectionはレシピ選択リストとヘッダを往復し、電力率を共通フッタに置く", () => {
     const machineSection = read("./details/MachineSection.tsx");
-    expect(machineSection).toContain("<ModeSwitch");
-    expect(machineSection).toContain("<MachineRecipeSelectionTab");
+    expect(machineSection).toContain("<MachineRecipeSelectionList");
+    expect(machineSection).toContain("<SelectedRecipeHeader");
     expect(machineSection).toContain("<MachineInventoryBody");
     expect(machineSection).toContain("<PowerRateText");
+    expect(machineSection).not.toContain("<ModeSwitch");
   });
 
   it("レシピ有り機械だけviewer〜items占有の大型パネルへ広げる", () => {
@@ -104,10 +105,10 @@ describe("block inventory design whitelist", () => {
     expect(sources.panel).toContain("buildMachineRecipeSelectionRows");
   });
 
-  it("レシピ選択タブは共通SlotGridの9列折返しで列挙する", () => {
-    const recipeTab = read("./details/machine/MachineRecipeSelectionTab.tsx");
-    expect(recipeTab).toContain("<SlotGrid cols={Math.min(9, Math.max(1, rows.length))}");
-    expect(recipeTab).not.toMatch(/display:\s*grid/);
+  it("レシピ選択行は共有RecipeRowを流用し、静止矢印で列挙する", () => {
+    const recipeRow = read("./details/machine/recipeSelection/MachineRecipeSelectionRow.tsx");
+    expect(recipeRow).toContain("<RecipeRow");
+    expect(recipeRow).toContain("arrowValue={null}");
   });
 
   it("機械の加工行は進捗矢印を中央に固定する3カラムグリッドにする", () => {

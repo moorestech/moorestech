@@ -32,9 +32,9 @@ namespace Client.DebugSystem.Environment
             if (_pureNatureEnvironment == null) _pureNatureEnvironment = UnityEngine.Object.FindFirstObjectByType<PureNatureEnvironmentObjectRoot>(FindObjectsInactive.Include);
             if (_otherEnvironment == null) _otherEnvironment = UnityEngine.Object.FindFirstObjectByType<OtherEnvironmentObjectRoot>(FindObjectsInactive.Include);
 
-            // nullだった場合は環境オブジェクトが存在しないシーンなので処理を中止する
-            // If any are still null, environment objects don't exist in this scene - abort silently
-            if (_debugEnvironment == null || _pureNatureEnvironment == null || _otherEnvironment == null) return false;
+            // 全てnullなら環境オブジェクトが存在しないシーンなので処理を中止する
+            // Abort only when every root is null, which means this scene has no environment objects
+            if (_debugEnvironment == null && _pureNatureEnvironment == null && _otherEnvironment == null) return false;
 
             // 環境タイプに応じてアクティブ状態を切り替える
             // Switch active state based on environment type
@@ -58,13 +58,21 @@ namespace Client.DebugSystem.Environment
                     break;
             }
 
-            _debugEnvironment.gameObject.SetActive(isDebug);
-            _pureNatureEnvironment.gameObject.SetActive(isPureNature);
-            _otherEnvironment.gameObject.SetActive(isOther);
+            SetRootActive(_debugEnvironment, isDebug);
+            SetRootActive(_pureNatureEnvironment, isPureNature);
+            SetRootActive(_otherEnvironment, isOther);
             return true;
-            
+
             #region Internal
-            
+
+            // シーンに置かれていない環境ルートは対象外として読み飛ばす
+            // Skip environment roots that are not placed in this scene
+            static void SetRootActive(UnityEngine.Component environmentRoot, bool isActive)
+            {
+                if (environmentRoot == null) return;
+                environmentRoot.gameObject.SetActive(isActive);
+            }
+
             static void SubscribeGameInitializedEvent()
             {
                 if (_isSubscribed) return;

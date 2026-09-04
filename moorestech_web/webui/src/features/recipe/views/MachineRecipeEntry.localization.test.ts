@@ -26,6 +26,8 @@ const recipe: MachineRecipe = {
   time: 1,
   inputItems: [],
   outputItems: [],
+  inputFluids: [],
+  outputFluids: [],
 };
 
 // testIdはレシピtestId+"-duration"
