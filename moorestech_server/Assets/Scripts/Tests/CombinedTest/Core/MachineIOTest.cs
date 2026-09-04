@@ -172,9 +172,9 @@ namespace Tests.CombinedTest.Core
                 GameUpdater.UpdateOneTick();
             }
 
-            // 出力先が空かない限り完了は保留され続け、満杯スロットの中身も変わらない(実現出力の消失なし)
-            // Completion stays held while the output has no room; the full slot's contents are untouched (no realized output is lost)
-            Assert.AreEqual(ProcessState.Processing, blockMachineComponent.CurrentState);
+            // 出力先が空かない限り出力詰まりとして保留され続け、満杯スロットの中身も変わらない(実現出力の消失なし)
+            // Completion stays held as output blockage while there is no room; the full slot's contents are untouched (no realized output is lost)
+            Assert.AreEqual(ProcessState.OutputBlocked, blockMachineComponent.CurrentState);
             Assert.AreEqual(outputItemId, blockInventory.GetItem(inputSlotCount).Id);
             Assert.AreEqual(maxStack, blockInventory.GetItem(inputSlotCount).Count);
 
