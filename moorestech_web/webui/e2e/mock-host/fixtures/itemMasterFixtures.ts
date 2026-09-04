@@ -46,7 +46,7 @@ function createItemNameDictionaries(): Record<string, Record<string, string>> {
   const dictionary = Object.fromEntries(
     [...fixedNames, ...demoNames].map(([guid, name]) => [itemNameKey(guid), name]),
   );
-  return { source: dictionary, english: dictionary, japanese: dictionary };
+  return { source: dictionary, english: dictionary, japanese: dictionary, german: dictionary };
 }
 
 function demoItemGuid(itemId: number): string {

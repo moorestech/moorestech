@@ -19,8 +19,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster);
 
         /// <summary>
-        /// 直前のSetPreviewで置いたプレビューが地形へ接触しているかを同じ並び順で返す
-        /// Returns whether each preview placed by the preceding SetPreview touches the terrain, in the same order
+        /// 直近の物理ステップ時点の地形接触を、直前のSetPreviewの並び順で返す
+        /// Returns the terrain contact as of the last physics step, ordered by the preceding SetPreview
         /// </summary>
         public IReadOnlyList<bool> DetectGroundOverlaps();
 

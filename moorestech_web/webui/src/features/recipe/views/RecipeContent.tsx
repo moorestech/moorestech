@@ -8,7 +8,7 @@ import ItemHeader from "./ItemHeader";
 import CraftRecipeEntry from "./CraftRecipeEntry";
 import MachineRecipeEntry from "./MachineRecipeEntry";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
-import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
+import { L, useI18n, useItemDisplayName } from "@/shared/i18n";
 
 type Props = {
   itemId: number;
@@ -22,7 +22,7 @@ type Props = {
 // Shows every recipe in one craft-first list
 export default function RecipeContent({ itemId, recipes, machineRecipes, inventory, onSelect }: Props) {
   const { t } = useI18n();
-  const resolveItemName = useItemNameResolver();
+  const itemDisplayName = useItemDisplayName();
   // 導出は純関数＋useMemo。入力 topic が変わらない限り再計算しない
   // Derivations are pure functions + useMemo; no recompute unless the input topics change
   const entries = useMemo(() => buildRecipeEntries(recipes, machineRecipes, itemId), [recipes, machineRecipes, itemId]);
@@ -30,7 +30,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   // The server's OneClickCraft only consults the main inventory, so grab is excluded from the tally
   const counts = useMemo(() => buildOwnedCounts(inventory.mainSlots), [inventory]);
 
-  const itemName = resolveItemName(itemId) ?? t(L.ui.common.itemFallback, { itemId });
+  const itemName = itemDisplayName(itemId);
   // buildRecipeEntriesがクラフト優先で並べるため、先頭がクラフトならそれが代表
   // buildRecipeEntries sorts craft first, so the head entry is the representative craft when it is one
   const headEntry = entries[0];

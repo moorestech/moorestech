@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.TrainHUDScreen;
 using Mooresmaster.Localization.Generated;
@@ -87,12 +89,36 @@ namespace Client.Tests.UIState
             CollectionAssert.IsEmpty(declared.Except(allowed).ToArray(), "ADR-0032の許可リストに無いキー名が宣言されている");
         }
 
-        private static readonly IReadOnlyList<KeyHint> AllHints = new[]
+        // 手書き列挙だと新設テーブルが許可リスト検査から漏れるため、Client.Gameの*StateHintsを走査して集める
+        // A hand-written list would let a new table escape the allow-list check, so every *StateHints in Client.Game is scanned
+        private static readonly IReadOnlyList<KeyHint> AllHints = CollectAllHints();
+
+        private static IReadOnlyList<KeyHint> CollectAllHints()
         {
-            GameScreenStateHints.Hints, PlaceBlockStateHints.Hints, DeleteObjectStateHints.Hints,
-            PlayerInventoryStateHints.Hints, SubInventoryStateHints.Hints, ResearchTreeStateHints.Hints,
-            BuildMenuStateHints.Hints, ChallengeListStateHints.Hints, TrainHudGameScreenSubStateHints.Hints,
-        }.SelectMany(hints => hints).ToArray();
+            var hintTables = typeof(GameScreenStateHints).Assembly.GetTypes()
+                .Where(type => type.Name.EndsWith("StateHints", StringComparison.Ordinal))
+                .SelectMany(type => type.GetFields(BindingFlags.Public | BindingFlags.Static))
+                .Where(field => typeof(IReadOnlyList<KeyHint>).IsAssignableFrom(field.FieldType))
+                .Select(field => (IReadOnlyList<KeyHint>)field.GetValue(null))
+                .ToArray();
+
+            Assert.IsNotEmpty(hintTables, "*StateHints テーブルが1つも見つからない");
+            return hintTables.SelectMany(hints => hints).ToArray();
+        }
+
+        // 各stateがGetKeyHints()で自分のテーブルを返しているか（テーブル直読みでは配線ごと落ちても気づけない）
+        // Each state must return its own table from GetKeyHints(); reading tables directly would miss a severed wiring
+        [Test]
+        public void EachStateReturnsItsOwnHintTable()
+        {
+            Assert.AreSame(GameScreenStateHints.Hints, new GameScreenState(null, null, null, null, null).GetKeyHints());
+            Assert.AreSame(ResearchTreeStateHints.Hints, new ResearchTreeState(null, null).GetKeyHints());
+            Assert.AreSame(BuildMenuStateHints.Hints, new BuildMenuState(null, null, null).GetKeyHints());
+            Assert.AreSame(ChallengeListStateHints.Hints, new ChallengeListState(null, null).GetKeyHints());
+
+            // 全12stateをUIStateDictionary経由で通す検査は追わない（PlaceBlockState等はctorで購読とUnity依存を掴むためEditModeで構築できない）
+            // Driving all 12 states through UIStateDictionary is out of reach: PlaceBlockState and friends grab subscriptions and Unity objects in their ctor
+        }
 
         private static void AssertHints((LocalizationKey keyNameKey, LocalizationKey textKey)[] expected, IReadOnlyList<KeyHint> actual)
         {

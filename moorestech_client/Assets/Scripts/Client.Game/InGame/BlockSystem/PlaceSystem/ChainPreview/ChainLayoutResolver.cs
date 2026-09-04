@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
-using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative;
 using Core.Master;
 using Game.Block.Interface;
 using Server.Protocol.PacketResponse;
@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
 {
     /// <summary>
-    ///     設置中ブロックの原点と向きから、連結ゴースト群のワールドセル・向き・可否を一度に解決する
-    ///     Resolves chain ghosts' world cells, directions and blocked flags in one pass from the being-placed block
+    ///     連結ゴースト群のセル・向き・可否を解決する
+    ///     Resolves the chain ghosts' world cells, directions and blocked flags in one pass
     /// </summary>
     public static class ChainLayoutResolver
     {
@@ -19,18 +19,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
             public readonly ChainGhost Ghost;
             public readonly Vector3Int WorldCell;
             public readonly BlockDirection WorldDirection;
-            public readonly Vector3Int BlockSize;
-            
+
             // 可否は解決時に一度だけ確定し、設置判定とゴースト色が定義上一致する
             // Blocked is decided once at resolution, so the placement check and the ghost color agree by definition
             public readonly bool Blocked;
-            
-            public ResolvedChainGhost(ChainGhost ghost, Vector3Int worldCell, BlockDirection worldDirection, Vector3Int blockSize, bool blocked)
+
+            public ResolvedChainGhost(ChainGhost ghost, Vector3Int worldCell, BlockDirection worldDirection, bool blocked)
             {
                 Ghost = ghost;
                 WorldCell = worldCell;
                 WorldDirection = worldDirection;
-                BlockSize = blockSize;
                 Blocked = blocked;
             }
         }
@@ -48,7 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
                 var worldCell = AnchorRelativeOriginUtil.ResolveWorldOrigin(footprint, ghost.Offset, ghost.LocalDirection, ghostBlockSize);
                 var worldDirection = AnchorRelativeDirectionUtil.RotateByAnchor(ghost.LocalDirection, placeDirection);
                 var blocked = IsBlocked(ghost, worldCell, worldDirection, ghostBlockSize);
-                results.Add(new ResolvedChainGhost(ghost, worldCell, worldDirection, ghostBlockSize, blocked));
+                results.Add(new ResolvedChainGhost(ghost, worldCell, worldDirection, blocked));
             }
             
             #region Internal

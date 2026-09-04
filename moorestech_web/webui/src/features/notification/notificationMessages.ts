@@ -13,7 +13,6 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["achievement.unlockedTrainCar", L.ui.notification.unlockedTrainCar],
   ["achievement.unlockedConnectTool", L.ui.notification.unlockedConnectTool],
   ["achievement.unlockedBlueprint", L.ui.notification.unlockedBlueprint],
-  ["itemEarned.mined", L.ui.notification.itemEarned],
   ["denied.researchNotCompletable", L.ui.notification.researchNotCompletable],
   ["denied.craftResultFull", L.ui.notification.craftResultFull],
   ["denied.craftMaterialShortage", L.ui.notification.craftMaterialShortage],
@@ -49,6 +48,8 @@ const notificationKeys = new Map<string, TranslationKey>([
 
 // 外部IDを有限の型付きキーへ閉じ、未知IDも専用キーで可視化する
 // Close external ids into finite typed keys and surface unknown ids through a dedicated key
+// 獲得通知はcategory側でキーを決めるため表には載せない
+// Earned rows get their key from the category, so they are absent from this table
 export function resolveNotificationKey(messageId: string): TranslationKey {
   return notificationKeys.get(messageId) ?? L.ui.notification.unknownMessage;
 }
@@ -84,7 +85,6 @@ export function resolveNotificationText(
   translate: (key: TranslationKey) => string,
   resolveItemDisplayName: (itemId: number) => string,
 ) {
-  const key = resolveNotificationKey(notification.messageId);
   const values = buildInterpolationValues(
     notification.messageId,
     resolveNotificationParams(notification.messageId, notification.messageParams, translate),
@@ -92,10 +92,15 @@ export function resolveNotificationText(
 
   switch (notification.category) {
     case "itemEarned":
-      return { key, values: { ...values, itemName: resolveItemDisplayName(notification.itemId), count: notification.count } };
+      // キーはcategoryで確定させ、messageIdのドリフトで生トークンが出るのを防ぐ
+      // The category fixes the key so a drifting messageId cannot leak raw tokens
+      return {
+        key: L.ui.notification.itemEarned,
+        values: { ...values, itemName: resolveItemDisplayName(notification.itemId), count: notification.count },
+      };
     case "achievement":
     case "operationDenied":
-      return { key, values };
+      return { key: resolveNotificationKey(notification.messageId), values };
     default: {
       // categoryが増えたらここがコンパイルエラーになる
       // Adding a category turns this into a compile error

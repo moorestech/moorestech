@@ -76,6 +76,30 @@ namespace Client.Tests.Mining
             UnityEngine.Object.DestroyImmediate(noItemObject);
         }
 
+        [Test]
+        public void 言語切替で保持中の取得アイテム名が作り直される()
+        {
+            // 単体テスト用マスタに辞書が無く全言語で同じ[!key]へ落ちるため、文字列の異同ではなく再解決の発火を観測する
+            // The unit-test master ships no dictionary so every language yields the same [!key]; observe the re-resolution firing instead of the text
+            Localize.Initialize();
+            var originalLanguageCode = Localize.GetCurrentLanguageCode();
+
+            var context = new MiningControllerContext(null);
+            var twoItemObject = new GameObject("TwoItemTarget");
+            var twoItemTarget = new StubMiningTarget(twoItemObject, new[] { FirstEarnItemGuid, SecondEarnItemGuid });
+
+            context.SetFocusTarget(twoItemTarget);
+            var accessCountBeforeSwitch = twoItemTarget.EarnItemGuidsAccessCount;
+
+            var otherLanguageCode = Localize.GetLanguageCodes().Find(code => code != originalLanguageCode);
+            Assert.IsTrue(Localize.TrySetLanguage(otherLanguageCode), otherLanguageCode);
+
+            Assert.Less(accessCountBeforeSwitch, twoItemTarget.EarnItemGuidsAccessCount);
+
+            Localize.TrySetLanguage(originalLanguageCode);
+            UnityEngine.Object.DestroyImmediate(twoItemObject);
+        }
+
         private class StubMiningTarget : IMiningTargetObject
         {
             public GameObject GameObject { get; }

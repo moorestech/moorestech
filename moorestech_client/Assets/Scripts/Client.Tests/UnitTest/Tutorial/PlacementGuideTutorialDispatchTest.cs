@@ -95,6 +95,29 @@ namespace Client.Tests.UnitTest.Tutorial
         }
 
         [Test]
+        public void 相対ゴーストは目標セルでも向きが違えば完了しない()
+        {
+            SetTutorial("relativeBlockPlacePreview", CreateRelativeParam("00000000-0000-0000-0000-000000000014", "00000000-0000-0000-0000-00000000000e", 0, 0, 1));
+            var relative = CreateRelativeManager();
+            var veinRestricted = _root.AddComponent<VeinRestrictedPlacementTutorialManager>();
+            veinRestricted.Construct(new VeinRestrictedPlacementState());
+            var manager = CreateTutorialManager(veinRestricted, relative, new List<ITutorialViewManager>());
+
+            manager.ApplyTutorial(ChallengeGuid);
+            var entry = (RelativeBlockPlacePreviewEntry)GetAppliedView(manager);
+            var targetCell = new Vector3Int(3, 0, 4);
+            entry.SetTarget(targetCell, BlockDirection.East);
+
+            // 繋がらない向きで置いても案内は残る
+            // A direction that never connects leaves the guide up
+            InvokeOnBlockPlaced(relative, CreatePlacedBlock(entry.TargetBlockId, targetCell, BlockDirection.North));
+            Assert.IsTrue(HasActiveEntry(relative, entry.TutorialGuid), "a mismatched direction completed the guide");
+
+            InvokeOnBlockPlaced(relative, CreatePlacedBlock(entry.TargetBlockId, targetCell, BlockDirection.East));
+            Assert.IsFalse(HasActiveEntry(relative, entry.TutorialGuid), "the matching direction did not complete the guide");
+        }
+
+        [Test]
         public void 同一チャレンジ内の相対ゴースト2件は上書きされず両方生きる()
         {
             SetTutorials(
@@ -194,6 +217,28 @@ namespace Client.Tests.UnitTest.Tutorial
             };
         }
 
+        // Initializeはプレハブを要するため値だけ注入する
+        // BlockGameObject.Initialize needs a prefab load and a server subscription, so only the placed-block values are injected
+        private BlockGameObject CreatePlacedBlock(BlockId blockId, Vector3Int cell, BlockDirection direction)
+        {
+            var block = new GameObject("PlacedBlock").AddComponent<BlockGameObject>();
+            block.transform.SetParent(_root.transform);
+
+            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockId)).GetSetMethod(true).Invoke(block, new object[] { blockId });
+            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).GetSetMethod(true).Invoke(block, new object[] { new BlockPositionInfo(cell, direction, blockSize) });
+            return block;
+        }
+
+        // 設置検知は購読経由なのでprivateハンドラを直接呼ぶ
+        // The placement hook is only reachable through the datastore subscription, so the private handler is invoked directly
+        private static void InvokeOnBlockPlaced(RelativeBlockPlacePreviewTutorialManager relative, BlockGameObject block)
+        {
+            typeof(RelativeBlockPlacePreviewTutorialManager)
+                .GetMethod("OnBlockPlaced", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(relative, new object[] { block });
+        }
+
         private TutorialManager CreateTutorialManager(VeinRestrictedPlacementTutorialManager veinRestricted, RelativeBlockPlacePreviewTutorialManager relative, List<ITutorialViewManager> extraManagers)
         {
             var managers = new List<ITutorialViewManager>
@@ -223,7 +268,7 @@ namespace Client.Tests.UnitTest.Tutorial
         private static ITutorialView GetAppliedView(TutorialManager manager)
         {
             var applied = GetAppliedViews(manager);
-            return applied.Count > 0 ? applied[0] : null;
+            return 0 < applied.Count ? applied[0] : null;
         }
 
         private static List<ITutorialView> GetAppliedViews(TutorialManager manager)

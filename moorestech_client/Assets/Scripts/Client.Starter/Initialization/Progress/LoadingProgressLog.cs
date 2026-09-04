@@ -2,11 +2,11 @@ using Client.Localization;
 using Mooresmaster.Localization.Generated;
 using TMPro;
 
-namespace Client.Starter.Initialization
+namespace Client.Starter.Initialization.Progress
 {
     /// <summary>
-    /// ローディング画面へ進捗1行を追記する。経過時間の書式と位置パラメータ順をここだけが知る
-    /// Appends one progress line to the loading screen; only this type knows the elapsed format and parameter order
+    /// 進捗1行の書式と引数順を集約
+    /// Owns the format and argument order of one progress line
     /// </summary>
     public class LoadingProgressLog
     {
@@ -24,8 +24,8 @@ namespace Client.Starter.Initialization
             Append(Localize.GetFormatted(key, new[] { _loadingStopwatch.Elapsed.ToString() }));
         }
 
-        // 経過時間の前に1つだけ値を差し込む行のための経路（地形の取得チャンク数）
-        // Path for lines that carry one value ahead of the elapsed time, such as the fetched chunk count
+        // 先頭に値を1つ足す行の経路
+        // Path for lines with one leading value
         public void AppendElapsed(LocalizationKey key, string leadingParam)
         {
             Append(Localize.GetFormatted(key, new[] { leadingParam, _loadingStopwatch.Elapsed.ToString() }));

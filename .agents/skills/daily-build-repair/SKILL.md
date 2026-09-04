@@ -98,7 +98,19 @@ moores-wt new fix/daily-build-<N> --no-editor
 既に「ビルド検証」ラベルが付いている場合は `--add-label` の再実行ではイベントが発火しない。
 一度 `--remove-label` してから `--add-label` し直す（remove→addのトグル）。
 
+**ラベルをトグルする前に、既存runのID集合と修正後のhead SHAを控える。** これを飛ばすと、
+新runがActions側に登録される前に `gh run list` が走り、今回の修正を一度もビルドしていない
+過去の成功runを掴んで即 `verified: true` になる。
+
 ```bash
+# (1) ラベル操作の「前」に既存run IDを控える
+# (1) Snapshot the existing run ids BEFORE touching the label
+KNOWN=$(gh run list --workflow="Unity Build" --branch <ブランチ名> --limit 20 --json databaseId --jq '[.[].databaseId]')
+# (2) 修正をpush済みのhead SHAを取る
+# (2) Take the head SHA of the pushed fix
+HEAD_SHA=$(gh pr view <PR番号> --json headRefOid --jq .headRefOid)
+# (3) remove→add でラベルを発火させる
+# (3) Fire the label with a remove-then-add toggle
 gh pr edit <PR番号> --remove-label "ビルド検証" 2>/dev/null; gh pr edit <PR番号> --add-label "ビルド検証"
 ```
 
@@ -114,25 +126,36 @@ runを特定してからポーリングする。
 # Fetch several runs and discard `skipped` ones instead of trusting `--limit 1`.
 
 ```bash
-# run登録待ち: ラベル発火のrunがGitHub Actions側に現れるまで数十秒〜数分かかることがある
-# Wait for the run to register; the label-triggered run can take up to a few minutes to appear
-gh run list --workflow="Unity Build" --branch <ブランチ名> --limit 10 \
-  --json databaseId,status,conclusion,event \
-  --jq '[.[] | select(.conclusion != "skipped")][0]'
+# (4) run登録待ち: 15秒間隔・最大20回で、事前ID集合に無く・headShaが一致し・skippedでない最初のrunを採る
+# (4) Poll every 15s up to 20 times for the first run that is new, matches headSha, and is not skipped
+for i in $(seq 1 20); do
+  # gh の --jq は --arg を取れないため、実体の jq へパイプする
+  # gh's --jq accepts no --arg, so pipe into the real jq binary
+  RUN_ID=$(gh run list --workflow="Unity Build" --branch <ブランチ名> --limit 20 \
+    --json databaseId,headSha,status,conclusion,createdAt \
+    | jq -r --argjson known "$KNOWN" --arg sha "$HEAD_SHA" \
+      '[.[] | select((.databaseId as $id | $known | index($id) | not) and .headSha == $sha and .conclusion != "skipped")][0].databaseId // empty')
+  [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ] && break
+  sleep 15
+done
 ```
 
-`databaseId` が取れたら、その run の `status` が `completed` になるまでポーリングで待つ。
+`RUN_ID` が取れたら、その run の `status` が `completed` になるまでポーリングで待つ。
 
 ```bash
-gh run watch <databaseId> --exit-status
+# (5) 特定できたrunだけをwatchする
+# (5) Watch only the run identified above
+gh run watch "$RUN_ID" --exit-status
 ```
 
 `Unity Build` は4ジョブ並列で1時間前後かかりうる。**同一ターン内でブロッキングして待つ**
 （「最重要」節参照）。ポーリング中に深夜枠（09:00 JST）の停止指示（`## 停止指示`）が
 届いた場合は、待機を打ち切りStep 8の停止手順へ移る。
 
-- `conclusion == "success"` なら `verified: true`
-- `conclusion` が `failure`/`cancelled` 等なら `verified: false`（Step 7参照）
+- 採用したrunの `conclusion == "success"` なら `verified: true`
+- 採用したrunの `conclusion` が `failure`/`cancelled` 等なら `verified: false`（Step 7参照）
+- (6) 20回ポーリングしてもrunを特定できなければ `verified: false` とし、`repair-result.json` の
+  `summary` に「ラベル発火runを特定できず」と明記する（古いrunで代用しない）
 
 ## Step 7: 結果の書き出し
 

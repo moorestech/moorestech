@@ -2,6 +2,7 @@ using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Core.Master;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Util.GearChain;
@@ -154,6 +155,42 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 
             Assert.AreEqual(1, result.FeedbackLines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainAlreadyConnected.Key, result.FeedbackLines[0].Key.Key);
+        }
+
+        [Test]
+        // 素材不足の判定では不足リストが落とし先キー付きの枠へ素通しされる
+        // On a material-shortage judgement the shortage list passes through into the fallback-keyed slot
+        public void MaterialShortageIsRoutedToFallbackSlotTest()
+        {
+            var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
+            var input = CreateConnectablePairInput(sourcePole);
+            var shortages = new[] { new ConstructionMaterialShortage(new ItemId(7), 1, 4) };
+            input.PoleToPolePreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.NoItemError), shortages);
+
+            var result = GearChainPoleChainConnectMode.Decide(input);
+
+            // ポールを設置しないモードなので畳むだけの枠は常に空
+            // This mode places no pole, so the fold-only slot stays empty
+            Assert.AreEqual(0, result.MaterialShortages.Count);
+            Assert.AreEqual(1, result.FallbackMaterialShortages.Count);
+            Assert.AreEqual(4, result.FallbackMaterialShortages[0].Required);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, result.MaterialShortageFallbackKey.Value.Key);
+        }
+
+        [Test]
+        // 不足が算出できなくても落とし先キーは付き、関門が汎用文言へ落とせる
+        // Even with no computed shortage the fallback key is attached so the gate can emit the generic wording
+        public void EmptyMaterialShortageStillCarriesFallbackKeyTest()
+        {
+            var sourcePole = new FakeGearChainPole(new Vector3Int(0, 0, 0));
+            var input = CreateConnectablePairInput(sourcePole);
+            input.PoleToPolePreview = new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(GearChainPlacementEvaluator.NoItemError), Array.Empty<ConstructionMaterialShortage>());
+
+            var result = GearChainPoleChainConnectMode.Decide(input);
+
+            Assert.AreEqual(0, result.FallbackMaterialShortages.Count);
+            Assert.IsTrue(result.MaterialShortageFallbackKey.HasValue);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, result.MaterialShortageFallbackKey.Value.Key);
         }
 
         [Test]

@@ -26,6 +26,7 @@ namespace Game.MapGeneration.Pipeline.Generators
             SpatialGrid oreGrid,
             PlacementHaloChannelMap centerHalos,
             float haloRadius,
+            IReadOnlyList<PlacedVein> excludedVeins,
             VeinPlacementBatch result)
         {
             float w = dims.TerrainWidth;
@@ -33,8 +34,8 @@ namespace Game.MapGeneration.Pipeline.Generators
             int hRes = dims.Resolution;
             float minDist = entry.minDistanceFromOthers;
 
-            // 中心排他の設定はエントリと同じ責務に閉じる。
-            // Keeps center-exclusion setup with the entry that owns the invariant.
+            // 中心グリッドは全bandで共有するのでband最大の間隔を採る。band値まで下げると小半径の中心が大クラスタの内側へ入る。
+            // The center grid is shared by every band, so it takes the band-maximum spacing; lowering it to each band's own value would let a small-radius center sit inside a large cluster.
             float centerSpacing = 0f;
             if (entry.bands != null)
                 foreach (var band in entry.bands)
@@ -42,7 +43,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                         OrePlacementMath.CalculateClusterCenterSpacing(band.clusterRadius));
 
             var clusterCenterGrid = new SpatialGrid(w, l, Mathf.Max(w / 50f, 5f));
-            centerHalos.Get(entry.veinGuid).SeedGrid(
+            centerHalos.GetOrCreate(entry.veinGuid).SeedGrid(
                 clusterCenterGrid, dims.WorldOffsetX, dims.WorldOffsetZ, w, l, haloRadius);
 
             // 地形への効き方はmapVeinsマスタが正本。veinGuidの解決はGenerationMasterのバリデーションが保証する
@@ -117,8 +118,8 @@ namespace Game.MapGeneration.Pipeline.Generators
                     PlaceClusterMembers(band, localX, localZ, cluster.Members);
                     if (cluster.Members.Count == 0) continue;
 
-                    // 実メンバーを持つ中心だけを同タイル後続候補の排他に使う。
-                    // Only centers with real members exclude later candidates in this tile.
+                    // AABB排他を生き残った実メンバーを持つ中心だけを同タイル後続候補の排他に使う。
+                    // Only centers with real members that survived the AABB exclusion exclude later candidates in this tile.
                     clusterCenterGrid.Add(localX, localZ);
                     result.Clusters.Add(cluster);
                 }
@@ -137,7 +138,9 @@ namespace Game.MapGeneration.Pipeline.Generators
                 for (int i = 0; i < clusterCount; i++)
                 {
                     float mx = 0f, mz = 0f;
-                    bool placed = false;
+                    Vector3 worldPosition = default;
+                    PlacedVein vein = default;
+                    bool veinFound = false;
                     for (int attempt = 0; attempt < retries; attempt++)
                     {
                         float angle = (float)(rng.NextDouble() * Mathf.PI * 2);
@@ -145,22 +148,28 @@ namespace Game.MapGeneration.Pipeline.Generators
                         mx = Mathf.Round(centerX + Mathf.Cos(angle) * radius + dims.WorldOffsetX) - dims.WorldOffsetX;
                         mz = Mathf.Round(centerZ + Mathf.Sin(angle) * radius + dims.WorldOffsetZ) - dims.WorldOffsetZ;
 
+                        // このタイル矩形内かつワールド整数という制限が CanOverlapAnyCandidateInTile の候補範囲導出の前提。
+                        // Staying inside this tile rectangle on world integers is the premise CanOverlapAnyCandidateInTile derives its candidate range from.
                         if (mx < 0 || w <= mx || mz < 0 || l <= mz) continue;
                         if (0f < oreMinDist && oreGrid.HasNeighborWithin(mx, mz, oreMinDist))
                             continue;
 
-                        placed = true;
+                        // AABBの排他は排他グリッドへ載せる前に判定する。落選点を先に載せると幽霊として後続候補を弾き続ける
+                        // The AABB exclusion runs before anything enters the exclusion grid; a rejected point entered first would haunt later candidates
+                        float my = OrePlacementMath.SampleHeight(heights, mx, mz, w, l, hRes) * dims.TerrainHeight;
+                        worldPosition = new Vector3(mx + dims.WorldOffsetX, my, mz + dims.WorldOffsetZ);
+                        var candidate = VeinAabbBuilder.Build(entry.veinGuid, worldPosition);
+                        if (VeinAabbBuilder.OverlapsAny(candidate, excludedVeins)) continue;
+                        if (VeinAabbBuilder.OverlapsAny(candidate, result.Veins)) continue;
+
+                        vein = candidate;
+                        veinFound = true;
                         break;
                     }
-                    if (!placed) continue;
+                    if (!veinFound) continue;
 
-                    float my = OrePlacementMath.SampleHeight(heights, mx, mz, w, l, hRes) * dims.TerrainHeight;
-
-                    clusterMembers.Add(PlacementEntry.CreateVein(
-                        entry.veinGuid,
-                        new Vector3(mx + dims.WorldOffsetX, my, mz + dims.WorldOffsetZ),
-                        surroundEffect));
-
+                    clusterMembers.Add(PlacementEntry.CreateVein(entry.veinGuid, worldPosition, surroundEffect));
+                    result.Veins.Add(vein);
                     oreGrid.Add(mx, mz);
                 }
             }

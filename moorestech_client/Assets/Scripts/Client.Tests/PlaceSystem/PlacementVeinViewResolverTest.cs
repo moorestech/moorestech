@@ -10,7 +10,7 @@ using Server.Boot;
 using Server.Protocol.PacketResponse.MapData;
 using Tests.Module.TestMod;
 
-namespace Client.Tests.Map
+namespace Client.Tests.PlaceSystem
 {
     /// <summary>
     ///     設置対象ごとに表示される鉱脈が切り替わることを検証する
@@ -62,6 +62,25 @@ namespace Client.Tests.Map
 
             CollectionAssert.AreEqual(new[] { Guid.Parse(UnmineableItemVeinGuid) }, ToVeinTypeGuids(display));
             Assert.IsTrue(display.Highlight, "the tutorial restriction must draw in the highlight color");
+        }
+
+        /// <summary>
+        ///     ポンプ判定はIPumpParamで行う。具象クラス列挙に戻すとポンプ追加時に流体鉱脈が出なくなる
+        ///     The pump check goes through IPumpParam; enumerating concrete params again would hide fluid veins for a newly added pump
+        /// </summary>
+        [Test]
+        public void ポンプは流体鉱脈だけを出す()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var gearPumpGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockGuid;
+            var registry = CreateRegistry();
+            var noRestriction = new VeinRestrictedPlacementState();
+
+            var display = PlacementVeinViewResolver.Resolve(registry, noRestriction, new BlockPlacementTarget(gearPumpGuid, null));
+
+            CollectionAssert.AreEqual(new[] { Guid.Parse(FluidVeinGuid) }, ToVeinTypeGuids(display));
+            Assert.IsFalse(display.Highlight);
         }
 
         private static List<Guid> ToVeinTypeGuids(VeinDisplay display)

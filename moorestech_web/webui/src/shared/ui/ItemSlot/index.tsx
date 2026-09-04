@@ -90,7 +90,7 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
       >
         {hasItem || ghostShown ? (
           <>
-            <ItemIcon itemId={shownItemId} alt={resolvedName ?? t(L.ui.common.itemFallback, { itemId: shownItemId })} className={styles.icon} />
+            <ItemIcon itemId={shownItemId} className={styles.icon} />
             {(owned || ghostShown) && shownCount !== undefined && shownCount > 0 ? <span className={`iconTextOutlineLight ${styles.count}`}>{shownCount}</span> : null}
           </>
         ) : null}
