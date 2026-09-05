@@ -27,8 +27,8 @@ namespace Game.PlacementTarget
             {
                 var entries = new List<PlacementTargetEntry>();
 
-                // 表示優先度と名前で整列（坂ベルトも単体設置対象として載せる）
-                // Sort by display priority and name; belt slopes are placeable targets too
+                // 表示優先度と名前で整列する
+                // Sort by display priority and name
                 var blocks = MasterHolder.BlockMaster.Blocks.Data
                     .OrderBy(block => block.SortPriority ?? 0)
                     .ThenBy(block => block.Name);
@@ -133,15 +133,22 @@ namespace Game.PlacementTarget
             return currentBlueprintIds.Contains(id) && unlockState.IsBlueprintUnlocked;
         }
 
+        // ブロックGuidが今の解放状態で設置可能か。ブロックの解放判定はこの入口へ集約する
+        // Whether a block guid is placeable under the current unlock state; the sole entry for block unlock checks
+        public bool IsBlockUnlocked(Guid blockGuid, IGameUnlockStateData unlockState, bool showAllPlaceable)
+        {
+            return TryGetMasterEntry(blockGuid, out var entry) && IsEntryUnlocked(entry, unlockState, showAllPlaceable);
+        }
+
         private static bool IsEntryUnlocked(PlacementTargetEntry entry, IGameUnlockStateData unlockState, bool showAllPlaceable)
         {
             switch (entry.Kind)
             {
                 case PlacementTargetKind.Block:
-                    // 坂ベルトは直線ブロックの解放状態に従う
-                    // Belt slopes follow their family straight block's unlock state
-                    var unlockGuid = BeltConveyorPlaceFamilyUtil.ResolveUnlockBlockGuid(entry.Id);
-                    return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(unlockGuid, out var blockInfo) && blockInfo.IsUnlocked);
+                    // 坂ベルトは直線ブロックの解放状態に従う。正規化は無料設置デバッグ時は評価不要
+                    // Belt slopes follow their family straight block's unlock state; skip normalizing when free-placement debug already allows it
+                    if (showAllPlaceable) return true;
+                    return unlockState.BlockUnlockStateInfos.TryGetValue(ResolveUnlockBlockGuid(entry.Id), out var blockInfo) && blockInfo.IsUnlocked;
                 case PlacementTargetKind.TrainCar:
                     return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
                 case PlacementTargetKind.ConnectTool:
@@ -156,6 +163,14 @@ namespace Game.PlacementTarget
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+        }
+
+        // 解放判定に使うGuid。坂ベルトはファミリー直線へ寄せる
+        // The guid used for unlock checks; belt slopes normalize to their family's straight block
+        private static Guid ResolveUnlockBlockGuid(Guid blockGuid)
+        {
+            if (!BeltConveyorPlaceFamilyUtil.TryGetFamilyByGuid(blockGuid, out var family)) return blockGuid;
+            return MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId).BlockGuid;
         }
     }
 }

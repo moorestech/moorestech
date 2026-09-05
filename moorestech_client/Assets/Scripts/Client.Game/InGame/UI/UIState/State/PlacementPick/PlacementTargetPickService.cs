@@ -4,7 +4,6 @@ using Client.Game.InGame.Train.View.Object.Core;
 using Client.Input;
 using Game.UnlockState;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ConnectTool;
-using Core.Master;
 
 namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 {
@@ -15,10 +14,12 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
     public class PlacementTargetPickService
     {
         private readonly IGameUnlockStateData _gameUnlockStateData;
+        private readonly BlockPickResolver _blockPickResolver;
 
-        public PlacementTargetPickService(IGameUnlockStateData gameUnlockStateData)
+        public PlacementTargetPickService(IGameUnlockStateData gameUnlockStateData, BlockPickResolver blockPickResolver)
         {
             _gameUnlockStateData = gameUnlockStateData;
+            _blockPickResolver = blockPickResolver;
         }
 
         public bool TryPickTargetUnderCursor(out IPlacementTarget pickedTarget)
@@ -70,9 +71,9 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
             {
                 target = null;
                 if (!BlockClickDetectUtil.TryGetCursorOnBlock(out var blockObject)) return false;
-                if (!BlockPickResolver.IsPickable(blockObject.BlockId, _gameUnlockStateData)) return false;
+                if (!_blockPickResolver.TryResolvePickTarget(blockObject.BlockId, blockObject.BlockPosInfo.BlockDirection, _gameUnlockStateData, out var blockTarget)) return false;
 
-                target = new BlockPlacementTarget(MasterHolder.BlockMaster.GetBlockMaster(blockObject.BlockId).BlockGuid, blockObject.BlockPosInfo.BlockDirection);
+                target = blockTarget;
                 return true;
             }
 

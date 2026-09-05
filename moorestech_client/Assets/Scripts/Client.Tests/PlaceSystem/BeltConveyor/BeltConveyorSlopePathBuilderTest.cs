@@ -23,8 +23,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             Assert.IsTrue(placeInfos[0].Placeable);
         }
 
-        // 上りは終点の高さを無視して毎セル+1で伸びる
-        // Up ignores the end height and climbs one per cell
+        // 上りは終点高さを無視し毎セル+1で伸びる
+        // Up ignores the end height and grows +1 per cell
         [Test]
         public void 上りは終点の高さを無視して毎セル1段上がる()
         {
@@ -60,8 +60,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             var placeInfos = BeltConveyorSlopePathBuilder.Build(
                 new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 2), true, BlockDirection.North, BlockVerticalDirection.Up);
 
-            // Z方向へ2マス進んでからX方向へ2マス曲がる経路（角は index 2）
-            // The path runs two cells along Z, then turns two cells along X (corner at index 2)
+            // Z2マス→X2マスに曲がる経路（角はindex2）
+            // Path: 2 cells in Z then a 2-cell turn in X (corner at index 2)
             CollectionAssert.AreEqual(
                 new[]
                 {
@@ -71,8 +71,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 placeInfos.Select(info => info.Position).ToList());
             Assert.IsTrue(placeInfos.All(info => info.VerticalDirection == BlockVerticalDirection.Up));
 
-            // 角のセルは次セルへ向く（East）、末尾は前セルからの方向を引き継ぐ
-            // The corner cell faces the next cell (East) and the tail inherits the previous direction
+            // 角は次セルへ向き、末尾は前セルの向きを継ぐ
+            // Corner faces the next cell; the tail keeps the previous cell's facing
             Assert.AreEqual(BlockDirection.North, placeInfos[1].Direction);
             Assert.AreEqual(BlockDirection.East, placeInfos[2].Direction);
             Assert.AreEqual(BlockDirection.East, placeInfos[4].Direction);

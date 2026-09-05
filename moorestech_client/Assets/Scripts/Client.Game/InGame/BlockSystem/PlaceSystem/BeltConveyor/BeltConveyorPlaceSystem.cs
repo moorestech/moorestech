@@ -45,7 +45,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
-            _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore);
+            _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState);
         }
 
         public override void Enable()
@@ -59,10 +59,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         {
             if (!_dragState.IsDragging) return false;
 
-            // 列の軸決めもドラッグに属するため一緒に捨てる
-            // The run's axis choice belongs to the drag, so it is dropped together
             _dragState.EndDrag();
-            _placeRunBuilder.ResetRunAxis();
             return true;
         }
 
@@ -74,7 +71,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // 連続設置状態をリセット
             _dragState.ClearDrag();
-            _placeRunBuilder.ResetRunAxis();
             _currentPlaceInfos.Clear();
         }
 
@@ -94,9 +90,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
 
-            // 手持ちブロックを解決し、非ファミリーブロックは対象外にする
-            // Resolve the holding block and ignore non-family blocks
-            if (!BeltConveyorHoldingBlock.TryResolve(target.BlockId, out var holdingBlock)) return;
+            // 手持ちブロックを解決する
+            // Resolve the holding block
+            var holdingBlock = BeltConveyorHoldingBlock.Resolve(target.BlockId);
             var holdingBlockMaster = holdingBlock.BlockMaster;
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する

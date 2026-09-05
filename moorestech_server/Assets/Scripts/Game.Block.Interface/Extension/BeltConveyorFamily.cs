@@ -21,11 +21,6 @@ namespace Game.Block.Interface.Extension
             DownBlockId = downBlockId;
         }
 
-        public bool IsSlopeBlock(BlockId blockId)
-        {
-            return TryGetSlopeDirection(blockId, out _);
-        }
-
         // 坂ブロックなら上下どちらの坂かを返す
         // Returns which way the slope goes when the block is a slope
         public bool TryGetSlopeDirection(BlockId blockId, out BlockVerticalDirection verticalDirection)

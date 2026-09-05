@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
-using Game.Block.Interface.Extension;
 using Game.Blueprint;
 using Game.Hotbar;
 using Game.PlacementTarget;
@@ -25,9 +24,9 @@ namespace Tests.UnitTest.Game
             var blueprintDatastore = serviceProvider.GetService<IBlueprintDatastore>();
             var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
 
-            // マスタの実在ブロックを解放して割当→保持される（坂はカタログ対象外なので除く。C1裁定でブロックの割当も解放判定の対象）
-            // Unlock a real master block, then assigning it is retained (slopes excluded from the catalog; C1 ruling gates block assignment on unlock too)
-            var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
+            // マスタの実在ブロックを解放して割当→保持される（C1裁定でブロックの割当も解放判定の対象）
+            // Unlock a real master block, then assigning it is retained (C1 ruling gates block assignment on unlock too)
+            var validId = MasterHolder.BlockMaster.Blocks.Data.First().BlockGuid;
             unlockState.UnlockBlock(validId);
             datastore.SetAssignment(playerId: 1, slot: 3, validId);
             Assert.AreEqual(validId, datastore.GetAssignments(1)[3]);
@@ -43,6 +42,26 @@ namespace Tests.UnitTest.Game
             var datastore2 = new HotbarAssignmentDatastore(catalog, blueprintDatastore, unlockState);
             datastore2.LoadHotbar(saved);
             Assert.AreEqual(validId, datastore2.GetAssignments(1)[3]);
+        }
+
+        [Test]
+        public void 坂ブロックもホットバーへ割当可能()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
+            var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
+
+            // 坂の解放はファミリー直線へ委譲するため、直線が未解放なら坂も割り当てられない
+            // A slope defers its unlock to the family straight block, so a locked straight blocks the assignment
+            var slopeBlockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestGearBeltConveyorUp).BlockGuid;
+            datastore.SetAssignment(playerId: 1, slot: 2, slopeBlockGuid);
+            Assert.AreEqual(Guid.Empty, datastore.GetAssignments(1)[2]);
+
+            // 直線を解放すると坂の割当が通る（坂除外フィルタ廃止のC1裁定を固定する回帰網）
+            // Unlocking the straight block lets the slope assignment through (pins the C1 ruling that removed the slope exclusion filter)
+            unlockState.UnlockBlock(MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearBeltConveyor).BlockGuid);
+            datastore.SetAssignment(playerId: 1, slot: 2, slopeBlockGuid);
+            Assert.AreEqual(slopeBlockGuid, datastore.GetAssignments(1)[2]);
         }
 
         [Test]
@@ -95,7 +114,7 @@ namespace Tests.UnitTest.Game
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var datastore = serviceProvider.GetService<HotbarAssignmentDatastore>();
-            var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
+            var validId = MasterHolder.BlockMaster.Blocks.Data.First().BlockGuid;
 
             // 範囲外slotへのSet/Clear/Swapは例外を投げず無視される（不正クライアント対策はtargetIdと同じ扱い）
             // Out-of-range slots are ignored without throwing for Set/Clear/Swap, matching the targetId defense

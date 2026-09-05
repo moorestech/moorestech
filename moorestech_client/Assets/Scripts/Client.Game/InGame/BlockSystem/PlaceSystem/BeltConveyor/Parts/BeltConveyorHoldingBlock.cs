@@ -1,3 +1,4 @@
+using System;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -6,42 +7,39 @@ using Mooresmaster.Model.BlocksModule;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
-    /// ビルドメニューの選択ブロックから解決した、設置に使う手持ちブロックとそのファミリー
-    /// The holding block used for placement and its family, resolved from the build-menu selection
+    /// 選択ブロックから解決した手持ちブロックとファミリー
+    /// Holding block and family resolved from the build-menu selection
     /// </summary>
     public class BeltConveyorHoldingBlock
     {
         public readonly BeltConveyorFamily Family;
+        public readonly BlockId BlockId;
         public readonly BlockMasterElement BlockMaster;
 
-        public readonly bool IsSlopeSelected;
+        // 坂を選択中だけ値を持つ。nullが直線選択を表す唯一の印
+        // Holds a value only while a slope is selected; null is the sole marker of a straight selection
+        public readonly BlockVerticalDirection? SlopeDirection;
 
-        // 坂を選択中はその坂の上下向き
-        // The slope's vertical direction while a slope is selected
-        public readonly BlockVerticalDirection SlopeDirection;
-
-        private BeltConveyorHoldingBlock(BeltConveyorFamily family, BlockMasterElement blockMaster, bool isSlopeSelected, BlockVerticalDirection slopeDirection)
+        private BeltConveyorHoldingBlock(BeltConveyorFamily family, BlockId blockId, BlockMasterElement blockMaster, BlockVerticalDirection? slopeDirection)
         {
             Family = family;
+            BlockId = blockId;
             BlockMaster = blockMaster;
-            IsSlopeSelected = isSlopeSelected;
             SlopeDirection = slopeDirection;
         }
 
-        // 坂を選んでいるならその坂を手持ちにし、直線選択時は直線を手持ちにする
-        // Hold the selected slope when one is selected; otherwise hold the family's straight block
-        public static bool TryResolve(BlockId selectedBlockId, out BeltConveyorHoldingBlock holdingBlock)
+        // 坂選択時はその坂、直線選択時は直線を手持ちにする
+        // Hold the slope when selected; otherwise hold the straight block
+        public static BeltConveyorHoldingBlock Resolve(BlockId selectedBlockId)
         {
+            // ベルト以外はPlaceSystemSelectorが振り分けないため、ここへ来る時点で契約違反
+            // PlaceSystemSelector never routes non-belt blocks here, so reaching this is a contract violation
             if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(selectedBlockId, out var family))
-            {
-                holdingBlock = null;
-                return false;
-            }
+                throw new InvalidOperationException($"BeltConveyorHoldingBlock: block belongs to no beltConveyorFamily. BlockId:{selectedBlockId}");
 
-            var isSlopeSelected = family.TryGetSlopeDirection(selectedBlockId, out var slopeDirection);
-            var holdingBlockId = isSlopeSelected ? selectedBlockId : family.StraightBlockId;
-            holdingBlock = new BeltConveyorHoldingBlock(family, MasterHolder.BlockMaster.GetBlockMaster(holdingBlockId), isSlopeSelected, slopeDirection);
-            return true;
+            var slopeDirection = family.TryGetSlopeDirection(selectedBlockId, out var direction) ? direction : (BlockVerticalDirection?)null;
+            var holdingBlockId = slopeDirection.HasValue ? selectedBlockId : family.StraightBlockId;
+            return new BeltConveyorHoldingBlock(family, holdingBlockId, MasterHolder.BlockMaster.GetBlockMaster(holdingBlockId), slopeDirection);
         }
     }
 }
