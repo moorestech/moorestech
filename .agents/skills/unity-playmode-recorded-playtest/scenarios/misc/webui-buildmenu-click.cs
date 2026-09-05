@@ -20,10 +20,6 @@ return PlaytestRunner.Run("webui-buildmenu-click", options, async p =>
     p.Note("デバッグ環境を整え、Web UIビルドメニューからベルトコンベアを選択する");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
 
-    // ビルドメニューはロック済みエントリを一覧から除外するため、対象ブロックを先に解放する
-    // The build menu excludes locked entries from the list, so unlock the target block first
-    await p.PrepareBlockForUiPlacement("ベルトコンベア", 5);
-
     // Bキーでメニューを開き、Reactパネルが実際にクリック可能になるまで待つ
     // Open the menu with B and wait until the React panel is genuinely clickable
     p.Note("Bキーでビルドメニューを開き、DOM要素の表示を確認する");

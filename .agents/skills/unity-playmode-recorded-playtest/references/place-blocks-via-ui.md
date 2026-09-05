@@ -38,7 +38,8 @@ await p.ExitToGameScreen();
 - ビルドメニューのスロット選択は**CEF(Web UI)モードではDOMクリック経路**
   （DOM矩形→座標逆変換→注入マウス→`CefInputForwarder`がCEFへ転送。write-scenario.mdのWeb UI操作参照）、
   **uGUIモードではEventSystem直叩き**（`ExecuteEvents.pointerDown/UpHandler`）へ自動分岐
-- 照準は `PlaytestUiOps.PlaceAimPoint` = CalcPlacePointの逆算。**接地面上のフットプリント中心**
+- 照準は `PlaytestUiOps.PlaceAimPoint`（`Client.Playtest.Operations.Ui`名前空間。参照時は
+  `using Client.Playtest.Operations.Ui;` が必要） = CalcPlacePointの逆算。**接地面上のフットプリント中心**
   （`origin + rotatedSize/2` のx,z、y=origin.y）を狙えば指定originに置かれる
 - クリックは押下→2フレーム→解放。**設置はScreenLeftClickのGetKeyUp（解放）で確定**する
 - 設置システムの選択は`context.Target`の型のみで決まる（`PlaceSystemSelector.GetCurrentPlaceSystem`）:

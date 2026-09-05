@@ -89,7 +89,7 @@ await p.ExitToGameScreen();
 
 低レベルAPI: `PressKey(Key)` / `AimAt(worldPos)` / `ClickPlace()` /
 `WaitUiState(UIStateEnum, timeout)` / `CurrentUiState` /
-`PlaytestUiOps.OpenBuildMenuAndSelectBlock(blockName)`（ビルドメニューのスロットはEventSystem直叩きでクリック）。
+`PlaytestBuildMenuOps.OpenBuildMenuAndSelectBlock(blockName)`（`Client.Playtest.Operations.Ui`名前空間。ビルドメニューのスロットはEventSystem直叩きでクリック）。
 
 ホットバー系は`p.Hotbar`サブファサード: `AssignHotbar(slot, targetName)`（ビルドメニューと同一供給源の表示名で
 設置対象を枠へ割当て、サーバーエコーを待つ） / `EnterBuildMode(slot)` / `ExitBuildMode(slot)`(0始まり=キー1。
