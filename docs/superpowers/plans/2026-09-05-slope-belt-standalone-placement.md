@@ -850,31 +850,31 @@ git commit -m "feat: 坂選択時は一定勾配の専用経路で設置する"
 **Interfaces:**
 - Consumes: Task 1〜5 の全成果
 
-- [ ] **Step 1: フルコンパイルする**
+- [x] **Step 1: フルコンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件・新規警告0件
 
-- [ ] **Step 2: 設置系テストを一括実行する**
+- [x] **Step 2: 設置系テストを一括実行する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaceSystem|PlacementTarget|BeltConveyor|ConveyorOverpass|Hotbar|PlaceBlockProtocol"`
 Expected: PASS（失敗ゼロ）
 
 「Unity is reloading (Domain Reload in progress)」が出た場合は45秒待ってリトライする。
 
-- [ ] **Step 3: エラーログを確認する**
+- [x] **Step 3: エラーログを確認する**
 
 Run: `uloop get-logs --project-path ./moorestech_client --log-type Error`
 Expected: 本作業に起因するエラーが無いこと
 
-- [ ] **Step 4: マスタに差分が無いことを確認する（要件4）**
+- [x] **Step 4: マスタに差分が無いことを確認する（要件4）**
 
 ```bash
 git -C ../moorestech_master status --porcelain
 ```
 Expected: 出力が空
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 差分が無ければコミット不要。ステップ1〜4で修正が入った場合のみ:
 
