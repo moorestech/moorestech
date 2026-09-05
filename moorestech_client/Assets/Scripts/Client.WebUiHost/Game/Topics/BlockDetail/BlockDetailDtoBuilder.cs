@@ -65,29 +65,11 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
             // 採掘機: CommonMiner StateDetail + マスタ MineSettings から分間採掘数を算出
             // Miners: the CommonMiner state detail plus per-minute rates derived from master MineSettings
-            var miner = block.GetStateDetail<CommonMinerBlockStateDetail>(CommonMinerBlockStateDetail.BlockStateDetailKey);
-            if (miner != null && common != null && param is IMinerParam minerParam)
-            {
-                dto.Progress = common.ProcessingRate;
-                dto.Miner = new MinerDetailDto
-                {
-                    CurrentPower = common.CurrentPower,
-                    RequestPower = common.RequestPower,
-                    MiningItems = BuildMiningItems(miner, minerParam),
-                };
-            }
+            MinerDetailDtoBuilder.Apply(dto, block, param, common);
 
             // ポンプ: Pump StateDetail。油井は CommonMachine（電力充足）も併せて持つ（ADR 0051）
             // Pumps: the Pump state detail; the electric pump also carries CommonMachine for power satisfaction (ADR 0051)
-            var pump = block.GetStateDetail<PumpBlockStateDetail>(PumpBlockStateDetail.BlockStateDetailKey);
-            if (pump != null)
-            {
-                dto.Pump = new PumpDetailDto
-                {
-                    Electric = common == null ? null : new PumpElectricDto { CurrentState = ToCamelCase(common.CurrentStateType), CurrentPower = common.CurrentPower, RequestPower = common.RequestPower },
-                    PumpingFluids = BuildPumpingFluids(pump),
-                };
-            }
+            PumpDetailDtoBuilder.Apply(dto, block, common);
 
             // ギア: GearStateDetail + マスタ GearConsumption（要求値）
             // Gears: the GearStateDetail plus master GearConsumption requirements
@@ -167,36 +149,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             }
         }
 
-        private static List<MiningItemDto> BuildMiningItems(CommonMinerBlockStateDetail miner, IMinerParam minerParam)
-        {
-            // uGUI MinerBlockInventoryView と同じ算出（サーバーの実効採掘時間から 60/秒 を分間数に）
-            // Same derivation as uGUI MinerBlockInventoryView (60 / the server's effective seconds, per minute)
-            var result = new List<MiningItemDto>();
-            var currentIds = miner.GetCurrentMiningItemIds();
-            if (miner.MiningSeconds <= 0) return result;
-
-            foreach (var settings in minerParam.MineSettings.items)
-            {
-                var itemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
-                if (!currentIds.Contains(itemId)) continue;
-                result.Add(new MiningItemDto { ItemId = itemId.AsPrimitive(), ItemsPerMinute = (float)(60 / miner.MiningSeconds) });
-            }
-            return result;
-        }
-
-        private static List<PumpingFluidDto> BuildPumpingFluids(PumpBlockStateDetail pump)
-        {
-            // 公称量は秒→分に換算し、表示名解決用に FluidGuid を添える（採掘機の ItemsPerMinute と同じ意味）
-            // Convert the nominal per-second rate to per-minute and attach the FluidGuid for name resolution (same meaning as the miner's ItemsPerMinute)
-            var result = new List<PumpingFluidDto>();
-            foreach (var pumping in pump.PumpingFluids)
-            {
-                var fluidGuid = MasterHolder.FluidMaster.GetFluidMaster(new FluidId(pumping.FluidId)).FluidGuid.ToString("D");
-                result.Add(new PumpingFluidDto { FluidId = pumping.FluidId, FluidGuid = fluidGuid, AmountPerMinute = (float)(pumping.AmountPerSecond * 60) });
-            }
-            return result;
-        }
-
         private static void AppendFluidSlots(List<BlockFluidSlotDto> slots, List<FluidMessagePack> tanks)
         {
             foreach (var tank in tanks)
@@ -222,7 +174,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             };
         }
 
-        private static string ToCamelCase(string value)
+        internal static string ToCamelCase(string value)
         {
             if (string.IsNullOrEmpty(value)) return value;
             return char.ToLowerInvariant(value[0]) + value.Substring(1);
