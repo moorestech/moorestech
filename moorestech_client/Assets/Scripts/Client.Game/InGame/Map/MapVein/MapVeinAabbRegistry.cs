@@ -29,16 +29,16 @@ namespace Client.Game.InGame.Map.MapVein
                 var minCell = new Vector3Int(layout.MinX, layout.MinY, layout.MinZ);
                 var maxCell = new Vector3Int(layout.MaxX, layout.MaxY, layout.MaxZ);
 
-                // 種別と産出アイテムはマスタの判別共用体から1度で決める。逆極性の2式に分けると片方だけ更新される
-                // Kind and yielded item come from the master's discriminated union in one place; two opposite-polarity expressions would drift apart
-                var (kind, veinItemId) = element.VeinParam switch
+                // 種別と産出アイテム/流体はマスタの判別共用体から1度で決める。逆極性の式に分けると片方だけ更新される
+                // Kind and yielded item/fluid come from the master's discriminated union in one place; opposite-polarity expressions would drift apart
+                var (kind, veinItemId, veinFluidId) = element.VeinParam switch
                 {
-                    ItemVeinParam itemVeinParam => (MapVeinKind.Item, (ItemId?)MasterHolder.ItemMaster.GetItemId(itemVeinParam.ItemGuid)),
-                    FluidVeinParam => (MapVeinKind.Fluid, (ItemId?)null),
+                    ItemVeinParam itemVeinParam => (MapVeinKind.Item, (ItemId?)MasterHolder.ItemMaster.GetItemId(itemVeinParam.ItemGuid), (FluidId?)null),
+                    FluidVeinParam fluidVeinParam => (MapVeinKind.Fluid, (ItemId?)null, (FluidId?)MasterHolder.FluidMaster.GetFluidId(fluidVeinParam.FluidGuid)),
                     _ => throw new InvalidOperationException($"[MapVeinAabbRegistry] 未対応のVeinParam:{element.VeinParam.GetType().Name} veinGuid:{veinTypeGuid}"),
                 };
 
-                _veins.Add(new MapVeinAabb(veinTypeGuid, minCell, maxCell, kind, veinItemId));
+                _veins.Add(new MapVeinAabb(veinTypeGuid, minCell, maxCell, kind, veinItemId, veinFluidId));
             }
         }
 

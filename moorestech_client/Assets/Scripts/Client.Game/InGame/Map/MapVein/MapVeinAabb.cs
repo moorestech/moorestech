@@ -30,13 +30,18 @@ namespace Client.Game.InGame.Map.MapVein
         // The item an item vein yields; null for fluid veins
         public readonly ItemId? VeinItemId;
 
-        public MapVeinAabb(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind, ItemId? veinItemId)
+        // 流体鉱脈の流体。アイテム鉱脈はnull
+        // The fluid a fluid vein holds; null for item veins
+        public readonly FluidId? VeinFluidId;
+
+        public MapVeinAabb(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind, ItemId? veinItemId, FluidId? veinFluidId)
         {
             VeinTypeGuid = veinTypeGuid;
             MinCell = minCell;
             MaxCell = maxCell;
             Kind = kind;
             VeinItemId = veinItemId;
+            VeinFluidId = veinFluidId;
 
             // min/maxは内包セル座標なのでmax側に1セル分足してワールドAABBにする
             // min/max are inclusive cell coords, so add one cell on the max side to build the world AABB

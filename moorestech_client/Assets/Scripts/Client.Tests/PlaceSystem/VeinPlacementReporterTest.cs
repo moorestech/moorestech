@@ -218,6 +218,45 @@ namespace Client.Tests.PlaceSystem
         ///     制限は入れた本人のGUIDでしか落とせない。別チュートリアルのClearで消えると設置が素通しになる
         ///     Only the tutorial that set the restriction may clear it; another tutorial's clear would let placement through
         /// </summary>
+        /// <summary>
+        ///     置いた瞬間に何も汲み上げないポンプを作らないため、汲み上げられる流体鉱脈の外は設置不可（ADR 0051）
+        ///     A pump that would draw nothing the moment it lands is refused, so cells off a pumpable fluid vein are not placeable (ADR 0051)
+        /// </summary>
+        [Test]
+        public void 鉱脈外のポンプセルをPlaceableFalseにしカーソルセルだけ理由を出す()
+        {
+            CreateServer();
+            var pumpMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPump);
+            var placeInfos = new List<PlaceInfo>
+            {
+                CreatePlaceInfo(FluidVeinCell, BlockDirection.North),
+                CreatePlaceInfo(OutsideVeinCell, BlockDirection.North),
+            };
+            var feedback = new PlacementFeedback();
+
+            VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(placeInfos, pumpMaster, 1, CreateRegistry(), new VeinRestrictedPlacementState(), feedback);
+
+            Assert.IsTrue(placeInfos[0].Placeable, "a pump over the fluid vein was rejected");
+            Assert.IsFalse(placeInfos[1].Placeable, "a pump outside the vein stayed placeable");
+            CollectionAssert.AreEqual(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlacePumpOutsideVein) }, feedback.Lines);
+        }
+
+        /// <summary>
+        ///     ポンプはアイテム鉱脈を汲み上げられないので、アイテム鉱脈の上は設置可にしない
+        ///     A pump cannot draw from an item vein, so an item vein must not make the cell placeable
+        /// </summary>
+        [Test]
+        public void アイテム鉱脈の上はポンプを設置可にしない()
+        {
+            CreateServer();
+            var pumpMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPump);
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(VeinMinCell, BlockDirection.North) };
+
+            VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(placeInfos, pumpMaster, -1, CreateRegistry(), new VeinRestrictedPlacementState(), new PlacementFeedback());
+
+            Assert.IsFalse(placeInfos[0].Placeable, "an item vein made a pump placeable");
+        }
+
         [Test]
         public void 制限は入れた本人のGUIDでしか解除されない()
         {
