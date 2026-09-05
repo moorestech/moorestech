@@ -82,6 +82,22 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, inventory.Count, "マスタに一致するfluidGuidが無ければ生成されないはず");
         }
 
+        // 鉱脈AABBのYから外れてもXZが重なれば汲み上げる（ADR 0051: 採掘機と同じ底面XZ規則）
+        // XZ overlap wins even outside the vein's Y range (ADR 0051: the miner's footprint XZ rule)
+        [Test]
+        public void PumpAboveVeinY_GeneratesFluid()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var pump = PlacePoweredPump(new Vector3Int(5, 7, 0));
+
+            for (var i = 0; i < 10; i++) GameUpdater.RunFrames(1);
+
+            var inventory = pump.GetComponent<PumpFluidOutputComponent>().GetFluidInventory();
+            Assert.AreEqual(1, inventory.Count, "Yが鉱脈外でもXZが重なれば汲み上げるはず");
+            Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(WaterFluidGuid), inventory[0].FluidId);
+        }
+
         private static IBlock PlacePoweredPump(Vector3Int pos)
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;

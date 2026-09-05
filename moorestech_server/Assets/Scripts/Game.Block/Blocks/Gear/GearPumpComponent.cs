@@ -15,12 +15,13 @@ namespace Game.Block.Blocks.Gear
         private readonly PumpFluidOutputComponent _output;
         private readonly List<FluidGenerationEntry> _entries;
         private readonly float _idleTorqueRate;
+        public bool CanGenerateFluid => _entries.Count > 0 && _output.CanAcceptGeneratedFluid;
 
-        public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output, BlockPositionInfo blockPositionInfo)
+        public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output, List<FluidGenerationEntry> entries)
         {
             _gearEnergyTransformer = gearEnergyTransformer;
             _output = output;
-            _entries = PumpFluidGenerationUtility.ResolveGenerationEntries(param.GenerateFluid.items, blockPositionInfo.OriginalPos);
+            _entries = entries;
             _idleTorqueRate = param.GearConsumption.IdlePowerRate;
 
             UpdateTorqueRequestRate();
@@ -41,8 +42,7 @@ namespace Game.Block.Blocks.Gear
         {
             // 流体を生成できるかどうかで要求トルク倍率を変更要求する
             // Push the torque request rate based on whether fluid can be generated
-            var canGenerateFluid = _entries.Count > 0 && _output.CanAcceptGeneratedFluid;
-            _gearEnergyTransformer.SetTorqueRequestRate(canGenerateFluid ? 1f : _idleTorqueRate);
+            _gearEnergyTransformer.SetTorqueRequestRate(CanGenerateFluid ? 1f : _idleTorqueRate);
         }
 
         public bool IsDestroy { get; private set; }

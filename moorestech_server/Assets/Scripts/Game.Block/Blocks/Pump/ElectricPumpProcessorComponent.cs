@@ -18,12 +18,13 @@ namespace Game.Block.Blocks.Pump
         private readonly List<FluidGenerationEntry> _entries;
         private ElectricPower _currentPower;
         public bool CanGenerateFluid => _entries.Count > 0 && _output.CanAcceptGeneratedFluid;
+        public IReadOnlyList<FluidGenerationEntry> Entries => _entries;
 
-        public ElectricPumpProcessorComponent(ElectricPumpBlockParam param, PumpFluidOutputComponent output, BlockPositionInfo blockPositionInfo)
+        public ElectricPumpProcessorComponent(ElectricPumpBlockParam param, PumpFluidOutputComponent output, List<FluidGenerationEntry> entries)
         {
             _output = output;
             _requiredPower = new ElectricPower(Mathf.Max(0.0001f, param.RequiredPower));
-            _entries = PumpFluidGenerationUtility.ResolveGenerationEntries(param.GenerateFluid.items, blockPositionInfo.OriginalPos);
+            _entries = entries;
         }
 
         // tick内限定の内部経路。供給率から導出済みの実効電力を受け取る

@@ -1,12 +1,11 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Game.Map.Interface.Vein
 {
     public interface IFluidMapVeinDatastore
     {
-        // 手掘り・露頭用のセル包含判定（Y込みinclusive）
-        // Cell-containment check for hand mining / exposed veins (Y-inclusive)
-        public List<IFluidMapVein> GetVeinsContainingCell(Vector3Int cell);
+        // ポンプの判定は鉱脈側では持たず、呼び出し側がPumpVeinFootprintJudgeで絞る（ADR 0051）
+        // Pump judgement is not owned by the vein layer; callers filter with PumpVeinFootprintJudge (ADR 0051)
+        public IReadOnlyList<IFluidMapVein> Veins { get; }
     }
 }

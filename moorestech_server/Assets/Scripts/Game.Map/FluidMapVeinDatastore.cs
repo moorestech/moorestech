@@ -11,6 +11,8 @@ namespace Game.Map
     {
         private readonly List<IFluidMapVein> _fluidVeins = new();
 
+        public IReadOnlyList<IFluidMapVein> Veins => _fluidVeins;
+
         public FluidMapVeinDatastore(MapInfoJson mapInfoJson)
         {
             // mapVeins配列を走査し、マスタでfluid種別の鉱脈だけを対象fluidGuidを導出して生成する
@@ -38,18 +40,6 @@ namespace Game.Map
                 var vein = new FluidMapVein(fluidId.Value, veinJson.MinPosition, veinJson.MaxPosition);
                 _fluidVeins.Add(vein);
             }
-        }
-
-        public List<IFluidMapVein> GetVeinsContainingCell(Vector3Int cell)
-        {
-            var veins = new List<IFluidMapVein>();
-            foreach (var vein in _fluidVeins)
-                if (vein.VeinRangeMin.x <= cell.x && cell.x <= vein.VeinRangeMax.x &&
-                    vein.VeinRangeMin.y <= cell.y && cell.y <= vein.VeinRangeMax.y &&
-                    vein.VeinRangeMin.z <= cell.z && cell.z <= vein.VeinRangeMax.z)
-                    veins.Add(vein);
-
-            return veins;
         }
     }
 }
