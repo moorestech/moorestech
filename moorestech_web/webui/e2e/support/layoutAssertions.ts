@@ -1,4 +1,38 @@
-import { expect, type Locator } from "@playwright/test";
+import { expect, type Locator, type Page } from "@playwright/test";
+
+// ScrollAreaのDOM契約を1箇所に集約
+// Centralizes the ScrollArea DOM contract in one place
+export function scrollAreaRootOf(page: Page, contentTestId: string): Locator {
+  return page.getByTestId(contentTestId).locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
+}
+
+export function scrollAreaViewport(scrollRoot: Locator): Locator {
+  return scrollRoot.locator(".mantine-ScrollArea-viewport");
+}
+
+export function scrollAreaVerticalBar(scrollRoot: Locator): Locator {
+  return scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="vertical"]');
+}
+
+// 溢れ有無でのバー・パネル高不変を検査
+// Checks the bar and panel-height invariant across overflow
+export async function expectScrollsOnlyWhenOverflowing(
+  scrollRoot: Locator,
+  panel: Locator,
+  overflowScenario: () => Promise<void>,
+) {
+  const viewport = scrollAreaViewport(scrollRoot);
+  const bar = scrollAreaVerticalBar(scrollRoot);
+
+  const settledHeight = (await panel.boundingBox())!.height;
+  await expect(bar).toBeHidden();
+  expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBe(0);
+
+  await overflowScenario();
+  await expect(bar).toBeVisible();
+  expect((await panel.boundingBox())!.height).toBeCloseTo(settledHeight, 1);
+  expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
+}
 
 export async function expectSeparatedHorizontally(left: Locator, right: Locator) {
   const leftBox = await left.boundingBox();

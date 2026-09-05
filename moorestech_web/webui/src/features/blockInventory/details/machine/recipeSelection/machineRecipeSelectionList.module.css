@@ -9,10 +9,26 @@
   color: var(--text-muted);
   font-size: var(--recipe-info-text-size);
   line-height: 1;
-  padding: 0 0.75rem 0.25rem;
+  padding: 0 var(--recipe-row-padding-inline) 0.25rem;
 }
 
 .row[data-selected="true"] {
   outline: 1px solid var(--select-cyan);
   outline-offset: -1px;
+}
+
+/* 行密度を上げ、本文に入る量を実測3.1行分→3.9行分にする（ユーザー裁定 2026-09-05・控えめ）。
+   上書きは機械の選択リスト内に閉じ、レシピ画面の共有RecipeRowには及ばない */
+/* Raise the row density so the body fits a measured 3.9 rows instead of 3.1 (user ruling 2026-09-05, the modest
+   option); the overrides stay inside the machine's selection list and never reach the shared RecipeRow */
+/* 枠の四隅ブラケットと外周リングは枠外へ出るため、全周にその分の余白を取る。0だとScrollAreaに切られ、
+   はみ出しぶんで不要なスクロールが出る。右だけはスクロールバー実寸も足してつまみと行を重ねない */
+/* The frame's corner brackets and outer ring sit outside it, so pad every side by that bleed; at 0 the ScrollArea
+   clips them and the bleed alone creates a needless scroll. Only the right adds the measured scrollbar width */
+.list {
+  --machine-recipe-row-gap: 8px;
+  --recipe-row-padding-block: 0.35rem;
+  --recipe-slot-size-max: 2rem;
+  padding: var(--recipe-entry-bleed);
+  padding-right: calc(var(--recipe-entry-bleed) + var(--recipe-list-scrollbar-reserve));
 }

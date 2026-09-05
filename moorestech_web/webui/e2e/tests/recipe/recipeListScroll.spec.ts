@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { setTopicScenario } from "../../support/mockControl";
+import { scrollAreaRootOf, scrollAreaViewport, scrollAreaVerticalBar, expectScrollsOnlyWhenOverflowing } from "../../support/layoutAssertions";
 
 // レシピ単一リストのスクロール領域も、大きさは器（パネル本文）が決める（§8.10・ユーザー裁定 2026-08-22）。
 // 件数でパネルごと伸びると「溢れた時だけスクロール」が成立せず、クリップがエントリ外周へ届かず枠が削られる
@@ -7,10 +8,8 @@ import { setTopicScenario } from "../../support/mockControl";
 // recipe count breaks "scroll only once it overflows" and pulls the clip inside the entries, shaving the tutorial ring
 
 const craftPanel = (page: Page) => page.locator('[data-variant="craft"]');
-const scrollRoot = (page: Page) =>
-  page.getByTestId("recipe-entry-list").locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
-const verticalBar = (page: Page) => scrollRoot(page).locator('.mantine-ScrollArea-scrollbar[data-orientation="vertical"]');
-const viewport = (page: Page) => scrollRoot(page).locator(".mantine-ScrollArea-viewport");
+const scrollRoot = (page: Page) => scrollAreaRootOf(page, "recipe-entry-list");
+const viewport = (page: Page) => scrollAreaViewport(scrollRoot(page));
 
 const openPlankRecipes = async (page: Page) => {
   await page.goto("/");
@@ -25,25 +24,17 @@ test.afterEach(async ({ page }) => {
 
 test("レシピが溢れてもパネル高は変わらず、縦バーだけが出る", async ({ page }) => {
   await openPlankRecipes(page);
-
-  // 既定fixtureは溢れないため、バーは出ずスクロール量も0
-  // The default fixture does not overflow, so no bar appears and there is nothing to scroll
-  const settledHeight = (await craftPanel(page).boundingBox())!.height;
-  await expect(verticalBar(page)).toBeHidden();
-  expect(await viewport(page).evaluate((element) => element.scrollHeight - element.clientHeight)).toBe(0);
-
-  // 溢れる件数でもパネルは伸びない。伸びるならスクロールが始まらない
-  // An overflowing count must not grow the panel; if it grows, scrolling never starts
-  await setTopicScenario(page, "machineRecipesOverflow");
-  await expect(verticalBar(page)).toBeVisible();
-  expect((await craftPanel(page).boundingBox())!.height).toBeCloseTo(settledHeight, 1);
-  expect(await viewport(page).evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
+  await expectScrollsOnlyWhenOverflowing(
+    scrollRoot(page),
+    craftPanel(page),
+    () => setTopicScenario(page, "machineRecipesOverflow"),
+  );
 });
 
 test("クリップ境界はエントリからハイライトの逃げぶん離れ、最下段までスクロールしても保たれる", async ({ page }) => {
   await openPlankRecipes(page);
   await setTopicScenario(page, "machineRecipesOverflow");
-  await expect(verticalBar(page)).toBeVisible();
+  await expect(scrollAreaVerticalBar(scrollRoot(page))).toBeVisible();
 
   // リテラルでなく関係式で見る。マスタのpaddingPxが変わってもこの検査が番人であり続けるため
   // Assert the relation rather than literals so this stays a guard even when the master's paddingPx changes

@@ -1,11 +1,13 @@
 import { test, expect } from "@playwright/test";
-import { setBlock } from "../../support/mockControl";
+import { setBlock, setTopicScenario } from "../../support/mockControl";
+import { scrollAreaRootOf, scrollAreaViewport, expectScrollsOnlyWhenOverflowing } from "../../support/layoutAssertions";
 
 const firstRecipeTestId = "machine-recipe-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const selectedRecipeTestId = "machine-recipe-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
+  await setTopicScenario(page, "machineRecipesDefault");
 });
 
 test("選択済機械は大型パネルでヘッダ＋レシピ分スロット＋ゴーストを出し、タブを持たない", async ({ page }) => {
@@ -62,4 +64,38 @@ test("レシピ無しブロックは小型パネルのまま", async ({ page }) 
   await expect(page.getByTestId("block-inventory")).toBeVisible();
   await expect(page.getByTestId("block-inventory")).not.toHaveAttribute("data-large", "true");
   await expect(page.getByTestId("machine-recipe-selection")).toHaveCount(0);
+});
+
+test("レシピが溢れてもパネル高は変わらず、選択リストだけがスクロールする", async ({ page }) => {
+  // 溢れ用fixtureは電気機械へ入る
+  // The overflow fixture targets the electric machine
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+
+  await expectScrollsOnlyWhenOverflowing(
+    scrollAreaRootOf(page, "machine-recipe-selection"),
+    page.getByTestId("block-inventory"),
+    () => setTopicScenario(page, "machineRecipesOverflow"),
+  );
+});
+
+test("行密度は控えめ設定どおりで、本文に3.8行分以上が入る", async ({ page }) => {
+  // 密度上書きが消えると3.1行分へ落ちる
+  // Losing the density overrides drops this to 3.1 rows
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+
+  const viewport = scrollAreaViewport(scrollAreaRootOf(page, "machine-recipe-selection"));
+  const firstRowTop = (await page.getByTestId(firstRecipeTestId).boundingBox())!.y;
+  const nextRowTop = (await page.getByTestId(selectedRecipeTestId).boundingBox())!.y;
+  const rowStride = nextRowTop - firstRowTop;
+  const clientHeight = await viewport.evaluate((element) => element.clientHeight);
+
+  // 共有既定のままなら3.09行分
+  // The shared defaults alone yield 3.09 rows
+  expect(clientHeight / rowStride).toBeGreaterThan(3.8);
 });

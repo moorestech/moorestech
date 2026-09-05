@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { ScrollArea, Stack, Text } from "@mantine/core";
+import { Stack, Text } from "@mantine/core";
 import { buildOwnedCounts } from "@/shared/ownedCounts";
+import { RecipeListScrollArea } from "@/shared/ui";
 import styles from "../panels/RecipeViewer.module.css";
 import type { CraftRecipesData, MachineRecipesData, PlayerInventoryData } from "@/bridge";
 import { buildRecipeEntries } from "../logic/craftLogic";
@@ -48,29 +49,27 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   return (
     <Stack className={styles.recipeContent} gap="sm">
       <ItemHeader name={itemName} />
-      <ScrollArea type="auto" scrollbarSize="var(--recipe-list-scrollbar-reserve)" className={styles.recipeListScroll}>
-        <Stack className={styles.recipeList} gap="var(--recipe-entry-gap)" data-testid="recipe-entry-list">
-          {entries.map((entry) =>
-            entry.kind === "craft" ? (
-              <CraftRecipeEntry
-                key={entry.recipe.recipeGuid}
-                recipe={entry.recipe}
-                counts={counts}
-                onSelect={onSelect}
-                testId={`craft-recipe-entry-${entry.recipe.recipeGuid}`}
-                tutorialAnchorProps={entry.recipe.recipeGuid === anchoredCraftGuid ? tutorialAnchor(TutorialAnchorIds.recipeCraftButton) : undefined}
-              />
-            ) : (
-              <MachineRecipeEntry
-                key={entry.recipe.recipeGuid}
-                recipe={entry.recipe}
-                onSelect={onSelect}
-                testId={`machine-recipe-entry-${entry.recipe.recipeGuid}`}
-              />
-            ),
-          )}
-        </Stack>
-      </ScrollArea>
+      <RecipeListScrollArea scrollClassName={styles.recipeListScroll} listClassName={styles.recipeList} listGap="var(--recipe-entry-gap)" listTestId="recipe-entry-list">
+        {entries.map((entry) =>
+          entry.kind === "craft" ? (
+            <CraftRecipeEntry
+              key={entry.recipe.recipeGuid}
+              recipe={entry.recipe}
+              counts={counts}
+              onSelect={onSelect}
+              testId={`craft-recipe-entry-${entry.recipe.recipeGuid}`}
+              tutorialAnchorProps={entry.recipe.recipeGuid === anchoredCraftGuid ? tutorialAnchor(TutorialAnchorIds.recipeCraftButton) : undefined}
+            />
+          ) : (
+            <MachineRecipeEntry
+              key={entry.recipe.recipeGuid}
+              recipe={entry.recipe}
+              onSelect={onSelect}
+              testId={`machine-recipe-entry-${entry.recipe.recipeGuid}`}
+            />
+          ),
+        )}
+      </RecipeListScrollArea>
     </Stack>
   );
 }
