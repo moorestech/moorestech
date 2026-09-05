@@ -18,8 +18,8 @@ export default function MachineRecipeSelectionList({ rows, onSelected }: Props) 
     if (recipeGuid !== selectedRecipeGuid) void dispatchAction("machine_recipe.select", { operation: "set", recipeGuid });
     onSelected(recipeGuid);
   };
-  // 高さはパネル本文が決め、溢れた分だけスクロールする（前例: RecipeContentのrecipeListScroll）
-  // The panel body sets the height and only the overflow scrolls (precedent: recipeListScroll in RecipeContent)
+  // 高さはパネル本文が決める
+  // The panel body sets the height
   return (
     <ScrollArea type="auto" scrollbarSize="var(--recipe-list-scrollbar-reserve)" className={styles.scroll}>
       <Stack className={styles.list} gap="var(--machine-recipe-row-gap)" data-testid="machine-recipe-selection">
