@@ -1,5 +1,4 @@
 using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.UIState;
 using Client.Input;
 using UnityEngine;
@@ -12,7 +11,6 @@ namespace Client.Game.Common
     {
         private static GameStateController _instance;
 
-        [SerializeField] private CurrentChallengeHudView currentChallengeHudView;
         private static readonly Subject<GameStateType> _onStateChanged = new();
         public static IObservable<GameStateType> OnStateChanged => _onStateChanged;
         public static GameStateType CurrentState { get; private set; } = GameStateType.InGame;
@@ -53,7 +51,6 @@ namespace Client.Game.Common
         private void SetInGameState()
         {
             PlayerSystemContainer.Instance.PlayerObjectController.SetActive(true);
-            currentChallengeHudView.SetActive(true);
 
             InputManager.MouseCursorVisible(false);
         }
@@ -61,7 +58,6 @@ namespace Client.Game.Common
         private void SetSkitState()
         {
             PlayerSystemContainer.Instance.PlayerObjectController.SetActive(false);
-            currentChallengeHudView.SetActive(false);
 
             InputManager.MouseCursorVisible(true);
         }
@@ -69,7 +65,6 @@ namespace Client.Game.Common
         private void SetCutSceneState()
         {
             PlayerSystemContainer.Instance.PlayerObjectController.SetActive(false);
-            currentChallengeHudView.SetActive(false);
 
             InputManager.MouseCursorVisible(false);
         }

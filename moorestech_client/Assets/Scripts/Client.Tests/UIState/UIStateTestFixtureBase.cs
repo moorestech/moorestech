@@ -7,7 +7,6 @@ using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.ProgressBar;
@@ -142,9 +141,7 @@ namespace Client.Tests.UIState
             playerRoot.SetActive(true);
             InvokeAwake(playerContainer);
 
-            var challengeHud = CreateComponent<CurrentChallengeHudView>("ChallengeHud");
             var gameState = CreateComponent<GameStateController>("GameState", false);
-            SetField(gameState, "currentChallengeHudView", challengeHud);
             gameState.gameObject.SetActive(true);
             InvokeAwake(gameState);
         }

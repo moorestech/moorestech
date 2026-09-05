@@ -12,17 +12,17 @@ namespace Client.WebUiHost.Game.Topics
         public const string TopicName = "pause_menu.current";
 
         private readonly WebSocketHub _hub;
-        private readonly NetworkDisconnectPresenter _presenter;
+        private readonly NetworkDisconnectState _state;
         private readonly IDisposable _subscription;
 
-        public PauseMenuTopic(WebSocketHub hub, NetworkDisconnectPresenter presenter)
+        public PauseMenuTopic(WebSocketHub hub, NetworkDisconnectState state)
         {
             _hub = hub;
-            _presenter = presenter;
+            _state = state;
 
             // 切断状態の変化だけを配信し、再接続時はsnapshotから復元する
             // Publish only disconnect changes and restore from the snapshot after reconnect
-            _subscription = presenter.OnDisconnectedChanged.Skip(1).Subscribe(_ => Publish());
+            _subscription = state.OnDisconnectedChanged.Skip(1).Subscribe(_ => Publish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -42,7 +42,7 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            return WebUiJson.Serialize(new PauseMenuDto { Disconnected = _presenter.IsDisconnected });
+            return WebUiJson.Serialize(new PauseMenuDto { Disconnected = _state.IsDisconnected });
         }
     }
 
