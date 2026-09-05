@@ -6,9 +6,12 @@ using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
 using Game.Fluid;
+using MessagePack;
 using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
+using UniRx;
 using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Pump
@@ -17,13 +20,15 @@ namespace Game.Block.Blocks.Pump
     /// Holds an inner fluid tank and pushes it to connected pipes each update.
     /// Output-only for external inventories; internal generators enqueue via AddLiquid.
     /// </summary>
-    public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
+    public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
     {
         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
         public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
         
         private readonly FluidContainer _tank;
         private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
+        private readonly Subject<Unit> _onChangeBlockState = new();
 
         public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
         {
@@ -76,6 +81,10 @@ namespace Game.Block.Blocks.Pump
                 _tank.FluidId = FluidMaster.EmptyFluidId;
             }
 
+            // 毎tick発火し、同値の握り潰しはChangeBlockStateEventPacketの差分検知に任せる（FluidPipeComponentと同じ約束）
+            // Fire every tick and leave identical-payload suppression to ChangeBlockStateEventPacket's diffing, as FluidPipeComponent does
+            _onChangeBlockState.OnNext(Unit.Default);
+
             #region Internal
 
             double GetFlowRate(ConnectedInfo info)
@@ -111,10 +120,24 @@ namespace Game.Block.Blocks.Pump
             return JsonConvert.SerializeObject(state);
         }
 
+        // 内部タンクを出力タンク1本として機械UIと同じ器に載せる
+        // Expose the inner tank as a single output tank in the same container the machine UI uses
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            BlockException.CheckDestroy(this);
+
+            var outputTanks = new List<FluidMessagePack> { new(_tank.FluidId, _tank.Amount, _tank.Capacity) };
+            var stateDetail = new FluidMachineInventoryStateDetail(new List<FluidMessagePack>(), outputTanks);
+            var serialized = MessagePackSerializer.Serialize(stateDetail);
+
+            return new[] { new BlockStateDetail(FluidMachineInventoryStateDetail.BlockStateDetailKey, serialized) };
+        }
+
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
             IsDestroy = true;
+            _onChangeBlockState.Dispose();
         }
 
         public List<FluidStack> GetFluidInventory()

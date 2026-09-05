@@ -13,7 +13,7 @@
   { "blockType": "ElectricMiner", "blockUIAddressablesPath": "Vanilla/UI/Block/MinerBlockInventory" },
   { "blockType": "ElectricPole", "blockUIAddressablesPath": "" },
   { "blockType": "ElectricPole", "blockUIAddressablesPath": "Vanilla/UI/Block/ElectricPoleNetworkInfoUI" },
-  { "blockType": "ElectricPump", "blockUIAddressablesPath": "" },
+  { "blockType": "ElectricPump", "blockUIAddressablesPath": "Vanilla/UI/Block/ElectricPoleNetworkInfoUI" },
   { "blockType": "ElectricToGearGenerator", "blockUIAddressablesPath": "Vanilla/UI/Block/ElectricToGearBlockInventory" },
   { "blockType": "FilterSplitter", "blockUIAddressablesPath": "Vanilla/UI/Block/FilterSplitterBlockInventory" },
   { "blockType": "FluidPipe", "blockUIAddressablesPath": "" },
