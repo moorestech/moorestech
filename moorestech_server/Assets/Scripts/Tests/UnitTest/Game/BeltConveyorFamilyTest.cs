@@ -1,6 +1,7 @@
 using System.IO;
 using Core.Master;
 using Core.Master.Validator;
+using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -39,6 +40,24 @@ namespace Tests.UnitTest.Game
             Assert.IsTrue(family.IsSlopeBlock(ForUnitTestModBlockId.TestGearBeltConveyorUp));
             Assert.IsTrue(family.IsSlopeBlock(ForUnitTestModBlockId.TestGearBeltConveyorDown));
             Assert.IsFalse(family.IsSlopeBlock(ForUnitTestModBlockId.GearBeltConveyor));
+        }
+
+        [Test]
+        public void 坂ブロックから上下の向きを引ける()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor, out var family);
+
+            Assert.IsTrue(family.TryGetSlopeDirection(ForUnitTestModBlockId.TestGearBeltConveyorUp, out var up));
+            Assert.AreEqual(BlockVerticalDirection.Up, up);
+            Assert.IsTrue(family.TryGetSlopeDirection(ForUnitTestModBlockId.TestGearBeltConveyorDown, out var down));
+            Assert.AreEqual(BlockVerticalDirection.Down, down);
+
+            // 直線は坂でないのでfalseとHorizontalを返す
+            // The straight block is not a slope, so it returns false with Horizontal
+            Assert.IsFalse(family.TryGetSlopeDirection(ForUnitTestModBlockId.GearBeltConveyor, out var straight));
+            Assert.AreEqual(BlockVerticalDirection.Horizontal, straight);
         }
 
         [Test]
