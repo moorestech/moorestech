@@ -86,7 +86,7 @@
 - Produces: `BeltConveyorPlaceFamilyUtil.ResolveUnlockBlockGuid(Guid blockGuid) -> Guid`（坂ならファミリー直線のGuid、それ以外は引数そのまま）
 - Consumes: 既存の `BeltConveyorPlaceFamilyUtil.TryGetFamilyByGuid(Guid, out BeltConveyorFamily)`
 
-- [ ] **Step 1: 失敗するテストを書く（カタログ列挙と解放委譲）**
+- [x] **Step 1: 失敗するテストを書く（カタログ列挙と解放委譲）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/PlacementTargetCatalogUnlockTest.cs` の末尾（`ブループリント未解放なら…` テストの後、`}` の前）に追加する。ファイル先頭の using に `using Core.Master;`・`using Microsoft.Extensions.DependencyInjection;`・`using Tests.CombinedTest.Server.PacketTest;` を足す。
 
@@ -135,7 +135,7 @@
         }
 ```
 
-- [ ] **Step 2: 並び順テストから坂除外を外す**
+- [x] **Step 2: 並び順テストから坂除外を外す**
 
 `PlacementTargetCatalogTest.cs:57-62` の期待値式から `Where` 行を削除する。
 
@@ -149,12 +149,12 @@
 
 同ファイル先頭の `using Game.Block.Interface.Extension;` は他で使っていなければ削除する。
 
-- [ ] **Step 3: テストを実行して失敗を確認する**
+- [x] **Step 3: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementTargetCatalog"`
 Expected: FAIL（`坂ベルトはカタログに載り直線の解放状態に従う` が `upGuid` 不在で落ち、`Blockの並び順が…` が期待値と実際の件数差で落ちる）
 
-- [ ] **Step 4: 解放Guid正規化をutilへ追加する**
+- [x] **Step 4: 解放Guid正規化をutilへ追加する**
 
 `BeltConveyorPlaceFamilyUtil.cs` の `IsSlopeBlock` の直後へ追加する。
 
@@ -168,7 +168,7 @@ Expected: FAIL（`坂ベルトはカタログに載り直線の解放状態に�
         }
 ```
 
-- [ ] **Step 5: カタログの坂除外を撤廃し解放判定を委譲する**
+- [x] **Step 5: カタログの坂除外を撤廃し解放判定を委譲する**
 
 `PlacementTargetCatalog.cs` の `CreateMasterEntries` 内、ブロック整列を次に置き換える。
 
@@ -190,7 +190,7 @@ Expected: FAIL（`坂ベルトはカタログに載り直線の解放状態に�
                     return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(unlockGuid, out var blockInfo) && blockInfo.IsUnlocked);
 ```
 
-- [ ] **Step 6: PlaceBlockProtocol を同じutilへ寄せる**
+- [x] **Step 6: PlaceBlockProtocol を同じutilへ寄せる**
 
 `PlaceBlockProtocol.cs` の `IsUnlocked` を置き換える（引数 `blockId` が未使用になるため削除し、呼び出し側 `if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid))` を `if (!IsUnlocked(blockMaster.BlockGuid))` に直す）。
 
@@ -204,17 +204,17 @@ Expected: FAIL（`坂ベルトはカタログに載り直線の解放状態に�
             }
 ```
 
-- [ ] **Step 7: コンパイルする**
+- [x] **Step 7: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
-- [ ] **Step 8: テストを実行して通ることを確認する**
+- [x] **Step 8: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementTargetCatalog|HotbarAssignmentDatastore|HotbarProtocol|HotbarSaveLoad|PlaceBlockProtocol"`
 Expected: PASS（ホットバー系テストは坂以外のブロックを選ぶ実装のため無変更で通る）
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Extension/BeltConveyorPlaceFamilyUtil.cs \
