@@ -17,7 +17,6 @@ using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 namespace Client.Tests.Mining
 {
@@ -29,10 +28,10 @@ namespace Client.Tests.Mining
         private static readonly Guid MiningToolItemGuid = new("00000000-0000-0000-1234-000000000001");
 
         private GameObject _playerObject;
-        private GameObject _progressBarObject;
         private GameObject _mapObjectObject;
         private MiningCompleteSoundEffectFixture _soundEffectFixture;
         private Keyboard _keyboard;
+        private ProgressBarState _progressBar;
         public override void Setup()
         {
             base.Setup();
@@ -44,7 +43,7 @@ namespace Client.Tests.Mining
             // Focusing resolves earned item names, so stand up the dictionary that RuntimeInitializeOnLoadMethod provides at runtime
             Localize.Initialize();
             CreatePlayerSystem();
-            CreateProgressBarView();
+            _progressBar = new ProgressBarState();
             _soundEffectFixture = new MiningCompleteSoundEffectFixture();
             _mapObjectObject = new GameObject("MiningMapObjects");
             #region Internal
@@ -59,27 +58,15 @@ namespace Client.Tests.Mining
                 TestReflection.SetField(container, "playerObjectController", playerController);
                 TestReflection.InvokePrivate(container, "Awake");
             }
-            void CreateProgressBarView()
-            {
-                _progressBarObject = new GameObject("ProgressBarView");
-                var view = _progressBarObject.AddComponent<ProgressBarView>();
-                var viewRoot = new GameObject("ViewRoot");
-                viewRoot.transform.SetParent(_progressBarObject.transform);
-                TestReflection.SetField(view, "viewRoot", viewRoot);
-                TestReflection.SetField(view, "scrollbar", _progressBarObject.AddComponent<Scrollbar>());
-                TestReflection.InvokePrivate(view, "Awake");
-            }
 
             #endregion
         }
 
         public override void TearDown()
         {
-            ProgressBarView.Instance = null;
             TestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
             UnityEngine.Object.DestroyImmediate(_mapObjectObject);
             _soundEffectFixture.Destroy();
-            UnityEngine.Object.DestroyImmediate(_progressBarObject);
             UnityEngine.Object.DestroyImmediate(_playerObject);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
@@ -87,9 +74,9 @@ namespace Client.Tests.Mining
         [Test]
         public void 採掘中に装備を持ち替えるとフォーカス状態へ戻る()
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), _progressBar);
             context.SetFocusTarget(CreateMiningMapObject());
-            var miningState = new MiningProgressState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
+            var miningState = new MiningProgressState(context, context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
             PressInteract();
             // 装備が変わらない限り採掘は継続する（この土台が無いと切替検知の失敗を検出できない）
             // Mining continues while the equipment is unchanged; without this baseline a broken switch check is invisible
@@ -102,12 +89,12 @@ namespace Client.Tests.Mining
         [Test]
         public void 完了後に照準対象が変わっても開始対象だけを攻撃する()
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), _progressBar);
             var startedTarget = new AttackTrackingMiningTarget("StartedTarget", _mapObjectObject.transform);
             var replacementTarget = new AttackTrackingMiningTarget("ReplacementTarget", _mapObjectObject.transform);
             context.SetFocusTarget(startedTarget);
             var miningTool = new MiningToolCandidate(context.LocalPlayerEquipment.SelectedItem.Id, 0.01f);
-            var miningState = new MiningProgressState(startedTarget, miningTool);
+            var miningState = new MiningProgressState(context, startedTarget, miningTool);
             PressInteract();
             var completeState = miningState.GetNextUpdate(context, miningTool.AttackSpeed);
             Assert.IsInstanceOf<MiningCompleteState>(completeState);
@@ -123,9 +110,9 @@ namespace Client.Tests.Mining
         [Test]
         public void 採掘中に照準対象が変わるとフォーカス状態へ戻る()
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), _progressBar);
             context.SetFocusTarget(CreateMiningMapObject());
-            var miningState = new MiningProgressState(context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
+            var miningState = new MiningProgressState(context, context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
             PressInteract();
 
             context.SetFocusTarget(CreateMiningMapObject());

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Localization;
 using Core.Master;
@@ -30,10 +31,12 @@ namespace Client.Game.InGame.Mining
         public string CurrentFocusTargetRecommendedToolNames { get; private set; } = string.Empty;
 
         public readonly LocalPlayerEquipment LocalPlayerEquipment;
+        public ProgressBarState ProgressBar { get; }
 
-        public MiningControllerContext(LocalPlayerEquipment localPlayerEquipment)
+        public MiningControllerContext(LocalPlayerEquipment localPlayerEquipment, ProgressBarState progressBar)
         {
             LocalPlayerEquipment = localPlayerEquipment;
+            ProgressBar = progressBar;
 
             // 言語切替で保持中の名前が古くなる
             // A language switch makes the cached names stale

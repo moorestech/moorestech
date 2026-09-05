@@ -49,7 +49,7 @@ namespace Client.Game.InGame.Mining
             // マイニング状態に遷移
             // Transition to mining state
             MouseCursorTooltip.Instance.Hide(MiningControllerContext.TooltipOwner);
-            return new MiningProgressState(currentTarget, usableMiningTool);
+            return new MiningProgressState(context, currentTarget, usableMiningTool);
 
             #region Internal
 

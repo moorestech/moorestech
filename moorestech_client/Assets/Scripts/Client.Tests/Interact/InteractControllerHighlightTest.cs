@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Tests.Common;
 using NUnit.Framework;
@@ -47,7 +48,7 @@ namespace Client.Tests.Interact
             var first = CreateTrackingInteractable("first", log);
             var second = CreateTrackingInteractable("second", log);
             var selector = new ScriptedInteractTargetSelector();
-            var controller = new InteractController(null, selector);
+            var controller = new InteractController(null, selector, new ProgressBarState());
 
             // 同じ対象を掴み続けても点灯は一度きり
             // Holding the same target lights it up exactly once

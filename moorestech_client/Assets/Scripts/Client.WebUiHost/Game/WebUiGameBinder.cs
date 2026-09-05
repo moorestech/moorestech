@@ -70,9 +70,9 @@ namespace Client.WebUiHost.Game
             var modalTopic = new ModalTopic(hub, modalService);
             hub.RegisterTopic(ModalTopic.TopicName, modalTopic);
 
-            // 進捗バートピックを登録（ProgressBarView は静的シングルトン）
-            // Register the progress-bar topic (ProgressBarView is a static singleton)
-            var progressTopic = new ProgressTopic(hub, ProgressBarView.Instance);
+            // 進捗バートピックを登録
+            // Register the progress-bar topic
+            var progressTopic = new ProgressTopic(hub, resolver.Resolve<ProgressBarState>());
             hub.RegisterTopic(ProgressTopic.TopicName, progressTopic);
 
             // ブロックインベントリトピックを登録

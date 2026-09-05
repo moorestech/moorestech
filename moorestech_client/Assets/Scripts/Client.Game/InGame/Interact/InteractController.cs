@@ -2,6 +2,7 @@ using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using UnityEngine;
 
@@ -21,10 +22,10 @@ namespace Client.Game.InGame.Interact
         private GameObject _highlightedGameObject;
         private IMiningState _miningState = new MiningIdleState();
 
-        public InteractController(LocalPlayerEquipment localPlayerEquipment, IInteractTargetSelector selector)
+        public InteractController(LocalPlayerEquipment localPlayerEquipment, IInteractTargetSelector selector, ProgressBarState progressBar)
         {
             _selector = selector;
-            _miningContext = new MiningControllerContext(localPlayerEquipment);
+            _miningContext = new MiningControllerContext(localPlayerEquipment, progressBar);
         }
 
         public InteractExecuteResult ManualUpdate()

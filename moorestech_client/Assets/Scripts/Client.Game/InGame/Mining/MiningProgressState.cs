@@ -8,19 +8,21 @@ namespace Client.Game.InGame.Mining
 {
     public class MiningProgressState : IMiningState
     {
+        private readonly ProgressBarState _progressBar;
         private readonly IMiningTargetObject _startedMiningTarget;
         private readonly MiningToolCandidate _miningToolCandidate;
 
         private float _currentMiningProgressTime;
 
-        public MiningProgressState(IMiningTargetObject startedMiningTarget, MiningToolCandidate miningToolCandidate)
+        public MiningProgressState(MiningControllerContext context, IMiningTargetObject startedMiningTarget, MiningToolCandidate miningToolCandidate)
         {
+            _progressBar = context.ProgressBar;
             _startedMiningTarget = startedMiningTarget;
             _miningToolCandidate = miningToolCandidate;
             _currentMiningProgressTime = 0;
 
             PlayerSystemContainer.Instance.PlayerObjectController.SetAnimationState(PlayerAnimationState.Axe);
-            ProgressBarView.Instance.Show();
+            _progressBar.Show();
         }
 
 
@@ -30,7 +32,7 @@ namespace Client.Game.InGame.Mining
             if (next != this)
             {
                 PlayerSystemContainer.Instance.PlayerObjectController.SetAnimationState(PlayerAnimationState.IdleWalkRunBlend);
-                ProgressBarView.Instance.Hide();
+                _progressBar.Hide();
             }
             return next;
         }
@@ -82,7 +84,7 @@ namespace Client.Game.InGame.Mining
             }
 
             _currentMiningProgressTime += dt;
-            ProgressBarView.Instance.SetProgress(_currentMiningProgressTime / _miningToolCandidate.AttackSpeed);
+            _progressBar.SetProgress(_currentMiningProgressTime / _miningToolCandidate.AttackSpeed);
 
             // マイニングが完了した場合はマイニング完了状態に遷移
             // If mining is complete, transition to mining complete state

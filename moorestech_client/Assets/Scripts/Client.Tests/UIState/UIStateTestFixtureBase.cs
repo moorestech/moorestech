@@ -10,6 +10,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
@@ -74,7 +75,7 @@ namespace Client.Tests.UIState
         // Equipment plays no part in highlight or transition checks, so it is built with null; mining outcome tests live elsewhere
         protected static InteractController CreateInteractController()
         {
-            return new InteractController(null, new InteractTargetSelector());
+            return new InteractController(null, new InteractTargetSelector(), new ProgressBarState());
         }
 
         protected static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)

@@ -18,7 +18,6 @@ using Tests.Module.TestMod;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
 
 namespace Client.Tests.Interact
 {
@@ -32,9 +31,9 @@ namespace Client.Tests.Interact
 
         private Keyboard _keyboard;
         private GameObject _playerObject;
-        private GameObject _progressBarObject;
         private GameObject _tooltipObject;
         private GameObject _stubTargetObject;
+        private ProgressBarState _progressBar;
 
         public override void Setup()
         {
@@ -48,7 +47,7 @@ namespace Client.Tests.Interact
             Localize.Initialize();
             CreateTooltip();
             CreatePlayerSystem();
-            CreateProgressBarView();
+            _progressBar = new ProgressBarState();
 
             #region Internal
 
@@ -75,27 +74,14 @@ namespace Client.Tests.Interact
                 TestReflection.InvokePrivate(container, "Awake");
             }
 
-            void CreateProgressBarView()
-            {
-                _progressBarObject = new GameObject("ProgressBarView");
-                var view = _progressBarObject.AddComponent<ProgressBarView>();
-                var viewRoot = new GameObject("ViewRoot");
-                viewRoot.transform.SetParent(_progressBarObject.transform);
-                TestReflection.SetField(view, "viewRoot", viewRoot);
-                TestReflection.SetField(view, "scrollbar", _progressBarObject.AddComponent<Scrollbar>());
-                TestReflection.InvokePrivate(view, "Awake");
-            }
-
             #endregion
         }
 
         public override void TearDown()
         {
-            ProgressBarView.Instance = null;
             TestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
             TestReflection.SetStaticProperty(typeof(MouseCursorTooltip), "Instance", null);
             UnityEngine.Object.DestroyImmediate(_stubTargetObject);
-            UnityEngine.Object.DestroyImmediate(_progressBarObject);
             UnityEngine.Object.DestroyImmediate(_playerObject);
             UnityEngine.Object.DestroyImmediate(_tooltipObject);
             TestReflection.ResetInputManagerCache();
@@ -106,7 +92,7 @@ namespace Client.Tests.Interact
         public void 採掘中にDisableすると進捗バーが消えFSMがIdleへ戻る()
         {
             var selector = new ScriptedInteractTargetSelector();
-            var controller = new InteractController(CreateEquipmentHoldingTool(), selector);
+            var controller = new InteractController(CreateEquipmentHoldingTool(), selector, _progressBar);
             selector.SetNext(CreateReadyMiningTarget());
             PressInteract();
 
@@ -115,20 +101,20 @@ namespace Client.Tests.Interact
             controller.ManualUpdate();
             controller.ManualUpdate();
             Assert.IsInstanceOf<MiningProgressState>(CurrentMiningState(controller));
-            Assert.IsTrue(ProgressBarView.Instance.IsShown, "採掘中の進捗バーが出ていない前提が崩れている");
+            Assert.IsTrue(_progressBar.IsShown, "採掘中の進捗バーが出ていない前提が崩れている");
 
             // ステートを捨てるとProgressの出口処理が飛び、バーとアニメが固着する
             // Discarding the state skips the Progress exit work and strands the bar and the animation
             controller.Disable();
             Assert.IsInstanceOf<MiningIdleState>(CurrentMiningState(controller));
-            Assert.IsFalse(ProgressBarView.Instance.IsShown);
+            Assert.IsFalse(_progressBar.IsShown);
         }
 
         [Test]
         public void フォーカス中にDisableするとtooltipが消える()
         {
             var selector = new ScriptedInteractTargetSelector();
-            var controller = new InteractController(CreateEquipmentHoldingTool(), selector);
+            var controller = new InteractController(CreateEquipmentHoldingTool(), selector, _progressBar);
             selector.SetNext(CreateReadyMiningTarget());
 
             // Fを押さないのでFocusに留まり、掘り方のtooltipが出る

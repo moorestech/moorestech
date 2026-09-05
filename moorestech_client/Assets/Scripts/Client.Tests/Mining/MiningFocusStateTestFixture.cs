@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
 using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Client.Localization;
@@ -77,7 +78,7 @@ namespace Client.Tests.Mining
 
         protected IMiningState RunFocusState(MiningStartOutcome outcome, MiningFocusState focusState, IReadOnlyList<Guid> earnItemGuids)
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), new ProgressBarState());
             var stubTarget = new OutcomeStubMiningTarget(outcome, MasterHolder.ItemMaster.GetItemId(ToolItemGuid), earnItemGuids);
             _stubTargetObjects.Add(stubTarget.GameObject);
             context.SetFocusTarget(stubTarget);
@@ -92,7 +93,7 @@ namespace Client.Tests.Mining
         // Advances the focus state once with F held down; the only path that exercises the press branch itself
         protected IMiningState RunFocusStateWithInteractPressed(MiningStartOutcome outcome, MiningFocusState focusState)
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), new ProgressBarState());
             var stubTarget = new OutcomeStubMiningTarget(outcome, MasterHolder.ItemMaster.GetItemId(ToolItemGuid), Array.Empty<Guid>());
             _stubTargetObjects.Add(stubTarget.GameObject);
             context.SetFocusTarget(stubTarget);

@@ -35,6 +35,7 @@ using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Challenge;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -135,6 +136,7 @@ namespace Client.Starter.Registration
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
             builder.Register<PlacementTargetPickService>(Lifetime.Singleton);
             builder.Register<IInteractTargetSelector, InteractTargetSelector>(Lifetime.Singleton);
+            builder.Register<ProgressBarState>(Lifetime.Singleton);
             builder.Register<InteractController>(Lifetime.Singleton);
             builder.Register<PauseMenuStateService>(Lifetime.Singleton);
 
