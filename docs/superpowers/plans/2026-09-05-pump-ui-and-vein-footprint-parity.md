@@ -398,7 +398,7 @@ git commit -m "feat(pump): 汲み上げ対象を採掘機と同じ底面XZ重な
   - 油井のブロック状態に `CommonMachine` キー（`CurrentStateType` は `"processing"` / `"idle"`）
   - 両ポンプのブロック状態に `FluidMachineInventory` キー（入力0本・出力1本）
 
-- [ ] **Step 1: 状態配信のテストを書く（失敗する）**
+- [x] **Step 1: 状態配信のテストを書く（失敗する）**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/PumpBlockStateDetailTest.cs`:
 
@@ -516,12 +516,12 @@ namespace Tests.CombinedTest.Core
 
 `IBlock.GetBlockState()` と `IBlock.BlockStateChange`（`IObservable<BlockState>`）は `Game.Block.Interface/IBlock.cs` の実名（`BlockSystem` は `_onBlockStateChange.OnNext(GetBlockState())` で配信している）。`BlockState.CurrentStateDetails` が `Dictionary<string, byte[]>` であることも同ファイル `State/BlockState.cs` で確認する。
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `PumpBlockStateDetail` 未定義のコンパイルエラー
 
-- [ ] **Step 3: `PumpBlockStateDetail` を書く**
+- [x] **Step 3: `PumpBlockStateDetail` を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/State/PumpBlockStateDetail.cs`:
 
@@ -579,7 +579,7 @@ namespace Game.Block.Interface.State
 }
 ```
 
-- [ ] **Step 4: `PumpStateComponent` を書く**
+- [x] **Step 4: `PumpStateComponent` を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/PumpStateComponent.cs`:
 
@@ -654,7 +654,7 @@ namespace Game.Block.Blocks.Pump
 
 `ElectricPumpProcessorComponent` と `GearPumpComponent` のクラス宣言に `, IPumpGenerationState` を追加する（両者とも Task 1 で `CanGenerateFluid` を public プロパティとして持つ）。
 
-- [ ] **Step 5: 油井の `ElectricPumpComponent` に `CommonMachineBlockStateDetail` を持たせる**
+- [x] **Step 5: 油井の `ElectricPumpComponent` に `CommonMachineBlockStateDetail` を持たせる**
 
 `ElectricPumpComponent.cs` 全文を次で置換する:
 
@@ -724,7 +724,7 @@ namespace Game.Block.Blocks.Pump
 
 `Game.Block/Blocks/Machine/VanillaMachineBlockStateConst.cs` の名前空間が `Game.Block.Blocks.Machine` であることを確認し、違えば `using` を合わせる。
 
-- [ ] **Step 6: `PumpFluidOutputComponent` が内部タンクを配信する**
+- [x] **Step 6: `PumpFluidOutputComponent` が内部タンクを配信する**
 
 並列セッションの暫定版がマージ済みで `PumpFluidOutputComponent` に既に `IBlockStateDetail` 実装があれば、内容が下記と同じ（入力0本・出力1本・`MaxCapacity` に容量）ことを確認して次へ進む。無ければクラス宣言に `, IBlockStateDetail` を追加し、`using Game.Block.Interface.State;` と `using MessagePack;` を足して次を追加する:
 
@@ -741,7 +741,7 @@ namespace Game.Block.Blocks.Pump
         }
 ```
 
-- [ ] **Step 7: テンプレートに `PumpStateComponent` を登録する**
+- [x] **Step 7: テンプレートに `PumpStateComponent` を登録する**
 
 `VanillaElectricPumpTemplate.cs` の `components` リストを次にする（`processorComponent` の後に置く。状態配信は同tickの生成結果を見たいため）:
 
@@ -760,7 +760,7 @@ namespace Game.Block.Blocks.Pump
 
 `VanillaGearPumpTemplate.cs` も同様に `pumpComponent` の直後へ `new PumpStateComponent(generationEntries, pumpComponent)` を追加する。
 
-- [ ] **Step 8: コンパイルしてテストを実行する**
+- [x] **Step 8: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
@@ -768,7 +768,7 @@ Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PumpBlockStateDetailTest|PumpFluidVeinTest|ElectricPumpTest|GearPumpTest|IdlePowerRateTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/State/PumpBlockStateDetail.cs moorestech_server/Assets/Scripts/Game.Block.Interface/State/PumpBlockStateDetail.cs.meta moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearPumpComponent.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaElectricPumpTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearPumpTemplate.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/PumpBlockStateDetailTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/PumpBlockStateDetailTest.cs.meta
