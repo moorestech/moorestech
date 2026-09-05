@@ -238,7 +238,7 @@ git commit -m "feat: 坂ベルトを設置対象カタログへ載せ解放判�
 - Produces: `BlockPickResolver.IsPickable(BlockId blockId, IGameUnlockStateData unlockState) -> bool`（`TryResolvePickTarget` を置き換える。正規化をやめたので out 引数は無くなる）
 - Consumes: Task 1 の `BeltConveyorPlaceFamilyUtil.ResolveUnlockBlockGuid`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `BlockPickResolverTest.cs` の3テストを次で全置換する（クラス本体のみ差し替え、`CreateServer` はそのまま残す）。
 
@@ -286,12 +286,12 @@ git commit -m "feat: 坂ベルトを設置対象カタログへ載せ解放判�
         }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockPickResolver"`
 Expected: FAIL（コンパイルエラー: `IsPickable` が存在しない）
 
-- [ ] **Step 3: BlockPickResolver を書き換える**
+- [x] **Step 3: BlockPickResolver を書き換える**
 
 `BlockPickResolver.cs` のクラス本体を次に置き換える。
 
@@ -311,7 +311,7 @@ Expected: FAIL（コンパイルエラー: `IsPickable` が存在しない）
     }
 ```
 
-- [ ] **Step 4: 呼び出し側を直す**
+- [x] **Step 4: 呼び出し側を直す**
 
 `PlacementTargetPickService.cs` の `TryPickBlock` を次に置き換える。
 
@@ -327,7 +327,7 @@ Expected: FAIL（コンパイルエラー: `IsPickable` が存在しない）
             }
 ```
 
-- [ ] **Step 5: コンパイルしてテストを実行する**
+- [x] **Step 5: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -335,7 +335,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockPickResolver"`
 Expected: PASS（4テスト）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlacementPick/BlockPickResolver.cs \
