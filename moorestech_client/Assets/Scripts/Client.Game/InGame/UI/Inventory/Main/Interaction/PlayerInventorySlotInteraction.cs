@@ -44,10 +44,10 @@ namespace Client.Game.InGame.UI.Inventory.Main
         {
             var (slotObject, itemUIEvent) = eventProperty;
             var index = IndexOfMainSlotView();
-            if (index == -1)
-                index = _mainInventorySlotObjects.Count + _subInventory.SubInventorySlotObjects.IndexOf(slotObject);
 
-            if (index == -1) throw new Exception("slot index not found");
+            // サブ側uGUIスロットは生成されなくなったため、メインスロットに無ければ無視する
+            // Sub-inventory uGUI slots are no longer created, so ignore events that aren't a main slot
+            if (index == -1) return;
             switch (itemUIEvent)
             {
                 case ItemUIEventType.LeftClickDown:

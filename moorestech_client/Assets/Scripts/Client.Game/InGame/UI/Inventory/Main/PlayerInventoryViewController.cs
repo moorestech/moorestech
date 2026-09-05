@@ -61,14 +61,10 @@ namespace Client.Game.InGame.UI.Inventory.Main
         public void SetSubInventory(ISubInventory subInventory)
         {
             foreach (var disposable in _subInventorySlotUIEventUnsubscriber) disposable.Dispose();
-
-            // サブインベントリの参照とUI購読をまとめて差し替える
-            // Replace the sub-inventory reference and UI subscriptions together
             _subInventorySlotUIEventUnsubscriber.Clear();
             _subInventory = subInventory;
             _interaction.SetSubInventory(subInventory);
             _playerInventory.SetSubInventory(subInventory);
-            foreach (var sub in subInventory.SubInventorySlotObjects) _subInventorySlotUIEventUnsubscriber.Add(sub.OnPointerEvent.Subscribe(HandleSlotPointerEvent));
         }
 
         // スロットのポインタイベントを操作ハンドラへ橋渡しする
@@ -101,7 +97,7 @@ namespace Client.Game.InGame.UI.Inventory.Main
                 if (i < mainSlotsView.SlotViews.Count)
                     mainSlotsView.SlotViews[i].SetItem(itemView, item.Count);
                 else
-                    _subInventory.SubInventorySlotObjects[i - mainSlotsView.SlotViews.Count].SetItem(itemView, item.Count);
+                    break;
             }
         }
     }

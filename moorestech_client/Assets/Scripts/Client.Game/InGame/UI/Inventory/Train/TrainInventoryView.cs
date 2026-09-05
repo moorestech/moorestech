@@ -2,6 +2,7 @@
 // [uGUI retirement Phase1] Unmaintained; rendering permanently disabled after the Web UI migration. Slated for deletion in Phase2 (docs/webui/ugui-retirement-plan.md)
 using System.Collections.Generic;
 using Client.Game.InGame.Train.View.Object.Core;
+using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Common;
 using Core.Item.Interface;
 using Game.PlayerInventory.Interface.Subscription;
