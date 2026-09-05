@@ -6,6 +6,7 @@ import { useI18n } from "@/shared/i18n";
 import LackHighlightText from "./LackHighlightText";
 import PowerRateText from "./PowerRateText";
 import { machineStateDisplay } from "./detailLogic";
+import styles from "../style.module.css";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionList from "./machine/recipeSelection/MachineRecipeSelectionList";
 import SelectedRecipeHeader from "./machine/SelectedRecipeHeader";
@@ -49,7 +50,7 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
   const inSelectionMode = selectionOpened && !requestApplied;
   const showSelection = !hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || inSelectionMode;
   return (
-    <Stack gap="sm" data-testid="machine-section">
+    <Stack className={styles.fillPanelHeight} gap="sm" data-testid="machine-section">
       {showSelection ? (
         <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} />
       ) : (

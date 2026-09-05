@@ -1,11 +1,15 @@
-import { test, expect } from "@playwright/test";
-import { setBlock } from "../../support/mockControl";
+import { test, expect, type Page } from "@playwright/test";
+import { setBlock, setTopicScenario } from "../../support/mockControl";
 
 const firstRecipeTestId = "machine-recipe-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const selectedRecipeTestId = "machine-recipe-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 
+const selectionScrollRoot = (page: Page) =>
+  page.getByTestId("machine-recipe-selection").locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
+
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
+  await setTopicScenario(page, "machineRecipesDefault");
 });
 
 test("選択済機械は大型パネルでヘッダ＋レシピ分スロット＋ゴーストを出し、タブを持たない", async ({ page }) => {
@@ -62,4 +66,28 @@ test("レシピ無しブロックは小型パネルのまま", async ({ page }) 
   await expect(page.getByTestId("block-inventory")).toBeVisible();
   await expect(page.getByTestId("block-inventory")).not.toHaveAttribute("data-large", "true");
   await expect(page.getByTestId("machine-recipe-selection")).toHaveCount(0);
+});
+
+test("レシピが溢れてもパネル高は変わらず、選択リストだけがスクロールする", async ({ page }) => {
+  // 溢れ用fixtureは電気機械のGUIDへ12件足すため、選択済の電気機械をヘッダから選択モードへ戻して見る
+  // The overflow fixture adds twelve recipes to the electric machine's GUID, so reopen selection mode from its header
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+  const viewport = selectionScrollRoot(page).locator(".mantine-ScrollArea-viewport");
+  const bar = selectionScrollRoot(page).locator('.mantine-ScrollArea-scrollbar[data-orientation="vertical"]');
+
+  // 既定fixtureは溢れないため、バーは出ずスクロール量も0
+  // The default fixture does not overflow, so no bar appears and there is nothing to scroll
+  const settledHeight = (await page.getByTestId("block-inventory").boundingBox())!.height;
+  await expect(bar).toBeHidden();
+  expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBe(0);
+
+  // 溢れる件数でもパネルは伸びない。伸びるならスクロールが始まらない（前例: recipeListScroll.spec）
+  // An overflowing count must not grow the panel; if it grows, scrolling never starts (precedent: recipeListScroll.spec)
+  await setTopicScenario(page, "machineRecipesOverflow");
+  await expect(bar).toBeVisible();
+  expect((await page.getByTestId("block-inventory").boundingBox())!.height).toBeCloseTo(settledHeight, 1);
+  expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
 });

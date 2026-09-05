@@ -1,9 +1,10 @@
 // 機械のレシピ選択モード本体。行クリックで選択Actionを送り、親へ遷移を通知する
 // The machine's recipe-selection mode; a row click dispatches the select action and notifies the parent
-import { Stack } from "@mantine/core";
+import { ScrollArea, Stack } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import type { MachineRecipeSelectionRowData } from "../machineRecipeSelectionLogic";
 import MachineRecipeSelectionRow from "./MachineRecipeSelectionRow";
+import styles from "./machineRecipeSelectionList.module.css";
 
 type Props = { rows: MachineRecipeSelectionRowData[]; onSelected: (recipeGuid: string) => void };
 
@@ -17,9 +18,13 @@ export default function MachineRecipeSelectionList({ rows, onSelected }: Props) 
     if (recipeGuid !== selectedRecipeGuid) void dispatchAction("machine_recipe.select", { operation: "set", recipeGuid });
     onSelected(recipeGuid);
   };
+  // 高さはパネル本文が決め、溢れた分だけスクロールする（前例: RecipeContentのrecipeListScroll）
+  // The panel body sets the height and only the overflow scrolls (precedent: recipeListScroll in RecipeContent)
   return (
-    <Stack gap="xs" data-testid="machine-recipe-selection">
-      {rows.map((row) => <MachineRecipeSelectionRow key={row.recipe.recipeGuid} row={row} onSelect={onSelect} />)}
-    </Stack>
+    <ScrollArea type="auto" scrollbarSize="var(--recipe-list-scrollbar-reserve)" className={styles.scroll}>
+      <Stack className={styles.list} gap="var(--machine-recipe-row-gap)" data-testid="machine-recipe-selection">
+        {rows.map((row) => <MachineRecipeSelectionRow key={row.recipe.recipeGuid} row={row} onSelect={onSelect} />)}
+      </Stack>
+    </ScrollArea>
   );
 }

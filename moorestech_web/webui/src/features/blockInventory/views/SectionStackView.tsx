@@ -2,6 +2,7 @@ import { Stack } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
 import { FluidSlotRow } from "@/shared/ui";
 import BlockItemGrid from "../BlockItemGrid";
+import styles from "../style.module.css";
 import GearSection from "../details/GearSection";
 import GeneratorSection from "../details/GeneratorSection";
 import MachineSection from "../details/MachineSection";
@@ -45,7 +46,7 @@ export default function SectionStackView({ data }: { data: BlockInventoryOpen })
   const showItemGrid = itemGridTestId !== null && (config.renderEmptyGrid || data.itemSlots.length > 0);
 
   return (
-    <Stack gap="sm">
+    <Stack className={styles.fillPanelHeight} gap="sm">
       {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} testId={itemGridTestId} /> : null}
       {data.machine ? <MachineSection data={data} machine={data.machine} /> : null}
       <MinerSection data={data} />
