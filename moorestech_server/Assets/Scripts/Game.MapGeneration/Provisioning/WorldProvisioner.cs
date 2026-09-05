@@ -109,21 +109,14 @@ namespace Game.MapGeneration.Provisioning
                 var inputConfig = MapGenerationPipeline.BuildConfig(selected, settings.Seed, settings.ServerDataDirectory);
                 var run = MapGenerationPipeline.Generate(selected, inputConfig);
 
+                // pass-2(先焼き)へ渡すのは台帳だけ。selectedとconfigは転送メタの原点から組み直せるのでTerrainVisualPrebakeが持つ
+                // Only the ledger goes to pass-2 (the prebake); selected and config are rebuildable from the transfer meta's origins, so TerrainVisualPrebake owns them
+                ledger = run.Ledger;
+
                 var output = run.Output;
                 var mapInfoJson = MapInfoJsonBuilder.Build(output);
                 File.WriteAllText(tempDataDirectory.MapJsonFilePath, JsonConvert.SerializeObject(mapInfoJson, Formatting.Indented));
                 TerrainFileWriter.Write(tempDataDirectory, output);
-
-                // 記録する台帳はクライアントが辿るのと同じ経路(原点注入済みconfig)で作り直す。探索を回した台帳をそのまま記録すると、
-                // クライアントの再生成と浮動小数1件ぶんずれただけでdigestのfail-closedに当たり、復旧手段なくワールドへ入れなくなる
-                // The recorded ledger is rebuilt through the very path a client takes (a config with the origins injected); recording the searched run's ledger
-                // instead lets a single float's worth of divergence trip the digest fail-closed and lock the world out with no way back in
-                var clientEquivalentConfig = MapGenerationPipeline.BuildConfigWithSettledOrigins(
-                    selected, settings.Seed, settings.ServerDataDirectory, new TerrainOrigins(output.NoiseOrigin, output.SceneOrigin));
-
-                // pass-2(先焼き)へ渡すのは台帳だけ。selectedとconfigは転送メタの原点から組み直せるのでTerrainVisualPrebakeが持つ
-                // Only the ledger goes to pass-2 (the prebake); selected and config are rebuildable from the transfer meta's origins, so TerrainVisualPrebake owns them
-                ledger = MapGenerationPipeline.Generate(selected, clientEquivalentConfig).Ledger;
 
                 var generationMasterFingerprint = GenerationMasterFingerprint.Compute(
                     MasterHolder.GenerationMaster.SourceJsonText, selected, settings.ServerDataDirectory);
@@ -150,9 +143,9 @@ namespace Game.MapGeneration.Provisioning
 
                     GenerationMasterFingerprint = generationMasterFingerprint,
 
-                    // 記録するのは原点注入済み経路の台帳のdigest。ここで記録しないとクライアントが鍵のために丸ごと回し直す
-                    // The recorded digest is that of the origin-injected path's ledger; unrecorded, a client would rerun the whole thing just to obtain a key
-                    PlacementLedgerDigest = ledger.ComputeDigest(),
+                    // 台帳の指紋はこの1回のpass-1でしか決まらない。ここで記録しないとクライアントが鍵のために丸ごと回し直す
+                    // The ledger digest is settled by this single pass-1; unrecorded, a client would rerun the whole thing just to obtain a key
+                    PlacementLedgerDigest = run.Ledger.ComputeDigest(),
                 };
             }
 
