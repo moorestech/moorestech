@@ -30,6 +30,9 @@ namespace Client.Tests
     /// </summary>
     public class StartGameTest
     {
+        // shard割当はテストと一緒に移動・改名される
+        // The shard assignment travels with the test through moves and renames
+        [Category("CiShardClientPlay1")]
         [UnityTest]
         public IEnumerator StartGameCheckTest()
         {

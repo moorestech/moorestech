@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.Interact.Outline;
+using Client.Game.InGame.Interact.Tap;
 using UnityEngine;
 
 namespace Client.Game.InGame.Block.Interact

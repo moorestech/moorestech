@@ -15,6 +15,12 @@ export const CraftRecipeSchema = z.object({
 export const CraftRecipesDataSchema = z.object({ recipes: z.array(CraftRecipeSchema) });
 
 export const MachineRecipeItemSchema = z.object({ itemId: z.number(), count: z.number() });
+// 名前・色はfluidGuidで解決するため、レシピ配信はGUIDと量だけを運ぶ
+// Names and colors resolve from fluidGuid, so the recipe payload carries only the GUID and the amount
+const MachineRecipeFluidSchema = z.object({
+  fluidGuid: GuidSchema,
+  amount: z.number(),
+}).strict();
 export const MachineRecipeSchema = z.object({
   recipeGuid: GuidSchema,
   blockGuid: GuidSchema,
@@ -22,6 +28,8 @@ export const MachineRecipeSchema = z.object({
   time: z.number(),
   inputItems: z.array(MachineRecipeItemSchema),
   outputItems: z.array(MachineRecipeItemSchema),
+  inputFluids: z.array(MachineRecipeFluidSchema),
+  outputFluids: z.array(MachineRecipeFluidSchema),
 }).strict();
 export const MachineRecipesDataSchema = z.object({ recipes: z.array(MachineRecipeSchema) });
 export const RecipeViewerItemListDataSchema = z.object({ itemIds: z.array(z.number()) });

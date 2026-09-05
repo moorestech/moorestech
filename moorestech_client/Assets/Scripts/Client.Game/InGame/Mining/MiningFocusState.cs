@@ -1,8 +1,6 @@
-using System.Collections.Generic;
+using System;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
-using Client.Localization;
-using Core.Master;
 using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.Mining
@@ -19,7 +17,7 @@ namespace Client.Game.InGame.Mining
             // 装備を渡して可否・種別・ツールを一度に問い合わせる
             // Ask once for availability, kind and tool with the equipment applied
             var equippedItemId = context.LocalPlayerEquipment.SelectedItem.Id;
-            var outcome = currentTarget.TryBeginHandMining(equippedItemId, out var usableMiningTool, out var recommendedToolItemIds);
+            var outcome = currentTarget.TryBeginHandMining(equippedItemId, out var usableMiningTool);
             var earnItemNames = context.CurrentFocusTargetEarnItemNames;
 
             switch (outcome)
@@ -31,12 +29,12 @@ namespace Client.Game.InGame.Mining
                 case MiningStartOutcome.HandMiningNotAllowed:
                     // 掘れない理由を出して維持する
                     // Show why it cannot be mined and keep focus
-                    ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedCannotHandMine, LocalizationKeys.Ui.Tooltip.CannotHandMine);
+                    ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedCannotHandMine, LocalizationKeys.Ui.Tooltip.CannotHandMine, Array.Empty<string>());
                     return this;
                 case MiningStartOutcome.ToolMismatch:
-                    // 無効装備ならフォーカス維持
-                    // Keep focus for invalid equipment
-                    ShowRecommendMiningTools(recommendedToolItemIds);
+                    // 無効装備ならフォーカス維持。必要アイテム名はフォーカス時に組み立て済み（ADR 0033）
+                    // Keep focus for invalid equipment; the required item names were assembled when focus was taken (ADR 0033)
+                    ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedRequiredItems, LocalizationKeys.Ui.Tooltip.RequiredItems, new[] { context.CurrentFocusTargetRecommendedToolNames });
                     return this;
             }
 
@@ -44,7 +42,7 @@ namespace Client.Game.InGame.Mining
             // Keep focus while F is not held
             if (!InputManager.Playable.Interact.GetKey)
             {
-                ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedMineHold, LocalizationKeys.Ui.Tooltip.HoldToGet);
+                ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedMineHold, LocalizationKeys.Ui.Tooltip.HoldToGet, Array.Empty<string>());
                 return this;
             }
 
@@ -65,49 +63,24 @@ namespace Client.Game.InGame.Mining
 
                 // Fが押されていなければ現状を維持
                 // Keep the current state while F is not pressed
-                ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedMineClick, LocalizationKeys.Ui.Tooltip.PickUpInteract);
+                ShowEarnItemNamed(LocalizationKeys.Ui.Tooltip.NamedMineClick, LocalizationKeys.Ui.Tooltip.PickUpInteract, Array.Empty<string>());
                 return this;
             }
 
-            void ShowRecommendMiningTools(List<ItemId> toolItemIds)
-            {
-                var localizedToolNames = new List<string>();
-                foreach (var toolItemId in toolItemIds)
-                {
-                    var toolItemGuid = MasterHolder.ItemMaster.GetItemMaster(toolItemId).ItemGuid;
-                    localizedToolNames.Add(Localize.GetContent(
-                        ContentLocalizationKeys.ItemName(toolItemGuid)));
-                }
-
-                // 必要アイテム名をパラメータにまとめ、文言全体は表示側で解決する
-                // Join required item names as a parameter and let the presentation resolve the full sentence
-                var requiredItemNames = string.Join(", ", localizedToolNames);
-                if (earnItemNames.Length == 0)
-                {
-                    MouseCursorTooltip.Instance.Show(
-                        MiningControllerContext.TooltipOwner,
-                        LocalizationKeys.Ui.Tooltip.RequiredItems,
-                        new[] { requiredItemNames });
-                    return;
-                }
-
-                MouseCursorTooltip.Instance.Show(
-                    MiningControllerContext.TooltipOwner,
-                    LocalizationKeys.Ui.Tooltip.NamedRequiredItems,
-                    new[] { earnItemNames, requiredItemNames });
-            }
-
-            // 取得物名が無ければ従来文言へ戻す（ADR 0033）
-            // Fall back to the nameless sentence when the target yields nothing (ADR 0033)
-            void ShowEarnItemNamed(LocalizationKey namedKey, LocalizationKey unnamedKey)
+            // 取得物名が無ければ従来キーへ戻し、取得物名は先頭パラメータとして差し込む（ADR 0033）
+            // Fall back to the nameless key when the target yields nothing, otherwise the earned name leads the params (ADR 0033)
+            void ShowEarnItemNamed(LocalizationKey namedKey, LocalizationKey unnamedKey, string[] tailParams)
             {
                 if (earnItemNames.Length == 0)
                 {
-                    MouseCursorTooltip.Instance.Show(MiningControllerContext.TooltipOwner, unnamedKey);
+                    MouseCursorTooltip.Instance.Show(MiningControllerContext.TooltipOwner, unnamedKey, tailParams);
                     return;
                 }
 
-                MouseCursorTooltip.Instance.Show(MiningControllerContext.TooltipOwner, namedKey, new[] { earnItemNames });
+                var namedParams = new string[tailParams.Length + 1];
+                namedParams[0] = earnItemNames;
+                tailParams.CopyTo(namedParams, 1);
+                MouseCursorTooltip.Instance.Show(MiningControllerContext.TooltipOwner, namedKey, namedParams);
             }
 
             #endregion

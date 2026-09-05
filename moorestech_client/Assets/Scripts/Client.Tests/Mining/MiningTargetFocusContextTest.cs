@@ -6,6 +6,8 @@ using Client.Localization;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Client.Tests.Mining
@@ -14,6 +16,7 @@ namespace Client.Tests.Mining
     {
         private static readonly Guid FirstEarnItemGuid = new("00000000-0000-0000-9999-000000000001");
         private static readonly Guid SecondEarnItemGuid = new("00000000-0000-0000-9999-000000000002");
+        private static readonly Guid ToolItemGuid = new("00000000-0000-0000-1234-000000000001");
 
         [Test]
         public void SetFocusTargetは同一対象を再設定しない()
@@ -76,6 +79,59 @@ namespace Client.Tests.Mining
             UnityEngine.Object.DestroyImmediate(noItemObject);
         }
 
+        [Test]
+        public void 推奨ツール名もフォーカス変化時に組み立てて保持される()
+        {
+            // ツール名はItemIdからマスタ経由でGuidを引くため、実マスタと実辞書を通す
+            // A tool name resolves its guid through the master, so the real master and dictionary are loaded
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            Localize.Initialize();
+
+            var context = new MiningControllerContext(null);
+            var toolTargetObject = new GameObject("ToolTarget");
+            var noToolObject = new GameObject("NoToolTarget");
+            var toolItemId = MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
+            var toolTarget = new StubMiningTarget(toolTargetObject, Array.Empty<Guid>(), new List<ItemId> { toolItemId });
+            var noToolTarget = new StubMiningTarget(noToolObject, Array.Empty<Guid>());
+
+            Assert.AreEqual(string.Empty, context.CurrentFocusTargetRecommendedToolNames);
+
+            context.SetFocusTarget(toolTarget);
+            Assert.AreEqual(Localize.GetContent(ContentLocalizationKeys.ItemName(ToolItemGuid)), context.CurrentFocusTargetRecommendedToolNames);
+
+            // ツールを求めない対象では欄を空へ戻す
+            // A target requiring no tool clears the slot again
+            context.SetFocusTarget(noToolTarget);
+            Assert.AreEqual(string.Empty, context.CurrentFocusTargetRecommendedToolNames);
+
+            UnityEngine.Object.DestroyImmediate(toolTargetObject);
+            UnityEngine.Object.DestroyImmediate(noToolObject);
+        }
+
+        [Test]
+        public void 言語切替で保持中の取得アイテム名が作り直される()
+        {
+            // 単体テスト用マスタに辞書が無く全言語で同じ[!key]へ落ちるため、文字列の異同ではなく再解決の発火を観測する
+            // The unit-test master ships no dictionary so every language yields the same [!key]; observe the re-resolution firing instead of the text
+            Localize.Initialize();
+            var originalLanguageCode = Localize.GetCurrentLanguageCode();
+
+            var context = new MiningControllerContext(null);
+            var twoItemObject = new GameObject("TwoItemTarget");
+            var twoItemTarget = new StubMiningTarget(twoItemObject, new[] { FirstEarnItemGuid, SecondEarnItemGuid });
+
+            context.SetFocusTarget(twoItemTarget);
+            var accessCountBeforeSwitch = twoItemTarget.EarnItemGuidsAccessCount;
+
+            var otherLanguageCode = Localize.GetLanguageCodes().Find(code => code != originalLanguageCode);
+            Assert.IsTrue(Localize.TrySetLanguage(otherLanguageCode), otherLanguageCode);
+
+            Assert.Less(accessCountBeforeSwitch, twoItemTarget.EarnItemGuidsAccessCount);
+
+            Localize.TrySetLanguage(originalLanguageCode);
+            UnityEngine.Object.DestroyImmediate(twoItemObject);
+        }
+
         private class StubMiningTarget : IMiningTargetObject
         {
             public GameObject GameObject { get; }
@@ -87,7 +143,7 @@ namespace Client.Tests.Mining
             public int EarnItemGuidsAccessCount { get; private set; }
 
             private readonly IReadOnlyList<Guid> _earnItemGuids;
-            private readonly List<ItemId> _recommendedToolItemIds = new();
+            private readonly List<ItemId> _recommendedToolItemIds;
 
             public IReadOnlyList<Guid> EarnItemGuids
             {
@@ -98,18 +154,24 @@ namespace Client.Tests.Mining
                 }
             }
 
-            public StubMiningTarget(GameObject gameObject, IReadOnlyList<Guid> earnItemGuids)
+            public StubMiningTarget(GameObject gameObject, IReadOnlyList<Guid> earnItemGuids) : this(gameObject, earnItemGuids, new List<ItemId>())
+            {
+            }
+
+            public StubMiningTarget(GameObject gameObject, IReadOnlyList<Guid> earnItemGuids, List<ItemId> recommendedToolItemIds)
             {
                 GameObject = gameObject;
                 _earnItemGuids = earnItemGuids;
+                _recommendedToolItemIds = recommendedToolItemIds;
             }
 
-            public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
+            public IReadOnlyList<ItemId> RecommendedToolItemIds => _recommendedToolItemIds;
+
+            public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool)
             {
                 // フォーカス解決だけを見るfixtureなので採掘可否は問わない
                 // This fixture only observes focus resolution, so minability is irrelevant
                 tool = default;
-                recommendedToolItemIds = _recommendedToolItemIds;
                 return MiningStartOutcome.ToolMismatch;
             }
 

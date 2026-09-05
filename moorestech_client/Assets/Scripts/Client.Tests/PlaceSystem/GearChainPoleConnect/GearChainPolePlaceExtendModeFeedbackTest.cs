@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -62,9 +63,14 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 
             Assert.AreEqual(1, result.FeedbackLines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, result.FeedbackLines[0].Key.Key);
-            Assert.IsTrue(result.MaterialShortageFallbackKey.HasValue);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, result.MaterialShortageFallbackKey.Value.Key);
-            Assert.AreEqual(0, result.MaterialShortages.Count);
+
+            // 地形の行に続けて、不足0件のチェーン素材が汎用の不可行へ落ちる
+            // The terrain line is followed by the zero-entry chain shortage falling back to the generic wording
+            var feedback = new PlacementFeedback();
+            result.PushFeedback(feedback);
+            Assert.AreEqual(2, feedback.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, feedback.Lines[0].Key.Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed.Key, feedback.Lines[1].Key.Key);
         }
 
         [Test]
@@ -74,7 +80,6 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         {
             var input = GearChainPoleDecideInputs.CreateGhostReadyInput(sourcePole: null);
             input.Clicked = true;
-            input.GhostAffordable = false;
             input.GhostMaterialShortages = new[] { new ConstructionMaterialShortage(new ItemId(7), 1, 4) };
 
             var result = GearChainPolePlaceExtendMode.Decide(input);
@@ -83,9 +88,10 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
             // Nothing is sent and the ghost turns unplaceable
             Assert.IsFalse(result.ExtendSend.HasValue);
             Assert.IsFalse(result.Preview.GhostPlaceable);
-            Assert.AreEqual(1, result.MaterialShortages.Count);
-            Assert.AreEqual(4, result.MaterialShortages[0].Required);
-            Assert.IsTrue(result.MaterialShortageFallbackKey.HasValue);
+
+            // 孤立設置はチェーン接続を伴わないので汎用の不可行は付かない（不足行の中身は関門側のテストで見る）
+            // An isolated placement involves no chain connection, so no generic line is attached (the shortage line itself is covered by the gate test)
+            Assert.IsEmpty(result.FeedbackLines);
         }
 
         [Test]

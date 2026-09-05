@@ -20,8 +20,8 @@ using UnityEngine.InputSystem;
 namespace Client.Tests.Mining
 {
     /// <summary>
-    ///     フォーカス状態テストが共有する土台（実辞書・実tooltip・結果別スタブ）
-    ///     Shared ground for the focus state tests: real dictionary, real tooltip and outcome stubs
+    ///     フォーカス状態テストの共有土台
+    ///     Shared ground for the focus state tests
     /// </summary>
     public abstract class MiningFocusStateTestFixture : InputTestFixture
     {
@@ -141,10 +141,11 @@ namespace Client.Tests.Mining
                 GameObject = new GameObject("OutcomeStubMiningTarget");
             }
 
-            public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
+            public IReadOnlyList<ItemId> RecommendedToolItemIds => _recommendedToolItemIds;
+
+            public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool)
             {
                 tool = new MiningToolCandidate(equippedItemId, 1f);
-                recommendedToolItemIds = _recommendedToolItemIds;
                 return _outcome;
             }
 

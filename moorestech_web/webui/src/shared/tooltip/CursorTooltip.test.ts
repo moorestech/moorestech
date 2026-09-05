@@ -71,10 +71,8 @@ describe("CursorTooltip", () => {
   it("renders every line in order", () => {
     setDictionaries("english", {
       [L.ui.tooltip.placeBlockedByTerrain]: "Blocked by terrain",
-      // 注入した書式を検証する自己充足アサーションであり、接頭辞そのものの回帰検知はC#側（localization.csvを読むテスト）が担う
-      // This is a self-contained assertion over an injected format; regression of the prefix itself is covered on the C# side, which reads localization.csv
-      // ここで検証しているのは{pN}補間の責務のみ
-      // Only the {pN} interpolation responsibility is verified here
+      // 辞書はこのテストが注入するので、ここで検証できるのは{pN}補間の責務だけ
+      // The dictionary is injected by this test, so only the {pN} interpolation responsibility is verified here
       [L.ui.tooltip.placeMaterialShortage]: "Missing item: {p0} {p1}/{p2}",
     }, {}, {});
 
@@ -118,6 +116,9 @@ describe("CursorTooltip", () => {
       renderer.update(createElement(CursorTooltip));
     });
 
+    // 再計算されたことだけでなく、実測サイズと画面寸法が clamp へ渡る値まで固定する
+    // Pin not just that it recalculated but the measured size and viewport values handed to clamp
     expect(testState.clamp.mock.calls.length).toBeGreaterThan(initialCalls);
+    expect(testState.clamp).toHaveBeenLastCalledWith(0, 0, 120, 40, 1280, 720);
   });
 });

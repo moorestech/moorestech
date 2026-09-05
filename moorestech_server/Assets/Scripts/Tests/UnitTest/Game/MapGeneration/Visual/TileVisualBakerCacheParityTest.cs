@@ -83,7 +83,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
             // Keeps tree perturbations equal across the cache round trip.
             for (var z = 0; z < Resolution; z++)
             for (var x = 0; x < Resolution; x++)
-                Assert.That(second.DisplayHeights[z, x], Is.EqualTo(first.DisplayHeights[z, x]).Within(1f / ushort.MaxValue),
+                Assert.That(second.DisplayHeights[z, x], Is.EqualTo(first.DisplayHeights[z, x]),
                     $"height z={z} x={x}");
         }
 

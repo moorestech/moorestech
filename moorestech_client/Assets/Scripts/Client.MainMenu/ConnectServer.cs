@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using Client.Common;
@@ -15,11 +15,6 @@ namespace Client.MainMenu
 {
     public class ConnectServer : MonoBehaviour
     {
-        // ポート番号の許容範囲（実装とlocalization.csvの文言が二重に持つ値のSSOT）
-        // Allowed port range (single source of truth shared with the localization.csv wording)
-        private const int MinExclusivePort = 1024;
-        private const int MaxPort = 65535;
-
         [SerializeField] private TMP_InputField serverIp;
         [SerializeField] private TMP_InputField serverPort;
 
@@ -27,7 +22,9 @@ namespace Client.MainMenu
 
         [SerializeField] private Button connectButton;
 
-        private int _connectedPort;
+        // 遷移後は旧シーンの入力欄が破棄されるため、検証済みの接続プロパティを退避する
+        // The old scene's inputs are destroyed after the load, so the validated properties are kept here
+        private InitializeProprieties _connectedProperties;
 
         private void Start()
         {
@@ -36,48 +33,45 @@ namespace Client.MainMenu
 
         private void Connect()
         {
-            if (!IPAddress.TryParse(serverIp.text, out var address))
+            var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
+            if (!InitializeProprieties.TryCreateRemoteConnection(serverIp.text, serverPort.text, playerId, out var properties, out var denyReason))
             {
-                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectInvalidIp));
+                serverConnectPopup.SetText(Localize.GetFormatted(denyReason.Key, denyReason.TextParams));
                 return;
             }
 
-            if (!int.TryParse(serverPort.text, out var port))
+            if (!TryProbe(properties, out var failureDetail))
             {
-                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectInvalidPort));
+                serverConnectPopup.SetText(Localize.GetFormatted(LocalizationKeys.Ui.MainMenu.ConnectFailed, new[] { failureDetail }));
                 return;
             }
 
-            if (MaxPort < port)
-            {
-                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectPortTooLarge));
-                return;
-            }
+            _connectedProperties = properties;
+            SceneManager.sceneLoaded += OnMainGameSceneLoaded;
+            SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
+        }
 
-            if (port <= MinExclusivePort)
-            {
-                serverConnectPopup.SetText(Localize.Get(LocalizationKeys.Ui.MainMenu.ConnectPortTooSmall));
-                return;
-            }
+        // 外部への疎通確認だけを隔離する。Connectは失敗時に必ず例外を投げる
+        // Isolate only the outbound probe; Connect always throws on failure
+        private static bool TryProbe(InitializeProprieties properties, out string failureDetail)
+        {
+            // 検証を通った値なのでパースは必ず成功する
+            // The values passed validation, so parsing always succeeds
+            var remoteEndPoint = new IPEndPoint(IPAddress.Parse(properties.ServerIp), properties.RemoteServerPort.Value);
+            using var socket = new Socket(remoteEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             try
             {
-                var remoteEndPoint = new IPEndPoint(address, port);
-                var socket = new Socket(remoteEndPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-
-                // Connectは失敗時に必ず例外を投げるため、ここへ来た時点で接続は成立している
-                // Connect always throws on failure, so reaching this line means the connection succeeded
                 socket.Connect(remoteEndPoint);
-                socket.Close();
-
-                _connectedPort = port;
-                SceneManager.sceneLoaded += OnMainGameSceneLoaded;
-                SceneManager.LoadScene(SceneConstant.GameInitializerSceneName);
             }
             catch (Exception e)
             {
-                serverConnectPopup.SetText(Localize.GetFormatted(LocalizationKeys.Ui.MainMenu.ConnectFailed, new[] { e.ToString() }));
+                failureDetail = e.ToString();
+                return false;
             }
+
+            failureDetail = null;
+            return true;
         }
 
         private void OnMainGameSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -85,12 +79,7 @@ namespace Client.MainMenu
             SceneManager.sceneLoaded -= OnMainGameSceneLoaded;
             var starter = FindObjectOfType<InitializeScenePipeline>();
 
-            var ip = serverIp.text;
-            var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
-
-            var properties = InitializeProprieties.CreateRemoteConnection(ip, _connectedPort, playerId);
-            
-            starter.SetProperty(properties);
+            starter.SetProperty(_connectedProperties);
         }
     }
 }

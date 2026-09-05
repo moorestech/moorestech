@@ -74,6 +74,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             _dragState.ClearDrag();
         }
+        // ドラッグ中の右短押し/Escは進行中のドラッグだけを畳み、建築モードには留まる
+        // A right short press or Esc during a drag folds only that drag and stays in build mode
+        public override bool TryCancelInProgressOperation()
+        {
+            if (!_dragState.IsDragging) return false;
+
+            _dragState.EndDrag();
+            return true;
+        }
+
         public override void Disable()
         {
             // デバッグモード時はプレビューを維持
@@ -175,7 +185,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // They run before the material check so blocked cells don't consume quota
                 VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _veinAabbRegistry, _veinRestrictedPlacementState, feedback);
 
-                // チュートリアルの連結レイアウトが置けない設置を弾く（鉱脈制限と同じくクライアント側のみ）
+                // 連結レイアウトが置けない設置を弾く
                 // Reject placements whose tutorial chain layout cannot fit (client-side only, like the vein limit)
                 ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(_currentPlaceInfos, holdingBlockMaster, cursorIndex, _chainPlacePreviewState, _blockPlacePointCalculator, _chainGroundQuery, surfaceKind == PlacementHitSurfaceKind.Ground, _dragState.HeightOffset, feedback);
 

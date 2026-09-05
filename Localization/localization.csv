@@ -23,8 +23,6 @@ ui.blockInventory.trainInventory,Train Inventory,Train Inventory,列車インベ
 ui.blockInventory.gearTorqueSummary,Torque {current} / {required},Torque {current} / {required},トルク {current} / {required},Drehmoment {current} / {required}
 ui.blockInventory.gearRpmSummary,RPM {current} / {required},RPM {current} / {required},RPM {current} / {required},U/min {current} / {required}
 ui.blockInventory.generatorOperatingRate,Operating rate {rate}%,Operating rate {rate}%,稼働率 {rate}%,Auslastung {rate} %
-ui.blockInventory.inventoryTab,Inventory,Inventory,インベントリ,Inventar
-ui.blockInventory.recipeSelectionTab,Select Recipe,Select Recipe,レシピ選択,Rezept wählen
 ui.blockInventory.itemsPerMinute,{itemsPerMinute}/min,{itemsPerMinute}/min,{itemsPerMinute}/分,{itemsPerMinute}/min
 ui.blockInventory.noDemand,No demand,No demand,需要なし,Kein Bedarf
 ui.blockInventory.electricNetworkSummary,"{generated} / demand {required} (consuming {count}, supply rate {rate}%)","{generated} / demand {required} (consuming {count}, supply rate {rate}%)","発電 {generated} / 需要 {required}（消費 {count}件, 供給率 {rate}%）","{generated} / Bedarf {required} (Verbraucher {count}, Deckung {rate} %)"
@@ -41,7 +39,8 @@ ui.blockInventory.trainPlatformCapacity,Capacity: {capacity},Capacity: {capacity
 ui.blockInventory.upgradeSlots,Upgrade Slots,Upgrade Slots,アップグレードスロット,Verbesserungsplätze
 ui.blockInventory.productionPerMinute,Production per minute,Production per minute,分間生産数,Produktion pro Minute
 ui.blockInventory.recipeDuration,{seconds} seconds,{seconds} seconds,{seconds}秒,{seconds} Sekunden
-ui.blockInventory.recipeSelectionHint,Hover for details and click to select a recipe,Hover for details and click to select a recipe,レシピをホバーで詳細、クリックで選択,"Bewegen Sie den Mauszeiger darüber, um Details anzuzeigen, und klicken Sie, um ein Rezept auszuwählen"
+ui.blockInventory.recipeNameWithOthers,{name} and {count} more,{name} and {count} more,{name} 他{count}件,{name} und {count} weitere
+ui.blockInventory.changeRecipe,Change recipe,Change recipe,レシピを変更,Rezept ändern
 ui.blockInventory.electricToGearFulfillment,Fulfillment,Fulfillment,充足率,Deckung
 ui.blockInventory.electricToGearConsumedPower,Power consumption: {power} W,Power consumption: {power} W,消費電力: {power} W,Energieverbrauch: {power} W
 ui.blockInventory.electricToGearOutputMode,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} rpm / {torque} trq / {power} W,{rpm} U/min / {torque} Nm / {power} W
@@ -198,6 +197,7 @@ ui.keyHint.text.deleteMode,Delete Mode,Delete Mode,破壊モード,Abbaumodus
 ui.keyHint.text.exitDeleteMode,Exit Delete Mode,Exit Delete Mode,破壊モード終了,Abbaumodus verlassen
 ui.keyHint.text.exitPlaceMode,Exit Placement Mode,Exit Placement Mode,配置モード終了,Baumodus verlassen
 ui.keyHint.text.selectBlock,Select Block,Select Block,ブロック選択,Block auswählen
+ui.keyHint.text.swapTarget,Swap Block,Swap Block,ブロック持ち替え,Block wechseln
 ui.keyHint.text.toggleView,Toggle View,Toggle View,視点切替,Ansicht wechseln
 ui.keyHint.text.freeCursor,Free Cursor,Free Cursor,カーソル解放,Freier Zeiger
 ui.keyHint.text.pickPlacedObject,Pick Placed Object,Pick Placed Object,設置物をスポイト,Gesetztes Objekt übernehmen
@@ -220,6 +220,8 @@ ui.tooltip.placeGroundNotFound,No ground below,No ground below,地面が見つ�
 ui.tooltip.placeMinerOutsideVein,The drill must be over a vein,The drill must be over a vein,ドリルを鉱脈に重ねてください,Der Bohrer muss über einer Erzader liegen
 ui.tooltip.placeOutsideTutorialVein,Place it on the highlighted vein,Place it on the highlighted vein,ハイライトされた鉱脈の上に設置してください,Platziere es auf der hervorgehobenen Erzader
 ui.tooltip.placeChainBlocked,Space for the connected layout is blocked,Space for the connected layout is blocked,接続先のスペースが埋まっています,Der Platz für die verbundene Anordnung ist blockiert
+ui.tooltip.placeChainGroundNotFound,No ground under the connected layout,No ground under the connected layout,接続先に地面がありません,Kein Boden unter der verbundenen Anordnung
+ui.tooltip.placeChainGroundHeightMismatch,The connected layout does not sit level with the ground,The connected layout does not sit level with the ground,接続先の地面の高さが合っていません,Die verbundene Anordnung liegt nicht eben auf dem Boden
 ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden
 ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません,Für diese Baureihe gibt es kein Schrägband
 ui.tooltip.placeMaterialShortage,Missing item: {p0} {p1}/{p2},Missing item: {p0} {p1}/{p2},アイテム不足： {p0} {p1}/{p2},Fehlender Gegenstand: {p0} {p1}/{p2}
@@ -250,8 +252,8 @@ ui.loading.trainCarScreenshotsCaptured,Train car screenshots captured  {p0},Trai
 ui.loading.terrainReady,Terrain data ready ({p0} chunks)  {p1},Terrain data ready ({p0} chunks)  {p1},地形データ準備完了({p0}チャンク取得)  {p1},Geländedaten bereit ({p0} Chunks)  {p1}
 ui.loading.initializationFailed,Initialization failed. Returning to the main menu.,Initialization failed. Returning to the main menu.,初期化に失敗しました。メインメニューに戻ります。,Initialisierung fehlgeschlagen. Rückkehr zum Hauptmenü.
 ui.mainMenu.connectInvalidIp,The IP address is not valid.,The IP address is not valid.,IPアドレスが正しくありません。,Die IP-Adresse ist ungültig.
-ui.mainMenu.connectPortTooLarge,The port number must be 65535 or lower.,The port number must be 65535 or lower.,ポート番号は65535以下である必要があります。,Die Portnummer darf höchstens 65535 betragen.
-ui.mainMenu.connectPortTooSmall,The port number must be greater than 1024.,The port number must be greater than 1024.,ポート番号は1024より大きい必要があります。,Die Portnummer muss größer als 1024 sein.
+ui.mainMenu.connectPortTooLarge,The port number must be {p0} or lower.,The port number must be {p0} or lower.,ポート番号は{p0}以下である必要があります。,Die Portnummer darf höchstens {p0} betragen.
+ui.mainMenu.connectPortTooSmall,The port number must be greater than {p0}.,The port number must be greater than {p0}.,ポート番号は{p0}より大きい必要があります。,Die Portnummer muss größer als {p0} sein.
 ui.mainMenu.connectInvalidPort,The port number is not valid.,The port number is not valid.,ポート番号が正しくありません。,Die Portnummer ist ungültig.
 ui.mainMenu.connectFailed,Failed to connect to the server.\n{p0},Failed to connect to the server.\n{p0},サーバーへの接続に失敗しました。\n{p0},Verbindung zum Server fehlgeschlagen.\n{p0}
 ui.tooltip.namedMineHold,{p0} : Hold F to mine,{p0} : Hold F to mine,{p0} : F長押しで採掘,{p0} : Zum Abbauen F gedrückt halten

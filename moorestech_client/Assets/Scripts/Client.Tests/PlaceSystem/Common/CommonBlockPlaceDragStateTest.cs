@@ -42,6 +42,20 @@ namespace Client.Tests.PlaceSystem.Common
         }
 
         [Test]
+        public void 押下から解放までが進行中のドラッグとして数えられる()
+        {
+            var dragState = new CommonBlockPlaceDragState();
+
+            Assert.IsFalse(dragState.IsDragging);
+
+            dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
+            Assert.IsTrue(dragState.IsDragging);
+
+            dragState.EndDrag();
+            Assert.IsFalse(dragState.IsDragging);
+        }
+
+        [Test]
         public void 押下位置は開始点として返り解放後は現在位置へ戻る()
         {
             var dragState = new CommonBlockPlaceDragState();

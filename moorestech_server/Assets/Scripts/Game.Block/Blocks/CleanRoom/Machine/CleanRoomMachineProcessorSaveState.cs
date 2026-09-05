@@ -65,9 +65,10 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             pendingOutputs = saveData.PendingOutputs?.Select(item => item.ToItemStack()).ToList();
             state = (ProcessState)saveData.State;
 
-            // Processingでレシピを復元できない場合だけ破損扱いでIdleへ戻す
-            // Only Processing without a restorable recipe is corrupt and falls back to Idle
-            if (state == ProcessState.Processing && recipe == null) state = ProcessState.Idle;
+            // 加工中（出力詰まり含む）でレシピを復元できない場合は破損扱いでIdleへ戻す
+            // A mid-job state (output blockage included) that cannot restore its recipes is corrupt and falls back to Idle
+            var isMidJob = state == ProcessState.Processing || state == ProcessState.OutputBlocked;
+            if (isMidJob && (recipe == null || selectedRecipe == null)) state = ProcessState.Idle;
 
             #region Internal
 

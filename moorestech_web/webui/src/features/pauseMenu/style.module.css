@@ -1,5 +1,8 @@
+/* スキット表示層より前に立たないとポーズ中の操作面が背面へ沈む（ADR 0017の層序） */
+/* Without standing ahead of the skit layer the paused controls sink behind it (the ADR 0017 ordering) */
 .panel {
   position: absolute;
+  z-index: var(--z-stage-pause-menu);
   left: 50%;
   top: 50%;
   width: 420px;

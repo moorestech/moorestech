@@ -118,7 +118,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   - **viewport族**: 実画面の辺へ位置が追従し、内容寸法だけが stage 拡縮に従う。`App.module.css` の `.viewportOverlay` 配下へ置く。
 - **常時表示HUD族（ホットバー・装備HUD・キーヒント・採掘プログレスバー・目標HUD・操作モードHUD）は viewport族。** stage絶対配置のまま `calc()` で補正しない（補正式がHUDの数だけ増殖して破綻する）。
 - **`.viewportOverlay` は `pointer-events: none`。** 配下へ置く操作可能要素（ホットバーのスロット列・装備HUD）は `pointer-events: auto` を明示する。忘れると操作が死ぬ。
-- **第三の所属として背面viewport族がある**（ADR 0017）。`.viewport` 直下・`.stage` の裏（`--z-viewport-behind-stage`）に置き、`--ui-scale` に追従しない。stage族でもviewport族でもない。現状の唯一の利用者は通知（§8）。
+- **第三の所属として背面viewport族がある**（ADR 0017）。`.viewport` 直下・`.stage` の裏（`--z-viewport-behind-stage`）に置く。stage族でもviewport族でもなく、`--ui-scale` は自前で掛ける（通知は掛けている・§8）。現状の唯一の利用者は通知（§8）。
 - 基準解像度1280×720では stage と viewport が一致するため、族の移動だけでは描画結果が変わらない。
 
 ## 2. パネル — GamePanel を使い回す
@@ -144,7 +144,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - GamePanel の下向き三角と内容が重ならないよう、ブロックパネルだけ `--block-panel-bottom-safe-area` の下部安全帯を確保する。共通 GamePanel の余白は変更しない。
 - 内容量で幅が決まる小型ブロックパネル（チェスト等）は、GamePanel共通の右余白10pxがフェード帯に食われて面が途切れて見えるため、`--block-panel-right-safe-area`（左インデント28pxと対称）の右余白を追加する。大型機械パネルは固定幅・中央揃えのため対象外。
 - 閉じる操作はパネル右上の `shared/ui/IconButton`（children省略で既定の×）を使う。面を持たない浮遊の×とし、Mantine CloseButton は使わない。
-- **レシピ選択を持つ機械ブロックのみ大型レイアウト**: `viewer-start / items-end` の2列を占有し、上端は持ち物パネルと揃え、下端はホットバー手前で止める（研究パネルは持ち物の右隣から画面端までの別レイアウトのため前例には引かない）。中身は `ModeSwitch` を横向きタブバーとした「インベントリ / レシピ選択」の2タブ切替（§8.7）。レシピ0件のブロックは従来の小型パネルのまま。
+- **レシピ選択を持つ機械ブロックのみ大型レイアウト**: `viewer-start / items-end` の2列を占有し、上端は持ち物パネルと揃え、下端はホットバー手前で止める（研究パネルは持ち物の右隣から画面端までの別レイアウトのため前例には引かない）。中身はタブを持たず「レシピ選択モード / インベントリモード」の2画面をSatisfactory方式で往復する（§8.7）。レシピ0件のブロックは従来の小型パネルのまま。
 
 ## 3. モーダル
 
@@ -221,8 +221,8 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - **スロットのホバーツールチップは `shared/ui/HoverTooltip` だけを使う。** Mantine `Tooltip` を機能側から直接使わない。面・書式は `--tooltip-*` トークンで `CursorTooltip` と共有し、Mantine既定の白い角丸を出さない（§9）。
 - 一時通知は `ToastHost`（クライアントローカルの汎用トースト）または `NotificationHost`（`features/notification`。サーバー発のゲーム通知＝achievement/operationDenied、topic `notification.events`、左端縦中央・7秒・`ItemIcon`付き可）のどちらかを使う。カーソル追従の説明は `CursorTooltip`。機能側でこの2ホスト以外の独自トースト・独自ツールチップを作らない。
 - **`CursorTooltip` の書式はWeb側トークンが唯一の正**（ADR 0019）: フォント18px・padding 6/10px・max-width 320px。ホストは辞書キーと位置パラメータだけを送り、寸法値（fontSize等）はwireに載せない。
-- **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもなく、`--ui-scale` に追従しない。
-- **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。最大幅は`--notification-max-width`（画面幅20%・ユーザー裁定の画面比例値）で超過分は折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
+- **NotificationHostは背面viewport族**（§1.5・`--z-viewport-behind-stage`）。stage族でもviewport族でもないが、見かけの大きさを保つため自前で `transform: scale(var(--ui-scale))` を掛ける（2026-08-22以降）。
+- **NotificationHostの見た目は研究ノードカード同族の枠付き浮遊行**: 面=`--notification-face`（半透明ネイビー）+ 枠=`--notification-border` 1px（直角・角丸/影なし）。幅は`--notification-width`（256px＝基準幅1280の20%の固定長。stage外の層なので `--ui-scale` で拡縮する。vw指定は拡縮と二重掛けになるため禁止）。収まらない文言は `.text` の `overflow-wrap: anywhere` で折返す。文字色はトークンのみ: achievement=`--text-high-contrast`、operationDenied=`--text-insufficient`。カテゴリはdata属性（`data-category`）で表す。Mantine `Notification` コンポーネントは使わない。
 - **NotificationHostの出入りは§6の例外のひとつ**（もう一方はチュートリアル誘導の脈動・§8.8/§8.17/§8.19）。入場は `--notification-enter-duration`（160ms・ease-out）で左から `--notification-shift`（12px）のスライドイン＋フェードイン、退場は `--notification-exit-duration`（200ms・ease-in）でその逆再生。生存尺は store の `NOTIFICATION_DISPLAY_MS`（7000ms）が単一の正で、`NotificationHost` がインラインCSS変数 `--notification-lifetime` として渡し、CSSは退場遅延を `calc(生存尺 − 退場尺)` で逆算する。**退場のためにstoreへ状態（`exiting` 等）を持たせない。** 退場の `animation-fill-mode` は `forwards`（`both` にすると遅延中に前方適用されて入場が消える）。積み替えの移動は補間せず、同時表示数の上限も設けない。
 - 接続前のプレースホルダは `ConnectingPlaceholder`。
 - 進捗矢印は `ProgressArrowBar`（採掘機・流体行の帯状ゲージ）。クラフト画面と機械の加工行は §8.13 の矢印グリフゲージを使う。器が帯か矢印グリフかを名前で区別する。
@@ -278,18 +278,18 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - **IconButton**: 面を持たない浮遊アイコンボタン。`children` 省略時は既定の×（従来の PanelCloseButton）で、閉じる以外の用途は呼び出し側がインラインSVGを渡す。寸法は `--icon-button-size` / `--icon-button-icon-size` の局所上書きで変え、共有側にドメイン語彙は持たせない。
 - **FadeRule**: 両端フェードする水平罫線（装飾語彙1）の単体部品。パネル内のセクション区切りに使う。GamePanel のタイトル罫線と同族の青灰グラデで、新しい色相は持たない。
 
-## 8.7 機械レシピ選択タブ
+## 8.7 機械UI（レシピ選択モード / インベントリモード）
 
-- **MachineSection のタブとして置く。** 対象レシピが1件以上ある機械は `ModeSwitch`（横向き）で「レシピ選択 / インベントリ」を切り替える。初期タブはレシピ未選択ならレシピ選択、選択済みならインベントリ。開いた後の手動切替は強制しない。0件ならタブ自体を出さず従来表示のまま。
-- **機械UIの中身は基本的に中央揃え。** 両タブとも詳細・グリッド・テキストを水平中央に揃える。稼働状態ラベル（待機中/稼働中/停止中。Halted のみ `--text-insufficient`、他は`--text-high-contrast`）はタブの外の共通フッタとして両タブで常時表示する。電力率テキストは稼働状態ラベルの隣に、**稼働状態が停止中(halted)でない場合だけ**併記する。停止中は要求電力を出さないため充足率が意味を持たず、ラベル「停止中」のみで状態を伝える。表示可否は要求電力の数値ではなく状態で決める（要求電力0で稼働する機械＝石窯・ボイラー等を停止中と同じ表示に潰さないため）。電力率の%は実効要求電力に対する充足率であり、100%未満は常に電力不足を意味する（ADR 0010）。
-- インベントリタブは従来の機械表示（入出力/モジュールスロット・進捗矢印・流体行・分間生産数）に加え、レシピ選択中はその生産物（代表出力アイテム）を `ItemSlot` 1個（個数バッジ無し）で表示する。
+- **タブは持たない（ADR 0042、ユーザー裁定 2026-08-30）。** 対象レシピが1件以上ある機械は2つの画面を往復する。
+  - レシピ未選択で開くと**レシピ選択モード**。行を左クリックすると `machine_recipe.select set` を送り、同時に**インベントリモード**へ切り替える。
+  - インベントリモード上部の**選択中レシピ表示**（出力 `ItemSlot`（個数バッジ無し）＋レシピ名（出力アイテム名）＋秒数、testId `machine-selected-recipe`）を左クリックするとレシピ選択モードへ戻る。ホバーツールチップは `ui.blockInventory.changeRecipe`。
+  - レシピ解除の導線（右クリック解除・解除ボタン）は設けない。0件ならどちらの画面も出さず従来表示のまま。
+- **機械UIの中身は基本的に中央揃え。** 稼働状態ラベル（待機中/稼働中/停止中。Halted のみ `--text-insufficient`、他は`--text-high-contrast`）は両モード共通フッタとして常時表示する。電力率テキストは稼働状態ラベルの隣に、**稼働状態が停止中(halted)でない場合だけ**併記する（ADR 0010、要求電力0で稼働する機械を停止中に潰さないため状態で決める）。
+- **インベントリモードはレシピ分のスロットだけ描く。** 入力＝素材数、出力＝生産物数、液体＝レシピ液体数（入力タンク→出力タンクの順）。機械固有の余剰スロットは描かない（サーバーもスロット固定で余剰へ入れない）。
+  - **ゴーストスロット**: 空の入力スロットに素材、空の出力スロットに生産物、空の液体スロットにレシピ液体を `data-ghost="true"` で描く。不透明度は `--slot-ghost-opacity` のみで表現し、新しい色相・光彩・枠線を足さない。個数バッジはレシピ必要数。実物があるスロットはゴーストを出さない。
   - **加工行は進捗矢印をパネル中央に固定**し、左右を等幅（1fr auto 1fr）にして入力は矢印へ右寄せ、出力は矢印から左寄せで対称に置く。
-  - **モジュールスロットは加工行から1段下げ、`--text-muted` の「アップグレードスロット」ラベルを直上に付けて**用途を明示する。入出力と紛れる無札の並置は禁止。
-- レシピ選択タブは上から「詳細プレビュー → `FadeRule` の区切り罫線 → レシピグリッド」の縦構成。
-  - **詳細プレビュー**: ホバー中レシピを優先し、無ければ選択中レシピを表示。どちらも無ければ `--text-muted` の案内テキスト。内容は「材料 `ItemSlot` 列 → 矢印テキスト（直下に所要時間） → 出力 `ItemSlot` 列」で、`MachineRecipeSelectionTab` 自身の矢印テキスト様式（`ui.common.rightArrow`）に準拠。高さを固定しホバーで段落が跳ねないようにする。
-  - **レシピグリッド**: 解放済みレシピの代表出力アイテムを `shared/ui` の `ItemSlot` で `SlotGrid`（9列折返し）に列挙し、独自gridは作らない。
-- 選択中は ItemSlot の `selected`（SlotFrame の `data-selected`）で示し、新しい色相・光彩は足さない。
-- 左クリックで選択し、**選択と同時にインベントリタブへ切り替える**。右クリックは選択中の場合だけ解除する。マウス契約は ItemSlot の `onLeftDown` / `onRightDown`、ホバーは `onHoverChange` に従う。
+  - **モジュールスロットは加工行から1段下げ、`--text-muted` の「アップグレードスロット」ラベルを直上に付けて**用途を明示する。
+- **レシピ選択モードは行リスト。** 各行は §8.17 の共有 `RecipeRow` を流用し、中央列は所要秒数＋静止矢印（`arrowValue={null}`）のみ、操作欄は空。ブロックアイコン/名は開いている機械自身なので出さない。レシピ名（出力アイテム名）は行の上辺に `--text-muted` のテキストで置く。行全体（`data-testid="machine-recipe-<guid>"`）が左クリック対象で、行内の `ItemSlot` は操作を持たない。選択中行は `data-selected="true"` で示し、新しい色相・光彩は足さない。ホバー詳細プレビュー領域・9列アイコングリッドは廃止済みで復活させない。
 
 ## 8.8 ワールドピンHUD（チュートリアルの位置誘導）
 

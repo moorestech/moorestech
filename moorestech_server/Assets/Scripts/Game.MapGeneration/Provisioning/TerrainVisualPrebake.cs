@@ -16,8 +16,10 @@ namespace Game.MapGeneration.Provisioning
     /// </summary>
     public static class TerrainVisualPrebake
     {
+        // 焼くタイルを持つのはgeneratedだけなので、templateを渡す経路は型で塞ぐ
+        // Only a generated world owns tiles to bake, so the type forbids handing this a template
         public static void BakeAll(
-            WorldDataDirectory worldDataDirectory, string serverDataDirectory, TerrainTransferMeta terrainMeta, PlacementLedger ledger)
+            WorldDataDirectory worldDataDirectory, string serverDataDirectory, GeneratedTerrainTransferMeta terrainMeta, PlacementLedger ledger)
         {
             // ここで組み直すselected/configは現在のマスタ由来。転送メタの指紋と食い違えば台帳と無関係な見た目を焼くので、その前に止める
             // The selected/config rebuilt here come from the current master; disagreeing with the transfer meta's fingerprint would bake visuals unrelated to the ledger, so stop before that
@@ -33,7 +35,7 @@ namespace Game.MapGeneration.Provisioning
             // 高さ源にワールド本体のterrain/を選ぶ入口。共有キャッシュを高さ源にするクライアントとは入口ごと分かれている
             // The entry choosing the world's own terrain/ as the height source; a client, whose source is the shared cache, goes through a different entry entirely
             var factoryResult = TileVisualBakerFactory.CreateForPrebake(
-                config, terrainMeta, generatedPayload, ledger, selectedGeneration, worldDataDirectory);
+                config, terrainMeta, ledger, selectedGeneration, worldDataDirectory);
 
             var tileCoordinates = TerrainTransferMeta.EnumerateTileCoordinates(terrainMeta.TerrainTileCount);
             foreach (var (tileX, tileZ) in tileCoordinates)

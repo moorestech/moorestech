@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Master;
+using Game.Construction;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect
@@ -39,7 +40,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         // Affordability is delegated to the definition shared with the server so no second matching rule exists on the client
         public bool CanAfford(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
-            return ConnectToolMaterialConsumer.HasEnough(materials, _counts, _constructionCostPerCell);
+            return ConstructionMaterialAccounting.HasEnough(materials, _counts, _constructionCostPerCell);
         }
 
         // 賄えない素材を「所持/必要」付きで返す。表示行を出すときだけ呼ぶ

@@ -28,6 +28,9 @@ namespace Client.Tests.EditModeInPlayingTest
     /// EditMode実行中にPlayModeへ切替
     /// This test is executed in EditMode, but it switches to PlayMode during execution.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay2")]
     public class MachineRecipeSelectionUITest
     {
         private const string MachineBlockName = "釜";

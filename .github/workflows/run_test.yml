@@ -15,6 +15,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
+# GameCIのshard別check投稿にはジョブ寿命の標準tokenを使う。
+# Use the job-scoped standard token for GameCI's per-shard check runs.
+permissions:
+  contents: read
+  checks: write
+
 jobs:
   # Web UI の契約ガード(vitest・レジストリ型検査)をCIで強制する。ローカル実行任せだとdrift再発を検知できない
   # Enforce the Web UI contract guards (vitest, registry typecheck) in CI; local-only runs cannot catch drift regressions
@@ -47,17 +53,58 @@ jobs:
           "$pnpm_binary" --dir webui exec tsc -p e2e/tsconfig.json --noEmit
           "$pnpm_binary" --dir webui exec vitest run
 
-  test:
-    name: EditMode Test (Client + Server)
+  # shard集合の正本はresolverの配列1箇所。matrixをそこから生成し、両者の乖離が起こりえない形にする。
+  # The shard set has a single source in the resolver's arrays; generating the matrix from it makes divergence impossible.
+  resolve_unity_test_shards:
+    name: Resolve Unity test shards
     runs-on: ubuntu-latest
+    outputs:
+      shards: ${{ steps.shards.outputs.shards }}
     steps:
-      # リポジトリとサブモジュールをチェックアウト
+      - name: Check out my unity project.
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          path: moorestech
+
+      - name: List Unity test shards.
+        id: shards
+        shell: bash
+        working-directory: moorestech
+        run: |
+          shards=$(bash .github/scripts/unity-test-shard-filter.sh --list-shards)
+          echo "shards=$shards" >> "$GITHUB_OUTPUT"
+
+  # 重量fixtureを実測時間で分割し、未列挙テストはClient/Serverの残余shardへ必ず流す。
+  # Split heavy fixtures by measured duration and always route unlisted tests into a Client or Server remainder shard.
+  unity_test_shard:
+    name: Unity Test - ${{ matrix.shard }}
+    needs: resolve_unity_test_shards
+    runs-on: ubuntu-latest
+    # Unityはアセンブリリロード中に落ちても終了せず居座る。既定6時間だと1本のハングがPRを半日塞ぐ
+    # Unity can crash during an assembly reload yet never exit; at the 6-hour default one hang blocks a PR for half a day
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJson(needs.resolve_unity_test_shards.outputs.shards) }}
+    steps:
+      # HEADしか参照しないテストなので履歴を取得せず、9 shard共通のcheckout固定費を抑える。
+      # Tests only inspect HEAD, so skip history to reduce checkout overhead paid by all nine shards.
       - name: Check out my unity project.
         uses: actions/checkout@v4
         with:
           submodules: recursive
-          fetch-depth: 0
+          fetch-depth: 1
           path: moorestech
+
+      # 実測で決めたfilterを一箇所から解決し、matrixと除外集合の乖離を防ぐ。
+      # Resolve measured filters from one source so the matrix and exclusion sets cannot drift apart.
+      - name: Resolve Unity test shard.
+        id: shard
+        shell: bash
+        working-directory: moorestech
+        run: bash .github/scripts/unity-test-shard-filter.sh "${{ matrix.shard }}"
 
       # pin先SHAを本体repoの追跡ファイルから取得する
       # Read the pinned SHA from the tracked file in the main repository
@@ -69,8 +116,8 @@ jobs:
           commit_hash=$(jq -er '.repositories[] | select(.key == "moorestech_master") | .commitHash' .moorestech-external-revisions.json)
           echo "commit_hash=$commit_hash" >> "$GITHUB_OUTPUT"
 
-      # GitHub Appトークンの寿命は1時間なので、本体チェックアウト完走後に発行して残り寿命を最大化する
-      # The GitHub App token lives one hour, so mint it after the main checkout finishes to maximize its remaining life
+      # 非公開master repoのcheckoutだけにGitHub App tokenを限定する。
+      # Limit the GitHub App token to checking out the private master repository.
       - name: Generate github token
         id: generate_token
         uses: tibdex/github-app-token@v1
@@ -88,9 +135,10 @@ jobs:
           ref: ${{ steps.master_revision.outputs.commit_hash }}
           path: moorestech_master
 
-      # 起動テストがViteホストを開始するため、Node/pnpmと依存パッケージを同じジョブ内に用意する
-      # Startup tests launch the Vite host, so provision Node/pnpm and dependencies in this job
+      # ClientテストだけがViteホストを開始するため、Server 4 shardではNode準備を省く。
+      # Only Client tests launch the Vite host, so skip Node setup in the four Server shards.
       - name: Setup Web UI toolchain
+        if: steps.shard.outputs.needs_webui == 'true'
         shell: bash
         working-directory: moorestech/moorestech_web
         env:
@@ -121,9 +169,9 @@ jobs:
           restore-keys: |
             Library_Test_client-
 
-      # GameCI の Test runner を利用して
-      # EditMode のテストを実行する
-      - name: Run Unity Test
+      # 専用fixtureはCategoryだけ、残余は検証済みassemblyも併用し、網羅性を保って探索固定費を抑える。
+      # Use categories alone for dedicated fixtures and verified assemblies for remainders to retain coverage with lower discovery overhead.
+      - name: Run Unity Test - ${{ matrix.shard }}
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -131,14 +179,43 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: moorestech/moorestech_client/
-          githubToken: ${{ steps.generate_token.outputs.token }}
+          githubToken: ${{ github.token }}
+          checkName: Test Results - ${{ matrix.shard }}
           unityVersion: 6000.3.8f1
           testMode: editmode
-          customParameters: '-testCategory "!IgnoreCI"'
+          customParameters: >-
+            ${{ steps.shard.outputs.use_assembly_filter == 'true' && format('-assemblyNames "{0}"', steps.shard.outputs.assembly_names) || '' }}
+            -testCategory "${{ steps.shard.outputs.test_category }}"
 
-      # テストの実行結果をアーティファクトにアップロードしてダウンロードして参照できるようにする
+      # shard別artifact名で結果の上書きを防ぎ、全件同一性と所要時間を後から検証可能にする。
+      # Use per-shard artifact names to prevent overwrites and preserve evidence for coverage and timing audits.
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Test results
+          name: Test results - ${{ matrix.shard }}
           path: artifacts
+
+  # 既存のcheck表示名を維持し、全shard成功だけを単一のmerge判定へ畳む。
+  # Preserve the existing check display name and fold all shard results into one merge verdict.
+  test:
+    name: EditMode Test (Client + Server)
+    if: always()
+    needs: [resolve_unity_test_shards, unity_test_shard]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every Unity test shard to pass.
+        shell: bash
+        env:
+          RESOLVE_RESULT: ${{ needs.resolve_unity_test_shards.result }}
+          SHARD_RESULT: ${{ needs.unity_test_shard.result }}
+        run: |
+          # shard一覧の解決が落ちるとmatrixが空になり、shard側は「実行0件で成功」に見える
+          # A failed shard listing empties the matrix, which would otherwise look like a successful run of zero shards
+          if [[ "$RESOLVE_RESULT" != 'success' ]]; then
+            echo "Unity test shard resolution result: $RESOLVE_RESULT" >&2
+            exit 1
+          fi
+          if [[ "$SHARD_RESULT" != 'success' ]]; then
+            echo "Unity test shard result: $SHARD_RESULT" >&2
+            exit 1
+          fi

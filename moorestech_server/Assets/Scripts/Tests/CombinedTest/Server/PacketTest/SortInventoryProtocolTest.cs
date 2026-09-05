@@ -15,6 +15,7 @@ using Server.Boot;
 using Server.Protocol;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.SortInventoryProtocol;
 
@@ -113,20 +114,28 @@ namespace Tests.CombinedTest.Server.PacketTest
         }
 
         [Test]
-        public void MachineInventorySortExcludesModuleSlotsTest()
+        // 旧仕様は入出力レンジをソートしモジュールだけ除外したが、ADR 0042で全スロットがレシピ束縛されソート自体が完全なno-opになった
+        // The old spec sorted the input/output range and excluded only modules; ADR 0042 binds every slot to the recipe, making sorting a full no-op
+        public void MachineInventorySortIsNoOpTest()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var worldDataStore = ServerContext.WorldBlockDatastore;
             var itemStackFactory = ServerContext.ItemStackFactory;
 
-            // 機械（input=2, output=3, module=4）を設置してインプットへ降順にアイテムを配置する
-            // Place the machine (input=2, output=3, module=4) and put items into inputs in descending order.
+            // 機械（input=2, output=3, module=4）を設置し、レシピを選択してから束縛先スロット1にだけ素材を配置する
+            // （スロット0は空のまま。両方埋めると「ソートで空きへ寄せる」旧挙動と「全スロット束縛でno-op」の
+            // 新挙動が同じ結果になり回帰を検知できないため。C12・mutation testing実測）
+            // Place the machine (input=2, output=3, module=4), select the recipe, then place material only into
+            // bound slot 1 (slot 0 stays empty; filling both would make the old "sort compacts into the gap"
+            // behavior and the new "every slot is bound, no-op" behavior indistinguishable. C12, per mutation testing)
             var machinePosition = new Vector3Int(5, 10);
             worldDataStore.TryAddBlock(ForUnitTestModBlockId.MachineId, machinePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
             var machineComponent = machine.GetComponent<VanillaMachineBlockInventoryComponent>();
-            machineComponent.SetItem(0, new ItemId(5), 3);
-            machineComponent.SetItem(1, new ItemId(2), 4);
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => r.BlockGuid == MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.MachineId).BlockGuid);
+            MachineRecipeSelectTestUtil.SelectRecipe(machine, recipe);
+            var input1 = itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(recipe.InputItems[1].ItemGuid), 4);
+            machineComponent.SetItem(1, input1);
 
             // モジュールレンジの先頭と末尾（slot5・slot8）にモジュールアイテムを装着する
             // Equip module items into the first and last module slots (slot 5 and slot 8).
@@ -140,14 +149,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             // Sort the machine inventory via the actual protocol packet.
             packet.GetPacketResponse(GetPacket(InventoryIdentifierMessagePack.CreateBlockMessage(machinePosition)), new PacketResponseContext(null));
 
-            // インプット・アウトプットレンジはItemId昇順に整理されている
-            // The input/output ranges are re-packed in ItemId ascending order.
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 4), machineComponent.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(5), 3), machineComponent.GetItem(1));
+            // 全スロットが束縛済みのため、ソートしてもスロット1の素材はスロット0へ寄らず、スロット0は空のまま
+            // Every slot is bound, so sorting never pulls slot 1's material into slot 0, which stays empty
+            Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(0).Id);
+            Assert.AreEqual(input1, machineComponent.GetItem(1));
             Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(2).Id);
 
-            // モジュールスロットは整理対象外なので位置も中身も不動
-            // Module slots are excluded from sorting and stay in place untouched.
+            // モジュールスロットも整理対象外なので位置も中身も不動
+            // Module slots are also excluded from sorting and stay in place untouched.
             Assert.AreEqual(firstModuleItem, machineComponent.GetItem(5));
             Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(6).Id);
             Assert.AreEqual(ItemMaster.EmptyItemId, machineComponent.GetItem(7).Id);

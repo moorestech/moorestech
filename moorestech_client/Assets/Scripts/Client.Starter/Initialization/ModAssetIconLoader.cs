@@ -5,6 +5,7 @@ using Client.Game.InGame.Context;
 using Client.Mod.Texture;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Client.Starter.Initialization.Progress;
 using UnityEngine;
 using Mooresmaster.Localization.Generated;
 

@@ -1,4 +1,3 @@
-using System.IO;
 using Game.MapGeneration.Facade;
 using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Transfer;
@@ -12,6 +11,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
 {
     // template/generated双方の結果契約を検証
     // Verifies the result contract for both template and generated worlds
+    // 通常1x1、全タイル走査だけ低解像度2x2
+    // Keep ordinary real generation at 1x1 and switch to the low-resolution 2x2 master only for all-tile traversal
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap3")]
     public class WorldTerrainSessionTest
     {
         // templateは固定地形の結果のみ返す
@@ -20,7 +24,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         public void TemplateOpensAsTerrainAssetLayout()
         {
             var session = WorldTerrainSession.Open(
-                TerrainTransferMeta.CreateTemplate("0123456789abcdef", 0), TestModDirectory.ForUnitTestModDirectory);
+                new TemplateTerrainTransferMeta("0123456789abcdef", 0), TestModDirectory.ForUnitTestModDirectory);
             Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TerrainAsset));
             Assert.That(session.Layout.AuthoredTerrainDataAddress, Is.EqualTo("Vanilla/Environment/TemplateTerrainData"));
             Assert.That(session.Layout.TileCoordinates, Is.Empty);
@@ -36,32 +40,38 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         public void GeneratedWorldBakesEveryTile()
         {
             var scope = new TerrainTransferTestScope(nameof(GeneratedWorldBakesEveryTile));
-            var worldDirectory = scope.ProvisionGeneratedWorld(5);
-            var meta = TerrainTransferMetaReader.Read(worldDirectory);
-
-            // 高さ源は共有キャッシュなので、転送後と同じ状態を作る: world dir の terrain/ を cache/worlds/<id>/terrain へ複製
-            // The height source is the shared cache, so replicate the post-transfer state: copy the world dir's terrain/ into cache/worlds/<id>/terrain
-            var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
-            CopyDirectory(worldDirectory.TerrainDirectory, shared.TerrainDirectory);
             try
             {
+                var worldDirectory = scope.ProvisionLowResolutionMultiTileGeneratedWorld(5);
+                var meta = TerrainTransferMetaReader.Read(worldDirectory);
+                var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
+
+                // 転送後と同じ高さ源で全4座標を焼く
+                // Copy heights into the shared cache and bake all four coordinates in the post-transfer state
+                TerrainTransferTestScope.CopyDirectory(worldDirectory.TerrainDirectory, shared.TerrainDirectory);
+
                 var session = WorldTerrainSession.Open(meta, TestModDirectory.ForUnitTestModDirectory);
                 Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TileMaps));
+                Assert.That(session.Layout.HeightmapResolution,
+                    Is.EqualTo(TerrainTransferTestScope.LowResolutionMultiTileHeightmapResolution));
+                Assert.That(session.Layout.TileCoordinates, Is.EquivalentTo(new[] { (0, 0), (1, 0), (0, 1), (1, 1) }));
 
-                // 生成ワールドは焼けるセッションで開く。KindがTileMapsなら型もTiledTerrainSessionで対になる
-                // A generated world opens as a bakeable session: a TileMaps kind and the TiledTerrainSession type always arrive as a pair
+                // 各座標の焼成出力寸法を検証
+                // Open the generated world as its bakeable type and verify each coordinate's output dimensions
                 var tiledSession = (TiledTerrainSession)session;
                 foreach (var (x, z) in session.Layout.TileCoordinates)
                 {
                     var tile = tiledSession.BakeTile(x, z);
-                    Assert.That(tile.DisplayHeights.GetLength(0), Is.EqualTo(session.Layout.HeightmapResolution));
+                    Assert.That(tile.DisplayHeights.GetLength(0),
+                        Is.EqualTo(TerrainTransferTestScope.LowResolutionMultiTileHeightmapResolution));
                     Assert.That(tile.Alphamap.LayerCount, Is.EqualTo(session.Layout.TextureLayerAddresses.Count));
                     Assert.That(tile.DetailMaps.Count, Is.EqualTo(session.Layout.DetailPrototypes.Count));
                 }
             }
             finally
             {
-                Directory.Delete(shared.Root, true);
+                // 共有キャッシュもワールドもEndが唯一の削除主体
+                // End alone owns deleting both the shared cache and the world
                 scope.End();
             }
         }
@@ -82,17 +92,6 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             var origins = MapGenerationPipeline.ResolveOrigins(run.Config);
             Assert.That(origins.NoiseOrigin, Is.EqualTo(run.Output.NoiseOrigin));
             Assert.That(origins.SceneOrigin, Is.EqualTo(run.Output.SceneOrigin));
-        }
-
-        // テストが払い出した実ディレクトリ間だけを想定した単純な再帰コピー。シンボリックリンクは扱わない
-        // A simple recursive copy meant only for real directories this test hands out; symlinks are not handled
-        private static void CopyDirectory(string sourceDirectory, string destinationDirectory)
-        {
-            Directory.CreateDirectory(destinationDirectory);
-            foreach (var filePath in Directory.GetFiles(sourceDirectory))
-                File.Copy(filePath, Path.Combine(destinationDirectory, Path.GetFileName(filePath)), true);
-            foreach (var subDirectory in Directory.GetDirectories(sourceDirectory))
-                CopyDirectory(subDirectory, Path.Combine(destinationDirectory, Path.GetFileName(subDirectory)));
         }
     }
 }

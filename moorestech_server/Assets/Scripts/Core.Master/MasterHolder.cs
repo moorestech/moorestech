@@ -43,13 +43,13 @@ namespace Core.Master
             BuildMenuCategoryMaster = new BuildMenuCategoryMaster(GetJson(masterJsonFileContainer, new JsonFileName("buildMenu")));
             InitializeMaster(BuildMenuCategoryMaster);
 
-            // ItemMaster依存
-            // Depends on ItemMaster
+            // ItemMaster依存。BlockMasterの検証がMapObjectMineSettingsの装飾物を引くため、BlockMasterより前に置く
+            // Depends on ItemMaster; it precedes BlockMaster because BlockMaster's validation looks up decorations through MapObjectMineSettings
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("map")));
             InitializeMaster(MapObjectMaster);
 
-            // Item/Fluid/BuildMenuCategory/MapObjectMaster依存
-            // Depends on Item, Fluid, BuildMenuCategory and MapObjectMaster
+            // ItemMaster, FluidMaster, BuildMenuCategoryMaster, MapObjectMaster依存（category/subCategoryの参照とMapObjectMineSettingsの装飾物を検証）
+            // Depends on ItemMaster, FluidMaster, BuildMenuCategoryMaster, MapObjectMaster (validates category/subCategory references and decorations in MapObjectMineSettings)
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
             InitializeMaster(BlockMaster);
 

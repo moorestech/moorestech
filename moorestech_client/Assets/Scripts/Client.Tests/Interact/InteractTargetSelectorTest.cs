@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
+using Client.Input;
 using Client.Tests.Common;
 using NUnit.Framework;
 using UnityEngine;
@@ -23,12 +26,12 @@ namespace Client.Tests.Interact
             PlayerObject.transform.position = target.transform.position;
 
             var selector = new InteractTargetSelector();
-            Assert.AreSame(target, selector.Select());
+            Assert.AreSame(target, selector.Scan().Primary);
 
             // 2mを超えると照準ヒットでも候補にならず、近傍にも無いのでnull
             // Beyond 2m the aim hit is discarded and nothing is nearby, so null
             PlayerObject.transform.position = target.transform.position + new Vector3(0f, 0f, InteractTargetSelector.InteractDistance + 0.5f);
-            Assert.IsNull(selector.Select());
+            Assert.IsNull(selector.Scan().Primary);
         }
 
         [Test]
@@ -51,7 +54,7 @@ namespace Client.Tests.Interact
             PlayerObject.transform.position = target.transform.position;
             Physics.SyncTransforms();
 
-            Assert.AreSame(target, new InteractTargetSelector().Select());
+            Assert.AreSame(target, new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -67,7 +70,7 @@ namespace Client.Tests.Interact
             var ahead = CreateMapObjectTarget(new Vector3(0f, 0f, 1.5f));
             CreateMapObjectTarget(new Vector3(1.0f, 0f, 0f));
 
-            Assert.AreSame(ahead, new InteractTargetSelector().Select());
+            Assert.AreSame(ahead, new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -80,7 +83,7 @@ namespace Client.Tests.Interact
             // マスタ未解決なら対象にならない
             // Selection passes through IsInteractAvailable, so a master-less object under the aim is no target
             TestReflection.SetField(target, "<MapObjectMasterElement>k__BackingField", null);
-            Assert.IsNull(new InteractTargetSelector().Select());
+            Assert.IsNull(new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -91,7 +94,56 @@ namespace Client.Tests.Interact
             PlayerObject.transform.position = interactable.transform.position;
             Physics.SyncTransforms();
 
-            Assert.AreSame(interactable, new InteractTargetSelector().Select());
+            Assert.AreSame(interactable, new InteractTargetSelector().Scan().Primary);
+        }
+
+        [Test]
+        public void 照準ヒットが2mより遠いときは近傍候補が選ばれる()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
+            CameraObject.transform.position = Vector3.zero;
+            CameraObject.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+            PlayerObject.transform.position = Vector3.zero;
+
+            // 5m先の照準ヒットは手が届かず、横1mの候補が残る
+            // The aim hit 5m away is out of reach, leaving the candidate 1m to the side
+            CreateMapObjectTarget(AimRay().GetPoint(5f));
+            var nearby = CreateMapObjectTarget(new Vector3(1f, 0f, 0f));
+
+            Assert.AreSame(nearby, new InteractTargetSelector().Scan().Primary);
+        }
+
+        [Test]
+        public void 近傍候補のキーは重複なく集まりキーに応じる候補が返る()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
+            CameraObject.transform.position = new Vector3(0f, 1f, -5f);
+            CameraObject.transform.rotation = Quaternion.LookRotation(Vector3.forward);
+            PlayerObject.transform.position = Vector3.zero;
+
+            // 正面の開けるブロック（F）と、右の車両（F・E）
+            // An openable block ahead (F) and a train car to the right (F and E)
+            var block = CreateOpenableBlockTarget(new Vector3(0f, 0f, 1.5f));
+            var trainCar = CreateTrainCarTarget(new Vector3(1f, 0f, 0f));
+
+            var selection = new InteractTargetSelector().Scan();
+            Assert.AreSame(block, selection.Primary);
+
+            var keys = new List<InputKey>();
+            selection.CollectCandidateKeys(keys);
+            CollectionAssert.AreEquivalent(new[] { InputManager.Playable.Interact, InputManager.Playable.Ride }, keys);
+            Assert.AreSame(trainCar, selection.SelectRespondingTo(InputManager.Playable.Ride));
+        }
+
+        [Test]
+        public void 開けるブロックは当たり判定子からでもインタラクト面が選ばれる()
+        {
+            AimPointProvider.SetViewMode(PlayerViewMode.FirstPerson);
+            var interactable = CreateOpenableBlockTarget(AimRay().GetPoint(1f));
+            PlayerObject.transform.position = interactable.transform.position;
+            Physics.SyncTransforms();
+
+            Assert.AreSame(interactable, new InteractTargetSelector().Scan().Primary);
         }
 
         [Test]
@@ -114,7 +166,7 @@ namespace Client.Tests.Interact
             PlayerObject.transform.position = blockObject.transform.position;
             Physics.SyncTransforms();
 
-            Assert.IsNull(new InteractTargetSelector().Select());
+            Assert.IsNull(new InteractTargetSelector().Scan().Primary);
         }
     }
 }

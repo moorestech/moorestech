@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Construction;
 using Game.PlayerInventory.Interface;
 using Game.Train.RailCalc;
 using Game.Train.RailGraph;
@@ -214,7 +215,7 @@ namespace Server.Protocol.PacketResponse
                 return new RailPlacementJudgement(RailConnectionEditFailureReason.NotEnoughRailItem, connectToolGuid, null);
 
             var items = inventoryItems as IReadOnlyList<IItemStack> ?? inventoryItems.ToList();
-            if (!ConnectToolMaterialConsumer.HasEnough(materials, items, reservedMaterials))
+            if (!ConstructionMaterialAccounting.HasEnough(materials, items, reservedMaterials))
                 return new RailPlacementJudgement(RailConnectionEditFailureReason.NotEnoughRailItem, connectToolGuid, null);
 
             return new RailPlacementJudgement(RailConnectionEditFailureReason.None, connectToolGuid, materials);

@@ -57,7 +57,7 @@ namespace Client.Game.InGame.Control
         public static bool TryGetCursorOnComponent<T>(out T component)
         {
             component = default;
-            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, out var hit)) return false;
+            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, RayDistance, out var hit)) return false;
 
             // 最前面ヒットの子要素から解決する
             // Resolve from the frontmost hit's children
@@ -68,7 +68,7 @@ namespace Client.Game.InGame.Control
         public static bool TryGetCursorOnComponentInParent<T>(out T component)
         {
             component = default;
-            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, out var hit)) return false;
+            if (!TryGetFrontmostSolidHit(LayerConst.BlockOnlyLayerMask, RayDistance, out var hit)) return false;
 
             // 列車の当たり判定コライダーは本体コンポーネントを子に持たないため親方向へ辿る
             // Train hit colliders do not hold the entity component in their children, so climb toward parents
@@ -86,7 +86,7 @@ namespace Client.Game.InGame.Control
         ///     照準レイの最前面の実体ヒットを返す。設置ゴーストのみ貫通する（InteractTargetSelectorと共通の規則）
         ///     Returns the aim ray's frontmost solid hit; only placement ghosts are penetrated (shared rule with InteractTargetSelector)
         /// </summary>
-        public static bool TryGetFrontmostSolidHit(int layerMask, out RaycastHit frontmostHit)
+        public static bool TryGetFrontmostSolidHit(int layerMask, float maxDistance, out RaycastHit frontmostHit)
         {
             frontmostHit = default;
 
@@ -98,7 +98,7 @@ namespace Client.Game.InGame.Control
             // The aim point is resolved centrally by AimPointProvider per view mode
             var ray = camera.ScreenPointToRay(AimPointProvider.GetAimScreenPoint());
 
-            var hitCount = RaycastNonAlloc(ray, layerMask);
+            var hitCount = RaycastNonAlloc(ray, layerMask, maxDistance);
 
             // 手前のプレビューゴーストだけを貫通対象にする。並べ替えずに最小距離を1回の走査で選ぶ
             // Only nearby preview ghosts are penetrated; the nearest is picked in one scan instead of sorting
@@ -119,11 +119,11 @@ namespace Client.Game.InGame.Control
 
             // 飽和したまま返すと手前のヒットを取りこぼすため、バッファを倍にして採り直す
             // A saturated buffer could drop the nearest hit, so it is doubled and re-queried
-            static int RaycastNonAlloc(Ray castRay, int mask)
+            static int RaycastNonAlloc(Ray castRay, int mask, float distance)
             {
                 while (true)
                 {
-                    var count = Physics.RaycastNonAlloc(castRay, HitBuffer, RayDistance, mask);
+                    var count = Physics.RaycastNonAlloc(castRay, HitBuffer, distance, mask);
                     if (count < HitBuffer.Length) return count;
 
                     HitBuffer = new RaycastHit[HitBuffer.Length * 2];
