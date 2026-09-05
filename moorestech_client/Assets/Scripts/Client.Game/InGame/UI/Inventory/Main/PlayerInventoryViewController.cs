@@ -1,8 +1,7 @@
-// [uGUI廃止Phase1] uGUI描画は恒久停止・ビューは未メンテ。ただし本クラスは外部（Web UIブリッジ等）から参照中のため削除前に整理が必要（docs/webui/ugui-retirement-plan.md）
-// [uGUI retirement Phase1] uGUI rendering is permanently disabled and the view is unmaintained, but this class is still referenced externally (e.g. Web UI bridge); untangle before deletion (docs/webui/ugui-retirement-plan.md)
+// [uGUI廃止Phase1] uGUI描画は恒久停止・ビューは未メンテ。DI登録から外れたため毎フレーム再描画も廃止し、Phase2で本体ごと削除する（docs/webui/ugui-retirement-plan.md）
+// [uGUI retirement Phase1] uGUI rendering is permanently disabled and unmaintained; the per-frame redraw is gone now that the view left DI, and the class itself is deleted in Phase2 (docs/webui/ugui-retirement-plan.md)
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.UIState;
 using UniRx;
@@ -53,22 +52,13 @@ namespace Client.Game.InGame.UI.Inventory.Main
             _interaction = new PlayerInventorySlotInteraction(_playerInventory, mainSlotsView.SlotViews);
         }
 
-        private void Update()
-        {
-            InventoryViewUpdate();
-        }
-
         public void SetSubInventory(ISubInventory subInventory)
         {
             foreach (var disposable in _subInventorySlotUIEventUnsubscriber) disposable.Dispose();
-
-            // サブインベントリの参照とUI購読をまとめて差し替える
-            // Replace the sub-inventory reference and UI subscriptions together
             _subInventorySlotUIEventUnsubscriber.Clear();
             _subInventory = subInventory;
             _interaction.SetSubInventory(subInventory);
             _playerInventory.SetSubInventory(subInventory);
-            foreach (var sub in subInventory.SubInventorySlotObjects) _subInventorySlotUIEventUnsubscriber.Add(sub.OnPointerEvent.Subscribe(HandleSlotPointerEvent));
         }
 
         // スロットのポインタイベントを操作ハンドラへ橋渡しする
@@ -85,24 +75,6 @@ namespace Client.Game.InGame.UI.Inventory.Main
             var visible = isActive && !WebUiScreenGate.IsWebUiMode;
             mainInventoryObject.SetActive(visible);
             subInventoryParent.gameObject.SetActive(visible);
-        }
-
-        private void InventoryViewUpdate()
-        {
-            // レベルアップ後のスロット数に合わせてビューを増やす
-            // Grow the views to match the slot count after level upgrades
-            mainSlotsView.SetSlotCount(_playerInventory.LocalPlayerInventory.MainSlotCount);
-
-            for (var i = 0; i < _playerInventory.LocalPlayerInventory.Count; i++)
-            {
-                var item = _playerInventory.LocalPlayerInventory[i];
-                var itemView = ClientContext.ItemImageContainer.GetItemView(item.Id);
-
-                if (i < mainSlotsView.SlotViews.Count)
-                    mainSlotsView.SlotViews[i].SetItem(itemView, item.Count);
-                else
-                    _subInventory.SubInventorySlotObjects[i - mainSlotsView.SlotViews.Count].SetItem(itemView, item.Count);
-            }
         }
     }
 }

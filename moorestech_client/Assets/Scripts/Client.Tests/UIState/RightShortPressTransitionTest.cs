@@ -6,14 +6,13 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
-using Client.Game.InGame.UI.Challenge;
-using Client.Game.InGame.UI.Inventory.Block.Research;
+using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
-using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Tests.Map.Vein;
@@ -62,10 +61,9 @@ namespace Client.Tests.UIState
         [Test]
         public void DeleteObject削除選択が無ければ右短押しで破壊モードを抜ける()
         {
-            SetUpMouseCursorTooltip();
-            var deleteBarObject = CreateComponent<DeleteBarObject>("DeleteBar");
+            var tooltip = CreateMouseCursorTooltip();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new DeleteObjectState(deleteBarObject, null, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null), rightShortPressInputService);
+            var state = new DeleteObjectState(null, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null), rightShortPressInputService, tooltip);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
 
             var transit = PressAndReleaseRightButton(state);
@@ -77,7 +75,7 @@ namespace Client.Tests.UIState
         public void BuildMenu右短押しでゲーム画面へ抜ける()
         {
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new BuildMenuState(new FakeBuildMenuView(), CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), rightShortPressInputService);
+            var state = new BuildMenuState(new BuildMenuSelection(), CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), rightShortPressInputService);
             state.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
 
             var transit = PressAndReleaseRightButton(state);
@@ -88,9 +86,8 @@ namespace Client.Tests.UIState
         [Test]
         public void ChallengeList右短押しでゲーム画面へ抜ける()
         {
-            var challengeListView = CreateComponent<ChallengeListView>("ChallengeList");
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new ChallengeListState(challengeListView, rightShortPressInputService);
+            var state = new ChallengeListState(rightShortPressInputService);
             state.OnEnter(new UITransitContext(UIStateEnum.ChallengeList));
 
             var transit = PressAndReleaseRightButton(state);
@@ -101,9 +98,8 @@ namespace Client.Tests.UIState
         [Test]
         public void ResearchTree右短押しでゲーム画面へ抜ける()
         {
-            var researchTreeViewManager = CreateComponent<ResearchTreeViewManager>("ResearchTree");
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new ResearchTreeState(researchTreeViewManager, rightShortPressInputService);
+            var state = new ResearchTreeState(rightShortPressInputService);
 
             // OnEnterはSetActive(true)がサーバー問い合わせを起こすためEditModeでは通さない。遷移条件の配線だけを見る
             // OnEnter is skipped: SetActive(true) issues a server request unusable in EditMode, so only the transition wiring is exercised
@@ -150,7 +146,7 @@ namespace Client.Tests.UIState
         {
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
-            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
+            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter(new MouseCursorTooltipState()));
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());

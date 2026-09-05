@@ -7,10 +7,9 @@ using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Interact;
 using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Inventory.RecipeViewer;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
@@ -75,7 +74,7 @@ namespace Client.Tests.UIState
         // Equipment plays no part in highlight or transition checks, so it is built with null; mining outcome tests live elsewhere
         protected static InteractController CreateInteractController()
         {
-            return new InteractController(null, new InteractTargetSelector());
+            return new InteractController(null, new InteractTargetSelector(), new ProgressBarState(), new MouseCursorTooltipState());
         }
 
         protected static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)
@@ -98,18 +97,11 @@ namespace Client.Tests.UIState
             return state.GetNextUpdate();
         }
 
-        // PlayerInventoryStateのctorは初期応答の適用まで走るため、ビュー実体の注入込みで組み立てる
-        // PlayerInventoryState's ctor applies the initial response, so it is assembled together with the view instances it needs
+        // PlayerInventoryStateのctorは初期応答の適用まで走るため、必要な実体込みで組み立てる
+        // PlayerInventoryState's ctor applies the initial response, so it is assembled together with the instances it needs
         protected PlayerInventoryState CreatePlayerInventoryState(LocalPlayerEquipment playerEquipment, InitialHandshakeResponse handshakeResponse)
         {
-            // uGUIビューはSetActiveしか呼ばれないため最小の実体を渡す
-            // The uGUI views only receive SetActive, so pass minimal instances
-            var recipeViewerView = CreateComponent<RecipeViewerView>("RecipeViewer", false);
-            var viewController = CreateComponent<PlayerInventoryViewController>("PlayerInventoryView", false);
-            SetField(viewController, "mainInventoryObject", CreateObject("MainInventory", false));
-            SetField(viewController, "subInventoryParent", CreateObject("SubInventoryParent", false).transform);
-
-            return new PlayerInventoryState(recipeViewerView, viewController,
+            return new PlayerInventoryState(
                 new LocalPlayerInventoryController(new LocalPlayerInventory(), playerEquipment),
                 playerEquipment, handshakeResponse, new RightShortPressInputService(new RightShortPressInput()));
         }
@@ -128,13 +120,7 @@ namespace Client.Tests.UIState
             return new InitialHandshakeResponse(initialHandshake, (null, null, inventory, null, null, null, null, null));
         }
 
-        protected void SetUpMouseCursorTooltip()
-        {
-            var tooltip = CreateComponent<MouseCursorTooltip>("Tooltip", false);
-            SetField(tooltip, "canvasGroup", tooltip.gameObject.AddComponent<CanvasGroup>());
-            tooltip.gameObject.SetActive(true);
-            InvokeAwake(tooltip);
-        }
+        protected MouseCursorTooltipState CreateMouseCursorTooltip() => new();
 
         // インタラクト選定は本番と同じUI重なり判定を通るため、Setupで立てたEventSystemを入力モジュール付きで有効化する
         // Interact selection runs the production UI-overlap check, so activate the Setup EventSystem with an input module
@@ -155,9 +141,7 @@ namespace Client.Tests.UIState
             playerRoot.SetActive(true);
             InvokeAwake(playerContainer);
 
-            var challengeHud = CreateComponent<CurrentChallengeHudView>("ChallengeHud");
             var gameState = CreateComponent<GameStateController>("GameState", false);
-            SetField(gameState, "currentChallengeHudView", challengeHud);
             gameState.gameObject.SetActive(true);
             InvokeAwake(gameState);
         }

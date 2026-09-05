@@ -156,23 +156,22 @@ namespace Client.Tests.WebUi
             var catalog = new PlacementTargetCatalog();
             var unlocked = new AllPlacementTargetsUnlockedStateData();
             var controlObject = new GameObject("BuildMenuSelectActionTest.Control");
-            var viewObject = new GameObject("BuildMenuSelectActionTest.View");
             var control = controlObject.AddComponent<UIStateControl>();
-            var view = viewObject.AddComponent<BuildMenuView>();
+            var selection = new BuildMenuSelection();
 
             try
             {
                 SetCurrentState(control, UIStateEnum.BuildMenu);
                 var handler = new BuildMenuSelectActionHandler(
-                    control, new PlacementTargetResolver(catalog, new ClientBlueprintLibrary(), unlocked), view);
+                    control, new PlacementTargetResolver(catalog, new ClientBlueprintLibrary(), unlocked), selection);
                 var entry = catalog.UnlockedEntries(
                     unlocked, false, Array.Empty<(Guid, string)>()).First();
 
                 var success = handler.ExecuteAsync(
                     new JObject { ["id"] = entry.Id.ToString("D") }).GetAwaiter().GetResult();
                 Assert.IsTrue(success.Ok);
-                Assert.IsTrue(view.TryConsumeSelectedEntry(out var selected));
-                Assert.AreEqual(entry.Id, selected.Target.Id);
+                Assert.IsTrue(selection.TryConsumeSelectedTarget(out var selected));
+                Assert.AreEqual(entry.Id, selected.Id);
 
                 var malformed = handler.ExecuteAsync(
                     new JObject { ["id"] = "not-a-guid" }).GetAwaiter().GetResult();
@@ -190,7 +189,6 @@ namespace Client.Tests.WebUi
             }
             finally
             {
-                UnityEngine.Object.DestroyImmediate(viewObject);
                 UnityEngine.Object.DestroyImmediate(controlObject);
             }
 

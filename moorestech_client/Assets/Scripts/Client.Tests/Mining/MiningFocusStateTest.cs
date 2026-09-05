@@ -1,6 +1,5 @@
 using System;
 using Client.Game.InGame.Mining;
-using Client.Game.InGame.UI.Tooltip;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 
@@ -18,7 +17,7 @@ namespace Client.Tests.Mining
             var next = RunFocusState(MiningStartOutcome.Unavailable, new MiningFocusState(), Array.Empty<Guid>());
 
             Assert.IsInstanceOf<MiningIdleState>(next);
-            Assert.IsFalse(MouseCursorTooltip.Instance.GetPresentation().Visible);
+            Assert.IsFalse(ShownTooltipPresentation().Visible);
         }
 
         [Test]
@@ -70,7 +69,7 @@ namespace Client.Tests.Mining
             var next = RunFocusStateWithInteractPressed(MiningStartOutcome.InstantPickUp, focusState);
 
             Assert.IsInstanceOf<MiningCompleteState>(next);
-            Assert.IsFalse(MouseCursorTooltip.Instance.GetPresentation().Visible);
+            Assert.IsFalse(ShownTooltipPresentation().Visible);
         }
     }
 }

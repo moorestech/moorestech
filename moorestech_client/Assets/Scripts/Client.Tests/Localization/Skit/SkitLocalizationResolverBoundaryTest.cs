@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Client.Game.Skit.Localization;
 using Client.Localization;
 using Client.Skit.Localization;
-using Client.Skit.UI;
 using Mooresmaster.Loader.CharactersModule;
 using Mooresmaster.Localization.Generated;
 using Newtonsoft.Json.Linq;
@@ -174,29 +173,6 @@ namespace Client.Tests.Localization.Skit
                 var runtimeTitle = SkitTitle.FromAssetName(Path.GetFileNameWithoutExtension(path));
                 Assert.AreEqual(runtimeTitle, metadataTitle, path);
             }
-        }
-
-        [Test]
-        public void BackgroundSkitUiDisplaysResolvedSpeakerAndBody()
-        {
-            var root = new GameObject("BackgroundSkitUiTest");
-            var textObject = new GameObject("Text");
-            textObject.transform.SetParent(root.transform);
-            var ui = root.AddComponent<BackgroundSkitUI>();
-            var field = typeof(BackgroundSkitUI).GetField(
-                "skitText",
-                System.Reflection.BindingFlags.Instance |
-                System.Reflection.BindingFlags.NonPublic);
-            var textType = Type.GetType("TMPro.TextMeshProUGUI, Unity.TextMeshPro");
-            var text = textObject.AddComponent(textType);
-            field.SetValue(ui, text);
-
-            ui.SetText("Resolved Speaker", "Resolved Body");
-
-            Assert.AreEqual(
-                "Resolved Speaker : Resolved Body",
-                text.GetType().GetProperty("text").GetValue(text));
-            UnityEngine.Object.DestroyImmediate(root);
         }
     }
 }

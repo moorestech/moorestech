@@ -10,8 +10,8 @@ using Newtonsoft.Json.Linq;
 namespace Client.WebUiHost.Game.Actions
 {
     /// <summary>
-    /// build_menu.select: web の選択を uGUI の選択消費キューへ投入する
-    /// build_menu.select: feeds a web selection into the uGUI consume queue
+    /// build_menu.select: web の選択を BuildMenuState の消費キューへ投入する
+    /// build_menu.select: feeds a web selection into BuildMenuState's consume queue
     /// </summary>
     public class BuildMenuSelectActionHandler : IActionHandler
     {
@@ -19,13 +19,13 @@ namespace Client.WebUiHost.Game.Actions
 
         private readonly UIStateControl _uiStateControl;
         private readonly PlacementTargetResolver _placementTargetResolver;
-        private readonly BuildMenuView _buildMenuView;
+        private readonly BuildMenuSelection _buildMenuSelection;
 
-        public BuildMenuSelectActionHandler(UIStateControl uiStateControl, PlacementTargetResolver placementTargetResolver, BuildMenuView buildMenuView)
+        public BuildMenuSelectActionHandler(UIStateControl uiStateControl, PlacementTargetResolver placementTargetResolver, BuildMenuSelection buildMenuSelection)
         {
             _uiStateControl = uiStateControl;
             _placementTargetResolver = placementTargetResolver;
-            _buildMenuView = buildMenuView;
+            _buildMenuSelection = buildMenuSelection;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -42,9 +42,9 @@ namespace Client.WebUiHost.Game.Actions
             // Match by id against the currently resolvable targets (locked entries already excluded), rejecting stale clicks such as deleted blueprints
             if (!_placementTargetResolver.TryResolve(targetId, out var target)) return UniTask.FromResult(ActionResult.Fail("unknown_entry"));
 
-            // uGUIの消費キューへはターゲットのみ渡す（uGUI表示は使われない）
-            // Feed only the target into the uGUI consume queue (its visual display is unused)
-            _buildMenuView.SetSelectedEntry(new BuildMenuEntry(target, null, string.Empty));
+            // BuildMenuState の消費キューへ渡す
+            // Hand the target to BuildMenuState's consume queue
+            _buildMenuSelection.SetSelectedTarget(target);
             return UniTask.FromResult(ActionResult.Success());
         }
     }

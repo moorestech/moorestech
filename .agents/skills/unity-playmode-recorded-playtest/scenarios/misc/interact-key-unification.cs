@@ -6,17 +6,18 @@
 // Phase 1 uses a pebble on natural terrain, so the scaffold is created only right before phase 2
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
-using Client.Skit.UI;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 var pebbleMapObjectGuid = new Guid("c74efe49-52f3-403b-9c9a-b39eb1c85fce"); // mapObject「小石」(miningType=PickUp)
 var ovenBlockName = "石窯"; // 3x2x3のElectricMachine。開けるブロックの代表
@@ -29,7 +30,7 @@ return PlaytestRunner.Run("interact-key-unification", options, async p =>
 {
     // 開幕スキットは全UI入力を塞ぐため、再生されていれば飛ばしてからGameScreen到達を待つ
     // The opening skit blocks every UI input, so skip it when it plays and then wait for the game screen
-    await SkipOpeningSkitIfPlaying();
+    await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 15f, "GameScreenに到達");
 
     #region フェーズ1: 小石をF単押しで拾う / Phase 1: tap F to pick up a pebble
@@ -117,7 +118,7 @@ return PlaytestRunner.Run("interact-key-unification", options, async p =>
 
     await AimAtIfOnScreen(ovenPosition + ovenModelCenterOffset);
     await p.WaitSeconds(0.5f);
-    p.Assert(!MouseCursorTooltip.Instance.GetPresentation().Visible, "2m超ではtooltipが表示されない");
+    p.Assert(!Tooltip().GetPresentation().Visible, "2m超ではtooltipが表示されない");
     await p.Screenshot("05-out-of-range-no-tooltip");
 
     #endregion
@@ -126,38 +127,19 @@ return PlaytestRunner.Run("interact-key-unification", options, async p =>
 
     #region Internal
 
-    // 開幕スキットはワールドによっては再生されない。skipインテントが許可された時だけ飛ばし、無ければそのまま進む
-    // The opening skit does not play in every world; skip only while the skip intent is allowed, otherwise move on
-    async UniTask SkipOpeningSkitIfPlaying()
-    {
-        var skitStore = SkitPresentationStateStore.Instance;
-        var deadline = Time.realtimeSinceStartup + 10f;
-        var skitSkipped = false;
-        while (Time.realtimeSinceStartup < deadline)
-        {
-            var current = skitStore.GetCurrent();
-            if (Array.IndexOf(current.AllowedIntents, "skip") < 0)
-            {
-                // 飛ばし終えたあとにskipが引けなくなったら完了。まだ一度も出ていないなら再生を待ち続ける
-                // Once skipped, losing the skip intent means it ended; before that, keep waiting for it to start
-                if (skitSkipped) break;
-                await p.WaitSeconds(0.25f);
-                continue;
-            }
-
-            skitSkipped |= skitStore.TrySkip(current.SessionId, current.SceneRevision).Ok;
-            await p.WaitSeconds(0.25f);
-        }
-
-        p.Note(skitSkipped ? "開幕スキットをSkipインテントで飛ばした" : "開幕スキットは再生されなかった");
-    }
-
     // tooltipの先頭行のローカライズキー。非表示なら空文字（Assertの差分が読めるようにする）
     // Localization key of the tooltip's first line; empty when hidden so a failed assert stays readable
     string FirstTooltipKey()
     {
-        var presentation = MouseCursorTooltip.Instance.GetPresentation();
+        var presentation = Tooltip().GetPresentation();
         return presentation.Visible ? presentation.Lines[0].Key.Key : string.Empty;
+    }
+
+    // 表示状態の正本はDI登録されたIMouseCursorTooltip（uGUIのMouseCursorTooltipは書き込まれない残骸）
+    // The authoritative presentation lives on the DI-registered IMouseCursorTooltip; the uGUI MouseCursorTooltip is an unwritten leftover
+    IMouseCursorTooltip Tooltip()
+    {
+        return ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>();
     }
 
     // AimAtは画面外を渡すと例外で中断するため、投影を確かめてから照準する

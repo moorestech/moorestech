@@ -20,7 +20,7 @@ namespace Client.Game.InGame.Mining
             _completedTarget.SendAttack();
 
             return context.CurrentFocusTarget == null
-                ? new MiningIdleState()
+                ? new MiningIdleState(context)
                 : new MiningFocusState();
         }
     }

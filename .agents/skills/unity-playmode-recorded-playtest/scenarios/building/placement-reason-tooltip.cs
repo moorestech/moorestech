@@ -1,16 +1,19 @@
 // 設置不可理由・設置案内をカーソルツールチップへ集約した実装(ADR0026)の通し検証。
-// プレビュー中の各条件を実プレイ経路で作り、MouseCursorTooltip.GetPresentation()の行キーを直接assertする
+// プレビュー中の各条件を実プレイ経路で作り、IMouseCursorTooltip.GetPresentation()の行キーを直接assertする
 // End-to-end check of the placement-reason cursor tooltip (ADR0026): each condition is produced through the real
-// play route, and the tooltip line keys are asserted directly from MouseCursorTooltip.GetPresentation()
+// play route, and the tooltip line keys are asserted directly from IMouseCursorTooltip.GetPresentation()
 using Client.Game.InGame.BlockSystem;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
+using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using System.Linq;
 using UnityEngine;
+using VContainer;
 
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
@@ -38,18 +41,25 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     farGround.transform.localScale = new Vector3(60f, 4f, 60f);
     farGround.AddComponent<GroundGameObject>();
 
+    // 表示状態の正本はDI登録されたIMouseCursorTooltip（uGUIのMouseCursorTooltipは書き込まれない残骸）
+    // The authoritative presentation lives on the DI-registered IMouseCursorTooltip; the uGUI MouseCursorTooltip is an unwritten leftover
+    IMouseCursorTooltip Tooltip()
+    {
+        return ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>();
+    }
+
     string Snapshot()
     {
-        var presentation = MouseCursorTooltip.Instance.GetPresentation();
+        var presentation = Tooltip().GetPresentation();
         if (!presentation.Visible) return "(hidden)";
         return string.Join(" / ", presentation.Lines.Select(line =>
-            line.TextParams.Count == 0 ? line.TextKey : line.TextKey + "[" + string.Join(",", line.TextParams) + "]"));
+            line.TextParams.Count == 0 ? line.Key.Key : line.Key.Key + "[" + string.Join(",", line.TextParams) + "]"));
     }
 
     bool HasKey(string key)
     {
-        var presentation = MouseCursorTooltip.Instance.GetPresentation();
-        return presentation.Visible && presentation.Lines.Any(line => line.TextKey == key);
+        var presentation = Tooltip().GetPresentation();
+        return presentation.Visible && presentation.Lines.Any(line => line.Key.Key == key);
     }
 
     bool IsOnScreen(Vector3 worldPosition)
@@ -236,6 +246,8 @@ return PlaytestRunner.Run("placement-reason-tooltip", options, async p =>
     await UniTask.DelayFrame(20);
     var exitSnapshot = Snapshot();
     p.Note($"[設置モード脱出後] tooltip = {exitSnapshot}");
-    p.Assert(exitSnapshot == "(hidden)", "設置モードを抜けるとツールチップが消える");
+    // ADR 0046のFキー統合以降、設置モードを抜けた先で鉱脈へ照準していれば採掘tooltipが出るため、設置由来の行だけを見る
+    // Since the unified interact key (ADR 0046), aiming at a vein after leaving placement shows a mining tooltip, so only placement lines are checked
+    p.Assert(!exitSnapshot.Contains("ui.tooltip.place"), "設置モードを抜けると設置由来のツールチップ行が消える");
     await p.Screenshot("10-exit-place-mode");
 });

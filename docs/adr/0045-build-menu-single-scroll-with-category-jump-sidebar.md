@@ -43,5 +43,5 @@ Web UIのビルドメニュー（`moorestech_web/webui/src/features/buildMenu/`�
 ## Consequences
 
 - `sectionsForCategory`/`searchSections`/`resolveSelectedCategory` はカテゴリ階層を持つ構造へ置き換わり、`compositeHeading` は消える。
-- e2e（`buildMenu.spec.ts`／`buildMenuLayout.spec.ts`／`capture-buildmenu.ts`）とプレイテストDSL（`PlaytestUiOps.cs` のカテゴリクリック）は「クリック＝ジャンプ」として引き続き動くが、カテゴリ切替を前提とした assertion は書き換える。
+- e2e（`buildMenu.spec.ts`／`buildMenuLayout.spec.ts`／`capture-buildmenu.ts`）とプレイテストDSL（`Operations/Ui/PlaytestBuildMenuOps.cs` のカテゴリクリック）は「クリック＝ジャンプ」として引き続き動くが、カテゴリ切替を前提とした assertion は書き換える。
 - 全エントリを常時DOMに置くため描画量は増えるが、性能最適化は考慮しない方針（AGENTS.md）。

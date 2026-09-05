@@ -70,9 +70,9 @@ namespace Client.WebUiHost.Game
             var modalTopic = new ModalTopic(hub, modalService);
             hub.RegisterTopic(ModalTopic.TopicName, modalTopic);
 
-            // 進捗バートピックを登録（ProgressBarView は静的シングルトン）
-            // Register the progress-bar topic (ProgressBarView is a static singleton)
-            var progressTopic = new ProgressTopic(hub, ProgressBarView.Instance);
+            // 進捗バートピックを登録
+            // Register the progress-bar topic
+            var progressTopic = new ProgressTopic(hub, resolver.Resolve<ProgressBarState>());
             hub.RegisterTopic(ProgressTopic.TopicName, progressTopic);
 
             // ブロックインベントリトピックを登録
@@ -94,8 +94,8 @@ namespace Client.WebUiHost.Game
 
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
-            var networkDisconnectPresenter = resolver.Resolve<NetworkDisconnectPresenter>();
-            var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectPresenter);
+            var networkDisconnectState = resolver.Resolve<NetworkDisconnectState>();
+            var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectState);
             hub.RegisterTopic(PauseMenuTopic.TopicName, pauseMenuTopic);
 
             // 設置モードHUDを既存の設置状態へ接続する
@@ -104,18 +104,18 @@ namespace Client.WebUiHost.Game
                 resolver.Resolve<PlaceBlockState>());
             hub.RegisterTopic(PlacementModeTopic.TopicName, placementModeTopic);
 
-            // 状態外の共通HUDを各既存ビューの変更通知へ接続する
-            // Connect state-independent HUD topics to the existing view notifications
-            hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, CrosshairView.Instance));
-            hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, UIRoot.Instance));
+            // 共通HUDを各状態通知へ接続
+            // Connect the common HUD to each state's notifications
+            hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, resolver.Resolve<CrosshairVisibility>()));
+            hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, resolver.Resolve<UIRoot>()));
 
             // 通知トピックを登録
             // Register the notification topic
             hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub));
 
-            // uGUI/3D由来のツールチップを共通Web基盤へ接続する
-            // Connect uGUI/3D tooltip sources to the shared web tooltip foundation
-            hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, MouseCursorTooltip.Instance));
+            // ゲーム内ツールチップ状態を Web へ接続する
+            // Connect the in-game tooltip state to the web
+            hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, resolver.Resolve<MouseCursorTooltipState>()));
 
             // クラフトレシピトピックを登録
             // Register the craft-recipes topic
@@ -154,12 +154,12 @@ namespace Client.WebUiHost.Game
             // Register the build-menu topic (also wires the blueprint-name input bridge)
             var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
             var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
-            var buildMenuView = resolver.Resolve<BuildMenuView>();
-            var blueprintNameInputView = resolver.Resolve<BlueprintNameInputView>();
+            var buildMenuSelection = resolver.Resolve<BuildMenuSelection>();
+            var blueprintNameInputState = resolver.Resolve<BlueprintNameInputState>();
             var constructionWalletQuery = resolver.Resolve<ConstructionWalletQuery>();
             var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery, controller);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
-            new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
+            new BlueprintNameInputWebBridge(blueprintNameInputState, modalService);
 
             // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
             // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
@@ -192,9 +192,9 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new ElectricToGearSetOutputModeActionHandler(subInventoryState));
             hub.RegisterAction(new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData));
             hub.RegisterAction(new TrainPlatformSetTransferModeActionHandler(subInventoryState));
-            hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuView));
+            hub.RegisterAction(new BuildMenuSelectActionHandler(uiStateControl, placementTargetResolver, buildMenuSelection));
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
-            hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<SaveButton>()));
+            hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));
             hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
         }
     }

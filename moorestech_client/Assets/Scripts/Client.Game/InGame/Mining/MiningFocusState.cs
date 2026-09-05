@@ -12,7 +12,7 @@ namespace Client.Game.InGame.Mining
             // フォーカスが外れたのであればIdleに遷移
             // If the focus is lost, transition to Idle
             var currentTarget = context.CurrentFocusTarget;
-            if (currentTarget == null) return new MiningIdleState();
+            if (currentTarget == null) return new MiningIdleState(context);
 
             // 装備を渡して可否・種別・ツールを一度に問い合わせる
             // Ask once for availability, kind and tool with the equipment applied
@@ -23,7 +23,7 @@ namespace Client.Game.InGame.Mining
             switch (outcome)
             {
                 case MiningStartOutcome.Unavailable:
-                    return new MiningIdleState();
+                    return new MiningIdleState(context);
                 case MiningStartOutcome.InstantPickUp:
                     return PickUpProcess(context);
                 case MiningStartOutcome.HandMiningNotAllowed:
@@ -48,8 +48,8 @@ namespace Client.Game.InGame.Mining
 
             // マイニング状態に遷移
             // Transition to mining state
-            MouseCursorTooltip.Instance.Hide(MiningControllerContext.TooltipOwner);
-            return new MiningProgressState(currentTarget, usableMiningTool);
+            context.Tooltip.Hide(MiningControllerContext.TooltipOwner);
+            return new MiningProgressState(context, currentTarget, usableMiningTool);
 
             #region Internal
 
@@ -57,7 +57,7 @@ namespace Client.Game.InGame.Mining
             {
                 if (InputManager.Playable.Interact.GetKeyDown)
                 {
-                    MouseCursorTooltip.Instance.Hide(MiningControllerContext.TooltipOwner);
+                    pickUpContext.Tooltip.Hide(MiningControllerContext.TooltipOwner);
                     return new MiningCompleteState(pickUpContext.CurrentFocusTarget);
                 }
 
@@ -73,14 +73,14 @@ namespace Client.Game.InGame.Mining
             {
                 if (earnItemNames.Length == 0)
                 {
-                    MouseCursorTooltip.Instance.Show(MiningControllerContext.TooltipOwner, unnamedKey, tailParams);
+                    context.Tooltip.Show(MiningControllerContext.TooltipOwner, unnamedKey, tailParams);
                     return;
                 }
 
                 var namedParams = new string[tailParams.Length + 1];
                 namedParams[0] = earnItemNames;
                 tailParams.CopyTo(namedParams, 1);
-                MouseCursorTooltip.Instance.Show(MiningControllerContext.TooltipOwner, namedKey, namedParams);
+                context.Tooltip.Show(MiningControllerContext.TooltipOwner, namedKey, namedParams);
             }
 
             #endregion

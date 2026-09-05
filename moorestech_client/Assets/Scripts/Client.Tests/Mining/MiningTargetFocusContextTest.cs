@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.SoundEffect;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Localization;
 using Core.Master;
 using Mooresmaster.Localization.Generated;
@@ -21,7 +22,7 @@ namespace Client.Tests.Mining
         [Test]
         public void SetFocusTargetは同一対象を再設定しない()
         {
-            var context = new MiningControllerContext(null);
+            var context = new MiningControllerContext(null, new ProgressBarState(), null);
             var sharedGameObject = new GameObject("SharedTarget");
             var firstTarget = new StubMiningTarget(sharedGameObject, Array.Empty<Guid>());
             var secondTarget = new StubMiningTarget(new GameObject("Second"), Array.Empty<Guid>());
@@ -53,7 +54,7 @@ namespace Client.Tests.Mining
             // Resolve through the real dictionary; unknown keys fall back to [!key], which is enough here
             Localize.Initialize();
 
-            var context = new MiningControllerContext(null);
+            var context = new MiningControllerContext(null, new ProgressBarState(), null);
             var twoItemObject = new GameObject("TwoItemTarget");
             var noItemObject = new GameObject("NoItemTarget");
             var twoItemTarget = new StubMiningTarget(twoItemObject, new[] { FirstEarnItemGuid, SecondEarnItemGuid });
@@ -87,7 +88,7 @@ namespace Client.Tests.Mining
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             Localize.Initialize();
 
-            var context = new MiningControllerContext(null);
+            var context = new MiningControllerContext(null, new ProgressBarState(), null);
             var toolTargetObject = new GameObject("ToolTarget");
             var noToolObject = new GameObject("NoToolTarget");
             var toolItemId = MasterHolder.ItemMaster.GetItemId(ToolItemGuid);
@@ -116,7 +117,7 @@ namespace Client.Tests.Mining
             Localize.Initialize();
             var originalLanguageCode = Localize.GetCurrentLanguageCode();
 
-            var context = new MiningControllerContext(null);
+            var context = new MiningControllerContext(null, new ProgressBarState(), null);
             var twoItemObject = new GameObject("TwoItemTarget");
             var twoItemTarget = new StubMiningTarget(twoItemObject, new[] { FirstEarnItemGuid, SecondEarnItemGuid });
 

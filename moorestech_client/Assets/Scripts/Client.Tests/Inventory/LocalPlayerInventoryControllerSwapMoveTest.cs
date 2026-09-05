@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
 using Core.Item.Interface;
@@ -105,8 +104,9 @@ namespace Client.Tests.Inventory
         public void grabの全量を別アイテムのサブインベントリスロットへ移動すると入れ替わる()
         {
             const int subSlot = 0;
-            var subInventory = new FakeSubInventory(1);
             var controller = CreateController();
+            var subInventory = new SubInventoryModel(null);
+            subInventory.SetItems(new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty() });
             controller.SetSubInventory(subInventory);
             var combinedSlot = controller.LocalPlayerInventory.MainSlotCount + subSlot;
             controller.SetGrabItem(ServerContext.ItemStackFactory.Create(ItemId(HeldItemGuid), 4));
@@ -131,24 +131,6 @@ namespace Client.Tests.Inventory
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var equipment = new LocalPlayerEquipment();
             return (new LocalPlayerInventoryController(new LocalPlayerInventory(), equipment), equipment);
-        }
-
-        // MoveItem結合indexのサブインベントリ用スタブ
-        // A test-only stub for MoveItem's combined-index sub-inventory path
-        private class FakeSubInventory : ISubInventory
-        {
-            public FakeSubInventory(int count)
-            {
-                Count = count;
-                SubInventory = new List<IItemStack>();
-                for (var i = 0; i < count; i++) SubInventory.Add(ServerContext.ItemStackFactory.CreatEmpty());
-                SubInventorySlotObjects = new List<ItemSlotView>();
-            }
-
-            public List<IItemStack> SubInventory { get; }
-            public IReadOnlyList<ItemSlotView> SubInventorySlotObjects { get; }
-            public int Count { get; }
-            public ISubInventoryIdentifier ISubInventoryIdentifier => null;
         }
 
         private ItemId ItemId(Guid itemGuid)

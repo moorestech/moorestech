@@ -22,6 +22,10 @@ using UnityEngine;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("belt-line-via-ui", options, async p =>
 {
+    // 開幕スキットは全UI入力（ホットバー・ビルドメニュー）を塞ぐため、最初に飛ばす
+    // The opening skit blocks every UI input (hotbar, build menu), so skip it first
+    await p.SkipOpeningSkit();
+
     await p.SetupFlatGround();
 
     // 設置カメラは北向き・浅いピッチのため、エリア南側に立ち設置範囲全体を前方視界に収める
