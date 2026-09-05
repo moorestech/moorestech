@@ -86,7 +86,7 @@
 - Produces: `BeltConveyorPlaceFamilyUtil.ResolveUnlockBlockGuid(Guid blockGuid) -> Guid`（坂ならファミリー直線のGuid、それ以外は引数そのまま）
 - Consumes: 既存の `BeltConveyorPlaceFamilyUtil.TryGetFamilyByGuid(Guid, out BeltConveyorFamily)`
 
-- [ ] **Step 1: 失敗するテストを書く（カタログ列挙と解放委譲）**
+- [x] **Step 1: 失敗するテストを書く（カタログ列挙と解放委譲）**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/PlacementTargetCatalogUnlockTest.cs` の末尾（`ブループリント未解放なら…` テストの後、`}` の前）に追加する。ファイル先頭の using に `using Core.Master;`・`using Microsoft.Extensions.DependencyInjection;`・`using Tests.CombinedTest.Server.PacketTest;` を足す。
 
@@ -135,7 +135,7 @@
         }
 ```
 
-- [ ] **Step 2: 並び順テストから坂除外を外す**
+- [x] **Step 2: 並び順テストから坂除外を外す**
 
 `PlacementTargetCatalogTest.cs:57-62` の期待値式から `Where` 行を削除する。
 
@@ -149,12 +149,12 @@
 
 同ファイル先頭の `using Game.Block.Interface.Extension;` は他で使っていなければ削除する。
 
-- [ ] **Step 3: テストを実行して失敗を確認する**
+- [x] **Step 3: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementTargetCatalog"`
 Expected: FAIL（`坂ベルトはカタログに載り直線の解放状態に従う` が `upGuid` 不在で落ち、`Blockの並び順が…` が期待値と実際の件数差で落ちる）
 
-- [ ] **Step 4: 解放Guid正規化をutilへ追加する**
+- [x] **Step 4: 解放Guid正規化をutilへ追加する**
 
 `BeltConveyorPlaceFamilyUtil.cs` の `IsSlopeBlock` の直後へ追加する。
 
@@ -168,7 +168,7 @@ Expected: FAIL（`坂ベルトはカタログに載り直線の解放状態に�
         }
 ```
 
-- [ ] **Step 5: カタログの坂除外を撤廃し解放判定を委譲する**
+- [x] **Step 5: カタログの坂除外を撤廃し解放判定を委譲する**
 
 `PlacementTargetCatalog.cs` の `CreateMasterEntries` 内、ブロック整列を次に置き換える。
 
@@ -190,7 +190,7 @@ Expected: FAIL（`坂ベルトはカタログに載り直線の解放状態に�
                     return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(unlockGuid, out var blockInfo) && blockInfo.IsUnlocked);
 ```
 
-- [ ] **Step 6: PlaceBlockProtocol を同じutilへ寄せる**
+- [x] **Step 6: PlaceBlockProtocol を同じutilへ寄せる**
 
 `PlaceBlockProtocol.cs` の `IsUnlocked` を置き換える（引数 `blockId` が未使用になるため削除し、呼び出し側 `if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid))` を `if (!IsUnlocked(blockMaster.BlockGuid))` に直す）。
 
@@ -204,17 +204,17 @@ Expected: FAIL（`坂ベルトはカタログに載り直線の解放状態に�
             }
 ```
 
-- [ ] **Step 7: コンパイルする**
+- [x] **Step 7: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
-- [ ] **Step 8: テストを実行して通ることを確認する**
+- [x] **Step 8: テストを実行して通ることを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlacementTargetCatalog|HotbarAssignmentDatastore|HotbarProtocol|HotbarSaveLoad|PlaceBlockProtocol"`
 Expected: PASS（ホットバー系テストは坂以外のブロックを選ぶ実装のため無変更で通る）
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Extension/BeltConveyorPlaceFamilyUtil.cs \
@@ -238,7 +238,7 @@ git commit -m "feat: 坂ベルトを設置対象カタログへ載せ解放判�
 - Produces: `BlockPickResolver.IsPickable(BlockId blockId, IGameUnlockStateData unlockState) -> bool`（`TryResolvePickTarget` を置き換える。正規化をやめたので out 引数は無くなる）
 - Consumes: Task 1 の `BeltConveyorPlaceFamilyUtil.ResolveUnlockBlockGuid`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `BlockPickResolverTest.cs` の3テストを次で全置換する（クラス本体のみ差し替え、`CreateServer` はそのまま残す）。
 
@@ -286,12 +286,12 @@ git commit -m "feat: 坂ベルトを設置対象カタログへ載せ解放判�
         }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockPickResolver"`
 Expected: FAIL（コンパイルエラー: `IsPickable` が存在しない）
 
-- [ ] **Step 3: BlockPickResolver を書き換える**
+- [x] **Step 3: BlockPickResolver を書き換える**
 
 `BlockPickResolver.cs` のクラス本体を次に置き換える。
 
@@ -311,7 +311,7 @@ Expected: FAIL（コンパイルエラー: `IsPickable` が存在しない）
     }
 ```
 
-- [ ] **Step 4: 呼び出し側を直す**
+- [x] **Step 4: 呼び出し側を直す**
 
 `PlacementTargetPickService.cs` の `TryPickBlock` を次に置き換える。
 
@@ -327,7 +327,7 @@ Expected: FAIL（コンパイルエラー: `IsPickable` が存在しない）
             }
 ```
 
-- [ ] **Step 5: コンパイルしてテストを実行する**
+- [x] **Step 5: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -335,7 +335,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockPickResolver"`
 Expected: PASS（4テスト）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/State/PlacementPick/BlockPickResolver.cs \
@@ -356,7 +356,7 @@ git commit -m "feat: スポイトで拾った坂ベルトを坂のまま手持�
 - Produces: `BeltConveyorFamily.TryGetSlopeDirection(BlockId blockId, out BlockVerticalDirection verticalDirection) -> bool`（上りなら `Up`、下りなら `Down` を返して true。直線・分岐器は `Horizontal` を返して false）
 - 既存の `IsSlopeBlock(BlockId)` はこのメソッドへ委譲する（規則の二重定義を避ける）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `BeltConveyorFamilyTest.cs` の `坂ブロックだけを非直線メンバーとして判定する` テストの直後に追加する。ファイル先頭の using に `using Game.Block.Interface;` が無ければ足す。
 
@@ -380,12 +380,12 @@ git commit -m "feat: スポイトで拾った坂ベルトを坂のまま手持�
         }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorFamilyTest"`
 Expected: FAIL（コンパイルエラー: `TryGetSlopeDirection` が存在しない）
 
-- [ ] **Step 3: BeltConveyorFamily へ実装する**
+- [x] **Step 3: BeltConveyorFamily へ実装する**
 
 `BeltConveyorFamily.cs` の `IsSlopeBlock` を次の2メソッドに置き換える。
 
@@ -416,7 +416,7 @@ Expected: FAIL（コンパイルエラー: `TryGetSlopeDirection` が存在し�
         }
 ```
 
-- [ ] **Step 4: コンパイルしてテストを実行する**
+- [x] **Step 4: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -424,7 +424,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorFamilyTest"`
 Expected: PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Extension/BeltConveyorFamily.cs \
@@ -447,7 +447,7 @@ git commit -m "feat: ベルトファミリーから坂の上下向きを引け�
   - `VerticalDirection` は全セル `slopeDirection`。`Placeable` は全セル true（占有・地面判定は後段）。`BlockId` は未設定（後段で埋める）。
 - Consumes: 既存の `BeltConveyorPositionListBuilder.Build(Vector3Int, Vector3Int, bool) -> (List<Vector3Int>, int)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorSlopePathBuilderTest.cs` を新規作成する。
 
@@ -535,12 +535,12 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorSlopePathBuilder"`
 Expected: FAIL（コンパイルエラー: `BeltConveyorSlopePathBuilder` が存在しない）
 
-- [ ] **Step 3: BeltConveyorSlopePathBuilder を実装する**
+- [x] **Step 3: BeltConveyorSlopePathBuilder を実装する**
 
 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Path/BeltConveyorSlopePathBuilder.cs` を新規作成する。
 
@@ -604,7 +604,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
 }
 ```
 
-- [ ] **Step 4: コンパイルしてテストを実行する**
+- [x] **Step 4: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -612,7 +612,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorSlopePathBuilder"`
 Expected: PASS（4テスト）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 `.meta` はUnityが生成したものをそのまま含める（手動作成しない）。
 
@@ -635,7 +635,7 @@ git commit -m "feat: 坂選択時の一定勾配経路ビルダーを追加す�
 - Produces: `BeltConveyorPlacePointCalculator.CalculateSlopePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMaster, BlockVerticalDirection slopeDirection, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons) -> List<PlaceInfo>`（全セルの `BlockId` は `holdingBlockMaster` のBlockId。既存ブロックと重なるセルは `Placeable=false` かつ `blockCauses[i] = PlacementBlockCause.ExistingBlock`。`beltReasons` は全セル `None`）
 - Consumes: Task 3 の `BeltConveyorFamily.TryGetSlopeDirection`、Task 4 の `BeltConveyorSlopePathBuilder.Build`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorSlopePlacementTest.cs` を新規作成する。設置点計算はUnityの `BlockGameObjectDataStore` を要求するため、ここでは「ファミリーからの向き解決＋経路ビルダー＋BlockId割当」というシステムの決定規則だけを検証する。
 
@@ -706,14 +706,14 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorSlopePlacement"`
 Expected: PASS（Task 3・4 の成果だけで通る。ここは後続の実装が壊さないための回帰網）
 
 このテストが FAIL する場合は Task 3・4 の実装が不完全なので、先にそちらへ戻る。
 
-- [ ] **Step 3: CalculateSlopePoint を実装する**
+- [x] **Step 3: CalculateSlopePoint を実装する**
 
 `BeltConveyorPlacePointCalculator.cs` の `CalculatePoint`（static版）の直後、`IsNotExistBlock` の前に追加する。ファイル先頭の using に `using Core.Master;` を足す。
 
@@ -749,7 +749,7 @@ Expected: PASS（Task 3・4 の成果だけで通る。ここは後続の実装�
 
 ファイル先頭の using に `using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path;` が無ければ足す。
 
-- [ ] **Step 4: BeltConveyorPlaceSystem を分岐させる**
+- [x] **Step 4: BeltConveyorPlaceSystem を分岐させる**
 
 `BeltConveyorPlaceSystem.cs` の `GroundClickControl` を次のとおり書き換える。
 
@@ -802,7 +802,7 @@ Expected: PASS（Task 3・4 の成果だけで通る。ここは後続の実装�
 
 他の箇所（プレビュー・地面重なり・建設コスト・送信）は `holdingBlockMaster` を通して既に坂対応になるため変更しない。
 
-- [ ] **Step 4.5: 要件9・10を構造で確認する**
+- [x] **Step 4.5: 要件9・10を構造で確認する**
 
 要件9（坂選択中は立体交差を通さない）と要件10（地面重なり判定は共通経路のまま）は、Unityの `BlockGameObjectDataStore` 依存のためユニットテストで直接検証できない。次のgrepで構造として確認する。
 
@@ -816,7 +816,7 @@ grep -n "ApplyGroundOverlapsAndReport\|DetectGroundOverlaps" moorestech_client/A
 ```
 Expected: それぞれ1箇所のみ（`isSlopeSelected` の分岐の外＝坂も直線も同じ地面重なり経路を通る）。
 
-- [ ] **Step 5: コンパイルする**
+- [x] **Step 5: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -826,12 +826,12 @@ Expected: エラー0件
 Run: `wc -l moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/BeltConveyorPlaceSystem.cs`
 Expected: 200以下。超えた場合は `GroundClickControl` のローカル関数群を `Parts/` の新クラスへ切り出す（`partial` は禁止）。
 
-- [ ] **Step 6: 関連テストを実行する**
+- [x] **Step 6: 関連テストを実行する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyor|ConveyorOverpass"`
 Expected: PASS（既存の `BeltConveyorCellBlockResolverTest` / `BeltConveyorPlacePointCalculatorTest` / `ConveyorOverpassConveyanceTest` が無変更で通ること＝要件12）
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Parts/BeltConveyorPlacePointCalculator.cs \
@@ -850,31 +850,31 @@ git commit -m "feat: 坂選択時は一定勾配の専用経路で設置する"
 **Interfaces:**
 - Consumes: Task 1〜5 の全成果
 
-- [ ] **Step 1: フルコンパイルする**
+- [x] **Step 1: フルコンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件・新規警告0件
 
-- [ ] **Step 2: 設置系テストを一括実行する**
+- [x] **Step 2: 設置系テストを一括実行する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaceSystem|PlacementTarget|BeltConveyor|ConveyorOverpass|Hotbar|PlaceBlockProtocol"`
 Expected: PASS（失敗ゼロ）
 
 「Unity is reloading (Domain Reload in progress)」が出た場合は45秒待ってリトライする。
 
-- [ ] **Step 3: エラーログを確認する**
+- [x] **Step 3: エラーログを確認する**
 
 Run: `uloop get-logs --project-path ./moorestech_client --log-type Error`
 Expected: 本作業に起因するエラーが無いこと
 
-- [ ] **Step 4: マスタに差分が無いことを確認する（要件4）**
+- [x] **Step 4: マスタに差分が無いことを確認する（要件4）**
 
 ```bash
 git -C ../moorestech_master status --porcelain
 ```
 Expected: 出力が空
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 差分が無ければコミット不要。ステップ1〜4で修正が入った場合のみ:
 
@@ -887,13 +887,13 @@ git commit -m "fix: 坂ベルト単体設置の回帰修正"
 
 ### Task 7: ブランチ全体のコードレビュー（必須・省略不可）
 
-- [ ] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
+- [x] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
 
 `moores-code-review` スキルを起動し、`master` からの全差分をレビュー対象にする。指摘のうち機械的修正は適用し、設計判断が要るものだけユーザーへ諮る。
 
 このタスクは自動実行であり、ゴール文言やplanの都合で省略してはならない。
 
-- [ ] **Step 2: レビュー指摘の修正をコミットする**
+- [x] **Step 2: レビュー指摘の修正をコミットする**
 
 ```bash
 git add -A

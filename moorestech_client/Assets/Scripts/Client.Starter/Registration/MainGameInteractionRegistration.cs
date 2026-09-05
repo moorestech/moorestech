@@ -131,6 +131,7 @@ namespace Client.Starter.Registration
             builder.Register<BuildOperationHistory>(Lifetime.Singleton);
             builder.Register<BuildUndoService>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);
+            builder.Register<BlockPickResolver>(Lifetime.Singleton);
             builder.Register<PlacementTargetPickService>(Lifetime.Singleton);
             builder.Register<IInteractTargetSelector, InteractTargetSelector>(Lifetime.Singleton);
             builder.Register<InteractController>(Lifetime.Singleton);

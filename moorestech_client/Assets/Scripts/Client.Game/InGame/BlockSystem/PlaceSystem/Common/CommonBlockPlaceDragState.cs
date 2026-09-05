@@ -22,9 +22,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private PlacementDragSession _session;
         private BlockId? _previousSelectedBlockId;
 
+        // 列の軸決めはセッションと同じ寿命。片方だけ残る状態を作れないようセッションと同時に捨てる
+        // The run's axis lives exactly as long as the session, dropped with it so neither can outlive the other
+        private bool? _isDragAxisZ;
+
         public void ClearDrag()
         {
             _session = null;
+            _isDragAxisZ = null;
         }
 
         public void UpdateHeightOffsetByInput()
@@ -50,6 +55,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // 切替後の高さは常に地表基準に戻す
                 // A block switch always returns the height to ground level
                 _session = null;
+                _isDragAxisZ = null;
                 HeightOffset = 0;
             }
             _previousSelectedBlockId = blockId;
@@ -58,6 +64,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public void BeginDrag(Vector3Int startCell, PlacementHitSurfaceKind surfaceKind)
         {
             _session = new PlacementDragSession(startCell, surfaceKind, HeightOffset);
+            _isDragAxisZ = null;
+        }
+
+        // 起点復帰で軸未決化、離脱初回で長軸を先行に。軸未決のうちはZ先行を既定にする
+        // Returning to start clears the axis; the first departure leads with the longer axis, defaulting to Z while undecided
+        public bool ResolveDragAxisIsZ(Vector3Int dragStartCell, Vector3Int cursorCell)
+        {
+            if (dragStartCell == cursorCell) _isDragAxisZ = null;
+            else if (!_isDragAxisZ.HasValue) _isDragAxisZ = Mathf.Abs(cursorCell.x - dragStartCell.x) < Mathf.Abs(cursorCell.z - dragStartCell.z);
+
+            return _isDragAxisZ ?? true;
         }
 
         // ドラッグ中は押下時の面種別を使う。毎フレーム判定だと面と地面をまたいだ瞬間に列全体の挙動が往復する
@@ -82,6 +99,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             HeightOffset = _session.StartHeightOffset;
             _session = null;
+            _isDragAxisZ = null;
             return true;
         }
     }

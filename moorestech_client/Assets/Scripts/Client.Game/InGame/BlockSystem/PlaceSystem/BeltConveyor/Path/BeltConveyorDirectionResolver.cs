@@ -11,6 +11,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
     /// </summary>
     public static class BeltConveyorDirectionResolver
     {
+        // 2点間の水平向き（東西南北）を軸優先規則で解決する
+        // Resolve the horizontal facing (N/E/S/W) between two points with axis-priority rules
+        public static BlockDirection ResolveHorizontalDirection(Vector3Int from, Vector3Int to)
+        {
+            if (from.x == to.x) return from.z < to.z ? BlockDirection.North : BlockDirection.South;
+            return from.x < to.x ? BlockDirection.East : BlockDirection.West;
+        }
+
         public static List<PlaceInfo> Resolve(List<Vector3Int> placePositions, Vector3Int startPoint, Vector3Int endPoint, BlockDirection blockDirection, int startToCornerDistance)
         {
             if (placePositions.Count == 1)
@@ -119,15 +127,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
 
             (BlockDirection direction, BlockVerticalDirection verticalDirection) GetBlockDirectionWithNextBlock(Vector3Int currentPoint, Vector3Int nextPoint)
             {
-                var horizonDirection = BlockDirection.North;
-                if (currentPoint.x == nextPoint.x)
-                {
-                    horizonDirection = nextPoint.z > currentPoint.z ? BlockDirection.North : BlockDirection.South;
-                }
-                else
-                {
-                    horizonDirection = nextPoint.x > currentPoint.x ? BlockDirection.East : BlockDirection.West;
-                }
+                var horizonDirection = ResolveHorizontalDirection(currentPoint, nextPoint);
 
                 BlockVerticalDirection verticalDirection;
                 if (currentPoint.y == nextPoint.y)

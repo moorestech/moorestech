@@ -4,8 +4,8 @@ using System.Linq;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Game.Context;
+using Game.PlacementTarget;
 using Game.PlayerInventory.Interface;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
@@ -30,6 +30,7 @@ namespace Server.Protocol.PacketResponse
         private readonly IGameUnlockStateDataController _gameUnlockStateDataController;
         private readonly NotificationService _notificationService;
         private readonly ConstructionWalletService _constructionWallet;
+        private readonly PlacementTargetCatalog _placementTargetCatalog;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
         {
@@ -37,6 +38,7 @@ namespace Server.Protocol.PacketResponse
             _gameUnlockStateDataController = serviceProvider.GetService<IGameUnlockStateDataController>();
             _notificationService = serviceProvider.GetService<NotificationService>();
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
+            _placementTargetCatalog = serviceProvider.GetService<PlacementTargetCatalog>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -90,9 +92,9 @@ namespace Server.Protocol.PacketResponse
 
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
 
-                // 未解放セルはスキップし、ベルトの坂はファミリー直線の状態で判定する
-                // Skip locked cells and resolve belt slopes through their family straight block
-                if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) { notUnlockedCount++; return; }
+                // 未解放セルはスキップ。坂ベルトの正規化を含む解放判定はカタログへ集約している
+                // Skip locked cells; the unlock rule, belt-slope normalization included, lives in the catalog
+                if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, isFreePlacement)) { notUnlockedCount++; return; }
 
                 // 財布に問い合わせ、賄えないセルはスキップ
                 // Ask the wallet; skip cells it cannot cover
@@ -121,16 +123,6 @@ namespace Server.Protocol.PacketResponse
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items
                 if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
-            }
-
-            bool IsUnlocked(BlockId blockId, Guid blockGuid)
-            {
-                // ベルトファミリーは直線ブロックのunlock状態を参照する
-                // Belt families resolve unlock state through their straight block
-                var unlockGuid = BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family)
-                    ? MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId).BlockGuid
-                    : blockGuid;
-                return _gameUnlockStateDataController.BlockUnlockStateInfos[unlockGuid].IsUnlocked;
             }
 
             #endregion
