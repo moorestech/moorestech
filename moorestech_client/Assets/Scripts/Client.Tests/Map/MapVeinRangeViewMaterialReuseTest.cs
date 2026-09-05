@@ -9,6 +9,7 @@ using Server.Protocol.PacketResponse.MapData;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Client.Tests.Map.Vein.MapVeinAabbRegistryFixture;
 
 namespace Client.Tests.Map
 {
@@ -126,18 +127,6 @@ namespace Client.Tests.Map
             }
 
             #endregion
-        }
-
-        // 種別絞り込みはこのテストとMapVeinRangeViewHighlightTestだけが使う。プロダクション側はSelectPumpableVeins等の実受益者ヘルパへ置き換え済み
-        // Only this test and MapVeinRangeViewHighlightTest need a kind filter; production callers moved to real-beneficiary helpers such as SelectPumpableVeins
-        private static List<MapVeinAabb> SelectVeinsOfKind(MapVeinAabbRegistry registry, MapVeinKind kind)
-        {
-            var veins = new List<MapVeinAabb>();
-            foreach (var vein in registry.Veins)
-                if (vein.Kind == kind)
-                    veins.Add(vein);
-
-            return veins;
         }
 
         private InitialHandshakeResponse CreateHandshakeResponse()

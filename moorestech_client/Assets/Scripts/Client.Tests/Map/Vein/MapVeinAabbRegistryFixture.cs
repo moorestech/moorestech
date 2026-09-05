@@ -23,5 +23,17 @@ namespace Client.Tests.Map.Vein
 
             return new MapVeinAabbRegistry(new InitialHandshakeResponse(handshake, (default, default, default, default, default, default, default, mapLayout)));
         }
+
+        // 種別絞り込みは範囲表示テストが種別別マテリアルを検証するために使う
+        // Kind filtering is used by the range view tests to verify per-kind materials
+        public static List<MapVeinAabb> SelectVeinsOfKind(MapVeinAabbRegistry registry, MapVeinKind kind)
+        {
+            var veins = new List<MapVeinAabb>();
+            foreach (var vein in registry.Veins)
+                if (vein.Kind == kind)
+                    veins.Add(vein);
+
+            return veins;
+        }
     }
 }
