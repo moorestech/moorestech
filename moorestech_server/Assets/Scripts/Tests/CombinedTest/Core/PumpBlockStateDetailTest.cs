@@ -26,6 +26,7 @@ namespace Tests.CombinedTest.Core
     {
         private static readonly Vector3Int WaterVeinPos = new(10, 0, 0);
         private static readonly Vector3Int NoVeinPos = new(30, 0, 0);
+        private static readonly Vector3Int PoleOffset = new(2, 0, 0);
         private static readonly Guid WaterFluidGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
@@ -90,12 +91,57 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(firedAtFull, fired, "満杯で待機中になった後は発火しないはず");
         }
 
+        [Test]
+        public void 内部タンクが満杯になるtickでも供給電力が要求電力を超えない()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var pump = PlacePoweredPump(WaterVeinPos);
+
+            // 満杯到達をタンク量で明示的に確認しつつ、その間ずっと分子が分母を超えないことを見る
+            // Explicitly confirm the tank reaches capacity while checking the numerator never exceeds the denominator
+            var reachedFull = false;
+            for (var i = 0; i < GameUpdater.SecondsToTicks(60) && !reachedFull; i++)
+            {
+                GameUpdater.UpdateOneTick();
+                var state = pump.GetBlockState();
+                var common = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(state.CurrentStateDetails[CommonMachineBlockStateDetail.BlockStateDetailKey]);
+                Assert.LessOrEqual(common.CurrentPower, common.RequestPower + 0.001f, "供給電力が実効要求電力を超えてはいけない");
+
+                var fluid = MessagePackSerializer.Deserialize<FluidMachineInventoryStateDetail>(state.CurrentStateDetails[FluidMachineInventoryStateDetail.BlockStateDetailKey]);
+                reachedFull = fluid.OutputTanks[0].Amount >= fluid.OutputTanks[0].MaxCapacity - 0.0001;
+            }
+
+            Assert.IsTrue(reachedFull, "60秒以内に内部タンクが満杯になるはず");
+        }
+
+        [Test]
+        public void 電柱を撤去した油井は供給電力0を配信する()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var pump = PlacePoweredPump(WaterVeinPos);
+            GameUpdater.UpdateOneTick();
+            Assert.Greater(GetCommonDetail(pump).CurrentPower, 0f, "撤去前は給電されているはず");
+
+            // 給電経路が消えた後は最後の供給値が固着せず0へ落ちる
+            // Once the supply path is gone the last supplied value must not stick; it falls to zero
+            ServerContext.WorldBlockDatastore.RemoveBlock(WaterVeinPos + PoleOffset, BlockRemoveReason.ManualRemove);
+            GameUpdater.RunFrames(2);
+
+            Assert.AreEqual(0f, GetCommonDetail(pump).CurrentPower, 0.0001f, "無給電のtickでは供給電力は0");
+        }
+
+        private static CommonMachineBlockStateDetail GetCommonDetail(IBlock pump)
+        {
+            var state = pump.GetBlockState();
+            return MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(state.CurrentStateDetails[CommonMachineBlockStateDetail.BlockStateDetailKey]);
+        }
+
         private static IBlock PlacePoweredPump(Vector3Int pos)
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
 
-            var polePosition = pos + new Vector3Int(2, 0, 0);
+            var polePosition = pos + PoleOffset;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             ElectricWireTestUtil.Connect(pos, polePosition);
 

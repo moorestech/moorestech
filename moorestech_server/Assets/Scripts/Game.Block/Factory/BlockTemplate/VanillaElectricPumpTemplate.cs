@@ -7,7 +7,6 @@ using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
-using Game.EnergySystem;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate
@@ -34,7 +33,7 @@ namespace Game.Block.Factory.BlockTemplate
                 : new PumpFluidOutputComponent(componentStates, param.InnerTankCapacity, fluidConnector);
             var generationEntries = PumpFluidGenerationUtility.ResolveGenerationEntries(param.GenerateFluid, blockPositionInfo);
             var processorComponent = new ElectricPumpProcessorComponent(param, outputComponent, generationEntries);
-            var electricComponent = new ElectricPumpComponent(blockInstanceId, new ElectricPower(param.RequiredPower), param.IdlePowerRate, processorComponent);
+            var electricComponent = new ElectricPumpComponent(blockInstanceId, processorComponent);
             // ポンプはConsumer役をワイヤー端点に渡す
             // Pump passes the consumer role to the wire endpoint
             var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, electricComponent, componentStates);
