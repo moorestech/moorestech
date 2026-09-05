@@ -795,7 +795,7 @@ git commit -m "feat(pump): 汲み上げ中流体・内部タンク・電力充�
   - `LocalizationKeys.Ui.Tooltip.PlacePumpOutsideVein`
   - `LocalizationKeys.Ui.BlockInventory.PumpNoVein`（Web側でも `L.ui.blockInventory.pumpNoVein`）
 
-- [ ] **Step 1: 設置制限のテストを書く（失敗する）**
+- [x] **Step 1: 設置制限のテストを書く（失敗する）**
 
 `VeinPlacementReporterTest.cs` に次の2テストを追加する。既存の `FluidVeinGuid`（`11111111-0000-0000-0000-000000000002`、ForUnitTest map では水鉱脈）と `FluidVeinCell (20,0,20)` を使う。`ForUnitTestModBlockId.ElectricPump` は水だけを `generateFluid` に持つ。
 
@@ -865,7 +865,7 @@ git commit -m "feat(pump): 汲み上げ中流体・内部タンク・電力充�
         }
 ```
 
-- [ ] **Step 2: ローカライズキーを追加する**
+- [x] **Step 2: ローカライズキーを追加する**
 
 `Localization/localization.csv` の `ui.tooltip.placeOutsideTutorialVein` 行の直後に追加:
 
@@ -879,7 +879,7 @@ ui.tooltip.placePumpOutsideVein,Place the pump over a fluid vein it can draw fro
 ui.blockInventory.pumpNoVein,No fluid vein to draw from,No fluid vein to draw from,汲み上げられる鉱脈がありません,Keine Flüssigkeitsader zum Fördern
 ```
 
-- [ ] **Step 3: コンパイルして失敗を確認する**
+- [x] **Step 3: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client --force-recompile`
 Expected: `PlacePumpOutsideVein` は生成済みになり、テストの `ForUnitTestModBlockId.ElectricPump` 等は解決するが、`MarkOutsideVeinCellsAsNotPlaceable` がポンプを素通しするためテスト失敗（コンパイルは通る）
@@ -887,7 +887,7 @@ Expected: `PlacePumpOutsideVein` は生成済みになり、テストの `ForUni
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "VeinPlacementReporterTest|PlacementVeinViewResolverTest"`
 Expected: 新規3件が FAIL
 
-- [ ] **Step 4: `MapVeinAabb` に流体IDを持たせる**
+- [x] **Step 4: `MapVeinAabb` に流体IDを持たせる**
 
 `MapVeinAabb.cs` のフィールドとコンストラクタを次で置換する:
 
@@ -931,7 +931,7 @@ Expected: 新規3件が FAIL
 
 `MapVeinAabb` のコンストラクタを直接呼ぶ箇所を `grep -rn "new MapVeinAabb(" moorestech_client/Assets/Scripts` で全件洗い、第6引数を追加する（テストで直接生成している箇所があれば `(FluidId?)null` を渡す）。
 
-- [ ] **Step 5: `VeinPlacementReporter` にポンプの制限を足す**
+- [x] **Step 5: `VeinPlacementReporter` にポンプの制限を足す**
 
 `VeinPlacementReporter.cs` の `MarkOutsideVeinCellsAsNotPlaceable` を次で置換する（クラスの summary も「3つの設置制限」に改める）:
 
@@ -993,7 +993,7 @@ Expected: 新規3件が FAIL
         }
 ```
 
-- [ ] **Step 6: `PlacementVeinViewResolver` のポンプ分岐を汲み上げられる鉱脈に絞る**
+- [x] **Step 6: `PlacementVeinViewResolver` のポンプ分岐を汲み上げられる鉱脈に絞る**
 
 `PlacementVeinViewResolver.Resolve` の switch と `#region Internal` を次で置換する:
 
@@ -1039,7 +1039,7 @@ Expected: 新規3件が FAIL
 
 `MapVeinAabbRegistry.SelectVeinsOfKind` の利用箇所が無くなったら `grep -rn "SelectVeinsOfKind" moorestech_client/Assets/Scripts` で確認し、他に呼び出しが無ければメソッドを削除する（summary の「ポンプのように」も消える）。
 
-- [ ] **Step 7: コンパイルしてテストを実行する**
+- [x] **Step 7: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
@@ -1047,7 +1047,7 @@ Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "VeinPlacementReporterTest|PlacementVeinViewResolverTest|PlacementVeinViewPushTest|MapVeinRangeView"`
 Expected: 全件 PASS
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add Localization/localization.csv moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/VeinPlacementReporter.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/VeinRestriction/PlacementVeinViewResolver.cs moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem
