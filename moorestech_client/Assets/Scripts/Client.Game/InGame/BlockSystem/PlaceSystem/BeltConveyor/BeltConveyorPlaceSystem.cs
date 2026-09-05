@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly Camera _mainCamera;
-        private readonly BeltConveyorPlacePointCalculator _blockPlacePointCalculator;
+        private readonly BeltConveyorPlacePlanner _blockPlacePlanner;
 
         private readonly CommonBlockPlaceDragState _dragState = new();
 
@@ -48,7 +48,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
-            _blockPlacePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
+            _blockPlacePlanner = new BeltConveyorPlacePlanner(blockGameObjectDataStore);
         }
 
         public override void Enable()
@@ -100,7 +100,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // ファミリー定義を解決し、非ファミリーブロックは対象外にする
             // Resolve the family definition and ignore non-family blocks
             if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(target.BlockId, out var family)) return;
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId);
+
+            // 坂を選んでいるならその坂を手持ちにし、直線選択時は従来どおり直線を手持ちにする
+            // Hold the selected slope when one is selected; otherwise hold the straight block as before
+            var holdingBlockId = family.IsSlopeBlock(target.BlockId) ? target.BlockId : family.StraightBlockId;
+            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(holdingBlockId);
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
             if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) return;
@@ -130,15 +134,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-            // ファミリー内は建設コストと設置数/1セットが一致する（マスタ検証済み）ので先頭の設置可セルを代表にする
-            // Cost and placementsPerCost match within a family (validated at master load), so the first placeable cell is representative
-            var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
-            if (0 <= representativeIndex)
-            {
-                var representativeBlockId = _currentPlaceInfos[representativeIndex].BlockId;
-                ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
-                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory);
-            }
+            BeltConveyorConstructionCostApplier.Apply(_currentPlaceInfos, _constructionWalletQuery, _localPlayerInventory, feedback);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
@@ -174,11 +170,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                     _isStartZDirection = Mathf.Abs(placePoint.x - dragStartPoint.x) < Mathf.Abs(placePoint.z - dragStartPoint.z);
                 }
 
-                var cellInfos = _blockPlacePointCalculator.CalculatePoint(dragStartPoint, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster, out var cellCauses, out var cellBeltReasons);
-
-                // セル列へ直線・坂ブロックを1対1で割り当てる（坂欠落はベルト固有理由の列へ書き戻される）
-                // Assign straight and slope blocks to cells one-to-one (a missing slope is written back into the belt reason column)
-                _currentPlaceInfos = BeltConveyorCellBlockResolver.Resolve(cellInfos, family, cellBeltReasons);
+                var request = new BeltConveyorPlaceRequest(dragStartPoint, placePoint, _isStartZDirection ?? true, _currentBlockDirection, family, holdingBlockId, holdingBlockMaster);
+                _currentPlaceInfos = _blockPlacePlanner.Plan(request, out var cellCauses, out var cellBeltReasons);
 
                 return (cellCauses, cellBeltReasons);
             }

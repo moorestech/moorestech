@@ -27,10 +27,9 @@ namespace Game.PlacementTarget
             {
                 var entries = new List<PlacementTargetEntry>();
 
-                // 坂を除き表示優先度と名前で整列
-                // Exclude slopes and sort by display priority and name
+                // 表示優先度と名前で整列（坂ベルトも単体設置対象として載せる）
+                // Sort by display priority and name; belt slopes are placeable targets too
                 var blocks = MasterHolder.BlockMaster.Blocks.Data
-                    .Where(block => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(block.BlockGuid))
                     .OrderBy(block => block.SortPriority ?? 0)
                     .ThenBy(block => block.Name);
                 foreach (var block in blocks)
@@ -139,7 +138,10 @@ namespace Game.PlacementTarget
             switch (entry.Kind)
             {
                 case PlacementTargetKind.Block:
-                    return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.Id, out var blockInfo) && blockInfo.IsUnlocked);
+                    // 坂ベルトは直線ブロックの解放状態に従う
+                    // Belt slopes follow their family straight block's unlock state
+                    var unlockGuid = BeltConveyorPlaceFamilyUtil.ResolveUnlockBlockGuid(entry.Id);
+                    return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(unlockGuid, out var blockInfo) && blockInfo.IsUnlocked);
                 case PlacementTargetKind.TrainCar:
                     return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
                 case PlacementTargetKind.ConnectTool:

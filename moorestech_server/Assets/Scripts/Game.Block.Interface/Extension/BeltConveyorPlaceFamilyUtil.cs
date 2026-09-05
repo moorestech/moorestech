@@ -39,6 +39,14 @@ namespace Game.Block.Interface.Extension
                    family.IsSlopeBlock(MasterHolder.BlockMaster.GetBlockId(blockGuid));
         }
 
+        // 解放判定に使うGuid。坂ベルトはファミリー直線へ寄せる
+        // The guid used for unlock checks; belt slopes normalize to their family's straight block
+        public static Guid ResolveUnlockBlockGuid(Guid blockGuid)
+        {
+            if (!TryGetFamilyByGuid(blockGuid, out var family)) return blockGuid;
+            return MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId).BlockGuid;
+        }
+
         private static bool IsMember(BeltConveyorFamiliesElement element, Guid blockGuid)
         {
             return element.StraightBlockGuid == blockGuid ||
