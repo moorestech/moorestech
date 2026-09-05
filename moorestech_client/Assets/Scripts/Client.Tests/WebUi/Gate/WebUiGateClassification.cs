@@ -75,11 +75,9 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Challenge/CurrentChallengeHudView.cs", Category.GatedRoot, "進行中チャレンジHUD (C1)"),
             new Rule("Client.Game/InGame/UI/Crosshair/CrosshairView.cs", Category.GatedRoot, "クロスヘア (C2)"),
             new Rule("Client.Game/InGame/UI/Tooltip/MouseCursorTooltip.cs", Category.GatedRoot, "カーソル追従ツールチップ (C2)"),
-            new Rule("Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs", Category.GatedRoot, "削除バーHUD (C2)"),
-            new Rule("Client.Game/InGame/UI/UIState/State/PauseMenu/PauseMenuStateService.cs", Category.GatedRoot, "ポーズメニュー (C2)"),
             new Rule("Client.Game/InGame/Presenter/PauseMenu/NetworkDisconnectPresenter.cs", Category.GatedRoot, "切断表示 (C2)"),
             new Rule("Client.Game/InGame/UI/Inventory/Train/TrainInventoryView.cs", Category.GatedRoot, "列車インベントリ (C3)"),
-            new Rule("Client.Game/InGame/BackgroundSkit/BackgroundSkitManager.cs", Category.GatedRoot, "背景スキット (C4/S1)"),
+            new Rule("Client.Game/InGame/UI/ProgressBar/ProgressBarView.cs", Category.GatedRoot, "スクリーン進捗バー（D監査で二重表示ゲート漏れを検出し修正。論理状態はProgressTopicのデータ源として維持）"),
             new Rule("Client.Game/Skit/SkitManager.cs", Category.GatedRoot, "通常スキット UI Toolkit 抑止 (C4/S2)"),
 
             // --- ルート配下 / Covered by roots
@@ -89,7 +87,10 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Modal", Category.CoveredByRoot, "モーダル基盤は移行済み（Phase Dで最終監査）"),
 
             // --- 基盤 / Infra
+            new Rule("Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs", Category.Infra, "恒久非表示uGUI(DeleteBarObject)参照を撤去済み・破壊モード状態機械のみ"),
+            new Rule("Client.Game/InGame/UI/UIState/State/PauseMenu/PauseMenuStateService.cs", Category.Infra, "恒久非表示uGUI(PauseMenuObject)参照を撤去済み・入力判定サービスのみ"),
             new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械・ゲート本体・トグル"),
+            new Rule("Client.Game/InGame/UI/ProgressBar", Category.CoveredByRoot, "ProgressBarView配下（論理状態ProgressBarStateはui.progress topicのデータ源）"),
             new Rule("Client.Game/Skit/Localization", Category.Infra, "通常スキットの辞書読込・合成・解決基盤（画面表示なし）"),
 
             // --- Phase待ち / Pending migration
@@ -97,9 +98,8 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/InGame/UI/Challenge", Category.CoveredByRoot, "ChallengeListView/CurrentChallengeHudView配下（C1移行済み）"),
             new Rule("Client.Game/InGame/UI/Crosshair", Category.CoveredByRoot, "CrosshairView配下 (C2)"),
             new Rule("Client.Game/InGame/UI/Tooltip", Category.CoveredByRoot, "MouseCursorTooltip配下 (C2)"),
-            new Rule("Client.Game/InGame/UI/ProgressBar/ProgressBarView.cs", Category.GatedRoot, "スクリーン進捗バー（D監査で二重表示ゲート漏れを検出し修正。論理状態はProgressTopicのデータ源として維持）"),
-            new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.CoveredByRoot, "PauseMenuStateService/NetworkDisconnectPresenterで抑止 (C2)"),
-            new Rule("Client.Game/InGame/BackgroundSkit", Category.CoveredByRoot, "BackgroundSkitManagerでWeb文字表示を抑止（音声はUnity維持） (C4/S1)"),
+            new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.CoveredByRoot, "NetworkDisconnectPresenterで抑止。PauseMenuStateServiceは恒久非表示uGUI参照撤去済みでゲート対象外 (C2)"),
+            new Rule("Client.Game/InGame/BackgroundSkit", Category.Infra, "音声再生専用オーケストレータへ縮小。文字表示のuGUI(旧BackgroundSkitUI)は削除済みでWeb UI側のみが担う (C4/S1)"),
             new Rule("Client.Game/InGame/Mining", Category.Excluded, "ワールド空間表示のためUnity残置。画面固定進捗は既存ui.progressへ統合 (C2)"),
             new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.Infra, "uGUIフォールバック撤去済み・DOMハイライト一本化 (C4/T3)"),
             new Rule("Client.Game/InGame/Tutorial/MapObjectPin.cs", Category.Excluded, "ワールド座標ピンのためUnity残置"),
