@@ -100,7 +100,7 @@ await p.ExitToGameScreen();
 開幕スキットはホットバー入力・ビルドメニュー・ポーズメニューをすべて塞ぐため、`await p.SkipOpeningSkit()`を
 シナリオ冒頭に置いてGameScreenまで抜ける。
 
-- 設置原点の照準は`PlaytestUiOps.PlaceAimPoint`がCalcPlacePointを逆算（接地面上のフットプリント中心）
+- 設置原点の照準は`PlaytestUiOps.PlaceAimPoint`（`Client.Playtest.Operations.Ui`名前空間）がCalcPlacePointを逆算（接地面上のフットプリント中心）
 - 足場は上面がy=32ちょうど（`SetupFlatGround`が保証）。プレビューの`Floor(hit.y)`がブロックグリッドと一致する条件
 - 等価性シナリオ: スキル同梱の `scenarios/belt-line-via-ui.cs`（belt-line.csと同一ライン・同一assertをUI経路のみで構築）
 
