@@ -81,8 +81,8 @@ namespace Game.Block.Blocks.Pump
                 _tank.FluidId = FluidMaster.EmptyFluidId;
             }
 
-            // 毎tick発火し、同値の握り潰しはChangeBlockStateEventPacketの差分検知に任せる（FluidPipeComponentと同じ約束）
-            // Fire every tick and leave identical-payload suppression to ChangeBlockStateEventPacket's diffing, as FluidPipeComponent does
+            // 毎tick発火し同値潰しは送信側に任せる
+            // Fire every tick; the sender suppresses identical payloads
             _onChangeBlockState.OnNext(Unit.Default);
 
             #region Internal
@@ -120,8 +120,8 @@ namespace Game.Block.Blocks.Pump
             return JsonConvert.SerializeObject(state);
         }
 
-        // 内部タンクを出力タンク1本として機械UIと同じ器に載せる
-        // Expose the inner tank as a single output tank in the same container the machine UI uses
+        // 内部タンクを機械UIと同じ器に載せる
+        // Expose the inner tank in the container the machine UI uses
         public BlockStateDetail[] GetBlockStateDetails()
         {
             BlockException.CheckDestroy(this);

@@ -21,26 +21,26 @@ using static Tests.Util.ElectricNetworkReflectionTestUtil;
 namespace Tests.CombinedTest.Core
 {
     /// <summary>
-    /// ポンプの内部タンクが機械UIと同じFluidMachineInventoryStateDetailでクライアントへ配信されることを検証する。
-    /// Verifies that a pump's inner tank reaches the client through the same FluidMachineInventoryStateDetail the machine UI uses.
+    /// ポンプの内部タンクがクライアントへ配信されることを検証する。
+    /// Verifies that a pump's inner tank reaches the client.
     /// </summary>
     public class PumpBlockStateDetailTest
     {
-        // ForUnitTestModのmap.jsonで定義されたWater Vein座標
-        // Water Vein coordinates defined in ForUnitTestMod map.json
+        // ForUnitTestModのWater Vein座標
+        // Water Vein coordinates in ForUnitTestMod
         private static readonly Vector3Int WaterVeinPos = new(10, 0, 0);
 
         private static readonly Guid WaterFluidGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
-        // 生成前は空、生成後は原液1本ぶんが出力タンクとして載る
-        // Empty before generation, then the generated fluid rides as a single output tank
+        // 生成前は空、生成後は1本載る
+        // Empty before generation, then one tank rides
         [Test]
         public void PumpStateDetail_ExposesInnerTankAsSingleOutputTank()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // 給電前のポンプは生成していないので、空タンク1本を配信する
-            // An unpowered pump has generated nothing yet, so it publishes a single empty tank
+            // 給電前は空タンク1本を配信する
+            // An unpowered pump publishes one empty tank
             var pump = PlacePump(WaterVeinPos);
             var outputComponent = pump.GetComponent<PumpFluidOutputComponent>();
 
@@ -50,8 +50,8 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(FluidMaster.EmptyFluidId.AsPrimitive(), initial.OutputTanks[0].FluidId, "生成前は空流体");
             Assert.AreEqual(0, initial.OutputTanks[0].Amount, "生成前は残量0");
 
-            // 給電して数tick稼働させ、配信される液種と残量が実タンクに追従することを確認する
-            // Power it, run several ticks, and verify the published fluid and amount follow the real tank
+            // 給電後は配信値が実タンクに追従する
+            // After powering, published values follow the real tank
             SupplyPower(pump, WaterVeinPos);
             for (var i = 0; i < 10; i++) GameUpdater.RunFrames(1);
 
@@ -63,8 +63,8 @@ namespace Tests.CombinedTest.Core
             Assert.Greater(generated.OutputTanks[0].MaxCapacity, 0d, "容量が配信されている");
         }
 
-        // 稼働中はステート変化が通知され、クライアントが購読で追従できる
-        // Running publishes state changes so the client can follow by subscription
+        // 稼働中はステート変化が通知される
+        // Running publishes state changes
         [Test]
         public void PumpStateDetail_NotifiesWhileRunning()
         {
@@ -106,8 +106,8 @@ namespace Tests.CombinedTest.Core
             return pump;
         }
 
-        // ポンプを電柱へ接続し、テスト発電機でpowerRate=1.0にする
-        // Wire the pump to a pole and drive powerRate to 1.0 with a test generator
+        // 電柱へ繋ぎpowerRateを1.0にする
+        // Wire to a pole and drive powerRate to 1.0
         private static void SupplyPower(IBlock pump, Vector3Int pos)
         {
             var polePosition = pos + new Vector3Int(2, 0, 0);

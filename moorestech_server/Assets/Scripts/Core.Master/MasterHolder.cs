@@ -48,8 +48,8 @@ namespace Core.Master
             MapObjectMaster = new MapObjectMaster(GetJson(masterJsonFileContainer, new JsonFileName("map")));
             InitializeMaster(MapObjectMaster);
 
-            // ItemMaster, FluidMaster, BuildMenuCategoryMaster, MapObjectMaster依存（category/subCategoryとmapObjectMineSettingsの参照を検証）
-            // Depends on ItemMaster, FluidMaster, BuildMenuCategoryMaster, MapObjectMaster (validates category/subCategory and mapObjectMineSettings references)
+            // Item/Fluid/BuildMenuCategory/MapObjectMaster依存
+            // Depends on Item, Fluid, BuildMenuCategory and MapObjectMaster
             BlockMaster = new BlockMaster(GetJson(masterJsonFileContainer, new JsonFileName("blocks")));
             InitializeMaster(BlockMaster);
 
