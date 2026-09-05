@@ -383,8 +383,8 @@
   /* Gap between the material, center, and result columns; at 0 the owned/required text (which bleeds 2px past
      the slot) lands right on top of the craft button */
   --recipe-column-gap: 8px;
-  /* レシピ行の内側余白。機械のレシピ選択リストだけが密度を上げるため局所上書きする（ユーザー裁定 2026-09-05） */
-  /* Padding inside a recipe row; only the machine's recipe-selection list overrides it for higher density (user ruling 2026-09-05) */
+  /* レシピ行の内側余白（縦）。機械のレシピ選択リストだけが密度を上げるため局所上書きする（ユーザー裁定 2026-09-05） */
+  /* Vertical padding inside a recipe row; only the machine's recipe-selection list overrides it for higher density (user ruling 2026-09-05) */
   --recipe-row-padding-block: 0.5rem;
   --recipe-row-padding-inline: 0.75rem;
   /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */

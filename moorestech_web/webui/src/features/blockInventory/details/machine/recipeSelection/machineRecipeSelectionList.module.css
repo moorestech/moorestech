@@ -9,7 +9,7 @@
   color: var(--text-muted);
   font-size: var(--recipe-info-text-size);
   line-height: 1;
-  padding: 0 0.75rem 0.25rem;
+  padding: 0 var(--recipe-row-padding-inline) 0.25rem;
 }
 
 .row[data-selected="true"] {
@@ -17,46 +17,16 @@
   outline-offset: -1px;
 }
 
-/* スクロール領域の高さは器（パネル本文）が決める。中身ぴったりに縮めない（ユーザー裁定 2026-08-22）。
-   Mantine既定のheight:100%はflex由来の親高に対して解決できず内容なりに潰れるためflexで伸ばす */
-/* The scroller's height comes from its container (the panel body), never from its content (user ruling 2026-08-22);
-   Mantine's default height:100% cannot resolve against a flex-derived parent height, so stretch it with flex */
-.scroll {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-}
-
-.scroll :global(.mantine-ScrollArea-viewport) {
-  flex: 1;
-  min-height: 0;
-}
-
-/* スクロールバーはレシピ単一リストと同じネイビートーンへ揃える（§8.10） */
-/* The scrollbar matches the recipe single list's navy tone (§8.10) */
-.scroll :global(.mantine-ScrollArea-scrollbar) {
-  background: var(--gauge-track);
-}
-
-.scroll :global(.mantine-ScrollArea-thumb) {
-  background: var(--bevel-c2);
-  border-radius: 0;
-}
-
-/* 行密度を上げて可視行数を5→6行にする（ユーザー裁定 2026-09-05・控えめ）。上書きは機械の選択リスト内に閉じ、
-   レシピ画面の共有RecipeRowには及ばない */
-/* Raise the row density from five to six visible rows (user ruling 2026-09-05, the modest option); the overrides
-   stay inside the machine's selection list and never reach the recipe screen's shared RecipeRow */
+/* 行密度を上げ、本文に入る量を実測3.1行分→3.9行分にする（ユーザー裁定 2026-09-05・控えめ）。
+   上書きは機械の選択リスト内に閉じ、レシピ画面の共有RecipeRowには及ばない */
+/* Raise the row density so the body fits a measured 3.9 rows instead of 3.1 (user ruling 2026-09-05, the modest
+   option); the overrides stay inside the machine's selection list and never reach the shared RecipeRow */
 /* 枠の四隅ブラケットと外周リングは枠外へ出るため、全周にその分の余白を取る。0だとScrollAreaに切られ、
    はみ出しぶんで不要なスクロールが出る。右だけはスクロールバー実寸も足してつまみと行を重ねない */
 /* The frame's corner brackets and outer ring sit outside it, so pad every side by that bleed; at 0 the ScrollArea
    clips them and the bleed alone creates a needless scroll. Only the right adds the measured scrollbar width */
 .list {
   --machine-recipe-row-gap: 8px;
-  /* この行はクラフトボタンを持たないため、共有行が矢印下へ確保する操作枠を畳む。行高の最大項がこれ */
-  /* These rows carry no craft button, so collapse the action slot the shared row reserves under the arrow; it is the row height's largest term */
-  --recipe-action-button-height: 0px;
   --recipe-row-padding-block: 0.35rem;
   --recipe-slot-size-max: 2rem;
   padding: var(--recipe-entry-bleed);

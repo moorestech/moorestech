@@ -1,11 +1,9 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { setBlock, setTopicScenario } from "../../support/mockControl";
+import { scrollAreaRootOf, scrollAreaViewport, expectScrollsOnlyWhenOverflowing } from "../../support/layoutAssertions";
 
 const firstRecipeTestId = "machine-recipe-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const selectedRecipeTestId = "machine-recipe-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
-
-const selectionScrollRoot = (page: Page) =>
-  page.getByTestId("machine-recipe-selection").locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
@@ -75,19 +73,29 @@ test("レシピが溢れてもパネル高は変わらず、選択リストだ�
   await page.goto("/");
   await page.getByTestId("machine-selected-recipe").click();
   await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
-  const viewport = selectionScrollRoot(page).locator(".mantine-ScrollArea-viewport");
-  const bar = selectionScrollRoot(page).locator('.mantine-ScrollArea-scrollbar[data-orientation="vertical"]');
 
-  // 既定fixtureは溢れずバーも出ない
-  // The default fixture does not overflow and shows no bar
-  const settledHeight = (await page.getByTestId("block-inventory").boundingBox())!.height;
-  await expect(bar).toBeHidden();
-  expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBe(0);
+  await expectScrollsOnlyWhenOverflowing(
+    scrollAreaRootOf(page, "machine-recipe-selection"),
+    page.getByTestId("block-inventory"),
+    () => setTopicScenario(page, "machineRecipesOverflow"),
+  );
+});
 
-  // 溢れてもパネルは伸ばさない
-  // An overflowing count must not grow the panel
-  await setTopicScenario(page, "machineRecipesOverflow");
-  await expect(bar).toBeVisible();
-  expect((await page.getByTestId("block-inventory").boundingBox())!.height).toBeCloseTo(settledHeight, 1);
-  expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
+test("行密度は控えめ設定どおりで、本文に3.8行分以上が入る", async ({ page }) => {
+  // 密度上書きが消えると3.1行分へ落ちる
+  // Losing the density overrides drops this to 3.1 rows
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+
+  const viewport = scrollAreaViewport(scrollAreaRootOf(page, "machine-recipe-selection"));
+  const firstRowTop = (await page.getByTestId(firstRecipeTestId).boundingBox())!.y;
+  const nextRowTop = (await page.getByTestId(selectedRecipeTestId).boundingBox())!.y;
+  const rowStride = nextRowTop - firstRowTop;
+  const clientHeight = await viewport.evaluate((element) => element.clientHeight);
+
+  // 共有既定のままなら3.09行分
+  // The shared defaults alone yield 3.09 rows
+  expect(clientHeight / rowStride).toBeGreaterThan(3.8);
 });

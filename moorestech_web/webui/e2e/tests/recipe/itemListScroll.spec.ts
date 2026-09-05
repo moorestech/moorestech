@@ -1,16 +1,16 @@
 import { expect, test, type Page } from "@playwright/test";
 import { setTopicScenario } from "../../support/mockControl";
+import { scrollAreaRootOf, scrollAreaViewport, scrollAreaVerticalBar } from "../../support/layoutAssertions";
 
 // スクロール領域はパネル本文いっぱいで、内容ぴったりに縮まない（ユーザー裁定 2026-08-22）。
 // 縮むと(1)溢れていないのにスクロール扱いになり(2)クリップがセル外周へ届かずチュートリアルのラベルが落ちる
 // The scroller fills the panel body instead of hugging its content (user ruling 2026-08-22); hugging would
 // (1) treat a non-overflowing list as a scroller and (2) pull the clip inside the cell, dropping the tutorial label
 
-const scrollRoot = (page: Page) =>
-  page.getByTestId("item-list-grid").locator("xpath=ancestor::*[contains(@class, 'mantine-ScrollArea-root')][1]");
-const verticalBar = (page: Page) => scrollRoot(page).locator('.mantine-ScrollArea-scrollbar[data-orientation="vertical"]');
+const scrollRoot = (page: Page) => scrollAreaRootOf(page, "item-list-grid");
+const verticalBar = (page: Page) => scrollAreaVerticalBar(scrollRoot(page));
 const horizontalBar = (page: Page) => scrollRoot(page).locator('.mantine-ScrollArea-scrollbar[data-orientation="horizontal"]');
-const viewport = (page: Page) => scrollRoot(page).locator(".mantine-ScrollArea-viewport");
+const viewport = (page: Page) => scrollAreaViewport(scrollRoot(page));
 const label = (page: Page) => page.getByTestId("tutorial-highlight-label");
 
 test.afterEach(async ({ page }) => {

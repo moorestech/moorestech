@@ -54,10 +54,12 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
       {showSelection ? (
         <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} />
       ) : (
-        <>
+        // 両モードでフッタ位置を揃える
+        // Both modes stretch so the footer aligns
+        <Stack className={styles.fillPanelHeight} gap="sm">
           <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />
           <MachineInventoryBody data={data} />
-        </>
+        </Stack>
       )}
       {footer}
     </Stack>

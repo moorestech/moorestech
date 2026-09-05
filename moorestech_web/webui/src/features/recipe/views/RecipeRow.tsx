@@ -16,9 +16,9 @@ type Props = {
   // 矢印の真上に置く所要秒数
   // Duration text sitting directly above the arrow
   duration: ReactNode;
-  // 矢印下の操作（クラフト/機械表示）
-  // The action placed below the arrow (craft button / machine display)
-  action: ReactNode;
+  // 矢印下の操作。無ければnull
+  // The action below the arrow; null draws no slot
+  action: ReactNode | null;
   result: ReactNode[];
 };
 
@@ -40,7 +40,7 @@ export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, 
       <Box className={styles.recipeArrowCol}>
         <div className={styles.recipeDuration} data-testid={`${testId}-duration`}>{duration}</div>
         <ProgressArrowGlyph value={arrowValue} testId={arrowTestId} />
-        <div className={styles.recipeActionSlot}>{action}</div>
+        {action === null ? null : <div className={styles.recipeActionSlot}>{action}</div>}
       </Box>
       {/* 出力も素材と同じ折り返し規則で並べる（ユーザー裁定 2026-08-20） */}
       {/* Results follow the same wrapping rule as materials (user ruling 2026-08-20) */}

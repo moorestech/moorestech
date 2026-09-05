@@ -1,0 +1,27 @@
+/* スクロール領域の大きさは器（パネル本文）が決める。中身ぴったりに縮めない（ユーザー裁定 2026-08-22） */
+/* The scroller's size comes from its container, the panel body, never from its content (user ruling 2026-08-22) */
+/* Mantine既定のheight:100%はflex由来の親高に対して解決できず内容なりに潰れるためflexで伸ばす */
+/* Mantine's default height:100% cannot resolve against a flex-derived parent height, so stretch it with flex */
+.scroll {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.scroll :global(.mantine-ScrollArea-viewport) {
+  box-sizing: border-box;
+  flex: 1;
+  min-height: 0;
+}
+
+/* リストのスクロールバーは§8.10のネイビートーンへ統一する */
+/* Unify the list scrollbar with the §8.10 navy tone */
+.scroll :global(.mantine-ScrollArea-scrollbar) {
+  background: var(--gauge-track);
+}
+
+.scroll :global(.mantine-ScrollArea-thumb) {
+  background: var(--bevel-c2);
+  border-radius: 0;
+}
