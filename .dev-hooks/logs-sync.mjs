@@ -154,7 +154,9 @@ function copyIfUpdated(src, dest) {
     // Skip files over GitHub's 100MB limit; they can never be pushed.
     if (srcStat.size > 95 * 1024 * 1024) return;
     if (existsSync(dest)) {
-      if (srcStat.mtimeMs <= statSync(dest).mtimeMs) return;
+      // utimesSyncはms精度でしか書けずAPFSのns精度mtimeに常に負けるため、ms切り捨てで比較する
+      // utimesSync writes ms precision and always loses to APFS ns mtimes, so compare at floored ms.
+      if (Math.floor(srcStat.mtimeMs) <= Math.floor(statSync(dest).mtimeMs)) return;
     } else if (Date.now() - srcStat.mtimeMs > 7 * 24 * 3600 * 1000) {
       return;
     }
