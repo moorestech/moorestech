@@ -22,8 +22,8 @@ using UnityEngine;
 namespace Client.Tests.PlaceSystem
 {
     /// <summary>
-    ///     鉱脈由来の2つの設置制限（採掘機の底面XZ重なり・チュートリアルの鉱脈限定）を検証する
-    ///     Verifies both vein-bound placement restrictions: the miner's footprint XZ overlap and the tutorial vein limit
+    ///     鉱脈由来の3つの設置制限（採掘機の底面XZ重なり・チュートリアルの鉱脈限定・ポンプの汲み上げ可否）を検証する
+    ///     Verifies all three vein-bound placement restrictions: the miner's footprint XZ overlap, the tutorial vein limit, and the pump's pumpability
     /// </summary>
     public class VeinPlacementReporterTest
     {
@@ -31,6 +31,7 @@ namespace Client.Tests.PlaceSystem
         // Vein GUIDs defined in ForUnitTest map.json
         private const string MinableItemVeinGuid = "11111111-0000-0000-0000-000000000001";
         private const string FluidVeinGuid = "11111111-0000-0000-0000-000000000002";
+        private const string SteamVeinGuid = "11111111-0000-0000-0000-000000000003";
 
         // 採掘機のmineSettingsに無いアイテム鉱脈。掘れない鉱脈とチュートリアル限定対象の両方を兼ねる
         // An item vein absent from the miner's mineSettings; it serves as both the unmineable vein and the tutorial target
@@ -42,6 +43,7 @@ namespace Client.Tests.PlaceSystem
         private static readonly Vector3Int VeinMaxCell = new(2, 2, 2);
         private static readonly Vector3Int OutsideVeinCell = new(5, 0, 5);
         private static readonly Vector3Int FluidVeinCell = new(20, 0, 20);
+        private static readonly Vector3Int SteamVeinCell = new(40, 0, 40);
         private static readonly Vector3Int UnmineableVeinMinCell = new(30, 0, 30);
         private static readonly Vector3Int UnmineableVeinMaxCell = new(31, 0, 31);
 
@@ -215,10 +217,6 @@ namespace Client.Tests.PlaceSystem
         }
 
         /// <summary>
-        ///     制限は入れた本人のGUIDでしか落とせない。別チュートリアルのClearで消えると設置が素通しになる
-        ///     Only the tutorial that set the restriction may clear it; another tutorial's clear would let placement through
-        /// </summary>
-        /// <summary>
         ///     置いた瞬間に何も汲み上げないポンプを作らないため、汲み上げられる流体鉱脈の外は設置不可（ADR 0051）
         ///     A pump that would draw nothing the moment it lands is refused, so cells off a pumpable fluid vein are not placeable (ADR 0051)
         /// </summary>
@@ -257,6 +255,28 @@ namespace Client.Tests.PlaceSystem
             Assert.IsFalse(placeInfos[0].Placeable, "an item vein made a pump placeable");
         }
 
+        /// <summary>
+        ///     ポンプはgenerateFluidに無い流体を汲み上げられないので、蒸気鉱脈の上は設置可にしない（ADR 0051）
+        ///     A pump cannot draw a fluid absent from generateFluid, so a steam vein must not make the cell placeable (ADR 0051)
+        /// </summary>
+        [Test]
+        public void generateFluidに無い流体の鉱脈の上はポンプを設置可にしない()
+        {
+            CreateServer();
+            var pumpMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPump);
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(SteamVeinCell, BlockDirection.North) };
+            var feedback = new PlacementFeedback();
+
+            VeinPlacementReporter.MarkOutsideVeinCellsAsNotPlaceable(placeInfos, pumpMaster, 0, CreateRegistry(), new VeinRestrictedPlacementState(), feedback);
+
+            Assert.IsFalse(placeInfos[0].Placeable, "a steam vein absent from generateFluid made a pump placeable");
+            CollectionAssert.AreEqual(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlacePumpOutsideVein) }, feedback.Lines);
+        }
+
+        /// <summary>
+        ///     制限は入れた本人のGUIDでしか落とせない。別チュートリアルのClearで消えると設置が素通しになる
+        ///     Only the tutorial that set the restriction may clear it; another tutorial's clear would let placement through
+        /// </summary>
         [Test]
         public void 制限は入れた本人のGUIDでしか解除されない()
         {
@@ -301,6 +321,7 @@ namespace Client.Tests.PlaceSystem
             return MapVeinAabbRegistryFixture.Create(
                 new VeinLayoutMessagePack(MinableItemVeinGuid, VeinMinCell.x, VeinMinCell.y, VeinMinCell.z, VeinMaxCell.x, VeinMaxCell.y, VeinMaxCell.z),
                 new VeinLayoutMessagePack(FluidVeinGuid, FluidVeinCell.x, FluidVeinCell.y, FluidVeinCell.z, FluidVeinCell.x, FluidVeinCell.y, FluidVeinCell.z),
+                new VeinLayoutMessagePack(SteamVeinGuid, SteamVeinCell.x, SteamVeinCell.y, SteamVeinCell.z, SteamVeinCell.x, SteamVeinCell.y, SteamVeinCell.z),
                 new VeinLayoutMessagePack(UnmineableItemVeinGuid, UnmineableVeinMinCell.x, UnmineableVeinMinCell.y, UnmineableVeinMinCell.z, UnmineableVeinMaxCell.x, UnmineableVeinMaxCell.y, UnmineableVeinMaxCell.z));
         }
 

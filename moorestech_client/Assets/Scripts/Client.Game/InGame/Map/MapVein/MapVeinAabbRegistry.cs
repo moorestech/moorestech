@@ -43,20 +43,6 @@ namespace Client.Game.InGame.Map.MapVein
         }
 
         /// <summary>
-        ///     その種別（アイテム/流体）の鉱脈を集める。ポンプのように「掘れる種別まるごと」を見たい側が使う
-        ///     Collects every vein of that kind; used by callers such as the pump that want a whole extractable kind
-        /// </summary>
-        public List<MapVeinAabb> SelectVeinsOfKind(MapVeinKind kind)
-        {
-            var veins = new List<MapVeinAabb>();
-            foreach (var vein in _veins)
-                if (vein.Kind == kind)
-                    veins.Add(vein);
-
-            return veins;
-        }
-
-        /// <summary>
         ///     その鉱脈GUIDのインスタンスを集める。チュートリアルの「この鉱脈にだけ置く」制限が使う
         ///     Collects every instance of that vein type; used by the tutorial's "place only on this vein" restriction
         /// </summary>

@@ -70,7 +70,7 @@ namespace Client.Tests.PlaceSystem
         ///     The pump check goes through IPumpParam; enumerating concrete params again would hide fluid veins for a newly added pump
         /// </summary>
         [Test]
-        public void 汲み上げられる流体鉱脈だけを出す()
+        public void ポンプは汲み上げられる流体鉱脈だけを出す()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
