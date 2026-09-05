@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Block;
 using Client.Network.API;
-using Core.Item.Interface;
+using Game.PlayerInventory.Interface.Subscription;
 using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using UnityEngine;
@@ -14,7 +12,6 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
     public class BlockSubInventorySource : ISubInventorySource
     {
         public InventoryIdentifierMessagePack InventoryIdentifier { get; }
-        public string UIPrefabAddressablePath => _blockGameObject.BlockMasterElement.BlockUIAddressablesPath;
 
         // 表示名を運ばず、表示側が辞書解決できる識別子を公開する
         // Expose identity instead of a source name so the presentation resolves its dictionary
@@ -30,18 +27,17 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             InventoryIdentifier = InventoryIdentifierMessagePack.CreateBlockMessage(blockGameObject.BlockPosInfo.OriginalPos);
         }
 
-        public void ExecuteInitialize(ISubInventoryView subInventoryView, InventoryResponse inventoryResponse)
+        public SubInventoryModel CreateModel(InventoryResponse inventoryResponse)
         {
-            ((IBlockInventoryView)subInventoryView).Initialize(_blockGameObject);
-            
+            var model = new SubInventoryModel(new BlockInventorySubInventoryIdentifier(_blockGameObject.BlockPosInfo.OriginalPos));
             if (inventoryResponse.Result != InventoryRequestResult.Success)
             {
-                subInventoryView.UpdateItemList(new List<IItemStack>());
                 Debug.Log($"ブロックインベントリの取得に失敗しました。結果:{inventoryResponse.Result} 位置:{InventoryIdentifier.BlockPosition.Vector3Int}");
-                return;
+                return model;
             }
 
-            subInventoryView.UpdateItemList(inventoryResponse.Items);
+            model.SetItems(inventoryResponse.Items);
+            return model;
         }
     }
 

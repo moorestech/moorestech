@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
 using System;
 using System.Threading;
-using Client.Common.Asset;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.UI.Inventory;
@@ -26,18 +25,18 @@ namespace Client.Game.InGame.UI.UIState.State
     /// </summary>
     public class SubInventoryState : IUIState
     {
-        private readonly PlayerInventoryViewController _playerInventoryViewController;
+        private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         private readonly RightShortPressInputService _rightShortPressInputService;
 
         private ISubInventorySource _subInventorySource;
 
-        private ISubInventoryView _currentView;
+        private SubInventoryModel _currentModel;
         private CancellationTokenSource _loadInventoryCts;
         private bool _shouldClose = false;
 
         // 開いているサブと発生元の公開口
         // Read access to the open sub and its source
-        public ISubInventory CurrentSubInventory => _currentView;
+        public SubInventoryModel CurrentSubInventory => _currentModel;
         public ISubInventorySource CurrentSubInventorySource => _subInventorySource;
 
         // スロット単位の更新通知(変更毎に発火)
@@ -46,9 +45,9 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly Subject<Unit> _onSubInventoryUpdated = new();
 
 
-        public SubInventoryState(PlayerInventoryViewController playerInventoryViewController, RightShortPressInputService rightShortPressInputService)
+        public SubInventoryState(LocalPlayerInventoryController localPlayerInventoryController, RightShortPressInputService rightShortPressInputService)
         {
-            _playerInventoryViewController = playerInventoryViewController;
+            _localPlayerInventoryController = localPlayerInventoryController;
             _rightShortPressInputService = rightShortPressInputService;
 
             // 統一インベントリ更新イベントを購読
@@ -58,7 +57,7 @@ namespace Client.Game.InGame.UI.UIState.State
 
         private void OnUnifiedInventoryEvent(byte[] payload)
         {
-            if (_currentView == null) return;
+            if (_currentModel == null) return;
 
             var packet = MessagePackSerializer.Deserialize<UnifiedInventoryEventMessagePack>(payload);
 
@@ -66,7 +65,7 @@ namespace Client.Game.InGame.UI.UIState.State
             {
                 // アイテムを更新
                 var item = ServerContext.ItemStackFactory.Create(packet.Item.Id, packet.Item.Count);
-                _currentView.UpdateInventorySlot(packet.Slot, item);
+                _currentModel.SetItem(packet.Slot, item);
 
                 // 外部購読者(Web UI等)へ通知
                 // Notify external subscribers (e.g. Web UI)
@@ -119,33 +118,15 @@ namespace Client.Game.InGame.UI.UIState.State
                 _loadInventoryCts = new CancellationTokenSource();
                 var ct = _loadInventoryCts.Token;
 
-                // UI Prefabをロード
-                // Load UI Prefab
-                using var loadedInventory = await AddressableLoader.LoadAsync<GameObject>(_subInventorySource.UIPrefabAddressablePath, ct);
-                if (loadedInventory == null)
-                {
-                    Debug.LogError($"SubInventoryState: インベントリビューのロードに失敗しました Path:{_subInventorySource.UIPrefabAddressablePath}");
-                    return;
-                }
-
                 // カーソルを表示
                 // Show cursor
                 InputManager.MouseCursorVisible(true);
 
-                // インベントリデータを取得
-                // Fetch inventory data and initialize
+                // インベントリデータを取得し真データを組み立てる
+                // Fetch inventory data and build the authoritative model
                 var inventoryResponse = await ClientContext.VanillaApi.Response.GetInventory(_subInventorySource.InventoryIdentifier, ct);
-
-                // UIオブジェクトを生成し初期化
-                // Instantiate UI object
-                var instantiatedView = ClientDIContext.DIContainer.Instantiate(loadedInventory.Asset, _playerInventoryViewController.SubInventoryParent);
-                _currentView = instantiatedView.GetComponent<ISubInventoryView>();
-                _subInventorySource.ExecuteInitialize(_currentView, inventoryResponse);
-
-                // インベントリビューを表示
-                // Show inventory view
-                _playerInventoryViewController.SetActive(true);
-                _playerInventoryViewController.SetSubInventory(_currentView);
+                _currentModel = _subInventorySource.CreateModel(inventoryResponse);
+                _localPlayerInventoryController.SetSubInventory(_currentModel);
 
                 // インベントリの更新を購読
                 // Subscribe to inventory updates
@@ -172,13 +153,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
             // サブインベントリ登録を解除
             // Unregister sub inventory
-            _playerInventoryViewController.SetSubInventory(new EmptySubInventory());
-
-            // インベントリを閉じる
-            // Close inventory
-            _playerInventoryViewController.SetActive(false);
-            _currentView?.DestroyUI();
-            _currentView = null;
+            _localPlayerInventoryController.SetSubInventory(new EmptySubInventory());
+            _currentModel = null;
             _subInventorySource = null;
         }
 
