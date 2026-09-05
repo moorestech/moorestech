@@ -85,7 +85,7 @@
 
 **Files:** なし（環境準備）
 
-- [ ] **Step 1: bd を claim し worktree を切る**
+- [x] **Step 1: bd を claim し worktree を切る**
 
 ```bash
 cd <moorestech リポジトリのメインワークツリー>
@@ -96,7 +96,7 @@ pwd
 ```
 Expected: `git status` がクリーン、`uloop launch` 済み Editor が worktree を開いている。
 
-- [ ] **Step 2: ベースが最新でコンパイルできることを確認する**
+- [x] **Step 2: ベースが最新でコンパイルできることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `errors: 0`
@@ -121,7 +121,7 @@ Expected: `errors: 0`
 - Produces: `ISubInventory` = `{ List<IItemStack> SubInventory; int Count; ISubInventoryIdentifier ISubInventoryIdentifier; }`（`SubInventorySlotObjects` 削除）
 - Produces: `enum TrainInventoryMessageType { ContainerMissing, TrainCarMissing, OpenFailed }`（namespace `Client.Game.InGame.UI.Inventory`）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Client.Tests/Inventory/SubInventoryModelTest.cs`:
 ```csharp
@@ -189,12 +189,12 @@ namespace Client.Tests.Inventory
 ```
 （`LogAssert` は `UnityEngine.TestTools` の using が必要）
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `SubInventoryModel` 未定義のコンパイルエラー
 
-- [ ] **Step 3: モデルと enum を実装し、ISubInventory から uGUI 型を外す**
+- [x] **Step 3: モデルと enum を実装し、ISubInventory から uGUI 型を外す**
 
 `Client.Game/InGame/UI/Inventory/TrainInventoryMessageType.cs`:
 ```csharp
@@ -323,14 +323,14 @@ namespace Client.Game.InGame.UI.Inventory
             subInventory.SetItems(new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty() });
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `errors: 0`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "SubInventoryModelTest|LocalPlayerInventoryControllerSwapMoveTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/Inventory moorestech_client/Assets/Scripts/Client.Tests/Inventory
@@ -354,7 +354,7 @@ git commit -m "refactor: サブインベントリの真データを SubInventory
 - Produces: `ISubInventorySource { InventoryIdentifierMessagePack InventoryIdentifier { get; } SubInventoryModel CreateModel(InventoryResponse inventoryResponse); }`
 - Produces: `SubInventoryState.CurrentSubInventory` の型は `SubInventoryModel`（`ISubInventory` として読む既存呼び出しはそのまま動く）。`SubInventoryState(LocalPlayerInventoryController localPlayerInventoryController, RightShortPressInputService rightShortPressInputService)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Client.Tests/UIState/SubInventorySourceModelTest.cs`:
 ```csharp
@@ -416,12 +416,12 @@ namespace Client.Tests.UIState
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `CreateModel` 未定義・`TrainSubInventorySource(long)` 未定義のコンパイルエラー
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `ISubInventorySource.cs`:
 ```csharp
@@ -562,14 +562,14 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
 ```
 （`using Client.Game.InGame.UI.Inventory.Train;` を削除）
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `errors: 0`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "SubInventorySourceModelTest|InventoryAreaMapperTest|CollectActionTest|WireContractC2Test"`
 Expected: 全件 PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/TrainInventoryDtoFactory.cs moorestech_client/Assets/Scripts/Client.Tests/UIState/SubInventorySourceModelTest.cs
@@ -597,7 +597,7 @@ git commit -m "refactor: SubInventoryState が uGUI prefab を生成せず SubIn
 - Produces: `DeleteObjectState(RailGraphClientCache, UiStateCameraPolicyService, BuildOperationHistory, BuildUndoService, PlacementTargetPickService, RightShortPressInputService)`（`DeleteBarObject` を外す）
 - Produces: `PauseMenuStateService()`（引数なし）
 
-- [ ] **Step 1: 既存テストを新シグネチャへ書き換え失敗させる**
+- [x] **Step 1: 既存テストを新シグネチャへ書き換え失敗させる**
 
 `PlayerInventoryStateEquipmentApplyTest.cs` の `CreatePlayerInventoryState` を次に置換（RecipeViewerView/PlayerInventoryViewController の生成と `SetPrivateField` 2行を削除）:
 ```csharp
@@ -614,12 +614,12 @@ git commit -m "refactor: SubInventoryState が uGUI prefab を生成せず SubIn
 - `var researchTreeViewManager = ...; new ResearchTreeState(researchTreeViewManager, rightShortPressInputService)` → `new ResearchTreeState(rightShortPressInputService)`
 - 不要になった `using Client.Game.InGame.UI.Challenge;` 等を削除
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: 上記 ctor が無いためエラー
 
-- [ ] **Step 3: State を書き換える**
+- [x] **Step 3: State を書き換える**
 
 `PlayerInventoryState.cs`: フィールド `_recipeViewerView`/`_playerInventoryViewController` と ctor 引数、`OnEnter`/`OnExit`/ctor 内の `SetActive(...)` 4行と `_playerInventoryViewController.SetSubInventory(new EmptySubInventory())` を削除し、代わりに `OnEnter` で `_localPlayerInventoryController.SetSubInventory(new EmptySubInventory());` を呼ぶ。`using Client.Game.InGame.UI.Inventory.RecipeViewer;` を削除、`using Client.Game.InGame.UI.Inventory;` は `EmptySubInventory` のため残す。
 
@@ -654,14 +654,14 @@ namespace Client.Game.InGame.UI.UIState.State.PauseMenu
 }
 ```
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `errors: 0`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PlayerInventoryStateEquipmentApplyTest|RightShortPressTransitionTest|UIStateControlTest|UIStateKeyHintCatalogTest|UIStateFocusRestorationTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState moorestech_client/Assets/Scripts/Client.Tests
@@ -691,7 +691,7 @@ git commit -m "refactor: UIState の各 State から恒久非表示 uGUI ビュ�
 - Produces: `BuildMenuState(BuildMenuSelection, UiStateCameraPolicyService, RightShortPressInputService)`
 - Produces: `BuildMenuSelectActionHandler(UIStateControl, PlacementTargetResolver, BuildMenuSelection)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Client.Tests/UIState/BuildMenuSelectionTest.cs`:
 ```csharp
@@ -731,12 +731,12 @@ namespace Client.Tests.UIState
 ```
 （`BlueprintPlacementTarget` の ctor シグネチャは `Client.Game/InGame/BlockSystem/PlaceSystem/Targets/BlueprintPlacementTarget.cs` を読んで合わせる。Guid 1引数で無ければ `PlacementTargetCatalog` から取る `BuildMenuEntryDtoFactoryTest.cs:169` と同じ取り方にする）
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `BuildMenuSelection` 未定義
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `BuildMenuSelection.cs`:
 ```csharp
@@ -796,14 +796,14 @@ namespace Client.Game.InGame.UI.BuildMenu
 
 `BuildMenuEntryDtoFactoryTest.cs:159-176`: `viewObject`/`view` を `var selection = new BuildMenuSelection();` に置換し、handler へ渡す。`Assert.IsTrue(view.TryConsumeSelectedEntry(out var selected)); Assert.AreEqual(entry.Id, selected.Target.Id);` → `Assert.IsTrue(selection.TryConsumeSelectedTarget(out var selected)); Assert.AreEqual(entry.Id, selected.Id);`。`viewObject` の Destroy 行も削除。
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `errors: 0`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BuildMenuSelectionTest|BuildMenuEntryDtoFactoryTest|BuildMenuTopicRepublishTest|RightShortPressTransitionTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts
@@ -835,7 +835,7 @@ git commit -m "refactor: ビルドメニュー選択を BuildMenuSelection へ�
 - Produces: `InteractController(LocalPlayerEquipment, IInteractTargetSelector, ProgressBarState)`（A6 で `IMouseCursorTooltip` を追加）
 - Produces: `ProgressTopic(WebSocketHub hub, ProgressBarState state)`
 
-- [ ] **Step 1: 既存テストを新型へ移植して失敗させる**
+- [x] **Step 1: 既存テストを新型へ移植して失敗させる**
 
 `InteractControllerDisableTest.cs`:
 - `CreateProgressBarView()` ローカル関数と `_progressBarObject` フィールド、`ProgressBarView.Instance = null;`、`using UnityEngine.UI;`（Scrollbar）を削除。
@@ -848,12 +848,12 @@ git commit -m "refactor: ビルドメニュー選択を BuildMenuSelection へ�
 - `new MiningControllerContext(equipment)` → `new MiningControllerContext(equipment, _progressBar)`（A6 後は `, _tooltip`）。
 - `new MiningProgressState(target, miningTool)` → `new MiningProgressState(context, target, miningTool)`。
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `ProgressBarState` 未定義
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `ProgressBarState.cs`:
 ```csharp
@@ -925,14 +925,14 @@ namespace Client.Game.InGame.UI.ProgressBar
 
 `MainGameInteractionRegistration.RegisterUiAndPlayer`: `builder.Register<InteractController>(Lifetime.Singleton);` の直前に `builder.Register<ProgressBarState>(Lifetime.Singleton);`。
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `errors: 0`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "InteractControllerDisableTest|MiningEquipmentSwitchTest|MiningFocusStateTest"`
 Expected: 全件 PASS（MiningFocusStateTest は A6 で再度触る）
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts
@@ -977,7 +977,7 @@ git commit -m "refactor: 進捗バーの論理状態を ProgressBarState へ抽�
 - Produces: `GameObjectTooltipTarget.OnCursorEnter(IMouseCursorTooltip tooltip)` / `OnCursorExit(IMouseCursorTooltip tooltip)`; `GameObjectToolTipTargetController` は `[Inject] IMouseCursorTooltip` を受ける
 - Produces: `TooltipTopic(WebSocketHub hub, MouseCursorTooltipState tooltip)`
 
-- [ ] **Step 1: テストを新型へ移植して失敗させる**
+- [x] **Step 1: テストを新型へ移植して失敗させる**
 
 共通パターン（全テスト）: 
 - `new GameObject("MouseCursorTooltip")` + `AddComponent<MouseCursorTooltip>()` + `SetField(..."canvasGroup"...)` + `SetField(..."itemName"...)` の4〜5行 → `_tooltip = new MouseCursorTooltipState();`（フィールド `private MouseCursorTooltipState _tooltip;`）
@@ -993,12 +993,12 @@ git commit -m "refactor: 進捗バーの論理状態を ProgressBarState へ抽�
 - `PlacementFeedbackTooltipPresenterTest.cs`: `_tooltip` を `MouseCursorTooltipState` に、`new PlacementFeedbackTooltipPresenter()` → `new PlacementFeedbackTooltipPresenter(_tooltip)`、`typeof(MouseCursorTooltip).GetField("_currentOwner", ...)` → `typeof(MouseCursorTooltipState).GetField("_currentOwner", ...)`、`MouseCursorTooltip.Instance.X` → `_tooltip.X`。`Instance == null` 分岐に対応するテストがあれば削除（新実装に null 経路は無い）。
 - `MiningEquipmentSwitchTest.cs`: `new MiningControllerContext(equipment, _progressBar, _tooltip)`。
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `MouseCursorTooltipState` 未定義
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `IMouseCursorTooltip.cs`（`MouseCursorTooltip.cs` 15-23行を移動）:
 ```csharp
@@ -1128,14 +1128,14 @@ namespace Client.Game.InGame.Mining
 
 `MainGameInteractionRegistration.RegisterUiAndPlayer`: `builder.Register<MouseCursorTooltipState>(Lifetime.Singleton).AsSelf().As<IMouseCursorTooltip>();`
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `errors: 0`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Mining|Interact|PlacementFeedbackTooltipPresenterTest|RightShortPressTransitionTest|TooltipPresentationEqualityTest|WireContractC2Test"`
 Expected: 全件 PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts
@@ -1165,7 +1165,7 @@ git commit -m "refactor: カーソルツールチップを MouseCursorTooltipSta
 - Produces: `BlueprintNameInputState` — `bool IsOpen { get; }`, `IObservable<bool> OnOpenChanged`, `IObservable<string> OnConfirm`, `IObservable<Unit> OnCancel`, `void Open()`, `void Close()`, `void Confirm(string name)`, `void Cancel()`
 - Produces: `PlayerViewApplier(InGameCameraController, CrosshairVisibility)`; `BlueprintCopySystem(Camera, ClientBlueprintLibrary, BlueprintNameInputState)`; `BlueprintNameInputWebBridge(BlueprintNameInputState, WebUiModalService)`; `CrosshairTopic(WebSocketHub, CrosshairVisibility)`; `UiVisibilityTopic(WebSocketHub, UIRoot)`（型不変）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `Client.Tests/UIState/BlueprintNameInputStateTest.cs`:
 ```csharp
@@ -1225,12 +1225,12 @@ namespace Client.Tests.UIState
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `BlueprintNameInputState` 未定義
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `CrosshairVisibility.cs`:
 ```csharp
@@ -1337,14 +1337,14 @@ namespace Client.Game.InGame.UI.Blueprint
 
 `MainGameInteractionRegistration.RegisterUiAndPlayer`: `builder.Register<CrosshairVisibility>(Lifetime.Singleton); builder.Register<BlueprintNameInputState>(Lifetime.Singleton);`
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `errors: 0`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "BlueprintNameInputStateTest|WireContractC2Test|UIStateCameraInteractionTest|UiStateCameraPolicy"`
 Expected: 全件 PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts
@@ -1379,16 +1379,16 @@ git commit -m "refactor: クロスヘア表示・UIRoot・BP名入力を純ロ�
 - Produces: `BackgroundSkitVoicePlayer : MonoBehaviour` — `void SetActive(bool)`, `UniTask PlayVoiceAndWait(AudioClip)`（`SetText`/`SetTextVisible` 削除）
 - Produces: `StoryContextExtension.GetBackgroundSkitVoicePlayer(this StoryContext)`
 
-- [ ] **Step 1: 既存テストを新型へ寄せて失敗させる**
+- [x] **Step 1: 既存テストを新型へ寄せて失敗させる**
 
 `UIStateTestFixtureBase.SetUpGameStateController()` から `var challengeHud = CreateComponent<CurrentChallengeHudView>("ChallengeHud");` と `SetField(gameState, "currentChallengeHudView", challengeHud);` を削除、`using Client.Game.InGame.UI.Challenge;` を削除。
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: この時点ではテストは通るがフィールド削除で `GameStateController` は変更前なので `errors: 0`（次のステップで実装）
 
-- [ ] **Step 3: 実装する**
+- [x] **Step 3: 実装する**
 
 `NetworkDisconnectState.cs`:
 ```csharp
@@ -1502,14 +1502,14 @@ namespace Client.Skit.UI
 ```
 （`using Client.Game.InGame.Presenter.PauseMenu;` 追加）
 
-- [ ] **Step 4: コンパイルとテスト**
+- [x] **Step 4: コンパイルとテスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `errors: 0`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "UIState|WebUi|SkitPresentationStateStoreTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 5: コミット**
+- [x] **Step 5: コミット**
 
 ```bash
 git add -A moorestech_client/Assets/Scripts
@@ -1524,7 +1524,7 @@ git commit -m "refactor: 切断状態・セーブ要求・チャレンジ進行�
 - Modify（uloop経由）: `moorestech_client/Assets/Asset/Common/Prefab/GameSystem.prefab`（`MainGameStarter` の新フィールド `uiRoot`・`gameObjectToolTipTargetController` を配線、削除したフィールドの残骸は Unity が自動で捨てる）
 - Modify（uloop経由）: `moorestech_client/Assets/Asset/UI/Prefab/MainGameUI.prefab`（`BacgkroundSkitUI` の `BackgroundSkitVoicePlayer` は改名で GUID 維持のため配線不変。確認のみ）
 
-- [ ] **Step 1: 参照を配線する**
+- [x] **Step 1: 参照を配線する**
 
 `uloop execute-dynamic-code` で次を実行:
 ```csharp
@@ -1547,7 +1547,7 @@ Debug.Log($"wired tooltip controller: {tooltipController != null}");
 ```
 `uiRoot` は `MainGameUI.prefab` 側にあり `GameSystem.prefab` からは同一シーン内参照になるため、`Assets/Scenes/Game/MainGame.unity` を開いて `MainGameStarter.uiRoot` に `MainGameUI` ルートの `UIRoot` を配線し `EditorSceneManager.SaveScene` する（`EditorSceneManager.OpenScene` → `Object.FindFirstObjectByType<MainGameStarter>()` → `FindFirstObjectByType<UIRoot>()` → `SerializedObject` で設定）。MainGameStarter が prefab インスタンスなら `PrefabUtility.RecordPrefabInstancePropertyModifications` を呼ぶ。
 
-- [ ] **Step 2: Missing 参照が無いことを確認する**
+- [x] **Step 2: Missing 参照が無いことを確認する**
 
 `uloop execute-dynamic-code`:
 ```csharp
@@ -1561,12 +1561,12 @@ Debug.Log("missing: " + string.Join(", ", missing));
 ```
 Expected: `missing:` が空
 
-- [ ] **Step 3: PlayMode スモーク（プレイテストDSL）**
+- [x] **Step 3: PlayMode スモーク（プレイテストDSL）**
 
 unity-playmode-recorded-playtest スキルの `scripts/run-scenario.sh` で「インベントリを開く→ブロックを設置→機械UIを開く→採掘で進捗バーが出る」シナリオ（同スキルの references のインベントリ/ビルド/採掘サンプルを組み合わせる）を実行。
 Expected: `result.json` が success、`uloop get-logs --log-type Error` にエラー無し。Web 側の block inventory パネルにスロットが表示され、ui.progress で採掘バーが動く。
 
-- [ ] **Step 4: コミット**
+- [x] **Step 4: コミット**
 
 ```bash
 git add -A moorestech_client/Assets
