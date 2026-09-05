@@ -35,6 +35,7 @@ using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Challenge;
+using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
@@ -132,6 +133,8 @@ namespace Client.Starter.Registration
             builder.Register<TrainHUDScreenState>(Lifetime.Singleton).AsSelf().As<INestedPauseScreenState>();
             builder.Register<BuildMenuSelection>(Lifetime.Singleton);
             builder.Register<BuildMenuState>(Lifetime.Singleton);
+            builder.Register<CrosshairVisibility>(Lifetime.Singleton);
+            builder.Register<BlueprintNameInputState>(Lifetime.Singleton);
             builder.Register<BuildOperationHistory>(Lifetime.Singleton);
             builder.Register<BuildUndoService>(Lifetime.Singleton);
             builder.Register<ItemRecipeViewerDataContainer>(Lifetime.Singleton);

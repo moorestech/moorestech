@@ -24,7 +24,6 @@ using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Inventory.RecipeViewer;
-using Client.Game.InGame.UI.Blueprint;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.UIObject;
@@ -71,10 +70,10 @@ namespace Client.Starter
         [SerializeField] private TrainCarObjectDatastore trainCarObjectDatastore;
         
         [SerializeField] private UIStateControl uIStateControl;
+        [SerializeField] private UIRoot uiRoot;
         [SerializeField] private PauseMenuObject pauseMenuObject;
         [SerializeField] private DeleteBarObject deleteBarObject;
         [SerializeField] private BuildMenuView buildMenuView;
-        [SerializeField] private BlueprintNameInputView blueprintNameInputView;
         [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
         [SerializeField] private CraftInventoryView craftInventoryView;
         [SerializeField] private MachineRecipeView machineRecipeView;
@@ -143,10 +142,10 @@ namespace Client.Starter
             builder.RegisterComponent(mainCamera);
 
             builder.RegisterComponent(uIStateControl);
+            builder.RegisterComponent(uiRoot);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
             builder.RegisterComponent(buildMenuView);
-            builder.RegisterComponent(blueprintNameInputView);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(saveAndQuitPresenter);
             builder.RegisterComponent(networkDisconnectPresenter);

@@ -104,10 +104,10 @@ namespace Client.WebUiHost.Game
                 resolver.Resolve<PlaceBlockState>());
             hub.RegisterTopic(PlacementModeTopic.TopicName, placementModeTopic);
 
-            // 状態外の共通HUDを各既存ビューの変更通知へ接続する
-            // Connect state-independent HUD topics to the existing view notifications
-            hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, CrosshairView.Instance));
-            hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, UIRoot.Instance));
+            // 状態外の共通HUDを各既存状態の変更通知へ接続する
+            // Connect state-independent HUD topics to the existing state notifications
+            hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, resolver.Resolve<CrosshairVisibility>()));
+            hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, resolver.Resolve<UIRoot>()));
 
             // 通知トピックを登録
             // Register the notification topic
@@ -155,11 +155,11 @@ namespace Client.WebUiHost.Game
             var blueprintLibrary = resolver.Resolve<ClientBlueprintLibrary>();
             var placementTargetResolver = resolver.Resolve<PlacementTargetResolver>();
             var buildMenuSelection = resolver.Resolve<BuildMenuSelection>();
-            var blueprintNameInputView = resolver.Resolve<BlueprintNameInputView>();
+            var blueprintNameInputState = resolver.Resolve<BlueprintNameInputState>();
             var constructionWalletQuery = resolver.Resolve<ConstructionWalletQuery>();
             var buildMenuTopic = new BuildMenuTopic(hub, uiStateControl, blueprintLibrary, placementTargetResolver, constructionWalletQuery, controller);
             hub.RegisterTopic(BuildMenuTopic.TopicName, buildMenuTopic);
-            new BlueprintNameInputWebBridge(blueprintNameInputView, modalService);
+            new BlueprintNameInputWebBridge(blueprintNameInputState, modalService);
 
             // ホットバーのtopic/actionをまとめて登録（前例 C4WebUiRegistration）
             // Register the hotbar topic/actions together (precedent: C4WebUiRegistration)
