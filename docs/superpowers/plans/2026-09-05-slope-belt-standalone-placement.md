@@ -635,7 +635,7 @@ git commit -m "feat: 坂選択時の一定勾配経路ビルダーを追加す�
 - Produces: `BeltConveyorPlacePointCalculator.CalculateSlopePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMaster, BlockVerticalDirection slopeDirection, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons) -> List<PlaceInfo>`（全セルの `BlockId` は `holdingBlockMaster` のBlockId。既存ブロックと重なるセルは `Placeable=false` かつ `blockCauses[i] = PlacementBlockCause.ExistingBlock`。`beltReasons` は全セル `None`）
 - Consumes: Task 3 の `BeltConveyorFamily.TryGetSlopeDirection`、Task 4 の `BeltConveyorSlopePathBuilder.Build`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorSlopePlacementTest.cs` を新規作成する。設置点計算はUnityの `BlockGameObjectDataStore` を要求するため、ここでは「ファミリーからの向き解決＋経路ビルダー＋BlockId割当」というシステムの決定規則だけを検証する。
 
@@ -706,14 +706,14 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorSlopePlacement"`
 Expected: PASS（Task 3・4 の成果だけで通る。ここは後続の実装が壊さないための回帰網）
 
 このテストが FAIL する場合は Task 3・4 の実装が不完全なので、先にそちらへ戻る。
 
-- [ ] **Step 3: CalculateSlopePoint を実装する**
+- [x] **Step 3: CalculateSlopePoint を実装する**
 
 `BeltConveyorPlacePointCalculator.cs` の `CalculatePoint`（static版）の直後、`IsNotExistBlock` の前に追加する。ファイル先頭の using に `using Core.Master;` を足す。
 
@@ -749,7 +749,7 @@ Expected: PASS（Task 3・4 の成果だけで通る。ここは後続の実装�
 
 ファイル先頭の using に `using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path;` が無ければ足す。
 
-- [ ] **Step 4: BeltConveyorPlaceSystem を分岐させる**
+- [x] **Step 4: BeltConveyorPlaceSystem を分岐させる**
 
 `BeltConveyorPlaceSystem.cs` の `GroundClickControl` を次のとおり書き換える。
 
@@ -802,7 +802,7 @@ Expected: PASS（Task 3・4 の成果だけで通る。ここは後続の実装�
 
 他の箇所（プレビュー・地面重なり・建設コスト・送信）は `holdingBlockMaster` を通して既に坂対応になるため変更しない。
 
-- [ ] **Step 4.5: 要件9・10を構造で確認する**
+- [x] **Step 4.5: 要件9・10を構造で確認する**
 
 要件9（坂選択中は立体交差を通さない）と要件10（地面重なり判定は共通経路のまま）は、Unityの `BlockGameObjectDataStore` 依存のためユニットテストで直接検証できない。次のgrepで構造として確認する。
 
@@ -816,7 +816,7 @@ grep -n "ApplyGroundOverlapsAndReport\|DetectGroundOverlaps" moorestech_client/A
 ```
 Expected: それぞれ1箇所のみ（`isSlopeSelected` の分岐の外＝坂も直線も同じ地面重なり経路を通る）。
 
-- [ ] **Step 5: コンパイルする**
+- [x] **Step 5: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -826,12 +826,12 @@ Expected: エラー0件
 Run: `wc -l moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/BeltConveyorPlaceSystem.cs`
 Expected: 200以下。超えた場合は `GroundClickControl` のローカル関数群を `Parts/` の新クラスへ切り出す（`partial` は禁止）。
 
-- [ ] **Step 6: 関連テストを実行する**
+- [x] **Step 6: 関連テストを実行する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyor|ConveyorOverpass"`
 Expected: PASS（既存の `BeltConveyorCellBlockResolverTest` / `BeltConveyorPlacePointCalculatorTest` / `ConveyorOverpassConveyanceTest` が無変更で通ること＝要件12）
 
-- [ ] **Step 7: コミットする**
+- [x] **Step 7: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Parts/BeltConveyorPlacePointCalculator.cs \
