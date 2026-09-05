@@ -32,6 +32,8 @@ namespace Game.Block.Blocks.Pump
             // Each fluid appears once; the nominal rate follows the master ordering
             foreach (var gen in generateFluids.items)
             {
+                if (gen.GenerateTime <= 0) continue;
+
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(gen.FluidGuid);
                 if (!targetFluidIds.Remove(fluidId)) continue;
 
