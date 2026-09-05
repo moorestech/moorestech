@@ -3,6 +3,7 @@
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,11 +20,21 @@ return PlaytestRunner.Run("webui-buildmenu-click", options, async p =>
     p.Note("デバッグ環境を整え、Web UIビルドメニューからベルトコンベアを選択する");
     await p.SetupDebugEnvironment(new PlaytestEnvironmentConfig());
 
+    // ビルドメニューはロック済みエントリを一覧から除外するため、対象ブロックを先に解放する
+    // The build menu excludes locked entries from the list, so unlock the target block first
+    await p.PrepareBlockForUiPlacement("ベルトコンベア", 5);
+
     // Bキーでメニューを開き、Reactパネルが実際にクリック可能になるまで待つ
     // Open the menu with B and wait until the React panel is genuinely clickable
     p.Note("Bキーでビルドメニューを開き、DOM要素の表示を確認する");
     await p.PressKey(Key.B);
     await p.UntilWebUiElement("build-menu-panel", 15f);
+
+    // 全カテゴリが1本のスクロールに並ぶため、対象カテゴリ見出しを押してベルトのセクションを視界へ入れる
+    // Every category shares a single scroll list, so click the category header to bring the belt section into view
+    var beltMaster = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId("ベルトコンベア"));
+    var (beltCategoryGuid, _) = MasterHolder.BuildMenuCategoryMaster.GetGuidPair(beltMaster.Category, beltMaster.SubCategory);
+    await p.ClickWebUi($"build-menu-category-{beltCategoryGuid:D}");
 
     // BlockId由来のtestidを使ってベルトをクリックし、設置モードへの遷移を検証する
     // Click the belt by its BlockId-derived testid and verify the transition into placement mode
