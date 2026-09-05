@@ -12,6 +12,7 @@ const sources = {
   electricToGear: read("./views/ElectricToGearInventory.tsx"),
   network: read("./details/NetworkSections.tsx"),
   miner: read("./details/MinerSection.tsx"),
+  pump: read("./details/pump/PumpSection.tsx"),
   machineInventoryBody: read("./details/machine/MachineInventoryBody.tsx"),
 };
 
@@ -22,6 +23,7 @@ const styles = {
   progressArrow: read("../../shared/ui/ProgressArrowBar/style.module.css"),
   progressArrowGlyph: read("../../shared/ui/ProgressArrowGlyph/style.module.css"),
   machineInventoryBody: read("./details/machine/machineInventoryBody.module.css"),
+  pumpSection: read("./details/pump/pumpSection.module.css"),
 };
 
 const appTokens = read("../../app/tokens.css");
@@ -123,6 +125,10 @@ describe("block inventory design whitelist", () => {
     expect(sources.machineInventoryBody).toContain('data-testid="machine-module-label"');
     expect(sources.machineInventoryBody).toContain("t(L.ui.blockInventory.upgradeSlots)");
     expect(sources.machineInventoryBody).toContain('mt="xs"');
+  });
+
+  it("ポンプの流体アイコンを非正方形でも歪ませずに収める", () => {
+    expect(styles.pumpSection).toContain("object-fit: contain");
   });
 });
 

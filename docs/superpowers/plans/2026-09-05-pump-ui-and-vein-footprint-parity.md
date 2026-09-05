@@ -107,7 +107,7 @@
   - `ElectricPumpProcessorComponent(ElectricPumpBlockParam param, PumpFluidOutputComponent output, List<FluidGenerationEntry> entries)` と `public IReadOnlyList<FluidGenerationEntry> Entries`（Task 2 が使う）
   - `GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output, List<FluidGenerationEntry> entries)`
 
-- [ ] **Step 1: 判定の単体テストを書く（失敗する）**
+- [x] **Step 1: 判定の単体テストを書く（失敗する）**
 
 `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/PumpVeinFootprintJudgeTest.cs`:
 
@@ -173,12 +173,12 @@ namespace Tests.UnitTest.Game
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `PumpVeinFootprintJudge` が存在しないためコンパイルエラー（CS0103）
 
-- [ ] **Step 3: 判定クラスを書く**
+- [x] **Step 3: 判定クラスを書く**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/Vein/PumpVeinFootprintJudge.cs`:
 
@@ -227,7 +227,7 @@ namespace Game.Block.Interface.Vein
 }
 ```
 
-- [ ] **Step 4: 鉱脈層を `Veins` 公開へ置換する**
+- [x] **Step 4: 鉱脈層を `Veins` 公開へ置換する**
 
 `moorestech_server/Assets/Scripts/Game.Map.Interface/Vein/IFluidMapVeinDatastore.cs` 全文:
 
@@ -253,7 +253,7 @@ namespace Game.Map.Interface.Vein
 
 `using UnityEngine;` は `Debug.LogError` で使っているので残す。
 
-- [ ] **Step 5: `PumpFluidGenerationUtility.ResolveGenerationEntries` をフットプリント基準へ変える**
+- [x] **Step 5: `PumpFluidGenerationUtility.ResolveGenerationEntries` をフットプリント基準へ変える**
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/PumpFluidGenerationUtility.cs` の `ResolveGenerationEntries` を次で置換する（`using Game.Block.Interface;` と `using Game.Block.Interface.Vein;` を追加、`using UnityEngine;` は不要になるので削除）:
 
@@ -288,7 +288,7 @@ namespace Game.Map.Interface.Vein
 
 `using Mooresmaster.Model.GenerateFluidsModule;` は既存のまま（`GenerateFluids` 型はこのモジュール）。
 
-- [ ] **Step 6: 2つのポンプコンポーネントがエントリを外から受け取る形にする**
+- [x] **Step 6: 2つのポンプコンポーネントがエントリを外から受け取る形にする**
 
 `ElectricPumpProcessorComponent.cs` のフィールド・コンストラクタを次で置換する（`using UnityEngine;` は `Mathf` で使うので残す）:
 
@@ -324,7 +324,7 @@ namespace Game.Map.Interface.Vein
 
 `GearPumpComponent` に `public bool CanGenerateFluid => _entries.Count > 0 && _output.CanAcceptGeneratedFluid;` を追加し、`UpdateTorqueRequestRate` 内の `var canGenerateFluid = ...` をこのプロパティ参照に置き換える。
 
-- [ ] **Step 7: テンプレートでエントリを解決して渡す**
+- [x] **Step 7: テンプレートでエントリを解決して渡す**
 
 `VanillaElectricPumpTemplate.cs` の `CreatePump` 内、`processorComponent` 生成行を次で置換する:
 
@@ -340,7 +340,7 @@ namespace Game.Map.Interface.Vein
             var pumpComponent = new GearPumpComponent(param, gearEnergyTransformer, outputComponent, generationEntries);
 ```
 
-- [ ] **Step 8: `PumpFluidVeinTest` にフットプリント規則のケースを足す**
+- [x] **Step 8: `PumpFluidVeinTest` にフットプリント規則のケースを足す**
 
 `PumpFluidVeinTest.cs` に次のテストを追加する（`WaterVeinPos` の水鉱脈は ForUnitTest map.json で x:0..10, y:0, z:0）:
 
@@ -362,7 +362,7 @@ namespace Game.Map.Interface.Vein
         }
 ```
 
-- [ ] **Step 9: コンパイルしてテストを実行する**
+- [x] **Step 9: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
@@ -370,7 +370,7 @@ Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PumpVeinFootprintJudgeTest|PumpFluidVeinTest|ElectricPumpTest|GearPumpTest|IdlePowerRateTest"`
 Expected: 全件 PASS（`PumpOutsideFluidVein_GeneratesNothing` は (30,0,0) が全鉱脈のXZ外なので引き続き PASS、`PumpOnMismatchedFluidVein_GeneratesNothing` は蒸気鉱脈の流体が `generateFluid` に無いので PASS）
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Vein/PumpVeinFootprintJudge.cs moorestech_server/Assets/Scripts/Game.Block.Interface/Vein/PumpVeinFootprintJudge.cs.meta moorestech_server/Assets/Scripts/Tests/UnitTest/Game/PumpVeinFootprintJudgeTest.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Game/PumpVeinFootprintJudgeTest.cs.meta moorestech_server/Assets/Scripts/Game.Map.Interface/Vein/IFluidMapVeinDatastore.cs moorestech_server/Assets/Scripts/Game.Map/FluidMapVeinDatastore.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearPumpComponent.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaElectricPumpTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearPumpTemplate.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/PumpFluidVeinTest.cs
@@ -398,7 +398,7 @@ git commit -m "feat(pump): 汲み上げ対象を採掘機と同じ底面XZ重な
   - 油井のブロック状態に `CommonMachine` キー（`CurrentStateType` は `"processing"` / `"idle"`）
   - 両ポンプのブロック状態に `FluidMachineInventory` キー（入力0本・出力1本）
 
-- [ ] **Step 1: 状態配信のテストを書く（失敗する）**
+- [x] **Step 1: 状態配信のテストを書く（失敗する）**
 
 `moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/PumpBlockStateDetailTest.cs`:
 
@@ -516,12 +516,12 @@ namespace Tests.CombinedTest.Core
 
 `IBlock.GetBlockState()` と `IBlock.BlockStateChange`（`IObservable<BlockState>`）は `Game.Block.Interface/IBlock.cs` の実名（`BlockSystem` は `_onBlockStateChange.OnNext(GetBlockState())` で配信している）。`BlockState.CurrentStateDetails` が `Dictionary<string, byte[]>` であることも同ファイル `State/BlockState.cs` で確認する。
 
-- [ ] **Step 2: コンパイルして失敗を確認する**
+- [x] **Step 2: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `PumpBlockStateDetail` 未定義のコンパイルエラー
 
-- [ ] **Step 3: `PumpBlockStateDetail` を書く**
+- [x] **Step 3: `PumpBlockStateDetail` を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/State/PumpBlockStateDetail.cs`:
 
@@ -579,7 +579,7 @@ namespace Game.Block.Interface.State
 }
 ```
 
-- [ ] **Step 4: `PumpStateComponent` を書く**
+- [x] **Step 4: `PumpStateComponent` を書く**
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/PumpStateComponent.cs`:
 
@@ -654,7 +654,7 @@ namespace Game.Block.Blocks.Pump
 
 `ElectricPumpProcessorComponent` と `GearPumpComponent` のクラス宣言に `, IPumpGenerationState` を追加する（両者とも Task 1 で `CanGenerateFluid` を public プロパティとして持つ）。
 
-- [ ] **Step 5: 油井の `ElectricPumpComponent` に `CommonMachineBlockStateDetail` を持たせる**
+- [x] **Step 5: 油井の `ElectricPumpComponent` に `CommonMachineBlockStateDetail` を持たせる**
 
 `ElectricPumpComponent.cs` 全文を次で置換する:
 
@@ -724,7 +724,7 @@ namespace Game.Block.Blocks.Pump
 
 `Game.Block/Blocks/Machine/VanillaMachineBlockStateConst.cs` の名前空間が `Game.Block.Blocks.Machine` であることを確認し、違えば `using` を合わせる。
 
-- [ ] **Step 6: `PumpFluidOutputComponent` が内部タンクを配信する**
+- [x] **Step 6: `PumpFluidOutputComponent` が内部タンクを配信する**
 
 並列セッションの暫定版がマージ済みで `PumpFluidOutputComponent` に既に `IBlockStateDetail` 実装があれば、内容が下記と同じ（入力0本・出力1本・`MaxCapacity` に容量）ことを確認して次へ進む。無ければクラス宣言に `, IBlockStateDetail` を追加し、`using Game.Block.Interface.State;` と `using MessagePack;` を足して次を追加する:
 
@@ -741,7 +741,7 @@ namespace Game.Block.Blocks.Pump
         }
 ```
 
-- [ ] **Step 7: テンプレートに `PumpStateComponent` を登録する**
+- [x] **Step 7: テンプレートに `PumpStateComponent` を登録する**
 
 `VanillaElectricPumpTemplate.cs` の `components` リストを次にする（`processorComponent` の後に置く。状態配信は同tickの生成結果を見たいため）:
 
@@ -760,7 +760,7 @@ namespace Game.Block.Blocks.Pump
 
 `VanillaGearPumpTemplate.cs` も同様に `pumpComponent` の直後へ `new PumpStateComponent(generationEntries, pumpComponent)` を追加する。
 
-- [ ] **Step 8: コンパイルしてテストを実行する**
+- [x] **Step 8: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
@@ -768,7 +768,7 @@ Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PumpBlockStateDetailTest|PumpFluidVeinTest|ElectricPumpTest|GearPumpTest|IdlePowerRateTest"`
 Expected: 全件 PASS
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/State/PumpBlockStateDetail.cs moorestech_server/Assets/Scripts/Game.Block.Interface/State/PumpBlockStateDetail.cs.meta moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearPumpComponent.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaElectricPumpTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearPumpTemplate.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/PumpBlockStateDetailTest.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/PumpBlockStateDetailTest.cs.meta
@@ -795,7 +795,7 @@ git commit -m "feat(pump): 汲み上げ中流体・内部タンク・電力充�
   - `LocalizationKeys.Ui.Tooltip.PlacePumpOutsideVein`
   - `LocalizationKeys.Ui.BlockInventory.PumpNoVein`（Web側でも `L.ui.blockInventory.pumpNoVein`）
 
-- [ ] **Step 1: 設置制限のテストを書く（失敗する）**
+- [x] **Step 1: 設置制限のテストを書く（失敗する）**
 
 `VeinPlacementReporterTest.cs` に次の2テストを追加する。既存の `FluidVeinGuid`（`11111111-0000-0000-0000-000000000002`、ForUnitTest map では水鉱脈）と `FluidVeinCell (20,0,20)` を使う。`ForUnitTestModBlockId.ElectricPump` は水だけを `generateFluid` に持つ。
 
@@ -865,7 +865,7 @@ git commit -m "feat(pump): 汲み上げ中流体・内部タンク・電力充�
         }
 ```
 
-- [ ] **Step 2: ローカライズキーを追加する**
+- [x] **Step 2: ローカライズキーを追加する**
 
 `Localization/localization.csv` の `ui.tooltip.placeOutsideTutorialVein` 行の直後に追加:
 
@@ -879,7 +879,7 @@ ui.tooltip.placePumpOutsideVein,Place the pump over a fluid vein it can draw fro
 ui.blockInventory.pumpNoVein,No fluid vein to draw from,No fluid vein to draw from,汲み上げられる鉱脈がありません,Keine Flüssigkeitsader zum Fördern
 ```
 
-- [ ] **Step 3: コンパイルして失敗を確認する**
+- [x] **Step 3: コンパイルして失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client --force-recompile`
 Expected: `PlacePumpOutsideVein` は生成済みになり、テストの `ForUnitTestModBlockId.ElectricPump` 等は解決するが、`MarkOutsideVeinCellsAsNotPlaceable` がポンプを素通しするためテスト失敗（コンパイルは通る）
@@ -887,7 +887,7 @@ Expected: `PlacePumpOutsideVein` は生成済みになり、テストの `ForUni
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "VeinPlacementReporterTest|PlacementVeinViewResolverTest"`
 Expected: 新規3件が FAIL
 
-- [ ] **Step 4: `MapVeinAabb` に流体IDを持たせる**
+- [x] **Step 4: `MapVeinAabb` に流体IDを持たせる**
 
 `MapVeinAabb.cs` のフィールドとコンストラクタを次で置換する:
 
@@ -931,7 +931,7 @@ Expected: 新規3件が FAIL
 
 `MapVeinAabb` のコンストラクタを直接呼ぶ箇所を `grep -rn "new MapVeinAabb(" moorestech_client/Assets/Scripts` で全件洗い、第6引数を追加する（テストで直接生成している箇所があれば `(FluidId?)null` を渡す）。
 
-- [ ] **Step 5: `VeinPlacementReporter` にポンプの制限を足す**
+- [x] **Step 5: `VeinPlacementReporter` にポンプの制限を足す**
 
 `VeinPlacementReporter.cs` の `MarkOutsideVeinCellsAsNotPlaceable` を次で置換する（クラスの summary も「3つの設置制限」に改める）:
 
@@ -993,7 +993,7 @@ Expected: 新規3件が FAIL
         }
 ```
 
-- [ ] **Step 6: `PlacementVeinViewResolver` のポンプ分岐を汲み上げられる鉱脈に絞る**
+- [x] **Step 6: `PlacementVeinViewResolver` のポンプ分岐を汲み上げられる鉱脈に絞る**
 
 `PlacementVeinViewResolver.Resolve` の switch と `#region Internal` を次で置換する:
 
@@ -1039,7 +1039,7 @@ Expected: 新規3件が FAIL
 
 `MapVeinAabbRegistry.SelectVeinsOfKind` の利用箇所が無くなったら `grep -rn "SelectVeinsOfKind" moorestech_client/Assets/Scripts` で確認し、他に呼び出しが無ければメソッドを削除する（summary の「ポンプのように」も消える）。
 
-- [ ] **Step 7: コンパイルしてテストを実行する**
+- [x] **Step 7: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
@@ -1047,7 +1047,7 @@ Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "VeinPlacementReporterTest|PlacementVeinViewResolverTest|PlacementVeinViewPushTest|MapVeinRangeView"`
 Expected: 全件 PASS
 
-- [ ] **Step 8: コミットする**
+- [x] **Step 8: コミットする**
 
 ```bash
 git add Localization/localization.csv moorestech_client/Assets/Scripts/Client.Game/InGame/Map/MapVein moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/Common/VeinPlacementReporter.cs moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/VeinRestriction/PlacementVeinViewResolver.cs moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem
@@ -1091,11 +1091,11 @@ git commit -m "feat(pump): ポンプの設置を汲み上げられる流体鉱�
     }
 ```
 
-- [ ] **Step 1: DTO を追加する**
+- [x] **Step 1: DTO を追加する**
 
 `BlockDetailDtos.cs` の `MiningItemDto` の直後に上記3クラスを追加する。`BlockInventoryDtos.cs` の `BlockInventoryDto` に `public MinerDetailDto Miner;` の直後で `public PumpDetailDto Pump;` を追加する。
 
-- [ ] **Step 2: ビルダーに充填処理を追加する**
+- [x] **Step 2: ビルダーに充填処理を追加する**
 
 `BlockDetailDtoBuilder.Apply` の採掘機ブロックの直後（ギアの前）に追加:
 
@@ -1132,12 +1132,12 @@ git commit -m "feat(pump): ポンプの設置を汲み上げられる流体鉱�
 
 `GetGearConsumption` の switch に `GearPumpBlockParam p => p.GearConsumption,` を追加する。
 
-- [ ] **Step 3: コンパイルする**
+- [x] **Step 3: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail
@@ -1169,12 +1169,12 @@ git commit -m "feat(webui-host): block_inventory.current にポンプ詳細 Pump
 - Consumes: Task 4 の `PumpDetailDto` 形状、Task 3 のキー `ui.blockInventory.pumpNoVein`、既存 `FluidIcon`（`@/shared/ui`、`fluidGuid` でアイコンと名前を解決）、既存 `PowerRateText`、既存 `machineStateDisplay`、既存 `L.ui.blockInventory.itemsPerMinute`
 - Produces: testId `pump-section` / `pump-state-label` / `pump-power-rate` / `pump-pumping-fluids` / `pump-no-vein` / `pump-fluid-slots`
 
-- [ ] **Step 1: i18n キーを再生成する**
+- [x] **Step 1: i18n キーを再生成する**
 
 Run: `cd moorestech_web/webui && npm run gen:i18n`
 Expected: `src/shared/i18n/generated/localizationKeys.ts` に `pumpNoVein` が増える（`git diff --stat` で1ファイル変更）
 
-- [ ] **Step 2: スキーマと型を追加する**
+- [x] **Step 2: スキーマと型を追加する**
 
 `schemas/inventory.ts` の `MinerDetailDataSchema` の直後に追加:
 
@@ -1191,7 +1191,7 @@ export const PumpDetailDataSchema = z.object({
 
 `payloadTypes.ts` の import リストに `PumpDetailDataSchema,` を追加し、`export type MinerDetailData = ...` の並びに `export type PumpDetailData = z.infer<typeof PumpDetailDataSchema>;` を追加する（`MinerDetailData` の export が無い場合は `BlockInventoryOpen` の直後に置く）。
 
-- [ ] **Step 3: `PumpSection` の unit テストを書く（失敗する）**
+- [x] **Step 3: `PumpSection` の unit テストを書く（失敗する）**
 
 `moorestech_web/webui/src/features/blockInventory/details/PumpSection.test.ts`:
 
@@ -1219,7 +1219,7 @@ describe("pumpSectionDisplay", () => {
 Run: `cd moorestech_web/webui && npx vitest run src/features/blockInventory/details/PumpSection.test.ts`
 Expected: FAIL（モジュール未存在）
 
-- [ ] **Step 4: `PumpSection.tsx` を書く**
+- [x] **Step 4: `PumpSection.tsx` を書く**
 
 ```tsx
 import { Group, Stack, Text } from "@mantine/core";
@@ -1287,7 +1287,7 @@ export default function PumpSection({ data }: { data: BlockInventoryOpen }) {
 
 `--slot-size` が `app/tokens.css` に無ければ `ItemSlot` の実寸をそのまま数値で書く。`MachineProcessState` の型は `data.pump.electric.currentState` が zod 由来で既に一致する。
 
-- [ ] **Step 5: `SectionStackView` に組み込む**
+- [x] **Step 5: `SectionStackView` に組み込む**
 
 `SectionStackView.tsx` に `import PumpSection from "../details/PumpSection";` を追加し、`configByBlockType` に次の2行を追加する:
 
@@ -1298,11 +1298,11 @@ export default function PumpSection({ data }: { data: BlockInventoryOpen }) {
 
 JSX の `<MinerSection data={data} />` の直後に `<PumpSection data={data} />` を追加する。
 
-- [ ] **Step 6: デザイン whitelist テストへ登録する**
+- [x] **Step 6: デザイン whitelist テストへ登録する**
 
 `blockInventoryDesign.test.ts` の `sources` に `pump: read("./details/PumpSection.tsx"),` を追加する。
 
-- [ ] **Step 7: e2e fixture・モック・spec を追加する**
+- [x] **Step 7: e2e fixture・モック・spec を追加する**
 
 `blockLocalizationFixtures.ts` に定数と名前を追加:
 
@@ -1393,7 +1393,7 @@ test("歯車ポンプは電力行を持たず歯車行を出す", async ({ page 
 
 `blockRegistryCoverage.spec.ts` の `intentionalGeneric` に `"ElectricPump",` と `"GearPump",` を追加する。`e2e/fixtures/v8-block-ui-registry.json` の `ElectricPump` と `GearPump` の `blockUIAddressablesPath` を `"Vanilla/UI/Block/MachineBlockInventory"` にする（Task 6 のマスタ変更と同じ値）。
 
-- [ ] **Step 8: unit テストと e2e を実行する**
+- [x] **Step 8: unit テストと e2e を実行する**
 
 Run: `cd moorestech_web/webui && npm run test`
 Expected: 全件 PASS（`PumpSection.test.ts`、`blockInventoryDesign.test.ts`、`blockRegistryCoverage` は vitest 対象外なら e2e で）
@@ -1401,7 +1401,7 @@ Expected: 全件 PASS（`PumpSection.test.ts`、`blockInventoryDesign.test.ts`�
 Run: `cd moorestech_web/webui && npm run test:e2e -- e2e/tests/block/blockDetails.spec.ts e2e/tests/regression/sectionStack.spec.ts e2e/tests/block/blockRegistryCoverage.spec.ts`
 Expected: 全件 PASS（e2e はポート 5273 を共有するため、他セッションの e2e と同時実行しない）
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/bridge/contract moorestech_web/webui/src/features/blockInventory moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts moorestech_web/webui/e2e

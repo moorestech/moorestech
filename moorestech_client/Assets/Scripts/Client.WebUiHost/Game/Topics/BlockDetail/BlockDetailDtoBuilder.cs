@@ -63,19 +63,13 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 };
             }
 
-            // 採掘機: CommonMiner StateDetail + マスタ MineSettings から分間採掘数を算出
-            // Miners: the CommonMiner state detail plus per-minute rates derived from master MineSettings
-            var miner = block.GetStateDetail<CommonMinerBlockStateDetail>(CommonMinerBlockStateDetail.BlockStateDetailKey);
-            if (miner != null && common != null && param is IMinerParam minerParam)
-            {
-                dto.Progress = common.ProcessingRate;
-                dto.Miner = new MinerDetailDto
-                {
-                    CurrentPower = common.CurrentPower,
-                    RequestPower = common.RequestPower,
-                    MiningItems = BuildMiningItems(miner, minerParam),
-                };
-            }
+            // 採掘機: MinerDetailDtoBuilderが算出
+            // Miners: computed by MinerDetailDtoBuilder
+            MinerDetailDtoBuilder.Apply(dto, block, param, common);
+
+            // ポンプ: PumpDetailDtoBuilderが算出
+            // Pumps: computed by PumpDetailDtoBuilder
+            PumpDetailDtoBuilder.Apply(dto, block, common);
 
             // ギア: GearStateDetail + マスタ GearConsumption（要求値）
             // Gears: the GearStateDetail plus master GearConsumption requirements
@@ -155,23 +149,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             }
         }
 
-        private static List<MiningItemDto> BuildMiningItems(CommonMinerBlockStateDetail miner, IMinerParam minerParam)
-        {
-            // uGUI MinerBlockInventoryView と同じ算出（サーバーの実効採掘時間から 60/秒 を分間数に）
-            // Same derivation as uGUI MinerBlockInventoryView (60 / the server's effective seconds, per minute)
-            var result = new List<MiningItemDto>();
-            var currentIds = miner.GetCurrentMiningItemIds();
-            if (miner.MiningSeconds <= 0) return result;
-
-            foreach (var settings in minerParam.MineSettings.items)
-            {
-                var itemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
-                if (!currentIds.Contains(itemId)) continue;
-                result.Add(new MiningItemDto { ItemId = itemId.AsPrimitive(), ItemsPerMinute = (float)(60 / miner.MiningSeconds) });
-            }
-            return result;
-        }
-
         private static void AppendFluidSlots(List<BlockFluidSlotDto> slots, List<FluidMessagePack> tanks)
         {
             foreach (var tank in tanks)
@@ -192,11 +169,12 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             {
                 GearMachineBlockParam p => p.GearConsumption,
                 GearMinerBlockParam p => p.GearConsumption,
+                GearPumpBlockParam p => p.GearConsumption,
                 _ => null,
             };
         }
 
-        private static string ToCamelCase(string value)
+        internal static string ToCamelCase(string value)
         {
             if (string.IsNullOrEmpty(value)) return value;
             return char.ToLowerInvariant(value[0]) + value.Substring(1);

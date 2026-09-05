@@ -21,6 +21,7 @@ namespace Client.Tests.PlaceSystem
         private const string MinableItemVeinGuid = "11111111-0000-0000-0000-000000000001";
         private const string FluidVeinGuid = "11111111-0000-0000-0000-000000000002";
         private const string UnmineableItemVeinGuid = "11111111-0000-0000-0000-000000000004";
+        private const string SteamVeinGuid = "11111111-0000-0000-0000-000000000003";
 
         /// <summary>
         ///     表示は設置判定と同じ絞り込みでなければならない。掘れない鉱脈にボックスが出ると「見えるのに置けない」が再発する
@@ -69,7 +70,7 @@ namespace Client.Tests.PlaceSystem
         ///     The pump check goes through IPumpParam; enumerating concrete params again would hide fluid veins for a newly added pump
         /// </summary>
         [Test]
-        public void ポンプは流体鉱脈だけを出す()
+        public void ポンプは汲み上げられる流体鉱脈だけを出す()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
@@ -81,6 +82,21 @@ namespace Client.Tests.PlaceSystem
 
             CollectionAssert.AreEqual(new[] { Guid.Parse(FluidVeinGuid) }, ToVeinTypeGuids(display));
             Assert.IsFalse(display.Highlight);
+        }
+
+        [Test]
+        public void ポンプはgenerateFluidに無い流体の鉱脈を出さない()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var pumpGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPump).BlockGuid;
+            var registry = MapVeinAabbRegistryFixture.Create(
+                new VeinLayoutMessagePack(FluidVeinGuid, 20, 0, 20, 20, 0, 20),
+                new VeinLayoutMessagePack(SteamVeinGuid, 40, 0, 40, 40, 0, 40));
+
+            var display = PlacementVeinViewResolver.Resolve(registry, new VeinRestrictedPlacementState(), new BlockPlacementTarget(pumpGuid, null));
+
+            CollectionAssert.AreEqual(new[] { Guid.Parse(FluidVeinGuid) }, ToVeinTypeGuids(display));
         }
 
         private static List<Guid> ToVeinTypeGuids(VeinDisplay display)

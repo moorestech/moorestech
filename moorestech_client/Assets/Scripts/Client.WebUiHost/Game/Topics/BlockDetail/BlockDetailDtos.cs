@@ -83,6 +83,28 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public float ItemsPerMinute;
     }
 
+    public class PumpDetailDto
+    {
+        // 油井のみ設定。歯車はnull(GearSection使用)
+        // Only the electric pump sets this; gear pump is null (uses GearSection)
+        public PumpElectricDto Electric;
+        public List<PumpingFluidDto> PumpingFluids;
+    }
+
+    public class PumpElectricDto
+    {
+        public string CurrentState;
+        public float CurrentPower;
+        public float RequestPower;
+    }
+
+    public class PumpingFluidDto
+    {
+        public int FluidId;
+        public string FluidGuid;
+        public float AmountPerMinute;
+    }
+
     public class GearDetailDto
     {
         public bool IsClockwise;

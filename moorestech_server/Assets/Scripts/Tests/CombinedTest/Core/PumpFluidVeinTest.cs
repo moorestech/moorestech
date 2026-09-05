@@ -82,6 +82,22 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, inventory.Count, "マスタに一致するfluidGuidが無ければ生成されないはず");
         }
 
+        // YがずれてもXZ重なりで汲み上げる
+        // Draws on XZ overlap even off the vein's Y range
+        [Test]
+        public void PumpAboveVeinY_GeneratesFluid()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var pump = PlacePoweredPump(new Vector3Int(5, 7, 0));
+
+            for (var i = 0; i < 10; i++) GameUpdater.RunFrames(1);
+
+            var inventory = pump.GetComponent<PumpFluidOutputComponent>().GetFluidInventory();
+            Assert.AreEqual(1, inventory.Count, "Yが鉱脈外でもXZが重なれば汲み上げるはず");
+            Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(WaterFluidGuid), inventory[0].FluidId);
+        }
+
         private static IBlock PlacePoweredPump(Vector3Int pos)
         {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;

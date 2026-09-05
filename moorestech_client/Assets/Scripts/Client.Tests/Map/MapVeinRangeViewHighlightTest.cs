@@ -10,6 +10,7 @@ using Server.Protocol.PacketResponse.MapData;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Client.Tests.Map.Vein.MapVeinAabbRegistryFixture;
 
 namespace Client.Tests.Map
 {
@@ -48,7 +49,7 @@ namespace Client.Tests.Map
         public void 強調鉱脈を指定するとその鉱脈だけを別マテリアルで描く()
         {
             var (service, root, registry) = CreateService();
-            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Item), false));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(SelectVeinsOfKind(registry, MapVeinKind.Item), false));
             Assert.AreEqual(2, CountVisibleBoxes(root));
 
             service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfType(ItemVeinA), true));
@@ -65,7 +66,7 @@ namespace Client.Tests.Map
         public void 強調は表示種別を無視して対象鉱脈を描く()
         {
             var (service, root, registry) = CreateService();
-            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Fluid), false));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(SelectVeinsOfKind(registry, MapVeinKind.Fluid), false));
 
             service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfType(ItemVeinB), true));
 
@@ -76,10 +77,10 @@ namespace Client.Tests.Map
         public void 強調を解除すると種別表示へ戻る()
         {
             var (service, root, registry) = CreateService();
-            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Item), false));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(SelectVeinsOfKind(registry, MapVeinKind.Item), false));
             service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfType(ItemVeinB), true));
 
-            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Item), false));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(SelectVeinsOfKind(registry, MapVeinKind.Item), false));
 
             Assert.AreEqual(2, CountVisibleBoxes(root));
             foreach (Transform child in root)
@@ -96,7 +97,7 @@ namespace Client.Tests.Map
 
             CollectionAssert.AreEqual(new[] { ItemVeinA }, registry.SelectVeinsOfType(ItemVeinA).ConvertAll(vein => vein.VeinTypeGuid));
             CollectionAssert.AreEqual(new[] { ItemVeinB }, registry.SelectVeinsOfType(ItemVeinB).ConvertAll(vein => vein.VeinTypeGuid));
-            Assert.AreEqual(2, registry.SelectVeinsOfKind(MapVeinKind.Item).Count);
+            Assert.AreEqual(2, SelectVeinsOfKind(registry, MapVeinKind.Item).Count);
         }
 
         private (MapVeinRangeViewService service, Transform root, MapVeinAabbRegistry registry) CreateService()

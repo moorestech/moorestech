@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
+using Game.Block.Interface;
+using Game.Block.Interface.Vein;
 using Game.Context;
 using Game.Fluid;
 using Mooresmaster.Model.GenerateFluidsModule;
-using UnityEngine;
 
 namespace Game.Block.Blocks.Pump
 {
@@ -14,30 +15,40 @@ namespace Game.Block.Blocks.Pump
     /// </summary>
     public static class PumpFluidGenerationUtility
     {
-        // 設置位置のFluidMapVeinとマスタgenerateFluidの両方に存在するエントリだけブロック生成時に確定する
-        // Resolve entries that exist in both the FluidMapVein at this position and the master generateFluid table, once at block creation
-        public static List<FluidGenerationEntry> ResolveGenerationEntries(Element[] generateFluids, Vector3Int blockPos)
+        // 生成時に一度だけ対象流体を確定
+        // Resolves the target fluids once, at block creation
+        public static List<FluidGenerationEntry> ResolveGenerationEntries(GenerateFluids generateFluids, BlockPositionInfo footprint)
         {
-            var veins = ServerContext.FluidMapVeinDatastore.GetVeinsContainingCell(blockPos);
-            if (generateFluids == null || generateFluids.Length == 0 || veins.Count == 0) return new List<FluidGenerationEntry>();
-
-            var veinFluidIds = new HashSet<FluidId>();
-            foreach (var vein in veins) veinFluidIds.Add(vein.VeinFluidId);
-            
-            
             var entries = new List<FluidGenerationEntry>();
-            foreach (var gen in generateFluids)
+            var pumpableFluidIds = PumpVeinFootprintJudge.ResolvePumpableFluidIds(generateFluids);
+            var targetFluidIds = new HashSet<FluidId>();
+            foreach (var vein in ServerContext.FluidMapVeinDatastore.Veins)
+            {
+                if (!PumpVeinFootprintJudge.IsPumpableVein(footprint, pumpableFluidIds, vein.VeinRangeMin, vein.VeinRangeMax, vein.VeinFluidId)) continue;
+                targetFluidIds.Add(vein.VeinFluidId);
+            }
+
+            // 同一流体は1本にまとめ、公称量はマスタの並び順で決める
+            // Each fluid appears once; the nominal rate follows the master ordering
+            foreach (var gen in generateFluids.items)
             {
                 if (gen.GenerateTime <= 0) continue;
-                
+
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(gen.FluidGuid);
-                if (!veinFluidIds.Contains(fluidId)) continue;
+                if (!targetFluidIds.Remove(fluidId)) continue;
 
                 var perSecond = gen.Amount / Math.Max(0.0001, gen.GenerateTime);
                 entries.Add(new FluidGenerationEntry(fluidId, perSecond));
             }
-            
+
             return entries;
+        }
+
+        // 生成対象があり出力タンクが受け入れ可能かの共通判定（電気・歯車ポンプで同一式を共有）
+        // Shared check for whether generation targets exist and the output tank can accept them (shared by electric and gear pumps)
+        public static bool CanGenerateFluid(List<FluidGenerationEntry> entries, PumpFluidOutputComponent output)
+        {
+            return 0 < entries.Count && output.CanAcceptGeneratedFluid;
         }
 
         // tick毎の発行はキャッシュ済みエントリをpowerRateで按分するだけ

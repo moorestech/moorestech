@@ -67,6 +67,13 @@ export const MinerDetailDataSchema = z.object({
   miningItems: z.array(z.object({ itemId: z.number(), itemsPerMinute: z.number() })),
 });
 
+export const PumpDetailDataSchema = z.object({
+  // 油井のみelectric保持。歯車はGearSection
+  // Electric only on the electric pump; gear uses GearSection
+  electric: z.object({ currentState: MachineProcessStateSchema, currentPower: z.number(), requestPower: z.number() }).optional(),
+  pumpingFluids: z.array(z.object({ fluidId: z.number(), fluidGuid: GuidSchema, amountPerMinute: z.number() })),
+});
+
 export const GearDetailDataSchema = z.object({
   isClockwise: z.boolean(), currentRpm: z.number(), currentTorque: z.number(), baseRpm: z.number(), baseTorque: z.number(),
 });
@@ -124,6 +131,7 @@ export const BlockInventoryOpenSchema = z.object({
   machine: MachineDetailDataSchema.optional(),
   generator: GeneratorDetailDataSchema.optional(),
   miner: MinerDetailDataSchema.optional(),
+  pump: PumpDetailDataSchema.optional(),
   gear: GearDetailDataSchema.optional(),
   electricNetwork: ElectricNetworkDataSchema.optional(),
   gearNetwork: GearNetworkDataSchema.optional(),
