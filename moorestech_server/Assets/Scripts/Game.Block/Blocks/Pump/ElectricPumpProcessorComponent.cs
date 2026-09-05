@@ -11,7 +11,7 @@ namespace Game.Block.Blocks.Pump
     /// <summary>
     /// Generates fluid based on supplied electric power and pushes it into an inner tank.
     /// </summary>
-    public class ElectricPumpProcessorComponent : IUpdatableBlockComponent
+    public class ElectricPumpProcessorComponent : IUpdatableBlockComponent, IPumpGenerationState
     {
         private readonly PumpFluidOutputComponent _output;
         private readonly ElectricPower _requiredPower;

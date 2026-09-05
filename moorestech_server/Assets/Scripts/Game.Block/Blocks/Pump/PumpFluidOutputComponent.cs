@@ -6,7 +6,9 @@ using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
 using Game.Fluid;
+using MessagePack;
 using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
 using Game.Block.Interface.Component.ConnectJudge;
@@ -17,7 +19,7 @@ namespace Game.Block.Blocks.Pump
     /// Holds an inner fluid tank and pushes it to connected pipes each update.
     /// Output-only for external inventories; internal generators enqueue via AddLiquid.
     /// </summary>
-    public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
+    public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState, IBlockStateDetail
     {
         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
         public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
@@ -109,6 +111,17 @@ namespace Game.Block.Blocks.Pump
             var state = new FluidContainerSaveJsonObject(_tank);
 
             return JsonConvert.SerializeObject(state);
+        }
+
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            BlockException.CheckDestroy(this);
+
+            // ポンプは供給専用なので入力タンク0本、内部タンクを出力タンク1本として配信する
+            // A pump is output-only, so it publishes zero input tanks and its inner tank as the single output tank
+            var outputTanks = new List<FluidMessagePack> { new(_tank.FluidId, _tank.Amount, _tank.Capacity) };
+            var detail = new FluidMachineInventoryStateDetail(new List<FluidMessagePack>(), outputTanks);
+            return new[] { new BlockStateDetail(FluidMachineInventoryStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail)) };
         }
 
         public bool IsDestroy { get; private set; }

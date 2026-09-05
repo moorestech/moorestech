@@ -38,6 +38,7 @@ namespace Game.Block.Factory.BlockTemplate
             // ポンプはConsumer役をワイヤー端点に渡す
             // Pump passes the consumer role to the wire endpoint
             var wireConnector = new ElectricWireConnectorComponent(param.MaxWireConnectionCount, blockInstanceId, electricComponent, componentStates);
+            var stateComponent = new PumpStateComponent(generationEntries, processorComponent);
 
             // 供給読み取り(electricComponent)を生成判定(processorComponent)より先に更新させるため、この並び順を維持すること
             // Keep this order: the supply reader (electricComponent) must update before the pump processor
@@ -47,6 +48,7 @@ namespace Game.Block.Factory.BlockTemplate
                 outputComponent,
                 electricComponent,
                 processorComponent,
+                stateComponent,
                 wireConnector,
             };
 

@@ -9,7 +9,7 @@ namespace Game.Block.Blocks.Gear
     /// <summary>
     /// Generates fluid into an inner tank based on supplied gear power.
     /// </summary>
-    public class GearPumpComponent : IUpdatableBlockComponent
+    public class GearPumpComponent : IUpdatableBlockComponent, IPumpGenerationState
     {
         private readonly GearEnergyTransformer _gearEnergyTransformer;
         private readonly PumpFluidOutputComponent _output;
