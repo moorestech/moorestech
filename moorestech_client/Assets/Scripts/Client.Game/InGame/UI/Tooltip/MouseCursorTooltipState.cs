@@ -12,7 +12,8 @@ namespace Client.Game.InGame.UI.Tooltip
     public class MouseCursorTooltipState : IMouseCursorTooltip
     {
         private readonly ReactiveProperty<TooltipPresentation> _presentation = new(TooltipPresentation.Hidden);
-        private TooltipOwner _currentOwner;
+
+        public TooltipOwner CurrentOwner { get; private set; }
 
         public IObservable<TooltipPresentation> OnPresentationChanged => _presentation;
         public TooltipPresentation GetPresentation() => _presentation.Value;
@@ -39,7 +40,7 @@ namespace Client.Game.InGame.UI.Tooltip
                 return;
             }
 
-            _currentOwner = owner;
+            CurrentOwner = owner;
             _presentation.Value = new TooltipPresentation(lines);
         }
 
@@ -47,9 +48,9 @@ namespace Client.Game.InGame.UI.Tooltip
         // Never clear a tooltip shown by someone else, so writers that hide every frame cannot stomp on others
         public void Hide(TooltipOwner owner)
         {
-            if (_currentOwner != owner) return;
+            if (CurrentOwner != owner) return;
 
-            _currentOwner = null;
+            CurrentOwner = null;
             _presentation.Value = TooltipPresentation.Hidden;
         }
     }

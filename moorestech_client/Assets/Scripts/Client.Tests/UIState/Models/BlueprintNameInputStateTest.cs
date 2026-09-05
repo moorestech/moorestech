@@ -2,7 +2,7 @@ using Client.Game.InGame.UI.Blueprint;
 using NUnit.Framework;
 using UniRx;
 
-namespace Client.Tests.UIState
+namespace Client.Tests.UIState.Models
 {
     public class BlueprintNameInputStateTest
     {
@@ -11,13 +11,17 @@ namespace Client.Tests.UIState
         {
             var state = new BlueprintNameInputState();
             string confirmed = null;
-            using var subscription = state.OnConfirm.Subscribe(name => confirmed = name);
+            var openLog = new System.Collections.Generic.List<bool>();
+            using var s1 = state.OnConfirm.Subscribe(name => confirmed = name);
+            using var s2 = state.OnOpenChanged.Subscribe(openLog.Add);
             state.Open();
 
             state.Confirm("   ");
 
             Assert.IsNull(confirmed);
-            Assert.IsTrue(state.IsOpen);
+            // 開いたままなので通知は流れない
+            // Still open, so no notification fires
+            CollectionAssert.AreEqual(new[] { true }, openLog);
         }
 
         [Test]
@@ -33,7 +37,6 @@ namespace Client.Tests.UIState
             state.Confirm("  base  ");
 
             Assert.AreEqual("base", confirmed);
-            Assert.IsFalse(state.IsOpen);
             CollectionAssert.AreEqual(new[] { true, false }, openLog);
         }
 

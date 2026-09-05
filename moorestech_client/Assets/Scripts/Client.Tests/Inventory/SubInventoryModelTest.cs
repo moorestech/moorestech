@@ -30,7 +30,6 @@ namespace Client.Tests.Inventory
             model.SetItems(items);
 
             Assert.AreEqual(3, model.Count);
-            Assert.IsNull(model.TrainMessage);
         }
 
         [Test]
@@ -46,18 +45,6 @@ namespace Client.Tests.Inventory
 
             Assert.AreEqual(5, model.SubInventory[1].Count);
             Assert.AreEqual(2, model.Count);
-        }
-
-        [Test]
-        public void SetTrainMessageでスロットが空になりエラー種別が残る()
-        {
-            var model = new SubInventoryModel(new TrainInventorySubInventoryIdentifier(1));
-            model.SetItems(new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty() });
-
-            model.SetTrainMessage(TrainInventoryMessageType.ContainerMissing);
-
-            Assert.AreEqual(0, model.Count);
-            Assert.AreEqual(TrainInventoryMessageType.ContainerMissing, model.TrainMessage);
         }
     }
 }

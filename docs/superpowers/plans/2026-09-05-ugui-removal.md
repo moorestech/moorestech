@@ -22,7 +22,7 @@
 - R8. prefab・シーン・Addressable設定の変更は `uloop execute-dynamic-code` 経由でのみ行う（YAML直接編集禁止）。
 - R9. `WebUiGateClassification`/`WebUiGateAuditTest` は削除せず、残置対象に合わせて Rules/ScanRoots を縮小して維持する。
 - R10. `docs/webui/ugui-retirement-plan.md` のスコープ外リストをADRの例外で上書きし、Phase 2〜4 の完了を記録する。
-- やらないこと: MainMenu/ローディングのUI Toolkit化、`com.unity.ugui` パッケージ削除、cef-unity の改変、HPバー・デバッグUIの置換、`blockUIAddressablesPath` マスタスキーマの改名（後続 bd タスク）、`WebUiScreenGate.IsWebUiMode` を参照する残置ファイル（世界空間ピン・ChainPlacementPreviewPart・SkitManager 等）の分岐簡約（後続 bd タスク）。
+- やらないこと: `ChallengeListUITest` は uGUI 観測点のため PR1 で削除（移植しない。`.decisions/2026-09-06-ChallengeListUITestはPR1で削除する.md`）、MainMenu/ローディングのUI Toolkit化、`com.unity.ugui` パッケージ削除、cef-unity の改変、HPバー・デバッグUIの置換、`blockUIAddressablesPath` マスタスキーマの改名（後続 bd タスク）、`WebUiScreenGate.IsWebUiMode` を参照する残置ファイル（世界空間ピン・ChainPlacementPreviewPart・SkitManager 等）の分岐簡約（後続 bd タスク）。
 
 ## Global Constraints
 
@@ -1649,7 +1649,7 @@ Run: `uloop compile --project-path ./moorestech_client` → `errors: 0`
 `Client.Tests/`:
 - `UIState/Fakes/FakeBuildMenuView.cs`（PR1で削除済みなら不要）
 - `Localization/Display/ItemSlotDefaultTooltipTest.cs`
-- `EditModeInPlayingTest/ChallengeListUITest.cs`, `ElectricToGearModeSelectUITest.cs`, `MachineModuleSlotUITest.cs`, `MachineRecipeSelectionGearUITest.cs`, `MachineRecipeSelectionUITest.cs`, `MachineRecipeSelectionTestHelper.cs`（サーバー往復の移植は Task B6）
+- `EditModeInPlayingTest/ElectricToGearModeSelectUITest.cs`, `MachineModuleSlotUITest.cs`, `MachineRecipeSelectionGearUITest.cs`, `MachineRecipeSelectionUITest.cs`, `MachineRecipeSelectionTestHelper.cs`（サーバー往復の移植は Task B6）
 - `WebUi/Gate/WebUiScreenGateTest.cs`（`IsWebUiMode` 恒久 true の検証は無意味になるため削除。`WebUiScreenGate` 自体は残す — 世界空間ピン等が参照）
 
 `Client.Playtest/Operations/PlaytestUiOps.cs`: `TryClickBuildMenuSlot` と非CEF経路（`useWebUi == false` 分岐）、`using UnityEngine.EventSystems; using Client.Game.InGame.UI.BuildMenu; using Client.Game.InGame.UI.Inventory.Common;` を削除。`CefScreenMapper.cs` は CEF 例外として無変更。
@@ -1672,7 +1672,7 @@ for f in Blueprint/BlueprintNameInputView BuildMenu/BuildMenuView BuildMenu/Buil
 git rm moorestech_client/Assets/Scripts/Client.Game/InGame/UI/UIState/UIObject.meta
 git rm moorestech_client/Assets/Scripts/Client.Game/InGame/Presenter/PauseMenu/SaveButton.cs* moorestech_client/Assets/Scripts/Client.Game/InGame/Presenter/PauseMenu/NetworkDisconnectPresenter.cs* moorestech_client/Assets/Scripts/Client.Game/InGame/Control/UICursorFollowControl.cs* moorestech_client/Assets/Scripts/Client.Game/InGame/Control/UICursorFollowControlRootCanvasRect.cs* moorestech_client/Assets/Scripts/Client.Game/Common/UIRaycastTarget.cs*
 git rm moorestech_client/Assets/Scripts/Client.Tests/Localization/Display/ItemSlotDefaultTooltipTest.cs* moorestech_client/Assets/Scripts/Client.Tests/WebUi/Gate/WebUiScreenGateTest.cs*
-git rm moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ChallengeListUITest.cs* moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ElectricToGearModeSelectUITest.cs* moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MachineModuleSlotUITest.cs* moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MachineRecipeSelectionGearUITest.cs* moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MachineRecipeSelectionUITest.cs* moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MachineRecipeSelectionTestHelper.cs*
+git rm moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/ElectricToGearModeSelectUITest.cs* moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MachineModuleSlotUITest.cs* moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MachineRecipeSelectionGearUITest.cs* moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MachineRecipeSelectionUITest.cs* moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/MachineRecipeSelectionTestHelper.cs*
 ```
 `ClientContext.cs` / `InitializeScenePipeline.cs` / `PlaytestUiOps.cs` を上記どおり編集。`Client.Tests/Localization/Resolution/LocalizeContentTest.cs:136` の `ItemSlotView.GetToolTipText(itemView)` は `Localize.GetContent(ContentLocalizationKeys.ItemName(itemMaster.ItemGuid))` に置換（`ItemSlotView.GetToolTipText` の実装が別ロジックなら、その実装本文をテスト側の期待値計算にインライン化する）。`SerializedLocalizedTooltipKeyTest.cs` から `AssertUGuiTooltipKeys` とその呼び出しを削除。
 

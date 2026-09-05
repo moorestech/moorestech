@@ -15,7 +15,7 @@ namespace Client.Game.InGame.UI.Tooltip
     /// <summary>
     ///     マウスカーソルのそばにアイテム名やTips、その他文章を表示するシステム
     /// </summary>
-    public class MouseCursorTooltip : MonoBehaviour, IMouseCursorTooltip
+    public class MouseCursorTooltip : MonoBehaviour
     {
         [SerializeField] private GameObject itemNameBar;
         [SerializeField] private TMP_Text itemName;

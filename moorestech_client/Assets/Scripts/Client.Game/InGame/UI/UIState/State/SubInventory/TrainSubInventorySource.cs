@@ -1,5 +1,5 @@
-using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Train;
 using Client.Network.API;
 using Game.PlayerInventory.Interface.Subscription;
 using Server.Protocol.PacketResponse;
@@ -12,13 +12,11 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         public InventoryIdentifierMessagePack InventoryIdentifier { get; }
         public long TrainCarInstanceId { get; }
 
-        public TrainSubInventorySource(TrainCarEntityObject trainCarEntityObject) : this(trainCarEntityObject.TrainCarInstanceId.AsPrimitive())
-        {
-        }
+        // 直近の開閉で開けなかった理由。null なら正常に開けている
+        // Why the latest open attempt failed; null means the inventory opened normally
+        public TrainInventoryMessageType? LastOpenMessage { get; private set; }
 
-        // 識別子だけで組める経路。テストと本番の両方が同じ変換を通る
-        // Identifier-only construction path shared by tests and production
-        protected TrainSubInventorySource(long trainCarInstanceId)
+        public TrainSubInventorySource(long trainCarInstanceId)
         {
             TrainCarInstanceId = trainCarInstanceId;
             InventoryIdentifier = InventoryIdentifierMessagePack.CreateTrainMessage(trainCarInstanceId);
@@ -29,17 +27,20 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
             var model = new SubInventoryModel(new TrainInventorySubInventoryIdentifier(TrainCarInstanceId));
             switch (inventoryResponse.Result)
             {
+                // 成功応答は前回の失敗理由を持ち越さない（エラー種別付きでアイテムが並ぶ矛盾を防ぐ）
+                // A successful response drops the previous failure so items never arrive alongside an error kind
                 case InventoryRequestResult.Success:
+                    LastOpenMessage = null;
                     model.SetItems(inventoryResponse.Items);
                     return model;
                 case InventoryRequestResult.ContainerNotFound:
-                    model.SetTrainMessage(TrainInventoryMessageType.ContainerMissing);
+                    LastOpenMessage = TrainInventoryMessageType.ContainerMissing;
                     return model;
                 case InventoryRequestResult.TrainCarNotFound:
-                    model.SetTrainMessage(TrainInventoryMessageType.TrainCarMissing);
+                    LastOpenMessage = TrainInventoryMessageType.TrainCarMissing;
                     return model;
                 default:
-                    model.SetTrainMessage(TrainInventoryMessageType.OpenFailed);
+                    LastOpenMessage = TrainInventoryMessageType.OpenFailed;
                     return model;
             }
         }

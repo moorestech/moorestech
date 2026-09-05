@@ -3,8 +3,8 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 namespace Client.Game.InGame.UI.BuildMenu
 {
     /// <summary>
-    ///     Webのビルドメニューで選ばれた設置ターゲットを、BuildMenuState が1回だけ消費するキュー
-    ///     Holds the placement target chosen on the web build menu until BuildMenuState consumes it once
+    ///     設置ターゲットの一回消費キュー
+    ///     One-shot consume queue for the selected placement target
     /// </summary>
     public class BuildMenuSelection
     {

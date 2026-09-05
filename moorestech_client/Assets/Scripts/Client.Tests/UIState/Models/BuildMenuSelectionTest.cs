@@ -2,7 +2,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.BuildMenu;
 using NUnit.Framework;
 
-namespace Client.Tests.UIState
+namespace Client.Tests.UIState.Models
 {
     public class BuildMenuSelectionTest
     {

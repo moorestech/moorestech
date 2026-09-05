@@ -16,6 +16,10 @@ namespace Client.Game.InGame.UI.Tooltip
 
         private void Update()
         {
+            // コンテナ構築完了（StartGame）前は_tooltipが未注入のためガードする
+            // Guards against the pre-DI window before StartGame injects _tooltip
+            if (_tooltip == null) return;
+
             if (TryGetOnCursorTooltipTarget(out var target))
             {
                 if (_lastTooltipTarget == target) return;

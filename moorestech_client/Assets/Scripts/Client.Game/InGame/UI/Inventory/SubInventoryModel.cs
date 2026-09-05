@@ -15,10 +15,6 @@ namespace Client.Game.InGame.UI.Inventory
         public int Count => SubInventory.Count;
         public ISubInventoryIdentifier ISubInventoryIdentifier { get; }
 
-        // 列車のみ。null なら正常に開けている
-        // Train only; null means the inventory opened normally
-        public TrainInventoryMessageType? TrainMessage { get; private set; }
-
         public SubInventoryModel(ISubInventoryIdentifier identifier)
         {
             ISubInventoryIdentifier = identifier;
@@ -39,14 +35,6 @@ namespace Client.Game.InGame.UI.Inventory
             }
 
             SubInventory[slot] = item;
-        }
-
-        // 開けなかった列車はスロットを持たない
-        // A train that failed to open exposes no slots
-        public void SetTrainMessage(TrainInventoryMessageType messageType)
-        {
-            SubInventory.Clear();
-            TrainMessage = messageType;
         }
     }
 }

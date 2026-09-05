@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Train;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 using Client.Network.API;
 using Core.Item.Interface;
@@ -10,7 +10,7 @@ using Server.Protocol.PacketResponse;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 
-namespace Client.Tests.UIState
+namespace Client.Tests.UIState.Models
 {
     public class SubInventorySourceModelTest
     {
@@ -25,11 +25,11 @@ namespace Client.Tests.UIState
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var response = new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound);
-            var source = new TrainSubInventorySourceForTest(7);
+            var source = new TrainSubInventorySource(7);
 
             var model = source.CreateModel(response);
 
-            Assert.AreEqual(TrainInventoryMessageType.ContainerMissing, model.TrainMessage);
+            Assert.AreEqual(TrainInventoryMessageType.ContainerMissing, source.LastOpenMessage);
             Assert.AreEqual(0, model.Count);
         }
 
@@ -38,19 +38,26 @@ namespace Client.Tests.UIState
         {
             var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
             var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty(), ServerContext.ItemStackFactory.CreatEmpty() };
-            var source = new TrainSubInventorySourceForTest(7);
+            var source = new TrainSubInventorySource(7);
 
             var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));
 
-            Assert.IsNull(model.TrainMessage);
+            Assert.IsNull(source.LastOpenMessage);
             Assert.AreEqual(2, model.Count);
         }
 
-        // TrainCarEntityObject は MonoBehaviour なので識別子だけを差し替える最小の派生で組む
-        // TrainCarEntityObject is a MonoBehaviour, so build the source with the minimal identifier-only derivation
-        private class TrainSubInventorySourceForTest : TrainSubInventorySource
+        [Test]
+        public void 列車ソースは失敗のあとの成功応答でエラー種別を落とす()
         {
-            public TrainSubInventorySourceForTest(long trainCarInstanceId) : base(trainCarInstanceId) { }
+            var identifier = InventoryIdentifierMessagePack.CreateTrainMessage(7);
+            var items = new List<IItemStack> { ServerContext.ItemStackFactory.CreatEmpty() };
+            var source = new TrainSubInventorySource(7);
+            source.CreateModel(new InventoryResponse(identifier, new List<IItemStack>(), InventoryRequestResult.ContainerNotFound));
+
+            var model = source.CreateModel(new InventoryResponse(identifier, items, InventoryRequestResult.Success));
+
+            Assert.IsNull(source.LastOpenMessage);
+            Assert.AreEqual(1, model.Count);
         }
     }
 }

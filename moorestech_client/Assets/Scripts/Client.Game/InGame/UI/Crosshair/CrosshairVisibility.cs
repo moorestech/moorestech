@@ -14,7 +14,7 @@ namespace Client.Game.InGame.UI.Crosshair
         public IObservable<bool> OnVisibleChanged => _visible;
         public bool IsVisible() => _visible.Value;
 
-        public void SetVisible(bool visible)
+        internal void SetVisible(bool visible)
         {
             _visible.Value = visible;
         }

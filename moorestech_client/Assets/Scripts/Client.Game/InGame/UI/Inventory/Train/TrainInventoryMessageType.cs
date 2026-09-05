@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.UI.Inventory
+namespace Client.Game.InGame.UI.Inventory.Train
 {
     // 列車インベントリを開けなかった理由。Web側のエラー文言キーへ写す
     // Why a train inventory could not be opened; mapped onto the web-side error key

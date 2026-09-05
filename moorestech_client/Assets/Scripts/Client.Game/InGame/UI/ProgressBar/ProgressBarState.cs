@@ -1,5 +1,6 @@
 using System;
 using UniRx;
+using UnityEngine;
 
 namespace Client.Game.InGame.UI.ProgressBar
 {
@@ -10,28 +11,30 @@ namespace Client.Game.InGame.UI.ProgressBar
     public class ProgressBarState
     {
         public bool IsShown { get; private set; }
-        public float CurrentProgress { get; private set; }
+        // 旧Scrollbar.sizeの既定値1・Clamp01挙動を維持する
+        // Preserves the old Scrollbar.size default of 1 and its Clamp01 behavior
+        public float CurrentProgress { get; private set; } = 1f;
 
-        // Show/Hide/SetProgress いずれかで状態が変化したら発火する
-        // Fires whenever Show/Hide/SetProgress changes the state
+        // 状態変化時に発火する
+        // Fires whenever the state changes
         public IObservable<Unit> OnProgressChanged => _onProgressChanged;
         private readonly Subject<Unit> _onProgressChanged = new();
 
-        public void Show()
+        internal void Show()
         {
             IsShown = true;
             _onProgressChanged.OnNext(Unit.Default);
         }
 
-        public void Hide()
+        internal void Hide()
         {
             IsShown = false;
             _onProgressChanged.OnNext(Unit.Default);
         }
 
-        public void SetProgress(float progress)
+        internal void SetProgress(float progress)
         {
-            CurrentProgress = progress;
+            CurrentProgress = Mathf.Clamp01(progress);
             _onProgressChanged.OnNext(Unit.Default);
         }
     }

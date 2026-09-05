@@ -104,8 +104,8 @@ namespace Client.WebUiHost.Game
                 resolver.Resolve<PlaceBlockState>());
             hub.RegisterTopic(PlacementModeTopic.TopicName, placementModeTopic);
 
-            // 状態外の共通HUDを各既存状態の変更通知へ接続する
-            // Connect state-independent HUD topics to the existing state notifications
+            // 共通HUDを各状態通知へ接続
+            // Connect the common HUD to each state's notifications
             hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, resolver.Resolve<CrosshairVisibility>()));
             hub.RegisterTopic(UiVisibilityTopic.TopicName, new UiVisibilityTopic(hub, resolver.Resolve<UIRoot>()));
 

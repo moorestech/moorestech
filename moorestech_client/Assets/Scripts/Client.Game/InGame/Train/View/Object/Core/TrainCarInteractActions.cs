@@ -29,7 +29,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
 
         public InteractExecuteResult Execute()
         {
-            var container = UITransitContextContainer.Create<ISubInventorySource>(new TrainSubInventorySource(_trainCar));
+            var container = UITransitContextContainer.Create<ISubInventorySource>(new TrainSubInventorySource(_trainCar.TrainCarInstanceId.AsPrimitive()));
             return InteractExecuteResult.Transit(new UITransitContext(UIStateEnum.SubInventory, container));
         }
     }

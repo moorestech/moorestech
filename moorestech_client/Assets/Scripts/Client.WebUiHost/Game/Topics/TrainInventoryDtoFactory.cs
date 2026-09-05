@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.UI.Inventory;
+using Client.Game.InGame.UI.Inventory.Train;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
 
 namespace Client.WebUiHost.Game.Topics
@@ -18,7 +19,7 @@ namespace Client.WebUiHost.Game.Topics
                 BlockType = "Train",
                 ItemSlots = new List<BlockItemSlotDto>(inventory.Count),
                 FluidSlots = new List<BlockFluidSlotDto>(),
-                Error = ResolveError(inventory),
+                Error = ResolveError(source.LastOpenMessage),
             };
             foreach (var stack in inventory.SubInventory)
             {
@@ -27,10 +28,10 @@ namespace Client.WebUiHost.Game.Topics
             return dto;
         }
 
-        private static string ResolveError(SubInventoryModel inventory)
+        private static string ResolveError(TrainInventoryMessageType? messageType)
         {
-            if (inventory.TrainMessage == null) return null;
-            return inventory.TrainMessage.Value switch
+            if (messageType == null) return null;
+            return messageType.Value switch
             {
                 TrainInventoryMessageType.ContainerMissing => "containerMissing",
                 TrainInventoryMessageType.TrainCarMissing => "trainCarMissing",

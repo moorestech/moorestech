@@ -1,4 +1,3 @@
-using System.Reflection;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
@@ -25,18 +24,6 @@ namespace Client.Tests.PlaceSystem.Feedback
             // Initialize the real dictionary because the uGUI render path resolves text through it
             Localize.Initialize();
             _tooltip = new MouseCursorTooltipState();
-        }
-
-        // Showが呼ばれたかは所有者トークンの書き換わりで観測する（Showの唯一の無条件な副作用のため）
-        // Whether Show ran is observed through the owner token being overwritten, its only unconditional side effect
-        private object GetCurrentOwner()
-        {
-            return typeof(MouseCursorTooltipState).GetField("_currentOwner", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(_tooltip);
-        }
-
-        private void SetCurrentOwner(object owner)
-        {
-            typeof(MouseCursorTooltipState).GetField("_currentOwner", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(_tooltip, owner);
         }
 
         [Test]
@@ -120,19 +107,18 @@ namespace Client.Tests.PlaceSystem.Feedback
             feedback.AddBlockedByTerrain();
             presenter.Present(feedback);
 
-            // 番兵トークンを置き、再PresentでShowが走れば上書きされる状態にする
-            // Plant a sentinel token so that a Show during the re-present would overwrite it
-            var sentinel = new TooltipOwner();
-            SetCurrentOwner(sentinel);
+            // Showは毎回新しい行配列を渡すため、配列が同一なら再Showは起きていない
+            // Show always hands over a fresh line array, so an identical array proves no re-show happened
+            var shownLines = _tooltip.GetPresentation().Lines;
             presenter.Present(feedback);
 
-            Assert.AreSame(sentinel, GetCurrentOwner());
+            Assert.AreSame(shownLines, _tooltip.GetPresentation().Lines);
 
             feedback.Clear();
             feedback.AddTooFar();
             presenter.Present(feedback);
 
-            Assert.AreNotSame(sentinel, GetCurrentOwner());
+            Assert.AreNotSame(shownLines, _tooltip.GetPresentation().Lines);
         }
 
         [Test]

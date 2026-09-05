@@ -14,8 +14,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
         private readonly IMouseCursorTooltip _tooltip;
         private readonly TooltipOwner _tooltipOwner = new();
 
-        // 直近に自分が渡したスナップショット。表示中の配列と参照一致するかで所有権継続も判定する
-        // The snapshot handed over last time; reference-matching it against the shown array also proves ownership continued
+        // 直近に自分が渡したスナップショット。内容が変わっていないかの比較に使う
+        // The snapshot handed over last time, used to compare whether the content is unchanged
         private TooltipLine[] _lastShown = Array.Empty<TooltipLine>();
 
         public PlacementFeedbackTooltipPresenter(IMouseCursorTooltip tooltip)
@@ -44,11 +44,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 
             bool IsUnchangedFromShown()
             {
-                // 表示中のスナップショットが自分の渡した配列そのものでなければ、他者が上書きしているので出し直す
-                // If the shown snapshot is not the very array we handed over, someone else overwrote it and we must show again
-                if (!ReferenceEquals(_tooltip.GetPresentation().Lines, _lastShown)) return false;
-
-                return IsSameLines(feedback.Lines, _lastShown);
+                // 所有者が自分でなければ他者が上書きしているので出し直す
+                // If we are not the owner, someone else overwrote the tooltip and we must show again
+                return ReferenceEquals(_tooltip.CurrentOwner, _tooltipOwner) && IsSameLines(feedback.Lines, _lastShown);
             }
 
             #endregion

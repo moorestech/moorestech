@@ -22,8 +22,8 @@ namespace Client.Playtest.Operations.Ui
     {
         public static async UniTask OpenBuildMenuAndSelectBlock(string blockName)
         {
-            // ビルドメニューを開き、CEF利用時はWeb UI、未利用時はEventSystem経由で対象をクリックする
-            // Open the build menu and click via Web UI under CEF, or EventSystem when CEF is absent
+            // CEF有無で操作経路を切替
+            // Switch the operation path depending on whether CEF is present
             // PlaceBlock中はBだとGameScreenへ抜けてしまうためTabで開き直す（実プレイと同じキー割当）
             // While in PlaceBlock, B exits to GameScreen, so reopen with Tab (same binding as real play)
             // キー1回のタップ取りこぼしに備え、開くまでタップを繰り返す
@@ -71,8 +71,8 @@ namespace Client.Playtest.Operations.Ui
                 await UniTask.DelayFrame(10);
             }
 
-            // PlaceBlock遷移直後のカメラtween（トップダウン化）が落ち着くまで待つ
-            // Wait for the camera tween (to top-down) right after entering PlaceBlock to settle
+            // カメラtween収束を待機
+            // Wait for the camera tween to settle
             await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
         }
 

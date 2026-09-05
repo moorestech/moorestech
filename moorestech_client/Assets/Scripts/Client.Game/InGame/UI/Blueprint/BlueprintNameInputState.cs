@@ -9,7 +9,7 @@ namespace Client.Game.InGame.UI.Blueprint
     /// </summary>
     public class BlueprintNameInputState
     {
-        public bool IsOpen { get; private set; }
+        private bool _isOpen;
         public IObservable<bool> OnOpenChanged => _onOpenChanged;
         public IObservable<string> OnConfirm => _onConfirm;
         public IObservable<Unit> OnCancel => _onCancel;
@@ -20,14 +20,14 @@ namespace Client.Game.InGame.UI.Blueprint
 
         public void Open()
         {
-            IsOpen = true;
+            _isOpen = true;
             _onOpenChanged.OnNext(true);
         }
 
-        public void Close()
+        internal void Close()
         {
-            if (!IsOpen) return;
-            IsOpen = false;
+            if (!_isOpen) return;
+            _isOpen = false;
             _onOpenChanged.OnNext(false);
         }
 
@@ -35,7 +35,7 @@ namespace Client.Game.InGame.UI.Blueprint
         // Reject whitespace-only names on confirm
         public void Confirm(string name)
         {
-            if (!IsOpen) return;
+            if (!_isOpen) return;
             if (string.IsNullOrWhiteSpace(name)) return;
             _onConfirm.OnNext(name.Trim());
             Close();
@@ -43,7 +43,7 @@ namespace Client.Game.InGame.UI.Blueprint
 
         public void Cancel()
         {
-            if (!IsOpen) return;
+            if (!_isOpen) return;
             _onCancel.OnNext(Unit.Default);
             Close();
         }
