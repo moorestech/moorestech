@@ -1091,11 +1091,11 @@ git commit -m "feat(pump): ポンプの設置を汲み上げられる流体鉱�
     }
 ```
 
-- [ ] **Step 1: DTO を追加する**
+- [x] **Step 1: DTO を追加する**
 
 `BlockDetailDtos.cs` の `MiningItemDto` の直後に上記3クラスを追加する。`BlockInventoryDtos.cs` の `BlockInventoryDto` に `public MinerDetailDto Miner;` の直後で `public PumpDetailDto Pump;` を追加する。
 
-- [ ] **Step 2: ビルダーに充填処理を追加する**
+- [x] **Step 2: ビルダーに充填処理を追加する**
 
 `BlockDetailDtoBuilder.Apply` の採掘機ブロックの直後（ギアの前）に追加:
 
@@ -1132,12 +1132,12 @@ git commit -m "feat(pump): ポンプの設置を汲み上げられる流体鉱�
 
 `GetGearConsumption` の switch に `GearPumpBlockParam p => p.GearConsumption,` を追加する。
 
-- [ ] **Step 3: コンパイルする**
+- [x] **Step 3: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.WebUiHost/Game/Topics/BlockDetail
