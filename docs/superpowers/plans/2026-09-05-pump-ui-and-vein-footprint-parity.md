@@ -107,7 +107,7 @@
   - `ElectricPumpProcessorComponent(ElectricPumpBlockParam param, PumpFluidOutputComponent output, List<FluidGenerationEntry> entries)` と `public IReadOnlyList<FluidGenerationEntry> Entries`（Task 2 が使う）
   - `GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output, List<FluidGenerationEntry> entries)`
 
-- [ ] **Step 1: 判定の単体テストを書く（失敗する）**
+- [x] **Step 1: 判定の単体テストを書く（失敗する）**
 
 `moorestech_server/Assets/Scripts/Tests/UnitTest/Game/PumpVeinFootprintJudgeTest.cs`:
 
@@ -173,12 +173,12 @@ namespace Tests.UnitTest.Game
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: `PumpVeinFootprintJudge` が存在しないためコンパイルエラー（CS0103）
 
-- [ ] **Step 3: 判定クラスを書く**
+- [x] **Step 3: 判定クラスを書く**
 
 `moorestech_server/Assets/Scripts/Game.Block.Interface/Vein/PumpVeinFootprintJudge.cs`:
 
@@ -227,7 +227,7 @@ namespace Game.Block.Interface.Vein
 }
 ```
 
-- [ ] **Step 4: 鉱脈層を `Veins` 公開へ置換する**
+- [x] **Step 4: 鉱脈層を `Veins` 公開へ置換する**
 
 `moorestech_server/Assets/Scripts/Game.Map.Interface/Vein/IFluidMapVeinDatastore.cs` 全文:
 
@@ -253,7 +253,7 @@ namespace Game.Map.Interface.Vein
 
 `using UnityEngine;` は `Debug.LogError` で使っているので残す。
 
-- [ ] **Step 5: `PumpFluidGenerationUtility.ResolveGenerationEntries` をフットプリント基準へ変える**
+- [x] **Step 5: `PumpFluidGenerationUtility.ResolveGenerationEntries` をフットプリント基準へ変える**
 
 `moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump/PumpFluidGenerationUtility.cs` の `ResolveGenerationEntries` を次で置換する（`using Game.Block.Interface;` と `using Game.Block.Interface.Vein;` を追加、`using UnityEngine;` は不要になるので削除）:
 
@@ -288,7 +288,7 @@ namespace Game.Map.Interface.Vein
 
 `using Mooresmaster.Model.GenerateFluidsModule;` は既存のまま（`GenerateFluids` 型はこのモジュール）。
 
-- [ ] **Step 6: 2つのポンプコンポーネントがエントリを外から受け取る形にする**
+- [x] **Step 6: 2つのポンプコンポーネントがエントリを外から受け取る形にする**
 
 `ElectricPumpProcessorComponent.cs` のフィールド・コンストラクタを次で置換する（`using UnityEngine;` は `Mathf` で使うので残す）:
 
@@ -324,7 +324,7 @@ namespace Game.Map.Interface.Vein
 
 `GearPumpComponent` に `public bool CanGenerateFluid => _entries.Count > 0 && _output.CanAcceptGeneratedFluid;` を追加し、`UpdateTorqueRequestRate` 内の `var canGenerateFluid = ...` をこのプロパティ参照に置き換える。
 
-- [ ] **Step 7: テンプレートでエントリを解決して渡す**
+- [x] **Step 7: テンプレートでエントリを解決して渡す**
 
 `VanillaElectricPumpTemplate.cs` の `CreatePump` 内、`processorComponent` 生成行を次で置換する:
 
@@ -340,7 +340,7 @@ namespace Game.Map.Interface.Vein
             var pumpComponent = new GearPumpComponent(param, gearEnergyTransformer, outputComponent, generationEntries);
 ```
 
-- [ ] **Step 8: `PumpFluidVeinTest` にフットプリント規則のケースを足す**
+- [x] **Step 8: `PumpFluidVeinTest` にフットプリント規則のケースを足す**
 
 `PumpFluidVeinTest.cs` に次のテストを追加する（`WaterVeinPos` の水鉱脈は ForUnitTest map.json で x:0..10, y:0, z:0）:
 
@@ -362,7 +362,7 @@ namespace Game.Map.Interface.Vein
         }
 ```
 
-- [ ] **Step 9: コンパイルしてテストを実行する**
+- [x] **Step 9: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0
@@ -370,7 +370,7 @@ Expected: エラー0
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "PumpVeinFootprintJudgeTest|PumpFluidVeinTest|ElectricPumpTest|GearPumpTest|IdlePowerRateTest"`
 Expected: 全件 PASS（`PumpOutsideFluidVein_GeneratesNothing` は (30,0,0) が全鉱脈のXZ外なので引き続き PASS、`PumpOnMismatchedFluidVein_GeneratesNothing` は蒸気鉱脈の流体が `generateFluid` に無いので PASS）
 
-- [ ] **Step 10: コミットする**
+- [x] **Step 10: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Vein/PumpVeinFootprintJudge.cs moorestech_server/Assets/Scripts/Game.Block.Interface/Vein/PumpVeinFootprintJudge.cs.meta moorestech_server/Assets/Scripts/Tests/UnitTest/Game/PumpVeinFootprintJudgeTest.cs moorestech_server/Assets/Scripts/Tests/UnitTest/Game/PumpVeinFootprintJudgeTest.cs.meta moorestech_server/Assets/Scripts/Game.Map.Interface/Vein/IFluidMapVeinDatastore.cs moorestech_server/Assets/Scripts/Game.Map/FluidMapVeinDatastore.cs moorestech_server/Assets/Scripts/Game.Block/Blocks/Pump moorestech_server/Assets/Scripts/Game.Block/Blocks/Gear/GearPumpComponent.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaElectricPumpTemplate.cs moorestech_server/Assets/Scripts/Game.Block/Factory/BlockTemplate/VanillaGearPumpTemplate.cs moorestech_server/Assets/Scripts/Tests/CombinedTest/Core/PumpFluidVeinTest.cs
