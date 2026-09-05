@@ -12,9 +12,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Common.Debug;
-using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Game.Construction;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -34,12 +32,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly ILocalPlayerInventory _localPlayerInventory;
         private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly Camera _mainCamera;
-        private readonly BeltConveyorPlacePointCalculator _blockPlacePointCalculator;
+        private readonly BeltConveyorPlaceRunBuilder _placeRunBuilder;
 
         private readonly CommonBlockPlaceDragState _dragState = new();
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
-        private bool? _isStartZDirection;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
         public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery)
@@ -48,7 +45,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
-            _blockPlacePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
+            _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore);
         }
 
         public override void Enable()
@@ -65,7 +62,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // 列の軸決めもドラッグに属するため一緒に捨てる
             // The run's axis choice belongs to the drag, so it is dropped together
             _dragState.EndDrag();
-            _isStartZDirection = null;
+            _placeRunBuilder.ResetRunAxis();
             return true;
         }
 
@@ -77,7 +74,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // 連続設置状態をリセット
             _dragState.ClearDrag();
-            _isStartZDirection = null;
+            _placeRunBuilder.ResetRunAxis();
             _currentPlaceInfos.Clear();
         }
 
@@ -97,10 +94,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             //基本はプレビュー非表示
             _previewBlockController.SetActive(false);
 
-            // ファミリー定義を解決し、非ファミリーブロックは対象外にする
-            // Resolve the family definition and ignore non-family blocks
-            if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(target.BlockId, out var family)) return;
-            var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId);
+            // 手持ちブロックを解決し、非ファミリーブロックは対象外にする
+            // Resolve the holding block and ignore non-family blocks
+            if (!BeltConveyorHoldingBlock.TryResolve(target.BlockId, out var holdingBlock)) return;
+            var holdingBlockMaster = holdingBlock.BlockMaster;
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
             if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) return;
@@ -165,21 +162,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             (List<PlacementBlockCause> placeCauses, List<BeltConveyorPlacementBlockReason> beltReasons) UpdateCurrentPlaceInfos()
             {
                 var dragStartPoint = _dragState.ResolveDragStartCell(placePoint);
-                if (dragStartPoint == placePoint)
-                {
-                    _isStartZDirection = null;
-                }
-                else if (!_isStartZDirection.HasValue)
-                {
-                    _isStartZDirection = Mathf.Abs(placePoint.x - dragStartPoint.x) < Mathf.Abs(placePoint.z - dragStartPoint.z);
-                }
-
-                var cellInfos = _blockPlacePointCalculator.CalculatePoint(dragStartPoint, placePoint, _isStartZDirection ?? true, _currentBlockDirection, holdingBlockMaster, out var cellCauses, out var cellBeltReasons);
-
-                // セル列へ直線・坂ブロックを1対1で割り当てる（坂欠落はベルト固有理由の列へ書き戻される）
-                // Assign straight and slope blocks to cells one-to-one (a missing slope is written back into the belt reason column)
-                _currentPlaceInfos = BeltConveyorCellBlockResolver.Resolve(cellInfos, family, cellBeltReasons);
-
+                _currentPlaceInfos = _placeRunBuilder.Build(dragStartPoint, placePoint, _currentBlockDirection, holdingBlock, out var cellCauses, out var cellBeltReasons);
                 return (cellCauses, cellBeltReasons);
             }
 

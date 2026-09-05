@@ -4,6 +4,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ConveyorOverpass;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -51,6 +52,34 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
                 var info = placeInfos[i];
                 if (!info.Placeable || isNotExistBlock(info, straightBlockMaster)) continue;
+
+                info.Placeable = false;
+                blockCauses[i] = PlacementBlockCause.ExistingBlock;
+            }
+
+            return placeInfos;
+        }
+
+        // 坂選択時の設置点計算（一定勾配・立体交差なし・全セル同一ブロック）
+        // Placement-point calculation while a slope is selected (constant grade, no overpass, one block for every cell)
+        public List<PlaceInfo> CalculateSlopePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement holdingBlockMaster, BlockVerticalDirection slopeDirection, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
+        {
+            var placeInfos = BeltConveyorSlopePathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection, slopeDirection);
+            var holdingBlockId = MasterHolder.BlockMaster.GetBlockId(holdingBlockMaster.BlockGuid);
+
+            blockCauses = new List<PlacementBlockCause>(placeInfos.Count);
+            beltReasons = new List<BeltConveyorPlacementBlockReason>(placeInfos.Count);
+
+            // 坂は立体交差も坂欠落も起こらないためベルト固有理由は立たない
+            // A slope run raises neither an overpass nor a missing-slope reason, so the belt column stays None
+            for (var i = 0; i < placeInfos.Count; i++)
+            {
+                var info = placeInfos[i];
+                info.BlockId = holdingBlockId;
+                blockCauses.Add(PlacementBlockCause.None);
+                beltReasons.Add(BeltConveyorPlacementBlockReason.None);
+
+                if (IsNotExistBlock(info, holdingBlockMaster)) continue;
 
                 info.Placeable = false;
                 blockCauses[i] = PlacementBlockCause.ExistingBlock;
