@@ -19,11 +19,10 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             WorldTerrainLayout layout, BakedTerrainTile tile,
             IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers)
         {
-            var detailResolution = ValidateDetailInputs();
             var terrainData = new TerrainData();
             ApplyHeightmap();
             await TerrainAlphamapApplier.ApplyAsync(terrainData, terrainLayers, tile);
-            ApplyDetail();
+            // ApplyDetail();
             return terrainData;
 
             #region Internal
@@ -37,24 +36,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 terrainData.SetHeights(0, 0, tile.DisplayHeights);
             }
 
-            void ApplyDetail()
-            {
-                var detailMaps = tile.DetailMaps;
-                if (detailMaps.Count == 0) return;
 
-                terrainData.SetDetailResolution(detailResolution, GenerationMasterUtil.DetailResolutionPerPatch);
-                if (terrainData.detailResolution != detailResolution)
-                    throw new System.InvalidOperationException(
-                        $"[TerrainDataAssembler] Unity applied detail resolution {terrainData.detailResolution} instead of {detailResolution}.");
-
-                // CoverageModeではメッシュDetailが描画されないことがあるため移植元と同じくInstanceCountModeにする
-                // CoverageMode can leave mesh details undrawn, so InstanceCountMode is used as in the source
-                terrainData.SetDetailScatterMode(DetailScatterMode.InstanceCountMode);
-                terrainData.detailPrototypes = detailPrototypes.ToArray();
-
-                for (var layerIndex = 0; layerIndex < detailMaps.Count; layerIndex++)
-                    terrainData.SetDetailLayer(0, 0, layerIndex, detailMaps[layerIndex]);
-            }
 
             // native TerrainDataを作る前に、全detail入力の本数と寸法を確定する
             // Settle every detail count and dimension before allocating the native TerrainData
