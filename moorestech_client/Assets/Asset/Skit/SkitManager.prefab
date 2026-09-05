@@ -61,7 +61,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3888ab099b9f48d797cca0b8483ffc48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  backgroundSkitUI: {fileID: 0}
+  backgroundSkitVoicePlayer: {fileID: 0}
   uiStateControl: {fileID: 0}
   voiceDefine: {fileID: 11400000, guid: 35e15cc239b931343ac758d613d94927, type: 2}
 --- !u!1 &8889034664745369174

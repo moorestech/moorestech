@@ -6,6 +6,7 @@
 // Phase 1 uses a pebble on natural terrain, so the scaffold is created only right before phase 2
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
@@ -17,6 +18,7 @@ using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 var pebbleMapObjectGuid = new Guid("c74efe49-52f3-403b-9c9a-b39eb1c85fce"); // mapObject「小石」(miningType=PickUp)
 var ovenBlockName = "石窯"; // 3x2x3のElectricMachine。開けるブロックの代表
@@ -117,7 +119,7 @@ return PlaytestRunner.Run("interact-key-unification", options, async p =>
 
     await AimAtIfOnScreen(ovenPosition + ovenModelCenterOffset);
     await p.WaitSeconds(0.5f);
-    p.Assert(!MouseCursorTooltip.Instance.GetPresentation().Visible, "2m超ではtooltipが表示されない");
+    p.Assert(!Tooltip().GetPresentation().Visible, "2m超ではtooltipが表示されない");
     await p.Screenshot("05-out-of-range-no-tooltip");
 
     #endregion
@@ -156,8 +158,15 @@ return PlaytestRunner.Run("interact-key-unification", options, async p =>
     // Localization key of the tooltip's first line; empty when hidden so a failed assert stays readable
     string FirstTooltipKey()
     {
-        var presentation = MouseCursorTooltip.Instance.GetPresentation();
+        var presentation = Tooltip().GetPresentation();
         return presentation.Visible ? presentation.Lines[0].Key.Key : string.Empty;
+    }
+
+    // 表示状態の正本はDI登録されたIMouseCursorTooltip（uGUIのMouseCursorTooltipは書き込まれない残骸）
+    // The authoritative presentation lives on the DI-registered IMouseCursorTooltip; the uGUI MouseCursorTooltip is an unwritten leftover
+    IMouseCursorTooltip Tooltip()
+    {
+        return ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>();
     }
 
     // AimAtは画面外を渡すと例外で中断するため、投影を確かめてから照準する
