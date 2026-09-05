@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.PlacementTarget;
 using Core.Master;
-using Game.Block.Interface.Extension;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -56,7 +55,6 @@ namespace Client.Tests.PlaceSystem
             // 実装式の複製で現在の並び順をピン留めする（並べ替え規則自体の正しさは検証しない）
             // This duplicates the implementation's expression to pin the current order (does not validate the ordering rule itself)
             var expected = MasterHolder.BlockMaster.Blocks.Data
-                .Where(block => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(block.BlockGuid))
                 .OrderBy(block => block.SortPriority ?? 0)
                 .ThenBy(block => block.Name)
                 .Select(block => block.BlockGuid)
