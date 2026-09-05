@@ -1169,12 +1169,12 @@ git commit -m "feat(webui-host): block_inventory.current にポンプ詳細 Pump
 - Consumes: Task 4 の `PumpDetailDto` 形状、Task 3 のキー `ui.blockInventory.pumpNoVein`、既存 `FluidIcon`（`@/shared/ui`、`fluidGuid` でアイコンと名前を解決）、既存 `PowerRateText`、既存 `machineStateDisplay`、既存 `L.ui.blockInventory.itemsPerMinute`
 - Produces: testId `pump-section` / `pump-state-label` / `pump-power-rate` / `pump-pumping-fluids` / `pump-no-vein` / `pump-fluid-slots`
 
-- [ ] **Step 1: i18n キーを再生成する**
+- [x] **Step 1: i18n キーを再生成する**
 
 Run: `cd moorestech_web/webui && npm run gen:i18n`
 Expected: `src/shared/i18n/generated/localizationKeys.ts` に `pumpNoVein` が増える（`git diff --stat` で1ファイル変更）
 
-- [ ] **Step 2: スキーマと型を追加する**
+- [x] **Step 2: スキーマと型を追加する**
 
 `schemas/inventory.ts` の `MinerDetailDataSchema` の直後に追加:
 
@@ -1191,7 +1191,7 @@ export const PumpDetailDataSchema = z.object({
 
 `payloadTypes.ts` の import リストに `PumpDetailDataSchema,` を追加し、`export type MinerDetailData = ...` の並びに `export type PumpDetailData = z.infer<typeof PumpDetailDataSchema>;` を追加する（`MinerDetailData` の export が無い場合は `BlockInventoryOpen` の直後に置く）。
 
-- [ ] **Step 3: `PumpSection` の unit テストを書く（失敗する）**
+- [x] **Step 3: `PumpSection` の unit テストを書く（失敗する）**
 
 `moorestech_web/webui/src/features/blockInventory/details/PumpSection.test.ts`:
 
@@ -1219,7 +1219,7 @@ describe("pumpSectionDisplay", () => {
 Run: `cd moorestech_web/webui && npx vitest run src/features/blockInventory/details/PumpSection.test.ts`
 Expected: FAIL（モジュール未存在）
 
-- [ ] **Step 4: `PumpSection.tsx` を書く**
+- [x] **Step 4: `PumpSection.tsx` を書く**
 
 ```tsx
 import { Group, Stack, Text } from "@mantine/core";
@@ -1287,7 +1287,7 @@ export default function PumpSection({ data }: { data: BlockInventoryOpen }) {
 
 `--slot-size` が `app/tokens.css` に無ければ `ItemSlot` の実寸をそのまま数値で書く。`MachineProcessState` の型は `data.pump.electric.currentState` が zod 由来で既に一致する。
 
-- [ ] **Step 5: `SectionStackView` に組み込む**
+- [x] **Step 5: `SectionStackView` に組み込む**
 
 `SectionStackView.tsx` に `import PumpSection from "../details/PumpSection";` を追加し、`configByBlockType` に次の2行を追加する:
 
@@ -1298,11 +1298,11 @@ export default function PumpSection({ data }: { data: BlockInventoryOpen }) {
 
 JSX の `<MinerSection data={data} />` の直後に `<PumpSection data={data} />` を追加する。
 
-- [ ] **Step 6: デザイン whitelist テストへ登録する**
+- [x] **Step 6: デザイン whitelist テストへ登録する**
 
 `blockInventoryDesign.test.ts` の `sources` に `pump: read("./details/PumpSection.tsx"),` を追加する。
 
-- [ ] **Step 7: e2e fixture・モック・spec を追加する**
+- [x] **Step 7: e2e fixture・モック・spec を追加する**
 
 `blockLocalizationFixtures.ts` に定数と名前を追加:
 
@@ -1393,7 +1393,7 @@ test("歯車ポンプは電力行を持たず歯車行を出す", async ({ page 
 
 `blockRegistryCoverage.spec.ts` の `intentionalGeneric` に `"ElectricPump",` と `"GearPump",` を追加する。`e2e/fixtures/v8-block-ui-registry.json` の `ElectricPump` と `GearPump` の `blockUIAddressablesPath` を `"Vanilla/UI/Block/MachineBlockInventory"` にする（Task 6 のマスタ変更と同じ値）。
 
-- [ ] **Step 8: unit テストと e2e を実行する**
+- [x] **Step 8: unit テストと e2e を実行する**
 
 Run: `cd moorestech_web/webui && npm run test`
 Expected: 全件 PASS（`PumpSection.test.ts`、`blockInventoryDesign.test.ts`、`blockRegistryCoverage` は vitest 対象外なら e2e で）
@@ -1401,7 +1401,7 @@ Expected: 全件 PASS（`PumpSection.test.ts`、`blockInventoryDesign.test.ts`�
 Run: `cd moorestech_web/webui && npm run test:e2e -- e2e/tests/block/blockDetails.spec.ts e2e/tests/regression/sectionStack.spec.ts e2e/tests/block/blockRegistryCoverage.spec.ts`
 Expected: 全件 PASS（e2e はポート 5273 を共有するため、他セッションの e2e と同時実行しない）
 
-- [ ] **Step 9: コミットする**
+- [x] **Step 9: コミットする**
 
 ```bash
 git add moorestech_web/webui/src/bridge/contract moorestech_web/webui/src/features/blockInventory moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts moorestech_web/webui/e2e
