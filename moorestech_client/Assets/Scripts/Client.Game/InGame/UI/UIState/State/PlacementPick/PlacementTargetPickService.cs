@@ -70,9 +70,9 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
             {
                 target = null;
                 if (!BlockClickDetectUtil.TryGetCursorOnBlock(out var blockObject)) return false;
-                if (!BlockPickResolver.TryResolvePickTarget(blockObject.BlockId, _gameUnlockStateData, out var resolvedBlockId)) return false;
+                if (!BlockPickResolver.IsPickable(blockObject.BlockId, _gameUnlockStateData)) return false;
 
-                target = new BlockPlacementTarget(MasterHolder.BlockMaster.GetBlockMaster(resolvedBlockId).BlockGuid, blockObject.BlockPosInfo.BlockDirection);
+                target = new BlockPlacementTarget(MasterHolder.BlockMaster.GetBlockMaster(blockObject.BlockId).BlockGuid, blockObject.BlockPosInfo.BlockDirection);
                 return true;
             }
 
