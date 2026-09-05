@@ -23,6 +23,7 @@ const styles = {
   progressArrow: read("../../shared/ui/ProgressArrowBar/style.module.css"),
   progressArrowGlyph: read("../../shared/ui/ProgressArrowGlyph/style.module.css"),
   machineInventoryBody: read("./details/machine/machineInventoryBody.module.css"),
+  pumpSection: read("./details/pumpSection.module.css"),
 };
 
 const appTokens = read("../../app/tokens.css");

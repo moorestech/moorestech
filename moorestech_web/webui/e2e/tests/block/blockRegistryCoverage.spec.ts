@@ -15,10 +15,10 @@ const intentionalGeneric = new Set([
   "CleanRoomMachine",
   "ElectricMachine",
   "ElectricMiner",
+  "ElectricPump",
   "FuelGearGenerator",
   "GearMachine",
   "GearMiner",
-  "ElectricPump",
   "GearPump",
 ]);
 

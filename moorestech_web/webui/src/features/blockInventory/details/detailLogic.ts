@@ -1,4 +1,4 @@
-import type { GearNetworkStopReason, MachineProcessState } from "@/bridge";
+import type { GearNetworkStopReason, MachineProcessState, PumpDetailData } from "@/bridge";
 import { clamp01 } from "@/shared/clamp01";
 import { L, type TranslationKey } from "@/shared/i18n";
 
@@ -63,3 +63,12 @@ const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay>
   processing: { labelKey: L.ui.blockInventory.machineStateProcessing, insufficient: false, showPowerRate: true },
   halted: { labelKey: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
 };
+
+export type PumpSectionDisplay = { showNoVein: boolean; showPumpingFluids: boolean };
+
+// 汲み上げ対象の有無だけで警告行と流体行を排他に出し分ける（ADR 0051）
+// Whether the pump has targets alone decides between the warning row and the fluid rows (ADR 0051)
+export function pumpSectionDisplay(pump: Pick<PumpDetailData, "pumpingFluids">): PumpSectionDisplay {
+  const hasTargets = pump.pumpingFluids.length > 0;
+  return { showNoVein: !hasTargets, showPumpingFluids: hasTargets };
+}
