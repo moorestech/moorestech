@@ -16,16 +16,16 @@ namespace Server.Protocol.PacketResponse.MapData
 
             // 地形を持たないワールドへのチャンク要求は空応答で誤魔化さず例外にする
             // A chunk request against a terrain-less world throws instead of being masked by an empty response
-            if (terrainMeta.IsTemplate)
+            if (terrainMeta is not GeneratedTerrainTransferMeta generatedMeta)
                 throw new InvalidOperationException($"World in '{terrainMeta.MapMode}' mode owns no terrain chunk to read.");
 
-            terrainMeta.ThrowIfGeneratedWorldOwnsNoChunk();
-            if (chunkIndex < 0 || terrainMeta.TerrainChunkTotal <= chunkIndex)
+            generatedMeta.ThrowIfOwnsNoChunk();
+            if (chunkIndex < 0 || generatedMeta.TerrainChunkTotal <= chunkIndex)
                 throw new ArgumentOutOfRangeException(nameof(chunkIndex),
-                    $"ChunkIndex {chunkIndex} is out of range 0..{terrainMeta.TerrainChunkTotal - 1}.");
+                    $"ChunkIndex {chunkIndex} is out of range 0..{generatedMeta.TerrainChunkTotal - 1}.");
 
             var sliceStartOffset = (long)chunkIndex * TerrainTransferMeta.ChunkByteSize;
-            var sliceBytes = ReadStreamRange(worldDataDirectory, terrainMeta.TerrainTileCount, sliceStartOffset);
+            var sliceBytes = ReadStreamRange(worldDataDirectory, generatedMeta.TerrainTileCount, sliceStartOffset);
             return Compress(sliceBytes);
         }
 

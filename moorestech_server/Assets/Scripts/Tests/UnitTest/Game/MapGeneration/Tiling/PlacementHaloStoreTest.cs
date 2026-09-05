@@ -29,7 +29,12 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
             placement.Veins.Add(CreateVein("far-upper-z", new Vector3Int(120, 0, 291), new Vector3Int(122, 2, 293)));
             store.CommitVeins(store.ItemVeins, placement);
 
-            var snapshot = store.CreateConfirmedVeinSnapshot(100f, 220f, 50f, 70f);
+            // 候補範囲はXZの原点と幅だけで決まるので、他の寸法は0でよい。
+            // The candidate bounds follow from the XZ origin and span alone, so the remaining dimensions can be zero.
+            var dims = new TerrainDimensions(
+                50f, 70f, 0f, 100f, 220f,
+                0, 0, 0f, 0f, 0, 0f, 0f, 0, 0, 1, 1);
+            var snapshot = store.CreateConfirmedVeinSnapshot(TileCandidateAabbBounds.From(dims));
 
             // snapshot は台帳の登録順を保つので順序ごと固定する。
             // The snapshot preserves the ledger's insertion order, so the order is pinned too.

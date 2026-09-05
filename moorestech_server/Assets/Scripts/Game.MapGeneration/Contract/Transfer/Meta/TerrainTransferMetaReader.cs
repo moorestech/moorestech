@@ -32,10 +32,10 @@ namespace Game.MapGeneration.Transfer
                         $"Generated world.json '{worldDataDirectory.WorldMetaFilePath}' was written by generator '{worldMeta.GeneratorVersion}', " +
                         $"but this build is '{WorldGeneratorVersion.Current}'. The transferred terrain file layout changed " +
                         "(placementLedgerDigest now identifies the placement-dependent visual cache). Delete the world directory and generate the world again."),
-                WorldMapMode.Generated => TerrainTransferMeta.CreateGenerated(
+                WorldMapMode.Generated => new GeneratedTerrainTransferMeta(
                     WorldIdentity.CalculateGenerated(worldMeta.Seed, ReadGenerationMasterFingerprint(), worldMeta.GeneratorVersion),
                     worldMeta.TerrainResolution, worldMeta.TerrainTileCount, CalculateChunkTotal(), worldMeta.Seed, ReadGeneratedPayload()),
-                WorldMapMode.Template => TerrainTransferMeta.CreateTemplate(
+                WorldMapMode.Template => new TemplateTerrainTransferMeta(
                     WorldIdentity.CalculateTemplate(worldMeta.Seed, worldMeta.CreatedAt), worldMeta.Seed),
                 _ => throw new InvalidOperationException($"Unknown map mode in world.json: '{worldMeta.MapMode}'")
             };

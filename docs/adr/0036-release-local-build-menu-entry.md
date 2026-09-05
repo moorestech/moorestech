@@ -51,4 +51,8 @@ Windows/Linux成果物には入らない。欠損時の扱いは既存Bundlerと
 
 - 展示会ビルドはメニュー1つ＋フォルダ選択だけになり、Development誤選択の事故が消える。
 - 成果物ディレクトリに `.command` が入るので、そのままコピーして現地で使える。
-- batchmode入口（`ReleaseLocalBuildCli`）はCI・自動化用として残り、GUI入口と設定は同一のまま。
+- ~~batchmode入口（`ReleaseLocalBuildCli`）はCI・自動化用として残り、GUI入口と設定は同一のまま。~~
+  **訂正（2026-09-04 ユーザー裁定）**: `ReleaseLocalBuildCli` は削除した。参照0で、同日のplan
+  `docs/superpowers/plans/2026-08-26-new-world-defaults-to-generated-map.md` が「QA用の一時ファイルであり
+  コミットしない」と明記しているため、plan側を正とする。Release相当のローカル配布ビルドはGUIメニュー
+  `moorestech/Build/MacOsReleaseLocalBuild` のみが入口。恒久的な無人ビルド入口が要るなら別途設計する。

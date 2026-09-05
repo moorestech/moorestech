@@ -52,7 +52,7 @@ namespace Game.MapGeneration.Pipeline.Generators
                 if (entry == null || string.IsNullOrEmpty(entry.veinGuid)) continue;
                 if (entryMasks == null || i >= entryMasks.Length || entryMasks[i] == null) continue;
 
-                OreEntryPlacer.Place(entry, entryMasks[i], heights, dims, rng,
+                OreEntryPlacer.Place(entry, i, entryMasks[i], heights, dims, rng,
                     borderPx, treeSpatialGrid, objectSpatialGrid,
                     oreGrid, channels.Centers, haloRadius, excludedVeins, result);
             }

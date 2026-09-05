@@ -92,7 +92,8 @@ namespace Server.Boot
             // templateのIDは作成時刻由来で毎回変わりキャッシュも持たないため、template起動で生成済みキャッシュを消さない
             // A template id derives from createdAt and owns no cache, so a template boot must not wipe the generated caches
             var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
-            if (!terrainMeta.IsTemplate) StaleWorldCacheCollector.Collect(GameSystemPaths.WorldCacheDirectory, terrainMeta.WorldId);
+            if (terrainMeta is GeneratedTerrainTransferMeta generatedMeta)
+                StaleWorldCacheCollector.Collect(GameSystemPaths.WorldCacheDirectory, generatedMeta.WorldId);
 
             var serverDirectory = settings.ServerDataDirectory;
             var options = new MoorestechServerDIContainerOptions(serverDirectory)

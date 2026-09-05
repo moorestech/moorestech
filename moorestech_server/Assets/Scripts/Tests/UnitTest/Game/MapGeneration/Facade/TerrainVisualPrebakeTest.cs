@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
             try
             {
                 var worldDirectory = scope.ProvisionLowResolutionMultiTileGeneratedWorld(777);
-                var meta = TerrainTransferMetaReader.Read(worldDirectory);
+                var meta = (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(worldDirectory);
                 var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
 
                 Assert.AreEqual(expectedTileCount, meta.TerrainTileCount);
@@ -53,7 +53,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         {
             var scope = new TerrainTransferTestScope(nameof(先焼き済みキャッシュはOpen_BakeTileで再構築されずmtimeが変わらない));
             var worldDirectory = scope.ProvisionGeneratedWorld(778);
-            var meta = TerrainTransferMetaReader.Read(worldDirectory);
+            var meta = (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(worldDirectory);
             var shared = WorldDataDirectory.ForWorldCache(meta.WorldId);
             try
             {

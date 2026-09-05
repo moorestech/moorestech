@@ -41,7 +41,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var expectedStreamBytes = TerrainTransferTestScope.ReadFilesInOrder(
                 SyntheticMultiTileWorldFactory.ExpectedStreamFilePaths(worldDataDirectory));
 
-            var chunkTotal = TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal;
+            var chunkTotal = ReadGenerated(worldDataDirectory).TerrainChunkTotal;
             Assert.AreEqual(2, chunkTotal);
 
             var decompressedChunks = Enumerable.Range(0, chunkTotal)
@@ -76,7 +76,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 合成ワールドは並びを自前で書くので実生成のtileX_tileZ取り違えを検出できない。ここだけ実生成を多タイルで通す
             // A synthetic world spells its own order out and cannot catch a real tileX/tileZ mix-up, so this case generates multiple tiles for real
             var worldDataDirectory = _testScope.ProvisionLowResolutionMultiTileGeneratedWorld(12345);
-            var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
+            var terrainMeta = ReadGenerated(worldDataDirectory);
 
             const int gridSide = TerrainTransferTestScope.LowResolutionMultiTileGridSide;
             Assert.AreEqual(gridSide * gridSide, terrainMeta.TerrainTileCount);
@@ -93,7 +93,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void 範囲外のChunkIndexは空応答ではなく例外になる()
         {
             var worldDataDirectory = CreateSyntheticFourTileWorld(SyntheticMultiTileWorldFactory.MultiChunkFileByteSize);
-            var chunkTotal = TerrainTransferMetaReader.Read(worldDataDirectory).TerrainChunkTotal;
+            var chunkTotal = ReadGenerated(worldDataDirectory).TerrainChunkTotal;
 
             Assert.Throws<ArgumentOutOfRangeException>(() => TerrainChunkReader.Read(worldDataDirectory, chunkTotal));
             Assert.Throws<ArgumentOutOfRangeException>(() => TerrainChunkReader.Read(worldDataDirectory, -1));
@@ -115,7 +115,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             // 生成失敗や切り詰めで実ファイルが空になった状態。templateと同一視すると壊れたワールドを正常として配ってしまう
             // Terrain emptied by a failed generation or truncation; equating it with template would ship a broken world as healthy
             var worldDataDirectory = CreateSyntheticFourTileWorld(0);
-            var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
+            var terrainMeta = ReadGenerated(worldDataDirectory);
             Assert.AreEqual(WorldMapMode.Generated, terrainMeta.MapMode);
             Assert.AreEqual(0, terrainMeta.TerrainChunkTotal);
 
@@ -139,6 +139,13 @@ namespace Tests.UnitTest.Game.MapGeneration
         private WorldDataDirectory CreateSyntheticFourTileWorld(int fileByteSize)
         {
             return SyntheticMultiTileWorldFactory.Create(_testScope, fileByteSize);
+        }
+
+        // 地形の寸法はgeneratedのメタにしか無い。generatedワールドを読んだ結果がその型であること自体が検証対象でもある
+        // Terrain dimensions live on the generated meta alone, and a generated world reading back as that type is itself part of what is verified
+        private static GeneratedTerrainTransferMeta ReadGenerated(WorldDataDirectory worldDataDirectory)
+        {
+            return (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(worldDataDirectory);
         }
     }
 }

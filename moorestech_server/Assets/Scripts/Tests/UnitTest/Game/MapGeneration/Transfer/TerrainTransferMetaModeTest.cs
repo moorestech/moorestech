@@ -7,26 +7,24 @@ using UnityEngine;
 
 namespace Tests.UnitTest.Game.MapGeneration
 {
-    // モード文字列の解釈はワイヤ→ドメイン復元(TerrainTransferMeta.FromWire)の1箇所だけが行う。消費側は判別子だけを見る
-    // Mode-string interpretation happens only in the wire-to-domain restore (TerrainTransferMeta.FromWire); consumers look at the discriminator alone
+    // モード文字列の解釈はワイヤ→ドメイン復元(TerrainTransferMeta.FromWire)の1箇所だけが行う。消費側は復元された型だけを見る
+    // Mode-string interpretation happens only in the wire-to-domain restore (TerrainTransferMeta.FromWire); consumers look at the restored type alone
     public class TerrainTransferMetaModeTest
     {
         [Test]
         public void ワイヤメタからのモード解釈は単一入口で完結する()
         {
-            var template = new TerrainTransferMetaMessagePack(TerrainTransferMeta.CreateTemplate("world-a", 42), string.Empty);
-            var templateMeta = template.ToTerrainTransferMeta();
-            Assert.IsTrue(templateMeta.IsTemplate);
-            Assert.IsNull(templateMeta.GeneratedPayload);
+            var template = new TerrainTransferMetaMessagePack(new TemplateTerrainTransferMeta("world-a", 42), string.Empty);
+            Assert.IsInstanceOf<TemplateTerrainTransferMeta>(template.ToTerrainTransferMeta());
 
             var generated = new TerrainTransferMetaMessagePack(CreateGeneratedMeta(), "hash");
-            Assert.IsFalse(generated.ToTerrainTransferMeta().IsTemplate);
+            Assert.IsInstanceOf<GeneratedTerrainTransferMeta>(generated.ToTerrainTransferMeta());
         }
 
         [Test]
         public void 未知モードは変換入口で例外になる()
         {
-            var unknown = new TerrainTransferMetaMessagePack(TerrainTransferMeta.CreateTemplate("world-c", 1), string.Empty);
+            var unknown = new TerrainTransferMetaMessagePack(new TemplateTerrainTransferMeta("world-c", 1), string.Empty);
             unknown.MapMode = "unknown-mode";
             Assert.Throws<InvalidOperationException>(() => unknown.ToTerrainTransferMeta());
         }
@@ -39,7 +37,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var wire = new TerrainTransferMetaMessagePack(CreateGeneratedMeta(), "hash");
             var bytes = MessagePackSerializer.Serialize(wire);
             var restoredWire = MessagePackSerializer.Deserialize<TerrainTransferMetaMessagePack>(bytes);
-            var payload = restoredWire.ToTerrainTransferMeta().GeneratedPayload;
+            var payload = ((GeneratedTerrainTransferMeta)restoredWire.ToTerrainTransferMeta()).GeneratedPayload;
 
             Assert.AreEqual(new Vector2(10f, 20f), payload.Origins.NoiseOrigin);
             Assert.AreEqual(new Vector2(30f, 40f), payload.Origins.SceneOrigin);
@@ -51,14 +49,14 @@ namespace Tests.UnitTest.Game.MapGeneration
         [Test]
         public void templateのワイヤは従来の空値を書くがドメインにpayloadを作らない()
         {
-            var wire = new TerrainTransferMetaMessagePack(TerrainTransferMeta.CreateTemplate("world-a", 42), string.Empty);
+            var wire = new TerrainTransferMetaMessagePack(new TemplateTerrainTransferMeta("world-a", 42), string.Empty);
 
             Assert.AreEqual(Vector2.zero, (Vector2)wire.NoiseOrigin);
             Assert.AreEqual(Vector2.zero, (Vector2)wire.SceneOrigin);
             Assert.AreEqual(string.Empty, wire.GenerationMasterFingerprint);
             Assert.AreEqual(string.Empty, wire.GeneratorVersion);
             Assert.AreEqual(string.Empty, wire.PlacementLedgerDigest);
-            Assert.IsNull(wire.ToTerrainTransferMeta().GeneratedPayload);
+            Assert.IsInstanceOf<TemplateTerrainTransferMeta>(wire.ToTerrainTransferMeta());
         }
 
         [Test]
@@ -78,7 +76,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         public void generatedメタはpayloadなしで構築できない()
         {
             Assert.Throws<ArgumentNullException>(() =>
-                TerrainTransferMeta.CreateGenerated("world-b", 513, 4, 3, 42, null));
+                new GeneratedTerrainTransferMeta("world-b", 513, 4, 3, 42, null));
         }
 
         // 旧ビルドのワイヤ値は必須項目が欠けたまま届く。payloadを先に組むと空文字の例外が先に出て版不一致の診断へ到達しない
@@ -93,9 +91,9 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(exception.Message, Does.Contain("connect to a server on the same build"));
         }
 
-        private static TerrainTransferMeta CreateGeneratedMeta()
+        private static GeneratedTerrainTransferMeta CreateGeneratedMeta()
         {
-            return TerrainTransferMeta.CreateGenerated(
+            return new GeneratedTerrainTransferMeta(
                 "world-b", 513, 4, 3, 42,
                 new GeneratedTerrainTransferPayload(
                     new TerrainOrigins(new Vector2(10f, 20f), new Vector2(30f, 40f)), "fingerprint", WorldGeneratorVersion.Current, "ledger-digest"));

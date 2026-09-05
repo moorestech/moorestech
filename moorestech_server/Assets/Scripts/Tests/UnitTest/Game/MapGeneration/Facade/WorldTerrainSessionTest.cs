@@ -24,7 +24,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Facade
         public void TemplateOpensAsTerrainAssetLayout()
         {
             var session = WorldTerrainSession.Open(
-                TerrainTransferMeta.CreateTemplate("0123456789abcdef", 0), TestModDirectory.ForUnitTestModDirectory);
+                new TemplateTerrainTransferMeta("0123456789abcdef", 0), TestModDirectory.ForUnitTestModDirectory);
             Assert.That(session.Layout.Kind, Is.EqualTo(TerrainLayoutKind.TerrainAsset));
             Assert.That(session.Layout.AuthoredTerrainDataAddress, Is.EqualTo("Vanilla/Environment/TemplateTerrainData"));
             Assert.That(session.Layout.TileCoordinates, Is.Empty);

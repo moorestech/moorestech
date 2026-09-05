@@ -53,7 +53,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.AreEqual(WorldMapMode.Generated, mapLayout.TerrainMeta.MapMode, "generatedモードで起動していない");
                 Assert.Less(0, mapLayout.TerrainMeta.TerrainChunkTotal, "地形チャンクが1本も無い");
 
-                var terrainMeta = mapLayout.TerrainMeta.ToTerrainTransferMeta();
+                var terrainMeta = (GeneratedTerrainTransferMeta)mapLayout.TerrainMeta.ToTerrainTransferMeta();
                 var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(terrainMeta.WorldId));
                 var segments = TerrainTransferMeta
                     .EnumerateStreamSegments(cacheWorldDirectory, terrainMeta.TerrainTileCount, terrainMeta.TerrainResolution).ToList();

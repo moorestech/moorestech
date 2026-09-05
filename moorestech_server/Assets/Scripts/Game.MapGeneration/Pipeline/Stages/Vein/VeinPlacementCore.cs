@@ -40,8 +40,7 @@ namespace Game.MapGeneration.Pipeline.Stages
 
             // 排他入力はタイル寸法から一意に決まるので、呼び出し元ではなくここで組む。
             // The exclusion input follows uniquely from the tile bounds, so it is built here rather than at each call site.
-            var excludedVeins = tile.Halo.CreateConfirmedVeinSnapshot(
-                dims.WorldOffsetX, dims.WorldOffsetZ, dims.TerrainWidth, dims.TerrainLength);
+            var excludedVeins = tile.Halo.CreateConfirmedVeinSnapshot(TileCandidateAabbBounds.From(dims));
 
             var rng = new System.Random(TileSeedMixer.Mix(
                 config.seed + rngSeedOffset, tile.TileIndexX, tile.TileIndexZ));
