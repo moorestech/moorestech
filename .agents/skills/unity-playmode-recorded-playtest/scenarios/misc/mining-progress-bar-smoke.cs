@@ -7,7 +7,6 @@ using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Input;
-using Client.Skit.UI;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -19,7 +18,7 @@ return PlaytestRunner.Run("mining-progress-bar-smoke", options, async p =>
 {
     // 開幕スキットは全UI入力を塞ぐため、再生されていれば飛ばす
     // The opening skit blocks every UI input, so skip it when it plays
-    await SkipOpeningSkitIfPlaying();
+    await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 20f, "GameScreenに到達");
 
     p.Note("石の斧を装備枠1に装着する");
@@ -62,32 +61,4 @@ return PlaytestRunner.Run("mining-progress-bar-smoke", options, async p =>
     p.Assert(progressed, "採掘ホールド中に進捗が0より大きくなった");
 
     await p.Until(() => !progressBar.IsShown, 10f, "採掘終了で進捗バーが消える");
-
-    #region Internal
-
-    // 開幕スキットはワールドによっては再生されない。skipインテントが許可された時だけ飛ばす
-    // The opening skit does not play in every world; skip only while the skip intent is allowed
-    async UniTask SkipOpeningSkitIfPlaying()
-    {
-        var skitStore = SkitPresentationStateStore.Instance;
-        var skitDeadline = Time.realtimeSinceStartup + 10f;
-        var skitSkipped = false;
-        while (Time.realtimeSinceStartup < skitDeadline)
-        {
-            var current = skitStore.GetCurrent();
-            if (Array.IndexOf(current.AllowedIntents, "skip") < 0)
-            {
-                if (skitSkipped) break;
-                await p.WaitSeconds(0.25f);
-                continue;
-            }
-
-            skitSkipped |= skitStore.TrySkip(current.SessionId, current.SceneRevision).Ok;
-            await p.WaitSeconds(0.25f);
-        }
-
-        p.Note(skitSkipped ? "開幕スキットをSkipインテントで飛ばした" : "開幕スキットは再生されなかった");
-    }
-
-    #endregion
 });

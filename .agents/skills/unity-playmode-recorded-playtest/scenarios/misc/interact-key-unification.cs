@@ -12,7 +12,6 @@ using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
-using Client.Skit.UI;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Mooresmaster.Localization.Generated;
@@ -31,7 +30,7 @@ return PlaytestRunner.Run("interact-key-unification", options, async p =>
 {
     // 開幕スキットは全UI入力を塞ぐため、再生されていれば飛ばしてからGameScreen到達を待つ
     // The opening skit blocks every UI input, so skip it when it plays and then wait for the game screen
-    await SkipOpeningSkitIfPlaying();
+    await p.SkipOpeningSkitIfPlaying();
     await p.Until(() => p.CurrentUiState == UIStateEnum.GameScreen, 15f, "GameScreenに到達");
 
     #region フェーズ1: 小石をF単押しで拾う / Phase 1: tap F to pick up a pebble
@@ -127,32 +126,6 @@ return PlaytestRunner.Run("interact-key-unification", options, async p =>
     p.Note("検証完了");
 
     #region Internal
-
-    // 開幕スキットはワールドによっては再生されない。skipインテントが許可された時だけ飛ばし、無ければそのまま進む
-    // The opening skit does not play in every world; skip only while the skip intent is allowed, otherwise move on
-    async UniTask SkipOpeningSkitIfPlaying()
-    {
-        var skitStore = SkitPresentationStateStore.Instance;
-        var deadline = Time.realtimeSinceStartup + 10f;
-        var skitSkipped = false;
-        while (Time.realtimeSinceStartup < deadline)
-        {
-            var current = skitStore.GetCurrent();
-            if (Array.IndexOf(current.AllowedIntents, "skip") < 0)
-            {
-                // 飛ばし終えたあとにskipが引けなくなったら完了。まだ一度も出ていないなら再生を待ち続ける
-                // Once skipped, losing the skip intent means it ended; before that, keep waiting for it to start
-                if (skitSkipped) break;
-                await p.WaitSeconds(0.25f);
-                continue;
-            }
-
-            skitSkipped |= skitStore.TrySkip(current.SessionId, current.SceneRevision).Ok;
-            await p.WaitSeconds(0.25f);
-        }
-
-        p.Note(skitSkipped ? "開幕スキットをSkipインテントで飛ばした" : "開幕スキットは再生されなかった");
-    }
 
     // tooltipの先頭行のローカライズキー。非表示なら空文字（Assertの差分が読めるようにする）
     // Localization key of the tooltip's first line; empty when hidden so a failed assert stays readable

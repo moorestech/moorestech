@@ -124,6 +124,28 @@ namespace Client.Playtest.Operations
             #endregion
         }
 
+        // スキットが再生されないワールドもあるため、skipインテントが引ける間だけ飛ばして進む（引けなければ待たずに戻る）
+        // Some worlds never play the opening skit, so skip only while the skip intent is available and return without waiting otherwise
+        public static async UniTask SkipOpeningSkitIfPlaying(float timeoutSeconds)
+        {
+            var skitStore = SkitPresentationStateStore.Instance;
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            var skitSkipped = false;
+            while (Time.realtimeSinceStartup < deadline)
+            {
+                var current = skitStore.GetCurrent();
+                var canSkip = current != null && 0 <= Array.IndexOf(current.AllowedIntents, "skip");
+
+                // 飛ばし終えたあとにskipが引けなくなったら完了。まだ一度も出ていないなら再生開始を待ち続ける
+                // Once skipped, losing the skip intent means it ended; before that, keep waiting for it to start
+                if (!canSkip && skitSkipped) break;
+                if (canSkip) skitSkipped |= skitStore.TrySkip(current.SessionId, current.SceneRevision).Ok;
+                await UniTask.Delay(TimeSpan.FromSeconds(0.25f), ignoreTimeScale: true);
+            }
+
+            Debug.Log(skitSkipped ? "[Playtest] 開幕スキットをSkipインテントで飛ばした" : "[Playtest] 開幕スキットは再生されなかった");
+        }
+
         public static async UniTask ExitToGameScreen()
         {
             if (CurrentUiState() == UIStateEnum.GameScreen) return;

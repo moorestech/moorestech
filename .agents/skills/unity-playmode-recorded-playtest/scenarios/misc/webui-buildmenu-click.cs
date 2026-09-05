@@ -10,6 +10,10 @@ using UnityEngine.InputSystem;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("webui-buildmenu-click", options, async p =>
 {
+    // 開幕スキットは全UI入力（ホットバー・ビルドメニュー）を塞ぐため、最初に飛ばす
+    // The opening skit blocks every UI input (hotbar, build menu), so skip it first
+    await p.SkipOpeningSkit();
+
     // 無料設置と平坦足場を一括設定し、UI経路の前提をナレーションへ残す
     // Configure free placement and flat ground together, narrating the UI-route prerequisites
     p.Note("デバッグ環境を整え、Web UIビルドメニューからベルトコンベアを選択する");

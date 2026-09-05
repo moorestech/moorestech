@@ -27,6 +27,9 @@ namespace Client.Playtest
         // Timeouts for the opening skit's skip acceptance and the subsequent arrival at GameScreen
         private const float SkitSkipTimeoutSeconds = 30f;
         private const float SkitSkipUiStateTimeoutSeconds = 15f;
+        // 再生されないワールドでも待ちすぎないための、任意スキップの上限
+        // Upper bound for the optional skip so worlds without a skit do not stall
+        private const float OptionalSkitSkipTimeoutSeconds = 10f;
 
         private readonly PlaytestResult _result;
         private readonly string _runDirectory;
@@ -130,6 +133,9 @@ namespace Client.Playtest
         // 開幕スキットを飛ばしゲーム画面まで抜ける。ホットバー・ビルドメニュー操作すべての前提
         // Skips the opening skit and lands on the game screen; the precondition for every hotbar and build-menu operation
         public async UniTask SkipOpeningSkit() => await _reporter.Act("開幕スキットをSkipインテントで飛ばす", () => PlaytestUiOps.SkipOpeningSkit(SkitSkipTimeoutSeconds, SkitSkipUiStateTimeoutSeconds));
+        // スキットが再生されないワールドでも落ちない版。再生されていれば飛ばし、されていなければそのまま進む
+        // Variant that tolerates worlds without an opening skit: skips it when it plays, moves on when it does not
+        public async UniTask SkipOpeningSkitIfPlaying() => await _reporter.Act("開幕スキットを再生中なら飛ばす", () => PlaytestUiOps.SkipOpeningSkitIfPlaying(OptionalSkitSkipTimeoutSeconds));
         public async UniTask ExitToGameScreen() => await _reporter.Act("ゲーム画面へ戻る", PlaytestUiOps.ExitToGameScreen);
         public async UniTask AimAt(Vector3 worldPosition) => await _reporter.Act($"照準: {worldPosition}", () => PlaytestUiOps.AimAtWorldPosition(worldPosition));
         // 指定originに設置されるよう接地面上のフットプリント中心へ照準する（向きはNorth前提）
