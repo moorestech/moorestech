@@ -1,8 +1,7 @@
-// [uGUI廃止Phase1] Web UI移行済みのため未メンテ・描画恒久停止。Phase2で削除予定（docs/webui/ugui-retirement-plan.md）
-// [uGUI retirement Phase1] Unmaintained; rendering permanently disabled after the Web UI migration. Slated for deletion in Phase2 (docs/webui/ugui-retirement-plan.md)
 using Client.Game.InGame.Control;
 using Client.Input;
 using UnityEngine;
+using VContainer;
 
 namespace Client.Game.InGame.UI.Tooltip
 {
@@ -11,21 +10,23 @@ namespace Client.Game.InGame.UI.Tooltip
     /// </summary>
     public class GameObjectToolTipTargetController : MonoBehaviour
     {
+        [Inject] private IMouseCursorTooltip _tooltip;
+
         private GameObjectTooltipTarget _lastTooltipTarget;
-        
+
         private void Update()
         {
             if (TryGetOnCursorTooltipTarget(out var target))
             {
                 if (_lastTooltipTarget == target) return;
-                
-                if (_lastTooltipTarget != null) _lastTooltipTarget.OnCursorExit();
-                target.OnCursorEnter();
+
+                if (_lastTooltipTarget != null) _lastTooltipTarget.OnCursorExit(_tooltip);
+                target.OnCursorEnter(_tooltip);
                 _lastTooltipTarget = target;
             }
             else
             {
-                if (_lastTooltipTarget != null) _lastTooltipTarget.OnCursorExit();
+                if (_lastTooltipTarget != null) _lastTooltipTarget.OnCursorExit(_tooltip);
                 _lastTooltipTarget = null;
             }
         }

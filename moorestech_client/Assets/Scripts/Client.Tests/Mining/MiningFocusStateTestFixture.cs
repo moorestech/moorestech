@@ -14,7 +14,6 @@ using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -30,7 +29,7 @@ namespace Client.Tests.Mining
         protected static readonly Guid EarnItemGuid = new("00000000-0000-0000-9999-000000000001");
 
         private readonly List<GameObject> _stubTargetObjects = new();
-        private GameObject _tooltipObject;
+        private MouseCursorTooltipState _tooltip;
 
         public override void Setup()
         {
@@ -42,22 +41,7 @@ namespace Client.Tests.Mining
             // 文言解決は実辞書を通す
             // Resolve text through the real dictionary so a key dropped from it fails here too
             Localize.Initialize();
-            CreateTooltip();
-
-            #region Internal
-
-            void CreateTooltip()
-            {
-                _tooltipObject = new GameObject("MouseCursorTooltip");
-                _tooltipObject.SetActive(false);
-                var tooltip = _tooltipObject.AddComponent<MouseCursorTooltip>();
-                TestReflection.SetField(tooltip, "canvasGroup", _tooltipObject.AddComponent<CanvasGroup>());
-                TestReflection.SetField(tooltip, "itemName", _tooltipObject.AddComponent<TextMeshProUGUI>());
-                _tooltipObject.SetActive(true);
-                TestReflection.InvokePrivate(tooltip, "Awake");
-            }
-
-            #endregion
+            _tooltip = new MouseCursorTooltipState();
         }
 
         public override void TearDown()
@@ -65,8 +49,6 @@ namespace Client.Tests.Mining
             foreach (var stubTargetObject in _stubTargetObjects)
                 UnityEngine.Object.DestroyImmediate(stubTargetObject);
             _stubTargetObjects.Clear();
-            UnityEngine.Object.DestroyImmediate(_tooltipObject);
-            TestReflection.SetStaticProperty(typeof(MouseCursorTooltip), "Instance", null);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
@@ -78,7 +60,7 @@ namespace Client.Tests.Mining
 
         protected IMiningState RunFocusState(MiningStartOutcome outcome, MiningFocusState focusState, IReadOnlyList<Guid> earnItemGuids)
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), new ProgressBarState());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), new ProgressBarState(), _tooltip);
             var stubTarget = new OutcomeStubMiningTarget(outcome, MasterHolder.ItemMaster.GetItemId(ToolItemGuid), earnItemGuids);
             _stubTargetObjects.Add(stubTarget.GameObject);
             context.SetFocusTarget(stubTarget);
@@ -93,7 +75,7 @@ namespace Client.Tests.Mining
         // Advances the focus state once with F held down; the only path that exercises the press branch itself
         protected IMiningState RunFocusStateWithInteractPressed(MiningStartOutcome outcome, MiningFocusState focusState)
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), new ProgressBarState());
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), new ProgressBarState(), _tooltip);
             var stubTarget = new OutcomeStubMiningTarget(outcome, MasterHolder.ItemMaster.GetItemId(ToolItemGuid), Array.Empty<Guid>());
             _stubTargetObjects.Add(stubTarget.GameObject);
             context.SetFocusTarget(stubTarget);
@@ -106,14 +88,19 @@ namespace Client.Tests.Mining
 
         // 表示中の1行目のキー文字列（提示は1行構成が前提）
         // Key string of the first shown line; the presentation is expected to be one line
-        protected static string ShownTooltipKey()
+        protected string ShownTooltipKey()
         {
-            return MouseCursorTooltip.Instance.GetPresentation().Lines[0].Key.Key;
+            return _tooltip.GetPresentation().Lines[0].Key.Key;
         }
 
-        protected static IReadOnlyList<string> ShownTooltipParams()
+        protected IReadOnlyList<string> ShownTooltipParams()
         {
-            return MouseCursorTooltip.Instance.GetPresentation().Lines[0].TextParams;
+            return _tooltip.GetPresentation().Lines[0].TextParams;
+        }
+
+        protected TooltipPresentation ShownTooltipPresentation()
+        {
+            return _tooltip.GetPresentation();
         }
 
         private static LocalPlayerEquipment CreateEquipmentHoldingTool()

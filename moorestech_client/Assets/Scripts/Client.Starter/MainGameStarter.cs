@@ -31,6 +31,7 @@ using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.UI.Inventory.Craft;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
@@ -110,8 +111,9 @@ namespace Client.Starter
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
         [SerializeField] private InGameCameraController inGameCameraController;
-        
-        
+
+        [SerializeField] private GameObjectToolTipTargetController gameObjectToolTipTargetController;
+
         private IObjectResolver _resolver;
 
         protected override void OnDestroy()
@@ -178,6 +180,8 @@ namespace Client.Starter
             builder.RegisterComponent(backgroundSkitManager);
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
+
+            builder.RegisterComponent(gameObjectToolTipTargetController);
             
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);

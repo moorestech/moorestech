@@ -15,7 +15,6 @@ using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -31,9 +30,9 @@ namespace Client.Tests.Interact
 
         private Keyboard _keyboard;
         private GameObject _playerObject;
-        private GameObject _tooltipObject;
         private GameObject _stubTargetObject;
         private ProgressBarState _progressBar;
+        private MouseCursorTooltipState _tooltip;
 
         public override void Setup()
         {
@@ -45,22 +44,11 @@ namespace Client.Tests.Interact
             // 文言解決は実辞書を通す
             // Resolve text through the real dictionary
             Localize.Initialize();
-            CreateTooltip();
+            _tooltip = new MouseCursorTooltipState();
             CreatePlayerSystem();
             _progressBar = new ProgressBarState();
 
             #region Internal
-
-            void CreateTooltip()
-            {
-                _tooltipObject = new GameObject("MouseCursorTooltip");
-                _tooltipObject.SetActive(false);
-                var tooltip = _tooltipObject.AddComponent<MouseCursorTooltip>();
-                TestReflection.SetField(tooltip, "canvasGroup", _tooltipObject.AddComponent<CanvasGroup>());
-                TestReflection.SetField(tooltip, "itemName", _tooltipObject.AddComponent<TextMeshProUGUI>());
-                _tooltipObject.SetActive(true);
-                TestReflection.InvokePrivate(tooltip, "Awake");
-            }
 
             void CreatePlayerSystem()
             {
@@ -80,10 +68,8 @@ namespace Client.Tests.Interact
         public override void TearDown()
         {
             TestReflection.SetStaticProperty(typeof(PlayerSystemContainer), "Instance", null);
-            TestReflection.SetStaticProperty(typeof(MouseCursorTooltip), "Instance", null);
             UnityEngine.Object.DestroyImmediate(_stubTargetObject);
             UnityEngine.Object.DestroyImmediate(_playerObject);
-            UnityEngine.Object.DestroyImmediate(_tooltipObject);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
@@ -92,7 +78,7 @@ namespace Client.Tests.Interact
         public void 採掘中にDisableすると進捗バーが消えFSMがIdleへ戻る()
         {
             var selector = new ScriptedInteractTargetSelector();
-            var controller = new InteractController(CreateEquipmentHoldingTool(), selector, _progressBar);
+            var controller = new InteractController(CreateEquipmentHoldingTool(), selector, _progressBar, _tooltip);
             selector.SetNext(CreateReadyMiningTarget());
             PressInteract();
 
@@ -114,18 +100,18 @@ namespace Client.Tests.Interact
         public void フォーカス中にDisableするとtooltipが消える()
         {
             var selector = new ScriptedInteractTargetSelector();
-            var controller = new InteractController(CreateEquipmentHoldingTool(), selector, _progressBar);
+            var controller = new InteractController(CreateEquipmentHoldingTool(), selector, _progressBar, _tooltip);
             selector.SetNext(CreateReadyMiningTarget());
 
             // Fを押さないのでFocusに留まり、掘り方のtooltipが出る
             // F is never pressed, so it stays in Focus and shows the how-to-mine tooltip
             controller.ManualUpdate();
             controller.ManualUpdate();
-            Assert.IsTrue(MouseCursorTooltip.Instance.GetPresentation().Visible, "フォーカス中のtooltipが出ていない前提が崩れている");
+            Assert.IsTrue(_tooltip.GetPresentation().Visible, "フォーカス中のtooltipが出ていない前提が崩れている");
 
             controller.Disable();
             Assert.IsInstanceOf<MiningIdleState>(CurrentMiningState(controller));
-            Assert.IsFalse(MouseCursorTooltip.Instance.GetPresentation().Visible);
+            Assert.IsFalse(_tooltip.GetPresentation().Visible);
         }
 
         private static IMiningState CurrentMiningState(InteractController controller)

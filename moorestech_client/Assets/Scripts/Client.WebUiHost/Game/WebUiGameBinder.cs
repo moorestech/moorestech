@@ -113,9 +113,9 @@ namespace Client.WebUiHost.Game
             // Register the notification topic
             hub.RegisterTopic(NotificationTopic.TopicName, new NotificationTopic(hub));
 
-            // uGUI/3D由来のツールチップを共通Web基盤へ接続する
-            // Connect uGUI/3D tooltip sources to the shared web tooltip foundation
-            hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, MouseCursorTooltip.Instance));
+            // ゲーム内ツールチップ状態を Web へ接続する
+            // Connect the in-game tooltip state to the web
+            hub.RegisterTopic(TooltipTopic.TopicName, new TooltipTopic(hub, resolver.Resolve<MouseCursorTooltipState>()));
 
             // クラフトレシピトピックを登録
             // Register the craft-recipes topic

@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -25,7 +26,6 @@ namespace Client.Tests.UIState
         public void GameScreenExitReturnsToNeutralBeforeDirectInventoryTransition()
         {
             SetUpGameStateController();
-            SetUpMouseCursorTooltip();
             var applier = new FakePlayerCameraInteractionApplier();
             var state = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
@@ -54,7 +54,6 @@ namespace Client.Tests.UIState
         [Test]
         public void DeleteObjectRestoresBaselineAfterFocusReturnsDuringRightDrag()
         {
-            SetUpMouseCursorTooltip();
             var applier = new FakePlayerCameraInteractionApplier();
             var state = CreateDeleteObjectState(applier, new PlayerViewModeController(new FakePlayerViewApplier()));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
@@ -102,7 +101,7 @@ namespace Client.Tests.UIState
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
-            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
+            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter(new MouseCursorTooltipState()));
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
@@ -115,7 +114,7 @@ namespace Client.Tests.UIState
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            return new DeleteObjectState(null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService);
+            return new DeleteObjectState(null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService, new MouseCursorTooltipState());
         }
 
         // 鉱脈ゼロの台帳。PlaceBlockStateはコンストラクタで表示を解決するため実体が要る

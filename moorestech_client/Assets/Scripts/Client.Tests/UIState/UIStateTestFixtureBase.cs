@@ -75,7 +75,7 @@ namespace Client.Tests.UIState
         // Equipment plays no part in highlight or transition checks, so it is built with null; mining outcome tests live elsewhere
         protected static InteractController CreateInteractController()
         {
-            return new InteractController(null, new InteractTargetSelector(), new ProgressBarState());
+            return new InteractController(null, new InteractTargetSelector(), new ProgressBarState(), new MouseCursorTooltipState());
         }
 
         protected static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)
@@ -121,13 +121,7 @@ namespace Client.Tests.UIState
             return new InitialHandshakeResponse(initialHandshake, (null, null, inventory, null, null, null, null, null));
         }
 
-        protected void SetUpMouseCursorTooltip()
-        {
-            var tooltip = CreateComponent<MouseCursorTooltip>("Tooltip", false);
-            SetField(tooltip, "canvasGroup", tooltip.gameObject.AddComponent<CanvasGroup>());
-            tooltip.gameObject.SetActive(true);
-            InvokeAwake(tooltip);
-        }
+        protected MouseCursorTooltipState CreateMouseCursorTooltip() => new();
 
         // インタラクト選定は本番と同じUI重なり判定を通るため、Setupで立てたEventSystemを入力モジュール付きで有効化する
         // Interact selection runs the production UI-overlap check, so activate the Setup EventSystem with an input module

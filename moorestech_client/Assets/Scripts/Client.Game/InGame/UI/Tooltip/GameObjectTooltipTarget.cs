@@ -19,14 +19,14 @@ namespace Client.Game.InGame.UI.Tooltip
 
         private readonly TooltipOwner _tooltipOwner = new();
 
-        public void OnCursorEnter()
+        public void OnCursorEnter(IMouseCursorTooltip tooltip)
         {
-            if (displayEnable) MouseCursorTooltip.Instance.Show(_tooltipOwner, new LocalizationKey(textKey));
+            if (displayEnable) tooltip.Show(_tooltipOwner, new LocalizationKey(textKey));
         }
-        
-        public void OnCursorExit()
+
+        public void OnCursorExit(IMouseCursorTooltip tooltip)
         {
-            MouseCursorTooltip.Instance.Hide(_tooltipOwner);
+            tooltip.Hide(_tooltipOwner);
         }
     }
 }

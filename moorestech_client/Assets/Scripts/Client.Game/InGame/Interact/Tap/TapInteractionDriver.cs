@@ -13,12 +13,18 @@ namespace Client.Game.InGame.Interact.Tap
     {
         private static readonly TooltipOwner TooltipOwner = new();
 
+        private readonly IMouseCursorTooltip _tooltip;
         private readonly List<TooltipLine> _lines = new();
         private readonly List<InputKey> _candidateKeys = new();
 
         // 直前に行を組み立てた対象
         // The target the lines were built for
         private ITapInteractable _shownTarget;
+
+        public TapInteractionDriver(IMouseCursorTooltip tooltip)
+        {
+            _tooltip = tooltip;
+        }
 
         public InteractExecuteResult Step(ITapInteractable target, IInteractSelection selection)
         {
@@ -103,7 +109,7 @@ namespace Client.Game.InGame.Interact.Tap
 
                 // 提示は同値比較で変化通知を抑えるため確定した配列を渡す
                 // The presentation compares by value, so hand it a fixed array instead of the reused list
-                MouseCursorTooltip.Instance.Show(TooltipOwner, _lines.ToArray());
+                _tooltip.Show(TooltipOwner, _lines.ToArray());
                 _shownTarget = target;
             }
 
@@ -124,7 +130,7 @@ namespace Client.Game.InGame.Interact.Tap
         public void Clear()
         {
             _shownTarget = null;
-            MouseCursorTooltip.Instance.Hide(TooltipOwner);
+            _tooltip.Hide(TooltipOwner);
         }
     }
 }

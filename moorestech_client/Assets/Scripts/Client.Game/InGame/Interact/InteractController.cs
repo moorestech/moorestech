@@ -3,6 +3,7 @@ using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.ProgressBar;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using UnityEngine;
 
@@ -16,16 +17,18 @@ namespace Client.Game.InGame.Interact
     {
         private readonly MiningControllerContext _miningContext;
         private readonly IInteractTargetSelector _selector;
-        private readonly TapInteractionDriver _tapDriver = new();
+        private readonly TapInteractionDriver _tapDriver;
 
         private IInteractable _highlighted;
         private GameObject _highlightedGameObject;
-        private IMiningState _miningState = new MiningIdleState();
+        private IMiningState _miningState;
 
-        public InteractController(LocalPlayerEquipment localPlayerEquipment, IInteractTargetSelector selector, ProgressBarState progressBar)
+        public InteractController(LocalPlayerEquipment localPlayerEquipment, IInteractTargetSelector selector, ProgressBarState progressBar, IMouseCursorTooltip tooltip)
         {
             _selector = selector;
-            _miningContext = new MiningControllerContext(localPlayerEquipment, progressBar);
+            _miningContext = new MiningControllerContext(localPlayerEquipment, progressBar, tooltip);
+            _tapDriver = new TapInteractionDriver(tooltip);
+            _miningState = new MiningIdleState(_miningContext);
         }
 
         public InteractExecuteResult ManualUpdate()

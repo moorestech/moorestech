@@ -5,6 +5,7 @@ using Client.Game.InGame.Mining;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.ProgressBar;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Client.Localization;
 using Client.Tests.Common;
@@ -32,6 +33,7 @@ namespace Client.Tests.Mining
         private MiningCompleteSoundEffectFixture _soundEffectFixture;
         private Keyboard _keyboard;
         private ProgressBarState _progressBar;
+        private MouseCursorTooltipState _tooltip;
         public override void Setup()
         {
             base.Setup();
@@ -44,6 +46,7 @@ namespace Client.Tests.Mining
             Localize.Initialize();
             CreatePlayerSystem();
             _progressBar = new ProgressBarState();
+            _tooltip = new MouseCursorTooltipState();
             _soundEffectFixture = new MiningCompleteSoundEffectFixture();
             _mapObjectObject = new GameObject("MiningMapObjects");
             #region Internal
@@ -74,7 +77,7 @@ namespace Client.Tests.Mining
         [Test]
         public void 採掘中に装備を持ち替えるとフォーカス状態へ戻る()
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), _progressBar);
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), _progressBar, _tooltip);
             context.SetFocusTarget(CreateMiningMapObject());
             var miningState = new MiningProgressState(context, context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
             PressInteract();
@@ -89,7 +92,7 @@ namespace Client.Tests.Mining
         [Test]
         public void 完了後に照準対象が変わっても開始対象だけを攻撃する()
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), _progressBar);
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), _progressBar, _tooltip);
             var startedTarget = new AttackTrackingMiningTarget("StartedTarget", _mapObjectObject.transform);
             var replacementTarget = new AttackTrackingMiningTarget("ReplacementTarget", _mapObjectObject.transform);
             context.SetFocusTarget(startedTarget);
@@ -110,7 +113,7 @@ namespace Client.Tests.Mining
         [Test]
         public void 採掘中に照準対象が変わるとフォーカス状態へ戻る()
         {
-            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), _progressBar);
+            var context = new MiningControllerContext(CreateEquipmentHoldingTool(), _progressBar, _tooltip);
             context.SetFocusTarget(CreateMiningMapObject());
             var miningState = new MiningProgressState(context, context.CurrentFocusTarget, MiningToolOfFocusedMapObject(context));
             PressInteract();

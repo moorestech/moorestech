@@ -7,6 +7,7 @@ using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using UnityEngine;
 
@@ -21,10 +22,10 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly DeleteObjectService _deleteObjectService;
         private readonly BuildUndoService _buildUndoService;
 
-        public DeleteObjectState(RailGraphClientCache cache, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService, PlacementTargetPickService placementTargetPickService, RightShortPressInputService rightShortPressInputService)
+        public DeleteObjectState(RailGraphClientCache cache, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService, PlacementTargetPickService placementTargetPickService, RightShortPressInputService rightShortPressInputService, IMouseCursorTooltip tooltip)
         {
             _cameraPolicyService = cameraPolicyService;
-            _deleteObjectService = new DeleteObjectService(buildOperationHistory);
+            _deleteObjectService = new DeleteObjectService(buildOperationHistory, tooltip);
             _buildUndoService = buildUndoService;
             _placementTargetPickService = placementTargetPickService;
             _rightShortPressInputService = rightShortPressInputService;

@@ -8,6 +8,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -60,9 +61,9 @@ namespace Client.Tests.UIState
         [Test]
         public void DeleteObject削除選択が無ければ右短押しで破壊モードを抜ける()
         {
-            SetUpMouseCursorTooltip();
+            var tooltip = CreateMouseCursorTooltip();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new DeleteObjectState(null, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null), rightShortPressInputService);
+            var state = new DeleteObjectState(null, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null), rightShortPressInputService, tooltip);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
 
             var transit = PressAndReleaseRightButton(state);
@@ -145,7 +146,7 @@ namespace Client.Tests.UIState
         {
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
-            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
+            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter(new MouseCursorTooltipState()));
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());

@@ -32,11 +32,13 @@ namespace Client.Game.InGame.Mining
 
         public readonly LocalPlayerEquipment LocalPlayerEquipment;
         public ProgressBarState ProgressBar { get; }
+        public IMouseCursorTooltip Tooltip { get; }
 
-        public MiningControllerContext(LocalPlayerEquipment localPlayerEquipment, ProgressBarState progressBar)
+        public MiningControllerContext(LocalPlayerEquipment localPlayerEquipment, ProgressBarState progressBar, IMouseCursorTooltip tooltip)
         {
             LocalPlayerEquipment = localPlayerEquipment;
             ProgressBar = progressBar;
+            Tooltip = tooltip;
 
             // 言語切替で保持中の名前が古くなる
             // A language switch makes the cached names stale
