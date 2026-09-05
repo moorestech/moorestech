@@ -7,7 +7,6 @@ using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.DragDelete;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
-using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Input;
 using UnityEngine;
 
@@ -15,7 +14,6 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     public class DeleteObjectState : IUIState, IApplicationFocusRestorer
     {
-        private readonly DeleteBarObject _deleteBarObject;
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly PlacementTargetPickService _placementTargetPickService;
         private readonly RightShortPressInputService _rightShortPressInputService;
@@ -23,15 +21,13 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly DeleteObjectService _deleteObjectService;
         private readonly BuildUndoService _buildUndoService;
 
-        public DeleteObjectState(DeleteBarObject deleteBarObject, RailGraphClientCache cache, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService, PlacementTargetPickService placementTargetPickService, RightShortPressInputService rightShortPressInputService)
+        public DeleteObjectState(RailGraphClientCache cache, UiStateCameraPolicyService cameraPolicyService, BuildOperationHistory buildOperationHistory, BuildUndoService buildUndoService, PlacementTargetPickService placementTargetPickService, RightShortPressInputService rightShortPressInputService)
         {
-            _deleteBarObject = deleteBarObject;
             _cameraPolicyService = cameraPolicyService;
             _deleteObjectService = new DeleteObjectService(buildOperationHistory);
             _buildUndoService = buildUndoService;
             _placementTargetPickService = placementTargetPickService;
             _rightShortPressInputService = rightShortPressInputService;
-            deleteBarObject.gameObject.SetActive(false);
         }
 
         public void OnEnter(UITransitContext context)
@@ -43,8 +39,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // 視点別カーソル/回転ポリシーを適用
             // Apply the per-view-mode cursor/rotation policy
             _cameraPolicyService.EnterBuildMode();
-
-            _deleteBarObject.gameObject.SetActive(!WebUiScreenGate.IsWebUiMode);
         }
 
         public UITransitContext GetNextUpdate()
@@ -105,7 +99,6 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _cameraPolicyService.ExitToNeutral();
             _deleteObjectService.CancelSelection();
-            _deleteBarObject.gameObject.SetActive(false);
         }
 
         public void RestoreAfterApplicationFocus()

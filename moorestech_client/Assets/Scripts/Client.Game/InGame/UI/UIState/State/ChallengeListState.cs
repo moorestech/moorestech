@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
-using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Input;
 using UnityEngine;
@@ -9,22 +8,19 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     public class ChallengeListState : IUIState
     {
-        private readonly ChallengeListView _challengeListView;
         private readonly RightShortPressInputService _rightShortPressInputService;
 
-        public ChallengeListState(ChallengeListView challengeListView, RightShortPressInputService rightShortPressInputService)
+        public ChallengeListState(RightShortPressInputService rightShortPressInputService)
         {
-            _challengeListView = challengeListView;
             _rightShortPressInputService = rightShortPressInputService;
         }
-        
+
         public void OnEnter(UITransitContext context)
         {
             // 他UIState滞在中は右短押しがpollされないため、復帰直後の古い押下状態を破棄する
             // Right short press isn't polled while another UIState is active, so discard any stale press state on return
             _rightShortPressInputService.ResetPressState();
 
-            _challengeListView.SetActive(true);
             InputManager.MouseCursorVisible(true);
         }
 
@@ -39,7 +35,6 @@ namespace Client.Game.InGame.UI.UIState.State
         }
         public void OnExit()
         {
-            _challengeListView.SetActive(false);
             InputManager.MouseCursorVisible(false);
         }
 

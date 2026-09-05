@@ -10,7 +10,6 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
@@ -98,18 +97,11 @@ namespace Client.Tests.UIState
             return state.GetNextUpdate();
         }
 
-        // PlayerInventoryStateのctorは初期応答の適用まで走るため、ビュー実体の注入込みで組み立てる
-        // PlayerInventoryState's ctor applies the initial response, so it is assembled together with the view instances it needs
+        // PlayerInventoryStateのctorは初期応答の適用まで走るため、必要な実体込みで組み立てる
+        // PlayerInventoryState's ctor applies the initial response, so it is assembled together with the instances it needs
         protected PlayerInventoryState CreatePlayerInventoryState(LocalPlayerEquipment playerEquipment, InitialHandshakeResponse handshakeResponse)
         {
-            // uGUIビューはSetActiveしか呼ばれないため最小の実体を渡す
-            // The uGUI views only receive SetActive, so pass minimal instances
-            var recipeViewerView = CreateComponent<RecipeViewerView>("RecipeViewer", false);
-            var viewController = CreateComponent<PlayerInventoryViewController>("PlayerInventoryView", false);
-            SetField(viewController, "mainInventoryObject", CreateObject("MainInventory", false));
-            SetField(viewController, "subInventoryParent", CreateObject("SubInventoryParent", false).transform);
-
-            return new PlayerInventoryState(recipeViewerView, viewController,
+            return new PlayerInventoryState(
                 new LocalPlayerInventoryController(new LocalPlayerInventory(), playerEquipment),
                 playerEquipment, handshakeResponse, new RightShortPressInputService(new RightShortPressInput()));
         }

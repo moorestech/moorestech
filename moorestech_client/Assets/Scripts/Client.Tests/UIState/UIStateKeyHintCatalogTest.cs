@@ -112,9 +112,9 @@ namespace Client.Tests.UIState
         public void EachStateReturnsItsOwnHintTable()
         {
             Assert.AreSame(GameScreenStateHints.Hints, new GameScreenState(null, null, null, null, null).GetKeyHints());
-            Assert.AreSame(ResearchTreeStateHints.Hints, new ResearchTreeState(null, null).GetKeyHints());
+            Assert.AreSame(ResearchTreeStateHints.Hints, new ResearchTreeState(null).GetKeyHints());
             Assert.AreSame(BuildMenuStateHints.Hints, new BuildMenuState(null, null, null).GetKeyHints());
-            Assert.AreSame(ChallengeListStateHints.Hints, new ChallengeListState(null, null).GetKeyHints());
+            Assert.AreSame(ChallengeListStateHints.Hints, new ChallengeListState(null).GetKeyHints());
 
             // 全12stateをUIStateDictionary経由で通す検査は追わない（PlaceBlockState等はctorで購読とUnity依存を掴むためEditModeで構築できない）
             // Driving all 12 states through UIStateDictionary is out of reach: PlaceBlockState and friends grab subscriptions and Unity objects in their ctor

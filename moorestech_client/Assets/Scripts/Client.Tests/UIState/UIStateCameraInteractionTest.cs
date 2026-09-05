@@ -10,7 +10,6 @@ using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
-using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
 using Client.Tests.Map.Vein;
 using Client.Tests.UIState.Fakes;
@@ -85,13 +84,12 @@ namespace Client.Tests.UIState
         public void DeleteObjectPushesEnterDragStartAndExitPolicies()
         {
             SetUpMouseCursorTooltip();
-            var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
             var applier = new FakePlayerCameraInteractionApplier();
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService);
+            var state = new DeleteObjectState(null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 
