@@ -447,7 +447,7 @@ git commit -m "feat: ベルトファミリーから坂の上下向きを引け�
   - `VerticalDirection` は全セル `slopeDirection`。`Placeable` は全セル true（占有・地面判定は後段）。`BlockId` は未設定（後段で埋める）。
 - Consumes: 既存の `BeltConveyorPositionListBuilder.Build(Vector3Int, Vector3Int, bool) -> (List<Vector3Int>, int)`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/PlaceSystem/BeltConveyor/BeltConveyorSlopePathBuilderTest.cs` を新規作成する。
 
@@ -535,12 +535,12 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorSlopePathBuilder"`
 Expected: FAIL（コンパイルエラー: `BeltConveyorSlopePathBuilder` が存在しない）
 
-- [ ] **Step 3: BeltConveyorSlopePathBuilder を実装する**
+- [x] **Step 3: BeltConveyorSlopePathBuilder を実装する**
 
 `moorestech_client/Assets/Scripts/Client.Game/InGame/BlockSystem/PlaceSystem/BeltConveyor/Path/BeltConveyorSlopePathBuilder.cs` を新規作成する。
 
@@ -604,7 +604,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
 }
 ```
 
-- [ ] **Step 4: コンパイルしてテストを実行する**
+- [x] **Step 4: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -612,7 +612,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorSlopePathBuilder"`
 Expected: PASS（4テスト）
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 `.meta` はUnityが生成したものをそのまま含める（手動作成しない）。
 
