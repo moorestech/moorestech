@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
@@ -30,11 +31,9 @@ namespace Client.Tests.UIState
             CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, gameApplier.Calls);
 
             var menuApplier = new FakePlayerCameraInteractionApplier();
-            var menuView = new FakeBuildMenuView();
-            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier), new RightShortPressInputService(new RightShortPressInput()));
+            var menuState = new BuildMenuState(new BuildMenuSelection(), CreateCameraPolicy(menuApplier), new RightShortPressInputService(new RightShortPressInput()));
             menuState.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, menuApplier.Calls);
-            Assert.IsTrue(menuView.IsActive);
         }
 
         [Test]

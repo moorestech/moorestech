@@ -143,7 +143,7 @@ namespace Client.Starter
             builder.RegisterComponent(uIStateControl);
             builder.RegisterComponent(pauseMenuObject);
             builder.RegisterComponent(deleteBarObject);
-            builder.RegisterComponent(buildMenuView).AsSelf().As<IBuildMenuView>();
+            builder.RegisterComponent(buildMenuView);
             builder.RegisterComponent(blueprintNameInputView);
             builder.RegisterComponent(saveButton);
             builder.RegisterComponent(saveAndQuitPresenter);

@@ -11,13 +11,13 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     public class BuildMenuState : IUIState, IApplicationFocusRestorer
     {
-        private readonly IBuildMenuView _buildMenuView;
+        private readonly BuildMenuSelection _buildMenuSelection;
         private readonly UiStateCameraPolicyService _cameraPolicyService;
         private readonly RightShortPressInputService _rightShortPressInputService;
 
-        public BuildMenuState(IBuildMenuView buildMenuView, UiStateCameraPolicyService cameraPolicyService, RightShortPressInputService rightShortPressInputService)
+        public BuildMenuState(BuildMenuSelection buildMenuSelection, UiStateCameraPolicyService cameraPolicyService, RightShortPressInputService rightShortPressInputService)
         {
-            _buildMenuView = buildMenuView;
+            _buildMenuSelection = buildMenuSelection;
             _cameraPolicyService = cameraPolicyService;
             _rightShortPressInputService = rightShortPressInputService;
         }
@@ -32,7 +32,9 @@ namespace Client.Game.InGame.UI.UIState.State
             // Release cursor and stop rotation in menus
             _cameraPolicyService.EnterMenu();
 
-            _buildMenuView.SetActive(true);
+            // 前回セッションの未消費選択を破棄する
+            // Discard an unconsumed selection left over from the previous session
+            _buildMenuSelection.Clear();
         }
 
         public UITransitContext GetNextUpdate()
@@ -41,8 +43,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Evaluate right short press state every frame before early returns (ManualUpdate runs internally)
             var isRightShortPressed = _rightShortPressInputService.TryConsumeShortPressOutsideUi();
 
-            if (_buildMenuView.TryConsumeSelectedEntry(out var entry))
-                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(entry.Target, PlacementOrigin.NonHotbar)));
+            if (_buildMenuSelection.TryConsumeSelectedTarget(out var target))
+                return new UITransitContext(UIStateEnum.PlaceBlock, UITransitContextContainer.Create(new PlacementSelection(target, PlacementOrigin.NonHotbar)));
 
             if (InputManager.UI.CloseUI.GetKeyDown || HybridInput.GetKeyDown(KeyCode.B) || isRightShortPressed) return new UITransitContext(UIStateEnum.GameScreen, null);
             if (InputManager.UI.OpenInventory.GetKeyDown) return new UITransitContext(UIStateEnum.PlayerInventory, null);
@@ -52,7 +54,6 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
-            _buildMenuView.SetActive(false);
         }
 
         public void RestoreAfterApplicationFocus()

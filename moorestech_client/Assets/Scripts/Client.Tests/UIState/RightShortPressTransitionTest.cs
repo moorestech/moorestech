@@ -6,6 +6,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
+using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
@@ -73,7 +74,7 @@ namespace Client.Tests.UIState
         public void BuildMenu右短押しでゲーム画面へ抜ける()
         {
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new BuildMenuState(new FakeBuildMenuView(), CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), rightShortPressInputService);
+            var state = new BuildMenuState(new BuildMenuSelection(), CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), rightShortPressInputService);
             state.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
 
             var transit = PressAndReleaseRightButton(state);
