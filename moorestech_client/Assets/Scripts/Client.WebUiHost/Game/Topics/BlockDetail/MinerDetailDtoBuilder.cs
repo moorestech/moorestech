@@ -14,8 +14,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     {
         public static void Apply(BlockInventoryDto dto, BlockGameObject block, object param, CommonMachineBlockStateDetail common)
         {
-            // 採掘機: CommonMiner StateDetail + マスタ MineSettings から分間採掘数を算出
-            // Miners: the CommonMiner state detail plus per-minute rates derived from master MineSettings
+            // CommonMiner+MineSettingsから分間採掘数を算出
+            // Derives per-minute mining rate from CommonMiner and MineSettings
             var miner = block.GetStateDetail<CommonMinerBlockStateDetail>(CommonMinerBlockStateDetail.BlockStateDetailKey);
             if (miner == null || common == null || param is not IMinerParam minerParam) return;
 
@@ -30,8 +30,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
         private static List<MiningItemDto> BuildMiningItems(CommonMinerBlockStateDetail miner, IMinerParam minerParam)
         {
-            // uGUI MinerBlockInventoryView と同じ算出（サーバーの実効採掘時間から 60/秒 を分間数に）
-            // Same derivation as uGUI MinerBlockInventoryView (60 / the server's effective seconds, per minute)
+            // uGUIと同じ算出(60/秒→分)
+            // Same derivation as uGUI (60/sec to per-minute)
             var result = new List<MiningItemDto>();
             var currentIds = miner.GetCurrentMiningItemIds();
             if (miner.MiningSeconds <= 0) return result;

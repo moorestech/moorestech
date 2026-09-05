@@ -15,8 +15,8 @@ namespace Game.Block.Blocks.Pump
     /// </summary>
     public static class PumpFluidGenerationUtility
     {
-        // 底面フットプリントとXZで重なる流体鉱脈のうちマスタgenerateFluidに存在する流体だけをブロック生成時に確定する
-        // Resolve, once at block creation, the fluids whose veins overlap the footprint in XZ and exist in the master generateFluid table
+        // 生成時に一度だけ対象流体を確定
+        // Resolves the target fluids once, at block creation
         public static List<FluidGenerationEntry> ResolveGenerationEntries(GenerateFluids generateFluids, BlockPositionInfo footprint)
         {
             var entries = new List<FluidGenerationEntry>();
@@ -42,6 +42,13 @@ namespace Game.Block.Blocks.Pump
             }
 
             return entries;
+        }
+
+        // 生成対象があり出力タンクが受け入れ可能かの共通判定（電気・歯車ポンプで同一式を共有）
+        // Shared check for whether generation targets exist and the output tank can accept them (shared by electric and gear pumps)
+        public static bool CanGenerateFluid(List<FluidGenerationEntry> entries, PumpFluidOutputComponent output)
+        {
+            return 0 < entries.Count && output.CanAcceptGeneratedFluid;
         }
 
         // tick毎の発行はキャッシュ済みエントリをpowerRateで按分するだけ

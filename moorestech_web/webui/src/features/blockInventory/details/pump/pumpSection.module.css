@@ -1,4 +1,5 @@
 .icon {
   width: var(--slot-size, 3rem);
   height: var(--slot-size, 3rem);
+  object-fit: contain;
 }

@@ -108,8 +108,8 @@ export const blockGearMiner = {
   gearNetwork: { totalRequiredGearPower: 24.0, totalGenerateGearPower: 40.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 
-// BLK-10 油井: pump(electric)/fluidSlots/electricNetwork。汲み上げ中流体あり
-// BLK-10 electric pump: pump(electric)/fluidSlots/electricNetwork with an active target
+// BLK-10: 油井、汲み上げ中流体あり
+// BLK-10: electric pump, active target
 export const blockPump = {
   open: true,
   source: "block",
@@ -125,8 +125,8 @@ export const blockPump = {
   electricNetwork: { totalGeneratePower: 100.0, totalRequiredPower: 50.0, consumerCount: 1, powerRate: 1.0 },
 } satisfies BlockInventoryWireData;
 
-// BLK-11 鉱脈外の油井: 汲み上げ中流体が空で警告行が出る
-// BLK-11 electric pump off a vein: no targets, so the warning row shows
+// BLK-11: 鉱脈外の油井、警告行あり
+// BLK-11: pump off vein, shows warning
 export const blockPumpNoVein = {
   ...blockPump,
   identifier: "block:11",
@@ -134,8 +134,8 @@ export const blockPumpNoVein = {
   pump: { electric: { currentState: "idle", currentPower: 10.0, requestPower: 10.0 }, pumpingFluids: [] },
 } satisfies BlockInventoryWireData;
 
-// BLK-12 歯車ポンプ: pump(electric無し)/gear/gearNetwork
-// BLK-12 gear pump: pump without electric, plus gear/gearNetwork
+// BLK-12: 歯車ポンプ
+// BLK-12: gear pump
 export const blockGearPump = {
   open: true,
   source: "block",

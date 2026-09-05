@@ -216,10 +216,6 @@ namespace Client.Tests.PlaceSystem
             CollectionAssert.IsEmpty(feedback.Lines);
         }
 
-        /// <summary>
-        ///     置いた瞬間に何も汲み上げないポンプを作らないため、汲み上げられる流体鉱脈の外は設置不可（ADR 0051）
-        ///     A pump that would draw nothing the moment it lands is refused, so cells off a pumpable fluid vein are not placeable (ADR 0051)
-        /// </summary>
         [Test]
         public void 鉱脈外のポンプセルをPlaceableFalseにしカーソルセルだけ理由を出す()
         {
@@ -239,10 +235,6 @@ namespace Client.Tests.PlaceSystem
             CollectionAssert.AreEqual(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlacePumpOutsideVein) }, feedback.Lines);
         }
 
-        /// <summary>
-        ///     ポンプはアイテム鉱脈を汲み上げられないので、アイテム鉱脈の上は設置可にしない
-        ///     A pump cannot draw from an item vein, so an item vein must not make the cell placeable
-        /// </summary>
         [Test]
         public void アイテム鉱脈の上はポンプを設置可にしない()
         {
@@ -255,10 +247,6 @@ namespace Client.Tests.PlaceSystem
             Assert.IsFalse(placeInfos[0].Placeable, "an item vein made a pump placeable");
         }
 
-        /// <summary>
-        ///     ポンプはgenerateFluidに無い流体を汲み上げられないので、蒸気鉱脈の上は設置可にしない（ADR 0051）
-        ///     A pump cannot draw a fluid absent from generateFluid, so a steam vein must not make the cell placeable (ADR 0051)
-        /// </summary>
         [Test]
         public void generateFluidに無い流体の鉱脈の上はポンプを設置可にしない()
         {

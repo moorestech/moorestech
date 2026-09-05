@@ -68,8 +68,8 @@ export const MinerDetailDataSchema = z.object({
 });
 
 export const PumpDetailDataSchema = z.object({
-  // 油井だけ electric を持つ。歯車ポンプは省略され GearSection が動力行を担う
-  // Only the electric pump carries electric; the gear pump omits it and GearSection renders the power row
+  // 油井のみelectric保持。歯車はGearSection
+  // Electric only on the electric pump; gear uses GearSection
   electric: z.object({ currentState: MachineProcessStateSchema, currentPower: z.number(), requestPower: z.number() }).optional(),
   pumpingFluids: z.array(z.object({ fluidId: z.number(), fluidGuid: GuidSchema, amountPerMinute: z.number() })),
 });

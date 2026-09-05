@@ -6,8 +6,8 @@ using MessagePack;
 namespace Game.Block.Interface.State
 {
     /// <summary>
-    ///     ポンプの汲み上げ中流体と公称生成量。汲み上げ対象が無ければ空リスト（クライアントは鉱脈警告を出す）
-    ///     The fluids a pump is drawing and their nominal rates; empty when it has no target (the client shows the vein warning)
+    ///     汲み上げ中流体と公称量。無ければ空(クライアント警告)
+    ///     Pumping fluids and nominal rates; empty triggers the client's vein warning
     /// </summary>
     [Serializable]
     [MessagePackObject]
@@ -33,8 +33,8 @@ namespace Game.Block.Interface.State
     {
         [Key(0)] public int FluidId { get; set; }
 
-        // 充足率100%のときの秒あたり量。分間換算はクライアントが行う
-        // Per-second amount at 100% satisfaction; the client converts to per-minute
+        // 満充足時の秒量。分換算はクライアント
+        // Per-second amount at full satisfaction; client converts to per-minute
         [Key(1)] public double AmountPerSecond { get; set; }
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]

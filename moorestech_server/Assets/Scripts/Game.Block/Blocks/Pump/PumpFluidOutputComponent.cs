@@ -12,6 +12,7 @@ using MessagePack;
 using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
 using Game.Block.Interface.Component.ConnectJudge;
+using UniRx;
 
 namespace Game.Block.Blocks.Pump
 {
@@ -19,13 +20,16 @@ namespace Game.Block.Blocks.Pump
     /// Holds an inner fluid tank and pushes it to connected pipes each update.
     /// Output-only for external inventories; internal generators enqueue via AddLiquid.
     /// </summary>
-    public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState, IBlockStateDetail
+    public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
     {
         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
         public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
-        
+
         private readonly FluidContainer _tank;
         private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
+        private readonly Subject<Unit> _onChangeBlockState = new();
+
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
         public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
         {
@@ -69,6 +73,7 @@ namespace Game.Block.Blocks.Pump
                         _tank.Amount = 0;
                         _tank.FluidId = FluidMaster.EmptyFluidId;
                     }
+                    _onChangeBlockState.OnNext(Unit.Default);
                 }
             }
 
@@ -92,6 +97,8 @@ namespace Game.Block.Blocks.Pump
             #endregion
         }
 
+        // 生成tickの通知はPumpStateComponentが担うため、ここでは通知しない
+        // PumpStateComponent notifies on generating ticks, so no notification is raised here
         public void EnqueueGeneratedFluid(FluidStack fluidStack)
         {
             _tank.AddLiquid(fluidStack);
@@ -128,6 +135,7 @@ namespace Game.Block.Blocks.Pump
         public void Destroy()
         {
             IsDestroy = true;
+            _onChangeBlockState?.Dispose();
         }
 
         public List<FluidStack> GetFluidInventory()

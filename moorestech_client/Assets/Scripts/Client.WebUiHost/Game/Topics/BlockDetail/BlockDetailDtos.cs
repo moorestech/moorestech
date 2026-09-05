@@ -85,8 +85,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
     public class PumpDetailDto
     {
-        // 油井だけ持つ。歯車ポンプは null（キー省略）で Web 側は GearSection を使う
-        // Only the electric pump carries this; the gear pump leaves it null (key omitted) and the Web side uses GearSection
+        // 油井のみ設定。歯車はnull(GearSection使用)
+        // Only the electric pump sets this; gear pump is null (uses GearSection)
         public PumpElectricDto Electric;
         public List<PumpingFluidDto> PumpingFluids;
     }

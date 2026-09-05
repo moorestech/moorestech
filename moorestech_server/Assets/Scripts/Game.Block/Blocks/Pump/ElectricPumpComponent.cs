@@ -10,8 +10,8 @@ namespace Game.Block.Blocks.Pump
     /// <summary>
     /// 所属セグメントの確定済み供給率から実効電力を導出してポンプProcessorへ渡す
     /// Derives effective power from its segment's settled supply rate and feeds the pump processor
-    /// UI向けには実効要求電力と充足率をCommonMachineBlockStateDetailで配信する（ADR 0010 / 0051）
-    /// For the UI it publishes the effective request and satisfaction via CommonMachineBlockStateDetail (ADR 0010 / 0051)
+    /// - UI: CommonMachineBlockStateDetailで配信（ADR 0010/0051）
+    /// - UI: published via CommonMachineBlockStateDetail (ADR 0010/0051)
     /// </summary>
     public class ElectricPumpComponent : IElectricConsumer, IElectricTickPostHandler, IBlockStateDetail
     {

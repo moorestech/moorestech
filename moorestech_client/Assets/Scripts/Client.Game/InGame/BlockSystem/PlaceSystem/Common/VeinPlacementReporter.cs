@@ -14,8 +14,8 @@ using Server.Protocol.PacketResponse;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
-    ///     鉱脈に紐づく3つの設置制限を1箇所で課す。採掘機は掘れるアイテム鉱脈の上だけ、ポンプは汲み上げられる流体鉱脈の上だけ、チュートリアル対象ブロックは指定種別の鉱脈の上だけ
-    ///     Applies all three vein-bound placement restrictions in one place: miners onto veins they can mine, pumps onto veins they can draw from, tutorial-targeted blocks onto veins of the named type
+    ///     鉱脈由来の3設置制限を集約
+    ///     Aggregates the three vein-bound placement restrictions
     ///     位置の判定はサーバーと同じ BlockPositionInfoExtension.OverlapsVeinXz に委ねる（クライアント側のみの制限。サーバーは弾かない）
     ///     The positional test comes from the same BlockPositionInfoExtension.OverlapsVeinXz the server uses (client-side only; the server does not reject it)
     /// </summary>
@@ -23,8 +23,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     {
         public static void MarkOutsideVeinCellsAsNotPlaceable(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster, int cursorIndex, MapVeinAabbRegistry veinAabbRegistry, VeinRestrictedPlacementState state, PlacementFeedback feedback)
         {
-            // 採掘機・ポンプ・チュートリアル対象のいずれでもないブロックは鉱脈と無関係なので素通しする
-            // A block that is neither a miner, a pump nor the tutorial target is unrelated to veins, so let it pass
+            // 鉱脈と無関係なら素通し
+            // Unrelated to veins, so let it pass
             var minerParam = holdingBlockMaster.BlockParam as IMinerParam;
             var pumpParam = holdingBlockMaster.BlockParam as IPumpParam;
             var holdingBlockId = MasterHolder.BlockMaster.GetBlockId(holdingBlockMaster.BlockGuid);
@@ -61,8 +61,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     if (i == cursorIndex) feedback.Add(new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceMinerOutsideVein));
                 }
 
-                // 置いた瞬間に何も汲み上げないポンプも同じ理由で不可にする（ADR 0051）
-                // A pump that would draw nothing the moment it lands is refused for the same reason (ADR 0051)
+                // 同じ理由でポンプも不可にする
+                // Pumps are refused for the same reason
                 if (pumpParam != null && !isOverPumpableVein)
                 {
                     placeInfo.Placeable = false;

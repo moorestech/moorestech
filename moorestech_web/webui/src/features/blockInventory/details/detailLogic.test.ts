@@ -63,8 +63,8 @@ describe("detailLogic", () => {
     });
   });
 
-  // 表示分岐は純関数に切り出し、警告行の出し分けをDOM無しで固定する（ADR 0051）
-  // The display branch is a pure function so the warning toggle is pinned without a DOM (ADR 0051)
+  // 表示分岐を純関数化しDOM無しで固定
+  // Pure-function display branch pinned without a DOM
   describe("pumpSectionDisplay", () => {
     it("汲み上げ中流体が空なら警告行だけを出す", () => {
       const display = pumpSectionDisplay({ pumpingFluids: [] });

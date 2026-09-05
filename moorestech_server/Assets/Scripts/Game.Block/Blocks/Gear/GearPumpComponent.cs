@@ -16,7 +16,7 @@ namespace Game.Block.Blocks.Gear
         private readonly List<FluidGenerationEntry> _entries;
         private readonly float _idleTorqueRate;
 
-        public bool CanGenerateFluid => _entries.Count > 0 && _output.CanAcceptGeneratedFluid;
+        public bool CanGenerateFluid => PumpFluidGenerationUtility.CanGenerateFluid(_entries, _output);
 
         public GearPumpComponent(GearPumpBlockParam param, GearEnergyTransformer gearEnergyTransformer, PumpFluidOutputComponent output, List<FluidGenerationEntry> entries)
         {

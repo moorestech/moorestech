@@ -2,6 +2,7 @@ using System;
 using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Block.Blocks.Machine;
 using Game.Context;
@@ -19,8 +20,8 @@ using static Tests.Util.ElectricNetworkReflectionTestUtil;
 namespace Tests.CombinedTest.Core
 {
     /// <summary>
-    ///     ポンプがUI用の状態（汲み上げ中流体・内部タンク・電力充足）を配信することを検証する（ADR 0051）
-    ///     Verifies the pump publishes the UI state: pumping fluids, inner tank, and power satisfaction (ADR 0051)
+    ///     ポンプのUI用状態配信を検証する
+    ///     Verifies the pump's UI state publishing
     /// </summary>
     public class PumpBlockStateDetailTest
     {
@@ -40,8 +41,8 @@ namespace Tests.CombinedTest.Core
             var pumpDetail = MessagePackSerializer.Deserialize<PumpBlockStateDetail>(state.CurrentStateDetails[PumpBlockStateDetail.BlockStateDetailKey]);
             Assert.AreEqual(1, pumpDetail.PumpingFluids.Count);
             Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(WaterFluidGuid).AsPrimitive(), pumpDetail.PumpingFluids[0].FluidId);
-            // TestElectricPump は amount 10 / generateTime 4 秒
-            // TestElectricPump generates amount 10 every 4 seconds
+            // TestPumpはamount10/generateTime4秒
+            // The test pump generates amount 10 every 4 seconds
             Assert.AreEqual(2.5, pumpDetail.PumpingFluids[0].AmountPerSecond, 0.0001);
 
             var common = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(state.CurrentStateDetails[CommonMachineBlockStateDetail.BlockStateDetailKey]);
@@ -67,8 +68,8 @@ namespace Tests.CombinedTest.Core
 
             var common = MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(state.CurrentStateDetails[CommonMachineBlockStateDetail.BlockStateDetailKey]);
             Assert.AreEqual(VanillaMachineBlockStateConst.IdleState, common.CurrentStateType);
-            // TestElectricPump の idlePowerRate は 0.4（blocks.json 参照）
-            // TestElectricPump's idlePowerRate is 0.4 (see blocks.json)
+            // TestElectricPumpのidlePowerRateは0.4
+            // TestElectricPump's idlePowerRate is 0.4 in blocks.json
             Assert.AreEqual(50f * 0.4f, common.RequestPower, 0.001f, "待機中の実効要求電力は基礎要求×idlePowerRate");
         }
 
@@ -97,8 +98,8 @@ namespace Tests.CombinedTest.Core
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var pump = PlacePoweredPump(WaterVeinPos);
 
-            // 満杯到達をタンク量で明示的に確認しつつ、その間ずっと分子が分母を超えないことを見る
-            // Explicitly confirm the tank reaches capacity while checking the numerator never exceeds the denominator
+            // 満杯到達と分子≦分母を確認
+            // Confirms full tank and numerator<=denominator
             var reachedFull = false;
             for (var i = 0; i < GameUpdater.SecondsToTicks(60) && !reachedFull; i++)
             {
@@ -108,7 +109,7 @@ namespace Tests.CombinedTest.Core
                 Assert.LessOrEqual(common.CurrentPower, common.RequestPower + 0.001f, "供給電力が実効要求電力を超えてはいけない");
 
                 var fluid = MessagePackSerializer.Deserialize<FluidMachineInventoryStateDetail>(state.CurrentStateDetails[FluidMachineInventoryStateDetail.BlockStateDetailKey]);
-                reachedFull = fluid.OutputTanks[0].Amount >= fluid.OutputTanks[0].MaxCapacity - 0.0001;
+                reachedFull = fluid.OutputTanks[0].MaxCapacity - 0.0001 <= fluid.OutputTanks[0].Amount;
             }
 
             Assert.IsTrue(reachedFull, "60秒以内に内部タンクが満杯になるはず");
@@ -128,6 +129,35 @@ namespace Tests.CombinedTest.Core
             GameUpdater.RunFrames(2);
 
             Assert.AreEqual(0f, GetCommonDetail(pump).CurrentPower, 0.0001f, "無給電のtickでは供給電力は0");
+        }
+
+        [Test]
+        public void 鉱脈上の歯車ポンプは汲み上げ中流体を配信し電力状態detailを持たない()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearPump, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.SimpleGearGenerator, new Vector3Int(1, 0, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out var generatorBlock);
+            var pumpParam = (Mooresmaster.Model.BlocksModule.GearPumpBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockParam;
+            var generator = generatorBlock.GetComponent<global::Game.Block.Blocks.Gear.SimpleGearGeneratorComponent>();
+            generator.SetGenerateRpm((float)pumpParam.GearConsumption.BaseRpm);
+            generator.SetGenerateTorque((float)pumpParam.GearConsumption.BaseTorque);
+            for (var i = 0; i < GameUpdater.SecondsToTicks(1); i++) GameUpdater.UpdateOneTick();
+
+            var state = pump.GetBlockState();
+            var pumpDetail = MessagePackSerializer.Deserialize<PumpBlockStateDetail>(state.CurrentStateDetails[PumpBlockStateDetail.BlockStateDetailKey]);
+            Assert.AreEqual(1, pumpDetail.PumpingFluids.Count);
+            Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(WaterFluidGuid).AsPrimitive(), pumpDetail.PumpingFluids[0].FluidId);
+            // TestPumpはamount10/generateTime4秒
+            // The test pump generates amount 10 every 4 seconds
+            Assert.AreEqual(2.5, pumpDetail.PumpingFluids[0].AmountPerSecond, 0.0001);
+
+            Assert.IsFalse(state.CurrentStateDetails.ContainsKey(CommonMachineBlockStateDetail.BlockStateDetailKey), "歯車ポンプは電力を持たないためCommonMachineの状態detailを持たないはず");
+
+            var fluid = MessagePackSerializer.Deserialize<FluidMachineInventoryStateDetail>(state.CurrentStateDetails[FluidMachineInventoryStateDetail.BlockStateDetailKey]);
+            Assert.AreEqual(0, fluid.InputTanks.Count);
+            Assert.AreEqual(1, fluid.OutputTanks.Count);
+            Assert.AreEqual(100, fluid.OutputTanks[0].MaxCapacity, 0.001);
         }
 
         private static CommonMachineBlockStateDetail GetCommonDetail(IBlock pump)

@@ -31,8 +31,6 @@ namespace Game.Block.Blocks.Pump
         {
             BlockException.CheckDestroy(this);
 
-            // 生成中は毎tick、生成→待機の遷移は1回だけ通知する
-            // Notify every tick while generating and once on the generating-to-idle transition
             var isGenerating = _generationState.CanGenerateFluid;
             if (isGenerating || _wasGenerating) _onChangeBlockState.OnNext(Unit.Default);
             _wasGenerating = isGenerating;

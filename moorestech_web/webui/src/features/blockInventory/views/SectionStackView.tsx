@@ -6,7 +6,7 @@ import GearSection from "../details/GearSection";
 import GeneratorSection from "../details/GeneratorSection";
 import MachineSection from "../details/MachineSection";
 import MinerSection from "../details/MinerSection";
-import PumpSection from "../details/PumpSection";
+import PumpSection from "../details/pump/PumpSection";
 import { ElectricNetworkSection, GearNetworkSection } from "../details/NetworkSections";
 
 type SectionStackViewConfig = {

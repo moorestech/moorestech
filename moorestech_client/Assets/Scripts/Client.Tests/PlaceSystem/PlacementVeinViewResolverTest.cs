@@ -84,10 +84,6 @@ namespace Client.Tests.PlaceSystem
             Assert.IsFalse(display.Highlight);
         }
 
-        /// <summary>
-        ///     表示は設置判定と同じ集合。generateFluidに無い流体の鉱脈は汲み上げられないので出さない（ADR 0051）
-        ///     The view shows the same set the placement check uses; veins of fluids absent from generateFluid are not pumpable and stay hidden (ADR 0051)
-        /// </summary>
         [Test]
         public void ポンプはgenerateFluidに無い流体の鉱脈を出さない()
         {

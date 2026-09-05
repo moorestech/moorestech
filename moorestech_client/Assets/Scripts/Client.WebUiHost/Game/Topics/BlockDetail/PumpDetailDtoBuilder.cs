@@ -13,8 +13,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     {
         public static void Apply(BlockInventoryDto dto, BlockGameObject block, CommonMachineBlockStateDetail common)
         {
-            // ポンプ: Pump StateDetail。油井は CommonMachine（電力充足）も併せて持つ（ADR 0051）
-            // Pumps: the Pump state detail; the electric pump also carries CommonMachine for power satisfaction (ADR 0051)
+            // Pump StateDetail使用。油井はCommonMachineも持つ
+            // Uses Pump StateDetail; the electric pump also carries CommonMachine
             var pump = block.GetStateDetail<PumpBlockStateDetail>(PumpBlockStateDetail.BlockStateDetailKey);
             if (pump == null) return;
 
@@ -27,8 +27,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
         private static List<PumpingFluidDto> BuildPumpingFluids(PumpBlockStateDetail pump)
         {
-            // 公称量は秒→分に換算し、表示名解決用に FluidGuid を添える（採掘機の ItemsPerMinute と同じ意味）
-            // Convert the nominal per-second rate to per-minute and attach the FluidGuid for name resolution (same meaning as the miner's ItemsPerMinute)
+            // 秒→分換算+表示用FluidGuid付与
+            // Sec-to-minute conversion, plus display FluidGuid
             var result = new List<PumpingFluidDto>();
             foreach (var pumping in pump.PumpingFluids)
             {

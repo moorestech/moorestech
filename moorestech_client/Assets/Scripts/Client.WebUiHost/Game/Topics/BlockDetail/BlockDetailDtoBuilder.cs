@@ -63,12 +63,12 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 };
             }
 
-            // 採掘機: CommonMiner StateDetail + マスタ MineSettings から分間採掘数を算出
-            // Miners: the CommonMiner state detail plus per-minute rates derived from master MineSettings
+            // 採掘機: MinerDetailDtoBuilderが算出
+            // Miners: computed by MinerDetailDtoBuilder
             MinerDetailDtoBuilder.Apply(dto, block, param, common);
 
-            // ポンプ: Pump StateDetail。油井は CommonMachine（電力充足）も併せて持つ（ADR 0051）
-            // Pumps: the Pump state detail; the electric pump also carries CommonMachine for power satisfaction (ADR 0051)
+            // ポンプ: PumpDetailDtoBuilderが算出
+            // Pumps: computed by PumpDetailDtoBuilder
             PumpDetailDtoBuilder.Apply(dto, block, common);
 
             // ギア: GearStateDetail + マスタ GearConsumption（要求値）

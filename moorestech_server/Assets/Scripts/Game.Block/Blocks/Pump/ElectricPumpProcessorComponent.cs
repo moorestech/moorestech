@@ -18,11 +18,11 @@ namespace Game.Block.Blocks.Pump
         private readonly float _idlePowerRate;
         private readonly List<FluidGenerationEntry> _entries;
 
-        // このtickに供給された電力の受け皿。Updateで確定値へ移して0へ戻す
-        // Holds the power supplied this tick; Update latches it and resets it to zero
+        // tick内供給電力の受け皿(Update後0)
+        // Holds this tick's supplied power (zeroed after Update)
         private ElectricPower _suppliedPower;
 
-        public bool CanGenerateFluid => _entries.Count > 0 && _output.CanAcceptGeneratedFluid;
+        public bool CanGenerateFluid => PumpFluidGenerationUtility.CanGenerateFluid(_entries, _output);
 
         // 稼働中は満額、待機中はidlePowerRate倍の実効要求電力
         // The effective request is full while generating and idlePowerRate of it while idle
@@ -50,7 +50,10 @@ namespace Game.Block.Blocks.Pump
         public void SupplyExternalPower(ElectricPower power)
         {
             BlockException.CheckDestroy(this);
-            _suppliedPower = power;
+
+            // 複数の電力セグメントから供給され得るため加算する
+            // Accumulate power because multiple electric segments may supply this pump
+            _suppliedPower += power;
         }
 
         public void Update()

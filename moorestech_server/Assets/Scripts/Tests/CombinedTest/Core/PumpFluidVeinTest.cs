@@ -82,8 +82,8 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, inventory.Count, "マスタに一致するfluidGuidが無ければ生成されないはず");
         }
 
-        // 鉱脈AABBのYから外れてもXZが重なれば汲み上げる（ADR 0051: 採掘機と同じ底面XZ規則）
-        // XZ overlap wins even outside the vein's Y range (ADR 0051: the miner's footprint XZ rule)
+        // YがずれてもXZ重なりで汲み上げる
+        // Draws on XZ overlap even off the vein's Y range
         [Test]
         public void PumpAboveVeinY_GeneratesFluid()
         {

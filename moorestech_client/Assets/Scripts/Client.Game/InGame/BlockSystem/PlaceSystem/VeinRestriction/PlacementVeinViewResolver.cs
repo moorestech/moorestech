@@ -52,8 +52,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction
                 return veins;
             }
 
-            // ポンプも同じ構図。汲み上げられる流体の鉱脈だけを出し、設置判定と同じ集合にする（ADR 0051）
-            // Pumps follow the same shape: show only veins of pumpable fluids, the same set the placement check uses (ADR 0051)
+            // 設置判定と同じ集合を表示（同じ構図）
+            // Same shape: shows the same set the placement check uses
             List<MapVeinAabb> SelectPumpableVeins(IPumpParam pumpParam)
             {
                 var pumpableFluidIds = PumpVeinFootprintJudge.ResolvePumpableFluidIds(pumpParam.GenerateFluid);

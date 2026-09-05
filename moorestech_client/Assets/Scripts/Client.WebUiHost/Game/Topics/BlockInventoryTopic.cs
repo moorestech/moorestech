@@ -178,9 +178,9 @@ namespace Client.WebUiHost.Game.Topics
             // ネットワーク集約の要否は blockType で決める（spec §2-a の組み合わせ表）
             // Whether to fetch network aggregates is decided by blockType (spec §2-a combination table)
             var electric = blockType is "ElectricMachine" or "ElectricGenerator" or "ElectricMiner"
-                or "ElectricToGearGenerator" or "ElectricPole";
+                or "ElectricToGearGenerator" or "ElectricPole" or "ElectricPump";
             var gear = blockType is "GearMachine" or "GearMiner" or "FuelGearGenerator" or "SimpleGearGenerator"
-                or "Shaft" or "Gear" or "GearBeltConveyor" or "ElectricToGearGenerator";
+                or "Shaft" or "Gear" or "GearBeltConveyor" or "ElectricToGearGenerator" or "GearPump";
             _sampleContinuously = gear;
             var filterSplitter = blockType == "FilterSplitter";
             _networkCache.Track(block, electric, gear, filterSplitter);
