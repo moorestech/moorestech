@@ -14,8 +14,6 @@ namespace Client.Game.InGame.UI.UIState
         // WebUiHost start success; recorded for diagnostics only — a failure no longer falls back to uGUI
         public static bool IsHostAvailable { get; private set; }
 
-        // uGUI廃止Phase1: Webモード恒久ON。ホスト起動失敗時もuGUIは復活させない（uGUIは未メンテのため）
-        // uGUI-retirement Phase1: web mode is permanently ON; even on host failure uGUI stays retired (it is unmaintained)
         public static bool IsWebUiMode => true;
 
         public static void SetHostAvailable(bool available)
