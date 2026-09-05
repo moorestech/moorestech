@@ -36,6 +36,7 @@ import type {
   MachineRecipeSchema,
   MachineRecipesDataSchema,
   MinerDetailDataSchema,
+  PumpDetailDataSchema,
   ModalDataSchema,
   ModalRequestSchema,
   PlayerInventoryDataSchema,
@@ -108,6 +109,7 @@ export type MachineProcessState = z.infer<typeof MachineProcessStateSchema>;
 export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;
 export type MinerDetailData = z.infer<typeof MinerDetailDataSchema>;
+export type PumpDetailData = z.infer<typeof PumpDetailDataSchema>;
 export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
 export type ElectricNetworkData = z.infer<typeof ElectricNetworkDataSchema>;
 export type ElectricToGearOutputModeData = z.infer<typeof ElectricToGearOutputModeDataSchema>;

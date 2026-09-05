@@ -12,6 +12,7 @@ const sources = {
   electricToGear: read("./views/ElectricToGearInventory.tsx"),
   network: read("./details/NetworkSections.tsx"),
   miner: read("./details/MinerSection.tsx"),
+  pump: read("./details/PumpSection.tsx"),
   machineInventoryBody: read("./details/machine/MachineInventoryBody.tsx"),
 };
 

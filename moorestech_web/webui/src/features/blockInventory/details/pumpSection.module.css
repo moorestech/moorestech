@@ -1,0 +1,4 @@
+.icon {
+  width: var(--slot-size, 48px);
+  height: var(--slot-size, 48px);
+}

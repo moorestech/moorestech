@@ -108,6 +108,47 @@ export const blockGearMiner = {
   gearNetwork: { totalRequiredGearPower: 24.0, totalGenerateGearPower: 40.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 
+// BLK-10 油井: pump(electric)/fluidSlots/electricNetwork。汲み上げ中流体あり
+// BLK-10 electric pump: pump(electric)/fluidSlots/electricNetwork with an active target
+export const blockPump = {
+  open: true,
+  source: "block",
+  blockType: "ElectricPump",
+  identifier: "block:10",
+  blockGuid: BlockGuids.ELECTRIC_PUMP_BLOCK_GUID,
+  itemSlots: [],
+  fluidSlots: [{ fluidId: 1, amount: 120, capacity: 200, fluidGuid: WATER_FLUID_GUID }],
+  pump: {
+    electric: { currentState: "processing", currentPower: 50.0, requestPower: 50.0 },
+    pumpingFluids: [{ fluidId: 1, fluidGuid: WATER_FLUID_GUID, amountPerMinute: 3600.0 }],
+  },
+  electricNetwork: { totalGeneratePower: 100.0, totalRequiredPower: 50.0, consumerCount: 1, powerRate: 1.0 },
+} satisfies BlockInventoryWireData;
+
+// BLK-11 鉱脈外の油井: 汲み上げ中流体が空で警告行が出る
+// BLK-11 electric pump off a vein: no targets, so the warning row shows
+export const blockPumpNoVein = {
+  ...blockPump,
+  identifier: "block:11",
+  fluidSlots: [{ fluidId: 0, amount: 0, capacity: 200, fluidGuid: "" }],
+  pump: { electric: { currentState: "idle", currentPower: 10.0, requestPower: 10.0 }, pumpingFluids: [] },
+} satisfies BlockInventoryWireData;
+
+// BLK-12 歯車ポンプ: pump(electric無し)/gear/gearNetwork
+// BLK-12 gear pump: pump without electric, plus gear/gearNetwork
+export const blockGearPump = {
+  open: true,
+  source: "block",
+  blockType: "GearPump",
+  identifier: "block:12",
+  blockGuid: BlockGuids.GEAR_PUMP_BLOCK_GUID,
+  itemSlots: [],
+  fluidSlots: [{ fluidId: 1, amount: 30, capacity: 100, fluidGuid: WATER_FLUID_GUID }],
+  pump: { pumpingFluids: [{ fluidId: 1, fluidGuid: WATER_FLUID_GUID, amountPerMinute: 120.0 }] },
+  gear: { isClockwise: true, currentRpm: 10.0, currentTorque: 2.0, baseRpm: 10.0, baseTorque: 2.0 },
+  gearNetwork: { totalRequiredGearPower: 20.0, totalGenerateGearPower: 40.0, stopReason: "none" },
+} satisfies BlockInventoryWireData;
+
 // BLK-7 未登録種別: generic fallback の item/fluid 表示を検証する
 // BLK-7 unregistered type: exercises the generic item/fluid fallback
 export const blockGeneric = {
