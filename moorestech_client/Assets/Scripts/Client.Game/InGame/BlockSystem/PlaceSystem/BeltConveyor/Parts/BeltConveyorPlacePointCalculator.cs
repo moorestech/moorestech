@@ -79,7 +79,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
                 blockCauses.Add(PlacementBlockCause.None);
                 beltReasons.Add(BeltConveyorPlacementBlockReason.None);
 
-                if (IsNotExistBlock(info, holdingBlockMaster)) continue;
+                if (!info.Placeable || IsNotExistBlock(info, holdingBlockMaster)) continue;
 
                 info.Placeable = false;
                 blockCauses[i] = PlacementBlockCause.ExistingBlock;
@@ -88,11 +88,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             return placeInfos;
         }
 
-        // 直線ブロックの1セル範囲で既存ブロックとの重なりを判定する
-        // Detect overlap in the straight block's single-cell area
-        private bool IsNotExistBlock(PlaceInfo placeInfo, BlockMasterElement straightBlockMaster)
+        // 手持ちブロック（直線とは限らない）の1セル範囲で既存ブロックとの重なりを判定する
+        // Detect overlap in the holding block's single-cell area, which may be a straight or a slope
+        private bool IsNotExistBlock(PlaceInfo placeInfo, BlockMasterElement holdingBlockMaster)
         {
-            var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, straightBlockMaster.BlockSize);
+            var previewPositionInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, holdingBlockMaster.BlockSize);
             return !_blockGameObjectDataStore.IsOverlapPositionInfo(previewPositionInfo);
         }
 

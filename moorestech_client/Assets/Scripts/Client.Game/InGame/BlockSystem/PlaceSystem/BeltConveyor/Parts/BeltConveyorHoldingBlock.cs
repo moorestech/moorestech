@@ -14,9 +14,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
         public readonly BeltConveyorFamily Family;
         public readonly BlockMasterElement BlockMaster;
 
-        // 坂を選択中はその坂の上下向き。直線選択時はHorizontalのまま使われない
-        // The slope's vertical direction while a slope is selected; unused Horizontal for a straight selection
         public readonly bool IsSlopeSelected;
+
+        // 坂を選択中はその坂の上下向き
+        // The slope's vertical direction while a slope is selected
         public readonly BlockVerticalDirection SlopeDirection;
 
         private BeltConveyorHoldingBlock(BeltConveyorFamily family, BlockMasterElement blockMaster, bool isSlopeSelected, BlockVerticalDirection slopeDirection)
