@@ -356,7 +356,7 @@ git commit -m "feat: スポイトで拾った坂ベルトを坂のまま手持�
 - Produces: `BeltConveyorFamily.TryGetSlopeDirection(BlockId blockId, out BlockVerticalDirection verticalDirection) -> bool`（上りなら `Up`、下りなら `Down` を返して true。直線・分岐器は `Horizontal` を返して false）
 - 既存の `IsSlopeBlock(BlockId)` はこのメソッドへ委譲する（規則の二重定義を避ける）
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `BeltConveyorFamilyTest.cs` の `坂ブロックだけを非直線メンバーとして判定する` テストの直後に追加する。ファイル先頭の using に `using Game.Block.Interface;` が無ければ足す。
 
@@ -380,12 +380,12 @@ git commit -m "feat: スポイトで拾った坂ベルトを坂のまま手持�
         }
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorFamilyTest"`
 Expected: FAIL（コンパイルエラー: `TryGetSlopeDirection` が存在しない）
 
-- [ ] **Step 3: BeltConveyorFamily へ実装する**
+- [x] **Step 3: BeltConveyorFamily へ実装する**
 
 `BeltConveyorFamily.cs` の `IsSlopeBlock` を次の2メソッドに置き換える。
 
@@ -416,7 +416,7 @@ Expected: FAIL（コンパイルエラー: `TryGetSlopeDirection` が存在し�
         }
 ```
 
-- [ ] **Step 4: コンパイルしてテストを実行する**
+- [x] **Step 4: コンパイルしてテストを実行する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -424,7 +424,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BeltConveyorFamilyTest"`
 Expected: PASS
 
-- [ ] **Step 5: コミットする**
+- [x] **Step 5: コミットする**
 
 ```bash
 git add moorestech_server/Assets/Scripts/Game.Block.Interface/Extension/BeltConveyorFamily.cs \
