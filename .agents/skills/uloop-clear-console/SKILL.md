@@ -1,6 +1,7 @@
 ---
 name: uloop-clear-console
-description: "Clear all Unity Console log entries. Use when you need to: (1) Clear console before running tests or compilation, (2) Start a fresh debugging session, (3) Remove noisy logs to isolate specific output."
+toolName: clear-console
+description: "Clear Unity Console entries. Use before compile, tests, or debugging when stale logs would hide the current result."
 ---
 
 # uloop clear-console
@@ -17,25 +18,16 @@ uloop clear-console [--add-confirmation-message]
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `--add-confirmation-message` | boolean | `false` | Add confirmation message after clearing |
-
-## Global Options
-
-| Option | Description |
-|--------|-------------|
-| `--project-path <path>` | Target a specific Unity project (mutually exclusive with `--port`) |
-| `-p, --port <port>` | Specify Unity TCP port directly (mutually exclusive with `--project-path`) |
-
-## Examples
-
-```bash
-# Clear console
-uloop clear-console
-
-# Clear with confirmation
-uloop clear-console --add-confirmation-message
-```
+| `--add-confirmation-message` | flag | - | Add confirmation message after clearing |
 
 ## Output
 
-Returns JSON confirming the console was cleared.
+Returns JSON with:
+
+- `Success` (boolean): Whether the clear operation succeeded
+- `ClearedLogCount` (number): Total number of log entries that were cleared
+- `ClearedCounts` (object): Breakdown by log type
+  - `ErrorCount` (number): Errors cleared
+  - `WarningCount` (number): Warnings cleared
+  - `LogCount` (number): Info logs cleared
+- `Message` (string): Description of the result. On failure, this field carries the error summary.

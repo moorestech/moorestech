@@ -1,6 +1,7 @@
 ---
 name: uloop-get-logs
-description: "Retrieve logs from Unity Console with filtering and search. Use when you need to: (1) Check for errors or warnings after compilation or play mode, (2) Debug issues by searching log messages, (3) Investigate failures with stack traces. Supports filtering by log type, text search, and regex."
+toolName: get-logs
+description: "Read current Unity Console entries from a running Editor. Use during bug investigation after compile, tests, PlayMode, dynamic code, or immediately after `uloop-pause-point`."
 ---
 
 # uloop get-logs
@@ -20,33 +21,18 @@ uloop get-logs [options]
 | `--log-type` | string | `All` | Log type filter: `Error`, `Warning`, `Log`, `All` |
 | `--max-count` | integer | `100` | Maximum number of logs to retrieve |
 | `--search-text` | string | - | Text to search within logs |
-| `--include-stack-trace` | boolean | `false` | Include stack trace in output |
-| `--use-regex` | boolean | `false` | Use regex for search |
-| `--search-in-stack-trace` | boolean | `false` | Search within stack trace |
-
-## Global Options
-
-| Option | Description |
-|--------|-------------|
-| `--project-path <path>` | Target a specific Unity project (mutually exclusive with `--port`) |
-| `-p, --port <port>` | Specify Unity TCP port directly (mutually exclusive with `--project-path`) |
-
-## Examples
-
-```bash
-# Get all logs
-uloop get-logs
-
-# Get only errors
-uloop get-logs --log-type Error
-
-# Search for specific text
-uloop get-logs --search-text "NullReference"
-
-# Regex search
-uloop get-logs --search-text "Missing.*Component" --use-regex
-```
+| `--include-stack-trace` | flag | - | Include stack trace in output |
+| `--use-regex` | flag | - | Use regex for search |
+| `--search-in-stack-trace` | flag | - | Search within stack trace |
 
 ## Output
 
-Returns JSON array of log entries with message, type, and optional stack trace.
+Returns JSON with:
+
+- `TotalCount` (number): Total logs available before max-count clipping
+- `DisplayedCount` (number): Logs returned in this response (≤ `--max-count`)
+- Input filters (`LogType`, `MaxCount`, `SearchText`, `IncludeStackTrace`) are echoed back in the response
+- `Logs` (array): Each entry has:
+  - `Type` (string): `"Error"`, `"Warning"`, or `"Log"`
+  - `Message` (string): Log message body
+  - `StackTrace` (string): Stack trace text. Empty when `--include-stack-trace` is `false`.
