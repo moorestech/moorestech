@@ -18,7 +18,7 @@ MonoBehaviour:
   m_SeeAllPackageVersions: 0
   m_DismissPreviewPackagesInUse: 0
   oneTimeWarningShown: 1
-  oneTimeDeprecatedPopUpShown: 0
+  oneTimePackageErrorsPopUpShown: 0
   m_Registries:
   - m_Id: main
     m_Name: 
@@ -46,6 +46,7 @@ MonoBehaviour:
     m_Name: OpenUPM
     m_Url: https://package.openupm.com
     m_Scopes:
+    - io.github.hatayama.uloopmcp
     - org.nuget
     m_IsDefault: 0
     m_Capabilities: 0
@@ -58,6 +59,6 @@ MonoBehaviour:
   m_RegistryInfoDraft:
     m_Modified: 0
     m_ErrorMessage: 
-    m_UserModificationsInstanceId: -870
-    m_OriginalInstanceId: -874
+    m_UserModificationsInstanceId: -896
+    m_OriginalInstanceId: -900
   m_LoadAssets: 0
