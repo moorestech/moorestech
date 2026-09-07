@@ -112,12 +112,19 @@ namespace Core.Master.Validator
                     // Any pump: generateFluid
                     if (block.BlockParam is IPumpParam pump)
                     {
+                        // 内部タンクは単一流体で先頭行だけを採用するため、同一流体の重複行は表現を許さない
+                        // The inner tank is single-fluid and only the first row is used, so duplicate rows for one fluid are not allowed
+                        var declaredFluidGuids = new HashSet<Guid>();
                         foreach (var generateFluid in pump.GenerateFluid.items)
                         {
                             var id = MasterHolder.FluidMaster.GetFluidIdOrNull(generateFluid.FluidGuid);
                             if (id == null)
                             {
                                 logs += $"[BlockMaster] Name:{block.Name} has invalid GenerateFluid.FluidGuid:{generateFluid.FluidGuid}\n";
+                            }
+                            if (!declaredFluidGuids.Add(generateFluid.FluidGuid))
+                            {
+                                logs += $"[BlockMaster] Name:{block.Name} has duplicated GenerateFluid.FluidGuid:{generateFluid.FluidGuid}\n";
                             }
                         }
                     }
