@@ -4,7 +4,6 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Modal;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.Progress;
@@ -95,11 +94,10 @@ namespace Client.Starter
             loadingStopwatch.Start();
             var loadingProgressLog = new LoadingProgressLog(loadingLog, loadingStopwatch);
 
-            // Addressablesを初期化し、並列ロードでハングするアセットを先に読む
-            // Initialize Addressables and pre-load assets that hang during parallel loading
+            // Addressablesを初期化する
+            // Initialize Addressables
             var initializeHandle = Addressables.InitializeAsync();
             await initializeHandle.ToUniTask();
-            await ModAssetLoader.PreloadCriticalAssetsAsync();
 
             // DIコンテナによるServerContextの作成
             if (!ServerContext.IsInitialized)
@@ -114,7 +112,6 @@ namespace Client.Starter
             Debug.Log($"[InitializeScenePipeline] train car preload completed {loadingStopwatch.Elapsed}");
 
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
-            var modalManager = new ModalManager();
 
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
@@ -149,7 +146,7 @@ namespace Client.Starter
             // 取得結果から通信フォーマッタと静的コンテキストを初期化する
             // Initialize the message formatter and static context from the collected results
             MessagePackInitializer.Initialize();
-            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager);
+            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi);
 
             // シーンロードは全アセットロード完了後に直列実行する
             // Load the scene serially, after every asset load has finished

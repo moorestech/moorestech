@@ -27,11 +27,6 @@ namespace Client.Game.InGame.UI.Inventory.Common
         public static void SetHotBarSelected(this ItemSlotView obj, bool isSelected)  => obj.SetSlotViewOption(GetHotBarSelectedOption(isSelected));
         private  static CommonSlotViewOption GetHotBarSelectedOption(bool isSelected)   => new() { HotBarSelected = isSelected };
 
-        // ----- ShowToolTip -----
-        public static void SetShowToolTip(this CommonSlotView view, bool isShow) => view.SetSlotViewOption(GetShowToolTipOption(isShow));
-        public static void SetShowToolTip(this ItemSlotView obj, bool isShow)  => obj.SetSlotViewOption(GetShowToolTipOption(isShow));
-        private  static CommonSlotViewOption GetShowToolTipOption(bool isShow)  => new() { IsShowToolTip = isShow };
-        
         // ----- CountTextFontSize -----
         public static void SetCountTextFontSize(this CommonSlotView view, int fontSize) => view.SetSlotViewOption(GetCountTextFontSizeOption(fontSize));
         public static void SetCountTextFontSize(this ItemSlotView obj, int fontSize)  => obj.SetSlotViewOption(GetCountTextFontSizeOption(fontSize));

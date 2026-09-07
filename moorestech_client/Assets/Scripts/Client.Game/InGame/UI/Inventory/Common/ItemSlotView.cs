@@ -2,11 +2,9 @@
 // [uGUI retirement Phase1] uGUI rendering is permanently disabled and the view is unmaintained, but this class is still referenced externally (e.g. Web UI bridge); untangle before deletion (docs/webui/ugui-retirement-plan.md)
 using System;
 using Client.Common.Asset;
-using Client.Localization;
 using Client.Mod.Texture;
 using Core.Master;
 using Cysharp.Threading.Tasks;
-using Mooresmaster.Localization.Generated;
 using UniRx;
 using UnityEngine;
 
@@ -24,73 +22,13 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         [SerializeField] private CommonSlotView commonSlotView;
 
-        private bool _usesDefaultToolTip;
-
-        private void Awake()
-        {
-            Localize.OnLanguageChanged
-                .Subscribe(_ => RefreshDefaultToolTip())
-                .AddTo(this);
-
-            #region Internal
-
-            void RefreshDefaultToolTip()
-            {
-                if (!_usesDefaultToolTip || ItemViewData == null || ItemViewData.IsEmpty) return;
-                SetItem(ItemViewData, Count);
-            }
-
-            #endregion
-        }
-
         public void SetItem(ItemViewData itemView, int count)
-        {
-            SetItem(itemView, count, null);
-        }
-
-        public void SetItem(ItemViewData itemView, int count, string toolTipText)
         {
             ItemViewData = itemView;
             Count = count;
-            _usesDefaultToolTip = toolTipText == null;
 
-            if (itemView == null || itemView.IsEmpty)
-            {
-                commonSlotView.SetViewClear();
-            }
-            else
-            {
-                if (_usesDefaultToolTip)
-                {
-                    toolTipText = GetToolTipText(itemView);
-                    if (string.IsNullOrEmpty(toolTipText))
-                    {
-                        commonSlotView.SetView(itemView.ItemImage, GetCountText(count), string.Empty);
-                        commonSlotView.SetShowToolTip(false);
-                        return;
-                    }
-                }
-                
-                commonSlotView.SetView(itemView.ItemImage, GetCountText(count), toolTipText);
-            }
-        }
-
-        // 液体出力のみのレシピ表示用に液体アイコンを表示
-        // Display a fluid icon for recipes whose output is fluid only
-        public void SetFluid(FluidViewData fluidView, string toolTipText)
-        {
-            ItemViewData = null;
-            Count = 0;
-            commonSlotView.SetView(fluidView.FluidImage, string.Empty, toolTipText);
-        }
-
-        // アイコン無しエントリはテキストのみ表示（BP等）
-        // Display an icon-less entry as text only (e.g. blueprint entries)
-        public void SetTextOnly(string text, string toolTipText)
-        {
-            ItemViewData = null;
-            Count = 0;
-            commonSlotView.SetViewTextOnly(text, toolTipText);
+            if (itemView == null || itemView.IsEmpty) commonSlotView.SetViewClear();
+            else commonSlotView.SetView(itemView.ItemImage, GetCountText(count));
         }
 
         // クラフト数の表示のみを更新
@@ -116,15 +54,7 @@ namespace Client.Game.InGame.UI.Inventory.Common
         {
             commonSlotView.SetActive(active);
         }
-        
-        
-        public static string GetToolTipText(ItemViewData itemView)
-        {
-            // マスタに紐づかない表示名は辞書キーを持たないため既定Tooltipへ公開しない
-            // Do not expose names without a master-backed dictionary key through the default tooltip
-            if (itemView.ItemMasterElement == null) return string.Empty;
-            return Localize.GetContent(ContentLocalizationKeys.ItemName(itemView.ItemMasterElement.ItemGuid));
-        }
+
 
         public static async UniTask LoadItemSlotViewPrefab()
         {

@@ -33,7 +33,7 @@ namespace Client.DebugSystem
         {
             if (_itemSlotObjects == null)
             {
-                Initialize();
+                await Initialize();
             }
             
             gameObject.SetActive(true);
@@ -54,8 +54,12 @@ namespace Client.DebugSystem
             return slotObject.ItemViewData;
         }
         
-        private void Initialize()
+        private async UniTask Initialize()
         {
+            // 起動時の事前ロードを廃したため、デバッグモーダル側でスロットprefabを読む
+            // The startup preload is gone, so the debug modal loads the slot prefab itself
+            await ItemSlotView.LoadItemSlotViewPrefab();
+
             _itemSlotObjects = new List<ItemSlotView>();
             foreach (var itemId in MasterHolder.ItemMaster.GetItemAllIds())
             {

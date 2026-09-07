@@ -1,9 +1,7 @@
 // [uGUI廃止Phase1] uGUI描画は恒久停止・ビューは未メンテ。ただし本クラスは外部（Web UIブリッジ等）から参照中のため削除前に整理が必要（docs/webui/ugui-retirement-plan.md）
 // [uGUI retirement Phase1] uGUI rendering is permanently disabled and the view is unmaintained, but this class is still referenced externally (e.g. Web UI bridge); untangle before deletion (docs/webui/ugui-retirement-plan.md)
 using System;
-using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
-using Mooresmaster.Localization.Generated;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -32,15 +30,9 @@ namespace Client.Game.InGame.UI.Inventory.Common
         [SerializeField] private GameObject noneCrossObject;
         
         [SerializeField] private TMP_Text countText;
-        [SerializeField] private UGuiTooltipTarget uGuiTooltipTarget;
-        
-        private bool _onPointing;
         
         private void Awake()
         {
-            // default true
-            uGuiTooltipTarget.DisplayEnable(true);
-            
             OnPointerEvent.Subscribe(OnInvokeOtherEvent).AddTo(this);
             SubscribeHover();
             SubscribeClick();
@@ -59,42 +51,23 @@ namespace Client.Game.InGame.UI.Inventory.Common
         }
         
         
-        public void SetView(Sprite sprite, string count, string toolTipText = null)
+        public void SetView(Sprite sprite, string count)
         {
             countText.text = count;
             
             itemImage.gameObject.SetActive(true);
             itemImage.sprite = sprite;
-            
-            if (toolTipText != null)
-            {
-                // 退役uGUIスロット専用の通しキー。呼び出し側が実行時合成した表示文字列をそのまま出す（Phase2の削除と同時に廃止）
-                // Pass-through key for retired uGUI slots only; shows the caller's runtime-composed text as is (dies with Phase2)
-                uGuiTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.RetiredUguiSlotText, new[] { toolTipText });
-                uGuiTooltipTarget.DisplayEnable(true);
-            }
         }
         
         public void SetCountText(string count)
         {
             countText.text = count;
         }
-        
-        public void SetViewTextOnly(string text, string toolTipText)
-        {
-            // アイコン非表示時はカウント欄をラベル流用
-            // Hide the icon image and reuse the count text field as a label
-            countText.text = text;
-            itemImage.gameObject.SetActive(false);
-            uGuiTooltipTarget.SetText(LocalizationKeys.Ui.Tooltip.RetiredUguiSlotText, new[] { toolTipText });
-            uGuiTooltipTarget.DisplayEnable(true);
-        }
 
         public void SetViewClear()
         {
             countText.text = string.Empty;
             itemImage.gameObject.SetActive(false);
-            uGuiTooltipTarget.DisplayEnable(false);
         }
         
         public void SetSlotViewOption(CommonSlotViewOption slotOption)
@@ -103,7 +76,6 @@ namespace Client.Game.InGame.UI.Inventory.Common
             if (slotOption.HotBarSelected != null) SetHotBarSelect(slotOption.HotBarSelected.Value);
             if (slotOption.ItemSlotFrameType != null) SetFrame(slotOption.ItemSlotFrameType.Value);
             if (slotOption.ItemSlotType != null) SetItemSlotType(slotOption.ItemSlotType.Value);
-            if (slotOption.IsShowToolTip != null) uGuiTooltipTarget.DisplayEnable(slotOption.IsShowToolTip.Value);
             if (slotOption.CountTextFontSize != null) countText.fontSize = slotOption.CountTextFontSize.Value; 
             if (slotOption.SizeDelta != null) rootRectTransform.sizeDelta = slotOption.SizeDelta.Value;
             
@@ -218,13 +190,11 @@ namespace Client.Game.InGame.UI.Inventory.Common
         
         public void OnPointerEnter(PointerEventData eventData)
         {
-            _onPointing = true;
             _onPointerEvent.OnNext((this, ItemUIEventType.CursorEnter));
         }
         
         public void OnPointerExit(PointerEventData eventData)
         {
-            _onPointing = false;
             _onPointerEvent.OnNext((this, ItemUIEventType.CursorExit));
         }
         

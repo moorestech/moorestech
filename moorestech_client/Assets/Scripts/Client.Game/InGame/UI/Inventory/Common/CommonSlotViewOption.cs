@@ -14,7 +14,6 @@ namespace Client.Game.InGame.UI.Inventory.Common
         public ItemSlotFrameType? ItemSlotFrameType;
         public ItemSlotType? ItemSlotType;
         public bool? HotBarSelected;
-        public bool? IsShowToolTip;
         public float? CountTextFontSize;
         public Vector2? SizeDelta;
     }
