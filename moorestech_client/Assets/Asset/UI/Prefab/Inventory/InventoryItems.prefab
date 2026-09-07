@@ -1839,7 +1839,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4096426261644005809}
   - component: {fileID: 5440499452251734958}
-  - component: {fileID: 1388656324976967069}
   - component: {fileID: 1694565615819158593}
   m_Layer: 5
   m_Name: CraftButton
@@ -1879,25 +1878,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2929833923271859874}
   m_CullTransparentMesh: 1
---- !u!114 &1388656324976967069
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2929833923271859874}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 547e54aa9086418da6e76fc3a19e3ea9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rectTransform: {fileID: 4096426261644005809}
-  buttonImage: {fileID: 1022894677558485185}
-  interactableColor: {r: 1, g: 1, b: 1, a: 1}
-  nonInteractableColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
-  resetElapsedTimeOnPointerExit: 1
-  stopElapsedTimeUpdateOnPointerExit: 1
-  restartElapsedTimeUpdateOnPointerEnter: 1
 --- !u!114 &1694565615819158593
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1951,7 +1931,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3724596229023926422}
-  - component: {fileID: 7019280888810785426}
   m_Layer: 5
   m_Name: CraftInventory
   m_TagString: Untagged
@@ -1982,22 +1961,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &7019280888810785426
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3092034478495957574}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f08988984379486b81f586bf24e9b992, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  craftInventoryView: {fileID: 5501758805125908129}
-  machineRecipeView: {fileID: 7115292862254446402}
-  recipeTabView: {fileID: 751917414941794491}
-  itemListView: {fileID: 132914079069095170}
 --- !u!1 &3392406272577392481
 GameObject:
   m_ObjectHideFlags: 0
@@ -2679,7 +2642,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2600291306590858613}
   - component: {fileID: 3781340302915432635}
-  - component: {fileID: 7115292862254446402}
   - component: {fileID: 2984288403099941994}
   m_Layer: 5
   m_Name: Machine Recipe View
@@ -2724,25 +2686,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3911257642192609233}
   m_CullTransparentMesh: 1
---- !u!114 &7115292862254446402
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3911257642192609233}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 697d6f8c5a5e4576912522d14787d8b6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  inputParent: {fileID: 7279269877405166978}
-  outputParent: {fileID: 2039181236658055980}
-  nextRecipeButton: {fileID: 658983176813676859}
-  prevRecipeButton: {fileID: 2841897008864503138}
-  itemNameText: {fileID: 1473412308084904303}
-  recipeCountText: {fileID: 2479440533785467448}
-  machineView: {fileID: 5831200269716153006}
 --- !u!114 &2984288403099941994
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3696,7 +3639,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6808038948666307264}
-  - component: {fileID: 751917414941794491}
   m_Layer: 5
   m_Name: Recipe Viwer Tab
   m_TagString: Untagged
@@ -3724,21 +3666,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0.8358203, y: 389.9}
   m_SizeDelta: {x: 505.42, y: 56.6365}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &751917414941794491
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6072950922069409276}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9f415405102648558feaab4fc3e44a8a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  tabElementPrefab: {fileID: 5944099141628584616, guid: 196b2a8764e5746b79c2b6376c332089, type: 3}
-  tabElementParent: {fileID: 6057853017811660998}
-  tabElementLayoutGroup: {fileID: 1379610158491964281}
 --- !u!1 &6174524762585879390
 GameObject:
   m_ObjectHideFlags: 0
@@ -4132,7 +4059,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6929594028250274252}
-  - component: {fileID: 3270476183870774421}
   m_Layer: 5
   m_Name: InventoryItems
   m_TagString: Untagged
@@ -4161,23 +4087,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3270476183870774421
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6580130806755900716}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3b8c2b51da64853a42c24ceee8dda38, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mainInventoryObject: {fileID: 418321472475283932}
-  mainSlotsView: {fileID: 6321978364326780829}
-  grabInventorySlotView: {fileID: 6803260095714168351}
-  subInventoryParent: {fileID: 5156387489791260943}
-  sortInventoryButton: {fileID: 2516985280121670787}
 --- !u!1 &6632161042818735807
 GameObject:
   m_ObjectHideFlags: 0
@@ -4264,7 +4173,6 @@ GameObject:
   - component: {fileID: 7079771739683646886}
   - component: {fileID: 4013983044643496013}
   - component: {fileID: 1082710781649216956}
-  - component: {fileID: 5501758805125908129}
   m_Layer: 5
   m_Name: Craft Recipe Viewer
   m_TagString: Untagged
@@ -4340,23 +4248,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &5501758805125908129
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6660304423197356004}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23f78a41c07e4d8abcb4fbf2fa8db067, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  recipeItemElementPrefab: {fileID: 2156141146393863655, guid: 5c501f1b34206446aa6517dbf60bdabb, type: 3}
-  recipeListContainer: {fileID: 4428775573283862000}
-  craftButton: {fileID: 1388656324976967069}
-  itemNameText: {fileID: 8772691304772084697}
-  noRecipesText: {fileID: 1440766714256790288}
 --- !u!1 &6722313621368880390
 GameObject:
   m_ObjectHideFlags: 0
@@ -4799,7 +4690,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1018538803608041497}
-  - component: {fileID: 132914079069095170}
   m_Layer: 5
   m_Name: Items
   m_TagString: Untagged
@@ -4829,19 +4719,6 @@ RectTransform:
   m_AnchoredPosition: {x: 590.00006, y: 30.330896}
   m_SizeDelta: {x: 590.9566, y: 729.1398}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &132914079069095170
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7792563057883912729}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ba2c762d2cd1452eaba898ada3521b51, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  itemListParent: {fileID: 4138982835973136240}
 --- !u!1 &7842569146582560523
 GameObject:
   m_ObjectHideFlags: 0
@@ -5097,7 +4974,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4486199661811368348}
   - component: {fileID: 2944500413449986011}
-  - component: {fileID: 6321978364326780829}
   m_Layer: 5
   m_Name: Items
   m_TagString: Untagged
@@ -5148,20 +5024,6 @@ MonoBehaviour:
   m_Spacing: {x: 7, y: 7}
   m_Constraint: 0
   m_ConstraintCount: 2
---- !u!114 &6321978364326780829
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8201062856295006723}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c207aaa4d17d343ada2f1f5510b1ee20, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Main.PlayerInventoryMainSlotsView
-  itemSlotViewPrefab: {fileID: 296130373708113023, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
-  slotsParent: {fileID: 4486199661811368348}
 --- !u!1 &8253062666006109398
 GameObject:
   m_ObjectHideFlags: 0
@@ -5357,7 +5219,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8083799868357694839}
-  - component: {fileID: 3436465254049720587}
   m_Layer: 5
   m_Name: GrabItem
   m_TagString: Untagged
@@ -5385,19 +5246,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3436465254049720587
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8816710669448470060}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 782514829e3049d2be9e9cf6cfbde95b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  offSet: {x: 0, y: 0, z: 0}
 --- !u!1 &9046549897822446382
 GameObject:
   m_ObjectHideFlags: 0
@@ -5619,7 +5467,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 9211304098880169136, guid: 95f35fa67cd194ad6aa6984f3ebea5ce, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -5882,17 +5731,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &5831200269716153006 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 296130373708113023, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
-  m_PrefabInstance: {fileID: 6120537860585326289}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5fea218e86342adaa64609636fdf4b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!224 &6549163550728395624 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1014375675779259833, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
@@ -6010,14 +5848,3 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1014375675779259833, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
   m_PrefabInstance: {fileID: 6518423909743815264}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6803260095714168351 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 296130373708113023, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
-  m_PrefabInstance: {fileID: 6518423909743815264}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5fea218e86342adaa64609636fdf4b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

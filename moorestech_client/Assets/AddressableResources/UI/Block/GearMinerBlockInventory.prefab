@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3419216147743759674}
-  - component: {fileID: 2406849205120515884}
   - component: {fileID: 3444392899265054039}
   m_Layer: 5
   m_Name: ProgressArrow
@@ -39,19 +38,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -72.600006}
   m_SizeDelta: {x: 80.4235, y: 55.9}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2406849205120515884
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 210315224687104765}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67c6ccf78b894849a6d785fb9a81743f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  slider: {fileID: 2402396930560506604}
 --- !u!222 &3444392899265054039
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -313,6 +299,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -616,6 +603,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -658,7 +646,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3902636088312890275}
-  - component: {fileID: 5411226013505917172}
   m_Layer: 5
   m_Name: GearMinerBlockInventory
   m_TagString: Untagged
@@ -696,26 +683,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &5411226013505917172
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2982086766604892248}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b4093c04af34502a99673f4e89aa79d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  miningItemSlotParent: {fileID: 2879647418840913789}
-  minerResultsParent: {fileID: 2888409269606998286}
-  powerRateText: {fileID: 7875778257740533855}
-  minerProgressArrow: {fileID: 2406849205120515884}
-  miningItemCount: {fileID: 4114636301812649813}
-  torque: {fileID: 2461088251875885153}
-  rpm: {fileID: 1057063215171749425}
-  networkInfo: {fileID: 6176420703877041426}
 --- !u!1 &3014108524257297200
 GameObject:
   m_ObjectHideFlags: 0
@@ -983,6 +950,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1264,6 +1232,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1506,6 +1475,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1642,6 +1612,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0

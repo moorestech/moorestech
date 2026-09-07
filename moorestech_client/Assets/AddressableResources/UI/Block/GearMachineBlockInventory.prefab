@@ -807,7 +807,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2451872257152769005}
-  - component: {fileID: 140989436986467170}
   - component: {fileID: 5214355214361907237}
   m_Layer: 5
   m_Name: ProgressArrow
@@ -837,19 +836,6 @@ RectTransform:
   m_AnchoredPosition: {x: -2.7, y: -1.3999337}
   m_SizeDelta: {x: 80.4235, y: 55.9}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &140989436986467170
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3823504605584633391}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67c6ccf78b894849a6d785fb9a81743f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  slider: {fileID: 5072352856390615655}
 --- !u!222 &5214355214361907237
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1418,7 +1404,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 26803458160757691}
-  - component: {fileID: -7497616185923302155}
   m_Layer: 5
   m_Name: GearMachineBlockInventory
   m_TagString: Untagged
@@ -1458,32 +1443,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &-7497616185923302155
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6092283996810409271}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 672ec921dc954ab99c259d63a2d5f573, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  machineInputItemParent: {fileID: 976896010169528272}
-  machineOutputItemParent: {fileID: 6931871132086811337}
-  machineModuleItemParent: {fileID: 5742724164435463559}
-  machineBlockNameText: {fileID: 1896569409975918612}
-  machineInputFluidParent: {fileID: 976896010169528272}
-  machineOutputFluidParent: {fileID: 6931871132086811337}
-  powerRateText: {fileID: 3716168548930280726}
-  machineProgressArrow: {fileID: 140989436986467170}
-  machineRecipeCount: {fileID: 795502184343006560}
-  electricNetworkInfoView: {fileID: 0}
-  recipeSelectionPanel: {fileID: 8476102082287015657}
-  torque: {fileID: 4419313020298963147}
-  rpm: {fileID: 1226030551909944381}
-  networkInfo: {fileID: 1201861896587338481}
 --- !u!1 &6129189798529970233
 GameObject:
   m_ObjectHideFlags: 0
@@ -1741,7 +1700,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8575681658522512413}
-  - component: {fileID: 8476102082287015657}
   m_Layer: 0
   m_Name: RecipeSelectionPanel
   m_TagString: Untagged
@@ -1769,19 +1727,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 300}
   m_SizeDelta: {x: 500, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &8476102082287015657
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8402117707663456659}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86ced3e727019499a922fe8c69c4fe65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.MachineRecipeSelectionPanel
-  recipeSlotParent: {fileID: 4105510134200825759}
 --- !u!1 &8976433673439886224
 GameObject:
   m_ObjectHideFlags: 0

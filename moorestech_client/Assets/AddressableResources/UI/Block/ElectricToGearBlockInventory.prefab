@@ -359,7 +359,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7567746959375405622}
   - component: {fileID: 9047197802340597423}
-  - component: {fileID: 5487062044841493195}
   m_Layer: 0
   m_Name: RowTemplate
   m_TagString: Untagged
@@ -437,20 +436,6 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
---- !u!114 &5487062044841493195
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5415341928132274432}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3286cab3f071f41b18e86ca3bd67d2dc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.ElectricToGearOutputModeRowView
-  toggle: {fileID: 9047197802340597423}
-  label: {fileID: 6442297408706828700}
 --- !u!1 &5429483513497907710
 GameObject:
   m_ObjectHideFlags: 0
@@ -752,7 +737,6 @@ GameObject:
   - component: {fileID: 6671429527701612133}
   - component: {fileID: 965965208074166743}
   - component: {fileID: 6138278035591907415}
-  - component: {fileID: 5169275643520503542}
   m_Layer: 0
   m_Name: ElectricToGearBlockInventory
   m_TagString: Untagged
@@ -847,24 +831,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &5169275643520503542
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7954188069167903635}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5e356ae7d59e04007b02a6303dc7a086, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.ElectricToGearGeneratorBlockInventoryView
-  rowsParent: {fileID: 9009955823838581692}
-  rowTemplate: {fileID: 5487062044841493195}
-  toggleGroup: {fileID: 4738474594973817790}
-  fulfillmentBar: {fileID: 7414702522399486153}
-  consumedPowerText: {fileID: 6179460409709057639}
-  statusText: {fileID: 427653738178018253}
 --- !u!1 &8974435027935489547
 GameObject:
   m_ObjectHideFlags: 0

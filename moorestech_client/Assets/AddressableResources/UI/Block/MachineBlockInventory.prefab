@@ -473,7 +473,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1926730565755217101}
-  - component: {fileID: 815152990381749214}
   m_Layer: 0
   m_Name: RecipeSelectionPanel
   m_TagString: Untagged
@@ -501,19 +500,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 300}
   m_SizeDelta: {x: 500, y: 90}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &815152990381749214
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2516836200757473455}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86ced3e727019499a922fe8c69c4fe65, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.MachineRecipeSelectionPanel
-  recipeSlotParent: {fileID: 9742117634415742}
 --- !u!1 &2840332562338108246
 GameObject:
   m_ObjectHideFlags: 0
@@ -525,7 +511,6 @@ GameObject:
   - component: {fileID: 2494512905636250186}
   - component: {fileID: 2058792715753030710}
   - component: {fileID: 8683976929766957962}
-  - component: {fileID: 470165812891113218}
   m_Layer: 0
   m_Name: ElectricNetworkInfo
   m_TagString: Untagged
@@ -652,19 +637,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &470165812891113218
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2840332562338108246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 695bbae2c2faf44febfa9fc869a19d06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.ElectricNetworkInfoView
-  networkInfoText: {fileID: 8683976929766957962}
 --- !u!1 &3823504605584633391
 GameObject:
   m_ObjectHideFlags: 0
@@ -674,7 +646,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2451872257152769005}
-  - component: {fileID: 140989436986467170}
   - component: {fileID: 5214355214361907237}
   m_Layer: 5
   m_Name: ProgressArrow
@@ -704,19 +675,6 @@ RectTransform:
   m_AnchoredPosition: {x: -2.7, y: -1.3999337}
   m_SizeDelta: {x: 80.4235, y: 55.9}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &140989436986467170
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3823504605584633391}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 67c6ccf78b894849a6d785fb9a81743f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  slider: {fileID: 5072352856390615655}
 --- !u!222 &5214355214361907237
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -1140,7 +1098,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 26803458160757691}
-  - component: {fileID: 6878455643738341346}
   m_Layer: 5
   m_Name: MachineBlockInventory
   m_TagString: Untagged
@@ -1180,29 +1137,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &6878455643738341346
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6092283996810409271}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83d9b64f40a849648b4dcd3e553cc78d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  machineInputItemParent: {fileID: 976896010169528272}
-  machineOutputItemParent: {fileID: 6931871132086811337}
-  machineModuleItemParent: {fileID: 6497425431080949710}
-  machineBlockNameText: {fileID: 1896569409975918612}
-  machineInputFluidParent: {fileID: 4733052551185589620}
-  machineOutputFluidParent: {fileID: 8898992423655121602}
-  powerRateText: {fileID: 3562878083436755205}
-  machineProgressArrow: {fileID: 140989436986467170}
-  machineRecipeCount: {fileID: 2038990741139630874}
-  electricNetworkInfoView: {fileID: 470165812891113218}
-  recipeSelectionPanel: {fileID: 815152990381749214}
 --- !u!1 &6129189798529970233
 GameObject:
   m_ObjectHideFlags: 0

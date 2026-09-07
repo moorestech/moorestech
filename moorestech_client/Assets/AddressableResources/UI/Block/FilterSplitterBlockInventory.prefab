@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5876730053986267569}
-  - component: {fileID: 8494043864745336756}
   m_Layer: 5
   m_Name: FilterSplitterBlockInventory
   m_TagString: Untagged
@@ -37,20 +36,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &8494043864745336756
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 625472840030447780}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b032478a1ee8d46ad94cc6742b065134, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.FilterSplitterBlockInventoryView
-  columnsParent: {fileID: 6040281661971156113}
-  columnPrefab: {fileID: 8486278940009960876, guid: 74ec9b05c9d6f43168d8ecf28b97199f, type: 3}
 --- !u!1 &2418077883793440328
 GameObject:
   m_ObjectHideFlags: 0

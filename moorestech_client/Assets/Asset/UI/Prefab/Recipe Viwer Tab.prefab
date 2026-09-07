@@ -204,7 +204,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 374871282265294534}
-  - component: {fileID: 5944099141628584616}
   m_Layer: 5
   m_Name: Recipe Viwer Tab
   m_TagString: Untagged
@@ -233,23 +232,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 76, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &5944099141628584616
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5722631091496563800}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9f941f6a5954e10ae0dbb7e2b724a36, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  selectedTab: {fileID: 6646886777648301962}
-  unselectedTab: {fileID: 9142904049133629153}
-  selectedIcon: {fileID: 2851129259812559693}
-  unselectedIcon: {fileID: 828361949221870253}
-  craftIcon: {fileID: 21300000, guid: 798b2dade9f454c3bba67827d27e8996, type: 3}
 --- !u!1 &6513717632576713026
 GameObject:
   m_ObjectHideFlags: 0

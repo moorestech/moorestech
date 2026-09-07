@@ -103,6 +103,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -296,8 +297,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3981149932147937266}
-  - component: {fileID: 4361973891849932592}
-  - component: {fileID: 1572297678640883855}
   m_Layer: 5
   m_Name: ChallengeListUIElement
   m_TagString: Untagged
@@ -328,40 +327,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 75, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &4361973891849932592
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7796623449450255547}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: baeff101d8d142239a48d49a78c305cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rectTransform: {fileID: 3981149932147937266}
-  itemSlotView: {fileID: 989133918178168624}
-  connectLinePrefab: {fileID: 2798587022540076992, guid: e8bbb6635cddf4094b67fb12faa57814, type: 3}
-  currentObject: {fileID: 3285425888372279607}
-  completedObject: {fileID: 3179761363977812132}
-  lockedObject: {fileID: 8559208820718781957}
-  uGuiTooltipTarget: {fileID: 1572297678640883855}
---- !u!114 &1572297678640883855
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7796623449450255547}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 54b8202d8d3d54cad8e9693533cb6d92, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textKey: 
-  displayEnable: 1
-  fontSize: 36
 --- !u!1 &8559208820718781957
 GameObject:
   m_ObjectHideFlags: 0
@@ -543,14 +508,3 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1014375675779259833, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
   m_PrefabInstance: {fileID: 695257551899437903}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &989133918178168624 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 296130373708113023, guid: 6afff40c7cd46ae498e7793e39b21c8a, type: 3}
-  m_PrefabInstance: {fileID: 695257551899437903}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b5fea218e86342adaa64609636fdf4b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

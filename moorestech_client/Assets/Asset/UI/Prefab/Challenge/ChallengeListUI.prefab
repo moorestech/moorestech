@@ -839,7 +839,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2818126220958174790}
-  - component: {fileID: 8737945384735687012}
   m_Layer: 5
   m_Name: ChallengeTreeView
   m_TagString: Untagged
@@ -867,23 +866,6 @@ RectTransform:
   m_AnchoredPosition: {x: 69.363, y: 0}
   m_SizeDelta: {x: -138.73, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &8737945384735687012
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4374408254904698067}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 49bf88f0510a44ccae451b4b2b19391e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  categoryElement: {fileID: 5719419794850769494, guid: 1fca8c35fdf9341baa39b03f2eaf97d3, type: 3}
-  challengeListParent: {fileID: 9194757666149125676}
-  connectLineParent: {fileID: 7268158187256570741}
-  resizeTarget: {fileID: 7843272391358289956}
-  offsetTarget: {fileID: 8283111706200350833}
 --- !u!1 &4823341335620603098
 GameObject:
   m_ObjectHideFlags: 0
@@ -1428,7 +1410,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4348709339645713346}
-  - component: {fileID: 5995333003733372791}
   m_Layer: 5
   m_Name: ChallengeListUI
   m_TagString: Untagged
@@ -1456,21 +1437,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &5995333003733372791
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8566362357533635409}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7da88ada45c2408db8915bf554ce82cc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  categoryListParent: {fileID: 6222737621335026524}
-  challengeTreeView: {fileID: 8737945384735687012}
-  categoryListElementPrefab: {fileID: -776535384214270632, guid: 3b57acfa3445e4e0591c0d8c8e52321a, type: 3}
 --- !u!1 &8867164084526857872
 GameObject:
   m_ObjectHideFlags: 0

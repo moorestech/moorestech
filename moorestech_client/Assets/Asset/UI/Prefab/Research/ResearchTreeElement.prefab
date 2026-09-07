@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8021458518223562382}
-  - component: {fileID: 8253142531768111581}
   m_Layer: 5
   m_Name: ResearchTreeElement
   m_TagString: Untagged
@@ -44,28 +43,6 @@ RectTransform:
   m_AnchoredPosition: {x: 801.77905, y: 462.82983}
   m_SizeDelta: {x: 324, y: 180}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &8253142531768111581
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1012940218352661475}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: acc1b6c27ea244959bed1925b38ff879, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  baseIconSize: {x: 60, y: 60}
-  rectTransform: {fileID: 8021458518223562382}
-  connectLinePrefab: {fileID: 2798587022540076992, guid: e8bbb6635cddf4094b67fb12faa57814, type: 3}
-  completeOverlay: {fileID: 9024190519293549254}
-  title: {fileID: 5923286365970580730}
-  description: {fileID: 5356266971708930822}
-  consumeItemIcons: {fileID: 7615005463972533782}
-  unlockItemIcons: {fileID: 8190514410663338867}
-  researchButtonTooltipTarget: {fileID: 1588708108466798585}
-  researchButton: {fileID: 2751428301744258096}
 --- !u!1 &1499145304132126064
 GameObject:
   m_ObjectHideFlags: 0
@@ -78,7 +55,6 @@ GameObject:
   - component: {fileID: 4246734030529247793}
   - component: {fileID: 4259107196302863415}
   - component: {fileID: 2751428301744258096}
-  - component: {fileID: 1588708108466798585}
   m_Layer: 5
   m_Name: ResearchButton
   m_TagString: Untagged
@@ -188,22 +164,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &1588708108466798585
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1499145304132126064}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 54b8202d8d3d54cad8e9693533cb6d92, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textKey: 
-  displayEnable: 1
-  fontSize: 36
-  localize: 1
 --- !u!1 &2475214188912896717
 GameObject:
   m_ObjectHideFlags: 0
@@ -307,6 +267,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -443,6 +404,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -579,6 +541,7 @@ MonoBehaviour:
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -778,6 +741,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -1051,6 +1015,7 @@ MonoBehaviour:
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0

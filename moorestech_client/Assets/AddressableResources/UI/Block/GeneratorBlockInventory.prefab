@@ -656,7 +656,6 @@ GameObject:
   - component: {fileID: 6018131640840704457}
   - component: {fileID: 5921431399322799547}
   - component: {fileID: 8655589357056726394}
-  - component: {fileID: 1018177870057326602}
   m_Layer: 0
   m_Name: ElectricNetworkInfo
   m_TagString: Untagged
@@ -783,19 +782,6 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!114 &1018177870057326602
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6706147954133609064}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 695bbae2c2faf44febfa9fc869a19d06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.ElectricNetworkInfoView
-  networkInfoText: {fileID: 8655589357056726394}
 --- !u!1 &8175287640852664675
 GameObject:
   m_ObjectHideFlags: 0
@@ -805,7 +791,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2437450158571823896}
-  - component: {fileID: 1865709136795959237}
   m_Layer: 5
   m_Name: GeneratorBlockInventory
   m_TagString: Untagged
@@ -839,23 +824,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1865709136795959237
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8175287640852664675}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4d33a2c041a44f2082b1221c8eab4e0d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  powerGeneratorFuelItemParent: {fileID: 8605921226189647354}
-  blockName: {fileID: 7894937848752220741}
-  operatingRateText: {fileID: 8580646972609167145}
-  fuelProgressSlider: {fileID: 1324108307313379890}
-  electricNetworkInfoView: {fileID: 1018177870057326602}
 --- !u!1 &8191650548186524093
 GameObject:
   m_ObjectHideFlags: 0

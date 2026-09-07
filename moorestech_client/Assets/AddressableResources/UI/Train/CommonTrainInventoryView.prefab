@@ -281,7 +281,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8844003288950913627}
-  - component: {fileID: 3111080543507224191}
   m_Layer: 5
   m_Name: CommonTrainInventoryView
   m_TagString: Untagged
@@ -309,20 +308,6 @@ RectTransform:
   m_AnchoredPosition: {x: 184.47626, y: 0.0010070801}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &3111080543507224191
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6564521864207801499}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fe67e46e2544627a54887c667599cf2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Train.TrainInventoryView
-  slotParentTransform: {fileID: 6724314226610976341}
-  containerMissingMessageText: {fileID: 4031939458277152779}
 --- !u!1 &6737143744095565089
 GameObject:
   m_ObjectHideFlags: 0

@@ -435,8 +435,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 26803458160757691}
-  - component: {fileID: 4616087526709497935}
-  - component: {fileID: 9127776460181591211}
   m_Layer: 5
   m_Name: ElectricPoleNetworkInfoUI
   m_TagString: Untagged
@@ -467,30 +465,3 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &4616087526709497935
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6092283996810409271}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 695bbae2c2faf44febfa9fc869a19d06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.ElectricNetworkInfoView
-  networkInfoText: {fileID: 4420750878030519587}
---- !u!114 &9127776460181591211
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6092283996810409271}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63f40e0865e574e9eb01610961a4e94e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.ElectricPoleNetworkInfoUIView
-  blockNameText: {fileID: 1896569409975918612}
-  electricNetworkInfoView: {fileID: 4616087526709497935}

@@ -328,7 +328,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1407020410944977469}
   - component: {fileID: 6108911833954472996}
-  - component: {fileID: 8486278940009960876}
   m_Layer: 5
   m_Name: FilterSplitterDirectionColumn
   m_TagString: Untagged
@@ -384,22 +383,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
---- !u!114 &8486278940009960876
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5813542100599757295}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7d03a11797b1144a5b702438106fa427, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.FilterSplitterDirectionColumnView
-  directionLabel: {fileID: 2139211795593198787}
-  modeLabel: {fileID: 1801393885738234287}
-  modeButton: {fileID: 892499895655822479}
-  filterSlotsParent: {fileID: 6323995534779923120}
 --- !u!1 &7236727885406122692
 GameObject:
   m_ObjectHideFlags: 0

@@ -863,7 +863,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8641687428890373615}
-  - component: {fileID: 2167571699946071754}
   m_Layer: 5
   m_Name: TrainFluidPlatformBlockInventory
   m_TagString: Untagged
@@ -891,18 +890,3 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2167571699946071754
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7540998486869284372}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 61a4dd21f98734a3da644f9f39f129cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Client.Game::Client.Game.InGame.UI.Inventory.Block.TrainFluidPlatformBlockInventoryView
-  toggleModeButton: {fileID: 2185058379365857066}
-  currentModeText: {fileID: 7596219692813202747}
-  capacityText: {fileID: 8703254734507040866}
