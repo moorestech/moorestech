@@ -56,7 +56,7 @@ namespace Client.Game.InGame.Map.MapVein
                             return null;
                         }
 
-                        return new MapVeinAabb(veinTypeGuid, minCell, maxCell, MapVeinKind.Item, itemId.Value, null);
+                        return MapVeinAabb.OfItem(veinTypeGuid, minCell, maxCell, itemId.Value);
                     }
                     case FluidVeinParam fluidVeinParam:
                     {
@@ -67,7 +67,7 @@ namespace Client.Game.InGame.Map.MapVein
                             return null;
                         }
 
-                        return new MapVeinAabb(veinTypeGuid, minCell, maxCell, MapVeinKind.Fluid, null, fluidId.Value);
+                        return MapVeinAabb.OfFluid(veinTypeGuid, minCell, maxCell, fluidId.Value);
                     }
                     default:
                         throw new InvalidOperationException($"[MapVeinAabbRegistry] 未対応のVeinParam:{element.VeinParam.GetType().Name} veinGuid:{veinTypeGuid}");
