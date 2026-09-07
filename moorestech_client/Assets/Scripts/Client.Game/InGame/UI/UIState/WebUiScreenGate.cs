@@ -1,7 +1,7 @@
 namespace Client.Game.InGame.UI.UIState
 {
     /// <summary>
-    /// Web UI（CEF）モードを共有する静的ゲート。uGUI廃止Phase1によりWebモード恒久化・uGUIフォールバックは廃止した。
+    /// Web UI（CEF）モードを共有する静的ゲート。Webモードは恒久有効で、uGUIフォールバックは撤去済み（ADR 0052）。
     /// 状態遷移は uGUI アセンブリ内の UIStateControl が唯一の正で、本ゲートは置換済みuGUIビューの表示抑止にだけ使う。
     /// 廃止計画は docs/webui/ugui-retirement-plan.md を参照。
     /// Static gate sharing Web UI (CEF) mode; uGUI-retirement Phase1 made web mode permanent and removed the uGUI fallback.
