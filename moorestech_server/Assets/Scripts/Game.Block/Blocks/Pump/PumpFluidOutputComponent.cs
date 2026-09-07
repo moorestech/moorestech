@@ -97,8 +97,8 @@ namespace Game.Block.Blocks.Pump
             #endregion
         }
 
-        // 生成tickの通知はPumpStateComponentが担うため、ここでは通知しない
-        // PumpStateComponent notifies on generating ticks, so no notification is raised here
+        // 生成tickの通知はポンプ本体（Processor / GearPumpComponent）が担うため、ここでは通知しない
+        // The pump itself (the processor / GearPumpComponent) notifies on generating ticks, so no notification is raised here
         public void EnqueueGeneratedFluid(FluidStack fluidStack)
         {
             _tank.AddLiquid(fluidStack);

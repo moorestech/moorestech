@@ -6,6 +6,7 @@ using Game.Block.Interface.Extension;
 using Game.Block.Interface.State;
 using Game.Block.Blocks.Machine;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using Game.EnergySystem;
 using MessagePack;
 using NUnit.Framework;
@@ -90,6 +91,43 @@ namespace Tests.CombinedTest.Core
             var firedAtFull = fired;
             GameUpdater.RunFrames(5);
             Assert.AreEqual(firedAtFull, fired, "満杯で待機中になった後は発火しないはず");
+        }
+
+        [Test]
+        public void 満杯到達後の次tickは待機ラベルと待機時要求電力を配信する()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var pump = PlacePoweredPump(WaterVeinPos);
+            var param = (ElectricPumpBlockParam)pump.BlockMasterElement.BlockParam;
+
+            // タンク容量100 / 秒2.5 なので40秒で満杯。満杯tickの次から待機基準に切り替わる
+            // Capacity 100 at 2.5/s fills in 40 seconds; the basis switches to idle from the tick after it fills
+            for (var i = 0; i < GameUpdater.SecondsToTicks(45); i++) GameUpdater.UpdateOneTick();
+
+            var common = GetCommonDetail(pump);
+            Assert.AreEqual(VanillaMachineBlockStateConst.IdleState, common.CurrentStateType, "満杯後は待機ラベルを配信するはず");
+            Assert.AreEqual(param.RequiredPower * param.IdlePowerRate, common.RequestPower, 0.001f, "待機中の分母は基礎要求×idlePowerRate");
+            Assert.AreEqual(param.RequiredPower * param.IdlePowerRate, common.CurrentPower, 0.001f, "分子も同じ基準で要求された電力になる");
+        }
+
+        [Test]
+        public void 待機中に発電機を失った次tickは供給電力0を発火つきで配信する()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var pump = PlacePoweredPump(WaterVeinPos);
+
+            // 満杯にして待機状態へ落とす
+            // Fill the tank so the pump settles into idle
+            for (var i = 0; i < GameUpdater.SecondsToTicks(45); i++) GameUpdater.UpdateOneTick();
+            Assert.Greater(GetCommonDetail(pump).CurrentPower, 0f, "待機中も待機分の電力は供給されているはず");
+
+            var fired = 0;
+            using var subscription = pump.BlockStateChange.Subscribe(_ => fired++);
+            ServerContext.WorldBlockDatastore.RemoveBlock(WaterVeinPos + PoleOffset, BlockRemoveReason.ManualRemove);
+            GameUpdater.RunFrames(2);
+
+            Assert.AreEqual(0f, GetCommonDetail(pump).CurrentPower, 0.0001f, "給電が消えた待機中の分子は0");
+            Assert.Greater(fired, 0, "待機中でも配信値が動いたなら発火するはず");
         }
 
         [Test]
