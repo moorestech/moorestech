@@ -69,7 +69,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var blockGameObject = await WaitBlockGameObjectSpawn(pos);
                 var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                // Web UIと同じ action handler 経由で行index 2を選択する
+                // 同じaction handler経由で行index 2を選択
                 // Select row index 2 through the same action handler the Web UI uses.
                 var handler = new ElectricToGearSetOutputModeActionHandler(subInventoryState);
                 var result = await handler.ExecuteAsync(new JObject { ["modeIndex"] = 2 });
@@ -80,7 +80,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 for (var i = 0; i < 120 && component.SelectedIndex != 2; i++) await UniTask.Yield();
                 Assert.AreEqual(2, component.SelectedIndex, "row select did not reach server SelectedIndex");
 
-                subInventoryState.OnExit();
+                BlockSubInventoryOpener.Close(subInventoryState);
             }
 
             #endregion

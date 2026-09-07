@@ -935,11 +935,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6afff40c7cd46ae498e7793e39b21c8a
-    m_Address: Vanilla/UI/ItemSlotView
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6b2fefbc9afd1439eadf9d47d250addb
     m_Address: Vanilla/Environment/Tree/MesaDesert/Senita8
     m_ReadOnly: 0

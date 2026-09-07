@@ -16,9 +16,14 @@ namespace Client.Playtest.Operations.Ui
     {
         public static async UniTask OpenBuildMenuAndSelectBlock(string blockName)
         {
-            // 画面UIはWeb UI一本のため、CEFが無い環境では操作経路が存在しない
-            // The screen UI is Web-only, so without CEF there is no operation path at all
-            if (!CefScreenMapper.IsWebUiAvailable()) throw new InvalidOperationException("Build menu operations require the Web UI (CEF) to be available");
+            // 画面UIはWeb UI一本のため、CEFが無い環境では操作経路が存在しない。ブラウザ生成は非同期のため期限付きで待つ
+            // The screen UI is Web-only, so without CEF there is no operation path; browser creation is async so poll with a deadline
+            var webUiDeadline = Time.realtimeSinceStartup + 15f;
+            while (!CefScreenMapper.IsWebUiAvailable())
+            {
+                if (webUiDeadline <= Time.realtimeSinceStartup) throw new InvalidOperationException("Build menu operations require the Web UI (CEF) to be available");
+                await UniTask.DelayFrame(5);
+            }
 
             // PlaceBlock中はBだとGameScreenへ抜けてしまうためTabで開き直す（実プレイと同じキー割当）
             // While in PlaceBlock, B exits to GameScreen, so reopen with Tab (same binding as real play)

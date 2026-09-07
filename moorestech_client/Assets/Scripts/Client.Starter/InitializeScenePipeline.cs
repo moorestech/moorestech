@@ -55,8 +55,8 @@ namespace Client.Starter
             // ---- Web UI server bootstrap (earliest phase) ----
             // The GameShutdownEvent subscription is installed once inside WebUiHost itself
             //
-            // WebUI起動失敗でもゲーム本体を止めないが、画面UIはWeb一本のため表示されない
-            // Web UI startup failure does not block gameplay, but Phase 1 retirement leaves the UI unavailable
+            // 起動失敗でも継続、UIはWeb一本のため非表示
+            // Web UI startup failure does not block gameplay, but the screen UI is web-only so nothing is shown
             try
             {
                 // 起動成否をWeb UIホスト状態へ伝え、失敗時はWeb UIを利用不可にする

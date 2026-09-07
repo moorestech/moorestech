@@ -4,7 +4,7 @@ namespace Client.Tests.WebUi.Gate
 {
     /// <summary>
     /// スクリーンスペースuGUIビューのWebゲート処遇分類。新規uGUI追加時は必ずここへ分類を追加する（未分類はテスト失敗）。
-    /// 移行済み画面uGUIはADR 0052で全削除済みで、本分類は新規追加を止める安全網として残る。
+    /// ADR 0052で全削除済み。新規追加防止の安全網として残置。
     /// Web-gate disposition classification for screen-space uGUI views; new uGUI files must be classified here (unclassified fails the test).
     /// The migrated screen uGUI is fully deleted per ADR 0052; this classification remains as a safety net against new additions.
     /// </summary>
@@ -55,6 +55,7 @@ namespace Client.Tests.WebUi.Gate
             "Client.Game/InGame/Tutorial",
             "Client.Skit",
             "Client.CutScene",
+            "Client.DebugSystem",
         };
 
         // 最長一致で適用する分類ルール。ファイル指定がディレクトリ指定より優先される
@@ -65,7 +66,14 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/Skit/SkitManager.cs", Category.GatedRoot, "通常スキット UI Toolkit 抑止"),
 
             // --- 基盤 / Infra
-            new Rule("Client.Game/InGame/UI", Category.Infra, "状態機械・論理モデル・ゲート本体（uGUIビューは全削除済み: ADR 0052）"),
+            new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械・ゲート本体"),
+            new Rule("Client.Game/InGame/UI/Inventory", Category.Infra, "サブインベントリ論理モデル（uGUIビューは全削除済み: ADR 0052）"),
+            new Rule("Client.Game/InGame/UI/BuildMenu", Category.Infra, "ビルドメニュー選択の論理状態"),
+            new Rule("Client.Game/InGame/UI/Blueprint", Category.Infra, "BP名入力の論理状態"),
+            new Rule("Client.Game/InGame/UI/Challenge", Category.Infra, "チャレンジ進行の論理状態"),
+            new Rule("Client.Game/InGame/UI/Crosshair", Category.Infra, "クロスヘア表示可否の論理状態"),
+            new Rule("Client.Game/InGame/UI/ProgressBar", Category.Infra, "進捗の論理状態（ui.progressのデータ源）"),
+            new Rule("Client.Game/InGame/UI/Tooltip", Category.Infra, "ツールチップの論理状態"),
             new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.Infra, "終了経路・切断状態・セーブ要求（uGUI非依存）"),
             new Rule("Client.Game/InGame/BackgroundSkit", Category.Infra, "音声再生専用オーケストレータ。文字表示はWeb UI側が担う"),
             new Rule("Client.Game/Skit/Localization", Category.Infra, "通常スキットの辞書読込・合成・解決基盤（画面表示なし）"),
@@ -84,6 +92,7 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/Skit/SkitUiRestoreResult.cs", Category.Excluded, "会話UI復帰要求の帰結を表すenumでスクリーンUIを持たない"),
             new Rule("Client.Skit", Category.CoveredByRoot, "SkitManagerがUI Toolkit rootをWebモード時に抑止"),
             new Rule("Client.CutScene", Category.Excluded, "TimelinePlayerのみ（Canvasは削除済み: ADR 0052）"),
+            new Rule("Client.DebugSystem", Category.Excluded, "デバッグUI（ADR 0052 例外4）"),
         };
     }
 }

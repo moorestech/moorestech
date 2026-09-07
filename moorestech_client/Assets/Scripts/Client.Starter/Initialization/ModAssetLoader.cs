@@ -57,6 +57,8 @@ namespace Client.Starter.Initialization
         {
             // ブロックとアイテムのアセットをロード
             // Load block and item assets.
+            // 前歴: "Use Existing Build" のローカルバンドルでUI系prefabを並列ロードに混ぜると、その1本だけ完了せずハングした（根本原因未特定・旧PreloadCriticalAssetsAsyncの事前ロードで回避していた）
+            // History: under Addressables "Use Existing Build" a UI prefab mixed into this parallel load could hang alone (root cause unknown; the old PreloadCriticalAssetsAsync preload avoided it)
             await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadConnectToolAssets(), LoadFluidAssets());
             Debug.Log("[InitializeScenePipeline] parallel mod asset load completed");
 

@@ -71,7 +71,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 PlaceBlock(MachineBlockName, pos, BlockDirection.North);
                 var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
-                // サブインベントリを開き、入力+出力+モジュールの統合スロット数を確認する
+                // サブインベントリでスロット数を確認
                 // Open the sub inventory and verify the unified input+output+module slot count.
                 var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
                 Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, subInventoryState.CurrentSubInventory.Count, "unified slot count mismatch");
@@ -104,15 +104,15 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.AreEqual(moduleItemId, inventoryResponse.Items[ModuleRangeStart].Id, "module not equipped into the module slot");
                 Assert.AreEqual(1, inventoryResponse.Items[ModuleRangeStart].Count);
 
-                // 閉じて開き直しても装着が保持されていることを確認
+                // 再オープンでも装着維持を確認
                 // Close and reopen the sub inventory and verify the equip persists.
-                subInventoryState.OnExit();
+                BlockSubInventoryOpener.Close(subInventoryState);
                 await UniTask.Yield();
                 var reopened = await BlockSubInventoryOpener.Open(blockGameObject);
                 Assert.AreEqual(InputSlotCount + OutputSlotCount + ModuleSlotCount, reopened.CurrentSubInventory.Count);
                 Assert.AreEqual(moduleItemId, reopened.CurrentSubInventory.SubInventory[ModuleRangeStart].Id, "module lost after reopen");
 
-                reopened.OnExit();
+                BlockSubInventoryOpener.Close(reopened);
             }
 
             // 名前からアイテムIDを引く

@@ -23,10 +23,10 @@ using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 {
     /// <summary>
-    /// テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
+    /// EditMode中にPlayModeへ遷移
     /// This test is executed in EditMode, but it switches to PlayMode during execution.
     /// </summary>
-    // shard割当はクラスと一緒に移動・改名される
+    // shardはクラスと共に移動
     // The shard assignment travels with the class through moves and renames
     [Category("CiShardClientPlay2")]
     public class MachineRecipeSelectRoundTripTest
@@ -62,7 +62,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
             {
                 await LoadMainGame();
 
-                // 機械を設置し、初期状態でレシピ未選択であることを確認
+                // 機械設置、レシピ未選択を確認
                 // Place the machine and confirm no recipe is selected initially.
                 var pos = new Vector3Int(0, 0, 0);
                 var serverBlock = PlaceBlock(MachineBlockName, pos, BlockDirection.North);
@@ -71,7 +71,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
 
                 var blockGameObject = await WaitBlockGameObjectSpawn(pos);
 
-                // このブロックのレシピをマスタから引く（テストマスタでは2件）
+                // レシピをマスタから引く（2件）
                 // Derive the block's recipes from the master (two in the test master data).
                 var blockGuid = blockGameObject.BlockMasterElement.BlockGuid;
                 var blockRecipes = new List<MachineRecipeMasterElement>();
@@ -83,7 +83,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var unlockStateData = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
                 var handler = new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData);
 
-                // Web UIと同じ action handler 経由で1件目を選択する
+                // 同じaction handler経由で1件目を選択
                 // Select the first recipe through the same action handler the Web UI uses.
                 var targetGuid = blockRecipes[0].MachineRecipeGuid;
                 var setResult = await handler.ExecuteAsync(new JObject { ["operation"] = "set", ["recipeGuid"] = targetGuid.ToString() });
@@ -96,7 +96,7 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.IsTrue(clearResult.Ok, $"clear action failed: {clearResult.Error}");
                 Assert.AreEqual(System.Guid.Empty, processor.SelectedRecipeGuid, "clear did not reach the server");
 
-                subInventoryState.OnExit();
+                BlockSubInventoryOpener.Close(subInventoryState);
             }
 
             #endregion
