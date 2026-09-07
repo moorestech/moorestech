@@ -108,7 +108,7 @@ namespace Client.Tests.Localization.Skit
         }
 
         [Test]
-        public void BackgroundCommandSharesOneResolvedLineAcrossWebAndUgui()
+        public void BackgroundCommandSharesOneResolvedLineWithWeb()
         {
             var commandSource = ReadCommand("BackgroundSkitTextCommand.cs");
 
@@ -116,7 +116,6 @@ namespace Client.Tests.Localization.Skit
             StringAssert.Contains(
                 "SkitPresentationStateStore.Instance.SetBackgroundText(\n                line.SpeakerName,\n                line.DisplayBody);",
                 commandSource);
-            StringAssert.Contains("skitUi.SetText(line.SpeakerName, line.DisplayBody);", commandSource);
         }
 
         [Test]

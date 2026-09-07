@@ -3,6 +3,7 @@
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
+using Core.Master;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -10,6 +11,10 @@ using UnityEngine.InputSystem;
 var options = new PlaytestRunOptions { Record = true };
 return PlaytestRunner.Run("webui-buildmenu-click", options, async p =>
 {
+    // 開幕スキットは全UI入力（ホットバー・ビルドメニュー）を塞ぐため、最初に飛ばす
+    // The opening skit blocks every UI input (hotbar, build menu), so skip it first
+    await p.SkipOpeningSkit();
+
     // 無料設置と平坦足場を一括設定し、UI経路の前提をナレーションへ残す
     // Configure free placement and flat ground together, narrating the UI-route prerequisites
     p.Note("デバッグ環境を整え、Web UIビルドメニューからベルトコンベアを選択する");
@@ -20,6 +25,12 @@ return PlaytestRunner.Run("webui-buildmenu-click", options, async p =>
     p.Note("Bキーでビルドメニューを開き、DOM要素の表示を確認する");
     await p.PressKey(Key.B);
     await p.UntilWebUiElement("build-menu-panel", 15f);
+
+    // 全カテゴリが1本のスクロールに並ぶため、対象カテゴリ見出しを押してベルトのセクションを視界へ入れる
+    // Every category shares a single scroll list, so click the category header to bring the belt section into view
+    var beltMaster = MasterHolder.BlockMaster.GetBlockMaster(PlaytestBlockOps.ResolveBlockId("ベルトコンベア"));
+    var (beltCategoryGuid, _) = MasterHolder.BuildMenuCategoryMaster.GetGuidPair(beltMaster.Category, beltMaster.SubCategory);
+    await p.ClickWebUi($"build-menu-category-{beltCategoryGuid:D}");
 
     // BlockId由来のtestidを使ってベルトをクリックし、設置モードへの遷移を検証する
     // Click the belt by its BlockId-derived testid and verify the transition into placement mode

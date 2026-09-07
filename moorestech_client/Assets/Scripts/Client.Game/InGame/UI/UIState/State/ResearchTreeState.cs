@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Mooresmaster.Localization.Generated;
-using Client.Game.InGame.UI.Inventory.Block.Research;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Input;
 using UnityEngine;
@@ -13,12 +12,10 @@ namespace Client.Game.InGame.UI.UIState.State
     /// </summary>
     public class ResearchTreeState : IUIState
     {
-        private readonly ResearchTreeViewManager _researchTreeViewManager;
         private readonly RightShortPressInputService _rightShortPressInputService;
 
-        public ResearchTreeState(ResearchTreeViewManager researchTreeViewManager, RightShortPressInputService rightShortPressInputService)
+        public ResearchTreeState(RightShortPressInputService rightShortPressInputService)
         {
-            _researchTreeViewManager = researchTreeViewManager;
             _rightShortPressInputService = rightShortPressInputService;
         }
 
@@ -28,9 +25,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Right short press isn't polled while another UIState is active, so discard any stale press state on return
             _rightShortPressInputService.ResetPressState();
 
-            // リサーチUIの表示とカーソル制御
-            // Show research UI and update cursor
-            _researchTreeViewManager.SetActive(true);
+            // カーソル制御
+            // Update cursor
             InputManager.MouseCursorVisible(true);
         }
 
@@ -49,9 +45,8 @@ namespace Client.Game.InGame.UI.UIState.State
 
         public void OnExit()
         {
-            // リサーチUIを閉じてカーソルを隠す
-            // Hide research UI and the cursor
-            _researchTreeViewManager.SetActive(false);
+            // カーソルを隠す
+            // Hide the cursor
             InputManager.MouseCursorVisible(false);
         }
 

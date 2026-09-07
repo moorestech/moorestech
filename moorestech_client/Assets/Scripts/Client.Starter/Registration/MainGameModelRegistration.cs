@@ -6,6 +6,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Player;
 using Client.Game.InGame.Presenter.Player;
+using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Skit;
 using Client.Game.InGame.Train.Network;
 using Client.Game.InGame.Train.RailGraph;
@@ -31,6 +32,11 @@ namespace Client.Starter.Registration
             builder.Register<LocalPlayerInventoryController>(Lifetime.Singleton);
             builder.Register<ILocalPlayerInventory, LocalPlayerInventory>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NetworkEventInventoryUpdater>();
+
+            // Web用の論理モデルを登録
+            // Register the logical models for the web UI
+            builder.RegisterEntryPoint<NetworkDisconnectState>().AsSelf();
+            builder.Register<GameSaveRequester>(Lifetime.Singleton);
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

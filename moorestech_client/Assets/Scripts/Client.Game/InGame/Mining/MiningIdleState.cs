@@ -1,13 +1,10 @@
-
-using Client.Game.InGame.UI.Tooltip;
-
 namespace Client.Game.InGame.Mining
 {
     public class MiningIdleState : IMiningState
     {
-        public MiningIdleState()
+        public MiningIdleState(MiningControllerContext context)
         {
-            MouseCursorTooltip.Instance.Hide(MiningControllerContext.TooltipOwner);
+            context.Tooltip.Hide(MiningControllerContext.TooltipOwner);
         }
 
         public IMiningState GetNextUpdate(MiningControllerContext context, float dt)

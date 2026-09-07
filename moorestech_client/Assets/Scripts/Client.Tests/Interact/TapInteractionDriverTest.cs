@@ -9,7 +9,6 @@ using Client.Localization;
 using Client.Tests.Common;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -21,7 +20,7 @@ namespace Client.Tests.Interact
     /// </summary>
     public class TapInteractionDriverTest : InputTestFixture
     {
-        private GameObject _tooltipObject;
+        private MouseCursorTooltipState _tooltip;
         private GameObject _targetObject;
         private GameObject _candidateObject;
 
@@ -34,13 +33,7 @@ namespace Client.Tests.Interact
             // Resolve text through the real dictionary
             Localize.Initialize();
 
-            _tooltipObject = new GameObject("MouseCursorTooltip");
-            _tooltipObject.SetActive(false);
-            var tooltip = _tooltipObject.AddComponent<MouseCursorTooltip>();
-            TestReflection.SetField(tooltip, "canvasGroup", _tooltipObject.AddComponent<CanvasGroup>());
-            TestReflection.SetField(tooltip, "itemName", _tooltipObject.AddComponent<TextMeshProUGUI>());
-            _tooltipObject.SetActive(true);
-            TestReflection.InvokePrivate(tooltip, "Awake");
+            _tooltip = new MouseCursorTooltipState();
 
             _targetObject = new GameObject("TapTarget");
             _candidateObject = new GameObject("CandidateTapTarget");
@@ -50,8 +43,6 @@ namespace Client.Tests.Interact
         {
             UnityEngine.Object.DestroyImmediate(_candidateObject);
             UnityEngine.Object.DestroyImmediate(_targetObject);
-            UnityEngine.Object.DestroyImmediate(_tooltipObject);
-            TestReflection.SetStaticProperty(typeof(MouseCursorTooltip), "Instance", null);
             TestReflection.ResetInputManagerCache();
             base.TearDown();
         }
@@ -64,13 +55,13 @@ namespace Client.Tests.Interact
                 _targetObject,
                 new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory, UIStateEnum.SubInventory),
                 new StubAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen));
-            var driver = new TapInteractionDriver();
+            var driver = new TapInteractionDriver(_tooltip);
             var selector = new ScriptedInteractTargetSelector();
             selector.SetNext(target);
             InputSystem.Update();
 
             Assert.IsFalse(driver.Step(target, selector.Scan()).IsHandled);
-            var lines = MouseCursorTooltip.Instance.GetPresentation().Lines;
+            var lines = _tooltip.GetPresentation().Lines;
             Assert.AreEqual(2, lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory.Key, lines[0].Key.Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.InteractRideTrain.Key, lines[1].Key.Key);
@@ -82,7 +73,7 @@ namespace Client.Tests.Interact
             InputManager.Playable.Ride.SetKeyDownForTest(false);
             Assert.IsTrue(result.IsHandled);
             Assert.AreEqual(UIStateEnum.TrainHUDScreen, result.TransitContext.NextStateEnum);
-            Assert.IsFalse(MouseCursorTooltip.Instance.GetPresentation().Visible);
+            Assert.IsFalse(_tooltip.GetPresentation().Visible);
         }
 
         [Test]
@@ -92,18 +83,18 @@ namespace Client.Tests.Interact
             var target = new StubTapInteractable(
                 _targetObject,
                 new StubAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen));
-            var driver = new TapInteractionDriver();
+            var driver = new TapInteractionDriver(_tooltip);
             var selector = new ScriptedInteractTargetSelector();
             selector.SetNext(target);
             InputSystem.Update();
 
             Assert.IsFalse(driver.Step(target, selector.Scan()).IsHandled);
-            Assert.IsTrue(MouseCursorTooltip.Instance.GetPresentation().Visible);
+            Assert.IsTrue(_tooltip.GetPresentation().Visible);
 
             // 対象から離れたらヒントも消える
             // Leaving the target clears the hint as well
             driver.Clear();
-            Assert.IsFalse(MouseCursorTooltip.Instance.GetPresentation().Visible);
+            Assert.IsFalse(_tooltip.GetPresentation().Visible);
         }
 
         [Test]
@@ -113,7 +104,7 @@ namespace Client.Tests.Interact
             var primaryAction = new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenBlock, UIStateEnum.SubInventory);
             var candidateAction = new StubAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen);
             var target = new StubTapInteractable(_targetObject, primaryAction);
-            var driver = new TapInteractionDriver();
+            var driver = new TapInteractionDriver(_tooltip);
             var selector = new ScriptedInteractTargetSelector();
             selector.SetNext(target);
             selector.AddCandidate(new StubTapInteractable(_candidateObject, candidateAction));
@@ -135,7 +126,7 @@ namespace Client.Tests.Interact
             var primaryAction = new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenBlock, UIStateEnum.SubInventory);
             var candidateAction = new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory, UIStateEnum.TrainHUDScreen);
             var target = new StubTapInteractable(_targetObject, primaryAction);
-            var driver = new TapInteractionDriver();
+            var driver = new TapInteractionDriver(_tooltip);
             var selector = new ScriptedInteractTargetSelector();
             selector.SetNext(target);
             selector.AddCandidate(new StubTapInteractable(_candidateObject, candidateAction));
