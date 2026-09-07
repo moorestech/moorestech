@@ -246,6 +246,32 @@ jobs:
               json.dump(data, f, indent=2)
           "
 
+      # uLoopMCP v3はWindowsで名前付きパイプのIPCサーバをEditor起動時に必ず立て、バッチモードでも止まらない。
+      # CIコンテナではその非同期読み取りが未処理のObjectDisposedExceptionを投げ、Unityがビルド開始前に落ちる。
+      # 開発専用ツールでビルドには不要なため、Windowsクライアントビルドでは依存ごと外す。
+      # uLoopMCP v3 always starts a named-pipe IPC server on Windows at Editor startup, batch mode included.
+      # In the CI container its async read throws an unhandled ObjectDisposedException and Unity dies before the build starts.
+      # It is a developer-only tool that the build does not need, so drop the dependency for the Windows client build.
+      - name: Drop uLoopMCP package (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        working-directory: moorestech_client/Packages
+        run: |
+          python3 -c "
+          import json
+          package = 'io.github.hatayama.uloopmcp'
+          with open('manifest.json', 'r') as f:
+              manifest = json.load(f)
+          manifest['dependencies'].pop(package, None)
+          with open('manifest.json', 'w') as f:
+              json.dump(manifest, f, indent=2)
+          with open('packages-lock.json', 'r') as f:
+              lock = json.load(f)
+          lock['dependencies'].pop(package, None)
+          with open('packages-lock.json', 'w') as f:
+              json.dump(lock, f, indent=2)
+          "
+
       # Unityのビルド前処理(WebUiProductionArtifactBuilder)がpnpm buildを実行するが、
       # node/pnpm本体と webui/node_modules は gitignore されているためここで用意する
       - name: Setup Web UI toolchain
