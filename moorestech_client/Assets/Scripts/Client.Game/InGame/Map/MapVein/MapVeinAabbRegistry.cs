@@ -22,24 +22,59 @@ namespace Client.Game.InGame.Map.MapVein
             // Veins never move, so fix their ranges at the initial handshake and drop later master lookups
             foreach (var layout in handshakeResponse.MapLayout.MapVeins)
             {
-                var veinTypeGuid = new Guid(layout.VeinGuid);
-                var element = MasterHolder.MapVeinMaster.GetElementOrNull(veinTypeGuid);
-                if (element == null) throw new InvalidOperationException($"[MapVeinAabbRegistry] mapVeinsマスタにveinGuid:{veinTypeGuid}がありません");
+                var vein = ResolveVeinOrNull(new Guid(layout.VeinGuid),
+                    new Vector3Int(layout.MinX, layout.MinY, layout.MinZ),
+                    new Vector3Int(layout.MaxX, layout.MaxY, layout.MaxZ));
+                if (vein == null) continue;
 
-                var minCell = new Vector3Int(layout.MinX, layout.MinY, layout.MinZ);
-                var maxCell = new Vector3Int(layout.MaxX, layout.MaxY, layout.MaxZ);
+                _veins.Add(vein);
+            }
+
+            #region Internal
+
+            // マスタ欠損はサーバーのFluidMapVeinDatastoreと同じくログを出してスキップする。ここだけ例外にすると同じmodでワールドがロードできない
+            // A missing master logs and skips just like the server's FluidMapVeinDatastore; throwing only here would leave the world unloadable for the very mod the server accepts
+            MapVeinAabb ResolveVeinOrNull(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell)
+            {
+                var element = MasterHolder.MapVeinMaster.GetElementOrNull(veinTypeGuid);
+                if (element == null)
+                {
+                    Debug.LogError($"veinGuid:{veinTypeGuid}に対応するMapVeinマスタが存在しません。鉱脈の登録をスキップします。");
+                    return null;
+                }
 
                 // 種別と産出アイテム/流体はマスタの判別共用体から1度で決める。逆極性の式に分けると片方だけ更新される
                 // Kind and yielded item/fluid come from the master's discriminated union in one place; opposite-polarity expressions would drift apart
-                var (kind, veinItemId, veinFluidId) = element.VeinParam switch
+                switch (element.VeinParam)
                 {
-                    ItemVeinParam itemVeinParam => (MapVeinKind.Item, (ItemId?)MasterHolder.ItemMaster.GetItemId(itemVeinParam.ItemGuid), (FluidId?)null),
-                    FluidVeinParam fluidVeinParam => (MapVeinKind.Fluid, (ItemId?)null, (FluidId?)MasterHolder.FluidMaster.GetFluidId(fluidVeinParam.FluidGuid)),
-                    _ => throw new InvalidOperationException($"[MapVeinAabbRegistry] 未対応のVeinParam:{element.VeinParam.GetType().Name} veinGuid:{veinTypeGuid}"),
-                };
+                    case ItemVeinParam itemVeinParam:
+                    {
+                        var itemId = MasterHolder.ItemMaster.GetItemIdOrNull(itemVeinParam.ItemGuid);
+                        if (itemId == null)
+                        {
+                            Debug.LogError($"ItemGuid:{itemVeinParam.ItemGuid}に対応するItemIdが存在しません。鉱脈の登録をスキップします。");
+                            return null;
+                        }
 
-                _veins.Add(new MapVeinAabb(veinTypeGuid, minCell, maxCell, kind, veinItemId, veinFluidId));
+                        return new MapVeinAabb(veinTypeGuid, minCell, maxCell, MapVeinKind.Item, itemId.Value, null);
+                    }
+                    case FluidVeinParam fluidVeinParam:
+                    {
+                        var fluidId = MasterHolder.FluidMaster.GetFluidIdOrNull(fluidVeinParam.FluidGuid);
+                        if (fluidId == null)
+                        {
+                            Debug.LogError($"FluidGuid:{fluidVeinParam.FluidGuid}に対応するFluidIdが存在しません。鉱脈の登録をスキップします。");
+                            return null;
+                        }
+
+                        return new MapVeinAabb(veinTypeGuid, minCell, maxCell, MapVeinKind.Fluid, null, fluidId.Value);
+                    }
+                    default:
+                        throw new InvalidOperationException($"[MapVeinAabbRegistry] 未対応のVeinParam:{element.VeinParam.GetType().Name} veinGuid:{veinTypeGuid}");
+                }
             }
+
+            #endregion
         }
 
         /// <summary>
