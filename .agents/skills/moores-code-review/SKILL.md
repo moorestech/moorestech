@@ -20,7 +20,7 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 **この SKILL.md は本体セッション用のディスパッチャである**（2026-08-18 分割・2026-08-20 Workflow化）。本体がやるのは Step 0〜2（対象確定・機械チェック・Codex起動・Workflow args）・Workflow 起動・Step 7（報告と AskUserQuestion）だけで、**Step 3〜6.5 の実行手順・6系統の詳細・モデル割り当て・実行系 Gotchas の正本は `references/orchestrator-steps.md`**、その実行形が `scripts/review_workflow.js` にある。本体が orchestrator-steps.md を通読するのはインライン実行(後述)の場合のみ。
 
-系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②mooresレンズ11本 ③汎用reviewer 30本 ④Codex外部監査3本 ⑤Fable全般 ⑥分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本 + opus integrator。
+系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②mooresレンズ11本 ③汎用reviewer 30本 ④Codex外部監査3本 ⑤Fable全般 ⑥分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 3本（コメント保全2本 + 反映diff再レビュー `applied-diff-correctness.md`）+ opus integrator。
 
 ## Workflow実行（既定・2026-08-20）
 
@@ -129,6 +129,7 @@ Repo root : <リポジトリ絶対パス>
 1. **統合報告** — Critical/Warning/Info件数、各指摘の出所（決定論/レンズ名/reviewer名/Codex/Fable/N系統一致）、適用した修正、コンパイル・テスト結果。Warningは1件1行で全件載せる（保険としてコンテキストに乗せるのが目的。黙って落とさない）。Infoは末尾に圧縮列挙。raw出力やレビュー表をそのまま貼らない。Codex/Fableをスキップした場合はその旨を明記。
    - **「免責で消された指摘」セクション必須**: 各観点の `suppressed:` 節を固定形式 `- [Critical|Warning] <指摘要約> — suppressed-by: <トレードオフ1行, 出所ラベル>` で列挙する（元の重大度を行頭に保持。0件なら「suppressed: 0件」と明記）。§2.6参照。
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。裁定結果の適用は、1〜2箇所の機械的な直しなら本体が最小Edit、まとまった量なら fix subagent（`model: "sonnet"`）1体に design.md のパス+裁定を渡す。
+   - **裁定反映 diff の再レビュー（2026-09-08・cmux-connector c9baa79 の較正）**: 上の適用（本体の Edit でも fix subagent でも）がテスト以外のソースに触れたら、適用前の状態（`git stash create` で控えた ref か HEAD）との差分を `$RUNDIR/apply-step7.diff` に書き、`post-checks/applied-diff-correctness.md`（`model: "opus"`）を 1 体、Step 4 と同じ 5 行契約（Patch path = その diff）で起動する。Critical は修正して再実行し（機械的でなければ再度 AskUserQuestion）、Warning/Info は最終報告に載せる。doc・テスト・コメントのみなら不要。理由: 裁定を反映した diff はどの系統の入力にもならず、cmux-connector では sonnet fix が反映した guard の評価時点の誤りが 2 日間の機能停止になった（事後実測: 行単位レンズはその diff で Critical 到達）。Step 6 の自動適用側は Workflow の Step 6.5-2.5 が同じ post-check を回す。
    - **載せてよいのは本質的な設計判断のみ**: アーキテクチャ・パターン選択（多態化/型分割/移動先クラス）・スコープ影響・両立不能な指摘、およびサブエージェントの `設計判断: あり` 項目。
    - **載せるの禁止**: コメントの短縮・文体（convention-guardが自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。この2種は選択肢に混ぜた時点で規約違反。
    - **統合（design.md）に無い選択肢を本体が足すのも禁止** — 「現状維持」「別issueへ」を本体が付け足さない。推奨は design.md の正解形に揃える（`references/integration-rules.md` §4・2026-08-23 C8 教訓）。
