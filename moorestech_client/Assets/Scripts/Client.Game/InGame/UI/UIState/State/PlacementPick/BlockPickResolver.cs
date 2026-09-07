@@ -1,9 +1,6 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
-using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
-using Game.PlacementTarget;
-using Game.UnlockState;
 
 namespace Client.Game.InGame.UI.UIState.State.PlacementPick
 {
@@ -13,24 +10,23 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
     /// </summary>
     public class BlockPickResolver
     {
-        private readonly PlacementTargetCatalog _placementTargetCatalog;
+        private readonly PlacementTargetResolver _placementTargetResolver;
 
-        public BlockPickResolver(PlacementTargetCatalog placementTargetCatalog)
+        public BlockPickResolver(PlacementTargetResolver placementTargetResolver)
         {
-            _placementTargetCatalog = placementTargetCatalog;
+            _placementTargetResolver = placementTargetResolver;
         }
 
         // 拾ったブロックはそのまま手持ちにする（坂ベルトも坂のまま）
         // The picked block is held as-is, slopes included
-        public bool TryResolvePickTarget(BlockId blockId, BlockDirection pickedDirection, IGameUnlockStateData unlockState, out BlockPlacementTarget resolvedTarget)
+        public bool TryResolvePickTarget(BlockId blockId, BlockDirection pickedDirection, out BlockPlacementTarget resolvedTarget)
         {
             resolvedTarget = null;
 
-            // 未解放ブロックはピック不可。判定はビルドメニューと同じカタログへ委ねる
-            // Locked blocks are not pickable; the judgement is delegated to the same catalog the build menu uses
-            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+            // 未解放ブロックはピック不可。判定はビルドメニューと同じ解決点へ委ねる
+            // Locked blocks are not pickable; the judgement is delegated to the same resolver the build menu uses
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockGuid;
-            if (!_placementTargetCatalog.IsBlockUnlocked(blockGuid, unlockState, showAllPlaceable)) return false;
+            if (!_placementTargetResolver.IsBlockUnlocked(blockGuid)) return false;
 
             resolvedTarget = new BlockPlacementTarget(blockGuid, pickedDirection);
             return true;

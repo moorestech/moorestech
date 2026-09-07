@@ -71,7 +71,7 @@ namespace Client.Game.InGame.UI.UIState.State.PlacementPick
             {
                 target = null;
                 if (!BlockClickDetectUtil.TryGetCursorOnBlock(out var blockObject)) return false;
-                if (!_blockPickResolver.TryResolvePickTarget(blockObject.BlockId, blockObject.BlockPosInfo.BlockDirection, _gameUnlockStateData, out var blockTarget)) return false;
+                if (!_blockPickResolver.TryResolvePickTarget(blockObject.BlockId, blockObject.BlockPosInfo.BlockDirection, out var blockTarget)) return false;
 
                 target = blockTarget;
                 return true;

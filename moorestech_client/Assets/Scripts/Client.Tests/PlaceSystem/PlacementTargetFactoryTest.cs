@@ -31,7 +31,7 @@ namespace Client.Tests.PlaceSystem
 
             void AssertCreated(PlacementTargetKind kind, Guid id, Type expectedTargetType)
             {
-                var entry = new PlacementTargetEntry(id, kind, "placement-target-factory-test");
+                var entry = new PlacementTargetEntry(id, kind, "placement-target-factory-test", id);
                 var target = PlacementTargetFactory.Create(entry);
                 Assert.IsInstanceOf(expectedTargetType, target, $"{kind} should resolve to {expectedTargetType.Name}");
                 Assert.AreEqual(id, target.Id, $"{kind} target id should round-trip from entry.Id");

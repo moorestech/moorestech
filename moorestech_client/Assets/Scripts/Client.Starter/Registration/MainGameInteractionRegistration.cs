@@ -52,6 +52,7 @@ using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UnlockState;
 using Client.Skit.Context;
 using Client.Skit.Skit;
+using Game.Block.Interface.Extension;
 using Game.PlacementTarget;
 using Game.PlayerRiding.Interface;
 using Game.UnlockState;
@@ -97,6 +98,7 @@ namespace Client.Starter.Registration
             builder.Register<ChainPlacePreviewState>(Lifetime.Singleton);
             builder.Register<IChainGroundQuery, PlacementChainGroundQuery>(Lifetime.Singleton);
             builder.Register<MapVeinRangeViewService>(Lifetime.Singleton).As<IMapVeinRangeView>();
+            builder.Register<IPlacementUnlockSourceMap, BeltConveyorPlacementUnlockSourceMap>(Lifetime.Singleton);
             builder.Register<PlacementTargetCatalog>(Lifetime.Singleton);
             builder.Register<BlueprintPasteSystem>(Lifetime.Singleton);
             builder.Register<BlueprintCopySystem>(Lifetime.Singleton);

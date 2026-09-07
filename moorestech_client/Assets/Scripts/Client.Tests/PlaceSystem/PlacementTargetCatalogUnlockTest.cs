@@ -4,6 +4,7 @@ using Game.PlacementTarget;
 using Game.Context;
 using Game.UnlockState;
 using Core.Master;
+using Game.Block.Interface.Extension;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -28,7 +29,7 @@ namespace Client.Tests.PlaceSystem
         [Test]
         public void showAllPlaceableはBlockとTrainCarだけを解放しConnectToolには影響しない()
         {
-            var catalog = new PlacementTargetCatalog();
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
             var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
             var catalogEntries = catalog.CreateEntries(NoBlueprints);
             var normalIds = catalog.UnlockedEntries(unlockState, false, NoBlueprints).Select(entry => entry.Id).ToHashSet();
@@ -62,7 +63,7 @@ namespace Client.Tests.PlaceSystem
         [Test]
         public void ブループリント未解放ならBP系エントリは列挙されず解放後に現れる()
         {
-            var catalog = new PlacementTargetCatalog();
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
             var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
             var blueprintGuid = Guid.Parse("70000000-0000-4000-8000-000000000002");
             var blueprints = new[] { (blueprintGuid, "locked-base") };
@@ -93,7 +94,7 @@ namespace Client.Tests.PlaceSystem
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var catalog = new PlacementTargetCatalog();
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
             var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
 
             // 直線の初期解放状態に依存しないよう、明示的にロックしてから始める

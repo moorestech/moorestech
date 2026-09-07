@@ -1,7 +1,10 @@
+using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.PlacementTarget;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +24,7 @@ namespace Client.Tests.PlaceSystem
             PlaceBlockProtocolTestSupport.UnlockBlock(serviceProvider, ForUnitTestModBlockId.MachineId);
             var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
 
-            Assert.IsTrue(CreateResolver().TryResolvePickTarget(ForUnitTestModBlockId.MachineId, BlockDirection.North, unlockState, out _));
+            Assert.IsTrue(CreateResolver(unlockState).TryResolvePickTarget(ForUnitTestModBlockId.MachineId, BlockDirection.North, out _));
         }
 
         [Test]
@@ -33,7 +36,7 @@ namespace Client.Tests.PlaceSystem
 
             // 坂は直線の解放状態でピック可（手持ちは坂）
             // A slope is pickable via the straight's unlock state (held as the slope itself)
-            Assert.IsTrue(CreateResolver().TryResolvePickTarget(ForUnitTestModBlockId.TestGearBeltConveyorUp, BlockDirection.North, unlockState, out var resolved));
+            Assert.IsTrue(CreateResolver(unlockState).TryResolvePickTarget(ForUnitTestModBlockId.TestGearBeltConveyorUp, BlockDirection.North, out var resolved));
             Assert.AreEqual(MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.TestGearBeltConveyorUp).BlockGuid, resolved.BlockGuid);
         }
 
@@ -44,7 +47,7 @@ namespace Client.Tests.PlaceSystem
             PlaceBlockProtocolTestSupport.LockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
             var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
 
-            Assert.IsFalse(CreateResolver().TryResolvePickTarget(ForUnitTestModBlockId.TestGearBeltConveyorUp, BlockDirection.North, unlockState, out _));
+            Assert.IsFalse(CreateResolver(unlockState).TryResolvePickTarget(ForUnitTestModBlockId.TestGearBeltConveyorUp, BlockDirection.North, out _));
         }
 
         [Test]
@@ -54,7 +57,7 @@ namespace Client.Tests.PlaceSystem
             PlaceBlockProtocolTestSupport.LockBlock(serviceProvider, ForUnitTestModBlockId.MachineId);
             var unlockState = serviceProvider.GetService<IGameUnlockStateDataController>();
 
-            Assert.IsFalse(CreateResolver().TryResolvePickTarget(ForUnitTestModBlockId.MachineId, BlockDirection.North, unlockState, out _));
+            Assert.IsFalse(CreateResolver(unlockState).TryResolvePickTarget(ForUnitTestModBlockId.MachineId, BlockDirection.North, out _));
         }
 
         // スポイトもビルドメニューと同じく無料設置デバッグに従う
@@ -71,7 +74,7 @@ namespace Client.Tests.PlaceSystem
             DebugParameters.SaveBool(DebugParameterKeys.FreeBlockPlacement, true);
             try
             {
-                Assert.IsTrue(CreateResolver().TryResolvePickTarget(ForUnitTestModBlockId.MachineId, BlockDirection.North, unlockState, out _));
+                Assert.IsTrue(CreateResolver(unlockState).TryResolvePickTarget(ForUnitTestModBlockId.MachineId, BlockDirection.North, out _));
             }
             finally
             {
@@ -79,9 +82,10 @@ namespace Client.Tests.PlaceSystem
             }
         }
 
-        private static BlockPickResolver CreateResolver()
+        private static BlockPickResolver CreateResolver(IGameUnlockStateData unlockState)
         {
-            return new BlockPickResolver(new PlacementTargetCatalog());
+            var resolver = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), new ClientBlueprintLibrary(), unlockState);
+            return new BlockPickResolver(resolver);
         }
 
         private static ServiceProvider CreateServer()

@@ -94,7 +94,9 @@ namespace Server.Protocol.PacketResponse
 
                 // 未解放セルはスキップ。坂ベルトの正規化を含む解放判定はカタログへ集約している
                 // Skip locked cells; the unlock rule, belt-slope normalization included, lives in the catalog
-                if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, isFreePlacement)) { notUnlockedCount++; return; }
+                // 無料設置は上の早期returnで完結済みなので、ここへ到達する時点で無料設置ではない
+                // Free placement already returned above, so reaching here means placement is never free
+                if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, false)) { notUnlockedCount++; return; }
 
                 // 財布に問い合わせ、賄えないセルはスキップ
                 // Ask the wallet; skip cells it cannot cover
