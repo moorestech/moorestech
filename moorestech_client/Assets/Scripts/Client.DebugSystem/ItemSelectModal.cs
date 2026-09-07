@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Common;
+using Client.DebugSystem.ItemSlot;
 using Client.Mod.Texture;
 using Core.Master;
 using Cysharp.Threading.Tasks;

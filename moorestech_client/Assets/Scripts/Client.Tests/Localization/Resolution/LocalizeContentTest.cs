@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.Localization;
 using Client.Localization;
 using Client.Mod.Texture;

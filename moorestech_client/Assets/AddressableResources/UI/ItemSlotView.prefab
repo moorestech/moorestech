@@ -178,6 +178,7 @@ MonoBehaviour:
   m_VerticalAlignment: 1024
   m_textAlignment: 65535
   m_characterSpacing: 0
+  m_characterHorizontalScale: 1
   m_wordSpacing: 0
   m_lineSpacing: 0
   m_lineSpacingMax: 0
@@ -224,7 +225,6 @@ GameObject:
   - component: {fileID: 296130373708113023}
   - component: {fileID: 1014375675779259836}
   - component: {fileID: 1014375675779259838}
-  - component: {fileID: 1186919496023674567}
   - component: {fileID: 5583253362659883424}
   m_Layer: 5
   m_Name: ItemSlotView
@@ -266,19 +266,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60a2352d66534463be31e9a8c114f4ad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rootRectTransform: {fileID: 1014375675779259833}
   itemImage: {fileID: 1885320552950913259}
-  normalFrame: {fileID: 4299517632762084330}
-  machineSlotFrame: {fileID: 8384614708635708959}
-  craftRecipeFrame: {fileID: 8668122986229676837}
-  hotBarSelect: {fileID: 7837513962978010560}
-  grayOutImage: {fileID: 6648118856840850400}
   hoverImage: {fileID: 1297722331359907779}
   clickImage: {fileID: 784587572628537564}
-  normalItemSlotObject: {fileID: 4453128930901351719}
-  noneCrossObject: {fileID: 4581972568625986164}
   countText: {fileID: 1014375674738587960}
-  uGuiTooltipTarget: {fileID: 1186919496023674567}
 --- !u!114 &296130373708113023
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -344,22 +335,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &1186919496023674567
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1014375675779259832}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 54b8202d8d3d54cad8e9693533cb6d92, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  textKey: 
-  displayEnable: 0
-  fontSize: 36
-  localize: 1
 --- !u!114 &5583253362659883424
 MonoBehaviour:
   m_ObjectHideFlags: 0
