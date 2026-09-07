@@ -1471,18 +1471,18 @@ git commit -m "chore: moorestech_master ピンを油井・歯車ポンプUI対�
 
 ### Task 7: 全ブランチレビュー（必須・省略不可）
 
-- [ ] **Step 1: moores-code-review を実行する**
+- [x] **Step 1: moores-code-review を実行する**
 
 必ず最後にコードレビュースキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。`moores-code-review` スキルを起動し、指摘の機械的修正を適用、設計判断は AskUserQuestion で仰ぐ。
 
-- [ ] **Step 2: 最終テスト**
+- [x] **Step 2: 最終テスト**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Run: `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Pump|VeinPlacementReporterTest|PlacementVeinViewResolverTest|IdlePowerRateTest|MinerMiningTest"`
 Run: `cd moorestech_web/webui && npm run test && npm run test:e2e`
 Expected: 全件 PASS
 
-- [ ] **Step 3: PR を作成する**
+- [x] **Step 3: PR を作成する**
 
 pr-create スキルで master 向け PR を作る。本文に ADR 0051・moorestech_master 側 PR のリンク・ピン更新を明記する。PR 作成後は `moores-wt rm <name>` で worktree と Editor を畳む。
 
