@@ -41,6 +41,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                     // The gear pump's power row belongs to GearSection, so it carries no Electric
                     dto.Pump = new PumpDetailDto { Kind = GearKind, PumpingFluids = BuildPumpingFluids(pump) };
                     return;
+                default:
+                    // Pump状態を配信する新種のBlockParamは種別の追加漏れなので即死させる
+                    // A new BlockParam publishing Pump state means the kind mapping is missing, so fail fast
+                    throw new System.InvalidOperationException($"[PumpDetailDtoBuilder] 未対応のポンプBlockParam: {param?.GetType().Name}");
             }
         }
 
