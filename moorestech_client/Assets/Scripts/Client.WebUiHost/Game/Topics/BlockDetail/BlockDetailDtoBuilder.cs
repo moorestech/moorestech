@@ -163,15 +163,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
         private static GearConsumption GetGearConsumption(object param)
         {
-            // ギア消費要求値を持つ param のみ対象（GearMachine / GearMiner）
-            // Only params carrying gear consumption requirements (GearMachine / GearMiner)
-            return param switch
-            {
-                GearMachineBlockParam p => p.GearConsumption,
-                GearMinerBlockParam p => p.GearConsumption,
-                GearPumpBlockParam p => p.GearConsumption,
-                _ => null,
-            };
+            // ギア消費要求値の有無はスキーマのIGearConsumptionParamが正本（具体型の列挙はしない）
+            // The schema's IGearConsumptionParam is the authority on which params carry gear consumption
+            return param is IGearConsumptionParam gearConsumptionParam ? gearConsumptionParam.GearConsumption : null;
         }
 
         internal static string ToCamelCase(string value)

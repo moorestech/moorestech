@@ -434,21 +434,9 @@ namespace Core.Master.Validator
 
             GearConsumption ExtractGearConsumption(object blockParam)
             {
-                // gearConsumptionを持つ全BlockParam型を列挙して取り出す
-                // Enumerate every BlockParam type that carries a gearConsumption and return it
-                return blockParam switch
-                {
-                    GearBlockParam gear => gear.GearConsumption,
-                    ShaftBlockParam shaft => shaft.GearConsumption,
-                    GearChainPoleBlockParam chainPole => chainPole.GearConsumption,
-                    GearMachineBlockParam machine => machine.GearConsumption,
-                    GearBeltConveyorBlockParam belt => belt.GearConsumption,
-                    GearMinerBlockParam miner => miner.GearConsumption,
-                    GearMapObjectMinerBlockParam mapMiner => mapMiner.GearConsumption,
-                    GearPumpBlockParam pump => pump.GearConsumption,
-                    GearToElectricGeneratorBlockParam electric => electric.GearConsumption,
-                    _ => null,
-                };
+                // gearConsumptionを持つ型の判定はスキーマのIGearConsumptionParamが正本
+                // The schema's IGearConsumptionParam is the authority on which params carry a gearConsumption
+                return blockParam is IGearConsumptionParam gearConsumptionParam ? gearConsumptionParam.GearConsumption : null;
             }
 
             #endregion
