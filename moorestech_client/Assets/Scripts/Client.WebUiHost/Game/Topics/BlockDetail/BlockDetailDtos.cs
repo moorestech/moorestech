@@ -85,8 +85,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
     public class PumpDetailDto
     {
-        // 油井のみ設定。歯車はnull(GearSection使用)
-        // Only the electric pump sets this; gear pump is null (uses GearSection)
+        // ポンプ種別。"electric"のみElectricを持つ("gear"は動力行をGearSectionが出す)
+        // Pump kind; only "electric" carries Electric ("gear" leaves the power row to GearSection)
+        public string Kind;
         public PumpElectricDto Electric;
         public List<PumpingFluidDto> PumpingFluids;
     }

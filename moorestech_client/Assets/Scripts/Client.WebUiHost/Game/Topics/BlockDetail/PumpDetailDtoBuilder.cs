@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Core.Master;
 using Game.Block.Interface.State;
+using Mooresmaster.Model.BlocksModule;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
@@ -11,18 +12,36 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     /// </summary>
     public static class PumpDetailDtoBuilder
     {
-        public static void Apply(BlockInventoryDto dto, BlockGameObject block, CommonMachineBlockStateDetail common)
+        private const string ElectricKind = "electric";
+        private const string GearKind = "gear";
+
+        public static void Apply(BlockInventoryDto dto, BlockGameObject block, object param, CommonMachineBlockStateDetail common)
         {
-            // Pump StateDetail使用。油井はCommonMachineも持つ
-            // Uses Pump StateDetail; the electric pump also carries CommonMachine
             var pump = block.GetStateDetail<PumpBlockStateDetail>(PumpBlockStateDetail.BlockStateDetailKey);
             if (pump == null) return;
 
-            dto.Pump = new PumpDetailDto
+            // 種別の正はマスタのBlockParam。CommonMachineの有無で代用すると歯車ポンプに動力行が生え、油井では黙って消える
+            // The master's BlockParam settles the kind; standing in CommonMachine's presence grows a power row on the gear pump and silently drops it on the oil well
+            switch (param)
             {
-                Electric = common == null ? null : new PumpElectricDto { CurrentState = BlockDetailDtoBuilder.ToCamelCase(common.CurrentStateType), CurrentPower = common.CurrentPower, RequestPower = common.RequestPower },
-                PumpingFluids = BuildPumpingFluids(pump),
-            };
+                case ElectricPumpBlockParam:
+                    // 油井の電力値はCommonMachineだけが持つ。前例MinerDetailDtoBuilderと同じく揃わない間は出さない
+                    // Only CommonMachine carries the oil well's power values; like MinerDetailDtoBuilder, emit nothing until it is there
+                    if (common == null) return;
+
+                    dto.Pump = new PumpDetailDto
+                    {
+                        Kind = ElectricKind,
+                        Electric = new PumpElectricDto { CurrentState = BlockDetailDtoBuilder.ToCamelCase(common.CurrentStateType), CurrentPower = common.CurrentPower, RequestPower = common.RequestPower },
+                        PumpingFluids = BuildPumpingFluids(pump),
+                    };
+                    return;
+                case GearPumpBlockParam:
+                    // 歯車ポンプの動力はGearSectionが出すのでElectricを持たない
+                    // The gear pump's power row belongs to GearSection, so it carries no Electric
+                    dto.Pump = new PumpDetailDto { Kind = GearKind, PumpingFluids = BuildPumpingFluids(pump) };
+                    return;
+            }
         }
 
         private static List<PumpingFluidDto> BuildPumpingFluids(PumpBlockStateDetail pump)

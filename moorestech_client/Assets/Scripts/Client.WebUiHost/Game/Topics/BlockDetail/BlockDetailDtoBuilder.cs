@@ -69,7 +69,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
             // ポンプ: PumpDetailDtoBuilderが算出
             // Pumps: computed by PumpDetailDtoBuilder
-            PumpDetailDtoBuilder.Apply(dto, block, common);
+            PumpDetailDtoBuilder.Apply(dto, block, param, common);
 
             // ギア: GearStateDetail + マスタ GearConsumption（要求値）
             // Gears: the GearStateDetail plus master GearConsumption requirements

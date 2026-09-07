@@ -13,7 +13,9 @@ export default function PumpSection({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   if (!data.pump) return null;
   const display = pumpSectionDisplay(data.pump);
-  const electric = data.pump.electric;
+  // 動力行の有無は種別が決める。electricの有無を種別の代用にすると歯車ポンプでも動力行が生える
+  // The kind decides whether a power row exists; standing in electric's presence would grow one on the gear pump too
+  const electric = data.pump.kind === "electric" ? data.pump.electric : null;
   // electricとstateを1つの値へ束ね、判定源を1箇所に絞る（恒真の二重ガード回避）
   // Bundle electric and state into one value so presence has a single source of truth (avoids a tautological double guard)
   const electricDisplay = electric ? { power: electric, state: machineStateDisplay(electric.currentState) } : null;

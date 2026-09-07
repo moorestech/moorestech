@@ -119,6 +119,7 @@ export const blockPump = {
   itemSlots: [],
   fluidSlots: [{ fluidId: 1, amount: 120, capacity: 200, fluidGuid: WATER_FLUID_GUID }],
   pump: {
+    kind: "electric",
     electric: { currentState: "processing", currentPower: 50.0, requestPower: 50.0 },
     pumpingFluids: [{ fluidId: 1, fluidGuid: WATER_FLUID_GUID, amountPerMinute: 3600.0 }],
   },
@@ -131,7 +132,7 @@ export const blockPumpNoVein = {
   ...blockPump,
   identifier: "block:11",
   fluidSlots: [{ fluidId: 0, amount: 0, capacity: 200, fluidGuid: "" }],
-  pump: { electric: { currentState: "idle", currentPower: 10.0, requestPower: 10.0 }, pumpingFluids: [] },
+  pump: { kind: "electric", electric: { currentState: "idle", currentPower: 10.0, requestPower: 10.0 }, pumpingFluids: [] },
 } satisfies BlockInventoryWireData;
 
 // BLK-12: 歯車ポンプ
@@ -144,7 +145,7 @@ export const blockGearPump = {
   blockGuid: BlockGuids.GEAR_PUMP_BLOCK_GUID,
   itemSlots: [],
   fluidSlots: [{ fluidId: 1, amount: 30, capacity: 100, fluidGuid: WATER_FLUID_GUID }],
-  pump: { pumpingFluids: [{ fluidId: 1, fluidGuid: WATER_FLUID_GUID, amountPerMinute: 120.0 }] },
+  pump: { kind: "gear", pumpingFluids: [{ fluidId: 1, fluidGuid: WATER_FLUID_GUID, amountPerMinute: 120.0 }] },
   gear: { isClockwise: true, currentRpm: 10.0, currentTorque: 2.0, baseRpm: 10.0, baseTorque: 2.0 },
   gearNetwork: { totalRequiredGearPower: 20.0, totalGenerateGearPower: 40.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
