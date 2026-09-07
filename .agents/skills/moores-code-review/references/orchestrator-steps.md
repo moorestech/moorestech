@@ -172,6 +172,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 - 具体名（ファイル/クラス/メソッド）と修正方針が挙がっていて選択の余地が無い機械的修正・単独系統cosmeticは、確認を挟まず自動適用する（デフォルト動作）。
 - 設計判断（複数の妥当な選択肢・スコープ影響・アーキテクチャ変更・両立不能な指摘・decisionを要するCodex High/Medium）は適用せずStep 7へ保留。
 - .csを修正したら `uloop compile --project-path ./moorestech_client` を実行しエラー0を確認する。
+- **編集を始める前に反映 diff の基点を控える**: `PRE_APPLY=$(git stash create)`（作業ツリーは変えない。空なら HEAD）。Step 6.5-2.5 が「Step 6 が適用した差分だけ」を切り出すために使う。
 - **Read規律（オーケストレータのコンテキスト節約・2026-08-18）**: 修正適用のためのReadはEdit対象の該当範囲だけを `offset`/`limit` で読む（ファイル全文Readしない）。疑義照合で実コードへ戻るときも該当関数の範囲だけに絞る。裏取りはintegratorが済ませており、オーケストレータの再Readは「これからEditする箇所の現物確認」が目的。
 
 ## Step 6.5: 決定論再チェック＋コメント保全post-checks ⑤.5
@@ -180,20 +181,23 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 
 1. **最終diffを作り直す** — Step 6適用後の作業ツリーをbaseと比較し `<$RUNDIRの実値>/final.diff` に書く。
 2. **決定論チェックを最終diffで再実行** — `deterministic_checks.py` を再度実行し `<$RUNDIRの実値>/checks-final.json` に書く。自分の修正が新たに生んだ `confirmed`/`comparison_operator` 違反はその場でインライン修正する。**再実行時は `--context` を渡さない**（出所ラベルはStep 2で検査済み。再検出させるとcontext編集へ誘導され無意味）。
+2.5. **反映 diff の再レビュー** — `git diff $PRE_APPLY -- <Step 6 で編集・新規作成したファイル>` を `<$RUNDIRの実値>/apply.diff` に書き、`select_post_checks.py` の第3引数に渡す。テスト以外のソースにコメント/空行以外の変更行があれば **applied-diff-correctness**（`post-checks/applied-diff-correctness.md`・opus・5行契約、Patch path は `apply.diff`）が選択される。理由（レビューの出力を反映した diff はどの系統の入力にもならない。cmux-connector c9baa79 2026-09-08 較正）は同ファイル冒頭。
 3. **発火すべきガードをスクリプトで選択し、出力どおりに並列起動**（1メッセージ内。2026-08-16裁定・空振り回の無条件起動を廃止）:
 
    ```bash
-   python3 .claude/skills/moores-code-review/scripts/select_post_checks.py <$RUNDIRの実値>/final.diff <$RUNDIRの実値>/checks-final.json
+   python3 .claude/skills/moores-code-review/scripts/select_post_checks.py <$RUNDIRの実値>/final.diff <$RUNDIRの実値>/checks-final.json <$RUNDIRの実値>/apply.diff
    ```
 
-   出力は `<post-check絶対パス>\t<モデル>` のTSV（レンズ/レビュアーのセレクタと同形式）。**出力された行だけを起動し、出力が空なら両方スキップ**（=0トークン）。発火条件は選択スクリプトが判定する: rationale-guardは最終diffにコメント削除行があるとき、convention-guardは `candidates.comment_length` が1件以上のとき。手動のgrep判定はしない。
+   出力は `<post-check絶対パス>\t<モデル>` のTSV（レンズ/レビュアーのセレクタと同形式）。**出力された行だけを起動し、出力が空なら全部スキップ**（=0トークン）。発火条件は選択スクリプトが判定する: rationale-guardは最終diffにコメント削除行があるとき、convention-guardは `candidates.comment_length` が1件以上のとき。手動のgrep判定はしない。
    - **comment-rationale-guard**（3行契約）— load-bearingな根拠コメントがコード本体を残したまま削除・希薄化されていないか（削除行 `-` が対象）。`Read this : .claude/skills/moores-code-review/post-checks/comment-rationale-guard.md` + Patch path（最終diff）+ User prompt。
    - **comment-convention-guard**（4行契約）— スクリプト計測の文字数超過候補の例外判定・短縮案 + 名前重複コメント検出。**文字数はスクリプトの値が正**。`Read this : .claude/skills/moores-code-review/post-checks/comment-convention-guard.md` + `Candidates : <$RUNDIRの実値>/checks-final.json` + Patch path（最終diff）+ User prompt。
+   - **applied-diff-correctness**（5行契約・Patch path は `apply.diff`）— 2.5 の反映 diff の行単位バグ狩り（判定式の評価時点・静かな guard・fixture の前提写し）。`Read this : .claude/skills/moores-code-review/post-checks/applied-diff-correctness.md`。
    - スキップしたガードは最終報告に「post-checks: <名前> 発火条件未達でスキップ」と1行明記する（黙って縮退しない）。
+3.6. **applied-diff-correctness の Critical** — 修正方針が具体名つきで選択の余地が無いものだけ §3 で自動適用（.cs なら compile 再実行）。それ以外と「裁定そのものが誤り」型は design.md へ追記して Step 7 へ escalate する（レビュー出力の誤りはユーザー裁定の対象）。Warning/Info は最終報告へ転記する。
 4. **rationale-guardのCriticalはescalate**（自動復元しない）— 削除コメント再挿入は設計判断。復元タグ案を添えてStep 7へ。
 5. **convention-guardはラベル分岐（Step 7へは送らない）** — `機械的` は §5 のもと自動適用、`要判断` は**ガード自身の裁定で完結**させる（短縮案が意図を保てるなら適用、例外該当なら残置。結果は報告に1行）。コメント短縮をAskUserQuestionに載せるのは**禁止**（ユーザー裁定 2026-07-23）。同一行で衝突したら**根拠保全を優先**。
    - **webui（`moorestech_web/webui`）では `要判断` も短縮を適用する** — 数値詳細・数式・設計意図が落ちる場合でも文字数規約を優先して短縮する（詳細はコードとテスト本体が担う）。残置してよいのは「なぜ必要か」型の純粋な根拠コメント（定数選定根拠・防止目的）のみ（ユーザー裁定 2026-08-04・[[2026-08-04-コメント文字数規約は根拠情報より優先する]]）。
-6. 両ガードとも `Critical: なし` で再チェックも増分ゼロなら何もせず完了（委譲時はここで親へ返答する）。
+6. 全ガードが `Critical: なし` で再チェックも増分ゼロなら何もせず完了（委譲時はここで親へ返答する）。
 
 ## モデル割り当て
 
@@ -227,7 +231,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **分割深掘り調査は閾値未満なら起動しない** — split_chunksが `below-threshold` を返したら第6系統は丸ごと不発火（0トークン）。閾値を無視してinvestigatorを手動起動しない（小PRでは既存系統と重複するだけ）。
 - **investigatorにテストを絶対に見せない** — チャンク割当除外だけでなくRead自体が禁止（ユーザー裁定 2026-08-03 完全隔離）。テスト不足の検知はtest系reviewerの担当のまま。
 - **文字数はスクリプトの値が正** — LLMに日本語の文字数を数え直させない。convention-guardは `count` を信頼し例外判定と短縮案だけ行う。
-- **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。
+- **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。applied-diff-correctness は Step 7 の設計判断反映と pr-adjudicated-apply でも同じファイルを使う（反映 diff を見る 1 体。手順は各 SKILL.md）。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。委譲時のあなたはsonnetなので、model未指定のサブエージェントが誤ってsonnetで起動しうる（opus/fable指定系統の無言降格）。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
 - **残量不足を理由に系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する。
 - **Codexの `.out.md` が途中で切れていても失敗ではない** — 判定材料は `.final.md`（`-o` の出力）と `codex_recover.py` の終了コードだけ。`.out.md` を `grep` して「結論が無い＝失敗」と断じない（stdoutにはツール実行ログしか残っていないことがある）。真の失敗は「rollout にセッションが無い（exit 4）」「task_complete が無い（exit 3）」「認証失効（exit 5。rollout に結論が無いときだけ `.out.md` 両端の codex ERROR 行で判定）」の3つだけ。
