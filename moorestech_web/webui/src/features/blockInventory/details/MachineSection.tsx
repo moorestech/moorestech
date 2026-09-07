@@ -2,10 +2,7 @@ import { useState } from "react";
 import { Group, Stack } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
-import { useI18n } from "@/shared/i18n";
-import LackHighlightText from "./LackHighlightText";
-import PowerRateText from "./PowerRateText";
-import { machineStateDisplay } from "./detailLogic";
+import MachineStateRow from "./rows/MachineStateRow";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionList from "./machine/recipeSelection/MachineRecipeSelectionList";
 import SelectedRecipeHeader from "./machine/SelectedRecipeHeader";
@@ -25,17 +22,13 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
     setSelectionOpened(true);
     setRequestedRecipeGuid(null);
   };
-  const { t } = useI18n();
-
   const rows = buildMachineRecipeSelectionRows(machineRecipes?.recipes ?? [], machine.blockGuid, machine.selectedRecipeGuid);
   const selectedRow = rows.find((row) => row.selected);
   // 状態ラベル+充足率を共通フッタに表示
   // The state label and satisfaction rate stay visible in both modes as the shared footer (ADR 0010)
-  const stateDisplay = machineStateDisplay(machine.currentState);
   const footer = (
     <Group justify="center" gap="xs">
-      <LackHighlightText insufficient={stateDisplay.insufficient} size="sm" testId="machine-state-label">{t(stateDisplay.labelKey)}</LackHighlightText>
-      {stateDisplay.showPowerRate && <PowerRateText currentPower={machine.currentPower} requestPower={machine.requestPower} testId="machine-power-rate" />}
+      <MachineStateRow currentState={machine.currentState} currentPower={machine.currentPower} requestPower={machine.requestPower} stateTestId="machine-state-label" powerRateTestId="machine-power-rate" />
     </Group>
   );
 
