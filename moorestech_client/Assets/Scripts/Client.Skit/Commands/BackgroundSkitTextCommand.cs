@@ -19,17 +19,16 @@ namespace CommandForgeGenerator.Command
                 OverrideCharacterName,
                 Body);
             
-            // 解決文をWeb・uGUIへ共有
-            // Share resolved text with Web and uGUI
-            var skitUi = storyContext.GetBackgroundSkitUI();
+            // 解決文をWebへ共有
+            // Share the resolved text with the web
+            var voicePlayer = storyContext.GetBackgroundSkitVoicePlayer();
             SkitPresentationStateStore.Instance.SetBackgroundText(
                 line.SpeakerName,
                 line.DisplayBody);
-            skitUi.SetText(line.SpeakerName, line.DisplayBody);
-            
+
             var voiceClip = storyContext.GetVoiceDefine()
                 .GetVoiceClip(CharacterId, line.VoiceSourceBody);
-            await skitUi.PlayVoiceAndWait(voiceClip);
+            await voicePlayer.PlayVoiceAndWait(voiceClip);
             
             return null;
         }

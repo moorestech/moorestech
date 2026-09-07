@@ -6,11 +6,12 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.UI.BuildMenu;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
-using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
 using Client.Tests.Map.Vein;
 using Client.Tests.UIState.Fakes;
@@ -24,18 +25,15 @@ namespace Client.Tests.UIState
         public void GameScreenAndBuildMenuPushTheirOnEnterPolicies()
         {
             SetUpGameStateController();
-            SetUpMouseCursorTooltip();
             var gameApplier = new FakePlayerCameraInteractionApplier();
             var gameState = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(gameApplier), CreateHotbarTapInputService(null));
             gameState.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
             CollectionAssert.AreEqual(new[] { "Mode:CameraLook" }, gameApplier.Calls);
 
             var menuApplier = new FakePlayerCameraInteractionApplier();
-            var menuView = new FakeBuildMenuView();
-            var menuState = new BuildMenuState(menuView, CreateCameraPolicy(menuApplier), new RightShortPressInputService(new RightShortPressInput()));
+            var menuState = new BuildMenuState(new BuildMenuSelection(), CreateCameraPolicy(menuApplier), new RightShortPressInputService(new RightShortPressInput()));
             menuState.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, menuApplier.Calls);
-            Assert.IsTrue(menuView.IsActive);
         }
 
         [Test]
@@ -84,14 +82,12 @@ namespace Client.Tests.UIState
         [Test]
         public void DeleteObjectPushesEnterDragStartAndExitPolicies()
         {
-            SetUpMouseCursorTooltip();
-            var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
             var applier = new FakePlayerCameraInteractionApplier();
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService);
+            var state = new DeleteObjectState(null, CreateCameraPolicy(applier), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService, new MouseCursorTooltipState());
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
             CollectionAssert.AreEqual(new[] { "Mode:PointerFree" }, applier.Calls);
 
@@ -109,7 +105,6 @@ namespace Client.Tests.UIState
         public void GameScreenDelegatesLeftAltFreeCursorToPolicyService()
         {
             SetUpGameStateController();
-            SetUpMouseCursorTooltip();
             SetUpEventSystemInputModule();
             var applier = new FakePlayerCameraInteractionApplier();
             var state = CreateGameScreenState(applier);
@@ -140,7 +135,7 @@ namespace Client.Tests.UIState
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
-            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
+            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter(new MouseCursorTooltipState()));
             var pickService = new PlacementTargetPickService(null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());

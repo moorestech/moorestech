@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.Common;
-using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.UI.UIState.State.Skit;
@@ -17,19 +16,17 @@ namespace Client.Game.InGame.UI.UIState.State
     public class SkitState : IUIState, INestedPauseScreenState
     {
         private readonly SkitManager _skitManager;
-        private readonly PlayerInventoryViewController _playerInventoryViewController;
         private readonly NestedPauseSubStateController _subStateController;
         private readonly Subject<Unit> _onPresentationChanged = new();
-        
+
         // Web配信用の入れ子state窓口
         // Window for the web side to publish the nested state
         public NestedPauseSubStateEnum SubState => _subStateController.CurrentState;
         public IObservable<Unit> OnPresentationChanged => _onPresentationChanged;
-        
-        public SkitState(SkitManager skitManager, PlayerInventoryViewController playerInventoryViewController, PauseMenuStateService pauseMenuStateService)
+
+        public SkitState(SkitManager skitManager, PauseMenuStateService pauseMenuStateService)
         {
             _skitManager = skitManager;
-            _playerInventoryViewController = playerInventoryViewController;
             // 所有者専用の入れ子ステートマシンなのでDI登録せずここでnewする（前例: TrainHUDScreenState）
             // A nested state machine owned exclusively here, so it is newed directly instead of DI-registered (precedent: TrainHUDScreenState)
             _subStateController = new NestedPauseSubStateController(new SkitGameScreenSubState(skitManager), pauseMenuStateService);
@@ -46,13 +43,6 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public void OnEnter(UITransitContext context)
         {
-            // インベントリが開いている場合は閉じる
-            // Close the inventory if it is open
-            if (context.LastStateEnum == UIStateEnum.PlayerInventory || context.LastStateEnum == UIStateEnum.SubInventory)
-            {
-                _playerInventoryViewController.SetActive(false);
-            }
-            
             // スキット状態へ遷移
             // Switch the game state to Skit
             GameStateController.ChangeState(GameStateType.Skit);

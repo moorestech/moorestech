@@ -13,10 +13,10 @@ namespace Client.WebUiHost.Game.Topics
     {
         public const string TopicName = "ui.tooltip";
         private readonly WebSocketHub _hub;
-        private readonly MouseCursorTooltip _tooltip;
+        private readonly MouseCursorTooltipState _tooltip;
         private readonly IDisposable _subscription;
 
-        public TooltipTopic(WebSocketHub hub, MouseCursorTooltip tooltip)
+        public TooltipTopic(WebSocketHub hub, MouseCursorTooltipState tooltip)
         {
             _hub = hub;
             _tooltip = tooltip;
