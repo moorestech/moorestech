@@ -53,7 +53,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         {
             var holdingBlockId = ForUnitTestModBlockId.TestGearBeltConveyorUp;
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(holdingBlockId);
-            Assert.AreEqual(BlockVerticalDirection.Up, holdingBlock.SlopeDirection);
+            Assert.AreEqual(BeltSlopeGrade.Up, holdingBlock.SlopeGrade);
 
             var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState());
             var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(2, 0, 2), BlockDirection.East, holdingBlock, out _, out var beltReasons);
@@ -95,7 +95,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         {
             var straightBlockId = ForUnitTestModBlockId.GearBeltConveyor;
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(straightBlockId);
-            Assert.IsNull(holdingBlock.SlopeDirection);
+            Assert.IsNull(holdingBlock.SlopeGrade);
 
             var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState());
             var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(2, 0, 0), BlockDirection.East, holdingBlock, out _, out _);
@@ -111,7 +111,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         {
             var holdingBlockId = ForUnitTestModBlockId.TestGearBeltConveyorDown;
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(holdingBlockId);
-            Assert.AreEqual(BlockVerticalDirection.Down, holdingBlock.SlopeDirection);
+            Assert.AreEqual(BeltSlopeGrade.Down, holdingBlock.SlopeGrade);
 
             var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState());
             var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(2, 0, 0), BlockDirection.East, holdingBlock, out _, out _);
@@ -128,7 +128,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             var straightBlockId = ForUnitTestModBlockId.GearBeltConveyor;
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(straightBlockId);
 
-            Assert.IsNull(holdingBlock.SlopeDirection);
+            Assert.IsNull(holdingBlock.SlopeGrade);
             Assert.AreEqual(straightBlockId, holdingBlock.BlockId);
             Assert.AreEqual(MasterHolder.BlockMaster.GetBlockMaster(straightBlockId).BlockGuid, holdingBlock.BlockMaster.BlockGuid);
         }

@@ -1,5 +1,6 @@
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Game.Block.Interface;
 using NUnit.Framework;
 using UnityEngine;
@@ -14,7 +15,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void 単セルは選択した坂と回転方向で1個だけ返る()
         {
             var placeInfos = BeltConveyorSlopePathBuilder.Build(
-                new Vector3Int(3, 5, 7), new Vector3Int(3, 5, 7), true, BlockDirection.West, BlockVerticalDirection.Up);
+                new Vector3Int(3, 5, 7), new Vector3Int(3, 5, 7), true, BlockDirection.West, BeltSlopeGrade.Up);
 
             Assert.AreEqual(1, placeInfos.Count);
             Assert.AreEqual(new Vector3Int(3, 5, 7), placeInfos[0].Position);
@@ -29,7 +30,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void 上りは終点の高さを無視して毎セル1段上がる()
         {
             var placeInfos = BeltConveyorSlopePathBuilder.Build(
-                new Vector3Int(0, 0, 0), new Vector3Int(3, -10, 0), false, BlockDirection.North, BlockVerticalDirection.Up);
+                new Vector3Int(0, 0, 0), new Vector3Int(3, -10, 0), false, BlockDirection.North, BeltSlopeGrade.Up);
 
             CollectionAssert.AreEqual(
                 new[] { new Vector3Int(0, 0, 0), new Vector3Int(1, 1, 0), new Vector3Int(2, 2, 0), new Vector3Int(3, 3, 0) },
@@ -44,7 +45,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void 下りは毎セル1段下がる()
         {
             var placeInfos = BeltConveyorSlopePathBuilder.Build(
-                new Vector3Int(0, 0, 0), new Vector3Int(0, 0, 2), true, BlockDirection.North, BlockVerticalDirection.Down);
+                new Vector3Int(0, 0, 0), new Vector3Int(0, 0, 2), true, BlockDirection.North, BeltSlopeGrade.Down);
 
             CollectionAssert.AreEqual(
                 new[] { new Vector3Int(0, 0, 0), new Vector3Int(0, -1, 1), new Vector3Int(0, -2, 2) },
@@ -58,7 +59,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void L字の角も坂のまま一定勾配で続く()
         {
             var placeInfos = BeltConveyorSlopePathBuilder.Build(
-                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 2), true, BlockDirection.North, BlockVerticalDirection.Up);
+                new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 2), true, BlockDirection.North, BeltSlopeGrade.Up);
 
             // Z2マス→X2マスに曲がる経路（角はindex2）
             // Path: 2 cells in Z then a 2-cell turn in X (corner at index 2)

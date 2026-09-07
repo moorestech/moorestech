@@ -31,14 +31,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
         // blockCauses・beltReasonsはPlaceInfo列と同じ添字で並走する不可原因の列（共有原因とベルト固有理由を分けて渡す）
         // blockCauses and beltReasons are block-cause columns indexed like the PlaceInfo list, separating shared causes from belt-specific reasons
-        public List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
+        public List<PlaceInfo> CalculateStraightPoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
         {
-            return CalculatePoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied, out blockCauses, out beltReasons);
+            return CalculateStraightPoint(startPoint, endPoint, isStartDirectionZ, blockDirection, straightBlockMaster, IsNotExistBlock, IsOccupied, out blockCauses, out beltReasons);
         }
 
-        public static List<PlaceInfo> CalculatePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
+        public static List<PlaceInfo> CalculateStraightPoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockMasterElement straightBlockMaster, Func<PlaceInfo, BlockMasterElement, bool> isNotExistBlock, Func<Vector3Int, bool> isOccupied, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
         {
-            var (placeInfos, startToCornerDistance) = BeltConveyorPathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection);
+            var (placeInfos, startToCornerDistance) = BeltConveyorStraightPathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection);
 
             // 障害物を自動で跨ぐ立体交差プロファイルを後段で重ねる
             // Layer the auto-overpass profile that steps over obstacles
@@ -64,9 +64,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
         // 坂選択時の設置点計算（一定勾配・全セル同一ブロック）
         // Placement-point calculation while a slope is selected (constant grade, one block for every cell)
-        public List<PlaceInfo> CalculateSlopePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BlockId holdingBlockId, BlockMasterElement holdingBlockMaster, BlockVerticalDirection slopeDirection, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
+        public List<PlaceInfo> CalculateSlopePoint(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection, BeltConveyorHoldingBlock holdingBlock, out List<PlacementBlockCause> blockCauses, out List<BeltConveyorPlacementBlockReason> beltReasons)
         {
-            var placeInfos = BeltConveyorSlopePathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection, slopeDirection);
+            var placeInfos = BeltConveyorSlopePathBuilder.Build(startPoint, endPoint, isStartDirectionZ, blockDirection, holdingBlock.SlopeGrade.Value);
 
             blockCauses = new List<PlacementBlockCause>(placeInfos.Count);
             beltReasons = new List<BeltConveyorPlacementBlockReason>(placeInfos.Count);
@@ -76,10 +76,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             var overlapsExistingBlock = new List<bool>(placeInfos.Count);
             for (var i = 0; i < placeInfos.Count; i++)
             {
-                placeInfos[i].BlockId = holdingBlockId;
+                placeInfos[i].BlockId = holdingBlock.BlockId;
                 blockCauses.Add(PlacementBlockCause.None);
                 beltReasons.Add(BeltConveyorPlacementBlockReason.None);
-                overlapsExistingBlock.Add(!IsNotExistBlock(placeInfos[i], holdingBlockMaster));
+                overlapsExistingBlock.Add(!IsNotExistBlock(placeInfos[i], holdingBlock.BlockMaster));
             }
 
             MarkExistingBlockCells(placeInfos, blockCauses, overlapsExistingBlock);

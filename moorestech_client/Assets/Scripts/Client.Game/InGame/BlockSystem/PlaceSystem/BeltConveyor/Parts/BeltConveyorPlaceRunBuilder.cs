@@ -33,16 +33,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
             // 坂選択中は一定勾配の専用経路のみ
             // A slope selection uses only the constant-grade path
-            if (holdingBlock.SlopeDirection.HasValue)
+            if (holdingBlock.SlopeGrade.HasValue)
             {
-                return _placePointCalculator.CalculateSlopePoint(dragStartPoint, placePoint, isStartDirectionZ, blockDirection, holdingBlock.BlockId, holdingBlock.BlockMaster, holdingBlock.SlopeDirection.Value, out blockCauses, out beltReasons);
+                return _placePointCalculator.CalculateSlopePoint(dragStartPoint, placePoint, isStartDirectionZ, blockDirection, holdingBlock, out blockCauses, out beltReasons);
             }
 
-            var cellInfos = _placePointCalculator.CalculatePoint(dragStartPoint, placePoint, isStartDirectionZ, blockDirection, holdingBlock.BlockMaster, out blockCauses, out beltReasons);
+            var cellInfos = _placePointCalculator.CalculateStraightPoint(dragStartPoint, placePoint, isStartDirectionZ, blockDirection, holdingBlock.BlockMaster, out blockCauses, out beltReasons);
 
             // セル列へ直線・坂を1対1で割り当てる
             // Assign straight/slope blocks to cells one-to-one
-            return BeltConveyorCellBlockResolver.Resolve(cellInfos, holdingBlock.Family, beltReasons);
+            return BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cellInfos, holdingBlock.Family, beltReasons);
         }
     }
 }

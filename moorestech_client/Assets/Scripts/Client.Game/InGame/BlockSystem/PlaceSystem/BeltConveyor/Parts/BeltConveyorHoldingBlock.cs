@@ -18,14 +18,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
         // 坂を選択中だけ値を持つ。nullが直線選択を表す唯一の印
         // Holds a value only while a slope is selected; null is the sole marker of a straight selection
-        public readonly BlockVerticalDirection? SlopeDirection;
+        public readonly BeltSlopeGrade? SlopeGrade;
 
-        private BeltConveyorHoldingBlock(BeltConveyorFamily family, BlockId blockId, BlockMasterElement blockMaster, BlockVerticalDirection? slopeDirection)
+        private BeltConveyorHoldingBlock(BeltConveyorFamily family, BlockId blockId, BlockMasterElement blockMaster, BeltSlopeGrade? slopeGrade)
         {
             Family = family;
             BlockId = blockId;
             BlockMaster = blockMaster;
-            SlopeDirection = slopeDirection;
+            SlopeGrade = slopeGrade;
         }
 
         // 坂選択時はその坂、直線選択時は直線を手持ちにする
@@ -37,9 +37,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             if (!BeltConveyorPlaceFamilyUtil.TryGetFamily(selectedBlockId, out var family))
                 throw new InvalidOperationException($"BeltConveyorHoldingBlock: block belongs to no beltConveyorFamily. BlockId:{selectedBlockId}");
 
-            var slopeDirection = family.TryGetSlopeDirection(selectedBlockId, out var direction) ? direction : (BlockVerticalDirection?)null;
-            var holdingBlockId = slopeDirection.HasValue ? selectedBlockId : family.StraightBlockId;
-            return new BeltConveyorHoldingBlock(family, holdingBlockId, MasterHolder.BlockMaster.GetBlockMaster(holdingBlockId), slopeDirection);
+            var slopeGrade = ResolveSlopeGrade();
+            var holdingBlockId = slopeGrade.HasValue ? selectedBlockId : family.StraightBlockId;
+            return new BeltConveyorHoldingBlock(family, holdingBlockId, MasterHolder.BlockMaster.GetBlockMaster(holdingBlockId), slopeGrade);
+
+            #region Internal
+
+            // 直線選択はnull。ファミリーが坂と認めるのは上下だけなので勾配2値へそのまま写る
+            // A straight selection is null; the family only recognizes up and down, so the grade maps one-to-one
+            BeltSlopeGrade? ResolveSlopeGrade()
+            {
+                if (!family.TryGetSlopeDirection(selectedBlockId, out var direction)) return null;
+                return direction == BlockVerticalDirection.Up ? BeltSlopeGrade.Up : BeltSlopeGrade.Down;
+            }
+
+            #endregion
         }
     }
 }

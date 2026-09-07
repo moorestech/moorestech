@@ -9,7 +9,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
     /// 座標列の組み立てと向き解決を束ねる（立体交差・占有判定より前段の純粋な経路計算）
     /// Combines path coordinate building and direction resolution (pure path calculation before overpass/occupancy)
     /// </summary>
-    public static class BeltConveyorPathBuilder
+    public static class BeltConveyorStraightPathBuilder
     {
         public static (List<PlaceInfo> placeInfos, int startToCornerDistance) Build(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ, BlockDirection blockDirection)
         {
