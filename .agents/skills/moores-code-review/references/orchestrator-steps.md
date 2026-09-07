@@ -181,7 +181,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 
 1. **最終diffを作り直す** — Step 6適用後の作業ツリーをbaseと比較し `<$RUNDIRの実値>/final.diff` に書く。
 2. **決定論チェックを最終diffで再実行** — `deterministic_checks.py` を再度実行し `<$RUNDIRの実値>/checks-final.json` に書く。自分の修正が新たに生んだ `confirmed`/`comparison_operator` 違反はその場でインライン修正する。**再実行時は `--context` を渡さない**（出所ラベルはStep 2で検査済み。再検出させるとcontext編集へ誘導され無意味）。
-2.5. **反映 diff の再レビュー（2026-09-08・cmux-connector c9baa79 の較正）** — `git diff $PRE_APPLY -- <Step 6 で編集・新規作成したファイル>` を `<$RUNDIRの実値>/apply.diff` に書き、`select_post_checks.py` の第3引数に渡す。反映 diff にテスト以外のソースでコメント/空行以外の変更行があれば **applied-diff-correctness**（`post-checks/applied-diff-correctness.md`・opus・5行契約、Patch path は `apply.diff`）が選択される。doc・テスト・コメントのみの反映は 0 トークン。理由: レビューの**出力**を反映した diff は 6 系統のどれの入力にもならない。cmux-connector では裁定「案 B」の反映が判定式の評価時点を誤り、テスト全緑・ログ無音のまま 2 日間の機能停止になった。事後実測で行単位レンズはその diff で Critical に到達した — 観点は足りており、走らなかったことが原因。
+2.5. **反映 diff の再レビュー** — `git diff $PRE_APPLY -- <Step 6 で編集・新規作成したファイル>` を `<$RUNDIRの実値>/apply.diff` に書き、`select_post_checks.py` の第3引数に渡す。テスト以外のソースにコメント/空行以外の変更行があれば **applied-diff-correctness**（`post-checks/applied-diff-correctness.md`・opus・5行契約、Patch path は `apply.diff`）が選択される。理由（レビューの出力を反映した diff はどの系統の入力にもならない。cmux-connector c9baa79 2026-09-08 較正）は同ファイル冒頭。
 3. **発火すべきガードをスクリプトで選択し、出力どおりに並列起動**（1メッセージ内。2026-08-16裁定・空振り回の無条件起動を廃止）:
 
    ```bash

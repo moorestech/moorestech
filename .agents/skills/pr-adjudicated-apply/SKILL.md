@@ -195,16 +195,9 @@ AGENTS.mdの規約を遵守する:
   **`--test-mode EditMode` を省いてはならない** — uloopの既定は PlayMode であり、
   ユニットテストのつもりで投げるとEditorがPlayModeへ入ったまま固着し、以後のuloopコマンドが全て180秒でタイムアウトする。
   固着したら `uloop control-play-mode --project-path ./moorestech_client --action stop` で解除してからやり直す
-- **反映 diff の再レビュー（2026-09-08・cmux-connector c9baa79 の較正）**: `EDITED_PATHS` にテスト以外のソースがあれば
-  `git -C <$REPOの実値> diff <PRのhead SHA> -- <EDITED_PATHS>` を `$RUNDIR/apply.diff` に書き、
-  `.claude/skills/moores-code-review/post-checks/applied-diff-correctness.md`（`model: "opus"`）を 1 体、
-  `Read this` / `Patch path`（apply.diff）/ `User prompt`（findings.json の adopt 分を要約した数行）/
-  `Output contract`（moores-code-review `references/output-contract.md`）/ `Write full report to`（`$RUNDIR/agents/applied-diff-correctness.md`）
-  の 5 行契約で起動する。Critical は Step 4 の範囲（adopt された finding の意図を保つ形）で直して再コンパイル・再テストし、
-  範囲内で直せないなら push せず `status: "failure"` とし、summary に「再レビュー Critical: <要約>」を書く（レビューのやり直しではない —
-  対象は自分が書いた反映 diff だけで、PR 本体の新規指摘出しは禁止のまま）。Warning/Info は apply-result.json の summary に 1 行ずつ転記する。
-  理由: 裁定を反映した diff はどのレビュー系統の入力にもならない。cmux-connector では裁定反映の guard が判定式の評価時点を誤り、
-  テスト全緑のまま 2 日間の機能停止になった（事後実測: 行単位レンズはその diff で Critical 到達）。
+- **反映 diff の再レビュー**: `EDITED_PATHS` にテスト以外のソースがあれば `git diff <PRのhead SHA> -- <EDITED_PATHS>` を `$RUNDIR/apply.diff` に書き、
+  `moores-code-review/post-checks/applied-diff-correctness.md`（opus・5行契約、Patch path = apply.diff）を1体起動する（理由は同ファイル冒頭）。
+  Critical は adopt の意図を保つ範囲で直して再検証、直せなければ push せず `status: "failure"`（summary に要約）。Warning/Info は summary へ1行ずつ
 - **コンパイルまたはテストが失敗し、かつStep 4の範囲内で直しきれない場合は、pushせず失敗として終了する**
   （apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
 - ドメインリロード中のエラー（「Unity is reloading」）はAGENTS.md記載どおり45秒待ってリトライする
