@@ -114,11 +114,9 @@ EditModeInPlayingTest等のPlayMode遷移テストはドメインリロードを
 `uloop compile --project-path ./moorestech_client`
 
 ## テスト
-基本的に`--filter-type regex`で実行対象を限定すること。`--filter-type class`でクラス名指定もできる。
+基本的に`--filter-type regex`or`--filter-type class`で実行対象を絞る
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "正規表現"`
-
-`--test-mode`の既定はEditMode。PlayModeテストは`--test-mode PlayMode`を明示すること。
-待ち時間は`--timeout-seconds`で調整する（既定600秒・最大1500秒）。
+`--timeout-seconds`を使用可能既定600s最大1500s
 
 サーバー側のテストはクライアントプロジェクトからもインポートされており、上記コマンド（クライアントのproject-path）で同時に実行できる。サーバー単体プロジェクトを別途指定する必要はない。
 unity-playmode-recorded-playtestでPlayModeを通しで動かす検証は「unityプレイ録画テスト」と呼ぶ。「e2e」「E2Eテスト」とは呼ばない。
