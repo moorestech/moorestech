@@ -44,8 +44,8 @@ namespace Client.Game.InGame.Hotbar
             ClientContext.VanillaApi.SendOnly.SwapHotbar(slotA, slotB);
         }
 
-        // Web由来のキー/クリック選択を貯め、UIStateが1回だけ消費する（前例 BuildMenuView.TryConsumeSelectedEntry）
-        // Queues a web-originated key/click selection for UIState to consume once (precedent: BuildMenuView.TryConsumeSelectedEntry)
+        // Web由来のキー/クリック選択を貯め、UIStateが1回だけ消費する（前例 BuildMenuSelection）
+        // Queues a web-originated key/click selection for UIState to consume once (precedent: BuildMenuSelection)
         public void EnqueueSelectRequest(int slot)
         {
             _pendingSelectRequest = slot;

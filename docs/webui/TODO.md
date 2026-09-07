@@ -96,6 +96,10 @@
       残: Windows実機・IME・音声同時再生（機材依存のみ））
 - [ ] （任意）INFRA-4: C#→TS 型自動生成 / GameStateType Topic の一般整備
 
+## uGUI 退役
+
+- [x] **uGUI 退役（ADR 0052）** — 移行済み画面 uGUI の残骸（.cs / prefab / シーンオブジェクト / Addressable 登録 / 未参照アセット）を全削除。PR1 #1325 で論理状態を uGUI 非依存モデルへ抽出し、PR2 で削除。例外4種（CEF 描画面・MainMenu/ローディング・mapObject HP バー・デバッグ UI）と CutScene 残部は uGUI 維持。詳細は `ugui-retirement-plan.md`
+
 ## 品質バックログ
 
 - 設計負債解消 WU1〜9（別トラックで実行中。監査: `design-debt-audit-2026-07-17.md` / 実行計画: `subagent-execution-plan-2026-07-18.md`）。移行 Phase 中の「ついで消化」はしない — 新規負債は lint/決定論チェックで防止
