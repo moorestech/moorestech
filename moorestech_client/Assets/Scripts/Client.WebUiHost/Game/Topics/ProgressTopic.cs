@@ -16,19 +16,19 @@ namespace Client.WebUiHost.Game.Topics
         public const string TopicName = "ui.progress";
 
         private readonly WebSocketHub _hub;
-        private readonly ProgressBarView _view;
+        private readonly ProgressBarState _state;
         private readonly CompositeDisposable _subscriptions = new();
         private bool _publishPending;
         private bool _disposed;
 
-        public ProgressTopic(WebSocketHub hub, ProgressBarView view)
+        public ProgressTopic(WebSocketHub hub, ProgressBarState state)
         {
             _hub = hub;
-            _view = view;
+            _state = state;
 
             // Show/Hide/SetProgress の変化を購読して push する
             // Subscribe to Show/Hide/SetProgress changes and push them
-            _view.OnProgressChanged.Subscribe(_ => _publishPending = true).AddTo(_subscriptions);
+            _state.OnProgressChanged.Subscribe(_ => _publishPending = true).AddTo(_subscriptions);
             Observable.Interval(TimeSpan.FromMilliseconds(100))
                 .Where(_ => _publishPending)
                 .Subscribe(_ => PublishSample())
@@ -57,12 +57,12 @@ namespace Client.WebUiHost.Game.Topics
 
         private string BuildJson()
         {
-            // uGUI バーに label 源が無いため null を出す
-            // The uGUI bar has no label source, so emit null
+            // 進捗バーに label 源が無いため null を出す
+            // The progress bar has no label source, so emit null
             var dto = new ProgressDto
             {
-                Visible = _view.IsShown,
-                Progress = _view.CurrentProgress,
+                Visible = _state.IsShown,
+                Progress = _state.CurrentProgress,
                 Label = null,
             };
             return WebUiJson.Serialize(dto);

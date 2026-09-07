@@ -12,6 +12,7 @@ using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.UIState;
 using Client.Playtest;
 using Client.Playtest.Operations;
+using Client.Playtest.Operations.Ui;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using Game.Context;

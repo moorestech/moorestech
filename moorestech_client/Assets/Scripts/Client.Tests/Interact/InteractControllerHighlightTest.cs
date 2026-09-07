@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
-using Client.Tests.Common;
 using NUnit.Framework;
-using TMPro;
 using UnityEngine;
 
 namespace Client.Tests.Interact
@@ -15,29 +14,12 @@ namespace Client.Tests.Interact
     public class InteractControllerHighlightTest
     {
         private readonly List<GameObject> _createdObjects = new();
-        private GameObject _tooltipObject;
-
-        [SetUp]
-        public void SetUp()
-        {
-            // MiningIdleStateの生成がtooltipを触るため実体を用意する
-            // Creating a MiningIdleState touches the tooltip, so a real one is required
-            _tooltipObject = new GameObject("MouseCursorTooltip");
-            _tooltipObject.SetActive(false);
-            var tooltip = _tooltipObject.AddComponent<MouseCursorTooltip>();
-            TestReflection.SetField(tooltip, "canvasGroup", _tooltipObject.AddComponent<CanvasGroup>());
-            TestReflection.SetField(tooltip, "itemName", _tooltipObject.AddComponent<TextMeshProUGUI>());
-            _tooltipObject.SetActive(true);
-            TestReflection.InvokePrivate(tooltip, "Awake");
-        }
 
         [TearDown]
         public void TearDown()
         {
             foreach (var createdObject in _createdObjects) Object.DestroyImmediate(createdObject);
             _createdObjects.Clear();
-            Object.DestroyImmediate(_tooltipObject);
-            TestReflection.SetStaticProperty(typeof(MouseCursorTooltip), "Instance", null);
         }
 
         [Test]
@@ -47,7 +29,7 @@ namespace Client.Tests.Interact
             var first = CreateTrackingInteractable("first", log);
             var second = CreateTrackingInteractable("second", log);
             var selector = new ScriptedInteractTargetSelector();
-            var controller = new InteractController(null, selector);
+            var controller = new InteractController(null, selector, new ProgressBarState(), new MouseCursorTooltipState());
 
             // 同じ対象を掴み続けても点灯は一度きり
             // Holding the same target lights it up exactly once

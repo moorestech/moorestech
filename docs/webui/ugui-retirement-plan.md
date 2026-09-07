@@ -25,6 +25,8 @@ uGUI を実行経路から恒久的に切り離し、未メンテであること
 
 ## Phase 2: コードだけ消す
 
+PR1（抽出）完了: Tier B の論理状態抽出・State/WebUiHost/テスト差し替え・Phase1 ヘッダ整理まで完了。以降は本フェーズの Tier A 削除から着手する。
+
 - Tier A ファイルを削除。`WebUiGateClassification.cs` の Rules を同時更新（監査テストが整合を強制）
 - Tier B は先に依存を外す: Client.WebUiHost の Topics/Actions が uGUI ビュー（HotBarView・BuildMenuView・ProgressBarView・ItemListView 等）をデータ源にしている箇所を、uGUI 非依存のモデル/サービスクラスへ抽出してから削除
 - 最難関は `UIStateControl` の uGUI 非依存化（UIState ディレクトリを純ロジックアセンブリへ移す or Web 側へ状態主権を移譲）— これは Phase 2 の最後

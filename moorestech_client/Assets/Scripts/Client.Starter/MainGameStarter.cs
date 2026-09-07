@@ -21,16 +21,10 @@ using Client.Game.InGame.Tutorial.UIHighlight;
 using Client.Game.InGame.Train.RailGraph;
 using Client.Game.InGame.UI.Challenge;
 using Client.Game.InGame.UI.Inventory;
-using Client.Game.InGame.UI.Inventory.Block.Research;
-using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Inventory.RecipeViewer;
-using Client.Game.InGame.UI.Blueprint;
-using Client.Game.InGame.UI.BuildMenu;
 using Client.Game.InGame.UI.UIState;
-using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.InGame.Train.View;
 using Client.Game.InGame.Train.View.Object.Core;
-using Client.Game.InGame.UI.Inventory.Craft;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.Skit;
 using Client.Network.API;
 using Client.Skit.Skit;
@@ -70,18 +64,7 @@ namespace Client.Starter
         [SerializeField] private TrainCarObjectDatastore trainCarObjectDatastore;
         
         [SerializeField] private UIStateControl uIStateControl;
-        [SerializeField] private PauseMenuObject pauseMenuObject;
-        [SerializeField] private DeleteBarObject deleteBarObject;
-        [SerializeField] private BuildMenuView buildMenuView;
-        [SerializeField] private BlueprintNameInputView blueprintNameInputView;
-        [SerializeField] private PlayerInventoryViewController playerInventoryViewController;
-        [SerializeField] private CraftInventoryView craftInventoryView;
-        [SerializeField] private MachineRecipeView machineRecipeView;
-        [SerializeField] private RecipeViewerView recipeViewerView;
-        [SerializeField] private ItemListView itemListView;
-        [SerializeField] private RecipeTabView recipeTabView;
-        [SerializeField] private ChallengeListView challengeListView;
-        [SerializeField] private ResearchTreeViewManager researchTreeViewManager;
+        [SerializeField] private UIRoot uiRoot;
 
         [SerializeField] private MapObjectPin mapObjectPin;
         [SerializeField] private VeinPin veinPin;
@@ -96,10 +79,8 @@ namespace Client.Starter
         
         [SerializeField] private PlacementPreviewBlockGameObjectController previewBlockController;
         [SerializeField] private RailConnectPreviewObject railConnectPreviewObject;
-        [SerializeField] private SaveButton saveButton;
         [FormerlySerializedAs("backToMainMenu")]
         [SerializeField] private SaveAndQuitPresenter saveAndQuitPresenter;
-        [SerializeField] private NetworkDisconnectPresenter networkDisconnectPresenter;
         [SerializeField] private ChallengeManager challengeManager;
         
         [SerializeField] private TrainRailObjectManager trainRailObjectManager;
@@ -110,8 +91,9 @@ namespace Client.Starter
         [SerializeField] private BackgroundSkitManager backgroundSkitManager;
         
         [SerializeField] private InGameCameraController inGameCameraController;
-        
-        
+
+        [SerializeField] private GameObjectToolTipTargetController gameObjectToolTipTargetController;
+
         private IObjectResolver _resolver;
 
         protected override void OnDestroy()
@@ -141,25 +123,12 @@ namespace Client.Starter
             builder.RegisterComponent(mainCamera);
 
             builder.RegisterComponent(uIStateControl);
-            builder.RegisterComponent(pauseMenuObject);
-            builder.RegisterComponent(deleteBarObject);
-            builder.RegisterComponent(buildMenuView).AsSelf().As<IBuildMenuView>();
-            builder.RegisterComponent(blueprintNameInputView);
-            builder.RegisterComponent(saveButton);
+            builder.RegisterComponent(uiRoot);
             builder.RegisterComponent(saveAndQuitPresenter);
-            builder.RegisterComponent(networkDisconnectPresenter);
-            
+
             builder.RegisterComponent(entityObjectDatastore);
             builder.RegisterComponent(trainCarObjectDatastore).AsSelf().As<ISkitWorldObjectControl>();
-            builder.RegisterComponent(playerInventoryViewController);
             builder.RegisterComponent(challengeManager);
-            builder.RegisterComponent(craftInventoryView);
-            builder.RegisterComponent(machineRecipeView);
-            builder.RegisterComponent(recipeViewerView);
-            builder.RegisterComponent(itemListView);
-            builder.RegisterComponent(recipeTabView);
-            builder.RegisterComponent(challengeListView);
-            builder.RegisterComponent(researchTreeViewManager);
 
             builder.RegisterComponent(mapObjectPin).AsSelf().As<ITutorialWorldPin>().As<ITutorialViewManager>();
             builder.RegisterComponent(veinPin).AsSelf().As<ITutorialWorldPin>().As<ITutorialViewManager>();
@@ -178,6 +147,8 @@ namespace Client.Starter
             builder.RegisterComponent(backgroundSkitManager);
             
             builder.RegisterComponent(inGameCameraController).As<IInitializable>();
+
+            builder.RegisterComponent(gameObjectToolTipTargetController);
             
             builder.RegisterComponent<IPlacementPreviewBlockGameObjectController>(previewBlockController);
             builder.RegisterComponent(railConnectPreviewObject);

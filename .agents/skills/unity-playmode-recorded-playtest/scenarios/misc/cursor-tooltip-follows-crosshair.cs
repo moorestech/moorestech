@@ -12,6 +12,7 @@
 // (0,0), so the corner precondition itself cannot be confirmed in the DOM (measurements in task-5-report.md).
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.Context;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
@@ -21,6 +22,7 @@ using Client.Playtest.WebUi;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using VContainer;
 
 var pebbleMapObject = new Guid("c74efe49-52f3-403b-9c9a-b39eb1c85fce"); // 小石（miningType=PickUp）
 var options = new PlaytestRunOptions { Record = true };
@@ -40,7 +42,7 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
     p.Assert(pebble != null, "最寄りの小石mapObjectを解決できる");
     var pebbleCollider = pebble.GetComponentInChildren<Collider>(true);
     p.Assert(pebbleCollider != null, "小石に照準用Colliderがある");
-    await p.Until(() => MouseCursorTooltip.Instance != null && Camera.main != null, 10f, "ツールチップとMainCameraの起動");
+    await p.Until(() => Camera.main != null, 10f, "MainCameraの起動");
 
     // 照準はロック中ScreenCenter固定のため、カーソルを動かさず立ち位置だけで小石を捉える
     // The aim source is fixed to ScreenCenter while locked, so catch the pebble by standing position alone
@@ -56,7 +58,7 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
         standPosition = pebbleCollider.bounds.center - cameraForward * standDistance + Vector3.up * 0.5f;
         p.WarpPlayer(standPosition);
         await p.WaitSeconds(1.5f);
-        focused = MouseCursorTooltip.Instance.GetPresentation().Visible;
+        focused = Tooltip().GetPresentation().Visible;
         if (focused) break;
     }
 
@@ -77,13 +79,29 @@ return PlaytestRunner.Run("cursor-tooltip-follows-crosshair", options, async p =
     await p.PressKey(Key.Tab);
     await p.WaitUiState(UIStateEnum.GameScreen, 15f);
     p.WarpPlayer(standPosition);
-    await p.Until(() => MouseCursorTooltip.Instance.GetPresentation().Visible, 20f, "自由行動復帰後にツールチップが再表示される");
+    await p.Until(() => Tooltip().GetPresentation().Visible, 20f, "自由行動復帰後にツールチップが再表示される");
 
+    // ツールチップDOMの再配置はWS往復ぶん遅れて届くため、クロスヘアへ寄るまで数秒ポーリングする
+    // The tooltip DOM repositions a WS round trip later, so poll for a few seconds until it settles on the crosshair
     var screenCenter = new Vector2(Screen.width / 2f, Screen.height / 2f);
-    p.Assert(await IsTooltipNearAsync(screenCenter, "クロスヘア"), "ツールチップがクロスヘア近傍（200px以内）に出る");
+    var nearCrosshair = false;
+    for (var attempt = 0; attempt < 10 && !nearCrosshair; attempt++)
+    {
+        nearCrosshair = await IsTooltipNearAsync(screenCenter, "クロスヘア");
+        if (!nearCrosshair) await p.WaitSeconds(0.5f);
+    }
+
+    p.Assert(nearCrosshair, "ツールチップがクロスヘア近傍（200px以内）に出る");
     await p.Screenshot("01-tooltip-near-crosshair");
 
     #region Internal
+
+    // 表示状態の正本はDI登録されたIMouseCursorTooltip（uGUIのMouseCursorTooltipは書き込まれない残骸）
+    // The authoritative presentation lives on the DI-registered IMouseCursorTooltip; the uGUI MouseCursorTooltip is an unwritten leftover
+    IMouseCursorTooltip Tooltip()
+    {
+        return ClientDIContext.DIContainer.DIContainerResolver.Resolve<IMouseCursorTooltip>();
+    }
 
     async UniTask<bool> IsTooltipNearAsync(Vector2 expectedScreenPoint, string expectedLabel)
     {
