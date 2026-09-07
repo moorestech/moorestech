@@ -54,6 +54,7 @@ namespace Game.Block.Blocks.Pump
         public void Update()
         {
             // Push fluid to connected inventories
+            var pushedFluid = false;
             foreach (var (inventory, info) in _fluidConnector.ConnectedTargets)
             {
                 if (_tank.Amount <= 0) break;
@@ -73,7 +74,7 @@ namespace Game.Block.Blocks.Pump
                         _tank.Amount = 0;
                         _tank.FluidId = FluidMaster.EmptyFluidId;
                     }
-                    _onChangeBlockState.OnNext(Unit.Default);
+                    pushedFluid = true;
                 }
             }
 
@@ -82,6 +83,10 @@ namespace Game.Block.Blocks.Pump
             {
                 _tank.FluidId = FluidMaster.EmptyFluidId;
             }
+
+            // 1tickの搬出は接続先が何本でも1つの状態変化。ループ内で発火すると接続数だけ多重通知になる
+            // One tick's push is a single state change however many targets there are; firing inside the loop would notify once per target
+            if (pushedFluid) _onChangeBlockState.OnNext(Unit.Default);
 
             #region Internal
 

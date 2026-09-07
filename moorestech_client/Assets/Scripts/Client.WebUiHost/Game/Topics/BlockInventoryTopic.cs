@@ -10,6 +10,7 @@ using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Cysharp.Threading.Tasks;
+using Mooresmaster.Model.BlocksModule;
 using Server.Event.EventReceive;
 using UniRx;
 namespace Client.WebUiHost.Game.Topics
@@ -174,15 +175,13 @@ namespace Client.WebUiHost.Game.Topics
             _blockStateSubscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(
                 eventTag,
                 _ => OnTrackedBlockStateChanged());
-            var blockType = block.BlockMasterElement.BlockType;
-            // ネットワーク集約の要否は blockType で決める（spec §2-a の組み合わせ表）
-            // Whether to fetch network aggregates is decided by blockType (spec §2-a combination table)
-            var electric = blockType is "ElectricMachine" or "ElectricGenerator" or "ElectricMiner"
-                or "ElectricToGearGenerator" or "ElectricPole" or "ElectricPump";
-            var gear = blockType is "GearMachine" or "GearMiner" or "FuelGearGenerator" or "SimpleGearGenerator"
-                or "Shaft" or "Gear" or "GearBeltConveyor" or "ElectricToGearGenerator" or "GearPump";
+            // ネットワーク所属はマスタの接続paramが答える。blockTypeの列挙は新種別を取りこぼす
+            // The master's connection params answer which networks a block joins; enumerating blockTypes drops new kinds
+            var param = block.BlockMasterElement.BlockParam;
+            var electric = param is IElectricWireConnectParam;
+            var gear = param is IGearConnectors;
             _sampleContinuously = gear;
-            var filterSplitter = blockType == "FilterSplitter";
+            var filterSplitter = block.BlockMasterElement.BlockType == "FilterSplitter";
             _networkCache.Track(block, electric, gear, filterSplitter);
         }
     }

@@ -25,8 +25,8 @@ export default function PumpSection({ data }: { data: BlockInventoryOpen }) {
       ) : null}
       {hasTargets ? (
         <Group gap="xs" data-testid="pump-pumping-fluids">
-          {data.pump.pumpingFluids.map((fluid, i) => (
-            <PerMinuteRateRow key={`${fluid.fluidId}-${i}`} amountPerMinute={fluid.amountPerMinute}>
+          {data.pump.pumpingFluids.map((fluid) => (
+            <PerMinuteRateRow key={fluid.fluidGuid} amountPerMinute={fluid.amountPerMinute}>
               <FluidIcon fluidGuid={fluid.fluidGuid} className={styles.icon} />
             </PerMinuteRateRow>
           ))}

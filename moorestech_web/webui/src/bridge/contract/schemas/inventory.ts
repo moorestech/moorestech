@@ -67,7 +67,7 @@ export const MinerDetailDataSchema = z.object({
   miningItems: z.array(z.object({ itemId: z.number(), itemsPerMinute: z.number() })),
 });
 
-const PumpingFluidsSchema = z.array(z.object({ fluidId: z.number(), fluidGuid: GuidSchema, amountPerMinute: z.number() }));
+const PumpingFluidsSchema = z.array(z.object({ fluidGuid: GuidSchema, amountPerMinute: z.number() }));
 
 // ポンプ種別が動力行の有無を決める。油井だけがelectricを持ち、歯車ポンプの動力はGearSectionが出す
 // The pump kind decides the power row: only the electric pump carries electric, the gear pump's power belongs to GearSection

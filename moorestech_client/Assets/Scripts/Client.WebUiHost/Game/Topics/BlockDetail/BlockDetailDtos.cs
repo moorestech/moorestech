@@ -101,7 +101,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
     public class PumpingFluidDto
     {
-        public int FluidId;
         public string FluidGuid;
         public float AmountPerMinute;
     }

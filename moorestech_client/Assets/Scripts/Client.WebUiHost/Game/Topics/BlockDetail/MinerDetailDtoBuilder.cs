@@ -24,25 +24,29 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             {
                 CurrentPower = common.CurrentPower,
                 RequestPower = common.RequestPower,
-                MiningItems = BuildMiningItems(miner, minerParam),
+                MiningItems = BuildMiningItems(),
             };
-        }
 
-        private static List<MiningItemDto> BuildMiningItems(CommonMinerBlockStateDetail miner, IMinerParam minerParam)
-        {
-            // uGUIと同じ算出(60/秒→分)
-            // Same derivation as uGUI (60/sec to per-minute)
-            var result = new List<MiningItemDto>();
-            var currentIds = miner.GetCurrentMiningItemIds();
-            if (miner.MiningSeconds <= 0) return result;
+            #region Internal
 
-            foreach (var settings in minerParam.MineSettings.items)
+            List<MiningItemDto> BuildMiningItems()
             {
-                var itemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
-                if (!currentIds.Contains(itemId)) continue;
-                result.Add(new MiningItemDto { ItemId = itemId.AsPrimitive(), ItemsPerMinute = (float)(60 / miner.MiningSeconds) });
+                // uGUIと同じ算出(60/秒→分)
+                // Same derivation as uGUI (60/sec to per-minute)
+                var result = new List<MiningItemDto>();
+                var currentIds = miner.GetCurrentMiningItemIds();
+                if (miner.MiningSeconds <= 0) return result;
+
+                foreach (var settings in minerParam.MineSettings.items)
+                {
+                    var itemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
+                    if (!currentIds.Contains(itemId)) continue;
+                    result.Add(new MiningItemDto { ItemId = itemId.AsPrimitive(), ItemsPerMinute = (float)(60 / miner.MiningSeconds) });
+                }
+                return result;
             }
-            return result;
+
+            #endregion
         }
     }
 }
