@@ -5,6 +5,8 @@ using Game.Block.Blocks.Pump;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
+using Game.Block.Interface.State;
+using MessagePack;
 using Game.Context;
 using Game.EnergySystem;
 using NUnit.Framework;
@@ -29,7 +31,9 @@ namespace Tests.CombinedTest.Core
         private static readonly Vector3Int SteamVeinPos = new(20, 0, 0);
         private static readonly Vector3Int NoVeinPos = new(30, 0, 0);
 
-        private static readonly Guid WaterFluidGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+        private const string WaterFluidGuidText = "00000000-0000-0000-1234-000000000001";
+        private const string SteamFluidGuidText = "00000000-0000-0000-1234-000000000002";
+        private static readonly Guid WaterFluidGuid = Guid.Parse(WaterFluidGuidText);
 
         // ポンプ位置にWater Veinあり、マスタも一致 → 内部タンクに水が貯まる
         // Vein matches master entry → water accumulates
@@ -98,15 +102,50 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(WaterFluidGuid), inventory[0].FluidId);
         }
 
+        // 複数流体の鉱脈に掛かってもマスタ並び順の先頭1流体だけを汲み上げる
+        // Even over veins of several fluids, only the first fluid in master order is pumped
+        [TestCase(true, WaterFluidGuidText)]
+        [TestCase(false, SteamFluidGuidText)]
+        public void PumpOverTwoFluidVeins_GeneratesOnlyFirstMasterFluid(bool waterFirst, string expectedFluidGuidText)
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // フットプリントが水鉱脈(x0-10)と蒸気鉱脈(x20)の両方に掛かる位置へ置く
+            // Place it so the footprint covers both the water vein (x0-10) and the steam vein (x20)
+            var blockId = waterFirst ? ForUnitTestModBlockId.MultiFluidPumpWaterFirst : ForUnitTestModBlockId.MultiFluidPumpSteamFirst;
+            // 11幅のフットプリントに重ならないZ方向へ電柱を置く
+            // Put the pole along Z so it does not overlap the 11-wide footprint
+            var pump = PlacePoweredPump(WaterVeinPos, blockId, new Vector3Int(0, 0, 2));
+
+            for (var i = 0; i < 10; i++) GameUpdater.RunFrames(1);
+
+            var expectedFluidId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse(expectedFluidGuidText));
+            var inventory = pump.GetComponent<PumpFluidOutputComponent>().GetFluidInventory();
+            Assert.AreEqual(1, inventory.Count, "内部タンクは単一流体しか持てないので1種類だけのはず");
+            Assert.AreEqual(expectedFluidId, inventory[0].FluidId, "マスタ並び順の先頭流体が対象になるはず");
+
+            // UIへ配信する汲み上げ中流体も同じ1件に揃う
+            // The pumping fluids published to the UI stay the same single entry
+            var state = pump.GetBlockState();
+            var pumpDetail = MessagePackSerializer.Deserialize<PumpBlockStateDetail>(state.CurrentStateDetails[PumpBlockStateDetail.BlockStateDetailKey]);
+            Assert.AreEqual(1, pumpDetail.PumpingFluids.Count);
+            Assert.AreEqual(expectedFluidId.AsPrimitive(), pumpDetail.PumpingFluids[0].FluidId);
+        }
+
         private static IBlock PlacePoweredPump(Vector3Int pos)
         {
+            return PlacePoweredPump(pos, ForUnitTestModBlockId.ElectricPump, new Vector3Int(2, 0, 0));
+        }
+
+        private static IBlock PlacePoweredPump(Vector3Int pos, BlockId blockId, Vector3Int poleOffset)
+        {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var added = worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
+            var added = worldBlockDatastore.TryAddBlock(blockId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
             Assert.IsTrue(added, $"Failed to place pump at {pos}");
 
             // ポンプを電柱へ接続して電力網を成立させる
             // Connect the pump to a pole so it belongs to a usable electric network
-            var polePosition = pos + new Vector3Int(2, 0, 0);
+            var polePosition = pos + poleOffset;
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             ElectricWireTestUtil.Connect(pos, polePosition);
 

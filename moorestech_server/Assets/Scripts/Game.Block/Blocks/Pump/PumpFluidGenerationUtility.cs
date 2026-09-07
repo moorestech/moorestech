@@ -28,8 +28,8 @@ namespace Game.Block.Blocks.Pump
                 targetFluidIds.Add(vein.VeinFluidId);
             }
 
-            // 同一流体は1本にまとめ、公称量はマスタの並び順で決める
-            // Each fluid appears once; the nominal rate follows the master ordering
+            // 内部タンクは単一流体しか持てないため、マスタの並び順で最初に重なった1流体だけを対象にする
+            // The inner tank holds a single fluid, so only the first overlapping fluid in master order becomes the target
             foreach (var gen in generateFluids.items)
             {
                 if (gen.GenerateTime <= 0) continue;
@@ -39,6 +39,7 @@ namespace Game.Block.Blocks.Pump
 
                 var perSecond = gen.Amount / Math.Max(0.0001, gen.GenerateTime);
                 entries.Add(new FluidGenerationEntry(fluidId, perSecond));
+                break;
             }
 
             return entries;

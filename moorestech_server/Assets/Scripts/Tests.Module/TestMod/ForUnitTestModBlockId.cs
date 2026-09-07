@@ -71,6 +71,10 @@ namespace Tests.Module.TestMod
         public static BlockId TestGearToElectricGenerator => GetBlock("00000000-0000-0000-0000-000000000028");
         public static BlockId TestElectricToGearGenerator => GetBlock("00000000-0000-0000-0000-000000000099");
         public static BlockId ElectricPump => GetBlock("3829088a-5a78-43d7-8c3c-d3e4bb91b90a");
+        // 水鉱脈と蒸気鉱脈の両方に掛かるフットプリントを持ち、generateFluidの並び順だけが異なる2種
+        // Two pumps whose footprint covers both the water and steam veins, differing only in generateFluid order
+        public static BlockId MultiFluidPumpWaterFirst => GetBlock("f1000000-0000-0000-0000-000000000001");
+        public static BlockId MultiFluidPumpSteamFirst => GetBlock("f1000000-0000-0000-0000-000000000002");
         public static BlockId GearChainPole => GetBlock("00000000-0000-0000-0000-00000000002c");
         public static BlockId LockedGearChainPole => GetBlock("00000000-0000-0000-0000-000000000102");
         public static BlockId TestTrainFluidPlatform => GetBlock("00000000-0000-0000-0000-000000000029");
