@@ -134,7 +134,7 @@ F=.agents/skills/subagent-driven-development/SKILL.md
 grep -c "インライン" $F
 grep -c "Inline" $F
 grep -c "単一subagent実装モードの手順" $F
-grep -c "継続再派遣（途中失敗時）" $F
+grep -c '^\*\*継続再派遣（途中失敗時）:' $F
 grep -c "Single opus subagent" $F
 diff <(sed 's/^\*\*インラインで実装する条件（すべて満たすならインライン。AND）:\*\*/**単一subagent実装モードの条件（すべて満たすなら単一subagent。AND）:**/' /tmp/sdd-threshold-before.txt) <(sed -n '/^\*\*単一subagent実装モードの条件/,/^5\. /p' $F) && echo THRESHOLD_SAME
 ```
@@ -143,11 +143,12 @@ Expected:
 1        ← 「かつて閾値未満は本体が直接書くインライン実装だったが…廃止した」の説明1行のみ
 0
 1
-1
+1        ← 定義段落の見出し1本（`SKILL.md` 本文の参照行は行頭パターンに一致しない）
 2        ← dot図のノード定義＋エッジ
 THRESHOLD_SAME
 ```
 ※ `grep -c "インライン"` は説明文の1行だけが残る。R1の受け入れ基準「規模ゲート節に行き先としてのインラインが無い」はこの1行が「廃止した」の文脈であることを目視で確認する
+※ **件数一致だけを合格としない。** 上の各パターンを `grep -n` で出し直し、該当行が意図した文脈（行き先としてのインラインが無い・定義段落が1入口である等）になっていることを目視で突合する。件数はあくまで見落とし検知の補助である
 
 - [ ] **Step 6: コミット**
 
@@ -356,7 +357,7 @@ grep -c "タスク1を派遣する前に" $F
 Expected:
 ```
 0
-6        ← 手順6(1)・プロセス図のノード定義＋エッジ2本(3)・テンプレ一覧(1)・ワークフロー例(1)
+8        ← 手順6(1)・プロセス図のノード定義＋エッジ3本(4)・ファイルハンドオフ(1)・テンプレ一覧(1)・ワークフロー例(1)
 1
 1
 1
@@ -365,6 +366,7 @@ Expected:
 0
 0
 ```
+※ **件数一致だけを合格としない。** 各パターンを `grep -n` で出し直し、該当行が意図した文脈になっていることを目視で突合する
 
 - [ ] **Step 11: コミット**
 
@@ -537,15 +539,16 @@ diff <(sed 's/^\*\*インラインで実装する条件（すべて満たすな�
 Expected:
 ```
 HEADINGS_SAME
-（規模ゲート節のdiffは3箇所のみ: 第1段落末尾の裁定参照、条件段落の最終レビュー名、手順8の最終レビュー名）
+（規模ゲート節のdiffは3箇所・語彙差のみ: 第1段落末尾の裁定参照、条件段落の最終レビュー名、手順8の最終レビュー名）
 1
 0
-6
+8
 0
 0
 0
 THRESHOLD_SAME
 ```
+※ **件数一致だけを合格としない。** 各パターンを `grep -n` で出し直し、該当行が意図した文脈になっていることを目視で突合する
 
 - [ ] **Step 5: コミット（~/.agents repo）**
 
@@ -618,7 +621,7 @@ Expected: push が成功し `master -> master` が表示される。失敗（non
 
 - [ ] **Step 1: 必ず最後に moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）**
 
-`scripts/review-package $(git merge-base origin/master HEAD) HEAD` でdiffを生成し、Skill ツールで `moores-code-review` を起動。対象はMarkdownのみなのでコンパイル・Unityテストは不要。所見があれば単一fix subagent（`model: opus`）へ全所見を渡し、反映後に Task 1〜5 の検証コマンドを再実行する。
+Skill ツールで `moores-code-review` を起動する（同スキルが Step 1 で自前に `<RUNDIR>/patch.diff` を作るため、事前の `scripts/review-package` は不要）。対象はMarkdownのみなのでコンパイル・Unityテストは不要。所見があれば単一fix subagent（`model: opus`）へ全所見を渡し、反映後に Task 1〜5 の検証コマンドを再実行する。
 
 - [ ] **Step 2: pr-create スキルでPRを作成する**
 
@@ -651,7 +654,9 @@ Expected: `.moorestech-external-revisions.json` の既存差分（ユーザー�
 - 設計ADR: `docs/adr/0053-sdd-single-subagent-implementation-mode.md`（8裁定＋agent前提4項）
 - 裁定台帳: `.decisions/2026-09-08-SDD閾値未満は本体インラインでなく単一opus-subagentで実装する.md`、`.decisions/2026-08-20-SDD規模ゲートはインライン優先のAND条件にする.md`（追記あり）
 - **ADR番号を 0051 → 0053 に振り直した。** 出所: agent前提（origin/master に `0051-pump-ui…` と `0052-ugui-removal…` が既に存在したため。grill時の共通理解では 0051 と述べていた）
-- **途中終了のステータスは BLOCKED で返させる。** 契約の4ステータスを増やさず、「完了タスク番号と最後のコミットsha」を最終メッセージに含めることで継続派遣の入力にする。出所: agent前提（契約の `BLOCKED = タスクを完了できない` の定義に合致し、契約ファイルの改変を最小にする）
+- ~~**途中終了のステータスは BLOCKED で返させる。** 契約の4ステータスを増やさず、「完了タスク番号と最後のコミットsha」を最終メッセージに含めることで継続派遣の入力にする。出所: agent前提（契約の `BLOCKED = タスクを完了できない` の定義に合致し、契約ファイルの改変を最小にする）~~
+  - **却下（2026-09-09 ユーザー裁定・最終レビュー C4）:** BLOCKED への相乗りは「真の行き詰まり」と「コンテキスト枯渇による途中終了」を区別できず、同テンプレ・同モデルでの無変更リトライを招く。契約に `PARTIAL`（= 一部まで完了・残りあり・ブロッカー無し）を新設し、継続再派遣の対象を PARTIAL のみに限定した。この裁定が上記 agent前提 に優先する。本plan本文に埋め込まれた SKILL.md／テンプレの逐語案のうち `BLOCKED で返す`・`BLOCKED・NEEDS_CONTEXT・途中終了` の箇所は、実ファイル側が正である
+- **継続上限2回に数えるのは PARTIAL のみ（2026-09-09 ユーザー裁定・最終レビュー C1）。** `NEEDS_CONTEXT` は回答して再派遣し数えない。`BLOCKED` の原因が計画欠陥なら回数に関わらず人間へエスカレーションする
 - **`~/.agents` は master へ直接コミット・push する。** 出所: agent前提（同repoの履歴 `747bfe1`・`b8ce5d9` が master 直コミットの慣行。引き継ぎメモの「git管理外」は誤りで、`github.com:sakastudio/.agents` を origin に持つ独立repo）
 - **タスク分割は「moorestech版 SKILL.md 2タスク → prompt/contract 1タスク → 一般版 2タスク → レビュー/PR」。** 出所: agent前提（SKILL.md の変更が9節に及ぶため前半（ゲート＋使用場面）と後半（追従節）で分け、レビュアーが片方だけ差し戻せる粒度にした）
 - **継続再派遣の前に元subagentの生存確認（ListAgents）を必須にする。** 出所: シミュレーター予測→ユーザー承認 2026-09-08（AskUserQuestion「生存確認」で A を選択。根拠メモリ: compaction後もsubagentはpeerとして生存・二重編集事故）

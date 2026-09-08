@@ -76,7 +76,7 @@ hooks:
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: subagent-driven-development スキルを使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
+> **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
 **Goal:** [これが何を構築するかを1文で説明]
 
@@ -232,12 +232,12 @@ Self-Review（内容）と spec-architecture-review（構造）を終えたら�
    - plan: docs/superpowers/plans/<filename>.md
    - 作業場所: <ブランチ名>（worktreeの場合はそのパスも記載）
    - まずplan全文を読み、`## Requirements`・`## Global Constraints`・`## 判断記録（ADR）`を全タスク共通の制約として扱ってください
-   - 進捗はplanのチェックボックス更新で管理してください
+   - 進捗管理はsubagent-driven-developmentスキルの規定に従ってください（SDD本体はplanのチェックボックス＋進捗台帳、単一subagent実装モードは報告ファイル＋進捗台帳が正）
    - planの最終タスク群（moores-code-reviewによる全ブランチレビュー→pr-createでPR作成・コンフリクト解消まで）は省略不可です。PRが作成されセッションを閉じられる状態になるまで完了扱いにしないでください
    ```
    ````
 
-このセッション内でのInline Execution（タスクを直接順次実行）は、ユーザーが明示的に希望した場合のみ行う。自分から選択肢として提示しない。
+このセッション内で本体が直接タスクを順次実行することは、ユーザーが明示的に希望した場合のみ行う。自分から選択肢として提示しない（既定は subagent-driven-development の規模ゲートが選ぶモードである）。
 
 # 追加SKILL:spec-architecture-review
 
