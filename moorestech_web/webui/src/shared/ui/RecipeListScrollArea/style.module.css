@@ -1,0 +1,14 @@
+/* 土台（flex連鎖・§8.10ネイビートーン）はpanelBodyScrollAreaが持ち、ここはレシピ行固有の規則だけを足す */
+/* panelBodyScrollArea owns the base (flex chain, §8.10 navy tone); this file adds only the recipe-row rules */
+.scroll {
+  composes: scroll from "../panelBodyScrollArea.module.css";
+}
+
+/* 枠の四隅ブラケットと外周リングは枠外へ出るため、全周にその分の余白を取る。0だとScrollAreaに切られ、
+   はみ出しぶんで不要なスクロールが出る。右だけはスクロールバー実寸も足してつまみと行を重ねない */
+/* The frame's corner brackets and outer ring sit outside it, so pad every side by that bleed; at 0 the ScrollArea
+   clips them and the bleed alone creates a needless scroll. Only the right adds the measured scrollbar width */
+.list {
+  padding: var(--recipe-entry-bleed);
+  padding-right: calc(var(--recipe-entry-bleed) + var(--recipe-list-scrollbar-reserve));
+}

@@ -3,6 +3,7 @@ import { Group, Stack } from "@mantine/core";
 import { Topics, useTopic } from "@/bridge";
 import type { BlockInventoryOpen, MachineDetailData } from "@/bridge";
 import MachineStateRow from "./rows/MachineStateRow";
+import styles from "../style.module.css";
 import MachineInventoryBody from "./machine/MachineInventoryBody";
 import MachineRecipeSelectionList from "./machine/recipeSelection/MachineRecipeSelectionList";
 import SelectedRecipeHeader from "./machine/SelectedRecipeHeader";
@@ -10,7 +11,7 @@ import { buildMachineRecipeSelectionRows, hasSelectedRecipe } from "./machine/ma
 
 // 機械: 未選択→レシピ選択モード、選択済→インベントリモード。ヘッダで選択モードへ戻れる（ADR 0042）
 // Machine: unselected → recipe-selection mode, selected → inventory mode; the header returns to selection (ADR 0042)
-export default function MachineSection({ data, machine }: { data: BlockInventoryOpen; machine: MachineDetailData }) {
+export default function MachineSection({ data, machine, fillsPanelHeight }: { data: BlockInventoryOpen; machine: MachineDetailData; fillsPanelHeight: boolean }) {
   const machineRecipes = useTopic(Topics.machineRecipes);
   // 選択モードで最後に要求したレシピGUIDを覚える。サーバーの選択がこれと一致した時点で閉じるので、
   // 同一レシピを選び直しても閉じられ、拒否された間は選択モードに留まる（C14）
@@ -32,24 +33,29 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
     </Group>
   );
 
-  if (rows.length === 0) {
-    return <Stack gap="xs" data-testid="machine-section"><MachineInventoryBody data={data} />{footer}</Stack>;
-  }
-
   // 要求したレシピがサーバーの選択に一致するまで選択モードを閉じない（未要求＝開いた直後は留まる）
   // Selection mode stays open until the requested recipe matches the server's selection (no request yet = keep waiting)
   const requestApplied = requestedRecipeGuid !== null && machine.selectedRecipeGuid === requestedRecipeGuid;
   const inSelectionMode = selectionOpened && !requestApplied;
-  const showSelection = !hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || inSelectionMode;
+  // 選べるレシピが無い機械は選択モードを持たず、常にインベントリモードで開く
+  // A machine with no selectable recipe has no selection mode and always opens in inventory mode
+  const showSelection = rows.length > 0
+    && (!hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || inSelectionMode);
+
+  // 伸ばすのは高さ確定面だけ。高さ自動の面では親と同じく伸長を止める
+  // Stretch only on the height-determining panel; on auto-height panels this stops stretching just as its parent does
+  const stretchClassName = fillsPanelHeight ? styles.fillPanelHeight : undefined;
+  // 外殻がフッタと伸長を1箇所で持ち、モードで分かれるのは中身だけ。これで両モードのフッタ位置が揃う
+  // One shell owns the footer and the stretch while only the body branches, keeping the footer at the same height in both modes
   return (
-    <Stack gap="sm" data-testid="machine-section">
+    <Stack className={stretchClassName} gap="sm" data-testid="machine-section">
       {showSelection ? (
         <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} />
       ) : (
-        <>
-          <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />
+        <Stack className={stretchClassName} gap="sm">
+          {selectedRow === undefined ? null : <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />}
           <MachineInventoryBody data={data} />
-        </>
+        </Stack>
       )}
       {footer}
     </Stack>

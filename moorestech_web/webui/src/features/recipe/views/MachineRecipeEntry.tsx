@@ -33,6 +33,7 @@ export default function MachineRecipeEntry({ recipe, onSelect, testId }: Props) 
           // Machine recipes are not hand-crafted, so show required counts only (no owned-count check)
           <ItemSlot key={i} itemId={r.itemId} count={r.count} onLeftDown={() => onSelect(r.itemId)} />
         ))}
+        actionMode="slot"
         action={(
           <Stack className={styles.machineInfo} gap={2} align="center">
             <BlockIcon blockId={recipe.blockId} alt={localizedBlockName} className={styles.machineInfoIcon} />
