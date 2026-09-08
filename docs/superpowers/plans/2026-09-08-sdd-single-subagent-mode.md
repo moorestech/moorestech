@@ -1,6 +1,6 @@
 # SDD 単一subagent実装モード Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: subagent-driven-development スキルを使い、このplanをタスクごとに実装すること。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
+> **For agentic workers:** REQUIRED SUB-SKILL: subagent-driven-development スキルを使うこと。この plan は規模ゲート未満なので、ADR 0053 の裁定どおり **opus 固定の単一 implementer subagent 1体が Task 1〜5 を順に実装**し、本体はワークスペース隔離・事前計画レビュー・派遣・最終レビュー・PR作成のみを担う（実行時点のスキル本文は旧文言のままだが、裁定が優先する）。ステップはチェックボックス（`- [ ]`）記法で進捗管理する。
 
 **Goal:** `subagent-driven-development` スキルの2系統（moorestech特化版・一般版）で、規模ゲート未満の「本体インライン実装」を「opus固定の単一implementer subagentが計画全体を実装するモード」へ全面置換する。
 
@@ -20,10 +20,10 @@
 - R6. worktree隔離は単一subagentモードにも必須。受け入れ: 「worktree隔離が必要なだけならworktree + インラインでよく」の一文が両SKILL.mdから消え、隔離節の見出し・本文が「最初のsubagent派遣前」を指す
 - R7. タスクごとのレビューゲートは置かず、最終レビュー1本（moores-code-review／一般版はレビュースキル）を自動・無条件で実行。所見は単一fix subagent（opus）へ。受け入れ: プロセス図に単一subagent分岐があり、task-reviewer を経由せず最終レビューへ繋がる
 - R8. 途中失敗（一部タスクのみ完了・BLOCKED・NEEDS_CONTEXT・コンテキスト枯渇）は、報告ファイルのタスク別進捗と `git log` で完了タスクを確定し、残りタスクのみを指示した継続subagentを同テンプレで派遣する。継続は最大2回、それでも終わらなければ残りをSDD本体（タスクごと派遣）へ切り替える。受け入れ: 規模ゲート節に「継続再派遣」段落があり、旧「途中切替（インライン→SDD）」段落が消えている
-- R9. 進捗台帳（`.superpowers/sdd/progress.md`）にはコントローラーが派遣行と完了行の2行のみ書く。タスク別進捗は報告ファイル。compaction後の復旧順は台帳→報告ファイル→`git log`。受け入れ: 「永続的な進捗管理」節に3点が書かれている
+- R9. 進捗台帳（`.superpowers/sdd/progress.md`）にはコントローラーが派遣行と完了行の2行のみ書く。タスク別進捗は報告ファイル。compaction後の復旧順は台帳→（元subagentの生存確認）→報告ファイル→`git log`。受け入れ: 「永続的な進捗管理」節に4点が書かれ、危険信号に生存確認なしの再派遣が挙がっている
 - R10. 単一subagentはフォアグラウンドで派遣する（バックグラウンド孤児化事故の再発防止）。受け入れ: テンプレと危険信号に明記
 - R11. 使用場面dot図・プロセスdot図・危険信号・ワークフロー例・frontmatter description が新モードと矛盾しない。受け入れ: dot図のノード名に "Inline" が無く、"Single opus subagent" 系ノードがある
-- R12. 2系統とも変更する。moorestech版は moores-code-review / pr-create / `.claude/skills/moores-code-review/references/lens-digest.md` の語彙、一般版は「レビュースキル」「PR作成」「[PROJECT_RULES]」の語彙。受け入れ: 両系統の規模ゲート節を diff したとき、差分が既存の語彙差（最終レビューのスキル名）1行のみ
+- R12. 2系統とも変更する。moorestech版は moores-code-review / pr-create / `.claude/skills/moores-code-review/references/lens-digest.md` の語彙、一般版は「レビュースキル」「PR作成」「[PROJECT_RULES]」の語彙。受け入れ: 両系統の規模ゲート節を diff したとき、差分が語彙差の3箇所（第1段落末尾の裁定参照・条件段落の最終レビュー名・手順8の最終レビュー名）のみ
 - R13. `~/.agents` は独立したgitリポジトリ（origin: github.com:sakastudio/.agents）なので、変更を同repoでコミットしpushする
 - やらないこと: `task-reviewer-contract.md` / `task-reviewer-prompt.md` / `scripts/*` は変更しない（新モードはタスクレビューを使わない）。`.moorestech-external-revisions.json` の既存の未コミット差分（ユーザーの別作業）は触らない・コミットに含めない。閾値の数値変更はしない。
 
@@ -35,7 +35,7 @@
 - 両系統の差分は語彙のみ。節構成・段落順・箇条書きの数は一致させる
 - 日本語本文。コミットメッセージは `skills(sdd): …` 形式
 - `.decisions/2026-09-08-SDD閾値未満は本体インラインでなく単一opus-subagentで実装する.md` と ADR 0053 の記述が正。矛盾したらplanでなくADRを優先し、矛盾箇所を報告する
-- moorestech側の作業ブランチは `skills/sdd-single-subagent-mode`（origin/master から分岐済み）。`~/.agents` 側は master に直接コミットしpushする（同repoの既存慣行）
+- moorestech側の作業ブランチは `skills/sdd-single-subagent-mode`（origin/master から分岐済み、d9e492581 に ADR・裁定・本plan）。本体ディレクトリは planning セッション終了時に master へ戻してあるので、実行セッションは `git worktree add ~/moorestech-worktrees/sdd-single-subagent-mode skills/sdd-single-subagent-mode` で既存ブランチを worktree に checkout する（`already used by worktree` が出たら本体が同ブランチを掴んでいる。本体側で `git switch master` してから再実行）。`~/.agents` 側は master に直接コミットしpushする（同repoの既存慣行）
 
 ---
 
@@ -143,7 +143,7 @@ Expected:
 1        ← 「かつて閾値未満は本体が直接書くインライン実装だったが…廃止した」の説明1行のみ
 0
 1
-2        ← 段落見出し＋手順7からの参照
+1
 2        ← dot図のノード定義＋エッジ
 THRESHOLD_SAME
 ```
@@ -179,6 +179,12 @@ L66:
 ```
 
 L68 の末尾 `隔離は「あれば良いもの」ではなくタスク1の前提条件である。` → `隔離は「あれば良いもの」ではなく最初の派遣（SDD本体ならタスク1、単一subagentモードならその1体）の前提条件である。`
+
+L418（統合節）の `上記「ワークスペース隔離（タスク1派遣前・必須）」` → `上記「ワークスペース隔離（最初のsubagent派遣前・必須）」`（見出し改名に追従。残すと参照切れ＋Step 10 の検証が失敗する）
+
+L186（事前計画レビュー）の `タスク1を派遣する前に、計画を一度スキャンして矛盾を確認する:` → `最初のsubagent（SDD本体ならタスク1のimplementer、単一subagentモードならその1体）を派遣する前に、計画を一度スキャンして矛盾を確認する:`
+
+イントロ L8 の冒頭 `計画を実行する際、タスクごとに新しいimplementer subagentを派遣し、` → `計画を実行する際、規模ゲート超なら タスクごとに新しいimplementer subagentを派遣し、`、L12 `**核となる原則:** タスクごとの新規subagent + タスクレビュー（spec + 品質） + 広範な最終レビュー = 高品質・高速なイテレーション` → `**核となる原則:** 本体は実装を書かない（閾値未満はopus単一subagent、閾値超はタスクごとの新規subagent + タスクレビュー） + 広範な最終レビュー = 高品質・高速なイテレーション`
 
 - [ ] **Step 2: プロセスdot図に単一subagent分岐を足す**
 
@@ -254,7 +260,7 @@ digraph process {
 `## Implementerのステータス対応` 節の末尾（`**エスカレーションを無視したり、…決してしないこと。** …` の段落の後）に追加:
 
 ```markdown
-**単一subagent実装モードの場合:** DONE ならタスクレビュアーを派遣せず、台帳へ完了行を書いて最終ブランチ全体レビューへ直行する。DONE_WITH_CONCERNS は懸念を読み、正しさ・スコープに関するものなら継続派遣で対処してから最終レビューへ。BLOCKED・NEEDS_CONTEXT・途中終了は「継続再派遣（途中失敗時）」（規模ゲート節）に従う — 完了タスクは報告ファイルと `git log` で確定し、同じ subagent に再試行を強制しない。継続は最大2回で、3回目が必要なら残りをSDD本体へ切り替える。
+**単一subagent実装モードの場合:** DONE ならタスクレビュアーを派遣せず、台帳へ完了行を書いて最終ブランチ全体レビューへ直行する。DONE_WITH_CONCERNS は懸念を読み、正しさ・スコープに関するものなら最終レビュー所見と同じ経路（単一fix subagent・opus）で直してから最終レビューへ（継続派遣ではないので上限2回には数えない）。単なる所見ならメモして最終レビューへ。BLOCKED・NEEDS_CONTEXT・途中終了は「継続再派遣（途中失敗時）」（規模ゲート節）に従う — 完了タスクは報告ファイルと `git log` で確定し、同じ subagent に再試行を強制しない。継続は最大2回で、3回目が必要なら残りをSDD本体へ切り替える。
 ```
 
 - [ ] **Step 5: ファイルハンドオフ節に単一モードの箇条書きを足す**
@@ -270,7 +276,7 @@ digraph process {
 `## 永続的な進捗管理` 節の箇条書き末尾（`` - `git clean -fdx`は台帳を破壊する… `` の後）に追加:
 
 ```markdown
-- **単一subagent実装モードの記帳はコントローラーが2行だけ書く:** 派遣時 `Single-subagent: dispatched base <sha7> report <path>`、完了時 `Single-subagent: complete (commits <base7>..<head7>)`（継続派遣があれば `Single-subagent: continuation #k from Task N base <sha7>` を間に挟む）。タスク別の完了は subagent が報告ファイルへ書く。compaction後の復旧順は **台帳 → 報告ファイル → `git log`**。台帳に `dispatched` があって `complete` が無ければ、subagentが走っているか途中終了している — 報告ファイルの `Task N: done` 行を読んでから継続再派遣を判断する。
+- **単一subagent実装モードの記帳はコントローラーが2行だけ書く:** 派遣時 `Single-subagent: dispatched base <sha7> report <path>`、完了時 `Single-subagent: complete (commits <base7>..<head7>)`（継続派遣があれば `Single-subagent: continuation #k from Task N base <sha7>` を間に挟む）。タスク別の完了は subagent が報告ファイルへ書く。compaction後の復旧順は **台帳 → 報告ファイル → `git log`**。台帳に `dispatched` があって `complete` が無ければ、subagentが走っているか途中終了している — **継続派遣の前に ListAgents 等で元subagentの生存を確認し、生きていれば結果を待つ**（compaction後も subagent は生存しており、死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）。不在または報告済みなら、報告ファイルの `Task N: done` 行と `git log` で完了タスクを確定してから継続再派遣する。
 ```
 
 - [ ] **Step 7: プロンプトテンプレート一覧に新テンプレを足す**
@@ -315,7 +321,7 @@ Implementer:
 ```markdown
 - 規模ゲート未満だからという理由で本体セッションが実装コードを書く — 閾値未満は単一subagent実装モードであり、本体が書く選択肢は無い（ADR 0053）
 - 単一subagentを `model: opus` 以外・model未指定・バックグラウンドで派遣する
-- 単一subagentが途中終了したとき、報告ファイルと `git log` を見ずに最初から再派遣する（完了済みタスクの二重実装になる）
+- 単一subagentが途中終了したとき、元subagentの生存確認（ListAgents）と報告ファイル・`git log` の確認を経ずに再派遣する（生存中なら同一worktreeの二重編集、終了済みなら完了タスクの二重実装になる）
 ```
 
 また `- worktreeを作らずに（あるいは既にworktree内かを確認せずに）タスク1のimplementerを派遣する — 「今回は小さい計画だから」は理由にならない` を次に置換:
@@ -323,6 +329,14 @@ Implementer:
 ```markdown
 - worktreeを作らずに（あるいは既にworktree内かを確認せずに）最初のimplementer（単一subagent含む）を派遣する — 「今回は小さい計画だから」は理由にならない
 ```
+
+さらに、SDD本体専用の規則なのに無修飾で新モードと衝突する3行を限定書き換えする:
+
+L385 `- タスクレビューをスキップする、または片方の判定（spec準拠とタスク品質の両方が必須）を欠く報告を受け入れる` → `- SDD本体でタスクレビューをスキップする、または片方の判定（spec準拠とタスク品質の両方が必須）を欠く報告を受け入れる（単一subagentモードはタスクレビューを持たず最終レビュー1本が正）`
+
+L388 `- subagentに計画ファイル全体を読ませる（代わりにタスクブリーフ — `scripts/task-brief` — を渡す）` → `- SDD本体のタスク単位派遣でsubagentに計画ファイル全体を読ませる（代わりにタスクブリーフ — `scripts/task-brief` — を渡す。単一subagentモードは計画ファイル全体のパスを渡すのが正）`
+
+L393 `- implementerの自己レビューを実際のレビューの代替にする（両方が必要）` → `- implementerの自己レビューを実際のレビュー（SDD本体ならタスクレビュー、単一subagentモードなら最終レビュー）の代替にする（両方が必要）`
 
 - [ ] **Step 10: 検証（R3・R6・R7・R9・R11）**
 
@@ -336,6 +350,8 @@ grep -c "単一subagent実装モードの記帳" $F
 grep -c "cluster_single" $F
 grep -c "Below size gate" $F
 grep -c "Inline" $F
+grep -c "^- subagentに計画ファイル全体を読ませる" $F
+grep -c "タスク1を派遣する前に" $F
 ```
 Expected:
 ```
@@ -344,7 +360,9 @@ Expected:
 1
 1
 1
-3        ← ノード定義＋エッジ2本
+4        ← ノード定義＋流入エッジ＋yes＋no
+0
+0
 0
 ```
 
@@ -502,7 +520,7 @@ description は Task 1 Step 2 と同文。規模ゲート節は Task 1 Step 3 �
 
 - [ ] **Step 3: Task 2 の Step 1〜9 を一般語彙で適用する**
 
-プロセス図（Task 2 Step 2）は `Run final whole-branch review: code-review skill` と `Finish branch (commit, push, create PR, resolve conflicts vs base)` のノード名を既存のまま使う。モデル選定・ステータス対応・ファイルハンドオフ・進捗台帳・プロンプトテンプレート・危険信号は Task 2 と同文。ワークフロー例は対応表の2行を置換。
+一般版の該当行番号は L8/L12（イントロ）・L66/L68（隔離見出し）・L183（事前計画レビュー）・L381/L384/L389（危険信号3行）・L414（統合節の参照）。プロセス図（Task 2 Step 2）は `Run final whole-branch review: code-review skill` と `Finish branch (commit, push, create PR, resolve conflicts vs base)` のノード名を既存のまま使う。モデル選定・ステータス対応・ファイルハンドオフ・進捗台帳・プロンプトテンプレート・危険信号は Task 2 と同文。ワークフロー例は対応表の2行を置換。
 
 - [ ] **Step 4: 検証（両版の節構成一致）**
 
@@ -513,6 +531,7 @@ B=~/.agents/skills/subagent-driven-development/SKILL.md
 diff <(grep "^## " $A) <(grep "^## " $B) && echo HEADINGS_SAME
 diff <(sed -n '/^## 規模ゲート/,/^## 使用場面/p' $A) <(sed -n '/^## 規模ゲート/,/^## 使用場面/p' $B)
 grep -c "インライン" $B; grep -c "Inline" $B; grep -c "single-implementer-prompt.md" $B
+grep -c "^- subagentに計画ファイル全体を読ませる" $B; grep -c "タスク1派遣前" $B; grep -c "タスク1を派遣する前に" $B
 diff <(sed 's/^\*\*インラインで実装する条件（すべて満たすならインライン。AND）:\*\*/**単一subagent実装モードの条件（すべて満たすなら単一subagent。AND）:**/' /tmp/sdd-threshold-before-home.txt) <(sed -n '/^\*\*単一subagent実装モードの条件/,/^5\. /p' $B) && echo THRESHOLD_SAME
 ```
 Expected:
@@ -522,6 +541,9 @@ HEADINGS_SAME
 1
 0
 6
+0
+0
+0
 THRESHOLD_SAME
 ```
 
@@ -632,4 +654,6 @@ Expected: `.moorestech-external-revisions.json` の既存差分（ユーザー�
 - **途中終了のステータスは BLOCKED で返させる。** 契約の4ステータスを増やさず、「完了タスク番号と最後のコミットsha」を最終メッセージに含めることで継続派遣の入力にする。出所: agent前提（契約の `BLOCKED = タスクを完了できない` の定義に合致し、契約ファイルの改変を最小にする）
 - **`~/.agents` は master へ直接コミット・push する。** 出所: agent前提（同repoの履歴 `747bfe1`・`b8ce5d9` が master 直コミットの慣行。引き継ぎメモの「git管理外」は誤りで、`github.com:sakastudio/.agents` を origin に持つ独立repo）
 - **タスク分割は「moorestech版 SKILL.md 2タスク → prompt/contract 1タスク → 一般版 2タスク → レビュー/PR」。** 出所: agent前提（SKILL.md の変更が9節に及ぶため前半（ゲート＋使用場面）と後半（追従節）で分け、レビュアーが片方だけ差し戻せる粒度にした）
-- **この plan 自体の実行モードについて:** 実装5タスク・6ファイル・約250行で規模ゲート未満だが、実行時点のスキルはまだ旧文言（インライン既定）である。ADR 0053 のユーザー裁定に従い、実行セッションは opus 単一subagent で実装する（Execution Handoff の開始プロンプトに明記）。出所: ユーザー裁定 2026-09-08「A. 全面置換」の適用
+- **継続再派遣の前に元subagentの生存確認（ListAgents）を必須にする。** 出所: シミュレーター予測→ユーザー承認 2026-09-08（AskUserQuestion「生存確認」で A を選択。根拠メモリ: compaction後もsubagentはpeerとして生存・二重編集事故）
+- **user-simulator review で適用した指摘（8件）:** 危険信号L385/L388/L393の限定書き換え、統合節L418の参照更新、イントロL8/L12と事前計画レビューL186の修飾、検証グレップの期待値修正（継続再派遣=1・Below size gate=4）、R12の「3箇所」、worktree checkout手順、DONE_WITH_CONCERNSの経路（fix subagent・継続回数に数えない）、planヘッダの実行モード表現。出所: agent前提（判事レポートを現物で照合し全件確認）
+- **この plan 自体の実行モードについて:** 実装5タスク・6ファイル・約250行で規模ゲート未満だが、実行時点のスキルはまだ旧文言（インライン既定）である。ADR 0053 のユーザー裁定に従い、実行セッションは opus 単一subagent で実装する（plan ヘッダと開始プロンプトに明記）。出所: ユーザー裁定 2026-09-08「A. 全面置換」の適用
