@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Client.Game.Common;
-using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Vite;
 using Client.WebUiHost.Static;
@@ -21,7 +20,6 @@ namespace Client.WebUiHost.Boot
         private static ViteSupervisor _vite;
         private static WebSocketHub _hub;
         private static IDisposable _shutdownSubscription;
-        private static IDisposable _viteAvailabilitySubscription;
 
         private static Task _stopTask = Task.CompletedTask;
         public static WebSocketHub Hub => _hub;
@@ -74,7 +72,6 @@ namespace Client.WebUiHost.Boot
                     // HTTP疎通後に起動成功とする
                     // A Vite instance without successful HTTP health leaves no UI, so roll it back as startup failure
                     if (!await vite.StartAsync(kestrel.ActualPort)) return false;
-                    _viteAvailabilitySubscription = vite.Availability.Subscribe(WebUiScreenGate.SetHostAvailable);
                     WebUiPortConfig.SetBrowserPort(vite.ActualPort);
                     _webUiUrl = $"http://127.0.0.1:{vite.ActualPort}/";
                 }
@@ -128,9 +125,6 @@ namespace Client.WebUiHost.Boot
             _vite = null;
             _hub = null;
             _kestrel = null;
-            _viteAvailabilitySubscription?.Dispose();
-            _viteAvailabilitySubscription = null;
-            WebUiScreenGate.SetHostAvailable(false);
 
             // 実ポート公開を取り下げる（停止中の CORS 全拒否・CEF ナビゲーション抑止）
             // Withdraw the published port (rejects CORS and suppresses CEF navigation while stopped)

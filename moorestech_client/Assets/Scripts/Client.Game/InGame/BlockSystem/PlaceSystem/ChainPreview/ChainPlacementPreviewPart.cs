@@ -6,7 +6,6 @@ using Client.Game.InGame.Control;
 // ワールドピン配信の共有基盤
 // Shared world-pin publication store: a web-presentation port, not tutorial logic
 using Client.Game.InGame.Tutorial;
-using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using Mooresmaster.Model.BlocksModule;
 using Server.Protocol.PacketResponse;
@@ -63,11 +62,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
             
             #region Internal
             
-            // WebUIモードではワールドピンも配信する
-            // In web UI mode, publish world pins the same way the sibling tutorial ghosts do
+            // 兄弟のチュートリアルゴーストと同様にワールドピンも配信する
+            // Publish world pins the same way the sibling tutorial ghosts do
             void PublishWebPin(PlacementGhostEntry entry, System.Guid ownerTutorialGuid)
             {
-                if (!WebUiScreenGate.IsWebUiMode || entry.PreviewObject == null) return;
+                if (entry.PreviewObject == null) return;
                 
                 var camera = CameraManager.MainCamera.Camera;
                 if (!camera) return;

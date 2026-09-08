@@ -6,7 +6,6 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.Entity;
 using Client.Game.InGame.Environment;
 using Client.Game.InGame.Tutorial;
-using Client.Game.InGame.UI.UIState;
 using Client.Game.Skit.Localization;
 using Client.Skit.Context;
 using Client.Skit.Define;
@@ -94,7 +93,6 @@ namespace Client.Game.Skit
         {
             IsPlayingSkit = true;
             _isSkip = false;
-            var webUiMode = WebUiScreenGate.IsWebUiMode;
             var presentationStarted = false;
             var cameraRegistered = false;
             var suppressedWorldPins = new List<ITutorialWorldPin>();
@@ -113,11 +111,10 @@ namespace Client.Game.Skit
                 var commandsToken = (JToken)JsonConvert.DeserializeObject(skitJson.text);
                 var commands = CommandForgeLoader.LoadCommands(commandsToken);
 
-                if (webUiMode)
-                {
-                    SkitPresentationStateStore.Instance.BeginBlocking(_skitActionController);
-                    presentationStarted = true;
-                }
+                // 会話表示はWeb UIが唯一の担い手のため常にブロッキング表示を開始する（ADR 0052）
+                // Web UI is the sole dialogue presenter, so blocking presentation always begins (ADR 0052)
+                SkitPresentationStateStore.Instance.BeginBlocking(_skitActionController);
+                presentationStarted = true;
 
                 // 前処理で生成物を捕捉し、途中失敗でもfinallyから破棄できるようにする
                 // Capture pre-process resources so finally can dispose them after partial failure
@@ -160,8 +157,9 @@ namespace Client.Game.Skit
                     }
                 }
                 
-                // 表示の設定
-                skitUI.SetActive(!webUiMode);
+                // UI ToolkitのスキットビューはWeb UIへ移行済みで伏せたままにする
+                // The UI Toolkit skit view is superseded by Web UI and stays hidden
+                skitUI.SetActive(false);
 
                 // 抑止できたピンだけを控え、途中で失敗しても解除漏れで消えたままにしない
                 // Track only the pins actually suppressed so a mid-way failure cannot leave one hidden forever
@@ -195,7 +193,9 @@ namespace Client.Game.Skit
                 builder.RegisterInstance<ISkitEnvironmentManager>(new SkitEnvironmentManager(transform, skitOrigin));
                 builder.RegisterInstance(skitOrigin);
                 builder.RegisterInstance<ISkitActionContext>(_skitActionController);
-                builder.RegisterInstance(new SkitPresentationMode(webUiMode));
+                // Web表示のみを持つためモードは固定。UI Toolkit経路の撤去は moorestech-lnsf.8
+                // Presentation is web-only, so the mode is fixed; retiring the UI Toolkit path is moorestech-lnsf.8
+                builder.RegisterInstance(new SkitPresentationMode(true));
                 builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
 
                 return new StoryContext(builder.Build());

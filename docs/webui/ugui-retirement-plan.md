@@ -39,4 +39,16 @@ ADR 0052 の裁定により、Phase 2（コード削除）・Phase 3（prefab �
   - prefab 39件と未参照アセット 35件を削除。Addressable 再ビルドは 501 locations でエラー無し
   - `WebUiGateClassification` は「新規スクリーンスペース uGUI の追加禁止」の安全網として維持（ScanRoots/Rules を縮小）
 
+## Phase 5: ゲート撤去（後片付け）
+
+`WebUiScreenGate.IsWebUiMode` は恒久 `true` で、参照側の分岐は全て到達不能になっていた。ゲートを撤去して分岐を畳んだ。
+
+- `WebUiScreenGate` / `WebUiScreenGateTest` を削除。`WebUiHost` からゲートへの `SetHostAvailable` 通知と、その唯一の供給源だった `ViteSupervisor.Availability` も撤去
+- 参照側の死に分岐を除去: `UIStateControl` のwebモード両エッジ正規化（`ForceReturnToGameScreen` ごと）・`SkitManager`・`TutorialManager`・`MapObjectPin` / `VeinPin` / `BlockPlacePreviewTutorialManager` / `ChainPlacementPreviewPart` のワールドピン配信・`CefScreenMapper.IsWebUiAvailable`
+- `WebUiGateAuditTest` は `GatedRootsContainGateToken` を落とし、残る3本（分類漏れ・uGUIトークン混入・腐敗ルール）で「新規スクリーンスペース uGUI の追加禁止」を守る。分類の `GatedRoot` カテゴリは廃止し、`SkitManager` は Infra へ
+- 参照0件になった `ui.tooltip.retiredUguiSlotText` を `Localization/localization.csv` から削除
+- 削除済みファイルを行番号付きで指していた根拠コメント（`FilterSplitterActions`）と、uGUIフォールバックを語る古いコメント（`ViteSupervisor` ほか）を実態へ修正
+
+UI Toolkit のスキット表示経路（`SkitUI` / `SkitPresentationMode.WebUiEnabled` の非Web分岐）は uGUI ではないため本計画のスコープ外で、常時伏せたまま残る。撤去は別タスク。
+
 `com.unity.ugui` と TMP は例外4種のため manifest に残る（ADR 0052）。
