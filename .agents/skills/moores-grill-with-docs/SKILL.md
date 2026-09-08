@@ -52,9 +52,26 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 
 較正実例（PR1176・PR1157の意図取り違え事故・レイアウト裁定の特化ガイド）: [references/adjudication-fidelity.md](references/adjudication-fidelity.md)
 
+### 1.7 Codex 独立質問の消し込み（ADR確定後・writing-plans 直前。必須）
+
+自分の質問集合には盲点がある。同じ課題を Codex に独立に質問生成させると、自分が聞かず agent 前提で埋めていた分岐が残問として出てくる。writing-plans へ渡す前に、グローバルの `codex-audit` スキルの `~/.agents/skills/codex-audit/scripts/codex-open-questions.mjs` で **Codex に独立した質問リストを作らせ、既に答えた質問を消し込み、残った質問だけをユーザーに聞く**。
+
+手順（詳細と Gotchas は codex-audit SKILL.md「未回答質問だけを出す二段階」）:
+
+1. **generate はインタビュー開始時に裏で起動する**（数分かかるため、最初の質問を出す前に `run_in_background` で回しておく）。brief = 依頼原文の逐語 + 自分が調査で確認した既知事実（レイヤーマップ・関連 asmdef・既存前例のパスを含める）。`--cwd` には設計文書を含まない隔離 worktree（`git worktree add --detach <dir> HEAD`）を渡す。設計文書・自分の質問案は絶対に見せない（見せると質問生成がレビューに退化し、独立性が消える）
+2. ADR を書き終えたら **裁定台帳**（`# | 質問 | ユーザーの回答`。ADR 出所欄の「ユーザー裁定」だけを転記、agent 前提は載せない）を作る
+3. **filter** を同 thread で実行し、台帳 + ADR + `CONTEXT.md` を見せて `answered` / `remaining` を受け取る。`answered` の対応表を ADR 出所欄と突き合わせ、誤消し込み（「文書に書いてある」だけで answered にしたもの）が無いか確認する
+4. `remaining` を grilling と同じ流儀で **1 問ずつ**ユーザーに聞き、回答を ADR へ「ユーザー裁定」として追記する（Codex 由来であることは記録しなくてよい。出所はあくまでユーザーの回答）
+5. その後に §2 の writing-plans へ進む
+
+- `remaining` が 0 件でもこの段は省略した扱いにしない（0 件という結果を一言報告する）
+- `codex` が無い・失敗した場合は生エラーを報告し、省略して進めるかをユーザーに聞く。黙って飛ばさない
+- generate の brief に書いた「既知の事実」がインタビュー中に覆った場合は、filter 時のプロンプトにその訂正を添える
+- worktree は消し込み後に `git worktree remove` で片付ける
+
 ### 2. 出口の一本化（writing-plans へ直行）
 
-設計・ADRが確定したら、終端状態は「**同一セッションでの writing-plans スキル起動**」のみ。spec等の中間文書は書かない — 要件は会話コンテキスト経由でplan先頭の `## Requirements` セクションへ流れ込む。他スキル・実装への分岐は禁止。
+設計・ADRが確定し、§1.7 の Codex 独立質問の消し込みと残問の裁定まで終えたら、終端状態は「**同一セッションでの writing-plans スキル起動**」のみ。spec等の中間文書は書かない — 要件は会話コンテキスト経由でplan先頭の `## Requirements` セクションへ流れ込む。他スキル・実装への分岐は禁止。
 writing-plans 側の user-simulator による plan review（sim-gate配線）は既存のまま維持する。
 設計フェーズでは user-simulator を自動起動しない（大きな設計で必要な場合のみユーザーが手動起動する）。
 
