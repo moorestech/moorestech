@@ -18,23 +18,24 @@ export function scrollAreaHorizontalBar(scrollRoot: Locator): Locator {
   return scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="horizontal"]');
 }
 
-// 溢れ有無でバーと高さ不変を検査。第2引数は高さが導出される要素に限る（高さ固定要素だと不変アサートが空回りする）
-// Checks the bar and height invariant across overflow; the second argument must be a height-derived element, since a fixed-height one makes the assert vacuous
+// 溢れ有無でバーと高さ不変を検査。不変は視口のclientHeightで見る（パネル高はCSS固定値なので件数に依らず動かず番人にならない）
+// Checks the bar and height invariant across overflow, measuring the viewport's clientHeight since panel heights are CSS constants and cannot guard anything
 export async function expectScrollsOnlyWhenOverflowing(
   scrollRoot: Locator,
-  heightDerivedElement: Locator,
   overflowScenario: () => Promise<void>,
 ) {
   const viewport = scrollAreaViewport(scrollRoot);
   const bar = scrollAreaVerticalBar(scrollRoot);
 
-  const settledHeight = (await heightDerivedElement.boundingBox())!.height;
+  const settledClientHeight = await viewport.evaluate((element) => element.clientHeight);
   await expect(bar).toBeHidden();
   expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBe(0);
 
   await overflowScenario();
   await expect(bar).toBeVisible();
-  expect((await heightDerivedElement.boundingBox())!.height).toBeCloseTo(settledHeight, 1);
+  // 器いっぱいに伸びたままなら視口の高さは件数で動かない。潰れる退行はここで落ちる
+  // A scroller that keeps filling its container holds this height whatever the row count; a collapse fails here
+  expect(await viewport.evaluate((element) => element.clientHeight)).toBeCloseTo(settledClientHeight, 1);
   expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
 }
 

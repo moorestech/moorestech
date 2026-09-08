@@ -11,7 +11,7 @@ import { buildMachineRecipeSelectionRows, hasSelectedRecipe } from "./machine/ma
 
 // 機械: 未選択→レシピ選択モード、選択済→インベントリモード。ヘッダで選択モードへ戻れる（ADR 0042）
 // Machine: unselected → recipe-selection mode, selected → inventory mode; the header returns to selection (ADR 0042)
-export default function MachineSection({ data, machine }: { data: BlockInventoryOpen; machine: MachineDetailData }) {
+export default function MachineSection({ data, machine, fillsPanelHeight }: { data: BlockInventoryOpen; machine: MachineDetailData; fillsPanelHeight: boolean }) {
   const machineRecipes = useTopic(Topics.machineRecipes);
   // 選択モードで最後に要求したレシピGUIDを覚える。サーバーの選択がこれと一致した時点で閉じるので、
   // 同一レシピを選び直しても閉じられ、拒否された間は選択モードに留まる（C14）
@@ -42,14 +42,17 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
   const showSelection = rows.length > 0
     && (!hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || inSelectionMode);
 
+  // 伸ばすのは高さ確定面だけ。高さ自動の面では親と同じく伸長を止める
+  // Stretch only on the height-determining panel; on auto-height panels this stops stretching just as its parent does
+  const stretchClassName = fillsPanelHeight ? styles.fillPanelHeight : undefined;
   // 外殻がフッタと伸長を1箇所で持ち、モードで分かれるのは中身だけ。これで両モードのフッタ位置が揃う
   // One shell owns the footer and the stretch while only the body branches, keeping the footer at the same height in both modes
   return (
-    <Stack className={styles.fillPanelHeight} gap="sm" data-testid="machine-section">
+    <Stack className={stretchClassName} gap="sm" data-testid="machine-section">
       {showSelection ? (
         <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} />
       ) : (
-        <Stack className={styles.fillPanelHeight} gap="sm">
+        <Stack className={stretchClassName} gap="sm">
           {selectedRow === undefined ? null : <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />}
           <MachineInventoryBody data={data} />
         </Stack>

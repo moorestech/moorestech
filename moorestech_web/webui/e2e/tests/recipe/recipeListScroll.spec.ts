@@ -7,7 +7,6 @@ import { scrollAreaRootOf, scrollAreaViewport, scrollAreaVerticalBar, expectScro
 // The recipe list's scroller is sized by its container too (§8.10, user ruling 2026-08-22); letting the panel grow with the
 // recipe count breaks "scroll only once it overflows" and pulls the clip inside the entries, shaving the tutorial ring
 
-const craftPanel = (page: Page) => page.locator('[data-variant="craft"]');
 const scrollRoot = (page: Page) => scrollAreaRootOf(page, "recipe-entry-list");
 const viewport = (page: Page) => scrollAreaViewport(scrollRoot(page));
 
@@ -22,11 +21,10 @@ test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "machineRecipesDefault");
 });
 
-test("レシピが溢れてもパネル高は変わらず、縦バーだけが出る", async ({ page }) => {
+test("レシピが溢れてもリストの視口高は変わらず、縦バーだけが出る", async ({ page }) => {
   await openPlankRecipes(page);
   await expectScrollsOnlyWhenOverflowing(
     scrollRoot(page),
-    craftPanel(page),
     () => setTopicScenario(page, "machineRecipesOverflow"),
   );
 });

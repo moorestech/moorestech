@@ -66,7 +66,7 @@ test("レシピ無しブロックは小型パネルのまま", async ({ page }) 
   await expect(page.getByTestId("machine-recipe-selection")).toHaveCount(0);
 });
 
-test("レシピが溢れても機械セクションの高さは変わらず、選択リストだけがスクロールする", async ({ page }) => {
+test("レシピが溢れても選択リストの視口高は変わらず、そこだけがスクロールする", async ({ page }) => {
   // 溢れ用fixtureは電気機械へ入る
   // The overflow fixture targets the electric machine
   await setBlock(page, "machine");
@@ -74,18 +74,15 @@ test("レシピが溢れても機械セクションの高さは変わらず、�
   await page.getByTestId("machine-selected-recipe").click();
   await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
 
-  // 高さ不変はパネルでなく機械セクションで見る。パネル高は.panelLargeのCSS固定値で件数に依らず動かないため
-  // Watch the machine section, not the panel: the panel's height is a CSS constant in .panelLarge and cannot move
   await expectScrollsOnlyWhenOverflowing(
     scrollAreaRootOf(page, "machine-recipe-selection"),
-    page.getByTestId("machine-section"),
     () => setTopicScenario(page, "machineRecipesOverflow"),
   );
 });
 
 test("フッタは選択モードとインベントリモードで同じ高さに出る", async ({ page }) => {
-  // フッタが両モードで下端に揃うことがこの変更の中核ゴール（ADR 0010）
-  // Aligning the footer at the bottom in both modes is this change's core goal (ADR 0010)
+  // フッタが両モードで下端に揃うのはPRの中核ゴール。番人が無かったので回帰検査として置く（ADR 0010）
+  // Aligning the footer in both modes is the PR's core goal and had no guard, so this stands as its regression check (ADR 0010)
   await setBlock(page, "machine");
   await page.goto("/");
   const footer = page.getByTestId("machine-state-label");

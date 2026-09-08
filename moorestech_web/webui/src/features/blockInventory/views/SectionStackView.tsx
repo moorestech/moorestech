@@ -53,7 +53,7 @@ export default function SectionStackView({ data, fillsPanelHeight }: { data: Blo
     // Stretch only on the height-determining panel; on auto-height panels it would let children shrink below their content
     <Stack className={fillsPanelHeight ? styles.fillPanelHeight : undefined} gap="sm">
       {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} testId={itemGridTestId} /> : null}
-      {data.machine ? <MachineSection data={data} machine={data.machine} /> : null}
+      {data.machine ? <MachineSection data={data} machine={data.machine} fillsPanelHeight={fillsPanelHeight} /> : null}
       <MinerSection data={data} />
       <PumpSection data={data} />
       <GeneratorSection data={data} />
