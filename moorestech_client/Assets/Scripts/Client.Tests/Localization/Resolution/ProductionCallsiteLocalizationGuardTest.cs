@@ -19,7 +19,6 @@ namespace Client.Tests.Localization.Resolution
             "Client.Starter/Initialization/ModAssetIconLoader.cs",
             "Client.Starter/Initialization/ServerConnectionInitializer.cs",
             "Client.Starter/Initialization/Progress/LoadingProgressLog.cs",
-            "Client.Game/InGame/UI/Tooltip/MouseCursorTooltip.cs",
             "Client.Starter/InitializeScenePipeline.cs",
             "Client.MainMenu/ConnectServer.cs",
         };

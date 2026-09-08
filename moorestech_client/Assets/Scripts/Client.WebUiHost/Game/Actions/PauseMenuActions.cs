@@ -6,17 +6,17 @@ namespace Client.WebUiHost.Game.Actions
 {
     public class PauseMenuSaveActionHandler : IActionHandler
     {
-        private readonly SaveButton _saveButton;
+        private readonly GameSaveRequester _saveRequester;
         public string ActionType => "pause_menu.save";
 
-        public PauseMenuSaveActionHandler(SaveButton saveButton)
+        public PauseMenuSaveActionHandler(GameSaveRequester saveRequester)
         {
-            _saveButton = saveButton;
+            _saveRequester = saveRequester;
         }
 
         public UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            _saveButton.Save();
+            _saveRequester.Save();
             return UniTask.FromResult(ActionResult.Success());
         }
     }

@@ -30,13 +30,30 @@ namespace Client.Game.InGame.Map.MapVein
         // The item an item vein yields; null for fluid veins
         public readonly ItemId? VeinItemId;
 
-        public MapVeinAabb(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind, ItemId? veinItemId)
+        // 流体鉱脈の流体。アイテム鉱脈はnull
+        // The fluid a fluid vein holds; null for item veins
+        public readonly FluidId? VeinFluidId;
+
+        // 種別と産出物の組は生成口で確定させ、Kind・VeinItemId・VeinFluidId の食い違った組を構文的に作れなくする
+        // The factories fix kind and yield together, so no caller can even spell an inconsistent Kind / VeinItemId / VeinFluidId trio
+        public static MapVeinAabb OfItem(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell, ItemId itemId)
+        {
+            return new MapVeinAabb(veinTypeGuid, minCell, maxCell, MapVeinKind.Item, itemId, null);
+        }
+
+        public static MapVeinAabb OfFluid(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell, FluidId fluidId)
+        {
+            return new MapVeinAabb(veinTypeGuid, minCell, maxCell, MapVeinKind.Fluid, null, fluidId);
+        }
+
+        private MapVeinAabb(Guid veinTypeGuid, Vector3Int minCell, Vector3Int maxCell, MapVeinKind kind, ItemId? veinItemId, FluidId? veinFluidId)
         {
             VeinTypeGuid = veinTypeGuid;
             MinCell = minCell;
             MaxCell = maxCell;
             Kind = kind;
             VeinItemId = veinItemId;
+            VeinFluidId = veinFluidId;
 
             // min/maxは内包セル座標なのでmax側に1セル分足してワールドAABBにする
             // min/max are inclusive cell coords, so add one cell on the max side to build the world AABB

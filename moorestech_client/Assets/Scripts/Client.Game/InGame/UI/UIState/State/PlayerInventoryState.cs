@@ -5,7 +5,6 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.Inventory;
 using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.Inventory.Main;
-using Client.Game.InGame.UI.Inventory.RecipeViewer;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Input;
 using Client.Network.API;
@@ -16,24 +15,17 @@ namespace Client.Game.InGame.UI.UIState.State
 {
     public class PlayerInventoryState : IUIState
     {
-        private readonly RecipeViewerView _recipeViewerView;
         private readonly LocalPlayerInventoryController _localPlayerInventoryController;
         private readonly LocalPlayerEquipment _localPlayerEquipment;
-        private readonly PlayerInventoryViewController _playerInventoryViewController;
         private readonly RightShortPressInputService _rightShortPressInputService;
 
         private CancellationTokenSource _cancellationTokenSource;
 
-        public PlayerInventoryState(RecipeViewerView recipeViewerView, PlayerInventoryViewController playerInventoryViewController, LocalPlayerInventoryController localPlayerInventoryController, LocalPlayerEquipment localPlayerEquipment, InitialHandshakeResponse handshakeResponse, RightShortPressInputService rightShortPressInputService)
+        public PlayerInventoryState(LocalPlayerInventoryController localPlayerInventoryController, LocalPlayerEquipment localPlayerEquipment, InitialHandshakeResponse handshakeResponse, RightShortPressInputService rightShortPressInputService)
         {
-            _recipeViewerView = recipeViewerView;
-            _playerInventoryViewController = playerInventoryViewController;
             _localPlayerInventoryController = localPlayerInventoryController;
             _localPlayerEquipment = localPlayerEquipment;
             _rightShortPressInputService = rightShortPressInputService;
-
-            _playerInventoryViewController.SetActive(false); //TODO この辺のオンオフをまとめたい
-            _recipeViewerView.SetActive(false);
 
             //インベントリの初期設定
             ApplyInventoryResponse(handshakeResponse.Inventory);
@@ -59,9 +51,7 @@ namespace Client.Game.InGame.UI.UIState.State
             // Right short press isn't polled while another UIState is active, so discard any stale press state on return
             _rightShortPressInputService.ResetPressState();
 
-            _recipeViewerView.SetActive(true);
-            _playerInventoryViewController.SetActive(true);
-            _playerInventoryViewController.SetSubInventory(new EmptySubInventory());
+            _localPlayerInventoryController.SetSubInventory(new EmptySubInventory());
 
             _cancellationTokenSource = new CancellationTokenSource();
             UpdatePlayerInventory(_cancellationTokenSource.Token).Forget();
@@ -73,9 +63,6 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             _cancellationTokenSource.Cancel();
             _cancellationTokenSource = null;
-            
-            _recipeViewerView.SetActive(false);
-            _playerInventoryViewController.SetActive(false);
         }
         
         /// <summary>

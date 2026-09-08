@@ -33,7 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction
             return blockParam switch
             {
                 IMinerParam minerParam => VeinDisplay.OfVeins(SelectMinableVeins(minerParam), false),
-                IPumpParam => VeinDisplay.OfVeins(veinAabbRegistry.SelectVeinsOfKind(MapVeinKind.Fluid), false),
+                IPumpParam pumpParam => VeinDisplay.OfVeins(SelectPumpableVeins(pumpParam), false),
                 _ => VeinDisplay.Hidden,
             };
 
@@ -47,6 +47,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction
                 var veins = new List<MapVeinAabb>();
                 foreach (var vein in veinAabbRegistry.Veins)
                     if (vein.VeinItemId.HasValue && minableItemIds.Contains(vein.VeinItemId.Value))
+                        veins.Add(vein);
+
+                return veins;
+            }
+
+            // 設置判定と同じ集合を表示（同じ構図）
+            // Same shape: shows the same set the placement check uses
+            List<MapVeinAabb> SelectPumpableVeins(IPumpParam pumpParam)
+            {
+                var pumpableFluidIds = PumpVeinFootprintJudge.ResolvePumpableFluidIds(pumpParam.GenerateFluid);
+                var veins = new List<MapVeinAabb>();
+                foreach (var vein in veinAabbRegistry.Veins)
+                    if (vein.VeinFluidId.HasValue && pumpableFluidIds.Contains(vein.VeinFluidId.Value))
                         veins.Add(vein);
 
                 return veins;

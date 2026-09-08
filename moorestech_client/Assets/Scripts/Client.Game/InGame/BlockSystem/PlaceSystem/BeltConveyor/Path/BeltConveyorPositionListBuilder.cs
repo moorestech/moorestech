@@ -11,40 +11,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
     {
         public static (List<Vector3Int> positions, int startToCornerDistance) Build(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ)
         {
-            var startToCornerDistance = 0;
-            var pointList = new List<Vector3Int>();
-            var currentPoint = startPoint;
-
-            // X軸とZ軸のポイントを設定する
-            pointList.Add(currentPoint);
-            while (currentPoint.x != endPoint.x || currentPoint.z != endPoint.z)
-            {
-                // 指定された方向（X or Z）に伸ばす
-                if (isStartDirectionZ && currentPoint.z != endPoint.z)
-                {
-                    currentPoint.z += endPoint.z > currentPoint.z ? 1 : -1;
-                    startToCornerDistance++;
-                }
-                else if (!isStartDirectionZ && currentPoint.x != endPoint.x)
-                {
-                    currentPoint.x += endPoint.x > currentPoint.x ? 1 : -1;
-                    startToCornerDistance++;
-                }
-                else
-                {
-                    // 直角に曲がり、もう片方の軸に向かう
-                    if (currentPoint.z != endPoint.z)
-                    {
-                        currentPoint.z += endPoint.z > currentPoint.z ? 1 : -1;
-                    }
-                    else
-                    {
-                        currentPoint.x += endPoint.x > currentPoint.x ? 1 : -1;
-                    }
-                }
-
-                pointList.Add(currentPoint);
-            }
+            var (pointList, startToCornerDistance) = BuildHorizontalPositions(startPoint, endPoint, isStartDirectionZ);
 
             // Y軸を設定する
             // set Y axis
@@ -111,6 +78,48 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Path
             var lastPoint = pointList[^1];
             lastPoint.y = endPoint.y;
             pointList[^1] = lastPoint;
+
+            return (pointList, startToCornerDistance);
+        }
+
+        // XZだけを1マス刻みで並べる。Y軸調整を要さない呼び出し側はこちらを直接使う
+        // Lays out XZ in grid steps only; callers that need no Y adjustment use this directly
+        public static (List<Vector3Int> positions, int startToCornerDistance) BuildHorizontalPositions(Vector3Int startPoint, Vector3Int endPoint, bool isStartDirectionZ)
+        {
+            var startToCornerDistance = 0;
+            var pointList = new List<Vector3Int>();
+            var currentPoint = startPoint;
+
+            // X軸とZ軸のポイントを設定する
+            pointList.Add(currentPoint);
+            while (currentPoint.x != endPoint.x || currentPoint.z != endPoint.z)
+            {
+                // 指定された方向（X or Z）に伸ばす
+                if (isStartDirectionZ && currentPoint.z != endPoint.z)
+                {
+                    currentPoint.z += endPoint.z > currentPoint.z ? 1 : -1;
+                    startToCornerDistance++;
+                }
+                else if (!isStartDirectionZ && currentPoint.x != endPoint.x)
+                {
+                    currentPoint.x += endPoint.x > currentPoint.x ? 1 : -1;
+                    startToCornerDistance++;
+                }
+                else
+                {
+                    // 直角に曲がり、もう片方の軸に向かう
+                    if (currentPoint.z != endPoint.z)
+                    {
+                        currentPoint.z += endPoint.z > currentPoint.z ? 1 : -1;
+                    }
+                    else
+                    {
+                        currentPoint.x += endPoint.x > currentPoint.x ? 1 : -1;
+                    }
+                }
+
+                pointList.Add(currentPoint);
+            }
 
             return (pointList, startToCornerDistance);
         }

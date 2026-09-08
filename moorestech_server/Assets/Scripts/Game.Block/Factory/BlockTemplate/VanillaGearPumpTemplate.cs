@@ -38,7 +38,8 @@ namespace Game.Block.Factory.BlockTemplate
                 ? new PumpFluidOutputComponent(param.InnerTankCapacity, fluidConnector)
                 : new PumpFluidOutputComponent(componentStates, param.InnerTankCapacity, fluidConnector);
 
-            var pumpComponent = new GearPumpComponent(param, gearEnergyTransformer, outputComponent, blockPositionInfo);
+            var generationEntries = PumpFluidGenerationUtility.ResolveGenerationEntries(param.GenerateFluid, blockPositionInfo);
+            var pumpComponent = new GearPumpComponent(param, gearEnergyTransformer, outputComponent, generationEntries);
 
             var components = new List<IBlockComponent>
             {

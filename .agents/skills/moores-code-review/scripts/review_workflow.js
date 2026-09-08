@@ -196,10 +196,11 @@ if (!A.reportOnly) {
     `Repo root : ${A.repoRoot}（修正はこの作業ツリーだけに加える）`,
     `Skill root : ${A.skillRoot}（integration-rules.md §3〜§5・scripts はこの配下の絶対パス）`,
     `Base ref : ${A.baseRef || '(未指定)'} — final.diff は「git diff <Base ref> -- <patch.diff が触ったファイル ∪ Step 6 で自分が編集・新規作成したファイル> ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'」で作る（pathspec で絞る。作業ツリーが Base ref から別件で進んでいても無関係な差分を巻き込まないため）。未指定なら patch.diff に「git diff HEAD -- <同じファイル集合>」を連結する。`,
-    '手順: (1) integrated.md の採用Critical のうち適用区分が自動適用可のものだけ適用する。設計判断は適用せず design.md（症状→原因→推奨と選択肢。コードを開かずに選べる形。0件なら「なし」）へ書く。',
+    '手順: (0) 編集を始める前に `PRE_APPLY=$(git -C <Repo root> stash create)`（空なら HEAD）を控える（Step 6.5-2.5 の反映 diff の基点。作業ツリーは変えない）。(1) integrated.md の採用Critical のうち適用区分が自動適用可のものだけ適用する。設計判断は適用せず design.md（症状→原因→推奨と選択肢。コードを開かずに選べる形。0件なら「なし」）へ書く。',
     '(2) .cs を変えたら `uloop compile --project-path <Repo root>/moorestech_client` でエラー0を確認する（Editor不在で実行不能なら compile=skipped と返す）。',
     `(3) final.diff を書き、\`python3 ${A.deterministicChecksScript} <final.diff> --repo-root <Repo root>\` を ${A.runDir}/checks-final.json へ書く（--context は渡さない）。自分の修正が新たに生んだ confirmed/比較演算子違反はその場で直す。`,
-    `(4) \`python3 ${A.selectPostChecksScript} ${A.runDir}/final.diff ${A.runDir}/checks-final.json\` を実行し、出力TSV（<post-check絶対パス>\\t<モデル>）を post_checks として返す（空なら []）。スキップしたガードと理由を post_check_selection_note に1行で書く（黙って縮退しない）。`,
+    `(3.5) 反映 diff を書く: \`git -C <Repo root> diff $PRE_APPLY -- <Step 6 で自分が編集・新規作成したファイル>\` を ${A.runDir}/apply.diff へ（何も適用していなければ空ファイル）。`,
+    `(4) \`python3 ${A.selectPostChecksScript} ${A.runDir}/final.diff ${A.runDir}/checks-final.json ${A.runDir}/apply.diff\` を実行し、出力TSV（<post-check絶対パス>\\t<モデル>）を post_checks として返す（空なら []）。スキップしたガードと理由を post_check_selection_note に1行で書く（黙って縮退しない）。`,
     'Read規律: Edit対象の該当範囲だけを offset/limit で読む。ファイル全文Readしない。返答は構造化出力のみ。',
   ].join('\n')
   apply = await agent(applyPrompt, { label: 'apply', phase: 'Apply', model: 'sonnet', schema: APPLY_SCHEMA })
@@ -218,8 +219,11 @@ if (postChecks.length) {
   // Post-checks read the final diff and final checks (patch + Step 2 deterministic JSON in report-only)
   const diffPath = A.reportOnly ? A.patchPath : `${A.runDir}/final.diff`
   const candidatesPath = A.reportOnly ? A.detchecksPath : `${A.runDir}/checks-final.json`
+  // applied-diff-correctness は最終diffでなく「Step 6 が適用した差分だけ」（apply.diff）を見る（2026-09-08 c9baa79 較正）
+  // applied-diff-correctness reads the apply-only diff, not the final diff (2026-09-08 c9baa79 calibration)
+  const patchFor = (p) => (p.name === 'postcheck-applied-diff-correctness' ? `${A.runDir}/apply.diff` : diffPath)
   postResults = accountFor(postChecks, await parallel(postChecks.map((p) => () => runSystem(
-    { ...p, kind: 'postcheck', patchOverride: diffPath, candidatesPath }, 'PostCheck',
+    { ...p, kind: 'postcheck', patchOverride: patchFor(p), candidatesPath }, 'PostCheck',
   ))))
   postMissing = postResults.filter((r) => !r.ok).map((r) => r.name)
   if (postMissing.length) {
@@ -233,14 +237,14 @@ if (postChecks.length) {
       `Post-check reports : ${postResults.map((r) => `${A.runDir}/agents/${r.name}.md`).join(', ')}`,
       `Repo root : ${A.repoRoot}`,
       `Skill root : ${A.skillRoot}`,
-      '手順: rationale-guard の Critical は自動復元せず design.md へ追記（復元タグ案付き）。convention-guard は `機械的` を自動適用し `要判断` はガードの裁定で完結させる（webui は要判断も短縮適用）。同一行で衝突したら根拠保全を優先。.cs を変えたら uloop compile を再実行する。',
+      '手順: rationale-guard の Critical は自動復元せず design.md へ追記（復元タグ案付き）。convention-guard は `機械的` を自動適用し `要判断` はガードの裁定で完結させる（webui は要判断も短縮適用）。applied-diff-correctness の Critical は、修正方針が具体名つきで選択の余地が無いものだけ適用し（integration-rules §3）、それ以外と「裁定そのものが誤り」型は design.md へ追記して escalate する（Step 7 で AskUserQuestion に載る）。同一行で衝突したら根拠保全を優先。.cs を変えたら uloop compile を再実行する。',
       '両レポートの Warning / Info は1件1行で warnings / infos に転記する（親が最終報告へ載せる。黙って落とさない）。',
       '返答は構造化出力のみ（適用数・escalate数・compile結果・warnings・infos）。',
     ].join('\n')
     postfix = await agent(postfixPrompt, { label: 'postfix', phase: 'PostCheck', model: 'sonnet', schema: POSTFIX_SCHEMA })
     if (!postfix) throw new Error('postfix agent が応答しなかった。final.diff と post-check レポートは残っているので親が Step 6.5 の 4〜6 だけ再派遣する')
   } else if (!A.reportOnly) {
-    log('PostCheck: 両ガードとも Critical なし → postfix 省略（手順書 Step 6.5-6）')
+    log('PostCheck: 全ガード Critical なし → postfix 省略（手順書 Step 6.5-6）')
   }
 } else {
   log(`PostCheck: 発火条件未達でスキップ（0トークン）${postCheckSelection ? ` — ${postCheckSelection.note}` : ''}`)

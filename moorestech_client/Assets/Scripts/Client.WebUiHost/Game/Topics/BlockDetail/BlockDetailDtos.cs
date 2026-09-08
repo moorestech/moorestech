@@ -83,6 +83,28 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public float ItemsPerMinute;
     }
 
+    public class PumpDetailDto
+    {
+        // ポンプ種別。"electric"のみElectricを持つ("gear"は動力行をGearSectionが出す)
+        // Pump kind; only "electric" carries Electric ("gear" leaves the power row to GearSection)
+        public string Kind;
+        public PumpElectricDto Electric;
+        public List<PumpingFluidDto> PumpingFluids;
+    }
+
+    public class PumpElectricDto
+    {
+        public string CurrentState;
+        public float CurrentPower;
+        public float RequestPower;
+    }
+
+    public class PumpingFluidDto
+    {
+        public string FluidGuid;
+        public float AmountPerMinute;
+    }
+
     public class GearDetailDto
     {
         public bool IsClockwise;

@@ -68,10 +68,11 @@ namespace Tests.CombinedTest.Core
             var idlePowerRate = param.IdlePowerRate;
             Assert.AreEqual(param.RequiredPower, electric.RequestEnergy.AsPrimitive(), 0.0001f);
 
-            // 内部タンクを満杯にすると生成不可のIdle扱いになり要求電力が下がる
-            // Filling the inner tank makes generation idle and reduces requested power
+            // 内部タンクを満杯にすると生成不可のIdle扱いになり要求電力が下がる。基準はtickで確定するため1tick進める
+            // Filling the inner tank makes generation idle and reduces requested power; the basis is latched per tick, so advance one tick
             var fluidId = MasterHolder.FluidMaster.GetFluidId(param.GenerateFluid.items[0].FluidGuid);
             output.EnqueueGeneratedFluid(new FluidStack(param.InnerTankCapacity, fluidId));
+            GameUpdater.UpdateOneTick();
             Assert.AreEqual(param.RequiredPower * idlePowerRate, electric.RequestEnergy.AsPrimitive(), 0.0001f);
         }
 

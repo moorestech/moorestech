@@ -8,8 +8,8 @@ namespace Client.Tests.WebUi.Gate
         [Test]
         public void WebUiModeIsPermanentlyOnRegardlessOfHostAvailability()
         {
-            // uGUI廃止Phase1: ホスト起動成否に関わらずWebモード恒久ON（uGUIフォールバック廃止）
-            // uGUI-retirement Phase1: web mode stays ON regardless of host availability (uGUI fallback removed)
+            // ホスト起動成否に関わらずWebモード恒久ON（uGUIフォールバックは撤去済み: ADR 0052）
+            // Web mode stays ON regardless of host availability; the uGUI fallback is gone (ADR 0052)
             WebUiScreenGate.SetHostAvailable(false);
             Assert.IsTrue(WebUiScreenGate.IsWebUiMode);
 

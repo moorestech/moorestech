@@ -6,11 +6,11 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
-using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
 using Client.Game.InGame.Map.MapVein;
 using Client.Tests.Map.Vein;
@@ -26,7 +26,6 @@ namespace Client.Tests.UIState
         public void GameScreenExitReturnsToNeutralBeforeDirectInventoryTransition()
         {
             SetUpGameStateController();
-            SetUpMouseCursorTooltip();
             var applier = new FakePlayerCameraInteractionApplier();
             var state = new GameScreenState(null, CreateInteractController(), null, CreateCameraPolicy(applier), CreateHotbarTapInputService(null));
             state.OnEnter(new UITransitContext(UIStateEnum.GameScreen));
@@ -55,7 +54,6 @@ namespace Client.Tests.UIState
         [Test]
         public void DeleteObjectRestoresBaselineAfterFocusReturnsDuringRightDrag()
         {
-            SetUpMouseCursorTooltip();
             var applier = new FakePlayerCameraInteractionApplier();
             var state = CreateDeleteObjectState(applier, new PlayerViewModeController(new FakePlayerViewApplier()));
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
@@ -103,8 +101,8 @@ namespace Client.Tests.UIState
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
             var selector = new PlaceSystemSelector(null, null, null, null, null, null, null, null, null);
-            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
-            var pickService = new PlacementTargetPickService(null);
+            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter(new MouseCursorTooltipState()));
+            var pickService = new PlacementTargetPickService(null, null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
             return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(applier, viewModeController), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), CreateVeinAabbRegistry(), new VeinRestrictedPlacementState(), hotbarInputService, rightShortPressInputService);
@@ -112,12 +110,11 @@ namespace Client.Tests.UIState
 
         private DeleteObjectState CreateDeleteObjectState(FakePlayerCameraInteractionApplier applier, PlayerViewModeController viewModeController)
         {
-            var deleteObject = CreateComponent<DeleteBarObject>("DeleteBar");
             // 履歴はサービスと共有する（記録先とpop元が別インスタンスになる罠の防止）
             // Share the history with the service (avoids the trap of recording into a different instance than the one popped)
             var buildOperationHistory = new BuildOperationHistory();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            return new DeleteObjectState(deleteObject, null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null), rightShortPressInputService);
+            return new DeleteObjectState(null, CreateCameraPolicy(applier, viewModeController), buildOperationHistory, new BuildUndoService(buildOperationHistory, null), new PlacementTargetPickService(null, null), rightShortPressInputService, new MouseCursorTooltipState());
         }
 
         // 鉱脈ゼロの台帳。PlaceBlockStateはコンストラクタで表示を解決するため実体が要る

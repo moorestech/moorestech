@@ -195,6 +195,9 @@ AGENTS.mdの規約を遵守する:
   **`--test-mode EditMode` を省いてはならない** — uloopの既定は PlayMode であり、
   ユニットテストのつもりで投げるとEditorがPlayModeへ入ったまま固着し、以後のuloopコマンドが全て180秒でタイムアウトする。
   固着したら `uloop control-play-mode --project-path ./moorestech_client --action stop` で解除してからやり直す
+- **反映 diff の再レビュー**: `EDITED_PATHS` にテスト以外のソースがあれば `git diff <PRのhead SHA> -- <EDITED_PATHS>` を `$RUNDIR/apply.diff` に書き、
+  `moores-code-review/post-checks/applied-diff-correctness.md`（opus・5行契約、Patch path = apply.diff）を1体起動する（理由は同ファイル冒頭）。
+  Critical は adopt の意図を保つ範囲で直して再検証、直せなければ push せず `status: "failure"`（summary に要約）。Warning/Info は summary へ1行ずつ
 - **コンパイルまたはテストが失敗し、かつStep 4の範囲内で直しきれない場合は、pushせず失敗として終了する**
   （apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
 - ドメインリロード中のエラー（「Unity is reloading」）はAGENTS.md記載どおり45秒待ってリトライする

@@ -27,7 +27,7 @@ namespace Client.Tests.PlaceSystem
         [Test]
         public void マスタ由来の設置対象がGuidで列挙される()
         {
-            var catalog = new PlacementTargetCatalog();
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
             var entries = catalog.CreateEntries(NoBlueprints);
 
             // 主要設置種を検証
@@ -41,7 +41,7 @@ namespace Client.Tests.PlaceSystem
         [Test]
         public void Kind群の連続性と登場順が保たれる()
         {
-            var catalog = new PlacementTargetCatalog();
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
 
             // Kind群はBlock→TrainCar→ConnectTool→BlueprintCopy→Blueprintの順で連続していること
             // Kind groups appear contiguously in Block→TrainCar→ConnectTool→BlueprintCopy→Blueprint order
@@ -51,12 +51,11 @@ namespace Client.Tests.PlaceSystem
         [Test]
         public void Blockの並び順がSortPriorityと名前で固定される()
         {
-            var catalog = new PlacementTargetCatalog();
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
 
             // 実装式の複製で現在の並び順をピン留めする（並べ替え規則自体の正しさは検証しない）
             // This duplicates the implementation's expression to pin the current order (does not validate the ordering rule itself)
             var expected = MasterHolder.BlockMaster.Blocks.Data
-                .Where(block => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(block.BlockGuid))
                 .OrderBy(block => block.SortPriority ?? 0)
                 .ThenBy(block => block.Name)
                 .Select(block => block.BlockGuid)
@@ -75,7 +74,7 @@ namespace Client.Tests.PlaceSystem
         {
             // forUnitTestのconnectTools配列は意図的に非SortPriority順（120→100→110）。昇順に整えるとこのテストが同語反復化する
             // The forUnitTest connectTools array is deliberately not in SortPriority order; sorting it would make this test tautological
-            var catalog = new PlacementTargetCatalog();
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
 
             // 実装式の複製で現在の並び順をピン留めする（並べ替え規則自体の正しさは検証しない）
             // This duplicates the implementation's expression to pin the current order (does not validate the ordering rule itself)
@@ -96,7 +95,7 @@ namespace Client.Tests.PlaceSystem
         public void Blueprint群はBPコピーより後ろの末尾に来る()
         {
             var blueprints = new[] { (id: Guid.NewGuid(), name: "スタブBP1"), (id: Guid.NewGuid(), name: "スタブBP2") };
-            var entries = new PlacementTargetCatalog().CreateEntries(blueprints);
+            var entries = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()).CreateEntries(blueprints);
 
             // BPを2件渡しても群の登場順（BPコピーの後）が保たれること
             // Group order (Blueprint after BlueprintCopy) holds even with real blueprint entries present
@@ -135,7 +134,7 @@ namespace Client.Tests.PlaceSystem
         // Also verifies the exception message names the offending entry
         private static void AssertEntriesThrowContaining((Guid id, string name)[] blueprintEntries, string expectedInMessage)
         {
-            var catalog = new PlacementTargetCatalog();
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
             var exception = Assert.Throws<InvalidOperationException>(() => catalog.CreateEntries(blueprintEntries));
             Assert.That(exception.Message, Does.Contain(expectedInMessage));
         }

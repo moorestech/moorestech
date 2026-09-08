@@ -1,21 +1,19 @@
 namespace Client.Game.InGame.UI.UIState
 {
     /// <summary>
-    /// Web UI（CEF）モードを共有する静的ゲート。uGUI廃止Phase1によりWebモード恒久化・uGUIフォールバックは廃止した。
-    /// 状態遷移は uGUI アセンブリ内の UIStateControl が唯一の正で、本ゲートは置換済みuGUIビューの表示抑止にだけ使う。
+    /// Web UI（CEF）モードの共有ゲート（恒久有効・uGUIフォールバック撤去済み、ADR 0052）。
+    /// 状態遷移は uGUI アセンブリ内の UIStateControl が唯一の正で、本ゲートはワールド空間表示物とUI Toolkitの表示抑止に使う。
     /// 廃止計画は docs/webui/ugui-retirement-plan.md を参照。
-    /// Static gate sharing Web UI (CEF) mode; uGUI-retirement Phase1 made web mode permanent and removed the uGUI fallback.
-    /// UIStateControl (in the uGUI assembly) remains the sole state authority; this gate only suppresses replaced uGUI views.
+    /// Static gate sharing Web UI (CEF) mode; the fallback was already removed and web mode is now permanent (ADR 0052).
+    /// UIStateControl (in the uGUI assembly) remains the sole state authority; this gate suppresses world-space visuals and UI Toolkit display.
     /// See docs/webui/ugui-retirement-plan.md for the retirement plan.
     /// </summary>
     public static class WebUiScreenGate
     {
         // WebUiHost の起動成否。診断用に記録のみ行い、失敗してもuGUIへはフォールバックしない
         // WebUiHost start success; recorded for diagnostics only — a failure no longer falls back to uGUI
-        public static bool IsHostAvailable { get; private set; }
+        private static bool IsHostAvailable { get; set; }
 
-        // uGUI廃止Phase1: Webモード恒久ON。ホスト起動失敗時もuGUIは復活させない（uGUIは未メンテのため）
-        // uGUI-retirement Phase1: web mode is permanently ON; even on host failure uGUI stays retired (it is unmaintained)
         public static bool IsWebUiMode => true;
 
         public static void SetHostAvailable(bool available)

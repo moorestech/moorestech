@@ -1,10 +1,16 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BlockDetail;
+using Core.Master;
+using Game.Block.Blocks.Machine;
+using Game.Block.Interface.State;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Server.Boot;
+using Tests.Module.TestMod;
 using UnityEngine;
 
 namespace Client.Tests.WebUi
@@ -182,6 +188,49 @@ namespace Client.Tests.WebUi
                 },
             };
             AssertMatchesFixture(dto, "block_inventory_filter_splitter.json");
+        }
+
+        // 変換層(秒→分換算・FluidGuid解決・種別分岐)を実際に起動する。DTO手組みではこのmutationが死なない
+        // Exercises the conversion layer itself (sec-to-minute, FluidGuid resolution, kind branching); a hand-built DTO leaves those mutations alive
+        [Test]
+        public void PumpDetailDtoBuilderConvertsElectricPumpStateToWireShape()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var fluidGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
+            var pump = new PumpBlockStateDetail(new List<PumpingFluidMessagePack> { new(MasterHolder.FluidMaster.GetFluidId(fluidGuid), 2.5) });
+            var common = new CommonMachineBlockStateDetail(20f, 50f, 0f, VanillaMachineBlockStateConst.ProcessingState, VanillaMachineBlockStateConst.ProcessingState);
+            var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPump).BlockParam;
+
+            var dto = new BlockInventoryDto();
+            PumpDetailDtoBuilder.Apply(dto, pump, param, common);
+
+            Assert.AreEqual("electric", dto.Pump.Kind);
+            Assert.AreEqual(VanillaMachineBlockStateConst.ProcessingState, dto.Pump.Electric.CurrentState);
+            Assert.AreEqual(20f, dto.Pump.Electric.CurrentPower);
+            Assert.AreEqual(50f, dto.Pump.Electric.RequestPower);
+            Assert.AreEqual(1, dto.Pump.PumpingFluids.Count);
+            Assert.AreEqual(fluidGuid.ToString("D"), dto.Pump.PumpingFluids[0].FluidGuid);
+            Assert.AreEqual(150f, dto.Pump.PumpingFluids[0].AmountPerMinute, 0.001f);
+        }
+
+        // 歯車ポンプは動力行を持たないためElectricがwireから省かれる
+        // The gear pump has no power row, so electric is omitted from the wire
+        [Test]
+        public void PumpDetailDtoBuilderOmitsElectricForGearPump()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var fluidId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse("00000000-0000-0000-1234-000000000001"));
+            var pump = new PumpBlockStateDetail(new List<PumpingFluidMessagePack> { new(fluidId, 2.0) });
+            var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockParam;
+
+            var dto = new BlockInventoryDto();
+            PumpDetailDtoBuilder.Apply(dto, pump, param, null);
+
+            Assert.AreEqual("gear", dto.Pump.Kind);
+            Assert.IsNull(dto.Pump.Electric);
+            Assert.AreEqual(120f, dto.Pump.PumpingFluids[0].AmountPerMinute, 0.001f);
         }
 
         // DTO を実運用シリアライザで直列化しフィクスチャと DeepEquals 照合する

@@ -36,6 +36,7 @@
     "Game.Paths",
     "Game.MapGeneration.Contract",
     "Game.Hotbar",
+    "Game.PlacementTarget",
     "Game.Construction"
   ],
   "includePlatforms": [],

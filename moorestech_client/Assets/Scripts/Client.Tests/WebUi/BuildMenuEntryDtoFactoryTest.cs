@@ -15,6 +15,7 @@ using Common.Debug;
 using Core.Item.Interface;
 using Core.Master;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.UnlockState;
 using Game.UnlockState.States;
@@ -43,7 +44,7 @@ namespace Client.Tests.WebUi
 
             // 解放判定はResolverの責務のため、変換対象の設置対象一覧を直接渡して変換だけを検証する
             // The unlock decision belongs to the resolver, so hand the targets in directly and verify only the conversion
-            var targets = new PlacementTargetCatalog()
+            var targets = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap())
                 .UnlockedEntries(unlockState, false, new[] { (blueprintGuid, "starter-base") })
                 .Select(PlacementTargetFactory.Create)
                 .ToList();
@@ -153,26 +154,25 @@ namespace Client.Tests.WebUi
         {
             var (_, _) = new MoorestechServerDIContainerGenerator().Create(
                 new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var catalog = new PlacementTargetCatalog();
+            var catalog = new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap());
             var unlocked = new AllPlacementTargetsUnlockedStateData();
             var controlObject = new GameObject("BuildMenuSelectActionTest.Control");
-            var viewObject = new GameObject("BuildMenuSelectActionTest.View");
             var control = controlObject.AddComponent<UIStateControl>();
-            var view = viewObject.AddComponent<BuildMenuView>();
+            var selection = new BuildMenuSelection();
 
             try
             {
                 SetCurrentState(control, UIStateEnum.BuildMenu);
                 var handler = new BuildMenuSelectActionHandler(
-                    control, new PlacementTargetResolver(catalog, new ClientBlueprintLibrary(), unlocked), view);
+                    control, new PlacementTargetResolver(catalog, new ClientBlueprintLibrary(), unlocked), selection);
                 var entry = catalog.UnlockedEntries(
                     unlocked, false, Array.Empty<(Guid, string)>()).First();
 
                 var success = handler.ExecuteAsync(
                     new JObject { ["id"] = entry.Id.ToString("D") }).GetAwaiter().GetResult();
                 Assert.IsTrue(success.Ok);
-                Assert.IsTrue(view.TryConsumeSelectedEntry(out var selected));
-                Assert.AreEqual(entry.Id, selected.Target.Id);
+                Assert.IsTrue(selection.TryConsumeSelectedTarget(out var selected));
+                Assert.AreEqual(entry.Id, selected.Id);
 
                 var malformed = handler.ExecuteAsync(
                     new JObject { ["id"] = "not-a-guid" }).GetAwaiter().GetResult();
@@ -190,7 +190,6 @@ namespace Client.Tests.WebUi
             }
             finally
             {
-                UnityEngine.Object.DestroyImmediate(viewObject);
                 UnityEngine.Object.DestroyImmediate(controlObject);
             }
 

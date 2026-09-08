@@ -6,10 +6,13 @@ using Game.Block.Blocks.Fluid;
 using Game.Block.Component;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.State;
 using Game.Fluid;
+using MessagePack;
 using Mooresmaster.Model.FluidInventoryConnectsModule;
 using Newtonsoft.Json;
 using Game.Block.Interface.Component.ConnectJudge;
+using UniRx;
 
 namespace Game.Block.Blocks.Pump
 {
@@ -17,13 +20,16 @@ namespace Game.Block.Blocks.Pump
     /// Holds an inner fluid tank and pushes it to connected pipes each update.
     /// Output-only for external inventories; internal generators enqueue via AddLiquid.
     /// </summary>
-    public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState
+    public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
     {
         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
         public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
-        
+
         private readonly FluidContainer _tank;
         private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
+        private readonly Subject<Unit> _onChangeBlockState = new();
+
+        public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
         public PumpFluidOutputComponent(float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector)
         {
@@ -48,6 +54,7 @@ namespace Game.Block.Blocks.Pump
         public void Update()
         {
             // Push fluid to connected inventories
+            var pushedFluid = false;
             foreach (var (inventory, info) in _fluidConnector.ConnectedTargets)
             {
                 if (_tank.Amount <= 0) break;
@@ -67,6 +74,7 @@ namespace Game.Block.Blocks.Pump
                         _tank.Amount = 0;
                         _tank.FluidId = FluidMaster.EmptyFluidId;
                     }
+                    pushedFluid = true;
                 }
             }
 
@@ -75,6 +83,10 @@ namespace Game.Block.Blocks.Pump
             {
                 _tank.FluidId = FluidMaster.EmptyFluidId;
             }
+
+            // 1tickの搬出は接続先が何本でも1つの状態変化。ループ内で発火すると接続数だけ多重通知になる
+            // One tick's push is a single state change however many targets there are; firing inside the loop would notify once per target
+            if (pushedFluid) _onChangeBlockState.OnNext(Unit.Default);
 
             #region Internal
 
@@ -90,6 +102,8 @@ namespace Game.Block.Blocks.Pump
             #endregion
         }
 
+        // 生成tickの通知はポンプ本体（Processor / GearPumpComponent）が担うため、ここでは通知しない
+        // The pump itself (the processor / GearPumpComponent) notifies on generating ticks, so no notification is raised here
         public void EnqueueGeneratedFluid(FluidStack fluidStack)
         {
             _tank.AddLiquid(fluidStack);
@@ -111,10 +125,22 @@ namespace Game.Block.Blocks.Pump
             return JsonConvert.SerializeObject(state);
         }
 
+        public BlockStateDetail[] GetBlockStateDetails()
+        {
+            BlockException.CheckDestroy(this);
+
+            // ポンプは供給専用なので入力タンク0本、内部タンクを出力タンク1本として配信する
+            // A pump is output-only, so it publishes zero input tanks and its inner tank as the single output tank
+            var outputTanks = new List<FluidMessagePack> { new(_tank.FluidId, _tank.Amount, _tank.Capacity) };
+            var detail = new FluidMachineInventoryStateDetail(new List<FluidMessagePack>(), outputTanks);
+            return new[] { new BlockStateDetail(FluidMachineInventoryStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(detail)) };
+        }
+
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {
             IsDestroy = true;
+            _onChangeBlockState?.Dispose();
         }
 
         public List<FluidStack> GetFluidInventory()

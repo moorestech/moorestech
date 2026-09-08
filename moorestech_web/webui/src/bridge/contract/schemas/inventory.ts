@@ -67,6 +67,22 @@ export const MinerDetailDataSchema = z.object({
   miningItems: z.array(z.object({ itemId: z.number(), itemsPerMinute: z.number() })),
 });
 
+const PumpingFluidsSchema = z.array(z.object({ fluidGuid: GuidSchema, amountPerMinute: z.number() }));
+
+// ポンプ種別が動力行の有無を決める。油井だけがelectricを持ち、歯車ポンプの動力はGearSectionが出す
+// The pump kind decides the power row: only the electric pump carries electric, the gear pump's power belongs to GearSection
+export const PumpDetailDataSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("electric"),
+    electric: z.object({ currentState: MachineProcessStateSchema, currentPower: z.number(), requestPower: z.number() }),
+    pumpingFluids: PumpingFluidsSchema,
+  }),
+  z.object({
+    kind: z.literal("gear"),
+    pumpingFluids: PumpingFluidsSchema,
+  }),
+]);
+
 export const GearDetailDataSchema = z.object({
   isClockwise: z.boolean(), currentRpm: z.number(), currentTorque: z.number(), baseRpm: z.number(), baseTorque: z.number(),
 });
@@ -124,6 +140,7 @@ export const BlockInventoryOpenSchema = z.object({
   machine: MachineDetailDataSchema.optional(),
   generator: GeneratorDetailDataSchema.optional(),
   miner: MinerDetailDataSchema.optional(),
+  pump: PumpDetailDataSchema.optional(),
   gear: GearDetailDataSchema.optional(),
   electricNetwork: ElectricNetworkDataSchema.optional(),
   gearNetwork: GearNetworkDataSchema.optional(),

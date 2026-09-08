@@ -35,7 +35,7 @@ vi.mock("@mantine/core", () => ({
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
 }));
 vi.mock("./LackHighlightText", () => ({ default: (props: object) => createElement("mock-lack", props) }));
-vi.mock("./PowerRateText", () => ({ default: (props: object) => createElement("mock-power", props) }));
+vi.mock("./rows/PowerRateText", () => ({ default: (props: object) => createElement("mock-power", props) }));
 vi.mock("./machine/MachineInventoryBody", () => ({ default: (props: object) => createElement("mock-inventory-body", props) }));
 vi.mock("./machine/recipeSelection/MachineRecipeSelectionList", () => ({ default: (props: object) => createElement("mock-recipe-selection-list", props) }));
 vi.mock("./machine/SelectedRecipeHeader", () => ({ default: (props: object) => createElement("mock-selected-recipe-header", props) }));

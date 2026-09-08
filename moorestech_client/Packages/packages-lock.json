@@ -455,15 +455,15 @@
       "dependencies": {}
     },
     "io.github.hatayama.uloopmcp": {
-      "version": "https://github.com/hatayama/uLoopMCP.git?path=/Packages/src",
+      "version": "3.3.0",
       "depth": 0,
-      "source": "git",
+      "source": "registry",
       "dependencies": {
-        "com.unity.inputsystem": "1.14.2",
-        "com.unity.ugui": "1.0.0",
-        "com.unity.nuget.newtonsoft-json": "3.2.1"
+        "com.unity.nuget.mono-cecil": "1.11.6",
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.ugui": "1.0.0"
       },
-      "hash": "05926b529b9a1895f509904238a57fc20da0a410"
+      "url": "https://package.openupm.com"
     },
     "jp.co.cyberagent.smartaddresser": {
       "version": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser",

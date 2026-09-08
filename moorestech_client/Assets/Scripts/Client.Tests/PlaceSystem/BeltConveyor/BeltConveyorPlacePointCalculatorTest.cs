@@ -118,7 +118,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 null
             );
 
-            List<PlaceInfo> actual = BeltConveyorPlacePointCalculator.CalculatePoint(
+            List<PlaceInfo> actual = BeltConveyorPlacePointCalculator.CalculateStraightPoint(
                 testCase.PlaceStartPoint,
                 testCase.PlaceEndPoint,
                 isStartDirectionZ,
@@ -150,7 +150,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 
             // isNotExistBlock は常に true（占有なし扱い）。それでも端点は不可のまま残るべき
             // isNotExistBlock always returns true (no occupancy); the endpoints must still stay unplaceable.
-            var actual = BeltConveyorPlacePointCalculator.CalculatePoint(
+            var actual = BeltConveyorPlacePointCalculator.CalculateStraightPoint(
                 new Vector3Int(0, 0, 0), new Vector3Int(2, 0, 0), false, BlockDirection.East,
                 blockMasterElement, (_, _) => true, obstacle.Contains, out _, out var beltReasons);
 

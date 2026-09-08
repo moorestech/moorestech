@@ -12,6 +12,10 @@ const sources = {
   electricToGear: read("./views/ElectricToGearInventory.tsx"),
   network: read("./details/NetworkSections.tsx"),
   miner: read("./details/MinerSection.tsx"),
+  pump: read("./details/pump/PumpSection.tsx"),
+  machineStateRow: read("./details/rows/MachineStateRow.tsx"),
+  perMinuteRateRow: read("./details/rows/PerMinuteRateRow.tsx"),
+  powerRateText: read("./details/rows/PowerRateText.tsx"),
   machineInventoryBody: read("./details/machine/MachineInventoryBody.tsx"),
 };
 
@@ -22,6 +26,7 @@ const styles = {
   progressArrow: read("../../shared/ui/ProgressArrowBar/style.module.css"),
   progressArrowGlyph: read("../../shared/ui/ProgressArrowGlyph/style.module.css"),
   machineInventoryBody: read("./details/machine/machineInventoryBody.module.css"),
+  pumpSection: read("./details/pump/pumpSection.module.css"),
 };
 
 const appTokens = read("../../app/tokens.css");
@@ -95,7 +100,7 @@ describe("block inventory design whitelist", () => {
     expect(machineSection).toContain("<MachineRecipeSelectionList");
     expect(machineSection).toContain("<SelectedRecipeHeader");
     expect(machineSection).toContain("<MachineInventoryBody");
-    expect(machineSection).toContain("<PowerRateText");
+    expect(machineSection).toContain("<MachineStateRow");
     expect(machineSection).not.toContain("<ModeSwitch");
   });
 
@@ -123,6 +128,18 @@ describe("block inventory design whitelist", () => {
     expect(sources.machineInventoryBody).toContain('data-testid="machine-module-label"');
     expect(sources.machineInventoryBody).toContain("t(L.ui.blockInventory.upgradeSlots)");
     expect(sources.machineInventoryBody).toContain('mt="xs"');
+  });
+
+  it("ポンプの流体アイコンを非正方形でも歪ませずに収める", () => {
+    expect(styles.pumpSection).toContain("object-fit: contain");
+  });
+
+  it("稼働ラベルと分間レートの行を機械・採掘機・ポンプで共有する", () => {
+    expect(sources.machineStateRow).toContain("<PowerRateText");
+    expect(sources.pump).toContain("<MachineStateRow");
+    expect(sources.pump).toContain("<PerMinuteRateRow");
+    expect(sources.miner).toContain("<PerMinuteRateRow");
+    expect(sources.miner).toContain("<PowerRateText");
   });
 });
 
