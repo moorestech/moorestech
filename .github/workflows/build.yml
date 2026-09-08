@@ -252,6 +252,10 @@ jobs:
       # uLoopMCP v3 always starts a named-pipe IPC server on Windows at Editor startup, batch mode included.
       # In the CI container its async read throws an unhandled ObjectDisposedException and Unity dies before the build starts.
       # It is a developer-only tool that the build does not need, so drop the dependency for the Windows client build.
+      # Newtonsoft.JsonはuLoopMCP経由でしか入らない間接依存なので、外す前に直接依存へ昇格させる。
+      # 昇格しないとAssets/Pluginsの9.0.1へ落ち、JObject.ContainsKey等がコンパイルエラーになる。
+      # Newtonsoft.Json only enters the project through uLoopMCP, so promote it to a direct dependency first.
+      # Without that the project falls back to the 9.0.1 DLL in Assets/Plugins and JObject.ContainsKey fails to compile.
       - name: Drop uLoopMCP package (Windows)
         if: runner.os == 'Windows'
         shell: bash
@@ -260,16 +264,20 @@ jobs:
           python3 -c "
           import json
           package = 'io.github.hatayama.uloopmcp'
-          with open('manifest.json', 'r') as f:
-              manifest = json.load(f)
-          manifest['dependencies'].pop(package, None)
-          with open('manifest.json', 'w') as f:
-              json.dump(manifest, f, indent=2)
+          newtonsoft = 'com.unity.nuget.newtonsoft-json'
           with open('packages-lock.json', 'r') as f:
               lock = json.load(f)
+          newtonsoft_entry = lock['dependencies'][newtonsoft]
+          newtonsoft_entry['depth'] = 0
           lock['dependencies'].pop(package, None)
           with open('packages-lock.json', 'w') as f:
               json.dump(lock, f, indent=2)
+          with open('manifest.json', 'r') as f:
+              manifest = json.load(f)
+          manifest['dependencies'].pop(package, None)
+          manifest['dependencies'][newtonsoft] = newtonsoft_entry['version']
+          with open('manifest.json', 'w') as f:
+              json.dump(manifest, f, indent=2)
           "
 
       # Unityのビルド前処理(WebUiProductionArtifactBuilder)がpnpm buildを実行するが、
