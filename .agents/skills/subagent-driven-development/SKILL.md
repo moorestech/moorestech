@@ -5,11 +5,11 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 # Subagent-Driven Development
 
-計画を実行する際、タスクごとに新しいimplementer subagentを派遣し、各タスク後にタスクレビュー（spec準拠＋コード品質）を行い、最後に広範なブランチ全体レビューを行う。
+計画を実行する際、規模ゲート超なら タスクごとに新しいimplementer subagentを派遣し、各タスク後にタスクレビュー（spec準拠＋コード品質）を行い、最後に広範なブランチ全体レビューを行う。
 
 **なぜsubagentを使うのか:** 隔離されたコンテキストを持つ専門エージェントにタスクを委譲する。指示とコンテキストを精密に組み立てることで、彼らが集中してタスクを成功させることを保証する。彼らは自分のセッションのコンテキストや履歴を継承すべきではなく、必要なものだけを正確に構築して渡す。これにより自分自身のコンテキストも調整作業のために温存される。
 
-**核となる原則:** タスクごとの新規subagent + タスクレビュー（spec + 品質） + 広範な最終レビュー = 高品質・高速なイテレーション
+**核となる原則:** 本体は実装を書かない（閾値未満はopus単一subagent、閾値超はタスクごとの新規subagent + タスクレビュー） + 広範な最終レビュー = 高品質・高速なイテレーション
 
 **ナレーション:** ツール呼び出しの間は最大1行だけ短く実況する。台帳とツール結果が記録を担う。
 
@@ -74,9 +74,9 @@ digraph when_to_use {
 }
 ```
 
-## ワークスペース隔離（タスク1派遣前・必須）
+## ワークスペース隔離（最初のsubagent派遣前・必須）
 
-**専用worktreeの外でimplementer subagentを派遣してはならない。** 本体ワーキングツリーは他セッション・並行エージェントと共有されており、subagentのコミットが無関係な作業を巻き込む事故が実際に起きている。隔離は「あれば良いもの」ではなくタスク1の前提条件である。
+**専用worktreeの外でimplementer subagentを派遣してはならない。** 本体ワーキングツリーは他セッション・並行エージェントと共有されており、subagentのコミットが無関係な作業を巻き込む事故が実際に起きている。隔離は「あれば良いもの」ではなく最初の派遣（SDD本体ならタスク1、単一subagentモードならその1体）の前提条件である。
 
 例外は2つだけ:
 
@@ -137,7 +137,7 @@ digraph process {
     rankdir=TB;
 
     subgraph cluster_per_task {
-        label="Per Task";
+        label="Per Task (SDD本体)";
         "Dispatch implementer subagent (./implementer-prompt.md)" [shape=box];
         "Implementer subagent asks questions?" [shape=diamond];
         "Answer questions, provide context" [shape=box];
@@ -148,14 +148,29 @@ digraph process {
         "Mark task complete in todo list and progress ledger" [shape=box];
     }
 
+    subgraph cluster_single {
+        label="Single subagent mode (below size gate)";
+        "Dispatch single opus implementer, foreground (./single-implementer-prompt.md)" [shape=box];
+        "Returned DONE?" [shape=diamond];
+        "Confirm done tasks via report file + git log, dispatch continuation (max 2)" [shape=box];
+    }
+
     "Ensure isolated worktree (create, or verify already inside one)" [shape=box];
     "Read plan, note context and global constraints, create todos" [shape=box];
+    "Below size gate?" [shape=diamond];
     "More tasks remain?" [shape=diamond];
     "Run final whole-branch review: moores-code-review skill" [shape=box];
     "Finish branch (commit, create PR via pr-create, resolve conflicts vs master)" [shape=box style=filled fillcolor=lightgreen];
 
     "Ensure isolated worktree (create, or verify already inside one)" -> "Read plan, note context and global constraints, create todos";
-    "Read plan, note context and global constraints, create todos" -> "Dispatch implementer subagent (./implementer-prompt.md)";
+    "Read plan, note context and global constraints, create todos" -> "Below size gate?";
+    "Below size gate?" -> "Dispatch single opus implementer, foreground (./single-implementer-prompt.md)" [label="yes"];
+    "Dispatch single opus implementer, foreground (./single-implementer-prompt.md)" -> "Returned DONE?";
+    "Returned DONE?" -> "Run final whole-branch review: moores-code-review skill" [label="yes"];
+    "Returned DONE?" -> "Confirm done tasks via report file + git log, dispatch continuation (max 2)" [label="no"];
+    "Confirm done tasks via report file + git log, dispatch continuation (max 2)" -> "Returned DONE?";
+    "Confirm done tasks via report file + git log, dispatch continuation (max 2)" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="3rd failure: fall back to SDD per task"];
+    "Below size gate?" -> "Dispatch implementer subagent (./implementer-prompt.md)" [label="no"];
     "Dispatch implementer subagent (./implementer-prompt.md)" -> "Implementer subagent asks questions?";
     "Implementer subagent asks questions?" -> "Answer questions, provide context" [label="yes"];
     "Answer questions, provide context" -> "Dispatch implementer subagent (./implementer-prompt.md)";
@@ -194,7 +209,7 @@ digraph process {
 
 ## 事前計画レビュー
 
-タスク1を派遣する前に、計画を一度スキャンして矛盾を確認する:
+最初のsubagent（SDD本体ならタスク1のimplementer、単一subagentモードならその1体）を派遣する前に、計画を一度スキャンして矛盾を確認する:
 
 - タスク同士、あるいはタスクと計画のGlobal Constraintsとが矛盾している箇所
 - 計画が明示的に義務付けているが、レビューの基準では欠陥とみなされるもの（何も検証しないテスト、ロジックブロックの逐語的な重複）
@@ -204,6 +219,8 @@ digraph process {
 見つけたものはすべて一括した質問として人間パートナーに提示する — それを義務付ける計画テキストの隣に各所見を並べ、どちらを優先すべきか尋ねる — 実行開始前に行い、計画実行中の発見ごとに1つずつ割り込むのではない。スキャンが問題なければ、コメントなしで進める。実装からのみ明らかになる矛盾については、レビューループが引き続き網の役割を果たす。
 
 ## モデル選定
+
+**例外（先に適用）: 単一subagent実装モードのimplementerと、その最終レビュー所見を直すfix subagentは `opus` 固定。** 以下のティア規則はSDD本体のタスク単位派遣にのみ適用する。単一subagentは計画全体の統合判断を1体で担うため「機械的タスクは安価モデル」の前提が成り立たず、ユーザー裁定（2026-09-08「トークンコストがそこまで大きくならないのと精度優先」）でopusに固定した。
 
 コストを抑え速度を高めるため、各役割をこなせる最も非力なモデルを使うこと。
 
@@ -243,6 +260,8 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 
 **エスカレーションを無視したり、変更なく同じモデルにリトライを強制したりすることは決してしないこと。** implementerが行き詰まったと言ったなら、何かを変える必要がある。
 
+**単一subagent実装モードの場合:** DONE ならタスクレビュアーを派遣せず、台帳へ完了行を書いて最終ブランチ全体レビューへ直行する。DONE_WITH_CONCERNS は懸念を読み、正しさ・スコープに関するものなら最終レビュー所見と同じ経路（単一fix subagent・opus）で直してから最終レビューへ（継続派遣ではないので上限2回には数えない）。単なる所見ならメモして最終レビューへ。BLOCKED・NEEDS_CONTEXT・途中終了は「継続再派遣（途中失敗時）」（規模ゲート節）に従う — 完了タスクは報告ファイルと `git log` で確定し、同じ subagent に再試行を強制しない。継続は最大2回で、3回目が必要なら残りをSDD本体へ切り替える。
+
 ## レビュアーの⚠️項目への対応
 
 タスクレビュアーは「⚠️ diffからは検証不能」という項目を報告することがある — 未変更のコードに存在する、またはタスクをまたぐ要件。これらは残りのレビューをブロックしないが、タスク完了とマークする前に自分自身で各項目を解決しなければならない: 計画とタスク横断のコンテキストを持つのはあなたであり、レビュアーはそれを持たない。項目が実際のギャップだと確認したら、失敗したspecレビューとして扱う — implementerに差し戻し再レビューする。
@@ -274,6 +293,7 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
 - **レビュー報告ファイル:** レビュアーは所見全文を`…/task-N-review.md`に書き、返答は判定サマリーのみ（Spec判定・⚠️項目全文・quality判定・Critical/Important各1行・Minor件数・ファイルパス）。fix subagentにはこのファイルのパスを渡す — コントローラーが所見を転記しない。
 - fix派遣は同じ報告ファイルにfix報告（テスト結果込み）を追記し、短い要約を返す。再レビューは更新されたファイルを読む。
 - **契約ファイル:** implementer/レビュアーの定型指示は`implementer-contract.md`・`task-reviewer-contract.md`にあり、subagentが自分で読む。派遣プロンプトには契約ファイルの絶対パスとタスク固有情報だけを書く — 定型文を派遣プロンプトへ展開しない（派遣プロンプトはコントローラーのコンテキストに残り続ける）。
+- **単一subagent実装モード:** `scripts/task-brief` は使わず、計画ファイル全体の絶対パスをブリーフとして直渡しする（`[PLAN_FILE_ABS]`）。実装範囲は `[TASK_RANGE]` で列挙する（末尾の最終レビュー・PR作成タスクは含めない）。報告ファイルは `<workspace>/single-report.md` 固定で、subagentがタスク完了ごとに `Task N: done <sha7> — <1行要約>` を追記する。継続派遣は同じ報告ファイルに追記する。
 
 ## 永続的な進捗管理
 
@@ -285,14 +305,37 @@ Implementer subagentは4つのステータスのいずれかを報告する。�
   `Task N: complete (commits <base7>..<head7>, review clean)`。
 - 台帳は復旧マップである: そこに記載されたコミットは、自分のコンテキストがそれらを作成したことを覚えていなくてもgitに存在する。compaction後は自分の記憶よりも台帳と`git log`を信頼すること。
 - `git clean -fdx`は台帳を破壊する（git-ignoreされたスクラッチのため）。発生した場合は`git log`から復旧すること。
+- **単一subagent実装モードの記帳はコントローラーが2行だけ書く:** 派遣時 `Single-subagent: dispatched base <sha7> report <path>`、完了時 `Single-subagent: complete (commits <base7>..<head7>)`（継続派遣があれば `Single-subagent: continuation #k from Task N base <sha7>` を間に挟む）。タスク別の完了は subagent が報告ファイルへ書く。compaction後の復旧順は **台帳 → 報告ファイル → `git log`**。台帳に `dispatched` があって `complete` が無ければ、subagentが走っているか途中終了している — **継続派遣の前に ListAgents 等で元subagentの生存を確認し、生きていれば結果を待つ**（compaction後も subagent は生存しており、死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）。不在または報告済みなら、報告ファイルの `Task N: done` 行と `git log` で完了タスクを確定してから継続再派遣する。
 
 ## プロンプトテンプレート
 
+- [single-implementer-prompt.md](single-implementer-prompt.md) - 単一subagent実装モードの派遣（規模ゲート未満。`model: opus` 固定。定型は[implementer-contract.md](implementer-contract.md)をsubagentが読む）
 - [implementer-prompt.md](implementer-prompt.md) - implementer subagentの派遣（タスク固有情報のみ。定型は[implementer-contract.md](implementer-contract.md)をsubagentが読む）
 - [task-reviewer-prompt.md](task-reviewer-prompt.md) - タスクレビュアーsubagentの派遣（同上。定型は[task-reviewer-contract.md](task-reviewer-contract.md)）
 - 最終ブランチ全体レビュー: moores-code-review スキル（Skillツール経由で呼び出す。プロンプトテンプレートは持たない）
 
 ## ワークフロー例
+
+**単一subagent実装モード（規模ゲート未満）:**
+
+```
+You: 実装4タスク・5ファイル → 単一subagent。worktreeを作成し事前計画レビューを通しました。
+
+[sdd-workspace で報告パスを確保、BASE=ab12cd3 を台帳に記帳]
+[single-implementer-prompt.md で model: opus をフォアグラウンド派遣]
+
+Implementer:
+  - Task 1〜4 を順に実装、タスクごとにコミット（4コミット）
+  - 報告ファイルに Task N: done <sha> を4行追記
+  - 12/12 tests passing、自己レビュー: 問題なし
+  - ステータス: DONE
+
+[台帳に complete 行を記帳]
+[moores-code-review を Skill ツールで実行 → 所見2件 → 単一fix subagent(opus)へ]
+[pr-create で PR 作成]
+```
+
+**SDD本体（閾値超）:**
 
 ```
 You: この計画をSubagent-Driven Developmentで実行します。
@@ -391,17 +434,20 @@ Final reviewer: 全要件を満たし、マージ可能
 
 **絶対にしないこと:**
 - 明示的なユーザー同意なしにmain/masterブランチで実装を開始する
-- worktreeを作らずに（あるいは既にworktree内かを確認せずに）タスク1のimplementerを派遣する — 「今回は小さい計画だから」は理由にならない
+- 規模ゲート未満だからという理由で本体セッションが実装コードを書く — 閾値未満は単一subagent実装モードであり、本体が書く選択肢は無い（ADR 0053）
+- 単一subagentを `model: opus` 以外・model未指定・バックグラウンドで派遣する
+- 単一subagentが途中終了したとき、元subagentの生存確認（ListAgents）と報告ファイル・`git log` の確認を経ずに再派遣する（生存中なら同一worktreeの二重編集、終了済みなら完了タスクの二重実装になる）
+- worktreeを作らずに（あるいは既にworktree内かを確認せずに）最初のimplementer（単一subagent含む）を派遣する — 「今回は小さい計画だから」は理由にならない
 - 本体ワーキングツリーで既にfeatureブランチを切っているという理由で隔離を省略する — 共有されているのはブランチではなくディレクトリである
-- タスクレビューをスキップする、または片方の判定（spec準拠とタスク品質の両方が必須）を欠く報告を受け入れる
+- SDD本体でタスクレビューをスキップする、または片方の判定（spec準拠とタスク品質の両方が必須）を欠く報告を受け入れる（単一subagentモードはタスクレビューを持たず最終レビュー1本が正）
 - 未修正の問題を抱えたまま進める
 - 複数の実装subagentを並列に派遣する（衝突する）
-- subagentに計画ファイル全体を読ませる（代わりにタスクブリーフ — `scripts/task-brief` — を渡す）
+- SDD本体のタスク単位派遣でsubagentに計画ファイル全体を読ませる（代わりにタスクブリーフ — `scripts/task-brief` — を渡す。単一subagentモードは計画ファイル全体のパスを渡すのが正）
 - 状況説明コンテキストを省略する（subagentはタスクがどこに位置するか理解する必要がある）
 - subagentの質問を無視する（進める前に回答する）
 - spec準拠について「まあ十分」を受け入れる（レビュアーがspec問題を見つけた = 未完了）
 - レビューループをスキップする（レビュアーが問題を見つけた = implementerが修正 = 再レビュー）
-- implementerの自己レビューを実際のレビューの代替にする（両方が必要）
+- implementerの自己レビューを実際のレビュー（SDD本体ならタスクレビュー、単一subagentモードなら最終レビュー）の代替にする（両方が必要）
 - レビュアーに何をフラグ立てしないか指示する、または派遣プロンプトで所見の深刻度を先取り評価する（「最大でもMinorとして扱え」）— 計画のサンプルコードは出発点であり、その弱点が意図的に選ばれた証拠ではない
 - diffファイルなしでタスクレビュアーを派遣する — 先に生成すること
   （`scripts/review-package BASE HEAD`）、表示されたパスをプロンプトに記載する
@@ -426,7 +472,7 @@ Final reviewer: 全要件を満たし、マージ可能
 ## 統合
 
 **必須のワークフロースキル:**
-- **ワークスペース隔離** - 上記「ワークスペース隔離（タスク1派遣前・必須）」がこのスキル内で手順を持つ。外部スキルへは委譲しない
+- **ワークスペース隔離** - 上記「ワークスペース隔離（最初のsubagent派遣前・必須）」がこのスキル内で手順を持つ。外部スキルへは委譲しない
 - **writing-plans** - このスキルが実行する計画を作成する
 - **moores-code-review** - 最終ブランチ全体レビューの実体（Skillツール経由）
 
