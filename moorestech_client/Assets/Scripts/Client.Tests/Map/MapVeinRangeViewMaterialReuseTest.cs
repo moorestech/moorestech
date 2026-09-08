@@ -9,6 +9,7 @@ using Server.Protocol.PacketResponse.MapData;
 using Server.Util.MessagePack;
 using Tests.Module.TestMod;
 using UnityEngine;
+using static Client.Tests.Map.Vein.MapVeinAabbRegistryFixture;
 
 namespace Client.Tests.Map
 {
@@ -65,11 +66,11 @@ namespace Client.Tests.Map
 
             // 指定した種別のveinだけが表示されること。種別の絞り込みが効かないと本数で落ちる
             // Only the requested kind shows; a broken kind filter fails on the count
-            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Item), false));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(SelectVeinsOfKind(registry, MapVeinKind.Item), false));
             Assert.AreEqual(ItemVeinCount, CountVisibleBoxes(root), "item veins did not get exactly one range view box each");
 
             var sharedMaterials = CollectVisibleBoxMaterials(root);
-            service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(MapVeinKind.Fluid), false));
+            service.SetVeinDisplay(VeinDisplay.OfVeins(SelectVeinsOfKind(registry, MapVeinKind.Fluid), false));
             Assert.AreEqual(FluidVeinCount, CountVisibleBoxes(root), "fluid veins did not get exactly one range view box each");
 
             // item側とfluid側で材質は合計2枚だけ。ボックス毎に作っていれば3枚になり、数で分岐して落ちる
@@ -88,7 +89,7 @@ namespace Client.Tests.Map
                 foreach (var veinKind in new[] { MapVeinKind.Item, MapVeinKind.Fluid })
                 {
                     service.SetVeinDisplay(VeinDisplay.Hidden);
-                    service.SetVeinDisplay(VeinDisplay.OfVeins(registry.SelectVeinsOfKind(veinKind), false));
+                    service.SetVeinDisplay(VeinDisplay.OfVeins(SelectVeinsOfKind(registry, veinKind), false));
                     cycleMaterials.UnionWith(CollectVisibleBoxMaterials(root));
                 }
 

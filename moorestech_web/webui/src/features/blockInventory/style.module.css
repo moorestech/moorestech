@@ -28,3 +28,12 @@
   right: var(--panel-edge-fade);
   z-index: var(--z-stage-overlay-panel);
 }
+
+/* パネル本文の高さを子へ渡すための伸長。レシピ選択リストのスクロール高はこの連鎖で確定する。
+   高さ自動の小型パネルでは器の高さが内容高のままなので見た目は変わらない */
+/* Stretches a body child so the panel's height reaches down the chain, settling the recipe-selection list's
+   scroll height; on auto-height small panels the container still measures its content, so nothing moves */
+.fillPanelHeight {
+  flex: 1;
+  min-height: 0;
+}

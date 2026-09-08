@@ -34,7 +34,7 @@ export default function MachineRecipeSelectionRow({ row, onSelect }: Props) {
           ...recipe.inputItems.map((item, i) => <ItemSlot key={`item-${i}`} itemId={item.itemId} count={item.count} />),
           ...recipe.inputFluids.map((fluid, i) => <FluidIcon key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} />),
         ]}
-        action={null}
+        actionMode="none"
         result={[
           ...recipe.outputItems.map((item, i) => <ItemSlot key={`item-${i}`} itemId={item.itemId} count={item.count} />),
           ...recipe.outputFluids.map((fluid, i) => <FluidIcon key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} />),

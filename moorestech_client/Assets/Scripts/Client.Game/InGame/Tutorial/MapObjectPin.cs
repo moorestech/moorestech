@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using Mooresmaster.Model.ChallengesModule;
 using UnityEngine;
@@ -94,8 +93,6 @@ namespace Client.Game.InGame.Tutorial
 
             void PublishWebWorldPin()
             {
-                if (!WebUiScreenGate.IsWebUiMode) return;
-
                 var camera = CameraManager.MainCamera.Camera;
                 if (!camera) return;
 

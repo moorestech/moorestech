@@ -3,7 +3,6 @@ using Client.Common;
 using Client.Common.Asset;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Inventory.Common;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Client.Starter.Initialization.Progress;
@@ -38,24 +37,6 @@ namespace Client.Starter.Initialization
             _loadingProgressLog = loadingProgressLog;
         }
 
-        // Addressables の並列ロードでハングするアセットを初期化直後に事前ロードする（詳細は下記）
-        // Pre-load assets that hang under parallel Addressables loading, right after init (details below)
-        public static async UniTask PreloadCriticalAssetsAsync()
-        {
-            // 【観察された事実 / Observed facts】
-            // "Use Existing Build"（ローカルバンドル）モードで、並列タスク内から複数アセットを同時ロードすると
-            // ItemSlotView / FluidSlotView だけが完了せずハングする（ブロック側は正常）。Addressables 初期化直後に
-            // ここで事前ロードするとハングしない。ChestBlockInventory もバンドル参照維持のため Dispose しない。
-            // In "Use Existing Build" mode, loading many assets concurrently inside parallel tasks makes only
-            // ItemSlotView / FluidSlotView hang (block loads complete). Pre-loading here right after Addressables
-            // init prevents the hang. ChestBlockInventory must also keep its bundle reference (no Dispose).
-            // 根本原因は Addressables 内部のバンドルロードスケジューリング/ロックと推測されるが未特定。
-            // Root cause is suspected to be Addressables' internal bundle scheduling/locking, but unidentified.
-            await AddressableLoader.LoadAsync<GameObject>("Vanilla/UI/Block/ChestBlockInventory");
-            await UniTask.WhenAll(ItemSlotView.LoadItemSlotViewPrefab(), FluidSlotView.LoadItemSlotViewPrefab());
-            Debug.Log("[InitializeScenePipeline] critical Addressables preload completed");
-        }
-
         public static async UniTask<List<TrainCarIconTarget>> PreloadTrainCarIconTargetsAsync()
         {
             var loadedPrefabs = new Dictionary<string, GameObject>();
@@ -76,6 +57,8 @@ namespace Client.Starter.Initialization
         {
             // ブロックとアイテムのアセットをロード
             // Load block and item assets.
+            // 前歴: "Use Existing Build" のローカルバンドルでUI系prefabを並列ロードに混ぜると、その1本だけ完了せずハングした（根本原因未特定・旧PreloadCriticalAssetsAsyncの事前ロードで回避していた）
+            // History: under Addressables "Use Existing Build" a UI prefab mixed into this parallel load could hang alone (root cause unknown; the old PreloadCriticalAssetsAsync preload avoided it)
             await UniTask.WhenAll(LoadBlockAssets(), LoadItemAssets(), LoadConnectToolAssets(), LoadFluidAssets());
             Debug.Log("[InitializeScenePipeline] parallel mod asset load completed");
 

@@ -35,7 +35,7 @@ vi.mock("@mantine/core", () => ({
   Stack: ({ children, ...props }: { children: unknown }) => createElement("mock-stack", props, children as never),
 }));
 vi.mock("./LackHighlightText", () => ({ default: (props: object) => createElement("mock-lack", props) }));
-vi.mock("./PowerRateText", () => ({ default: (props: object) => createElement("mock-power", props) }));
+vi.mock("./rows/PowerRateText", () => ({ default: (props: object) => createElement("mock-power", props) }));
 vi.mock("./machine/MachineInventoryBody", () => ({ default: (props: object) => createElement("mock-inventory-body", props) }));
 vi.mock("./machine/recipeSelection/MachineRecipeSelectionList", () => ({ default: (props: object) => createElement("mock-recipe-selection-list", props) }));
 vi.mock("./machine/SelectedRecipeHeader", () => ({ default: (props: object) => createElement("mock-selected-recipe-header", props) }));
@@ -54,13 +54,13 @@ const data = { open: true, itemSlots: [], fluidSlots: [], progress: null } as un
 
 describe("MachineSection", () => {
   it("未選択機械はレシピ選択リストを出し、インベントリ本体を出さない", () => {
-    const tree = create(createElement(MachineSection, { data, machine: machine(emptyGuid, blockGuid) }));
+    const tree = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(emptyGuid, blockGuid) }));
     expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(1);
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(0);
   });
 
   it("選択済機械はヘッダ＋本体を出し、ヘッダのonChangeRecipeでリストへ戻り、selectedRecipeGuidが実際に変わるまで本体へ戻らない", () => {
-    const tree = create(createElement(MachineSection, { data, machine: machine(recipeGuid, blockGuid) }));
+    const tree = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid) }));
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(1);
     const header = tree.root.findByType("mock-selected-recipe-header" as never);
     act(() => header.props.onChangeRecipe());
@@ -71,19 +71,19 @@ describe("MachineSection", () => {
     // Requesting another recipe keeps selection mode until the server's selection catches up (C14: a rejection never returns)
     const list = tree.root.findByType("mock-recipe-selection-list" as never);
     act(() => list.props.onSelected(otherRecipeGuid));
-    act(() => { tree.update(createElement(MachineSection, { data, machine: machine(recipeGuid, blockGuid) })); });
+    act(() => { tree.update(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid) })); });
     expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(1);
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(0);
 
     // 要求したレシピがサーバーの選択になったら本体へ戻る
     // Returns to the inventory body once the requested recipe becomes the server's selection
-    act(() => { tree.update(createElement(MachineSection, { data, machine: machine(otherRecipeGuid, blockGuid) })); });
+    act(() => { tree.update(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(otherRecipeGuid, blockGuid) })); });
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(1);
     expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(0);
   });
 
   it("同一レシピを選び直しても選択モードから戻れる（要求GUID一致で閉じる）", () => {
-    const tree = create(createElement(MachineSection, { data, machine: machine(recipeGuid, blockGuid) }));
+    const tree = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid) }));
     const header = tree.root.findByType("mock-selected-recipe-header" as never);
     act(() => header.props.onChangeRecipe());
     expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(1);
@@ -97,17 +97,17 @@ describe("MachineSection", () => {
   });
 
   it("レシピ0件の機械はヘッダもリストも出さず本体だけ出す", () => {
-    const tree = create(createElement(MachineSection, { data, machine: machine(emptyGuid, otherBlockGuid) }));
+    const tree = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(emptyGuid, otherBlockGuid) }));
     expect(tree.root.findAllByType("mock-inventory-body" as never)).toHaveLength(1);
     expect(tree.root.findAllByType("mock-recipe-selection-list" as never)).toHaveLength(0);
     expect(tree.root.findAllByType("mock-selected-recipe-header" as never)).toHaveLength(0);
   });
 
   it("停止中は充足率テキストを出さず状態ラベルだけを見せる", () => {
-    const halted = create(createElement(MachineSection, { data, machine: machine(recipeGuid, blockGuid, "halted") }));
+    const halted = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid, "halted") }));
     expect(halted.root.findAllByProps({ testId: "machine-power-rate" })).toHaveLength(0);
 
-    const processing = create(createElement(MachineSection, { data, machine: machine(recipeGuid, blockGuid, "processing") }));
+    const processing = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid, "processing") }));
     expect(processing.root.findAllByProps({ testId: "machine-power-rate" }).length).toBeGreaterThan(0);
   });
 });

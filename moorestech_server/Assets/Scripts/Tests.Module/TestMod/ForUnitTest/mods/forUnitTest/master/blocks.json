@@ -5097,6 +5097,154 @@
       "category": "テスト",
       "subCategory": "ElectricMiner",
       "placementsPerCost": 1
+    },
+    {
+      "blockGuid": "f1000000-0000-0000-0000-000000000001",
+      "name": "MultiFluidPumpWaterFirst",
+      "blockType": "ElectricPump",
+      "blockSize": [
+        11,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "blockParam": {
+        "generateFluid": [
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 10,
+            "generateTime": 4
+          },
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000002",
+            "amount": 6,
+            "generateTime": 3
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requiredPower": 50,
+        "idlePowerRate": 0.4,
+        "fluidInventoryConnectors": {
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "option": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "e33b1e10-8986-46e4-b041-d04025d6a7d8"
+            }
+          ],
+          "inflowConnects": []
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 9,
+        "connectionHeightRange": 9
+      },
+      "category": "テスト",
+      "subCategory": "ElectricPump",
+      "placementsPerCost": 1
+    },
+    {
+      "blockGuid": "f1000000-0000-0000-0000-000000000002",
+      "name": "MultiFluidPumpSteamFirst",
+      "blockType": "ElectricPump",
+      "blockSize": [
+        11,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "blockUIAddressablesPath": "",
+      "blockParam": {
+        "generateFluid": [
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000002",
+            "amount": 10,
+            "generateTime": 4
+          },
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 6,
+            "generateTime": 3
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requiredPower": 50,
+        "idlePowerRate": 0.4,
+        "fluidInventoryConnectors": {
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "option": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "e33b1e10-8986-46e4-b041-d04025d6a7d8"
+            }
+          ],
+          "inflowConnects": []
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 9,
+        "connectionHeightRange": 9
+      },
+      "category": "テスト",
+      "subCategory": "ElectricPump",
+      "placementsPerCost": 1
     }
   ],
   "connectorSettings": {

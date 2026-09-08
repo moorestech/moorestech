@@ -7,12 +7,14 @@ using UnityEngine;
 namespace Client.Tests.WebUi.Gate
 {
     /// <summary>
-    /// ゲート漏れ決定論チェック。スクリーンスペースuGUI領域の全.csが分類済みで、ゲートルートが実際にゲートを持つことを機械判定する。
-    /// Deterministic gate-leak check: every screen-space uGUI .cs must be classified, and gated roots must actually contain the gate.
+    /// uGUI再流入の決定論チェック。スクリーンスペースuGUI領域の全.csが分類済みで、除外以外がuGUIを参照しないことを機械判定する。
+    /// Deterministic re-entry check: every screen-space uGUI .cs must be classified, and non-excluded files must not reference uGUI.
     /// </summary>
     public class WebUiGateAuditTest
     {
-        private const string GateToken = "WebUiScreenGate.IsWebUiMode";
+        // uGUI 参照の検出語。UIElements を部分一致で拾わないようセミコロンまで含める
+        // uGUI reference tokens; the trailing semicolon keeps UIElements out of the match
+        private static readonly string[] UguiTokens = { "using UnityEngine.UI;", "using TMPro;", "using UnityEngine.EventSystems;" };
 
         private static string ScriptsRoot => Path.Combine(Application.dataPath, "Scripts");
 
@@ -43,10 +45,18 @@ namespace Client.Tests.WebUi.Gate
             WebUiGateClassification.Rule? best = null;
             foreach (var rule in WebUiGateClassification.Rules)
             {
-                if (!relativePath.StartsWith(rule.PathPrefix)) continue;
+                if (!Matches(relativePath, rule.PathPrefix)) continue;
                 if (best == null || rule.PathPrefix.Length > best.Value.PathPrefix.Length) best = rule;
             }
             return best;
+        }
+
+        // ディレクトリ指定はパス区切りの境界で照合する（UI が UIToolkit を飲み込まないように）
+        // Directory prefixes match on the path separator so "UI" never swallows "UIToolkit"
+        private static bool Matches(string relativePath, string pathPrefix)
+        {
+            if (pathPrefix.EndsWith(".cs")) return relativePath == pathPrefix;
+            return relativePath.StartsWith(pathPrefix + "/");
         }
 
         // 新規スクリーンスペースuGUIの未分類追加を禁止する
@@ -60,24 +70,28 @@ namespace Client.Tests.WebUi.Gate
                 string.Join("\n", unclassified));
         }
 
-        // ゲートルートは実際に WebUiScreenGate.IsWebUiMode を参照していること
-        // Every gated root must actually reference WebUiScreenGate.IsWebUiMode
+        // 分類の裏をかいて新規スクリーンスペースuGUIが入るのを止める
+        // Stop new screen-space uGUI from slipping in behind the classification
         [Test]
-        public void GatedRootsContainGateToken()
+        public void NonGatedFilesContainNoUguiToken()
         {
-            var missing = new List<string>();
-            foreach (var rule in WebUiGateClassification.Rules)
+            var violations = new List<string>();
+            foreach (var relativePath in EnumerateTargetFiles())
             {
-                if (rule.RuleCategory != WebUiGateClassification.Category.GatedRoot) continue;
-                var abs = Path.Combine(ScriptsRoot, rule.PathPrefix);
-                if (!File.Exists(abs))
+                var rule = Resolve(relativePath);
+                if (rule == null) continue;
+                if (rule.Value.RuleCategory == WebUiGateClassification.Category.Excluded) continue;
+
+                var text = File.ReadAllText(Path.Combine(ScriptsRoot, relativePath));
+                foreach (var token in UguiTokens)
                 {
-                    missing.Add($"{rule.PathPrefix} (ファイルが存在しない — リネーム時はルールも更新)");
-                    continue;
+                    if (text.Contains(token)) violations.Add($"{relativePath} ({token})");
                 }
-                if (!File.ReadAllText(abs).Contains(GateToken)) missing.Add($"{rule.PathPrefix} (ゲート参照が消えている)");
             }
-            Assert.IsEmpty(missing, "ゲートルートの検証に失敗:\n" + string.Join("\n", missing));
+
+            Assert.IsEmpty(violations,
+                "除外に分類されていないファイルがスクリーンスペースuGUIを参照しています。Web UIへ寄せるか、分類をExcludedへ改めてください:\n" +
+                string.Join("\n", violations));
         }
 
         // ルールの腐敗検出: 全ルールが実在ファイルに一致すること
@@ -87,7 +101,7 @@ namespace Client.Tests.WebUi.Gate
         {
             var files = EnumerateTargetFiles().ToList();
             var stale = WebUiGateClassification.Rules
-                .Where(rule => !files.Any(f => f.StartsWith(rule.PathPrefix)))
+                .Where(rule => !files.Any(f => Matches(f, rule.PathPrefix)))
                 .Select(rule => rule.PathPrefix)
                 .ToList();
             Assert.IsEmpty(stale, "実在ファイルに一致しない分類ルール（削除・リネーム追従漏れ）:\n" + string.Join("\n", stale));

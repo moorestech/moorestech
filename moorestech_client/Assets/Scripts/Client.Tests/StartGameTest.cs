@@ -107,31 +107,17 @@ namespace Client.Tests
         }
 
         [Test]
-        public void MainGameScene_ローカライズ配線と鉱脈表示基盤が共存する()
+        public void MainGameScene_鉱脈表示基盤とピン配線が揃う()
         {
             const string scenePath = "Assets/Scenes/Game/MainGame.unity";
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
 
             try
             {
-                // 両系統のシーン要素を同時検証する
-                // Verify scene elements from both merge parents together because either side is easy to drop
-                var expectedKeys = new HashSet<string>
-                {
-                    "ui.blueprint.nameInputConfirm",
-                    "ui.blueprint.nameInputPlaceholder",
-                    "ui.common.cancel",
-                    "ui.blueprint.nameInputTitle",
-                };
-                var actualKeys = new HashSet<string>();
-                var localizedTexts = UnityEngine.Object.FindObjectsByType<TextMeshProLocalize>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-
-                foreach (var localizedText in localizedTexts)
-                {
-                    if (localizedText.gameObject.scene != scene) continue;
-                    var serializedText = new SerializedObject(localizedText);
-                    actualKeys.Add(serializedText.FindProperty("key").stringValue);
-                }
+                // 画面文字列はWeb UIが持つため、シーンには翻訳付きTMPを置かない（ADR 0052）
+                // Screen strings live in the Web UI, so the scene carries no localized TMP (ADR 0052)
+                foreach (var localizedText in UnityEngine.Object.FindObjectsByType<TextMeshProLocalize>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                    Assert.AreNotEqual(scene, localizedText.gameObject.scene, localizedText.name);
 
                 var veinDatastores = UnityEngine.Object.FindObjectsByType<OutcropGameObjectDatastore>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 var sceneHasVeinDatastore = false;
@@ -140,7 +126,6 @@ namespace Client.Tests
                     if (veinDatastore.gameObject.scene == scene) sceneHasVeinDatastore = true;
                 }
 
-                Assert.That(actualKeys.IsSupersetOf(expectedKeys), Is.True);
                 Assert.That(sceneHasVeinDatastore, Is.True);
 
                 // 両pin配線と欠損を検証

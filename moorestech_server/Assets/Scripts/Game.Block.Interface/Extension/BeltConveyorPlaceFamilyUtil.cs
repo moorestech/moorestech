@@ -31,14 +31,6 @@ namespace Game.Block.Interface.Extension
             return false;
         }
 
-        // 坂ブロックかを判定し、非ベルトはfalseにする
-        // Detect slope blocks while returning false for non-belt blocks
-        public static bool IsSlopeBlock(Guid blockGuid)
-        {
-            return TryGetFamilyByGuid(blockGuid, out var family) &&
-                   family.IsSlopeBlock(MasterHolder.BlockMaster.GetBlockId(blockGuid));
-        }
-
         private static bool IsMember(BeltConveyorFamiliesElement element, Guid blockGuid)
         {
             return element.StraightBlockGuid == blockGuid ||

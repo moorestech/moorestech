@@ -24,7 +24,7 @@
   width: 100%;
   /* 中央列（秒数+矢印+操作）が行高を決めるため、旧2段構成のmin-heightと画素合わせのオフセットは持たない */
   /* The center column (duration + arrow + action) now drives the row height, so the old two-tier min-height and pixel-nudge offsets are gone */
-  padding: 0.5rem 0.75rem;
+  padding: var(--recipe-row-padding-block) var(--recipe-row-padding-inline);
   /* 5x5中央値が枠色に支配されるため、視認性を残しつつ正本色へ収まる実測下限12%に抑える */
   /* The border controls the 5x5 median, so cap it at the measured 12% floor that stays visible while matching the reference color */
   border: 1px solid rgb(60 145 215 / 12%);

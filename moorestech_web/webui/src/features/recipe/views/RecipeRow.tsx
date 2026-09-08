@@ -4,7 +4,7 @@ import { ProgressArrowGlyph } from "@/shared/ui";
 import { recipeSlotLayout } from "../logic/recipeSlotLayout";
 import styles from "./RecipeBox.module.css";
 
-type Props = {
+type CommonProps = {
   testId: string;
   // 素材・結果はスロット単位の配列で受ける。点数が寸法算出の入力になるため単一ノードでは足りない
   // Materials and results arrive per slot; the count feeds the sizing, so a single node is not enough
@@ -16,15 +16,18 @@ type Props = {
   // 矢印の真上に置く所要秒数
   // Duration text sitting directly above the arrow
   duration: ReactNode;
-  // 矢印下の操作（クラフト/機械表示）
-  // The action placed below the arrow (craft button / machine display)
-  action: ReactNode;
   result: ReactNode[];
 };
 
+// 矢印下の操作段を描くか否かを判別可能ユニオンで表す。"none"は操作ノード自体を受け取らない
+// A discriminated union states whether the action slot below the arrow exists; "none" takes no action node at all
+type ActionProps = { actionMode: "slot"; action: ReactNode } | { actionMode: "none" };
+
+type Props = CommonProps & ActionProps;
+
 // 共通レシピ行骨格。幾何値をここに集約
 // Shared recipe-row frame; keeps measured geometry in one place
-export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, duration, action, result }: Props) {
+export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, duration, result, ...actionProps }: Props) {
   const materialStyle = recipeSlotLayout(materials.length);
   const resultStyle = recipeSlotLayout(result.length);
 
@@ -40,7 +43,7 @@ export default function RecipeRow({ testId, materials, arrowValue, arrowTestId, 
       <Box className={styles.recipeArrowCol}>
         <div className={styles.recipeDuration} data-testid={`${testId}-duration`}>{duration}</div>
         <ProgressArrowGlyph value={arrowValue} testId={arrowTestId} />
-        <div className={styles.recipeActionSlot}>{action}</div>
+        {actionProps.actionMode === "none" ? null : <div className={styles.recipeActionSlot}>{actionProps.action}</div>}
       </Box>
       {/* 出力も素材と同じ折り返し規則で並べる（ユーザー裁定 2026-08-20） */}
       {/* Results follow the same wrapping rule as materials (user ruling 2026-08-20) */}

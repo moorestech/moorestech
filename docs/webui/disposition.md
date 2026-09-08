@@ -11,7 +11,7 @@
 |---|---|---|
 | INFRA-1 | CEF バイナリ恒久統合 | **A1**（2026-07-18 実装完了: setup-cef+Editor検証ゲート。clean worktree実機証跡のみD最終検証） |
 | INFRA-2 | 入力・IME・フォーカス排他 | **A2**（2026-07-18 実装完了: input_state+読み取り境界抑止+probe。実機IME検証のみD最終検証） |
-| INFRA-3 | uGUI/CEF 表示切替 | **済**（`WebUiCefToggle` Ctrl+I） |
+| INFRA-3 | uGUI/CEF 表示切替 | **廃止**: 切替そのものを撤去。CEF は常時有効で uGUI 側の画面は削除済み（ADR 0052） |
 | INFRA-4 | C#→TS 型自動生成 | **除外（任意・未着手）**: zod単一定義+両側契約テストで型乖離は既に機械検出されるため必須性なし（2026-07-18 判断） |
 | INFRA-5 | アセット配信拡張（立ち絵等の汎用画像） | **A3**（配信基盤・2026-07-18 完了 `/api/assets/`）。スキット立ち絵はUnity描画残置決定（skit-web-redesign.md）のため利用側なし |
 | INFRA-6 | UIState 橋渡し | **済**。GameStateType Topic化もC4で完了（2026-07-18 game_state.current） |
@@ -53,20 +53,20 @@
 | TRAIN-1 | 列車乗車 HUD | **C3**（2026-07-18 完了。train.riding+入れ子Pause subState・実機一巡はD） |
 | COM-1 | コンテキストメニュー | **C2**（2026-07-18 完了。ID照合Action） |
 | COM-2 | モーダル | **済**（基盤+確認ダイアログ）。RequestModal 実プロデューサ配線は品質バックログ（実ユースケース決定待ち） |
-| COM-3 | 汎用プログレスバー | **済**。D監査でProgressBarViewの二重表示ゲート漏れを検出し修正（2026-07-18）。ワールド空間のブロック進捗バーは**除外**（uGUI 維持） |
+| COM-3 | 汎用プログレスバー | **済**。`ProgressBarView` は削除し論理状態 `ProgressBarState` が ui.progress のデータ源（ADR 0052）。ワールド空間のブロック進捗バーは**除外**（uGUI 維持） |
 | COM-4 | キー操作ヒント | **C2**（2026-07-18 完了。ui.key_hints） |
 | COM-5 | トースト | **済**（Web 新規基盤） |
 | COM-6 | 全 UI 一括非表示（Ctrl+U） | **C2**（2026-07-18 完了。ui.visibility） |
-| COM-7 | カーソル追従オーバーレイ | **C2**（2026-07-18 棚卸し完了: 個別Web移植不要。grabはGrabOverlay・ContextMenuはWeb pointer座標へ移行済み。uGUIフォールバック用C#実装は残置） |
+| COM-7 | カーソル追従オーバーレイ | **C2**（2026-07-18 棚卸し完了: 個別Web移植不要。grabはGrabOverlay・ContextMenuはWeb pointer座標へ移行済み）。uGUI 実装は削除済み（ADR 0052） |
 | WORLD-1 | 3D オブジェクトのツールチップ | **C2 に部分吸収**（2026-07-18 完了: 判定Unity残置・表示はui.tooltip連携） |
-| WORLD-2 | マップオブジェクト HP バー | **除外**: ワールド空間 UI は uGUI 維持（2026-07-18 方針） |
+| WORLD-2 | マップオブジェクト HP バー | **除外**: ワールド空間 UI は uGUI 維持（ADR 0052 例外3） |
 | WORLD-3 | マップ UI | **除外**: 実体が存在しない（調査済み） |
 | TUT-1 | チュートリアル | **C4**（2026-07-18 完了。宣言的ハイライト+key hint統合・ワールド系Unity残置。実機進行確認はD） |
 | SKIT-1 | スキット | **C4**（2026-07-18 完了。S2-S3実装・choiceId jump欠陥修復・冪等Action。S4実機ボイス検証はD） |
 | SKIT-2 | バックグラウンドスキット | **C4**（2026-07-18 完了。skit.presentation snapshot・音声Unity維持・文字表示ゲート） |
-| CUT-1 | カットシーン | **C4**（2026-07-18 完了。game_state.current+Web全レイヤ退避） |
+| CUT-1 | カットシーン | **C4**（2026-07-18 完了。game_state.current+Web全レイヤ退避）。Canvas は削除し `TimelinePlayer`/PlayableDirector は残置（ADR 0052） |
 | SYS-1 | ポーズメニュー | **C2**（2026-07-18 完了。pause_menu.current+セーブ/復帰Action） |
-| SYS-2 | メインメニュー | **除外**: 旧 D3 維持（2026-07-18 再確認） |
+| SYS-2 | メインメニュー | **除外**: uGUI 現状維持（ADR 0052 例外2。UI Toolkit 化は別 ADR） |
 | SYS-3 | 設定画面 | **除外**: 実体が存在しない（言語設定はメインメニュー=スコープ外） |
 
 ## 運用

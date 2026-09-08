@@ -2,10 +2,12 @@ import { Stack } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
 import { FluidSlotRow } from "@/shared/ui";
 import BlockItemGrid from "../BlockItemGrid";
+import styles from "../style.module.css";
 import GearSection from "../details/GearSection";
 import GeneratorSection from "../details/GeneratorSection";
 import MachineSection from "../details/MachineSection";
 import MinerSection from "../details/MinerSection";
+import PumpSection from "../details/pump/PumpSection";
 import { ElectricNetworkSection, GearNetworkSection } from "../details/NetworkSections";
 
 type SectionStackViewConfig = {
@@ -24,6 +26,8 @@ const configByBlockType: Record<string, SectionStackViewConfig> = {
   SimpleGearGenerator: { itemGridTestId: "generator-fuel-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
   ElectricMiner: { itemGridTestId: "miner-output-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
   GearMiner: { itemGridTestId: "gear-miner-output-grid", fluidRowTestId: null, renderEmptyGrid: true, showFluidProgress: true },
+  ElectricPump: { itemGridTestId: null, fluidRowTestId: "pump-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
+  GearPump: { itemGridTestId: null, fluidRowTestId: "pump-fluid-slots", renderEmptyGrid: false, showFluidProgress: false },
 };
 
 const genericConfig: SectionStackViewConfig = {
@@ -39,16 +43,19 @@ export function resolveSectionStackViewConfig(blockType: string): SectionStackVi
 
 // 標準ブロック表示をデータ有無で合成し、固有UIだけをレジストリへ残す
 // Compose standard block sections from available data, leaving only unique UIs in the registry
-export default function SectionStackView({ data }: { data: BlockInventoryOpen }) {
+export default function SectionStackView({ data, fillsPanelHeight }: { data: BlockInventoryOpen; fillsPanelHeight: boolean }) {
   const config = resolveSectionStackViewConfig(data.blockType);
   const itemGridTestId = config.itemGridTestId;
   const showItemGrid = itemGridTestId !== null && (config.renderEmptyGrid || data.itemSlots.length > 0);
 
   return (
-    <Stack gap="sm">
+    // 高さ確定面でだけ伸ばす。高さ自動の面で伸ばすと子が内容高より縮む経路が開く
+    // Stretch only on the height-determining panel; on auto-height panels it would let children shrink below their content
+    <Stack className={fillsPanelHeight ? styles.fillPanelHeight : undefined} gap="sm">
       {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} testId={itemGridTestId} /> : null}
-      {data.machine ? <MachineSection data={data} machine={data.machine} /> : null}
+      {data.machine ? <MachineSection data={data} machine={data.machine} fillsPanelHeight={fillsPanelHeight} /> : null}
       <MinerSection data={data} />
+      <PumpSection data={data} />
       <GeneratorSection data={data} />
       <GearSection data={data} />
       <ElectricNetworkSection data={data} />

@@ -10,6 +10,7 @@ using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Core.Master;
+using Game.Block.Interface.Extension;
 using Game.Construction;
 using Game.Context;
 using Game.PlacementTarget;
@@ -75,7 +76,7 @@ namespace Client.Tests.WebUi
             var controlObject = new GameObject("BuildMenuTopicRepublishTest.Control");
             var control = controlObject.AddComponent<UIStateControl>();
             var blueprintLibrary = new ClientBlueprintLibrary();
-            var resolver = new PlacementTargetResolver(new PlacementTargetCatalog(), blueprintLibrary, new NothingUnlockedStateData());
+            var resolver = new PlacementTargetResolver(new PlacementTargetCatalog(new BeltConveyorPlacementUnlockSourceMap()), blueprintLibrary, new NothingUnlockedStateData());
             var controller = new LocalPlayerInventoryController(new LocalPlayerInventory(), new LocalPlayerEquipment());
             var topic = new BuildMenuTopic(
                 new WebSocketHub(), control, blueprintLibrary, resolver,

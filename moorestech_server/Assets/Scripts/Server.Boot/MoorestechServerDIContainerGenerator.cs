@@ -25,6 +25,7 @@ using Game.Map;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
+using Game.Block.Interface.Extension;
 using Game.PlacementTarget;
 using Game.Paths;
 using Game.PlayerConnection;
@@ -196,6 +197,7 @@ namespace Server.Boot
             services.AddSingleton<IItemStackLevelUnlocker>(itemStackLevelDataStore);
             services.AddSingleton<IResearchDataStore, ResearchDataStore>();
             services.AddSingleton<IBlueprintDatastore, BlueprintDatastore>();
+            services.AddSingleton<IPlacementUnlockSourceMap, BeltConveyorPlacementUnlockSourceMap>();
             services.AddSingleton<PlacementTargetCatalog>();
             services.AddSingleton<HotbarAssignmentDatastore>();
             services.AddSingleton<IHotbarAssignmentLookup>(provider => provider.GetRequiredService<HotbarAssignmentDatastore>());
