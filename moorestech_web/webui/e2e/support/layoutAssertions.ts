@@ -14,23 +14,27 @@ export function scrollAreaVerticalBar(scrollRoot: Locator): Locator {
   return scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="vertical"]');
 }
 
-// 溢れ有無でのバー・パネル高不変を検査
-// Checks the bar and panel-height invariant across overflow
+export function scrollAreaHorizontalBar(scrollRoot: Locator): Locator {
+  return scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="horizontal"]');
+}
+
+// 溢れ有無でバーと高さ不変を検査。第2引数は高さが導出される要素に限る（高さ固定要素だと不変アサートが空回りする）
+// Checks the bar and height invariant across overflow; the second argument must be a height-derived element, since a fixed-height one makes the assert vacuous
 export async function expectScrollsOnlyWhenOverflowing(
   scrollRoot: Locator,
-  panel: Locator,
+  heightDerivedElement: Locator,
   overflowScenario: () => Promise<void>,
 ) {
   const viewport = scrollAreaViewport(scrollRoot);
   const bar = scrollAreaVerticalBar(scrollRoot);
 
-  const settledHeight = (await panel.boundingBox())!.height;
+  const settledHeight = (await heightDerivedElement.boundingBox())!.height;
   await expect(bar).toBeHidden();
   expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBe(0);
 
   await overflowScenario();
   await expect(bar).toBeVisible();
-  expect((await panel.boundingBox())!.height).toBeCloseTo(settledHeight, 1);
+  expect((await heightDerivedElement.boundingBox())!.height).toBeCloseTo(settledHeight, 1);
   expect(await viewport.evaluate((element) => element.scrollHeight - element.clientHeight)).toBeGreaterThan(0);
 }
 

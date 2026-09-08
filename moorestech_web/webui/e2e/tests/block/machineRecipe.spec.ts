@@ -66,7 +66,7 @@ test("レシピ無しブロックは小型パネルのまま", async ({ page }) 
   await expect(page.getByTestId("machine-recipe-selection")).toHaveCount(0);
 });
 
-test("レシピが溢れてもパネル高は変わらず、選択リストだけがスクロールする", async ({ page }) => {
+test("レシピが溢れても機械セクションの高さは変わらず、選択リストだけがスクロールする", async ({ page }) => {
   // 溢れ用fixtureは電気機械へ入る
   // The overflow fixture targets the electric machine
   await setBlock(page, "machine");
@@ -74,28 +74,52 @@ test("レシピが溢れてもパネル高は変わらず、選択リストだ�
   await page.getByTestId("machine-selected-recipe").click();
   await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
 
+  // 高さ不変はパネルでなく機械セクションで見る。パネル高は.panelLargeのCSS固定値で件数に依らず動かないため
+  // Watch the machine section, not the panel: the panel's height is a CSS constant in .panelLarge and cannot move
   await expectScrollsOnlyWhenOverflowing(
     scrollAreaRootOf(page, "machine-recipe-selection"),
-    page.getByTestId("block-inventory"),
+    page.getByTestId("machine-section"),
     () => setTopicScenario(page, "machineRecipesOverflow"),
   );
 });
 
-test("行密度は控えめ設定どおりで、本文に3.8行分以上が入る", async ({ page }) => {
-  // 密度上書きが消えると3.1行分へ落ちる
-  // Losing the density overrides drops this to 3.1 rows
+test("フッタは選択モードとインベントリモードで同じ高さに出る", async ({ page }) => {
+  // フッタが両モードで下端に揃うことがこの変更の中核ゴール（ADR 0010）
+  // Aligning the footer at the bottom in both modes is this change's core goal (ADR 0010)
+  await setBlock(page, "machine");
+  await page.goto("/");
+  const footer = page.getByTestId("machine-state-label");
+  await expect(footer).toBeVisible();
+  const inventoryModeTop = (await footer.boundingBox())!.y;
+
+  await page.getByTestId("machine-selected-recipe").click();
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+  const selectionModeTop = (await footer.boundingBox())!.y;
+
+  expect(selectionModeTop).toBeCloseTo(inventoryModeTop, 1);
+});
+
+// 控えめ設定の実測は3.9行分。下回れば密度上書きが消えた証拠、超えれば詰めすぎで非目標側へ振れた証拠
+// The modest setting measures 3.9 rows: below means the density overrides vanished, above means it was over-tightened
+const minimumVisibleRows = 3.8;
+const maximumVisibleRows = 4.5;
+
+test("行密度は控えめ設定どおりで、本文に3.8〜4.5行分が入る", async ({ page }) => {
   await setBlock(page, "machine");
   await page.goto("/");
   await page.getByTestId("machine-selected-recipe").click();
-  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+  const list = page.getByTestId("machine-recipe-selection");
+  await expect(list).toBeVisible();
 
+  // ストライドは1行の実寸＋リストの行間から組む。特定2行が隣接する並びに依存させない
+  // Build the stride from one row's measured height plus the list gap, never from two specific rows being adjacent
+  const rowHeight = (await page.getByTestId(firstRecipeTestId).boundingBox())!.height;
+  const rowGap = await list.evaluate((element) => Number.parseFloat(getComputedStyle(element).rowGap));
+  const rowStride = rowHeight + rowGap;
   const viewport = scrollAreaViewport(scrollAreaRootOf(page, "machine-recipe-selection"));
-  const firstRowTop = (await page.getByTestId(firstRecipeTestId).boundingBox())!.y;
-  const nextRowTop = (await page.getByTestId(selectedRecipeTestId).boundingBox())!.y;
-  const rowStride = nextRowTop - firstRowTop;
   const clientHeight = await viewport.evaluate((element) => element.clientHeight);
 
-  // 共有既定のままなら3.09行分
-  // The shared defaults alone yield 3.09 rows
-  expect(clientHeight / rowStride).toBeGreaterThan(3.8);
+  expect(rowGap).toBeGreaterThan(0);
+  expect(clientHeight / rowStride).toBeGreaterThan(minimumVisibleRows);
+  expect(clientHeight / rowStride).toBeLessThan(maximumVisibleRows);
 });

@@ -49,7 +49,7 @@ export default function RecipeContent({ itemId, recipes, machineRecipes, invento
   return (
     <Stack className={styles.recipeContent} gap="sm">
       <ItemHeader name={itemName} />
-      <RecipeListScrollArea scrollClassName={styles.recipeListScroll} listClassName={styles.recipeList} listGap="var(--recipe-entry-gap)" listTestId="recipe-entry-list">
+      <RecipeListScrollArea scrollClassName={styles.recipeListScroll} listGap="var(--recipe-entry-gap)" listTestId="recipe-entry-list">
         {entries.map((entry) =>
           entry.kind === "craft" ? (
             <CraftRecipeEntry

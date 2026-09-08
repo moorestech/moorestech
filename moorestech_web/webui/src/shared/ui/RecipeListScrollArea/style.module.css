@@ -1,27 +1,14 @@
-/* スクロール領域の大きさは器（パネル本文）が決める。中身ぴったりに縮めない（ユーザー裁定 2026-08-22） */
-/* The scroller's size comes from its container, the panel body, never from its content (user ruling 2026-08-22) */
-/* Mantine既定のheight:100%はflex由来の親高に対して解決できず内容なりに潰れるためflexで伸ばす */
-/* Mantine's default height:100% cannot resolve against a flex-derived parent height, so stretch it with flex */
+/* 土台（flex連鎖・§8.10ネイビートーン）はpanelBodyScrollAreaが持ち、ここはレシピ行固有の規則だけを足す */
+/* panelBodyScrollArea owns the base (flex chain, §8.10 navy tone); this file adds only the recipe-row rules */
 .scroll {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
+  composes: scroll from "../panelBodyScrollArea.module.css";
 }
 
-.scroll :global(.mantine-ScrollArea-viewport) {
-  box-sizing: border-box;
-  flex: 1;
-  min-height: 0;
-}
-
-/* リストのスクロールバーは§8.10のネイビートーンへ統一する */
-/* Unify the list scrollbar with the §8.10 navy tone */
-.scroll :global(.mantine-ScrollArea-scrollbar) {
-  background: var(--gauge-track);
-}
-
-.scroll :global(.mantine-ScrollArea-thumb) {
-  background: var(--bevel-c2);
-  border-radius: 0;
+/* 枠の四隅ブラケットと外周リングは枠外へ出るため、全周にその分の余白を取る。0だとScrollAreaに切られ、
+   はみ出しぶんで不要なスクロールが出る。右だけはスクロールバー実寸も足してつまみと行を重ねない */
+/* The frame's corner brackets and outer ring sit outside it, so pad every side by that bleed; at 0 the ScrollArea
+   clips them and the bleed alone creates a needless scroll. Only the right adds the measured scrollbar width */
+.list {
+  padding: var(--recipe-entry-bleed);
+  padding-right: calc(var(--recipe-entry-bleed) + var(--recipe-list-scrollbar-reserve));
 }

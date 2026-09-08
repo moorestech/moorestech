@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 import { setTopicScenario } from "../../support/mockControl";
-import { scrollAreaRootOf, scrollAreaViewport, scrollAreaVerticalBar } from "../../support/layoutAssertions";
+import { scrollAreaRootOf, scrollAreaViewport, scrollAreaVerticalBar, scrollAreaHorizontalBar } from "../../support/layoutAssertions";
 
 // スクロール領域はパネル本文いっぱいで、内容ぴったりに縮まない（ユーザー裁定 2026-08-22）。
 // 縮むと(1)溢れていないのにスクロール扱いになり(2)クリップがセル外周へ届かずチュートリアルのラベルが落ちる
@@ -9,7 +9,7 @@ import { scrollAreaRootOf, scrollAreaViewport, scrollAreaVerticalBar } from "../
 
 const scrollRoot = (page: Page) => scrollAreaRootOf(page, "item-list-grid");
 const verticalBar = (page: Page) => scrollAreaVerticalBar(scrollRoot(page));
-const horizontalBar = (page: Page) => scrollRoot(page).locator('.mantine-ScrollArea-scrollbar[data-orientation="horizontal"]');
+const horizontalBar = (page: Page) => scrollAreaHorizontalBar(scrollRoot(page));
 const viewport = (page: Page) => scrollAreaViewport(scrollRoot(page));
 const label = (page: Page) => page.getByTestId("tutorial-highlight-label");
 

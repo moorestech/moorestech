@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { payloadsOf } from "../../support/actions";
 import { expectCraftGrip } from "../../support/craftChromeAssertions";
-import { scrollAreaRootOf, scrollAreaViewport, scrollAreaVerticalBar } from "../../support/layoutAssertions";
+import { scrollAreaRootOf, scrollAreaViewport, scrollAreaVerticalBar, scrollAreaHorizontalBar } from "../../support/layoutAssertions";
 
 // GUID単位で前方一致に束ねる
 // Group testIds by prefix per recipe GUID
@@ -46,7 +46,7 @@ test("正本のヘッダ装飾、1段時の無スクロールバー、主要構�
   // A short fixture (5 items = 1 row) shows neither bar: the count badge's bleed is reserved inside, so no phantom overflow
   const scrollRoot = scrollAreaRootOf(page, "item-list-grid");
   await expect(scrollAreaVerticalBar(scrollRoot)).toBeHidden();
-  await expect(scrollRoot.locator('.mantine-ScrollArea-scrollbar[data-orientation="horizontal"]')).toBeHidden();
+  await expect(scrollAreaHorizontalBar(scrollRoot)).toBeHidden();
   const overflow = await scrollAreaViewport(scrollRoot).evaluate((el) => ({
     y: el.scrollHeight - el.clientHeight, x: el.scrollWidth - el.clientWidth,
   }));

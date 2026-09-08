@@ -33,24 +33,24 @@ export default function MachineSection({ data, machine }: { data: BlockInventory
     </Group>
   );
 
-  if (rows.length === 0) {
-    return <Stack gap="xs" data-testid="machine-section"><MachineInventoryBody data={data} />{footer}</Stack>;
-  }
-
   // 要求したレシピがサーバーの選択に一致するまで選択モードを閉じない（未要求＝開いた直後は留まる）
   // Selection mode stays open until the requested recipe matches the server's selection (no request yet = keep waiting)
   const requestApplied = requestedRecipeGuid !== null && machine.selectedRecipeGuid === requestedRecipeGuid;
   const inSelectionMode = selectionOpened && !requestApplied;
-  const showSelection = !hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || inSelectionMode;
+  // 選べるレシピが無い機械は選択モードを持たず、常にインベントリモードで開く
+  // A machine with no selectable recipe has no selection mode and always opens in inventory mode
+  const showSelection = rows.length > 0
+    && (!hasSelectedRecipe(machine.selectedRecipeGuid) || selectedRow === undefined || inSelectionMode);
+
+  // 外殻がフッタと伸長を1箇所で持ち、モードで分かれるのは中身だけ。これで両モードのフッタ位置が揃う
+  // One shell owns the footer and the stretch while only the body branches, keeping the footer at the same height in both modes
   return (
     <Stack className={styles.fillPanelHeight} gap="sm" data-testid="machine-section">
       {showSelection ? (
         <MachineRecipeSelectionList rows={rows} onSelected={setRequestedRecipeGuid} />
       ) : (
-        // 両モードでフッタ位置を揃える
-        // Both modes stretch so the footer aligns
         <Stack className={styles.fillPanelHeight} gap="sm">
-          <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />
+          {selectedRow === undefined ? null : <SelectedRecipeHeader recipe={selectedRow.recipe} subject={selectedRow.subject} onChangeRecipe={openSelection} />}
           <MachineInventoryBody data={data} />
         </Stack>
       )}

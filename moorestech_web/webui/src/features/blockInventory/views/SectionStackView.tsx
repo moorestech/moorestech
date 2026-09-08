@@ -43,13 +43,15 @@ export function resolveSectionStackViewConfig(blockType: string): SectionStackVi
 
 // 標準ブロック表示をデータ有無で合成し、固有UIだけをレジストリへ残す
 // Compose standard block sections from available data, leaving only unique UIs in the registry
-export default function SectionStackView({ data }: { data: BlockInventoryOpen }) {
+export default function SectionStackView({ data, fillsPanelHeight }: { data: BlockInventoryOpen; fillsPanelHeight: boolean }) {
   const config = resolveSectionStackViewConfig(data.blockType);
   const itemGridTestId = config.itemGridTestId;
   const showItemGrid = itemGridTestId !== null && (config.renderEmptyGrid || data.itemSlots.length > 0);
 
   return (
-    <Stack className={styles.fillPanelHeight} gap="sm">
+    // 高さ確定面でだけ伸ばす。高さ自動の面で伸ばすと子が内容高より縮む経路が開く
+    // Stretch only on the height-determining panel; on auto-height panels it would let children shrink below their content
+    <Stack className={fillsPanelHeight ? styles.fillPanelHeight : undefined} gap="sm">
       {showItemGrid ? <BlockItemGrid itemSlots={data.itemSlots} testId={itemGridTestId} /> : null}
       {data.machine ? <MachineSection data={data} machine={data.machine} /> : null}
       <MinerSection data={data} />

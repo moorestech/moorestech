@@ -161,9 +161,10 @@
   padding-right: var(--build-menu-grid-scrollbar-reserve);
 }
 
+/* 土台（flex連鎖・§8.10ネイビートーン）はpanelBodyScrollAreaが持ち、ここはこの面だけの規則に絞る */
+/* panelBodyScrollArea owns the base (flex chain, §8.10 navy tone); this file keeps only this panel's rules */
 .scroll {
-  flex: 1;
-  min-height: 0;
+  composes: scroll from "../../shared/ui/panelBodyScrollArea.module.css";
   /* viewport側で広げたクリップ領域を打ち消し、グリッド本体の位置と寸法を変えない */
   /* Cancels the clip region widened on the viewport so the grid keeps its position and size */
   margin: calc(-1 * var(--tutorial-anchor-clip-inset));
@@ -172,7 +173,6 @@
 /* クリップ境界をチュートリアル枠の逃げぶんセル外周から離す。0だと最左列・最上段の枠が辺ごと削られる（§8.10） */
 /* Push the clip edge away from the cells by the tutorial ring's clearance; at 0 the leftmost and top cells lose a whole side (§8.10) */
 .scroll :global(.mantine-ScrollArea-viewport) {
-  box-sizing: border-box;
   padding: var(--tutorial-anchor-clip-inset);
   /* 見出しoffsetTopの基準を視口にする（scroll-spy） */
   /* Make the viewport the offsetParent for heading offsetTop (scroll-spy) */
@@ -187,13 +187,3 @@
   right: var(--tutorial-anchor-clip-inset);
 }
 
-/* §8.10 カスタムスクロールバー（ItemListPanel前例のネイビートーン版） */
-/* §8.10 custom scrollbar (navy-tone variant of the ItemListPanel precedent) */
-.scroll :global(.mantine-ScrollArea-scrollbar) {
-  background: var(--gauge-track);
-}
-
-.scroll :global(.mantine-ScrollArea-thumb) {
-  background: var(--bevel-c2);
-  border-radius: 0;
-}

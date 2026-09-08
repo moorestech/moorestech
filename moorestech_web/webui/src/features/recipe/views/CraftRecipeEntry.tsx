@@ -53,6 +53,7 @@ export default function CraftRecipeEntry({ recipe, counts, onSelect, testId, tut
             />
           </Box>
         ))}
+        actionMode="slot"
         action={(
           <Button
             {...tutorialAnchorProps}

@@ -21,7 +21,7 @@ export default function MachineRecipeSelectionList({ rows, onSelected }: Props) 
   // 高さはパネル本文が決める
   // The panel body sets the height
   return (
-    <RecipeListScrollArea scrollClassName={null} listClassName={styles.list} listGap="var(--machine-recipe-row-gap)" listTestId="machine-recipe-selection">
+    <RecipeListScrollArea listClassName={styles.list} listGap="var(--machine-recipe-row-gap)" listTestId="machine-recipe-selection">
       {rows.map((row) => <MachineRecipeSelectionRow key={row.recipe.recipeGuid} row={row} onSelect={onSelect} />)}
     </RecipeListScrollArea>
   );
