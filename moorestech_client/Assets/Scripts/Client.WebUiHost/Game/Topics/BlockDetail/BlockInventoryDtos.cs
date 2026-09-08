@@ -22,6 +22,7 @@ namespace Client.WebUiHost.Game.Topics
         public MachineDetailDto Machine;
         public GeneratorDetailDto Generator;
         public MinerDetailDto Miner;
+        public PumpDetailDto Pump;
         public GearDetailDto Gear;
         public ElectricNetworkDto ElectricNetwork;
         public GearNetworkDto GearNetwork;

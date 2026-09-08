@@ -48,6 +48,7 @@ ui.blockInventory.filterDefault,Default,Default,デフォルト,Standard
 ui.blockInventory.filterWhitelist,Whitelist,Whitelist,ホワイトリスト,Positivliste
 ui.blockInventory.filterBlacklist,Blacklist,Blacklist,ブラックリスト,Sperrliste
 ui.blockInventory.outputNumber,Output {index},Output {index},出力 {index},Ausgang {index}
+ui.blockInventory.pumpNoVein,No fluid vein to draw from,No fluid vein to draw from,汲み上げられる鉱脈がありません,Keine Flüssigkeitsader zum Fördern
 ui.buildMenu.blueprintCopy,Blueprint Copy,Blueprint Copy,ブループリントコピー,Bauplan kopieren
 ui.buildMenu.detailHint,Hover over an item to view details,Hover over an item to view details,カーソルを合わせると詳細を表示します,"Bewegen Sie den Mauszeiger über einen Eintrag, um Details anzuzeigen"
 ui.buildMenu.title,Build Menu,Build Menu,ビルドメニュー,Baumenü
@@ -219,6 +220,7 @@ ui.tooltip.placeTooFar,Too far away,Too far away,遠すぎます,Zu weit entfern
 ui.tooltip.placeGroundNotFound,No ground below,No ground below,地面が見つかりません,Kein Boden darunter
 ui.tooltip.placeMinerOutsideVein,The drill must be over a vein,The drill must be over a vein,ドリルを鉱脈に重ねてください,Der Bohrer muss über einer Erzader liegen
 ui.tooltip.placeOutsideTutorialVein,Place it on the highlighted vein,Place it on the highlighted vein,ハイライトされた鉱脈の上に設置してください,Platziere es auf der hervorgehobenen Erzader
+ui.tooltip.placePumpOutsideVein,Place the pump over a fluid vein it can draw from,Place the pump over a fluid vein it can draw from,汲み上げられる流体鉱脈の上に設置してください,"Platziere die Pumpe über einer Flüssigkeitsader, die sie fördern kann"
 ui.tooltip.placeChainBlocked,Space for the connected layout is blocked,Space for the connected layout is blocked,接続先のスペースが埋まっています,Der Platz für die verbundene Anordnung ist blockiert
 ui.tooltip.placeChainGroundNotFound,No ground under the connected layout,No ground under the connected layout,接続先に地面がありません,Kein Boden unter der verbundenen Anordnung
 ui.tooltip.placeChainGroundHeightMismatch,The connected layout does not sit level with the ground,The connected layout does not sit level with the ground,接続先の地面の高さが合っていません,Die verbundene Anordnung liegt nicht eben auf dem Boden

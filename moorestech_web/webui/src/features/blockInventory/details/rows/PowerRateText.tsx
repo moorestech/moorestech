@@ -1,5 +1,5 @@
-import { computePowerRate } from "./detailLogic";
-import LackHighlightText from "./LackHighlightText";
+import { computePowerRate } from "../detailLogic";
+import LackHighlightText from "../LackHighlightText";
 import { L, useI18n } from "@/shared/i18n";
 
 // 電力率テキスト。不足時は赤表示（uGUI CommonMachineBlockStateDetail 準拠）

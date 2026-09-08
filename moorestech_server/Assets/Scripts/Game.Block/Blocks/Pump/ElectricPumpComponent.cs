@@ -5,23 +5,19 @@ using Game.EnergySystem;
 namespace Game.Block.Blocks.Pump
 {
     /// <summary>
-    /// 所属セグメントの確定済み供給率から実効電力を導出してポンプProcessorへ渡す
-    /// Derives effective power from its segment's settled supply rate and feeds the pump processor
+    ///     所属セグメントの確定済み供給率から実効電力を導出してポンプProcessorへ渡す
+    ///     Derives effective power from its segment's settled supply rate and feeds the pump processor
     /// </summary>
     public class ElectricPumpComponent : IElectricConsumer, IElectricTickPostHandler
     {
         public BlockInstanceId BlockInstanceId { get; }
-        public ElectricPower RequestEnergy => new(_requestEnergy.AsPrimitive() * (_processor.CanGenerateFluid ? 1f : _idlePowerRate));
+        public ElectricPower RequestEnergy => new(_processor.EffectiveRequestPower);
 
         private readonly ElectricPumpProcessorComponent _processor;
-        private readonly ElectricPower _requestEnergy;
-        private readonly float _idlePowerRate;
 
-        public ElectricPumpComponent(BlockInstanceId blockInstanceId, ElectricPower requestEnergy, float idlePowerRate, ElectricPumpProcessorComponent processor)
+        public ElectricPumpComponent(BlockInstanceId blockInstanceId, ElectricPumpProcessorComponent processor)
         {
             BlockInstanceId = blockInstanceId;
-            _requestEnergy = requestEnergy;
-            _idlePowerRate = idlePowerRate;
             _processor = processor;
         }
 

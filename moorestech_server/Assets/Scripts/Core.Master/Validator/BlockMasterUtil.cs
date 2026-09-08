@@ -112,12 +112,19 @@ namespace Core.Master.Validator
                     // Any pump: generateFluid
                     if (block.BlockParam is IPumpParam pump)
                     {
+                        // 内部タンクは単一流体で先頭行だけを採用するため、同一流体の重複行は表現を許さない
+                        // The inner tank is single-fluid and only the first row is used, so duplicate rows for one fluid are not allowed
+                        var declaredFluidGuids = new HashSet<Guid>();
                         foreach (var generateFluid in pump.GenerateFluid.items)
                         {
                             var id = MasterHolder.FluidMaster.GetFluidIdOrNull(generateFluid.FluidGuid);
                             if (id == null)
                             {
                                 logs += $"[BlockMaster] Name:{block.Name} has invalid GenerateFluid.FluidGuid:{generateFluid.FluidGuid}\n";
+                            }
+                            if (!declaredFluidGuids.Add(generateFluid.FluidGuid))
+                            {
+                                logs += $"[BlockMaster] Name:{block.Name} has duplicated GenerateFluid.FluidGuid:{generateFluid.FluidGuid}\n";
                             }
                         }
                     }
@@ -427,21 +434,9 @@ namespace Core.Master.Validator
 
             GearConsumption ExtractGearConsumption(object blockParam)
             {
-                // gearConsumptionを持つ全BlockParam型を列挙して取り出す
-                // Enumerate every BlockParam type that carries a gearConsumption and return it
-                return blockParam switch
-                {
-                    GearBlockParam gear => gear.GearConsumption,
-                    ShaftBlockParam shaft => shaft.GearConsumption,
-                    GearChainPoleBlockParam chainPole => chainPole.GearConsumption,
-                    GearMachineBlockParam machine => machine.GearConsumption,
-                    GearBeltConveyorBlockParam belt => belt.GearConsumption,
-                    GearMinerBlockParam miner => miner.GearConsumption,
-                    GearMapObjectMinerBlockParam mapMiner => mapMiner.GearConsumption,
-                    GearPumpBlockParam pump => pump.GearConsumption,
-                    GearToElectricGeneratorBlockParam electric => electric.GearConsumption,
-                    _ => null,
-                };
+                // gearConsumptionを持つ型の判定はスキーマのIGearConsumptionParamが正本
+                // The schema's IGearConsumptionParam is the authority on which params carry a gearConsumption
+                return blockParam is IGearConsumptionParam gearConsumptionParam ? gearConsumptionParam.GearConsumption : null;
             }
 
             #endregion
