@@ -21,22 +21,12 @@ namespace Client.Tests.Localization.Display
                 // import済みPrefabを検査する。
                 // Inspect only imported prefab assets.
                 AssertGameObjectTooltipKeys(root, assetPath);
-                AssertUGuiTooltipKeys(root, assetPath);
             }
         }
 
         private static void AssertGameObjectTooltipKeys(GameObject root, string assetPath)
         {
             foreach (var target in root.GetComponentsInChildren<GameObjectTooltipTarget>(true))
-            {
-                var serializedTarget = new SerializedObject(target);
-                AssertKnownNonEmptyKey(serializedTarget.FindProperty("textKey").stringValue, assetPath);
-            }
-        }
-
-        private static void AssertUGuiTooltipKeys(GameObject root, string assetPath)
-        {
-            foreach (var target in root.GetComponentsInChildren<UGuiTooltipTarget>(true))
             {
                 var serializedTarget = new SerializedObject(target);
                 AssertKnownNonEmptyKey(serializedTarget.FindProperty("textKey").stringValue, assetPath);
