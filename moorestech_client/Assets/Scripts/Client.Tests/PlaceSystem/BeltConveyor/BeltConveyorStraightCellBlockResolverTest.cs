@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.BeltConveyor
 {
-    public class BeltConveyorCellBlockResolverTest
+    public class BeltConveyorStraightCellBlockResolverTest
     {
         private static readonly BlockId StraightBlock = new(101);
         private static readonly BlockId UpBlock = new(102);
@@ -28,7 +28,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(0, 0, 2, BlockDirection.East, BlockVerticalDirection.Horizontal, true),
             };
 
-            var result = BeltConveyorCellBlockResolver.Resolve(cells, Family, NoneReasons(cells.Count));
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, Family, NoneReasons(cells.Count));
 
             // セルを縮約せず配置属性を維持する
             // Preserve placement attributes without collapsing cells
@@ -51,7 +51,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(0, 1, 1, BlockDirection.North, BlockVerticalDirection.Down, true),
             };
 
-            var result = BeltConveyorCellBlockResolver.Resolve(cells, Family, NoneReasons(cells.Count));
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, Family, NoneReasons(cells.Count));
 
             Assert.AreEqual(UpBlock, result[0].BlockId);
             Assert.AreEqual(DownBlock, result[1].BlockId);
@@ -68,7 +68,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             };
 
             var beltReasons = NoneReasons(cells.Count);
-            var result = BeltConveyorCellBlockResolver.Resolve(cells, SlopelessFamily, beltReasons);
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, SlopelessFamily, beltReasons);
 
             Assert.AreEqual(StraightBlock, result[0].BlockId);
             Assert.IsFalse(result[0].Placeable);
@@ -87,7 +87,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             };
             var beltReasons = new List<BeltConveyorPlacementBlockReason> { BeltConveyorPlacementBlockReason.ImpossibleOverpass };
 
-            BeltConveyorCellBlockResolver.Resolve(cells, SlopelessFamily, beltReasons);
+            BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, SlopelessFamily, beltReasons);
 
             Assert.AreEqual(BeltConveyorPlacementBlockReason.ImpossibleOverpass, beltReasons[0]);
         }

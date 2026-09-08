@@ -10,11 +10,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     /// 経路セルをファミリーの直線・坂ブロックへ割り当てる
     /// Assigns path cells to the family's straight and slope blocks
     /// </summary>
-    public static class BeltConveyorCellBlockResolver
+    public static class BeltConveyorStraightCellBlockResolver
     {
         // beltReasonsはcellsと同じ添字で並走するベルト固有理由の列。坂ブロック欠落で不可になったセルはここへ書き戻す
         // beltReasons is the belt-specific reason column indexed like cells; cells blocked by a missing slope block are written back into it
-        public static List<PlaceInfo> Resolve(IReadOnlyList<PlaceInfo> cells, BeltConveyorFamily family, IList<BeltConveyorPlacementBlockReason> beltReasons)
+        public static List<PlaceInfo> ResolveStraightRun(IReadOnlyList<PlaceInfo> cells, BeltConveyorFamily family, IList<BeltConveyorPlacementBlockReason> beltReasons)
         {
             // 経路の各セルを縮約せず1ブロックへ変換する
             // Convert every path cell to one block without collapsing the path

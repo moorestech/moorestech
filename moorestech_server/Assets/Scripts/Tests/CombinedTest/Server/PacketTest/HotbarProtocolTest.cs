@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
-using Game.Block.Interface.Extension;
 using Game.Hotbar;
 using Game.UnlockState;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,9 +30,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator()
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
-            // カタログで解決できる実在ブロックGuidを割当対象に使う（坂はカタログ対象外なので除く）
-            // Use a real, catalog-resolvable block GUID as the assignment target (slopes are excluded from the catalog)
-            var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
+            // カタログ解決済みの実在Guidを割当に使う
+            // Use a catalog-resolvable real Guid as the assignment target
+            var validId = MasterHolder.BlockMaster.Blocks.Data.First().BlockGuid;
 
             // 割当は解放済みブロックのみ通るため、対象を解放してから要求する
             // Assignment only accepts unlocked blocks, so unlock the target before requesting it
@@ -84,7 +83,7 @@ namespace Tests.CombinedTest.Server.PacketTest
                 .Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
 
-            var validId = MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
+            var validId = MasterHolder.BlockMaster.Blocks.Data.First().BlockGuid;
 
             // 割当は解放済みブロックのみ通るため、対象を解放してから要求する
             // Assignment only accepts unlocked blocks, so unlock the target before requesting it

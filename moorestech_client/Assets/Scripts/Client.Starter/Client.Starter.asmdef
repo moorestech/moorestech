@@ -34,7 +34,8 @@
         "Game.PlacementTarget",
         "Server.Event",
         "Unity.InputSystem",
-        "MessagePack"
+        "MessagePack",
+        "Game.Block.Interface"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

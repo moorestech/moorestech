@@ -63,7 +63,7 @@ namespace Client.Tests.UIState
         {
             var tooltip = CreateMouseCursorTooltip();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new DeleteObjectState(null, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null), rightShortPressInputService, tooltip);
+            var state = new DeleteObjectState(null, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null, null), rightShortPressInputService, tooltip);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
 
             var transit = PressAndReleaseRightButton(state);
@@ -147,7 +147,7 @@ namespace Client.Tests.UIState
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
             var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter(new MouseCursorTooltipState()));
-            var pickService = new PlacementTargetPickService(null);
+            var pickService = new PlacementTargetPickService(null, null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
             return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), MapVeinAabbRegistryFixture.Create(), new VeinRestrictedPlacementState(), hotbarInputService, rightShortPressInputService);
