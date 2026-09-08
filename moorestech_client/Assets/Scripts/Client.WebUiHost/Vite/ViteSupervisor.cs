@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
-using UniRx;
 using UnityEngine;
 
 namespace Client.WebUiHost.Vite
@@ -21,8 +20,6 @@ namespace Client.WebUiHost.Vite
         private int _vitePort;
 
         public int ActualPort => _vitePort;
-        public IReadOnlyReactiveProperty<bool> Availability => _availability;
-        private readonly ReactiveProperty<bool> _availability = new(false);
 
         public async UniTask<bool> StartAsync(int kestrelPort)
         {
@@ -40,7 +37,6 @@ namespace Client.WebUiHost.Vite
                 return false;
             }
 
-            _availability.Value = true;
             MonitorAsync().Forget();
             return true;
         }
@@ -48,7 +44,6 @@ namespace Client.WebUiHost.Vite
         public void Stop()
         {
             if (!_stopping.IsCancellationRequested) _stopping.Cancel();
-            _availability.Value = false;
             _process?.Kill();
             _process = null;
         }
@@ -65,10 +60,9 @@ namespace Client.WebUiHost.Vite
                 consecutiveFailures = healthy ? 0 : consecutiveFailures + 1;
                 if (consecutiveFailures < FailureThreshold) continue;
 
-                // uGUIへ戻して同一ポートで再起動する
-                // Log unresponsiveness, fall back to uGUI, and restart on the same port to preserve the URL
-                Debug.LogError($"[WebUiHost] Vite unhealthy on port {_vitePort}; falling back to uGUI and restarting");
-                _availability.Value = false;
+                // URLを保つため同一ポートで再起動する（uGUIフォールバックは撤去済み: ADR 0052）
+                // Restart on the same port to preserve the URL; the uGUI fallback is gone (ADR 0052)
+                Debug.LogError($"[WebUiHost] Vite unhealthy on port {_vitePort}; restarting on the same port");
                 _process?.Kill();
                 _process = null;
                 consecutiveFailures = 0;
@@ -101,7 +95,6 @@ namespace Client.WebUiHost.Vite
             }
 
             _process = replacement;
-            _availability.Value = true;
             Debug.Log($"[WebUiHost] Vite recovered on port {_vitePort}");
             return true;
         }

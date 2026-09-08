@@ -59,16 +59,12 @@ namespace Client.Starter
             // Web UI startup failure does not block gameplay, but the screen UI is web-only so nothing is shown
             try
             {
-                // 起動成否をWeb UIホスト状態へ伝え、失敗時はWeb UIを利用不可にする
-                // Propagate startup success to the Web UI host state and leave Web UI unavailable on failure
-                var hostStarted = await Client.WebUiHost.Boot.WebUiHost.StartAsync();
-                Client.Game.InGame.UI.UIState.WebUiScreenGate.SetHostAvailable(hostStarted);
+                await Client.WebUiHost.Boot.WebUiHost.StartAsync();
             }
             catch (Exception e)
             {
                 // WebUI 無しでゲーム続行。外部プロセス境界の起動失敗を隔離して再試行可能にする
                 // Continue without WebUI; isolate external-process startup failures and keep retries possible
-                Client.Game.InGame.UI.UIState.WebUiScreenGate.SetHostAvailable(false);
                 Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
             }
 
