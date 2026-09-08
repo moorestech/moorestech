@@ -1,6 +1,6 @@
 ---
 name: subagent-driven-development
-description: 現在のセッションで、独立したタスクからなる実装計画を実行する際に使用する
+description: 現在のセッションで、独立したタスクからなる実装計画を実行する際に使用する。規模ゲート未満はopus固定の単一subagentが計画全体を実装し、閾値超はタスクごと派遣＋タスクレビューで進める
 ---
 
 # Subagent-Driven Development
@@ -15,11 +15,11 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 **継続実行:** タスクの合間に人間パートナーへ確認を取るために止まらない。計画の全タスクを止まらずに実行する。止まってよい理由は、解決できないBLOCKED状態、真に進行を妨げる曖昧さ、または全タスク完了のみ。「続けてよいですか？」という確認や進捗サマリーは相手の時間の無駄になる — 彼らは計画の実行を依頼したのだから、実行せよ。
 
-## 規模ゲート: 既定はインライン実装（2026-08-18 実測に基づく）
+## 規模ゲート: 閾値未満は単一subagent実装モード（2026-09-08 ADR 0053）
 
-計画があっても、**規模が閾値未満ならこのスキルを使わずインラインで実装するのが既定**である。SDDの実装subagent自体は安いが、派遣往復によるコントローラーの肥大とタスクごとのレビューゲートが固定費として乗る（実測: 1計画あたり$40〜90相当 + 本体ループ肥大。実装subagentは大型セッション総額の6〜25%に過ぎなかった）。
+計画があっても、**規模が閾値未満ならタスクごとの派遣＋タスクレビューゲート（以下「SDD本体」）を使わず、opus固定のimplementer subagent 1体に計画全体を実装させる「単一subagent実装モード」が既定**である。本体セッションは実装コードを書かない — 担うのはワークスペース隔離・事前計画レビュー・派遣・最終レビュー・PR作成のみ。SDD本体の実装subagent自体は安いが、派遣往復によるコントローラーの肥大とタスクごとのレビューゲートが固定費として乗る（実測: 1計画あたり$40〜90相当 + 本体ループ肥大。実装subagentは大型セッション総額の6〜25%に過ぎなかった）。かつて閾値未満は本体が直接書くインライン実装だったが、本体コンテキストを実装で消費し最終レビュー対応の余力を削るため廃止した（`.decisions/2026-09-08-SDD閾値未満は本体インラインでなく単一opus-subagentで実装する.md`）。
 
-**インラインで実装する条件（すべて満たすならインライン。AND）:**
+**単一subagent実装モードの条件（すべて満たすなら単一subagent。AND）:**
 
 1. **予想変更が約15ファイル以下**、かつ
 2. **予想変更が全体で約1,000行以下**、かつ
@@ -27,17 +27,28 @@ description: 現在のセッションで、独立したタスクからなる実�
 4. 実装と並行した**長いデバッグ・実機e2e往復が見込まれない**（調査churnがコンテキストを食う）、かつ
 5. **並列実行したい独立タスク群が無い**
 
-**この5つを全部満たすならSDDを使わずインラインで実装する。** 1つでも外れた場合（約15ファイル超／約1,000行超／独立タスク8個以上／長いデバッグ往復あり／並列実行したい）だけSDDを発動する。インラインの場合も最終レビュー1本（moores-code-review）は省略しない。worktree隔離が必要なだけならworktree + インラインでよく、SDDの理由にはならない。
+**この5つを全部満たすなら単一subagent実装モードで実装する。** 1つでも外れた場合（約15ファイル超／約1,000行超／独立タスク8個以上／長いデバッグ往復あり／並列実行したい）だけSDD本体を発動する。単一subagentモードでも最終レビュー1本（moores-code-review）は省略しない。worktree隔離はどちらのモードでも必須である（下記「ワークスペース隔離」）。
 
-**タスク数の数え方:** 数えるのは**実装タスク**である。実サービス・実機での動作確認タスク、最終レビュータスク、コミット/PR作成タスクのような、コードを書かない末尾の定型タスクは数に含めない。計画のタスク見出しを機械的に数えて発動判定をしないこと（2026-08-20: 実装4タスク・4ファイルの計画を「タスク6個」と数えてSDDを発動した実例がある）。
+**タスク数の数え方:** 数えるのは**実装タスク**である。実サービス・実機での動作確認タスク、最終レビュータスク、コミット/PR作成タスクのような、コードを書かない末尾の定型タスクは数に含めない。計画のタスク見出しを機械的に数えて発動判定をしないこと（2026-08-20: 実装4タスク・4ファイルの計画を「タスク6個」と数えてSDD本体を発動した実例がある）。
 
-**閾値の根拠（両Mac 130+セッションのtranscript実測、2026-08-18）:** インライン実装は編集約20ファイル・読み書き合計約45ファイルまでcompaction発生ゼロで完走している（25〜32ファイルも読み込みが少なければ可）。編集25〜30ファイル超または長いデバッグ往復を伴うと高頻度でcompactionし、文脈喪失は「完了済みタスクの再派遣」級の最も高くつく失敗につながる。15ファイルはこの実測限界に対する安全マージンである。
+**閾値の根拠（両Mac 130+セッションのtranscript実測、2026-08-18）:** 単一コンテキストでの実装は編集約20ファイル・読み書き合計約45ファイルまでcompaction発生ゼロで完走している（25〜32ファイルも読み込みが少なければ可）。編集25〜30ファイル超または長いデバッグ往復を伴うと高頻度でcompactionし、文脈喪失は「完了済みタスクの再派遣」級の最も高くつく失敗につながる。15ファイルはこの実測限界に対する安全マージンである。単一subagentは履歴を継承しない新規コンテキストだが、新モードの実測が無いため同じ閾値を流用する。実測が溜まったら再裁定する。
 
-**判定は必ず声に出す。** 最初のsubagent派遣より前に、数えた実装タスク数・予想ファイル数・判定結果を1行でユーザーへ出す（例:「実装4タスク・4ファイル → インライン」）。黙って派遣を始めると、誤判定はsubagentが1本走り終えるまで是正されない（2026-08-20の実例）。
+**判定は必ず声に出す。** 最初のsubagent派遣より前に、数えた実装タスク数・予想ファイル数・判定結果を1行でユーザーへ出す（例:「実装4タスク・4ファイル → 単一subagent」）。黙って派遣を始めると、誤判定はsubagentが1本走り終えるまで是正されない（2026-08-20の実例）。
 
-**ユーザーがスキル名を明示して起動した場合もゲートは評価する。** 閾値未満なら「この規模ならインラインが既定です」と1行述べてから指示に従う。名指し起動はゲートの免除ではない。
+**ユーザーがスキル名を明示して起動した場合もゲートは評価する。** 閾値未満なら「この規模なら単一subagentモードが既定です」と1行述べてから指示に従う。名指し起動はゲートの免除ではない。
 
-**途中切替:** インラインで始めて、半分に達する前にコンテキスト残量が3割を切ったら、そこで止めて残りのタスクをこのスキル（subagent派遣）に切り替える。進捗台帳（下記）に切替点を記録する。
+**単一subagent実装モードの手順:**
+
+1. ワークスペース隔離（下記、必須。単一subagentもコミットを行うimplementerである）
+2. 事前計画レビュー（下記）
+3. 判定を1行で声に出す
+4. `scripts/sdd-workspace` で作業ディレクトリを確保し、報告ファイルパスを `<workspace>/single-report.md` に決める。派遣直前の `git rev-parse --short HEAD` を BASE として控える
+5. 進捗台帳（下記）へ派遣行を書く: `Single-subagent: dispatched base <sha7> report <path>`
+6. [single-implementer-prompt.md](single-implementer-prompt.md) で `model: opus` を明示し、**フォアグラウンド**で派遣する（バックグラウンド派遣は孤児化して止まる事故があった）
+7. 返ってきたステータスに対応する（下記「Implementerのステータス対応」の「単一subagent実装モードの場合」）
+8. DONE なら台帳へ完了行 `Single-subagent: complete (commits <base7>..<head7>)` を書き、最終ブランチ全体レビュー（moores-code-review）→ PR作成へ進む。タスクレビュアーは派遣しない
+
+**継続再派遣（途中失敗時）:** subagentが DONE 以外（一部タスクのみ完了して BLOCKED・NEEDS_CONTEXT・コンテキスト枯渇による途中終了）で返ったら、報告ファイルの `Task N: done <sha7>` 行と `git log <base>..HEAD --oneline` で完了タスクを確定し、残りタスクだけを `[TASK_RANGE]` に列挙した継続subagentを同じテンプレで派遣する。台帳に `Single-subagent: continuation #k from Task N base <sha7>` を追記する。継続は最大2回。それでも終わらなければ規模誤判定とみなし、残りタスクをSDD本体（タスクごと派遣＋タスクレビュー）へ切り替え、台帳に切替点を記録する。NEEDS_CONTEXT は不足コンテキストを足した継続派遣として数える。
 
 ## 使用場面
 
@@ -49,13 +60,13 @@ digraph when_to_use {
     "subagent-driven-development" [shape=box];
     "Parallel session execution" [shape=box];
     "Manual execution or brainstorm first" [shape=box];
-    "Inline implementation + final review" [shape=box];
+    "Single opus subagent implements whole plan + final review" [shape=box];
     "Stay in this session?" [shape=diamond];
 
     "Have implementation plan?" -> "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" [label="yes"];
     "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
     "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" -> "Tasks mostly independent?" [label="yes"];
-    "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" -> "Inline implementation + final review" [label="no - below gate"];
+    "Over size gate? (>~15 files / >~1000 lines / 8+ impl tasks / long debug loop / want parallel)" -> "Single opus subagent implements whole plan + final review" [label="no - below gate"];
     "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
     "Stay in this session?" -> "subagent-driven-development" [label="yes"];
