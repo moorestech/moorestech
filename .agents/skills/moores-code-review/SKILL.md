@@ -129,6 +129,7 @@ Repo root : <リポジトリ絶対パス>
 1. **統合報告** — Critical/Warning/Info件数、各指摘の出所（決定論/レンズ名/reviewer名/Codex/Fable/N系統一致）、適用した修正、コンパイル・テスト結果。Warningは1件1行で全件載せる（保険としてコンテキストに乗せるのが目的。黙って落とさない）。Infoは末尾に圧縮列挙。raw出力やレビュー表をそのまま貼らない。Codex/Fableをスキップした場合はその旨を明記。
    - **「免責で消された指摘」セクション必須**: 各観点の `suppressed:` 節を固定形式 `- [Critical|Warning] <指摘要約> — suppressed-by: <トレードオフ1行, 出所ラベル>` で列挙する（元の重大度を行頭に保持。0件なら「suppressed: 0件」と明記）。§2.6参照。
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。裁定結果の適用は、1〜2箇所の機械的な直しなら本体が最小Edit、まとまった量なら fix subagent（`model: "sonnet"`）1体に design.md のパス+裁定を渡す。
+   - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは従来どおり本体の最小Edit or fix subagent（`sonnet`）。
    - **裁定反映 diff の再レビュー**: 上の適用がテスト以外のソースに触れたら、適用前 ref（`git stash create` か HEAD）との差分を `$RUNDIR/apply-step7.diff` に書き、`post-checks/applied-diff-correctness.md`（`model: "opus"`・Step 4 と同じ5行契約・Patch path = その diff）を1体起動する（理由は同ファイル冒頭。Step 6 側は Workflow の Step 6.5-2.5 が同じ post-check を回す）。Critical は直して再実行（機械的でなければ再度 AskUserQuestion）、Warning/Info は最終報告へ。
    - **載せてよいのは本質的な設計判断のみ**: アーキテクチャ・パターン選択（多態化/型分割/移動先クラス）・スコープ影響・両立不能な指摘、およびサブエージェントの `設計判断: あり` 項目。
    - **載せるの禁止**: コメントの短縮・文体（convention-guardが自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。この2種は選択肢に混ぜた時点で規約違反。
