@@ -86,7 +86,9 @@ jobs:
       # Import only, without running any test, since the goal is to produce the Library
       - name: Warm Library
         id: warm
-        uses: game-ci/unity-test-runner@v4
+        # 上流がv4タグを動かしCIが全滅したため、動作実績のあるSHAへ固定する（2026-09-09）
+        # Pinned to a known-good SHA because an upstream v4 tag move broke all CI (2026-09-09)
+        uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -183,7 +185,9 @@ jobs:
 
       - name: Warm Library - ${{ matrix.target }}
         id: warm
-        uses: game-ci/unity-builder@v4
+        # 上流がv4タグを動かしCIが全滅したため、動作実績のあるSHAへ固定する（2026-09-09）
+        # Pinned to a known-good SHA because an upstream v4 tag move broke all CI (2026-09-09)
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4.8.2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
