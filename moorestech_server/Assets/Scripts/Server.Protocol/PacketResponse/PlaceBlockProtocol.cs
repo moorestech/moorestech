@@ -92,7 +92,7 @@ namespace Server.Protocol.PacketResponse
 
                 // 未解放セルはスキップし、ベルトの坂はファミリー直線の状態で判定する
                 // Skip locked cells and resolve belt slopes through their family straight block
-                if (!IsUnlocked(blockMaster.BlockGuid)) { notUnlockedCount++; return; }
+                if (!IsUnlocked(placeBlockId, blockMaster.BlockGuid)) { notUnlockedCount++; return; }
 
                 // 財布に問い合わせ、賄えないセルはスキップ
                 // Ask the wallet; skip cells it cannot cover
@@ -123,11 +123,13 @@ namespace Server.Protocol.PacketResponse
                 if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
             }
 
-            bool IsUnlocked(Guid blockGuid)
+            bool IsUnlocked(BlockId blockId, Guid blockGuid)
             {
                 // ベルトファミリーは直線ブロックのunlock状態を参照する
                 // Belt families resolve unlock state through their straight block
-                var unlockGuid = BeltConveyorPlaceFamilyUtil.ResolveUnlockBlockGuid(blockGuid);
+                var unlockGuid = BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family)
+                    ? MasterHolder.BlockMaster.GetBlockMaster(family.StraightBlockId).BlockGuid
+                    : blockGuid;
                 return _gameUnlockStateDataController.BlockUnlockStateInfos[unlockGuid].IsUnlocked;
             }
 
