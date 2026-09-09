@@ -37,7 +37,28 @@ namespace Client.WebUiHost.Boot
 
         public WebSocketHub()
         {
-            _dispatcher = new WebSocketMessageDispatcher(_handlers, _actionHandlers, _topicRevisions);
+            _dispatcher = new WebSocketMessageDispatcher(this);
+        }
+
+        // 登録済みtopicハンドラの解決口。未登録はnull
+        // Resolves a registered topic handler; null when unregistered
+        public ITopicHandler ResolveTopic(string topic)
+        {
+            return _handlers.TryGetValue(topic, out var handler) ? handler : null;
+        }
+
+        // 登録済みactionハンドラの解決口。未登録はnull
+        // Resolves a registered action handler; null when unregistered
+        public IActionHandler ResolveAction(string actionType)
+        {
+            return _actionHandlers.TryGetValue(actionType, out var handler) ? handler : null;
+        }
+
+        // topicの現revision。未登録topicは0
+        // Current revision of the topic; 0 for an unregistered topic
+        public long GetTopicRevision(string topic)
+        {
+            return _topicRevisions.TryGetValue(topic, out var revision) ? revision : 0;
         }
 
         // ページからのWS接続が1本でも確立しているか（CEFナビゲーション成否の確認に使う）

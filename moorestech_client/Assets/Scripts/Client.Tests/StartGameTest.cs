@@ -114,10 +114,15 @@ namespace Client.Tests
 
             try
             {
-                // 画面文字列はWeb UIが持つため、シーンには翻訳付きTMPを置かない（ADR 0052）
-                // Screen strings live in the Web UI, so the scene carries no localized TMP (ADR 0052)
-                foreach (var localizedText in UnityEngine.Object.FindObjectsByType<TextMeshProLocalize>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                    Assert.AreNotEqual(scene, localizedText.gameObject.scene, localizedText.name);
+                // 画面文字列はWeb UIが持つため、本シーンには翻訳付きTMPを置かない（ADR 0052）
+                // Screen strings live in the Web UI, so this scene carries no localized TMP (ADR 0052)
+                // 全体検索の反転ではなくシーン内を直接数えることで、対象0件でも真になるvacuousな緑を作らない
+                // Counting inside the scene instead of inverting a global search avoids a vacuous pass when nothing is found
+                var sceneLocalizedTexts = new List<string>();
+                foreach (var root in scene.GetRootGameObjects())
+                    foreach (var localizedText in root.GetComponentsInChildren<TextMeshProLocalize>(true))
+                        sceneLocalizedTexts.Add(localizedText.name);
+                Assert.IsEmpty(sceneLocalizedTexts, "MainGameシーンに翻訳付きTMPが残っている: " + string.Join(", ", sceneLocalizedTexts));
 
                 var veinDatastores = UnityEngine.Object.FindObjectsByType<OutcropGameObjectDatastore>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 var sceneHasVeinDatastore = false;
