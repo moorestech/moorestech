@@ -81,8 +81,8 @@ namespace Client.Tests.Interact
         [Test]
         public void インタラクト面は開けるブロックのマスタにだけ付与条件が立つ()
         {
-            Assert.IsTrue(FindMaster(OpenableBlockName).IsBlockOpenable());
-            Assert.IsFalse(FindMaster(PlainBlockName).IsBlockOpenable());
+            Assert.IsTrue(FindMaster(OpenableBlockName).Openable);
+            Assert.IsFalse(FindMaster(PlainBlockName).Openable);
         }
 
         // BlockGameObject.Initializeはサーバ接続を伴うため、マスタだけ差し込んでインタラクト面を直接初期化する

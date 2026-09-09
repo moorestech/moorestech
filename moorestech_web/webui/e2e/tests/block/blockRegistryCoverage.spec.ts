@@ -5,7 +5,7 @@ import { registeredBlockTypes } from "../../../src/features/blockInventory/regis
 
 type BlockUiEntry = {
   blockType: string;
-  blockUIAddressablesPath: string;
+  openable: boolean;
 };
 
 // 共通表示の意図的allowlist
@@ -21,13 +21,13 @@ const intentionalGeneric = new Set([
 ]);
 
 test("v8マスタで専用UIを持つ全blockTypeがレジストリまたは意図的Genericに分類される", () => {
-  // 再生成: blocks.jsonの.dataから[blockType, blockUIAddressablesPath]を抽出し、sort -u後に本fixtureへ反映する。
-  // Regenerate: extract [blockType, blockUIAddressablesPath] from blocks.json .data, sort -u, then update this fixture.
+  // 再生成: blocks.jsonの.dataから[blockType, openable]を抽出し、sort -u後に本fixtureへ反映する。
+  // Regenerate: extract [blockType, openable] from blocks.json .data, sort -u, then update this fixture.
   const fixturePath = fileURLToPath(new URL("../../fixtures/v8-block-ui-registry.json", import.meta.url));
   const entries = JSON.parse(readFileSync(fixturePath, "utf8")) as BlockUiEntry[];
   const registered = new Set<string>(registeredBlockTypes);
   const dedicatedTypes = entries
-    .filter((entry) => entry.blockUIAddressablesPath.length > 0)
+    .filter((entry) => entry.openable)
     .map((entry) => entry.blockType);
 
   const missing = [...new Set(dedicatedTypes)]

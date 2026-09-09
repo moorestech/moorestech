@@ -76,7 +76,7 @@ namespace Client.Game.InGame.Block
 
             // 開けるブロックのみインタラクト面を初期化
             // Initialize the interact face only for openable blocks
-            if (blockMasterElement.IsBlockOpenable())
+            if (blockMasterElement.Openable)
             {
                 Interactable = gameObject.AddComponent<BlockInteractable>();
                 Interactable.Initialize(this);

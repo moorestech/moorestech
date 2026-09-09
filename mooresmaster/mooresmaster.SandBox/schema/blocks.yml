@@ -84,9 +84,9 @@ properties:
         - key: blockPrefabAddressablesPath
           type: string
           optional: true
-        - key: blockUIAddressablesPath
-          type: string
-          optional: true
+        - key: openable
+          type: boolean
+          default: false
         - key: blockParam
           switch: ./blockType
           cases:

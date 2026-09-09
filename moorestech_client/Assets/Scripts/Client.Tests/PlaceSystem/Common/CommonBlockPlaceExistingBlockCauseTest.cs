@@ -138,7 +138,7 @@ namespace Client.Tests.PlaceSystem.Common
                 false,
                 Vector3Int.one,
                 null,
-                null,
+                false, // openable
                 null
             );
         }
