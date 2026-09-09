@@ -172,7 +172,9 @@ jobs:
       # 専用fixtureはCategoryだけ、残余は検証済みassemblyも併用し、網羅性を保って探索固定費を抑える。
       # Use categories alone for dedicated fixtures and verified assemblies for remainders to retain coverage with lower discovery overhead.
       - name: Run Unity Test - ${{ matrix.shard }}
-        uses: game-ci/unity-test-runner@v4
+        # 上流がv4タグを動かしCIが全滅したため、動作実績のあるSHAへ固定する（2026-09-09）
+        # Pinned to a known-good SHA because an upstream v4 tag move broke all CI (2026-09-09)
+        uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
