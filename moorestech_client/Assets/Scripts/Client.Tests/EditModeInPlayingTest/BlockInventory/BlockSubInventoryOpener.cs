@@ -1,7 +1,7 @@
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Block.Interact;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.UIState.State.SubInventory;
+using Client.Game.InGame.UI.UIState.State;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using VContainer;
