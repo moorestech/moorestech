@@ -62,7 +62,7 @@ Subagent (general-purpose, フォアグラウンド):
 「Task 1〜N は完了済み（commits <base7>..<head7>、報告ファイルの `Task N: done` 行を参照）。Task N+1 から続行せよ。
 前の派遣が書いた `Task N: partial — <残作業>` 行があれば読み、そのタスクは頭からやり直せ」を足す。
 報告ファイルは同じものへ**追記**させる（`[REPORT_FILE]` は前回と同じパスにする）。
-継続の対象は PARTIAL のみ・最大2回（SKILL.md「継続再派遣（途中失敗時）」）。NEEDS_CONTEXT は回答して再派遣し、この2回に数えない。
+継続の対象は PARTIAL のみ・最大2回（`references/single-subagent-mode.md`「継続再派遣（途中失敗時）」）。NEEDS_CONTEXT は回答して再派遣し、この2回に数えない。
 
 **プレースホルダー:**
 - `[PLAN_NAME]` — 計画の名前（planファイルのH1）
