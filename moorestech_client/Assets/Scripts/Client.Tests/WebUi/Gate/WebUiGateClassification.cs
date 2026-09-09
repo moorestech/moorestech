@@ -3,25 +3,21 @@ using System.Collections.Generic;
 namespace Client.Tests.WebUi.Gate
 {
     /// <summary>
-    /// スクリーンスペースuGUIビューのWebゲート処遇分類。新規uGUI追加時は必ずここへ分類を追加する（未分類はテスト失敗）。
+    /// スクリーンスペースuGUIビューの処遇分類。新規uGUI追加時は必ずここへ分類を追加する（未分類はテスト失敗）。
     /// ADR 0052で全削除済み。新規追加防止の安全網として残置。
-    /// Web-gate disposition classification for screen-space uGUI views; new uGUI files must be classified here (unclassified fails the test).
+    /// Disposition classification for screen-space uGUI views; new uGUI files must be classified here (unclassified fails the test).
     /// The migrated screen uGUI is fully deleted per ADR 0052; this classification remains as a safety net against new additions.
     /// </summary>
     public static class WebUiGateClassification
     {
         public enum Category
         {
-            // WebUiScreenGate.IsWebUiMode 参照を必須とするゲートルート
-            // Gated root that must reference WebUiScreenGate.IsWebUiMode
-            GatedRoot,
-
-            // 親のゲートルートで表示抑止される配下ファイル
-            // Child file suppressed via its parent gated root
+            // 親の抑止ルートで表示抑止される配下ファイル
+            // Child file suppressed via its parent suppression root
             CoveredByRoot,
 
-            // ゲート機構・状態機械そのもの
-            // The gate mechanism / state machine itself
+            // 状態機械・論理モデルそのもの
+            // The state machine / logical model itself
             Infra,
 
             // 移行対象外（ワールド空間・メインメニュー・デバッグ等。noteに根拠）
@@ -62,11 +58,9 @@ namespace Client.Tests.WebUi.Gate
         // Longest-prefix-match rules; file entries take precedence over directory entries
         public static readonly IReadOnlyList<Rule> Rules = new List<Rule>
         {
-            // --- ゲートルート（ゲート参照必須） / Gated roots (gate reference required)
-            new Rule("Client.Game/Skit/SkitManager.cs", Category.GatedRoot, "通常スキット UI Toolkit 抑止"),
-
             // --- 基盤 / Infra
-            new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械・ゲート本体"),
+            new Rule("Client.Game/Skit/SkitManager.cs", Category.Infra, "通常スキットの進行制御。UI Toolkitビューは常時伏せる"),
+            new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械本体"),
             new Rule("Client.Game/InGame/UI/Inventory", Category.Infra, "サブインベントリ論理モデル（uGUIビューは全削除済み: ADR 0052）"),
             new Rule("Client.Game/InGame/UI/BuildMenu", Category.Infra, "ビルドメニュー選択の論理状態"),
             new Rule("Client.Game/InGame/UI/Blueprint", Category.Infra, "BP名入力の論理状態"),
@@ -90,7 +84,7 @@ namespace Client.Tests.WebUi.Gate
             new Rule("Client.Game/Skit/SkitWorldObjectControlGroup.cs", Category.Excluded, "ワールド表示物の切替でスクリーンUIを持たない"),
             new Rule("Client.Game/Skit/SkitVisibilityLedger.cs", Category.Excluded, "スキットが消したワールド表示の復元台帳でスクリーンUIを持たない"),
             new Rule("Client.Game/Skit/SkitUiRestoreResult.cs", Category.Excluded, "会話UI復帰要求の帰結を表すenumでスクリーンUIを持たない"),
-            new Rule("Client.Skit", Category.CoveredByRoot, "SkitManagerがUI Toolkit rootをWebモード時に抑止"),
+            new Rule("Client.Skit", Category.CoveredByRoot, "SkitManagerがUI Toolkit rootを常時抑止"),
             new Rule("Client.CutScene", Category.Excluded, "TimelinePlayerのみ（Canvasは削除済み: ADR 0052）"),
             new Rule("Client.DebugSystem", Category.Excluded, "デバッグUI（ADR 0052 例外4）"),
         };

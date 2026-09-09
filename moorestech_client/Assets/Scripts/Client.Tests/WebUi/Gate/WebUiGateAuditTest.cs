@@ -7,13 +7,11 @@ using UnityEngine;
 namespace Client.Tests.WebUi.Gate
 {
     /// <summary>
-    /// ゲート漏れ決定論チェック。スクリーンスペースuGUI領域の全.csが分類済みで、ゲートルートが実際にゲートを持つことを機械判定する。
-    /// Deterministic gate-leak check: every screen-space uGUI .cs must be classified, and gated roots must actually contain the gate.
+    /// uGUI再流入の決定論チェック。スクリーンスペースuGUI領域の全.csが分類済みで、除外以外がuGUIを参照しないことを機械判定する。
+    /// Deterministic re-entry check: every screen-space uGUI .cs must be classified, and non-excluded files must not reference uGUI.
     /// </summary>
     public class WebUiGateAuditTest
     {
-        private const string GateToken = "WebUiScreenGate.IsWebUiMode";
-
         // uGUI 参照の検出語。UIElements を部分一致で拾わないようセミコロンまで含める
         // uGUI reference tokens; the trailing semicolon keeps UIElements out of the match
         private static readonly string[] UguiTokens = { "using UnityEngine.UI;", "using TMPro;", "using UnityEngine.EventSystems;" };
@@ -72,26 +70,6 @@ namespace Client.Tests.WebUi.Gate
                 string.Join("\n", unclassified));
         }
 
-        // ゲートルートは実際に WebUiScreenGate.IsWebUiMode を参照していること
-        // Every gated root must actually reference WebUiScreenGate.IsWebUiMode
-        [Test]
-        public void GatedRootsContainGateToken()
-        {
-            var missing = new List<string>();
-            foreach (var rule in WebUiGateClassification.Rules)
-            {
-                if (rule.RuleCategory != WebUiGateClassification.Category.GatedRoot) continue;
-                var abs = Path.Combine(ScriptsRoot, rule.PathPrefix);
-                if (!File.Exists(abs))
-                {
-                    missing.Add($"{rule.PathPrefix} (ファイルが存在しない — リネーム時はルールも更新)");
-                    continue;
-                }
-                if (!File.ReadAllText(abs).Contains(GateToken)) missing.Add($"{rule.PathPrefix} (ゲート参照が消えている)");
-            }
-            Assert.IsEmpty(missing, "ゲートルートの検証に失敗:\n" + string.Join("\n", missing));
-        }
-
         // 分類の裏をかいて新規スクリーンスペースuGUIが入るのを止める
         // Stop new screen-space uGUI from slipping in behind the classification
         [Test]
@@ -103,7 +81,6 @@ namespace Client.Tests.WebUi.Gate
                 var rule = Resolve(relativePath);
                 if (rule == null) continue;
                 if (rule.Value.RuleCategory == WebUiGateClassification.Category.Excluded) continue;
-                if (rule.Value.RuleCategory == WebUiGateClassification.Category.GatedRoot) continue;
 
                 var text = File.ReadAllText(Path.Combine(ScriptsRoot, relativePath));
                 foreach (var token in UguiTokens)
@@ -113,7 +90,7 @@ namespace Client.Tests.WebUi.Gate
             }
 
             Assert.IsEmpty(violations,
-                "ゲート対象外に分類されていないファイルがスクリーンスペースuGUIを参照しています。Web UIへ寄せるか、分類をExcluded/GatedRootへ改めてください:\n" +
+                "除外に分類されていないファイルがスクリーンスペースuGUIを参照しています。Web UIへ寄せるか、分類をExcludedへ改めてください:\n" +
                 string.Join("\n", violations));
         }
 

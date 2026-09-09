@@ -165,7 +165,6 @@ ui.tooltip.pickUpInteract,Press F to pick up,Press F to pick up,Fで取得,F dr�
 ui.tooltip.requiredItems,Requires: {p0},Requires: {p0},このアイテムが必要です: {p0},Benötigt: {p0}
 ui.tooltip.cannotHandMine,Cannot be mined by hand,Cannot be mined by hand,手掘りできません,Kann nicht von Hand abgebaut werden
 ui.tooltip.craftCannotByItemShortage,Not enough items to craft,Not enough items to craft,アイテムが足りないためクラフトできません,Zu wenig Gegenstände zum Herstellen
-ui.tooltip.retiredUguiSlotText,{p0},{p0},{p0},{p0}
 ui.delete.differentCategorySelection,Blocks from different categories cannot be selected at the same time.,Blocks from different categories cannot be selected at the same time.,別カテゴリーのブロックは同時に選択できません。,Blöcke aus verschiedenen Kategorien können nicht gleichzeitig ausgewählt werden.
 ui.delete.railHasVehicle,A vehicle is on this rail.,A vehicle is on this rail.,レール上に車両があります。,Auf diesem Gleis steht ein Fahrzeug.
 ui.delete.blockDeleteFailed,Failed to delete the block.,Failed to delete the block.,ブロックを削除できませんでした。,Der Block konnte nicht entfernt werden.

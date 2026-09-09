@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
-using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.ChallengesModule;
@@ -66,7 +65,7 @@ namespace Client.Game.InGame.Tutorial
         {
             // Webへ射影配信する（3Dプレビュー自体はUnity側に残置し、矢印/ピンのみWeb化）
             // Project and publish to the web overlay (the 3D preview stays in Unity; only the arrow/pin moves to web)
-            if (!WebUiScreenGate.IsWebUiMode || _entries.Count == 0) return;
+            if (_entries.Count == 0) return;
             
             var camera = CameraManager.MainCamera.Camera;
             if (!camera) return;

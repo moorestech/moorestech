@@ -20,8 +20,8 @@ namespace Client.Tests.PlaceSystem.Feedback
         [SetUp]
         public void SetUp()
         {
-            // uGUI描画経路の文言解決が実辞書を引くため初期化しておく
-            // Initialize the real dictionary because the uGUI render path resolves text through it
+            // 文言解決が実辞書を引くため初期化しておく
+            // Initialize the real dictionary because text resolution reads from it
             Localize.Initialize();
             _tooltip = new MouseCursorTooltipState();
         }

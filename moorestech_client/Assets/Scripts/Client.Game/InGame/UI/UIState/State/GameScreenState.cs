@@ -90,8 +90,8 @@ namespace Client.Game.InGame.UI.UIState.State
             // Lock cursor and enable rotation in gameplay
             _cameraPolicyService.EnterGameplay();
 
-            // 旧uGUIのHUD表示をGameScreen復帰時に同期する
-            // Sync legacy uGUI HUD visibility when returning to GameScreen.
+            // GameScreen復帰時にゲーム全体状態をInGameへ戻す
+            // Return the whole-game state to InGame when coming back to GameScreen
             GameStateController.ChangeState(GameStateType.InGame);
 
         }

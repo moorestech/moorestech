@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Core.Master;
 using Game.Context;
 using Mooresmaster.Model.ChallengesModule;
-using Client.Game.InGame.UI.UIState;
 
 namespace Client.Game.InGame.Tutorial
 {
@@ -33,8 +32,7 @@ namespace Client.Game.InGame.Tutorial
 
             // 平面表示sessionをworld viewと同じchallenge lifecycleで開始する
             // Start the flat presentation session in the same challenge lifecycle as world views
-            if (WebUiScreenGate.IsWebUiMode)
-                TutorialPresentationStateStore.Instance.BeginSession(challengeGuid);
+            TutorialPresentationStateStore.Instance.BeginSession(challengeGuid);
             
             // チュートリアルを実際のManagerに適用する
             // Apply the tutorial to the actual Manager
@@ -55,10 +53,7 @@ namespace Client.Game.InGame.Tutorial
 
             // 平面表示を先にclearし、その後world viewを終了する
             // Clear flat presentations before completing the remaining world views
-            if (WebUiScreenGate.IsWebUiMode)
-            {
-                TutorialPresentationStateStore.Instance.EndSession(challengeId);
-            }
+            TutorialPresentationStateStore.Instance.EndSession(challengeId);
             
             foreach (var tutorialView in tutorialViews)
             {
