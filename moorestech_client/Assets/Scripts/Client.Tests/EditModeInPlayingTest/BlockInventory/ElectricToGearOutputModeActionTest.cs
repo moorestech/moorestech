@@ -1,9 +1,5 @@
 using System.Collections;
-using Client.Game.InGame.Block.Interact;
-using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.UIState.State;
 using Client.Tests.EditModeInPlayingTest.Util;
-using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.ElectricToGear;
 using Game.Block.Interface;
@@ -69,10 +65,9 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 var blockGameObject = await WaitBlockGameObjectSpawn(pos);
                 var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
 
-                // 同じaction handler経由で行index 2を選択
-                // Select row index 2 through the same action handler the Web UI uses.
-                var handler = new ElectricToGearSetOutputModeActionHandler(subInventoryState);
-                var result = await handler.ExecuteAsync(new JObject { ["modeIndex"] = 2 });
+                // Web UIが使う登録済みハンドラをhubから引いて行index 2を選択
+                // Select row index 2 through the registered handler the Web UI uses, resolved from the hub
+                var result = await WebUiActionInvoker.ExecuteAsync("electric_to_gear.set_output_mode", new JObject { ["modeIndex"] = 2 });
                 Assert.IsTrue(result.Ok, $"action failed: {result.Error}");
 
                 // ネットワーク往復後にサーバーの選択indexが2になることを確認

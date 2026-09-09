@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Input;
@@ -15,18 +14,13 @@ namespace Client.WebUiHost.Boot
     /// </summary>
     internal sealed class WebSocketMessageDispatcher
     {
-        private readonly ConcurrentDictionary<string, ITopicHandler> _handlers;
-        private readonly ConcurrentDictionary<string, IActionHandler> _actionHandlers;
-        private readonly ConcurrentDictionary<string, long> _topicRevisions;
+        // レジストリの所有者はhub。dispatcherは解決だけを依頼する
+        // The hub owns the registries; the dispatcher only asks it to resolve
+        private readonly WebSocketHub _hub;
 
-        public WebSocketMessageDispatcher(
-            ConcurrentDictionary<string, ITopicHandler> handlers,
-            ConcurrentDictionary<string, IActionHandler> actionHandlers,
-            ConcurrentDictionary<string, long> topicRevisions)
+        public WebSocketMessageDispatcher(WebSocketHub hub)
         {
-            _handlers = handlers;
-            _actionHandlers = actionHandlers;
-            _topicRevisions = topicRevisions;
+            _hub = hub;
         }
 
         // 受信 JSON を解釈して op ごとに振り分ける。パース失敗は境界で握って接続を維持する
@@ -65,10 +59,11 @@ namespace Client.WebUiHost.Boot
         // Send the topic snapshot to the given connection
         private async UniTask SendSnapshotAsync(WebSocketConnection conn, string topic)
         {
-            if (!_handlers.TryGetValue(topic, out var handler)) return;
+            var handler = _hub.ResolveTopic(topic);
+            if (handler == null) return;
             // 生成前のrevisionを固定し、生成中eventより新しい番号を古いsnapshotへ付けない
             // Pin revision before building so an old snapshot never gets newer than an event emitted during the build
-            _topicRevisions.TryGetValue(topic, out var revision);
+            var revision = _hub.GetTopicRevision(topic);
             var (ok, json) = await TryBuildSnapshotAsync(handler);
             if (!ok) return;
             conn.EnqueueSend(WebSocketEnvelope.BuildEnvelope("snapshot", topic, revision, json));
@@ -78,13 +73,14 @@ namespace Client.WebUiHost.Boot
         // Re-send the snapshot to every connection already subscribed to the topic (rescues subscribe-before-Bind, 2-E)
         public async UniTask BroadcastSnapshotAsync(string topic, ICollection<WebSocketConnection> connections)
         {
-            if (!_handlers.TryGetValue(topic, out var handler)) return;
+            var handler = _hub.ResolveTopic(topic);
+            if (handler == null) return;
             var targets = connections.Where(c => c.Topics.ContainsKey(topic)).ToList();
             if (targets.Count == 0) return;
 
             // 全接続へ同一世代のsnapshotを配り、接続ごとの順序差はWebのrevision gateで解消する
             // Send one snapshot generation to all targets; the web revision gate resolves per-connection ordering
-            _topicRevisions.TryGetValue(topic, out var revision);
+            var revision = _hub.GetTopicRevision(topic);
             var (ok, json) = await TryBuildSnapshotAsync(handler);
             if (!ok) return;
             var envelope = WebSocketEnvelope.BuildEnvelope("snapshot", topic, revision, json);
@@ -99,7 +95,8 @@ namespace Client.WebUiHost.Boot
             // Drop actions without a requestId; the response cannot be correlated
             if (string.IsNullOrEmpty(msg.RequestId)) return;
 
-            if (msg.Type == null || !_actionHandlers.TryGetValue(msg.Type, out var handler))
+            var handler = msg.Type == null ? null : _hub.ResolveAction(msg.Type);
+            if (handler == null)
             {
                 conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "unknown_action"));
                 return;
@@ -111,7 +108,7 @@ namespace Client.WebUiHost.Boot
 
             // 停止処理と競合した場合はハンドラを実行しない（解体済みゲーム状態の保護）
             // Skip execution if shutdown cleared the registry while we awaited the main thread
-            if (!_actionHandlers.ContainsKey(msg.Type))
+            if (_hub.ResolveAction(msg.Type) == null)
             {
                 await UniTask.SwitchToTaskPool();
                 conn.EnqueueSend(WebSocketEnvelope.BuildResult(msg.RequestId, false, "host_stopping"));

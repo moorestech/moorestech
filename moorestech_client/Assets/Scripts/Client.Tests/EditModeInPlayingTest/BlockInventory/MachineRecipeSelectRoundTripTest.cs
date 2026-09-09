@@ -1,14 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using Client.Game.InGame.Context;
 using Client.Tests.EditModeInPlayingTest.Util;
-using Client.WebUiHost.Game.Actions;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Blocks.Machine;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
-using Game.UnlockState;
 using Mooresmaster.Model.MachineRecipesModule;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -17,7 +14,6 @@ using UnityEditor;
 #endif
 using UnityEngine;
 using UnityEngine.TestTools;
-using VContainer;
 using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
 
 namespace Client.Tests.EditModeInPlayingTest.BlockInventory
@@ -80,19 +76,17 @@ namespace Client.Tests.EditModeInPlayingTest.BlockInventory
                 Assert.AreEqual(2, blockRecipes.Count, "test master data recipe count mismatch");
 
                 var subInventoryState = await BlockSubInventoryOpener.Open(blockGameObject);
-                var unlockStateData = ClientDIContext.DIContainer.DIContainerResolver.Resolve<IGameUnlockStateData>();
-                var handler = new MachineRecipeSelectActionHandler(subInventoryState, unlockStateData);
 
-                // 同じaction handler経由で1件目を選択
-                // Select the first recipe through the same action handler the Web UI uses.
+                // Web UIが使う登録済みハンドラをhubから引いて1件目を選択
+                // Select the first recipe through the registered handler the Web UI uses, resolved from the hub
                 var targetGuid = blockRecipes[0].MachineRecipeGuid;
-                var setResult = await handler.ExecuteAsync(new JObject { ["operation"] = "set", ["recipeGuid"] = targetGuid.ToString() });
+                var setResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "set", ["recipeGuid"] = targetGuid.ToString() });
                 Assert.IsTrue(setResult.Ok, $"select action failed: {setResult.Error}");
                 Assert.AreEqual(targetGuid, processor.SelectedRecipeGuid, "selected recipe did not reach the server");
 
                 // 解除も同じ経路で往復することを確認する
                 // Confirm clearing round-trips through the same path.
-                var clearResult = await handler.ExecuteAsync(new JObject { ["operation"] = "clear" });
+                var clearResult = await WebUiActionInvoker.ExecuteAsync("machine_recipe.select", new JObject { ["operation"] = "clear" });
                 Assert.IsTrue(clearResult.Ok, $"clear action failed: {clearResult.Error}");
                 Assert.AreEqual(System.Guid.Empty, processor.SelectedRecipeGuid, "clear did not reach the server");
 
