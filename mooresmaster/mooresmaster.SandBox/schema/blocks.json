@@ -116,9 +116,9 @@
             "type": "string",
             "optional": true
           },
-          "blockUIAddressablesPath": {
-            "type": "string",
-            "optional": true
+          "openable": {
+            "type": "boolean",
+            "default": false
           },
           "blockParam": {
             "oneOf": [
