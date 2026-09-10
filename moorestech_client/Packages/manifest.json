@@ -22,6 +22,7 @@
     "com.unity.inputsystem": "1.18.0",
     "com.unity.memoryprofiler": "1.1.9",
     "com.unity.multiplayer.center": "1.0.1",
+    "com.unity.nuget.newtonsoft-json": "3.2.2",
     "com.unity.profiling.core": "1.0.3",
     "com.unity.recorder": "5.1.4",
     "com.unity.render-pipelines.universal": "17.3.0",
