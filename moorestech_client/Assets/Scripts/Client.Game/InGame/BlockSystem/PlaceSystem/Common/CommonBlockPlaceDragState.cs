@@ -86,6 +86,26 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             return _session == null ? cursorCell : _session.StartCell;
         }
 
+        // 高さオフセットを使わない判定（張替え・R7）向けに、押下時オフセットを取り除いた起点セルを返す
+        // Returns the start cell with the press-time offset stripped, for judgements that ignore the height offset (replace, R7)
+        public Vector3Int ResolveDragStartCellWithoutHeightOffset(Vector3Int cursorCell)
+        {
+            if (_session == null) return RemoveHeightOffset(cursorCell, HeightOffset);
+            return RemoveHeightOffset(_session.StartCell, _session.StartHeightOffset);
+        }
+
+        // カーソルセルからは現在の高さオフセットを取り除く（座標へ足されているのは常に現在値のため）
+        // Strips the current height offset from the cursor cell, since that is the value baked into the coordinate
+        public Vector3Int ResolveCursorCellWithoutHeightOffset(Vector3Int cursorCell)
+        {
+            return RemoveHeightOffset(cursorCell, HeightOffset);
+        }
+
+        private static Vector3Int RemoveHeightOffset(Vector3Int cell, int heightOffset)
+        {
+            return cell - new Vector3Int(0, heightOffset, 0);
+        }
+
         // マウスアップで連続設置解除、高さを開始時へ戻す。戻り値は押下が登録されていたか
         // Clears the drag session on mouse-up and restores the starting height; returns whether a press was registered
         public bool EndDrag()

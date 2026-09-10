@@ -36,11 +36,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             // The axis belongs to the drag, so the drag state owns it
             var isStartDirectionZ = _dragState.ResolveDragAxisIsZ(dragStartPoint, placePoint);
 
+            // R7: 張替えは高さオフセットを使わない。Q/Eで浮かせていても既設ラインの上にホバーしていれば発動させる
+            // R7: the replace run ignores the height offset, so hovering an existing line triggers it even with Q/E raised
+            var replaceStartPoint = _dragState.ResolveDragStartCellWithoutHeightOffset(dragStartPoint);
+            var replaceCursorPoint = _dragState.ResolveCursorCellWithoutHeightOffset(placePoint);
+
             // 起点に既設ファミリーブロックがあれば張替え経路。空き地起点は従来の新規設置経路
             // A family block at the origin selects the replace run; an empty origin keeps the normal placement run
-            if (BeltReplaceRunBuilder.TryResolveOrigin(_blockGameObjectDataStore, dragStartPoint, out var replaceOrigin))
+            if (BeltReplaceRunBuilder.TryResolveOrigin(_blockGameObjectDataStore, replaceStartPoint, out var replaceOrigin))
             {
-                return _replaceRunBuilder.Build(replaceOrigin, placePoint, isStartDirectionZ, holdingBlock, out blockCauses, out beltReasons);
+                return _replaceRunBuilder.Build(replaceOrigin, replaceCursorPoint, isStartDirectionZ, holdingBlock, out blockCauses, out beltReasons);
             }
 
             // 坂選択中は一定勾配の専用経路のみ

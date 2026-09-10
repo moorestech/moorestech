@@ -139,6 +139,24 @@ namespace Client.Tests.PlaceSystem.Feedback
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
         }
 
+        [Test]
+        public void 張替えセルは地形の重なりで不可にならず地形の理由も出ない()
+        {
+            // 張替えセルは既設ブロックの居るセルへ重ねるのが正常
+            // A replace cell is meant to sit on an occupied cell
+            var placeInfos = BuildDragCells(2);
+            placeInfos[0].IsReplace = true;
+            placeInfos[1].IsReplace = true;
+            var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.None };
+            var feedback = new PlacementFeedback();
+
+            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { true, true }, feedback);
+
+            Assert.IsTrue(placeInfos[0].Placeable);
+            Assert.IsTrue(placeInfos[1].Placeable);
+            Assert.IsEmpty(feedback.Lines);
+        }
+
         private static List<PlaceInfo> BuildDragCells(int cellCount)
         {
             var placeInfos = new List<PlaceInfo>(cellCount);

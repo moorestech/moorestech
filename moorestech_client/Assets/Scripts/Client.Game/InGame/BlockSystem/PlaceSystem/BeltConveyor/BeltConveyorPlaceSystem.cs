@@ -33,6 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlaceRunBuilder _placeRunBuilder;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
 
         private readonly CommonBlockPlaceDragState _dragState = new();
 
@@ -45,6 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState);
         }
 
@@ -123,15 +125,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-            // ファミリー内は建設コストと設置数/1セットが一致する（マスタ検証済み）ので先頭の設置可セルを代表にする
-            // Cost and placementsPerCost match within a family (validated at master load), so the first placeable cell is representative
-            var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
-            if (0 <= representativeIndex)
-            {
-                var representativeBlockId = _currentPlaceInfos[representativeIndex].BlockId;
-                ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
-                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory);
-            }
+            // 直線・坂・分岐器・張替えで列にBlockIdが混ざるため、コストはセル自身のBlockIdごとに数える
+            // Straight, slope, splitter and replace cells mix BlockIds in one run, so the cost is counted per the cell's own BlockId
+            ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, _constructionWalletQuery, _localPlayerInventory, feedback);
+            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _constructionWalletQuery, _localPlayerInventory);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
@@ -174,9 +171,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 // Clear the continuous-placement state on mouse release (a release without a registered press stops here)
                 if (!_dragState.EndDrag()) return;
 
-                // ベルトは電線を伴わないためワイヤー判定は常に許可
-                // Belts never carry wires, so the wire check is always allowed
-                TrySendOnClickRelease(_currentPlaceInfos, true);
+                // 張替え経路は逆張替えレコード付きの送信、通常経路はワイヤー判定を常に許可した従来の送信
+                // The replace run sends with a reverse-replace record; the normal run keeps the usual sender with the wire check always allowed
+                if (_currentPlaceInfos.Exists(info => info.IsReplace)) TrySendReplaceOnClickRelease(_currentPlaceInfos, _blockGameObjectDataStore);
+                else TrySendOnClickRelease(_currentPlaceInfos, true);
             }
 
             #endregion

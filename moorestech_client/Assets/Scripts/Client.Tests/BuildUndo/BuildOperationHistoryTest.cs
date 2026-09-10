@@ -50,6 +50,8 @@ namespace Client.Tests.BuildUndo
         // Fake record used only to verify push/pop ordering
         private class FakeOperationRecord : IBuildOperationRecord
         {
+            public bool HasCells => true;
+
             public UniTask UndoAsync(BlockGameObjectDataStore blockGameObjectDataStore)
             {
                 return UniTask.CompletedTask;

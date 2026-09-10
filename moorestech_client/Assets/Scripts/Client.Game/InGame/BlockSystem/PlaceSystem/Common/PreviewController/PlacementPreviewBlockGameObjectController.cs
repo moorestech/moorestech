@@ -69,7 +69,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
         {
             for (var i = 0; i < _activePreviewBlocks.Count && i < placeInfos.Count; i++)
             {
-                _activePreviewBlocks[i].SetPlaceableColor(placeInfos[i].Placeable);
+                // 設置可の張替えセルだけ張替え色、他は従来の可否2色
+                // Placeable replace cells use the replace color; everything else keeps the two placeability colors
+                var placeInfo = placeInfos[i];
+                if (placeInfo.Placeable && placeInfo.IsReplace) _activePreviewBlocks[i].SetReplaceColor();
+                else _activePreviewBlocks[i].SetPlaceableColor(placeInfo.Placeable);
             }
         }
 

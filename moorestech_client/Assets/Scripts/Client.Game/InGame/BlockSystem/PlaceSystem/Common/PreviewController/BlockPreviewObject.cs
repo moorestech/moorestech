@@ -78,6 +78,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, color);
         }
         
+        public void SetReplaceColor()
+        {
+            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.ReplaceColor);
+        }
+        
         public void SetTriggerCollider(bool isTrigger)
         {
             var childrenColliders = GetComponentsInChildren<Collider>();

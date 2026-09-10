@@ -66,12 +66,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
             var cursorIndex = PlacementCursorCellResolver.Resolve(placeInfos, cursorCell);
             var cursorCause = 0 <= cursorIndex ? cellCauses[cursorIndex] : PlacementBlockCause.None;
 
-            for (var i = 0; i < groundOverlaps.Count; i++)
+            // 張替えセルは既設ブロックの居るセルへ重ねるのが正常なので、地形の重なりを不可理由にしない
+            // A replace cell is meant to sit on an occupied cell, so a terrain overlap is never a reason to block it
+            var effectiveOverlaps = new List<bool>(groundOverlaps.Count);
+            for (var i = 0; i < groundOverlaps.Count; i++) effectiveOverlaps.Add(groundOverlaps[i] && !placeInfos[i].IsReplace);
+
+            for (var i = 0; i < effectiveOverlaps.Count; i++)
             {
-                if (groundOverlaps[i]) placeInfos[i].Placeable = false;
+                if (effectiveOverlaps[i]) placeInfos[i].Placeable = false;
             }
 
-            Report(cursorIndex, cursorCause, groundOverlaps, feedback);
+            Report(cursorIndex, cursorCause, effectiveOverlaps, feedback);
             return cursorIndex;
         }
     }

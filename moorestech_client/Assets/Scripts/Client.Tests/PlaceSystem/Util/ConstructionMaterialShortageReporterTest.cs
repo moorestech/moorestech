@@ -40,7 +40,7 @@ namespace Client.Tests.PlaceSystem.Util
             placeInfos[3].Placeable = false;
             var feedback = new PlacementFeedback();
 
-            ConstructionMaterialShortageReporter.ReportShortages(placeInfos, ForUnitTestModBlockId.BlockId, BuildWalletQuery(), BuildInventory(3, 10), feedback);
+            ConstructionMaterialShortageReporter.ReportShortages(placeInfos, BuildWalletQuery(), BuildInventory(3, 10), feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceMaterialShortage.Key, feedback.Lines[0].Key.Key);
@@ -56,7 +56,7 @@ namespace Client.Tests.PlaceSystem.Util
             var placeInfos = BuildDragCells(ForUnitTestModBlockId.BlockId, 3);
             var feedback = new PlacementFeedback();
 
-            ConstructionMaterialShortageReporter.ReportShortages(placeInfos, ForUnitTestModBlockId.BlockId, BuildWalletQuery(), BuildInventory(6, 3), feedback);
+            ConstructionMaterialShortageReporter.ReportShortages(placeInfos, BuildWalletQuery(), BuildInventory(6, 3), feedback);
 
             Assert.IsEmpty(feedback.Lines);
         }
@@ -75,13 +75,33 @@ namespace Client.Tests.PlaceSystem.Util
             var datastore = new ClientRemainingPlacementCountDatastore();
             datastore.ApplyAll(new Dictionary<BlockId, int> { { ConstructionWalletUtil.ResolveWalletBlockId(blockId), 3 } });
 
-            ConstructionMaterialShortageReporter.ReportShortages(placeInfos, blockId, new ConstructionWalletQuery(datastore), BuildInventory(0, 0), feedback);
+            ConstructionMaterialShortageReporter.ReportShortages(placeInfos, new ConstructionWalletQuery(datastore), BuildInventory(0, 0), feedback);
             Assert.IsEmpty(feedback.Lines);
 
             // 残り0なら3セルで1セット分の不足が出る
             // With an empty wallet the same three cells fall one cost set short
-            ConstructionMaterialShortageReporter.ReportShortages(placeInfos, blockId, walletQuery, BuildInventory(0, 0), feedback);
+            ConstructionMaterialShortageReporter.ReportShortages(placeInfos, walletQuery, BuildInventory(0, 0), feedback);
             Assert.IsNotEmpty(feedback.Lines);
+        }
+
+        [Test]
+        public void BlockIdが混ざる列はブロックごとに必要数を数える()
+        {
+            CreateServer();
+
+            // BlockId 1セル(Test3×2/セット・1セル1セット) + GearBeltConveyor 3セル(Test3×1/セット・3セル1セット)
+            // One BlockId cell (Test3x2 per set, one set per cell) plus three GearBeltConveyor cells (Test3x1 per set, one set per three cells)
+            var placeInfos = new List<PlaceInfo> { new() { Position = Vector3Int.zero, Placeable = true, BlockId = ForUnitTestModBlockId.BlockId } };
+            for (var i = 0; i < 3; i++) placeInfos.Add(new PlaceInfo { Position = new Vector3Int(i + 1, 0, 0), Placeable = true, BlockId = ForUnitTestModBlockId.GearBeltConveyor });
+            var feedback = new PlacementFeedback();
+
+            ConstructionMaterialShortageReporter.ReportShortages(placeInfos, BuildWalletQuery(), BuildInventory(0, 0), feedback);
+
+            // 代表セル方式なら4セル全部をBlockIdの値段で数えTest3が8必要になる
+            // A representative cell would price all four cells as BlockId and ask for 8 of Test3
+            var requiredCounts = new List<string>();
+            foreach (var line in feedback.Lines) requiredCounts.Add(line.TextParams[2]);
+            CollectionAssert.AreEquivalent(new[] { "2", "1" }, requiredCounts);
         }
 
         private static ConstructionWalletQuery BuildWalletQuery()

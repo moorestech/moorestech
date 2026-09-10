@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
@@ -14,9 +15,16 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     /// </summary>
     public static class PlaceBlockProtocolSender
     {
+        // 新規設置バッチの送信。Ctrl+Z用の記録は設置レコード
+        // Sends a new-placement batch, recording it for Ctrl+Z as a place record
+        public static bool SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
+        {
+            return SendPlaceBlockProtocol(currentPlaceInfos, PlaceOperationRecord.CreateFrom(currentPlaceInfos));
+        }
+
         // 空バッチは送らないという不変条件を送信本体が持つ。戻り値は送信したか
         // The "never send an empty batch" invariant lives here in the sender; returns whether it sent
-        public static bool SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
+        private static bool SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos, IBuildOperationRecord undoRecord)
         {
             if (currentPlaceInfos.Count == 0) return false;
 
@@ -24,10 +32,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // Send PlaceInfo to server
             ClientContext.VanillaApi.SendOnly.PlaceBlock(currentPlaceInfos);
 
-            // Ctrl+Z用に空でない設置バッチを記録
-            // Record a non-empty place batch into the undo history for Ctrl+Z
-            var record = PlaceOperationRecord.CreateFrom(currentPlaceInfos);
-            if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
+            // Ctrl+Z用に空でないバッチを記録
+            // Record a non-empty batch into the undo history for Ctrl+Z
+            if (undoRecord.HasCells) ClientDIContext.BuildOperationHistory.Push(undoRecord);
 
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
             return true;
@@ -44,6 +51,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             var placeableInfos = currentPlaceInfos.Where(info => info.Placeable).ToList();
 
             return SendPlaceBlockProtocol(placeableInfos);
+        }
+
+        // 張替え列の左クリック解放時の送信。戻り値は送信したか
+        // Sends the replace run on left-click release; returns whether it sent
+        public static bool TrySendReplaceOnClickRelease(List<PlaceInfo> currentPlaceInfos, BlockGameObjectDataStore blockGameObjectDataStore)
+        {
+            if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
+
+            // 設置可能セルのみ送信
+            // Send only placeable cells
+            var placeableInfos = currentPlaceInfos.Where(info => info.Placeable).ToList();
+
+            // 逆張替えレコードは既設IDが残っている送信前に作る
+            // The reverse-replace record is built before sending, while the existing ids are still there
+            return SendPlaceBlockProtocol(placeableInfos, ReplaceOperationRecord.CreateFrom(placeableInfos, blockGameObjectDataStore));
         }
     }
 }

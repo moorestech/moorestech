@@ -148,6 +148,28 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             Assert.IsTrue(result.TrueForAll(info => info.BlockId == ForUnitTestModBlockId.SmallGearBeltConveyor));
         }
 
+        [Test]
+        public void 高さオフセットを上げていても既設ベルトの上なら張替えになる()
+        {
+            // R7: 張替え中は高さオフセットを使わない。+2でも既設ラインを掴む
+            // R7: the replace run ignores the height offset, so +2 still grabs the existing line
+            Register(new Vector3Int(0, 0, 0), ForUnitTestModBlockId.GearBeltConveyor, BlockDirection.North);
+            Register(new Vector3Int(0, 0, 1), ForUnitTestModBlockId.GearBeltConveyor, BlockDirection.North);
+            var holding = BeltConveyorHoldingBlock.Resolve(ForUnitTestModBlockId.SmallGearBeltConveyor);
+            var dragState = new CommonBlockPlaceDragState();
+            dragState.AdjustHeightOffset(2);
+            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, dragState);
+
+            // Q/Eで+2された座標がそのまま渡ってくる
+            // The coordinates arrive already raised by +2 from Q/E
+            var result = runBuilder.Build(new Vector3Int(0, 2, 0), new Vector3Int(0, 2, 1), BlockDirection.North, holding, out _, out _);
+
+            Assert.AreEqual(2, result.Count);
+            Assert.IsTrue(result.TrueForAll(info => info.IsReplace && info.Placeable));
+            Assert.AreEqual(new Vector3Int(0, 0, 0), result[0].Position);
+            Assert.AreEqual(new Vector3Int(0, 0, 1), result[1].Position);
+        }
+
         private void Register(Vector3Int position, BlockId blockId, BlockDirection direction)
         {
             var blockObject = new GameObject($"Block_{position}");
