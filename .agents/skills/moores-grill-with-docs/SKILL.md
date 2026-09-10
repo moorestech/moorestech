@@ -54,7 +54,7 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 
 ### 1.7 Codex 独立質問の消し込み（ADR確定後・writing-plans 直前。必須）
 
-自分の質問集合には盲点がある。同じ課題を Codex に独立に質問生成させると、自分が聞かず agent 前提で埋めていた分岐が残問として出てくる。writing-plans へ渡す前に、グローバルの `codex-audit` スキルの `~/.agents/skills/codex-audit/scripts/codex-open-questions.mjs` で **Codex に独立した質問リストを作らせ、既に答えた質問を消し込み、残った質問だけをユーザーに聞く**。
+自分の質問集合には盲点がある。同じ課題を Codex に独立に質問生成させると、自分が聞かず agent 前提で埋めていた分岐が残問として出てくる。writing-plans へ渡す前に、repo 内の `codex-audit` スキル（`.agents/skills/codex-audit/scripts/codex-open-questions.mjs`・repo ルート相対） で **Codex に独立した質問リストを作らせ、既に答えた質問を消し込み、残った質問だけをユーザーに聞く**。
 
 手順（詳細と Gotchas は codex-audit SKILL.md「未回答質問だけを出す二段階」）:
 
