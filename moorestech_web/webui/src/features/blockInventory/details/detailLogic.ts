@@ -1,4 +1,4 @@
-import type { GearNetworkStopReason, MachineProcessState } from "@/bridge";
+import type { GearNetworkStopReason, GearRole, MachineProcessState } from "@/bridge";
 import { clamp01 } from "@/shared/clamp01";
 import { L, type TranslationKey } from "@/shared/i18n";
 
@@ -62,4 +62,24 @@ const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay>
   idle: { labelKey: L.ui.blockInventory.machineStateIdle, insufficient: false, showPowerRate: true },
   processing: { labelKey: L.ui.blockInventory.machineStateProcessing, insufficient: false, showPowerRate: true },
   halted: { labelKey: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
+};
+
+// 歯車行の文言は役割で決まる。消費側はトルク現在値＋RPM現在/基準、発生側はトルク・RPMとも現在値のみ（ADR 0056）
+// Gear row wording follows the role: consumers show current torque plus RPM current/base, generators show current values only (ADR 0056)
+export function gearTorqueTranslationKey(role: GearRole): TranslationKey {
+  return GearTorqueKeys[role];
+}
+
+export function gearRpmTranslationKey(role: GearRole): TranslationKey {
+  return GearRpmKeys[role];
+}
+
+const GearTorqueKeys: Record<GearRole, TranslationKey> = {
+  consumer: L.ui.blockInventory.gearConsumedTorque,
+  generator: L.ui.blockInventory.gearGeneratedTorque,
+};
+
+const GearRpmKeys: Record<GearRole, TranslationKey> = {
+  consumer: L.ui.blockInventory.gearRpmWithBase,
+  generator: L.ui.blockInventory.gearRpmCurrent,
 };

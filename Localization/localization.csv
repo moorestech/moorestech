@@ -20,8 +20,10 @@ ui.blockInventory.trainNoItemContainer,This train has no item container,This tra
 ui.blockInventory.trainNotFound,Train not found,Train not found,列車が見つかりません,Zug nicht gefunden
 ui.blockInventory.trainOpenFailed,Could not open train inventory,Could not open train inventory,列車のインベントリを開けませんでした,Zuginventar konnte nicht geöffnet werden
 ui.blockInventory.trainInventory,Train Inventory,Train Inventory,列車インベントリ,Zuginventar
-ui.blockInventory.gearTorqueSummary,Torque {current} / {required},Torque {current} / {required},トルク {current} / {required},Drehmoment {current} / {required}
-ui.blockInventory.gearRpmSummary,RPM {current} / {required},RPM {current} / {required},RPM {current} / {required},U/min {current} / {required}
+ui.blockInventory.gearConsumedTorque,Consumed torque {value},Consumed torque {value},消費トルク {value},Verbrauchtes Drehmoment {value}
+ui.blockInventory.gearGeneratedTorque,Generated torque {value},Generated torque {value},発生トルク {value},Erzeugtes Drehmoment {value}
+ui.blockInventory.gearRpmWithBase,RPM {current} / {base},RPM {current} / {base},RPM {current} / {base},U/min {current} / {base}
+ui.blockInventory.gearRpmCurrent,RPM {value},RPM {value},RPM {value},U/min {value}
 ui.blockInventory.generatorOperatingRate,Operating rate {rate}%,Operating rate {rate}%,稼働率 {rate}%,Auslastung {rate} %
 ui.blockInventory.itemsPerMinute,{itemsPerMinute}/min,{itemsPerMinute}/min,{itemsPerMinute}/分,{itemsPerMinute}/min
 ui.blockInventory.noDemand,No demand,No demand,需要なし,Kein Bedarf

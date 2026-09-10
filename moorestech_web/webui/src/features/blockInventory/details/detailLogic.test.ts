@@ -4,6 +4,8 @@ import {
   computePowerRate,
   splitSlotIndices,
   fuelRatio,
+  gearRpmTranslationKey,
+  gearTorqueTranslationKey,
   itemsPerMinute,
   machineStateDisplay,
   stopReasonTranslationKey,
@@ -60,5 +62,12 @@ describe("detailLogic", () => {
       expect(machineStateDisplay("idle").showPowerRate).toBe(true);
       expect(machineStateDisplay("processing").showPowerRate).toBe(true);
     });
+  });
+
+  it("gear labels follow the role: consumers consume with a base RPM, generators generate with current RPM only", () => {
+    expect(gearTorqueTranslationKey("consumer")).toBe(L.ui.blockInventory.gearConsumedTorque);
+    expect(gearTorqueTranslationKey("generator")).toBe(L.ui.blockInventory.gearGeneratedTorque);
+    expect(gearRpmTranslationKey("consumer")).toBe(L.ui.blockInventory.gearRpmWithBase);
+    expect(gearRpmTranslationKey("generator")).toBe(L.ui.blockInventory.gearRpmCurrent);
   });
 });

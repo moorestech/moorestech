@@ -1,29 +1,22 @@
-import { Stack } from "@mantine/core";
+import { Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
-import LackHighlightText from "./LackHighlightText";
-import { L, useI18n } from "@/shared/i18n";
+import { gearRpmTranslationKey, gearTorqueTranslationKey } from "./detailLogic";
+import { useI18n } from "@/shared/i18n";
 
-// ギア: トルク/RPM の現在値と要求値（不足時赤）。uGUI SetGearText 準拠
-// Gear: current vs required torque/RPM (red when lacking); mirrors uGUI SetGearText
+// ギア: 消費/発生トルクとRPMの現在値報告。不足の赤は網停止理由行（GearNetworkSection）だけが担う（ADR 0056）
+// Gear: reports current consumed/generated torque and RPM; only the network stop-reason row carries the insufficient tone (ADR 0056)
 export default function GearSection({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   if (!data.gear) return null;
-  const torqueLack = data.gear.currentTorque < data.gear.baseTorque;
-  const rpmLack = data.gear.currentRpm < data.gear.baseRpm;
+  const gear = data.gear;
   return (
     <Stack gap={2} data-testid="gear-section">
-      <LackHighlightText insufficient={torqueLack} size="sm" testId="gear-torque">
-        {t(L.ui.blockInventory.gearTorqueSummary, {
-          current: data.gear.currentTorque.toFixed(1),
-          required: data.gear.baseTorque.toFixed(1),
-        })}
-      </LackHighlightText>
-      <LackHighlightText insufficient={rpmLack} size="sm" testId="gear-rpm">
-        {t(L.ui.blockInventory.gearRpmSummary, {
-          current: data.gear.currentRpm.toFixed(1),
-          required: data.gear.baseRpm.toFixed(1),
-        })}
-      </LackHighlightText>
+      <Text size="sm" c="var(--text-default)" data-testid="gear-torque">
+        {t(gearTorqueTranslationKey(gear.role), { value: gear.currentTorque.toFixed(1) })}
+      </Text>
+      <Text size="sm" c="var(--text-default)" data-testid="gear-rpm">
+        {t(gearRpmTranslationKey(gear.role), { current: gear.currentRpm.toFixed(1), base: gear.baseRpm.toFixed(1), value: gear.currentRpm.toFixed(1) })}
+      </Text>
     </Stack>
   );
 }
