@@ -31,16 +31,20 @@ export default function MachineRecipeSelectionRow({ row, onSelect }: Props) {
         arrowTestId={`machine-recipe-${recipe.recipeGuid}-arrow`}
         duration={t(L.ui.blockInventory.recipeDuration, { seconds: recipe.time })}
         materials={[
-          ...recipe.inputItems.map((item, i) => <ItemSlot key={`item-${i}`} itemId={item.itemId} count={item.count} />),
+          ...recipe.inputItems.map((item, i) => (
+            <ItemSlot key={`item-${i}`} itemId={item.itemId} count={item.count} testId={`machine-recipe-${recipe.recipeGuid}-input-item-${i}`} />
+          )),
           ...recipe.inputFluids.map((fluid, i) => (
-            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} amount={fluid.amount} testId={`machine-recipe-${recipe.recipeGuid}-input-fluid-${i}`} />
+            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} amount={fluid.amount} showAmount testId={`machine-recipe-${recipe.recipeGuid}-input-fluid-${i}`} />
           )),
         ]}
         actionMode="none"
         result={[
-          ...recipe.outputItems.map((item, i) => <ItemSlot key={`item-${i}`} itemId={item.itemId} count={item.count} />),
+          ...recipe.outputItems.map((item, i) => (
+            <ItemSlot key={`item-${i}`} itemId={item.itemId} count={item.count} testId={`machine-recipe-${recipe.recipeGuid}-output-item-${i}`} />
+          )),
           ...recipe.outputFluids.map((fluid, i) => (
-            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} amount={fluid.amount} testId={`machine-recipe-${recipe.recipeGuid}-output-fluid-${i}`} />
+            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} amount={fluid.amount} showAmount testId={`machine-recipe-${recipe.recipeGuid}-output-fluid-${i}`} />
           )),
         ]}
       />

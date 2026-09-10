@@ -393,6 +393,9 @@
   /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
   /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
   --count-text: #111;
+  /* 液体量バッジの文字寸法。4桁のレシピ量をアイテムと同じ枠へ収めるため個数バッジより小さい（ADR 0054） */
+  /* Font size for fluid amount badges; smaller than item counts so four-digit recipe amounts fit the item-sized frame (ADR 0054) */
+  --fluid-amount-font-size: 10px;
   /* アイコンに重なるテキストの縁。太さは全系統共通の1本で、色だけ文字色の反対色を選ぶ（ADR 0033） */
   /* The outline for text overlaying an icon; one shared width, with only the color flipped against the text (ADR 0033) */
   --icon-text-stroke-width: 2px;

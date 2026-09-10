@@ -3,6 +3,7 @@ import type { TooltipProps } from "@mantine/core";
 import HoverTooltip from "../HoverTooltip";
 import ItemIcon from "../ItemIcon";
 import SlotFrame from "../SlotFrame";
+import { formatSlotAmount } from "../slotAmountFormat";
 import styles from "./style.module.css";
 import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
 import { type MaterialTooltipKey, useMaterialTooltipText } from "@/shared/materialTooltipText";
@@ -91,7 +92,7 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
         {hasItem || ghostShown ? (
           <>
             <ItemIcon itemId={shownItemId} className={styles.icon} />
-            {(owned || ghostShown) && shownCount !== undefined && shownCount > 0 ? <span className={`iconTextOutlineLight ${styles.count}`}>{shownCount}</span> : null}
+            {(owned || ghostShown) && shownCount !== undefined && shownCount > 0 ? <span className={`iconTextOutlineLight ${styles.count}`}>{formatSlotAmount(shownCount)}</span> : null}
           </>
         ) : null}
       </SlotFrame>

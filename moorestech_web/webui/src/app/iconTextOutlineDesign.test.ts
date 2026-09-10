@@ -8,6 +8,7 @@ const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf
 const tokens = read("./tokens.css");
 const itemSlotTsx = read("../shared/ui/ItemSlot/index.tsx");
 const itemSlotCss = read("../shared/ui/ItemSlot/style.module.css");
+const slotContentCss = read("../shared/ui/slotContent.module.css");
 const craftRecipeEntryTsx = read("../features/recipe/views/CraftRecipeEntry.tsx");
 const researchDetailTsx = read("../features/research/ResearchDetailPane.tsx");
 const fluidSlotTsx = read("../shared/ui/FluidSlot/index.tsx");
@@ -48,12 +49,13 @@ describe("icon overlay text outline", () => {
     expect(craftRecipeEntryTsx).not.toContain("iconTextOutlineLight");
     expect(researchDetailTsx).not.toContain("iconTextOutlineLight");
     expect(researchDetailTsx).toContain("shortage=");
-    expect(itemSlotCss).not.toMatch(/\.count\s*\{[^}]*text-shadow/);
+    expect(slotContentCss).not.toMatch(/\.count\s*\{[^}]*text-shadow/);
     expect(itemSlotCss).not.toMatch(/\.shortageCount\s*\{[^}]*text-shadow/);
-    // ADR 0054: レシピ量バッジも黒文字なので白縁を1回だけ合成し、CSSはItemSlotの.countを借りる
-    // ADR 0054: the recipe amount badge is black text too, composing the light outline once and borrowing ItemSlot's .count
+    // 量バッジも白縁を1回合成、共有stylesheetのcountを流用
+    // The amount badge also composes the light outline once, reusing the shared stylesheet's .count
     expect(fluidAmountSlotTsx.match(/iconTextOutlineLight/g)).toHaveLength(1);
-    expect(fluidAmountSlotCss).toContain('composes: count from "../ItemSlot/style.module.css"');
+    expect(itemSlotCss).toContain('composes: count from "../slotContent.module.css"');
+    expect(fluidAmountSlotCss).toContain('composes: count from "../slotContent.module.css"');
     expect(fluidAmountSlotCss).not.toContain("text-shadow");
   });
 

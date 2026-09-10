@@ -29,15 +29,16 @@ const recipe: MachineRecipe = {
 };
 
 describe("SelectedRecipeHeader", () => {
-  // ADR 0054: 代表が液体でもアイテムと同じ枠で描き、ヘッダでは量バッジを出さない（ItemSlot側もcount無し）
-  // ADR 0054: a fluid representative uses the same frame as items, and the header shows no amount badge (the ItemSlot side has no count either)
-  it("代表が液体のときはFluidAmountSlotを量無しで描く", () => {
+  // 液体代表も同枠、ヘッダはバッジ無し
+  // A fluid representative also shares the frame; the header has no badge
+  it("代表が液体のときはFluidAmountSlotをshowAmount=falseで描く", () => {
     const subject = { kind: "fluid" as const, fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 100 };
     const tree = create(createElement(SelectedRecipeHeader, { recipe, subject, onChangeRecipe: vi.fn() }));
 
     const slot = tree.root.findByType("mock-fluid-amount-slot" as never);
     expect(slot.props.fluidGuid).toBe("87000000-0000-4000-8000-000000000001");
-    expect(slot.props.amount).toBeUndefined();
+    expect(slot.props.amount).toBe(100);
+    expect(slot.props.showAmount).toBe(false);
     expect(slot.props.testId).toBe("machine-selected-recipe-fluid");
     expect(tree.root.findAllByType("mock-item-slot" as never)).toHaveLength(0);
   });

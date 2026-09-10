@@ -19,7 +19,7 @@ export default function FluidSlot({ fluid, ghost }: { fluid: FluidSlotData; ghos
     return (
       <HoverTooltip label={ghostName} disabled={!ghostName}>
         <div data-testid="fluid-slot" data-ghost="true" className={styles.slot}>
-          <FluidIcon fluidGuid={ghost.fluidGuid} className={styles.icon} />
+          <FluidIcon fluidGuid={ghost.fluidGuid} fallback={{ kind: "none" }} className={styles.icon} />
           <span className={`iconTextOutlineDark ${styles.amount}`}>{formatAmount(ghost.amount)}</span>
         </div>
       </HoverTooltip>
@@ -42,7 +42,7 @@ export default function FluidSlot({ fluid, ghost }: { fluid: FluidSlotData; ghos
         )}
         {/* フィルの上に実アイコンを重ね、量バッジは最前面に残す */}
         {/* Layer the real icon over the fill, keeping the amount badge frontmost */}
-        <FluidIcon fluidGuid={fluid.fluidGuid} className={styles.icon} />
+        <FluidIcon fluidGuid={fluid.fluidGuid} fallback={{ kind: "none" }} className={styles.icon} />
         <span className={`iconTextOutlineDark ${styles.amount}`}>{formatAmount(fluid.amount)}</span>
       </div>
     </HoverTooltip>

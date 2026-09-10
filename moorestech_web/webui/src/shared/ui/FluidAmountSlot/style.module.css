@@ -1,9 +1,15 @@
-/* 容量の無いレシピ量表示。アイコン寸法と量バッジはItemSlotと同じ規則を借りて行内のアイテムと揃える */
-/* Amount-only fluid presentation without capacity; the icon size and badge reuse ItemSlot's rules so it lines up with items in a row */
+/* 様式（位置・色・縁）はアイテムと共有し、寸法だけ液体の桁数に合わせる */
+/* Share the style (position, color, outline) with items and tune only the metrics to the fluid's digit count */
 .icon {
-  composes: icon from "../ItemSlot/style.module.css";
+  composes: icon from "../slotContent.module.css";
 }
 
+/* レシピ量は4桁に達するため、枠幅いっぱいの右寄せ帯にして小さめの文字で収める（ADR 0054・D2） */
+/* Recipe amounts reach four digits, so the badge spans the frame as a right-aligned band in a smaller face (ADR 0054, D2) */
 .amount {
-  composes: count from "../ItemSlot/style.module.css";
+  composes: count from "../slotContent.module.css";
+  left: 0;
+  text-align: right;
+  font-size: var(--fluid-amount-font-size);
+  letter-spacing: 0;
 }

@@ -9,16 +9,16 @@ import styles from "./style.module.css";
 
 const FLUID_GUID = "60000000-0000-4000-8000-000000000001";
 
-// ツールチップ本文は開いてからでないとDOMへ出ないため、静的描画で本文を読めるスタブへ差し替える
-// The tooltip body only reaches the DOM once opened, so a stub renders it inline for static markup
+// 本文はopen後にDOM反映のためスタブ化
+// Stubbed since the body only reaches the DOM after opening
 vi.mock("../HoverTooltip", () => ({
   default: ({ label, children }: { label?: unknown; children?: unknown }) =>
     createElement("mock-hover-tooltip", null, label as never, children as never),
 }));
 
-function renderSlot(amount?: number) {
+function renderSlot(amount: number, showAmount: boolean) {
   return renderToStaticMarkup(
-    createElement(MantineProvider, null, createElement(FluidAmountSlot, { fluidGuid: FLUID_GUID, amount, testId: "fluid-amount" })),
+    createElement(MantineProvider, null, createElement(FluidAmountSlot, { fluidGuid: FLUID_GUID, amount, showAmount, testId: "fluid-amount" })),
   );
 }
 
@@ -29,7 +29,7 @@ describe("FluidAmountSlot", () => {
   });
 
   it("白面のSlotFrameに寸法クラス付きの液体アイコンを描く", () => {
-    const markup = renderSlot(1000);
+    const markup = renderSlot(1000, true);
 
     expect(markup).toContain('data-filled="true"');
     expect(markup).toContain('data-testid="fluid-amount"');
@@ -38,20 +38,29 @@ describe("FluidAmountSlot", () => {
   });
 
   it("量はN0形式のバッジで右下に出し、アイコン文字の白縁クラスを合成する", () => {
-    const markup = renderSlot(1000);
+    const markup = renderSlot(1000, true);
 
     expect(markup).toContain(">1,000<");
     expect(markup).toContain(`iconTextOutlineLight ${styles.amount}`);
   });
 
-  it("amount未指定ならバッジを出さない", () => {
-    const markup = renderSlot(undefined);
+  // 0量と非表示を取り違えると「量0のレシピ」が無言で空欄になる
+  // Confusing a zero amount with a hidden badge would silently blank out a zero-amount recipe
+  it("量0はバッジを出して0と描く", () => {
+    const markup = renderSlot(0, true);
 
-    expect(markup.match(/<span/g)).toBeNull();
+    expect(markup).toContain('data-testid="fluid-amount-amount"');
+    expect(markup).toContain(">0<");
+  });
+
+  it("showAmountがfalseなら量があってもバッジを出さない", () => {
+    const markup = renderSlot(1000, false);
+
+    expect(markup).not.toContain('data-testid="fluid-amount-amount"');
   });
 
   it("ホバーツールチップに辞書の液体名を出す", () => {
-    const markup = renderSlot(1000);
+    const markup = renderSlot(1000, true);
 
     expect(markup).toContain("<mock-hover-tooltip>水");
   });

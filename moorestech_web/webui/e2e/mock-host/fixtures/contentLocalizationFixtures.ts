@@ -1,6 +1,9 @@
 import { challengeTutorialTextKey, connectToolNameKey, fluidNameKey, trainCarNameKey } from "../../../src/shared/i18n/contentKeys";
 
 export const WATER_FLUID_GUID = "54000000-0000-4000-8000-000000000001";
+// 入出力判別用の第2液体
+// Second fluid to distinguish input/output
+export const OIL_FLUID_GUID = "54000000-0000-4000-8000-000000000002";
 export const WIRE_CONNECT_TOOL_GUID = "55000000-0000-4000-8000-000000000001";
 export const CARGO_TRAIN_CAR_GUID = "56000000-0000-4000-8000-000000000001";
 export const WORLD_PIN_TUTORIAL_GUID = "57000000-0000-4000-8000-000000000001";
@@ -9,6 +12,7 @@ export const KEY_CONTROL_TUTORIAL_GUID = "59000000-0000-4000-8000-000000000001";
 
 const source = {
   [fluidNameKey(WATER_FLUID_GUID)]: "Water",
+  [fluidNameKey(OIL_FLUID_GUID)]: "Oil",
   "research.11111111-1111-4111-8111-111111111111.name": "最初の研究",
   "research.11111111-1111-4111-8111-111111111111.description": "説明テキスト",
   "research.22222222-2222-4222-8222-222222222222.name": "次の研究",

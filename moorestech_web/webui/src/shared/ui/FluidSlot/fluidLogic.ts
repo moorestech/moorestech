@@ -1,10 +1,8 @@
 import { clamp01 } from "@/shared/clamp01";
 
-// 液体量を N0 形式（千区切り・小数なし）へ整形。uGUI の amount.ToString("N0") を踏襲
-// Format the fluid amount as N0 style (thousands-separated, no fraction); mirrors uGUI amount.ToString("N0")
-export function formatAmount(n: number): string {
-  return n.toLocaleString("en-US", { maximumFractionDigits: 0 });
-}
+// 量バッジのN0整形はスロット共通の1関数が持つ。液体側は従来の呼び名で公開し続ける
+// The N0 badge formatting lives in the one shared slot function; fluids keep exposing it under their existing name
+export { formatSlotAmount as formatAmount } from "../slotAmountFormat";
 
 // amount/capacity を 0..1 の充填率へ。capacity<=0 は 0、超過は 1 にクランプ
 // Convert amount/capacity into a 0..1 fill ratio; capacity<=0 yields 0 and overflow clamps to 1

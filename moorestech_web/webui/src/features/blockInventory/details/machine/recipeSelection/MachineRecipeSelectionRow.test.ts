@@ -52,8 +52,8 @@ describe("MachineRecipeSelectionRow", () => {
       .toBe("fluid.87000000-0000-4000-8000-000000000001.name");
   });
 
-  // ADR 0054: 液体は寸法無しのFluidIconでなく、アイテムと同じ枠のFluidAmountSlotで量つきに描く
-  // ADR 0054: fluids render through FluidAmountSlot (same frame as items, with amount), never a bare unsized FluidIcon
+  // 液体はFluidAmountSlotで量つき描画
+  // Fluids render via FluidAmountSlot, with an amount
   it("入出力の液体はFluidAmountSlotへ量とtestIdを渡して描く", () => {
     const fluidRecipe: MachineRecipe = {
       ...recipe,
@@ -64,9 +64,9 @@ describe("MachineRecipeSelectionRow", () => {
     const tree = create(createElement(MachineRecipeSelectionRow, { row, onSelect: vi.fn() }));
 
     const slots = tree.root.findAllByType("mock-fluid-amount-slot" as never);
-    expect(slots.map((slot) => [slot.props.fluidGuid, slot.props.amount, slot.props.testId])).toEqual([
-      ["87000000-0000-4000-8000-000000000001", 10, `machine-recipe-${recipe.recipeGuid}-input-fluid-0`],
-      ["87000000-0000-4000-8000-000000000002", 1000, `machine-recipe-${recipe.recipeGuid}-output-fluid-0`],
+    expect(slots.map((slot) => [slot.props.fluidGuid, slot.props.amount, slot.props.showAmount, slot.props.testId])).toEqual([
+      ["87000000-0000-4000-8000-000000000001", 10, true, `machine-recipe-${recipe.recipeGuid}-input-fluid-0`],
+      ["87000000-0000-4000-8000-000000000002", 1000, true, `machine-recipe-${recipe.recipeGuid}-output-fluid-0`],
     ]);
   });
 });
