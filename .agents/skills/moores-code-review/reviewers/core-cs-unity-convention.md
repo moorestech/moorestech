@@ -23,7 +23,7 @@ cwd を読み、Unity プロジェクトの C# 実装で AGENTS.md 規約や Uni
 
 ### 1. `#if UNITY_EDITOR` の配置違反
 - レッドフラグ: class 定義の冒頭 / フィールド宣言域 / 通常メソッドの間に `#if UNITY_EDITOR ... #endif` が混在。`#if UNITY_EDITOR` ブロックが 2 箇所以上に分散
-- 直し方: 全 `#if UNITY_EDITOR` ブロックをファイル末尾に移動し 1 箇所に統合する。エディタ専用フィールドがあれば `partial class` で `Foo.Editor.cs` に切り出す
+- 直し方: 全 `#if UNITY_EDITOR` ブロックをファイル末尾に移動し 1 箇所に統合する。エディタ専用フィールドも同じ末尾ブロック内に置く（`partial class` での分離は AGENTS.md で禁止）
 
 ### 2. エディタ専用コピペ (`StopSync()` 型の重複)
 - レッドフラグ: `Stop()` / `StopSync()` のように違いが「同期待ちの有無」だけで主要フローが重複している / `#if UNITY_EDITOR` で囲まれた別名メソッドが通常メソッドとほぼ同じシーケンスを実行している
