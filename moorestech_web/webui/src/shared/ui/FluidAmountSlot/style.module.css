@@ -6,11 +6,10 @@
 
 /* レシピ量は4桁に達するため、枠幅いっぱいの右寄せ帯にして小さめの文字で収める（ADR 0054・D2） */
 /* Recipe amounts reach four digits, so the badge spans the frame as a right-aligned band in a smaller face (ADR 0054, D2) */
-/* 桁溢れは矩形でなく文字の伸びでしか測れないため、overflowを持たせてscrollWidthを有意な値にする */
-/* Overflow can only be measured through the text's own extent, so a real overflow box makes scrollWidth meaningful */
+/* 溢れてもクリップしない。右寄せ帯は左へ溢れるため切ると先頭桁だけが無言で消え、別の数として読まれる */
+/* Never clip an overflow: a right-aligned band overflows leftward, so clipping silently drops the leading digits and the number reads as another one */
 .amount {
   composes: count from "../slotContent.module.css";
-  overflow: hidden;
   font-size: var(--fluid-amount-font-size);
   letter-spacing: 0;
 }

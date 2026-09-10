@@ -24,4 +24,11 @@ describe("formatSlotAmount", () => {
   it("千区切りと小数は同時に効く", () => {
     expect(formatSlotAmount(1234.5)).toBe("1,234.5");
   });
+
+  // 実行時のタンク残量は流量加算のdoubleで、桁を止めないと枠幅を超えて左端から切れる
+  // A runtime tank amount is a flow-accumulated double: without a digit cap it overruns the cell and clips from the left
+  it("実行時残量の長い小数は表示桁で止める", () => {
+    expect(formatSlotAmount(823.3333333333334)).toBe("823.33");
+    expect(formatSlotAmount(0.30000000000000004)).toBe("0.3");
+  });
 });

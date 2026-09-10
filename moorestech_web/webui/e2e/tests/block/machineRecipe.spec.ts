@@ -165,13 +165,17 @@ test("レシピ選択行の液体はアイテムスロットと同寸の枠に�
   expect(iconBox.height).toBeLessThanOrEqual(fluidBox.height + 0.5);
   expect(routed.hit).toBe(true);
 
-  // 4桁側（ccccccccの出力1000）は桁溢れの本命。バッジ矩形はleft/rightで幾何的に固定されるため、
-  // 溢れているかは矩形ではなく文字の伸び（scrollWidth）でしか測れない
+  // 4桁側（ccccccccの出力1000）は桁溢れの本命。バッジ矩形はleft/rightで幾何的に固定され、
+  // 右寄せの文字は左へ溢れてscrollWidthに載らないため、文字自身の矩形で測る
   // The four-digit side (cccccccc's 1000 output) is where overflow actually bites; the badge box is pinned by left/right,
-  // so only the text's own extent (scrollWidth) can tell whether the digits overflow
+  // and right-aligned text overflows leftward where scrollWidth never sees it, so the text's own rect is what measures
   const wideBadge = page.getByTestId(`${fluidRecipeTestId}-output-fluid-0-amount`);
   await expect(wideBadge).toHaveText("1,000");
-  const badgeOverflow = await wideBadge.evaluate((element) => element.scrollWidth - element.clientWidth);
+  const badgeOverflow = await wideBadge.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    return range.getBoundingClientRect().width - element.clientWidth;
+  });
   expect(badgeOverflow).toBeLessThanOrEqual(0.5);
 
   // 帯の左端は枠の左端。D2で選んだleft/text-alignが戻ると帯が縮み、この比較で落ちる
