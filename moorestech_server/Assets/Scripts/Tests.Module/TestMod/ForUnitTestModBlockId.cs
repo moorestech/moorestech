@@ -45,7 +45,7 @@ namespace Tests.Module.TestMod
 
         // GearBeltConveyorと同コスト・同placementsPerCostの別ファミリー直線。有料同士の張替えで撤去返却が新コストを賄う経路を作る
         // A straight belt in another family with the same cost and placementsPerCost as GearBeltConveyor, so a paid-to-paid replace can be funded by the removal refund
-        public static BlockId LargeGearBeltConveyor => GetBlock("7fffffff-0000-4000-8000-000000000001");
+        public static BlockId LargeGearBeltConveyor => GetBlock("ffffffff-0000-4000-8000-000000000001");
         public static BlockId GearBeltConveyorSplitter => GetBlock("eccb9f59-4439-4caf-9ae8-67da50549040");
         public static BlockId SmallGearBeltConveyorSplitter => GetBlock("4e0b2f6a-9c1d-4e0a-8b2f-1a2b3c4d5e60");
         

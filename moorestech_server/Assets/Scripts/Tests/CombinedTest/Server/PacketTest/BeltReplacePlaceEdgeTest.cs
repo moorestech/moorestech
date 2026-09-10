@@ -126,6 +126,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             packet.GetPacketResponse(CreateReplacePayload(ForUnitTestModBlockId.BeltConveyorId, pos, BlockDirection.North), new PacketResponseContext(null));
 
             var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, block.BlockId);
             Assert.AreEqual(oldBlock.BlockInstanceId, block.BlockInstanceId);
             Assert.AreEqual(1, BeltConveyorTransitCarryOver.Collect(oldBelt).Count);
         }
