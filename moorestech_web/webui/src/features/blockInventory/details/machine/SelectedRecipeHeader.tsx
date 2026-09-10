@@ -2,7 +2,7 @@
 // Selected-recipe header atop the inventory mode; clicking returns to recipe selection (ADR 0042 R2)
 import { Group, Text } from "@mantine/core";
 import type { MachineRecipe } from "@/bridge";
-import { FluidIcon, HoverTooltip, ItemSlot } from "@/shared/ui";
+import { FluidAmountSlot, HoverTooltip, ItemSlot } from "@/shared/ui";
 import { L, useI18n } from "@/shared/i18n";
 import { useRecipeDisplayName, type RecipeDisplaySubject } from "./machineRecipeSelectionLogic";
 
@@ -19,7 +19,7 @@ export default function SelectedRecipeHeader({ recipe, subject, onChangeRecipe }
   return (
     <HoverTooltip label={t(L.ui.blockInventory.changeRecipe)}>
       <Group justify="center" gap="xs" role="button" data-testid="machine-selected-recipe" style={{ cursor: "pointer" }} onClick={onChangeRecipe}>
-        {subject.kind === "item" ? <ItemSlot itemId={subject.itemId} /> : <FluidIcon fluidGuid={subject.fluidGuid} />}
+        {subject.kind === "item" ? <ItemSlot itemId={subject.itemId} /> : <FluidAmountSlot fluidGuid={subject.fluidGuid} testId="machine-selected-recipe-fluid" />}
         <Text data-testid="machine-selected-recipe-name">{name}</Text>
         <Text c="dimmed" size="sm" data-testid="machine-selected-recipe-time">{t(L.ui.blockInventory.recipeDuration, { seconds: recipe.time })}</Text>
       </Group>
