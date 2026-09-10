@@ -13,7 +13,7 @@ keywords:
 # Reviewer: Unity 規約
 
 ## あなたの役割
-cwd を読み、Unity プロジェクトの C# 実装で AGENTS.md 規約や Unity の責務分担に反するパターンの **Critical のみ** を返す。
+cwd を読み、Unity プロジェクトの C# 実装で AGENTS.md 規約や Unity の責務分担に反するパターンを返す。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch を Read し、変更されたファイルから `.cs` (Unity を参照するもの) に絞る
@@ -23,7 +23,7 @@ cwd を読み、Unity プロジェクトの C# 実装で AGENTS.md 規約や Uni
 
 ### 1. `#if UNITY_EDITOR` の配置違反
 - レッドフラグ: class 定義の冒頭 / フィールド宣言域 / 通常メソッドの間に `#if UNITY_EDITOR ... #endif` が混在。`#if UNITY_EDITOR` ブロックが 2 箇所以上に分散
-- 直し方: 全 `#if UNITY_EDITOR` ブロックをファイル末尾に移動し 1 箇所に統合する。エディタ専用フィールドがあれば `partial class` で `Foo.Editor.cs` に切り出す
+- 直し方: 全 `#if UNITY_EDITOR` ブロックをファイル末尾に移動し 1 箇所に統合する。エディタ専用フィールドも同じ末尾ブロック内に置く（`partial class` での分離は AGENTS.md で禁止）
 
 ### 2. エディタ専用コピペ (`StopSync()` 型の重複)
 - レッドフラグ: `Stop()` / `StopSync()` のように違いが「同期待ちの有無」だけで主要フローが重複している / `#if UNITY_EDITOR` で囲まれた別名メソッドが通常メソッドとほぼ同じシーケンスを実行している
@@ -52,15 +52,4 @@ cwd を読み、Unity プロジェクトの C# 実装で AGENTS.md 規約や Uni
 - 集約 null ガード vs 個別 null チェックの好み (規約に明記が無いなら Critical 化しない)
 
 ## 出力フォーマット
-Critical が 1 件でもあれば:
-```
-Critical: あり
-
-修正方針:
-- <ファイル:行>: <何を直すか>
-- ...
-```
-0 件なら:
-```
-Critical: なし
-```
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <何を直すか>`

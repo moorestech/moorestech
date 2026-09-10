@@ -19,8 +19,6 @@ description: |
 | クライアントが明示的に情報を要求/操作を実行 | **Request-Response型** |
 | サーバー側の状態変化をクライアントに通知 | **Event型** |
 
-詳細パターンとコード例: [references/protocol-patterns.md](references/protocol-patterns.md) を参照。
-
 ## サーバー可変状態の同期チェックリスト（3点セット・CRITICAL）
 
 サーバー側に新しい可変状態（DataStore・プレイヤー横断の動的データ）を追加してクライアントに見せる場合、以下3点を**すべて**実装する。1つでも欠けると再接続時の欠損・追従漏れが起きる:

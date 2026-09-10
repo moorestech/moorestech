@@ -129,8 +129,5 @@ uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter
 ## リソース
 
 - [references/initialization.md](references/initialization.md) - ディレクトリ構造、DI初期化、ServerContext/ServiceProviderアクセス
-- [references/unit-test.md](references/unit-test.md) - UnitTestテンプレート、パラメータ化テスト
-- [references/combined-test.md](references/combined-test.md) - CombinedTestテンプレート、ブロック配置API、ゲーム更新パターン
 - [references/packet-test.md](references/packet-test.md) - パケットテストテンプレート
 - [references/test-ids-and-helpers.md](references/test-ids-and-helpers.md) - テスト用ID一覧、ヘルパークラス（DummyBlockInventory等）
-- [references/coding-conventions.md](references/coding-conventions.md) - コメント規約、namespace規約、禁止事項
