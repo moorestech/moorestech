@@ -1,9 +1,19 @@
-/* アイコン読み込み失敗時の #id フォールバックラベル */
-/* Fallback #id label shown when the icon image fails to load */
+/* アイコン読み込み失敗時のフォールバックラベル（#id または液体名） */
+/* Fallback label shown when the icon image fails to load (#id or a fluid name) */
 .fallback {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   font-size: 10px;
   color: var(--mantine-color-dark-2);
+}
+
+/* 液体名は枠幅を超えうるので1行で切って省略する。折り返すとマスの上下へ、切らないと左右へはみ出す */
+/* A fluid name can exceed the cell, so keep one ellipsized line: wrapping spills vertically and no clipping spills horizontally */
+.fallbackText {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }

@@ -49,7 +49,10 @@ describe("icon overlay text outline", () => {
     expect(craftRecipeEntryTsx).not.toContain("iconTextOutlineLight");
     expect(researchDetailTsx).not.toContain("iconTextOutlineLight");
     expect(researchDetailTsx).toContain("shortage=");
+    // 正本と借用側の両方を見る。composesは後段の私有CSSが勝つため、正本だけ見ていると復活を素通しする
+    // Watch both the source and its borrowers: a private rule wins over composes, so guarding only the source lets one creep back
     expect(slotContentCss).not.toMatch(/\.count\s*\{[^}]*text-shadow/);
+    expect(itemSlotCss).not.toMatch(/\.count\s*\{[^}]*text-shadow/);
     expect(itemSlotCss).not.toMatch(/\.shortageCount\s*\{[^}]*text-shadow/);
     // 量バッジも白縁を1回合成、共有stylesheetのcountを流用
     // The amount badge also composes the light outline once, reusing the shared stylesheet's .count

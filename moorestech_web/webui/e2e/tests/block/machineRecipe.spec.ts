@@ -2,6 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 import { setBlock, setTopicScenario } from "../../support/mockControl";
 import { scrollAreaRootOf, scrollAreaViewport, expectScrollsOnlyWhenOverflowing } from "../../support/layoutAssertions";
 import { FLUID_ICON_PREFIX } from "../../../src/bridge/transport/httpEndpoints";
+import { OIL_FLUID_GUID } from "../../mock-host/fixtures/contentLocalizationFixtures";
 
 const firstRecipeTestId = "machine-recipe-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const selectedRecipeTestId = "machine-recipe-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
@@ -164,16 +165,45 @@ test("レシピ選択行の液体はアイテムスロットと同寸の枠に�
   expect(iconBox.height).toBeLessThanOrEqual(fluidBox.height + 0.5);
   expect(routed.hit).toBe(true);
 
-  // 4桁側（ccccccccの出力1000）は桁溢れの本命。バッジ矩形とその文字の両方が枠を越えないことを主張する
-  // The four-digit side (cccccccc's 1000 output) is where overflow actually bites, so both the badge box and its text must stay inside the frame
-  const wideFluidSlot = page.getByTestId(`${fluidRecipeTestId}-output-fluid-0`);
+  // 4桁側（ccccccccの出力1000）は桁溢れの本命。バッジ矩形はleft/rightで幾何的に固定されるため、
+  // 溢れているかは矩形ではなく文字の伸び（scrollWidth）でしか測れない
+  // The four-digit side (cccccccc's 1000 output) is where overflow actually bites; the badge box is pinned by left/right,
+  // so only the text's own extent (scrollWidth) can tell whether the digits overflow
   const wideBadge = page.getByTestId(`${fluidRecipeTestId}-output-fluid-0-amount`);
   await expect(wideBadge).toHaveText("1,000");
-  const wideFluidBox = (await wideFluidSlot.boundingBox())!;
-  const badgeBox = (await wideBadge.boundingBox())!;
-  expect(badgeBox.width).toBeLessThanOrEqual(wideFluidBox.width + 0.5);
   const badgeOverflow = await wideBadge.evaluate((element) => element.scrollWidth - element.clientWidth);
   expect(badgeOverflow).toBeLessThanOrEqual(0.5);
+});
+
+test("液体アイコンが404なら辞書の液体名を枠内に収めて出す", async ({ page }) => {
+  // ここだけアイコンをstubしない。mock-hostの404がそのままフォールバック経路の実測になる
+  // This is the one test that leaves the icon unstubbed, so the mock host's 404 exercises the fallback path for real
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+
+  const fluidSlot = page.getByTestId(`${fluidRecipeTestId}-output-fluid-0`);
+  await expect(fluidSlot.locator("img")).toHaveCount(0);
+  await expect(fluidSlot).toHaveAttribute("data-filled", "true");
+  // 36文字GUIDではなく辞書名を出す
+  // Show the dictionary name, never the 36-char GUID
+  await expect(fluidSlot).not.toContainText(OIL_FLUID_GUID);
+  const nameLabel = fluidSlot.getByText("Oil", { exact: true });
+  await expect(nameLabel).toBeVisible();
+
+  // 名前がマスへ収まっていることを実測する。矩形は枠に固定されるので文字の伸びで測る
+  // Measure that the name fits the cell; the box is pinned to the frame, so the text's own extent is what tells
+  const nameOverflow = await nameLabel.evaluate((element) => ({
+    width: element.scrollWidth - element.clientWidth,
+    height: element.scrollHeight - element.clientHeight,
+  }));
+  expect(nameOverflow.width).toBeLessThanOrEqual(0.5);
+  expect(nameOverflow.height).toBeLessThanOrEqual(0.5);
+  // 辞書名は"Oil"より長くなり得るので、収まりを支える切り詰め規則自体も主張する
+  // A dictionary name can be longer than "Oil", so assert the clipping rules that keep any name inside
+  await expect(nameLabel).toHaveCSS("white-space", "nowrap");
+  await expect(nameLabel).toHaveCSS("text-overflow", "ellipsis");
 });
 
 test("液体のみ出力のレシピを選ぶと選択中レシピ表示が液体スロットになる", async ({ page }) => {
