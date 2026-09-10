@@ -12,8 +12,8 @@
 """build_workflow_args.py — Workflow（scripts/review_workflow.js）へ渡す args を組み立てる。
 
 Step 2 の checks.json（lenses / reviewers / verifiers_to_launch）と split_chunks の
-chunks.tsv、investigators/ の YAML model、Fable全般、post-check、Codex 3本の成果物パスを、
-起動名・モデル・絶対パス付きの1つの JSON に畳む。あわせて共通出力契約
+chunks.tsv、investigators/ の YAML model、Fable全般、post-check、Refix（反映 diff 再レビュー）、
+Codex 3本の成果物パスを、起動名・モデル・絶対パス付きの1つの JSON に畳む。あわせて共通出力契約
 `references/output-contract.md` を `$RUNDIR/contract.md` へ書く（report-only ではその旨の
 前提を末尾に足す）。Workflow スクリプトはファイルシステムを持たないので、選択の実行はここで
 済ませ、JS 側は「起動・再起動・統合・適用の順序」だけを担う。
@@ -49,6 +49,9 @@ SCRIPTS = SKILL_ROOT / "scripts"
 MODEL_RE = re.compile(r"^model:\s*(\S+)", re.M)
 CODEX_KINDS = ("audit", "bughunt", "design")
 CODEX_WAIT_MAX_MINUTES = 20
+# 反映 diff 再レビューの周回上限。指摘は尽きないので収束条件は「再現可能な誤動作が無いこと」、超えたら未収束として親へ渡す
+# Cap on re-review rounds; findings never run out, so convergence is 'no reproducible wrong behavior'
+REFIX_MAX_ROUNDS = 3
 
 
 def main() -> int:
@@ -137,6 +140,12 @@ def main() -> int:
         "selectPostChecksScript": str(SCRIPTS / "select_post_checks.py"),
         "deterministicChecksScript": str(SCRIPTS / "deterministic_checks.py"),
         "codexRecoverScript": str(SCRIPTS / "codex_recover.py"),
+        "integrationRulesPath": str(SKILL_ROOT / "references" / "integration-rules.md"),
+        # 反映 diff の再レビュー（Refix フェーズ）。reviewer は post-checks の applied-diff-correctness を流用する（2026-09-08 c9baa79 較正の実行形）
+        # Applied-diff re-review (Refix phase); reuses the applied-diff-correctness post-check as the reviewer
+        "refixReviewerPath": str(SKILL_ROOT / "post-checks" / "applied-diff-correctness.md"),
+        "refixSnapshotScript": str(SCRIPTS / "refix_snapshot.py"),
+        "refixMaxRounds": REFIX_MAX_ROUNDS,
     }
     out = run_dir / "workflow-args.json"
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=1), encoding="utf-8")

@@ -20,7 +20,7 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 **この SKILL.md は本体セッション用のディスパッチャである**（2026-08-18 分割・2026-08-20 Workflow化）。本体がやるのは Step 0〜2（対象確定・機械チェック・Codex起動・Workflow args）・Workflow 起動・Step 7（報告と AskUserQuestion）だけで、**Step 3〜6.5 の実行手順・6系統の詳細・モデル割り当て・実行系 Gotchas の正本は `references/orchestrator-steps.md`**、その実行形が `scripts/review_workflow.js` にある。本体が orchestrator-steps.md を通読するのはインライン実行(後述)の場合のみ。
 
-系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②mooresレンズ11本 ③汎用reviewer 30本 ④Codex外部監査3本 ⑤Fable全般 ⑥分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 3本（コメント保全2本 + 反映diff再レビュー `applied-diff-correctness.md`）+ opus integrator。
+系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②mooresレンズ11本 ③汎用reviewer 30本 ④Codex外部監査3本 ⑤Fable全般 ⑥分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。
 
 ## Workflow実行（既定・2026-08-20）
 
@@ -35,11 +35,12 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 ### 回収時の検死（本体・毎回必須）
 
-Workflow の返り値（`systems.planned/expected/responded/noResponse/missing/fallbacks`・`codexWait`・`integrated`・`apply`・`postCheckSelection`・`postChecks[].report`・`postfix.warnings/infos`）を受けたら、報告する前に次を突き合わせる —
+Workflow の返り値（`systems.planned/expected/responded/noResponse/missing/fallbacks`・`codexWait`・`integrated`・`apply`・`refix`・`postCheckSelection`・`postChecks[].report`・`postfix.warnings/infos`）を受けたら、報告する前に次を突き合わせる —
 1. `systems.planned` が **`checks.json` 由来の独立した期待値** `systems.expected.total`（= summary.lenses + summary.reviewers + verifiers_to_launch + Fable 1 + チャンク数×3）と一致し、`systems.missing`（integrator が `agents/*.md` の実在で確定した欠員）が空か。不一致・欠員なら報告に転記。`agents/` は残っているので、欠員分だけ Agent で再起動→integrator だけ再派遣してよい。`noResponse` は自己申告ベースの参考値
 2. `integrated.md` の「系統別回収状況」に欠員・未回収がないか。**Codex の欠員申告だけは転記前に裏を取る** — `codex_recover.py` の終了コード（3/4/5）が添えられていなければ自分で1コマンド走らせて確認し、exit 0 なら欠員ではないので integrator を再実行させる
 3. `$RUNDIR` に規定の成果物（checks.json / workflow-args.json / contract.md / codex `.final.md` ×3 / `agents/` / integrated.md / final.diff / checks-final.json / design.md）が揃っているか。**report-only では final.diff / checks-final.json / design.md は生成されない**（apply が無い）ので欠落扱いにしない
 4. `postfix.warnings/infos`（post-check の Warning/Info）と `postCheckSelection.note`（スキップしたガードと理由）を Step 7 の報告へ転記する（integrator より後に走るため integrated.md には載らない）
+5. `refix` を検死する: `refix.scope` が `source` なら `refix.rounds` が 1 周以上あり各 round の `report` が実在すること（`source` なのに 0 周は欠陥）。`refix.unresolved` が true なら最終 round の Critical は**直っていない** — 報告の冒頭に「反映 diff 再レビュー未収束（N 周）」と書き、Step 7 の AskUserQuestion に「手で直す / 未修正のまま進める」を載せる（黙って収束扱いにしない）。各 round の `warnings/infos`（直し直した周は refix-apply が転記済み。収束した最終周は `agents/refix-correctness-r<N>.md` の Warning/Info 節を本体が Read してよい — 反映 diff サイズ分の小さいレポートで、これは Read 規律の明示的例外）を報告へ転記する。`scope` が `non-source`/`none` なら「反映 diff は doc/テスト/コメントのみ（再レビュー不要）」と 1 行書く
 
 **何か変なこと（体数不一致・モデル割り当てが指定と違う・成果物の欠落・integrated.md 不在等）があれば、修正適用や再派遣を重ねる前に一旦止めて調査する。** 手順: セッション transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json` で起動数とモデルを実測）→ 原因特定→再開の要否。原因がスキル記述の穴なら `references/skill-improvement.md` の手順で恒久対応する。異常のまま結果だけ採用しない（欠員のある統合結果は「全系統レビュー済み」を偽装する）。
 
@@ -56,7 +57,7 @@ Workflow の返り値（`systems.planned/expected/responded/noResponse/missing/f
   ここを読む（あちらは `$LOGS/harness/pr-independent-review/runs/pr-<番号>/` を使う。混ぜない）
 - ファイル名は固定: `patch.diff` / `context.md` / `checks.json` / `codex-audit.md` / `codex-bughunt.md` /
   `codex-design.md`（各Codexの**結論**は同名の `.final.md`＝`-o` の出力が正本、stdoutログは `.out.md`） / `chunks.tsv` / `agents/<名前>.md` / `integrated.md` /
-  `final.diff` / `checks-final.json`
+  `final.diff` / `checks-final.json` / `refix/s<N>.sha`（snapshot commit）/ `refix/round<N>.diff`（反映 diff）/ `agents/refix-correctness-r<N>.md`
 - `$RUNDIR` 配下はStop/SessionEnd hook（`.dev-hooks/logs-sync.mjs`）でlogs repoへ自動commit・pushされる。
   セッション側で `git commit` しない
 
@@ -130,7 +131,7 @@ Repo root : <リポジトリ絶対パス>
    - **「免責で消された指摘」セクション必須**: 各観点の `suppressed:` 節を固定形式 `- [Critical|Warning] <指摘要約> — suppressed-by: <トレードオフ1行, 出所ラベル>` で列挙する（元の重大度を行頭に保持。0件なら「suppressed: 0件」と明記）。§2.6参照。
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。裁定結果の適用は、1〜2箇所の機械的な直しなら本体が最小Edit、まとまった量なら fix subagent（`model: "sonnet"`）1体に design.md のパス+裁定を渡す。
    - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは従来どおり本体の最小Edit or fix subagent（`sonnet`）。
-   - **裁定反映 diff の再レビュー**: 上の適用がテスト以外のソースに触れたら、適用前 ref（`git stash create` か HEAD）との差分を `$RUNDIR/apply-step7.diff` に書き、`post-checks/applied-diff-correctness.md`（`model: "opus"`・Step 4 と同じ5行契約・Patch path = その diff）を1体起動する（理由は同ファイル冒頭。Step 6 側は Workflow の Step 6.5-2.5 が同じ post-check を回す）。Critical は直して再実行（機械的でなければ再度 AskUserQuestion）、Warning/Info は最終報告へ。
+   - **裁定反映 diff の再レビュー（Refix・Step 6 と同じ手順）**: 裁定を適用する**前**に `python3 .claude/skills/moores-code-review/scripts/refix_snapshot.py snapshot --repo-root "$(pwd)" --run-dir $RUNDIR --name w7-s0` を取り、適用後に `--name w7-s1` → `refix_snapshot.py diff --from w7-s0 --to w7-s1 --out $RUNDIR/refix/w7-round1.diff` で反映 diff と `scope` を得る。`source` なら `post-checks/applied-diff-correctness.md`（`model: "opus"`・Step 4 と同じ5行契約＋`Refix of : design.md の該当裁定`・Patch path = その diff・報告先 `agents/refix-correctness-w7-r1.md`）を1体起動する（理由は同ファイル冒頭。Step 6 側は Workflow の Refix フェーズが同じ手順を回す）。Critical は直して `w7-s2` を取り直し直した差分だけで再実行（最大3周。機械的でなければ再度 AskUserQuestion）、上限超過・適用0件は未収束として報告冒頭に明記、Warning/Info は最終報告へ。`non-source`/`none` なら起動せず報告に1行。
    - **載せてよいのは本質的な設計判断のみ**: アーキテクチャ・パターン選択（多態化/型分割/移動先クラス）・スコープ影響・両立不能な指摘、およびサブエージェントの `設計判断: あり` 項目。
    - **載せるの禁止**: コメントの短縮・文体（convention-guardが自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。この2種は選択肢に混ぜた時点で規約違反。
    - **統合（design.md）に無い選択肢を本体が足すのも禁止** — 「現状維持」「別issueへ」を本体が付け足さない。推奨は design.md の正解形に揃える（`references/integration-rules.md` §4・2026-08-23 C8 教訓）。
