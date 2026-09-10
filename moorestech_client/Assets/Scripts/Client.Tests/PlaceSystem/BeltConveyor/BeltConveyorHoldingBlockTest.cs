@@ -4,7 +4,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -42,9 +41,11 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         {
             var holding = BeltConveyorHoldingBlock.Resolve(ForUnitTestModBlockId.GearBeltConveyorSplitter);
 
-            Assert.AreEqual(BeltConveyorRole.Splitter, holding.Role);
             Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyorSplitter, holding.BlockId);
-            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyorSplitter, MasterHolderBlockId(holding));
+
+            // BlockMasterが手持ちブロックのものか（プレビュー形状が別ブロックへ化けないか）を確認する
+            // Confirms BlockMaster belongs to the held block, so the preview shape cannot swap to another block
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyorSplitter, MasterHolder.BlockMaster.GetBlockId(holding.BlockMaster.BlockGuid));
             Assert.IsNull(holding.SlopeGrade);
             Assert.IsNull(holding.RunUpBlockId);
             Assert.IsNull(holding.RunDownBlockId);
@@ -64,12 +65,28 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             Assert.IsTrue(placeInfos.All(info => info.BlockId == ForUnitTestModBlockId.GearBeltConveyorSplitter));
         }
 
+        // 分岐器手持ちは坂を持たないため、傾斜が要るセルは設置不可のまま残る
+        // A held splitter carries no slopes, so a cell that needs a slope stays unplaceable
+        [Test]
+        public void 分岐器のドラッグは傾斜セルが設置不可になる()
+        {
+            var holding = BeltConveyorHoldingBlock.Resolve(ForUnitTestModBlockId.GearBeltConveyorSplitter);
+            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState());
+
+            var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(0, 1, 3), BlockDirection.North, holding, out _, out _);
+
+            var slopeCells = placeInfos.Where(info => info.VerticalDirection != BlockVerticalDirection.Horizontal).ToList();
+            Assert.IsNotEmpty(slopeCells);
+            Assert.IsTrue(slopeCells.All(info => !info.Placeable));
+            Assert.IsTrue(placeInfos.Where(info => info.VerticalDirection == BlockVerticalDirection.Horizontal).All(info => info.Placeable));
+            Assert.IsTrue(placeInfos.All(info => info.BlockId == ForUnitTestModBlockId.GearBeltConveyorSplitter));
+        }
+
         [Test]
         public void 直線を選ぶと坂の自動挿入が有効()
         {
             var holding = BeltConveyorHoldingBlock.Resolve(ForUnitTestModBlockId.GearBeltConveyor);
 
-            Assert.AreEqual(BeltConveyorRole.Straight, holding.Role);
             Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, holding.BlockId);
             Assert.IsNull(holding.SlopeGrade);
             Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp, holding.RunUpBlockId);
@@ -81,16 +98,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         {
             var holding = BeltConveyorHoldingBlock.Resolve(ForUnitTestModBlockId.TestGearBeltConveyorUp);
 
-            Assert.AreEqual(BeltConveyorRole.Up, holding.Role);
             Assert.AreEqual(BeltSlopeGrade.Up, holding.SlopeGrade);
             Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp, holding.BlockId);
-        }
-
-        // BlockMasterが手持ちブロックのものか（プレビュー形状が別ブロックへ化けないか）を確認する
-        // Confirms BlockMaster belongs to the held block, so the preview shape cannot swap to another block
-        private static BlockId MasterHolderBlockId(BeltConveyorHoldingBlock holding)
-        {
-            return MasterHolder.BlockMaster.GetBlockId(holding.BlockMaster.BlockGuid);
         }
     }
 }

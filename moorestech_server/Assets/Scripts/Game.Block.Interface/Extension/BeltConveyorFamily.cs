@@ -69,29 +69,6 @@ namespace Game.Block.Interface.Extension
             return candidate.HasValue;
         }
 
-        // 坂ブロックなら上下どちらの坂かを返す
-        // Returns which way the slope goes when the block is a slope
-        public bool TryGetSlopeDirection(BlockId blockId, out BlockVerticalDirection verticalDirection)
-        {
-            if (TryGetRole(blockId, out var role))
-            {
-                if (role == BeltConveyorRole.Up)
-                {
-                    verticalDirection = BlockVerticalDirection.Up;
-                    return true;
-                }
-
-                if (role == BeltConveyorRole.Down)
-                {
-                    verticalDirection = BlockVerticalDirection.Down;
-                    return true;
-                }
-            }
-
-            verticalDirection = BlockVerticalDirection.Horizontal;
-            return false;
-        }
-
         private static bool Matches(BlockId? member, BlockId blockId)
         {
             return member.HasValue && member.Value == blockId;
