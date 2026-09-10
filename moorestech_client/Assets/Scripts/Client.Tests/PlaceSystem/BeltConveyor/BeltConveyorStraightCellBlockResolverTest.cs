@@ -15,8 +15,8 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         private static readonly BlockId StraightBlock = new(101);
         private static readonly BlockId UpBlock = new(102);
         private static readonly BlockId DownBlock = new(103);
-        private static readonly BeltConveyorFamily Family = new(StraightBlock, UpBlock, DownBlock);
-        private static readonly BeltConveyorFamily SlopelessFamily = new(StraightBlock, null, null);
+        private static readonly BeltConveyorFamily Family = new(StraightBlock, UpBlock, DownBlock, null);
+        private static readonly BeltConveyorFamily SlopelessFamily = new(StraightBlock, null, null, null);
 
         [Test]
         public void 水平セルは個数と配置情報を保って直線ブロックになる()

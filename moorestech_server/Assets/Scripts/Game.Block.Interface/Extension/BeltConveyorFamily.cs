@@ -3,42 +3,98 @@ using Core.Master;
 namespace Game.Block.Interface.Extension
 {
     /// <summary>
-    /// 解決済みのベルトファミリー（直線・斜面ブロック）
-    /// A resolved belt family containing straight and slope blocks
+    /// 解決済みのベルトファミリー（1ティア）。直線は必須、坂・分岐器は任意
+    /// A resolved belt family (one tier); straight is required, slopes and splitter are optional
     /// </summary>
     public class BeltConveyorFamily
     {
-        // 斜面のないファミリー（分岐器）ではnull
-        // Null for slope-less families (splitters)
         public readonly BlockId StraightBlockId;
         public readonly BlockId? UpBlockId;
         public readonly BlockId? DownBlockId;
+        public readonly BlockId? SplitterBlockId;
 
-        public BeltConveyorFamily(BlockId straightBlockId, BlockId? upBlockId, BlockId? downBlockId)
+        public BeltConveyorFamily(BlockId straightBlockId, BlockId? upBlockId, BlockId? downBlockId, BlockId? splitterBlockId)
         {
             StraightBlockId = straightBlockId;
             UpBlockId = upBlockId;
             DownBlockId = downBlockId;
+            SplitterBlockId = splitterBlockId;
+        }
+
+        // メンバーのロールを引く。非メンバーはfalse
+        // Resolve a member's role; non-members return false
+        public bool TryGetRole(BlockId blockId, out BeltConveyorRole role)
+        {
+            if (blockId == StraightBlockId)
+            {
+                role = BeltConveyorRole.Straight;
+                return true;
+            }
+
+            if (Matches(UpBlockId, blockId))
+            {
+                role = BeltConveyorRole.Up;
+                return true;
+            }
+
+            if (Matches(DownBlockId, blockId))
+            {
+                role = BeltConveyorRole.Down;
+                return true;
+            }
+
+            if (Matches(SplitterBlockId, blockId))
+            {
+                role = BeltConveyorRole.Splitter;
+                return true;
+            }
+
+            role = BeltConveyorRole.Straight;
+            return false;
+        }
+
+        // ロールに対応するブロックを引く。ファミリーがそのロールを持たなければfalse
+        // Resolve the block for a role; false when the family lacks that role
+        public bool TryGetBlockIdOfRole(BeltConveyorRole role, out BlockId blockId)
+        {
+            BlockId? candidate = role switch
+            {
+                BeltConveyorRole.Straight => StraightBlockId,
+                BeltConveyorRole.Up => UpBlockId,
+                BeltConveyorRole.Down => DownBlockId,
+                BeltConveyorRole.Splitter => SplitterBlockId,
+                _ => null,
+            };
+            blockId = candidate ?? default;
+            return candidate.HasValue;
         }
 
         // 坂ブロックなら上下どちらの坂かを返す
         // Returns which way the slope goes when the block is a slope
         public bool TryGetSlopeDirection(BlockId blockId, out BlockVerticalDirection verticalDirection)
         {
-            if (UpBlockId.HasValue && blockId == UpBlockId.Value)
+            if (TryGetRole(blockId, out var role))
             {
-                verticalDirection = BlockVerticalDirection.Up;
-                return true;
-            }
+                if (role == BeltConveyorRole.Up)
+                {
+                    verticalDirection = BlockVerticalDirection.Up;
+                    return true;
+                }
 
-            if (DownBlockId.HasValue && blockId == DownBlockId.Value)
-            {
-                verticalDirection = BlockVerticalDirection.Down;
-                return true;
+                if (role == BeltConveyorRole.Down)
+                {
+                    verticalDirection = BlockVerticalDirection.Down;
+                    return true;
+                }
             }
 
             verticalDirection = BlockVerticalDirection.Horizontal;
             return false;
+        }
+
+        private static bool Matches(BlockId? member, BlockId blockId)
+        {
+            return member.HasValue && member.Value == blockId;
         }
     }
 }

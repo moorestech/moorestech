@@ -4,14 +4,14 @@ using Game.Block.Interface.Extension;
 namespace Game.Construction
 {
     /// <summary>
-    /// 財布キー解決と残り設置数の算術。ベルトは直線代表、他は自身
-    /// Resolves the wallet key for remaining placements (belt families normalize to the straight block, others are themselves) and owns every arithmetic rule about the remainder
+    /// 財布キー解決と残り設置数の算術。坂ベルトは直線代表、分岐器と他は自身
+    /// Resolves the wallet key for remaining placements (belt slopes normalize to the straight block, splitters and others are themselves) and owns every arithmetic rule about the remainder
     /// </summary>
     public static class ConstructionWalletUtil
     {
         public static BlockId ResolveWalletBlockId(BlockId blockId)
         {
-            return BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family) ? family.StraightBlockId : blockId;
+            return BeltConveyorPlaceFamilyUtil.ResolveSlopeRepresentativeBlockId(blockId);
         }
 
         // 財布を通すブロックか（1セット1個は素通り）

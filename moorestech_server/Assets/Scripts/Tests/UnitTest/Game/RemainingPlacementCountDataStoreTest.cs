@@ -14,7 +14,7 @@ namespace Tests.UnitTest.Game
         private const int PlayerId = 1;
 
         [Test]
-        public void 財布キーはファミリー所属なら直線代表で非所属なら自分()
+        public void 財布キーは坂ベルトだけ直線代表で他は自分()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 

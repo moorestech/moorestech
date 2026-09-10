@@ -26,6 +26,9 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, family.StraightBlockId);
             Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp, family.UpBlockId);
             Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorDown, family.DownBlockId);
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyorSplitter, family.SplitterBlockId);
+            Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyorSplitter, out var splitterFamily));
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, splitterFamily.StraightBlockId);
 
             Assert.IsFalse(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.MachineId, out _));
         }

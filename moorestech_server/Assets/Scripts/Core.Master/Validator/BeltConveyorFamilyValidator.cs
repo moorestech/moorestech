@@ -38,14 +38,15 @@ namespace Core.Master.Validator
             {
                 var familyLogs = "";
 
-                // 直線は必須、坂は任意として同じメンバー規則を検証する
-                // Validate the required straight and optional slopes with one member rule
+                // 直線は必須、坂・分岐器は任意として同じメンバー規則を検証する
+                // Validate the required straight and the optional slopes/splitter with one member rule
                 familyLogs += ValidateMember(family.StraightBlockGuid, "straightBlockGuid");
                 familyLogs += ValidateOptionalMember(family.UpBlockGuid, "upBlockGuid");
                 familyLogs += ValidateOptionalMember(family.DownBlockGuid, "downBlockGuid");
+                familyLogs += ValidateOptionalMember(family.SplitterBlockGuid, "splitterBlockGuid");
 
-                // 財布をファミリーで共有するため、直線基準で建設コストと設置数/1セットの一致を要求する
-                // The wallet is shared per family, so require cost and placementsPerCost to match the straight block
+                // 財布を坂と直線で共有するため、坂だけ直線基準で建設コストと設置数/1セットの一致を要求する。分岐器は自身の財布なので対象外
+                // Slopes share the straight block's wallet, so only slopes must match its cost and placementsPerCost; splitters keep their own wallet
                 if (!elementByGuid.TryGetValue(family.StraightBlockGuid, out var straight)) return familyLogs;
                 familyLogs += ValidateCostMatches(straight, family.UpBlockGuid);
                 familyLogs += ValidateCostMatches(straight, family.DownBlockGuid);

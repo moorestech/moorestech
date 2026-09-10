@@ -4198,6 +4198,150 @@
     },
     {
       "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "name": "SmallGearBeltConveyorSplitter",
+      "blockType": "GearBeltConveyor",
+      "blockParam": {
+        "overloadMaxRpm": 0,
+        "overloadMaxTorque": 0,
+        "destructionCheckInterval": 1,
+        "baseDestructionProbability": 0,
+        "timeOfItemEnterToExit": 0.05,
+        "beltConveyorItemCount": 4,
+        "gear": {
+          "gearConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "option": {
+                "isReverse": false
+              },
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ]
+              ],
+              "connectorGuid": "37429f01-2c6d-4127-88cc-72c0bca3d7a5"
+            }
+          ]
+        },
+        "inventoryConnectors": {
+          "inputConnects": [
+            {
+              "connectorGuid": "70feded1-8116-44a3-9e47-5de749ed42d0",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ],
+                [
+                  0,
+                  -1,
+                  -1
+                ]
+              ]
+            }
+          ],
+          "outputConnects": [
+            {
+              "connectorGuid": "14d6e747-ea5b-4791-bd7c-7fdcca100832",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  -1,
+                  1
+                ]
+              ]
+            },
+            {
+              "connectorGuid": "455ab40e-0fae-4e1d-bbc8-7b5802fcddaa",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  1,
+                  -1,
+                  0
+                ]
+              ]
+            },
+            {
+              "connectorGuid": "7c7aead7-1fbc-4a6e-a35b-06094d7bdbee",
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  -1,
+                  0
+                ]
+              ]
+            }
+          ]
+        },
+        "slopeType": "Straight",
+        "gearConsumption": {
+          "baseRpm": 10,
+          "minimumRpm": 0,
+          "baseTorque": 1,
+          "torqueExponentUnder": 2,
+          "torqueExponentOver": 1.585,
+          "idlePowerRate": 0.2
+        }
+      },
+      "blockGuid": "4e0b2f6a-9c1d-4e0a-8b2f-1a2b3c4d5e60",
+      "category": "テスト",
+      "subCategory": "GearBeltConveyor",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockSize": [
         3,
         1,
         8
@@ -5326,15 +5470,14 @@
       "straightBlockGuid": "00000000-0000-0000-0000-000000000003"
     },
     {
-      "straightBlockGuid": "00000000-0000-0000-0000-000000000030"
+      "straightBlockGuid": "00000000-0000-0000-0000-000000000030",
+      "splitterBlockGuid": "4e0b2f6a-9c1d-4e0a-8b2f-1a2b3c4d5e60"
     },
     {
       "upBlockGuid": "00000000-0000-0000-0000-0000000000a1",
       "downBlockGuid": "00000000-0000-0000-0000-0000000000a2",
-      "straightBlockGuid": "00000000-0000-0000-0000-000000000015"
-    },
-    {
-      "straightBlockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
+      "straightBlockGuid": "00000000-0000-0000-0000-000000000015",
+      "splitterBlockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040"
     }
   ],
   "blockDestructionCategories": [

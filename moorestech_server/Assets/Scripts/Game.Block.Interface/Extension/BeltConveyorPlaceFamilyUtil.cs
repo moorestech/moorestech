@@ -31,11 +31,29 @@ namespace Game.Block.Interface.Extension
             return false;
         }
 
+        // 財布・解放の代表。坂ロールだけ直線へ寄せ、直線・分岐器・ファミリー外は自身
+        // Wallet/unlock representative: only slope roles map to the straight; straight, splitter and non-members stay themselves
+        public static BlockId ResolveSlopeRepresentativeBlockId(BlockId blockId)
+        {
+            if (!TryGetFamily(blockId, out var family)) return blockId;
+            if (!family.TryGetRole(blockId, out var role)) return blockId;
+            return role == BeltConveyorRole.Up || role == BeltConveyorRole.Down ? family.StraightBlockId : blockId;
+        }
+
+        public static Guid ResolveSlopeRepresentativeGuid(Guid blockGuid)
+        {
+            var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);
+            if (blockId == null) return blockGuid;
+            var representative = ResolveSlopeRepresentativeBlockId(blockId.Value);
+            return MasterHolder.BlockMaster.GetBlockMaster(representative).BlockGuid;
+        }
+
         private static bool IsMember(BeltConveyorFamiliesElement element, Guid blockGuid)
         {
             return element.StraightBlockGuid == blockGuid ||
                    element.UpBlockGuid == blockGuid ||
-                   element.DownBlockGuid == blockGuid;
+                   element.DownBlockGuid == blockGuid ||
+                   element.SplitterBlockGuid == blockGuid;
         }
 
         // ファミリーのGUIDを実行時IDへ解決する
@@ -43,15 +61,13 @@ namespace Game.Block.Interface.Extension
         private static BeltConveyorFamily BuildFamily(BeltConveyorFamiliesElement element)
         {
             var straightBlockId = MasterHolder.BlockMaster.GetBlockId(element.StraightBlockGuid);
-            var upBlockId = ResolveSlope(element.UpBlockGuid);
-            var downBlockId = ResolveSlope(element.DownBlockGuid);
-            return new BeltConveyorFamily(straightBlockId, upBlockId, downBlockId);
+            return new BeltConveyorFamily(straightBlockId, ResolveOptional(element.UpBlockGuid), ResolveOptional(element.DownBlockGuid), ResolveOptional(element.SplitterBlockGuid));
         }
 
-        private static BlockId? ResolveSlope(Guid? slopeBlockGuid)
+        private static BlockId? ResolveOptional(Guid? blockGuid)
         {
-            if (slopeBlockGuid == null) return null;
-            return MasterHolder.BlockMaster.GetBlockId(slopeBlockGuid.Value);
+            if (blockGuid == null) return null;
+            return MasterHolder.BlockMaster.GetBlockId(blockGuid.Value);
         }
     }
 }
