@@ -100,7 +100,7 @@ describe("validBlockInventory capability details", () => {
       ...openBase,
       generator: { remainingFuelTime: 3, currentFuelTime: 10, operatingRate: 0.5 },
       miner: { currentPower: 1, requestPower: 2, miningItems: [{ itemId: 5, itemsPerMinute: 12 }] },
-      gear: { isClockwise: true, currentRpm: 10, currentTorque: 3, baseRpm: 20, baseTorque: 5 },
+      gear: { isClockwise: true, currentRpm: 10, currentTorque: 3, baseRpm: 20, role: "consumer" },
       gearNetwork: { totalRequiredGearPower: 5, totalGenerateGearPower: 10, stopReason: "none" },
       filterSplitter: { directionCount: 2, filterSlotCountPerDirection: 3, directions: [{ mode: "whitelist", filterItemIds: [1, 0, 0] }, { mode: "default", filterItemIds: [0, 0, 0] }] },
       electricToGear: {
@@ -111,6 +111,14 @@ describe("validBlockInventory capability details", () => {
       },
     };
     expect(parseTopicPayload(Topics.blockInventory, d).valid).toBe(true);
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { isClockwise: true, currentRpm: 10, currentTorque: 3, baseRpm: 20, baseTorque: 5 },
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { isClockwise: true, currentRpm: 10, currentTorque: 3, baseRpm: 0, role: "generator" },
+    }).valid).toBe(true);
   });
 
   it("rejects electricToGear without output mode power", () => {

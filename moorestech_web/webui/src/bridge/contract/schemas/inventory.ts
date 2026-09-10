@@ -83,8 +83,12 @@ export const PumpDetailDataSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
+export const GearRoleSchema = z.enum(["consumer", "generator"]);
+
+// baseRpm は消費側だけ意味を持ち発電機は0。役割はクライアントdtoがマスタparamから導出済み（ADR 0056）
+// baseRpm is meaningful only for consumers (generators send 0); the role is derived host-side from the master param (ADR 0056)
 export const GearDetailDataSchema = z.object({
-  isClockwise: z.boolean(), currentRpm: z.number(), currentTorque: z.number(), baseRpm: z.number(), baseTorque: z.number(),
+  isClockwise: z.boolean(), currentRpm: z.number(), currentTorque: z.number(), baseRpm: z.number(), role: GearRoleSchema,
 });
 
 export const ElectricNetworkDataSchema = z.object({
