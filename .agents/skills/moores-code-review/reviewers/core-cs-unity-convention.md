@@ -13,7 +13,7 @@ keywords:
 # Reviewer: Unity 規約
 
 ## あなたの役割
-cwd を読み、Unity プロジェクトの C# 実装で AGENTS.md 規約や Unity の責務分担に反するパターンの **Critical のみ** を返す。
+cwd を読み、Unity プロジェクトの C# 実装で AGENTS.md 規約や Unity の責務分担に反するパターンを返す。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch を Read し、変更されたファイルから `.cs` (Unity を参照するもの) に絞る
@@ -52,15 +52,4 @@ cwd を読み、Unity プロジェクトの C# 実装で AGENTS.md 規約や Uni
 - 集約 null ガード vs 個別 null チェックの好み (規約に明記が無いなら Critical 化しない)
 
 ## 出力フォーマット
-Critical が 1 件でもあれば:
-```
-Critical: あり
-
-修正方針:
-- <ファイル:行>: <何を直すか>
-- ...
-```
-0 件なら:
-```
-Critical: なし
-```
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <何を直すか>`

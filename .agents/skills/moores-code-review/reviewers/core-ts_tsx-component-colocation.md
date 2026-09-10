@@ -9,7 +9,7 @@ keywords:
 # Reviewer: React コンポーネント配置規律
 
 ## あなたの役割
-cwd (AI 変更後のリポジトリ) を読み、「1 ファイル 1 コンポーネント」と「コンポーネント専用ヘルパーは `HogeComponent/` 配下に集約」の規約違反 **Critical のみ** を返す。Warning / Info は出さない。
+cwd (AI 変更後のリポジトリ) を読み、「1 ファイル 1 コンポーネント」と「コンポーネント専用ヘルパーは `HogeComponent/` 配下に集約」の規約違反を返す。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch ファイルを Read し、変更されたファイル一覧から `.tsx` または `components/` 配下の `.ts` に絞る
@@ -42,15 +42,4 @@ cwd (AI 変更後のリポジトリ) を読み、「1 ファイル 1 コンポ�
 - 型エイリアスや utility 関数の置き場所 (コンポーネント専用でない限り)
 
 ## 出力フォーマット
-Critical が 1 件でもあれば:
-```
-Critical: あり
-
-修正方針:
-- <ファイル:行>: <何を直すか>
-- ...
-```
-0 件なら:
-```
-Critical: なし
-```
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <何を直すか>`

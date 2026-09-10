@@ -22,7 +22,7 @@ keywords:
 ## あなたの役割
 cwd を読み、AI patch が追加/変更した **正規テスト**（`*.test.ts/tsx`・`*.spec.ts`・NUnit/xUnit の `[Test]`/`[Fact]`・
 React Testing Library・Unity EditMode/PlayMode 等）が、検証対象の **production コード経路を実際に通し、変更の核心を
-戻したら失敗する**（mutation で死ぬ）テストになっているかを検査し、**Critical のみ** を返す。原則は言語非依存:
+戻したら失敗する**（mutation で死ぬ）テストになっているかを検査し、違反を返す。原則は言語非依存:
 「**テストは production の入口を起動し、観測可能な結果を検証する。変更行を戻したら少なくとも1つが赤くなる**」。
 「アサーションが在るか」ではなく「**退行を実際に検知できるか**」で判定する。
 （描画だけの Demo/Showcase ページは別 reviewer 担当。本 reviewer は CI で走る正規テストを対象にする。）
@@ -81,20 +81,6 @@ React Testing Library・Unity EditMode/PlayMode 等）が、検証対象の **pr
 赤くならない**中核**行が1つでもあれば → **Critical**。
 二次的・防御的分岐（loading・冗長 guard・ログ等）が赤くならないのは Critical にしない（補足に回す）。
 
-## 依頼動詞優先ガード
-起動 prompt 3 行目 `User prompt : <abs-path>` を Read。「許容するトレードオフ」「非目標」に合致する指摘は**破棄せず**、`suppressed-by: <トレードオフ1行, 出所ラベル>` を付けて**重大度そのまま**で返す（統合側が報告の「免責で消された指摘」節に載せる）。suppressed化できるのは出所が `[ユーザー裁定: ...]` / `[ADR: ...]` の行だけ。`[agent前提]` またはラベル無しの行は免責事由にならない（通常のCritical/Warningとして返す）。
-
 ## 出力フォーマット
-Critical が 1 件でもあれば:
-```
-Critical: あり
-
-修正方針:
-- <ファイル:行>: <どの production 変更を、どの実経路テストで守るか（最小修正）>
-- ...
-```
-0 件なら:
-```
-Critical: なし
-```
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <どの production 変更を、どの実経路テストで守るか（最小修正）>`
 最後に最有力1件を示す。

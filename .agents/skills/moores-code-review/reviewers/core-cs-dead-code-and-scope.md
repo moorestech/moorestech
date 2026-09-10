@@ -7,7 +7,7 @@ keywords: []
 # Reviewer: C# デッドコード / スコープ縮小
 
 ## あなたの役割
-cwd を読み、C# コード変更後の残骸 (デッドコード / 過剰スコープ / 誤ったラベル / 未使用 using) のうち **Critical のみ** を返す。
+cwd を読み、C# コード変更後の残骸 (デッドコード / 過剰スコープ / 誤ったラベル / 未使用 using) を返す。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch を Read し、変更されたファイルから `.cs` に絞る
@@ -111,15 +111,4 @@ public Foo(...)
 helper 本体が class-level `const` / field / property を参照していても、その member はそのまま参照する。`private const float Foo = ...` を local `const` に変えるような追加 scope shrink は gold から外れやすいため禁止する。
 
 ## 出力フォーマット
-Critical が 1 件でもあれば:
-```
-Critical: あり
-
-修正方針:
-- <ファイル:行>: <何を直すか>
-- ...
-```
-0 件なら:
-```
-Critical: なし
-```
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <何を直すか>`

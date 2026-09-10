@@ -34,9 +34,6 @@ User prompt : <4 カテゴリ context の絶対パス>
 4. Critical と判定したものは、**ティック加算への置き換え形**を修正方針に書く: 前回時刻の代わりに `GameUpdater` の累積ティックを保持し、閾値は `GameUpdater.SecondsToTicks(秒)` で換算して比較する。
    **前提の欠落を必ず明記する**: 本リポジトリの `GameUpdater` は現時点で累積ティック数を公開していない（`TicksPerSecond` / `SecondsToTicks` / `TicksToSeconds` のみ）。置き換えには累積ティックの公開が先に要るので、修正方針にその 1 行を含める。
 
-## 依頼動詞優先ガード
-起動 prompt 4 行目 `User prompt` を Read。「許容するトレードオフ」「目指さない（非目標）」に合致する指摘は破棄せず `suppressed-by: <トレードオフ1行, 出所ラベル>` を付けて重大度そのままで返す。免責力を持つのは `[ユーザー裁定: ...]` / `[ADR: ...]` の行だけ。
-
 ## 出力フォーマット
 Critical が 1 件でもあれば:
 ```
