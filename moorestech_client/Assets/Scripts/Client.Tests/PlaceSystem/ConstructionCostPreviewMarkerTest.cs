@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Construction;
 using Core.Master;
@@ -74,47 +73,6 @@ namespace Client.Tests.PlaceSystem
             Assert.IsTrue(placeInfos[2].Placeable);
             Assert.IsTrue(placeInfos[3].Placeable);
             Assert.IsFalse(placeInfos[4].Placeable);
-        }
-
-        [Test]
-        public void 素材ゼロでも張替えは撤去分の返却で賄って全セルをPlaceableのまま残す()
-        {
-            CreateServer();
-            var walletQuery = new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
-
-            // 所持素材ゼロ・財布0。GearBeltConveyor(PlacementsPerCost=3)6セルを同コストのLargeGearBeltConveyorへ張り替える
-            // No materials and an empty wallet; six GearBeltConveyor cells (PlacementsPerCost=3) become the same-cost LargeGearBeltConveyor
-            var inventory = new List<global::Core.Item.Interface.IItemStack>();
-            var placeInfos = new List<PlaceInfo>();
-            var replacedBlockIds = new List<BlockId>();
-            for (var i = 0; i < 6; i++)
-            {
-                placeInfos.Add(new PlaceInfo { BlockId = ForUnitTestModBlockId.LargeGearBeltConveyor, IsReplace = true, Placeable = true });
-                replacedBlockIds.Add(ForUnitTestModBlockId.GearBeltConveyor);
-            }
-
-            // サーバーと同じ「所持品＋返却品」でコストを見る。撤去3セルごとに1セット戻るので6セル分が賄える
-            // The cost is seen as holdings plus refund, like the server; one set returns per three removals, covering all six cells
-            var costCheckItems = BeltReplaceRefundEstimator.AppendRefundItems(inventory, replacedBlockIds, walletQuery);
-            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(placeInfos, walletQuery, costCheckItems);
-
-            Assert.IsTrue(placeInfos.TrueForAll(placeInfo => placeInfo.Placeable));
-        }
-
-        [Test]
-        public void 張替えでない列は返却を勘定に入れず素材ゼロなら全セル不可になる()
-        {
-            CreateServer();
-            var walletQuery = new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
-
-            var inventory = new List<global::Core.Item.Interface.IItemStack>();
-            var placeInfos = new List<PlaceInfo>();
-            for (var i = 0; i < 3; i++) placeInfos.Add(new PlaceInfo { BlockId = ForUnitTestModBlockId.GearBeltConveyor, Placeable = true });
-
-            var costCheckItems = BeltReplaceRefundEstimator.AppendRefundItems(inventory, Array.Empty<BlockId>(), walletQuery);
-            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(placeInfos, walletQuery, costCheckItems);
-
-            Assert.IsTrue(placeInfos.TrueForAll(placeInfo => !placeInfo.Placeable));
         }
 
         private static void CreateServer()

@@ -13,6 +13,7 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Common.Debug;
+using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Construction;
 using Server.Protocol.PacketResponse;
@@ -128,13 +129,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
             // 直線・坂・分岐器・張替えで列にBlockIdが混ざるため、コストはセル自身のBlockIdごとに数える
             // Straight, slope, splitter and replace cells mix BlockIds in one run, so the cost is counted per the cell's own BlockId
-            // 張替えは撤去した既設ブロックの返却が支払いより先に届くので、返却分を加えた所持素材でコストを判定する（サーバーのCanPayNewCostと同じ基準）
-            // A replace refunds the removed block before paying, so the cost is judged on the holdings plus that refund (the server's CanPayNewCost basis)
-            var replacedBlockIds = BeltReplaceRefundEstimator.CollectReplacedBlockIds(_currentPlaceInfos, _blockGameObjectDataStore);
-            var costCheckItems = BeltReplaceRefundEstimator.AppendRefundItems(_localPlayerInventory, replacedBlockIds, _constructionWalletQuery);
+            // 張替えを含む列はサーバーがセル1つずつ「返却→支払い」を判定するので、同じ順で1パス回して可否を出す
+            // A run with replace cells is judged refund-then-pay one cell at a time by the server, so one pass in that same order produces the verdict
+            var replaceSimulation = BeltReplaceCostSimulator.TrySimulate(_currentPlaceInfos, _blockGameObjectDataStore, _constructionWalletQuery, _localPlayerInventory);
+
+            // 不足表示は「所持品＋実際に届いた返却品」で見るため、Placeableを落とす前にシミュレーション結果の素材を渡す
+            // The shortage display sees the holdings plus the refunds that actually landed, so the simulated materials go in before Placeable is cleared
+            IEnumerable<IItemStack> costCheckItems = _localPlayerInventory;
+            if (replaceSimulation != null) costCheckItems = replaceSimulation.CostCheckItems;
 
             ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, _constructionWalletQuery, costCheckItems, feedback);
-            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _constructionWalletQuery, costCheckItems);
+            if (replaceSimulation == null) ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _constructionWalletQuery, _localPlayerInventory);
+            else replaceSimulation.MarkUnaffordableCellsAsNotPlaceable();
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
