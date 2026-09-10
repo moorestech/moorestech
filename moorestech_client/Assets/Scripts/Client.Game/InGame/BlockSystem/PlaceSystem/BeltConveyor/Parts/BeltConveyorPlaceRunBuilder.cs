@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Game.Block.Interface;
@@ -16,11 +17,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     {
         private readonly BeltConveyorPlacePointCalculator _placePointCalculator;
         private readonly CommonBlockPlaceDragState _dragState;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly BeltReplaceRunBuilder _replaceRunBuilder;
 
         public BeltConveyorPlaceRunBuilder(BlockGameObjectDataStore blockGameObjectDataStore, CommonBlockPlaceDragState dragState)
         {
             _placePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
             _dragState = dragState;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
+            _replaceRunBuilder = new BeltReplaceRunBuilder(blockGameObjectDataStore);
         }
 
         // blockCauses/beltReasonsはPlaceInfo列と同添字で並走する原因列
@@ -30,6 +35,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             // 軸決めはドラッグに属するためドラッグ状態へ委ねる
             // The axis belongs to the drag, so the drag state owns it
             var isStartDirectionZ = _dragState.ResolveDragAxisIsZ(dragStartPoint, placePoint);
+
+            // 起点に既設ファミリーブロックがあれば張替え経路。空き地起点は従来の新規設置経路
+            // A family block at the origin selects the replace run; an empty origin keeps the normal placement run
+            if (BeltReplaceRunBuilder.TryResolveOrigin(_blockGameObjectDataStore, dragStartPoint, out var replaceOrigin))
+            {
+                return _replaceRunBuilder.Build(replaceOrigin, placePoint, isStartDirectionZ, holdingBlock, out blockCauses, out beltReasons);
+            }
 
             // 坂選択中は一定勾配の専用経路のみ
             // A slope selection uses only the constant-grade path
