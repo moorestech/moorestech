@@ -1,20 +1,19 @@
 using System.Collections.Generic;
 using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using Server.Protocol.PacketResponse;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 {
     /// <summary>
-    /// 経路セルをファミリーの直線・坂ブロックへ割り当てる
-    /// Assigns path cells to the family's straight and slope blocks
+    /// 経路セルを手持ちの水平ブロックと坂ブロックへ割り当てる
+    /// Assigns path cells to the held horizontal block and slope blocks
     /// </summary>
     public static class BeltConveyorStraightCellBlockResolver
     {
         // beltReasonsはcellsと同じ添字で並走するベルト固有理由の列。坂ブロック欠落で不可になったセルはここへ書き戻す
         // beltReasons is the belt-specific reason column indexed like cells; cells blocked by a missing slope block are written back into it
-        public static List<PlaceInfo> ResolveStraightRun(IReadOnlyList<PlaceInfo> cells, BeltConveyorFamily family, IList<BeltConveyorPlacementBlockReason> beltReasons)
+        public static List<PlaceInfo> ResolveStraightRun(IReadOnlyList<PlaceInfo> cells, BlockId horizontalBlockId, BlockId? upBlockId, BlockId? downBlockId, IList<BeltConveyorPlacementBlockReason> beltReasons)
         {
             // 経路の各セルを縮約せず1ブロックへ変換する
             // Convert every path cell to one block without collapsing the path
@@ -27,15 +26,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             PlaceInfo ResolveCell(int cellIndex)
             {
                 var cell = cells[cellIndex];
-                var blockId = family.StraightBlockId;
+                var blockId = horizontalBlockId;
                 var placeable = cell.Placeable;
 
                 // 傾斜方向に対応する坂がなければ設置不可にする
                 // Mark the cell unplaceable when its slope block is unavailable
                 if (cell.VerticalDirection == BlockVerticalDirection.Up)
-                    ResolveSlope(cellIndex, family.UpBlockId, ref blockId, ref placeable);
+                    ResolveSlope(cellIndex, upBlockId, ref blockId, ref placeable);
                 if (cell.VerticalDirection == BlockVerticalDirection.Down)
-                    ResolveSlope(cellIndex, family.DownBlockId, ref blockId, ref placeable);
+                    ResolveSlope(cellIndex, downBlockId, ref blockId, ref placeable);
 
                 return new PlaceInfo
                 {

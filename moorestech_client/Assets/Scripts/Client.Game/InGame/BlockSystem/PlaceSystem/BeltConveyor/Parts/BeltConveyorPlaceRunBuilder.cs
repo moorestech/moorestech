@@ -42,7 +42,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
             // セル列へ直線・坂を1対1で割り当てる
             // Assign straight/slope blocks to cells one-to-one
-            return BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cellInfos, holdingBlock.Family, beltReasons);
+            return BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cellInfos, holdingBlock.BlockId, holdingBlock.RunUpBlockId, holdingBlock.RunDownBlockId, beltReasons);
         }
     }
 }

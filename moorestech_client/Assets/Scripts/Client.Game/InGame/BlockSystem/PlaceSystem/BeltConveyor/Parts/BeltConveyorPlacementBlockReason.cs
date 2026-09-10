@@ -14,6 +14,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
         None,
         ImpossibleOverpass,
         SlopeBlockMissing,
+
+        // 張替え: 手持ちファミリーに既設と同じロール（分岐器等）が無い
+        // Replace: the held family lacks the existing block's role (splitter etc.)
+        ReplaceRoleMissing,
     }
 
     /// <summary>
@@ -28,6 +32,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             {
                 BeltConveyorPlacementBlockReason.ImpossibleOverpass => LocalizationKeys.Ui.Tooltip.PlaceBeltOverpassInfeasible,
                 BeltConveyorPlacementBlockReason.SlopeBlockMissing => LocalizationKeys.Ui.Tooltip.PlaceBeltNoSlopeBlock,
+                BeltConveyorPlacementBlockReason.ReplaceRoleMissing => LocalizationKeys.Ui.Tooltip.PlaceBeltReplaceRoleMissing,
                 _ => throw new ArgumentOutOfRangeException(nameof(reason), reason, null),
             };
         }

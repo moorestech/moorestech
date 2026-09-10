@@ -227,6 +227,7 @@ ui.tooltip.placeChainGroundNotFound,No ground under the connected layout,No grou
 ui.tooltip.placeChainGroundHeightMismatch,The connected layout does not sit level with the ground,The connected layout does not sit level with the ground,接続先の地面の高さが合っていません,Die verbundene Anordnung liegt nicht eben auf dem Boden
 ui.tooltip.placeBeltOverpassInfeasible,Cannot step over the obstacle here,Cannot step over the obstacle here,障害物を越えられません,Das Hindernis kann hier nicht überbrückt werden
 ui.tooltip.placeBeltNoSlopeBlock,No sloped conveyor for this family,No sloped conveyor for this family,坂のコンベアがありません,Für diese Baureihe gibt es kein Schrägband
+ui.tooltip.placeBeltReplaceRoleMissing,No matching conveyor in the held family,No matching conveyor in the held family,手持ちのファミリーに対応するコンベアがありません,Kein passendes Förderband in der gewählten Baureihe
 ui.tooltip.placeMaterialShortage,Missing item: {p0} {p1}/{p2},Missing item: {p0} {p1}/{p2},アイテム不足： {p0} {p1}/{p2},Fehlender Gegenstand: {p0} {p1}/{p2}
 ui.tooltip.placeWireCost,Wire x{p0},Wire x{p0},電線 x{p0},Kabel x{p0}
 ui.tooltip.placeWireOutOfRangeNotice,Out of connection range: no wire will be placed,Out of connection range: no wire will be placed,接続範囲外のため配線されません,Außerhalb der Verbindungsreichweite: es wird kein Kabel verlegt
