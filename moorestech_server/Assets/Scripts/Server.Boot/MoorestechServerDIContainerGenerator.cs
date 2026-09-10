@@ -207,6 +207,7 @@ namespace Server.Boot
             services.AddSingleton<IRemainingPlacementCountMutation>(provider => provider.GetRequiredService<RemainingPlacementCountDataStore>());
             services.AddSingleton<ConstructionPayerDataStore>();
             services.AddSingleton<ConstructionWalletService>();
+            services.AddSingleton<BeltReplacePlacementService>();
 
             services.AddSingleton<ResearchEvent>();
 

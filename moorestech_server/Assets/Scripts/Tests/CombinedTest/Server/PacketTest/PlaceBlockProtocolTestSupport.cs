@@ -76,10 +76,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, placeInfos));
         }
 
+        /// <summary>
+        /// 張替えフラグ付きの単一セルペイロードを生成する。
+        /// directionは「手持ちの向きが無視され既設の向きが維持される」ことをテストが主張するためだけに受け取る（サーバーは既設の向きを使う）。
+        ///
+        /// Builds a single-cell payload flagged for replace placement.
+        /// The direction exists only so a test can assert that the held direction is ignored in favour of the existing block's one (the server uses the existing direction).
+        /// </summary>
         public static byte[] CreateReplacePayload(BlockId blockId, Vector3Int position, BlockDirection direction)
         {
-            // 張替えフラグ付きの単一セルペイロードを生成する
-            // Build a single-cell payload flagged for replace placement
             var placeInfos = new List<PlaceInfo>
             {
                 new()
@@ -89,6 +94,25 @@ namespace Tests.CombinedTest.Server.PacketTest
                     VerticalDirection = BlockVerticalDirection.Horizontal,
                     BlockId = blockId,
                     IsReplace = true,
+                },
+            };
+            return CreatePlacePayload(placeInfos);
+        }
+
+        /// <summary>
+        /// 通常設置の単一セルペイロード。財布と課金元を実際に通した既設ブロックを用意するために使う
+        /// A single-cell payload for normal placement, used to set up an existing block that really went through the wallet and the payer store
+        /// </summary>
+        public static byte[] CreateNormalPlacePayload(BlockId blockId, Vector3Int position, BlockDirection direction)
+        {
+            var placeInfos = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = position,
+                    Direction = direction,
+                    VerticalDirection = BlockVerticalDirection.Horizontal,
+                    BlockId = blockId,
                 },
             };
             return CreatePlacePayload(placeInfos);

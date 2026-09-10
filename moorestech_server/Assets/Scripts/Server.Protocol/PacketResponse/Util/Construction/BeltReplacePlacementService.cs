@@ -68,6 +68,9 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             var direction = oldBlock.BlockPositionInfo.BlockDirection;
             var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
             ServerContext.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.Replace);
+
+            // 無料設置は撤去側の財布も飛ばすため、旧ブロックの課金元エントリと残り設置数が戻らない（デバッグトグル限定の非対称）
+            // Free placement also skips the removal wallet, so the old block's payer entry and remaining count are never returned (an asymmetry limited to the debug toggle)
             if (!isFreePlacement)
             {
                 _constructionWallet.CommitRemoval(removalPlan);
@@ -124,7 +127,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
 
                 // 事前検証で受け皿を確保しているため残りは出ない。出たなら検証と実行がずれている
                 // The pre-validation reserved the room, so no remainder can appear; one means validation and execution have diverged
-                if (remainder.Count != 0) Debug.LogError($"[BeltReplace] {remainder.Count} items could not be returned to player {playerId} at {position}");
+                if (remainder.Count != 0) Debug.LogError($"[BeltReplace] could not return {DescribeItems(remainder)} to player {playerId} at {position}");
             }
 
             BeltReplaceResult Reject(BeltReplaceResult result, string reason)
@@ -145,19 +148,31 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             }
             return result;
         }
-    }
 
-    /// <summary>
-    /// 1セルの張替え結果。呼び出し側はこれを集計してプレイヤーへ通知する
-    /// The outcome of one replace cell; the caller aggregates these and notifies the player
-    /// </summary>
-    public enum BeltReplaceResult
-    {
-        Replaced,
-        NoChange,
-        NotUnlocked,
-        CostShortage,
-        InventoryFull,
-        Rejected,
+        // 事故時に何が消えたかを追えるようログ用の内訳を作る
+        // Builds the breakdown the log needs so a lost item can be traced afterwards
+        private static string DescribeItems(IReadOnlyList<IItemStack> items)
+        {
+            var descriptions = new List<string>();
+            foreach (var item in items)
+            {
+                descriptions.Add($"{item.Id}x{item.Count}");
+            }
+            return string.Join(",", descriptions);
+        }
+
+        /// <summary>
+        /// 1セルの張替え結果。呼び出し側はこれを集計してプレイヤーへ通知する
+        /// The outcome of one replace cell; the caller aggregates these and notifies the player
+        /// </summary>
+        public enum BeltReplaceResult
+        {
+            Replaced,
+            NoChange,
+            NotUnlocked,
+            CostShortage,
+            InventoryFull,
+            Rejected,
+        }
     }
 }

@@ -40,7 +40,7 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
             _placementTargetCatalog = serviceProvider.GetService<PlacementTargetCatalog>();
-            _beltReplacePlacementService = new BeltReplacePlacementService(_constructionWallet, _placementTargetCatalog, _gameUnlockStateDataController);
+            _beltReplacePlacementService = serviceProvider.GetService<BeltReplacePlacementService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -143,14 +143,14 @@ namespace Server.Protocol.PacketResponse
 
             // 張替えの拒否理由も通常設置と同じ集計へ合流させ、末尾で1通ずつ通知する
             // Replace rejections join the same aggregation as normal placement and are notified once each at the end
-            void CountReplaceResult(BeltReplaceResult result)
+            void CountReplaceResult(BeltReplacePlacementService.BeltReplaceResult result)
             {
                 switch (result)
                 {
-                    case BeltReplaceResult.NotUnlocked: notUnlockedCount++; break;
-                    case BeltReplaceResult.CostShortage: costShortageCount++; break;
-                    case BeltReplaceResult.InventoryFull: replaceInventoryFullCount++; break;
-                    case BeltReplaceResult.Rejected: replaceRejectedCount++; break;
+                    case BeltReplacePlacementService.BeltReplaceResult.NotUnlocked: notUnlockedCount++; break;
+                    case BeltReplacePlacementService.BeltReplaceResult.CostShortage: costShortageCount++; break;
+                    case BeltReplacePlacementService.BeltReplaceResult.InventoryFull: replaceInventoryFullCount++; break;
+                    case BeltReplacePlacementService.BeltReplaceResult.Rejected: replaceRejectedCount++; break;
                 }
             }
 

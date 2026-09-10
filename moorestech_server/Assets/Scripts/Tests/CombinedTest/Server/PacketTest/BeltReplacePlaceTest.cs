@@ -48,7 +48,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 同一インスタンスの品が1個だけ新ベルトへ移る
             // Exactly one item with the same instance id moves onto the new belt
-            var newBelt = block.GetComponent<VanillaBeltConveyorComponent>();
+            var newBelt = block.GetComponent<IItemCollectableBeltConveyor>();
             var after = BeltConveyorTransitCarryOver.Collect(newBelt);
             Assert.AreEqual(1, after.Count);
             Assert.AreEqual(ForUnitTestItemId.ItemId2, after[0].ItemId);
@@ -57,9 +57,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 置いた直後の歯車ベルトはRPM供給前で搬送時間が無限大＝停止中なので、進行率は保存されず入口スロットへ入る
             // A freshly placed gear belt has an infinite transit time until RPM arrives, so the progress is not preserved and the item enters at the entry slot
             Assert.AreEqual(1.0, after[0].RemainingRate);
-            var entrySlot = newBelt.GetSlotSize() - 1;
-            Assert.IsNotNull(newBelt.BeltConveyorItems[entrySlot]);
-            for (var i = 0; i < entrySlot; i++) Assert.IsNull(newBelt.BeltConveyorItems[i]);
+            var slots = newBelt.BeltConveyorItems;
+            Assert.IsNotNull(slots[slots.Count - 1]);
+            for (var i = 0; i < slots.Count - 1; i++) Assert.IsNull(slots[i]);
 
             // 搬送品はベルトへ戻っているのでプレイヤーへは1個も渡らない（増殖・ロストの検出）
             // The transit item went back onto the belt, so the player receives none of it (catches duplication and loss)
@@ -118,6 +118,51 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(oldBlock.BlockInstanceId, block.BlockInstanceId);
             Assert.AreEqual(BlockDirection.North, block.BlockPositionInfo.BlockDirection);
             AssertRequiredItemsCount(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
+        }
+
+        [Test]
+        public void ティアを下げる張替えで撤去返却がプレイヤーへ戻る()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            var pos = new Vector3Int(72, 0, 72);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.SmallGearBeltConveyor);
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
+
+            // 財布を通した設置で残りを2にしておく。次の撤去で1セット分が凝縮され返却が発生する
+            // Place through the wallet so the remainder is 2; the next removal condenses one set's worth and produces a refund
+            packet.GetPacketResponse(CreateNormalPlacePayload(ForUnitTestModBlockId.GearBeltConveyor, pos, BlockDirection.North), new PacketResponseContext(null));
+            AssertInventoryEmptyOfRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
+            var oldBlock = ServerContext.WorldBlockDatastore.GetBlock(pos);
+
+            packet.GetPacketResponse(CreateReplacePayload(ForUnitTestModBlockId.SmallGearBeltConveyor, pos, BlockDirection.North), new PacketResponseContext(null));
+
+            // 無料ティアへ下げたので、旧ブロックの返却素材がそのまま手元に残る
+            // The tier dropped to a free family, so the old block's refunded materials stay in the player's hands
+            var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            Assert.AreEqual(ForUnitTestModBlockId.SmallGearBeltConveyor, block.BlockId);
+            Assert.AreNotEqual(oldBlock.BlockInstanceId, block.BlockInstanceId);
+            AssertRequiredItemsCount(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
+        }
+
+        [Test]
+        public void 所持素材0でも撤去返却で新ティアのコストを賄える()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            var pos = new Vector3Int(74, 0, 74);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.LargeGearBeltConveyor);
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
+
+            packet.GetPacketResponse(CreateNormalPlacePayload(ForUnitTestModBlockId.GearBeltConveyor, pos, BlockDirection.North), new PacketResponseContext(null));
+            AssertInventoryEmptyOfRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
+
+            packet.GetPacketResponse(CreateReplacePayload(ForUnitTestModBlockId.LargeGearBeltConveyor, pos, BlockDirection.North), new PacketResponseContext(null));
+
+            // 所持は0でも撤去の返却が新コストへ充当されるので張替えは成立し、返却分はそのまま消費される
+            // The holdings are zero, but the removal refund covers the new cost, so the replace succeeds and the refund is spent right back
+            Assert.AreEqual(ForUnitTestModBlockId.LargeGearBeltConveyor, ServerContext.WorldBlockDatastore.GetBlock(pos).BlockId);
+            AssertInventoryEmptyOfRequiredItems(serviceProvider, ForUnitTestModBlockId.LargeGearBeltConveyor);
         }
 
         private static int CountInInventory(ServiceProvider serviceProvider, ItemId itemId)

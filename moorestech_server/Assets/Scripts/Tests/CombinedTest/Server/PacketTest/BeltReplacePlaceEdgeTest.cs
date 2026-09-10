@@ -41,11 +41,15 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = CreateServer();
             var pos = new Vector3Int(60, 0, 60);
             UnlockBlock(serviceProvider, ForUnitTestModBlockId.SmallGearBeltConveyor);
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oldBlock);
 
             packet.GetPacketResponse(CreateReplacePayload(ForUnitTestModBlockId.SmallGearBeltConveyor, pos, BlockDirection.North), new PacketResponseContext(null));
 
-            Assert.AreEqual(ForUnitTestModBlockId.MachineId, ServerContext.WorldBlockDatastore.GetBlock(pos).BlockId);
+            // 撤去も財布操作も走らないので、既設は同じインスタンスのまま残る
+            // Neither the removal nor the wallet runs, so the existing block survives as the very same instance
+            var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            Assert.AreEqual(ForUnitTestModBlockId.MachineId, block.BlockId);
+            Assert.AreEqual(oldBlock.BlockInstanceId, block.BlockInstanceId);
         }
 
         [Test]
@@ -54,13 +58,19 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = CreateServer();
             var pos = new Vector3Int(62, 0, 62);
             UnlockBlock(serviceProvider, ForUnitTestModBlockId.SmallGearBeltConveyorSplitter);
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oldBlock);
 
             // 既設は直線、手持ちは分岐器（改造クライアント想定）。ロールが揃わないセルは触らない
             // Existing is a straight, held is a splitter (modded client); a cell whose roles differ is left alone
             packet.GetPacketResponse(CreateReplacePayload(ForUnitTestModBlockId.SmallGearBeltConveyorSplitter, pos, BlockDirection.North), new PacketResponseContext(null));
 
-            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, ServerContext.WorldBlockDatastore.GetBlock(pos).BlockId);
+            // 既設が同じインスタンスのまま残り、素材も消費も返却もされていない
+            // The existing block survives as the very same instance and the materials are neither consumed nor refunded
+            var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, block.BlockId);
+            Assert.AreEqual(oldBlock.BlockInstanceId, block.BlockInstanceId);
+            AssertRequiredItemsCount(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
         }
 
         [Test]
@@ -69,11 +79,17 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, serviceProvider) = CreateServer();
             var pos = new Vector3Int(64, 0, 64);
             LockBlock(serviceProvider, ForUnitTestModBlockId.SmallGearBeltConveyor);
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oldBlock);
 
             packet.GetPacketResponse(CreateReplacePayload(ForUnitTestModBlockId.SmallGearBeltConveyor, pos, BlockDirection.North), new PacketResponseContext(null));
 
-            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, ServerContext.WorldBlockDatastore.GetBlock(pos).BlockId);
+            // 既設が同じインスタンスのまま残り、素材も消費も返却もされていない
+            // The existing block survives as the very same instance and the materials are neither consumed nor refunded
+            var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, block.BlockId);
+            Assert.AreEqual(oldBlock.BlockInstanceId, block.BlockInstanceId);
+            AssertRequiredItemsCount(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
         }
 
         [Test]
@@ -121,7 +137,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var pos = new Vector3Int(70, 0, 70);
             UnlockBlock(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor);
             GrantRequiredItems(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oldBlock);
 
             var normalPlace = new List<PlaceInfo>
             {
@@ -136,7 +152,11 @@ namespace Tests.CombinedTest.Server.PacketTest
             };
             packet.GetPacketResponse(CreatePlacePayload(normalPlace), new PacketResponseContext(null));
 
-            Assert.AreEqual(ForUnitTestModBlockId.BeltConveyorId, ServerContext.WorldBlockDatastore.GetBlock(pos).BlockId);
+            // 既設セルは通常設置では素通りするので、同じインスタンスのまま残る
+            // A normal placement skips an occupied cell, so the existing block survives as the very same instance
+            var block = ServerContext.WorldBlockDatastore.GetBlock(pos);
+            Assert.AreEqual(ForUnitTestModBlockId.BeltConveyorId, block.BlockId);
+            Assert.AreEqual(oldBlock.BlockInstanceId, block.BlockInstanceId);
             AssertRequiredItemsCount(serviceProvider, ForUnitTestModBlockId.GearBeltConveyor, 1);
         }
     }
