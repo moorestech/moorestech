@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -65,7 +66,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // ② 最新キャッシュでは取得しない
                 // (2) Fetch nothing for a fresh cache
-                var terrainDataFetcher = new TerrainDataFetcher(ClientContext.VanillaApi.Response);
+                var terrainDataFetcher = new TerrainDataFetcher(ClientContext.VanillaApi.Response, CancellationToken.None);
                 var reuseFetchedCount = await terrainDataFetcher.RunAsync(mapLayout);
                 Assert.AreEqual(0, reuseFetchedCount, "キャッシュヒットなのにチャンクを取得した");
 

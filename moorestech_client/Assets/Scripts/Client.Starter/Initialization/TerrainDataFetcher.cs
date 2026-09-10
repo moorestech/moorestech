@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Threading;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Transfer;
@@ -18,10 +19,12 @@ namespace Client.Starter.Initialization
     public class TerrainDataFetcher
     {
         private readonly VanillaApiWithResponse _vanillaApiWithResponse;
+        private readonly CancellationToken _exitToken;
 
-        public TerrainDataFetcher(VanillaApiWithResponse vanillaApiWithResponse)
+        public TerrainDataFetcher(VanillaApiWithResponse vanillaApiWithResponse, CancellationToken exitToken)
         {
             _vanillaApiWithResponse = vanillaApiWithResponse;
+            _exitToken = exitToken;
         }
 
         // 戻り値は実際に取得したチャンク数。0はキャッシュヒットまたは地形なしワールドを意味する
@@ -87,7 +90,7 @@ namespace Client.Starter.Initialization
 
             async UniTask<byte[]> FetchChunk(int chunkIndex)
             {
-                var response = await _vanillaApiWithResponse.GetTerrainChunk(chunkIndex, default);
+                var response = await _vanillaApiWithResponse.GetTerrainChunk(chunkIndex, _exitToken);
 
                 // サーバーが例外を投げた場合は応答が届かず、PacketExchangeManagerのタイムアウトでnullが返る
                 // When the server throws, no response arrives and PacketExchangeManager's timeout surfaces it as null
