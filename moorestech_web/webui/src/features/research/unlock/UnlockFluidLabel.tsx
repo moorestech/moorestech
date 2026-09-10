@@ -1,5 +1,5 @@
 import { fluidNameKey, L, useI18n } from "@/shared/i18n";
-import { formatAmount } from "@/shared/ui/FluidSlot/fluidLogic";
+import { formatSlotAmount } from "@/shared/ui/slotAmountFormat";
 import styles from "../style.module.css";
 
 type Props = { fluidGuid: string; amount: number };
@@ -10,7 +10,7 @@ export default function UnlockFluidLabel({ fluidGuid, amount }: Props) {
   const { t } = useI18n();
   return (
     <span className={styles.unlockFluidAmount} data-testid="research-unlock-fluid">
-      {t(L.ui.research.unlockFluidSummary, { fluidName: t(fluidNameKey(fluidGuid)), amount: formatAmount(amount) })}
+      {t(L.ui.research.unlockFluidSummary, { fluidName: t(fluidNameKey(fluidGuid)), amount: formatSlotAmount(amount) })}
     </span>
   );
 }

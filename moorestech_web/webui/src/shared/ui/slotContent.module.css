@@ -14,10 +14,15 @@
 /* var()の既定値は用途側未注入のホットバーが依存する検出互換の旧値、変更削除禁止 */
 /* The badge black lives in --count-text as the single source (user ruling 2026-08-17); the outline comes from the shared iconTextOutlineLight */
 /* the var() fallbacks are legacy values the un-injecting hotbar relies on, do not change */
+/* 桁数が伸びても枠幅の右寄せ帯に収める（4桁の千区切りはアイテム側にも出る） */
+/* Keep long numbers inside a right-aligned band the width of the frame; four-digit groups reach items too */
 .count {
   position: absolute;
   bottom: var(--count-bottom, -3px);
+  left: 0;
   right: 2px;
+  text-align: right;
+  white-space: nowrap;
   font-size: var(--count-font-size, 19px);
   font-weight: 500;
   line-height: 1;

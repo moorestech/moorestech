@@ -173,6 +173,13 @@ test("レシピ選択行の液体はアイテムスロットと同寸の枠に�
   await expect(wideBadge).toHaveText("1,000");
   const badgeOverflow = await wideBadge.evaluate((element) => element.scrollWidth - element.clientWidth);
   expect(badgeOverflow).toBeLessThanOrEqual(0.5);
+
+  // 帯の左端は枠の左端。D2で選んだleft/text-alignが戻ると帯が縮み、この比較で落ちる
+  // The band starts at the frame's left edge; reverting D2's left/text-align shrinks it and fails here
+  const wideFluidBox = (await page.getByTestId(`${fluidRecipeTestId}-output-fluid-0`).boundingBox())!;
+  const wideBadgeBox = (await wideBadge.boundingBox())!;
+  expect(wideBadgeBox.x).toBeGreaterThanOrEqual(wideFluidBox.x - 0.5);
+  expect(wideBadgeBox.x).toBeLessThanOrEqual(wideFluidBox.x + 0.5);
 });
 
 test("液体アイコンが404なら辞書の液体名を枠内に収めて出す", async ({ page }) => {
