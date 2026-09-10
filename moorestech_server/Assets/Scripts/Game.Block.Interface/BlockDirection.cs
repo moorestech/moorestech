@@ -66,19 +66,21 @@ namespace Game.Block.Interface
             }
         }
         
+        /// <summary>
+        ///     ブロックローカルのセルを向きに応じて回転させる。原点の加算はしないので設置位置は呼び出し側で足す
+        ///     Rotates a block-local cell by the direction; the origin is not added, so callers add the placement position
+        /// </summary>
+        public static Vector3Int ConvertLocalCell(this BlockDirection blockDirection, Vector3Int localCell)
+        {
+            // 行列は float4 × float4 の形なので拡張して計算し、結果を Vector3Int に丸める
+            // The matrix works on float4 x float4, so transform then round the result back to Vector3Int
+            var rotationMatrix = Matrix4x4.Rotate(blockDirection.GetRotation());
+            return Vector3Int.RoundToInt(rotationMatrix.MultiplyPoint3x4(localCell));
+        }
+
         public static BlockPosConvertAction GetCoordinateConvertAction(this BlockDirection blockDirection)
         {
-            var rotation = blockDirection.GetRotation();
-            var rotationMatrix = Matrix4x4.Rotate(rotation);
-            
-            // 変換処理を返す
-            return pos =>
-            {
-                // 行列は float4 × float4 の形なので pos を拡張して計算
-                var transformed = rotationMatrix.MultiplyPoint3x4(pos);
-                // 戻り値は Vector3Int に丸め
-                return Vector3Int.RoundToInt(transformed);
-            };
+            return pos => blockDirection.ConvertLocalCell(pos);
         }
         
         /// <summary>

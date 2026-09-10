@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Core.Master.Validator;
 using Game.MapGeneration.Pipeline.Config;
 using Game.MapGeneration.Pipeline.Generators.Util;
 using UnityEngine;
@@ -17,7 +18,6 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
         // ノイズオフセットの本数。移植元と同じ8本で、同じrngから同じ順に引くことで分布を一致させる
         // Eight noise offsets as in the source; drawing them from the same rng in the same order keeps distributions aligned
         private const int NoiseOffsetCount = 8;
-        private const int DetailResolutionPerPatch = 16;
 
         // 距離場・splatmapは呼び出し側が供給する。まだ無い段階ではnullを渡すとそのフィルタだけが休む
         // The caller supplies the distance fields and splatmap; passing null idles only the filters that need them
@@ -32,11 +32,9 @@ namespace Game.MapGeneration.Pipeline.Visual.Detail
 
             // detail刻みと高さ境界を再検証
             // Revalidates detail steps and height bounds.
-            if (detailResolution < DetailResolutionPerPatch || detailResolution % DetailResolutionPerPatch != 0 ||
-                heightmapResolution - 1 < detailResolution)
+            if (!GenerationMasterUtil.IsValidDetailResolution(detailResolution, heightmapResolution))
                 throw new System.InvalidOperationException(
-                    $"[DetailRuntimeGenerator] Detail resolution {detailResolution} must be at least {DetailResolutionPerPatch}, " +
-                    $"a multiple of {DetailResolutionPerPatch}, and no greater than {heightmapResolution - 1}.");
+                    $"[DetailRuntimeGenerator] Detail resolution {detailResolution} {GenerationMasterUtil.DescribeDetailResolutionRule(heightmapResolution)}.");
             var maps = new List<int[,]>();
 
             // 曲率・方位角は使うフィルタが1つでもある時だけ計算する

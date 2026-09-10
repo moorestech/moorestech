@@ -1,7 +1,10 @@
+using System;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse.Util.GearChain;
+using UnityEngine;
 
 namespace Client.Tests.PlaceSystem.GearChainPoleConnect
 {
@@ -73,9 +76,18 @@ namespace Client.Tests.PlaceSystem.GearChainPoleConnect
         // A material shortage produces no line here and is only flagged as belonging to the shortage channel
         public void MaterialShortageIsRoutedToTheGateInsteadOfLinesTest()
         {
-            Assert.IsTrue(GearChainPlacementFailureTooltipKey.IsMaterialShortage(GearChainPlacementEvaluator.NoItemError));
-            Assert.IsFalse(GearChainPlacementFailureTooltipKey.IsMaterialShortage(GearChainPlacementEvaluator.TooFarError));
+            Assert.IsTrue(GearChainPlacementFailureTooltipKey.IsChainMaterialShortage(CreateJudgedPreview(GearChainPlacementEvaluator.NoItemError)));
+            Assert.IsFalse(GearChainPlacementFailureTooltipKey.IsChainMaterialShortage(CreateJudgedPreview(GearChainPlacementEvaluator.TooFarError)));
+
+            // 判定が無いフレーム（起点未解決など）は不足枠を開けない
+            // A frame without any judgement (e.g. an unresolved source) never opens the shortage slot
+            Assert.IsFalse(GearChainPlacementFailureTooltipKey.IsChainMaterialShortage(GearChainPoleExtendPreviewData.Invalid));
             Assert.IsEmpty(GearChainPlacementFailureTooltipKey.BuildFailureLines(false, GearChainPlacementEvaluator.NoItemError));
+        }
+
+        private static GearChainPoleExtendPreviewData CreateJudgedPreview(string failureReason)
+        {
+            return new GearChainPoleExtendPreviewData(Vector3.zero, Vector3.one, GearChainPlacementJudgement.Failure(failureReason), Array.Empty<ConstructionMaterialShortage>());
         }
     }
 }

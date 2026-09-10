@@ -15,6 +15,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     {
         public int HeightOffset { get; private set; }
 
+        // 左ドラッグ設置は押下から解放までが目に見える進行中操作になる
+        // A left-drag placement is a visible in-progress operation from press to release
+        public bool IsDragging => _session != null;
+
         private PlacementDragSession _session;
         private BlockId? _previousSelectedBlockId;
 
@@ -54,6 +58,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public void BeginDrag(Vector3Int startCell, PlacementHitSurfaceKind surfaceKind)
         {
             _session = new PlacementDragSession(startCell, surfaceKind, HeightOffset);
+        }
+
+        // 起点復帰で軸未決化、離脱初回で長軸を先行に。軸未決のうちはZ先行を既定にする
+        // Returning to start clears the axis; the first departure leads with the longer axis, defaulting to Z while undecided
+        public bool ResolveDragAxisIsZ(Vector3Int dragStartCell, Vector3Int cursorCell)
+        {
+            // ドラッグ外は軸を持ち越さない。起点＝カーソルなので既定のZ先行と一致する
+            // Outside a drag there is no axis to carry, and start equals cursor, so the Z-leading default applies
+            if (_session == null) return true;
+
+            if (dragStartCell == cursorCell) _session.SetDragAxisIsZ(null);
+            else if (!_session.DragAxisIsZ.HasValue) _session.SetDragAxisIsZ(Mathf.Abs(cursorCell.x - dragStartCell.x) < Mathf.Abs(cursorCell.z - dragStartCell.z));
+
+            return _session.DragAxisIsZ ?? true;
         }
 
         // ドラッグ中は押下時の面種別を使う。毎フレーム判定だと面と地面をまたいだ瞬間に列全体の挙動が往復する

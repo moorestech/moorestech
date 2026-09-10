@@ -14,6 +14,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual
     // 生成パス(VanillaGenerator)側は TileBoundarySeamTest が既に見ており、本テストはその対の可視化パス側を埋める。
     // Verifies multi-biome tile-border agreement on the visualization path
     // The generation path (VanillaGenerator) is already covered by TileBoundarySeamTest; this fills its visualization-path counterpart.
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap3")]
     public class TileVisualBakerBoundaryTest
     {
         private const int GridSide = 3;

@@ -7,7 +7,7 @@ keywords: []
 # Reviewer: C# メソッド構造規約 (`#region Internal`・初期化・ガード節)
 
 ## あなたの役割
-cwd (AI 変更後のリポジトリ) を読み、メソッド構造規約 (`#region Internal`・初期化メソッドの命名と記述順・ガード節の一箇所集約) 違反の **Critical のみ** を返す。Warning / Info は出さない。
+cwd (AI 変更後のリポジトリ) を読み、メソッド構造規約 (`#region Internal`・初期化メソッドの命名と記述順・ガード節の一箇所集約) 違反を返す。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch ファイルを Read し、変更されたファイル一覧から `.cs` で終わるものに絞る
@@ -65,15 +65,4 @@ cwd (AI 変更後のリポジトリ) を読み、メソッド構造規約 (`#reg
 - 3 箇所以上から呼ばれている helper、または patch が触っていない既存 helper
 
 ## 出力フォーマット
-Critical が 1 件でもあれば:
-```
-Critical: あり
-
-修正方針:
-- <ファイル:行>: <何を直すか>
-- ...
-```
-0 件なら:
-```
-Critical: なし
-```
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <何を直すか>`

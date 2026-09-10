@@ -53,7 +53,9 @@ function machineBlock(): BlockInventoryWireData {
       currentState: "idle",
       currentPower: 0,
       requestPower: 0,
-      slotLayout: { input: 0, output: 0, module: 0 },
+      slotLayout: { input: 0, output: 0, module: 0, inputTank: 0 },
+      slotBindings: [],
+      tankBindings: [],
     },
   };
 }

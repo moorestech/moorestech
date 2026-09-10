@@ -63,6 +63,9 @@ describe("ItemSlot", () => {
   it("item master のGuidから辞書名をtooltipと代替テキストへ使う", () => {
     const markup = renderItemSlot(undefined);
     expect(markup).toContain("辞書アイテム");
+    // altが未解決フォールバックへ落ちると本文と呼び名が食い違う
+    // A fallback alt would make the icon and the text name the same item differently
+    expect(markup).toContain('alt="辞書アイテム"');
     expect(markup).not.toContain("Source item");
   });
 
@@ -86,7 +89,7 @@ describe("ItemSlot", () => {
   it("countがundefinedの時はバッジを表示しない", () => {
     const markup = renderItemSlot(undefined, undefined);
 
-    expect(markup).not.toMatch(new RegExp(`<span class="[^"]*\\b${styles.count}\\b`));
+    expect(markup).not.toMatch(new RegExp(`class="[^"]*\\b${styles.count}\\b`));
   });
 
   // アイコンを描くcatalogでも0はバッジ非表示
@@ -95,7 +98,7 @@ describe("ItemSlot", () => {
     const markup = renderItemSlot(undefined, 0, true);
 
     expect(markup).toContain("<img");
-    expect(markup).not.toMatch(new RegExp(`<span class="[^"]*\\b${styles.count}\\b`));
+    expect(markup).not.toMatch(new RegExp(`class="[^"]*\\b${styles.count}\\b`));
   });
 
   it("countが正の数の時はバッジを表示する", () => {

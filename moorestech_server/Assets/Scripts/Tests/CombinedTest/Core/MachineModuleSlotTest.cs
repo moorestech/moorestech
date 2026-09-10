@@ -67,19 +67,30 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(lastModuleItem, inventory.GetItem(lastModuleSlot));
             Assert.AreEqual(lastModuleItem, inventory.InventoryItems[lastModuleSlot]);
 
-            // 最終アウトプットスロットへのセットがモジュールレンジへ流れないことを確認
-            // Verify a set to the last output slot does not route into the module range
-            var lastOutputSlot = InputSlotCount + OutputSlotCount - 1;
-            var outputItem = ServerContext.ItemStackFactory.Create(new ItemId(3), 7);
-            inventory.SetItem(lastOutputSlot, outputItem);
-            Assert.AreEqual(outputItem, inventory.GetItem(lastOutputSlot));
+            // 出力スロットは生産物数(1)だけが束縛され、束縛先スロットへのセットがモジュールレンジへ流れないことを確認する(ADR 0042)
+            // Only as many output slots as recipe outputs (1) are bound; a set into the bound slot must not route into the module range (ADR 0042)
+            var recipe = GetMachineRecipe();
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
+            var boundOutputSlot = InputSlotCount;
+            var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
+            var outputItem = ServerContext.ItemStackFactory.Create(outputItemId, 7);
+            inventory.SetItem(boundOutputSlot, outputItem);
+            Assert.AreEqual(outputItem, inventory.GetItem(boundOutputSlot));
 
             // リフレクションでアウトプットサブインベントリの実体に入っていることを確認
             // Verify via reflection that the item landed in the actual output sub-inventory
             var outputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
                 .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(inventory);
-            Assert.AreEqual(outputItem, outputInventory.OutputSlot[OutputSlotCount - 1]);
+            Assert.AreEqual(outputItem, outputInventory.OutputSlot[0]);
+
+            // 束縛外の出力スロット（生産物数を超える枠）はIsAllowedToPlaceがfalseを返す（2026-08-30裁定D1: 拒否可否は
+            // 書き込み前に能力インターフェースへ問い合わせる形へ変わり、SetItem自体は言われたとおり書き込む契約になった）
+            // An unbound output slot (beyond the recipe's output count) makes IsAllowedToPlace return false (2026-08-30
+            // ruling D1: rejection now happens via a pre-write capability-interface query; SetItem itself always writes as instructed)
+            var unboundOutputSlot = InputSlotCount + OutputSlotCount - 1;
+            var unboundItem = ServerContext.ItemStackFactory.Create(outputItemId, 7);
+            Assert.IsFalse(inventory.IsAllowedToPlace(unboundOutputSlot, unboundItem));
 
             // 設定した2つのモジュールスロット以外のモジュールレンジは空のまま
             // The module range except the two configured slots stays empty
@@ -95,25 +106,28 @@ namespace Tests.CombinedTest.Core
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemStackFactory = ServerContext.ItemStackFactory;
 
+            var recipe = GetMachineRecipe();
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            // 束縛はレシピ選択前提のため、まず選択する(ADR 0042)。以降の搬送挿入は素材0だけが対象
+            // Binding requires a selected recipe (ADR 0042); the transport inserts below target only input 0
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
+            var input0Id = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[0].ItemGuid);
 
-            // モジュールアイテムを搬送経由で挿入してもインプットスロットに入ることを確認
-            // Inserting a module item via transport lands in an input slot
-            var moduleItem = CreateModuleItem(1);
-            var remainder = inventory.InsertItem(moduleItem);
+            // 束縛済み素材を搬送経由で挿入してもインプットスロットに入ることを確認
+            // A bound material inserted via transport lands in an input slot
+            var inputStack = itemStackFactory.Create(input0Id, 1);
+            var remainder = inventory.InsertItem(inputStack);
             Assert.AreEqual(0, remainder.Count);
-            Assert.AreEqual(moduleItem, inventory.GetItem(0));
+            Assert.AreEqual(inputStack, inventory.GetItem(0));
             AssertModuleRangeIsEmpty(inventory);
 
-            // インプットを満杯にしてさらに挿入しても、モジュールスロットへ溢れないことを確認
-            // Fill the input range completely; further inserts must not overflow into module slots
-            var item1MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(1));
-            var item2MaxStack = ItemStackLevelDataStore.Instance.GetMaxStack(new ItemId(2));
-            inventory.SetItem(0, itemStackFactory.Create(new ItemId(1), item1MaxStack));
-            inventory.SetItem(1, itemStackFactory.Create(new ItemId(2), item2MaxStack));
+            // 束縛先スロットを満杯にしてさらに挿入しても、モジュールスロットへ溢れないことを確認
+            // Fill the bound slot completely; further inserts must not overflow into module slots
+            var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(input0Id);
+            inventory.SetItem(0, itemStackFactory.Create(input0Id, maxStack));
 
-            var overflowRemainder = inventory.InsertItem(itemStackFactory.Create(new ItemId(3), 5));
+            var overflowRemainder = inventory.InsertItem(itemStackFactory.Create(input0Id, 5));
             Assert.AreEqual(5, overflowRemainder.Count);
             AssertModuleRangeIsEmpty(inventory);
         }
@@ -154,29 +168,36 @@ namespace Tests.CombinedTest.Core
         }
 
         [Test]
-        // インベントリ整理でモジュールスロットが除外されることと、ギア機械にもモジュールスロットがあることを確認する
-        // Verify inventory sorting excludes module slots and that gear machines also have module slots
-        public void SortExcludesModuleSlotsTest()
+        // 旧仕様は入出力レンジをソートしモジュールだけ除外したが、ADR 0042で全スロットがレシピ束縛されソート自体が完全なno-opになった
+        // The old spec sorted the input/output range and excluded only modules; ADR 0042 binds every slot to the recipe, making sorting a full no-op
+        // インベントリ整理が機械スロットを一切動かさないことと、ギア機械にもモジュールスロットがあることを確認する
+        // Verify inventory sorting never moves a machine slot and that gear machines also have module slots
+        public void SortIsNoOpForBoundMachineSlotsTest()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var itemStackFactory = ServerContext.ItemStackFactory;
+            var recipe = GetMachineRecipe();
 
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
             var inventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
 
-            // インプットをItemId降順で配置し、モジュールスロットにモジュールアイテムを装着する
-            // Place input items in descending ItemId order and equip a module item into a module slot
-            inventory.SetItem(0, itemStackFactory.Create(new ItemId(5), 3));
-            inventory.SetItem(1, itemStackFactory.Create(new ItemId(2), 4));
+            // 素材はスロット1にだけ置きスロット0は空のままにする。両方埋めると「ソートで空きへ寄せる」
+            // 旧挙動と「全スロット束縛でno-op」の新挙動が同じ結果になり回帰を検知できない(C12・mutation testing実測)
+            // Materials are placed only in slot 1, leaving slot 0 empty. Filling both would make the old
+            // "sort compacts into the gap" behavior and the new "every slot is bound, no-op" behavior
+            // indistinguishable, hiding the regression (C12, per mutation testing)
+            var input1 = itemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(recipe.InputItems[1].ItemGuid), 1);
+            inventory.SetItem(1, input1);
             var moduleItem = CreateModuleItem(1);
             inventory.SetItem(ModuleRangeStart, moduleItem);
 
             InventorySortService.Sort(inventory, inventory.SortExcludedSlots);
 
-            // インプット・アウトプットレンジはソートされ、モジュールスロットはそのまま残ることを確認
-            // Input/output ranges are sorted while module slots stay untouched
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(2), 4), inventory.GetItem(0));
-            Assert.AreEqual(itemStackFactory.Create(new ItemId(5), 3), inventory.GetItem(1));
+            // 全スロットが束縛済みのため、ソートしてもスロット1の素材はスロット0へ寄らず、スロット0は空のまま
+            // Every slot is bound, so sorting never pulls slot 1's material into slot 0, which stays empty
+            Assert.AreEqual(ItemMaster.EmptyItemId, inventory.GetItem(0).Id);
+            Assert.AreEqual(input1, inventory.GetItem(1));
             Assert.AreEqual(moduleItem, inventory.GetItem(ModuleRangeStart));
             for (var i = ModuleRangeStart + 1; i < ModuleRangeStart + ModuleSlotCount; i++)
             {
@@ -301,17 +322,20 @@ namespace Tests.CombinedTest.Core
             var recipe = GetMachineRecipe();
             var (modBlock, modInventory, modProcessor) = PlaceMachine(new Vector3Int(1, 1, 1));
             var (ctrlBlock, ctrlInventory, ctrlProcessor) = PlaceMachine(new Vector3Int(5, 1, 1));
+            // 束縛(ADR 0042)は出力スロットを生産物数(1)に絞るため、先に選択してから配置する
+            // Binding (ADR 0042) limits output slots to the recipe's output count (1), so select the recipe before placing anything
+            MachineRecipeSelectTestUtil.SelectRecipe(modBlock, recipe);
+            MachineRecipeSelectTestUtil.SelectRecipe(ctrlBlock, recipe);
             modInventory.SetItem(ModuleRangeStart, CreateModuleItemOfAxis(ModuleMasterElement.EffectAxisConst.Productivity, 1));
 
-            // アウトプットを「ベース1セットは入るが追加セットは入らない」量まで埋める
-            // Fill outputs so one base set fits but the extra set does not
+            // 唯一の出力スロットに「ベース1セット分は入るが2セット分(追加込み)は入らない」量まで埋める
+            // Fill the sole output slot so one base set fits but two sets (base + extra) do not
             var outputItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
             var maxStack = ItemStackLevelDataStore.Instance.GetMaxStack(outputItemId);
+            var prefillCount = maxStack - recipe.OutputItems[0].Count;
             foreach (var inventory in new[] { modInventory, ctrlInventory })
             {
-                inventory.SetItem(InputSlotCount, itemStackFactory.Create(outputItemId, maxStack));
-                inventory.SetItem(InputSlotCount + 1, itemStackFactory.Create(outputItemId, maxStack));
-                inventory.SetItem(InputSlotCount + 2, itemStackFactory.Create(outputItemId, maxStack - recipe.OutputItems[0].Count));
+                inventory.SetItem(InputSlotCount, itemStackFactory.Create(outputItemId, prefillCount));
             }
             InsertRecipeInputs(modBlock, modInventory, recipe);
             InsertRecipeInputs(ctrlBlock, ctrlInventory, recipe);

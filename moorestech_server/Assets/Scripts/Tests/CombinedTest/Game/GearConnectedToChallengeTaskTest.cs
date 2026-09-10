@@ -2,8 +2,10 @@ using System;
 using System.Linq;
 using Core.Update;
 using Game.Block.Interface;
+using Game.Block.Interface.Extension;
 using Game.Challenge;
 using Game.Context;
+using Game.Gear.Common;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
@@ -43,6 +45,27 @@ namespace Tests.CombinedTest.Game
             GameUpdater.UpdateOneTick();
             GameUpdater.UpdateOneTick();
 
+            Assert.IsFalse(IsCompleted(challengeDatastore));
+        }
+
+        [Test]
+        public void 接続先種別が違う歯車ブロックの横に置いても完了しない()
+        {
+            var challengeDatastore = CreateAndStart();
+            var world = ServerContext.WorldBlockDatastore;
+
+            // ベルト以外へ歯車接続しても完了しない。接続先GUID照合を常時trueへ変異させるとここが落ちる
+            // Connecting to a non-belt gear block must not complete; mutating the connected-guid match to always-true fails here
+            world.TryAddBlock(ForUnitTestModBlockId.InfinityTorqueSimpleGearGenerator, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            world.TryAddBlock(ForUnitTestModBlockId.Shaft, new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var shaft);
+
+            GameUpdater.UpdateOneTick();
+            GameUpdater.UpdateOneTick();
+
+            // 接続が成立していなければ種別違いを見ていないので、前提を明示的に確かめる
+            // Without an actual connection the kind mismatch is never exercised, so the premise is asserted
+            Assert.IsTrue(shaft.TryGetComponent<IGearEnergyTransformer>(out var transformer));
+            Assert.IsNotEmpty(transformer.GetGearConnects().ToList(), "the shaft never gear-connected to the generator");
             Assert.IsFalse(IsCompleted(challengeDatastore));
         }
 

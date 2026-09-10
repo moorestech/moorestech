@@ -10,10 +10,12 @@ namespace Client.Game.InGame.Control.ViewMode
     public class PlayerViewApplier : IPlayerViewApplier
     {
         private readonly InGameCameraController _inGameCameraController;
+        private readonly CrosshairVisibility _crosshairVisibility;
 
-        public PlayerViewApplier(InGameCameraController inGameCameraController)
+        public PlayerViewApplier(InGameCameraController inGameCameraController, CrosshairVisibility crosshairVisibility)
         {
             _inGameCameraController = inGameCameraController;
+            _crosshairVisibility = crosshairVisibility;
         }
 
         public void SetViewMode(PlayerViewMode mode)
@@ -24,7 +26,7 @@ namespace Client.Game.InGame.Control.ViewMode
             // Synchronize only presentation that belongs to the selected view mode
             _inGameCameraController.SetFirstPersonMode(isFirstPerson);
             PlayerSystemContainer.Instance.PlayerObjectController.SetModelVisible(!isFirstPerson);
-            CrosshairView.Instance.SetVisible(isFirstPerson);
+            _crosshairVisibility.SetVisible(isFirstPerson);
             AimPointProvider.SetViewMode(mode);
         }
     }

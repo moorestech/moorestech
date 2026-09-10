@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Construction;
 using Game.EnergySystem;
 using Server.Protocol.PacketResponse.Util.ConnectTool;
 
@@ -40,7 +41,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.Placement
 
             // 予約分を上乗せした必要数を所持が満たすかは共有の正本へ委ねる
             // Whether the held count covers the requirement plus the reservation is delegated to the shared definition
-            if (!ConnectToolMaterialConsumer.HasEnough(materials, items, reservedMaterials))
+            if (!ConstructionMaterialAccounting.HasEnough(materials, items, reservedMaterials))
                 return ElectricWirePlacementJudgement.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             return ElectricWirePlacementJudgement.Success(new ElectricWireConnectionCost(materials));

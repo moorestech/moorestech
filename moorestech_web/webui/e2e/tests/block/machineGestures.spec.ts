@@ -14,8 +14,8 @@ test.afterEach(async ({ page }) => {
 });
 
 test("機械入力スロットの空手右クリックで block_inventory.split を送る", async ({ page }) => {
-  // input slot0 = itemId3×5。半分計算はホスト側（count はもう送らない）
-  // input slot0 = itemId3 x5; the host computes the half (no count is sent anymore)
+  // input slot0 = itemId2×5。半分計算はホスト側（count はもう送らない）
+  // input slot0 = itemId2 x5; the host computes the half (no count is sent anymore)
   await page.getByTestId("machine-input-slots").locator("> div").first().click({ button: "right" });
   await expect
     .poll(() => payloadsOf(page, "block_inventory.split"))
@@ -32,10 +32,10 @@ test("機械出力スロットのダブルクリックで collect を送る", as
 });
 
 test("機械入力スロットの Shift+クリックで main へ配分移動する", async ({ page }) => {
-  // main に itemId3 のスタックが無いため最初の空きスロット(index3)へ全量5
-  // main holds no itemId3 stack, so all 5 go to the first empty slot (index 3)
+  // main は index1 に itemId2 のスタック(10個・maxStack100)を持つため、全量5はそこへ積み増される
+  // main already holds an itemId2 stack at index1 (10, maxStack 100), so all 5 stack onto it
   await page.getByTestId("machine-input-slots").locator("> div").first().click({ modifiers: ["Shift"] });
   await expect
     .poll(() => payloadsOf(page, "block_inventory.move_item"))
-    .toContainEqual({ from: { area: "block", slot: 0 }, to: { area: "main", slot: 3 }, count: 5 });
+    .toContainEqual({ from: { area: "block", slot: 0 }, to: { area: "main", slot: 1 }, count: 5 });
 });

@@ -1,3 +1,4 @@
+using Client.Common;
 using Client.Game.InGame.BlockSystem;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Player;
@@ -66,6 +67,10 @@ namespace Client.Playtest.Operations
             // 設置プレビューのレイキャストが地面として認識できるようにマーカーを付与する
             // Attach the marker so the placement-preview raycast recognizes this as ground
             ground.AddComponent<GroundGameObject>();
+
+            // 設置YはGroundレイヤーへの地表探査で決まる（ADR 0047）ため、足場もそのレイヤーへ載せる
+            // Placement Y is decided by ground probing against the Ground layer (ADR 0047), so the scaffold must sit on that layer
+            ground.layer = LayerConst.GroundLayer;
             return ground;
         }
 

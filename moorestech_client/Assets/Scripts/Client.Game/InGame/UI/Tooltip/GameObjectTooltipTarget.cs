@@ -1,5 +1,5 @@
-// [uGUI廃止Phase1] Web UI移行済みのため未メンテ・描画恒久停止。Phase2で削除予定（docs/webui/ugui-retirement-plan.md）
-// [uGUI retirement Phase1] Unmaintained; rendering permanently disabled after the Web UI migration. Slated for deletion in Phase2 (docs/webui/ugui-retirement-plan.md)
+// ワールドオブジェクト側のツールチップ入力アダプタ。表示はWeb UIが担う
+// World-object-side tooltip input adapter; the Web UI owns the actual rendering
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
 
@@ -19,14 +19,14 @@ namespace Client.Game.InGame.UI.Tooltip
 
         private readonly TooltipOwner _tooltipOwner = new();
 
-        public void OnCursorEnter()
+        public void OnCursorEnter(IMouseCursorTooltip tooltip)
         {
-            if (displayEnable) MouseCursorTooltip.Instance.Show(_tooltipOwner, new LocalizationKey(textKey));
+            if (displayEnable) tooltip.Show(_tooltipOwner, new LocalizationKey(textKey));
         }
-        
-        public void OnCursorExit()
+
+        public void OnCursorExit(IMouseCursorTooltip tooltip)
         {
-            MouseCursorTooltip.Instance.Hide(_tooltipOwner);
+            tooltip.Hide(_tooltipOwner);
         }
     }
 }

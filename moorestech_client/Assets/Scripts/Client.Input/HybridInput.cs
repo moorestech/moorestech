@@ -30,9 +30,19 @@ namespace Client.Input
         //
         // legacy軸値はピクセルでなく正規化値のためフォールバックしない。Mouse不在時は移動量そのものが未計測
         // No legacy fallback: GetAxis returns normalized values, not pixels, so without a Mouse there is simply no measurement
-        public static Vector2 GetMouseDelta()
+        //
+        // 未計測をzeroで表すと「動いていない」と同義になるため、計測できたかを戻り値で返す
+        // Reporting zero for an unmeasured frame would mean "did not move", so measurement success is returned separately
+        public static bool TryGetMouseDelta(out Vector2 deltaPixels)
         {
-            return Mouse.current != null ? Mouse.current.delta.ReadValue() : Vector2.zero;
+            if (Mouse.current == null)
+            {
+                deltaPixels = Vector2.zero;
+                return false;
+            }
+
+            deltaPixels = Mouse.current.delta.ReadValue();
+            return true;
         }
 
         public static bool GetKeyDown(KeyCode keyCode)

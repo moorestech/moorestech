@@ -40,7 +40,7 @@ namespace Client.Tests.Map
 
             Assert.IsFalse(rayCollider.enabled);
             Assert.IsFalse(mapObject.IsAvailable);
-            Assert.AreEqual(MiningStartOutcome.Unavailable, mapObject.TryBeginHandMining(ItemMaster.EmptyItemId, out _, out _));
+            Assert.AreEqual(MiningStartOutcome.Unavailable, mapObject.TryBeginHandMining(ItemMaster.EmptyItemId, out _));
         }
 
         [Test]

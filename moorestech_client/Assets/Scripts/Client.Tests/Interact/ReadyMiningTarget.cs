@@ -16,10 +16,11 @@ namespace Client.Tests.Interact
         public SoundEffectType DestroySoundType => SoundEffectType.DestroyStone;
         public IReadOnlyList<Guid> EarnItemGuids => Array.Empty<Guid>();
 
-        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
+        public IReadOnlyList<ItemId> RecommendedToolItemIds => Array.Empty<ItemId>();
+
+        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool)
         {
             tool = new MiningToolCandidate(equippedItemId, 1f);
-            recommendedToolItemIds = new List<ItemId>();
             return MiningStartOutcome.Ready;
         }
 

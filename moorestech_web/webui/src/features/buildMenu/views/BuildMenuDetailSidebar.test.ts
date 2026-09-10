@@ -7,6 +7,7 @@ vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
   useI18n: () => ({ t: (key: string) => key }),
   useItemNameResolver: () => (itemId: number) => `item-${itemId}`,
+  useItemDisplayName: () => (itemId: number) => `item-${itemId}`,
 }));
 // MantineProvider依存（Tooltip等）を避けるため共有UIはスタブにする
 // Stub the shared UI to avoid MantineProvider dependencies (Tooltip, etc.)

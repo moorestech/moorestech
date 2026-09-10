@@ -8,6 +8,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Tiling
 {
     // 配置系がワールド座標基準で抽選され、タイル跨ぎの最小距離も守ることを固定する。
     // Pins that placement draws in world space and honours the minimum distance across tile seams.
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap2")]
     public class TilePlacementWorldSpaceTest
     {
         private const int GridSide = 3;

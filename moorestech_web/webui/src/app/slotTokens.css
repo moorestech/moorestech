@@ -19,4 +19,8 @@
   --bevel-c1: rgb(56 58 72);
   --bevel-c2: rgb(104 106 120);
   --bevel-c3: rgb(104 106 120);
+
+  /* ゴーストスロット（配置されるべきアイテムの半透明プレビュー）の内容不透明度。ADR 0042 */
+  /* Content opacity of a ghost slot (translucent preview of the item that belongs there). ADR 0042 */
+  --slot-ghost-opacity: 0.35;
 }

@@ -12,7 +12,7 @@ const validInventory = {
   mainSlots: [{ itemId: 1, count: 2 }],
   grab: { itemId: 0, count: 0 },
   equipment: [],
-  selectedEquipment: -1,
+  selectedEquipment: 0,
   equipmentSelectionConfirmationRevision: 0,
 };
 

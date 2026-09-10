@@ -37,9 +37,9 @@ namespace Tests.UnitTest.Game.MapGeneration
             {
                 Assert.That(vein.VeinGuid, Is.EqualTo(TestGenerationConfigFactory.TestFluidVeinGuid));
 
-                // AABBは全軸差2の点中心固定サイズ（ADR-0023）
-                // The AABB has a fixed point-centred two-unit span on every axis (ADR-0023)
-                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
+                // AABBはXZ差2・Y差0の点中心固定サイズ（ADR-0023）
+                // The AABB has a fixed point-centred span of two units on XZ and none on Y (ADR-0023)
+                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 0, 2)));
 
                 Assert.That(vein.Min.x, Is.GreaterThanOrEqualTo(minWorldX - margin));
                 Assert.That(vein.Max.x, Is.LessThanOrEqualTo(maxWorldX + margin));

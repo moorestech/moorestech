@@ -7,7 +7,7 @@ export const PlayerInventoryDataSchema = z.object({
   // 装備枠は可変長、選択は常に 0..枠数-1 の実スロット
   // Equipment is variable-length; the selection is always a real slot in 0..slotCount-1
   equipment: z.array(SlotDataSchema),
-  selectedEquipment: z.number(),
+  selectedEquipment: z.number().int().nonnegative(),
   equipmentSelectionConfirmationRevision: z.number().int().nonnegative(),
 });
 
@@ -50,7 +50,11 @@ export const MachineDetailDataSchema = z.object({
   currentState: MachineProcessStateSchema,
   currentPower: z.number(),
   requestPower: z.number(),
-  slotLayout: z.object({ input: z.number(), output: z.number(), module: z.number() }),
+  slotLayout: z.object({ input: z.number(), output: z.number(), module: z.number(), inputTank: z.number() }),
+  // 選択レシピの束縛はホストが配信する正本。Web側で束縛規則を再導出しない
+  // The selected recipe's binding is published by the host as the single source; the Web side never re-derives the rule
+  slotBindings: z.array(z.object({ slot: z.number(), itemId: z.number(), count: z.number() })),
+  tankBindings: z.array(z.object({ tank: z.number(), fluidGuid: GuidSchema, amount: z.number() })),
 });
 
 export const GeneratorDetailDataSchema = z.object({
@@ -62,6 +66,22 @@ export const MinerDetailDataSchema = z.object({
   requestPower: z.number(),
   miningItems: z.array(z.object({ itemId: z.number(), itemsPerMinute: z.number() })),
 });
+
+const PumpingFluidsSchema = z.array(z.object({ fluidGuid: GuidSchema, amountPerMinute: z.number() }));
+
+// ポンプ種別が動力行の有無を決める。油井だけがelectricを持ち、歯車ポンプの動力はGearSectionが出す
+// The pump kind decides the power row: only the electric pump carries electric, the gear pump's power belongs to GearSection
+export const PumpDetailDataSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("electric"),
+    electric: z.object({ currentState: MachineProcessStateSchema, currentPower: z.number(), requestPower: z.number() }),
+    pumpingFluids: PumpingFluidsSchema,
+  }),
+  z.object({
+    kind: z.literal("gear"),
+    pumpingFluids: PumpingFluidsSchema,
+  }),
+]);
 
 export const GearDetailDataSchema = z.object({
   isClockwise: z.boolean(), currentRpm: z.number(), currentTorque: z.number(), baseRpm: z.number(), baseTorque: z.number(),
@@ -120,6 +140,7 @@ export const BlockInventoryOpenSchema = z.object({
   machine: MachineDetailDataSchema.optional(),
   generator: GeneratorDetailDataSchema.optional(),
   miner: MinerDetailDataSchema.optional(),
+  pump: PumpDetailDataSchema.optional(),
   gear: GearDetailDataSchema.optional(),
   electricNetwork: ElectricNetworkDataSchema.optional(),
   gearNetwork: GearNetworkDataSchema.optional(),

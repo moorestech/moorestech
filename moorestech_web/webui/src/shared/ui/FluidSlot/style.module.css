@@ -34,3 +34,9 @@
   font-weight: 700;
   color: var(--mantine-color-white);
 }
+
+/* ゴーストはアイコン・量バッジだけを共通トークンで透かす（枠・フィルは無し） */
+/* A ghost fades only the icon and amount badge via the shared token (no frame or fill) */
+.slot[data-ghost="true"] > * {
+  opacity: var(--slot-ghost-opacity);
+}

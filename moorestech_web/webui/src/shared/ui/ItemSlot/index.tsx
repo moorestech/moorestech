@@ -31,6 +31,9 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "
   // 赤字にするかは insufficient が決める。数値と文言だけをここが持つ
   // insufficient decides the red text; this only carries the numbers and the wording
   shortage?: Shortage;
+  // 空スロットに置く「入るべきアイテム」の半透明プレビュー。実物（itemId>0）があれば無視する
+  // Translucent preview of the item that belongs in an empty slot; ignored when a real item (itemId>0) is present
+  ghost?: { itemId: number; count: number };
   onLeftDown?: (shiftKey: boolean) => void;
   onRightDown?: () => void;
   onRightEnter?: () => void;
@@ -42,10 +45,9 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "
 
 // アイコン・個数・ホバーツールチップ付きの汎用アイテムスロット
 // Generic item slot with icon, count, and a hover tooltip
-export default function ItemSlot({ itemId, count, tooltip, selected, catalog, insufficient, shortage, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, onHoverChange, testId, ...divProps }: Props) {
+export default function ItemSlot({ itemId, count, tooltip, selected, catalog, insufficient, shortage, ghost, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, onHoverChange, testId, ...divProps }: Props) {
   const { t } = useI18n();
   const resolveItemName = useItemNameResolver();
-  const resolvedName = resolveItemName(itemId);
   const materialTooltipText = useMaterialTooltipText();
 
   // カタログは常にアイコンを出し、白面（filled）は所持数がある時だけ
@@ -53,6 +55,12 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
   const owned = count !== undefined && count > 0;
   const hasItem = itemId > 0 && (catalog || count === undefined || count > 0);
   const filled = catalog ? owned : hasItem;
+  // 実物が無い空スロットに限りゴーストを描く。filled は実物のみで判定し白面化しない
+  // The ghost draws only on a genuinely empty slot; filled stays real-item-only so a ghost never gets the white face
+  const ghostShown = ghost !== undefined && !hasItem && ghost.itemId > 0;
+  const shownItemId = ghostShown ? ghost.itemId : itemId;
+  const shownCount = ghostShown ? ghost.count : count;
+  const resolvedName = resolveItemName(shownItemId);
 
   const shortageTooltip = shortage === undefined ? undefined : (
     <span style={{ whiteSpace: "pre-line" }}>
@@ -64,7 +72,7 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
   const slot = (
     // Tooltip は子要素をラップせず cloneElement するため DOM 構造（grid > div）は不変
     // The tooltip clones the child without a wrapper, keeping the grid > div DOM shape intact
-    <HoverTooltip label={label ?? resolvedName} disabled={!hasItem || (!label && !resolvedName)}>
+    <HoverTooltip label={label ?? resolvedName} disabled={!(hasItem || ghostShown) || (!label && !resolvedName)}>
       <SlotFrame
         {...divProps}
         testId={testId}
@@ -72,6 +80,7 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
         filled={filled}
         catalog={catalog}
         insufficient={insufficient}
+        ghost={ghostShown}
         onLeftDown={onLeftDown}
         onRightDown={onRightDown}
         onRightEnter={onRightEnter}
@@ -79,10 +88,10 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
         onDoubleClick={onDoubleClick}
         onHoverChange={onHoverChange}
       >
-        {hasItem ? (
+        {hasItem || ghostShown ? (
           <>
-            <ItemIcon itemId={itemId} alt={resolvedName ?? t(L.ui.common.itemFallback, { itemId })} className={styles.icon} />
-            {owned ? <span className={`iconTextOutlineLight ${styles.count}`}>{count}</span> : null}
+            <ItemIcon itemId={shownItemId} className={styles.icon} />
+            {(owned || ghostShown) && shownCount !== undefined && shownCount > 0 ? <span className={`iconTextOutlineLight ${styles.count}`}>{shownCount}</span> : null}
           </>
         ) : null}
       </SlotFrame>

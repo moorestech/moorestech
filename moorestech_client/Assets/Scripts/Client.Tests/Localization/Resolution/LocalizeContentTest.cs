@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using Client.Game.InGame.UI.Inventory.Common;
 using Client.Game.Localization;
 using Client.Localization;
 using Client.Mod.Texture;
@@ -120,7 +119,7 @@ namespace Client.Tests.Localization.Resolution
         }
 
         [Test]
-        public void ItemSlotの既定TooltipはItemGuidの翻訳を表示する()
+        public void ItemGuidキーはmod辞書のマージ後に翻訳を返す()
         {
             using var itemIds = MasterHolder.ItemMaster.GetItemAllIds().GetEnumerator();
             Assert.IsTrue(itemIds.MoveNext());
@@ -131,12 +130,7 @@ namespace Client.Tests.Localization.Resolution
                 new[] { new ModId("author:item-tooltip") },
                 MasterSourceTextCollector.Collect());
 
-            var texture = new Texture2D(1, 1);
-            var itemView = new ItemViewData(texture, itemMaster);
-            var tooltip = ItemSlotView.GetToolTipText(itemView);
-
-            Assert.AreEqual("翻訳済みアイテム", tooltip);
-            UnityEngine.Object.DestroyImmediate(texture);
+            Assert.AreEqual("翻訳済みアイテム", Localize.GetContent(ContentLocalizationKeys.ItemName(itemMaster.ItemGuid)));
         }
 
         private void CreateLocalizationMod()

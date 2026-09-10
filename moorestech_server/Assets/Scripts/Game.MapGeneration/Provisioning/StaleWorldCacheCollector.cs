@@ -1,5 +1,4 @@
 using System.IO;
-using Game.Paths;
 using UnityEngine;
 
 namespace Game.MapGeneration.Provisioning
@@ -10,9 +9,12 @@ namespace Game.MapGeneration.Provisioning
     /// </summary>
     public static class StaleWorldCacheCollector
     {
-        public static void Collect(string currentWorldId)
+        // キャッシュルートは呼び出し側が渡す。実ユーザーのキャッシュを消さずに検証できるようにするため
+        // The caller supplies the cache root so this can be verified without wiping the real user cache
+        public static void Collect(string cacheRoot, string currentWorldId)
         {
-            var cacheRoot = GameSystemPaths.WorldCacheDirectory;
+            if (!Directory.Exists(cacheRoot)) return;
+
             var removedCount = 0;
             foreach (var directory in Directory.GetDirectories(cacheRoot))
             {
@@ -21,7 +23,7 @@ namespace Game.MapGeneration.Provisioning
                 removedCount++;
             }
 
-            if (removedCount > 0) Debug.Log($"[StaleWorldCacheCollector] Removed {removedCount} stale world cache(s) under '{cacheRoot}'.");
+            if (0 < removedCount) Debug.Log($"[StaleWorldCacheCollector] Removed {removedCount} stale world cache(s) under '{cacheRoot}'.");
         }
     }
 }

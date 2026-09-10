@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
-using Game.Block.Interface.Extension;
 using Game.Blueprint;
 using Game.Hotbar;
 using Game.SaveLoad.Interface;
@@ -90,11 +89,11 @@ namespace Tests.CombinedTest.Game
             CollectionAssert.AreEqual(new[] { PlayerId }, changedPlayerIds, "変化したプレイヤーだけ通知される");
         }
 
-        // カタログで解決できる実在ブロックGuid（坂はカタログ対象外）
-        // A real, catalog-resolvable block GUID (slopes are excluded from the catalog)
+        // カタログで解決できる実在ブロックGuid
+        // A real, catalog-resolvable block GUID
         private static Guid ResolvableBlockGuid()
         {
-            return MasterHolder.BlockMaster.Blocks.Data.First(b => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(b.BlockGuid)).BlockGuid;
+            return MasterHolder.BlockMaster.Blocks.Data.First().BlockGuid;
         }
     }
 }

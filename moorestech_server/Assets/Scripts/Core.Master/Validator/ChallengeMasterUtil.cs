@@ -255,7 +255,7 @@ namespace Core.Master.Validator
                                 {
                                     if (MasterHolder.BlockMaster.GetBlockIdOrNull(relativePreview.AnchorBlockGuid) == null)
                                     {
-                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.PlacingBlockGuid:{relativePreview.AnchorBlockGuid}\n";
+                                        logs += $"[ChallengeMaster] Challenge:{challenge.Title} has invalid Tutorial.AnchorBlockGuid:{relativePreview.AnchorBlockGuid}\n";
                                     }
                                     if (MasterHolder.BlockMaster.GetBlockIdOrNull(relativePreview.BlockGuid) == null)
                                     {
@@ -541,7 +541,7 @@ namespace Core.Master.Validator
             }
         }
 
-        // 歯車系チャレンジ共通のブロック検証。実在しない・歯車コネクタ無しを達成不能として弾く
+        // 歯車系チャレンジのブロック検証
         // Shared gear-challenge block validation; missing blocks and connector-less blocks are impossible to complete
         private static string ValidateGearBlock(string challengeTitle, Guid blockGuid, string label)
         {

@@ -2,8 +2,8 @@ using System.Collections.Generic;
 
 namespace Client.Localization
 {
-    // 辞書テンプレートの{p0}プレースホルダを埋める（Web側translatorと同じ規約）
-    // Fills the {p0} placeholders of a dictionary template, matching the web translator convention
+    // 辞書テンプレの{p0}を埋める
+    // Fills a dictionary template's {p0} placeholders
     internal static class LocalizationTextInterpolator
     {
         public static string Interpolate(string template, IReadOnlyList<string> textParams)

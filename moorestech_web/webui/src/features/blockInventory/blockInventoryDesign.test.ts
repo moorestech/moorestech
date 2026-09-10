@@ -12,6 +12,10 @@ const sources = {
   electricToGear: read("./views/ElectricToGearInventory.tsx"),
   network: read("./details/NetworkSections.tsx"),
   miner: read("./details/MinerSection.tsx"),
+  pump: read("./details/pump/PumpSection.tsx"),
+  machineStateRow: read("./details/rows/MachineStateRow.tsx"),
+  perMinuteRateRow: read("./details/rows/PerMinuteRateRow.tsx"),
+  powerRateText: read("./details/rows/PowerRateText.tsx"),
   machineInventoryBody: read("./details/machine/MachineInventoryBody.tsx"),
 };
 
@@ -22,6 +26,7 @@ const styles = {
   progressArrow: read("../../shared/ui/ProgressArrowBar/style.module.css"),
   progressArrowGlyph: read("../../shared/ui/ProgressArrowGlyph/style.module.css"),
   machineInventoryBody: read("./details/machine/machineInventoryBody.module.css"),
+  pumpSection: read("./details/pump/pumpSection.module.css"),
 };
 
 const appTokens = read("../../app/tokens.css");
@@ -90,12 +95,13 @@ describe("block inventory design whitelist", () => {
     expect(styles.modeSwitch).toContain("var(--mode-switch-selected-mix)");
   });
 
-  it("MachineSectionはレシピ有りでタブ切替、電力率を共通フッタに置く", () => {
+  it("MachineSectionはレシピ選択リストとヘッダを往復し、電力率を共通フッタに置く", () => {
     const machineSection = read("./details/MachineSection.tsx");
-    expect(machineSection).toContain("<ModeSwitch");
-    expect(machineSection).toContain("<MachineRecipeSelectionTab");
+    expect(machineSection).toContain("<MachineRecipeSelectionList");
+    expect(machineSection).toContain("<SelectedRecipeHeader");
     expect(machineSection).toContain("<MachineInventoryBody");
-    expect(machineSection).toContain("<PowerRateText");
+    expect(machineSection).toContain("<MachineStateRow");
+    expect(machineSection).not.toContain("<ModeSwitch");
   });
 
   it("レシピ有り機械だけviewer〜items占有の大型パネルへ広げる", () => {
@@ -104,10 +110,10 @@ describe("block inventory design whitelist", () => {
     expect(sources.panel).toContain("buildMachineRecipeSelectionRows");
   });
 
-  it("レシピ選択タブは共通SlotGridの9列折返しで列挙する", () => {
-    const recipeTab = read("./details/machine/MachineRecipeSelectionTab.tsx");
-    expect(recipeTab).toContain("<SlotGrid cols={Math.min(9, Math.max(1, rows.length))}");
-    expect(recipeTab).not.toMatch(/display:\s*grid/);
+  it("レシピ選択行は共有RecipeRowを流用し、静止矢印で列挙する", () => {
+    const recipeRow = read("./details/machine/recipeSelection/MachineRecipeSelectionRow.tsx");
+    expect(recipeRow).toContain("<RecipeRow");
+    expect(recipeRow).toContain("arrowValue={null}");
   });
 
   it("機械の加工行は進捗矢印を中央に固定する3カラムグリッドにする", () => {
@@ -122,6 +128,18 @@ describe("block inventory design whitelist", () => {
     expect(sources.machineInventoryBody).toContain('data-testid="machine-module-label"');
     expect(sources.machineInventoryBody).toContain("t(L.ui.blockInventory.upgradeSlots)");
     expect(sources.machineInventoryBody).toContain('mt="xs"');
+  });
+
+  it("ポンプの流体アイコンを非正方形でも歪ませずに収める", () => {
+    expect(styles.pumpSection).toContain("object-fit: contain");
+  });
+
+  it("稼働ラベルと分間レートの行を機械・採掘機・ポンプで共有する", () => {
+    expect(sources.machineStateRow).toContain("<PowerRateText");
+    expect(sources.pump).toContain("<MachineStateRow");
+    expect(sources.pump).toContain("<PerMinuteRateRow");
+    expect(sources.miner).toContain("<PerMinuteRateRow");
+    expect(sources.miner).toContain("<PowerRateText");
   });
 });
 

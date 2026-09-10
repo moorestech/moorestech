@@ -12,6 +12,10 @@ namespace Client.Skit.UI
         private readonly SkitIntentWaitController _waitController = new();
         private SkitPresentationData _current = SkitPresentationData.CreateNone("", 0);
         private ISkitActionController _actionController;
+        // シーンが宣言した許可intent。入力停止中でも復帰時にそのまま戻せるよう保持する
+        // The intents the scene declared, kept so they come back untouched when input resumes
+        private string[] _authoredIntents = Array.Empty<string>();
+        private bool _inputSuspended;
         public static readonly SkitPresentationStateStore Instance = new();
         public IObservable<SkitPresentationData> ObserveChanged()
         {
@@ -26,6 +30,7 @@ namespace Client.Skit.UI
         public void BeginBackground()
         {
             _waitController.Cancel();
+            DeclareIntents(Array.Empty<string>());
             _current = SkitPresentationData.CreateBackground(Guid.NewGuid().ToString(), 0, "", "");
             Publish();
         }
@@ -45,7 +50,7 @@ namespace Client.Skit.UI
             _actionController.SetSkip(false);
             _current = SkitPresentationData.CreateBlocking(
                 Guid.NewGuid().ToString(), 0, "", "", Array.Empty<SkitChoice>(), false, false,
-                actionController.IsAuto, false, false, "instant", 0, Array.Empty<string>());
+                actionController.IsAuto, false, false, "instant", 0, DeclareIntents(Array.Empty<string>()));
             Publish();
         }
         // Actionが即着しても解放を失わないよう、waitをsnapshot配信前に作る
@@ -57,7 +62,7 @@ namespace Client.Skit.UI
                 _current.SessionId, _current.SceneRevision + 1, speakerName, body, Array.Empty<SkitChoice>(), true,
                 _current.PresentationState.TransitionVisible, _actionController.IsAuto, _actionController.IsSkip,
                 _current.PresentationState.UiHidden, "typewriter", TypewriterIntervalMs,
-                new[] { "advance", "set-auto", "skip", "set-ui-hidden" });
+                DeclareIntents(new[] { "advance", "set-auto", "skip", "set-ui-hidden" }));
             Publish();
             _waitController.ResetAutoAdvanceTimer();
         }
@@ -75,7 +80,7 @@ namespace Client.Skit.UI
                 _current.PresentationState.Body, choices, _current.PresentationState.TextAreaVisible,
                 _current.PresentationState.TransitionVisible, _actionController.IsAuto, _actionController.IsSkip,
                 _current.PresentationState.UiHidden, "instant", 0,
-                new[] { "select", "set-auto", "skip", "set-ui-hidden" });
+                DeclareIntents(new[] { "select", "set-auto", "skip", "set-ui-hidden" }));
             Publish();
         }
         public UniTask<string> WaitForSelectionAsync()
@@ -99,7 +104,7 @@ namespace Client.Skit.UI
                 return SkitIntentResult.Fail("unknown_choice");
 
             _current = _current.CopyWithChoices(
-                _current.SceneRevision + 1, Array.Empty<SkitChoice>(), Array.Empty<string>());
+                _current.SceneRevision + 1, Array.Empty<SkitChoice>(), DeclareIntents(Array.Empty<string>()));
             Publish();
             _waitController.CompleteSelection(choiceId);
             return SkitIntentResult.Success();
@@ -148,9 +153,33 @@ namespace Client.Skit.UI
         public void End()
         {
             _waitController.Cancel();
+            DeclareIntents(Array.Empty<string>());
             _current = SkitPresentationData.CreateNone(_current.SessionId, _current.SceneRevision + 1);
             _actionController = null;
             Publish();
+        }
+
+        // ポーズ中は許可intentを空へ畳み、Web由来の全操作を既存のAllowedIntents判定1箇所で止める
+        // While paused the allowed intents collapse to empty, so the existing AllowedIntents check alone stops every web-side operation
+        public void SetInputSuspended(bool suspended)
+        {
+            if (_inputSuspended == suspended) return;
+            _inputSuspended = suspended;
+            _current = _current.CopyWith(_current.SceneRevision + 1, PublishedIntents());
+            Publish();
+        }
+
+        // シーンが宣言した許可intentを覚え、配信してよい形に畳んで返す
+        // Remembers the intents the scene declared and returns them folded into what may be published
+        private string[] DeclareIntents(string[] intents)
+        {
+            _authoredIntents = intents;
+            return PublishedIntents();
+        }
+
+        private string[] PublishedIntents()
+        {
+            return _inputSuspended ? Array.Empty<string>() : _authoredIntents;
         }
 
         private SkitIntentResult Validate(string sessionId, int revision, string intent)
@@ -170,7 +199,7 @@ namespace Client.Skit.UI
 
         private void AdvanceRevisionAfterWait()
         {
-            _current = _current.CopyWith(_current.SceneRevision + 1, Array.Empty<string>());
+            _current = _current.CopyWith(_current.SceneRevision + 1, DeclareIntents(Array.Empty<string>()));
             Publish();
         }
 

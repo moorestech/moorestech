@@ -5,7 +5,6 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
-using Mooresmaster.Localization.Generated;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
 {
@@ -24,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             if (input.HitPole != null)
             {
                 if (input.Clicked) return GearChainPoleFrameResult.SelectSource(input.HitPole);
-                return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden);
+                return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden, Array.Empty<TooltipLine>(), GearChainPoleExtendPreviewData.Invalid, Array.Empty<ConstructionMaterialShortage>());
             }
 
             // 位置なしは非表示。距離外のみ理由を出す
@@ -32,7 +31,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             if (!input.HasGhost)
             {
                 var noGhostLines = input.GhostTooFar ? new[] { PlacementFeedback.TooFarLine() } : Array.Empty<TooltipLine>();
-                return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden, noGhostLines);
+                return GearChainPoleFrameResult.Show(input.SourcePole, GearChainPolePreviewCommand.Hidden, noGhostLines, GearChainPoleExtendPreviewData.Invalid, Array.Empty<ConstructionMaterialShortage>());
             }
 
             if (input.SourcePole == null) return DecideIsolatedPlace(input);
@@ -79,18 +78,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             if (!input.GhostGroundClear) lines.Add(PlacementFeedback.BlockedByTerrainLine());
             if (extendPreview.IsValid) lines.AddRange(GearChainPlacementFailureTooltipKey.BuildFailureLines(extendPreview.IsPlaceable, extendPreview.FailureReason));
 
-            // チェーン素材が不足なら、不足0件でも関門が汎用文言へ落とせるよう不足の運搬自体は成立させる
-            // When the chain material is short, the shortage channel opens even with zero entries so the gate can fall back to the generic wording
-            var isChainShortage = extendPreview.IsValid && !extendPreview.IsPlaceable && GearChainPlacementFailureTooltipKey.IsMaterialShortage(extendPreview.FailureReason);
-
             // 地形干渉で不可のセルは「今回の設置セル」に数えないためポール建設コストの行も出さない（前例: ElectricWirePoleGhostEvaluation.PushBlockReasons）
             // A cell blocked by terrain is not a placing cell, so no pole construction cost line either (precedent: ElectricWirePoleGhostEvaluation.PushBlockReasons)
-            var shortages = new List<ConstructionMaterialShortage>();
-            if (input.GhostGroundClear) shortages.AddRange(input.GhostMaterialShortages);
-            if (isChainShortage) shortages.AddRange(extendPreview.MaterialShortages);
+            var poleCostShortages = input.GhostGroundClear ? input.GhostMaterialShortages : Array.Empty<ConstructionMaterialShortage>();
 
-            if (!isChainShortage && shortages.Count == 0) return GearChainPoleFrameResult.Show(sourcePole, preview, lines);
-            return GearChainPoleFrameResult.ShowWithMaterialShortages(sourcePole, preview, lines, shortages, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed);
+            // ポール建設コストとチェーン判定は別枠で渡す。1本に混ぜるとチェーン0件の落とし先行がポール分に隠される
+            // The pole cost and the chain judgement travel in separate slots; merged into one list a zero-entry chain shortage would lose its fallback line
+            return GearChainPoleFrameResult.Show(sourcePole, preview, lines, extendPreview, poleCostShortages);
         }
 
         private static bool CanSend(in GearChainPolePlaceExtendInput input, bool placeable)

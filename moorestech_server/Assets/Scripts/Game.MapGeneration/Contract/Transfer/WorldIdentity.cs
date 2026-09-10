@@ -1,6 +1,7 @@
 using System;
 using System.Security.Cryptography;
 using System.Text;
+using Game.Paths;
 
 namespace Game.MapGeneration.Transfer
 {
@@ -12,8 +13,6 @@ namespace Game.MapGeneration.Transfer
     /// </summary>
     public static class WorldIdentity
     {
-        public const int HexDigits = 16;
-
         public static string CalculateGenerated(int seed, string generationMasterFingerprint, string generatorVersion)
         {
             if (string.IsNullOrEmpty(generationMasterFingerprint))
@@ -30,7 +29,7 @@ namespace Game.MapGeneration.Transfer
         {
             using var sha256 = SHA256.Create();
             var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(source));
-            return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant().Substring(0, HexDigits);
+            return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant().Substring(0, GameSystemPaths.WorldIdHexDigits);
         }
     }
 }

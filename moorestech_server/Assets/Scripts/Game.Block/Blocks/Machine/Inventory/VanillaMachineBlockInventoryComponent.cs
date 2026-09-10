@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -15,7 +14,6 @@ namespace Game.Block.Blocks.Machine.Inventory
     {
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
-        private readonly VanillaMachineModuleInventory _vanillaMachineModuleInventory;
 
         // 統合スロット順のサブインベントリ列
         // Sub-inventories in unified slot order
@@ -25,7 +23,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
-            _vanillaMachineModuleInventory = vanillaMachineModuleInventory;
             _subInventories = new IVanillaMachineSubInventory[] { vanillaMachineInputInventory, vanillaMachineOutputInventory, vanillaMachineModuleInventory };
         }
 
@@ -40,19 +37,14 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
         }
 
-        /// <summary>
-        ///     モジュールスロットは整理対象から除外する
-        ///     Module slots are excluded from sorting
-        /// </summary>
+        // スロットは全て束縛済みで整理対象にならない（ADR 0042）
+        // Every slot is recipe-bound, so none participates in sorting (ADR 0042)
         public IReadOnlyCollection<int> SortExcludedSlots
         {
             get
             {
                 BlockException.CheckDestroy(this);
-
-                var moduleSlotCount = _vanillaMachineModuleInventory.ModuleSlot.Count;
-                var moduleRangeStart = GetSlotSize() - moduleSlotCount;
-                return Enumerable.Range(moduleRangeStart, moduleSlotCount).ToList();
+                return Enumerable.Range(0, GetSlotSize()).ToList();
             }
         }
 
@@ -95,12 +87,24 @@ namespace Game.Block.Blocks.Machine.Inventory
             return subInventory.Items[localSlot];
         }
 
+        // SetItemは言われたとおりに書き込む。束縛の可否判定は呼び出し側がIsAllowedToPlaceで事前に問い合わせる
+        // SetItem always writes as instructed; callers query IsAllowedToPlace beforehand
         public void SetItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
 
             var (subInventory, localSlot) = ResolveSlot(slot);
             subInventory.SetItem(localSlot, itemStack);
+        }
+
+        // 移動/挿入サービスが書き込み前に問い合わせる配置可否。束縛外のスロットは受け付けない
+        // Placement check the move/insert services ask before writing; slots outside the binding refuse the stack
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
+        {
+            BlockException.CheckDestroy(this);
+
+            var (subInventory, localSlot) = ResolveSlot(slot);
+            return subInventory.IsAllowedToPlace(localSlot, itemStack);
         }
 
         public void SetItem(int slot, ItemId itemId, int count)
@@ -153,6 +157,11 @@ namespace Game.Block.Blocks.Machine.Inventory
             BlockException.CheckDestroy(this);
 
             var (subInventory, localSlot) = ResolveSlot(slot);
+
+            // 束縛外のスロットへは置けず、そのまま返す（プレイヤー移動プロトコルの入口）
+            // A stack that violates the binding bounces back untouched (entry point of the player move protocol)
+            if (!subInventory.IsAllowedToPlace(localSlot, itemStack)) return itemStack;
+
             var current = subInventory.Items[localSlot];
 
             // アイテムIDが同じ時はスタックして余りを返し、違う場合はそのまま入れ替える
@@ -168,25 +177,11 @@ namespace Game.Block.Blocks.Machine.Inventory
             return current;
         }
 
-        // スロット番号をサブインベントリとローカル番号へ解決
-        // Resolve a slot number to its sub-inventory and local index
+        // スロット番号をサブインベントリとローカル番号へ解決（実装はVanillaMachineSlotResolutionUtilへ委譲）
+        // Resolve a slot number to its sub-inventory and local index (delegated to VanillaMachineSlotResolutionUtil)
         private (IVanillaMachineSubInventory subInventory, int localSlot) ResolveSlot(int slot)
         {
-            // 負のスロットは境界で弾き、ローカル番号が負になるのを防ぐ
-            // Reject negative slots at the boundary to avoid a negative local index
-            if (slot < 0)
-            {
-                throw new ArgumentOutOfRangeException(nameof(slot), slot, "スロット番号が負の値です。 The slot number is negative.");
-            }
-
-            var requestedSlot = slot;
-            foreach (var subInventory in _subInventories)
-            {
-                if (slot < subInventory.Items.Count) return (subInventory, slot);
-                slot -= subInventory.Items.Count;
-            }
-
-            throw new ArgumentOutOfRangeException(nameof(slot), requestedSlot, "スロット番号がインベントリサイズを超えています。 The slot number exceeds the inventory size.");
+            return VanillaMachineSlotResolutionUtil.ResolveSlot(_subInventories, slot);
         }
 
         public bool IsDestroy { get; private set; }

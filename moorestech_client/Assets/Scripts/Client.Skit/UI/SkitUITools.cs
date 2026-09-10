@@ -1,5 +1,4 @@
 using Client.Skit.Skit;
-using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Client.Skit.UI
@@ -7,8 +6,6 @@ namespace Client.Skit.UI
     public class SkitUITools
     {
         private readonly UIDocument _skitUiDocument;
-        
-        private bool _isUIHidden = false;
         
         public SkitUITools(UIDocument skitUiDocument, ISkitActionController skitActionController)
         {
@@ -47,20 +44,7 @@ namespace Client.Skit.UI
         
         private void HideUI()
         {
-            _isUIHidden = true;
             _skitUiDocument.rootVisualElement.style.display = DisplayStyle.None;
         }
-
-        
-        public void ManualUpdate()
-        {
-            //TODO InputManagerに移す
-            if (_isUIHidden && Input.GetKeyDown(KeyCode.Escape))
-            {
-                _skitUiDocument.rootVisualElement.style.display = DisplayStyle.Flex;
-            }
-        }
-        
-        
     }
 }

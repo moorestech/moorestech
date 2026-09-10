@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
-using Game.Block.Interface.Extension;
 using Game.UnlockState;
 
 namespace Game.PlacementTarget
@@ -13,7 +12,9 @@ namespace Game.PlacementTarget
     {
         private readonly IReadOnlyList<PlacementTargetEntry> _masterEntries;
 
-        public PlacementTargetCatalog()
+        // 解放元の寄せ方は構築時に外から受け取る。カタログ側はドメイン固有の規則を持たない
+        // The unlock-source mapping is supplied at construction; the catalog itself holds no domain-specific rule
+        public PlacementTargetCatalog(IPlacementUnlockSourceMap unlockSourceMap)
         {
             _masterEntries = CreateMasterEntries();
 
@@ -27,20 +28,19 @@ namespace Game.PlacementTarget
             {
                 var entries = new List<PlacementTargetEntry>();
 
-                // 坂を除き表示優先度と名前で整列
-                // Exclude slopes and sort by display priority and name
+                // 表示優先度と名前で整列する
+                // Sort by display priority and name
                 var blocks = MasterHolder.BlockMaster.Blocks.Data
-                    .Where(block => !BeltConveyorPlaceFamilyUtil.IsSlopeBlock(block.BlockGuid))
                     .OrderBy(block => block.SortPriority ?? 0)
                     .ThenBy(block => block.Name);
                 foreach (var block in blocks)
-                    entries.Add(new PlacementTargetEntry(block.BlockGuid, PlacementTargetKind.Block, block.Name));
+                    entries.Add(new PlacementTargetEntry(block.BlockGuid, PlacementTargetKind.Block, block.Name, unlockSourceMap.ResolveUnlockSourceId(block.BlockGuid)));
                 foreach (var trainCar in MasterHolder.TrainUnitMaster.Train.TrainCars)
-                    entries.Add(new PlacementTargetEntry(trainCar.TrainCarGuid, PlacementTargetKind.TrainCar, trainCar.Name));
+                    entries.Add(new PlacementTargetEntry(trainCar.TrainCarGuid, PlacementTargetKind.TrainCar, trainCar.Name, trainCar.TrainCarGuid));
                 foreach (var connectTool in MasterHolder.ConnectToolMaster.All.OrderBy(connectTool => connectTool.SortPriority))
-                    entries.Add(new PlacementTargetEntry(connectTool.ConnectToolGuid, PlacementTargetKind.ConnectTool, connectTool.Name));
+                    entries.Add(new PlacementTargetEntry(connectTool.ConnectToolGuid, PlacementTargetKind.ConnectTool, connectTool.Name, connectTool.ConnectToolGuid));
                 foreach (var buildTool in MasterHolder.BuildToolMaster.All)
-                    entries.Add(new PlacementTargetEntry(buildTool.BuildToolGuid, PlacementTargetKind.BlueprintCopy, buildTool.Name));
+                    entries.Add(new PlacementTargetEntry(buildTool.BuildToolGuid, PlacementTargetKind.BlueprintCopy, buildTool.Name, buildTool.BuildToolGuid));
                 return entries;
             }
 
@@ -83,7 +83,7 @@ namespace Game.PlacementTarget
             var seenById = _masterEntries.ToDictionary(entry => entry.Id);
             foreach (var (id, name) in blueprintEntries)
             {
-                var entry = new PlacementTargetEntry(id, PlacementTargetKind.Blueprint, name);
+                var entry = new PlacementTargetEntry(id, PlacementTargetKind.Blueprint, name, id);
                 ValidateBlueprintIdentity(entry, seenById);
                 entries.Add(entry);
             }
@@ -134,12 +134,28 @@ namespace Game.PlacementTarget
             return currentBlueprintIds.Contains(id) && unlockState.IsBlueprintUnlocked;
         }
 
+        // ブロックGuidが今の解放状態で設置可能か。ブロックの解放判定はこの入口へ集約する
+        // Whether a block guid is placeable under the current unlock state; the sole entry for block unlock checks
+        // 実在しないGuid・ブロック以外の種別は呼び出し側の契約違反。falseへ畳まず契約として表明する
+        // A missing guid or a non-block kind is a caller contract violation, asserted rather than folded into false
+        public bool IsBlockUnlocked(Guid blockGuid, IGameUnlockStateData unlockState, bool showAllPlaceable)
+        {
+            if (!TryGetMasterEntry(blockGuid, out var entry))
+                throw new InvalidOperationException($"PlacementTargetCatalog: block guid {blockGuid} is not in the catalog");
+            if (entry.Kind != PlacementTargetKind.Block)
+                throw new InvalidOperationException($"PlacementTargetCatalog: guid {blockGuid} is {entry.Kind}, not a block");
+
+            return IsEntryUnlocked(entry, unlockState, showAllPlaceable);
+        }
+
         private static bool IsEntryUnlocked(PlacementTargetEntry entry, IGameUnlockStateData unlockState, bool showAllPlaceable)
         {
             switch (entry.Kind)
             {
                 case PlacementTargetKind.Block:
-                    return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.Id, out var blockInfo) && blockInfo.IsUnlocked);
+                    // 解放元は構築時に決まっている。ここでは寄せ方を知らずに引くだけ
+                    // The unlock source is fixed at construction; here it is only looked up, never derived
+                    return showAllPlaceable || (unlockState.BlockUnlockStateInfos.TryGetValue(entry.UnlockSourceId, out var blockInfo) && blockInfo.IsUnlocked);
                 case PlacementTargetKind.TrainCar:
                     return showAllPlaceable || (unlockState.TrainCarUnlockStateInfos.TryGetValue(entry.Id, out var trainCarInfo) && trainCarInfo.IsUnlocked);
                 case PlacementTargetKind.ConnectTool:

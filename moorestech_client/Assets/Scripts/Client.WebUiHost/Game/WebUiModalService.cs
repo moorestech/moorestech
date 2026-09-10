@@ -6,14 +6,13 @@ namespace Client.WebUiHost.Game
 {
     /// <summary>
     /// Web UI へモーダル要求を push し、Web からの応答を待つブリッジサービス。
-    /// 既存の uGUI ModalManager は pull 型のため、push 型の要求口として新設する。
     /// 合成ルート(WebUiGameBinder)で1度生成され Instance に公開される。将来のプロデューサは
     /// WebUiModalService.Instance.RequestModal を呼ぶ(VContainer 登録はアセンブリ依存方向の
-    /// 制約=Client.Game→Client.WebUiHost を張れないため不可。ProgressBarView.Instance と同じ静的所有)。
+    /// 制約=Client.Game→Client.WebUiHost を張れないため不可なので静的所有とする)。
     /// Bridge service that pushes modal requests to the Web UI and awaits the web reply.
     /// Constructed once at the composition root (WebUiGameBinder) and exposed via Instance; future
     /// producers call WebUiModalService.Instance.RequestModal. VContainer registration is impossible
-    /// (Client.Game cannot reference Client.WebUiHost), so it uses static ownership like ProgressBarView.Instance.
+    /// (Client.Game cannot reference Client.WebUiHost), so it uses static ownership instead.
     /// </summary>
     public class WebUiModalService
     {

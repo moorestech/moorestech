@@ -20,9 +20,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
     public class BlueprintCopySystem : PlaceSystemBase<BlueprintCopyPlacementTarget>
     {
         private readonly ClientBlueprintLibrary _library;
-        private readonly BlueprintNameInputView _nameInputView;
+        private readonly BlueprintNameInputState _nameInputState;
         private readonly Camera _mainCamera;
         private BlueprintAreaVisualizer _visualizer;
+        private readonly CompositeDisposable _subscriptions = new();
 
         private bool _isDragging;
 
@@ -39,11 +40,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         // Initial box height above the drag plane; adjustable via scroll
         private const int DefaultTopYOffset = 4;
 
-        public BlueprintCopySystem(Camera mainCamera, ClientBlueprintLibrary library, BlueprintNameInputView nameInputView)
+        public BlueprintCopySystem(Camera mainCamera, ClientBlueprintLibrary library, BlueprintNameInputState nameInputState)
         {
             _mainCamera = mainCamera;
             _library = library;
-            _nameInputView = nameInputView;
+            _nameInputState = nameInputState;
 
             // Enable毎の重複購読を避けるため購読はコンストラクタで1回だけ行う
             // Subscribe once in the constructor to avoid duplicate subscriptions on repeated Enable
@@ -55,19 +56,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
             {
                 // 確定でCreate送信、キャンセルで選択解除
                 // Confirm sends Create (the server derives the anchor from the box); cancel clears the selection
-                _nameInputView.OnConfirm.Subscribe(name =>
+                _nameInputState.OnConfirm.Subscribe(name =>
                 {
                     var (min, max) = CalcBox();
                     _library.CreateBlueprint(name, min, max, CancellationToken.None).Forget();
                     _isAwaitingName = false;
                     ResetSelection();
-                }).AddTo(_nameInputView);
+                }).AddTo(_subscriptions);
 
-                _nameInputView.OnCancel.Subscribe(_ =>
+                _nameInputState.OnCancel.Subscribe(_ =>
                 {
                     _isAwaitingName = false;
                     ResetSelection();
-                }).AddTo(_nameInputView);
+                }).AddTo(_subscriptions);
             }
 
             #endregion
@@ -128,7 +129,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
 
                 _isDragging = false;
                 _isAwaitingName = true;
-                _nameInputView.Open();
+                _nameInputState.Open();
             }
 
             float ReadScrollDelta()
@@ -146,7 +147,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
         public override void Disable()
         {
             ResetSelection();
-            _nameInputView.Close();
+            _nameInputState.Close();
             _isAwaitingName = false;
         }
 

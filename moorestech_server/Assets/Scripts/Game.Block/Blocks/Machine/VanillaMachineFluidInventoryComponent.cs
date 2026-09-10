@@ -132,31 +132,11 @@ namespace Game.Block.Blocks.Machine
                 ? receiverConnector.Option.ConnectTankIndex
                 : -1;
 
-            // 特定のタンクが指定されている場合は、そのタンクのみに追加を試みる（互換判定はAddLiquid内で一元化）
-            // When a specific tank is designated, only that tank accepts the fluid; compatibility is judged inside AddLiquid
-            if (tankIndex >= 0 && tankIndex < _inputInventory.FluidInputSlot.Count)
-            {
-                var result = _inputInventory.FluidInputSlot[tankIndex].AddLiquid(fluidStack);
-                if (0 < result.AcceptedAmount)
-                {
-                    _onChangeBlockState.OnNext(Unit.Default);
-                }
-                return result.Remainder;
-            }
-
-            // タンクが指定されていない場合は、全ての入力タンクに対して液体を追加を試みる
-            // Without a designated tank, try every input tank in order
-            foreach (var container in _inputInventory.FluidInputSlot)
-            {
-                var result = container.AddLiquid(fluidStack);
-                if (0 < result.AcceptedAmount)
-                {
-                    _onChangeBlockState.OnNext(Unit.Default);
-                    return result.Remainder;
-                }
-            }
-
-            return fluidStack;
+            // 束縛判定・実挿入は入力インベントリへ委譲する（レシピ未選択・束縛外のタンクは拒否）
+            // Delegate the binding check and the actual insert to the input inventory (rejects when unselected or unbound)
+            var remainder = _inputInventory.InsertFluid(fluidStack, tankIndex, out var changed);
+            if (changed) _onChangeBlockState.OnNext(Unit.Default);
+            return remainder;
         }
 
         public List<FluidStack> GetFluidInventory()

@@ -4,6 +4,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using NUnit.Framework;
 using UnityEngine;

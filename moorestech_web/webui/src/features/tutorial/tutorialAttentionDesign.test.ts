@@ -64,10 +64,18 @@ describe("keyControl hint HUD", () => {
   });
 
   it("共有様式keyHintTextの文字色は白のままで、インベントリ左下・研究左下を巻き込まない", () => {
-    const shared = tokens.slice(tokens.indexOf(":where(.keyHintText) {"));
-    expect(shared).toContain("color: var(--text-high-contrast)");
-    expect(shared).not.toContain("--tutorial-attention-red");
-    expect(shared).not.toContain("tutorial-attention-pulse");
+    // 本体とkbdを別ブロックで検査し、片方の宣言でもう片方の欠落を隠さない
+    // Checks the base and kbd blocks separately so one declaration cannot mask the other's absence
+    for (const block of [ruleBlock(tokens, ":where(.keyHintText) {"), ruleBlock(tokens, ":where(.keyHintText) kbd {")]) {
+      expect(block).toContain("color: var(--text-high-contrast)");
+      // 素名だけでなく間接トークン経由の赤・脈動も塞ぐ（実際の適用は必ずvar()経由のため）
+      // Blocks the red and the pulse through their indirection tokens too, since features always apply them via var()
+      expect(block).not.toContain("--tutorial-attention-red");
+      expect(block).not.toContain("--tutorial-key-hint-color");
+      expect(block).not.toMatch(/tutorial-attention-pulse|--tutorial-pulse-(strong|subtle)/);
+      expect(block).not.toContain("animation");
+      expect(block).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+    }
   });
 });
 

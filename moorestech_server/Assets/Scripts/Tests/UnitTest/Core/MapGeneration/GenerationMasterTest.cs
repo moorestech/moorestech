@@ -97,6 +97,22 @@ namespace Tests.UnitTest.Core.MapGeneration
             Assert.That(logs, Does.Contain("detailResolution"));
         }
 
+        // 未知presetを上限0として黙って潰すと、あらゆるdetailResolutionが上限超過で拒否され真因がログに出ない
+        // Silently folding an unknown preset into a limit of zero rejects every detailResolution as over-limit and hides the real cause from the log
+        [Test]
+        public void 未知のresolutionPresetは専用のエラー行で失敗する()
+        {
+            var json = LoadGenerationJson();
+            json["algorithmParam"]!["overrideResolution"] = 0;
+            json["algorithmParam"]!["resolutionPreset"] = "_4096";
+
+            var master = new GenerationMaster(json, "test");
+
+            Assert.IsFalse(master.Validate(out var logs));
+            Assert.That(logs, Does.Contain("is not a recognized preset"));
+            Assert.That(logs, Does.Not.Contain("exceeds heightmap sample limit"));
+        }
+
         [Test]
         public void 鉱脈帯の外半径が重複するとバリデーションで失敗する()
         {

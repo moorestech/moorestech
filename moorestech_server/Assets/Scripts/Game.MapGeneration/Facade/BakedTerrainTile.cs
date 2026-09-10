@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Transfer;
 using UnityEngine;
 
 namespace Game.MapGeneration.Facade

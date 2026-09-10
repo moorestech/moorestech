@@ -9,7 +9,7 @@ namespace Client.WebUiHost.Game.Topics
     // Converts unified train SubInventory state into its Web DTO.
     public static class TrainInventoryDtoFactory
     {
-        public static BlockInventoryDto Create(TrainSubInventorySource source, ISubInventory inventory)
+        public static BlockInventoryDto Create(TrainSubInventorySource source, SubInventoryModel inventory)
         {
             var dto = new BlockInventoryDto
             {
@@ -19,7 +19,7 @@ namespace Client.WebUiHost.Game.Topics
                 BlockType = "Train",
                 ItemSlots = new List<BlockItemSlotDto>(inventory.Count),
                 FluidSlots = new List<BlockFluidSlotDto>(),
-                Error = ResolveError(inventory),
+                Error = ResolveError(source.LastOpenMessage),
             };
             foreach (var stack in inventory.SubInventory)
             {
@@ -28,10 +28,10 @@ namespace Client.WebUiHost.Game.Topics
             return dto;
         }
 
-        private static string ResolveError(ISubInventory inventory)
+        private static string ResolveError(TrainInventoryMessageType? messageType)
         {
-            if (inventory is not ITrainInventoryView trainView || trainView.CurrentMessageType == null) return null;
-            return trainView.CurrentMessageType.Value switch
+            if (messageType == null) return null;
+            return messageType.Value switch
             {
                 TrainInventoryMessageType.ContainerMissing => "containerMissing",
                 TrainInventoryMessageType.TrainCarMissing => "trainCarMissing",

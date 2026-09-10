@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -5,17 +6,24 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
-using Client.Game.InGame.UI.Challenge;
-using Client.Game.InGame.UI.Inventory.Block.Research;
+using Client.Game.InGame.UI.BuildMenu;
+using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
-using Client.Game.InGame.UI.UIState.UIObject;
 using Client.Game.Skit;
+using Client.Network.API;
 using Client.Tests.Map.Vein;
 using Client.Tests.UIState.Fakes;
+using Core.Master;
 using NUnit.Framework;
+using Server.Boot;
+using Server.Util.MessagePack;
+using Tests.Module.TestMod;
+using UnityEngine;
+using static Server.Protocol.PacketResponse.PlayerInventoryResponseProtocol;
 
 namespace Client.Tests.UIState
 {
@@ -53,10 +61,9 @@ namespace Client.Tests.UIState
         [Test]
         public void DeleteObject削除選択が無ければ右短押しで破壊モードを抜ける()
         {
-            SetUpMouseCursorTooltip();
-            var deleteBarObject = CreateComponent<DeleteBarObject>("DeleteBar");
+            var tooltip = CreateMouseCursorTooltip();
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new DeleteObjectState(deleteBarObject, null, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null), rightShortPressInputService);
+            var state = new DeleteObjectState(null, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildOperationHistory(), new BuildUndoService(new BuildOperationHistory(), null), new PlacementTargetPickService(null, null), rightShortPressInputService, tooltip);
             state.OnEnter(new UITransitContext(UIStateEnum.DeleteBar));
 
             var transit = PressAndReleaseRightButton(state);
@@ -68,7 +75,7 @@ namespace Client.Tests.UIState
         public void BuildMenu右短押しでゲーム画面へ抜ける()
         {
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new BuildMenuState(new FakeBuildMenuView(), CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), rightShortPressInputService);
+            var state = new BuildMenuState(new BuildMenuSelection(), CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), rightShortPressInputService);
             state.OnEnter(new UITransitContext(UIStateEnum.BuildMenu));
 
             var transit = PressAndReleaseRightButton(state);
@@ -79,9 +86,8 @@ namespace Client.Tests.UIState
         [Test]
         public void ChallengeList右短押しでゲーム画面へ抜ける()
         {
-            var challengeListView = CreateComponent<ChallengeListView>("ChallengeList");
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new ChallengeListState(challengeListView, rightShortPressInputService);
+            var state = new ChallengeListState(rightShortPressInputService);
             state.OnEnter(new UITransitContext(UIStateEnum.ChallengeList));
 
             var transit = PressAndReleaseRightButton(state);
@@ -92,9 +98,8 @@ namespace Client.Tests.UIState
         [Test]
         public void ResearchTree右短押しでゲーム画面へ抜ける()
         {
-            var researchTreeViewManager = CreateComponent<ResearchTreeViewManager>("ResearchTree");
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
-            var state = new ResearchTreeState(researchTreeViewManager, rightShortPressInputService);
+            var state = new ResearchTreeState(rightShortPressInputService);
 
             // OnEnterはSetActive(true)がサーバー問い合わせを起こすためEditModeでは通さない。遷移条件の配線だけを見る
             // OnEnter is skipped: SetActive(true) issues a server request unusable in EditMode, so only the transition wiring is exercised
@@ -103,22 +108,46 @@ namespace Client.Tests.UIState
             Assert.AreEqual(UIStateEnum.GameScreen, transit?.NextStateEnum);
         }
 
-        // 8px未満で押して離すだけの短押しをシミュレートする（移動なし）
-        // Simulates a short press below the 8px threshold (press then release with no movement)
-        private UITransitContext PressAndReleaseRightButton(IUIState state)
+        [Test]
+        public void PlayerInventory右短押しでゲーム画面へ抜ける()
         {
-            Press(MouseDevice.rightButton);
-            state.GetNextUpdate();
-            Release(MouseDevice.rightButton);
-            return state.GetNextUpdate();
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var state = CreatePlayerInventoryState(new LocalPlayerEquipment(), CreateEmptyHandshakeResponse());
+
+            // OnEnterはサーバーへインベントリを問い合わせるためEditModeでは通さない。遷移条件の配線だけを見る
+            // OnEnter is skipped: it queries the server for the inventory, which EditMode cannot do, so only the transition wiring is exercised
+            var transit = PressAndReleaseRightButton(state);
+
+            Assert.AreEqual(UIStateEnum.GameScreen, transit?.NextStateEnum);
+        }
+
+        [Test]
+        public void SubInventory右短押しでゲーム画面へ抜ける()
+        {
+            // ctorが統一インベントリイベントを購読するためEditModeではnewできない。OnEnterも同じ理由で通さない
+            // The ctor subscribes to the unified inventory event, so EditMode cannot new it up; OnEnter is skipped for the same reason
+            var state = (SubInventoryState)FormatterServices.GetUninitializedObject(typeof(SubInventoryState));
+            SetField(state, "_rightShortPressInputService", new RightShortPressInputService(new RightShortPressInput()));
+
+            var transit = PressAndReleaseRightButton(state);
+
+            Assert.AreEqual(UIStateEnum.GameScreen, transit?.NextStateEnum);
+        }
+
+        // 装備・メインインベントリともに空の初期応答。右短押しの遷移だけを見るため中身は問わない
+        // An initial response empty in both equipment and main inventory; its contents are irrelevant to the right-short-press transition
+        private static InitialHandshakeResponse CreateEmptyHandshakeResponse()
+        {
+            return CreateHandshakeResponse(new PlayerInventoryResponse(new PlayerInventoryResponseProtocolMessagePack(
+                0, Array.Empty<ItemMessagePack>(), new ItemMessagePack(ItemMaster.EmptyItemId, 0), Array.Empty<ItemMessagePack>(), 0)));
         }
 
         private PlaceBlockState CreatePlaceBlockState(IPlaceSystemSelector selector)
         {
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
-            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter());
-            var pickService = new PlacementTargetPickService(null);
+            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter(new MouseCursorTooltipState()));
+            var pickService = new PlacementTargetPickService(null, null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
             return new PlaceBlockState(skitManager, dataStore, placeStateController, pickService, CreateCameraPolicy(new FakePlayerCameraInteractionApplier()), new BuildUndoService(new BuildOperationHistory(), dataStore), new FakeMapVeinRangeView(), MapVeinAabbRegistryFixture.Create(), new VeinRestrictedPlacementState(), hotbarInputService, rightShortPressInputService);

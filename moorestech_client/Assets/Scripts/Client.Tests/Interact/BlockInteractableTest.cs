@@ -61,9 +61,10 @@ namespace Client.Tests.Interact
             var blockGuid = openable.GetComponent<BlockGameObject>().BlockMasterElement.BlockGuid;
             Assert.AreEqual(new[] { Localize.GetContent(ContentLocalizationKeys.BlockName(blockGuid)) }, openable.Actions[0].HintParams);
 
-            var transit = openable.Actions[0].Execute();
-            Assert.AreEqual(UIStateEnum.SubInventory, transit.NextStateEnum);
-            Assert.IsInstanceOf<BlockSubInventorySource>(transit.GetContext<ISubInventorySource>());
+            var result = openable.Actions[0].Execute();
+            Assert.IsTrue(result.IsHandled);
+            Assert.AreEqual(UIStateEnum.SubInventory, result.TransitContext.NextStateEnum);
+            Assert.IsInstanceOf<BlockSubInventorySource>(result.TransitContext.GetContext<ISubInventorySource>());
         }
 
         [Test]
@@ -80,8 +81,8 @@ namespace Client.Tests.Interact
         [Test]
         public void インタラクト面は開けるブロックのマスタにだけ付与条件が立つ()
         {
-            Assert.IsTrue(FindMaster(OpenableBlockName).IsBlockOpenable());
-            Assert.IsFalse(FindMaster(PlainBlockName).IsBlockOpenable());
+            Assert.IsTrue(FindMaster(OpenableBlockName).Openable);
+            Assert.IsFalse(FindMaster(PlainBlockName).Openable);
         }
 
         // BlockGameObject.Initializeはサーバ接続を伴うため、マスタだけ差し込んでインタラクト面を直接初期化する

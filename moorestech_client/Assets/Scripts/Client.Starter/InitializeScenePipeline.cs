@@ -4,11 +4,12 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.UI.Modal;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
+using Client.Starter.Initialization.Progress;
 using Cysharp.Threading.Tasks;
 using Game.Context;
+using Mooresmaster.Localization.Generated;
 using Server.Boot;
 using Server.Boot.Args;
 using Server.Util.MessagePack;
@@ -17,8 +18,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using Debug = UnityEngine.Debug;
-using Client.Localization;
-using Mooresmaster.Localization.Generated;
 
 namespace Client.Starter
 {
@@ -56,20 +55,16 @@ namespace Client.Starter
             // ---- Web UI server bootstrap (earliest phase) ----
             // The GameShutdownEvent subscription is installed once inside WebUiHost itself
             //
-            // WebUI起動失敗でもゲーム本体を止めないが、uGUI廃止Phase1ではUIは表示されない
-            // Web UI startup failure does not block gameplay, but Phase 1 retirement leaves the UI unavailable
+            // 起動失敗でも継続、UIはWeb一本のため非表示
+            // Web UI startup failure does not block gameplay, but the screen UI is web-only so nothing is shown
             try
             {
-                // 起動成否をWeb UIホスト状態へ伝え、失敗時はWeb UIを利用不可にする
-                // Propagate startup success to the Web UI host state and leave Web UI unavailable on failure
-                var hostStarted = await Client.WebUiHost.Boot.WebUiHost.StartAsync();
-                Client.Game.InGame.UI.UIState.WebUiScreenGate.SetHostAvailable(hostStarted);
+                await Client.WebUiHost.Boot.WebUiHost.StartAsync();
             }
             catch (Exception e)
             {
                 // WebUI 無しでゲーム続行。外部プロセス境界の起動失敗を隔離して再試行可能にする
                 // Continue without WebUI; isolate external-process startup failures and keep retries possible
-                Client.Game.InGame.UI.UIState.WebUiScreenGate.SetHostAvailable(false);
                 Debug.LogWarning($"[WebUiHost] start skipped: {e.Message}");
             }
 
@@ -95,11 +90,10 @@ namespace Client.Starter
             loadingStopwatch.Start();
             var loadingProgressLog = new LoadingProgressLog(loadingLog, loadingStopwatch);
 
-            // Addressablesを初期化し、並列ロードでハングするアセットを先に読む
-            // Initialize Addressables and pre-load assets that hang during parallel loading
+            // Addressablesを初期化する
+            // Initialize Addressables
             var initializeHandle = Addressables.InitializeAsync();
             await initializeHandle.ToUniTask();
-            await ModAssetLoader.PreloadCriticalAssetsAsync();
 
             // DIコンテナによるServerContextの作成
             if (!ServerContext.IsInitialized)
@@ -114,7 +108,6 @@ namespace Client.Starter
             Debug.Log($"[InitializeScenePipeline] train car preload completed {loadingStopwatch.Elapsed}");
 
             var playerConnectionSetting = new PlayerConnectionSetting(_proprieties.PlayerId);
-            var modalManager = new ModalManager();
 
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
@@ -149,7 +142,7 @@ namespace Client.Starter
             // 取得結果から通信フォーマッタと静的コンテキストを初期化する
             // Initialize the message formatter and static context from the collected results
             MessagePackInitializer.Initialize();
-            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi, modalManager);
+            new ClientContext(assetResult.BlockGameObjectPrefabContainer, assetResult.ItemImageContainer, assetResult.BlockImageContainer, assetResult.TrainCarImageContainer, assetResult.ConnectToolImageContainer, assetResult.FluidImageContainer, playerConnectionSetting, serverResult.VanillaApi);
 
             // シーンロードは全アセットロード完了後に直列実行する
             // Load the scene serially, after every asset load has finished

@@ -23,6 +23,9 @@ namespace Client.Tests.EditModeInPlayingTest
     /// This test runs in EditMode but switches to PlayMode during execution.
     /// Verifies that one outcrop per vein sits at its AABB center and that the placement range view never accumulates or lingers.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay2")]
     public class MapVeinOutcropAndRangeViewTest
     {
         // 本番の毎フレーム駆動を模して範囲表示をこのフレーム数だけ連続で叩く

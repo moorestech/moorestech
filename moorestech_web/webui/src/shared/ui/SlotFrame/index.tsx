@@ -8,6 +8,9 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "
   filled?: boolean;
   catalog?: boolean;
   insufficient?: boolean;
+  // 配置されるべき内容の半透明プレビュー。枠自体の見た目は変えず内容だけ透かす
+  // Translucent preview of the content that belongs here; only the content is faded, not the frame itself
+  ghost?: boolean;
   onLeftDown?: (shiftKey: boolean) => void;
   onRightDown?: () => void;
   onRightEnter?: () => void;
@@ -21,7 +24,7 @@ type Props = Omit<HTMLAttributes<HTMLDivElement>, "children" | "onMouseDown" | "
 
 // data属性と操作契約を集約する
 // Centralizes the slot frame data attributes and pointer gesture contract
-export function renderSlotFrame({ children, selected, filled, catalog, insufficient, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, onHoverChange, testId, ...divProps }: Props, ref: ForwardedRef<HTMLDivElement>) {
+export function renderSlotFrame({ children, selected, filled, catalog, insufficient, ghost, onLeftDown, onRightDown, onRightEnter, onLeftEnter, onDoubleClick, onHoverChange, testId, ...divProps }: Props, ref: ForwardedRef<HTMLDivElement>) {
   const slotMouse = useSlotMouse(onLeftDown, onRightDown, onRightEnter, onLeftEnter);
   return (
     <div
@@ -33,6 +36,7 @@ export function renderSlotFrame({ children, selected, filled, catalog, insuffici
       data-filled={filled ? "true" : undefined}
       data-catalog={catalog ? "true" : undefined}
       data-insufficient={insufficient ? "true" : undefined}
+      data-ghost={ghost ? "true" : undefined}
       onMouseDown={slotMouse.onMouseDown}
       onMouseEnter={(event) => {
         slotMouse.onMouseEnter(event);

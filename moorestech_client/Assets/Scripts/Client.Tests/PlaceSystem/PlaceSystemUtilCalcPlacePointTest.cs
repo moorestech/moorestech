@@ -31,7 +31,7 @@ namespace Client.Tests.PlaceSystem
                 false,
                 new Vector3Int(1, 1, 1),
                 null,
-                null,
+                false, // openable
                 null
             );
         }

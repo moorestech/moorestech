@@ -81,6 +81,7 @@ public class BadExample
 名前は実処理と一致させる（イベントは変化対象を名前に含める）
 同種の条件分岐は文脈が集まっている側の一箇所へ揃える（直下に集めるなら直下、ローカル関数に集めるならローカル関数）
 デバッグ/テスト専用publicをプロダクションに残さない
+fail-closedで拒否・保留・無視する経路（ガードのearly return・検証失敗時の何もしない縮退）は、その理由を開発者が読めるログへ必ず出す。無音の縮退は禁止（実例2026-09-08 別プロジェクト: 拒否理由がどこにもログされず、通信を手で叩くまで恒久封鎖に気づけなかった）
 
 ### 時間に関して
 サーバーのゲームロジックで経過時間を測るときは`Core.Update.GameUpdater`のティック加算だけを使う。`Time.deltaTime`・`Stopwatch`・`Environment.TickCount`といった実時間APIは使わない
@@ -114,8 +115,9 @@ EditModeInPlayingTest等のPlayMode遷移テストはドメインリロードを
 `uloop compile --project-path ./moorestech_client`
 
 ## テスト
-基本的に`--filter-type regex`で実行対象を限定すること。
+基本的に`--filter-type regex`or`--filter-type class`で実行対象を絞る
 `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "正規表現"`
+`--timeout-seconds`を使用可能既定600s最大1500s
 
 サーバー側のテストはクライアントプロジェクトからもインポートされており、上記コマンド（クライアントのproject-path）で同時に実行できる。サーバー単体プロジェクトを別途指定する必要はない。
 unity-playmode-recorded-playtestでPlayModeを通しで動かす検証は「unityプレイ録画テスト」と呼ぶ。「e2e」「E2Eテスト」とは呼ばない。

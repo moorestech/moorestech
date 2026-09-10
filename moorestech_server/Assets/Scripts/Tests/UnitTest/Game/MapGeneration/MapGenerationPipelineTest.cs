@@ -10,6 +10,9 @@ namespace Tests.UnitTest.Game.MapGeneration
     // 鉱脈 AABB は配置点中心の固定サイズであること。
     // Verify pipeline determinism: same seed => identical output, different seed => different heights,
     // vein AABBs stay a fixed size centred on their placement point.
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap2")]
     public class MapGenerationPipelineTest
     {
         [Test]
@@ -58,12 +61,12 @@ namespace Tests.UnitTest.Game.MapGeneration
             Assert.That(output.ItemVeins, Is.Not.Empty);
             Assert.That(output.FluidVeins, Is.Not.Empty);
 
-            // 変換後も鉱脈は全軸差2の固定AABB
-            // After the transform, every vein keeps a fixed two-unit span on every axis
+            // 変換後も鉱脈はXZ差2・Y差0の3x1x3固定AABB
+            // After the transform, every vein keeps the fixed 3x1x3 AABB: two units on XZ and none on Y
             foreach (var vein in output.ItemVeins)
-                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
+                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 0, 2)));
             foreach (var vein in output.FluidVeins)
-                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 2, 2)));
+                Assert.That(vein.Max - vein.Min, Is.EqualTo(new Vector3Int(2, 0, 2)));
         }
 
         [Test]

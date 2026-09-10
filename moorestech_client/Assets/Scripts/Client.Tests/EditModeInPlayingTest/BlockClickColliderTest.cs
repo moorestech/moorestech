@@ -19,6 +19,9 @@ namespace Client.Tests.EditModeInPlayingTest
     /// This test runs in EditMode but switches to PlayMode during execution.
     /// Verifies via raycast that both baked ClickColliders and hand-authored colliders are clickable in-game.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay3")]
     public class BlockClickColliderTest
     {
         // Fast_BeltConveyor_StraightはBaker焼き込みのClickCollider、stone crasherは手付けCapsuleCollider

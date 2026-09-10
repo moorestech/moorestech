@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 import { useTopicEvents, Topics } from "@/bridge";
-import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
+import { useI18n, useItemDisplayName } from "@/shared/i18n";
 import ItemIcon from "@/shared/ui/ItemIcon";
 import { NOTIFICATION_DISPLAY_MS, useNotificationStore } from "./notificationStore";
 import type { GameNotification } from "./notificationStore";
@@ -54,8 +54,8 @@ function NotificationRow({ notification, onRemove }: { notification: GameNotific
   const rowRef = useRef<HTMLDivElement>(null);
   // itemMasterは非同期ロードなので未着時はid表示へ落とす
   // The item master loads asynchronously, so an unresolved name falls back to the id
-  const resolveItemName = useItemNameResolver();
-  const { key, values } = resolveNotificationText(notification, t, (itemId) => resolveItemName(itemId) ?? t(L.ui.common.itemFallback, { itemId }));
+  const itemDisplayName = useItemDisplayName();
+  const { key, values } = resolveNotificationText(notification, t, itemDisplayName);
   const lifetimeStyle = { "--notification-lifetime": `${NOTIFICATION_DISPLAY_MS}ms` } as CSSProperties;
 
   // 初回描画の入場は宣言側が回すので、epochが進んだときだけ再生し直す

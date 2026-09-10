@@ -3,6 +3,7 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ItemMasterEntry } from "@/bridge";
 import { itemNameKey } from "../contentKeys";
+import { L } from "../generated/localizationKeys";
 import { setDictionaries } from "../i18nStore";
 
 const ITEM_GUID = "01234567-89ab-cdef-0123-456789abcdef";
@@ -15,7 +16,9 @@ vi.mock("@/bridge", async (importOriginal) => ({
   useItemMaster: () => mockState.master,
 }));
 
-import { useItemNameResolver } from "./useItemName";
+import { useItemDisplayName, useItemNameResolver } from "./useItemName";
+
+const FALLBACK_TEMPLATE = "アイテム {itemId}";
 
 let latestResolver: ReturnType<typeof useItemNameResolver>;
 
@@ -99,6 +102,42 @@ describe("useItemNameResolver", () => {
     });
 
     expect(latestResolver).toBe(firstResolver);
+    renderer.unmount();
+  });
+});
+
+function DisplayNameProbe({ itemId }: { itemId: number }) {
+  return createElement("span", null, useItemDisplayName()(itemId));
+}
+
+function renderDisplayNameProbe(itemId: number): ReactTestRenderer {
+  let renderer!: ReactTestRenderer;
+  act(() => {
+    renderer = create(createElement(DisplayNameProbe, { itemId }));
+  });
+  return renderer;
+}
+
+describe("useItemDisplayName", () => {
+  beforeEach(() => {
+    mockState.master = null;
+    setDictionaries("japanese", { [L.ui.common.itemFallback]: FALLBACK_TEMPLATE }, {}, {});
+  });
+
+  it("マスタ未着ではid表示へ落とす", () => {
+    const renderer = renderDisplayNameProbe(2);
+    expect(renderer.root.findByType("span").children).toEqual(["アイテム 2"]);
+    renderer.unmount();
+  });
+
+  it("解決できれば表示名を返す", () => {
+    const key = itemNameKey(ITEM_GUID);
+    mockState.master = new Map([[1, { itemId: 1, itemGuid: ITEM_GUID, maxStack: 100 }]]);
+    setDictionaries("japanese", { [L.ui.common.itemFallback]: FALLBACK_TEMPLATE, [key]: "石" }, {}, {});
+
+    const renderer = renderDisplayNameProbe(1);
+
+    expect(renderer.root.findByType("span").children).toEqual(["石"]);
     renderer.unmount();
   });
 });

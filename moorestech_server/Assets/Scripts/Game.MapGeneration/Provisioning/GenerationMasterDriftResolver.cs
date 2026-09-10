@@ -30,7 +30,9 @@ namespace Game.MapGeneration.Provisioning
         // Scale keeps full float precision as the placement-ledger digest does; reusing position's 1mm tolerance would hide small visual changes
         private const string ScaleRoundTripFormat = "R";
 
-        public static void Resolve(WorldDataDirectory worldDataDirectory, string serverDataDirectory, TerrainTransferMeta terrainMeta)
+        // 生成専用値だけを見るのでgenerated限定で受ける。templateを渡す経路は型で塞ぐ
+        // It reads generated-only values, so it takes the generated meta alone and the type forbids handing it a template
+        public static void Resolve(WorldDataDirectory worldDataDirectory, string serverDataDirectory, GeneratedTerrainTransferMeta terrainMeta)
         {
             // ここは指紋を突き合わせるだけでなく、進める新しい値としても要るので算出結果を手元に持つ
             // The fingerprint is needed here not only to match but as the new value to advance to, so the computation is kept at hand

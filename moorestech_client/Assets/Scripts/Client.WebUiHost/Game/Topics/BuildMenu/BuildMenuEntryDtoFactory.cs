@@ -33,7 +33,7 @@ namespace Client.WebUiHost.Game.Topics.BuildMenu
 
             // 所持集計は全エントリで共有
             // Share the held tally across all entries
-            var heldByItem = ConstructionMaterialHeldCounts.Tally(inventoryItems);
+            var heldByItem = ConstructionMaterialAccounting.TallyHeld(inventoryItems);
 
             // デバッグ設定はpublish毎に1回解決
             // Resolve the debug flag once per publish

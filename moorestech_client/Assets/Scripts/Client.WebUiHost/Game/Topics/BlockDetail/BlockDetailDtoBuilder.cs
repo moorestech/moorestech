@@ -29,6 +29,10 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             if (common != null && machineState != null && param is IMachineParam machineParam)
             {
                 var recipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse(machineState.MachineRecipeGuid));
+
+                // 束縛は選択レシピが決めるため、加工中レシピではなく選択レシピから引く
+                // The binding follows the selected recipe, so it resolves from the selection rather than the running job
+                var selectedRecipe = MasterHolder.MachineRecipesMaster.GetRecipeElement(Guid.Parse(machineState.SelectedRecipeGuid));
                 dto.Progress = machineState.ProcessingRate;
                 dto.Machine = new MachineDetailDto
                 {
@@ -40,7 +44,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                     CurrentState = ToCamelCase(common.CurrentStateType),
                     CurrentPower = common.CurrentPower,
                     RequestPower = common.RequestPower,
-                    SlotLayout = new SlotLayoutDto { Input = machineParam.InputSlotCount, Output = machineParam.OutputSlotCount, Module = machineParam.ModuleSlotCount },
+                    SlotLayout = new SlotLayoutDto { Input = machineParam.InputSlotCount, Output = machineParam.OutputSlotCount, Module = machineParam.ModuleSlotCount, InputTank = machineParam.InputTankCount },
+                    SlotBindings = MachineSlotBindingDtoBuilder.BuildSlotBindings(selectedRecipe, machineParam),
+                    TankBindings = MachineSlotBindingDtoBuilder.BuildTankBindings(selectedRecipe, machineParam),
                 };
             }
 
@@ -57,19 +63,13 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 };
             }
 
-            // 採掘機: CommonMiner StateDetail + マスタ MineSettings から分間採掘数を算出
-            // Miners: the CommonMiner state detail plus per-minute rates derived from master MineSettings
-            var miner = block.GetStateDetail<CommonMinerBlockStateDetail>(CommonMinerBlockStateDetail.BlockStateDetailKey);
-            if (miner != null && common != null && param is IMinerParam minerParam)
-            {
-                dto.Progress = common.ProcessingRate;
-                dto.Miner = new MinerDetailDto
-                {
-                    CurrentPower = common.CurrentPower,
-                    RequestPower = common.RequestPower,
-                    MiningItems = BuildMiningItems(miner, minerParam),
-                };
-            }
+            // 採掘機: MinerDetailDtoBuilderが算出
+            // Miners: computed by MinerDetailDtoBuilder
+            MinerDetailDtoBuilder.Apply(dto, block, param, common);
+
+            // ポンプ: PumpDetailDtoBuilderが算出
+            // Pumps: computed by PumpDetailDtoBuilder
+            PumpDetailDtoBuilder.Apply(dto, block, param, common);
 
             // ギア: GearStateDetail + マスタ GearConsumption（要求値）
             // Gears: the GearStateDetail plus master GearConsumption requirements
@@ -149,23 +149,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             }
         }
 
-        private static List<MiningItemDto> BuildMiningItems(CommonMinerBlockStateDetail miner, IMinerParam minerParam)
-        {
-            // uGUI MinerBlockInventoryView と同じ算出（サーバーの実効採掘時間から 60/秒 を分間数に）
-            // Same derivation as uGUI MinerBlockInventoryView (60 / the server's effective seconds, per minute)
-            var result = new List<MiningItemDto>();
-            var currentIds = miner.GetCurrentMiningItemIds();
-            if (miner.MiningSeconds <= 0) return result;
-
-            foreach (var settings in minerParam.MineSettings.items)
-            {
-                var itemId = MasterHolder.ItemMaster.GetItemId(settings.ItemGuid);
-                if (!currentIds.Contains(itemId)) continue;
-                result.Add(new MiningItemDto { ItemId = itemId.AsPrimitive(), ItemsPerMinute = (float)(60 / miner.MiningSeconds) });
-            }
-            return result;
-        }
-
         private static void AppendFluidSlots(List<BlockFluidSlotDto> slots, List<FluidMessagePack> tanks)
         {
             foreach (var tank in tanks)
@@ -180,17 +163,12 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
         private static GearConsumption GetGearConsumption(object param)
         {
-            // ギア消費要求値を持つ param のみ対象（GearMachine / GearMiner）
-            // Only params carrying gear consumption requirements (GearMachine / GearMiner)
-            return param switch
-            {
-                GearMachineBlockParam p => p.GearConsumption,
-                GearMinerBlockParam p => p.GearConsumption,
-                _ => null,
-            };
+            // ギア消費要求値の有無はスキーマのIGearConsumptionParamが正本（具体型の列挙はしない）
+            // The schema's IGearConsumptionParam is the authority on which params carry gear consumption
+            return param is IGearConsumptionParam gearConsumptionParam ? gearConsumptionParam.GearConsumption : null;
         }
 
-        private static string ToCamelCase(string value)
+        internal static string ToCamelCase(string value)
         {
             if (string.IsNullOrEmpty(value)) return value;
             return char.ToLowerInvariant(value[0]) + value.Substring(1);

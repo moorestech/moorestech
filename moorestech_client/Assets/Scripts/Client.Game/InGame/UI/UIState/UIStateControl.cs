@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
 using UnityEngine;
 using VContainer;
 
@@ -12,7 +13,6 @@ namespace Client.Game.InGame.UI.UIState
         public UIStateEnum CurrentState { get; private set; }
 
         private UIStateEnum? _webTransitionRequest;
-        private bool? _lastWebUiMode;
 
         [Inject]
         public void Construct(UIStateDictionary uiStateDictionary)
@@ -26,6 +26,13 @@ namespace Client.Game.InGame.UI.UIState
             _uiStateDictionary.GetState(CurrentState).OnEnter(initialContext);
         }
 
+        // 現stateが入れ子ポーズを持つ画面かの解決口。Web境界はこの1箇所だけを見る（ADR 0035）
+        // Single resolution point for whether the current state owns a nested pause; the web boundary looks only here (ADR 0035)
+        public INestedPauseScreenState GetCurrentNestedPauseScreen()
+        {
+            return _uiStateDictionary.GetState(CurrentState) as INestedPauseScreenState;
+        }
+        
         // Web UI からの遷移要求を受け付ける（次のUpdateで最優先消費）
         // Accept a transition request from the Web UI (consumed first in the next Update)
         public void RequestTransition(UIStateEnum nextState)
@@ -36,23 +43,6 @@ namespace Client.Game.InGame.UI.UIState
         // UI state
         private void Update()
         {
-            // webモード切替の両エッジでGameScreenへ正規化する（uGUI/Webビューの表示不整合を防ぐ）
-            // Normalize to GameScreen on both web-mode edges (prevents uGUI/web view visibility mismatch)
-            var webUiMode = WebUiScreenGate.IsWebUiMode;
-            if (_lastWebUiMode == null)
-            {
-                // 初回Updateは記録のみとし、起動時の偽エッジ正規化を防ぐ（乗車ログイン時のTrainHUD維持）
-                // First Update only records the mode, preventing spurious boot-edge normalization (keeps TrainHUD on ride-login)
-                _lastWebUiMode = webUiMode;
-            }
-            else if (webUiMode != _lastWebUiMode)
-            {
-                _lastWebUiMode = webUiMode;
-                _webTransitionRequest = null;
-                ForceReturnToGameScreen();
-                return;
-            }
-
             // Web要求を最優先で消費し、無ければ現stateの入力判定を使う
             // Consume the web request first; otherwise poll the current state's input
             var nextContext = ConsumeWebRequest() ?? _uiStateDictionary.GetState(CurrentState).GetNextUpdate();
@@ -81,21 +71,6 @@ namespace Client.Game.InGame.UI.UIState
                 // A request for the current state needs no transition
                 if (requested == CurrentState) return null;
                 return new UITransitContext(requested);
-            }
-
-            void ForceReturnToGameScreen()
-            {
-                // GameScreen外は終了処理を実行
-                // Run exit unless on GameScreen
-                var lastState = CurrentState;
-                if (lastState != UIStateEnum.GameScreen) _uiStateDictionary.GetState(lastState).OnExit();
-
-                // GameScreenへ再入場しカーソル・カメラ・操作説明を確定させる（同一状態でもカーソル復元のため実行）
-                // Re-enter GameScreen to settle cursor/camera/key description (run even for the same state to restore cursor)
-                CurrentState = UIStateEnum.GameScreen;
-                _uiStateDictionary.GetState(CurrentState).OnEnter(new UITransitContext(UIStateEnum.GameScreen));
-
-                if (lastState != CurrentState) OnStateChanged?.Invoke(CurrentState);
             }
 
             #endregion

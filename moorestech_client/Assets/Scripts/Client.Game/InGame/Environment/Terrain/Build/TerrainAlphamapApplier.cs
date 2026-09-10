@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Client.Game.InGame.Environment.Terrain.Build
@@ -35,9 +36,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             for (var planeIndex = 0; planeIndex < alphamapTextures.Length; planeIndex++)
             {
-                // Unity APIはmutable配列だけを受けるため、実アップロード時に限って防御コピーを作る
-                // Unity accepts only a mutable array, so make the defensive copy only for the actual upload
-                alphamapTextures[planeIndex].SetPixelData(alphamap.Planes[planeIndex].ToArray(), 0);
+                // テクスチャの生バッファへ直接写す。中間配列を挟むとタイル毎に平面ぶんのフルサイズ確保が増える
+                // Copy straight into the texture's raw buffer; an intermediate array would add one full-size allocation per plane per tile
+                alphamap.Planes[planeIndex].Span.CopyTo(alphamapTextures[planeIndex].GetRawTextureData<byte>().AsSpan());
                 alphamapTextures[planeIndex].Apply(false);
 
                 // 平面ごとに描画機会を返し、巨大なタイルでもロード画面を占有し続けない

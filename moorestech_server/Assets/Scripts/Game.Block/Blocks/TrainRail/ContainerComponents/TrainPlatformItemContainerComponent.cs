@@ -208,6 +208,13 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
         public List<IItemStack> InsertItem(List<IItemStack> itemStacks) => Container.InsertItem(itemStacks);
         public bool InsertionCheck(List<IItemStack> itemStacks) => Container.InsertionCheck(itemStacks);
         public IItemStack GetItem(int slot) => Container.GetItem(slot);
+        // 配置制約を持たないインベントリはどのスロットも受け入れる
+        // An inventory without placement restrictions accepts every slot
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
+        {
+            return true;
+        }
+
         public void SetItem(int slot, IItemStack stack) => Container.SetItem(slot, stack);
         public void SetItem(int slot, ItemId itemId, int count) => Container.SetItem(slot, itemId, count);
         public IItemStack ReplaceItem(int slot, IItemStack itemStack) => Container.ReplaceItem(slot, itemStack);

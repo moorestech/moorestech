@@ -120,12 +120,17 @@ const buildMenuEnglish = {
   "ui.buildMenu.blueprintCopy": "Blueprint Copy",
 };
 
+const english = {
+  ...source,
+  ...buildMenuEnglish,
+  "challenge.82000000-0000-4000-8000-000000000003.title": "Mine stone",
+};
+
+// germanは本番と同じくenglish複写（.decisions/2026-08-25-german.jsonはenglish複写でlocaleとnameだけ独語にする）
+// german mirrors production by copying english (.decisions/2026-08-25)
 export const contentLocalizationDictionaries: Record<string, Record<string, string>> = {
   source,
-  english: {
-    ...source,
-    ...buildMenuEnglish,
-    "challenge.82000000-0000-4000-8000-000000000003.title": "Mine stone",
-  },
+  english,
   japanese: source,
+  german: english,
 };

@@ -15,7 +15,7 @@ keywords:
 # Reviewer: アーキテクチャ / ライフサイクル境界 (C#)
 
 ## あなたの役割
-cwd を読み、C# のモジュール配置 / 抽象型 API / Protocol 境界 / イベント発火の設計欠陥のうち **Critical のみ** を返す。
+cwd を読み、C# のモジュール配置 / 抽象型 API / Protocol 境界 / イベント発火の設計欠陥を返す。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch を Read し、変更された `.cs` ソースファイルに絞る
@@ -53,15 +53,4 @@ cwd を読み、C# のモジュール配置 / 抽象型 API / Protocol 境界 / 
 - 既存クラス内にある判定 / 計算メソッドを、新規のドメイン層 service / evaluator / calculator クラスへ抽出せよという提案。集約はあくまで既存クラス内で行うべきで、新クラス・新レイヤの新設は churn を増やすだけ。判定メソッドの責務分離が本当に必要でも、新ファイル新設を指示しない
 
 ## 出力フォーマット
-Critical が 1 件でもあれば:
-```
-Critical: あり
-
-修正方針:
-- <ファイル:行>: <何を直すか>
-- ...
-```
-0 件なら:
-```
-Critical: なし
-```
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <何を直すか>`

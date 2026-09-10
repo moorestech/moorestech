@@ -35,38 +35,38 @@ namespace Client.Starter.Initialization
 
             // templateモードのワールドは地形バイナリを持たないので取得対象が無い
             // A template-mode world owns no terrain binary, so there is nothing to fetch
-            if (terrainMeta.IsTemplate) return 0;
+            if (terrainMeta is not GeneratedTerrainTransferMeta generatedMeta) return 0;
 
-            var cacheWorldDirectory = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId);
-            var segments = TerrainTransferMeta.EnumerateStreamSegments(cacheWorldDirectory, terrainMeta.TerrainTileCount, terrainMeta.TerrainResolution).ToList();
+            var cacheWorldDirectory = WorldDataDirectory.ForWorldCache(generatedMeta.WorldId);
+            var segments = TerrainTransferMeta.EnumerateStreamSegments(cacheWorldDirectory, generatedMeta.TerrainTileCount, generatedMeta.TerrainResolution).ToList();
             var totalStreamByteLength = segments.Sum(segment => segment.ByteLength);
 
             // 欠損・不一致は区別せず、サーバーのハッシュと一致しなければ全チャンクを取り直す
             // Missing and mismatching are not distinguished: anything but a hash match triggers a full re-fetch
             if (IsCacheMatchingServer())
             {
-                Debug.Log($"[TerrainDataFetcher] 地形キャッシュを再利用します worldId={terrainMeta.WorldId}");
+                Debug.Log($"[TerrainDataFetcher] 地形キャッシュを再利用します worldId={generatedMeta.WorldId}");
                 return 0;
             }
 
-            Debug.Log($"[TerrainDataFetcher] 地形チャンク取得開始 worldId={terrainMeta.WorldId} total={terrainMeta.TerrainChunkTotal}");
+            Debug.Log($"[TerrainDataFetcher] 地形チャンク取得開始 worldId={generatedMeta.WorldId} total={generatedMeta.TerrainChunkTotal}");
             await DownloadAllChunks();
 
             // 書き込み後に再ハッシュして転送破損を検出する。壊れた地形をキャッシュヒット扱いで持ち越さない
             // Re-hash after writing to catch transfer corruption instead of carrying broken terrain forward as a cache hit
-            var restoredHash = TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta);
+            var restoredHash = TerrainStreamHasher.Compute(cacheWorldDirectory, generatedMeta);
             if (restoredHash != wireMeta.TerrainHash)
                 throw new InvalidOperationException(
                     $"Restored terrain hash '{restoredHash}' does not match the server hash '{wireMeta.TerrainHash}'.");
 
-            return terrainMeta.TerrainChunkTotal;
+            return generatedMeta.TerrainChunkTotal;
 
             #region Internal
 
             bool IsCacheMatchingServer()
             {
                 if (segments.Any(segment => !File.Exists(segment.FilePath))) return false;
-                return TerrainStreamHasher.Compute(cacheWorldDirectory, terrainMeta) == wireMeta.TerrainHash;
+                return TerrainStreamHasher.Compute(cacheWorldDirectory, generatedMeta) == wireMeta.TerrainHash;
             }
 
             async UniTask DownloadAllChunks()
@@ -78,7 +78,7 @@ namespace Client.Starter.Initialization
                 Directory.CreateDirectory(cacheWorldDirectory.TerrainDirectory);
 
                 using var fileWriter = new TerrainStreamFileWriter(segments);
-                for (var chunkIndex = 0; chunkIndex < terrainMeta.TerrainChunkTotal; chunkIndex++)
+                for (var chunkIndex = 0; chunkIndex < generatedMeta.TerrainChunkTotal; chunkIndex++)
                 {
                     fileWriter.Write(await FetchChunk(chunkIndex));
                 }
@@ -104,7 +104,7 @@ namespace Client.Starter.Initialization
 
             int ExpectedChunkByteLength(int chunkIndex)
             {
-                if (chunkIndex + 1 < terrainMeta.TerrainChunkTotal) return TerrainTransferMeta.ChunkByteSize;
+                if (chunkIndex + 1 < generatedMeta.TerrainChunkTotal) return TerrainTransferMeta.ChunkByteSize;
                 return checked((int)(totalStreamByteLength - (long)chunkIndex * TerrainTransferMeta.ChunkByteSize));
             }
 

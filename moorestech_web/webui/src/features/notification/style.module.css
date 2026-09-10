@@ -9,9 +9,6 @@
   gap: 10px;
   z-index: var(--z-viewport-behind-stage);
   pointer-events: none;
-  /* stretchだと行が親のshrink-to-fit幅に揃い固定幅が最長行に負ける */
-  /* Stretch would align rows to the parent's shrink-to-fit width, letting the longest row override the fixed width */
-  align-items: flex-start;
   /* stage外に置かれた層なのでstageと同率で拡縮し、実解像度に依らず見かけの大きさを保つ */
   /* This layer sits outside the stage, so it scales at the stage's rate and keeps its apparent size across resolutions */
   transform: scale(var(--ui-scale, 1));

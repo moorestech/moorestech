@@ -119,7 +119,7 @@ namespace Client.Tests.PlaceSystem.Common
                 false,
                 blockSize,
                 null,
-                null,
+                false, // openable
                 null
             );
         }

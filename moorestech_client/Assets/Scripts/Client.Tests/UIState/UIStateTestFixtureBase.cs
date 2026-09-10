@@ -5,11 +5,19 @@ using Client.Game.InGame.BlockSystem.PlaceSystem;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Player;
-using Client.Game.InGame.UI.Challenge;
+using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.Inventory.Main;
+using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
+using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
+using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
+using Client.Network.API;
+using Server.Util.MessagePack;
 using Client.Tests.UIState.Fakes;
 using Client.Tests.ViewMode;
 using UnityEngine;
@@ -66,7 +74,7 @@ namespace Client.Tests.UIState
         // Equipment plays no part in highlight or transition checks, so it is built with null; mining outcome tests live elsewhere
         protected static InteractController CreateInteractController()
         {
-            return new InteractController(null, new InteractTargetSelector());
+            return new InteractController(null, new InteractTargetSelector(), new ProgressBarState(), new MouseCursorTooltipState());
         }
 
         protected static UiStateCameraPolicyService CreateCameraPolicy(FakePlayerCameraInteractionApplier applier)
@@ -79,13 +87,40 @@ namespace Client.Tests.UIState
             return new UiStateCameraPolicyService(applier, viewModeController);
         }
 
-        protected void SetUpMouseCursorTooltip()
+        // 8px未満で押して離すだけの短押しをシミュレートする（移動なし）
+        // Simulates a short press below the 8px threshold (press then release with no movement)
+        protected UITransitContext PressAndReleaseRightButton(IUIState state)
         {
-            var tooltip = CreateComponent<MouseCursorTooltip>("Tooltip", false);
-            SetField(tooltip, "canvasGroup", tooltip.gameObject.AddComponent<CanvasGroup>());
-            tooltip.gameObject.SetActive(true);
-            InvokeAwake(tooltip);
+            Press(MouseDevice.rightButton);
+            state.GetNextUpdate();
+            Release(MouseDevice.rightButton);
+            return state.GetNextUpdate();
         }
+
+        // PlayerInventoryStateのctorは初期応答の適用まで走るため、必要な実体込みで組み立てる
+        // PlayerInventoryState's ctor applies the initial response, so it is assembled together with the instances it needs
+        protected PlayerInventoryState CreatePlayerInventoryState(LocalPlayerEquipment playerEquipment, InitialHandshakeResponse handshakeResponse)
+        {
+            return new PlayerInventoryState(
+                new LocalPlayerInventoryController(new LocalPlayerInventory(), playerEquipment),
+                playerEquipment, handshakeResponse, new RightShortPressInputService(new RightShortPressInput()));
+        }
+
+        // Handshakeは使用項目だけを設定する。残りはEditModeで組み立てられずPlayerInventoryStateも読まない
+        // Only the fields the handshake consumes are set; the rest cannot be assembled in EditMode and PlayerInventoryState never reads them
+        protected static InitialHandshakeResponse CreateHandshakeResponse(PlayerInventoryResponse inventory)
+        {
+#pragma warning disable CS0618
+            var initialHandshake = new global::Server.Protocol.PacketResponse.InitialHandshakeProtocol.ResponseInitialHandshakeMessagePack
+            {
+                PlayerPos = new Vector3MessagePack(Vector3.zero),
+            };
+#pragma warning restore CS0618
+
+            return new InitialHandshakeResponse(initialHandshake, (null, null, inventory, null, null, null, null, null));
+        }
+
+        protected MouseCursorTooltipState CreateMouseCursorTooltip() => new();
 
         // インタラクト選定は本番と同じUI重なり判定を通るため、Setupで立てたEventSystemを入力モジュール付きで有効化する
         // Interact selection runs the production UI-overlap check, so activate the Setup EventSystem with an input module
@@ -106,9 +141,7 @@ namespace Client.Tests.UIState
             playerRoot.SetActive(true);
             InvokeAwake(playerContainer);
 
-            var challengeHud = CreateComponent<CurrentChallengeHudView>("ChallengeHud");
             var gameState = CreateComponent<GameStateController>("GameState", false);
-            SetField(gameState, "currentChallengeHudView", challengeHud);
             gameState.gameObject.SetActive(true);
             InvokeAwake(gameState);
         }

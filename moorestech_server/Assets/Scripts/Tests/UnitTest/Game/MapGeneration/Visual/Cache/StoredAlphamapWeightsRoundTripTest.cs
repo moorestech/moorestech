@@ -3,6 +3,7 @@ using System.IO;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Pipeline.Visual;
 using Game.MapGeneration.Pipeline.Visual.Surround;
+using Game.MapGeneration.Transfer;
 using NUnit.Framework;
 using UnityEngine;
 using static Tests.UnitTest.Game.MapGeneration.Visual.Surround.SurroundTestFixtures;
@@ -108,8 +109,8 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
 
             var total = 0;
             for (var layer = 0; layer < layerCount; layer++)
-                total += planes[layer / TerrainVisualCacheFormat.LayersPerAlphamapPlane]
-                    [layer % TerrainVisualCacheFormat.LayersPerAlphamapPlane];
+                total += planes[layer / TileAlphamap.LayersPerAlphamapPlane]
+                    [layer % TileAlphamap.LayersPerAlphamapPlane];
             Assert.That(total, Is.EqualTo(byte.MaxValue));
         }
 
@@ -135,11 +136,33 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
 
             var correctedTotal = 0;
             for (var layer = 0; layer < layerCount; layer++)
-                correctedTotal += planes[layer / TerrainVisualCacheFormat.LayersPerAlphamapPlane]
-                    [layer % TerrainVisualCacheFormat.LayersPerAlphamapPlane];
+                correctedTotal += planes[layer / TileAlphamap.LayersPerAlphamapPlane]
+                    [layer % TileAlphamap.LayersPerAlphamapPlane];
             Assert.That(correctedTotal, Is.EqualTo(byte.MaxValue));
-            Assert.That(planes[strongestLayer / TerrainVisualCacheFormat.LayersPerAlphamapPlane]
-                [strongestLayer % TerrainVisualCacheFormat.LayersPerAlphamapPlane], Is.EqualTo(expectedStrongestByte));
+            Assert.That(planes[strongestLayer / TileAlphamap.LayersPerAlphamapPlane]
+                [strongestLayer % TileAlphamap.LayersPerAlphamapPlane], Is.EqualTo(expectedStrongestByte));
+        }
+
+        // 53層均等では独立丸めの合計が265になり、最強層へ戻す残差-10が最強層のバイト5を下回る
+        // At 53 equal layers the independently rounded total reaches 265, and the -10 residue exceeds the strongest layer's own byte of 5
+        // 素の減算だとbyteが回り込んで251という最大級の重みになり、壊れた重みがキャッシュへ決定論的に保存される
+        // A bare subtraction would wrap the byte to 251 - a near-maximal weight - and store that corruption in the cache deterministically
+        [Test]
+        public void ManyEqualLayersClampTheResidueInsteadOfWrappingTheStrongestByte()
+        {
+            const int layerCount = 53;
+            var alphamap = new float[1, 1, layerCount];
+            for (var layer = 0; layer < layerCount; layer++) alphamap[0, 0, layer] = 1f / layerCount;
+
+            Assert.That(Mathf.RoundToInt(1f / layerCount * byte.MaxValue) * layerCount,
+                Is.GreaterThan(byte.MaxValue + Mathf.RoundToInt(1f / layerCount * byte.MaxValue)), "補正前の独立丸め合計が最強層のバイトを超えて溢れる設定");
+
+            var planes = StoredAlphamapWeights.ToPlanes(alphamap);
+
+            Assert.That(planes[0][0], Is.EqualTo(0), "残差の戻しが範囲外へ出た層は0で止まり、回り込んだ大きな重みにならない");
+            for (var layer = 1; layer < layerCount; layer++)
+                Assert.That(planes[layer / TileAlphamap.LayersPerAlphamapPlane]
+                    [layer % TileAlphamap.LayersPerAlphamapPlane], Is.EqualTo(5));
         }
 
         [Test]

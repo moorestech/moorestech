@@ -40,8 +40,10 @@ jobs:
     # (コミット55b9aa971の再発。裁定2026-08-22でmacOSだけ直列化し、Windowsは並列のまま残す)
     # unity-builder runs natively on macOS, so a simultaneous Server/Client activation fails license validation
     # (a regression of commit 55b9aa971; adjudicated 2026-08-22 to serialize macOS only, leaving Windows parallel)
+    # github.job はjob-level concurrencyでは空になるためジョブ種別をリテラルで書き分ける
+    # github.job resolves to empty in a job-level concurrency block, so the job kind is written out literally
     concurrency:
-      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-{0}-{1}-{2}', github.job, matrix.platform.name, github.run_id) }}
+      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-server-{0}-{1}', matrix.platform.name, github.run_id) }}
       cancel-in-progress: false
 
     strategy:
@@ -119,7 +121,9 @@ jobs:
       # The daily build runs cold so the 10GB cache budget goes to PR-side jobs (ADR 0028)
       # Build
       - name: Server Build - ${{ matrix.platform.name }}
-        uses: game-ci/unity-builder@v4
+        # 上流がv4タグを動かしCIが全滅したため、動作実績のあるSHAへ固定する（2026-09-09）
+        # Pinned to a known-good SHA because an upstream v4 tag move broke all CI (2026-09-09)
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4.8.2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -166,8 +170,10 @@ jobs:
     # (コミット55b9aa971の再発。裁定2026-08-22でmacOSだけ直列化し、Windowsは並列のまま残す)
     # unity-builder runs natively on macOS, so a simultaneous Server/Client activation fails license validation
     # (a regression of commit 55b9aa971; adjudicated 2026-08-22 to serialize macOS only, leaving Windows parallel)
+    # github.job はjob-level concurrencyでは空になるためジョブ種別をリテラルで書き分ける
+    # github.job resolves to empty in a job-level concurrency block, so the job kind is written out literally
     concurrency:
-      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-{0}-{1}-{2}', github.job, matrix.platform.name, github.run_id) }}
+      group: ${{ startsWith(matrix.platform.runner, 'macos') && format('unity-license-mac-{0}', github.run_id) || format('unity-license-client-{0}-{1}', matrix.platform.name, github.run_id) }}
       cancel-in-progress: false
 
     strategy:
@@ -242,6 +248,32 @@ jobs:
               json.dump(data, f, indent=2)
           "
 
+      # uLoopMCP v3はWindowsで名前付きパイプのIPCサーバをEditor起動時に必ず立て、バッチモードでも止まらない。
+      # CIコンテナではその非同期読み取りが未処理のObjectDisposedExceptionを投げ、Unityがビルド開始前に落ちる。
+      # 開発専用ツールでビルドには不要なため、Windowsクライアントビルドでは依存ごと外す。
+      # uLoopMCP v3 always starts a named-pipe IPC server on Windows at Editor startup, batch mode included.
+      # In the CI container its async read throws an unhandled ObjectDisposedException and Unity dies before the build starts.
+      # It is a developer-only tool that the build does not need, so drop the dependency for the Windows client build.
+      - name: Drop uLoopMCP package (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        working-directory: moorestech_client/Packages
+        run: |
+          python3 -c "
+          import json
+          package = 'io.github.hatayama.uloopmcp'
+          with open('manifest.json', 'r') as f:
+              manifest = json.load(f)
+          manifest['dependencies'].pop(package, None)
+          with open('manifest.json', 'w') as f:
+              json.dump(manifest, f, indent=2)
+          with open('packages-lock.json', 'r') as f:
+              lock = json.load(f)
+          lock['dependencies'].pop(package, None)
+          with open('packages-lock.json', 'w') as f:
+              json.dump(lock, f, indent=2)
+          "
+
       # Unityのビルド前処理(WebUiProductionArtifactBuilder)がpnpm buildを実行するが、
       # node/pnpm本体と webui/node_modules は gitignore されているためここで用意する
       - name: Setup Web UI toolchain
@@ -271,7 +303,9 @@ jobs:
       # The daily build runs cold so the 10GB cache budget goes to PR-side jobs (ADR 0028)
       # Build
       - name: Client Build - ${{ matrix.platform.name }}
-        uses: game-ci/unity-builder@v4
+        # 上流がv4タグを動かしCIが全滅したため、動作実績のあるSHAへ固定する（2026-09-09）
+        # Pinned to a known-good SHA because an upstream v4 tag move broke all CI (2026-09-09)
+        uses: game-ci/unity-builder@4423ee75828dff56037d1d1cfdac6b68e3a6ba00 # v4.8.2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}

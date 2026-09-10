@@ -14,11 +14,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run
         public PlacementHitSurfaceKind SurfaceKind { get; }
         public int StartHeightOffset { get; }
 
+        // 列の軸決めはセッションと同じ寿命。セッションが消えれば軸も同時に消える
+        // The run's axis lives exactly as long as the session, so it disappears together with it
+        public bool? DragAxisIsZ { get; private set; }
+
         public PlacementDragSession(Vector3Int startCell, PlacementHitSurfaceKind surfaceKind, int startHeightOffset)
         {
             StartCell = startCell;
             SurfaceKind = surfaceKind;
             StartHeightOffset = startHeightOffset;
+        }
+
+        public void SetDragAxisIsZ(bool? dragAxisIsZ)
+        {
+            DragAxisIsZ = dragAxisIsZ;
         }
     }
 }

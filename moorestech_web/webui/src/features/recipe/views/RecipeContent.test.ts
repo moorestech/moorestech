@@ -34,6 +34,8 @@ const machineRecipes: MachineRecipesData = {
     time: 1,
     inputItems: [],
     outputItems: [{ itemId: RESULT_ITEM_ID, count: 1 }],
+    inputFluids: [],
+    outputFluids: [],
   }],
 };
 const inventory = { mainSlots: [] } as unknown as PlayerInventoryData;

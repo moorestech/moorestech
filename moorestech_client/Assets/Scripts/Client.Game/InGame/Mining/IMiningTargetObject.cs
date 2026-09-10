@@ -45,9 +45,13 @@ namespace Client.Game.InGame.Mining
         // Identifies what this target yields for the tooltip
         IReadOnlyList<Guid> EarnItemGuids { get; }
 
+        // tooltipに出す推奨ツールの識別。対象が持つ性質であり装備には依存しない
+        // Identifies the recommended tools for the tooltip; a property of the target itself, independent of the equipment
+        IReadOnlyList<ItemId> RecommendedToolItemIds { get; }
+
         // 可否・種別・ツール解決を1回の問い合わせへ畳み、成立しない組み合わせを呼び出し側に作らせない
         // Fold availability, kind and tool resolution into one query so callers cannot build impossible combinations
-        MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds);
+        MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool);
 
         // ダメージ算出はサーバ権威のため、打撃対象だけを送る
         // Damage is computed by the server authority, so only the struck target is sent

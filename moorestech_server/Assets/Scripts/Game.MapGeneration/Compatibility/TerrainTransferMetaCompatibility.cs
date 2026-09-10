@@ -42,10 +42,7 @@ namespace Game.MapGeneration.Transfer
         public static void ThrowIfGeneratorVersionDiffers(
             this GeneratedTerrainTransferPayload generatedPayload, string worldId)
         {
-            if (generatedPayload.GeneratorVersion == WorldGeneratorVersion.Current) return;
-            throw new InvalidOperationException(
-                $"Terrain transfer meta of world '{worldId}' was produced by generator '{generatedPayload.GeneratorVersion}', " +
-                $"but this build is '{WorldGeneratorVersion.Current}'. The transferred terrain file layout differs; connect to a server on the same build.");
+            WorldGeneratorVersion.ThrowIfDiffers(generatedPayload.GeneratorVersion, worldId);
         }
     }
 }

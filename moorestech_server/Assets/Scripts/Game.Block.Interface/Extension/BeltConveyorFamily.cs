@@ -21,10 +21,24 @@ namespace Game.Block.Interface.Extension
             DownBlockId = downBlockId;
         }
 
-        public bool IsSlopeBlock(BlockId blockId)
+        // 坂ブロックなら上下どちらの坂かを返す
+        // Returns which way the slope goes when the block is a slope
+        public bool TryGetSlopeDirection(BlockId blockId, out BlockVerticalDirection verticalDirection)
         {
-            return UpBlockId.HasValue && blockId == UpBlockId.Value ||
-                   DownBlockId.HasValue && blockId == DownBlockId.Value;
+            if (UpBlockId.HasValue && blockId == UpBlockId.Value)
+            {
+                verticalDirection = BlockVerticalDirection.Up;
+                return true;
+            }
+
+            if (DownBlockId.HasValue && blockId == DownBlockId.Value)
+            {
+                verticalDirection = BlockVerticalDirection.Down;
+                return true;
+            }
+
+            verticalDirection = BlockVerticalDirection.Horizontal;
+            return false;
         }
     }
 }

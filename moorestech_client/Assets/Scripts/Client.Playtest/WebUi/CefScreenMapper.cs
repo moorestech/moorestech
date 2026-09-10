@@ -1,5 +1,4 @@
 using System.Reflection;
-using Client.Game.InGame.UI.UIState;
 using CefUnity.Interop;
 using CefUnity.Runtime;
 using UnityEngine;
@@ -24,7 +23,7 @@ namespace Client.Playtest.WebUi
 
         public static bool IsWebUiAvailable()
         {
-            return WebUiScreenGate.IsWebUiMode && TryGetBrowser(out _);
+            return TryGetBrowser(out _);
         }
 
         public static bool TryGetBrowser(out Browser browser)

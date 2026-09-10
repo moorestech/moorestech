@@ -30,6 +30,9 @@ namespace Client.Tests
     /// </summary>
     public class StartGameTest
     {
+        // shard割当はテストと一緒に移動・改名される
+        // The shard assignment travels with the test through moves and renames
+        [Category("CiShardClientPlay1")]
         [UnityTest]
         public IEnumerator StartGameCheckTest()
         {
@@ -104,31 +107,22 @@ namespace Client.Tests
         }
 
         [Test]
-        public void MainGameScene_ローカライズ配線と鉱脈表示基盤が共存する()
+        public void MainGameScene_鉱脈表示基盤とピン配線が揃う()
         {
             const string scenePath = "Assets/Scenes/Game/MainGame.unity";
             var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Additive);
 
             try
             {
-                // 両系統のシーン要素を同時検証する
-                // Verify scene elements from both merge parents together because either side is easy to drop
-                var expectedKeys = new HashSet<string>
-                {
-                    "ui.blueprint.nameInputConfirm",
-                    "ui.blueprint.nameInputPlaceholder",
-                    "ui.common.cancel",
-                    "ui.blueprint.nameInputTitle",
-                };
-                var actualKeys = new HashSet<string>();
-                var localizedTexts = UnityEngine.Object.FindObjectsByType<TextMeshProLocalize>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-
-                foreach (var localizedText in localizedTexts)
-                {
-                    if (localizedText.gameObject.scene != scene) continue;
-                    var serializedText = new SerializedObject(localizedText);
-                    actualKeys.Add(serializedText.FindProperty("key").stringValue);
-                }
+                // 画面文字列はWeb UIが持つため、本シーンには翻訳付きTMPを置かない（ADR 0052）
+                // Screen strings live in the Web UI, so this scene carries no localized TMP (ADR 0052)
+                // 全体検索の反転ではなくシーン内を直接数えることで、対象0件でも真になるvacuousな緑を作らない
+                // Counting inside the scene instead of inverting a global search avoids a vacuous pass when nothing is found
+                var sceneLocalizedTexts = new List<string>();
+                foreach (var root in scene.GetRootGameObjects())
+                    foreach (var localizedText in root.GetComponentsInChildren<TextMeshProLocalize>(true))
+                        sceneLocalizedTexts.Add(localizedText.name);
+                Assert.IsEmpty(sceneLocalizedTexts, "MainGameシーンに翻訳付きTMPが残っている: " + string.Join(", ", sceneLocalizedTexts));
 
                 var veinDatastores = UnityEngine.Object.FindObjectsByType<OutcropGameObjectDatastore>(FindObjectsInactive.Include, FindObjectsSortMode.None);
                 var sceneHasVeinDatastore = false;
@@ -137,7 +131,6 @@ namespace Client.Tests
                     if (veinDatastore.gameObject.scene == scene) sceneHasVeinDatastore = true;
                 }
 
-                Assert.That(actualKeys.IsSupersetOf(expectedKeys), Is.True);
                 Assert.That(sceneHasVeinDatastore, Is.True);
 
                 // 両pin配線と欠損を検証

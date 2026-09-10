@@ -59,7 +59,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
                 PoleBlockId = poleBlockId,
                 ConnectToolGuid = connectToolGuid,
                 MaxConnectionCount = poleParam.MaxConnectionCount,
-                GhostAffordable = true,
                 GhostMaterialShortages = Array.Empty<ConstructionMaterialShortage>(),
             };
             if (sourcePole != null)
@@ -91,11 +90,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             // ポール1本分の建設コスト不足。財布の残りで賄えるなら必要セット数0となり不足は出ない
             // One pole's construction cost shortage; a wallet-covered pole needs zero cost sets and shows no shortage
             input.GhostMaterialShortages = ConstructionCostShortageCalculator.Calculate(poleBlockMaster.RequiredItems, _walletQuery.GetRequiredCostSets(poleBlockId, 1), _playerInventory);
-            input.GhostAffordable = input.GhostMaterialShortages.Count == 0;
+
+            // 地形干渉のセルはポールを設置しないので建設コストも消費せず、チェーン素材の必要数へ乗せない
+            // A terrain-blocked cell places no pole, so its construction cost is never consumed nor added to the chain material requirement
+            var reservedForThisCell = input.GhostGroundClear ? reservedItemCounts : Array.Empty<(ItemId itemId, int count)>();
 
             // 起点があれば延長の設置可否を評価しておく
             // Pre-evaluate extension placeability when a source exists
-            if (sourcePole != null) input.ExtendPreview = GearChainPoleExtendPreviewCalculator.CalculateExtend(input.SourcePolePos, placePos, poleParam, reservedItemCounts, _blockGameObjectDataStore, _playerInventory, input.ConnectToolGuid);
+            if (sourcePole != null) input.ExtendPreview = GearChainPoleExtendPreviewCalculator.CalculateExtend(input.SourcePolePos, placePos, poleParam, reservedForThisCell, _blockGameObjectDataStore, _playerInventory, input.ConnectToolGuid);
 
             return input;
         }

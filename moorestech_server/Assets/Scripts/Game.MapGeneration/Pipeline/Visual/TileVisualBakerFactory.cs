@@ -43,29 +43,31 @@ namespace Game.MapGeneration.Pipeline.Visual
         // クライアントは自分の地形ファイルを持たない。高さ源は先焼きが書いた共有キャッシュで、その導出は呼び出し元に持たせない
         // A client owns no terrain files of its own: its height source is the shared cache the prebake wrote, and deriving it never falls to the caller
         public static Result CreateForClient(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, GeneratedTerrainTransferPayload generatedPayload,
-            Generation selectedGeneration)
+            TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta, Generation selectedGeneration)
         {
             var ledgerSource = new RegeneratedPlacementLedgerSource(selectedGeneration, config);
             return CreateWithHeightSource(
-                config, terrainMeta, generatedPayload, ledgerSource, selectedGeneration, SharedCacheOf(terrainMeta));
+                config, terrainMeta, ledgerSource, selectedGeneration, SharedCacheOf(terrainMeta));
         }
 
         // 先焼きの高さ源はワールド本体のterrain/(生成した本人が唯一の正)。共有キャッシュへの複製は要らない
         // The prebake's height source is the world's own terrain/ (the generator itself is the sole truth); no copy into the shared cache is needed
         public static Result CreateForPrebake(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, GeneratedTerrainTransferPayload generatedPayload,
+            TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta,
             PlacementLedger ledger, Generation selectedGeneration, WorldDataDirectory worldDataDirectory)
         {
             var ledgerSource = new MaterializedPlacementLedgerSource(ledger);
             return CreateWithHeightSource(
-                config, terrainMeta, generatedPayload, ledgerSource, selectedGeneration, worldDataDirectory);
+                config, terrainMeta, ledgerSource, selectedGeneration, worldDataDirectory);
         }
 
         private static Result CreateWithHeightSource(
-            TerrainGenerationConfig config, TerrainTransferMeta terrainMeta, GeneratedTerrainTransferPayload generatedPayload,
+            TerrainGenerationConfig config, GeneratedTerrainTransferMeta terrainMeta,
             IPlacementLedgerSource ledgerSource, Generation selectedGeneration, WorldDataDirectory heightSource)
         {
+            // payloadは常にメタの持ち物。別引数で受けると不整合な対を組める余地が残るのでここで1度だけ読む
+            // The payload always belongs to the meta; taking it as a separate argument would allow an inconsistent pair, so it is read here once
+            var generatedPayload = terrainMeta.GeneratedPayload;
             var gridConfig = config.ShallowCopy();
             gridConfig.worldOffsetX = generatedPayload.Origins.NoiseOrigin.x;
             gridConfig.worldOffsetZ = generatedPayload.Origins.NoiseOrigin.y;

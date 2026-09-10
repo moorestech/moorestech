@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Control.ViewMode;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.Outcrop;
 using Client.Game.InGame.Player;
@@ -141,7 +142,7 @@ namespace Client.Tests.Mining.Outcrop
         {
             _playerObject.transform.position = _targetObject.transform.position;
             AimPointProvider.SetViewMode(PlayerViewMode.ThirdPerson);
-            return new InteractTargetSelector().Select();
+            return new InteractTargetSelector().Scan().Primary;
         }
     }
 }

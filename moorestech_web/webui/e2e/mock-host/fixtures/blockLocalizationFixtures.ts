@@ -13,6 +13,8 @@ export const ELECTRIC_TO_GEAR_BLOCK_GUID = "00000000-0000-4000-8000-000000000210
 export const TRAIN_ITEM_PLATFORM_BLOCK_GUID = "00000000-0000-4000-8000-000000000211";
 export const TRAIN_FLUID_PLATFORM_BLOCK_GUID = "00000000-0000-4000-8000-000000000212";
 export const ELECTRIC_POLE_BLOCK_GUID = "00000000-0000-4000-8000-000000000213";
+export const ELECTRIC_PUMP_BLOCK_GUID = "00000000-0000-4000-8000-000000000214";
+export const GEAR_PUMP_BLOCK_GUID = "00000000-0000-4000-8000-000000000215";
 
 // 動的ブロック名はバニラCSV外なのでmockの合成辞書へ足す
 // Dynamic block names live outside the vanilla CSV, so add them to the mock composite dictionary
@@ -30,13 +32,18 @@ const names = [
   [TRAIN_ITEM_PLATFORM_BLOCK_GUID, "Cargo Platform", "貨物プラットフォーム"],
   [TRAIN_FLUID_PLATFORM_BLOCK_GUID, "Fluid Platform", "液体プラットフォーム"],
   [ELECTRIC_POLE_BLOCK_GUID, "Electric Pole", "電柱"],
+  [ELECTRIC_PUMP_BLOCK_GUID, "Oil Well", "油井"],
+  [GEAR_PUMP_BLOCK_GUID, "Gear Pump", "歯車ポンプ"],
 ] as const;
 
 const english = Object.fromEntries(names.map(([guid, name]) => [blockNameKey(guid), name]));
 const japanese = Object.fromEntries(names.map(([guid, , name]) => [blockNameKey(guid), name]));
 
+// germanは本番と同じくenglish複写（.decisions/2026-08-25-german.jsonはenglish複写でlocaleとnameだけ独語にする）
+// german mirrors production by copying english (.decisions/2026-08-25)
 export const blockNameDictionaries: Record<string, Record<string, string>> = {
   source: japanese,
   english,
   japanese,
+  german: english,
 };

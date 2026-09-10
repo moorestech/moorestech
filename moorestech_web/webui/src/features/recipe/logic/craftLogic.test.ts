@@ -61,6 +61,7 @@ describe("buildRecipeEntries", () => {
   const machine = (guid: string, outputItemId: number, blockId: number): MachineRecipe => ({
     recipeGuid: guid, blockGuid: "00000000-0000-0000-0000-00000000000b", blockId, time: 4,
     inputItems: [{ itemId: 1, count: 1 }], outputItems: [{ itemId: outputItemId, count: 1 }],
+    inputFluids: [], outputFluids: [],
   });
 
   it("クラフトレシピを先頭に、機械レシピを後ろにデータ順で並べる", () => {

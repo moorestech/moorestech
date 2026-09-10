@@ -76,6 +76,9 @@
   /* 研究パネル(--z-stage-overlay-panel)の上へ出す.viewportOverlay一式: チャレンジHUD・画面キーヒント・採掘進捗バー */
   /* Everything in .viewportOverlay, raised above the research panel (--z-stage-overlay-panel): the challenge HUD, screen key hints, and the mining progress bar */
   --z-stage-overlay-panel-chrome: 31;
+  /* ポーズメニューは.viewportOverlay一式（スキット表示層を含む）より前へ出す。ポーズ中でも操作面は最前面に立つ */
+  /* The pause menu stands ahead of everything in .viewportOverlay, the skit layer included, so its controls stay frontmost while paused */
+  --z-stage-pause-menu: 40;
   --z-stage-tooltip: 250;
   /* body直下Portal層の層序。stageの外へ抜けて実画面全体を覆う要素間の前後関係 */
   /* Order in the body-level Portal layer; governs elements that escape the stage to cover the whole real screen */
@@ -344,6 +347,9 @@
   /* Entry gap for the recipe viewer single list (ADR 0011, §8.17);
      its max height comes from the panel body, so no token holds it (user ruling 2026-08-22) */
   --recipe-entry-gap: 10px;
+  /* 機械のレシピ選択リストの行間隔。密度を上げるためレシピビューアより詰める（ユーザー裁定 2026-09-05） */
+  /* Row gap for the machine's recipe selection list; tighter than the recipe viewer to raise density (user ruling 2026-09-05) */
+  --machine-recipe-row-gap: 8px;
   /* クラフトボタンと機械情報行が共有する行高。片方だけ変わると単一リストの縦リズムが崩れる */
   /* Row height shared by the craft button and the machine info row; changing one alone breaks the list rhythm */
   --recipe-action-button-height: 19px;
@@ -380,6 +386,10 @@
   /* Gap between the material, center, and result columns; at 0 the owned/required text (which bleeds 2px past
      the slot) lands right on top of the craft button */
   --recipe-column-gap: 8px;
+  /* レシピ行の内側余白（縦）。機械のレシピ選択リストだけが密度を上げるため局所上書きする（ユーザー裁定 2026-09-05） */
+  /* Vertical padding inside a recipe row; only the machine's recipe-selection list overrides it for higher density (user ruling 2026-09-05) */
+  --recipe-row-padding-block: 0.5rem;
+  --recipe-row-padding-inline: 0.75rem;
   /* 個数バッジの黒（ユーザー裁定 2026-08-17。バッジが出るのは明色面のみが前提） */
   /* Black used by count badges (user ruling 2026-08-17; badges only appear on light faces) */
   --count-text: #111;

@@ -18,7 +18,7 @@ namespace Client.Game.InGame.BackgroundSkit
     {
         public bool IsPlayingSkit { get; private set; }
         
-        [SerializeField] private BackgroundSkitUI backgroundSkitUI;
+        [SerializeField] private BackgroundSkitVoicePlayer backgroundSkitVoicePlayer;
         [SerializeField] private UIStateControl uiStateControl;
         
         [SerializeField] private VoiceDefine voiceDefine;
@@ -53,10 +53,7 @@ namespace Client.Game.InGame.BackgroundSkit
                 var commands = CommandForgeLoader.LoadCommands(commandsToken);
                 context = GetStoryContext();
 
-                backgroundSkitUI.SetActive(true);
-                // webモード中はuGUI文字表示のみ抑止する（音声はUnity再生のためルートは維持。SetActive(false)は音声を殺すため禁止）
-                // In web mode suppress only the uGUI text; keep the root active because Unity owns voice playback (SetActive(false) would kill audio)
-                backgroundSkitUI.SetTextVisible(!WebUiScreenGate.IsWebUiMode);
+                backgroundSkitVoicePlayer.SetActive(true);
 
                 // 背景スキットは簡易Text実装
                 // Background skits use the minimal text-only implementation
@@ -75,7 +72,7 @@ namespace Client.Game.InGame.BackgroundSkit
             StoryContext GetStoryContext()
             {
                 var builder = new ContainerBuilder();
-                builder.RegisterInstance(backgroundSkitUI);
+                builder.RegisterInstance(backgroundSkitVoicePlayer);
                 builder.RegisterInstance(voiceDefine);
                 builder.RegisterInstance<ISkitLocalizationResolver>(localizationResolver);
                 // SkitManagerと同型に実原点を素通しし、背景スキットだけ別の座標系になる余地を残さない（ADR 0029）
@@ -89,7 +86,7 @@ namespace Client.Game.InGame.BackgroundSkit
             {
                 // 唯一のfinallyから表示・session・DI資源を解放する
                 // Release UI, session, and DI resources from the single finally
-                backgroundSkitUI.SetActive(false);
+                backgroundSkitVoicePlayer.SetActive(false);
                 if (presentationStarted) SkitPresentationStateStore.Instance.End();
                 context?.Dispose();
                 localizationResolver?.Dispose();
@@ -101,7 +98,7 @@ namespace Client.Game.InGame.BackgroundSkit
         
         public void SetActive(bool isActive)
         {
-            backgroundSkitUI.SetActive(isActive);
+            backgroundSkitVoicePlayer.SetActive(isActive);
         }
     }
 }

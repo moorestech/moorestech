@@ -188,7 +188,7 @@ public static TerrainOrigins ResolveOrigins(TerrainGenerationConfig config)
 
 ## 判断記録（ADR）
 
-- [ユーザー裁定: 「事後承認するからとりあえず完了してデプロイまで進めて」 2026-08-24] D1〜D6は全てreview `design.md`の推奨案Aを採用する。
+- D1〜D6はAIの単独判断でreview `design.md`の推奨案Aを採用した。ユーザーからは内容不問の事後承認の許可のみを得ている（逐語: 「事後承認するからとりあえず完了してデプロイまで進めて」 2026-08-24）。
 - D1は現在algorithm登録が1件なのでpipeline静的導出を採用し、空振りの多態を作らない。
 - D2はnullを唯一の未生成状態にし、非null値の不変条件をfactoryで閉じる。
 - D3はmasterを唯一の正とし、テストの書き忘れをコードdefaultで補わない。

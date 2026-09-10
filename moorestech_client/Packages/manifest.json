@@ -22,6 +22,7 @@
     "com.unity.inputsystem": "1.18.0",
     "com.unity.memoryprofiler": "1.1.9",
     "com.unity.multiplayer.center": "1.0.1",
+    "com.unity.nuget.newtonsoft-json": "3.2.2",
     "com.unity.profiling.core": "1.0.3",
     "com.unity.recorder": "5.1.4",
     "com.unity.render-pipelines.universal": "17.3.0",
@@ -38,7 +39,7 @@
     "com.yasirkula.ingamedebugconsole": "https://github.com/yasirkula/UnityIngameDebugConsole.git",
     "com.yasirkula.runtimeinspector": "https://github.com/yasirkula/UnityRuntimeInspector.git",
     "com.yujiap.project-window-history": "file:../LocalPackages/ProjectWindowHistory",
-    "io.github.hatayama.uloopmcp": "https://github.com/hatayama/uLoopMCP.git?path=/Packages/src",
+    "io.github.hatayama.uloopmcp": "3.3.0",
     "jp.co.cyberagent.smartaddresser": "https://github.com/CyberAgentGameEntertainment/SmartAddresser.git?path=/Assets/SmartAddresser",
     "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.10.0",
     "jp.juha.cefunity": "https://github.com/KurisuJuha/cef-unity.git?path=cef-unity-unityproject/Assets/CefUnity",
@@ -92,6 +93,7 @@
       "name": "OpenUPM",
       "url": "https://package.openupm.com",
       "scopes": [
+        "io.github.hatayama.uloopmcp",
         "org.nuget"
       ]
     }

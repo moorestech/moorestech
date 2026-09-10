@@ -16,7 +16,7 @@ export default function TrainPlatformInventory({ data }: { data: BlockInventoryO
         <BlockItemGrid itemSlots={data.itemSlots} testId={ITEM_SLOTS_TEST_ID} />
       ) : null}
       {data.fluidSlots.length > 0 ? (
-        <FluidSlotRow fluids={data.fluidSlots} progress={null} testId={FLUID_SLOTS_TEST_ID} />
+        <FluidSlotRow fluids={data.fluidSlots.map((fluid) => ({ fluid }))} progress={null} testId={FLUID_SLOTS_TEST_ID} />
       ) : null}
       <TrainPlatformSection data={data} />
     </Stack>

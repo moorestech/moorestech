@@ -47,15 +47,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
                 _activePreviewBlocks.Add(previewBlock);
                 previewBlock.SetTransform(pos,rot);
 
-                previewBlock.SetPlaceableColor(placeInfo.Placeable);
                 previewBlock.SetPreviewStateDetail(placeInfo);
             }
+
+            // 可否色は一箇所で塗る
+            // Placeable colors are painted in one place
+            UpdatePlaceableColors(placePointInfos);
         }
         
         public IReadOnlyList<bool> DetectGroundOverlaps()
         {
-            // 接触を答えるだけで可否も色も決めない。判断は呼び出し側が持つ
-            // Only answers the contact; placeability and color stay with the caller
+            // 直近の物理ステップ時点の接触を返す。可否も色も決めない
+            // Returns the contact as of the last physics step; placeability and color stay with the caller
             var groundOverlaps = new List<bool>(_activePreviewBlocks.Count);
             foreach (var previewBlock in _activePreviewBlocks) groundOverlaps.Add(previewBlock.IsCollisionGround);
 

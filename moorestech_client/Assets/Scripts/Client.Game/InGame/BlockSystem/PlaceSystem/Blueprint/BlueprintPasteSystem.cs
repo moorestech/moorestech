@@ -121,7 +121,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint
                     placeInfos.Add(ToPlaceInfo(allPlacements[i]));
                 }
 
-                if (placeInfos.Count == 0) return;
                 PlaceBlockProtocolSender.SendPlaceBlockProtocol(placeInfos);
             }
 

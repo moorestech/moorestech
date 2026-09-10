@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Client.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
-using Client.Game.InGame.UI.UIState;
 using Core.Master;
 using Game.Block.Interface;
 using Mooresmaster.Model.ChallengesModule;
@@ -14,7 +13,7 @@ using VContainer;
 namespace Client.Game.InGame.Tutorial
 {
     /// <summary>
-    ///     設置目標セルのゴーストをtutorialGuidごとに持ち、その生成・移動・破棄を引き受ける。どのセルを指すかは呼び手が決める
+    ///     ゴーストをguidごとに持ち生成・移動・破棄を担う
     ///     Owns one target-cell ghost per tutorialGuid with its creation, movement and teardown; which cell to point at is the caller's decision
     /// </summary>
     public class BlockPlacePreviewTutorialManager : MonoBehaviour, ITutorialViewManager
@@ -23,7 +22,7 @@ namespace Client.Game.InGame.Tutorial
         
         private readonly Dictionary<string, PlacementGhostEntry> _entries = new();
         
-        // 絶対座標型（blockPlacePreview）として適用された分の設置検知購読。guidごとに独立して持つ
+        // 絶対座標型として適用された分の設置検知購読
         // Placement-detection subscriptions for absolute blockPlacePreview applications, held independently per guid
         private readonly Dictionary<string, IDisposable> _placedSubscriptions = new();
         
@@ -66,7 +65,7 @@ namespace Client.Game.InGame.Tutorial
         {
             // Webへ射影配信する（3Dプレビュー自体はUnity側に残置し、矢印/ピンのみWeb化）
             // Project and publish to the web overlay (the 3D preview stays in Unity; only the arrow/pin moves to web)
-            if (!WebUiScreenGate.IsWebUiMode || _entries.Count == 0) return;
+            if (_entries.Count == 0) return;
             
             var camera = CameraManager.MainCamera.Camera;
             if (!camera) return;

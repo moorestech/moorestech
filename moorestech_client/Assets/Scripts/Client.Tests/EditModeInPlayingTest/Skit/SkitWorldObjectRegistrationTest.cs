@@ -21,6 +21,9 @@ namespace Client.Tests.EditModeInPlayingTest.Skit
     /// This test runs in EditMode but switches to PlayMode during execution.
     /// Verifies against the production DI container that no scene world object is missing from the bundle a skit hides.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay2")]
     public class SkitWorldObjectRegistrationTest
     {
         [UnityTest]

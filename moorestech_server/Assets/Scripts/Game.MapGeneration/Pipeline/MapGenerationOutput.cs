@@ -42,10 +42,26 @@ namespace Game.MapGeneration.Pipeline
 
     // 配置点1件ぶんの鉱脈（mapVeins マスタの veinGuid + 点中心の整数 AABB）。
     // One vein per placement point: the mapVeins master veinGuid plus an integer AABB centred on the point.
-    public class PlacedVein
+    // 値型なので保持側は必ず自分のコピーを持ち、出力側のシフトが台帳へ波及しない。
+    // A value type gives every holder its own copy, so output-side shifts never reach back into a ledger.
+    public readonly struct PlacedVein
     {
-        public string VeinGuid;
-        public Vector3Int Min;
-        public Vector3Int Max;
+        public readonly string VeinGuid;
+        public readonly Vector3Int Min;
+        public readonly Vector3Int Max;
+
+        public PlacedVein(string veinGuid, Vector3Int min, Vector3Int max)
+        {
+            VeinGuid = veinGuid;
+            Min = min;
+            Max = max;
+        }
+
+        // シフトは値返しにし、共有インスタンスの破壊的更新を型で塞ぐ。
+        // Shifting returns a value, making destructive updates of a shared instance impossible by type.
+        public PlacedVein Shifted(Vector3Int offset)
+        {
+            return new PlacedVein(VeinGuid, Min - offset, Max - offset);
+        }
     }
 }

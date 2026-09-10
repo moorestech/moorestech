@@ -67,6 +67,16 @@ class InitMethodNamingTest(unittest.TestCase):
         # Local functions without an access modifier are not post-construction initializers
         self.assertNotIn("init-method-naming", _rules(_patch("\n            void Setup()\n")))
 
+    def test_inject_construct_is_exempt(self):
+        # VContainer注入メソッドはConstruct固定の裁定済み（2026-08-30 W25/D9）
+        # VContainer injection methods are ruled to stay named Construct (2026-08-30 W25/D9)
+        self.assertNotIn("init-method-naming", _rules(_patch("\n        [Inject]\n        public void Construct(Store store)\n")))
+
+    def test_plain_construct_is_still_confirmed(self):
+        # 属性の無いConstructは従来どおり検出する
+        # A Construct without the attribute is still detected
+        self.assertIn("init-method-naming", _rules(_patch("\n        [SerializeField] private int _value;\n\n        public void Construct(Store store)\n")))
+
     def test_comment_mention_is_clean(self):
         self.assertNotIn("init-method-naming", _rules(_patch("\n        // public void Setup() は禁止\n")))
 

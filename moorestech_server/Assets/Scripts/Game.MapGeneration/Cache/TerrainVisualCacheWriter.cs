@@ -29,6 +29,14 @@ namespace Game.MapGeneration.Cache
             var detailMapCount = tileVisual.DetailMaps.Count;
             var detailResolution = detailMapCount == 0 ? 0 : tileVisual.DetailMaps[0].GetLength(0);
 
+            // 読み手が受理できない寸法は書けても読み戻せない。書き手も同じ判定を通し、非対称なファイルを作らない
+            // Dimensions the reader rejects would be written yet unreadable; the writer runs the same test so no asymmetric file is produced
+            if (!TryCalculatePayloadByteLength(
+                    heightmapResolution, alphamapResolution, layerCount, detailResolution, detailMapCount, out _))
+                throw new InvalidOperationException(
+                    $"[TerrainVisualCacheWriter] Dimensions (heightmap {heightmapResolution}, alphamap {alphamapResolution}, " +
+                    $"layers {layerCount}, detail {detailResolution} x {detailMapCount}) cannot be read back and must not be cached.");
+
             var headerBytes = new byte[HeaderByteLength];
             WriteHeader();
 

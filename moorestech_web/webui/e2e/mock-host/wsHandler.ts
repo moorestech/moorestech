@@ -98,10 +98,10 @@ export function attachWsHandlers(wss: WebSocketServer) {
             setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
           }
         } else if (msg.type === "inventory.select_equipment") {
-          // 装備は素手(-1)も正当な選択のため下限を -1 とする
-          // Bare hands (-1) is a legitimate selection for equipment, so the lower bound is -1
+          // 選択は実スロットのみ受け付ける（素手の概念は廃止済み）
+          // Only real slots are accepted as a selection; the bare-hands concept is gone
           const index = (msg.payload as ActionPayloads["inventory.select_equipment"]).index;
-          if (typeof index === "number" && index >= -1 && index < inv.equipment.length) {
+          if (typeof index === "number" && index >= 0 && index < inv.equipment.length) {
             inv.selectedEquipment = index;
             setTimeout(() => send(ws, { op: "event", topic: Topics.inventory, data: inv }), 30);
           } else {

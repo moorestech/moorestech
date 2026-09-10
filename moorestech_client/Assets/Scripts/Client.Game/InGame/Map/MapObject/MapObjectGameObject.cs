@@ -29,6 +29,7 @@ namespace Client.Game.InGame.Map.MapObject
         private static readonly List<ItemId> EmptyToolItemIds = new();
 
         public IReadOnlyList<Guid> EarnItemGuids { get; private set; } = Array.Empty<Guid>();
+        public IReadOnlyList<ItemId> RecommendedToolItemIds { get; private set; } = EmptyToolItemIds;
 
         public bool IsDestroyed { get; private set; }
         public int CurrentHp { get; private set; }
@@ -85,9 +86,10 @@ namespace Client.Game.InGame.Map.MapObject
                 return;
             }
 
-            // 取得物はマスタ確定時に1度だけ拾う
-            // Resolve the yields once the master is settled
+            // 取得物と推奨ツールはマスタ確定時に1度だけ拾う
+            // Resolve the yields and the recommended tools once the master is settled
             EarnItemGuids = MapObjectMiningPresentation.GetEarnItemGuids(MapObjectMasterElement);
+            RecommendedToolItemIds = MapObjectMasterElement.MiningParam is MiningMiningParam miningToolParam ? ToItemIds(miningToolParam.MiningTools) : EmptyToolItemIds;
 
 
             // 装飾物と破壊済みはどちらも狙えない。可否を先に畳み、文の並び順へ依存させない
@@ -106,10 +108,9 @@ namespace Client.Game.InGame.Map.MapObject
             if (hpBarView) hpBarView.SetWorldUnitScale();
         }
         
-        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool, out List<ItemId> recommendedToolItemIds)
+        public MiningStartOutcome TryBeginHandMining(ItemId equippedItemId, out MiningToolCandidate tool)
         {
             tool = default;
-            recommendedToolItemIds = EmptyToolItemIds;
 
             if (!IsAvailable) return MiningStartOutcome.Unavailable;
 
@@ -121,30 +122,23 @@ namespace Client.Game.InGame.Map.MapObject
             // Targets without mining settings should not reach here, so guard by type instead of relying on statement order
             if (MapObjectMasterElement.MiningParam is not MiningMiningParam miningParam) return MiningStartOutcome.Unavailable;
 
-            var miningTools = miningParam.MiningTools;
-            if (!MapObjectMiningService.TryResolveUsableTool(equippedItemId, miningTools, out var usableTool))
-            {
-                recommendedToolItemIds = ToItemIds(miningTools);
-                return MiningStartOutcome.ToolMismatch;
-            }
+            if (!MapObjectMiningService.TryResolveUsableTool(equippedItemId, miningParam.MiningTools, out var usableTool)) return MiningStartOutcome.ToolMismatch;
 
             tool = new MiningToolCandidate(equippedItemId, usableTool.AttackSpeed);
             return MiningStartOutcome.Ready;
+        }
 
-            #region Internal
-
-            List<ItemId> ToItemIds(MiningToolsElement[] tools)
+        // 推奨ツールはマスタ由来で不変なのでマスタ確定時に1度だけ写す
+        // The recommended tools come from the master and never change, so they are copied once the master is settled
+        private static List<ItemId> ToItemIds(MiningToolsElement[] tools)
+        {
+            var itemIds = new List<ItemId>(tools.Length);
+            foreach (var miningTool in tools)
             {
-                var itemIds = new List<ItemId>(tools.Length);
-                foreach (var miningTool in tools)
-                {
-                    itemIds.Add(MasterHolder.ItemMaster.GetItemId(miningTool.ToolItemGuid));
-                }
-
-                return itemIds;
+                itemIds.Add(MasterHolder.ItemMaster.GetItemId(miningTool.ToolItemGuid));
             }
 
-            #endregion
+            return itemIds;
         }
 
         // 採掘の可用性と同じ条件で候補になる

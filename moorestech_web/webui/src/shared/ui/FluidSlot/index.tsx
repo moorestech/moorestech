@@ -7,14 +7,23 @@ import styles from "./style.module.css";
 
 // 背面フィル/量/ホバー名を持つ汎用流体スロット。uGUI FluidSlotView 相当
 // Generic fluid slot (back fill, amount, hover name); mirrors uGUI FluidSlotView
-export default function FluidSlot({ fluid }: { fluid: FluidSlotData }) {
+export default function FluidSlot({ fluid, ghost }: { fluid: FluidSlotData; ghost?: { fluidGuid: string; amount: number } }) {
   const { t } = useI18n();
   const fluidMaster = useFluidMaster();
 
-  // 空スロットは名前もフィルも持たないのでツールチップごと省く
-  // An empty slot has neither a name nor a fill, so drop the tooltip entirely
+  // 空タンクにゴーストがあれば、フィル無しでアイコンと必要量だけを透かして描く
+  // An empty tank with a ghost draws the icon and required amount faded, without a fill
   if (fluid.kind === "empty") {
-    return <div data-testid="fluid-slot" className={styles.slot} />;
+    if (ghost === undefined) return <div data-testid="fluid-slot" className={styles.slot} />;
+    const ghostName = t(fluidNameKey(ghost.fluidGuid));
+    return (
+      <HoverTooltip label={ghostName} disabled={!ghostName}>
+        <div data-testid="fluid-slot" data-ghost="true" className={styles.slot}>
+          <FluidIcon fluidGuid={ghost.fluidGuid} className={styles.icon} />
+          <span className={`iconTextOutlineDark ${styles.amount}`}>{formatAmount(ghost.amount)}</span>
+        </div>
+      </HoverTooltip>
+    );
   }
 
   const name = t(fluidNameKey(fluid.fluidGuid));

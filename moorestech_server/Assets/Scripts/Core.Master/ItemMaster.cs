@@ -130,6 +130,14 @@ namespace Core.Master
             return _levelVariantTable.ContainsKey(baseItemId);
         }
 
+        // 基準アイテムのレベル順変種列。ファミリーが無ければ基準自身のみ
+        // Level-ordered variants of the base item; just the base itself when it has no family
+        public IReadOnlyList<ItemId> GetLevelVariants(ItemId baseItemId)
+        {
+            if (!_levelVariantTable.TryGetValue(baseItemId, out var variants)) return new[] { baseItemId };
+            return variants;
+        }
+
         public ItemId GetLevelVariantItemId(ItemId baseItemId, int level)
         {
             // レベルは1始まり。範囲外は[1, 最大レベル]へクランプする

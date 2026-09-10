@@ -9,6 +9,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Placement
 {
     // bandsのJSON→ランタイム反映とリング内配置を固定するテスト。
     // Pins that bands flow from JSON into runtime config and placement stays inside the ring.
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap3")]
     public class ObjectScatterSpawnBandTest
     {
         private const float NearRadius = ObjectScatterBandTestWorld.NearRadius;

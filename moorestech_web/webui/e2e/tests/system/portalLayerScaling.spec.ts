@@ -82,7 +82,10 @@ test("チュートリアルの枠線ラベルは高解像度で拡大しても�
     expect(Math.abs(highLabel.height - baseLabel.height * HIGH_SCALE)).toBeLessThanOrEqual(TOLERANCE_PX);
     // 拡大しても枠線の下辺に付いたままで、離れも食い込みもしない
     // Even enlarged it stays attached below the ring, neither drifting away nor overlapping it
-    await freezeAttentionPulse(page);
+    // 凍結が空振りすると枠の実測が位相依存になるため、1件以上止めたことを課す
+    // A no-op freeze makes the ring measurement phase-dependent, so demand at least one stopped
+    const frozen = await freezeAttentionPulse(page);
+    expect(frozen).toBeGreaterThan(0);
     const highRing = (await ring.boundingBox())!;
     expect(highLabel.y).toBeGreaterThanOrEqual(highRing.y + highRing.height);
     expect(highLabel.y - (highRing.y + highRing.height)).toBeLessThanOrEqual(8 * HIGH_SCALE);

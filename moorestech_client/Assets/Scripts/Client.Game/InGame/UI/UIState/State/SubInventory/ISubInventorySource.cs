@@ -11,14 +11,11 @@ namespace Client.Game.InGame.UI.UIState.State.SubInventory
         /// Common inventory identifier that can handle blocks and trains
         /// </summary>
         InventoryIdentifierMessagePack InventoryIdentifier { get; }
-        
-        string UIPrefabAddressablePath { get; }
-        
-        
+
         /// <summary>
-        /// インベントリソースの内部で、固有のサブインベントリオブジェクトの初期化を行う
-        /// Within the inventory source, initialize the specific sub-inventory object
+        /// サーバー応答から開いているインベントリの真データを組み立てる
+        /// Build the authoritative open-inventory data from the server response
         /// </summary>
-        void ExecuteInitialize(ISubInventoryView subInventoryView, InventoryResponse inventoryResponse);
+        SubInventoryModel CreateModel(InventoryResponse inventoryResponse);
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.UI.Tooltip;
@@ -19,43 +20,47 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         public readonly GearChainPoleExtendSendCommand? ExtendSend;
         public readonly GearChainConnectSendCommand? ChainConnectSend;
 
-        // このフレームの不可理由行。プッシュはsystem側
-        // This frame's block-reason lines; the system pushes them
+        // このフレームの不可理由行。プッシュはPushFeedbackが担う
+        // This frame's block-reason lines; PushFeedback is what pushes them
         public readonly IReadOnlyList<TooltipLine> FeedbackLines;
 
-        // 不足素材は行にせずそのまま運ぶ。同一アイテムを畳む関門を通せるのはsystem側だけ
-        // The shortages travel as data, never as lines, because only the system side can push them through the folding gate
-        public readonly IReadOnlyList<ConstructionMaterialShortage> MaterialShortages;
+        // 落とし先を持たない不足素材（ポール自身の建設コスト）。行にせず畳むだけ
+        // Shortages without a fallback (the pole's own construction cost); they are only folded, never turned into lines
+        private readonly IReadOnlyList<ConstructionMaterialShortage> _ghostMaterialShortages;
 
-        // 不足が1件も無いときの落とし先キー。nullは「このフレームは素材不足ではない」
-        // The fallback key used when nothing is short; null means this frame has no material shortage at all
-        public readonly LocalizationKey? MaterialShortageFallbackKey;
+        // 落とし先キーを持つ不足素材（チェーン素材）。0件なら汎用文言1行へ落とす
+        // Shortages with a fallback key (the chain material); at zero entries they become one generic line
+        private readonly IReadOnlyList<ConstructionMaterialShortage> _chainMaterialShortages;
+
+        // 上記の落とし先キー。nullは「このフレームはチェーン素材不足ではない」。センチネルはこの型の外へ出さない
+        // The fallback key above; null means this frame has no chain material shortage. The sentinel never leaves this type
+        private readonly LocalizationKey? _chainMaterialShortageFallbackKey;
 
         /// <summary>
-        /// 起点を維持（または送信なしで変更）してプレビューだけ更新する
-        /// Keep (or change without sending) the source and update only the preview
+        /// 理由行と不足素材をツールチップへ流す唯一の経路。不足は同一アイテムを1行に畳む関門を必ず通る
+        /// The single path pushing the reason lines and the shortages into the tooltip; shortages always cross the per-item folding gate
         /// </summary>
-        public static GearChainPoleFrameResult Show(IGearChainPoleConnectAreaCollider sourcePole, GearChainPolePreviewCommand preview)
+        public void PushFeedback(PlacementFeedback feedback)
         {
-            return Show(sourcePole, preview, Array.Empty<TooltipLine>());
+            foreach (var line in FeedbackLines) feedback.Add(line);
+
+            feedback.AddMaterialShortages(_ghostMaterialShortages);
+            if (_chainMaterialShortageFallbackKey.HasValue) feedback.AddMaterialShortagesOrFallback(_chainMaterialShortages, _chainMaterialShortageFallbackKey.Value);
         }
 
         /// <summary>
-        /// プレビューに加えて不可理由の行を返す
-        /// Update the preview and also return the placement-block reason lines
+        /// 起点を維持（または送信なしで変更）して、プレビュー・理由行・不足素材を返す唯一のファクトリ
+        /// The single factory keeping (or changing without sending) the source and returning the preview, the reason lines and the shortages
+        /// chainPreviewはチェーン判定そのもの。素材不足のフレームだけ落とし先付きの不足枠が開く
+        /// chainPreview is the chain judgement itself; only a material-shortage frame opens the fallback-keyed slot
         /// </summary>
-        public static GearChainPoleFrameResult Show(IGearChainPoleConnectAreaCollider sourcePole, GearChainPolePreviewCommand preview, IReadOnlyList<TooltipLine> feedbackLines)
+        public static GearChainPoleFrameResult Show(IGearChainPoleConnectAreaCollider sourcePole, GearChainPolePreviewCommand preview, IReadOnlyList<TooltipLine> feedbackLines, GearChainPoleExtendPreviewData chainPreview, IReadOnlyList<ConstructionMaterialShortage> ghostMaterialShortages)
         {
-            return new GearChainPoleFrameResult(sourcePole, false, preview, null, null, feedbackLines, Array.Empty<ConstructionMaterialShortage>(), null);
-        }
+            // チェーン素材不足なら、不足0件でも汎用文言へ落とせるよう不足の運搬自体を成立させる
+            // When the chain material is short, the shortage channel opens even with zero entries so the generic wording can still appear
+            if (!GearChainPlacementFailureTooltipKey.IsChainMaterialShortage(chainPreview)) return new GearChainPoleFrameResult(sourcePole, false, preview, null, null, feedbackLines, ghostMaterialShortages, Array.Empty<ConstructionMaterialShortage>(), null);
 
-        /// <summary>
-        /// 不可理由の行に加えて、関門へ渡す不足素材と落とし先キーを返す
-        /// Return the block-reason lines plus the shortages and fallback key destined for the gate
-        /// </summary>
-        public static GearChainPoleFrameResult ShowWithMaterialShortages(IGearChainPoleConnectAreaCollider sourcePole, GearChainPolePreviewCommand preview, IReadOnlyList<TooltipLine> feedbackLines, IReadOnlyList<ConstructionMaterialShortage> materialShortages, LocalizationKey materialShortageFallbackKey)
-        {
-            return new GearChainPoleFrameResult(sourcePole, false, preview, null, null, feedbackLines, materialShortages, materialShortageFallbackKey);
+            return new GearChainPoleFrameResult(sourcePole, false, preview, null, null, feedbackLines, ghostMaterialShortages, chainPreview.MaterialShortages, LocalizationKeys.Ui.Tooltip.PlaceGearChainFailed);
         }
 
         /// <summary>
@@ -64,7 +69,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         /// </summary>
         public static GearChainPoleFrameResult SelectSource(IGearChainPoleConnectAreaCollider pole)
         {
-            return new GearChainPoleFrameResult(pole, true, GearChainPolePreviewCommand.Hidden, null, null, Array.Empty<TooltipLine>(), Array.Empty<ConstructionMaterialShortage>(), null);
+            return new GearChainPoleFrameResult(pole, true, GearChainPolePreviewCommand.Hidden, null, null, Array.Empty<TooltipLine>(), Array.Empty<ConstructionMaterialShortage>(), Array.Empty<ConstructionMaterialShortage>(), null);
         }
 
         /// <summary>
@@ -73,7 +78,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         /// </summary>
         public static GearChainPoleFrameResult SendExtend(GearChainPoleExtendSendCommand command)
         {
-            return new GearChainPoleFrameResult(null, false, GearChainPolePreviewCommand.Hidden, command, null, Array.Empty<TooltipLine>(), Array.Empty<ConstructionMaterialShortage>(), null);
+            return new GearChainPoleFrameResult(null, false, GearChainPolePreviewCommand.Hidden, command, null, Array.Empty<TooltipLine>(), Array.Empty<ConstructionMaterialShortage>(), Array.Empty<ConstructionMaterialShortage>(), null);
         }
 
         /// <summary>
@@ -82,10 +87,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
         /// </summary>
         public static GearChainPoleFrameResult SendChainConnect(GearChainConnectSendCommand command)
         {
-            return new GearChainPoleFrameResult(null, true, GearChainPolePreviewCommand.Hidden, null, command, Array.Empty<TooltipLine>(), Array.Empty<ConstructionMaterialShortage>(), null);
+            return new GearChainPoleFrameResult(null, true, GearChainPolePreviewCommand.Hidden, null, command, Array.Empty<TooltipLine>(), Array.Empty<ConstructionMaterialShortage>(), Array.Empty<ConstructionMaterialShortage>(), null);
         }
 
-        private GearChainPoleFrameResult(IGearChainPoleConnectAreaCollider nextSourcePole, bool invalidatePendingRequest, GearChainPolePreviewCommand preview, GearChainPoleExtendSendCommand? extendSend, GearChainConnectSendCommand? chainConnectSend, IReadOnlyList<TooltipLine> feedbackLines, IReadOnlyList<ConstructionMaterialShortage> materialShortages, LocalizationKey? materialShortageFallbackKey)
+        private GearChainPoleFrameResult(IGearChainPoleConnectAreaCollider nextSourcePole, bool invalidatePendingRequest, GearChainPolePreviewCommand preview, GearChainPoleExtendSendCommand? extendSend, GearChainConnectSendCommand? chainConnectSend, IReadOnlyList<TooltipLine> feedbackLines, IReadOnlyList<ConstructionMaterialShortage> ghostMaterialShortages, IReadOnlyList<ConstructionMaterialShortage> chainMaterialShortages, LocalizationKey? chainMaterialShortageFallbackKey)
         {
             NextSourcePole = nextSourcePole;
             InvalidatePendingRequest = invalidatePendingRequest;
@@ -93,8 +98,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect.Modes
             ExtendSend = extendSend;
             ChainConnectSend = chainConnectSend;
             FeedbackLines = feedbackLines;
-            MaterialShortages = materialShortages;
-            MaterialShortageFallbackKey = materialShortageFallbackKey;
+            _ghostMaterialShortages = ghostMaterialShortages;
+            _chainMaterialShortages = chainMaterialShortages;
+            _chainMaterialShortageFallbackKey = chainMaterialShortageFallbackKey;
         }
     }
 }

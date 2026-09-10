@@ -11,7 +11,7 @@ export { dispatchAction } from "./transport/actions";
 export { blockIconUrl, itemIconUrl, fluidIconUrl, itemMasterUrl, fluidMasterUrl, localizationDictionaryUrl, localizationLanguagesUrl } from "./transport/httpEndpoints";
 export { setToastSink } from "./transport/notify";
 export type { NotifyVariant } from "./transport/notify";
-export { Topics, UiStateNames } from "./transport/protocol";
+export { NestedPauseSubStateNames, Topics, UiStateNames } from "./transport/protocol";
 export type { TopicPayloads, ActionPayloads } from "./transport/protocol";
 export { initBridge, sendInputState } from "./transport/webSocketClient";
 export type * from "./contract/payloadTypes";

@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { L, useI18n, useItemNameResolver } from "@/shared/i18n";
+import { L, useI18n, useItemDisplayName } from "@/shared/i18n";
 
 // 素材ツールチップを名乗る辞書キーだけを受ける。任意のキーを所持数語彙で解釈させない
 // Accepts only the keys that claim to be material tooltips; no arbitrary key gets the owned-count vocabulary
@@ -13,11 +13,11 @@ export type MaterialTooltipKey =
 // Shared material-tooltip piece (itemName + owned count + required count)
 export function useMaterialTooltipText(): (key: MaterialTooltipKey, itemId: number, requiredCount: number, ownedCount: number) => string {
   const { t } = useI18n();
-  const resolveItemName = useItemNameResolver();
+  const itemDisplayName = useItemDisplayName();
 
   return useCallback((key, itemId, requiredCount, ownedCount) => t(key, {
-    itemName: resolveItemName(itemId) ?? t(L.ui.common.itemFallback, { itemId }),
+    itemName: itemDisplayName(itemId),
     ownedCount,
     requiredCount,
-  }), [t, resolveItemName]);
+  }), [t, itemDisplayName]);
 }

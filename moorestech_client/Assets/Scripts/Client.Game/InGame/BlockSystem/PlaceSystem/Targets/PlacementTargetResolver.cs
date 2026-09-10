@@ -54,6 +54,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             return targets;
         }
 
+        // ブロック単体の解放判定もこの解決点を通す。解放状態とデバッグフラグの調達を呼び出し側へ散らさない
+        // A single block's unlock check goes through this resolution point too, keeping unlock state and the debug flag out of callers
+        public bool IsBlockUnlocked(Guid blockGuid)
+        {
+            var showAllPlaceable = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+            return _catalog.IsBlockUnlocked(blockGuid, _gameUnlockStateData, showAllPlaceable);
+        }
+
         // 解放判定と無料設置デバッグを一箇所で解決する。呼び出し側は解放条件を再実装しない
         // Resolves the unlock check and the free-placement debug flag in one place, so callers never re-implement the condition
         public IEnumerable<PlacementTargetEntry> UnlockedEntries()

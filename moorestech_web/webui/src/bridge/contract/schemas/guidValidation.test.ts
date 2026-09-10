@@ -26,7 +26,7 @@ const machineDetail = {
   currentState: "processing",
   currentPower: 10,
   requestPower: 20,
-  slotLayout: { input: 1, output: 1, module: 0 },
+  slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
 };
 
 const blockInventory = {
@@ -54,6 +54,8 @@ const machineRecipe = {
   time: 1,
   inputItems: [],
   outputItems: [],
+  inputFluids: [],
+  outputFluids: [],
 };
 
 const researchNode = {
@@ -89,6 +91,7 @@ describe("content GUID schemas", () => {
     { label: "craft recipeGuid", schema: CraftRecipeSchema, payload: { ...craftRecipe, recipeGuid: invalidGuid } },
     { label: "machine recipe recipeGuid", schema: MachineRecipeSchema, payload: { ...machineRecipe, recipeGuid: invalidGuid } },
     { label: "machine recipe blockGuid", schema: MachineRecipeSchema, payload: { ...machineRecipe, blockGuid: invalidGuid } },
+    { label: "machine recipe inputFluids fluidGuid", schema: MachineRecipeSchema, payload: { ...machineRecipe, inputFluids: [{ fluidId: 1, amount: 1, fluidGuid: invalidGuid }] } },
     { label: "item master itemGuid", schema: ItemMasterEntrySchema, payload: { itemId: 1, itemGuid: invalidGuid, maxStack: 100 } },
     { label: "research guid", schema: ResearchNodeDataSchema, payload: { ...researchNode, guid: invalidGuid } },
     { label: "research prevGuids", schema: ResearchNodeDataSchema, payload: { ...researchNode, prevGuids: [invalidGuid] } },

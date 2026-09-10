@@ -74,3 +74,9 @@
   --bevel-c2: var(--sel-c2, var(--select-cyan));
   --bevel-c3: var(--sel-c3, rgb(28 219 255));
 }
+
+/* ゴーストは面もリングも通常の空スロットのまま。内容（アイコン・個数）だけを共通トークンで透かす */
+/* A ghost keeps the empty slot's face and ring untouched; only its content (icon, count) is faded via the shared token */
+.slot[data-ghost="true"] > * {
+  opacity: var(--slot-ghost-opacity);
+}

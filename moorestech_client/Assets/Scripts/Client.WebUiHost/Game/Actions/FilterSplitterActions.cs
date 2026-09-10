@@ -87,8 +87,8 @@ namespace Client.WebUiHost.Game.Actions
             if (payload["clear"] is not JValue { Type: JTokenType.Boolean } clearValue) return ActionResult.Fail("invalid_payload");
             if (_subInventoryState.CurrentSubInventorySource is not BlockSubInventorySource source) return ActionResult.Fail("block_not_open");
 
-            // uGUI FilterSplitterBlockInventoryView.cs:132-146 と同じ: 設定は Grab の現アイテム、解除は EmptyItemId
-            // Same as uGUI FilterSplitterBlockInventoryView.cs:132-146: assign the grabbed item, or EmptyItemId to clear
+            // 設定は Grab の現アイテム、解除は EmptyItemId
+            // Assign the grabbed item, or EmptyItemId to clear
             var itemId = (bool)clearValue.Value ? ItemMaster.EmptyItemId : _controller.GrabInventory.Id;
             var request = FilterSplitterStateProtocol.FilterSplitterStateRequest.CreateSetFilterItemRequest(source.BlockPosition, (int)dirLong, (int)slotLong, itemId);
             var response = await ClientContext.VanillaApi.Response.SendFilterSplitterStateRequest(request, CancellationToken.None);

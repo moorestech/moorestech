@@ -9,6 +9,7 @@ vi.mock("@/shared/i18n", async (importOriginal) => ({
   // The real t interpolates named params; reproduce that so the material name lands in the line
   useI18n: () => ({ t: (key: string, params?: Record<string, unknown>) => (params ? `${key} ${Object.values(params).join(" ")}` : key) }),
   useItemNameResolver: () => (itemId: number) => `item-${itemId}`,
+  useItemDisplayName: () => (itemId: number) => `item-${itemId}`,
 }));
 // labelはReact要素なのでpropsへ残すと循環参照になる。子として描画し本文だけを検証可能にする
 // The label is a React element, so keeping it in props would be circular; render it as a child and assert its text

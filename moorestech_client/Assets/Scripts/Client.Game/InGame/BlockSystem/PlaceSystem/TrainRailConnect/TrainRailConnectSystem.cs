@@ -69,6 +69,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 }
                 if (_connectFromArea != null)
                 {
+                    // 明示選択した起点は、応答待ちの橋脚設置が後から返す接続点に黙って上書きさせない
+                    // （上書きされるとプレイヤーが選んだ接続点ではなく新設橋脚からレールが伸びる）
+                    // An explicitly selected origin must not be silently overwritten by a pending pier placement's endpoint
+                    // (the rail would run from the new pier instead of the connection point the player picked)
+                    _requestSender.Invalidate();
+
                     var destination = _connectFromArea.CreateConnectionDestination();
                     var componentPosition = destination.blockPosition;
                     Debug.Log($"[TrainRailConnect] Select FROM: IsFront={_connectFromArea.IsFront} pos=({componentPosition.x},{componentPosition.y},{componentPosition.z})");
@@ -159,6 +165,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                 _previewObject.SetActive(false);
                 Debug.Log($"Connecting rails: From NodeId={from.NodeId}, Guid={from.NodeGuid} To NodeId={to.NodeId}, Guid={to.NodeGuid}");
                 ClientContext.VanillaApi.SendOnly.ConnectRail(from.NodeId, from.NodeGuid, to.NodeId, to.NodeGuid, railTypeGuid);
+
+                // 橋脚なし接続で起点を空にした後、遅着の橋脚応答に起点を復活させない
+                // After clearing the origin on a pier-less connection, a late pier response must not resurrect it
+                _requestSender.Invalidate();
                 _connectFromArea = null;
             }
             void SendConnectRailWithPlacePierProtocol(PlaceInfo placeInfo, Guid railTypeGuid, BlockId pierBlockId)
@@ -187,13 +197,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         // A right short press releases only the connection origin and hides its preview; without an origin there is nothing to cancel
         public override bool TryCancelInProgressOperation()
         {
-            // 飛行中の橋脚リクエストは可視の進行中操作に数えないが、遅着の起点復活だけは必ず断つ
-            // An in-flight pier request is not a visible in-progress operation, but its late origin write-back must always be cut off
-            _requestSender.Invalidate();
-
+            // 飛行中リクエストの打ち切りはDisable()側が担う。falseを返す経路では副作用を起こさない
+            // Cutting off an in-flight request is Disable()'s job; the false path must cause no side effects
             if (_connectFromArea == null) return false;
 
-            _connectFromArea = null;
+            ResetState();
             _previewObject.SetActive(false);
             return true;
         }

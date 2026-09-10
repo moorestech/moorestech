@@ -1,7 +1,21 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
 import { setTopicScenario, setUiState } from "../../support/mockControl";
 
 const expectedOutlineBoxShadow = "rgba(255, 0, 0, 0.24) 0px 0px 0px 4px";
+
+// 実ブラウザで再生中の脈動を計測する。CSS文字列一致では拾えない無言死をここで捕まえる
+// Measures the pulse actually playing in a real browser; a silent death that CSS text matching misses is caught here
+function measurePulse(locator: Locator) {
+  return locator.evaluate((element) => {
+    const style = getComputedStyle(element);
+    const transforms = element.getAnimations().flatMap((animation) =>
+      (animation.effect as KeyframeEffect).getKeyframes().map((frame) => String(frame.transform)));
+    return {
+      name: style.animationName, duration: style.animationDuration,
+      iterationCount: style.animationIterationCount, transforms,
+    };
+  });
+}
 
 test.afterEach(async ({ page }) => {
   await setTopicScenario(page, "tutorialEmpty");
@@ -44,6 +58,37 @@ test("keyControl hint renders a kbd and text above the hotbar while uiState matc
   await expect(hint).toBeVisible();
   await expect(hint.locator("kbd")).toHaveText("Tab");
   await expect(hint).toContainText("インベントリを開く");
+});
+
+test("keyControl hint actually plays the strong 1.08 pulse in the browser", async ({ page }) => {
+  await page.goto("/");
+  await setUiState(page, "GameScreen");
+  await setTopicScenario(page, "tutorialKeyControl");
+  const hint = page.getByTestId("key-control-hint");
+  await expect(hint).toBeVisible();
+
+  // 素名で出るのはキーフレームがtokens.cssのグローバル側にあるため。ここが崩れたら書き換え事故
+  // The raw name appears because the keyframes live in global tokens.css; a broken name means a rewrite accident
+  const pulse = await measurePulse(hint);
+  expect(pulse.name).toBe("tutorial-attention-pulse-strong");
+  expect(pulse.duration).toBe("1.2s");
+  expect(pulse.iterationCount).toBe("infinite");
+  expect(pulse.transforms).toContain("scale(1.08)");
+});
+
+test("tutorial outline actually plays the subtle 1.03 pulse in the browser", async ({ page }) => {
+  await page.goto("/");
+  await setTopicScenario(page, "tutorialOutline");
+  const outline = page.locator('[data-testid="tutorial-overlay"] [data-kind="outline"]');
+  await expect(outline).toBeVisible();
+
+  // 枠はヒントより控えめな振幅。強弱の取り違えもここで落ちる
+  // The ring pulses more gently than the hint; swapping the two amplitudes fails here as well
+  const pulse = await measurePulse(outline);
+  expect(pulse.name).toBe("tutorial-attention-pulse-subtle");
+  expect(pulse.duration).toBe("1.2s");
+  expect(pulse.iterationCount).toBe("infinite");
+  expect(pulse.transforms).toContain("scale(1.03)");
 });
 
 // 枠線の撤去がフレーム到来に依存すると、CEF(外部BeginFrame駆動)ではフレーム間隔ぶんゴーストが残る

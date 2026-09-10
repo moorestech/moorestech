@@ -17,6 +17,9 @@ namespace Tests.UnitTest.Game.MapGeneration
 {
     // 中央化オフセット G をノイズ座標にだけ効かせ、出力を格子のシーン座標へ戻すことを検証する。
     // Verifies G affects only noise coordinates and all outputs return to scene space inside the generated grid.
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap1")]
     public class SpawnOffsetSceneSpaceTest
     {
         private const int Seed = 12345;

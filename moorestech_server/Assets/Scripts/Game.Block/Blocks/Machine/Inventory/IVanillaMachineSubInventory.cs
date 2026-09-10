@@ -11,5 +11,9 @@ namespace Game.Block.Blocks.Machine.Inventory
     {
         IReadOnlyList<IItemStack> Items { get; }
         void SetItem(int slot, IItemStack itemStack);
+
+        // プレイヤー操作でこのローカルスロットへ置けるか（レシピ束縛の判定）
+        // Whether a player may place the stack into this local slot (recipe-binding rule)
+        bool IsAllowedToPlace(int localSlot, IItemStack itemStack);
     }
 }

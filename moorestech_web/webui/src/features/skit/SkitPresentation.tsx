@@ -11,7 +11,9 @@ import styles from "./style.module.css";
 // Background skits collapse into the reference BackgroundText's single "speaker : body" line
 const BACKGROUND_SEPARATOR = " : ";
 
-export function SkitPresentation() {
+// ポーズ中も表示と自動送りは続けるため、入力可否だけをpropで受ける
+// Presentation and auto-advance keep running during pause, so only input acceptance arrives as a prop
+export function SkitPresentation({ interactive }: { interactive: boolean }) {
   const data = useTopic(Topics.skitPresentation);
   const state = data?.presentationState;
   const bodyCharacters = useMemo(() => Array.from(state?.body ?? ""), [state?.body]);
@@ -47,6 +49,10 @@ export function SkitPresentation() {
   }, [connectionStatus, data?.sessionId, state?.body, state?.textReveal.mode, state?.textReveal.intervalMs, bodyCharacters.length]);
 
   if (!data || !state || state.mode === "none") return null;
+  // 入力不可のときは全入力口をまとめて閉じる（会話窓・選択肢・ツールバー・復帰ボタン）
+  // When input is refused, every input path closes at once (window, choices, toolbar, restore button)
+  const rootClassName = interactive ? styles.root : styles.root + " " + styles.inputBlocked;
+  const windowTabIndex = interactive ? 0 : -1;
   const allowedIntents = new Set(data.allowedIntents);
   const base: ActionPayloads["skit.advance"] = { sessionId: data.sessionId, sceneRevision: data.sceneRevision };
   const visibleBody = bodyCharacters.slice(0, visibleCount).join("");
@@ -69,14 +75,14 @@ export function SkitPresentation() {
   // While the UI is hidden only the restore icon remains
   if (state.uiHidden) {
     if (state.mode !== "blocking") return null;
-    return <div className={styles.root}><SkitRestoreButton base={base} /></div>;
+    return <div className={rootClassName}><SkitRestoreButton base={base} /></div>;
   }
   // 演出中は会話窓と選択肢だけを畳み、ツールバーは残す（正本もTextAreaとツールは兄弟でTextAreaだけが消える）
   // During staging only the window and choices fold away while the toolbar stays, as in the reference where the TextArea and tools are siblings
   if (!state.textAreaVisible) {
     if (state.mode !== "blocking") return null;
     return (
-      <div className={styles.root}>
+      <div className={rootClassName}>
         <SkitToolbar base={base} allowedIntents={allowedIntents}
           autoEnabled={state.autoEnabled} skipActive={state.skipActive} />
       </div>
@@ -90,7 +96,7 @@ export function SkitPresentation() {
     // Skip the empty pre-SetBackgroundText snapshot; the reference shows nothing until the first line arrives
     if (state.body === "") return null;
     return (
-      <div className={styles.root}>
+      <div className={rootClassName}>
         <div className={styles.backgroundLine} data-testid="background-skit">
           {state.speakerName === "" ? visibleBody : state.speakerName + BACKGROUND_SEPARATOR + visibleBody}
         </div>
@@ -99,9 +105,9 @@ export function SkitPresentation() {
   }
 
   return (
-    <div className={styles.root}>
+    <div className={rootClassName}>
       <GamePanel variant="skit">
-        <section className={styles.window} data-testid="blocking-skit" tabIndex={0}
+        <section className={styles.window} data-testid="blocking-skit" tabIndex={windowTabIndex}
           onClick={handleTextIntent} onKeyDown={handleKeyDown}>
           {/* Unity側resolverで解決済みの表示文字列をpushするためt()を通さない */}
           {/* Unity pushes resolver-completed display strings, so they bypass t() */}

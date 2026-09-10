@@ -13,7 +13,7 @@ Web UI が安定したため「uGUI 凍結・並走 → パリティ到達後に
 | 決定 | 内容 |
 |---|---|
 | 全面移行 | インゲームの平面（スクリーンスペース）UI は Web 表示を正とする。新規 UI は Web 側のみに実装 |
-| uGUI コード | 撤去判断まで残置。表示のみ `WebUiScreenGate.IsWebUiMode` で抑止（従来方式を継続） |
+| uGUI コード | ADR 0052 で全削除済み（例外4種のみ残置）。本表は移行当時の記録 |
 | ワールド空間 UI | **uGUI のまま維持（移行対象外）**: MapObject HP バー・ブロック進捗バー・チュートリアルマップピン・電線設置ラベル等の 3D ビルボード系 |
 | クラフトツリープランナー | **機能ごと削除**（`InGame/CraftTree/` 9ファイル。移行せず撤去 — Phase D） |
 | スキット / チュートリアル | 単純移植不可。**Web 向け再設計**を前提に設計から行う（Phase C4） |
@@ -45,7 +45,7 @@ uGUI コードの物理削除は上記達成後の**別判断**（本プラン�
 - **ブリッジ**: WebSocket JSON RPC（`Boot/WebSocketHub.cs`）。**Topic**（server→web 配信）と **Action**（web→unity RPC）
 - **契約の単一ソース**: `webui/src/bridge/transport/protocol.ts` ⇔ C# `WireFixtures/*.json`。`wireContract.test.ts` / `WireContractTest.cs` が両側で型一致を強制
 - **状態主権**: 画面遷移は uGUI の `UIStateControl`（`UIStateEnum`）が主権。加えて**第2状態機械 `GameStateType`**（カットシーン等のゲーム全体状態）が存在し、Topic 化は Phase C4 で行う。Web は `ui_state.current` topic で追従し、遷移要求は `ui_state.request` action（許可済み intent 限定）
-- **切替**: `WebUiScreenGate`（実効 web モード = Ctrl+I トグル ON かつホスト起動成功）。置換済み uGUI ビューは `SetActive(isActive && !WebUiScreenGate.IsWebUiMode)` で自己抑止
+- **切替**: 無い。Web が唯一の画面 UI で、切替ゲート（`WebUiScreenGate`）は ADR 0052 の削除完了後に撤去済み
 
 ## 4. Phase 構成と依存関係
 
@@ -121,8 +121,7 @@ blockComponents レジストリ・`TODO.md`/`disposition.md`）は1セッショ�
 3. **登録**: `Game/WebUiGameBinder.Bind()` に `RegisterTopic/RegisterAction` を追加
 4. **契約**: `protocol.ts` の Topics/ActionPayloads/ACTION_TYPES + `payloadTypes.ts` + `WireFixtures/*.json` + 両側契約テスト（※WU5 の zod 移行後は zod スキーマ単一定義 + `z.infer` に読み替え。移行後に本節を更新する）
 5. **Web 実装**: `src/features/<画面>/` に component/css/logic/vitest。`App.tsx` に `ui_state.current` 由来のルーティング追加。可視文字列は **i18n 経由**（A5 基盤・ハードコード禁止）。チュートリアル対象になり得る要素へ **`data-tutorial-anchor`**（A5 規約）を実装時に付与（`data-testid` とは分離）
-6. **uGUI 抑止**: 対応 uGUI ビューに `&& !WebUiScreenGate.IsWebUiMode` を追加
-7. **検証**: `pnpm vitest run` + Playwright e2e（mock-host, workers:1）+ `.cs` 変更は `uloop compile`
+6. **検証**: `pnpm vitest run` + Playwright e2e（mock-host, workers:1）+ `.cs` 変更は `uloop compile`
 
 ## 6. 横断の検証ゲート
 

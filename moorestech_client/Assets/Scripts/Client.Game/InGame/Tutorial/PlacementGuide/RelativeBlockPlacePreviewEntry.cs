@@ -20,7 +20,8 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
         public Vector3Int Offset { get; }
         public Vector3Int TargetBlockSize { get; }
         public Vector3Int? TargetCell { get; private set; }
-        
+        public BlockDirection? TargetDirection { get; private set; }
+
         private readonly RelativeBlockPlacePreviewTutorialManager _manager;
         
         public RelativeBlockPlacePreviewEntry(TutorialsElement tutorial, RelativeBlockPlacePreviewTutorialManager manager)
@@ -36,9 +37,12 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
             _manager = manager;
         }
         
-        public void SetTargetCell(Vector3Int? targetCell)
+        // セルと向きは同時に受けてズレを防ぐ
+        // Cell and direction always come from the same anchor pose, so they are pushed together to prevent a split-frame mismatch
+        public void SetTarget(Vector3Int? targetCell, BlockDirection? targetDirection)
         {
             TargetCell = targetCell;
+            TargetDirection = targetDirection;
         }
         
         public void CompleteTutorial()

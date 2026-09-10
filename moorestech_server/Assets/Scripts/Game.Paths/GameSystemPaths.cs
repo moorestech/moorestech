@@ -6,7 +6,9 @@ namespace Game.Paths
 {
     public static class GameSystemPaths
     {
-        private const int WorldIdHexDigits = 16;
+        // ワールドID桁数の正本。生成側(WorldIdentity)と検証側が共有する
+        // Single source of truth for the world id length, shared by the generator (WorldIdentity) and this validator
+        public const int WorldIdHexDigits = 16;
 
         // 中断時の残骸と正規のワールドを区別するための一時サフィックス
         // Temp suffix that tells an interrupted remnant apart from the canonical world

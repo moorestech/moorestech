@@ -1,4 +1,5 @@
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Selection;
 using UnityEngine;
 
 namespace Client.Game.InGame.Map.MapObject

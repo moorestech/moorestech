@@ -1,7 +1,9 @@
 using System;
 using System.IO;
+using Core.Master;
 using Game.Map.Interface.Json;
 using Game.MapGeneration.Export;
+using Game.MapGeneration.Pipeline;
 using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
@@ -15,6 +17,11 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
 {
     // 生成マスタがワールド作成時から動いたときの解決を、EnsureWorldの既存ワールド判定を通して検証する
     // Verifies how a generation master that moved since world creation is resolved, through EnsureWorld's existing-world branch
+    // drift検証の実生成は1x1固定
+    // Drift checks do not need grid area; they generate repeatedly, so preserve the test master's 1x1 and do not make them multi-tile
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap1")]
     public class GenerationMasterDriftResolverTest
     {
         private WorldDataDirectory _worldDataDirectory;
@@ -40,7 +47,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
         {
             var settings = ProvisionGeneratedWorld();
 
-            var terrainMeta = TerrainTransferMetaReader.Read(_worldDataDirectory);
+            var terrainMeta = (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(_worldDataDirectory);
             var generatedPayload = terrainMeta.GeneratedPayload;
             var currentFingerprint = generatedPayload.ComputeCurrentGenerationMasterFingerprint(TestModDirectory.ForUnitTestModDirectory);
             var sharedVisualDirectory = WorldDataDirectory.ForWorldCache(terrainMeta.WorldId).TerrainVisualDirectory;
@@ -101,6 +108,38 @@ namespace Tests.UnitTest.Game.MapGeneration.Provisioning
             Assert.AreEqual(originalWorldMeta.GenerationMasterFingerprint, rejectedWorldMeta.GenerationMasterFingerprint);
             Assert.AreEqual(originalWorldMeta.PlacementLedgerDigest, rejectedWorldMeta.PlacementLedgerDigest);
             DeleteSharedWorldCache(worldId);
+        }
+
+        // 見た目だけが動いたときも、次の接続で使う台帳digestを現在値へ進めないとクライアントがfail-closedで開けなくなる
+        // When only the visuals moved, the ledger digest must advance too or the next client connection fails closed and the world never opens
+        [Test]
+        public void 見た目だけが動いたマスタでは配置を保ったまま台帳digestも現在値へ進む()
+        {
+            TestGenerationConfigFactory.LoadMasterWithMapObjectSurroundEffectForProvisioning("rockNoBareGround");
+            var settings = ProvisionGeneratedWorldWithLoadedMaster();
+            var originalWorldMeta = ReadWorldMeta();
+            var worldId = TerrainTransferMetaReader.Read(_worldDataDirectory).WorldId;
+
+            TestGenerationConfigFactory.LoadMasterWithMapObjectSurroundEffectForProvisioning("rockBareGround");
+            WorldProvisioner.EnsureWorld(settings);
+
+            var repairedWorldMeta = ReadWorldMeta();
+            Assert.AreNotEqual(originalWorldMeta.PlacementLedgerDigest, repairedWorldMeta.PlacementLedgerDigest, "見た目が動けば台帳digestも動く");
+            Assert.AreEqual(CurrentPlacementLedgerDigest(), repairedWorldMeta.PlacementLedgerDigest);
+
+            DeleteSharedWorldCache(worldId);
+            DeleteSharedWorldCache(TerrainTransferMetaReader.Read(_worldDataDirectory).WorldId);
+        }
+
+        // 現在のマスタでpass-1を回し直したときの台帳digest。解決側と同じ組み立てを通す
+        // The ledger digest of a pass-1 re-run under the current master, assembled exactly as the resolver does
+        private string CurrentPlacementLedgerDigest()
+        {
+            var terrainMeta = (GeneratedTerrainTransferMeta)TerrainTransferMetaReader.Read(_worldDataDirectory);
+            var selectedGeneration = MasterHolder.GenerationMaster.SelectedGeneration;
+            var config = MapGenerationPipeline.BuildConfigWithSettledOrigins(
+                selectedGeneration, terrainMeta.WorldSeed, TestModDirectory.ForUnitTestModDirectory, terrainMeta.GeneratedPayload.Origins);
+            return MapGenerationPipeline.Generate(selectedGeneration, config).Ledger.ComputeDigest();
         }
 
         // generated modeはMasterHolder.GenerationMaster.SelectedGenerationを要求するため、ForUnitTest modをDIコンテナ生成経由でロードする

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using Game.MapGeneration.Cache;
 using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Transfer;
 using Game.Paths;
 using NUnit.Framework;
 using static Game.MapGeneration.Cache.TerrainVisualCacheFormat;
@@ -69,7 +70,7 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Cache
             cache.Save(TileX, TileZ, CreateTileVisual());
 
             FlipPayloadBit(HeaderByteLength + (int)HeightsByteLength(HeightmapResolution) +
-                           (int)(AlphamapPlaneCount(LayerCount) * AlphamapPlaneByteLength(AlphamapResolution)));
+                           (int)(TileAlphamap.AlphamapPlaneCount(LayerCount) * AlphamapPlaneByteLength(AlphamapResolution)));
 
             Assert.That(TryLoad(cache), Is.False);
         }

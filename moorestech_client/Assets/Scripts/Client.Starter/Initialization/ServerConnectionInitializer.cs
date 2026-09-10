@@ -8,6 +8,7 @@ using Client.Network.Settings;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
 using Server.Boot.Args;
+using Client.Starter.Initialization.Progress;
 using UnityEngine;
 using Mooresmaster.Localization.Generated;
 

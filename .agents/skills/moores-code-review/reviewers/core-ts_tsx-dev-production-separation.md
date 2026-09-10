@@ -18,7 +18,7 @@ keywords:
 # Reviewer: 本番コードと dev/test コードの分離
 
 ## あなたの役割
-cwd を読み、本番コードに dev/test/debug コードが混入しているパターンの **Critical のみ** を返す。
+cwd を読み、本番コードに dev/test/debug コードが混入しているパターンを返す。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch を Read し、変更されたファイルから `src/` 配下 (テストファイル `*.test.*` / `e2e/` / Storybook 設定 / `vite.config.ts` を除く) の `.ts` / `.tsx` に絞る
@@ -59,15 +59,4 @@ Critical 対象は原則として **patch の追加行 (`+`)** が新規に持�
 - パフォーマンス計測の有効化
 
 ## 出力フォーマット
-Critical が 1 件でもあれば:
-```
-Critical: あり
-
-修正方針:
-- <ファイル:行>: <何を直すか>
-- ...
-```
-0 件なら:
-```
-Critical: なし
-```
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <何を直すか>`

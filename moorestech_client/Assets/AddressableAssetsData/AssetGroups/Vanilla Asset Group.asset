@@ -50,11 +50,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 04086b712784245edabb8cc70b56f27a
-    m_Address: Vanilla/UI/Block/MinerBlockInventory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 057051a57c09143b0a84db16550a5a75
     m_Address: Vanilla/Environment/Tree/MesaDesert/Cacactus4
     m_ReadOnly: 0
@@ -200,16 +195,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 16777f725be954243984f7ed20cc7ff4
-    m_Address: Vanilla/UI/FluidSlotView
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 16c979552fd5a4ef1b4af5e1b6f01f5d
-    m_Address: Vanilla/UI/Block/GearMinerBlockInventory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 16ede2bcfc8334b4db37c480b9b245cd
     m_Address: Vanilla/Environment/Rock/MesaDesert/Strate_1
     m_ReadOnly: 0
@@ -335,11 +320,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 21808017c1ff24c35a21821bcbde4e57
-    m_Address: Vanilla/UI/Train/CommonTrainInventoryView
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 22044e602b4f74864b915246cd97b937
     m_Address: Vanilla/Environment/Rock/MesaDesert/StratMesaSharp_2
     m_ReadOnly: 0
@@ -352,11 +332,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 22764527d2fc13546af09d27fe46126e
     m_Address: Vanilla/Block/BeltConveyor_Straight
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 22a27ce62121b404882dff34ab352cca
-    m_Address: Vanilla/UI/Block/FilterSplitterBlockInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -417,11 +392,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 278ea2ee295354217ab12bd5e9c2aad4
     m_Address: Vanilla/Block/SmallGear
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 2983e03b6176b4abd95ec81a3bae0c48
-    m_Address: Vanilla/UI/Modal/OneButtonModal
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -655,11 +625,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 48a7a1a619bcd4536a545efbbdc542c1
-    m_Address: Vanilla/UI/Block/ElectricPoleNetworkInfoUI
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 48b696134c0ef4e3aa215e7f65811c05
     m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus7
     m_ReadOnly: 0
@@ -855,11 +820,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 5c41742aeff527340b758e7573cfcd16
-    m_Address: Vanilla/UI/Block/ChestBlockInventory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5cb2b320fbe9d4f75a0f03f2d3f82aab
     m_Address: Vanilla/Environment/Tree/Base/BirchTree02
     m_ReadOnly: 0
@@ -940,11 +900,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 66eda3b52bab641adbe9cf4aeeec9e24
-    m_Address: Vanilla/UI/Block/MachineBlockInventory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 670f7135a6eb2413ab7be2251f65dc41
     m_Address: Vanilla/Block/Old/wooden chest
     m_ReadOnly: 0
@@ -977,11 +932,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 69bff051f43e249698dd333128d43e16
     m_Address: Vanilla/Environment/Tree/MesaDesert/Opuntia4
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6afff40c7cd46ae498e7793e39b21c8a
-    m_Address: Vanilla/UI/ItemSlotView
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1020,11 +970,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 70b893615cb814fc897f9a766003500c
-    m_Address: Vanilla/UI/Block/TrainFluidPlatformBlockInventory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 70c49cd34505a4bc18005cb7c0f879cd
     m_Address: Vanilla/Block/Wood_Processing_Machine
     m_ReadOnly: 0
@@ -1055,11 +1000,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 74ec9b05c9d6f43168d8ecf28b97199f
-    m_Address: Vanilla/UI/Block/FilterSplitterDirectionColumn
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7592e7d40fd87463a8c1174facc27344
     m_Address: Vanilla/Environment/Tree/MesaDesert/Senita2
     m_ReadOnly: 0
@@ -1077,11 +1017,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 76f3779bb169447e8a276ada99e0a7bc
     m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_0
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 77840e2a726d7490385a017d5af840f2
-    m_Address: Vanilla/UI/Block/TrainStationBlockInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1350,11 +1285,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 91113de485c1847d3abc5f0fa061b0b0
-    m_Address: Vanilla/UI/Modal/CommonModalBase
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9142fcb884dd340289d8c1f4a6dc04b4
     m_Address: Vanilla/Block/Vacuum_pump
     m_ReadOnly: 0
@@ -1382,16 +1312,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 92a4831244ea0448d8fe1a82bb13aacf
     m_Address: Vanilla/Environment/Tree/MesaDesert/Opuntia3
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 93488f5c5617e46d6bc796276b24f16b
-    m_Address: Vanilla/UI/Block/BaseCampInventory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 936de12a568ce4c6ca2d50711007f371
-    m_Address: Vanilla/UI/Block/TrainItemPlatformBlockInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1497,11 +1417,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9dedbe59f17984baba2c1172bf3289d1
     m_Address: Vanilla/Environment/Tree/MesaDesert/Grocactus3
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9eeb8bbe6d88443e9b523c4b3ed49807
-    m_Address: Vanilla/UI/Block/GeneratorBlockInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -1945,11 +1860,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c6f72ec9de4f849b28ffae48ebaa7c23
-    m_Address: Vanilla/UI/Block/ElectricToGearBlockInventory
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c75ab8b442ffe4cb19d51a98b8f4fa3d
     m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_1
     m_ReadOnly: 0
@@ -1977,11 +1887,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c9bdd7548801c438f8933c4b821e31c9
     m_Address: Vanilla/Debug/DebugObjects
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cd09f2fef40b549f58b0c29a968536c4
-    m_Address: Vanilla/UI/Block/GearMachineBlockInventory
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -2017,11 +1922,6 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: cf2b8b00a0d974671beb401f4f839e35
     m_Address: Vanilla/Environment/Rock/Oasis/DesertBoulder_8
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: cf999fe520b9e4ed9afb5f382737fd23
-    m_Address: Vanilla/UI/Block/GearEnergyTransformerUI
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

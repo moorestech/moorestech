@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Core.Inventory;
+using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.State;
@@ -35,6 +37,37 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             MachineRecipeRefundUtil.ExecuteRefund(inputInventory, refundOverflowInventory, refunds, runningRecipe);
             processingState.CancelProcessing();
             return true;
+        }
+
+        // 新しい束縛の対象外になった入力スロットの未消費アイテムをプレイヤーへ返却する。戻せない分は元スロットへそのまま残す（消失させない）
+        // Refund input slots that fell outside the new binding to the player; whatever does not fit stays in its original slot (never lost)
+        public static void RefundUnboundInputItems(VanillaMachineInputInventory inputInventory, IOpenableInventory refundOverflowInventory)
+        {
+            for (var slot = 0; slot < inputInventory.InputSlot.Count; slot++)
+            {
+                var item = inputInventory.InputSlot[slot];
+                if (item.Id == ItemMaster.EmptyItemId || item.Count == 0) continue;
+                if (inputInventory.IsAllowedToPlace(slot, item)) continue;
+
+                var remainder = refundOverflowInventory.InsertItem(item);
+                inputInventory.SetItem(slot, remainder);
+            }
+        }
+
+        // レシピ変更の共通フロー：進行中ジョブの返却→束縛差し替え→非束縛スロットの返却。状態遷移は呼び出し側の責務
+        // Shared recipe-change flow: refund the running job, rebind, and refund newly-unbound slots; the state transition stays with the caller
+        public static MachineRecipeSelectionResult ApplyRecipeChange(MachineProcessContext context, ProcessingMachineProcessState processingState, MachineRecipeMasterElement recipe, IReadOnlyList<IReadOnlyCollection<ItemId>> allowedOutputItemsPerSlot, IOpenableInventory refundOverflowInventory)
+        {
+            if (!TryCancelRunningJobWithRefund(context.InputInventory, processingState, refundOverflowInventory))
+            {
+                return MachineRecipeSelectionResult.RefundFailed;
+            }
+
+            context.BindSelectedRecipe(recipe, allowedOutputItemsPerSlot);
+
+            if (recipe != null) RefundUnboundInputItems(context.InputInventory, refundOverflowInventory);
+
+            return MachineRecipeSelectionResult.Success;
         }
     }
 }

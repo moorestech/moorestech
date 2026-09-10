@@ -14,6 +14,9 @@ namespace Client.Tests.EditModeInPlayingTest
     /// Empirically verifies that debug parameter isolation survives the PlayMode transition's domain reload.
     /// This is why a process environment variable is used; losing it would make the in-play server read the developer's real cache.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay1")]
     public class DebugParametersIsolationAcrossDomainReloadTest
     {
         [UnityTest]

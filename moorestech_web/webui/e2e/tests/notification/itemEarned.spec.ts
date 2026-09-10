@@ -4,8 +4,8 @@ const EARNED_ITEM_ID = 2;
 // アイコンは404で#idフォールバックに
 // The mock host 404s icons, so the icon slot renders the #id fallback text
 const ICON_FALLBACK = `#${EARNED_ITEM_ID}`;
-// itemId 2 = STONE_ITEM_GUID。mockの合成辞書が返す表示名
-// itemId 2 is STONE_ITEM_GUID; this is the display name the mock's composite dictionary returns
+// itemId 2 の辞書名（STONE_ITEM_GUID）
+// The dictionary name for itemId 2 (STONE_ITEM_GUID)
 const EARNED_ITEM_NAME = "Stone";
 
 test.afterEach(async ({ page }) => {
@@ -24,8 +24,8 @@ test("アイテム獲得通知はアイコンとアイテム名と獲得数を�
 
   const row = page.getByTestId("notification-row").first();
   await expect(row).toBeVisible();
-  // アイコンはitemId解決、隣にアイテム名と獲得数
-  // The icon slot resolves from the earned item's id and the name and amount sit next to it
+  // アイコンの隣に名前と獲得数
+  // The name and amount sit next to the icon
   await expect(row).toHaveText(`${ICON_FALLBACK}${EARNED_ITEM_NAME} +5`);
 
   // 再獲得は行を増やさず数値のみ伸ばす

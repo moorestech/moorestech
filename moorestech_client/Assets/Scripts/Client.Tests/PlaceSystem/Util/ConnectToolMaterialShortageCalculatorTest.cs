@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Core.Item.Interface;
 using Core.Master;
+using Game.Construction;
 using Game.Context;
 using NUnit.Framework;
 using Server.Boot;
@@ -100,7 +101,7 @@ namespace Client.Tests.PlaceSystem.Util
 
             // エントリごとに比べると5≧3・5≧4で可になるが、合算7に対して所持5は不足
             // Compared per entry it would pass (5≥3 and 5≥4), but the summed 7 against 5 held falls short
-            Assert.IsFalse(ConnectToolMaterialConsumer.HasEnough(materials, heldByItem, null));
+            Assert.IsFalse(ConstructionMaterialAccounting.HasEnough(materials, heldByItem, null));
 
             var shortages = ConnectToolMaterialShortageCalculator.Calculate(materials, heldByItem, null);
             Assert.AreEqual(1, shortages.Count);
@@ -123,12 +124,12 @@ namespace Client.Tests.PlaceSystem.Util
             var shortages = ConnectToolMaterialShortageCalculator.Calculate(materials, heldByItem, reserved);
             Assert.AreEqual(1, shortages.Count);
             Assert.AreEqual(15, shortages[0].Required);
-            Assert.IsFalse(ConnectToolMaterialConsumer.HasEnough(materials, heldByItem, reserved));
+            Assert.IsFalse(ConstructionMaterialAccounting.HasEnough(materials, heldByItem, reserved));
 
             // 所持15なら可否も不足も一致して充足になる
             // With 15 held both the verdict and the shortage agree that it is covered
             var enoughHeld = new Dictionary<ItemId, int> { { itemId, 15 } };
-            Assert.IsTrue(ConnectToolMaterialConsumer.HasEnough(materials, enoughHeld, reserved));
+            Assert.IsTrue(ConstructionMaterialAccounting.HasEnough(materials, enoughHeld, reserved));
             Assert.IsEmpty(ConnectToolMaterialShortageCalculator.Calculate(materials, enoughHeld, reserved));
         }
 

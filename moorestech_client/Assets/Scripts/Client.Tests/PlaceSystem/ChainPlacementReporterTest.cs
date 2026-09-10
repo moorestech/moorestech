@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative;
 using Client.Game.InGame.UI.Tooltip;
 using Core.Master;
 using Game.Block.Interface;
@@ -80,15 +81,55 @@ namespace Client.Tests.PlaceSystem
         }
 
         [Test]
+        public void 連結ゴーストの向きは設置向きで回してから下流へ渡る()
+        {
+            CreateServer();
+            var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
+            var anchorBlockId = MasterHolder.BlockMaster.GetBlockId(chestMaster.BlockGuid);
+            const BlockDirection chainLocalDirection = BlockDirection.West;
+
+            var state = new ChainPlacePreviewState();
+            state.SetChain(ChainTutorialGuid, anchorBlockId, new List<ChainGhost> { new(ForUnitTestModBlockId.ChestId, ChainOffset, chainLocalDirection) });
+            var capture = new DirectionCapturingGroundQuery();
+
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.East) };
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, state, new StubExistingBlockQuery(null), capture, true, 0, new PlacementFeedback());
+
+            // ローカル向きのまま渡すと回転配線が死ぬので、合成結果と一致し素の値とは違うことを両方見る
+            // Passing the local direction through would kill the rotation wiring, so assert both the composed match and the difference from the raw value
+            Assert.AreEqual(AnchorRelativeDirectionUtil.RotateByAnchor(chainLocalDirection, BlockDirection.East), capture.LastDirection, "the chain ghost direction was not composed with the placement direction");
+            Assert.AreNotEqual(chainLocalDirection, capture.LastDirection, "the chain ghost direction stayed in the local frame");
+        }
+
+        [Test]
         public void 地形が揃わない連結セルは設置不可になる()
         {
             CreateServer();
             var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
+            var feedback = new PlacementFeedback();
 
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new NeverAlignedGroundQuery(), true, 0, new PlacementFeedback());
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new FixedReasonGroundQuery(ChainCellBlockReason.GroundHeightMismatch), true, 0, feedback);
 
             Assert.IsFalse(placeInfos[0].Placeable, "misaligned ground left the anchor placeable");
+
+            // 高さ不一致で「埋まっています」と断定させない
+            // A height mismatch must not claim the space is occupied
+            CollectionAssert.AreEqual(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceChainGroundHeightMismatch) }, feedback.Lines);
+        }
+
+        [Test]
+        public void 地面が取れない連結セルは地面なしの文言になる()
+        {
+            CreateServer();
+            var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
+            var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
+            var feedback = new PlacementFeedback();
+
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new FixedReasonGroundQuery(ChainCellBlockReason.GroundNotFound), true, 0, feedback);
+
+            Assert.IsFalse(placeInfos[0].Placeable, "a groundless chain cell left the anchor placeable");
+            CollectionAssert.AreEqual(new[] { new TooltipLine(LocalizationKeys.Ui.Tooltip.PlaceChainGroundNotFound) }, feedback.Lines);
         }
 
         [Test]
@@ -100,9 +141,9 @@ namespace Client.Tests.PlaceSystem
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
             var feedback = new PlacementFeedback();
 
-            // チェスト用の連結定義しか無いので発電機は素通り
+            // チェスト用の定義しか無く発電機は素通り
             // Only the chest anchors a chain, so the generator passes untouched
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, generatorMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(CursorCell + ChainOffset), new NeverAlignedGroundQuery(), true, 0, feedback);
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, generatorMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(CursorCell + ChainOffset), new FixedReasonGroundQuery(ChainCellBlockReason.GroundHeightMismatch), true, 0, feedback);
 
             Assert.IsTrue(placeInfos[0].Placeable);
             CollectionAssert.IsEmpty(feedback.Lines);
@@ -145,9 +186,9 @@ namespace Client.Tests.PlaceSystem
             var chestMaster = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ChestId);
             var placeInfos = new List<PlaceInfo> { CreatePlaceInfo(CursorCell, BlockDirection.North) };
 
-            // 地表基準でない設置では NeverAligned でも塞がれない
+            // 地表基準が無ければ塞がれない
             // With no ground basis, even a never-aligned query must not block the placement
-            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new NeverAlignedGroundQuery(), false, 0, new PlacementFeedback());
+            ChainPlacementReporter.MarkChainBlockedCellsAsNotPlaceable(placeInfos, chestMaster, 0, CreateChainState(chestMaster), new StubExistingBlockQuery(null), new FixedReasonGroundQuery(ChainCellBlockReason.GroundHeightMismatch), false, 0, new PlacementFeedback());
 
             Assert.IsTrue(placeInfos[0].Placeable, "block-face stacking was blocked by the terrain check");
         }
@@ -188,23 +229,40 @@ namespace Client.Tests.PlaceSystem
 
         private class AlwaysAlignedGroundQuery : IChainGroundQuery
         {
-            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => true;
+            public ChainCellBlockReason ResolveGroundAlignment(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => ChainCellBlockReason.None;
         }
 
         private class HeightOffsetCapturingGroundQuery : IChainGroundQuery
         {
             public int LastHeightOffset { get; private set; } = int.MinValue;
 
-            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
+            public ChainCellBlockReason ResolveGroundAlignment(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
             {
                 LastHeightOffset = heightOffset;
-                return true;
+                return ChainCellBlockReason.None;
             }
         }
 
-        private class NeverAlignedGroundQuery : IChainGroundQuery
+        // 渡ったワールド向きを記録するテストダブル
+        // Ground-query double recording the world direction handed to the chain ghost
+        private class DirectionCapturingGroundQuery : IChainGroundQuery
         {
-            public bool IsGroundAligned(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => false;
+            public BlockDirection LastDirection { get; private set; }
+
+            public ChainCellBlockReason ResolveGroundAlignment(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset)
+            {
+                LastDirection = direction;
+                return ChainCellBlockReason.None;
+            }
+        }
+
+        // 指定した地形の不可原因を返すテストダブル
+        // Ground-query double returning the given terrain block reason
+        private class FixedReasonGroundQuery : IChainGroundQuery
+        {
+            private readonly ChainCellBlockReason _reason;
+            public FixedReasonGroundQuery(ChainCellBlockReason reason) => _reason = reason;
+            public ChainCellBlockReason ResolveGroundAlignment(Vector3Int cell, BlockDirection direction, Vector3Int blockSize, int heightOffset) => _reason;
         }
     }
 }

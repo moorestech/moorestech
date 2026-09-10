@@ -1,5 +1,9 @@
+using Client.Game.InGame.Interact.Selection;
+using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.Mining;
 using Client.Game.InGame.UI.Inventory.Equipment;
+using Client.Game.InGame.UI.ProgressBar;
+using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
 using UnityEngine;
 
@@ -13,29 +17,32 @@ namespace Client.Game.InGame.Interact
     {
         private readonly MiningControllerContext _miningContext;
         private readonly IInteractTargetSelector _selector;
-        private readonly TapInteractionDriver _tapDriver = new();
+        private readonly TapInteractionDriver _tapDriver;
 
         private IInteractable _highlighted;
         private GameObject _highlightedGameObject;
-        private IMiningState _miningState = new MiningIdleState();
+        private IMiningState _miningState;
 
-        public InteractController(LocalPlayerEquipment localPlayerEquipment, IInteractTargetSelector selector)
+        public InteractController(LocalPlayerEquipment localPlayerEquipment, IInteractTargetSelector selector, ProgressBarState progressBar, IMouseCursorTooltip tooltip)
         {
             _selector = selector;
-            _miningContext = new MiningControllerContext(localPlayerEquipment);
+            _miningContext = new MiningControllerContext(localPlayerEquipment, progressBar, tooltip);
+            _tapDriver = new TapInteractionDriver(tooltip);
+            _miningState = new MiningIdleState(_miningContext);
         }
 
         public InteractExecuteResult ManualUpdate()
         {
-            var target = _selector.Select();
+            var selection = _selector.Scan();
+            var target = selection.Primary;
             ApplyHighlight(target);
 
-            // 長押し系は採掘FSMがそのまま担う（対象でなければnullが渡りIdleへ戻る）
+            // 長押しは採掘FSMが担う。対象外はnullでIdleへ
             // Hold interactions stay with the mining FSM; a non-mining target passes null and it idles
             _miningContext.SetFocusTarget(target as IMiningTargetObject);
             _miningState = _miningState.GetNextUpdate(_miningContext, Time.deltaTime);
 
-            return _tapDriver.Step(target as ITapInteractable, _selector);
+            return _tapDriver.Step(target as ITapInteractable, selection);
         }
 
         public void Disable()

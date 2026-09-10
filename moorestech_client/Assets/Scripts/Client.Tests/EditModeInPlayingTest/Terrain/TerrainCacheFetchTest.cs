@@ -20,6 +20,9 @@ namespace Client.Tests.EditModeInPlayingTest
     /// generatedワールドで起動し、地形バイナリがローカルキャッシュへ復元・再利用・再取得されることを検証する
     /// Boots a generated world and verifies the terrain binaries are restored, reused, and re-fetched in the local cache
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay2")]
     public class TerrainCacheFetchTest
     {
         [UnityTest]
@@ -50,7 +53,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 Assert.AreEqual(WorldMapMode.Generated, mapLayout.TerrainMeta.MapMode, "generatedモードで起動していない");
                 Assert.Less(0, mapLayout.TerrainMeta.TerrainChunkTotal, "地形チャンクが1本も無い");
 
-                var terrainMeta = mapLayout.TerrainMeta.ToTerrainTransferMeta();
+                var terrainMeta = (GeneratedTerrainTransferMeta)mapLayout.TerrainMeta.ToTerrainTransferMeta();
                 var cacheWorldDirectory = WorldDataDirectory.FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(terrainMeta.WorldId));
                 var segments = TerrainTransferMeta
                     .EnumerateStreamSegments(cacheWorldDirectory, terrainMeta.TerrainTileCount, terrainMeta.TerrainResolution).ToList();

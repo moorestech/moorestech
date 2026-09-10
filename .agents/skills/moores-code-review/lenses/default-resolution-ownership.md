@@ -9,7 +9,7 @@ model: opus
 # Lens: デフォルト値解決の責務漏れ（PR1108/1109由来）
 
 ## あなたの役割
-cwdを読み、patchが**「未指定ならデフォルト」の解決を値の所有者の外へ漏らしている**Criticalのみを返す。デフォルト値の定義と省略時解決は、その値を消費するコンポーネントの内部に1箇所だけ置く。省略可能性はnullable（`int?` 等）のまま所有者のAPIまで素通しする、が本プロジェクトの正解形。
+cwdを読み、patchが**「未指定ならデフォルト」の解決を値の所有者の外へ漏らしている**箇所を返す。デフォルト値の定義と省略時解決は、その値を消費するコンポーネントの内部に1箇所だけ置く。省略可能性はnullable（`int?` 等）のまま所有者のAPIまで素通しする、が本プロジェクトの正解形。
 
 由来: PR1108/1109 手動修正 — 動的ポートバインド導入時、`ServerListenAcceptor` が `public const int DefaultPort = 11564` を公開し、呼び出し側 `ServerInstanceManager` が `settings.Port ?? ServerListenAcceptor.DefaultPort` とデフォルト解決していた。修正は `DefaultPort` をprivateへ戻し、`CreateBoundListener(int? argPort)` がnullableを受けて内部で `var port = argPort ?? DefaultPort;` と一箇所解決する形。フォレンジック・リプレイでは15系統全てがこの形を素通しし、複数系統が漏れ形をむしろ「達成根拠」として肯定引用した（`?? Default` は一見自然に読めるため、意識して疑わない限り指摘に上がらない）。**この由来の具体ドメイン（ポート・サーバー起動）にも構文にも引きずられず、下記の意味構造だけで判定すること**。
 
@@ -33,9 +33,5 @@ cwdを読み、patchが**「未指定ならデフォルト」の解決を値の�
 - テストコード内の明示値渡し。
 - 既存コードに元からある違反のうち、このpatchが触っていないファイルのもの — 備考1行に留める。**このpatchが編集中のファイル内の既存違反はWarningで必ず返す**。
 
-## 依頼動詞優先ガード
-起動prompt 3行目 `User prompt` をRead。「許容するトレードオフ」「非目標」に合致する指摘は**破棄せず**、`suppressed-by: <トレードオフ1行, 出所ラベル>` を付けて**重大度そのまま**で返す（統合側が報告の「免責で消された指摘」節に載せる）。suppressed化できるのは出所が `[ユーザー裁定: ...]` / `[ADR: ...]` の行だけ。`[agent前提]` またはラベル無しの行は免責事由にならない（通常のCritical/Warningとして返す）。
-
 ## 出力フォーマット
-Criticalが1件でもあれば `Critical: あり`、0件なら `Critical: なし`。
-続けて `修正方針:` に `- <ファイル:行>: <どの定数をprivate化し、どのAPIをnullable化して、解決をどこへ一本化するか（最小修正）>` を1行ずつ列挙する。
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <どの定数をprivate化し、どのAPIをnullable化して、解決をどこへ一本化するか（最小修正）>`

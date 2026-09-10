@@ -40,8 +40,15 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(5, 10), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             var machineComponent = machineBlock.GetComponent<VanillaMachineBlockInventoryComponent>();
-            machineComponent.SetItem(0, itemStackFactory.Create(new ItemId(1), 2));
-            machineComponent.SetItem(2, itemStackFactory.Create(new ItemId(4), 5));
+
+            // 束縛(ADR 0042)のためレシピを選択し、スロット位置とIDをレシピ自身から取る
+            // Binding (ADR 0042) requires a selected recipe; slot positions and ids come from the recipe itself
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data[0];
+            MachineRecipeSelectTestUtil.SelectRecipe(machineBlock, recipe);
+            var input0 = MasterHolder.ItemMaster.GetItemId(recipe.InputItems[0].ItemGuid);
+            var output0 = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
+            machineComponent.SetItem(0, itemStackFactory.Create(input0, 2));
+            machineComponent.SetItem(recipe.InputItems.Length, itemStackFactory.Create(output0, 5));
 
             //レスポンスの取得
             var data = MessagePackSerializer.Deserialize<InventoryRequestProtocol.ResponseInventoryRequestProtocolMessagePack>(packet.GetPacketResponse(RequestBlock(new Vector3Int(5, 10)), new PacketResponseContext(null))[0]);
@@ -49,14 +56,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(InputSlotNum + OutPutSlotNum + ModuleSlotNum, data.Items.Length); // slot num
 
 
-            Assert.AreEqual(1, data.Items[0].Id.AsPrimitive()); // item id
+            Assert.AreEqual(input0.AsPrimitive(), data.Items[0].Id.AsPrimitive()); // item id
             Assert.AreEqual(2, data.Items[0].Count); // item count
 
             Assert.AreEqual(0, data.Items[1].Id.AsPrimitive());
             Assert.AreEqual(0, data.Items[1].Count);
 
-            Assert.AreEqual(4, data.Items[2].Id.AsPrimitive());
-            Assert.AreEqual(5, data.Items[2].Count);
+            Assert.AreEqual(output0.AsPrimitive(), data.Items[recipe.InputItems.Length].Id.AsPrimitive());
+            Assert.AreEqual(5, data.Items[recipe.InputItems.Length].Count);
         }
 
         [Test]

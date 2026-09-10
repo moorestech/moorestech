@@ -82,8 +82,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // Note: connections between not-yet-placed poles in a drag are approximated away (the server re-validates each in placement order, so this stays safe)
             // 予約する建設コストは財布へ問い合わせる。サーバーがPlaceBlockProtocolで plan.ItemsToConsume を渡すのと同じ形
             // The construction reservation comes from the wallet, the same shape the server passes as plan.ItemsToConsume
-            // 注意: 先頭セル基準の近似。ドラッグ途中で財布が尽きて再び支払う切り替わりは再現しない（安全側に倒れる）
-            // Note: this approximates from the first cell; a mid-drag switch back to paying is not replayed (it errs on the safe side)
+            // 注意: 先頭セル基準の近似。財布残ありで始めると途中で尽きた分を過大評価し、残0で始めると過小評価する（両方向にズレる）
+            // Note: a first-cell approximation; starting with wallet balance over-estimates once it runs out mid-drag, starting at zero under-estimates (drifts both ways)
+            // 電気系はplacementsPerCost>1を持たず現状は到達不能。逐次シミュレーションはbd moorestech-2o06.1に保留
+            // No electric block has placementsPerCost>1 today, so this is unreachable; per-cell simulation is parked in bd moorestech-2o06.1
             var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, _constructionWalletQuery.GetItemsToConsume(blockId));
             var totalCost = 0;
             var anyPlaceable = false;

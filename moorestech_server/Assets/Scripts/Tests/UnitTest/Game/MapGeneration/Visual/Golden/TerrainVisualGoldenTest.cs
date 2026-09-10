@@ -22,6 +22,9 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Golden
     ///     Pins the visuals (alphamap, detail density, display heights) as SHA256, hitting TileVisualBaker directly
     ///     and keeping the exact same hash values as the pre-migration client-side test (not one pixel changes)
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardServerMap2")]
     public class TerrainVisualGoldenTest
     {
         [SetUp]

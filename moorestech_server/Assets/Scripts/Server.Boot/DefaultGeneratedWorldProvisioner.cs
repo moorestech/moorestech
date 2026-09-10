@@ -10,10 +10,14 @@ namespace Server.Boot
     /// </summary>
     public static class DefaultGeneratedWorldProvisioner
     {
+        // 新規ワールドの既定seed。ADR 0035のユーザー裁定で196に固定されている
+        // The default seed for a new world, fixed at 196 by the user ruling in ADR 0035
+        public const int DefaultGeneratedSeed = 196;
+
         public static string EnsureWorld(WorldDataDirectory worldDataDirectory, string serverDataDirectory)
         {
             WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
-                worldDataDirectory, serverDataDirectory, WorldMapMode.Generated, ServerInstanceManager.DefaultGeneratedSeed));
+                worldDataDirectory, serverDataDirectory, WorldMapMode.Generated, DefaultGeneratedSeed));
             return TerrainTransferMetaReader.Read(worldDataDirectory).WorldId;
         }
     }

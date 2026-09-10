@@ -9,7 +9,7 @@ keywords: []
 # Reviewer: スキーマ / 型定義 / API 契約 (C#)
 
 ## あなたの役割
-cwd を読み、C# のデータモデル・型定義・API 契約・DB DDL の構造的欠陥のうち **Critical のみ** を返す。
+cwd を読み、C# のデータモデル・型定義・API 契約・DB DDL の構造的欠陥を返す。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` で渡された patch を Read し、変更されたファイルから型定義 / DTO / スキーマ / DB DDL を含むものに絞る (`.cs` / `.proto` / `.graphql`)
@@ -50,15 +50,4 @@ cwd を読み、C# のデータモデル・型定義・API 契約・DB DDL の�
 - 既存コードに既に存在していた型重複 / convenience property を patch が **新たに増やしていない** ケース (既存問題は対象外)
 
 ## 出力フォーマット
-Critical が 1 件でもあれば:
-```
-Critical: あり
-
-修正方針:
-- <ファイル:行>: <何を直すか>
-- ...
-```
-0 件なら:
-```
-Critical: なし
-```
+出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <何を直すか>`

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.Interact;
+using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State.SubInventory;
@@ -28,7 +29,7 @@ namespace Client.Game.InGame.Train.View.Object.Core
 
         public InteractExecuteResult Execute()
         {
-            var container = UITransitContextContainer.Create<ISubInventorySource>(new TrainSubInventorySource(_trainCar));
+            var container = UITransitContextContainer.Create<ISubInventorySource>(new TrainSubInventorySource(_trainCar.TrainCarInstanceId.AsPrimitive()));
             return InteractExecuteResult.Transit(new UITransitContext(UIStateEnum.SubInventory, container));
         }
     }

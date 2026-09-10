@@ -12,8 +12,10 @@ export const blockMachine = {
   blockType: "ElectricMachine",
   identifier: "block:3",
   blockGuid: BlockGuids.ELECTRIC_MACHINE_BLOCK_GUID,
-  itemSlots: [{ itemId: 3, count: 5 }, empty(), { itemId: 7, count: 1 }, empty()],
-  fluidSlots: [{ fluidId: 1, amount: 25.5, capacity: 100.0, fluidGuid: WATER_FLUID_GUID }],
+  // 選択中(bbbbbbbb)の素材itemId2をスロット0に置き、出力/液体スロットは空にしてゴースト描画を検証する
+  // Places selected recipe (bbbbbbbb)'s material itemId 2 in slot 0 and leaves the output/fluid slots empty to exercise ghost rendering
+  itemSlots: [{ itemId: 2, count: 5 }, empty(), empty(), empty()],
+  fluidSlots: [{ fluidId: 0, amount: 0, capacity: 100.0, fluidGuid: "" }],
   progress: 0.42,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",
@@ -24,7 +26,11 @@ export const blockMachine = {
     currentState: "processing",
     currentPower: 80.0,
     requestPower: 100.0,
-    slotLayout: { input: 2, output: 1, module: 1 },
+    slotLayout: { input: 2, output: 1, module: 1, inputTank: 1 },
+    // 選択中(bbbbbbbb)のレシピ束縛。ホストが配信する正本と同じ形をmockでも持たせる
+    // Binding of the selected recipe (bbbbbbbb); the mock carries the same shape the host publishes
+    slotBindings: [{ slot: 0, itemId: 2, count: 3 }, { slot: 2, itemId: 7, count: 2 }],
+    tankBindings: [{ tank: 0, fluidGuid: WATER_FLUID_GUID, amount: 10 }],
   },
   electricNetwork: { totalGeneratePower: 500.0, totalRequiredPower: 300.0, consumerCount: 4, powerRate: 1.0 },
 } satisfies BlockInventoryWireData;
@@ -49,7 +55,9 @@ export const blockGearMachine = {
     currentState: "idle",
     currentPower: 0.0,
     requestPower: 0.0,
-    slotLayout: { input: 1, output: 1, module: 0 },
+    slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
+    slotBindings: [],
+    tankBindings: [],
   },
   gear: { isClockwise: true, currentRpm: 12.5, currentTorque: 3.0, baseRpm: 20.0, baseTorque: 5.0 },
   gearNetwork: { totalRequiredGearPower: 60.0, totalGenerateGearPower: 100.0, stopReason: "none" },
@@ -98,6 +106,48 @@ export const blockGearMiner = {
   miner: { currentPower: 20.0, requestPower: 40.0, miningItems: [{ itemId: 11, itemsPerMinute: 6.0 }] },
   gear: { isClockwise: false, currentRpm: 8.0, currentTorque: 2.0, baseRpm: 12.0, baseTorque: 3.0 },
   gearNetwork: { totalRequiredGearPower: 24.0, totalGenerateGearPower: 40.0, stopReason: "none" },
+} satisfies BlockInventoryWireData;
+
+// BLK-10: 油井、汲み上げ中流体あり
+// BLK-10: electric pump, active target
+export const blockPump = {
+  open: true,
+  source: "block",
+  blockType: "ElectricPump",
+  identifier: "block:10",
+  blockGuid: BlockGuids.ELECTRIC_PUMP_BLOCK_GUID,
+  itemSlots: [],
+  fluidSlots: [{ fluidId: 1, amount: 120, capacity: 200, fluidGuid: WATER_FLUID_GUID }],
+  pump: {
+    kind: "electric",
+    electric: { currentState: "processing", currentPower: 50.0, requestPower: 50.0 },
+    pumpingFluids: [{ fluidGuid: WATER_FLUID_GUID, amountPerMinute: 3600.0 }],
+  },
+  electricNetwork: { totalGeneratePower: 100.0, totalRequiredPower: 50.0, consumerCount: 1, powerRate: 1.0 },
+} satisfies BlockInventoryWireData;
+
+// BLK-11: 鉱脈外の油井、警告行あり
+// BLK-11: pump off vein, shows warning
+export const blockPumpNoVein = {
+  ...blockPump,
+  identifier: "block:11",
+  fluidSlots: [{ fluidId: 0, amount: 0, capacity: 200, fluidGuid: "" }],
+  pump: { kind: "electric", electric: { currentState: "idle", currentPower: 10.0, requestPower: 10.0 }, pumpingFluids: [] },
+} satisfies BlockInventoryWireData;
+
+// BLK-12: 歯車ポンプ
+// BLK-12: gear pump
+export const blockGearPump = {
+  open: true,
+  source: "block",
+  blockType: "GearPump",
+  identifier: "block:12",
+  blockGuid: BlockGuids.GEAR_PUMP_BLOCK_GUID,
+  itemSlots: [],
+  fluidSlots: [{ fluidId: 1, amount: 30, capacity: 100, fluidGuid: WATER_FLUID_GUID }],
+  pump: { kind: "gear", pumpingFluids: [{ fluidGuid: WATER_FLUID_GUID, amountPerMinute: 120.0 }] },
+  gear: { isClockwise: true, currentRpm: 10.0, currentTorque: 2.0, baseRpm: 10.0, baseTorque: 2.0 },
+  gearNetwork: { totalRequiredGearPower: 20.0, totalGenerateGearPower: 40.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 
 // BLK-7 未登録種別: generic fallback の item/fluid 表示を検証する

@@ -17,12 +17,12 @@ namespace Game.MapGeneration.Transfer
         {
             // 地形が無いワールドはハッシュ対象が存在しない。空文字が「地形なし」の表明になる
             // A terrain-less world has nothing to hash; the empty string states "no terrain"
-            if (terrainMeta.IsTemplate) return string.Empty;
+            if (terrainMeta is not GeneratedTerrainTransferMeta generatedMeta) return string.Empty;
 
-            terrainMeta.ThrowIfGeneratedWorldOwnsNoChunk();
+            generatedMeta.ThrowIfOwnsNoChunk();
 
             using var sha256 = SHA256.Create();
-            foreach (var filePath in TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, terrainMeta.TerrainTileCount))
+            foreach (var filePath in TerrainTransferMeta.EnumerateStreamFilePaths(worldDataDirectory, generatedMeta.TerrainTileCount))
             {
                 var fileBytes = File.ReadAllBytes(filePath);
                 sha256.TransformBlock(fileBytes, 0, fileBytes.Length, null, 0);

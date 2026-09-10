@@ -13,6 +13,14 @@ export const UiStateNames = {
   placeBlock: "PlaceBlock",
   deleteBar: "DeleteBar",
   trainHud: "TrainHUDScreen",
+  story: "Story",
+} as const;
+
+// 入れ子ポーズ画面のサブstate語彙。C#のNestedPauseSubStateEnumと1対1で対応する
+// Vocabulary of nested-pause sub-states, mirroring C#'s NestedPauseSubStateEnum one-to-one
+export const NestedPauseSubStateNames = {
+  gameScreen: "GameScreen",
+  pauseMenuScreen: "PauseMenuScreen",
 } as const;
 
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる

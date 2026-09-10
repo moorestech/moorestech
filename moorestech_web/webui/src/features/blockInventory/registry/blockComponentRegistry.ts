@@ -10,7 +10,9 @@ import TrainPlatformInventory from "../views/TrainPlatformInventory";
 // Static blockType → React component registry; a mutable object so later features extend it without rewrites
 // マスタのblockTypeと一致させる
 // Keys must exactly match C# BlockMasterElement.BlockType (the real master uses PascalCase like "Chest")
-export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryOpen }>;
+// 大型パネル（高さ確定面）かどうかはパネルが決め、器の伸長が要るビューだけが受け取る
+// The panel decides whether this is the height-determining large panel; only views needing to stretch read it
+export type BlockInventoryComponent = ComponentType<{ data: BlockInventoryOpen; fillsPanelHeight: boolean }>;
 export const blockComponents: Record<string, BlockInventoryComponent> = {
   FilterSplitter: FilterSplitterInventory,
   Shaft: SectionStackView,

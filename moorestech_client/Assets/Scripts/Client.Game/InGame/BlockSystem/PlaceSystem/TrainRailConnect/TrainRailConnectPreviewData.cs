@@ -60,7 +60,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
         // 新設橋脚自身の建設コスト不足。空でなければ可否も落ちるため、可否側の真偽だけを等値比較に含める
         // The new pier's own construction cost shortage; it also drops placeability, so only that boolean joins the equality comparison
         public IReadOnlyList<ConstructionMaterialShortage> PierMaterialShortages;
-        public bool IsPierAffordable;
+
+        // 橋脚コストを賄えるか。不足リストから導き二重保持しない（defaultキャッシュ比較で来るnullも賄える扱い）
+        // Whether the pier cost is affordable, derived from the shortage list instead of stored twice (a null from a default cache compare counts as affordable)
+        public bool IsPierAffordable => PierMaterialShortages == null || PierMaterialShortages.Count == 0;
 
         // 可否は失敗理由・カーブ可否・橋脚コストから導出する（「不可なのに理由None」という状態を型で表現不能にする）
         // Placeability is derived from the failure reason, curve placeability and pier cost (makes "blocked with no reason" unrepresentable)
@@ -83,7 +86,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
             IsCurvePlaceable = isCurvePlaceable;
             MaterialShortages = materialShortages;
             PierMaterialShortages = pierMaterialShortages;
-            IsPierAffordable = pierMaterialShortages.Count == 0;
         }
 
         // MaterialShortagesを含めないのは、RailConnectPreviewObjectが毎フレームの同値スキップにこの比較を使うため（新しいリスト参照で毎回不一致になりメッシュを作り直す）

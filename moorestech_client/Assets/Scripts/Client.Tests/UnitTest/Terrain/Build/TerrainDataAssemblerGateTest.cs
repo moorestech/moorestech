@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
-using Game.MapGeneration.Pipeline.Visual;
+using Game.MapGeneration.Transfer;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;

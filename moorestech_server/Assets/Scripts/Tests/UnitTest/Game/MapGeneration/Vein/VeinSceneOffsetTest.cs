@@ -17,7 +17,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             // An odd-sized AABB with even Min and odd Max: the smallest counterexample where a 0.5 shift splits the rounding.
             var veins = new List<PlacedVein>
             {
-                new() { VeinGuid = "11111111-1111-1111-1111-111111111111", Min = new Vector3Int(2, 0, 2), Max = new Vector3Int(3, 0, 3) },
+                new("11111111-1111-1111-1111-111111111111", new Vector3Int(2, 0, 2), new Vector3Int(3, 0, 3)),
             };
 
             PlacementSceneOffset.ToSceneSpace(veins, new Vector2(0.5f, 0.5f));
@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.MapGeneration
         {
             var veins = new List<PlacedVein>
             {
-                new() { VeinGuid = "11111111-1111-1111-1111-111111111111", Min = new Vector3Int(9, 19, 29), Max = new Vector3Int(11, 21, 31) },
+                new("11111111-1111-1111-1111-111111111111", new Vector3Int(9, 19, 29), new Vector3Int(11, 21, 31)),
             };
 
             PlacementSceneOffset.ToSceneSpace(veins, new Vector2(4f, 6f));

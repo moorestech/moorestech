@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Core.Master.Validator;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
 using UnityEngine;
@@ -14,10 +15,6 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     /// </summary>
     public static class TerrainDataAssembler
     {
-        // 移植元と同じパッチ解像度。SetDetailResolutionの第2引数で描画パッチの粒度を決める
-        // The source's patch resolution; SetDetailResolution's second argument sets the render patch granularity
-        private const int DetailResolutionPerPatch = 16;
-
         public static async UniTask<TerrainData> AssembleAsync(
             WorldTerrainLayout layout, BakedTerrainTile tile,
             IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers)
@@ -45,7 +42,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 var detailMaps = tile.DetailMaps;
                 if (detailMaps.Count == 0) return;
 
-                terrainData.SetDetailResolution(detailResolution, DetailResolutionPerPatch);
+                terrainData.SetDetailResolution(detailResolution, GenerationMasterUtil.DetailResolutionPerPatch);
                 if (terrainData.detailResolution != detailResolution)
                     throw new System.InvalidOperationException(
                         $"[TerrainDataAssembler] Unity applied detail resolution {terrainData.detailResolution} instead of {detailResolution}.");
@@ -73,11 +70,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                         $"[TerrainDataAssembler] Detail prototype count {detailPrototypes.Count} does not match detail map count {detailMaps.Count}.");
 
                 var resolution = detailMaps[0].GetLength(0);
-                if (resolution < DetailResolutionPerPatch || resolution % DetailResolutionPerPatch != 0 ||
-                    layout.HeightmapResolution - 1 < resolution)
+                if (!GenerationMasterUtil.IsValidDetailResolution(resolution, layout.HeightmapResolution))
                     throw new System.InvalidOperationException(
-                        $"[TerrainDataAssembler] Detail resolution {resolution} must be at least {DetailResolutionPerPatch}, " +
-                        $"a multiple of {DetailResolutionPerPatch}, and no greater than {layout.HeightmapResolution - 1}.");
+                        $"[TerrainDataAssembler] Detail resolution {resolution} {GenerationMasterUtil.DescribeDetailResolutionRule(layout.HeightmapResolution)}.");
                 for (var layerIndex = 0; layerIndex < detailMaps.Count; layerIndex++)
                     if (detailMaps[layerIndex].GetLength(0) != resolution || detailMaps[layerIndex].GetLength(1) != resolution)
                         throw new System.InvalidOperationException(

@@ -23,6 +23,9 @@ namespace Client.Tests.EditModeInPlayingTest
     /// Empirically verifies that local play boots only the embedded server without probing, and that remote never boots one (ADR 0013).
     /// It pins the absence of the probe itself, which is what let parallel worktrees corrupt another world through a stale server on 11564.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay3")]
     public class LocalPlayEmbeddedServerBootTest
     {
         // 反転前のローカル既定ポート。ここへ接続が来たら接続試行が復活している

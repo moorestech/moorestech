@@ -29,8 +29,10 @@ function ModalBody({ modal }: { modal: ModalRequest }) {
 
   // e2e が同期検証できるようトランジションは無効化する。
   // Disable transitions so e2e can assert synchronously.
+  // Tab封殺(.decisions/2026-08-22)はpreventDefaultのみで、Mantineのtrapが折り返しで手動focusするため trapFocus も切る。
+  // The Tab suppression (.decisions/2026-08-22) is preventDefault-only; Mantine's trap still focuses manually on wrap-around, so trapFocus is off too.
   return (
-    <Modal.Root opened onClose={() => void cancel()} centered transitionProps={{ duration: 0 }}>
+    <Modal.Root opened onClose={() => void cancel()} centered trapFocus={false} transitionProps={{ duration: 0 }}>
       <Modal.Overlay data-testid="modal-backdrop" backgroundOpacity={0.6} />
       <Modal.Content data-testid="modal" w={320}>
         {/* Header+Title で Content に aria-labelledby を自動配線（uGUI titleText 相当） */}

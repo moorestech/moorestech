@@ -87,23 +87,52 @@ namespace Game.Block.Blocks.Machine.State
             var effectiveRequestPower = _context.EffectiveRequestPower(ProcessState.Processing);
             var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_context.CurrentPower, effectiveRequestPower);
 
-            // 残りtickを使い切ったら完了して待機へ
-            // Once remaining ticks are exhausted, finish and return to idle
-            if (subTicks >= RemainingTicks)
+            if (0 < RemainingTicks)
             {
+                // 残りtickが尽きるまでは加工継続
+                // Keep processing until remaining ticks run out
+                if (subTicks < RemainingTicks)
+                {
+                    RemainingTicks -= subTicks;
+                    return ProcessState.Processing;
+                }
                 RemainingTicks = 0;
-                return ProcessState.Idle;
             }
 
-            RemainingTicks -= subTicks;
-            return ProcessState.Processing;
+            // 旧セーブで産出予定が無い場合はここで一度だけ確定させる（以後の保留tickで再抽選しないため）
+            // Old saves lacking pending outputs get rolled once here (so held ticks afterward never re-roll)
+            _pendingOutputs ??= _context.CreateRealizedOutputs(CurrentRecipe);
+
+            // tickは尽きたが産出物が収まらない間は、加工ではなく出力詰まりとして待つ（要求電力を待機率へ落とす）
+            // Once ticks are exhausted but the outputs do not fit, wait as output-blocked rather than processing (drops the request to the idle rate)
+            if (!CanStoreRealizedOutputs()) return ProcessState.OutputBlocked;
+
+            return ProcessState.Idle;
         }
 
-        // 完了時に産出物を払い出す（旧セーブは産出予定が無いため再抽選）
-        // Output the produced items on completion (re-roll for old saves that lack pending outputs)
+        // 確定済み産出物が出力先へ収まるか。出力詰まりステートの復帰判定と共有する
+        // Whether the fixed outputs fit; shared with the output-blocked state's resume decision
+        public bool CanStoreRealizedOutputs()
+        {
+            if (CurrentRecipe == null) return true;
+            return _context.OutputInventory.CanStoreOutputs(_pendingOutputs, MachineOutputFactoryUtil.CreateFluidOutputs(CurrentRecipe));
+        }
+
+        // 完了時に産出物を払い出す。詰まっている間は保持したまま出力詰まりステートへ引き継ぐ
+        // Pay the outputs on completion; while blocked the job stays held and is handed to the output-blocked state
         public void OnExit()
         {
-            var outputs = _pendingOutputs ?? MachineOutputFactoryUtil.CreateRealizedOutputs(CurrentRecipe, _context.EffectComponent.AggregateCurrent());
+            if (!CanStoreRealizedOutputs()) return;
+            PayoutAndClear();
+        }
+
+        // 産出物を払い出してジョブを空にする（旧セーブは産出予定が無いため再抽選）
+        // Pay the outputs and empty the job (re-roll for old saves that lack pending outputs)
+        public void PayoutAndClear()
+        {
+            if (CurrentRecipe == null) return;
+
+            var outputs = _pendingOutputs ?? _context.CreateRealizedOutputs(CurrentRecipe);
             _context.OutputInventory.InsertOutputSlot(outputs, MachineOutputFactoryUtil.CreateFluidOutputs(CurrentRecipe));
 
             // 加工情報をクリアしてIdleが古いレシピ/進捗を報告・保存しないようにする

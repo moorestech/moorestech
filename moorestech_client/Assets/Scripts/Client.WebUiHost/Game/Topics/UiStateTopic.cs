@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.UI.UIState;
+using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Cysharp.Threading.Tasks;
-using Client.Game.InGame.UI.UIState.State;
 using UniRx;
 
 namespace Client.WebUiHost.Game.Topics
@@ -20,22 +21,22 @@ namespace Client.WebUiHost.Game.Topics
         private readonly WebSocketHub _hub;
         private readonly UIStateControl _uiStateControl;
         private readonly UIStateDictionary _uiStateDictionary;
-        private readonly TrainHUDScreenState _trainHudState;
-        private readonly IDisposable _trainStateSubscription;
+        private readonly IReadOnlyList<IDisposable> _nestedStateSubscriptions;
         private bool _publishScheduled;
         private bool _disposed;
 
-        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary, TrainHUDScreenState trainHudState)
+        public UiStateTopic(WebSocketHub hub, UIStateControl uiStateControl, UIStateDictionary uiStateDictionary, IReadOnlyList<INestedPauseScreenState> nestedPauseScreens)
         {
             _hub = hub;
             _uiStateControl = uiStateControl;
             _uiStateDictionary = uiStateDictionary;
-            _trainHudState = trainHudState;
 
-            // state遷移を購読して push する
-            // Subscribe to state transitions and push them
+            // state遷移と、入れ子ポーズを持つ全画面の表示変化を購読して push する
+            // Subscribe to state transitions and to every nested-pause screen's presentation changes, then push
             _uiStateControl.OnStateChanged += OnStateChanged;
-            _trainStateSubscription = _trainHudState.OnPresentationChanged.Subscribe(_ => SchedulePublish());
+            _nestedStateSubscriptions = nestedPauseScreens
+                .Select(nested => nested.OnPresentationChanged.Subscribe(_ => SchedulePublish()))
+                .ToArray();
         }
 
         public UniTask<string> GetSnapshotJsonAsync()
@@ -47,7 +48,7 @@ namespace Client.WebUiHost.Game.Topics
         {
             _disposed = true;
             _uiStateControl.OnStateChanged -= OnStateChanged;
-            _trainStateSubscription.Dispose();
+            foreach (var subscription in _nestedStateSubscriptions) subscription.Dispose();
         }
 
         private void OnStateChanged(UIStateEnum state)
@@ -79,7 +80,6 @@ namespace Client.WebUiHost.Game.Topics
         private string BuildJson()
         {
             var currentState = _uiStateControl.CurrentState;
-            var trainHud = currentState == UIStateEnum.TrainHUDScreen;
 
             // 現stateが自分で宣言したヒントをそのまま配る（内容の正はstate側・ADR-0032）
             // Publish the hints the current state declares for itself; the state owns the content (ADR-0032)
@@ -90,9 +90,16 @@ namespace Client.WebUiHost.Game.Topics
             return WebUiJson.Serialize(new UiStateDto
             {
                 State = currentState.ToString(),
-                SubState = trainHud ? _trainHudState.SubState.ToString() : null,
+                SubState = ResolveSubState(_uiStateControl.GetCurrentNestedPauseScreen()),
                 KeyHints = keyHints,
             });
+        }
+
+        // 入れ子screenだけsubStateを配る。enumからWeb語彙への文字列化はここだけで起きる
+        // Only nested screens carry a subState; the enum becomes a web-vocabulary string here and nowhere else
+        public static string ResolveSubState(INestedPauseScreenState nestedPauseScreen)
+        {
+            return nestedPauseScreen?.SubState.ToString();
         }
     }
 

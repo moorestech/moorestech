@@ -42,6 +42,24 @@ namespace Client.Tests.PlaceSystem.Ground
             Assert.AreEqual(32, resolved.y);
         }
 
+        // 許容誤差の境界を直接固定する
+        // Pin the tolerance boundary directly
+        [Test]
+        public void 許容誤差は整数直下だけを引き上げる()
+        {
+            // 整数直下の微小誤差は引き上げる
+            // A tiny undershoot below an integer is lifted
+            Assert.AreEqual(32, PlacementGroundCellResolver.ResolveCellY(32f - 1e-4f, 0));
+
+            // 許容誤差を超える端数は引き上げない
+            // A fraction beyond the tolerance is not lifted
+            Assert.AreEqual(31, PlacementGroundCellResolver.ResolveCellY(31.99f, 0));
+
+            // 整数ちょうどはそのまま
+            // An exact integer stays as is
+            Assert.AreEqual(32, PlacementGroundCellResolver.ResolveCellY(32f, 0));
+        }
+
         // 手動オフセットは地形解決後に加算される
         // The manual offset is added after the terrain resolution
         [Test]

@@ -25,7 +25,7 @@
         1
       ],
       "name": "TestElectricMachine",
-      "blockUIAddressablesPath": "ForUnitTest/TestElectricMachineUI",
+      "openable": true,
       "blockType": "ElectricMachine",
       "blockParam": {
         "moduleSlotCount": 4,
@@ -160,7 +160,8 @@
       "placementsPerCost": 1,
       "initialUnlocked": true,
       "category": "テスト",
-      "subCategory": "Block"
+      "subCategory": "Block",
+      "openable": false
     },
     {
       "modelTransform": {
@@ -247,7 +248,8 @@
       "initialUnlocked": true,
       "category": "テスト",
       "subCategory": "BeltConveyor",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -292,7 +294,8 @@
       "placementsPerCost": 1,
       "initialUnlocked": true,
       "category": "テスト",
-      "subCategory": "ElectricPole"
+      "subCategory": "ElectricPole",
+      "openable": false
     },
     {
       "modelTransform": {
@@ -336,7 +339,8 @@
       ],
       "placementsPerCost": 1,
       "category": "テスト",
-      "subCategory": "ElectricPole"
+      "subCategory": "ElectricPole",
+      "openable": false
     },
     {
       "modelTransform": {
@@ -438,7 +442,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000005",
       "category": "テスト",
       "subCategory": "ElectricGenerator",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -517,7 +522,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000006",
       "category": "テスト",
       "subCategory": "ElectricMiner",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -616,7 +622,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000007",
       "category": "テスト",
       "subCategory": "Chest",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -741,7 +748,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000008",
       "category": "テスト",
       "subCategory": "ElectricGenerator",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -843,7 +851,8 @@
       },
       "category": "テスト",
       "subCategory": "ElectricGenerator",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -934,7 +943,8 @@
       },
       "category": "テスト",
       "subCategory": "ElectricGenerator",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1035,7 +1045,8 @@
       },
       "category": "テスト",
       "subCategory": "ElectricGenerator",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1152,7 +1163,8 @@
       "blockGuid": "00000000-0000-0000-0000-00000000000c",
       "category": "テスト",
       "subCategory": "Gear",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1326,7 +1338,8 @@
       "blockGuid": "00000000-0000-0000-0000-00000000000d",
       "category": "テスト",
       "subCategory": "Gear",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1403,7 +1416,8 @@
       "blockGuid": "00000000-0000-0000-0000-00000000000e",
       "category": "テスト",
       "subCategory": "Shaft",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1489,7 +1503,8 @@
       "placementsPerCost": 1,
       "initialUnlocked": true,
       "category": "テスト",
-      "subCategory": "GearChainPole"
+      "subCategory": "GearChainPole",
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1568,7 +1583,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000102",
       "category": "テスト",
       "subCategory": "GearChainPole",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1721,7 +1737,8 @@
       "blockGuid": "00000000-0000-0000-0000-00000000000f",
       "category": "テスト",
       "subCategory": "GearMachine",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1798,7 +1815,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000010",
       "category": "テスト",
       "subCategory": "SimpleGearGenerator",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1877,7 +1895,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000011",
       "category": "テスト",
       "subCategory": "SimpleGearGenerator",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -1994,7 +2013,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000012",
       "category": "テスト",
       "subCategory": "Gear",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -2111,7 +2131,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000013",
       "category": "テスト",
       "subCategory": "Gear",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -2188,7 +2209,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000014",
       "category": "テスト",
       "subCategory": "SimpleGearGenerator",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockSize": [
@@ -2291,7 +2313,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000030",
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockSize": [
@@ -2454,7 +2477,8 @@
       ],
       "placementsPerCost": 3,
       "category": "テスト",
-      "subCategory": "GearBeltConveyor"
+      "subCategory": "GearBeltConveyor",
+      "openable": false
     },
     {
       "maxStack": 100,
@@ -2573,7 +2597,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000019",
       "category": "テスト",
       "subCategory": "ElectricMachine",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "maxStack": 100,
@@ -2692,7 +2717,8 @@
       "blockGuid": "00000000-0000-0000-0000-00000000001a",
       "category": "テスト",
       "subCategory": "ElectricMachine",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "maxStack": 100,
@@ -2811,7 +2837,8 @@
       "blockGuid": "00000000-0000-0000-0000-00000000001b",
       "category": "テスト",
       "subCategory": "ElectricMachine",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "name": "GearMiner",
@@ -2908,7 +2935,8 @@
       ],
       "category": "テスト",
       "subCategory": "GearMiner",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "maxStack": 100,
@@ -2939,7 +2967,8 @@
       "placementsPerCost": 1,
       "initialUnlocked": true,
       "category": "テスト",
-      "subCategory": "TrainRail"
+      "subCategory": "TrainRail",
+      "openable": false
     },
     {
       "maxStack": 100,
@@ -2969,7 +2998,8 @@
       ],
       "placementsPerCost": 1,
       "category": "テスト",
-      "subCategory": "TrainRail"
+      "subCategory": "TrainRail",
+      "openable": false
     },
     {
       "maxStack": 100,
@@ -3000,7 +3030,8 @@
       "placementsPerCost": 1,
       "initialUnlocked": true,
       "category": "テスト",
-      "subCategory": "TrainRail"
+      "subCategory": "TrainRail",
+      "openable": false
     },
     {
       "blockSize": [
@@ -3066,7 +3097,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000025",
       "category": "テスト",
       "subCategory": "TrainStation",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockSize": [
@@ -3132,7 +3164,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000026",
       "category": "テスト",
       "subCategory": "TrainItemPlatform",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "maxStack": 100,
@@ -3220,7 +3253,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000027",
       "category": "テスト",
       "subCategory": "GearMapObjectMiner",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockGuid": "9CE688A4-8985-40B6-AD52-0F98F3BAF55E",
@@ -3331,7 +3365,8 @@
       ],
       "category": "テスト",
       "subCategory": "FluidPipe",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
@@ -3392,7 +3427,8 @@
       ],
       "category": "テスト",
       "subCategory": "FluidPipe",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "time": 1,
@@ -3528,7 +3564,8 @@
       "blockGuid": "9b36e317-b6eb-441a-b5bf-8aa99e9216a0",
       "category": "テスト",
       "subCategory": "ElectricMachine",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockSize": [
@@ -3669,7 +3706,8 @@
       "blockGuid": "cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471",
       "category": "テスト",
       "subCategory": "FuelGearGenerator",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockGuid": "9af7370b-9982-4cdb-bee2-c8d4545581af",
@@ -3681,7 +3719,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "blockUIAddressablesPath": "",
+      "openable": false,
       "blockParam": {
         "requiredItems": [
           {
@@ -3710,7 +3748,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "blockUIAddressablesPath": "",
+      "openable": false,
       "blockParam": {
         "inventorySlot": 3,
         "requiredItems": [
@@ -3747,7 +3785,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "blockUIAddressablesPath": "",
+      "openable": false,
       "blockParam": {
         "inventorySlot": 3,
         "requiredItems": [],
@@ -3771,7 +3809,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "blockUIAddressablesPath": "",
+      "openable": false,
       "blockParam": {
         "generateFluid": [
           {
@@ -3884,7 +3922,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "blockUIAddressablesPath": "",
+      "openable": false,
       "blockParam": {
         "generateFluid": [
           {
@@ -3953,7 +3991,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "blockUIAddressablesPath": "",
+      "openable": false,
       "blockParam": {
         "teethCount": 10,
         "maxGeneratedPower": 100,
@@ -4155,7 +4193,8 @@
       "blockGuid": "eccb9f59-4439-4caf-9ae8-67da50549040",
       "category": "テスト",
       "subCategory": "GearBeltConveyor",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockSize": [
@@ -4229,7 +4268,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000029",
       "category": "テスト",
       "subCategory": "TrainFluidPlatform",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockSize": [
@@ -4311,7 +4351,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000031",
       "category": "テスト",
       "subCategory": "FilterSplitter",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockSize": [
@@ -4363,7 +4404,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000032",
       "category": "テスト",
       "subCategory": "Chest",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockSize": [
@@ -4446,7 +4488,8 @@
       "blockGuid": "00000000-0000-0000-0000-000000000033",
       "category": "テスト",
       "subCategory": "Chest",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "blockGuid": "00000000-0000-0000-0000-000000000099",
@@ -4458,7 +4501,7 @@
         1
       ],
       "blockPrefabAddressablesPath": "",
-      "blockUIAddressablesPath": "",
+      "openable": false,
       "blockParam": {
         "teethCount": 10,
         "outputModes": [
@@ -4639,7 +4682,8 @@
       ],
       "placementsPerCost": 3,
       "category": "テスト",
-      "subCategory": "GearBeltConveyor"
+      "subCategory": "GearBeltConveyor",
+      "openable": false
     },
     {
       "blockSize": [
@@ -4757,7 +4801,8 @@
       ],
       "placementsPerCost": 3,
       "category": "テスト",
-      "subCategory": "GearBeltConveyor"
+      "subCategory": "GearBeltConveyor",
+      "openable": false
     },
     {
       "name": "TestCleanRoomWall",
@@ -4771,7 +4816,8 @@
       "blockGuid": "2d8b162a-1ac5-4780-8e4e-2b8d4f6470e8",
       "category": "テスト",
       "subCategory": "CleanRoomWall",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "name": "TestCleanRoomDoor",
@@ -4785,7 +4831,8 @@
       "blockGuid": "07d7e1a2-b1fd-412f-819c-af098e79e4d4",
       "category": "テスト",
       "subCategory": "CleanRoomDoor",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "name": "TestCleanRoomItemHatch",
@@ -4836,7 +4883,8 @@
       "blockGuid": "d6268837-5326-480b-960a-ffdce4b5478e",
       "category": "テスト",
       "subCategory": "CleanRoomItemHatch",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "name": "TestCleanRoomPipeHatch",
@@ -4895,7 +4943,8 @@
       "blockGuid": "8e425510-aa34-4a1b-9f40-5f8079183ab2",
       "category": "テスト",
       "subCategory": "CleanRoomPipeHatch",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "name": "TestCleanRoomAirFilter",
@@ -4917,7 +4966,8 @@
       "blockGuid": "21e760d0-54b2-41a5-8cef-d78e1efb8fb8",
       "category": "テスト",
       "subCategory": "CleanRoomAirFilter",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "name": "TestCleanRoomMachine",
@@ -5013,7 +5063,8 @@
       "blockGuid": "e08acf92-9d43-4db0-b43a-bcec773f22dc",
       "category": "テスト",
       "subCategory": "CleanRoomMachine",
-      "placementsPerCost": 1
+      "placementsPerCost": 1,
+      "openable": false
     },
     {
       "modelTransform": {
@@ -5096,6 +5147,155 @@
       "blockGuid": "00000000-0000-0000-0000-000000000060",
       "category": "テスト",
       "subCategory": "ElectricMiner",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
+      "blockGuid": "f1000000-0000-0000-0000-000000000001",
+      "name": "MultiFluidPumpWaterFirst",
+      "blockType": "ElectricPump",
+      "blockSize": [
+        11,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "openable": false,
+      "blockParam": {
+        "generateFluid": [
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 10,
+            "generateTime": 4
+          },
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000002",
+            "amount": 6,
+            "generateTime": 3
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requiredPower": 50,
+        "idlePowerRate": 0.4,
+        "fluidInventoryConnectors": {
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "option": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "e33b1e10-8986-46e4-b041-d04025d6a7d8"
+            }
+          ],
+          "inflowConnects": []
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 9,
+        "connectionHeightRange": 9
+      },
+      "category": "テスト",
+      "subCategory": "ElectricPump",
+      "placementsPerCost": 1
+    },
+    {
+      "blockGuid": "f1000000-0000-0000-0000-000000000002",
+      "name": "MultiFluidPumpSteamFirst",
+      "blockType": "ElectricPump",
+      "blockSize": [
+        11,
+        1,
+        1
+      ],
+      "blockPrefabAddressablesPath": "",
+      "openable": false,
+      "blockParam": {
+        "generateFluid": [
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000002",
+            "amount": 10,
+            "generateTime": 4
+          },
+          {
+            "fluidGuid": "00000000-0000-0000-1234-000000000001",
+            "amount": 6,
+            "generateTime": 3
+          }
+        ],
+        "innerTankCapacity": 100,
+        "requiredPower": 50,
+        "idlePowerRate": 0.4,
+        "fluidInventoryConnectors": {
+          "outflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  1,
+                  0,
+                  0
+                ],
+                [
+                  -1,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "option": {
+                "flowCapacity": 100,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "e33b1e10-8986-46e4-b041-d04025d6a7d8"
+            }
+          ],
+          "inflowConnects": []
+        },
+        "maxWireConnectionCount": 2,
+        "connectionRange": 9,
+        "connectionHeightRange": 9
+      },
+      "category": "テスト",
+      "subCategory": "ElectricPump",
       "placementsPerCost": 1
     }
   ],

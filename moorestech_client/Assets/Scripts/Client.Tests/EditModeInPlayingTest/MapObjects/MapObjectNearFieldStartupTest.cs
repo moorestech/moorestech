@@ -23,6 +23,9 @@ namespace Client.Tests.EditModeInPlayingTest.MapObjects
     /// - Switches from EditMode to PlayMode during execution
     /// - Verifies objects within 150m are already instantiated when the near-field wait releases
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientNearFieldStartup")]
     public class MapObjectNearFieldStartupTest
     {
         [UnityTest]

@@ -3,30 +3,22 @@ using System.Collections.Generic;
 namespace Client.Tests.WebUi.Gate
 {
     /// <summary>
-    /// スクリーンスペースuGUIビューのWebゲート処遇分類。新規uGUI追加時は必ずここへ分類を追加する（未分類はテスト失敗）。
-    /// 分類の正はdocs/webui/MIGRATION.md。Pendingは吸収先Phase完了時にGatedRoot/CoveredByRootへ更新する。
-    /// Web-gate disposition classification for screen-space uGUI views; new uGUI files must be classified here (unclassified fails the test).
-    /// Source of truth is docs/webui/MIGRATION.md; Pending entries flip to GatedRoot/CoveredByRoot when the absorbing phase completes.
+    /// スクリーンスペースuGUIビューの処遇分類。新規uGUI追加時は必ずここへ分類を追加する（未分類はテスト失敗）。
+    /// ADR 0052で全削除済み。新規追加防止の安全網として残置。
+    /// Disposition classification for screen-space uGUI views; new uGUI files must be classified here (unclassified fails the test).
+    /// The migrated screen uGUI is fully deleted per ADR 0052; this classification remains as a safety net against new additions.
     /// </summary>
     public static class WebUiGateClassification
     {
         public enum Category
         {
-            // WebUiScreenGate.IsWebUiMode 参照を必須とするゲートルート
-            // Gated root that must reference WebUiScreenGate.IsWebUiMode
-            GatedRoot,
-
-            // 親のゲートルートで表示抑止される配下ファイル
-            // Child file suppressed via its parent gated root
+            // 親の抑止ルートで表示抑止される配下ファイル
+            // Child file suppressed via its parent suppression root
             CoveredByRoot,
 
-            // ゲート機構・状態機械そのもの
-            // The gate mechanism / state machine itself
+            // 状態機械・論理モデルそのもの
+            // The state machine / logical model itself
             Infra,
-
-            // 移行Phase待ち（noteに吸収先Phase）
-            // Awaiting migration phase (note holds the absorbing phase)
-            Pending,
 
             // 移行対象外（ワールド空間・メインメニュー・デバッグ等。noteに根拠）
             // Out of migration scope (world-space, main menu, debug; note holds the reason)
@@ -59,58 +51,42 @@ namespace Client.Tests.WebUi.Gate
             "Client.Game/InGame/Tutorial",
             "Client.Skit",
             "Client.CutScene",
+            "Client.DebugSystem",
         };
 
         // 最長一致で適用する分類ルール。ファイル指定がディレクトリ指定より優先される
         // Longest-prefix-match rules; file entries take precedence over directory entries
         public static readonly IReadOnlyList<Rule> Rules = new List<Rule>
         {
-            // --- ゲートルート（ゲート参照必須） / Gated roots (gate reference required)
-            new Rule("Client.Game/InGame/UI/Inventory/Main/PlayerInventoryViewController.cs", Category.GatedRoot, "インベントリ"),
-            new Rule("Client.Game/InGame/UI/Inventory/RecipeViewer/RecipeViewerView.cs", Category.GatedRoot, "レシピビューア/クラフト"),
-            new Rule("Client.Game/InGame/UI/Inventory/Block/Research/ResearchTreeViewManager.cs", Category.GatedRoot, "研究ツリー"),
-            new Rule("Client.Game/InGame/UI/BuildMenu/BuildMenuView.cs", Category.GatedRoot, "ビルドメニュー"),
-            new Rule("Client.Game/InGame/UI/Blueprint/BlueprintNameInputView.cs", Category.GatedRoot, "ブループリント名入力"),
-            new Rule("Client.Game/InGame/UI/Challenge/ChallengeListView.cs", Category.GatedRoot, "チャレンジリスト/ツリー (C1)"),
-            new Rule("Client.Game/InGame/UI/Challenge/CurrentChallengeHudView.cs", Category.GatedRoot, "進行中チャレンジHUD (C1)"),
-            new Rule("Client.Game/InGame/UI/Crosshair/CrosshairView.cs", Category.GatedRoot, "クロスヘア (C2)"),
-            new Rule("Client.Game/InGame/UI/Tooltip/MouseCursorTooltip.cs", Category.GatedRoot, "カーソル追従ツールチップ (C2)"),
-            new Rule("Client.Game/InGame/UI/UIState/State/DeleteObjectState.cs", Category.GatedRoot, "削除バーHUD (C2)"),
-            new Rule("Client.Game/InGame/UI/UIState/State/PauseMenu/PauseMenuStateService.cs", Category.GatedRoot, "ポーズメニュー (C2)"),
-            new Rule("Client.Game/InGame/Presenter/PauseMenu/NetworkDisconnectPresenter.cs", Category.GatedRoot, "切断表示 (C2)"),
-            new Rule("Client.Game/InGame/UI/Inventory/Train/TrainInventoryView.cs", Category.GatedRoot, "列車インベントリ (C3)"),
-            new Rule("Client.Game/InGame/BackgroundSkit/BackgroundSkitManager.cs", Category.GatedRoot, "背景スキット (C4/S1)"),
-            new Rule("Client.Game/Skit/SkitManager.cs", Category.GatedRoot, "通常スキット UI Toolkit 抑止 (C4/S2)"),
-
-            // --- ルート配下 / Covered by roots
-            new Rule("Client.Game/InGame/UI/Inventory", Category.CoveredByRoot, "移行済み画面の配下部品（Phase Dで全量最終監査）"),
-            new Rule("Client.Game/InGame/UI/BuildMenu", Category.CoveredByRoot, "BuildMenuView配下"),
-            new Rule("Client.Game/InGame/UI/Blueprint", Category.CoveredByRoot, "BuildMenu/名入力配下"),
-            new Rule("Client.Game/InGame/UI/Modal", Category.CoveredByRoot, "モーダル基盤は移行済み（Phase Dで最終監査）"),
-
             // --- 基盤 / Infra
-            new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械・ゲート本体・トグル"),
+            new Rule("Client.Game/Skit/SkitManager.cs", Category.Infra, "通常スキットの進行制御。UI Toolkitビューは常時伏せる"),
+            new Rule("Client.Game/InGame/UI/UIState", Category.Infra, "状態機械本体"),
+            new Rule("Client.Game/InGame/UI/Inventory", Category.Infra, "サブインベントリ論理モデル（uGUIビューは全削除済み: ADR 0052）"),
+            new Rule("Client.Game/InGame/UI/BuildMenu", Category.Infra, "ビルドメニュー選択の論理状態"),
+            new Rule("Client.Game/InGame/UI/Blueprint", Category.Infra, "BP名入力の論理状態"),
+            new Rule("Client.Game/InGame/UI/Challenge", Category.Infra, "チャレンジ進行の論理状態"),
+            new Rule("Client.Game/InGame/UI/Crosshair", Category.Infra, "クロスヘア表示可否の論理状態"),
+            new Rule("Client.Game/InGame/UI/ProgressBar", Category.Infra, "進捗の論理状態（ui.progressのデータ源）"),
+            new Rule("Client.Game/InGame/UI/Tooltip", Category.Infra, "ツールチップの論理状態"),
+            new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.Infra, "終了経路・切断状態・セーブ要求（uGUI非依存）"),
+            new Rule("Client.Game/InGame/BackgroundSkit", Category.Infra, "音声再生専用オーケストレータ。文字表示はWeb UI側が担う"),
             new Rule("Client.Game/Skit/Localization", Category.Infra, "通常スキットの辞書読込・合成・解決基盤（画面表示なし）"),
+            new Rule("Client.Game/InGame/Tutorial", Category.Infra, "challenge lifecycle・presentation state・interface"),
+            new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.Infra, "DOMハイライト一本化済み"),
 
-            // --- Phase待ち / Pending migration
-            new Rule("Client.Game/InGame/UI/Inventory/Train", Category.CoveredByRoot, "TrainInventoryView配下 (C3)"),
-            new Rule("Client.Game/InGame/UI/Challenge", Category.CoveredByRoot, "ChallengeListView/CurrentChallengeHudView配下（C1移行済み）"),
-            new Rule("Client.Game/InGame/UI/Crosshair", Category.CoveredByRoot, "CrosshairView配下 (C2)"),
-            new Rule("Client.Game/InGame/UI/Tooltip", Category.CoveredByRoot, "MouseCursorTooltip配下 (C2)"),
-            new Rule("Client.Game/InGame/UI/ProgressBar/ProgressBarView.cs", Category.GatedRoot, "スクリーン進捗バー（D監査で二重表示ゲート漏れを検出し修正。論理状態はProgressTopicのデータ源として維持）"),
-            new Rule("Client.Game/InGame/Presenter/PauseMenu", Category.CoveredByRoot, "PauseMenuStateService/NetworkDisconnectPresenterで抑止 (C2)"),
-            new Rule("Client.Game/InGame/BackgroundSkit", Category.CoveredByRoot, "BackgroundSkitManagerでWeb文字表示を抑止（音声はUnity維持） (C4/S1)"),
-            new Rule("Client.Game/InGame/Mining", Category.Excluded, "ワールド空間表示のためUnity残置。画面固定進捗は既存ui.progressへ統合 (C2)"),
-            new Rule("Client.Game/InGame/Tutorial/UIHighlight", Category.Infra, "uGUIフォールバック撤去済み・DOMハイライト一本化 (C4/T3)"),
+            // --- 移行対象外 / Excluded
+            new Rule("Client.Game/InGame/Mining", Category.Excluded, "採掘FSM（進捗は ProgressBarState→ui.progress）"),
             new Rule("Client.Game/InGame/Tutorial/MapObjectPin.cs", Category.Excluded, "ワールド座標ピンのためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/VeinPin.cs", Category.Excluded, "鉱脈露頭を指すワールド座標ピンのためUnity残置"),
             new Rule("Client.Game/InGame/Tutorial/BlockPlacePreviewTutorialManager.cs", Category.Excluded, "3D配置previewのためUnity残置"),
-            new Rule("Client.Game/InGame/Tutorial/TutorialBlock", Category.Excluded, "3D配置preview配下"),
-            new Rule("Client.Game/InGame/Tutorial", Category.Infra, "challenge lifecycle・presentation state・interface"),
-            new Rule("Client.Game/Skit/SkitWorldObjectControlGroup.cs", Category.Excluded, "Environment外のワールド表示物を束ねる切替でスクリーンUIを持たない"),
+            new Rule("Client.Game/InGame/Tutorial/BlockPlacePreviewTutorialView.cs", Category.Excluded, "3D配置previewの表示体"),
+            new Rule("Client.Game/InGame/Tutorial/PlacementGuide", Category.Excluded, "3D配置previewの鎖・相対・鉱脈限定ガイド"),
+            new Rule("Client.Game/Skit/SkitWorldObjectControlGroup.cs", Category.Excluded, "ワールド表示物の切替でスクリーンUIを持たない"),
             new Rule("Client.Game/Skit/SkitVisibilityLedger.cs", Category.Excluded, "スキットが消したワールド表示の復元台帳でスクリーンUIを持たない"),
-            new Rule("Client.Skit", Category.CoveredByRoot, "SkitManagerがUI Toolkit rootをWebモード時に抑止 (C4/S2-S3)"),
-            new Rule("Client.CutScene", Category.Pending, "C4: カットシーン退避（GameStateType Topic化）"),
+            new Rule("Client.Game/Skit/SkitUiRestoreResult.cs", Category.Excluded, "会話UI復帰要求の帰結を表すenumでスクリーンUIを持たない"),
+            new Rule("Client.Skit", Category.CoveredByRoot, "SkitManagerがUI Toolkit rootを常時抑止"),
+            new Rule("Client.CutScene", Category.Excluded, "TimelinePlayerのみ（Canvasは削除済み: ADR 0052）"),
+            new Rule("Client.DebugSystem", Category.Excluded, "デバッグUI（ADR 0052 例外4）"),
         };
     }
 }

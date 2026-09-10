@@ -18,8 +18,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost
         /// </summary>
         public static async UniTask<PreviewGhostObject> CreateAsync(BlockId blockId, CancellationToken cancellationToken)
         {
-            // ブロックの作成
-            // Create block
             var block = ClientContext.BlockGameObjectPrefabContainer.CreateBlockGameObject(blockId, Vector3.zero, Quaternion.identity);
             block.SetActive(true);
 

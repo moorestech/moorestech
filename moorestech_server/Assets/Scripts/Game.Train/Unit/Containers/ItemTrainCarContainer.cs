@@ -152,6 +152,13 @@ namespace Game.Train.Unit.Containers
         #region IOpenableInventory
 
         public IItemStack GetItem(int slot) => _itemDataStoreService.GetItem(slot);
+        // 配置制約を持たないインベントリはどのスロットも受け入れる
+        // An inventory without placement restrictions accepts every slot
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
+        {
+            return true;
+        }
+
         public void SetItem(int slot, IItemStack itemStack) => _itemDataStoreService.SetItem(slot, itemStack);
         public void SetItem(int slot, ItemId itemId, int count) => _itemDataStoreService.SetItem(slot, itemId, count);
         public IItemStack ReplaceItem(int slot, IItemStack itemStack) => _itemDataStoreService.ReplaceItem(slot, itemStack);

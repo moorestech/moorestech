@@ -12,20 +12,20 @@ namespace Client.WebUiHost.Game.Topics
     {
         public const string TopicName = "ui.crosshair";
         private readonly WebSocketHub _hub;
-        private readonly CrosshairView _view;
+        private readonly CrosshairVisibility _visibility;
         private readonly IDisposable _subscription;
 
-        public CrosshairTopic(WebSocketHub hub, CrosshairView view)
+        public CrosshairTopic(WebSocketHub hub, CrosshairVisibility visibility)
         {
             _hub = hub;
-            _view = view;
-            _subscription = view.OnVisibleChanged.Skip(1).Subscribe(_ => Publish());
+            _visibility = visibility;
+            _subscription = visibility.OnVisibleChanged.Skip(1).Subscribe(_ => Publish());
         }
 
         public UniTask<string> GetSnapshotJsonAsync() => UniTask.FromResult(BuildJson());
         public void Dispose() => _subscription.Dispose();
         private void Publish() => _hub.Publish(TopicName, BuildJson());
-        private string BuildJson() => WebUiJson.Serialize(new VisibilityDto { Visible = _view.IsVisible() });
+        private string BuildJson() => WebUiJson.Serialize(new VisibilityDto { Visible = _visibility.IsVisible() });
     }
 
     public class UiVisibilityTopic : ITopicHandler, IDisposable

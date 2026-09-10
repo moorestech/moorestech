@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import type { ServerResponse } from "node:http";
 import { WebSocket } from "ws";
 import { Topics } from "../../../src/bridge/transport/protocol";
@@ -5,11 +6,20 @@ import { localizationLanguagesUrl } from "../../../src/bridge/transport/httpEndp
 import { send } from "../wire";
 import { state, subscribersOf } from "../state";
 
-const languages = [
-  { code: "english", displayName: "English" },
-  { code: "japanese", displayName: "日本語" },
-  { code: "german", displayName: "Deutsch" },
-];
+// 言語カタログの正本はlocalization_settings.csv（topicControlsのcsv読み口と同じ流儀）
+// localization_settings.csv is the single source for the language catalog (same reading style as topicControls)
+const languages = readLanguageCatalog();
+
+function readLanguageCatalog(): { code: string; displayName: string }[] {
+  const csvUrl = new URL("../../../../../Localization/localization_settings.csv", import.meta.url);
+  const lines = readFileSync(csvUrl, "utf8").split("\n").slice(1).filter((line) => line.trim() !== "");
+  if (lines.length === 0) throw new Error("localization_settings.csv has no language rows");
+  return lines.map((line) => {
+    const [code, displayName] = line.split(",");
+    if (!code || !displayName) throw new Error(`localization_settings.csv has a malformed row: ${line}`);
+    return { code: code.trim(), displayName: displayName.trim() };
+  });
+}
 
 export function serveLanguageCatalog(url: string, response: ServerResponse): boolean {
   if (url !== localizationLanguagesUrl) return false;

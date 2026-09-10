@@ -38,10 +38,10 @@ export const inventory = {
     ...Array.from({ length: 8 }, empty),
   ],
   grab: empty(),
-  // 3装備枠、初期選択は素手
-  // Three slots, bare hands selected
+  // 3装備枠、初期選択は先頭スロット
+  // Three slots, the first one selected
   equipment: [{ itemId: 1, count: 1 }, ...Array.from({ length: 2 }, empty)],
-  selectedEquipment: -1,
+  selectedEquipment: 0,
   equipmentSelectionConfirmationRevision: 0,
 } satisfies PlayerInventoryData;
 

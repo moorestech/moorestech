@@ -118,8 +118,8 @@ module.exports = async ({ github, context, core }) => {
     return [...seen.entries()].map(([number, title]) => ({ number, title }));
   }
 
-  // 今回runのジョブ一覧から失敗ジョブだけを抽出し、各ジョブのログ末尾を添える
-  // Extracts only the failed jobs from this run's job list, attaching a tail excerpt of each job's log
+  // 今回runのジョブ一覧から失敗ジョブだけを抽出し、各ジョブのログ末尾（取得失敗時はnull）を添える
+  // Extracts only the failed jobs from this run's job list, attaching each job's log tail (null when the fetch failed)
   async function listFailedJobs() {
     const jobs = await github.rest.actions.listJobsForWorkflowRun({
       owner, repo, run_id: run.id, per_page: 50,
@@ -130,8 +130,8 @@ module.exports = async ({ github, context, core }) => {
     })));
   }
 
-  // ジョブログの末尾4000文字を取得する。取得失敗時は空文字を返す
-  // Fetches the last 4000 characters of a job's log; returns an empty string on fetch failure
+  // ジョブログの末尾4000文字を返す。取得失敗はnullで、本当に空のログ（空文字）と区別する
+  // Returns the last 4000 characters of a job's log; a failed fetch yields null, distinct from a genuinely empty log
   async function fetchJobLogExcerpt(jobId) {
     const LOG_TAIL_CHARS = 4000;
     // GitHub APIとの境界。ログ取得の失敗でIssue起票そのものを落とさないため、ここだけtry-catchで隔離する
@@ -139,10 +139,13 @@ module.exports = async ({ github, context, core }) => {
     let log = '';
     try {
       const response = await github.rest.actions.downloadJobLogsForWorkflowRun({ owner, repo, job_id: jobId });
-      log = typeof response.data === 'string' ? response.data : '';
+      // 302先のblobはContent-Type次第でBuffer/ArrayBufferで返るため、文字列化してから切り出す
+      // The redirected blob can arrive as a Buffer/ArrayBuffer depending on Content-Type, so decode before slicing
+      const data = response.data;
+      log = typeof data === 'string' ? data : Buffer.from(data).toString('utf8');
     } catch (error) {
-      core.info(`failed to fetch logs for job ${jobId}: ${error.message}`);
-      return '';
+      core.warning(`failed to fetch logs for job ${jobId}: ${error.message}`);
+      return null;
     }
     return log.length > LOG_TAIL_CHARS ? log.slice(-LOG_TAIL_CHARS) : log;
   }
@@ -159,7 +162,9 @@ module.exports = async ({ github, context, core }) => {
     lines.push('## 失敗ジョブ:');
     for (const job of failedJobs) {
       lines.push(`- [${job.name}](${job.url})`);
-      if (job.logExcerpt) {
+      if (job.logExcerpt === null) {
+        lines.push(`- （ログ取得に失敗しました: ${job.url}）`);
+      } else if (job.logExcerpt) {
         lines.push('```');
         lines.push(job.logExcerpt);
         lines.push('```');

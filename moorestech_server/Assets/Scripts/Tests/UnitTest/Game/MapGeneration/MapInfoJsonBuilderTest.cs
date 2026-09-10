@@ -54,12 +54,7 @@ namespace Tests.UnitTest.Game.MapGeneration
             var output = CreateDummyOutput();
             output.FluidVeins = new List<PlacedVein>
             {
-                new()
-                {
-                    VeinGuid = "33333333-3333-3333-3333-333333333333",
-                    Min = new Vector3Int(13, 14, 15),
-                    Max = new Vector3Int(16, 17, 18),
-                },
+                new("33333333-3333-3333-3333-333333333333", new Vector3Int(13, 14, 15), new Vector3Int(16, 17, 18)),
             };
 
             var mapInfoJson = MapInfoJsonBuilder.Build(output);
@@ -146,18 +141,8 @@ namespace Tests.UnitTest.Game.MapGeneration
                 },
                 ItemVeins = new List<PlacedVein>
                 {
-                    new()
-                    {
-                        VeinGuid = "11111111-1111-1111-1111-111111111111",
-                        Min = new Vector3Int(1, 2, 3),
-                        Max = new Vector3Int(4, 5, 6),
-                    },
-                    new()
-                    {
-                        VeinGuid = "22222222-2222-2222-2222-222222222222",
-                        Min = new Vector3Int(7, 8, 9),
-                        Max = new Vector3Int(10, 11, 12),
-                    },
+                    new("11111111-1111-1111-1111-111111111111", new Vector3Int(1, 2, 3), new Vector3Int(4, 5, 6)),
+                    new("22222222-2222-2222-2222-222222222222", new Vector3Int(7, 8, 9), new Vector3Int(10, 11, 12)),
                 },
             };
             output.Tiles.Add(new TerrainTileOutput { TileX = 0, TileZ = 0, Heights = new float[4] });

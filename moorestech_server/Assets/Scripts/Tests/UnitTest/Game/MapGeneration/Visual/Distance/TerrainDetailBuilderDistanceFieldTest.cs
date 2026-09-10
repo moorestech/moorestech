@@ -76,7 +76,10 @@ namespace Tests.UnitTest.Game.MapGeneration.Visual.Distance
 
         // 本番の解像度差ではalphamap距離場の北西半分しかdetailから読めず、南東の木・岩と10m境界が消える
         // At production's resolution gap, an alphamap-sized field exposes only its north-west half to detail, losing south-east objects and the 10m boundary
+        // 本番解像度の距離場を実際に組むため2分級で、NUnit既定の180秒はランナー速度次第で割る
+        // Building the field at production resolution genuinely costs minutes, so NUnit's default 180s breaks with a slower runner
         [Test]
+        [Timeout(600000)]
         public void ProductionResolutionKeepsTreeAndObjectDistanceBoundariesAtSouthEastTest()
         {
             const int southEastPixel = DistanceFieldTestScene.ProductionDetailResolution - 1;

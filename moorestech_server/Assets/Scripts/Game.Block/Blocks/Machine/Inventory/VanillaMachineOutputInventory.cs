@@ -11,6 +11,7 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Game.Fluid;
+using Mooresmaster.Model.MachineRecipesModule;
 using UniRx;
 using Game.Block.Interface.Component.ConnectJudge;
 
@@ -29,7 +30,11 @@ namespace Game.Block.Blocks.Machine.Inventory
         private readonly int _inputSlotSize;
         private readonly OpenableInventoryItemDataStoreService _itemDataStoreService;
         private readonly FluidContainer[] _fluidContainers;
-        
+
+        // 選択レシピへのスロット束縛判定。スロットjは生産物jのレベルファミリー枠（2026-08-30裁定）
+        // Slot-binding decision against the selected recipe; slot j is output j's level-family frame (ruling 2026-08-30)
+        private readonly MachineOutputSlotBinding _slotBinding = new();
+
         public VanillaMachineOutputInventory(int outputSlot, int outputTankCount, float innerTankCapacity, IItemStackFactory itemStackFactory,
             BlockOpenableInventoryUpdateEvent blockInventoryUpdate, BlockInstanceId blockInstanceId, int inputSlotSize, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> blockConnectorComponent)
         {
@@ -46,32 +51,74 @@ namespace Game.Block.Blocks.Machine.Inventory
             }
         }
 
+        // 出力スロットごとの許可アイテム集合を束縛する。品目数が物理スロット数を超えないことはマスタ検証が保証する
+        // Bind the allowed-item set per output slot; master validation guarantees the item count never exceeds the physical slots
+        internal void SetBoundOutputs(IReadOnlyList<IReadOnlyCollection<ItemId>> allowedItemsPerSlot)
+        {
+            _slotBinding.SetBoundOutputs(allowedItemsPerSlot);
+        }
+
+        // 出力スロットjは生産物jのレベルファミリーだけ置ける。プレイヤー操作の可否判定
+        // Output slot j accepts only output j's level family; used for player-placement checks
+        public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
+        {
+            return _slotBinding.IsAllowedToPlace(localSlot, itemStack);
+        }
+
         /// <summary>
         ///     産出スタック列を格納できるか仮想挿入で判定する
         ///     Check via virtual insertion whether the output stacks fit
         /// </summary>
         public bool CanStoreOutputs(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
         {
-            // 液体出力のスペースを先に確認する
-            // Check fluid output space first
+            return TrySimulateOutputs(itemOutputs, fluidOutputs, out _);
+        }
+
+        /// <summary>
+        ///     アイテム出力と液体出力を格納する
+        ///     Insert the item and fluid outputs
+        /// </summary>
+        public void InsertOutputSlot(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
+        {
+            // 仮判定と実挿入で同じシミュレータを通すので、通過した結果をそのままコミットするだけでよい
+            // The check and the real insert share one simulator, so a passing result is simply committed
+            if (!TrySimulateOutputs(itemOutputs, fluidOutputs, out var simulatedSlots))
+            {
+                UnityEngine.Debug.LogError("出力確定直前のCanStoreOutputsを通過したのに実挿入で受け入れ不可判定になり生産物が消失した");
+                return;
+            }
+
+            for (var slot = 0; slot < simulatedSlots.Count; slot++)
+            {
+                // 積まれなかったスロットは同じインスタンスのままなので、更新イベントを出さない
+                // A slot nothing landed in keeps the same instance, so it emits no update event
+                if (ReferenceEquals(simulatedSlots[slot], OutputSlot[slot])) continue;
+                _itemDataStoreService.SetItem(slot, simulatedSlots[slot]);
+            }
+
+            for (var i = 0; i < fluidOutputs.Count; i++)
+            {
+                _fluidContainers[i].AddLiquid(fluidOutputs[i]);
+            }
+        }
+
+        // アイテムと液体を出力先の複製へ積む唯一のシミュレータ。仮判定と実挿入がこれを共有するため両者は乖離しない
+        // The single simulator that stacks items and fluids into a copy of the outputs; the check and the real insert share it and can never diverge
+        private bool TrySimulateOutputs(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs, out List<IItemStack> simulatedSlots)
+        {
+            simulatedSlots = OutputSlot.ToList();
             if (!IsFluidOutputAllowed()) return false;
 
-            // スロット複製へ仮想挿入して空きを判定（実挿入と同順）
-            // Virtually insert into copied slots (same order as the real insert)
-            var simulatedSlots = OutputSlot.ToList();
-            foreach (var outputItemStack in itemOutputs)
+            // 実現出力kは出力スロット(k % 生産物数)へ固定で積む
+            // Realized output k always lands in output slot (k % output count)
+            for (var k = 0; k < itemOutputs.Count; k++)
             {
-                var inserted = false;
-                for (var i = 0; i < simulatedSlots.Count; i++)
-                {
-                    if (!simulatedSlots[i].IsAllowedToAdd(outputItemStack)) continue;
+                var slot = _slotBinding.ResolveSlot(k);
+                if (!simulatedSlots[slot].IsAllowedToAdd(itemOutputs[k])) return false;
 
-                    simulatedSlots[i] = simulatedSlots[i].AddItem(outputItemStack).ProcessResultItemStack;
-                    inserted = true;
-                    break;
-                }
-
-                if (!inserted) return false;
+                var result = simulatedSlots[slot].AddItem(itemOutputs[k]);
+                if (result.RemainderItemStack.Count != 0) return false;
+                simulatedSlots[slot] = result.ProcessResultItemStack;
             }
 
             return true;
@@ -84,8 +131,6 @@ namespace Game.Block.Blocks.Machine.Inventory
                 // Check output space for fluids
                 for (var i = 0; i < fluidOutputs.Count; i++)
                 {
-                    if (i >= _fluidContainers.Length) return false;
-
                     var outputFluid = fluidOutputs[i];
 
                     // 既に異なる液体が入っている場合、または容量が不足している場合
@@ -102,41 +147,6 @@ namespace Game.Block.Blocks.Machine.Inventory
                 }
 
                 return true;
-            }
-
-            #endregion
-        }
-
-        /// <summary>
-        ///     アイテム出力と液体出力を格納する
-        ///     Insert the item and fluid outputs
-        /// </summary>
-        public void InsertOutputSlot(IReadOnlyList<IItemStack> itemOutputs, IReadOnlyList<FluidStack> fluidOutputs)
-        {
-            //アウトプットスロットにアイテムを格納する
-            InsertItemOutputs();
-
-            //アウトプットスロットに液体を格納する
-            for (var i = 0; i < fluidOutputs.Count; i++)
-            {
-                if (i >= _fluidContainers.Length) break;
-
-                _fluidContainers[i].AddLiquid(fluidOutputs[i]);
-            }
-
-            #region Internal
-
-            void InsertItemOutputs()
-            {
-                foreach (var outputItemStack in itemOutputs)
-                    for (var i = 0; i < OutputSlot.Count; i++)
-                    {
-                        if (!OutputSlot[i].IsAllowedToAdd(outputItemStack)) continue;
-
-                        var item = OutputSlot[i].AddItem(outputItemStack).ProcessResultItemStack;
-                        _itemDataStoreService.SetItem(i, item);
-                        break;
-                    }
             }
 
             #endregion
