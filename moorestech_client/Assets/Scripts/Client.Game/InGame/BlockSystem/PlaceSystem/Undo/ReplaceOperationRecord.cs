@@ -30,6 +30,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
 
         // 送信前に既設のBlockIdを旧ブロックとして控える（送信後は既に差し替わっている）
         // Capture the existing BlockId as the old block before sending (it is already replaced afterwards)
+        // 呼び出し側が設置可能セルへ絞っていなくても正しく動く（絞り込みは送信側の都合で、記録の条件はここが持つ）
+        // Correct even when the caller has not narrowed to placeable cells; that narrowing belongs to the sender, the record's own condition lives here
         public static ReplaceOperationRecord CreateFrom(List<PlaceInfo> placeInfos, BlockGameObjectDataStore blockGameObjectDataStore)
         {
             var cells = new List<ReplacedCell>(placeInfos.Count);

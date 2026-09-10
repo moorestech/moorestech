@@ -21,23 +21,19 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             // Skip cost checks during debug placement
             if (DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement)) return;
 
-            var affordableCounts = new Dictionary<BlockId, int>();
-            var placeableCounts = new Dictionary<BlockId, int>();
+            // 賄える数と数え上げた設置数は必ず同時に生まれるので1本の辞書へ束ねる（片方だけ足す変更で崩れないようにする）
+            // The affordable count and the running placed count always appear together, so one dictionary holds both
+            var countsByBlockId = new Dictionary<BlockId, (int affordable, int placed)>();
             foreach (var placeInfo in currentPlaceInfos)
             {
                 if (!placeInfo.Placeable) continue;
 
                 var blockId = placeInfo.BlockId;
-                if (!affordableCounts.TryGetValue(blockId, out var affordableCount))
-                {
-                    affordableCount = walletQuery.GetAffordablePlacementCount(blockId, inventoryItems);
-                    affordableCounts.Add(blockId, affordableCount);
-                    placeableCounts.Add(blockId, 0);
-                }
+                if (!countsByBlockId.TryGetValue(blockId, out var counts)) counts = (walletQuery.GetAffordablePlacementCount(blockId, inventoryItems), 0);
 
-                var placeableCount = placeableCounts[blockId] + 1;
-                placeableCounts[blockId] = placeableCount;
-                if (affordableCount < placeableCount) placeInfo.Placeable = false;
+                counts.placed++;
+                countsByBlockId[blockId] = counts;
+                if (counts.affordable < counts.placed) placeInfo.Placeable = false;
             }
         }
     }

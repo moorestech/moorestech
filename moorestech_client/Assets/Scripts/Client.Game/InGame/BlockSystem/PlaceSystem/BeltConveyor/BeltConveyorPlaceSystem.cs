@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
@@ -127,8 +128,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
             // 直線・坂・分岐器・張替えで列にBlockIdが混ざるため、コストはセル自身のBlockIdごとに数える
             // Straight, slope, splitter and replace cells mix BlockIds in one run, so the cost is counted per the cell's own BlockId
-            ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, _constructionWalletQuery, _localPlayerInventory, feedback);
-            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _constructionWalletQuery, _localPlayerInventory);
+            // 張替えは撤去した既設ブロックの返却が支払いより先に届くので、返却分を加えた所持素材でコストを判定する（サーバーのCanPayNewCostと同じ基準）
+            // A replace refunds the removed block before paying, so the cost is judged on the holdings plus that refund (the server's CanPayNewCost basis)
+            var replacedBlockIds = BeltReplaceRefundEstimator.CollectReplacedBlockIds(_currentPlaceInfos, _blockGameObjectDataStore);
+            var costCheckItems = BeltReplaceRefundEstimator.AppendRefundItems(_localPlayerInventory, replacedBlockIds, _constructionWalletQuery);
+
+            ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, _constructionWalletQuery, costCheckItems, feedback);
+            ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _constructionWalletQuery, costCheckItems);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state

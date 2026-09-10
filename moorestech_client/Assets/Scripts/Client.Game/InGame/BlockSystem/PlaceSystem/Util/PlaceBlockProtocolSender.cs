@@ -46,11 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             if (UiPointerHitTest.IsPointerOverAnyUi() || !wirePlaceable) return false;
 
-            // 設置可能セルのみ送信
-            // Send only placeable cells
-            var placeableInfos = currentPlaceInfos.Where(info => info.Placeable).ToList();
-
-            return SendPlaceBlockProtocol(placeableInfos);
+            return SendPlaceBlockProtocol(SelectPlaceableCells(currentPlaceInfos));
         }
 
         // 張替え列の左クリック解放時の送信。戻り値は送信したか
@@ -59,13 +55,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
         {
             if (UiPointerHitTest.IsPointerOverAnyUi()) return false;
 
-            // 設置可能セルのみ送信
-            // Send only placeable cells
-            var placeableInfos = currentPlaceInfos.Where(info => info.Placeable).ToList();
+            var placeableInfos = SelectPlaceableCells(currentPlaceInfos);
 
             // 逆張替えレコードは既設IDが残っている送信前に作る
             // The reverse-replace record is built before sending, while the existing ids are still there
             return SendPlaceBlockProtocol(placeableInfos, ReplaceOperationRecord.CreateFrom(placeableInfos, blockGameObjectDataStore));
+        }
+
+        // 送信対象を設置可能セルへ絞る唯一の定義
+        // The single definition narrowing what gets sent down to the placeable cells
+        private static List<PlaceInfo> SelectPlaceableCells(List<PlaceInfo> currentPlaceInfos)
+        {
+            return currentPlaceInfos.Where(info => info.Placeable).ToList();
         }
     }
 }

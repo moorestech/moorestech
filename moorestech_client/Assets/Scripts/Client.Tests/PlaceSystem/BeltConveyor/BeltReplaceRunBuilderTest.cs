@@ -4,6 +4,7 @@ using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Core.Master;
 using Game.Block.Interface;
 using NUnit.Framework;
@@ -168,6 +169,38 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             Assert.IsTrue(result.TrueForAll(info => info.IsReplace && info.Placeable));
             Assert.AreEqual(new Vector3Int(0, 0, 0), result[0].Position);
             Assert.AreEqual(new Vector3Int(0, 0, 1), result[1].Position);
+        }
+
+        [Test]
+        public void ドラッグ中に高さオフセットを上げていても既設ベルトの上なら張替えになる()
+        {
+            // 実プレイは押下でBeginDragしてから列を組むため、起点は押下時オフセット・カーソルは現在オフセットで引かれる非対称な経路を通る
+            // Real play calls BeginDrag on press before building the run, so the origin strips the press-time offset and the cursor the current one
+            Register(new Vector3Int(0, 0, 0), ForUnitTestModBlockId.GearBeltConveyor, BlockDirection.North);
+            Register(new Vector3Int(0, 0, 1), ForUnitTestModBlockId.GearBeltConveyor, BlockDirection.North);
+            Register(new Vector3Int(0, 0, 2), ForUnitTestModBlockId.GearBeltConveyor, BlockDirection.North);
+            var dragState = new CommonBlockPlaceDragState();
+            dragState.AdjustHeightOffset(2);
+            dragState.BeginDrag(new Vector3Int(0, 2, 0), PlacementHitSurfaceKind.Ground);
+            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, dragState);
+
+            AssertReplacesExistingLine(runBuilder, dragState, new Vector3Int(0, 2, 1), 2);
+
+            // ドラッグ中にEでさらに+1しても、起点は押下時の+2・カーソルは現在の+3で引かれ既設列を掴み続ける
+            // Pressing E mid-drag to +3 still grabs the line: the origin strips the press-time +2 and the cursor the current +3
+            dragState.AdjustHeightOffset(1);
+            AssertReplacesExistingLine(runBuilder, dragState, new Vector3Int(0, 3, 2), 3);
+        }
+
+        // ドラッグ状態が解決した起点とカーソルで列を組み、既設セルがそのまま張替えとして出ることを確かめる
+        // Builds the run from the drag state's origin and cursor, and checks the existing cells come out as replacements
+        private static void AssertReplacesExistingLine(BeltConveyorPlaceRunBuilder runBuilder, CommonBlockPlaceDragState dragState, Vector3Int cursorPoint, int expectedCellCount)
+        {
+            var result = runBuilder.Build(dragState.ResolveDragStartCell(cursorPoint), cursorPoint, BlockDirection.North, BeltConveyorHoldingBlock.Resolve(ForUnitTestModBlockId.SmallGearBeltConveyor), out _, out _);
+
+            Assert.AreEqual(expectedCellCount, result.Count);
+            Assert.IsTrue(result.TrueForAll(info => info.IsReplace && info.Placeable));
+            for (var i = 0; i < expectedCellCount; i++) Assert.AreEqual(new Vector3Int(0, 0, i), result[i].Position);
         }
 
         private void Register(Vector3Int position, BlockId blockId, BlockDirection direction)
