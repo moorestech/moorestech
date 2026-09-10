@@ -51,12 +51,16 @@ namespace Game.Block.Blocks.BeltConveyor
 
         private static int ResolveSlot(uint remainingTicks, int slotCount, uint totalTicks)
         {
+            // 停止中(総tickが0またはuint.MaxValue)の復元先では進行率が意味を持たないため入口スロットへ置く
+            // On a stopped target (total ticks 0 or uint.MaxValue) the progress rate is meaningless, so place at the entry slot
+            if (totalTicks == 0 || totalTicks == uint.MaxValue) return slotCount - 1;
+
             // Updateのスロット滞在条件「i*tps < RemainingTicks <= (i+1)*tps」を逆に解く
             // Invert Update's dwell rule "i*tps < RemainingTicks <= (i+1)*tps" to get the slot
             var ticksPerSlot = totalTicks / (uint)slotCount;
 
-            // 停止中などでtickが刻めない場合は入口スロットへ置く
-            // Place at the entry slot when ticks cannot be subdivided, e.g. while stopped
+            // 総tickがスロット数未満でスロット当たりのtickが刻めない場合も入口スロットへ置く
+            // Also place at the entry slot when total ticks are fewer than the slots and cannot be subdivided
             if (ticksPerSlot == 0) return slotCount - 1;
 
             var slot = (int)(((long)remainingTicks + ticksPerSlot - 1) / ticksPerSlot) - 1;

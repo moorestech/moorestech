@@ -122,6 +122,31 @@ namespace Tests.CombinedTest.Core
             }
         }
 
+        [Test]
+        public void 停止中のベルトへの復元は入口スロットになる()
+        {
+            // 歯車ネットワークが無いGearBeltConveyorは1tick後に停止(uint.MaxValue)になる
+            // A GearBeltConveyor with no gear network becomes stopped (uint.MaxValue) after one tick
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, new Vector3Int(0, 0, 30), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            var target = block.GetComponent<VanillaBeltConveyorComponent>();
+            GameUpdater.UpdateOneTick();
+
+            var overflow = BeltConveyorTransitCarryOver.Restore(target, new List<BeltTransitItem>
+            {
+                new(ForUnitTestItemId.ItemId1, ItemInstanceId.Create(), 0.5),
+            });
+
+            // 進行率0.5でも中間スロットには置かず、動力復帰時に進捗が0へ戻るのと整合する入口へ置く
+            // Even at rate 0.5 it is not placed mid-belt; the entry matches the progress reset that happens on power recovery
+            Assert.AreEqual(0, overflow.Count);
+            var entrySlot = target.GetSlotSize() - 1;
+            Assert.IsNotNull(target.BeltConveyorItems[entrySlot]);
+            for (var i = 0; i < entrySlot; i++)
+            {
+                Assert.IsNull(target.BeltConveyorItems[i]);
+            }
+        }
+
         private static (int slotCount, uint totalTicks) GetBeltShape()
         {
             var param = (BeltConveyorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BeltConveyorId).BlockParam;
