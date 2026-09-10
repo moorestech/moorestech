@@ -155,11 +155,12 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 ## 4. スロットとグリッド
 
 - **アイテム・ブロック・液体を1マスで表すものは `shared/ui` のコンポーネントのみ。**
-  - `ItemSlot` / `BlockSlot` / `FluidSlot` / `FluidSlotRow` / 素枠は `SlotFrame`。
+  - `ItemSlot` / `BlockSlot` / `FluidSlot` / `FluidAmountSlot` / `FluidSlotRow` / 素枠は `SlotFrame`。
   - 並べるのは `SlotGrid`（既定9列）。独自の grid CSS でスロットを並べない。
   - **ただしパネル内のスロット群に限る。常時表示HUD族（ホットバー・装備HUD）は `SlotGrid` の対象外**で、HUD自身の固定長トークンで組んだ1列のflexに並べる（前例: `HotbarPanel` / `EquipmentPanel`）。折返しの無い1列にグリッドの列数概念を持ち込まないため。
   - **もう1つの例外はレシピ行（§8.17）**。素材・結果のスロット寸法はコンテナクエリ（`container-type: inline-size` + `cqw`）から引くため `SlotGrid` の既定 `grid-template-columns` を必ず上書きすることになる。`--slot-size` を要素自身の `grid-template-columns` で使うと `cqw` が祖先コンテナへ解決して失敗する（実測でスロットが縮まず溢れた）ため、`RecipeRow` は独自gridを持つ。ユーザー裁定 2026-08-20。
   - **`FluidSlot` は「背面に amount/capacity の縦フィル ＋ 前面に液体アイコン ＋ 右下に量バッジ」の3層。** 背面フィルの色は`GET /api/master/fluids`で配信される液体マスタの色（fluidGuid解決）であり、クライアント側で導出しない。マスタ未取得中はフィルを描かない（フォールバック色でごまかさない）。アイコン取得に失敗した液体は背面フィルだけが残る（`ItemSlot`/`BlockSlot` が使う `#id` テキストフォールバックは液体では使わない）。
+  - **`FluidAmountSlot` は容量の無い液体量の1マス**（レシピ行・選択中レシピ表示）。`SlotFrame` の白面（`data-filled`）に液体アイコン＋右下にレシピ量バッジ（`formatAmount`）で、背面フィルは持たない。タンク（amount/capacity）を表すときは `FluidSlot`、レシピ量を表すときは `FluidAmountSlot` と役割で使い分ける（ADR 0054、ユーザー裁定 2026-09-10）。
 - スロット寸法は `--slot-size`、間隔は `--slot-grid-gap` の局所上書きで調整する。コンポーネント内にpx直書きしない。
 - スロットの状態表現は data属性（`data-selected` / `data-filled` / `data-catalog` / `data-insufficient`）に統一。新しい状態が要るなら data属性を追加する。
 - マウス操作の契約は `useSlotMouse`（左押下・右押下・ドラッグ進入・ダブルクリック）。スロットに生の onClick を生やさない。
@@ -172,7 +173,7 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   縁は `-webkit-text-stroke` + `paint-order: stroke fill` の真のストロークで描き、`text-shadow` による擬似縁・ぼかし影は使わない。
   適用は tokens.css の共有クラス `iconTextOutlineLight` / `iconTextOutlineDark` を TSX で合成して行い（前例 `keyHintText`）、
   featureのCSSは位置決めと文字色だけを持つ。現在の適用先は `ItemSlot .count` / `ItemSlot .shortageCount` /
-  `FluidSlot .amount` / `HotbarPanel .num` の4箇所。
+  `FluidSlot .amount` / `FluidAmountSlot .amount` / `HotbarPanel .num` の5箇所。
 - **素材の「所持/必要」は `ItemSlot` の `shortage`（`{ ownedCount, requiredCount, tooltipKey }`）だけが描く。**
   クラフト・研究・建設メニューの3系統はこの1箇所へ集約済みで、feature側に絶対配置のカウント要素とそのCSSを複製しない。
   赤字にするかは呼び出し側の `insufficient` が決め（免除等の合成は呼び出し側の責務）、位置だけ
@@ -282,14 +283,14 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 
 - **タブは持たない（ADR 0042、ユーザー裁定 2026-08-30）。** 対象レシピが1件以上ある機械は2つの画面を往復する。
   - レシピ未選択で開くと**レシピ選択モード**。行を左クリックすると `machine_recipe.select set` を送り、同時に**インベントリモード**へ切り替える。
-  - インベントリモード上部の**選択中レシピ表示**（出力 `ItemSlot`（個数バッジ無し）＋レシピ名（出力アイテム名）＋秒数、testId `machine-selected-recipe`）を左クリックするとレシピ選択モードへ戻る。ホバーツールチップは `ui.blockInventory.changeRecipe`。
+  - インベントリモード上部の**選択中レシピ表示**（代表出力がアイテムなら `ItemSlot`、液体なら `FluidAmountSlot`。どちらもバッジ無し。＋レシピ名（代表出力名）＋秒数、testId `machine-selected-recipe`）を左クリックするとレシピ選択モードへ戻る。ホバーツールチップは `ui.blockInventory.changeRecipe`。
   - レシピ解除の導線（右クリック解除・解除ボタン）は設けない。0件ならどちらの画面も出さず従来表示のまま。
 - **機械UIの中身は基本的に中央揃え。** 稼働状態ラベル（待機中/稼働中/停止中。Halted のみ `--text-insufficient`、他は`--text-high-contrast`）は両モード共通フッタとして常時表示する。電力率テキストは稼働状態ラベルの隣に、**稼働状態が停止中(halted)でない場合だけ**併記する（ADR 0010、要求電力0で稼働する機械を停止中に潰さないため状態で決める）。
 - **インベントリモードはレシピ分のスロットだけ描く。** 入力＝素材数、出力＝生産物数、液体＝レシピ液体数（入力タンク→出力タンクの順）。機械固有の余剰スロットは描かない（サーバーもスロット固定で余剰へ入れない）。
   - **ゴーストスロット**: 空の入力スロットに素材、空の出力スロットに生産物、空の液体スロットにレシピ液体を `data-ghost="true"` で描く。不透明度は `--slot-ghost-opacity` のみで表現し、新しい色相・光彩・枠線を足さない。個数バッジはレシピ必要数。実物があるスロットはゴーストを出さない。
   - **加工行は進捗矢印をパネル中央に固定**し、左右を等幅（1fr auto 1fr）にして入力は矢印へ右寄せ、出力は矢印から左寄せで対称に置く。
   - **モジュールスロットは加工行から1段下げ、`--text-muted` の「アップグレードスロット」ラベルを直上に付けて**用途を明示する。
-- **レシピ選択モードは行リスト。** 各行は §8.17 の共有 `RecipeRow` を流用し、中央列は所要秒数＋静止矢印（`arrowValue={null}`）のみ、操作欄は空。ブロックアイコン/名は開いている機械自身なので出さない。レシピ名（出力アイテム名）は行の上辺に `--text-muted` のテキストで置く。行全体（`data-testid="machine-recipe-<guid>"`）が左クリック対象で、行内の `ItemSlot` は操作を持たない。選択中行は `data-selected="true"` で示し、新しい色相・光彩は足さない。ホバー詳細プレビュー領域・9列アイコングリッドは廃止済みで復活させない。
+- **レシピ選択モードは行リスト。** 各行は §8.17 の共有 `RecipeRow` を流用し、中央列は所要秒数＋静止矢印（`arrowValue={null}`）のみ、操作欄は空。ブロックアイコン/名は開いている機械自身なので出さない。レシピ名（出力アイテム名）は行の上辺に `--text-muted` のテキストで置く。行全体（`data-testid="machine-recipe-<guid>"`）が左クリック対象で、行内の `ItemSlot` / `FluidAmountSlot` は操作を持たない。液体は `FluidAmountSlot` でアイテムと同寸の枠に量バッジつきで描く（testId `machine-recipe-<guid>-input-fluid-<i>` / `-output-fluid-<i>`、ADR 0054）。選択中行は `data-selected="true"` で示し、新しい色相・光彩は足さない。ホバー詳細プレビュー領域・9列アイコングリッドは廃止済みで復活させない。
 
 ## 8.8 ワールドピンHUD（チュートリアルの位置誘導）
 
