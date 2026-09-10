@@ -19,7 +19,7 @@ export default function SelectedRecipeHeader({ recipe, subject, onChangeRecipe }
   return (
     <HoverTooltip label={t(L.ui.blockInventory.changeRecipe)}>
       <Group justify="center" gap="xs" role="button" data-testid="machine-selected-recipe" style={{ cursor: "pointer" }} onClick={onChangeRecipe}>
-        {subject.kind === "item" ? <ItemSlot itemId={subject.itemId} /> : <FluidAmountSlot fluidGuid={subject.fluidGuid} amount={subject.amount} showAmount={false} testId="machine-selected-recipe-fluid" />}
+        {subject.kind === "item" ? <ItemSlot itemId={subject.itemId} /> : <FluidAmountSlot fluidGuid={subject.fluidGuid} badge={{ kind: "hidden" }} testId="machine-selected-recipe-fluid" />}
         <Text data-testid="machine-selected-recipe-name">{name}</Text>
         <Text c="dimmed" size="sm" data-testid="machine-selected-recipe-time">{t(L.ui.blockInventory.recipeDuration, { seconds: recipe.time })}</Text>
       </Group>

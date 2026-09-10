@@ -35,7 +35,7 @@ export default function MachineRecipeSelectionRow({ row, onSelect }: Props) {
             <ItemSlot key={`item-${i}`} itemId={item.itemId} count={item.count} testId={`machine-recipe-${recipe.recipeGuid}-input-item-${i}`} />
           )),
           ...recipe.inputFluids.map((fluid, i) => (
-            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} amount={fluid.amount} showAmount testId={`machine-recipe-${recipe.recipeGuid}-input-fluid-${i}`} />
+            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} badge={{ kind: "show", amount: fluid.amount }} testId={`machine-recipe-${recipe.recipeGuid}-input-fluid-${i}`} />
           )),
         ]}
         actionMode="none"
@@ -44,7 +44,7 @@ export default function MachineRecipeSelectionRow({ row, onSelect }: Props) {
             <ItemSlot key={`item-${i}`} itemId={item.itemId} count={item.count} testId={`machine-recipe-${recipe.recipeGuid}-output-item-${i}`} />
           )),
           ...recipe.outputFluids.map((fluid, i) => (
-            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} amount={fluid.amount} showAmount testId={`machine-recipe-${recipe.recipeGuid}-output-fluid-${i}`} />
+            <FluidAmountSlot key={`fluid-${i}`} fluidGuid={fluid.fluidGuid} badge={{ kind: "show", amount: fluid.amount }} testId={`machine-recipe-${recipe.recipeGuid}-output-fluid-${i}`} />
           )),
         ]}
       />

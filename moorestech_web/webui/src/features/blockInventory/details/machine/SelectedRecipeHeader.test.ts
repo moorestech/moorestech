@@ -31,14 +31,13 @@ const recipe: MachineRecipe = {
 describe("SelectedRecipeHeader", () => {
   // 液体代表も同枠、ヘッダはバッジ無し
   // A fluid representative also shares the frame; the header has no badge
-  it("代表が液体のときはFluidAmountSlotをshowAmount=falseで描く", () => {
+  it("代表が液体のときはFluidAmountSlotをバッジ非表示で描く", () => {
     const subject = { kind: "fluid" as const, fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 100 };
     const tree = create(createElement(SelectedRecipeHeader, { recipe, subject, onChangeRecipe: vi.fn() }));
 
     const slot = tree.root.findByType("mock-fluid-amount-slot" as never);
     expect(slot.props.fluidGuid).toBe("87000000-0000-4000-8000-000000000001");
-    expect(slot.props.amount).toBe(100);
-    expect(slot.props.showAmount).toBe(false);
+    expect(slot.props.badge).toEqual({ kind: "hidden" });
     expect(slot.props.testId).toBe("machine-selected-recipe-fluid");
     expect(tree.root.findAllByType("mock-item-slot" as never)).toHaveLength(0);
   });

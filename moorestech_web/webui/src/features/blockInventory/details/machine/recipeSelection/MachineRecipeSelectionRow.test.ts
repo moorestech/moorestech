@@ -64,9 +64,9 @@ describe("MachineRecipeSelectionRow", () => {
     const tree = create(createElement(MachineRecipeSelectionRow, { row, onSelect: vi.fn() }));
 
     const slots = tree.root.findAllByType("mock-fluid-amount-slot" as never);
-    expect(slots.map((slot) => [slot.props.fluidGuid, slot.props.amount, slot.props.showAmount, slot.props.testId])).toEqual([
-      ["87000000-0000-4000-8000-000000000001", 10, true, `machine-recipe-${recipe.recipeGuid}-input-fluid-0`],
-      ["87000000-0000-4000-8000-000000000002", 1000, true, `machine-recipe-${recipe.recipeGuid}-output-fluid-0`],
+    expect(slots.map((slot) => [slot.props.fluidGuid, slot.props.badge, slot.props.testId])).toEqual([
+      ["87000000-0000-4000-8000-000000000001", { kind: "show", amount: 10 }, `machine-recipe-${recipe.recipeGuid}-input-fluid-0`],
+      ["87000000-0000-4000-8000-000000000002", { kind: "show", amount: 1000 }, `machine-recipe-${recipe.recipeGuid}-output-fluid-0`],
     ]);
   });
 });

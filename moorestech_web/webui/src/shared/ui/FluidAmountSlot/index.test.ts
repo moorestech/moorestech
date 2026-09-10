@@ -17,8 +17,9 @@ vi.mock("../HoverTooltip", () => ({
 }));
 
 function renderSlot(amount: number, showAmount: boolean) {
+  const badge = showAmount ? { kind: "show" as const, amount } : { kind: "hidden" as const };
   return renderToStaticMarkup(
-    createElement(MantineProvider, null, createElement(FluidAmountSlot, { fluidGuid: FLUID_GUID, amount, showAmount, testId: "fluid-amount" })),
+    createElement(MantineProvider, null, createElement(FluidAmountSlot, { fluidGuid: FLUID_GUID, badge, testId: "fluid-amount" })),
   );
 }
 
@@ -63,5 +64,16 @@ describe("FluidAmountSlot", () => {
     const markup = renderSlot(1000, true);
 
     expect(markup).toContain("<mock-hover-tooltip>水");
+  });
+
+  // 未解決キーの[!key]プレースホルダを液体名として抱えると、ツールチップが辞書欠落を名前として読み上げる
+  // Treating an unresolved [!key] placeholder as the fluid's name makes the tooltip read a missing dictionary entry aloud as a name
+  it("液体名が辞書に無ければツールチップのラベルを持たない", () => {
+    setDictionaries("japanese", {}, {}, {});
+
+    const markup = renderSlot(1000, true);
+
+    expect(markup).toContain("<mock-hover-tooltip><div");
+    expect(markup).not.toContain(`<mock-hover-tooltip>[!${fluidNameKey(FLUID_GUID)}]`);
   });
 });
