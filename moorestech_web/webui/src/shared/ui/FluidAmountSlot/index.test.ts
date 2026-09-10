@@ -16,8 +16,8 @@ vi.mock("../HoverTooltip", () => ({
     createElement("mock-hover-tooltip", null, label as never, children as never),
 }));
 
-function renderSlot(amount: number, showAmount: boolean) {
-  const badge = showAmount ? { kind: "show" as const, amount } : { kind: "hidden" as const };
+function renderSlot(amount: number, badgeShown: boolean) {
+  const badge = badgeShown ? { kind: "show" as const, amount } : { kind: "hidden" as const };
   return renderToStaticMarkup(
     createElement(MantineProvider, null, createElement(FluidAmountSlot, { fluidGuid: FLUID_GUID, badge, testId: "fluid-amount" })),
   );
@@ -54,7 +54,7 @@ describe("FluidAmountSlot", () => {
     expect(markup).toContain(">0<");
   });
 
-  it("showAmountがfalseなら量があってもバッジを出さない", () => {
+  it("バッジ非表示なら量があってもバッジを出さない", () => {
     const markup = renderSlot(1000, false);
 
     expect(markup).not.toContain('data-testid="fluid-amount-amount"');
