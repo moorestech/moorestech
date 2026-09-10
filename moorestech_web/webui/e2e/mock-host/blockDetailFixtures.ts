@@ -15,7 +15,9 @@ export const blockMachine = {
   // 選択中(bbbbbbbb)の素材itemId2をスロット0に置き、出力/液体スロットは空にしてゴースト描画を検証する
   // Places selected recipe (bbbbbbbb)'s material itemId 2 in slot 0 and leaves the output/fluid slots empty to exercise ghost rendering
   itemSlots: [{ itemId: 2, count: 5 }, empty(), empty(), empty()],
-  fluidSlots: [{ fluidId: 0, amount: 0, capacity: 100.0, fluidGuid: "" }],
+  // 入力タンク1本＋出力タンク1本。液体のみ入出力レシピ(cccccccc)を選ぶと出力液体がtank 1へ束縛される
+  // One input tank plus one output tank; selecting the fluid-only recipe (cccccccc) binds its output fluid to tank 1
+  fluidSlots: [{ fluidId: 0, amount: 0, capacity: 100.0, fluidGuid: "" }, { fluidId: 0, amount: 0, capacity: 100.0, fluidGuid: "" }],
   progress: 0.42,
   machine: {
     recipeGuid: "00000000-0000-0000-0000-000000000000",

@@ -69,11 +69,13 @@ export const machineRecipes = {
       inputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [],
     },
     {
+      // 液体のみ入出力のレシピ（石油蒸留機型）。選択行の液体スロット寸法とヘッダの液体代表のe2e用
+      // A fluid-only input/output recipe (distiller-like) for the e2e on selection-row fluid slot size and the fluid header representative
       recipeGuid: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       blockGuid: ELECTRIC_MACHINE_BLOCK_GUID,
       blockId: 3, time: 15,
-      inputItems: [{ itemId: 1, count: 1 }, { itemId: 2, count: 1 }], outputItems: [{ itemId: 11, count: 4 }],
-      inputFluids: [], outputFluids: [],
+      inputItems: [], outputItems: [],
+      inputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 1000 }],
     },
     {
       recipeGuid: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",

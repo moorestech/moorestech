@@ -1,9 +1,18 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { setBlock, setTopicScenario } from "../../support/mockControl";
 import { scrollAreaRootOf, scrollAreaViewport, expectScrollsOnlyWhenOverflowing } from "../../support/layoutAssertions";
 
 const firstRecipeTestId = "machine-recipe-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const selectedRecipeTestId = "machine-recipe-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const fluidRecipeTestId = "machine-recipe-cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+
+// mock-hostは液体アイコンを404にするため、原寸描画の崩れ（ADR 0054の起点）を再現するには大きな画像を実際に読ませる必要がある
+// The mock host 404s fluid icons, so reproducing the natural-size overflow (ADR 0054's origin) needs a large image to actually load
+const largeFluidIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" fill="#2A6FE0"/></svg>';
+
+async function serveLargeFluidIcons(page: Page) {
+  await page.route("**/api/fluid-icons/*.png", (route) => route.fulfill({ contentType: "image/svg+xml", body: largeFluidIconSvg }));
+}
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
@@ -119,4 +128,50 @@ test("行密度は控えめ設定どおりで、本文に3.8〜4.5行分が入�
   expect(rowGap).toBeGreaterThan(0);
   expect(clientHeight / rowStride).toBeGreaterThan(minimumVisibleRows);
   expect(clientHeight / rowStride).toBeLessThan(maximumVisibleRows);
+});
+
+test("レシピ選択行の液体はアイテムスロットと同寸の枠に収まり、量バッジを出す", async ({ page }) => {
+  await serveLargeFluidIcons(page);
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+
+  const row = page.getByTestId(`${selectedRecipeTestId}-row`);
+  // 素材列のアイテムスロットはtestIdを持たず、液体スロットだけがtestIdを持つ
+  // Material item slots carry no testId; only the fluid slot does
+  const itemSlot = row.locator('[data-filled="true"]:not([data-testid])').first();
+  const fluidSlot = page.getByTestId(`${selectedRecipeTestId}-input-fluid-0`);
+  await expect(fluidSlot).toHaveAttribute("data-filled", "true");
+  await expect(fluidSlot).toContainText("10");
+
+  const itemBox = (await itemSlot.boundingBox())!;
+  const fluidBox = (await fluidSlot.boundingBox())!;
+  expect(fluidBox.width).toBeCloseTo(itemBox.width, 0);
+  expect(fluidBox.height).toBeCloseTo(itemBox.height, 0);
+
+  // 512pxの原画像が枠内に収まっている（寸法クラス欠落なら枠を突き抜ける）
+  // The 512px source image stays inside the frame (a missing size class would let it overflow)
+  const iconBox = (await fluidSlot.locator("img").boundingBox())!;
+  expect(iconBox.width).toBeLessThanOrEqual(fluidBox.width + 0.5);
+  expect(iconBox.height).toBeLessThanOrEqual(fluidBox.height + 0.5);
+});
+
+test("液体のみ出力のレシピを選ぶと選択中レシピ表示が液体スロットになる", async ({ page }) => {
+  await serveLargeFluidIcons(page);
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await page.getByTestId(fluidRecipeTestId).click();
+
+  await expect(page.getByTestId("machine-inventory-body")).toBeVisible();
+  const headerFluid = page.getByTestId("machine-selected-recipe-fluid");
+  await expect(headerFluid).toHaveAttribute("data-filled", "true");
+  await expect(headerFluid.locator("span")).toHaveCount(0);
+  const headerBox = (await headerFluid.boundingBox())!;
+  const iconBox = (await headerFluid.locator("img").boundingBox())!;
+  expect(iconBox.width).toBeLessThanOrEqual(headerBox.width + 0.5);
+  // 入力タンク1＋出力タンク1がゴーストで描かれる
+  // One input tank plus one output tank render as ghosts
+  await expect(page.getByTestId("machine-fluid-slots").locator('[data-ghost="true"]')).toHaveCount(2);
 });
