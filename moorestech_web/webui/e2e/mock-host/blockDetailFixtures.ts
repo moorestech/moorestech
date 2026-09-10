@@ -59,7 +59,7 @@ export const blockGearMachine = {
     slotBindings: [],
     tankBindings: [],
   },
-  gear: { isClockwise: true, currentRpm: 12.5, currentTorque: 3.0, baseRpm: 20.0, role: "consumer" },
+  gear: { currentRpm: 12.5, currentTorque: 3.0, baseRpm: 20.0, role: "consumer" },
   gearNetwork: { totalRequiredGearPower: 60.0, totalGenerateGearPower: 100.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 
@@ -104,7 +104,7 @@ export const blockGearMiner = {
   fluidSlots: [],
   progress: 0.25,
   miner: { currentPower: 20.0, requestPower: 40.0, miningItems: [{ itemId: 11, itemsPerMinute: 6.0 }] },
-  gear: { isClockwise: false, currentRpm: 8.0, currentTorque: 2.0, baseRpm: 12.0, role: "consumer" },
+  gear: { currentRpm: 8.0, currentTorque: 2.0, baseRpm: 12.0, role: "consumer" },
   gearNetwork: { totalRequiredGearPower: 24.0, totalGenerateGearPower: 40.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 
@@ -146,12 +146,12 @@ export const blockGearPump = {
   itemSlots: [],
   fluidSlots: [{ fluidId: 1, amount: 30, capacity: 100, fluidGuid: WATER_FLUID_GUID }],
   pump: { kind: "gear", pumpingFluids: [{ fluidGuid: WATER_FLUID_GUID, amountPerMinute: 120.0 }] },
-  gear: { isClockwise: true, currentRpm: 10.0, currentTorque: 2.0, baseRpm: 10.0, role: "consumer" },
+  gear: { currentRpm: 10.0, currentTorque: 2.0, baseRpm: 10.0, role: "consumer" },
   gearNetwork: { totalRequiredGearPower: 20.0, totalGenerateGearPower: 40.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 
-// 歯車発電機: 消費要求を持たない発電側。gear.role が generator で baseRpm は 0
-// Gear generator: the generating side with no consumption; gear.role is generator and baseRpm is 0
+// 歯車発電機: 発電側（消費要求なし）
+// Gear generator: the generating side (no consumption)
 export const blockGearGenerator = {
   open: true,
   source: "block",
@@ -160,7 +160,7 @@ export const blockGearGenerator = {
   blockGuid: BlockGuids.GEAR_GENERATOR_BLOCK_GUID,
   itemSlots: [],
   fluidSlots: [],
-  gear: { isClockwise: true, currentRpm: 20.0, currentTorque: 5.0, baseRpm: 0.0, role: "generator" },
+  gear: { currentRpm: 20.0, currentTorque: 5.0, baseRpm: 0.0, role: "generator" },
   gearNetwork: { totalRequiredGearPower: 60.0, totalGenerateGearPower: 100.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 

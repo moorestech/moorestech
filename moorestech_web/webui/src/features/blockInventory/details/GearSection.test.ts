@@ -27,23 +27,23 @@ function textOf(root: ReturnType<typeof render>, testId: string): string {
 }
 
 describe("GearSection", () => {
-  // 待機中（現在<基準相当）でも赤にならず、消費側は基準RPMを併記する
-  // Even when idle (current below base), nothing turns insufficient; consumers show the base RPM
+  // 待機中でも赤なし。基準RPM併記
+  // Even when idle, nothing turns insufficient; base RPM is shown
   it("renders consumed torque without a denominator and RPM with its base for consumers", () => {
-    const root = render({ isClockwise: true, currentRpm: 5, currentTorque: 2.4, baseRpm: 10, role: "consumer" });
+    const root = render({ currentRpm: 5, currentTorque: 2.4, baseRpm: 10, role: "consumer" });
     expect(textOf(root, "gear-torque")).toBe('ui.blockInventory.gearConsumedTorque|{"value":"2.4"}');
     expect(textOf(root, "gear-rpm")).toBe('ui.blockInventory.gearRpmWithBase|{"current":"5.0","base":"10.0","value":"5.0"}');
     expect(root.findAll((n) => n.props["data-insufficient"] !== undefined)).toHaveLength(0);
   });
   it("renders generated torque and current RPM only for generators", () => {
-    const root = render({ isClockwise: true, currentRpm: 20, currentTorque: 5, baseRpm: 0, role: "generator" });
+    const root = render({ currentRpm: 20, currentTorque: 5, baseRpm: 0, role: "generator" });
     expect(textOf(root, "gear-torque")).toBe('ui.blockInventory.gearGeneratedTorque|{"value":"5.0"}');
     expect(textOf(root, "gear-rpm")).toBe('ui.blockInventory.gearRpmCurrent|{"current":"20.0","base":"0.0","value":"20.0"}');
   });
-  // チェーンポール等の純伝達ブロックも同じ行構成（0.0がそのまま出る）
-  // Pure transmission blocks such as chain poles share the same rows (0.0 is shown as is)
+  // 純伝達ブロックも同じ行構成（0.0表示）
+  // Pure transmission blocks share the same rows (0.0 is shown)
   it("keeps the same rows for a zero-torque transmission block", () => {
-    const root = render({ isClockwise: true, currentRpm: 5, currentTorque: 0, baseRpm: 5, role: "consumer" });
+    const root = render({ currentRpm: 5, currentTorque: 0, baseRpm: 5, role: "consumer" });
     expect(textOf(root, "gear-torque")).toBe('ui.blockInventory.gearConsumedTorque|{"value":"0.0"}');
   });
 });

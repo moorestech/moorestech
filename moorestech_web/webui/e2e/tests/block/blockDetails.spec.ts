@@ -31,8 +31,10 @@ test("歯車機械は消費トルクと基準付きRPMを赤なしで出し、�
   await page.goto("/");
   await expect(page.getByTestId("gear-torque")).toHaveText("消費トルク 3.0");
   await expect(page.getByTestId("gear-rpm")).toHaveText("RPM 12.5 / 20.0");
-  await expect(page.getByTestId("gear-torque")).not.toHaveAttribute("data-insufficient", "true");
-  await expect(page.getByTestId("gear-rpm")).not.toHaveAttribute("data-insufficient", "true");
+  // data-insufficient は歯車行から除去済みのため、解決後の文字色で赤なしを確認する
+  // data-insufficient no longer exists on the gear row, so assert the resolved text color instead
+  await expect(page.getByTestId("gear-torque")).toHaveCSS("color", "rgb(238, 238, 238)");
+  await expect(page.getByTestId("gear-rpm")).toHaveCSS("color", "rgb(238, 238, 238)");
   await expect(page.getByTestId("gear-network-section")).toBeVisible();
 });
 
@@ -41,6 +43,8 @@ test("歯車発電機は発生トルクと現在RPMだけを出す", async ({ pa
   await page.goto("/");
   await expect(page.getByTestId("gear-torque")).toHaveText("発生トルク 5.0");
   await expect(page.getByTestId("gear-rpm")).toHaveText("RPM 20.0");
+  await expect(page.getByTestId("gear-torque")).toHaveCSS("color", "rgb(238, 238, 238)");
+  await expect(page.getByTestId("gear-rpm")).toHaveCSS("color", "rgb(238, 238, 238)");
 });
 
 test("機械recipeの出力個数と秒数から分間生産数を表示する", async ({ page }) => {

@@ -54,7 +54,7 @@ namespace Client.Tests.WebUi
                     SlotBindings = new List<MachineSlotBindingDto>(),
                     TankBindings = new List<MachineTankBindingDto>(),
                 },
-                Gear = new GearDetailDto { IsClockwise = true, CurrentRpm = 12.5f, CurrentTorque = 3f, BaseRpm = 20f, Role = GearDetailDtoBuilder.ConsumerRole },
+                Gear = new GearDetailDto { CurrentRpm = 12.5f, CurrentTorque = 3f, BaseRpm = 20f, Role = "consumer" },
                 GearNetwork = new GearNetworkDto { TotalRequiredGearPower = 60f, TotalGenerateGearPower = 100f, StopReason = "none" },
             };
             AssertMatchesFixture(dto, "block_inventory_gear_machine.json");

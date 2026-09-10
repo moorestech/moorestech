@@ -64,8 +64,8 @@ const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay>
   halted: { labelKey: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
 };
 
-// 歯車行の文言は役割で決まる。消費側はトルク現在値＋RPM現在/基準、発生側はトルク・RPMとも現在値のみ（ADR 0056）
-// Gear row wording follows the role: consumers show current torque plus RPM current/base, generators show current values only (ADR 0056)
+// 歯車行の文言は役割で分岐（ADR 0056）
+// Gear row wording branches on role (ADR 0056)
 export function gearTorqueTranslationKey(role: GearRole): TranslationKey {
   return GearTorqueKeys[role];
 }

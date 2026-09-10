@@ -107,12 +107,11 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
     public class GearDetailDto
     {
-        public bool IsClockwise;
         public float CurrentRpm;
         public float CurrentTorque;
         public float BaseRpm;
-        // 消費側か発生側か。GearDetailDtoBuilder.ConsumerRole / GeneratorRole の文字列
-        // Consumer or generator; one of GearDetailDtoBuilder.ConsumerRole / GeneratorRole
+        // 役割: consumer/generator
+        // Role: consumer/generator
         public string Role;
     }
 

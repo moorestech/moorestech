@@ -69,8 +69,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // Pumps: computed by PumpDetailDtoBuilder
             PumpDetailDtoBuilder.Apply(dto, block, param, common);
 
-            // ギア: GearDetailDtoBuilderが役割と現在値を算出
-            // Gears: GearDetailDtoBuilder derives the role and current values
+            // ギア: 役割と現在値を算出
+            // Gears: derives role and current values
             GearDetailDtoBuilder.Apply(dto, block, param);
 
             // 液体スロット: FluidMachineInventory StateDetail（入力→出力の順で連結）
