@@ -11,14 +11,15 @@
 # =====================================================================
 """moores-code-review Step 6.5: 発火すべきpost-checkガードを選択する。
 
-Usage: python3 select_post_checks.py <FINAL_DIFF_PATH> <CHECKS_FINAL_JSON_PATH> [<APPLY_DIFF_PATH>]
+Usage: python3 select_post_checks.py <FINAL_DIFF_PATH> <CHECKS_FINAL_JSON_PATH>
 
 発火条件（2026-08-16裁定・空振り回の無条件起動を廃止）:
   - comment-rationale-guard : 最終diffにコメントの削除行があるときだけ
   - comment-convention-guard: checks-final.json の candidates.comment_length が1件以上のときだけ
-  - applied-diff-correctness: 第3引数の反映diff（Step 6 が適用した差分だけ）に、テスト以外の
-    ソースファイルでコメント/空行以外の変更行があるときだけ（2026-09-08・cmux-connector c9baa79 の較正:
-    レビュー出力を反映した diff がどの系統の入力にもならず 2 日間の機能停止を通した）
+
+applied-diff-correctness はここでは選ばない。反映 diff（修正の前後差分）の再レビューは
+Step 6.5-2.5 の Refix が `refix_snapshot.py` の snapshot 間 diff と scope 判定で直接起動する
+（2026-09-10。2026-09-08 の第3引数 apply.diff 方式を置き換えた）。
 
 出力: `<post-check絶対パス>\t<モデル>` のTSV（select_lenses/select_reviewersと同形式）。
 条件を満たすガードが無ければ何も出力しない（=post-checksスキップ）。
@@ -53,30 +54,6 @@ def has_deleted_comment(diff_text: str) -> bool:
     return False
 
 
-# 反映diffの再レビューが対象にするソース拡張子（doc・設定・データのみの反映は対象外）
-# Source extensions the applied-diff re-review targets (doc/config/data-only applies are exempt)
-SOURCE_SUFFIXES = (".cs", ".ts", ".tsx", ".js", ".mjs", ".py", ".swift")
-# テストは200行規約と同じ判定で除外（deterministic_checks と同じ観念。テストのみの反映は再レビューしない）
-# Tests are excluded with the same notion as the 200-line rule (test-only applies are not re-reviewed)
-TEST_PATH_RE = re.compile(r"(Tests?\.cs$|\.test\.tsx?$|\.spec\.ts$|(^|/)(Tests?|tests?|e2e)/)")
-COMMENT_ONLY_RE = re.compile(r"^[+-]\s*(//|/\*|\*|#|$)")
-
-
-def applied_diff_touches_source(diff_text: str) -> bool:
-    current_is_source = False
-    for line in diff_text.splitlines():
-        if line.startswith("+++ "):
-            path = line[4:].strip()
-            path = path[2:] if path.startswith("b/") else path
-            current_is_source = path.endswith(SOURCE_SUFFIXES) and not TEST_PATH_RE.search(path)
-            continue
-        if line.startswith("--- ") or line.startswith("@@"):
-            continue
-        if current_is_source and line[:1] in "+-" and not COMMENT_ONLY_RE.match(line):
-            return True
-    return False
-
-
 def main(argv: list[str]) -> int:
     if len(argv) < 3:
         print(__doc__, file=sys.stderr)
@@ -90,10 +67,6 @@ def main(argv: list[str]) -> int:
         fire.append("comment-rationale-guard")
     if comment_candidates:
         fire.append("comment-convention-guard")
-    if len(argv) >= 4 and Path(argv[3]).exists():
-        apply_text = Path(argv[3]).read_text(encoding="utf-8", errors="replace")
-        if applied_diff_touches_source(apply_text):
-            fire.append("applied-diff-correctness")
 
     for name in fire:
         md = POST_CHECKS_DIR / f"{name}.md"

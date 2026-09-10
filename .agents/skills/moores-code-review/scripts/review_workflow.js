@@ -15,11 +15,12 @@
 // =====================================================================
 export const meta = {
   name: 'moores-code-review',
-  description: 'moores-code-review の系統並列発火→Codex完了待ち→統合→自動適用→post-check を決定論的に実行する',
+  description: 'moores-code-review の系統並列発火→Codex完了待ち→統合→自動適用→反映diff再レビュー(Refix)→post-check を決定論的に実行する',
   phases: [
     { title: 'Review', detail: 'lens / reviewer / Fable / investigator / verifier を並列発火（ファイルハンドオフ）' },
     { title: 'Integrate', detail: 'Codex 3本の完了を待ってから opus integrator が agents/・Codex結論・checks.json を統合' },
     { title: 'Apply', detail: '確定修正の自動適用と uloop compile（report-only では省略）' },
+    { title: 'Refix', detail: '反映diff（修正の前後差分）だけを applied-diff-correctness で再レビューし、Critical なら直し直す（最大3周・report-only では省略）' },
     { title: 'PostCheck', detail: '最終diffで post-check を発火し結果を適用' },
   ],
 }
@@ -81,9 +82,13 @@ const APPLY_SCHEMA = {
       items: { type: 'object', properties: { path: { type: 'string' }, model: { type: 'string' } }, required: ['path', 'model'] },
     },
     post_check_selection_note: { type: 'string' },
+    // 反映 diff の scope（refix_snapshot.py の出力）。error は diff を作れなかった申告で、親は止まる
+    // Scope of the applied diff (from refix_snapshot.py); 'error' means it could not be built and the parent stops
+    refix_scope: { type: 'string', enum: ['source', 'non-source', 'none', 'error'] },
+    refix_note: { type: 'string' },
     notes: { type: 'string' },
   },
-  required: ['applied', 'compile', 'design_items', 'post_checks', 'post_check_selection_note'],
+  required: ['applied', 'compile', 'design_items', 'post_checks', 'post_check_selection_note', 'refix_scope', 'refix_note'],
 }
 const POSTFIX_SCHEMA = {
   type: 'object',
@@ -95,6 +100,19 @@ const POSTFIX_SCHEMA = {
     notes: { type: 'string' },
   },
   required: ['applied', 'escalated', 'compile', 'warnings', 'infos'],
+}
+const REFIX_APPLY_SCHEMA = {
+  type: 'object',
+  properties: {
+    applied: { type: 'integer' }, escalated: { type: 'integer' },
+    compile: { type: 'string', enum: ['ok', 'error', 'skipped'] },
+    refix_scope: { type: 'string', enum: ['source', 'non-source', 'none', 'error'] },
+    refix_note: { type: 'string' },
+    warnings: { type: 'array', items: { type: 'string' } },
+    infos: { type: 'array', items: { type: 'string' } },
+    notes: { type: 'string' },
+  },
+  required: ['applied', 'escalated', 'compile', 'refix_scope', 'refix_note', 'warnings', 'infos'],
 }
 
 const footer = [
@@ -108,6 +126,10 @@ function reviewPrompt(s) {
   const head = [`Read this : ${s.path}`]
   if (s.kind === 'investigator') head.push(`Chunk files : ${s.chunkFiles}`, `Chunks TSV : ${A.chunksTsv}`)
   if (s.kind === 'verifier' || s.kind === 'postcheck') head.push(`Candidates : ${s.candidatesPath || A.checksPath}`)
+  if (s.kind === 'refix') head.push(
+    `Refix of : ${s.refixOf}`,
+    '前提: Patch path はレビュー済み変更に対する修正の反映差分だけで、元の変更全体ではない。問いは 2 つ。(1) この反映で新たに壊れたものは無いか（囲む関数全体を Read して判定）。(2) 反映は Refix of の修正方針どおりか — 方針と食い違う実装（条件式の評価時点・対象の取り違え・一部だけの適用・別の直し方への読み替え）は Critical にする。',
+  )
   const lines = [
     `Patch path : ${s.patchOverride || A.patchPath}`,
     `User prompt : ${A.userPromptPath}`,
@@ -188,7 +210,7 @@ let postChecks = A.postChecks || []
 let postCheckSelection = A.reportOnly ? { source: 'build_workflow_args(report-only)', note: 'patch＋detchecks.json で選択' } : null
 if (!A.reportOnly) {
   const applyPrompt = [
-    `Read this : ${A.orchestratorStepsPath} — Step 6 と Step 6.5 の 1〜3 だけを実行する（Step 2〜5 は完了済み。post-check agent の起動は親が行うので自分では起動しない）。`,
+    `Read this : ${A.orchestratorStepsPath} — Step 6 と Step 6.5 の 1〜3 だけを実行する（Step 2〜5 は完了済み。post-check agent と反映 diff 再レビュー（applied-diff-correctness）の起動は親が行うので自分では起動しない）。`,
     `Run dir : ${A.runDir}`,
     `Integrated report : ${A.runDir}/integrated.md`,
     `Patch path : ${A.patchPath}`,
@@ -196,18 +218,82 @@ if (!A.reportOnly) {
     `Repo root : ${A.repoRoot}（修正はこの作業ツリーだけに加える）`,
     `Skill root : ${A.skillRoot}（integration-rules.md §3〜§5・scripts はこの配下の絶対パス）`,
     `Base ref : ${A.baseRef || '(未指定)'} — final.diff は「git diff <Base ref> -- <patch.diff が触ったファイル ∪ Step 6 で自分が編集・新規作成したファイル> ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'」で作る（pathspec で絞る。作業ツリーが Base ref から別件で進んでいても無関係な差分を巻き込まないため）。未指定なら patch.diff に「git diff HEAD -- <同じファイル集合>」を連結する。`,
-    '手順: (0) 編集を始める前に `PRE_APPLY=$(git -C <Repo root> stash create)`（空なら HEAD）を控える（Step 6.5-2.5 の反映 diff の基点。作業ツリーは変えない）。(1) integrated.md の採用Critical のうち適用区分が自動適用可のものだけ適用する。設計判断は適用せず design.md（症状→原因→推奨と選択肢。コードを開かずに選べる形。0件なら「なし」）へ書く。',
+    `手順: (0) 何も編集する前に \`python3 ${A.refixSnapshotScript} snapshot --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name s0\` を実行する（作業ツリーの snapshot。HEAD/index/作業ツリーは変わらない。Step 6.5-2.5 の反映 diff の基点）。`,
+    '(1) integrated.md の採用Critical のうち適用区分が自動適用可のものだけ適用する。設計判断は適用せず design.md（症状→原因→推奨と選択肢。コードを開かずに選べる形。0件なら「なし」）へ書く。',
     '(2) .cs を変えたら `uloop compile --project-path <Repo root>/moorestech_client` でエラー0を確認する（Editor不在で実行不能なら compile=skipped と返す）。',
     `(3) final.diff を書き、\`python3 ${A.deterministicChecksScript} <final.diff> --repo-root <Repo root>\` を ${A.runDir}/checks-final.json へ書く（--context は渡さない）。自分の修正が新たに生んだ confirmed/比較演算子違反はその場で直す。`,
-    `(3.5) 反映 diff を書く: \`git -C <Repo root> diff $PRE_APPLY -- <Step 6 で自分が編集・新規作成したファイル>\` を ${A.runDir}/apply.diff へ（何も適用していなければ空ファイル）。`,
-    `(4) \`python3 ${A.selectPostChecksScript} ${A.runDir}/final.diff ${A.runDir}/checks-final.json ${A.runDir}/apply.diff\` を実行し、出力TSV（<post-check絶対パス>\\t<モデル>）を post_checks として返す（空なら []）。スキップしたガードと理由を post_check_selection_note に1行で書く（黙って縮退しない）。`,
+    `(3.5) \`python3 ${A.refixSnapshotScript} snapshot --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name s1\` に続けて \`python3 ${A.refixSnapshotScript} diff --repo-root ${A.repoRoot} --run-dir ${A.runDir} --from s0 --to s1 --out ${A.runDir}/refix/round1.diff\` を実行し、出力 JSON の scope を refix_scope に、files/source_files の要約を refix_note に返す（反映 diff は親が applied-diff-correctness で再レビューする）。スクリプトが失敗したら refix_scope=error とし stderr を refix_note に書く（黙って source/none にしない）。`,
+    `(4) \`python3 ${A.selectPostChecksScript} ${A.runDir}/final.diff ${A.runDir}/checks-final.json\` を実行し、出力TSV（<post-check絶対パス>\\t<モデル>）を post_checks として返す（空なら []）。スキップしたガードと理由を post_check_selection_note に1行で書く（黙って縮退しない）。`,
     'Read規律: Edit対象の該当範囲だけを offset/limit で読む。ファイル全文Readしない。返答は構造化出力のみ。',
   ].join('\n')
   apply = await agent(applyPrompt, { label: 'apply', phase: 'Apply', model: 'sonnet', schema: APPLY_SCHEMA })
   if (!apply) throw new Error('apply agent が応答しなかった。integrated.md は残っているので親が Step 6 だけ再派遣する')
   postChecks = apply.post_checks.map((p) => ({ kind: 'postcheck', name: `postcheck-${p.path.split('/').pop().replace(/\.md$/, '')}`, path: p.path, model: p.model }))
   postCheckSelection = { source: 'apply(select_post_checks.py)', note: apply.post_check_selection_note }
-  log(`Apply 完了: 適用 ${apply.applied} / compile ${apply.compile} / 設計判断 ${apply.design_items} / post-check ${postChecks.length}（${apply.post_check_selection_note}）`)
+  log(`Apply 完了: 適用 ${apply.applied} / compile ${apply.compile} / 設計判断 ${apply.design_items} / 反映diff ${apply.refix_scope} / post-check ${postChecks.length}（${apply.post_check_selection_note}）`)
+}
+
+// ---- Refix: 反映 diff（修正の前後差分）だけを applied-diff-correctness で再レビュー（report-only では省略）----
+// レビューの出力を反映した diff はどの工程の入力にもならず誰にも再レビューされない（2026-09-08 cmux-connector c9baa79:
+// 裁定の反映が判定式の評価時点を誤り 2 日間の機能停止。事後実測で行単位レンズはその diff で Critical 到達）。
+// 2 周目以降は「前回レビュー以降に変わった行」だけを見せ、問いを「壊れていないか・方針どおりか」に絞る。
+// A diff that applies review output is never re-reviewed otherwise (c9baa79). Later rounds see only what changed
+// since the last review and ask only "did the fix break something / does it match the stated fix".
+const REFIX_MAX_ROUNDS = A.refixMaxRounds || 3
+const refix = { enabled: !A.reportOnly, scope: apply ? apply.refix_scope : null, note: apply ? apply.refix_note : '', rounds: [], unresolved: false }
+if (apply) {
+  if (apply.refix_scope === 'error') {
+    throw new Error(`反映 diff を作れなかった（${apply.refix_note}）。修正は適用済みなので、親が refix_snapshot.py の snapshot/diff を手で通してから resumeFromRunId で再開する`)
+  }
+  let scope = apply.refix_scope
+  let diffPath = `${A.runDir}/refix/round1.diff`
+  let refixOf = `${A.runDir}/integrated.md の「採用Critical」の修正方針`
+  if (scope !== 'source') log(`Refix: 反映 diff が ${scope}（doc/テスト/コメントのみ or 差分なし）→ 再レビュー不要（0トークン）`)
+  for (let round = 1; scope === 'source' && round <= REFIX_MAX_ROUNDS; round++) {
+    const sys = { kind: 'refix', name: `refix-correctness-r${round}`, path: A.refixReviewerPath, model: 'opus', patchOverride: diffPath, refixOf }
+    const r = await runSystem(sys, 'Refix')
+    if (!r.ok) throw new Error(`${sys.name} が応答しなかった。${diffPath} は残っているので親が該当 round だけ再派遣する`)
+    const entry = { round, name: r.name, model: r.model, critical: r.result.critical_count, design: r.result.design_judgement, report: `${A.runDir}/agents/${r.name}.md` }
+    refix.rounds.push(entry)
+    if (r.result.critical_count === 0) { log(`Refix r${round}: Critical なし → 収束`); break }
+    if (round === REFIX_MAX_ROUNDS) {
+      // 上限で止める: 指摘は尽きないので「再現可能な誤動作が無くなること」が収束条件。超えたら親へ未収束として渡す
+      // Stop at the cap: findings never run out; convergence means no reproducible wrong behavior. Beyond it, hand back as unresolved
+      refix.unresolved = true
+      log(`Refix r${round}: Critical ${r.result.critical_count} 件が上限 ${REFIX_MAX_ROUNDS} 周で未収束 → 親へ申告`)
+      break
+    }
+    const next = round + 1
+    const fixPrompt = [
+      `Read this : ${A.integrationRulesPath}（§3〜§5 の適用区分・安全規則）— 反映 diff 再レビューの Critical を直し直す係。`,
+      `Refix report : ${entry.report}`,
+      `Run dir : ${A.runDir}`,
+      `Repo root : ${A.repoRoot}（修正はこの作業ツリーだけに加える）`,
+      `Skill root : ${A.skillRoot}`,
+      `Base ref : ${A.baseRef || '(未指定)'}`,
+      '手順: (1) レポートの Critical のうち修正方針が具体名つきで選択の余地が無いものだけ §3 の規則どおり適用する（具体名どおり・波及先すべて）。§4 の設計判断に当たる件と「裁定そのものが誤り」型は適用せず design.md へ追記し escalated に数える（Step 7 で AskUserQuestion に載る）。',
+      '(2) .cs を変えたら `uloop compile --project-path <Repo root>/moorestech_client` でエラー0を確認する（Editor不在で実行不能なら compile=skipped と理由。黙って省略しない）。',
+      `(3) final.diff と checks-final.json を Apply と同じ作り方で作り直す（\`git diff <Base ref> -- <patch.diff が触ったファイル ∪ 編集・新規作成したファイル> ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'\` → ${A.runDir}/final.diff、\`python3 ${A.deterministicChecksScript} ${A.runDir}/final.diff --repo-root ${A.repoRoot}\` → ${A.runDir}/checks-final.json）。自分の修正が新たに生んだ confirmed/比較演算子違反はその場で直す。`,
+      `(4) \`python3 ${A.refixSnapshotScript} snapshot --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name s${next}\` に続けて \`python3 ${A.refixSnapshotScript} diff --repo-root ${A.repoRoot} --run-dir ${A.runDir} --from s${round} --to s${next} --out ${A.runDir}/refix/round${next}.diff\` を実行し、scope を refix_scope に返す（失敗したら error と stderr）。`,
+      'レポートの Warning / Info は1件1行で warnings / infos に転記する（親が最終報告へ載せる。黙って落とさない）。',
+      'Read規律: Edit対象の該当範囲だけを offset/limit で読む。返答は構造化出力のみ。',
+    ].join('\n')
+    const fix = await agent(fixPrompt, { label: `refix-apply-r${round}`, phase: 'Refix', model: 'sonnet', schema: REFIX_APPLY_SCHEMA })
+    if (!fix) throw new Error(`refix-apply-r${round} が応答しなかった。${entry.report} は残っているので親が該当 round だけ再派遣する`)
+    if (fix.refix_scope === 'error') throw new Error(`refix-apply-r${round} が反映 diff を作れなかった（${fix.refix_note}）。親が snapshot/diff を手で通してから再開する`)
+    Object.assign(entry, { applied: fix.applied, escalated: fix.escalated, compile: fix.compile, warnings: fix.warnings, infos: fix.infos })
+    if (fix.applied === 0) {
+      // 何も直していないのに次周へ進むと同じ Critical を同じ diff で見続けるだけ。未収束として親へ渡す
+      // Moving on with nothing applied would re-review the same diff; hand back as unresolved instead
+      refix.unresolved = true
+      log(`Refix r${round}: 適用 0 件（escalated ${fix.escalated}）→ 未収束として親へ申告`)
+      break
+    }
+    scope = fix.refix_scope
+    diffPath = `${A.runDir}/refix/round${next}.diff`
+    refixOf = `${entry.report} の Critical の修正方針`
+    if (scope !== 'source') log(`Refix r${round}: 直し直しが ${scope} のみ → 再レビュー終了`)
+  }
 }
 
 // ---- PostCheck: 選択された post-check だけ発火（空なら0トークン）----
@@ -219,11 +305,8 @@ if (postChecks.length) {
   // Post-checks read the final diff and final checks (patch + Step 2 deterministic JSON in report-only)
   const diffPath = A.reportOnly ? A.patchPath : `${A.runDir}/final.diff`
   const candidatesPath = A.reportOnly ? A.detchecksPath : `${A.runDir}/checks-final.json`
-  // applied-diff-correctness は最終diffでなく「Step 6 が適用した差分だけ」（apply.diff）を見る（2026-09-08 c9baa79 較正）
-  // applied-diff-correctness reads the apply-only diff, not the final diff (2026-09-08 c9baa79 calibration)
-  const patchFor = (p) => (p.name === 'postcheck-applied-diff-correctness' ? `${A.runDir}/apply.diff` : diffPath)
   postResults = accountFor(postChecks, await parallel(postChecks.map((p) => () => runSystem(
-    { ...p, kind: 'postcheck', patchOverride: patchFor(p), candidatesPath }, 'PostCheck',
+    { ...p, kind: 'postcheck', patchOverride: diffPath, candidatesPath }, 'PostCheck',
   ))))
   postMissing = postResults.filter((r) => !r.ok).map((r) => r.name)
   if (postMissing.length) {
@@ -237,8 +320,8 @@ if (postChecks.length) {
       `Post-check reports : ${postResults.map((r) => `${A.runDir}/agents/${r.name}.md`).join(', ')}`,
       `Repo root : ${A.repoRoot}`,
       `Skill root : ${A.skillRoot}`,
-      '手順: rationale-guard の Critical は自動復元せず design.md へ追記（復元タグ案付き）。convention-guard は `機械的` を自動適用し `要判断` はガードの裁定で完結させる（webui は要判断も短縮適用）。applied-diff-correctness の Critical は、修正方針が具体名つきで選択の余地が無いものだけ適用し（integration-rules §3）、それ以外と「裁定そのものが誤り」型は design.md へ追記して escalate する（Step 7 で AskUserQuestion に載る）。同一行で衝突したら根拠保全を優先。.cs を変えたら uloop compile を再実行する。',
-      '両レポートの Warning / Info は1件1行で warnings / infos に転記する（親が最終報告へ載せる。黙って落とさない）。',
+      '手順: rationale-guard の Critical は自動復元せず design.md へ追記（復元タグ案付き）。convention-guard は `機械的` を自動適用し `要判断` はガードの裁定で完結させる（webui は要判断も短縮適用）。同一行で衝突したら根拠保全を優先。.cs を変えたら uloop compile を再実行する。',
+      '各レポートの Warning / Info は1件1行で warnings / infos に転記する（親が最終報告へ載せる。黙って落とさない）。',
       '返答は構造化出力のみ（適用数・escalate数・compile結果・warnings・infos）。',
     ].join('\n')
     postfix = await agent(postfixPrompt, { label: 'postfix', phase: 'PostCheck', model: 'sonnet', schema: POSTFIX_SCHEMA })
@@ -265,6 +348,7 @@ return {
   codexWait,
   integrated,
   apply,
+  refix,
   postCheckSelection,
   postChecks: postResults.map((r) => ({ name: r.name, ok: r.ok, critical: r.result ? r.result.critical_count : null, report: `${A.runDir}/agents/${r.name}.md` })),
   postfix,
