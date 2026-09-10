@@ -111,7 +111,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         public float CurrentRpm;
         public float CurrentTorque;
         public float BaseRpm;
-        public float BaseTorque;
+        // 消費側か発生側か。GearDetailDtoBuilder.ConsumerRole / GeneratorRole の文字列
+        // Consumer or generator; one of GearDetailDtoBuilder.ConsumerRole / GeneratorRole
+        public string Role;
     }
 
     public class ElectricNetworkDto

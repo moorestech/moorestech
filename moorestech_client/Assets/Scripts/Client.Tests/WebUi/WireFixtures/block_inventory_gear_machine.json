@@ -20,6 +20,6 @@
     "slotBindings": [],
     "tankBindings": []
   },
-  "gear": { "isClockwise": true, "currentRpm": 12.5, "currentTorque": 3.0, "baseRpm": 20.0, "baseTorque": 5.0 },
+  "gear": { "isClockwise": true, "currentRpm": 12.5, "currentTorque": 3.0, "baseRpm": 20.0, "role": "consumer" },
   "gearNetwork": { "totalRequiredGearPower": 60.0, "totalGenerateGearPower": 100.0, "stopReason": "none" }
 }
