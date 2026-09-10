@@ -21,6 +21,11 @@ namespace Game.Block.Blocks.BeltConveyor
         public BeltConveyorSlopeType SlopeType { get; }
         public IReadOnlyList<IOnBeltConveyorItem> BeltConveyorItems => _inventoryItems;
         public IObservable<Unit> OnItemsChanged => _onItemsChanged;
+
+        // 張替えの搬送品復元で進行率をtickへ換算するために使う（BeltConveyorTransitCarryOver）
+        // Used by BeltConveyorTransitCarryOver to convert a progress rate into ticks when restoring on replace
+        internal uint TicksOfItemEnterToExit => _ticksOfItemEnterToExit;
+
         private readonly VanillaBeltConveyorInventoryItem[] _inventoryItems;
         private readonly Subject<Unit> _onItemsChanged = new();
 
@@ -151,6 +156,21 @@ namespace Game.Block.Blocks.BeltConveyor
             NotifyItemsChanged();
         }
         
+        // 張替えで退避した搬送品を指定スロットへ置き直す。スロットと残りtickの決定はBeltConveyorTransitCarryOverが持つ
+        // Places a transit item held aside during replace into the given slot; BeltConveyorTransitCarryOver decides the slot and remaining ticks
+        internal void PlaceRestoredItem(int slot, ItemId itemId, ItemInstanceId itemInstanceId, uint remainingTicks)
+        {
+            BlockException.CheckDestroy(this);
+
+            var checkItems = new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemId, 1, itemInstanceId) };
+            var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
+            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, null, goalConnector, _ticksOfItemEnterToExit)
+            {
+                RemainingTicks = remainingTicks,
+            };
+            NotifyItemsChanged();
+        }
+
         public bool IsDestroy { get; private set; }
         public void Destroy()
         {

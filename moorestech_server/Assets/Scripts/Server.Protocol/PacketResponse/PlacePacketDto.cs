@@ -21,6 +21,11 @@ namespace Server.Protocol.PacketResponse
         [Key(3)] public BlockCreateParamMessagePack[] BlockCreateParams { get; set; }
 
         [Key(4)] public int BlockIdInt { get; set; }
+
+        // 既設ベルトを同セルで差し替える張替えセルか
+        // Whether this cell replaces an existing belt on the same cell
+        [Key(5)] public bool IsReplace { get; set; }
+
         [IgnoreMember] public BlockId BlockId => new(BlockIdInt);
 
         [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
@@ -33,6 +38,7 @@ namespace Server.Protocol.PacketResponse
             Direction = placeInfo.Direction;
             VerticalDirection = placeInfo.VerticalDirection;
             BlockIdInt = placeInfo.BlockId.AsPrimitive();
+            IsReplace = placeInfo.IsReplace;
         }
     }
 
@@ -60,6 +66,10 @@ namespace Server.Protocol.PacketResponse
         public BlockId BlockId;
 
         public bool Placeable { get; set; }
+
+        // 既設ベルトを同セルで差し替える張替えセルか
+        // Whether this cell replaces an existing belt on the same cell
+        public bool IsReplace { get; set; }
 
         public BlockCreateParam[] CreateParams { get; set; } = Array.Empty<BlockCreateParam>();
 
