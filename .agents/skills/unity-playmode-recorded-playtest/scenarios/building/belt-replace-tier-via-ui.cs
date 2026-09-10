@@ -8,6 +8,8 @@
 // 保証は「張替えで搬送品をロストしないこと」までである（CONTROLLER-RULINGS §11 / 2026-09-11 ユーザー裁定）
 // Progress rate is deliberately NOT asserted: gear belts are stopped right after placement so progress cannot be
 // preserved; the guarantee stops at "replace never loses transit items" (controller ruling §11)
+using Client.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Playtest;
 using Client.Playtest.Input;
 using Client.Playtest.Operations;
@@ -54,9 +56,8 @@ return PlaytestRunner.Run("belt-replace-tier-via-ui", options, async p =>
     p.Note("Step 1: 分岐器を手持ちにして空き地へドラッグ設置し、直線に化けず坂も挿入されないことを見る");
     var splitterCells = new[] { new Vector3Int(5, 32, 2), new Vector3Int(5, 32, 3), new Vector3Int(5, 32, 4) };
     await p.DragPlaceViaUi("鉄の歯車ベルトコンベア分岐機", splitterCells[0], splitterCells[2]);
-    await p.Until(() => AllBlocksAre(splitterCells, ironSplitterId), 15f, "Step1: 分岐器ドラッグの3セル全てが分岐器BlockId");
-    p.Assert(AllBlocksAre(splitterCells, ironSplitterId), "Step1: 分岐器手持ちの通常設置が直線に化けない");
-    p.Assert(p.GetBlock(new Vector3Int(5, 33, 2)) == null && p.GetBlock(new Vector3Int(5, 31, 2)) == null, "Step1: 分岐器設置で坂が自動挿入されない（上下段が空）");
+    await p.Until(() => AllBlocksAre(splitterCells, ironSplitterId), 15f, "Step1: 分岐器手持ちの通常設置が3セルとも分岐器BlockIdになり直線に化けない");
+    p.Assert(NoBlockAboveOrBelow(splitterCells), "Step1: 分岐器設置で坂が自動挿入されない（3セルとも上下段が空）");
     await p.ExitToGameScreen();
     await p.WaitBlockGameObject(splitterCells[2]);
     await p.Screenshot("01-splitter-direct-place");
@@ -100,6 +101,7 @@ return PlaytestRunner.Run("belt-replace-tier-via-ui", options, async p =>
     var fromAim = PlaytestUiOps.PlaceAimPoint("鉄の歯車ベルトコンベア", new Vector3Int(2, 33, 2), BlockDirection.North);
     var toAim = PlaytestUiOps.PlaceAimPoint("鉄の歯車ベルトコンベア", new Vector3Int(2, 34, 8), BlockDirection.North);
     await p.AimAt(fromAim);
+    await p.Until(PreviewShowsReplaceColor, 10f, "Step3: 既設ベルトへのホバーでプレビューが張替え色（MaterialConst.ReplaceColor）になる");
     await p.Screenshot("03-replace-preview-yellow");
 
     // Step 4: 既設起点から終点まで張替えドラッグする
@@ -107,7 +109,6 @@ return PlaytestRunner.Run("belt-replace-tier-via-ui", options, async p =>
     p.Note("Step 4: 既設ベルトの天面を起点に終点までドラッグし、ライン全体を鉄ティアへ張替える");
     await PlaytestUiOps.DragPlace(fromAim, toAim);
     await p.Until(() => LineMatches(ironLineIds), 15f, "Step4: 張替えで6セル全てが鉄ティアの同ロール・北向きになる");
-    p.Assert(LineMatches(ironLineIds), "Step4: 張替え後のライン構成が鉄ティアの同ロール・北向き");
     p.Assert(CountItemsOnLine() == 2, "Step4: 張替え後も搬送品2個がライン上に残る（ロストなし）");
     await p.WaitBlockGameObject(new Vector3Int(2, 33, 7));
     await p.Screenshot("04-iron-line");
@@ -117,8 +118,7 @@ return PlaytestRunner.Run("belt-replace-tier-via-ui", options, async p =>
     p.Note("Step 5: Ctrl+Zで張替えをUndoし、元のBlockIdへ戻ることを見る");
     await p.WaitSeconds(1f);
     await PressCtrlZ();
-    await p.Until(() => LineMatches(woodLineIds), 15f, "Step5: Undoで6セル全てが元の木ティアBlockIdへ戻る");
-    p.Assert(LineMatches(woodLineIds), "Step5: Undo後のライン構成が元の木ティアの同ロール・北向き");
+    await p.Until(() => LineMatches(woodLineIds), 15f, "Step5: Undoで6セル全てが元の木ティアの同ロール・北向きへ戻る");
     p.Assert(CountItemsOnLine() == 2, "Step5: Undo後も搬送品2個がライン上に残る（ロストなし）");
     await p.WaitBlockGameObject(new Vector3Int(2, 33, 7));
     await p.Screenshot("05-undo-back-to-wood");
@@ -128,12 +128,28 @@ return PlaytestRunner.Run("belt-replace-tier-via-ui", options, async p =>
     p.Note("Step 6: インベントリの空きスロットを全て埋めてから張替え、受け皿検査の挙動を見る");
     var filledSlots = FillEmptyInventorySlots("小石");
     p.Note($"空きスロットを{filledSlots}枠埋めた（満杯状態）");
-    await p.WaitSeconds(1f);
+    p.Assert(filledSlots > 0, "Step6: 空きスロットを実際に埋めて満杯状態を作れている");
+
+    // 搬送品はライン上を流れるので、拒否されるセルはドラッグ直前の分布でしか確定しない
+    // Transit items drift along the line, so only the distribution taken right before the drag pins down which cells must refuse
+    var itemCountsBeforeReplace = SnapshotItemCounts();
+    p.Assert(0 < CountHoldingCells(itemCountsBeforeReplace) && CountHoldingCells(itemCountsBeforeReplace) < lineCells.Length,
+        "Step6: 搬送品を抱えたセルと抱えないセルが両方あり、セル単位の判定を観測できる");
     await PlaytestUiOps.DragPlace(fromAim, toAim);
-    await p.WaitSeconds(3f);
+    await p.Until(() => MatchesFullInventoryOutcome(itemCountsBeforeReplace), 15f, "Step6: 搬送品を抱えないセルだけが鉄ティアへ張替わり、抱えたセルは木ティアのまま残る");
     p.Note("満杯時の張替え結果: " + DescribeLine());
+
+    // セルごとに肯定形で残す。まとめて拒否・1セルも送信されない退行はここで赤くなる
+    // Record each cell positively; a batch-wide refusal or a drag that sent nothing turns these red
+    for (var i = 0; i < lineCells.Length; i++)
+    {
+        var holdsTransitItem = 0 < itemCountsBeforeReplace[i];
+        var expectedBlockId = holdsTransitItem ? woodLineIds[i] : ironLineIds[i];
+        var block = p.GetBlock(lineCells[i]);
+        p.Assert(block != null && block.BlockId == expectedBlockId,
+            $"Step6: z{lineCells[i].z}は{(holdsTransitItem ? "搬送品を抱えるため木ティアのまま残る" : "鉄ティアへ張替わる")}");
+    }
     p.Assert(CountItemsOnLine() == 2, "Step6: 満杯インベントリでの張替え試行でも搬送品がロストしない");
-    p.Assert(!LineMatches(ironLineIds), "Step6: 受け皿が無いセルが残るため、ラインは全て鉄ティアにはならない");
     await p.Screenshot("06-inventory-full-replace");
 
     #region Internal
@@ -148,6 +164,37 @@ return PlaytestRunner.Run("belt-replace-tier-via-ui", options, async p =>
             if (block == null || block.BlockId != expectedBlockId) return false;
         }
         return true;
+    }
+
+    // 指定セル群の上下段が全て空か（坂の自動挿入が起きていないこと）
+    // Whether every cell above and below the given cells is empty (no slope was auto-inserted)
+    bool NoBlockAboveOrBelow(Vector3Int[] cells)
+    {
+        foreach (var cell in cells)
+        {
+            if (p.GetBlock(cell + Vector3Int.up) != null) return false;
+            if (p.GetBlock(cell + Vector3Int.down) != null) return false;
+        }
+        return true;
+    }
+
+    // ホバー中のプレビューが張替え色で塗られているか。色は置換マテリアルのプロパティに載る
+    // Whether the hovered preview is painted with the replace color, which lands on the replacement material's property
+    bool PreviewShowsReplaceColor()
+    {
+        var previewController = UnityEngine.Object.FindFirstObjectByType<PlacementPreviewBlockGameObjectController>(FindObjectsInactive.Include);
+        if (previewController == null || !previewController.IsActive) return false;
+        if (!previewController.TryGetPreviewBlock(0, out var previewBlock)) return false;
+
+        foreach (var previewRenderer in previewBlock.GetComponentsInChildren<Renderer>())
+        {
+            foreach (var material in previewRenderer.sharedMaterials)
+            {
+                if (material == null || !material.HasProperty(MaterialConst.PreviewColorPropertyName)) continue;
+                if (material.GetColor(MaterialConst.PreviewColorPropertyName) == MaterialConst.ReplaceColor) return true;
+            }
+        }
+        return false;
     }
 
     // ライン6セルが期待BlockId列と一致し、向きが全て北のままか
@@ -168,16 +215,53 @@ return PlaytestRunner.Run("belt-replace-tier-via-ui", options, async p =>
     int CountItemsOnLine()
     {
         var total = 0;
-        foreach (var cell in lineCells)
-        {
-            var block = p.GetBlock(cell);
-            if (block == null) continue;
-            foreach (var item in block.GetComponent<VanillaBeltConveyorComponent>().BeltConveyorItems)
-            {
-                if (item != null) total++;
-            }
-        }
+        foreach (var cell in lineCells) total += CountItemsOnCell(cell);
         return total;
+    }
+
+    int CountItemsOnCell(Vector3Int cell)
+    {
+        var block = p.GetBlock(cell);
+        if (block == null) return 0;
+
+        var count = 0;
+        foreach (var item in block.GetComponent<VanillaBeltConveyorComponent>().BeltConveyorItems)
+        {
+            if (item != null) count++;
+        }
+        return count;
+    }
+
+    // ドラッグ直前の搬送品分布。どのセルが受け皿検査に落ちるかはこの時点で決まる
+    // The transit item distribution right before a drag; it decides which cells fail the receptacle check
+    int[] SnapshotItemCounts()
+    {
+        var itemCounts = new int[lineCells.Length];
+        for (var i = 0; i < lineCells.Length; i++) itemCounts[i] = CountItemsOnCell(lineCells[i]);
+        return itemCounts;
+    }
+
+    int CountHoldingCells(int[] itemCounts)
+    {
+        var holdingCells = 0;
+        foreach (var itemCount in itemCounts)
+        {
+            if (0 < itemCount) holdingCells++;
+        }
+        return holdingCells;
+    }
+
+    // 満杯時の期待形: 搬送品を抱えたセルは木のまま、抱えないセルは鉄へ変わる
+    // The expected shape under a full inventory: cells holding transit items stay wood and the rest turn iron
+    bool MatchesFullInventoryOutcome(int[] itemCountsBefore)
+    {
+        for (var i = 0; i < lineCells.Length; i++)
+        {
+            var block = p.GetBlock(lineCells[i]);
+            if (block == null) return false;
+            if (block.BlockId != (0 < itemCountsBefore[i] ? woodLineIds[i] : ironLineIds[i])) return false;
+        }
+        return true;
     }
 
     // セル毎のブロック名と搬送品数を1行に畳む（拒否されたセルを録画とTimelineから特定するため）
@@ -188,15 +272,7 @@ return PlaytestRunner.Run("belt-replace-tier-via-ui", options, async p =>
         foreach (var cell in lineCells)
         {
             var block = p.GetBlock(cell);
-            var itemCount = 0;
-            if (block != null)
-            {
-                foreach (var item in block.GetComponent<VanillaBeltConveyorComponent>().BeltConveyorItems)
-                {
-                    if (item != null) itemCount++;
-                }
-            }
-            descriptions.Add($"z{cell.z}={(block == null ? "null" : MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).Name)}(items:{itemCount})");
+            descriptions.Add($"z{cell.z}={(block == null ? "null" : MasterHolder.BlockMaster.GetBlockMaster(block.BlockId).Name)}(items:{CountItemsOnCell(cell)})");
         }
         return string.Join(" / ", descriptions);
     }

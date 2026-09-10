@@ -44,9 +44,9 @@ namespace Client.Playtest
                 {
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
-                    // PlayMode突入でGame Viewの入力フォーカスが落ちる環境があり、そのままでは注入キーが全て捨てられる
-                    // Entering play mode drops the Game View's input focus in some environments, which would discard every injected key
-                    await PlaytestGameViewFocus.Ensure();
+                    // Game Viewが非フォーカスだと注入キーが全て捨てられるため、フォーカスは動かさず入力ルーティング設定だけ退避・上書きする
+                    // Injected keys are discarded while the Game View is unfocused, so override only the input routing settings and never move focus
+                    PlaytestInputFocusOverride.Enable();
 
                     // DOM応答ハンドラを登録し、CEF利用時だけInputSystem転送を実行中に有効化する
                     // Register the DOM response handler and enable InputSystem forwarding only while CEF is in use
@@ -69,8 +69,9 @@ namespace Client.Playtest
                     result.Error = $"{exception.GetType().Name}: {exception.Message}\n{exception.StackTrace}";
                 }
 
-                // 成否にかかわらず転送を止め、次回実行へDOM応答を持ち越さない
-                // Stop forwarding and discard pending DOM responses regardless of success or failure
+                // 成否にかかわらず転送を止め、入力ルーティング設定を元へ戻し、次回実行へDOM応答を持ち越さない
+                // Stop forwarding, restore the input routing settings and discard pending DOM responses regardless of success or failure
+                PlaytestInputFocusOverride.Restore();
                 CefInputForwarder.StopForwarding();
                 PlaytestDomQuery.ResetPending();
 
