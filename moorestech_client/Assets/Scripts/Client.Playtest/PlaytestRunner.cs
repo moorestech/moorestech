@@ -44,6 +44,10 @@ namespace Client.Playtest
                 {
                     await PlaytestGameReady.WaitUntilReady(options.ReadyTimeoutSeconds);
 
+                    // PlayMode突入でGame Viewの入力フォーカスが落ちる環境があり、そのままでは注入キーが全て捨てられる
+                    // Entering play mode drops the Game View's input focus in some environments, which would discard every injected key
+                    await PlaytestGameViewFocus.Ensure();
+
                     // DOM応答ハンドラを登録し、CEF利用時だけInputSystem転送を実行中に有効化する
                     // Register the DOM response handler and enable InputSystem forwarding only while CEF is in use
                     PlaytestDomQuery.RegisterHandler();
