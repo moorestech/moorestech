@@ -21,8 +21,8 @@ namespace Game.Block.Interface.Extension
             SplitterBlockId = splitterBlockId;
         }
 
-        // メンバーのロールを引く。非メンバーはfalse
-        // Resolve a member's role; non-members return false
+        // メンバーのロールを引く。非メンバーはfalseで、outはStraight（有効値）が入るため戻り値を必ず確認すること
+        // Resolve a member's role; non-members return false with out set to Straight (a valid value), so always check the return value
         public bool TryGetRole(BlockId blockId, out BeltConveyorRole role)
         {
             if (blockId == StraightBlockId)

@@ -1,9 +1,6 @@
-using System.IO;
 using Core.Master;
-using Core.Master.Validator;
 using Game.Block.Interface.Extension;
 using Game.Construction;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
@@ -16,8 +13,6 @@ namespace Tests.UnitTest.Game
     /// </summary>
     public class BeltConveyorRoleTest
     {
-        private const string NonBeltBlockGuid = "00000000-0000-0000-0000-000000000002";
-
         [SetUp]
         public void SetUp()
         {
@@ -83,47 +78,6 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(straightGuid, map.ResolveUnlockSourceId(upGuid));
             Assert.AreEqual(straightGuid, map.ResolveUnlockSourceId(straightGuid));
             Assert.AreEqual(splitterGuid, map.ResolveUnlockSourceId(splitterGuid));
-        }
-
-        [Test]
-        public void 非ベルト型は分岐器ロールにできない()
-        {
-            var blocksJToken = LoadBlocksJson();
-            blocksJToken["beltConveyorFamilies"][2]["splitterBlockGuid"] = NonBeltBlockGuid;
-
-            var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
-
-            StringAssert.Contains("is not a belt block", logs);
-        }
-
-        [Test]
-        public void 分岐器は直線とコストが違っても検証エラーにならない()
-        {
-            var blocksJToken = LoadBlocksJson();
-            var splitterGuid = blocksJToken["beltConveyorFamilies"][2]["splitterBlockGuid"].Value<string>();
-            FindBlock(blocksJToken, splitterGuid)["placementsPerCost"] = 7;
-
-            var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
-
-            StringAssert.DoesNotContain("placementsPerCost must match", logs);
-            StringAssert.DoesNotContain("requiredItems must match", logs);
-        }
-
-        private static JToken LoadBlocksJson()
-        {
-            var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
-            return JToken.Parse(File.ReadAllText(path));
-        }
-
-        private static JToken FindBlock(JToken blocksJToken, string blockGuid)
-        {
-            foreach (var block in blocksJToken["data"])
-            {
-                if (block["blockGuid"].Value<string>() == blockGuid) return block;
-            }
-
-            Assert.Fail($"Block not found: {blockGuid}");
-            return null;
         }
     }
 }

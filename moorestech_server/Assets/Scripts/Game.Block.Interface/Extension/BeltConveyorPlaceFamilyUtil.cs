@@ -40,6 +40,8 @@ namespace Game.Block.Interface.Extension
             return role == BeltConveyorRole.Up || role == BeltConveyorRole.Down ? family.StraightBlockId : blockId;
         }
 
+        // GUID→BlockId→代表BlockId→GUIDと2回masterを引く。BlockId版の判定をGuid経路でも再利用するための橋渡し
+        // Round-trips GUID to BlockId and back, resolving through the BlockId representative to reuse its logic for the Guid-based callers
         public static Guid ResolveSlopeRepresentativeGuid(Guid blockGuid)
         {
             var blockId = MasterHolder.BlockMaster.GetBlockIdOrNull(blockGuid);

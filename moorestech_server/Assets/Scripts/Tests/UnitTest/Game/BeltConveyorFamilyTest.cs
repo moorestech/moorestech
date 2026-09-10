@@ -117,6 +117,30 @@ namespace Tests.UnitTest.Game
             StringAssert.Contains("requiredItems must match the family's straight block", logs);
         }
 
+        [Test]
+        public void 非ベルト型は分岐器ロールにできない()
+        {
+            var blocksJToken = LoadBlocksJson();
+            blocksJToken["beltConveyorFamilies"][2]["splitterBlockGuid"] = NonBeltBlockGuid;
+
+            var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
+
+            StringAssert.Contains("is not a belt block", logs);
+        }
+
+        [Test]
+        public void 分岐器は直線とコストが違っても検証エラーにならない()
+        {
+            var blocksJToken = LoadBlocksJson();
+            var splitterGuid = blocksJToken["beltConveyorFamilies"][2]["splitterBlockGuid"].Value<string>();
+            FindBlock(blocksJToken, splitterGuid)["placementsPerCost"] = 7;
+
+            var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
+
+            StringAssert.DoesNotContain("placementsPerCost must match", logs);
+            StringAssert.DoesNotContain("requiredItems must match", logs);
+        }
+
         private static JToken LoadBlocksJson()
         {
             var path = Path.Combine(TestModDirectory.ForUnitTestModDirectory, "mods", "forUnitTest", "master", "blocks.json");
