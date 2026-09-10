@@ -91,7 +91,7 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
       >
         {hasItem || ghostShown ? (
           <>
-            <ItemIcon itemId={shownItemId} className={styles.icon} />
+            <ItemIcon itemId={shownItemId} fallback={{ kind: "idText" }} className={styles.icon} />
             {(owned || ghostShown) && shownCount !== undefined && shownCount > 0 ? <span className={`iconTextOutlineLight ${styles.count}`}>{formatSlotAmount(shownCount)}</span> : null}
           </>
         ) : null}
@@ -107,7 +107,7 @@ export default function ItemSlot({ itemId, count, tooltip, selected, catalog, in
     <div className={styles.shortageSlot}>
       {slot}
       <span className={`iconTextOutlineLight ${styles.shortageCount}`} data-lack={insufficient || undefined}>
-        {t(L.ui.recipe.itemCountSummary, { ownedCount: shortage.ownedCount, requiredCount: shortage.requiredCount })}
+        {t(L.ui.recipe.itemCountSummary, { ownedCount: formatSlotAmount(shortage.ownedCount), requiredCount: formatSlotAmount(shortage.requiredCount) })}
       </span>
     </div>
   );

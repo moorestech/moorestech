@@ -81,7 +81,7 @@ function NotificationRow({ notification, onRemove }: { notification: GameNotific
       data-category={notification.category}
       onAnimationEnd={(event) => { if (event.animationName === styles.notificationExit) onRemove(notification.id); }}
     >
-      {notification.itemId != null && <ItemIcon itemId={notification.itemId} className={styles.icon} />}
+      {notification.itemId != null && <ItemIcon itemId={notification.itemId} fallback={{ kind: "idText" }} className={styles.icon} />}
       <span className={styles.text}>{t(key, values)}</span>
     </div>
   );

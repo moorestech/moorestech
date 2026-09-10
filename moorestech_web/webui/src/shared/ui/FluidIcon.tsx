@@ -1,5 +1,5 @@
 import { fluidIconUrl } from "@/bridge";
-import GameIcon, { type IconFallback } from "./GameIcon";
+import GameIcon, { type IconFallback, type IconRenderResult } from "./GameIcon";
 import { fluidNameKey, useI18n } from "@/shared/i18n";
 
 type Props = {
@@ -8,9 +8,10 @@ type Props = {
   // The face that hosts the icon decides what survives a failure: none where a fill remains, an identifier where only a white face does
   fallback: IconFallback;
   className?: string;
+  onRenderResult?: (result: IconRenderResult) => void;
 };
 
-export default function FluidIcon({ fluidGuid, fallback, className }: Props) {
+export default function FluidIcon({ fluidGuid, fallback, className, onRenderResult }: Props) {
   const { t } = useI18n();
   return (
     <GameIcon
@@ -19,6 +20,7 @@ export default function FluidIcon({ fluidGuid, fallback, className }: Props) {
       alt={t(fluidNameKey(fluidGuid))}
       fallback={fallback}
       className={className}
+      onRenderResult={onRenderResult}
     />
   );
 }
