@@ -12,6 +12,8 @@ const craftRecipeEntryTsx = read("../features/recipe/views/CraftRecipeEntry.tsx"
 const researchDetailTsx = read("../features/research/ResearchDetailPane.tsx");
 const fluidSlotTsx = read("../shared/ui/FluidSlot/index.tsx");
 const fluidSlotCss = read("../shared/ui/FluidSlot/style.module.css");
+const fluidAmountSlotTsx = read("../shared/ui/FluidAmountSlot/index.tsx");
+const fluidAmountSlotCss = read("../shared/ui/FluidAmountSlot/style.module.css");
 const hotbarTsx = read("../features/hotbar/HotbarPanel/index.tsx");
 const hotbarCss = read("../features/hotbar/HotbarPanel/style.module.css");
 
@@ -48,6 +50,11 @@ describe("icon overlay text outline", () => {
     expect(researchDetailTsx).toContain("shortage=");
     expect(itemSlotCss).not.toMatch(/\.count\s*\{[^}]*text-shadow/);
     expect(itemSlotCss).not.toMatch(/\.shortageCount\s*\{[^}]*text-shadow/);
+    // ADR 0054: レシピ量バッジも黒文字なので白縁を1回だけ合成し、CSSはItemSlotの.countを借りる
+    // ADR 0054: the recipe amount badge is black text too, composing the light outline once and borrowing ItemSlot's .count
+    expect(fluidAmountSlotTsx.match(/iconTextOutlineLight/g)).toHaveLength(1);
+    expect(fluidAmountSlotCss).toContain('composes: count from "../ItemSlot/style.module.css"');
+    expect(fluidAmountSlotCss).not.toContain("text-shadow");
   });
 
   it("白文字2系統が黒縁の共有クラスを持ち、擬似縁を残さない", () => {

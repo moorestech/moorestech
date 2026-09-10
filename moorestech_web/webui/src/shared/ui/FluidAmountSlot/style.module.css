@@ -1,0 +1,9 @@
+/* 容量の無いレシピ量表示。アイコン寸法と量バッジはItemSlotと同じ規則を借りて行内のアイテムと揃える */
+/* Amount-only fluid presentation without capacity; the icon size and badge reuse ItemSlot's rules so it lines up with items in a row */
+.icon {
+  composes: icon from "../ItemSlot/style.module.css";
+}
+
+.amount {
+  composes: count from "../ItemSlot/style.module.css";
+}
