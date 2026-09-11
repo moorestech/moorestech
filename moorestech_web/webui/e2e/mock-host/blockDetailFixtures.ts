@@ -56,14 +56,16 @@ export const blockGearMachine = {
     blockGuid: BlockGuids.GEAR_MACHINE_BLOCK_GUID,
     recipeTime: 15,
     outputItems: [{ itemId: 7, count: 3 }],
-    currentState: "idle",
-    currentPower: 0.0,
-    requestPower: 0.0,
+    // 充足率62%の不足稼働。歯車駆動なので赤を出さないことをe2eで固定する
+    // Running short at 62% satisfaction; gear drive must stay free of red, pinned by e2e
+    currentState: "processing",
+    currentPower: 37.5,
+    requestPower: 60.0,
     slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
     slotBindings: [],
     tankBindings: [],
   },
-  gear: { isClockwise: true, currentRpm: 12.5, currentTorque: 3.0, baseRpm: 20.0, baseTorque: 5.0 },
+  gear: { currentRpm: 12.5, currentTorque: 3.0, baseRpm: 20.0, role: "consumer" },
   gearNetwork: { totalRequiredGearPower: 60.0, totalGenerateGearPower: 100.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 
@@ -108,7 +110,7 @@ export const blockGearMiner = {
   fluidSlots: [],
   progress: 0.25,
   miner: { currentPower: 20.0, requestPower: 40.0, miningItems: [{ itemId: 11, itemsPerMinute: 6.0 }] },
-  gear: { isClockwise: false, currentRpm: 8.0, currentTorque: 2.0, baseRpm: 12.0, baseTorque: 3.0 },
+  gear: { currentRpm: 8.0, currentTorque: 2.0, baseRpm: 12.0, role: "consumer" },
   gearNetwork: { totalRequiredGearPower: 24.0, totalGenerateGearPower: 40.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 
@@ -150,8 +152,22 @@ export const blockGearPump = {
   itemSlots: [],
   fluidSlots: [{ fluidId: 1, amount: 30, capacity: 100, fluidGuid: WATER_FLUID_GUID }],
   pump: { kind: "gear", pumpingFluids: [{ fluidGuid: WATER_FLUID_GUID, amountPerMinute: 120.0 }] },
-  gear: { isClockwise: true, currentRpm: 10.0, currentTorque: 2.0, baseRpm: 10.0, baseTorque: 2.0 },
+  gear: { currentRpm: 10.0, currentTorque: 2.0, baseRpm: 10.0, role: "consumer" },
   gearNetwork: { totalRequiredGearPower: 20.0, totalGenerateGearPower: 40.0, stopReason: "none" },
+} satisfies BlockInventoryWireData;
+
+// 歯車発電機: 発電側（消費要求なし）
+// Gear generator: the generating side (no consumption)
+export const blockGearGenerator = {
+  open: true,
+  source: "block",
+  blockType: "SimpleGearGenerator",
+  identifier: "block:16",
+  blockGuid: BlockGuids.GEAR_GENERATOR_BLOCK_GUID,
+  itemSlots: [],
+  fluidSlots: [],
+  gear: { currentRpm: 20.0, currentTorque: 5.0, role: "generator" },
+  gearNetwork: { totalRequiredGearPower: 60.0, totalGenerateGearPower: 100.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 
 // BLK-7 未登録種別: generic fallback の item/fluid 表示を検証する

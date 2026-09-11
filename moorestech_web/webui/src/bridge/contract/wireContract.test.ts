@@ -132,6 +132,7 @@ describe("block detail fixtures", () => {
   const cases = [
     "block_inventory_machine.json",
     "block_inventory_gear_machine.json",
+    "block_inventory_gear_generator.json",
     "block_inventory_generator.json",
     "block_inventory_miner.json",
     "block_inventory_filter_splitter.json",
@@ -159,7 +160,7 @@ describe("block detail fixtures", () => {
     if (!gear.open || gear.source !== "block" || !gear.machine || !gear.gearNetwork) throw new Error("gear fixture shape");
     expect(gear.machine.selectedRecipeGuid).toBe("00000000-0000-0000-0000-000000000000");
     expect(gear.machine.blockGuid).toBe("22222222-2222-4222-8222-222222222222");
-    expect(["none", "rocked", "overRequirePower"]).toContain(gear.gearNetwork.stopReason);
+    expect(gear.gearNetwork.stopReason).toBe("none");
   });
 });
 

@@ -95,12 +95,12 @@ namespace Game.Gear.Common
                 if (originGenerator == null || generator.GenerateRpm > originGenerator.GenerateRpm) originGenerator = generator;
             }
 
-            // generatorが無い場合は空状態を書き、回転定義を破棄する（gearは導出でゼロになる）
-            // Without any generator, write the empty state and drop the rotation cache (gears derive to zero)
+            // generatorが無い場合は発電機不在として停止し、回転定義を破棄する（gearは導出でゼロになる）
+            // Without any generator the network stops as generator-less and the rotation cache is dropped (gears derive to zero)
             if (originGenerator == null)
             {
                 _rotationCache = null;
-                _runtimeState = new GearNetworkRuntimeState(false, GearNetworkStopReason.None, 0f, 0f, 0f);
+                GearNetworkPowerCalculator.StopNetwork(this, GearNetworkStopReason.NoGenerator, 0f, 0f);
                 return;
             }
 
