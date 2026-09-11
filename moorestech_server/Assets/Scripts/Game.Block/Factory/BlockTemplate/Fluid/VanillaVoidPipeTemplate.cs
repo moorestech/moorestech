@@ -29,8 +29,8 @@ namespace Game.Block.Factory.BlockTemplate.Fluid
         {
             var voidPipeParam = (blockMasterElement.BlockParam as VoidPipeBlockParam)!;
 
-            // 受け入れ面のコネクタとボイド本体だけを組み立てる（セーブ無し）
-            // Assemble only the inflow connector and the void body (no save component)
+            // 受け入れコネクタとボイド本体のみ組立
+            // Assemble only the inflow connector and the void body
             var connectorComponent = IFluidInventory.CreateFluidInventoryConnector(voidPipeParam.FluidInventoryConnectors, blockPositionInfo);
             var voidPipeComponent = new VoidPipeComponent();
             var components = new List<IBlockComponent>

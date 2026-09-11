@@ -66,16 +66,16 @@ namespace Tests.CombinedTest.Core.Fluid
             Assert.IsFalse(voidBlock.ExistsComponent<IBlockSaveState>());
         }
 
-        // パイプ列の終端にボイドを置くと、上流の内容量が0まで減り続けて詰まらない（R4）
-        // A void at the end of a pipe run keeps draining the upstream amount to zero without clogging (R4)
+        // ボイド終端で詰まらず0まで減衰(R4)
+        // A void at the end of a pipe run drains upstream to zero without clogging (R4)
         [Test]
         public void PipeChainDrainsCompletelyIntoVoid()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
 
-            // (0,0,-2) → (0,0,-1) → ボイド(0,0,0)。ボイドの受け入れ面は -Z 側
-            // (0,0,-2) → (0,0,-1) → void at (0,0,0); the void's inflow face is on -Z
+            // ボイドの受け入れ面は -Z 側
+            // The void's inflow face is on -Z
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -2), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var farPipeBlock);
             world.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var nearPipeBlock);
             world.TryAddBlock(ForUnitTestModBlockId.VoidPipe, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
@@ -120,16 +120,18 @@ namespace Tests.CombinedTest.Core.Fluid
             Assert.AreEqual(50, backPipe.GetAmount(), 0.01);
         }
 
-        // 機械出力→ボイド直排出でタンク空に(R5)
-        // A machine's output tank drains directly into an adjacent void and ends up empty (R5)
+        // 機械出力→ボイド直排出でタンク空に
+        // A machine's output tank drains directly into an adjacent void
         [Test]
         public void MachineOutputDrainsDirectlyIntoVoid()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var world = ServerContext.WorldBlockDatastore;
 
-            // 機械 (0,0,0)・North の outflow は (-1,0,0) 向き。ボイドは (-1,0,0) に、受け入れ面が +X（機械側）を向く回転で置く
-            // The machine at (0,0,0) facing North outputs toward (-1,0,0); place the void there rotated so its inflow faces +X (the machine)
+            // 機械North出力は(-1,0,0)向き
+            // The machine facing North outputs toward (-1,0,0)
+            // ボイドは受け入れ面を+X（機械側）へ向けて設置
+            // Place the void with its inflow face toward +X (the machine)
             world.TryAddBlock(ForUnitTestModBlockId.FluidMachineId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machineBlock);
             world.TryAddBlock(ForUnitTestModBlockId.VoidPipe, new Vector3Int(-1, 0, 0), VoidFacingPositiveX, Array.Empty<BlockCreateParam>(), out _);
 
