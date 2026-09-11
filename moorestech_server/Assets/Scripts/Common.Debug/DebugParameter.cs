@@ -44,7 +44,7 @@ namespace Common.Debug
         {
             lock (Gate)
             {
-                var cache = Current();
+                var cache = ReloadForWrite();
                 cache.Bools[key] = value;
                 cache.Save();
             }
@@ -54,7 +54,7 @@ namespace Common.Debug
         {
             lock (Gate)
             {
-                var cache = Current();
+                var cache = ReloadForWrite();
                 var result = cache.Bools.Remove(key);
                 cache.Save();
                 return result;
@@ -80,7 +80,7 @@ namespace Common.Debug
         {
             lock (Gate)
             {
-                var cache = Current();
+                var cache = ReloadForWrite();
                 cache.Ints[key] = value;
                 cache.Save();
             }
@@ -90,7 +90,7 @@ namespace Common.Debug
         {
             lock (Gate)
             {
-                var cache = Current();
+                var cache = ReloadForWrite();
                 var result = cache.Ints.Remove(key);
                 cache.Save();
                 return result;
@@ -116,7 +116,7 @@ namespace Common.Debug
         {
             lock (Gate)
             {
-                var cache = Current();
+                var cache = ReloadForWrite();
                 cache.Strings[key] = value;
                 cache.Save();
             }
@@ -126,7 +126,7 @@ namespace Common.Debug
         {
             lock (Gate)
             {
-                var cache = Current();
+                var cache = ReloadForWrite();
                 var result = cache.Strings.Remove(key);
                 cache.Save();
                 return result;
@@ -153,6 +153,14 @@ namespace Common.Debug
         {
             var directory = DebugParametersCacheDirectory.Resolve();
             if (_cache == null || _cache.DirectoryPath != directory) _cache = DebugParametersFileCache.Load(directory);
+            return _cache;
+        }
+
+        // 書き込みは直前にファイルから読み直してから変更する。古いキャッシュで丸ごと書き出すと別プロセスが書いたキーを巻き戻すため
+        // Writes reload from disk right before mutating; dumping a stale cache would roll back keys written by another process
+        private static DebugParametersFileCache ReloadForWrite()
+        {
+            _cache = DebugParametersFileCache.Load(DebugParametersCacheDirectory.Resolve());
             return _cache;
         }
     }

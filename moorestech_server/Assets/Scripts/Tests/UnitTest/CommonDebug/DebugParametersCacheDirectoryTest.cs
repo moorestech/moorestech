@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Common.Debug;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Tests.UnitTest.CommonDebug
 {
@@ -68,6 +70,8 @@ namespace Tests.UnitTest.CommonDebug
 
             // ファイルを外から消しても、同じ解決先のままならキャッシュの値が返る（読み取り毎のファイルIOが無い）
             // Deleting the file behind its back still returns the cached value while the directory stays the same (no per-read file IO)
+            // プロセス外の変更に読み取りが追従しないのは裁定D4（IOは初回・書き込み時・解決先変化時だけ）の意図した挙動
+            // Reads not following out-of-process changes is intended by ruling D4 (IO only on first access, writes and directory changes)
             File.Delete(Path.Combine(firstDirectory, DebugParametersCacheDirectory.BoolFileName));
             Assert.IsTrue(DebugParameters.GetValueOrDefaultBool(TestKey));
 
@@ -77,6 +81,30 @@ namespace Tests.UnitTest.CommonDebug
             Assert.IsFalse(DebugParameters.GetValueOrDefaultBool(TestKey));
             DebugParametersCacheDirectory.SetOverride(firstDirectory);
             Assert.IsFalse(DebugParameters.GetValueOrDefaultBool(TestKey));
+        }
+
+        [Test]
+        public void SaveRereadsFileSoKeysWrittenByAnotherProcessSurvive()
+        {
+            const string externalKey = "DebugParametersCacheDirectoryTest_ExternalFlag";
+            const string laterKey = "DebugParametersCacheDirectoryTest_LaterFlag";
+            var firstDirectory = Path.Combine(_temporaryRoot, "first");
+            var boolFilePath = Path.Combine(firstDirectory, DebugParametersCacheDirectory.BoolFileName);
+            DebugParametersCacheDirectory.SetOverride(firstDirectory);
+            DebugParameters.SaveBool(TestKey, true);
+
+            // キャッシュ読込後に別プロセスが同じファイルへ別キーを書き足した状況を作る
+            // Simulate another process adding a different key to the same file after the cache was loaded
+            var externallyWritten = new Dictionary<string, bool> { { TestKey, true }, { externalKey, true } };
+            File.WriteAllText(boolFilePath, JsonUtility.ToJson(new SerializableDictionary<string, bool>(externallyWritten)));
+
+            // 書き込みは直前に読み直してマージするので、外部で書いたキーを古いキャッシュで巻き戻さない
+            // A write rereads the file right before merging, so the stale cache never rolls back the externally written key
+            DebugParameters.SaveBool(laterKey, true);
+            var saved = JsonUtility.FromJson<SerializableDictionary<string, bool>>(File.ReadAllText(boolFilePath)).ToDictionary();
+            Assert.IsTrue(saved.ContainsKey(externalKey));
+            Assert.IsTrue(saved.ContainsKey(laterKey));
+            Assert.IsTrue(DebugParameters.GetValueOrDefaultBool(externalKey));
         }
 
         [Test]
