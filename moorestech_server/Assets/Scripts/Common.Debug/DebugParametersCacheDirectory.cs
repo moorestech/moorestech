@@ -63,6 +63,10 @@ namespace Common.Debug
                 if (!File.Exists(sourcePath)) continue;
                 File.Copy(sourcePath, Path.Combine(destinationDirectory, fileName), true);
             }
+
+            // 読み込み済みの設定ファイルを上書きしうるので、キャッシュを捨てて次のアクセスで読み直させる
+            // The copy may overwrite files already loaded, so drop the cache and let the next access reload
+            DebugParameters.InvalidateCache();
         }
 
         public static string GetDefault()

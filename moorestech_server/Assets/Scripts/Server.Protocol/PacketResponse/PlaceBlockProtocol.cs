@@ -46,8 +46,8 @@ namespace Server.Protocol.PacketResponse
             var data = MessagePackSerializer.Deserialize<SendPlaceBlockProtocolMessagePack>(payload);
             var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
 
-            // デバッグ: ブロック設置無料化トグル（設置ごとのファイルIOを避け一度だけ読む）
-            // Debug: free block placement toggle (read once to avoid per-cell file IO)
+            // デバッグ: ブロック設置無料化トグル。1リクエスト内の全セルで同じ値を使うため一度だけ読む
+            // Debug: free block placement toggle, read once so every cell in one request sees the same value
             var isFreePlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
             // スキップ理由を集約し末尾で通知

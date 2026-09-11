@@ -43,8 +43,8 @@ namespace Game.Map
         {
             earnedItems = null;
 
-            // 破壊済みへの打撃は何も起こさない。デバッグフラグ読みのファイルIOもここで打ち切る
-            // A hit on an already destroyed object does nothing; this also cuts off the debug flag file IO
+            // 破壊済みへの打撃は何も起こさない
+            // A hit on an already destroyed object does nothing
             if (mapObject.IsDestroyed) return MiningAttackResult.AlreadyDestroyed;
 
             // 装飾物は偽造要求でも削れない

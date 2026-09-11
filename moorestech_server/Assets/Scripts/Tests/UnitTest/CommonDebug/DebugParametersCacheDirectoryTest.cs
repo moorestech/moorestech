@@ -59,6 +59,42 @@ namespace Tests.UnitTest.CommonDebug
         }
 
         [Test]
+        public void ReadsComeFromCacheUntilResolvedDirectoryChanges()
+        {
+            var firstDirectory = Path.Combine(_temporaryRoot, "first");
+            var secondDirectory = Path.Combine(_temporaryRoot, "second");
+            DebugParametersCacheDirectory.SetOverride(firstDirectory);
+            DebugParameters.SaveBool(TestKey, true);
+
+            // ファイルを外から消しても、同じ解決先のままならキャッシュの値が返る（読み取り毎のファイルIOが無い）
+            // Deleting the file behind its back still returns the cached value while the directory stays the same (no per-read file IO)
+            File.Delete(Path.Combine(firstDirectory, DebugParametersCacheDirectory.BoolFileName));
+            Assert.IsTrue(DebugParameters.GetValueOrDefaultBool(TestKey));
+
+            // 解決先が変われば読み直し、戻したときも古いキャッシュではなくファイルの現状を返す
+            // A directory change reloads, and switching back reflects the files as they are now rather than the stale cache
+            DebugParametersCacheDirectory.SetOverride(secondDirectory);
+            Assert.IsFalse(DebugParameters.GetValueOrDefaultBool(TestKey));
+            DebugParametersCacheDirectory.SetOverride(firstDirectory);
+            Assert.IsFalse(DebugParameters.GetValueOrDefaultBool(TestKey));
+        }
+
+        [Test]
+        public void CopyDefaultToDropsCacheSoNextReadReloads()
+        {
+            var firstDirectory = Path.Combine(_temporaryRoot, "first");
+            DebugParametersCacheDirectory.SetOverride(firstDirectory);
+            DebugParameters.SaveBool(TestKey, true);
+            File.Delete(Path.Combine(firstDirectory, DebugParametersCacheDirectory.BoolFileName));
+            Assert.IsTrue(DebugParameters.GetValueOrDefaultBool(TestKey));
+
+            // 複製は読み込み済みファイルを上書きしうるため、解決先が同じでも次の読み取りはファイルから読み直す
+            // A copy may overwrite loaded files, so the next read reloads from disk even with the same directory
+            DebugParametersCacheDirectory.CopyDefaultTo(Path.Combine(_temporaryRoot, "copied"));
+            Assert.IsFalse(DebugParameters.GetValueOrDefaultBool(TestKey));
+        }
+
+        [Test]
         public void CacheDirectoryResolvesOverrideFirstAndFallsBackToDefault()
         {
             DebugParametersCacheDirectory.SetOverride(_temporaryRoot);

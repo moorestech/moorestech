@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
-using UnityEngine;
 
 namespace Common.Debug
 {
@@ -19,157 +17,143 @@ namespace Common.Debug
         public const string MapObjectSuperMine = "MapObjectSuperMine";
     }
 
+    /// <summary>
+    /// デバッグ設定の読み書き窓口。ファイルIOは初回・書き込み時・解決ディレクトリ変化時だけに閉じ、読み取りは毎フレーム呼んでもキャッシュから返す
+    /// The debug parameter gateway; file IO is confined to the first access, writes and resolved-directory changes, so per-frame reads come from the cache
+    /// </summary>
     public static class DebugParameters
     {
-        private static Dictionary<string, bool> BoolDebugParameters { get; set; } = new();
-        private static Dictionary<string, int> IntDebugParameters { get; set; } = new();
-        private static Dictionary<string, string> StringDebugParameters { get; set; } = new();
+        // クライアント（メインスレッド）と内蔵サーバー（ゲーム更新スレッド）が同じキャッシュを触るため全アクセスを直列化する
+        // The client (main thread) and the in-process server (game update thread) share this cache, so every access is serialized
+        private static readonly object Gate = new();
+        private static DebugParametersFileCache _cache;
 
         #region Public Accessors
 
         public static bool GetValueOrDefaultBool(string key, bool defaultValue = false)
         {
-            Load();
-            return BoolDebugParameters.GetValueOrDefault(key, defaultValue);
+            lock (Gate) return Current().Bools.GetValueOrDefault(key, defaultValue);
         }
 
         public static bool TryGetBool(string key, out bool value)
         {
-            Load();
-            return BoolDebugParameters.TryGetValue(key, out value);
+            lock (Gate) return Current().Bools.TryGetValue(key, out value);
         }
 
         public static void SaveBool(string key, bool value)
         {
-            Load();
-            BoolDebugParameters[key] = value;
-            Save();
+            lock (Gate)
+            {
+                var cache = Current();
+                cache.Bools[key] = value;
+                cache.Save();
+            }
         }
 
         public static bool RemoveBool(string key)
         {
-            Load();
-            var result = BoolDebugParameters.Remove(key);
-            Save();
-            return result;
+            lock (Gate)
+            {
+                var cache = Current();
+                var result = cache.Bools.Remove(key);
+                cache.Save();
+                return result;
+            }
         }
 
         public static bool ExistsBool(string key)
         {
-            Load();
-            return BoolDebugParameters.ContainsKey(key);
+            lock (Gate) return Current().Bools.ContainsKey(key);
         }
 
         public static int GetValueOrDefaultInt(string key, int defaultValue)
         {
-            Load();
-            return IntDebugParameters.GetValueOrDefault(key, defaultValue);
+            lock (Gate) return Current().Ints.GetValueOrDefault(key, defaultValue);
         }
 
         public static bool TryGetInt(string key, out int value)
         {
-            Load();
-            return IntDebugParameters.TryGetValue(key, out value);
+            lock (Gate) return Current().Ints.TryGetValue(key, out value);
         }
 
         public static void SaveInt(string key, int value)
         {
-            Load();
-            IntDebugParameters[key] = value;
-            Save();
+            lock (Gate)
+            {
+                var cache = Current();
+                cache.Ints[key] = value;
+                cache.Save();
+            }
         }
 
         public static bool RemoveInt(string key)
         {
-            Load();
-            var result = IntDebugParameters.Remove(key);
-            Save();
-            return result;
+            lock (Gate)
+            {
+                var cache = Current();
+                var result = cache.Ints.Remove(key);
+                cache.Save();
+                return result;
+            }
         }
 
         public static bool ExistsInt(string key)
         {
-            Load();
-            return IntDebugParameters.ContainsKey(key);
+            lock (Gate) return Current().Ints.ContainsKey(key);
         }
 
         public static string GetValueOrDefaultString(string key, string defaultValue)
         {
-            Load();
-            return StringDebugParameters.GetValueOrDefault(key, defaultValue);
+            lock (Gate) return Current().Strings.GetValueOrDefault(key, defaultValue);
         }
 
         public static bool TryGetString(string key, out string value)
         {
-            Load();
-            return StringDebugParameters.TryGetValue(key, out value);
+            lock (Gate) return Current().Strings.TryGetValue(key, out value);
         }
 
         public static void SaveString(string key, string value)
         {
-            Load();
-            StringDebugParameters[key] = value;
-            Save();
+            lock (Gate)
+            {
+                var cache = Current();
+                cache.Strings[key] = value;
+                cache.Save();
+            }
         }
 
         public static bool RemoveString(string key)
         {
-            Load();
-            var result = StringDebugParameters.Remove(key);
-            Save();
-            return result;
+            lock (Gate)
+            {
+                var cache = Current();
+                var result = cache.Strings.Remove(key);
+                cache.Save();
+                return result;
+            }
         }
 
         public static bool ExistsString(string key)
         {
-            Load();
-            return StringDebugParameters.ContainsKey(key);
+            lock (Gate) return Current().Strings.ContainsKey(key);
         }
 
         #endregion
 
-        #region File Operations
-
-        private static void Save()
+        // 設定ファイルをこのクラス以外（ディレクトリ複製）が書き換えた後に呼び、次のアクセスでファイルから読み直させる
+        // Called after something other than this class (a directory copy) rewrote the files, so the next access reloads from disk
+        internal static void InvalidateCache()
         {
-            Directory.CreateDirectory(DebugParametersCacheDirectory.Resolve());
-
-            // Save bool parameters
-            var boolDict = new SerializableDictionary<string, bool>(BoolDebugParameters);
-            File.WriteAllText(GetFilePath(DebugParametersCacheDirectory.BoolFileName), JsonUtility.ToJson(boolDict));
-
-            // Save int parameters
-            var intDict = new SerializableDictionary<string, int>(IntDebugParameters);
-            File.WriteAllText(GetFilePath(DebugParametersCacheDirectory.IntFileName), JsonUtility.ToJson(intDict));
-
-            // Save string parameters
-            var stringDict = new SerializableDictionary<string, string>(StringDebugParameters);
-            File.WriteAllText(GetFilePath(DebugParametersCacheDirectory.StringFileName), JsonUtility.ToJson(stringDict));
+            lock (Gate) _cache = null;
         }
 
-        private static void Load()
+        // 解決先はアクセス毎に確かめ、変わっていれば読み直す。静的初期化時に固定すると環境変数による切替が効かないため
+        // Check the resolved directory on every access and reload on change; fixing it at static init would defeat the env-var switch
+        private static DebugParametersFileCache Current()
         {
-            BoolDebugParameters = LoadDictionary<string, bool>(GetFilePath(DebugParametersCacheDirectory.BoolFileName));
-            IntDebugParameters = LoadDictionary<string, int>(GetFilePath(DebugParametersCacheDirectory.IntFileName));
-            StringDebugParameters = LoadDictionary<string, string>(GetFilePath(DebugParametersCacheDirectory.StringFileName));
+            var directory = DebugParametersCacheDirectory.Resolve();
+            if (_cache == null || _cache.DirectoryPath != directory) _cache = DebugParametersFileCache.Load(directory);
+            return _cache;
         }
-
-        private static Dictionary<TKey, TValue> LoadDictionary<TKey, TValue>(string filePath)
-        {
-            if (!File.Exists(filePath)) return new Dictionary<TKey, TValue>();
-
-            var json = File.ReadAllText(filePath);
-            var dict = JsonUtility.FromJson<SerializableDictionary<TKey, TValue>>(json);
-            return dict?.ToDictionary() ?? new Dictionary<TKey, TValue>();
-        }
-
-        // 静的初期化時にキャッシュせずアクセス毎に解決する。環境変数設定より前に初期化されると切替が効かないため
-        // Resolve per access instead of caching at static init, since initializing before the env var is set would defeat the switch
-        private static string GetFilePath(string fileName)
-        {
-            return Path.Combine(DebugParametersCacheDirectory.Resolve(), fileName);
-        }
-
-        #endregion
     }
 }
