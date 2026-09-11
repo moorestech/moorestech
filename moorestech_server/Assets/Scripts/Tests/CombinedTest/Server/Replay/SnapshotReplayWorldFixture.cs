@@ -80,7 +80,12 @@ namespace Tests.CombinedTest.Server.Replay
         {
             var moved = SnapshotJsonComparer.Compare(earlierSnapshotJson, laterSnapshotJson).Differences;
             Assert.IsTrue(moved.Any(difference => difference.Contains(BeltSaveKey)), "スナップショット間でベルト搬送が進んでいない:\n" + string.Join("\n", moved));
-            Assert.IsTrue(moved.Any(difference => difference.Contains("remainingSeconds")), "スナップショット間でレシピ加工が進んでいない:\n" + string.Join("\n", moved));
+
+            // ベルトの差分行はJSON文字列の中にremainingSecondsを含みうるため、差分の文字列一致ではなく機械の値そのものを比較する
+            // The belt's diff line can textually contain "remainingSeconds", so compare the machine's value directly instead of matching diff strings
+            var earlierRemainingSeconds = MachineProcessor(earlierSnapshotJson)["remainingSeconds"].Value<double>();
+            var laterRemainingSeconds = MachineProcessor(laterSnapshotJson)["remainingSeconds"].Value<double>();
+            Assert.AreNotEqual(earlierRemainingSeconds, laterRemainingSeconds, "スナップショット間でレシピ加工が進んでいない");
         }
 
         private static List<JToken> BeltItems(string snapshotJson)
