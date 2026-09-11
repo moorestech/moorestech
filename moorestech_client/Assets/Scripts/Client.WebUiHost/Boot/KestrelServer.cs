@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Static;
@@ -24,10 +25,10 @@ namespace Client.WebUiHost.Boot
 
         public async Task StartAsync(WebSocketHub hub)
         {
-            await StartAsync(hub, null);
+            await StartAsync(hub, null, CancellationToken.None);
         }
 
-        public async Task StartAsync(WebSocketHub hub, WebUiStaticFileEndpoint staticFiles)
+        public async Task StartAsync(WebSocketHub hub, WebUiStaticFileEndpoint staticFiles, CancellationToken exitToken)
         {
             // 1つずつ上げてbind試行、成功で採用
             // Probe upward from the base port and adopt the first successful bind
@@ -45,7 +46,7 @@ namespace Client.WebUiHost.Boot
                 // A bind on an occupied port surfaces as IOException; try-catch here only isolates the OS network boundary
                 try
                 {
-                    await webHost.StartAsync();
+                    await webHost.StartAsync(exitToken);
                 }
                 catch (IOException)
                 {
