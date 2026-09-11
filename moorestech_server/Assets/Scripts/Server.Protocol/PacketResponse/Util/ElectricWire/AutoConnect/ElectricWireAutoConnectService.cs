@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Extension;
@@ -24,7 +23,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
     /// </summary>
     public static class ElectricWireAutoConnectService
     {
-        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems, bool isFreePlacement)
+        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IElectricWireAutoConnectAffordability wireAffordability, bool isFreePlacement)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
 
@@ -70,9 +69,9 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 {
                     if (!TryBuildTargets(element.ConnectToolGuid, out var builtTargets, out var requiredByItem)) continue;
 
-                    // 建設コスト等で予約済みの数量を上乗せして所持数を判定する。無料設置は所持数を見ない
-                    // Add quantities reserved by construction costs when judging held counts; free placement skips the check
-                    if (!isFreePlacement && !HasEnoughAll(requiredByItem)) continue;
+                    // 所持判定は在庫側の抽象に委ねる（予約込み実在庫か無料設置かをここでは知らない）
+                    // Affordability is delegated to the stock abstraction (this loop never knows reserved inventory from free placement)
+                    if (!wireAffordability.CanAfford(requiredByItem)) continue;
 
                     selectedTargets = builtTargets;
                     selectedConnectToolGuid = element.ConnectToolGuid;
@@ -106,31 +105,6 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 }
 
                 return true;
-            }
-
-            bool HasEnoughAll(Dictionary<ItemId, int> requiredByItem)
-            {
-                foreach (var (itemId, required) in requiredByItem)
-                {
-                    var reserved = 0;
-                    foreach (var reservedItem in reservedItems)
-                    {
-                        if (reservedItem.itemId == itemId) reserved += reservedItem.count;
-                    }
-                    if (CountItem(itemId) < required + reserved) return false;
-                }
-                return true;
-            }
-
-            int CountItem(ItemId itemId)
-            {
-                var total = 0;
-                foreach (var itemStack in inventoryItems)
-                {
-                    if (itemStack.Id != itemId) continue;
-                    total += itemStack.Count;
-                }
-                return total;
             }
 
             #endregion

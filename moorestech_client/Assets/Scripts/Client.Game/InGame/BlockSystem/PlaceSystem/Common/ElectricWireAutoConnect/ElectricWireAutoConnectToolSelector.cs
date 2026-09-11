@@ -23,7 +23,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         /// selectedMaterialsは選ばれたツールの素材で成功時のみ有効。shortagesは失敗時のみ非空で、表示専用の不足素材を運ぶ
         /// selectedMaterials holds the picked tool's materials and is valid on success only; shortages is non-empty on failure only and carries the display-side shortage
         /// </summary>
-        public static bool TrySelect(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, IGameUnlockStateData gameUnlockStateData, bool isFreePlacement, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost, out IReadOnlyList<ConstructionMaterialShortage> shortages)
+        public static bool TrySelect(List<(Vector3Int TargetPos, float Distance)> targets, ElectricWireAutoConnectVirtualInventory virtualInventory, IGameUnlockStateData gameUnlockStateData, bool ignoreUnlock, out IReadOnlyList<ConnectToolMaterialCost> selectedMaterials, out int selectedCost, out IReadOnlyList<ConstructionMaterialShortage> shortages)
         {
             selectedMaterials = null;
             selectedCost = 0;
@@ -35,10 +35,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // 解放フィルタと並び順はサーバーと同一実装を呼んで共有する（手写しすると規則がずれてプレビューと実接続が食い違う）
             // Share the server's own implementation for the unlock filter and ordering (a hand-copy drifts and desyncs preview from reality)
-            // 無料設置は解放を無視する（サーバーのEvaluateAutoConnectと同じ引数で呼ぶ。ADR 0056）
-            // Free placement ignores unlock (same argument as the server's EvaluateAutoConnect; ADR 0056)
+            // ignoreUnlockは無料設置デバッグで解放を無視する（サーバーのEvaluateAutoConnectと同じ規則。ADR 0056）
+            // ignoreUnlock drops the unlock filter under the free-placement debug (same rule as the server's EvaluateAutoConnect; ADR 0056)
             var electricWireTools = ConnectToolSelector
-                .CandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, gameUnlockStateData, isFreePlacement)
+                .CandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, gameUnlockStateData, ignoreUnlock)
                 .ToList();
 
             // 候補が0件なら自動接続なしで設置可（サーバーのcandidateTools.Count == 0分岐と一致）
@@ -53,9 +53,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             foreach (var element in electricWireTools)
             {
                 if (!TrySumCost(element.ConnectToolGuid, out var materials, out var cost)) continue;
-                // 無料設置は所持数を見ない（サーバーのTrySelectConnectToolと同じ位置で同じ条件）
-                // Free placement skips the held-count check (same spot and condition as the server's TrySelectConnectTool)
-                if (!isFreePlacement && !virtualInventory.CanAfford(materials))
+                // 所持判定は仮想在庫に委ねる（無料設置かどうかは在庫の生成時に決まっている）
+                // Affordability is delegated to the virtual inventory (whether placement is free is fixed when the inventory is built)
+                if (!virtualInventory.CanAfford(materials))
                 {
                     firstUnaffordableMaterials ??= materials;
                     continue;

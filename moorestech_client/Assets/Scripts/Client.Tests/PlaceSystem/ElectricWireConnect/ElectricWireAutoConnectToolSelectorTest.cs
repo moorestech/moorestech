@@ -43,7 +43,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             // Every connectTool in the test mod is initialUnlocked=false, so all start locked
             Assert.IsTrue(_unlockState.ConnectToolUnlockStateInfos.Values.All(info => !info.IsUnlocked));
 
-            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, false, out var materials, out var cost, out var shortages);
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(false), _unlockState, false, out var materials, out var cost, out var shortages);
 
             // 接続先はあるが解放済みツールが無いため、配線なしで設置だけ許可される
             // Targets exist but nothing is unlocked, so placement is allowed with no wiring at all
@@ -58,7 +58,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             _unlockState.UnlockConnectTool(FirstElectricWireToolGuid());
 
-            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, false, out var materials, out var cost, out var shortages);
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(false), _unlockState, false, out var materials, out var cost, out var shortages);
 
             // 解放済みツールが選ばれ、距離に応じた電線コストと消費素材が返る
             // The unlocked tool is picked, returning the distance-based wire cost and the materials to consume
@@ -79,7 +79,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             _unlockState.UnlockConnectTool(FirstElectricWireToolGuid());
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
-            var emptyInventory = new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(ServerContext.ItemStackFactory.Create(wireItemId, 0)), Array.Empty<(ItemId itemId, int count)>());
+            var emptyInventory = new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(ServerContext.ItemStackFactory.Create(wireItemId, 0)), Array.Empty<(ItemId itemId, int count)>(), false);
 
             var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), emptyInventory, _unlockState, false, out var materials, out var cost, out var shortages);
 
@@ -102,7 +102,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             Assert.IsTrue(_unlockState.ConnectToolUnlockStateInfos.Values.All(info => !info.IsUnlocked));
 
-            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, true, out var materials, out var cost, out var shortages);
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(true), _unlockState, true, out var materials, out var cost, out var shortages);
 
             // 解放を無視して最優先ツールが選ばれ、表示用のコストと素材は通常どおり返る（表示は変えない）
             // Unlock is ignored and the top-priority tool is picked; cost and materials come back as usual since the display is unchanged
@@ -116,7 +116,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         public void 無料設置なら電線0個でも選定成功し不足は空になる()
         {
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
-            var emptyInventory = new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(ServerContext.ItemStackFactory.Create(wireItemId, 0)), Array.Empty<(ItemId itemId, int count)>());
+            var emptyInventory = new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(ServerContext.ItemStackFactory.Create(wireItemId, 0)), Array.Empty<(ItemId itemId, int count)>(), true);
 
             var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), emptyInventory, _unlockState, true, out var materials, out var cost, out var shortages);
 
@@ -143,12 +143,12 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             return new List<(Vector3Int, float)> { (new Vector3Int(3, 0, 0), 3f) };
         }
 
-        private static ElectricWireAutoConnectVirtualInventory CreateVirtualInventory()
+        private static ElectricWireAutoConnectVirtualInventory CreateVirtualInventory(bool isFreePlacement)
         {
             // 電線を潤沢に持たせ、素材不足で選定が落ちないようにする
             // Hold plenty of wire so the selection never fails for lack of materials
             var wireStack = ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(WireItemGuid), 100);
-            return new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(wireStack), Array.Empty<(ItemId itemId, int count)>());
+            return new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(wireStack), Array.Empty<(ItemId itemId, int count)>(), isFreePlacement);
         }
 
         // 仮想在庫が読むのは列挙だけなので、所持アイテムを列挙するだけのスタブを使う

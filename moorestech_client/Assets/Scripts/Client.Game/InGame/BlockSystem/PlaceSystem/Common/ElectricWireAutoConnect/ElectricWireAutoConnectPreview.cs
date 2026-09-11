@@ -77,8 +77,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             InvalidateCacheOnKeyChange();
 
-            // 無料設置デバッグは所持数の突き合わせだけ素通しする。表示は変えない（ADR 0056）。ファイルIOを伴うため1回だけ読む
-            // The free-placement debug bypasses only the held-count check, never the display (ADR 0056); read once as it hits file IO
+            // 無料設置デバッグは解放と所持数の突き合わせだけ素通しする。表示は変えない（ADR 0056）
+            // The free-placement debug bypasses only the unlock and held-count checks, never the display (ADR 0056)
             var isFreePlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
 
             // セル順に仮想在庫を減算しながら評価し、サーバーの逐次設置と同じ消費結果を予測する
@@ -91,7 +91,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // Note: a first-cell approximation; starting with wallet balance over-estimates once it runs out mid-drag, starting at zero under-estimates (drifts both ways)
             // 電気系はplacementsPerCost>1を持たず現状は到達不能。逐次シミュレーションはbd moorestech-2o06.1に保留
             // No electric block has placementsPerCost>1 today, so this is unreachable; per-cell simulation is parked in bd moorestech-2o06.1
-            var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, _constructionWalletQuery.GetItemsToConsume(blockId));
+            var virtualInventory = new ElectricWireAutoConnectVirtualInventory(inventory, _constructionWalletQuery.GetItemsToConsume(blockId), isFreePlacement);
             var totalCost = 0;
             var anyPlaceable = false;
             var cursorWirePlaceable = true;

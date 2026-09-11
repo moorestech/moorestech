@@ -19,8 +19,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         // The reservation is kept as the server-standard material cost list
         private readonly IReadOnlyList<ConnectToolMaterialCost> _constructionCostPerCell;
 
-        public ElectricWireAutoConnectVirtualInventory(ILocalPlayerInventory inventory, IReadOnlyList<(ItemId itemId, int count)> constructionCostPerCell)
+        // 無料設置デバッグでは素材を消費しないため常に賄えるとみなす（サーバーのElectricWireAutoConnectFreeAffordabilityと対。ADR 0056）
+        // The free-placement debug consumes nothing, so it always counts as affordable (pairs with the server's ElectricWireAutoConnectFreeAffordability; ADR 0056)
+        private readonly bool _isFreePlacement;
+
+        public ElectricWireAutoConnectVirtualInventory(ILocalPlayerInventory inventory, IReadOnlyList<(ItemId itemId, int count)> constructionCostPerCell, bool isFreePlacement)
         {
+            _isFreePlacement = isFreePlacement;
+
             // 所持アイテムをID別に合算する
             // Sum held items per item id
             foreach (var itemStack in inventory)
@@ -40,6 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         // Affordability is delegated to the definition shared with the server so no second matching rule exists on the client
         public bool CanAfford(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
+            if (_isFreePlacement) return true;
             return ConstructionMaterialAccounting.HasEnough(materials, _counts, _constructionCostPerCell);
         }
 
@@ -47,6 +54,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
         // Returns the unaffordable materials with held/required; called only when a display line is needed
         public List<ConstructionMaterialShortage> CalculateShortages(IReadOnlyList<ConnectToolMaterialCost> materials)
         {
+            if (_isFreePlacement) return new List<ConstructionMaterialShortage>();
             return ConnectToolMaterialShortageCalculator.Calculate(materials, _counts, _constructionCostPerCell);
         }
 

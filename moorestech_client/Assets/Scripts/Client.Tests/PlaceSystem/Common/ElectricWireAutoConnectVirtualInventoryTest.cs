@@ -34,7 +34,7 @@ namespace Client.Tests.PlaceSystem.Common
         public void 建設コスト予約は電線の必要数へ上乗せされる()
         {
             var itemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
-            var inventory = new ElectricWireAutoConnectVirtualInventory(BuildInventory(itemId, 2), new[] { (itemId, count: 2) });
+            var inventory = new ElectricWireAutoConnectVirtualInventory(BuildInventory(itemId, 2), new[] { (itemId, count: 2) }, false);
             var wireCost = BuildWireCost(itemId, 1);
 
             Assert.IsFalse(inventory.CanAfford(wireCost));
@@ -51,7 +51,7 @@ namespace Client.Tests.PlaceSystem.Common
         public void 予約が空なら同じ所持で設置可になる()
         {
             var itemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
-            var inventory = new ElectricWireAutoConnectVirtualInventory(BuildInventory(itemId, 2), Array.Empty<(ItemId itemId, int count)>());
+            var inventory = new ElectricWireAutoConnectVirtualInventory(BuildInventory(itemId, 2), Array.Empty<(ItemId itemId, int count)>(), false);
 
             Assert.IsTrue(inventory.CanAfford(BuildWireCost(itemId, 1)));
         }
@@ -62,7 +62,7 @@ namespace Client.Tests.PlaceSystem.Common
         public void セル確定で電線分と予約分の両方が減る()
         {
             var itemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
-            var inventory = new ElectricWireAutoConnectVirtualInventory(BuildInventory(itemId, 3), new[] { (itemId, count: 2) });
+            var inventory = new ElectricWireAutoConnectVirtualInventory(BuildInventory(itemId, 3), new[] { (itemId, count: 2) }, false);
             var wireCost = BuildWireCost(itemId, 1);
 
             Assert.IsTrue(inventory.CanAfford(wireCost));
@@ -71,6 +71,19 @@ namespace Client.Tests.PlaceSystem.Common
 
             Assert.IsFalse(inventory.CanAfford(wireCost));
             Assert.AreEqual(0, inventory.CalculateShortages(wireCost)[0].Held);
+        }
+
+        [Test]
+        // 無料設置では所持0・予約ありでも賄えるとみなし、不足行も出さない（ADR 0056）
+        // Under free placement, zero holdings with a reservation still count as affordable and yield no shortage lines (ADR 0056)
+        public void 無料設置なら所持0でも賄え不足は空になる()
+        {
+            var itemId = MasterHolder.ItemMaster.GetItemId(WireMaterialGuid);
+            var inventory = new ElectricWireAutoConnectVirtualInventory(BuildInventory(itemId, 0), new[] { (itemId, count: 2) }, true);
+            var wireCost = BuildWireCost(itemId, 3);
+
+            Assert.IsTrue(inventory.CanAfford(wireCost));
+            Assert.AreEqual(0, inventory.CalculateShortages(wireCost).Count);
         }
 
         private static List<ConnectToolMaterialCost> BuildWireCost(ItemId itemId, int count)

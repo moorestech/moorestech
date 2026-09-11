@@ -93,12 +93,15 @@ namespace Server.Protocol.PacketResponse
                 var placementPlan = isFreePlacement ? _constructionWallet.PlanFreePlacement() : _constructionWallet.PlanPlacement(blockMaster, data.PlayerId);
                 if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
 
-                // 電線の自動接続を事前検証する。建設コストで消費予定の素材は予約として電線の所持数判定から除外する
-                // Validate the wire auto-connect ahead; construction-cost materials are reserved and excluded from wire availability
-                var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems, isFreePlacement);
+                // 電線の所持判定の実装をここで選ぶ。通常は建設コスト分を予約した実在庫、無料設置は常に賄える
+                // Pick the wire affordability here: normally the real inventory with construction cost reserved, always affordable under free placement
+                IElectricWireAutoConnectAffordability wireAffordability = isFreePlacement
+                    ? new ElectricWireAutoConnectFreeAffordability()
+                    : new ElectricWireAutoConnectInventoryAffordability(placementPlan.ItemsToConsume, inventory.InventoryItems);
+                var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, wireAffordability, isFreePlacement);
 
-                // 電線が賄えないセルはスキップ。無料設置は計画がFailureでも設置だけは行う
-                // Skip cells whose wires are unaffordable; free placement still places the block on a Failure plan
+                // 電線が賄えないセルはスキップ。無料設置は計画不成立（コスト算出不能）でも設置だけは行う
+                // Skip cells whose wires are unaffordable; free placement still places the block when the plan fails (uncomputable cost)
                 if (!plan.IsPlaceable && !isFreePlacement) { wireShortageCount++; return; }
 
                 // 設置に失敗した場合はコストを消費しない
