@@ -97,7 +97,7 @@ namespace Server.Protocol.PacketResponse
                         // 張替え不成立の切り分けはログが唯一の手がかりなので、サービスへ渡す前に弾いたセルも理由を残す
                         // The log is the only clue left when a replace does not happen, so a cell dropped before the service also records its reason
                         var rejectReason = existingBlock == null ? "no block at the cell" : $"existing block {existingBlock.BlockId} cannot be replaced by {placeBlockId}";
-                        UnityEngine.Debug.Log($"[BeltReplace] rejected at {placeInfo.Position} held:{placeBlockId} reason:{rejectReason}");
+                        UnityEngine.Debug.Log($"[Replace] rejected at {placeInfo.Position} held:{placeBlockId} reason:{rejectReason}");
                         replaceRejectedCount++;
                         return;
                     }
