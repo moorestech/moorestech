@@ -111,14 +111,30 @@ describe("validBlockInventory capability details", () => {
       },
     };
     expect(parseTopicPayload(Topics.blockInventory, d).valid).toBe(true);
+    // 旧形状（role無し・baseTorque入り）は判別子の欠落と余剰キーの両方で落ちる
+    // The old shape (no role, with baseTorque) fails both on the missing discriminator and on the excess key
     expect(parseTopicPayload(Topics.blockInventory, {
       ...openBase,
       gear: { currentRpm: 10, currentTorque: 3, baseRpm: 20, baseTorque: 5 },
     }).valid).toBe(false);
     expect(parseTopicPayload(Topics.blockInventory, {
       ...openBase,
-      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 0, role: "generator" },
+      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 20, baseTorque: 5, role: "consumer" },
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { currentRpm: 10, currentTorque: 3, role: "generator" },
     }).valid).toBe(true);
+    // 発電機は基準RPMを持たず、消費側は必ず持つ
+    // Generators carry no base RPM and consumers always do
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 0, role: "generator" },
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { currentRpm: 10, currentTorque: 3, role: "consumer" },
+    }).valid).toBe(false);
   });
 
   it("rejects electricToGear without output mode power", () => {

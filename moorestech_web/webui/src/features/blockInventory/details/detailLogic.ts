@@ -1,6 +1,6 @@
-import type { GearNetworkStopReason, GearRole, MachineProcessState } from "@/bridge";
+import type { GearDetailData, GearNetworkStopReason, MachineProcessState } from "@/bridge";
 import { clamp01 } from "@/shared/clamp01";
-import { L, type TranslationKey } from "@/shared/i18n";
+import { L, type InterpolationValues, type TranslationKey } from "@/shared/i18n";
 
 // uGUI CommonMachineBlockStateDetail.PowerRate と同式（ワイヤ非送信のためWeb側算出）
 // Same formula as uGUI CommonMachineBlockStateDetail.PowerRate (not on the wire; computed web-side)
@@ -42,6 +42,8 @@ const GearStopReasonKeys: Record<GearNetworkStopReason, TranslationKey | null> =
   none: null,
   rocked: L.ui.blockInventory.stopReasonLocked,
   overRequirePower: L.ui.blockInventory.stopReasonInsufficientPower,
+  noGeneration: L.ui.blockInventory.stopReasonNoGeneration,
+  noGenerator: L.ui.blockInventory.stopReasonNoGenerator,
 };
 
 // 機械の稼働状態→表示（ラベル・不足トーン・充足率の表示可否）を1枚のテーブルで確定する
@@ -64,22 +66,30 @@ const MachineStateDisplayTable: Record<MachineProcessState, MachineStateDisplay>
   halted: { labelKey: L.ui.blockInventory.machineStateHalted, insufficient: true, showPowerRate: false },
 };
 
-// 歯車行の文言は役割で分岐（ADR 0056）
-// Gear row wording branches on role (ADR 0056)
-export function gearTorqueTranslationKey(role: GearRole): TranslationKey {
-  return GearTorqueKeys[role];
-}
-
-export function gearRpmTranslationKey(role: GearRole): TranslationKey {
-  return GearRpmKeys[role];
-}
-
-const GearTorqueKeys: Record<GearRole, TranslationKey> = {
-  consumer: L.ui.blockInventory.gearConsumedTorque,
-  generator: L.ui.blockInventory.gearGeneratedTorque,
+// 歯車行のキーと引数を役割から1回で確定する。発電機は基準RPMを持たないため現在値だけを渡す（ADR 0056）
+// One call settles both gear rows from the role; generators carry no base RPM, so only the current value is passed (ADR 0056)
+export type GearRowDisplay = {
+  torqueKey: TranslationKey;
+  torqueParams: InterpolationValues;
+  rpmKey: TranslationKey;
+  rpmParams: InterpolationValues;
 };
 
-const GearRpmKeys: Record<GearRole, TranslationKey> = {
-  consumer: L.ui.blockInventory.gearRpmWithBase,
-  generator: L.ui.blockInventory.gearRpmCurrent,
-};
+export function gearRowDisplay(gear: GearDetailData): GearRowDisplay {
+  const torqueParams = { value: gear.currentTorque.toFixed(1) };
+  const current = gear.currentRpm.toFixed(1);
+  if (gear.role === "consumer") {
+    return {
+      torqueKey: L.ui.blockInventory.gearConsumedTorque,
+      torqueParams,
+      rpmKey: L.ui.blockInventory.gearRpmWithBase,
+      rpmParams: { current, base: gear.baseRpm.toFixed(1) },
+    };
+  }
+  return {
+    torqueKey: L.ui.blockInventory.gearGeneratedTorque,
+    torqueParams,
+    rpmKey: L.ui.blockInventory.gearRpmCurrent,
+    rpmParams: { current },
+  };
+}

@@ -1,0 +1,11 @@
+{
+  "open": true,
+  "source": "block",
+  "blockType": "SimpleGearGenerator",
+  "identifier": "(0, 0, 1)",
+  "blockGuid": "33333333-3333-4333-8333-333333333333",
+  "itemSlots": [],
+  "fluidSlots": [],
+  "gear": { "currentRpm": 20.0, "currentTorque": 5.0, "role": "generator" },
+  "gearNetwork": { "totalRequiredGearPower": 60.0, "totalGenerateGearPower": 100.0, "stopReason": "none" }
+}

@@ -132,6 +132,7 @@ describe("block detail fixtures", () => {
   const cases = [
     "block_inventory_machine.json",
     "block_inventory_gear_machine.json",
+    "block_inventory_gear_generator.json",
     "block_inventory_generator.json",
     "block_inventory_miner.json",
     "block_inventory_filter_splitter.json",

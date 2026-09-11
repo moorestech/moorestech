@@ -160,7 +160,7 @@ export const blockGearGenerator = {
   blockGuid: BlockGuids.GEAR_GENERATOR_BLOCK_GUID,
   itemSlots: [],
   fluidSlots: [],
-  gear: { currentRpm: 20.0, currentTorque: 5.0, baseRpm: 0.0, role: "generator" },
+  gear: { currentRpm: 20.0, currentTorque: 5.0, role: "generator" },
   gearNetwork: { totalRequiredGearPower: 60.0, totalGenerateGearPower: 100.0, stopReason: "none" },
 } satisfies BlockInventoryWireData;
 

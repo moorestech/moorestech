@@ -109,10 +109,11 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
     {
         public float CurrentRpm;
         public float CurrentTorque;
-        public float BaseRpm;
-        // 役割: consumer/generator
-        // Role: consumer/generator
+
+        // 役割: consumer/generator。BaseRpmはconsumerの枝だけが持つ
+        // Role: consumer/generator; only the consumer branch carries BaseRpm
         public string Role;
+        public float? BaseRpm;
     }
 
     public class ElectricNetworkDto

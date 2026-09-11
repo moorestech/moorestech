@@ -83,19 +83,27 @@ export const PumpDetailDataSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
-export const GearRoleSchema = z.enum(["consumer", "generator"]);
-
-// baseRpm は消費側だけ意味を持ち発電機は0。役割はクライアントdtoがマスタparamから導出済み（ADR 0056）
-// baseRpm is meaningful only for consumers (generators send 0); the role is derived host-side from the master param (ADR 0056)
-export const GearDetailDataSchema = z.object({
-  currentRpm: z.number(), currentTorque: z.number(), baseRpm: z.number(), role: GearRoleSchema,
-});
+// 役割が行構成を決める。基準RPMは消費側の枝にしか無く、発電機は現在値だけを送る（ADR 0056）
+// The role decides the row layout: a base RPM exists only on the consumer branch and generators send current values only (ADR 0056)
+export const GearDetailDataSchema = z.discriminatedUnion("role", [
+  z.object({
+    role: z.literal("consumer"),
+    currentRpm: z.number(),
+    currentTorque: z.number(),
+    baseRpm: z.number(),
+  }).strict(),
+  z.object({
+    role: z.literal("generator"),
+    currentRpm: z.number(),
+    currentTorque: z.number(),
+  }).strict(),
+]);
 
 export const ElectricNetworkDataSchema = z.object({
   totalGeneratePower: z.number(), totalRequiredPower: z.number(), consumerCount: z.number(), powerRate: z.number(),
 });
 
-export const GearNetworkStopReasonSchema = z.enum(["none", "rocked", "overRequirePower"]);
+export const GearNetworkStopReasonSchema = z.enum(["none", "rocked", "overRequirePower", "noGeneration", "noGenerator"]);
 export const GearNetworkDataSchema = z.object({
   totalRequiredGearPower: z.number(),
   totalGenerateGearPower: z.number(),

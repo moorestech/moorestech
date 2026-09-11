@@ -1,6 +1,6 @@
 import { Stack, Text } from "@mantine/core";
 import type { BlockInventoryOpen } from "@/bridge";
-import { gearRpmTranslationKey, gearTorqueTranslationKey } from "./detailLogic";
+import { gearRowDisplay } from "./detailLogic";
 import { useI18n } from "@/shared/i18n";
 
 // ギア: 消費/発生トルクとRPMの現在値報告。不足の赤は網停止理由行（GearNetworkSection）だけが担う（ADR 0056）
@@ -8,14 +8,14 @@ import { useI18n } from "@/shared/i18n";
 export default function GearSection({ data }: { data: BlockInventoryOpen }) {
   const { t } = useI18n();
   if (!data.gear) return null;
-  const gear = data.gear;
+  const row = gearRowDisplay(data.gear);
   return (
     <Stack gap={2} data-testid="gear-section">
       <Text size="sm" c="var(--text-default)" data-testid="gear-torque">
-        {t(gearTorqueTranslationKey(gear.role), { value: gear.currentTorque.toFixed(1) })}
+        {t(row.torqueKey, row.torqueParams)}
       </Text>
       <Text size="sm" c="var(--text-default)" data-testid="gear-rpm">
-        {t(gearRpmTranslationKey(gear.role), { current: gear.currentRpm.toFixed(1), base: gear.baseRpm.toFixed(1), value: gear.currentRpm.toFixed(1) })}
+        {t(row.rpmKey, row.rpmParams)}
       </Text>
     </Stack>
   );

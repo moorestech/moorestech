@@ -60,6 +60,26 @@ namespace Client.Tests.WebUi
             AssertMatchesFixture(dto, "block_inventory_gear_machine.json");
         }
 
+        // 発電機は基準RPMを持たない。baseRpm がwireから省かれることを形状ごと固定する
+        // A generator has no base RPM; this pins the whole shape with baseRpm omitted from the wire
+        [Test]
+        public void GearGeneratorFixtureMatchesDto()
+        {
+            var dto = new BlockInventoryDto
+            {
+                Open = true,
+                Source = "block",
+                BlockType = "SimpleGearGenerator",
+                Identifier = "(0, 0, 1)",
+                BlockGuid = "33333333-3333-4333-8333-333333333333",
+                ItemSlots = new List<BlockItemSlotDto>(),
+                FluidSlots = new List<BlockFluidSlotDto>(),
+                Gear = new GearDetailDto { CurrentRpm = 20f, CurrentTorque = 5f, Role = "generator" },
+                GearNetwork = new GearNetworkDto { TotalRequiredGearPower = 60f, TotalGenerateGearPower = 100f, StopReason = "none" },
+            };
+            AssertMatchesFixture(dto, "block_inventory_gear_generator.json");
+        }
+
         // machine+electricNetwork+fluid+progress の電気機械 presence ケース
         // Electric machine with machine + electricNetwork + fluid + progress (presence case)
         [Test]

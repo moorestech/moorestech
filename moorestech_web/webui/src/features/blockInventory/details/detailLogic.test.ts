@@ -4,8 +4,7 @@ import {
   computePowerRate,
   splitSlotIndices,
   fuelRatio,
-  gearRpmTranslationKey,
-  gearTorqueTranslationKey,
+  gearRowDisplay,
   itemsPerMinute,
   machineStateDisplay,
   stopReasonTranslationKey,
@@ -43,6 +42,8 @@ describe("detailLogic", () => {
     expect(stopReasonTranslationKey("overRequirePower")).toBe(
       L.ui.blockInventory.stopReasonInsufficientPower,
     );
+    expect(stopReasonTranslationKey("noGeneration")).toBe(L.ui.blockInventory.stopReasonNoGeneration);
+    expect(stopReasonTranslationKey("noGenerator")).toBe(L.ui.blockInventory.stopReasonNoGenerator);
   });
 
   describe("machineStateDisplay", () => {
@@ -64,10 +65,18 @@ describe("detailLogic", () => {
     });
   });
 
-  it("gear labels follow the role: consumers consume with a base RPM, generators generate with current RPM only", () => {
-    expect(gearTorqueTranslationKey("consumer")).toBe(L.ui.blockInventory.gearConsumedTorque);
-    expect(gearTorqueTranslationKey("generator")).toBe(L.ui.blockInventory.gearGeneratedTorque);
-    expect(gearRpmTranslationKey("consumer")).toBe(L.ui.blockInventory.gearRpmWithBase);
-    expect(gearRpmTranslationKey("generator")).toBe(L.ui.blockInventory.gearRpmCurrent);
+  it("gear rows follow the role: consumers consume with a base RPM, generators generate with current RPM only", () => {
+    expect(gearRowDisplay({ role: "consumer", currentRpm: 5, currentTorque: 2.4, baseRpm: 10 })).toEqual({
+      torqueKey: L.ui.blockInventory.gearConsumedTorque,
+      torqueParams: { value: "2.4" },
+      rpmKey: L.ui.blockInventory.gearRpmWithBase,
+      rpmParams: { current: "5.0", base: "10.0" },
+    });
+    expect(gearRowDisplay({ role: "generator", currentRpm: 20, currentTorque: 5 })).toEqual({
+      torqueKey: L.ui.blockInventory.gearGeneratedTorque,
+      torqueParams: { value: "5.0" },
+      rpmKey: L.ui.blockInventory.gearRpmCurrent,
+      rpmParams: { current: "20.0" },
+    });
   });
 });

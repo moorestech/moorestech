@@ -24,7 +24,6 @@ import type {
   GearDetailDataSchema,
   GearNetworkDataSchema,
   GearNetworkStopReasonSchema,
-  GearRoleSchema,
   GeneratorDetailDataSchema,
   HotbarDataSchema,
   HotbarSlotSchema,
@@ -111,7 +110,6 @@ export type MachineDetailData = z.infer<typeof MachineDetailDataSchema>;
 export type GeneratorDetailData = z.infer<typeof GeneratorDetailDataSchema>;
 export type MinerDetailData = z.infer<typeof MinerDetailDataSchema>;
 export type PumpDetailData = z.infer<typeof PumpDetailDataSchema>;
-export type GearRole = z.infer<typeof GearRoleSchema>;
 export type GearDetailData = z.infer<typeof GearDetailDataSchema>;
 export type ElectricNetworkData = z.infer<typeof ElectricNetworkDataSchema>;
 export type ElectricToGearOutputModeData = z.infer<typeof ElectricToGearOutputModeDataSchema>;
