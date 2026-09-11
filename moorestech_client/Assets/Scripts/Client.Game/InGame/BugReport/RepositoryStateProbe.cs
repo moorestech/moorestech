@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -78,7 +79,7 @@ namespace Client.Game.InGame.BugReport
                 ["dirty"] = repo.State?.Dirty ?? false,
                 ["masterCommit"] = master.State?.Commit ?? "",
                 ["masterDirty"] = master.State?.Dirty ?? false,
-                ["builtAt"] = builtAt.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+                ["builtAt"] = builtAt.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture),
             };
             return info.ToString(Formatting.Indented);
         }

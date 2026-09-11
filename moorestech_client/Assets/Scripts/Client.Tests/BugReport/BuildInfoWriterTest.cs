@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using Client.Game.InGame.BugReport;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
@@ -14,7 +16,7 @@ namespace Client.Tests.BugReport
         {
             var repo = new RepositoryProbeResult { State = new RepositoryState { Commit = "a", Branch = "b", Dirty = true } };
             var master = new RepositoryProbeResult { State = new RepositoryState { Commit = "c", Branch = "HEAD", Dirty = false } };
-            var json = JObject.Parse(RepositoryStateProbe.ComposeBuildInfoJson(repo, master, new DateTime(2026, 9, 11, 0, 0, 0, DateTimeKind.Utc)));
+            var json = ParseWithoutDateConversion(RepositoryStateProbe.ComposeBuildInfoJson(repo, master, new DateTime(2026, 9, 11, 0, 0, 0, DateTimeKind.Utc)));
             Assert.AreEqual("a", (string)json["commit"]);
             Assert.AreEqual("b", (string)json["branch"]);
             Assert.AreEqual(true, (bool)json["dirty"]);
@@ -29,10 +31,18 @@ namespace Client.Tests.BugReport
         public void 状態が取れなかった場合も有効なJSONになる()
         {
             var failed = new RepositoryProbeResult { Error = "git を起動できない" };
-            var json = JObject.Parse(RepositoryStateProbe.ComposeBuildInfoJson(failed, failed, DateTime.UtcNow));
+            var json = ParseWithoutDateConversion(RepositoryStateProbe.ComposeBuildInfoJson(failed, failed, DateTime.UtcNow));
             Assert.AreEqual("", (string)json["commit"]);
             Assert.AreEqual("", (string)json["masterCommit"]);
             Assert.AreEqual(false, (bool)json["dirty"]);
+        }
+
+        // 既定のJObject.ParseはISO日時文字列をDateTimeへ戻してしまい、焼き込んだ文字列そのものを検証できない
+        // JObject.Parse converts ISO date strings back into DateTime by default, hiding the baked string itself
+        private static JObject ParseWithoutDateConversion(string json)
+        {
+            using var reader = new JsonTextReader(new StringReader(json)) { DateParseHandling = DateParseHandling.None };
+            return JObject.Load(reader);
         }
     }
 }

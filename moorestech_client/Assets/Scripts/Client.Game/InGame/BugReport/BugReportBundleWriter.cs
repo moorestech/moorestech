@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -26,7 +27,7 @@ namespace Client.Game.InGame.BugReport
             var directory = BugReportOutbox.CreateBundleDirectory(DateTime.UtcNow, Guid.NewGuid().ToString("N").Substring(0, 8));
             var manifest = new BugReportManifest
             {
-                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture),
                 Description = description,
                 Platform = Application.platform.ToString(),
                 IsEditor = Application.isEditor,
@@ -148,7 +149,7 @@ namespace Client.Game.InGame.BugReport
             var builder = new StringBuilder();
             foreach (var entry in data.Logs)
             {
-                builder.Append(entry.Time.ToString("HH:mm:ss.fff")).Append('\t').Append(entry.Tick).Append('\t').Append(entry.Type).Append('\t').Append(entry.Message).Append('\n');
+                builder.Append(entry.Time.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture)).Append('\t').Append(entry.Tick).Append('\t').Append(entry.Type).Append('\t').Append(entry.Message).Append('\n');
                 if (entry.StackTrace.Length > 0) builder.Append(entry.StackTrace).Append('\n');
             }
             File.WriteAllText(Path.Combine(logs, "unity.log"), builder.ToString());
