@@ -2,6 +2,7 @@ using System;
 using Core.Master;
 using Core.Update;
 using Game.Block.Interface;
+using Game.Challenge;
 using Game.Context;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +37,9 @@ namespace Tests.CombinedTest.Game
             world.RemoveBlock(new Vector3Int(0, 0), BlockRemoveReason.ManualRemove);
             world.TryAddBlock(ForUnitTestModBlockId.ChestId, new Vector3Int(9, 0), BlockDirection.East, Array.Empty<BlockCreateParam>(), out _);
             SetItem(GetInventory(serviceProvider), 0, MasterHolder.ItemMaster.GetItemMaster(new ItemId(2)).ItemGuid, 9);
+            // スキット登録はtickスレッドがdatastoreの生リストを直接足す経路で、取り込み像が生参照だと後から混ざる
+            // Skit registration appends straight into the datastore's list, so a live reference in the image would leak it
+            serviceProvider.GetRequiredService<ChallengeDatastore>().CurrentChallengeInfo.PlayedSkitIds.Add("skit-after-capture");
             for (var i = 0; i < 20; i++) GameUpdater.UpdateOneTick();
 
             var later = AssembleSaveJsonText.Serialize(captured);

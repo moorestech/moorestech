@@ -254,7 +254,7 @@ namespace Game.Challenge
             {
                 CompletedGuids = completedIds,
                 CurrentChallengeGuids = currentChallengeGuids,
-                PlayedSkitIds = CurrentChallengeInfo.PlayedSkitIds,
+                PlayedSkitIds = CurrentChallengeInfo.PlayedSkitIds.ToList(),
             };
         }
         
