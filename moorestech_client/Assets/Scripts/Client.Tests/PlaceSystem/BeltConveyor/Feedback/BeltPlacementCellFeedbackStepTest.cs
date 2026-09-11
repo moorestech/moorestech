@@ -15,7 +15,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor.Feedback
     public class BeltPlacementCellFeedbackStepTest
     {
         [Test]
-        public void 張替え列はカーソルが列外へ出ても理由が消えない()
+        public void 張替え列はカーソルが列外なら理由を出さない()
         {
             // 張替えセルは既設の高さへ追従するのでYはカーソルと一致しない
             // Replace cells follow the existing heights, so their Y never matches the cursor
@@ -23,13 +23,12 @@ namespace Client.Tests.PlaceSystem.BeltConveyor.Feedback
             var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.ExistingBlock };
             var feedback = new PlacementFeedback();
 
-            // カーソルが列のXZから外れた瞬間にツールチップが全部消えるのが直した実害
-            // The fixed defect is the tooltip going blank the moment the cursor leaves the run's XZ
+            // 触れてもいない末尾セルの理由をカーソルの理由として出す方が誤解を招くので、列外では何も出さない
+            // Reporting an untouched last cell's reason as the cursor's misleads more than silence, so nothing is pushed outside the run
             var cursorIndex = BeltPlacementCellFeedbackStep.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(0, 0, 9), new List<bool> { false, false }, feedback);
 
-            Assert.AreEqual(1, cursorIndex);
-            Assert.AreEqual(1, feedback.Lines.Count);
-            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
+            Assert.AreEqual(-1, cursorIndex);
+            Assert.IsEmpty(feedback.Lines);
         }
 
         [Test]

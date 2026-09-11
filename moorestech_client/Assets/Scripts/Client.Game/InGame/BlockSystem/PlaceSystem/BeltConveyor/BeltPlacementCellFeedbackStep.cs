@@ -22,7 +22,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
             // 張替えセルは既設の高さへ追従しカーソルのYと揃わないため、完全一致の次はXZで引く
             // Replace cells follow the existing heights and never match the cursor's Y, so XZ comes next after the exact match
-            var cursorMatch = placeInfos.Exists(info => info.IsReplace) ? PlacementCursorMatch.HorizontalCellOrLast : PlacementCursorMatch.ExactCellOrLast;
+            // XZも外れたら末尾へは落とさない。指していないセルの理由を出すより何も出さない方が正しい
+            // When the XZ misses too it never falls back to the last cell; showing nothing beats showing a cell the cursor is not on
+            var cursorMatch = placeInfos.Exists(info => info.IsReplace) ? PlacementCursorMatch.HorizontalOnly : PlacementCursorMatch.ExactCellOrLast;
 
             return PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, cursorCell, effectiveOverlaps, cursorMatch, feedback);
         }

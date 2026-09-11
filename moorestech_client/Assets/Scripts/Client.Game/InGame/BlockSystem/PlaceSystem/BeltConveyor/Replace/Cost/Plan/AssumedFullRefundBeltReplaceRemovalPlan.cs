@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
@@ -14,7 +15,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost.P
     /// </summary>
     internal class AssumedFullRefundBeltReplaceRemovalPlan : IBeltReplaceRemovalPlan
     {
+        private static readonly IReadOnlyList<IItemStack> NoGuaranteedRefund = Array.Empty<IItemStack>();
+
         public IReadOnlyList<IItemStack> RefundItems { get; }
+
+        // 仮定そのものなので確実に届く返却は無い
+        // This plan is the assumption itself, so nothing about its refund is guaranteed
+        public IReadOnlyList<IItemStack> GuaranteedRefundItems => NoGuaranteedRefund;
 
         private readonly BlockId _walletBlockId;
 

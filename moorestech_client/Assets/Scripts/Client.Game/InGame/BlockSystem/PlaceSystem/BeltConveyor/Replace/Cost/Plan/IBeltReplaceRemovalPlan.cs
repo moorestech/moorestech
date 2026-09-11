@@ -9,7 +9,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost.P
     /// </summary>
     internal interface IBeltReplaceRemovalPlan
     {
+        // 自分の財布で見積もった返却。台帳を進めるときの最良推定として使う
+        // The refund estimated against the player's own wallet, used as the best guess when advancing the ledger
         IReadOnlyList<IItemStack> RefundItems { get; }
+
+        // 課金元が誰であっても確実に届く返却。支払いが確実かはこちらで判定する
+        // The refund that arrives whoever the payer is; whether a payment is certain is judged against this
+        IReadOnlyList<IItemStack> GuaranteedRefundItems { get; }
 
         void Commit(BeltReplaceCostLedger ledger);
     }

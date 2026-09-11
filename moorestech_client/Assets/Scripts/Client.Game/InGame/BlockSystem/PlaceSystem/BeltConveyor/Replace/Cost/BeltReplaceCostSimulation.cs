@@ -25,6 +25,28 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost
             _uncertainCellIndices = uncertainCellIndices;
         }
 
+        // 不足表示に載せてよいセル（課金元不明のセルは送信されるので外す）。添字はシミュレート時の列と一致する
+        // The cells the shortage display may count; the ones with an unknown payer are sent, so they drop out. The indices match the simulated run
+        public List<PlaceInfo> CollectCertainCells(List<PlaceInfo> placeInfos)
+        {
+            if (_uncertainCellIndices == null) return placeInfos;
+
+            // 不確実な添字は走査順に並ぶので、先頭から突き合わせながら1パスで落とす
+            // The uncertain indices come in scan order, so one pass drops them while walking from the front
+            var certainCells = new List<PlaceInfo>(placeInfos.Count);
+            var uncertainCursor = 0;
+            for (var i = 0; i < placeInfos.Count; i++)
+            {
+                if (uncertainCursor < _uncertainCellIndices.Count && _uncertainCellIndices[uncertainCursor] == i)
+                {
+                    uncertainCursor++;
+                    continue;
+                }
+                certainCells.Add(placeInfos[i]);
+            }
+            return certainCells;
+        }
+
         public void MarkUnaffordableCellsAsNotPlaceable()
         {
             if (_unaffordableCells == null) return;

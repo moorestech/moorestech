@@ -13,9 +13,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
         ExactCellOrLast,
 
         /// <summary>
-        ///     完全一致→XZ一致→末尾セルの順で引く。列のYがカーソルのYと揃わない設置系向け
-        ///     Matches the exact cell, then XZ, then the last cell; for systems whose cells sit at other heights than the cursor
+        ///     完全一致→XZ一致の順で引き、どちらも無ければ解決しない。列のYがカーソルのYと揃わない設置系向け
+        ///     Matches the exact cell, then XZ, and resolves to nothing otherwise; for systems whose cells sit at other heights than the cursor
+        ///     末尾へ落とさないのは、触れてもいないセルの不可理由をカーソルの理由として出す方が誤解を招くため
+        ///     It never falls back to the last cell, since reporting an untouched cell's reason as the cursor's is more misleading than reporting none
         /// </summary>
-        HorizontalCellOrLast,
+        HorizontalOnly,
     }
 }

@@ -28,7 +28,7 @@ namespace Client.Tests.PlaceSystem.Feedback
         }
 
         [Test]
-        public void XZ規則は高さ違いを拾い一致が無ければ末尾へ落ちる()
+        public void XZ規則は高さ違いを拾い一致が無ければ解決しない()
         {
             // 列のセルがカーソルと違う高さに並ぶ場合でも、XZが揃っていればそのセルを指す
             // Even when the run's cells sit at other heights, an XZ match still points at that cell
@@ -38,12 +38,12 @@ namespace Client.Tests.PlaceSystem.Feedback
                 new() { Position = new Vector3Int(0, 1, 1) },
             };
 
-            Assert.AreEqual(1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(0, 5, 1), PlacementCursorMatch.HorizontalCellOrLast));
+            Assert.AreEqual(1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(0, 5, 1), PlacementCursorMatch.HorizontalOnly));
 
-            // カーソルが列から外れてもツールチップを消さないため、末尾セルへ落とす
-            // When the cursor leaves the run it still falls back to the last cell, so the tooltip never goes blank
-            Assert.AreEqual(1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(0, 0, 2), PlacementCursorMatch.HorizontalCellOrLast));
-            Assert.AreEqual(-1, PlacementCursorCellResolver.Resolve(new List<PlaceInfo>(), Vector3Int.zero, PlacementCursorMatch.HorizontalCellOrLast));
+            // カーソルが列のXZから外れたら、無関係な末尾セルを指さずに解決を諦める
+            // Once the cursor leaves the run's XZ it gives up rather than pointing at an unrelated last cell
+            Assert.AreEqual(-1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(0, 0, 2), PlacementCursorMatch.HorizontalOnly));
+            Assert.AreEqual(-1, PlacementCursorCellResolver.Resolve(new List<PlaceInfo>(), Vector3Int.zero, PlacementCursorMatch.HorizontalOnly));
         }
     }
 }

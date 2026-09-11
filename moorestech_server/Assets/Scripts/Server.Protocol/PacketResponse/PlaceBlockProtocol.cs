@@ -92,7 +92,15 @@ namespace Server.Protocol.PacketResponse
                     // 張替え対象かどうかの規則はサービス側にあり、プロトコルはブロックの種類を知らない
                     // The rule for what counts as a replace target lives in the service, so the protocol never knows the block kind
                     var existingBlock = ServerContext.WorldBlockDatastore.GetBlock(placeInfo.Position);
-                    if (existingBlock == null || !_replacePlacementService.CanReplace(existingBlock.BlockId, placeBlockId)) { replaceRejectedCount++; return; }
+                    if (existingBlock == null || !_replacePlacementService.CanReplace(existingBlock.BlockId, placeBlockId))
+                    {
+                        // 張替え不成立の切り分けはログが唯一の手がかりなので、サービスへ渡す前に弾いたセルも理由を残す
+                        // The log is the only clue left when a replace does not happen, so a cell dropped before the service also records its reason
+                        var rejectReason = existingBlock == null ? "no block at the cell" : $"existing block {existingBlock.BlockId} cannot be replaced by {placeBlockId}";
+                        UnityEngine.Debug.Log($"[BeltReplace] rejected at {placeInfo.Position} held:{placeBlockId} reason:{rejectReason}");
+                        replaceRejectedCount++;
+                        return;
+                    }
 
                     var replaceRequest = new ReplacePlacementRequest(placeInfo.Position, placeBlockId, createParams, inventoryData.MainOpenableInventory, data.PlayerId, isFreePlacement);
                     CountReplaceResult(_replacePlacementService.Replace(replaceRequest));

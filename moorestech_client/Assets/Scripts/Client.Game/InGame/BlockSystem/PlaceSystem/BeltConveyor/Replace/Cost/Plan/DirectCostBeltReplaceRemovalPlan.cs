@@ -11,6 +11,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost.P
     {
         public IReadOnlyList<IItemStack> RefundItems { get; }
 
+        // 財布を通らない撤去は課金元に関わらず全額戻るので、見積りがそのまま確実な返却になる
+        // A wallet-free removal refunds in full whoever paid, so the estimate is the guaranteed refund itself
+        public IReadOnlyList<IItemStack> GuaranteedRefundItems => RefundItems;
+
         internal DirectCostBeltReplaceRemovalPlan(IReadOnlyList<IItemStack> refundItems)
         {
             RefundItems = refundItems;

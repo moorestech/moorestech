@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
@@ -13,7 +12,6 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Common.Debug;
-using Core.Item.Interface;
 using Game.Block.Interface;
 using Game.Construction;
 using Server.Protocol.PacketResponse;
@@ -125,30 +123,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Belt-specific reasons (impossible overpass, missing slope block) are pushed here on the belt side
             PushBeltReason();
 
-            // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
-            // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-            // 直線・坂・分岐器・張替えで列にBlockIdが混ざるため、コストはセル自身のBlockIdごとに数える
-            // Straight, slope, splitter and replace cells mix BlockIds in one run, so the cost is counted per the cell's own BlockId
-            // 張替えを含む列はサーバーがセル1つずつ「返却→支払い」を判定するので、同じ順で1パス回して可否を出す
-            // A run with replace cells is judged refund-then-pay one cell at a time by the server, so one pass in that same order produces the verdict
-            var replaceSimulation = BeltReplaceCostSimulator.TrySimulate(_currentPlaceInfos, _blockGameObjectDataStore, _constructionWalletQuery, _localPlayerInventory);
-
-            // 不足表示は「所持品＋実際に届いた返却品」で見るため、Placeableを落とす前にシミュレーション結果の素材を渡す
-            // The shortage display sees the holdings plus the refunds that actually landed, so the simulated materials go in before Placeable is cleared
-            IEnumerable<IItemStack> costCheckItems = _localPlayerInventory;
-            if (replaceSimulation != null) costCheckItems = replaceSimulation.CostCheckItems;
-
-            ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, _constructionWalletQuery, costCheckItems, feedback);
-            if (replaceSimulation == null) ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _constructionWalletQuery, _localPlayerInventory);
-            else replaceSimulation.MarkUnaffordableCellsAsNotPlaceable();
-
-            // 最終的なPlaceable状態でプレビュー色を更新
-            // Update preview colors based on the final Placeable state
-            _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
-
-            // 課金元を把握できず返却を見積れないセルは、送信したうえで色だけ不確実を表す
-            // A cell whose refund payer is unknown is still sent, and only its color says the estimate is uncertain
-            replaceSimulation?.ApplyUncertainRefundColors(_previewBlockController);
+            // 地面フィルタ後にコストを見る（地面に埋まったエンティティがアイテム枠を消費しないようにする）
+            // The cost is judged after ground filtering (so ground-blocked entities don't consume item quota)
+            BeltPlacementCostFeedbackStep.ApplyCostAndUpdateColors(_currentPlaceInfos, _blockGameObjectDataStore, _constructionWalletQuery, _localPlayerInventory, _previewBlockController, feedback);
 
             // 設置するブロックをサーバーに送信
             // send block place info to server

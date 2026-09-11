@@ -21,10 +21,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost
     /// The wallet transitions and the affordability judgement call the very ConstructionWalletUtil and ConstructionCostRules the server calls; the only logic of its own here is the cell scan order
     ///
     /// 撤去の返却は「設置して支払った人」の財布で決まる（ConstructionWalletService.PlanRemoval）。クライアントは課金元を知りようがないため、
-    /// 自分の財布では払えないセルも全額返却を見込めば払えるならPlaceableのまま送り、サーバーへ最終判定を預ける
+    /// 財布を通る撤去の返却はどちら向きにも外れうる。返却抜きでも払えるセルだけを確実とし、返却を見込んで初めて払えるセルは送ったうえで不確実として色を分ける
     ///
     /// A removal's refund is decided by whoever placed and paid for the block (ConstructionWalletService.PlanRemoval), and the client cannot know the payer,
-    /// so a cell unpayable against the player's own wallet stays Placeable and is sent whenever a full refund would cover it, leaving the final call to the server
+    /// so a wallet-backed refund can miss in either direction; only a cell payable without any refund is certain, and one that needs the refund is sent but colored uncertain
     /// </summary>
     public class BeltReplaceCostSimulator
     {
@@ -98,15 +98,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost
         {
             var removal = PlanRemoval();
             var placement = PlanPlacement(placeInfo.BlockId);
-            if (_ledger.CanPay(placement.ItemsToConsume, removal.RefundItems))
+
+            // 課金元が自分とは限らないので、確実に届く返却だけで払えるセルを「確実」とする
+            // The payer is not necessarily the player, so a cell is certain only when the guaranteed refund alone pays for it
+            if (_ledger.CanPay(placement.ItemsToConsume, removal.GuaranteedRefundItems))
             {
                 removal.Commit(_ledger);
                 placement.Commit(_ledger);
                 return BeltReplaceCellPayment.Paid;
             }
 
-            // 自分の財布では払えないが、課金元が別人なら全額返却が来て払えるかもしれない。成功し得る操作を送信前に潰さない
-            // The player's own wallet cannot pay, yet a different payer's wallet may hand back the full cost; an operation that could succeed is never dropped before sending
+            // 返却が来る側へ倒せば払えるセルは、成功し得る操作なので送信前に潰さない。当たり外れは課金元次第
+            // A cell payable once the refund is assumed could succeed, so it is never dropped before sending; whether it lands depends on the payer
             var assumedRemoval = PlanAssumedFullRefundRemoval();
             if (assumedRemoval == null || !_ledger.CanPay(placement.ItemsToConsume, assumedRemoval.RefundItems)) return BeltReplaceCellPayment.Unaffordable;
 
@@ -132,16 +135,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost
                 return new WalletBeltReplaceRemovalPlan(condensed ? CreateRefundItems(removedBlockId) : NoRefund, walletBlockId, condensed);
             }
 
-            // 全額返却を見込んだ代替案。自分の財布の見積りと同じ結論になるなら不確実さは無いのでnull
-            // The alternative assuming a full refund; null when it would reach the same conclusion as the player's own estimate, since then nothing is uncertain
+            // 全額返却を見込んだ代替案。財布を通らない撤去は課金元に関わらず全額戻るため、倒す先が無くnull
+            // The alternative assuming a full refund; a wallet-free removal already refunds in full whoever paid, so there is nothing to lean to and it returns null
             AssumedFullRefundBeltReplaceRemovalPlan PlanAssumedFullRefundRemoval()
             {
                 if (!TryResolveRemovedBlock(out var removedBlockId, out var walletStatus) || !walletStatus.HasValue) return null;
 
-                var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(removedBlockId);
-                if (ConstructionWalletUtil.WouldCondense(_ledger.GetWalletRemainder(walletBlockId), walletStatus.Value.PlacementsPerCost)) return null;
-
-                return new AssumedFullRefundBeltReplaceRemovalPlan(CreateRefundItems(removedBlockId), walletBlockId);
+                return new AssumedFullRefundBeltReplaceRemovalPlan(CreateRefundItems(removedBlockId), ConstructionWalletUtil.ResolveWalletBlockId(removedBlockId));
             }
 
             bool TryResolveRemovedBlock(out BlockId removedBlockId, out ConstructionWalletStatus? walletStatus)

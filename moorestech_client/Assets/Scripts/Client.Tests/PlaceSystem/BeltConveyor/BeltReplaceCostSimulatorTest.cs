@@ -4,6 +4,8 @@ using System.Reflection;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Construction;
 using Core.Item.Interface;
 using Core.Master;
@@ -71,6 +73,35 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             var recorder = new PreviewBlockIndexRecorder();
             simulation.ApplyUncertainRefundColors(recorder);
             CollectionAssert.AreEqual(new[] { 0, 1, 2, 3, 4, 5 }, recorder.RequestedIndices);
+
+            // 送信されるセルを「素材不足」と説明すると表示と挙動が矛盾するので、不確実なセルは不足集計に入らない
+            // Explaining a cell that is going to be sent as short of materials contradicts the behavior, so an uncertain cell never enters the tally
+            var feedback = new PlacementFeedback();
+            ConstructionMaterialShortageReporter.ReportShortages(simulation.CollectCertainCells(placeInfos), BuildWalletQuery(), simulation.CostCheckItems, feedback);
+            Assert.IsEmpty(feedback.Lines);
+        }
+
+        [Test]
+        public void 自分の財布で凝縮すると読めても課金元次第なので不確実になる()
+        {
+            // 自分の財布は残り2＝次の撤去で1セット戻ると読めるが、実際に凝縮するかは課金元の財布が決める
+            // The player's own wallet reads as two left, i.e. the next removal hands a set back, yet whether it condenses is decided by the payer's wallet
+            var placeInfos = BuildReplaceRun(1);
+            var walletQuery = BuildWalletQuery(ForUnitTestModBlockId.GearBeltConveyor, 2);
+
+            var simulation = BeltReplaceCostSimulator.TrySimulate(placeInfos, _dataStore, walletQuery, Array.Empty<IItemStack>());
+            simulation.MarkUnaffordableCellsAsNotPlaceable();
+
+            // 返却抜きでは払えない以上、見込みが外れればサーバーがCostShortageを返す。確実な色で送ってはいけない
+            // Unpayable without the refund means the server answers CostShortage when the guess misses, so it must not be sent in the certain color
+            Assert.IsTrue(placeInfos[0].Placeable);
+            var recorder = new PreviewBlockIndexRecorder();
+            simulation.ApplyUncertainRefundColors(recorder);
+            CollectionAssert.AreEqual(new[] { 0 }, recorder.RequestedIndices);
+
+            // 仮定した返却は不足表示に混ぜない
+            // The assumed refund never mixes into the shortage display
+            Assert.IsEmpty(simulation.CostCheckItems);
         }
 
         [Test]
@@ -131,11 +162,9 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 
             var simulation = BeltReplaceCostSimulator.TrySimulate(placeInfos, _dataStore, BuildWalletQuery(), Array.Empty<IItemStack>());
 
-            // 自分の財布で確実に凝縮する撤去は1回だけ。課金元不明を見込んだ返却は不足表示に現れない
-            // Only one removal condenses for certain against the player's own wallet; refunds assumed from an unknown payer never reach the shortage display
-            var costCheckCounts = SumByItemId(simulation.CostCheckItems);
-            Assert.AreEqual(1, costCheckCounts[MasterHolder.ItemMaster.GetItemId(Material1Guid)]);
-            Assert.AreEqual(1, costCheckCounts[MasterHolder.ItemMaster.GetItemId(Material2Guid)]);
+            // 所持ゼロの列は返却を見込まないと1セルも払えず、その返却は課金元次第。確実に届く返却が1つも無い
+            // With nothing held not one cell pays without an assumed refund, and that refund rests on the payer, so no refund is guaranteed to arrive
+            Assert.IsEmpty(simulation.CostCheckItems);
         }
 
         private List<PlaceInfo> BuildReplaceRun(int length)
@@ -160,6 +189,13 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         private static ConstructionWalletQuery BuildWalletQuery()
         {
             return new ConstructionWalletQuery(new ClientRemainingPlacementCountDatastore());
+        }
+
+        private static ConstructionWalletQuery BuildWalletQuery(BlockId walletBlockId, int remainingCount)
+        {
+            var datastore = new ClientRemainingPlacementCountDatastore();
+            datastore.ApplyAll(new Dictionary<BlockId, int> { { walletBlockId, remainingCount } });
+            return new ConstructionWalletQuery(datastore);
         }
 
         private static List<IItemStack> BuildOneCostSet()
