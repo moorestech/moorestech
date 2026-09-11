@@ -29,7 +29,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, provider) = new MoorestechServerDIContainerGenerator().Create(options);
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             GameUpdater.RestoreCurrentTick(10);
-            ring.Start(600, 4);
+            ring.Start(600, 1800, 16);
             var sink = EventTestUtil.RegisterCaptureSink(provider, 1);
 
             var request = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());

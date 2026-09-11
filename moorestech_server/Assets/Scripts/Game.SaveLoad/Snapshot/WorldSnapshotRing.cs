@@ -31,7 +31,8 @@ namespace Game.SaveLoad.Snapshot
         // Draining and capturing are entered from both the tick thread and a waiting thread, so this lock serializes them
         private readonly object _tickStateLock = new();
         private uint _periodTicks;
-        private int _generations;
+        private uint _retentionTicks;
+        private int _maxGenerations;
         private ulong _nextPeriodicTick;
         private long _immediateRequestCounter;
 
@@ -56,7 +57,7 @@ namespace Game.SaveLoad.Snapshot
             }
         }
 
-        public void Start(uint periodTicks, int generations)
+        public void Start(uint periodTicks, uint retentionTicks, int maxGenerations)
         {
             if (_directory.SnapshotDirectory == null)
             {
@@ -65,7 +66,8 @@ namespace Game.SaveLoad.Snapshot
             }
 
             _periodTicks = periodTicks;
-            _generations = generations;
+            _retentionTicks = retentionTicks;
+            _maxGenerations = maxGenerations;
             _nextPeriodicTick = GameUpdater.CurrentTick + periodTicks;
             Directory.CreateDirectory(_directory.SnapshotDirectory);
 
@@ -74,7 +76,7 @@ namespace Game.SaveLoad.Snapshot
             SnapshotDirectoryCleaner.DeletePreviousSessionFiles(_directory.SnapshotDirectory);
             _packetLog.Start(_directory.SnapshotDirectory, GameUpdater.CurrentTick + 1);
             IsActive = true;
-            Debug.Log($"常時記録を開始しました period:{periodTicks}tick generations:{generations} dir:{_directory.SnapshotDirectory}");
+            Debug.Log($"常時記録を開始しました period:{periodTicks}tick 保持:{retentionTicks}tick 上限:{maxGenerations}世代 dir:{_directory.SnapshotDirectory}");
         }
 
         // 次のtick末尾で取る。戻り値の要求IDは完了通知の RequestId と突き合わせる
@@ -115,6 +117,20 @@ namespace Game.SaveLoad.Snapshot
                 _packetLog.Rotate(tick + 1);
                 _worker.Enqueue(new SaveWriteJob(0, SaveWriteKind.Snapshot, data, _directory.SnapshotFilePath(tick), false));
             }
+        }
+
+        // 終了時に常時記録の持つOSリソース（書き出しスレッド・区間ファイルのハンドル）を1本の道で手放す
+        // Release the OS resources always-on capture holds (writer thread, segment file handle) through one shutdown path
+        public void Stop()
+        {
+            lock (_tickStateLock)
+            {
+                IsActive = false;
+            }
+            WaitForPendingWrites();
+            _packetLog.Stop();
+            _worker.Stop();
+            Debug.Log("常時記録を停止しました");
         }
 
         // テストと終了時用。tickループが止まっている間だけ呼べる（回っている最中は待ち終えた直後に次の書き出しが積まれ、待ちの意味が無い）
@@ -165,19 +181,38 @@ namespace Game.SaveLoad.Snapshot
             }
         }
 
+        // 剪定は時間基準。保持区間を覆う最古の1本より前だけを消すので、即時取得が周期世代の枠を食わない
+        // Pruning is time-based: only snapshots older than the one covering the retention window go, so an immediate capture never eats a periodic generation
         private void Prune()
         {
-            while (_writtenTicks.Count > _generations)
-            {
-                var oldest = _writtenTicks[0];
-                _writtenTicks.RemoveAt(0);
+            var newestTick = _writtenTicks[_writtenTicks.Count - 1];
+            var retentionStartTick = newestTick > _retentionTicks ? newestTick - _retentionTicks : 0UL;
 
-                // 常時記録の削除は後から追跡できる必要があるので、消した世代と理由を必ず残す
-                // Deleting always-on capture must stay auditable, so record which generation went and why
-                Debug.Log($"スナップショットを削除しました tick:{oldest} 理由:保持世代数{_generations}を超過");
-                DeleteSnapshotFile(_directory.SnapshotFilePath(oldest));
-                _packetLog.DeleteSegmentsBefore(_writtenTicks[0]);
+            // 2番目に古い世代がまだ保持区間の開始を覆っているなら、最古は要らない
+            // If the second-oldest still covers the start of the retention window, the oldest is no longer needed
+            while (_writtenTicks.Count > 1 && _writtenTicks[1] <= retentionStartTick)
+            {
+                RemoveOldest($"保持区間の開始tick{retentionStartTick}より前");
             }
+
+            // 上限はディスク保護。ここで消すと保持時間の保証を割るので理由を分けて残す
+            // The cap protects the disk; deleting here breaks the retention guarantee, so log it under its own reason
+            while (_writtenTicks.Count > _maxGenerations)
+            {
+                RemoveOldest($"上限{_maxGenerations}世代を超過（保持時間{_retentionTicks}tickの保証を割る）");
+            }
+        }
+
+        private void RemoveOldest(string reason)
+        {
+            var oldest = _writtenTicks[0];
+            _writtenTicks.RemoveAt(0);
+
+            // 常時記録の削除は後から追跡できる必要があるので、消した世代と理由を必ず残す
+            // Deleting always-on capture must stay auditable, so record which generation went and why
+            Debug.Log($"スナップショットを削除しました tick:{oldest} 理由:{reason}");
+            DeleteSnapshotFile(_directory.SnapshotFilePath(oldest));
+            _packetLog.DeleteSegmentsBefore(_writtenTicks[0]);
         }
 
         private static void DeleteSnapshotFile(string path)

@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Game.Snapshot
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             var packetLog = provider.GetRequiredService<ReceivedPacketLog>();
             GameUpdater.RestoreCurrentTick(500);
-            ring.Start(SnapshotRingConfig.PeriodTicks, SnapshotRingConfig.Generations);
+            ring.Start(SnapshotRingConfig.PeriodTicks, SnapshotRingConfig.RetentionTicks, SnapshotRingConfig.MaxGenerations);
 
             // 本番と同じ受信経路を組み、受信スレッド側の入口からパケットを流し込む
             // Build the production receive path and feed the packet from the receive-thread entry point
