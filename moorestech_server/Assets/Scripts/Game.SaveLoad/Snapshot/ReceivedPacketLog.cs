@@ -52,6 +52,19 @@ namespace Game.SaveLoad.Snapshot
             }
         }
 
+        // 書き込み中の区間を閉じてFileStreamを解放する。以後のAppendは無効ログを出して無視する
+        // Close the segment being written and release its FileStream; later Append logs and no-ops
+        public void Stop()
+        {
+            lock (_lock)
+            {
+                _writer?.Flush();
+                _writer?.Dispose();
+                _writer = null;
+                IsActive = false;
+            }
+        }
+
         public void Rotate(ulong fromTick)
         {
             lock (_lock)

@@ -73,18 +73,9 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             void SetInitializeProperty(Scene scene, LoadSceneMode mode)
             {
                 SceneManager.sceneLoaded -= SetInitializeProperty;
-                
-                // 既存のセーブデータをロードさせず、オートセーブもしないようにする
+
                 var localProperties = InitializeProprieties.CreateLocalServer(null);
-                var properties = new StartServerSettings
-                {
-                    WorldDirectory = worldDirectory,
-                    AutoSave = false,
-                    CaptureRing = false,
-                    ServerDataDirectory = serverDirectory,
-                    MapMode = mapMode,
-                };
-                localProperties.CreateLocalServerArgs = CliConvert.Serialize(properties);
+                localProperties.CreateLocalServerArgs = CliConvert.Serialize(CreateServerSettings(worldDirectory, serverDirectory, mapMode));
 
                 var starter = GameObject.FindObjectOfType<InitializeScenePipeline>();
                 starter.SetProperty(localProperties);
@@ -107,7 +98,21 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             
             #endregion
         }
-        
+
+        // 既存のセーブデータをロードさせず、オートセーブも常時記録もしないようにする起動設定を作る
+        // Build boot settings that skip loading an existing save and disable both auto-save and always-on capture
+        public static StartServerSettings CreateServerSettings(string worldDirectory, string serverDirectory, string mapMode)
+        {
+            return new StartServerSettings
+            {
+                WorldDirectory = worldDirectory,
+                AutoSave = false,
+                CaptureRing = false,
+                ServerDataDirectory = serverDirectory,
+                MapMode = mapMode,
+            };
+        }
+
         public static async UniTask GiveItem(string itemName, int count)
         {
             var giveItemId = new ItemId(-1);

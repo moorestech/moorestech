@@ -40,29 +40,38 @@ namespace Tests.CombinedTest.Game.Snapshot
             using var clientSocket = ConnectTo(listener);
             using var acceptedSocket = listener.Accept();
             var sendQueueProcessor = new SendQueueProcessor(acceptedSocket);
-            var receiveQueueProcessor = new ReceiveQueueProcessor(
-                packetResponseCreator,
-                sendQueueProcessor,
-                new PacketResponseContext(sendQueueProcessor),
-                provider.GetRequiredService<TickEndPacketQueue>(),
-                packetLog);
 
-            GrantRequiredItems(provider, ForUnitTestModBlockId.BlockId, 1);
-            var payload = CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (21, 22));
-            receiveQueueProcessor.EnqueuePacket(payload);
-            GameUpdater.UpdateOneTick();
-            packetLog.Flush();
+            try
+            {
+                var receiveQueueProcessor = new ReceiveQueueProcessor(
+                    packetResponseCreator,
+                    sendQueueProcessor,
+                    new PacketResponseContext(sendQueueProcessor),
+                    provider.GetRequiredService<TickEndPacketQueue>(),
+                    packetLog);
 
-            // 設置が起きた＝パケットが本当に処理された。その同じtickがログに載っていることを突き合わせる
-            // The block exists, so the packet really ran; check the log carries that very tick
-            Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(21, 22)));
-            var records = ReceivedPacketLogReader.ReadAll(packetLog.SegmentFilePaths());
-            Assert.AreEqual(1, records.Count, "受信パケットがログへ1件も入っていない");
-            Assert.AreEqual(501UL, records[0].Tick);
-            CollectionAssert.AreEqual(payload, records[0].Payload);
+                GrantRequiredItems(provider, ForUnitTestModBlockId.BlockId, 1);
+                var payload = CreatePlaceBlockPayload(ForUnitTestModBlockId.BlockId, (21, 22));
+                receiveQueueProcessor.EnqueuePacket(payload);
+                GameUpdater.UpdateOneTick();
+                packetLog.Flush();
 
-            sendQueueProcessor.Dispose();
-            Directory.Delete(Path.GetDirectoryName(savePath), true);
+                // 設置が起きた＝パケットが本当に処理された。その同じtickがログに載っていることを突き合わせる
+                // The block exists, so the packet really ran; check the log carries that very tick
+                Assert.IsTrue(ServerContext.WorldBlockDatastore.Exists(new Vector3Int(21, 22)));
+                var records = ReceivedPacketLogReader.ReadAll(packetLog.SegmentFilePaths());
+                Assert.AreEqual(1, records.Count, "受信パケットがログへ1件も入っていない");
+                Assert.AreEqual(501UL, records[0].Tick);
+                CollectionAssert.AreEqual(payload, records[0].Payload);
+            }
+            finally
+            {
+                // assert失敗時も前景の送信スレッドとFileStreamを必ず解放してから削除する
+                // Even on assert failure, release the foreground send thread and the FileStream before deleting
+                sendQueueProcessor.Dispose();
+                packetLog.Stop();
+                Directory.Delete(Path.GetDirectoryName(savePath), true);
+            }
         }
 
         private static Socket CreateBoundLoopbackListener()
