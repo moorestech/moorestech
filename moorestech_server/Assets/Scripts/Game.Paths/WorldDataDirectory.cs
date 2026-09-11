@@ -101,6 +101,14 @@ namespace Game.Paths
                 normalizedRoot + ".provisioning");
         }
 
+        // セーブだけ別の場所から読む構成。再生がバンドルの map/terrain を使いつつ、スナップショットを save として読むために使う
+        // Same world layout with the save read from elsewhere; replay uses the bundle's map/terrain while loading a snapshot as the save
+        public WorldDataDirectory WithSaveJsonFilePath(string saveJsonFilePath)
+        {
+            return new WorldDataDirectory(Root, WorldMetaFilePath, MapJsonFilePath, saveJsonFilePath,
+                TerrainDirectory, TerrainVisualDirectory, CacheDirectory, CacheReadmeFilePath, ProvisioningTempDirectory);
+        }
+
         // 同一PCで先焼きとクライアント焼きが共有するワールドキャッシュ。worldIdからの導出はここだけが持つ
         // The world cache shared by the prebake and the client bake on one PC; deriving it from a worldId lives only here
         public static WorldDataDirectory ForWorldCache(string worldId)

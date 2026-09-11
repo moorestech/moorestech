@@ -42,7 +42,7 @@ namespace Tests.CombinedTest.Server.Replay
 
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
-                ring.Start(10, 4);
+                ring.Start(10, 30, 16);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.BlockId, 3);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.ChestId, 1);
                 UnlockBlock(provider, ForUnitTestModBlockId.ChestId);
@@ -72,14 +72,14 @@ namespace Tests.CombinedTest.Server.Replay
 
                 // 10→20（設置を跨ぐ）と 10→40（複数世代）を検査する
                 // Check 10→20 (crossing placements) and 10→40 (spanning generations)
-                var result20 = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory, directory.SnapshotFilePath(10), segments, 20));
+                var result20 = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory, directory, directory.SnapshotFilePath(10), segments, 20));
                 Assert.AreEqual(10UL, result20.LoadedTick);
                 Assert.AreEqual(20UL, result20.ReachedTick);
                 Assert.AreEqual(2, result20.ReplayedPacketCount);
                 var comparison20 = SnapshotJsonComparer.Compare(expected20, result20.SnapshotJson);
                 Assert.IsTrue(comparison20.Equal, "10→20 が一致しない:\n" + string.Join("\n", comparison20.Differences));
 
-                var result40 = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory, directory.SnapshotFilePath(10), segments, 40));
+                var result40 = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory, directory, directory.SnapshotFilePath(10), segments, 40));
                 Assert.AreEqual(3, result40.ReplayedPacketCount);
                 var comparison40 = SnapshotJsonComparer.Compare(expected40, result40.SnapshotJson);
                 Assert.IsTrue(comparison40.Equal, "10→40 が一致しない:\n" + string.Join("\n", comparison40.Differences));
@@ -115,7 +115,7 @@ namespace Tests.CombinedTest.Server.Replay
 
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
-                ring.Start(10, 4);
+                ring.Start(10, 30, 16);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.ChestId, 1);
                 UnlockBlock(provider, ForUnitTestModBlockId.ChestId);
                 SnapshotReplayWorldFixture.BuildMovingWorld();
@@ -146,14 +146,14 @@ namespace Tests.CombinedTest.Server.Replay
                 SnapshotReplayWorldFixture.AssertDynamicStatePresent(expected20);
                 SnapshotReplayWorldFixture.AssertDynamicStateChanged(expected20, expected40);
 
-                var result20 = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory, directory.SnapshotFilePath(10), segments, 20));
+                var result20 = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory, directory, directory.SnapshotFilePath(10), segments, 20));
                 Assert.AreEqual(10UL, result20.LoadedTick);
                 Assert.AreEqual(20UL, result20.ReachedTick);
                 Assert.AreEqual(1, result20.ReplayedPacketCount);
                 var comparison20 = SnapshotJsonComparer.Compare(expected20, result20.SnapshotJson);
                 Assert.IsTrue(comparison20.Equal, "10→20 が一致しない:\n" + string.Join("\n", comparison20.Differences));
 
-                var result40 = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory, directory.SnapshotFilePath(10), segments, 40));
+                var result40 = SnapshotReplayer.Replay(new ReplayRequest(TestModDirectory.ForUnitTestModDirectory, directory, directory.SnapshotFilePath(10), segments, 40));
                 Assert.AreEqual(1, result40.ReplayedPacketCount);
                 var comparison40 = SnapshotJsonComparer.Compare(expected40, result40.SnapshotJson);
                 Assert.IsTrue(comparison40.Equal, "10→40 が一致しない:\n" + string.Join("\n", comparison40.Differences));

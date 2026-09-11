@@ -32,7 +32,9 @@ namespace Server.Boot.Replay
 
             var options = new MoorestechServerDIContainerOptions(request.ServerDataDirectory)
             {
-                worldDataDirectory = WorldDataDirectory.FromServerDataMap(request.ServerDataDirectory, savePath),
+                // マップ・terrainは記録時と同じワールドから読む。template を読むとマップオブジェクトの instanceId が丸ごとずれる
+                // Map and terrain come from the recording's own world; reading the template shifts every map-object instance id
+                worldDataDirectory = request.SourceWorld.WithSaveJsonFilePath(savePath),
             };
             var (packetResponseCreator, provider) = new MoorestechServerDIContainerGenerator().Create(options);
             provider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
