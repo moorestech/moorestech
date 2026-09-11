@@ -15,7 +15,7 @@ using Game.World.Interface.DataStore;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.CombinedTest.Core;
+using Tests.CombinedTest.Core.Machine;
 using Tests.Module.TestMod;
 using UnityEngine;
 using System;

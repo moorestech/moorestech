@@ -51,7 +51,7 @@
 
 - agent前提:
   1. blockType名は `VoidPipe`（依頼原文の語「ボイドパイプ」に一致させる）。blockParamは `fluidInventoryConnectors` のみ（capacity・blockedRetryTicksは持たない。schemaの`optional`で吸収しない）
-  2. サーバー実装は `Game.Block/Blocks/Fluid/VoidPipeComponent.cs`（`IFluidInventory`。`AddLiquid`は常に `new FluidStack(0, fluidId)` を返し、`GetFluidInventory`は空リスト）と `Game.Block/Factory/BlockTemplate/VanillaVoidPipeTemplate.cs`。`FluidNetworkDatastore` はパイプ以外を既に境界ポートとして扱うため変更不要（前例: 機械・ポンプ受け手）
+  2. サーバー実装は `Game.Block/Blocks/Fluid/VoidPipeComponent.cs`（`IFluidInventory`。`AddLiquid`は常に `new FluidStack(0, fluidId)` を返し、`GetFluidInventory`は空リスト）と `Game.Block/Factory/BlockTemplate/Fluid/VanillaVoidPipeTemplate.cs`。`FluidNetworkDatastore` はパイプ以外を既に境界ポートとして扱うため変更不要（前例: 機械・ポンプ受け手）
   3. IBlockSaveState・IBlockStateObservableを実装しない（可変状態が無いため）
   4. マスタ（v8 `moorestechAlphaMod_8`）: 名前「ボイドパイプ」、category「液体」subCategory「パイプ」、sortPriorityは鉄のパイプ(570)と歯車ポンプ(580)の間、blockSize 1x1x1、inflowConnects 1件（offset 0,0,0・directions [[0,0,-1]]・flowCapacity 1000・connectTankIndex 0）、outflowConnects 空。research.json「蒸気機関」の unlockBlock に追加し、`.mooreseditor/nodeGraph.v1.json` に鉄のパイプ隣のblockノードを置く（エディタがunlockBlockを配置から再生成するため両方揃える）。localization.csvに block名（Source/english/japanese/german）を追加
   5. テスト（CombinedTest）: ポンプ→パイプ→ボイドで上流が満杯にならず流れ続ける／機械出力の直付けで生産が止まらない／受け入れ面以外に置いたパイプは接続されない

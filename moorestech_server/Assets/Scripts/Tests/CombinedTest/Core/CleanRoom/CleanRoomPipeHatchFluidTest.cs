@@ -3,7 +3,7 @@ using Game.Block.Blocks.Fluid;
 using Game.Block.Interface.Extension;
 using Game.Fluid;
 using NUnit.Framework;
-using Tests.CombinedTest.Core;
+using Tests.CombinedTest.Core.Fluid;
 using Tests.Module.TestMod;
 using UnityEngine;
 

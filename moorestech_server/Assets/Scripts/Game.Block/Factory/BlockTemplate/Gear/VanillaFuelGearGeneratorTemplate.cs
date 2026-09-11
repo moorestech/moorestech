@@ -1,0 +1,88 @@
+using System.Collections.Generic;
+using Game.Block.Blocks;
+using Game.Block.Blocks.Fluid;
+using Game.Block.Blocks.Gear;
+using Game.Block.Component;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Fluid;
+using Game.Gear.Common;
+using Mooresmaster.Model.BlocksModule;
+
+namespace Game.Block.Factory.BlockTemplate.Gear
+{
+    public class VanillaFuelGearGeneratorTemplate : IBlockTemplate
+    {
+        public VanillaFuelGearGeneratorTemplate()
+        {
+        }
+        
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
+            return CreateFuelGearGenerator(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+        
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
+        {
+            return CreateFuelGearGenerator(null, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+        
+        private IBlock CreateFuelGearGenerator(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
+            var configParam = blockMasterElement.BlockParam as FuelGearGeneratorBlockParam;
+            
+            // ギア接続の設定
+            var gearConnectSetting = configParam.Gear.GearConnects;
+            var gearConnectorComponent = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(gearConnectSetting, gearConnectSetting, blockPositionInfo);
+            
+            // アイテム接続の設定
+            var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(configParam.InventoryConnectors, blockPositionInfo);
+
+            // アイテムインベントリコンポーネント
+            var itemComponent = componentStates == null
+                ? new FuelGearGeneratorItemComponent(configParam, blockInstanceId)
+                : new FuelGearGeneratorItemComponent(componentStates, configParam, blockInstanceId);
+            
+            // 流体接続の設定
+            var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(configParam.FluidInventoryConnectors, blockPositionInfo);
+            
+            // FuelGearGeneratorFluidComponentの作成
+            // Create the FuelGearGeneratorFluidComponent
+            var fluidComponent = componentStates == null
+                ? new FuelGearGeneratorFluidComponent(configParam.FluidCapacity)
+                : new FuelGearGeneratorFluidComponent(componentStates, configParam.FluidCapacity);
+            
+            // 燃料ギアジェネレータコンポーネント
+            // Configure the fuel gear generator aggregate component
+            var fuelGearGeneratorComponent = componentStates == null 
+                ? new FuelGearGeneratorComponent(
+                    configParam, 
+                    blockInstanceId, 
+                    gearConnectorComponent,
+                    itemComponent,
+                    fluidComponent
+                )
+                : new FuelGearGeneratorComponent(
+                    componentStates,
+                    configParam, 
+                    blockInstanceId, 
+                    gearConnectorComponent,
+                    itemComponent,
+                    fluidComponent
+                );
+            
+            var components = new List<IBlockComponent>
+            {
+                fuelGearGeneratorComponent,
+                gearConnectorComponent,
+                inventoryConnector,
+                itemComponent,
+                fluidConnector,
+                fluidComponent,
+            };
+            
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
+        }
+    }
+}

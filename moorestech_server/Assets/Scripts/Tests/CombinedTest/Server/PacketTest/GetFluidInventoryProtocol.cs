@@ -15,9 +15,9 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
 using static Server.Protocol.PacketResponse.GetFluidInventoryProtocol;
-using MachineFluidIOTest = Tests.CombinedTest.Core.MachineFluidIOTest;
-using FuelGearGeneratorTest = Tests.CombinedTest.Core.FuelGearGeneratorTest;
-using FluidTest = Tests.CombinedTest.Core.FluidTest;
+using MachineFluidIOTest = Tests.CombinedTest.Core.Machine.MachineFluidIOTest;
+using FuelGearGeneratorTest = Tests.CombinedTest.Core.Gear.FuelGearGeneratorTest;
+using FluidTest = Tests.CombinedTest.Core.Fluid.FluidTest;
 using System;
 using Server.Protocol;
 

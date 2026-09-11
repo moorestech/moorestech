@@ -18,7 +18,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.CombinedTest.Core;
+using Tests.CombinedTest.Core.Gear;
 using Tests.Module.TestMod;
 using UnityEngine;
 using System;

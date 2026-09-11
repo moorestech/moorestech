@@ -1,6 +1,14 @@
 ﻿using System.Collections.Generic;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
+using Game.Block.Factory.BlockTemplate.CleanRoom;
+using Game.Block.Factory.BlockTemplate.Electric;
+using Game.Block.Factory.BlockTemplate.Fluid;
+using Game.Block.Factory.BlockTemplate.Gear;
+using Game.Block.Factory.BlockTemplate.Machine;
+using Game.Block.Factory.BlockTemplate.Miner;
+using Game.Block.Factory.BlockTemplate.Train;
+using Game.Block.Factory.BlockTemplate.Transport;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Train.RailGraph;

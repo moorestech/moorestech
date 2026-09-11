@@ -1,0 +1,84 @@
+using System.Collections.Generic;
+using Core.Master;
+using Game.Block.Blocks;
+using Game.Block.Blocks.Gear;
+using Game.Block.Blocks.Machine;
+using Game.Block.Blocks.Machine.Inventory;
+using Game.Block.Blocks.Machine.Module;
+using Game.Block.Blocks.Machine.RecipeSelection;
+using Game.Block.Component;
+using Game.Block.Event;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Gear.Common;
+using Mooresmaster.Model.BlocksModule;
+using Game.Block.Interface.Component.ConnectJudge;
+
+namespace Game.Block.Factory.BlockTemplate.Machine
+{
+    public class VanillaGearMachineTemplate : IBlockTemplate
+    {
+        private readonly BlockOpenableInventoryUpdateEvent _blockInventoryUpdateEvent;
+        
+        public VanillaGearMachineTemplate(BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
+        {
+            _blockInventoryUpdateEvent = blockInventoryUpdateEvent;
+        }
+        
+        public IBlock New(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockCreateParam[] createParams)
+        {
+            return GetBlock(null, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+        
+        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
+            return GetBlock(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
+        }
+        
+        private IBlock GetBlock(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        {
+            var machineParam = blockMasterElement.BlockParam as GearMachineBlockParam;
+            BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inventoryConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);
+            
+            var blockId = MasterHolder.BlockMaster.GetBlockId(blockMasterElement.BlockGuid);
+            var (input, output, module) = BlockTemplateUtil.GetMachineIOInventory(blockId, blockInstanceId, machineParam, inventoryConnectorComponent, _blockInventoryUpdateEvent);
+            
+            var connectSetting = machineParam.Gear.GearConnects;
+            var gearConnector = new BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge>(connectSetting, connectSetting, blockPositionInfo);
+            var gearConsumption = machineParam.GearConsumption;
+
+            var requirePower = (float)(gearConsumption.BaseTorque * gearConsumption.BaseRpm);
+            
+            var effectComponent = new MachineModuleEffectComponent(module);
+
+            // パラメーターをロードするか、新規作成する
+            // Load the parameters or create new ones
+            var processor = componentStates == null
+                ? new VanillaMachineProcessorComponent(input, output, requirePower, gearConsumption.IdlePowerRate, effectComponent)
+                : BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, requirePower, gearConsumption.IdlePowerRate, blockMasterElement);
+            var gearEnergyTransformer = new GearEnergyTransformer(gearConsumption, blockInstanceId, gearConnector);
+
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
+            var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
+
+            var machineComponent = new VanillaGearMachineComponent(processor, gearEnergyTransformer);
+
+            // 供給読み取り(machineComponent)を加工判定(processor)より先に更新させるため、この並び順を維持すること
+            // Keep this order: the supply reader (machineComponent) must update before the processor
+            var components = new List<IBlockComponent>
+            {
+                blockInventory,
+                machineSave,
+                effectComponent,
+                machineComponent,
+                processor,
+                inventoryConnectorComponent,
+                gearConnector,
+                gearEnergyTransformer,
+                new MachineRecipeBlueprintSettingsComponent(processor),
+            };
+            
+            return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
+        }
+    }
+}

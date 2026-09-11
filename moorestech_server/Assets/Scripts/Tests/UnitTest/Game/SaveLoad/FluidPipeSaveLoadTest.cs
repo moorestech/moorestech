@@ -9,7 +9,7 @@ using Game.Fluid;
 using Game.World.Interface.DataStore;
 using NUnit.Framework;
 using Server.Boot;
-using Tests.CombinedTest.Core;
+using Tests.CombinedTest.Core.Fluid;
 using Tests.Module.TestMod;
 using UnityEngine;
 
