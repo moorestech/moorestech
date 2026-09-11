@@ -161,12 +161,30 @@ namespace Game.SaveLoad.Writer
             catch (IOException e)
             {
                 Debug.LogError($"セーブの書き出しに失敗しました path:{job.TargetPath} kind:{job.Kind} generation:{job.Generation} message:{e.Message}");
+                DeleteLeftoverTemporary(tmpPath);
                 return false;
             }
             catch (UnauthorizedAccessException e)
             {
                 Debug.LogError($"セーブの書き出しが権限で拒否されました path:{job.TargetPath} kind:{job.Kind} generation:{job.Generation} message:{e.Message}");
+                DeleteLeftoverTemporary(tmpPath);
                 return false;
+            }
+        }
+
+        // 失敗して残った一時ファイルは誰も消さないので、失敗のたびに置き場へ溜まっていく
+        // Nothing else removes a temporary file left by a failure, so they pile up in the directory with every failure
+        private static void DeleteLeftoverTemporary(string tmpPath)
+        {
+            // ディスク削除は外部境界。後始末が失敗しても書き出しの成否判定は変えない
+            // Disk deletion is an external boundary; a failed cleanup must not change the write outcome
+            try
+            {
+                if (File.Exists(tmpPath)) File.Delete(tmpPath);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"書き出し失敗後の一時ファイルを消せませんでした path:{tmpPath} message:{e.Message}");
             }
         }
     }

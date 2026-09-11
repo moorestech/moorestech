@@ -8,6 +8,8 @@ namespace Core.Update
     {
         public const int StateLength = 4;
 
+        // 状態はtickスレッド専有。世界を進める処理以外（受信スレッド・書き出しスレッド・クライアント）から引いてはならない
+        // The state belongs to the tick thread alone; no receive thread, writer thread, or client may draw from it
         private static ulong _s0, _s1, _s2, _s3;
 
         static GameRandom()

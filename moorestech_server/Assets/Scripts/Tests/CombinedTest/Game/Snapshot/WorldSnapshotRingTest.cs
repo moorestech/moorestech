@@ -162,5 +162,35 @@ namespace Tests.CombinedTest.Game.Snapshot
 
             #endregion
         }
+
+        // 前セッションの残骸が残ると、剪定対象にならない古いtickが残り続け、再生へ異セッションのパケットが混ざる
+        // Leftovers from the previous session keep ticks that this session never prunes and mix foreign packets into replay
+        [Test]
+        public void 開始時に前セッションの常時記録を消す()
+        {
+            var savePath = Path.Combine(Path.GetTempPath(), $"moorestech-ring-{Guid.NewGuid():N}", "save.json");
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
+            };
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(options);
+            var directory = provider.GetRequiredService<WorldDataDirectory>();
+            var ring = provider.GetRequiredService<WorldSnapshotRing>();
+
+            // 前セッションが残したスナップショットと区間ファイルを置く
+            // Put the snapshot and segment files a previous session would have left behind
+            Directory.CreateDirectory(directory.SnapshotDirectory);
+            File.WriteAllText(directory.SnapshotFilePath(9999), "{}");
+            File.WriteAllBytes(Path.Combine(directory.SnapshotDirectory, WorldDataDirectory.ReceivedPacketLogFileName(9999)), new byte[] { 1 });
+
+            GameUpdater.RestoreCurrentTick(0);
+            ring.Start(600, 1800, 16);
+
+            Assert.IsFalse(File.Exists(directory.SnapshotFilePath(9999)), "前セッションのスナップショットが残っている");
+            var segments = WorldDataDirectory.EnumeratePacketLogFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray();
+            CollectionAssert.AreEqual(new[] { "packets_1.bin" }, segments, "前セッションの区間ファイルが残っている");
+            ring.Stop();
+            Directory.Delete(Path.GetDirectoryName(savePath), true);
+        }
     }
 }

@@ -101,7 +101,9 @@ namespace Game.SaveLoad.Snapshot
 
                 _requestIdsByTick[tick] = requestIds;
                 var data = _assembler.Capture();
-                _packetLog.Flush();
+
+                // Rotate が内部で flush してから区間を切り替えるので、ここで重ねてflushしない
+                // Rotate flushes before switching segments, so no extra flush belongs here
                 _packetLog.Rotate(tick + 1);
                 _worker.Enqueue(new SaveWriteJob(0, SaveWriteKind.Snapshot, data, _directory.SnapshotFilePath(tick), false));
             }

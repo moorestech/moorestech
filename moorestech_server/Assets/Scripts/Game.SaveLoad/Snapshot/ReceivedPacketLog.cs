@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Game.Paths;
 using UnityEngine;
 
@@ -15,8 +16,11 @@ namespace Game.SaveLoad.Snapshot
         private BinaryWriter _writer;
         private ulong _currentSegmentFromTick;
         private bool _inactiveLogged;
+        private int _isActive;
 
-        public bool IsActive { get; private set; }
+        // tickスレッドが追記し、終了経路が別スレッドから止めるので、可視性を明示する
+        // The tick thread appends while shutdown stops it from another thread, so visibility is made explicit
+        public bool IsActive => Volatile.Read(ref _isActive) != 0;
 
         public void Start(string directory, ulong fromTick)
         {
@@ -35,7 +39,7 @@ namespace Game.SaveLoad.Snapshot
             }
 
             if (!TryRotate(fromTick)) return;
-            IsActive = true;
+            Volatile.Write(ref _isActive, 1);
         }
 
         public void Append(ulong tick, byte[] payload)
@@ -50,6 +54,10 @@ namespace Game.SaveLoad.Snapshot
             }
             lock (_lock)
             {
+                // 錠の外で見た IsActive は Stop() と競合しうる。書き出し先が既に閉じているならここで降りる
+                // The IsActive read outside the lock can race Stop(), so bail out here when the writer is already closed
+                if (_writer == null) return;
+
                 // ファイル書き込みは外部境界。記録の失敗でパケット処理そのものを落とさないよう隔離し、以後は記録を止める
                 // File writing is an external boundary; isolate it so a capture failure never drops packet processing, then stop capturing
                 try
@@ -100,12 +108,15 @@ namespace Game.SaveLoad.Snapshot
                     Debug.LogError($"パケットログの終了処理に失敗しました message:{e.Message}");
                 }
                 _writer = null;
-                IsActive = false;
+                Volatile.Write(ref _isActive, 0);
             }
         }
 
         public void Rotate(ulong fromTick)
         {
+            // 停止済み・縮退済みのまま区間を作り直すと、記録されないファイルだけがディスクに増える
+            // Recreating a segment after a stop or a degradation would leave files on disk that nothing ever writes to
+            if (!IsActive) return;
             TryRotate(fromTick);
         }
 
@@ -137,7 +148,7 @@ namespace Game.SaveLoad.Snapshot
         // Degrade capture alone; a silent stop would leave nobody aware that the packets before the bug are missing
         private void Degrade(string reason, Exception exception)
         {
-            IsActive = false;
+            Volatile.Write(ref _isActive, 0);
             _writer = null;
             Debug.LogError($"{reason} 以後パケットログの記録を停止します message:{exception.Message}");
         }

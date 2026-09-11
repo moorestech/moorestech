@@ -52,6 +52,14 @@ namespace Game.Map
             // A decoration has neither HP thresholds nor drops, so a hit from any path does nothing
             if (IsDecoration) return new List<IItemStack>();
 
+            // 破壊済みへさらに殴ると Destroy() が再実行され、破壊イベントが何度も流れる
+            // Hitting an already-destroyed object would re-run Destroy() and emit the destruction event again
+            if (IsDestroyed)
+            {
+                UnityEngine.Debug.Log($"破壊済みのマップオブジェクトへの攻撃を無視しました instanceId:{InstanceId}");
+                return new List<IItemStack>();
+            }
+
             // 与えられたダメージを適用して破壊状態を判定する
             // Apply incoming damage and determine the destroyed state
             var lastHp = CurrentHp;
