@@ -85,7 +85,7 @@ namespace Game.SaveLoad.Json
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var mapObjectDatastore = ServerContext.MapObjectDatastore;
 
-            return new WorldSaveAllInfoV1(
+            var saveAllInfo = new WorldSaveAllInfoV1(
                 worldBlockDatastore.GetSaveJsonObject(),
                 _inventoryDataStore.GetSaveJsonObject(),
                 _entitiesDatastore.GetSaveJsonObject(),
@@ -104,9 +104,10 @@ namespace Game.SaveLoad.Json
                 _itemStackLevelDataStore.GetSaveJsonObject(),
                 _playerInventorySlotLevelDataStore.GetSaveLevel(),
                 _cleanRoomDatastore.GetSaveData(),
-                GameUpdater.CurrentTick,
                 GameRandom.ExportState()
             );
+            saveAllInfo.CurrentTick = GameUpdater.CurrentTick;
+            return saveAllInfo;
         }
 
         // JSON化はどのスレッドでもよい（取り込んだ木だけを読む）
