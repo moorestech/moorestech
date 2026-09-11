@@ -25,6 +25,10 @@ namespace Game.SaveLoad.Snapshot
         private readonly Dictionary<ulong, List<long>> _requestIdsByTick = new();
         private readonly List<long> _pendingImmediateRequestIds = new();
         private readonly object _requestLock = new();
+
+        // 排出と取り込みはtickスレッドと待ち合わせスレッドの両方から入るので、この錠で直列化する
+        // Draining and capturing are entered from both the tick thread and a waiting thread, so this lock serializes them
+        private readonly object _tickStateLock = new();
         private uint _periodTicks;
         private int _generations;
         private ulong _nextPeriodicTick;
@@ -80,24 +84,27 @@ namespace Game.SaveLoad.Snapshot
         // Called every tick from FinalTickEndUpdates: drain completions, then decide whether to capture
         public void Update()
         {
-            DrainCompletions();
-            if (!IsActive) return;
+            lock (_tickStateLock)
+            {
+                DrainCompletions();
+                if (!IsActive) return;
 
-            var tick = GameUpdater.CurrentTick;
-            var requestIds = TakePendingRequestIds();
-            var periodicDue = tick >= _nextPeriodicTick;
-            if (requestIds.Count == 0 && !periodicDue) return;
-            if (periodicDue) _nextPeriodicTick += _periodTicks;
+                var tick = GameUpdater.CurrentTick;
+                var requestIds = TakePendingRequestIds();
+                var periodicDue = tick >= _nextPeriodicTick;
+                if (requestIds.Count == 0 && !periodicDue) return;
+                if (periodicDue) _nextPeriodicTick += _periodTicks;
 
-            _requestIdsByTick[tick] = requestIds;
-            var data = _assembler.Capture();
-            _packetLog.Flush();
-            _packetLog.Rotate(tick + 1);
-            _worker.Enqueue(new SaveWriteJob(0, SaveWriteKind.Snapshot, data, _directory.SnapshotFilePath(tick), false));
+                _requestIdsByTick[tick] = requestIds;
+                var data = _assembler.Capture();
+                _packetLog.Flush();
+                _packetLog.Rotate(tick + 1);
+                _worker.Enqueue(new SaveWriteJob(0, SaveWriteKind.Snapshot, data, _directory.SnapshotFilePath(tick), false));
+            }
         }
 
-        // テストと終了時用。書き出しスレッドが空くまで待ち、完了通知をこのスレッドで排出する
-        // For tests and shutdown: wait until the writer is idle, then drain completions on this thread
+        // テストと終了時用。tickループが止まっている間だけ呼べる（回っている最中は待ち終えた直後に次の書き出しが積まれ、待ちの意味が無い）
+        // For tests and shutdown; callable only while the tick loop is stopped, otherwise a new write is enqueued right after the wait returns
         public void WaitForPendingWrites()
         {
             _worker.WaitForIdle();
@@ -114,27 +121,32 @@ namespace Game.SaveLoad.Snapshot
             }
         }
 
+        // 排出は錠の中だけで行う。tickスレッドとの二重ドレイン・世代リストの破損・OnNext の同時発火を防ぐため
+        // Draining happens only under the lock: it prevents a double drain against the tick thread, a corrupted generation list, and concurrent OnNext
         private void DrainCompletions()
         {
-            while (_worker.TryDequeueCompletion(SaveWriteKind.Snapshot, out var completion))
+            lock (_tickStateLock)
             {
-                var requestIds = _requestIdsByTick.TryGetValue(completion.Tick, out var ids) ? ids : new List<long>();
-                _requestIdsByTick.Remove(completion.Tick);
-                if (!completion.Success)
+                while (_worker.TryDequeueCompletion(SaveWriteKind.Snapshot, out var completion))
                 {
-                    Debug.LogError($"スナップショットの書き出しに失敗しました tick:{completion.Tick} 要求ID:{string.Join(",", requestIds)}");
-                    continue;
-                }
+                    var requestIds = _requestIdsByTick.TryGetValue(completion.Tick, out var ids) ? ids : new List<long>();
+                    _requestIdsByTick.Remove(completion.Tick);
+                    if (!completion.Success)
+                    {
+                        Debug.LogError($"スナップショットの書き出しに失敗しました tick:{completion.Tick} 要求ID:{string.Join(",", requestIds)}");
+                        continue;
+                    }
 
-                _writtenTicks.Add(completion.Tick);
-                Prune();
+                    _writtenTicks.Add(completion.Tick);
+                    Prune();
 
-                // 周期スナップショットには要求元が無いので、要求ID0の通知を1件だけ流す
-                // A periodic snapshot has no requester, so emit a single notification with request id 0
-                if (requestIds.Count == 0) requestIds.Add(0);
-                foreach (var requestId in requestIds)
-                {
-                    _onSnapshotWritten.OnNext(new SnapshotWritten(requestId, completion.Tick, completion.TargetPath));
+                    // 周期スナップショットには要求元が無いので、要求ID0の通知を1件だけ流す
+                    // A periodic snapshot has no requester, so emit a single notification with request id 0
+                    if (requestIds.Count == 0) requestIds.Add(0);
+                    foreach (var requestId in requestIds)
+                    {
+                        _onSnapshotWritten.OnNext(new SnapshotWritten(requestId, completion.Tick, completion.TargetPath));
+                    }
                 }
             }
         }

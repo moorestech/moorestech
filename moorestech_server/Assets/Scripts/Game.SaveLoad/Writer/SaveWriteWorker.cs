@@ -11,16 +11,15 @@ namespace Game.SaveLoad.Writer
     // Serializes and writes save images off the tick thread in order; completions return via per-kind queues drained on the tick thread
     public sealed class SaveWriteWorker
     {
+        // 待ちの上限。1ミリ秒ポーリングなのでおよそ60秒。超えたら書き出しが進んでいないとみなす
+        // Wait cap: roughly 60 seconds at 1 ms polling; beyond it the writer is treated as stalled
+        private const int WaitForIdleMaxPolls = 60000;
+
         private readonly BlockingCollection<SaveWriteJob> _jobs = new();
         private readonly ConcurrentQueue<SaveWriteCompletion> _playerSaveCompletions = new();
         private readonly ConcurrentQueue<SaveWriteCompletion> _snapshotCompletions = new();
         private int _inFlight;
-
-        public SaveWriteWorker()
-        {
-            var thread = new Thread(Run) { Name = "[moorestech] セーブ書き出しスレッド", IsBackground = true };
-            thread.Start();
-        }
+        private int _writerThreadStarted;
 
         // 投入済みで完了通知をまだ積んでいない書き出しが残っているか
         // Whether an enqueued write has yet to post its completion
@@ -28,6 +27,7 @@ namespace Game.SaveLoad.Writer
 
         public void Enqueue(SaveWriteJob job)
         {
+            EnsureWriterThreadStarted();
             Interlocked.Increment(ref _inFlight);
             _jobs.Add(job);
         }
@@ -42,21 +42,58 @@ namespace Game.SaveLoad.Writer
         // For tests and shutdown only; never call from the tick thread
         public void WaitForIdle()
         {
-            while (HasInFlight) Thread.Sleep(1);
+            for (var polls = 0; polls < WaitForIdleMaxPolls; polls++)
+            {
+                if (!HasInFlight) return;
+                Thread.Sleep(1);
+            }
+
+            // 待ち切れないのは書き出しが進んでいないとき。無限に待たず理由を出して抜ける
+            // Failing to drain means the writer is not progressing, so log the cause instead of blocking forever
+            Debug.LogError($"セーブ書き出しの完了を待ち切れませんでした 未完了:{Volatile.Read(ref _inFlight)}件");
+        }
+
+        // 書き出しスレッドは初回投入まで起こさない。セーブしないコンテナ（テストが大量に作る）でスレッドが増えないようにする
+        // The writer thread starts on the first job so containers that never save (tests create many) add no threads
+        private void EnsureWriterThreadStarted()
+        {
+            if (Interlocked.CompareExchange(ref _writerThreadStarted, 1, 0) != 0) return;
+
+            var thread = new Thread(Run) { Name = "[moorestech] セーブ書き出しスレッド", IsBackground = true };
+            thread.Start();
         }
 
         private void Run()
         {
             foreach (var job in _jobs.GetConsumingEnumerable())
             {
-                var success = Write(job);
-                var queue = job.Kind == SaveWriteKind.PlayerSave ? _playerSaveCompletions : _snapshotCompletions;
-                queue.Enqueue(new SaveWriteCompletion(job.Generation, job.Kind, job.Data.CurrentTick, job.TargetPath, success));
+                var success = false;
 
-                // 完了を積んでから在庫を減らす。待ち合わせ側が空振りで先に抜けないようにする
-                // Post the completion before clearing the in-flight count so a waiter never returns ahead of it
-                Interlocked.Decrement(ref _inFlight);
+                // このループが唯一の消費者。スレッド境界を隔離し、どんな失敗でもスレッドを殺さず完了を積む
+                // This loop is the only consumer; isolate the thread boundary so no failure kills it and stops every later write silently
+                try
+                {
+                    success = Write(job);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"セーブの書き出しが想定外の例外で失敗しました path:{job.TargetPath} kind:{job.Kind} generation:{job.Generation} {e}");
+                }
+                finally
+                {
+                    PostCompletion(job, success);
+                }
             }
+        }
+
+        private void PostCompletion(SaveWriteJob job, bool success)
+        {
+            var queue = job.Kind == SaveWriteKind.PlayerSave ? _playerSaveCompletions : _snapshotCompletions;
+            queue.Enqueue(new SaveWriteCompletion(job.Generation, job.Kind, job.Data.CurrentTick, job.TargetPath, success));
+
+            // 完了を積んでから在庫を減らす。待ち合わせ側が空振りで先に抜けないようにする
+            // Post the completion before clearing the in-flight count so a waiter never returns ahead of it
+            Interlocked.Decrement(ref _inFlight);
         }
 
         private static bool Write(SaveWriteJob job)
