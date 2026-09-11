@@ -95,7 +95,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire
                 placementPlan = constructionWallet.PlanPlacement(blockMaster, playerId);
                 costItemCounts = placementPlan.ItemsToConsume;
                 failureReason = ElectricWirePlacementFailureReason.InsufficientItems;
-                if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return false;
+                if (!ConstructionCostRules.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return false;
 
                 failureReason = ElectricWirePlacementFailureReason.None;
                 return true;

@@ -2,13 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.Construction;
 using Core.Item.Interface;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Construction;
 using Game.Context;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol.PacketResponse;
@@ -51,18 +53,39 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         }
 
         [Test]
-        public void 所持素材ゼロの張替え列はサーバーと同じく1セルもPlaceableに残らない()
+        public void 所持素材ゼロでも課金元次第で成立する張替え列はPlaceableのまま送られる()
         {
-            // 所持素材ゼロ・両財布0。GearBeltConveyor(PlacementsPerCost=3)6セルを同コストのLargeGearBeltConveyorへ張り替える
-            // No materials and both wallets empty; six GearBeltConveyor cells (PlacementsPerCost=3) become the same-cost LargeGearBeltConveyor
+            // 所持素材ゼロ・自分の財布0。GearBeltConveyor(PlacementsPerCost=3)6セルを同コストのLargeGearBeltConveyorへ張り替える
+            // No materials and the player's own wallet empty; six GearBeltConveyor cells (PlacementsPerCost=3) become the same-cost LargeGearBeltConveyor
             var placeInfos = BuildReplaceRun(6);
 
             var simulation = BeltReplaceCostSimulator.TrySimulate(placeInfos, _dataStore, BuildWalletQuery(), Array.Empty<IItemStack>());
             simulation.MarkUnaffordableCellsAsNotPlaceable();
 
-            // 先頭セルが払えず撤去も財布操作も起きないため、後続セルの状態も1つも進まない
-            // The first cell cannot pay and nothing is removed or moved in the wallet, so no later cell's state advances either
-            Assert.IsTrue(placeInfos.TrueForAll(placeInfo => !placeInfo.Placeable));
+            // 既設を置いて支払ったのが他人なら撤去返却だけで成立する。課金元を知らない見積りで送信を止めない
+            // If someone else placed and paid for the existing belts, the removal refund alone makes it work; an estimate blind to the payer never blocks the send
+            Assert.IsTrue(placeInfos.TrueForAll(placeInfo => placeInfo.Placeable));
+
+            // 不確実なのは全セル。プレビュー色だけが確実な張替えと分かれる
+            // Every cell is uncertain, and only the preview color separates them from a certain replace
+            var recorder = new PreviewBlockIndexRecorder();
+            simulation.ApplyUncertainRefundColors(recorder);
+            CollectionAssert.AreEqual(new[] { 0, 1, 2, 3, 4, 5 }, recorder.RequestedIndices);
+        }
+
+        [Test]
+        public void 課金元を見込んでも払えないセルはPlaceableが落ちる()
+        {
+            // 張替えセルの次に、財布も素材も無い新規設置セルを置く。返却元が無いので仮定のしようがない
+            // A brand-new placement cell follows the replace cell with neither wallet nor materials; there is nothing to assume a refund from
+            var placeInfos = BuildReplaceRun(1);
+            placeInfos.Add(new PlaceInfo { Position = new Vector3Int(0, 0, 10), BlockId = ForUnitTestModBlockId.GearBeltConveyor, IsReplace = false, Placeable = true });
+
+            var simulation = BeltReplaceCostSimulator.TrySimulate(placeInfos, _dataStore, BuildWalletQuery(), Array.Empty<IItemStack>());
+            simulation.MarkUnaffordableCellsAsNotPlaceable();
+
+            Assert.IsTrue(placeInfos[0].Placeable);
+            Assert.IsFalse(placeInfos[1].Placeable);
         }
 
         [Test]
@@ -102,15 +125,17 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         }
 
         [Test]
-        public void 所持素材ゼロの張替え列はCostCheckItemsに返却が一件も混ざらない()
+        public void 所持素材ゼロの張替え列は仮定した返却をCostCheckItemsに数えない()
         {
             var placeInfos = BuildReplaceRun(6);
 
             var simulation = BeltReplaceCostSimulator.TrySimulate(placeInfos, _dataStore, BuildWalletQuery(), Array.Empty<IItemStack>());
 
-            // 先頭セルから払えず撤去も財布操作も起きないため、所持品ゼロのまま返却も混ざらない
-            // Nothing is removed starting from the first cell, so holdings stay at zero with no refund mixed in
-            Assert.AreEqual(0, simulation.CostCheckItems.Count);
+            // 自分の財布で確実に凝縮する撤去は1回だけ。課金元不明を見込んだ返却は不足表示に現れない
+            // Only one removal condenses for certain against the player's own wallet; refunds assumed from an unknown payer never reach the shortage display
+            var costCheckCounts = SumByItemId(simulation.CostCheckItems);
+            Assert.AreEqual(1, costCheckCounts[MasterHolder.ItemMaster.GetItemId(Material1Guid)]);
+            Assert.AreEqual(1, costCheckCounts[MasterHolder.ItemMaster.GetItemId(Material2Guid)]);
         }
 
         private List<PlaceInfo> BuildReplaceRun(int length)
@@ -159,6 +184,30 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 .GetField("_blockObjectsDictionary", BindingFlags.Instance | BindingFlags.NonPublic)
                 .GetValue(_dataStore);
             dictionary.Add(position, blockGameObject);
+        }
+
+        // 不確実色を塗りに来たセル添字だけを記録する。実体のマテリアルには触れない
+        // Records only the cell indices that came for the uncertain color, never touching a real material
+        private class PreviewBlockIndexRecorder : IPlacementPreviewBlockGameObjectController
+        {
+            public readonly List<int> RequestedIndices = new();
+
+            public bool IsActive => true;
+
+            public void SetPreview(List<PlaceInfo> currentPlaceInfos, BlockMasterElement holdingBlockMaster) { }
+
+            public IReadOnlyList<bool> DetectGroundOverlaps() => Array.Empty<bool>();
+
+            public void UpdatePlaceableColors(List<PlaceInfo> placeInfos) { }
+
+            public void SetActive(bool active) { }
+
+            public bool TryGetPreviewBlock(int index, out BlockPreviewObject previewBlock)
+            {
+                RequestedIndices.Add(index);
+                previewBlock = null;
+                return false;
+            }
         }
 
         private static void SetBackingField(BlockGameObject blockGameObject, string propertyName, object value)

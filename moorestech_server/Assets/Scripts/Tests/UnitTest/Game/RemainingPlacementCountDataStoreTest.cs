@@ -62,6 +62,39 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
+        public void 設置と撤去の残数遷移はConstructionWalletUtilが唯一の正本になる()
+        {
+            // 遷移式そのものの定義。クライアントの先読みも同じ関数を呼ぶ
+            // The transitions themselves; the client's look-ahead calls these very functions
+            Assert.AreEqual(0, ConstructionWalletUtil.AdvanceOnRemoval(2, true));
+            Assert.AreEqual(3, ConstructionWalletUtil.AdvanceOnRemoval(2, false));
+            Assert.AreEqual(1, ConstructionWalletUtil.AdvanceOnPlacement(2, 3, true));
+            Assert.AreEqual(4, ConstructionWalletUtil.AdvanceOnPlacement(2, 3, false));
+
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var store = serviceProvider.GetService<RemainingPlacementCountDataStore>();
+            var wallet = ForUnitTestModBlockId.GearBeltConveyor;
+
+            // サーバーの書き込み口が遷移式を経由していること。素材を払った設置は残りN-1へ
+            // The server's write port goes through the transition; a placement that paid materials lands on N-1
+            store.ApplyPlacement(PlayerId, wallet, 3, ConstructionWalletUsage.PaidAndRefilled);
+            Assert.AreEqual(ConstructionWalletUtil.AdvanceOnPlacement(0, 3, false), store.GetRemainingCount(PlayerId, wallet));
+
+            store.ApplyPlacement(PlayerId, wallet, 3, ConstructionWalletUsage.CoveredByWallet);
+            Assert.AreEqual(ConstructionWalletUtil.AdvanceOnPlacement(2, 3, true), store.GetRemainingCount(PlayerId, wallet));
+
+            store.ApplyReturn(PlayerId, wallet, false);
+            Assert.AreEqual(ConstructionWalletUtil.AdvanceOnRemoval(1, false), store.GetRemainingCount(PlayerId, wallet));
+
+            store.ApplyReturn(PlayerId, wallet, true);
+            Assert.AreEqual(ConstructionWalletUtil.AdvanceOnRemoval(2, true), store.GetRemainingCount(PlayerId, wallet));
+
+            // 空の財布で賄う設置は財布の判断漏れなので落ちる
+            // A wallet-covered placement on an empty wallet means the caller skipped the wallet's decision, so it throws
+            Assert.Throws<InvalidOperationException>(() => store.ApplyPlacement(PlayerId, wallet, 3, ConstructionWalletUsage.CoveredByWallet));
+        }
+
+        [Test]
         public void 読み取りだけではセーブに現れず0件はセーブしない()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

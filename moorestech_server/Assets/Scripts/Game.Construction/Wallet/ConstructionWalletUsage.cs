@@ -1,4 +1,4 @@
-namespace Server.Protocol.PacketResponse.Util.Construction
+namespace Game.Construction
 {
     /// <summary>
     /// 設置1回が財布をどう使ったか。計画時に確定し確定処理はこれを網羅switchするだけ

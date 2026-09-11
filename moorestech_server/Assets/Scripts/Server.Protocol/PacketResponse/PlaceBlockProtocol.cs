@@ -15,6 +15,7 @@ using Server.Event.Notification;
 using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using Game.Construction;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -116,7 +117,7 @@ namespace Server.Protocol.PacketResponse
                 // Ask the wallet; skip cells it cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
                 var placementPlan = _constructionWallet.PlanPlacement(blockMaster, data.PlayerId);
-                if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
+                if (!ConstructionCostRules.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
 
                 // 電気なら自動接続を事前検証
                 // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient

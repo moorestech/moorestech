@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
-using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace.Cost;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.Run;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
@@ -145,6 +145,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state
             _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
+
+            // 課金元を把握できず返却を見積れないセルは、送信したうえで色だけ不確実を表す
+            // A cell whose refund payer is unknown is still sent, and only its color says the estimate is uncertain
+            replaceSimulation?.ApplyUncertainRefundColors(_previewBlockController);
 
             // 設置するブロックをサーバーに送信
             // send block place info to server

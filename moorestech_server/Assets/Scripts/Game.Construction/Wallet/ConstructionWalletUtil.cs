@@ -35,6 +35,20 @@ namespace Game.Construction
             return placementsPerCost <= remaining + 1;
         }
 
+        // 撤去返却後の残り。Nに達した分は素材へ凝縮し財布は空になる
+        // The remainder after a removal's return; the portion that reached one set's worth condenses into materials and empties the wallet
+        public static int AdvanceOnRemoval(int remaining, bool condensed)
+        {
+            return condensed ? 0 : remaining + 1;
+        }
+
+        // 設置後の残り。素材を払ったセルは1セット分を補充してから1消費する（残り=N-1）
+        // The remainder after a placement; a cell that paid materials refills one set's worth and then consumes one (remaining = N-1)
+        public static int AdvanceOnPlacement(int remaining, int placementsPerCost, bool coveredByWallet)
+        {
+            return coveredByWallet ? remaining - 1 : remaining + placementsPerCost - 1;
+        }
+
         // 置くセル数のうち実際に払うコストセット数。残りで賄える分は払わない
         // Cost sets actually paid for the given cells; what the remainder covers is not paid
         public static int CalculateRequiredCostSets(int remaining, int cellCount, int placementsPerCost)

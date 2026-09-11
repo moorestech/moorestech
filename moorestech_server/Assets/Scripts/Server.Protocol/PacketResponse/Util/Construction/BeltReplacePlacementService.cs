@@ -11,6 +11,7 @@ using Game.Context;
 using Game.PlacementTarget;
 using Game.UnlockState;
 using UnityEngine;
+using Game.Construction;
 
 namespace Server.Protocol.PacketResponse.Util.Construction
 {
@@ -115,9 +116,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             {
                 // 新コストは「今の所持品＋旧ブロックの返却品」で賄えればよい。返却は消費より先に行われる
                 // The new cost only has to be covered by the current holdings plus the old block's refund, which lands before the consumption
-                var available = new List<IItemStack>(inventory.InventoryItems);
-                available.AddRange(refundItems);
-                return ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, available);
+                return ConstructionCostRules.HasRequiredItems(placementPlan.ItemsToConsume, ConstructionMaterialAccounting.TallyHeld(inventory.InventoryItems), refundItems);
             }
 
             void ReturnToPlayer(IReadOnlyList<IItemStack> items)
