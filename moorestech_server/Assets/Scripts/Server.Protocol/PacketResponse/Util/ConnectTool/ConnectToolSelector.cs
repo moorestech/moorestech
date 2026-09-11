@@ -21,6 +21,13 @@ namespace Server.Protocol.PacketResponse.Util.ConnectTool
             return infos.TryGetValue(connectToolGuid, out var info) && info.IsUnlocked;
         }
 
+        // サーバー用入口。解放状態の調達をここへ閉じ、サーバー呼び出し側に再実装させない
+        // Server-side entry; sourcing the unlock state stays here so server callers never re-implement it
+        public static IEnumerable<ConnectToolMasterElement> CandidatesByToolType(string toolType, bool ignoreUnlock)
+        {
+            return CandidatesByToolType(toolType, ServerContext.GetService<IGameUnlockStateDataController>(), ignoreUnlock);
+        }
+
         /// <summary>
         /// 指定ToolTypeの候補をSortPriority昇順で返す。解放状態は外から受け取り、クライアントは自分の解放状態を渡して同じ規則を共有する
         /// （プレビューと実接続で規則がずれると、繋がらない線を描いたり逆に描き漏らしたりする）。ignoreUnlockは無料設置デバッグ専用で、解放フィルタだけを外す（ADR 0056）

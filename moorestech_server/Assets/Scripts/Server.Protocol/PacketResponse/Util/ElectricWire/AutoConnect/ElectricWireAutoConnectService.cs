@@ -7,7 +7,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
-using Game.UnlockState;
 using Core.Inventory;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.BuildMenuModule;
@@ -43,11 +42,10 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 
             // electricWire connectToolをSortPriority昇順で取得する。無料設置は解放を無視する（ADR 0056）
             // Fetch electricWire connectTools ascending by SortPriority; free placement ignores unlock (ADR 0056)
-            var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
-            var candidateTools = ConnectToolSelector.CandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, unlockState, isFreePlacement).ToList();
+            var candidateTools = ConnectToolSelector.CandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, isFreePlacement).ToList();
 
-            // 電線connectToolが未解放の世界では配線せず設置のみ許可する（設置自体はブロックしない）
-            // With no unlocked wire connectTool, allow placement without wiring (do not block the placement itself)
+            // 候補が0件なら配線せず設置のみ許可する（設置自体はブロックしない）
+            // With zero candidate connectTools, allow placement without wiring (do not block the placement itself)
             if (candidateTools.Count == 0)
                 return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty, consumesMaterials);
 
