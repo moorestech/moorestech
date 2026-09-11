@@ -68,9 +68,9 @@ namespace Game.Block.Blocks
             return new BlockState(detailStates);
         }
         
-        public Dictionary<string,string> GetSaveState()
+        public Dictionary<string, object> GetSaveState()
         {
-            var result = new Dictionary<string, string>();
+            var result = new Dictionary<string, object>();
             
             var components = _blockComponentManager.GetComponents<IBlockSaveState>();
             foreach (var component in components)

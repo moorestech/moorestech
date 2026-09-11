@@ -12,14 +12,14 @@ namespace Game.World.Interface.DataStore
         
         [JsonProperty("direction")] public int Direction;
         [JsonProperty("instanceId")] public int InstanceId;
-        [JsonProperty("state")] public Dictionary<string,string> ComponentStates;
+        [JsonProperty("state")] public Dictionary<string, object> ComponentStates;
         
         [JsonIgnore] public Vector3Int Pos => new(X, Y, Z);
         [JsonProperty("X")] public int X;
         [JsonProperty("Y")] public int Y;
         [JsonProperty("Z")] public int Z;
         
-        public BlockJsonObject(Vector3Int pos, string blockGuid, int instanceId, Dictionary<string,string> componentStates, int direction)
+        public BlockJsonObject(Vector3Int pos, string blockGuid, int instanceId, Dictionary<string, object> componentStates, int direction)
         {
             X = pos.x;
             Y = pos.y;

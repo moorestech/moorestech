@@ -17,12 +17,12 @@ namespace Game.Block.Factory.BlockTemplate
             return Create(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return Create(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        private IBlock Create(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock Create(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var param = blockMasterElement.BlockParam as ElectricToGearGeneratorBlockParam;
             var gearConnects = param.Gear.GearConnects;

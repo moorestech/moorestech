@@ -44,14 +44,13 @@ namespace Game.Block.Blocks.GearToElectric
         // セーブ復元用コンストラクタ。残量を0から容量の範囲へクランプして復元する
         // Restore constructor; the battery remainder is clamped into [0, capacity]
         public GearToElectricGeneratorComponent(
-            Dictionary<string, string> componentStates,
+            Dictionary<string, object> componentStates,
             GearToElectricGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
             this(param, blockInstanceId, connectorComponent)
         {
-            if (componentStates == null || !componentStates.TryGetValue(SaveKey, out var raw)) return;
-            var saveData = JsonConvert.DeserializeObject<GearToElectricGeneratorSaveJsonObject>(raw);
+            if (componentStates == null || !BlockComponentStateReader.TryRead<GearToElectricGeneratorSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
             if (saveData == null) return;
             _batteryRemaining = Mathf.Clamp(saveData.BatteryRemaining, 0f, BatteryCapacity);
         }
@@ -162,10 +161,10 @@ namespace Game.Block.Blocks.GearToElectric
             #endregion
         }
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            return JsonConvert.SerializeObject(new GearToElectricGeneratorSaveJsonObject { BatteryRemaining = _batteryRemaining });
+            return new GearToElectricGeneratorSaveJsonObject { BatteryRemaining = _batteryRemaining };
         }
     }
 

@@ -130,7 +130,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             hatchInventory.InsertItem(ServerContext.ItemStackFactory.Create(new ItemId(2), 3), InsertItemContext.Empty);
 
             var saveComponent = hatch.GetComponent<IBlockSaveState>();
-            var states = new Dictionary<string, string> { { saveComponent.SaveKey, saveComponent.GetSaveState() } };
+            var states = new Dictionary<string, object> { { saveComponent.SaveKey, saveComponent.GetSaveState() } };
 
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.CleanRoomItemHatchId).BlockGuid;
             var positionInfo = new BlockPositionInfo(new Vector3Int(10, 0, 10), BlockDirection.North, Vector3Int.one);

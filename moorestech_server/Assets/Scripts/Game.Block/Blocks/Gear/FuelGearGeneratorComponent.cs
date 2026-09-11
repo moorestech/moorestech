@@ -56,7 +56,7 @@ namespace Game.Block.Blocks.Gear
         // セーブデータから復元する際に呼ばれる補助コンストラクタ
         // Auxiliary constructor used for restoring the component from saved state
         public FuelGearGeneratorComponent(
-            Dictionary<string, string> componentStates,
+            Dictionary<string, object> componentStates,
             FuelGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent,
@@ -64,8 +64,7 @@ namespace Game.Block.Blocks.Gear
             FuelGearGeneratorFluidComponent fluidComponent)
             : this(param, blockInstanceId, connectorComponent, itemComponent, fluidComponent)
         {
-            if (!componentStates.TryGetValue(SaveKey, out var raw)) return;
-            var saveData = JsonUtility.FromJson<FuelGearGeneratorSaveData>(raw);
+            if (!BlockComponentStateReader.TryRead<FuelGearGeneratorSaveData>(componentStates, SaveKey, out var saveData)) return;
 
             _fuelService.Restore(saveData);
             _stateService.Restore(saveData);
@@ -93,11 +92,11 @@ namespace Game.Block.Blocks.Gear
             }
         }
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
             var saveData = new FuelGearGeneratorSaveData(_stateService, _fuelService);
-            return JsonUtility.ToJson(saveData);
+            return saveData;
         }
 
         public new BlockStateDetail[] GetBlockStateDetails()

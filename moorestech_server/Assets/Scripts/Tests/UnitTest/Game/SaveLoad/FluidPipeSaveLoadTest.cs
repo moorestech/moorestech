@@ -12,6 +12,7 @@ using Server.Boot;
 using Tests.CombinedTest.Core;
 using Tests.Module.TestMod;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -35,9 +36,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             fluidPipe.Node.Amount = fluidAmount;
 
             var saveComponent = fluidPipeBlock.GetComponent<FluidPipeSaveComponent>();
-            var saveText = saveComponent.GetSaveState();
-            var states = new Dictionary<string, string> { { saveComponent.SaveKey, saveText } };
-            Debug.Log(saveText);
+            var saveState = saveComponent.GetSaveState();
+            var states = new Dictionary<string, object> { { saveComponent.SaveKey, saveState } };
+            Debug.Log(JsonConvert.SerializeObject(saveState));
 
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidPipe).BlockGuid;
             var loadedFluidPipeBlock = blockFactory.Load(blockGuid, new BlockInstanceId(1), states, fluidPipePosInfo);
@@ -65,9 +66,9 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(0, fluidPipe.Node.Amount);
 
             var saveComponent = fluidPipeBlock.GetComponent<FluidPipeSaveComponent>();
-            var saveText = saveComponent.GetSaveState();
-            var states = new Dictionary<string, string> { { saveComponent.SaveKey, saveText } };
-            Debug.Log(saveText);
+            var saveState = saveComponent.GetSaveState();
+            var states = new Dictionary<string, object> { { saveComponent.SaveKey, saveState } };
+            Debug.Log(JsonConvert.SerializeObject(saveState));
 
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidPipe).BlockGuid;
             var loadedFluidPipeBlock = blockFactory.Load(blockGuid, new BlockInstanceId(1), states, fluidPipePosInfo);
@@ -98,12 +99,12 @@ namespace Tests.UnitTest.Game.SaveLoad
             for (var i = 0; i < 5; i++) GameUpdater.RunFrames(1);
 
             var saveComponent = pipeBlock0.GetComponent<FluidPipeSaveComponent>();
-            var saveText = saveComponent.GetSaveState();
-            Debug.Log(saveText);
+            var saveState = saveComponent.GetSaveState();
+            Debug.Log(JsonConvert.SerializeObject(saveState));
 
             // 正準側(座標が小さいpipe0)の保存データに、+x方向の非ゼロ面速度が含まれる
             // The canonical side's (pipe0, smaller position) save data holds a nonzero +x face velocity
-            var jsonObject = Newtonsoft.Json.JsonConvert.DeserializeObject<FluidPipeSaveJsonObject>(saveText);
+            var jsonObject = (FluidPipeSaveJsonObject)saveState;
             Assert.AreEqual(1, jsonObject.FaceVelocities.Count);
             Assert.AreEqual(1, jsonObject.FaceVelocities[0].X);
             Assert.Greater(jsonObject.FaceVelocities[0].Velocity, 0);
@@ -130,8 +131,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             pipeBlock0.GetComponent<FluidPipeComponent>().AddLiquid(new FluidStack(30d, FluidTest.FluidId), default);
             for (var i = 0; i < 5; i++) GameUpdater.RunFrames(1);
 
-            var savedJson = Newtonsoft.Json.JsonConvert.DeserializeObject<FluidPipeSaveJsonObject>(
-                pipeBlock0.GetComponent<FluidPipeSaveComponent>().GetSaveState());
+            var savedJson = (FluidPipeSaveJsonObject)pipeBlock0.GetComponent<FluidPipeSaveComponent>().GetSaveState();
             var savedVelocity = savedJson.FaceVelocities[0].Velocity;
             Assert.Greater(savedVelocity, 0);
 

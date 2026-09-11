@@ -54,7 +54,7 @@ namespace Game.Block.Factory
             #endregion
         }
         
-        public IBlock Load(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string, string> state, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Guid blockGuid, BlockInstanceId blockInstanceId, Dictionary<string, object> state, BlockPositionInfo blockPositionInfo)
         {
             var dictionary = _vanillaIBlockTemplates.BlockTypesDictionary;
             

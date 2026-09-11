@@ -11,7 +11,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaSimpleGearGeneratorTemplate : IBlockTemplate
     {
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return CreateGear(blockMasterElement, blockInstanceId, blockPositionInfo);
         }

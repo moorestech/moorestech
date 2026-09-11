@@ -13,7 +13,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.State;
 using Mooresmaster.Model.MachineRecipesModule;
-using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
@@ -45,7 +44,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
         private CleanRoomEffect _cleanRoomEffect = new(false, 0, 0);
         private ProcessState _lastState = ProcessState.Idle;
 
-        public CleanRoomMachineProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
+        public CleanRoomMachineProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, float requestPower, float idlePowerRate, MachineModuleEffectComponent effect)
         {
             _moduleInventory = module;
             CleanRoomMachineProcessorSaveState.Restore(componentStates, SaveKey, input, output, module, out var restoredState, out var remainingTicks, out var recipe, out var pendingOutputs, out var cycleCount, out var selectedRecipe);
@@ -114,11 +113,11 @@ namespace Game.Block.Blocks.CleanRoom.Machine
 
         public string SaveKey { get; } = typeof(CleanRoomMachineProcessorComponent).FullName;
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
             var saveData = CleanRoomMachineProcessorSaveState.Build(_context.InputInventory, _context.OutputInventory, _moduleInventory, CurrentState, _processingState, _chipDrawDecorator.CycleCount, _context.SelectedRecipe);
-            return JsonConvert.SerializeObject(saveData);
+            return saveData;
         }
 
         public void Update()

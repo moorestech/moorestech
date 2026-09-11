@@ -11,7 +11,7 @@ namespace Game.Block.Factory.BlockTemplate
 {
     public class VanillaGearChainPoleTemplate : IBlockTemplate
     {
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             // セーブデータ付きでブロックを生成する
             // Create block with saved states
@@ -25,7 +25,7 @@ namespace Game.Block.Factory.BlockTemplate
             return Create(blockMasterElement, blockInstanceId, blockPositionInfo, null);
         }
 
-        private static IBlock Create(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, Dictionary<string, string> componentStates)
+        private static IBlock Create(BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, Dictionary<string, object> componentStates)
         {
             // マスターからパラメータを抽出する
             // Extract parameters from master data

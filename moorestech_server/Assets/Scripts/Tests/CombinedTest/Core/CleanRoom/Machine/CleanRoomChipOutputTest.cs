@@ -13,6 +13,7 @@ using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace Tests.CombinedTest.Core.CleanRoom
 {
@@ -79,7 +80,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             var states = machine.GetSaveState();
             var reloaded = ServerContext.BlockFactory.Load(blockGuid, machine.BlockInstanceId, states, positionInfo);
 
-            Assert.AreEqual(processor.GetSaveState(), reloaded.GetComponent<CleanRoomMachineProcessorComponent>().GetSaveState());
+            Assert.AreEqual(JsonConvert.SerializeObject(processor.GetSaveState()), JsonConvert.SerializeObject(reloaded.GetComponent<CleanRoomMachineProcessorComponent>().GetSaveState()));
         }
 
         #region TestHelper

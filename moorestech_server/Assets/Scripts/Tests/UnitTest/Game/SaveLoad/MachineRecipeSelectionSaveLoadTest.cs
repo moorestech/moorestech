@@ -63,12 +63,14 @@ namespace Tests.UnitTest.Game.SaveLoad
             worldBlockDatastore.RemoveBlock(Vector3Int.zero, BlockRemoveReason.ManualRemove);
 
             // GUIDを存在しない値へ書換
-            // componentStatesはネストしたJSON文字列のため引用符はエスケープされている
+            // componentStatesはオブジェクトのため引用符はエスケープされない
             // Rewrite selectedRecipeGuid in the save JSON to a GUID absent from the master
-            // componentStates is a nested JSON string, so quotes appear escaped
+            // componentStates is a plain object, so quotes are not escaped
             var brokenGuid = Guid.NewGuid();
             while (MasterHolder.MachineRecipesMaster.GetRecipeElement(brokenGuid) != null) brokenGuid = Guid.NewGuid();
-            json = json.Replace($"\\\"selectedRecipeGuid\\\":\\\"{recipe.MachineRecipeGuid}\\\"", $"\\\"selectedRecipeGuid\\\":\\\"{brokenGuid}\\\"");
+            var replaced = json.Replace($"\"selectedRecipeGuid\":\"{recipe.MachineRecipeGuid}\"", $"\"selectedRecipeGuid\":\"{brokenGuid}\"");
+            Assert.AreNotEqual(json, replaced, "セーブJSON中のselectedRecipeGuidを書き換えられませんでした");
+            json = replaced;
 
             var (loadWorldBlockDatastore, _, loadJsonFile) = CreateBlockTestModule();
             Assert.DoesNotThrow(() => loadJsonFile.Load(json));

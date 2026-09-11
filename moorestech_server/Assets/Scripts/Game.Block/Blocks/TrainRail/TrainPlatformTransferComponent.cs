@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface.Component;
-using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.TrainRail
@@ -22,10 +21,9 @@ namespace Game.Block.Blocks.TrainRail
             Mode = mode;
         }
 
-        public TrainPlatformTransferComponent(Dictionary<string, string> componentStates)
+        public TrainPlatformTransferComponent(Dictionary<string, object> componentStates)
         {
-            var serialized = componentStates[SaveKey];
-            var saveData = JsonConvert.DeserializeObject<TrainPlatformTransferComponentSaveData>(serialized);
+            var saveData = BlockComponentStateReader.Read<TrainPlatformTransferComponentSaveData>(componentStates, SaveKey);
             if (saveData == null) return;
 
             Mode = saveData.mode;
@@ -44,9 +42,9 @@ namespace Game.Block.Blocks.TrainRail
             IsDestroy = true;
         }
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
-            return JsonConvert.SerializeObject(new TrainPlatformTransferComponentSaveData(Mode));
+            return new TrainPlatformTransferComponentSaveData(Mode);
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
