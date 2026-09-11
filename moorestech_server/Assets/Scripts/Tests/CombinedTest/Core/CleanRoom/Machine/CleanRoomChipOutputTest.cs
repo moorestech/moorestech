@@ -77,7 +77,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // Preserving blockInstanceId and cycleCount proves the next draw after reload is deterministic
             var positionInfo = new BlockPositionInfo(new Vector3Int(30, 0, 30), BlockDirection.North, Vector3Int.one);
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.CleanRoomMachineId).BlockGuid;
-            var states = machine.GetSaveState();
+            var states = SaveLoadJsonTestHelper.ThroughJson(machine.GetSaveState());
             var reloaded = ServerContext.BlockFactory.Load(blockGuid, machine.BlockInstanceId, states, positionInfo);
 
             Assert.AreEqual(JsonConvert.SerializeObject(processor.GetSaveState()), JsonConvert.SerializeObject(reloaded.GetComponent<CleanRoomMachineProcessorComponent>().GetSaveState()));

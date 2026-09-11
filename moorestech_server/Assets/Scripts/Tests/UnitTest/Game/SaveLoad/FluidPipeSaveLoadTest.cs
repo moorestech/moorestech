@@ -14,6 +14,8 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using Newtonsoft.Json;
 
+using Tests.Util;
+
 namespace Tests.UnitTest.Game.SaveLoad
 {
     public class FluidPipeSaveLoadTest
@@ -37,7 +39,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var saveComponent = fluidPipeBlock.GetComponent<FluidPipeSaveComponent>();
             var saveState = saveComponent.GetSaveState();
-            var states = new Dictionary<string, object> { { saveComponent.SaveKey, saveState } };
+            var states = SaveLoadJsonTestHelper.ThroughJson(saveComponent.SaveKey, saveState);
             Debug.Log(JsonConvert.SerializeObject(saveState));
 
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidPipe).BlockGuid;
@@ -67,7 +69,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             var saveComponent = fluidPipeBlock.GetComponent<FluidPipeSaveComponent>();
             var saveState = saveComponent.GetSaveState();
-            var states = new Dictionary<string, object> { { saveComponent.SaveKey, saveState } };
+            var states = SaveLoadJsonTestHelper.ThroughJson(saveComponent.SaveKey, saveState);
             Debug.Log(JsonConvert.SerializeObject(saveState));
 
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidPipe).BlockGuid;
@@ -138,8 +140,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FluidPipe).BlockGuid;
             var blockJsonObjects = new List<BlockJsonObject>
             {
-                new(Vector3Int.zero, blockGuid.ToString(), 1, pipeBlock0.GetSaveState(), (int)BlockDirection.North),
-                new(Vector3Int.right, blockGuid.ToString(), 2, pipeBlock1.GetSaveState(), (int)BlockDirection.North),
+                new(Vector3Int.zero, blockGuid.ToString(), 1, SaveLoadJsonTestHelper.ThroughJson(pipeBlock0.GetSaveState()), (int)BlockDirection.North),
+                new(Vector3Int.right, blockGuid.ToString(), 2, SaveLoadJsonTestHelper.ThroughJson(pipeBlock1.GetSaveState()), (int)BlockDirection.North),
             };
 
             // 新しいワールドへ実ロード経路で復元し、tickを回さずに再構築だけ実行する

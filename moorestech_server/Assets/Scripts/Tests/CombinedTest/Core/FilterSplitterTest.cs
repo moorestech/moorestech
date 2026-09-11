@@ -18,6 +18,8 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
 
+using Tests.Util;
+
 namespace Tests.CombinedTest.Core
 {
     /// <summary>
@@ -184,7 +186,7 @@ namespace Tests.CombinedTest.Core
             var loaded = ServerContext.BlockFactory.Load(
                 blockGuid,
                 new BlockInstanceId(7),
-                new Dictionary<string, object> { { component1.SaveKey, savedState } },
+                SaveLoadJsonTestHelper.ThroughJson(component1.SaveKey, savedState),
                 new BlockPositionInfo(new Vector3Int(10, 0, 0), BlockDirection.North, Vector3Int.one));
             var component2 = loaded.GetComponent<VanillaFilterSplitterComponent>();
 

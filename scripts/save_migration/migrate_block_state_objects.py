@@ -36,7 +36,14 @@ def migrate(save, seed):
         state = block.get("state") or {}
         for key, value in list(state.items()):
             if isinstance(value, str):
-                state[key] = json.loads(value)
+                parsed = json.loads(value)
+                # 二重エンコードされた値は1回のloadsでまだ文字列のまま。移行済みに見えてロード時に例外で起動不能になる
+                # A double-encoded value is still a string after one loads; it would look migrated yet break the load at boot
+                if isinstance(parsed, str):
+                    raise AssertionError(
+                        f"state['{key}'] が二重エンコードされています。1回の展開では文字列のままです: {value[:80]}"
+                    )
+                state[key] = parsed
                 converted += 1
         block["state"] = state
     if "currentTick" not in save:
@@ -46,11 +53,39 @@ def migrate(save, seed):
     return converted
 
 
+# C# の GameRandomTest と同じ既知ベクトル。どちらかの定数を変えたらここで落ちる
+# The same known vector as the C# GameRandomTest; changing a constant on either side fails here
+KNOWN_SEED = 12345
+KNOWN_STATE = [
+    2454886589211414944,
+    3778200017661327597,
+    2205171434679333405,
+    3248800117070709450,
+]
+
+
+def self_test():
+    actual = random_state_from_seed(KNOWN_SEED)
+    if actual != KNOWN_STATE:
+        raise AssertionError(
+            f"randomState が既知ベクトルと違う seed={KNOWN_SEED} expected={KNOWN_STATE} actual={actual}"
+        )
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("save_path")
-    parser.add_argument("--seed", type=int, required=True)
+    parser.add_argument("save_path", nargs="?")
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--self-test", action="store_true", help="既知ベクトルで splitmix64 を検査して終了する")
     args = parser.parse_args()
+
+    if args.self_test:
+        self_test()
+        print("self-test ok")
+        return 0
+    if args.save_path is None or args.seed is None:
+        parser.error("save_path と --seed は必須です（--self-test のときを除く）")
 
     with open(args.save_path, encoding="utf-8") as f:
         save = json.load(f)

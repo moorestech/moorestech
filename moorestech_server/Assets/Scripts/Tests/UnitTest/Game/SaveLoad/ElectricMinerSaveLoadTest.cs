@@ -10,6 +10,8 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 
+using Tests.Util;
+
 namespace Tests.UnitTest.Core.Block
 {
     /// <summary>
@@ -57,7 +59,7 @@ namespace Tests.UnitTest.Core.Block
                 .SetValue(originalMinerComponent, originalRemainingTicks);
 
             // Save the state of the miner to a JSON string.
-            var json = originalMiner.GetSaveState();
+            var json = SaveLoadJsonTestHelper.ThroughJson(originalMiner.GetSaveState());
             Debug.Log(json);
             
             

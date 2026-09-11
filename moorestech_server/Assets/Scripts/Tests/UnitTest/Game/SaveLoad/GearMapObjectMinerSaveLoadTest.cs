@@ -13,6 +13,8 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 
+using Tests.Util;
+
 namespace Tests.UnitTest.Game.SaveLoad
 {
     /// <summary>
@@ -48,7 +50,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             // 保存状態を取得
             // Get the save state
-            var states = minerBlock.GetSaveState();
+            var states = SaveLoadJsonTestHelper.ThroughJson(minerBlock.GetSaveState());
             
             
             // --- セーブ状態から新規ロードする ---

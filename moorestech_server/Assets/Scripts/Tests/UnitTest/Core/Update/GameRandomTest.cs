@@ -46,6 +46,25 @@ namespace Tests.UnitTest.Core.Update
             }
         }
 
+        // 既知ベクトルで定数を固定する。これが無いと SplitMix64 / xoshiro の定数を書き換えても全テストが緑のまま通る
+        // Pin the constants with a known vector; without it, altering a SplitMix64 / xoshiro constant leaves every test green
+        // 同じベクトルを scripts/save_migration/migrate_block_state_objects.py の自己テストも検査する（C#とPythonの二重実装を突き合わせるため）
+        // The migration script self-tests the same vector, which is how the C# and Python implementations stay pinned to each other
+        [Test]
+        public void シード12345の状態と先頭3語が既知ベクトルと一致する()
+        {
+            GameRandom.Reseed(12345UL);
+            CollectionAssert.AreEqual(
+                new ulong[] { 2454886589211414944, 3778200017661327597, 2205171434679333405, 3248800117070709450 },
+                GameRandom.ExportState(),
+                "Reseed の SplitMix64 が既知ベクトルと違う");
+
+            CollectionAssert.AreEqual(
+                new ulong[] { 13720838825685603483, 2398916695208396998, 17770384849984869256 },
+                new[] { GameRandom.NextUlong(), GameRandom.NextUlong(), GameRandom.NextUlong() },
+                "xoshiro256** の出力が既知ベクトルと違う");
+        }
+
         [Test]
         public void 状態の長さが不正なら例外()
         {

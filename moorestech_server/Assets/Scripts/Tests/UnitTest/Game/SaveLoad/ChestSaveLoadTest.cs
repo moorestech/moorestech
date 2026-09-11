@@ -12,6 +12,8 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using Newtonsoft.Json;
 
+using Tests.Util;
+
 namespace Tests.UnitTest.Game.SaveLoad
 {
     public class ChestSaveLoadTest
@@ -38,7 +40,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             chestInventory.SetItemWithoutEvent(4, ServerContext.ItemStackFactory.Create(new ItemId(3), 3));
             
             var save = chest.GetSaveState();
-            var states = new Dictionary<string, object>() { { chest.SaveKey, save } };
+            var states = SaveLoadJsonTestHelper.ThroughJson(chest.SaveKey, save);
             Debug.Log(JsonConvert.SerializeObject(save));
             
             var chestBlock2 = blockFactory.Load(blockGuid, new BlockInstanceId(1), states, chestPosInfo);

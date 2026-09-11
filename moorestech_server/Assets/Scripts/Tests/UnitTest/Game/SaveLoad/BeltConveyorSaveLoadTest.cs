@@ -15,6 +15,8 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using Newtonsoft.Json;
 
+using Tests.Util;
+
 namespace Tests.UnitTest.Game.SaveLoad
 {
     /// <summary>
@@ -65,7 +67,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // セーブデータ取得
             // Get save data
-            var states = new Dictionary<string, object> { { belt.SaveKey, belt.GetSaveState() } };
+            var states = SaveLoadJsonTestHelper.ThroughJson(belt.SaveKey, belt.GetSaveState());
             Debug.Log(JsonConvert.SerializeObject(states[belt.SaveKey]));
 
             // セーブデータをロード（異なるBlockInstanceIdを使用）
@@ -138,7 +140,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             // セーブデータ取得
             // Get save data
             var saveState = belt.GetSaveState();
-            var states = new Dictionary<string, object>() { { belt.SaveKey, saveState } };
+            var states = SaveLoadJsonTestHelper.ThroughJson(belt.SaveKey, saveState);
             Debug.Log(JsonConvert.SerializeObject(saveState));
 
             // セーブデータをロード（異なるBlockInstanceIdを使用してGearNetworkの重複登録を避ける）

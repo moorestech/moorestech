@@ -119,7 +119,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             block.GetComponent<ICleanRoomAirFilter>().ApplyRemovedImpurity(4900);
 
             var saveComponent = block.GetComponent<IBlockSaveState>();
-            var states = new Dictionary<string, object> { { saveComponent.SaveKey, saveComponent.GetSaveState() } };
+            var states = SaveLoadJsonTestHelper.ThroughJson(saveComponent.SaveKey, saveComponent.GetSaveState());
 
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.CleanRoomAirFilterId).BlockGuid;
             var positionInfo = new BlockPositionInfo(new Vector3Int(10, 0, 10), BlockDirection.North, Vector3Int.one);
