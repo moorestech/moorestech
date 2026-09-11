@@ -75,7 +75,7 @@ namespace Client.Tests.Gear
             var before = new List<Quaternion>();
             foreach (var target in targets) before.Add(target.rotation);
 
-            processor.Rotate(new GearStateDetail(true, 60f, 0f), 1f / 60f);
+            processor.Rotate(new GearStateDetail(true, 60f, 0f, GearRole.Consumer), 1f / 60f);
 
             var deltas = new List<Quaternion>();
             for (var i = 0; i < targets.Count; i++) deltas.Add(targets[i].rotation * Quaternion.Inverse(before[i]));

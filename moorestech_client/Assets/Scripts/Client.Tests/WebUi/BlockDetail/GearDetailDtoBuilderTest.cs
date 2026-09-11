@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Client.WebUiHost.Game.Topics.BlockDetail;
 using Core.Master;
 using Game.Gear.Common;
@@ -6,24 +7,26 @@ using Mooresmaster.Model.GearConsumptionModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.WebUi.BlockDetail
 {
     /// <summary>
-    /// 歯車の役割と基準RPMがスキーマの IGearConsumptionParam だけで決まることを固定する
-    /// Pins that the gear's role and base RPM are settled solely by the schema's IGearConsumptionParam
+    /// 歯車の役割はサーバー送信のRoleを写し、基準RPMは消費側だけマスタから引くことを固定する
+    /// Pins that the gear role copies the server-sent Role and base RPM comes from master only for consumers
     /// </summary>
     public class GearDetailDtoBuilderTest
     {
-        // 実マスタの発電機ブロック。gearConsumptionを持たないので発電機かつ基準RPM無し
-        // The real generator block from master: it has no gearConsumption, so it is a generator with no base RPM
+        // 実マスタの発電機ブロック。サーバーが発電機と送れば基準RPM無し
+        // The real generator block from master: when the server says generator there is no base RPM
         [Test]
         public void BuildGearDetailOmitsBaseRpmForMasterGeneratorBlock()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             var param = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.SimpleGearGenerator).BlockParam;
-            var gearDto = GearDetailDtoBuilder.BuildGearDetail(new GearStateDetail(true, 20f, 5f), param);
+            var gearDto = GearDetailDtoBuilder.BuildGearDetail(new GearStateDetail(true, 20f, 5f, GearRole.Generator), param);
 
             Assert.AreEqual("generator", gearDto.Role);
             Assert.IsNull(gearDto.BaseRpm);
@@ -31,8 +34,8 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.AreEqual(5f, gearDto.CurrentTorque, 0.001f);
         }
 
-        // 実マスタの歯車機械。gearConsumptionを持つので消費側かつ基準RPMはマスタ値そのもの
-        // The real gear machine from master: it has gearConsumption, so it is a consumer whose base RPM is the master value
+        // 実マスタの歯車機械。消費側の基準RPMはマスタ値そのもの
+        // The real gear machine from master: a consumer's base RPM is the master value itself
         [Test]
         public void BuildGearDetailCarriesMasterBaseRpmForMasterConsumerBlock()
         {
@@ -40,7 +43,7 @@ namespace Client.Tests.WebUi.BlockDetail
 
             var master = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearMachine);
             var expectedBaseRpm = (float)((IGearConsumptionParam)master.BlockParam).GearConsumption.BaseRpm;
-            var gearDto = GearDetailDtoBuilder.BuildGearDetail(new GearStateDetail(true, 12.5f, 3f), master.BlockParam);
+            var gearDto = GearDetailDtoBuilder.BuildGearDetail(new GearStateDetail(true, 12.5f, 3f, GearRole.Consumer), master.BlockParam);
 
             Assert.AreEqual("consumer", gearDto.Role);
             Assert.AreEqual(10f, expectedBaseRpm, 0.001f);
@@ -49,26 +52,37 @@ namespace Client.Tests.WebUi.BlockDetail
             Assert.AreEqual(3f, gearDto.CurrentTorque, 0.001f);
         }
 
-        // 消費パラメータを持つブロックは消費側で、基準RPMはパラメータから来る
-        // A block carrying the consumption param is a consumer, and its base RPM comes from that param
+        // 消費側の基準RPMは消費パラメータから来る
+        // A consumer's base RPM comes from its consumption param
         [Test]
         public void BuildGearDetailReturnsConsumerForConsumptionParam()
         {
-            var gearDto = GearDetailDtoBuilder.BuildGearDetail(new GearStateDetail(true, 1f, 2f), new GearConsumptionParamStub());
+            var gearDto = GearDetailDtoBuilder.BuildGearDetail(new GearStateDetail(true, 1f, 2f, GearRole.Consumer), new GearConsumptionParamStub());
 
             Assert.AreEqual("consumer", gearDto.Role);
             Assert.AreEqual(7f, gearDto.BaseRpm.Value, 0.001f);
         }
 
-        // 消費パラメータを持たないブロックは発電機で、基準RPMのキーはwireから落ちる
-        // A block without the consumption param is a generator, and the base RPM key drops off the wire
+        // 役割はマスタでなくサーバー値に従う。消費パラメータがあっても発電機なら基準RPMは落ちる
+        // The role follows the server, not master: a generator drops base RPM even with a consumption param
         [Test]
-        public void BuildGearDetailReturnsGeneratorForParamWithoutConsumption()
+        public void BuildGearDetailFollowsServerGeneratorRoleOverConsumptionParam()
         {
-            var gearDto = GearDetailDtoBuilder.BuildGearDetail(new GearStateDetail(true, 1f, 2f), new GearGeneratorParamStub());
+            var gearDto = GearDetailDtoBuilder.BuildGearDetail(new GearStateDetail(true, 1f, 2f, GearRole.Generator), new GearConsumptionParamStub());
 
             Assert.AreEqual("generator", gearDto.Role);
             Assert.IsNull(gearDto.BaseRpm);
+        }
+
+        // サーバーが消費側と言うのに消費パラメータが無い不整合は歯車行を出さずエラーログする
+        // A server-declared consumer without a consumption param omits the gear rows and logs an error
+        [Test]
+        public void BuildGearDetailOmitsGearForConsumerWithoutConsumptionParam()
+        {
+            LogAssert.Expect(LogType.Error, new Regex(@"\[GearDetailDtoBuilder\] Server reports GearRole\.Consumer"));
+            var gearDto = GearDetailDtoBuilder.BuildGearDetail(new GearStateDetail(true, 1f, 2f, GearRole.Consumer), new GearGeneratorParamStub());
+
+            Assert.IsNull(gearDto);
         }
 
         private class GearConsumptionParamStub : IGearConsumptionParam

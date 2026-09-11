@@ -75,7 +75,8 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor
                     var state = new GearStateDetail(
                         simulator.simulateIsClockwise,
                         simulator.simulateRpm,
-                        0
+                        0,
+                        GearRole.Consumer
                     );
                     simulator.targetProcessor.Rotate(state, deltaTime);
                 }

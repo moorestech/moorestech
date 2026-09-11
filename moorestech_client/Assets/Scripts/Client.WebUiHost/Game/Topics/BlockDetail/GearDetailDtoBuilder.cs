@@ -1,6 +1,7 @@
 using Client.Game.InGame.Block;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
+using UnityEngine;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
@@ -22,8 +23,8 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
         }
 
         /// <summary>
-        /// 役割と基準RPMを1つの分岐で決める。正本はスキーマの IGearConsumptionParam で、持たないブロックは発電機
-        /// One branch settles role and base RPM: the schema's IGearConsumptionParam is the authority, and blocks without it are generators
+        /// 役割はサーバー送信のGearStateDetail.Roleを写し、基準RPMだけ消費側のマスタから引く
+        /// Copies the server-sent GearStateDetail.Role and looks up base RPM from master only for consumers
         /// </summary>
         public static GearDetailDto BuildGearDetail(GearStateDetail gear, object param)
         {
@@ -33,18 +34,24 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 CurrentTorque = gear.CurrentTorque,
             };
 
-            // 基準RPMは消費側にしか存在しない。発電機の枝ではフィールドごとwireから省く
-            // A base RPM exists only on the consumer side; the generator branch omits the field from the wire entirely
-            if (param is IGearConsumptionParam consumptionParam)
-            {
-                gearDto.Role = ConsumerRole;
-                gearDto.BaseRpm = (float)consumptionParam.GearConsumption.BaseRpm;
-            }
-            else
+            // 発電機の枝は基準RPMをwireから省く
+            // The generator branch omits base RPM from the wire
+            if (gear.Role == GearRole.Generator)
             {
                 gearDto.Role = GeneratorRole;
+                return gearDto;
             }
 
+            // サーバーが消費側と言うのにマスタが消費パラメータを持たないのは不整合。歯車行を出さずログする
+            // A server-declared consumer without a consumption param in master is inconsistent; skip the gear rows and log it
+            if (param is not IGearConsumptionParam consumptionParam)
+            {
+                Debug.LogError($"[GearDetailDtoBuilder] Server reports GearRole.Consumer but block param {param?.GetType().Name} has no IGearConsumptionParam; gear rows are omitted");
+                return null;
+            }
+
+            gearDto.Role = ConsumerRole;
+            gearDto.BaseRpm = (float)consumptionParam.GearConsumption.BaseRpm;
             return gearDto;
         }
     }

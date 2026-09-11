@@ -69,6 +69,10 @@ namespace Game.Block.Blocks.Gear
             }
         }
 
+        // 役割の正本。IGearGenerator実装なら発電機、それ以外は消費側
+        // The authority on role: IGearGenerator implementors are generators, all others consumers
+        public GearRole Role => _owner is IGearGenerator ? GearRole.Generator : GearRole.Consumer;
+
         public bool IsCurrentClockwise
         {
             get
@@ -102,7 +106,7 @@ namespace Game.Block.Blocks.Gear
         // Serialize the derived current values into a client-facing state detail
         public BlockStateDetail GetBlockStateDetail()
         {
-            var stateDetail = new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive());
+            var stateDetail = new GearStateDetail(IsCurrentClockwise, CurrentRpm.AsPrimitive(), CurrentTorque.AsPrimitive(), Role);
             return new BlockStateDetail(GearStateDetail.BlockStateDetailKey, MessagePackSerializer.Serialize(stateDetail));
         }
 
