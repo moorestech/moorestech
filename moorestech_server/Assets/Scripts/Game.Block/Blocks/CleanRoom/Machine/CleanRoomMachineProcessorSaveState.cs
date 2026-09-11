@@ -43,7 +43,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             selectedRecipe = null;
             // 旧セーブではサイクル数以外が欠けるため、各値は個別に復元する
             // Older saves lack fields other than cycle count, so restore each value independently
-            if (componentStates == null || !BlockComponentStateReader.TryRead<CleanRoomMachineProcessorSaveJsonObject>(componentStates, saveKey, out var saveData)) return;
+            if (!BlockComponentStateReader.TryRead<CleanRoomMachineProcessorSaveJsonObject>(componentStates, saveKey, out var saveData)) return;
             cycleCount = saveData.CycleCount;
             RestoreSlots(saveData);
 

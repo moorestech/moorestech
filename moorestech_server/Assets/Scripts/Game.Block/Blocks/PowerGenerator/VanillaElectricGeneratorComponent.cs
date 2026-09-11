@@ -49,7 +49,6 @@ namespace Game.Block.Blocks.PowerGenerator
             : this(blockInstanceId, blockPositionInfo, param)
         {
             if (!BlockComponentStateReader.TryRead<VanillaElectricGeneratorSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
-            if (saveData == null) return;
 
             _fuelService.Restore(saveData);
             RestoreInventory(saveData);

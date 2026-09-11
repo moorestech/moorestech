@@ -53,7 +53,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
             if (BlockComponentStateReader.TryRead<TrainPlatformFluidContainerSaveJsonObject>(componentStates, SaveKey, out var saveData))
             {
-                if (saveData?.Fluid != null)
+                if (saveData.Fluid != null)
                 {
                     Container = new FluidTrainCarContainer(saveData.Fluid.ToFluidContainer(_capacity));
                 }

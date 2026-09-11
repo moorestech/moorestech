@@ -122,7 +122,6 @@ namespace Game.Block.Blocks.ElectricWire
             // Restore wire connections from saved data after all blocks are loaded
             if (_componentStates == null) return;
             if (!BlockComponentStateReader.TryRead<ElectricWireSaveDataJsonObject>(_componentStates, SaveKey, out var data)) return;
-            if (data == null) return;
 
             _wireConnections.Clear();
 

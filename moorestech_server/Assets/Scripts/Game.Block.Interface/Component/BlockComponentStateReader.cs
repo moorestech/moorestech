@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 namespace Game.Block.Interface.Component
 {
@@ -18,11 +19,20 @@ namespace Game.Block.Interface.Component
             return value;
         }
         
+        // 欠損・null の判定はここだけが持つ。呼び出し元ごとに先行/後追いの判定を書くと同じ入力が場所によって落ちたり無視されたりする
+        // Absence and null are decided only here; per-caller pre/post checks make the same input crash in one place and pass silently in another
         public static bool TryRead<T>(IReadOnlyDictionary<string, object> componentStates, string saveKey, out T value)
         {
+            value = default;
+            if (componentStates == null)
+            {
+                Debug.LogWarning($"ブロックのセーブ状態が丸ごとありません。キー {saveKey} の復元を見送ります");
+                return false;
+            }
+            
             if (!componentStates.TryGetValue(saveKey, out var raw))
             {
-                value = default;
+                Debug.Log($"ブロックのセーブ状態にキー {saveKey} がないため、このコンポーネントの復元を見送ります");
                 return false;
             }
             
@@ -33,13 +43,16 @@ namespace Game.Block.Interface.Component
                 throw new InvalidOperationException($"キー {saveKey} のセーブ状態が旧形式（JSON文字列）です。scripts/save_migration/migrate_block_state_objects.py で移行してください");
             }
             
-            if (raw is JToken token)
+            value = raw is JToken token ? token.ToObject<T>() : (T)raw;
+            
+            // 明示的な null（"key": null）は復元できる値ではない。true を返すと呼び出し元が逆参照して落ちる
+            // An explicit null ("key": null) is not a restorable value; returning true would make the caller dereference it
+            if (value == null)
             {
-                value = token.ToObject<T>();
-                return true;
+                Debug.LogWarning($"キー {saveKey} のセーブ状態が null のため、このコンポーネントの復元を見送ります");
+                return false;
             }
             
-            value = (T)raw;
             return true;
         }
     }

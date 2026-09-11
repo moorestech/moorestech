@@ -45,7 +45,7 @@ namespace Game.Block.Blocks.Fluid
 
             // セーブデータがある場合は内容量・流体ID・面速度を復元する
             // Restore amount, fluid id and face velocities when save data exists
-            if (componentStates != null && BlockComponentStateReader.TryRead<FluidPipeSaveJsonObject>(componentStates, FluidPipeSaveComponent.SaveKeyStatic, out var jsonObject))
+            if (BlockComponentStateReader.TryRead<FluidPipeSaveJsonObject>(componentStates, FluidPipeSaveComponent.SaveKeyStatic, out var jsonObject))
             {
                 Node.Amount = Math.Min(jsonObject.Amount, Node.Capacity);
                 Node.FluidId = jsonObject.FluidId;

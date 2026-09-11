@@ -63,7 +63,7 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             void LoadContainer()
             {
                 if (!BlockComponentStateReader.TryRead<TrainPlatformItemContainerSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
-                if (saveData?.Items == null) return;
+                if (saveData.Items == null) return;
 
                 // マスタ定義のスロット数で配列を確保し、保存済みスタックを詰めて再構築する（不足は空、超過は切り捨て）
                 // Allocate by the master slot count and fill with saved stacks, then rebuild (pad empty, drop overflow)

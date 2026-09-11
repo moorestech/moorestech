@@ -38,7 +38,7 @@ namespace Game.Block.Blocks.Pump
 
         public PumpFluidOutputComponent(Dictionary<string, object> componentStates, float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector) : this(capacity, fluidConnector)
         {
-            if (!BlockComponentStateReader.TryRead<FluidContainerSaveJsonObject>(componentStates, SaveKey, out var json) || json == null)
+            if (!BlockComponentStateReader.TryRead<FluidContainerSaveJsonObject>(componentStates, SaveKey, out var json))
             {
                 return;
             }

@@ -82,7 +82,7 @@ namespace Game.Block.Blocks.ElectricToGear
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
             this(param, blockInstanceId, connectorComponent)
         {
-            if (componentStates == null || !BlockComponentStateReader.TryRead<ElectricToGearGeneratorSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
+            if (!BlockComponentStateReader.TryRead<ElectricToGearGeneratorSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
             if (saveData == null) return;
             SelectedIndex = Mathf.Clamp(saveData.SelectedIndex, 0, _param.OutputModes.Length - 1);
             _batteryRemaining = Mathf.Clamp(saveData.BatteryRemaining, 0f, BatteryCapacity);

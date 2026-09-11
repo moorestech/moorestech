@@ -140,7 +140,6 @@ namespace Game.Block.Blocks.GearChainPole
             // Restore chain connections from saved data after all blocks are loaded
             if (_componentStates == null) return;
             if (!BlockComponentStateReader.TryRead<GearChainPoleSaveDataJsonObject>(_componentStates, SaveKey, out var data)) return;
-            if (data == null) return;
 
             _chainTargets.Clear();
             

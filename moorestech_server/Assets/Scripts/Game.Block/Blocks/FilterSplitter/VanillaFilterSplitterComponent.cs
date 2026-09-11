@@ -59,7 +59,7 @@ namespace Game.Block.Blocks.FilterSplitter
             this(blockInstanceId, connectorComponent, outputConnectorElements, filterSlotCountPerDirection)
         {
             if (!BlockComponentStateReader.TryRead<SaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
-            if (saveData?.Directions == null) return;
+            if (saveData.Directions == null) return;
 
             // 保存データの方向を ConnectorGuid ベースで現方向にマップして復元する
             // Restore each saved direction by mapping its ConnectorGuid onto current directions
