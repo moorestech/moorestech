@@ -1,6 +1,8 @@
 using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
+using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
@@ -37,6 +39,11 @@ namespace Client.Starter.Registration
             // Register the logical models for the web UI
             builder.RegisterEntryPoint<NetworkDisconnectState>().AsSelf();
             builder.Register<GameSaveRequester>(Lifetime.Singleton);
+
+            // バグ報告の常時記録（ログリング・録画リング）
+            // Always-on capture for bug reports (log ring, frame recording ring)
+            builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
+            builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements
