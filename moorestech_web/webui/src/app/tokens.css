@@ -140,6 +140,10 @@
   --panel-action-button-height: 28.609px;
   --panel-action-button-font-size: 15px;
   --panel-action-button-hover-mix: 22%;
+  /* ポーズメニューのバグ報告記述欄。パネル内幅（420−32×2）と3行ぶんを固定長で持つ */
+  /* Bug-report textarea in the pause menu; fixed lengths for the inner panel width (420−32×2) and three lines */
+  --bug-report-textarea-width: 356px;
+  --bug-report-textarea-height: 72px;
   /* HUD面の安全帯。フェード帯を超える余白で、チャレンジHUDの面幅導出とも共有する */
   /* HUD face safe area: padding wider than the fade band, shared with the challenge HUD's width derivation */
   --hud-panel-padding: 14px;

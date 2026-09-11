@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NestedPauseSubStateNames } from "@/bridge";
-import { NotificationDataSchema, UiStateDataSchema } from "./ui";
+import { NotificationDataSchema, PauseMenuDataSchema, UiStateDataSchema } from "./ui";
 
 describe("NotificationDataSchema", () => {
   it("itemId: nullをomittedと同様に受理する（シリアライザ揺れ耐性）", () => {
@@ -43,5 +43,12 @@ describe("UiStateDataSchema", () => {
   it("keyHints未着のペイロードは契約破れとして弾く", () => {
     const parsed = UiStateDataSchema.safeParse({ state: "GameScreen" });
     expect(parsed.success).toBe(false);
+  });
+});
+
+describe("PauseMenuDataSchema", () => {
+  it("bugReport を持つ", () => {
+    const parsed = PauseMenuDataSchema.parse({ disconnected: false, bugReport: { hasSession: true, capturePending: false, missing: ["video"] } });
+    expect(parsed.bugReport.missing).toEqual(["video"]);
   });
 });

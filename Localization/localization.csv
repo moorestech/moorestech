@@ -264,3 +264,8 @@ ui.tooltip.interactOpenBlock,[F] Open {p0},[F] Open {p0},[F] {p0}を開く,[F] {
 ui.tooltip.interactOpenTrainInventory,[F] Open car inventory,[F] Open car inventory,[F] 車両インベントリを開く,[F] Wageninventar öffnen
 ui.tooltip.interactRideTrain,[E] Ride,[E] Ride,[E] 乗車,[E] Einsteigen
 ui.tooltip.namedCannotHandMine,{p0} : Cannot be mined by hand,{p0} : Cannot be mined by hand,{p0} : 手掘りできません,{p0} : Kann nicht von Hand abgebaut werden
+ui.bugReport.placeholder,What happened? (what you did and what went wrong),What happened? (what you did and what went wrong),何が起きた？（何をして・何がおかしかったか）,Was ist passiert? (was du getan hast und was schiefging)
+ui.bugReport.send,Send bug report,Send bug report,バグ報告を送信,Fehlerbericht senden
+ui.bugReport.sent,Bug report saved to outbox,Bug report saved to outbox,バグ報告をoutboxに書き出しました,Fehlerbericht im Postausgang gespeichert
+ui.bugReport.capturePending,Securing the recording…,Securing the recording…,記録を確保しています…,Aufzeichnung wird gesichert…
+ui.bugReport.missing,Missing: {items},Missing: {items},欠けている項目: {items},Fehlt: {items}

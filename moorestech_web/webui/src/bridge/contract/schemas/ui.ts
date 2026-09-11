@@ -38,7 +38,14 @@ export const LocalizationDataSchema = z.object({
   revision: z.number().int().nonnegative(),
 });
 export const EventLanguageGateDataSchema = z.object({ waiting: z.boolean() });
-export const PauseMenuDataSchema = z.object({ disconnected: z.boolean() });
+// 確保セッションの状態はC#が判定して配る。Web側は文言の出し分けにだけ使う
+// C# decides the capture-session state and publishes it; the Web only picks which line to show
+export const BugReportStatusSchema = z.object({
+  hasSession: z.boolean(),
+  capturePending: z.boolean(),
+  missing: z.array(z.string()),
+});
+export const PauseMenuDataSchema = z.object({ disconnected: z.boolean(), bugReport: BugReportStatusSchema });
 const PlacementModeCommonFields = {
   height: z.number().int(),
   unavailableReason: z.string(),

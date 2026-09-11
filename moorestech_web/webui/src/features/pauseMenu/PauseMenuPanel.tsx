@@ -3,6 +3,7 @@ import { dispatchAction, Topics, useTopic } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { LanguageSelect } from "@/features/settings";
+import { BugReportForm } from "./BugReportForm";
 import styles from "./style.module.css";
 
 export function PauseMenuPanel() {
@@ -27,6 +28,9 @@ export function PauseMenuPanel() {
         <Button {...tutorialAnchor(TutorialAnchorIds.pauseBack)} onClick={quit}>
           {quitLabel}
         </Button>
+        {/* 送信後の閉じはC#の RequestClose() が行うため、webui側は何もしない */}
+        {/* C#'s RequestClose() closes the menu after a send, so the webui side does nothing */}
+        {data && <BugReportForm status={data.bugReport} onSent={() => {}} />}
         <LanguageSelect />
       </Stack>
     </section>

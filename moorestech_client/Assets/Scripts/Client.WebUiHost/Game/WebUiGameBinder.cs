@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BugReport;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Game.PlacementTarget;
@@ -12,6 +13,7 @@ using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.UIState;
 using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
+using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.Hotbar;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
@@ -95,7 +97,7 @@ namespace Client.WebUiHost.Game
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
             var networkDisconnectState = resolver.Resolve<NetworkDisconnectState>();
-            var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectState);
+            var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectState, resolver.Resolve<BugReportCaptureSession>());
             hub.RegisterTopic(PauseMenuTopic.TopicName, pauseMenuTopic);
 
             // 設置モードHUDを既存の設置状態へ接続する
@@ -196,6 +198,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));
             hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
+            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<PauseMenuStateService>()));
         }
     }
 }
