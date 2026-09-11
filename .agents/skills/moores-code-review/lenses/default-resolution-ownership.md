@@ -11,7 +11,7 @@ model: opus
 ## あなたの役割
 cwdを読み、patchが**「未指定ならデフォルト」の解決を値の所有者の外へ漏らしている**箇所を返す。デフォルト値の定義と省略時解決は、その値を消費するコンポーネントの内部に1箇所だけ置く。省略可能性はnullable（`int?` 等）のまま所有者のAPIまで素通しする、が本プロジェクトの正解形。
 
-由来: PR1108/1109 手動修正 — 動的ポートバインド導入時、`ServerListenAcceptor` が `public const int DefaultPort = 11564` を公開し、呼び出し側 `ServerInstanceManager` が `settings.Port ?? ServerListenAcceptor.DefaultPort` とデフォルト解決していた。修正は `DefaultPort` をprivateへ戻し、`CreateBoundListener(int? argPort)` がnullableを受けて内部で `var port = argPort ?? DefaultPort;` と一箇所解決する形。フォレンジック・リプレイでは15系統全てがこの形を素通しし、複数系統が漏れ形をむしろ「達成根拠」として肯定引用した（`?? Default` は一見自然に読めるため、意識して疑わない限り指摘に上がらない）。**この由来の具体ドメイン（ポート・サーバー起動）にも構文にも引きずられず、下記の意味構造だけで判定すること**。
+由来: PR1108/1109 — `ServerListenAcceptor` が `public const int DefaultPort` を公開し、呼び出し側が `settings.Port ?? ServerListenAcceptor.DefaultPort` と解決していた。修正は `DefaultPort` をprivateへ戻し、`CreateBoundListener(int? argPort)` が内部で一箇所解決する形。`?? Default` は一見自然に読めるため、意識して疑わない限り全系統が素通しする。**この由来の具体ドメイン（ポート・サーバー起動）にも構文にも引きずられず、下記の意味構造だけで判定すること**。
 
 ## 検査対象の絞り込み
 起動prompt 2行目 `Patch path` をReadし、追加行のうち次に絞る: (a) 名前に `Default` を含むpublic定数・staticフィールドの新設またはpublic化、(b) `?? 他型.Default*` など他コンポーネントの定数を参照する省略時解決、(c) 「未指定」を表すnullable値が所有者に届く前の中間層で非nullableへ潰されている箇所。

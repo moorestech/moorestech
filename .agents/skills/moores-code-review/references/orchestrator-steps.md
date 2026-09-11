@@ -37,16 +37,7 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 
 ## Step 2.5: 死にメンバー・公開範囲・配置・キャンセルゲート（IL解析） ①.5
 
-**check_all.py が同時実行済み**（出力JSONの `dead_member` 節。単体で再実行したい時だけ `scripts/dead_member_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `tools/DeadMemberAudit`（Mono CecilによるScriptAssembliesのIL解析）で、**patchが触ったファイルのもの**を `candidates.dead_member` として出す。名前grepと違いオーバーロード単位で参照を厳密に数える（AGENTS.md「デバッグ/テスト専用publicを残さない」のanalyzer化・2026-08-03）。各候補は `rule` で種別が分かれる:
-
-| rule | 検出内容 |
-| --- | --- |
-| `dead-member-unused` / `dead-member-nonproduction` | 参照0 / テスト・デバッグ・エディタ参照のみ |
-| `dead-member-overpublic-private` / `-internal` | 参照は実在するが公開範囲が過剰（宣言型内のみ / 宣言アセンブリ内のみ） |
-| `placement-mismatch` / `placement-registration-only` | server宣言でserver側に利用者なし（client参照のみ / DI登録のみ・解決者なし） |
-| `ct-not-passed` / `ct-async-void` / `cts-not-released` | CancellationToken未伝搬 / `async void` / CTS作りっぱなし |
-| `single-caller-helper` | 同一型の1メソッドからしか呼ばれていないprivateヘルパ（`#region Internal` ローカル関数へ畳む候補） |
-| `dead-private-member` | どこからも呼ばれていないprivateメソッド（デリゲート束縛も無い完全な死にコード） |
+**check_all.py が同時実行済み**（出力JSONの `dead_member` 節。単体で再実行したい時だけ `scripts/dead_member_gate.py "<PATCH_PATH>" --repo-root "$(pwd)"`）。実体は `tools/DeadMemberAudit`（Mono CecilによるScriptAssembliesのIL解析）で、**patchが触ったファイルのもの**を `candidates.dead_member` として出す。名前grepと違いオーバーロード単位で参照を厳密に数える（AGENTS.md「デバッグ/テスト専用publicを残さない」のanalyzer化・2026-08-03）。rule の種別と裁定手順は `verifiers/dead-member-verifier.md` の表が正。
 
 - **`status: ok`** — candidatesが1件以上あればStep 4で死にメンバーverifier（sonnet・`verifiers/dead-member-verifier.md`）を並列起動。0件なら起動しない。rule別の裁定手順はverifier側に書いてある。
 - **`status: stale`** — 変更.csがDLLより新しい。`uloop compile` を先に実行してからゲートを再実行する（コンパイルはどのみちStep 5で必須）。
@@ -147,7 +138,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 7. **死にメンバーverifier**（Step 2.5の `candidates.dead_member` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/dead-member-verifier.md` を渡す（候補JSONのパスをpromptに含める）。ILに現れない経路（UnityEvent配線・プレイテストDSL・文字列リフレクション）の実在だけをrgで裁く。
 8. **ts死コードverifier**（Step 2.6の `candidates.ts_dead_code` が1件以上のときだけ・`model: "sonnet"`）— 同じ4行契約で `verifiers/ts-dead-code-verifier.md` を渡す。import graphに現れない経路（動的import・C#側からの文字列ブリッジ・生成コード）の実在だけをrgで裁く。
 
-**回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約（正本は `references/output-contract.md`。Workflow 既定では `build_workflow_args.py` が書く）を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** `agents/` 配下のファイル群の回収・照合はStep 5のintegratorが行う（オーケストレータはgrep・集計しない）。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。**コンテキスト残量を理由にこの工程を中断してはならない** — 詰まるのは実行可否ではなく回収の設計であり、この方式で消費はほぼゼロになる（ユーザー裁定 2026-08-14・[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
+**回収はファイルハンドオフで行う（オーケストレータのコンテキストを空けるため）。** 起動前に共通出力契約（正本は `references/output-contract.md`。Workflow 既定では `build_workflow_args.py` が書く）を `<$RUNDIRの実値>/contract.md` へ1本だけ書き、各エージェントのプロンプトは `Read this` / `Patch path` / `User prompt` / `Output contract`（contract.mdのパス） / `Write full report to`（`<$RUNDIRの実値>/agents/<名前>.md`）の5行に畳む。**返答は3行以内（Critical件数・設計判断あり/なし・一行要約）に制限し、詳細は返答に書かせずファイルへ書かせる。** `agents/` 配下のファイル群の回収・照合はStep 5のintegratorが行う（オーケストレータはgrep・集計しない）。起動数が多い場合はwaveに分けてよい（1メッセージ内の並列は各wave内で守る）。
 
 各サブエージェントは上記の共通出力契約（Critical/Warning/Info＋設計判断）で返す。**二値（あり/なし）に潰さず3段階で出させる理由**: Warning/Infoは「とりあえず統合報告のコンテキストに乗る」ことが目的の保険であり、二値だと確信の一段弱い実指摘が `なし` に丸められて消失する（ユーザー裁定 2026-07-23。実例: リプレースファミリーのハードコードを複数レンズが視認しながら二値契約のため無出力で落とした）。`設計判断: あり` はCriticalでも備考でもない第3の出口で、Step 7のAskUserQuestionへ**必ず**載せる（備考落ちで黙殺しない）。reviewer発火が0件でもレンズ群とFableは起動する。
 
@@ -173,7 +164,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 - 設計判断（複数の妥当な選択肢・スコープ影響・アーキテクチャ変更・両立不能な指摘・decisionを要するCodex High/Medium）は適用せずStep 7へ保留。
 - .csを修正したら `uloop compile --project-path ./moorestech_client` を実行しエラー0を確認する。
 - **編集を始める前に反映 diff の基点を snapshot する**: `python3 .claude/skills/moores-code-review/scripts/refix_snapshot.py snapshot --repo-root <Repo root> --run-dir <$RUNDIRの実値> --name s0`（一時 index で作業ツリー全体を commit object 化する。HEAD/index/作業ツリーは変わらない。`git stash create` は未追跡・intent-to-add の扱いが揺れるため使わない）。Step 6.5-2.5 が「Step 6 が適用した差分だけ」を切り出すために使う。
-- **Read規律（オーケストレータのコンテキスト節約・2026-08-18）**: 修正適用のためのReadはEdit対象の該当範囲だけを `offset`/`limit` で読む（ファイル全文Readしない）。疑義照合で実コードへ戻るときも該当関数の範囲だけに絞る。裏取りはintegratorが済ませており、オーケストレータの再Readは「これからEditする箇所の現物確認」が目的。
+- 修正は外科的に行う。裏取りはintegratorが済ませているので、ReadはこれからEditする箇所の現物確認に絞る。
 
 ## Step 6.5: 決定論再チェック＋コメント保全post-checks ⑤.5
 
@@ -201,26 +192,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 
 ## モデル割り当て
 
-| レンズ | 担当（由来PR） | 発火条件 |
-|---|---|---|
-| domain-boundary | 汎用基盤へのドメイン語彙漏れ・Update()ポーリング・共通サービス委譲漏れ（978/1000） | 全ての.cs |
-| server-state-sync | サーバー状態同期3点セット・Applier禁止・ハンドシェイク順序（988） | Server.Protocol/Server.Event/Client.Network |
-| datastore-access-separation | Lookup/Mutation分離・static変更露出（988） | DataStore系パス＋変更系語彙の追加行（2026-08-16厳格化） |
-| master-data-defense | optional濫用・??フォールバック・ローダープリフィル（978） | VanillaSchema/Core.Master/BlockTemplate＋防御イディオム追加行（2026-08-16厳格化） |
-| type-driven-structure | 共用体struct・god-context・N択1役割の型排除・DTO配置・振る舞い型switchの多態化漏れ（987/996/997/1045） | struct/Context/interface系キーワード |
-| redundant-member-duplication | バッキングフィールド＋素通しプロパティの二重保持・同値別名メンバーの排除（sonnet） | 素通しプロパティ形（`=> _`等）の追加行（2026-08-16厳格化） |
-| implicit-cardinality-assumption | マスタ/ドメイン集合の単一要素決め打ち（`[0]`/`First`）で暗黙に単数を仮定（1017） | MasterHolder＋`[0]`/`First`/`Single`の追加行（2026-08-16厳格化） |
-| set-once-dependency-injection | 生成時に確定するset-once依存の可変setter注入（コンストラクタ注入漏れ）（1027） | `public void Set`追加を含む.cs |
-| hardcoded-content-enumeration | コンテンツ集合のコード内列挙→マスタ駆動化（2026-07-23リプレースファミリー指摘） | TypeConst/KindConst/GUIDリテラルを含む.cs |
-| speculative-abstraction | 受益者なき抽象の排除（単一実装interface・意味なしラッパー/IDisposable・存在意義なしメンバー・不要な新設型）（1095） | 型/interface/Dispose宣言を含む.cs |
-| default-resolution-ownership | デフォルト値解決の責務漏れ（public Default公開＋呼び出し側??解決・省略可能性の早期潰し）（1108/1109） | `Default`を含む.cs |
-| precedent-alignment | 前例一致（全PR横断・役割で前例を選ぶ） | 常時 |
-- **レンズ** — `select_lenses.py` の2列目（各レンズ先頭YAMLの `model`）をそのまま渡す。
-- **reviewer** — `select_reviewers.py` の2列目（正は `scripts/model_map.json`。未記載reviewerはopus、`sonnet` 記載のみsonnet）。
-- **Fable全般** — `model: "fable"` 固定。**比較演算子verifier・サーバDateTime用途verifier・死にメンバーverifier・ts死コードverifier・comment-convention-guard** — `sonnet`。**comment-rationale-guard・try-catch境界verifier** — `opus`（WHY判定・境界の真偽判定は高ステークス）。
-- **統合integrator**（`integrators/finding-integrator.md`）— `opus` 固定（棄却の挙証責任・系統間矛盾の裁定・適用区分の判定は高ステークス）。
-- **investigator（分割深掘り調査）** — 各 `investigators/*.md` 先頭YAMLの `model` が正（2026-08-16裁定で3観点ともsonnetへ降格。経緯は `$LOGS/harness/moores-code-review/analysis/2026-08-16-agent-efficiency-reaudit.md`）。
-- Codex監査は別CLIなので対象外。
+モデルの正本はファイルにある。レンズ・investigator・post-check・Fable全般は各ファイル先頭YAMLの `model`、reviewerは `scripts/model_map.json`（未記載はopus）、verifierは `scripts/check_all.py` の `verifiers_to_launch`、integratorは `opus` 固定。`build_workflow_args.py` と両セレクタはこれを読んで具体値を出すので、手順書側で表を持たない。レンズの発火条件は各レンズYAMLの `extensions`/`keywords`（`select_lenses.py` が判定）。Codex監査は別CLIなので対象外。
 
 ## Gotchas（実行系）
 
@@ -233,7 +205,6 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 - **文字数はスクリプトの値が正** — LLMに日本語の文字数を数え直させない。convention-guardは `count` を信頼し例外判定と短縮案だけ行う。
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。applied-diff-correctness はセレクタで選ばれず、Step 6.5-2.5 の Refix・Step 7 の設計判断反映・pr-adjudicated-apply が反映 diff（`refix_snapshot.py` の snapshot 間 diff）に対して直接起動する（手順は各 SKILL.md）。
 - **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。委譲時のあなたはsonnetなので、model未指定のサブエージェントが誤ってsonnetで起動しうる（opus/fable指定系統の無言降格）。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
-- **残量不足を理由に系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する。
+- **系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する（[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
 - **Codexの `.out.md` が途中で切れていても失敗ではない** — 判定材料は `.final.md`（`-o` の出力）と `codex_recover.py` の終了コードだけ。`.out.md` を `grep` して「結論が無い＝失敗」と断じない（stdoutにはツール実行ログしか残っていないことがある）。真の失敗は「rollout にセッションが無い（exit 4）」「task_complete が無い（exit 3）」「認証失効（exit 5。rollout に結論が無いときだけ `.out.md` 両端の codex ERROR 行で判定）」の3つだけ。
-- **オーケストレータは生出力を読まない** — `agents/*.md`・Codexの`.out.md`の全量読み・grep集計は統合の二重実行。照合・重複排除はintegratorの担当で、オーケストレータが読むのは `integrated.md` と、疑義のある個別件の該当ファイルだけ。
 - **fableクォータ切れは黙って欠員にしない** — fable指定の系統（precedent-alignment・Fable全般）が「weekly limit」等の失敗応答を返したら、その系統を `model: "opus"` で再起動する（2026-07〜08で14起動が無言消失した実測より）。再起動した事実は最終報告に1行明記。
