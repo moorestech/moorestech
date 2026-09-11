@@ -45,6 +45,9 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
             builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
+            builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
+            builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

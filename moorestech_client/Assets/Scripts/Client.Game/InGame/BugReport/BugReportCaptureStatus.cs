@@ -36,11 +36,31 @@ namespace Client.Game.InGame.BugReport
         public List<MissingItem> Missing = new();
     }
 
+    // サーバーへの即時スナップショット要求の結果。受理と拒否を型で分ける
+    // Outcome of the immediate-snapshot request; acceptance and rejection are distinguished by type
+    public readonly struct BugReportServerCaptureRequest
+    {
+        public readonly bool Accepted;
+        public readonly long CaptureId;
+        public readonly string RejectedReason;
+
+        public BugReportServerCaptureRequest(bool accepted, long captureId, string rejectedReason)
+        {
+            Accepted = accepted;
+            CaptureId = captureId;
+            RejectedReason = rejectedReason;
+        }
+    }
+
     // 確保セッションが記録を取る先。実装はゲーム内の取得元とテストのフェイク
     // Where the capture session takes its records from; implemented in-game and by a fake in tests
     public interface IBugReportCaptureSources
     {
-        UniTask<long> RequestServerCapture();
+        UniTask<BugReportServerCaptureRequest> RequestServerCapture();
+
+        // 完了イベントを待つ上限。超えたら確保を諦める（テストは即時完了するフェイクへ差し替える）
+        // Upper bound on waiting for the completion event; exceeding it abandons the capture
+        UniTask WaitServerCaptureTimeout();
         void CutRecordingSegment();
         IReadOnlyList<string> CompletedVideoSegments();
         string RecordingUnavailableReason();
