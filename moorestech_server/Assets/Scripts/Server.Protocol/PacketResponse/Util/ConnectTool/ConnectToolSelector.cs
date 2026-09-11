@@ -36,12 +36,21 @@ namespace Server.Protocol.PacketResponse.Util.ConnectTool
         /// </summary>
         public static IEnumerable<ConnectToolMasterElement> UnlockedByToolType(string toolType, IGameUnlockStateData unlockState)
         {
-            // 指定ToolTypeの解放済みエントリのみをSortPriority昇順で返す（OrderByは安定ソートなので同順位はマスタ順を保つ）
-            // Return only unlocked entries of the given ToolType ascending by SortPriority (OrderBy is stable, so ties keep master order)
+            return CandidatesByToolType(toolType, unlockState, false);
+        }
+
+        /// <summary>
+        /// 指定ToolTypeの候補をSortPriority昇順で返す。ignoreUnlockは無料設置デバッグ専用で、解放フィルタだけを外す（ADR 0056）
+        /// Lists candidates of the ToolType ascending by SortPriority; ignoreUnlock is for the free-placement debug only and drops just the unlock filter (ADR 0056)
+        /// </summary>
+        public static IEnumerable<ConnectToolMasterElement> CandidatesByToolType(string toolType, IGameUnlockStateData unlockState, bool ignoreUnlock)
+        {
+            // OrderByは安定ソートなので同順位はマスタ順を保つ
+            // OrderBy is stable, so ties keep master order
             var infos = unlockState.ConnectToolUnlockStateInfos;
             return MasterHolder.ConnectToolMaster.All
                 .Where(element => element.ToolType == toolType)
-                .Where(element => infos.TryGetValue(element.ConnectToolGuid, out var info) && info.IsUnlocked)
+                .Where(element => ignoreUnlock || (infos.TryGetValue(element.ConnectToolGuid, out var info) && info.IsUnlocked))
                 .OrderBy(element => element.SortPriority);
         }
     }
