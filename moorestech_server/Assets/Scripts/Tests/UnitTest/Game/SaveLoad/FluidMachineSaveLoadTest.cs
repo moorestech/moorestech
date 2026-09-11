@@ -63,7 +63,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             inputFluidContainers[1].Amount = 30.0;
 
             //液体をアウトプットタンクに追加
-            var outputFluidContainers = GetOutputFluidContainers(machineInventory);
+            var outputFluidContainers = MachineFluidTestUtil.GetOutputFluidContainers(machineInventory);
             outputFluidContainers[0].FluidId = fluidId3;
             outputFluidContainers[0].Amount = 15.0;
             outputFluidContainers[1].FluidId = fluidId1;
@@ -171,13 +171,5 @@ namespace Tests.UnitTest.Game.SaveLoad
             return vanillaMachineInputInventory.FluidInputSlot;
         }
 
-        private System.Collections.Generic.IReadOnlyList<FluidContainer> GetOutputFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
-        {
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
-                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(blockInventory);
-
-            return vanillaMachineOutputInventory.FluidOutputSlot;
-        }
     }
 }

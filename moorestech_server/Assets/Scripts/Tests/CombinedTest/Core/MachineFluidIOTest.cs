@@ -130,7 +130,7 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(0, 0, -1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var fluidPipeBlock3);
             
             // 機械に液体を設定
-            var fluidContainers = GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
+            var fluidContainers = MachineFluidTestUtil.GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
             Assert.AreEqual(2, fluidContainers.Count);
             
             const double fluidAmount1 = 40d;
@@ -228,7 +228,7 @@ namespace Tests.CombinedTest.Core
                 Assert.AreEqual(FluidMaster.EmptyFluidId, inputFluidContainers[i].FluidId, $"Fluid ID in container {i} should be reset to empty");
             }
             
-            var outputFluidContainers = GetOutputFluidContainers(blockInventory);
+            var outputFluidContainers = MachineFluidTestUtil.GetOutputFluidContainers(blockInventory);
             for (int i = 0; i < recipe.OutputFluids.Length; i++)
             {
                 var expectedFluidId = MasterHolder.FluidMaster.GetFluidId(recipe.OutputFluids[i].FluidGuid);
@@ -254,15 +254,6 @@ namespace Tests.CombinedTest.Core
                 .GetValue(blockInventory);
             
             return vanillaMachineInputInventory.FluidInputSlot;
-        }
-        
-        private IReadOnlyList<FluidContainer> GetOutputFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
-        {
-            var vanillaMachineOutputInventory = (VanillaMachineOutputInventory)typeof(VanillaMachineBlockInventoryComponent)
-                .GetField("_vanillaMachineOutputInventory", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(blockInventory);
-            
-            return vanillaMachineOutputInventory.FluidOutputSlot;
         }
         
         private (List<IItemStack>, List<IItemStack>) GetInputOutputSlot(VanillaMachineBlockInventoryComponent vanillaMachineInventory)
@@ -696,7 +687,7 @@ namespace Tests.CombinedTest.Core
             worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.FluidPipe, new Vector3Int(-1, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var outputPipeBlock);
             
             // 機械の出力タンクに液体を設定
-            var outputContainers = GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
+            var outputContainers = MachineFluidTestUtil.GetOutputFluidContainers(fluidMachineBlock.GetComponent<VanillaMachineBlockInventoryComponent>());
             const double outputFluidAmount = 30d;
             outputContainers[0].AddLiquid(new FluidStack(outputFluidAmount, FluidId2));
             

@@ -20,7 +20,7 @@ using UnityEngine;
 namespace Tests.CombinedTest.Core
 {
     /// <summary>
-    ///     ボイドパイプ（受け入れ面に届いた流体を全量消滅させる終端）のテスト。ADR 0056
+    ///     ボイドパイプ（全量消滅の終端）のテスト。ADR0056
     ///     Tests for the void pipe, a terminal sink that destroys every fluid reaching its inflow face. ADR 0056
     /// </summary>
     public class VoidPipeTest
@@ -32,7 +32,7 @@ namespace Tests.CombinedTest.Core
         // Rotation that turns the test void's (0,0,-1) inflow toward +X (Euler(0,270,0))
         private const BlockDirection VoidFacingPositiveX = BlockDirection.West;
 
-        // 流体種別を問わず全量を受け、残量0を返す。内容は何も保持しない
+        // 全量受入・残量0・保持なし
         // Accepts the full amount regardless of fluid kind, returns zero remainder and keeps nothing
         [Test]
         public void AddLiquidReturnsZeroRemainderAndHoldsNothing()
@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, voidPipe.GetFluidInventory().Count);
         }
 
-        // テンプレートはボイド本体とコネクタだけを組み立て、セーブコンポーネントを持たない
+        // 本体+コネクタのみ組立、セーブ無し
         // The template assembles only the void component and the connector, with no save component
         [Test]
         public void TemplateBuildsVoidComponentAndConnectorWithoutSaveState()
@@ -93,7 +93,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(0, nearPipe.GetAmount(), 0.01);
         }
 
-        // 受け入れ面以外に隣接したパイプはボイドに接続されず、内容量も減らない（R6）
+        // 受入面外は非接続・内容量維持(R6)
         // A pipe adjacent to any face other than the inflow face is not connected and keeps its amount (R6)
         [Test]
         public void PipeOnNonInflowFaceIsNotConnected()
@@ -120,7 +120,7 @@ namespace Tests.CombinedTest.Core
             Assert.AreEqual(50, backPipe.GetAmount(), 0.01);
         }
 
-        // 機械の出力タンクからボイドへ直接排出され、タンクが空になる（R5）
+        // 機械出力→ボイド直排出でタンク空に(R5)
         // A machine's output tank drains directly into an adjacent void and ends up empty (R5)
         [Test]
         public void MachineOutputDrainsDirectlyIntoVoid()

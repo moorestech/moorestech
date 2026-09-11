@@ -11,7 +11,7 @@ using Tests.Module.TestMod;
 
 namespace Tests.Util
 {
-    // 機械の液体テスト用ヘルパー。タンク指定のConnectedInfo組み立てと出力タンクの取り出しを担う
+    // 機械液体テストヘルパー：ConnectedInfo組立/出力タンク取得
     // Machine fluid test helpers: builds tank-designated ConnectedInfo and fetches output tanks
     public static class MachineFluidTestUtil
     {
@@ -25,7 +25,7 @@ namespace Tests.Util
             return new ConnectedInfo(connector, connector, null);
         }
 
-        // 機械の出力タンク列を取り出す（MachineFluidIOTest と同じ private フィールド経路）
+        // 出力タンク列取得（private field経由）
         // Fetch the machine's output tank list (same private-field route as MachineFluidIOTest)
         public static IReadOnlyList<FluidContainer> GetOutputFluidContainers(VanillaMachineBlockInventoryComponent blockInventory)
         {

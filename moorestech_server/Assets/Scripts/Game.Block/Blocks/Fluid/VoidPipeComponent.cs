@@ -17,7 +17,7 @@ namespace Game.Block.Blocks.Fluid
     {
         public FluidStack AddLiquid(FluidStack fluidStack, ConnectedInfo connectedInfo)
         {
-            // 全量を消滅させ、残量0を同じ流体IDで返す
+            // 全量消滅させ、残量0を同じ流体IDで返す
             // Destroy the full amount and return a zero remainder with the same fluid id
             return new FluidStack(0, fluidStack.FluidId);
         }
