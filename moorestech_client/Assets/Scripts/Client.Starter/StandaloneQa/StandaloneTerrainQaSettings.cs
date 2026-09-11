@@ -73,6 +73,7 @@ namespace Client.Starter.StandaloneQa
                 MapMode = WorldMapMode.Generated,
                 Seed = _seed,
                 AutoSave = false,
+                CaptureRing = false,
             };
 
             var proprieties = InitializeProprieties.CreateLocalServer(null);

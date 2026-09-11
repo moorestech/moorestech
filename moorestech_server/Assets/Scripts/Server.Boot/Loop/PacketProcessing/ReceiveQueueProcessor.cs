@@ -1,4 +1,6 @@
 using System.Threading;
+using Core.Update;
+using Game.SaveLoad.Snapshot;
 using Server.Protocol;
 
 namespace Server.Boot.Loop.PacketProcessing
@@ -9,18 +11,21 @@ namespace Server.Boot.Loop.PacketProcessing
         private readonly SendQueueProcessor _sendQueueProcessor;
         private readonly PacketResponseContext _packetResponseContext;
         private readonly TickEndPacketQueue _tickEndPacketQueue;
+        private readonly ReceivedPacketLog _receivedPacketLog;
         private int _isActive = 1;
 
         public ReceiveQueueProcessor(
             PacketResponseCreator packetResponseCreator,
             SendQueueProcessor sendQueueProcessor,
             PacketResponseContext packetResponseContext,
-            TickEndPacketQueue tickEndPacketQueue)
+            TickEndPacketQueue tickEndPacketQueue,
+            ReceivedPacketLog receivedPacketLog)
         {
             _packetResponseCreator = packetResponseCreator;
             _sendQueueProcessor = sendQueueProcessor;
             _packetResponseContext = packetResponseContext;
             _tickEndPacketQueue = tickEndPacketQueue;
+            _receivedPacketLog = receivedPacketLog;
         }
 
         public void EnqueuePacket(byte[] packet)
@@ -39,6 +44,10 @@ namespace Server.Boot.Loop.PacketProcessing
 
         private void ProcessPacket(byte[] packet)
         {
+            // 再生の真実はここ（tick末尾の処理点）。クライアント送信時刻ではなく処理tickで記録する
+            // Replay truth lives here at the tick-end processing point; record the processing tick, not the client send time
+            _receivedPacketLog.Append(GameUpdater.CurrentTick, packet);
+
             var results = _packetResponseCreator.GetPacketResponse(packet, _packetResponseContext);
 
             foreach (var result in results)

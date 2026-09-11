@@ -41,6 +41,7 @@ namespace Client.Playtest
                 MapMode = SessionState.GetString(MapModeKey, string.Empty),
                 Seed = SessionState.GetInt(SeedKey, 0),
                 AutoSave = false,
+                CaptureRing = false,
             };
 
             proprieties = InitializeProprieties.CreateLocalServer(null);

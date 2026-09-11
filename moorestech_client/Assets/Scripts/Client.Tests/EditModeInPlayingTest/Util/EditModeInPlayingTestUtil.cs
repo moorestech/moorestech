@@ -80,6 +80,7 @@ namespace Client.Tests.EditModeInPlayingTest.Util
                 {
                     WorldDirectory = worldDirectory,
                     AutoSave = false,
+                    CaptureRing = false,
                     ServerDataDirectory = serverDirectory,
                     MapMode = mapMode,
                 };

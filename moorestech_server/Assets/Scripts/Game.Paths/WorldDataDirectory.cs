@@ -16,6 +16,10 @@ namespace Game.Paths
         public string CacheReadmeFilePath { get; }
         public string ProvisioningTempDirectory { get; }
 
+        // 常時記録の置き場。セーブファイルの隣に置き、セーブごと持ち出せるようにする
+        // Where always-on capture lives: beside the save file so a bundle can carry both
+        public string SnapshotDirectory { get; }
+
         private WorldDataDirectory(string root, string worldMetaFilePath, string mapJsonFilePath, string saveJsonFilePath,
             string terrainDirectory, string terrainVisualDirectory, string cacheDirectory, string cacheReadmeFilePath,
             string provisioningTempDirectory)
@@ -29,6 +33,24 @@ namespace Game.Paths
             CacheDirectory = cacheDirectory;
             CacheReadmeFilePath = cacheReadmeFilePath;
             ProvisioningTempDirectory = provisioningTempDirectory;
+            SnapshotDirectory = saveJsonFilePath == null ? null : Path.Combine(Path.GetDirectoryName(saveJsonFilePath), "snapshots");
+        }
+
+        // スナップショットとパケットログはセーブファイルの隣の snapshots/ に置く。ファイル名規則の定義はここだけ
+        // Snapshots and packet logs live in snapshots/ beside the save file; the naming rule lives only here
+        public string SnapshotFilePath(ulong tick)
+        {
+            return Path.Combine(SnapshotDirectory, $"tick_{tick}.json");
+        }
+
+        public string PacketLogSegmentFilePath(ulong fromTick)
+        {
+            return Path.Combine(SnapshotDirectory, ReceivedPacketLogFileName(fromTick));
+        }
+
+        public static string ReceivedPacketLogFileName(ulong fromTick)
+        {
+            return $"packets_{fromTick}.bin";
         }
 
         // タイル座標からterrainバイナリのパスを導出する。ファイル名規則の定義はここだけに置く

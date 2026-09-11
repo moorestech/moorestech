@@ -14,6 +14,7 @@ using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Game.SaveLoad;
 using Game.SaveLoad.Interface;
+using Game.SaveLoad.Snapshot;
 using Microsoft.Extensions.DependencyInjection;
 using Mod.Base;
 using Mod.Config;
@@ -129,6 +130,7 @@ namespace Server.Boot
             var connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
             var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
             var tickEndPacketQueue = serviceProvider.GetRequiredService<TickEndPacketQueue>();
+            var receivedPacketLog = serviceProvider.GetRequiredService<ReceivedPacketLog>();
 
             // 起動設定のポートで待ち受けソケットをバインドする
             // Bind the listen socket with the configured port
@@ -136,13 +138,20 @@ namespace Server.Boot
 
             // パケットキュープロセッサを作成してメインスレッドで処理を開始
             var connectionUpdateThread = new Thread(() =>
-                ServerListenAcceptor.StartServer(listener, packet, connectionRegistry, eventProtocolProvider, tickEndPacketQueue, token));
+                ServerListenAcceptor.StartServer(listener, packet, connectionRegistry, eventProtocolProvider, tickEndPacketQueue, receivedPacketLog, token));
             connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
             connectionUpdateThread.Start();
             
             if (settings.AutoSave)
             {
                 Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetRequiredService<IWorldSaveRequest>(), token), cancellationToken.Token);
+            }
+
+            // 常時記録はtickスレッド開始前に開始し、開始tickの次から区間を切る
+            // Start always-on capture before the tick thread so the first segment begins right after the start tick
+            if (settings.CaptureRing)
+            {
+                serviceProvider.GetRequiredService<WorldSnapshotRing>().Start(SnapshotRingConfig.PeriodTicks, SnapshotRingConfig.Generations);
             }
             // アップデートのタスク名を設定
             var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));

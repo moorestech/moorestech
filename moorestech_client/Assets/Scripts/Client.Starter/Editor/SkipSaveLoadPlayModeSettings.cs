@@ -20,6 +20,7 @@ namespace Client.Starter.Editor
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
             settings.WorldDirectory = Path.Combine(Path.GetTempPath(), $"no_save_play_mode_{Guid.NewGuid()}");
             settings.AutoSave = false;
+            settings.CaptureRing = false;
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(settings);
         }
     }
