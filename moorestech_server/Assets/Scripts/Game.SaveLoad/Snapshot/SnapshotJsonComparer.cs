@@ -3,11 +3,17 @@ using Newtonsoft.Json.Linq;
 
 namespace Game.SaveLoad.Snapshot
 {
-    // 2つのスナップショットJSONを深く比較し、不一致のパスを返す。setting は実時刻を含むため除外する
-    // Deep-compares two snapshot JSONs and lists differing paths; "setting" is excluded because it carries wall-clock times
+    // 2つのスナップショットJSONを深く比較し、不一致のパスを返す。除外は実時刻フィールドだけに絞る
+    // Deep-compares two snapshot JSONs and lists differing paths; only wall-clock fields are excluded
     public static class SnapshotJsonComparer
     {
-        public const string ExcludedTopLevelKey = "setting";
+        // 実時刻由来で再生しても一致しない値だけを外す。スポーン地点や世界作成日時はロードが復元すべき決定的な値なので検査する
+        // Excludes only wall-clock values that replay cannot reproduce; spawn point and world creation time stay under inspection because load must restore them
+        private static readonly HashSet<string> ExcludedFieldPaths = new()
+        {
+            "setting.TotalPlayTimeSeconds",
+            "setting.LastSessionStartDateTime",
+        };
 
         // 差が大量に出たときの出力爆発を防ぐ上限。発散源の特定にはこの件数で足りる
         // Caps the output when everything differs; this many paths suffice to locate the divergence
@@ -17,8 +23,6 @@ namespace Game.SaveLoad.Snapshot
         {
             var expected = JObject.Parse(expectedJson);
             var actual = JObject.Parse(actualJson);
-            expected.Remove(ExcludedTopLevelKey);
-            actual.Remove(ExcludedTopLevelKey);
 
             var differences = new List<string>();
             Walk(expected, actual, string.Empty, differences);
@@ -52,17 +56,21 @@ namespace Game.SaveLoad.Snapshot
         {
             foreach (var property in expected.Properties())
             {
+                var childPath = ChildPath(path, property.Name);
+                if (ExcludedFieldPaths.Contains(childPath)) continue;
                 if (!actual.TryGetValue(property.Name, out var actualValue))
                 {
-                    differences.Add($"{ChildPath(path, property.Name)}: actual に無い");
+                    differences.Add($"{childPath}: actual に無い");
                     continue;
                 }
-                Walk(property.Value, actualValue, ChildPath(path, property.Name), differences);
+                Walk(property.Value, actualValue, childPath, differences);
             }
 
             foreach (var property in actual.Properties())
             {
-                if (!expected.ContainsKey(property.Name)) differences.Add($"{ChildPath(path, property.Name)}: expected に無い");
+                var childPath = ChildPath(path, property.Name);
+                if (ExcludedFieldPaths.Contains(childPath)) continue;
+                if (!expected.ContainsKey(property.Name)) differences.Add($"{childPath}: expected に無い");
             }
         }
 

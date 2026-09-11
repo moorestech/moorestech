@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Core.Update;
 using Game.Paths;
@@ -16,8 +17,12 @@ namespace Server.Boot.Replay
     // Loads a snapshot, feeds recorded packets back at their original processing ticks, and advances to the target tick
     public static class SnapshotReplayer
     {
+        // 再生はプロセス全体の静的状態（ServerContext・MasterHolder・GameUpdater）を差し替えるため、稼働中サーバーと同一プロセスで呼んではいけない
+        // Replay swaps process-wide statics (ServerContext, MasterHolder, GameUpdater), so it must never run in the same process as a live server
         public static ReplayResult Replay(ReplayRequest request)
         {
+            Debug.LogWarning("再生はプロセス全体の静的状態（ServerContext・MasterHolder・GameUpdater）を差し替えます。稼働中サーバーと同一プロセスで呼ばないこと");
+
             // ロード経路は通常起動と同じ（save.jsonの位置にスナップショットを置く）。常時記録は開始しない
             // Same load path as a normal boot (the snapshot sits where save.json would); capture stays off
             var tempRoot = Path.Combine(Path.GetTempPath(), $"moorestech-replay-{Guid.NewGuid():N}");
@@ -33,7 +38,17 @@ namespace Server.Boot.Replay
             provider.GetRequiredService<IWorldSaveDataLoader>().LoadOrInitialize();
             var loadedTick = GameUpdater.CurrentTick;
 
+            // 目標tickがスナップショットより前なら再生は成立しない。無言で loadedTick を返すと呼び出し側が成功と誤読する
+            // A target before the snapshot cannot be replayed; silently returning loadedTick would read as success to the caller
+            if (request.TargetTick < loadedTick)
+            {
+                Debug.LogError($"再生を拒否 目標tickがスナップショットより前 loaded:{loadedTick} target:{request.TargetTick} snapshot:{request.SnapshotFilePath}");
+                Directory.Delete(tempRoot, true);
+                throw new InvalidOperationException($"目標tick {request.TargetTick} はスナップショットのtick {loadedTick} より前です");
+            }
+
             var records = ReceivedPacketLogReader.ReadAll(request.PacketLogFilePaths);
+            ReportPacketLogCoverage(records, loadedTick, request.TargetTick);
             var queue = provider.GetRequiredService<TickEndPacketQueue>();
             var context = new PacketResponseContext(null);
             var replayed = 0;
@@ -58,6 +73,22 @@ namespace Server.Boot.Replay
             Debug.Log($"再生完了 loaded:{loadedTick} reached:{GameUpdater.CurrentTick} packets:{replayed}");
             Directory.Delete(tempRoot, true);
             return new ReplayResult(loadedTick, GameUpdater.CurrentTick, replayed, json);
+        }
+
+        // 渡されたログが再生区間をどれだけ覆っているかを必ず出す。0件再生を「一致しなかった＝非決定性」と誤読させないため
+        // Always report how much of the replay interval the given log covers, so a zero-packet replay is not misread as non-determinism
+        private static void ReportPacketLogCoverage(IReadOnlyList<ReceivedPacketRecord> records, ulong loadedTick, ulong targetTick)
+        {
+            var beforeSnapshot = 0;
+            var inRange = 0;
+            foreach (var record in records)
+            {
+                if (record.Tick <= loadedTick) beforeSnapshot++;
+                else if (record.Tick <= targetTick) inRange++;
+            }
+
+            Debug.Log($"再生対象パケット 区間({loadedTick},{targetTick}]:{inRange}件 スナップショット以前で読み飛ばし:{beforeSnapshot}件 ログ全件:{records.Count}件");
+            if (inRange == 0) Debug.LogWarning($"パケットログが区間({loadedTick},{targetTick}]を1件も含んでいません。ローテーションで消えたか別セグメントを渡した可能性があります");
         }
     }
 }
