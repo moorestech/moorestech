@@ -88,87 +88,95 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace
         // Mirrors one server cell: PlanRemoval, PlanPlacement, CanPayNewCost, then the two commits
         private bool TryPayCell(PlaceInfo placeInfo)
         {
-            var removal = PlanRemoval(placeInfo);
+            var removal = PlanRemoval();
             var placement = PlanPlacement(placeInfo.BlockId);
             if (!CanPay(placement.ItemsToConsume, removal.RefundItems)) return false;
 
             CommitRemoval(removal);
             CommitPlacement(placement);
             return true;
-        }
 
-        private BeltReplaceRemovalPlan PlanRemoval(PlaceInfo placeInfo)
-        {
-            if (!placeInfo.IsReplace || !_blockGameObjectDataStore.TryGetBlockGameObject(placeInfo.Position, out var existing)) return new BeltReplaceRemovalPlan(NoRefund, null, false);
+            #region Internal
 
-            var removedBlockId = existing.BlockId;
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(removedBlockId);
-            var walletStatus = _walletQuery.GetWalletStatus(removedBlockId);
-
-            // 財布を通らないブロックは撤去のたびに全額戻る
-            // A block that bypasses the wallet refunds its full cost on every removal
-            if (!walletStatus.HasValue) return new BeltReplaceRemovalPlan(CreateRefundItems(blockMaster), null, false);
-
-            // 1セット分が貯まる撤去でだけ素材が戻る
-            // Materials come back only on the removal that completes one set's worth
-            var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(removedBlockId);
-            var condensed = ConstructionWalletUtil.WouldCondense(GetWalletRemainder(walletBlockId, removedBlockId), walletStatus.Value.PlacementsPerCost);
-            return new BeltReplaceRemovalPlan(condensed ? CreateRefundItems(blockMaster) : NoRefund, walletBlockId, condensed);
-        }
-
-        private BeltReplacePlacementPlan PlanPlacement(BlockId blockId)
-        {
-            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            var requiredItems = ConstructionCostItems.ToItemCounts(blockMaster.RequiredItems);
-            var walletStatus = _walletQuery.GetWalletStatus(blockId);
-            if (!walletStatus.HasValue) return new BeltReplacePlacementPlan(requiredItems, null, 0, false);
-
-            // 残りが1つでもあれば素材を払わずに置ける
-            // A non-empty remainder covers the cell without paying materials
-            var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(blockId);
-            var coveredByWallet = ConstructionWalletUtil.IsCoveredByWallet(GetWalletRemainder(walletBlockId, blockId));
-            return new BeltReplacePlacementPlan(coveredByWallet ? NoCost : requiredItems, walletBlockId, walletStatus.Value.PlacementsPerCost, coveredByWallet);
-        }
-
-        private bool CanPay(IReadOnlyList<(ItemId itemId, int count)> itemsToConsume, IReadOnlyList<IItemStack> refundItems)
-        {
-            foreach (var (itemId, count) in itemsToConsume)
+            BeltReplaceRemovalPlan PlanRemoval()
             {
-                var available = GetAvailableItemCount(itemId);
-                foreach (var refundItem in refundItems)
+                if (!placeInfo.IsReplace || !_blockGameObjectDataStore.TryGetBlockGameObject(placeInfo.Position, out var existing)) return new BeltReplaceRemovalPlan(NoRefund, null, false);
+
+                var removedBlockId = existing.BlockId;
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(removedBlockId);
+                var walletStatus = _walletQuery.GetWalletStatus(removedBlockId);
+
+                // 財布を通らないブロックは撤去のたびに全額戻る
+                // A block that bypasses the wallet refunds its full cost on every removal
+                if (!walletStatus.HasValue) return new BeltReplaceRemovalPlan(CreateRefundItems(), null, false);
+
+                // 1セット分が貯まる撤去でだけ素材が戻る
+                // Materials come back only on the removal that completes one set's worth
+                var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(removedBlockId);
+                var condensed = ConstructionWalletUtil.WouldCondense(GetWalletRemainder(walletBlockId, removedBlockId), walletStatus.Value.PlacementsPerCost);
+                return new BeltReplaceRemovalPlan(condensed ? CreateRefundItems() : NoRefund, walletBlockId, condensed);
+
+                List<IItemStack> CreateRefundItems()
                 {
-                    if (refundItem.Id == itemId) available += refundItem.Count;
+                    return ConstructionCostService.CreateRefundItems(ConstructionCostItems.ToItemCounts(blockMaster.RequiredItems));
                 }
-                if (available < count) return false;
             }
-            return true;
-        }
-
-        private void CommitRemoval(BeltReplaceRemovalPlan removal)
-        {
-            foreach (var refundItem in removal.RefundItems)
+            BeltReplacePlacementPlan PlanPlacement(BlockId blockId)
             {
-                AddAvailableItem(refundItem.Id, refundItem.Count);
-                _refundedItems.Add(refundItem);
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                var requiredItems = ConstructionCostItems.ToItemCounts(blockMaster.RequiredItems);
+                var walletStatus = _walletQuery.GetWalletStatus(blockId);
+                if (!walletStatus.HasValue) return new BeltReplacePlacementPlan(requiredItems, null, 0, false);
+
+                // 残りが1つでもあれば素材を払わずに置ける
+                // A non-empty remainder covers the cell without paying materials
+                var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(blockId);
+                var coveredByWallet = ConstructionWalletUtil.IsCoveredByWallet(GetWalletRemainder(walletBlockId, blockId));
+                return new BeltReplacePlacementPlan(coveredByWallet ? NoCost : requiredItems, walletBlockId, walletStatus.Value.PlacementsPerCost, coveredByWallet);
             }
-            if (!removal.WalletBlockId.HasValue) return;
 
-            // Nに達した分は素材へ凝縮し財布から消える
-            // The portion that reached one set's worth condenses into materials and leaves the wallet
-            var walletBlockId = removal.WalletBlockId.Value;
-            _walletRemainders[walletBlockId] = removal.Condensed ? 0 : GetWalletRemainder(walletBlockId, walletBlockId) + 1;
-        }
+            bool CanPay(IReadOnlyList<(ItemId itemId, int count)> itemsToConsume, IReadOnlyList<IItemStack> refundItems)
+            {
+                foreach (var (itemId, count) in itemsToConsume)
+                {
+                    var available = GetAvailableItemCount(itemId);
+                    foreach (var refundItem in refundItems)
+                    {
+                        if (refundItem.Id == itemId) available += refundItem.Count;
+                    }
+                    if (available < count) return false;
+                }
+                return true;
+            }
 
-        private void CommitPlacement(BeltReplacePlacementPlan placement)
-        {
-            foreach (var (itemId, count) in placement.ItemsToConsume) AddAvailableItem(itemId, -count);
-            if (!placement.WalletBlockId.HasValue) return;
+            void CommitRemoval(BeltReplaceRemovalPlan plan)
+            {
+                foreach (var refundItem in plan.RefundItems)
+                {
+                    AddAvailableItem(refundItem.Id, refundItem.Count);
+                    _refundedItems.Add(refundItem);
+                }
+                if (!plan.WalletBlockId.HasValue) return;
 
-            // 素材を払ったセルは1セット分を補充してから1消費する（残り=N-1）
-            // A cell that paid materials refills one set's worth and then consumes one (remaining = N-1)
-            var walletBlockId = placement.WalletBlockId.Value;
-            var remaining = GetWalletRemainder(walletBlockId, walletBlockId);
-            _walletRemainders[walletBlockId] = placement.CoveredByWallet ? remaining - 1 : remaining + placement.PlacementsPerCost - 1;
+                // Nに達した分は素材へ凝縮し財布から消える
+                // The portion that reached one set's worth condenses into materials and leaves the wallet
+                var walletBlockId = plan.WalletBlockId.Value;
+                _walletRemainders[walletBlockId] = plan.Condensed ? 0 : GetWalletRemainder(walletBlockId, walletBlockId) + 1;
+            }
+
+            void CommitPlacement(BeltReplacePlacementPlan plan)
+            {
+                foreach (var (itemId, count) in plan.ItemsToConsume) AddAvailableItem(itemId, -count);
+                if (!plan.WalletBlockId.HasValue) return;
+
+                // 素材を払ったセルは1セット分を補充してから1消費する（残り=N-1）
+                // A cell that paid materials refills one set's worth and then consumes one (remaining = N-1)
+                var walletBlockId = plan.WalletBlockId.Value;
+                var remaining = GetWalletRemainder(walletBlockId, walletBlockId);
+                _walletRemainders[walletBlockId] = plan.CoveredByWallet ? remaining - 1 : remaining + plan.PlacementsPerCost - 1;
+            }
+
+            #endregion
         }
 
         // 初出の財布はクライアントのミラーが持つ現在値から始める
@@ -187,11 +195,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace
         private void AddAvailableItem(ItemId itemId, int count)
         {
             _availableItemCounts[itemId] = GetAvailableItemCount(itemId) + count;
-        }
-
-        private static List<IItemStack> CreateRefundItems(BlockMasterElement blockMaster)
-        {
-            return ConstructionCostService.CreateRefundItems(ConstructionCostItems.ToItemCounts(blockMaster.RequiredItems));
         }
     }
 }

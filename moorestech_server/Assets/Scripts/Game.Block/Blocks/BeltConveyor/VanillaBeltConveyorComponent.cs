@@ -24,7 +24,9 @@ namespace Game.Block.Blocks.BeltConveyor
 
         // 張替えの搬送品復元で進行率をtickへ換算するために使う（BeltConveyorTransitCarryOver）
         // Used by BeltConveyorTransitCarryOver to convert a progress rate into ticks when restoring on replace
-        internal uint TicksOfItemEnterToExit => _ticksOfItemEnterToExit;
+        // ベルトコンベアにアイテムが入って出るまでのtick数
+        // Ticks for item to enter and exit the belt conveyor
+        internal uint TicksOfItemEnterToExit { get; private set; }
 
         private readonly VanillaBeltConveyorInventoryItem[] _inventoryItems;
         private readonly Subject<Unit> _onItemsChanged = new();
@@ -32,15 +34,11 @@ namespace Game.Block.Blocks.BeltConveyor
         private readonly IBeltConveyorBlockInventoryInserter _blockInventoryInserter;
         private readonly int _inventoryItemNum;
 
-        // ベルトコンベアにアイテムが入って出るまでのtick数
-        // Ticks for item to enter and exit the belt conveyor
-        private uint _ticksOfItemEnterToExit;
-
         public VanillaBeltConveyorComponent(int inventoryItemNum, float timeOfItemEnterToExitSeconds, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType)
         {
             SlopeType = slopeType;
             _inventoryItemNum = inventoryItemNum;
-            _ticksOfItemEnterToExit = GameUpdater.SecondsToTicks(timeOfItemEnterToExitSeconds);
+            TicksOfItemEnterToExit = GameUpdater.SecondsToTicks(timeOfItemEnterToExitSeconds);
             _blockInventoryInserter = blockInventoryInserter;
 
             _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
@@ -54,7 +52,7 @@ namespace Game.Block.Blocks.BeltConveyor
             {
                 if (itemJsons[i] != null)
                 {
-                    _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i], inventoryConnectors, _ticksOfItemEnterToExit);
+                    _inventoryItems[i] = VanillaBeltConveyorInventoryItem.LoadItem(itemJsons[i], inventoryConnectors, TicksOfItemEnterToExit);
                     NotifyItemsChanged();
                 }
             }
@@ -82,7 +80,7 @@ namespace Game.Block.Blocks.BeltConveyor
             // 挿入先コネクター（TargetConnector）をアイテムの開始位置として設定
             // Set target connector as item's start position
             var startConnector = context.TargetConnector;
-            _inventoryItems[insertIndex] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector, _ticksOfItemEnterToExit);
+            _inventoryItems[insertIndex] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, startConnector, goalConnector, TicksOfItemEnterToExit);
             NotifyItemsChanged();
 
             // 挿入したのでアイテムを減らして返す
@@ -152,7 +150,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
             //TODO lockすべき？？
             var goalConnector = _blockInventoryInserter?.GetNextGoalConnector(new List<IItemStack> { itemStack });
-            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, goalConnector, _ticksOfItemEnterToExit);
+            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemStack.Id, itemStack.ItemInstanceId, null, goalConnector, TicksOfItemEnterToExit);
             NotifyItemsChanged();
         }
         
@@ -164,7 +162,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
             var checkItems = new List<IItemStack> { ServerContext.ItemStackFactory.Create(itemId, 1, itemInstanceId) };
             var goalConnector = _blockInventoryInserter.GetNextGoalConnector(checkItems);
-            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, null, goalConnector, _ticksOfItemEnterToExit)
+            _inventoryItems[slot] = new VanillaBeltConveyorInventoryItem(itemId, itemInstanceId, null, goalConnector, TicksOfItemEnterToExit)
             {
                 RemainingTicks = remainingTicks,
             };
@@ -214,7 +212,7 @@ namespace Game.Block.Blocks.BeltConveyor
 
                 // 次のインデックスに入れる時間かどうかをチェックする（tick単位）
                 // Check if it's time to move to next index (in ticks)
-                var ticksPerSlot = _ticksOfItemEnterToExit / (uint)_inventoryItemNum;
+                var ticksPerSlot = TicksOfItemEnterToExit / (uint)_inventoryItemNum;
                 var nextIndexStartTicks = (uint)i * ticksPerSlot;
                 var isNextInsertable = item.RemainingTicks <= nextIndexStartTicks;
 
@@ -295,7 +293,7 @@ namespace Game.Block.Blocks.BeltConveyor
         /// </summary>
         public void SetTicksOfItemEnterToExit(uint ticks)
         {
-            _ticksOfItemEnterToExit = ticks;
+            TicksOfItemEnterToExit = ticks;
 
             // 有効な速度が設定された場合、停止中に投入されたアイテムのtickを更新
             // When valid speed is set, update ticks of items inserted while stopped

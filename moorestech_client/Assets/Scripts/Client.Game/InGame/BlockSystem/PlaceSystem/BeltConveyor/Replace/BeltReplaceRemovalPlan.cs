@@ -8,13 +8,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace
     /// 張替え1セルの撤去計画。財布を通らないブロックはWalletBlockIdがnull
     /// One replace cell's removal plan; WalletBlockId is null for a block that bypasses the wallet
     /// </summary>
-    public readonly struct BeltReplaceRemovalPlan
+    internal readonly struct BeltReplaceRemovalPlan
     {
         public readonly IReadOnlyList<IItemStack> RefundItems;
         public readonly BlockId? WalletBlockId;
         public readonly bool Condensed;
 
-        public BeltReplaceRemovalPlan(IReadOnlyList<IItemStack> refundItems, BlockId? walletBlockId, bool condensed)
+        internal BeltReplaceRemovalPlan(IReadOnlyList<IItemStack> refundItems, BlockId? walletBlockId, bool condensed)
         {
             RefundItems = refundItems;
             WalletBlockId = walletBlockId;

@@ -81,6 +81,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
             public readonly BlockId OldBlockId;
             public readonly BlockId NewBlockId;
 
+            // 入れ子structはprivateなので外部からは見えない。ctorをprivateにすると外側クラスから呼べずCS0122になる
+            // The nested struct is already private to the outside; a private ctor would be unreachable from the enclosing class (CS0122)
             public ReplacedCell(Vector3Int position, BlockDirection direction, BlockVerticalDirection verticalDirection, BlockId oldBlockId, BlockId newBlockId)
             {
                 Position = position;

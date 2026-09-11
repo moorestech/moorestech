@@ -128,6 +128,18 @@ namespace Server.Protocol.PacketResponse.Util.Construction
                 // 事前検証で受け皿を確保しているため残りは出ない。出たなら検証と実行がずれている
                 // The pre-validation reserved the room, so no remainder can appear; one means validation and execution have diverged
                 if (remainder.Count != 0) Debug.LogError($"[BeltReplace] could not return {DescribeItems(remainder)} to player {playerId} at {position}");
+
+                // 事故時に何が消えたかを追えるようログ用の内訳を作る
+                // Builds the breakdown the log needs so a lost item can be traced afterwards
+                string DescribeItems(IReadOnlyList<IItemStack> stacks)
+                {
+                    var descriptions = new List<string>();
+                    foreach (var stack in stacks)
+                    {
+                        descriptions.Add($"{stack.Id}x{stack.Count}");
+                    }
+                    return string.Join(",", descriptions);
+                }
             }
 
             BeltReplaceResult Reject(BeltReplaceResult result, string reason)
@@ -136,29 +148,17 @@ namespace Server.Protocol.PacketResponse.Util.Construction
                 return result;
             }
 
+            List<IItemStack> ToItemStacks(IReadOnlyList<BeltTransitItem> beltItems)
+            {
+                var result = new List<IItemStack>();
+                foreach (var beltItem in beltItems)
+                {
+                    result.Add(ServerContext.ItemStackFactory.Create(beltItem.ItemId, 1, beltItem.ItemInstanceId));
+                }
+                return result;
+            }
+
             #endregion
-        }
-
-        private static List<IItemStack> ToItemStacks(IReadOnlyList<BeltTransitItem> transitItems)
-        {
-            var result = new List<IItemStack>();
-            foreach (var transitItem in transitItems)
-            {
-                result.Add(ServerContext.ItemStackFactory.Create(transitItem.ItemId, 1, transitItem.ItemInstanceId));
-            }
-            return result;
-        }
-
-        // 事故時に何が消えたかを追えるようログ用の内訳を作る
-        // Builds the breakdown the log needs so a lost item can be traced afterwards
-        private static string DescribeItems(IReadOnlyList<IItemStack> items)
-        {
-            var descriptions = new List<string>();
-            foreach (var item in items)
-            {
-                descriptions.Add($"{item.Id}x{item.Count}");
-            }
-            return string.Join(",", descriptions);
         }
 
         /// <summary>

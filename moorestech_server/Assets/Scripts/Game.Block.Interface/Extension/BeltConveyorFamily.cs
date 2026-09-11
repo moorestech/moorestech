@@ -31,19 +31,19 @@ namespace Game.Block.Interface.Extension
                 return true;
             }
 
-            if (Matches(UpBlockId, blockId))
+            if (Matches(UpBlockId))
             {
                 role = BeltConveyorRole.Up;
                 return true;
             }
 
-            if (Matches(DownBlockId, blockId))
+            if (Matches(DownBlockId))
             {
                 role = BeltConveyorRole.Down;
                 return true;
             }
 
-            if (Matches(SplitterBlockId, blockId))
+            if (Matches(SplitterBlockId))
             {
                 role = BeltConveyorRole.Splitter;
                 return true;
@@ -51,6 +51,15 @@ namespace Game.Block.Interface.Extension
 
             role = BeltConveyorRole.Straight;
             return false;
+
+            #region Internal
+
+            bool Matches(BlockId? member)
+            {
+                return member.HasValue && member.Value == blockId;
+            }
+
+            #endregion
         }
 
         // ロールに対応するブロックを引く。ファミリーがそのロールを持たなければfalse
@@ -67,11 +76,6 @@ namespace Game.Block.Interface.Extension
             };
             blockId = candidate ?? default;
             return candidate.HasValue;
-        }
-
-        private static bool Matches(BlockId? member, BlockId blockId)
-        {
-            return member.HasValue && member.Value == blockId;
         }
     }
 }

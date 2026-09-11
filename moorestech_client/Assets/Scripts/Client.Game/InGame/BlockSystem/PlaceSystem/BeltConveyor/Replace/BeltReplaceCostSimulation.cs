@@ -16,7 +16,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace
 
         private readonly List<PlaceInfo> _unaffordableCells;
 
-        public BeltReplaceCostSimulation(IReadOnlyList<IItemStack> costCheckItems, List<PlaceInfo> unaffordableCells)
+        internal BeltReplaceCostSimulation(IReadOnlyList<IItemStack> costCheckItems, List<PlaceInfo> unaffordableCells)
         {
             CostCheckItems = costCheckItems;
             _unaffordableCells = unaffordableCells;

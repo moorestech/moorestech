@@ -21,6 +21,18 @@ namespace Game.Block.Blocks.BeltConveyor
                 result.Add(new BeltTransitItem(item.ItemId, item.ItemInstanceId, ResolveRemainingRate(item)));
             }
             return result;
+
+            #region Internal
+
+            double ResolveRemainingRate(IOnBeltConveyorItem item)
+            {
+                // 停止中(総tickが0またはuint.MaxValue)は進行率そのものが存在しないため入口として扱う
+                // A stopped belt (total ticks 0 or uint.MaxValue) has no progress to preserve, so the item is treated as being at the entry
+                if (item.TotalTicks == 0 || item.TotalTicks == uint.MaxValue) return 1.0;
+                return item.RemainingTicks / (double)item.TotalTicks;
+            }
+
+            #endregion
         }
 
         // 復元できなかった分を返す。呼び出し側がプレイヤーへ返す
@@ -42,49 +54,45 @@ namespace Game.Block.Blocks.BeltConveyor
             var slotCount = belt.GetSlotSize();
 
             var remainingTicks = (uint)Math.Min(totalTicks, Math.Ceiling(transitItem.RemainingRate * totalTicks));
-            var slot = FindEmptySlotTowardEntry(belt, ResolveSlot(remainingTicks, slotCount, totalTicks));
+            var slot = FindEmptySlotTowardEntry(ResolveSlot(remainingTicks, slotCount, totalTicks));
             if (slot < 0) return false;
 
             belt.PlaceRestoredItem(slot, transitItem.ItemId, transitItem.ItemInstanceId, remainingTicks);
             return true;
-        }
 
-        private static int ResolveSlot(uint remainingTicks, int slotCount, uint totalTicks)
-        {
-            // 停止中(総tickが0またはuint.MaxValue)の復元先では進行率が意味を持たないため入口スロットへ置く
-            // On a stopped target (total ticks 0 or uint.MaxValue) the progress rate is meaningless, so place at the entry slot
-            if (totalTicks == 0 || totalTicks == uint.MaxValue) return slotCount - 1;
+            #region Internal
 
-            // Updateのスロット滞在条件「i*tps < RemainingTicks <= (i+1)*tps」を逆に解く
-            // Invert Update's dwell rule "i*tps < RemainingTicks <= (i+1)*tps" to get the slot
-            var ticksPerSlot = totalTicks / (uint)slotCount;
-
-            // 総tickがスロット数未満でスロット当たりのtickが刻めない場合も入口スロットへ置く
-            // Also place at the entry slot when total ticks are fewer than the slots and cannot be subdivided
-            if (ticksPerSlot == 0) return slotCount - 1;
-
-            var slot = (int)(((long)remainingTicks + ticksPerSlot - 1) / ticksPerSlot) - 1;
-            return Math.Clamp(slot, 0, slotCount - 1);
-        }
-
-        private static int FindEmptySlotTowardEntry(VanillaBeltConveyorComponent belt, int idealSlot)
-        {
-            // 出口側(小さいindex)へ落とすとRemainingTicksの単調性が壊れ後続が恒久ブロックされるため、入口側だけを探す
-            // Searching toward the exit would break the RemainingTicks ordering and permanently block followers, so only the entry side is searched
-            var slots = belt.BeltConveyorItems;
-            for (var i = idealSlot; i < slots.Count; i++)
+            int ResolveSlot(uint ticks, int slots, uint total)
             {
-                if (slots[i] == null) return i;
-            }
-            return -1;
-        }
+                // 停止中(総tickが0またはuint.MaxValue)の復元先では進行率が意味を持たないため入口スロットへ置く
+                // On a stopped target (total ticks 0 or uint.MaxValue) the progress rate is meaningless, so place at the entry slot
+                if (total == 0 || total == uint.MaxValue) return slots - 1;
 
-        private static double ResolveRemainingRate(IOnBeltConveyorItem item)
-        {
-            // 停止中(総tickが0またはuint.MaxValue)は進行率そのものが存在しないため入口として扱う
-            // A stopped belt (total ticks 0 or uint.MaxValue) has no progress to preserve, so the item is treated as being at the entry
-            if (item.TotalTicks == 0 || item.TotalTicks == uint.MaxValue) return 1.0;
-            return item.RemainingTicks / (double)item.TotalTicks;
+                // Updateのスロット滞在条件「i*tps < RemainingTicks <= (i+1)*tps」を逆に解く
+                // Invert Update's dwell rule "i*tps < RemainingTicks <= (i+1)*tps" to get the slot
+                var ticksPerSlot = total / (uint)slots;
+
+                // 総tickがスロット数未満でスロット当たりのtickが刻めない場合も入口スロットへ置く
+                // Also place at the entry slot when total ticks are fewer than the slots and cannot be subdivided
+                if (ticksPerSlot == 0) return slots - 1;
+
+                var resolvedSlot = (int)(((long)ticks + ticksPerSlot - 1) / ticksPerSlot) - 1;
+                return Math.Clamp(resolvedSlot, 0, slots - 1);
+            }
+
+            int FindEmptySlotTowardEntry(int idealSlot)
+            {
+                // 出口側(小さいindex)へ落とすとRemainingTicksの単調性が壊れ後続が恒久ブロックされるため、入口側だけを探す
+                // Searching toward the exit would break the RemainingTicks ordering and permanently block followers, so only the entry side is searched
+                var slots = belt.BeltConveyorItems;
+                for (var i = idealSlot; i < slots.Count; i++)
+                {
+                    if (slots[i] == null) return i;
+                }
+                return -1;
+            }
+
+            #endregion
         }
     }
 }

@@ -41,8 +41,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             var replaceStartPoint = _dragState.ResolveDragStartCellWithoutHeightOffset(dragStartPoint);
             var replaceCursorPoint = _dragState.ResolveCursorCellWithoutHeightOffset(placePoint);
 
-            // 起点に既設ファミリーブロックがあれば張替え経路。空き地起点は従来の新規設置経路
-            // A family block at the origin selects the replace run; an empty origin keeps the normal placement run
+            // 既設ありなら張替え経路
+            // An existing block at origin selects the replace run
             if (BeltReplaceRunBuilder.TryResolveOrigin(_blockGameObjectDataStore, replaceStartPoint, out var replaceOrigin))
             {
                 return _replaceRunBuilder.Build(replaceOrigin, replaceCursorPoint, isStartDirectionZ, holdingBlock, out blockCauses, out beltReasons);

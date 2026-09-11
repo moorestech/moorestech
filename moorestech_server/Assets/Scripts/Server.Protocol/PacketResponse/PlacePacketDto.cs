@@ -22,8 +22,8 @@ namespace Server.Protocol.PacketResponse
 
         [Key(4)] public int BlockIdInt { get; set; }
 
-        // 既設ベルトを同セルで差し替える張替えセルか
-        // Whether this cell replaces an existing belt on the same cell
+        // 張替えセルか
+        // Whether this is a replace cell
         [Key(5)] public bool IsReplace { get; set; }
 
         [IgnoreMember] public BlockId BlockId => new(BlockIdInt);
@@ -67,8 +67,8 @@ namespace Server.Protocol.PacketResponse
 
         public bool Placeable { get; set; }
 
-        // 既設ベルトを同セルで差し替える張替えセルか
-        // Whether this cell replaces an existing belt on the same cell
+        // 張替えセルか
+        // Whether this is a replace cell
         public bool IsReplace { get; set; }
 
         public BlockCreateParam[] CreateParams { get; set; } = Array.Empty<BlockCreateParam>();

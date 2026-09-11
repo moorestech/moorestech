@@ -97,8 +97,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlaceBlockProtocolTestSupport.PlayerId);
             var pos = new Vector3Int(80, 0, 80);
 
-            // ベルト以外の既設ブロックへ張替え要求→拒否通知
-            // Request replacing a non-belt block → replace-rejected notification
+            // ベルト以外へ張替え→拒否
+            // Replacing a non-belt block → rejected
             PlaceBlockProtocolTestSupport.UnlockBlock(serviceProvider, ForUnitTestModBlockId.SmallGearBeltConveyor);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
             var payload = PlaceBlockProtocolTestSupport.CreateReplacePayload(ForUnitTestModBlockId.SmallGearBeltConveyor, pos, BlockDirection.North);
@@ -115,8 +115,8 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlaceBlockProtocolTestSupport.PlayerId);
             var pos = new Vector3Int(82, 0, 82);
 
-            // 搬送品の返却先が無い状態で張替え要求→満杯通知
-            // Request replacing while no room remains for the transit items → inventory-full notification
+            // 返却先無しで張替え→満杯
+            // Replacing with no room for the returned items → inventory-full
             PlaceBlockProtocolTestSupport.UnlockBlock(serviceProvider, ForUnitTestModBlockId.BeltConveyorId);
             ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oldBlock);
             oldBlock.GetComponent<VanillaBeltConveyorComponent>().InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1), InsertItemContext.Empty);

@@ -87,6 +87,32 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             Assert.IsNull(BeltReplaceCostSimulator.TrySimulate(placeInfos, _dataStore, BuildWalletQuery(), Array.Empty<IItemStack>()));
         }
 
+        [Test]
+        public void 所持1セットの張替え列はCostCheckItemsが凝縮返却分まで個数を含む()
+        {
+            var placeInfos = BuildReplaceRun(6);
+
+            var simulation = BeltReplaceCostSimulator.TrySimulate(placeInfos, _dataStore, BuildWalletQuery(), BuildOneCostSet());
+
+            // 所持1セット＋3セル目・6セル目の凝縮返却で両素材とも3個に届く
+            // Holdings of one set plus the third and sixth cells' condensed refunds bring each material to three
+            var costCheckCounts = SumByItemId(simulation.CostCheckItems);
+            Assert.AreEqual(3, costCheckCounts[MasterHolder.ItemMaster.GetItemId(Material1Guid)]);
+            Assert.AreEqual(3, costCheckCounts[MasterHolder.ItemMaster.GetItemId(Material2Guid)]);
+        }
+
+        [Test]
+        public void 所持素材ゼロの張替え列はCostCheckItemsに返却が一件も混ざらない()
+        {
+            var placeInfos = BuildReplaceRun(6);
+
+            var simulation = BeltReplaceCostSimulator.TrySimulate(placeInfos, _dataStore, BuildWalletQuery(), Array.Empty<IItemStack>());
+
+            // 先頭セルから払えず撤去も財布操作も起きないため、所持品ゼロのまま返却も混ざらない
+            // Nothing is removed starting from the first cell, so holdings stay at zero with no refund mixed in
+            Assert.AreEqual(0, simulation.CostCheckItems.Count);
+        }
+
         private List<PlaceInfo> BuildReplaceRun(int length)
         {
             var placeInfos = new List<PlaceInfo>();
@@ -97,6 +123,13 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 placeInfos.Add(new PlaceInfo { Position = position, BlockId = ForUnitTestModBlockId.LargeGearBeltConveyor, IsReplace = true, Placeable = true });
             }
             return placeInfos;
+        }
+
+        private static Dictionary<ItemId, int> SumByItemId(IReadOnlyList<IItemStack> items)
+        {
+            var counts = new Dictionary<ItemId, int>();
+            foreach (var item in items) counts[item.Id] = counts.GetValueOrDefault(item.Id) + item.Count;
+            return counts;
         }
 
         private static ConstructionWalletQuery BuildWalletQuery()
