@@ -52,9 +52,11 @@ export const blockGearMachine = {
     blockGuid: BlockGuids.GEAR_MACHINE_BLOCK_GUID,
     recipeTime: 15,
     outputItems: [{ itemId: 7, count: 3 }],
-    currentState: "idle",
-    currentPower: 0.0,
-    requestPower: 0.0,
+    // 充足率62%の不足稼働。歯車駆動なので赤を出さないことをe2eで固定する
+    // Running short at 62% satisfaction; gear drive must stay free of red, pinned by e2e
+    currentState: "processing",
+    currentPower: 37.5,
+    requestPower: 60.0,
     slotLayout: { input: 1, output: 1, module: 0, inputTank: 0 },
     slotBindings: [],
     tankBindings: [],

@@ -25,11 +25,14 @@ export default function MachineSection({ data, machine, fillsPanelHeight }: { da
   };
   const rows = buildMachineRecipeSelectionRows(machineRecipes?.recipes ?? [], machine.blockGuid, machine.selectedRecipeGuid);
   const selectedRow = rows.find((row) => row.selected);
+  // 歯車駆動の不足赤は網の停止理由行が担うため、充足率の赤は電力駆動だけに残す（ADR 0056）
+  // Gear-driven shortage red belongs to the network stop-reason row, so only electric drive keeps the rate red (ADR 0056)
+  const highlightPowerShortage = data.gear === undefined;
   // 状態ラベル+充足率を共通フッタに表示
   // The state label and satisfaction rate stay visible in both modes as the shared footer (ADR 0010)
   const footer = (
     <Group justify="center" gap="xs">
-      <MachineStateRow currentState={machine.currentState} currentPower={machine.currentPower} requestPower={machine.requestPower} stateTestId="machine-state-label" powerRateTestId="machine-power-rate" />
+      <MachineStateRow currentState={machine.currentState} currentPower={machine.currentPower} requestPower={machine.requestPower} highlightPowerShortage={highlightPowerShortage} stateTestId="machine-state-label" powerRateTestId="machine-power-rate" />
     </Group>
   );
 

@@ -21,7 +21,7 @@ export default function PumpSection({ data }: { data: BlockInventoryOpen }) {
   return (
     <Stack gap="xs" data-testid="pump-section">
       {electric ? (
-        <MachineStateRow currentState={electric.currentState} currentPower={electric.currentPower} requestPower={electric.requestPower} stateTestId="pump-state-label" powerRateTestId="pump-power-rate" />
+        <MachineStateRow currentState={electric.currentState} currentPower={electric.currentPower} requestPower={electric.requestPower} highlightPowerShortage stateTestId="pump-state-label" powerRateTestId="pump-power-rate" />
       ) : null}
       {hasTargets ? (
         <Group gap="xs" data-testid="pump-pumping-fluids">
