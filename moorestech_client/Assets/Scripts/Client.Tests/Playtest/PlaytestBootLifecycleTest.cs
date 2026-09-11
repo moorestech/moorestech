@@ -57,6 +57,7 @@ namespace Client.Tests.Playtest
             Assert.That(settings.MapMode, Is.EqualTo(mapMode));
             Assert.That(settings.Seed, Is.EqualTo(seed));
             Assert.That(settings.AutoSave, Is.False);
+            Assert.That(settings.CaptureRing, Is.False);
         }
 
         [Test]

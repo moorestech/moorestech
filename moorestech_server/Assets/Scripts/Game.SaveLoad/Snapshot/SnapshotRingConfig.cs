@@ -5,6 +5,9 @@ namespace Game.SaveLoad.Snapshot
     public static class SnapshotRingConfig
     {
         public const uint PeriodTicks = 600;
-        public const int Generations = 4;
+
+        // 剪定直後の最古スナップショットは(世代数-1)周期ぶん前なので、4世代では最悪90秒しか残らない
+        // Right after pruning the oldest snapshot is (generations-1) periods old, so four generations leave only 90 seconds
+        public const int Generations = 5;
     }
 }

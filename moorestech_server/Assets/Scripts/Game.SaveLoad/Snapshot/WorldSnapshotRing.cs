@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Core.Update;
 using Game.Paths;
@@ -44,7 +45,16 @@ namespace Game.SaveLoad.Snapshot
 
         public bool IsActive { get; private set; }
         public IObservable<SnapshotWritten> OnSnapshotWritten => _onSnapshotWritten;
-        public IReadOnlyList<ulong> WrittenTicks => _writtenTicks;
+
+        // 剪定はtickスレッドがこの錠の内側で行うので、読み出しも錠の内側でコピーを取って返す
+        // Pruning happens under this lock on the tick thread, so reads copy the list under the same lock
+        public IReadOnlyList<ulong> CopyWrittenTicks()
+        {
+            lock (_tickStateLock)
+            {
+                return _writtenTicks.ToArray();
+            }
+        }
 
         public void Start(uint periodTicks, int generations)
         {
@@ -58,6 +68,10 @@ namespace Game.SaveLoad.Snapshot
             _generations = generations;
             _nextPeriodicTick = GameUpdater.CurrentTick + periodTicks;
             Directory.CreateDirectory(_directory.SnapshotDirectory);
+
+            // 前セッションのtickは今回の剪定対象にならず残り続け、区間ファイルは再生へ異セッションのパケットを混ぜる
+            // Previous-session ticks never enter this session's pruning, and their segments would mix foreign packets into replay
+            SnapshotDirectoryCleaner.DeletePreviousSessionFiles(_directory.SnapshotDirectory);
             _packetLog.Start(_directory.SnapshotDirectory, GameUpdater.CurrentTick + 1);
             IsActive = true;
             Debug.Log($"常時記録を開始しました period:{periodTicks}tick generations:{generations} dir:{_directory.SnapshotDirectory}");

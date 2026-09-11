@@ -30,6 +30,7 @@ namespace Client.Tests.StandaloneQa
             Assert.That(serverSettings.MapMode, Is.EqualTo("generated"));
             Assert.That(serverSettings.Seed, Is.EqualTo(67890));
             Assert.That(serverSettings.AutoSave, Is.False);
+            Assert.That(serverSettings.CaptureRing, Is.False);
             Assert.That(settings.ResultDirectory, Is.EqualTo("/tmp/result"));
         }
 

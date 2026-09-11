@@ -36,7 +36,7 @@ namespace Tests.CombinedTest.Game.Snapshot
 
             var names = Directory.GetFiles(directory.SnapshotDirectory, "tick_*.json").Select(Path.GetFileName).OrderBy(n => n).ToArray();
             CollectionAssert.AreEqual(new[] { "tick_20.json", "tick_30.json", "tick_40.json" }, names);
-            CollectionAssert.AreEqual(new ulong[] { 20, 30, 40 }, ring.WrittenTicks);
+            CollectionAssert.AreEqual(new ulong[] { 20, 30, 40 }, ring.CopyWrittenTicks());
 
             // 最古スナップショット20より前の区間は消え、21以降の区間が残る
             // Segments before the oldest snapshot (20) are gone; segments from 21 remain
