@@ -81,7 +81,17 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             {
                 var response = await ClientContext.VanillaApi.Response.GetGearNetworkInfo(block.BlockInstanceId, ct);
                 if (ct.IsCancellationRequested) return;
-                GearNetwork = response?.Info;
+
+                // 通信失敗は網未所属(Info=null)と区別し、前回値を保って停止理由行を消さない
+                // Keep the last snapshot on a transport failure so it is not confused with non-membership (Info == null)
+                if (response == null)
+                {
+                    Debug.LogWarning($"[BlockNetworkInfoCache] GetGearNetworkInfo failed for block {block.BlockInstanceId}; keeping the previous gear network snapshot");
+                    await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
+                    continue;
+                }
+
+                GearNetwork = response.Info;
                 OnUpdated?.Invoke();
                 await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
             }
