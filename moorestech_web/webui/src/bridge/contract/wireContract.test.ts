@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 
+import { GearNetworkStopReasonSchema } from "./schemas";
 import { parseTopicPayload } from "./validators";
 import { loadFixture } from "./wireFixtures.test-helper";
 import { BENIGN_ERRORS } from "../transport/actions";
@@ -160,7 +161,7 @@ describe("block detail fixtures", () => {
     if (!gear.open || gear.source !== "block" || !gear.machine || !gear.gearNetwork) throw new Error("gear fixture shape");
     expect(gear.machine.selectedRecipeGuid).toBe("00000000-0000-0000-0000-000000000000");
     expect(gear.machine.blockGuid).toBe("22222222-2222-4222-8222-222222222222");
-    expect(["none", "rocked", "overRequirePower"]).toContain(gear.gearNetwork.stopReason);
+    expect(GearNetworkStopReasonSchema.options).toContain(gear.gearNetwork.stopReason);
   });
 });
 

@@ -18,26 +18,34 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             var gear = block.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
             if (gear == null) return;
 
+            dto.Gear = BuildGearDetail(gear, param);
+        }
+
+        /// <summary>
+        /// 役割と基準RPMを1つの分岐で決める。正本はスキーマの IGearConsumptionParam で、持たないブロックは発電機
+        /// One branch settles role and base RPM: the schema's IGearConsumptionParam is the authority, and blocks without it are generators
+        /// </summary>
+        public static GearDetailDto BuildGearDetail(GearStateDetail gear, object param)
+        {
             var gearDto = new GearDetailDto
             {
                 CurrentRpm = gear.CurrentRpm,
                 CurrentTorque = gear.CurrentTorque,
-                Role = ResolveRole(param),
             };
 
             // 基準RPMは消費側にしか存在しない。発電機の枝ではフィールドごとwireから省く
             // A base RPM exists only on the consumer side; the generator branch omits the field from the wire entirely
-            if (param is IGearConsumptionParam consumptionParam) gearDto.BaseRpm = (float)consumptionParam.GearConsumption.BaseRpm;
-            dto.Gear = gearDto;
-        }
+            if (param is IGearConsumptionParam consumptionParam)
+            {
+                gearDto.Role = ConsumerRole;
+                gearDto.BaseRpm = (float)consumptionParam.GearConsumption.BaseRpm;
+            }
+            else
+            {
+                gearDto.Role = GeneratorRole;
+            }
 
-        /// <summary>
-        /// 歯車の役割を決める。正本はスキーマの IGearConsumptionParam で、持たないブロックは発電機
-        /// Settles the gear's role: the schema's IGearConsumptionParam is the authority, and blocks without it are generators
-        /// </summary>
-        public static string ResolveRole(object param)
-        {
-            return param is IGearConsumptionParam ? ConsumerRole : GeneratorRole;
+            return gearDto;
         }
     }
 }

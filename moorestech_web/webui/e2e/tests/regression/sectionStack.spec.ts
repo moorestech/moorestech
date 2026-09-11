@@ -22,8 +22,8 @@ const cases = [
   { type: "gearGenerator", shown: ["gear-section", "gear-network-section"] },
 ] as const;
 
-// 風車はconfigByBlockTypeでFuelGearGeneratorと同じ行を使うため、中身の無い燃料グリッドがDOMに残る
-// The windmill shares FuelGearGenerator's configByBlockType row, so an empty fuel grid stays in the DOM
+// 風車のconfigByBlockType行はrenderEmptyGrid: trueなので、中身の無い燃料グリッドがDOMに残る
+// The windmill's own configByBlockType row sets renderEmptyGrid: true, so an empty fuel grid stays in the DOM
 const renderedEmptyByType: Partial<Record<(typeof cases)[number]["type"], readonly string[]>> = {
   gearGenerator: ["generator-fuel-grid"],
 };
