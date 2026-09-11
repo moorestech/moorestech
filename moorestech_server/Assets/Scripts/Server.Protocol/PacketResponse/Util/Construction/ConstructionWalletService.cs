@@ -44,6 +44,13 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             return new WalletPlacementPlan(query.GetItemsToConsume(blockId), _mutation, _payers, usage, playerId, ConstructionWalletUtil.ResolveWalletBlockId(blockId), blockMaster.PlacementsPerCost);
         }
 
+        // 無料設置デバッグの設置。財布も素材も触らない空の計画を返す（ADR 0056）
+        // Free-placement debug placement; returns an empty plan that touches neither wallet nor materials (ADR 0056)
+        public IConstructionPlacementPlan PlanFreePlacement()
+        {
+            return new DirectCostPlacementPlan(Array.Empty<(ItemId itemId, int count)>());
+        }
+
         public void CommitPlacement(IConstructionPlacementPlan plan, IOpenableInventory inventory, BlockInstanceId blockInstanceId)
         {
             plan.Commit(inventory, blockInstanceId);

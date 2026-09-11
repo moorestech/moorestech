@@ -81,40 +81,25 @@ namespace Server.Protocol.PacketResponse
 
                 var placeBlockId = placeInfo.BlockId;
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
-
-                // 無料設置は解放・コスト無視で強制設置
-                // Free placement force-places ignoring unlock/cost
-                if (isFreePlacement)
-                {
-                    PlaceForFree(placeBlockId, placeInfo, createParams);
-                    return;
-                }
-
                 var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(placeBlockId);
 
-                // 未解放セルはスキップ。坂ベルトの正規化を含む解放判定はカタログへ集約している
-                // Skip locked cells; the unlock rule, belt-slope normalization included, lives in the catalog
-                // 無料設置は上の早期returnで完結済みなので、ここへ到達する時点で無料設置ではない
-                // Free placement already returned above, so reaching here means placement is never free
-                if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, false)) { notUnlockedCount++; return; }
+                // 未解放セルはスキップ。坂ベルトの正規化を含む解放判定はカタログへ集約し、無料設置は解放を無視する
+                // Skip locked cells; the unlock rule, belt-slope normalization included, lives in the catalog and free placement ignores it
+                if (!_placementTargetCatalog.IsBlockUnlocked(blockMaster.BlockGuid, _gameUnlockStateDataController, isFreePlacement)) { notUnlockedCount++; return; }
 
-                // 財布に問い合わせ、賄えないセルはスキップ
-                // Ask the wallet; skip cells it cannot cover
+                // 財布に問い合わせ、賄えないセルはスキップ。無料設置は何も消費しない空の計画になる
+                // Ask the wallet and skip cells it cannot cover; free placement gets an empty plan that consumes nothing
                 var inventory = inventoryData.MainOpenableInventory;
-                var placementPlan = _constructionWallet.PlanPlacement(blockMaster, data.PlayerId);
+                var placementPlan = isFreePlacement ? _constructionWallet.PlanFreePlacement() : _constructionWallet.PlanPlacement(blockMaster, data.PlayerId);
                 if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
 
-                // 電気なら自動接続を事前検証
-                // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
-                var isElectric = ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _);
-                var plan = default(ElectricWireAutoConnectPlan);
-                if (isElectric)
-                {
-                    // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
-                    // Pass construction-cost materials as reservations to exclude them from wire availability
-                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems, false);
-                    if (!plan.IsPlaceable) { wireShortageCount++; return; }
-                }
+                // 電線の自動接続を事前検証する。建設コストで消費予定の素材は予約として電線の所持数判定から除外する
+                // Validate the wire auto-connect ahead; construction-cost materials are reserved and excluded from wire availability
+                var plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems, isFreePlacement);
+
+                // 電線が賄えないセルはスキップ。無料設置は計画がFailureでも設置だけは行う
+                // Skip cells whose wires are unaffordable; free placement still places the block on a Failure plan
+                if (!plan.IsPlaceable && !isFreePlacement) { wireShortageCount++; return; }
 
                 // 設置に失敗した場合はコストを消費しない
                 // Do not consume the cost when placement fails
@@ -122,27 +107,9 @@ namespace Server.Protocol.PacketResponse
 
                 _constructionWallet.CommitPlacement(placementPlan, inventory, block.BlockInstanceId);
 
-                // 計画を実行しワイヤー消費
-                // Execute the validated plan: add wires and consume wire items
-                if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
-            }
-
-            void PlaceForFree(BlockId blockId, PlaceInfoMessagePack placeInfo, BlockCreateParam[] createParams)
-            {
-                // 通常経路と同じ順序で「設置前に計画→設置→実行」する。予約は無く所持数も見ない
-                // Same order as the normal path: plan before placing, place, then execute; no reservation and no held-count check
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                var isElectric = ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _);
-                var inventory = inventoryData.MainOpenableInventory;
-                var plan = isElectric
-                    ? ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, placeInfo.Position, placeInfo.Direction, Array.Empty<(ItemId itemId, int count)>(), inventory.InventoryItems, true)
-                    : default;
-
-                if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
-
-                // 計画がFailureでも設置は行い、接続は計画が成立したときだけ実行する
-                // Placement proceeds even on a Failure plan; the connection runs only when the plan is placeable
-                if (isElectric && plan.IsPlaceable) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
+                // 接続は計画が成立したときだけ実行する
+                // The connection runs only when the plan is placeable
+                if (plan.IsPlaceable) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
             }
 
             #endregion

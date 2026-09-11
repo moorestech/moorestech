@@ -27,15 +27,20 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
         public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems, bool isFreePlacement)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-            var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
-
-            // 電柱/機械の振り分けは選定コアが担う
-            // The selection core dispatches pole vs machine placement
-            var candidates = ElectricWireAutoConnectTargetCollector.CollectTargets(blockMaster, ownInfo);
 
             // 無料設置は素材を消費しない
             // Free placement never consumes materials
             var consumesMaterials = !isFreePlacement;
+
+            // 非電気ブロックは配線不要の成功計画。全ブロック走査より前に返し、呼び出し側に電気判定を持たせない
+            // Non-electric blocks get a no-wire success plan, returned before the world scan so callers never judge electricity
+            if (!ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _))
+                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty, consumesMaterials);
+
+            // 電柱/機械の振り分けは選定コアが担う
+            // The selection core dispatches pole vs machine placement
+            var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
+            var candidates = ElectricWireAutoConnectTargetCollector.CollectTargets(blockMaster, ownInfo);
 
             if (candidates.Count == 0)
                 return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty, consumesMaterials);
