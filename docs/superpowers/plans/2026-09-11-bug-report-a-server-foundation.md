@@ -2814,4 +2814,11 @@ git commit -m "test(playtest): スナップショットリングの引っかか�
 - **差分（dirty）セーブは採らない**（agent前提）: 全DataStoreへの変更検知追加が要り、本planの範囲を超える。実測で「取り込み≤20ms・取りこぼし<3tick」を満たさなければ再検討。
 - **`GameUpdater.Update()` を再生器で直接呼ぶ**（agent前提）: `UpdateOneTick` はEditor専用。ビルド版の再生（将来）に備えるのではなく、Server.Boot はランタイム側なのでEditor専用APIを呼べないため。
 - **完了通知はtickスレッドで発火**（agent前提）: 書き出しスレッドから `Subject.OnNext` を呼ぶと購読側（イベント配信・`HasPendingSave` 判定）のスレッド前提が崩れるため、完了キューをtick末尾で排出する。
-- Task 9 の計測値: （実装時に転記）capture#0-4 = … ms、dropped = … tick、snapshots = …
+- Task 9 の計測値（2026-09-12・Mac mini・シナリオ `misc/snapshot-ring-no-hitch.cs`・2ラン一致）:
+  - **ワールドは `world_generated` の複製**（`PlaytestResults/worlds/world_generated-ring/`、移行スクリプト適用・seed 196・mapMode generated）。plan が前提した「`world_1` の 8048 ブロック」はこのマシンに存在しない（`world_1` に `save.json` が無く、実在する最大の save は `world_generated` の **6ブロック**。Task 4 でも同じズレを報告済み）。そこで**シナリオ内で 基本土台7048 + 木のチェスト1000 を直接設置し、8054 ブロックの世界を作って**測った。map objects は 34227・mapVeins 1416。
+  - `Capture()` 所要（同一プロセス・ブロック数を3段で切り分け）: **6ブロック 7.6〜7.7ms**（初回19.7ms）／**7054ブロック（土台のみ）14.3〜17.7ms**（初回137ms・2回目73ms・3回目62msはウォームアップ/GCの外れ値）／**8054ブロック（チェスト1000込み）19.1〜21.1ms、最悪25.5ms**（別ランでは16.5〜24.5ms、最悪61.8ms）。→ **受入「20ms以下」は 8054 ブロック規模では満たさない**。内訳は「固定費 ≈7.7ms（mapObjects 34227 の複製が主）＋ 土台7048 で約+7ms ＋ チェスト1000 で約+5ms」。
+  - ブロック側の `GetSaveState` に `JsonConvert` は**無い**（`WorldBlockDatastore.GetSaveJsonObject` → `BlockSystem.GetSaveState` → 各コンポーネントはオブジェクトを返すだけ。brief の想定原因は否定）。ただし `TrainCar.CreateSaveData` は `ContainerSaveData = JsonConvert.SerializeObject(...)` を**取り込み経路で**呼ぶ（本計測のワールドは列車0なので未計上）。列車の多い世界では tick スレッドで JSON 直列化が走るため、20ms を詰めるならここが次の削り代。
+  - tick の取りこぼし（90秒・8054ブロック・リング有効）: **elapsed=1769 / expected=1805.6 / dropped=36.6**（別ラン 1765 / 1805.6 / 40.6）。→ **受入「3tick未満」を満たさない**。
+  - ただし**同一世界でリングを止めた30秒の基準測定**でも dropped=17.6（別ラン 32.3）＝ **2.9%/5.0% の恒常的な遅れ**があり、リング有効時の遅れ率（2.0%/2.25%）は**基準より低い**。リング起因分（基準率で正規化した差）は **-15.5 tick / -50.1 tick**＝**測定可能な増加なし**。周期スナップショットは90秒で3回とも書かれた（`snapshots=3`・PASS）。
+  - 原因は `ServerGameUpdater.StartUpdate` が `FrameInterval - 実行時間` を `Thread.Sleep` するだけで**取り戻さない**こと。Sleep のオーバーシュートがそのまま累積するため、「壁時計換算で3tick以上欠けない」は**リングの有無と無関係に構造上達成できない**。R10 の閾値はリングではなく tick ループのドリフトを測っている。
+  - 結論: 「スナップショットが体感できる引っかかりを出さない」という初版条件そのものは満たす（リング起因のtick損失ゼロ・周期書き出し成功）。R10 の**数値の書き方**（絶対dropped<3・capture≤20ms）は要再裁定。差分（dirty）セーブの再検討条件（上記）に該当するのは capture 20ms の方のみ。
