@@ -32,6 +32,18 @@ namespace Client.Tests.BugReport
                 Assert.IsTrue(json.ContainsKey(key), $"キー {key} が無い");
             }
             Assert.AreEqual("ffmpeg not found", (string)json["missing"][0]["reason"]);
+
+            // Vector3が循環参照設定で黙って消えていないか実値で検証する
+            // Verify the Vector3 actually survives serialization, not just the containing key
+            Assert.AreEqual(1.0, (double)json["clientState"]["cameraPosition"]["x"]);
+            Assert.AreEqual(2.0, (double)json["clientState"]["cameraPosition"]["y"]);
+            Assert.AreEqual(3.0, (double)json["clientState"]["cameraPosition"]["z"]);
+            Assert.AreEqual(0.0, (double)json["clientState"]["cameraEulerAngles"]["x"]);
+            Assert.AreEqual(90.0, (double)json["clientState"]["cameraEulerAngles"]["y"]);
+            Assert.AreEqual(0.0, (double)json["clientState"]["cameraEulerAngles"]["z"]);
+            Assert.AreEqual(4.0, (double)json["clientState"]["playerPosition"]["x"]);
+            Assert.AreEqual(5.0, (double)json["clientState"]["playerPosition"]["y"]);
+            Assert.AreEqual(6.0, (double)json["clientState"]["playerPosition"]["z"]);
         }
     }
 }
