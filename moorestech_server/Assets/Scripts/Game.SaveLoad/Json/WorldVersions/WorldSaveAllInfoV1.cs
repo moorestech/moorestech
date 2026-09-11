@@ -39,7 +39,9 @@ namespace Game.SaveLoad.Json.WorldVersions
             List<ConstructionPayerSaveJsonObject> constructionPayers,
             Dictionary<string, int> itemStackLevels,
             int inventorySlotLevel,
-            List<CleanRoomSaveData> cleanRoomRooms)
+            List<CleanRoomSaveData> cleanRoomRooms,
+            ulong currentTick,
+            ulong[] randomState)
         {
             World = world;
             Inventory = inventory;
@@ -59,6 +61,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             ItemStackLevels = itemStackLevels ?? new Dictionary<string, int>();
             InventorySlotLevel = inventorySlotLevel;
             CleanRoomRooms = cleanRoomRooms ?? new List<CleanRoomSaveData>();
+            CurrentTick = currentTick;
+            RandomState = randomState;
         }
         
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
@@ -80,5 +84,10 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("itemStackLevels")] public Dictionary<string, int> ItemStackLevels { get; }
         [JsonProperty("inventorySlotLevel")] public int InventorySlotLevel { get; }
         [JsonProperty("cleanRoomRooms")] public List<CleanRoomSaveData> CleanRoomRooms { get; }
+
+        // スナップショットからの再生に必要な時刻と乱数状態。ロードの先頭で復元する
+        // Tick and random state required to replay from a snapshot; restored first on load
+        [JsonProperty("currentTick")] public ulong CurrentTick { get; }
+        [JsonProperty("randomState")] public ulong[] RandomState { get; }
     }
 }

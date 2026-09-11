@@ -26,9 +26,9 @@ namespace Game.Block.Interface.Component
                 return false;
             }
             
-            // 旧形式のJSON文字列は黙って読み飛ばさず、移行スクリプトの案内とともに落とす
-            // Old-format JSON strings fail loudly with a pointer to the migration script instead of being skipped
-            if (raw is string)
+            // 旧形式のJSON文字列は、CLR文字列でもJValue文字列でも黙って読み飛ばさず移行スクリプトの案内とともに落とす
+            // Old-format JSON strings, as CLR strings or JValue strings, fail loudly with a pointer to the migration script
+            if (raw is string || (raw is JValue jsonValue && jsonValue.Type == JTokenType.String))
             {
                 throw new InvalidOperationException($"キー {saveKey} のセーブ状態が旧形式（JSON文字列）です。scripts/save_migration/migrate_block_state_objects.py で移行してください");
             }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Core.Item;
+using Core.Update;
 using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom;
@@ -111,6 +112,11 @@ namespace Game.SaveLoad.Json
         public void Load(string jsonText)
         {
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
+            
+            // 時刻と乱数状態を最初に戻す。以降の復元（残りtick等）がこの時刻を基準にする
+            // Restore the clock and random state first; later restorations reference this tick
+            GameUpdater.RestoreCurrentTick(load.CurrentTick);
+            GameRandom.RestoreState(load.RandomState);
             
             _gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
             // ブロック・インベントリ復元前にスタックレベルを復元する（上限超過例外の防止）
