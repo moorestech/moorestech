@@ -9,6 +9,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Undo
     /// </summary>
     public interface IBuildOperationRecord
     {
+        /// <summary>
+        ///     有効セルが1件以上あるか。空バッチを履歴へ積まないための関門
+        ///     Whether the record has any cells; the gate that keeps empty batches out of the history
+        /// </summary>
+        bool HasCells { get; }
+
         UniTask UndoAsync(BlockGameObjectDataStore blockGameObjectDataStore);
     }
 }

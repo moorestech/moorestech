@@ -45,12 +45,12 @@ namespace Client.Tests.PlaceSystem.Feedback
             Assert.AreEqual(placeInfos.Count, groundOverlaps.Count);
 
             var terrainFeedback = new PlacementFeedback();
-            PlacementCellReasonReporter.Report(PlacementCursorCellResolver.Resolve(placeInfos, new Vector3Int(1, 0, 0)), PlacementBlockCause.None, groundOverlaps, terrainFeedback);
+            PlacementCellReasonReporter.Report(PlacementCursorCellResolver.Resolve(placeInfos, new Vector3Int(1, 0, 0), PlacementCursorMatch.ExactCellOrLast), PlacementBlockCause.None, groundOverlaps, terrainFeedback);
             Assert.AreEqual(1, terrainFeedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, terrainFeedback.Lines[0].Key.Key);
 
             var clearFeedback = new PlacementFeedback();
-            PlacementCellReasonReporter.Report(PlacementCursorCellResolver.Resolve(placeInfos, new Vector3Int(0, 0, 0)), PlacementBlockCause.None, groundOverlaps, clearFeedback);
+            PlacementCellReasonReporter.Report(PlacementCursorCellResolver.Resolve(placeInfos, new Vector3Int(0, 0, 0), PlacementCursorMatch.ExactCellOrLast), PlacementBlockCause.None, groundOverlaps, clearFeedback);
             Assert.IsEmpty(clearFeedback.Lines);
         }
 
@@ -63,7 +63,7 @@ namespace Client.Tests.PlaceSystem.Feedback
 
             // 非含有時は末尾セル。地面接触も末尾を見る
             // When not in the list, falls back to the last cell; ground overlap is read there too
-            PlacementCellReasonReporter.Report(PlacementCursorCellResolver.Resolve(placeInfos, new Vector3Int(9, 9, 9)), PlacementBlockCause.None, groundOverlaps, feedback);
+            PlacementCellReasonReporter.Report(PlacementCursorCellResolver.Resolve(placeInfos, new Vector3Int(9, 9, 9), PlacementCursorMatch.ExactCellOrLast), PlacementBlockCause.None, groundOverlaps, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, feedback.Lines[0].Key.Key);
@@ -88,7 +88,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.ExistingBlock, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
 
-            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, feedback);
+            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, PlacementCursorMatch.ExactCellOrLast, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
@@ -101,7 +101,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.ExistingBlock, PlacementBlockCause.None, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
 
-            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, feedback);
+            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { false, false, false }, PlacementCursorMatch.ExactCellOrLast, feedback);
 
             Assert.IsEmpty(feedback.Lines);
         }
@@ -115,7 +115,7 @@ namespace Client.Tests.PlaceSystem.Feedback
             var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.None, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
 
-            var cursorIndex = PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, new Vector3Int(1, 0, 0), feedback);
+            var cursorIndex = PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, new Vector3Int(1, 0, 0), PlacementCursorMatch.ExactCellOrLast, feedback);
 
             Assert.AreEqual(1, cursorIndex);
             Assert.IsTrue(placeInfos[0].Placeable);
@@ -133,10 +133,29 @@ namespace Client.Tests.PlaceSystem.Feedback
             var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.ExistingBlock, PlacementBlockCause.None };
             var feedback = new PlacementFeedback();
 
-            PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, new Vector3Int(1, 0, 0), feedback);
+            PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, new Vector3Int(1, 0, 0), PlacementCursorMatch.ExactCellOrLast, feedback);
 
             Assert.AreEqual(1, feedback.Lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByExistingBlock.Key, feedback.Lines[0].Key.Key);
+        }
+
+        // 地形を無視してよいセルの除外は呼び出し側の仕事で、共有層はIsReplace等の設置系固有フラグを見ない
+        // Excluding cells allowed to ignore terrain is the caller's job; the shared layer never reads system-specific flags like IsReplace
+        [Test]
+        public void 地形列は渡されたまま使い設置系固有のフラグでは変えない()
+        {
+            var placeInfos = BuildDragCells(2);
+            placeInfos[0].IsReplace = true;
+            placeInfos[1].IsReplace = true;
+            var cellCauses = new List<PlacementBlockCause> { PlacementBlockCause.None, PlacementBlockCause.None };
+            var feedback = new PlacementFeedback();
+
+            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, cellCauses, new Vector3Int(1, 0, 0), new List<bool> { true, true }, PlacementCursorMatch.ExactCellOrLast, feedback);
+
+            Assert.IsFalse(placeInfos[0].Placeable);
+            Assert.IsFalse(placeInfos[1].Placeable);
+            Assert.AreEqual(1, feedback.Lines.Count);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBlockedByTerrain.Key, feedback.Lines[0].Key.Key);
         }
 
         private static List<PlaceInfo> BuildDragCells(int cellCount)

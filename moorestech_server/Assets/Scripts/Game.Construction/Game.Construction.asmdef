@@ -4,8 +4,10 @@
     "references": [
         "Core.Master",
         "Core.Item.Interface",
+        "Core.Inventory",
         "Game.Block.Interface",
-        "UniRx"
+        "UniRx",
+        "Game.Context"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -6,13 +6,9 @@ namespace Game.Construction
     // The write side of remaining placements; only the place/remove protocols depend on this
     public interface IRemainingPlacementCountMutation
     {
-        // 1消費する。残り0での呼び出しは財布の判断漏れなので落とす
-        // Consumes one; calling it on an empty wallet means the caller skipped the wallet's decision, so it throws
-        void ConsumeOne(int playerId, BlockId walletBlockId);
-
-        // 1セット消費の対価としてN分を補充する
-        // Refills one set's worth of placements after one construction-cost set was consumed
-        void Refill(int playerId, BlockId walletBlockId, int placementsPerCost);
+        // 設置1回分を進める。遷移式はConstructionWalletUtil.AdvanceOnPlacementが唯一の正本
+        // Advances the wallet by one placement; ConstructionWalletUtil.AdvanceOnPlacement is the single source of the transition
+        void ApplyPlacement(int playerId, BlockId walletBlockId, int placementsPerCost, ConstructionWalletUsage usage);
 
         // 撤去分を戻す。凝縮するかは財布が計画時に決める
         // Applies a removal's return; whether it condenses was decided by the wallet when the plan was made

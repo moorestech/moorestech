@@ -26,8 +26,10 @@ namespace Client.Playtest
     {
         // 開幕スキットのSkip受理待ちと、その後のGameScreen到達待ちの上限
         // Timeouts for the opening skit's skip acceptance and the subsequent arrival at GameScreen
+        // 非フォーカスのEditorは十数fpsまで落ちるため、スキットのフェード完了に要する実時間を広く見る
+        // An unfocused editor drops to the mid-teens in fps, so allow ample real time for the skit's fade-out
         private const float SkitSkipTimeoutSeconds = 30f;
-        private const float SkitSkipUiStateTimeoutSeconds = 15f;
+        private const float SkitSkipUiStateTimeoutSeconds = 60f;
         // 再生されないワールドでも待ちすぎないための、任意スキップの上限
         // Upper bound for the optional skip so worlds without a skit do not stall
         private const float OptionalSkitSkipTimeoutSeconds = 10f;

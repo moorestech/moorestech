@@ -15,6 +15,7 @@ using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Protocol.PacketResponse.Util.GearChain;
 using Server.Util.MessagePack;
 using UnityEngine;
+using Game.Construction;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -64,7 +65,7 @@ namespace Server.Protocol.PacketResponse
             // Ask the wallet for the construction cost; when the remainder covers it no materials are demanded
             var placementPlan = _constructionWallet.PlanPlacement(blockMaster, request.PlayerId);
             var costItemCounts = placementPlan.ItemsToConsume;
-            if (!ConstructionCostService.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InsufficientItemsError);
+            if (!ConstructionCostRules.HasRequiredItems(costItemCounts, inventory.InventoryItems)) return GearChainPoleExtendResponse.CreateFailed(GearChainPlacementEvaluator.InsufficientItemsError);
 
             // 起点ありの場合は接続可否を設置前にすべて検証する
             // With a from pole, validate connection viability before placing

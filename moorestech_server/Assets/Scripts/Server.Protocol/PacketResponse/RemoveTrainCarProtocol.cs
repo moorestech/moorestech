@@ -135,7 +135,7 @@ namespace Server.Protocol.PacketResponse
                 var costItemCounts = ConstructionCostItems.ToItemCounts(car.TrainCarMasterElement.RequiredItems);
                 if (costItemCounts.Length > 0)
                 {
-                    result.AddRange(ConstructionCostService.CreateRefundItems(costItemCounts));
+                    result.AddRange(ConstructionCostRules.CreateRefundItems(costItemCounts));
                 }
 
                 // アイテムコンテナを積んでいる場合は中身も返却対象に加える(液体コンテナはアイテム化不可のため対象外)

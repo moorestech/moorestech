@@ -15,6 +15,7 @@ using Server.Event.Notification;
 using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect;
+using Game.Construction;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -31,6 +32,7 @@ namespace Server.Protocol.PacketResponse
         private readonly NotificationService _notificationService;
         private readonly ConstructionWalletService _constructionWallet;
         private readonly PlacementTargetCatalog _placementTargetCatalog;
+        private readonly IReplacePlacementService _replacePlacementService;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
         {
@@ -39,6 +41,7 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
             _placementTargetCatalog = serviceProvider.GetService<PlacementTargetCatalog>();
+            _replacePlacementService = serviceProvider.GetService<IReplacePlacementService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -55,6 +58,8 @@ namespace Server.Protocol.PacketResponse
             var notUnlockedCount = 0;
             var costShortageCount = 0;
             var wireShortageCount = 0;
+            var replaceInventoryFullCount = 0;
+            var replaceRejectedCount = 0;
 
             foreach (var placeInfo in data.PlacePositions)
             {
@@ -68,6 +73,8 @@ namespace Server.Protocol.PacketResponse
             if (0 < notUnlockedCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockNotUnlocked", Array.Empty<string>()));
             if (0 < costShortageCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockCostShortage", Array.Empty<string>()));
             if (0 < wireShortageCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockWireShortage", Array.Empty<string>()));
+            if (0 < replaceInventoryFullCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockReplaceInventoryFull", Array.Empty<string>()));
+            if (0 < replaceRejectedCount) _notificationService.Notify(data.PlayerId, NotificationMessagePack.CreateOperationDenied("denied.placeBlockReplaceRejected", Array.Empty<string>()));
 
             return null;
 
@@ -75,12 +82,34 @@ namespace Server.Protocol.PacketResponse
 
             void PlaceBlock(PlaceInfoMessagePack placeInfo)
             {
+                var placeBlockId = placeInfo.BlockId;
+                var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
+
+                // 張替えセルは既設ブロックの差し替えなので、引き受け手のあるセルだけ張替えサービスへ委譲する
+                // A replace cell swaps the existing block, so only a cell some service owns is delegated to it
+                if (placeInfo.IsReplace)
+                {
+                    // 張替え対象かどうかの規則はサービス側にあり、プロトコルはブロックの種類を知らない
+                    // The rule for what counts as a replace target lives in the service, so the protocol never knows the block kind
+                    var existingBlock = ServerContext.WorldBlockDatastore.GetBlock(placeInfo.Position);
+                    if (existingBlock == null || !_replacePlacementService.CanReplace(existingBlock.BlockId, placeBlockId))
+                    {
+                        // 張替え不成立の切り分けはログが唯一の手がかりなので、サービスへ渡す前に弾いたセルも理由を残す
+                        // The log is the only clue left when a replace does not happen, so a cell dropped before the service also records its reason
+                        var rejectReason = existingBlock == null ? "no block at the cell" : $"existing block {existingBlock.BlockId} cannot be replaced by {placeBlockId}";
+                        UnityEngine.Debug.Log($"[Replace] rejected at {placeInfo.Position} held:{placeBlockId} reason:{rejectReason}");
+                        replaceRejectedCount++;
+                        return;
+                    }
+
+                    var replaceRequest = new ReplacePlacementRequest(placeInfo.Position, placeBlockId, createParams, inventoryData.MainOpenableInventory, data.PlayerId, isFreePlacement);
+                    CountReplaceResult(_replacePlacementService.Replace(replaceRequest));
+                    return;
+                }
+
                 // すでにブロックがある場合は何もしない
                 // Do nothing when a block already exists
                 if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
-
-                var placeBlockId = placeInfo.BlockId;
-                var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 
                 // 無料設置デバッグ: 解放・コスト・電線を一切見ず強制設置して即return
                 // Free placement debug: force-place ignoring unlock/cost/wire entirely, then return
@@ -102,7 +131,7 @@ namespace Server.Protocol.PacketResponse
                 // Ask the wallet; skip cells it cannot cover
                 var inventory = inventoryData.MainOpenableInventory;
                 var placementPlan = _constructionWallet.PlanPlacement(blockMaster, data.PlayerId);
-                if (!ConstructionCostService.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
+                if (!ConstructionCostRules.HasRequiredItems(placementPlan.ItemsToConsume, inventory.InventoryItems)) { costShortageCount++; return; }
 
                 // 電気なら自動接続を事前検証
                 // For electric blocks, validate the auto-connect plan before placement; skip when wires are insufficient
@@ -125,6 +154,19 @@ namespace Server.Protocol.PacketResponse
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items
                 if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
+            }
+
+            // 張替えの拒否理由も通常設置と同じ集計へ合流させ、末尾で1通ずつ通知する
+            // Replace rejections join the same aggregation as normal placement and are notified once each at the end
+            void CountReplaceResult(ReplacePlacementResult result)
+            {
+                switch (result)
+                {
+                    case ReplacePlacementResult.NotUnlocked: notUnlockedCount++; break;
+                    case ReplacePlacementResult.CostShortage: costShortageCount++; break;
+                    case ReplacePlacementResult.InventoryFull: replaceInventoryFullCount++; break;
+                    case ReplacePlacementResult.Rejected: replaceRejectedCount++; break;
+                }
             }
 
             #endregion

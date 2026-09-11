@@ -29,6 +29,14 @@ namespace Client.Common
         public static readonly Color PlaceableColor = new(0.41f,0.59f,0.86f,1f);
         public static readonly Color NotPlaceableColor = new(0.9f,0.25f,0.16f,1);
 
+        // 張替えプレビュー色（黄）。設置可の青・不可の赤と区別する
+        // Replace preview color (yellow), distinct from placeable blue and unplaceable red
+        public static readonly Color ReplaceColor = new(0.95f, 0.78f, 0.2f, 1f);
+
+        // 返却の課金元を把握できず見積れない張替え色（紫）。確実に置ける黄と区別する
+        // Replace preview color (purple) for a cell whose refund payer is unknown, distinct from the certain yellow
+        public static readonly Color UncertainReplaceColor = new(0.64f, 0.36f, 0.86f, 1f);
+
         public static Material GetPreviewPlaceBlockMaterial()
         {
             // 共通プレビュー材質は一度だけロードして再利用する

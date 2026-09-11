@@ -191,8 +191,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // 鉱脈・既存ブロックで落ちたセルがアイテム枠を消費しないよう、フィルタ後にチェックする
                 // Check after filtering so cells dropped by veins or existing blocks don't consume item quota
-                ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
-                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, target.BlockId, _constructionWalletQuery, _localPlayerInventory);
+                ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, _constructionWalletQuery, _localPlayerInventory, feedback);
+                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, _constructionWalletQuery, _localPlayerInventory);
 
                 // 各セルの自動接続を評価し表示更新。cursorIndexは上で解決済みのため再解決しない
                 // Evaluate auto-connect per cell and update the preview; cursorIndex is already resolved above so it is not re-resolved

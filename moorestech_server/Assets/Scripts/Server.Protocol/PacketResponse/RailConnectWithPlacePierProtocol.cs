@@ -18,6 +18,7 @@ using Server.Protocol.PacketResponse.Util.Construction;
 using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using UnityEngine;
+using Game.Construction;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -72,7 +73,7 @@ namespace Server.Protocol.PacketResponse
             if (blockMaster.BlockParam is not TrainRailBlockParam) return RailConnectWithPlacePierResponse.CreateFailedResponse();
             var placementPlan = _constructionWallet.PlanPlacement(blockMaster, request.PlayerId);
             var pierItemCounts = placementPlan.ItemsToConsume;
-            if (!ConstructionCostService.HasRequiredItems(pierItemCounts, inventory.InventoryItems)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
+            if (!ConstructionCostRules.HasRequiredItems(pierItemCounts, inventory.InventoryItems)) return RailConnectWithPlacePierResponse.CreateFailedResponse();
 
             // 橋脚を設置する
             // Place the pier block

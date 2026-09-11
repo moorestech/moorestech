@@ -47,23 +47,22 @@ namespace Game.Construction
             return reader;
         }
 
-        public void ConsumeOne(int playerId, BlockId walletBlockId)
+        public void ApplyPlacement(int playerId, BlockId walletBlockId, int placementsPerCost, ConstructionWalletUsage usage)
         {
-            var remaining = GetRemainingCount(playerId, walletBlockId);
-            if (remaining <= 0) throw new InvalidOperationException($"Wallet is empty. playerId:{playerId} walletBlockId:{walletBlockId.AsPrimitive()}");
-            Set(playerId, walletBlockId, remaining - 1);
-        }
+            // 財布を通らない設置がここへ来るのは財布の判断漏れ
+            // A wallet-bypassing placement reaching here means the caller skipped the wallet's decision
+            if (usage == ConstructionWalletUsage.NotUsed) throw new ArgumentOutOfRangeException(nameof(usage), usage, null);
 
-        public void Refill(int playerId, BlockId walletBlockId, int placementsPerCost)
-        {
-            Set(playerId, walletBlockId, GetRemainingCount(playerId, walletBlockId) + placementsPerCost);
+            var coveredByWallet = usage == ConstructionWalletUsage.CoveredByWallet;
+            var remaining = GetRemainingCount(playerId, walletBlockId);
+            if (coveredByWallet && remaining <= 0) throw new InvalidOperationException($"Wallet is empty. playerId:{playerId} walletBlockId:{walletBlockId.AsPrimitive()}");
+
+            Set(playerId, walletBlockId, ConstructionWalletUtil.AdvanceOnPlacement(remaining, placementsPerCost, coveredByWallet));
         }
 
         public void ApplyReturn(int playerId, BlockId walletBlockId, bool condensed)
         {
-            // Nに達した分は素材へ凝縮し財布から消える
-            // The portion that reached one set's worth condenses into materials and leaves the wallet
-            Set(playerId, walletBlockId, condensed ? 0 : GetRemainingCount(playerId, walletBlockId) + 1);
+            Set(playerId, walletBlockId, ConstructionWalletUtil.AdvanceOnRemoval(GetRemainingCount(playerId, walletBlockId), condensed));
         }
 
         public void FlushChanges()

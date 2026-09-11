@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.Inventory;
 using Core.Master;
@@ -38,21 +37,9 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         {
             ConstructionCostService.ConsumeRequiredItems(ItemsToConsume, inventory);
 
-            // 素材を払ったセルは1セット分を補充してから1消費する（残り=N-1）
-            // A cell that paid materials refills one set's worth and then consumes one (remaining = N-1)
-            switch (_usage)
-            {
-                case ConstructionWalletUsage.CoveredByWallet:
-                    _mutation.ConsumeOne(_playerId, _walletBlockId);
-                    break;
-                case ConstructionWalletUsage.PaidAndRefilled:
-                    _mutation.Refill(_playerId, _walletBlockId, _placementsPerCost);
-                    _mutation.ConsumeOne(_playerId, _walletBlockId);
-                    break;
-                case ConstructionWalletUsage.NotUsed:
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(_usage), _usage, null);
-            }
+            // 残高の進め方はConstructionWalletUtilが所有する。ここは確定の合図だけを出す
+            // ConstructionWalletUtil owns how the remainder advances; this only signals that the placement is final
+            _mutation.ApplyPlacement(_playerId, _walletBlockId, _placementsPerCost, _usage);
 
             // 撤去時に同じ財布へ戻すため課金元を覚える
             // Remember who paid so the removal returns to the very same wallet

@@ -20,6 +20,8 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["denied.placeBlockNotUnlocked", L.ui.notification.placeBlockNotUnlocked],
   ["denied.placeBlockCostShortage", L.ui.notification.placeBlockCostShortage],
   ["denied.placeBlockWireShortage", L.ui.notification.placeBlockWireShortage],
+  ["denied.placeBlockReplaceInventoryFull", L.ui.notification.placeBlockReplaceInventoryFull],
+  ["denied.placeBlockReplaceRejected", L.ui.notification.placeBlockReplaceRejected],
   ["denied.railEdit.InvalidNode", L.ui.notification.railEditInvalidNode],
   ["denied.railEdit.NodeInUseByTrain", L.ui.notification.railEditNodeInUseByTrain],
   ["denied.railEdit.StationInternalEdge", L.ui.notification.railEditStationInternalEdge],

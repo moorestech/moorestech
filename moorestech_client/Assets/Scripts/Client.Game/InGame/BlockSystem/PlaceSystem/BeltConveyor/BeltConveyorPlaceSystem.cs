@@ -33,6 +33,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly ConstructionWalletQuery _constructionWalletQuery;
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlaceRunBuilder _placeRunBuilder;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
 
         private readonly CommonBlockPlaceDragState _dragState = new();
 
@@ -45,6 +46,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
             _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState);
         }
 
@@ -113,29 +115,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
             var blockGroundOverlapList = _previewBlockController.DetectGroundOverlaps();
 
-            // 共有の不可原因（既存重複）は共通Reporterが積む
-            // The shared block cause (existing overlap) is pushed by the shared reporter
-            var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
+            // 共有の不可原因（既存重複）は共通Reporterが積む。ベルト固有の地形・カーソル規則はベルト側の一手で決める
+            // The shared block cause (existing overlap) is pushed by the shared reporter; the belt-specific terrain and cursor rules are decided by the belt-side step
+            var cursorIndex = BeltPlacementCellFeedbackStep.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
 
             // ベルト固有の理由（立体交差不能・坂ブロック欠落）はベルト側が積む
             // Belt-specific reasons (impossible overpass, missing slope block) are pushed here on the belt side
             PushBeltReason();
 
-            // 地面フィルタ後にアイテム数チェック（地面に埋まったエンティティがアイテム枠を消費しないようにする）
-            // Check item count after ground filtering (so ground-blocked entities don't consume item quota)
-            // ファミリー内は建設コストと設置数/1セットが一致する（マスタ検証済み）ので先頭の設置可セルを代表にする
-            // Cost and placementsPerCost match within a family (validated at master load), so the first placeable cell is representative
-            var representativeIndex = _currentPlaceInfos.FindIndex(info => info.Placeable);
-            if (0 <= representativeIndex)
-            {
-                var representativeBlockId = _currentPlaceInfos[representativeIndex].BlockId;
-                ConstructionMaterialShortageReporter.ReportShortages(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory, feedback);
-                ConstructionCostPreviewMarker.MarkUnaffordableCellsAsNotPlaceable(_currentPlaceInfos, representativeBlockId, _constructionWalletQuery, _localPlayerInventory);
-            }
-
-            // 最終的なPlaceable状態でプレビュー色を更新
-            // Update preview colors based on the final Placeable state
-            _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
+            // 地面フィルタ後にコストを見る（地面に埋まったエンティティがアイテム枠を消費しないようにする）
+            // The cost is judged after ground filtering (so ground-blocked entities don't consume item quota)
+            BeltPlacementCostFeedbackStep.ApplyCostAndUpdateColors(_currentPlaceInfos, _blockGameObjectDataStore, _constructionWalletQuery, _localPlayerInventory, _previewBlockController, feedback);
 
             // 設置するブロックをサーバーに送信
             // send block place info to server
@@ -174,9 +164,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 // Clear the continuous-placement state on mouse release (a release without a registered press stops here)
                 if (!_dragState.EndDrag()) return;
 
-                // ベルトは電線を伴わないためワイヤー判定は常に許可
-                // Belts never carry wires, so the wire check is always allowed
-                TrySendOnClickRelease(_currentPlaceInfos, true);
+                // ベルトは電線を伴わないためワイヤー判定は常に許可（張替え送信にワイヤー引数が無いのも同じ理由）
+                // Belts never carry wires, so the wire check is always allowed (the replace sender omits the wire argument for the same reason)
+                if (_currentPlaceInfos.Exists(info => info.IsReplace)) TrySendReplaceOnClickRelease(_currentPlaceInfos, _blockGameObjectDataStore);
+                else TrySendOnClickRelease(_currentPlaceInfos, true);
             }
 
             #endregion

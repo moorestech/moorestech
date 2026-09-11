@@ -3,7 +3,6 @@ using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts;
 using Core.Master;
 using Game.Block.Interface;
-using Game.Block.Interface.Extension;
 using NUnit.Framework;
 using Server.Protocol.PacketResponse;
 using UnityEngine;
@@ -15,8 +14,6 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         private static readonly BlockId StraightBlock = new(101);
         private static readonly BlockId UpBlock = new(102);
         private static readonly BlockId DownBlock = new(103);
-        private static readonly BeltConveyorFamily Family = new(StraightBlock, UpBlock, DownBlock);
-        private static readonly BeltConveyorFamily SlopelessFamily = new(StraightBlock, null, null);
 
         [Test]
         public void 水平セルは個数と配置情報を保って直線ブロックになる()
@@ -28,7 +25,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(0, 0, 2, BlockDirection.East, BlockVerticalDirection.Horizontal, true),
             };
 
-            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, Family, NoneReasons(cells.Count));
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, StraightBlock, UpBlock, DownBlock, NoneReasons(cells.Count));
 
             // セルを縮約せず配置属性を維持する
             // Preserve placement attributes without collapsing cells
@@ -42,6 +39,23 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             }
         }
 
+        // 水平セルは渡された水平ブロックをそのまま使う（分岐器手持ちが直線へ化けないことの下流側の担保）
+        // Horizontal cells use the given horizontal block as is, guaranteeing a held splitter is not swapped for a straight belt downstream
+        [Test]
+        public void 直線以外を手持ちにしても水平セルはその水平ブロックのまま()
+        {
+            var splitterBlock = new BlockId(201);
+            var cells = new List<PlaceInfo>
+            {
+                Cell(0, 0, 0, BlockDirection.North, BlockVerticalDirection.Horizontal, true),
+                Cell(0, 0, 1, BlockDirection.North, BlockVerticalDirection.Horizontal, true),
+            };
+
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, splitterBlock, null, null, NoneReasons(cells.Count));
+
+            Assert.IsTrue(result.All(info => info.BlockId == splitterBlock));
+        }
+
         [Test]
         public void 上り下りセルは対応する坂ブロックになる()
         {
@@ -51,7 +65,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
                 Cell(0, 1, 1, BlockDirection.North, BlockVerticalDirection.Down, true),
             };
 
-            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, Family, NoneReasons(cells.Count));
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, StraightBlock, UpBlock, DownBlock, NoneReasons(cells.Count));
 
             Assert.AreEqual(UpBlock, result[0].BlockId);
             Assert.AreEqual(DownBlock, result[1].BlockId);
@@ -60,7 +74,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         }
 
         [Test]
-        public void 坂なしファミリーの傾斜セルは直線ブロックで設置不可になる()
+        public void 坂ブロック無指定の傾斜セルは水平ブロックのまま設置不可になる()
         {
             var cells = new List<PlaceInfo>
             {
@@ -68,7 +82,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             };
 
             var beltReasons = NoneReasons(cells.Count);
-            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, SlopelessFamily, beltReasons);
+            var result = BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, StraightBlock, null, null, beltReasons);
 
             Assert.AreEqual(StraightBlock, result[0].BlockId);
             Assert.IsFalse(result[0].Placeable);
@@ -87,7 +101,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             };
             var beltReasons = new List<BeltConveyorPlacementBlockReason> { BeltConveyorPlacementBlockReason.ImpossibleOverpass };
 
-            BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, SlopelessFamily, beltReasons);
+            BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cells, StraightBlock, null, null, beltReasons);
 
             Assert.AreEqual(BeltConveyorPlacementBlockReason.ImpossibleOverpass, beltReasons[0]);
         }

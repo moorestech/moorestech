@@ -8,6 +8,19 @@
   Editorを前面化させ、実OSマウス状態が毎フレーム`Mouse.current`にforwardされて(A)の注入を上書き無効化する。
   一度汚染するとPlayMode再起動でしか戻らない（ESC1回のsimulateで以降全注入が死んだ実績あり）
 
+### 「フォーカス不要」を成立させているもの（前面化はしない）
+
+`QueueStateEvent` は素のままではフォーカス不要にならない。プロジェクト既定の
+`editorInputBehaviorInPlayMode = PointersAndKeyboardsRespectGameViewFocus` は Game View 非フォーカス時に
+キーボードデバイスごと無効化するため、注入キーが1つも届かない（B連打でビルドメニューが開かない、が典型症状）。
+
+そこで `PlaytestRunner` はシナリオ実行中だけ `PlaytestInputFocusOverride` で
+`backgroundBehavior = IgnoreFocus` ＋ `editorInputBehaviorInPlayMode = AllDeviceInputAlwaysGoesToGameView`
+へ退避・上書きし、終了時に必ず元へ戻す（この2つが揃ったときだけ `gameShouldGetInputRegardlessOfFocus` が立つ）。
+**フォーカスは一切動かさない。** Editor を前面化する対処（EditorWindow.Focus() のバウンス等）は入れないこと
+（並列worktreeの他Editorを背面へ落とし、CPU 1%へ絞られる実害がある）。
+2026-09-11実測: Finderを前面にした `Application.isFocused == false` の状態で全19アサート通過・録画9.5MB。
+
 さらに: **スニペットから`InputSystem.Update()`を呼ばない**。editor-update文脈になり
 `WasPressedThisFrame`/`IsPressed`が発火しなくなる。queueだけして通常フレーム更新に処理させる。
 「queue → フレームを進める（await/シェルsleep）→ 読む」が唯一機能する形。

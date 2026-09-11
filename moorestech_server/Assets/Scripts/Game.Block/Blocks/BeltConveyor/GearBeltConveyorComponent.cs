@@ -23,6 +23,10 @@ namespace Game.Block.Blocks.BeltConveyor
             _timeOfItemEnterToExit = timeOfItemEnterToExit;
             _idleTorqueRate = gearConsumption.IdlePowerRate;
 
+            // 構築直後は搬送時間が0tick＝即搬出可能と解釈されるため、初回Updateを待たず停止状態を書き込む
+            // Right after construction the transit time is 0 ticks, which reads as "ready to eject", so write the stopped state without waiting for the first Update
+            _beltConveyorComponent.SetTicksOfItemEnterToExit(uint.MaxValue);
+
             _beltConveyorComponent.OnItemsChanged.Subscribe(_ => UpdateTorqueRequestRate());
             UpdateTorqueRequestRate();
         }

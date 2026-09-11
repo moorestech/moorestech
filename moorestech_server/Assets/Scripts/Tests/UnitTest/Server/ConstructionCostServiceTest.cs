@@ -32,7 +32,7 @@ namespace Tests.UnitTest.Server
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Material1Guid), 2));
             inventory.SetItem(1, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Material2Guid), 1));
 
-            Assert.IsTrue(ConstructionCostService.HasRequiredItems(ConstructionCostItems.ToItemCounts(requiredItems), inventory.InventoryItems));
+            Assert.IsTrue(ConstructionCostRules.HasRequiredItems(ConstructionCostItems.ToItemCounts(requiredItems), inventory.InventoryItems));
         }
 
         [Test]
@@ -45,7 +45,7 @@ namespace Tests.UnitTest.Server
             inventory.SetItem(0, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Material1Guid), 1));
             inventory.SetItem(1, ServerContext.ItemStackFactory.Create(MasterHolder.ItemMaster.GetItemId(Material2Guid), 1));
 
-            Assert.IsFalse(ConstructionCostService.HasRequiredItems(ConstructionCostItems.ToItemCounts(requiredItems), inventory.InventoryItems));
+            Assert.IsFalse(ConstructionCostRules.HasRequiredItems(ConstructionCostItems.ToItemCounts(requiredItems), inventory.InventoryItems));
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace Tests.UnitTest.Server
             CreateServer();
             var requiredItems = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.BlockId).RequiredItems;
 
-            var refundItems = ConstructionCostService.CreateRefundItems(ConstructionCostItems.ToItemCounts(requiredItems));
+            var refundItems = ConstructionCostRules.CreateRefundItems(ConstructionCostItems.ToItemCounts(requiredItems));
 
             Assert.AreEqual(2, refundItems.Count);
             Assert.AreEqual(MasterHolder.ItemMaster.GetItemId(Material1Guid), refundItems[0].Id);

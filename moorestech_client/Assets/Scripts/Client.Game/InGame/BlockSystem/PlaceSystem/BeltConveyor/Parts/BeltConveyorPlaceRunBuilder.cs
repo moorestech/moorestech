@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Replace;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Game.Block.Interface;
@@ -16,11 +17,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
     {
         private readonly BeltConveyorPlacePointCalculator _placePointCalculator;
         private readonly CommonBlockPlaceDragState _dragState;
+        private readonly BlockGameObjectDataStore _blockGameObjectDataStore;
+        private readonly BeltReplaceRunBuilder _replaceRunBuilder;
 
         public BeltConveyorPlaceRunBuilder(BlockGameObjectDataStore blockGameObjectDataStore, CommonBlockPlaceDragState dragState)
         {
             _placePointCalculator = new BeltConveyorPlacePointCalculator(blockGameObjectDataStore);
             _dragState = dragState;
+            _blockGameObjectDataStore = blockGameObjectDataStore;
+            _replaceRunBuilder = new BeltReplaceRunBuilder(blockGameObjectDataStore);
         }
 
         // blockCauses/beltReasonsはPlaceInfo列と同添字で並走する原因列
@@ -30,6 +35,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
             // 軸決めはドラッグに属するためドラッグ状態へ委ねる
             // The axis belongs to the drag, so the drag state owns it
             var isStartDirectionZ = _dragState.ResolveDragAxisIsZ(dragStartPoint, placePoint);
+
+            // R7: 張替えは高さオフセットを使わない。Q/Eで浮かせていても既設ラインの上にホバーしていれば発動させる
+            // R7: the replace run ignores the height offset, so hovering an existing line triggers it even with Q/E raised
+            var replaceStartPoint = _dragState.ResolveDragStartCellWithoutHeightOffset(dragStartPoint);
+            var replaceCursorPoint = _dragState.ResolveCursorCellWithoutHeightOffset(placePoint);
+
+            // 既設ありなら張替え経路
+            // An existing block at origin selects the replace run
+            if (BeltReplaceRunBuilder.TryResolveOrigin(_blockGameObjectDataStore, replaceStartPoint, out var replaceOrigin))
+            {
+                return _replaceRunBuilder.Build(replaceOrigin, replaceCursorPoint, isStartDirectionZ, holdingBlock, out blockCauses, out beltReasons);
+            }
 
             // 坂選択中は一定勾配の専用経路のみ
             // A slope selection uses only the constant-grade path
@@ -42,7 +59,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor.Parts
 
             // セル列へ直線・坂を1対1で割り当てる
             // Assign straight/slope blocks to cells one-to-one
-            return BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cellInfos, holdingBlock.Family, beltReasons);
+            return BeltConveyorStraightCellBlockResolver.ResolveStraightRun(cellInfos, holdingBlock.BlockId, holdingBlock.RunUpBlockId, holdingBlock.RunDownBlockId, beltReasons);
         }
     }
 }

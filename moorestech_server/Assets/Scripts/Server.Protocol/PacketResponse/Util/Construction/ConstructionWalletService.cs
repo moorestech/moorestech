@@ -54,7 +54,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
         public IConstructionRemovalPlan PlanRemoval(BlockMasterElement blockMaster, BlockInstanceId blockInstanceId, int removePlayerId)
         {
             var fullCost = ConstructionCostItems.ToItemCounts(blockMaster.RequiredItems);
-            if (!ConstructionWalletUtil.UsesWallet(blockMaster.PlacementsPerCost)) return new DirectCostRemovalPlan(ConstructionCostService.CreateRefundItems(fullCost));
+            if (!ConstructionWalletUtil.UsesWallet(blockMaster.PlacementsPerCost)) return new DirectCostRemovalPlan(ConstructionCostRules.CreateRefundItems(fullCost));
 
             // 戻し先は撤去した人ではなく設置して支払った人の財布
             // The remainder goes back to whoever placed and paid for the block, not to whoever removes it
@@ -64,7 +64,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             // Materials come back only on the removal that completes one set's worth
             var walletBlockId = ConstructionWalletUtil.ResolveWalletBlockId(MasterHolder.BlockMaster.GetBlockId(blockMaster.BlockGuid));
             var condensed = ConstructionWalletUtil.WouldCondense(_lookup.GetRemainingCount(payerPlayerId, walletBlockId), blockMaster.PlacementsPerCost);
-            IReadOnlyList<IItemStack> refund = condensed ? ConstructionCostService.CreateRefundItems(fullCost) : Array.Empty<IItemStack>();
+            IReadOnlyList<IItemStack> refund = condensed ? ConstructionCostRules.CreateRefundItems(fullCost) : Array.Empty<IItemStack>();
             return new WalletRemovalPlan(refund, _mutation, _payers, payerPlayerId, walletBlockId, blockInstanceId, condensed);
         }
 

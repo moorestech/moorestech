@@ -239,12 +239,12 @@ namespace Tests.CombinedTest.Server
             datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out var beltConveyor);
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
 
-            // リフレクションで_inventoryItemsと_ticksOfItemEnterToExitを取得
-            // Get _inventoryItems and _ticksOfItemEnterToExit via reflection
+            // リフレクションで_inventoryItemsとTicksOfItemEnterToExitを取得
+            // Get _inventoryItems and TicksOfItemEnterToExit via reflection
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
-            var ticksField = typeof(VanillaBeltConveyorComponent).GetField("_ticksOfItemEnterToExit", BindingFlags.NonPublic | BindingFlags.Instance);
-            var totalTicks = (uint)ticksField.GetValue(beltConveyorComponent);
+            var ticksProperty = typeof(VanillaBeltConveyorComponent).GetProperty("TicksOfItemEnterToExit", BindingFlags.NonPublic | BindingFlags.Instance);
+            var totalTicks = (uint)ticksProperty.GetValue(beltConveyorComponent);
 
             // 残り25%（進捗75%）を設定
             // Set 25% remaining (75% progress)
@@ -265,12 +265,12 @@ namespace Tests.CombinedTest.Server
             datastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, blockDirection, Array.Empty<BlockCreateParam>(), out var beltConveyor);
             var beltConveyorComponent = beltConveyor.GetComponent<VanillaBeltConveyorComponent>();
 
-            // リフレクションで_inventoryItemsと_ticksOfItemEnterToExitを取得
-            // Get _inventoryItems and _ticksOfItemEnterToExit via reflection
+            // リフレクションで_inventoryItemsとTicksOfItemEnterToExitを取得
+            // Get _inventoryItems and TicksOfItemEnterToExit via reflection
             var inventoryItemsField = typeof(VanillaBeltConveyorComponent).GetField("_inventoryItems", BindingFlags.NonPublic | BindingFlags.Instance);
             var inventoryItems = (VanillaBeltConveyorInventoryItem[])inventoryItemsField.GetValue(beltConveyorComponent);
-            var ticksField = typeof(VanillaBeltConveyorComponent).GetField("_ticksOfItemEnterToExit", BindingFlags.NonPublic | BindingFlags.Instance);
-            var totalTicks = (uint)ticksField.GetValue(beltConveyorComponent);
+            var ticksProperty = typeof(VanillaBeltConveyorComponent).GetProperty("TicksOfItemEnterToExit", BindingFlags.NonPublic | BindingFlags.Instance);
+            var totalTicks = (uint)ticksProperty.GetValue(beltConveyorComponent);
 
             // 残り25%（進捗75%）を設定
             // Set 25% remaining (75% progress)

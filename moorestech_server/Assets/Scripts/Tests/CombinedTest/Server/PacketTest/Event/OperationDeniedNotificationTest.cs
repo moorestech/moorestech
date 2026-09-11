@@ -2,6 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Master;
+using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Context;
 using MessagePack;
 using NUnit.Framework;
 using Server.Boot;
@@ -11,6 +16,7 @@ using Server.Protocol.PacketResponse;
 using Tests.CombinedTest.Server.PacketTest;
 using Tests.Module.TestMod;
 using Tests.Util;
+using UnityEngine;
 using static Tests.CombinedTest.Game.ResearchDataStoreTest;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
@@ -82,6 +88,44 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
 
             var denied = TakeDenied(sink);
             Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.placeBlockNotUnlocked"));
+        }
+
+        [Test]
+        public void BeltReplaceOnNonBeltFiresDeniedNotification()
+        {
+            var (packet, serviceProvider) = PlaceBlockProtocolTestSupport.CreateServer();
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlaceBlockProtocolTestSupport.PlayerId);
+            var pos = new Vector3Int(80, 0, 80);
+
+            // ベルト以外へ張替え→拒否
+            // Replacing a non-belt block → rejected
+            PlaceBlockProtocolTestSupport.UnlockBlock(serviceProvider, ForUnitTestModBlockId.SmallGearBeltConveyor);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.MachineId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var payload = PlaceBlockProtocolTestSupport.CreateReplacePayload(ForUnitTestModBlockId.SmallGearBeltConveyor, pos, BlockDirection.North);
+            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+
+            var denied = TakeDenied(sink);
+            Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.placeBlockReplaceRejected"));
+        }
+
+        [Test]
+        public void BeltReplaceWithFullInventoryFiresDeniedNotification()
+        {
+            var (packet, serviceProvider) = PlaceBlockProtocolTestSupport.CreateServer();
+            var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlaceBlockProtocolTestSupport.PlayerId);
+            var pos = new Vector3Int(82, 0, 82);
+
+            // 返却先無しで張替え→満杯
+            // Replacing with no room for the returned items → inventory-full
+            PlaceBlockProtocolTestSupport.UnlockBlock(serviceProvider, ForUnitTestModBlockId.BeltConveyorId);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oldBlock);
+            oldBlock.GetComponent<VanillaBeltConveyorComponent>().InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1), InsertItemContext.Empty);
+            PlaceBlockProtocolTestSupport.OccupyAllInventorySlots(serviceProvider, ForUnitTestItemId.ItemId1);
+            var payload = PlaceBlockProtocolTestSupport.CreateReplacePayload(ForUnitTestModBlockId.BeltConveyorId, pos, BlockDirection.North);
+            packet.GetPacketResponse(payload, new PacketResponseContext(null));
+
+            var denied = TakeDenied(sink);
+            Assert.AreEqual(1, denied.Count(d => d.MessageId == "denied.placeBlockReplaceInventoryFull"));
         }
 
         [Test]

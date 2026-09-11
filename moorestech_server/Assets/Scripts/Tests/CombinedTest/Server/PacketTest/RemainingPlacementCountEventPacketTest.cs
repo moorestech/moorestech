@@ -9,6 +9,7 @@ using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.CombinedTest.Server.PacketTest.Event;
 using Tests.Module.TestMod;
+using Tests.Util;
 
 namespace Tests.CombinedTest.Server.PacketTest
 {
@@ -23,15 +24,14 @@ namespace Tests.CombinedTest.Server.PacketTest
             var sink = EventTestUtil.RegisterCaptureSink(serviceProvider, PlayerId);
             var wallet = ForUnitTestModBlockId.GearBeltConveyor;
 
-            var mutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
-            mutation.Refill(PlayerId, wallet, 3);
-            mutation.FlushChanges();
+            RemainingPlacementCountTestState.SetRemainingCount(serviceProvider, PlayerId, wallet, 2);
+            serviceProvider.GetService<IRemainingPlacementCountMutation>().FlushChanges();
 
             var events = sink.TakeAll().Where(e => e.Tag == RemainingPlacementCountChangedEventPacket.EventTag).ToList();
             Assert.AreEqual(1, events.Count);
             var data = MessagePackSerializer.Deserialize<RemainingPlacementCountChangedEventPacket.RemainingPlacementCountMessagePack>(events[0].Payload);
             Assert.AreEqual(wallet.AsPrimitive(), data.WalletBlockId);
-            Assert.AreEqual(3, data.RemainingCount);
+            Assert.AreEqual(2, data.RemainingCount);
         }
 
         [Test]
@@ -39,7 +39,7 @@ namespace Tests.CombinedTest.Server.PacketTest
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var wallet = ForUnitTestModBlockId.GearBeltConveyor;
-            serviceProvider.GetService<IRemainingPlacementCountMutation>().Refill(PlayerId, wallet, 3);
+            RemainingPlacementCountTestState.SetRemainingCount(serviceProvider, PlayerId, wallet, 2);
 
             var payload = MessagePackSerializer.Serialize(new InitialHandshakeProtocol.RequestInitialHandshakeMessagePack(PlayerId, "test"));
             var responseBytes = packet.GetPacketResponse(payload, new PacketResponseContext(null))[0];
@@ -47,7 +47,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             Assert.AreEqual(1, response.RemainingPlacementCounts.Length);
             Assert.AreEqual(wallet.AsPrimitive(), response.RemainingPlacementCounts[0].WalletBlockId);
-            Assert.AreEqual(3, response.RemainingPlacementCounts[0].RemainingCount);
+            Assert.AreEqual(2, response.RemainingPlacementCounts[0].RemainingCount);
         }
     }
 }

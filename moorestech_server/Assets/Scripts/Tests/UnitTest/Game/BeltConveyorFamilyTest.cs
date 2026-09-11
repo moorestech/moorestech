@@ -1,7 +1,6 @@
 using System.IO;
 using Core.Master;
 using Core.Master.Validator;
-using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -26,26 +25,11 @@ namespace Tests.UnitTest.Game
             Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, family.StraightBlockId);
             Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorUp, family.UpBlockId);
             Assert.AreEqual(ForUnitTestModBlockId.TestGearBeltConveyorDown, family.DownBlockId);
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyorSplitter, family.SplitterBlockId);
+            Assert.IsTrue(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyorSplitter, out var splitterFamily));
+            Assert.AreEqual(ForUnitTestModBlockId.GearBeltConveyor, splitterFamily.StraightBlockId);
 
             Assert.IsFalse(BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.MachineId, out _));
-        }
-
-        [Test]
-        public void 坂ブロックから上下の向きを引ける()
-        {
-            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-
-            BeltConveyorPlaceFamilyUtil.TryGetFamily(ForUnitTestModBlockId.GearBeltConveyor, out var family);
-
-            Assert.IsTrue(family.TryGetSlopeDirection(ForUnitTestModBlockId.TestGearBeltConveyorUp, out var up));
-            Assert.AreEqual(BlockVerticalDirection.Up, up);
-            Assert.IsTrue(family.TryGetSlopeDirection(ForUnitTestModBlockId.TestGearBeltConveyorDown, out var down));
-            Assert.AreEqual(BlockVerticalDirection.Down, down);
-
-            // 直線はfalse・Horizontalを返す
-            // Straight returns false and Horizontal
-            Assert.IsFalse(family.TryGetSlopeDirection(ForUnitTestModBlockId.GearBeltConveyor, out var straight));
-            Assert.AreEqual(BlockVerticalDirection.Horizontal, straight);
         }
 
         [Test]
@@ -112,6 +96,30 @@ namespace Tests.UnitTest.Game
             var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
 
             StringAssert.Contains("requiredItems must match the family's straight block", logs);
+        }
+
+        [Test]
+        public void 非ベルト型は分岐器ロールにできない()
+        {
+            var blocksJToken = LoadBlocksJson();
+            blocksJToken["beltConveyorFamilies"][2]["splitterBlockGuid"] = NonBeltBlockGuid;
+
+            var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
+
+            StringAssert.Contains("is not a belt block", logs);
+        }
+
+        [Test]
+        public void 分岐器は直線とコストが違っても検証エラーにならない()
+        {
+            var blocksJToken = LoadBlocksJson();
+            var splitterGuid = blocksJToken["beltConveyorFamilies"][2]["splitterBlockGuid"].Value<string>();
+            FindBlock(blocksJToken, splitterGuid)["placementsPerCost"] = 7;
+
+            var logs = BeltConveyorFamilyValidator.Validate(new BlockMaster(blocksJToken).Blocks);
+
+            StringAssert.DoesNotContain("placementsPerCost must match", logs);
+            StringAssert.DoesNotContain("requiredItems must match", logs);
         }
 
         private static JToken LoadBlocksJson()

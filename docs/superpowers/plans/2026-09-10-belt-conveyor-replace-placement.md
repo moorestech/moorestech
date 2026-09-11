@@ -4,7 +4,7 @@
 
 **Goal:** 既設ベルトコンベアを起点にドラッグすると、既設の座標・向き・ロール（直線/上り/下り/分岐器）を保ったまま BlockId だけを手持ちファミリーの同ロールへ差し替える「張替え設置」を、サーバー・クライアント・マスタの3層で実装する。
 
-**Architecture:** マスタの `beltConveyorFamilies` に分岐器ロール（`splitterBlockGuid`）を足し、1行＝1ティアにする。クライアントは既設ライン追従の張替え経路（`BeltReplaceRunBuilder`）で `PlaceInfo.IsReplace` 付きのセル列を作り、既存の `va:placeBlock` で送る。サーバーは `PlaceBlockProtocol` が isReplace セルを `BeltReplacePlacementService` へ委譲し、「撤去返却（財布経由）→ 撤去 → 設置 → 設置消費（財布経由）→ 搬送品を進行率維持で復元」を1セルごとに行う。Undo は逆張替えレコードで同経路を再送する。
+**Architecture:** マスタの `beltConveyorFamilies` に分岐器ロール（`splitterBlockGuid`）を足し、1行＝1ティアにする。クライアントは既設ライン追従の張替え経路（`BeltReplaceRunBuilder`）で `PlaceInfo.IsReplace` 付きのセル列を作り、既存の `va:placeBlock` で送る。サーバーは `PlaceBlockProtocol` が isReplace セルを `BeltReplacePlacementService` へ委譲し、「撤去返却（財布経由）→ 撤去 → 設置 → 設置消費（財布経由）→ 搬送品を復元（進行率は歯車ベルトでは維持されない。R11 参照）」を1セルごとに行う。Undo は逆張替えレコードで同経路を再送する。
 
 **Tech Stack:** Unity C# (moorestech_server / moorestech_client), MessagePack, NUnit (uloop run-tests), mooresmaster SourceGenerator (VanillaSchema/*.yml), プレイテストDSL (Client.Playtest)。
 
@@ -22,7 +22,7 @@
 - R8 既設ベルトの無いセル（空・別種ブロック・フィルター分岐器）は何もせず飛ばして続行する。受け入れ: `[木][木][空][木]` を4セルなぞると3セルが張り替わる。
 - R9 手持ちファミリーに対応ロールが無いセルはプレビュー不可色＋理由ツールチップ（`ReplaceRoleMissing`）で送信せず、後続セルは続行する。同ファミリー同ロールのセルは no-op（送信しない・プレビューにも出さない）。
 - R10 サーバーは `PlaceBlockProtocol` のセル単位 `isReplace` で分岐し、1セルにつき「旧ブロックの撤去返却（財布）→撤去→設置→新ブロックの設置消費（財布）」をアトミックに行う。既設/手持ちがファミリー外・ロール不一致・未解放・返却不能・コスト不足は拒否理由をログに出してそのセルだけスキップ。無料設置（デバッグ）時はコスト検証・消費・返却を全て飛ばす。
-- R11 搬送中アイテムは進行率維持で新ブロックへ引き継ぐ。収まらない分はプレイヤーインベントリへ、それも入らないならそのセルは失敗（ロスト・地面ドロップ禁止）。
+- R11 搬送中アイテムは新ブロックへ引き継ぎ、失わない。収まらない分はプレイヤーインベントリへ、それも入らないならそのセルは失敗（ロスト・地面ドロップ禁止）。**進行率の維持は歯車ベルトでは効かないため保証しない**（2026-09-11 ユーザー裁定・別タスクへ送済み）: 設置直後の搬送時間は `VanillaGearBeltConveyorTemplate.cs:45-47` の `float.PositiveInfinity` と `GearBeltConveyorComponent.cs:41,48` の `SetTicksOfItemEnterToExit(uint.MaxValue)` により停止中扱いで、復元は入口スロットへ置かれ、動力復帰時に `VanillaBeltConveyorInventoryItem.cs:55` の `ResetTicksOnSpeedRecovery` が進捗を0へ戻す。受け入れ基準は「張替え後も品がロストしていない」までとし、進行率はアサートしない。
 - R12 `BlockRemoveReason.Replace` を追加し、張替えによる撤去は `Replace` で発火する。
 - R13 プレビューは張替えセルを専用色（`MaterialConst.ReplaceColor`）で塗り分ける。
 - R14 Undo は逆張替え。張替えレコードを積み、Ctrl+Z で同セルを旧 BlockId へ isReplace 送信で差し戻す。既に別ブロックへ変わっているセルは触らない。

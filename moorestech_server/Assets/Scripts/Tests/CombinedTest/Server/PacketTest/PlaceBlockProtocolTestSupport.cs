@@ -55,6 +55,16 @@ namespace Tests.CombinedTest.Server.PacketTest
             return total;
         }
 
+        public static int CountItem(IOpenableInventory inventory, ItemId itemId)
+        {
+            var total = 0;
+            foreach (var stack in inventory.InventoryItems)
+            {
+                if (stack.Id == itemId) total += stack.Count;
+            }
+            return total;
+        }
+
         public static byte[] CreatePlaceBlockPayload(BlockId blockId, params (int x, int y)[] positions)
         {
             var placeInfos = new List<PlaceInfo>();
@@ -74,6 +84,71 @@ namespace Tests.CombinedTest.Server.PacketTest
         public static byte[] CreatePlacePayload(List<PlaceInfo> placeInfos)
         {
             return MessagePackSerializer.Serialize(new PlaceBlockProtocol.SendPlaceBlockProtocolMessagePack(PlayerId, placeInfos));
+        }
+
+        /// <summary>
+        /// 張替えフラグ付きの単一セルペイロードを生成する。
+        /// directionは「手持ちの向きが無視され既設の向きが維持される」ことをテストが主張するためだけに受け取る（サーバーは既設の向きを使う）。
+        ///
+        /// Builds a single-cell payload flagged for replace placement.
+        /// The direction exists only so a test can assert that the held direction is ignored in favour of the existing block's one (the server uses the existing direction).
+        /// </summary>
+        public static byte[] CreateReplacePayload(BlockId blockId, Vector3Int position, BlockDirection direction)
+        {
+            var placeInfos = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = position,
+                    Direction = direction,
+                    VerticalDirection = BlockVerticalDirection.Horizontal,
+                    BlockId = blockId,
+                    IsReplace = true,
+                },
+            };
+            return CreatePlacePayload(placeInfos);
+        }
+
+        /// <summary>
+        /// 通常設置の単一セルペイロード。財布と課金元を実際に通した既設ブロックを用意するために使う
+        /// A single-cell payload for normal placement, used to set up an existing block that really went through the wallet and the payer store
+        /// </summary>
+        public static byte[] CreateNormalPlacePayload(BlockId blockId, Vector3Int position, BlockDirection direction)
+        {
+            var placeInfos = new List<PlaceInfo>
+            {
+                new()
+                {
+                    Position = position,
+                    Direction = direction,
+                    VerticalDirection = BlockVerticalDirection.Horizontal,
+                    BlockId = blockId,
+                },
+            };
+            return CreatePlacePayload(placeInfos);
+        }
+
+        public static void AssertRequiredItemsCount(ServiceProvider serviceProvider, BlockId blockId, int costSets)
+        {
+            // ブロックの必要素材が指定セット分だけインベントリに存在することを検証する
+            // Assert the block's required items are present for the given number of cost sets
+            var inventory = GetInventory(serviceProvider);
+            var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+            foreach (var requiredItem in blockMaster.RequiredItems)
+            {
+                Assert.AreEqual(requiredItem.Count * costSets, GetItemCount(inventory, requiredItem.ItemGuid));
+            }
+        }
+
+        public static void OccupyAllInventorySlots(ServiceProvider serviceProvider, ItemId fillerItemId)
+        {
+            // 全スロットをコスト外アイテムで埋め、返却挿入の空きを無くす
+            // Occupy every slot with a non-cost item so no room remains for refund insertion
+            var inventory = GetInventory(serviceProvider);
+            for (var i = 0; i < inventory.GetSlotSize(); i++)
+            {
+                inventory.SetItem(i, ServerContext.ItemStackFactory.Create(fillerItemId, 1));
+            }
         }
 
         public static void GrantRequiredItems(ServiceProvider serviceProvider, BlockId blockId, int costSets)

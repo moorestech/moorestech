@@ -78,6 +78,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController
             _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, color);
         }
         
+        public void SetReplaceColor()
+        {
+            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.ReplaceColor);
+        }
+        
+        // 返却の見積りが立たない張替えセル。送信はするが確実に置ける色とは分ける
+        // A replace cell whose refund cannot be estimated; it is still sent but never wears the certain color
+        public void SetUncertainReplaceColor()
+        {
+            _rendererMaterialReplacerController.SetColor(MaterialConst.PreviewColorPropertyName, MaterialConst.UncertainReplaceColor);
+        }
+        
         public void SetTriggerCollider(bool isTrigger)
         {
             var childrenColliders = GetComponentsInChildren<Collider>();

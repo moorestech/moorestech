@@ -10,7 +10,11 @@ namespace Game.Block.Interface
         
         // 手動削除（プレイヤーによる削除）
         // Manual removal (by player)
-        ManualRemove
+        ManualRemove,
+        
+        // 張替え設置による撤去。直後に同セルへ新ブロックが設置される
+        // Removal by replace placement; a new block is placed on the same cell right after
+        Replace
     }
 }
 

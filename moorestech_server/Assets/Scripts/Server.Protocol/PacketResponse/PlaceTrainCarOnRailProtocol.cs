@@ -74,7 +74,7 @@ namespace Server.Protocol.PacketResponse
                 var inventoryData = _playerInventoryDataStore.GetInventoryData(data.PlayerId);
                 var mainInventory = inventoryData.MainOpenableInventory;
                 var costItemCounts = ConstructionCostItems.ToItemCounts(trainCarMaster.RequiredItems);
-                if (!ConstructionCostService.HasRequiredItems(costItemCounts, mainInventory.InventoryItems))
+                if (!ConstructionCostRules.HasRequiredItems(costItemCounts, mainInventory.InventoryItems))
                 {
                     return PlaceTrainOnRailResponseMessagePack.CreateFailure(PlaceTrainCarFailureType.InsufficientItems);
                 }

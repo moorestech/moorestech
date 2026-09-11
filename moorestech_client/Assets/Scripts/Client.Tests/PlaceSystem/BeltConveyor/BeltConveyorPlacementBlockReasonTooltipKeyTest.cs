@@ -15,6 +15,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         {
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBeltOverpassInfeasible.Key, BeltConveyorPlacementBlockReasonTooltipKey.ToKey(BeltConveyorPlacementBlockReason.ImpossibleOverpass).Key);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBeltNoSlopeBlock.Key, BeltConveyorPlacementBlockReasonTooltipKey.ToKey(BeltConveyorPlacementBlockReason.SlopeBlockMissing).Key);
+            Assert.AreEqual(LocalizationKeys.Ui.Tooltip.PlaceBeltReplaceRoleMissing.Key, BeltConveyorPlacementBlockReasonTooltipKey.ToKey(BeltConveyorPlacementBlockReason.ReplaceRoleMissing).Key);
         }
 
         [Test]

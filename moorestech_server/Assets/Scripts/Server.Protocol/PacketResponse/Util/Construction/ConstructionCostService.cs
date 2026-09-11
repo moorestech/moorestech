@@ -1,39 +1,16 @@
 using System.Collections.Generic;
 using Core.Inventory;
-using Core.Item.Interface;
 using Core.Master;
-using Game.Context;
-using Server.Protocol.PacketResponse.Util.ElectricWire;
 using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 
 namespace Server.Protocol.PacketResponse.Util.Construction
 {
     /// <summary>
-    /// 建設コスト(requiredItems)の検証・消費・返却スタック生成を行う
-    /// Validates, consumes, and creates refund stacks for construction costs (requiredItems)
+    /// 建設コスト(requiredItems)の消費。充足判定と返却生成はGame.ConstructionのConstructionCostRulesが持つ
+    /// Consumes construction costs (requiredItems); the affordability judgement and the refund stacks belong to Game.Construction's ConstructionCostRules
     /// </summary>
     public static class ConstructionCostService
     {
-        public static bool HasRequiredItems(IReadOnlyList<(ItemId itemId, int count)> itemCounts, IReadOnlyList<IItemStack> inventoryItems)
-        {
-            if (itemCounts == null || itemCounts.Count == 0) return true;
-
-            // 全スロットの所持数を合算
-            // Sum held counts across all inventory slots per material
-            foreach (var (itemId, count) in itemCounts)
-            {
-                var total = 0;
-                foreach (var stack in inventoryItems)
-                {
-                    if (stack.Id != itemId) continue;
-                    total += stack.Count;
-                }
-                if (total < count) return false;
-            }
-
-            return true;
-        }
-
         public static void ConsumeRequiredItems(IReadOnlyList<(ItemId itemId, int count)> itemCounts, IOpenableInventory inventory)
         {
             if (itemCounts == null || itemCounts.Count == 0) return;
@@ -44,21 +21,6 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             {
                 ElectricWireSystemUtil.ConsumeItem(inventory, itemId, count);
             }
-        }
-
-        public static List<IItemStack> CreateRefundItems(IReadOnlyList<(ItemId itemId, int count)> itemCounts)
-        {
-            var result = new List<IItemStack>();
-            if (itemCounts == null) return result;
-
-            // コスト全額分のスタック生成
-            // Create refund stacks matching the full cost definition
-            foreach (var (itemId, count) in itemCounts)
-            {
-                result.Add(ServerContext.ItemStackFactory.Create(itemId, count));
-            }
-
-            return result;
         }
     }
 }

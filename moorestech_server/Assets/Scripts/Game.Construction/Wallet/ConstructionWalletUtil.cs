@@ -4,14 +4,14 @@ using Game.Block.Interface.Extension;
 namespace Game.Construction
 {
     /// <summary>
-    /// 財布キー解決と残り設置数の算術。ベルトは直線代表、他は自身
-    /// Resolves the wallet key for remaining placements (belt families normalize to the straight block, others are themselves) and owns every arithmetic rule about the remainder
+    /// 財布キー解決と残り設置数の算術。坂ベルトは直線代表、分岐器と他は自身
+    /// Resolves the wallet key for remaining placements (belt slopes normalize to the straight block, splitters and others are themselves) and owns every arithmetic rule about the remainder
     /// </summary>
     public static class ConstructionWalletUtil
     {
         public static BlockId ResolveWalletBlockId(BlockId blockId)
         {
-            return BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family) ? family.StraightBlockId : blockId;
+            return BeltConveyorPlaceFamilyUtil.ResolveSlopeRepresentativeBlockId(blockId);
         }
 
         // 財布を通すブロックか（1セット1個は素通り）
@@ -33,6 +33,20 @@ namespace Game.Construction
         public static bool WouldCondense(int remaining, int placementsPerCost)
         {
             return placementsPerCost <= remaining + 1;
+        }
+
+        // 撤去返却後の残り。Nに達した分は素材へ凝縮し財布は空になる
+        // The remainder after a removal's return; the portion that reached one set's worth condenses into materials and empties the wallet
+        public static int AdvanceOnRemoval(int remaining, bool condensed)
+        {
+            return condensed ? 0 : remaining + 1;
+        }
+
+        // 設置後の残り。素材を払ったセルは1セット分を補充してから1消費する（残り=N-1）
+        // The remainder after a placement; a cell that paid materials refills one set's worth and then consumes one (remaining = N-1)
+        public static int AdvanceOnPlacement(int remaining, int placementsPerCost, bool coveredByWallet)
+        {
+            return coveredByWallet ? remaining - 1 : remaining + placementsPerCost - 1;
         }
 
         // 置くセル数のうち実際に払うコストセット数。残りで賄える分は払わない
