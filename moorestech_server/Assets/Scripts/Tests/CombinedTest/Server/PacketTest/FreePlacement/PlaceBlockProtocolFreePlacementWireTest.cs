@@ -1,11 +1,15 @@
 using System;
+using System.Linq;
 using Common.Debug;
+using Core.Master;
 using Game.Block.Interface;
+using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using NUnit.Framework;
 using Server.Protocol;
+using Server.Protocol.PacketResponse.Util.ElectricWire.Connection;
 using Tests.Module.TestMod;
 using UnityEngine;
 using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
@@ -39,7 +43,7 @@ namespace Tests.CombinedTest.Server.PacketTest.FreePlacement
         [Test]
         public void 無料設置ONなら未解放かつ電線0でも電柱が機械へ自動接続される()
         {
-            var (packet, serviceProvider) = CreateServer();
+            var (packet, _) = CreateServer();
             var datastore = ServerContext.WorldBlockDatastore;
 
             // 機械を先に置き、ブロック・connectToolとも未解放・電線0のまま電柱を無料設置する
@@ -71,6 +75,30 @@ namespace Tests.CombinedTest.Server.PacketTest.FreePlacement
             var poleConnector = datastore.GetBlock(new Vector3Int(1, 0, 0)).GetComponent<IElectricWireConnector>();
             Assert.IsTrue(poleConnector.ContainsWireConnection(machine.GetComponent<IElectricWireConnector>().BlockInstanceId));
             Assert.AreEqual(5, GetItemCount(inventory, WireItemGuid));
+        }
+
+        [Test]
+        public void 無料設置で張った電線は撤去でも切断でも素材を返却しない()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            var datastore = ServerContext.WorldBlockDatastore;
+            var inventory = GetInventory(serviceProvider);
+            var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
+
+            datastore.TryAddBlock(ForUnitTestModBlockId.MachineId, new Vector3Int(0, 0, 0), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var machine);
+            packet.GetPacketResponse(CreatePlaceBlockPayload(ForUnitTestModBlockId.ElectricPoleId, (1, 0)), new PacketResponseContext(null));
+            var pole = datastore.GetBlock(new Vector3Int(1, 0, 0));
+            Assert.IsTrue(pole.GetComponent<IElectricWireConnector>().ContainsWireConnection(machine.GetComponent<IElectricWireConnector>().BlockInstanceId));
+
+            // 撤去時の返却品（両端とも）に電線が含まれない
+            // Neither end's removal refund contains the wire item
+            Assert.IsFalse(pole.GetComponent<IGetRefundItemsInfo>().GetRefundItems().Any(item => item.Id == wireItemId));
+            Assert.IsFalse(machine.GetComponent<IGetRefundItemsInfo>().GetRefundItems().Any(item => item.Id == wireItemId));
+
+            // 切断は成功するが、電線はインベントリへ湧かない
+            // Disconnecting succeeds, yet no wire appears in the inventory
+            Assert.IsTrue(ElectricWireSystemUtil.TryDisconnect(new Vector3Int(1, 0, 0), new Vector3Int(0, 0, 0), PlayerId, out var failureReason), failureReason.ToString());
+            Assert.AreEqual(0, GetItemCount(inventory, WireItemGuid));
         }
 
         [Test]

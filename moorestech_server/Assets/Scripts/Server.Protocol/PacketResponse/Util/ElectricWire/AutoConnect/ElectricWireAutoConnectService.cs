@@ -143,7 +143,11 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             {
                 var targetConnector = datastore.GetBlock(target.TargetId)?.GetComponent<IElectricWireConnector>();
                 if (targetConnector == null) continue;
-                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, target.Cost)) continue;
+
+                // 記録コストは切断・撤去時の返却元。消費しない無料設置は空を記録し、払っていない電線を返さない
+                // The recorded cost is what disconnect/removal refunds; free placement consumes nothing, so it records empty and never refunds unpaid wire
+                var recordedCost = plan.ConsumesMaterials ? target.Cost : ElectricWireConnectionCost.Empty;
+                if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, recordedCost)) continue;
 
                 if (plan.ConsumesMaterials) ConnectToolMaterialConsumer.Consume(target.Cost.Materials, inventory);
             }
