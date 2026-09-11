@@ -16,6 +16,13 @@ namespace Core.Update
         // Cumulative tick count since startup; all server-side elapsed time is measured as a difference of this
         public static ulong CurrentTick { get; private set; }
 
+        // セーブのロード時にだけ呼ぶ。tickスレッド開始前に呼ぶこと（走行中に巻き戻すと計測中の差分が負に回り込む）
+        // Called only when loading a save, before the tick thread starts (rewinding mid-run wraps in-flight differences)
+        public static void RestoreCurrentTick(ulong tick)
+        {
+            CurrentTick = tick;
+        }
+
         public static IObservable<Unit> UpdateObservable => _updateSubject;
         private static Subject<Unit> _updateSubject = new();
 
