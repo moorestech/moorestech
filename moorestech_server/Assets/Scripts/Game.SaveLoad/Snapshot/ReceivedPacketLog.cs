@@ -21,8 +21,20 @@ namespace Game.SaveLoad.Snapshot
         public void Start(string directory, ulong fromTick)
         {
             _directory = directory;
-            Directory.CreateDirectory(directory);
-            Rotate(fromTick);
+
+            // ディレクトリ作成は外部境界。記録を始められなくても起動そのものは落とさない
+            // Creating the directory is an external boundary; failing to start capture must not fail the boot
+            try
+            {
+                Directory.CreateDirectory(directory);
+            }
+            catch (Exception e)
+            {
+                Degrade($"パケットログの置き場を作れませんでした dir:{directory}", e);
+                return;
+            }
+
+            if (!TryRotate(fromTick)) return;
             IsActive = true;
         }
 
@@ -38,9 +50,18 @@ namespace Game.SaveLoad.Snapshot
             }
             lock (_lock)
             {
-                _writer.Write(tick);
-                _writer.Write(payload.Length);
-                _writer.Write(payload);
+                // ファイル書き込みは外部境界。記録の失敗でパケット処理そのものを落とさないよう隔離し、以後は記録を止める
+                // File writing is an external boundary; isolate it so a capture failure never drops packet processing, then stop capturing
+                try
+                {
+                    _writer.Write(tick);
+                    _writer.Write(payload.Length);
+                    _writer.Write(payload);
+                }
+                catch (Exception e)
+                {
+                    Degrade($"パケットログへの追記に失敗しました tick:{tick}", e);
+                }
             }
         }
 
@@ -48,7 +69,16 @@ namespace Game.SaveLoad.Snapshot
         {
             lock (_lock)
             {
-                _writer?.Flush();
+                // ファイルフラッシュは外部境界。取りこぼしを理由にtick末尾の処理を落とさない
+                // Flushing is an external boundary; a lost flush must not break the tick-end processing
+                try
+                {
+                    _writer?.Flush();
+                }
+                catch (Exception e)
+                {
+                    Degrade("パケットログのフラッシュに失敗しました", e);
+                }
             }
         }
 
@@ -58,8 +88,17 @@ namespace Game.SaveLoad.Snapshot
         {
             lock (_lock)
             {
-                _writer?.Flush();
-                _writer?.Dispose();
+                // 終了時のflush/disposeも外部境界。ここで投げると呼び出し元の終了処理が途中で止まる
+                // Flushing and disposing at shutdown is an external boundary too; throwing here would cut the caller's teardown short
+                try
+                {
+                    _writer?.Flush();
+                    _writer?.Dispose();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"パケットログの終了処理に失敗しました message:{e.Message}");
+                }
                 _writer = null;
                 IsActive = false;
             }
@@ -67,14 +106,40 @@ namespace Game.SaveLoad.Snapshot
 
         public void Rotate(ulong fromTick)
         {
+            TryRotate(fromTick);
+        }
+
+        // 区間の切り替えは外部境界（FileStream生成）。失敗したら記録を止めるだけにして、呼び出し元のtick処理は続けさせる
+        // Switching segments opens a FileStream at an external boundary; on failure only capture stops, and the caller's tick work continues
+        private bool TryRotate(ulong fromTick)
+        {
             lock (_lock)
             {
-                _writer?.Flush();
-                _writer?.Dispose();
-                var path = Path.Combine(_directory, WorldDataDirectory.ReceivedPacketLogFileName(fromTick));
-                _writer = new BinaryWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read));
-                _currentSegmentFromTick = fromTick;
+                try
+                {
+                    _writer?.Flush();
+                    _writer?.Dispose();
+                    _writer = null;
+                    var path = Path.Combine(_directory, WorldDataDirectory.ReceivedPacketLogFileName(fromTick));
+                    _writer = new BinaryWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read));
+                    _currentSegmentFromTick = fromTick;
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    Degrade($"パケットログの区間切り替えに失敗しました fromTick:{fromTick}", e);
+                    return false;
+                }
             }
+        }
+
+        // 記録だけを止める縮退。無音で止まると「バグ直前のパケットが無い」ことに誰も気づけないので理由を必ず出す
+        // Degrade capture alone; a silent stop would leave nobody aware that the packets before the bug are missing
+        private void Degrade(string reason, Exception exception)
+        {
+            IsActive = false;
+            _writer = null;
+            Debug.LogError($"{reason} 以後パケットログの記録を停止します message:{exception.Message}");
         }
 
         // 最古スナップショット以前で始まる区間を消す。書き込み中の区間は残す

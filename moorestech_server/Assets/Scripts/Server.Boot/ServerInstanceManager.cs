@@ -38,6 +38,10 @@ namespace Server.Boot
         // The save coordinator used to flush pending saves at shutdown
         private WorldSaveCoordinator _worldSaveCoordinator;
 
+        // 終了時に常時記録のOSリソースを手放すための参照
+        // Reference used to release always-on capture's OS resources at shutdown
+        private WorldSnapshotRing _worldSnapshotRing;
+
         private readonly string[] _args;
 
         // 実際にバインドされた待ち受けポート。バインド前は0
@@ -55,7 +59,7 @@ namespace Server.Boot
 
         public void Start()
         {
-            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener, _worldSaveCoordinator) = Start(_args);
+            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener, _worldSaveCoordinator, _worldSnapshotRing) = Start(_args);
         }
 
         // 終了直前の保存を通信を介さず直接要求する。パケット到達待ちの競合を作らない
@@ -65,7 +69,7 @@ namespace Server.Boot
             _worldSaveCoordinator?.RequestSave();
         }
 
-        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener, WorldSaveCoordinator worldSaveCoordinator) Start(string[] args)
+        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener, WorldSaveCoordinator worldSaveCoordinator, WorldSnapshotRing worldSnapshotRing) Start(string[] args)
         {
             // 起動引数からワールドディレクトリのルートを解決する
             // Resolve the world directory root from launch arguments
@@ -149,16 +153,17 @@ namespace Server.Boot
 
             // 常時記録はtickスレッド開始前に開始し、開始tickの次から区間を切る
             // Start always-on capture before the tick thread so the first segment begins right after the start tick
+            var worldSnapshotRing = serviceProvider.GetRequiredService<WorldSnapshotRing>();
             if (settings.CaptureRing)
             {
-                serviceProvider.GetRequiredService<WorldSnapshotRing>().Start(SnapshotRingConfig.PeriodTicks, SnapshotRingConfig.Generations);
+                worldSnapshotRing.Start(SnapshotRingConfig.PeriodTicks, SnapshotRingConfig.RetentionTicks, SnapshotRingConfig.MaxGenerations);
             }
             // アップデートのタスク名を設定
             var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));
             gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
             gameUpdateThread.Start();
 
-            return (connectionUpdateThread, gameUpdateThread, cancellationToken, listener, serviceProvider.GetRequiredService<WorldSaveCoordinator>());
+            return (connectionUpdateThread, gameUpdateThread, cancellationToken, listener, serviceProvider.GetRequiredService<WorldSaveCoordinator>(), worldSnapshotRing);
         }
         
         
@@ -193,6 +198,26 @@ namespace Server.Boot
             try
             {
                 _gameUpdateThread?.Abort();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            // tickスレッドを止めた後に保留中の保存を消化する。ここを飛ばすと最後の数十秒が無言で消える
+            // Drain pending saves after the tick thread stops; skipping this silently loses the last tens of seconds
+            try
+            {
+                _worldSaveCoordinator?.WaitForPendingWrites();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            // 常時記録が持つ書き出しスレッドと区間ファイルのハンドルを手放す。残すとセッション毎に積み上がる
+            // Release the writer thread and segment file handle always-on capture holds; leaving them accumulates per session
+            try
+            {
+                _worldSnapshotRing?.Stop();
             }
             catch (Exception e)
             {

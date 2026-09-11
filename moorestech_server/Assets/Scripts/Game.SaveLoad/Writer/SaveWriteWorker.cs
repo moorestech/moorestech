@@ -53,6 +53,14 @@ namespace Game.SaveLoad.Writer
             Debug.LogError($"セーブ書き出しの完了を待ち切れませんでした 未完了:{Volatile.Read(ref _inFlight)}件");
         }
 
+        // 投入口を閉じて書き出しスレッドを終わらせる。閉じないとサーバーインスタンスごとにスレッドが積み上がる
+        // Close the intake so the writer thread ends; without this a thread accumulates per server instance
+        public void Stop()
+        {
+            if (_jobs.IsAddingCompleted) return;
+            _jobs.CompleteAdding();
+        }
+
         // 書き出しスレッドは初回投入まで起こさない。セーブしないコンテナ（テストが大量に作る）でスレッドが増えないようにする
         // The writer thread starts on the first job so containers that never save (tests create many) add no threads
         private void EnsureWriterThreadStarted()
