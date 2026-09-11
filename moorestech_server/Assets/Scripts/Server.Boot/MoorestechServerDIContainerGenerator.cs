@@ -283,6 +283,7 @@ namespace Server.Boot
             services.AddSingleton<ResearchCompleteEventPacket>();
             services.AddSingleton<ItemStackLevelUnlockEventPacket>();
             services.AddSingleton<WorldSaveCompletedEventPacket>();
+            services.AddSingleton<BugReportCaptureCompletedEventPacket>();
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<HotbarUpdateEventPacket>();
