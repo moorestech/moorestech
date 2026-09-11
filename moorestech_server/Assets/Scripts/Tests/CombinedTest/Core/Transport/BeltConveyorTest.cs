@@ -106,7 +106,7 @@ namespace Tests.CombinedTest.Core.Transport
             // 期待したtick数近辺でアイテムが到達したことを確認
             // Verify item arrived around expected tick count
             Assert.True(dummy.IsItemExists, "Item should have been output");
-            Assert.True(elapsedTicks <= expectedTicks + 2 && elapsedTicks >= expectedTicks - 2, $"Item should arrive around expected tick count. Expected: {expectedTicks}, Actual: {elapsedTicks}");
+            Assert.True(elapsedTicks <= expectedTicks + 2 && expectedTicks - 2 <= elapsedTicks, $"Item should arrive around expected tick count. Expected: {expectedTicks}, Actual: {elapsedTicks}");
 
             Debug.Log($"Expected ticks: {expectedTicks}, Elapsed ticks: {elapsedTicks}");
             
@@ -247,7 +247,7 @@ namespace Tests.CombinedTest.Core.Transport
                 // 左右のチェストが必要数を受け取ったか確認する
                 // Check if both chests received required count
                 var chestCount = insertCount / 2;
-                return GetItemCount(chestLeft, targetItemId) >= chestCount && GetItemCount(chestRight, targetItemId) >= chestCount;
+                return chestCount <= GetItemCount(chestLeft, targetItemId) && chestCount <= GetItemCount(chestRight, targetItemId);
             }
 
             #endregion

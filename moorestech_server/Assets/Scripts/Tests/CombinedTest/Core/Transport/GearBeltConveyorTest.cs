@@ -95,7 +95,7 @@ namespace Tests.CombinedTest.Core.Transport
             var tickTolerance = (int)(0.4 * GameUpdater.TicksPerSecond); // 0.4秒の許容誤差
             Debug.Log($"Expected ticks: {expectedTicks}, Elapsed ticks: {elapsedTicks}, Duration: {duration}");
             Assert.True(elapsedTicks <= expectedTicks + tickTolerance, $"Item should arrive within tolerance. Expected: {expectedTicks}, Actual: {elapsedTicks}");
-            Assert.True(elapsedTicks >= expectedTicks - tickTolerance, $"Item should not arrive too early. Expected: {expectedTicks}, Actual: {elapsedTicks}");
+            Assert.True(expectedTicks - tickTolerance <= elapsedTicks, $"Item should not arrive too early. Expected: {expectedTicks}, Actual: {elapsedTicks}");
         }
 
         // RPMが0のときはアイテムが搬送されないことのテスト
@@ -129,7 +129,7 @@ namespace Tests.CombinedTest.Core.Transport
             generator.SetGenerateTorque(1f);
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
 
-            Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f);
+            Assert.True(0f < gearBeltConveyorComponent.CurrentRpm.AsPrimitive());
 
             // 出力を止めてRPMを0にする
             // Stop output to force RPM to 0
@@ -191,7 +191,7 @@ namespace Tests.CombinedTest.Core.Transport
             generator.SetGenerateTorque(1f);
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
 
-            Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f, "Belt should be running initially");
+            Assert.True(0f < gearBeltConveyorComponent.CurrentRpm.AsPrimitive(), "Belt should be running initially");
 
             // 出力を止めてRPMを0にする
             // Stop output to force RPM to 0
@@ -214,7 +214,7 @@ namespace Tests.CombinedTest.Core.Transport
             generator.SetGenerateTorque(1f);
             GameUpdater.RunFrames(GameUpdater.SecondsToTicks(0.1));
 
-            Assert.True(gearBeltConveyorComponent.CurrentRpm.AsPrimitive() > 0f, "Belt should be running again");
+            Assert.True(0f < gearBeltConveyorComponent.CurrentRpm.AsPrimitive(), "Belt should be running again");
 
             // アイテムが搬送されるまで十分な時間待機する（1tickずつ進める）
             // Wait enough time for the item to be transported (advance 1 tick at a time)

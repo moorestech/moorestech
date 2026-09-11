@@ -85,16 +85,16 @@ namespace Tests.CombinedTest.Core.Gear
                 var generateTorque = gearGeneratorComponent.GenerateTorque.AsPrimitive();
 
                 // 増加傾向があったことを確認（等しい場合も許容）
-                Assert.IsTrue(generateRpm >= previousRpm && generateTorque >= previousTorque, "RPMまたはトルクが時間経過とともに減少しています");
+                Assert.IsTrue(previousRpm <= generateRpm && previousTorque <= generateTorque, "RPMまたはトルクが時間経過とともに減少しています");
                 Debug.Log($"GenerateRpm: {generateRpm}, GenerateTorque: {generateTorque}");
 
-                if (generateRpm >= maxRpm && generateTorque >= maxTorque)
+                if (maxRpm <= generateRpm && maxTorque <= generateTorque)
                 {
                     break;
                 }
 
                 // 両方が前回より大きい場合のみ更新
-                if (generateRpm > previousRpm || generateTorque > previousTorque)
+                if (previousRpm < generateRpm || previousTorque < generateTorque)
                 {
                     previousRpm = generateRpm;
                     previousTorque = generateTorque;
@@ -210,8 +210,8 @@ namespace Tests.CombinedTest.Core.Gear
             for (var tick = 0; tick < accelerationTicks; tick++)
             {
                 GameUpdater.RunFrames(1);
-                if (generatorComponent.GenerateRpm.AsPrimitive() >= param.GenerateMaxRpm - 0.5f &&
-                    generatorComponent.GenerateTorque.AsPrimitive() >= param.GenerateMaxTorque - 0.5f)
+                if (param.GenerateMaxRpm - 0.5f <= generatorComponent.GenerateRpm.AsPrimitive() &&
+                    param.GenerateMaxTorque - 0.5f <= generatorComponent.GenerateTorque.AsPrimitive())
                 {
                     reachedMax = true;
                     break;
@@ -311,7 +311,7 @@ namespace Tests.CombinedTest.Core.Gear
                     Debug.Log($"Fill Update {i}: Amount={steamTank.Amount}, State={currentState}, StateChanges={stateChangeCount}");
                     
                     // タンクがほぼ満タンになったらループを抜ける（容量100）
-                    if (steamTank.Amount >= 10.0 && currentState == FuelGearGeneratorState.Accelerating)
+                    if (10.0 <= steamTank.Amount && currentState == FuelGearGeneratorState.Accelerating)
                     {
                         Debug.Log($"Tank has enough steam and accelerating: {steamTank.Amount}");
                         break;
@@ -355,7 +355,7 @@ namespace Tests.CombinedTest.Core.Gear
                     
                     Debug.Log($"Acceleration Update {i}: State={currentState}, RPM={currentRpm}");
                     
-                    if (currentRpm > 0f && currentState == FuelGearGeneratorState.Accelerating)
+                    if (0f < currentRpm && currentState == FuelGearGeneratorState.Accelerating)
                     {
                         break;
                     }

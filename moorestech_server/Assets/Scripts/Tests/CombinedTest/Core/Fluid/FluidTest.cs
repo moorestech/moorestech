@@ -55,7 +55,7 @@ namespace Tests.CombinedTest.Core.Fluid
 
             // fluidPipeのcapacityは100だから溢れない
             // Pipe capacity is 100, so nothing overflows
-            if (remainAmount.Amount > 0) Assert.Fail();
+            if (0 < remainAmount.Amount) Assert.Fail();
 
             // 十分なtick数で減衰振動が静定する（3秒 = 60 tick）
             // Damped oscillation settles within enough ticks (3 seconds = 60 ticks)
@@ -97,7 +97,7 @@ namespace Tests.CombinedTest.Core.Fluid
 
             var addingStack = new FluidStack(amount, FluidId);
             var remainAmount = fluidPipe0.AddLiquid(addingStack, default);
-            if (remainAmount.Amount > 0) Assert.Fail();
+            if (0 < remainAmount.Amount) Assert.Fail();
 
             // 水位差が十分大きい20tickの間は、毎tickちょうど面上限だけ流れる
             // For the first 20 ticks the level difference stays large, so exactly the face cap flows each tick

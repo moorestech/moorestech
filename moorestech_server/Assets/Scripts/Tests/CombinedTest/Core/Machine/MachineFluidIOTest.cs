@@ -91,7 +91,7 @@ namespace Tests.CombinedTest.Core.Machine
                 GameUpdater.UpdateOneTick();
 
                 var elapsedTime = DateTime.Now - startTime;
-                if (elapsedTime.TotalSeconds > 10) break; // 10秒待機
+                if (10 < elapsedTime.TotalSeconds) break; // 10秒待機
             }
 
             // 束縛済みタンク(0・1)は転送済み、束縛外タンク2向けのfluid3はパイプに残ることを確認
@@ -150,7 +150,7 @@ namespace Tests.CombinedTest.Core.Machine
                 GameUpdater.UpdateOneTick();
                 
                 var elapsedTime = DateTime.Now - startTime;
-                if (elapsedTime.TotalSeconds > 10) break; // 10秒待機
+                if (10 < elapsedTime.TotalSeconds) break; // 10秒待機
             }
             
             // 液体がパイプに転送されていることを確認
@@ -381,7 +381,7 @@ namespace Tests.CombinedTest.Core.Machine
             }
             
             // 流体が必要な場合は流体も投入
-            if (recipe.InputFluids != null && recipe.InputFluids.Length > 0)
+            if (recipe.InputFluids != null && 0 < recipe.InputFluids.Length)
             {
                 var inputFluidContainers = GetInputFluidContainers(inventoryComponent);
                 for (var i = 0; i < recipe.InputFluids.Length; i++)
@@ -407,7 +407,7 @@ namespace Tests.CombinedTest.Core.Machine
                 
                 Debug.Log($"Start Update {i}: State={state}, Rate={rate}");
                 
-                if (state == "processing" && rate > 0f)
+                if (state == "processing" && 0f < rate)
                 {
                     Debug.Log("Machine started processing!");
                     break;
@@ -443,7 +443,7 @@ namespace Tests.CombinedTest.Core.Machine
                 
                 // 出力スロットにアイテムが生成されたか確認
                 var (_, outputSlot) = GetInputOutputSlot(inventoryComponent);
-                if (outputSlot.Count > 0)
+                if (0 < outputSlot.Count)
                 {
                     Debug.Log("Processing completed!");
                     break;
@@ -661,7 +661,7 @@ namespace Tests.CombinedTest.Core.Machine
                 GameUpdater.UpdateOneTick();
                 
                 var elapsedTime = DateTime.Now - startTime;
-                if (elapsedTime.TotalSeconds > 5) break; // 5秒待機
+                if (5 < elapsedTime.TotalSeconds) break; // 5秒待機
                 
                 // パイプの液体量が減ったかチェック
                 if (fluidPipe1.GetAmount() < fluidAmount1)
@@ -701,7 +701,7 @@ namespace Tests.CombinedTest.Core.Machine
                 GameUpdater.UpdateOneTick();
                 
                 var elapsedTime = DateTime.Now - startTime;
-                if (elapsedTime.TotalSeconds > 5) break; // 5秒待機
+                if (5 < elapsedTime.TotalSeconds) break; // 5秒待機
                 
                 // 出力タンクの液体量が減ったかチェック
                 if (outputContainers[0].Amount < outputFluidAmount)

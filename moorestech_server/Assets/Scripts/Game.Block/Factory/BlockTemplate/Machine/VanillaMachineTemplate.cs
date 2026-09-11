@@ -60,7 +60,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
             };
 
             // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
-            if (machineParam.FluidInventoryConnectors != null && (machineParam.InputTankCount > 0 || machineParam.OutputTankCount > 0))
+            if (machineParam.FluidInventoryConnectors != null && (0 < machineParam.InputTankCount || 0 < machineParam.OutputTankCount))
             {
                 var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
                 var fluidInventory = new VanillaMachineFluidInventoryComponent(
@@ -109,7 +109,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
             };
 
             // 流体接続のサポートを追加（流体インベントリコネクタが定義されている場合）
-            if (machineParam.FluidInventoryConnectors != null && (machineParam.InputTankCount > 0 || machineParam.OutputTankCount > 0))
+            if (machineParam.FluidInventoryConnectors != null && (0 < machineParam.InputTankCount || 0 < machineParam.OutputTankCount))
             {
                 var fluidConnector = IFluidInventory.CreateFluidInventoryConnector(machineParam.FluidInventoryConnectors, blockPositionInfo);
                 var fluidInventory = new VanillaMachineFluidInventoryComponent(
