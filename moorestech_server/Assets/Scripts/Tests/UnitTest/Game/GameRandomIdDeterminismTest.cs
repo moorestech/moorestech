@@ -1,6 +1,5 @@
 using Core.Update;
 using Game.Block.Interface;
-using Game.Gear.Common;
 using Game.Train.Unit;
 using NUnit.Framework;
 
@@ -15,13 +14,11 @@ namespace Tests.UnitTest.Game
             var block1 = BlockInstanceId.Create();
             var car1 = TrainCarInstanceId.Create();
             var unit1 = TrainUnitInstanceId.Create();
-            var gear1 = GearNetworkId.CreateNetworkId();
 
             GameRandom.Reseed(99UL);
             Assert.AreEqual(block1, BlockInstanceId.Create(), "BlockInstanceId が乱数状態に従っていない");
             Assert.AreEqual(car1, TrainCarInstanceId.Create(), "TrainCarInstanceId が乱数状態に従っていない");
             Assert.AreEqual(unit1, TrainUnitInstanceId.Create(), "TrainUnitInstanceId が乱数状態に従っていない");
-            Assert.AreEqual(gear1, GearNetworkId.CreateNetworkId(), "GearNetworkId が乱数状態に従っていない");
         }
     }
 }

@@ -29,6 +29,10 @@ namespace Game.SaveLoad.Json
 {
     public class WorldLoaderFromJson : IWorldSaveDataLoader
     {
+        // 新規ワールドの乱数シード。実際の乱数状態はセーブのrandomStateに載るのでここは固定でよい
+        // Seed for a new world; the resulting state rides in the save's randomState, so a fixed value suffices
+        private const ulong NewWorldRandomSeed = 0UL;
+        
         private readonly ChallengeDatastore _challengeDatastore;
         private readonly ChallengeJsonObject _challengeJsonObject;
         private readonly IEntitiesDatastore _entitiesDatastore;
@@ -180,10 +184,20 @@ namespace Game.SaveLoad.Json
             // 課金元プレイヤーはブロックインスタンスIDで持つためワールドのロード順に依存しない
             // The paying player is keyed by block instance id, so it does not depend on the world load order
             _constructionPayerDataStore.LoadPayers(load.ConstructionPayers);
+            
+            // 復元中のID採番（RailNode・ダイヤ項目等）がセーブと同じ乱数列を消費するため、ロード末尾でもう一度戻す
+            // Restoring allocates ids (rail nodes, diagram entries) from the same stream, so put it back again at the end of load
+            GameRandom.RestoreState(load.RandomState);
         }
         
         public void WorldInitialize()
         {
+            // 同一プロセスで前のワールドを動かした後でも、新規ワールドは常に同じ時刻と乱数列から始める
+            // A new world always starts from the same clock and random stream, even after another world ran in this process
+            GameUpdater.RestoreCurrentTick(0);
+            GameRandom.Reseed(NewWorldRandomSeed);
+            Debug.Log($"新規ワールドの時刻と乱数を初期化しました tick:0 seed:{NewWorldRandomSeed}");
+            
             _worldSettingsDatastore.Initialize(_mapInfoJson);
             _challengeDatastore.InitializeCurrentChallenges();
         }
