@@ -31,11 +31,32 @@ test("歯車機械は消費トルクと基準付きRPMを赤なしで出し、�
   await page.goto("/");
   await expect(page.getByTestId("gear-torque")).toHaveText("消費トルク 3.0");
   await expect(page.getByTestId("gear-rpm")).toHaveText("RPM 12.5 / 20.0");
-  // data-insufficient は歯車行から除去済みのため、解決後の文字色で赤なしを確認する
-  // data-insufficient no longer exists on the gear row, so assert the resolved text color instead
+  // 歯車行は属性でなく文字色で判定
+  // The gear row has no data-insufficient, so assert the resolved text color instead
   await expect(page.getByTestId("gear-torque")).toHaveCSS("color", "rgb(238, 238, 238)");
   await expect(page.getByTestId("gear-rpm")).toHaveCSS("color", "rgb(238, 238, 238)");
   await expect(page.getByTestId("gear-network-section")).toBeVisible();
+});
+
+// 歯車駆動は停止理由行以外に不足赤を出さない（ADR 0056）
+// Gear drive shows no shortage red outside the stop-reason row (ADR 0056)
+for (const { type, rateTestId } of [
+  { type: "gearMachine", rateTestId: "machine-power-rate" },
+  { type: "gearMiner", rateTestId: "miner-power-rate" },
+] as const) {
+  test(`${type} は充足率不足でも充足率行を赤にしない`, async ({ page }) => {
+    await setBlock(page, type);
+    await page.goto("/");
+    await expect(page.getByTestId(rateTestId)).toContainText("%");
+    await expect(page.getByTestId(rateTestId)).toHaveAttribute("data-insufficient", "false");
+    await expect(page.getByTestId("gear-stop-reason")).toHaveCount(0);
+  });
+}
+
+test("電力駆動の採掘機は充足率不足を赤で出す", async ({ page }) => {
+  await setBlock(page, "miner");
+  await page.goto("/");
+  await expect(page.getByTestId("miner-power-rate")).toHaveAttribute("data-insufficient", "true");
 });
 
 test("歯車発電機は発生トルクと現在RPMだけを出す", async ({ page }) => {
