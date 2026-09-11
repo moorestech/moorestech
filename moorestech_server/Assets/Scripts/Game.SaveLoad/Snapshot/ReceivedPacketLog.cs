@@ -148,7 +148,7 @@ namespace Game.SaveLoad.Snapshot
         {
             foreach (var path in SegmentFilePaths())
             {
-                if (!TryParseSegmentFromTick(Path.GetFileName(path), out var fromTick)) continue;
+                if (!WorldDataDirectory.TryParsePacketLogFromTick(Path.GetFileName(path), out var fromTick)) continue;
                 if (fromTick > oldestSnapshotTick || fromTick == _currentSegmentFromTick) continue;
 
                 // 常時記録の削除は後から追跡できる必要があるので、消した区間と理由を必ず残す
@@ -158,24 +158,11 @@ namespace Game.SaveLoad.Snapshot
             }
         }
 
+        // 並びは開始tickの昇順。ファイル名規則と順序の定義は WorldDataDirectory だけが持つ
+        // Ordered by starting tick; the naming rule and the ordering live only in WorldDataDirectory
         public IReadOnlyList<string> SegmentFilePaths()
         {
-            var result = new List<string>();
-            if (_directory == null || !Directory.Exists(_directory)) return result;
-            foreach (var path in Directory.GetFiles(_directory, "packets_*.bin"))
-            {
-                if (TryParseSegmentFromTick(Path.GetFileName(path), out _)) result.Add(path);
-            }
-            result.Sort((a, b) => ParseFromTick(a).CompareTo(ParseFromTick(b)));
-            return result;
-        }
-
-        public static bool TryParseSegmentFromTick(string fileName, out ulong fromTick)
-        {
-            fromTick = 0;
-            if (!fileName.StartsWith("packets_") || !fileName.EndsWith(".bin")) return false;
-            var core = fileName.Substring("packets_".Length, fileName.Length - "packets_".Length - ".bin".Length);
-            return ulong.TryParse(core, out fromTick);
+            return WorldDataDirectory.EnumeratePacketLogFiles(_directory);
         }
 
         private static void DeleteSegmentFile(string path)
@@ -194,12 +181,6 @@ namespace Game.SaveLoad.Snapshot
             {
                 Debug.LogError($"パケットログ区間の削除が権限で拒否されました path:{path} message:{e.Message}");
             }
-        }
-
-        private static ulong ParseFromTick(string path)
-        {
-            TryParseSegmentFromTick(Path.GetFileName(path), out var fromTick);
-            return fromTick;
         }
     }
 }

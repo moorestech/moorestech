@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 
 namespace Game.Paths
@@ -38,19 +39,71 @@ namespace Game.Paths
 
         // スナップショットとパケットログはセーブファイルの隣の snapshots/ に置く。ファイル名規則の定義はここだけ
         // Snapshots and packet logs live in snapshots/ beside the save file; the naming rule lives only here
+        private const string SnapshotFilePrefix = "tick_";
+        private const string SnapshotFileExtension = ".json";
+        private const string PacketLogFilePrefix = "packets_";
+        private const string PacketLogFileExtension = ".bin";
+        public const string SnapshotFileSearchPattern = SnapshotFilePrefix + "*" + SnapshotFileExtension;
+        public const string PacketLogFileSearchPattern = PacketLogFilePrefix + "*" + PacketLogFileExtension;
+
         public string SnapshotFilePath(ulong tick)
         {
-            return Path.Combine(SnapshotDirectory, $"tick_{tick}.json");
+            return Path.Combine(SnapshotDirectory, SnapshotFileName(tick));
         }
 
-        public string PacketLogSegmentFilePath(ulong fromTick)
+        public static string SnapshotFileName(ulong tick)
         {
-            return Path.Combine(SnapshotDirectory, ReceivedPacketLogFileName(fromTick));
+            return $"{SnapshotFilePrefix}{tick}{SnapshotFileExtension}";
         }
 
         public static string ReceivedPacketLogFileName(ulong fromTick)
         {
-            return $"packets_{fromTick}.bin";
+            return $"{PacketLogFilePrefix}{fromTick}{PacketLogFileExtension}";
+        }
+
+        public static bool TryParseSnapshotTick(string fileName, out ulong tick)
+        {
+            return TryParseTick(fileName, SnapshotFilePrefix, SnapshotFileExtension, out tick);
+        }
+
+        public static bool TryParsePacketLogFromTick(string fileName, out ulong fromTick)
+        {
+            return TryParseTick(fileName, PacketLogFilePrefix, PacketLogFileExtension, out fromTick);
+        }
+
+        // 置き場のスナップショット／区間ファイルをtick昇順で返す。辞書順で並べると桁を跨いだ瞬間に最古が最新になる
+        // List the snapshot / segment files in tick order; lexicographic order makes the oldest look newest once the digits grow
+        public static IReadOnlyList<string> EnumerateSnapshotFiles(string snapshotDirectory)
+        {
+            return EnumerateByTick(snapshotDirectory, SnapshotFilePrefix, SnapshotFileExtension);
+        }
+
+        public static IReadOnlyList<string> EnumeratePacketLogFiles(string snapshotDirectory)
+        {
+            return EnumerateByTick(snapshotDirectory, PacketLogFilePrefix, PacketLogFileExtension);
+        }
+
+        private static IReadOnlyList<string> EnumerateByTick(string snapshotDirectory, string prefix, string extension)
+        {
+            var ticks = new List<ulong>();
+            if (snapshotDirectory == null || !Directory.Exists(snapshotDirectory)) return new List<string>();
+            foreach (var path in Directory.GetFiles(snapshotDirectory, prefix + "*" + extension))
+            {
+                if (TryParseTick(Path.GetFileName(path), prefix, extension, out var tick)) ticks.Add(tick);
+            }
+            ticks.Sort();
+
+            var result = new List<string>(ticks.Count);
+            foreach (var tick in ticks) result.Add(Path.Combine(snapshotDirectory, $"{prefix}{tick}{extension}"));
+            return result;
+        }
+
+        private static bool TryParseTick(string fileName, string prefix, string extension, out ulong tick)
+        {
+            tick = 0;
+            if (!fileName.StartsWith(prefix) || !fileName.EndsWith(extension)) return false;
+            var core = fileName.Substring(prefix.Length, fileName.Length - prefix.Length - extension.Length);
+            return ulong.TryParse(core, out tick);
         }
 
         // タイル座標からterrainバイナリのパスを導出する。ファイル名規則の定義はここだけに置く
