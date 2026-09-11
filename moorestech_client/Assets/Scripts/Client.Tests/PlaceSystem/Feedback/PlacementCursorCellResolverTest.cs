@@ -22,27 +22,28 @@ namespace Client.Tests.PlaceSystem.Feedback
                 new() { Position = new Vector3Int(2, 0, 0) },
             };
 
-            Assert.AreEqual(1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(1, 0, 0)));
-            Assert.AreEqual(2, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(9, 9, 9)));
-            Assert.AreEqual(-1, PlacementCursorCellResolver.Resolve(new List<PlaceInfo>(), Vector3Int.zero));
+            Assert.AreEqual(1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(1, 0, 0), PlacementCursorMatch.ExactCellOrLast));
+            Assert.AreEqual(2, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(9, 9, 9), PlacementCursorMatch.ExactCellOrLast));
+            Assert.AreEqual(-1, PlacementCursorCellResolver.Resolve(new List<PlaceInfo>(), Vector3Int.zero, PlacementCursorMatch.ExactCellOrLast));
         }
 
         [Test]
-        public void 張替え列はXZ一致で引き一致が無ければ末尾へ落とさない()
+        public void XZ規則は高さ違いを拾い一致が無ければ末尾へ落ちる()
         {
-            // 張替えセルは既設の高さへ追従するのでYはカーソルと一致しない
-            // Replace cells follow the existing heights, so their Y never matches the cursor
+            // 列のセルがカーソルと違う高さに並ぶ場合でも、XZが揃っていればそのセルを指す
+            // Even when the run's cells sit at other heights, an XZ match still points at that cell
             var infos = new List<PlaceInfo>
             {
-                new() { Position = new Vector3Int(0, 0, 0), IsReplace = true },
-                new() { Position = new Vector3Int(0, 1, 1), IsReplace = true },
+                new() { Position = new Vector3Int(0, 0, 0) },
+                new() { Position = new Vector3Int(0, 1, 1) },
             };
 
-            Assert.AreEqual(1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(0, 5, 1)));
+            Assert.AreEqual(1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(0, 5, 1), PlacementCursorMatch.HorizontalCellOrLast));
 
-            // no-opセルが落ちてカーソル直下が経路に無いとき、無関係な末尾セルの理由を出さない
-            // When a no-op cell drops out and the cursor cell is not in the run, no unrelated last cell is reported
-            Assert.AreEqual(-1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(0, 0, 2)));
+            // カーソルが列から外れてもツールチップを消さないため、末尾セルへ落とす
+            // When the cursor leaves the run it still falls back to the last cell, so the tooltip never goes blank
+            Assert.AreEqual(1, PlacementCursorCellResolver.Resolve(infos, new Vector3Int(0, 0, 2), PlacementCursorMatch.HorizontalCellOrLast));
+            Assert.AreEqual(-1, PlacementCursorCellResolver.Resolve(new List<PlaceInfo>(), Vector3Int.zero, PlacementCursorMatch.HorizontalCellOrLast));
         }
     }
 }

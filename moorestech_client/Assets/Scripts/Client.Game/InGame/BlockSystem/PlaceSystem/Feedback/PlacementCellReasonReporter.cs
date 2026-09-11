@@ -46,9 +46,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
 
         // 地形の重なりを設置不可の理由にしない入口（ADR 0047）。通常設置は地形へ食い込む前提のためこちらを使う
         // The entry that never blocks on terrain overlap (ADR 0047); normal placement digs into the terrain by design
-        public static int ResolveCursorAndReportCauses(List<PlaceInfo> placeInfos, IReadOnlyList<PlacementBlockCause> cellCauses, Vector3Int cursorCell, PlacementFeedback feedback)
+        public static int ResolveCursorAndReportCauses(List<PlaceInfo> placeInfos, IReadOnlyList<PlacementBlockCause> cellCauses, Vector3Int cursorCell, PlacementCursorMatch cursorMatch, PlacementFeedback feedback)
         {
-            var cursorIndex = PlacementCursorCellResolver.Resolve(placeInfos, cursorCell);
+            var cursorIndex = PlacementCursorCellResolver.Resolve(placeInfos, cursorCell, cursorMatch);
             if (cursorIndex < 0) return cursorIndex;
 
             ReportCause(cellCauses[cursorIndex], feedback);
@@ -59,24 +59,21 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Feedback
         // Resolves the cursor cell, applies ground overlaps, and reports reasons in one call (the shared shape normal/belt each rebuilt)
         // cellCausesはplaceInfosと同じ添字で並走するセル毎の共有原因列（呼び出し側が判定して渡す）
         // cellCauses is the per-cell shared cause column indexed like placeInfos, filled in by the caller that judged them
+        // groundOverlapsも同様に呼び出し側が渡したまま使う。地形を無視してよいセルの除外は呼び出し側の仕事
+        // groundOverlaps is likewise used exactly as handed in; excluding cells allowed to ignore terrain is the caller's job
         // 戻り値は解決済みcursorIndex（呼び出し側が後段の処理でカーソルセルを再解決せず使い回すため）
         // Returns the resolved cursorIndex so the caller can reuse it in later steps instead of re-resolving
-        public static int ApplyGroundOverlapsAndReport(List<PlaceInfo> placeInfos, IReadOnlyList<PlacementBlockCause> cellCauses, Vector3Int cursorCell, IReadOnlyList<bool> groundOverlaps, PlacementFeedback feedback)
+        public static int ApplyGroundOverlapsAndReport(List<PlaceInfo> placeInfos, IReadOnlyList<PlacementBlockCause> cellCauses, Vector3Int cursorCell, IReadOnlyList<bool> groundOverlaps, PlacementCursorMatch cursorMatch, PlacementFeedback feedback)
         {
-            var cursorIndex = PlacementCursorCellResolver.Resolve(placeInfos, cursorCell);
+            var cursorIndex = PlacementCursorCellResolver.Resolve(placeInfos, cursorCell, cursorMatch);
             var cursorCause = 0 <= cursorIndex ? cellCauses[cursorIndex] : PlacementBlockCause.None;
 
-            // 張替えセルは既設ブロックの居るセルへ重ねるのが正常なので、地形の重なりを不可理由にしない
-            // A replace cell is meant to sit on an occupied cell, so a terrain overlap is never a reason to block it
-            var effectiveOverlaps = new List<bool>(groundOverlaps.Count);
-            for (var i = 0; i < groundOverlaps.Count; i++) effectiveOverlaps.Add(groundOverlaps[i] && !placeInfos[i].IsReplace);
-
-            for (var i = 0; i < effectiveOverlaps.Count; i++)
+            for (var i = 0; i < groundOverlaps.Count; i++)
             {
-                if (effectiveOverlaps[i]) placeInfos[i].Placeable = false;
+                if (groundOverlaps[i]) placeInfos[i].Placeable = false;
             }
 
-            Report(cursorIndex, cursorCause, effectiveOverlaps, feedback);
+            Report(cursorIndex, cursorCause, groundOverlaps, feedback);
             return cursorIndex;
         }
     }

@@ -56,7 +56,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
 
             // 地面に埋まるセルを設置不可にし、その理由を積む。レール1セルは共有原因を判定しないためNone列を渡す
             // Mark ground-buried cells unplaceable and report that reason; the single rail cell judges no shared cause, so a None column is passed
-            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, new[] { PlacementBlockCause.None }, placePoint, groundOverlaps, feedback);
+            PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(placeInfos, new[] { PlacementBlockCause.None }, placePoint, groundOverlaps, PlacementCursorMatch.ExactCellOrLast, feedback);
 
             // 最終的なPlaceable状態でプレビュー色を更新
             // Update preview colors based on the final Placeable state

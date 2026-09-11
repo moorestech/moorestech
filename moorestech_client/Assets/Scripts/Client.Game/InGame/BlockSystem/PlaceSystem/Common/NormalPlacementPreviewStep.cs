@@ -21,7 +21,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // Not calling DetectGroundOverlaps is the specification; calling it would revoke ADR 0047
             previewController.SetPreview(placeInfos, holdingBlockMaster);
 
-            return PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, cursorCell, feedback);
+            // 通常設置の列は全セルがカーソルと同じ高さに並ぶので、完全一致→末尾フォールバックで引く
+            // A normal placement run sits entirely at the cursor's height, so it matches the exact cell and falls back to the last one
+            return PlacementCellReasonReporter.ResolveCursorAndReportCauses(placeInfos, cellCauses, cursorCell, PlacementCursorMatch.ExactCellOrLast, feedback);
         }
     }
 }

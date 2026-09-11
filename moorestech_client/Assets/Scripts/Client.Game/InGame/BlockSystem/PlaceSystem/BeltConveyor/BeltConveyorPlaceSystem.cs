@@ -117,9 +117,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _previewBlockController.SetPreview(_currentPlaceInfos, holdingBlockMaster);
             var blockGroundOverlapList = _previewBlockController.DetectGroundOverlaps();
 
-            // 共有の不可原因（既存重複）は共通Reporterが積む
-            // The shared block cause (existing overlap) is pushed by the shared reporter
-            var cursorIndex = PlacementCellReasonReporter.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
+            // 共有の不可原因（既存重複）は共通Reporterが積む。ベルト固有の地形・カーソル規則はベルト側の一手で決める
+            // The shared block cause (existing overlap) is pushed by the shared reporter; the belt-specific terrain and cursor rules are decided by the belt-side step
+            var cursorIndex = BeltPlacementCellFeedbackStep.ApplyGroundOverlapsAndReport(_currentPlaceInfos, placeCauses, placePoint, blockGroundOverlapList, feedback);
 
             // ベルト固有の理由（立体交差不能・坂ブロック欠落）はベルト側が積む
             // Belt-specific reasons (impossible overpass, missing slope block) are pushed here on the belt side
