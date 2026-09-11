@@ -43,7 +43,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             // Every connectTool in the test mod is initialUnlocked=false, so all start locked
             Assert.IsTrue(_unlockState.ConnectToolUnlockStateInfos.Values.All(info => !info.IsUnlocked));
 
-            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, out var materials, out var cost, out var shortages);
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, false, out var materials, out var cost, out var shortages);
 
             // 接続先はあるが解放済みツールが無いため、配線なしで設置だけ許可される
             // Targets exist but nothing is unlocked, so placement is allowed with no wiring at all
@@ -58,7 +58,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
         {
             _unlockState.UnlockConnectTool(FirstElectricWireToolGuid());
 
-            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, out var materials, out var cost, out var shortages);
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, false, out var materials, out var cost, out var shortages);
 
             // 解放済みツールが選ばれ、距離に応じた電線コストと消費素材が返る
             // The unlocked tool is picked, returning the distance-based wire cost and the materials to consume
@@ -81,7 +81,7 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
             var emptyInventory = new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(ServerContext.ItemStackFactory.Create(wireItemId, 0)), Array.Empty<(ItemId itemId, int count)>());
 
-            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), emptyInventory, _unlockState, out var materials, out var cost, out var shortages);
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), emptyInventory, _unlockState, false, out var materials, out var cost, out var shortages);
 
             Assert.IsFalse(selected);
             Assert.AreEqual(0, cost);
@@ -95,6 +95,37 @@ namespace Client.Tests.PlaceSystem.ElectricWireConnect
             var wireShortage = shortages.First(shortage => shortage.ItemId == wireItemId);
             Assert.AreEqual(0, wireShortage.Held);
             Assert.Less(0, wireShortage.Required);
+        }
+
+        [Test]
+        public void 無料設置なら全未解放でもSortPriority最小ツールで選定されコストが付く()
+        {
+            Assert.IsTrue(_unlockState.ConnectToolUnlockStateInfos.Values.All(info => !info.IsUnlocked));
+
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), CreateVirtualInventory(), _unlockState, true, out var materials, out var cost, out var shortages);
+
+            // 解放を無視して最優先ツールが選ばれ、表示用のコストと素材は通常どおり返る（表示は変えない）
+            // Unlock is ignored and the top-priority tool is picked; cost and materials come back as usual since the display is unchanged
+            Assert.IsTrue(selected);
+            Assert.Less(0, cost);
+            Assert.IsNotNull(materials);
+            Assert.AreEqual(0, shortages.Count);
+        }
+
+        [Test]
+        public void 無料設置なら電線0個でも選定成功し不足は空になる()
+        {
+            var wireItemId = MasterHolder.ItemMaster.GetItemId(WireItemGuid);
+            var emptyInventory = new ElectricWireAutoConnectVirtualInventory(new StubLocalPlayerInventory(ServerContext.ItemStackFactory.Create(wireItemId, 0)), Array.Empty<(ItemId itemId, int count)>());
+
+            var selected = ElectricWireAutoConnectToolSelector.TrySelect(CreateTargets(), emptyInventory, _unlockState, true, out var materials, out var cost, out var shortages);
+
+            // 所持数の突き合わせだけ素通しになり、赤線・設置不可にならない
+            // Only the held-count check is bypassed, so no red wire and no rejection
+            Assert.IsTrue(selected);
+            Assert.Less(0, cost);
+            Assert.IsNotNull(materials);
+            Assert.AreEqual(0, shortages.Count);
         }
 
         #region TestUtil

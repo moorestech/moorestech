@@ -5,8 +5,8 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect.
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
-using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
+using Common.Debug;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Construction;
@@ -76,6 +76,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             InvalidateCacheOnKeyChange();
 
+            // 無料設置デバッグは所持数の突き合わせだけ素通しする。表示は変えない（ADR 0056）。ファイルIOを伴うため1回だけ読む
+            // The free-placement debug bypasses only the held-count check, never the display (ADR 0056); read once as it hits file IO
+            var isFreePlacement = DebugParameters.GetValueOrDefaultBool(DebugParameterKeys.FreeBlockPlacement);
+
             // セル順に仮想在庫を減算しながら評価し、サーバーの逐次設置と同じ消費結果を予測する
             // Evaluate cells in order while decrementing a virtual inventory, predicting the server's sequential consumption
             // 注意: ドラッグ中の未設置電柱同士の接続は評価に現れない近似（サーバーが設置順に個別再検証するため安全側）
@@ -96,7 +100,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             {
                 var placeInfo = placeInfos[i];
                 var targets = GetOrCollectCellGeometry(placeInfo.Position);
-                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, _gameUnlockStateData, out var cellMaterials, out var cellCost, out var cellShortages);
+                var wirePlaceable = ElectricWireAutoConnectToolSelector.TrySelect(targets, virtualInventory, _gameUnlockStateData, isFreePlacement, out var cellMaterials, out var cellCost, out var cellShortages);
                 if (!wirePlaceable) placeInfo.Placeable = false;
 
                 if (placeInfo.Placeable)
@@ -123,8 +127,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、コスト行は全セル合計を表示する
             // Draw wires only for the cursor cell (all cells would be excessive); the cost line shows the drag-wide total
             var cursorInfo = placeInfos[cursorIndex];
-            var originEndpoint = ResolveOriginEndpoint(cursorIndex, cursorInfo);
-            var cursorTargets = cursorInfo.Placeable ? ResolveTargetEndpoints(cursorInfo.Position) : EmptyTargets;
+            var originEndpoint = AutoConnectPreviewEndpointResolver.ResolveOrigin(_previewBlockController, cursorIndex, cursorInfo, blockMaster);
+            var cursorTargets = cursorInfo.Placeable ? AutoConnectPreviewEndpointResolver.ResolveTargets(GetOrCollectCellGeometry(cursorInfo.Position), _blockDataStore) : EmptyTargets;
 
             // 近傍走査は全ブロック走査で重いため、案内に必要なときだけ実行する
             // The neighbor scan walks every block, so run it only when the notice actually needs it
@@ -137,7 +141,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // 電線不足時のみ「足りていればどこへ張られたか」を不可色の線で見せる
             // Only on wire shortage, failure-colored wires show where they would have run
-            if (isWireShortage) _renderer.Show(originEndpoint, ResolveTargetEndpoints(cursorInfo.Position), true);
+            if (isWireShortage) _renderer.Show(originEndpoint, AutoConnectPreviewEndpointResolver.ResolveTargets(GetOrCollectCellGeometry(cursorInfo.Position), _blockDataStore), true);
             else _renderer.Show(originEndpoint, cursorTargets, false);
 
             // 設置可能なセルが1つでも残っていればクリック許可（不可セルはサーバーが個別に拒否する既存方針に揃える）
@@ -162,28 +166,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
                 var targets = ClientElectricWireAutoConnectCollector.Collect(blockId, position, direction, _blockDataStore);
                 _cellGeometryCache[position] = targets;
                 return targets;
-            }
-
-            // 接続先ブロックの端点を実描画と同じ計算式で解決する
-            // Resolve each target block's endpoint using the same calculation as the actual rendering
-            List<Vector3> ResolveTargetEndpoints(Vector3Int position)
-            {
-                var targets = GetOrCollectCellGeometry(position);
-                var endpoints = new List<Vector3>(targets.Count);
-                foreach (var target in targets)
-                {
-                    if (_blockDataStore.TryGetBlockGameObject(target.TargetPos, out var targetBlock))
-                        endpoints.Add(ElectricWireEndpointResolver.Resolve(targetBlock));
-                }
-                return endpoints;
-            }
-
-            // 起点（設置予定ブロック自身）のゴースト端点を解決する。ゴースト未取得時のフォールバックはResolver内部に一本化されている
-            // Resolve the origin (the block about to be placed) ghost endpoint; the ghost-unavailable fallback is centralized inside the resolver
-            Vector3 ResolveOriginEndpoint(int originIndex, PlaceInfo originInfo)
-            {
-                _previewBlockController.TryGetPreviewBlock(originIndex, out var ghost);
-                return ElectricWireEndpointResolver.ResolveFromGhost(ghost, originInfo, blockMaster);
             }
 
             #endregion
