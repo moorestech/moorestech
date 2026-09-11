@@ -1,20 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatAmount, fillRatio } from "./fluidLogic";
-
-describe("formatAmount", () => {
-  it("0 はそのまま", () => {
-    expect(formatAmount(0)).toBe("0");
-  });
-  it("千未満は区切らない", () => {
-    expect(formatAmount(500)).toBe("500");
-  });
-  it("1000 は千区切りになる", () => {
-    expect(formatAmount(1000)).toBe("1,000");
-  });
-  it("百万超も区切る", () => {
-    expect(formatAmount(1234567)).toBe("1,234,567");
-  });
-});
+import { fillRatio } from "./fluidLogic";
 
 describe("fillRatio", () => {
   it("半量は 0.5", () => {

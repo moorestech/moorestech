@@ -27,7 +27,7 @@ export default function PumpSection({ data }: { data: BlockInventoryOpen }) {
         <Group gap="xs" data-testid="pump-pumping-fluids">
           {data.pump.pumpingFluids.map((fluid) => (
             <PerMinuteRateRow key={fluid.fluidGuid} amountPerMinute={fluid.amountPerMinute}>
-              <FluidIcon fluidGuid={fluid.fluidGuid} className={styles.icon} />
+              <FluidIcon fluidGuid={fluid.fluidGuid} fallback={{ kind: "none" }} className={styles.icon} />
             </PerMinuteRateRow>
           ))}
         </Group>

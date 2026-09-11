@@ -2,7 +2,8 @@ import HoverTooltip from "../HoverTooltip";
 import { useFluidMaster, type FluidSlotData } from "@/bridge";
 import { fluidNameKey, useI18n } from "@/shared/i18n";
 import FluidIcon from "../FluidIcon";
-import { formatAmount, fillRatio } from "./fluidLogic";
+import { fillRatio } from "./fluidLogic";
+import { formatSlotAmount } from "../slotAmountFormat";
 import styles from "./style.module.css";
 
 // 背面フィル/量/ホバー名を持つ汎用流体スロット。uGUI FluidSlotView 相当
@@ -19,8 +20,8 @@ export default function FluidSlot({ fluid, ghost }: { fluid: FluidSlotData; ghos
     return (
       <HoverTooltip label={ghostName} disabled={!ghostName}>
         <div data-testid="fluid-slot" data-ghost="true" className={styles.slot}>
-          <FluidIcon fluidGuid={ghost.fluidGuid} className={styles.icon} />
-          <span className={`iconTextOutlineDark ${styles.amount}`}>{formatAmount(ghost.amount)}</span>
+          <FluidIcon fluidGuid={ghost.fluidGuid} fallback={{ kind: "none" }} className={styles.icon} />
+          <span className={`iconTextOutlineDark ${styles.amount}`}>{formatSlotAmount(ghost.amount)}</span>
         </div>
       </HoverTooltip>
     );
@@ -42,8 +43,8 @@ export default function FluidSlot({ fluid, ghost }: { fluid: FluidSlotData; ghos
         )}
         {/* フィルの上に実アイコンを重ね、量バッジは最前面に残す */}
         {/* Layer the real icon over the fill, keeping the amount badge frontmost */}
-        <FluidIcon fluidGuid={fluid.fluidGuid} className={styles.icon} />
-        <span className={`iconTextOutlineDark ${styles.amount}`}>{formatAmount(fluid.amount)}</span>
+        <FluidIcon fluidGuid={fluid.fluidGuid} fallback={{ kind: "none" }} className={styles.icon} />
+        <span className={`iconTextOutlineDark ${styles.amount}`}>{formatSlotAmount(fluid.amount)}</span>
       </div>
     </HoverTooltip>
   );

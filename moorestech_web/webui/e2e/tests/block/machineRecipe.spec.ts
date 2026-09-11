@@ -1,9 +1,27 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { setBlock, setTopicScenario } from "../../support/mockControl";
 import { scrollAreaRootOf, scrollAreaViewport, expectScrollsOnlyWhenOverflowing } from "../../support/layoutAssertions";
+import { FLUID_ICON_PREFIX } from "../../../src/bridge/transport/httpEndpoints";
+import { OIL_FLUID_GUID } from "../../mock-host/fixtures/contentLocalizationFixtures";
 
 const firstRecipeTestId = "machine-recipe-aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const selectedRecipeTestId = "machine-recipe-bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const fluidRecipeTestId = "machine-recipe-cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+
+// mock-hostは液体アイコンを404にするため、原寸描画の崩れ（ADR 0054の起点）を再現するには大きな画像を実際に読ませる必要がある
+// The mock host 404s fluid icons, so reproducing the natural-size overflow (ADR 0054's origin) needs a large image to actually load
+const largeFluidIconSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" fill="#2A6FE0"/></svg>';
+
+// 権威定数を経由してルートを張る。改名すればここも追従し、mock-hostの404へ無言で外れない
+// Route through the authoritative constant so a rename here tracks the app instead of silently falling through to the mock host's 404
+async function serveLargeFluidIcons(page: Page) {
+  const routed = { hit: false };
+  await page.route(`**${FLUID_ICON_PREFIX}*.png`, (route) => {
+    routed.hit = true;
+    return route.fulfill({ contentType: "image/svg+xml", body: largeFluidIconSvg });
+  });
+  return routed;
+}
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
@@ -119,4 +137,110 @@ test("行密度は控えめ設定どおりで、本文に3.8〜4.5行分が入�
   expect(rowGap).toBeGreaterThan(0);
   expect(clientHeight / rowStride).toBeGreaterThan(minimumVisibleRows);
   expect(clientHeight / rowStride).toBeLessThan(maximumVisibleRows);
+});
+
+test("レシピ選択行の液体はアイテムスロットと同寸の枠に収まり、量バッジを出す", async ({ page }) => {
+  const routed = await serveLargeFluidIcons(page);
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+
+  // アイテム枠は名指しtestIdで取得
+  // Take the item slot by its own testId
+  const itemSlot = page.getByTestId(`${selectedRecipeTestId}-input-item-0`);
+  const fluidSlot = page.getByTestId(`${selectedRecipeTestId}-input-fluid-0`);
+  await expect(fluidSlot).toHaveAttribute("data-filled", "true");
+  await expect(fluidSlot).toContainText("10");
+
+  const itemBox = (await itemSlot.boundingBox())!;
+  const fluidBox = (await fluidSlot.boundingBox())!;
+  expect(fluidBox.width).toBeCloseTo(itemBox.width, 0);
+  expect(fluidBox.height).toBeCloseTo(itemBox.height, 0);
+
+  // 原寸512pxが枠内に収まる確認
+  // Confirm the native 512px image stays inside the frame
+  const iconBox = (await fluidSlot.locator("img").boundingBox())!;
+  expect(iconBox.width).toBeLessThanOrEqual(fluidBox.width + 0.5);
+  expect(iconBox.height).toBeLessThanOrEqual(fluidBox.height + 0.5);
+  expect(routed.hit).toBe(true);
+
+  // 4桁側（ccccccccの出力1000）は桁溢れの本命。バッジ矩形はleft/rightで幾何的に固定され、
+  // 右寄せの文字は左へ溢れてscrollWidthに載らないため、文字自身の矩形で測る
+  // The four-digit side (cccccccc's 1000 output) is where overflow actually bites; the badge box is pinned by left/right,
+  // and right-aligned text overflows leftward where scrollWidth never sees it, so the text's own rect is what measures
+  const wideBadge = page.getByTestId(`${fluidRecipeTestId}-output-fluid-0-amount`);
+  await expect(wideBadge).toHaveText("1,000");
+  const badgeOverflow = await wideBadge.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    return range.getBoundingClientRect().width - element.clientWidth;
+  });
+  expect(badgeOverflow).toBeLessThanOrEqual(0.5);
+
+  // 帯の左端は枠の左端。D2で選んだleft/text-alignが戻ると帯が縮み、この比較で落ちる
+  // The band starts at the frame's left edge; reverting D2's left/text-align shrinks it and fails here
+  const wideFluidBox = (await page.getByTestId(`${fluidRecipeTestId}-output-fluid-0`).boundingBox())!;
+  const wideBadgeBox = (await wideBadge.boundingBox())!;
+  expect(wideBadgeBox.x).toBeGreaterThanOrEqual(wideFluidBox.x - 0.5);
+  expect(wideBadgeBox.x).toBeLessThanOrEqual(wideFluidBox.x + 0.5);
+});
+
+test("液体アイコンが404なら辞書の液体名を枠内に収めて出す", async ({ page }) => {
+  // ここだけアイコンをstubしない。mock-hostの404がそのままフォールバック経路の実測になる
+  // This is the one test that leaves the icon unstubbed, so the mock host's 404 exercises the fallback path for real
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await expect(page.getByTestId("machine-recipe-selection")).toBeVisible();
+
+  const fluidSlot = page.getByTestId(`${fluidRecipeTestId}-output-fluid-0`);
+  await expect(fluidSlot.locator("img")).toHaveCount(0);
+  await expect(fluidSlot).toHaveAttribute("data-filled", "true");
+  // 36文字GUIDではなく辞書名を出す
+  // Show the dictionary name, never the 36-char GUID
+  await expect(fluidSlot).not.toContainText(OIL_FLUID_GUID);
+  const nameLabel = fluidSlot.getByText("Oil", { exact: true });
+  await expect(nameLabel).toBeVisible();
+
+  // 名前がマスへ収まっていることを実測する。矩形は枠に固定されるので文字の伸びで測る
+  // Measure that the name fits the cell; the box is pinned to the frame, so the text's own extent is what tells
+  const nameOverflow = await nameLabel.evaluate((element) => ({
+    width: element.scrollWidth - element.clientWidth,
+    height: element.scrollHeight - element.clientHeight,
+  }));
+  expect(nameOverflow.width).toBeLessThanOrEqual(0.5);
+  expect(nameOverflow.height).toBeLessThanOrEqual(0.5);
+  // 辞書名は"Oil"より長くなり得るので、収まりを支える切り詰め規則自体も主張する
+  // A dictionary name can be longer than "Oil", so assert the clipping rules that keep any name inside
+  await expect(nameLabel).toHaveCSS("white-space", "nowrap");
+  await expect(nameLabel).toHaveCSS("text-overflow", "ellipsis");
+});
+
+test("液体のみ出力のレシピを選ぶと選択中レシピ表示が液体スロットになる", async ({ page }) => {
+  const routed = await serveLargeFluidIcons(page);
+  await setBlock(page, "machine");
+  await page.goto("/");
+  await page.getByTestId("machine-selected-recipe").click();
+  await page.getByTestId(fluidRecipeTestId).click();
+
+  await expect(page.getByTestId("machine-inventory-body")).toBeVisible();
+  const headerFluid = page.getByTestId("machine-selected-recipe-fluid");
+  await expect(headerFluid).toHaveAttribute("data-filled", "true");
+  // 代表液体が出力(石油)であることを確認
+  // Confirm the representative fluid is the output (oil)
+  await expect(headerFluid.locator("img")).toHaveAttribute("alt", "Oil");
+  // バッジ不在はtestIdで主張
+  // Assert the badge's absence by its own testId
+  await expect(page.getByTestId("machine-selected-recipe-fluid-amount")).toHaveCount(0);
+  const headerBox = (await headerFluid.boundingBox())!;
+  const iconBox = (await headerFluid.locator("img").boundingBox())!;
+  expect(iconBox.width).toBeLessThanOrEqual(headerBox.width + 0.5);
+  expect(routed.hit).toBe(true);
+  // 入出力タンクがゴースト表示。容量差だけでは束縛先の取り違えを検出できないため量で入力/出力を判別する
+  // Input/output tanks render as ghosts; capacity differences alone can't catch a swapped binding, so distinguish input/output by amount
+  const fluidGhosts = page.getByTestId("machine-fluid-slots").locator('[data-ghost="true"]');
+  await expect(fluidGhosts).toHaveCount(2);
+  await expect(fluidGhosts.nth(0)).toContainText("10");
+  await expect(fluidGhosts.nth(1)).toContainText("1,000");
 });

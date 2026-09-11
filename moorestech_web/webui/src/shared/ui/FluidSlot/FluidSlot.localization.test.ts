@@ -62,4 +62,21 @@ describe("FluidSlot localization", () => {
     expect(renderer!.root.findAllByType("mock-tooltip" as never)).toHaveLength(0);
     act(() => renderer.unmount());
   });
+
+  // 実行時残量は流量加算のdoubleで長い小数になる。桁を止めないと48px枠で左端から切れ、別の数として読まれる
+  // A runtime amount is a flow-accumulated double: without a digit cap the 48px cell clips it from the left and it reads as another number
+  it("長い小数の残量は表示桁で止めて描く", () => {
+    const key = fluidNameKey(FLUID_GUID);
+    act(() => setDictionaries("japanese", { [key]: "水" }, { [key]: "Water" }, { [key]: "Water" }));
+    let renderer: ReactTestRenderer;
+    act(() => {
+      renderer = create(createElement(FluidSlot, {
+        fluid: { kind: "filled" as const, amount: 823.3333333333334, capacity: 1000, fluidGuid: FLUID_GUID },
+      }));
+    });
+
+    expect(renderer!.root.findByType("span").props.children).toBe("823.33");
+
+    act(() => renderer!.unmount());
+  });
 });

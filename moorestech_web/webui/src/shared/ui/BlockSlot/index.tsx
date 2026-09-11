@@ -17,7 +17,7 @@ export default function BlockSlot({ blockId, name, testId }: Props) {
   return (
     <HoverTooltip label={name} disabled={!name}>
       <SlotFrame testId={testId}>
-        <BlockIcon blockId={blockId} alt={name} className={styles.icon} />
+        <BlockIcon blockId={blockId} alt={name} fallback={{ kind: "idText" }} className={styles.icon} />
       </SlotFrame>
     </HoverTooltip>
   );

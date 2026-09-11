@@ -36,7 +36,7 @@ export default function MachineRecipeEntry({ recipe, onSelect, testId }: Props) 
         actionMode="slot"
         action={(
           <Stack className={styles.machineInfo} gap={2} align="center">
-            <BlockIcon blockId={recipe.blockId} alt={localizedBlockName} className={styles.machineInfoIcon} />
+            <BlockIcon blockId={recipe.blockId} alt={localizedBlockName} fallback={{ kind: "idText" }} className={styles.machineInfoIcon} />
             <Text className={styles.machineInfoText}>{localizedBlockName}</Text>
           </Stack>
         )}

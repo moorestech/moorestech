@@ -109,6 +109,14 @@ describe("ItemSlot", () => {
     expect(markup).toContain(`<span class="iconTextOutlineLight ${styles.count}">5</span>`);
   });
 
+  // 液体バッジの>1,000<と対になる番人。戻しても全テストが緑になる無被覆を塞ぐ
+  // The counterpart to the fluid badge's >1,000<; without it a revert would leave every test green
+  it("4桁の個数は千区切りで描く", () => {
+    const markup = renderItemSlot(undefined, 1500);
+
+    expect(markup).toContain(`<span class="iconTextOutlineLight ${styles.count}">1,500</span>`);
+  });
+
   // 所持と必要の対応がここで入れ替わると全素材表示が同時に狂うため、順序込みで固定する
   // Swapping owned and required here would corrupt every material display at once, so the order is pinned
   it("shortageは所持/必要の順で数値を出し、ツールチップにも同じ対応で載せる", () => {

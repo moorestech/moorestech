@@ -94,13 +94,20 @@ export function getI18nSnapshot(): I18nSnapshot {
   return snapshot;
 }
 
-export function createTranslator(current: I18nSnapshot) {
+// 解決できたかを型で返す。「辞書が無い」「キーが無い」「解決できた」の3状態を真偽値へ潰さない
+// Report resolution as a type: the three states (no dictionary, missing key, resolved) never collapse into a boolean
+export type Translation =
+  | { kind: "resolved"; text: string }
+  | { kind: "dictionaryAbsent" }
+  | { kind: "keyMissing"; key: TranslationKey };
+
+export function createTranslationResolver(current: I18nSnapshot) {
   const warnedKeysForGeneration = warnedMissingTranslationKeys;
   const dictionaries = current.dictionaries;
-  return (key: TranslationKey, values: InterpolationValues = {}): string => {
-    // 表示できる辞書が無い間は空文字。取得中でも失敗後でも欠落マーカーで画面を埋めない
-    // Without a displayable dictionary return empty text, both while loading and after a failure
-    if (dictionaries.kind === "none") return "";
+  return (key: TranslationKey, values: InterpolationValues): Translation => {
+    // 表示できる辞書が無い状態は、キー欠落とは別の状態として呼び出し側へ渡す
+    // A missing dictionary is handed to the caller as its own state, distinct from a missing key
+    if (dictionaries.kind === "none") return { kind: "dictionaryAbsent" };
 
     const template =
       nonEmptyTranslation(dictionaries.dictionary[key]) ??
@@ -109,15 +116,40 @@ export function createTranslator(current: I18nSnapshot) {
 
     // 同じ辞書世代では欠落キーごとの警告を一度に抑える
     // Warn only once per missing key within the same dictionary generation
-    if (template === undefined && !warnedKeysForGeneration.has(key)) {
-      warnedKeysForGeneration.add(key);
-      console.warn(`[i18n] Missing translation key: ${key}`);
+    if (template === undefined) {
+      if (!warnedKeysForGeneration.has(key)) {
+        warnedKeysForGeneration.add(key);
+        console.warn(`[i18n] Missing translation key: ${key}`);
+      }
+      return { kind: "keyMissing", key };
     }
 
-    // 欠落キーは目立つプレースホルダで露出させる
-    // Surface missing keys with a loud placeholder
-    return (template ?? `[!${key}]`).replace(/\{([^{}]+)\}/g, (token, name: string) =>
+    const text = template.replace(/\{([^{}]+)\}/g, (token, name: string) =>
       Object.hasOwn(values, name) ? String(values[name]) : token);
+    return { kind: "resolved", text };
+  };
+}
+
+export function createTranslator(current: I18nSnapshot) {
+  const resolve = createTranslationResolver(current);
+  return (key: TranslationKey, values: InterpolationValues = {}): string => {
+    const translation = resolve(key, values);
+    switch (translation.kind) {
+      case "resolved":
+        return translation.text;
+      // 表示できる辞書が無い間は空文字。取得中でも失敗後でも欠落マーカーで画面を埋めない
+      // Without a displayable dictionary return empty text, both while loading and after a failure
+      case "dictionaryAbsent":
+        return "";
+      // 欠落キーは目立つプレースホルダで露出させる
+      // Surface missing keys with a loud placeholder
+      case "keyMissing":
+        return `[!${translation.key}]`;
+      default: {
+        const exhaustive: never = translation;
+        return exhaustive;
+      }
+    }
   };
 }
 
@@ -137,11 +169,13 @@ export function translateExternalKey(
 export function useI18n() {
   const current = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   const t = useMemo(() => createTranslator(current), [current]);
+  const resolveTranslation = useMemo(() => createTranslationResolver(current), [current]);
   return {
     status: current.status,
     locale: current.locale,
     requestedLocale: current.requestedLocale,
     t,
+    resolveTranslation,
   };
 }
 

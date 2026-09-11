@@ -2,7 +2,7 @@
 // Mock snapshots for crafting, machine recipes, and the recipe viewer item list
 import type { CraftRecipesData, MachineRecipesData, RecipeViewerItemListData } from "../../../src/bridge/contract/payloadTypes";
 import { ELECTRIC_MACHINE_BLOCK_GUID, GEAR_MACHINE_BLOCK_GUID } from "./blockLocalizationFixtures";
-import { WATER_FLUID_GUID } from "./contentLocalizationFixtures";
+import { OIL_FLUID_GUID, WATER_FLUID_GUID } from "./contentLocalizationFixtures";
 
 export const craftRecipes = {
   recipes: [
@@ -69,11 +69,15 @@ export const machineRecipes = {
       inputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [],
     },
     {
+      // 液体のみのレシピ（石油蒸留機型、e2e用）
+      // A fluid-only recipe (distiller-like, for e2e)
+      // 入出力別GUIDで名前判別可能に
+      // Different GUIDs for input/output make them identifiable by name
       recipeGuid: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       blockGuid: ELECTRIC_MACHINE_BLOCK_GUID,
       blockId: 3, time: 15,
-      inputItems: [{ itemId: 1, count: 1 }, { itemId: 2, count: 1 }], outputItems: [{ itemId: 11, count: 4 }],
-      inputFluids: [], outputFluids: [],
+      inputItems: [], outputItems: [],
+      inputFluids: [{ fluidGuid: WATER_FLUID_GUID, amount: 10 }], outputFluids: [{ fluidGuid: OIL_FLUID_GUID, amount: 1000 }],
     },
     {
       recipeGuid: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",

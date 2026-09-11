@@ -14,7 +14,7 @@ vi.mock("@mantine/core", () => ({
 }));
 vi.mock("@/shared/ui", () => ({
   ItemSlot: (props: object) => createElement("mock-item-slot", props),
-  FluidIcon: (props: object) => createElement("mock-fluid-icon", props),
+  FluidAmountSlot: (props: object) => createElement("mock-fluid-amount-slot", props),
   ProgressArrowGlyph: (props: object) => createElement("mock-arrow", props),
 }));
 
@@ -50,5 +50,23 @@ describe("MachineRecipeSelectionRow", () => {
 
     expect(tree.root.findByProps({ "data-testid": `machine-recipe-${fluidOnlyRecipe.recipeGuid}-name` }).props.children)
       .toBe("fluid.87000000-0000-4000-8000-000000000001.name");
+  });
+
+  // 液体はFluidAmountSlotで量つき描画
+  // Fluids render via FluidAmountSlot, with an amount
+  it("入出力の液体はFluidAmountSlotへ量とtestIdを渡して描く", () => {
+    const fluidRecipe: MachineRecipe = {
+      ...recipe,
+      inputFluids: [{ fluidGuid: "87000000-0000-4000-8000-000000000001", amount: 10 }],
+      outputFluids: [{ fluidGuid: "87000000-0000-4000-8000-000000000002", amount: 1000 }],
+    };
+    const row = { recipe: fluidRecipe, subject: { kind: "item" as const, itemId: 9, count: 1 }, selected: false };
+    const tree = create(createElement(MachineRecipeSelectionRow, { row, onSelect: vi.fn() }));
+
+    const slots = tree.root.findAllByType("mock-fluid-amount-slot" as never);
+    expect(slots.map((slot) => [slot.props.fluidGuid, slot.props.badge, slot.props.testId])).toEqual([
+      ["87000000-0000-4000-8000-000000000001", { kind: "show", amount: 10 }, `machine-recipe-${recipe.recipeGuid}-input-fluid-0`],
+      ["87000000-0000-4000-8000-000000000002", { kind: "show", amount: 1000 }, `machine-recipe-${recipe.recipeGuid}-output-fluid-0`],
+    ]);
   });
 });

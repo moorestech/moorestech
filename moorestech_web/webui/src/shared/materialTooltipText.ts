@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { L, useI18n, useItemDisplayName } from "@/shared/i18n";
+import { formatSlotAmount } from "@/shared/ui/slotAmountFormat";
 
 // 素材ツールチップを名乗る辞書キーだけを受ける。任意のキーを所持数語彙で解釈させない
 // Accepts only the keys that claim to be material tooltips; no arbitrary key gets the owned-count vocabulary
@@ -15,9 +16,11 @@ export function useMaterialTooltipText(): (key: MaterialTooltipKey, itemId: numb
   const { t } = useI18n();
   const itemDisplayName = useItemDisplayName();
 
+  // 数量を語る表示は同一スロット内で表記が割れないよう全て共通整形を通す
+  // Every display that speaks a quantity goes through the shared formatting so one slot never spells numbers two ways
   return useCallback((key, itemId, requiredCount, ownedCount) => t(key, {
     itemName: itemDisplayName(itemId),
-    ownedCount,
-    requiredCount,
+    ownedCount: formatSlotAmount(ownedCount),
+    requiredCount: formatSlotAmount(requiredCount),
   }), [t, itemDisplayName]);
 }

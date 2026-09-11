@@ -1,0 +1,15 @@
+/* 様式（位置・色・縁）はアイテムと共有し、寸法だけ液体の桁数に合わせる */
+/* Share the style (position, color, outline) with items and tune only the metrics to the fluid's digit count */
+.icon {
+  composes: icon from "../slotContent.module.css";
+}
+
+/* レシピ量は4桁に達するため、枠幅いっぱいの右寄せ帯にして小さめの文字で収める（ADR 0054・D2） */
+/* Recipe amounts reach four digits, so the badge spans the frame as a right-aligned band in a smaller face (ADR 0054, D2) */
+/* 溢れてもクリップしない。右寄せ帯は左へ溢れるため切ると先頭桁だけが無言で消え、別の数として読まれる */
+/* Never clip an overflow: a right-aligned band overflows leftward, so clipping silently drops the leading digits and the number reads as another one */
+.amount {
+  composes: count from "../slotContent.module.css";
+  font-size: var(--fluid-amount-font-size);
+  letter-spacing: 0;
+}

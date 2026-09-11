@@ -8,10 +8,13 @@ const read = (path: string) => readFileSync(new URL(path, import.meta.url), "utf
 const tokens = read("./tokens.css");
 const itemSlotTsx = read("../shared/ui/ItemSlot/index.tsx");
 const itemSlotCss = read("../shared/ui/ItemSlot/style.module.css");
+const slotContentCss = read("../shared/ui/slotContent.module.css");
 const craftRecipeEntryTsx = read("../features/recipe/views/CraftRecipeEntry.tsx");
 const researchDetailTsx = read("../features/research/ResearchDetailPane.tsx");
 const fluidSlotTsx = read("../shared/ui/FluidSlot/index.tsx");
 const fluidSlotCss = read("../shared/ui/FluidSlot/style.module.css");
+const fluidAmountSlotTsx = read("../shared/ui/FluidAmountSlot/index.tsx");
+const fluidAmountSlotCss = read("../shared/ui/FluidAmountSlot/style.module.css");
 const hotbarTsx = read("../features/hotbar/HotbarPanel/index.tsx");
 const hotbarCss = read("../features/hotbar/HotbarPanel/style.module.css");
 
@@ -46,8 +49,17 @@ describe("icon overlay text outline", () => {
     expect(craftRecipeEntryTsx).not.toContain("iconTextOutlineLight");
     expect(researchDetailTsx).not.toContain("iconTextOutlineLight");
     expect(researchDetailTsx).toContain("shortage=");
+    // 正本と借用側の両方を見る。composesは後段の私有CSSが勝つため、正本だけ見ていると復活を素通しする
+    // Watch both the source and its borrowers: a private rule wins over composes, so guarding only the source lets one creep back
+    expect(slotContentCss).not.toMatch(/\.count\s*\{[^}]*text-shadow/);
     expect(itemSlotCss).not.toMatch(/\.count\s*\{[^}]*text-shadow/);
     expect(itemSlotCss).not.toMatch(/\.shortageCount\s*\{[^}]*text-shadow/);
+    // 量バッジも白縁を1回合成、共有stylesheetのcountを流用
+    // The amount badge also composes the light outline once, reusing the shared stylesheet's .count
+    expect(fluidAmountSlotTsx.match(/iconTextOutlineLight/g)).toHaveLength(1);
+    expect(itemSlotCss).toContain('composes: count from "../slotContent.module.css"');
+    expect(fluidAmountSlotCss).toContain('composes: count from "../slotContent.module.css"');
+    expect(fluidAmountSlotCss).not.toContain("text-shadow");
   });
 
   it("白文字2系統が黒縁の共有クラスを持ち、擬似縁を残さない", () => {
