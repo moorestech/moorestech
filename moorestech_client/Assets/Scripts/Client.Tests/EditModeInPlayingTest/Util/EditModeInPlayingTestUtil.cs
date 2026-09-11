@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.Context;
 using Client.Starter;
 using Core.Item.Interface;
@@ -103,6 +104,10 @@ namespace Client.Tests.EditModeInPlayingTest.Util
         // Build boot settings that skip loading an existing save and disable both auto-save and always-on capture
         public static StartServerSettings CreateServerSettings(string worldDirectory, string serverDirectory, string mapMode)
         {
+            // 録画リングもCaptureRingと同じ役割で無効化する。EditModeInPlayingTestがScreenCapture等を奪い合わないため
+            // Disables the recording ring in the same role as CaptureRing, so EditModeInPlayingTest never contends over ScreenCapture etc.
+            BugReportRecordingSettings.SetEnabled(false);
+
             return new StartServerSettings
             {
                 WorldDirectory = worldDirectory,

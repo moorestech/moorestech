@@ -1,3 +1,4 @@
+using Client.Game.InGame.BugReport.Recording;
 using Client.Starter;
 using Client.Starter.Editor;
 using NUnit.Framework;
@@ -7,8 +8,8 @@ using UnityEditor;
 
 namespace Client.Tests.Starter
 {
-    // SkipSaveLoadPlayModeがAutoSave/CaptureRingを無効化し続けることの回帰ガード
-    // Regression guard that SkipSaveLoadPlayMode keeps disabling AutoSave and CaptureRing
+    // SkipSaveLoadPlayModeがAutoSave/CaptureRing/録画リングを無効化し続けることの回帰ガード
+    // Regression guard that SkipSaveLoadPlayMode keeps disabling AutoSave, CaptureRing and the recording ring
     public class SkipSaveLoadPlayModeSettingsTest
     {
         [SetUp]
@@ -23,6 +24,7 @@ namespace Client.Tests.Starter
             // フラグ残置は後続テストの起動引数を汚染するため必ず戻す
             // A leftover flag pollutes launch args of later tests, so always reset it
             SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, false);
+            BugReportRecordingSettings.SetEnabled(true);
         }
 
         [Test]
@@ -36,6 +38,10 @@ namespace Client.Tests.Starter
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
             Assert.That(settings.AutoSave, Is.False);
             Assert.That(settings.CaptureRing, Is.False);
+
+            // 録画リングもCaptureRingと同じ役割で無効化されているはず
+            // The recording ring should be disabled in the same role as CaptureRing
+            Assert.That(BugReportRecordingSettings.Enabled, Is.False);
         }
 
         [Test]

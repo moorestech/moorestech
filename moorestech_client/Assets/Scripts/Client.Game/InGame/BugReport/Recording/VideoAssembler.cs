@@ -1,6 +1,9 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.Recording
 {
@@ -8,6 +11,7 @@ namespace Client.Game.InGame.BugReport.Recording
     // Concatenates segments and extracts stills, each by running ffmpeg synchronously (only when sending)
     public static class VideoAssembler
     {
+        private static readonly Regex DurationPattern = new(@"Duration:\s*(\d+):(\d+):(\d+\.\d+)");
         public static bool Concat(string ffmpegPath, IReadOnlyList<string> segmentFiles, string outputMp4)
         {
             if (segmentFiles.Count == 0) return false;
@@ -28,9 +32,22 @@ namespace Client.Game.InGame.BugReport.Recording
             return exit == 0;
         }
 
-        public static double DurationSeconds(IReadOnlyList<string> segmentFiles)
+        // 本数×固定尺の推計をやめ、結合済みmp4自身をffmpegに読ませて実尺を取る（Concat結果はCutSegmentの断片で必ず不揃いなため）
+        // No longer estimates from count×fixed length; asks ffmpeg for the concatenated mp4's real duration, since CutSegment always leaves uneven fragments
+        public static double DurationSeconds(string ffmpegPath, string mp4Path)
         {
-            return segmentFiles.Count * (double)GameFrameRecorder.SegmentSeconds;
+            var stderr = FfmpegProcess.RunAndCaptureStderr(ffmpegPath, $"-hide_banner -i \"{mp4Path}\"", Path.GetDirectoryName(mp4Path));
+            if (stderr == null) return 0;
+            var match = DurationPattern.Match(stderr);
+            if (!match.Success)
+            {
+                Debug.LogWarning($"録画動画の尺を読み取れませんでした: {mp4Path}");
+                return 0;
+            }
+            var hours = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+            var minutes = int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
+            var seconds = double.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
+            return hours * 3600 + minutes * 60 + seconds;
         }
     }
 }

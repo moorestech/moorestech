@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BugReport.Recording;
 using Game.MapGeneration.Transfer;
 using Server.Boot;
 using Server.Boot.Args;
@@ -64,6 +65,10 @@ namespace Client.Starter.StandaloneQa
 
         public InitializeProprieties CreateInitializeProprieties()
         {
+            // 録画リングもCaptureRingと同じ役割で無効化する。QA実行がScreenCapture等を奪い合わないため
+            // Disables the recording ring in the same role as CaptureRing, so the QA run never contends over ScreenCapture etc.
+            BugReportRecordingSettings.SetEnabled(false);
+
             // QA固有値を既存サーバー設定へ集約し、初期化パイプラインを迂回しない
             // Gather QA values into the existing server settings without bypassing the initialization pipeline
             var serverSettings = new StartServerSettings

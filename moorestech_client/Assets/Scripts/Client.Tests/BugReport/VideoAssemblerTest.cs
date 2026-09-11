@@ -32,6 +32,12 @@ namespace Client.Tests.BugReport
             var frames = Path.Combine(dir, "frames");
             Assert.IsTrue(VideoAssembler.ExtractFrames(ffmpeg, output, frames, 2));
             Assert.GreaterOrEqual(Directory.GetFiles(frames, "frame_*.jpg").Length, 3);
+
+            // 2秒ぶんのフレームを流したので、本数×10秒固定の見積もりではなく実尺(約2秒)が返るはず
+            // Fed two seconds of frames; the real (~2s) duration should come back, not the old count×10s estimate
+            var duration = VideoAssembler.DurationSeconds(ffmpeg, output);
+            Assert.Greater(duration, 0);
+            Assert.Less(duration, GameFrameRecorder.SegmentSeconds, "固定10秒/区間の見積もりに戻っていないか");
             Directory.Delete(dir, true);
         }
 
@@ -39,12 +45,6 @@ namespace Client.Tests.BugReport
         public void 区間が無ければ結合しない()
         {
             Assert.IsFalse(VideoAssembler.Concat("/nonexistent/ffmpeg", Array.Empty<string>(), "/tmp/never.mp4"));
-        }
-
-        [Test]
-        public void 尺は区間本数で決まる()
-        {
-            Assert.AreEqual(GameFrameRecorder.SegmentSeconds * 3, VideoAssembler.DurationSeconds(new[] { "a", "b", "c" }));
         }
     }
 }

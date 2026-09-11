@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading;
 using Debug = UnityEngine.Debug;
 
@@ -37,17 +38,28 @@ namespace Client.Game.InGame.BugReport.Recording
             var arguments =
                 $"-hide_banner -loglevel error -y -f rawvideo -pix_fmt rgba -s {width}x{height} -r {fps} -i - {flip}" +
                 $"-c:v libx264 -preset ultrafast -pix_fmt yuv420p -g {fps} -f segment -segment_time {GameFrameRecorder.SegmentSeconds} " +
-                $"-segment_wrap {GameFrameRecorder.SegmentCount} -reset_timestamps 1 \"{pattern}\"";
-            var process = Start(ffmpegPath, arguments, outputDirectory, true);
+                $"-segment_wrap {GameFrameRecorder.LiveSegmentWrapCount} -reset_timestamps 1 \"{pattern}\"";
+            var process = Start(ffmpegPath, arguments, outputDirectory, true, null);
             return process == null ? null : new FfmpegProcess(process);
         }
 
         public static int RunAndWait(string ffmpegPath, string arguments, string workingDirectory)
         {
-            var process = Start(ffmpegPath, arguments, workingDirectory, false);
+            var process = Start(ffmpegPath, arguments, workingDirectory, false, null);
             if (process == null) return -1;
             process.WaitForExit();
             return process.ExitCode;
+        }
+
+        // stderrをログへ流さず捕まえて返す。ffmpegの"Duration:"行のような情報行をwarningとして垂れ流さないため
+        // Captures stderr instead of logging it, so informational lines like ffmpeg's "Duration:" never spam warnings
+        public static string RunAndCaptureStderr(string ffmpegPath, string arguments, string workingDirectory)
+        {
+            var stderr = new StringBuilder();
+            var process = Start(ffmpegPath, arguments, workingDirectory, false, stderr);
+            if (process == null) return null;
+            process.WaitForExit();
+            return stderr.ToString();
         }
 
         public void WriteFrame(byte[] rgba)
@@ -69,7 +81,14 @@ namespace Client.Game.InGame.BugReport.Recording
         {
             if (!_frames.IsAddingCompleted) _frames.CompleteAdding();
             _writer.Join(StopWaitMilliseconds);
-            if (!_process.HasExited) _process.WaitForExit(StopWaitMilliseconds);
+            if (_process.HasExited) return;
+            _process.WaitForExit(StopWaitMilliseconds);
+
+            // 待っても終了しない子は残留させない。孤児化するとPlayMode再入時に同じliveディレクトリを取り合う
+            // Never leave a child that outlives the wait; an orphan would fight the next PlayMode session over the same live directory
+            if (_process.HasExited) return;
+            Debug.LogWarning("[FfmpegProcess] 終了待ちがタイムアウトしたためkillします");
+            _process.Kill();
         }
 
         private void WriteLoop()
@@ -94,7 +113,7 @@ namespace Client.Game.InGame.BugReport.Recording
             }
         }
 
-        private static Process Start(string ffmpegPath, string arguments, string workingDirectory, bool redirectStdin)
+        private static Process Start(string ffmpegPath, string arguments, string workingDirectory, bool redirectStdin, StringBuilder capturedStderr)
         {
             var startInfo = new ProcessStartInfo
             {
@@ -129,7 +148,12 @@ namespace Client.Game.InGame.BugReport.Recording
             // 両ストリームを排水する（読まないとパイプ64KB超で子がwriteブロックしハングする）
             // Drain both streams; otherwise the child blocks on write once the pipe exceeds 64KB
             process.OutputDataReceived += (sender, args) => { };
-            process.ErrorDataReceived += (sender, args) => { if (!string.IsNullOrEmpty(args.Data)) Debug.LogWarning($"[ffmpeg] {args.Data}"); };
+            process.ErrorDataReceived += (sender, args) =>
+            {
+                if (string.IsNullOrEmpty(args.Data)) return;
+                if (capturedStderr != null) capturedStderr.AppendLine(args.Data);
+                else Debug.LogWarning($"[ffmpeg] {args.Data}");
+            };
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
             return process;

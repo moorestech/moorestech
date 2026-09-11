@@ -13,9 +13,9 @@ namespace Client.Game.InGame.BugReport.Recording
         public const string SegmentSearchPattern = "seg_*.mp4";
         private const string SegmentPrefix = "seg_";
 
-        // live にある確定済み区間を retained へ移し、新しい世代の上書きから守ったうえで保持本数まで間引く
-        // Moves finished live segments into retained, out of the next generation's way, and trims to the keep count
-        public static void PromoteCompletedSegments(string liveDirectory, string retainedDirectory, int keepCount)
+        // live にある確定済み区間を retained へ移し、新しい世代の上書きから守ったうえで保持秒数まで間引く
+        // Moves finished live segments into retained, out of the next generation's way, and trims to the retention window
+        public static void PromoteCompletedSegments(string liveDirectory, string retainedDirectory, double keepSeconds)
         {
             if (!Directory.Exists(liveDirectory))
             {
@@ -35,8 +35,26 @@ namespace Client.Game.InGame.BugReport.Recording
             // Segments left at zero length mid-write hold nothing, so drop them
             foreach (var leftover in Directory.GetFiles(liveDirectory, SegmentSearchPattern)) File.Delete(leftover);
 
+            TrimToRetentionWindow(retainedDirectory, keepSeconds);
+        }
+
+        // 本数ではなく確定時刻の差分（＝各区間の実尺）を積算し、保持秒数を下回らない最小本数まで間引く
+        // Accumulates gaps between finalize times (each segment's actual duration), trimming to the minimum count that keeps the retention window
+        private static void TrimToRetentionWindow(string retainedDirectory, double keepSeconds)
+        {
             var retained = OrderedSegments(retainedDirectory).ToList();
-            for (var i = 0; i < retained.Count - keepCount; i++) File.Delete(retained[i].FullName);
+            if (retained.Count == 0) return;
+
+            var accumulatedSeconds = 0.0;
+            var oldestKeptIndex = 0;
+            for (var index = retained.Count - 1; index > 0; index--)
+            {
+                accumulatedSeconds += (retained[index].LastWriteTimeUtc - retained[index - 1].LastWriteTimeUtc).TotalSeconds;
+                oldestKeptIndex = index - 1;
+                if (accumulatedSeconds >= keepSeconds) break;
+            }
+
+            for (var i = 0; i < oldestKeptIndex; i++) File.Delete(retained[i].FullName);
         }
 
         // 古い→新しいの順に並べる。excludeNewestLive のときは ffmpeg が書き込み中の最新live区間を外す

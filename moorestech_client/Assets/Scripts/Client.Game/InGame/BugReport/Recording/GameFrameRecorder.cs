@@ -1,33 +1,44 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using Client.Common;
 using Core.Update;
 using Game.Paths;
 using UnityEngine;
 using UnityEngine.Rendering;
 using VContainer.Unity;
+using Debug = UnityEngine.Debug;
 
 namespace Client.Game.InGame.BugReport.Recording
 {
-    // 描画結果を10fpsで読み出し ffmpeg へ流す。区間は10秒×12本のリングで直近2分を保持する
-    // Reads the rendered frame at 10fps and streams it to ffmpeg; a ring of 12×10s segments keeps the last two minutes
-    public sealed class GameFrameRecorder : IInitializable, ITickable
+    // 描画結果を10fpsで読み出し ffmpeg へ流す。区間は10秒単位のリングで直近RetentionSeconds秒を保持する
+    // Reads the rendered frame at 10fps and streams it to ffmpeg; a ring of 10s segments keeps the last RetentionSeconds
+    public sealed class GameFrameRecorder : IInitializable, ITickable, IDisposable
     {
         public const int Width = 1280;
         public const int Height = 720;
         public const int Fps = 10;
         public const int SegmentSeconds = 10;
-        public const int SegmentCount = 12;
+        public const double RetentionSeconds = 120;
+
+        // ffmpeg自身のsegment_wrapに渡す本数。CutSegmentが毎回再起動させるため通常はここまで貯まらない安全弁
+        // Passed to ffmpeg's own segment_wrap; a safety margin that normally never fills since CutSegment restarts first
+        public const int LiveSegmentWrapCount = 12;
 
         public const string MissingFfmpegReason = "ffmpeg が見つかりません（MOORESTECH_FFMPEG か PATH で指定）";
+        public const string NoMainCameraReason = "録画リングのフレーム取り込みをスキップしました（メインカメラ未登録）";
 
         private const string LiveDirectoryName = "live";
 
-        private readonly string _directory = GameSystemPaths.BugReportRecordingDirectory;
-        private readonly string _liveDirectory = Path.Combine(GameSystemPaths.BugReportRecordingDirectory, LiveDirectoryName);
+        // 並列worktreeが同じマシン共通パスを取り合わないよう、このプロセス専用のサブディレクトリへ書く
+        // Scoped to this process's own subdirectory so parallel worktrees never fight over the machine-wide path
+        private static readonly string ProcessDirectory = Path.Combine(GameSystemPaths.BugReportRecordingDirectory, $"pid_{Process.GetCurrentProcess().Id}");
+
+        private readonly string _directory = ProcessDirectory;
+        private readonly string _liveDirectory = Path.Combine(ProcessDirectory, LiveDirectoryName);
         private string _ffmpegPath;
         private FfmpegProcess _ffmpeg;
-        private RenderTexture _screenTexture;
         private RenderTexture _scaledTexture;
         private float _nextCaptureTime;
         private bool _readbackInFlight;
@@ -47,6 +58,13 @@ namespace Client.Game.InGame.BugReport.Recording
 
         public void Initialize()
         {
+            // テスト・プレイテスト経路はここで止める。既存のプレイテストDSL等とScreenCapture/Camera経路を奪い合わないため
+            // Stops here on test/playtest boots; otherwise they contend with the playtest DSL etc. over the capture path
+            if (!BugReportRecordingSettings.Enabled)
+            {
+                UnavailableReason = BugReportRecordingSettings.DisabledReason;
+                return;
+            }
             _ffmpegPath = FfmpegLocator.Find();
             UnavailableReason = ResolveUnavailableReason(_ffmpegPath);
             if (_ffmpegPath == null) return;
@@ -61,9 +79,20 @@ namespace Client.Game.InGame.BugReport.Recording
             if (!IsRecording || _readbackInFlight || Time.unscaledTime < _nextCaptureTime) return;
             _nextCaptureTime = Time.unscaledTime + 1f / Fps;
 
-            EnsureScreenTexture();
-            ScreenCapture.CaptureScreenshotIntoRenderTexture(_screenTexture);
-            Graphics.Blit(_screenTexture, _scaledTexture);
+            // MainCameraへ直接Renderする。ScreenCaptureはEditorではEditorウィンドウを写しGame Viewを写さないため使わない
+            // Renders straight from MainCamera; ScreenCapture captures the Editor window rather than Game View in-editor
+            var gameCamera = CameraManager.MainCamera;
+            if (gameCamera == null)
+            {
+                Debug.LogWarning(NoMainCameraReason);
+                return;
+            }
+            var camera = gameCamera.Camera;
+            var previousTarget = camera.targetTexture;
+            camera.targetTexture = _scaledTexture;
+            camera.Render();
+            camera.targetTexture = previousTarget;
+
             _readbackInFlight = true;
             var tick = GameUpdater.CurrentTick;
             var unixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -80,7 +109,7 @@ namespace Client.Game.InGame.BugReport.Recording
                 return;
             }
             _ffmpeg.Stop();
-            RecordingSegmentRing.PromoteCompletedSegments(_liveDirectory, _directory, SegmentCount);
+            RecordingSegmentRing.PromoteCompletedSegments(_liveDirectory, _directory, RetentionSeconds);
             StartProcess();
         }
 
@@ -98,6 +127,13 @@ namespace Client.Game.InGame.BugReport.Recording
             _ffmpeg = null;
         }
 
+        // PlayModeの出入り・コンテナ破棄で必ず1本の経路から呼ばれる（VContainerがSingleton IDisposableを破棄時にDisposeする）
+        // Always reached through one path on PlayMode exit or container teardown (VContainer disposes IDisposable singletons)
+        public void Dispose()
+        {
+            Stop();
+        }
+
         private void StartProcess()
         {
             // Metal/D3D は読み出し行が上から、OpenGL系は下からなので後者だけ反転する
@@ -109,13 +145,6 @@ namespace Client.Game.InGame.BugReport.Recording
                 UnavailableReason = "ffmpeg の起動に失敗しました（ログ参照）";
                 Debug.LogWarning($"録画リングを開始できません: {UnavailableReason}");
             }
-        }
-
-        private void EnsureScreenTexture()
-        {
-            if (_screenTexture != null && _screenTexture.width == Screen.width && _screenTexture.height == Screen.height) return;
-            if (_screenTexture != null) _screenTexture.Release();
-            _screenTexture = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32);
         }
 
         private void OnReadback(AsyncGPUReadbackRequest request, long unixMs, ulong tick)
