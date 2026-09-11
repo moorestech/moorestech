@@ -49,11 +49,20 @@ for box in "$OUTBOX_DIR"/*/; do
 
   # .partial へ送り切ってから mv でアトミックに公開する（受け側が途中の箱を掴まない）
   # Send into .partial, then publish atomically with mv so the receiver never sees a half box
-  if ! $RSYNC_CMD -a --partial "$box/" "$MACMINI_SSH:$MACMINI_INBOX/$id.partial/"; then
+  # rsync 自身の ssh にも BatchMode/ConnectTimeout を効かせる（未接続時に無応答で固まらせない）
+  # Pass the same ssh options to rsync's own transport so an unreachable host fails fast
+  if ! $RSYNC_CMD -a --partial -e "$SSH_CMD" "$box/" "$MACMINI_SSH:$MACMINI_INBOX/$id.partial/"; then
     log "rsync 失敗（Tailscale 未接続か）。次回に再試行: $id"; exit 0
   fi
-  if ! $SSH_CMD "$MACMINI_SSH" "mv '$MACMINI_INBOX/$id.partial' '$MACMINI_INBOX/$id'"; then
-    log "公開 mv 失敗。次回に再試行: $id"; exit 0
+  # 宛先が既にあると mv は入れ子にしてしまうため、リモートで存在を検査して失敗（3）にする
+  # A pre-existing destination would make mv nest the box, so check remotely and fail with 3
+  mv_rc=0
+  $SSH_CMD "$MACMINI_SSH" "[ -e '$MACMINI_INBOX/$id' ] && exit 3; mv '$MACMINI_INBOX/$id.partial' '$MACMINI_INBOX/$id'" || mv_rc=$?
+  if [ "$mv_rc" -eq 3 ]; then
+    log "公開先が既に存在する（前回の mv が成功して SHIPPED 前に落ちた疑い）。入れ子破損を避けるため送らない。手動確認が必要: $MACMINI_INBOX/$id"; exit 0
+  fi
+  if [ "$mv_rc" -ne 0 ]; then
+    log "公開 mv 失敗（exit $mv_rc）。次回に再試行: $id"; exit 0
   fi
   date -u +%Y-%m-%dT%H:%M:%SZ > "$box/SHIPPED"
   log "shipped: $id"

@@ -40,4 +40,38 @@ rm -rf "$INBOX/20260911_120000_aaaa1111"
 OUTBOX_DIR="$OUTBOX" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX" RSYNC_CMD="$TMP/rsync" SSH_CMD="$TMP/ssh" GIT_CMD=true \
   bash "$HERE/../ship-outbox.sh"
 test ! -e "$INBOX/20260911_120000_aaaa1111" || { echo "NG: SHIPPED 済みの箱が再送された"; exit 1; }
+
+# 公開先が既にある場合は入れ子破損を避けて送らず SHIPPED も付けない
+# When the destination already exists, ship nothing and leave SHIPPED off (no silent nesting)
+OUTBOX2="$TMP/outbox2"; mkdir -p "$OUTBOX2/20260911_140000_bbbb2222" "$INBOX/20260911_140000_bbbb2222"
+echo '{"repository":{"commit":"","dirty":false},"masterData":{"commit":"","dirty":false}}' > "$OUTBOX2/20260911_140000_bbbb2222/manifest.json"
+touch "$OUTBOX2/20260911_140000_bbbb2222/READY"
+OUTBOX_DIR="$OUTBOX2" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX" RSYNC_CMD="$TMP/rsync" SSH_CMD="$TMP/ssh" GIT_CMD=true \
+  bash "$HERE/../ship-outbox.sh"
+test ! -e "$OUTBOX2/20260911_140000_bbbb2222/SHIPPED" || { echo "NG: 宛先が既存なのに SHIPPED が付いた"; exit 1; }
+test ! -e "$INBOX/20260911_140000_bbbb2222/20260911_140000_bbbb2222.partial" || { echo "NG: 入れ子で公開された"; exit 1; }
+
+# attach_bundle の主経路（一時ref→bundle作成→ref削除）を実 git で踏む
+# Exercise attach_bundle's real path (temp ref -> bundle create -> ref delete) with real git
+REPO="$TMP/repo"; git init -q --bare "$TMP/origin.git"; git clone -q "$TMP/origin.git" "$REPO"
+(
+  cd "$REPO" && git config user.email t@t && git config user.name t
+  echo a > a.txt && git add a.txt && git commit -qm base && git push -q origin HEAD:master
+  echo b > b.txt && git add b.txt && git commit -qm unpushed
+)
+git -C "$REPO" fetch -q origin
+PUSHED_COMMIT="$(git -C "$REPO" rev-parse origin/master)"
+UNPUSHED_COMMIT="$(git -C "$REPO" rev-parse HEAD)"
+OUTBOX3="$TMP/outbox3"; INBOX3="$TMP/inbox3"; mkdir -p "$OUTBOX3/bundle_case" "$OUTBOX3/pushed_case" "$INBOX3"
+printf '{"repository":{"commit":"%s","dirty":false},"masterData":{"commit":"","dirty":false}}\n' "$UNPUSHED_COMMIT" > "$OUTBOX3/bundle_case/manifest.json"
+printf '{"repository":{"commit":"%s","dirty":false},"masterData":{"commit":"","dirty":false}}\n' "$PUSHED_COMMIT" > "$OUTBOX3/pushed_case/manifest.json"
+touch "$OUTBOX3/bundle_case/READY" "$OUTBOX3/pushed_case/READY"
+OUTBOX_DIR="$OUTBOX3" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX3" RSYNC_CMD="$TMP/rsync" SSH_CMD="$TMP/ssh" \
+  MOORESTECH_REPO="$REPO" MOORESTECH_MASTER="$TMP/no-such-master" \
+  bash "$HERE/../ship-outbox.sh"
+test -f "$OUTBOX3/bundle_case/repo/commits.bundle" || { echo "NG: bundle が作られていない"; exit 1; }
+git -C "$REPO" bundle list-heads "$OUTBOX3/bundle_case/repo/commits.bundle" | grep -q "$UNPUSHED_COMMIT" || { echo "NG: bundle に未pushコミットが入っていない"; exit 1; }
+test -f "$INBOX3/bundle_case/repo/commits.bundle" || { echo "NG: bundle が inbox へ運ばれていない"; exit 1; }
+if git -C "$REPO" show-ref --verify --quiet refs/bugreport/bundle_case; then echo "NG: 一時 ref が残っている"; exit 1; fi
+test ! -e "$OUTBOX3/pushed_case/repo/commits.bundle" || { echo "NG: push 済みコミットで bundle を作った"; exit 1; }
 echo "OK"
