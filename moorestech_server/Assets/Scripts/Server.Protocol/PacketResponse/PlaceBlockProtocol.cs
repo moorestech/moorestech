@@ -32,7 +32,7 @@ namespace Server.Protocol.PacketResponse
         private readonly NotificationService _notificationService;
         private readonly ConstructionWalletService _constructionWallet;
         private readonly PlacementTargetCatalog _placementTargetCatalog;
-        private readonly BeltReplacePlacementService _beltReplacePlacementService;
+        private readonly IReplacePlacementService _replacePlacementService;
 
         public PlaceBlockProtocol(ServiceProvider serviceProvider)
         {
@@ -41,7 +41,7 @@ namespace Server.Protocol.PacketResponse
             _notificationService = serviceProvider.GetService<NotificationService>();
             _constructionWallet = serviceProvider.GetService<ConstructionWalletService>();
             _placementTargetCatalog = serviceProvider.GetService<PlacementTargetCatalog>();
-            _beltReplacePlacementService = serviceProvider.GetService<BeltReplacePlacementService>();
+            _replacePlacementService = serviceProvider.GetService<IReplacePlacementService>();
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -82,20 +82,26 @@ namespace Server.Protocol.PacketResponse
 
             void PlaceBlock(PlaceInfoMessagePack placeInfo)
             {
-                // 張替えセルは既設ブロックの差し替えなので張替えサービスへ委譲する
-                // A replace cell swaps the existing block, so it is delegated to the replace service
+                var placeBlockId = placeInfo.BlockId;
+                var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
+
+                // 張替えセルは既設ブロックの差し替えなので、引き受け手のあるセルだけ張替えサービスへ委譲する
+                // A replace cell swaps the existing block, so only a cell some service owns is delegated to it
                 if (placeInfo.IsReplace)
                 {
-                    CountReplaceResult(_beltReplacePlacementService.Replace(placeInfo, inventoryData.MainOpenableInventory, data.PlayerId, isFreePlacement));
+                    // 張替え対象かどうかの規則はサービス側にあり、プロトコルはブロックの種類を知らない
+                    // The rule for what counts as a replace target lives in the service, so the protocol never knows the block kind
+                    var existingBlock = ServerContext.WorldBlockDatastore.GetBlock(placeInfo.Position);
+                    if (existingBlock == null || !_replacePlacementService.CanReplace(existingBlock.BlockId, placeBlockId)) { replaceRejectedCount++; return; }
+
+                    var replaceRequest = new ReplacePlacementRequest(placeInfo.Position, placeBlockId, createParams, inventoryData.MainOpenableInventory, data.PlayerId, isFreePlacement);
+                    CountReplaceResult(_replacePlacementService.Replace(replaceRequest));
                     return;
                 }
 
                 // すでにブロックがある場合は何もしない
                 // Do nothing when a block already exists
                 if (ServerContext.WorldBlockDatastore.Exists(placeInfo.Position)) return;
-
-                var placeBlockId = placeInfo.BlockId;
-                var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 
                 // 無料設置デバッグ: 解放・コスト・電線を一切見ず強制設置して即return
                 // Free placement debug: force-place ignoring unlock/cost/wire entirely, then return
@@ -144,14 +150,14 @@ namespace Server.Protocol.PacketResponse
 
             // 張替えの拒否理由も通常設置と同じ集計へ合流させ、末尾で1通ずつ通知する
             // Replace rejections join the same aggregation as normal placement and are notified once each at the end
-            void CountReplaceResult(BeltReplacePlacementService.BeltReplaceResult result)
+            void CountReplaceResult(ReplacePlacementResult result)
             {
                 switch (result)
                 {
-                    case BeltReplacePlacementService.BeltReplaceResult.NotUnlocked: notUnlockedCount++; break;
-                    case BeltReplacePlacementService.BeltReplaceResult.CostShortage: costShortageCount++; break;
-                    case BeltReplacePlacementService.BeltReplaceResult.InventoryFull: replaceInventoryFullCount++; break;
-                    case BeltReplacePlacementService.BeltReplaceResult.Rejected: replaceRejectedCount++; break;
+                    case ReplacePlacementResult.NotUnlocked: notUnlockedCount++; break;
+                    case ReplacePlacementResult.CostShortage: costShortageCount++; break;
+                    case ReplacePlacementResult.InventoryFull: replaceInventoryFullCount++; break;
+                    case ReplacePlacementResult.Rejected: replaceRejectedCount++; break;
                 }
             }
 

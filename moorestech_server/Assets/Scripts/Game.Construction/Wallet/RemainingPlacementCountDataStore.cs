@@ -47,18 +47,6 @@ namespace Game.Construction
             return reader;
         }
 
-        public void ConsumeOne(int playerId, BlockId walletBlockId)
-        {
-            var remaining = GetRemainingCount(playerId, walletBlockId);
-            if (remaining <= 0) throw new InvalidOperationException($"Wallet is empty. playerId:{playerId} walletBlockId:{walletBlockId.AsPrimitive()}");
-            Set(playerId, walletBlockId, remaining - 1);
-        }
-
-        public void Refill(int playerId, BlockId walletBlockId, int placementsPerCost)
-        {
-            Set(playerId, walletBlockId, GetRemainingCount(playerId, walletBlockId) + placementsPerCost);
-        }
-
         public void ApplyPlacement(int playerId, BlockId walletBlockId, int placementsPerCost, ConstructionWalletUsage usage)
         {
             // 財布を通らない設置がここへ来るのは財布の判断漏れ

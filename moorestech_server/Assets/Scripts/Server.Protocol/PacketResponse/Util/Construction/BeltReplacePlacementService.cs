@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
@@ -19,7 +18,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
     /// 1セルの張替え。撤去前に設置の成否を確定させ、通ったセルだけを「返却→撤去→設置→消費→搬送品復元」で処理する
     /// One-cell replace; the outcome is settled before anything is removed, and only a validated cell runs refund, removal, placement, consumption and transit restore
     /// </summary>
-    public class BeltReplacePlacementService
+    public class BeltReplacePlacementService : IReplacePlacementService
     {
         private static readonly IReadOnlyList<IItemStack> NoRefund = Array.Empty<IItemStack>();
 
@@ -34,22 +33,34 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             _gameUnlockStateDataController = gameUnlockStateDataController;
         }
 
-        public BeltReplaceResult Replace(PlaceInfoMessagePack placeInfo, IOpenableInventory inventory, int playerId, bool isFreePlacement)
+        // 既設と手持ちがベルトファミリーの同ロール同士なら、このサービスがそのセルの張替えを引き受ける
+        // This service owns a cell's replace when the existing and held blocks are belt family members sharing one role
+        public bool CanReplace(BlockId existingBlockId, BlockId newBlockId)
         {
-            var position = placeInfo.Position;
-            var newBlockId = placeInfo.BlockId;
+            if (!TryGetRole(existingBlockId, out var existingRole)) return false;
+            if (!TryGetRole(newBlockId, out var newRole)) return false;
+            return existingRole == newRole;
+        }
+
+        public ReplacePlacementResult Replace(ReplacePlacementRequest request)
+        {
+            var position = request.Position;
+            var newBlockId = request.BlockId;
+            var inventory = request.Inventory;
+            var playerId = request.PlayerId;
+            var isFreePlacement = request.IsFreePlacement;
 
             // 既設と手持ちが同じロールのベルトファミリー員であること。BeltConveyorFamilyValidatorがメンバーを1x1x1に限っているので占有は既設のまま使える
             // Both blocks must be belt family members of the same role; BeltConveyorFamilyValidator restricts members to 1x1x1, so the existing footprint carries over as-is
             var oldBlock = ServerContext.WorldBlockDatastore.GetBlock(position);
-            if (oldBlock == null) return Reject(BeltReplaceResult.Rejected, "no block at the cell");
-            if (!TryGetRole(oldBlock.BlockId, out var oldRole)) return Reject(BeltReplaceResult.Rejected, $"existing block {oldBlock.BlockId} is not a belt family member");
-            if (!TryGetRole(newBlockId, out var newRole)) return Reject(BeltReplaceResult.Rejected, $"held block {newBlockId} is not a belt family member");
-            if (oldRole != newRole) return Reject(BeltReplaceResult.Rejected, $"role mismatch existing:{oldRole} held:{newRole}");
-            if (oldBlock.BlockId == newBlockId) return BeltReplaceResult.NoChange;
+            if (oldBlock == null) return Reject(ReplacePlacementResult.Rejected, "no block at the cell");
+            if (!TryGetRole(oldBlock.BlockId, out var oldRole)) return Reject(ReplacePlacementResult.Rejected, $"existing block {oldBlock.BlockId} is not a belt family member");
+            if (!TryGetRole(newBlockId, out var newRole)) return Reject(ReplacePlacementResult.Rejected, $"held block {newBlockId} is not a belt family member");
+            if (oldRole != newRole) return Reject(ReplacePlacementResult.Rejected, $"role mismatch existing:{oldRole} held:{newRole}");
+            if (oldBlock.BlockId == newBlockId) return ReplacePlacementResult.NoChange;
 
             var newBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(newBlockId);
-            if (!_placementTargetCatalog.IsBlockUnlocked(newBlockMaster.BlockGuid, _gameUnlockStateDataController, false)) return Reject(BeltReplaceResult.NotUnlocked, $"held block {newBlockId} is locked");
+            if (!_placementTargetCatalog.IsBlockUnlocked(newBlockMaster.BlockGuid, _gameUnlockStateDataController, false)) return Reject(ReplacePlacementResult.NotUnlocked, $"held block {newBlockId} is locked");
 
             // 退避する搬送品と財布の指示を集める。財布への問い合わせはCommitを呼ぶまで何も変えない
             // Gather the transit items and the wallet's instructions; asking the wallet changes nothing until Commit is called
@@ -61,13 +72,13 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             // 無料設置が免除するのはコスト検証・消費・返却だけで、搬送品の受け皿検証は必ず走る
             // Free placement waives only the cost checks, consumption and refund; the transit receptacle check always runs
             var refundItems = isFreePlacement ? NoRefund : removalPlan.ItemsToRefund;
-            if (!HasRoomForReturnedItems()) return Reject(BeltReplaceResult.InventoryFull, "no room for the refund and transit items");
-            if (!isFreePlacement && !CanPayNewCost()) return Reject(BeltReplaceResult.CostShortage, $"new construction cost of {newBlockId} is short");
+            if (!HasRoomForReturnedItems()) return Reject(ReplacePlacementResult.InventoryFull, "no room for the refund and transit items");
+            if (!isFreePlacement && !CanPayNewCost()) return Reject(ReplacePlacementResult.CostShortage, $"new construction cost of {newBlockId} is short");
 
             // ここから先は検証済みなので、撤去と設置を1セル分まとめて実行する
             // Everything below is validated, so the removal and the placement run as one unit for this cell
             var direction = oldBlock.BlockPositionInfo.BlockDirection;
-            var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
+            var createParams = request.CreateParams;
             ServerContext.WorldBlockDatastore.RemoveBlock(position, BlockRemoveReason.Replace);
 
             // 無料設置は撤去側の財布も飛ばすため、旧ブロックの課金元エントリと残り設置数が戻らない（デバッグトグル限定の非対称）
@@ -84,7 +95,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
                 // Placement cannot fail on a validated cell by design; nothing is rolled back and only the transit items are handed back
                 Debug.LogError($"[BeltReplace] placement failed after removal at {position} held:{newBlockId}");
                 ReturnToPlayer(ToItemStacks(transitItems));
-                return BeltReplaceResult.Rejected;
+                return ReplacePlacementResult.Rejected;
             }
 
             if (!isFreePlacement) _constructionWallet.CommitPlacement(placementPlan, inventory, newBlock.BlockInstanceId);
@@ -93,15 +104,9 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             // Hand the transit items back to the new belt; CarryOver owns how the progress maps and what does not fit
             var overflow = BeltConveyorTransitCarryOver.Restore(newBlock.GetComponent<VanillaBeltConveyorComponent>(), transitItems);
             ReturnToPlayer(ToItemStacks(overflow));
-            return BeltReplaceResult.Replaced;
+            return ReplacePlacementResult.Replaced;
 
             #region Internal
-
-            bool TryGetRole(BlockId blockId, out BeltConveyorRole role)
-            {
-                role = default;
-                return BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family) && family.TryGetRole(blockId, out role);
-            }
 
             bool HasRoomForReturnedItems()
             {
@@ -141,7 +146,7 @@ namespace Server.Protocol.PacketResponse.Util.Construction
                 }
             }
 
-            BeltReplaceResult Reject(BeltReplaceResult result, string reason)
+            ReplacePlacementResult Reject(ReplacePlacementResult result, string reason)
             {
                 Debug.Log($"[BeltReplace] rejected at {position} held:{newBlockId} reason:{reason}");
                 return result;
@@ -160,18 +165,12 @@ namespace Server.Protocol.PacketResponse.Util.Construction
             #endregion
         }
 
-        /// <summary>
-        /// 1セルの張替え結果。呼び出し側はこれを集計してプレイヤーへ通知する
-        /// The outcome of one replace cell; the caller aggregates these and notifies the player
-        /// </summary>
-        public enum BeltReplaceResult
+        // ベルトファミリーの所属とロールを引く。張替えの引き受け判定と実行時の再検証で同じ規則を使う
+        // Looks up belt family membership and role, shared by the ownership decision and the re-validation at execution
+        private static bool TryGetRole(BlockId blockId, out BeltConveyorRole role)
         {
-            Replaced,
-            NoChange,
-            NotUnlocked,
-            CostShortage,
-            InventoryFull,
-            Rejected,
+            role = default;
+            return BeltConveyorPlaceFamilyUtil.TryGetFamily(blockId, out var family) && family.TryGetRole(blockId, out role);
         }
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 
 namespace Tests.CombinedTest.Game
 {
@@ -16,10 +17,8 @@ namespace Tests.CombinedTest.Game
         public void セーブしてロードすると残り設置数が復元される()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            var store = serviceProvider.GetService<RemainingPlacementCountDataStore>();
             var wallet = ForUnitTestModBlockId.GearBeltConveyor;
-            store.Refill(PlayerId, wallet, 3);
-            store.ConsumeOne(PlayerId, wallet);
+            RemainingPlacementCountTestState.SetRemainingCount(serviceProvider, PlayerId, wallet, 2);
             var saveJson = serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));

@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UniRx;
 
 namespace Tests.UnitTest.Game
@@ -25,8 +26,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void 財布が賄うセルは消費素材が空になる()
         {
-            var query = CreateQuery(out var mutation);
-            mutation.Refill(PlayerId, ForUnitTestModBlockId.GearBeltConveyor, 3);
+            var query = CreateQuery(out var serviceProvider);
+            RemainingPlacementCountTestState.SetRemainingCount(serviceProvider, PlayerId, ForUnitTestModBlockId.GearBeltConveyor, 2);
 
             Assert.IsTrue(query.IsCoveredByWallet(ForUnitTestModBlockId.GearBeltConveyor));
             Assert.AreEqual(0, query.GetItemsToConsume(ForUnitTestModBlockId.GearBeltConveyor).Count);
@@ -52,9 +53,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void 財布を使うブロックの状態は設置数と残数を運ぶ()
         {
-            var query = CreateQuery(out var mutation);
-            mutation.Refill(PlayerId, ForUnitTestModBlockId.GearBeltConveyor, 3);
-            mutation.ConsumeOne(PlayerId, ForUnitTestModBlockId.GearBeltConveyor);
+            var query = CreateQuery(out var serviceProvider);
+            RemainingPlacementCountTestState.SetRemainingCount(serviceProvider, PlayerId, ForUnitTestModBlockId.GearBeltConveyor, 2);
 
             // 坂ベルトIDで問い合わせても直線代表の財布を引く
             // Querying with the slope belt id still reads the straight block's wallet
@@ -68,10 +68,8 @@ namespace Tests.UnitTest.Game
         [Test]
         public void 残り設置数と買えるセット数から置ける数を算出する()
         {
-            var query = CreateQuery(out var mutation);
-            mutation.Refill(PlayerId, ForUnitTestModBlockId.GearBeltConveyor, 3);
-            mutation.ConsumeOne(PlayerId, ForUnitTestModBlockId.GearBeltConveyor);
-            mutation.ConsumeOne(PlayerId, ForUnitTestModBlockId.GearBeltConveyor);
+            var query = CreateQuery(out var serviceProvider);
+            RemainingPlacementCountTestState.SetRemainingCount(serviceProvider, PlayerId, ForUnitTestModBlockId.GearBeltConveyor, 1);
 
             // 残1 + 素材2セット×3 = 7
             // One left in the wallet plus two affordable sets of three = 7
@@ -97,22 +95,22 @@ namespace Tests.UnitTest.Game
         [Test]
         public void 財布が動くと通知が飛ぶ()
         {
-            var query = CreateQuery(out var mutation);
+            var query = CreateQuery(out var serviceProvider);
 
             var changedCount = 0;
             using (query.OnWalletChanged.Subscribe(_ => changedCount++))
             {
-                mutation.Refill(PlayerId, ForUnitTestModBlockId.GearBeltConveyor, 3);
-                mutation.FlushChanges();
+                RemainingPlacementCountTestState.SetRemainingCount(serviceProvider, PlayerId, ForUnitTestModBlockId.GearBeltConveyor, 2);
+                serviceProvider.GetService<IRemainingPlacementCountMutation>().FlushChanges();
             }
 
             Assert.AreEqual(1, changedCount);
         }
 
-        private static ConstructionWalletQuery CreateQuery(out IRemainingPlacementCountMutation mutation)
+        private static ConstructionWalletQuery CreateQuery(out ServiceProvider serviceProvider)
         {
-            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            mutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            serviceProvider = provider;
             var lookup = serviceProvider.GetService<IRemainingPlacementCountLookup>();
             return new ConstructionWalletQuery(lookup.GetReader(PlayerId));
         }

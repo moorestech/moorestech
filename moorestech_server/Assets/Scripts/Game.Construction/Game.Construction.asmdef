@@ -4,6 +4,7 @@
     "references": [
         "Core.Master",
         "Core.Item.Interface",
+        "Core.Inventory",
         "Game.Block.Interface",
         "UniRx",
         "Game.Context"

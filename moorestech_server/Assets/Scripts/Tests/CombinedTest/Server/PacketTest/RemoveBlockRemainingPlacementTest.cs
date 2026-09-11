@@ -9,6 +9,7 @@ using NUnit.Framework;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 using static Tests.CombinedTest.Server.PacketTest.PlaceBlockProtocolTestSupport;
 
@@ -87,14 +88,12 @@ namespace Tests.CombinedTest.Server.PacketTest
             SetItem(inventory, 0, Material1Guid, 1);
             SetItem(inventory, 1, Material2Guid, 1);
             packet.GetPacketResponse(CreatePlaceBlockPayload(belt, (10, 0)), new PacketResponseContext(null));
-            var mutation = serviceProvider.GetService<IRemainingPlacementCountMutation>();
-            mutation.ConsumeOne(PlayerId, belt); mutation.ConsumeOne(PlayerId, belt); // 残り0にする
 
             // 全スロット別アイテムで埋め返却不能に
             // Fill every slot with another item so the refund cannot fit
             var filler = MasterHolder.ItemMaster.GetItemId(Guid.Parse("00000000-0000-0000-1234-000000000005"));
             for (var i = 0; i < inventory.GetSlotSize(); i++) inventory.SetItem(i, ServerContext.ItemStackFactory.Create(filler, 1));
-            mutation.Refill(PlayerId, belt, 2); // 残り2 → 次の撤去で凝縮
+            RemainingPlacementCountTestState.SetRemainingCount(serviceProvider, PlayerId, belt, 2); // 残り2 → 次の撤去で凝縮
 
             Remove(packet, new Vector3Int(10, 0));
 

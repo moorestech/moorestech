@@ -24,7 +24,7 @@ namespace Tests.UnitTest.Game
         }
 
         [Test]
-        public void 補充と消費と返却で残り設置数が遷移し変更が通知される()
+        public void 設置と返却で残り設置数が遷移し変更が通知される()
         {
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var store = serviceProvider.GetService<RemainingPlacementCountDataStore>();
@@ -32,18 +32,22 @@ namespace Tests.UnitTest.Game
             var changes = 0;
             store.OnRemainingCountChanged.Subscribe(_ => changes++);
 
-            // 残り0での消費は財布の判断漏れなので落ちる
-            // Consuming from an empty wallet means the caller skipped the wallet's decision, so it throws
-            Assert.Throws<InvalidOperationException>(() => store.ConsumeOne(PlayerId, wallet));
+            // 残り0を財布で賄う設置は財布の判断漏れなので落ちる
+            // A wallet-covered placement on an empty wallet means the caller skipped the wallet's decision, so it throws
+            Assert.Throws<InvalidOperationException>(() => store.ApplyPlacement(PlayerId, wallet, 3, ConstructionWalletUsage.CoveredByWallet));
             Assert.AreEqual(0, store.GetRemainingCount(PlayerId, wallet));
 
-            store.Refill(PlayerId, wallet, 3);
-            Assert.AreEqual(3, store.GetRemainingCount(PlayerId, wallet));
-            store.ConsumeOne(PlayerId, wallet);
+            // 素材を払った設置は1セット分を補充してから1消費するのでN-1へ、以降は財布が賄い1ずつ減る
+            // A placement that paid materials refills one set and consumes one, landing on N-1, and later ones are wallet-covered and drop by one
+            store.ApplyPlacement(PlayerId, wallet, 3, ConstructionWalletUsage.PaidAndRefilled);
             Assert.AreEqual(2, store.GetRemainingCount(PlayerId, wallet));
+            store.ApplyPlacement(PlayerId, wallet, 3, ConstructionWalletUsage.CoveredByWallet);
+            Assert.AreEqual(1, store.GetRemainingCount(PlayerId, wallet));
 
             // 返却は+1、Nに達したら0へ戻る（凝縮返却。設置と撤去が完全な逆操作になる閾値）
             // Return adds one; reaching N resets to zero (condensed refund; the threshold that makes removal the exact inverse of placement)
+            store.ApplyReturn(PlayerId, wallet, false);
+            Assert.AreEqual(2, store.GetRemainingCount(PlayerId, wallet));
             Assert.IsTrue(ConstructionWalletUtil.WouldCondense(store.GetRemainingCount(PlayerId, wallet), 3));
             store.ApplyReturn(PlayerId, wallet, true);
             Assert.AreEqual(0, store.GetRemainingCount(PlayerId, wallet));
@@ -104,8 +108,11 @@ namespace Tests.UnitTest.Game
             store.GetRemainingCount(PlayerId, wallet);
             Assert.IsEmpty(store.GetSaveJsonObject());
 
-            store.Refill(PlayerId, wallet, 3);
-            store.ConsumeOne(PlayerId, wallet); store.ConsumeOne(PlayerId, wallet); store.ConsumeOne(PlayerId, wallet);
+            // 残り0まで使い切った財布はセーブに残らない
+            // A wallet spent back down to zero leaves nothing in the save
+            store.ApplyPlacement(PlayerId, wallet, 3, ConstructionWalletUsage.PaidAndRefilled);
+            store.ApplyPlacement(PlayerId, wallet, 3, ConstructionWalletUsage.CoveredByWallet);
+            store.ApplyPlacement(PlayerId, wallet, 3, ConstructionWalletUsage.CoveredByWallet);
             Assert.IsEmpty(store.GetSaveJsonObject().SelectMany(p => p.Entries));
         }
     }
