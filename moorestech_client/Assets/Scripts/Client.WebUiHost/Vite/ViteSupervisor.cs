@@ -21,7 +21,7 @@ namespace Client.WebUiHost.Vite
 
         public int ActualPort => _vitePort;
 
-        public async UniTask<bool> StartAsync(int kestrelPort)
+        public async UniTask<bool> StartAsync(int kestrelPort, CancellationToken exitToken)
         {
             _kestrelPort = kestrelPort;
             _process = new ViteProcess();
@@ -30,7 +30,7 @@ namespace Client.WebUiHost.Vite
 
             // HTTP応答後に起動成功とする
             // Require an HTTP response in addition to stdout ready before declaring startup success
-            if (!await ViteHealthProbe.IsHealthyAsync(_vitePort, TimeSpan.FromSeconds(3)))
+            if (!await ViteHealthProbe.IsHealthyAsync(_vitePort, TimeSpan.FromSeconds(3), exitToken))
             {
                 Debug.LogError($"[WebUiHost] Vite health check failed during startup on port {_vitePort}");
                 _process.Kill();
@@ -56,7 +56,7 @@ namespace Client.WebUiHost.Vite
                 await UniTask.Delay(ProbeIntervalMilliseconds, cancellationToken: _stopping.Token).SuppressCancellationThrow();
                 if (_stopping.IsCancellationRequested) return;
 
-                var healthy = await ViteHealthProbe.IsHealthyAsync(_vitePort, TimeSpan.FromSeconds(2));
+                var healthy = await ViteHealthProbe.IsHealthyAsync(_vitePort, TimeSpan.FromSeconds(2), CancellationToken.None);
                 consecutiveFailures = healthy ? 0 : consecutiveFailures + 1;
                 if (consecutiveFailures < FailureThreshold) continue;
 
@@ -83,7 +83,7 @@ namespace Client.WebUiHost.Vite
                 replacement.Kill();
                 return false;
             }
-            if (replacement.ActualPort != _vitePort || !await ViteHealthProbe.IsHealthyAsync(_vitePort, TimeSpan.FromSeconds(3)))
+            if (replacement.ActualPort != _vitePort || !await ViteHealthProbe.IsHealthyAsync(_vitePort, TimeSpan.FromSeconds(3), CancellationToken.None))
             {
                 replacement.Kill();
                 return false;

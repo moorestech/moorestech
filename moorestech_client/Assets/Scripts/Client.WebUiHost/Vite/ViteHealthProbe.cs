@@ -13,9 +13,12 @@ namespace Client.WebUiHost.Vite
     {
         private static readonly HttpClient Client = new();
 
-        public static async Task<bool> IsHealthyAsync(int port, TimeSpan timeout)
+        // exitToken による中断は「不健康」ではなく呼び出し側の打ち切りなので、falseに畳まず伝播させる
+        // Cancellation via exitToken is the caller aborting, not ill health, so it propagates instead of folding into false
+        public static async Task<bool> IsHealthyAsync(int port, TimeSpan timeout, CancellationToken exitToken)
         {
-            using var cancellation = new CancellationTokenSource(timeout);
+            using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(exitToken);
+            cancellation.CancelAfter(timeout);
 
             // 外部HTTP障害をfalseへ隔離する
             // HTTP crosses an external-process boundary, so isolate connection failures and timeouts as false
@@ -28,7 +31,7 @@ namespace Client.WebUiHost.Vite
             {
                 return false;
             }
-            catch (OperationCanceledException)
+            catch (OperationCanceledException) when (!exitToken.IsCancellationRequested)
             {
                 return false;
             }
