@@ -70,8 +70,24 @@ OUTBOX_DIR="$OUTBOX3" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX3" RSYNC_CMD=
   MOORESTECH_REPO="$REPO" MOORESTECH_MASTER="$TMP/no-such-master" \
   bash "$HERE/../ship-outbox.sh"
 test -f "$OUTBOX3/bundle_case/repo/commits.bundle" || { echo "NG: bundle が作られていない"; exit 1; }
-git -C "$REPO" bundle list-heads "$OUTBOX3/bundle_case/repo/commits.bundle" | grep -q "$UNPUSHED_COMMIT" || { echo "NG: bundle に未pushコミットが入っていない"; exit 1; }
+git -C "$REPO" bundle list-heads "$OUTBOX3/bundle_case/repo/commits.bundle" > "$TMP/bundle-heads.txt"
+grep -q "$UNPUSHED_COMMIT" "$TMP/bundle-heads.txt" || { echo "NG: bundle に未pushコミットが入っていない"; exit 1; }
 test -f "$INBOX3/bundle_case/repo/commits.bundle" || { echo "NG: bundle が inbox へ運ばれていない"; exit 1; }
 if git -C "$REPO" show-ref --verify --quiet refs/bugreport/bundle_case; then echo "NG: 一時 ref が残っている"; exit 1; fi
 test ! -e "$OUTBOX3/pushed_case/repo/commits.bundle" || { echo "NG: push 済みコミットで bundle を作った"; exit 1; }
+# mv が汎用失敗した場合も理由をログして SHIPPED を付けない
+# A generic mv failure also logs a reason and leaves SHIPPED off
+cat > "$TMP/ssh-fail" <<'SH'
+#!/usr/bin/env bash
+exit 1
+SH
+chmod +x "$TMP/ssh-fail"
+OUTBOX4="$TMP/outbox4"; INBOX4="$TMP/inbox4"; mkdir -p "$OUTBOX4/mvfail_case" "$INBOX4"
+echo '{"repository":{"commit":"","dirty":false},"masterData":{"commit":"","dirty":false}}' > "$OUTBOX4/mvfail_case/manifest.json"
+touch "$OUTBOX4/mvfail_case/READY"
+OUTBOX_DIR="$OUTBOX4" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX4" RSYNC_CMD="$TMP/rsync" SSH_CMD="$TMP/ssh-fail" GIT_CMD=true \
+  bash "$HERE/../ship-outbox.sh" 2>"$TMP/mvfail.log"
+grep -q "公開 mv 失敗（exit 1）" "$TMP/mvfail.log" || { echo "NG: mv 失敗の理由がログされていない"; exit 1; }
+test ! -e "$OUTBOX4/mvfail_case/SHIPPED" || { echo "NG: mv 失敗なのに SHIPPED が付いた"; exit 1; }
+
 echo "OK"

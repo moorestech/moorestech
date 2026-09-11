@@ -62,7 +62,7 @@ for box in "$OUTBOX_DIR"/*/; do
     log "公開先が既に存在する（前回の mv が成功して SHIPPED 前に落ちた疑い）。入れ子破損を避けるため送らない。手動確認が必要: $MACMINI_INBOX/$id"; exit 0
   fi
   if [ "$mv_rc" -ne 0 ]; then
-    log "公開 mv 失敗（exit $mv_rc）。次回に再試行: $id"; exit 0
+    log "公開 mv 失敗（exit ${mv_rc}）。次回に再試行: $id"; exit 0
   fi
   date -u +%Y-%m-%dT%H:%M:%SZ > "$box/SHIPPED"
   log "shipped: $id"
