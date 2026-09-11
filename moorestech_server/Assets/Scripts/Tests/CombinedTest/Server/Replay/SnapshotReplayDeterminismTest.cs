@@ -51,7 +51,7 @@ namespace Tests.CombinedTest.Server.Replay
                 // Route packets through the tick-end path (the log point), as the receive processor would
                 var context = new PacketResponseContext(null);
                 var queue = provider.GetRequiredService<TickEndPacketQueue>();
-                void Send(byte[] payload) => queue.Enqueue(new ReplayPacketEntry(packet, context, payload, packetLog));
+                void Send(byte[] payload) => queue.Enqueue(new RecordedLivePacketEntry(packet, context, payload, packetLog));
 
                 for (var tick = 1; tick <= 45; tick++)
                 {
@@ -64,7 +64,7 @@ namespace Tests.CombinedTest.Server.Replay
                 ring.WaitForPendingWrites();
                 GameUpdater.UpdateOneTick();
                 ring.WaitForPendingWrites();
-                CollectionAssert.AreEqual(new ulong[] { 10, 20, 30, 40 }, ring.CopyWrittenTicks());
+                CollectionAssert.AreEqual(new[] { 10UL, 20UL, 30UL, 40UL }.Select(WorldDataDirectory.SnapshotFileName).ToArray(), WorldDataDirectory.EnumerateSnapshotFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray());
 
                 var expected20 = File.ReadAllText(directory.SnapshotFilePath(20));
                 var expected40 = File.ReadAllText(directory.SnapshotFilePath(40));
@@ -127,13 +127,13 @@ namespace Tests.CombinedTest.Server.Replay
                 {
                     // 動的状態が動いている最中にパケットも1件挟み、パケット再生と物理進行の両方を同時に検査する
                     // Slip one packet in while the dynamic state is moving, so packet replay and physical progression are checked together
-                    if (tick == 13) queue.Enqueue(new ReplayPacketEntry(packet, context, CreatePlaceBlockPayload(ForUnitTestModBlockId.ChestId, (20, 0)), packetLog));
+                    if (tick == 13) queue.Enqueue(new RecordedLivePacketEntry(packet, context, CreatePlaceBlockPayload(ForUnitTestModBlockId.ChestId, (20, 0)), packetLog));
                     GameUpdater.UpdateOneTick();
                 }
                 ring.WaitForPendingWrites();
                 GameUpdater.UpdateOneTick();
                 ring.WaitForPendingWrites();
-                CollectionAssert.AreEqual(new ulong[] { 10, 20, 30, 40 }, ring.CopyWrittenTicks());
+                CollectionAssert.AreEqual(new[] { 10UL, 20UL, 30UL, 40UL }.Select(WorldDataDirectory.SnapshotFileName).ToArray(), WorldDataDirectory.EnumerateSnapshotFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray());
 
                 var expected10 = File.ReadAllText(directory.SnapshotFilePath(10));
                 var expected20 = File.ReadAllText(directory.SnapshotFilePath(20));
@@ -162,6 +162,32 @@ namespace Tests.CombinedTest.Server.Replay
             {
                 packetLog.Stop();
                 Directory.Delete(saveRoot, true);
+            }
+        }
+
+        // 稼働中の受信経路（ReceiveQueueProcessor）を模し、処理tickで常時記録へ追記してから応答を作る
+        // Mimics the live receive path (ReceiveQueueProcessor): append to capture at the processing tick, then produce the response
+        private sealed class RecordedLivePacketEntry : ITickEndPacketEntry
+        {
+            private readonly PacketResponseCreator _packetResponseCreator;
+            private readonly PacketResponseContext _context;
+            private readonly byte[] _payload;
+            private readonly ReceivedPacketLog _packetLog;
+
+            public bool IsActive => true;
+
+            public RecordedLivePacketEntry(PacketResponseCreator packetResponseCreator, PacketResponseContext context, byte[] payload, ReceivedPacketLog packetLog)
+            {
+                _packetResponseCreator = packetResponseCreator;
+                _context = context;
+                _payload = payload;
+                _packetLog = packetLog;
+            }
+
+            public void Process()
+            {
+                _packetLog.Append(GameUpdater.CurrentTick, _payload);
+                _packetResponseCreator.GetPacketResponse(_payload, _context);
             }
         }
     }

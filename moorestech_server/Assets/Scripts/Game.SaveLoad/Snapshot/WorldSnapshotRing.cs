@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Core.Update;
 using Game.Paths;
@@ -13,16 +12,16 @@ using UnityEngine;
 
 namespace Game.SaveLoad.Snapshot
 {
-    // 周期および即時要求でワールドの保存像を取り込み、別スレッドで書き出し、世代数を超えた古い世代を消す
-    // Captures world images periodically or on request, writes them off-thread, and prunes generations beyond the limit
+    // 周期および即時要求でワールドの保存像を取り込み、別スレッドで書き出し、保持時間を過ぎた古い世代を消す
+    // Captures world images periodically or on request, writes them off-thread, and prunes generations past the retention window
     public sealed class WorldSnapshotRing : ISnapshotCaptureRequest, ISnapshotWrittenNotifier
     {
         private readonly AssembleSaveJsonText _assembler;
         private readonly SaveWriteWorker _worker;
         private readonly WorldDataDirectory _directory;
         private readonly ReceivedPacketLog _packetLog;
+        private readonly SnapshotGenerationRetention _retention;
         private readonly Subject<SnapshotWritten> _onSnapshotWritten = new();
-        private readonly List<ulong> _writtenTicks = new();
         private readonly Dictionary<ulong, List<long>> _requestIdsByTick = new();
         private readonly List<long> _pendingImmediateRequestIds = new();
         private readonly object _requestLock = new();
@@ -31,8 +30,6 @@ namespace Game.SaveLoad.Snapshot
         // Draining and capturing are entered from both the tick thread and a waiting thread, so this lock serializes them
         private readonly object _tickStateLock = new();
         private uint _periodTicks;
-        private uint _retentionTicks;
-        private int _maxGenerations;
         private ulong _nextPeriodicTick;
         private long _immediateRequestCounter;
 
@@ -42,20 +39,11 @@ namespace Game.SaveLoad.Snapshot
             _worker = worker;
             _directory = directory;
             _packetLog = packetLog;
+            _retention = new SnapshotGenerationRetention(directory, packetLog);
         }
 
         public bool IsActive { get; private set; }
         public IObservable<SnapshotWritten> OnSnapshotWritten => _onSnapshotWritten;
-
-        // 剪定はtickスレッドがこの錠の内側で行うので、読み出しも錠の内側でコピーを取って返す
-        // Pruning happens under this lock on the tick thread, so reads copy the list under the same lock
-        public IReadOnlyList<ulong> CopyWrittenTicks()
-        {
-            lock (_tickStateLock)
-            {
-                return _writtenTicks.ToArray();
-            }
-        }
 
         public void Start(uint periodTicks, uint retentionTicks, int maxGenerations)
         {
@@ -66,8 +54,7 @@ namespace Game.SaveLoad.Snapshot
             }
 
             _periodTicks = periodTicks;
-            _retentionTicks = retentionTicks;
-            _maxGenerations = maxGenerations;
+            _retention.Configure(retentionTicks, maxGenerations);
             _nextPeriodicTick = GameUpdater.CurrentTick + periodTicks;
             Directory.CreateDirectory(_directory.SnapshotDirectory);
 
@@ -79,21 +66,22 @@ namespace Game.SaveLoad.Snapshot
             Debug.Log($"常時記録を開始しました period:{periodTicks}tick 保持:{retentionTicks}tick 上限:{maxGenerations}世代 dir:{_directory.SnapshotDirectory}");
         }
 
-        // 次のtick末尾で取る。戻り値の要求IDは完了通知の RequestId と突き合わせる
-        // Taken at the next tick end; match the returned request id against SnapshotWritten.RequestId
-        public long RequestImmediateSnapshot()
+        // 次のtick末尾で取る。受理された要求IDは完了通知の RequestId と突き合わせる
+        // Taken at the next tick end; an accepted request id is matched against SnapshotWritten.RequestId
+        public SnapshotCaptureRequestResult RequestImmediateSnapshot()
         {
             if (!IsActive)
             {
-                Debug.LogWarning("常時記録が無効のため即時スナップショット要求を無視しました");
-                return 0;
+                const string reason = "常時記録が無効のため即時スナップショット要求を受け付けられません";
+                Debug.LogWarning(reason);
+                return SnapshotCaptureRequestResult.FromRejected(reason);
             }
             var id = Interlocked.Increment(ref _immediateRequestCounter);
             lock (_requestLock)
             {
                 _pendingImmediateRequestIds.Add(id);
             }
-            return id;
+            return SnapshotCaptureRequestResult.FromAccepted(id);
         }
 
         // FinalTickEndUpdates から毎tick呼ばれる。完了通知の排出→取り込み判定の順
@@ -161,76 +149,38 @@ namespace Game.SaveLoad.Snapshot
                 {
                     var requestIds = _requestIdsByTick.TryGetValue(completion.Tick, out var ids) ? ids : new List<long>();
                     _requestIdsByTick.Remove(completion.Tick);
-                    if (!completion.Success)
-                    {
-                        Debug.LogError($"スナップショットの書き出しに失敗しました tick:{completion.Tick} 要求ID:{string.Join(",", requestIds)}");
-                        continue;
-                    }
+                    if (completion.Success) _retention.AddAndPrune(completion.Tick);
+                    else Debug.LogError($"スナップショットの書き出しに失敗しました tick:{completion.Tick} 要求ID:{string.Join(",", requestIds)}");
 
-                    _writtenTicks.Add(completion.Tick);
-                    Prune();
-
-                    // 周期スナップショットには要求元が無いので、要求ID0の通知を1件だけ流す
-                    // A periodic snapshot has no requester, so emit a single notification with request id 0
-                    if (requestIds.Count == 0) requestIds.Add(0);
-                    foreach (var requestId in requestIds)
-                    {
-                        _onSnapshotWritten.OnNext(new SnapshotWritten(requestId, completion.Tick, completion.TargetPath));
-                    }
+                    Publish(completion, requestIds);
                 }
             }
         }
 
-        // 剪定は時間基準。保持区間を覆う最古の1本より前だけを消すので、即時取得が周期世代の枠を食わない
-        // Pruning is time-based: only snapshots older than the one covering the retention window go, so an immediate capture never eats a periodic generation
-        private void Prune()
+        // 失敗も要求元へ流す。流さないと要求元は来ない完了を永久に待つ
+        // Failures are emitted too; otherwise a requester waits forever for a completion that never comes
+        private void Publish(SaveWriteCompletion completion, List<long> requestIds)
         {
-            var newestTick = _writtenTicks[_writtenTicks.Count - 1];
-            var retentionStartTick = newestTick > _retentionTicks ? newestTick - _retentionTicks : 0UL;
-
-            // 2番目に古い世代がまだ保持区間の開始を覆っているなら、最古は要らない
-            // If the second-oldest still covers the start of the retention window, the oldest is no longer needed
-            while (_writtenTicks.Count > 1 && _writtenTicks[1] <= retentionStartTick)
+            var snapshotFileNames = _retention.CopyFileNames();
+            var packetLogFileNames = CopyPacketLogFileNames();
+            if (requestIds.Count == 0)
             {
-                RemoveOldest($"保持区間の開始tick{retentionStartTick}より前");
+                _onSnapshotWritten.OnNext(SnapshotWritten.ForPeriodic(completion.Tick, completion.Success, _directory.SnapshotDirectory, snapshotFileNames, packetLogFileNames));
+                return;
             }
 
-            // 上限はディスク保護。ここで消すと保持時間の保証を割るので理由を分けて残す
-            // The cap protects the disk; deleting here breaks the retention guarantee, so log it under its own reason
-            while (_writtenTicks.Count > _maxGenerations)
+            foreach (var requestId in requestIds)
             {
-                RemoveOldest($"上限{_maxGenerations}世代を超過（保持時間{_retentionTicks}tickの保証を割る）");
+                _onSnapshotWritten.OnNext(SnapshotWritten.ForRequest(requestId, completion.Tick, completion.Success, _directory.SnapshotDirectory, snapshotFileNames, packetLogFileNames));
             }
         }
 
-        private void RemoveOldest(string reason)
+        private List<string> CopyPacketLogFileNames()
         {
-            var oldest = _writtenTicks[0];
-            _writtenTicks.RemoveAt(0);
-
-            // 常時記録の削除は後から追跡できる必要があるので、消した世代と理由を必ず残す
-            // Deleting always-on capture must stay auditable, so record which generation went and why
-            Debug.Log($"スナップショットを削除しました tick:{oldest} 理由:{reason}");
-            DeleteSnapshotFile(_directory.SnapshotFilePath(oldest));
-            _packetLog.DeleteSegmentsBefore(_writtenTicks[0]);
-        }
-
-        private static void DeleteSnapshotFile(string path)
-        {
-            // ディスク削除は外部境界。消せなくても記録は続けたいので、失敗は出力して次の世代へ進む
-            // Disk deletion is an external boundary; capture must continue, so a failure is logged and the loop moves on
-            try
-            {
-                File.Delete(path);
-            }
-            catch (IOException e)
-            {
-                Debug.LogError($"スナップショットの削除に失敗しました path:{path} message:{e.Message}");
-            }
-            catch (UnauthorizedAccessException e)
-            {
-                Debug.LogError($"スナップショットの削除が権限で拒否されました path:{path} message:{e.Message}");
-            }
+            var paths = _packetLog.SegmentFilePaths();
+            var names = new List<string>(paths.Count);
+            foreach (var path in paths) names.Add(Path.GetFileName(path));
+            return names;
         }
     }
 }

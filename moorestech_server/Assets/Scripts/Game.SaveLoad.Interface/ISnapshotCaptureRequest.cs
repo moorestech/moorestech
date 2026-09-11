@@ -1,9 +1,9 @@
 namespace Game.SaveLoad.Interface
 {
-    // 即時スナップショットを要求し要求IDを返す。完了は ISnapshotWrittenNotifier で突き合わせる
-    // Requests an immediate snapshot and returns its id; completion is matched via ISnapshotWrittenNotifier
+    // 即時スナップショットを要求する。受理されたかは戻り値の型が持ち、完了は ISnapshotWrittenNotifier で突き合わせる
+    // Requests an immediate snapshot; the result type says whether it was accepted, and completion is matched via ISnapshotWrittenNotifier
     public interface ISnapshotCaptureRequest
     {
-        long RequestImmediateSnapshot();
+        SnapshotCaptureRequestResult RequestImmediateSnapshot();
     }
 }

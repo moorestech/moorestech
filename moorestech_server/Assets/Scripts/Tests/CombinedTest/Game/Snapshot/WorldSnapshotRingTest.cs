@@ -6,10 +6,13 @@ using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Snapshot;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
 using UniRx;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.CombinedTest.Game.Snapshot
 {
@@ -36,7 +39,6 @@ namespace Tests.CombinedTest.Game.Snapshot
 
             var names = Directory.GetFiles(directory.SnapshotDirectory, "tick_*.json").Select(Path.GetFileName).OrderBy(n => n).ToArray();
             CollectionAssert.AreEqual(new[] { "tick_20.json", "tick_30.json", "tick_40.json" }, names);
-            CollectionAssert.AreEqual(new ulong[] { 20, 30, 40 }, ring.CopyWrittenTicks());
 
             // 最古スナップショット20より前の区間は消え、21以降の区間が残る
             // Segments before the oldest snapshot (20) are gone; segments from 21 remain
@@ -54,22 +56,26 @@ namespace Tests.CombinedTest.Game.Snapshot
                 worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
             };
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(options);
+            var directory = provider.GetRequiredService<WorldDataDirectory>();
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             GameUpdater.RestoreCurrentTick(100);
             ring.Start(600, 1800, 16);
 
             SnapshotWritten written = null;
             ring.OnSnapshotWritten.Subscribe(w => written = w);
-            var requestId = ring.RequestImmediateSnapshot();
+            var result = ring.RequestImmediateSnapshot();
+            Assert.IsTrue(result.Accepted, "常時記録が有効なのに要求が受理されていない");
             GameUpdater.UpdateOneTick();
             ring.WaitForPendingWrites();
             GameUpdater.UpdateOneTick();
             ring.WaitForPendingWrites();
 
             Assert.IsNotNull(written, "完了通知が来ていない");
-            Assert.AreEqual(requestId, written.RequestId);
+            Assert.IsTrue(written.HasRequester, "要求付きの完了が要求元なしとして流れている");
+            Assert.IsTrue(written.Success, "書き出しに成功したのに成否が失敗になっている");
+            Assert.AreEqual(result.RequestId, written.RequestId);
             Assert.AreEqual(101UL, written.Tick);
-            Assert.IsTrue(File.Exists(written.FilePath));
+            Assert.IsTrue(File.Exists(directory.SnapshotFilePath(written.Tick)));
             Directory.Delete(Path.GetDirectoryName(savePath), true);
         }
 
@@ -98,18 +104,63 @@ namespace Tests.CombinedTest.Game.Snapshot
             GameUpdater.UpdateOneTick();
             ring.WaitForPendingWrites();
 
-            CollectionAssert.AreEqual(new ulong[] { 10, 20, 30, 40, 50, 51 }, ring.CopyWrittenTicks(), "即時取得が保持区間内の周期世代を消している");
+            var kept = WorldDataDirectory.EnumerateSnapshotFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray();
+            var expected = new ulong[] { 10, 20, 30, 40, 50, 51 }.Select(WorldDataDirectory.SnapshotFileName).ToArray();
+            CollectionAssert.AreEqual(expected, kept, "即時取得が保持区間内の周期世代を消している");
             Assert.IsTrue(File.Exists(directory.SnapshotFilePath(10)), "保持区間の開始を覆う最古スナップショットが消えている");
             Directory.Delete(Path.GetDirectoryName(savePath), true);
         }
 
+        // 拒否を成功と同じ形で返すと、要求元は来ない完了イベントを永久に待つ
+        // Returning a rejection in the same shape as a success makes the requester wait forever for a completion that never arrives
         [Test]
-        public void 未開始のリングは即時要求を無視して0を返す()
+        public void 未開始のリングは即時要求を拒否として返す()
         {
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             Assert.IsFalse(ring.IsActive);
-            Assert.AreEqual(0L, ring.RequestImmediateSnapshot());
+            LogAssert.Expect(LogType.Warning, new Regex("常時記録が無効のため即時スナップショット要求を受け付けられません"));
+
+            var result = ring.RequestImmediateSnapshot();
+            Assert.IsFalse(result.Accepted, "常時記録が無効なのに要求が受理されている");
+            Assert.IsNotEmpty(result.RejectedReason, "拒否の理由が要求元へ返っていない");
+        }
+
+        // 一覧を辞書順で並べると、桁が増えた瞬間に最古が最新として載り、バンドルが古いスナップショットを掴む
+        // Lexicographic ordering makes the oldest look newest once the digits grow, so a bundle would grab a stale snapshot
+        [Test]
+        public void 完了通知のファイル一覧は桁を跨いでもtick昇順になる()
+        {
+            var savePath = Path.Combine(Path.GetTempPath(), $"moorestech-ring-{Guid.NewGuid():N}", "save.json");
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
+            };
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(options);
+            var ring = provider.GetRequiredService<WorldSnapshotRing>();
+            GameUpdater.RestoreCurrentTick(8);
+            ring.Start(600, 1800, 16);
+
+            SnapshotWritten written = null;
+            ring.OnSnapshotWritten.Subscribe(w => written = w);
+            CaptureAt(9);
+            CaptureAt(100);
+
+            CollectionAssert.AreEqual(new[] { "tick_9.json", "tick_100.json" }, written.SnapshotFileNames, "スナップショット一覧が辞書順になっている");
+            CollectionAssert.AreEqual(new[] { "packets_9.bin", "packets_10.bin", "packets_101.bin" }, written.PacketLogFileNames, "区間ファイル一覧が辞書順になっている");
+            Directory.Delete(Path.GetDirectoryName(savePath), true);
+
+            #region Internal
+
+            void CaptureAt(ulong tick)
+            {
+                GameUpdater.RestoreCurrentTick(tick - 1);
+                ring.RequestImmediateSnapshot();
+                GameUpdater.UpdateOneTick();
+                ring.WaitForPendingWrites();
+            }
+
+            #endregion
         }
     }
 }

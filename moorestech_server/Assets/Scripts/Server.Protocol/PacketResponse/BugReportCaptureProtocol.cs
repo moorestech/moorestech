@@ -2,7 +2,6 @@ using System;
 using Game.SaveLoad.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse
 {
@@ -21,15 +20,9 @@ namespace Server.Protocol.PacketResponse
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
-            var request = MessagePackSerializer.Deserialize<BugReportCaptureRequest>(payload);
-            switch (request.Operation)
-            {
-                case BugReportCaptureOperation.CaptureNow:
-                    return new BugReportCaptureResponse(_snapshotCaptureRequest.RequestImmediateSnapshot());
-            }
-
-            Debug.LogError($"未知のバグ報告取得操作です operation:{request.Operation}");
-            return new BugReportCaptureResponse(0);
+            MessagePackSerializer.Deserialize<BugReportCaptureRequest>(payload);
+            var result = _snapshotCaptureRequest.RequestImmediateSnapshot();
+            return new BugReportCaptureResponse(result.Accepted, result.RequestId, result.RejectedReason);
         }
 
         #region MessagePack
@@ -37,41 +30,34 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class BugReportCaptureRequest : ProtocolMessagePackBase
         {
-            [Key(2)] public BugReportCaptureOperation Operation { get; set; }
-
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public BugReportCaptureRequest() { }
 
-            private BugReportCaptureRequest(BugReportCaptureOperation operation)
-            {
-                Tag = ProtocolTag;
-                Operation = operation;
-            }
-
             public static BugReportCaptureRequest CreateCaptureNowRequest()
             {
-                return new BugReportCaptureRequest(BugReportCaptureOperation.CaptureNow);
+                return new BugReportCaptureRequest { Tag = ProtocolTag };
             }
         }
 
         [MessagePackObject]
         public class BugReportCaptureResponse : ProtocolMessagePackBase
         {
-            [Key(2)] public long RequestedCaptureId { get; set; }
+            // 受理されたかを型で返す。拒否のときは要求IDが無いので、要求元は完了イベントを待たずに理由を出す
+            // Acceptance is carried explicitly; a rejection has no request id, so the requester surfaces the reason instead of waiting for the completion event
+            [Key(2)] public bool Accepted { get; set; }
+            [Key(3)] public long RequestedCaptureId { get; set; }
+            [Key(4)] public string RejectedReason { get; set; }
 
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public BugReportCaptureResponse() { }
 
-            public BugReportCaptureResponse(long requestedCaptureId)
+            public BugReportCaptureResponse(bool accepted, long requestedCaptureId, string rejectedReason)
             {
                 Tag = ProtocolTag;
+                Accepted = accepted;
                 RequestedCaptureId = requestedCaptureId;
+                RejectedReason = rejectedReason;
             }
-        }
-
-        public enum BugReportCaptureOperation
-        {
-            CaptureNow = 0,
         }
 
         #endregion

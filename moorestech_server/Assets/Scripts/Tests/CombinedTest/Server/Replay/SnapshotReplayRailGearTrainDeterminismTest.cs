@@ -46,7 +46,7 @@ namespace Tests.CombinedTest.Server.Replay
                 ring.WaitForPendingWrites();
                 GameUpdater.UpdateOneTick();
                 ring.WaitForPendingWrites();
-                CollectionAssert.AreEqual(new ulong[] { 10, 20 }, ring.CopyWrittenTicks());
+                CollectionAssert.AreEqual(new[] { 10UL, 20UL }.Select(WorldDataDirectory.SnapshotFileName).ToArray(), WorldDataDirectory.EnumerateSnapshotFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray());
 
                 var expected20 = File.ReadAllText(directory.SnapshotFilePath(20));
                 SnapshotReplayRailGearTrainFixture.AssertRailGearTrainPresent(expected20);

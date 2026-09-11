@@ -35,6 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var request = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());
             var responseBytes = packet.GetPacketResponse(request, new PacketResponseContext(null));
             var response = MessagePackSerializer.Deserialize<BugReportCaptureProtocol.BugReportCaptureResponse>(responseBytes[0]);
+            Assert.IsTrue(response.Accepted, "常時記録が有効なのに要求が受理されていない");
             Assert.Greater(response.RequestedCaptureId, 0L);
 
             GameUpdater.UpdateOneTick();
@@ -46,9 +47,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             var payload = MessagePackSerializer.Deserialize<BugReportCaptureCompletedEventPacket.BugReportCaptureCompletedMessagePack>(completed[0].Payload);
             Assert.AreEqual(response.RequestedCaptureId, payload.CaptureId);
             Assert.AreEqual(11UL, payload.Tick);
+            Assert.IsTrue(payload.Success, "書き出しに成功したのに完了イベントが失敗を伝えている");
             Assert.AreEqual(provider.GetRequiredService<WorldDataDirectory>().SnapshotDirectory, payload.SnapshotDirectory);
-            CollectionAssert.Contains(payload.SnapshotFileNames, "tick_11.json");
-            CollectionAssert.Contains(payload.PacketLogFileNames, "packets_11.bin");
+            CollectionAssert.AreEqual(new[] { "tick_11.json" }, payload.SnapshotFileNames);
+
+            // 取り込みtickの直後から新しい区間が始まる。切り替えが落ちると再生は取り込み以降のパケットを失う
+            // A new segment starts right after the captured tick; a missed rotation loses every packet after the capture in replay
+            CollectionAssert.AreEqual(new[] { "packets_11.bin", "packets_12.bin" }, payload.PacketLogFileNames);
             Directory.Delete(Path.GetDirectoryName(savePath), true);
         }
     }
