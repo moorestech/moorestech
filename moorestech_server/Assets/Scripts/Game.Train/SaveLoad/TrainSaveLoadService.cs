@@ -13,15 +13,21 @@ namespace Game.Train.SaveLoad
         }
         public List<TrainUnitSaveData> GetSaveJsonObject()
         {
-            var saveData = new List<TrainUnitSaveData>();
+            // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
+            // Dictionary order shifts as removed slots get reused, so canonicalize here for comparers that match by index
+            var trains = new List<TrainUnit>();
             foreach (var train in _trainUnitDatastore.GetRegisteredTrains())
             {
                 if (train == null)
                 {
                     continue;
                 }
-                saveData.Add(train.CreateSaveData());
+                trains.Add(train);
             }
+            trains.Sort((left, right) => left.TrainUnitInstanceId.AsPrimitive().CompareTo(right.TrainUnitInstanceId.AsPrimitive()));
+
+            var saveData = new List<TrainUnitSaveData>();
+            foreach (var train in trains) saveData.Add(train.CreateSaveData());
 
             return saveData;
         }

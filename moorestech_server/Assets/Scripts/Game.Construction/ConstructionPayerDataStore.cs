@@ -31,7 +31,12 @@ namespace Game.Construction
 
         public List<ConstructionPayerSaveJsonObject> GetSaveJsonObject()
         {
-            return _payers.Select(payer => new ConstructionPayerSaveJsonObject(payer.Key.AsPrimitive(), payer.Value)).ToList();
+            var list = _payers.Select(payer => new ConstructionPayerSaveJsonObject(payer.Key.AsPrimitive(), payer.Value)).ToList();
+            
+            // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
+            // Dictionary order shifts as removed slots get reused, so canonicalize here for comparers that match by index
+            list.Sort((left, right) => left.BlockInstanceId.CompareTo(right.BlockInstanceId));
+            return list;
         }
 
         public void LoadPayers(List<ConstructionPayerSaveJsonObject> saveData)
