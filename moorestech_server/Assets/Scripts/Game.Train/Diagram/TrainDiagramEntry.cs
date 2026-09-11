@@ -1,6 +1,7 @@
 using Game.Train.RailGraph;
 using System;
 using System.Collections.Generic;
+using Core.Update;
 
 namespace Game.Train.Diagram
 {
@@ -101,7 +102,7 @@ namespace Game.Train.Diagram
         public TrainDiagramEntry(IRailNode node)
         {
             Node = node;
-            entryId = Guid.NewGuid();
+            entryId = GameRandom.NextGuid();
             _departureConditions = new List<ITrainDiagramDepartureCondition>();
             _departureConditionTypes = new List<TrainDiagram.DepartureConditionType>();
         }

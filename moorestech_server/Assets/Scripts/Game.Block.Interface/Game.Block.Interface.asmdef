@@ -5,6 +5,7 @@
         "Core.Item.Interface",
         "Core.Util",
         "Core.Const",
+        "Core.Update",
         "UniRx",
         "MessagePack",
         "MessagePack.Annotations",

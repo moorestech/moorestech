@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Block.Blocks.Machine.Module;
 using Game.Context;
 using Game.Fluid;
@@ -11,8 +12,6 @@ namespace Game.Block.Blocks.Machine.State.Util
 {
     internal static class MachineOutputFactoryUtil
     {
-        private static readonly Random Random = new();
-
         // ベース1セットと当選時の追加1セットを生成。品質レベルは1サイクル1回だけ引き両セットへ適用する
         // Build one base set plus one extra set when the roll succeeds; the quality level is rolled once per cycle and shared by both sets
         public static List<IItemStack> CreateRealizedOutputs(MachineRecipeMasterElement recipe, MachineModuleEffect effect)
@@ -21,7 +20,7 @@ namespace Game.Block.Blocks.Machine.State.Util
             // Mixed levels stack different variants into one output slot, creating a pair that never fits even when empty
             var level = RollQualityLevel(effect.QualityShift);
             var outputs = CreateLevelAppliedOutputs(recipe, level);
-            if (Random.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreateLevelAppliedOutputs(recipe, level));
+            if (GameRandom.NextDouble() < effect.ExtraOutputChance) outputs.AddRange(CreateLevelAppliedOutputs(recipe, level));
             return outputs;
         }
 
@@ -48,7 +47,7 @@ namespace Game.Block.Blocks.Machine.State.Util
             // Integer part guaranteed; the fraction rolls one more
             var guaranteed = (int)Math.Floor(qualityShift);
             var fraction = qualityShift - guaranteed;
-            var extra = Random.NextDouble() < fraction ? 1 : 0;
+            var extra = GameRandom.NextDouble() < fraction ? 1 : 0;
             return 1 + guaranteed + extra;
         }
 

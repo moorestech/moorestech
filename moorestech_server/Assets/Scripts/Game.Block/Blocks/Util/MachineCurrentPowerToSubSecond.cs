@@ -1,4 +1,3 @@
-using System;
 using Core.Update;
 
 namespace Game.Block.Blocks.Util
@@ -9,8 +8,6 @@ namespace Game.Block.Blocks.Util
     /// </summary>
     public static class MachineCurrentPowerToSubSecond
     {
-        private const int RandomSeed = 19890604;
-        private static readonly Random SharedRandom = new(RandomSeed);
         // tick数を電力比率で調整して返す（確率的な丸め処理を含む）
         // Return ticks adjusted by power ratio (with probabilistic rounding)
         public static uint GetSubTicks(float currentPower, float requiredPower)
@@ -27,7 +24,7 @@ namespace Game.Block.Blocks.Util
             // Split into integer and fractional parts, round fractionally probabilistically
             var wholeTicks = (uint)powerRatio;
             var remainder = powerRatio - wholeTicks;
-            if (SharedRandom.NextDouble() < remainder) wholeTicks++;
+            if (GameRandom.NextDouble() < remainder) wholeTicks++;
 
             return wholeTicks;
         }

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Context;
 using Game.Map.Interface.MapObject;
 using Mooresmaster.Model.MapModule;
 using UnityEngine;
-using Random = System.Random;
 
 namespace Game.Map
 {
@@ -29,7 +29,6 @@ namespace Game.Map
         // 装飾物では採掘設定が存在しない。Attackの装飾物ガードを抜けた先でだけ参照する
         // Mining settings are absent for a decoration; referenced only past the decoration guard in Attack
         private readonly IMinableMapObjectParam _minableParam;
-        private readonly Random _random;
 
         public VanillaStaticMapObject(int instanceId, Guid mapObjectGuid, bool isDestroyed, int currentHp, Vector3 position)
         {
@@ -42,10 +41,9 @@ namespace Game.Map
             Position = position;
             CurrentHp = currentHp;
 
-            // 採掘設定と乱数生成器を準備する
-            // Prepare the mining settings and the random generator
+            // 採掘設定を準備する
+            // Prepare the mining settings
             _minableParam = _mapObjectConfig.MiningParam as IMinableMapObjectParam;
-            _random = new Random();
         }
         
         public List<IItemStack> Attack(int damage)
@@ -104,7 +102,7 @@ namespace Game.Map
                 // Generate items with random quantity based on configuration each time
                 foreach (var earnItemConfig in _minableParam.EarnItems.items)
                 {
-                    var itemCount = _random.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
+                    var itemCount = GameRandom.Next(earnItemConfig.MinCount, earnItemConfig.MaxCount + 1);
                     var itemId = MasterHolder.ItemMaster.GetItemId(earnItemConfig.ItemGuid);
                     items.AddRange(ServerContext.ItemStackFactory.CreateSplitStacks(itemId, itemCount));
                 }
