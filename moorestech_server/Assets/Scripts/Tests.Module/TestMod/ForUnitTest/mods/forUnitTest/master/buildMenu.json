@@ -168,6 +168,11 @@
           "name": "CleanRoomMachine",
           "entrySource": "blocks",
           "subCategoryGuid": "a2000000-0000-4000-8000-000100000033"
+        },
+        {
+          "name": "VoidPipe",
+          "entrySource": "blocks",
+          "subCategoryGuid": "a2000000-0000-4000-8000-000100000034"
         }
       ],
       "categoryGuid": "a1000000-0000-4000-8000-000000000001"

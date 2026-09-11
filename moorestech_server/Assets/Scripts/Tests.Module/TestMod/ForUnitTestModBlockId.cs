@@ -60,6 +60,9 @@ namespace Tests.Module.TestMod
         
         public static BlockId FluidPipe => GetBlock("9CE688A4-8985-40B6-AD52-0F98F3BAF55E");
         public static BlockId OneWayFluidPipe => GetBlock("BCCD23DE-053E-4A54-9E32-31120B051DCA");
+        // 受け入れ面は -Z の1面のみ（BlockDirection.North は無回転）。ADR 0056
+        // Single inflow face on -Z only (BlockDirection.North applies no rotation). ADR 0056
+        public static BlockId VoidPipe => GetBlock("019f1a00-0000-7000-8000-00000000f1d0");
         
         public static BlockId FluidMachineId => GetBlock("9b36e317-b6eb-441a-b5bf-8aa99e9216a0");
         public static BlockId FuelGearGeneratorId => GetBlock("cc3b5cbe-c5bc-4d3d-b3df-4b69e7372471");

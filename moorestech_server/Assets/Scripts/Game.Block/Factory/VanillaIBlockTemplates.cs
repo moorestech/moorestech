@@ -43,6 +43,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.GearBeltConveyor, new VanillaGearBeltConveyorTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.TrainRail, new VanillaTrainRailTemplate(railGraphDatastore));
             BlockTypesDictionary.Add(BlockTypeConst.FluidPipe, new VanillaFluidBlockTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.VoidPipe, new VanillaVoidPipeTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.TrainStation, new VanillaTrainStationTemplate(blockInventoryEvent, railGraphDatastore));
             BlockTypesDictionary.Add(BlockTypeConst.TrainItemPlatform, new VanillaTrainItemPlatformTemplate(blockInventoryEvent, railGraphDatastore));
             BlockTypesDictionary.Add(BlockTypeConst.TrainFluidPlatform, new VanillaTrainFluidPlatformTemplate(railGraphDatastore));
