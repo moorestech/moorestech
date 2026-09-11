@@ -26,9 +26,14 @@ RUNDIR_BASE = os.environ.get(
     "PR_REVIEW_RUNDIR_BASE",
     "/Users/sakastudio/hermes-agent/data/repos/moorestech_logs/harness/pr-independent-review/runs",
 )
+BUG_REPORT_RUNDIR_BASE = os.environ.get(
+    "BUG_REPORT_RUNDIR_BASE",
+    "/Users/sakastudio/hermes-agent/data/repos/moorestech_logs/harness/bug-report/runs",
+)
 REVIEW_PROMPT_RE = re.compile(r"/pr-independent-review\D+(\d+)")
 APPLY_PROMPT_RE = re.compile(r"/pr-adjudicated-apply\s+(\d+)")
 REPAIR_PROMPT_RE = re.compile(r"/daily-build-repair\s+(\d+)")
+BUGFIX_PROMPT_RE = re.compile(r"/bug-report-auto-fix\s+([A-Za-z0-9_-]+)")
 
 
 def first_user_text(transcript_path: str) -> str:
@@ -107,7 +112,8 @@ def main() -> int:
         sys.stderr.write(
             "無人実行中のため AskUserQuestion は使えません。判断が要る指摘は"
             "レビューならダイジェストの裁定カード（設計判断）へ、applyなら実装せず"
-            "apply-result.json の summary へ落としてください。"
+            "apply-result.json の summary へ落としてください。bugfix なら"
+            "fix-result.json の status を needs_ruling にして判断事項を書いてください。"
             "続行不能な場合のみ $RUNDIR/abort.json に理由を書いて終えること。\n"
         )
         return 2
@@ -119,6 +125,8 @@ def main() -> int:
         pattern = APPLY_PROMPT_RE
     elif job == "repair":
         pattern = REPAIR_PROMPT_RE
+    elif job == "bugfix":
+        pattern = BUGFIX_PROMPT_RE
     else:
         pattern = REVIEW_PROMPT_RE
     match = pattern.search(prompt)
@@ -128,12 +136,18 @@ def main() -> int:
     # repair belongs to the issue lineage with no re-review resolution, so pin issue-<N> directly
     if job == "repair":
         run = os.path.join(RUNDIR_BASE, f"issue-{match.group(1)}")
+    elif job == "bugfix":
+        # bugfixはbug-report側の別rundir配下・再レビュー解決も無いためidをそのまま結合する
+        # bugfix lives under the bug-report rundir with no re-review resolution, so join the id verbatim
+        run = os.path.join(BUG_REPORT_RUNDIR_BASE, match.group(1))
     else:
         run = resolve_rundir(match.group(1))
     if job == "apply":
         goal = "apply-result.json"
     elif job == "repair":
         goal = "repair-result.json"
+    elif job == "bugfix":
+        goal = "fix-result.json"
     else:
         goal = "session-done.marker"
     if os.path.exists(os.path.join(run, goal)) or os.path.exists(os.path.join(run, "abort.json")):
@@ -145,16 +159,27 @@ def main() -> int:
         tail = "SKILL.md の手順を最後まで走り切って apply-result.json を書く"
     elif job == "repair":
         tail = "SKILL.md の手順を最後まで走り切って repair-result.json を書く"
+    elif job == "bugfix":
+        tail = (
+            "SKILL.md の手順を最後まで走り切って fix-result.json を書く"
+            "（再現不能・仕様曖昧なら status をそれぞれ not_reproduced / needs_ruling にして"
+            "summary と remaining を書く）"
+        )
     else:
         tail = "SKILL.md の Step 7.5（findings.json）から Step 8 まで走り切って session-done.marker を書く"
-    sys.stderr.write(
+    reason = (
         f"無人実行の成果物がまだありません（{run}/ に {goal} も abort.json も無い）。"
         "ここでターンを終えても対話モードなのでプロセスは死なず、pollerはtranscript停止として扱います。"
         "最大1200秒空転したうえで唯一のRESUME予算を1回消費するだけで、誰にも気付かれません。"
         f"{tail}か、続行不能なら $RUNDIR/abort.json に理由を書いてください。"
         "サブエージェントの完了待ちなら、ターンを閉じずに同一ターン内でブロッキングして待つこと。"
-        f"（このブロックは{MAX_BLOCKS}回でフェイルオープンします）\n"
+        f"（このブロックは{MAX_BLOCKS}回でフェイルオープンします）"
     )
+    if job == "bugfix":
+        # fail-closed: 判定できない・条件未達は通さないのが既定であり、拒否理由は無音にしない
+        # fail-closed: default is to not pass when unresolved, and the refusal reason is never silent
+        print(json.dumps({"decision": "block", "reason": reason}, ensure_ascii=False))
+    sys.stderr.write(reason + "\n")
     return 2
 
 
