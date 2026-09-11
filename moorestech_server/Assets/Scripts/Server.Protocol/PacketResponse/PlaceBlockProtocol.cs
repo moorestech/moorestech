@@ -82,11 +82,11 @@ namespace Server.Protocol.PacketResponse
                 var placeBlockId = placeInfo.BlockId;
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 
-                // 無料設置デバッグ: 解放・コスト・電線を一切見ず強制設置して即return
-                // Free placement debug: force-place ignoring unlock/cost/wire entirely, then return
+                // 無料設置デバッグ: 解放・コストは見ず強制設置し、電線は素材消費なしで自動接続する（ADR 0056）
+                // Free placement debug: force-place ignoring unlock/cost, and auto-connect wires without consuming materials (ADR 0056)
                 if (isFreePlacement)
                 {
-                    ServerContext.WorldBlockDatastore.TryAddBlock(placeBlockId, placeInfo.Position, placeInfo.Direction, createParams, out _);
+                    PlaceForFree(placeBlockId, placeInfo, createParams);
                     return;
                 }
 
@@ -112,7 +112,7 @@ namespace Server.Protocol.PacketResponse
                 {
                     // 建設コストで消費予定の素材を予約として渡し、電線の所持数判定から除外する
                     // Pass construction-cost materials as reservations to exclude them from wire availability
-                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems);
+                    plan = ElectricWireAutoConnectService.EvaluateAutoConnect(placeBlockId, placeInfo.Position, placeInfo.Direction, placementPlan.ItemsToConsume, inventory.InventoryItems, false);
                     if (!plan.IsPlaceable) { wireShortageCount++; return; }
                 }
 
@@ -124,6 +124,24 @@ namespace Server.Protocol.PacketResponse
 
                 // 計画を実行しワイヤー消費
                 // Execute the validated plan: add wires and consume wire items
+                if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
+            }
+
+            void PlaceForFree(BlockId blockId, PlaceInfoMessagePack placeInfo, BlockCreateParam[] createParams)
+            {
+                // 通常経路と同じ順序で「設置前に計画→設置→実行」する。予約は無く所持数も見ない
+                // Same order as the normal path: plan before placing, place, then execute; no reservation and no held-count check
+                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
+                var isElectric = ElectricWireBlockParamResolver.TryGetWireRangeParam(blockMaster.BlockParam, out _, out _, out _);
+                var inventory = inventoryData.MainOpenableInventory;
+                var plan = isElectric
+                    ? ElectricWireAutoConnectService.EvaluateAutoConnect(blockId, placeInfo.Position, placeInfo.Direction, Array.Empty<(ItemId itemId, int count)>(), inventory.InventoryItems, true)
+                    : default;
+
+                if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
+
+                // 無料設置は素材不足で失敗しないため、計画の可否は見ずに接続だけ実行する
+                // Free placement never fails for materials, so execute the connections without consulting placeability
                 if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
             }
 

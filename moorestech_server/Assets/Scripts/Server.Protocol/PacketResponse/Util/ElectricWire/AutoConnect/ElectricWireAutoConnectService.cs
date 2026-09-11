@@ -7,6 +7,7 @@ using Game.Block.Interface;
 using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
+using Game.UnlockState;
 using Core.Inventory;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.BuildMenuModule;
@@ -19,12 +20,12 @@ using Server.Protocol.PacketResponse.Util.ElectricWire.Placement;
 namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
 {
     /// <summary>
-    /// 設置時の電力ワイヤー自動接続を計画・実行する。使用connectToolは解放済みelectricWireのSortPriority最小を採用する
-    /// Plans and executes wire auto-connect on placement; adopts the unlocked electricWire connectTool with the smallest SortPriority
+    /// 設置時の電力ワイヤー自動接続を計画・実行する。使用connectToolは解放済み（無料設置では全件）electricWireのSortPriority最小を採用する
+    /// Plans and executes wire auto-connect on placement; adopts the unlocked (any, under free placement) electricWire connectTool with the smallest SortPriority
     /// </summary>
     public static class ElectricWireAutoConnectService
     {
-        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems)
+        public static ElectricWireAutoConnectPlan EvaluateAutoConnect(BlockId blockId, Vector3Int position, BlockDirection direction, IReadOnlyList<(ItemId itemId, int count)> reservedItems, IReadOnlyList<IItemStack> inventoryItems, bool isFreePlacement)
         {
             var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(blockId);
             var ownInfo = new BlockPositionInfo(position, direction, blockMaster.BlockSize);
@@ -33,37 +34,42 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
             // The selection core dispatches pole vs machine placement
             var candidates = ElectricWireAutoConnectTargetCollector.CollectTargets(blockMaster, ownInfo);
 
-            if (candidates.Count == 0)
-                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty);
+            // 無料設置は素材を消費しない
+            // Free placement never consumes materials
+            var consumesMaterials = !isFreePlacement;
 
-            // 解放済みelectricWire connectToolをSortPriority昇順で取得する
-            // Fetch unlocked electricWire connectTools ascending by SortPriority
-            var unlockedTools = ConnectToolSelector.UnlockedByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire).ToList();
+            if (candidates.Count == 0)
+                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty, consumesMaterials);
+
+            // electricWire connectToolをSortPriority昇順で取得する。無料設置は解放を無視する（ADR 0056）
+            // Fetch electricWire connectTools ascending by SortPriority; free placement ignores unlock (ADR 0056)
+            var unlockState = ServerContext.GetService<IGameUnlockStateDataController>();
+            var candidateTools = ConnectToolSelector.CandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, unlockState, isFreePlacement).ToList();
 
             // 電線connectToolが未解放の世界では配線せず設置のみ許可する（設置自体はブロックしない）
             // With no unlocked wire connectTool, allow placement without wiring (do not block the placement itself)
-            if (unlockedTools.Count == 0)
-                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty);
+            if (candidateTools.Count == 0)
+                return ElectricWireAutoConnectPlan.Success(Array.Empty<(BlockInstanceId, ElectricWireConnectionCost)>(), Guid.Empty, consumesMaterials);
 
-            // 解放済みの中から全素材が賄える最初のものを選ぶ。解放済みだが賄えないなら従来通り設置を失敗させる
-            // Pick the first unlocked tool whose materials are all affordable; when unlocked but unaffordable, fail placement as before
-            return TrySelectConnectTool(unlockedTools, out var targets, out var connectToolGuid)
-                ? ElectricWireAutoConnectPlan.Success(targets, connectToolGuid)
+            // 候補の中から全素材が賄える最初のものを選ぶ。賄えないなら従来通り設置を失敗させる
+            // Pick the first candidate whose materials are all affordable; when unaffordable, fail placement as before
+            return TrySelectConnectTool(candidateTools, out var targets, out var connectToolGuid)
+                ? ElectricWireAutoConnectPlan.Success(targets, connectToolGuid, consumesMaterials)
                 : ElectricWireAutoConnectPlan.Failure(ElectricWirePlacementFailureReason.NoWireItem);
 
             #region Internal
 
             // 必要コストを賄えるconnectToolをSortPriority昇順で探す
             // Search connectTools in ascending SortPriority for one covering all target costs
-            bool TrySelectConnectTool(List<ConnectToolMasterElement> unlockedElements, out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets, out Guid selectedConnectToolGuid)
+            bool TrySelectConnectTool(List<ConnectToolMasterElement> candidateElements, out List<(BlockInstanceId, ElectricWireConnectionCost)> selectedTargets, out Guid selectedConnectToolGuid)
             {
-                foreach (var element in unlockedElements)
+                foreach (var element in candidateElements)
                 {
                     if (!TryBuildTargets(element.ConnectToolGuid, out var builtTargets, out var requiredByItem)) continue;
 
-                    // 建設コスト等で予約済みの数量を上乗せして所持数を判定する
-                    // Add quantities reserved by construction costs when judging held counts
-                    if (!HasEnoughAll(requiredByItem)) continue;
+                    // 建設コスト等で予約済みの数量を上乗せして所持数を判定する。無料設置は所持数を見ない
+                    // Add quantities reserved by construction costs when judging held counts; free placement skips the check
+                    if (!isFreePlacement && !HasEnoughAll(requiredByItem)) continue;
 
                     selectedTargets = builtTargets;
                     selectedConnectToolGuid = element.ConnectToolGuid;
@@ -141,7 +147,7 @@ namespace Server.Protocol.PacketResponse.Util.ElectricWire.AutoConnect
                 if (targetConnector == null) continue;
                 if (!ElectricWireSystemUtil.TryConnectBothSides(selfConnector, targetConnector, target.Cost)) continue;
 
-                ConnectToolMaterialConsumer.Consume(target.Cost.Materials, inventory);
+                if (plan.ConsumesMaterials) ConnectToolMaterialConsumer.Consume(target.Cost.Materials, inventory);
             }
 
         }
