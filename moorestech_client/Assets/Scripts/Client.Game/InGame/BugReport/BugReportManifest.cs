@@ -34,6 +34,14 @@ namespace Client.Game.InGame.BugReport
         public List<MissingItem> Missing = new();
         public double VideoSeconds;
 
+        // 欠損は開発者向けログとmanifestの両方へ残す。片方だけだと調査時にもう片方へ辿り着けない
+        // Every missing item goes to both the developer log and the manifest; one alone leaves an investigator stranded
+        public void AddMissing(string item, string reason)
+        {
+            Debug.LogWarning($"バグ報告バンドルに {item} を入れられませんでした: {reason}");
+            Missing.Add(new MissingItem { Item = item, Reason = reason });
+        }
+
         public string ToJson()
         {
             return JsonConvert.SerializeObject(this, Settings);

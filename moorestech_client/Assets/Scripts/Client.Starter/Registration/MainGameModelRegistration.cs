@@ -44,6 +44,7 @@ namespace Client.Starter.Registration
             // Always-on capture for bug reports (log ring, frame recording ring)
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
+            builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements
