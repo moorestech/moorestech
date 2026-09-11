@@ -30,12 +30,29 @@ namespace Game.SaveLoad.Writer
             EnsureWriterThreadStarted();
             Interlocked.Increment(ref _inFlight);
             _jobs.Add(job);
+
+            #region Internal
+
+            // 書き出しスレッドは初回投入まで起こさない。セーブしないコンテナ（テストが大量に作る）でスレッドが増えないようにする
+            // The writer thread starts on the first job so containers that never save (tests create many) add no threads
+            void EnsureWriterThreadStarted()
+            {
+                if (Interlocked.CompareExchange(ref _writerThreadStarted, 1, 0) != 0) return;
+
+                var thread = new Thread(Run) { Name = "[moorestech] セーブ書き出しスレッド", IsBackground = true };
+                thread.Start();
+            }
+
+            #endregion
         }
 
         public bool TryDequeueCompletion(SaveWriteKind kind, out SaveWriteCompletion completion)
         {
-            var queue = kind == SaveWriteKind.PlayerSave ? _playerSaveCompletions : _snapshotCompletions;
-            return queue.TryDequeue(out completion);
+            var queue = FindCompletionQueue(kind);
+            if (queue != null) return queue.TryDequeue(out completion);
+
+            completion = null;
+            return false;
         }
 
         // テストと終了時の待ち合わせ専用。tickスレッドからは呼ばない
@@ -61,16 +78,6 @@ namespace Game.SaveLoad.Writer
             _jobs.CompleteAdding();
         }
 
-        // 書き出しスレッドは初回投入まで起こさない。セーブしないコンテナ（テストが大量に作る）でスレッドが増えないようにする
-        // The writer thread starts on the first job so containers that never save (tests create many) add no threads
-        private void EnsureWriterThreadStarted()
-        {
-            if (Interlocked.CompareExchange(ref _writerThreadStarted, 1, 0) != 0) return;
-
-            var thread = new Thread(Run) { Name = "[moorestech] セーブ書き出しスレッド", IsBackground = true };
-            thread.Start();
-        }
-
         private void Run()
         {
             foreach (var job in _jobs.GetConsumingEnumerable())
@@ -92,16 +99,36 @@ namespace Game.SaveLoad.Writer
                     PostCompletion(job, success);
                 }
             }
+
+            #region Internal
+
+            void PostCompletion(SaveWriteJob completedJob, bool completedSuccess)
+            {
+                // 取り込み時に必ず入る。デシリアライズ由来の欠損は WorldLoaderFromJson が入口で弾く
+                // Always present on a captured image; a missing value from deserialization is rejected at the load entrance
+                FindCompletionQueue(completedJob.Kind)?.Enqueue(
+                    new SaveWriteCompletion(completedJob.Generation, completedJob.Data.CurrentTick.Value, completedJob.TargetPath, completedSuccess));
+
+                // 完了を積んでから在庫を減らす。待ち合わせ側が空振りで先に抜けないようにする
+                // Post the completion before clearing the in-flight count so a waiter never returns ahead of it
+                Interlocked.Decrement(ref _inFlight);
+            }
+
+            #endregion
         }
 
-        private void PostCompletion(SaveWriteJob job, bool success)
+        // 種別ごとに専用キューを返す。既定へ寄せると新しい種別の完了が他種別の要求元へ流れ、偽の完了が発火する
+        // Returns the queue dedicated to a kind; falling back to a default would hand a new kind's completion to another requester as a false completion
+        private ConcurrentQueue<SaveWriteCompletion> FindCompletionQueue(SaveWriteKind kind)
         {
-            var queue = job.Kind == SaveWriteKind.PlayerSave ? _playerSaveCompletions : _snapshotCompletions;
-            queue.Enqueue(new SaveWriteCompletion(job.Generation, job.Kind, job.Data.CurrentTick, job.TargetPath, success));
+            switch (kind)
+            {
+                case SaveWriteKind.PlayerSave: return _playerSaveCompletions;
+                case SaveWriteKind.Snapshot: return _snapshotCompletions;
+            }
 
-            // 完了を積んでから在庫を減らす。待ち合わせ側が空振りで先に抜けないようにする
-            // Post the completion before clearing the in-flight count so a waiter never returns ahead of it
-            Interlocked.Decrement(ref _inFlight);
+            Debug.LogError($"完了キューが定義されていない書き出し種別です kind:{kind}。この種別の完了は誰にも届きません");
+            return null;
         }
 
         private static bool Write(SaveWriteJob job)

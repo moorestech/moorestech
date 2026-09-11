@@ -5,15 +5,13 @@ namespace Game.SaveLoad.Writer
     public sealed class SaveWriteCompletion
     {
         public long Generation { get; }
-        public SaveWriteKind Kind { get; }
         public ulong Tick { get; }
         public string TargetPath { get; }
         public bool Success { get; }
 
-        public SaveWriteCompletion(long generation, SaveWriteKind kind, ulong tick, string targetPath, bool success)
+        public SaveWriteCompletion(long generation, ulong tick, string targetPath, bool success)
         {
             Generation = generation;
-            Kind = kind;
             Tick = tick;
             TargetPath = targetPath;
             Success = success;

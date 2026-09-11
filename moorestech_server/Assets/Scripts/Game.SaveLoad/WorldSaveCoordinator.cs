@@ -18,6 +18,10 @@ namespace Game.SaveLoad
         // 排出と取り込みはtickスレッドと待ち合わせスレッドの両方から入るので、この錠で直列化する
         // Draining and capturing are entered from both the tick thread and a waiting thread, so this lock serializes them
         private readonly object _tickStateLock = new();
+        // 同一要求の再取り込み上限。恒久失敗（権限拒否等）を毎tick再取り込みするとtickスレッドが全世界Captureで焼き付く
+        // Recapture cap for one request: retrying a permanent failure (denied permissions, etc.) every tick burns the tick thread on full-world captures
+        private const int MaxWriteAttemptsPerRequest = 3;
+        private int _failedAttempts;
         private long _requestedGeneration;
         private long _completedGeneration;
         private long _enqueuedGeneration;
@@ -80,12 +84,24 @@ namespace Game.SaveLoad
                 {
                     if (!completion.Success)
                     {
-                        // 失敗した要求は未投入へ戻し、次のtick末尾で再取り込みする（失敗理由は書き出しスレッドが出力済み）
-                        // Return a failed request to the un-enqueued state so the next tick end recaptures it; the writer already logged the cause
-                        _enqueuedGeneration = Volatile.Read(ref _completedGeneration);
+                        _failedAttempts++;
+                        if (_failedAttempts < MaxWriteAttemptsPerRequest)
+                        {
+                            // 失敗した要求は未投入へ戻し、次のtick末尾で再取り込みする（失敗理由は書き出しスレッドが出力済み）
+                            // Return a failed request to the un-enqueued state so the next tick end recaptures it; the writer already logged the cause
+                            _enqueuedGeneration = Volatile.Read(ref _completedGeneration);
+                            continue;
+                        }
+
+                        // 諦めた要求は未完了のまま残さない。残すと終了時の待ち合わせが永久に明けない
+                        // A given-up request must not stay pending, or the shutdown wait never clears
+                        UnityEngine.Debug.LogError($"セーブの書き出しに{_failedAttempts}回失敗したため要求{completion.Generation}を諦めます path:{completion.TargetPath}");
+                        Volatile.Write(ref _completedGeneration, completion.Generation);
+                        _failedAttempts = 0;
                         continue;
                     }
 
+                    _failedAttempts = 0;
                     Volatile.Write(ref _completedGeneration, completion.Generation);
                     UnityEngine.Debug.Log("ワールドを保存しました");
                     _onWorldSaveCompleted.OnNext(completion.Generation);

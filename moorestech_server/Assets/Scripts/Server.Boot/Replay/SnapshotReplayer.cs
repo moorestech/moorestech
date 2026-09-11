@@ -64,7 +64,7 @@ namespace Server.Boot.Replay
                 while (next < records.Count && records[next].Tick < nextTick) next++;
                 while (next < records.Count && records[next].Tick == nextTick)
                 {
-                    queue.Enqueue(new ReplayPacketEntry(packetResponseCreator, context, records[next].Payload, null));
+                    queue.Enqueue(new ReplayPacketEntry(packetResponseCreator, context, records[next].Payload));
                     replayed++;
                     next++;
                 }
@@ -75,22 +75,26 @@ namespace Server.Boot.Replay
             Debug.Log($"再生完了 loaded:{loadedTick} reached:{GameUpdater.CurrentTick} packets:{replayed}");
             Directory.Delete(tempRoot, true);
             return new ReplayResult(loadedTick, GameUpdater.CurrentTick, replayed, json);
-        }
 
-        // 渡されたログが再生区間をどれだけ覆っているかを必ず出す。0件再生を「一致しなかった＝非決定性」と誤読させないため
-        // Always report how much of the replay interval the given log covers, so a zero-packet replay is not misread as non-determinism
-        private static void ReportPacketLogCoverage(IReadOnlyList<ReceivedPacketRecord> records, ulong loadedTick, ulong targetTick)
-        {
-            var beforeSnapshot = 0;
-            var inRange = 0;
-            foreach (var record in records)
+            #region Internal
+
+            // 渡されたログが再生区間をどれだけ覆っているかを必ず出す。0件再生を「一致しなかった＝非決定性」と誤読させないため
+            // Always report how much of the replay interval the given log covers, so a zero-packet replay is not misread as non-determinism
+            void ReportPacketLogCoverage(IReadOnlyList<ReceivedPacketRecord> coverageRecords, ulong coverageLoadedTick, ulong coverageTargetTick)
             {
-                if (record.Tick <= loadedTick) beforeSnapshot++;
-                else if (record.Tick <= targetTick) inRange++;
+                var beforeSnapshot = 0;
+                var inRange = 0;
+                foreach (var record in coverageRecords)
+                {
+                    if (record.Tick <= coverageLoadedTick) beforeSnapshot++;
+                    else if (record.Tick <= coverageTargetTick) inRange++;
+                }
+
+                Debug.Log($"再生対象パケット 区間({coverageLoadedTick},{coverageTargetTick}]:{inRange}件 スナップショット以前で読み飛ばし:{beforeSnapshot}件 ログ全件:{coverageRecords.Count}件");
+                if (inRange == 0) Debug.LogWarning($"パケットログが区間({coverageLoadedTick},{coverageTargetTick}]を1件も含んでいません。ローテーションで消えたか別セグメントを渡した可能性があります");
             }
 
-            Debug.Log($"再生対象パケット 区間({loadedTick},{targetTick}]:{inRange}件 スナップショット以前で読み飛ばし:{beforeSnapshot}件 ログ全件:{records.Count}件");
-            if (inRange == 0) Debug.LogWarning($"パケットログが区間({loadedTick},{targetTick}]を1件も含んでいません。ローテーションで消えたか別セグメントを渡した可能性があります");
+            #endregion
         }
     }
 }

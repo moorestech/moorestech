@@ -62,6 +62,40 @@ namespace Tests.UnitTest.Game.SaveLoad
             Directory.Delete(saveDirectory, true);
         }
 
+        // 恒久的な失敗を毎tick再取り込みすると、tickスレッドが全世界Captureを毎tick負って実質フリーズする
+        // Recapturing a permanent failure every tick loads the tick thread with a full-world capture per tick and effectively freezes it
+        [Test]
+        public void 恒久的に失敗する書き出しは有限回で諦める()
+        {
+            var saveDirectory = Path.Combine(Path.GetTempPath(), $"moorestech-coordinator-{Guid.NewGuid():N}");
+            File.WriteAllText(saveDirectory, "blocker");
+            var savePath = Path.Combine(saveDirectory, "save.json");
+            var coordinator = CreateCoordinator(savePath);
+
+            // 失敗3回ぶんの書き出しエラーと、諦めた理由のエラーが出る契約
+            // Three write failures plus one give-up reason are the contract
+            for (var i = 0; i < 3; i++) LogAssert.Expect(LogType.Error, new Regex("^セーブの書き出しに失敗しました"));
+            LogAssert.Expect(LogType.Error, new Regex("^セーブの書き出しに3回失敗したため要求1を諦めます"));
+
+            coordinator.RequestSave();
+            for (var attempt = 0; attempt < 10; attempt++)
+            {
+                coordinator.SaveIfRequested();
+                coordinator.WaitForPendingWrites();
+                if (!coordinator.HasPendingSave) break;
+            }
+
+            Assert.IsFalse(coordinator.HasPendingSave, "恒久的な失敗を無限に再試行し続けている");
+
+            // 諦めた後は再取り込みしない。ここで書き出しが起きるなら毎tick全世界Captureが続いている
+            // No recapture after giving up; another write here would mean the per-tick full-world capture continues
+            File.Delete(saveDirectory);
+            coordinator.SaveIfRequested();
+            coordinator.WaitForPendingWrites();
+            Assert.IsFalse(File.Exists(savePath), "諦めた要求が再取り込みされている");
+            if (Directory.Exists(saveDirectory)) Directory.Delete(saveDirectory, true);
+        }
+
         private static WorldSaveCoordinator CreateCoordinator(string savePath)
         {
             var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
