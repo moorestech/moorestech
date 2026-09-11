@@ -77,5 +77,27 @@ namespace Tests.UnitTest.Game.SaveLoad
             log.Append(2, new byte[] { 1 });
             Assert.IsFalse(log.IsActive);
         }
+
+        // 末尾が切れた区間を通すと、壊れたpayloadが別のパケットとして再生され「一致しない」を非決定性のバグと誤診断させる
+        // Passing a truncated tail replays a corrupted payload as a different packet and misdiagnoses the mismatch as non-determinism
+        [Test]
+        public void 末尾が切れたレコードは読み飛ばさず落とす()
+        {
+            var dir = Path.Combine(Path.GetTempPath(), $"moorestech-packetlog-{Guid.NewGuid():N}");
+            var log = new ReceivedPacketLog();
+            log.Start(dir, 1);
+            log.Append(1, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
+            log.Stop();
+
+            // 宣言された長さより短いところでファイルを切る（書き込み中のプロセスが落ちた状態と同じ）
+            // Truncate the file short of the declared length, exactly as a process killed mid-write leaves it
+            var path = log.SegmentFilePaths()[0];
+            var bytes = File.ReadAllBytes(path);
+            File.WriteAllBytes(path, bytes.Take(bytes.Length - 3).ToArray());
+
+            var exception = Assert.Throws<InvalidDataException>(() => ReceivedPacketLogReader.ReadAll(new[] { path }));
+            StringAssert.Contains("途中で切れています", exception.Message);
+            Directory.Delete(dir, true);
+        }
     }
 }

@@ -119,7 +119,15 @@ namespace Game.SaveLoad.Json
             
             // 時刻と乱数状態を最初に戻す。以降の復元（残りtick等）がこの時刻を基準にする
             // Restore the clock and random state first; later restorations reference this tick
-            GameUpdater.RestoreCurrentTick(load.CurrentTick);
+            // 欠損を通すとtickは0へ巻き戻り乱数列は別物になる。どちらも無音で成立するので入口で弾く
+            // Letting either field be missing rewinds the tick to 0 and swaps the random stream, both silently, so they are rejected here
+            if (!load.CurrentTick.HasValue || load.RandomState == null)
+            {
+                var reason = $"セーブに currentTick / randomState がありません（currentTick:{load.CurrentTick.HasValue} randomState:{load.RandomState != null}）。scripts/save_migration/migrate_block_state_objects.py で移行してください";
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
+            GameUpdater.RestoreCurrentTick(load.CurrentTick.Value);
             GameRandom.RestoreState(load.RandomState);
             
             _gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);

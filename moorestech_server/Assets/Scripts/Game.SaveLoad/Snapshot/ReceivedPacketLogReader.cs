@@ -20,7 +20,13 @@ namespace Game.SaveLoad.Snapshot
                 {
                     var tick = reader.ReadUInt64();
                     var length = reader.ReadInt32();
+                    if (length < 0) throw new InvalidDataException($"パケットログの長さが負です path:{path} tick:{tick} length:{length}");
+
+                    // ReadBytes は足りない分を黙って短く返す。通すと壊れた末尾が別のパケットとして再生され、非決定性のバグに見える
+                    // ReadBytes silently returns a short buffer; letting it through replays a corrupted tail as a different packet and looks like non-determinism
                     var payload = reader.ReadBytes(length);
+                    if (payload.Length != length) throw new InvalidDataException($"パケットログのレコードが途中で切れています path:{path} tick:{tick} expected:{length} actual:{payload.Length}");
+
                     result.Add(new ReceivedPacketRecord(tick, payload));
                 }
             }

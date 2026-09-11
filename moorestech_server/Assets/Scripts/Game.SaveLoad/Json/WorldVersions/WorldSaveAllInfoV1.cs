@@ -87,7 +87,9 @@ namespace Game.SaveLoad.Json.WorldVersions
 
         // スナップショットからの再生に必要な時刻と乱数状態。ロードの先頭で復元する
         // Tick and random state required to replay from a snapshot; restored first on load
-        [JsonProperty("currentTick")] public ulong CurrentTick { get; }
+        // 値型のままだと欠損が既定の0として成立し、tickが無音で巻き戻る。欠損を型で見分けるためnull許容で受ける
+        // As a value type a missing field would pass as the default 0 and silently rewind the clock, so it is nullable to make absence visible
+        [JsonProperty("currentTick")] public ulong? CurrentTick { get; }
         [JsonProperty("randomState")] public ulong[] RandomState { get; }
     }
 }

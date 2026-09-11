@@ -5,9 +5,13 @@ using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.CombinedTest.Game
 {
@@ -59,6 +63,24 @@ namespace Tests.CombinedTest.Game
 
             Assert.AreEqual(0UL, GameUpdater.CurrentTick, "新規ワールドの currentTick が0に初期化されていない");
             CollectionAssert.AreEqual(freshState, GameRandom.ExportState(), "新規ワールドの乱数が初期化されていない");
+        }
+
+        // currentTick は値型なので欠損しても既定の0で通り、tickが無音で巻き戻ったまま再生が始まる
+        // currentTick is a value type, so a missing field passes as the default 0 and replay starts from a silently rewound clock
+        [Test]
+        public void currentTickが無いセーブは無音で0にせず落とす()
+        {
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            GameUpdater.RestoreCurrentTick(555);
+            var json = provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
+
+            var root = JObject.Parse(json);
+            root.Remove("currentTick");
+            LogAssert.Expect(LogType.Error, new Regex("currentTick / randomState がありません"));
+
+            var loader = provider.GetRequiredService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
+            var exception = Assert.Throws<InvalidOperationException>(() => loader.Load(root.ToString()));
+            StringAssert.Contains("migrate_block_state_objects.py", exception.Message);
         }
     }
 }
