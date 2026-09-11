@@ -40,6 +40,7 @@ using Game.Research;
 using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.SaveLoad.Writer;
 using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.RailGraph;
@@ -249,6 +250,9 @@ namespace Server.Boot
             services.AddSingleton(options.worldDataDirectory);
             // セーブ要求（オートセーブ・クライアント要求）はcoordinatorへ集約し、実行はtick末尾の安定点のみ
             // Save requests (auto-save and client requests) funnel into the coordinator; execution happens only at the tick-end stable point
+            // JSON化と書き込みはtickスレッドの外へ出す。coordinatorが取り込みだけをtick末尾で行う
+            // Serialization and disk writes run off the tick thread; the coordinator only captures at tick end
+            services.AddSingleton<SaveWriteWorker>();
             services.AddSingleton<WorldSaveCoordinator>();
             services.AddSingleton<IWorldSaveRequest>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
             services.AddSingleton<IWorldSaveCompletionNotifier>(provider => provider.GetRequiredService<WorldSaveCoordinator>());

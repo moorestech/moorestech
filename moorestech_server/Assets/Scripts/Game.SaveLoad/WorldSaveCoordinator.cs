@@ -1,9 +1,9 @@
 using System;
-using System.IO;
 using System.Threading;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.SaveLoad.Writer;
 using UniRx;
 
 namespace Game.SaveLoad
@@ -12,22 +12,25 @@ namespace Game.SaveLoad
     {
         private readonly AssembleSaveJsonText _assembleSaveJsonText;
         private readonly WorldDataDirectory _worldDataDirectory;
+        private readonly SaveWriteWorker _saveWriteWorker;
         private readonly Subject<long> _onWorldSaveCompleted = new();
         private long _requestedGeneration;
         private long _completedGeneration;
+        private long _enqueuedGeneration;
 
-        public WorldSaveCoordinator(WorldDataDirectory worldDataDirectory, AssembleSaveJsonText assembleSaveJsonText)
+        public WorldSaveCoordinator(WorldDataDirectory worldDataDirectory, AssembleSaveJsonText assembleSaveJsonText, SaveWriteWorker saveWriteWorker)
         {
             _worldDataDirectory = worldDataDirectory;
             _assembleSaveJsonText = assembleSaveJsonText;
+            _saveWriteWorker = saveWriteWorker;
         }
 
-        // 要求済みだがまだ書き出していない保存が残っているか。終了時の待ち合わせに使う
-        // Whether a requested save is still unwritten; used to wait for the flush at shutdown
+        // 要求済みだがまだ書き出しが完了していない保存が残っているか。終了時の待ち合わせに使う
+        // Whether a requested save has not finished writing; used to wait for the flush at shutdown
         public bool HasPendingSave => Volatile.Read(ref _requestedGeneration) != Volatile.Read(ref _completedGeneration);
 
-        // 書き出しが完了した要求番号を流す。終了時のflush待ちがこれで完了を判定する
-        // Emits the generation whose write completed; the shutdown flush wait decides completion from it
+        // 書き出しが完了した要求番号を流す。tickスレッド上で発火する
+        // Emits the generation whose write completed; fired on the tick thread
         public IObservable<long> OnWorldSaveCompleted => _onWorldSaveCompleted;
 
         public long RequestSave()
@@ -35,45 +38,46 @@ namespace Game.SaveLoad
             return Interlocked.Increment(ref _requestedGeneration);
         }
 
+        // tick末尾で呼ぶ。完了通知を排出し、未投入の要求があれば取り込んで書き出しを投入する
+        // Called at tick end: drain completions, then capture and enqueue a write for any un-enqueued request
         public void SaveIfRequested()
         {
-            // このtickで処理する要求番号を固定し、保存中に届く要求を次回へ残す
-            // Freeze the generation handled now so requests arriving during the save remain pending
+            DrainCompletions();
+
+            // このtickで処理する要求番号を固定し、取り込み中に届く要求を次回へ残す
+            // Freeze the generation handled now so requests arriving during the capture remain pending
             var targetGeneration = Volatile.Read(ref _requestedGeneration);
             if (targetGeneration == Volatile.Read(ref _completedGeneration)) return;
+            if (targetGeneration == _enqueuedGeneration) return;
 
-            // 保存が完了した場合だけ、固定した要求番号までを処理済みにする
-            // Mark only the frozen generation complete after the save operation succeeds
-            Save();
-            Volatile.Write(ref _completedGeneration, targetGeneration);
-            UnityEngine.Debug.Log("ワールドを保存しました");
-
-            // 完了番号を通知し、終了待ち側が「どこまで書けたか」で判定できるようにする
-            // Publish the completed generation so a shutdown waiter can judge how far the write got
-            _onWorldSaveCompleted.OnNext(targetGeneration);
+            _enqueuedGeneration = targetGeneration;
+            var data = _assembleSaveJsonText.Capture();
+            _saveWriteWorker.Enqueue(new SaveWriteJob(targetGeneration, SaveWriteKind.PlayerSave, data, _worldDataDirectory.SaveJsonFilePath, true));
         }
 
-        private void Save()
+        // テストと終了時用。書き出しスレッドが空くまで待ち、完了通知をこのスレッドで排出する
+        // For tests and shutdown: wait until the writer is idle, then drain completions on this thread
+        public void WaitForPendingWrites()
         {
-            // 書き込み途中のクラッシュでセーブが破損しないようアトミックに書き込む
-            // Write atomically so a mid-write crash cannot corrupt the save file
-            var targetPath = _worldDataDirectory.SaveJsonFilePath;
-            var tmpPath = targetPath + ".tmp";
-            var backupPath = targetPath + ".bak";
+            _saveWriteWorker.WaitForIdle();
+            DrainCompletions();
+        }
 
-            // まず一時ファイルへ全内容を書き切る
-            // First write the full contents to a temporary file
-            File.WriteAllText(tmpPath, _assembleSaveJsonText.AssembleSaveJson());
+        private void DrainCompletions()
+        {
+            while (_saveWriteWorker.TryDequeueCompletion(SaveWriteKind.PlayerSave, out var completion))
+            {
+                if (!completion.Success)
+                {
+                    // 失敗した要求は未投入へ戻し、次のtick末尾で再取り込みする（失敗理由は書き出しスレッドが出力済み）
+                    // Return a failed request to the un-enqueued state so the next tick end recaptures it; the writer already logged the cause
+                    _enqueuedGeneration = Volatile.Read(ref _completedGeneration);
+                    continue;
+                }
 
-            // 既存ファイルがあれば直前バックアップ付きで置換、無ければ単純に移動
-            // Replace existing file with a prior-version backup, or move directly on first save
-            if (File.Exists(targetPath))
-            {
-                File.Replace(tmpPath, targetPath, backupPath);
-            }
-            else
-            {
-                File.Move(tmpPath, targetPath);
+                Volatile.Write(ref _completedGeneration, completion.Generation);
+                UnityEngine.Debug.Log("ワールドを保存しました");
+                _onWorldSaveCompleted.OnNext(completion.Generation);
             }
         }
     }

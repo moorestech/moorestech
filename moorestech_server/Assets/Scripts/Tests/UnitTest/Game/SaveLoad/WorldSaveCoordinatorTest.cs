@@ -2,11 +2,13 @@ using Game.Paths;
 using System;
 using System.IO;
 using Game.SaveLoad;
-using Game.SaveLoad.Json;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Boot;
+using System.Text.RegularExpressions;
 using Tests.Module.TestMod;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -21,30 +23,42 @@ namespace Tests.UnitTest.Game.SaveLoad
             coordinator.RequestSave();
             coordinator.RequestSave();
             coordinator.SaveIfRequested();
+            coordinator.WaitForPendingWrites();
             Assert.IsTrue(File.Exists(savePath));
+            Assert.IsFalse(coordinator.HasPendingSave);
 
             // 消化済み要求で再保存されないことをファイルが再生成されないことで観測する
             // Verify consumed requests trigger no re-save by checking the file is not recreated
             File.Delete(savePath);
             coordinator.SaveIfRequested();
+            coordinator.WaitForPendingWrites();
             Assert.IsFalse(File.Exists(savePath));
         }
 
         [Test]
-        public void 保存自体が完了しなかった要求は次回に再実行する()
+        public void 書き出しに失敗した要求は次回に再実行する()
         {
+            // 保存先ディレクトリの位置にファイルを置き、ディレクトリ作成を失敗させる
+            // Put a file where the save directory should be so directory creation fails
             var saveDirectory = Path.Combine(Path.GetTempPath(), $"moorestech-coordinator-{Guid.NewGuid():N}");
+            File.WriteAllText(saveDirectory, "blocker");
             var savePath = Path.Combine(saveDirectory, "save.json");
             var coordinator = CreateCoordinator(savePath);
+
+            // 書き出し失敗は無音で縮退させずエラーログを出す契約なので、その1件を想定として宣言する
+            // A failed write must log instead of degrading silently, so declare that one error as expected
+            LogAssert.Expect(LogType.Error, new Regex("^セーブの書き出しに失敗しました"));
+
             coordinator.RequestSave();
-
-            // 保存先ディレクトリが無い間は保存が失敗し、要求は未消化のまま残る
-            // While the target directory is missing the save fails and the request stays pending
-            Assert.Catch<IOException>(coordinator.SaveIfRequested);
-            Directory.CreateDirectory(saveDirectory);
             coordinator.SaveIfRequested();
+            coordinator.WaitForPendingWrites();
+            Assert.IsTrue(coordinator.HasPendingSave, "失敗した書き出しが完了扱いになっている");
 
+            File.Delete(saveDirectory);
+            coordinator.SaveIfRequested();
+            coordinator.WaitForPendingWrites();
             Assert.IsTrue(File.Exists(savePath));
+            Assert.IsFalse(coordinator.HasPendingSave);
             Directory.Delete(saveDirectory, true);
         }
 

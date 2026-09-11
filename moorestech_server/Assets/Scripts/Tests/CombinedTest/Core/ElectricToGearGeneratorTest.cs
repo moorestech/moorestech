@@ -9,6 +9,7 @@ using Game.Block.Interface.Extension;
 using Game.Context;
 using Game.EnergySystem;
 using Game.Paths;
+using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using Mooresmaster.Model.BlocksModule;
@@ -118,6 +119,7 @@ namespace Tests.CombinedTest.Core
             // The save path is set via options' worldDataDirectory (=savePath); request the coordinator and run at tick end
             saveServiceProvider.GetRequiredService<IWorldSaveRequest>().RequestSave();
             GameUpdater.UpdateOneTick();
+            saveServiceProvider.GetRequiredService<WorldSaveCoordinator>().WaitForPendingWrites();
 
             var (_, loadServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
             {
