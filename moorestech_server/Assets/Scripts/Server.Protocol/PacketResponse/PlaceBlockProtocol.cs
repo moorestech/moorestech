@@ -82,8 +82,8 @@ namespace Server.Protocol.PacketResponse
                 var placeBlockId = placeInfo.BlockId;
                 var createParams = placeInfo.BlockCreateParams.Select(v => new BlockCreateParam(v.Key, v.Value)).ToArray();
 
-                // 無料設置デバッグ: 解放・コストは見ず強制設置し、電線は素材消費なしで自動接続する（ADR 0056）
-                // Free placement debug: force-place ignoring unlock/cost, and auto-connect wires without consuming materials (ADR 0056)
+                // 無料設置は解放・コスト無視で強制設置
+                // Free placement force-places ignoring unlock/cost
                 if (isFreePlacement)
                 {
                     PlaceForFree(placeBlockId, placeInfo, createParams);
@@ -140,9 +140,9 @@ namespace Server.Protocol.PacketResponse
 
                 if (!ServerContext.WorldBlockDatastore.TryAddBlock(blockId, placeInfo.Position, placeInfo.Direction, createParams, out var block)) return;
 
-                // 無料設置は素材不足で失敗しないため、計画の可否は見ずに接続だけ実行する
-                // Free placement never fails for materials, so execute the connections without consulting placeability
-                if (isElectric) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
+                // 計画がFailureでも設置は行い、接続は計画が成立したときだけ実行する
+                // Placement proceeds even on a Failure plan; the connection runs only when the plan is placeable
+                if (isElectric && plan.IsPlaceable) ElectricWireAutoConnectService.ExecuteAutoConnect(plan, block, inventory);
             }
 
             #endregion

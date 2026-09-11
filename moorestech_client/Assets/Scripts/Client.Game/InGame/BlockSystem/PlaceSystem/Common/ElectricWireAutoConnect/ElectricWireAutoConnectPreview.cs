@@ -5,6 +5,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConnect.
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
+using Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire;
 using Client.Game.InGame.UI.Inventory.Main;
 using Common.Debug;
 using Core.Master;
@@ -127,8 +128,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
             // ワイヤー線はカーソルセル分のみ描画し（全セル分は過剰）、コスト行は全セル合計を表示する
             // Draw wires only for the cursor cell (all cells would be excessive); the cost line shows the drag-wide total
             var cursorInfo = placeInfos[cursorIndex];
-            var originEndpoint = AutoConnectPreviewEndpointResolver.ResolveOrigin(_previewBlockController, cursorIndex, cursorInfo, blockMaster);
-            var cursorTargets = cursorInfo.Placeable ? AutoConnectPreviewEndpointResolver.ResolveTargets(GetOrCollectCellGeometry(cursorInfo.Position), _blockDataStore) : EmptyTargets;
+            var originEndpoint = ElectricWireEndpointResolver.ResolveFromPreviewGhost(_previewBlockController, cursorIndex, cursorInfo, blockMaster);
+            var cursorTargets = cursorInfo.Placeable ? ElectricWireEndpointResolver.ResolveAll(GetOrCollectCellGeometry(cursorInfo.Position), _blockDataStore) : EmptyTargets;
 
             // 近傍走査は全ブロック走査で重いため、案内に必要なときだけ実行する
             // The neighbor scan walks every block, so run it only when the notice actually needs it
@@ -141,7 +142,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common.ElectricWireAutoConn
 
             // 電線不足時のみ「足りていればどこへ張られたか」を不可色の線で見せる
             // Only on wire shortage, failure-colored wires show where they would have run
-            if (isWireShortage) _renderer.Show(originEndpoint, AutoConnectPreviewEndpointResolver.ResolveTargets(GetOrCollectCellGeometry(cursorInfo.Position), _blockDataStore), true);
+            if (isWireShortage) _renderer.Show(originEndpoint, ElectricWireEndpointResolver.ResolveAll(GetOrCollectCellGeometry(cursorInfo.Position), _blockDataStore), true);
             else _renderer.Show(originEndpoint, cursorTargets, false);
 
             // 設置可能なセルが1つでも残っていればクリック許可（不可セルはサーバーが個別に拒否する既存方針に揃える）

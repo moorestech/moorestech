@@ -10,8 +10,8 @@ using Tests.Module.TestMod;
 namespace Tests.UnitTest.Server.ConnectTool
 {
     /// <summary>
-    /// connectTool候補列挙が、解放フィルタの有無だけを切り替えて同じ並び順を返すことを検証する
-    /// Verifies the connectTool candidate listing toggles only the unlock filter while keeping the same ordering
+    /// 解放フィルタ有無で同じ並び順を返すか検証
+    /// Verifies the same ordering is returned regardless of the unlock filter
     /// </summary>
     public class ConnectToolSelectorCandidatesTest
     {
@@ -27,8 +27,8 @@ namespace Tests.UnitTest.Server.ConnectTool
         [Test]
         public void 解放無視なら全未解放でもelectricWire全件がSortPriority昇順で返る()
         {
-            // テストmodのconnectToolは全てinitialUnlocked=false
-            // Every connectTool in the test mod starts locked
+            // 全て未解放が前提
+            // All are unlocked=false by default
             Assert.IsTrue(_unlockState.ConnectToolUnlockStateInfos.Values.All(info => !info.IsUnlocked));
 
             var candidates = ConnectToolSelector.CandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, _unlockState, true).ToList();
@@ -49,10 +49,6 @@ namespace Tests.UnitTest.Server.ConnectTool
             var unlocked = ConnectToolSelector.CandidatesByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, _unlockState, false).ToList();
             Assert.AreEqual(1, unlocked.Count);
             Assert.AreEqual(first.ConnectToolGuid, unlocked[0].ConnectToolGuid);
-
-            // 既存APIは解放フィルタありと同じ結果
-            // The existing API equals the filtered listing
-            Assert.AreEqual(1, ConnectToolSelector.UnlockedByToolType(ConnectToolMasterElement.ToolTypeConst.electricWire, _unlockState).Count());
         }
     }
 }

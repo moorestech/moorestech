@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common.PreviewController;
 using Game.Block.Interface;
@@ -38,6 +39,27 @@ namespace Client.Game.InGame.BlockSystem.StateProcessor.ElectricWire
 
             var ghostInfo = new BlockPositionInfo(placeInfo.Position, placeInfo.Direction, blockMaster.BlockSize);
             return ResolveAabbTopCenter(ghostInfo);
+        }
+
+        // 接続先ブロックの端点。Viewが未生成の接続先は描かない
+        // Target block endpoints; targets without a spawned view are skipped
+        public static List<Vector3> ResolveAll(List<(Vector3Int TargetPos, float Distance)> targets, BlockGameObjectDataStore blockDataStore)
+        {
+            var endpoints = new List<Vector3>(targets.Count);
+            foreach (var target in targets)
+            {
+                if (blockDataStore.TryGetBlockGameObject(target.TargetPos, out var targetBlock))
+                    endpoints.Add(Resolve(targetBlock));
+            }
+            return endpoints;
+        }
+
+        // 未設置ゴーストの端点を、プレビューコントローラからのゴースト取得込みで解決する
+        // Resolve an unplaced ghost's endpoint, including fetching the ghost from the preview controller
+        public static Vector3 ResolveFromPreviewGhost(IPlacementPreviewBlockGameObjectController previewBlockController, int index, PlaceInfo placeInfo, BlockMasterElement blockMaster)
+        {
+            previewBlockController.TryGetPreviewBlock(index, out var ghost);
+            return ResolveFromGhost(ghost, placeInfo, blockMaster);
         }
 
         /// <summary>

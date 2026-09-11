@@ -109,8 +109,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Modes
 
                 // 新設電柱ゴースト内のマーカー端点を実描画と同じ計算式で解決する。ゴースト未生成時のフォールバックはResolver側が担う
                 // Resolve the new pole ghost's marker endpoint using the same calculation as the actual rendering; the ghost-unavailable fallback lives in the resolver
-                _ = _context.PreviewBlockController.TryGetPreviewBlock(0, out var poleGhost);
-                var endEndpoint = ElectricWireEndpointResolver.ResolveFromGhost(poleGhost, evaluation.PlaceInfo, evaluation.PoleMaster);
+                var endEndpoint = ElectricWireEndpointResolver.ResolveFromPreviewGhost(_context.PreviewBlockController, 0, evaluation.PlaceInfo, evaluation.PoleMaster);
 
                 // ゴーストの不可理由はTryEvaluateGhostが積み済みなので、続けてワイヤー判定の理由と消費電線数を積む
                 // TryEvaluateGhost already pushed the ghost reasons, so push the wire judgement reason and cost next
