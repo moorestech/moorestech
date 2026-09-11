@@ -22,8 +22,8 @@ Accepted (2026-09-11)
    出所: ユーザー裁定 2026-09-11 「サーバーが無料で配線する」（選択肢採択）
 2. **connectTool の解放状態も無視する。** 無料設置がブロック解放を無視するのと同じ扱いで、
    electricWire の connectTool が1つも解放されていない世界でも SortPriority 最小のツールで配線する。
-   解放を無視した一覧はサーバー／プレビューが同じ実装を共有する（手写し禁止。既存の
-   `ConnectToolSelector.UnlockedByToolType` 共有と同じ理由）。
+   解放を無視した一覧はサーバー／プレビューが同じ実装（`ConnectToolSelector.CandidatesByToolType`）を共有する
+   （手写し禁止。規則がずれるとプレビューと実接続が食い違うため）。
    出所: ユーザー裁定 2026-09-11 「解放無視で最優先ツールを使う」（選択肢採択）
 3. **プレビューの表示は変えない。** 青線もコスト行も現状のまま出す。変えるのは所持数の突き合わせだけで、
    無料設置ONなら「賄えた」とみなして赤線・設置不可にしない（サーバーが素材消費なしで通す分岐と対）。
@@ -43,15 +43,21 @@ Accepted (2026-09-11)
 
 ## Consequences
 
-- サーバー `PlaceBlockProtocol` の無料分岐は「解放・コストを見ず設置し、配線は素材消費なしで実行」に変わる。
-  計画時の所持数判定と実行時の素材消費を無料フラグで抑止する経路が `ElectricWireAutoConnectService` に要る。
-- `ConnectToolSelector` に解放を無視した electricWire ツール一覧を返す経路が要り、
-  サーバー（`EvaluateAutoConnect`）とクライアント（`ElectricWireAutoConnectToolSelector`）の両方がそれを使う。
-- 所持数判定は仮想在庫（`ElectricWireAutoConnectVirtualInventory.CanAfford`）とサーバー `HasEnoughAll` の
-  両方で無料時に真とみなす。表示（`AutoConnectNoticeLines`・`AutoConnectWirePreviewRenderer`）は無変更。
+- サーバー `PlaceBlockProtocol` は無料設置の専用経路を持たず、通常の設置経路1本で処理する。解放は
+  `IsBlockUnlocked` の既存bool引数へ無料フラグを渡し、建設コストは財布の空計画 `PlanFreePlacement()` で素通しする。
+  電気ブロック判定は `EvaluateAutoConnect` 内に閉じる。[[2026-09-11-無料設置は通常の設置経路1本に畳み専用経路を持たない]]
+- `ConnectToolSelector.CandidatesByToolType` に解放を無視する引数を足し、サーバー（`EvaluateAutoConnect`。
+  解放状態はサーバー用入口が自ら調達）とクライアント（`ElectricWireAutoConnectToolSelector`）の両方がそれを使う。
+- 所持数判定は在庫側の抽象に寄せる。サーバーは `IElectricWireAutoConnectAffordability`（通常=予約込み実在庫、
+  無料=常に真）を `PlaceBlockProtocol` の入口で選び、クライアントは仮想在庫を無料モードで生成する。選定ループに
+  無料条件は置かない。表示（`AutoConnectNoticeLines`・`AutoConnectWirePreviewRenderer`）は無変更。
+  [[2026-09-11-電線の所持判定は在庫側の抽象に寄せ選定ループに無料条件を置かない]]
+- 無料設置で張った電線は記録コストを空にし、切断・撤去時に素材を返さない（記録＝支払いの不変条件を守る）。
+  [[2026-09-11-無料設置で張った電線は記録コストを空にし撤去時に返却しない]]
+- `DebugParameters` は読み込みをキャッシュし、ファイルIOを初回・書き込み時・解決ディレクトリ変化時に限る。
+  プレビュー毎フレームの無料フラグ読みは呼び出し側で間引かない。
+  [[2026-09-11-DebugParametersは読み込みをキャッシュしファイルIOを所有者に閉じる]]
 - 通常設置（無料OFF）の挙動は一切変えない。
-- agent前提: 無料フラグは各経路の入口（`PlaceBlockProtocol` / `ElectricWireAutoConnectPreview`）で一度読み、
-  下位へは bool で渡す（`DebugParameters` はファイルIOを伴うため、既存の「一度だけ読む」方針に従う）。
 
 ## Links
 
