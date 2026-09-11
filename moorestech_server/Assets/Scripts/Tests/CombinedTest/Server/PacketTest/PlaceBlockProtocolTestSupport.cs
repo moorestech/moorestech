@@ -55,6 +55,16 @@ namespace Tests.CombinedTest.Server.PacketTest
             return total;
         }
 
+        public static int CountItem(IOpenableInventory inventory, ItemId itemId)
+        {
+            var total = 0;
+            foreach (var stack in inventory.InventoryItems)
+            {
+                if (stack.Id == itemId) total += stack.Count;
+            }
+            return total;
+        }
+
         public static byte[] CreatePlaceBlockPayload(BlockId blockId, params (int x, int y)[] positions)
         {
             var placeInfos = new List<PlaceInfo>();

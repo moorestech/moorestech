@@ -2,11 +2,11 @@ using System;
 using Core.Master;
 using Core.Update;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Blocks.Chest;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
-using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Server.Protocol;
 using Tests.Module.TestMod;
@@ -63,7 +63,32 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             // 搬送品はベルトへ戻っているのでプレイヤーへは1個も渡らない（増殖・ロストの検出）
             // The transit item went back onto the belt, so the player receives none of it (catches duplication and loss)
-            Assert.AreEqual(0, CountInInventory(serviceProvider, ForUnitTestItemId.ItemId2));
+            Assert.AreEqual(0, CountItem(GetInventory(serviceProvider), ForUnitTestItemId.ItemId2));
+        }
+
+        [Test]
+        public void 無動力の歯車ベルトへ張り替えても搬送品は下流へ搬出されない()
+        {
+            var (packet, serviceProvider) = CreateServer();
+            var pos = new Vector3Int(76, 0, 76);
+            UnlockBlock(serviceProvider, ForUnitTestModBlockId.SmallGearBeltConveyor);
+
+            // 下流にチェストを繋いだ状態で張り替える。歯車ベルトはRPM未供給なので搬送は止まったままでなければならない
+            // Replace with a chest wired downstream; the gear belt has no RPM yet, so transport must stay stopped
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, pos + new Vector3Int(0, 0, 1), BlockDirection.North, Array.Empty<BlockCreateParam>(), out var chest);
+            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var oldBlock);
+            oldBlock.GetComponent<VanillaBeltConveyorComponent>().InsertItem(ServerContext.ItemStackFactory.Create(ForUnitTestItemId.ItemId2, 1), InsertItemContext.Empty);
+
+            packet.GetPacketResponse(CreateReplacePayload(ForUnitTestModBlockId.SmallGearBeltConveyor, pos, BlockDirection.North), new PacketResponseContext(null));
+
+            for (var i = 0; i < 30; i++) GameUpdater.UpdateOneTick();
+
+            // 搬送品は新ベルトに留まり、チェストへもプレイヤーへも渡らない
+            // The transit item stays on the new belt and reaches neither the chest nor the player
+            var newBelt = ServerContext.WorldBlockDatastore.GetBlock(pos).GetComponent<IItemCollectableBeltConveyor>();
+            Assert.AreEqual(1, BeltConveyorTransitCarryOver.Collect(newBelt).Count);
+            Assert.AreEqual(0, CountItem(chest.GetComponent<VanillaChestComponent>(), ForUnitTestItemId.ItemId2));
+            Assert.AreEqual(0, CountItem(GetInventory(serviceProvider), ForUnitTestItemId.ItemId2));
         }
 
         [Test]
@@ -163,16 +188,6 @@ namespace Tests.CombinedTest.Server.PacketTest
             // The holdings are zero, but the removal refund covers the new cost, so the replace succeeds and the refund is spent right back
             Assert.AreEqual(ForUnitTestModBlockId.LargeGearBeltConveyor, ServerContext.WorldBlockDatastore.GetBlock(pos).BlockId);
             AssertInventoryEmptyOfRequiredItems(serviceProvider, ForUnitTestModBlockId.LargeGearBeltConveyor);
-        }
-
-        private static int CountInInventory(ServiceProvider serviceProvider, ItemId itemId)
-        {
-            var total = 0;
-            foreach (var stack in GetInventory(serviceProvider).InventoryItems)
-            {
-                if (stack.Id == itemId) total += stack.Count;
-            }
-            return total;
         }
     }
 }

@@ -183,8 +183,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 // Clear the continuous-placement state on mouse release (a release without a registered press stops here)
                 if (!_dragState.EndDrag()) return;
 
-                // 張替え経路は逆張替えレコード付きの送信、通常経路はワイヤー判定を常に許可した従来の送信
-                // The replace run sends with a reverse-replace record; the normal run keeps the usual sender with the wire check always allowed
+                // ベルトは電線を伴わないためワイヤー判定は常に許可（張替え送信にワイヤー引数が無いのも同じ理由）
+                // Belts never carry wires, so the wire check is always allowed (the replace sender omits the wire argument for the same reason)
                 if (_currentPlaceInfos.Exists(info => info.IsReplace)) TrySendReplaceOnClickRelease(_currentPlaceInfos, _blockGameObjectDataStore);
                 else TrySendOnClickRelease(_currentPlaceInfos, true);
             }
