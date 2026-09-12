@@ -15,7 +15,6 @@ using Game.UnlockState;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.InventoryConnectsModule;
 using Mooresmaster.Model.MachineRecipesModule;
-using Newtonsoft.Json;
 using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
 
@@ -73,15 +72,14 @@ namespace Game.Block.Factory.BlockTemplate
             return (input, output, module);
         }
         
-        public static VanillaMachineProcessorComponent MachineLoadState(Dictionary<string, string> componentStates,
+        public static VanillaMachineProcessorComponent MachineLoadState(Dictionary<string, object> componentStates,
             VanillaMachineInputInventory vanillaMachineInputInventory,
             VanillaMachineOutputInventory vanillaMachineOutputInventory,
             VanillaMachineModuleInventory vanillaMachineModuleInventory,
             MachineModuleEffectComponent machineModuleEffectComponent,
             float requestPower, float idlePowerRate, BlockMasterElement blockMasterElement)
         {
-            var state = componentStates[VanillaMachineSaveComponent.SaveKeyStatic];
-            var jsonObject = JsonConvert.DeserializeObject<VanillaMachineJsonObject>(state);
+            var jsonObject = BlockComponentStateReader.Read<VanillaMachineJsonObject>(componentStates, VanillaMachineSaveComponent.SaveKeyStatic);
 
             // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
             // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)

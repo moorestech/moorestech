@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>Label</key><string>com.moorestech.bugreport-shipper</string>
+  <key>ProgramArguments</key><array>
+    <string>/bin/bash</string>
+    <string>/Users/katsumi/moorestech/scripts/bugreport/ship-outbox.sh</string>
+  </array>
+  <key>StartInterval</key><integer>60</integer>
+  <key>StandardOutPath</key><string>/Users/katsumi/Library/Logs/moorestech/bugreport-shipper.log</string>
+  <key>StandardErrorPath</key><string>/Users/katsumi/Library/Logs/moorestech/bugreport-shipper.log</string>
+  <key>EnvironmentVariables</key><dict>
+    <key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+  </dict>
+</dict></plist>

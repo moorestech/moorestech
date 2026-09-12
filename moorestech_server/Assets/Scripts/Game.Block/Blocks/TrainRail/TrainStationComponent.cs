@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Game.Block.Interface.Component;
-using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail
 {
@@ -10,9 +9,9 @@ namespace Game.Block.Blocks.TrainRail
         public string StationName { get; }
         public string SaveKey { get; } = typeof(TrainStationComponent).FullName;
         
-        public string GetSaveState()
+        public object GetSaveState()
         {
-            return JsonConvert.SerializeObject(new TrainStationComponentSaveData(StationName));
+            return new TrainStationComponentSaveData(StationName);
         }
         
         public TrainStationComponent(string stationName)
@@ -20,10 +19,9 @@ namespace Game.Block.Blocks.TrainRail
             StationName = stationName;
         }
         
-        public TrainStationComponent(Dictionary<string, string> componentStates) : this("test")
+        public TrainStationComponent(Dictionary<string, object> componentStates) : this("test")
         {
-            var serialized = componentStates[SaveKey];
-            var saveData = JsonConvert.DeserializeObject<TrainStationComponentSaveData>(serialized);
+            var saveData = BlockComponentStateReader.Read<TrainStationComponentSaveData>(componentStates, SaveKey);
             if (saveData == null) return;
             
             StationName = saveData.stationName;

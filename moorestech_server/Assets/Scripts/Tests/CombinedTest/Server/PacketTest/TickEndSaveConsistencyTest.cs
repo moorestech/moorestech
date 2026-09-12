@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using Core.Update;
 using Game.Context;
+using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.World.Interface.DataStore;
@@ -41,6 +42,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             // tick末尾の安定点で要求済み保存が実行される
             // The requested save executes at the tick-end stable boundary
             GameUpdater.UpdateOneTick();
+            saveProvider.GetRequiredService<WorldSaveCoordinator>().WaitForPendingWrites();
             Assert.IsTrue(File.Exists(savePath));
 
             // 新しい世界へ読み込み、ブロックと課金後在庫が同じ時点で保存されたことを確認する

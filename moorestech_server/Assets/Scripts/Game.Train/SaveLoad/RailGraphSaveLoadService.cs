@@ -26,7 +26,26 @@ namespace Game.Train.SaveLoad
                     continue;
                 results.Add(saveData);
             }
+            
+            // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
+            // Dictionary order shifts as removed slots get reused, so canonicalize here for comparers that match by index
+            results.Sort(CompareSegment);
             return results;
+        }
+        
+        private static int CompareSegment(RailSegmentSaveData left, RailSegmentSaveData right)
+        {
+            var byStart = CompareConnection(left.A, right.A);
+            return byStart != 0 ? byStart : CompareConnection(left.B, right.B);
+        }
+        
+        private static int CompareConnection(ConnectionDestination left, ConnectionDestination right)
+        {
+            if (left.blockPosition.x != right.blockPosition.x) return left.blockPosition.x.CompareTo(right.blockPosition.x);
+            if (left.blockPosition.y != right.blockPosition.y) return left.blockPosition.y.CompareTo(right.blockPosition.y);
+            if (left.blockPosition.z != right.blockPosition.z) return left.blockPosition.z.CompareTo(right.blockPosition.z);
+            if (left.componentIndex != right.componentIndex) return left.componentIndex.CompareTo(right.componentIndex);
+            return left.IsFront.CompareTo(right.IsFront);
         }
 
         // 保存データからレールセグメントを復元する

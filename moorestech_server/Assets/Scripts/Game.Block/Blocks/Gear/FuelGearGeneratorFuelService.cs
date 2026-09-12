@@ -14,8 +14,6 @@ namespace Game.Block.Blocks.Gear
     /// </summary>
     public class FuelGearGeneratorFuelService
     {
-        private const int RandomSeed = 19890604;
-        private static readonly Random SharedRandom = new(RandomSeed);
         public enum FuelType
         {
             None,
@@ -242,7 +240,7 @@ namespace Game.Block.Blocks.Gear
             {
                 // operatingRateに応じて確率的にtickを消費
                 // Probabilistically consume ticks based on operatingRate
-                ticksToConsume = SharedRandom.NextDouble() < operatingRate ? 1u : 0u;
+                ticksToConsume = GameRandom.NextDouble() < operatingRate ? 1u : 0u;
             }
 
             if (ticksToConsume >= RemainingFuelTicks)

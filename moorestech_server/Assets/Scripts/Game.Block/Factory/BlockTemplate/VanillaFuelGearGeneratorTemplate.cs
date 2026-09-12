@@ -18,7 +18,7 @@ namespace Game.Block.Factory.BlockTemplate
         {
         }
         
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return CreateFuelGearGenerator(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
@@ -28,7 +28,7 @@ namespace Game.Block.Factory.BlockTemplate
             return CreateFuelGearGenerator(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
         
-        private IBlock CreateFuelGearGenerator(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock CreateFuelGearGenerator(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var configParam = blockMasterElement.BlockParam as FuelGearGeneratorBlockParam;
             

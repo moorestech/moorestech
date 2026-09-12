@@ -13,7 +13,6 @@ using Core.Master;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.GearConnectOptionModule;
-using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.GearChainPole
@@ -39,7 +38,7 @@ namespace Game.Block.Blocks.GearChainPole
         private readonly Subject<Unit> _onChangeBlockState = new();
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
-        public GearChainPoleComponent(GearChainPoleBlockParam param, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge> connectorComponent, Dictionary<string, string> componentStates)
+        public GearChainPoleComponent(GearChainPoleBlockParam param, BlockInstanceId blockInstanceId, BlockConnectorComponent<IGearEnergyTransformer, GearConnectJudge> connectorComponent, Dictionary<string, object> componentStates)
         {
             // 基本状態を初期化する
             // Initialize base state
@@ -134,16 +133,13 @@ namespace Game.Block.Blocks.GearChainPole
 
         #region LoadComponent
 
-        private readonly Dictionary<string, string> _componentStates;
+        private readonly Dictionary<string, object> _componentStates;
         public void OnPostBlockLoad()
         {
             // 全てのブロックがロードされた後に、セーブデータから接続先を復元する
             // Restore chain connections from saved data after all blocks are loaded
             if (_componentStates == null) return;
-            if (!_componentStates.TryGetValue(SaveKey, out var saved)) return;
-
-            var data = JsonConvert.DeserializeObject<GearChainPoleSaveDataJsonObject>(saved);
-            if (data == null) return;
+            if (!BlockComponentStateReader.TryRead<GearChainPoleSaveDataJsonObject>(_componentStates, SaveKey, out var data)) return;
 
             _chainTargets.Clear();
             
@@ -244,12 +240,12 @@ namespace Game.Block.Blocks.GearChainPole
         #region IBlockSaveState
 
         public string SaveKey => nameof(GearChainPoleComponent);
-        public string GetSaveState()
+        public object GetSaveState()
         {
             // 接続先と消費情報を保存する
             // Persist partner ids and consumption info
             var data = new GearChainPoleSaveDataJsonObject(_chainTargets);
-            return JsonConvert.SerializeObject(data);
+            return data;
         }
 
         #endregion

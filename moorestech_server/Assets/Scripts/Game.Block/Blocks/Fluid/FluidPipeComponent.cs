@@ -9,7 +9,6 @@ using Game.Context;
 using Game.Fluid;
 using Game.Fluid.Simulation;
 using MessagePack;
-using Newtonsoft.Json;
 using UniRx;
 using UnityEngine;
 
@@ -39,16 +38,15 @@ namespace Game.Block.Blocks.Fluid
         // Loaded initial face velocities (canonical direction → velocity), consumed by the first topology rebuild
         private Dictionary<Vector3Int, double> _loadedFaceVelocities;
 
-        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> connectorComponent, float capacity, Dictionary<string, string> componentStates)
+        public FluidPipeComponent(BlockPositionInfo blockPositionInfo, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> connectorComponent, float capacity, Dictionary<string, object> componentStates)
         {
             Node = new FluidSimNode(blockPositionInfo.OriginalPos, capacity);
             Connector = connectorComponent;
 
             // セーブデータがある場合は内容量・流体ID・面速度を復元する
             // Restore amount, fluid id and face velocities when save data exists
-            if (componentStates != null && componentStates.TryGetValue(FluidPipeSaveComponent.SaveKeyStatic, out var savedState))
+            if (BlockComponentStateReader.TryRead<FluidPipeSaveJsonObject>(componentStates, FluidPipeSaveComponent.SaveKeyStatic, out var jsonObject))
             {
-                var jsonObject = JsonConvert.DeserializeObject<FluidPipeSaveJsonObject>(savedState);
                 Node.Amount = Math.Min(jsonObject.Amount, Node.Capacity);
                 Node.FluidId = jsonObject.FluidId;
                 _loadedFaceVelocities = jsonObject.ToFaceVelocityDictionary();

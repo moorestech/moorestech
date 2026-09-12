@@ -31,12 +31,12 @@ namespace Game.Block.Factory.BlockTemplate
             return Create(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return Create(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        private IBlock Create(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private IBlock Create(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             // 全種別共通の境界マーカーに、ハッチ種別のみ搬送コンポーネントを追加する
             // All kinds share the boundary marker; hatch kinds add transfer components

@@ -51,16 +51,15 @@ namespace Game.Block.Blocks.FilterSplitter
         }
 
         public VanillaFilterSplitterComponent(
-            Dictionary<string, string> componentStates,
+            Dictionary<string, object> componentStates,
             BlockInstanceId blockInstanceId,
             BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> connectorComponent,
             IReadOnlyList<IBlockConnector> outputConnectorElements,
             int filterSlotCountPerDirection) :
             this(blockInstanceId, connectorComponent, outputConnectorElements, filterSlotCountPerDirection)
         {
-            if (!componentStates.TryGetValue(SaveKey, out var json)) return;
-            var saveData = JsonConvert.DeserializeObject<SaveJsonObject>(json);
-            if (saveData?.Directions == null) return;
+            if (!BlockComponentStateReader.TryRead<SaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
+            if (saveData.Directions == null) return;
 
             // 保存データの方向を ConnectorGuid ベースで現方向にマップして復元する
             // Restore each saved direction by mapping its ConnectorGuid onto current directions
@@ -172,7 +171,7 @@ namespace Game.Block.Blocks.FilterSplitter
 
         #region Save
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
 
@@ -181,7 +180,7 @@ namespace Game.Block.Blocks.FilterSplitter
             {
                 directions.Add(dir.ToJsonObject());
             }
-            return JsonConvert.SerializeObject(new SaveJsonObject { Directions = directions });
+            return new SaveJsonObject { Directions = directions };
         }
 
         #endregion

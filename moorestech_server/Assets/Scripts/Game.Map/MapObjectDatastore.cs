@@ -99,7 +99,12 @@ namespace Game.Map
         
         public List<MapObjectJsonObject> GetSaveJsonObject()
         {
-            return _mapObjects.Select(m => new MapObjectJsonObject(m.Value)).ToList();
+            var list = _mapObjects.Select(m => new MapObjectJsonObject(m.Value)).ToList();
+            
+            // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
+            // Dictionary order shifts as removed slots get reused, so canonicalize here for comparers that match by index
+            list.Sort((left, right) => left.instanceId.CompareTo(right.instanceId));
+            return list;
         }
     }
 }

@@ -1,3 +1,4 @@
+using Client.Game.InGame.BugReport.Recording;
 using Client.Starter.StandaloneQa;
 using NUnit.Framework;
 using Server.Boot;
@@ -7,6 +8,14 @@ namespace Client.Tests.StandaloneQa
 {
     public class StandaloneTerrainQaSettingsTest
     {
+        [TearDown]
+        public void TearDown()
+        {
+            // 後続テストの起動へ無効化状態が漏れないよう毎回戻す
+            // Reset so the disabled state never leaks into a later test's boot
+            BugReportRecordingSettings.SetEnabled(true);
+        }
+
         [Test]
         public void TryParse_全引数から生成ワールド設定を作る()
         {
@@ -30,7 +39,12 @@ namespace Client.Tests.StandaloneQa
             Assert.That(serverSettings.MapMode, Is.EqualTo("generated"));
             Assert.That(serverSettings.Seed, Is.EqualTo(67890));
             Assert.That(serverSettings.AutoSave, Is.False);
+            Assert.That(serverSettings.CaptureRing, Is.False);
             Assert.That(settings.ResultDirectory, Is.EqualTo("/tmp/result"));
+
+            // 録画リングもCaptureRingと同じ役割で無効化されているはず
+            // The recording ring should be disabled in the same role as CaptureRing
+            Assert.That(BugReportRecordingSettings.Enabled, Is.False);
         }
 
         [TestCase("--qaServerDirectory")]

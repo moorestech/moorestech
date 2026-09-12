@@ -42,16 +42,13 @@ namespace Game.Block.Blocks.PowerGenerator
         }
 
         public VanillaElectricGeneratorComponent(
-            Dictionary<string, string> componentStates,
+            Dictionary<string, object> componentStates,
             BlockInstanceId blockInstanceId,
             BlockPositionInfo blockPositionInfo,
             ElectricGeneratorBlockParam param)
             : this(blockInstanceId, blockPositionInfo, param)
         {
-            if (!componentStates.TryGetValue(SaveKey, out var stateRaw)) return;
-
-            var saveData = JsonConvert.DeserializeObject<VanillaElectricGeneratorSaveJsonObject>(stateRaw);
-            if (saveData == null) return;
+            if (!BlockComponentStateReader.TryRead<VanillaElectricGeneratorSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
 
             _fuelService.Restore(saveData);
             RestoreInventory(saveData);
@@ -114,7 +111,7 @@ namespace Game.Block.Blocks.PowerGenerator
         }
         
         public string SaveKey { get; } = typeof(VanillaElectricGeneratorComponent).FullName;
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
             
@@ -123,7 +120,7 @@ namespace Game.Block.Blocks.PowerGenerator
                 Items = _itemDataStoreService.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
             _fuelService.WriteSaveData(saveData);
-            return JsonConvert.SerializeObject(saveData);
+            return saveData;
         }
         
         public BlockInstanceId BlockInstanceId { get; }

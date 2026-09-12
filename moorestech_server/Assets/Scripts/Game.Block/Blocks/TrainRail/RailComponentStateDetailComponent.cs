@@ -28,12 +28,12 @@ namespace Game.Block.Blocks.TrainRail
             IsDestroy = true;
         }
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             // レール向きを意味の分かるkey-value(JSON)で保存する
             // Persist rail direction as a human-readable key-value (JSON) payload
             var direction = _railComponent.RailDirection;
-            return JsonConvert.SerializeObject(new RailComponentSaveJsonObject { X = direction.x, Y = direction.y, Z = direction.z });
+            return new RailComponentSaveJsonObject { X = direction.x, Y = direction.y, Z = direction.z };
         }
 
         public BlockStateDetail[] GetBlockStateDetails()
@@ -42,11 +42,11 @@ namespace Game.Block.Blocks.TrainRail
             return new[] { new BlockStateDetail(RailBridgePierComponentStateDetail.StateDetailKey, bytes) };
         }
 
-        public static Vector3 LoadRailDirection(Dictionary<string, string> componentStates)
+        public static Vector3 LoadRailDirection(Dictionary<string, object> componentStates)
         {
             // セーブ済みJSONを復元して向きを取り出す
             // Restore saved JSON and extract rail direction
-            var saveData = JsonConvert.DeserializeObject<RailComponentSaveJsonObject>(componentStates[SaveKeyStatic]);
+            var saveData = BlockComponentStateReader.Read<RailComponentSaveJsonObject>(componentStates, SaveKeyStatic);
             return new Vector3(saveData.X, saveData.Y, saveData.Z);
         }
 

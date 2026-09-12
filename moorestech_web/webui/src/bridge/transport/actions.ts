@@ -23,6 +23,18 @@ export const BENIGN_ERRORS: Partial<Record<keyof ActionPayloads, ReadonlySet<str
   "blueprint.delete": new Set(["blueprint_delete_not_found"]),
 };
 
+// 既定の待ち時間。UI操作は即応するので、これを超えたら通信が壊れている
+// Default wait: a UI action answers immediately, so exceeding this means the transport is broken
+export const DEFAULT_ACTION_TIMEOUT_MS = 5000;
+
+// 既定を超えて時間がかかることが分かっている action だけを個別に延ばす
+// Only actions known to take longer than the default get their own wait
+// bug_report.submit は ffmpeg 結合・未追跡ファイルのコピー・git 4回起動を待つ。既定では成功を失敗と表示していた
+// bug_report.submit waits on ffmpeg concat, untracked file copies and four git spawns; the default reported successes as failures
+export const ACTION_TIMEOUTS_MS: Partial<Record<keyof ActionPayloads, number>> = {
+  "bug_report.submit": 120000,
+};
+
 export function shouldToastFailure(type: keyof ActionPayloads, error: string | undefined): boolean {
   if (error === undefined) return true;
   return !(BENIGN_ERRORS[type]?.has(error) ?? false);
@@ -37,7 +49,7 @@ export async function dispatchAction<K extends keyof ActionPayloads>(
   payload: ActionPayloads[K],
 ): Promise<boolean> {
   try {
-    const result = await sendAction(type, payload);
+    const result = await sendAction(type, payload, ACTION_TIMEOUTS_MS[type] ?? DEFAULT_ACTION_TIMEOUT_MS);
     if (!result.ok) {
       if (shouldToastFailure(type, result.error)) notify(`${type} failed: ${result.error ?? "unknown"}`, "error");
       return false;

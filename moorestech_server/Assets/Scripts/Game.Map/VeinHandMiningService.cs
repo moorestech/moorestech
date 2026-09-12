@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using Core.Inventory;
 using Core.Item.Interface;
 using Core.Master;
+using Core.Update;
 using Game.Context;
 using Game.Map.Interface.Vein;
 using Mooresmaster.Model.MapModule;
 using UnityEngine;
-using Random = System.Random;
 
 namespace Game.Map
 {
@@ -43,7 +43,6 @@ namespace Game.Map
     public class VeinHandMiningService
     {
         private readonly MiningCooldownService _cooldownService;
-        private readonly Random _random = new();
 
         public VeinHandMiningService(MiningCooldownService cooldownService)
         {
@@ -105,7 +104,7 @@ namespace Game.Map
             {
                 // 個数を一様抽選
                 // Sample count uniformly
-                var count = _random.Next(param.MinCount, param.MaxCount + 1);
+                var count = GameRandom.Next(param.MinCount, param.MaxCount + 1);
                 return ServerContext.ItemStackFactory.CreateSplitStacks(itemId, count);
             }
 

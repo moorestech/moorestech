@@ -53,7 +53,7 @@ namespace Game.Block.Factory.BlockTemplate
         }
 
         public IBlock Load(
-            Dictionary<string, string> componentStates,
+            Dictionary<string, object> componentStates,
             BlockMasterElement masterElement,
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo)

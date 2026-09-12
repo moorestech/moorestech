@@ -44,17 +44,16 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
             TrainPlatformTransferComponent transferComponent,
             double capacity,
             BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector,
-            Dictionary<string, string> componentStates)
+            Dictionary<string, object> componentStates)
         {
             _dockingComponent = dockingComponent;
             _transferComponent = transferComponent;
             _fluidConnector = fluidConnector;
             _capacity = capacity;
 
-            if (componentStates.TryGetValue(SaveKey, out var serialized))
+            if (BlockComponentStateReader.TryRead<TrainPlatformFluidContainerSaveJsonObject>(componentStates, SaveKey, out var saveData))
             {
-                var saveData = JsonConvert.DeserializeObject<TrainPlatformFluidContainerSaveJsonObject>(serialized);
-                if (saveData?.Fluid != null)
+                if (saveData.Fluid != null)
                 {
                     Container = new FluidTrainCarContainer(saveData.Fluid.ToFluidContainer(_capacity));
                 }
@@ -110,12 +109,12 @@ namespace Game.Block.Blocks.TrainRail.ContainerComponents
 
         public string SaveKey { get; } = typeof(TrainPlatformFluidContainerComponent).FullName;
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             // コンテナ未生成時はnull、ある時は内部FluidContainerをGUIDで保存する
             // Persist null when no container exists; otherwise persist the inner FluidContainer by GUID
             var fluid = Container != null ? new FluidContainerSaveJsonObject(Container.Container) : null;
-            return JsonConvert.SerializeObject(new TrainPlatformFluidContainerSaveJsonObject { Fluid = fluid });
+            return new TrainPlatformFluidContainerSaveJsonObject { Fluid = fluid };
         }
 
         private void LoadFluidToTrain(TrainCar dockedCar, FluidTrainCarContainer trainContainer)

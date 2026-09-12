@@ -18,6 +18,8 @@ using Tests.Module.TestMod;
 using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
 
+using Tests.Util;
+
 namespace Tests.CombinedTest.Core
 {
     /// <summary>
@@ -176,7 +178,7 @@ namespace Tests.CombinedTest.Core
             component1.SetFilterItem(0, 0, ForUnitTestItemId.ItemId1);
             component1.SetMode(1, FilterSplitterMode.Blacklist);
             component1.SetFilterItem(1, 0, ForUnitTestItemId.ItemId2);
-            var savedJson = component1.GetSaveState();
+            var savedState = component1.GetSaveState();
 
             // 2個目: save state を渡してロード → 設定が復元されている
             // Second splitter: load with save state; settings must match
@@ -184,7 +186,7 @@ namespace Tests.CombinedTest.Core
             var loaded = ServerContext.BlockFactory.Load(
                 blockGuid,
                 new BlockInstanceId(7),
-                new Dictionary<string, string> { { component1.SaveKey, savedJson } },
+                SaveLoadJsonTestHelper.ThroughJson(component1.SaveKey, savedState),
                 new BlockPositionInfo(new Vector3Int(10, 0, 0), BlockDirection.North, Vector3Int.one));
             var component2 = loaded.GetComponent<VanillaFilterSplitterComponent>();
 

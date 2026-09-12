@@ -40,6 +40,8 @@ using Game.Research;
 using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.SaveLoad.Snapshot;
+using Game.SaveLoad.Writer;
 using Game.Train.Diagram;
 using Game.Train.Event;
 using Game.Train.RailGraph;
@@ -97,11 +99,13 @@ namespace Server.Boot
 
             //必要な各種インスタンスを手動で作成
             // Manually construct the required bootstrap instances.
-            var modDirectory = Path.Combine(options.ServerDataDirectory, "mods");
+            // マスタの読み元をここで1つに束ねる。バグ報告が記録する場所もこの同じ値から取る
+            // The master source is bound into one value here; the bug report records that very same value
+            var serverDataDirectory = new ServerDataDirectory(options.ServerDataDirectory);
 
             // マスターをロード
             // Load master data.
-            var modResource = new ModsResource(modDirectory);
+            var modResource = new ModsResource(serverDataDirectory.ModsDirectory);
             var masterJsonFileContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
             MasterHolder.Load(masterJsonFileContainer);
 
@@ -245,10 +249,18 @@ namespace Server.Boot
             //JSONファイルのセーブシステムの読み込み
             // Register JSON save system services.
             services.AddSingleton(modResource);
+            services.AddSingleton(serverDataDirectory);
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(options.worldDataDirectory);
             // セーブ要求（オートセーブ・クライアント要求）はcoordinatorへ集約し、実行はtick末尾の安定点のみ
             // Save requests (auto-save and client requests) funnel into the coordinator; execution happens only at the tick-end stable point
+            // JSON化と書き込みはtickスレッドの外へ出す。coordinatorが取り込みだけをtick末尾で行う
+            // Serialization and disk writes run off the tick thread; the coordinator only captures at tick end
+            services.AddSingleton<SaveWriteWorker>();
+            services.AddSingleton<ReceivedPacketLog>();
+            services.AddSingleton<WorldSnapshotRing>();
+            services.AddSingleton<ISnapshotCaptureRequest>(provider => provider.GetRequiredService<WorldSnapshotRing>());
+            services.AddSingleton<ISnapshotWrittenNotifier>(provider => provider.GetRequiredService<WorldSnapshotRing>());
             services.AddSingleton<WorldSaveCoordinator>();
             services.AddSingleton<IWorldSaveRequest>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
             services.AddSingleton<IWorldSaveCompletionNotifier>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
@@ -274,6 +286,8 @@ namespace Server.Boot
             services.AddSingleton<ResearchCompleteEventPacket>();
             services.AddSingleton<ItemStackLevelUnlockEventPacket>();
             services.AddSingleton<WorldSaveCompletedEventPacket>();
+            services.AddSingleton<BugReportCaptureRequesterRegistry>();
+            services.AddSingleton<BugReportCaptureCompletedEventPacket>();
 
             services.AddSingleton<MapObjectUpdateEventPacket>();
             services.AddSingleton<HotbarUpdateEventPacket>();
@@ -311,6 +325,10 @@ namespace Server.Boot
             // 全世界変更の確定後が唯一のセーブ可能な安定点（仕様2.1⑦）。将来の初回snapshot取得もこの位置に登録する
             // The point after every world mutation commits is the only save-stable boundary (spec 2.1-7); future initial-snapshot capture also registers here
             GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<WorldSaveCoordinator>().SaveIfRequested);
+
+            // 常時記録のスナップショットはセーブと同じ安定点で取る（Startされるまで何もしない）
+            // Always-on snapshots are captured at the same stable point as saves (inert until Start)
+            GameUpdater.FinalTickEndUpdates.Add(serviceProvider.GetRequiredService<WorldSnapshotRing>().Update);
 
             //IBootInitializable実装を一括生成し、起動時初期化のLoadを呼ぶ
             // Create all IBootInitializable implementations and invoke their boot-time Load.

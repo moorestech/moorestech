@@ -2,6 +2,7 @@
 using System.Net.Sockets;
 using System.Threading;
 using Game.PlayerConnection;
+using Game.SaveLoad.Snapshot;
 using Server.Boot.Loop.PacketProcessing;
 using Server.Event;
 using Server.Protocol;
@@ -33,6 +34,7 @@ namespace Server.Boot.Loop
             PlayerConnectionRegistry connectionRegistry,
             EventProtocolProvider eventProtocolProvider,
             TickEndPacketQueue tickEndPacketQueue,
+            ReceivedPacketLog receivedPacketLog,
             CancellationToken token)
         {
             Debug.Log($"moorestechサーバー 起動完了 port:{((IPEndPoint)listener.LocalEndPoint).Port}");
@@ -47,7 +49,7 @@ namespace Server.Boot.Loop
                 var sendQueueProcessor = new SendQueueProcessor(client);
                 var packetResponseContext = new PacketResponseContext(sendQueueProcessor);
                 var receiveQueueProcessor = new ReceiveQueueProcessor(
-                    packetResponseCreator, sendQueueProcessor, packetResponseContext, tickEndPacketQueue);
+                    packetResponseCreator, sendQueueProcessor, packetResponseContext, tickEndPacketQueue, receivedPacketLog);
 
                 // 受信スレッドを起動
                 var receiveThread = new Thread(() => new UserPacketHandler(client, receiveQueueProcessor, sendQueueProcessor, connectionRegistry, eventProtocolProvider, packetResponseContext).StartListen(token));

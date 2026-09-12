@@ -1,3 +1,4 @@
+using Client.Game.InGame.BugReport.Recording;
 using Client.Starter;
 using Server.Boot;
 using Server.Boot.Args;
@@ -32,6 +33,10 @@ namespace Client.Playtest
                 return false;
             }
 
+            // 録画リングもCaptureRingと同じ役割で無効化する。プレイテストDSLのScreenCapture/Camera経路と競合させないため
+            // Disables the recording ring in the same role as CaptureRing, to avoid contending with the playtest DSL's capture path
+            BugReportRecordingSettings.SetEnabled(false);
+
             // 起動値を正式なCLI設定へ戻し、通常のローカルサーバー初期化へ渡す
             // Restore boot values into the official CLI settings for normal local-server initialization
             var settings = new StartServerSettings
@@ -41,6 +46,7 @@ namespace Client.Playtest
                 MapMode = SessionState.GetString(MapModeKey, string.Empty),
                 Seed = SessionState.GetInt(SeedKey, 0),
                 AutoSave = false,
+                CaptureRing = false,
             };
 
             proprieties = InitializeProprieties.CreateLocalServer(null);

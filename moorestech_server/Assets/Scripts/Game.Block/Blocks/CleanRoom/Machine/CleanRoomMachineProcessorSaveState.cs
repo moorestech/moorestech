@@ -9,7 +9,7 @@ using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Blocks.Machine.State;
 using Game.Context;
 using Mooresmaster.Model.MachineRecipesModule;
-using Newtonsoft.Json;
+using Game.Block.Interface.Component;
 
 namespace Game.Block.Blocks.CleanRoom.Machine
 {
@@ -33,7 +33,7 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             };
         }
 
-        public static void Restore(Dictionary<string, string> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out uint remainingTicks, out MachineRecipeMasterElement recipe, out List<IItemStack> pendingOutputs, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)
+        public static void Restore(Dictionary<string, object> componentStates, string saveKey, VanillaMachineInputInventory input, VanillaMachineOutputInventory output, VanillaMachineModuleInventory module, out ProcessState state, out uint remainingTicks, out MachineRecipeMasterElement recipe, out List<IItemStack> pendingOutputs, out uint cycleCount, out MachineRecipeMasterElement selectedRecipe)
         {
             state = ProcessState.Idle;
             remainingTicks = 0;
@@ -41,11 +41,9 @@ namespace Game.Block.Blocks.CleanRoom.Machine
             pendingOutputs = null;
             cycleCount = 0;
             selectedRecipe = null;
-            if (componentStates == null || !componentStates.TryGetValue(saveKey, out var stateRaw)) return;
-
             // 旧セーブではサイクル数以外が欠けるため、各値は個別に復元する
             // Older saves lack fields other than cycle count, so restore each value independently
-            var saveData = JsonConvert.DeserializeObject<CleanRoomMachineProcessorSaveJsonObject>(stateRaw);
+            if (!BlockComponentStateReader.TryRead<CleanRoomMachineProcessorSaveJsonObject>(componentStates, saveKey, out var saveData)) return;
             cycleCount = saveData.CycleCount;
             RestoreSlots(saveData);
 

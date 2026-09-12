@@ -158,9 +158,9 @@ namespace Tests.CombinedTest.Core
             // moduleSlotキーを取り除いた「過去セーブ」をロードしてもモジュールスロットが空で読めることを確認
             // Loading an "old save" with the moduleSlot key removed must yield empty module slots without errors
             var saveKey = typeof(VanillaMachineSaveComponent).FullName;
-            var machineJson = JObject.Parse(saveState[saveKey]);
+            var machineJson = JObject.FromObject(saveState[saveKey]);
             machineJson.Remove("moduleSlot");
-            saveState[saveKey] = machineJson.ToString();
+            saveState[saveKey] = machineJson;
 
             var oldSaveBlock = ServerContext.BlockFactory.Load(blockGuid, new BlockInstanceId(101), saveState, block.BlockPositionInfo);
             var oldSaveInventory = oldSaveBlock.GetComponent<VanillaMachineBlockInventoryComponent>();

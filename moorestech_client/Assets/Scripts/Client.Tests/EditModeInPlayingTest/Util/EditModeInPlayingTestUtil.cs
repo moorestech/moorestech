@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.Context;
 using Client.Starter;
 using Core.Item.Interface;
@@ -73,17 +74,9 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             void SetInitializeProperty(Scene scene, LoadSceneMode mode)
             {
                 SceneManager.sceneLoaded -= SetInitializeProperty;
-                
-                // 既存のセーブデータをロードさせず、オートセーブもしないようにする
+
                 var localProperties = InitializeProprieties.CreateLocalServer(null);
-                var properties = new StartServerSettings
-                {
-                    WorldDirectory = worldDirectory,
-                    AutoSave = false,
-                    ServerDataDirectory = serverDirectory,
-                    MapMode = mapMode,
-                };
-                localProperties.CreateLocalServerArgs = CliConvert.Serialize(properties);
+                localProperties.CreateLocalServerArgs = CliConvert.Serialize(CreateServerSettings(worldDirectory, serverDirectory, mapMode));
 
                 var starter = GameObject.FindObjectOfType<InitializeScenePipeline>();
                 starter.SetProperty(localProperties);
@@ -106,7 +99,25 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             
             #endregion
         }
-        
+
+        // 既存のセーブデータをロードさせず、オートセーブも常時記録もしないようにする起動設定を作る
+        // Build boot settings that skip loading an existing save and disable both auto-save and always-on capture
+        public static StartServerSettings CreateServerSettings(string worldDirectory, string serverDirectory, string mapMode)
+        {
+            // 録画リングもCaptureRingと同じ役割で無効化する。EditModeInPlayingTestがScreenCapture等を奪い合わないため
+            // Disables the recording ring in the same role as CaptureRing, so EditModeInPlayingTest never contends over ScreenCapture etc.
+            BugReportRecordingSettings.SetEnabled(false);
+
+            return new StartServerSettings
+            {
+                WorldDirectory = worldDirectory,
+                AutoSave = false,
+                CaptureRing = false,
+                ServerDataDirectory = serverDirectory,
+                MapMode = mapMode,
+            };
+        }
+
         public static async UniTask GiveItem(string itemName, int count)
         {
             var giveItemId = new ItemId(-1);

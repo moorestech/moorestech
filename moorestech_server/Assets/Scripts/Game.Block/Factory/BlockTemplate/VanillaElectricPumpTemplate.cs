@@ -18,12 +18,12 @@ namespace Game.Block.Factory.BlockTemplate
             return CreatePump(null, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return CreatePump(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        private static IBlock CreatePump(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        private static IBlock CreatePump(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             var param = (ElectricPumpBlockParam)blockMasterElement.BlockParam;
 

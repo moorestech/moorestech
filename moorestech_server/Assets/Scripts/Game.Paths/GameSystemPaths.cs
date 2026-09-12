@@ -42,6 +42,12 @@ namespace Game.Paths
         // Holds data derived from the server; deleting it only forces a re-fetch
         public static string WorldCacheDirectory => DirectoryCreator(GameSystemDirectory, "cache", "worlds");
 
+        // バグ報告の常時記録とoutbox。ワールドとは独立に持つ
+        // Always-on capture and outbox for bug reports; independent of any world
+        public static string BugReportDirectory => Path.Combine(GameSystemDirectory, "BugReports");
+        public static string BugReportOutboxDirectory => Path.Combine(BugReportDirectory, "outbox");
+        public static string BugReportRecordingDirectory => Path.Combine(BugReportDirectory, "recording");
+
         // ワールドごとのクライアントキャッシュ。worldIdはサーバーが払い出すワールド同一性の識別子
         // Per-world client cache; worldId is the world identity issued by the server
         public static string GetWorldCacheDirectory(string worldId)

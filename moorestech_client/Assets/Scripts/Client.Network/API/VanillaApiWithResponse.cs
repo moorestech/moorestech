@@ -45,6 +45,14 @@ namespace Client.Network.API
             return await _packetExchangeManager.GetPacketResponse<SaveProtocol.SaveProtocolResponseMessagePack>(request, ct);
         }
 
+        // バグ報告用の即時スナップショットを要求する。完了は BugReportCaptureCompletedEventPacket.EventTag で届く
+        // Requests an immediate snapshot for a bug report; completion arrives via BugReportCaptureCompletedEventPacket.EventTag
+        public async UniTask<BugReportCaptureProtocol.BugReportCaptureResponse> RequestBugReportCapture(CancellationToken ct)
+        {
+            var request = BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest();
+            return await _packetExchangeManager.GetPacketResponse<BugReportCaptureProtocol.BugReportCaptureResponse>(request, ct);
+        }
+
         public async UniTask<InitialHandshakeResponse> InitialHandShake(int playerId, CancellationToken ct)
         {
             //最初のハンドシェイクを行う

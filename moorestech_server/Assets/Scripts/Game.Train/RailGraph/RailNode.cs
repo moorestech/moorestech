@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Update;
 using Game.Train.RailCalc;
 using Game.Train.SaveLoad;
 using UnityEditor;
@@ -70,7 +71,7 @@ namespace Game.Train.RailGraph
             // グラフプロバイダを保持する
             // Keep the graph provider dependency
             _graphDatastore = graphDatastore;
-            Guid = Guid.NewGuid();
+            Guid = GameRandom.NextGuid();
             FrontControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
             BackControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
             StationRef = new StationReference();

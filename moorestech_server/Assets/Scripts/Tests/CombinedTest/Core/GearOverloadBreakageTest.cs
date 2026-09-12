@@ -117,6 +117,43 @@ namespace Tests.CombinedTest.Core
             idleBreakage.Destroy();
         }
 
+        // 破断抽選が世界共有の乱数でないと、同じスナップショットと同じパケット列を再生しても破断の有無がずれる
+        // If the breakage roll does not come from the shared world random, replaying the same snapshot and packets diverges on whether the gear broke
+        [Test]
+        public void 過負荷の破断抽選はGameRandomを1回だけ引く()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var world = ServerContext.WorldBlockDatastore;
+            var overloadedPosition = new Vector3Int(6, 0, 0);
+            var withinThresholdPosition = new Vector3Int(8, 0, 0);
+            world.TryAddBlock(ForUnitTestModBlockId.SmallGearBeltConveyor, overloadedPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var overloadedBlock);
+            world.TryAddBlock(ForUnitTestModBlockId.SmallGearBeltConveyor, withinThresholdPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var withinThresholdBlock);
+
+            var param = (GearBeltConveyorBlockParam)overloadedBlock.BlockMasterElement.BlockParam;
+            var overloadParam = (IGearOverloadParam)param;
+            var overloadedTorque = (float)overloadParam.OverloadMaxTorque / (float)overloadParam.BaseDestructionProbability;
+            var withinThresholdTorque = overloadedTorque * (float)param.GearConsumption.IdlePowerRate;
+            var rpmAtThreshold = new RPM((float)overloadParam.OverloadMaxRpm);
+            var overloadedBreakage = new GearOverloadBreakageComponent(overloadedBlock.BlockInstanceId, new FixedCurrentGearTransformer(overloadedBlock.BlockInstanceId, rpmAtThreshold, new Torque(overloadedTorque)), overloadParam);
+            var withinThresholdBreakage = new GearOverloadBreakageComponent(withinThresholdBlock.BlockInstanceId, new FixedCurrentGearTransformer(withinThresholdBlock.BlockInstanceId, rpmAtThreshold, new Torque(withinThresholdTorque)), overloadParam);
+
+            var drawnOnce = GameRandomDrawAssert.StateAfterDraws(1);
+            GameRandomDrawAssert.BeginDrawCount();
+            overloadedBreakage.TickOverloadCheck();
+            GameRandomDrawAssert.AssertDrawn(drawnOnce, "過負荷の破断抽選が世界共有の乱数を引いていない");
+
+            // 閾値内は抽選そのものが起きないので、1回も引いてはならない
+            // Staying within the threshold skips the roll entirely, so it must not draw at all
+            var untouched = GameRandomDrawAssert.StateAfterDraws(0);
+            GameRandomDrawAssert.BeginDrawCount();
+            withinThresholdBreakage.TickOverloadCheck();
+            GameRandomDrawAssert.AssertDrawn(untouched, "破断確率0の経路が乱数を引いている");
+
+            GameUpdater.UpdateOneTick();
+            overloadedBreakage.Destroy();
+            withinThresholdBreakage.Destroy();
+        }
+
         private class FixedCurrentGearTransformer : IGearEnergyTransformer
         {
             public BlockInstanceId BlockInstanceId { get; }

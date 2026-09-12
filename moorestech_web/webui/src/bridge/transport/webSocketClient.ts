@@ -42,7 +42,7 @@ class WebSocketClient {
 
   // タイムアウト・切断時は reject
   // Rejects on timeout or disconnect
-  sendAction(type: string, payload: unknown): Promise<ActionResult> {
+  sendAction(type: string, payload: unknown, timeoutMs: number): Promise<ActionResult> {
     return new Promise((resolve, reject) => {
       if (this.ws?.readyState !== WebSocket.OPEN) {
         reject(new Error("disconnected"));
@@ -52,7 +52,7 @@ class WebSocketClient {
       const timer = window.setTimeout(() => {
         this.pendingActions.delete(requestId);
         reject(new Error("timeout"));
-      }, 5000);
+      }, timeoutMs);
       this.pendingActions.set(requestId, { resolve, reject, timer });
       const msg: ClientMsg = { op: "action", type, requestId, payload };
       this.ws.send(JSON.stringify(msg));
@@ -177,9 +177,9 @@ export function initBridge() {
 
 // UI コードは原則 actions.ts の dispatchAction を使うこと（reject の処理が必要なため）
 // UI code should normally use dispatchAction in actions.ts, which handles rejections
-export function sendAction(type: string, payload: unknown): Promise<ActionResult> {
+export function sendAction(type: string, payload: unknown, timeoutMs: number): Promise<ActionResult> {
   if (client === null) return Promise.reject(new Error("disconnected"));
-  return client.sendAction(type, payload);
+  return client.sendAction(type, payload, timeoutMs);
 }
 
 export function sendInputState(pointerOverUi: boolean, textInputFocused: boolean) {

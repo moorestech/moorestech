@@ -29,12 +29,12 @@ namespace Game.Block.Factory.BlockTemplate
             return Create(null, blockMasterElement, blockInstanceId, blockPositionInfo, _blockInventoryUpdateEvent);
         }
 
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return Create(componentStates, blockMasterElement, blockInstanceId, blockPositionInfo, _blockInventoryUpdateEvent);
         }
 
-        private static IBlock Create(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
+        private static IBlock Create(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo, BlockOpenableInventoryUpdateEvent blockInventoryUpdateEvent)
         {
             var machineParam = blockMasterElement.BlockParam as CleanRoomMachineBlockParam;
             var inputConnectorComponent = BlockTemplateUtil.CreateInventoryConnector(machineParam.InventoryConnectors, blockPositionInfo);

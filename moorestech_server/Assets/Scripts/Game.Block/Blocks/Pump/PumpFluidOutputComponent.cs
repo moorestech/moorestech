@@ -10,7 +10,6 @@ using Game.Block.Interface.State;
 using Game.Fluid;
 using MessagePack;
 using Mooresmaster.Model.FluidInventoryConnectsModule;
-using Newtonsoft.Json;
 using Game.Block.Interface.Component.ConnectJudge;
 using UniRx;
 
@@ -37,14 +36,13 @@ namespace Game.Block.Blocks.Pump
             _fluidConnector = fluidConnector;
         }
 
-        public PumpFluidOutputComponent(Dictionary<string, string> componentStates, float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector) : this(capacity, fluidConnector)
+        public PumpFluidOutputComponent(Dictionary<string, object> componentStates, float capacity, BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> fluidConnector) : this(capacity, fluidConnector)
         {
-            if (!componentStates.TryGetValue(SaveKey, out var state) || string.IsNullOrEmpty(state))
+            if (!BlockComponentStateReader.TryRead<FluidContainerSaveJsonObject>(componentStates, SaveKey, out var json))
             {
                 return;
             }
 
-            var json = JsonConvert.DeserializeObject<FluidContainerSaveJsonObject>(state);
             var restoredAmount = Math.Min(json.Amount, _tank.Capacity);
 
             _tank.Amount = restoredAmount;
@@ -116,13 +114,13 @@ namespace Game.Block.Blocks.Pump
             return fluidStack;
         }
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
 
             var state = new FluidContainerSaveJsonObject(_tank);
 
-            return JsonConvert.SerializeObject(state);
+            return state;
         }
 
         public BlockStateDetail[] GetBlockStateDetails()

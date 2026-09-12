@@ -5,7 +5,6 @@ using Core.Update;
 using Game.Block.Blocks.Connector;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Newtonsoft.Json;
 using static Game.Block.Interface.BlockException;
 
 namespace Game.Block.Blocks.CleanRoom
@@ -35,11 +34,11 @@ namespace Game.Block.Blocks.CleanRoom
             for (var i = 0; i < TransitSlotCount; i++) _transitSlots[i] = ServerContext.ItemStackFactory.CreatEmpty();
         }
 
-        public CleanRoomItemHatchComponent(Dictionary<string, string> componentStates, IBlockInventoryInserter blockInventoryInserter) : this(blockInventoryInserter)
+        public CleanRoomItemHatchComponent(Dictionary<string, object> componentStates, IBlockInventoryInserter blockInventoryInserter) : this(blockInventoryInserter)
         {
             // セーブ済みの中継スタックをスロット順に復元する
             // Restore saved in-transit stacks in slot order
-            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(componentStates[SaveKey]);
+            var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
             for (var i = 0; i < TransitSlotCount && i < itemJsons.Count; i++) _transitSlots[i] = itemJsons[i].ToItemStack();
         }
 
@@ -97,13 +96,13 @@ namespace Game.Block.Blocks.CleanRoom
 
         public string SaveKey { get; } = typeof(CleanRoomItemHatchComponent).FullName;
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             CheckDestroy(this);
 
             var itemJsons = new List<ItemStackSaveJsonObject>();
             foreach (var itemStack in _transitSlots) itemJsons.Add(new ItemStackSaveJsonObject(itemStack));
-            return JsonConvert.SerializeObject(itemJsons);
+            return itemJsons;
         }
 
         public IItemStack GetItem(int slot) { CheckDestroy(this); return _transitSlots[slot]; }

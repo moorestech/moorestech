@@ -32,6 +32,11 @@ namespace Server.Boot
         [Option(isFlag: false, "--autoSave", "-a")]
         public bool AutoSave { get; set; } = true;
 
+        // 常時記録（スナップショットリング＋パケットログ）。テスト・プレイテストは false で起動する
+        // Always-on capture (snapshot ring + packet log); tests and playtests boot with false
+        [Option(isFlag: false, "--captureRing")]
+        public bool CaptureRing { get; set; } = true;
+
         [Option(isFlag: false, "--serverDataDirectory")]
         public string ServerDataDirectory { get; set; } = ServerDirectory.GetDirectory();
     }

@@ -119,7 +119,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             block.GetComponent<ICleanRoomAirFilter>().ApplyRemovedImpurity(4900);
 
             var saveComponent = block.GetComponent<IBlockSaveState>();
-            var states = new Dictionary<string, string> { { saveComponent.SaveKey, saveComponent.GetSaveState() } };
+            var states = SaveLoadJsonTestHelper.ThroughJson(saveComponent.SaveKey, saveComponent.GetSaveState());
 
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.CleanRoomAirFilterId).BlockGuid;
             var positionInfo = new BlockPositionInfo(new Vector3Int(10, 0, 10), BlockDirection.North, Vector3Int.one);
@@ -131,7 +131,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             Assert.AreEqual(1, loadedInventory.GetItem(0).Count);
             Assert.AreEqual(ForUnitTestItemId.TestCleanRoomFilter, loadedInventory.GetItem(0).Id);
 
-            var resaved = JsonConvert.DeserializeObject<CleanRoomAirFilterSaveJsonObject>(loaded.GetComponent<IBlockSaveState>().GetSaveState());
+            var resaved = (CleanRoomAirFilterSaveJsonObject)loaded.GetComponent<IBlockSaveState>().GetSaveState();
             Assert.AreEqual(4900, resaved.WearAccumulation, 0.001);
         }
 

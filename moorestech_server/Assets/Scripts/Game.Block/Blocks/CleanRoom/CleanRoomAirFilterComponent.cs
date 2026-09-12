@@ -48,11 +48,9 @@ namespace Game.Block.Blocks.CleanRoom
             FilterSlot = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, 1);
         }
 
-        public CleanRoomAirFilterComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, CleanRoomAirFilterBlockParam param) : this(blockInstanceId, param)
+        public CleanRoomAirFilterComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, CleanRoomAirFilterBlockParam param) : this(blockInstanceId, param)
         {
-            if (!componentStates.TryGetValue(SaveKey, out var stateRaw)) return;
-
-            var saveData = JsonConvert.DeserializeObject<CleanRoomAirFilterSaveJsonObject>(stateRaw);
+            if (!BlockComponentStateReader.TryRead<CleanRoomAirFilterSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
             _wearAccumulation = saveData.WearAccumulation;
 
             // ロード時はブロック未登録のためイベント無しでスロットを復元する
@@ -91,7 +89,7 @@ namespace Game.Block.Blocks.CleanRoom
 
         public string SaveKey { get; } = typeof(CleanRoomAirFilterComponent).FullName;
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             CheckDestroy(this);
 
@@ -100,7 +98,7 @@ namespace Game.Block.Blocks.CleanRoom
                 WearAccumulation = _wearAccumulation,
                 Items = FilterSlot.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
-            return JsonConvert.SerializeObject(saveData);
+            return saveData;
         }
 
         public bool IsDestroy { get; private set; }
