@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
@@ -19,6 +21,7 @@ namespace Client.Tests.BugReport
             public int CutCount;
             public string Unavailable = "";
             public string ScreenshotPath = "/tmp/shot.png";
+            public UIStateEnum CurrentUiState = UIStateEnum.PauseMenu;
 
             private readonly UniTaskCompletionSource _timeout = new();
 
@@ -34,7 +37,8 @@ namespace Client.Tests.BugReport
             public string RecordingUnavailableReason() => Unavailable;
             public IReadOnlyList<(long unixMs, ulong tick)> FrameTicks() => new List<(long, ulong)> { (1, 2) };
             public IReadOnlyList<UnityLogEntry> Logs() => new List<UnityLogEntry>();
-            public ClientStateSnapshot ClientState() => new(Vector3.zero, Vector3.zero, Vector3.zero, "PauseMenu", 2);
+            public void SetCurrentUiState(UIStateEnum uiState) => CurrentUiState = uiState;
+            public ClientStateSnapshot ClientState() => new(Vector3.zero, Vector3.zero, Vector3.zero, CurrentUiState.ToString(), 2);
             public UniTask<string> CaptureScreenshot() => UniTask.FromResult(ScreenshotPath);
         }
 

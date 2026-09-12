@@ -3,7 +3,7 @@ using MessagePack;
 using Server.Event.EventReceive;
 using VContainer.Unity;
 
-namespace Client.Game.InGame.BugReport
+namespace Client.Game.InGame.BugReport.Capture
 {
     // サーバーの即時スナップショット完了イベントを購読し、確保セッションへ渡す
     // Subscribes to the server's immediate-snapshot completion event and forwards it to the capture session

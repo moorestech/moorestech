@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Game.PlacementTarget;

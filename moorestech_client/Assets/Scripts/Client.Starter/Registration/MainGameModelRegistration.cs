@@ -2,6 +2,7 @@ using Client.Game.InGame.ColliderStreaming;
 using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Context;
@@ -48,6 +49,7 @@ namespace Client.Starter.Registration
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
             builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
+            builder.RegisterEntryPoint<BugReportUiStatePusher>();
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

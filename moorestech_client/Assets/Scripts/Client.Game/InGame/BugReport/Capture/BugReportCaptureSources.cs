@@ -12,7 +12,7 @@ using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEngine;
 
-namespace Client.Game.InGame.BugReport
+namespace Client.Game.InGame.BugReport.Capture
 {
     // 確保セッションがゲームから記録を取る実装。テストではフェイクに差し替わる
     // The in-game implementation the capture session takes its records from; replaced by a fake in tests
@@ -25,14 +25,21 @@ namespace Client.Game.InGame.BugReport
         private readonly GameFrameRecorder _recorder;
         private readonly UnityLogRing _logRing;
         private readonly PlayerSystemContainer _playerSystemContainer;
-        private readonly UIStateControl _uiStateControl;
 
-        public BugReportCaptureSources(GameFrameRecorder recorder, UnityLogRing logRing, PlayerSystemContainer playerSystemContainer, UIStateControl uiStateControl)
+        // 画面はUIStateControlを見に行かず押し込んでもらう。見に行くと確保元→UI状態機械→ポーズ→確保元で生成が循環する
+        // The screen is pushed in rather than read from UIStateControl; reading it would loop sources to the UI state machine and back
+        private UIStateEnum _currentUiState = UIStateEnum.GameScreen;
+
+        public BugReportCaptureSources(GameFrameRecorder recorder, UnityLogRing logRing, PlayerSystemContainer playerSystemContainer)
         {
             _recorder = recorder;
             _logRing = logRing;
             _playerSystemContainer = playerSystemContainer;
-            _uiStateControl = uiStateControl;
+        }
+
+        public void SetCurrentUiState(UIStateEnum uiState)
+        {
+            _currentUiState = uiState;
         }
 
         public async UniTask<BugReportServerCaptureRequest> RequestServerCapture()
@@ -87,14 +94,15 @@ namespace Client.Game.InGame.BugReport
             if (player == null) Debug.LogWarning("バグ報告: プレイヤーが無いためプレイヤー位置を原点として記録します");
             var playerPosition = player == null ? Vector3.zero : player.Position;
 
-            return new ClientStateSnapshot(cameraPosition, cameraEulerAngles, playerPosition, _uiStateControl.CurrentState.ToString(), GameUpdater.CurrentTick);
+            return new ClientStateSnapshot(cameraPosition, cameraEulerAngles, playerPosition, _currentUiState.ToString(), GameUpdater.CurrentTick);
         }
 
         public async UniTask<string> CaptureScreenshot()
         {
             Directory.CreateDirectory(GameSystemPaths.BugReportDirectory);
-            var path = Path.Combine(GameSystemPaths.BugReportDirectory, "screenshot.png");
-            if (File.Exists(path)) File.Delete(path);
+            // 置き場はマシン共通なので、確保ごとに別名にして並行するPlayModeや再Escapeと掴み合わない
+            // The directory is machine-wide, so a per-capture name keeps parallel PlayModes and re-Escapes from grabbing each other's file
+            var path = Path.Combine(GameSystemPaths.BugReportDirectory, $"screenshot_{Guid.NewGuid():N}.png");
             ScreenCapture.CaptureScreenshot(path);
 
             var startTime = Time.realtimeSinceStartup;

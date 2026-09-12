@@ -10,7 +10,9 @@ namespace Client.Game.InGame.BugReport
         // Untracked files can hide working-tree-only credentials; they stay out of the bundle and only the exclusion is recorded
         private static readonly string[] SecretFileNameMarkers = { ".env", ".pem", ".key", ".p12", ".keystore", "id_rsa", "credential", "secret", "token" };
 
-        public static void Write(string directory, BugReportManifest manifest, RepositoryState buildInfo)
+        // リポジトリの場所は Application.dataPath 由来でメインスレッドでしか読めない。呼び出し側が読んだ値を受け取る
+        // The roots derive from Application.dataPath, readable only on the main thread, so the caller passes what it read
+        public static void Write(string directory, BugReportManifest manifest, RepositoryState buildInfo, string repositoryRoot, string masterDataRoot)
         {
             var repo = Path.Combine(directory, "repo");
             Directory.CreateDirectory(repo);
@@ -27,8 +29,8 @@ namespace Client.Game.InGame.BugReport
                 return;
             }
 
-            manifest.Repository = WriteOne(RepositoryStateProbe.RepositoryRoot, repo, "head.diff", "untracked", manifest);
-            manifest.MasterData = WriteOne(RepositoryStateProbe.MasterDataRoot, repo, "master.diff", "master-untracked", manifest);
+            manifest.Repository = WriteOne(repositoryRoot, repo, "head.diff", "untracked", manifest);
+            manifest.MasterData = WriteOne(masterDataRoot, repo, "master.diff", "master-untracked", manifest);
         }
 
         private static RepositoryState WriteOne(string root, string repoDirectory, string diffName, string untrackedDirectoryName, BugReportManifest manifest)

@@ -5,7 +5,7 @@ using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
 
-namespace Client.Game.InGame.BugReport
+namespace Client.Game.InGame.BugReport.Capture
 {
     // Escapeの瞬間の記録を確保し、サーバー側スナップショットの完了を待つ。次のEscapeで前回分は捨てる
     // Secures the Escape-moment records and waits for the server snapshot; the next Escape discards the previous set

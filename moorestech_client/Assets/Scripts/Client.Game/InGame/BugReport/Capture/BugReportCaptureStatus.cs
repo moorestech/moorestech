@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 
-namespace Client.Game.InGame.BugReport
+namespace Client.Game.InGame.BugReport.Capture
 {
     // 確保セッションの外向きの状態。ポーズメニューはこの3つだけを見る
     // The capture session's outward state; the pause menu looks only at these three
@@ -57,6 +58,10 @@ namespace Client.Game.InGame.BugReport
     public interface IBugReportCaptureSources
     {
         UniTask<BugReportServerCaptureRequest> RequestServerCapture();
+
+        // 現在の画面は外から押し込まれる。確保元がUI状態機械を参照するとDIが循環する
+        // The current screen is pushed in from outside; sources referencing the UI state machine makes DI circular
+        void SetCurrentUiState(UIStateEnum uiState);
 
         // 完了イベントを待つ上限。超えたら確保を諦める（テストは即時完了するフェイクへ差し替える）
         // Upper bound on waiting for the completion event; exceeding it abandons the capture

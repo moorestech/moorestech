@@ -1,4 +1,5 @@
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.Capture;
 using Client.Input;
 
 namespace Client.Game.InGame.UI.UIState.State.PauseMenu
@@ -40,6 +41,9 @@ namespace Client.Game.InGame.UI.UIState.State.PauseMenu
 
         public void OnExit()
         {
+            // 閉じ要求は今開いているメニューにだけ効く。持ち越すと次に開いた瞬間に閉じる
+            // A close request applies only to the menu currently open; carrying it over closes the next one instantly
+            _closeRequested = false;
         }
     }
 }

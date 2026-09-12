@@ -1,4 +1,5 @@
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -39,7 +40,16 @@ namespace Client.WebUiHost.Game.Actions
             }
 
             var result = await _writer.WriteAsync(data, description);
-            Debug.Log($"バグ報告を書き出しました {result.BundleDirectory}");
+
+            // READYの無い箱は運搬されない。成功として閉じるとユーザーは送ったつもりのまま何も届かない
+            // A box without READY is never shipped; closing as a success leaves the user believing a lost report was sent
+            if (!result.Ready)
+            {
+                Debug.LogError($"バグ報告を書き出せませんでした（運搬されません） {result.BundleDirectory}");
+                return ActionResult.Fail("bundle_write_failed");
+            }
+
+            Debug.Log($"バグ報告を書き出しました {result.BundleDirectory} missing:{result.Missing.Count}");
             _pauseMenuStateService.RequestClose();
             return ActionResult.Success();
         }

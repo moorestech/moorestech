@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;

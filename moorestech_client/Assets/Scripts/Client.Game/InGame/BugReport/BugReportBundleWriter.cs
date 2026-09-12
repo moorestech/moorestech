@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Recording;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -14,6 +15,10 @@ namespace Client.Game.InGame.BugReport
     {
         public string BundleDirectory;
         public IReadOnlyList<MissingItem> Missing;
+
+        // manifestとREADYまで書けたか。falseの箱は運搬されないので送信側は成功として扱ってはならない
+        // Whether the manifest and READY were written; an unshipped box must never be reported as a success
+        public bool Ready;
     }
 
     // 確保済みの記録を outbox の1箱へ書く。欠けた項目は manifest.missing に理由付きで残し、例外で止めない
@@ -36,9 +41,11 @@ namespace Client.Game.InGame.BugReport
                 Missing = new List<MissingItem>(data.Missing),
             };
 
-            // Applicationのパス系はメインスレッドでしか読めないため、焼き込み情報はここで先に読む
-            // Application's path APIs are main-thread only, so the baked build info is read here first
+            // Applicationのパス系はメインスレッドでしか読めないため、焼き込み情報とリポジトリの場所はここで先に読む
+            // Application's path APIs are main-thread only, so the baked build info and repository roots are read here first
             var buildInfo = Application.isEditor ? null : RepositoryStateProbe.ReadBuildInfo();
+            var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
+            var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
 
             // ファイルコピーと ffmpeg はメインスレッドを塞がないようスレッドプールで行う
             // File copies and ffmpeg run on the thread pool so the main thread never blocks
@@ -51,22 +58,24 @@ namespace Client.Game.InGame.BugReport
                 try { WriteFrameTicks(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("frames.tsv", $"書き出しに失敗した: {e.GetBaseException().Message}"); }
                 try { WriteLogs(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("logs", $"書き出しに失敗した: {e.GetBaseException().Message}"); }
                 try { CopyScreenshot(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("screenshot", $"コピーに失敗した: {e.GetBaseException().Message}"); }
-                try { BugReportRepositoryFiles.Write(directory, manifest, buildInfo); } catch (Exception e) { manifest.AddMissing("repo", $"リポジトリ状態の書き出しに失敗した: {e.GetBaseException().Message}"); }
+                try { BugReportRepositoryFiles.Write(directory, manifest, buildInfo, repositoryRoot, masterDataRoot); } catch (Exception e) { manifest.AddMissing("repo", $"リポジトリ状態の書き出しに失敗した: {e.GetBaseException().Message}"); }
             });
 
             // manifestとREADYの書き出しも外部境界。ここが失敗した箱は運搬されないので必ず理由を残す
             // Writing the manifest and READY is an external boundary too; an unshipped box must always say why
+            var ready = false;
             try
             {
                 File.WriteAllText(Path.Combine(directory, "manifest.json"), manifest.ToJson());
                 BugReportOutbox.MarkReady(directory);
+                ready = true;
                 Debug.Log($"バグ報告バンドルを書きました {directory} missing:{manifest.Missing.Count}");
             }
             catch (Exception e)
             {
                 Debug.LogError($"バグ報告バンドルのmanifestを書けませんでした（この箱は運搬されません） {directory}: {e.GetBaseException().Message}");
             }
-            return new BugReportBundleResult { BundleDirectory = directory, Missing = manifest.Missing };
+            return new BugReportBundleResult { BundleDirectory = directory, Missing = manifest.Missing, Ready = ready };
         }
 
         private static void CopyWorld(BugReportCapturedData data, string directory, BugReportManifest manifest)
@@ -163,6 +172,10 @@ namespace Client.Game.InGame.BugReport
                 return;
             }
             File.Copy(data.ScreenshotPath, Path.Combine(directory, "screenshot.png"));
+
+            // 確保ごとの一時ファイルなので、バンドルへ写した時点で置き場に残さない
+            // The capture-scoped temp file is removed once it has been copied into the bundle
+            File.Delete(data.ScreenshotPath);
         }
 
         private static ulong ParseTick(string fileName)
