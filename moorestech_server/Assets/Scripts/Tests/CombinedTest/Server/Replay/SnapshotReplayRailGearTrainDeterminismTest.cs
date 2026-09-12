@@ -46,7 +46,9 @@ namespace Tests.CombinedTest.Server.Replay
                 ring.WaitForPendingWrites();
                 GameUpdater.UpdateOneTick();
                 ring.WaitForPendingWrites();
-                CollectionAssert.AreEqual(new[] { 10UL, 20UL }.Select(WorldDataDirectory.SnapshotFileName).ToArray(), WorldDataDirectory.EnumerateSnapshotFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray());
+                // tick 0 は常時記録開始時の基準スナップショット（世界構築前）
+                // tick 0 is the baseline snapshot taken when always-on capture started, before the world was built
+                CollectionAssert.AreEqual(new[] { 0UL, 10UL, 20UL }.Select(WorldDataDirectory.SnapshotFileName).ToArray(), WorldDataDirectory.EnumerateSnapshotFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray());
 
                 var expected20 = File.ReadAllText(directory.SnapshotFilePath(20));
                 SnapshotReplayRailGearTrainFixture.AssertRailGearTrainPresent(expected20);

@@ -63,6 +63,12 @@ namespace Game.SaveLoad.Snapshot
             SnapshotDirectoryCleaner.DeletePreviousSessionFiles(_directory.SnapshotDirectory);
             _packetLog.Start(_directory.SnapshotDirectory, GameUpdater.CurrentTick + 1);
             IsActive = true;
+            // 基準スナップショットを開始tickで取る。無いと最初の周期までの区間は再生の出発点を持たない
+            // Take the baseline snapshot at the start tick; without it the span up to the first period has no point to replay from
+            lock (_tickStateLock)
+            {
+                CaptureInto(GameUpdater.CurrentTick, new List<long>());
+            }
             Debug.Log($"常時記録を開始しました period:{periodTicks}tick 保持:{retentionTicks}tick 上限:{maxGenerations}世代 dir:{_directory.SnapshotDirectory}");
         }
 
@@ -99,13 +105,10 @@ namespace Game.SaveLoad.Snapshot
                 if (requestIds.Count == 0 && !periodicDue) return;
                 if (periodicDue) _nextPeriodicTick += _periodTicks;
 
-                _requestIdsByTick[tick] = requestIds;
-                var data = _assembler.Capture();
-
                 // Rotate が内部で flush してから区間を切り替えるので、ここで重ねてflushしない
                 // Rotate flushes before switching segments, so no extra flush belongs here
                 _packetLog.Rotate(tick + 1);
-                _worker.Enqueue(new SaveWriteJob(0, SaveWriteKind.Snapshot, data, _directory.SnapshotFilePath(tick), false));
+                CaptureInto(tick, requestIds);
             }
         }
 
@@ -129,6 +132,15 @@ namespace Game.SaveLoad.Snapshot
         {
             _worker.WaitForIdle();
             DrainCompletions();
+        }
+
+        // 取り込みと要求IDの記録。区間は呼び出し側が取り込みtickの直後から始めてある
+        // Captures the world image and records the request ids; the caller has already begun the next segment right after this tick
+        private void CaptureInto(ulong tick, List<long> requestIds)
+        {
+            _requestIdsByTick[tick] = requestIds;
+            var data = _assembler.Capture();
+            _worker.Enqueue(new SaveWriteJob(0, SaveWriteKind.Snapshot, data, _directory.SnapshotFilePath(tick), false));
         }
 
         private List<long> TakePendingRequestIds()

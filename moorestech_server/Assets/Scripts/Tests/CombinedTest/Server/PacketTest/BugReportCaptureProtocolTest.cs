@@ -49,7 +49,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(11UL, payload.Tick);
             Assert.IsTrue(payload.Success, "書き出しに成功したのに完了イベントが失敗を伝えている");
             Assert.AreEqual(provider.GetRequiredService<WorldDataDirectory>().SnapshotDirectory, payload.SnapshotDirectory);
-            CollectionAssert.AreEqual(new[] { "tick_11.json" }, payload.SnapshotFileNames);
+            // tick_10 は常時記録開始時の基準スナップショット、tick_11 が今回の即時取得
+            // tick_10 is the baseline taken when always-on capture started; tick_11 is this immediate capture
+            CollectionAssert.AreEqual(new[] { "tick_10.json", "tick_11.json" }, payload.SnapshotFileNames);
 
             // 取り込みtickの直後から新しい区間が始まる。切り替えが落ちると再生は取り込み以降のパケットを失う
             // A new segment starts right after the captured tick; a missed rotation loses every packet after the capture in replay

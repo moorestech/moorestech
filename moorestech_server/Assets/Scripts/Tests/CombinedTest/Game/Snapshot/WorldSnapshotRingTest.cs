@@ -146,7 +146,9 @@ namespace Tests.CombinedTest.Game.Snapshot
             CaptureAt(9);
             CaptureAt(100);
 
-            CollectionAssert.AreEqual(new[] { "tick_9.json", "tick_100.json" }, written.SnapshotFileNames, "スナップショット一覧が辞書順になっている");
+            // 先頭の tick_8 は開始時の基準スナップショット
+            // The leading tick_8 is the baseline snapshot taken at start
+            CollectionAssert.AreEqual(new[] { "tick_8.json", "tick_9.json", "tick_100.json" }, written.SnapshotFileNames, "スナップショット一覧が辞書順になっている");
             CollectionAssert.AreEqual(new[] { "packets_9.bin", "packets_10.bin", "packets_101.bin" }, written.PacketLogFileNames, "区間ファイル一覧が辞書順になっている");
             Directory.Delete(Path.GetDirectoryName(savePath), true);
 
@@ -161,6 +163,37 @@ namespace Tests.CombinedTest.Game.Snapshot
             }
 
             #endregion
+        }
+
+        // 基準スナップショットが無いと、開始から最初の周期までに起きたバグは再生の出発点を持たない
+        // Without a baseline snapshot, a bug that happens between start and the first period has no point to replay from
+        [Test]
+        public void 開始時に基準スナップショットを書き区間はその直後から始まる()
+        {
+            var savePath = Path.Combine(Path.GetTempPath(), $"moorestech-ring-{Guid.NewGuid():N}", "save.json");
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
+            };
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(options);
+            var directory = provider.GetRequiredService<WorldDataDirectory>();
+            var ring = provider.GetRequiredService<WorldSnapshotRing>();
+            GameUpdater.RestoreCurrentTick(5);
+
+            // 周期600tickなので、基準を書かなければ最初の周期までスナップショットは1本も存在しない
+            // At a 600-tick period, no snapshot would exist until the first period unless the baseline is written
+            ring.Start(600, 1800, 16);
+            ring.WaitForPendingWrites();
+
+            var snapshots = WorldDataDirectory.EnumerateSnapshotFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray();
+            CollectionAssert.AreEqual(new[] { "tick_5.json" }, snapshots, "開始tickの基準スナップショットが書かれていない");
+
+            // 区間が基準tickの直後から始まっていないと、再生は基準に含まれ済みのパケットを二重適用する
+            // Unless the segment begins right after the baseline tick, replay reapplies packets the baseline already contains
+            var segments = WorldDataDirectory.EnumeratePacketLogFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray();
+            CollectionAssert.AreEqual(new[] { "packets_6.bin" }, segments, "区間が基準スナップショットの直後から始まっていない");
+            ring.Stop();
+            Directory.Delete(Path.GetDirectoryName(savePath), true);
         }
 
         // 前セッションの残骸が残ると、剪定対象にならない古いtickが残り続け、再生へ異セッションのパケットが混ざる
