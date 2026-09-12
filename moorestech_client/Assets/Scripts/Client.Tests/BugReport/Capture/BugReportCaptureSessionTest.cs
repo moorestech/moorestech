@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Recording;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
