@@ -43,6 +43,21 @@ def text(section_name, key):
     notes.append("manifest の %s.%s が無い/空。空として続行する" % (section_name, key))
     return ""
 
+# 再現は記録時と同じサーバーデータでしか成立しない。受け側は自分の worktree 配下へ解決するので相対表現を使う
+# Reproduction holds only with the recording's own server data; the receiver resolves it under its own worktree, hence the relative form
+server = data.get("serverData")
+server_relative_to = ""
+server_relative_path = ""
+server_path = ""
+if not isinstance(server, dict):
+    notes.append("manifest に serverData が無い。記録時にサーバーが読んだマスタを特定できないため決定性検査は行えない")
+else:
+    server_relative_to = server.get("relativeTo") if isinstance(server.get("relativeTo"), str) else ""
+    server_relative_path = server.get("relativePath") if isinstance(server.get("relativePath"), str) else ""
+    server_path = server.get("path") if isinstance(server.get("path"), str) else ""
+    if not server_relative_path:
+        notes.append("serverData がリポジトリの外を指しているため受け側で解決できない: %s" % (server_path or "(path も空)"))
+
 ticks = data.get("snapshotTicks")
 if not isinstance(ticks, list):
     notes.append("manifest の snapshotTicks が無い/配列でない。スナップショット無しで続行する")
@@ -64,6 +79,9 @@ values = [
     ("REPORT_COMMIT", text("repository", "commit")),
     ("REPORT_BRANCH", text("repository", "branch")),
     ("MASTER_COMMIT", text("masterData", "commit")),
+    ("SERVER_DATA_RELATIVE_TO", server_relative_to),
+    ("SERVER_DATA_RELATIVE_PATH", server_relative_path),
+    ("SERVER_DATA_PATH", server_path),
     ("LATEST_TICK", latest),
 ]
 # 値を全部取ってから理由を出す。取得中に増える note を取りこぼさないため
@@ -76,10 +94,11 @@ PY
 }
 
 REPORT_COMMIT=""; REPORT_BRANCH=""; MASTER_COMMIT=""; LATEST_TICK=""
+SERVER_DATA_RELATIVE_TO=""; SERVER_DATA_RELATIVE_PATH=""; SERVER_DATA_PATH=""
 manifest_env="$(read_manifest)" || log "manifest の読み取りに失敗した。全項目を空として続行する"
 eval "$manifest_env"
 
-WORKTREE="$WORKTREES/bugfix-$ID"; COMMIT_MISSING=0; DIFF_APPLY_FAILED=0; MASTER_FAILED=0
+WORKTREE="$WORKTREES/bugfix-$ID"; COMMIT_MISSING=0; DIFF_APPLY_FAILED=0; MASTER_FAILED=0; MASTER_WORKTREE=""
 # 既存の worktree は消さずに失敗させる（他ランの作業物を巻き込まないため）
 # Never delete an existing worktree; fail instead so another run's work is not destroyed
 [ -e "$WORKTREE" ] && { log "worktree が既に存在する。二重準備を避けて中断: $WORKTREE"; exit 1; }
@@ -114,9 +133,27 @@ if [ -n "$MASTER_COMMIT" ] && [ -d "$MASTER" ]; then
       MASTER_FAILED=1
     fi
   fi
-  if [ "$MASTER_FAILED" = "0" ]; then MASTER_DIR="$MASTER_WORKTREES/bugfix-$ID/server_v8"; fi
+  if [ "$MASTER_FAILED" = "0" ]; then MASTER_WORKTREE="$MASTER_WORKTREES/bugfix-$ID"; MASTER_DIR="$MASTER_WORKTREE/server_v8"; fi
 else
   log "master data の worktree を作らない（commit='$MASTER_COMMIT' repo='$MASTER'）"
+fi
+
+# 記録時のサーバーデータを、この受け側の worktree 配下へ解決する。MASTER_DIR で代用すると別マスタで再生してしまう
+# Resolve the recording's server data under this receiver's worktrees; substituting MASTER_DIR would replay against different masters
+SERVER_DATA_DIR=""
+case "$SERVER_DATA_RELATIVE_TO" in
+  repository) server_data_base="$WORKTREE" ;;
+  masterData) server_data_base="$MASTER_WORKTREE" ;;
+  *) server_data_base="" ;;
+esac
+if [ -z "$SERVER_DATA_RELATIVE_PATH" ]; then
+  log "記録時のサーバーデータが manifest から分からない（relativeTo='$SERVER_DATA_RELATIVE_TO' path='$SERVER_DATA_PATH'）。決定性検査は行えない"
+elif [ -z "$server_data_base" ]; then
+  log "記録時のサーバーデータの基準 worktree が無い（relativeTo='$SERVER_DATA_RELATIVE_TO'）。決定性検査は行えない"
+elif [ -d "$server_data_base/$SERVER_DATA_RELATIVE_PATH/mods" ]; then
+  SERVER_DATA_DIR="$server_data_base/$SERVER_DATA_RELATIVE_PATH"
+else
+  log "記録時のサーバーデータが受け側に無い（mods/ が無い）: ${server_data_base}/${SERVER_DATA_RELATIVE_PATH}（記録時: ${SERVER_DATA_PATH}）。決定性検査は行えない"
 fi
 
 # Library は APFS クローン（AGENTS.md）。無ければ初回インポートに任せる
@@ -148,6 +185,7 @@ done
 {
   printf 'WORKTREE=%q\n' "$WORKTREE"
   printf 'MASTER_DIR=%q\n' "$MASTER_DIR"
+  printf 'SERVER_DATA_DIR=%q\n' "$SERVER_DATA_DIR"
   printf 'WORLD_DIR=%q\n' "$WORLD_DIR"
   printf 'REPORT_COMMIT=%q\n' "$REPORT_COMMIT"
   printf 'REPORT_BRANCH=%q\n' "$REPORT_BRANCH"

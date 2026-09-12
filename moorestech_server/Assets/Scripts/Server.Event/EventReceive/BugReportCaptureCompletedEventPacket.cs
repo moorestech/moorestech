@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Game.Context;
+using Game.Paths;
 using Game.SaveLoad.Interface;
 using MessagePack;
 using UniRx;
@@ -18,11 +19,16 @@ namespace Server.Event.EventReceive
         private readonly ISnapshotWrittenNotifier _snapshotWrittenNotifier;
         private readonly BugReportCaptureRequesterRegistry _requesterRegistry;
 
-        public BugReportCaptureCompletedEventPacket(EventProtocolProvider eventProtocolProvider, ISnapshotWrittenNotifier snapshotWrittenNotifier, BugReportCaptureRequesterRegistry requesterRegistry)
+        // 記録を再現するには、そのとき実際にマスタを読んだ置き場が要る。報告側で推測すると別のデータで再現してしまう
+        // Reproducing a record needs the very directory the masters were read from; guessing it on the report side reproduces a different world
+        private readonly ServerDataDirectory _serverDataDirectory;
+
+        public BugReportCaptureCompletedEventPacket(EventProtocolProvider eventProtocolProvider, ISnapshotWrittenNotifier snapshotWrittenNotifier, BugReportCaptureRequesterRegistry requesterRegistry, ServerDataDirectory serverDataDirectory)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _snapshotWrittenNotifier = snapshotWrittenNotifier;
             _requesterRegistry = requesterRegistry;
+            _serverDataDirectory = serverDataDirectory;
         }
 
         public void Load()
@@ -43,7 +49,7 @@ namespace Server.Event.EventReceive
                 // The file list comes from the ring's authoritative state; scanning disk here would race pruning and order names lexicographically
                 var payload = MessagePackSerializer.Serialize(new BugReportCaptureCompletedMessagePack(
                     written.RequestId, written.Tick, written.Success, written.SnapshotDirectory,
-                    written.SnapshotFileNames.ToList(), written.PacketLogFileNames.ToList()));
+                    written.SnapshotFileNames.ToList(), written.PacketLogFileNames.ToList(), _serverDataDirectory.Root));
                 _eventProtocolProvider.AddEvent(requesterPlayerId, EventTag, payload);
             }
 
@@ -63,10 +69,14 @@ namespace Server.Event.EventReceive
             // Whether the write succeeded; failures are broadcast too, so the requester stops waiting on this flag
             [Key(5)] public bool Success { get; set; }
 
+            // 記録時にサーバーがマスタとmodを読んだ置き場。再現側はここを渡されないと別のマスタで再生する
+            // Where the server read masters and mods at record time; without it the reproduction side replays against different masters
+            [Key(6)] public string ServerDataDirectory { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public BugReportCaptureCompletedMessagePack() { }
 
-            public BugReportCaptureCompletedMessagePack(long captureId, ulong tick, bool success, string snapshotDirectory, List<string> snapshotFileNames, List<string> packetLogFileNames)
+            public BugReportCaptureCompletedMessagePack(long captureId, ulong tick, bool success, string snapshotDirectory, List<string> snapshotFileNames, List<string> packetLogFileNames, string serverDataDirectory)
             {
                 CaptureId = captureId;
                 Tick = tick;
@@ -74,6 +84,7 @@ namespace Server.Event.EventReceive
                 SnapshotDirectory = snapshotDirectory;
                 SnapshotFileNames = snapshotFileNames;
                 PacketLogFileNames = packetLogFileNames;
+                ServerDataDirectory = serverDataDirectory;
             }
         }
     }

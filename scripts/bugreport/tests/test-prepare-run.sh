@@ -30,7 +30,7 @@ mkdir -p "$RUN/repo/untracked/new" && echo n > "$RUN/repo/untracked/new/file.txt
 echo '{"seed":0}' > "$RUN/world/world.json"; echo '{}' > "$RUN/world/map.json"
 echo '{"currentTick":600}' > "$RUN/snapshots/tick_600.json"; echo '{"currentTick":1200}' > "$RUN/snapshots/tick_1200.json"
 cat > "$RUN/manifest.json" <<JSON
-{"repository":{"commit":"$REPORT_COMMIT","branch":"feature/x","dirty":true},"masterData":{"commit":"$MASTER_COMMIT","dirty":false},"snapshotTicks":[600,1200]}
+{"repository":{"commit":"$REPORT_COMMIT","branch":"feature/x","dirty":true},"masterData":{"commit":"$MASTER_COMMIT","dirty":false},"serverData":{"path":"/report/moorestech_master/server_v8","relativeTo":"masterData","relativePath":"server_v8"},"snapshotTicks":[600,1200]}
 JSON
 
 MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$TMP/master" MOORESTECH_MASTER_WORKTREES="$TMP/mwt" MOORESTECH_LOGS="$TMP" \
@@ -44,6 +44,7 @@ MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$T
 [ -f "$WORKTREE/b.txt" ] || { echo "NG: bundle のコミットが取り込まれていない"; exit 1; }
 [ -f "$WORKTREE/moorestech_client/Library/x" ] || { echo "NG: Library コピー"; exit 1; }
 [ "$MASTER_DIR" = "$TMP/mwt/bugfix-r1/server_v8" ] || { echo "NG: MASTER_DIR=$MASTER_DIR"; exit 1; }
+[ "$SERVER_DATA_DIR" = "$TMP/mwt/bugfix-r1/server_v8" ] || { echo "NG: SERVER_DATA_DIR=$SERVER_DATA_DIR"; exit 1; }
 [ "$LATEST_TICK" = "1200" ] || { echo "NG: LATEST_TICK=$LATEST_TICK"; exit 1; }
 [ "$(cat "$WORLD_DIR/save.json")" = '{"currentTick":1200}' ] || { echo "NG: save.json"; exit 1; }
 [ "$COMMIT_MISSING" = "0" ] && [ "$DIFF_APPLY_FAILED" = "0" ] || { echo "NG: フラグ"; exit 1; }
@@ -56,6 +57,30 @@ if MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER=
 fi
 grep -q "二重準備を避けて中断" "$TMP/second.log" || { echo "NG: 中断理由がログされていない"; exit 1; }
 [ -f "$WORKTREE/b.txt" ] || { echo "NG: 既存 worktree が壊された"; exit 1; }
+
+# リポジトリ配下のサーバーデータ（テスト用modセット等）は本体 worktree の側で解決する
+# Server data under the code repository (a test mod set, say) resolves inside the code worktree
+RUN1B="$TMP/runs/r1b"; mkdir -p "$RUN1B"
+( cd "$TMP/repo" && mkdir -p moorestech_client/TestServerData/mods && echo m > moorestech_client/TestServerData/mods/x && git add moorestech_client/TestServerData && git commit -qm testserverdata && git push -q origin HEAD:master )
+REPORT_COMMIT_1B="$(git -C "$TMP/repo" rev-parse HEAD)"
+cat > "$RUN1B/manifest.json" <<JSON
+{"repository":{"commit":"$REPORT_COMMIT_1B","branch":"feature/x","dirty":false},"masterData":{"commit":"$MASTER_COMMIT","dirty":false},"serverData":{"path":"/report/moorestech_client/TestServerData","relativeTo":"repository","relativePath":"moorestech_client/TestServerData"},"snapshotTicks":[600]}
+JSON
+MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$TMP/master" MOORESTECH_MASTER_WORKTREES="$TMP/mwt" MOORESTECH_LOGS="$TMP" \
+  bash "$HERE/../prepare-run.sh" r1b 2>"$TMP/r1b.log"
+( . "$RUN1B/run.env"; [ "$SERVER_DATA_DIR" = "$TMP/wt/bugfix-r1b/moorestech_client/TestServerData" ] ) || { echo "NG: r1b の SERVER_DATA_DIR"; cat "$TMP/r1b.log"; exit 1; }
+
+# 受け側に無いサーバーデータを黙って別のマスタで代用しない。空にして理由をログする
+# Server data absent on the receiving side is never silently swapped for other masters; it stays empty with a logged reason
+RUN1C="$TMP/runs/r1c"; mkdir -p "$RUN1C"
+cat > "$RUN1C/manifest.json" <<JSON
+{"repository":{"commit":"$REPORT_COMMIT","branch":"feature/x","dirty":false},"masterData":{"commit":"$MASTER_COMMIT","dirty":false},"serverData":{"path":"/report/elsewhere","relativeTo":"absolute","relativePath":""},"snapshotTicks":[600]}
+JSON
+MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$TMP/master" MOORESTECH_MASTER_WORKTREES="$TMP/mwt" MOORESTECH_LOGS="$TMP" \
+  bash "$HERE/../prepare-run.sh" r1c 2>"$TMP/r1c.log"
+grep -q "serverData がリポジトリの外を指している" "$TMP/r1c.log" || { echo "NG: 解決できない serverData の理由がログされていない"; exit 1; }
+grep -q "決定性検査は行えない" "$TMP/r1c.log" || { echo "NG: 決定性検査を行えない旨がログされていない"; exit 1; }
+( . "$RUN1C/run.env"; [ -z "$SERVER_DATA_DIR" ] && [ -n "$MASTER_DIR" ] ) || { echo "NG: r1c の SERVER_DATA_DIR が空でない"; exit 1; }
 
 # 報告コミットが手に入らない場合は origin/master を土台にしてフラグを立てる
 # When the report commit is unavailable, fall back to origin/master and raise the flag
@@ -78,8 +103,8 @@ JSON
 ENVS=(MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$TMP/master" MOORESTECH_MASTER_WORKTREES="$TMP/mwt" MOORESTECH_LOGS="$TMP")
 env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r3 2>"$TMP/r3.log" || { echo "NG: 欠損した箱で prepare が落ちた"; cat "$TMP/r3.log"; exit 1; }
 [ -f "$RUN3/run.env" ] || { echo "NG: r3 の run.env が無い"; exit 1; }
-( . "$RUN3/run.env"; [ -z "$LATEST_TICK" ] && [ -d "$WORKTREE" ] && [ "$COMMIT_MISSING" = "1" ] && [ -z "$MASTER_DIR" ] ) || { echo "NG: r3 の run.env 内容"; exit 1; }
-for phrase in "snapshotTicks が空" "報告側が欠損を申告している: serverSnapshot" "報告側が欠損を申告している: video" \
+( . "$RUN3/run.env"; [ -z "$LATEST_TICK" ] && [ -d "$WORKTREE" ] && [ "$COMMIT_MISSING" = "1" ] && [ -z "$MASTER_DIR" ] && [ -z "$SERVER_DATA_DIR" ] ) || { echo "NG: r3 の run.env 内容"; exit 1; }
+for phrase in "snapshotTicks が空" "manifest に serverData が無い" "報告側が欠損を申告している: serverSnapshot" "報告側が欠損を申告している: video" \
               "repository.commit は空として" "masterData.commit は空として" "スナップショットの tick が無いため" \
               "ワールド定義が箱に無い: world.json" "ワールド定義が箱に無い: map.json" "未追跡ファイルが箱に無い"; do
   grep -q "$phrase" "$TMP/r3.log" || { echo "NG: 欠損の理由がログされていない: $phrase"; exit 1; }

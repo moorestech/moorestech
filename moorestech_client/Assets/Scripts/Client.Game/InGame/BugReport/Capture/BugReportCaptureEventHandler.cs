@@ -26,7 +26,7 @@ namespace Client.Game.InGame.BugReport.Capture
         private void OnCaptureCompleted(byte[] payload)
         {
             var packet = MessagePackSerializer.Deserialize<BugReportCaptureCompletedEventPacket.BugReportCaptureCompletedMessagePack>(payload);
-            _session.OnServerCaptureCompleted(packet.CaptureId, packet.Tick, packet.Success, packet.SnapshotDirectory, packet.SnapshotFileNames, packet.PacketLogFileNames);
+            _session.OnServerCaptureCompleted(packet.CaptureId, packet.Tick, packet.Success, packet.SnapshotDirectory, packet.ServerDataDirectory, packet.SnapshotFileNames, packet.PacketLogFileNames);
         }
     }
 }

@@ -67,6 +67,9 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 // prepare-run.sh places the largest-tick snapshot as save.json; without the file a fixed-world boot is impossible
                 var latestTick = ((JArray)manifest["snapshotTicks"]).Select(tick => (ulong)tick).Max();
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, "snapshots", WorldDataDirectory.SnapshotFileName(latestTick))), $"最大tickのスナップショット実体が無い tick:{latestTick}");
+                // manifestのサーバーデータは、この起動が実際にマスタを読んだ置き場でなければならない（違うと再現が解読不能な例外で落ちる）
+                // The manifest's server data must be the directory this boot really read masters from; otherwise reproduction dies inscrutably
+                Assert.AreEqual(Path.GetFullPath(EditModeInPlayingTestUtil.EditModeInPlayingTestServerDirectoryPath), (string)manifest["serverData"]["path"], "manifestのサーバーデータが起動時の置き場と違う");
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, "logs", "unity.log")), "Unityログが同梱されていない");
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, "repo", "head.diff")), "未コミット差分が同梱されていない");
 
@@ -121,6 +124,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 Assert.IsTrue(missing.Contains("serverSnapshot"), "サーバースナップショットの欠損がmanifestに残っていない");
                 Assert.IsTrue(missing.Contains("snapshots"), "スナップショット置き場が無かったことがmanifestに残っていない");
                 Assert.IsTrue(missing.Contains("video"), "動画の欠損がmanifestに残っていない");
+                Assert.IsTrue(missing.Contains("serverData"), "サーバーデータを特定できなかったことがmanifestに残っていない");
                 Assert.IsTrue(((JArray)manifest["missing"]).All(item => ((string)item["reason"]).Length > 0), "理由の無い欠損がある");
                 Assert.AreEqual(0, ((JArray)manifest["snapshotFiles"]).Count, "確保に失敗したのにスナップショットが載っている");
 

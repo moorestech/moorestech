@@ -58,6 +58,13 @@ namespace Tests.CombinedTest.Server.PacketTest
             Assert.AreEqual(11UL, payload.Tick);
             Assert.IsTrue(payload.Success, "書き出しに成功したのに完了イベントが失敗を伝えている");
             Assert.AreEqual(provider.GetRequiredService<WorldDataDirectory>().SnapshotDirectory, payload.SnapshotDirectory);
+
+            // 完了イベントのサーバーデータは、このサーバーがマスタを読んだ場所そのものでなければならない
+            // The completion event's server data must be the very directory this server read its masters from
+            // 別の場所（../moorestech_master 等）を報告側が推測すると、再現は別マスタで走り読み解けない例外で落ちる
+            // A guess on the report side (such as ../moorestech_master) makes the reproduction run different masters and die inscrutably
+            Assert.AreEqual(options.ServerDataDirectory, payload.ServerDataDirectory);
+            Assert.AreEqual(options.ServerDataDirectory, provider.GetRequiredService<ServerDataDirectory>().Root);
             // tick_10 は常時記録開始時の基準スナップショット、tick_11 が今回の即時取得
             // tick_10 is the baseline taken when always-on capture started; tick_11 is this immediate capture
             CollectionAssert.AreEqual(new[] { "tick_10.json", "tick_11.json" }, payload.SnapshotFileNames);

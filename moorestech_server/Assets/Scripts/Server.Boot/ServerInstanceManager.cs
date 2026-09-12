@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -78,7 +77,7 @@ namespace Server.Boot
 
             // 生成設定はマスタなのでプロビジョニング前にマスタをロードする（Create()内の再ロードは冪等）
             // Generation config lives in master data, so load masters before provisioning (reload in Create() is idempotent)
-            var modResource = new ModsResource(Path.Combine(settings.ServerDataDirectory, "mods"));
+            var modResource = new ModsResource(new ServerDataDirectory(settings.ServerDataDirectory).ModsDirectory);
             MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
 
             // generatedモードの未指定シードを固定し、同じマスタから常に同じワールドを生成する

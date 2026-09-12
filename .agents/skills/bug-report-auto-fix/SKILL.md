@@ -20,7 +20,8 @@ hooks:
 # bug-report-auto-fix — バグ報告の自動再現・修正（無人実行）
 
 `$RUN = $BUG_REPORT_RUNDIR_BASE/<run-id>`（既定 `~/hermes-agent/data/repos/moorestech_logs/harness/bug-report/runs/<run-id>`）。
-`$RUN/run.env` に `WORKTREE`・`MASTER_DIR`・`WORLD_DIR`・`REPORT_COMMIT`・`REPORT_BRANCH`・`LATEST_TICK`・`COMMIT_MISSING`・`DIFF_APPLY_FAILED` がある。作業は必ず `$WORKTREE` で行う。
+`$RUN/run.env` に `WORKTREE`・`MASTER_DIR`・`SERVER_DATA_DIR`・`WORLD_DIR`・`REPORT_COMMIT`・`REPORT_BRANCH`・`LATEST_TICK`・`COMMIT_MISSING`・`DIFF_APPLY_FAILED` がある。
+`SERVER_DATA_DIR` は**記録時にサーバーが実際にマスタを読んだ置き場**（manifest の `serverData` から受け側の worktree 配下へ解決した値）。`MASTER_DIR` とは一致しないことがあり、再生・観察には必ず `SERVER_DATA_DIR` を使う。作業は必ず `$WORKTREE` で行う。
 `$RUN`・`$WORKTREE` 等は本ドキュメント上のプレースホルダである。コマンドへ渡すときは `. $RUN/run.env` で読み込むか、実値の絶対パスへ展開して書く。
 「バンドル」＝報告1件分の記録一式であり、運搬後は `$RUN` そのものを指す（`manifest.json`・`snapshots/`・`frames/`・`logs/`・`world/`）。
 
@@ -61,7 +62,8 @@ hooks:
 | バンドルの欠損（動画・スナップショット・パケットログ） | 残った資料で進める。欠損項目を `summary` に書く |
 | Step 3 の観察で症状が出ない | 追加シナリオを最大3本試し、それでも出なければ `not_reproduced` |
 | `$WORLD_DIR/save.json` が無い（スナップショット欠損の箱） | Step 3 を飛ばし、ログ・パケット・スクショだけで Step 4 へ。飛ばした理由を `summary` に書く |
-| `$MASTER_DIR` の master data で `MoorestechServerDIContainerGenerator.Create` が落ちる（`data[NN]` 等のローダー例外） | 記録時のサーバーデータと `masterData.commit` が食い違っている。`failure`（環境要因）とし、manifest の `masterData` と実際に使われたサーバーデータの不一致を `summary` に書く |
+| `SERVER_DATA_DIR` が空（manifest に `serverData` が無い/解決できない箱） | Step 2 を飛ばし、理由を `summary` に書いて Step 3 へ。`MASTER_DIR` で代用しない（別マスタでの再生は偽の結果になる） |
+| `replay-check` が `ERROR: 渡されたサーバーデータが記録時のものと違います` を返す | 渡すディレクトリを間違えている。`SERVER_DATA_DIR` を渡し直す（それでも解決しない箱は Step 2 を飛ばして理由を `summary` に書く） |
 | 修正案が複数あって優劣が付かない | 前例に最も近い案を選び、他案を PR 本文の「裁定事項」に列挙して進む |
 | 期待挙動が仕様として存在しない | コードを触らず `needs_ruling` |
 | Editor が起動しない・master data が壊れている | `failure`（環境要因）。原因を `summary` に書く |
@@ -75,7 +77,9 @@ hooks:
 
 ## Step 2: 決定性検査（必須・最初に）
 
-`bash .agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client .agents/skills/bug-report-auto-fix/scripts/edc/replay-check.cs $RUN $MASTER_DIR`
+`SERVER_DATA_DIR` が空なら決定性検査は成立しない（記録時のマスタが特定できない）。その場合は飛ばし、理由を `summary` に書いて Step 3 へ。
+
+`bash .agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client .agents/skills/bug-report-auto-fix/scripts/edc/replay-check.cs $RUN $SERVER_DATA_DIR`
 → `$RUN/replay-check.json`。`allEqual=false` なら **発散した DataStore の是正を先に行う**（ADR 0057）。差分パスが指す箇所の非決定性（列挙順・未シード乱数・未保存の過渡状態）を直し、再検査で `allEqual=true` にしてから Step 3 へ。是正はバグ修正と同じ PR に含め、summary に書く。
 
 是正しきれない場合も止まらない。`determinism: "diverged"` として残し、発散した DataStore を `summary` に書いたうえで Step 3 へ進む（再現結果の信頼度が落ちることを PR 本文にも書く）。
@@ -97,8 +101,9 @@ Editor を PlayMode に置き去りにする**（2026-09-12 リハーサルで�
 sed "s|__BUNDLE__|$RUN|g" .agents/skills/bug-report-auto-fix/scripts/scenarios/bug-report-observe.cs > $RUN/observe.cs
 uloop control-play-mode --project-path $WORKTREE/moorestech_client --action stop
 PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=template PLAYTEST_SEED=0 \
-  .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh $WORKTREE/moorestech_client $RUN/observe.cs $MASTER_DIR
+  .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh $WORKTREE/moorestech_client $RUN/observe.cs ${SERVER_DATA_DIR:-$MASTER_DIR}
 ```
+サーバーデータは記録時と同じ `SERVER_DATA_DIR` を渡す。空で `MASTER_DIR` に落ちた場合は、記録時と別のマスタで観察している旨を `summary` に書く。
 （`world.json` の `mapMode` が `generated` なら `PLAYTEST_MAP_MODE=generated PLAYTEST_SEED=<world.jsonのseed>`）
 `run-scenario.sh` は失敗しても終了コード 0 を返すので、**成否は `result.json` の有無と `Success` で判定する**（終了コードでは判定しない）。
 `NG: game not ready within 300s` が出たら Editor が PlayMode のまま残っているので、

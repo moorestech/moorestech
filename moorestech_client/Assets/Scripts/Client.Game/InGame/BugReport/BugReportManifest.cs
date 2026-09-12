@@ -19,7 +19,9 @@ namespace Client.Game.InGame.BugReport
             Converters = { new Vector3JsonConverter() },
         };
 
-        public int SchemaVersion = 1;
+        // 2: serverData（記録時にサーバーがマスタを読んだ場所）を追加。再現側はこれが無いと別マスタで再生する
+        // 2: added serverData (where the server read its masters); without it the reproduction replays different masters
+        public int SchemaVersion = 2;
         public string CreatedAt;
         public string Description;
         public string Platform;
@@ -30,6 +32,7 @@ namespace Client.Game.InGame.BugReport
         public List<string> PacketLogFiles = new();
         public RepositoryState Repository;
         public RepositoryState MasterData;
+        public ServerDataLocation ServerData;
         public ClientStateSnapshot ClientState;
         public List<MissingItem> Missing = new();
         public double VideoSeconds;

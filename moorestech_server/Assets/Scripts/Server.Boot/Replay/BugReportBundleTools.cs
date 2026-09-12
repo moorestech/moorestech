@@ -38,6 +38,11 @@ namespace Server.Boot.Replay
             // Replay reads the recording's own world (map.json); substituting the template shifts instance ids and fabricates differences
             if (!Directory.Exists(worldRoot)) return Reject($"バンドルに {WorldDirectoryName}/ がありません（記録時のワールドが無いと再生は成立しません） bundle:{bundleDirectory}");
 
+            // 記録時と違うサーバーデータで再生すると、マスタローダーが data[NN] のような読み解けない例外で落ちる
+            // Replaying with server data other than the recording's dies in the master loader with an unreadable exception like data[NN]
+            var mismatch = BundleServerDataCheck.FindMismatch(bundleDirectory, serverDataDirectory);
+            if (mismatch != null) return Reject(mismatch);
+
             var snapshotFiles = WorldDataDirectory.EnumerateSnapshotFiles(snapshotDirectory);
             if (snapshotFiles.Count < 2) return Reject($"スナップショットが{snapshotFiles.Count}枚しかなく隣接区間を作れません dir:{snapshotDirectory}");
 

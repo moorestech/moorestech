@@ -59,6 +59,7 @@ namespace Client.Game.InGame.BugReport
                 try { WriteLogs(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("logs", $"書き出しに失敗した: {e.GetBaseException().Message}"); }
                 try { CopyScreenshot(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("screenshot", $"コピーに失敗した: {e.GetBaseException().Message}"); }
                 try { BugReportRepositoryFiles.Write(directory, manifest, buildInfo, repositoryRoot, masterDataRoot); } catch (Exception e) { manifest.AddMissing("repo", $"リポジトリ状態の書き出しに失敗した: {e.GetBaseException().Message}"); }
+                ServerDataLocation.Record(data.ServerDataDirectory, manifest, repositoryRoot, masterDataRoot);
             });
 
             // manifestとREADYの書き出しも外部境界。ここが失敗した箱は運搬されないので必ず理由を残す

@@ -64,7 +64,7 @@ namespace Client.Game.InGame.BugReport.Capture
 
         // サーバーの書き出し完了イベント。要求IDが一致するものだけを取り込む
         // The server's write-completed event; only the matching request id is taken in
-        public void OnServerCaptureCompleted(long captureId, ulong tick, bool success, string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames)
+        public void OnServerCaptureCompleted(long captureId, ulong tick, bool success, string snapshotDirectory, string serverDataDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames)
         {
             if (_data == null || captureId == 0 || _data.CaptureId != captureId)
             {
@@ -87,6 +87,7 @@ namespace Client.Game.InGame.BugReport.Capture
 
             _data.ReportTick = tick;
             _data.SnapshotDirectory = snapshotDirectory;
+            _data.ServerDataDirectory = serverDataDirectory;
             _data.SnapshotFileNames = snapshotFileNames.ToList();
             _data.PacketLogFileNames = packetLogFileNames.ToList();
             PublishStatus();

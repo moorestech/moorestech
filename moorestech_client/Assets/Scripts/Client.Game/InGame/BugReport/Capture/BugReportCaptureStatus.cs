@@ -27,6 +27,10 @@ namespace Client.Game.InGame.BugReport.Capture
         public long CaptureId;
         public ulong ReportTick;
         public string SnapshotDirectory;
+
+        // サーバーが実際にマスタを読んだ置き場。manifest に載せないと再現側が別のマスタで再生する
+        // Where the server actually read its masters; without it in the manifest the reproduction replays different masters
+        public string ServerDataDirectory;
         public List<string> SnapshotFileNames = new();
         public List<string> PacketLogFileNames = new();
         public List<string> VideoSegmentFiles = new();

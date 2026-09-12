@@ -99,11 +99,13 @@ namespace Server.Boot
 
             //必要な各種インスタンスを手動で作成
             // Manually construct the required bootstrap instances.
-            var modDirectory = Path.Combine(options.ServerDataDirectory, "mods");
+            // マスタの読み元をここで1つに束ねる。バグ報告が記録する場所もこの同じ値から取る
+            // The master source is bound into one value here; the bug report records that very same value
+            var serverDataDirectory = new ServerDataDirectory(options.ServerDataDirectory);
 
             // マスターをロード
             // Load master data.
-            var modResource = new ModsResource(modDirectory);
+            var modResource = new ModsResource(serverDataDirectory.ModsDirectory);
             var masterJsonFileContainer = new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource));
             MasterHolder.Load(masterJsonFileContainer);
 
@@ -247,6 +249,7 @@ namespace Server.Boot
             //JSONファイルのセーブシステムの読み込み
             // Register JSON save system services.
             services.AddSingleton(modResource);
+            services.AddSingleton(serverDataDirectory);
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
             services.AddSingleton(options.worldDataDirectory);
             // セーブ要求（オートセーブ・クライアント要求）はcoordinatorへ集約し、実行はtick末尾の安定点のみ

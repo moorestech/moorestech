@@ -52,12 +52,16 @@ namespace Client.Tests.BugReport
             Assert.IsTrue(session.Status.Value.CapturePending);
             Assert.AreEqual(1, sources.CutCount);
 
-            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", new List<string> { "tick_5.json" }, new List<string> { "packets_6.bin" });
+            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string> { "packets_6.bin" });
 
             Assert.IsFalse(session.Status.Value.CapturePending);
             var data = session.TakeCapturedData();
             Assert.AreEqual(5UL, data.ReportTick);
             Assert.AreEqual("/w/snapshots", data.SnapshotDirectory);
+
+            // 記録時のサーバーデータを取り込み損ねると、再現側が別マスタで再生して読み解けない例外で落ちる
+            // Losing the recording's server data makes the reproduction replay different masters and die with an unreadable exception
+            Assert.AreEqual("/master/server_v8", data.ServerDataDirectory);
             CollectionAssert.AreEqual(new[] { "tick_5.json" }, data.SnapshotFileNames);
             CollectionAssert.AreEqual(new[] { "packets_6.bin" }, data.PacketLogFileNames);
             CollectionAssert.AreEqual(new[] { "/tmp/seg_00.mp4" }, data.VideoSegmentFiles);
@@ -72,7 +76,7 @@ namespace Client.Tests.BugReport
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
 
-            session.OnServerCaptureCompleted(99, 5, true, "/w/snapshots", new List<string>(), new List<string>());
+            session.OnServerCaptureCompleted(99, 5, true, "/w/snapshots", "/master/server_v8", new List<string>(), new List<string>());
 
             Assert.IsTrue(session.Status.Value.CapturePending);
             Assert.IsNull(session.TakeCapturedData().SnapshotDirectory);
@@ -100,7 +104,7 @@ namespace Client.Tests.BugReport
             LogAssert.Expect(LogType.Warning, new Regex("serverSnapshot"));
             session.BeginOnPauseMenu();
 
-            session.OnServerCaptureCompleted(0, 9, true, "/w/snapshots", new List<string> { "tick_9.json" }, new List<string>());
+            session.OnServerCaptureCompleted(0, 9, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_9.json" }, new List<string>());
 
             Assert.IsNull(session.TakeCapturedData().SnapshotDirectory);
         }
@@ -113,7 +117,7 @@ namespace Client.Tests.BugReport
             session.BeginOnPauseMenu();
 
             LogAssert.Expect(LogType.Warning, new Regex("serverSnapshot"));
-            session.OnServerCaptureCompleted(7, 5, false, "/w/snapshots", new List<string> { "tick_5.json" }, new List<string>());
+            session.OnServerCaptureCompleted(7, 5, false, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>());
 
             Assert.IsFalse(session.Status.Value.CapturePending);
             CollectionAssert.Contains(session.Status.Value.Missing, "serverSnapshot");
@@ -141,7 +145,7 @@ namespace Client.Tests.BugReport
             var sources = new FakeSources();
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
-            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", new List<string>(), new List<string>());
+            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string>(), new List<string>());
 
             sources.ElapseServerCaptureTimeout();
 
@@ -180,7 +184,7 @@ namespace Client.Tests.BugReport
             var sources = new FakeSources();
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
-            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", new List<string> { "tick_5.json" }, new List<string>());
+            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>());
 
             session.BeginOnPauseMenu();
 
