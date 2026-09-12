@@ -205,3 +205,37 @@ plan C Task 7（ローカルでの通しリハーサル）を **plan B の通し
   `.superpowers/sdd/2026-09-11-bug-report/A-final-review-fix3-report.md` にある。
 - `run-scenario.sh`（共有スキル `unity-playmode-recorded-playtest`）は世界データもシナリオ `.cs` の実在も検査せず、
   失敗しても**終了コード0**で Editor を PlayMode に置き去りにする。plan C 側の入口で回避したが、**本体は別 issue 化が妥当**。
+
+## Q15. plan B/C 全ブランチレビューの設計判断 D1〜D14（14件）— コントローラー暫定裁定つき
+
+`moores-code-review` を plan B/C（＋plan A の修正）41コミットに対して report-only で実行した（系統 66 ＋ Codex 3 ＋ post-check 1、欠員なし）。
+**Critical 32件・うちマージを妨げる blocker 18件**。全文は
+`../moorestech_logs/harness/moores-code-review/runs/2026-09-12-0940-bugreport-BC/integrated.md`。
+裁定の全文は本ブランチの `.superpowers/sdd/2026-09-11-bug-report/BC-final-review-adjudications.md`。
+
+**blocker 18件はすべて修正した**（client / server / scripts の3波）。裁定の要点:
+
+- **D1 / C1（最重要）**: Escape 時点のサーバー記録を**ファイル名だけ**確保し実体コピーを送信時に行っていたため、
+  記入中にサーバーの剪定で実体が消えていた。`.decisions/…記入中もワールド時間は進め…` は「ワールド時間が進む＝剪定も進む」
+  ことを前提にしているので、**確保時点で実体を pid 別ステージングへコピーする**形に直した（`BugReportServerCaptureStaging` 新設）。
+- **D2 / C7**: 送信アクションが WebSocket の固定5秒タイムアウトを超え、**成功を「失敗」と表示したうえ二重送信を許していた**。
+  タイムアウトを 120 秒へ延ばし、二重送信ガードを2段入れた。
+- **D3 / C13**: 諦めたセーブが成功を名乗らないようにした（クライアント側で「諦め」と「待ち切れ」を区別する分は follow-up）。
+- **D4 / C14**: パケット記録の縮退が取得結果に載るようにした（manifest / UI へ出す分は follow-up）。
+- **D8 / C22**: **ファイルI/O を try-catch の許可境界として認めた。** AGENTS.md の列挙（外部プロセス起動・ネットワーク送受信・
+  外部入力JSONのパース）にディスクは明記されていないが、外部資源であり隔離目的の catch は妥当と判断した。
+  **ただし境界である根拠をコメントで明記し、握った例外は必ず理由をログへ出す**ことを条件とした。
+  → **裁定を求める点: AGENTS.md の try-catch 規約にファイルI/O を明記して一般化するか。**
+- **D9 / C23**: 保存JSONの正準化は**保存側1箇所**に置く（plan A の裁定 D11 と一貫）。掃引漏れ3ファイルも揃えた。
+- **D11 / C5**: 確保が終わる前に送信できてしまう経路を塞ぐため、確保状態を UI が実際に見る形にした。
+- **D13 / C27**: 送信ボタンの寸法は**実装を `webui-design` SKILL.md に合わせた**（デザイン規約はホワイトリストであり、
+  1機能のために緩めない）。
+- **D6**: `WorldSaveAllInfoV1.CurrentTick` を ctor 必須へは**戻さない**（plan A 修正波2が Newtonsoft の挙動を実測して
+  代入へ移した経緯があり、欠損検知はそのまま維持する）。
+- **D14 / `ReceivedPacketLog.Flush()` の test-only public**: plan A の Q7 と同じ扱いで**残した**。
+
+**follow-up 14件（C11・C15・C17・C20・C21・C25・C28〜C32 など）と Warning / Info は今回直していない。**
+独立レビューでトリアージしてほしい。
+
+- **裁定を求める点:** D1〜D14 の各暫定裁定を承認するか。特に D1（確保時点での実体コピー）と D8（ファイルI/O の try-catch 許可）は
+  設計の形と規約解釈を変える判断であり、承認が要る。
