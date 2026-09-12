@@ -70,4 +70,11 @@ status="$(python3 -c "import json,sys;print(json.load(open(sys.argv[1])).get('st
   || { status="unreadable"; log "fix-result.json を読めない（壊れた JSON）: $run/fix-result.json"; }
 log "run end: $id status=$status"
 
-( cd "$LOGS" && git add "harness/bug-report/runs/$id" && git commit -qm "bug-report run $id" && { [ "$GIT_PUSH" = "1" ] && git push -q || true; } ) || log "logs commit/push 失敗"
+# 記録の commit と push は別々に判定する。push の失敗を 0 に潰すと「届いていない」が誰にも見えなくなる
+# Judge the commit and the push separately; swallowing a failed push hides the fact that nothing reached the remote
+( cd "$LOGS" && git add "harness/bug-report/runs/$id" && git commit -qm "bug-report run $id" ) \
+  || log "logs commit 失敗（このランの記録は private remote へ残っていない）: $RUNS/$id"
+if [ "$GIT_PUSH" = "1" ]; then
+  ( cd "$LOGS" && git push -q ) \
+    || log "logs push 失敗（このランの記録は手元にしか無い。手動 push が要る）: $RUNS/$id"
+fi

@@ -4,7 +4,7 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
+trap 'rm -rf "${TMP:?}"' EXIT
 
 OUTBOX="$TMP/outbox"; INBOX="$TMP/inbox"; mkdir -p "$OUTBOX/20260911_120000_aaaa1111" "$INBOX"
 cat > "$OUTBOX/20260911_120000_aaaa1111/manifest.json" <<JSON

@@ -9,6 +9,7 @@ WORKTREES="${MOORESTECH_WORKTREES:-$HOME/hermes-agent/data/repos/moorestech-work
 MASTER="${MOORESTECH_MASTER:-$HOME/hermes-agent/data/repos/moorestech_master}"
 MASTER_WORKTREES="${MOORESTECH_MASTER_WORKTREES:-$HOME/hermes-agent/data/repos/moorestech-master-worktrees}"
 RUN="$LOGS/runs/$ID"; [ -d "$RUN" ] || RUN="$LOGS/harness/bug-report/runs/$ID"
+HERE="$(cd "$(dirname "$0")" && pwd)"
 log() { echo "[prepare] $*" >&2; }
 
 [ -d "$RUN" ] || { log "run ディレクトリが無い: $RUN"; exit 1; }
@@ -16,81 +17,7 @@ log() { echo "[prepare] $*" >&2; }
 # manifest は欠損しうる外部入力。読めない項目は空にし理由を全部ログして続行する（添付が欠けても残った資料で調査する裁定）
 # The manifest is fallible external input: unreadable fields become empty, every reason is logged, and the run continues
 read_manifest() {
-  python3 - "$RUN/manifest.json" <<'PY'
-import json, shlex, sys
-
-notes = []
-data = {}
-# 外部JSONのパースは外部境界。壊れた箱で run 全体を落とさないため例外をここで閉じる
-# Parsing external JSON is a boundary; the exception is contained here so a broken box cannot kill the run
-try:
-    with open(sys.argv[1]) as handle:
-        data = json.load(handle)
-except Exception as error:
-    notes.append("manifest.json を読めない（%s: %s）。全項目を空として続行する" % (type(error).__name__, error))
-if not isinstance(data, dict):
-    notes.append("manifest.json の中身が辞書でない。全項目を空として続行する")
-    data = {}
-
-def text(section_name, key):
-    section = data.get(section_name)
-    if not isinstance(section, dict):
-        notes.append("manifest に %s が無い。%s.%s は空として続行する" % (section_name, section_name, key))
-        return ""
-    value = section.get(key)
-    if isinstance(value, str) and value:
-        return value
-    notes.append("manifest の %s.%s が無い/空。空として続行する" % (section_name, key))
-    return ""
-
-# 再現は記録時と同じサーバーデータでしか成立しない。受け側は自分の worktree 配下へ解決するので相対表現を使う
-# Reproduction holds only with the recording's own server data; the receiver resolves it under its own worktree, hence the relative form
-server = data.get("serverData")
-server_relative_to = ""
-server_relative_path = ""
-server_path = ""
-if not isinstance(server, dict):
-    notes.append("manifest に serverData が無い。記録時にサーバーが読んだマスタを特定できないため決定性検査は行えない")
-else:
-    server_relative_to = server.get("relativeTo") if isinstance(server.get("relativeTo"), str) else ""
-    server_relative_path = server.get("relativePath") if isinstance(server.get("relativePath"), str) else ""
-    server_path = server.get("path") if isinstance(server.get("path"), str) else ""
-    if not server_relative_path:
-        notes.append("serverData がリポジトリの外を指しているため受け側で解決できない: %s" % (server_path or "(path も空)"))
-
-ticks = data.get("snapshotTicks")
-if not isinstance(ticks, list):
-    notes.append("manifest の snapshotTicks が無い/配列でない。スナップショット無しで続行する")
-    ticks = []
-numbers = [tick for tick in ticks if isinstance(tick, int) and not isinstance(tick, bool) and tick > 0]
-if len(numbers) != len(ticks):
-    notes.append("snapshotTicks に数値でない要素が混ざっている。数値だけを使う: %r" % (ticks,))
-if not numbers:
-    notes.append("snapshotTicks が空。固定ワールド起動はできないがログ・映像だけで続行する")
-latest = str(max(numbers)) if numbers else ""
-
-for item in data.get("missing") or []:
-    if isinstance(item, dict):
-        notes.append("報告側が欠損を申告している: %s（%s）" % (item.get("item"), item.get("reason")))
-    else:
-        notes.append("報告側が欠損を申告している: %r" % (item,))
-
-values = [
-    ("REPORT_COMMIT", text("repository", "commit")),
-    ("REPORT_BRANCH", text("repository", "branch")),
-    ("MASTER_COMMIT", text("masterData", "commit")),
-    ("SERVER_DATA_RELATIVE_TO", server_relative_to),
-    ("SERVER_DATA_RELATIVE_PATH", server_relative_path),
-    ("SERVER_DATA_PATH", server_path),
-    ("LATEST_TICK", latest),
-]
-# 値を全部取ってから理由を出す。取得中に増える note を取りこぼさないため
-# Resolve every value first, then emit the notes, so notes added while resolving are not lost
-for note in notes:
-    sys.stderr.write("[prepare] %s\n" % note)
-for name, value in values:
-    print("%s=%s" % (name, shlex.quote(value)))
-PY
+  python3 "$HERE/read-manifest.py" "$RUN/manifest.json"
 }
 
 REPORT_COMMIT=""; REPORT_BRANCH=""; MASTER_COMMIT=""; LATEST_TICK=""
@@ -98,7 +25,10 @@ SERVER_DATA_RELATIVE_TO=""; SERVER_DATA_RELATIVE_PATH=""; SERVER_DATA_PATH=""
 manifest_env="$(read_manifest)" || log "manifest の読み取りに失敗した。全項目を空として続行する"
 eval "$manifest_env"
 
-WORKTREE="$WORKTREES/bugfix-$ID"; COMMIT_MISSING=0; DIFF_APPLY_FAILED=0; MASTER_FAILED=0; MASTER_WORKTREE=""
+# 復元の縮退は全部フラグにする。受け側のエージェントは run.env のこの集合だけを見れば再現環境の欠けが分かる
+# Every restoration shortfall becomes a flag here, so the agent only has to read this one set in run.env
+WORKTREE="$WORKTREES/bugfix-$ID"; COMMIT_MISSING=0; DIFF_APPLY_FAILED=0; DIFF_ABSENT=0; UNTRACKED_FAILED=0
+MASTER_FAILED=0; MASTER_DIFF_APPLY_FAILED=0; MASTER_DIFF_ABSENT=0; MASTER_UNTRACKED_FAILED=0; MASTER_WORKTREE=""
 # 既存の worktree は消さずに失敗させる（他ランの作業物を巻き込まないため）
 # Never delete an existing worktree; fail instead so another run's work is not destroyed
 [ -e "$WORKTREE" ] && { log "worktree が既に存在する。二重準備を避けて中断: $WORKTREE"; exit 1; }
@@ -106,14 +36,21 @@ WORKTREE="$WORKTREES/bugfix-$ID"; COMMIT_MISSING=0; DIFF_APPLY_FAILED=0; MASTER_
 # 取得できなくても手元の origin/master と bundle で進む（ネットワークは落ちうる外部依存）
 # Proceed with the local origin/master and the bundle even when the fetch fails; the network is a fallible dependency
 git -C "$REPO" fetch -q origin master || log "origin/master の fetch に失敗した。手元の参照で続行する"
-[ -f "$RUN/repo/commits.bundle" ] && git -C "$REPO" fetch -q "$RUN/repo/commits.bundle" '+refs/bugreport/*:refs/bugreport/*' 2>/dev/null || true
+if [ -f "$RUN/repo/commits.bundle" ]; then
+  git -C "$REPO" fetch -q "$RUN/repo/commits.bundle" '+refs/bugreport/*:refs/bugreport/*' \
+    || log "commits.bundle を取り込めなかった。報告者の未pushコミットは使えない: $RUN/repo/commits.bundle"
+else
+  log "commits.bundle が箱に無い。報告コミットは手元の参照にある場合だけ使える"
+fi
 if [ -n "$REPORT_COMMIT" ] && git -C "$REPO" cat-file -e "$REPORT_COMMIT^{commit}" 2>/dev/null; then base="$REPORT_COMMIT"; else base="origin/master"; COMMIT_MISSING=1; log "報告コミットが無いため origin/master を土台にする: '$REPORT_COMMIT'"; fi
 git -C "$REPO" worktree add -q -b "bugfix/$ID" "$WORKTREE" "$base" || { log "worktree を作れなかった（base=${base}）。この run は準備できない"; exit 1; }
 if [ -s "$RUN/repo/head.diff" ]; then
   git -C "$WORKTREE" apply --whitespace=nowarn "$RUN/repo/head.diff" || { DIFF_APPLY_FAILED=1; log "head.diff の適用に失敗"; }
+else
+  DIFF_ABSENT=1; log "head.diff が無い/空。報告時の未コミット差分を当てられない: $RUN/repo/head.diff"
 fi
 if [ -d "$RUN/repo/untracked" ]; then
-  cp -R "$RUN/repo/untracked/." "$WORKTREE/" || log "未追跡ファイルのコピーに失敗した。未追跡分を欠いたまま続行する"
+  cp -R "$RUN/repo/untracked/." "$WORKTREE/" || { UNTRACKED_FAILED=1; log "未追跡ファイルのコピーに失敗した。未追跡分を欠いたまま続行する"; }
 else
   log "未追跡ファイルが箱に無い。未追跡分を欠いたまま続行する"
 fi
@@ -121,13 +58,35 @@ fi
 # master data も報告時の実チェックアウト値で worktree を切る（ピンではなく manifest の値）
 # The master-data worktree also uses the manifest's actual checkout, not the pin
 MASTER_DIR=""
+# master 側の復元も本体側と同じ扱いにする。差分・未追跡を当て、落ちたらフラグとログを必ず残す
+# The master side restores exactly like the code side: apply the diff and untracked files, flag and log every failure
+restore_master_worktree() {
+  local dir="$1"
+  if [ -s "$RUN/repo/master.diff" ]; then
+    git -C "$dir" apply --whitespace=nowarn "$RUN/repo/master.diff" \
+      || { MASTER_DIFF_APPLY_FAILED=1; log "master.diff の適用に失敗。マスタデータが報告時と違う状態で再現する"; }
+  else
+    MASTER_DIFF_ABSENT=1; log "master.diff が無い/空。マスタの未コミット差分を当てられない: $RUN/repo/master.diff"
+  fi
+  if [ -d "$RUN/repo/master-untracked" ]; then
+    cp -R "$RUN/repo/master-untracked/." "$dir/" \
+      || { MASTER_UNTRACKED_FAILED=1; log "マスタの未追跡ファイルのコピーに失敗した。未追跡分を欠いたまま続行する: $dir"; }
+  else
+    log "マスタの未追跡ファイルが箱に無い。未追跡分を欠いたまま続行する"
+  fi
+}
 if [ -n "$MASTER_COMMIT" ] && [ -d "$MASTER" ]; then
-  [ -f "$RUN/repo/master-commits.bundle" ] && git -C "$MASTER" fetch -q "$RUN/repo/master-commits.bundle" '+refs/bugreport/*:refs/bugreport/*' 2>/dev/null || true
+  if [ -f "$RUN/repo/master-commits.bundle" ]; then
+    git -C "$MASTER" fetch -q "$RUN/repo/master-commits.bundle" '+refs/bugreport/*:refs/bugreport/*' \
+      || log "master-commits.bundle を取り込めなかった。マスタの未pushコミットは使えない: $RUN/repo/master-commits.bundle"
+  else
+    log "master-commits.bundle が箱に無い。マスタの報告コミットは手元の参照にある場合だけ使える"
+  fi
   if [ -e "$MASTER_WORKTREES/bugfix-$ID" ]; then
     log "master worktree が既に存在するため再利用する: $MASTER_WORKTREES/bugfix-$ID"
   else
     if git -C "$MASTER" worktree add -q --detach "$MASTER_WORKTREES/bugfix-$ID" "$MASTER_COMMIT"; then
-      [ -s "$RUN/repo/master.diff" ] && git -C "$MASTER_WORKTREES/bugfix-$ID" apply --whitespace=nowarn "$RUN/repo/master.diff" || true
+      restore_master_worktree "$MASTER_WORKTREES/bugfix-$ID"
     else
       log "master data の worktree を作れなかった（commit=${MASTER_COMMIT}）。master data 無しで続行する"
       MASTER_FAILED=1
@@ -192,6 +151,11 @@ done
   printf 'LATEST_TICK=%q\n' "$LATEST_TICK"
   printf 'COMMIT_MISSING=%q\n' "$COMMIT_MISSING"
   printf 'DIFF_APPLY_FAILED=%q\n' "$DIFF_APPLY_FAILED"
+  printf 'DIFF_ABSENT=%q\n' "$DIFF_ABSENT"
+  printf 'UNTRACKED_FAILED=%q\n' "$UNTRACKED_FAILED"
   printf 'MASTER_FAILED=%q\n' "$MASTER_FAILED"
+  printf 'MASTER_DIFF_APPLY_FAILED=%q\n' "$MASTER_DIFF_APPLY_FAILED"
+  printf 'MASTER_DIFF_ABSENT=%q\n' "$MASTER_DIFF_ABSENT"
+  printf 'MASTER_UNTRACKED_FAILED=%q\n' "$MASTER_UNTRACKED_FAILED"
 } > "$RUN/run.env"
 log "prepared: $RUN/run.env"

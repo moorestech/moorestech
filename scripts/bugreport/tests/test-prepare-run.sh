@@ -122,4 +122,33 @@ env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r5 2>"$TMP/r5.log" || { echo "NG
 grep -q "manifest.json を読めない" "$TMP/r5.log" || { echo "NG: manifest 不在の理由がログされていない"; exit 1; }
 [ -f "$RUN5/run.env" ] || { echo "NG: r5 の run.env が無い"; exit 1; }
 
+# C10: master 側も差分・未追跡ファイルを復元し、head.diff 不在は理由とフラグを残す
+# C10: the master side restores its diff and untracked files too, and an absent head.diff leaves a reason and a flag
+RUN6="$TMP/runs/r6"; mkdir -p "$RUN6/repo/master-untracked/added"
+printf 'diff --git a/server_v8/mods/x b/server_v8/mods/x\n--- a/server_v8/mods/x\n+++ b/server_v8/mods/x\n@@ -1 +1 @@\n-m\n+changed\n' > "$RUN6/repo/master.diff"
+echo '{"recipe":1}' > "$RUN6/repo/master-untracked/added/recipe.json"
+cat > "$RUN6/manifest.json" <<JSON
+{"repository":{"commit":"$REPORT_COMMIT_1B","branch":"feature/x","dirty":false},"masterData":{"commit":"$MASTER_COMMIT","dirty":true},"snapshotTicks":[600]}
+JSON
+env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r6 2>"$TMP/r6.log"
+[ "$(cat "$TMP/mwt/bugfix-r6/server_v8/mods/x")" = "changed" ] || { echo "NG: master.diff が当たっていない"; cat "$TMP/r6.log"; exit 1; }
+[ -f "$TMP/mwt/bugfix-r6/added/recipe.json" ] || { echo "NG: master-untracked が復元されていない"; exit 1; }
+grep -q "head.diff が無い/空" "$TMP/r6.log" || { echo "NG: head.diff 不在の理由がログされていない"; exit 1; }
+( . "$RUN6/run.env"; [ "$MASTER_DIFF_APPLY_FAILED" = "0" ] && [ "$MASTER_DIFF_ABSENT" = "0" ] && [ "$MASTER_UNTRACKED_FAILED" = "0" ] && [ "$DIFF_ABSENT" = "1" ] ) \
+  || { echo "NG: r6 のフラグ"; cat "$RUN6/run.env"; exit 1; }
+
+# master.diff が当たらない・bundle が壊れている場合は無音で落とさずフラグと理由を残す
+# A master.diff that does not apply and a corrupt bundle both leave a flag and a logged reason, never silence
+RUN7="$TMP/runs/r7"; mkdir -p "$RUN7/repo"
+printf 'diff --git a/server_v8/mods/none b/server_v8/mods/none\n--- a/server_v8/mods/none\n+++ b/server_v8/mods/none\n@@ -1 +1 @@\n-a\n+b\n' > "$RUN7/repo/master.diff"
+printf 'not a bundle' > "$RUN7/repo/commits.bundle"
+cat > "$RUN7/manifest.json" <<JSON
+{"repository":{"commit":"$REPORT_COMMIT_1B","branch":"feature/x","dirty":false},"masterData":{"commit":"$MASTER_COMMIT","dirty":true},"snapshotTicks":[600]}
+JSON
+env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r7 2>"$TMP/r7.log"
+grep -q "master.diff の適用に失敗" "$TMP/r7.log" || { echo "NG: master.diff 失敗の理由がログされていない"; exit 1; }
+grep -q "commits.bundle を取り込めなかった" "$TMP/r7.log" || { echo "NG: bundle 取り込み失敗の理由がログされていない"; exit 1; }
+grep -q "マスタの未追跡ファイルが箱に無い" "$TMP/r7.log" || { echo "NG: master-untracked 不在の理由がログされていない"; exit 1; }
+( . "$RUN7/run.env"; [ "$MASTER_DIFF_APPLY_FAILED" = "1" ] ) || { echo "NG: r7 の MASTER_DIFF_APPLY_FAILED"; cat "$RUN7/run.env"; exit 1; }
+
 echo OK

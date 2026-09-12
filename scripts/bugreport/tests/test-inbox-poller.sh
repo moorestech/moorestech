@@ -85,4 +85,13 @@ grep -q '"status": *"failure"' "$LOGS/harness/bug-report/runs/20260911_150000_dd
 MOORESTECH_LOGS="$LOGS" CLAUDE_CMD="$TMP/claude" PREPARE_CMD="$TMP/prepare" GIT_PUSH=0 bash "$HERE/../inbox-poller.sh" 2>"$TMP/run5.log"
 grep -q "READY の箱が無いので何もしない" "$TMP/run5.log" || { echo "NG: 空 inbox の理由がログされていない"; exit 1; }
 
+# push の失敗を無音で 0 に潰さない（記録が private remote へ届いていないことを必ず言う）
+# A failed push is never swallowed; the run must say the record did not reach the private remote
+mkdir -p "$LOGS/harness/bug-report/inbox/20260911_160000_eeee5555"
+touch "$LOGS/harness/bug-report/inbox/20260911_160000_eeee5555/READY"
+MOORESTECH_LOGS="$LOGS" CLAUDE_CMD="$TMP/claude" PREPARE_CMD="$TMP/prepare" GIT_PUSH=1 bash "$HERE/../inbox-poller.sh" 2>"$TMP/run6.log"
+grep -q "logs push 失敗" "$TMP/run6.log" || { echo "NG: push 失敗の理由がログされていない"; exit 1; }
+git -C "$LOGS" log --oneline > "$TMP/logs-commits3.txt"
+grep -q "bug-report run 20260911_160000_eeee5555" "$TMP/logs-commits3.txt" || { echo "NG: push 失敗で commit まで失われた"; exit 1; }
+
 echo OK
