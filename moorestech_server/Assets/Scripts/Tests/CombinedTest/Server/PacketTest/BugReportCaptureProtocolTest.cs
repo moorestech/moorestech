@@ -69,9 +69,9 @@ namespace Tests.CombinedTest.Server.PacketTest
             // tick_10 is the baseline taken when always-on capture started; tick_11 is this immediate capture
             CollectionAssert.AreEqual(new[] { "tick_10.json", "tick_11.json" }, payload.SnapshotFileNames);
 
-            // 取り込みtickの直後から新しい区間が始まる。切り替えが落ちると再生は取り込み以降のパケットを失う
-            // A new segment starts right after the captured tick; a missed rotation loses every packet after the capture in replay
-            CollectionAssert.AreEqual(new[] { "packets_11.bin", "packets_12.bin" }, payload.PacketLogFileNames);
+            // 取り込みtickの直後から始まる新しい区間は書き込み中なので載せない。末尾が切れた複製は受け側の読み込みを例外で全滅させる
+            // The new segment starting right after the captured tick is still open, so it is left out; a truncated copy kills the reader with an exception
+            CollectionAssert.AreEqual(new[] { "packets_11.bin" }, payload.PacketLogFileNames);
 
             // 全接続へ配ると、無関係なクライアントが他人の完了とサーバー側の絶対パスを受け取る
             // Broadcasting would hand an unrelated client someone else's completion and the server-side absolute path

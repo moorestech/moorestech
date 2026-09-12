@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Core.Update;
 using Game.Paths;
@@ -16,6 +17,10 @@ namespace Game.SaveLoad.Snapshot
         private string _directory;
         private BinaryWriter _writer;
         private ulong _currentSegmentFromTick;
+
+        // 書き込み中の区間があるか。閉じ切っていない区間はバッファ境界で切れているため複製してはいけない
+        // Whether a segment is still open; an unclosed segment ends at a buffer boundary and must never be copied
+        private bool _currentSegmentOpen;
         private bool _inactiveLogged;
         private int _isActive;
 
@@ -116,10 +121,14 @@ namespace Game.SaveLoad.Snapshot
                 {
                     _writer?.Flush();
                     _writer?.Dispose();
+
+                    // 閉じ切れた区間だけを完成扱いにする。失敗した区間はこのまま書き込み中として扱い複製から外す
+                    // Only a segment that closed cleanly counts as complete; a failed one stays open and is kept out of copies
+                    _currentSegmentOpen = false;
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError($"パケットログの終了処理に失敗しました message:{e.Message}");
+                    Debug.LogError($"パケットログの終了処理に失敗しました message:{e.Message} 区間{_currentSegmentFromTick}は書き込み中のまま扱います");
                 }
                 _writer = null;
                 Volatile.Write(ref _isActive, 0);
@@ -148,6 +157,7 @@ namespace Game.SaveLoad.Snapshot
                     var path = Path.Combine(_directory, WorldDataDirectory.ReceivedPacketLogFileName(fromTick));
                     _writer = new BinaryWriter(new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read));
                     _currentSegmentFromTick = fromTick;
+                    _currentSegmentOpen = true;
                     return true;
                 }
                 catch (Exception e)
@@ -196,6 +206,19 @@ namespace Game.SaveLoad.Snapshot
         public IReadOnlyList<string> SegmentFilePaths()
         {
             return WorldDataDirectory.EnumeratePacketLogFiles(_directory);
+        }
+
+        // 閉じ切った区間だけ。書き込み中の区間はバッファ境界で末尾が切れており、複製すると読み側がレコード破損で全滅する
+        // Closed segments only; an open segment ends mid-record at a buffer boundary and a copy of it kills the reader outright
+        public IReadOnlyList<string> CompletedSegmentFilePaths()
+        {
+            lock (_lock)
+            {
+                if (!_currentSegmentOpen) return SegmentFilePaths();
+
+                var openSegmentFileName = WorldDataDirectory.ReceivedPacketLogFileName(_currentSegmentFromTick);
+                return SegmentFilePaths().Where(path => Path.GetFileName(path) != openSegmentFileName).ToList();
+            }
         }
 
         private static void DeleteSegmentFile(string path)

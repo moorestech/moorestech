@@ -196,9 +196,11 @@ namespace Game.SaveLoad.Snapshot
             }
         }
 
+        // 書き込み中の区間は載せない。取り込みtickの後のパケットしか入っておらず、末尾が切れた複製は読み側を例外で殺す
+        // The open segment is left out: it holds only packets after the captured tick, and a truncated copy kills the reader with an exception
         private List<string> CopyPacketLogFileNames()
         {
-            return _packetLog.SegmentFilePaths().Select(Path.GetFileName).ToList();
+            return _packetLog.CompletedSegmentFilePaths().Select(Path.GetFileName).ToList();
         }
     }
 }

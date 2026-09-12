@@ -149,7 +149,9 @@ namespace Tests.CombinedTest.Game.Snapshot
             // 先頭の tick_8 は開始時の基準スナップショット
             // The leading tick_8 is the baseline snapshot taken at start
             CollectionAssert.AreEqual(new[] { "tick_8.json", "tick_9.json", "tick_100.json" }, written.SnapshotFileNames, "スナップショット一覧が辞書順になっている");
-            CollectionAssert.AreEqual(new[] { "packets_9.bin", "packets_10.bin", "packets_101.bin" }, written.PacketLogFileNames, "区間ファイル一覧が辞書順になっている");
+            // 書き込み中の packets_101.bin は載らない。辞書順なら packets_10 が packets_9 より前へ出る組み合わせで順序を測る
+            // The open packets_101.bin is left out; the remaining pair still measures ordering because lexicographic order would put packets_10 before packets_9
+            CollectionAssert.AreEqual(new[] { "packets_9.bin", "packets_10.bin" }, written.PacketLogFileNames, "区間ファイル一覧が辞書順になっている");
             Directory.Delete(Path.GetDirectoryName(savePath), true);
 
             #region Internal
