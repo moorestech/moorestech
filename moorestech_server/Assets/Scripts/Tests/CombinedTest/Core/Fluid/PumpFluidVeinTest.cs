@@ -1,0 +1,163 @@
+using System;
+using Core.Master;
+using Core.Update;
+using Game.Block.Blocks.Pump;
+using Game.Block.Interface;
+using Game.Block.Interface.Component;
+using Game.Block.Interface.Extension;
+using Game.Block.Interface.State;
+using MessagePack;
+using Game.Context;
+using Game.EnergySystem;
+using NUnit.Framework;
+using Server.Boot;
+using Tests.Module;
+using Tests.Module.TestMod;
+using Tests.Util;
+using UnityEngine;
+using static Tests.Util.ElectricNetworkReflectionTestUtil;
+
+namespace Tests.CombinedTest.Core.Fluid
+{
+    /// <summary>
+    /// 液体マップ鉱脈（FluidMapVein）の上に置かれたポンプだけが液体を生成することを検証する。
+    /// Verifies that pumps only generate fluid when placed over a registered FluidMapVein.
+    /// </summary>
+    public class PumpFluidVeinTest
+    {
+        // ForUnitTestModの map.json で定義された FluidVein 座標
+        // Coordinates of FluidVein defined in ForUnitTestMod map.json
+        private static readonly Vector3Int WaterVeinPos = new(10, 0, 0);
+        private static readonly Vector3Int SteamVeinPos = new(20, 0, 0);
+        private static readonly Vector3Int NoVeinPos = new(30, 0, 0);
+
+        private const string WaterFluidGuidText = "00000000-0000-0000-1234-000000000001";
+        private const string SteamFluidGuidText = "00000000-0000-0000-1234-000000000002";
+        private static readonly Guid WaterFluidGuid = Guid.Parse(WaterFluidGuidText);
+
+        // ポンプ位置にWater Veinあり、マスタも一致 → 内部タンクに水が貯まる
+        // Vein matches master entry → water accumulates
+        [Test]
+        public void PumpOnMatchingFluidVein_GeneratesFluid()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var pump = PlacePoweredPump(WaterVeinPos);
+
+            // 数tick待って内部タンクに液体が溜まることを確認
+            // Wait several ticks and verify fluid accumulation
+            for (var i = 0; i < 10; i++) GameUpdater.RunFrames(1);
+
+            var inventory = pump.GetComponent<PumpFluidOutputComponent>().GetFluidInventory();
+            Assert.AreEqual(1, inventory.Count, "内部タンクに液体が1種類入っているはず");
+            Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(WaterFluidGuid), inventory[0].FluidId);
+            Assert.Greater(inventory[0].Amount, 0);
+        }
+
+        // ポンプ位置に Vein が無い → 何も生成されない
+        // No vein at position → no generation
+        [Test]
+        public void PumpOutsideFluidVein_GeneratesNothing()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var pump = PlacePoweredPump(NoVeinPos);
+
+            for (var i = 0; i < 10; i++) GameUpdater.RunFrames(1);
+
+            var inventory = pump.GetComponent<PumpFluidOutputComponent>().GetFluidInventory();
+            Assert.AreEqual(0, inventory.Count, "Vein無しの位置では液体は生成されないはず");
+        }
+
+        // Vein は存在するがポンプのマスタ generateFluid に含まれない液体 → 生成されない
+        // Vein exists but its fluid is not in pump master → no generation
+        [Test]
+        public void PumpOnMismatchedFluidVein_GeneratesNothing()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // TestElectricPump は Water だけを generateFluid に持つので Steam Vein 上では生成されない
+            // TestElectricPump only has Water in its generateFluid table
+            var pump = PlacePoweredPump(SteamVeinPos);
+
+            for (var i = 0; i < 10; i++) GameUpdater.RunFrames(1);
+
+            var inventory = pump.GetComponent<PumpFluidOutputComponent>().GetFluidInventory();
+            Assert.AreEqual(0, inventory.Count, "マスタに一致するfluidGuidが無ければ生成されないはず");
+        }
+
+        // YがずれてもXZ重なりで汲み上げる
+        // Draws on XZ overlap even off the vein's Y range
+        [Test]
+        public void PumpAboveVeinY_GeneratesFluid()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            var pump = PlacePoweredPump(new Vector3Int(5, 7, 0));
+
+            for (var i = 0; i < 10; i++) GameUpdater.RunFrames(1);
+
+            var inventory = pump.GetComponent<PumpFluidOutputComponent>().GetFluidInventory();
+            Assert.AreEqual(1, inventory.Count, "Yが鉱脈外でもXZが重なれば汲み上げるはず");
+            Assert.AreEqual(MasterHolder.FluidMaster.GetFluidId(WaterFluidGuid), inventory[0].FluidId);
+        }
+
+        // 複数流体の鉱脈に掛かってもマスタ並び順の先頭1流体だけを汲み上げる
+        // Even over veins of several fluids, only the first fluid in master order is pumped
+        [TestCase(true, WaterFluidGuidText)]
+        [TestCase(false, SteamFluidGuidText)]
+        public void PumpOverTwoFluidVeins_GeneratesOnlyFirstMasterFluid(bool waterFirst, string expectedFluidGuidText)
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+
+            // フットプリントが水鉱脈(x0-10)と蒸気鉱脈(x20)の両方に掛かる位置へ置く
+            // Place it so the footprint covers both the water vein (x0-10) and the steam vein (x20)
+            var blockId = waterFirst ? ForUnitTestModBlockId.MultiFluidPumpWaterFirst : ForUnitTestModBlockId.MultiFluidPumpSteamFirst;
+            // 11幅のフットプリントに重ならないZ方向へ電柱を置く
+            // Put the pole along Z so it does not overlap the 11-wide footprint
+            var pump = PlacePoweredPump(WaterVeinPos, blockId, new Vector3Int(0, 0, 2));
+
+            for (var i = 0; i < 10; i++) GameUpdater.RunFrames(1);
+
+            var expectedFluidId = MasterHolder.FluidMaster.GetFluidId(Guid.Parse(expectedFluidGuidText));
+            var inventory = pump.GetComponent<PumpFluidOutputComponent>().GetFluidInventory();
+            Assert.AreEqual(1, inventory.Count, "内部タンクは単一流体しか持てないので1種類だけのはず");
+            Assert.AreEqual(expectedFluidId, inventory[0].FluidId, "マスタ並び順の先頭流体が対象になるはず");
+
+            // UIへ配信する汲み上げ中流体も同じ1件に揃う
+            // The pumping fluids published to the UI stay the same single entry
+            var state = pump.GetBlockState();
+            var pumpDetail = MessagePackSerializer.Deserialize<PumpBlockStateDetail>(state.CurrentStateDetails[PumpBlockStateDetail.BlockStateDetailKey]);
+            Assert.AreEqual(1, pumpDetail.PumpingFluids.Count);
+            Assert.AreEqual(expectedFluidId.AsPrimitive(), pumpDetail.PumpingFluids[0].FluidId);
+        }
+
+        private static IBlock PlacePoweredPump(Vector3Int pos)
+        {
+            return PlacePoweredPump(pos, ForUnitTestModBlockId.ElectricPump, new Vector3Int(2, 0, 0));
+        }
+
+        private static IBlock PlacePoweredPump(Vector3Int pos, BlockId blockId, Vector3Int poleOffset)
+        {
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var added = worldBlockDatastore.TryAddBlock(blockId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
+            Assert.IsTrue(added, $"Failed to place pump at {pos}");
+
+            // ポンプを電柱へ接続して電力網を成立させる
+            // Connect the pump to a pole so it belongs to a usable electric network
+            var polePosition = pos + poleOffset;
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            ElectricWireTestUtil.Connect(pos, polePosition);
+
+            // ポンプが属するワイヤーセグメントへテスト発電機を登録し powerRate=1.0 にする
+            // Register a test generator into the pump's wire segment so powerRate = 1.0
+            GameUpdater.UpdateOneTick();
+            var networkDatastore = ServerContext.GetService<IElectricWireNetworkLookup>();
+            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pump.BlockInstanceId, out var segment));
+            AddGenerator(segment, new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
+            GameUpdater.UpdateOneTick();
+
+            return pump;
+        }
+    }
+}

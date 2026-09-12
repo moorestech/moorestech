@@ -1,6 +1,14 @@
 ﻿using System.Collections.Generic;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
+using Game.Block.Factory.BlockTemplate.CleanRoom;
+using Game.Block.Factory.BlockTemplate.Electric;
+using Game.Block.Factory.BlockTemplate.Fluid;
+using Game.Block.Factory.BlockTemplate.Gear;
+using Game.Block.Factory.BlockTemplate.Machine;
+using Game.Block.Factory.BlockTemplate.Miner;
+using Game.Block.Factory.BlockTemplate.Train;
+using Game.Block.Factory.BlockTemplate.Transport;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Train.RailGraph;
@@ -43,6 +51,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.GearBeltConveyor, new VanillaGearBeltConveyorTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.TrainRail, new VanillaTrainRailTemplate(railGraphDatastore));
             BlockTypesDictionary.Add(BlockTypeConst.FluidPipe, new VanillaFluidBlockTemplate());
+            BlockTypesDictionary.Add(BlockTypeConst.VoidPipe, new VanillaVoidPipeTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.TrainStation, new VanillaTrainStationTemplate(blockInventoryEvent, railGraphDatastore));
             BlockTypesDictionary.Add(BlockTypeConst.TrainItemPlatform, new VanillaTrainItemPlatformTemplate(blockInventoryEvent, railGraphDatastore));
             BlockTypesDictionary.Add(BlockTypeConst.TrainFluidPlatform, new VanillaTrainFluidPlatformTemplate(railGraphDatastore));

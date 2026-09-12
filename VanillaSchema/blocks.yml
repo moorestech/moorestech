@@ -173,6 +173,7 @@ properties:
       - TrainItemPlatform
       - TrainFluidPlatform
       - FluidPipe
+      - VoidPipe
       - BaseCamp
       - GearPump
       - ElectricPump
@@ -853,6 +854,13 @@ properties:
         - key: blockedRetryTicks
           type: integer
           default: 3
+      # ボイドパイプ: 受け入れ面に届いた流体を全量消滅させる終端。内容量を持たないので capacity は無い（ADR 0056）
+      # Void pipe: terminal sink that destroys every fluid reaching its inflow face; no capacity since it holds nothing (ADR 0056)
+      - when: VoidPipe
+        type: object
+        properties:
+        - key: fluidInventoryConnectors
+          ref: fluidInventoryConnects
       - when: BaseCamp
         type: object
         properties:

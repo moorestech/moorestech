@@ -11,6 +11,7 @@ using Game.Fluid;
 using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
+using Tests.CombinedTest.Core.Electric;
 using Tests.Module.TestMod;
 using UnityEngine;
 
