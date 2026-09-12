@@ -26,6 +26,10 @@ namespace Game.SaveLoad
         private long _completedGeneration;
         private long _enqueuedGeneration;
 
+        // 諦めた要求の番号。0は「直近の書き出しは諦めていない」
+        // Generation of the request that was given up; 0 means the latest write was not abandoned
+        private long _abandonedGeneration;
+
         public WorldSaveCoordinator(WorldDataDirectory worldDataDirectory, AssembleSaveJsonText assembleSaveJsonText, SaveWriteWorker saveWriteWorker)
         {
             _worldDataDirectory = worldDataDirectory;
@@ -36,6 +40,14 @@ namespace Game.SaveLoad
         // 要求済みだがまだ書き出しが完了していない保存が残っているか。終了時の待ち合わせに使う
         // Whether a requested save has not finished writing; used to wait for the flush at shutdown
         public bool HasPendingSave => Volatile.Read(ref _requestedGeneration) != Volatile.Read(ref _completedGeneration);
+
+        // 諦めた保存があるか。諦めは完了と同じく待ちを明けるので、成功と区別するには終了経路がこれを見る必要がある
+        // Whether a save was given up; giving up clears the wait just like a completion, so the shutdown path must read this to tell it from success
+        public bool HasAbandonedSave => Volatile.Read(ref _abandonedGeneration) != 0;
+
+        // 諦めた要求番号。0は諦めが無い状態
+        // The generation that was given up; 0 means nothing is abandoned
+        public long AbandonedGeneration => Volatile.Read(ref _abandonedGeneration);
 
         // 書き出しが完了した要求番号を流す。通常はtickスレッド、終了時の WaitForPendingWrites 経由では待ち合わせスレッドから発火する
         // Emits the generation whose write completed; normally on the tick thread, and on the waiting thread when it comes through WaitForPendingWrites at shutdown
@@ -97,12 +109,18 @@ namespace Game.SaveLoad
                         // 諦めた要求は未完了のまま残さない。残すと終了時の待ち合わせが永久に明けない
                         // A given-up request must not stay pending, or the shutdown wait never clears
                         UnityEngine.Debug.LogError($"セーブの書き出しに{_failedAttempts}回失敗したため要求{completion.Generation}を諦めます path:{completion.TargetPath}");
+                        // 諦めを状態として残す。完了と同じ前進だけで済ませると終了経路が成功を名乗る
+                        // Record the give-up as state; advancing like a completion alone would let the shutdown path claim success
+                        Volatile.Write(ref _abandonedGeneration, completion.Generation);
                         Volatile.Write(ref _completedGeneration, completion.Generation);
                         _failedAttempts = 0;
                         continue;
                     }
 
                     _failedAttempts = 0;
+                    // 書き出せた時点で過去の諦めは解消する。以後の終了は保存済みとして閉じてよい
+                    // A successful write clears any earlier give-up, so later shutdowns may close as saved
+                    Volatile.Write(ref _abandonedGeneration, 0);
                     Volatile.Write(ref _completedGeneration, completion.Generation);
                     UnityEngine.Debug.Log("ワールドを保存しました");
                     _onWorldSaveCompleted.OnNext(completion.Generation);

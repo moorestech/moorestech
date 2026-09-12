@@ -87,12 +87,25 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             Assert.IsFalse(coordinator.HasPendingSave, "恒久的な失敗を無限に再試行し続けている");
 
+            // 諦めは待ちを明けるだけで世界は保存されていない。終了経路が成功と区別できる状態として残す
+            // Giving up merely clears the wait while the world stays unsaved, so the shutdown path needs a state that tells it from success
+            Assert.IsTrue(coordinator.HasAbandonedSave, "諦めた保存が成功と同じ状態へ畳まれている");
+            Assert.AreEqual(1L, coordinator.AbandonedGeneration, "諦めた要求番号が残っていない");
+
             // 諦めた後は再取り込みしない。ここで書き出しが起きるなら毎tick全世界Captureが続いている
             // No recapture after giving up; another write here would mean the per-tick full-world capture continues
             File.Delete(saveDirectory);
             coordinator.SaveIfRequested();
             coordinator.WaitForPendingWrites();
             Assert.IsFalse(File.Exists(savePath), "諦めた要求が再取り込みされている");
+
+            // 書き出せたら諦めは解ける。残したままだと以後の正常な終了まで保存失敗を名乗り続ける
+            // A successful write clears the give-up; keeping it would make every later healthy shutdown claim a failed save
+            coordinator.RequestSave();
+            coordinator.SaveIfRequested();
+            coordinator.WaitForPendingWrites();
+            Assert.IsTrue(File.Exists(savePath), "諦めた後の新しい要求が書き出されていない");
+            Assert.IsFalse(coordinator.HasAbandonedSave, "書き出せたのに諦めた状態が残っている");
             if (Directory.Exists(saveDirectory)) Directory.Delete(saveDirectory, true);
         }
 

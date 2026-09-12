@@ -56,6 +56,10 @@ namespace Server.Boot
         // Whether a requested save is still waiting to be written
         public bool HasPendingSave => _worldSaveCoordinator != null && _worldSaveCoordinator.HasPendingSave;
 
+        // 書き出しを諦めた保存があるか。諦めも待ちを明けるので、これを見ないと終了が成功を名乗る
+        // Whether a save gave up writing; a give-up also clears the wait, so without this the shutdown claims success
+        public bool HasAbandonedSave => _worldSaveCoordinator != null && _worldSaveCoordinator.HasAbandonedSave;
+
         public void Start()
         {
             (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener, _worldSaveCoordinator, _worldSnapshotRing) = Start(_args);
@@ -204,6 +208,8 @@ namespace Server.Boot
             }
             // tickスレッドを止めた後に保留中の保存を消化する。ここを飛ばすと最後の数十秒が無言で消える
             // Drain pending saves after the tick thread stops; skipping this silently loses the last tens of seconds
+            // この待ちの先はディスクへ書く外部境界（書き出しスレッドとファイルハンドル）なので、例外を隔離して残りの後始末を続ける
+            // The wait ends at the disk boundary (the writer thread and its file handles), so an exception is isolated to let the rest of the teardown continue
             try
             {
                 // 待ち切れなかったことを終了経路の側でも残す。書き出し側のログだけではどの待ちが明けなかったか分からない
@@ -212,16 +218,24 @@ namespace Server.Boot
             }
             catch (Exception e)
             {
+                // 握った例外は必ず理由を残す。無音だと「保存された」と見分けがつかない
+                // An exception caught here always leaves its reason; silence would be indistinguishable from a saved world
+                Debug.LogError($"終了時のセーブ書き出し待ちが例外で終わったため、世界は保存されていない可能性があります message:{e.Message}");
                 Debug.LogException(e);
             }
             // 常時記録が持つ書き出しスレッドと区間ファイルのハンドルを手放す。残すとセッション毎に積み上がる
             // Release the writer thread and segment file handle always-on capture holds; leaving them accumulates per session
+            // ここもファイルハンドルを閉じる外部境界。閉じ損ねても残りの後始末（GameUpdater）まで到達させる
+            // This too is the file-handle boundary; even a failed close must not stop the remaining teardown (GameUpdater)
             try
             {
                 _worldSnapshotRing?.Stop();
             }
             catch (Exception e)
             {
+                // 常時記録のハンドルが残ったまま止まったことを残す。次セッションの区間切り替え失敗はここが原因になる
+                // Record that capture stopped with handles still held; it is the cause of the next session's segment rotation failures
+                Debug.LogError($"常時記録の停止が例外で終わったため、区間ファイルのハンドルが残っている可能性があります message:{e.Message}");
                 Debug.LogException(e);
             }
             try
