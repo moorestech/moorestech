@@ -55,19 +55,20 @@ namespace Game.SaveLoad.Writer
             return false;
         }
 
-        // テストと終了時の待ち合わせ専用。tickスレッドからは呼ばない
-        // For tests and shutdown only; never call from the tick thread
-        public void WaitForIdle()
+        // テストと終了時の待ち合わせ専用。tickスレッドからは呼ばない。待ち切れたかを返し、呼び出し側が正常復帰と区別できるようにする
+        // For tests and shutdown only; never call from the tick thread. Returns whether it drained so callers can tell a timeout from a normal return
+        public bool WaitForIdle()
         {
             for (var polls = 0; polls < WaitForIdleMaxPolls; polls++)
             {
-                if (!HasInFlight) return;
+                if (!HasInFlight) return true;
                 Thread.Sleep(1);
             }
 
             // 待ち切れないのは書き出しが進んでいないとき。無限に待たず理由を出して抜ける
             // Failing to drain means the writer is not progressing, so log the cause instead of blocking forever
             Debug.LogError($"セーブ書き出しの完了を待ち切れませんでした 未完了:{Volatile.Read(ref _inFlight)}件");
+            return false;
         }
 
         // 投入口を閉じて書き出しスレッドを終わらせる。閉じないとサーバーインスタンスごとにスレッドが積み上がる

@@ -19,8 +19,8 @@ namespace Tests.CombinedTest.Core.CleanRoom
 {
     public class CleanRoomChipOutputTest
     {
-        // EUV抽選のシードは未シードのBlockInstanceId.Create()由来で実行毎に変わるため、全滅確率で枚数を決める
-        // The EUV seed comes from the unseeded BlockInstanceId.Create() and differs per run, so the count is sized by all-fail odds
+        // EUV抽選は GameRandom を引き、その状態は直前に走ったテストの引き方で変わるため、特定の結果に依らず全滅確率で枚数を決める
+        // The EUV roll draws from GameRandom whose state depends on whichever test ran before, so the count is sized by all-fail odds rather than a fixed outcome
         private const int WaferCount = 20;
 
         [Test]

@@ -37,8 +37,8 @@ namespace Game.SaveLoad
         // Whether a requested save has not finished writing; used to wait for the flush at shutdown
         public bool HasPendingSave => Volatile.Read(ref _requestedGeneration) != Volatile.Read(ref _completedGeneration);
 
-        // 書き出しが完了した要求番号を流す。tickスレッド上で発火する
-        // Emits the generation whose write completed; fired on the tick thread
+        // 書き出しが完了した要求番号を流す。通常はtickスレッド、終了時の WaitForPendingWrites 経由では待ち合わせスレッドから発火する
+        // Emits the generation whose write completed; normally on the tick thread, and on the waiting thread when it comes through WaitForPendingWrites at shutdown
         public IObservable<long> OnWorldSaveCompleted => _onWorldSaveCompleted;
 
         public long RequestSave()
@@ -68,10 +68,11 @@ namespace Game.SaveLoad
 
         // テストと終了時用。tickループが止まっている間だけ呼べる（回っている最中は待ち終えた直後に次の書き出しが積まれ、待ちの意味が無い）
         // For tests and shutdown; callable only while the tick loop is stopped, otherwise a new write is enqueued right after the wait returns
-        public void WaitForPendingWrites()
+        public bool WaitForPendingWrites()
         {
-            _saveWriteWorker.WaitForIdle();
+            var drained = _saveWriteWorker.WaitForIdle();
             DrainCompletions();
+            return drained;
         }
 
         // 排出は錠の中だけで行う。tickスレッドとの二重ドレイン・_enqueuedGeneration の破損・OnNext の同時発火を防ぐため

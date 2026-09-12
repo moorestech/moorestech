@@ -207,7 +207,9 @@ namespace Server.Boot
             // Drain pending saves after the tick thread stops; skipping this silently loses the last tens of seconds
             try
             {
-                _worldSaveCoordinator?.WaitForPendingWrites();
+                // 待ち切れなかったことを終了経路の側でも残す。書き出し側のログだけではどの待ちが明けなかったか分からない
+                // Record the timeout on the shutdown path too; the writer's own log does not say which wait failed to clear
+                if (_worldSaveCoordinator != null && !_worldSaveCoordinator.WaitForPendingWrites()) Debug.LogError("終了時のセーブ書き出しを待ち切れませんでした");
             }
             catch (Exception e)
             {

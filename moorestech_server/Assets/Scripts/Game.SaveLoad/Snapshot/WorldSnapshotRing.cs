@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Core.Update;
 using Game.Paths;
@@ -128,10 +129,11 @@ namespace Game.SaveLoad.Snapshot
 
         // テストと終了時用。tickループが止まっている間だけ呼べる（回っている最中は待ち終えた直後に次の書き出しが積まれ、待ちの意味が無い）
         // For tests and shutdown; callable only while the tick loop is stopped, otherwise a new write is enqueued right after the wait returns
-        public void WaitForPendingWrites()
+        public bool WaitForPendingWrites()
         {
-            _worker.WaitForIdle();
+            var drained = _worker.WaitForIdle();
             DrainCompletions();
+            return drained;
         }
 
         // 取り込みと要求IDの記録。区間は呼び出し側が取り込みtickの直後から始めてある
@@ -191,10 +193,7 @@ namespace Game.SaveLoad.Snapshot
 
         private List<string> CopyPacketLogFileNames()
         {
-            var paths = _packetLog.SegmentFilePaths();
-            var names = new List<string>(paths.Count);
-            foreach (var path in paths) names.Add(Path.GetFileName(path));
-            return names;
+            return _packetLog.SegmentFilePaths().Select(Path.GetFileName).ToList();
         }
     }
 }
