@@ -83,15 +83,27 @@ export const PumpDetailDataSchema = z.discriminatedUnion("kind", [
   }),
 ]);
 
-export const GearDetailDataSchema = z.object({
-  isClockwise: z.boolean(), currentRpm: z.number(), currentTorque: z.number(), baseRpm: z.number(), baseTorque: z.number(),
-});
+// 役割が行構成を決める。基準RPMは消費側の枝にしか無く、発電機は現在値だけを送る（ADR 0056）
+// The role decides the row layout: a base RPM exists only on the consumer branch and generators send current values only (ADR 0056)
+export const GearDetailDataSchema = z.discriminatedUnion("role", [
+  z.object({
+    role: z.literal("consumer"),
+    currentRpm: z.number(),
+    currentTorque: z.number(),
+    baseRpm: z.number(),
+  }).strict(),
+  z.object({
+    role: z.literal("generator"),
+    currentRpm: z.number(),
+    currentTorque: z.number(),
+  }).strict(),
+]);
 
 export const ElectricNetworkDataSchema = z.object({
   totalGeneratePower: z.number(), totalRequiredPower: z.number(), consumerCount: z.number(), powerRate: z.number(),
 });
 
-export const GearNetworkStopReasonSchema = z.enum(["none", "rocked", "overRequirePower"]);
+export const GearNetworkStopReasonSchema = z.enum(["none", "rocked", "overRequirePower", "noGeneration", "noGenerator"]);
 export const GearNetworkDataSchema = z.object({
   totalRequiredGearPower: z.number(),
   totalGenerateGearPower: z.number(),

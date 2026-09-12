@@ -20,8 +20,8 @@ using UnityEngine;
 namespace Tests.CombinedTest.Core.Fluid
 {
     /// <summary>
-    ///     ボイドパイプ（全量消滅の終端）のテスト。ADR0056
-    ///     Tests for the void pipe, a terminal sink that destroys every fluid reaching its inflow face. ADR 0056
+    ///     ボイドパイプ（全量消滅の終端）のテスト。ADR0058
+    ///     Tests for the void pipe, a terminal sink that destroys every fluid reaching its inflow face. ADR 0058
     /// </summary>
     public class VoidPipeTest
     {

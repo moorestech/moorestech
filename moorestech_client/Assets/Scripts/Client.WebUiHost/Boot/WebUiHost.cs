@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.Game.Common;
 using Client.WebUiHost.Common;
@@ -26,7 +27,9 @@ namespace Client.WebUiHost.Boot
 
         public static string WebUiUrl => _webUiUrl;
         private static string _webUiUrl;
-        public static async UniTask<bool> StartAsync()
+        // exitToken はPlay終了で発火し、Kestrel起動やVite疎通のTask継続がEditModeで再開するのを止める
+        // exitToken fires on play-mode exit and stops Kestrel startup / Vite probe continuations from resuming in EditMode
+        public static async UniTask<bool> StartAsync(CancellationToken exitToken)
         {
             // 前回の停止完了を待つ（連続 Start/Stop での自ポート衝突を避ける）
             // Wait for the previous stop to complete (avoids colliding with our own ports on rapid restart)
@@ -63,7 +66,7 @@ namespace Client.WebUiHost.Boot
                     staticFiles = new WebUiStaticFileEndpoint(WebUiPaths.ProductionDistRoot);
                 }
 
-                await kestrel.StartAsync(hub, staticFiles);
+                await kestrel.StartAsync(hub, staticFiles, exitToken);
                 kestrelStarted = true;
 
                 if (mode == WebUiHostMode.Development)
@@ -71,7 +74,7 @@ namespace Client.WebUiHost.Boot
                     vite = new ViteSupervisor();
                     // HTTP疎通後に起動成功とする
                     // A Vite instance without successful HTTP health leaves no UI, so roll it back as startup failure
-                    if (!await vite.StartAsync(kestrel.ActualPort)) return false;
+                    if (!await vite.StartAsync(kestrel.ActualPort, exitToken)) return false;
                     WebUiPortConfig.SetBrowserPort(vite.ActualPort);
                     _webUiUrl = $"http://127.0.0.1:{vite.ActualPort}/";
                 }

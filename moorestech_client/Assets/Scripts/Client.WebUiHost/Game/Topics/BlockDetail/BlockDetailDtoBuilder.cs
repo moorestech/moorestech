@@ -3,9 +3,7 @@ using Client.Game.InGame.Block;
 using Core.Master;
 using Game.Block.Blocks.PowerGenerator;
 using Game.Block.Interface.State;
-using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
-using Mooresmaster.Model.GearConsumptionModule;
 using System;
 
 namespace Client.WebUiHost.Game.Topics.BlockDetail
@@ -71,21 +69,9 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             // Pumps: computed by PumpDetailDtoBuilder
             PumpDetailDtoBuilder.Apply(dto, block, param, common);
 
-            // ギア: GearStateDetail + マスタ GearConsumption（要求値）
-            // Gears: the GearStateDetail plus master GearConsumption requirements
-            var gear = block.GetStateDetail<GearStateDetail>(GearStateDetail.BlockStateDetailKey);
-            if (gear != null)
-            {
-                var consumption = GetGearConsumption(param);
-                dto.Gear = new GearDetailDto
-                {
-                    IsClockwise = gear.IsClockwise,
-                    CurrentRpm = gear.CurrentRpm,
-                    CurrentTorque = gear.CurrentTorque,
-                    BaseRpm = consumption != null ? (float)consumption.BaseRpm : 0f,
-                    BaseTorque = consumption != null ? (float)consumption.BaseTorque : 0f,
-                };
-            }
+            // ギア: 役割と現在値を算出
+            // Gears: derives role and current values
+            GearDetailDtoBuilder.Apply(dto, block, param);
 
             // 液体スロット: FluidMachineInventory StateDetail（入力→出力の順で連結）
             // Fluid slots: the FluidMachineInventory state detail (inputs then outputs)
@@ -159,13 +145,6 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
                 var fluidGuid = isEmpty ? "" : MasterHolder.FluidMaster.GetFluidMaster(new FluidId(tank.FluidId)).FluidGuid.ToString("D");
                 slots.Add(new BlockFluidSlotDto { FluidId = tank.FluidId, Amount = tank.Amount, Capacity = tank.MaxCapacity, FluidGuid = fluidGuid });
             }
-        }
-
-        private static GearConsumption GetGearConsumption(object param)
-        {
-            // ギア消費要求値の有無はスキーマのIGearConsumptionParamが正本（具体型の列挙はしない）
-            // The schema's IGearConsumptionParam is the authority on which params carry gear consumption
-            return param is IGearConsumptionParam gearConsumptionParam ? gearConsumptionParam.GearConsumption : null;
         }
 
         internal static string ToCamelCase(string value)

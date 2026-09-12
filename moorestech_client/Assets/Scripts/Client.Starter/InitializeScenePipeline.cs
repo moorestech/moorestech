@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
@@ -50,6 +51,10 @@ namespace Client.Starter
             // A new boot sequence begins; clear the previous session's shutdown guard here
             GameShutdownEvent.ResetForNewSession();
 
+            // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
+            // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
+            var exitToken = Application.exitCancellationToken;
+
             // ---- Web UI サーバーの起動（最序盤）----
             // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
             // ---- Web UI server bootstrap (earliest phase) ----
@@ -59,9 +64,9 @@ namespace Client.Starter
             // Web UI startup failure does not block gameplay, but the screen UI is web-only so nothing is shown
             try
             {
-                await Client.WebUiHost.Boot.WebUiHost.StartAsync();
+                await Client.WebUiHost.Boot.WebUiHost.StartAsync(exitToken);
             }
-            catch (Exception e)
+            catch (Exception e) when (e is not OperationCanceledException)
             {
                 // WebUI 無しでゲーム続行。外部プロセス境界の起動失敗を隔離して再試行可能にする
                 // Continue without WebUI; isolate external-process startup failures and keep retries possible
@@ -93,7 +98,7 @@ namespace Client.Starter
             // Addressablesを初期化する
             // Initialize Addressables
             var initializeHandle = Addressables.InitializeAsync();
-            await initializeHandle.ToUniTask();
+            await initializeHandle.ToUniTask(cancellationToken: exitToken);
 
             // DIコンテナによるServerContextの作成
             if (!ServerContext.IsInitialized)
@@ -111,7 +116,7 @@ namespace Client.Starter
 
             // サーバー接続とアセットロードを並列実行し結果を受け取る
             // Run server connection and asset load in parallel and collect results
-            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, playerConnectionSetting);
+            var serverInitializer = new ServerConnectionInitializer(_proprieties, loadingProgressLog, playerConnectionSetting, exitToken);
             var modAssetLoader = new ModAssetLoader(serverDirectory, missingBlockIdObject, blockIconImagePhotographer, trainCarIconTargets, loadingProgressLog);
 
             ServerConnectionResult serverResult;
@@ -123,7 +128,7 @@ namespace Client.Starter
                 GameDictionaryComposer.Run();
                 (serverResult, assetResult) = await UniTask.WhenAll(ConnectServerThenFetchTerrainAsync(), modAssetLoader.RunAsync());
             }
-            catch (Exception e)
+            catch (Exception e) when (e is not OperationCanceledException)
             {
                 // 失敗をログとUIへ出し、文言を読ませてからメインメニューへ戻す
                 // Log the failure, surface it in the UI, and return to the main menu after the message is readable
@@ -148,6 +153,9 @@ namespace Client.Starter
             // Load the scene serially, after every asset load has finished
             // 0.9保持中は後続Addressablesロードが永久に待つため並列プリロード禁止
             // Never preload in parallel: holding at 0.9 stalls later Addressables loads forever
+            // Play終了後にここへ到達した継続はシーンロードで編集中シーンを壊すため確実に止める
+            // A continuation reaching here after play-mode exit would clobber the edited scene, so stop it for certain
+            exitToken.ThrowIfCancellationRequested();
             SceneManager.sceneLoaded += MainGameSceneLoaded;
             SceneManager.LoadSceneAsync(SceneConstant.MainGameSceneName, LoadSceneMode.Single);
 
@@ -158,7 +166,7 @@ namespace Client.Starter
             async UniTask<ServerConnectionResult> ConnectServerThenFetchTerrainAsync()
             {
                 var connectionResult = await serverInitializer.RunAsync();
-                var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response).RunAsync(connectionResult.HandshakeResponse.MapLayout);
+                var fetchedChunkCount = await new TerrainDataFetcher(connectionResult.VanillaApi.Response, exitToken).RunAsync(connectionResult.HandshakeResponse.MapLayout);
                 loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.TerrainReady, fetchedChunkCount.ToString());
                 return connectionResult;
             }

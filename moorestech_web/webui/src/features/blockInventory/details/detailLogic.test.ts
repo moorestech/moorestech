@@ -4,6 +4,7 @@ import {
   computePowerRate,
   splitSlotIndices,
   fuelRatio,
+  gearRowDisplay,
   itemsPerMinute,
   machineStateDisplay,
   stopReasonTranslationKey,
@@ -41,6 +42,8 @@ describe("detailLogic", () => {
     expect(stopReasonTranslationKey("overRequirePower")).toBe(
       L.ui.blockInventory.stopReasonInsufficientPower,
     );
+    expect(stopReasonTranslationKey("noGeneration")).toBe(L.ui.blockInventory.stopReasonNoGeneration);
+    expect(stopReasonTranslationKey("noGenerator")).toBe(L.ui.blockInventory.stopReasonNoGenerator);
   });
 
   describe("machineStateDisplay", () => {
@@ -59,6 +62,21 @@ describe("detailLogic", () => {
     it("要求電力0でも稼働状態なら充足率を表示する", () => {
       expect(machineStateDisplay("idle").showPowerRate).toBe(true);
       expect(machineStateDisplay("processing").showPowerRate).toBe(true);
+    });
+  });
+
+  it("gear rows follow the role: consumers consume with a base RPM, generators generate with current RPM only", () => {
+    expect(gearRowDisplay({ role: "consumer", currentRpm: 5, currentTorque: 2.4, baseRpm: 10 })).toEqual({
+      torqueKey: L.ui.blockInventory.gearConsumedTorque,
+      torqueParams: { value: "2.4" },
+      rpmKey: L.ui.blockInventory.gearRpmWithBase,
+      rpmParams: { current: "5.0", base: "10.0" },
+    });
+    expect(gearRowDisplay({ role: "generator", currentRpm: 20, currentTorque: 5 })).toEqual({
+      torqueKey: L.ui.blockInventory.gearGeneratedTorque,
+      torqueParams: { value: "5.0" },
+      rpmKey: L.ui.blockInventory.gearRpmCurrent,
+      rpmParams: { current: "20.0" },
     });
   });
 });

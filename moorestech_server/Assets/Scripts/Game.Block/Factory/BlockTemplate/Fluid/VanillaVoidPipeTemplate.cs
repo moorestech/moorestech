@@ -10,8 +10,8 @@ using Mooresmaster.Model.BlocksModule;
 namespace Game.Block.Factory.BlockTemplate.Fluid
 {
     /// <summary>
-    ///     ボイドパイプのテンプレート。可変状態が無いので New と Load は同じ組み立てになる（ADR 0056）
-    ///     Template for the void pipe; with no mutable state, New and Load assemble the same block (ADR 0056)
+    ///     ボイドパイプのテンプレート。可変状態が無いので New と Load は同じ組み立てになる（ADR 0058）
+    ///     Template for the void pipe; with no mutable state, New and Load assemble the same block (ADR 0058)
     /// </summary>
     public class VanillaVoidPipeTemplate : IBlockTemplate
     {

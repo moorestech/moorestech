@@ -66,7 +66,7 @@ namespace Client.Tests.Gear
             var info = new TransformRotationInfo(RotationAxis.Z, child, 1f, false, mode);
 
             var before = child.rotation;
-            info.Rotate(new GearStateDetail(isClockwise, 60f, 0f), 1f / 60f);
+            info.Rotate(new GearStateDetail(isClockwise, 60f, 0f, GearRole.Consumer), 1f / 60f);
             var delta = child.rotation * Quaternion.Inverse(before);
 
             Object.DestroyImmediate(parent.gameObject);
@@ -79,7 +79,7 @@ namespace Client.Tests.Gear
             var info = new TransformRotationInfo(RotationAxis.Z, child, 1f, false, mode);
 
             var before = child.localRotation;
-            info.Rotate(new GearStateDetail(true, 60f, 0f), 1f / 60f);
+            info.Rotate(new GearStateDetail(true, 60f, 0f, GearRole.Consumer), 1f / 60f);
             var delta = child.localRotation * Quaternion.Inverse(before);
 
             Object.DestroyImmediate(parent.gameObject);

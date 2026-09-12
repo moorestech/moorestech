@@ -60,8 +60,8 @@ namespace Tests.Module.TestMod
         
         public static BlockId FluidPipe => GetBlock("9CE688A4-8985-40B6-AD52-0F98F3BAF55E");
         public static BlockId OneWayFluidPipe => GetBlock("BCCD23DE-053E-4A54-9E32-31120B051DCA");
-        // 受け入れ面は -Z 固定。ADR 0056
-        // Inflow face fixed to -Z. ADR 0056
+        // 受け入れ面は -Z 固定。ADR 0058
+        // Inflow face fixed to -Z. ADR 0058
         public static BlockId VoidPipe => GetBlock("019f1a00-0000-7000-8000-00000000f1d0");
         
         public static BlockId FluidMachineId => GetBlock("9b36e317-b6eb-441a-b5bf-8aa99e9216a0");

@@ -110,4 +110,13 @@ describe("MachineSection", () => {
     const processing = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid, "processing") }));
     expect(processing.root.findAllByProps({ testId: "machine-power-rate" }).length).toBeGreaterThan(0);
   });
+
+  it("歯車駆動の機械は充足率に不足赤を許さず、電力駆動の機械は許す（ADR 0056）", () => {
+    const gearData = { ...data, gear: { role: "consumer", currentRpm: 5, currentTorque: 1, baseRpm: 10 } } as unknown as BlockInventoryOpen;
+    const gearDriven = create(createElement(MachineSection, { data: gearData, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid, "processing") }));
+    expect(gearDriven.root.findByType("mock-power" as never).props.highlightShortage).toBe(false);
+
+    const electricDriven = create(createElement(MachineSection, { data, fillsPanelHeight: true, machine: machine(recipeGuid, blockGuid, "processing") }));
+    expect(electricDriven.root.findByType("mock-power" as never).props.highlightShortage).toBe(true);
+  });
 });

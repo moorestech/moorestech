@@ -5,8 +5,8 @@ using Game.Fluid;
 namespace Game.Block.Blocks.Fluid
 {
     /// <summary>
-    ///     受け入れ面の流体を全量消滅させる終端（ADR 0056）
-    ///     A terminal sink that destroys every fluid on its inflow face (ADR 0056)
+    ///     受け入れ面の流体を全量消滅させる終端（ADR 0058）
+    ///     A terminal sink that destroys every fluid on its inflow face (ADR 0058)
     /// </summary>
     public class VoidPipeComponent : IFluidInventory
     {

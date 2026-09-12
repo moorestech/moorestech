@@ -10,12 +10,14 @@ export default function MachineStateRow({
   currentState,
   currentPower,
   requestPower,
+  highlightPowerShortage,
   stateTestId,
   powerRateTestId,
 }: {
   currentState: MachineProcessState;
   currentPower: number;
   requestPower: number;
+  highlightPowerShortage: boolean;
   stateTestId: string;
   powerRateTestId: string;
 }) {
@@ -24,7 +26,7 @@ export default function MachineStateRow({
   return (
     <>
       <LackHighlightText insufficient={display.insufficient} size="sm" testId={stateTestId}>{t(display.labelKey)}</LackHighlightText>
-      {display.showPowerRate && <PowerRateText currentPower={currentPower} requestPower={requestPower} testId={powerRateTestId} />}
+      {display.showPowerRate && <PowerRateText currentPower={currentPower} requestPower={requestPower} highlightShortage={highlightPowerShortage} testId={powerRateTestId} />}
     </>
   );
 }
