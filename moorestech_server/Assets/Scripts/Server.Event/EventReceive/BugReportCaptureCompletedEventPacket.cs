@@ -8,37 +8,43 @@ using UniRx;
 
 namespace Server.Event.EventReceive
 {
-    // 即時スナップショットの書き出し結果を、バンドル組み立てに必要なファイル一覧付きで配信する
-    // Broadcasts the outcome of an immediate snapshot write, with the file list needed to assemble a bundle
+    // 即時スナップショットの書き出し結果を、バンドル組み立てに必要なファイル一覧付きで要求元へ配信する
+    // Delivers the outcome of an immediate snapshot write to its requester, with the file list needed to assemble a bundle
     public class BugReportCaptureCompletedEventPacket : IBootInitializable
     {
         public const string EventTag = "va:event:bugReportCaptureCompleted";
 
         private readonly EventProtocolProvider _eventProtocolProvider;
         private readonly ISnapshotWrittenNotifier _snapshotWrittenNotifier;
+        private readonly BugReportCaptureRequesterRegistry _requesterRegistry;
 
-        public BugReportCaptureCompletedEventPacket(EventProtocolProvider eventProtocolProvider, ISnapshotWrittenNotifier snapshotWrittenNotifier)
+        public BugReportCaptureCompletedEventPacket(EventProtocolProvider eventProtocolProvider, ISnapshotWrittenNotifier snapshotWrittenNotifier, BugReportCaptureRequesterRegistry requesterRegistry)
         {
             _eventProtocolProvider = eventProtocolProvider;
             _snapshotWrittenNotifier = snapshotWrittenNotifier;
+            _requesterRegistry = requesterRegistry;
         }
 
         public void Load()
         {
             // 要求元のいない周期スナップショットは配信しない。要求付きの結果だけを流す
-            // A periodic snapshot has no requester and is not broadcast; only requested outcomes go out
+            // A periodic snapshot has no requester and is never delivered; only requested outcomes go out
             _snapshotWrittenNotifier.OnSnapshotWritten.Where(w => w.HasRequester).Subscribe(OnSnapshotWritten);
 
             #region Internal
 
             void OnSnapshotWritten(SnapshotWritten written)
             {
+                // 要求元1人へ返す。全接続へ配ると無関係なクライアントが他人の完了とサーバー側のパスを受け取る
+                // Delivered to the single requester; broadcasting would hand unrelated clients someone else's completion and the server-side path
+                if (!_requesterRegistry.TryTakeRequester(written.RequestId, out var requesterPlayerId)) return;
+
                 // ファイル一覧の出所はリングの権威リスト。配信層がディスクを舐めると剪定と競合し順序も辞書順になる
                 // The file list comes from the ring's authoritative state; scanning disk here would race pruning and order names lexicographically
                 var payload = MessagePackSerializer.Serialize(new BugReportCaptureCompletedMessagePack(
                     written.RequestId, written.Tick, written.Success, written.SnapshotDirectory,
                     written.SnapshotFileNames.ToList(), written.PacketLogFileNames.ToList()));
-                _eventProtocolProvider.AddBroadcastEvent(EventTag, payload);
+                _eventProtocolProvider.AddEvent(requesterPlayerId, EventTag, payload);
             }
 
             #endregion
