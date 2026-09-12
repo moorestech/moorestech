@@ -77,9 +77,15 @@ namespace Game.Construction
 
         public List<PlayerRemainingPlacementCountSaveJsonObject> GetSaveJsonObject()
         {
+            // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
+            // Dictionary order shifts as removed slots get reused, so canonicalize here for comparers that match by index
+            // 外側のプレイヤーと内側の財布の両方を並べないと、片方の列挙順が残って添字がずれる
+            // Both the outer players and the inner wallets need ordering, or one enumeration order survives and shifts the indices
             return _remainingCounts
+                .OrderBy(player => player.Key)
                 .Select(player => new PlayerRemainingPlacementCountSaveJsonObject(player.Key, player.Value
                     .Where(wallet => 0 < wallet.Value)
+                    .OrderBy(wallet => wallet.Key.AsPrimitive())
                     .Select(wallet => new RemainingPlacementCountEntrySaveJsonObject(MasterHolder.BlockMaster.GetBlockMaster(wallet.Key).BlockGuid.ToString(), wallet.Value))
                     .ToList()))
                 .Where(player => 0 < player.Entries.Count)
