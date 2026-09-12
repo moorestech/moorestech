@@ -60,6 +60,8 @@ hooks:
 | `COMMIT_MISSING=1` / `DIFF_APPLY_FAILED=1` | 止まらず進む。再現環境が報告時と違う旨を `summary` と PR 本文に必ず書く |
 | バンドルの欠損（動画・スナップショット・パケットログ） | 残った資料で進める。欠損項目を `summary` に書く |
 | Step 3 の観察で症状が出ない | 追加シナリオを最大3本試し、それでも出なければ `not_reproduced` |
+| `$WORLD_DIR/save.json` が無い（スナップショット欠損の箱） | Step 3 を飛ばし、ログ・パケット・スクショだけで Step 4 へ。飛ばした理由を `summary` に書く |
+| `$MASTER_DIR` の master data で `MoorestechServerDIContainerGenerator.Create` が落ちる（`data[NN]` 等のローダー例外） | 記録時のサーバーデータと `masterData.commit` が食い違っている。`failure`（環境要因）とし、manifest の `masterData` と実際に使われたサーバーデータの不一致を `summary` に書く |
 | 修正案が複数あって優劣が付かない | 前例に最も近い案を選び、他案を PR 本文の「裁定事項」に列挙して進む |
 | 期待挙動が仕様として存在しない | コードを触らず `needs_ruling` |
 | Editor が起動しない・master data が壊れている | `failure`（環境要因）。原因を `summary` に書く |
@@ -80,6 +82,17 @@ hooks:
 
 ## Step 3: 観察（スナップショットからのプレイテスト）
 
+**先に前提を確かめる。** `LATEST_TICK` が空、または `$WORLD_DIR/save.json` が無い箱では観察は成立しない。
+`run-scenario.sh` はこの状態を検査せず PlayMode を起動し、**300秒待って `NG: game not ready` を出したうえ終了コード 0 を返し、
+Editor を PlayMode に置き去りにする**（2026-09-12 リハーサルで実測）。該当する箱は Step 3 を飛ばし、
+「観察できない理由（世界データ欠損）」を `summary` に書いて Step 4 へ進む。飛ばしたこと自体も必ずログに残す。
+
+```bash
+[ -s "$WORLD_DIR/save.json" ] || echo "観察を飛ばす: $WORLD_DIR/save.json が無い（スナップショット欠損の箱）"
+```
+
+観察を実行する場合:
+
 ```bash
 sed "s|__BUNDLE__|$RUN|g" .agents/skills/bug-report-auto-fix/scripts/scenarios/bug-report-observe.cs > $RUN/observe.cs
 uloop control-play-mode --project-path $WORKTREE/moorestech_client --action stop
@@ -87,6 +100,9 @@ PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=template PLAYTEST_SEED=0 \
   .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh $WORKTREE/moorestech_client $RUN/observe.cs $MASTER_DIR
 ```
 （`world.json` の `mapMode` が `generated` なら `PLAYTEST_MAP_MODE=generated PLAYTEST_SEED=<world.jsonのseed>`）
+`run-scenario.sh` は失敗しても終了コード 0 を返すので、**成否は `result.json` の有無と `Success` で判定する**（終了コードでは判定しない）。
+`NG: game not ready within 300s` が出たら Editor が PlayMode のまま残っているので、
+`uloop control-play-mode --project-path $WORKTREE/moorestech_client --action Stop` で必ず戻す。
 結果ディレクトリを `$RUN/observe/` へコピーする。説明文の症状が録画・スクショ・`ErrorLogs` に現れるかを判定する。現れなければ、説明文の操作を DSL で再現する追加シナリオを最大3本まで書いて試す（`references/write-scenario.md`）。
 
 3本試しても症状が出なければ Step 9 へ飛び、`not_reproduced` で終える（試したこと全部を `summary`、次に試す案を `remaining` に書く）。
