@@ -79,6 +79,7 @@ test ! -e "$OUTBOX3/pushed_case/repo/commits.bundle" || { echo "NG: push 済み�
 # A generic mv failure also logs a reason and leaves SHIPPED off
 cat > "$TMP/ssh-fail" <<'SH'
 #!/usr/bin/env bash
+shift; [ "$*" = "true" ] && exit 0   # 到達性検査だけ通し、公開 mv を失敗させる / reachable, but mv fails
 exit 1
 SH
 chmod +x "$TMP/ssh-fail"
@@ -89,5 +90,90 @@ OUTBOX_DIR="$OUTBOX4" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX4" RSYNC_CMD=
   bash "$HERE/../ship-outbox.sh" 2>"$TMP/mvfail.log"
 grep -q "公開 mv 失敗（exit 1）" "$TMP/mvfail.log" || { echo "NG: mv 失敗の理由がログされていない"; exit 1; }
 test ! -e "$OUTBOX4/mvfail_case/SHIPPED" || { echo "NG: mv 失敗なのに SHIPPED が付いた"; exit 1; }
+
+# C8: 1箱が詰まっても後続の箱は運ばれ、詰まった箱は SHIP_BLOCKED で理由を残して次回から飛ばされる
+# C8: one stuck box never blocks the rest; it keeps a SHIP_BLOCKED reason and is skipped afterwards
+OUTBOX5="$TMP/outbox5"; INBOX5="$TMP/inbox5"
+mkdir -p "$OUTBOX5/20260911_150000_blocked" "$OUTBOX5/20260911_160000_later" "$INBOX5/20260911_150000_blocked"
+for id in 20260911_150000_blocked 20260911_160000_later; do
+  echo '{"repository":{"commit":"","dirty":false},"masterData":{"commit":"","dirty":false}}' > "$OUTBOX5/$id/manifest.json"
+  touch "$OUTBOX5/$id/READY"
+done
+OUTBOX_DIR="$OUTBOX5" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX5" RSYNC_CMD="$TMP/rsync" SSH_CMD="$TMP/ssh" GIT_CMD=true \
+  bash "$HERE/../ship-outbox.sh" 2>"$TMP/hol.log"
+test -f "$OUTBOX5/20260911_150000_blocked/SHIP_BLOCKED" || { echo "NG: 詰まった箱に SHIP_BLOCKED が無い"; exit 1; }
+test ! -e "$OUTBOX5/20260911_150000_blocked/SHIPPED" || { echo "NG: 詰まった箱に SHIPPED が付いた"; exit 1; }
+test -f "$OUTBOX5/20260911_160000_later/SHIPPED" || { echo "NG: 先頭が詰まって後続の箱が運ばれていない"; exit 1; }
+test -f "$INBOX5/20260911_160000_later/READY" || { echo "NG: 後続の箱が inbox に届いていない"; exit 1; }
+
+# 2回目: 詰まった箱は件数だけ出して飛ばし、新しい箱は運ぶ
+# Second run: the stuck box is skipped (count only) while a new box still ships
+mkdir -p "$OUTBOX5/20260911_170000_fresh"
+echo '{"repository":{"commit":"","dirty":false},"masterData":{"commit":"","dirty":false}}' > "$OUTBOX5/20260911_170000_fresh/manifest.json"
+touch "$OUTBOX5/20260911_170000_fresh/READY"
+OUTBOX_DIR="$OUTBOX5" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX5" RSYNC_CMD="$TMP/rsync" SSH_CMD="$TMP/ssh" GIT_CMD=true \
+  bash "$HERE/../ship-outbox.sh" 2>"$TMP/hol2.log"
+grep -q "手動確認待ちの箱が 1 件ある" "$TMP/hol2.log" || { echo "NG: 詰まった箱の件数がログされていない"; exit 1; }
+test -f "$OUTBOX5/20260911_170000_fresh/SHIPPED" || { echo "NG: 詰まった箱があると新しい箱が運ばれない"; exit 1; }
+
+# rsync が1箱で失敗しても後続は運ぶ（到達不能のときだけ全体を降りる）
+# A per-box rsync failure does not stop the loop; only an unreachable host does
+cat > "$TMP/rsync-selective" <<'SH'
+#!/usr/bin/env bash
+src="${@: -2:1}"; dst="${@: -1}"; dst="${dst#*:}"
+case "$src" in *rsyncfail*) exit 23 ;; esac
+mkdir -p "$dst"; cp -R "$src"/. "$dst"/
+SH
+chmod +x "$TMP/rsync-selective"
+OUTBOX6="$TMP/outbox6"; INBOX6="$TMP/inbox6"; mkdir -p "$OUTBOX6/20260911_180000_rsyncfail" "$OUTBOX6/20260911_190000_after" "$INBOX6"
+for id in 20260911_180000_rsyncfail 20260911_190000_after; do
+  echo '{"repository":{"commit":"","dirty":false},"masterData":{"commit":"","dirty":false}}' > "$OUTBOX6/$id/manifest.json"
+  touch "$OUTBOX6/$id/READY"
+done
+OUTBOX_DIR="$OUTBOX6" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX6" RSYNC_CMD="$TMP/rsync-selective" SSH_CMD="$TMP/ssh" GIT_CMD=true \
+  bash "$HERE/../ship-outbox.sh" 2>"$TMP/rsyncfail.log"
+grep -q "rsync 失敗" "$TMP/rsyncfail.log" || { echo "NG: rsync 失敗の理由がログされていない"; exit 1; }
+test ! -e "$OUTBOX6/20260911_180000_rsyncfail/SHIPPED" || { echo "NG: rsync 失敗なのに SHIPPED が付いた"; exit 1; }
+test -f "$OUTBOX6/20260911_190000_after/SHIPPED" || { echo "NG: rsync 失敗の箱の後続が運ばれていない"; exit 1; }
+
+# 到達不能なら理由をログして何も運ばない
+# An unreachable host logs the reason and ships nothing
+cat > "$TMP/ssh-dead" <<'SH'
+#!/usr/bin/env bash
+exit 255
+SH
+chmod +x "$TMP/ssh-dead"
+OUTBOX7="$TMP/outbox7"; INBOX7="$TMP/inbox7"; mkdir -p "$OUTBOX7/20260911_200000_offline" "$INBOX7"
+echo '{"repository":{"commit":"","dirty":false},"masterData":{"commit":"","dirty":false}}' > "$OUTBOX7/20260911_200000_offline/manifest.json"
+touch "$OUTBOX7/20260911_200000_offline/READY"
+OUTBOX_DIR="$OUTBOX7" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX7" RSYNC_CMD="$TMP/rsync" SSH_CMD="$TMP/ssh-dead" GIT_CMD=true \
+  bash "$HERE/../ship-outbox.sh" 2>"$TMP/offline.log"
+grep -q "Mac mini へ到達できない" "$TMP/offline.log" || { echo "NG: 到達不能の理由がログされていない"; exit 1; }
+test ! -e "$OUTBOX7/20260911_200000_offline/SHIPPED" || { echo "NG: 到達不能なのに SHIPPED が付いた"; exit 1; }
+
+# C9: bundle 作成の失敗と manifest の読み取り失敗を無音にしない（3状態を箱へ残す）
+# C9: neither a failed bundle nor an unreadable manifest is silent; the three states land in the box
+cat > "$TMP/git-bundlefail" <<'SH'
+#!/usr/bin/env bash
+for arg in "$@"; do
+  [ "$arg" = "bundle" ] && exit 1        # bundle create だけ失敗させる / only bundle create fails
+  [ "$arg" = "merge-base" ] && exit 1    # origin には無いコミット扱い / the commit is not in origin
+done
+exit 0
+SH
+chmod +x "$TMP/git-bundlefail"
+OUTBOX8="$TMP/outbox8"; INBOX8="$TMP/inbox8"; mkdir -p "$OUTBOX8/20260911_210000_bundlefail" "$OUTBOX8/20260911_220000_badmanifest" "$INBOX8"
+echo '{"repository":{"commit":"deadbeef","dirty":false},"masterData":{"commit":"","dirty":false}}' > "$OUTBOX8/20260911_210000_bundlefail/manifest.json"
+printf '{ broken' > "$OUTBOX8/20260911_220000_badmanifest/manifest.json"
+touch "$OUTBOX8/20260911_210000_bundlefail/READY" "$OUTBOX8/20260911_220000_badmanifest/READY"
+OUTBOX_DIR="$OUTBOX8" MACMINI_SSH="stub@host" MACMINI_INBOX="$INBOX8" RSYNC_CMD="$TMP/rsync" SSH_CMD="$TMP/ssh" \
+  GIT_CMD="$TMP/git-bundlefail" MOORESTECH_REPO="$TMP/repo" MOORESTECH_MASTER="$TMP/repo" \
+  bash "$HERE/../ship-outbox.sh" 2>"$TMP/bundlefail.log"
+grep -q "bundle 作成に失敗した" "$TMP/bundlefail.log" || { echo "NG: bundle 作成失敗が無音になっている"; exit 1; }
+grep -q "commits.bundle: failed-bundle-create" "$INBOX8/20260911_210000_bundlefail/repo/bundle-status.txt" \
+  || { echo "NG: bundle の失敗が箱に残っていない"; exit 1; }
+grep -q "manifest の repository.commit を読めない" "$TMP/bundlefail.log" || { echo "NG: manifest 読み取り失敗が無音になっている"; exit 1; }
+grep -q "commits.bundle: skipped-no-commit" "$INBOX8/20260911_220000_badmanifest/repo/bundle-status.txt" \
+  || { echo "NG: commit 不明が箱に残っていない"; exit 1; }
 
 echo "OK"
