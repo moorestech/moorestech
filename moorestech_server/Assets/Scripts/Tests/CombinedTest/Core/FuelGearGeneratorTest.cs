@@ -17,6 +17,7 @@ using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UniRx;
 using UnityEngine;
 
@@ -28,6 +29,40 @@ namespace Tests.CombinedTest.Core
         public static FluidId SteamFluidId => MasterHolder.FluidMaster.GetFluidId(new("00000000-0000-0000-1234-000000000002"));
 
         
+        // 燃料消費の確率抽選が世界共有の乱数でないと、同じスナップショットとパケット列を再生しても燃料の残りがずれる
+        // If the fuel-consumption roll does not come from the shared world random, replaying the same snapshot and packets leaves a different fuel remainder
+        [Test]
+        public void 稼働率未満の燃料消費抽選はGameRandomを1回だけ引く()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var param = (FuelGearGeneratorBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.FuelGearGeneratorId).BlockParam;
+            var inventoryService = new OpenableInventoryItemDataStoreService((slot, itemStack) => { }, ServerContext.ItemStackFactory, 1);
+            var fuelService = new FuelGearGeneratorFuelService(param, inventoryService, new FuelGearGeneratorFluidComponent(100f));
+
+            // 燃料が残っている状態にしないと消費の抽選そのものが走らない
+            // Without remaining fuel the consumption roll never runs at all
+            var steamGuid = MasterHolder.FluidMaster.GetFluidMaster(SteamFluidId).FluidGuid;
+            fuelService.Restore(new FuelGearGeneratorSaveData
+            {
+                ActiveFuelType = FuelGearGeneratorFuelService.FuelType.Fluid.ToString(),
+                RemainingFuelSeconds = 60d,
+                CurrentFuelFluidGuidStr = steamGuid.ToString(),
+            });
+            Assert.Greater(fuelService.RemainingFuelTicks, 1u, "燃料が有効になっていない（テストの前提が崩れている）");
+
+            var drawnOnce = GameRandomDrawAssert.StateAfterDraws(1);
+            GameRandomDrawAssert.BeginDrawCount();
+            fuelService.Update(0.5f);
+            GameRandomDrawAssert.AssertDrawn(drawnOnce, "稼働率未満の燃料消費抽選が世界共有の乱数を引いていない");
+
+            // 稼働率1は確定消費なので1回も引いてはならない
+            // A full operating rate consumes deterministically, so it must not draw at all
+            var untouched = GameRandomDrawAssert.StateAfterDraws(0);
+            GameRandomDrawAssert.BeginDrawCount();
+            fuelService.Update(1f);
+            GameRandomDrawAssert.AssertDrawn(untouched, "確定消費の経路が乱数を引いている");
+        }
+
         [Test]
         public void MaxGenerateTest()
         {
