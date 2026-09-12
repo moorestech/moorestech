@@ -6,9 +6,11 @@ using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
 using Game.SaveLoad.Snapshot;
+using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 using Server.Boot.Loop.PacketProcessing;
 using Server.Protocol;
+using Server.Protocol.PacketResponse;
 using UnityEngine;
 
 namespace Server.Boot.Replay
@@ -50,10 +52,11 @@ namespace Server.Boot.Replay
             }
 
             var records = ReceivedPacketLogReader.ReadAll(request.PacketLogFilePaths);
-            ReportPacketLogCoverage(records, loadedTick, request.TargetTick);
+            var inRange = ReportPacketLogCoverage(records, loadedTick, request.TargetTick);
             var queue = provider.GetRequiredService<TickEndPacketQueue>();
             var context = new PacketResponseContext(null);
             var replayed = 0;
+            var excluded = 0;
             var next = 0;
 
             // 記録tick == 次のtick のパケットを積んでから Update する。tick末尾でまとめて処理される
@@ -64,23 +67,35 @@ namespace Server.Boot.Replay
                 while (next < records.Count && records[next].Tick < nextTick) next++;
                 while (next < records.Count && records[next].Tick == nextTick)
                 {
-                    queue.Enqueue(new ReplayPacketEntry(packetResponseCreator, context, records[next].Payload));
-                    replayed++;
+                    if (IsExcludedFromReplay(records[next].Payload)) excluded++;
+                    else
+                    {
+                        queue.Enqueue(new ReplayPacketEntry(packetResponseCreator, context, records[next].Payload));
+                        replayed++;
+                    }
                     next++;
                 }
                 GameUpdater.Update();
             }
 
             var json = provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
-            Debug.Log($"再生完了 loaded:{loadedTick} reached:{GameUpdater.CurrentTick} packets:{replayed}");
+            Debug.Log($"再生完了 loaded:{loadedTick} reached:{GameUpdater.CurrentTick} packets:{replayed} 除外:{excluded}");
             Directory.Delete(tempRoot, true);
-            return new ReplayResult(loadedTick, GameUpdater.CurrentTick, replayed, json);
+            return new ReplayResult(loadedTick, GameUpdater.CurrentTick, replayed, inRange, excluded, json);
 
             #region Internal
 
             // 渡されたログが再生区間をどれだけ覆っているかを必ず出す。0件再生を「一致しなかった＝非決定性」と誤読させないため
             // Always report how much of the replay interval the given log covers, so a zero-packet replay is not misread as non-determinism
-            void ReportPacketLogCoverage(IReadOnlyList<ReceivedPacketRecord> coverageRecords, ulong coverageLoadedTick, ulong coverageTargetTick)
+            // セーブと即時取得は再生対象から外す。走らせると再生用の一時セーブを上書きし、常時記録まで動き出す
+            // Saves and immediate captures are excluded: running them overwrites the temporary save and even starts always-on capture
+            bool IsExcludedFromReplay(byte[] payload)
+            {
+                var tag = MessagePackSerializer.Deserialize<ProtocolMessagePackBase>(payload).Tag;
+                return tag == SaveProtocol.ProtocolTag || tag == BugReportCaptureProtocol.ProtocolTag;
+            }
+
+            int ReportPacketLogCoverage(IReadOnlyList<ReceivedPacketRecord> coverageRecords, ulong coverageLoadedTick, ulong coverageTargetTick)
             {
                 var beforeSnapshot = 0;
                 var inRange = 0;
@@ -92,6 +107,7 @@ namespace Server.Boot.Replay
 
                 Debug.Log($"再生対象パケット 区間({coverageLoadedTick},{coverageTargetTick}]:{inRange}件 スナップショット以前で読み飛ばし:{beforeSnapshot}件 ログ全件:{coverageRecords.Count}件");
                 if (inRange == 0) Debug.LogWarning($"パケットログが区間({coverageLoadedTick},{coverageTargetTick}]を1件も含んでいません。ローテーションで消えたか別セグメントを渡した可能性があります");
+                return inRange;
             }
 
             #endregion
