@@ -30,3 +30,11 @@
   outline: var(--bevel-1) solid var(--text-high-contrast);
   outline-offset: var(--bevel-1);
 }
+
+/* 無効化はModeSwitch踏襲で従属テキストへ減衰させ、クリックを不可にする */
+/* Disabling follows the ModeSwitch precedent: fade to subdued text and block clicks */
+.button[data-disabled] {
+  color: var(--text-muted);
+  cursor: default;
+  pointer-events: none;
+}

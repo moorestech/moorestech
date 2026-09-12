@@ -16,12 +16,13 @@ export function BugReportForm({ status, onSent }: Props) {
   const { t } = useI18n();
   const [description, setDescription] = useState("");
 
+  const trimmedDescription = description.trim();
+
   const send = async () => {
-    const trimmed = description.trim();
-    if (trimmed.length === 0) return;
+    if (trimmedDescription.length === 0) return;
     // 失敗時のトーストは dispatchAction が出すため、ここでは書き出し成功だけを伝える
     // dispatchAction toasts the failure itself, so this path only reports a successful write
-    const ok = await dispatchAction("bug_report.submit", { description: trimmed });
+    const ok = await dispatchAction("bug_report.submit", { description: trimmedDescription });
     if (!ok) return;
     emitToast(t(L.ui.bugReport.sent), "info");
     setDescription("");
@@ -41,7 +42,7 @@ export function BugReportForm({ status, onSent }: Props) {
       {status.missing.length > 0 && (
         <span className={styles.status} data-testid="bug-report-status">{t(L.ui.bugReport.missing, { items: status.missing.join(", ") })}</span>
       )}
-      <PanelActionButton onClick={send} testId="bug-report-send">{t(L.ui.bugReport.send)}</PanelActionButton>
+      <PanelActionButton onClick={send} disabled={trimmedDescription.length === 0} testId="bug-report-send">{t(L.ui.bugReport.send)}</PanelActionButton>
     </>
   );
 }

@@ -11,8 +11,8 @@ vi.mock("@/bridge", async (importOriginal) => ({
 }));
 vi.mock("@/features/toast", () => ({ emitToast: mocks.emitToast }));
 vi.mock("@/shared/ui", () => ({
-  PanelActionButton: ({ children, onClick, testId }: { children: unknown; onClick: () => void; testId?: string }) =>
-    createElement("mock-button", { onClick, "data-testid": testId }, children as never),
+  PanelActionButton: ({ children, onClick, disabled, testId }: { children: unknown; onClick: () => void; disabled?: boolean; testId?: string }) =>
+    createElement("mock-button", { onClick, "data-disabled": disabled || undefined, "data-testid": testId }, children as never),
 }));
 
 import { BugReportForm } from "./BugReportForm";
@@ -44,6 +44,7 @@ describe("BugReportForm", () => {
     const renderer = await render({ hasSession: true, capturePending: false, missing: [] }, onSent);
     const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
     act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
+    expect(renderer.root.findByProps({ "data-testid": "bug-report-send" }).props["data-disabled"]).toBeUndefined();
     await act(async () => renderer.root.findByProps({ "data-testid": "bug-report-send" }).props.onClick());
     expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる" });
     expect(mocks.emitToast).toHaveBeenCalledWith("書き出しました", "info");
@@ -51,11 +52,22 @@ describe("BugReportForm", () => {
     act(() => renderer.unmount());
   });
 
-  it("空文字では送らない", async () => {
+  it("空文字では送信ボタンをdata-disabledにして送らない", async () => {
     setDictionaries("japanese", dictionary, {}, {});
     const renderer = await render({ hasSession: true, capturePending: false, missing: [] });
-    await act(async () => renderer.root.findByProps({ "data-testid": "bug-report-send" }).props.onClick());
+    const button = renderer.root.findByProps({ "data-testid": "bug-report-send" });
+    expect(button.props["data-disabled"]).toBe(true);
+    await act(async () => button.props.onClick());
     expect(mocks.dispatchAction).not.toHaveBeenCalled();
+    act(() => renderer.unmount());
+  });
+
+  it("空白だけの記述も無効として扱う", async () => {
+    setDictionaries("japanese", dictionary, {}, {});
+    const renderer = await render({ hasSession: true, capturePending: false, missing: [] });
+    const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
+    act(() => textarea.props.onChange({ currentTarget: { value: "   " } }));
+    expect(renderer.root.findByProps({ "data-testid": "bug-report-send" }).props["data-disabled"]).toBe(true);
     act(() => renderer.unmount());
   });
 

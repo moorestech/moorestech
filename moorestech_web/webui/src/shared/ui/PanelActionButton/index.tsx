@@ -6,12 +6,22 @@ import styles from "./style.module.css";
 type Props = {
   onClick: () => void;
   children: ReactNode;
+  // 押せない状態の表現。ModeSwitch と同じく data-disabled を公開する
+  // Expresses the unpressable state, exposing data-disabled like ModeSwitch does
+  disabled?: boolean;
   testId?: string;
 };
 
-export default function PanelActionButton({ onClick, children, testId }: Props) {
+export default function PanelActionButton({ onClick, children, disabled, testId }: Props) {
   return (
-    <button className={styles.button} type="button" data-testid={testId} onClick={onClick}>
+    <button
+      className={styles.button}
+      type="button"
+      data-disabled={disabled || undefined}
+      data-testid={testId}
+      disabled={disabled}
+      onClick={onClick}
+    >
       {children}
     </button>
   );
