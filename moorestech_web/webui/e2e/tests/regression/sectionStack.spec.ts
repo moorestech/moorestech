@@ -19,7 +19,14 @@ const cases = [
   { type: "filterSplitter", shown: ["filter-splitter"] },
   { type: "pump", shown: ["pump-section", "electric-network-section", "pump-fluid-slots"] },
   { type: "gearPump", shown: ["pump-section", "gear-section", "gear-network-section", "pump-fluid-slots"] },
+  { type: "gearGenerator", shown: ["gear-section", "gear-network-section"] },
 ] as const;
+
+// 風車のconfigByBlockType行はrenderEmptyGrid: trueなので、中身の無い燃料グリッドがDOMに残る
+// The windmill's own configByBlockType row sets renderEmptyGrid: true, so an empty fuel grid stays in the DOM
+const renderedEmptyByType: Partial<Record<(typeof cases)[number]["type"], readonly string[]>> = {
+  gearGenerator: ["generator-fuel-grid"],
+};
 
 test.afterEach(async ({ page }) => {
   await setBlock(page, "closed");
@@ -31,9 +38,11 @@ for (const entry of cases) {
     await page.goto("/");
     await expect(page.getByTestId("block-inventory")).toBeVisible();
 
+    const renderedEmpty = renderedEmptyByType[entry.type] ?? [];
     for (const testId of entry.shown) await expect(page.getByTestId(testId)).toBeVisible();
+    for (const testId of renderedEmpty) await expect(page.getByTestId(testId)).toBeAttached();
     for (const testId of sectionIds) {
-      if (!entry.shown.includes(testId as never)) await expectAbsent(page, testId);
+      if (!entry.shown.includes(testId as never) && !renderedEmpty.includes(testId)) await expectAbsent(page, testId);
     }
   });
 }

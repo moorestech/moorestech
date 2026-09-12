@@ -31,7 +31,7 @@ namespace Game.Block.Blocks.ElectricToGear
             float chargeRate,
             ElectricPower consumedPower,
             float batteryRemaining) :
-            base(isClockwise, currentRpm.AsPrimitive(), currentTorque.AsPrimitive())
+            base(isClockwise, currentRpm.AsPrimitive(), currentTorque.AsPrimitive(), GearRole.Generator)
         {
             SelectedIndex = selectedIndex;
             ElectricFulfillmentRate = chargeRate;

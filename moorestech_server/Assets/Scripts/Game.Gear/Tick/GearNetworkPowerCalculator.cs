@@ -39,6 +39,14 @@ namespace Game.Gear.Tick
             foreach (var generator in network.GearGenerators)
                 availablePower += generator.GenerateTorque.AsPrimitive() * generator.GenerateRpm.AsPrimitive();
 
+            // 供給が0なら需要の多寡に関わらず全員停止。理由を不足と区別してUIへ届ける
+            // Zero supply stops everyone regardless of demand; the reason is reported distinctly from a shortage
+            if (availablePower == 0)
+            {
+                StopNetwork(network, GearNetworkStopReason.NoGeneration, demandPower, availablePower);
+                return;
+            }
+
             // 需要が供給を上回る場合はblackoutとしてnetworkを停止する
             // When demand exceeds available power the network blacks out and stops
             if (demandPower > availablePower)
@@ -49,7 +57,7 @@ namespace Game.Gear.Tick
 
             // 負荷率を確定してnetwork自身のstateへ書く。各gearの供給値はこのstateとギア比から導出される
             // Settle the load rate and write the network's own state; each gear's supply is derived from this state and its ratio
-            var networkLoadRate = availablePower == 0 ? 0 : Mathf.Min(1, demandPower / availablePower);
+            var networkLoadRate = Mathf.Min(1, demandPower / availablePower);
             network.SetRuntimeState(new GearNetworkRuntimeState(false, GearNetworkStopReason.None, demandPower, availablePower, networkLoadRate));
         }
 

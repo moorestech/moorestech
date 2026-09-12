@@ -9,8 +9,12 @@ using UnityEngine;
 namespace Client.WebUiHost.Game.Topics.BlockDetail
 {
     /// <summary>
-    /// 開いているブロックのネットワーク集約情報を取得・キャッシュする（electric=1秒ポーリング / gear・filter=開時1回）
-    /// Fetches and caches network aggregates for the open block (electric = 1s polling; gear/filter = once on open)
+    /// 開いているブロックのネット集約情報をキャッシュ
+    /// - electric/gear: 1秒ポーリング
+    /// - filter: 開時1回取得
+    /// Caches network aggregates for the open block
+    /// - electric/gear: 1s polling
+    /// - filter: fetched once on open
     /// </summary>
     public class BlockNetworkInfoCache
     {
@@ -32,7 +36,7 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             _currentPos = block.BlockPosInfo.OriginalPos;
             _cts = new CancellationTokenSource();
             if (electric) PollElectric(block, _cts.Token).Forget();
-            if (gear) FetchGear(block, _cts.Token).Forget();
+            if (gear) PollGear(block, _cts.Token).Forget();
             if (filterSplitter) FetchFilterSplitter(block.BlockPosInfo.OriginalPos, _cts.Token).Forget();
         }
 
@@ -69,12 +73,28 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
             }
         }
 
-        private async UniTaskVoid FetchGear(BlockGameObject block, CancellationToken ct)
+        private async UniTaskVoid PollGear(BlockGameObject block, CancellationToken ct)
         {
-            var response = await ClientContext.VanillaApi.Response.GetGearNetworkInfo(block.BlockInstanceId, ct);
-            if (ct.IsCancellationRequested) return;
-            GearNetwork = response?.Info;
-            OnUpdated?.Invoke();
+            // PollElectric と同じ1秒間隔ポーリング（開いている間ずっと停止理由行を追随させる）
+            // Same 1-second polling as PollElectric, so the stop-reason row stays live while open
+            while (!ct.IsCancellationRequested)
+            {
+                var response = await ClientContext.VanillaApi.Response.GetGearNetworkInfo(block.BlockInstanceId, ct);
+                if (ct.IsCancellationRequested) return;
+
+                // 通信失敗は網未所属(Info=null)と区別し、前回値を保って停止理由行を消さない
+                // Keep the last snapshot on a transport failure so it is not confused with non-membership (Info == null)
+                if (response == null)
+                {
+                    Debug.LogWarning($"[BlockNetworkInfoCache] GetGearNetworkInfo failed for block {block.BlockInstanceId}; keeping the previous gear network snapshot");
+                    await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
+                    continue;
+                }
+
+                GearNetwork = response.Info;
+                OnUpdated?.Invoke();
+                await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: ct);
+            }
         }
 
         private async UniTaskVoid FetchFilterSplitter(Vector3Int pos, CancellationToken ct)

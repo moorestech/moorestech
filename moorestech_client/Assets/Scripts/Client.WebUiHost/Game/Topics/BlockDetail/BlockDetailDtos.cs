@@ -107,11 +107,16 @@ namespace Client.WebUiHost.Game.Topics.BlockDetail
 
     public class GearDetailDto
     {
-        public bool IsClockwise;
         public float CurrentRpm;
         public float CurrentTorque;
-        public float BaseRpm;
-        public float BaseTorque;
+
+        // 役割consumer/generator
+        // Role: consumer/generator
+        public string Role;
+
+        // 基準RPMはconsumerのみ
+        // Only the consumer branch carries BaseRpm
+        public float? BaseRpm;
     }
 
     public class ElectricNetworkDto

@@ -100,7 +100,7 @@ describe("validBlockInventory capability details", () => {
       ...openBase,
       generator: { remainingFuelTime: 3, currentFuelTime: 10, operatingRate: 0.5 },
       miner: { currentPower: 1, requestPower: 2, miningItems: [{ itemId: 5, itemsPerMinute: 12 }] },
-      gear: { isClockwise: true, currentRpm: 10, currentTorque: 3, baseRpm: 20, baseTorque: 5 },
+      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 20, role: "consumer" },
       gearNetwork: { totalRequiredGearPower: 5, totalGenerateGearPower: 10, stopReason: "none" },
       filterSplitter: { directionCount: 2, filterSlotCountPerDirection: 3, directions: [{ mode: "whitelist", filterItemIds: [1, 0, 0] }, { mode: "default", filterItemIds: [0, 0, 0] }] },
       electricToGear: {
@@ -111,6 +111,30 @@ describe("validBlockInventory capability details", () => {
       },
     };
     expect(parseTopicPayload(Topics.blockInventory, d).valid).toBe(true);
+    // 旧形状（role無し・baseTorque入り）は判別子の欠落と余剰キーの両方で落ちる
+    // The old shape (no role, with baseTorque) fails both on the missing discriminator and on the excess key
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 20, baseTorque: 5 },
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 20, baseTorque: 5, role: "consumer" },
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { currentRpm: 10, currentTorque: 3, role: "generator" },
+    }).valid).toBe(true);
+    // 発電機は基準RPMを持たず、消費側は必ず持つ
+    // Generators carry no base RPM and consumers always do
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { currentRpm: 10, currentTorque: 3, baseRpm: 0, role: "generator" },
+    }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.blockInventory, {
+      ...openBase,
+      gear: { currentRpm: 10, currentTorque: 3, role: "consumer" },
+    }).valid).toBe(false);
   });
 
   it("rejects electricToGear without output mode power", () => {

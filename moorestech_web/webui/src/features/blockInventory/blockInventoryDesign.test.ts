@@ -7,6 +7,7 @@ const sources = {
   panel: read("./BlockInventoryPanel.tsx"),
   blockItemGrid: read("./BlockItemGrid.tsx"),
   generator: read("./details/GeneratorSection.tsx"),
+  gear: read("./details/GearSection.tsx"),
   filterSplitter: read("./views/FilterSplitterInventory.tsx"),
   trainPlatform: read("./details/TrainPlatformSection.tsx"),
   electricToGear: read("./views/ElectricToGearInventory.tsx"),

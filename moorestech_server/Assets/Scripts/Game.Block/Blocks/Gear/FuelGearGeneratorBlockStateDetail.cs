@@ -39,7 +39,7 @@ namespace Game.Block.Blocks.Gear
             FuelGearGeneratorStateService stateService,
             FuelGearGeneratorFluidComponent fluidComponent,
             bool isClockwise)
-            : base(isClockwise, stateService.CurrentGeneratedRpm.AsPrimitive(), stateService.CurrentGeneratedTorque.AsPrimitive())
+            : base(isClockwise, stateService.CurrentGeneratedRpm.AsPrimitive(), stateService.CurrentGeneratedTorque.AsPrimitive(), GearRole.Generator)
         {
             var steamTank = fluidComponent.SteamTank;
             State = stateService.CurrentState;

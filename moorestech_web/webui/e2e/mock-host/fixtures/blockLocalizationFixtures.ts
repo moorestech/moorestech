@@ -15,6 +15,7 @@ export const TRAIN_FLUID_PLATFORM_BLOCK_GUID = "00000000-0000-4000-8000-00000000
 export const ELECTRIC_POLE_BLOCK_GUID = "00000000-0000-4000-8000-000000000213";
 export const ELECTRIC_PUMP_BLOCK_GUID = "00000000-0000-4000-8000-000000000214";
 export const GEAR_PUMP_BLOCK_GUID = "00000000-0000-4000-8000-000000000215";
+export const GEAR_GENERATOR_BLOCK_GUID = "00000000-0000-4000-8000-000000000216";
 
 // 動的ブロック名はバニラCSV外なのでmockの合成辞書へ足す
 // Dynamic block names live outside the vanilla CSV, so add them to the mock composite dictionary
@@ -34,6 +35,7 @@ const names = [
   [ELECTRIC_POLE_BLOCK_GUID, "Electric Pole", "電柱"],
   [ELECTRIC_PUMP_BLOCK_GUID, "Oil Well", "油井"],
   [GEAR_PUMP_BLOCK_GUID, "Gear Pump", "歯車ポンプ"],
+  [GEAR_GENERATOR_BLOCK_GUID, "Windmill", "風車"],
 ] as const;
 
 const english = Object.fromEntries(names.map(([guid, name]) => [blockNameKey(guid), name]));
