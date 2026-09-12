@@ -10,8 +10,10 @@ namespace Server.Boot.Replay
     // Entry points of the reproduction tools for one bundle; EDC snippets call these in one line
     public static class BugReportBundleTools
     {
-        private const string SnapshotDirectoryName = "snapshots";
-        private const string WorldDirectoryName = "world";
+        // 置き場の名前は書き側と共有する定義元から取る。ここで再定義すると片方の改名で再現だけが無言で全滅する
+        // The directory names come from the definition shared with the writer; redefining them here lets a one-sided rename kill only the reproduction, silently
+        private const string SnapshotDirectoryName = BugReportBundleLayout.SnapshotDirectoryName;
+        private const string WorldDirectoryName = BugReportBundleLayout.WorldDirectoryName;
 
         public static string DumpPackets(string bundleDirectory)
         {

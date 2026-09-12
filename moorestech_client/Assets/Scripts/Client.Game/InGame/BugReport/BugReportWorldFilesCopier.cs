@@ -11,8 +11,10 @@ namespace Client.Game.InGame.BugReport
     // Puts the staged snapshots and the recording's world definition into the box; reproduction boots only when both are present
     public static class BugReportWorldFilesCopier
     {
-        public const string SnapshotDirectoryName = "snapshots";
-        public const string WorldDirectoryName = "world";
+        // 置き場の名前は読み側（再現ツール）と共有する定義元から取る。独立に持つと片方の改名で再現だけが無言で全滅する
+        // The directory names come from the definition shared with the reader (reproduction tools); holding them independently lets a one-sided rename kill only the reproduction, silently
+        public const string SnapshotDirectoryName = BugReportBundleLayout.SnapshotDirectoryName;
+        public const string WorldDirectoryName = BugReportBundleLayout.WorldDirectoryName;
         private const string TerrainDirectoryName = "terrain";
         private const string GeneratedMapMode = "generated";
 
