@@ -68,4 +68,33 @@ MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$T
   bash "$HERE/../prepare-run.sh" r2 2>"$TMP/r2.log"
 grep -q "報告コミットが無いため" "$TMP/r2.log" || { echo "NG: 欠損コミットの理由がログされていない"; exit 1; }
 ( . "$RUN2/run.env"; [ "$COMMIT_MISSING" = "1" ] && [ -z "$MASTER_DIR" ] ) || { echo "NG: r2 のフラグ/MASTER_DIR"; exit 1; }
+
+# 添付が欠けた箱（snapshotTicks 空・repository/masterData 欠落・missing 申告あり）でも止まらず理由を全部ログする
+# A box with missing attachments (empty snapshotTicks, no repository/masterData, declared missing items) must not stop the run
+RUN3="$TMP/runs/r3"; mkdir -p "$RUN3"
+cat > "$RUN3/manifest.json" <<'JSON'
+{"snapshotTicks":[],"missing":[{"item":"serverSnapshot","reason":"サーバーが応答しなかった"},{"item":"video","reason":"リングが始まっていない"}]}
+JSON
+ENVS=(MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$TMP/master" MOORESTECH_MASTER_WORKTREES="$TMP/mwt" MOORESTECH_LOGS="$TMP")
+env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r3 2>"$TMP/r3.log" || { echo "NG: 欠損した箱で prepare が落ちた"; cat "$TMP/r3.log"; exit 1; }
+[ -f "$RUN3/run.env" ] || { echo "NG: r3 の run.env が無い"; exit 1; }
+( . "$RUN3/run.env"; [ -z "$LATEST_TICK" ] && [ -d "$WORKTREE" ] && [ "$COMMIT_MISSING" = "1" ] && [ -z "$MASTER_DIR" ] ) || { echo "NG: r3 の run.env 内容"; exit 1; }
+for phrase in "snapshotTicks が空" "報告側が欠損を申告している: serverSnapshot" "報告側が欠損を申告している: video" \
+              "repository.commit は空として" "masterData.commit は空として" "スナップショットの tick が無いため" \
+              "ワールド定義が箱に無い: world.json" "ワールド定義が箱に無い: map.json" "未追跡ファイルが箱に無い"; do
+  grep -q "$phrase" "$TMP/r3.log" || { echo "NG: 欠損の理由がログされていない: $phrase"; exit 1; }
+done
+
+# manifest.json 自体が壊れていても（無い場合も）run.env まで書いて続行する
+# Even a corrupt (or absent) manifest.json still yields a run.env and keeps going
+RUN4="$TMP/runs/r4"; mkdir -p "$RUN4"; printf '{ broken' > "$RUN4/manifest.json"
+env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r4 2>"$TMP/r4.log" || { echo "NG: 壊れた manifest で prepare が落ちた"; cat "$TMP/r4.log"; exit 1; }
+grep -q "manifest.json を読めない" "$TMP/r4.log" || { echo "NG: manifest 破損の理由がログされていない"; exit 1; }
+( . "$RUN4/run.env"; [ -d "$WORKTREE" ] ) || { echo "NG: r4 の worktree が無い"; exit 1; }
+
+RUN5="$TMP/runs/r5"; mkdir -p "$RUN5"
+env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r5 2>"$TMP/r5.log" || { echo "NG: manifest 不在で prepare が落ちた"; cat "$TMP/r5.log"; exit 1; }
+grep -q "manifest.json を読めない" "$TMP/r5.log" || { echo "NG: manifest 不在の理由がログされていない"; exit 1; }
+[ -f "$RUN5/run.env" ] || { echo "NG: r5 の run.env が無い"; exit 1; }
+
 echo OK

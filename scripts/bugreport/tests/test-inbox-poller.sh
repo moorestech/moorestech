@@ -59,4 +59,30 @@ MOORESTECH_LOGS="$LOGS" CLAUDE_CMD="$TMP/claude" PREPARE_CMD="$TMP/prepare" GIT_
 grep -q "別のランが進行中" "$TMP/run3.log" || { echo "NG: ロック理由がログされていない"; exit 1; }
 [ -d "$LOGS/harness/bug-report/inbox/20260911_140000_cccc3333" ] || { echo "NG: ロック中なのに箱を処理した"; exit 1; }
 rmdir "$TMP/moorestech-bugreport-poller.lock"
+rm -rf "${LOGS:?}/harness/bug-report/inbox/20260911_140000_cccc3333"
+
+# prepare が隔離 worktree を用意できなかったら、共有のメインワーキングツリーでは走らせない
+# When prepare cannot provide an isolated worktree, the run must not fall back to the shared main working tree
+cat > "$TMP/prepare-broken" <<'SH'
+#!/usr/bin/env bash
+exit 1
+SH
+cat > "$TMP/claude-forbidden" <<'SH'
+#!/usr/bin/env bash
+touch "$CLAUDE_CALLED_MARKER"
+SH
+chmod +x "$TMP/prepare-broken" "$TMP/claude-forbidden"
+mkdir -p "$LOGS/harness/bug-report/inbox/20260911_150000_dddd4444"
+touch "$LOGS/harness/bug-report/inbox/20260911_150000_dddd4444/READY"
+CLAUDE_CALLED_MARKER="$TMP/claude-was-called" MOORESTECH_LOGS="$LOGS" CLAUDE_CMD="$TMP/claude-forbidden" \
+  PREPARE_CMD="$TMP/prepare-broken" GIT_PUSH=0 bash "$HERE/../inbox-poller.sh" 2>"$TMP/run4.log"
+[ ! -e "$TMP/claude-was-called" ] || { echo "NG: worktree 無しで claude を起こした"; exit 1; }
+grep -q "隔離 worktree が無いため自動修正ランを起こさない" "$TMP/run4.log" || { echo "NG: 起動見送りの理由がログされていない"; exit 1; }
+grep -q '"status": *"failure"' "$LOGS/harness/bug-report/runs/20260911_150000_dddd4444/fix-result.json" || { echo "NG: failure の結果が無い"; exit 1; }
+
+# READY の箱が1つも無いときも理由を出して終わる（無音の no-op を作らない）
+# An empty inbox still says why nothing happened; never a silent no-op
+MOORESTECH_LOGS="$LOGS" CLAUDE_CMD="$TMP/claude" PREPARE_CMD="$TMP/prepare" GIT_PUSH=0 bash "$HERE/../inbox-poller.sh" 2>"$TMP/run5.log"
+grep -q "READY の箱が無いので何もしない" "$TMP/run5.log" || { echo "NG: 空 inbox の理由がログされていない"; exit 1; }
+
 echo OK
