@@ -224,7 +224,7 @@ if (!A.reportOnly) {
     `(3) final.diff を書き、\`python3 ${A.deterministicChecksScript} <final.diff> --repo-root <Repo root>\` を ${A.runDir}/checks-final.json へ書く（--context は渡さない）。自分の修正が新たに生んだ confirmed/比較演算子違反はその場で直す。`,
     `(3.5) \`python3 ${A.refixSnapshotScript} snapshot --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name s1\` に続けて \`python3 ${A.refixSnapshotScript} diff --repo-root ${A.repoRoot} --run-dir ${A.runDir} --from s0 --to s1 --out ${A.runDir}/refix/round1.diff\` を実行し、出力 JSON の scope を refix_scope に、files/source_files の要約を refix_note に返す（反映 diff は親が applied-diff-correctness で再レビューする）。スクリプトが失敗したら refix_scope=error とし stderr を refix_note に書く（黙って source/none にしない）。`,
     `(4) \`python3 ${A.selectPostChecksScript} ${A.runDir}/final.diff ${A.runDir}/checks-final.json\` を実行し、出力TSV（<post-check絶対パス>\\t<モデル>）を post_checks として返す（空なら []）。スキップしたガードと理由を post_check_selection_note に1行で書く（黙って縮退しない）。`,
-    'Read規律: Edit対象の該当範囲だけを offset/limit で読む。ファイル全文Readしない。返答は構造化出力のみ。',
+    '修正は外科的に行い、ReadはEdit対象の現物確認に絞る。返答は構造化出力のみ。',
   ].join('\n')
   apply = await agent(applyPrompt, { label: 'apply', phase: 'Apply', model: 'sonnet', schema: APPLY_SCHEMA })
   if (!apply) throw new Error('apply agent が応答しなかった。integrated.md は残っているので親が Step 6 だけ再派遣する')
@@ -276,7 +276,7 @@ if (apply) {
       `(3) final.diff と checks-final.json を Apply と同じ作り方で作り直す（\`git diff <Base ref> -- <patch.diff が触ったファイル ∪ 編集・新規作成したファイル> ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'\` → ${A.runDir}/final.diff、\`python3 ${A.deterministicChecksScript} ${A.runDir}/final.diff --repo-root ${A.repoRoot}\` → ${A.runDir}/checks-final.json）。自分の修正が新たに生んだ confirmed/比較演算子違反はその場で直す。`,
       `(4) \`python3 ${A.refixSnapshotScript} snapshot --repo-root ${A.repoRoot} --run-dir ${A.runDir} --name s${next}\` に続けて \`python3 ${A.refixSnapshotScript} diff --repo-root ${A.repoRoot} --run-dir ${A.runDir} --from s${round} --to s${next} --out ${A.runDir}/refix/round${next}.diff\` を実行し、scope を refix_scope に返す（失敗したら error と stderr）。`,
       'レポートの Warning / Info は1件1行で warnings / infos に転記する（親が最終報告へ載せる。黙って落とさない）。',
-      'Read規律: Edit対象の該当範囲だけを offset/limit で読む。返答は構造化出力のみ。',
+      '修正は外科的に行い、ReadはEdit対象の現物確認に絞る。返答は構造化出力のみ。',
     ].join('\n')
     const fix = await agent(fixPrompt, { label: `refix-apply-r${round}`, phase: 'Refix', model: 'sonnet', schema: REFIX_APPLY_SCHEMA })
     if (!fix) throw new Error(`refix-apply-r${round} が応答しなかった。${entry.report} は残っているので親が該当 round だけ再派遣する`)

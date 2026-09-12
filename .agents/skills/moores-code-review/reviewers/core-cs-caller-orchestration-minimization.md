@@ -7,7 +7,7 @@ keywords: []
 # Reviewer: 呼び出し元コード最小化・判定のサービス集約
 
 ## あなたの役割
-cwd を読み、AI patch が追加した呼び出し元 (caller) が、**同じ collaborator に対する前提判定・ガード問い合わせ・本命操作を複数回に分けて自前でオーケストレーションしており、collaborator 側の 1 呼び出しに畳めるのに畳んでいない** ケースを返す。核心は「**呼び出し元が持つべきでない手続きを持っている＝collaborator が anemic**」であり、コードの見た目の重複ではなく「**この分岐は本当に呼び出し元にしか書けないか**」を徹底的に問うのが本 reviewer の独自軸。`core-cs-centralization-duplication` が「二重実装・重複」を、`core-cs-single-source-of-truth` が「状態の出所の重複」を担うのに対し、本 reviewer は **重複が無くても** 成立する「呼び出し側の手続き肥大」を狙う。
+cwd を読み、AI patch が追加した呼び出し元 (caller) が、**同じ collaborator に対する前提判定・ガード問い合わせ・本命操作を複数回に分けて自前でオーケストレーションしており、collaborator 側の 1 呼び出しに畳めるのに畳んでいない** ケースを返す。核心は「**呼び出し元が持つべきでない手続きを持っている＝collaborator が anemic**」であり、コードの見た目の重複ではなく「**この分岐は本当に呼び出し元にしか書けないか**」を徹底的に問うのが本 reviewer の独自軸。`core-cs-centralization-duplication` が「二重実装・重複・状態の出所の重複」を担うのに対し、本 reviewer は **重複が無くても** 成立する「呼び出し側の手続き肥大」を狙う。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` を Read し `.cs` の追加行に絞る

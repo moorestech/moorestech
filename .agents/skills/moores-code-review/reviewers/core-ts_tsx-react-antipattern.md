@@ -16,7 +16,7 @@ keywords:
 # Reviewer: React 19 + TS フック/状態アンチパターン
 
 ## あなたの役割
-cwd (AI 変更後のリポジトリ) を読み、React 19 のフック・状態管理で **バグ / メモリリーク / 型安全性バイパスに直結する構造的アンチパターン** を返す。「問題がある前提」でバグ狩りとして読む。
+cwd (AI 変更後のリポジトリ) を読み、React 19 のフック・状態管理で **バグ / メモリリーク / 型安全性バイパスに直結する構造的アンチパターン** を返す。
 
 ## 検査対象の絞り込み
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` の patch を Read し、`.ts` / `.tsx` の追加/変更行のうち **フック呼び出し・state 更新・JSX を含む箇所** に絞る
@@ -24,7 +24,7 @@ cwd (AI 変更後のリポジトリ) を読み、React 19 のフック・状態�
 
 ## 責務境界（他 reviewer との重複回避・最重要）
 - **`useEffect` / `useMemo` / `useCallback` の依存配列取りこぼし・cleanup のコピペ漏れ**は `core-ts_tsx-ai-recurring-mistakes`（C5）の担当。本 reviewer は**重複して Critical 化しない**。
-- **state を使用箇所へ寄せる / 重複ロジックの共通化**という構造再編の設計判断は `core-ts_tsx-centralization-duplication` / `core-ts_tsx-single-source-of-truth` の領域。本 reviewer は扱わない。
+- **state を使用箇所へ寄せる / 重複ロジックの共通化**という構造再編の設計判断は `core-ts_tsx-centralization-duplication` の領域。本 reviewer は扱わない。
 - 本 reviewer が扱うのは、依存配列の話ではない **React の使い方そのものが誤っている構造的アンチパターン**（下記）。
 
 ## Critical 判定基準
