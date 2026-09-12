@@ -43,18 +43,27 @@ namespace Client.Game.InGame.BugReport.Recording
         private float _nextCaptureTime;
         private bool _readbackInFlight;
 
+        // 止まった理由はlatchするが、可用性の判定は必ずAvailabilityが行う。理由だけを外へ出すと空理由の不可用が作れてしまう
+        // The stop reason is latched, but only Availability decides usability; exposing the reason alone would allow an empty-reason unavailable
+        private string _latchedUnavailableReason = "";
+
         public FrameTickLog TickLog { get; } = new();
-        public bool IsRecording => _ffmpeg != null && _ffmpeg.IsRunning;
-        public string UnavailableReason { get; private set; } = "";
+
+        // 可用性と理由は同じ1箇所で組み立てる。録れていないのに理由が空、が外から観測できないようにする
+        // Usability and its reason are assembled in one place so "not recording with an empty reason" is never observable
+        public RecordingAvailability Availability =>
+            _ffmpeg != null && _ffmpeg.IsRunning ? RecordingAvailability.Available() : RecordingAvailability.Unavailable(_latchedUnavailableReason);
 
         // ffmpegが無いときの縮退理由。無音で諦めず理由を残し、報告側が欠損として記録できるようにする
         // The degradation reason when ffmpeg is absent; never fail silently so the report can record the gap
-        public static string ResolveUnavailableReason(string ffmpegPath)
+        public static RecordingAvailability ResolveInitialAvailability(string ffmpegPath)
         {
-            if (ffmpegPath != null) return "";
+            if (ffmpegPath != null) return RecordingAvailability.Available();
             Debug.LogWarning($"録画リングを開始しません: {MissingFfmpegReason}");
-            return MissingFfmpegReason;
+            return RecordingAvailability.Unavailable(MissingFfmpegReason);
         }
+
+        private bool IsRecording => _ffmpeg != null && _ffmpeg.IsRunning;
 
         public void Initialize()
         {
@@ -62,11 +71,11 @@ namespace Client.Game.InGame.BugReport.Recording
             // Stops here on test/playtest boots; otherwise they contend with the playtest DSL etc. over the capture path
             if (!BugReportRecordingSettings.Enabled)
             {
-                UnavailableReason = BugReportRecordingSettings.DisabledReason;
+                _latchedUnavailableReason = BugReportRecordingSettings.DisabledReason;
                 return;
             }
             _ffmpegPath = FfmpegLocator.Find();
-            UnavailableReason = ResolveUnavailableReason(_ffmpegPath);
+            _latchedUnavailableReason = ResolveInitialAvailability(_ffmpegPath).Reason;
             if (_ffmpegPath == null) return;
             if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
             Directory.CreateDirectory(_liveDirectory);
@@ -103,9 +112,10 @@ namespace Client.Game.InGame.BugReport.Recording
         // Finalize the current segment and restart on a fresh one so frames after the capture moment stay out
         public void CutSegment()
         {
-            if (!IsRecording)
+            var availability = Availability;
+            if (!availability.IsAvailable)
             {
-                Debug.LogWarning($"録画区間を確定できません（録画していません）: {UnavailableReason}");
+                Debug.LogWarning($"録画区間を確定できません（録画していません）: {availability.Reason}");
                 return;
             }
             _ffmpeg.Stop();
@@ -142,9 +152,14 @@ namespace Client.Game.InGame.BugReport.Recording
             _ffmpeg = FfmpegProcess.StartSegmentRecorder(_ffmpegPath, _liveDirectory, Width, Height, Fps, flip);
             if (_ffmpeg == null)
             {
-                UnavailableReason = "ffmpeg の起動に失敗しました（ログ参照）";
-                Debug.LogWarning($"録画リングを開始できません: {UnavailableReason}");
+                _latchedUnavailableReason = "ffmpeg の起動に失敗しました（ログ参照）";
+                Debug.LogWarning($"録画リングを開始できません: {_latchedUnavailableReason}");
+                return;
             }
+
+            // 起動し直せた時点で前の理由は実態と合わない。残すと次の停止で古い理由が出る
+            // Once the restart succeeds the old reason no longer matches reality; keeping it would surface a stale reason on the next stop
+            _latchedUnavailableReason = "";
         }
 
         private void OnReadback(AsyncGPUReadbackRequest request, long unixMs, ulong tick)

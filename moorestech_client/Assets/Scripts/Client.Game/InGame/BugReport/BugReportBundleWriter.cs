@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Recording;
@@ -51,14 +50,16 @@ namespace Client.Game.InGame.BugReport
             // File copies and ffmpeg run on the thread pool so the main thread never blocks
             await UniTask.RunOnThreadPool(() =>
             {
-                // ファイル操作は外部境界。1項目の失敗で他の資料まで巻き添えにしないよう項目ごとに隔離する
-                // File operations are an external boundary; each item is isolated so one failure never takes the rest down
-                try { CopyWorld(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("snapshots", $"コピーに失敗した: {e.GetBaseException().Message}"); }
-                try { AssembleVideo(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("video", $"組み立てに失敗した: {e.GetBaseException().Message}"); }
-                try { WriteFrameTicks(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("frames.tsv", $"書き出しに失敗した: {e.GetBaseException().Message}"); }
-                try { WriteLogs(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("logs", $"書き出しに失敗した: {e.GetBaseException().Message}"); }
-                try { CopyScreenshot(data, directory, manifest); } catch (Exception e) { manifest.AddMissing("screenshot", $"コピーに失敗した: {e.GetBaseException().Message}"); }
-                try { BugReportRepositoryFiles.Write(directory, manifest, buildInfo, repositoryRoot, masterDataRoot); } catch (Exception e) { manifest.AddMissing("repo", $"リポジトリ状態の書き出しに失敗した: {e.GetBaseException().Message}"); }
+                // ディスクは外部資源。1項目の失敗で他の資料まで巻き添えにしないよう項目ごとに隔離し、理由はmanifestと開発者ログの両方へ残す
+                // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
+                // 握るのはディスク由来の失敗だけ。実装バグまで握ると障害と欠陥が同じ「欠損」表示に潰れて区別できなくなる
+                // Only disk failures are caught; catching implementation bugs would collapse defects and outages into the same "missing" line
+                try { BugReportWorldFilesCopier.Copy(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("snapshots", $"コピーに失敗した: {e.Message}"); }
+                try { AssembleVideo(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("video", $"組み立てに失敗した: {e.Message}"); }
+                try { WriteFrameTicks(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("frames.tsv", $"書き出しに失敗した: {e.Message}"); }
+                try { WriteLogs(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("logs", $"書き出しに失敗した: {e.Message}"); }
+                try { CopyScreenshot(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("screenshot", $"コピーに失敗した: {e.Message}"); }
+                try { BugReportRepositoryFiles.Write(directory, manifest, buildInfo, repositoryRoot, masterDataRoot); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("repo", $"リポジトリ状態の書き出しに失敗した: {e.Message}"); }
                 ServerDataLocation.Record(data.ServerDataDirectory, manifest, repositoryRoot, masterDataRoot);
             });
 
@@ -72,48 +73,11 @@ namespace Client.Game.InGame.BugReport
                 ready = true;
                 Debug.Log($"バグ報告バンドルを書きました {directory} missing:{manifest.Missing.Count}");
             }
-            catch (Exception e)
+            catch (Exception e) when (IsDiskFailure(e))
             {
-                Debug.LogError($"バグ報告バンドルのmanifestを書けませんでした（この箱は運搬されません） {directory}: {e.GetBaseException().Message}");
+                Debug.LogError($"バグ報告バンドルのmanifestを書けませんでした（この箱は運搬されません） {directory}: {e.Message}");
             }
             return new BugReportBundleResult { BundleDirectory = directory, Missing = manifest.Missing, Ready = ready };
-        }
-
-        private static void CopyWorld(BugReportCapturedData data, string directory, BugReportManifest manifest)
-        {
-            if (string.IsNullOrEmpty(data.SnapshotDirectory))
-            {
-                manifest.AddMissing("snapshots", "サーバーのスナップショット置き場が分からなかった");
-                return;
-            }
-
-            var snapshots = Path.Combine(directory, "snapshots");
-            Directory.CreateDirectory(snapshots);
-            foreach (var name in data.SnapshotFileNames.Concat(data.PacketLogFileNames))
-            {
-                var source = Path.Combine(data.SnapshotDirectory, name);
-                if (!File.Exists(source))
-                {
-                    manifest.AddMissing(name, "スナップショットディレクトリに無かった");
-                    continue;
-                }
-                File.Copy(source, Path.Combine(snapshots, name));
-            }
-            manifest.SnapshotFiles = data.SnapshotFileNames.ToList();
-            manifest.PacketLogFiles = data.PacketLogFileNames.ToList();
-            manifest.SnapshotTicks = data.SnapshotFileNames.Select(ParseTick).Where(tick => tick > 0).OrderBy(tick => tick).ToList();
-
-            // 再現にはスナップショット本体だけでなく、その隣のワールド定義（地図・世界メタ）が要る
-            // Reproduction needs the world definition beside the snapshots (map and world meta), not just the snapshots
-            var worldRoot = Path.GetDirectoryName(data.SnapshotDirectory);
-            var world = Path.Combine(directory, "world");
-            Directory.CreateDirectory(world);
-            foreach (var name in new[] { "world.json", "map.json" })
-            {
-                var source = Path.Combine(worldRoot, name);
-                if (File.Exists(source)) File.Copy(source, Path.Combine(world, name));
-                else manifest.AddMissing(name, "ワールドディレクトリに無かった");
-            }
         }
 
         private static void AssembleVideo(BugReportCapturedData data, string directory, BugReportManifest manifest)
@@ -179,10 +143,11 @@ namespace Client.Game.InGame.BugReport
             File.Delete(data.ScreenshotPath);
         }
 
-        private static ulong ParseTick(string fileName)
+        // 握ってよいのはディスク由来の失敗だけ。境界の根拠はAGENTS.mdの例外規定とD8裁定
+        // Only disk-originated failures may be swallowed; the boundary rationale is AGENTS.md's exception rule and adjudication D8
+        private static bool IsDiskFailure(Exception exception)
         {
-            var core = fileName.Replace("tick_", "").Replace(".json", "");
-            return ulong.TryParse(core, out var tick) ? tick : 0;
+            return exception is IOException || exception is UnauthorizedAccessException;
         }
     }
 }

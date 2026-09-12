@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Client.Common;
@@ -11,6 +12,7 @@ using Core.Update;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Client.Game.InGame.BugReport.Capture
 {
@@ -66,9 +68,17 @@ namespace Client.Game.InGame.BugReport.Capture
             return _recorder.CompletedSegmentFilesInOrder();
         }
 
-        public string RecordingUnavailableReason()
+        public RecordingAvailability GetRecordingAvailability()
         {
-            return _recorder.IsRecording ? "" : _recorder.UnavailableReason;
+            return _recorder.Availability;
+        }
+
+        // 退避はファイルコピーなのでメインスレッドを塞がない。置き場はプロセス毎に分け、並行するPlayModeと掴み合わない
+        // Staging is a file copy so it stays off the main thread; the directory is per-process so parallel PlayModes never collide
+        public UniTask<StagedServerCapture> StageServerCapture(string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames)
+        {
+            var stagingDirectory = Path.Combine(GameSystemPaths.BugReportDirectory, $"staging_pid_{Process.GetCurrentProcess().Id}");
+            return UniTask.RunOnThreadPool(() => BugReportServerCaptureStaging.Stage(stagingDirectory, snapshotDirectory, snapshotFileNames, packetLogFileNames));
         }
 
         public IReadOnlyList<(long unixMs, ulong tick)> FrameTicks()

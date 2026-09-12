@@ -42,6 +42,14 @@ namespace Client.Game.InGame.BugReport
                 return new RepositoryState { Commit = "", Branch = "", Dirty = false };
             }
 
+            // 問い合わせの失敗は1件ずつ箱へ残す。受け側はこれが無いと「差分なし」と「取れなかった」を区別できない
+            // Each failed query lands in the box one by one; without them the receiving side cannot tell "no diff" from "unreadable"
+            foreach (var failure in probe.QueryFailures) manifest.AddMissing(diffName, failure);
+
+            // 追跡ファイルに変更があるのに差分が空なら、差分の取得が壊れている。黙って空の差分を運ぶと再現が別のコードになる
+            // An empty diff while tracked files have changes means the diff itself failed; shipping it silently reproduces different code
+            if (probe.TrackedChangesPresent && probe.DiffText.Trim().Length == 0) manifest.AddMissing(diffName, "追跡ファイルに変更があるのに差分が空だった");
+
             File.WriteAllText(Path.Combine(repoDirectory, diffName), probe.DiffText);
             File.WriteAllText(Path.Combine(repoDirectory, untrackedDirectoryName + ".txt"), string.Join("\n", probe.UntrackedFiles));
             long copied = 0;

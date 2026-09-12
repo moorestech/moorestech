@@ -6,7 +6,6 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
@@ -151,7 +150,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
         private static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, IReadOnlyCollection<string> before)
         {
-            var handler = new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<PauseMenuStateService>());
+            var handler = new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>());
             var result = await handler.ExecuteAsync(new JObject { ["description"] = description });
             Assert.IsTrue(result.Ok, result.Error);
 

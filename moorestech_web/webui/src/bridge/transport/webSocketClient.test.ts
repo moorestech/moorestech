@@ -48,7 +48,7 @@ describe("WebSocket bridge initialization", () => {
   it("未初期化の action は disconnected として reject する", async () => {
     const { sendAction } = await import("./webSocketClient");
 
-    await expect(sendAction("debug.echo", {})).rejects.toThrow("disconnected");
+    await expect(sendAction("debug.echo", {}, 5000)).rejects.toThrow("disconnected");
   });
 
   it("initBridge は WebSocket 接続を一度だけ開始する", async () => {

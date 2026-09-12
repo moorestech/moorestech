@@ -28,9 +28,7 @@ export function PauseMenuPanel() {
         <Button {...tutorialAnchor(TutorialAnchorIds.pauseBack)} onClick={quit}>
           {quitLabel}
         </Button>
-        {/* 送信後の閉じはC#の RequestClose() が行うため、webui側は何もしない */}
-        {/* C#'s RequestClose() closes the menu after a send, so the webui side does nothing */}
-        {data && <BugReportForm status={data.bugReport} onSent={() => {}} />}
+        {data && <BugReportForm status={data.bugReport} />}
         <LanguageSelect />
       </Stack>
     </section>

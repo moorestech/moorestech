@@ -50,6 +50,7 @@ namespace Client.Starter.Registration
             builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
             builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
             builder.RegisterEntryPoint<BugReportUiStatePusher>();
+            builder.RegisterEntryPoint<BugReportPauseMenuTrigger>();
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

@@ -15,7 +15,18 @@ namespace Client.Game.InGame.BugReport
         public RepositoryState State;
         public string DiffText = "";
         public List<string> UntrackedFiles = new();
+
+        // HEADすら取れず状態を1つも名乗れないときの理由。これが入った結果は State が null
+        // Why nothing at all could be read (not even HEAD); such a result carries a null State
         public string Error;
+
+        // 取れた問い合わせは使いつつ、取れなかった問い合わせの理由を1つずつ残す
+        // Keeps whatever could be read while recording, one by one, why the rest could not
+        public List<string> QueryFailures = new();
+
+        // 追跡ファイルに変更がある状態。未追跡だけのdirtyと区別しないと「差分が空」の異常を検出できない
+        // Tracked files have changes; without separating this from untracked-only dirt, an empty diff cannot be flagged
+        public bool TrackedChangesPresent;
     }
 
     // Editor実行時は git で作業ツリーの状態を取り、ビルド実行時は焼き込まれた build-info.json を読む
@@ -45,14 +56,40 @@ namespace Client.Game.InGame.BugReport
                 return result;
             }
 
-            TryGit(repositoryRoot, "rev-parse --abbrev-ref HEAD", out var branch, out _);
-            TryGit(repositoryRoot, "status --porcelain", out var status, out _);
-            TryGit(repositoryRoot, "diff HEAD", out var diff, out _);
-            TryGit(repositoryRoot, "ls-files --others --exclude-standard", out var untracked, out _);
-            result.State = new RepositoryState { Commit = commit.Trim(), Branch = branch.Trim(), Dirty = status.Trim().Length > 0 };
+            var branchRead = Query(repositoryRoot, "rev-parse --abbrev-ref HEAD", result, out var branch);
+            var statusRead = Query(repositoryRoot, "status --porcelain", result, out var status);
+            Query(repositoryRoot, "diff HEAD", result, out var diff);
+            Query(repositoryRoot, "ls-files --others --exclude-standard", result, out var untracked);
+
+            // status が取れないときに Dirty=false と名乗ると「差分なしのクリーンな作業ツリー」として再現されてしまう
+            // Claiming Dirty=false when status is unreadable would reproduce the report as a clean working tree with no edits
+            var dirty = !statusRead || status.Trim().Length > 0;
+            result.State = new RepositoryState { Commit = commit.Trim(), Branch = branchRead ? branch.Trim() : "", Dirty = dirty };
+            result.TrackedChangesPresent = !statusRead || HasTrackedChange(status);
             result.DiffText = diff;
             result.UntrackedFiles = new List<string>(untracked.Split('\n', StringSplitOptions.RemoveEmptyEntries));
             return result;
+        }
+
+        // 失敗した問い合わせは結果へ理由を積む。捨てると「取れなかった」と「空だった」が同じ見た目になる
+        // A failed query pushes its reason into the result; discarding it makes "unreadable" and "empty" look identical
+        private static bool Query(string repositoryRoot, string arguments, RepositoryProbeResult result, out string stdout)
+        {
+            if (TryGit(repositoryRoot, arguments, out stdout, out var error)) return true;
+            Debug.LogWarning($"リポジトリ状態の一部を取れません: {error}");
+            result.QueryFailures.Add(error);
+            return false;
+        }
+
+        // 未追跡だけのdirtyでは diff HEAD は空が正常。先頭2文字が ?? 以外の行だけを追跡ファイルの変更とみなす
+        // With untracked-only dirt an empty diff HEAD is normal; only lines whose first two characters are not ?? count as tracked changes
+        private static bool HasTrackedChange(string statusPorcelain)
+        {
+            foreach (var line in statusPorcelain.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (!line.StartsWith("??", StringComparison.Ordinal)) return true;
+            }
+            return false;
         }
 
         public static RepositoryState ReadBuildInfo()

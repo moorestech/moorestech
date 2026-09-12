@@ -41,7 +41,7 @@ const topicFixtures: TopicFixtureRegistry = {
   [Topics.eventLanguageGate]: () => ({ waiting: false }),
   [Topics.challengeTree]: () => fx.challengeTree,
   [Topics.challengeCurrent]: () => fx.challengeCurrent,
-  [Topics.pauseMenu]: () => ({ disconnected: false }),
+  [Topics.pauseMenu]: () => ({ disconnected: false, bugReport: { hasSession: true, capturePending: false, missing: [] } }),
   [Topics.placementMode]: () => ({
     selectedTargetType: "raw", selectedName: "", height: 0, unavailableReason: "", wheelOwnedByTool: false,
   }),

@@ -116,8 +116,27 @@ namespace Client.Tests.BugReport
         public void ffmpegが無いときは警告を出して理由を残す()
         {
             LogAssert.Expect(LogType.Warning, $"録画リングを開始しません: {GameFrameRecorder.MissingFfmpegReason}");
-            Assert.AreEqual(GameFrameRecorder.MissingFfmpegReason, GameFrameRecorder.ResolveUnavailableReason(null));
-            Assert.AreEqual("", GameFrameRecorder.ResolveUnavailableReason("/opt/homebrew/bin/ffmpeg"));
+            var missing = GameFrameRecorder.ResolveInitialAvailability(null);
+            Assert.IsFalse(missing.IsAvailable);
+            Assert.AreEqual(GameFrameRecorder.MissingFfmpegReason, missing.Reason);
+            Assert.IsTrue(GameFrameRecorder.ResolveInitialAvailability("/opt/homebrew/bin/ffmpeg").IsAvailable);
+        }
+
+        // 起動後にffmpegが死ぬと理由がどこにも入らず、報告側が「録れている」枝へ入って古い区間を同梱していた
+        // When ffmpeg died after a successful start no reason was set, so the report took the "recording" branch and shipped stale segments
+        [Test]
+        public void 録画していないときの可用性は必ず理由を持つ()
+        {
+            var availability = new GameFrameRecorder().Availability;
+
+            Assert.IsFalse(availability.IsAvailable);
+            Assert.IsNotEmpty(availability.Reason);
+        }
+
+        [Test]
+        public void 使えない可用性は理由が空でも既定の理由で埋まる()
+        {
+            Assert.AreEqual(RecordingAvailability.StoppedWithoutReason, RecordingAvailability.Unavailable("").Reason);
         }
 
         private static void WriteSegment(string directory, string name, int secondsOffset)

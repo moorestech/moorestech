@@ -24,7 +24,6 @@ namespace Client.Game.InGame.UI.UIState.State
         
         public void OnExit()
         {
-            _pauseMenuStateService.OnExit();
         }
 
         public IReadOnlyList<KeyHint> GetKeyHints()
