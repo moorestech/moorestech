@@ -79,6 +79,51 @@ namespace Tests.CombinedTest.Server.PacketTest
             Directory.Delete(Path.GetDirectoryName(savePath), true);
         }
 
+        // パケット記録が止まったのに取得が成功だけを名乗ると、再現側はパケットが欠けた箱を正常な資料として読み「一致しない」を非決定性と誤読する
+        // If packet capture dies while the acquisition claims only success, the reproduction side reads a packet-starved bundle as sound material and misreads the mismatch as non-determinism
+        [Test]
+        public void パケット記録が縮退したら完了イベントに理由と停止tickが載る()
+        {
+            var savePath = Path.Combine(Path.GetTempPath(), $"moorestech-capture-{Guid.NewGuid():N}", "save.json");
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, savePath),
+            };
+            var (packet, provider) = new MoorestechServerDIContainerGenerator().Create(options);
+            var directory = provider.GetRequiredService<WorldDataDirectory>();
+            var ring = provider.GetRequiredService<WorldSnapshotRing>();
+            var packetLog = provider.GetRequiredService<ReceivedPacketLog>();
+            GameUpdater.RestoreCurrentTick(10);
+            ring.Start(600, 1800, 16);
+            var sink = EventTestUtil.RegisterCaptureSink(provider, RequesterPlayerId);
+
+            // 置き場ごと消してパケット記録だけをI/O失敗で止め、スナップショットは書ける状態へ戻す
+            // Delete the directory so only packet capture dies on I/O, then restore it so snapshots can still be written
+            Directory.Delete(directory.SnapshotDirectory, true);
+            LogAssert.Expect(LogType.Error, new Regex("^パケットログの区間切り替えに失敗しました"));
+            packetLog.Rotate(11);
+            Assert.IsFalse(packetLog.IsActive, "パケット記録が止まっていない");
+            Directory.CreateDirectory(directory.SnapshotDirectory);
+
+            var request = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());
+            var context = new PacketResponseContext(null);
+            context.TryBindPlayerId(RequesterPlayerId);
+            packet.GetPacketResponse(request, context);
+
+            GameUpdater.UpdateOneTick();
+            ring.WaitForPendingWrites();
+            GameUpdater.UpdateOneTick();
+
+            var completed = sink.TakeAll().Where(e => e.Tag == BugReportCaptureCompletedEventPacket.EventTag).ToList();
+            Assert.AreEqual(1, completed.Count, "完了イベントが1件届いていない");
+            var payload = MessagePackSerializer.Deserialize<BugReportCaptureCompletedEventPacket.BugReportCaptureCompletedMessagePack>(completed[0].Payload);
+            Assert.IsTrue(payload.Success, "スナップショットは書けているのに書き出しが失敗扱いになっている");
+            StringAssert.Contains("パケットログの区間切り替えに失敗しました", payload.PacketLogDegradeReason, "パケット記録の縮退理由が取得結果に載っていない");
+            Assert.AreEqual(11UL, payload.PacketLogDegradedAtTick, "パケット記録を止めたtickが取得結果に載っていない");
+            ring.Stop();
+            Directory.Delete(Path.GetDirectoryName(savePath), true);
+        }
+
         // 要求元が分からない接続を受理すると、完了イベントの宛先が無いまま要求だけが積まれる
         // Accepting a request from a connection with no known player leaves the request queued with nowhere to send its completion
         [Test]

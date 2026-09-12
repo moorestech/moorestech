@@ -67,6 +67,11 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             LogAssert.Expect(LogType.Log, new Regex("^パケットログは未開始のため記録しません"));
             Assert.DoesNotThrow(() => log.Append(12, new byte[] { 1 }), "縮退後のAppendが呼び出し元へ伝播している");
+
+            // ログだけに残すと取得結果は欠損を伝えられない。理由と停止tickは状態として持つ
+            // Leaving it in the log alone keeps the gap out of the capture result, so the reason and the stop tick are held as state
+            StringAssert.Contains("パケットログの区間切り替えに失敗しました", log.DegradeReason, "縮退の理由が状態として残っていない");
+            Assert.AreEqual(11UL, log.DegradedAtTick, "記録を止めたtickが状態として残っていない");
         }
 
         [Test]

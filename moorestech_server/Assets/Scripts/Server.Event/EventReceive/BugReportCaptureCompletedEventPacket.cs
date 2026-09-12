@@ -49,7 +49,8 @@ namespace Server.Event.EventReceive
                 // The file list comes from the ring's authoritative state; scanning disk here would race pruning and order names lexicographically
                 var payload = MessagePackSerializer.Serialize(new BugReportCaptureCompletedMessagePack(
                     written.RequestId, written.Tick, written.Success, written.SnapshotDirectory,
-                    written.SnapshotFileNames.ToList(), written.PacketLogFileNames.ToList(), _serverDataDirectory.Root));
+                    written.SnapshotFileNames.ToList(), written.PacketLogFileNames.ToList(), _serverDataDirectory.Root,
+                    written.PacketLogDegradeReason, written.PacketLogDegradedAtTick));
                 _eventProtocolProvider.AddEvent(requesterPlayerId, EventTag, payload);
             }
 
@@ -73,10 +74,19 @@ namespace Server.Event.EventReceive
             // Where the server read masters and mods at record time; without it the reproduction side replays against different masters
             [Key(6)] public string ServerDataDirectory { get; set; }
 
+            // パケット記録が縮退した理由。空でなければ、区間ファイルは揃っていてもパケットが欠けている
+            // Why packet capture degraded; when it is not empty the packets are missing even though the segment files are present
+            [Key(7)] public string PacketLogDegradeReason { get; set; }
+
+            // パケット記録を止めたtick。縮退していなければ0
+            // The tick packet capture stopped at; 0 while healthy
+            [Key(8)] public ulong PacketLogDegradedAtTick { get; set; }
+
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public BugReportCaptureCompletedMessagePack() { }
 
-            public BugReportCaptureCompletedMessagePack(long captureId, ulong tick, bool success, string snapshotDirectory, List<string> snapshotFileNames, List<string> packetLogFileNames, string serverDataDirectory)
+            public BugReportCaptureCompletedMessagePack(long captureId, ulong tick, bool success, string snapshotDirectory, List<string> snapshotFileNames, List<string> packetLogFileNames, string serverDataDirectory,
+                string packetLogDegradeReason, ulong packetLogDegradedAtTick)
             {
                 CaptureId = captureId;
                 Tick = tick;
@@ -85,6 +95,8 @@ namespace Server.Event.EventReceive
                 SnapshotFileNames = snapshotFileNames;
                 PacketLogFileNames = packetLogFileNames;
                 ServerDataDirectory = serverDataDirectory;
+                PacketLogDegradeReason = packetLogDegradeReason;
+                PacketLogDegradedAtTick = packetLogDegradedAtTick;
             }
         }
     }

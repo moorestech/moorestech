@@ -179,15 +179,20 @@ namespace Game.SaveLoad.Snapshot
         {
             var snapshotFileNames = _retention.CopyFileNames();
             var packetLogFileNames = CopyPacketLogFileNames();
+
+            // パケット記録の縮退を書き出しの成否と分けて載せる。載せないと記録が欠けた箱が「取れた」として運ばれる
+            // Carry the packet capture's degradation apart from the write outcome; without it a bundle missing packets travels as a successful capture
+            var degradeReason = _packetLog.DegradeReason;
+            var degradedAtTick = _packetLog.DegradedAtTick;
             if (requestIds.Count == 0)
             {
-                _onSnapshotWritten.OnNext(SnapshotWritten.ForPeriodic(completion.Tick, completion.Success, _directory.SnapshotDirectory, snapshotFileNames, packetLogFileNames));
+                _onSnapshotWritten.OnNext(SnapshotWritten.ForPeriodic(completion.Tick, completion.Success, _directory.SnapshotDirectory, snapshotFileNames, packetLogFileNames, degradeReason, degradedAtTick));
                 return;
             }
 
             foreach (var requestId in requestIds)
             {
-                _onSnapshotWritten.OnNext(SnapshotWritten.ForRequest(requestId, completion.Tick, completion.Success, _directory.SnapshotDirectory, snapshotFileNames, packetLogFileNames));
+                _onSnapshotWritten.OnNext(SnapshotWritten.ForRequest(requestId, completion.Tick, completion.Success, _directory.SnapshotDirectory, snapshotFileNames, packetLogFileNames, degradeReason, degradedAtTick));
             }
         }
 

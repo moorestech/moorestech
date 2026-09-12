@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Core.Update;
 using Game.Paths;
 using UnityEngine;
 
@@ -18,9 +19,22 @@ namespace Game.SaveLoad.Snapshot
         private bool _inactiveLogged;
         private int _isActive;
 
+        // 縮退した理由と止めたtick。tickスレッドが書き、取得完了を組む側が別スレッドから読むので可視性を明示する
+        // The degradation reason and the tick it stopped at; the tick thread writes them and the completion builder reads them from another thread
+        private string _degradeReason = string.Empty;
+        private long _degradedAtTick;
+
         // tickスレッドが追記し、終了経路が別スレッドから止めるので、可視性を明示する
         // The tick thread appends while shutdown stops it from another thread, so visibility is made explicit
         public bool IsActive => Volatile.Read(ref _isActive) != 0;
+
+        // 縮退した理由。空なら記録は欠けていない。取得結果に載せないと欠損が「取れた」と申告される
+        // Why capture degraded; empty means nothing is missing. Without this on the capture result a gap is reported as a successful capture
+        public string DegradeReason => Volatile.Read(ref _degradeReason);
+
+        // 記録を止めたtick。縮退していなければ0
+        // The tick capture stopped at; 0 while healthy
+        public ulong DegradedAtTick => (ulong)Volatile.Read(ref _degradedAtTick);
 
         public void Start(string directory, ulong fromTick)
         {
@@ -34,7 +48,7 @@ namespace Game.SaveLoad.Snapshot
             }
             catch (Exception e)
             {
-                Degrade($"パケットログの置き場を作れませんでした dir:{directory}", e);
+                Degrade($"パケットログの置き場を作れませんでした dir:{directory}", fromTick, e);
                 return;
             }
 
@@ -68,7 +82,7 @@ namespace Game.SaveLoad.Snapshot
                 }
                 catch (Exception e)
                 {
-                    Degrade($"パケットログへの追記に失敗しました tick:{tick}", e);
+                    Degrade($"パケットログへの追記に失敗しました tick:{tick}", tick, e);
                 }
             }
         }
@@ -85,7 +99,7 @@ namespace Game.SaveLoad.Snapshot
                 }
                 catch (Exception e)
                 {
-                    Degrade("パケットログのフラッシュに失敗しました", e);
+                    Degrade("パケットログのフラッシュに失敗しました", GameUpdater.CurrentTick, e);
                 }
             }
         }
@@ -138,19 +152,27 @@ namespace Game.SaveLoad.Snapshot
                 }
                 catch (Exception e)
                 {
-                    Degrade($"パケットログの区間切り替えに失敗しました fromTick:{fromTick}", e);
+                    Degrade($"パケットログの区間切り替えに失敗しました fromTick:{fromTick}", fromTick, e);
                     return false;
                 }
             }
         }
 
-        // 記録だけを止める縮退。無音で止まると「バグ直前のパケットが無い」ことに誰も気づけないので理由を必ず出す
-        // Degrade capture alone; a silent stop would leave nobody aware that the packets before the bug are missing
-        private void Degrade(string reason, Exception exception)
+        // 記録だけを止める縮退。理由と止めたtickを状態として持ち、ログと取得結果の両方へ出す
+        // Degrade capture alone, holding the reason and the stop tick as state so both the log and the capture result carry them
+        private void Degrade(string reason, ulong tick, Exception exception)
         {
             Volatile.Write(ref _isActive, 0);
             _writer = null;
-            Debug.LogError($"{reason} 以後パケットログの記録を停止します message:{exception.Message}");
+
+            // 最初の理由を残す。後続の失敗で上書きすると、記録が止まった本当のきっかけが消える
+            // Keep the first reason; overwriting it with later failures would erase what actually stopped the capture
+            if (Volatile.Read(ref _degradeReason).Length == 0)
+            {
+                Volatile.Write(ref _degradedAtTick, (long)tick);
+                Volatile.Write(ref _degradeReason, reason);
+            }
+            Debug.LogError($"{reason} 以後パケットログの記録を停止します tick:{tick} message:{exception.Message}");
         }
 
         // 最古スナップショット以前で始まる区間を消す。書き込み中の区間は残す

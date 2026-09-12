@@ -11,13 +11,25 @@ namespace Game.SaveLoad.Interface
         public bool HasRequester { get; }
         public long RequestId { get; }
         public ulong Tick { get; }
+
+        // スナップショット書き出しの成否。パケット記録の健全性はこれとは別に PacketLogDegradeReason が表す
+        // Whether the snapshot write succeeded; the packet capture's health is carried separately by PacketLogDegradeReason
         public bool Success { get; }
         public string SnapshotDirectory { get; }
         public IReadOnlyList<string> SnapshotFileNames { get; }
         public IReadOnlyList<string> PacketLogFileNames { get; }
 
+        // パケット記録が縮退した理由。空なら区間のパケットは欠けていない
+        // Why packet capture degraded; empty means no packet is missing from the segments
+        public string PacketLogDegradeReason { get; }
+
+        // パケット記録を止めたtick。縮退していなければ0
+        // The tick packet capture stopped at; 0 while healthy
+        public ulong PacketLogDegradedAtTick { get; }
+
         private SnapshotWritten(bool hasRequester, long requestId, ulong tick, bool success,
-            string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames)
+            string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames,
+            string packetLogDegradeReason, ulong packetLogDegradedAtTick)
         {
             HasRequester = hasRequester;
             RequestId = requestId;
@@ -26,18 +38,22 @@ namespace Game.SaveLoad.Interface
             SnapshotDirectory = snapshotDirectory;
             SnapshotFileNames = snapshotFileNames;
             PacketLogFileNames = packetLogFileNames;
+            PacketLogDegradeReason = packetLogDegradeReason;
+            PacketLogDegradedAtTick = packetLogDegradedAtTick;
         }
 
         public static SnapshotWritten ForRequest(long requestId, ulong tick, bool success,
-            string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames)
+            string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames,
+            string packetLogDegradeReason, ulong packetLogDegradedAtTick)
         {
-            return new SnapshotWritten(true, requestId, tick, success, snapshotDirectory, snapshotFileNames, packetLogFileNames);
+            return new SnapshotWritten(true, requestId, tick, success, snapshotDirectory, snapshotFileNames, packetLogFileNames, packetLogDegradeReason, packetLogDegradedAtTick);
         }
 
         public static SnapshotWritten ForPeriodic(ulong tick, bool success,
-            string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames)
+            string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames,
+            string packetLogDegradeReason, ulong packetLogDegradedAtTick)
         {
-            return new SnapshotWritten(false, 0, tick, success, snapshotDirectory, snapshotFileNames, packetLogFileNames);
+            return new SnapshotWritten(false, 0, tick, success, snapshotDirectory, snapshotFileNames, packetLogFileNames, packetLogDegradeReason, packetLogDegradedAtTick);
         }
     }
 }
