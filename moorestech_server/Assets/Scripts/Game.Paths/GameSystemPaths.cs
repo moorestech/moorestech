@@ -52,6 +52,12 @@ namespace Game.Paths
         // Holds the previous session's clean-exit marker and salvaged files; read only at boot
         public static string BugReportLastSessionDirectory => Path.Combine(BugReportDirectory, "last-session");
 
+        // 進行記録の作業中セッションとoutbox。プレイ報告とは別ツリーで持つ（shared-contracts §2）
+        // The in-flight progress session and its outbox; kept in a tree separate from play reports (shared-contracts §2)
+        public static string ProgressRecordDirectory => Path.Combine(GameSystemDirectory, "ProgressRecords");
+        public static string ProgressRecordOutboxDirectory => Path.Combine(ProgressRecordDirectory, "outbox");
+        public static string ProgressRecordCurrentDirectory => Path.Combine(ProgressRecordDirectory, "current");
+
         // ワールドごとのクライアントキャッシュ。worldIdはサーバーが払い出すワールド同一性の識別子
         // Per-world client cache; worldId is the world identity issued by the server
         public static string GetWorldCacheDirectory(string worldId)
