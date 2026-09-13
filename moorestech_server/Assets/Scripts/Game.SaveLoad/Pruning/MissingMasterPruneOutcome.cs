@@ -22,6 +22,8 @@ namespace Game.SaveLoad.Pruning
             _removedBlocks = removedBlocks;
             _removedItemReferences = removedItemReferences;
             _removedResearchGuids = removedResearchGuids;
+            // 裸guid（燃焼中の燃料スロット等）もEmptiedItemStackCountに含める。在庫枠ではないが、プレイヤーが失った実アイテムであることに変わりなく、通知の文言は「枠数」ではなく「取り除いた件数」を指す
+            // Bare-guid entries (e.g. a burning fuel slot) count toward EmptiedItemStackCount too; they are not inventory slots but are still real items the player lost, and the notice text means "items removed", not "slots emptied"
             Report = new MissingMasterPruneReport(removedBlocks.Count, removedItemReferences.EmptiedItemStacks.Count, removedResearchGuids.Count);
         }
 

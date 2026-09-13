@@ -98,6 +98,30 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(JTokenType.Null, JObject.Parse(stateText)[fuelPropertyName].Type);
         }
 
+        // pruned/itemsは後日の置換・返金の入力になるため、裸guid由来も在庫スタック由来もitemGuid/countの両方を持つ必要がある
+        // pruned/items feeds a later replace/refund pass, so both bare-guid and inventory-stack entries must carry itemGuid and count
+        [Test]
+        public void pruned_items内の裸guid由来と在庫スタック由来は同じキーを持つTest()
+        {
+            var save = BuildSaveJson();
+            var mainItems = (JArray)save["playerInventory"][0]["MainInventoryItems"];
+            mainItems[0]["itemGuid"] = MissingGuid;
+            mainItems[0]["count"] = 5;
+            ((JArray)save["world"]).Add(StateBlock(save, 987660, $"{{\\\"currentFuelItemGuid\\\":\\\"{MissingGuid}\\\"}}"));
+
+            var outcome = new MissingMasterPruner().Prune(save);
+            var items = (JArray)outcome.ToPrunedJson(DateTime.UtcNow)["items"];
+
+            Assert.AreEqual(2, items.Count);
+            var stackEntry = items.Single(item => item["field"] == null);
+            var bareGuidEntry = items.Single(item => item["field"] != null);
+            Assert.AreEqual(MissingGuid, stackEntry["itemGuid"].Value<string>());
+            Assert.AreEqual(5, stackEntry["count"].Value<int>());
+            Assert.AreEqual(MissingGuid, bareGuidEntry["itemGuid"].Value<string>());
+            Assert.AreEqual(1, bareGuidEntry["count"].Value<int>());
+            Assert.AreEqual("currentFuelItemGuid", bareGuidEntry["field"].Value<string>());
+        }
+
         // 接続コスト素材は在庫ではない。空スタックとして数えると「枠を空けた」という通知が嘘になる
         // Connection materials are not inventory; counting them as emptied stacks would make the "slots emptied" notice false
         [Test]

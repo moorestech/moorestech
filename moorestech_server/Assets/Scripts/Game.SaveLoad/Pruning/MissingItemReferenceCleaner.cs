@@ -59,7 +59,14 @@ namespace Game.SaveLoad.Pruning
             var guidText = guidValue.Value<string>();
             if (!IsMissingItem(guidText)) return;
 
-            Record(_emptiedItemStacks, new JObject { ["field"] = property.Name, [SaveItemReferenceFields.ItemStackItemGuidKey] = guidText }, guidText);
+            // countは在庫スタックと同じキーで揃える。裸guidは1件そのものを指すので1固定（在庫のcountとは意味が違うが後日の返金入力として形を合わせる）
+            // count mirrors the inventory stack key; a bare guid always denotes exactly one item, so it is fixed at 1 (a different meaning than stack counts, but shape-matched for the later refund input)
+            Record(_emptiedItemStacks, new JObject
+            {
+                ["field"] = property.Name,
+                [SaveItemReferenceFields.ItemStackItemGuidKey] = guidText,
+                [SaveItemReferenceFields.ItemStackCountKey] = 1,
+            }, guidText);
             property.Value = JValue.CreateNull();
         }
 
