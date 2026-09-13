@@ -1,8 +1,11 @@
 using System;
+using System.Text.RegularExpressions;
 using Core.Update;
 using Game.SaveLoad.Migration.Steps;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -69,6 +72,9 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var save = JObject.Parse("{\"world\":[{\"state\":{\"machine\":\"\\\"{\\\\\\\"remain\\\\\\\":3}\\\"\"}}]}");
 
+            // 理由は開発者が読めるログにも出す設計なので、期待するエラーログとして受け取る
+            // The reason is also written to a developer-readable log by design, so the expected error log is consumed here
+            LogAssert.Expect(LogType.Error, new Regex("二重エンコード"));
             Assert.Throws<InvalidOperationException>(() => new SaveMigrationStepV1ToV2().Migrate(save));
         }
 
