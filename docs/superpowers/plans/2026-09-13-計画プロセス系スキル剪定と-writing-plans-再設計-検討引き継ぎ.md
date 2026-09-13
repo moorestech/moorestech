@@ -2,6 +2,8 @@
 
 2026-09-13 の壁打ちセッションの到達点。実装はまだ何もしていない（`.decisions/` 1件の記録のみ）。
 
+> **進捗（2026-09-13 夜）**: 第2パス（X群63件のplan照合）完了、論点1〜3＋追加3点をユーザー承認、Phase 2.6（型閉包・重複・ADR矛盾）を実装。plan: `2026-09-13-writing-plans-type-closure-check.md`、裁定: `.decisions/2026-09-13-writing-plans型閉包検査は…md`。残り: task-reviewer 側の1行（別PR）とグローバル `~/.agents` の事実誤り移植。
+>
 > **進捗（2026-09-13 同日）**: 下記 A・C・D と B の大半（dot図・利点節・ワークフロー例・14問自己レビュー・TDD証拠）を本PRで実施済み。論点4は「規則本文はWHY一句、事案は `writing-plans/references/incidents.md`」で適用した。235件分類の第1パスは `moorestech_logs/harness/writing-plans-extension/critical-classification-2026-09-13.md`。残りは第2パス（X群のplan照合）と論点1〜3の拡張設計。
 
 出発点: 指示ファイル剪定監査（`moorestech_logs/harness/pr-independent-review/docs/skill-prune-audit.html`）の
