@@ -88,6 +88,7 @@ describe("WebSocket bridge initialization", () => {
       Topics.blockInventory,
       Topics.uiState,
       Topics.inventory,
+      Topics.pauseMenu,
     ]));
 
     subscriptions.acquire(Topics.modal);
@@ -105,7 +106,7 @@ describe("WebSocket bridge initialization", () => {
     initBridge();
     sockets[0].open();
     expect(useTopicStore.getState().status).toBe("restoring");
-    for (const topic of [Topics.modal, Topics.blockInventory, Topics.uiState, Topics.inventory]) {
+    for (const topic of [Topics.modal, Topics.blockInventory, Topics.uiState, Topics.inventory, Topics.pauseMenu]) {
       sockets[0].receive({ op: "snapshot", topic, revision: 1, data: fixtureFor(topic) });
     }
     expect(useTopicStore.getState().status).toBe("open");
@@ -116,11 +117,32 @@ describe("WebSocket bridge initialization", () => {
     await vi.advanceTimersByTimeAsync(100);
     sockets[1].open();
     expect(useTopicStore.getState().status).toBe("restoring");
-    for (const topic of [Topics.modal, Topics.blockInventory, Topics.uiState, Topics.inventory]) {
+    for (const topic of [Topics.modal, Topics.blockInventory, Topics.uiState, Topics.inventory, Topics.pauseMenu]) {
       sockets[1].receive({ op: "snapshot", topic, revision: 0, data: fixtureFor(topic) });
     }
     expect(useTopicStore.getState().status).toBe("open");
     expect(useTopicStore.getState().topics[Topics.uiState]).toEqual({ state: "GameScreen", keyHints: [] });
+  });
+
+  // 15秒の心拍が120秒待ちのactionを先回りすると、書けたバグ報告が無言で失敗になる
+  // A 15s heartbeat racing a 120s action turns a written bug report into a silent failure
+  it("応答待ちの action がある間は無応答でも socket を閉じない", async () => {
+    vi.useFakeTimers();
+    const { initBridge, sendAction } = await import("./webSocketClient");
+    const { useTopicStore } = await import("../store/topicStore");
+    // action の待ちタイマーは window 経由で張られるため、偽タイマーごと window として見せる
+    // The action's wait timer is set through window, so window is exposed as the faked global itself
+    vi.stubGlobal("window", globalThis);
+    initBridge();
+    sockets[0].open();
+
+    const pending = sendAction("bug_report.submit", {}, 120000);
+    await vi.advanceTimersByTimeAsync(30000);
+    expect(useTopicStore.getState().status).not.toBe("reconnecting");
+
+    const requestId = JSON.parse(sockets[0].sent.find((raw) => raw.includes("bug_report.submit"))!).requestId;
+    sockets[0].receive({ op: "result", requestId, ok: true });
+    await expect(pending).resolves.toEqual({ ok: true, error: undefined });
   });
 
   it("pong が途絶えると socket を閉じて再接続状態へ移る", async () => {
@@ -138,6 +160,7 @@ describe("WebSocket bridge initialization", () => {
 
 function fixtureFor(topic: string) {
   if (topic === "ui.modal") return {};
+  if (topic === "pause_menu.current") return { disconnected: false, bugReport: { kind: "noSession", missing: [] } };
   if (topic === "block_inventory.current") return { open: false };
   if (topic === "ui_state.current") return { state: "GameScreen", keyHints: [] };
   return { mainSlots: [], grab: { itemId: 0, count: 0 }, equipment: [], selectedEquipment: 0, equipmentSelectionConfirmationRevision: 0 };

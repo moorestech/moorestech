@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BugReport.Capture;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics;
@@ -157,7 +158,7 @@ namespace Client.Tests.WebUi
             var dto = new PauseMenuDto
             {
                 Disconnected = true,
-                BugReport = new BugReportStatusDto { HasSession = true, CapturePending = true, Missing = new List<string> { "video" } },
+                BugReport = new BugReportStatusDto { Kind = BugReportCaptureStatus.Capturing, Missing = new List<string> { "video" } },
             };
             AssertMatchesFixture(dto, "pause_menu.json");
         }

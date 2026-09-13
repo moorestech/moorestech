@@ -19,13 +19,12 @@ namespace Client.Tests.BugReport.Capture
             var sources = new FakeBugReportCaptureSources();
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
-            Assert.IsTrue(session.Status.Value.HasSession);
-            Assert.IsTrue(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, session.Status.Value.Kind);
             Assert.AreEqual(1, sources.TakeRecordingCount);
 
             session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string> { "packets_6.bin" }, null, 0));
 
-            Assert.IsFalse(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind);
             var data = session.TryBeginSubmit().Data;
             Assert.AreEqual(5UL, data.ReportTick);
 
@@ -54,7 +53,7 @@ namespace Client.Tests.BugReport.Capture
 
             session.OnServerCaptureCompleted(new ServerCaptureCompletion(99, 5, true, "/w/snapshots", "/master/server_v8", new List<string>(), new List<string>(), null, 0));
 
-            Assert.IsTrue(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, session.Status.Value.Kind);
             Assert.IsNull(sources.StagedFromDirectory);
         }
 
@@ -67,7 +66,7 @@ namespace Client.Tests.BugReport.Capture
             LogAssert.Expect(LogType.Warning, new Regex("serverSnapshot"));
             session.BeginOnPauseMenu();
 
-            Assert.IsFalse(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind);
             CollectionAssert.Contains(session.Status.Value.Missing, "serverSnapshot");
             Assert.IsTrue(session.TryBeginSubmit().Data.Missing.Single(missing => missing.Item == "serverSnapshot").Reason.Contains("常時記録が無効"));
         }
@@ -95,7 +94,7 @@ namespace Client.Tests.BugReport.Capture
             LogAssert.Expect(LogType.Warning, new Regex("serverSnapshot"));
             session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, false, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
-            Assert.IsFalse(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind);
             CollectionAssert.Contains(session.Status.Value.Missing, "serverSnapshot");
             Assert.IsNull(sources.StagedFromDirectory);
         }
@@ -106,12 +105,12 @@ namespace Client.Tests.BugReport.Capture
             var sources = new FakeBugReportCaptureSources();
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
-            Assert.IsTrue(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, session.Status.Value.Kind);
 
             LogAssert.Expect(LogType.Warning, new Regex("serverSnapshot"));
             sources.ElapseServerCaptureTimeout();
 
-            Assert.IsFalse(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind);
             CollectionAssert.Contains(session.Status.Value.Missing, "serverSnapshot");
         }
 
@@ -217,7 +216,7 @@ namespace Client.Tests.BugReport.Capture
 
             session.BeginOnPauseMenu();
 
-            Assert.IsTrue(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, session.Status.Value.Kind);
             Assert.AreEqual(2, sources.TakeRecordingCount);
             Assert.AreEqual(BugReportSubmitTicket.CapturePending, session.TryBeginSubmit().RefusedCode);
         }

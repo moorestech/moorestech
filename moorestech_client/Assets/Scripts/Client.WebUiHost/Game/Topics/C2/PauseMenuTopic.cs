@@ -54,8 +54,7 @@ namespace Client.WebUiHost.Game.Topics
                 Disconnected = _state.IsDisconnected,
                 BugReport = new BugReportStatusDto
                 {
-                    HasSession = status.HasSession,
-                    CapturePending = status.CapturePending,
+                    Kind = status.Kind,
                     Missing = new List<string>(status.Missing),
                 },
             });
@@ -68,10 +67,11 @@ namespace Client.WebUiHost.Game.Topics
         public BugReportStatusDto BugReport;
     }
 
+    // 送信可否の結論はC#の判定式が出した種別をそのまま載せる。Web側で組み立て直させない
+    // The send-permission verdict travels as the kind C#'s rule produced, so the Web never rebuilds it
     public class BugReportStatusDto
     {
-        public bool HasSession;
-        public bool CapturePending;
+        public string Kind;
         public List<string> Missing;
     }
 }

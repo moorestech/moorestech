@@ -44,7 +44,9 @@ namespace Client.WebUiHost.Boot
                     foreach (var t in msg.Topics) conn.Topics.TryRemove(t, out _);
                     break;
                 case "action":
-                    await HandleActionAsync(conn, msg);
+                    // 実行は action ループへ渡す。ここで待つと書き出しの間 ping が読まれず心拍が切れる
+                    // Execution is handed to the action loop; awaiting here would leave pings unread and cut the heartbeat mid-write
+                    if (!conn.EnqueueAction(msg)) UnityEngine.Debug.LogWarning($"[WebSocketHub] action '{msg.Type}' dropped: connection stopping");
                     break;
                 case "input_state":
                     WebUiInputExclusivity.SetState(msg.PointerOverUi, msg.TextInputFocused);
@@ -89,7 +91,7 @@ namespace Client.WebUiHost.Boot
 
         // action を実行して result を必ず返す。ハンドラ例外は境界で握り internal_error を返す（2-C）
         // Run the action and always return a result; handler exceptions are caught at the boundary as internal_error (2-C)
-        private async UniTask HandleActionAsync(WebSocketConnection conn, WsClientMessage msg)
+        public async UniTask HandleActionAsync(WebSocketConnection conn, WsClientMessage msg)
         {
             // requestId が無い action は応答相関できないため黙って捨てる
             // Drop actions without a requestId; the response cannot be correlated

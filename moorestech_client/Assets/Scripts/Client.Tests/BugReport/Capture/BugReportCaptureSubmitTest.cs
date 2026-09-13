@@ -24,13 +24,13 @@ namespace Client.Tests.BugReport.Capture
             session.BeginOnPauseMenu();
             session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
-            Assert.IsTrue(session.Status.Value.CapturePending, "退避中なのに確保が終わったことになっている");
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, session.Status.Value.Kind, "退避中なのに確保が終わったことになっている");
             LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.CapturePending));
             Assert.AreEqual(BugReportSubmitTicket.CapturePending, session.TryBeginSubmit().RefusedCode);
 
             sources.ReleaseStaging();
 
-            Assert.IsFalse(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind);
             Assert.IsTrue(session.TryBeginSubmit().Allowed);
         }
 
@@ -45,13 +45,13 @@ namespace Client.Tests.BugReport.Capture
             session.BeginOnPauseMenu();
             session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
-            Assert.IsTrue(session.Status.Value.CapturePending, "録画の排出待ちなのに確保が終わったことになっている");
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, session.Status.Value.Kind, "録画の排出待ちなのに確保が終わったことになっている");
             LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.CapturePending));
             Assert.AreEqual(BugReportSubmitTicket.CapturePending, session.TryBeginSubmit().RefusedCode);
 
             sources.ReleaseRecording();
 
-            Assert.IsFalse(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind);
             Assert.IsTrue(session.TryBeginSubmit().Allowed);
         }
 
@@ -65,13 +65,13 @@ namespace Client.Tests.BugReport.Capture
             session.BeginOnPauseMenu();
             session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
-            Assert.IsTrue(session.Status.Value.CapturePending, "スクリーンショット待ちなのに確保が終わったことになっている");
+            Assert.AreEqual(BugReportCaptureStatus.Capturing, session.Status.Value.Kind, "スクリーンショット待ちなのに確保が終わったことになっている");
             LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.CapturePending));
             Assert.AreEqual(BugReportSubmitTicket.CapturePending, session.TryBeginSubmit().RefusedCode);
 
             screenshot.TrySetResult("/tmp/shot.png");
 
-            Assert.IsFalse(session.Status.Value.CapturePending);
+            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind);
             Assert.IsTrue(session.TryBeginSubmit().Allowed);
         }
 
@@ -92,6 +92,9 @@ namespace Client.Tests.BugReport.Capture
 
             session.CompleteSubmit(ticket.Data, true, new List<MissingItem>());
 
+            // 送信済みを配らないと、Webは送れる状態を描き続けて拒否ログだけが溜まる
+            // Without publishing the sent state the Web keeps drawing a submittable form and only refusal logs accumulate
+            Assert.AreEqual(BugReportCaptureStatus.Submitted, session.Status.Value.Kind);
             LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.AlreadySubmitted));
             Assert.AreEqual(BugReportSubmitTicket.AlreadySubmitted, session.TryBeginSubmit().RefusedCode);
         }

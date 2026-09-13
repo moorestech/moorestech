@@ -8,18 +8,22 @@ using UniRx;
 
 namespace Client.Game.InGame.BugReport.Capture
 {
-    // 確保セッションの外向きの状態。ポーズメニューはこの3つだけを見る
-    // The capture session's outward state; the pause menu looks only at these three
+    // 確保セッションの外向きの状態。送信可否の判定結果そのものを種別として配り、受け手に再判定させない
+    // The capture session's outward state; it publishes the send-permission verdict itself as a kind so no receiver re-decides
     public sealed class BugReportCaptureStatus
     {
-        public bool HasSession { get; }
-        public bool CapturePending { get; }
+        public const string NoSession = "noSession";
+        public const string Capturing = "capturing";
+        public const string Submitting = "submitting";
+        public const string Ready = "ready";
+        public const string Submitted = "submitted";
+
+        public string Kind { get; }
         public IReadOnlyList<string> Missing { get; }
 
-        public BugReportCaptureStatus(bool hasSession, bool capturePending, IReadOnlyList<string> missing)
+        public BugReportCaptureStatus(string kind, IReadOnlyList<string> missing)
         {
-            HasSession = hasSession;
-            CapturePending = capturePending;
+            Kind = kind;
             Missing = missing;
         }
     }
@@ -28,7 +32,7 @@ namespace Client.Game.InGame.BugReport.Capture
     // Per-stage pending state of one capture; a send is refused while any stage is outstanding, and only this publishes the outward state
     public sealed class BugReportCaptureProgress
     {
-        private readonly ReactiveProperty<BugReportCaptureStatus> _status = new(new BugReportCaptureStatus(false, false, Array.Empty<string>()));
+        private readonly ReactiveProperty<BugReportCaptureStatus> _status = new(new BugReportCaptureStatus(BugReportCaptureStatus.NoSession, Array.Empty<string>()));
 
         private bool _serverCapturePending;
         private bool _stagingPending;
@@ -47,41 +51,43 @@ namespace Client.Game.InGame.BugReport.Capture
             _recordingPending = true;
         }
 
-        public bool IsServerCapturePending()
-        {
-            return _serverCapturePending;
-        }
+        public bool IsServerCapturePending() => _serverCapturePending;
 
-        public void FinishServerCapture()
-        {
-            _serverCapturePending = false;
-        }
+        public void FinishServerCapture() => _serverCapturePending = false;
 
-        public void BeginStaging()
-        {
-            _stagingPending = true;
-        }
+        public void BeginStaging() => _stagingPending = true;
 
-        public void FinishStaging()
-        {
-            _stagingPending = false;
-        }
+        public void FinishStaging() => _stagingPending = false;
 
-        public void FinishScreenshot()
-        {
-            _screenshotPending = false;
-        }
+        public void FinishScreenshot() => _screenshotPending = false;
 
-        public void FinishRecording()
-        {
-            _recordingPending = false;
-        }
+        public void FinishRecording() => _recordingPending = false;
 
-        public void Publish(BugReportCapturedData data)
+        public bool IsCapturePending() => _serverCapturePending || _stagingPending || _screenshotPending || _recordingPending;
+
+        // 送信可否は門に聞き、その結論を種別へ写して配る。工程の待ち状態から外で組み立て直させない
+        // The gate answers whether a send may start and its verdict is mapped into the kind, so nobody outside rebuilds it from the stage flags
+        public void Publish(BugReportCapturedData data, BugReportSubmitGate submitGate)
         {
             var missing = data == null ? new List<string>() : data.Missing.Select(missingItem => missingItem.Item).ToList();
-            var pending = _serverCapturePending || _stagingPending || _screenshotPending || _recordingPending;
-            _status.Value = new BugReportCaptureStatus(data != null, pending, missing);
+            _status.Value = new BugReportCaptureStatus(KindOf(submitGate.Inspect(data, IsCapturePending())), missing);
+        }
+
+        private static string KindOf(string refusedCode)
+        {
+            switch (refusedCode)
+            {
+                case null: return BugReportCaptureStatus.Ready;
+                case BugReportSubmitTicket.NoCaptureSession: return BugReportCaptureStatus.NoSession;
+                case BugReportSubmitTicket.CapturePending: return BugReportCaptureStatus.Capturing;
+                case BugReportSubmitTicket.SubmitInFlight: return BugReportCaptureStatus.Submitting;
+                case BugReportSubmitTicket.AlreadySubmitted: return BugReportCaptureStatus.Submitted;
+                // 未知の拒否コードを送信可として配ると、送れない状態のまま押させて拒否ログだけが溜まる
+                // Publishing an unknown refusal code as submittable would invite a click that only piles up refusal logs
+                default:
+                    UnityEngine.Debug.LogError($"バグ報告: 種別へ写せない拒否コードのため送信不可として配ります code:{refusedCode}");
+                    return BugReportCaptureStatus.NoSession;
+            }
         }
     }
 

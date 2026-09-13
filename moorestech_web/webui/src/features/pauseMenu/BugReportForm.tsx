@@ -1,10 +1,10 @@
 // ポーズメニュー直置きのバグ報告欄。Escape時点の記録はC#側が確保済みで、ここは説明文と送信だけを担う
 // Bug-report form placed directly in the pause menu; C# has secured the Escape-moment records, this only adds text and sends
-import { useRef, useState } from "react";
-import { dispatchAction, UiStateNames, type PauseMenuData } from "@/bridge";
+import { Button } from "@mantine/core";
+import { useState } from "react";
+import { dispatchAction, readTopic, Topics, type PauseMenuData } from "@/bridge";
 import { emitToast } from "@/features/toast";
 import { L, useI18n } from "@/shared/i18n";
-import { PanelActionButton } from "@/shared/ui";
 import styles from "./style.module.css";
 
 type Props = {
@@ -16,13 +16,11 @@ export function BugReportForm({ status }: Props) {
   const [description, setDescription] = useState("");
   const [sending, setSending] = useState(false);
 
-  // 送信後の欠損はC#が配り直す。押した時点の props は古いので、最新の配信値を読むために ref で持つ
-  // C# republishes the missing list after a send; the props captured at click time are stale, so the latest delivery is read through a ref
-  const statusRef = useRef(status);
-  statusRef.current = status;
-
   const trimmedDescription = description.trim();
-  const blocked = trimmedDescription.length === 0 || status.capturePending || !status.hasSession || sending;
+
+  // 送信してよいかの判定はC#が持ち、結論が kind で届く。ここで条件を組み立て直すと判定が2本になる
+  // C# owns whether a send may start and delivers the verdict as the kind; rebuilding the conditions here would make two rules
+  const blocked = trimmedDescription.length === 0 || status.kind !== "ready" || sending;
 
   const send = async () => {
     // 二度押しは同じ確保から2箱を作り、同じ報告のdraft PRが2本出る
@@ -35,14 +33,15 @@ export function BugReportForm({ status }: Props) {
     setSending(false);
     if (!ok) return;
 
-    // 欠損の判定はC#が持つ。Web側は再判断せず、配られた missing で文言だけを分ける
-    // C# owns the missing decision; the Web re-judges nothing and only picks the wording from what was delivered
-    const missing = statusRef.current.missing;
+    // 欠損の判定はC#が持つ。押した時点の props は古いので、配信済みの最新値をその場で読む
+    // C# owns the missing decision; the props captured at click time are stale, so the latest delivered value is read on the spot
+    const missing = readTopic(Topics.pauseMenu)?.bugReport.missing ?? [];
     if (missing.length === 0) emitToast(t(L.ui.bugReport.sent), "info");
     else emitToast(t(L.ui.bugReport.missing, { items: missing.join(", ") }), "error");
     setDescription("");
-    void dispatchAction("ui_state.request", { state: UiStateNames.gameScreen });
   };
+
+  const statusLine = describeStatus();
 
   return (
     <>
@@ -53,13 +52,24 @@ export function BugReportForm({ status }: Props) {
         onChange={(e) => setDescription(e.currentTarget.value)}
         data-testid="bug-report-description"
       />
-      {status.capturePending && <span className={styles.status} data-testid="bug-report-status">{t(L.ui.bugReport.capturePending)}</span>}
-      {!status.hasSession && <span className={styles.status} data-testid="bug-report-status">{t(L.ui.bugReport.noSession)}</span>}
-      {sending && <span className={styles.status} data-testid="bug-report-status">{t(L.ui.bugReport.sending)}</span>}
+      {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
       {status.missing.length > 0 && (
         <span className={styles.status} data-testid="bug-report-status">{t(L.ui.bugReport.missing, { items: status.missing.join(", ") })}</span>
       )}
-      <PanelActionButton onClick={send} disabled={blocked} testId="bug-report-send">{t(L.ui.bugReport.send)}</PanelActionButton>
+      <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(L.ui.bugReport.send)}</Button>
     </>
   );
+
+  // 送れない理由はC#の kind 1本から引く。押下中だけは応答が届くまでの手元の状態を優先する
+  // The reason a send is blocked comes from C#'s single kind; only the click's own round trip is read locally
+  function describeStatus(): string | null {
+    if (sending) return t(L.ui.bugReport.sending);
+    switch (status.kind) {
+      case "noSession": return t(L.ui.bugReport.noSession);
+      case "capturing": return t(L.ui.bugReport.capturePending);
+      case "submitting": return t(L.ui.bugReport.sending);
+      case "submitted": return t(L.ui.bugReport.sent);
+      case "ready": return null;
+    }
+  }
 }

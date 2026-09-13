@@ -60,7 +60,7 @@ namespace Client.Game.InGame.BugReport.Capture
             if (!data.ClientState.HasCamera) AddMissing(data, "cameraState", "メインカメラが無く、カメラの位置と向きを確保できなかった");
             if (!data.ClientState.HasPlayer) AddMissing(data, "playerState", "プレイヤーが無く、位置を確保できなかった");
 
-            _progress.Publish(_data);
+            _progress.Publish(_data, _submitGate);
         }
 
         // サーバーの書き出し完了イベント。要求IDが一致するものだけを取り込む
@@ -82,7 +82,7 @@ namespace Client.Game.InGame.BugReport.Capture
             if (!completion.Success)
             {
                 AddMissing(_data, "serverSnapshot", $"サーバーがスナップショットの書き出しに失敗した captureId:{completion.CaptureId}");
-                _progress.Publish(_data);
+                _progress.Publish(_data, _submitGate);
                 return;
             }
 
@@ -98,14 +98,14 @@ namespace Client.Game.InGame.BugReport.Capture
             _data.WorldRootDirectory = string.IsNullOrEmpty(completion.SnapshotDirectory) ? null : Path.GetDirectoryName(completion.SnapshotDirectory);
             _progress.BeginStaging();
             StageServerCapture(_data, completion, _beginCount).Forget();
-            _progress.Publish(_data);
+            _progress.Publish(_data, _submitGate);
         }
 
         // 送信してよいかを判定し、許可なら記録一式を渡して送信中にする。判定の権威はここ1箇所
         // Decides whether a send may start and hands over the records; this is the single authority for that decision
         public BugReportSubmitTicket TryBeginSubmit()
         {
-            return _submitGate.TryBegin(_data, _progress.Status.Value.CapturePending);
+            return _submitGate.TryBegin(_data, _progress.IsCapturePending());
         }
 
         // 書き出しの結果を確保状態へ戻す。欠損は書き出し側が確定させるので、ここで丸ごと置き換える
@@ -125,7 +125,7 @@ namespace Client.Game.InGame.BugReport.Capture
             // 箱へ写し終えた確保の作業場は残さない。書けなかった確保は送り直せるよう残す
             // The workspace is dropped once its materials reached the box; a failed write keeps them so the send can be retried
             if (ready) BugReportCaptureWorkspace.Delete(data.CaptureWorkDirectory);
-            _progress.Publish(_data);
+            _progress.Publish(_data, _submitGate);
         }
 
         private async UniTaskVoid RequestServerCapture(BugReportCapturedData data, int beginCount)
@@ -138,19 +138,19 @@ namespace Client.Game.InGame.BugReport.Capture
             {
                 _progress.FinishServerCapture();
                 AddMissing(data, "serverSnapshot", $"サーバーが即時スナップショット要求を受け付けなかった reason:{request.RejectedReason}");
-                _progress.Publish(_data);
+                _progress.Publish(_data, _submitGate);
                 return;
             }
 
             data.CaptureId = request.CaptureId;
-            _progress.Publish(_data);
+            _progress.Publish(_data, _submitGate);
 
             await _sources.WaitServerCaptureTimeout();
             if (beginCount != _beginCount || !_progress.IsServerCapturePending()) return;
 
             _progress.FinishServerCapture();
             AddMissing(data, "serverSnapshot", $"完了イベントが {ServerCaptureTimeoutSeconds}s 以内に届かなかった captureId:{request.CaptureId}");
-            _progress.Publish(_data);
+            _progress.Publish(_data, _submitGate);
         }
 
         // 境界は呼び出し時点で確定済み。ここで待つのはエンコーダーが区間を吐き終えるまで
@@ -163,7 +163,7 @@ namespace Client.Game.InGame.BugReport.Capture
             if (!captured.IsAvailable) AddMissing(data, "video", captured.UnavailableReason);
             data.VideoSegmentFiles = captured.SegmentFiles.ToList();
             data.FrameTicks = captured.FrameTicks;
-            _progress.Publish(_data);
+            _progress.Publish(_data, _submitGate);
         }
 
         // 記入中もサーバーの剪定は進むため、Escape時点の記録は名前ではなく実体で確保する（ADR 0057）
@@ -177,7 +177,7 @@ namespace Client.Game.InGame.BugReport.Capture
             data.SnapshotFileNames = staged.SnapshotFileNames.ToList();
             data.PacketLogFileNames = staged.PacketLogFileNames.ToList();
             foreach (var item in staged.Missing) AddMissing(data, item.Item, item.Reason);
-            _progress.Publish(_data);
+            _progress.Publish(_data, _submitGate);
         }
 
         private async UniTaskVoid CaptureScreenshot(BugReportCapturedData data, int beginCount)
@@ -187,7 +187,7 @@ namespace Client.Game.InGame.BugReport.Capture
             _progress.FinishScreenshot();
             if (path == null) AddMissing(data, "screenshot", "スクリーンショットの書き出しに失敗した");
             data.ScreenshotPath = path;
-            _progress.Publish(_data);
+            _progress.Publish(_data, _submitGate);
         }
 
         private static void AddMissing(BugReportCapturedData data, string item, string reason)

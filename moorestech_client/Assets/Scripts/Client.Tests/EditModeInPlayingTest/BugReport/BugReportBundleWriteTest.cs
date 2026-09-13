@@ -141,10 +141,9 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
             // サーバー確保の打ち切り上限は15秒なので、それより長く待って確定を見届ける
             // The server capture gives up after 15 seconds, so wait longer than that to see it settle
-            for (var i = 0; i < 400 && (!session.Status.Value.HasSession || session.Status.Value.CapturePending); i++) await UniTask.Delay(50);
+            for (var i = 0; i < 400 && session.Status.Value.Kind != BugReportCaptureStatus.Ready; i++) await UniTask.Delay(50);
 
-            Assert.IsTrue(session.Status.Value.HasSession, "ポーズメニューを開いても確保セッションが始まっていない");
-            Assert.IsFalse(session.Status.Value.CapturePending, "サーバー確保の待ちが20秒以内に確定しない");
+            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind, "ポーズメニューを開いても20秒以内に送信できる状態にならない");
             return session;
         }
 

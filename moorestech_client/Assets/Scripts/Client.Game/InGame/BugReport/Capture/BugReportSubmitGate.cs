@@ -13,12 +13,21 @@ namespace Client.Game.InGame.BugReport.Capture
             _submitted = false;
         }
 
+        // 送信可否の判定式。送信の入口も外向きの配信も同じ結論を読むため、条件はここ1箇所にしか無い
+        // The one send-permission rule; both the send entry point and the published state read this verdict, so the conditions live here only
+        public string Inspect(BugReportCapturedData data, bool capturePending)
+        {
+            if (data == null) return BugReportSubmitTicket.NoCaptureSession;
+            if (_inFlight) return BugReportSubmitTicket.SubmitInFlight;
+            if (_submitted) return BugReportSubmitTicket.AlreadySubmitted;
+            if (capturePending) return BugReportSubmitTicket.CapturePending;
+            return null;
+        }
+
         public BugReportSubmitTicket TryBegin(BugReportCapturedData data, bool capturePending)
         {
-            if (data == null) return Refuse(BugReportSubmitTicket.NoCaptureSession, "確保セッションが無い");
-            if (_inFlight) return Refuse(BugReportSubmitTicket.SubmitInFlight, "前の送信がまだ書き出し中");
-            if (_submitted) return Refuse(BugReportSubmitTicket.AlreadySubmitted, "この確保は既に送信済み");
-            if (capturePending) return Refuse(BugReportSubmitTicket.CapturePending, "記録の確保がまだ終わっていない");
+            var refusedCode = Inspect(data, capturePending);
+            if (refusedCode != null) return Refuse(refusedCode);
 
             _inFlight = true;
             return BugReportSubmitTicket.Allow(data);
@@ -32,10 +41,22 @@ namespace Client.Game.InGame.BugReport.Capture
             _submitted = ready;
         }
 
-        private static BugReportSubmitTicket Refuse(string code, string reason)
+        private static BugReportSubmitTicket Refuse(string code)
         {
-            UnityEngine.Debug.LogWarning($"バグ報告を送信しません code:{code} reason:{reason}");
+            UnityEngine.Debug.LogWarning($"バグ報告を送信しません code:{code} reason:{ReasonOf(code)}");
             return BugReportSubmitTicket.Refuse(code);
+        }
+
+        private static string ReasonOf(string code)
+        {
+            switch (code)
+            {
+                case BugReportSubmitTicket.NoCaptureSession: return "確保セッションが無い";
+                case BugReportSubmitTicket.SubmitInFlight: return "前の送信がまだ書き出し中";
+                case BugReportSubmitTicket.AlreadySubmitted: return "この確保は既に送信済み";
+                case BugReportSubmitTicket.CapturePending: return "記録の確保がまだ終わっていない";
+                default: return "理由の文言が未定義の拒否コード";
+            }
         }
     }
 }

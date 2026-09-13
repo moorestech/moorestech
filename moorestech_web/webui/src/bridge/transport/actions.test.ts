@@ -75,4 +75,15 @@ describe("dispatchAction の toast 配線", () => {
     await dispatchAction("inventory.move_item", movePayload);
     expect(notify).toHaveBeenCalledOnce();
   });
+
+  // 既定の5秒だと ffmpeg 結合とgit起動を待つ bug_report.submit が成功しても失敗として表示される
+  // At the 5s default, bug_report.submit (ffmpeg concat plus git spawns) reports a success as a failure
+  it("bug_report.submit だけ 120 秒の待ち時間で送る", async () => {
+    const sendAction = vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
+    await dispatchAction("bug_report.submit", { description: "ベルトが止まる" });
+    expect(sendAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる" }, 120000);
+
+    await dispatchAction("inventory.move_item", movePayload);
+    expect(sendAction).toHaveBeenLastCalledWith("inventory.move_item", movePayload, 5000);
+  });
 });
