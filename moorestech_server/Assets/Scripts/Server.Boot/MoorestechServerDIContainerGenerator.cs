@@ -22,6 +22,7 @@ using Game.Entity.Interface;
 using Game.Gear.Common;
 using Game.Hotbar;
 using Game.Map;
+using Game.Map.Interface;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Map.Interface.Vein;
@@ -162,6 +163,7 @@ namespace Server.Boot
             services.AddSingleton<IInventorySubscriptionStore, InventorySubscriptionStore>();
             services.AddSingleton<OpenableInventoryResolver>();
             services.AddSingleton<MiningCooldownService>();
+            services.AddSingleton<IMiningCooldownDatastore>(provider => provider.GetRequiredService<MiningCooldownService>());
             services.AddSingleton<MapObjectMiningService>();
             services.AddSingleton<VeinHandMiningService>();
             // 具象はMasterTickUpdaterの再構築用、Lookup/Mutationは読み書きの契約別。全て同一インスタンスを共有する

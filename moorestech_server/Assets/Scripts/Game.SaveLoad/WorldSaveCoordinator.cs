@@ -22,6 +22,10 @@ namespace Game.SaveLoad
         // Recapture cap for one request: retrying a permanent failure (denied permissions, etc.) every tick burns the tick thread on full-world captures
         private const int MaxWriteAttemptsPerRequest = 3;
         private int _failedAttempts;
+
+        // 失敗回数がどの要求のものか。別の要求の失敗を数え足すと、1回目の失敗で即座に諦める要求が出る
+        // Which request the failure count belongs to; carrying it across requests would make a later one give up on its first failure
+        private long _failedAttemptsGeneration;
         private long _requestedGeneration;
         private long _completedGeneration;
         private long _enqueuedGeneration;
@@ -74,7 +78,7 @@ namespace Game.SaveLoad
 
                 _enqueuedGeneration = targetGeneration;
                 var data = _assembleSaveJsonText.Capture();
-                _saveWriteWorker.Enqueue(new SaveWriteJob(targetGeneration, SaveWriteKind.PlayerSave, data, _worldDataDirectory.SaveJsonFilePath, true));
+                _saveWriteWorker.Enqueue(SaveWriteJob.ForPlayerSave(targetGeneration, data, _worldDataDirectory.SaveJsonFilePath));
             }
         }
 
@@ -97,7 +101,18 @@ namespace Game.SaveLoad
                 {
                     if (!completion.Success)
                     {
-                        _failedAttempts++;
+                        // 数えるのは同一要求の失敗だけ。要求が変わったらこの要求の1回目として数え直す
+                        // Only failures of the same request are counted; a new generation starts the count over at one
+                        if (completion.Generation != _failedAttemptsGeneration)
+                        {
+                            _failedAttemptsGeneration = completion.Generation;
+                            _failedAttempts = 1;
+                        }
+                        else
+                        {
+                            _failedAttempts++;
+                        }
+
                         if (_failedAttempts < MaxWriteAttemptsPerRequest)
                         {
                             // 失敗した要求は未投入へ戻し、次のtick末尾で再取り込みする（失敗理由は書き出しスレッドが出力済み）
@@ -113,11 +128,11 @@ namespace Game.SaveLoad
                         // Record the give-up as state; advancing like a completion alone would let the shutdown path claim success
                         Volatile.Write(ref _abandonedGeneration, completion.Generation);
                         Volatile.Write(ref _completedGeneration, completion.Generation);
-                        _failedAttempts = 0;
+                        ResetFailureCount();
                         continue;
                     }
 
-                    _failedAttempts = 0;
+                    ResetFailureCount();
                     // 書き出せた時点で過去の諦めは解消する。以後の終了は保存済みとして閉じてよい
                     // A successful write clears any earlier give-up, so later shutdowns may close as saved
                     Volatile.Write(ref _abandonedGeneration, 0);
@@ -125,6 +140,16 @@ namespace Game.SaveLoad
                     UnityEngine.Debug.Log("ワールドを保存しました");
                     _onWorldSaveCompleted.OnNext(completion.Generation);
                 }
+
+                #region Internal
+
+                void ResetFailureCount()
+                {
+                    _failedAttempts = 0;
+                    _failedAttemptsGeneration = 0;
+                }
+
+                #endregion
             }
         }
     }

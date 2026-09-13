@@ -6,6 +6,7 @@ using System.Text;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Recording;
 using Cysharp.Threading.Tasks;
+using Game.Paths;
 using UnityEngine;
 
 namespace Client.Game.InGame.BugReport
@@ -54,12 +55,14 @@ namespace Client.Game.InGame.BugReport
                 // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
                 // 握るのはディスク由来の失敗だけ。実装バグまで握ると障害と欠陥が同じ「欠損」表示に潰れて区別できなくなる
                 // Only disk failures are caught; catching implementation bugs would collapse defects and outages into the same "missing" line
-                try { BugReportWorldFilesCopier.Copy(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("snapshots", $"コピーに失敗した: {e.Message}"); }
+                // 2段の資料を書くCopyとWriteは内側で段ごとに隔離する。ここで一括して握ると、どちらが落ちたか分からないまま片方の名前で欠損が立つ
+                // Copy and Write each produce two materials and isolate them inside; one catch here would blame a single name without knowing which stage failed
+                BugReportWorldFilesCopier.Copy(data, directory, manifest);
                 try { AssembleVideo(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("video", $"組み立てに失敗した: {e.Message}"); }
-                try { WriteFrameTicks(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("frames.tsv", $"書き出しに失敗した: {e.Message}"); }
-                try { WriteLogs(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("logs", $"書き出しに失敗した: {e.Message}"); }
+                try { WriteFrameTicks(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.FrameTicksFileName, $"書き出しに失敗した: {e.Message}"); }
+                try { WriteLogs(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"書き出しに失敗した: {e.Message}"); }
                 try { CopyScreenshot(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("screenshot", $"コピーに失敗した: {e.Message}"); }
-                try { BugReportRepositoryFiles.Write(directory, manifest, buildInfo, repositoryRoot, masterDataRoot); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("repo", $"リポジトリ状態の書き出しに失敗した: {e.Message}"); }
+                BugReportRepositoryFiles.Write(directory, manifest, buildInfo, repositoryRoot, masterDataRoot);
                 ServerDataLocation.Record(data.ServerDataDirectory, manifest, repositoryRoot, masterDataRoot);
             });
 
@@ -68,7 +71,7 @@ namespace Client.Game.InGame.BugReport
             var ready = false;
             try
             {
-                File.WriteAllText(Path.Combine(directory, "manifest.json"), manifest.ToJson());
+                File.WriteAllText(Path.Combine(directory, BugReportBundleLayout.ManifestFileName), manifest.ToJson());
                 BugReportOutbox.MarkReady(directory);
                 ready = true;
                 Debug.Log($"バグ報告バンドルを書きました {directory} missing:{manifest.Missing.Count}");
@@ -89,7 +92,7 @@ namespace Client.Game.InGame.BugReport
             }
 
             var ffmpeg = FfmpegLocator.Find();
-            var output = Path.Combine(directory, "video.mp4");
+            var output = Path.Combine(directory, BugReportBundleLayout.VideoFileName);
             if (ffmpeg == null || !VideoAssembler.Concat(ffmpeg, data.VideoSegmentFiles, output))
             {
                 manifest.AddMissing("video", ffmpeg == null ? "ffmpegが見つからなかった" : "区間の結合に失敗した");
@@ -97,28 +100,28 @@ namespace Client.Game.InGame.BugReport
             }
 
             manifest.VideoSeconds = VideoAssembler.DurationSeconds(ffmpeg, output);
-            if (!VideoAssembler.ExtractFrames(ffmpeg, output, Path.Combine(directory, "frames"), 2)) manifest.AddMissing("frames", "静止画の抜き出しに失敗した");
+            if (!VideoAssembler.ExtractFrames(ffmpeg, output, Path.Combine(directory, BugReportBundleLayout.FramesDirectoryName), 2)) manifest.AddMissing(BugReportBundleLayout.FramesDirectoryName, "静止画の抜き出しに失敗した");
         }
 
         private static void WriteFrameTicks(BugReportCapturedData data, string directory, BugReportManifest manifest)
         {
             if (data.FrameTicks == null || data.FrameTicks.Count == 0)
             {
-                manifest.AddMissing("frames.tsv", "フレームとtickの対応が1行も無かった");
+                manifest.AddMissing(BugReportBundleLayout.FrameTicksFileName, "フレームとtickの対応が1行も無かった");
                 return;
             }
-            File.WriteAllText(Path.Combine(directory, "frames.tsv"), FrameTickLog.ToTsv(data.FrameTicks));
+            File.WriteAllText(Path.Combine(directory, BugReportBundleLayout.FrameTicksFileName), FrameTickLog.ToTsv(data.FrameTicks));
         }
 
         private static void WriteLogs(BugReportCapturedData data, string directory, BugReportManifest manifest)
         {
             if (data.Logs == null)
             {
-                manifest.AddMissing("logs", "Unityログを確保できていなかった");
+                manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, "Unityログを確保できていなかった");
                 return;
             }
 
-            var logs = Path.Combine(directory, "logs");
+            var logs = Path.Combine(directory, BugReportBundleLayout.LogsDirectoryName);
             Directory.CreateDirectory(logs);
             var builder = new StringBuilder();
             foreach (var entry in data.Logs)
@@ -126,7 +129,7 @@ namespace Client.Game.InGame.BugReport
                 builder.Append(entry.Time.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture)).Append('\t').Append(entry.Tick).Append('\t').Append(entry.Type).Append('\t').Append(entry.Message).Append('\n');
                 if (entry.StackTrace.Length > 0) builder.Append(entry.StackTrace).Append('\n');
             }
-            File.WriteAllText(Path.Combine(logs, "unity.log"), builder.ToString());
+            File.WriteAllText(Path.Combine(logs, BugReportBundleLayout.UnityLogFileName), builder.ToString());
         }
 
         private static void CopyScreenshot(BugReportCapturedData data, string directory, BugReportManifest manifest)
@@ -136,7 +139,7 @@ namespace Client.Game.InGame.BugReport
                 manifest.AddMissing("screenshot", "確保時のスクリーンショットが無かった");
                 return;
             }
-            File.Copy(data.ScreenshotPath, Path.Combine(directory, "screenshot.png"));
+            File.Copy(data.ScreenshotPath, Path.Combine(directory, BugReportBundleLayout.ScreenshotFileName));
 
             // 確保ごとの一時ファイルなので、バンドルへ写した時点で置き場に残さない
             // The capture-scoped temp file is removed once it has been copied into the bundle
@@ -145,7 +148,7 @@ namespace Client.Game.InGame.BugReport
 
         // 握ってよいのはディスク由来の失敗だけ。境界の根拠はAGENTS.mdの例外規定とD8裁定
         // Only disk-originated failures may be swallowed; the boundary rationale is AGENTS.md's exception rule and adjudication D8
-        private static bool IsDiskFailure(Exception exception)
+        public static bool IsDiskFailure(Exception exception)
         {
             return exception is IOException || exception is UnauthorizedAccessException;
         }

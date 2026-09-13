@@ -28,7 +28,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // 空の書き出し先はIOでも権限でもない例外になり、個別catchのどちらにも該当しない
             // An empty destination raises neither an IO nor an access exception, so no specific catch handles it
-            worker.Enqueue(new SaveWriteJob(1, SaveWriteKind.PlayerSave, data, string.Empty, false));
+            worker.Enqueue(SaveWriteJob.ForPlayerSave(1, data, string.Empty));
             worker.WaitForIdle();
 
             Assert.IsTrue(worker.TryDequeueCompletion(SaveWriteKind.PlayerSave, out var failed), "完了通知が積まれていない");
@@ -37,7 +37,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             // スレッドが生き残っていることを、後続ジョブが実際に書けることで観測する
             // Observe that the thread survived by checking a later job actually writes
-            worker.Enqueue(new SaveWriteJob(2, SaveWriteKind.PlayerSave, data, savePath, false));
+            worker.Enqueue(SaveWriteJob.ForPlayerSave(2, data, savePath));
             worker.WaitForIdle();
 
             Assert.IsTrue(worker.TryDequeueCompletion(SaveWriteKind.PlayerSave, out var succeeded), "後続の完了通知が積まれていない");

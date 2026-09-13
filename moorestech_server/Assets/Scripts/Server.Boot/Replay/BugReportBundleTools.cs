@@ -15,6 +15,11 @@ namespace Server.Boot.Replay
         private const string SnapshotDirectoryName = BugReportBundleLayout.SnapshotDirectoryName;
         private const string WorldDirectoryName = BugReportBundleLayout.WorldDirectoryName;
 
+        // 区間を覆うパケットが1件も無かったペアの印。不一致の理由が「ログの欠け」なのか非決定性なのかを読み手が分ける
+        // Marks a pair whose interval no packet covered, so the reader can tell a missing log from real non-determinism
+        private const string NoPacketsInRangeCoverage = "no_packets_in_range";
+        private const string CoveredCoverage = "covered";
+
         public static string DumpPackets(string bundleDirectory)
         {
             var snapshotDirectory = Path.Combine(bundleDirectory, SnapshotDirectoryName);
@@ -54,6 +59,7 @@ namespace Server.Boot.Replay
             var sourceWorld = WorldDataDirectory.FromWorldRoot(worldRoot);
             var pairs = new JArray();
             var allEqual = true;
+            var noPacketsInRangePairs = 0;
             for (var i = 0; i + 1 < snapshotFiles.Count; i++)
             {
                 var from = TickOf(snapshotFiles[i]);
@@ -61,18 +67,35 @@ namespace Server.Boot.Replay
                 var result = SnapshotReplayer.Replay(new ReplayRequest(serverDataDirectory, sourceWorld, snapshotFiles[i], segments, to));
                 var comparison = SnapshotJsonComparer.Compare(File.ReadAllText(snapshotFiles[i + 1]), result.SnapshotJson);
                 allEqual &= comparison.Equal;
+                if (result.InRangePacketCount == 0) noPacketsInRangePairs++;
+
+                // 区間を覆うログが無いペアは不一致でも非決定性ではない。読み手が区別できるよう件数と被覆状態を必ず残す
+                // A pair with no log covering its interval is not non-determinism even when unequal, so record the counts and coverage
                 pairs.Add(new JObject
                 {
                     ["from"] = from,
                     ["to"] = to,
                     ["equal"] = comparison.Equal,
                     ["replayedPackets"] = result.ReplayedPacketCount,
+                    ["inRangePackets"] = result.InRangePacketCount,
+                    ["excludedPackets"] = result.ExcludedPacketCount,
+                    ["coverage"] = result.InRangePacketCount == 0 ? NoPacketsInRangeCoverage : CoveredCoverage,
                     ["differences"] = new JArray(comparison.Differences),
                 });
             }
 
-            File.WriteAllText(Path.Combine(bundleDirectory, "replay-check.json"), new JObject { ["allEqual"] = allEqual, ["pairs"] = pairs }.ToString());
-            return $"replay-check.json written: allEqual={allEqual} pairs={pairs.Count}";
+            // 被覆の欠けは戻り値にも出す。JSON を開かない呼び出し側が不一致を非決定性と決めつけないため
+            // The coverage shortfall also goes into the return value, so a caller that never opens the JSON does not call a mismatch non-determinism
+            if (noPacketsInRangePairs > 0) Debug.LogWarning($"区間を覆うパケットが無いペアが {noPacketsInRangePairs}/{pairs.Count} 件あります。不一致でも非決定性とは限りません bundle:{bundleDirectory}");
+
+            var document = new JObject
+            {
+                ["allEqual"] = allEqual,
+                ["noPacketsInRangePairs"] = noPacketsInRangePairs,
+                ["pairs"] = pairs,
+            };
+            File.WriteAllText(Path.Combine(bundleDirectory, "replay-check.json"), document.ToString());
+            return $"replay-check.json written: allEqual={allEqual} pairs={pairs.Count} noPacketsInRange={noPacketsInRangePairs}";
         }
 
         private static ulong TickOf(string snapshotFilePath)

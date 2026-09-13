@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.Capture;
@@ -11,28 +12,26 @@ namespace Client.Game.InGame.BugReport
     // Puts the staged snapshots and the recording's world definition into the box; reproduction boots only when both are present
     public static class BugReportWorldFilesCopier
     {
-        // 置き場の名前は読み側（再現ツール）と共有する定義元から取る。独立に持つと片方の改名で再現だけが無言で全滅する
-        // The directory names come from the definition shared with the reader (reproduction tools); holding them independently lets a one-sided rename kill only the reproduction, silently
-        public const string SnapshotDirectoryName = BugReportBundleLayout.SnapshotDirectoryName;
-        public const string WorldDirectoryName = BugReportBundleLayout.WorldDirectoryName;
         private const string TerrainDirectoryName = "terrain";
         private const string GeneratedMapMode = "generated";
 
+        // スナップショットとワールド定義はディスク上で別の資料。まとめて握ると、どちらが落ちたか分からないまま片方の名前で欠損が立つ
+        // The snapshots and the world definition are separate materials on disk; one shared catch would blame one name without knowing which stage failed
         public static void Copy(BugReportCapturedData data, string bundleDirectory, BugReportManifest manifest)
         {
-            CopyStagedSnapshots(data, bundleDirectory, manifest);
-            CopyWorldDefinition(data, bundleDirectory, manifest);
+            try { CopyStagedSnapshots(data, bundleDirectory, manifest); } catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.SnapshotDirectoryName, $"コピーに失敗した: {e.Message}"); }
+            try { CopyWorldDefinition(data, bundleDirectory, manifest); } catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.WorldDirectoryName, $"コピーに失敗した: {e.Message}"); }
         }
 
         private static void CopyStagedSnapshots(BugReportCapturedData data, string bundleDirectory, BugReportManifest manifest)
         {
             if (string.IsNullOrEmpty(data.StagedSnapshotDirectory))
             {
-                manifest.AddMissing(SnapshotDirectoryName, "Escape時点のサーバー記録を退避できていなかった");
+                manifest.AddMissing(BugReportBundleLayout.SnapshotDirectoryName, "Escape時点のサーバー記録を退避できていなかった");
                 return;
             }
 
-            var snapshots = Path.Combine(bundleDirectory, SnapshotDirectoryName);
+            var snapshots = Path.Combine(bundleDirectory, BugReportBundleLayout.SnapshotDirectoryName);
             Directory.CreateDirectory(snapshots);
 
             // 箱に入った実体だけを manifest に載せる。名前だけ載せると受け側が存在しないスナップショットを土台にする
@@ -75,12 +74,12 @@ namespace Client.Game.InGame.BugReport
         {
             if (string.IsNullOrEmpty(data.WorldRootDirectory))
             {
-                manifest.AddMissing(WorldDirectoryName, "記録時のワールドディレクトリが分からなかった");
+                manifest.AddMissing(BugReportBundleLayout.WorldDirectoryName, "記録時のワールドディレクトリが分からなかった");
                 return;
             }
 
             var source = WorldDataDirectory.FromWorldRoot(data.WorldRootDirectory);
-            var world = Path.Combine(bundleDirectory, WorldDirectoryName);
+            var world = Path.Combine(bundleDirectory, BugReportBundleLayout.WorldDirectoryName);
             var destination = WorldDataDirectory.FromWorldRoot(world);
             Directory.CreateDirectory(world);
             CopyIfExists(source.WorldMetaFilePath, destination.WorldMetaFilePath, manifest);
@@ -117,7 +116,7 @@ namespace Client.Game.InGame.BugReport
             try
             {
                 var meta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldMetaFilePath));
-                return string.Equals(meta?.MapMode, GeneratedMapMode, System.StringComparison.OrdinalIgnoreCase);
+                return string.Equals(meta?.MapMode, GeneratedMapMode, StringComparison.OrdinalIgnoreCase);
             }
             catch (JsonException e)
             {

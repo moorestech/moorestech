@@ -58,6 +58,14 @@ namespace Client.Game.InGame.BugReport
         public bool Dirty;
     }
 
+    // ビルドに焼き込まれたリポジトリ状態。マスタ側は焼かれていないビルドがあるため、読めなかったときは null のまま名乗らない
+    // The repository state baked into a build; the master side is null when the build baked none, so it is never claimed
+    public sealed class BugReportBuildInfo
+    {
+        public RepositoryState Repository;
+        public RepositoryState MasterData;
+    }
+
     public sealed class MissingItem
     {
         public string Item;

@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, provider) = new MoorestechServerDIContainerGenerator().Create(options);
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             GameUpdater.RestoreCurrentTick(10);
-            ring.Start(600, 1800, 16);
+            ring.Start(600u, 1800u, 16);
             var sink = EventTestUtil.RegisterCaptureSink(provider, RequesterPlayerId);
             var unrelatedSink = EventTestUtil.RegisterCaptureSink(provider, UnrelatedPlayerId);
 
@@ -94,7 +94,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             var packetLog = provider.GetRequiredService<ReceivedPacketLog>();
             GameUpdater.RestoreCurrentTick(10);
-            ring.Start(600, 1800, 16);
+            ring.Start(600u, 1800u, 16);
             var sink = EventTestUtil.RegisterCaptureSink(provider, RequesterPlayerId);
 
             // 置き場ごと消してパケット記録だけをI/O失敗で止め、スナップショットは書ける状態へ戻す
@@ -137,7 +137,7 @@ namespace Tests.CombinedTest.Server.PacketTest
             var (packet, provider) = new MoorestechServerDIContainerGenerator().Create(options);
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             GameUpdater.RestoreCurrentTick(10);
-            ring.Start(600, 1800, 16);
+            ring.Start(600u, 1800u, 16);
             LogAssert.Expect(LogType.Warning, new Regex("プレイヤーが確定していない接続のため即時スナップショット要求を受け付けられません"));
 
             var request = MessagePackSerializer.Serialize(BugReportCaptureProtocol.BugReportCaptureRequest.CreateCaptureNowRequest());

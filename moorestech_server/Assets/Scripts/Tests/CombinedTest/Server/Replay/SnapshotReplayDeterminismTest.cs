@@ -44,7 +44,7 @@ namespace Tests.CombinedTest.Server.Replay
 
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
-                ring.Start(10, 30, 16);
+                ring.Start(10u, 30u, 16);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.BlockId, 3);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.ChestId, 1);
                 UnlockBlock(provider, ForUnitTestModBlockId.ChestId);
@@ -117,7 +117,7 @@ namespace Tests.CombinedTest.Server.Replay
 
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
-                ring.Start(10, 30, 16);
+                ring.Start(10u, 30u, 16);
                 GrantRequiredItems(provider, ForUnitTestModBlockId.ChestId, 1);
                 UnlockBlock(provider, ForUnitTestModBlockId.ChestId);
                 SnapshotReplayWorldFixture.BuildMovingWorld();
@@ -189,7 +189,7 @@ namespace Tests.CombinedTest.Server.Replay
 
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
-                ring.Start(10, 30, 16);
+                ring.Start(10u, 30u, 16);
 
                 var context = new PacketResponseContext(null);
                 context.TryBindPlayerId(0);

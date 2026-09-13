@@ -14,24 +14,28 @@ namespace Game.Block.Factory.BlockTemplate.Utility
         /// 復元メイン
         /// </summary>
         //駅のように2つのRailComponentを持つブロックの復元処理
-        static public RailComponent[] Restore2RailComponents(BlockPositionInfo blockPositionInfo, Vector3 entryPosition, Vector3 exitPosition, IRailGraphDatastore railGraphDatastore, float maxConnectableRailLength)
+        // ノードGUIDはセーブから受け取る。ここで採番するとロード中に乱数列が進み、保存時と別の列になる
+        // The node guids come from the save; drawing them here would advance the random stream during load
+        static public RailComponent[] Restore2RailComponents(BlockPositionInfo blockPositionInfo, Vector3 entryPosition, Vector3 exitPosition, IRailGraphDatastore railGraphDatastore, float maxConnectableRailLength, List<RailNodeGuidPairJsonObject> nodeGuids)
         {
             var railComponentPositions = new Vector3[2];
             railComponentPositions[0] = CalculateRailComponentPosition(blockPositionInfo, entryPosition);
             railComponentPositions[1] = CalculateRailComponentPosition(blockPositionInfo, exitPosition);
 
+            var railDirection = RailComponent.ToVector3(blockPositionInfo.BlockDirection);
             var railComponents = new RailComponent[2];
-            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPositions[0], blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 0, maxConnectableRailLength);
-            railComponents[1] = new RailComponent(railGraphDatastore, railComponentPositions[1], blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 1, maxConnectableRailLength);
+            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPositions[0], railDirection, blockPositionInfo.OriginalPos, 0, maxConnectableRailLength, nodeGuids[0].FrontNodeGuid, nodeGuids[0].BackNodeGuid);
+            railComponents[1] = new RailComponent(railGraphDatastore, railComponentPositions[1], railDirection, blockPositionInfo.OriginalPos, 1, maxConnectableRailLength, nodeGuids[1].FrontNodeGuid, nodeGuids[1].BackNodeGuid);
             return railComponents;
         }
 
         //駅以外、事実上橋脚ブロックの復元処理
-        static public RailComponent[] Restore1RailComponents(BlockPositionInfo blockPositionInfo, Vector3 componentPosition, IRailGraphDatastore railGraphDatastore, float maxConnectableRailLength)
+        static public RailComponent[] Restore1RailComponents(BlockPositionInfo blockPositionInfo, Vector3 componentPosition, IRailGraphDatastore railGraphDatastore, float maxConnectableRailLength, List<RailNodeGuidPairJsonObject> nodeGuids)
         {
             var railComponentPosition = CalculateRailComponentPosition(blockPositionInfo, componentPosition);
+            var railDirection = RailComponent.ToVector3(blockPositionInfo.BlockDirection);
             var railComponents = new RailComponent[1];
-            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPosition, blockPositionInfo.BlockDirection, blockPositionInfo.OriginalPos, 0, maxConnectableRailLength);
+            railComponents[0] = new RailComponent(railGraphDatastore, railComponentPosition, railDirection, blockPositionInfo.OriginalPos, 0, maxConnectableRailLength, nodeGuids[0].FrontNodeGuid, nodeGuids[0].BackNodeGuid);
             return railComponents;
         }
 

@@ -23,8 +23,7 @@ namespace Game.Block.Blocks.TrainRail
 
         public TrainPlatformTransferComponent(Dictionary<string, object> componentStates)
         {
-            var saveData = BlockComponentStateReader.Read<TrainPlatformTransferComponentSaveData>(componentStates, SaveKey);
-            if (saveData == null) return;
+            if (!BlockComponentStateReader.TryRead<TrainPlatformTransferComponentSaveData>(componentStates, SaveKey, out var saveData)) return;
 
             Mode = saveData.mode;
         }

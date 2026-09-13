@@ -29,9 +29,8 @@ namespace Game.Block.Blocks.TrainRail
         
         public TrainPlatformDockingComponent(Dictionary<string, object> componentStates, float loadingAnimationSpeed) : this(loadingAnimationSpeed)
         {
-            var saveData = BlockComponentStateReader.Read<TrainPlatformDockingComponentSaveData>(componentStates, SaveKey);
-            if (saveData == null) return;
-            
+            if (!BlockComponentStateReader.TryRead<TrainPlatformDockingComponentSaveData>(componentStates, SaveKey, out var saveData)) return;
+
             ArmState = (ArmState)saveData.armState;
             _armProgressTicks = saveData.armProgressTicks;
         }

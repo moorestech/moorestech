@@ -43,9 +43,9 @@ namespace Game.Block.Blocks.Fluid
             Node = new FluidSimNode(blockPositionInfo.OriginalPos, capacity);
             Connector = connectorComponent;
 
-            // セーブデータがある場合は内容量・流体ID・面速度を復元する
-            // Restore amount, fluid id and face velocities when save data exists
-            if (BlockComponentStateReader.TryRead<FluidPipeSaveJsonObject>(componentStates, FluidPipeSaveComponent.SaveKeyStatic, out var jsonObject))
+            // 新規設置はcomponentStatesがnullで来る。復元を試みるのはロード経路だけに限る
+            // Fresh placement passes a null componentStates, so only the load path attempts a restore
+            if (componentStates != null && BlockComponentStateReader.TryRead<FluidPipeSaveJsonObject>(componentStates, FluidPipeSaveComponent.SaveKeyStatic, out var jsonObject))
             {
                 Node.Amount = Math.Min(jsonObject.Amount, Node.Capacity);
                 Node.FluidId = jsonObject.FluidId;

@@ -159,7 +159,9 @@ namespace Server.Boot
             var worldSnapshotRing = serviceProvider.GetRequiredService<WorldSnapshotRing>();
             if (settings.CaptureRing)
             {
-                worldSnapshotRing.Start(SnapshotRingConfig.PeriodTicks, SnapshotRingConfig.RetentionTicks, SnapshotRingConfig.MaxGenerations);
+                // 運転値は常時記録が持つ。起動側が値を決めると、意味が変わったときここだけ古い値のまま残る
+                // The operating values belong to always-on capture; deciding them here would leave this one caller stale when their meaning changes
+                worldSnapshotRing.Start(null, null, null);
             }
             // アップデートのタスク名を設定
             var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));

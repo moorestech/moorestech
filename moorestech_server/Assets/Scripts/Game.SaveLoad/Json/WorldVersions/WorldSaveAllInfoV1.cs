@@ -40,6 +40,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             Dictionary<string, int> itemStackLevels,
             int inventorySlotLevel,
             List<CleanRoomSaveData> cleanRoomRooms,
+            List<PlayerMiningCooldownSaveJsonObject> miningCooldowns,
             ulong[] randomState)
         {
             World = world;
@@ -60,6 +61,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             ItemStackLevels = itemStackLevels ?? new Dictionary<string, int>();
             InventorySlotLevel = inventorySlotLevel;
             CleanRoomRooms = cleanRoomRooms ?? new List<CleanRoomSaveData>();
+            MiningCooldowns = miningCooldowns;
             RandomState = randomState;
         }
         
@@ -82,6 +84,10 @@ namespace Game.SaveLoad.Json.WorldVersions
         [JsonProperty("itemStackLevels")] public Dictionary<string, int> ItemStackLevels { get; }
         [JsonProperty("inventorySlotLevel")] public int InventorySlotLevel { get; }
         [JsonProperty("cleanRoomRooms")] public List<CleanRoomSaveData> CleanRoomRooms { get; }
+
+        // 手掘りクールダウンは再生の受理判定に効く。欠損を空で埋めると保存前に拒否された採掘が再生で通る
+        // The hand-mining cooldown decides what a replay accepts; filling an absent list with an empty one lets rejected mining through
+        [JsonProperty("miningCooldowns")] public List<PlayerMiningCooldownSaveJsonObject> MiningCooldowns { get; }
 
         // スナップショットからの再生に必要な時刻と乱数状態。ロードの先頭で復元する
         // Tick and random state required to replay from a snapshot; restored first on load

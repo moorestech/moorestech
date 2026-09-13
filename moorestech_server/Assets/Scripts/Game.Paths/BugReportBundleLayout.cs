@@ -8,5 +8,13 @@ namespace Game.Paths
     {
         public const string SnapshotDirectoryName = "snapshots";
         public const string WorldDirectoryName = "world";
+        public const string ManifestFileName = "manifest.json";
+        public const string RepositoryDirectoryName = "repo";
+        public const string LogsDirectoryName = "logs";
+        public const string UnityLogFileName = "unity.log";
+        public const string VideoFileName = "video.mp4";
+        public const string FramesDirectoryName = "frames";
+        public const string FrameTicksFileName = "frames.tsv";
+        public const string ScreenshotFileName = "screenshot.png";
     }
 }

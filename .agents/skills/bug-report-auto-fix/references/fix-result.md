@@ -69,4 +69,5 @@ Step 3 の観察で症状が出ず、追加シナリオ3本でも出なかった
 
 - `ok`: Step 2 の `replay-check.json` が `allEqual=true`（是正して true にした場合も含む。是正した事実は `summary` へ）
 - `diverged`: 発散を是正しきれずに残したまま進めた。発散した DataStore を `summary` に書く
-- `unchecked`: 検査自体を実行できなかった（パケットログ欠損・Editor 不達）。理由を `summary` に書く
+- `unchecked`: 検査自体を実行できなかった（パケットログ欠損・Editor 不達）。理由を `summary` に書く。
+  `pairs[]` が全て `coverage: "no_packets_in_range"` のとき（区間を覆うパケットログが1件も無い）も検査は成立していないので `unchecked` とする

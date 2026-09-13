@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Core.Update;
+using Game.Map;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -17,6 +18,10 @@ namespace Tests.CombinedTest.Game
 {
     public class SaveTickAndRandomStateTest
     {
+        private const int PlayerId = 7;
+        private const double AttackSpeedSeconds = 2.0;
+
+
         [Test]
         public void tickと乱数状態がセーブロードで一致する()
         {
@@ -76,11 +81,34 @@ namespace Tests.CombinedTest.Game
 
             var root = JObject.Parse(json);
             root.Remove("currentTick");
-            LogAssert.Expect(LogType.Error, new Regex("currentTick / randomState がありません"));
+            LogAssert.Expect(LogType.Error, new Regex("currentTick / randomState / miningCooldowns がありません"));
 
             var loader = provider.GetRequiredService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             var exception = Assert.Throws<InvalidOperationException>(() => loader.Load(root.ToString()));
             StringAssert.Contains("migrate_block_state_objects.py", exception.Message);
+        }
+
+        // クールダウンを保存しないと、ロード直後の再生が保存前の世界では拒否された採掘を通して発散する
+        // Without a saved cooldown, a replay right after load accepts mining the pre-save world rejected and diverges
+        [Test]
+        public void 採掘クールダウンがセーブロードで復元される()
+        {
+            var (_, saveProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            GameUpdater.RestoreCurrentTick(1000);
+            saveProvider.GetRequiredService<MiningCooldownService>().RecordAttack(PlayerId);
+            var json = saveProvider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
+
+            var (_, loadProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var cooldownService = loadProvider.GetRequiredService<MiningCooldownService>();
+            Assert.IsFalse(cooldownService.IsInCooldown(PlayerId, AttackSpeedSeconds), "ロード前から採掘クールダウンが載っている");
+
+            (loadProvider.GetRequiredService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(json);
+            Assert.IsTrue(cooldownService.IsInCooldown(PlayerId, AttackSpeedSeconds), "最終採掘tickが復元されていない");
+
+            // クールダウンが明けるところまで進めれば、復元した値が時刻と噛み合っていることまで見える
+            // Advancing past the cooldown shows the restored value actually lines up with the clock
+            GameUpdater.RestoreCurrentTick(GameUpdater.CurrentTick + GameUpdater.SecondsToTicks(AttackSpeedSeconds));
+            Assert.IsFalse(cooldownService.IsInCooldown(PlayerId, AttackSpeedSeconds), "復元したクールダウンが明けない");
         }
     }
 }

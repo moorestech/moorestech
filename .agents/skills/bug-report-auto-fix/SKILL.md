@@ -6,6 +6,8 @@ description: |
 hooks:
   # 無人実行の関所。fix-result.json を書くまで終われず、AskUserQuestion は deny
   # Unattended gate: cannot stop until fix-result.json exists; AskUserQuestion is denied
+  # 相対パスは cwd から解決される。poller は cwd を SHA 固定の canon にするため、関所も canon の版で走る（修正対象 worktree の版では走らない）
+  # Relative paths resolve from cwd; the poller makes cwd the SHA-pinned canon, so the gate runs from the canon revision, never the fix-target worktree's
   PreToolUse:
     - matcher: "AskUserQuestion"
       hooks:
@@ -27,7 +29,18 @@ hooks:
 `$RUN`・`$WORKTREE` 等は本ドキュメント上のプレースホルダである。コマンドへ渡すときは `. $RUN/run.env` で読み込むか、実値の絶対パスへ展開して書く。
 「バンドル」＝報告1件分の記録一式であり、運搬後は `$RUN` そのものを指す（`manifest.json`・`snapshots/`・`frames/`・`logs/`・`world/`）。
 
-## 同梱スクリプト（`.agents/skills/bug-report-auto-fix/scripts/`）
+## 実行位置（正本と修正先を分ける）
+
+| 置き場 | 役割 | 規律 |
+| --- | --- | --- |
+| `$CANON`（`skills-canon-<sha8>`。セッションの cwd） | スキル本文・同梱スクリプト・hook の唯一の読み取り元。`origin/master` の SHA へピンした worktree | **読み取り専用**。編集も `git` 操作も一切しない |
+| `$WORKTREE`（`bugfix-<run-id>`） | 報告時のコミット＋差分を復元した修正先。ゲームコードの編集・コミット・push・`uloop` は全部ここ | `run.env` の `WORKTREE` が実値 |
+
+poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-poller.sh`）。**同梱スクリプトは `$CANON/...` の絶対パスで叩く**。
+相対パスで書くと、人が手で `$WORKTREE` から起動したときに報告時の版（存在しないこともある）を実行してしまう。
+`$CANON` の実値は `pwd`（poller 起動時）か `git -C . rev-parse --show-toplevel` で取る。
+
+## 同梱スクリプト（`$CANON/.agents/skills/bug-report-auto-fix/scripts/`）
 
 | パス | 用途 |
 | --- | --- |
@@ -76,15 +89,18 @@ hooks:
 
 1. `$RUN/manifest.json`（説明文・`snapshotTicks`・`missing`・`clientState`・`repository`）と `$RUN/run.env` のフラグ・`$RUN/repo/bundle-status.txt` を読む。上の既定表のフラグが1つでも立っていたら、再現環境が報告時と違うことを summary に必ず書く
 2. `$RUN/logs/unity.log` の Error/Exception 行、`$RUN/frames/`（2fps の連番。Read で数枚見る）、`$RUN/screenshot.png`
-3. パケットログを可読化: `bash .agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client .agents/skills/bug-report-auto-fix/scripts/edc/dump-packets.cs $RUN`（Editor が未起動なら先に `uloop launch $WORKTREE/moorestech_client`）。`$RUN/packets.jsonl` の末尾（報告直前の操作）を読む
+3. パケットログを可読化: `bash $CANON/.agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client $CANON/.agents/skills/bug-report-auto-fix/scripts/edc/dump-packets.cs $RUN`（Editor が未起動なら先に `uloop launch $WORKTREE/moorestech_client`）。`$RUN/packets.jsonl` の末尾（報告直前の操作）を読む
 4. `bd create "bug-report <run-id>: <説明文の要約>" --type=bug --priority=2 --description="<manifest要約と $RUN パス>"` で追跡 issue を作り、続けて `bd update` の `--claim` で着手する（claim は素のコマンド単体で打つ。パイプ・リダイレクト・複数コマンドの混在は hook に拒否される）
 
 ## Step 2: 決定性検査（必須・最初に）
 
 `SERVER_DATA_DIR` が空なら決定性検査は成立しない（記録時のマスタが特定できない）。その場合は飛ばし、理由を `summary` に書いて Step 3 へ。
 
-`bash .agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client .agents/skills/bug-report-auto-fix/scripts/edc/replay-check.cs $RUN $SERVER_DATA_DIR`
-→ `$RUN/replay-check.json`。`allEqual=false` なら **発散した DataStore の是正を先に行う**（ADR 0057）。差分パスが指す箇所の非決定性（列挙順・未シード乱数・未保存の過渡状態）を直し、再検査で `allEqual=true` にしてから Step 3 へ。是正はバグ修正と同じ PR に含め、summary に書く。
+`bash $CANON/.agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client $CANON/.agents/skills/bug-report-auto-fix/scripts/edc/replay-check.cs $RUN $SERVER_DATA_DIR`
+→ `$RUN/replay-check.json`。各ペアの `coverage` を先に見る。`no_packets_in_range`（`inRangePackets=0`）のペアは**区間を覆うパケットログが無い**ということで、
+`equal=false` でも非決定性の証拠にならない。全ペアがこれなら決定性検査は成立していないので、`determinism: "unchecked"` として理由を `summary` に書き Step 3 へ進む。
+
+`coverage: "covered"` のペアで `allEqual=false` なら **発散した DataStore の是正を先に行う**（ADR 0057）。差分パスが指す箇所の非決定性（列挙順・未シード乱数・未保存の過渡状態）を直し、再検査で `allEqual=true` にしてから Step 3 へ。是正はバグ修正と同じ PR に含め、summary に書く。
 
 是正しきれない場合も止まらない。`determinism: "diverged"` として残し、発散した DataStore を `summary` に書いたうえで Step 3 へ進む（再現結果の信頼度が落ちることを PR 本文にも書く）。
 
@@ -102,10 +118,10 @@ Editor を PlayMode に置き去りにする**（2026-09-12 リハーサルで�
 観察を実行する場合:
 
 ```bash
-sed "s|__BUNDLE__|$RUN|g" .agents/skills/bug-report-auto-fix/scripts/scenarios/bug-report-observe.cs > $RUN/observe.cs
+sed "s|__BUNDLE__|$RUN|g" $CANON/.agents/skills/bug-report-auto-fix/scripts/scenarios/bug-report-observe.cs > $RUN/observe.cs
 uloop control-play-mode --project-path $WORKTREE/moorestech_client --action stop
 PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=template PLAYTEST_SEED=0 \
-  .agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh $WORKTREE/moorestech_client $RUN/observe.cs ${SERVER_DATA_DIR:-$MASTER_DIR}
+  $CANON/.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh $WORKTREE/moorestech_client $RUN/observe.cs ${SERVER_DATA_DIR:-$MASTER_DIR}
 ```
 サーバーデータは記録時と同じ `SERVER_DATA_DIR` を渡す。空で `MASTER_DIR` に落ちた場合は、記録時と別のマスタで観察している旨を `summary` に書く。
 （`world.json` の `mapMode` が `generated` なら `PLAYTEST_MAP_MODE=generated PLAYTEST_SEED=<world.jsonのseed>`）
@@ -203,3 +219,4 @@ Step 3 のシナリオを修正後のバイナリで再実行し `$RUN/observe-a
 - **報告されたバグ以外の修正禁止**（Step 2 の決定性是正だけが例外。他は bd へ積む）
 - **バンドルの中身を公開 repo へ持ち込むこと禁止**（PR 添付・テストフィクスチャ・コミットのいずれも）
 - **`$WORKTREE` の外での編集・コミット禁止**。`git add` は必ずパス指定（`git add -A` / `git add .` は禁止）
+- **`$CANON`（cwd）への書き込み・`git` 操作禁止**。並列の別ランが同じピンを読んでいるため、触ると実行制御の正本が走行中に動く

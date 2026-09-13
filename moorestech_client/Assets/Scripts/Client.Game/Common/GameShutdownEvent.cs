@@ -68,6 +68,12 @@ namespace Client.Game.Common
             for (var i = 0; i < participants.Length; i++) flushTasks[i] = participants[i].FlushOnShutdownAsync();
             var results = await UniTask.WhenAll(flushTasks);
 
+            // 諦めは上限到達より重い。世界が保存されていない事実は待ち切れなかった事実に埋もれてはいけない
+            // A give-up outweighs a timeout: an unsaved world must not be hidden behind "did not finish waiting"
+            foreach (var result in results)
+                if (result == ShutdownFlushResult.SaveAbandoned)
+                    return ShutdownFlushResult.SaveAbandoned;
+
             // 1つでも書き切れていなければ全体を上限到達として返す
             // Report the whole flush as timed out if any single participant failed to finish
             foreach (var result in results)
@@ -83,6 +89,8 @@ namespace Client.Game.Common
             var flushResult = await FireGameShutdownAsync();
             if (flushResult == ShutdownFlushResult.FlushTimedOut)
                 Debug.LogError("セーブの書き出し完了を待ち切れないままアプリを終了します");
+            if (flushResult == ShutdownFlushResult.SaveAbandoned)
+                Debug.LogError("セーブの書き出しを諦めたため、世界が保存されないままアプリを終了します");
 
             Application.Quit();
 #if UNITY_EDITOR

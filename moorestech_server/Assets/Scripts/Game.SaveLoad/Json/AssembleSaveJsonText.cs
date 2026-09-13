@@ -7,6 +7,7 @@ using Game.Construction;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Hotbar;
+using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
@@ -36,6 +37,7 @@ namespace Game.SaveLoad.Json
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
+        private readonly IMiningCooldownDatastore _miningCooldownDatastore;
 
         public AssembleSaveJsonText(
             IPlayerInventoryDataStore inventoryDataStore,
@@ -53,7 +55,8 @@ namespace Game.SaveLoad.Json
             ConstructionPayerDataStore constructionPayerDataStore,
             ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
-            CleanRoomDatastore cleanRoomDatastore)
+            CleanRoomDatastore cleanRoomDatastore,
+            IMiningCooldownDatastore miningCooldownDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -71,6 +74,7 @@ namespace Game.SaveLoad.Json
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
+            _miningCooldownDatastore = miningCooldownDatastore;
         }
 
         public string AssembleSaveJson()
@@ -104,6 +108,7 @@ namespace Game.SaveLoad.Json
                 _itemStackLevelDataStore.GetSaveJsonObject(),
                 _playerInventorySlotLevelDataStore.GetSaveLevel(),
                 _cleanRoomDatastore.GetSaveData(),
+                _miningCooldownDatastore.GetSaveJsonObject(),
                 GameRandom.ExportState()
             );
             saveAllInfo.CurrentTick = GameUpdater.CurrentTick;

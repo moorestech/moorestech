@@ -35,7 +35,10 @@ namespace Client.Game.InGame.BugReport
     {
         public const string BuildInfoFileName = "build-info.json";
         public static string RepositoryRoot => Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
-        public static string MasterDataRoot => Path.GetFullPath(Path.Combine(RepositoryRoot, "..", "moorestech_master"));
+
+        // マスタrepoの置き場はピンの relativePath だけが定義元。隣の名前を推測すると別repoの状態をマスタとして名乗る
+        // The pin's relativePath is the sole definition of where the master repo sits; guessing the neighbour's name would report another repo as the master
+        public static string MasterDataRoot => MasterDataRootLocator.Resolve();
 
         // 読み取り専用の問い合わせだけを行う。作業ツリーを書き換えるgitコマンドはここに足してはならない
         // Runs read-only queries only; a git command that mutates the working tree must never be added here
@@ -58,7 +61,9 @@ namespace Client.Game.InGame.BugReport
 
             var branchRead = Query(repositoryRoot, "rev-parse --abbrev-ref HEAD", result, out var branch);
             var statusRead = Query(repositoryRoot, "status --porcelain", result, out var status);
-            Query(repositoryRoot, "diff HEAD", result, out var diff);
+            // バイナリ差分まで持ち帰らないと、画像やアセットの未コミット変更が欠けたまま別の状態で再現される
+            // Without binary diffs the uncommitted changes to images and assets are lost and reproduction runs a different state
+            Query(repositoryRoot, "diff --binary --full-index HEAD", result, out var diff);
             Query(repositoryRoot, "ls-files --others --exclude-standard", result, out var untracked);
 
             // status が取れないときに Dirty=false と名乗ると「差分なしのクリーンな作業ツリー」として再現されてしまう
@@ -92,17 +97,29 @@ namespace Client.Game.InGame.BugReport
             return false;
         }
 
-        public static RepositoryState ReadBuildInfo()
+        public static BugReportBuildInfo ReadBuildInfo()
         {
             var path = Path.Combine(Application.streamingAssetsPath, BuildInfoFileName);
             if (!File.Exists(path))
             {
                 Debug.LogWarning($"build-info.json が無いためリポジトリ状態は不明です path:{path}");
-                return new RepositoryState { Commit = "", Branch = "", Dirty = false };
+                return new BugReportBuildInfo { Repository = new RepositoryState { Commit = "", Branch = "", Dirty = false } };
             }
 
             var json = JObject.Parse(File.ReadAllText(path));
-            return new RepositoryState { Commit = (string)json["commit"], Branch = (string)json["branch"], Dirty = (bool)json["dirty"] };
+            var repository = new RepositoryState { Commit = (string)json["commit"], Branch = (string)json["branch"], Dirty = (bool)json["dirty"] };
+
+            // マスタを焼いていないビルドもあるため、masterCommit が読めたときだけマスタの状態を名乗る
+            // Some builds bake no master, so the master state is claimed only when masterCommit was actually readable
+            var masterCommit = (string)json["masterCommit"];
+            if (string.IsNullOrEmpty(masterCommit))
+            {
+                Debug.LogWarning($"build-info.json に masterCommit が無いためマスタデータのリポジトリ状態は不明です path:{path}");
+                return new BugReportBuildInfo { Repository = repository };
+            }
+
+            var masterData = new RepositoryState { Commit = masterCommit, Branch = "", Dirty = (bool?)json["masterDirty"] ?? false };
+            return new BugReportBuildInfo { Repository = repository, MasterData = masterData };
         }
 
         // ビルド時に焼き込む内容を組み立てる。Editorアセンブリを参照できないテストからも検証できるようここに置く
@@ -121,7 +138,7 @@ namespace Client.Game.InGame.BugReport
             return info.ToString(Formatting.Indented);
         }
 
-        private static bool TryGit(string workingDirectory, string arguments, out string stdout, out string error)
+        internal static bool TryGit(string workingDirectory, string arguments, out string stdout, out string error)
         {
             // quotepathを切らないと非ASCIIのパスが\xxx形式へ化け、未追跡ファイルのコピー元を見失う
             // Without disabling quotepath, non-ASCII paths come back escaped and the untracked copy loses its source

@@ -21,9 +21,8 @@ namespace Game.Block.Blocks.TrainRail
         
         public TrainStationComponent(Dictionary<string, object> componentStates) : this("test")
         {
-            var saveData = BlockComponentStateReader.Read<TrainStationComponentSaveData>(componentStates, SaveKey);
-            if (saveData == null) return;
-            
+            if (!BlockComponentStateReader.TryRead<TrainStationComponentSaveData>(componentStates, SaveKey, out var saveData)) return;
+
             StationName = saveData.stationName;
         }
         

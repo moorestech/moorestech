@@ -105,14 +105,22 @@ namespace Game.SaveLoad.Writer
 
             void PostCompletion(SaveWriteJob completedJob, bool completedSuccess)
             {
-                // 取り込み時に必ず入る。デシリアライズ由来の欠損は WorldLoaderFromJson が入口で弾く
-                // Always present on a captured image; a missing value from deserialization is rejected at the load entrance
-                FindCompletionQueue(completedJob.Kind)?.Enqueue(
-                    new SaveWriteCompletion(completedJob.Generation, completedJob.Data.CurrentTick.Value, completedJob.TargetPath, completedSuccess));
+                FindCompletionQueue(completedJob.Kind)?.Enqueue(CreateCompletion(completedJob, completedSuccess));
 
                 // 完了を積んでから在庫を減らす。待ち合わせ側が空振りで先に抜けないようにする
                 // Post the completion before clearing the in-flight count so a waiter never returns ahead of it
                 Interlocked.Decrement(ref _inFlight);
+            }
+
+            // 完了は種別ごとに作る。突き合わせに使わない値を詰めると、要求元が意味の無い番号を読める型になる
+            // Completions are built per kind; filling a value nobody matches on would let a requester read a meaningless number
+            SaveWriteCompletion CreateCompletion(SaveWriteJob completedJob, bool completedSuccess)
+            {
+                // 取り込み時に必ず入る。デシリアライズ由来の欠損は WorldLoaderFromJson が入口で弾く
+                // Always present on a captured image; a missing value from deserialization is rejected at the load entrance
+                var tick = completedJob.Data.CurrentTick.Value;
+                if (completedJob.Kind == SaveWriteKind.Snapshot) return SaveWriteCompletion.ForSnapshot(tick, completedJob.TargetPath, completedSuccess);
+                return SaveWriteCompletion.ForPlayerSave(completedJob.Generation, tick, completedJob.TargetPath, completedSuccess);
             }
 
             #endregion

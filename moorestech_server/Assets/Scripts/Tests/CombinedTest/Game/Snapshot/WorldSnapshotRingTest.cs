@@ -30,7 +30,7 @@ namespace Tests.CombinedTest.Game.Snapshot
             var directory = provider.GetRequiredService<WorldDataDirectory>();
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             GameUpdater.RestoreCurrentTick(0);
-            ring.Start(10, 20, 16);
+            ring.Start(10u, 20u, 16);
 
             for (var i = 0; i < 40; i++) GameUpdater.UpdateOneTick();
             ring.WaitForPendingWrites();
@@ -59,7 +59,7 @@ namespace Tests.CombinedTest.Game.Snapshot
             var directory = provider.GetRequiredService<WorldDataDirectory>();
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             GameUpdater.RestoreCurrentTick(100);
-            ring.Start(600, 1800, 16);
+            ring.Start(600u, 1800u, 16);
 
             SnapshotWritten written = null;
             ring.OnSnapshotWritten.Subscribe(w => written = w);
@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Game.Snapshot
 
             // 保持区間40tickを周期10tickで覆うと、最古の10を含む5世代が必要になる
             // Covering a 40-tick retention window at a 10-tick period needs five generations including the oldest at 10
-            ring.Start(10, 40, 16);
+            ring.Start(10u, 40u, 16);
             for (var i = 0; i < 50; i++) GameUpdater.UpdateOneTick();
             ring.WaitForPendingWrites();
 
@@ -139,7 +139,7 @@ namespace Tests.CombinedTest.Game.Snapshot
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(options);
             var ring = provider.GetRequiredService<WorldSnapshotRing>();
             GameUpdater.RestoreCurrentTick(8);
-            ring.Start(600, 1800, 16);
+            ring.Start(600u, 1800u, 16);
 
             SnapshotWritten written = null;
             ring.OnSnapshotWritten.Subscribe(w => written = w);
@@ -184,7 +184,7 @@ namespace Tests.CombinedTest.Game.Snapshot
 
             // 周期600tickなので、基準を書かなければ最初の周期までスナップショットは1本も存在しない
             // At a 600-tick period, no snapshot would exist until the first period unless the baseline is written
-            ring.Start(600, 1800, 16);
+            ring.Start(600u, 1800u, 16);
             ring.WaitForPendingWrites();
 
             var snapshots = WorldDataDirectory.EnumerateSnapshotFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray();
@@ -219,7 +219,7 @@ namespace Tests.CombinedTest.Game.Snapshot
             File.WriteAllBytes(Path.Combine(directory.SnapshotDirectory, WorldDataDirectory.ReceivedPacketLogFileName(9999)), new byte[] { 1 });
 
             GameUpdater.RestoreCurrentTick(0);
-            ring.Start(600, 1800, 16);
+            ring.Start(600u, 1800u, 16);
 
             Assert.IsFalse(File.Exists(directory.SnapshotFilePath(9999)), "前セッションのスナップショットが残っている");
             var segments = WorldDataDirectory.EnumeratePacketLogFiles(directory.SnapshotDirectory).Select(Path.GetFileName).ToArray();

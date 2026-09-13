@@ -22,6 +22,10 @@ namespace Game.Block.Blocks.GearChainPole
             {
                 Connections.Add(new GearChainPoleConnectionJsonObject(target.Key.AsPrimitive(), target.Value.Cost.Materials));
             }
+
+            // Dictionaryの列挙順は削除跡の再利用で変わる。添字位置で突き合わせる比較器のため保存側で正準化する
+            // Dictionary order shifts as removed slots get reused, so canonicalize here for comparers that match by index
+            Connections.Sort((left, right) => left.TargetBlockInstanceId.CompareTo(right.TargetBlockInstanceId));
         }
 
         public GearChainPoleSaveDataJsonObject() { Connections = new List<GearChainPoleConnectionJsonObject>(); }

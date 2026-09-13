@@ -46,9 +46,11 @@ namespace Game.Block.Factory.BlockTemplate.Train
             railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, state.RailBlockDirection, blockPositionInfo.OriginalPos, 0, maxConnectableRailLength);
 
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
+            var nodeGuidSaveComponent = new RailNodeGuidSaveComponent(railComponents);
             var components = new List<IBlockComponent>();
             components.AddRange(railComponents);
             components.Add(stateDetailComponent);
+            components.Add(nodeGuidSaveComponent);
             return new BlockSystem(blockInstanceId, blockMasterElement.BlockGuid, components, blockPositionInfo);
         }
 
@@ -63,15 +65,18 @@ namespace Game.Block.Factory.BlockTemplate.Train
             // ブロック保存データから向きを復元する
             // Restore rail direction from block save data
             var railDirection = RailComponentStateDetailComponent.LoadRailDirection(componentStates);
+            var nodeGuids = RailNodeGuidSaveComponent.LoadNodeGuids(componentStates, 1);
             var railComponents = new RailComponent[1];
             var railComponentPosition = RailComponentUtility.CalculateRailComponentPosition(positionInfo, trainRailParam.RailPosition);
             var maxConnectableRailLength = (float)trainRailParam.MaxConnectableRailLength;
-            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, railDirection, positionInfo.OriginalPos, 0, maxConnectableRailLength);
+            railComponents[0] = new RailComponent(_railGraphDatastore, railComponentPosition, railDirection, positionInfo.OriginalPos, 0, maxConnectableRailLength, nodeGuids[0].FrontNodeGuid, nodeGuids[0].BackNodeGuid);
 
             var stateDetailComponent = new RailComponentStateDetailComponent(railComponents[0]);
+            var nodeGuidSaveComponent = new RailNodeGuidSaveComponent(railComponents);
             var components = new List<IBlockComponent>();
             components.AddRange(railComponents);
             components.Add(stateDetailComponent);
+            components.Add(nodeGuidSaveComponent);
             return new BlockSystem(instanceId, masterElement.BlockGuid, components, positionInfo);
         }
     }

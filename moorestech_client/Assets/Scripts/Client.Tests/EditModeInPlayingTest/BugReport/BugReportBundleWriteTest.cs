@@ -45,7 +45,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
                 // テスト起動は常時記録オフなので、リングだけ明示的に開始する
                 // Test boots disable always-on capture, so start the ring explicitly
-                ServerContext.GetService<WorldSnapshotRing>().Start(SnapshotRingConfig.PeriodTicks, SnapshotRingConfig.RetentionTicks, SnapshotRingConfig.MaxGenerations);
+                ServerContext.GetService<WorldSnapshotRing>().Start(null, null, null);
                 await UniTask.Delay(1000);
 
                 var before = ExistingBundles();

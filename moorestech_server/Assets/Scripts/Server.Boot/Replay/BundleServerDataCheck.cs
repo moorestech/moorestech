@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Game.Paths;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -9,7 +10,6 @@ namespace Server.Boot.Replay
     // Checks the given server data against the bundle's manifest; a mismatch surfaces as an inscrutable master-loader exception
     public static class BundleServerDataCheck
     {
-        private const string ManifestFileName = "manifest.json";
         private const string ModsDirectoryName = "mods";
 
         // 食い違いの理由を返す。問題なければ null
@@ -49,7 +49,7 @@ namespace Server.Boot.Replay
         // The manifest is external input from another machine; a broken one only forfeits the check, never stops the replay
         private static JObject ReadRecordedServerData(string bundleDirectory)
         {
-            var manifestPath = Path.Combine(bundleDirectory, ManifestFileName);
+            var manifestPath = Path.Combine(bundleDirectory, BugReportBundleLayout.ManifestFileName);
             if (!File.Exists(manifestPath)) return null;
 
             // 外部JSONのパースは境界。ここで閉じないと壊れた箱1つで再現ツールが落ちる
@@ -60,7 +60,7 @@ namespace Server.Boot.Replay
             }
             catch (Exception exception)
             {
-                Debug.LogWarning($"バグ報告バンドルの {ManifestFileName} を読めませんでした: {exception.GetBaseException().Message} path:{manifestPath}");
+                Debug.LogWarning($"バグ報告バンドルの {BugReportBundleLayout.ManifestFileName} を読めませんでした: {exception.GetBaseException().Message} path:{manifestPath}");
                 return null;
             }
         }

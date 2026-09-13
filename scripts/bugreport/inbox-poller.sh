@@ -4,9 +4,15 @@
 set -euo pipefail
 LOGS="${MOORESTECH_LOGS:-$HOME/hermes-agent/data/repos/moorestech_logs}"
 BASE="$LOGS/harness/bug-report"; INBOX="$BASE/inbox"; RUNS="$BASE/runs"
+# 隔離先は dot 始まりにする。READY 付きのまま置いても候補 glob に掴まれない
+# The quarantine directory starts with a dot so a box kept there with its READY marker never matches the candidate glob
+DUPLICATE="$INBOX/.duplicate"
 REPO="${MOORESTECH_REPO:-$HOME/hermes-agent/data/repos/moorestech}"
+WORKTREES="${MOORESTECH_WORKTREES:-$HOME/hermes-agent/data/repos/moorestech-worktrees}"
 CLAUDE_CMD="${CLAUDE_CMD:-claude}"
 PREPARE_CMD="${PREPARE_CMD:-$(cd "$(dirname "$0")" && pwd)/prepare-run.sh}"
+CANON_SETUP_CMD="${CANON_SETUP_CMD:-python3 $REPO/.agents/skills/pr-independent-review/scripts/canon_setup.py}"
+CANON_SKILL_REL=".agents/skills/bug-report-auto-fix/SKILL.md"
 GIT_PUSH="${GIT_PUSH:-1}"
 LOCK="${TMPDIR:-/tmp}/moorestech-bugreport-poller.lock"
 log() { echo "[poller] $*" >&2; }
@@ -24,15 +30,23 @@ for marker in "$INBOX"/*/READY; do
   case "$name" in
     *.partial) log "運搬中のためスキップ: $name"; continue ;;
   esac
+  # 同じ箱を二度処理しない。runs に同名があると mv が入れ子になるので隔離し、後続の報告は止めずに次の候補へ進む
+  # Never process the same box twice; a same-named run would make mv nest it, so quarantine it and move on to the next candidate
+  if [ -e "$RUNS/$name" ]; then
+    mkdir -p "$DUPLICATE"
+    if [ -e "$DUPLICATE/$name" ]; then
+      log "runs にも隔離先にも同名がある。触らず次の候補へ: $candidate"
+    elif mv "$candidate" "$DUPLICATE/$name"; then
+      log "runs に同名のランが既にあるため隔離した（人が中身を見て捨てるか改名する）: $DUPLICATE/$name"
+    else
+      log "重複箱を隔離できなかった。今回は飛ばして次の候補へ: $candidate"
+    fi
+    continue
+  fi
   box="$candidate"; id="$name"; break
 done
 [ -n "$box" ] || { log "READY の箱が無いので何もしない: $INBOX"; exit 0; }
 
-# 同じ箱を二度処理しない。runs に同名があれば mv が入れ子になるため、理由を出して中断する
-# Never process the same box twice; a same-named run would make mv nest it, so stop with a reason
-if [ -e "$RUNS/$id" ]; then
-  log "runs に同名のランが既にある。二重処理を避けて中断: $RUNS/$id"; exit 0
-fi
 mkdir -p "$RUNS"
 mv "$box" "$RUNS/$id" || { log "箱を runs へ移せなかった。次回に再試行: $box"; exit 1; }
 run="$RUNS/$id"
@@ -48,15 +62,36 @@ else
   log "run.env が無い（prepare が最後まで進まなかった）: $run/run.env"
 fi
 
+# 実行制御の正本（スキル本文・補助スクリプト・hook）は SHA 固定の canon から読む。修正対象の worktree は報告時のコミットにあり、
+# そこを cwd にするとスキルも関所も報告時の版（無いことすらある）で走ってしまう
+# The run-control source (skill body, helper scripts, hooks) comes from the SHA-pinned canon; the fix-target worktree sits at the report commit,
+# so using it as cwd would run the skill and the gate from that old revision, where they may not exist at all
+CANON=""
+resolve_canon() {
+  local out
+  # canon_setup の SKILL.md 同一性ガードは $ORIGIN からスキル本文を読む運用のためのもので、poller は canon だけを読むため適用しない
+  # canon_setup's SKILL.md identity guard exists for flows that read the skill body from $ORIGIN; the poller reads only the canon, so it does not apply
+  out="$($CANON_SETUP_CMD --origin "$REPO" --parent "$WORKTREES" --allow-skew 2> "$run/canon.err.log")" \
+    || { log "canon worktree を用意できなかった（canon_setup 失敗。$run/canon.err.log を確認）: $CANON_SETUP_CMD"; return 1; }
+  CANON="$(printf '%s' "$out" | python3 -c "import json,sys;print(json.load(sys.stdin)['canon'])")" \
+    || { log "canon_setup の出力から canon を読めなかった: $CANON_SETUP_CMD"; return 1; }
+  [ -f "$CANON/$CANON_SKILL_REL" ] \
+    || { log "canon に $CANON_SKILL_REL が無い（このスキルがまだ master に入っていない）: $CANON"; return 1; }
+  return 0
+}
+
 # 隔離 worktree が無いままメインのワーキングツリーで走らせない（他セッションと共有されているため）
 # Never fall back to the main working tree when the isolated worktree is missing; it is shared with other sessions
 if [ -z "${WORKTREE:-}" ] || [ ! -d "$WORKTREE" ]; then
   log "隔離 worktree が無いため自動修正ランを起こさない（WORKTREE='${WORKTREE:-}'）: $id"
   printf '{"status": "failure", "summary": "prepare が隔離 worktree を用意できなかった", "remaining": "runs/%s/ の prepare ログを確認"}\n' "$id" > "$run/fix-result.json"
+elif ! resolve_canon; then
+  log "実行制御の正本（canon）が無いため自動修正ランを起こさない: $id"
+  printf '{"status": "failure", "summary": "SHA固定の canon worktree を用意できなかった", "remaining": "runs/%s/canon.err.log と poller ログを確認"}\n' "$id" > "$run/fix-result.json"
 else
-  # 非対話で起動し、終了まで待つ。上限は設けない（裁定）
-  # Launch non-interactively and wait; no time budget (ruling)
-  ( cd "$WORKTREE" && BUG_REPORT_RUNDIR_BASE="$RUNS" $CLAUDE_CMD -p "【無人起動】/bug-report-auto-fix $id" --permission-mode bypassPermissions --output-format json > "$run/claude.out.json" 2> "$run/claude.err.log" ) || log "claude 異常終了（exit $?）"
+  # 非対話で起動し、終了まで待つ。上限は設けない（裁定）。cwd は canon（読み取り専用）、コードを直す先は --add-dir の worktree
+  # Launch non-interactively and wait; no time budget (ruling). cwd is the read-only canon; code is fixed in the --add-dir worktree
+  ( cd "$CANON" && BUG_REPORT_RUNDIR_BASE="$RUNS" $CLAUDE_CMD -p "【無人起動】/bug-report-auto-fix $id" --add-dir "$WORKTREE" --permission-mode bypassPermissions --output-format json > "$run/claude.out.json" 2> "$run/claude.err.log" ) || log "claude 異常終了（exit $?）"
 
   if [ ! -f "$run/fix-result.json" ]; then
     log "fix-result.json が無いため failure で補完する: $id"

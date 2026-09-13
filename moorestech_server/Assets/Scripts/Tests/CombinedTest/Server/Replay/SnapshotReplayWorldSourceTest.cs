@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Server.Replay
 
                 GameRandom.Reseed(2026UL);
                 GameUpdater.RestoreCurrentTick(0);
-                ring.Start(10, 30, 16);
+                ring.Start(10u, 30u, 16);
                 for (var tick = 1; tick <= 25; tick++) GameUpdater.UpdateOneTick();
                 ring.WaitForPendingWrites();
                 GameUpdater.UpdateOneTick();

@@ -6,15 +6,19 @@ using UnityEngine;
 
 namespace Game.SaveLoad.Snapshot
 {
-    // 書き出し済みスナップショット世代の権威リストを持ち、保持時間を基準に古い世代を消す
-    // Owns the authoritative list of written snapshot generations and drops old ones by retention time
+    // 書き出し済みスナップショット世代の権威リストを持ち、周期分は保持時間で、即時確保分は本数で消す
+    // Owns the authoritative list of written snapshot generations, dropping periodic ones by retention time and immediate ones by count
     public sealed class SnapshotGenerationRetention
     {
         private readonly WorldDataDirectory _directory;
         private readonly ReceivedPacketLog _packetLog;
-        private readonly List<ulong> _writtenTicks = new();
+
+        // 周期と即時を分けて持つ。混ぜると即時確保が本数上限を押し上げ、直前2分の周期世代を追い出す
+        // Periodic and immediate are held apart; mixed, an immediate capture pushes the cap up and evicts the last two minutes of periodic generations
+        private readonly List<ulong> _periodicTicks = new();
+        private readonly List<ulong> _immediateTicks = new();
         private uint _retentionTicks;
-        private int _maxGenerations;
+        private int _maxImmediateGenerations;
 
         public SnapshotGenerationRetention(WorldDataDirectory directory, ReceivedPacketLog packetLog)
         {
@@ -22,32 +26,33 @@ namespace Game.SaveLoad.Snapshot
             _packetLog = packetLog;
         }
 
-        public void Configure(uint retentionTicks, int maxGenerations)
+        public void Configure(uint retentionTicks, int maxImmediateGenerations)
         {
             _retentionTicks = retentionTicks;
-            _maxGenerations = maxGenerations;
+            _maxImmediateGenerations = maxImmediateGenerations;
         }
 
-        // 剪定は時間基準。保持区間を覆う最古の1本より前だけを消すので、即時取得が周期世代の枠を食わない
-        // Pruning is time-based: only snapshots older than the one covering the retention window go, so an immediate capture never eats a periodic generation
-        public void AddAndPrune(ulong tick)
+        // 周期分は保持区間を覆う最古の1本より前だけ、即時確保分は本数上限を超えた分だけ消す
+        // Periodic snapshots older than the one covering the retention window go; immediate ones go only past the count cap
+        public void AddAndPrune(ulong tick, SnapshotCaptureKind kind)
         {
-            _writtenTicks.Add(tick);
-            var newestTick = _writtenTicks[_writtenTicks.Count - 1];
-            var retentionStartTick = newestTick > _retentionTicks ? newestTick - _retentionTicks : 0UL;
+            if (kind == SnapshotCaptureKind.Immediate) _immediateTicks.Add(tick);
+            else _periodicTicks.Add(tick);
 
-            // 2番目に古い世代がまだ保持区間の開始を覆っているなら、最古は要らない
-            // If the second-oldest still covers the start of the retention window, the oldest is no longer needed
-            while (_writtenTicks.Count > 1 && _writtenTicks[1] <= retentionStartTick)
+            var retentionStartTick = tick > _retentionTicks ? tick - _retentionTicks : 0UL;
+
+            // 2番目に古い周期世代がまだ保持区間の開始を覆っているなら、最古は要らない
+            // If the second-oldest periodic generation still covers the start of the retention window, the oldest is no longer needed
+            while (_periodicTicks.Count > 1 && _periodicTicks[1] <= retentionStartTick)
             {
-                RemoveOldest($"保持区間の開始tick{retentionStartTick}より前");
+                RemoveOldest(_periodicTicks, $"保持区間の開始tick{retentionStartTick}より前");
             }
 
-            // 上限はディスク保護。ここで消すと保持時間の保証を割るので理由を分けて残す
-            // The cap protects the disk; deleting here breaks the retention guarantee, so log it under its own reason
-            while (_writtenTicks.Count > _maxGenerations)
+            // 即時確保はバグ報告のための控えなので時間では消さない。ディスク保護は本数だけで行う
+            // An immediate capture is a bug-report keepsake, so time never drops it; only the count protects the disk
+            while (_immediateTicks.Count > _maxImmediateGenerations)
             {
-                RemoveOldest($"上限{_maxGenerations}世代を超過（保持時間{_retentionTicks}tickの保証を割る）");
+                RemoveOldest(_immediateTicks, $"即時確保の上限{_maxImmediateGenerations}件を超過");
             }
         }
 
@@ -55,21 +60,36 @@ namespace Game.SaveLoad.Snapshot
         // Bundle file names come from this authoritative list; a lexicographic disk scan would make the oldest look newest
         public List<string> CopyFileNames()
         {
-            var names = new List<string>(_writtenTicks.Count);
-            foreach (var tick in _writtenTicks) names.Add(WorldDataDirectory.SnapshotFileName(tick));
+            var ticks = new List<ulong>(_periodicTicks.Count + _immediateTicks.Count);
+            ticks.AddRange(_periodicTicks);
+            ticks.AddRange(_immediateTicks);
+            ticks.Sort();
+
+            var names = new List<string>(ticks.Count);
+            foreach (var tick in ticks) names.Add(WorldDataDirectory.SnapshotFileName(tick));
             return names;
         }
 
-        private void RemoveOldest(string reason)
+        private void RemoveOldest(List<ulong> ticks, string reason)
         {
-            var oldest = _writtenTicks[0];
-            _writtenTicks.RemoveAt(0);
+            var oldest = ticks[0];
+            ticks.RemoveAt(0);
 
             // 常時記録の削除は後から追跡できる必要があるので、消した世代と理由を必ず残す
             // Deleting always-on capture must stay auditable, so record which generation went and why
             Debug.Log($"スナップショットを削除しました tick:{oldest} 理由:{reason}");
             DeleteSnapshotFile(_directory.SnapshotFilePath(oldest));
-            _packetLog.DeleteSegmentsBefore(_writtenTicks[0]);
+
+            // 区間ファイルは周期・即時のどちらからも再生の出発点になるので、残る最古より前だけを消す
+            // A segment feeds replay from either kind, so only segments before the oldest surviving generation may go
+            _packetLog.DeleteSegmentsBefore(OldestRetainedTick());
+        }
+
+        private ulong OldestRetainedTick()
+        {
+            if (_periodicTicks.Count == 0) return _immediateTicks[0];
+            if (_immediateTicks.Count == 0) return _periodicTicks[0];
+            return Math.Min(_periodicTicks[0], _immediateTicks[0]);
         }
 
         private static void DeleteSnapshotFile(string path)
