@@ -320,6 +320,7 @@ namespace Server.Boot
             services.AddSingleton<RailConnectionRemovedEventPacket>();
             services.AddSingleton<RidingStateEventPacket>();
             services.AddSingleton<AchievementNotificationWiring>();
+            services.AddSingleton<MissingMasterPruneNotificationWiring>();
 
             //データのセーブシステム
             // Register data save helpers.
