@@ -3,15 +3,22 @@
 import { useState } from "react";
 import { Button, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
-import { L, useI18n } from "@/shared/i18n";
+import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 
 // 応答待ちと失敗をテスターに見せるための状態。成功は待機解除でゲートごと消える
 // The state that shows a pending response and a failure to the tester; success removes the gate itself
 type AcknowledgeState = "idle" | "pending" | "failed";
 
 export function PlaytestConsentGateBody() {
-  const { t } = useI18n();
+  const { status, t } = useI18n();
   const [acknowledgeState, setAcknowledgeState] = useState<AcknowledgeState>("idle");
+
+  // ゲートは辞書配信より前に出るため、未確定の間は t() の空文字ではなく辞書非依存の文言を描く
+  // The gate precedes dictionary delivery, so until it is ready the copy comes from dictionary-independent literals
+  const dictionaryReady = status === "ready";
+  const body = dictionaryReady ? t(L.ui.playtest.consent.body) : DictionaryIndependentText.playtestConsentBody;
+  const agreeLabel = dictionaryReady ? t(L.ui.playtest.consent.agree) : DictionaryIndependentText.playtestConsentAgree;
+  const failedLabel = dictionaryReady ? t(L.ui.playtest.consent.failed) : DictionaryIndependentText.playtestConsentFailed;
 
   // 二度押しはC#側が already_acknowledged で弾くが、そこまで届かせない。押した時点でボタンを閉じる
   // C# rejects a second press with already_acknowledged, but it never gets that far: one press closes the button
@@ -31,15 +38,15 @@ export function PlaytestConsentGateBody() {
 
   return (
     <Stack align="center" gap="md">
-      <Text c="white" data-testid="playtest-consent-body">{t(L.ui.playtest.consent.body)}</Text>
+      <Text c="white" data-testid="playtest-consent-body">{body}</Text>
       <Button size="xl" disabled={acknowledgeState === "pending"} onClick={() => void acknowledge()} data-testid="playtest-consent-agree">
-        {t(L.ui.playtest.consent.agree)}
+        {agreeLabel}
       </Button>
       {/* トーストはゲートの下に隠れるため、押下が通らなかったことはこの1行だけが伝える */}
       {/* Toasts hide beneath the gate, so this single line is the only report that a press did not go through */}
       {acknowledgeState === "failed" && (
         <Text c="white" data-testid="playtest-consent-failed">
-          {t(L.ui.playtest.consent.failed)}
+          {failedLabel}
         </Text>
       )}
     </Stack>

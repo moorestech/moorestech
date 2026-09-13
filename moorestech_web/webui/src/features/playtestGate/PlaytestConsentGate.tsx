@@ -2,11 +2,15 @@
 // The shell that blocks input full-screen while waiting; the body mounts only while waiting (same shape as CrashReportGate/EventLanguageGate)
 import { Overlay, Portal, Stack, Title } from "@mantine/core";
 import { Topics, useTopicSelector } from "@/bridge";
-import { L, useI18n } from "@/shared/i18n";
+import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { PlaytestConsentGateBody } from "./PlaytestConsentGateBody";
 
 export function PlaytestConsentGate() {
-  const { t } = useI18n();
+  const { status, t } = useI18n();
+
+  // ゲートは辞書配信より前に出るため、未確定の間は t() の空文字ではなく辞書非依存の文言を描く
+  // The gate precedes dictionary delivery, so until it is ready the copy comes from dictionary-independent literals
+  const title = status === "ready" ? t(L.ui.playtest.consent.title) : DictionaryIndependentText.playtestConsentTitle;
   const waiting = useTopicSelector(Topics.consentGate, (data) => data?.waiting ?? false);
 
   if (!waiting) return null;
@@ -22,7 +26,7 @@ export function PlaytestConsentGate() {
         data-testid="playtest-consent-gate"
       >
         <Stack align="center" gap="xl">
-          <Title order={1} c="white">{t(L.ui.playtest.consent.title)}</Title>
+          <Title order={1} c="white">{title}</Title>
           <PlaytestConsentGateBody />
         </Stack>
       </Overlay>
