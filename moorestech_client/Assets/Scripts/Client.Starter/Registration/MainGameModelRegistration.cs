@@ -3,6 +3,7 @@ using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Context;
@@ -44,6 +45,7 @@ namespace Client.Starter.Registration
             // バグ報告の常時記録（ログリング・録画リング）
             // Always-on capture for bug reports (log ring, frame recording ring)
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
+            builder.RegisterEntryPoint<CleanExitMarkWriter>();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
             builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);

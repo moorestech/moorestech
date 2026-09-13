@@ -85,7 +85,8 @@ namespace Client.Game.InGame.BugReport.Recording
             _ffmpegPath = FfmpegLocator.Find();
             _latchedUnavailableReason = ResolveInitialAvailability(_ffmpegPath).Reason;
             if (_ffmpegPath == null) return;
-            if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
+            // 前回分の掃除は起動時の PreviousSessionSalvage が済ませている。ここで消すと異常終了の残骸を失う
+            // PreviousSessionSalvage already cleaned the previous files at boot; deleting here would lose the crash remnants
             Directory.CreateDirectory(_directory);
             _framePool = new FrameBufferPool(FrameBufferCount, Width * Height * 4);
             _screenFrameReader = new ScreenFrameReader(Width, Height);

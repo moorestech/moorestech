@@ -48,6 +48,10 @@ namespace Game.Paths
         public static string BugReportOutboxDirectory => Path.Combine(BugReportDirectory, "outbox");
         public static string BugReportRecordingDirectory => Path.Combine(BugReportDirectory, "recording");
 
+        // 前回セッションの正常終了マーカーと退避物の置き場。起動時にだけ読む
+        // Holds the previous session's clean-exit marker and salvaged files; read only at boot
+        public static string BugReportLastSessionDirectory => Path.Combine(BugReportDirectory, "last-session");
+
         // ワールドごとのクライアントキャッシュ。worldIdはサーバーが払い出すワールド同一性の識別子
         // Per-world client cache; worldId is the world identity issued by the server
         public static string GetWorldCacheDirectory(string worldId)

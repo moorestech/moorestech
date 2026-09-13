@@ -4,12 +4,14 @@ using System.Threading;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.Context;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.Progress;
 using Cysharp.Threading.Tasks;
 using Game.Context;
+using Game.Paths;
 using Mooresmaster.Localization.Generated;
 using Server.Boot;
 using Server.Boot.Args;
@@ -90,6 +92,11 @@ namespace Client.Starter
 
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
+
+            // 内蔵サーバーのスナップショットリングと録画リングが上書きを始める前に、前回セッションの記録を退避する
+            // Salvage the previous session's records before the embedded snapshot ring and the recording ring start overwriting
+            var previousWorldSnapshotDirectory = _proprieties.IsRemoteConnection ? null : WorldDataDirectory.FromWorldRoot(args.WorldDirectory).SnapshotDirectory;
+            PreviousSessionSalvage.RunAtStartup(previousWorldSnapshotDirectory);
 
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
