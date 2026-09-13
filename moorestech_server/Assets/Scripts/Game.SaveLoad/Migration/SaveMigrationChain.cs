@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -11,6 +12,10 @@ namespace Game.SaveLoad.Migration
     public sealed class SaveMigrationChain
     {
         private const string WorldVersionKey = "worldVersion";
+
+        // worldVersionが整数として読めないときに返す版。1未満なので拒否経路へそのまま落ちる
+        // The version returned when worldVersion is not readable as an integer; being below 1 it falls straight into the rejection path
+        private const int UnreadableWorldVersion = 0;
 
         private readonly List<ISaveMigrationStep> _steps;
         private readonly int _currentVersion;
@@ -44,6 +49,14 @@ namespace Game.SaveLoad.Migration
             {
                 Debug.Log($"セーブに{WorldVersionKey}がないため版1として扱います。");
                 return 1;
+            }
+
+            // 整数でないworldVersionをそのまま読むと生の型例外になり、理由がどこにも残らない
+            // Reading a non-integer worldVersion raw would throw a bare cast exception with the reason logged nowhere
+            if (token.Type != JTokenType.Integer)
+            {
+                Debug.LogError($"セーブの{WorldVersionKey}が整数として読めません。ロードせずに中断します。 value={token.ToString(Formatting.None)} type={token.Type}");
+                return UnreadableWorldVersion;
             }
 
             return token.Value<int>();

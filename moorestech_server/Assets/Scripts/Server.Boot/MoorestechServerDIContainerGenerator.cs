@@ -41,6 +41,10 @@ using Game.Research;
 using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.SaveLoad.Json.WorldVersions;
+using Game.SaveLoad.Migration;
+using Game.SaveLoad.Migration.Steps;
+using Game.SaveLoad.Pruning;
 using Game.SaveLoad.Snapshot;
 using Game.SaveLoad.Writer;
 using Game.Train.Diagram;
@@ -266,6 +270,18 @@ namespace Server.Boot
             services.AddSingleton<WorldSaveCoordinator>();
             services.AddSingleton<IWorldSaveRequest>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
             services.AddSingleton<IWorldSaveCompletionNotifier>(provider => provider.GetRequiredService<WorldSaveCoordinator>());
+
+            // セーブの版変換・マスタ欠損の除去・世代付き保管はロードの前段として1本で組む
+            // Version migration, missing-master pruning and generational archiving form one pre-load stage
+            // 退避先はワールドのセーブファイルの隣。登録時に解決すると実セーブ領域をテストからも掴んでしまう
+            // The archives sit beside that world's save file; resolving at registration time would grab the real save area even from tests
+            services.AddSingleton(provider => SaveArchiveDirectory.FromWorldDataDirectory(provider.GetRequiredService<WorldDataDirectory>()));
+            services.AddSingleton<SaveArchiveWriter>();
+            services.AddSingleton(new SaveMigrationChain(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2() }, WorldSaveAllInfoV1.CurrentVersion));
+            services.AddSingleton<MissingMasterPruner>();
+            services.AddSingleton<MissingMasterPruneReportStore>();
+            services.AddSingleton<IMissingMasterPruneReportLookup>(provider => provider.GetRequiredService<MissingMasterPruneReportStore>());
+            services.AddSingleton<SaveLoadPreparer>();
 
             //イベントを登録
             // Register events.

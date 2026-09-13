@@ -72,6 +72,8 @@ namespace Tests.CombinedTest.Game
 
         // currentTick は値型なので欠損しても既定の0で通り、tickが無音で巻き戻ったまま再生が始まる
         // currentTick is a value type, so a missing field passes as the default 0 and replay starts from a silently rewound clock
+        // 欠損の補填はV1→V2ステップの仕事で、Loadは整った形だけを受ける。欠損が届いたら例外で止まる
+        // Backfilling is the V1-to-V2 step's job and Load only ever sees a prepared shape, so a missing field stops it with an exception
         [Test]
         public void currentTickが無いセーブは無音で0にせず落とす()
         {
@@ -81,11 +83,10 @@ namespace Tests.CombinedTest.Game
 
             var root = JObject.Parse(json);
             root.Remove("currentTick");
-            LogAssert.Expect(LogType.Error, new Regex("currentTick / randomState / miningCooldowns がありません"));
 
             var loader = provider.GetRequiredService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
-            var exception = Assert.Throws<InvalidOperationException>(() => loader.Load(root.ToString()));
-            StringAssert.Contains("migrate_block_state_objects.py", exception.Message);
+            Assert.Throws<InvalidOperationException>(() => loader.Load(root.ToString()));
+            Assert.AreEqual(555UL, GameUpdater.CurrentTick, "欠損したセーブのロードでtickが0へ巻き戻っている");
         }
 
         // クールダウンを保存しないと、ロード直後の再生が保存前の世界では拒否された採掘を通して発散する

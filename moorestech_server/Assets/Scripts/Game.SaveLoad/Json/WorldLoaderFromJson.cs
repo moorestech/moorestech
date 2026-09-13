@@ -18,6 +18,7 @@ using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json.WorldVersions;
+using Game.SaveLoad.Migration;
 using Game.Research;
 using Game.UnlockState;
 using Game.World.Interface.DataStore;
@@ -58,13 +59,15 @@ namespace Game.SaveLoad.Json
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
+        private readonly SaveLoadPreparer _saveLoadPreparer;
 
         public WorldLoaderFromJson(WorldDataDirectory worldDataDirectory,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, MapInfoJson mapInfoJson,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
             IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, RemainingPlacementCountDataStore remainingPlacementCountDataStore, ConstructionPayerDataStore constructionPayerDataStore, ItemStackLevelDataStore itemStackLevelDataStore,
-            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore)
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore,
+            SaveLoadPreparer saveLoadPreparer)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -89,6 +92,7 @@ namespace Game.SaveLoad.Json
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
             _miningCooldownDatastore = miningCooldownDatastore;
+            _saveLoadPreparer = saveLoadPreparer;
         }
         
         public void LoadOrInitialize()
@@ -96,9 +100,19 @@ namespace Game.SaveLoad.Json
             if (File.Exists(_worldDataDirectory.SaveJsonFilePath))
             {
                 var json = File.ReadAllText(_worldDataDirectory.SaveJsonFilePath);
+
+                // 版の変換とマスタ欠損の除去はロードの前段で終わらせる。Loadは整った形だけを受ける
+                // Version migration and missing-master pruning finish before load; Load only ever sees a prepared shape
+                var prepared = _saveLoadPreparer.Prepare(json);
+                if (!prepared.CanLoad)
+                {
+                    Debug.LogError($"セーブファイルパス {_worldDataDirectory.SaveJsonFilePath}");
+                    throw new Exception($"セーブファイルをロードできないため起動を中断しました。\n Reason : {prepared.BlockedReason}");
+                }
+
                 try
                 {
-                    Load(json);
+                    Load(prepared.SaveJsonText);
                     Debug.Log("セーブデータのロードが完了しました。");
                     return;
                 }
@@ -122,14 +136,8 @@ namespace Game.SaveLoad.Json
             
             // 時刻と乱数状態を最初に戻す。以降の復元（残りtick等）がこの時刻を基準にする
             // Restore the clock and random state first; later restorations reference this tick
-            // 欠損を通すとtickは0へ巻き戻り、乱数列もクールダウンも別物になる。いずれも無音で成立するので入口で弾く
-            // A missing field rewinds the tick to 0 and swaps the random stream or the cooldowns, all silently, so they are rejected here
-            if (!load.CurrentTick.HasValue || load.RandomState == null || load.MiningCooldowns == null)
-            {
-                var reason = $"セーブに currentTick / randomState / miningCooldowns がありません（currentTick:{load.CurrentTick.HasValue} randomState:{load.RandomState != null} miningCooldowns:{load.MiningCooldowns != null}）。scripts/save_migration/migrate_block_state_objects.py で移行してください";
-                Debug.LogError(reason);
-                throw new InvalidOperationException(reason);
-            }
+            // 3項目の欠損を弾くガードは置かない。補填はV1→V2ステップが担い、ここは整った形だけを受ける
+            // No guard rejects the three missing fields here; the V1-to-V2 step backfills them and this path only sees a prepared shape
             GameUpdater.RestoreCurrentTick(load.CurrentTick.Value);
             GameRandom.RestoreState(load.RandomState);
             
