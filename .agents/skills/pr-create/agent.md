@@ -73,16 +73,13 @@ Web変更で画像のコミットやGitHub上での参照確認ができない�
   - `git checkout -b` は使わない。worktreeを別ブランチへ移すとそのworktreeの用途（`treeN`常駐）が壊れるため
   - `treeN` 自体は巻き戻さない。作業ツリーのファイル状態を変えないことを優先する（次タスクでの巻き戻しは利用者の判断）
   - 以降 **PR_BRANCH = 新ブランチ名**。ステップ4のpush・`gh pr create` は `--head` でこのブランチを明示する
-- **例外2: 現在のブランチがベースブランチ（master等）の場合**: ベースブランチ自身をheadにはできないため新ブランチを切る。
+- **例外2: 現在のブランチがベースブランチ（master等）の場合**: ベースブランチ自身をheadにはできないため、例外1と同じ手順で新ブランチを切る。未コミットの変更があれば先にコミットし、そのHEADから新ブランチだけを作る（切り替えない）。
   ```bash
-  # 未pushコミットが乗っている場合: そのHEADから新ブランチを作り、ベースブランチは巻き戻す
-  git checkout -b <新ブランチ名>
-  git branch -f <BASE> origin/<BASE>
-
-  # 未コミットの変更だけの場合: 新ブランチへ移ってからコミットする
-  git checkout -b <新ブランチ名>
+  git branch <新ブランチ名> HEAD
   ```
-  以降 **PR_BRANCH = 新ブランチ名**。
+  - `git checkout -b` と `git branch -f <BASE> origin/<BASE>` は使わない。メインworktreeでは main-worktree-guard hook が `git checkout -b` を拒否し、`branch -f` はローカル参照の巻き戻しで破壊的なため
+  - ベースブランチのローカル参照は巻き戻さない（次回の pull が ff できなければ利用者の判断）
+  - 以降 **PR_BRANCH = 新ブランチ名**。ステップ4のpush・`gh pr create` は `--head` でこのブランチを明示する
 
 ブランチが決まったら:
 

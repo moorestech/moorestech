@@ -26,7 +26,7 @@ hooks:
 
 # pr-adjudicated-apply — 裁定結果のPR適用（無人実行）
 
-**このスキルは無人パイプラインの一部として動く。AskUserQuestionは使わない**（禁止事項参照）。
+**このスキルは無人パイプラインの一部として動く。AskUserQuestionは使わない**。
 ユーザーに確認を求めたくなった判断は、実装せずapply-result.jsonのsummaryへ記載して終える。
 
 ## 最重要: 無人起動でも「apply-result.json で終える」
@@ -54,19 +54,12 @@ apply向けpollerはidle検知を行わない（session/subagentsのtranscript�
 （apply専用worktreeからは兄弟symlink `../moorestech_logs` でも到達できるが、絶対パスで書くこと）、
 `$RUNDIR = $LOGS/harness/pr-independent-review/runs/pr-<番号>/`（再レビューが存在する場合は
 最大のrNを持つ `pr-<番号>-rN/` が最新run。最新runを使う）。
-`$LOGS` / `$RUNDIR` は本ドキュメント上のプレースホルダでありシェル変数ではない。
-コマンド・ファイルパスへ渡すときは必ず実値の絶対パスへ展開して書く。
-
 **$REPO（apply専用worktree）**: このSKILL.mdを実行しているセッションのリポジトリルート
 （`git rev-parse --show-toplevel` の出力。pollerはapplyスロットworktree — `~/moorestech-worktrees/pr-apply` /
 `pr-apply-2` 等のスロットプールから空きを1つ選ぶ — をcwdとして起動する。並列applyのためスロットは複数ある）。
-`$REPO` も実値の絶対パスへ展開して書く。
 
-このworktreeはapply専用であり、他セッションの作業物は存在しない前提で扱ってよい
-（メインクローンで走らせていた頃は、apply実行中に別セッションがブランチを切り替える事故が起きた。
-ユーザー裁定 2026-08-17）。したがって作業前の残骸は保全せず破棄する（Step 3）。
-一方、**ブランチのcheckoutは必ずdetachedで行う** — 同じブランチが他のworktreeでcheckout済みだと
-`fatal: '<branch>' is already used by worktree at ...` で失敗するため、ブランチ名を持たずに作業してpush時だけ名指す。
+`$LOGS` / `$RUNDIR` / `$REPO` は本ドキュメント上のプレースホルダでありシェル変数ではない。
+コマンド・ファイルパスへ渡すときは必ず実値の絶対パスへ展開して書く。
 
 この規律は本スキルのfrontmatter hooks（`pr-independent-review/scripts/unattended-gate.py`）が機械的に守らせる。
 起動プロンプトに `【無人起動】` がある場合に限り、`$RUNDIR/apply-result.json` も `abort.json` も無いまま
@@ -130,14 +123,16 @@ apply向けpollerはidle検知を行わない（session/subagentsのtranscript�
 対象findingが1件以上ある場合のみ実行する（Step 2で0件なら本Stepはスキップ）。
 
 1. **前回の残骸を無条件に破棄する**。ここはapply専用worktreeであり、他セッションの作業物は存在しない
-   （前回applyの未pushな変更・Unityが書いた痕跡しか残らず、どちらも残す価値がない）:
+   （前回applyの未pushな変更・Unityが書いた痕跡しか残らず、どちらも残す価値がない。メインクローンで
+   走らせていた頃はapply中に別セッションがブランチを切り替える事故が起きた。ユーザー裁定 2026-08-17）:
 
        git -C <$REPOの実値> checkout -- .
        git -C <$REPOの実値> clean -fd
 
    `clean -fd` に `-x` を付けてはならない — `Library/` はgitignoreされており、消すと再インポートに数十分かかる。
 2. PRのheadRefNameを取得する: `gh pr view <番号> --repo moorestech/moorestech --json headRefName,headRefOid`
-3. PRのheadをfetchし、**detachedでcheckoutする**（ブランチ名を作らない。他worktreeとの二重checkout衝突を避ける）:
+3. PRのheadをfetchし、**detachedでcheckoutする**。ブランチ名を作らずpush時だけ名指す — 同じブランチが
+   他worktreeでcheckout済みだと `fatal: '<branch>' is already used by worktree at ...` で失敗するため:
 
        git -C <$REPOの実値> fetch origin pull/<番号>/head && \
          git -C <$REPOの実値> checkout --detach FETCH_HEAD
@@ -174,16 +169,9 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 
 編集・新規作成したファイルのパスを `EDITED_PATHS` として控える（Step 6のadd対象がこれに限定されるため）。
 
-AGENTS.mdの規約を遵守する:
-
-- コメントは日本語→英語の2行セット（3〜10行ごと）、`#region Internal` はローカル関数用途限定
-- `partial` 禁止、`Func<>` 禁止、デフォルト引数禁止、単純getter/setterプロパティ禁止
-- 命名は実処理と一致させる、初期化メソッド名は `Initialize` 固定
-- イベント発火に `Action` を使わない（UniRx）
-
-修正がAGENTS.mdの規約と衝突する場合（例: recommendationがpartial化を示唆している等）は、
-規約を優先しrecommendationの意図を保ったまま規約準拠の形で実装する。それでも両立できない場合は
-その finding をStep 7のsummaryに「見送り: 規約と衝突」として記録し、実装しない。
+コーディング規約はAGENTS.mdに従う。修正がAGENTS.mdの規約と衝突する場合（例: recommendationがpartial化を
+示唆している等）は、規約を優先しrecommendationの意図を保ったまま規約準拠の形で実装する。それでも両立できない
+場合はその finding をStep 7のsummaryに「見送り: 規約と衝突」として記録し、実装しない。
 
 ## Step 5: 検証
 
@@ -192,26 +180,25 @@ AGENTS.mdの規約を遵守する:
 - 修正箇所に関連するテストを
   `cd <$REPOの実値> && uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "<関連regex>"`
   で実行する（`<関連regex>` は修正したクラス・機能に対応するテストクラス名から組み立てる）。
-  **`--test-mode EditMode` を省いてはならない** — uloopの既定は PlayMode であり、
-  ユニットテストのつもりで投げるとEditorがPlayModeへ入ったまま固着し、以後のuloopコマンドが全て180秒でタイムアウトする。
+  **`--test-mode EditMode` を省いてはならない** — 既定に依存してPlayModeで走るとEditorがPlayModeへ入ったまま固着し、
+  以後のuloopコマンドが全てタイムアウトする。
   固着したら `uloop control-play-mode --project-path ./moorestech_client --action stop` で解除してからやり直す
 - **反映 diff の再レビュー**: `EDITED_PATHS` にテスト以外のソースがあれば `git diff <PRのhead SHA> -- <EDITED_PATHS>` を `$RUNDIR/apply.diff` に書き、
   `moores-code-review/post-checks/applied-diff-correctness.md`（opus・5行契約、Patch path = apply.diff）を1体起動する（理由は同ファイル冒頭）。
   Critical は adopt の意図を保つ範囲で直して再検証、直せなければ push せず `status: "failure"`（summary に要約）。Warning/Info は summary へ1行ずつ
 - **コンパイルまたはテストが失敗し、かつStep 4の範囲内で直しきれない場合は、pushせず失敗として終了する**
   （apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
-- ドメインリロード中のエラー（「Unity is reloading」）はAGENTS.md記載どおり45秒待ってリトライする
 - Unityがこのworktreeで起動していなければ `cd <$REPOの実値> && uloop launch ./moorestech_client` で起動する
   （apply専用worktreeは常駐対象ではないため、接続できない状態から始まることがある。
-  `--project-path` は `launch` には無く位置引数で渡す。起動後 `uloop compile` が通るまで45秒間隔でリトライする）。
+  `--project-path` は `launch` には無く位置引数で渡す。起動後 `uloop compile` が通るまで45秒間隔でリトライする。
+  ドメインリロード中のエラー（「Unity is reloading」）も同じ45秒待ちでリトライする）。
   `Unity CLI Loop is not installed in this project` が出たら
   `moorestech_client/UserSettings/UnityMcpSettings.json` が無い状態。本来スロット配備時に固有ポートで
   設置済みのはずのファイルなので、メインクローンの同ファイルをコピーし `customPort` を
   **このスロット固有の値**（他worktreeの `UnityMcpSettings.json` と重複しない未使用ポート）へ書き換えてから起動し、
   復旧した事実と使用ポートをapply-result.jsonのsummaryに記載する
   — ポートを他worktreeと共有すると別プロジェクトのEditorへコマンドが飛ぶ
-- **テストの完了は必ずこのターン内で待ち切る**。7分かかっても待つ。
-  「実行を投げてターンを終える」は結果を捨てるのと同じである（冒頭の最重要事項を再読すること）
+- テストの完了は冒頭「最重要」のとおりこのターン内で待ち切る（7分かかっても待つ）
 
 ## Step 6: commit & push
 
@@ -222,9 +209,10 @@ AGENTS.mdの規約を遵守する:
   外部リビジョンピンは常駐Unityが数十秒ごとに書き換える）、全体addすると実行中に湧いた痕跡がPRのcommitへ混入する。
   コミットメッセージ末尾に必ず次を含める:
 
-      Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+      Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 
-- 全commit後、PRブランチへpushする: `git -C <$REPOの実値> push origin HEAD:<headRefName>`
+- 全commit後、PRブランチへpushする: `git -C <$REPOの実値> push origin HEAD:<headRefName>`。
+  **push先は常にPRのheadRefName**。`git push origin HEAD:master` 等のmasterへの直接pushは禁止
 - pushした各commitのSHAとsubjectを控えておく（Step 7の `pushed_commits` に使う）
 
 ## Step 7: 出力
@@ -240,20 +228,11 @@ AGENTS.mdの規約を遵守する:
     }
 
 **PRへのコメント投稿・ラベル操作は一切行わない**（poller側の責務）。
+`findings.json` / `adjudications.json` は入力として扱い書き換えない（出力は `apply-result.json` のみ）。
 
 ## Step 8: 後片付け（不要）
 
 apply専用worktreeで作業しているため、終了時の後片付けは行わない。失敗して未commitの変更が残っても、
 次回applyのStep 3手順1が無条件に破棄する。元ブランチへ戻す操作も不要（detachedのまま放置してよい）。
 
-**やってはいけないこと**: 後片付けのために `apply-result.json` を書く前へ手数を増やすこと。
-出力を書かずに死ぬ方がはるかに高くつく（冒頭「最重要: 無人起動でも『apply-result.json で終える』」参照）。
-
-## 禁止事項
-
-- **AskUserQuestionの使用禁止**（無人実行前提。判断に迷ったら実装せずapply-result.jsonのsummaryへ記載する）
-- **レビューのやり直し禁止**（findings.jsonの再収集・追加所見の指摘出しはpr-independent-reviewの責務であり、
-  本スキルはStep 2で触れないと決めたものを勝手に洗い直さない）
-- **`decision:"reject"` の指摘と新規発見の問題への変更禁止**（実装で触らない。Step 2参照）
-- **masterへの直接push禁止**（push先は常にPRのheadRefName。`git push origin HEAD:master` 等は行わない）
-- `findings.json` / `adjudications.json` は入力として扱い、書き換えない（出力は `apply-result.json` のみ）
+後片付けのために `apply-result.json` を書く前へ手数を増やさない（出力を書かずに死ぬ方がはるかに高くつく）。
