@@ -19,9 +19,20 @@ namespace Client.Game.InGame.BugReport.LastSession
             _identity = identity;
         }
 
+        // 起動ゲートから呼ばれるため、ここで例外を上へ投げるとゲートごと起動が壊れる。書けなかった場合はnullで理由をログに残す
+        // Called from the startup gate; letting an exception escape here would break the gate itself, so an unwritable box logs its reason and returns null
         public string Write(PreviousSessionArtifacts artifacts, string description)
         {
-            var directory = BugReportOutbox.CreateBundleDirectory(DateTime.UtcNow, Guid.NewGuid().ToString("N").Substring(0, 8));
+            string directory;
+            try
+            {
+                directory = BugReportOutbox.CreateBundleDirectory(DateTime.UtcNow, Guid.NewGuid().ToString("N").Substring(0, 8));
+            }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+            {
+                Debug.LogError($"前回異常終了の箱の置き場を作れませんでした: {e.Message}");
+                return null;
+            }
 
             // build-info.json はビルドにしか焼かれない。Editorで読みに行くと不在の警告だけが出る（ADR 0059の唯一の読み手を共有する）
             // build-info.json is baked only into builds; reading it in the Editor only logs an absence warning (sharing ADR 0059's single reader)
@@ -37,13 +48,36 @@ namespace Client.Game.InGame.BugReport.LastSession
                 Missing = new List<MissingItem>(artifacts.Missing),
             };
 
-            CopyTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName));
-            CopySnapshots(artifacts.SnapshotsDirectory, directory, manifest);
-            CopyFileInto(artifacts.PlayerLogPath, Path.Combine(directory, BugReportBundleLayout.LogsDirectoryName));
-            foreach (var dump in artifacts.CrashDumpFiles) CopyFileInto(dump, Path.Combine(directory, BugReportBundleLayout.CrashDumpsDirectoryName));
+            // ディスクは外部資源。1項目の失敗で他の退避物まで巻き添えにしないよう項目ごとに隔離し、理由はmanifestと開発者ログの両方へ残す
+            // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
+            try { CopyTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName)); }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RecordingDirectoryName, $"コピーに失敗した: {e.Message}"); }
 
-            File.WriteAllText(Path.Combine(directory, BugReportBundleLayout.ManifestFileName), manifest.ToJson());
-            BugReportOutbox.MarkReady(directory);
+            try { CopySnapshots(artifacts.SnapshotsDirectory, directory, manifest); }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.SnapshotDirectoryName, $"コピーに失敗した: {e.Message}"); }
+
+            try { CopyFileInto(artifacts.PlayerLogPath, Path.Combine(directory, BugReportBundleLayout.LogsDirectoryName)); }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"コピーに失敗した: {e.Message}"); }
+
+            foreach (var dump in artifacts.CrashDumpFiles)
+            {
+                try { CopyFileInto(dump, Path.Combine(directory, BugReportBundleLayout.CrashDumpsDirectoryName)); }
+                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.CrashDumpsDirectoryName, $"コピーに失敗した: {e.Message}"); }
+            }
+
+            // manifestとREADYの書き出しも外部境界。ここが失敗した箱は運搬されないため、書けなかったことをログへ残しnullで返す
+            // Writing the manifest and READY is an external boundary too; a box that fails here is never shipped, so the failure is logged and null is returned
+            try
+            {
+                File.WriteAllText(Path.Combine(directory, BugReportBundleLayout.ManifestFileName), manifest.ToJson());
+                BugReportOutbox.MarkReady(directory);
+            }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+            {
+                Debug.LogError($"前回異常終了の箱のmanifestを書けませんでした（この箱は運搬されません） {directory}: {e.Message}");
+                return null;
+            }
+
             Debug.Log($"前回異常終了の箱を書きました {directory} missing:{manifest.Missing.Count}");
             return directory;
         }
