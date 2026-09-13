@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
@@ -27,14 +28,30 @@ namespace Client.Game.InGame.BugReport
     {
         public const long UntrackedBytesLimit = 20L * 1024 * 1024;
 
+        private readonly IPlaytestSessionIdentity _identity;
+
+        public BugReportBundleWriter(IPlaytestSessionIdentity identity)
+        {
+            _identity = identity;
+        }
+
         public async UniTask<BugReportBundleResult> WriteAsync(BugReportCapturedData data, string description, string kind)
         {
             var directory = BugReportOutbox.CreateBundleDirectory(DateTime.UtcNow, Guid.NewGuid().ToString("N").Substring(0, 8));
+
+            // Applicationのパス系はメインスレッドでしか読めないため、焼き込み情報とリポジトリの場所はここで先に読む
+            // Application's path APIs are main-thread only, so the baked build info and repository roots are read here first
+            var buildInfo = Application.isEditor ? null : RepositoryStateProbe.ReadBuildInfo();
+            var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
+            var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
+
             var manifest = new BugReportManifest
             {
                 CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture),
                 Description = description,
                 Kind = kind,
+                SteamId = _identity.SteamId,
+                BuildInfo = buildInfo,
                 Platform = Application.platform.ToString(),
                 IsEditor = Application.isEditor,
                 ReportTick = data.ReportTick,
@@ -42,11 +59,9 @@ namespace Client.Game.InGame.BugReport
                 Missing = new List<MissingItem>(data.Missing),
             };
 
-            // Applicationのパス系はメインスレッドでしか読めないため、焼き込み情報とリポジトリの場所はここで先に読む
-            // Application's path APIs are main-thread only, so the baked build info and repository roots are read here first
-            var buildInfo = Application.isEditor ? null : RepositoryStateProbe.ReadBuildInfo();
-            var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
-            var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
+            // 既存消費側（BugReportRepositoryFiles）向けの射影。Editorではnullのまま渡し、従来どおりgit probe側の分岐へ通す
+            // Projection for the existing consumer (BugReportRepositoryFiles); stays null in the Editor to keep taking the git-probe branch as before
+            var buildInfoForFiles = Application.isEditor ? null : BuildInfoJson.ToBugReportBuildInfo(buildInfo);
 
             // ファイルコピーと ffmpeg はメインスレッドを塞がないようスレッドプールで行う
             // File copies and ffmpeg run on the thread pool so the main thread never blocks
@@ -63,7 +78,7 @@ namespace Client.Game.InGame.BugReport
                 try { WriteFrameTicks(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.FrameTicksFileName, $"書き出しに失敗した: {e.Message}"); }
                 try { WriteLogs(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"書き出しに失敗した: {e.Message}"); }
                 try { CopyScreenshot(data, directory, manifest); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("screenshot", $"コピーに失敗した: {e.Message}"); }
-                BugReportRepositoryFiles.Write(directory, manifest, buildInfo, repositoryRoot, masterDataRoot);
+                BugReportRepositoryFiles.Write(directory, manifest, buildInfoForFiles, repositoryRoot, masterDataRoot);
                 ServerDataLocation.Record(data.ServerDataDirectory, manifest, repositoryRoot, masterDataRoot);
             });
 

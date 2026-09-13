@@ -28,6 +28,11 @@ namespace Client.Game.InGame.BugReport
         // プレイ報告の種別。取り込み側は bug のときだけ自動修正ランを起動する（ADR 0058）
         // The report kind; the ingest side starts an auto-fix run only for bug (ADR 0058)
         public string Kind;
+
+        // 送り手のSteamIDと配布ビルドの出所。Steam未起動なら空文字、Editorなら buildInfo は null（shared-contracts §2）
+        // The sender's SteamID and the build origin; empty string without Steam, and null buildInfo in the Editor (shared-contracts §2)
+        public string SteamId;
+        public BuildInfo BuildInfo;
         public string Platform;
         public bool IsEditor;
         public ulong ReportTick;

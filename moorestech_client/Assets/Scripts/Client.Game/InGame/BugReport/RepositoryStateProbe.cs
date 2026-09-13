@@ -97,29 +97,19 @@ namespace Client.Game.InGame.BugReport
             return false;
         }
 
-        public static BugReportBuildInfo ReadBuildInfo()
+        // build-info.json を読む唯一の実装（ADR 0059）。manifest.buildInfo 用の BuildInfo を返し、
+        // 不在時はログへ理由を残してnullを返す。パースと既存消費側への射影は BuildInfoJson へ委譲する（本ファイルの行数分割）
+        // The sole implementation reading build-info.json (ADR 0059); logs why and returns null when the file is absent.
+        // Parsing and projection for existing consumers live in BuildInfoJson (kept out of this file to stay under the line limit)
+        public static BuildInfo ReadBuildInfo()
         {
             var path = Path.Combine(Application.streamingAssetsPath, BuildInfoFileName);
             if (!File.Exists(path))
             {
-                Debug.LogWarning($"build-info.json が無いためリポジトリ状態は不明です path:{path}");
-                return new BugReportBuildInfo { Repository = new RepositoryState { Commit = "", Branch = "", Dirty = false } };
+                Debug.LogWarning($"build-info.json が無いため buildInfo は null になります path:{path}");
+                return null;
             }
-
-            var json = JObject.Parse(File.ReadAllText(path));
-            var repository = new RepositoryState { Commit = (string)json["commit"], Branch = (string)json["branch"], Dirty = (bool)json["dirty"] };
-
-            // マスタを焼いていないビルドもあるため、masterCommit が読めたときだけマスタの状態を名乗る
-            // Some builds bake no master, so the master state is claimed only when masterCommit was actually readable
-            var masterCommit = (string)json["masterCommit"];
-            if (string.IsNullOrEmpty(masterCommit))
-            {
-                Debug.LogWarning($"build-info.json に masterCommit が無いためマスタデータのリポジトリ状態は不明です path:{path}");
-                return new BugReportBuildInfo { Repository = repository };
-            }
-
-            var masterData = new RepositoryState { Commit = masterCommit, Branch = "", Dirty = (bool?)json["masterDirty"] ?? false };
-            return new BugReportBuildInfo { Repository = repository, MasterData = masterData };
+            return BuildInfoJson.Parse(File.ReadAllText(path));
         }
 
         // ビルド時に焼き込む内容を組み立てる。Editorアセンブリを参照できないテストからも検証できるようここに置く

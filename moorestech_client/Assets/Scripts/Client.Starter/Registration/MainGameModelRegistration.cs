@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Context;
@@ -47,6 +48,10 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
             builder.RegisterEntryPoint<CleanExitMarkWriter>();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
+
+            // plan D の Steam 認証が入るまでは空のSteamIDで動かす（登録の差し替えだけで切り替わる）
+            // Runs with an empty SteamID until plan D's Steam auth arrives; swapping this registration is the whole switch
+            builder.Register<IPlaytestSessionIdentity, EmptyPlaytestSessionIdentity>(Lifetime.Singleton);
             builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
             builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
