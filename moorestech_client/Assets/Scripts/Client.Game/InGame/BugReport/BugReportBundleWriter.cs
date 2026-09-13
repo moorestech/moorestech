@@ -27,13 +27,14 @@ namespace Client.Game.InGame.BugReport
     {
         public const long UntrackedBytesLimit = 20L * 1024 * 1024;
 
-        public async UniTask<BugReportBundleResult> WriteAsync(BugReportCapturedData data, string description)
+        public async UniTask<BugReportBundleResult> WriteAsync(BugReportCapturedData data, string description, string kind)
         {
             var directory = BugReportOutbox.CreateBundleDirectory(DateTime.UtcNow, Guid.NewGuid().ToString("N").Substring(0, 8));
             var manifest = new BugReportManifest
             {
                 CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture),
                 Description = description,
+                Kind = kind,
                 Platform = Application.platform.ToString(),
                 IsEditor = Application.isEditor,
                 ReportTick = data.ReportTick,

@@ -1,5 +1,6 @@
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -32,12 +33,21 @@ namespace Client.WebUiHost.Game.Actions
                 return ActionResult.Fail("empty_description");
             }
 
+            // 種別は webui のトグルが必ず載せる。載っていない・範囲外は壊れた要求として拒否する
+            // The webui toggle always sends a kind; a missing or out-of-range value is a broken request
+            var kind = payload?["kind"]?.ToString() ?? "";
+            if (!PlaytestReportKind.IsSubmittableFromPauseMenu(kind))
+            {
+                Debug.LogWarning($"プレイ報告の種別が不正なため送信しません kind:{kind}");
+                return ActionResult.Fail("invalid_kind");
+            }
+
             // 確保中・確保なし・二重送信の判定は確保セッションが持つ。ここで再実装すると判定の権威が2つになる
             // The capture session owns the pending / no-session / double-send decision; re-implementing it here would create a second authority
             var ticket = _session.TryBeginSubmit();
             if (!ticket.Allowed) return ActionResult.Fail(ticket.RefusedCode);
 
-            var result = await _writer.WriteAsync(ticket.Data, description);
+            var result = await _writer.WriteAsync(ticket.Data, description, kind);
 
             // 書き出しで判明した欠損は確保状態へ戻す。戻さないと報告者は欠けたまま送ったことを知る機会が無い
             // Missing items found while writing go back into the capture state; otherwise the reporter never learns what was dropped

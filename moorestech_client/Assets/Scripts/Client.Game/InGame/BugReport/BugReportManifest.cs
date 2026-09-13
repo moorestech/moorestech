@@ -24,6 +24,10 @@ namespace Client.Game.InGame.BugReport
         public int SchemaVersion = 2;
         public string CreatedAt;
         public string Description;
+
+        // プレイ報告の種別。取り込み側は bug のときだけ自動修正ランを起動する（ADR 0058）
+        // The report kind; the ingest side starts an auto-fix run only for bug (ADR 0058)
+        public string Kind;
         public string Platform;
         public bool IsEditor;
         public ulong ReportTick;
