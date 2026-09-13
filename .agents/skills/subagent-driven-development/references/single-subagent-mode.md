@@ -37,23 +37,3 @@ SKILL.md「単一subagent実装モード」の手順詳細・継続再派遣・f
 - 完了時 `Single-subagent: complete (commits <base7>..<head7>)`
 
 復旧順は **台帳 → 元subagentの生存確認（ListAgents） → 報告ファイル → `git log`**。台帳に `dispatched` があって `complete` が無ければ、subagentが走っているか途中終了している — **継続派遣の前に ListAgents 等で元subagentの生存を確認し、生きていれば結果を待つ**（compaction後も subagent は生存しており、死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）。不在または報告済みなら、報告ファイルの `Task N: done` 行と `git log` で完了タスクを確定する。完了タスクが `[TASK_RANGE]` を全て覆っていれば再派遣せず、完了行を台帳に補記して最終ブランチ全体レビューへ進む。覆っていなければ継続再派遣する。
-
-## ワークフロー例
-
-```
-You: 実装4タスク・5ファイル → 単一subagent。worktreeを作成し事前計画レビューを通しました。
-
-[sdd-workspace で報告パスを確保、BASE=ab12cd3 を台帳に記帳]
-[single-implementer-prompt.md で model: opus をフォアグラウンド派遣]
-
-Implementer:
-  - Task 1〜4 を順に実装、タスクごとにコミット（4コミット）
-  - 報告ファイルに Task N: done <sha> を4行追記
-  - 12/12 tests passing、自己レビュー: 問題なし
-  - ステータス: DONE
-
-[報告ファイルの Task 1〜4: done 行が git log と一致することを確認]
-[台帳に complete 行を記帳]
-[moores-code-review を Skill ツールで実行 → 所見2件 → 単一fix subagent(opus)へ]
-[pr-create で PR 作成]
-```

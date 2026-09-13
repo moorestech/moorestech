@@ -8,7 +8,6 @@ description: 現在のセッションで、独立したタスクからなる実�
 実装計画を、本体セッションが実装コードを書かずに完走させる。規模ゲート未満はopus固定の単一subagentが計画全体を実装し（**単一subagent実装モード**）、閾値超はタスクごとにimplementerを派遣してタスクレビューを挟む（**SDD本体**）。どちらも最後に moores-code-review → pr-create で閉じる。
 
 - **核となる原則:** 本体は実装を書かない。subagentにはセッション履歴を継承させず、必要なコンテキストだけをファイルで渡す。本体コンテキストは調整作業のために温存する
-- **ナレーション:** ツール呼び出しの間は最大1行。台帳とツール結果が記録を担う
 - **継続実行:** タスクの合間に「続けてよいですか？」と確認しない。止まってよいのは解決できないBLOCKED・真に進行を妨げる曖昧さ・全タスク完了のみ
 
 ## 必須ゲート（3つ）
@@ -112,4 +111,4 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 - 派遣テンプレ: [single-implementer-prompt.md](single-implementer-prompt.md) / [implementer-prompt.md](implementer-prompt.md) / [task-reviewer-prompt.md](task-reviewer-prompt.md)。定型は [implementer-contract.md](implementer-contract.md) / [task-reviewer-contract.md](task-reviewer-contract.md) をsubagentが自分で読む
 - scripts: `sdd-workspace`（作業ディレクトリ解決）/ `task-brief`（タスク抽出）/ `review-package`（diff束ね）
-- references: workspace-isolation.md / controller-gates.md / single-subagent-mode.md / per-task-mode.md / background.md（根拠・図解・利点とコスト・関連スキル）
+- references: workspace-isolation.md / controller-gates.md / single-subagent-mode.md / per-task-mode.md / background.md（根拠・関連スキル）
