@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button, Stack, Text } from "@mantine/core";
 import { dispatchAction } from "@/bridge";
 import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
+import styles from "./style.module.css";
 
 // 応答待ちと失敗をテスターに見せるための状態。成功は待機解除でゲートごと消える
 // The state that shows a pending response and a failure to the tester; success removes the gate itself
@@ -38,7 +39,7 @@ export function PlaytestConsentGateBody() {
 
   return (
     <Stack align="center" gap="md">
-      <Text c="white" data-testid="playtest-consent-body">{body}</Text>
+      <Text c="white" ta="center" className={styles.body} data-testid="playtest-consent-body">{body}</Text>
       <Button size="xl" disabled={acknowledgeState === "pending"} onClick={() => void acknowledge()} data-testid="playtest-consent-agree">
         {agreeLabel}
       </Button>

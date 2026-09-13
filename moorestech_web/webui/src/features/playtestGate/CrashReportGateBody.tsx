@@ -42,7 +42,7 @@ export function CrashReportGateBody() {
 
   return (
     <Stack align="center" gap="md">
-      <Text c="white">{body}</Text>
+      <Text c="white" ta="center" className={styles.body}>{body}</Text>
       <textarea
         className={styles.description}
         value={description}

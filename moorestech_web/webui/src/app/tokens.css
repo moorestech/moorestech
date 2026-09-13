@@ -154,6 +154,9 @@
   /* The previous-crash gate's textarea; wider than the pause-menu one since it sits full-screen, with four lines as fixed lengths */
   --playtest-gate-textarea-width: 480px;
   --playtest-gate-textarea-height: 96px;
+  /* 同意ゲート・確認ゲート本文の最大幅。無制約だと画面端まで達し左右の文字が余白ゼロで接触する */
+  /* Max width for the consent/crash gate body text; unconstrained it reaches the screen edge with zero side margin */
+  --playtest-gate-body-width: 900px;
   /* HUD面の安全帯。フェード帯を超える余白で、チャレンジHUDの面幅導出とも共有する */
   /* HUD face safe area: padding wider than the fade band, shared with the challenge HUD's width derivation */
   --hud-panel-padding: 14px;

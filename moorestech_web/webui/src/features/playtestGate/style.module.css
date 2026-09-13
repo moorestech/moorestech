@@ -1,3 +1,9 @@
+/* 本文の最大幅。無制約だと画面端まで達し左右の文字が余白ゼロで接触する（同意/確認ゲート共通） */
+/* Max width for the body text; unconstrained it reaches the screen edge with zero side margin (shared by both gates) */
+.body {
+  max-width: var(--playtest-gate-body-width);
+}
+
 /* 記述欄はポーズメニューのバグ報告欄と同じ様式（§8.9の検索入力族）。寸法だけゲート用の固定長を持つ */
 /* The textarea follows the pause menu's bug-report field (the §8.9 search-input family); only its fixed dimensions differ */
 .description {
