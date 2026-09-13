@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -54,7 +55,11 @@ namespace Client.Game.InGame.BugReport
 
             // マスタを焼いていないビルドもあるため、masterCommit が読めたときだけマスタの状態を名乗る
             // Some builds bake no master, so the master state is claimed only when masterCommit was actually readable
-            if (string.IsNullOrEmpty(buildInfo.MasterDataCommit)) return new BugReportBuildInfo { Repository = repository };
+            if (string.IsNullOrEmpty(buildInfo.MasterDataCommit))
+            {
+                Debug.LogWarning($"build-info.json に masterCommit が無いためマスタデータのリポジトリ状態は不明です path:{Path.Combine(Application.streamingAssetsPath, RepositoryStateProbe.BuildInfoFileName)}");
+                return new BugReportBuildInfo { Repository = repository };
+            }
 
             var masterData = new RepositoryState { Commit = buildInfo.MasterDataCommit, Branch = "", Dirty = buildInfo.MasterDataDirty };
             return new BugReportBuildInfo { Repository = repository, MasterData = masterData };
