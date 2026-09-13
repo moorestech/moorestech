@@ -5,15 +5,22 @@ import { useState } from "react";
 import { dispatchAction, readTopic, Topics, type PauseMenuData } from "@/bridge";
 import { emitToast } from "@/features/toast";
 import { L, useI18n } from "@/shared/i18n";
+import { ModeSwitch } from "@/shared/ui";
 import styles from "./style.module.css";
 
 type Props = {
   status: PauseMenuData["bugReport"];
 };
 
+// 契約値はC#の PlaytestReportKind と同じ文字列。既定はバグ（ADR 0058）
+// The contract strings match C#'s PlaytestReportKind; bug is the default (ADR 0058)
+const KindBug = "bug";
+const KindFeedback = "feedback";
+
 export function BugReportForm({ status }: Props) {
   const { t } = useI18n();
   const [description, setDescription] = useState("");
+  const [kind, setKind] = useState<string>(KindBug);
   const [sending, setSending] = useState(false);
 
   const trimmedDescription = description.trim();
@@ -29,7 +36,7 @@ export function BugReportForm({ status }: Props) {
     setSending(true);
     // 失敗時のトーストは dispatchAction が出すため、ここでは書き出し成功だけを伝える
     // dispatchAction toasts the failure itself, so this path only reports a successful write
-    const ok = await dispatchAction("bug_report.submit", { description: trimmedDescription });
+    const ok = await dispatchAction("bug_report.submit", { description: trimmedDescription, kind });
     setSending(false);
     if (!ok) return;
 
@@ -45,6 +52,16 @@ export function BugReportForm({ status }: Props) {
 
   return (
     <>
+      <span className={styles.status}>{t(L.ui.playtest.reportKind.label)}</span>
+      <ModeSwitch
+        value={kind}
+        options={[
+          { value: KindBug, label: t(L.ui.playtest.reportKind.bug), testId: "bug-report-kind-bug" },
+          { value: KindFeedback, label: t(L.ui.playtest.reportKind.feedback), testId: "bug-report-kind-feedback" },
+        ]}
+        onChange={setKind}
+        testId="bug-report-kind"
+      />
       <textarea
         className={styles.description}
         value={description}

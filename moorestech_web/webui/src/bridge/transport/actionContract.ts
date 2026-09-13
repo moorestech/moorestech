@@ -54,7 +54,7 @@ export type ActionPayloads = {
   "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
   "pause_menu.save": Record<string, never>;
   "pause_menu.save_and_quit": Record<string, never>;
-  "bug_report.submit": { description: string };
+  "bug_report.submit": { description: string; kind: string };
   "localization.setLocale": { locale: string };
   "event_mode.select_language": { locale: string };
   "research.complete": { researchGuid: string };
