@@ -10,6 +10,10 @@ namespace Client.Tests.BugReport
 {
     public class VideoAssemblerTest
     {
+        // 10fpsで2秒ぶん。結合後の実尺が区間長より短いことを見るのに足りる最小の本数
+        // Two seconds at 10fps: the smallest count that shows the concatenated duration is under one segment
+        private const int FrameCount = 20;
+
         [Test]
         public void 生フレームから作った区間を結合しフレームを抜ける()
         {
@@ -18,15 +22,15 @@ namespace Client.Tests.BugReport
             var dir = Path.Combine(Path.GetTempPath(), $"moorestech-video-{Guid.NewGuid():N}");
             Directory.CreateDirectory(dir);
 
-            // 2秒ぶんの単色フレームを流して区間ファイルを作る
-            // Feed two seconds of solid frames to produce segment files
-            var framePool = new FrameBufferPool(2, 64 * 36 * 4);
+            // 2秒ぶんの単色フレームを流して区間ファイルを作る。本番と違い間隔を空けないのでバッファは本数分持つ
+            // Feed two seconds of solid frames; unlike production this loop has no gap, so the pool holds one per frame
+            var framePool = new FrameBufferPool(FrameCount, 64 * 36 * 4);
             var recorder = FfmpegProcess.StartSegmentRecorder(ffmpeg, dir, 64, 36, 10, false, framePool);
-            for (var i = 0; i < 20; i++)
+            for (var i = 0; i < FrameCount; i++)
             {
-                // バッファは書き終えた時点でプールへ返るので、借り直しながら流す
-                // Buffers come back to the pool once written, so each frame borrows one again
-                Assert.IsTrue(framePool.TryRent(out var frame), "書き込みが追いつかずバッファが返ってこない");
+                // バッファはプールから借りて渡す。書き終えた時点でプールへ返る
+                // Each frame borrows a buffer from the pool and it returns once written
+                Assert.IsTrue(framePool.TryRent(out var frame), "プールのバッファが足りない");
                 for (var pixel = 0; pixel < frame.Length; pixel += 4) { frame[pixel] = 200; frame[pixel + 3] = 255; }
                 recorder.WriteFrame(frame);
             }
