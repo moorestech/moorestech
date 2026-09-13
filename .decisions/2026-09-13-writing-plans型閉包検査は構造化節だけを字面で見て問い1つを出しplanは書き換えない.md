@@ -8,7 +8,7 @@ writing-plans（spec-architecture-review 部）に Phase 2.6「型閉包・重�
 2. 「既存に同役割の判定がある」発見は **第3バケツ「本PR外のリファクタ提案」** としてレビュー依頼文で人間に渡す。plan のタスクにはしない。
 3. 発火条件は **数えられる字面パターン**に限定する（`references/type-closure-patterns.md` の表）。表に無い形を「悪そう」で足さない。
 4. 検査対象は plan の **構造化6節**（Files / Interfaces / Produces・Consumes / 配置表 / コードブロック / 判断記録・やらないこと）のみ。散文節は読まない。
-5. 出力は **人間への問い1つ**（AskUserQuestion）に留め、plan は書き換えない。「このままでよい」も判断記録に残す。
+5. 出力は **人間への問い**（AskUserQuestion）に留め、plan は書き換えない。「このままでよい」も判断記録に残す。同日追記: 実走評価で発火が plan 100行あたり約1件になったため、同じ行の複数箇所は1問にまとめ、実績のある「強」行だけ個別に問い、「弱」行は plan 全体で1問にまとめる（表の「出力の畳み方」）。
 6. 「plan は正しかったが実装が逸脱した」分（照合63件中8件）は writing-plans ではなく **SDD task-reviewer-contract の射程**。別PRで「plan の Interfaces と実装の型差分」を1行足す。
 
 ## 棄却案
@@ -22,6 +22,6 @@ writing-plans（spec-architecture-review 部）に Phase 2.6「型閉包・重�
 
 ## リンク
 - 引き継ぎ: `docs/superpowers/plans/2026-09-13-計画プロセス系スキル剪定と-writing-plans-再設計-検討引き継ぎ.md`（論点1〜3）
-- 分類・照合原本: `moorestech_logs/harness/writing-plans-extension/`
+- 分類・照合原本: `moorestech_logs/harness/writing-plans-extension/`（実走評価: 同 `phase26-eval-2026-09-13/`）
 - 継承した規律: spec-architecture-review「迷ったら ok に倒し、注目点として書く」
 - bd: moorestech-kpb1

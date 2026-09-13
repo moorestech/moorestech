@@ -52,4 +52,5 @@
 ## 型閉包検査（Phase 2.6・#T1）
 
 - **#T1 2026-09-13**: pr-independent-review の採用済み critical 239件（72 run）を分類したところ、plan 段階で防げる候補が146件（61%）で、最大群は層配置ではなく「型で閉じていない」設計63件（不在・数値を合図に使う／3状態を bool に畳む／前提の転写／読み書き未分離）だった。その63件を plan 本文と照合すると、35件は plan 自身が欠陥形を書いており、13件は plan が型を指定せず実装者に委ねていた（8件は plan が正しく実装が逸脱、7件は plan 無し）。発火点はすべて Interfaces／Produces／配置表／コードブロック／判断記録の語彙パターンで、63件中52件は字面で数えられた。既存の検査1（層配置）が覆っていたのは層越境の5件分だけ。この結果が `references/type-closure-patterns.md` の A〜I（検査5）・検査6・検査7 の出所。分類と照合の原本: `moorestech_logs/harness/writing-plans-extension/critical-classification-2026-09-13.md`・`x-pass2-2026-09-13.md`。
+- **#T2 2026-09-13**: 表を fresh-context subagent に14 plan（表の出所7本＋未使用7本）で実走させた。未使用7本で既知の plan 由来指摘10件を全て拾ったが、発火は plan 100行あたり約1件で 2300 行級 plan では21件になった。行の削除では解けない（各行が verdict 由来）ので、同じ行の複数箇所を1問に畳み・テストコードを除外し・実績のある行だけ個別に問う形にした。原本: `moorestech_logs/harness/writing-plans-extension/phase26-eval-2026-09-13/`。
 - 検査5〜7を「修正せず問いを出す」形にしたのは、spec-architecture-review の「迷ったら ok」規律の継承。実装レビューで採用されていた重複指摘（財布判断6か所・鉱脈判定セル導出3か所・歯車役割判定のサーバー／クライアント二重）を plan 段階の1問に前倒しするのが狙いで、新しい検出力を足すことではない。
