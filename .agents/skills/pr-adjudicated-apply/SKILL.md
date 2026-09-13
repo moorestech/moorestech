@@ -4,7 +4,7 @@ description: |
   人間の裁定結果（adjudications.json）に基づき、pr-independent-reviewが出力したfindings.jsonのうち
   reject以外の裁定（案キーA〜F・other）が付いた指摘だけをPRブランチへ実装・検証・pushする無人実行スキル。PR番号を受け取り、
   apply専用worktreeでPRのheadをdetached checkoutして修正し、コンパイル・関連テストで検証してからpushする。
-  checkout後は修正前にsubagentを無条件発火してmasterとのコンフリクトを検査し、あれば逆マージで事前解消する。
+  checkout後は merge-tree で衝突を検知し、衝突がある場合のみ subagent で事前解消する。
   裁定未完了時は即座にfailureとして終了し、却下された指摘・新規発見の問題には一切触れない。
   Use When:
   1. 「/pr-adjudicated-apply <PR番号>」で起動された時
@@ -140,13 +140,20 @@ apply向けpollerはidle検知を行わない（session/subagentsのtranscript�
 4. checkout後、`git -C <$REPOの実値> rev-parse HEAD` が手順2の `headRefOid` と一致することを確認する。
    不一致なら即座に失敗として終了し、理由をsummaryに記す
 
-## Step 3.5: masterコンフリクト事前解消（subagent委譲・無条件発火）
+## Step 3.5: masterコンフリクト事前解消（merge-tree検知・衝突時のみsubagent）
 
-checkout成功後、修正実装に入る前に、**コンフリクトの有無を自分で調べず**、必ずsubagentを1体発火して委譲する
-（メインのコンテキストをコンフリクト詳細で消費しないため。`git merge-tree` やdiffでの予備調査も行わない）。
+checkout成功後、修正実装に入る前に、本体が衝突の有無だけを機械判定する
+（ユーザー裁定 2026-09-13。`.decisions/2026-09-13-applyの衝突検知はmerge-treeで本体が行いsubagentは衝突時のみ起動する.md`）:
 
-`references/conflict-preflight-agent.md` をReadし、`{{REPO}}`・`{{HEAD_REF_NAME}}`・`{{PR_NUMBER}}` を
-実値に置換して、Agentツール（`model: "opus"`）のプロンプトとして丸ごと渡す。
+    python3 <$REPOの実値>/.agents/skills/pr-adjudicated-apply/scripts/conflict_precheck.py --repo <$REPOの実値>
+
+stdoutのJSON（`conflict` / `files` / `mechanical_only`）と exit code で分岐する:
+
+- **exit 0（衝突なし）** → subagentを起動せず、そのままStep 4へ進む
+- **exit 1（衝突あり）** → `references/conflict-preflight-agent.md` をReadし、`{{REPO}}`・`{{HEAD_REF_NAME}}`・`{{PR_NUMBER}}` を
+  実値に置換して、Agentツール（`model: "opus"`）のプロンプトとして丸ごと渡す。`mechanical_only` が `true` なら
+  プロンプト末尾に「衝突は機械的解消ファイルのみ。表のとおり解消して『解消済み』を返すこと」を1行足す
+- **exit 2（git失敗）** → 失敗として終了する（summaryにstderrを記載）
 
 subagentの報告（コンフリクトなし／解消済み／解消不能）への後続処理:
 
