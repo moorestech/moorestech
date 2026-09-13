@@ -7,11 +7,13 @@ namespace Client.Tests.BugReport
 {
     public class FfmpegLocatorTest
     {
+        // ffmpegを積んでいない環境（CIコンテナ等）では検証対象そのものが無い。録画が要る開発機だけで実パスの実在を見る
+        // Where ffmpeg is not installed (a CI container, say) there is nothing to verify; only a dev machine that needs recording checks the located path exists
         [Test]
-        public void この開発機ではffmpegが見つかる()
+        public void ffmpegのある環境では実在するパスを返す()
         {
             var path = FfmpegLocator.Find();
-            Assert.IsNotNull(path, "ffmpeg が見つからない（brew install ffmpeg）");
+            if (path == null) Assert.Ignore("ffmpeg が無い環境のためスキップ（開発機では brew install ffmpeg）");
             Assert.IsTrue(File.Exists(path));
         }
 

@@ -142,10 +142,12 @@ namespace Client.Game.InGame.BugReport
         {
             // quotepathを切らないと非ASCIIのパスが\xxx形式へ化け、未追跡ファイルのコピー元を見失う
             // Without disabling quotepath, non-ASCII paths come back escaped and the untracked copy loses its source
+            // 所有者が実行ユーザーと違うだけでgitはdubious ownershipで全問い合わせを拒む。読み取り専用の問い合わせに所有者判定は要らない
+            // Differing directory ownership alone makes git refuse every query as dubious; these read-only queries need no ownership check
             var startInfo = new ProcessStartInfo
             {
                 FileName = "git",
-                Arguments = "-c core.quotepath=false " + arguments,
+                Arguments = $"-c core.quotepath=false -c \"safe.directory={workingDirectory}\" " + arguments,
                 WorkingDirectory = workingDirectory,
                 UseShellExecute = false,
                 RedirectStandardOutput = true,

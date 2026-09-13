@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace Game.MapGeneration.Export
+namespace Game.MapGeneration.Transfer
 {
     // world.jsonのDTO。生成時パラメータの記録用(デバッグ・再現性確認)。書き込みはWorldProvisioner(Task 8)が行う。
     // world.json DTO recording generation parameters for debugging/reproducibility; written by WorldProvisioner (Task 8).
