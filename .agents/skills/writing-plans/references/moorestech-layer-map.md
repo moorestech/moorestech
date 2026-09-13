@@ -17,7 +17,7 @@
 
 | 機構 | プロジェクト標準 | 前例（引用先） |
 |---|---|---|
-| イベント/通知 | UniRx `Subject<T>` を private 保持、`IObservable<T>` で公開。C# `event Action` 禁止 | csharp-event-pattern スキル、`Game.UnlockState/GameUnlockStateDatastoreController.cs` |
+| イベント/通知 | UniRx `Subject<T>` を private 保持、`IObservable<T>` で公開。C# `event Action` 禁止 | `Game.UnlockState/GameUnlockStateDatastoreController.cs` |
 | UniRx を新アセンブリで使う | asmdef の references に `"UniRx"` を追加 | `Game.UnlockState/Game.UnlockState.asmdef` |
 | 永続化フォーマット | Newtonsoft JSON（key→value）。MessagePack禁止 | `PlayerInventorySaveJsonObject.cs` |
 | 永続化キー | GUID（ItemGuid等）。揮発int（ItemId/BlockId）禁止。マスタ由来値（容量・スロット数等）は保存せずロード時にマスタから導出 | `ItemStackSaveJsonObject.cs` |
@@ -26,7 +26,7 @@
 | マスタ値のドメイン解釈 | 該当ドメインの `Game.Xxx.Interface` に static util | `Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`（承認済み設計・実装前。実装完了後に実在確認すること） |
 | 永続強化・アンロック | 冪等（unlock/set-max）。increment禁止（ロード時にclearedActions再実行されるため） | `ResearchDataStore.LoadResearchData` |
 | DI 登録 | `MoorestechServerDIContainerGenerator.cs` に AddSingleton | 同ファイル内の既存登録 |
-| 新プロトコル/同期 | 新設前に「既存同期情報から導出できないこと」を示す。作る場合は creating-server-protocol スキル。**導出＝既存イベントが同じ情報をそのまま運んでいる場合のみ**。別ドメインの応答（研究完了・チャレンジ等）をパースして状態を推測合成するのは導出ではなく間接導出Applierであり禁止 | design-question-triage の導出可能テスト。反例: PR988で「新規プロトコル・イベント・ハンドシェイク拡張は作らない」とspecに書き、Applier 2種がレビューで全廃された |
+| 新プロトコル/同期 | 新設前に「既存同期情報から導出できないこと」を示す。作る場合は creating-server-protocol スキル。**導出＝既存イベントが同じ情報をそのまま運んでいる場合のみ**。別ドメインの応答（研究完了・チャレンジ等）をパースして状態を推測合成するのは導出ではなく間接導出Applierであり禁止 | 反例: PR988で「新規プロトコル・イベント・ハンドシェイク拡張は作らない」とspecに書き、Applier 2種がレビューで全廃された |
 | サーバー可変状態のクライアント同期 | **3点セット**: ①`Server.Event/EventReceive/*EventPacket`（DataStoreの`IObservable`購読+DI登録+eager init）②初期データ（`InitialHandshakeProtocol`同梱 or `va:get*`全量）③クライアント`SubscribeEventResponse`ハンドラ（`IInitializable`）。specで「イベントを作らない」と決めるのは新規パターンであり裁定事項 | `UnlockedEventPacket`+`GetGameUnlockStateProtocol`+`ClientGameUnlockStateDatastore`、`ItemStackLevelUnlockEventPacket`+`InitialHandshakeProtocol.ItemStackLevels`+`ItemStackLevelEventHandler` |
 | 可変DataStoreのアクセス面 | 読み取り用 `I*Lookup`（`public static Instance`公開可）と変更用 `I*Mutation`/`I*Unlocker`/`I*Controller`（DI注入のみ）に分離。staticに変更系を露出しない | `IItemStackLevelLookup`/`IItemStackLevelUnlocker`（`ItemStackLevelDataStore`）、`ITrainUnitLookupDatastore`/`ITrainUnitMutationDatastore` |
 | スキーマ新フィールド | 必須（`optional: true`原則禁止）＋YAML`default`＋全JSON一括更新（server/client TestMod・EditModeInPlayingTestMod・`../moorestech_master`）。`?? Default`フォールバック・ローダーでのJSON挿入は禁止 | `blocks.yml`/`ref/gearConsumption.yml` の `idlePowerRate`（PR978で optional+フォールバック44箇所が必須化+JSON更新に全面修正された） |

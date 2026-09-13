@@ -2,7 +2,7 @@
 name:remove-git-worktree
 ---
 
-以下のgit worktreeクリーンアップワークフローを実行してください：
+以下のgit worktreeクリーンアップワークフローを実行してください。環境ローカル規約に専用コマンドがある場合（moorestechのMac miniでは CLAUDE.local.md の `moores-wt rm <name>`）はそちらを使い、以下は汎用フォールバックとする。
 
 ## ワークフロー
 
@@ -49,7 +49,7 @@ name:remove-git-worktree
    - 削除完了のサマリーを表示して終了
 
 ## 重要な安全上の考慮事項
-- メインworktree（/Users/sato-katsumi/moorestechにあるもの）は**絶対に削除しない**
+- メインworktree（`git worktree list` の先頭行）は**絶対に削除しない**
 - 削除は**必ずユーザーの明示的な確認後にのみ実行**する
 - ブランチが存在しない、または既に削除されている等のエッジケースに適切に対応する
 - 各削除処理の成功/失敗を明確にログ出力する
@@ -57,8 +57,8 @@ name:remove-git-worktree
 ## 期待される動作例
 ```
 削除対象のworktreeが見つかりました：
-1. /Users/sato-katsumi/moorestech-feature-a -> ブランチ: feature/new-system (クリーン)
-2. /Users/sato-katsumi/moorestech-feature-b -> ブランチ: feature/old-fix (未コミットの変更あり)
+1. <worktrees-root>/moorestech-feature-a -> ブランチ: feature/new-system (クリーン)
+2. <worktrees-root>/moorestech-feature-b -> ブランチ: feature/old-fix (未コミットの変更あり)
 
 削除を実行しますか？
   y  - 通常削除（コミットされていない変更がある場合は削除をスキップ）

@@ -1,6 +1,6 @@
 # SDD本体（タスクごと派遣＋タスクレビュー）の詳細
 
-SKILL.md「SDD本体」の詳細。ファイルハンドオフ・レビュアープロンプトの組み立て・モデルティア・ワークフロー例。
+SKILL.md「SDD本体」の詳細。ファイルハンドオフ・レビュアープロンプトの組み立て・モデルティア。
 
 ## ファイルハンドオフ
 
@@ -46,65 +46,3 @@ SKILL.md「SDD本体」の詳細。ファイルハンドオフ・レビュアー
 - Implementer（同じsubagent）が修正し、レビュアーが再度レビューする。承認されるまで繰り返す。再レビューをスキップしない
 - subagentがタスクに失敗したら、具体的な指示を持つfix subagentを派遣する。手動で修正しようとしない（コンテキスト汚染）
 - subagentが質問してきたら、明確かつ完全に回答し、必要なら追加のコンテキストを提供する。実装を急かさない
-
-## ワークフロー例
-
-```
-You: この計画をSubagent-Driven Developmentで実行します。
-
-[計画ファイルを一度だけ読む: docs/superpowers/plans/feature-plan.md]
-[全タスクのtodoを作成]
-
-Task 1: Hookインストールスクリプト
-
-[Task 1のtask-briefを実行。ブリーフ+報告パス+コンテキストでimplementerを派遣]
-
-Implementer: 「開始前に確認です — このhookはuserレベル・systemレベルのどちらに
-インストールすべきですか？」
-
-You: 「userレベル（~/.config/superpowers/hooks/）」
-
-Implementer: 「了解しました。実装を開始します…」
-[しばらくして] Implementer:
-  - install-hookコマンドを実装
-  - テストを追加、5/5 passing
-  - 自己レビュー: --forceフラグの見落としに気づき追加
-  - コミット済み
-
-[review-packageを実行し、表示されたパスでタスクレビュアーを派遣]
-Task reviewer: Spec ✅ - 要件はすべて満たされ、余分なものもなし。
-  強み: 良いテストカバレッジ、クリーン。問題: なし。Task quality: Approved。
-
-[Task 1を完了とマーク]
-
-Task 2: リカバリーモード
-
-[Task 2のtask-briefを実行。ブリーフ+報告パス+コンテキストでimplementerを派遣]
-
-Implementer: [質問なし、そのまま進める]
-Implementer:
-  - verify/repairモードを追加
-  - 8/8 tests passing
-  - 自己レビュー: 問題なし
-  - コミット済み
-
-[review-packageを実行し、表示されたパスでタスクレビュアーを派遣]
-Task reviewer: Spec ❌:
-  - 欠落: 進捗報告（specは「100件ごとに報告」と指定）
-  - 余分: --jsonフラグを追加（依頼されていない）
-  Issues (Important): マジックナンバー（100）
-
-[全所見でfix subagentを派遣]
-Fixer: --jsonフラグを削除、進捗報告を追加、PROGRESS_INTERVAL定数を抽出
-
-[タスクレビュアーが再度レビュー]
-Task reviewer: Spec ✅。Task quality: Approved。
-
-[Task 2を完了とマーク]
-
-…
-
-[全タスク完了後]
-[moores-code-review を Skill ツールで実行 → 所見があれば単一fix subagentへ]
-[pr-create で PR 作成]
-```
