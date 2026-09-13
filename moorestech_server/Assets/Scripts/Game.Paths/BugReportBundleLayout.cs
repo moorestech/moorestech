@@ -16,5 +16,10 @@ namespace Game.Paths
         public const string FramesDirectoryName = "frames";
         public const string FrameTicksFileName = "frames.tsv";
         public const string ScreenshotFileName = "screenshot.png";
+
+        // 前回異常終了の箱だけが持つ置き場。録画は結合前の区間のまま、ダンプはOS生成のファイルのまま入る
+        // Places only the previous-crash box has: the recording stays as unconcatenated segments and the dumps as the OS wrote them
+        public const string RecordingDirectoryName = "recording";
+        public const string CrashDumpsDirectoryName = "crashDumps";
     }
 }

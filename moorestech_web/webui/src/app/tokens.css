@@ -92,6 +92,12 @@
   /* 出展モードの言語選択ゲートだけは全画面の不透明黒（§1の例外・ADR 0040） */
   /* The event-mode language gate alone is opaque full-screen black (the §1 exception, ADR 0040) */
   --event-language-gate-face: rgb(0 0 0);
+  /* 前回異常終了の確認ゲート。言語選択ゲートと同じ層に置く（両者が同時に待つことはない） */
+  /* The previous-crash confirmation gate sits on the same layer as the language gate; the two never wait at once */
+  --z-portal-playtest-gate: 2500;
+  /* 前回異常終了の確認ゲートも全画面の不透明黒（§1の例外・§8.21） */
+  /* The previous-crash confirmation gate is opaque full-screen black too (the §1 exception, §8.21) */
+  --playtest-gate-face: rgb(0 0 0);
   --text-default: #eee;
   --text-high-contrast: #fff;
   /* 従属テキストには通常テキストより抑えた寒色グレーを使う */
@@ -144,6 +150,10 @@
   /* Bug-report textarea in the pause menu; fixed lengths for the inner panel width (420−32×2) and three lines */
   --bug-report-textarea-width: 356px;
   --bug-report-textarea-height: 72px;
+  /* 前回異常終了ゲートの記述欄。全画面に載るためポーズメニュー欄より広く、4行ぶんを固定長で持つ */
+  /* The previous-crash gate's textarea; wider than the pause-menu one since it sits full-screen, with four lines as fixed lengths */
+  --playtest-gate-textarea-width: 480px;
+  --playtest-gate-textarea-height: 96px;
   /* HUD面の安全帯。フェード帯を超える余白で、チャレンジHUDの面幅導出とも共有する */
   /* HUD face safe area: padding wider than the fade band, shared with the challenge HUD's width derivation */
   --hud-panel-padding: 14px;

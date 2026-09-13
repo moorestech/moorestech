@@ -38,6 +38,7 @@ export const LocalizationDataSchema = z.object({
   revision: z.number().int().nonnegative(),
 });
 export const EventLanguageGateDataSchema = z.object({ waiting: z.boolean() });
+export const CrashReportGateDataSchema = z.object({ waiting: z.boolean() });
 // 送信可否の判定はC#が持ち、その結論そのものが kind で届く。独立booleanの袋は有り得ない組合せを表現できてしまう
 // C# owns the send-permission decision and its verdict arrives as the kind; a bag of booleans could express impossible combinations
 // 欠けた記録は送信可否と独立に起こるため、どの kind でも同じ形で載る

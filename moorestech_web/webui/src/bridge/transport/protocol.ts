@@ -3,7 +3,7 @@ import type {
   RecipeViewerItemListData,
   ModalData, ProgressData, BlockInventoryData,
   UiStateData, ResearchTreeData, BuildMenuData, HotbarData,
-  LocalizationData, EventLanguageGateData, ChallengeTreeData,
+  LocalizationData, EventLanguageGateData, CrashReportGateData, ChallengeTreeData,
   ChallengeCurrentData, PauseMenuData, PlacementModeData,
   CrosshairData,
   UiVisibilityData, TooltipData,
@@ -75,6 +75,9 @@ export const Topics = {
   // 待機中は全画面で操作を塞ぐゲート
   // Blocks all input full-screen while waiting
   eventLanguageGate: "event_mode.language_gate",
+  // 前回異常終了の送信確認。待機中は全画面で操作を塞ぐ
+  // The previous-crash send confirmation; blocks all input full-screen while waiting
+  crashReportGate: "playtest.crash_report_gate",
 } as const;
 
 // topic → payload 型の対応表。useTopic/useTopicSelector がこれで型付けされる
@@ -93,6 +96,7 @@ export type TopicPayloads = {
   [Topics.hotbar]: HotbarData;
   [Topics.localization]: LocalizationData;
   [Topics.eventLanguageGate]: EventLanguageGateData;
+  [Topics.crashReportGate]: CrashReportGateData;
   [Topics.challengeTree]: ChallengeTreeData;
   [Topics.challengeCurrent]: ChallengeCurrentData;
   [Topics.pauseMenu]: PauseMenuData;

@@ -21,6 +21,7 @@ import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { EventLanguageGate } from "@/features/eventLanguageGate";
+import { CrashReportGate } from "@/features/playtestGate";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud } from "@/shared/uiState";
 import { useUiScaleStore } from "@/shared/uiScale";
@@ -161,6 +162,9 @@ export default function App() {
       {/* 出展モードの開始ゲート。再接続表示より前へ出し、待機中の操作を全て塞ぐ */}
       {/* The event-mode start gate; sits ahead of the reconnect overlay and blocks every input while waiting */}
       <EventLanguageGate />
+      {/* 前回異常終了の確認ゲート。言語選択の直後に出し、応答するまで操作を塞ぐ */}
+      {/* The previous-crash confirmation gate; appears right after the language choice and blocks input until answered */}
+      <CrashReportGate />
     </div>
   );
 }

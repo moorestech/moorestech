@@ -68,4 +68,11 @@ describe("z-layer tokens: body直下Portal", () => {
     // A WS drop during the wait would cover the language buttons with the reconnect overlay
     expect(portalLayer("reconnect")).toBeLessThan(portalLayer("event-language-gate"));
   });
+
+  it("前回異常終了ゲートは再接続オーバーレイより前・言語選択ゲートと同層に立つ", () => {
+    // 同じ「開始を止める全画面ゲート」の族なので層を分けない。2つが同時に待つ経路は無い
+    // Both belong to the same family of full-screen start gates, and no path has the two waiting at once
+    expect(portalLayer("reconnect")).toBeLessThan(portalLayer("playtest-gate"));
+    expect(portalLayer("playtest-gate")).toBe(portalLayer("event-language-gate"));
+  });
 });

@@ -278,3 +278,8 @@ ui.bugReport.sending,Writing the bug report…,Writing the bug report…,バグ�
 ui.playtest.reportKind.label,Report type,Report type,報告の種別,Art der Meldung
 ui.playtest.reportKind.bug,Bug,Bug,バグ,Fehler
 ui.playtest.reportKind.feedback,Impressions,Impressions,感想,Eindrücke
+ui.playtest.crashGate.title,The game did not close normally last time,The game did not close normally last time,前回ゲームが正常に終了しませんでした,Das Spiel wurde letztes Mal nicht normal beendet
+ui.playtest.crashGate.body,"Send the last session's recording, world snapshot, packet log, Unity log and crash dump to the developer?","Send the last session's recording, world snapshot, packet log, Unity log and crash dump to the developer?","前回セッションの録画・ワールドのスナップショット・パケットログ・Unityログ・クラッシュダンプを開発者へ送りますか？","Die Aufzeichnung, den Welt-Snapshot, das Paketprotokoll, das Unity-Log und den Absturzbericht der letzten Sitzung an den Entwickler senden?"
+ui.playtest.crashGate.placeholder,What were you doing when it stopped? (optional),What were you doing when it stopped? (optional),止まったとき何をしていましたか？（任意）,Was hast du gemacht als es abstürzte? (optional)
+ui.playtest.crashGate.send,Send,Send,送る,Senden
+ui.playtest.crashGate.skip,Do not send,Do not send,送らない,Nicht senden

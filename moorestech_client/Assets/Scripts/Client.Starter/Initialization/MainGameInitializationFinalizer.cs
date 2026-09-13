@@ -43,6 +43,10 @@ namespace Client.Starter.Initialization
             // Event mode holds the start until a language is chosen, ahead of skits and tutorials starting in English
             await EventMode.EventModeStartGate.WaitForLanguageSelectionAsync();
 
+            // 前回異常終了の確認をタイトルで出す。オープニングとチュートリアルが走り出す前に挟む
+            // Ask about the previous crash at the title, ahead of the opening skit and the tutorials
+            await Playtest.PlaytestStartGates.WaitForPlaytestGatesAsync();
+
             var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
             var resolver = starter.StartGame(_serverResult.HandshakeResponse);
