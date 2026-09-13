@@ -33,16 +33,9 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 - Workflow の同時実行数はランタイムが `min(16, CPU-2)` でキューイングする（Mac mini=8）。体数は減らさず所要時間だけ伸びる。CPU 18コア以上のホストへ移すなら 12体/波の分割を JS に足す（同時20体上限の「起動が黙って消える」対策）。
 - **Workflow の可用性は保証されない**（2026-08-20 実測: session limit 到達→課金切替の後、同一セッションで「Workflow is disabled for this session」となり消えた）。不可なら (a) のフォールバックへ落ち、その事実を報告冒頭に書く。
 
-### 回収時の検死（本体・毎回必須）
+### 回収時の突合（本体）
 
-Workflow の返り値（`systems.planned/expected/responded/noResponse/missing/fallbacks`・`codexWait`・`integrated`・`apply`・`refix`・`postCheckSelection`・`postChecks[].report`・`postfix.warnings/infos`）を受けたら、報告する前に次を突き合わせる —
-1. `systems.planned` が **`checks.json` 由来の独立した期待値** `systems.expected.total`（= summary.lenses + summary.reviewers + verifiers_to_launch + Fable 1 + チャンク数×3）と一致し、`systems.missing`（integrator が `agents/*.md` の実在で確定した欠員）が空か。不一致・欠員なら報告に転記。`agents/` は残っているので、欠員分だけ Agent で再起動→integrator だけ再派遣してよい。`noResponse` は自己申告ベースの参考値
-2. `integrated.md` の「系統別回収状況」に欠員・未回収がないか。**Codex の欠員申告だけは転記前に裏を取る** — `codex_recover.py` の終了コード（3/4/5）が添えられていなければ自分で1コマンド走らせて確認し、exit 0 なら欠員ではないので integrator を再実行させる
-3. `$RUNDIR` に規定の成果物（checks.json / workflow-args.json / contract.md / codex `.final.md` ×3 / `agents/` / integrated.md / final.diff / checks-final.json / design.md）が揃っているか。**report-only では final.diff / checks-final.json / design.md は生成されない**（apply が無い）ので欠落扱いにしない
-4. `postfix.warnings/infos`（post-check の Warning/Info）と `postCheckSelection.note`（スキップしたガードと理由）を Step 7 の報告へ転記する（integrator より後に走るため integrated.md には載らない）
-5. `refix` を検死する: `refix.scope` が `source` なら `refix.rounds` が 1 周以上あり各 round の `report` が実在すること（`source` なのに 0 周は欠陥）。`refix.unresolved` が true なら最終 round の Critical は**直っていない** — 報告の冒頭に「反映 diff 再レビュー未収束（N 周）」と書き、Step 7 の AskUserQuestion に「手で直す / 未修正のまま進める」を載せる（黙って収束扱いにしない）。各 round の `warnings/infos`（直し直した周は refix-apply が転記済み。収束した最終周は `agents/refix-correctness-r<N>.md` の Warning/Info 節を本体が Read してよい — 反映 diff サイズ分の小さいレポートで、これは Read 規律の明示的例外）を報告へ転記する。`scope` が `non-source`/`none` なら「反映 diff は doc/テスト/コメントのみ（再レビュー不要）」と 1 行書く
-
-**何か変なこと（体数不一致・モデル割り当てが指定と違う・成果物の欠落・integrated.md 不在等）があれば、修正適用や再派遣を重ねる前に一旦止めて調査する。** 手順: セッション transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json` で起動数とモデルを実測）→ 原因特定→再開の要否。原因がスキル記述の穴なら `references/skill-improvement.md` の手順で恒久対応する。異常のまま結果だけ採用しない（欠員のある統合結果は「全系統レビュー済み」を偽装する）。
+Workflow の返り値を報告へ転記する前に、`systems.planned` が `checks.json` 由来の `systems.expected.total` と一致し `systems.missing` が空かを見る。不一致・欠員は報告に転記し、欠員分だけ Agent で再起動→integrator だけ再派遣してよい。Codex の欠員申告は `codex_recover.py` の終了コード付きでなければ受け付けない（orchestrator-steps.md Step 5）。`postfix.warnings/infos` と `postCheckSelection.note` は integrated.md に載らないので Step 7 の報告へ転記する。report-only では final.diff / checks-final.json / design.md は生成されない。 `refix` は、`refix.scope` が `source` なら 1 周以上の round と各 `report` の実在を確認する。`refix.unresolved` が true なら最終 round の Critical は直っていないので、報告冒頭に「反映 diff 再レビュー未収束（N 周）」と書き、Step 7 の AskUserQuestion に「手で直す / 未修正のまま進める」を載せる（黙って収束扱いにしない）。各 round の `warnings/infos` を報告へ転記する（収束した最終周は `agents/refix-correctness-r<N>.md` の Warning/Info 節を本体が Read してよい）。`scope` が `non-source`/`none` なら「反映 diff は doc/テスト/コメントのみ（再レビュー不要）」と 1 行書く。体数不一致・モデル割り当て違い・成果物欠落があれば、再派遣を重ねる前に transcript（`~/.claude/projects/<プロジェクト>/<セッションID>/subagents/*.meta.json`）で実測し、スキル記述の穴なら `references/skill-improvement.md` で恒久対応する。欠員のある統合結果は「全系統レビュー済み」を偽装するので採用しない。
 
 ## Step 0: 実行ディレクトリ `$RUNDIR` を作る
 
@@ -103,24 +96,15 @@ Workflow の返り値（`systems.planned/expected/responded/noResponse/missing/f
 
 ### 旧既定: sonnet 委譲（Workflow 不可時のフォールバック・2026-08-18）
 
-派遣プロンプト（テンプレをそのまま埋める。Agent ツール・`model: "sonnet"` 明示・1体。派遣は subagent 深度を1消費する）:
+派遣プロンプト（Agent ツール・`model: "sonnet"` 明示・1体。派遣は subagent 深度を1消費する）:
 
 ```
 moores-code-review のオーケストレータとして動け。
 Read this : <リポジトリ絶対パス>/.claude/skills/moores-code-review/references/orchestrator-steps.md
-実行範囲 : Step 2〜6.5(Step 0〜1 は完了済み。Step 7 の報告・AskUserQuestion・記録は親が行う)
-Run dir : <$RUNDIRの実値>
-Patch path : <PATCH_PATH>
-User prompt : <USER_PROMPT_PATH>
-Repo root : <リポジトリ絶対パス>
-追加契約 :
-- orchestrator-steps.md の手順・出力契約・「1 メッセージ最大 12 体」「全員に model 明示」・Gotchas を逐語で守る。系統のモデルを自分の判断で変えない。
-- 自分は委譲された側なので再委譲しない。
-- Step 6 の自動適用・uloop compile・Step 6.5 の再チェックと post-checks まで実施する。設計判断は適用せず保留。
-- 設計判断を <$RUNDIRの実値>/design.md に書く(1 件ごとに 症状→原因→推奨と選択肢。コードを開かずに選べる形)。0 件なら「なし」とだけ書く。
-- $RUNDIR 配下のファイルは削除しない。
-- 待機は Monitor の無出力 until ループ1回で行い、echo/sleep の連打でターンを回さない。
-- 返答は 10 行以内: 系統数(起動・回収・欠員) / Critical・Warning・Info・suppressed 件数 / 適用した修正数 / コンパイル・テスト結果 / integrated.md と design.md の 2 パス。生の指摘本文は返答に書かない。
+実行範囲 : Step 2〜6.5（Step 0〜1 は完了済み。Step 7 の報告・AskUserQuestion・記録は親が行う）
+Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_PROMPT_PATH> / Repo root : <リポジトリ絶対パス>
+追加契約 : 手順書のモデル割当・出力契約・Gotchas に従い、再委譲しない。設計判断は適用せず <$RUNDIRの実値>/design.md に「症状→原因→推奨と選択肢」で書く（0件なら「なし」）。$RUNDIR 配下は削除しない。
+返答 : 系統数(起動・回収・欠員) / Critical・Warning・Info・suppressed 件数 / 適用修正数 / コンパイル・テスト結果 / integrated.md と design.md のパス。指摘本文は書かない。
 ```
 
 オーケストレータが返答せず死んだら、$RUNDIR の残骸を引き継いで再派遣する（テンプレに「$RUNDIR 内の完了済み工程はスキップして続きから」と1行足す）。
@@ -132,14 +116,9 @@ Repo root : <リポジトリ絶対パス>
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。裁定結果の適用は、1〜2箇所の機械的な直しなら本体が最小Edit、まとまった量なら fix subagent（`model: "sonnet"`）1体に design.md のパス+裁定を渡す。
    - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは従来どおり本体の最小Edit or fix subagent（`sonnet`）。
    - **裁定反映 diff の再レビュー（Refix・Step 6 と同じ手順）**: 裁定を適用する**前**に `python3 .claude/skills/moores-code-review/scripts/refix_snapshot.py snapshot --repo-root "$(pwd)" --run-dir $RUNDIR --name w7-s0` を取り、適用後に `--name w7-s1` → `refix_snapshot.py diff --from w7-s0 --to w7-s1 --out $RUNDIR/refix/w7-round1.diff` で反映 diff と `scope` を得る。`source` なら `post-checks/applied-diff-correctness.md`（`model: "opus"`・Step 4 と同じ5行契約＋`Refix of : design.md の該当裁定`・Patch path = その diff・報告先 `agents/refix-correctness-w7-r1.md`）を1体起動する（理由は同ファイル冒頭。Step 6 側は Workflow の Refix フェーズが同じ手順を回す）。Critical は直して `w7-s2` を取り直し直した差分だけで再実行（最大3周。機械的でなければ再度 AskUserQuestion）、上限超過・適用0件は未収束として報告冒頭に明記、Warning/Info は最終報告へ。`non-source`/`none` なら起動せず報告に1行。
-   - **載せてよいのは本質的な設計判断のみ**: アーキテクチャ・パターン選択（多態化/型分割/移動先クラス）・スコープ影響・両立不能な指摘、およびサブエージェントの `設計判断: あり` 項目。
-   - **載せるの禁止**: コメントの短縮・文体（convention-guardが自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。この2種は選択肢に混ぜた時点で規約違反。
-   - **統合（design.md）に無い選択肢を本体が足すのも禁止** — 「現状維持」「別issueへ」を本体が付け足さない。推奨は design.md の正解形に揃える（`references/integration-rules.md` §4・2026-08-23 C8 教訓）。
-   - **設問は「症状 → 原因 → 推奨」の順で書く（ユーザー裁定 2026-08-03）**。設問本文の書き出しは**ゲーム上・開発上で実際に何が起きるか**にする。「列車に乗ったままゲームを終了して起動すると、自機が列車の上ではなく地面に落ちていて、その位置がセーブされる」のように、**コードを読まなくても分かる症状**から始めること。原因は1〜2行に圧縮する。
-     - **推奨を必ず第1選択肢に置き、ラベル末尾に `（推奨）` を付ける**。各選択肢の説明には「これを選ぶと症状がなぜ消えるか」を1行入れる。トレードオフだけを並べない。
-     - **禁止**: 観点名・レビュアー名（`caller-orchestration` 等）・レンズ用語・「N系統一致」を設問本文の**主役**にすること。出所は報告本文へ書き、設問には持ち込まない。メソッド名や行番号の羅列だけで問題を説明したことにしない。
-     - **症状を1文で書けない指摘は設問にしない** — 報告本文のWarningへ落とす。「将来こう書き換えると壊れる」型は、症状（何が壊れるか）と再現条件を書けるときだけ設問にしてよい。
-     - 判定基準: **その設問だけを読んだ人が、コードを開かずに選べるか**。選べないなら書き直す。
+   - **載せてよいのは本質的な設計判断のみ**（アーキテクチャ・パターン選択・スコープ影響・両立不能な指摘・サブエージェントの `設計判断: あり`）。**載せるの禁止**: コメントの短縮・文体（convention-guard が自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。混ぜた時点で規約違反（ユーザー裁定 2026-07-23）。
+   - **design.md に無い選択肢を本体が足すのも禁止** — 「現状維持」「別issueへ」を付け足さない。推奨は design.md の正解形に揃える（`references/integration-rules.md` §4）。
+   - **設問は「症状 → 原因 → 推奨」の順**（ユーザー裁定 2026-08-03）。書き出しはコードを読まなくても分かるゲーム上・開発上の症状、原因は1〜2行、推奨を第1選択肢に置き末尾に `（推奨）`、各選択肢に症状が消える理由を1行。観点名・レビュアー名・「N系統一致」は設問の主役にせず報告本文へ。症状を1文で書けない指摘は設問にせず Warning へ落とす。判定基準: **その設問だけを読んだ人が、コードを開かずに選べるか**。
 3. **レビュー記録を生成する** — 記録はコードrepoでなく記録repo `$LOGS`（`../moorestech_logs`）へ書く（featureブランチが記録に触れてマージ衝突する構造を断つため。コードrepo側へ書き戻さない）。`$LOGS/harness/moores-code-review/records/TEMPLATE.md` に従い `$LOGS/harness/moores-code-review/records/YYYY-MM-DD-<topic>.md` を書く（対象SHA2つ・系統別1行判定表・適用修正・AskUserQuestion裁定・破棄指摘・セッションID）。diff本体は保存せずbase/head SHAのみ（dirty込みなら注記＋`--stat`要約）。同ブランチの再レビューは`-r2`付き新ファイル。`$LOGS/harness/moores-code-review/eval-log.md` に集計1行＋記録への相対リンクを足す。
 4. **`$RUNDIR` 配下は削除しない**（旧版は `/tmp` の一時ファイルを消す規定だった）。patch/context/audit×3/checks×2/最終diffは、記録が主張するverdictの実入力であり、消すと後から「何をどう測ってその結論に至ったか」を再現できない。記録本文に `- rundir: runs/<ts>/` の1行を入れて、記録から実入力へ辿れるようにする。
 

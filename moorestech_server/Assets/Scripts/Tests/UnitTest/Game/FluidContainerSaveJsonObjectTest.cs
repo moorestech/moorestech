@@ -21,7 +21,7 @@ namespace Tests.UnitTest.Game
         {
             // 液体入りコンテナのJSONラウンドトリップ検証（セーブデータと同じ経路）
             // Round-trip a container with fluid via JSON (same path as save data)
-            var fluidId = MasterHolder.FluidMaster.GetFluidId(Tests.CombinedTest.Core.FluidTest.FluidGuid);
+            var fluidId = MasterHolder.FluidMaster.GetFluidId(Tests.CombinedTest.Core.Fluid.FluidTest.FluidGuid);
             const double capacity = 100.0;
             const double amount = 42.5;
 

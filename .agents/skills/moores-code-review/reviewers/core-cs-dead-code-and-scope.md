@@ -86,9 +86,9 @@ patch が大きくても、**ファイル分割して subagent へレビュー�
 
 **通常判定: 依頼動詞が patch で達成されている / 達成痕跡部分的にあり**
 - §1〜§4 の判定基準を通常通り適用する
-- 依頼が機能追加中心でも、`#region Internal` への local function 移動 / 未使用 using 削除 / 1 参照 private method 削除など、owner-preferred refactor pattern が gold に含まれることが多いため、依頼動詞達成済みでも本 reviewer は **積極的に Critical 化** する
+- 依頼が機能追加中心でも、`#region Internal` への local function 移動 / 未使用 using 削除 / 1 参照 private method 削除など、owner-preferred refactor pattern は人間レビューでの採用率が高いため、依頼動詞達成済みでも本 reviewer は **積極的に Critical 化** する
 
-判定に迷ったら **通常判定側に倒す** (本 reviewer の owner-preferred refactor は gold 一致率が高い)。
+判定に迷ったら **通常判定側に倒す**。
 
 ## owner-preferred refactor pattern (Critical 採用時のみ)
 §2 でローカル関数化を Critical 化する場合、次の形を採用する:
@@ -108,7 +108,7 @@ public Foo(...)
 
 `#region Internal` で囲み、呼び出し元メソッド末尾に配置する。クラスレベルの private method 直接インライン化 (本文展開) や、コンストラクタ内 `#region` なし local function 化は採用しない。
 
-helper 本体が class-level `const` / field / property を参照していても、その member はそのまま参照する。`private const float Foo = ...` を local `const` に変えるような追加 scope shrink は gold から外れやすいため禁止する。
+helper 本体が class-level `const` / field / property を参照していても、その member はそのまま参照する。`private const float Foo = ...` を local `const` に変えるような追加 scope shrink は人間レビューで採用されないため禁止する。
 
 ## 出力フォーマット
 出力は起動promptの `Output contract` に従う（Critical/Warning/Info/suppressed/設計判断の各節）。修正方針の各行: `- <ファイル:行>: <何を直すか>`

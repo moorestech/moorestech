@@ -54,7 +54,9 @@ HOME=/Users/sakastudio gh pr view <番号> --repo moorestech/moorestech --json l
 
 `decision` は案キー（`A`〜`F`）・`other`・`reject` の3系統で、**`reject` 以外はすべて「採用」として
 無人apply（`/pr-adjudicated-apply`）の対象になる**。poller は `completed:true` を見た次のtick（120秒間隔）で
-採用件数を数え、1件でもあれば apply スロットのworktreeで `claude -p` を起動する。
+採用件数を数え、1件でもあれば apply スロット（`~/moorestech-worktrees/pr-apply` / `pr-apply-2`）を
+`origin/master` へリセットし、そこを cwd に cmux ワークスペースで対話モード claude を
+`/pr-adjudicated-apply <番号>` 付きでフォアグラウンド起動する（ADR 0023。2026-08-20 までは `claude -p` だった）。
 つまり decision の選択は「文書上の意味」ではなく「誰が直すか」の指定である。
 
 | 状況 | decision | 理由 |
@@ -97,16 +99,11 @@ python3 .agents/skills/review-site-offsite-ruling/scripts/adjudicate.py --pr 117
 ラベルは `独立レビュー:裁定待ち` のまま据え置き、未裁定の指摘一覧をユーザーへ報告して判断を仰ぐ。
 「片付いて見えるから完了にしておく」は、無人applyが手直し済みのコードへ重ねて入る事故になる。
 
-**押す前に外部repoピンを確認する。** 無人applyはコード修正の前に `origin/master` とのコンフリクトを
-事前解消しようとし、`.moorestech-external-revisions.json` のピンがPR head側とmaster側で互いに祖先関係の
-無いコミット（＝未マージのfeatureブランチ上のSHA）を指していると「解消不能」で即failureに落ちる。
-関連repo（`moorestech_master` 等）のPRを先にマージしてピンをマージ済みSHAへ更新してから完了にする。
-
-```bash
-git -C <PRのworktree> show HEAD:.moorestech-external-revisions.json
-git -C <PRのworktree> show origin/master:.moorestech-external-revisions.json
-# 両者のcommitHashが違う場合、外部repoで `git merge-base --is-ancestor <A> <B>` が通るか確かめる
-```
+外部repoピン（`.moorestech-external-revisions.json`）のPR側とmaster側の分岐は、完了を押す前提条件ではない。
+無人applyは事前のmasterコンフリクト解消でピンをPR側（ours）に採って続行する
+（`.decisions/2026-08-19-applyのピン衝突はPR側を採って続行する.md`）。PRの検証に master側マスタの内容も
+要る場合だけ、`moorestech_master` 側で統合コミットを作ってピンを張り直す（2026-08-14裁定）。これはapplyの
+機械的解消が代行しない判断なので、該当するなら完了を押す前に済ませる。
 
 ## Step 5: シャドー台帳へ記録する（`$LOGS`）
 
@@ -152,20 +149,17 @@ pollerは `独立レビュー:裁定待ち` に留まる（理由を1行）。
 
 ## Step 8: 報告に必ず書くこと
 
-「更新した」だけで終えない。**どこを更新し、どこを更新していないか**を並べる。実際に
-「PR本文と `.decisions/` は更新／サイトは未更新」の状態を「裁定を記録した」と報告して指摘された。
+「更新した」だけで終えない。**どこを更新し、どこを更新していないか**を並べる（冒頭の事故がこの省略で起きた）。
 
 - 更新した先（サイト・台帳・`.decisions/`・PR本文・bd）とその状態
 - 未裁定で残った指摘のid一覧と、なぜ完了にしていないか
-- 公開URL（`https://review.moores.tech/pr/<番号>`）で何がどう見えるか。
-  この公開URLはローカル8931のリバースプロキシであり、静的HTMLではなく `adjudications.json` を
-  リクエストごとに読むので、POSTした時点で反映済みである
+- 公開URL（`https://review.moores.tech/pr/<番号>`）で何がどう見えるか（`adjudications.json` を
+  リクエストごとに読むので、POSTした時点で反映済み）
 
 ## Gotchas
 
-- **`review.moores.tech` と `127.0.0.1:8931` は同一実体**。「サイトも更新した？」と聞かれたら
-  トンネル設定（`services/pr-review/cloudflared-config-moores.yml`）を見て同一性を根拠に答える。
-  WebFetchで直接読もうとしてもCloudflare Accessのログイン画面へ302されるので、確認はローカルAPIで行う
+- 「サイトも更新した？」への根拠はトンネル設定（`services/pr-review/cloudflared-config-moores.yml`）の
+  同一性で答える。公開URLはWebFetchするとCloudflare Accessへ302されるので、確認はローカルAPIで行う
 - **digest.html を手で書き換えない。** 裁定状態はJSから `adjudications.json` を読んで描画される。
   HTMLを触っても次の再生成で消えるうえ、サイトの表示と実データが食い違う
 - **`records/pr-N.md` は最新runを指す。** 再レビュー済みPRは `pr-N-r2` 以降が最新。サイト側も

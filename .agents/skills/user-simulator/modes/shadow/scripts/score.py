@@ -8,9 +8,18 @@ import sys
 import unicodedata
 
 
+# 推奨マーカーは日本語「（推奨）」と英語「(Recommended)」の両方を扱う（AskUserQuestion のラベル慣例が混在するため）
+# Treat both the Japanese "（推奨）" and the English "(Recommended)" as the recommended marker (both label conventions coexist)
+RECOMMENDED_RE = re.compile(r"[（(](?:推奨|Recommended)[)）]", re.IGNORECASE)
+
+
 def norm(s):
     s = unicodedata.normalize("NFKC", s or "")
-    return re.sub(r"[（(]推奨[)）]|\s", "", s)
+    return re.sub(r"\s", "", RECOMMENDED_RE.sub("", s))
+
+
+def is_recommended(label):
+    return RECOMMENDED_RE.search(unicodedata.normalize("NFKC", label or "")) is not None
 
 
 def main():
@@ -42,9 +51,9 @@ def main():
     total = len(rows)
     hits = sum(1 for r in rows if r[5] == "O")
     # ベースライン: 常に（推奨）付き選択肢を選んだ場合の的中数 / Baseline: always pick the recommended option
-    baseline = sum(1 for r in rows if "推奨" in r[3])
+    baseline = sum(1 for r in rows if is_recommended(r[3]))
     # 逸脱問: 実回答が推奨でない質問と、その的中数 / Deviations: actual answer was not the recommended option
-    dev = [r for r in rows if "推奨" not in r[3]]
+    dev = [r for r in rows if not is_recommended(r[3])]
     dev_hits = sum(1 for r in dev if r[5] == "O")
     print(f"total={total} exact={hits} ({100 * hits // max(total, 1)}%) partial={sum(1 for r in rows if r[5] == '~')}")
     print(f"baseline(常に推奨)={baseline} ({100 * baseline // max(total, 1)}%)")

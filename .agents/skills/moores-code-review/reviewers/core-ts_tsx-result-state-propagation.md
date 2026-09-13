@@ -10,7 +10,7 @@ keywords: []
 ## あなたの役割
 cwd を読み、**リクエスト→レスポンス / 生成→消費のフロー**で「依頼が区別している複数の結果状態が、フロー全体のどこかで畳まれている」箇所を返す。型の形状だけでなく **生成側 → 運搬型 → 消費側 → 表示** の各段で「区別すべき結果が潰れていないか」を追うのが本 reviewer の独自軸。TS/React では fetch ラッパ → result union → コンポーネントの表示分岐 がその経路になる。
 
-型定義そのものの判別共用体化 (discriminated union の有無・型の形状) は `core-ts_tsx-schema-design.md` が担当する。本 reviewer は型に variant があっても **生成側が送らない / 運搬で潰す / 消費側が受けない / 表示が区別しない** ならその「フローの途切れ」を Critical とする (境界はここ)。
+型定義そのものの判別共用体化 (discriminated union の有無・型の形状) は `core-ts_tsx-type-driven-structure.md` が担当する。本 reviewer は型に variant があっても **生成側が送らない / 運搬で潰す / 消費側が受けない / 表示が区別しない** ならその「フローの途切れ」を Critical とする (境界はここ)。
 
 ## 検査対象の絞り込み（能動チェック）
 1. 起動 prompt 2 行目 `Patch path : <abs-path>` を Read し `.ts` / `.tsx` の変更に絞る
@@ -45,7 +45,7 @@ cwd を読み、**リクエスト→レスポンス / 生成→消費のフロ�
 
 ## Critical にしないもの
 - **UI が意図的に同一表示にする、`[ユーザー裁定]`/`[ADR]` 出所で合意済みのケース** (error も empty も同じ「該当なし」を出すと依頼・既存仕様で決まっている等) — 破棄せず `suppressed-by: <トレードオフ1行, 出所ラベル>` を付けて重大度そのままで返す。`[agent前提]` またはラベル無しの合意は免責事由にならない（通常のCritical/Warningとして返す）
-- **型の形状そのものの設計** (discriminated union 化すべきか・convenience property の有無) は `core-ts_tsx-schema-design.md` 担当。本 reviewer はフローの網羅のみ
+- **型の形状そのものの設計** (discriminated union 化すべきか・convenience property の有無) は `core-ts_tsx-type-driven-structure.md` 担当。本 reviewer はフローの網羅のみ
 - patch が**新たに作っていない**既存の畳み込み (既存の `T | null` ラッパ等)。今回 patch が導入 / 拡大した畳み込みのみ対象
 - コードに**存在しない**失敗分岐のための variant 発明 (over-modeling)
 - 本当に等価なケースをまとめる正当な catch-all / default

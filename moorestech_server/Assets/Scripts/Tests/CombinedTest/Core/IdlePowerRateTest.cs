@@ -19,6 +19,7 @@ using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MachineRecipesModule;
 using NUnit.Framework;
 using Server.Boot;
+using Tests.CombinedTest.Core.Miner;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;

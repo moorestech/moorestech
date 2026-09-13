@@ -3369,6 +3369,46 @@
       "openable": false
     },
     {
+      "blockGuid": "019f1a00-0000-7000-8000-00000000f1d0",
+      "blockType": "VoidPipe",
+      "name": "VoidPipe",
+      "blockParam": {
+        "fluidInventoryConnectors": {
+          "inflowConnects": [
+            {
+              "offset": [
+                0,
+                0,
+                0
+              ],
+              "directions": [
+                [
+                  0,
+                  0,
+                  -1
+                ]
+              ],
+              "option": {
+                "flowCapacity": 1000,
+                "connectTankIndex": 0
+              },
+              "connectorGuid": "019f1a00-0000-7000-8000-00000000f1d1"
+            }
+          ],
+          "outflowConnects": []
+        }
+      },
+      "blockSize": [
+        1,
+        1,
+        1
+      ],
+      "category": "テスト",
+      "subCategory": "VoidPipe",
+      "placementsPerCost": 1,
+      "openable": false
+    },
+    {
       "blockGuid": "BCCD23DE-053E-4A54-9E32-31120B051DCA",
       "blockType": "FluidPipe",
       "name": "OneWayFluidPipe",
