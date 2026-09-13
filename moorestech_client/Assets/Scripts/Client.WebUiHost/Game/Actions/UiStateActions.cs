@@ -25,25 +25,30 @@ namespace Client.WebUiHost.Game.Actions
             if (payload == null) return UniTask.FromResult(ActionResult.Fail("invalid_payload"));
             if (payload["state"] is not JValue { Type: JTokenType.String } stateValue) return UniTask.FromResult(ActionResult.Fail("invalid_state"));
 
+            return UniTask.FromResult(RequestState(_uiStateControl, (string)stateValue));
+        }
+
+        // Web起点のUIState遷移はこの1本に集める。別経路から状態機械へ書くと現stateの検査を素通りする
+        // Every web-initiated UI-state transition funnels through here; another path would bypass the current-state checks
+        public static ActionResult RequestState(UIStateControl uiStateControl, string stateName)
+        {
             // Webから要求できるのは GameScreen / PlayerInventory のみ（SubInventoryは対象ブロックが必要）
             // The web may request only GameScreen / PlayerInventory (SubInventory needs a target block)
-            var stateName = (string)stateValue;
-            if (stateName != nameof(UIStateEnum.GameScreen) && stateName != nameof(UIStateEnum.PlayerInventory)) return UniTask.FromResult(ActionResult.Fail("unsupported_state"));
+            if (stateName != nameof(UIStateEnum.GameScreen) && stateName != nameof(UIStateEnum.PlayerInventory)) return ActionResult.Fail("unsupported_state");
 
             // 入れ子ポーズを持つ画面のGameScreen要求は、その入れ子だけを閉じて画面自体は維持する（ADR 0035）
             // A GameScreen request on a nested-pause screen closes only that nested pause and keeps the screen itself (ADR 0035)
-            if (stateName == nameof(UIStateEnum.GameScreen) && _uiStateControl.GetCurrentNestedPauseScreen() is { } nestedScreen)
+            if (stateName == nameof(UIStateEnum.GameScreen) && uiStateControl.GetCurrentNestedPauseScreen() is { } nestedScreen)
             {
                 // 閉じるものが無い要求は成功に見せず拒否する
                 // A request with nothing to close is rejected instead of reported as success
-                var closed = nestedScreen.RequestClosePauseMenu();
-                return UniTask.FromResult(closed ? ActionResult.Success() : ActionResult.Fail("transition_not_allowed"));
+                return nestedScreen.RequestClosePauseMenu() ? ActionResult.Success() : ActionResult.Fail("transition_not_allowed");
             }
 
             var requested = Enum.Parse<UIStateEnum>(stateName);
-            if (!IsAllowed(_uiStateControl.CurrentState, requested)) return UniTask.FromResult(ActionResult.Fail("transition_not_allowed"));
-            _uiStateControl.RequestTransition(requested);
-            return UniTask.FromResult(ActionResult.Success());
+            if (!IsAllowed(uiStateControl.CurrentState, requested)) return ActionResult.Fail("transition_not_allowed");
+            uiStateControl.RequestTransition(requested);
+            return ActionResult.Success();
         }
 
         public static bool IsAllowed(UIStateEnum current, UIStateEnum requested)

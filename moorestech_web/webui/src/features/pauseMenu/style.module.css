@@ -13,3 +13,29 @@
   border-radius: 12px;
   transform: translate(-50%, -50%);
 }
+
+/* 記述欄は検索入力（§8.9）と同族: --gauge-track の面・--text-muted のプレースホルダ・ModeSwitch踏襲のフォーカス */
+/* The description field follows the search input (§8.9): --gauge-track face, --text-muted placeholder, ModeSwitch focus */
+.description {
+  width: var(--bug-report-textarea-width);
+  height: var(--bug-report-textarea-height);
+  background: var(--gauge-track);
+  border: var(--bevel-1) solid var(--bevel-c1);
+  color: var(--text-default);
+  padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
+  font-family: inherit;
+  resize: none;
+}
+
+.description::placeholder {
+  color: var(--text-muted);
+}
+
+.description:focus-visible {
+  outline: var(--bevel-1) solid var(--text-high-contrast);
+  outline-offset: var(--bevel-1);
+}
+
+.status {
+  color: var(--text-muted);
+}

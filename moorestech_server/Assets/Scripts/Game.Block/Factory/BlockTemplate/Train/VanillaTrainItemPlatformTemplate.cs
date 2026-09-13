@@ -45,6 +45,7 @@ namespace Game.Block.Factory.BlockTemplate.Train
             // 生成したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
+            blockComponents.Add(new RailNodeGuidSaveComponent(railComponents));
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.Add(trainPlatformItemTransferComponent);
@@ -61,7 +62,7 @@ namespace Game.Block.Factory.BlockTemplate.Train
         }
 
         public IBlock Load(
-            Dictionary<string, string> componentStates,
+            Dictionary<string, object> componentStates,
             BlockMasterElement masterElement,
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo)
@@ -71,7 +72,8 @@ namespace Game.Block.Factory.BlockTemplate.Train
             // 現仕様では接続はRailSegment復元に委ねるため、ここでは登録のみ行う
             // In current flow, connections are restored by rail segments, so we only register here
             var stationParam = masterElement.BlockParam as TrainItemPlatformBlockParam;
-            var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore, (float)stationParam.MaxConnectableRailLength);//①復元
+            var nodeGuids = RailNodeGuidSaveComponent.LoadNodeGuids(componentStates, 2);
+            var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, stationParam.EntryRailPosition, stationParam.ExitRailPosition, _railGraphDatastore, (float)stationParam.MaxConnectableRailLength, nodeGuids);//①復元
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);//②登録のみ
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, stationParam.LoadingAnimeSpeed);
             var trainPlatformTransferComponent = new TrainPlatformTransferComponent(componentStates);
@@ -82,6 +84,7 @@ namespace Game.Block.Factory.BlockTemplate.Train
             // 復元したコンポーネントをブロックに登録する
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
+            blockComponents.Add(new RailNodeGuidSaveComponent(railComponents));
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.Add(trainPlatformItemTransferComponent);

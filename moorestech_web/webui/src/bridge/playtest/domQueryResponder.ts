@@ -2,6 +2,7 @@ import { useTopicStore } from "../store/topicStore";
 import { Topics } from "../transport/protocol";
 import { subscriptions } from "../transport/subscriptionManager";
 import { sendAction } from "../transport/webSocketClient";
+import { DEFAULT_ACTION_TIMEOUT_MS } from "../transport/actions";
 
 type DomQueryRequest = {
   requestId: string;
@@ -72,7 +73,7 @@ function respondToNewRequest(state: TopicState, previousState: TopicState) {
   // DOMは読み取るだけに留め、クリックやスクロールなどの操作を行わない
   // Read the DOM only; never perform interactions such as clicks or scrolling
   const result = queryElement(request);
-  void sendAction("playtest.dom_query_result", result).then((actionResult) => {
+  void sendAction("playtest.dom_query_result", result, DEFAULT_ACTION_TIMEOUT_MS).then((actionResult) => {
     // Unity側が拒否した応答はerror codeを残し、契約不整合を追跡可能にする
     // Preserve the error code for Unity-side rejections so contract mismatches remain diagnosable
     if (!actionResult.ok) console.warn(`[playtest.dom_query_result] rejected: ${actionResult.error ?? "unknown_error"}`);

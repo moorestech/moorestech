@@ -3,7 +3,9 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 namespace Tests.Util
@@ -11,6 +13,20 @@ namespace Tests.Util
     public static class SaveLoadJsonTestHelper
     {
         private static readonly JsonSerializerOptions CompactJsonOptions = new() { WriteIndented = false };
+
+        // ブロックのセーブ状態をJSON往復させてからロードへ渡す。生インスタンスのままだと実ロード経路のJToken復元を通らず素通しする
+        // Round-trip a block save state through JSON before handing it to Load; a raw instance skips the JToken restoration the real load path performs
+        public static Dictionary<string, object> ThroughJson(string saveKey, object saveState)
+        {
+            return new Dictionary<string, object> { { saveKey, JToken.FromObject(saveState) } };
+        }
+
+        public static Dictionary<string, object> ThroughJson(IReadOnlyDictionary<string, object> componentStates)
+        {
+            var result = new Dictionary<string, object>(componentStates.Count);
+            foreach (var pair in componentStates) result.Add(pair.Key, JToken.FromObject(pair.Value));
+            return result;
+        }
 
         public static string AssembleSaveJson(ServiceProvider serviceProvider)
         {

@@ -39,6 +39,7 @@ namespace Server.Protocol
             _packetResponseDictionary.Add(SendCommandProtocol.ProtocolTag, new SendCommandProtocol(serviceProvider));
             _packetResponseDictionary.Add(SubscribeInventoryProtocol.ProtocolTag, new SubscribeInventoryProtocol(serviceProvider));
             _packetResponseDictionary.Add(SaveProtocol.ProtocolTag, new SaveProtocol(serviceProvider));
+            _packetResponseDictionary.Add(BugReportCaptureProtocol.ProtocolTag, new BugReportCaptureProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMapObjectInfoProtocol.ProtocolTag, new GetMapObjectInfoProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetMapDataProtocol.ProtocolTag, new GetMapDataProtocol(serviceProvider));
             _packetResponseDictionary.Add(GetGameUnlockStateProtocol.ProtocolTag, new GetGameUnlockStateProtocol(serviceProvider));

@@ -48,7 +48,15 @@ namespace Game.Gear.Topology
             {
                 // 新gear網は回転cacheを持たない
                 // A fresh network references no old rotation cache; normal calculation performs its first traversal this tick
-                var network = new GearNetwork(GearNetworkId.CreateNetworkId());
+                // 成分内の最小ブロックIDを網IDにする。成分は互いに素なのでIDは一意になる
+                // Use the component's smallest block id as the network id; components are disjoint so ids stay unique
+                var rootBlockInstanceId = component[0].BlockInstanceId;
+                foreach (var gear in component)
+                {
+                    if (gear.BlockInstanceId.CompareTo(rootBlockInstanceId) < 0) rootBlockInstanceId = gear.BlockInstanceId;
+                }
+                
+                var network = new GearNetwork(GearNetworkId.FromComponentRootBlock(rootBlockInstanceId));
                 foreach (var gear in component)
                 {
                     network.AddGear(gear);

@@ -24,7 +24,8 @@
     "Game.PlayerRiding.Interface",
     "Game.Hotbar",
     "Game.Construction",
-    "Game.SaveLoad.Interface"
+    "Game.SaveLoad.Interface",
+    "Game.Paths"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

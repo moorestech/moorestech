@@ -48,11 +48,25 @@ namespace Game.Train.Unit
         private bool _isReversedThisTick;
         private int _manualBranchSelectionIndex;
         private int _previousManualBranchSelectionIndex;
+        // 新規編成用: インスタンスIDを新規採番する
+        // For a new formation: draws a fresh instance id
         public TrainUnit(
             RailPosition initialPosition,
             List<TrainCar> cars,
             TrainRailPositionManager railPositionManager,
             TrainDiagramManager diagramManager
+        ) : this(initialPosition, cars, railPositionManager, diagramManager, TrainUnitInstanceId.Create())
+        {
+        }
+
+        // セーブ復元用: 保存済みインスタンスIDを引き継ぐ。採番を挟むとロード中に乱数列が進み、保存時と別の列になる
+        // For save restore: carries over the persisted instance id; drawing one here would advance the random stream during load
+        public TrainUnit(
+            RailPosition initialPosition,
+            List<TrainCar> cars,
+            TrainRailPositionManager railPositionManager,
+            TrainDiagramManager diagramManager,
+            TrainUnitInstanceId trainUnitInstanceId
         )
         {
             _railPosition = initialPosition;
@@ -62,7 +76,7 @@ namespace Game.Train.Unit
             _railPositionManager = railPositionManager;
             _diagramManager = diagramManager;
             _railPositionManager.RegisterRailPosition(_railPosition);
-            _trainUnitInstanceId = TrainUnitInstanceId.Create();
+            _trainUnitInstanceId = trainUnitInstanceId;
             _cars = cars;
             _currentSpeed = 0.0; // 仮の初期速度
             _isAutoRun = false;
@@ -522,6 +536,7 @@ namespace Game.Train.Unit
 
             return new TrainUnitSaveData
             {
+                TrainUnitInstanceId = _trainUnitInstanceId.AsPrimitive(),
                 railPositionSaveData = railpositionSnapshot,
                 IsAutoRun = _isAutoRun,
                 CurrentSpeedBits = BitConverter.DoubleToInt64Bits(_currentSpeed),
@@ -573,7 +588,16 @@ namespace Game.Train.Unit
             var railPositionManager = ServerContext.GetService<TrainRailPositionManager>();
             var diagramManager = ServerContext.GetService<TrainDiagramManager>();
 
-            var trainUnit = new TrainUnit(railPosition, cars, railPositionManager, diagramManager);
+            // 採番し直すと保存時と別のIDになり、ロード中に乱数列も1回分進む
+            // Re-drawing would both change the id and advance the random stream once during load
+            if (saveData.TrainUnitInstanceId == Guid.Empty)
+            {
+                var reason = "セーブの列車に trainUnitInstanceId がありません。scripts/save_migration/migrate_block_state_objects.py で移行してください";
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
+
+            var trainUnit = new TrainUnit(railPosition, cars, railPositionManager, diagramManager, new TrainUnitInstanceId(saveData.TrainUnitInstanceId));
             trainUnit._isAutoRun = saveData.IsAutoRun;
             trainUnit._currentSpeed = restoredSpeed;
             trainUnit._accumulatedDistance = restoredAccumulatedDistance;

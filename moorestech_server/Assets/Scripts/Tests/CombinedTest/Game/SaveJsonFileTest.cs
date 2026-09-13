@@ -5,6 +5,7 @@ using Core.Update;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Paths;
+using Game.SaveLoad;
 using Game.SaveLoad.Interface;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
@@ -43,6 +44,7 @@ namespace Tests.CombinedTest.Game
 
             saveServiceProvider.GetRequiredService<IWorldSaveRequest>().RequestSave();
             GameUpdater.UpdateOneTick();
+            saveServiceProvider.GetRequiredService<WorldSaveCoordinator>().WaitForPendingWrites();
 
 
             var (_, loadServiceProvider) =

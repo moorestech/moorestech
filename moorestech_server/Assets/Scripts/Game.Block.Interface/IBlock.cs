@@ -30,7 +30,7 @@ namespace Game.Block.Interface
         /// </summary>
         public void TickUpdate();
 
-        public Dictionary<string,string> GetSaveState();
+        public Dictionary<string, object> GetSaveState();
         
         public void Destroy();
     }

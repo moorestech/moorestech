@@ -14,6 +14,7 @@ using NUnit.Framework;
 using Server.Boot;
 using Server.Protocol;
 using Tests.Module.TestMod;
+using Tests.Util;
 using Server.Protocol.PacketResponse;
 
 namespace Tests.CombinedTest.Server.PacketTest
@@ -53,6 +54,27 @@ namespace Tests.CombinedTest.Server.PacketTest
             // 高速採掘フラグの残置は他テストを無言で壊すため必ず消す
             // A leftover super-mine flag silently breaks other tests, so always remove it
             DebugParameters.RemoveBool(DebugParameterKeys.MapObjectSuperMine);
+        }
+
+        // 取得個数の抽選が世界共有の乱数でないと、同じスナップショットとパケット列を再生しても取得数がずれる
+        // If the drop-count roll does not come from the shared world random, replaying the same snapshot and packets yields different drops
+        [Test]
+        public void mapObjectの取得個数抽選はGameRandomを引き破壊済みへの再打撃では引かない()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var mapObject = GetMapObject(MiningMapObjectGuid);
+
+            var beforeAttack = GameRandomDrawAssert.CurrentState();
+            var earnedItems = mapObject.Attack(mapObject.CurrentHp);
+            Assert.IsNotEmpty(earnedItems, "HP境界を越えた打撃で取得物が出ていない（テストの前提が崩れている）");
+            GameRandomDrawAssert.AssertDrewAtLeastOnce(beforeAttack, "mapObjectの取得個数抽選が世界共有の乱数を引いていない");
+
+            // 破壊済みへの再打撃は取得物を作らないので、1回も引いてはならない
+            // Re-hitting a destroyed object creates no drops, so it must not draw at all
+            var untouched = GameRandomDrawAssert.StateAfterDraws(0);
+            GameRandomDrawAssert.BeginDrawCount();
+            Assert.IsEmpty(mapObject.Attack(1), "破壊済みへの再打撃で取得物が出ている");
+            GameRandomDrawAssert.AssertDrawn(untouched, "破壊済みへの再打撃が乱数を引いている");
         }
 
         [Test]

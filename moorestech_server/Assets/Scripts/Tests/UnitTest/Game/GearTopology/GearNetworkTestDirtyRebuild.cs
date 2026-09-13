@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Core.Update;
 using Game.Block.Interface;
 using Game.Gear.Common;
 using NUnit.Framework;
@@ -50,6 +51,28 @@ namespace Tests.UnitTest.Game.GearTopology
             datastore.RebuildIfDirty();
 
             Assert.AreSame(appliedMap, GearNetworkDatastoreReflectionTestUtil.GetTopologyMap(datastore));
+        }
+
+        // ロードでgearが登録され直すと次tick先頭で必ず再構築が走る。ここが乱数を引くと再生だけが乱数列を余分に進める
+        // A load re-registers gears so the next tick head always rebuilds; drawing randomness here advances the stream on replay only
+        [Test]
+        public void 再構築は乱数状態を進めず網IDを連結成分の最小ブロックIDにする()
+        {
+            var datastore = new GearNetworkDatastore();
+            var first = new FakeGear(22);
+            var second = new FakeGear(11);
+            FakeGear.ConnectEachOther(first, second);
+            datastore.AddGear(first);
+            datastore.AddGear(second);
+            datastore.AddGear(new FakeGear(33));
+
+            GameRandom.Reseed(7UL);
+            var beforeState = GameRandom.ExportState();
+            datastore.RebuildIfDirty();
+
+            CollectionAssert.AreEqual(beforeState, GameRandom.ExportState(), "歯車網の再構築が乱数を消費している");
+            Assert.IsTrue(datastore.TryGetGearNetwork(first.BlockInstanceId, out var network));
+            Assert.AreEqual(11, network.NetworkId.AsPrimitive(), "網IDが連結成分の最小ブロックIDになっていない");
         }
 
         private sealed class FakeGear : IGearEnergyTransformer

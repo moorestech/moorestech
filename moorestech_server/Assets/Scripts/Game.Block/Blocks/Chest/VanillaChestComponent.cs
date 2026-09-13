@@ -9,7 +9,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
-using Newtonsoft.Json;
 using UnityEngine;
 using static Game.Block.Interface.BlockException;
 
@@ -31,10 +30,10 @@ namespace Game.Block.Blocks.Chest
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, slotNum);
         }
         
-        public VanillaChestComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, int slotNum, IBlockInventoryInserter blockInventoryInserter) :
+        public VanillaChestComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, int slotNum, IBlockInventoryInserter blockInventoryInserter) :
             this(blockInstanceId, slotNum, blockInventoryInserter)
         {
-            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(componentStates[SaveKey]);
+            var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
             if (itemJsons == null) return;
 
             // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
@@ -54,7 +53,7 @@ namespace Game.Block.Blocks.Chest
         }
         
         public string SaveKey { get; } = typeof(VanillaChestComponent).FullName;
-        public string GetSaveState()
+        public object GetSaveState()
         {
             CheckDestroy(this);
             
@@ -64,7 +63,7 @@ namespace Game.Block.Blocks.Chest
                 itemJson.Add(new ItemStackSaveJsonObject(item));
             }
             
-            return JsonConvert.SerializeObject(itemJson);
+            return itemJson;
         }
         
         public void Update()

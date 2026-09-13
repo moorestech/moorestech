@@ -38,7 +38,19 @@ export const LocalizationDataSchema = z.object({
   revision: z.number().int().nonnegative(),
 });
 export const EventLanguageGateDataSchema = z.object({ waiting: z.boolean() });
-export const PauseMenuDataSchema = z.object({ disconnected: z.boolean() });
+// 送信可否の判定はC#が持ち、その結論そのものが kind で届く。独立booleanの袋は有り得ない組合せを表現できてしまう
+// C# owns the send-permission decision and its verdict arrives as the kind; a bag of booleans could express impossible combinations
+// 欠けた記録は送信可否と独立に起こるため、どの kind でも同じ形で載る
+// Missing records happen independently of send permission, so every kind carries them the same way
+const BugReportMissingField = { missing: z.array(z.string()) };
+const BugReportStatusSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("noSession"), ...BugReportMissingField }).strict(),
+  z.object({ kind: z.literal("capturing"), ...BugReportMissingField }).strict(),
+  z.object({ kind: z.literal("submitting"), ...BugReportMissingField }).strict(),
+  z.object({ kind: z.literal("ready"), ...BugReportMissingField }).strict(),
+  z.object({ kind: z.literal("submitted"), ...BugReportMissingField }).strict(),
+]);
+export const PauseMenuDataSchema = z.object({ disconnected: z.boolean(), bugReport: BugReportStatusSchema });
 const PlacementModeCommonFields = {
   height: z.number().int(),
   unavailableReason: z.string(),

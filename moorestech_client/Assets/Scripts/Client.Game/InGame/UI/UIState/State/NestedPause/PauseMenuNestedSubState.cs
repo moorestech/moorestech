@@ -27,7 +27,6 @@ namespace Client.Game.InGame.UI.UIState.State.NestedPause
         
         public void OnExit()
         {
-            _pauseMenuStateService.OnExit();
         }
         
         // ESCは全画面で載せないためポーズ中はヒントごと空になる（ADR-0032）

@@ -10,7 +10,6 @@ using Game.Block.Interface.Component;
 using Game.Block.Interface.Event;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
-using Newtonsoft.Json;
 using static Game.Block.Interface.BlockException;
 
 namespace Game.Block.Blocks.BaseCamp
@@ -43,10 +42,10 @@ namespace Game.Block.Blocks.BaseCamp
             _itemDataStoreService = new OpenableInventoryItemDataStoreService(InvokeEvent, ServerContext.ItemStackFactory, blockParam.InventorySlot);
         }
         
-        public BaseCampComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId,
+        public BaseCampComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId,
             BaseCampBlockParam blockParam) : this(blockInstanceId, blockParam)
         {
-            var itemJsons = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(componentStates[SaveKey]);
+            var itemJsons = BlockComponentStateReader.Read<List<ItemStackSaveJsonObject>>(componentStates, SaveKey);
 
             // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
             // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)
@@ -196,7 +195,7 @@ namespace Game.Block.Blocks.BaseCamp
         
         public string SaveKey { get; } = typeof(BaseCampComponent).FullName;
         
-        public string GetSaveState()
+        public object GetSaveState()
         {
             CheckDestroy(this);
             
@@ -206,7 +205,7 @@ namespace Game.Block.Blocks.BaseCamp
                 itemJson.Add(new ItemStackSaveJsonObject(item));
             }
             
-            return JsonConvert.SerializeObject(itemJson);
+            return itemJson;
         }
         
         #endregion

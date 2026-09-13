@@ -4,7 +4,6 @@ using Core.Update;
 using Game.Block.Interface.Component;
 using Game.Train.Unit;
 using JetBrains.Annotations;
-using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.TrainRail
 {
@@ -28,20 +27,18 @@ namespace Game.Block.Blocks.TrainRail
             _armAnimationTicks = armAnimationTicks > int.MaxValue ? int.MaxValue : (int)armAnimationTicks;
         }
         
-        public TrainPlatformDockingComponent(Dictionary<string, string> componentStates, float loadingAnimationSpeed) : this(loadingAnimationSpeed)
+        public TrainPlatformDockingComponent(Dictionary<string, object> componentStates, float loadingAnimationSpeed) : this(loadingAnimationSpeed)
         {
-            var serialized = componentStates[SaveKey];
-            var saveData = JsonConvert.DeserializeObject<TrainPlatformDockingComponentSaveData>(serialized);
-            if (saveData == null) return;
-            
+            if (!BlockComponentStateReader.TryRead<TrainPlatformDockingComponentSaveData>(componentStates, SaveKey, out var saveData)) return;
+
             ArmState = (ArmState)saveData.armState;
             _armProgressTicks = saveData.armProgressTicks;
         }
         
         
-        public string GetSaveState()
+        public object GetSaveState()
         {
-            return JsonConvert.SerializeObject(new TrainPlatformDockingComponentSaveData(ArmState, _armProgressTicks));
+            return new TrainPlatformDockingComponentSaveData(ArmState, _armProgressTicks);
         }
         
         public void Destroy()

@@ -10,6 +10,9 @@ namespace Game.Train.Unit
     [Serializable]
     public class TrainUnitSaveData
     {
+        // 編成インスタンスID。セーブ/ロードを跨いで安定させる（復元時に採番すると乱数列が進む）
+        // Train unit instance id. Kept stable across save/load; drawing one at restore would advance the random stream
+        public Guid TrainUnitInstanceId { get; set; }
         public RailPositionSaveData railPositionSaveData { get; set; }
         public bool IsAutoRun { get; set; }
         public long? CurrentSpeedBits { get; set; }

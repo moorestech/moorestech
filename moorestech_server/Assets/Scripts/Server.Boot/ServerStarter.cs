@@ -41,14 +41,35 @@ namespace Server.Boot
                 await UniTask.Yield(PlayerLoopTiming.Update);
             }
 
-            // 上限到達は「書き出しきれていない」ため完了と区別して返す
-            // Hitting the budget means the write never finished, so report it apart from completion
-            var flushResult = _startServer != null && _startServer.HasPendingSave ? ServerSaveFlushResult.FlushTimedOut : ServerSaveFlushResult.Flushed;
+            var flushResult = ResolveFlushResult();
 
             // 破棄はOnDestroy経由に一本化する
             // Funnel the teardown through OnDestroy
             Destroy(gameObject);
             return flushResult;
+
+            #region Internal
+
+            ServerSaveFlushResult ResolveFlushResult()
+            {
+                if (_startServer == null) return ServerSaveFlushResult.Flushed;
+
+                // 上限到達は「書き出しきれていない」ため完了と区別して返す
+                // Hitting the budget means the write never finished, so report it apart from completion
+                if (_startServer.HasPendingSave) return ServerSaveFlushResult.FlushTimedOut;
+
+                // 諦めは待ちが明けるだけで世界は保存されていない。無音で成功にするとプレイヤーは保存済みと信じる
+                // A give-up merely clears the wait while the world stays unsaved; a silent success would let the player believe it was saved
+                if (_startServer.HasAbandonedSave)
+                {
+                    Debug.LogError("終了時のセーブは書き出しに繰り返し失敗して諦めたため、世界は保存されていません");
+                    return ServerSaveFlushResult.SaveAbandoned;
+                }
+
+                return ServerSaveFlushResult.Flushed;
+            }
+
+            #endregion
         }
         
         private void OnDestroy()

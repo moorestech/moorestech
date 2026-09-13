@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using Core.Item;
+using Core.Update;
 using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom;
@@ -9,6 +10,7 @@ using Game.Construction;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Hotbar;
+using Game.Map.Interface;
 using Game.Map.Interface.Json;
 using Game.Map.Interface.MapObject;
 using Game.Paths;
@@ -28,6 +30,10 @@ namespace Game.SaveLoad.Json
 {
     public class WorldLoaderFromJson : IWorldSaveDataLoader
     {
+        // 新規ワールドの乱数シード。実際の乱数状態はセーブのrandomStateに載るのでここは固定でよい
+        // Seed for a new world; the resulting state rides in the save's randomState, so a fixed value suffices
+        private const ulong NewWorldRandomSeed = 0UL;
+        
         private readonly ChallengeDatastore _challengeDatastore;
         private readonly ChallengeJsonObject _challengeJsonObject;
         private readonly IEntitiesDatastore _entitiesDatastore;
@@ -51,13 +57,14 @@ namespace Game.SaveLoad.Json
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
+        private readonly IMiningCooldownDatastore _miningCooldownDatastore;
 
         public WorldLoaderFromJson(WorldDataDirectory worldDataDirectory,
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController, MapInfoJson mapInfoJson,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
             IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, RemainingPlacementCountDataStore remainingPlacementCountDataStore, ConstructionPayerDataStore constructionPayerDataStore, ItemStackLevelDataStore itemStackLevelDataStore,
-            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore)
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -81,6 +88,7 @@ namespace Game.SaveLoad.Json
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
+            _miningCooldownDatastore = miningCooldownDatastore;
         }
         
         public void LoadOrInitialize()
@@ -111,6 +119,19 @@ namespace Game.SaveLoad.Json
         public void Load(string jsonText)
         {
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
+            
+            // 時刻と乱数状態を最初に戻す。以降の復元（残りtick等）がこの時刻を基準にする
+            // Restore the clock and random state first; later restorations reference this tick
+            // 欠損を通すとtickは0へ巻き戻り、乱数列もクールダウンも別物になる。いずれも無音で成立するので入口で弾く
+            // A missing field rewinds the tick to 0 and swaps the random stream or the cooldowns, all silently, so they are rejected here
+            if (!load.CurrentTick.HasValue || load.RandomState == null || load.MiningCooldowns == null)
+            {
+                var reason = $"セーブに currentTick / randomState / miningCooldowns がありません（currentTick:{load.CurrentTick.HasValue} randomState:{load.RandomState != null} miningCooldowns:{load.MiningCooldowns != null}）。scripts/save_migration/migrate_block_state_objects.py で移行してください";
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
+            GameUpdater.RestoreCurrentTick(load.CurrentTick.Value);
+            GameRandom.RestoreState(load.RandomState);
             
             _gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
             // ブロック・インベントリ復元前にスタックレベルを復元する（上限超過例外の防止）
@@ -174,10 +195,42 @@ namespace Game.SaveLoad.Json
             // 課金元プレイヤーはブロックインスタンスIDで持つためワールドのロード順に依存しない
             // The paying player is keyed by block instance id, so it does not depend on the world load order
             _constructionPayerDataStore.LoadPayers(load.ConstructionPayers);
+
+            // 採掘クールダウンは保存時のtick基準で効く。戻さないとロード直後の再生が保存前に拒否された採掘を通す
+            // The mining cooldown is measured from the saved tick; skipping it lets a replay accept mining the live world rejected
+            _miningCooldownDatastore.LoadMiningCooldowns(load.MiningCooldowns);
+            
+            // 復元は乱数を引かない（ID類はセーブから引き継ぐ）。引いていたら巻き戻して隠さず、ずれた事実を出す
+            // Restoration draws no randomness because ids come from the save; a drift is reported instead of being hidden by another rewind
+            WarnIfRandomStreamAdvanced(load.RandomState);
+
+            #region Internal
+
+            void WarnIfRandomStreamAdvanced(ulong[] savedState)
+            {
+                var currentState = GameRandom.ExportState();
+                for (var i = 0; i < savedState.Length; i++)
+                {
+                    if (savedState[i] == currentState[i]) continue;
+
+                    // 巻き戻すと、ロード後に採番されるIDがセーブ時と衝突する。ここは直さず気付けるようにする
+                    // Rewinding would make ids allocated after load collide with the saved ones, so this is surfaced rather than patched
+                    Debug.LogError($"ロード中に乱数列が進みました saved:[{string.Join(",", savedState)}] current:[{string.Join(",", currentState)}]。復元経路のID採番を疑ってください");
+                    return;
+                }
+            }
+
+            #endregion
         }
         
         public void WorldInitialize()
         {
+            // 同一プロセスで前のワールドを動かした後でも、新規ワールドは常に同じ時刻と乱数列から始める
+            // A new world always starts from the same clock and random stream, even after another world ran in this process
+            GameUpdater.RestoreCurrentTick(0);
+            GameRandom.Reseed(NewWorldRandomSeed);
+            Debug.Log($"新規ワールドの時刻と乱数を初期化しました tick:0 seed:{NewWorldRandomSeed}");
+            
             _worldSettingsDatastore.Initialize(_mapInfoJson);
             _challengeDatastore.InitializeCurrentChallenges();
         }

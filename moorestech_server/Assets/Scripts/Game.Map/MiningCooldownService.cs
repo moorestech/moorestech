@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Core.Update;
+using Game.Map.Interface;
+using Game.Map.Interface.Json;
 
 namespace Game.Map
 {
@@ -7,7 +9,7 @@ namespace Game.Map
     ///     全手掘りの共有クールダウン
     ///     Shared cooldown for all hand mining
     /// </summary>
-    public class MiningCooldownService
+    public class MiningCooldownService : IMiningCooldownDatastore
     {
         // クールダウン判定の許容率。クライアントはattackSpeed間隔ちょうどで送るためジッタ余裕を持たせる
         // Cooldown tolerance; clients send at exactly attackSpeed intervals, so allow jitter
@@ -26,6 +28,22 @@ namespace Game.Map
         public void RecordAttack(int playerId)
         {
             _lastAttackTicks[playerId] = GameUpdater.CurrentTick;
+        }
+
+        // Dictionaryの列挙順は削除跡の再利用で変わる。スナップショット比較が添字で突き合わせるので保存側で正準化する
+        // Dictionary order shifts as removed slots get reused, so canonicalize here for the snapshot comparer that matches by index
+        public List<PlayerMiningCooldownSaveJsonObject> GetSaveJsonObject()
+        {
+            var saveData = new List<PlayerMiningCooldownSaveJsonObject>(_lastAttackTicks.Count);
+            foreach (var lastAttack in _lastAttackTicks) saveData.Add(new PlayerMiningCooldownSaveJsonObject(lastAttack.Key, lastAttack.Value));
+            saveData.Sort((left, right) => left.PlayerId.CompareTo(right.PlayerId));
+            return saveData;
+        }
+
+        public void LoadMiningCooldowns(List<PlayerMiningCooldownSaveJsonObject> saveData)
+        {
+            _lastAttackTicks.Clear();
+            foreach (var entry in saveData) _lastAttackTicks[entry.PlayerId] = entry.LastAttackTick;
         }
     }
 }

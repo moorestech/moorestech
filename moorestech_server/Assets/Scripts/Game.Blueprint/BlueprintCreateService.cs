@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Core.Master;
+using Core.Update;
 using Game.Block.Interface.Component;
 using Game.Block.Interface.Extension;
 using Game.Context;
@@ -39,7 +40,7 @@ namespace Game.Blueprint
                 blocks.Add(CreateBlockJson(data, anchor));
             }
 
-            blueprint = new BlueprintJsonObject(name, blocks, System.Guid.NewGuid());
+            blueprint = new BlueprintJsonObject(name, blocks, GameRandom.NextGuid());
             return true;
 
             #region Internal

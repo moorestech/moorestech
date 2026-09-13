@@ -96,10 +96,10 @@ namespace Game.Block.Blocks.Miner
             #endregion
         }
         
-        public VanillaMinerProcessorComponent(Dictionary<string, string> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
+        public VanillaMinerProcessorComponent(Dictionary<string, object> componentStates, BlockInstanceId blockInstanceId, float requestPower, float idlePowerRate, int outputSlotCount, BlockOpenableInventoryUpdateEvent openableInventoryUpdateEvent, BlockConnectorComponent<IBlockInventory, DefaultConnectJudge> inputConnectorComponent, BlockPositionInfo blockPositionInfo, MineSettings mineSettings)
             : this(blockInstanceId, requestPower, idlePowerRate, outputSlotCount, openableInventoryUpdateEvent, inputConnectorComponent, blockPositionInfo, mineSettings)
         {
-            var saveJsonObject = JsonConvert.DeserializeObject<VanillaElectricMinerSaveJsonObject>(componentStates[SaveKey]);
+            var saveJsonObject = BlockComponentStateReader.Read<VanillaElectricMinerSaveJsonObject>(componentStates, SaveKey);
 
             // セーブデータからのロード時はイベントを発火しない（ブロックがまだWorldBlockDatastoreに登録されていないため）
             // Do not invoke events when loading from save data (block is not yet registered in WorldBlockDatastore)
@@ -149,7 +149,7 @@ namespace Game.Block.Blocks.Miner
         }
         
         public string SaveKey { get; } = typeof(VanillaMinerProcessorComponent).FullName;
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
 
@@ -162,7 +162,7 @@ namespace Game.Block.Blocks.Miner
                 Items = _openableInventoryItemDataStoreService.InventoryItems.Select(item => new ItemStackSaveJsonObject(item)).ToList(),
             };
 
-            return JsonConvert.SerializeObject(saveData);
+            return saveData;
         }
         
         

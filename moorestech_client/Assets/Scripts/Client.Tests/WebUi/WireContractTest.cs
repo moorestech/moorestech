@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BugReport.Capture;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Topics;
@@ -154,7 +155,12 @@ namespace Client.Tests.WebUi
         [Test]
         public void PauseMenuMatchesFixture()
         {
-            AssertMatchesFixture(new PauseMenuDto { Disconnected = true }, "pause_menu.json");
+            var dto = new PauseMenuDto
+            {
+                Disconnected = true,
+                BugReport = new BugReportStatusDto { Kind = BugReportCaptureStatus.Capturing, Missing = new List<string> { "video" } },
+            };
+            AssertMatchesFixture(dto, "pause_menu.json");
         }
 
         // ビルドメニュー: 全エントリ種別とアイコンURL省略の正準形

@@ -20,6 +20,7 @@
     "ui_state.request",
     "pause_menu.save",
     "pause_menu.save_and_quit",
+    "bug_report.submit",
     "research.complete",
     "machine_recipe.select",
     "filter_splitter.set_mode",

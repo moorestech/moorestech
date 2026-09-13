@@ -21,6 +21,11 @@ namespace Client.WebUiHost.Boot
         public ConcurrentDictionary<string, byte> Topics { get; } = new();
 
         private readonly Channel<string> _sendChannel = Channel.CreateUnbounded<string>();
+
+        // action は受信ループから切り離して順番に捌く。120秒かかる書き出しの間もpingへ即答するため
+        // Actions are handled off the receive loop in arrival order so a 120s write still answers pings immediately
+        private readonly Channel<WsClientMessage> _actionChannel = Channel.CreateUnbounded<WsClientMessage>();
+
         private readonly SemaphoreSlim _sendLock = new(1, 1);
         private readonly CancellationTokenSource _stopCts = new();
 
@@ -30,6 +35,19 @@ namespace Client.WebUiHost.Boot
         }
 
         public void EnqueueSend(string msg) => _sendChannel.Writer.TryWrite(msg);
+
+        // 停止中の接続は受け取れない。捨てたことは呼び出し側がログへ出す
+        // A stopping connection cannot take it; the caller logs what was dropped
+        public bool EnqueueAction(WsClientMessage msg) => _actionChannel.Writer.TryWrite(msg);
+
+        // 次の action を待つ。接続終了で待ちが解けたときは null を返す
+        // Waits for the next action; returns null once the connection ended and the wait unblocked
+        public async Task<WsClientMessage> ReadActionAsync(CancellationToken ct)
+        {
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _stopCts.Token);
+            if (!await _actionChannel.Reader.WaitToReadAsync(linked.Token)) return null;
+            return _actionChannel.Reader.TryRead(out var msg) ? msg : null;
+        }
 
         // 送信ループ。外部 ct か停止シグナルで終了する
         // Send loop; terminates on the external ct or the stop signal
@@ -50,6 +68,7 @@ namespace Client.WebUiHost.Boot
         {
             _stopCts.Cancel();
             _sendChannel.Writer.TryComplete();
+            _actionChannel.Writer.TryComplete();
         }
 
         // 送信ループを止め、送信ロックを取ってから単独で Close フレームを送る
@@ -58,6 +77,7 @@ namespace Client.WebUiHost.Boot
         {
             _stopCts.Cancel();
             _sendChannel.Writer.TryComplete();
+            _actionChannel.Writer.TryComplete();
             await _sendLock.WaitAsync(ct);
             try
             {

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Update;
 using Game.Train.RailCalc;
 using Game.Train.SaveLoad;
 using UnityEditor;
@@ -64,13 +65,20 @@ namespace Game.Train.RailGraph
             }
         }
 
-        // 基本的にrailComponentからの呼び出しに対応
-        public RailNode(IRailGraphDatastore graphDatastore)
+        // 新規ノード用: ノードGUIDを新規採番する
+        // For a new node: draws a fresh node guid
+        public RailNode(IRailGraphDatastore graphDatastore) : this(graphDatastore, GameRandom.NextGuid())
+        {
+        }
+
+        // セーブ復元用: 保存済みノードGUIDを引き継ぐ。採番を挟むとロード中に乱数列が進み、保存時と別の列になる
+        // For save restore: carries over the persisted node guid; drawing one here would advance the random stream during load
+        public RailNode(IRailGraphDatastore graphDatastore, Guid nodeGuid)
         {
             // グラフプロバイダを保持する
             // Keep the graph provider dependency
             _graphDatastore = graphDatastore;
-            Guid = Guid.NewGuid();
+            Guid = nodeGuid;
             FrontControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
             BackControlPoint = new RailControlPoint(new Vector3(-1, -1, -1), new Vector3(-1, -1, -1));
             StationRef = new StationReference();

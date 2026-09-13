@@ -7,7 +7,6 @@ using Game.EnergySystem;
 using Game.Gear.Common;
 using MessagePack;
 using Mooresmaster.Model.BlocksModule;
-using Newtonsoft.Json;
 using UniRx;
 using UnityEngine;
 using Game.Context;
@@ -77,14 +76,13 @@ namespace Game.Block.Blocks.ElectricToGear
         // セーブ復元用コンストラクタ。indexは範囲へ、バッテリー残量は0から容量の範囲へクランプする
         // Restore constructor; the index is clamped into range and the battery remainder into [0, capacity]
         public ElectricToGearGeneratorComponent(
-            Dictionary<string, string> componentStates,
+            Dictionary<string, object> componentStates,
             ElectricToGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId,
             IBlockConnectorComponent<IGearEnergyTransformer> connectorComponent) :
             this(param, blockInstanceId, connectorComponent)
         {
-            if (componentStates == null || !componentStates.TryGetValue(SaveKey, out var raw)) return;
-            var saveData = JsonConvert.DeserializeObject<ElectricToGearGeneratorSaveJsonObject>(raw);
+            if (!BlockComponentStateReader.TryRead<ElectricToGearGeneratorSaveJsonObject>(componentStates, SaveKey, out var saveData)) return;
             if (saveData == null) return;
             SelectedIndex = Mathf.Clamp(saveData.SelectedIndex, 0, _param.OutputModes.Length - 1);
             _batteryRemaining = Mathf.Clamp(saveData.BatteryRemaining, 0f, BatteryCapacity);
@@ -135,14 +133,14 @@ namespace Game.Block.Blocks.ElectricToGear
             return true;
         }
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
-            return JsonConvert.SerializeObject(new ElectricToGearGeneratorSaveJsonObject
+            return new ElectricToGearGeneratorSaveJsonObject
             {
                 SelectedIndex = SelectedIndex,
                 BatteryRemaining = _batteryRemaining,
-            });
+            };
         }
 
         public new BlockStateDetail[] GetBlockStateDetails()

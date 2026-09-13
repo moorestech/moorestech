@@ -10,7 +10,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Mooresmaster.Model.BlocksModule;
-using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -37,17 +36,16 @@ namespace Game.Block.Blocks.Gear
         }
 
         public FuelGearGeneratorItemComponent(
-            Dictionary<string, string> componentStates,
+            Dictionary<string, object> componentStates,
             FuelGearGeneratorBlockParam param,
             BlockInstanceId blockInstanceId)
             : this(param, blockInstanceId)
         {
-            if (!componentStates.TryGetValue(SaveKey, out var stateRaw)) return;
-            var items = JsonConvert.DeserializeObject<List<ItemStackSaveJsonObject>>(stateRaw);
+            if (!BlockComponentStateReader.TryRead<List<ItemStackSaveJsonObject>>(componentStates, SaveKey, out var items)) return;
             RestoreItems(items);
         }
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
             var slotSize = _inventoryService.GetSlotSize();
@@ -57,7 +55,7 @@ namespace Game.Block.Blocks.Gear
                 serialized.Add(new ItemStackSaveJsonObject(_inventoryService.GetItem(i)));
             }
 
-            return JsonConvert.SerializeObject(serialized);
+            return serialized;
         }
 
         public IItemStack InsertItem(IItemStack itemStack)

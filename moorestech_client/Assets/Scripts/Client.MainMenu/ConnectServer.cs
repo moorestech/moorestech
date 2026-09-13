@@ -6,6 +6,7 @@ using Client.Localization;
 using Client.MainMenu.PopUp;
 using Client.Starter;
 using Mooresmaster.Localization.Generated;
+using Server.Boot;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -45,6 +46,10 @@ namespace Client.MainMenu
                 serverConnectPopup.SetText(Localize.GetFormatted(LocalizationKeys.Ui.MainMenu.ConnectFailed, new[] { failureDetail }));
                 return;
             }
+
+            // 本番のプレイ開始だけが常時記録を有効にする。接続先が別プロセスでも録画リングはこちらで回る
+            // Only the real play start enables always-on capture; the recording ring runs here even when the server is another process
+            AlwaysOnCaptureSetting.Apply(AlwaysOnCaptureSetting.Enabled());
 
             _connectedProperties = properties;
             SceneManager.sceneLoaded += OnMainGameSceneLoaded;

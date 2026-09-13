@@ -146,8 +146,10 @@ namespace Client.WebUiHost.Boot
             // Run send/receive loops concurrently; faults are always logged on completion
             var sendTask = conn.RunSendLoopAsync(ct);
             var receiveTask = ReceiveLoop(conn, ct);
+            var actionTask = ActionLoop(conn, ct);
             _ = sendTask.ContinueWith(t => UnityEngine.Debug.LogWarning($"[WebSocketHub] send loop faulted: {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
             _ = receiveTask.ContinueWith(t => UnityEngine.Debug.LogWarning($"[WebSocketHub] receive loop faulted: {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
+            _ = actionTask.ContinueWith(t => UnityEngine.Debug.LogWarning($"[WebSocketHub] action loop faulted: {t.Exception?.GetBaseException()}"), TaskContinuationOptions.OnlyOnFaulted);
             await Task.WhenAny(sendTask, receiveTask);
 
             // 片方のループが終わったら残るループも止めて接続を登録解除する
@@ -176,6 +178,18 @@ namespace Client.WebUiHost.Boot
                 }
             }
             _connections.Clear();
+        }
+
+        // 受信ループと切り離して action を到着順に1本ずつ実行する。長い action が ping の読み出しを塞がないため
+        // Runs actions one at a time in arrival order, off the receive loop, so a long action never blocks reading pings
+        private async Task ActionLoop(WebSocketConnection conn, CancellationToken ct)
+        {
+            while (!ct.IsCancellationRequested)
+            {
+                var msg = await conn.ReadActionAsync(ct);
+                if (msg == null) return;
+                await _dispatcher.HandleActionAsync(conn, msg);
+            }
         }
 
         private async Task ReceiveLoop(WebSocketConnection conn, CancellationToken ct)

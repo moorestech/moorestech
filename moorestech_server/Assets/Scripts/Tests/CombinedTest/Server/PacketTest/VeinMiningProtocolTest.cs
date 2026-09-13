@@ -13,6 +13,7 @@ using Server.Boot;
 using Server.Protocol;
 using Server.Protocol.PacketResponse;
 using Tests.Module.TestMod;
+using Tests.Util;
 using UnityEngine;
 
 namespace Tests.CombinedTest.Server.PacketTest
@@ -68,6 +69,30 @@ namespace Tests.CombinedTest.Server.PacketTest
             var ironVein = MasterHolder.MapVeinMaster.GetElementOrNull(IronVeinGuid);
             var veinItemGuid = ((ItemVeinParam)ironVein.VeinParam).ItemGuid;
             Assert.AreEqual(MasterHolder.ItemMaster.GetItemId(veinItemGuid), earnedItems[0].Id);
+        }
+
+        // 取得個数の抽選が世界共有の乱数でないと、同じスナップショットとパケット列を再生しても取得数がずれる
+        // If the drop-count roll does not come from the shared world random, replaying the same snapshot and packets yields a different count
+        [Test]
+        public void vein手掘りの取得個数抽選はGameRandomを1回だけ引く()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(PlayerId);
+            var miningService = serviceProvider.GetService<VeinHandMiningService>();
+            EquipTool(playerInventory, ToolItemGuid);
+            var equipped = playerInventory.EquipmentInventory.GetSelectedItem();
+
+            var drawnOnce = GameRandomDrawAssert.StateAfterDraws(1);
+            GameRandomDrawAssert.BeginDrawCount();
+            Assert.AreEqual(VeinMiningResult.Success, miningService.TryMine(PlayerId, IronVeinGuid, InsideIronVein, equipped, playerInventory.MainOpenableInventory, out _));
+            GameRandomDrawAssert.AssertDrawn(drawnOnce, "vein手掘りの取得個数抽選が世界共有の乱数を引いていない");
+
+            // 掘れなかった経路は取得物を作らないので、1回も引いてはならない
+            // A refused swing creates no drops, so it must not draw at all
+            var untouched = GameRandomDrawAssert.StateAfterDraws(0);
+            GameRandomDrawAssert.BeginDrawCount();
+            Assert.AreEqual(VeinMiningResult.VeinNotFound, miningService.TryMine(PlayerId, IronVeinGuid, OutsideAnyVein, equipped, playerInventory.MainOpenableInventory, out _));
+            GameRandomDrawAssert.AssertDrawn(untouched, "掘れなかった経路が乱数を引いている");
         }
 
         [Test]

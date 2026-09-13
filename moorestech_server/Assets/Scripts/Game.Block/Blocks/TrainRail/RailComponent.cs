@@ -1,4 +1,6 @@
-﻿using Game.Block.Interface;
+﻿using System;
+using Core.Update;
+using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Train.RailGraph;
 using Game.Train.RailCalc;
@@ -37,10 +39,14 @@ namespace Game.Block.Blocks.TrainRail
         /// </summary>
         public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, BlockDirection blockDirection, Vector3Int blockPosition, int componentIndex, float maxConnectableRailLength) : this(railGraphDatastore, position, ToVector3(blockDirection), blockPosition, componentIndex, maxConnectableRailLength) { }
 
-        /// <summary>
-        /// コンストラクタ
-        /// </summary>
+        // 新規設置用: 2つのノードGUIDを新規採番する。前・後の順は復元側の保存順と揃える
+        // For a new placement: draws both node guids, front then back, matching the order the save records them
         public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, Vector3 railDirection, Vector3Int blockPosition, int componentIndex, float maxConnectableRailLength)
+            : this(railGraphDatastore, position, railDirection, blockPosition, componentIndex, maxConnectableRailLength, GameRandom.NextGuid(), GameRandom.NextGuid()) { }
+
+        // セーブ復元用: 保存済みノードGUIDを引き継ぐ。採番を挟むとロード中に乱数列が進み、保存時と別の列になる
+        // For save restore: carries over the persisted node guids; drawing them here would advance the random stream during load
+        public RailComponent(IRailGraphDatastore railGraphDatastore, Vector3 position, Vector3 railDirection, Vector3Int blockPosition, int componentIndex, float maxConnectableRailLength, Guid frontNodeGuid, Guid backNodeGuid)
         {
             _railGraphDatastore = railGraphDatastore;
 
@@ -52,8 +58,8 @@ namespace Game.Block.Blocks.TrainRail
             FrontControlPoint = new RailControlPoint(position, CalculateControlPointOffset(true));
             BackControlPoint = new RailControlPoint(position, CalculateControlPointOffset(false));
 
-            FrontNode = new RailNode(_railGraphDatastore);
-            BackNode = new RailNode(_railGraphDatastore);
+            FrontNode = new RailNode(_railGraphDatastore, frontNodeGuid);
+            BackNode = new RailNode(_railGraphDatastore, backNodeGuid);
 
             FrontNode.SetRailControlPoints(FrontControlPoint, BackControlPoint);
             BackNode.SetRailControlPoints(BackControlPoint, FrontControlPoint);

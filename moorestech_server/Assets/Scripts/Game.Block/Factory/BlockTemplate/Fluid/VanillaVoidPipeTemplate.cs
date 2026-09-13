@@ -20,7 +20,7 @@ namespace Game.Block.Factory.BlockTemplate.Fluid
             return GetBlock(blockMasterElement, blockInstanceId, blockPositionInfo);
         }
 
-        public IBlock Load(Dictionary<string, string> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
+        public IBlock Load(Dictionary<string, object> componentStates, BlockMasterElement blockMasterElement, BlockInstanceId blockInstanceId, BlockPositionInfo blockPositionInfo)
         {
             return GetBlock(blockMasterElement, blockInstanceId, blockPositionInfo);
         }

@@ -1,4 +1,5 @@
 using System;
+using Core.Update;
 using UnitGenerator;
 
 namespace Game.Train.Unit
@@ -8,7 +9,7 @@ namespace Game.Train.Unit
     {
         public static TrainUnitInstanceId Create()
         {
-            return new TrainUnitInstanceId(Guid.NewGuid());
+            return new TrainUnitInstanceId(GameRandom.NextGuid());
         }
     }
 }

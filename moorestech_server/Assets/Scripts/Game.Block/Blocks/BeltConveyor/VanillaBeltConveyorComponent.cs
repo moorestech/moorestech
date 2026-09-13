@@ -8,7 +8,6 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using Mooresmaster.Model.InventoryConnectsModule;
-using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.BeltConveyor
@@ -41,10 +40,10 @@ namespace Game.Block.Blocks.BeltConveyor
             _inventoryItems = new VanillaBeltConveyorInventoryItem[inventoryItemNum];
         }
 
-        public VanillaBeltConveyorComponent(Dictionary<string, string> componentStates, int inventoryItemNum, float timeOfItemEnterToExitSeconds, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType, InventoryConnects inventoryConnectors) :
+        public VanillaBeltConveyorComponent(Dictionary<string, object> componentStates, int inventoryItemNum, float timeOfItemEnterToExitSeconds, IBeltConveyorBlockInventoryInserter blockInventoryInserter, BeltConveyorSlopeType slopeType, InventoryConnects inventoryConnectors) :
             this(inventoryItemNum, timeOfItemEnterToExitSeconds, blockInventoryInserter, slopeType)
         {
-            var itemJsons = JsonConvert.DeserializeObject<List<string>>(componentStates[SaveKey]);
+            var itemJsons = BlockComponentStateReader.Read<List<string>>(componentStates, SaveKey);
             for (var i = 0; i < itemJsons.Count && i < inventoryItemNum; i++)
             {
                 if (itemJsons[i] != null)
@@ -158,7 +157,7 @@ namespace Game.Block.Blocks.BeltConveyor
         }
         
         public string SaveKey { get; } = typeof(VanillaBeltConveyorComponent).FullName;
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
             
@@ -168,7 +167,7 @@ namespace Game.Block.Blocks.BeltConveyor
                 saveItems.Add(t?.GetSaveJsonString());
             }
             
-            return JsonConvert.SerializeObject(saveItems);
+            return saveItems;
         }
         
         /// <summary>

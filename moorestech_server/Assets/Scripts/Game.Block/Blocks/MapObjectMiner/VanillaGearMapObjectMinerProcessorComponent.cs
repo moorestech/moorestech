@@ -11,7 +11,6 @@ using Game.Context;
 using Game.Map.Interface.MapObject;
 using Mooresmaster.Model.BlocksModule;
 using Mooresmaster.Model.MapObjectMineSettingsModule;
-using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.MapObjectMiner
 {
@@ -76,12 +75,12 @@ namespace Game.Block.Blocks.MapObjectMiner
         }
 
 
-        public VanillaGearMapObjectMinerProcessorComponent(Dictionary<string, string> componentStates, BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate) :
+        public VanillaGearMapObjectMinerProcessorComponent(Dictionary<string, object> componentStates, BlockPositionInfo blockPositionInfo, GearMapObjectMinerBlockParam blockParam, VanillaChestComponent vanillaChestComponent, GearEnergyTransformer gearEnergyTransformer, float idleTorqueRate) :
             this(blockPositionInfo, blockParam, vanillaChestComponent, gearEnergyTransformer, idleTorqueRate)
         {
             // 秒数からtickに変換して復元
             // Convert seconds back to ticks for restoration
-            var itemJsons = JsonConvert.DeserializeObject<Dictionary<Guid, double>>(componentStates[SaveKey]);
+            var itemJsons = BlockComponentStateReader.Read<Dictionary<Guid, double>>(componentStates, SaveKey);
             foreach (var (guid, remainingMiningSeconds) in itemJsons)
             {
                 if (!_miningTargetInfos.TryGetValue(guid, out var info))
@@ -152,7 +151,7 @@ namespace Game.Block.Blocks.MapObjectMiner
 
 
         public string SaveKey { get; } = typeof(VanillaGearMapObjectMinerProcessorComponent).FullName;
-        public string GetSaveState()
+        public object GetSaveState()
         {
             // tickを秒数に変換して保存（tick数の変動に対応）
             // Convert ticks to seconds for storage (to handle tick rate changes)
@@ -162,7 +161,7 @@ namespace Game.Block.Blocks.MapObjectMiner
                 remainMiningSeconds.Add(guid, GameUpdater.TicksToSeconds(info.RemainingMiningTicks));
             }
 
-            return JsonConvert.SerializeObject(remainMiningSeconds);
+            return remainMiningSeconds;
         }
         
         public bool IsDestroy { get; private set; }

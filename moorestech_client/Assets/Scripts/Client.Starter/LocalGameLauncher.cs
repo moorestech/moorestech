@@ -1,4 +1,5 @@
 using Client.Common;
+using Server.Boot;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -10,6 +11,10 @@ namespace Client.Starter
     {
         public static void StartLocalGame()
         {
+            // 本番のプレイ開始だけが常時記録を有効にする。テスト・プレイテスト・QAは既定の無効のまま走る
+            // Only the real play start enables always-on capture; tests, playtests and QA run on the disabled default
+            AlwaysOnCaptureSetting.Apply(AlwaysOnCaptureSetting.Enabled());
+
             // 多重呼び出しでも購読が1本に収まるよう先に外しておく
             // Unsubscribe first so repeated calls never leave duplicate subscriptions
             SceneManager.sceneLoaded -= OnGameInitializerSceneLoaded;

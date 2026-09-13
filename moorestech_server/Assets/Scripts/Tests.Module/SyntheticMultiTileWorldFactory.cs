@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Game.Map.Interface.Json;
-using Game.MapGeneration.Export;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Newtonsoft.Json;

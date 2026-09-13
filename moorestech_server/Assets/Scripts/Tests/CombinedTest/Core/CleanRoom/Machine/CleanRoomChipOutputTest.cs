@@ -13,13 +13,14 @@ using NUnit.Framework;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace Tests.CombinedTest.Core.CleanRoom
 {
     public class CleanRoomChipOutputTest
     {
-        // EUV抽選のシードは未シードのBlockInstanceId.Create()由来で実行毎に変わるため、全滅確率で枚数を決める
-        // The EUV seed comes from the unseeded BlockInstanceId.Create() and differs per run, so the count is sized by all-fail odds
+        // EUV抽選は GameRandom を引き、その状態は直前に走ったテストの引き方で変わるため、特定の結果に依らず全滅確率で枚数を決める
+        // The EUV roll draws from GameRandom whose state depends on whichever test ran before, so the count is sized by all-fail odds rather than a fixed outcome
         private const int WaferCount = 20;
 
         [Test]
@@ -76,10 +77,10 @@ namespace Tests.CombinedTest.Core.CleanRoom
             // Preserving blockInstanceId and cycleCount proves the next draw after reload is deterministic
             var positionInfo = new BlockPositionInfo(new Vector3Int(30, 0, 30), BlockDirection.North, Vector3Int.one);
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.CleanRoomMachineId).BlockGuid;
-            var states = machine.GetSaveState();
+            var states = SaveLoadJsonTestHelper.ThroughJson(machine.GetSaveState());
             var reloaded = ServerContext.BlockFactory.Load(blockGuid, machine.BlockInstanceId, states, positionInfo);
 
-            Assert.AreEqual(processor.GetSaveState(), reloaded.GetComponent<CleanRoomMachineProcessorComponent>().GetSaveState());
+            Assert.AreEqual(JsonConvert.SerializeObject(processor.GetSaveState()), JsonConvert.SerializeObject(reloaded.GetComponent<CleanRoomMachineProcessorComponent>().GetSaveState()));
         }
 
         #region TestHelper

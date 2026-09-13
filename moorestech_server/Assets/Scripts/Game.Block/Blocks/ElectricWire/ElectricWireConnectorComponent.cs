@@ -9,7 +9,6 @@ using Game.EnergySystem;
 using Core.Item.Interface;
 using Core.Master;
 using MessagePack;
-using Newtonsoft.Json;
 using UniRx;
 
 namespace Game.Block.Blocks.ElectricWire
@@ -33,7 +32,7 @@ namespace Game.Block.Blocks.ElectricWire
         private readonly Subject<Unit> _onChangeBlockState = new();
         public IObservable<Unit> OnChangeBlockState => _onChangeBlockState;
 
-        public ElectricWireConnectorComponent(int maxWireConnectionCount, BlockInstanceId blockInstanceId, IElectricEnergyRole energyRole, Dictionary<string, string> componentStates)
+        public ElectricWireConnectorComponent(int maxWireConnectionCount, BlockInstanceId blockInstanceId, IElectricEnergyRole energyRole, Dictionary<string, object> componentStates)
         {
             // 役割なしのワイヤー端点は許容しない
             // A wire endpoint without an energy role is not allowed
@@ -116,16 +115,13 @@ namespace Game.Block.Blocks.ElectricWire
         }
 
         #region LoadComponent
-        private readonly Dictionary<string, string> _componentStates;
+        private readonly Dictionary<string, object> _componentStates;
         public void OnPostBlockLoad()
         {
             // 全てのブロックがロードされた後に、セーブデータから接続先を復元する
             // Restore wire connections from saved data after all blocks are loaded
             if (_componentStates == null) return;
-            if (!_componentStates.TryGetValue(SaveKey, out var saved)) return;
-
-            var data = JsonConvert.DeserializeObject<ElectricWireSaveDataJsonObject>(saved);
-            if (data == null) return;
+            if (!BlockComponentStateReader.TryRead<ElectricWireSaveDataJsonObject>(_componentStates, SaveKey, out var data)) return;
 
             _wireConnections.Clear();
 
@@ -188,12 +184,12 @@ namespace Game.Block.Blocks.ElectricWire
 
         #region IBlockSaveState
         public string SaveKey => nameof(ElectricWireConnectorComponent);
-        public string GetSaveState()
+        public object GetSaveState()
         {
             // 接続先と消費情報を保存する
             // Persist partner ids and consumption info
             var data = new ElectricWireSaveDataJsonObject(_wireConnections);
-            return JsonConvert.SerializeObject(data);
+            return data;
         }
 
         #endregion

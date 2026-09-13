@@ -1,6 +1,7 @@
 using Game.Train.RailGraph;
 using System;
 using System.Collections.Generic;
+using Core.Update;
 
 namespace Game.Train.Diagram
 {
@@ -98,16 +99,24 @@ namespace Game.Train.Diagram
         private readonly List<TrainDiagram.DepartureConditionType> _departureConditionTypes;
         private TrainDiagramWaitForTicksCondition _waitForTicksCondition;
 
-        public TrainDiagramEntry(IRailNode node)
+        // 新規項目用: 項目IDを新規採番する
+        // For a new entry: draws a fresh entry id
+        public TrainDiagramEntry(IRailNode node) : this(node, GameRandom.NextGuid())
+        {
+        }
+
+        // セーブ復元用: 保存済みの項目IDを引き継ぐ。採番を挟むとロード中に乱数列が進み、保存時と別の列になる
+        // For save restore: carries over the persisted entry id; drawing one here would advance the random stream during load
+        private TrainDiagramEntry(IRailNode node, Guid entryId)
         {
             Node = node;
-            entryId = Guid.NewGuid();
+            this.entryId = entryId;
             _departureConditions = new List<ITrainDiagramDepartureCondition>();
             _departureConditionTypes = new List<TrainDiagram.DepartureConditionType>();
         }
 
         public IRailNode Node { get; private set; }
-        public Guid entryId { get; private set; }
+        public Guid entryId { get; }
 
         public IReadOnlyList<ITrainDiagramDepartureCondition> DepartureConditions => _departureConditions;
         public IReadOnlyList<TrainDiagram.DepartureConditionType> DepartureConditionTypes => _departureConditionTypes;
@@ -222,10 +231,7 @@ namespace Game.Train.Diagram
             int? waitForTicksInitial,
             int? waitForTicksRemaining)
         {
-            var entry = new TrainDiagramEntry(node)
-            {
-                entryId = entryGuid
-            };
+            var entry = new TrainDiagramEntry(node, entryGuid);
 
             entry.SetDepartureConditions(conditionTypes);
             if (waitForTicksInitial.HasValue && entry._waitForTicksCondition != null)

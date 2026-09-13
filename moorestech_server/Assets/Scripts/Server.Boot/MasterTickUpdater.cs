@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Block.Blocks.Fluid;
 using Game.EnergySystem;
 using Game.Gear.Common;
@@ -18,6 +19,10 @@ namespace Server.Boot
         private readonly FluidTickUpdater _fluidTickUpdater;
         private readonly TrainUpdateService _trainUpdateService;
         private readonly IWorldBlockDatastore _worldBlockDatastore;
+
+        // 正準順の反復に使う再利用バッファ。毎tickの確保を避ける
+        // Reusable buffer for the canonical-order iteration, avoiding a per-tick allocation
+        private readonly List<WorldBlockData> _tickOrderedBlocks = new();
 
         public MasterTickUpdater(
             ElectricWireNetworkDatastore electricWireNetworkDatastore,
@@ -53,9 +58,15 @@ namespace Server.Boot
 
             // ブロック更新を中央から一括駆動する（自走宣言した搬送系コンポーネントは対象外）
             // Drive block updates from one place; self-driven transport components are excluded
+            // Dictionaryの列挙順は設置・破壊の履歴で変わる。セーブがBlockInstanceId昇順で並ぶため更新順もそれに揃え、ロード後も同じ順序で回す
+            // Dictionary order follows placement and removal history; saves are ordered by BlockInstanceId, so update in that same order to keep a loaded world identical to a live one
+            _tickOrderedBlocks.Clear();
+            _tickOrderedBlocks.AddRange(_worldBlockDatastore.BlockMasterDictionary.Values);
+            _tickOrderedBlocks.Sort((left, right) => left.Block.BlockInstanceId.CompareTo(right.Block.BlockInstanceId));
+
             // 設置・破壊はtick末尾で確定するため、この反復中に増減は起きない
             // Placement and removal settle at tick end, so the collection never mutates during this iteration
-            foreach (var blockData in _worldBlockDatastore.BlockMasterDictionary.Values) blockData.Block.TickUpdate();
+            foreach (var blockData in _tickOrderedBlocks) blockData.Block.TickUpdate();
         }
     }
 }

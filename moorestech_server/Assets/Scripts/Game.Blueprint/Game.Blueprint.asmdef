@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Core.Master",
+        "Core.Update",
         "Game.Block.Interface",
         "Game.World.Interface",
         "Game.Context",

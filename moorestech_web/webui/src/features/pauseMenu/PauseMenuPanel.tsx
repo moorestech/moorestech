@@ -3,6 +3,7 @@ import { dispatchAction, Topics, useTopic } from "@/bridge";
 import { L, useI18n } from "@/shared/i18n";
 import { tutorialAnchor, TutorialAnchorIds } from "@/shared/tutorialAnchor";
 import { LanguageSelect } from "@/features/settings";
+import { BugReportForm } from "./BugReportForm";
 import styles from "./style.module.css";
 
 export function PauseMenuPanel() {
@@ -27,6 +28,7 @@ export function PauseMenuPanel() {
         <Button {...tutorialAnchor(TutorialAnchorIds.pauseBack)} onClick={quit}>
           {quitLabel}
         </Button>
+        {data && <BugReportForm status={data.bugReport} />}
         <LanguageSelect />
       </Stack>
     </section>

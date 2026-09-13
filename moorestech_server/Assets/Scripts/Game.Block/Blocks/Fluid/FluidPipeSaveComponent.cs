@@ -3,7 +3,6 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Game.Block.Blocks.Fluid
@@ -27,7 +26,7 @@ namespace Game.Block.Blocks.Fluid
         public static string SaveKeyStatic { get; } = typeof(FluidPipeSaveComponent).FullName;
         public string SaveKey { get; } = SaveKeyStatic;
 
-        public string GetSaveState()
+        public object GetSaveState()
         {
             BlockException.CheckDestroy(this);
 
@@ -53,7 +52,7 @@ namespace Game.Block.Blocks.Fluid
                 });
             }
 
-            return JsonConvert.SerializeObject(jsonObject);
+            return jsonObject;
         }
     }
 }

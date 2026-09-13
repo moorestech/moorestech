@@ -16,8 +16,6 @@ namespace Game.Block.Blocks.Gear
     // Component monitoring overload block destruction; holds no per-block Update and is driven every tick by the GearTickUpdater sweep
     public class GearOverloadBreakageComponent : IBlockComponent, IGearOverloadTickTarget
     {
-        private const int RandomSeed = 19890604;
-        private static readonly System.Random SharedRandom = new(RandomSeed);
         private readonly BlockInstanceId _blockInstanceId;
         private readonly IGearEnergyTransformer _gearEnergyTransformer;
         private readonly IGearOverloadParam _overloadParam;
@@ -53,7 +51,7 @@ namespace Game.Block.Blocks.Gear
             // Calculate destruction probability when overloaded and roll
             var chance = CalculateDestructionProbability();
             if (chance <= 0f) return;
-            if (SharedRandom.NextDouble() <= chance) RequestRemove();
+            if (GameRandom.NextDouble() <= chance) RequestRemove();
 
             #region Internal
 

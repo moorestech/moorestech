@@ -1,4 +1,5 @@
 using Core.Item;
+using Core.Update;
 using Game.Blueprint;
 using Game.Challenge;
 using Game.CleanRoom;
@@ -6,6 +7,7 @@ using Game.Construction;
 using Game.Context;
 using Game.Entity.Interface;
 using Game.Hotbar;
+using Game.Map.Interface;
 using Game.PlayerInventory.Interface;
 using Game.PlayerRiding.Interface;
 using Game.Research;
@@ -35,6 +37,7 @@ namespace Game.SaveLoad.Json
         private readonly ItemStackLevelDataStore _itemStackLevelDataStore;
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
+        private readonly IMiningCooldownDatastore _miningCooldownDatastore;
 
         public AssembleSaveJsonText(
             IPlayerInventoryDataStore inventoryDataStore,
@@ -52,7 +55,8 @@ namespace Game.SaveLoad.Json
             ConstructionPayerDataStore constructionPayerDataStore,
             ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
-            CleanRoomDatastore cleanRoomDatastore)
+            CleanRoomDatastore cleanRoomDatastore,
+            IMiningCooldownDatastore miningCooldownDatastore)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -70,14 +74,22 @@ namespace Game.SaveLoad.Json
             _itemStackLevelDataStore = itemStackLevelDataStore;
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
+            _miningCooldownDatastore = miningCooldownDatastore;
         }
 
         public string AssembleSaveJson()
         {
+            return Serialize(Capture());
+        }
+
+        // tickスレッドで世界の保存像を取り込む。ここで返す木は生きた参照を含まない
+        // Capture the world's save image on the tick thread; the returned tree holds no live references
+        public WorldSaveAllInfoV1 Capture()
+        {
             var worldBlockDatastore = ServerContext.WorldBlockDatastore;
             var mapObjectDatastore = ServerContext.MapObjectDatastore;
 
-            var saveData = new WorldSaveAllInfoV1(
+            var saveAllInfo = new WorldSaveAllInfoV1(
                 worldBlockDatastore.GetSaveJsonObject(),
                 _inventoryDataStore.GetSaveJsonObject(),
                 _entitiesDatastore.GetSaveJsonObject(),
@@ -95,10 +107,19 @@ namespace Game.SaveLoad.Json
                 _constructionPayerDataStore.GetSaveJsonObject(),
                 _itemStackLevelDataStore.GetSaveJsonObject(),
                 _playerInventorySlotLevelDataStore.GetSaveLevel(),
-                _cleanRoomDatastore.GetSaveData()
+                _cleanRoomDatastore.GetSaveData(),
+                _miningCooldownDatastore.GetSaveJsonObject(),
+                GameRandom.ExportState()
             );
+            saveAllInfo.CurrentTick = GameUpdater.CurrentTick;
+            return saveAllInfo;
+        }
 
-            return JsonConvert.SerializeObject(saveData);
+        // JSON化はどのスレッドでもよい（取り込んだ木だけを読む）
+        // Serialization may run on any thread; it reads only the captured tree
+        public static string Serialize(WorldSaveAllInfoV1 data)
+        {
+            return JsonConvert.SerializeObject(data);
         }
     }
 }

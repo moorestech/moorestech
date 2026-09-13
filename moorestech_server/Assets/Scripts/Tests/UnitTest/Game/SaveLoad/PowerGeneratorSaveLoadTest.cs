@@ -15,6 +15,8 @@ using Tests.CombinedTest.Core.Electric;
 using Tests.Module.TestMod;
 using UnityEngine;
 
+using Tests.Util;
+
 namespace Tests.UnitTest.Game.SaveLoad
 {
     public class PowerGeneratorSaveLoadTest
@@ -67,7 +69,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             
             // セーブデータを生成してディクショナリに格納する
             // Generate the save data and wrap it in the dictionary expected by the loader.
-            var states = powerGeneratorBlock.GetSaveState();
+            var states = SaveLoadJsonTestHelper.ThroughJson(powerGeneratorBlock.GetSaveState());
 
             
             

@@ -54,6 +54,7 @@ export type ActionPayloads = {
   "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
   "pause_menu.save": Record<string, never>;
   "pause_menu.save_and_quit": Record<string, never>;
+  "bug_report.submit": { description: string };
   "localization.setLocale": { locale: string };
   "event_mode.select_language": { locale: string };
   "research.complete": { researchGuid: string };
@@ -100,6 +101,7 @@ export const ACTION_TYPES = [
   "ui_state.request",
   "pause_menu.save",
   "pause_menu.save_and_quit",
+  "bug_report.submit",
   "localization.setLocale",
   "event_mode.select_language",
   "research.complete",

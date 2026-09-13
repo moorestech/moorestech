@@ -17,6 +17,8 @@ using Server.Boot;
 using Tests.Module.TestMod;
 using UnityEngine;
 
+using Tests.Util;
+
 namespace Tests.CombinedTest.Core.CleanRoom
 {
     public class CleanRoomHatchTest
@@ -130,7 +132,7 @@ namespace Tests.CombinedTest.Core.CleanRoom
             hatchInventory.InsertItem(ServerContext.ItemStackFactory.Create(new ItemId(2), 3), InsertItemContext.Empty);
 
             var saveComponent = hatch.GetComponent<IBlockSaveState>();
-            var states = new Dictionary<string, string> { { saveComponent.SaveKey, saveComponent.GetSaveState() } };
+            var states = SaveLoadJsonTestHelper.ThroughJson(saveComponent.SaveKey, saveComponent.GetSaveState());
 
             var blockGuid = MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.CleanRoomItemHatchId).BlockGuid;
             var positionInfo = new BlockPositionInfo(new Vector3Int(10, 0, 10), BlockDirection.North, Vector3Int.one);

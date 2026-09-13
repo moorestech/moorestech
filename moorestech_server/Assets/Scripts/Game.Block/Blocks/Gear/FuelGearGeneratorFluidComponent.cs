@@ -3,7 +3,6 @@ using Core.Master;
 using Game.Block.Blocks.Fluid;
 using Game.Block.Interface.Component;
 using Game.Fluid;
-using Newtonsoft.Json;
 
 namespace Game.Block.Blocks.Gear
 {
@@ -26,12 +25,10 @@ namespace Game.Block.Blocks.Gear
             _consecutiveUpdatesWithoutRefill = 0;
         }
 
-        public FuelGearGeneratorFluidComponent(Dictionary<string, string> componentStates, float tankCapacity)
+        public FuelGearGeneratorFluidComponent(Dictionary<string, object> componentStates, float tankCapacity)
             : this(tankCapacity)
         {
-            if (!componentStates.TryGetValue(SaveKey, out var saveState)) return;
-
-            var saveData = JsonConvert.DeserializeObject<FuelGearGeneratorFluidSaveData>(saveState);
+            if (!BlockComponentStateReader.TryRead<FuelGearGeneratorFluidSaveData>(componentStates, SaveKey, out var saveData)) return;
             _fuelTank = saveData.Fluid.ToFluidContainer(tankCapacity);
 
             _consecutiveUpdatesWithoutRefill = saveData.ConsecutiveUpdatesWithoutRefill;
@@ -92,7 +89,7 @@ namespace Game.Block.Blocks.Gear
         
         public string SaveKey => "fuelGearGeneratorFluid";
         
-        public string GetSaveState()
+        public object GetSaveState()
         {
             var saveData = new FuelGearGeneratorFluidSaveData
             {
@@ -100,7 +97,7 @@ namespace Game.Block.Blocks.Gear
                 ConsecutiveUpdatesWithoutRefill = _consecutiveUpdatesWithoutRefill
             };
             
-            return JsonConvert.SerializeObject(saveData);
+            return saveData;
         }
         
         // Save data structure

@@ -42,7 +42,7 @@ class WebSocketClient {
 
   // タイムアウト・切断時は reject
   // Rejects on timeout or disconnect
-  sendAction(type: string, payload: unknown): Promise<ActionResult> {
+  sendAction(type: string, payload: unknown, timeoutMs: number): Promise<ActionResult> {
     return new Promise((resolve, reject) => {
       if (this.ws?.readyState !== WebSocket.OPEN) {
         reject(new Error("disconnected"));
@@ -52,7 +52,7 @@ class WebSocketClient {
       const timer = window.setTimeout(() => {
         this.pendingActions.delete(requestId);
         reject(new Error("timeout"));
-      }, 5000);
+      }, timeoutMs);
       this.pendingActions.set(requestId, { resolve, reject, timer });
       const msg: ClientMsg = { op: "action", type, requestId, payload };
       this.ws.send(JSON.stringify(msg));
@@ -84,7 +84,9 @@ class WebSocketClient {
       this.sendRaw({ op: "input_state", ...this.inputState });
       this.lastPongAt = Date.now();
       this.heartbeatTimer = globalThis.setInterval(() => {
-        if (Date.now() - this.lastPongAt >= 15000) {
+        // 応答待ちのactionがある間は無応答で切らない。書き出しを待つ120秒の途中で切ると成功が無言で消える
+        // Never cut on silence while an action awaits its result; cutting inside a 120s write drops a success silently
+        if (this.pendingActions.size === 0 && Date.now() - this.lastPongAt >= 15000) {
           ws.close();
           return;
         }
@@ -103,6 +105,9 @@ class WebSocketClient {
         return;
       }
       if (msg.op === "result") {
+        // result が返るホストは生きている。長い action の間に溜まった無応答時間をここで解消する
+        // A host that answers a result is alive, so the silence accumulated during a long action ends here
+        this.lastPongAt = Date.now();
         if (typeof msg.requestId !== "string") return;
         const pending = this.pendingActions.get(msg.requestId);
         if (!pending) return;
@@ -160,6 +165,9 @@ const PINNED_TOPICS = [
   Topics.blockInventory,
   Topics.uiState,
   Topics.inventory,
+  // 送信結果の欠損はポーズメニューが閉じた後に読むため、購読をパネルのマウントから切り離す
+  // The missing list of a finished send is read after the pause menu closed, so the subscription outlives the panel
+  Topics.pauseMenu,
 ] as const satisfies readonly (keyof TopicPayloads)[];
 
 // httpsで配信された場合にws:を使うとブラウザがmixed contentで接続自体を拒否するため、ページのスキームへ揃える
@@ -177,9 +185,9 @@ export function initBridge() {
 
 // UI コードは原則 actions.ts の dispatchAction を使うこと（reject の処理が必要なため）
 // UI code should normally use dispatchAction in actions.ts, which handles rejections
-export function sendAction(type: string, payload: unknown): Promise<ActionResult> {
+export function sendAction(type: string, payload: unknown, timeoutMs: number): Promise<ActionResult> {
   if (client === null) return Promise.reject(new Error("disconnected"));
-  return client.sendAction(type, payload);
+  return client.sendAction(type, payload, timeoutMs);
 }
 
 export function sendInputState(pointerOverUi: boolean, textInputFocused: boolean) {

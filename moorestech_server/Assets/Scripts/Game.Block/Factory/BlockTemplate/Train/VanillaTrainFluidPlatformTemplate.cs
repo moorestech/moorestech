@@ -37,6 +37,7 @@ namespace Game.Block.Factory.BlockTemplate.Train
 
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
+            blockComponents.Add(new RailNodeGuidSaveComponent(railComponents));
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.Add(trainPlatformFluidContainer);
@@ -51,14 +52,15 @@ namespace Game.Block.Factory.BlockTemplate.Train
         }
 
         public IBlock Load(
-            Dictionary<string, string> componentStates,
+            Dictionary<string, object> componentStates,
             BlockMasterElement masterElement,
             BlockInstanceId instanceId,
             BlockPositionInfo positionInfo)
         {
             var param = masterElement.BlockParam as TrainFluidPlatformBlockParam;
 
-            var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, param.EntryRailPosition, param.ExitRailPosition, _railGraphDatastore, (float)param.MaxConnectableRailLength);
+            var nodeGuids = RailNodeGuidSaveComponent.LoadNodeGuids(componentStates, 2);
+            var railComponents = RailComponentUtility.Restore2RailComponents(positionInfo, param.EntryRailPosition, param.ExitRailPosition, _railGraphDatastore, (float)param.MaxConnectableRailLength, nodeGuids);
             RailComponentUtility.RegisterStationBlocks(railComponents, _railGraphDatastore);
 
             var trainPlatformDockingComponent = new TrainPlatformDockingComponent(componentStates, param.LoadingAnimeSpeed);
@@ -69,6 +71,7 @@ namespace Game.Block.Factory.BlockTemplate.Train
 
             var blockComponents = new List<IBlockComponent>();
             blockComponents.AddRange(railComponents);
+            blockComponents.Add(new RailNodeGuidSaveComponent(railComponents));
             blockComponents.Add(trainPlatformDockingComponent);
             blockComponents.Add(trainPlatformTransferComponent);
             blockComponents.Add(trainPlatformFluidContainer);

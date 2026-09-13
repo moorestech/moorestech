@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { NestedPauseSubStateNames } from "@/bridge";
-import { NotificationDataSchema, UiStateDataSchema } from "./ui";
+import { NotificationDataSchema, PauseMenuDataSchema, UiStateDataSchema } from "./ui";
 
 describe("NotificationDataSchema", () => {
   it("itemId: nullをomittedと同様に受理する（シリアライザ揺れ耐性）", () => {
@@ -43,5 +43,19 @@ describe("UiStateDataSchema", () => {
   it("keyHints未着のペイロードは契約破れとして弾く", () => {
     const parsed = UiStateDataSchema.safeParse({ state: "GameScreen" });
     expect(parsed.success).toBe(false);
+  });
+});
+
+describe("PauseMenuDataSchema", () => {
+  it("bugReport を持つ", () => {
+    const parsed = PauseMenuDataSchema.parse({ disconnected: false, bugReport: { kind: "capturing", missing: ["video"] } });
+    expect(parsed.bugReport.missing).toEqual(["video"]);
+  });
+
+  // 送信可否はC#が出した結論そのものを受け取る。組み立て直せる形にすると判定が2本になる
+  // The send-permission verdict arrives exactly as C# decided it; a re-assemblable shape would make two rules
+  it("未知の kind と kind 抜きの確保状態を弾く", () => {
+    expect(PauseMenuDataSchema.safeParse({ disconnected: false, bugReport: { kind: "sending", missing: [] } }).success).toBe(false);
+    expect(PauseMenuDataSchema.safeParse({ disconnected: false, bugReport: { hasSession: true, capturePending: false, missing: [] } }).success).toBe(false);
   });
 });
