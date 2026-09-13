@@ -19,6 +19,12 @@ hooks:
       hooks:
         - type: command
           command: "python3 .claude/skills/pr-independent-review/scripts/unattended-gate.py ask"
+    # `gh pr checkout` を PR専用worktree の外で叩かせない（無人・対話を問わず）
+    # Refuse `gh pr checkout` outside the PR-dedicated worktree, attended or not
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "python3 .claude/skills/pr-independent-review/scripts/checkout_guard.py"
   Stop:
     - hooks:
         - type: command
@@ -105,30 +111,20 @@ AskUserQuestion は deny される。ブロックは同一セッション2回で
 1. **`$ORIGIN` を特定する** — このSKILL.mdをReadしたときの絶対パスから `/<dir>/skills/pr-independent-review/SKILL.md`
    （`<dir>` は `.agents`/`.claude`/`.codex`。実体は `.agents/skills` で他2つはsymlink）を文字列として取り除いた残り。
    `~/moorestech` を決め打ちしない（worktreeから発火する運用が現にある）
-2. **ピンSHAの解決**:
+2. **スクリプトで用意する**（origin/master の fetch・ピンSHA解決・`skills-canon-<sha8>` の作成または再利用・`.last-used` の記録・
+   24時間使われていない古ピンの掃除・`novelty_gate.py` の実在確認・SKILL.md同一性ガードを1コマンドで行い、終了コードで裁く）:
 
-       git -C <$ORIGINの実値> fetch origin "+refs/heads/master:refs/remotes/origin/master"
-       git -C <$ORIGINの実値> rev-parse --short=8 refs/remotes/origin/master
+       python3 <$ORIGINの実値>/.agents/skills/pr-independent-review/scripts/canon_setup.py \
+         --origin <$ORIGINの実値> --parent <worktree親ディレクトリ>
 
-   出力（曖昧回避で8桁より伸びることがある。そのまま使う）を `<sha8>` とする
-3. **場所**: `$PRWT` と同じ親ディレクトリの `skills-canon-<sha8>`。無ければ作り、既にあればそのまま再利用する:
+   stdout の JSON の `canon` が `$CANON` の実値。`origin_master_sha` は records の `canonical:` に書く。`warnings`（古ピン掃除の失敗）は報告に載せて続行する
 
-       git -C <$ORIGINの実値> worktree add <$CANONの実値> --detach <sha8>
-
-4. **使用記録と古ピンの掃除**: `touch <$CANONの実値>/.last-used`。同じ親ディレクトリの他の `skills-canon-*`（sha8無しの旧 `skills-canon` を含む）
-   のうち `.last-used` が24時間より古い・無いものを `git -C <$ORIGINの実値> worktree remove --force <ピンの実値>` で消す。
-   24時間はレビュー1本の所要より十分長い猶予。**掃除の失敗だけはエラー終了せず報告のみで続行してよい**（衛生であって測定の前提ではない）
-5. **実在確認**: `ls <$CANONの実値>/.agents/skills/pr-independent-review/scripts/novelty_gate.py`。失敗したら即エラー終了。
-   確認先はこのファイルでなければならない — `moores-code-review/SKILL.md` は `$PRWT` 側にも存在しうるため弁別にならない。
-   起動元treeの `.claude/` で代替するのは禁止
-6. **SKILL.md同一性ガード（必須）**:
-
-       diff <$ORIGINの実値>/.agents/skills/pr-independent-review/SKILL.md \
-            <$CANONの実値>/.agents/skills/pr-independent-review/SKILL.md
-
-   差分が出たら先へ進まずユーザーへ報告して指示を仰ぐ（無人起動では即エラー終了）。SKILL.md本体はharnessが `$ORIGIN` から読むため
-   固定できるのは参照ファイルだけで、`$ORIGIN` に未マージのskill改修があると「新しい指示 × 古いレンズ」の版ズレで走る。
-   ユーザーが続行を選んだ場合のみ進み、records の `canonical:` に `skew` と両SHAを明記する
+   | exit | 意味 | 対応 |
+   | --- | --- | --- |
+   | 0 | 用意完了 | 進む |
+   | 10 / 11 / 12 | fetch・rev-parse 失敗 / worktree add 失敗 / `novelty_gate.py` 不在 | 即エラー終了。起動元treeの `.claude/` で代替しない |
+   | 13 | SKILL.md 同一性ガードで差分（`$ORIGIN` に未マージのskill改修があり「新しい指示 × 古いレンズ」の版ズレ） | 人が起動したならユーザーへ報告して指示を仰ぎ、続行を選んだ場合のみ `--allow-skew` で再実行して records の `canonical:` に `skew` と両SHAを明記する。無人起動では即エラー終了 |
+   | 14 | `$ORIGIN` が作業ツリーのルートでない / `$CANON` が `$ORIGIN` と同一 | 即エラー終了（`$ORIGIN` の特定をやり直す） |
 
 ### skill改修・裁定記録を書きたいとき
 
@@ -190,8 +186,9 @@ Step 10 の付与条件を確認する。
       git -C <$ORIGINの実値> fetch origin "+refs/heads/<headRefName>:refs/remotes/origin/<headRefName>"
       git -C <$ORIGINの実値> worktree add <$PRWTの実値> origin/<headRefName>
 
-  **`$ORIGIN` で `gh pr checkout` を実行してはいけない** — cwdのworktreeのブランチを切り替え、メインworktreeを他セッションの
-  作業ブランチから引き剥がす。`gh pr checkout` は必ず `$PRWT` へ `cd` した状態で叩く
+  `gh pr checkout` は必ず `$PRWT` へ `cd` した同一コマンド内で叩く（frontmatter の `checkout_guard.py` が、`cd <…>/pr-<番号> &&`
+  を伴わない `gh pr checkout` を deny する。cwdのworktreeのブランチを切り替え、メインworktreeを他セッションの作業ブランチから
+  引き剥がすため）。Step 3 の `make_patch.py` も `$PRWT`＝`$ORIGIN`（exit 20）と `pr-<番号>` 以外の名前（exit 21）を拒否する
 - **既にあれば作り直さない**。`git -C <$PRWTの実値> status --porcelain` が非空なら即エラー終了（前回の修正作業が残っている可能性。
   `reset --hard` で潰さない）。次に `fetch origin "+refs/heads/<headRefName>:refs/remotes/origin/<headRefName>"` のうえ
   `merge --ff-only origin/<headRefName>`。fast-forwardできなければ前回の修正が未pushなので即エラー終了
@@ -223,20 +220,20 @@ Step 10 の付与条件を確認する。
 
 ## Step 3: patch生成（exclude方式）
 
-    git -C <$PRWTの実値> -c core.quotepath=false diff \
-      --no-color --no-ext-diff --no-textconv --text --no-renames \
-      <BASE_REF>...HEAD -- . \
-      ':(exclude)*.meta' ':(exclude)*.prefab' ':(exclude)*.asset' ':(exclude)*.unity' \
-      ':(exclude)*.png' ':(exclude)*.jpg' ':(exclude)*.controller' ':(exclude)*.mat' ':(exclude)*.fbx' \
-      ':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs' \
-      > <$RUNDIRの実値>/patch.diff
+    python3 <$CANONの実値>/.agents/skills/pr-independent-review/scripts/make_patch.py \
+      --prwt <$PRWTの実値> --origin <$ORIGINの実値> --pr <番号> --base-ref <BASE_REF> --out <$RUNDIRの実値>/patch.diff
 
-- yml/jsonは残す（master-data系レンズの守備範囲）。プレイテストシナリオの `.cs` は除外する（ユーザー裁定 2026-08-16）。
-  moores-code-review Step 1と同一のpathspec
-- **フラグは省略禁止** — このpatchは決定論チェック・レンズ・reviewer・Codexが読む唯一の差分実体で、ユーザー側git設定
-  （quotepath / color / ext-diff・textconv / バイナリ判定 / rename圧縮）がpatchを静かに痩せさせる
-- **成功条件＝patch非空（必須）**: `grep -c '^diff' <$RUNDIRの実値>/patch.diff` が1以上。0なら「base指定ミスまたはpatch取得失敗」として
-  即エラー終了。`git diff` は空でもexit 0なのでこのgrepが唯一の検知点。第一の疑いは `BASE_REF`（Step 1.5）
+スクリプトが固定フラグ（`-c core.quotepath=false --no-color --no-ext-diff --no-textconv --text --no-renames`。ユーザー側git設定が
+patchを静かに痩せさせないため）と固定の除外（Unityアセット・画像・プレイテストシナリオの `.cs`。yml/jsonは残す。
+moores-code-review Step 1と同一のpathspec）で `<BASE_REF>...HEAD` の差分を書き、次を終了コードで裁く:
+
+| exit | 意味 | 対応 |
+| --- | --- | --- |
+| 0 | 生成完了。stdout JSON の `diff_count` / `head` / `base_sha` / `adr_files_in_diff` を後段で使う | 進む |
+| 20 / 21 | `$PRWT`＝`$ORIGIN` / ディレクトリ名が `pr-<番号>` でない | 即エラー終了。Step 2 のworktreeをやり直す |
+| 22 | `BASE_REF` が解決できない | 即エラー終了（Step 1.5 / Step 2 の解決確認へ戻る） |
+| 23 | merge-base が HEAD 自身（base取り違え。MERGED PR で `origin/<base>` を使った典型） | `BASE_REF` を直して再実行 |
+| 24 | patch が空（`git diff` は空でも exit 0 なのでここが唯一の検知点） | 即エラー終了。第一の疑いは `BASE_REF` |
 
 ## Step 4: 4カテゴリcontextの独立再構成
 
@@ -250,11 +247,8 @@ PRコメントの合意主張は使わない。
   トレードオフは全部 `[agent前提]`（免責力なし）
 - `[ユーザー裁定: "発言引用" …]` の引用欄に書けるのはユーザー発言または AskUserQuestion の質問文＋採択ラベルの逐語だけ。
   `.decisions/` のファイル名・ADRの決定文・言い換えは引用ではない。逐語が無い場合は `[ADR: <spec名>#<台帳項目>（原文引用なし）]` と注記する
-- **`[ADR:]` を引用する前に、そのspec/planがPR diff自身で追加・変更されていないか確認する**:
-
-      git -C <$PRWTの実値> diff <BASE_REF>...HEAD --name-only -- docs/superpowers/
-
-  出力に引用元が含まれる場合、そのファイル由来のADR項目は **`[agent前提]` へ降格**し、当該行末に `（PR内新設ADR）` と注記する。
+- **PR diff自身が追加・変更したspec/plan由来のADR項目は `[agent前提]` へ降格**し、当該行末に `（PR内新設ADR）` と注記する。
+  対象ファイルはStep 3の `make_patch.py` が出す `adr_files_in_diff`（`docs/superpowers/` 配下）。
   降格はverdictに影響しない（免責されなくなった指摘は通常のCritical/Warningとして判定規則に乗る）
 
 ## Step 5: 新規性ゲートL1
@@ -270,9 +264,9 @@ PRコメントの合意主張は使わない。
 
 - **新形フラグ**の採用基準（3系統で違う）: `new_edges` は **`generic_origin=true` かつ `dir_is_new=false` のものだけ** /
   `asmdef_refs` **全件** / `grammar` **全件**
-- **patchが非空なのに3系統全空なら baseずれを疑う（必須確認）**: (1) 第2引数がStep 1.5の `BASE_REF` 実値か
-  (2) `git -C <$PRWTの実値> merge-base <BASE_REF> HEAD` がHEADと一致しないこと。一致＝base取り違えなので `BASE_REF` を直してStep 3からやり直す。
-  両方通って初めて「本当に新形0件」と判断してよい
+- **patchが非空なのに3系統全空なら baseずれを疑う（必須確認）**: 第2引数がStep 3で `make_patch.py` に渡した `BASE_REF` と同じ実値か
+  確認する（merge-base が HEAD 自身になる取り違えは `make_patch.py` が exit 23 で弾いているので、残る疑いは引数の写し間違いだけ）。
+  確認して初めて「本当に新形0件」と判断してよい
 - `generic_origin=false` の new_edges と `dir_is_new=true` の new_edges は参考情報（裁定カードにせず折りたたみ参考節へ）。
   `dir_is_new` の件数はStep 8に「うちdir_is_new N件」として残す
 - `.claude/` `.agents/` `.codex/` 配下の `.cs` はプロダクトコードでないため除外して解釈する
@@ -381,19 +375,21 @@ sonnet subagentに `<$RUNDIRの実値>/digest.md` を**Markdownで**生成させ
 
 ## Step 10: 対応完了ラベル（レビューと対応が両方終わった時のみ）
 
-    gh pr edit <番号> --repo moorestech/moorestech \
-      --add-label "独立レビュー&対応完了" --remove-label "独立レビュー待ち"
+`独立レビュー&対応完了` は「人間はマージ判断だけすればよい」の合図で、対応未実施のPRに付くと未修正のCriticalがマージされる。
+付与条件の判定と `gh pr edit`（`--add-label "独立レビュー&対応完了" --remove-label "独立レビュー待ち"`）はスクリプトが行う。
+`gh pr edit` を直接叩かない:
 
-（`--remove-label` は付いていないラベルでもエラーにならないので常に両方指定でよい）
+    python3 <$CANONの実値>/.agents/skills/pr-independent-review/scripts/label_gate.py \
+      --pr <番号> --rundir <$RUNDIRの実値> [--prwt <$PRWTの実値> --fixed-commit <SHA> ...]
 
-**「レビューだけ終わった」状態では絶対に付けない** — このラベルは「人間はマージ判断だけすればよい」の合図で、対応未実施のPRに付くと
-未修正のCriticalがマージされる。verdict別の付与条件:
+| verdict | 通る条件 | 通らないとき |
+| --- | --- | --- |
+| 自動マージ可 | 無条件（Step 8の記録まで済んでいること） | — |
+| Critical差し戻し | 全Criticalへの修正コミットを `--fixed-commit` で渡し、すべてが現在のPR headの祖先（push済み） | exit 30。未実施・ローカルのみなら付けない |
+| 新形につき裁定行き | `$RUNDIR/adjudications.json` が `completed:true`（裁定が出ている）。裁定に伴う対応があればそのコミットも `--fixed-commit` で渡す | exit 31。裁定待ちの間は付けない |
+| 未測定（スタブ） | 付けない | exit 32 |
 
-- **Critical差し戻し** → 全Criticalへの修正コミットがPRブランチへpush済み（`gh pr view <番号> --json headRefOid` が修正コミットを指す、
-  または `git log` で修正コミットがheadの祖先）であることを確認してから
-- **新形につき裁定行き** → ユーザー裁定が出て、裁定に伴う対応（あれば）がpushされてから。裁定待ちの間は付けない
-- **自動マージ可** → Step 8の記録まで済んだ時点で付けてよい
-- **未測定（スタブ）** → 付けない
+exit 33（findings.json が読めない）/ 34（gh 不在・未認証）は環境の問題なので理由を報告して付けずに終える。
 
 ## reconcileモード（人間レビューとの突き合わせ・改善発火）
 

@@ -118,9 +118,11 @@ class SkillWiringTest(unittest.TestCase):
         pathspec = "':(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'"
         self.assertIn(pathspec, SKILL_MD,
                       "moores-code-review Step 1 のpatch生成からプレイテストシナリオ除外が消えている")
-        independent = (REPO_ROOT / ".agents/skills/pr-independent-review/SKILL.md").read_text(encoding="utf-8")
-        self.assertIn(pathspec, independent,
-                      "pr-independent-review Step 3 のpatch生成からプレイテストシナリオ除外が消えている")
+        # pr-independent-review側のpatch生成はscripts/make_patch.pyが担う（SKILL.md本文にpathspecは書かない）
+        # pr-independent-review builds its patch in scripts/make_patch.py; the SKILL.md body no longer carries the pathspec
+        independent = (REPO_ROOT / ".agents/skills/pr-independent-review/scripts/make_patch.py").read_text(encoding="utf-8")
+        self.assertIn('":(exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs"', independent,
+                      "pr-independent-review make_patch.py のpatch生成からプレイテストシナリオ除外が消えている")
 
     def test_every_reviewer_and_lens_has_frontmatter(self):
         # selector発見可能性: reviewers/lensesはfrontmatter（extensions等）を持つこと

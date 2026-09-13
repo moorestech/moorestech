@@ -23,7 +23,7 @@ detachedのまま作業してください（ブランチ名は作らない）。
      `.cs` を解消で触った場合は `cd {{REPO}} && uloop compile --project-path ./moorestech_client` で
      コンパイルが通ることを確認してから、`git add` し標準のマージメッセージ＋次のトレーラーでコミットする:
 
-         Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+         Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
 
    - **自信を持って解消できないコンフリクトがある**: `git -C {{REPO}} merge --abort` で完全に元へ戻す。
      中途半端な解消状態を絶対に残さない。ただし次節の一覧に載るファイルは「自信を持って解消できない」に
