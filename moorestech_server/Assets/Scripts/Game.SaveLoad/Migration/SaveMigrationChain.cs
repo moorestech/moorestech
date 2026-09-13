@@ -53,13 +53,42 @@ namespace Game.SaveLoad.Migration
 
             // 整数でないworldVersionをそのまま読むと生の型例外になり、理由がどこにも残らない
             // Reading a non-integer worldVersion raw would throw a bare cast exception with the reason logged nowhere
-            if (token.Type != JTokenType.Integer)
+            // int範囲外の整数も同じ穴で、Value<int>()のOverflowExceptionが無ログで起動を落とす
+            // An out-of-range integer is the same hole: Value<int>() throws OverflowException with nothing logged
+            if (!TryReadVersionInt32(token, out var version))
             {
                 Debug.LogError($"セーブの{WorldVersionKey}が整数として読めません。ロードせずに中断します。 value={token.ToString(Formatting.None)} type={token.Type}");
                 return UnreadableWorldVersion;
             }
 
-            return token.Value<int>();
+            return version;
+        }
+
+        // 巨大整数はJson.NETがlongやBigIntegerで持つ。int範囲に収まるものだけを版として受け取る
+        // Json.NET holds a huge integer as long or BigInteger; only values fitting in int are accepted as a version
+        private static bool TryReadVersionInt32(JToken token, out int version)
+        {
+            version = UnreadableWorldVersion;
+            if (token.Type != JTokenType.Integer) return false;
+
+            var raw = (token as JValue)?.Value;
+            if (raw is long longVersion)
+            {
+                if (longVersion < int.MinValue || longVersion > int.MaxValue) return false;
+                version = (int)longVersion;
+                return true;
+            }
+
+            if (raw is ulong ulongVersion)
+            {
+                if (ulongVersion > int.MaxValue) return false;
+                version = (int)ulongVersion;
+                return true;
+            }
+
+            // longにも収まらない綴りはBigInteger等で届く。版として意味のある値にはなりえない
+            // A spelling too large even for long arrives as BigInteger or similar and can never be a meaningful version
+            return false;
         }
 
         public SaveMigrationResult Migrate(JObject save)

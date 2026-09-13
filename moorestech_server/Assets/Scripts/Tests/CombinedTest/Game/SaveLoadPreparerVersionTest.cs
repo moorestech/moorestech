@@ -67,6 +67,10 @@ namespace Tests.CombinedTest.Game
         // A save whose version is not an integer must exit through a reasoned rejection, not a bare cast exception
         [TestCase("\"abc\"", TestName = "壊れたworldVersion_文字列は理由付きで拒否されるTest")]
         [TestCase("null", TestName = "壊れたworldVersion_nullは理由付きで拒否されるTest")]
+        // int範囲外の整数は型としては整数なので、範囲判定が無いとOverflowExceptionで無ログに落ちる
+        // An out-of-range integer is still typed as an integer, so without a range check it dies on OverflowException with no log
+        [TestCase("2147483648", TestName = "壊れたworldVersion_int超過は理由付きで拒否されるTest")]
+        [TestCase("99999999999999999999", TestName = "壊れたworldVersion_long超過は理由付きで拒否されるTest")]
         public void 壊れた版のセーブは理由付きで拒否されるTest(string worldVersionJson)
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();

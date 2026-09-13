@@ -133,11 +133,22 @@ namespace Game.SaveLoad.Json
         public void Load(string jsonText)
         {
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
-            
+
+            // 版が古いセーブの欠損はV1→V2ステップが補うので、ここで補填はしない
+            // A missing field in an older save is backfilled by the V1-to-V2 step, so nothing is backfilled here
+            // miningCooldownsだけは参照型で、欠けたまま進むと復元先で素のNullReferenceExceptionになり理由が残らない
+            // Only miningCooldowns is a reference type; passing it through would surface as a bare NullReferenceException with no reason
+            if (load.MiningCooldowns == null)
+            {
+                var reason = "セーブに miningCooldowns がありません。版が古いセーブはマイグレーション連鎖（Game.SaveLoad/Migration）が補填するため、現在版のセーブで欠けているのは手編集による破損です";
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
+
             // 時刻と乱数状態を最初に戻す。以降の復元（残りtick等）がこの時刻を基準にする
             // Restore the clock and random state first; later restorations reference this tick
-            // 3項目の欠損を弾くガードは置かない。補填はV1→V2ステップが担い、ここは整った形だけを受ける
-            // No guard rejects the three missing fields here; the V1-to-V2 step backfills them and this path only sees a prepared shape
+            // currentTickとrandomStateは使用時点で理由の分かる例外になるため、ここに追加のガードは置かない
+            // currentTick and randomState already fail with a telling exception at their use site, so no extra guard is placed here
             GameUpdater.RestoreCurrentTick(load.CurrentTick.Value);
             GameRandom.RestoreState(load.RandomState);
             

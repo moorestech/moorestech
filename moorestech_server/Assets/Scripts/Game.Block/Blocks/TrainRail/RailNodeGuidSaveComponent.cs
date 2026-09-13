@@ -48,7 +48,7 @@ namespace Game.Block.Blocks.TrainRail
             var nodes = saveData.Nodes;
             if (nodes != null && nodes.Count == expectedRailComponentCount) return nodes;
 
-            var reason = $"セーブのレールノードGUIDが期待本数と違います 期待:{expectedRailComponentCount} 実際:{nodes?.Count}。scripts/save_migration/migrate_block_state_objects.py で移行してください";
+            var reason = $"セーブのレールノードGUIDが期待本数と違います 期待:{expectedRailComponentCount} 実際:{nodes?.Count}。形式が変わった版はマイグレーション連鎖（Game.SaveLoad/Migration の ISaveMigrationStep）が補うため、ここへ届いたのは版が上がっていないか手編集で壊れたセーブです";
             Debug.LogError(reason);
             throw new InvalidOperationException(reason);
         }
