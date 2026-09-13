@@ -7,6 +7,10 @@ namespace Client.Game.InGame.BugReport.Capture
         private bool _inFlight;
         private bool _submitted;
 
+        // 送信の書き出しが進行中か。前回確保の一時資源を消してよいかの判断に使う
+        // Whether a send is still writing; used to decide if the previous capture's materials may be dropped
+        public bool IsInFlight => _inFlight;
+
         public void Reset()
         {
             _inFlight = false;

@@ -39,6 +39,11 @@ namespace Client.Game.InGame.BugReport.Capture
         public void BeginOnPauseMenu()
         {
             _beginCount++;
+
+            // 前回の確保はこの時点で送り直せなくなる。作業場を残すとEscapeのたびに丸ごと積み上がる
+            // The previous capture can no longer be re-sent from here, so keeping its workspace would pile one up per Escape
+            ReleasePreviousWorkspace();
+
             var data = new BugReportCapturedData { CaptureWorkDirectory = BugReportCaptureWorkspace.Create() };
             _data = data;
             _progress.BeginCapture();
@@ -114,7 +119,10 @@ namespace Client.Game.InGame.BugReport.Capture
         {
             if (_data != data)
             {
+                // 差し替え時に消せなかった作業場はこの送信の持ち物。ここが最後の解放点になる
+                // A workspace the swap could not drop belongs to this send, so this is its last release point
                 Debug.LogWarning("バグ報告: 別の確保に差し替わった後の送信結果なので確保状態へ戻しません");
+                BugReportCaptureWorkspace.Delete(data.CaptureWorkDirectory);
                 return;
             }
 
@@ -126,6 +134,15 @@ namespace Client.Game.InGame.BugReport.Capture
             // The workspace is dropped once its materials reached the box; a failed write keeps them so the send can be retried
             if (ready) BugReportCaptureWorkspace.Delete(data.CaptureWorkDirectory);
             _progress.Publish(_data, _submitGate);
+        }
+
+        // 送信中の作業場だけは消さない（書き出しが読んでいる最中）。その分はCompleteSubmitが引き取る
+        // Only a workspace with a send in flight survives, since the writer is still reading it; CompleteSubmit reclaims that one
+        private void ReleasePreviousWorkspace()
+        {
+            var keep = _data != null && _submitGate.IsInFlight ? _data.CaptureWorkDirectory : null;
+            if (keep != null) Debug.Log($"バグ報告: 送信中のため前回の作業場は送信完了まで残します directory:{keep}");
+            BugReportCaptureWorkspace.DeleteAllExcept(keep);
         }
 
         private async UniTaskVoid RequestServerCapture(BugReportCapturedData data, int beginCount)

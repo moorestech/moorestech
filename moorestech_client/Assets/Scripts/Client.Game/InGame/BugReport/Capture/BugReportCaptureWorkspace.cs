@@ -30,6 +30,22 @@ namespace Client.Game.InGame.BugReport.Capture
             TryDelete(directory);
         }
 
+        // 新しい確保を始める時点で、送信中の1つを除く作業場はすべて死んでいる。名指しでなく掃き出す
+        // Every workspace but the one still being sent is dead once a new capture starts, so they are swept rather than named
+        // 差し替え後に終わった退避・スクリーンショットが古い置き場を作り直すため、名指しの削除だけでは取りこぼす
+        // Staging or a screenshot that finishes after the swap recreates its old directory, which a named delete would miss
+        public static void DeleteAllExcept(string keepDirectory)
+        {
+            var root = GameSystemPaths.BugReportDirectory;
+            if (!Directory.Exists(root)) return;
+
+            foreach (var directory in Directory.GetDirectories(root, $"{DirectoryPrefix}*"))
+            {
+                if (directory == keepDirectory) continue;
+                TryDelete(directory);
+            }
+        }
+
         // 起動時に呼ぶ。送信前にプロセスが落ちると作業場は誰も片付けないのでここで刈り取る
         // Called at boot; a process that dies before sending leaves a workspace nobody else reclaims
         public static void CleanOrphans()
