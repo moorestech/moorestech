@@ -11,7 +11,7 @@ describe("router", () => {
   it("知らないパスはJSONの404を返す", async () => {
     const response = await handle(new Request("https://playtest.tar-atari.com/nope"), env as unknown as Env, noNetwork);
     expect(response.status).toBe(404);
-    expect(await response.json()).toEqual({ reason: "not-found" });
+    expect(await response.json()).toEqual({ error: "not_found" });
   });
 
   it("知っているパスでもメソッドが違えば405を返す", async () => {

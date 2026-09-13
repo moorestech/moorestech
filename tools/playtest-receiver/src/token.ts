@@ -18,19 +18,34 @@ export async function signToken(secret: string, steamId: string, nowSeconds: num
 // Verification is shape, signature, expiry; any failure collapses to null and the caller answers 401
 export async function verifyToken(secret: string, token: string, nowSeconds: number): Promise<string | null> {
   const parts = token.split(".");
-  if (parts.length !== 3) return null;
+  if (parts.length !== 3) {
+    console.warn("[token] rejected: bad-format");
+    return null;
+  }
   const [header, body, signature] = parts as [string, string, string];
 
   const expected = await sign(secret, `${header}.${body}`);
-  if (signature.length !== expected.length) return null;
+  if (signature.length !== expected.length) {
+    console.warn("[token] rejected: bad-signature");
+    return null;
+  }
   let diff = 0;
   for (let i = 0; i < expected.length; i++) diff |= signature.charCodeAt(i) ^ expected.charCodeAt(i);
-  if (diff !== 0) return null;
+  if (diff !== 0) {
+    console.warn("[token] rejected: bad-signature");
+    return null;
+  }
 
   const payload = decodePayload(body);
   if (payload === null) return null;
-  if (payload.exp <= nowSeconds) return null;
-  if (payload.sub.length === 0) return null;
+  if (payload.exp <= nowSeconds) {
+    console.warn("[token] rejected: expired");
+    return null;
+  }
+  if (payload.sub.length === 0) {
+    console.warn("[token] rejected: empty-sub");
+    return null;
+  }
   return payload.sub;
 }
 
@@ -40,9 +55,13 @@ function decodePayload(body: string): TokenPayload | null {
   try {
     const text = atob(body.replace(/-/g, "+").replace(/_/g, "/"));
     const parsed = JSON.parse(text) as Partial<TokenPayload>;
-    if (typeof parsed.sub !== "string" || typeof parsed.exp !== "number" || typeof parsed.iat !== "number") return null;
+    if (typeof parsed.sub !== "string" || typeof parsed.exp !== "number" || typeof parsed.iat !== "number") {
+      console.warn("[token] rejected: bad-payload-shape");
+      return null;
+    }
     return { sub: parsed.sub, iat: parsed.iat, exp: parsed.exp };
   } catch {
+    console.warn("[token] rejected: bad-payload-encoding");
     return null;
   }
 }
