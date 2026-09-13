@@ -5,6 +5,7 @@ using System.Linq;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
 using Client.WebUiHost.Game.Actions;
@@ -149,7 +150,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
         private static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, IReadOnlyCollection<string> before)
         {
-            var handler = new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>());
+            var handler = new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>(), resolver.Resolve<IPlaytestProgressSink>());
             var result = await handler.ExecuteAsync(new JObject { ["description"] = description });
             Assert.IsTrue(result.Ok, result.Error);
 

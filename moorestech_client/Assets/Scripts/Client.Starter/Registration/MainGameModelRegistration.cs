@@ -10,6 +10,7 @@ using Client.Game.InGame.Construction;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Skit;
@@ -58,6 +59,10 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
             builder.RegisterEntryPoint<BugReportUiStatePusher>();
             builder.RegisterEntryPoint<BugReportPauseMenuTrigger>();
+
+            // 進行記録は購読で集める。UIStateControl はシーン上のcomponentとして既存の登録から解決される
+            // The progress record collects through subscriptions; UIStateControl resolves from the existing scene component registration
+            builder.RegisterEntryPoint<ProgressRecorder>().AsSelf().As<IPlaytestProgressSink>();
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.Context;
+using Client.Game.InGame.Playtest.Progress;
 using Cysharp.Threading.Tasks;
 using Game.UnlockState;
 using Newtonsoft.Json.Linq;
@@ -15,10 +16,12 @@ namespace Client.WebUiHost.Game.Actions
         public string ActionType => "craft.execute";
 
         private readonly IGameUnlockStateData _unlockStateData;
+        private readonly IPlaytestProgressSink _progressSink;
 
-        public CraftExecuteActionHandler(IGameUnlockStateData unlockStateData)
+        public CraftExecuteActionHandler(IGameUnlockStateData unlockStateData, IPlaytestProgressSink progressSink)
         {
             _unlockStateData = unlockStateData;
+            _progressSink = progressSink;
         }
 
         // recipeGuid のパース・実在・解放を判定する純関数。成功時のみ recipeGuid を返す
@@ -52,6 +55,10 @@ namespace Client.WebUiHost.Game.Actions
             // 素材所持チェックはサーバー側で行われるためここでは送信のみ
             // Material checks happen server-side; just send the request here
             ClientContext.VanillaApi.SendOnly.Craft(recipeGuid);
+
+            // クラフトは送信のみで応答が無いため、変化を起こした操作の直後にプッシュする
+            // A craft has no response, so the progress push happens right after the operation that causes the change
+            _progressSink.RecordCraftExecuted(recipeGuid);
             return UniTask.FromResult(ActionResult.Success());
         }
     }
