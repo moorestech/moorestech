@@ -118,6 +118,10 @@ namespace Tests.CombinedTest.Game
 
             Assert.AreEqual("2026-09-13T08:30:00Z", pruned["prunedAt"].Value<string>());
             Assert.AreEqual(1, ((JArray)pruned["blocks"]).Count);
+            // 後日の置換・返金の入力になるので、壊す前の実体が残っていることまで見る
+            // The pruned entity feeds a later replace/refund pass, so the pre-damage value itself is checked
+            Assert.AreEqual(MissingGuid, pruned["blocks"][0]["blockGuid"].Value<string>());
+            Assert.AreEqual(987656, pruned["blocks"][0]["instanceId"].Value<int>());
             Assert.AreEqual(0, ((JArray)pruned["items"]).Count);
             Assert.AreEqual(0, ((JArray)pruned["research"]).Count);
         }
@@ -131,15 +135,22 @@ namespace Tests.CombinedTest.Game
             var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
 
             serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(1);
-            ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            var placed = ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ChestId, Vector3Int.zero, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
+            Assert.IsTrue(placed, "テストの土台となるチェストの設置に失敗しました");
 
-            return JObject.Parse(serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
+            // 種付けが効かないと0件系テストが空セーブの検証へ静かに退化するので、土台の中身まで固定する
+            // If the seeding stops working the zero-removal tests silently decay into empty-save checks, so pin the seeded content
+            var save = JObject.Parse(serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
+            Assert.Greater(((JArray)save["world"]).Count, 0, "テストの土台のworldが空です");
+            Assert.Greater(((JArray)save["playerInventory"]).Count, 0, "テストの土台のplayerInventoryが空です");
+            return save;
         }
 
         private static string FirstBlockGuid(JObject save)
         {
-            var world = (JArray)save["world"];
-            return world.Count > 0 ? world[0]["blockGuid"].Value<string>() : MissingGuid;
+            // フォールバックは置かない。空ならBuildSaveJsonのアサートで既に落ちている
+            // No fallback here; an empty world already fails the assert inside BuildSaveJson
+            return ((JArray)save["world"])[0]["blockGuid"].Value<string>();
         }
     }
 }

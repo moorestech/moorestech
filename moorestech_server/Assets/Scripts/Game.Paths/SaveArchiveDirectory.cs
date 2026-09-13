@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using UnityEngine;
 
@@ -32,9 +33,11 @@ namespace Game.Paths
 
         // コロンを含む拡張ISO形式はWindowsのファイル名に使えないため基本形式で綴る
         // The extended ISO form contains colons, which Windows filenames reject, so the basic form is used
+        // 年がカルチャのカレンダーで化けないようInvariantCultureで綴る
+        // Spelled with InvariantCulture so the year does not shift under a non-Gregorian calendar
         public string PrunedJsonPath(DateTime utcNow, int collisionIndex)
         {
-            var stamp = utcNow.ToString("yyyyMMdd'T'HHmmss'Z'");
+            var stamp = utcNow.ToString("yyyyMMdd'T'HHmmss'Z'", CultureInfo.InvariantCulture);
             var name = collisionIndex == 0 ? $"{stamp}.json" : $"{stamp}-{collisionIndex}.json";
             return Path.Combine(PrunedRoot, name);
         }
