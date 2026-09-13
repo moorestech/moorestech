@@ -90,6 +90,19 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual("AAECAw==", migrated["world"][0]["state"]["blob"].Value<string>());
         }
 
+        // stateが非オブジェクト(文字列等)のとき、無音で{}へ潰すと元データが破棄されてしまう
+        // If a non-object state were silently collapsed to {}, the original data would be discarded
+        [Test]
+        public void stateが非オブジェクトの要素は元の値を残したまま展開をとばすTest()
+        {
+            var save = JObject.Parse("{\"world\":[{\"state\":\"not-an-object\"}]}");
+
+            LogAssert.Expect(LogType.Error, new Regex("stateがオブジェクトではありません"));
+            var migrated = new SaveMigrationStepV1ToV2().Migrate(save);
+
+            Assert.AreEqual("not-an-object", migrated["world"][0]["state"].Value<string>());
+        }
+
         [Test]
         public void FromVersionは1であるTest()
         {

@@ -20,6 +20,8 @@ namespace Game.SaveLoad.Migration.Steps
         // For an already-played world the position in the sequence is unrecoverable anyway; determinism alone suffices
         private const ulong LegacySaveRandomSeed = 0UL;
 
+        // ログに含めるサンプル長。python移行スクリプトのvalue[:80]と揃える
+        // Sample length for the log; matches the python migration script's value[:80]
         private const int DoubleEncodedSampleLength = 80;
 
         public int FromVersion => 1;
@@ -53,9 +55,18 @@ namespace Game.SaveLoad.Migration.Steps
                         continue;
                     }
 
-                    if (!(block["state"] is JObject state))
+                    var stateToken = block["state"];
+                    if (stateToken == null || stateToken.Type == JTokenType.Null)
                     {
                         block["state"] = new JObject();
+                        continue;
+                    }
+
+                    // stateが非オブジェクト(文字列・配列等)なら元の値を残したまま展開をとばす。無音で捨てない
+                    // If state is a non-object (string, array, ...), skip expansion but keep the original value; never discard silently
+                    if (!(stateToken is JObject state))
+                    {
+                        Debug.LogError($"world要素のstateがオブジェクトではありません。元の値を残したまま展開をとばします。 type={stateToken.Type}");
                         continue;
                     }
 

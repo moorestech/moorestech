@@ -89,6 +89,8 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsFalse(CurrentVersionChain().Migrate(JObject.Parse("{\"worldVersion\":0}")).CanLoad);
         }
 
+        // 欠番が無い(1,2は揃っている)状態で重複だけを混ぜ、重複検知そのものを見る
+        // No gap (1 and 2 are both present) so only the duplicate is exercised
         [Test]
         public void FromVersionが重複した連鎖は構築時に落ちるTest()
         {
@@ -97,7 +99,21 @@ namespace Tests.UnitTest.Game.SaveLoad
             {
                 new RecordingStep(1, applied),
                 new RecordingStep(1, applied),
+                new RecordingStep(2, applied),
             }, 3));
+        }
+
+        // 目標版に対してステップが多すぎる(範囲外のFromVersionを含む)場合も構築時に落ちる
+        // Too many steps for the target version (an out-of-range FromVersion) also fails at construction
+        [Test]
+        public void 目標版に対してステップが多すぎる連鎖は構築時に落ちるTest()
+        {
+            var applied = new List<int>();
+            Assert.Throws<ArgumentException>(() => new SaveMigrationChain(new ISaveMigrationStep[]
+            {
+                new RecordingStep(1, applied),
+                new RecordingStep(2, applied),
+            }, 2));
         }
 
         // 欠番は「その版のセーブが永久にロードできない」という恒久封鎖なので構築時に落とす
