@@ -14,14 +14,6 @@ namespace Client.Game.InGame.BugReport.LastSession
         // The Editor's process name; the single source for recognizing an Editor boot's crash as ours
         public const string EditorProcessName = "Unity";
 
-        // 共有置き場はOSが全アプリのクラッシュを溜める場所で、自プロセス名で絞らないと他アプリの記録まで運んでしまう
-        // A shared root is where the OS piles every app's crash, so without a process-name filter other apps' records get shipped
-        public sealed class DumpRoot
-        {
-            public string Path;
-            public bool SharedWithOtherApps;
-        }
-
         public static IReadOnlyList<string> CandidateRoots()
         {
             var roots = new List<string>();
@@ -29,35 +21,35 @@ namespace Client.Game.InGame.BugReport.LastSession
             return roots;
         }
 
-        private static IReadOnlyList<DumpRoot> CandidateDumpRoots()
+        // どの置き場が共有かの宣言そのものが絞り込みの要。宣言を落とすと他アプリのダンプが素通りするためテストから見える形で置く
+        // The shared/dedicated declaration is the filter itself: dropping it lets other apps' dumps through, so tests can read it
+        public static IReadOnlyList<CrashDumpRoot> CandidateDumpRoots()
         {
             // Client.Game.InGame.Environment（地形namespace）と同名衝突するため System.Environment を完全修飾する
             // Fully-qualified as System.Environment to avoid colliding with the sibling Client.Game.InGame.Environment namespace
-            // Client.Game.InGame.Environment（地形namespace）と同名衝突するため System.Environment を完全修飾する
-            // Fully-qualified as System.Environment to avoid colliding with the sibling Client.Game.InGame.Environment namespace
-            var roots = new List<DumpRoot>();
+            var roots = new List<CrashDumpRoot>();
             var localAppData = System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData);
             if (!string.IsNullOrEmpty(localAppData))
             {
                 // Windowsの2候補は<product>配下の専用置き場なので、中身は必ず自分のクラッシュだけ
                 // Both Windows candidates live under <product>, so whatever they hold is this app's crash and nothing else
-                roots.Add(new DumpRoot { Path = Path.Combine(localAppData, "Temp", UnityEngine.Application.companyName, UnityEngine.Application.productName, CrashesFolderName) });
-                roots.Add(new DumpRoot { Path = Path.Combine(localAppData, UnityEngine.Application.companyName, UnityEngine.Application.productName, CrashesFolderName) });
+                roots.Add(new CrashDumpRoot { Path = Path.Combine(localAppData, "Temp", UnityEngine.Application.companyName, UnityEngine.Application.productName, CrashesFolderName) });
+                roots.Add(new CrashDumpRoot { Path = Path.Combine(localAppData, UnityEngine.Application.companyName, UnityEngine.Application.productName, CrashesFolderName) });
             }
 
             // macOS はクラッシュレポータのdiagnosticsに残る。Windows検証機と同じ入口で拾えるよう並べておく
             // macOS keeps them in the crash reporter's diagnostics folder; listed here so one entry point covers both
             var home = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
-            if (!string.IsNullOrEmpty(home)) roots.Add(new DumpRoot { Path = Path.Combine(home, "Library", "Logs", "DiagnosticReports"), SharedWithOtherApps = true });
+            if (!string.IsNullOrEmpty(home)) roots.Add(new CrashDumpRoot { Path = Path.Combine(home, "Library", "Logs", "DiagnosticReports"), SharedWithOtherApps = true });
             return roots;
         }
 
         // 直近24時間ぶんだけを拾う。過去の無関係なダンプで箱を膨らませない
         // Takes only the last 24 hours so unrelated old dumps never inflate the box
-        public static List<string> FindDumpFiles()
+        public static CrashDumpScanResult FindDumpFiles()
         {
             var since = DateTime.UtcNow.AddHours(-24);
-            var found = new List<string>();
+            var candidates = new List<CrashDumpCandidate>();
             foreach (var root in CandidateDumpRoots())
             {
                 if (!Directory.Exists(root.Path)) continue;
@@ -65,12 +57,41 @@ namespace Client.Game.InGame.BugReport.LastSession
                 {
                     var info = new FileInfo(file);
                     if (info.LastWriteTimeUtc < since) continue;
-                    if (!IsDumpLikeName(info.Name)) continue;
-                    if (root.SharedWithOtherApps && !IsOwnProcessDumpName(info.Name, UnityEngine.Application.productName)) continue;
-                    found.Add(file);
+                    candidates.Add(new CrashDumpCandidate { Root = root, FileName = info.Name, FullPath = file });
                 }
             }
-            return found;
+
+            var result = SelectDumpFiles(candidates, UnityEngine.Application.productName);
+            LogExclusion(result);
+            return result;
+        }
+
+        // 置き場の共有宣言だけを見て選別する純粋関数。実ファイルを置かずに配線ごと検証できる
+        // A pure selection driven only by the roots' shared declaration, so the wiring is verifiable without real files
+        public static CrashDumpScanResult SelectDumpFiles(IReadOnlyList<CrashDumpCandidate> candidates, string productName)
+        {
+            var result = new CrashDumpScanResult();
+            foreach (var candidate in candidates)
+            {
+                if (!IsDumpLikeName(candidate.FileName)) continue;
+                if (candidate.Root.SharedWithOtherApps && !IsOwnProcessDumpName(candidate.FileName, productName))
+                {
+                    result.ExcludedAsOtherApps++;
+                    if (!result.ExcludedRoots.Contains(candidate.Root.Path)) result.ExcludedRoots.Add(candidate.Root.Path);
+                    continue;
+                }
+                result.Files.Add(candidate.FullPath);
+            }
+            return result;
+        }
+
+        // 落としたことは必ず開発者ログへ出す。無音で捨てると「見つからない」と「捨てた」が区別できなくなる
+        // Every drop reaches the developer log; a silent drop makes "none found" and "filtered out" indistinguishable
+        private static void LogExclusion(CrashDumpScanResult result)
+        {
+            if (result.ExcludedAsOtherApps == 0) return;
+            var condition = $"ファイル名が {UnityEngine.Application.productName}- または {EditorProcessName}- で始まること";
+            UnityEngine.Debug.Log($"共有置き場のクラッシュレポート{result.ExcludedAsOtherApps}件を他アプリのものとして除外しました 条件:{condition} 除外元:{string.Join(", ", result.ExcludedRoots)}");
         }
 
         // 共有置き場のクラッシュレポートは <プロセス名>-<日付>.ips 形式。自分のプロセス名で始まるものだけを自分の記録として扱う

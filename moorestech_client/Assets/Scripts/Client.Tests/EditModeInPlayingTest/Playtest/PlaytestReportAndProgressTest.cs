@@ -2,15 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Client.Game.InGame.BugReport;
-using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
-using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.Paths;
@@ -18,7 +15,6 @@ using Game.SaveLoad.Snapshot;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine.TestTools;
-using VContainer;
 
 namespace Client.Tests.EditModeInPlayingTest.Playtest
 {
@@ -31,7 +27,7 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
         public IEnumerator 種別付きで送るとmanifestに載り終了で進行記録が出る()
         {
             EditModeInPlayingTestUtil.EnterPlayModeUtil();
-            yield return new EnterPlayMode(true);
+            yield return new EnterPlayMode(expectDomainReload: true);
             LogAssert.ignoreFailingMessages = true;
 
             yield return Body().ToCoroutine();
@@ -55,10 +51,13 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
                 // The progress header is written at session start, after the leftover recovery has already run
                 Assert.IsTrue(ProgressRecordFiles.HasCurrentSession(), "進行記録のヘッダが書かれていない");
 
-                var bundlesBefore = ExistingDirectories(GameSystemPaths.BugReportOutboxDirectory);
+                var bundlesBefore = BugReportSubmitUtil.ExistingBundles();
                 var recordsBefore = ExistingDirectories(GameSystemPaths.ProgressRecordOutboxDirectory);
 
-                var bundle = await SubmitFeedbackAndTakeNewBundle(resolver, bundlesBefore);
+                // 種別は webui のトグルが載せる契約値。送信経路を通ってmanifestまで届くことがこのテストの主眼
+                // The kind is the contract value the webui toggle sends; this test's point is that it reaches the manifest through the submit path
+                await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
+                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "感想テスト", PlaytestReportKind.Feedback, bundlesBefore);
                 AssertManifestCarriesKindAndIdentity(bundle);
                 Directory.Delete(bundle, true);
 
@@ -72,34 +71,11 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
                 AssertRecordHoldsSubscriptionAndPush(record);
                 Directory.Delete(record, true);
 
-                // 後片付け: 次のテスト起動が「前回異常終了」にならないよう正常終了マーカーは残す
-                // Cleanup: the clean-exit marker stays so the next test boot is not treated as an unclean exit
+                // 後片付け: この起動が置いた開始ゲートの印はPlayMode終了時にPlaytestStartGateBypassが消す
+                // Cleanup: the start-gate marks this boot placed are removed by PlaytestStartGateBypass when Play Mode ends
             }
 
             #endregion
-        }
-
-        // 種別は webui のトグルが載せる契約値。送信経路を通ってmanifestまで届くことがこのテストの主眼
-        // The kind is the contract value the webui toggle sends; this test's point is that it reaches the manifest through the submit path
-        private static async UniTask<string> SubmitFeedbackAndTakeNewBundle(IObjectResolver resolver, IReadOnlyCollection<string> before)
-        {
-            var session = resolver.Resolve<BugReportCaptureSession>();
-            resolver.Resolve<UIStateControl>().RequestTransition(UIStateEnum.PauseMenu);
-
-            // サーバー確保の打ち切り上限は15秒なので、それより長く待って確定を見届ける
-            // The server capture gives up after 15 seconds, so wait longer than that to see it settle
-            for (var i = 0; i < 400 && session.Status.Value.Kind != BugReportCaptureStatus.Ready; i++) await UniTask.Delay(50);
-            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind, "ポーズメニューを開いても20秒以内に送信できる状態にならない");
-
-            var handler = new BugReportSubmitActionHandler(
-                resolver.Resolve<BugReportBundleWriter>(),
-                session,
-                resolver.Resolve<UIStateControl>(),
-                resolver.Resolve<IPlaytestProgressSink>());
-            var result = await handler.ExecuteAsync(new JObject { ["description"] = "感想テスト", ["kind"] = PlaytestReportKind.Feedback });
-            Assert.IsTrue(result.Ok, result.Error);
-
-            return TakeSingleNewDirectory(GameSystemPaths.BugReportOutboxDirectory, before, "送信でoutboxに増えた箱が1つではない");
         }
 
         private static void AssertManifestCarriesKindAndIdentity(string bundle)

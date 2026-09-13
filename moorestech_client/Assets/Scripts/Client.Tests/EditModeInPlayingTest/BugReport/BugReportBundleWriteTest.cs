@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport;
-using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
-using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.Paths;
@@ -50,11 +47,11 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 ServerContext.GetService<WorldSnapshotRing>().Start(null, null, null);
                 await UniTask.Delay(1000);
 
-                var before = ExistingBundles();
-                var session = await OpenPauseMenuAndWaitCapture(resolver);
+                var before = BugReportSubmitUtil.ExistingBundles();
+                var session = await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
                 Assert.IsFalse(session.Status.Value.Missing.Contains("serverSnapshot"), "サーバースナップショットの確保に失敗した");
 
-                var bundle = await SubmitAndTakeNewBundle(resolver, "テスト報告", before);
+                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("テスト報告", (string)manifest["description"]);
                 AssertPlanCManifestContract(bundle, manifest);
@@ -108,11 +105,11 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                 Assert.IsFalse(ServerContext.GetService<WorldSnapshotRing>().IsActive, "常時記録が動いていては拒否経路を通れない");
 
-                var before = ExistingBundles();
-                var session = await OpenPauseMenuAndWaitCapture(resolver);
+                var before = BugReportSubmitUtil.ExistingBundles();
+                var session = await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
                 Assert.IsTrue(session.Status.Value.Missing.Contains("serverSnapshot"), "拒否されたのに確保状態が欠損を持っていない");
 
-                var bundle = await SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", before);
+                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("確保に失敗した報告", (string)manifest["description"]);
 
@@ -134,32 +131,6 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
             }
 
             #endregion
-        }
-
-        private static async UniTask<BugReportCaptureSession> OpenPauseMenuAndWaitCapture(IObjectResolver resolver)
-        {
-            var session = resolver.Resolve<BugReportCaptureSession>();
-            resolver.Resolve<UIStateControl>().RequestTransition(UIStateEnum.PauseMenu);
-
-            // サーバー確保の打ち切り上限は15秒なので、それより長く待って確定を見届ける
-            // The server capture gives up after 15 seconds, so wait longer than that to see it settle
-            for (var i = 0; i < 400 && session.Status.Value.Kind != BugReportCaptureStatus.Ready; i++) await UniTask.Delay(50);
-
-            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind, "ポーズメニューを開いても20秒以内に送信できる状態にならない");
-            return session;
-        }
-
-        private static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, IReadOnlyCollection<string> before)
-        {
-            var handler = new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>(), resolver.Resolve<IPlaytestProgressSink>());
-            // 種別はwebuiのトグルが必ず載せる契約値で、欠けた要求は invalid_kind で拒否される
-            // The kind is a contract value the webui toggle always sends; a request without it is refused as invalid_kind
-            var result = await handler.ExecuteAsync(new JObject { ["description"] = description, ["kind"] = PlaytestReportKind.Bug });
-            Assert.IsTrue(result.Ok, result.Error);
-
-            var added = ExistingBundles().Except(before).ToList();
-            Assert.AreEqual(1, added.Count, "送信でoutboxに増えた箱が1つではない");
-            return added[0];
         }
 
         // plan C の prepare-run.sh / ship-outbox.sh が読むキー。欠けると Mac mini 側が最初の1行で落ちる
@@ -190,12 +161,6 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
             var uiState = resolver.Resolve<UIStateControl>();
             for (var i = 0; i < 40 && uiState.CurrentState != UIStateEnum.GameScreen; i++) await UniTask.Delay(50);
             Assert.AreEqual(UIStateEnum.GameScreen, uiState.CurrentState, "送信後にポーズメニューが閉じていない");
-        }
-
-        private static List<string> ExistingBundles()
-        {
-            Directory.CreateDirectory(GameSystemPaths.BugReportOutboxDirectory);
-            return Directory.GetDirectories(GameSystemPaths.BugReportOutboxDirectory).ToList();
         }
     }
 }

@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BugReport.LastSession;
-using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
 using Client.Starter;
 using Core.Item.Interface;
@@ -38,10 +36,9 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             // Disable debug object creation during test (persists across domain reload).
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
 
-            // 開始ゲートは応答があるまで初期化を止めるため、応答者のいないテスト起動では先に両方の印を置いて出さないようにする
-            // The start gates hold initialization until answered, so a test boot with no one to answer marks both flags first
-            CleanExitMarker.MarkCleanExit();
-            PlaytestConsentFlag.Acknowledge();
+            // 開始ゲートを出さないための印を置く。置いた分はPlayMode終了時にPlaytestStartGateBypassが消す
+            // Place the marks that keep the start gates closed; PlaytestStartGateBypass removes whatever it created when Play Mode ends
+            PlaytestStartGateBypass.Apply();
 
             AssetBundle.UnloadAllAssetBundles(true);
         }

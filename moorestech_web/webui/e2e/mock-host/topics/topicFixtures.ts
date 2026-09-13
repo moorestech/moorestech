@@ -39,6 +39,10 @@ const topicFixtures: TopicFixtureRegistry = {
   // 通常のe2eは出展モードではないので待機しない。欠けるとsnapshotが返らずrestoringのまま全操作が塞がる
   // Regular e2e is not event mode, so it never waits; a missing entry returns no snapshot and wedges everything in restoring
   [Topics.eventLanguageGate]: () => ({ waiting: false }),
+  // 開始ゲートも既定は待機なし。欠けるとsnapshotが返らずrestoringのまま全操作が塞がる
+  // The start gates also default to not waiting; a missing entry returns no snapshot and wedges everything in restoring
+  [Topics.crashReportGate]: () => ({ waiting: false }),
+  [Topics.consentGate]: () => ({ waiting: false }),
   [Topics.challengeTree]: () => fx.challengeTree,
   [Topics.challengeCurrent]: () => fx.challengeCurrent,
   [Topics.pauseMenu]: () => ({ disconnected: false, bugReport: { kind: "ready", missing: [] } }),

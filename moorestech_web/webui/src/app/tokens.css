@@ -157,6 +157,9 @@
   /* 同意ゲート・確認ゲート本文の最大幅。無制約だと画面端まで達し左右の文字が余白ゼロで接触する */
   /* Max width for the consent/crash gate body text; unconstrained it reaches the screen edge with zero side margin */
   --playtest-gate-body-width: 900px;
+  /* 同じゲートの見出しの最大幅。辞書未配信のEN/JA併記は本文より長くなるため、見出しにも同じ制約が要る */
+  /* Max width for the same gates' heading; the dictionary-less EN/JA pairing runs longer than the body, so the heading needs the same constraint */
+  --playtest-gate-title-width: 900px;
   /* HUD面の安全帯。フェード帯を超える余白で、チャレンジHUDの面幅導出とも共有する */
   /* HUD face safe area: padding wider than the fade band, shared with the challenge HUD's width derivation */
   --hud-panel-padding: 14px;

@@ -4,6 +4,7 @@ import { Overlay, Portal, Stack, Title } from "@mantine/core";
 import { Topics, useTopicSelector } from "@/bridge";
 import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { PlaytestConsentGateBody } from "./PlaytestConsentGateBody";
+import styles from "./style.module.css";
 
 export function PlaytestConsentGate() {
   const { status, t } = useI18n();
@@ -26,7 +27,7 @@ export function PlaytestConsentGate() {
         data-testid="playtest-consent-gate"
       >
         <Stack align="center" gap="xl">
-          <Title order={1} c="white">{title}</Title>
+          <Title order={1} c="white" ta="center" className={styles.title} data-testid="playtest-consent-gate-title">{title}</Title>
           <PlaytestConsentGateBody />
         </Stack>
       </Overlay>

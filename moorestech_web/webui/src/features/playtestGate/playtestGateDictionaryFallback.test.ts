@@ -45,6 +45,7 @@ describe("開始ゲートの辞書非依存フォールバック", () => {
     expect(allTexts(renderer)).toContain(DictionaryIndependentText.playtestConsentTitle);
     expect(allTexts(renderer)).toContain(DictionaryIndependentText.playtestConsentBody);
     expect(allTexts(renderer)).toContain(DictionaryIndependentText.playtestConsentAgree);
+    expect(titleClassName(renderer, "playtest-consent-gate-title")).toContain("title");
     act(() => renderer.unmount());
   });
 
@@ -56,6 +57,7 @@ describe("開始ゲートの辞書非依存フォールバック", () => {
     expect(allTexts(renderer)).toContain(DictionaryIndependentText.crashGateSend);
     expect(allTexts(renderer)).toContain(DictionaryIndependentText.crashGateSkip);
     expect(descriptionPlaceholder(renderer)).toBe(DictionaryIndependentText.crashGatePlaceholder);
+    expect(titleClassName(renderer, "crash-report-gate-title")).toContain("title");
     act(() => renderer.unmount());
   });
 });
@@ -87,6 +89,12 @@ function allTexts(renderer: ReactTestRenderer): string[] {
     const children = (node as { children?: unknown[] } | null)?.children;
     if (children) children.forEach(collect);
   }
+}
+
+// 見出しの幅制約が落ちると、辞書未確定のEN/JA併記が画面端に接触して折り返す（目視QA 2026-09-14 に発現）
+// Without the heading's width constraint the dictionary-less EN/JA pairing touches the screen edge and wraps (seen in the 2026-09-14 visual QA)
+function titleClassName(renderer: ReactTestRenderer, testId: string): string {
+  return renderer.root.findAll((node) => node.props["data-testid"] === testId)[0].props.className;
 }
 
 function descriptionPlaceholder(renderer: ReactTestRenderer): string {

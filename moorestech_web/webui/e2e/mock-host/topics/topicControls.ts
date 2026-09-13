@@ -182,6 +182,12 @@ const controls = {
   // The demo-mode inventory topic swaps to demoInventory (no itemId1/wood), so restore the
   // owned itemId1×15 the research tree fixture assumes (needed for the researchable-state visual QA)
   researchOwnedItems: () => control(Topics.inventory, clone(fx.inventory)),
+  // 開始ゲートの待機を作る。辞書配信より前に出るゲートの見え方（幅・折り返し・辞書非依存文言）を目視QAで再現するため
+  // Puts the start gates into waiting, so the visual QA can reproduce how a pre-dictionary gate looks (width, wrapping, fallback copy)
+  consentGateWaiting: () => control(Topics.consentGate, { waiting: true }),
+  consentGateClosed: () => clearingControl(Topics.consentGate, { waiting: false }),
+  crashReportGateWaiting: () => control(Topics.crashReportGate, { waiting: true }),
+  crashReportGateClosed: () => clearingControl(Topics.crashReportGate, { waiting: false }),
   // 装備枠0のマスタでもHUDが面積を保つかを見るための空装備
   // Zero equipment slots, for checking the HUD keeps an area under a master with no slots
   equipmentEmpty: () => control(Topics.inventory, { ...clone(fx.inventory), equipment: [], selectedEquipment: 0 }),

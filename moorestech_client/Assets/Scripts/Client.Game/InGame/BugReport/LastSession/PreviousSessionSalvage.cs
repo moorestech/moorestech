@@ -37,10 +37,20 @@ namespace Client.Game.InGame.BugReport.LastSession
             artifacts.PlayerLogPath = PlayerLogLocator.PreviousSessionLogPath();
             if (artifacts.PlayerLogPath == null) artifacts.Missing.Add(new MissingItem { Item = "playerLog", Reason = "前回セッションのPlayer-prev.logが見つからない" });
 
-            artifacts.CrashDumpFiles = CrashDumpLocator.FindDumpFiles();
-            if (artifacts.CrashDumpFiles.Count == 0) artifacts.Missing.Add(new MissingItem { Item = "crashDump", Reason = $"クラッシュダンプが見つからない（探索先: {string.Join(", ", CrashDumpLocator.CandidateRoots())}）" });
+            var crashDumpScan = CrashDumpLocator.FindDumpFiles();
+            artifacts.CrashDumpFiles = crashDumpScan.Files;
+            if (artifacts.CrashDumpFiles.Count == 0) artifacts.Missing.Add(new MissingItem { Item = "crashDump", Reason = CrashDumpMissingReason(crashDumpScan) });
 
             return artifacts;
+        }
+
+        // 「そもそも無かった」と「他アプリとして除外した結果0件」を読み分けられる理由文にする。無音の縮退を残さない
+        // The reason distinguishes "there were none" from "all were filtered out as other apps'", leaving no silent degradation
+        private static string CrashDumpMissingReason(CrashDumpScanResult scan)
+        {
+            var roots = string.Join(", ", CrashDumpLocator.CandidateRoots());
+            if (scan.ExcludedAsOtherApps == 0) return $"クラッシュダンプが見つからない（探索先: {roots}）";
+            return $"共有置き場に{scan.ExcludedAsOtherApps}件あったが自プロセス（{Application.productName} / {CrashDumpLocator.EditorProcessName}）のものは0件だった（除外元: {string.Join(", ", scan.ExcludedRoots)}、探索先: {roots}）";
         }
 
         // 中身のあるディレクトリだけを退避先へ移す。GameFrameRecorderはpid_<PID>のサブディレクトリへ書くため再帰的に走査する

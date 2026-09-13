@@ -4,6 +4,12 @@
   max-width: var(--playtest-gate-body-width);
 }
 
+/* 見出しの最大幅。本文と同じ理由で、無制約だと辞書未配信の長い併記が画面端に接触して折り返す */
+/* Max width for the heading; for the same reason as the body, an unconstrained long dictionary-less pairing touches the screen edge */
+.title {
+  max-width: var(--playtest-gate-title-width);
+}
+
 /* 記述欄はポーズメニューのバグ報告欄と同じ様式（§8.9の検索入力族）。寸法だけゲート用の固定長を持つ */
 /* The textarea follows the pause menu's bug-report field (the §8.9 search-input family); only its fixed dimensions differ */
 .description {
