@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
+using Game.Block.Interface;
+using Game.Context;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -63,7 +65,7 @@ namespace Tests.CombinedTest.Game
             StringAssert.Contains("版0", prepared.BlockedReason);
         }
 
-        // 版が整数として読めないセーブも、生の型例外ではなく理由付きの拒否で抜けること
+        // 非整数版は型例外でなく理由付き拒否で抜けること
         // A save whose version is not an integer must exit through a reasoned rejection, not a bare cast exception
         [TestCase("\"abc\"", TestName = "壊れたworldVersion_文字列は理由付きで拒否されるTest")]
         [TestCase("null", TestName = "壊れたworldVersion_nullは理由付きで拒否されるTest")]
@@ -95,7 +97,7 @@ namespace Tests.CombinedTest.Game
 
             preparer.Prepare(SaveLoadPreparerTestFixture.BuildSaveJson().ToString());
 
-            Assert.IsFalse(Directory.Exists(SaveArchiveDirectory.FromArchiveRoot(_archiveRoot).BackupRoot));
+            Assert.IsFalse(File.Exists(SaveArchiveDirectory.FromArchiveRoot(_archiveRoot).BackupSaveJsonPath(WorldSaveAllInfoV1.CurrentVersion)));
         }
 
         // 版1と記された既存セーブ（形式は既に版2相当）が、3項目を上書きされずに版2へ上がること
@@ -121,7 +123,7 @@ namespace Tests.CombinedTest.Game
             Assert.DoesNotThrow(() => loader.Load(prepared.SaveJsonText));
         }
 
-        // 退避した原本は原文一致で残り、2回目のロードでは書き換わらないこと
+        // 退避原本は原文一致で不変であること
         // The archived original matches the source text byte for byte and a second load must not rewrite it
         [Test]
         public void 版1のセーブは原文のまま退避され2回目で上書きされないTest()
@@ -167,6 +169,56 @@ namespace Tests.CombinedTest.Game
 
             var exception = Assert.Throws<Exception>(() => serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize());
             StringAssert.Contains("999", exception.Message);
+        }
+
+        // LoadOrInitializeという本番の結線そのもので検証する。preparer.Prepare→loader.Loadの手組みでは
+        // 「Prepareの出力ではなく生JSONをLoadに渡す」という配線側の退行を検出できない
+        // Verified through the real LoadOrInitialize wiring; a hand-wired preparer.Prepare→loader.Load in the test
+        // would miss a wiring regression where Load is fed the raw JSON instead of Prepare's output
+        [Test]
+        public void 版1のセーブはLoadOrInitializeで実際にロードできるTest()
+        {
+            var saveJsonFilePath = Path.Combine(_archiveRoot, "save.json");
+            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
+            save["worldVersion"] = 1;
+            // 版1が本来欠く3項目を落とす。生JSONを直接LoadすればcurrentTickが無く即例外になるため、
+            // 通ること自体がPrepareの出力（変換で補填済み）が使われている証拠になる
+            // Drop the three fields a real version-1 save lacks; the raw JSON would throw immediately on Load
+            // (missing currentTick), so success here proves Prepare's backfilled output is what gets loaded
+            save.Remove("currentTick");
+            save.Remove("randomState");
+            save.Remove("miningCooldowns");
+            Directory.CreateDirectory(_archiveRoot);
+            File.WriteAllText(saveJsonFilePath, save.ToString());
+
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, saveJsonFilePath),
+            };
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
+
+            Assert.DoesNotThrow(() => serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize());
+        }
+
+        // 同じくLoadOrInitializeの本番結線で検証する。マスタに無いblockGuidは生JSONのままLoadすれば解決時に例外になる
+        // Also verified through the real LoadOrInitialize wiring; a blockGuid absent from the master throws on Load if the raw JSON is used
+        [Test]
+        public void 欠損ブロック入りのセーブはLoadOrInitializeで除去後に実ロードできるTest()
+        {
+            var saveJsonFilePath = Path.Combine(_archiveRoot, "save.json");
+            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
+            ((JArray)save["world"]).Add(SaveLoadPreparerTestFixture.MissingBlock(987662, 82));
+            Directory.CreateDirectory(_archiveRoot);
+            File.WriteAllText(saveJsonFilePath, save.ToString());
+
+            var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
+            {
+                worldDataDirectory = WorldDataDirectory.FromServerDataMap(TestModDirectory.ForUnitTestModDirectory, saveJsonFilePath),
+            };
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
+
+            Assert.DoesNotThrow(() => serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize());
+            Assert.IsFalse(ServerContext.WorldBlockDatastore.BlockMasterDictionary.ContainsKey(new BlockInstanceId(987662)));
         }
 
         // DIが実連鎖（V1→V2を1本積んだもの）を配線していること。積み忘れると版1が永久にロードできない

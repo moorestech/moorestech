@@ -25,7 +25,7 @@ namespace Game.SaveLoad.Migration
 
         public PreparedSaveJson Prepare(string saveJsonText)
         {
-            if (!TryParseSave(saveJsonText, out var save))
+            if (!TryParseSave(out var save))
             {
                 var parseReason = "セーブファイルがJSONとして読めません。";
                 Debug.LogError(parseReason);
@@ -58,24 +58,28 @@ namespace Game.SaveLoad.Migration
             }
 
             _reportStore.SetReport(outcome.Report);
-            return PreparedSaveJson.Ready(outcome.Save.ToString(), outcome.Report);
-        }
+            return PreparedSaveJson.Ready(outcome.Save.ToString());
 
-        // 外部境界: セーブファイルは外部入力で、壊れたJSONが来る。生の例外で落とすと理由が残らない
-        // External boundary: the save file is external input and may be broken JSON; a raw exception would leave no reason
-        private static bool TryParseSave(string saveJsonText, out JObject save)
-        {
-            try
+            #region Internal
+
+            // 外部境界: セーブファイルは外部入力で、壊れたJSONが来る。生の例外で落とすと理由が残らない
+            // External boundary: the save file is external input and may be broken JSON; a raw exception would leave no reason
+            bool TryParseSave(out JObject parsedSave)
             {
-                save = JObject.Parse(saveJsonText);
-                return true;
+                try
+                {
+                    parsedSave = JObject.Parse(saveJsonText);
+                    return true;
+                }
+                catch (JsonReaderException e)
+                {
+                    Debug.LogError($"セーブファイルのJSON解析に失敗しました。 Message : {e.Message}");
+                    parsedSave = null;
+                    return false;
+                }
             }
-            catch (JsonReaderException e)
-            {
-                Debug.LogError($"セーブファイルのJSON解析に失敗しました。 Message : {e.Message}");
-                save = null;
-                return false;
-            }
+
+            #endregion
         }
     }
 }

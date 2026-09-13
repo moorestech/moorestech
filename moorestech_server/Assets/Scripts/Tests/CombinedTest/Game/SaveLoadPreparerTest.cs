@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using Game.Block.Interface;
+using Game.Context;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
@@ -29,7 +31,7 @@ namespace Tests.CombinedTest.Game
             if (Directory.Exists(_archiveRoot)) Directory.Delete(_archiveRoot, true);
         }
 
-        // 除去された欠損ブロックを含むセーブが、実ロード経路で例外を出さずに通ること
+        // 欠損ブロックが例外なくロードできること
         // A save containing a removed block must pass the real load path without throwing
         [Test]
         public void 欠損ブロック入りのセーブが除去後に実ロードできるTest()
@@ -41,7 +43,6 @@ namespace Tests.CombinedTest.Game
             var prepared = preparer.Prepare(save.ToString());
 
             Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
-            Assert.AreEqual(1, prepared.Report.RemovedBlockCount);
             // storeへの格納が通知側の唯一の入力なので、往復をここで固定する
             // The store is the notification side's only input, so the round trip is pinned here
             Assert.AreEqual(1, reportStore.Report.RemovedBlockCount);
@@ -49,6 +50,10 @@ namespace Tests.CombinedTest.Game
 
             var loader = SaveLoadPreparerTestFixture.CreateContainer().GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             Assert.DoesNotThrow(() => loader.Load(prepared.SaveJsonText));
+
+            // 除去ブロックIDがロード後残っていないこと
+            // The removed block's instance id must be absent from the world after load
+            Assert.IsFalse(ServerContext.WorldBlockDatastore.BlockMasterDictionary.ContainsKey(new BlockInstanceId(987660)));
         }
 
         // 除去データのファイル名はWindowsで使える基本形式。コロンが混じると保存そのものが失敗する
@@ -71,7 +76,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(SaveLoadPreparerTestFixture.MissingGuid, pruned["blocks"][0]["blockGuid"].Value<string>());
         }
 
-        // 同秒に2回ロードしても後の除去データが前を消さないこと（連番で全件残す）
+        // 同秒2回ロードで除去データを上書きしないこと
         // Two loads within the same second must not overwrite each other's pruned data; every file is kept via the suffix
         [Test]
         public void 同じ秒の除去データは連番で全件残るTest()
@@ -87,7 +92,7 @@ namespace Tests.CombinedTest.Game
                 Array.ConvertAll(Directory.GetFiles(prunedRoot, "*.json"), Path.GetFileName));
         }
 
-        // 除去0件（本番の常態）でファイルもレポートも生えないこと
+        // 除去0件でファイル・レポートが生えないこと
         // The normal case: nothing removed leaves no file and no report
         [Test]
         public void 除去が無いと除去データのファイルは作られないTest()
@@ -97,7 +102,6 @@ namespace Tests.CombinedTest.Game
             var prepared = preparer.Prepare(SaveLoadPreparerTestFixture.BuildSaveJson().ToString());
 
             Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
-            Assert.IsFalse(prepared.Report.HasRemoval);
             Assert.IsFalse(reportStore.Report.HasRemoval);
             Assert.IsFalse(Directory.Exists(SaveArchiveDirectory.FromArchiveRoot(_archiveRoot).PrunedRoot));
         }

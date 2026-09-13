@@ -9,28 +9,26 @@ namespace Game.SaveLoad.Migration
         public bool CanLoad { get; }
         public string BlockedReason { get; }
         public int FromVersion { get; }
-        public int ToVersion { get; }
         public bool Migrated { get; }
         public JObject Save { get; }
 
-        private SaveMigrationResult(bool canLoad, string blockedReason, int fromVersion, int toVersion, bool migrated, JObject save)
+        private SaveMigrationResult(bool canLoad, string blockedReason, int fromVersion, bool migrated, JObject save)
         {
             CanLoad = canLoad;
             BlockedReason = blockedReason;
             FromVersion = fromVersion;
-            ToVersion = toVersion;
             Migrated = migrated;
             Save = save;
         }
 
         public static SaveMigrationResult Blocked(int fromVersion, string reason)
         {
-            return new SaveMigrationResult(false, reason, fromVersion, fromVersion, false, null);
+            return new SaveMigrationResult(false, reason, fromVersion, false, null);
         }
 
-        public static SaveMigrationResult Completed(int fromVersion, int toVersion, bool migrated, JObject save)
+        public static SaveMigrationResult Completed(int fromVersion, bool migrated, JObject save)
         {
-            return new SaveMigrationResult(true, null, fromVersion, toVersion, migrated, save);
+            return new SaveMigrationResult(true, null, fromVersion, migrated, save);
         }
     }
 }

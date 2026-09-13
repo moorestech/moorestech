@@ -15,7 +15,7 @@ namespace Game.Paths
 
         // ディレクトリはここでは作らない。書き込み側(SaveArchiveWriter)が要るときだけ作る
         // No directory is created here; the writer creates one only when it actually writes
-        public string BackupRoot { get; }
+        private string BackupRoot { get; }
         public string PrunedRoot { get; }
 
         private SaveArchiveDirectory(string backupRoot, string prunedRoot)

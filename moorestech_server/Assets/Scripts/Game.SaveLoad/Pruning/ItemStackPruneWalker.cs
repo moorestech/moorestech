@@ -9,7 +9,7 @@ using UnityEngine;
 namespace Game.SaveLoad.Pruning
 {
     /// <summary>
-    /// セーブの木を歩き、マスタに無いアイテムのスタックを空スタックへ落とす
+    /// マスタ欠損アイテムを空スタック化
     /// Walks the save tree and empties every item stack whose item is absent from the master
     /// 文字列に埋め込まれたJSON(ブロックのstate)の中まで降り、除去したときだけ書き戻す
     /// Descends into JSON embedded in strings (block state) and writes back only when something was pruned
@@ -24,7 +24,7 @@ namespace Game.SaveLoad.Pruning
         private int _nonJsonStringCount;
         private int _unparsableStringCount;
 
-        // 除去した元のスタックを返す。呼び出し側はこれを除去データJSONへ載せる
+        // 除去前のスタックを返す（除去データJSON用）
         // Returns the original stacks that were emptied; the caller stores them in the pruned-data JSON
         public JArray Walk(JObject save)
         {
@@ -37,6 +37,30 @@ namespace Game.SaveLoad.Pruning
             LogEmptiedItemStacks();
             LogSkippedStrings();
             return removed;
+
+            #region Internal
+
+            // modを外すと数千件になるのでguidごとに集約して1行にまとめる
+            // Dropping a mod can empty thousands of stacks, so the report is aggregated per guid into one line
+            void LogEmptiedItemStacks()
+            {
+                if (_emptiedCountByItemGuid.Count == 0) return;
+
+                var total = _emptiedCountByItemGuid.Values.Sum();
+                var digest = string.Join(", ", _emptiedCountByItemGuid.Take(LoggedItemGuidLimit).Select(pair => $"{pair.Key}x{pair.Value}"));
+                Debug.LogWarning($"マスタに存在しないアイテムを空スタックへ落としました。 total={total} guidKinds={_emptiedCountByItemGuid.Count} detail={digest}");
+            }
+
+            // 文字列は全件ここを通るため、素通しした理由は件数だけ1行で残す
+            // Every string passes through here, so the pass-through reason is summarised in a single line
+            void LogSkippedStrings()
+            {
+                if (_nonJsonStringCount == 0 && _unparsableStringCount == 0) return;
+
+                Debug.Log($"JSONとして読めない文字列はアイテム除去の対象外として素通ししました。 nonJson={_nonJsonStringCount} unparsable={_unparsableStringCount}");
+            }
+
+            #endregion
         }
 
         private void WalkToken(JToken token, JArray removed)
@@ -68,21 +92,25 @@ namespace Game.SaveLoad.Pruning
             }
 
             foreach (var property in json.Properties().ToList()) WalkToken(property.Value, removed);
-        }
 
-        private bool IsMissingItem(JValue guidValue, out string guidText)
-        {
-            // guidとして読めない値は壊れているかスタックでない。残す判断の理由を出す
-            // A value that is no guid is corrupt or not a stack at all; log why it is left alone
-            guidText = guidValue.Value<string>();
-            if (!Guid.TryParse(guidText, out var guid))
+            #region Internal
+
+            bool IsMissingItem(JValue itemGuidValue, out string itemGuidText)
             {
-                Debug.LogWarning($"itemGuidがguidとして読めないため除去判定せず残します。 itemGuid={guidText}");
-                return false;
+                // guidとして読めない値は壊れているかスタックでない。残す判断の理由を出す
+                // A value that is no guid is corrupt or not a stack at all; log why it is left alone
+                itemGuidText = itemGuidValue.Value<string>();
+                if (!Guid.TryParse(itemGuidText, out var guid))
+                {
+                    Debug.LogWarning($"itemGuidがguidとして読めないため除去判定せず残します。 itemGuid={itemGuidText}");
+                    return false;
+                }
+
+                if (guid == Guid.Empty) return false;
+                return !MasterHolder.ItemMaster.ExistItemId(guid);
             }
 
-            if (guid == Guid.Empty) return false;
-            return !MasterHolder.ItemMaster.ExistItemId(guid);
+            #endregion
         }
 
         private void RewriteEmbeddedJson(JValue value, JArray removed)
@@ -120,26 +148,6 @@ namespace Game.SaveLoad.Pruning
             if (removed.Count == before) return;
 
             value.Value = embedded.ToString(Formatting.None);
-        }
-
-        // modを外すと数千件になるのでguidごとに集約して1行にまとめる
-        // Dropping a mod can empty thousands of stacks, so the report is aggregated per guid into one line
-        private void LogEmptiedItemStacks()
-        {
-            if (_emptiedCountByItemGuid.Count == 0) return;
-
-            var total = _emptiedCountByItemGuid.Values.Sum();
-            var digest = string.Join(", ", _emptiedCountByItemGuid.Take(LoggedItemGuidLimit).Select(pair => $"{pair.Key}x{pair.Value}"));
-            Debug.LogWarning($"マスタに存在しないアイテムを空スタックへ落としました。 total={total} guidKinds={_emptiedCountByItemGuid.Count} detail={digest}");
-        }
-
-        // 文字列は全件ここを通るため、素通しした理由は件数だけ1行で残す
-        // Every string passes through here, so the pass-through reason is summarised in a single line
-        private void LogSkippedStrings()
-        {
-            if (_nonJsonStringCount == 0 && _unparsableStringCount == 0) return;
-
-            Debug.Log($"JSONとして読めない文字列はアイテム除去の対象外として素通ししました。 nonJson={_nonJsonStringCount} unparsable={_unparsableStringCount}");
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Game.SaveLoad.Interface
             RemovedResearchCount = removedResearchCount;
         }
 
-        public bool HasRemoval => RemovedBlockCount > 0 || EmptiedItemStackCount > 0 || RemovedResearchCount > 0;
+        public bool HasRemoval => 0 < RemovedBlockCount || 0 < EmptiedItemStackCount || 0 < RemovedResearchCount;
 
         public static MissingMasterPruneReport None { get; } = new(0, 0, 0);
     }

@@ -1,5 +1,3 @@
-using Game.SaveLoad.Interface;
-
 namespace Game.SaveLoad.Migration
 {
     /// <summary>ロード直前まで整えたセーブ。ロード不可のときは理由だけを運ぶ</summary>
@@ -9,24 +7,22 @@ namespace Game.SaveLoad.Migration
         public bool CanLoad { get; }
         public string BlockedReason { get; }
         public string SaveJsonText { get; }
-        public MissingMasterPruneReport Report { get; }
 
-        private PreparedSaveJson(bool canLoad, string blockedReason, string saveJsonText, MissingMasterPruneReport report)
+        private PreparedSaveJson(bool canLoad, string blockedReason, string saveJsonText)
         {
             CanLoad = canLoad;
             BlockedReason = blockedReason;
             SaveJsonText = saveJsonText;
-            Report = report;
         }
 
         public static PreparedSaveJson Blocked(string reason)
         {
-            return new PreparedSaveJson(false, reason, null, MissingMasterPruneReport.None);
+            return new PreparedSaveJson(false, reason, null);
         }
 
-        public static PreparedSaveJson Ready(string saveJsonText, MissingMasterPruneReport report)
+        public static PreparedSaveJson Ready(string saveJsonText)
         {
-            return new PreparedSaveJson(true, null, saveJsonText, report);
+            return new PreparedSaveJson(true, null, saveJsonText);
         }
     }
 }

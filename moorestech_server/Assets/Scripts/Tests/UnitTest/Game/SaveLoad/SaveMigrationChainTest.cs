@@ -29,12 +29,11 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsTrue(result.CanLoad, result.BlockedReason);
             Assert.IsTrue(result.Migrated);
             Assert.AreEqual(new[] { 1, 2 }, applied.ToArray());
-            Assert.AreEqual(3, result.ToVersion);
             Assert.AreEqual(3, result.Save["worldVersion"].Value<int>());
             Assert.AreEqual("1:2:", result.Save["trace"].Value<string>());
         }
 
-        // 途中の版から始まるセーブには、その版以降のステップだけが当たる
+        // 途中版セーブにはその版以降のみ適用
         // A save starting at an intermediate version gets only the steps at or above that version
         [Test]
         public void 途中の版のセーブには残りのステップだけが適用されるTest()
@@ -57,10 +56,12 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void 版キーが無いセーブは版1として扱うTest()
         {
-            Assert.AreEqual(1, SaveMigrationChain.ReadWorldVersion(JObject.Parse("{}")));
+            var result = new SaveMigrationChain(Array.Empty<ISaveMigrationStep>(), 1).Migrate(JObject.Parse("{}"));
+
+            Assert.AreEqual(1, result.FromVersion);
         }
 
-        // 現在版ちょうどのセーブは本番の実連鎖でも1手も当たらずそのまま通る
+        // 現在版セーブは実連鎖でも無変換で通る
         // A save already at the current version passes through the real production chain untouched
         [Test]
         public void 現在版のセーブはステップが当たらずそのまま通るTest()
@@ -71,7 +72,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             Assert.IsTrue(result.CanLoad, result.BlockedReason);
             Assert.IsFalse(result.Migrated);
-            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, result.ToVersion);
+            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, result.Save["worldVersion"].Value<int>());
         }
 
         [Test]

@@ -13,8 +13,8 @@ namespace Game.SaveLoad.Migration
     {
         private const string WorldVersionKey = "worldVersion";
 
-        // worldVersionが整数として読めないときに返す版。1未満なので拒否経路へそのまま落ちる
-        // The version returned when worldVersion is not readable as an integer; being below 1 it falls straight into the rejection path
+        // 読み取り不能時にBlocked結果へ載せる版の代表値。分岐制御には使わずログ用途に限る
+        // The placeholder version carried on an unreadable-version Blocked result; used only for logging, never for branching
         private const int UnreadableWorldVersion = 0;
 
         private readonly List<ISaveMigrationStep> _steps;
@@ -40,62 +40,12 @@ namespace Game.SaveLoad.Migration
             }
         }
 
-        // worldVersionが無いセーブは版1。将来版と取り違えて拒否すると原本を触れなくなる
-        // A save without worldVersion is version 1; mistaking it for a future one would lock the original away
-        public static int ReadWorldVersion(JObject save)
-        {
-            var token = save[WorldVersionKey];
-            if (token == null)
-            {
-                Debug.Log($"セーブに{WorldVersionKey}がないため版1として扱います。");
-                return 1;
-            }
-
-            // 整数でないworldVersionをそのまま読むと生の型例外になり、理由がどこにも残らない
-            // Reading a non-integer worldVersion raw would throw a bare cast exception with the reason logged nowhere
-            // int範囲外の整数も同じ穴で、Value<int>()のOverflowExceptionが無ログで起動を落とす
-            // An out-of-range integer is the same hole: Value<int>() throws OverflowException with nothing logged
-            if (!TryReadVersionInt32(token, out var version))
-            {
-                Debug.LogError($"セーブの{WorldVersionKey}が整数として読めません。ロードせずに中断します。 value={token.ToString(Formatting.None)} type={token.Type}");
-                return UnreadableWorldVersion;
-            }
-
-            return version;
-        }
-
-        // 巨大整数はJson.NETがlongやBigIntegerで持つ。int範囲に収まるものだけを版として受け取る
-        // Json.NET holds a huge integer as long or BigInteger; only values fitting in int are accepted as a version
-        private static bool TryReadVersionInt32(JToken token, out int version)
-        {
-            version = UnreadableWorldVersion;
-            if (token.Type != JTokenType.Integer) return false;
-
-            var raw = (token as JValue)?.Value;
-            if (raw is long longVersion)
-            {
-                if (longVersion < int.MinValue || longVersion > int.MaxValue) return false;
-                version = (int)longVersion;
-                return true;
-            }
-
-            if (raw is ulong ulongVersion)
-            {
-                if (ulongVersion > int.MaxValue) return false;
-                version = (int)ulongVersion;
-                return true;
-            }
-
-            // longにも収まらない綴りはBigInteger等で届く。版として意味のある値にはなりえない
-            // A spelling too large even for long arrives as BigInteger or similar and can never be a meaningful version
-            return false;
-        }
-
         public SaveMigrationResult Migrate(JObject save)
         {
-            var fromVersion = ReadWorldVersion(save);
+            if (!TryReadWorldVersion(save, out var fromVersion, out var unreadableReason))
+                return SaveMigrationResult.Blocked(UnreadableWorldVersion, unreadableReason);
 
-            if (fromVersion > _currentVersion)
+            if (_currentVersion < fromVersion)
                 return SaveMigrationResult.Blocked(fromVersion,
                     $"セーブの版{fromVersion}はこのビルドが知る現在版{_currentVersion}より新しいため、ロードせずに中断します。ゲームを更新してください。");
 
@@ -104,19 +54,73 @@ namespace Game.SaveLoad.Migration
                     $"セーブの版{fromVersion}は不正です（1以上である必要があります）。ロードせずに中断します。");
 
             if (fromVersion == _currentVersion)
-                return SaveMigrationResult.Completed(fromVersion, fromVersion, false, save);
+                return SaveMigrationResult.Completed(fromVersion, false, save);
 
             // 版に対応するステップだけを昇順に適用し、1手ごとにworldVersionを進める
             // Apply only the steps at or above the save's version in order, advancing worldVersion after each hop
             var migrated = save;
-            foreach (var step in _steps.Where(step => step.FromVersion >= fromVersion))
+            foreach (var step in _steps.Where(step => fromVersion <= step.FromVersion))
             {
                 migrated = step.Migrate(migrated);
                 migrated[WorldVersionKey] = step.FromVersion + 1;
                 Debug.Log($"セーブをV{step.FromVersion}からV{step.FromVersion + 1}へ変換しました。");
             }
 
-            return SaveMigrationResult.Completed(fromVersion, _currentVersion, true, migrated);
+            return SaveMigrationResult.Completed(fromVersion, true, migrated);
+        }
+
+        // worldVersionが無いセーブは版1。将来版と取り違えて拒否すると原本を触れなくなる
+        // A save without worldVersion is version 1; mistaking it for a future one would lock the original away
+        // 整数として読めないworldVersionは「版0」へ潰さず専用理由を返す。潰すとプレイヤーに存在しない版番号を見せてしまう
+        // A worldVersion unreadable as an integer is not collapsed into "version 0"; a dedicated reason avoids naming a version the save never had
+        private static bool TryReadWorldVersion(JObject save, out int version, out string unreadableReason)
+        {
+            unreadableReason = null;
+
+            var token = save[WorldVersionKey];
+            if (token == null)
+            {
+                Debug.Log($"セーブに{WorldVersionKey}がないため版1として扱います。");
+                version = 1;
+                return true;
+            }
+
+            if (TryReadVersionInt32(token, out version)) return true;
+
+            unreadableReason = $"セーブの{WorldVersionKey}が整数として読めません。ロードせずに中断します。 value={token.ToString(Formatting.None)} type={token.Type}";
+            Debug.LogError(unreadableReason);
+            return false;
+
+            #region Internal
+
+            // 巨大整数はJson.NETがlongやBigIntegerで持つ。int範囲に収まるものだけを版として受け取る
+            // Json.NET holds a huge integer as long or BigInteger; only values fitting in int are accepted as a version
+            bool TryReadVersionInt32(JToken versionToken, out int parsedVersion)
+            {
+                parsedVersion = UnreadableWorldVersion;
+                if (versionToken.Type != JTokenType.Integer) return false;
+
+                var raw = (versionToken as JValue)?.Value;
+                if (raw is long longVersion)
+                {
+                    if (longVersion < int.MinValue || int.MaxValue < longVersion) return false;
+                    parsedVersion = (int)longVersion;
+                    return true;
+                }
+
+                if (raw is ulong ulongVersion)
+                {
+                    if (int.MaxValue < ulongVersion) return false;
+                    parsedVersion = (int)ulongVersion;
+                    return true;
+                }
+
+                // longにも収まらない綴りはBigInteger等で届く。版として意味のある値にはなりえない
+                // A spelling too large even for long arrives as BigInteger or similar and can never be a meaningful version
+                return false;
+            }
+
+            #endregion
         }
     }
 }
