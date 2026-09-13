@@ -65,6 +65,9 @@ namespace Client.Game.InGame.Playtest.Progress
                 ["lastUiState"] = lastUiState,
                 ["events"] = eventArray,
             };
+            // 欠損時だけ印を足す。通常の記録は契約どおりのキーのままにする
+            // The mark is added only when the header was lost, keeping normal records exactly at the contract's keys
+            if (header.HeaderMissing) record["headerMissing"] = true;
             return record.ToString(Formatting.Indented);
         }
 

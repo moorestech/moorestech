@@ -27,7 +27,7 @@ namespace Client.Game.InGame.Playtest.Progress
         private readonly IPlaytestSessionIdentity _identity;
         private readonly DateTime _sessionStartUtc = DateTime.UtcNow;
         private readonly CompositeDisposable _eventSubscriptions = new();
-        private bool _closed;
+        private readonly ProgressSessionWriter _writer = new();
 
         public ProgressRecorder(InitialHandshakeResponse handshake, UIStateControl uiStateControl, IPlaytestSessionIdentity identity)
         {
@@ -44,7 +44,11 @@ namespace Client.Game.InGame.Playtest.Progress
             if (salvage == null) Debug.LogWarning("前回終了の判定が退避から得られないため、残骸は正常終了として回収します");
             ProgressSessionRecovery.RecoverLeftoverSession(salvage?.PreviousExitWasClean ?? true);
 
-            OpenSessionAsync().Forget(exception => Debug.LogError($"進行記録のヘッダを書けませんでした: {exception.GetBaseException().Message}"));
+            // 残骸を畳んだ直後に同期でヘッダを書き、その後で購読を張る。イベント追記は必ずヘッダ付きの current/ に入る
+            // The header is written synchronously right after folding the leftover, before any subscription, so appends always land in a current/ that has one
+            var header = CreateHeader();
+            _writer.WriteHeader(header);
+            FillWorldPlayTimeAsync(header).Forget(exception => Debug.LogError($"進行記録のヘッダにプレイ時間を書けませんでした: {exception.GetBaseException().Message}"));
 
             _uiStateControl.OnStateChanged += OnUiStateChanged;
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(ResearchCompleteEventPacket.EventTag, OnResearchCompleted));
@@ -65,13 +69,12 @@ namespace Client.Game.InGame.Playtest.Progress
         // Writes record.json at shutdown; the write is synchronous IO and finishes immediately
         public UniTask<ShutdownFlushResult> FlushOnShutdownAsync()
         {
-            if (_closed) return UniTask.FromResult(ShutdownFlushResult.AlreadyShutdown);
-            _closed = true;
+            if (_writer.Closed) return UniTask.FromResult(ShutdownFlushResult.AlreadyShutdown);
 
-            // 閉じられないのはヘッダが無い/壊れている時だけ。記録が1件消えるので黙って終わらせない
-            // Closing fails only with a missing or broken header; one lost record must never end in silence
-            var bundle = ProgressRecordFiles.CloseCurrentInto(ProgressSessionRecovery.QuitEndReason, DateTime.UtcNow);
-            if (bundle == null) Debug.LogWarning("今回のセッションの進行記録を書き出せませんでした（ヘッダが無いか壊れています）");
+            // 閉じられないのは current/ に何も無い時だけ。記録が1件消えるので黙って終わらせない
+            // Closing fails only when current/ holds nothing; one lost record must never end in silence
+            var bundle = _writer.Close(ProgressSessionRecovery.QuitEndReason, DateTime.UtcNow);
+            if (bundle == null) Debug.LogWarning("今回のセッションの進行記録を書き出せませんでした（current/ に何も残っていません）");
             return UniTask.FromResult(ShutdownFlushResult.Flushed);
         }
 
@@ -85,12 +88,12 @@ namespace Client.Game.InGame.Playtest.Progress
             Append(ProgressEventType.ReportSent, new JObject { ["kind"] = kind });
         }
 
-        // ヘッダはワールドのプレイ時間を待ってから1度だけ書く。先に始まったイベント追記とは順序に依存しない
-        // The header is written once after the world's play time arrives; appended events do not depend on that order
-        private async UniTask OpenSessionAsync()
+        // 起動時点で確定する値だけでヘッダを組む。サーバー応答を待つ値は後から上書きする
+        // Builds the header from the values fixed at boot; the ones awaiting the server are overwritten later
+        private ProgressRecordHeader CreateHeader()
         {
             var completedChallenges = _handshake.Challenges.SelectMany(category => category.CompletedChallenges).Select(challenge => challenge.ChallengeGuid);
-            var header = new ProgressRecordHeader
+            return new ProgressRecordHeader
             {
                 SteamId = _identity.SteamId,
                 BuildInfo = Application.isEditor ? null : RepositoryStateProbe.ReadBuildInfo(),
@@ -98,13 +101,18 @@ namespace Client.Game.InGame.Playtest.Progress
                 BaselineChallenges = ProgressBaseline.CompletedChallengeGuids(completedChallenges),
                 BaselineResearch = ProgressBaseline.CompletedResearchGuids(_handshake.ResearchNodeStates),
             };
+        }
 
+        // ワールドのプレイ時間はサーバー応答を待つので、届いた時点でヘッダを書き直す
+        // The world's play time awaits the server, so the header is rewritten once it arrives
+        private async UniTask FillWorldPlayTimeAsync(ProgressRecordHeader header)
+        {
             var info = await ClientContext.VanillaApi.Response.GetWorldPlaySessionInfo(default);
             if (info == null) Debug.LogWarning("ワールドのプレイ時間を取得できないため worldCreatedAt と totalPlaySeconds は空で記録します");
             header.WorldCreatedAt = info?.WorldCreatedAt ?? "";
             header.TotalPlaySecondsAtStart = info?.TotalPlaySeconds ?? 0;
 
-            ProgressRecordFiles.WriteHeader(header);
+            _writer.WriteHeader(header);
         }
 
         private void OnUiStateChanged(UIStateEnum state)
@@ -152,14 +160,7 @@ namespace Client.Game.InGame.Playtest.Progress
 
         private void Append(string type, JObject data)
         {
-            // 書き出し済みのセッションへ足すと outbox に出ない行が current/ に湧く。閉じた後は黙らず理由を残して捨てる
-            // Appending to a closed session would resurrect current/ with lines no outbox holds, so it is dropped with a reason
-            if (_closed)
-            {
-                Debug.LogWarning($"進行記録は書き出し済みのため追記しません type:{type}");
-                return;
-            }
-            ProgressRecordFiles.AppendEvent(ProgressEventEntry.Create(DateTime.UtcNow, GameUpdater.CurrentTick, type, data));
+            _writer.Append(ProgressEventEntry.Create(DateTime.UtcNow, GameUpdater.CurrentTick, type, data));
         }
     }
 }

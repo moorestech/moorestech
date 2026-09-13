@@ -26,6 +26,10 @@ namespace Client.Game.InGame.Playtest.Progress
         public List<string> BaselineChallenges = new();
         public List<string> BaselineResearch = new();
 
+        // ヘッダを失った残骸から組んだ記録であることの印。steamId や worldCreatedAt が空なのは欠損のためだと読み手に伝える
+        // Marks a record built from a leftover that lost its header, telling readers the empty steamId and worldCreatedAt come from that loss
+        public bool HeaderMissing;
+
         public string ToJson()
         {
             return JsonConvert.SerializeObject(this, Settings);

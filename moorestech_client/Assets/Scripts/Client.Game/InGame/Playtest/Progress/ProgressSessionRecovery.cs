@@ -33,7 +33,12 @@ namespace Client.Game.InGame.Playtest.Progress
         {
             var last = events.Count > 0 ? events[events.Count - 1].T : header?.SessionStart;
             const DateTimeStyles styles = DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal;
-            return DateTime.TryParse(last, null, styles, out var parsed) ? parsed : DateTime.UtcNow;
+            if (DateTime.TryParse(last, null, styles, out var parsed)) return parsed;
+
+            // 読めない時刻で潰すと playSeconds が現在時刻基準になる。壊れていた事実を残す
+            // Collapsing an unreadable time bases playSeconds on now, so the corruption is recorded
+            Debug.LogWarning($"前回の進行記録の時刻を読めないため回収時刻で代用します value:{last}");
+            return DateTime.UtcNow;
         }
     }
 }
