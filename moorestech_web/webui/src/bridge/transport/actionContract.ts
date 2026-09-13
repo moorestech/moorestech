@@ -58,6 +58,7 @@ export type ActionPayloads = {
   "localization.setLocale": { locale: string };
   "event_mode.select_language": { locale: string };
   "playtest.crash_report.respond": { send: boolean; description: string };
+  "playtest.consent.acknowledge": Record<string, never>;
   "research.complete": { researchGuid: string };
   "machine_recipe.select": { operation: "set" | "clear"; recipeGuid?: string };
   "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
@@ -106,6 +107,7 @@ export const ACTION_TYPES = [
   "localization.setLocale",
   "event_mode.select_language",
   "playtest.crash_report.respond",
+  "playtest.consent.acknowledge",
   "research.complete",
   "machine_recipe.select",
   "filter_splitter.set_mode",

@@ -36,7 +36,8 @@
     "skit.skip",
     "skit.set_ui_hidden",
     "event_mode.select_language",
-    "playtest.crash_report.respond"
+    "playtest.crash_report.respond",
+    "playtest.consent.acknowledge"
   ],
   "excludedFromWebContract": [
     "playtest.dom_query_result"

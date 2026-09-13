@@ -52,6 +52,7 @@ import type {
   LocalizationDataSchema,
   EventLanguageGateDataSchema,
   CrashReportGateDataSchema,
+  PlaytestConsentGateDataSchema,
   ChallengeNodeStateSchema,
   ChallengeNodeDataSchema,
   ChallengeCategoryDataSchema,
@@ -89,6 +90,7 @@ export type UiStateData = z.infer<typeof UiStateDataSchema>;
 export type LocalizationData = z.infer<typeof LocalizationDataSchema>;
 export type EventLanguageGateData = z.infer<typeof EventLanguageGateDataSchema>;
 export type CrashReportGateData = z.infer<typeof CrashReportGateDataSchema>;
+export type PlaytestConsentGateData = z.infer<typeof PlaytestConsentGateDataSchema>;
 export type PauseMenuData = z.infer<typeof PauseMenuDataSchema>;
 export type PlacementModeData = z.infer<typeof PlacementModeDataSchema>;
 export type CrosshairData = z.infer<typeof CrosshairDataSchema>;

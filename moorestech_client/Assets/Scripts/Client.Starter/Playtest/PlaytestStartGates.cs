@@ -7,8 +7,8 @@ using UnityEngine;
 namespace Client.Starter.Playtest
 {
     /// <summary>
-    /// プレイテストの開始ゲート。前回異常終了の確認を出し、応答があるまで開始を止める。
-    /// The playtest start gates: shows the previous-crash confirmation and holds the start until it is answered.
+    /// プレイテストの開始ゲート。初回起動の同意表示と前回異常終了の確認を順に出し、応答があるまで開始を止める。
+    /// The playtest start gates: shows the first-boot consent notice then the previous-crash confirmation in order, and holds the start until each is answered.
     /// </summary>
     public static class PlaytestStartGates
     {
@@ -24,6 +24,11 @@ namespace Client.Starter.Playtest
                 if (!artifacts.PreviousExitWasClean) Debug.LogError("PlaytestStartGates: WebUiHostが起動しておらず前回異常終了の確認を出せないため、確認せずに開始します");
                 return;
             }
+
+            // 同意表示 → 前回異常終了の確認 の順。何が送られるかを読む前に送信可否を聞かない
+            // Consent first, then the previous-crash confirmation; never ask to send before showing what gets sent
+            var consentGate = PlaytestGateBinder.BindConsentGate(hub, PlaytestConsentFlag.IsAcknowledged());
+            await consentGate.WaitForAcknowledgementAsync();
 
             // 登録は待機の有無に関わらず無条件。条件付き登録だとWeb側の購読が固着する
             // Registration happens unconditionally regardless of the wait; conditional registration would wedge the web-side subscription

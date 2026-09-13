@@ -23,5 +23,13 @@ namespace Client.WebUiHost.Game.Playtest
             CrashReportGateActions.Register(hub, gate);
             return gate;
         }
+
+        public static PlaytestConsentGate BindConsentGate(WebSocketHub hub, bool alreadyAcknowledged)
+        {
+            var gate = new PlaytestConsentGate(!alreadyAcknowledged);
+            hub.RegisterTopic(PlaytestConsentGateTopic.TopicName, new PlaytestConsentGateTopic(hub, gate));
+            PlaytestConsentGateActions.Register(hub, gate);
+            return gate;
+        }
     }
 }
