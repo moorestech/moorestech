@@ -283,3 +283,4 @@ ui.playtest.crashGate.body,"Send the last session's recording, world snapshot, p
 ui.playtest.crashGate.placeholder,What were you doing when it stopped? (optional),What were you doing when it stopped? (optional),止まったとき何をしていましたか？（任意）,Was hast du gemacht als es abstürzte? (optional)
 ui.playtest.crashGate.send,Send,Send,送る,Senden
 ui.playtest.crashGate.skip,Do not send,Do not send,送らない,Nicht senden
+ui.playtest.crashGate.respondFailed,Could not answer. Please press again.,Could not answer. Please press again.,応答できませんでした。もう一度押してください。,Antwort fehlgeschlagen. Bitte erneut drücken.

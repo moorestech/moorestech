@@ -34,15 +34,20 @@ namespace Client.Tests.BugReport
 
             var bundle = new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).Write(artifacts, "落ちた");
 
-            Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)));
-            var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
-            Assert.AreEqual(PlaytestReportKind.Crash, (string)manifest["kind"]);
-            Assert.AreEqual("落ちた", (string)manifest["description"]);
-            Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.RecordingDirectoryName, "seg_00.mp4")));
-            Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.LogsDirectoryName, "Player-prev.log")));
-
-            Directory.Delete(bundle, true);
-            Directory.Delete(source, true);
+            try
+            {
+                Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)));
+                var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
+                Assert.AreEqual(PlaytestReportKind.Crash, (string)manifest["kind"]);
+                Assert.AreEqual("落ちた", (string)manifest["description"]);
+                Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.RecordingDirectoryName, "seg_00.mp4")));
+                Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.LogsDirectoryName, "Player-prev.log")));
+            }
+            finally
+            {
+                Directory.Delete(bundle, true);
+                Directory.Delete(source, true);
+            }
         }
 
         // 退避は pid_<PID>/ の入れ子を保ったまま移すため、箱への写しも入れ子を辿らないと録画が丸ごと落ちる
@@ -63,10 +68,15 @@ namespace Client.Tests.BugReport
 
             var bundle = new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).Write(artifacts, "入れ子");
 
-            Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.RecordingDirectoryName, "pid_1234", "segment-0.mp4")));
-
-            Directory.Delete(bundle, true);
-            Directory.Delete(source, true);
+            try
+            {
+                Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.RecordingDirectoryName, "pid_1234", "segment-0.mp4")));
+            }
+            finally
+            {
+                Directory.Delete(bundle, true);
+                Directory.Delete(source, true);
+            }
         }
 
         [Test]
@@ -77,10 +87,16 @@ namespace Client.Tests.BugReport
 
             var bundle = new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).Write(artifacts, "起動しない");
 
-            var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
-            Assert.AreEqual(PlaytestReportKind.Crash, (string)manifest["kind"]);
-            Assert.AreEqual(1, ((JArray)manifest["missing"]).Count);
-            Directory.Delete(bundle, true);
+            try
+            {
+                var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
+                Assert.AreEqual(PlaytestReportKind.Crash, (string)manifest["kind"]);
+                Assert.AreEqual(1, ((JArray)manifest["missing"]).Count);
+            }
+            finally
+            {
+                Directory.Delete(bundle, true);
+            }
         }
 
         // ディスク由来の失敗（読み取り不能）は項目ごとに隔離され、他の退避物・manifest・READYの書き出しは続く

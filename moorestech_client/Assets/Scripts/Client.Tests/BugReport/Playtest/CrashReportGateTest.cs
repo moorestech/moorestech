@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
@@ -51,6 +52,30 @@ namespace Client.Tests.BugReport
             var gate = new CrashReportGate(false, new CrashBundleWriter(new EmptyPlaytestSessionIdentity()), new PreviousSessionArtifacts());
             Assert.AreEqual(CrashReportResponseResult.AlreadyResponded, gate.Respond(true, "遅れて届いた"));
             Assert.IsNull(gate.LastWrittenBundleDirectory);
+        }
+
+        // 書き出しがディスク以外の例外で抜けても待機は解ける。ここで閉じ損ねると再送も弾かれ起動が永久に止まる
+        // The wait is released even when the write escapes with a non-disk exception; failing to close here would halt the startup forever
+        [Test]
+        public void 箱の書き出しが例外で抜けてもゲートは閉じる()
+        {
+            var gate = new CrashReportGate(true, new ThrowingCrashBundleWriter(), new PreviousSessionArtifacts { PreviousExitWasClean = false });
+
+            Assert.Throws<NotSupportedException>(() => gate.Respond(true, "書けない"));
+
+            Assert.IsFalse(gate.IsWaitingSelection());
+            Assert.IsTrue(gate.WaitForResponseAsync().Status.IsCompleted());
+            Assert.IsNull(gate.LastWrittenBundleDirectory);
+        }
+
+        // テスト専用: ディスク由来ではない失敗（CrashBundleWriterが握らない種類）を確実に再現する
+        // Test-only: reproduces a non-disk failure, the kind CrashBundleWriter does not catch
+        private sealed class ThrowingCrashBundleWriter : ICrashBundleWriter
+        {
+            public string Write(PreviousSessionArtifacts artifacts, string description)
+            {
+                throw new NotSupportedException("書き出しに失敗した");
+            }
         }
     }
 }

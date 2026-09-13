@@ -13,7 +13,7 @@ namespace Client.WebUiHost.Game.Playtest
     /// </summary>
     public static class PlaytestGateBinder
     {
-        public static CrashReportGate BindCrashReportGate(WebSocketHub hub, PreviousSessionArtifacts artifacts, CrashBundleWriter writer)
+        public static CrashReportGate BindCrashReportGate(WebSocketHub hub, PreviousSessionArtifacts artifacts, ICrashBundleWriter writer)
         {
             // 異常終了なら常に確認する。退避物ゼロでも説明文だけの箱には価値があるので待機条件から外さない
             // Always ask after an unclean exit; a description-only box still has value, so an empty salvage does not skip the wait

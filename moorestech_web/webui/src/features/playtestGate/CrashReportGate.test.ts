@@ -31,6 +31,7 @@ const dictionary = {
   "ui.playtest.crashGate.placeholder": "止まったとき何をしていましたか？",
   "ui.playtest.crashGate.send": "送る",
   "ui.playtest.crashGate.skip": "送らない",
+  "ui.playtest.crashGate.respondFailed": "応答できませんでした。もう一度押してください。",
 };
 
 beforeEach(() => {
@@ -96,6 +97,29 @@ describe("CrashReportGate", () => {
     await act(async () => { resolveDispatch!(true); });
     expect(byTestId(renderer, "crash-report-send").props.disabled).toBe(true);
     expect(mocks.dispatchAction).toHaveBeenCalledTimes(1);
+    act(() => renderer.unmount());
+  });
+
+  // 拒否（WS切断・タイムアウト・ok:false）を握り潰すと全画面ゲートから永久に抜けられない
+  // Swallowing a rejection (WS drop, timeout, ok:false) would trap the tester behind the full-screen gate forever
+  it("dispatchが拒否されたら失敗をゲート自身が出して再度押せる", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    mocks.dispatchAction.mockResolvedValue(false);
+
+    const renderer = await renderGate();
+    await act(async () => { byTestId(renderer, "crash-report-send").props.onClick(); });
+
+    expect(warn).toHaveBeenCalledWith("[playtest.crash_report.respond] rejected: send=true");
+    expect(byTestId(renderer, "crash-report-respond-failed").props.children).toBe("応答できませんでした。もう一度押してください。");
+    expect(byTestId(renderer, "crash-report-send").props.disabled).toBe(false);
+    expect(byTestId(renderer, "crash-report-skip").props.disabled).toBe(false);
+
+    mocks.dispatchAction.mockResolvedValue(true);
+    await act(async () => { byTestId(renderer, "crash-report-skip").props.onClick(); });
+
+    expect(mocks.dispatchAction).toHaveBeenLastCalledWith("playtest.crash_report.respond", { send: false, description: "" });
+    expect(mocks.dispatchAction).toHaveBeenCalledTimes(2);
+    warn.mockRestore();
     act(() => renderer.unmount());
   });
 });

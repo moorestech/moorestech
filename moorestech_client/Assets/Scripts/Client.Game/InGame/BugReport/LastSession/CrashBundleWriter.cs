@@ -8,9 +8,16 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
+    // ゲートが依存する書き出し口。ゲートは「書けたか」しか見ないため、失敗の注入もこの1メソッドで足りる
+    // The write port the gate depends on; the gate only observes whether a box was written, so one method carries failure injection too
+    public interface ICrashBundleWriter
+    {
+        string Write(PreviousSessionArtifacts artifacts, string description);
+    }
+
     // 退避物と説明文から kind=crash の箱を1つ書く。確保セッションが無い経路なので plan B の書き出しとは別物
     // Writes one kind=crash box from the salvaged files and the description; a path without a capture session, so it is separate from plan B's writer
-    public sealed class CrashBundleWriter
+    public sealed class CrashBundleWriter : ICrashBundleWriter
     {
         private readonly IPlaytestSessionIdentity _identity;
 

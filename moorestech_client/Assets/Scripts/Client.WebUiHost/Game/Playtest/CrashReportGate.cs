@@ -16,7 +16,7 @@ namespace Client.WebUiHost.Game.Playtest
     {
         private readonly UniTaskCompletionSource _responseSource = new();
         private readonly Subject<Unit> _onWaitingChanged = new();
-        private readonly CrashBundleWriter _writer;
+        private readonly ICrashBundleWriter _writer;
         private readonly PreviousSessionArtifacts _artifacts;
         private bool _isWaitingResponse;
 
@@ -25,7 +25,7 @@ namespace Client.WebUiHost.Game.Playtest
 
         // 登録は常に無条件、待つかどうかは初期状態で決める（未登録によるWeb側購読の固着を避ける）
         // Registration is always unconditional; whether to wait is decided by the initial state to avoid a stuck web subscription
-        public CrashReportGate(bool startsWaiting, CrashBundleWriter writer, PreviousSessionArtifacts artifacts)
+        public CrashReportGate(bool startsWaiting, ICrashBundleWriter writer, PreviousSessionArtifacts artifacts)
         {
             _writer = writer;
             _artifacts = artifacts;
@@ -56,13 +56,20 @@ namespace Client.WebUiHost.Game.Playtest
             }
             _isWaitingResponse = false;
 
-            // 「送らない」でも退避物は消さない。last-session は退避のたびに空になるので1世代だけ残る
-            // Skipping keeps the salvage: last-session is emptied on every salvage, so exactly one generation survives
-            if (send) LastWrittenBundleDirectory = _writer.Write(_artifacts, description ?? "");
-            else Debug.Log("前回異常終了の記録は送らないと選ばれました");
-
-            _onWaitingChanged.OnNext(Unit.Default);
-            _responseSource.TrySetResult();
+            // 箱を書けたかに関わらずゲートは必ず閉じる。書き出しが例外で抜けても起動が永久に止まらないよう解除はfinallyに置く
+            // The gate always closes regardless of the write; releasing in finally keeps an escaping exception from halting the startup forever
+            try
+            {
+                // 「送らない」でも退避物は消さない。last-session は退避のたびに空になるので1世代だけ残る
+                // Skipping keeps the salvage: last-session is emptied on every salvage, so exactly one generation survives
+                if (send) LastWrittenBundleDirectory = _writer.Write(_artifacts, description ?? "");
+                else Debug.Log("前回異常終了の記録は送らないと選ばれました");
+            }
+            finally
+            {
+                _onWaitingChanged.OnNext(Unit.Default);
+                _responseSource.TrySetResult();
+            }
             return send ? CrashReportResponseResult.Sent : CrashReportResponseResult.Skipped;
         }
     }
