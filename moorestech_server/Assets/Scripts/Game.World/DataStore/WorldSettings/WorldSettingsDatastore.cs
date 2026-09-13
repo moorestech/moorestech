@@ -13,16 +13,16 @@ namespace Game.World.DataStore.WorldSettings
     public class WorldSettingsDatastore : IWorldSettingsDatastore
     {
         public Vector3 WorldSpawnPoint { get; private set; }
-        
-        private DateTime _worldCreationDateTime;
+        public DateTime WorldCreationDateTimeUtc { get; private set; }
+
         private double _totalPlayTimeSeconds;
         private DateTime _currentSessionStartDateTime;
 
         public void Initialize(MapInfoJson mapInfoJson)
         {
             WorldSpawnPoint = mapInfoJson.DefaultSpawnPointJson.Position;
-            
-            _worldCreationDateTime = DateTime.UtcNow;
+
+            WorldCreationDateTimeUtc = DateTime.UtcNow;
             _totalPlayTimeSeconds = 0;
             _currentSessionStartDateTime = DateTime.UtcNow;
         }
@@ -43,14 +43,14 @@ namespace Game.World.DataStore.WorldSettings
 
             // RoundtripKindを付けないとUTC保存がローカル時刻へ倒れ、保存し直すと同じ瞬間が別表記になる（再生の忠実性が壊れる）
             // Without RoundtripKind a UTC save falls back to local time and re-saving writes the same instant in a different notation, breaking replay fidelity
-            _worldCreationDateTime = DateTime.Parse(json.WorldCreationDateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+            WorldCreationDateTimeUtc = DateTime.Parse(json.WorldCreationDateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
         }
 
         public WorldSettingJsonObject GetSaveJsonObject()
         {
             var currentPlayTime = GetCurrentPlayTime();
-            
-            return new WorldSettingJsonObject(WorldSpawnPoint, _worldCreationDateTime, currentPlayTime, DateTime.UtcNow);
+
+            return new WorldSettingJsonObject(WorldSpawnPoint, WorldCreationDateTimeUtc, currentPlayTime, DateTime.UtcNow);
         }
 
         public TimeSpan GetCurrentPlayTime()
