@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.RegularExpressions;
 using Client.Game.InGame.BugReport.Recording;
 using NUnit.Framework;
 using UnityEngine;
@@ -122,15 +123,17 @@ namespace Client.Tests.BugReport
             Assert.IsTrue(GameFrameRecorder.ResolveInitialAvailability("/opt/homebrew/bin/ffmpeg").IsAvailable);
         }
 
-        // 起動後にffmpegが死ぬと理由がどこにも入らず、報告側が「録れている」枝へ入って古い区間を同梱していた
-        // When ffmpeg died after a successful start no reason was set, so the report took the "recording" branch and shipped stale segments
+        // 録れていないのに理由が空だと、報告側が「録れている」枝へ入って古い区間を同梱していた
+        // An unavailable recording with an empty reason made the report take the "recording" branch and ship stale segments
         [Test]
-        public void 録画していないときの可用性は必ず理由を持つ()
+        public void 録画していないときに取り出すと必ず理由を持つ()
         {
-            var availability = new GameFrameRecorder().Availability;
+            LogAssert.Expect(LogType.Warning, new Regex("録画区間を確定できません"));
+            var captured = new GameFrameRecorder().TakeRecordingAtCapture().GetAwaiter().GetResult();
 
-            Assert.IsFalse(availability.IsAvailable);
-            Assert.IsNotEmpty(availability.Reason);
+            Assert.IsFalse(captured.IsAvailable);
+            Assert.IsNotEmpty(captured.UnavailableReason);
+            Assert.AreEqual(0, captured.SegmentFiles.Count);
         }
 
         [Test]

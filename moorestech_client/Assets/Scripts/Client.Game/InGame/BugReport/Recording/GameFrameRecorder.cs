@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using Client.Common;
 using Core.Update;
+using Cysharp.Threading.Tasks;
 using Game.Paths;
+using Server.Boot;
 using UnityEngine;
 using UnityEngine.Rendering;
 using VContainer.Unity;
@@ -12,34 +12,42 @@ using Debug = UnityEngine.Debug;
 
 namespace Client.Game.InGame.BugReport.Recording
 {
-    // 描画結果を10fpsで読み出し ffmpeg へ流す。区間は10秒単位のリングで直近RetentionSeconds秒を保持する
-    // Reads the rendered frame at 10fps and streams it to ffmpeg; a ring of 10s segments keeps the last RetentionSeconds
+    // 画面の最終出力を10fpsで読み出し ffmpeg へ流す。区間は10秒単位のリングで直近RetentionSeconds秒を保持する
+    // Reads the composited screen at 10fps and streams it to ffmpeg; a ring of 10s segments keeps the last RetentionSeconds
     public sealed class GameFrameRecorder : IInitializable, ITickable, IDisposable
     {
-        public const int Width = 1280;
-        public const int Height = 720;
-        public const int Fps = 10;
         public const int SegmentSeconds = 10;
         public const double RetentionSeconds = 120;
 
-        // ffmpeg自身のsegment_wrapに渡す本数。CutSegmentが毎回再起動させるため通常はここまで貯まらない安全弁
-        // Passed to ffmpeg's own segment_wrap; a safety margin that normally never fills since CutSegment restarts first
+        // ffmpeg自身のsegment_wrapに渡す本数。確保が毎回世代を切り替えるため通常はここまで貯まらない安全弁
+        // Passed to ffmpeg's own segment_wrap; a safety margin that normally never fills since each capture switches generations
         public const int LiveSegmentWrapCount = 12;
 
         public const string MissingFfmpegReason = "ffmpeg が見つかりません（MOORESTECH_FFMPEG か PATH で指定）";
-        public const string NoMainCameraReason = "録画リングのフレーム取り込みをスキップしました（メインカメラ未登録）";
+        private const int Width = 1280;
+        private const int Height = 720;
+        private const int Fps = 10;
+        // 読み出し中の1枚と書き込み待ちの1枚で足りる。空きが無いフレームは理由を残して落とす
+        // One frame in readback and one queued for writing is enough; a frame with no free buffer is dropped with a reason
+        private const int FrameBufferCount = 2;
 
-        private const string LiveDirectoryName = "live";
-
+        private const string LiveDirectoryPrefix = "live_";
         // 並列worktreeが同じマシン共通パスを取り合わないよう、このプロセス専用のサブディレクトリへ書く
         // Scoped to this process's own subdirectory so parallel worktrees never fight over the machine-wide path
         private static readonly string ProcessDirectory = Path.Combine(GameSystemPaths.BugReportRecordingDirectory, $"pid_{Process.GetCurrentProcess().Id}");
 
         private readonly string _directory = ProcessDirectory;
-        private readonly string _liveDirectory = Path.Combine(ProcessDirectory, LiveDirectoryName);
+
+        // 世代の退避は連番を採るので直列化する。連続したEscapeが同じ番号を取り合わないため
+        // Promotion assigns sequence numbers, so it is serialized; back-to-back Escapes must not race for one number
+        private readonly object _promoteLock = new();
         private string _ffmpegPath;
         private FfmpegProcess _ffmpeg;
-        private RenderTexture _scaledTexture;
+        private FrameBufferPool _framePool;
+        private ScreenFrameReader _screenFrameReader;
+        private string _liveDirectory;
+        private int _segmentGeneration;
+        private int _frameIndexInGeneration;
         private float _nextCaptureTime;
         private bool _readbackInFlight;
 
@@ -51,7 +59,7 @@ namespace Client.Game.InGame.BugReport.Recording
 
         // 可用性と理由は同じ1箇所で組み立てる。録れていないのに理由が空、が外から観測できないようにする
         // Usability and its reason are assembled in one place so "not recording with an empty reason" is never observable
-        public RecordingAvailability Availability =>
+        private RecordingAvailability Availability =>
             _ffmpeg != null && _ffmpeg.IsRunning ? RecordingAvailability.Available() : RecordingAvailability.Unavailable(_latchedUnavailableReason);
 
         // ffmpegが無いときの縮退理由。無音で諦めず理由を残し、報告側が欠損として記録できるようにする
@@ -64,22 +72,23 @@ namespace Client.Game.InGame.BugReport.Recording
         }
 
         private bool IsRecording => _ffmpeg != null && _ffmpeg.IsRunning;
-
         public void Initialize()
         {
-            // テスト・プレイテスト経路はここで止める。既存のプレイテストDSL等とScreenCapture/Camera経路を奪い合わないため
-            // Stops here on test/playtest boots; otherwise they contend with the playtest DSL etc. over the capture path
-            if (!BugReportRecordingSettings.Enabled)
+            // 常時記録を有効化していない起動経路はここで止める。可否の決定はAlwaysOnCaptureSettingが1つだけ持つ
+            // Boot paths that never enabled always-on capture stop here; AlwaysOnCaptureSetting holds the only decision
+            if (!AlwaysOnCaptureSetting.Current.IsEnabled)
             {
-                _latchedUnavailableReason = BugReportRecordingSettings.DisabledReason;
+                _latchedUnavailableReason = AlwaysOnCaptureSetting.DisabledReason;
+                Debug.Log($"録画リングを開始しません: {_latchedUnavailableReason}");
                 return;
             }
             _ffmpegPath = FfmpegLocator.Find();
             _latchedUnavailableReason = ResolveInitialAvailability(_ffmpegPath).Reason;
             if (_ffmpegPath == null) return;
             if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
-            Directory.CreateDirectory(_liveDirectory);
-            _scaledTexture = new RenderTexture(Width, Height, 0, RenderTextureFormat.ARGB32);
+            Directory.CreateDirectory(_directory);
+            _framePool = new FrameBufferPool(FrameBufferCount, Width * Height * 4);
+            _screenFrameReader = new ScreenFrameReader(Width, Height);
             StartProcess();
         }
 
@@ -88,60 +97,47 @@ namespace Client.Game.InGame.BugReport.Recording
             if (!IsRecording || _readbackInFlight || Time.unscaledTime < _nextCaptureTime) return;
             _nextCaptureTime = Time.unscaledTime + 1f / Fps;
 
-            // MainCameraへ直接Renderする。ScreenCaptureはEditorではEditorウィンドウを写しGame Viewを写さないため使わない
-            // Renders straight from MainCamera; ScreenCapture captures the Editor window rather than Game View in-editor
-            var gameCamera = CameraManager.MainCamera;
-            if (gameCamera == null)
-            {
-                Debug.LogWarning(NoMainCameraReason);
-                return;
-            }
-            var camera = gameCamera.Camera;
-            var previousTarget = camera.targetTexture;
-            camera.targetTexture = _scaledTexture;
-            camera.Render();
-            camera.targetTexture = previousTarget;
+            // 取るのはUI合成後の画面。カメラを描き直すとWeb UI(CEF)もUIも映らない
+            // The source is the screen after UI composition; re-rendering the camera shows neither the Web UI (CEF) nor the UI
+            var frameTexture = _screenFrameReader.CaptureScaledScreen();
 
             _readbackInFlight = true;
             var tick = GameUpdater.CurrentTick;
             var unixMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            AsyncGPUReadback.Request(_scaledTexture, 0, TextureFormat.RGBA32, request => OnReadback(request, unixMs, tick));
+            AsyncGPUReadback.Request(frameTexture, 0, TextureFormat.RGBA32, request => OnReadback(request, unixMs, tick));
         }
 
-        // 現在の区間を確定して新しい区間から録り直す。確保時点より後のフレームを混ぜないため
-        // Finalize the current segment and restart on a fresh one so frames after the capture moment stay out
-        public void CutSegment()
+        // Escape時点の記録境界をその場で確定し、エンコーダーの排出と終了待ちだけを後ろへ回す（最大10秒メインスレッドを塞がないため）
+        // Settles the Escape-moment boundary inline and defers only the encoder drain and exit wait, which can block the main thread for 10s
+        public async UniTask<CapturedRecording> TakeRecordingAtCapture()
         {
             var availability = Availability;
             if (!availability.IsAvailable)
             {
                 Debug.LogWarning($"録画区間を確定できません（録画していません）: {availability.Reason}");
-                return;
+                return CapturedRecording.Unavailable(availability.Reason);
             }
-            _ffmpeg.Stop();
-            RecordingSegmentRing.PromoteCompletedSegments(_liveDirectory, _directory, RetentionSeconds);
+
+            // 先に次の世代へ切り替える。これ以降のフレームは新しいliveへ入り、確保した区間へ混ざらない
+            // Switch to the next generation first; later frames land in the new live directory, never in the captured segments
+            var finished = _ffmpeg;
+            var finishedLiveDirectory = _liveDirectory;
+            _segmentGeneration++;
+            _frameIndexInGeneration = 0;
             StartProcess();
-        }
+            var frameTicks = TickLog.Dump();
 
-        // 更新時刻順（古い→新しい）。書き込み中の最新区間は含めない
-        // Ordered oldest to newest by write time; excludes the segment currently being written
-        public IReadOnlyList<string> CompletedSegmentFilesInOrder()
-        {
-            if (!Directory.Exists(_directory)) return Array.Empty<string>();
-            return RecordingSegmentRing.ListInOrder(_directory, _liveDirectory, IsRecording);
-        }
-
-        public void Stop()
-        {
-            _ffmpeg?.Stop();
-            _ffmpeg = null;
+            await UniTask.RunOnThreadPool(() => DrainFinishedGeneration(finished, finishedLiveDirectory));
+            return CapturedRecording.Available(RecordingSegmentRing.ListInOrder(_directory, _liveDirectory, IsRecording), frameTicks);
         }
 
         // PlayModeの出入り・コンテナ破棄で必ず1本の経路から呼ばれる（VContainerがSingleton IDisposableを破棄時にDisposeする）
         // Always reached through one path on PlayMode exit or container teardown (VContainer disposes IDisposable singletons)
         public void Dispose()
         {
-            Stop();
+            _ffmpeg?.Stop();
+            _ffmpeg = null;
+            _screenFrameReader?.Dispose();
         }
 
         private void StartProcess()
@@ -149,7 +145,8 @@ namespace Client.Game.InGame.BugReport.Recording
             // Metal/D3D は読み出し行が上から、OpenGL系は下からなので後者だけ反転する
             // Metal/D3D read back rows top-down while OpenGL-style APIs read bottom-up, so flip only the latter
             var flip = !SystemInfo.graphicsUVStartsAtTop;
-            _ffmpeg = FfmpegProcess.StartSegmentRecorder(_ffmpegPath, _liveDirectory, Width, Height, Fps, flip);
+            _liveDirectory = Path.Combine(_directory, $"{LiveDirectoryPrefix}{_segmentGeneration:D4}");
+            _ffmpeg = FfmpegProcess.StartSegmentRecorder(_ffmpegPath, _liveDirectory, Width, Height, Fps, flip, _framePool);
             if (_ffmpeg == null)
             {
                 _latchedUnavailableReason = "ffmpeg の起動に失敗しました（ログ参照）";
@@ -162,6 +159,18 @@ namespace Client.Game.InGame.BugReport.Recording
             _latchedUnavailableReason = "";
         }
 
+        private void DrainFinishedGeneration(FfmpegProcess finished, string liveDirectory)
+        {
+            finished.Stop();
+
+            // 空になった世代のliveディレクトリは残すが、起動時に_directoryごと作り直すので積み上がらない
+            // The emptied generation directory is left behind; Initialize recreates _directory wholesale, so they never pile up
+            lock (_promoteLock)
+            {
+                RecordingSegmentRing.PromoteCompletedSegments(liveDirectory, _directory, RetentionSeconds);
+            }
+        }
+
         private void OnReadback(AsyncGPUReadbackRequest request, long unixMs, ulong tick)
         {
             _readbackInFlight = false;
@@ -171,11 +180,21 @@ namespace Client.Game.InGame.BugReport.Recording
                 return;
             }
             if (!IsRecording) return;
-            var data = request.GetData<byte>();
-            var frame = new byte[data.Length];
-            data.CopyTo(frame);
-            _ffmpeg.WriteFrame(frame);
-            TickLog.Add(unixMs, tick);
+
+            // バッファは借りて書き終えたら返る。空きが無いのは書き込みが滞っているときなので理由を残して1枚落とす
+            // Buffers are borrowed and returned once written; an empty pool means the writer lags, so one frame is dropped with a reason
+            if (!_framePool.TryRent(out var frame))
+            {
+                Debug.LogWarning("録画フレームを破棄しました（空きバッファがありません）");
+                return;
+            }
+            request.GetData<byte>().CopyTo(frame);
+
+            // 受理されたフレームだけを対応表へ載せる。破棄フレームまで載せると動画とtickがずれる
+            // Only accepted frames enter the tick log; logging dropped ones would desynchronize video and ticks
+            if (!_ffmpeg.WriteFrame(frame)) return;
+            TickLog.Add(unixMs, tick, _segmentGeneration, _frameIndexInGeneration);
+            _frameIndexInGeneration++;
         }
     }
 }

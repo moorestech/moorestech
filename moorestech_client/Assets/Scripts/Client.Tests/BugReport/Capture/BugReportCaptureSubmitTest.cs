@@ -22,13 +22,34 @@ namespace Client.Tests.BugReport.Capture
             sources.HoldStaging();
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
-            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>());
+            session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
             Assert.IsTrue(session.Status.Value.CapturePending, "退避中なのに確保が終わったことになっている");
             LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.CapturePending));
             Assert.AreEqual(BugReportSubmitTicket.CapturePending, session.TryBeginSubmit().RefusedCode);
 
             sources.ReleaseStaging();
+
+            Assert.IsFalse(session.Status.Value.CapturePending);
+            Assert.IsTrue(session.TryBeginSubmit().Allowed);
+        }
+
+        // 排出を待たずに送れると、Escape時点の最後の区間が揃う前に箱が閉じる
+        // Sending before the drain finishes closes the box without the Escape moment's last segment
+        [Test]
+        public void 録画の排出が終わるまで送信を受け付けない()
+        {
+            var sources = new FakeBugReportCaptureSources();
+            sources.HoldRecording();
+            var session = new BugReportCaptureSession(sources);
+            session.BeginOnPauseMenu();
+            session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
+
+            Assert.IsTrue(session.Status.Value.CapturePending, "録画の排出待ちなのに確保が終わったことになっている");
+            LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.CapturePending));
+            Assert.AreEqual(BugReportSubmitTicket.CapturePending, session.TryBeginSubmit().RefusedCode);
+
+            sources.ReleaseRecording();
 
             Assert.IsFalse(session.Status.Value.CapturePending);
             Assert.IsTrue(session.TryBeginSubmit().Allowed);
@@ -42,7 +63,7 @@ namespace Client.Tests.BugReport.Capture
             sources.ScreenshotTask = screenshot;
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
-            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>());
+            session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
             Assert.IsTrue(session.Status.Value.CapturePending, "スクリーンショット待ちなのに確保が終わったことになっている");
             LogAssert.Expect(LogType.Warning, new Regex(BugReportSubmitTicket.CapturePending));
@@ -62,7 +83,7 @@ namespace Client.Tests.BugReport.Capture
             var sources = new FakeBugReportCaptureSources();
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
-            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>());
+            session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
             var ticket = session.TryBeginSubmit();
             Assert.IsTrue(ticket.Allowed);
@@ -83,7 +104,7 @@ namespace Client.Tests.BugReport.Capture
             var sources = new FakeBugReportCaptureSources();
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
-            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>());
+            session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
             var ticket = session.TryBeginSubmit();
             session.CompleteSubmit(ticket.Data, false, new List<MissingItem>());
@@ -99,7 +120,7 @@ namespace Client.Tests.BugReport.Capture
             var sources = new FakeBugReportCaptureSources();
             var session = new BugReportCaptureSession(sources);
             session.BeginOnPauseMenu();
-            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>());
+            session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
             var ticket = session.TryBeginSubmit();
             session.CompleteSubmit(ticket.Data, true, new List<MissingItem> { new() { Item = "video", Reason = "ffmpegが見つからなかった" } });
@@ -122,7 +143,7 @@ namespace Client.Tests.BugReport.Capture
             session.BeginOnPauseMenu();
 
             LogAssert.Expect(LogType.Warning, new Regex("tick_5.json"));
-            session.OnServerCaptureCompleted(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>());
+            session.OnServerCaptureCompleted(new ServerCaptureCompletion(7, 5, true, "/w/snapshots", "/master/server_v8", new List<string> { "tick_5.json" }, new List<string>(), null, 0));
 
             CollectionAssert.Contains(session.Status.Value.Missing, "tick_5.json");
             Assert.AreEqual(0, session.TryBeginSubmit().Data.SnapshotFileNames.Count);

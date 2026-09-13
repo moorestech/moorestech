@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using Client.Common;
@@ -10,9 +9,7 @@ using Client.Game.InGame.Player;
 using Client.Game.InGame.UI.UIState;
 using Core.Update;
 using Cysharp.Threading.Tasks;
-using Game.Paths;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Client.Game.InGame.BugReport.Capture
 {
@@ -23,6 +20,9 @@ namespace Client.Game.InGame.BugReport.Capture
         // スクリーンショットはUnityが次フレーム以降に書き出すため、ファイル出現をこの秒数まで待つ
         // Unity writes the screenshot on a later frame, so wait this many seconds for the file to appear
         private const float ScreenshotWaitSeconds = 10f;
+
+        private const string StagingDirectoryName = "staging";
+        private const string ScreenshotFileName = "screenshot.png";
 
         private readonly GameFrameRecorder _recorder;
         private readonly UnityLogRing _logRing;
@@ -58,32 +58,17 @@ namespace Client.Game.InGame.BugReport.Capture
             return UniTask.Delay(TimeSpan.FromSeconds(BugReportCaptureSession.ServerCaptureTimeoutSeconds), DelayType.Realtime);
         }
 
-        public void CutRecordingSegment()
+        public UniTask<CapturedRecording> TakeRecordingAtCapture()
         {
-            _recorder.CutSegment();
+            return _recorder.TakeRecordingAtCapture();
         }
 
-        public IReadOnlyList<string> CompletedVideoSegments()
+        // 退避はファイルコピーなのでメインスレッドを塞がない。置き場は確保ごとの作業場なので送信中に次の確保が消さない
+        // Staging is a file copy so it stays off the main thread; the per-capture workspace keeps the next capture from deleting a send in progress
+        public UniTask<StagedServerCapture> StageServerCapture(string workDirectory, string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames)
         {
-            return _recorder.CompletedSegmentFilesInOrder();
-        }
-
-        public RecordingAvailability GetRecordingAvailability()
-        {
-            return _recorder.Availability;
-        }
-
-        // 退避はファイルコピーなのでメインスレッドを塞がない。置き場はプロセス毎に分け、並行するPlayModeと掴み合わない
-        // Staging is a file copy so it stays off the main thread; the directory is per-process so parallel PlayModes never collide
-        public UniTask<StagedServerCapture> StageServerCapture(string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames)
-        {
-            var stagingDirectory = Path.Combine(GameSystemPaths.BugReportDirectory, $"staging_pid_{Process.GetCurrentProcess().Id}");
+            var stagingDirectory = Path.Combine(workDirectory, StagingDirectoryName);
             return UniTask.RunOnThreadPool(() => BugReportServerCaptureStaging.Stage(stagingDirectory, snapshotDirectory, snapshotFileNames, packetLogFileNames));
-        }
-
-        public IReadOnlyList<(long unixMs, ulong tick)> FrameTicks()
-        {
-            return _recorder.TickLog.Dump();
         }
 
         public IReadOnlyList<UnityLogEntry> Logs()
@@ -93,26 +78,26 @@ namespace Client.Game.InGame.BugReport.Capture
 
         public ClientStateSnapshot ClientState()
         {
-            // カメラとプレイヤーはシーン都合で欠けうるため、欠けたら原点として理由を残す
-            // Camera and player can be absent depending on the scene; fall back to the origin and log why
+            // カメラとプレイヤーはシーン都合で欠けうる。欠けたことは原点という実値ではなく有無で残す
+            // Camera and player can be absent depending on the scene; absence is recorded as a flag, never as the origin passed off as a real value
             var camera = CameraManager.MainCamera?.Camera;
-            if (camera == null) Debug.LogWarning("バグ報告: メインカメラが無いためカメラ位置を原点として記録します");
+            if (camera == null) Debug.LogWarning("バグ報告: メインカメラが無いためカメラ位置を確保できません");
             var cameraPosition = camera == null ? Vector3.zero : camera.transform.position;
             var cameraEulerAngles = camera == null ? Vector3.zero : camera.transform.eulerAngles;
 
             var player = _playerSystemContainer.PlayerObjectController;
-            if (player == null) Debug.LogWarning("バグ報告: プレイヤーが無いためプレイヤー位置を原点として記録します");
+            if (player == null) Debug.LogWarning("バグ報告: プレイヤーが無いためプレイヤー位置を確保できません");
             var playerPosition = player == null ? Vector3.zero : player.Position;
 
-            return new ClientStateSnapshot(cameraPosition, cameraEulerAngles, playerPosition, _currentUiState.ToString(), GameUpdater.CurrentTick);
+            return new ClientStateSnapshot(cameraPosition, cameraEulerAngles, playerPosition, _currentUiState.ToString(), GameUpdater.CurrentTick, camera != null, player != null);
         }
 
-        public async UniTask<string> CaptureScreenshot()
+        public async UniTask<string> CaptureScreenshot(string workDirectory)
         {
-            Directory.CreateDirectory(GameSystemPaths.BugReportDirectory);
-            // 置き場はマシン共通なので、確保ごとに別名にして並行するPlayModeや再Escapeと掴み合わない
-            // The directory is machine-wide, so a per-capture name keeps parallel PlayModes and re-Escapes from grabbing each other's file
-            var path = Path.Combine(GameSystemPaths.BugReportDirectory, $"screenshot_{Guid.NewGuid():N}.png");
+            Directory.CreateDirectory(workDirectory);
+            // 確保ごとの作業場へ書く。マシン共通の置き場だと並行するPlayModeや再Escapeと掴み合う
+            // Written into the per-capture workspace; a machine-wide directory would have parallel PlayModes and re-Escapes grab each other's file
+            var path = Path.Combine(workDirectory, ScreenshotFileName);
             ScreenCapture.CaptureScreenshot(path);
 
             var startTime = Time.realtimeSinceStartup;

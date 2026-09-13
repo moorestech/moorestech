@@ -19,6 +19,10 @@ namespace Client.Game.InGame.BugReport.Capture
 
         public void Initialize()
         {
+            // 送信前に落ちたプロセスの作業場は誰も片付けないので、確保を始める前にここで刈り取る
+            // A workspace left by a process that died before sending is nobody else's to reclaim, so it is swept before any capture starts
+            BugReportCaptureWorkspace.CleanOrphans();
+
             // Escapeを押した瞬間の記録を確保する（ADR 0057）。記入中もワールドは止めない
             // Secure the Escape-moment records (ADR 0057); the world keeps running while typing
             _pauseMenuStateService.OnPauseMenuOpened.Subscribe(_ => _session.BeginOnPauseMenu());

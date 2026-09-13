@@ -16,6 +16,10 @@ namespace Tests.CombinedTest.Server
         [Test]
         public void 終了経路が常時記録の区間ファイルのハンドルを手放す()
         {
+            // 常時記録は既定で無効なので、本番のプレイ開始と同じく明示的に有効化してから起動する
+            // Always-on capture is disabled by default, so it is enabled explicitly here just like the real play start
+            AlwaysOnCaptureSetting.Apply(AlwaysOnCaptureSetting.Enabled());
+
             var worldRoot = Path.Combine(Path.GetTempPath(), $"moorestech-shutdown-{Guid.NewGuid():N}");
             var manager = new ServerInstanceManager(new[]
             {
@@ -23,7 +27,6 @@ namespace Tests.CombinedTest.Server
                 "--mapMode", "template",
                 "--port", "0",
                 "--autoSave", "false",
-                "--captureRing", "true",
                 "--serverDataDirectory", TestModDirectory.ForUnitTestModDirectory,
             });
 
@@ -47,6 +50,10 @@ namespace Tests.CombinedTest.Server
             }
             finally
             {
+                // 有効化を後続テストへ漏らさない。漏らすとテスト起動が無断で録り始める
+                // The enabled decision must not leak into later tests, which would start recording unannounced
+                AlwaysOnCaptureSetting.Apply(AlwaysOnCaptureSetting.Disabled());
+
                 manager.Dispose();
                 // 終了スレッドがディレクトリを離すのを少しだけ待ってから消す
                 // Give the shutdown threads a moment to let go of the directory before deleting it

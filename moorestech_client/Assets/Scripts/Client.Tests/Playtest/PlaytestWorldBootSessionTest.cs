@@ -1,4 +1,3 @@
-using Client.Game.InGame.BugReport.Recording;
 using Client.Playtest;
 using NUnit.Framework;
 using Server.Boot;
@@ -12,10 +11,6 @@ namespace Client.Tests.Playtest
         public void TearDown()
         {
             PlaytestWorldBootSession.Clear();
-
-            // 後続テストの起動へ無効化状態が漏れないよう毎回戻す
-            // Reset so the disabled state never leaks into a later test's boot
-            BugReportRecordingSettings.SetEnabled(true);
         }
 
         [TestCase(0)]
@@ -37,11 +32,10 @@ namespace Client.Tests.Playtest
             Assert.That(settings.MapMode, Is.EqualTo("generated"));
             Assert.That(settings.Seed, Is.EqualTo(seed));
             Assert.That(settings.AutoSave, Is.False);
-            Assert.That(settings.CaptureRing, Is.False);
 
-            // 録画リングもCaptureRingと同じ役割で無効化されているはず
-            // The recording ring should be disabled in the same role as CaptureRing
-            Assert.That(BugReportRecordingSettings.Enabled, Is.False);
+            // 常時記録は本番のプレイ開始だけが有効にするので、この経路を通っても無効のまま
+            // Only the real play start enables always-on capture, so this path leaves it disabled
+            Assert.That(AlwaysOnCaptureSetting.Current.IsEnabled, Is.False);
         }
 
         [Test]

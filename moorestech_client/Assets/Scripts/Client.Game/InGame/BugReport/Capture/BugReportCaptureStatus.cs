@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
+using UniRx;
 
 namespace Client.Game.InGame.BugReport.Capture
 {
@@ -21,11 +24,76 @@ namespace Client.Game.InGame.BugReport.Capture
         }
     }
 
+    // 確保の工程ごとの終わり待ち。1つでも残っている間は送信させず、外向きの状態もここだけが発行する
+    // Per-stage pending state of one capture; a send is refused while any stage is outstanding, and only this publishes the outward state
+    public sealed class BugReportCaptureProgress
+    {
+        private readonly ReactiveProperty<BugReportCaptureStatus> _status = new(new BugReportCaptureStatus(false, false, Array.Empty<string>()));
+
+        private bool _serverCapturePending;
+        private bool _stagingPending;
+        private bool _screenshotPending;
+        private bool _recordingPending;
+
+        public IReadOnlyReactiveProperty<BugReportCaptureStatus> Status => _status;
+
+        // 退避はサーバーの完了イベントが来てから始まるので、確保の開始時点では待ちに入れない
+        // Staging only starts once the server's completion event arrives, so it is not pending when a capture begins
+        public void BeginCapture()
+        {
+            _serverCapturePending = true;
+            _stagingPending = false;
+            _screenshotPending = true;
+            _recordingPending = true;
+        }
+
+        public bool IsServerCapturePending()
+        {
+            return _serverCapturePending;
+        }
+
+        public void FinishServerCapture()
+        {
+            _serverCapturePending = false;
+        }
+
+        public void BeginStaging()
+        {
+            _stagingPending = true;
+        }
+
+        public void FinishStaging()
+        {
+            _stagingPending = false;
+        }
+
+        public void FinishScreenshot()
+        {
+            _screenshotPending = false;
+        }
+
+        public void FinishRecording()
+        {
+            _recordingPending = false;
+        }
+
+        public void Publish(BugReportCapturedData data)
+        {
+            var missing = data == null ? new List<string>() : data.Missing.Select(missingItem => missingItem.Item).ToList();
+            var pending = _serverCapturePending || _stagingPending || _screenshotPending || _recordingPending;
+            _status.Value = new BugReportCaptureStatus(data != null, pending, missing);
+        }
+    }
+
     // 確保した記録一式。送信時に BugReportBundleWriter へ渡す
     // Everything captured for one report; handed to BugReportBundleWriter on send
     public sealed class BugReportCapturedData
     {
         public long CaptureId;
+
+        // この確保だけの一時資源の置き場。送信し終えるまで誰にも消させないため確保ごとに別の場所を持つ
+        // This capture's own directory for temporary materials; a per-capture location keeps a send from being emptied underneath it
+        public string CaptureWorkDirectory;
         public ulong ReportTick;
         // サーバーが実際にマスタを読んだ置き場。manifest に載せないと再現側が別のマスタで再生する
         // Where the server actually read its masters; without it in the manifest the reproduction replays different masters
@@ -40,7 +108,7 @@ namespace Client.Game.InGame.BugReport.Capture
         public List<string> SnapshotFileNames = new();
         public List<string> PacketLogFileNames = new();
         public List<string> VideoSegmentFiles = new();
-        public IReadOnlyList<(long unixMs, ulong tick)> FrameTicks;
+        public IReadOnlyList<FrameTickRow> FrameTicks;
         public IReadOnlyList<UnityLogEntry> Logs;
         public ClientStateSnapshot ClientState;
         public string ScreenshotPath;
@@ -97,15 +165,15 @@ namespace Client.Game.InGame.BugReport.Capture
         // Upper bound on waiting for the completion event; exceeding it abandons the capture
         UniTask WaitServerCaptureTimeout();
 
-        // 完了イベントで受け取った名前のファイルを、サーバーの剪定が届かない場所へ実体ごと退避する
-        // Copies the files named by the completion event out to where the server's pruning cannot reach them
-        UniTask<StagedServerCapture> StageServerCapture(string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames);
-        void CutRecordingSegment();
-        IReadOnlyList<string> CompletedVideoSegments();
-        RecordingAvailability GetRecordingAvailability();
-        IReadOnlyList<(long unixMs, ulong tick)> FrameTicks();
+        // 完了イベントで受け取った名前のファイルを、サーバーの剪定が届かない確保の作業場へ実体ごと退避する
+        // Copies the files named by the completion event into the capture workspace, out of the server's pruning reach
+        UniTask<StagedServerCapture> StageServerCapture(string workDirectory, string snapshotDirectory, IReadOnlyList<string> snapshotFileNames, IReadOnlyList<string> packetLogFileNames);
+
+        // 記録の境界を確定し、その時点の区間とフレーム対応を一括で取り出す。可否と中身を別々に聞かせない
+        // Settles the recording boundary and takes that instant's segments and frame ticks in one go, never asking usability separately
+        UniTask<CapturedRecording> TakeRecordingAtCapture();
         IReadOnlyList<UnityLogEntry> Logs();
         ClientStateSnapshot ClientState();
-        UniTask<string> CaptureScreenshot();
+        UniTask<string> CaptureScreenshot(string workDirectory);
     }
 }

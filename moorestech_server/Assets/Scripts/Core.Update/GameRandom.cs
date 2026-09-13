@@ -6,7 +6,7 @@ namespace Core.Update
     // Sole source of world-affecting randomness; its state is saved so the same snapshot plus packets replays identically
     public static class GameRandom
     {
-        public const int StateLength = 4;
+        private const int StateLength = 4;
 
         // 状態はtickスレッド専有。世界を進める処理以外（受信スレッド・書き出しスレッド・クライアント）から引いてはならない
         // The state belongs to the tick thread alone; no receive thread, writer thread, or client may draw from it

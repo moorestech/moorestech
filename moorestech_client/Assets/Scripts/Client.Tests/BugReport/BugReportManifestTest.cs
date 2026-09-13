@@ -27,7 +27,7 @@ namespace Client.Tests.BugReport
                 Repository = new RepositoryState { Commit = "abc", Branch = "feature/x", Dirty = true },
                 MasterData = new RepositoryState { Commit = "def", Branch = "HEAD", Dirty = false },
                 ServerData = new ServerDataLocation { Path = "/repo/server_v8", RelativeTo = "masterData", RelativePath = "server_v8" },
-                ClientState = new ClientStateSnapshot(new UnityEngine.Vector3(1, 2, 3), new UnityEngine.Vector3(0, 90, 0), new UnityEngine.Vector3(4, 5, 6), "PauseMenu", 1234),
+                ClientState = new ClientStateSnapshot(new UnityEngine.Vector3(1, 2, 3), new UnityEngine.Vector3(0, 90, 0), new UnityEngine.Vector3(4, 5, 6), "PauseMenu", 1234, true, true),
                 Missing = new List<MissingItem> { new MissingItem { Item = "video", Reason = "ffmpeg not found" } },
                 VideoSeconds = 0,
             };

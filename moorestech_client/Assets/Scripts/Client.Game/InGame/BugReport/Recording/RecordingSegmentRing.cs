@@ -10,7 +10,7 @@ namespace Client.Game.InGame.BugReport.Recording
     // Manages the segment ring; every ffmpeg restart rewrites live from seg_00, so finished ones move into retained
     public static class RecordingSegmentRing
     {
-        public const string SegmentSearchPattern = "seg_*.mp4";
+        private const string SegmentSearchPattern = "seg_*.mp4";
         private const string SegmentPrefix = "seg_";
 
         // live にある確定済み区間を retained へ移し、新しい世代の上書きから守ったうえで保持秒数まで間引く

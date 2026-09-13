@@ -19,18 +19,23 @@ namespace Client.Game.InGame.BugReport.Recording
         private readonly BlockingCollection<byte[]> _frames = new(PendingFrameCapacity);
         private readonly Thread _writer;
 
+        // フレームのバッファは借り物。書き終えた時点でこのプールへ返し、毎フレームの新規確保をしない
+        // Frame buffers are borrowed; each goes back to this pool once written so no frame allocates anew
+        private readonly FrameBufferPool _framePool;
+
         public bool IsRunning => !_process.HasExited;
 
-        private FfmpegProcess(Process process)
+        private FfmpegProcess(Process process, FrameBufferPool framePool)
         {
             _process = process;
+            _framePool = framePool;
             _writer = new Thread(WriteLoop) { Name = "[moorestech] ffmpeg書き込みスレッド", IsBackground = true };
             _writer.Start();
         }
 
         // 生RGBAを受けて区間mp4のリングへ書かせる。区間の本数を超えたら先頭から上書きされる
         // Takes raw RGBA and writes a ring of segment mp4 files, wrapping back to the first once the count is exceeded
-        public static FfmpegProcess StartSegmentRecorder(string ffmpegPath, string outputDirectory, int width, int height, int fps, bool flipVertically)
+        public static FfmpegProcess StartSegmentRecorder(string ffmpegPath, string outputDirectory, int width, int height, int fps, bool flipVertically, FrameBufferPool framePool)
         {
             Directory.CreateDirectory(outputDirectory);
             var pattern = Path.Combine(outputDirectory, "seg_%02d.mp4");
@@ -40,7 +45,7 @@ namespace Client.Game.InGame.BugReport.Recording
                 $"-c:v libx264 -preset ultrafast -pix_fmt yuv420p -g {fps} -f segment -segment_time {GameFrameRecorder.SegmentSeconds} " +
                 $"-segment_wrap {GameFrameRecorder.LiveSegmentWrapCount} -reset_timestamps 1 \"{pattern}\"";
             var process = Start(ffmpegPath, arguments, outputDirectory, true, null);
-            return process == null ? null : new FfmpegProcess(process);
+            return process == null ? null : new FfmpegProcess(process, framePool);
         }
 
         public static int RunAndWait(string ffmpegPath, string arguments, string workingDirectory)
@@ -62,19 +67,26 @@ namespace Client.Game.InGame.BugReport.Recording
             return stderr.ToString();
         }
 
-        public void WriteFrame(byte[] rgba)
+        // 受理したかを返す。破棄したフレームまで呼び出し側がtickへ記録すると、動画とtickの対応がずれる
+        // Returns whether the frame was accepted; logging dropped frames to the tick log would skew video-to-tick mapping
+        public bool WriteFrame(byte[] rgba)
         {
             // 停止後に届いた読み出し結果は捨てる（TryAddは完了済みコレクションで例外になる）
             // Drop readbacks that arrive after the stop; TryAdd throws once the collection is completed
             if (_frames.IsAddingCompleted)
             {
                 Debug.LogWarning("停止済みのffmpegへ録画フレームが届いたため破棄しました");
-                return;
+                _framePool.Return(rgba);
+                return false;
             }
 
             // 書き込みが追いつかないときは古いフレームを捨てる（録画は落ちてもゲームは止めない）
             // Drop frames when the writer lags; recording may skip but the game never stalls
-            if (!_frames.TryAdd(rgba)) Debug.LogWarning("録画フレームを破棄しました（ffmpeg書き込みが追いついていない）");
+            if (_frames.TryAdd(rgba)) return true;
+
+            Debug.LogWarning("録画フレームを破棄しました（ffmpeg書き込みが追いついていない）");
+            _framePool.Return(rgba);
+            return false;
         }
 
         public void Stop()
@@ -101,8 +113,8 @@ namespace Client.Game.InGame.BugReport.Recording
             {
                 foreach (var frame in _frames.GetConsumingEnumerable())
                 {
-                    if (_process.HasExited) break;
-                    stdin.Write(frame, 0, frame.Length);
+                    if (!_process.HasExited) stdin.Write(frame, 0, frame.Length);
+                    _framePool.Return(frame);
                 }
                 stdin.Flush();
                 stdin.Close();

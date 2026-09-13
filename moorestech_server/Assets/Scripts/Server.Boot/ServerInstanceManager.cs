@@ -157,11 +157,17 @@ namespace Server.Boot
             // 常時記録はtickスレッド開始前に開始し、開始tickの次から区間を切る
             // Start always-on capture before the tick thread so the first segment begins right after the start tick
             var worldSnapshotRing = serviceProvider.GetRequiredService<WorldSnapshotRing>();
-            if (settings.CaptureRing)
+            if (AlwaysOnCaptureSetting.Current.IsEnabled)
             {
                 // 運転値は常時記録が持つ。起動側が値を決めると、意味が変わったときここだけ古い値のまま残る
                 // The operating values belong to always-on capture; deciding them here would leave this one caller stale when their meaning changes
                 worldSnapshotRing.Start(null, null, null);
+            }
+            else
+            {
+                // 無音で記録しないと、報告が空で届いたときに原因がどこにも残らない
+                // Skipping silently would leave no trace of why a report arrived empty
+                Debug.Log($"[ServerInstanceManager] スナップショットリングを開始しません: {AlwaysOnCaptureSetting.DisabledReason}");
             }
             // アップデートのタスク名を設定
             var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));

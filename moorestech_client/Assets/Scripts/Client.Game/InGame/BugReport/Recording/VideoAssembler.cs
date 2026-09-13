@@ -32,22 +32,30 @@ namespace Client.Game.InGame.BugReport.Recording
             return exit == 0;
         }
 
-        // 本数×固定尺の推計をやめ、結合済みmp4自身をffmpegに読ませて実尺を取る（Concat結果はCutSegmentの断片で必ず不揃いなため）
-        // No longer estimates from count×fixed length; asks ffmpeg for the concatenated mp4's real duration, since CutSegment always leaves uneven fragments
-        public static double DurationSeconds(string ffmpegPath, string mp4Path)
+        // 結合済みmp4自身をffmpegに読ませて実尺を取る（Concat結果は確保の切れ目で必ず不揃いなため）
+        // Asks ffmpeg for the concatenated mp4's real duration, since a capture's cut always leaves uneven fragments
+        // 読めなかったときに0を返すと「0秒の動画」という実値になる。取れたかどうかを呼び出し側へ返し欠損として残させる
+        // Returning 0 on failure would bake "a zero-second video" as a real value, so the outcome goes back to the caller as a missing item
+        public static bool TryDurationSeconds(string ffmpegPath, string mp4Path, out double durationSeconds)
         {
+            durationSeconds = 0;
             var stderr = FfmpegProcess.RunAndCaptureStderr(ffmpegPath, $"-hide_banner -i \"{mp4Path}\"", Path.GetDirectoryName(mp4Path));
-            if (stderr == null) return 0;
+            if (stderr == null)
+            {
+                Debug.LogWarning($"録画動画の尺を測るffmpegを起動できませんでした: {mp4Path}");
+                return false;
+            }
             var match = DurationPattern.Match(stderr);
             if (!match.Success)
             {
                 Debug.LogWarning($"録画動画の尺を読み取れませんでした: {mp4Path}");
-                return 0;
+                return false;
             }
             var hours = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
             var minutes = int.Parse(match.Groups[2].Value, CultureInfo.InvariantCulture);
             var seconds = double.Parse(match.Groups[3].Value, CultureInfo.InvariantCulture);
-            return hours * 3600 + minutes * 60 + seconds;
+            durationSeconds = hours * 3600 + minutes * 60 + seconds;
+            return true;
         }
     }
 }

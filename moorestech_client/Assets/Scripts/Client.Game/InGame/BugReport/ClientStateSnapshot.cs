@@ -12,13 +12,20 @@ namespace Client.Game.InGame.BugReport
         public string UiState { get; }
         public ulong Tick { get; }
 
-        public ClientStateSnapshot(Vector3 cameraPosition, Vector3 cameraEulerAngles, Vector3 playerPosition, string uiState, ulong tick)
+        // 取れなかった位置は原点で埋まる。実値と区別できないと調査側が原点に居たと読んでしまう
+        // An unavailable position falls back to the origin; without these flags an investigator reads it as really being there
+        public bool HasCamera { get; }
+        public bool HasPlayer { get; }
+
+        public ClientStateSnapshot(Vector3 cameraPosition, Vector3 cameraEulerAngles, Vector3 playerPosition, string uiState, ulong tick, bool hasCamera, bool hasPlayer)
         {
             CameraPosition = cameraPosition;
             CameraEulerAngles = cameraEulerAngles;
             PlayerPosition = playerPosition;
             UiState = uiState;
             Tick = tick;
+            HasCamera = hasCamera;
+            HasPlayer = hasPlayer;
         }
     }
 }

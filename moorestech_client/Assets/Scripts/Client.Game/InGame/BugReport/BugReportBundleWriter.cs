@@ -99,7 +99,10 @@ namespace Client.Game.InGame.BugReport
                 return;
             }
 
-            manifest.VideoSeconds = VideoAssembler.DurationSeconds(ffmpeg, output);
+            // 尺を測れなかったときに0を書くと「0秒の動画」という実値になるので、欠損として残す
+            // Writing 0 for an unmeasurable duration would bake "a zero-second video" as a real value, so it stays a missing item
+            if (VideoAssembler.TryDurationSeconds(ffmpeg, output, out var videoSeconds)) manifest.VideoSeconds = videoSeconds;
+            else manifest.AddMissing("videoSeconds", "結合した動画の尺を読み取れなかった");
             if (!VideoAssembler.ExtractFrames(ffmpeg, output, Path.Combine(directory, BugReportBundleLayout.FramesDirectoryName), 2)) manifest.AddMissing(BugReportBundleLayout.FramesDirectoryName, "静止画の抜き出しに失敗した");
         }
 
