@@ -75,5 +75,40 @@ namespace Client.Tests.BugReport
             StringAssert.Contains("recording", string.Join(",", artifacts.Missing.ConvertAll(m => m.Item)));
             StringAssert.Contains("snapshots", string.Join(",", artifacts.Missing.ConvertAll(m => m.Item)));
         }
+
+        [Test]
+        public void 異常終了ならpidサブディレクトリの録画も退避する()
+        {
+            // GameFrameRecorderはpid_<PID>配下に書くため、その構造を再現する
+            // Reproduces GameFrameRecorder's layout, which writes under a pid_<PID> subdirectory
+            var pidDirectory = Path.Combine(_recording, "pid_1234");
+            Directory.CreateDirectory(pidDirectory);
+            File.WriteAllText(Path.Combine(pidDirectory, "segment-0.mp4"), "video");
+
+            var artifacts = PreviousSessionSalvage.Salvage(false, _recording, _snapshots, _lastSession);
+
+            Assert.IsTrue(File.Exists(Path.Combine(artifacts.RecordingDirectory, "pid_1234", "segment-0.mp4")));
+            Assert.IsTrue(File.Exists(Path.Combine(artifacts.RecordingDirectory, "seg_00.mp4")));
+
+            // サブディレクトリ含め、次セッションのリングが上書きしないよう元は空になっている
+            // The original is fully emptied, subdirectories included, so the next session's ring never overwrites it
+            Assert.AreEqual(0, Directory.GetFiles(_recording, "*", SearchOption.AllDirectories).Length);
+        }
+
+        [Test]
+        public void 正常終了ならpidサブディレクトリごと録画を消す()
+        {
+            var pidDirectory = Path.Combine(_recording, "pid_5678");
+            Directory.CreateDirectory(pidDirectory);
+            File.WriteAllText(Path.Combine(pidDirectory, "segment-0.mp4"), "video");
+
+            var artifacts = PreviousSessionSalvage.Salvage(true, _recording, _snapshots, _lastSession);
+
+            Assert.IsNull(artifacts.RecordingDirectory);
+            // 録画リングが溜まり続けないよう、サブディレクトリごと消えている
+            // The subdirectory is removed too, so the recording ring never keeps piling up
+            Assert.AreEqual(0, Directory.GetFiles(_recording, "*", SearchOption.AllDirectories).Length);
+            Assert.IsFalse(Directory.Exists(pidDirectory));
+        }
     }
 }

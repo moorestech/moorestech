@@ -43,8 +43,8 @@ namespace Client.Game.InGame.BugReport.LastSession
             return artifacts;
         }
 
-        // 中身のあるディレクトリだけを退避先へ移す。空・不在は欠損として残し、呼び出し側は null で受ける
-        // Moves only a non-empty directory; empty or absent is recorded as missing and returned as null
+        // 中身のあるディレクトリだけを退避先へ移す。GameFrameRecorderはpid_<PID>のサブディレクトリへ書くため再帰的に走査する
+        // Moves only a non-empty directory; recurses because GameFrameRecorder writes under a pid_<PID> subdirectory
         private static string MoveFilesInto(string source, string destination, string item, PreviousSessionArtifacts artifacts)
         {
             if (source == null || !Directory.Exists(source))
@@ -52,7 +52,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                 artifacts.Missing.Add(new MissingItem { Item = item, Reason = $"退避元が無い: {source}" });
                 return null;
             }
-            var files = Directory.GetFiles(source);
+            var files = Directory.GetFiles(source, "*", SearchOption.AllDirectories);
             if (files.Length == 0)
             {
                 artifacts.Missing.Add(new MissingItem { Item = item, Reason = $"退避元が空: {source}" });
@@ -61,14 +61,25 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             ClearDirectory(destination);
             Directory.CreateDirectory(destination);
-            foreach (var file in files) File.Move(file, Path.Combine(destination, Path.GetFileName(file)));
+            // サブディレクトリ構造(pid_<PID>/segment-0.mp4等)を保ったまま退避先へ移す
+            // Preserve the subdirectory structure (pid_<PID>/segment-0.mp4, etc.) while moving into the destination
+            foreach (var file in files)
+            {
+                var relativePath = Path.GetRelativePath(source, file);
+                var destinationFile = Path.Combine(destination, relativePath);
+                Directory.CreateDirectory(Path.GetDirectoryName(destinationFile));
+                File.Move(file, destinationFile);
+            }
             return destination;
         }
 
+        // source配下のファイルとサブディレクトリを再帰的に削除する。source自体は残す
+        // Recursively removes files and subdirectories under source; source itself is left intact
         private static void ClearDirectory(string directory)
         {
             if (!Directory.Exists(directory)) return;
             foreach (var file in Directory.GetFiles(directory)) File.Delete(file);
+            foreach (var subDirectory in Directory.GetDirectories(directory)) Directory.Delete(subDirectory, true);
         }
     }
 }
