@@ -61,7 +61,17 @@ namespace Game.SaveLoad.Migration
             var migrated = save;
             foreach (var step in _steps.Where(step => fromVersion <= step.FromVersion))
             {
-                migrated = step.Migrate(migrated);
+                // 変換できなかった手が出たら版を刻まずに中断する。刻むと未変換のセーブが新版の顔でLoadへ渡る
+                // A hop that could not convert stops the chain without stamping the version; stamping would pass an unconverted save to Load
+                var stepResult = step.Migrate(migrated);
+                if (!stepResult.IsConverted)
+                {
+                    var reason = $"セーブをV{step.FromVersion}からV{step.FromVersion + 1}へ変換できませんでした: {stepResult.FailureReason}";
+                    Debug.LogError(reason);
+                    return SaveMigrationResult.Blocked(fromVersion, reason);
+                }
+
+                migrated = stepResult.Save;
                 migrated[WorldVersionKey] = step.FromVersion + 1;
                 Debug.Log($"セーブをV{step.FromVersion}からV{step.FromVersion + 1}へ変換しました。");
             }

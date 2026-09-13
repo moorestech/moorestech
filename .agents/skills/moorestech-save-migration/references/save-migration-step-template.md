@@ -23,34 +23,36 @@ namespace Game.SaveLoad.Migration.Steps
     {
         public int FromVersion => 2;
 
-        public JObject Migrate(JObject save)
+        public SaveMigrationStepResult Migrate(JObject save)
         {
-            var converted = ConvertSomething();
+            if (!TryConvertSomething(out var converted, out var failureReason)) return SaveMigrationStepResult.Failed(failureReason);
 
             // 何を何件変えたかを必ず1行残す。無音の縮退は禁止
             // Always leave one line saying what changed and how much; silent degradation is banned
             Debug.Log($"セーブを版2から版3へ変換しました。converted={converted}件");
-            return save;
+            return SaveMigrationStepResult.Converted(save);
 
             #region Internal
 
-            int ConvertSomething()
+            bool TryConvertSomething(out int converted, out string reason)
             {
+                converted = 0;
+                reason = null;
+
                 if (!(save["world"] is JArray world))
                 {
-                    // 期待した形が無いときも理由を残してから抜ける
-                    // Leave the reason before bailing out when the expected shape is absent
-                    Debug.LogError("セーブにworld配列が無いため変換を行いませんでした。");
-                    return 0;
+                    // 変換できない形は理由を持って返す。連鎖が版を刻まずBlockedにする
+                    // Return the reason for a shape that cannot be converted; the chain then blocks without stamping the version
+                    reason = $"セーブのworldが配列ではないため変換できません。 type={save["world"]?.Type}";
+                    return false;
                 }
 
-                var converted = 0;
                 foreach (var blockToken in world)
                 {
                     if (!(blockToken is JObject block))
                     {
-                        Debug.LogError($"world要素がオブジェクトではないため変換をとばします。 type={blockToken.Type}");
-                        continue;
+                        reason = $"world要素がオブジェクトではないため変換できません。 type={blockToken.Type}";
+                        return false;
                     }
 
                     // 既に新形式のときは触らない（冪等）。塗り潰すと既存の値が無音で消える
@@ -61,7 +63,7 @@ namespace Game.SaveLoad.Migration.Steps
                     converted++;
                 }
 
-                return converted;
+                return true;
             }
 
             // 外部境界: セーブの値は任意の外部入力で、JSONでない綴り（base64-MessagePack等）を含みうる
@@ -86,8 +88,10 @@ namespace Game.SaveLoad.Migration.Steps
 }
 ```
 
-変換できない値を素通しするときは `Debug.Log` で理由を残す。**変換したつもりで壊れた形が残る**ケース
-（V1→V2 の二重エンコード検知が実例）は `Debug.LogError` してから `InvalidOperationException` を投げる。
+変換できない値を素通ししてよいとき（JSONでない状態値など）は `Debug.Log` で理由を残す。
+**変換したつもりで壊れた形が残る**ケース（V1→V2 の二重エンコード検知・非オブジェクトstateが実例）は
+`SaveMigrationStepResult.Failed(reason)` を返す。例外は投げない — 連鎖が `Blocked` へ変換し、
+版を刻まないまま `WorldLoaderFromJson` の理由付き中断としてプレイヤーへ届く（原本も無傷のまま残る）。
 
 ## 2. 登録
 
@@ -126,16 +130,17 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var save = JObject.Parse("{\"world\":[{\"blockGuid\":\"x\"}]}");
 
-            var migrated = new SaveMigrationStepV2ToV3().Migrate(save);
+            var result = new SaveMigrationStepV2ToV3().Migrate(save);
 
-            Assert.AreEqual(0, migrated["world"][0]["newField"].Value<int>());
+            Assert.IsTrue(result.IsConverted, result.FailureReason);
+            Assert.AreEqual(0, result.Save["world"][0]["newField"].Value<int>());
         }
 
         [Test]
         public void 既に値がある項目は上書きされないTest() { /* 冪等 */ }
 
         [Test]
-        public void 想定外の形は元の値を残したままとばされるTest() { /* LogAssert.Expect でログを受ける */ }
+        public void 変換できない形はFailedで返るTest() { /* IsConverted=false と FailureReason を見る */ }
 
         [Test]
         public void FromVersionは2であるTest()

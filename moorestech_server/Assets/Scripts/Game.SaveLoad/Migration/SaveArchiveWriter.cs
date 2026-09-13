@@ -24,6 +24,14 @@ namespace Game.SaveLoad.Migration
         public void WriteBackup(int worldVersion, string saveJsonText)
         {
             var path = _directory.BackupSaveJsonPath(worldVersion);
+            // 退避先が無いまま黙って進むと、変換後のセーブしか残らない
+            // Moving on silently without a location would leave only the converted save behind
+            if (path == null)
+            {
+                Debug.LogError($"退避先が無いため版{worldVersion}のマイグレーション前セーブを退避できませんでした。");
+                return;
+            }
+
             if (File.Exists(path))
             {
                 // 2度目以降は最初の原本を残す。上書きすると遡り適用の起点が失われる
@@ -39,6 +47,14 @@ namespace Game.SaveLoad.Migration
 
         public void WritePruned(JObject prunedJson, DateTime utcNow)
         {
+            // 除去した実体を捨てると後からの置換・返金の入力が失われるので、落ちた理由を残す
+            // Dropping the removed entities would lose the input for a later replace/refund, so log why it was lost
+            if (_directory.PrunedRoot == null)
+            {
+                Debug.LogError("退避先が無いためマスタ欠損で除去したデータを保存できませんでした。");
+                return;
+            }
+
             Directory.CreateDirectory(_directory.PrunedRoot);
 
             for (var collisionIndex = 0; collisionIndex < MaxCollisionRetry; collisionIndex++)

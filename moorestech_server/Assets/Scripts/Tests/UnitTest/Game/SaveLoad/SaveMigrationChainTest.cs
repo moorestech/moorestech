@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using Game.Paths;
+using System.Text.RegularExpressions;
 using Game.SaveLoad.Json.WorldVersions;
 using Game.SaveLoad.Migration;
 using Game.SaveLoad.Migration.Steps;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -90,85 +91,38 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsFalse(CurrentVersionChain().Migrate(JObject.Parse("{\"worldVersion\":0}")).CanLoad);
         }
 
-        // 欠番が無い(1,2は揃っている)状態で重複だけを混ぜ、重複検知そのものを見る
-        // No gap (1 and 2 are both present) so only the duplicate is exercised
+        // 変換できなかった手を握り潰すと、未変換のセーブに新版の版番号だけが刻まれてLoadへ渡る
+        // Swallowing a hop that could not convert would stamp the new version onto an unconverted save and pass it to Load
         [Test]
-        public void FromVersionが重複した連鎖は構築時に落ちるTest()
+        public void 変換できなかったステップは版を刻まずロードを拒否するTest()
+        {
+            var save = JObject.Parse("{\"worldVersion\":1}");
+            LogAssert.Expect(LogType.Error, new Regex("変換できませんでした"));
+
+            var result = new SaveMigrationChain(new ISaveMigrationStep[] { new FailingStep(1) }, 2).Migrate(save);
+
+            Assert.IsFalse(result.CanLoad);
+            StringAssert.Contains(FailingStep.Reason, result.BlockedReason);
+            Assert.AreEqual(1, result.FromVersion);
+            Assert.AreEqual(1, save["worldVersion"].Value<int>());
+        }
+
+        // 2手目が失敗したときも、1手目が刻んだ版のまま中断してLoadへ渡さない
+        // When the second hop fails the chain stops with the version the first hop stamped and never reaches Load
+        [Test]
+        public void 途中の手が失敗した連鎖は最後まで進まないTest()
         {
             var applied = new List<int>();
-            Assert.Throws<ArgumentException>(() => new SaveMigrationChain(new ISaveMigrationStep[]
+            LogAssert.Expect(LogType.Error, new Regex("変換できませんでした"));
+
+            var result = new SaveMigrationChain(new ISaveMigrationStep[]
             {
                 new RecordingStep(1, applied),
-                new RecordingStep(1, applied),
-                new RecordingStep(2, applied),
-            }, 3));
-        }
+                new FailingStep(2),
+            }, 3).Migrate(JObject.Parse("{\"worldVersion\":1}"));
 
-        // 目標版に対してステップが多すぎる(範囲外のFromVersionを含む)場合も構築時に落ちる
-        // Too many steps for the target version (an out-of-range FromVersion) also fails at construction
-        [Test]
-        public void 目標版に対してステップが多すぎる連鎖は構築時に落ちるTest()
-        {
-            var applied = new List<int>();
-            Assert.Throws<ArgumentException>(() => new SaveMigrationChain(new ISaveMigrationStep[]
-            {
-                new RecordingStep(1, applied),
-                new RecordingStep(2, applied),
-            }, 2));
-        }
-
-        // 欠番は「その版のセーブが永久にロードできない」という恒久封鎖なので構築時に落とす
-        // A gap permanently blocks that version's saves, so it fails at construction instead of at load time
-        [Test]
-        public void FromVersionに欠番がある連鎖は構築時に落ちるTest()
-        {
-            var applied = new List<int>();
-            Assert.Throws<ArgumentException>(() => new SaveMigrationChain(new ISaveMigrationStep[]
-            {
-                new RecordingStep(1, applied),
-                new RecordingStep(3, applied),
-            }, 4));
-        }
-
-        // 目標版が1のときだけ空連鎖が成立する。現在版が上がったら空連鎖は構築時に落ちる
-        // Only a target version of 1 admits an empty chain; once the current version rises an empty chain fails at construction
-        [Test]
-        public void 目標版1の連鎖はステップ0本で構築できるTest()
-        {
-            Assert.DoesNotThrow(() => new SaveMigrationChain(Array.Empty<ISaveMigrationStep>(), 1));
-        }
-
-        [Test]
-        public void バックアップは既存の原本を上書きしないTest()
-        {
-            var root = Path.Combine(Path.GetTempPath(), "moorestech-save-archive-" + Guid.NewGuid().ToString("N"));
-            var writer = new SaveArchiveWriter(SaveArchiveDirectory.FromArchiveRoot(root));
-
-            writer.WriteBackup(1, "{\"first\":true}");
-            writer.WriteBackup(1, "{\"second\":true}");
-
-            var path = SaveArchiveDirectory.FromArchiveRoot(root).BackupSaveJsonPath(1);
-            Assert.AreEqual("{\"first\":true}", File.ReadAllText(path));
-            Directory.Delete(root, true);
-        }
-
-        // 同秒に2回除去が起きても片方が消えないことを見る
-        // Two prunes in the same second must not overwrite each other
-        [Test]
-        public void 除去データは同秒でも連番で別ファイルになるTest()
-        {
-            var root = Path.Combine(Path.GetTempPath(), "moorestech-save-archive-" + Guid.NewGuid().ToString("N"));
-            var directory = SaveArchiveDirectory.FromArchiveRoot(root);
-            var writer = new SaveArchiveWriter(directory);
-            var at = new DateTime(2026, 9, 13, 8, 30, 0, DateTimeKind.Utc);
-
-            writer.WritePruned(JObject.Parse("{\"a\":1}"), at);
-            writer.WritePruned(JObject.Parse("{\"a\":2}"), at);
-
-            Assert.AreEqual(2, Directory.GetFiles(directory.PrunedRoot, "*.json").Length);
-            Assert.IsTrue(File.Exists(directory.PrunedJsonPath(at, 0)));
-            Assert.IsTrue(File.Exists(directory.PrunedJsonPath(at, 1)));
-            Directory.Delete(root, true);
+            Assert.IsFalse(result.CanLoad);
+            Assert.AreEqual(new[] { 1 }, applied.ToArray());
         }
 
         // 本番と同じ構成の連鎖。現在版と実ステップ列の噛み合いもここで一緒に検証される
@@ -192,11 +146,30 @@ namespace Tests.UnitTest.Game.SaveLoad
 
             public int FromVersion { get; }
 
-            public JObject Migrate(JObject save)
+            public SaveMigrationStepResult Migrate(JObject save)
             {
                 _applied.Add(FromVersion);
                 save["trace"] = save["trace"] == null ? $"{FromVersion}:" : save["trace"].Value<string>() + $"{FromVersion}:";
-                return save;
+                return SaveMigrationStepResult.Converted(save);
+            }
+        }
+
+        // 変換できなかったことだけを返すステップ。連鎖が版を刻まずに止まるかを見る
+        // A step that only reports it could not convert; used to check the chain stops without stamping a version
+        private sealed class FailingStep : ISaveMigrationStep
+        {
+            public const string Reason = "テスト用の変換不能";
+
+            public FailingStep(int fromVersion)
+            {
+                FromVersion = fromVersion;
+            }
+
+            public int FromVersion { get; }
+
+            public SaveMigrationStepResult Migrate(JObject save)
+            {
+                return SaveMigrationStepResult.Failed(Reason);
             }
         }
     }

@@ -48,7 +48,7 @@ namespace Game.Block.Blocks.TrainRail
             var nodes = saveData.Nodes;
             if (nodes != null && nodes.Count == expectedRailComponentCount) return nodes;
 
-            var reason = $"セーブのレールノードGUIDが期待本数と違います 期待:{expectedRailComponentCount} 実際:{nodes?.Count}。形式が変わった版はマイグレーション連鎖（Game.SaveLoad/Migration の ISaveMigrationStep）が補うため、ここへ届いたのは版が上がっていないか手編集で壊れたセーブです";
+            var reason = $"セーブのレールノードGUIDが期待本数と違います 期待:{expectedRailComponentCount} 実際:{nodes?.Count}。現在のマイグレーション連鎖は本数の食い違いを補わないため、この版のセーブはロードできません。補う ISaveMigrationStep を Game.SaveLoad/Migration/Steps へ足せば救えます";
             Debug.LogError(reason);
             throw new InvalidOperationException(reason);
         }

@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using Core.Master;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -9,47 +6,33 @@ using UnityEngine;
 namespace Game.SaveLoad.Pruning
 {
     /// <summary>
-    /// マスタ欠損アイテムを空スタック化
-    /// Walks the save tree and empties every item stack whose item is absent from the master
+    /// セーブの木を歩き、アイテムを参照する綴りに出会うたびMissingItemReferenceCleanerへ渡す
+    /// Walks the save tree and hands every item-referencing spelling it meets to MissingItemReferenceCleaner
     /// 文字列に埋め込まれたJSON(ブロックのstate)の中まで降り、除去したときだけ書き戻す
     /// Descends into JSON embedded in strings (block state) and writes back only when something was pruned
+    /// 何をアイテム参照とみなすかはSaveItemReferenceFieldsが唯一の正本
+    /// SaveItemReferenceFields is the only authority on what counts as an item reference
     /// </summary>
     public sealed class ItemStackPruneWalker
     {
-        private const string ItemGuidKey = "itemGuid";
-        private const string CountKey = "count";
-        private const int LoggedItemGuidLimit = 10;
-
-        private readonly Dictionary<string, int> _emptiedCountByItemGuid = new();
+        private MissingItemReferenceCleaner _cleaner;
         private int _nonJsonStringCount;
         private int _unparsableStringCount;
 
-        // 除去前のスタックを返す（除去データJSON用）
-        // Returns the original stacks that were emptied; the caller stores them in the pruned-data JSON
-        public JArray Walk(JObject save)
+        // 除去前のアイテム参照を返す（除去データJSON用）
+        // Returns the original item references that were removed; the caller stores them in the pruned-data JSON
+        public ItemPruneWalkResult Walk(JObject save)
         {
-            _emptiedCountByItemGuid.Clear();
+            _cleaner = new MissingItemReferenceCleaner();
             _nonJsonStringCount = 0;
             _unparsableStringCount = 0;
 
-            var removed = new JArray();
-            WalkToken(save, removed);
-            LogEmptiedItemStacks();
+            WalkToken(save);
+            _cleaner.LogRemovedItemReferences();
             LogSkippedStrings();
-            return removed;
+            return _cleaner.ToResult();
 
             #region Internal
-
-            // modを外すと数千件になるのでguidごとに集約して1行にまとめる
-            // Dropping a mod can empty thousands of stacks, so the report is aggregated per guid into one line
-            void LogEmptiedItemStacks()
-            {
-                if (_emptiedCountByItemGuid.Count == 0) return;
-
-                var total = _emptiedCountByItemGuid.Values.Sum();
-                var digest = string.Join(", ", _emptiedCountByItemGuid.Take(LoggedItemGuidLimit).Select(pair => $"{pair.Key}x{pair.Value}"));
-                Debug.LogWarning($"マスタに存在しないアイテムを空スタックへ落としました。 total={total} guidKinds={_emptiedCountByItemGuid.Count} detail={digest}");
-            }
 
             // 文字列は全件ここを通るため、素通しした理由は件数だけ1行で残す
             // Every string passes through here, so the pass-through reason is summarised in a single line
@@ -63,57 +46,45 @@ namespace Game.SaveLoad.Pruning
             #endregion
         }
 
-        private void WalkToken(JToken token, JArray removed)
+        private void WalkToken(JToken token)
         {
             // 配列と文字列は中身へ降りるだけ。除去判定はJObjectに到達してから行う
             // Arrays and strings only lead further down; the removal decision happens once a JObject is reached
             if (token is JArray array)
             {
-                foreach (var child in array.ToList()) WalkToken(child, removed);
+                foreach (var child in array.ToList()) WalkToken(child);
                 return;
             }
 
             if (token is JValue value)
             {
-                RewriteEmbeddedJson(value, removed);
+                RewriteEmbeddedJson(value);
                 return;
             }
 
             if (token is not JObject json) return;
 
-            if (json[ItemGuidKey] is JValue guidValue && IsMissingItem(guidValue, out var guidText))
+            _cleaner.EmptyItemStackIfMissing(json);
+
+            foreach (var property in json.Properties().ToList())
             {
-                removed.Add(json.DeepClone());
-                _emptiedCountByItemGuid[guidText] = _emptiedCountByItemGuid.GetValueOrDefault(guidText) + 1;
-                json[ItemGuidKey] = Guid.Empty.ToString();
-                // countを持たない別形のJSONへ新しいキーを生やさない
-                // Never grow a count key on a differently shaped JSON that did not have one
-                if (json[CountKey] != null) json[CountKey] = 0;
-            }
-
-            foreach (var property in json.Properties().ToList()) WalkToken(property.Value, removed);
-
-            #region Internal
-
-            bool IsMissingItem(JValue itemGuidValue, out string itemGuidText)
-            {
-                // guidとして読めない値は壊れているかスタックでない。残す判断の理由を出す
-                // A value that is no guid is corrupt or not a stack at all; log why it is left alone
-                itemGuidText = itemGuidValue.Value<string>();
-                if (!Guid.TryParse(itemGuidText, out var guid))
+                if (property.Name == SaveItemReferenceFields.ConnectionCostMaterialsPropertyName)
                 {
-                    Debug.LogWarning($"itemGuidがguidとして読めないため除去判定せず残します。 itemGuid={itemGuidText}");
-                    return false;
+                    _cleaner.NeutralizeConnectionMaterialsIfMissing(property.Value);
+                    continue;
                 }
 
-                if (guid == Guid.Empty) return false;
-                return !MasterHolder.ItemMaster.ExistItemId(guid);
-            }
+                if (SaveItemReferenceFields.BareItemGuidPropertyNames.Contains(property.Name))
+                {
+                    _cleaner.ClearBareItemGuidIfMissing(property);
+                    continue;
+                }
 
-            #endregion
+                WalkToken(property.Value);
+            }
         }
 
-        private void RewriteEmbeddedJson(JValue value, JArray removed)
+        private void RewriteEmbeddedJson(JValue value)
         {
             if (value.Type != JTokenType.String) return;
 
@@ -143,9 +114,9 @@ namespace Game.SaveLoad.Pruning
 
             // 除去が起きたときだけ書き戻す。無関係なstateを整形しなおして差分を出さない
             // Write back only when something was pruned, so untouched state is not reformatted
-            var before = removed.Count;
-            WalkToken(embedded, removed);
-            if (removed.Count == before) return;
+            var before = _cleaner.RemovalCount;
+            WalkToken(embedded);
+            if (_cleaner.RemovalCount == before) return;
 
             value.Value = embedded.ToString(Formatting.None);
         }

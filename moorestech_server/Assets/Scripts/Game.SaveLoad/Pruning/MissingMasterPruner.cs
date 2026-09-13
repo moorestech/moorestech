@@ -13,18 +13,18 @@ namespace Game.SaveLoad.Pruning
     /// The given JObject is rewritten in place and the very same instance comes back as Outcome.Save
     /// mapObjectは対象外。マップ側に無いinstanceIdをMapObjectDatastore.LoadMapObjectが既にスキップする
     /// Map objects are out of scope; MapObjectDatastore.LoadMapObject already skips instance ids absent from the map
-    /// blueprints・hotbarAssignments・itemStackLevelsも対象外。今日の形はitemGuidキーを持たず走査に掛からない
-    /// Blueprints, hotbar assignments and item stack levels are out of scope; today none of them carry an itemGuid key
+    /// アイテム参照として何を見る・見ないかはSaveItemReferenceFieldsが持つ
+    /// SaveItemReferenceFields holds what does and does not count as an item reference
     /// </summary>
     public sealed class MissingMasterPruner
     {
         public MissingMasterPruneOutcome Prune(JObject save)
         {
             var removedBlocks = PruneBlocks();
-            var removedItemStacks = PruneItemStacks();
+            var removedItemReferences = PruneItemReferences();
             var removedResearchGuids = PruneResearch();
 
-            return new MissingMasterPruneOutcome(save, removedBlocks, removedItemStacks, removedResearchGuids);
+            return new MissingMasterPruneOutcome(save, removedBlocks, removedItemReferences, removedResearchGuids);
 
             #region Internal
 
@@ -60,10 +60,10 @@ namespace Game.SaveLoad.Pruning
                 return removed;
             }
 
-            JArray PruneItemStacks()
+            ItemPruneWalkResult PruneItemReferences()
             {
-                // ブロック除去後の木を丸ごと歩く。プレイヤー・チェスト・機械のどこにスタックがあっても拾う
-                // Walk the whole tree after block removal so stacks are caught wherever they sit
+                // ブロック除去後の木を丸ごと歩く。プレイヤー・チェスト・機械のどこに参照があっても拾う
+                // Walk the whole tree after block removal so references are caught wherever they sit
                 return new ItemStackPruneWalker().Walk(save);
             }
 

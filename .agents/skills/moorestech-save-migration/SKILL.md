@@ -33,8 +33,9 @@ worldVersion 導入前のセーブと開発者手元のセーブに限った補�
 
 | 型 | 役割 |
 | --- | --- |
-| `ISaveMigrationStep` | `int FromVersion { get; }` と `JObject Migrate(JObject save)` の1手 |
-| `SaveMigrationChain` | ctor `(IReadOnlyList<ISaveMigrationStep> steps, int currentVersion)`。構築時に欠番・重複を検証し、`Migrate` で昇順適用。未来版・版0以下は `SaveMigrationResult.CanLoad = false` |
+| `ISaveMigrationStep` | `int FromVersion { get; }` と `SaveMigrationStepResult Migrate(JObject save)` の1手 |
+| `SaveMigrationChain` | ctor `(IReadOnlyList<ISaveMigrationStep> steps, int currentVersion)`。構築時に欠番・重複を検証し、`Migrate` で昇順適用。未来版・版0以下・ステップの `Failed` は `SaveMigrationResult.CanLoad = false` |
+| `SaveMigrationStepResult` | 1手の結果。`Converted(JObject)` か `Failed(string reason)`。`Failed` を受けた連鎖は版を刻まず `Blocked` を返す |
 | `SaveArchiveWriter` | 変換が走るときだけ原本を `backup/<version>/save.json` へ退避（既存は上書きしない） |
 | `MissingMasterPruner` | 連鎖の**後段**。マスタから消えたブロック・アイテム・研究を除去する（`Game.SaveLoad/Pruning/`） |
 | `SaveLoadPreparer` | 上を束ねた `Prepare(string saveJsonText)`。`WorldLoaderFromJson.LoadOrInitialize` から呼ばれる |

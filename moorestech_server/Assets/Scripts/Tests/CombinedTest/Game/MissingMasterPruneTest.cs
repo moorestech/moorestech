@@ -82,6 +82,40 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual("kZPAAAA=", outcome.Save["world"].Last["state"]["rail"].Value<string>());
         }
 
+        // 裸guidの燃料項目を残すとItemMaster.GetItemIdが例外を投げ、そのワールドは永久に起動不能になる
+        // Leaving a bare-guid fuel field makes ItemMaster.GetItemId throw and that world can never be loaded again
+        [TestCase("currentFuelItemGuid", TestName = "マスタに無い燃料アイテムはnullへ落とされるTest_JsonProperty綴り")]
+        [TestCase("CurrentFuelItemGuidStr", TestName = "マスタに無い燃料アイテムはnullへ落とされるTest_フィールド名綴り")]
+        public void マスタに無い燃料アイテムはnullへ落とされるTest(string fuelPropertyName)
+        {
+            var save = BuildSaveJson();
+            ((JArray)save["world"]).Add(StateBlock(save, 987658, $"{{\\\"{fuelPropertyName}\\\":\\\"{MissingGuid}\\\"}}"));
+
+            var outcome = new MissingMasterPruner().Prune(save);
+            Assert.AreEqual(1, outcome.Report.EmptiedItemStackCount);
+
+            var stateText = outcome.Save["world"].Last["state"]["generator"].Value<string>();
+            Assert.AreEqual(JTokenType.Null, JObject.Parse(stateText)[fuelPropertyName].Type);
+        }
+
+        // 接続コスト素材は在庫ではない。空スタックとして数えると「枠を空けた」という通知が嘘になる
+        // Connection materials are not inventory; counting them as emptied stacks would make the "slots emptied" notice false
+        [Test]
+        public void 接続コスト素材は空にされるが空スタック件数には入らないTest()
+        {
+            var save = BuildSaveJson();
+            var connections = $"{{\\\"connections\\\":[{{\\\"targetBlockInstanceId\\\":1,\\\"materials\\\":[{{\\\"itemGuid\\\":\\\"{MissingGuid}\\\",\\\"count\\\":2}}]}}]}}";
+            ((JArray)save["world"]).Add(StateBlock(save, 987659, connections));
+
+            var outcome = new MissingMasterPruner().Prune(save);
+
+            Assert.AreEqual(0, outcome.Report.EmptiedItemStackCount);
+            Assert.IsTrue(outcome.HasRemoval);
+            var stateText = outcome.Save["world"].Last["state"]["generator"].Value<string>();
+            Assert.IsFalse(stateText.Contains(MissingGuid));
+            Assert.AreEqual(2, outcome.ToPrunedJson(DateTime.UtcNow)["connectionMaterials"][0]["count"].Value<int>());
+        }
+
         [Test]
         public void マスタに無い研究ノードは完了一覧から除去されるTest()
         {
@@ -108,7 +142,7 @@ namespace Tests.CombinedTest.Game
         }
 
         [Test]
-        public void 除去データのJSONは3つの配列と時刻を持つTest()
+        public void 除去データのJSONは種別ごとの配列と時刻を持つTest()
         {
             var save = BuildSaveJson();
             ((JArray)save["world"]).Add(JObject.Parse($"{{\"blockGuid\":\"{MissingGuid}\",\"direction\":0,\"instanceId\":987656,\"state\":{{}},\"X\":70,\"Y\":0,\"Z\":70}}"));
@@ -123,6 +157,7 @@ namespace Tests.CombinedTest.Game
             Assert.AreEqual(MissingGuid, pruned["blocks"][0]["blockGuid"].Value<string>());
             Assert.AreEqual(987656, pruned["blocks"][0]["instanceId"].Value<int>());
             Assert.AreEqual(0, ((JArray)pruned["items"]).Count);
+            Assert.AreEqual(0, ((JArray)pruned["connectionMaterials"]).Count);
             Assert.AreEqual(0, ((JArray)pruned["research"]).Count);
         }
 
@@ -144,6 +179,14 @@ namespace Tests.CombinedTest.Game
             Assert.Greater(((JArray)save["world"]).Count, 0, "テストの土台のworldが空です");
             Assert.Greater(((JArray)save["playerInventory"]).Count, 0, "テストの土台のplayerInventoryが空です");
             return save;
+        }
+
+        // stateにJSON文字列を1つだけ持つブロック。埋め込みJSONの中まで降りる経路を通す
+        // A block whose state holds a single JSON string, so the walk goes through the embedded-JSON path
+        private static JObject StateBlock(JObject save, int instanceId, string embeddedStateJson)
+        {
+            return JObject.Parse(
+                $"{{\"blockGuid\":\"{FirstBlockGuid(save)}\",\"direction\":0,\"instanceId\":{instanceId},\"state\":{{\"generator\":\"{embeddedStateJson}\"}},\"X\":62,\"Y\":0,\"Z\":62}}");
         }
 
         private static string FirstBlockGuid(JObject save)

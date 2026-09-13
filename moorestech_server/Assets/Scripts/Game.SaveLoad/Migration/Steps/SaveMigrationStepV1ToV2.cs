@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
@@ -26,33 +25,36 @@ namespace Game.SaveLoad.Migration.Steps
 
         public int FromVersion => 1;
 
-        public JObject Migrate(JObject save)
+        public SaveMigrationStepResult Migrate(JObject save)
         {
-            var expandedCount = ExpandBlockStates();
+            if (!TryExpandBlockStates(out var expandedCount, out var failureReason)) return SaveMigrationStepResult.Failed(failureReason);
+
             var backfilled = BackfillRequiredFields();
 
             Debug.Log($"セーブを版1から版2へ変換しました。state展開={expandedCount}件 補填={backfilled}");
-            return save;
+            return SaveMigrationStepResult.Converted(save);
 
             #region Internal
 
             // 版1はブロックstateをJSON文字列で保存していた。版2はオブジェクトなので1段展開する
             // Version 1 stored block state as JSON strings; version 2 holds objects, so unwrap one level
-            int ExpandBlockStates()
+            bool TryExpandBlockStates(out int expanded, out string reason)
             {
+                expanded = 0;
+                reason = null;
+
                 if (!(save["world"] is JArray world))
                 {
-                    Debug.LogError("セーブにworld配列が無いため、ブロックstateの展開を行いませんでした。");
-                    return 0;
+                    reason = $"セーブのworldが配列ではないため、ブロックstateを展開できません。 type={save["world"]?.Type}";
+                    return false;
                 }
 
-                var expanded = 0;
                 foreach (var blockToken in world)
                 {
                     if (!(blockToken is JObject block))
                     {
-                        Debug.LogError($"world要素がオブジェクトではないため展開をとばします。 type={blockToken.Type}");
-                        continue;
+                        reason = $"world要素がオブジェクトではないため、ブロックstateを展開できません。 type={blockToken.Type}";
+                        return false;
                     }
 
                     var stateToken = block["state"];
@@ -62,23 +64,26 @@ namespace Game.SaveLoad.Migration.Steps
                         continue;
                     }
 
-                    // stateが非オブジェクト(文字列・配列等)なら元の値を残したまま展開をとばす。無音で捨てない
-                    // If state is a non-object (string, array, ...), skip expansion but keep the original value; never discard silently
+                    // stateが非オブジェクト(文字列・配列等)なら変換できない。無音でとばすと未変換のまま版だけ上がる
+                    // A non-object state (string, array, ...) cannot be converted; skipping silently would raise the version on an unconverted save
                     if (!(stateToken is JObject state))
                     {
-                        Debug.LogError($"world要素のstateがオブジェクトではありません。元の値を残したまま展開をとばします。 type={stateToken.Type}");
-                        continue;
+                        reason = $"world要素のstateがオブジェクトではないため、展開できません。 type={stateToken.Type}";
+                        return false;
                     }
 
-                    expanded += ExpandStateValues(state);
+                    if (!TryExpandStateValues(state, out var stateExpanded, out reason)) return false;
+                    expanded += stateExpanded;
                 }
 
-                return expanded;
+                return true;
             }
 
-            int ExpandStateValues(JObject state)
+            bool TryExpandStateValues(JObject state, out int expanded, out string reason)
             {
-                var expanded = 0;
+                expanded = 0;
+                reason = null;
+
                 foreach (var property in state.Properties().ToList())
                 {
                     if (property.Value.Type != JTokenType.String) continue;
@@ -95,16 +100,15 @@ namespace Game.SaveLoad.Migration.Steps
                     if (parsed.Type == JTokenType.String)
                     {
                         var sample = text.Length <= DoubleEncodedSampleLength ? text : text.Substring(0, DoubleEncodedSampleLength);
-                        var reason = $"state['{property.Name}']が二重エンコードされています。1回の展開では文字列のままです: {sample}";
-                        Debug.LogError(reason);
-                        throw new InvalidOperationException(reason);
+                        reason = $"state['{property.Name}']が二重エンコードされています。1回の展開では文字列のままです: {sample}";
+                        return false;
                     }
 
                     property.Value = parsed;
                     expanded++;
                 }
 
-                return expanded;
+                return true;
             }
 
             // 外部境界: 旧セーブの状態値は任意の外部入力で、JSONでない綴り（base64-MessagePack等）を含みうる

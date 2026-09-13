@@ -1,11 +1,7 @@
-using System;
-using System.Text.RegularExpressions;
 using Core.Update;
 using Game.SaveLoad.Migration.Steps;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Tests.UnitTest.Game.SaveLoad
 {
@@ -18,9 +14,10 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var save = JObject.Parse("{\"world\":[{\"state\":{\"machine\":\"{\\\"remain\\\":3}\"}}]}");
 
-            var migrated = new SaveMigrationStepV1ToV2().Migrate(save);
+            var result = new SaveMigrationStepV1ToV2().Migrate(save);
 
-            var state = (JObject)migrated["world"][0]["state"];
+            Assert.IsTrue(result.IsConverted, result.FailureReason);
+            var state = (JObject)result.Save["world"][0]["state"];
             Assert.AreEqual(JTokenType.Object, state["machine"].Type);
             Assert.AreEqual(3, state["machine"]["remain"].Value<int>());
         }
@@ -30,7 +27,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var save = JObject.Parse("{\"world\":[{\"blockGuid\":\"x\"}]}");
 
-            var migrated = new SaveMigrationStepV1ToV2().Migrate(save);
+            var migrated = Convert(save);
 
             Assert.AreEqual(JTokenType.Object, migrated["world"][0]["state"].Type);
             Assert.AreEqual(0, ((JObject)migrated["world"][0]["state"]).Count);
@@ -43,7 +40,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var save = JObject.Parse("{\"world\":[]}");
 
-            var migrated = new SaveMigrationStepV1ToV2().Migrate(save);
+            var migrated = Convert(save);
 
             Assert.AreEqual(0UL, migrated["currentTick"].Value<ulong>());
             Assert.AreEqual(GameRandom.StateFromSeed(0UL), migrated["randomState"].ToObject<ulong[]>());
@@ -58,7 +55,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var save = JObject.Parse("{\"world\":[],\"currentTick\":42,\"randomState\":[1,2,3,4],\"miningCooldowns\":[{\"playerId\":1}]}");
 
-            var migrated = new SaveMigrationStepV1ToV2().Migrate(save);
+            var migrated = Convert(save);
 
             Assert.AreEqual(42UL, migrated["currentTick"].Value<ulong>());
             Assert.AreEqual(new ulong[] { 1, 2, 3, 4 }, migrated["randomState"].ToObject<ulong[]>());
@@ -68,14 +65,15 @@ namespace Tests.UnitTest.Game.SaveLoad
         // 二重エンコードは1回の展開では文字列のまま残り、移行済みに見えてロード時に落ちる
         // A double-encoded value stays a string after one expansion; it would look migrated yet break the load
         [Test]
-        public void 二重エンコードされたstateは例外になるTest()
+        public void 二重エンコードされたstateは変換不能として返るTest()
         {
             var save = JObject.Parse("{\"world\":[{\"state\":{\"machine\":\"\\\"{\\\\\\\"remain\\\\\\\":3}\\\"\"}}]}");
 
-            // 理由は開発者が読めるログにも出す設計なので、期待するエラーログとして受け取る
-            // The reason is also written to a developer-readable log by design, so the expected error log is consumed here
-            LogAssert.Expect(LogType.Error, new Regex("二重エンコード"));
-            Assert.Throws<InvalidOperationException>(() => new SaveMigrationStepV1ToV2().Migrate(save));
+            var result = new SaveMigrationStepV1ToV2().Migrate(save);
+
+            Assert.IsFalse(result.IsConverted);
+            StringAssert.Contains("二重エンコード", result.FailureReason);
+            Assert.IsNull(result.Save);
         }
 
         // base64-MessagePackのようにJSONとして読めない値は、壊さずそのまま残す（理由はログへ）
@@ -85,28 +83,49 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var save = JObject.Parse("{\"world\":[{\"state\":{\"blob\":\"AAECAw==\"}}]}");
 
-            var migrated = new SaveMigrationStepV1ToV2().Migrate(save);
+            var migrated = Convert(save);
 
             Assert.AreEqual("AAECAw==", migrated["world"][0]["state"]["blob"].Value<string>());
         }
 
-        // stateが非オブジェクト(文字列等)のとき、無音で{}へ潰すと元データが破棄されてしまう
-        // If a non-object state were silently collapsed to {}, the original data would be discarded
+        // stateが非オブジェクト(文字列等)のセーブは変換できない。とばして通すと未変換のまま版だけ上がる
+        // A save whose state is a non-object cannot be converted; skipping it would raise the version on an unconverted save
         [Test]
-        public void stateが非オブジェクトの要素は元の値を残したまま展開をとばすTest()
+        public void stateが非オブジェクトの要素は変換不能として返るTest()
         {
             var save = JObject.Parse("{\"world\":[{\"state\":\"not-an-object\"}]}");
 
-            LogAssert.Expect(LogType.Error, new Regex("stateがオブジェクトではありません"));
-            var migrated = new SaveMigrationStepV1ToV2().Migrate(save);
+            var result = new SaveMigrationStepV1ToV2().Migrate(save);
 
-            Assert.AreEqual("not-an-object", migrated["world"][0]["state"].Value<string>());
+            Assert.IsFalse(result.IsConverted);
+            StringAssert.Contains("stateがオブジェクトではない", result.FailureReason);
+            Assert.AreEqual("not-an-object", save["world"][0]["state"].Value<string>());
+        }
+
+        // world節が壊れているセーブも、変換したことにせず理由つきで返す
+        // A save with a broken world node is also returned as unconverted with a reason instead of counting as done
+        [Test]
+        public void worldが配列でないセーブは変換不能として返るTest()
+        {
+            var result = new SaveMigrationStepV1ToV2().Migrate(JObject.Parse("{\"world\":\"broken\"}"));
+
+            Assert.IsFalse(result.IsConverted);
+            StringAssert.Contains("worldが配列ではない", result.FailureReason);
         }
 
         [Test]
         public void FromVersionは1であるTest()
         {
             Assert.AreEqual(1, new SaveMigrationStepV1ToV2().FromVersion);
+        }
+
+        // 変換成功の分岐だけを短く書くための共通処理。失敗したらその場でテストを落とす
+        // Shared shorthand for the converted branch; a failure fails the test right here
+        private static JObject Convert(JObject save)
+        {
+            var result = new SaveMigrationStepV1ToV2().Migrate(save);
+            Assert.IsTrue(result.IsConverted, result.FailureReason);
+            return result.Save;
         }
     }
 }

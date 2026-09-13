@@ -10,20 +10,24 @@ namespace Game.SaveLoad.Pruning
     public sealed class MissingMasterPruneOutcome
     {
         private readonly JArray _removedBlocks;
-        private readonly JArray _removedItemStacks;
+        private readonly ItemPruneWalkResult _removedItemReferences;
         private readonly JArray _removedResearchGuids;
 
         public JObject Save { get; }
         public MissingMasterPruneReport Report { get; }
 
-        public MissingMasterPruneOutcome(JObject save, JArray removedBlocks, JArray removedItemStacks, JArray removedResearchGuids)
+        public MissingMasterPruneOutcome(JObject save, JArray removedBlocks, ItemPruneWalkResult removedItemReferences, JArray removedResearchGuids)
         {
             Save = save;
             _removedBlocks = removedBlocks;
-            _removedItemStacks = removedItemStacks;
+            _removedItemReferences = removedItemReferences;
             _removedResearchGuids = removedResearchGuids;
-            Report = new MissingMasterPruneReport(removedBlocks.Count, removedItemStacks.Count, removedResearchGuids.Count);
+            Report = new MissingMasterPruneReport(removedBlocks.Count, removedItemReferences.EmptiedItemStacks.Count, removedResearchGuids.Count);
         }
+
+        // 接続コスト素材だけを空にした場合もファイルへ残す。プレイヤーへの通知はReport側の件数だけで決める
+        // Neutralized connection materials alone still deserve a file; the player-facing notice is decided by Report's counts only
+        public bool HasRemoval => Report.HasRemoval || 0 < _removedItemReferences.NeutralizedConnectionMaterials.Count;
 
         // 実世界の日時そのものを記録する用途なのでDateTimeでよい（AGENTS.mdの例外）
         // Recording a real-world timestamp is the sanctioned DateTime use (AGENTS.md exception)
@@ -37,7 +41,10 @@ namespace Game.SaveLoad.Pruning
                 // 保持している配列そのものをぶら下げると2回目の呼び出しで1回目の結果が壊れる
                 // Attaching the held arrays themselves would break the first result on a second call
                 ["blocks"] = _removedBlocks.DeepClone(),
-                ["items"] = _removedItemStacks.DeepClone(),
+                ["items"] = _removedItemReferences.EmptiedItemStacks.DeepClone(),
+                // 在庫とは別の配列に積む。混ぜると後日の返金が接続コストまで払い戻してしまう
+                // Kept in its own array; mixing it in would let a later refund pay back connection costs too
+                ["connectionMaterials"] = _removedItemReferences.NeutralizedConnectionMaterials.DeepClone(),
                 ["research"] = _removedResearchGuids.DeepClone(),
             };
         }

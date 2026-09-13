@@ -48,7 +48,7 @@ namespace Game.SaveLoad.Migration
             // 版が上がらなくてもマスタは変わるので、除去は毎回のロードで走らせる
             // The master changes even when the version does not, so pruning runs on every load
             var outcome = _pruner.Prune(migration.Save);
-            if (outcome.Report.HasRemoval)
+            if (outcome.HasRemoval)
             {
                 // 実世界の日時そのものを記録する用途なのでDateTimeでよい（AGENTS.mdの例外）
                 // Recording a real-world timestamp is the sanctioned DateTime use (AGENTS.md exception)

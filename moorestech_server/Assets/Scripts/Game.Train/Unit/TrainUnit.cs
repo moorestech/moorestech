@@ -592,7 +592,7 @@ namespace Game.Train.Unit
             // Re-drawing would both change the id and advance the random stream once during load
             if (saveData.TrainUnitInstanceId == Guid.Empty)
             {
-                var reason = "セーブの列車に trainUnitInstanceId がありません。形式が変わった版はマイグレーション連鎖（Game.SaveLoad/Migration の ISaveMigrationStep）が補うため、ここへ届いたのは版が上がっていないか手編集で壊れたセーブです";
+                var reason = "セーブの列車に trainUnitInstanceId がありません。現在のマイグレーション連鎖はこの項目を補わないため、この版のセーブはロードできません。補う ISaveMigrationStep を Game.SaveLoad/Migration/Steps へ足せば救えます";
                 Debug.LogError(reason);
                 throw new InvalidOperationException(reason);
             }

@@ -97,7 +97,11 @@ namespace Tests.CombinedTest.Game
 
             preparer.Prepare(SaveLoadPreparerTestFixture.BuildSaveJson().ToString());
 
-            Assert.IsFalse(File.Exists(SaveArchiveDirectory.FromArchiveRoot(_archiveRoot).BackupSaveJsonPath(WorldSaveAllInfoV1.CurrentVersion)));
+            // どちらか片方だけを見ると、退避版が固定値へ退行してもMigratedガードが落ちても素通りする
+            // Watching only one of the two would let both a hard-coded version and a dropped Migrated guard pass unnoticed
+            var archive = SaveArchiveDirectory.FromArchiveRoot(_archiveRoot);
+            Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(1)), "版1のバックアップが作られています");
+            Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(WorldSaveAllInfoV1.CurrentVersion)), "現在版のバックアップが作られています");
         }
 
         // 版1と記された既存セーブ（形式は既に版2相当）が、3項目を上書きされずに版2へ上がること

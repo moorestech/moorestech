@@ -8,6 +8,8 @@ namespace Game.SaveLoad.Migration
     {
         int FromVersion { get; }
 
-        JObject Migrate(JObject save);
+        // 変換できない形に出会ったらFailedを返す。握り潰すと未変換のセーブに版だけが刻まれる
+        // Return Failed when an unconvertible shape appears; swallowing it would stamp the version onto an unconverted save
+        SaveMigrationStepResult Migrate(JObject save);
     }
 }

@@ -21,6 +21,11 @@ namespace Game.Paths
         // Where always-on capture lives: beside the save file so a bundle can carry both
         public string SnapshotDirectory { get; }
 
+        // マイグレーション前の原本と、マスタ欠損で除去したデータの置き場。どちらもセーブファイルの隣
+        // Where pre-migration originals and data pruned for missing masters live: both beside the save file
+        public string SaveBackupDirectory { get; }
+        public string SavePrunedDirectory { get; }
+
         private WorldDataDirectory(string root, string worldMetaFilePath, string mapJsonFilePath, string saveJsonFilePath,
             string terrainDirectory, string terrainVisualDirectory, string cacheDirectory, string cacheReadmeFilePath,
             string provisioningTempDirectory)
@@ -35,6 +40,8 @@ namespace Game.Paths
             CacheReadmeFilePath = cacheReadmeFilePath;
             ProvisioningTempDirectory = provisioningTempDirectory;
             SnapshotDirectory = saveJsonFilePath == null ? null : Path.Combine(Path.GetDirectoryName(saveJsonFilePath), "snapshots");
+            SaveBackupDirectory = saveJsonFilePath == null ? null : Path.Combine(Path.GetDirectoryName(saveJsonFilePath), "backup");
+            SavePrunedDirectory = saveJsonFilePath == null ? null : Path.Combine(Path.GetDirectoryName(saveJsonFilePath), "pruned");
         }
 
         // スナップショットとパケットログはセーブファイルの隣の snapshots/ に置く。ファイル名規則の定義はここだけ
