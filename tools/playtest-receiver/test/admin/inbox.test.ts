@@ -126,4 +126,27 @@ describe("admin api inbox", () => {
     const inbox = await handle(new Request("https://playtest.tar-atari.com/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
     expect(((await inbox.json()) as { items: unknown[] }).items).toHaveLength(0);
   });
+
+  // at-least-onceの再送でackを2回叩いても失敗させない（冪等）。plan Hの取り込みがack応答だけ
+  // 取りこぼしてリトライしても404にならないことを保証する
+  // A retried ack (under at-least-once semantics) must not fail; this guarantees plan H's ingest can
+  // retry after losing only the ack response, without getting a 404
+  it("ackを2回呼んでも200でACKEDは1つのまま", async () => {
+    await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
+    const request = () =>
+      handle(
+        new Request(`https://playtest.tar-atari.com/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/ack`, { method: "POST", headers: ADMIN }),
+        workerEnv,
+        noNetwork,
+      );
+
+    const first = await request();
+    expect(first.status).toBe(200);
+    const second = await request();
+    expect(second.status).toBe(200);
+    expect(await second.json()).toEqual({ acked: true });
+
+    const listed = await workerEnv.BUCKET.list({ prefix: `reports/${STEAM_ID}/20260913_120000_aaaa1111/` });
+    expect(listed.objects.filter((object) => object.key.endsWith("/ACKED"))).toHaveLength(1);
+  });
 });

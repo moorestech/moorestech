@@ -19,7 +19,7 @@ export async function routeAdmin(request: Request, env: Env, segments: string[])
   if (denied !== null) return denied;
 
   if (segments[1] === "allowlist" && segments.length === 2) {
-    if (request.method === "GET") return getAllowlist(request, env);
+    if (request.method === "GET") return getAllowlist(env);
     if (request.method === "PUT") return putAllowlist(request, env);
     console.warn(`[router] rejected method ${request.method} for /v1/allowlist`);
     return fail("method-not-allowed", 405);
@@ -27,6 +27,10 @@ export async function routeAdmin(request: Request, env: Env, segments: string[])
 
   if (segments[1] === "inbox") return routeInbox(request, env, segments);
 
+  // ここに来るのは /v1/allowlist/余分なセグメント のような未知の形だけ。認証を経路の存在確認より前に
+  // 置いた結果、鍵なしなら401・鍵ありならnullでindex.tsのR1逐語404に落ちる（意図的な非対称。存在を明かす前に認証する側へ倒す）
+  // Only unknown shapes like /v1/allowlist/extra-segment reach here. Since auth runs before existence checks,
+  // an unauthenticated caller gets 401 while an authenticated one falls through to index.ts's verbatim R1 404 (deliberate asymmetry: authenticate before revealing existence)
   return null;
 }
 
@@ -63,17 +67,17 @@ async function routeInbox(request: Request, env: Env, segments: string[]): Promi
       console.warn(`[router] rejected method ${request.method} for inbox ack`);
       return fail("method-not-allowed", 405);
     }
-    return postAck(request, env, kind, steamId, id);
+    return postAck(env, kind, steamId, id);
   }
   if (request.method !== "GET") {
     console.warn(`[router] rejected method ${request.method} for inbox object`);
     return fail("method-not-allowed", 405);
   }
-  return getInboxObject(request, env, kind, steamId, id, rest);
+  return getInboxObject(env, kind, steamId, id, rest);
 }
 
-// 認証はrouteAdmin/routeInboxが済ませている。ここでは呼び出さない（重複させない）
-// Authentication is already done by routeAdmin/routeInbox; not repeated here
+// 認証はrouteAdminが済ませている。ここでは呼び出さない（重複させない）
+// Authentication is already done by routeAdmin; not repeated here
 export async function getInbox(request: Request, env: Env): Promise<Response> {
   const cursor = new URL(request.url).searchParams.get("cursor") ?? undefined;
   const listed = await env.BUCKET.list({ prefix: PENDING_PREFIX, limit: INBOX_PAGE_SIZE, cursor });
@@ -92,7 +96,6 @@ export async function getInbox(request: Request, env: Env): Promise<Response> {
 }
 
 export async function getInboxObject(
-  request: Request,
   env: Env,
   kind: PlaytestKind,
   steamId: string,
@@ -116,22 +119,28 @@ export async function getInboxObject(
 
 // ackは「pendingの実在確認→ACKEDを書く→索引を消す」の3手。途中で落ちても項目は見えたままになる
 // Ack is three steps: confirm the pending entry exists, write ACKED, then drop the index, so a crash in between leaves the item still visible
-export async function postAck(request: Request, env: Env, kind: PlaytestKind, steamId: string, id: string): Promise<Response> {
+export async function postAck(env: Env, kind: PlaytestKind, steamId: string, id: string): Promise<Response> {
   const indexKey = pendingIndexKey(kind, steamId, id);
-  // 索引が無ければID取り違え等で存在しない項目。ACKEDだけのゴミオブジェクトを作らず404で拒否する
-  // A missing index means the id doesn't refer to a pending item (e.g. a typo); reject with 404 instead of creating an orphaned ACKED object
+  const ackedKey = `${bundlePrefix(kind, steamId, id)}/${ACKED_MARKER}`;
   const pending = await env.BUCKET.head(indexKey);
   if (pending === null) {
+    // 索引が無くてもACKED済みならこの呼び出しは再送（at-least-onceの取り込みがackの応答だけ取りこぼした形）。
+    // 冪等にするため200を返す。ACKEDも無ければ本物のID取り違えなので404
+    // A missing index doesn't necessarily mean unknown; if ACKED already exists this is a retry (the ingest side
+    // lost only the ack response under at-least-once retries), so answer 200 to stay idempotent. If ACKED is
+    // also absent, the id is a genuine mismatch, so 404
+    const alreadyAcked = await env.BUCKET.head(ackedKey);
+    if (alreadyAcked !== null) return json({ acked: true });
     console.warn(`[inbox] rejected ack for an item that is not pending: ${indexKey}`);
     return fail("not-found", 404);
   }
 
-  await env.BUCKET.put(`${bundlePrefix(kind, steamId, id)}/${ACKED_MARKER}`, new Date().toISOString());
+  await env.BUCKET.put(ackedKey, new Date().toISOString());
   await env.BUCKET.delete(indexKey);
   return json({ acked: true });
 }
 
-export async function getAllowlist(request: Request, env: Env): Promise<Response> {
+export async function getAllowlist(env: Env): Promise<Response> {
   return json({ steamIds: await readAllowlist(env.BUCKET) });
 }
 

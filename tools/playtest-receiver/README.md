@@ -43,17 +43,21 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
    pnpm run deploy
    ```
 5. DNS: `wrangler.toml` の `routes` に `playtest.tar-atari.com` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が tar-atari.com ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.tar-atari.com` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
-6. Mac mini 側の env ファイルを作る。`scripts/playtest/allowlist.sh`（Task 7）はここから `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む:
+6. Mac mini 側の env ファイルを作る。`scripts/playtest/allowlist.sh`（Task 7）はここから `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む。ヒアドキュメントは Markdown リスト内の字下げでコピー時に終端行を見失うため、`echo` を積み上げる形にしてある:
    ```bash
    mkdir -p ~/hermes-agent/data/services/playtest
-   cat > ~/hermes-agent/data/services/playtest/env.sh <<'EOF'
-   export PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com
-   export PLAYTEST_ADMIN_KEY=<手順2でADMIN_KEYに入れた値と同じもの>
-   EOF
+   {
+     echo 'export PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com'
+     echo 'export PLAYTEST_ADMIN_KEY=<手順2でADMIN_KEYに入れた値と同じもの>'
+   } > ~/hermes-agent/data/services/playtest/env.sh
    chmod 600 ~/hermes-agent/data/services/playtest/env.sh
    ```
    既定パスと異なる場所に置く場合は `PLAYTEST_ENV_FILE` でそのパスを指す。
-7. 許可リストへ最初のテスターを入れる: `. ~/hermes-agent/data/services/playtest/env.sh && scripts/playtest/allowlist.sh add <steamId>`
+7. 許可リストへ最初のテスターを入れる（手順1で `tools/playtest-receiver` へ `cd` した状態のままなので、`scripts/playtest/allowlist.sh` はリポジトリルートへ戻ってから呼ぶ）:
+   ```bash
+   . ~/hermes-agent/data/services/playtest/env.sh
+   (cd ../.. && scripts/playtest/allowlist.sh add <steamId>)
+   ```
 
 ## 動作確認
 
