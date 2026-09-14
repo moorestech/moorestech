@@ -1,0 +1,90 @@
+using System;
+using System.Threading;
+using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Steam;
+using Cysharp.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using UnityEngine;
+
+namespace Client.PlaytestReceiver
+{
+    public enum PlaytestSessionOutcome
+    {
+        Allowed,
+        NotAllowed,
+        TicketRejected,
+        TicketUnavailable,
+        Unreachable,
+    }
+
+    // 認証1回の結末。呼び出し側はOutcomeで分岐し、Detailは開発者向けのログにだけ使う
+    // The outcome of one authentication; callers branch on Outcome and Detail only feeds developer logs
+    public sealed class PlaytestSessionResult
+    {
+        public PlaytestSessionOutcome Outcome;
+        public string SteamId;
+        public string Detail;
+    }
+
+    // Steamチケットと受け口トークンの保持者。トークンの寿命管理はここ1箇所
+    // Holder of the Steam ticket exchange and the receiver token; token lifetime lives here alone
+    public sealed class PlaytestSession : IPlaytestSessionLookup
+    {
+        private readonly IPlaytestReceiverApi _api;
+        private readonly IPlaytestSteamTicketProvider _ticketProvider;
+
+        private string _token;
+        private DateTime _tokenIssuedAtUtc;
+
+        public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSteamTicketProvider ticketProvider)
+        {
+            _api = api;
+            _ticketProvider = ticketProvider;
+        }
+
+        public string SteamId { get; private set; }
+        public bool HasToken => _token != null;
+
+        public async UniTask<PlaytestSessionResult> AuthenticateAsync(DateTime utcNow, CancellationToken token)
+        {
+            var ticketHex = await _ticketProvider.RequestWebApiTicketHexAsync(token);
+            if (ticketHex == null)
+            {
+                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.TicketUnavailable, Detail = "no web api ticket" };
+            }
+
+            var response = await _api.PostSessionAsync(ticketHex, token);
+            if (response.IsTransportFailure)
+            {
+                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Unreachable, Detail = response.TransportError };
+            }
+
+            // 状態コードの意味は受け口の契約（§4）そのまま。ここが唯一の対応表
+            // Status codes carry the receiver's contract (§4) verbatim; this is the single mapping table
+            if (response.StatusCode == 403) return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.NotAllowed, Detail = response.Body };
+            if (response.StatusCode == 401) return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.TicketRejected, Detail = response.Body };
+            if (response.StatusCode != 200) return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Unreachable, Detail = $"HTTP {response.StatusCode}" };
+
+            var parsed = JObject.Parse(response.Body);
+            SteamId = (string)parsed["steamId"];
+            _token = (string)parsed["token"];
+            _tokenIssuedAtUtc = utcNow;
+            return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Allowed, SteamId = SteamId };
+        }
+
+        // 送信の直前に呼ぶ。45分を超えていたら取り直し、取り直せなければnullを返して呼び出し側が持ち越す
+        // Called right before an upload; refreshes past 45 minutes and returns null so the caller defers on failure
+        public async UniTask<string> GetValidTokenAsync(DateTime utcNow, CancellationToken token)
+        {
+            var age = utcNow - _tokenIssuedAtUtc;
+            if (_token != null && age.TotalSeconds < PlaytestReceiverConfig.TokenRefreshAfterSeconds) return _token;
+
+            var result = await AuthenticateAsync(utcNow, token);
+            if (result.Outcome == PlaytestSessionOutcome.Allowed) return _token;
+
+            _token = null;
+            Debug.LogWarning($"[PlaytestReceiver] could not refresh the session token: {result.Outcome} {result.Detail}");
+            return null;
+        }
+    }
+}
