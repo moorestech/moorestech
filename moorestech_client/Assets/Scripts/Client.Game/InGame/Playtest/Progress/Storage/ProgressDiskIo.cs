@@ -11,6 +11,22 @@ namespace Client.Game.InGame.Playtest.Progress
     // Without the isolation a write failure at shutdown stops the participant loop in GameShutdownEvent, leaving the game neither saved nor closed
     public static class ProgressDiskIo
     {
+        // 箱の置き場作りも終了パイプラインの中で走る。mkdirだけ素のままだと満杯・権限で参加者ループごと止まり、セーブも終了も起きない
+        // Creating the box also runs inside the shutdown pipeline; a bare mkdir would let a full or read-only disk stop the participant loop, saving and quitting with it
+        public static SalvageOperationResult CreateBundleDirectory(string rootDirectory, out string directory)
+        {
+            directory = null;
+            try
+            {
+                directory = BugReportOutbox.CreateBundleDirectory(rootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
+                return SalvageOperationResult.Success();
+            }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+            {
+                return SalvageOperationResult.Failure($"箱の置き場を作れなかった {rootDirectory}: {e.Message}");
+            }
+        }
+
         public static SalvageOperationResult WriteText(string path, string text)
         {
             try

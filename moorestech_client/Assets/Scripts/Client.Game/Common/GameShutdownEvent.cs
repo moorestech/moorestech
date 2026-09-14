@@ -65,7 +65,7 @@ namespace Client.Game.Common
             _participants.Clear();
 
             var flushTasks = new UniTask<ShutdownFlushResult>[participants.Length];
-            for (var i = 0; i < participants.Length; i++) flushTasks[i] = participants[i].FlushOnShutdownAsync();
+            for (var i = 0; i < participants.Length; i++) flushTasks[i] = FlushIsolated(participants[i]);
             var results = await UniTask.WhenAll(flushTasks);
 
             // 諦めは上限到達より重い。世界が保存されていない事実は待ち切れなかった事実に埋もれてはいけない
@@ -96,6 +96,21 @@ namespace Client.Game.Common
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #endif
+        }
+
+        // 参加者の書き出しはディスクという外部資源に触れる。1人の例外を隔離しないと、後続の参加者（ワールドのセーブ）が起動すらせず Application.Quit にも到達しない
+        // A participant's flush touches the disk, an external resource; without isolation one exception keeps later participants (the world save) from even starting and strands Application.Quit
+        private static async UniTask<ShutdownFlushResult> FlushIsolated(IGameShutdownParticipant participant)
+        {
+            try
+            {
+                return await participant.FlushOnShutdownAsync();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError($"終了時の書き出しが失敗しました（他の参加者の書き出しは続行します） {participant.GetType().Name}: {exception.GetBaseException().Message}");
+                return ShutdownFlushResult.NothingFlushed;
+            }
         }
 
         private static void LogShutdownFailure(Exception exception)

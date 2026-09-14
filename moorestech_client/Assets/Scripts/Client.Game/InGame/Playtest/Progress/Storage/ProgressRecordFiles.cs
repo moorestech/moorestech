@@ -70,7 +70,13 @@ namespace Client.Game.InGame.Playtest.Progress
             if (0 < brokenLineCount) header.AddMissing(ProgressRecordPaths.EventsFileName, $"読めないイベント行を捨てた count:{brokenLineCount}");
             foreach (var item in extraMissing) header.Missing.Add(item);
 
-            var directory = BugReportOutbox.CreateBundleDirectory(GameSystemPaths.ProgressRecordOutboxDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
+            var creation = ProgressDiskIo.CreateBundleDirectory(GameSystemPaths.ProgressRecordOutboxDirectory, out var directory);
+            if (!creation.Succeeded)
+            {
+                Debug.LogError($"進行記録の箱を作れませんでした（この記録は current/ に残り次回起動で回収されます）: {creation.FailureReason}");
+                return null;
+            }
+
             var write = ProgressDiskIo.WriteText(Path.Combine(directory, ProgressRecordPaths.RecordFileName), ProgressRecordComposer.Compose(header, events, endReason, sessionEndUtc));
             if (!write.Succeeded)
             {
@@ -80,7 +86,13 @@ namespace Client.Game.InGame.Playtest.Progress
 
             // READY を置いてから current/ を消す。逆順だと運搬されない箱だけが残って記録が1件消える
             // READY is placed before current/ is cleared; the reverse order would leave an unshippable box and lose one record
-            BugReportOutbox.MarkReady(directory);
+            var ready = ProgressDiskIo.WriteText(Path.Combine(directory, BugReportOutbox.ReadyMarkerFileName), "");
+            if (!ready.Succeeded)
+            {
+                Debug.LogError($"進行記録のREADYを置けませんでした（current/ は残し次回起動の回収へ回します） {directory}: {ready.FailureReason}");
+                return null;
+            }
+
             ClearCurrent(sessionDirectory);
             Debug.Log($"進行記録を書きました {directory} endReason:{endReason} missing:{header.Missing.Count}");
             return directory;
