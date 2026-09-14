@@ -112,6 +112,11 @@ catch を外すと C3 の故障シナリオ（起動不能・終了不能）が�
 壊れたパケットは同フレームで先にそちらで例外になる＝この catch は実際には何も防げていない。
 復号失敗件数を記録へ残す話は裁定6（欠損列）で別途拾う。
 
+- 追記（refix round1）: 「先に本来の購読者が例外にする」は**購読順に依存する前提**だったので裏を取った。
+  `VanillaApiEvent` は UniRx の `Subject<byte[]>` を逐次配信しており、1購読者の例外は後続購読者への配信を止める。
+  裁定自体（catch を外す）は維持し、配信側 `VanillaApiEvent.SubscribeEventResponse` で購読者ごとに隔離した。
+  これで前提が購読順に依存しなくなり、catch 無しで復号している他25箇所も同時に守られる。
+
 ### C. `ProgressRecorder` の `IDisposable`
 
 レビュー側で解決済み（`MainGameStarter.OnDestroy` の `_resolver?.Dispose()` により `Dispose` は到達可能）。
