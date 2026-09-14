@@ -8,12 +8,12 @@ namespace Client.Tests.Playtest
     // A test sink that only remembers what was pushed
     public sealed class RecordingProgressSink : IPlaytestProgressSink
     {
-        public readonly List<Guid> CraftedRecipes = new();
+        public readonly List<Guid> RequestedCraftRecipes = new();
         public readonly List<string> SentReportKinds = new();
 
-        public void RecordCraftExecuted(Guid recipeGuid)
+        public void RecordCraftRequested(Guid recipeGuid)
         {
-            CraftedRecipes.Add(recipeGuid);
+            RequestedCraftRecipes.Add(recipeGuid);
         }
 
         public void RecordReportSent(string kind)

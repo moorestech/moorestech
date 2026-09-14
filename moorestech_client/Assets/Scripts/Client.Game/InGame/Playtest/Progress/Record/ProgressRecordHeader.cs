@@ -24,12 +24,25 @@ namespace Client.Game.InGame.Playtest.Progress
         public string SessionStart;
         public string WorldCreatedAt = "";
         public double TotalPlaySecondsAtStart;
+
+        // 累計プレイ時間をサーバーから受け取った瞬間。終了時刻との差だけを足すので、応答待ちの数秒が二重計上されない
+        // The instant the total play time arrived from the server; only the span to the session end is added, so the wait is never counted twice
+        public string TotalPlaySecondsCapturedAt = "";
+
         public List<string> BaselineChallenges = new();
         public List<string> BaselineResearch = new();
 
-        // ヘッダを失った残骸から組んだ記録であることの印。steamId や worldCreatedAt が空なのは欠損のためだと読み手に伝える
-        // Marks a record built from a leftover that lost its header, telling readers the empty steamId and worldCreatedAt come from that loss
-        public bool HeaderMissing;
+        // 埋められなかった値と、その理由。実データと同じ形の既定値で埋めず、欠損をこの1列で表明する（ADR 0060 裁定6）
+        // What could not be filled and why; instead of defaults shaped like real data, every gap is declared in this one column (ADR 0060 adjudication 6)
+        public List<MissingItem> Missing = new();
+
+        // 欠損は必ず開発者ログと記録の両方へ積む。片方だけだと縮退した理由が誰にも届かない
+        // Every gap lands in both the developer log and the record; one alone leaves the reason unreachable
+        public void AddMissing(string item, string reason)
+        {
+            Debug.LogWarning($"進行記録の欠損 {item}: {reason}");
+            Missing.Add(new MissingItem { Item = item, Reason = reason });
+        }
 
         public string ToJson()
         {

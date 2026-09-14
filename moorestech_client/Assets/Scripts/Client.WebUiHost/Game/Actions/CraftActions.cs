@@ -58,7 +58,7 @@ namespace Client.WebUiHost.Game.Actions
 
             // クラフトは送信のみで応答が無いため、変化を起こした操作の直後にプッシュする
             // A craft has no response, so the progress push happens right after the operation that causes the change
-            _progressSink.RecordCraftExecuted(recipeGuid);
+            _progressSink.RecordCraftRequested(recipeGuid);
             return UniTask.FromResult(ActionResult.Success());
         }
     }

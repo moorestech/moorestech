@@ -10,24 +10,31 @@ namespace Client.Game.InGame.Playtest.Progress
     {
         public static List<string> CompletedChallengeGuids(IEnumerable<Guid> completedChallenges)
         {
-            var result = new List<string>();
-            foreach (var guid in completedChallenges)
-            {
-                var text = guid.ToString();
-                if (!result.Contains(text)) result.Add(text);
-            }
-            return result;
+            var texts = new List<string>();
+            foreach (var guid in completedChallenges) texts.Add(guid.ToString());
+            return Distinct(texts);
         }
 
         public static List<string> CompletedResearchGuids(IEnumerable<KeyValuePair<Guid, ResearchNodeState>> researchStates)
         {
-            var result = new List<string>();
+            var texts = new List<string>();
             foreach (var state in researchStates)
             {
                 if (state.Value != ResearchNodeState.Completed) continue;
-                var text = state.Key.ToString();
-                if (!result.Contains(text)) result.Add(text);
+                texts.Add(state.Key.ToString());
             }
+            return Distinct(texts);
+        }
+
+        // 重複判定は集合で行う。List.Contains の線形探索を件数ぶん繰り返すと、到達数が増えるほど起動が重くなる
+        // Duplicates are decided by a set; repeating List.Contains per element makes the boot heavier as the reached count grows
+        private static List<string> Distinct(List<string> texts)
+        {
+            var seen = new HashSet<string>();
+            var result = new List<string>(texts.Count);
+            foreach (var text in texts)
+                if (seen.Add(text))
+                    result.Add(text);
             return result;
         }
     }

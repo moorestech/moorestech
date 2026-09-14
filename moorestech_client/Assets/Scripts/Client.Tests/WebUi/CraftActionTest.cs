@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Client.Tests.Playtest;
 using Client.WebUiHost.Game.Actions;
 using Core.Master;
 using Game.UnlockState;
@@ -64,6 +65,23 @@ namespace Client.Tests.WebUi
             Assert.IsTrue(result.Ok);
             Assert.IsNull(result.Error);
             Assert.AreEqual(guid, parsed);
+        }
+
+        // 拒否されたクラフト要求は進行記録へ押し込まない。押し込むと craftCount が「押した回数」に化ける
+        // A rejected craft request is never pushed into the progress record; pushing it would turn craftCount into "times clicked"
+        [Test]
+        public void 拒否されたクラフト要求は進行記録へプッシュされない()
+        {
+            var lockedGuid = Guid.NewGuid();
+            var infos = new Dictionary<Guid, CraftRecipeUnlockStateInfo> { { lockedGuid, new CraftRecipeUnlockStateInfo(lockedGuid, false) } };
+            var sink = new RecordingProgressSink();
+            var handler = new CraftExecuteActionHandler(new StubUnlockStateData(infos), sink);
+
+            Assert.AreEqual("invalid_payload", handler.ExecuteAsync(null).GetAwaiter().GetResult().Error);
+            Assert.AreEqual("invalid_recipe", handler.ExecuteAsync(new JObject { ["recipeGuid"] = "not-a-guid" }).GetAwaiter().GetResult().Error);
+            Assert.AreEqual("recipe_locked", handler.ExecuteAsync(new JObject { ["recipeGuid"] = lockedGuid.ToString() }).GetAwaiter().GetResult().Error);
+
+            CollectionAssert.IsEmpty(sink.RequestedCraftRecipes, "拒否された要求が進行記録に積まれている");
         }
 
         /// <summary>

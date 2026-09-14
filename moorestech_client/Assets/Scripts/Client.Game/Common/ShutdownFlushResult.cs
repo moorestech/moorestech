@@ -11,5 +11,9 @@ namespace Client.Game.Common
         // Repeated write failures made the save give up; the wait cleared but the world is not saved
         SaveAbandoned,
         AlreadyShutdown,
+
+        // 書き出す中身が無い、または書けなかった。待ちは正常に明けているが成果物は1件も出ていない
+        // Nothing was there to write, or it could not be written; the wait cleared normally but no artifact came out
+        NothingFlushed,
     }
 }

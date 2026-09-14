@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.Playtest.Progress;
 using Newtonsoft.Json.Linq;
@@ -17,12 +18,12 @@ namespace Client.Tests.Playtest
         [TearDown]
         public void ClearCurrent()
         {
-            ProgressRecordFiles.ClearCurrent();
+            ProgressTestSession.Clear();
         }
 
         private static ProgressRecordHeader CreateHeader()
         {
-            return new ProgressRecordHeader { SessionStart = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'") };
+            return new ProgressRecordHeader { SessionStart = ProgressUtcTime.ToIso(DateTime.UtcNow) };
         }
 
         [Test]
@@ -30,15 +31,15 @@ namespace Client.Tests.Playtest
         {
             var writer = new ProgressSessionWriter();
             writer.WriteHeader(CreateHeader());
-            writer.Append(ProgressEventEntry.Create(DateTime.UtcNow, 1, ProgressEventType.BlockPlaced, new JObject()));
-            var bundle = writer.Close(ProgressSessionRecovery.QuitEndReason, DateTime.UtcNow);
+            writer.Append(ProgressEvents.BlockPlaced(DateTime.UtcNow, 1, 1));
+            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow);
             Assert.IsNotNull(bundle);
 
             LogAssert.Expect(LogType.Warning, new Regex("ヘッダを更新しません"));
             writer.WriteHeader(CreateHeader());
 
-            Assert.IsFalse(File.Exists(ProgressRecordPaths.CurrentHeaderPath));
-            Assert.IsFalse(ProgressRecordFiles.HasCurrentSession());
+            Assert.IsFalse(File.Exists(ProgressRecordPaths.HeaderPathIn(ProgressTestSession.Directory)));
+            Assert.IsFalse(ProgressTestSession.HasCurrentSession());
             Directory.Delete(bundle, true);
         }
 
@@ -47,13 +48,48 @@ namespace Client.Tests.Playtest
         {
             var writer = new ProgressSessionWriter();
             writer.WriteHeader(CreateHeader());
-            var bundle = writer.Close(ProgressSessionRecovery.QuitEndReason, DateTime.UtcNow);
+            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow);
 
             LogAssert.Expect(LogType.Warning, new Regex("追記しません"));
-            writer.Append(ProgressEventEntry.Create(DateTime.UtcNow, 2, ProgressEventType.BlockPlaced, new JObject()));
+            writer.Append(ProgressEvents.BlockPlaced(DateTime.UtcNow, 2, 1));
 
-            Assert.IsFalse(File.Exists(ProgressRecordPaths.CurrentEventsPath));
-            Assert.IsFalse(ProgressRecordFiles.HasCurrentSession());
+            Assert.IsFalse(File.Exists(ProgressRecordPaths.EventsPathIn(ProgressTestSession.Directory)));
+            Assert.IsFalse(ProgressTestSession.HasCurrentSession());
+            Directory.Delete(bundle, true);
+        }
+
+        // 応答が終了に間に合わなかったケースだけが無音で 空/0 に確定していた。欠損として理由が残ることを固定する
+        // Only the case where the response missed the shutdown settled silently into empty/zero; this pins that the reason is recorded
+        [Test]
+        public void プレイ時間が届かないまま閉じると欠損として残る()
+        {
+            var writer = new ProgressSessionWriter();
+            writer.WriteHeader(CreateHeader());
+            LogAssert.Expect(LogType.Warning, new Regex("worldPlayTime"));
+            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow);
+
+            var record = JObject.Parse(File.ReadAllText(Path.Combine(bundle, ProgressRecordPaths.RecordFileName)));
+            var items = ((JArray)record["missing"]).Select(item => (string)item["item"]).ToList();
+            CollectionAssert.Contains(items, "worldPlayTime");
+            Directory.Delete(bundle, true);
+        }
+
+        // 届いた時刻を起点に累計へ足す。セッション開始起点だと応答待ちとロードのぶんが二重計上される
+        // The total counts from the moment the value arrived; counting from the session start would double count the wait and the load
+        [Test]
+        public void 累計プレイ時間は取得時刻からの経過だけを足す()
+        {
+            var writer = new ProgressSessionWriter();
+            var sessionStart = DateTime.UtcNow.AddSeconds(-60);
+            writer.WriteHeader(new ProgressRecordHeader { SessionStart = ProgressUtcTime.ToIso(sessionStart) });
+            var capturedAt = sessionStart.AddSeconds(40);
+            writer.UpdateWorldPlayTime(ProgressWorldPlayTime.Received("2026-09-10T09:00:00Z", 100, capturedAt));
+
+            var bundle = writer.Close(ProgressEndReason.Quit, capturedAt.AddSeconds(20));
+
+            var record = JObject.Parse(File.ReadAllText(Path.Combine(bundle, ProgressRecordPaths.RecordFileName)));
+            Assert.AreEqual(120d, (double)record["totalPlaySeconds"], 1d, "取得時刻からの20秒だけが足されていない");
+            Assert.AreEqual(60d, (double)record["playSeconds"], 1d);
             Directory.Delete(bundle, true);
         }
     }

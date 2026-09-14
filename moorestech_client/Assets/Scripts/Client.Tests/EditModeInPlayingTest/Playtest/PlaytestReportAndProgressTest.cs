@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
@@ -9,13 +10,17 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.EditModeInPlayingTest.Util;
+using Client.Tests.Playtest;
 using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
 using Game.Context;
 using Game.Paths;
 using Game.SaveLoad.Snapshot;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using UnityEngine;
 using UnityEngine.TestTools;
+using VContainer;
 
 namespace Client.Tests.EditModeInPlayingTest.Playtest
 {
@@ -24,6 +29,9 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
     [Category("CiShardClientPlay3")]
     public class PlaytestReportAndProgressTest
     {
+        private const string PlacedBlockName = "無限歯車ジェネレーター";
+        private static readonly Vector3Int PlacedBlockPosition = new(25, 0, 25);
+
         [UnityTest]
         public IEnumerator 種別付きで送るとmanifestに載り終了で進行記録が出る()
         {
@@ -46,11 +54,20 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
                 // テスト起動は常時記録オフなので、リングだけ明示的に開始する
                 // Test boots disable always-on capture, so start the ring explicitly
                 ServerContext.GetService<WorldSnapshotRing>().Start(null, null, null);
+
+                // 進行記録も常時記録の決定に従うので、リングと同じくこの起動では明示的に開始する
+                // The progress record follows the same always-on decision, so this boot starts it explicitly just like the ring
+                resolver.Resolve<ProgressRecorder>().StartSession();
                 await UniTask.Delay(1000);
 
                 // 進行記録のヘッダはセッション開始時点で書かれている（残骸の回収はこの前に終わっている）
                 // The progress header is written at session start, after the leftover recovery has already run
-                Assert.IsTrue(ProgressRecordFiles.HasCurrentSession(), "進行記録のヘッダが書かれていない");
+                Assert.IsTrue(ProgressTestSession.HasCurrentSession(), "進行記録のヘッダが書かれていない");
+
+                // 設置の購読が生きているかは、実際に1つ置いて集計に出ることでしか分からない
+                // Whether the placement subscription is alive shows only by placing one and seeing it in the aggregate
+                EditModeInPlayingTestUtil.PlaceBlock(PlacedBlockName, PlacedBlockPosition, BlockDirection.North);
+                await UniTask.Delay(1000);
 
                 var bundlesBefore = BugReportSubmitUtil.ExistingBundles();
                 var recordsBefore = ExistingDirectories(GameSystemPaths.ProgressRecordOutboxDirectory);
@@ -66,7 +83,7 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
                 // Running the shutdown pipeline produces both the clean-exit marker and the progress record
                 await Client.Game.Common.GameShutdownEvent.FireGameShutdownAsync(Client.Game.Common.GameShutdownReason.IntentionalExit);
                 Assert.IsTrue(File.Exists(CleanExitMarker.CleanMarkerPath(RecordingProcessDirectories.CurrentProcessId())), "正常終了マーカーが書かれていない");
-                Assert.IsFalse(ProgressRecordFiles.HasCurrentSession(), "進行記録が閉じられていない");
+                Assert.IsFalse(ProgressTestSession.HasCurrentSession(), "進行記録が閉じられていない");
 
                 var record = TakeSingleNewDirectory(GameSystemPaths.ProgressRecordOutboxDirectory, recordsBefore, "終了で進行記録が1件だけ増えていない");
                 AssertRecordHoldsSubscriptionAndPush(record);
@@ -98,10 +115,12 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
         private static void AssertRecordHoldsSubscriptionAndPush(string record)
         {
             var json = JObject.Parse(File.ReadAllText(Path.Combine(record, ProgressRecordPaths.RecordFileName)));
-            Assert.AreEqual(ProgressSessionRecovery.QuitEndReason, (string)json["endReason"], "終了パイプラインを通ったのにquitで閉じられていない");
-            Assert.IsTrue(File.Exists(Path.Combine(record, ProgressRecordPaths.ReadyMarkerFileName)), "READYの無い記録は運搬されない");
+            Assert.AreEqual(ProgressEndReason.Quit, (string)json["endReason"], "終了パイプラインを通ったのにquitで閉じられていない");
+            Assert.IsTrue(File.Exists(Path.Combine(record, BugReportOutbox.ReadyMarkerFileName)), "READYの無い記録は運搬されない");
             Assert.AreEqual("", (string)json["steamId"], "進行記録のSteamIDが既定の空文字で載っていない");
-            Assert.IsFalse(json.ContainsKey("headerMissing"), "ヘッダのある記録に欠損の印が付いている");
+
+            var missingItems = ((JArray)json["missing"]).Select(item => (string)item["item"]).ToList();
+            CollectionAssert.DoesNotContain(missingItems, "header", "ヘッダのある記録に欠損の印が付いている");
 
             // UI遷移（購読）と報告送信（プッシュ）の両方が入っていること。片方でも欠けると経路が死んでいる
             // Both the UI transition (subscription) and the report send (push) must be present; one missing means a dead path
@@ -109,6 +128,8 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
             var types = events.Select(entry => (string)entry["type"]).ToList();
             CollectionAssert.Contains(types, ProgressEventType.UiStateChanged, "UI遷移が購読から記録されていない");
             CollectionAssert.Contains(types, ProgressEventType.ReportSent, "報告送信がプッシュから記録されていない");
+            CollectionAssert.Contains(types, ProgressEventType.BlockPlaced, "ブロック設置が購読から記録されていない");
+            Assert.GreaterOrEqual((int)json["placedBlockCount"], 1, "設置数が集計されていない");
 
             var reportSent = events.First(entry => (string)entry["type"] == ProgressEventType.ReportSent);
             Assert.AreEqual(PlaytestReportKind.Feedback, (string)reportSent["data"]["kind"], "送った種別が進行記録に残っていない");

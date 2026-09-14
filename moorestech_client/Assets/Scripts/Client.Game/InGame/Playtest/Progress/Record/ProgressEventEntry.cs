@@ -14,7 +14,10 @@ namespace Client.Game.InGame.Playtest.Progress
         public const string BuildModeCancelled = "buildModeCancelled";
         public const string BlockPlaced = "blockPlaced";
         public const string ReportSent = "reportSent";
-        public const string CraftExecuted = "craftExecuted";
+
+        // 送信しただけで結果は見ていない。素材不足でサーバーに拒否された要求もこれに載る
+        // Only the request was sent and its outcome is unseen; a request the server rejected for missing materials still lands here
+        public const string CraftRequested = "craftRequested";
     }
 
     public sealed class ProgressEventEntry
@@ -26,12 +29,12 @@ namespace Client.Game.InGame.Playtest.Progress
 
         public static ProgressEventEntry Create(DateTime utc, ulong tick, string type, JObject data)
         {
-            return new ProgressEventEntry { T = utc.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'"), Tick = tick, Type = type, Data = data ?? new JObject() };
+            return new ProgressEventEntry { T = ProgressUtcTime.ToIso(utc), Tick = tick, Type = type, Data = data ?? new JObject() };
         }
 
         public string ToJsonLine()
         {
-            return new JObject { ["t"] = T, ["tick"] = Tick, ["type"] = Type, ["data"] = Data }.ToString(Newtonsoft.Json.Formatting.None);
+            return ToJObject().ToString(Newtonsoft.Json.Formatting.None);
         }
 
         public JObject ToJObject()
@@ -39,8 +42,8 @@ namespace Client.Game.InGame.Playtest.Progress
             return new JObject { ["t"] = T, ["tick"] = Tick, ["type"] = Type, ["data"] = Data };
         }
 
-        // 追記中に落ちた行は壊れうる。読み側の境界なのでここだけcatchし、壊れた行は捨てて続行する
-        // A line can be torn by a crash mid-append; this read boundary catches, drops the bad line and continues
+        // 追記中に落ちた行は壊れうる。読み側の境界なのでここだけcatchし、壊れた行は捨てて件数を呼び出し側へ返す
+        // A line can be torn by a crash mid-append; this read boundary catches, drops the bad line and lets the caller count it
         public static ProgressEventEntry FromJsonLine(string line)
         {
             try

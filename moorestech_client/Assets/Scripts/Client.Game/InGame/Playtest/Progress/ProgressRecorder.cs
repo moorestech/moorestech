@@ -1,18 +1,18 @@
 using System;
 using System.Linq;
+using System.Threading;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.BuildOrigin;
-using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
 using Client.Network.API;
 using Core.Update;
 using Cysharp.Threading.Tasks;
-using MessagePack;
-using Newtonsoft.Json.Linq;
+using Server.Boot;
 using Server.Event.EventReceive;
+using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine;
 using VContainer.Unity;
@@ -28,7 +28,12 @@ namespace Client.Game.InGame.Playtest.Progress
         private readonly IPlaytestSessionIdentity _identity;
         private readonly DateTime _sessionStartUtc = DateTime.UtcNow;
         private readonly CompositeDisposable _eventSubscriptions = new();
+        private readonly CancellationTokenSource _sessionCancellation = new();
         private readonly ProgressSessionWriter _writer = new();
+
+        private GameShutdownReason _shutdownReason = GameShutdownReason.IntentionalExit;
+        private int _placedBlockCount;
+        private bool _started;
 
         public ProgressRecorder(InitialHandshakeResponse handshake, UIStateControl uiStateControl, IPlaytestSessionIdentity identity)
         {
@@ -39,31 +44,51 @@ namespace Client.Game.InGame.Playtest.Progress
 
         public void Initialize()
         {
-            // 前回の書きかけを先に畳んでから今回を開く。current/ は常に1セッションぶんしか持たない
-            // Fold the previous half-written session first; current/ never holds more than one session
-            var salvage = PreviousSessionSalvage.Artifacts;
-            if (salvage == null) Debug.LogWarning("前回終了の判定が退避から得られないため、残骸は正常終了として回収します");
-            ProgressSessionRecovery.RecoverLeftoverSession(salvage?.PreviousExitWasClean ?? true);
+            // 記録するかの決定は AlwaysOnCaptureSetting が1つだけ持つ。持たないと調査用・テスト用の起動まで本番のProgressRecords/へ書き始める
+            // AlwaysOnCaptureSetting holds the only decision on whether to record; without it even investigation and test boots write into the real ProgressRecords/
+            if (!AlwaysOnCaptureSetting.Current.IsEnabled)
+            {
+                Debug.Log($"進行記録を開始しません: {AlwaysOnCaptureSetting.DisabledReason}");
+                return;
+            }
+            StartSession();
+        }
 
-            // 残骸を畳んだ直後に同期でヘッダを書き、その後で購読を張る。イベント追記は必ずヘッダ付きの current/ に入る
-            // The header is written synchronously right after folding the leftover, before any subscription, so appends always land in a current/ that has one
-            var header = CreateHeader();
-            _writer.WriteHeader(header);
-            FillWorldPlayTimeAsync(header).Forget(exception => Debug.LogError($"進行記録のヘッダにプレイ時間を書けませんでした: {exception.GetBaseException().Message}"));
+        // 記録を開始する唯一の口。常時記録を切ったまま記録だけ通したい起動はここを直接呼ぶ（WorldSnapshotRing.Start と同じ形）
+        // The only entry point that starts recording; a boot that keeps capture off but still wants the record calls this directly (the same shape as WorldSnapshotRing.Start)
+        public void StartSession()
+        {
+            if (_started)
+            {
+                Debug.LogWarning("進行記録は既に開始済みのため二重に開始しません");
+                return;
+            }
+            _started = true;
+
+            // ヘッダを先に同期で書き、その後で購読を張る。イベント追記は必ずヘッダ付きの current/ に入る
+            // The header is written synchronously before any subscription, so appends always land in a current/ that has one
+            _writer.WriteHeader(CreateHeader());
+            FillWorldPlayTimeAsync().Forget(LogWorldPlayTimeFailure);
 
             _uiStateControl.OnStateChanged += OnUiStateChanged;
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(ResearchCompleteEventPacket.EventTag, OnResearchCompleted));
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnChallengeCompleted));
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(PlaceBlockEventPacket.EventTag, OnBlockPlaced));
 
+            // 終了理由は書き出しの前に流れてくる。初期化失敗の終了をプレイヤーが選んだ終了と同じ quit で閉じない
+            // The reason arrives before the flush, so a fold-up after a failed initialization never closes as the player's own quit
+            GameShutdownEvent.OnGameShutdown.Subscribe(reason => _shutdownReason = reason).AddTo(_eventSubscriptions);
             GameShutdownEvent.RegisterParticipant(this);
         }
 
         public void Dispose()
         {
-            _uiStateControl.OnStateChanged -= OnUiStateChanged;
+            _sessionCancellation.Cancel();
+            _sessionCancellation.Dispose();
+            if (_started) _uiStateControl.OnStateChanged -= OnUiStateChanged;
             _eventSubscriptions.Dispose();
             GameShutdownEvent.UnregisterParticipant(this);
+            _writer.Dispose();
         }
 
         // 終了時に record.json を書く。書き出しは同期IOなので待ちは一瞬で終わる
@@ -72,21 +97,24 @@ namespace Client.Game.InGame.Playtest.Progress
         {
             if (_writer.Closed) return UniTask.FromResult(ShutdownFlushResult.AlreadyShutdown);
 
-            // 閉じられないのは current/ に何も無い時だけ。記録が1件消えるので黙って終わらせない
-            // Closing fails only when current/ holds nothing; one lost record must never end in silence
-            var bundle = _writer.Close(ProgressSessionRecovery.QuitEndReason, DateTime.UtcNow);
-            if (bundle == null) Debug.LogWarning("今回のセッションの進行記録を書き出せませんでした（current/ に何も残っていません）");
-            return UniTask.FromResult(ShutdownFlushResult.Flushed);
+            FlushPlacedBlocks();
+            var bundle = _writer.Close(ProgressEndReason.FromShutdownReason(_shutdownReason), DateTime.UtcNow);
+            if (bundle != null) return UniTask.FromResult(ShutdownFlushResult.Flushed);
+
+            // 閉じられないのは current/ に何も無い時と書けなかった時。記録が1件出ないので黙って終わらせない
+            // Closing fails when current/ holds nothing or the write failed; one missing record must never end in silence
+            Debug.LogWarning("今回のセッションの進行記録を書き出せませんでした（current/ が空か、書き出しに失敗しています）");
+            return UniTask.FromResult(ShutdownFlushResult.NothingFlushed);
         }
 
-        public void RecordCraftExecuted(Guid recipeGuid)
+        public void RecordCraftRequested(Guid recipeGuid)
         {
-            Append(ProgressEventType.CraftExecuted, new JObject { ["recipeGuid"] = recipeGuid.ToString() });
+            _writer.Append(ProgressEvents.CraftRequested(DateTime.UtcNow, GameUpdater.CurrentTick, recipeGuid));
         }
 
         public void RecordReportSent(string kind)
         {
-            Append(ProgressEventType.ReportSent, new JObject { ["kind"] = kind });
+            _writer.Append(ProgressEvents.ReportSent(DateTime.UtcNow, GameUpdater.CurrentTick, kind));
         }
 
         // 起動時点で確定する値だけでヘッダを組む。サーバー応答を待つ値は後から上書きする
@@ -97,71 +125,68 @@ namespace Client.Game.InGame.Playtest.Progress
             return new ProgressRecordHeader
             {
                 SteamId = _identity.SteamId,
-                BuildInfo = Application.isEditor ? null : RepositoryStateProbe.ReadBuildInfo(),
-                SessionStart = _sessionStartUtc.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'"),
+                BuildInfo = RepositoryStateProbe.ReadBuildInfo(),
+                SessionStart = ProgressUtcTime.ToIso(_sessionStartUtc),
                 BaselineChallenges = ProgressBaseline.CompletedChallengeGuids(completedChallenges),
                 BaselineResearch = ProgressBaseline.CompletedResearchGuids(_handshake.ResearchNodeStates),
             };
         }
 
-        // ワールドのプレイ時間はサーバー応答を待つので、届いた時点でヘッダを書き直す
-        // The world's play time awaits the server, so the header is rewritten once it arrives
-        private async UniTask FillWorldPlayTimeAsync(ProgressRecordHeader header)
+        private async UniTask FillWorldPlayTimeAsync()
         {
-            var info = await ClientContext.VanillaApi.Response.GetWorldPlaySessionInfo(default);
-            if (info == null) Debug.LogWarning("ワールドのプレイ時間を取得できないため worldCreatedAt と totalPlaySeconds は空で記録します");
-            header.WorldCreatedAt = info?.WorldCreatedAt ?? "";
-            header.TotalPlaySecondsAtStart = info?.TotalPlaySeconds ?? 0;
+            var info = await ClientContext.VanillaApi.Response.GetWorldPlaySessionInfo(_sessionCancellation.Token);
+            _writer.UpdateWorldPlayTime(ToWorldPlayTime(info));
+        }
 
-            _writer.WriteHeader(header);
+        // 応答なし（10秒のタイムアウト）も欠損の一種。空文字と0で埋めず理由を持たせる
+        // A missing response (the 10 second timeout) is a gap too, carried with its reason instead of an empty string and a zero
+        private static ProgressWorldPlayTime ToWorldPlayTime(GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack info)
+        {
+            if (info == null) return ProgressWorldPlayTime.Unavailable("ワールドのプレイ時間の応答が返らなかった");
+            if (info.MissingReason != null) return ProgressWorldPlayTime.Unavailable(info.MissingReason);
+            return ProgressWorldPlayTime.Received(info.WorldCreatedAt, info.TotalPlaySeconds, DateTime.UtcNow);
+        }
+
+        private static void LogWorldPlayTimeFailure(Exception exception)
+        {
+            if (exception is OperationCanceledException)
+            {
+                Debug.Log("セッションが終わったためワールドのプレイ時間の取得を打ち切りました");
+                return;
+            }
+            Debug.LogError($"進行記録のヘッダにプレイ時間を書けませんでした: {exception.GetBaseException().Message}");
         }
 
         private void OnUiStateChanged(UIStateEnum state)
         {
-            Append(ProgressEventType.UiStateChanged, new JObject { ["state"] = state.ToString() });
+            // 区間の設置数を先に確定させてから遷移を書く。順序が逆だと「建築モードで設置したか」が次の区間へずれる
+            // The interval's placements are settled before the transition; the reverse order would slide "placed while building" into the next interval
+            FlushPlacedBlocks();
+            _writer.Append(ProgressEvents.UiStateChanged(DateTime.UtcNow, GameUpdater.CurrentTick, state.ToString()));
         }
 
-        // 外部プロセスから届いたバイト列の復号は外部境界なので、壊れた1件で記録全体を止めない
-        // Decoding bytes from an external process is an external boundary; one broken packet must not stop the whole record
         private void OnResearchCompleted(byte[] payload)
         {
-            var message = Deserialize<ResearchCompleteEventPacket.ResearchCompleteEventMessagePack>(payload, ResearchCompleteEventPacket.EventTag);
-            if (message == null) return;
-            Append(ProgressEventType.ResearchCompleted, new JObject { ["researchGuid"] = message.ResearchGuidStr });
+            _writer.Append(ProgressServerEvents.ResearchCompleted(payload, DateTime.UtcNow, GameUpdater.CurrentTick));
         }
 
         private void OnChallengeCompleted(byte[] payload)
         {
-            var message = Deserialize<CompletedChallengeEventMessagePack>(payload, CompletedChallengeEventPacket.EventTag);
-            if (message == null) return;
-            Append(ProgressEventType.ChallengeCompleted, new JObject { ["challengeGuid"] = message.CompletedChallengeGuidStr });
+            _writer.Append(ProgressServerEvents.ChallengeCompleted(payload, DateTime.UtcNow, GameUpdater.CurrentTick));
         }
 
-        // 設置数だけが集計対象。BlockId はマスタのロード順で採番される揮発値なので記録に残さない
-        // Only the count is aggregated; BlockId is a volatile value renumbered per master load, so it is not recorded
+        // 設置数だけが集計対象。1件ずつ行にすると設置のたびに追記が走るので、区間の合計だけを書く（ADR 0060 裁定9）
+        // Only the count is aggregated; one line per placement would append on every block, so only the interval total is written (ADR 0060 adjudication 9)
         private void OnBlockPlaced(byte[] payload)
         {
-            Append(ProgressEventType.BlockPlaced, new JObject());
+            _placedBlockCount++;
         }
 
-        private static T Deserialize<T>(byte[] payload, string eventTag) where T : class
+        private void FlushPlacedBlocks()
         {
-            // MessagePack の復号は外部プロセス由来の入力境界。ここだけ catch し、理由を残して1件を捨てる
-            // MessagePack decoding is the input boundary from an external process; catch only here, log the reason and drop one packet
-            try
-            {
-                return MessagePackSerializer.Deserialize<T>(payload);
-            }
-            catch (Exception exception)
-            {
-                Debug.LogWarning($"進行記録に載せるイベントを復号できないため飛ばします tag:{eventTag} {exception.GetBaseException().Message}");
-                return null;
-            }
-        }
-
-        private void Append(string type, JObject data)
-        {
-            _writer.Append(ProgressEventEntry.Create(DateTime.UtcNow, GameUpdater.CurrentTick, type, data));
+            if (_placedBlockCount == 0) return;
+            _writer.Append(ProgressEvents.BlockPlaced(DateTime.UtcNow, GameUpdater.CurrentTick, _placedBlockCount));
+            _placedBlockCount = 0;
         }
     }
 }

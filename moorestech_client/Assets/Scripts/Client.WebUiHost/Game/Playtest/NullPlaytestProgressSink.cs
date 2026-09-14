@@ -14,7 +14,7 @@ namespace Client.WebUiHost.Game.Playtest
 
         private bool _reported;
 
-        public void RecordCraftExecuted(Guid recipeGuid)
+        public void RecordCraftRequested(Guid recipeGuid)
         {
             ReportOnce();
         }
