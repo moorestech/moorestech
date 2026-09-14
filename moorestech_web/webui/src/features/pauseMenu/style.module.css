@@ -39,3 +39,9 @@
 .status {
   color: var(--text-muted);
 }
+
+/* 入力欄の見出し。状態行（送れない理由）とは役割が違うので別クラスで持つ */
+/* Label for an input field; it plays a different role from the status line, so it owns its own class */
+.fieldLabel {
+  color: var(--text-muted);
+}

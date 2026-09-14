@@ -2,6 +2,17 @@ import { sendAction } from "./webSocketClient";
 import { notify } from "./notify";
 import type { ActionPayloads } from "./protocol";
 
+// 全画面ゲートの「すでに応答済み」を表す拒否コード。ゲートはこの1表から文言を選ぶ
+// The rejection code meaning "already answered" for a full-screen gate; the gate picks its copy from this single table
+// BENIGN_ERRORS へ載せるには共有 error_codes.json（と WireContractTest の正準セット）に両コードが要るため、載せるのは先送り
+// Listing them in BENIGN_ERRORS needs both codes in the shared error_codes.json (and WireContractTest's canonical set) first, so that is deferred
+export const GATE_ALREADY_ANSWERED_ERRORS = {
+  "playtest.crash_report.respond": "already_responded",
+  "playtest.consent.acknowledge": "already_acknowledged",
+} as const;
+
+export type GateAnswerActionType = keyof typeof GATE_ALREADY_ANSWERED_ERRORS;
+
 // stale state 由来のクリック連鎖失敗は良性で、後続の topic event が再同期する。action type ごとに抑止コードを定義する
 // Click-chain failures from stale state are benign and reconciled by a later topic event; suppress codes per action type
 // これ以外（invalid_* 等の実バグ由来）はトーストする。ここに載るコードは共有 error_codes.json の部分集合であること
@@ -31,8 +42,11 @@ export const DEFAULT_ACTION_TIMEOUT_MS = 5000;
 // Only actions known to take longer than the default get their own wait
 // bug_report.submit は ffmpeg 結合・未追跡ファイルのコピー・git 4回起動を待つ。既定では成功を失敗と表示していた
 // bug_report.submit waits on ffmpeg concat, untracked file copies and four git spawns; the default reported successes as failures
+// playtest.crash_report.respond は録画リング・スナップショット・パケットログ・ダンプの同期コピーを待つ（実測28MB級）
+// playtest.crash_report.respond waits on synchronous copies of the recording ring, snapshot, packet log and dump (28MB class in practice)
 export const ACTION_TIMEOUTS_MS: Partial<Record<keyof ActionPayloads, number>> = {
   "bug_report.submit": 120000,
+  "playtest.crash_report.respond": 120000,
 };
 
 export function shouldToastFailure(type: keyof ActionPayloads, error: string | undefined): boolean {
@@ -40,26 +54,50 @@ export function shouldToastFailure(type: keyof ActionPayloads, error: string | u
   return !(BENIGN_ERRORS[type]?.has(error) ?? false);
 }
 
-// action を発行し、失敗時はトースト表示して false を返す UI 向けラッパ
-// UI-facing wrapper: dispatch an action, toast on failure, return success flag
-// true は「サーバーが受理した」ことを意味し、topic event の反映完了を保証しない
-// true means the server accepted the action; it does not guarantee the topic event has arrived yet
-export async function dispatchAction<K extends keyof ActionPayloads>(
+// 失敗を真偽値へ潰さずに受け取るための結果型。「サーバーが断った」と「届かなかった」は別の対処になる
+// Outcome type that keeps failures out of a boolean: "the server refused" and "it never arrived" call for different handling
+export type ActionOutcome =
+  | { kind: "accepted" }
+  | { kind: "rejected"; error: string }
+  | { kind: "unreachable"; reason: "timeout" | "disconnected" | "other" };
+
+// action を発行し、失敗時はトースト表示して理由つきの結果を返す。理由まで要る画面だけがこちらを呼ぶ
+// Dispatch an action, toast on failure and return the outcome with its reason; only screens that need the reason call this
+// accepted は「サーバーが受理した」ことを意味し、topic event の反映完了を保証しない
+// accepted means the server accepted the action; it does not guarantee the topic event has arrived yet
+export async function dispatchActionOutcome<K extends keyof ActionPayloads>(
   type: K,
   payload: ActionPayloads[K],
-): Promise<boolean> {
+): Promise<ActionOutcome> {
   try {
     const result = await sendAction(type, payload, ACTION_TIMEOUTS_MS[type] ?? DEFAULT_ACTION_TIMEOUT_MS);
-    if (!result.ok) {
-      if (shouldToastFailure(type, result.error)) notify(`${type} failed: ${result.error ?? "unknown"}`, "error");
-      return false;
-    }
-    return true;
+    if (result.ok) return { kind: "accepted" };
+    const error = result.error ?? "unknown";
+    if (shouldToastFailure(type, result.error)) notify(`${type} failed: ${error}`, "error");
+    return { kind: "rejected", error };
   } catch (e) {
     // 切断中の失敗は再接続オーバーレイが状態を伝えるため個別トーストしない
     // Don't toast per-failure while disconnected; the reconnect overlay conveys the state
     const message = e instanceof Error ? e.message : String(e);
     if (message !== "disconnected") notify(`${type} error: ${message}`, "error");
-    return false;
+    return { kind: "unreachable", reason: toUnreachableReason(message) };
   }
+}
+
+// action を発行し、受理されたかだけを返す UI 向けラッパ
+// UI-facing wrapper: dispatch an action and report only whether it was accepted
+export async function dispatchAction<K extends keyof ActionPayloads>(
+  type: K,
+  payload: ActionPayloads[K],
+): Promise<boolean> {
+  const outcome = await dispatchActionOutcome(type, payload);
+  return outcome.kind === "accepted";
+}
+
+// 送信側が投げるのは webSocketClient の "timeout" / "disconnected" の2種で、それ以外は想定外の例外
+// The sender throws webSocketClient's "timeout" / "disconnected"; anything else is an unexpected exception
+function toUnreachableReason(message: string): "timeout" | "disconnected" | "other" {
+  if (message === "timeout") return "timeout";
+  if (message === "disconnected") return "disconnected";
+  return "other";
 }
