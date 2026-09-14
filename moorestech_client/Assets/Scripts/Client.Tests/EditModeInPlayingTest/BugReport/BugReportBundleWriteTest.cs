@@ -150,7 +150,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
         private static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, IReadOnlyCollection<string> before)
         {
-            var handler = new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>(), resolver.Resolve<PlaytestSession>());
+            var handler = new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>(), resolver.Resolve<IPlaytestUploadRequester>());
             var result = await handler.ExecuteAsync(new JObject { ["description"] = description });
             Assert.IsTrue(result.Ok, result.Error);
 

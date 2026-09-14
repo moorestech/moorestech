@@ -19,8 +19,7 @@ using Client.Game.InGame.World;
 using Client.Game.InGame.UnlockState;
 using Client.Network.API;
 using Client.PlaytestReceiver;
-using Client.PlaytestReceiver.Http;
-using Client.PlaytestReceiver.Steam;
+using Client.PlaytestReceiver.Upload;
 using Core.Item.Interface;
 using Game.Construction;
 using Game.Context;
@@ -55,9 +54,9 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<BugReportUiStatePusher>();
             builder.RegisterEntryPoint<BugReportPauseMenuTrigger>();
 
-            // 報告を書けた直後に送るためのセッション。依存が実装型なので組み立てはここで行う
-            // The session used to ship a report the moment it is written; its dependencies are concrete, so it is built here
-            builder.RegisterInstance(new PlaytestSession(new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl), new PlaytestSteamTicketProvider()));
+            // 報告を書けた直後の押し場。押す側は面だけを受け取り、走行の単線化は受け手が持つ
+            // The push site used right after a report is written; the caller receives only the face, the runner keeps runs single
+            builder.RegisterInstance<IPlaytestUploadRequester>(PlaytestUploadRunner.Instance);
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

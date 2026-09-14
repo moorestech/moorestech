@@ -46,10 +46,11 @@ namespace Client.MainMenu.Playtest
             }
 
             messagePopup.gameObject.SetActive(false);
+            if (result.Status != PlaytestGateStatus.Allowed) return;
 
             // 照合を通った配布版は、前回持ち越した箱をここで送り始める（起動直後の1回）
             // A distribution build that passed the check starts shipping any deferred boxes here (the once-per-launch run)
-            PlaytestUploadRunner.Instance.RequestUpload(session);
+            PlaytestUploadRunner.Instance.RequestUpload(PlaytestLaunchGate.Session);
         }
     }
 }

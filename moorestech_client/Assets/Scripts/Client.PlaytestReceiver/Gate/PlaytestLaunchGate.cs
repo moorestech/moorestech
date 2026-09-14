@@ -14,10 +14,15 @@ namespace Client.PlaytestReceiver.Gate
         // The verdict must survive a scene load and the MainMenu scene has no DI container, so it is held statically
         public static PlaytestGateResult Current { get; private set; } = PlaytestGateDecision.DeveloperMode;
 
+        // 照合に使ったセッションはそのままアップロードにも使う。トークンの寿命を持つ場所を1つに保つため
+        // The session used for the check is the one that uploads too, keeping a single holder of the token's lifetime
+        public static PlaytestSession Session { get; private set; }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnPlayMode()
         {
             Current = PlaytestGateDecision.DeveloperMode;
+            Session = null;
         }
 
         public static void SetCurrent(PlaytestGateResult result)
@@ -46,6 +51,8 @@ namespace Client.PlaytestReceiver.Gate
                 SetCurrent(PlaytestGateDecision.DeveloperMode);
                 return Current;
             }
+
+            Session = session;
 
             // 判定が出るまでは開始させない。ここがDeveloperModeのままだと、待ち文言を閉じて押すだけで照合を素通しできる
             // Nothing may start before the verdict; leaving DeveloperMode here lets a tester close the waiting message and start anyway

@@ -3,7 +3,6 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.UI.UIState;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Gate;
-using Client.PlaytestReceiver.Upload;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -17,15 +16,15 @@ namespace Client.WebUiHost.Game.Actions
         private readonly BugReportBundleWriter _writer;
         private readonly BugReportCaptureSession _session;
         private readonly UIStateControl _uiStateControl;
-        private readonly PlaytestSession _playtestSession;
+        private readonly IPlaytestUploadRequester _uploadRequester;
         public string ActionType => "bug_report.submit";
 
-        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl, PlaytestSession playtestSession)
+        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl, IPlaytestUploadRequester uploadRequester)
         {
             _writer = writer;
             _session = session;
             _uiStateControl = uiStateControl;
-            _playtestSession = playtestSession;
+            _uploadRequester = uploadRequester;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -58,11 +57,20 @@ namespace Client.WebUiHost.Game.Actions
 
             Debug.Log($"バグ報告を書き出しました {result.BundleDirectory} missing:{result.Missing.Count}");
 
-            // 照合を通った配布版だけ、書けた箱をその場で送りにいく。照合していない起動では送らない
-            // Only a distribution build that passed the check ships the freshly written box; an unchecked launch never does
-            if (PlaytestLaunchGate.Current.Status == PlaytestGateStatus.Allowed)
+            // 照合を通った配布版だけ、書けた箱をその場で送りにいく。送らない場合も理由をログへ出す
+            // Only a distribution build that passed the check ships the freshly written box, and not shipping is logged too
+            var gate = PlaytestLaunchGate.Current;
+            if (gate.Status == PlaytestGateStatus.Allowed)
             {
-                PlaytestUploadRunner.Instance.RequestUpload(_playtestSession);
+                _uploadRequester.RequestUpload(PlaytestLaunchGate.Session);
+            }
+            else if (gate.Status == PlaytestGateStatus.DeveloperMode)
+            {
+                Debug.Log("[PlaytestReceiver] 開発者モードなので書けた箱は送らない（配布版では送られる）");
+            }
+            else
+            {
+                Debug.LogWarning($"[PlaytestReceiver] 照合を通っていないので書けた箱を今は送れない gate:{gate.Status} {gate.Detail}");
             }
 
             // 閉じは既存のWeb境界1本へ寄せる。閉じられなくても報告自体は書けているので成功として返す

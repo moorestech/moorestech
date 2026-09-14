@@ -200,7 +200,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));
             hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
-            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>(), resolver.Resolve<PlaytestSession>()));
+            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>(), resolver.Resolve<IPlaytestUploadRequester>()));
         }
     }
 }

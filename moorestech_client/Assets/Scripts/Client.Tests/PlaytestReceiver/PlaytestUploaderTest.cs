@@ -149,6 +149,20 @@ namespace Client.Tests.PlaytestReceiver
             Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
         }
 
+        // 受け口はR2のキーとしてUTF-8をそのまま受ける。クライアント側だけが厳しいと実ファイルが恒久的に失われる
+        // The receiver takes UTF-8 verbatim as an R2 key; a stricter client rule would lose real files for good
+        [Test]
+        public void 日本語や空白を含む名前も見送らずに送る()
+        {
+            var box = MakeBox(_reports, "20260913_120000_aaaa", ("ユニティ.log", "x"), ("a b.log", "y"));
+            var api = new FakeApi();
+
+            Assert.AreEqual(1, Upload(api));
+            CollectionAssert.AreEquivalent(new[] { "ユニティ.log", "a b.log" }, api.PutPaths);
+            StringAssert.Contains("\"skipped\":[]", api.LastSummary);
+            Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
+        }
+
         [Test]
         public void 走行中に再要求しても走行は1本に保たれる()
         {
@@ -156,7 +170,7 @@ namespace Client.Tests.PlaytestReceiver
             MakeBox(_reports, "20260913_130000_bbbb", ("manifest.json", "{}"));
             var gate = new UniTaskCompletionSource<PlaytestApiResult>();
             var api = new FakeApi { PendingPut = gate };
-            var runner = new PlaytestUploadRunner(api, _reports, _progress);
+            IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _reports, _progress);
             var session = new PlaytestSession(api, new AlwaysTicketProvider());
 
             runner.RequestUpload(session);

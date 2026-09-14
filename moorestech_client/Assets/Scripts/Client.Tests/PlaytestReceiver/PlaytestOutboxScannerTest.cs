@@ -72,14 +72,21 @@ namespace Client.Tests.PlaytestReceiver
             Assert.AreEqual(new[] { "logs/unity.log", "manifest.json" }, files);
         }
 
+        // 印と同名でも箱の直下でなければ中身。logs/READY をペイロードから落とすと報告のログが欠ける
+        // A file named like a marker is still payload unless it sits at the box root; dropping logs/READY loses report logs
         [Test]
-        public void 受け口が受け取れない文字を含む相対パスは送らない()
+        public void 箱の直下でない同名ファイルは印とみなさない()
         {
-            Assert.IsTrue(PlaytestOutboxScanner.IsSendablePath("logs/unity.log"));
-            Assert.IsTrue(PlaytestOutboxScanner.IsSendablePath("frames/frame_0001.jpg"));
-            Assert.IsFalse(PlaytestOutboxScanner.IsSendablePath("logs/ユニティ.log"));
-            Assert.IsFalse(PlaytestOutboxScanner.IsSendablePath("logs/a b.log"));
-            Assert.IsFalse(PlaytestOutboxScanner.IsSendablePath("../escape.log"));
+            var reports = MakeOutbox("BugReports");
+            var box = MakeBox(reports, "20260913_120000_bbbb", withReady: true);
+            Directory.CreateDirectory(Path.Combine(box, "logs"));
+            File.WriteAllText(Path.Combine(box, "logs", PlaytestOutboxScanner.ReadyMarker), "x");
+
+            var files = PlaytestOutboxScanner.ListPayloadFiles(box)
+                .Select(file => PlaytestOutboxScanner.ToRelativePath(box, file))
+                .ToArray();
+
+            Assert.AreEqual(new[] { "logs/READY" }, files);
         }
 
         // 印の名はバグ報告の書き出し側が正本。参照できない別アセンブリなので、ここで一致を固定する

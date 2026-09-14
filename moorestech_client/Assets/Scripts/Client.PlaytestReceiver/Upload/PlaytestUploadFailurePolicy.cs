@@ -5,7 +5,7 @@ namespace Client.PlaytestReceiver.Upload
 {
     // 失敗の読み分け。「取り直せば直る」「そのファイルは何度送っても直らない」「後で再試行」の唯一の判定地点
     // The single place that tells a refreshable failure from one that never heals for that file, or a plain retry-later
-    public static class PlaytestUploadFailurePolicy
+    internal static class PlaytestUploadFailurePolicy
     {
         // 401は期限切れ、403は権限の取り消し、408と429は混み合い。いずれも箱の事情なのでファイルを見送らない
         // 401 is expiry, 403 a revoked permission, 408 and 429 congestion; all are box-level, so no file is dropped for them

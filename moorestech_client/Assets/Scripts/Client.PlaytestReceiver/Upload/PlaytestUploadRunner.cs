@@ -8,7 +8,7 @@ namespace Client.PlaytestReceiver.Upload
 {
     // 起動直後と報告送信直後の2箇所から呼ばれる入口。走行中の再要求は無視して1本に保つ
     // The entry point called right after launch and right after a report; re-requests while running are ignored
-    public sealed class PlaytestUploadRunner
+    public sealed class PlaytestUploadRunner : IPlaytestUploadRequester
     {
         private static PlaytestUploadRunner _instance;
 
@@ -44,7 +44,9 @@ namespace Client.PlaytestReceiver.Upload
         {
             if (_running)
             {
-                Debug.Log("[PlaytestReceiver] an upload run is already in flight; this request rides on it");
+                // 走行はスキャン済みなので、この要求で書かれた箱は今回では送られない。次の押し場で送る
+                // The running pass has already scanned, so a box written for this request waits for the next push
+                Debug.Log("[PlaytestReceiver] an upload run is already in flight; this request waits for the next run");
                 return;
             }
             _running = true;

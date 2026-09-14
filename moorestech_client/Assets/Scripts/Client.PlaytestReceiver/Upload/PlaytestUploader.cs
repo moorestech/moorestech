@@ -56,10 +56,10 @@ namespace Client.PlaytestReceiver.Upload
             foreach (var file in PlaytestOutboxScanner.ListPayloadFiles(box.Directory))
             {
                 var relativePath = PlaytestOutboxScanner.ToRelativePath(box.Directory, file);
-                var skipReason = DescribeSkip(file, relativePath);
-                if (skipReason != null)
+                var skip = DescribeSkip(box, file, relativePath);
+                if (skip != null)
                 {
-                    skipped.Add(new { path = relativePath, reason = skipReason });
+                    skipped.Add(skip);
                     continue;
                 }
 
@@ -122,21 +122,23 @@ namespace Client.PlaytestReceiver.Upload
             return true;
         }
 
-        // 送れないファイルの理由。送る前に分かるものだけを見て、通信の失敗とは混ぜない
-        // Why a file cannot be sent, decided before any request so it never mixes with a transport failure
-        private static string DescribeSkip(string absoluteFilePath, string relativePath)
+        // 送る前に分かる見送り理由だけを返す。送れるなら null で、通信の失敗とは混ぜない
+        // Returns only the skip reasons knowable before any request, or null; transport failures never come through here
+        private static object DescribeSkip(PlaytestOutboxBox box, string absoluteFilePath, string relativePath)
         {
-            if (!PlaytestOutboxScanner.IsSendablePath(relativePath))
+            // 送れるパスかどうかの判定は組み立て地点（PlaytestUploadPath）が正本。ここで別の文字規則を持つと受け口より厳しくなる
+            // The upload path builder owns what is sendable; a second character rule here would be stricter than the receiver
+            if (PlaytestUploadPath.ForFile(box.Kind, box.BundleId, relativePath) == null)
             {
-                Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: the receiver only accepts [A-Za-z0-9._-] path segments");
-                return "unsupported-characters";
+                Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: it is not a safe relative path for the receiver");
+                return new { path = relativePath, reason = "unsafe-path" };
             }
 
             var length = new FileInfo(absoluteFilePath).Length;
             if (length <= PlaytestReceiverConfig.MaxFileBytes) return null;
 
             Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: {length} bytes exceeds the {PlaytestReceiverConfig.MaxFileBytes} byte limit");
-            return "too-large";
+            return new { path = relativePath, reason = "too-large", bytes = length };
         }
 
         // 401はトークンの期限切れ。取り直して1回だけやり直し、取り直せなければnullで呼び出し側へ返す

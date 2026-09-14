@@ -35,6 +35,11 @@ namespace Client.PlaytestReceiver.Upload
         public static void MarkUploaded(string boxDirectory)
         {
             File.WriteAllText(Path.Combine(boxDirectory, PlaytestOutboxScanner.UploadedMarker), DateTime.UtcNow.ToString("o"));
+
+            // 途中で失敗した回数は送れた時点で意味を失う。残すと箱を手で見たとき成否が読み取れない
+            // The attempt count loses its meaning once the box is shipped; leaving it makes a hand-inspected box ambiguous
+            var attempts = Path.Combine(boxDirectory, PlaytestOutboxScanner.AttemptsMarker);
+            if (File.Exists(attempts)) File.Delete(attempts);
         }
 
         private static int Read(string path)

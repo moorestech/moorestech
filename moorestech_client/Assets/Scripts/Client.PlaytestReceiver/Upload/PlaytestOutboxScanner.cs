@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace Client.PlaytestReceiver.Upload
 {
@@ -16,10 +15,6 @@ namespace Client.PlaytestReceiver.Upload
         public const string UploadedMarker = "UPLOADED";
         public const string FailedMarker = "UPLOAD_FAILED";
         public const string AttemptsMarker = "UPLOAD_ATTEMPTS";
-
-        // 受け口は [A-Za-z0-9._-] のセグメントしか受け取らない（Worker の isSafeSegment と同じ規則）
-        // The receiver accepts only [A-Za-z0-9._-] segments; this mirrors the Worker's isSafeSegment
-        private static readonly Regex SegmentPattern = new("^[A-Za-z0-9._-]+$", RegexOptions.Compiled);
 
         private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker };
 
@@ -36,8 +31,10 @@ namespace Client.PlaytestReceiver.Upload
 
         public static IReadOnlyList<string> ListPayloadFiles(string boxDirectory)
         {
+            // 印は箱の直下にしか置かれない。名前だけで判定すると logs/READY のような中身まで落ちる
+            // Markers live only at the box root; matching on the name alone would also drop payloads such as logs/READY
             return Directory.GetFiles(boxDirectory, "*", SearchOption.AllDirectories)
-                .Where(path => !Markers.Contains(Path.GetFileName(path)))
+                .Where(path => !Markers.Contains(ToRelativePath(boxDirectory, path)))
                 .ToList();
         }
 
@@ -45,14 +42,6 @@ namespace Client.PlaytestReceiver.Upload
         {
             var relative = filePath.Substring(boxDirectory.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             return relative.Replace(Path.DirectorySeparatorChar, '/');
-        }
-
-        public static bool IsSendablePath(string relativePath)
-        {
-            // 「.」「..」は文字種としては通ってしまうので別に弾く。通すと受け口の箱の外を指すキーを送ることになる
-            // "." and ".." pass the character test, so they are refused separately; letting them through would address keys outside the box
-            var segments = relativePath.Split('/');
-            return segments.All(segment => segment != "." && segment != ".." && SegmentPattern.IsMatch(segment));
         }
 
         private static IEnumerable<PlaytestOutboxBox> ScanOne(string outbox, string kind)
