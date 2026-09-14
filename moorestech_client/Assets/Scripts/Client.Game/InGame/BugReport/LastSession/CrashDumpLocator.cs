@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
@@ -13,6 +14,10 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Editorのプロセス名。Editor起動のクラッシュを自分の記録として拾うための正本
         // The Editor's process name; the single source for recognizing an Editor boot's crash as ours
         public const string EditorProcessName = "Unity";
+
+        // 前回セッションの時刻境界が取れないときだけ使う保険の窓。実在する境界が取れるならそちらが常に優先される
+        // A fallback window used only when no real boundary for the previous session exists; a real one always wins
+        public const int FallbackLookbackHours = -24;
 
         public static IReadOnlyList<string> CandidateRoots()
         {
@@ -44,15 +49,35 @@ namespace Client.Game.InGame.BugReport.LastSession
             return roots;
         }
 
-        // 直近24時間ぶんだけを拾う。過去の無関係なダンプで箱を膨らませない
-        // Takes only the last 24 hours so unrelated old dumps never inflate the box
+        // 前回セッションが実在した時刻より後のダンプだけを拾う。境界を「直近24時間」で代用すると他アプリの古い記録まで入る
+        // Takes only dumps newer than when the previous session actually existed; a "last 24 hours" stand-in would sweep in other apps' old records
         public static CrashDumpScanResult FindDumpFiles()
         {
-            var since = DateTime.UtcNow.AddHours(-24);
+            var since = PreviousSessionBoundaryUtc();
             var candidates = new List<CrashDumpCandidate>();
-            foreach (var root in CandidateDumpRoots())
+            foreach (var root in CandidateDumpRoots()) CollectFrom(root, since, candidates);
+
+            var result = SelectDumpFiles(candidates, UnityEngine.Application.productName);
+            LogExclusion(result);
+            return result;
+        }
+
+        // 前回セッションのログの最終更新時刻が「そのセッションが確かに動いていた」唯一の実在する印
+        // The previous session log's last write is the only real evidence of when that session was actually running
+        public static DateTime PreviousSessionBoundaryUtc()
+        {
+            var previousLogPath = PlayerLogLocator.PreviousSessionLogPath();
+            if (previousLogPath == null) return DateTime.UtcNow.AddHours(FallbackLookbackHours);
+            return new FileInfo(previousLogPath).LastWriteTimeUtc;
+        }
+
+        // 共有置き場の走査はOSの保護領域（macOSのDiagnosticReportsはTCC配下）に触れる外部境界。拒否されても起動は続ける
+        // Scanning a shared root touches an OS-protected area (macOS DiagnosticReports sits under TCC); a refusal must not stop the boot
+        private static void CollectFrom(CrashDumpRoot root, DateTime since, List<CrashDumpCandidate> candidates)
+        {
+            if (!Directory.Exists(root.Path)) return;
+            try
             {
-                if (!Directory.Exists(root.Path)) continue;
                 foreach (var file in Directory.GetFiles(root.Path, "*", SearchOption.AllDirectories))
                 {
                     var info = new FileInfo(file);
@@ -60,10 +85,19 @@ namespace Client.Game.InGame.BugReport.LastSession
                     candidates.Add(new CrashDumpCandidate { Root = root, FileName = info.Name, FullPath = file });
                 }
             }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+            {
+                Debug.LogWarning($"クラッシュダンプの置き場を読めませんでした（この置き場は対象外になります） {root.Path}: {e.Message}");
+            }
+        }
 
-            var result = SelectDumpFiles(candidates, UnityEngine.Application.productName);
-            LogExclusion(result);
-            return result;
+        // 「そもそも無かった」と「他アプリとして除外した結果0件」を読み分けられる理由文にする。無音の縮退を残さない
+        // The reason distinguishes "there were none" from "all were filtered out as other apps'", leaving no silent degradation
+        public static string MissingReason(CrashDumpScanResult scan)
+        {
+            var roots = string.Join(", ", CandidateRoots());
+            if (scan.ExcludedAsOtherApps == 0) return $"クラッシュダンプが見つからない（探索先: {roots}）";
+            return $"共有置き場に{scan.ExcludedAsOtherApps}件あったが自プロセス（{UnityEngine.Application.productName} / {EditorProcessName}）のものは0件だった（除外元: {string.Join(", ", scan.ExcludedRoots)}、探索先: {roots}）";
         }
 
         // 置き場の共有宣言だけを見て選別する純粋関数。実ファイルを置かずに配線ごと検証できる
@@ -91,19 +125,25 @@ namespace Client.Game.InGame.BugReport.LastSession
         {
             if (result.ExcludedAsOtherApps == 0) return;
             var condition = $"ファイル名が {UnityEngine.Application.productName}- または {EditorProcessName}- で始まること";
-            UnityEngine.Debug.Log($"共有置き場のクラッシュレポート{result.ExcludedAsOtherApps}件を他アプリのものとして除外しました 条件:{condition} 除外元:{string.Join(", ", result.ExcludedRoots)}");
+            Debug.Log($"共有置き場のクラッシュレポート{result.ExcludedAsOtherApps}件を他アプリのものとして除外しました 条件:{condition} 除外元:{string.Join(", ", result.ExcludedRoots)}");
         }
 
-        // 共有置き場のクラッシュレポートは <プロセス名>-<日付>.ips 形式。自分のプロセス名で始まるものだけを自分の記録として扱う
-        // A shared root's report is named <process>-<date>.ips, so only names starting with our own process count as ours
+        // 共有置き場のクラッシュレポートは <プロセス名>-<日付>.ips 形式。プロセス名ちょうどで始まるものだけを自分の記録として扱う
+        // A shared root's report is named <process>-<date>.ips, so only names starting with the exact process name count as ours
+        // '-'で切ると、プロセス名自体にハイフンを含む製品が自分のダンプを他アプリとして捨てる
+        // Splitting on '-' would make a product whose own name contains a hyphen discard its own dumps as another app's
         public static bool IsOwnProcessDumpName(string fileName, string productName)
         {
-            var processName = fileName.Split('-')[0];
-            if (processName.Length == 0) return false;
+            if (string.IsNullOrEmpty(fileName)) return false;
 
             // Editor起動のプロセス名はUnity。テスターのビルドは productName なので両方を自分として認める
             // An Editor boot's process is Unity while a tester's build is productName, so both count as ours
-            return string.Equals(processName, productName, StringComparison.OrdinalIgnoreCase) || string.Equals(processName, EditorProcessName, StringComparison.OrdinalIgnoreCase);
+            return StartsWithProcessName(fileName, productName) || StartsWithProcessName(fileName, EditorProcessName);
+        }
+
+        private static bool StartsWithProcessName(string fileName, string processName)
+        {
+            return !string.IsNullOrEmpty(processName) && fileName.StartsWith(processName + "-", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsDumpLikeName(string fileName)

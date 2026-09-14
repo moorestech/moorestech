@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Game.Paths;
 using UnityEngine;
 
@@ -6,90 +8,187 @@ namespace Client.Game.InGame.BugReport.LastSession
 {
     // 起動直後に前回の記録を退避する。内蔵サーバーのリングと録画リングが上書きを始める前に走らせること
     // Salvages the previous records right at boot, before the embedded server's ring and the recording ring start overwriting
+    // 単位はpid。生存している他プロセスの記録は触らず、触らなかった理由を報告へ残す
+    // The unit is the pid: a live process's records are left alone, and the reason for leaving them is kept in the report
     public static class PreviousSessionSalvage
     {
         public static PreviousSessionArtifacts Artifacts { get; private set; }
 
-        public static PreviousSessionArtifacts RunAtStartup(string worldSnapshotDirectory)
+        public static PreviousSessionArtifacts RunAtStartup(bool isRemoteConnection, string worldSnapshotDirectory)
         {
-            var wasClean = CleanExitMarker.ConsumePreviousExitCleanFlag();
-            Artifacts = Salvage(wasClean, GameSystemPaths.BugReportRecordingDirectory, worldSnapshotDirectory, GameSystemPaths.BugReportLastSessionDirectory);
-            Debug.Log($"前回セッションの退避が終わりました clean:{Artifacts.PreviousExitWasClean} sendable:{Artifacts.HasAnythingToSend} missing:{Artifacts.Missing.Count}");
+            var lastSessionDirectory = GameSystemPaths.BugReportLastSessionDirectory;
+
+            // 印もディレクトリも無い＝初回インストール直後。異常終了と読むと、一度も遊んでいないテスターに確認ゲートが出る
+            // No marks and no directory means a fresh install; reading that as a crash would show the gate to a tester who never played
+            var isFirstBoot = !Directory.Exists(lastSessionDirectory);
+
+            var currentProcessId = RecordingProcessDirectories.CurrentProcessId();
+            var takeover = RecordingProcessDirectories.TakeOverPreviousProcessDirectories(GameSystemPaths.BugReportRecordingDirectory, currentProcessId);
+
+            var request = new PreviousSessionSalvageRequest
+            {
+                IsFirstBoot = isFirstBoot,
+                IsRemoteConnection = isRemoteConnection,
+                WorldSnapshotDirectory = worldSnapshotDirectory,
+                LastSessionDirectory = lastSessionDirectory,
+                SkippedLiveProcessIds = takeover.SkippedLiveProcessIds,
+                PreviousSessions = CollectPreviousSessions(currentProcessId, takeover),
+            };
+
+            Artifacts = Salvage(request);
+            Debug.Log($"前回セッションの退避が終わりました clean:{Artifacts.PreviousExitWasClean} firstBoot:{Artifacts.IsFirstBoot} salvagedPids:{Artifacts.SalvagedProcessIds.Count} sendable:{Artifacts.HasAnythingToSend} missing:{Artifacts.Missing.Count}");
             return Artifacts;
         }
 
-        public static PreviousSessionArtifacts Salvage(bool previousExitWasClean, string recordingDirectory, string worldSnapshotDirectory, string lastSessionDirectory)
+        // 退避が未実行のまま判定が要るときの省略時規則。極性と警告をここ1箇所へ集め、後から1行で反転できるようにする
+        // The default rule when a verdict is needed before the salvage ran; the polarity and its warning live here so one line can flip them
+        public static PreviousSessionArtifacts ArtifactsOrNotRunDefault()
         {
-            var artifacts = new PreviousSessionArtifacts { PreviousExitWasClean = previousExitWasClean };
-            Directory.CreateDirectory(lastSessionDirectory);
+            if (Artifacts != null) return Artifacts;
+            Debug.LogWarning("PreviousSessionSalvage: 退避が未実行のため「前回は正常終了」として扱います（起動順が変わり退避より前へ到達しています）");
+            return new PreviousSessionArtifacts { PreviousExitWasClean = true };
+        }
 
-            // 正常終了なら前回分は要らない。録画だけ捨て、スナップショットはサーバーのリングに任せる
-            // A clean exit needs nothing kept: drop the recording and leave the snapshots to the server's ring
-            if (previousExitWasClean)
+        public static PreviousSessionArtifacts Salvage(PreviousSessionSalvageRequest request)
+        {
+            var artifacts = new PreviousSessionArtifacts { IsFirstBoot = request.IsFirstBoot };
+            ReportSkippedLiveProcesses(request, artifacts);
+
+            var creation = SalvageFileOperations.CreateDirectory(request.LastSessionDirectory);
+            if (!creation.Succeeded) ReportMissing(artifacts, "lastSession", creation.FailureReason);
+
+            var recordingDestination = Path.Combine(request.LastSessionDirectory, BugReportBundleLayout.RecordingDirectoryName);
+            var snapshotDestination = Path.Combine(request.LastSessionDirectory, BugReportBundleLayout.SnapshotDirectoryName);
+
+            var uncleanSessions = new List<PreviousProcessSession>();
+            foreach (var session in request.PreviousSessions)
+                if (session.ExitedCleanly) DiscardCleanSessionRecording(session, artifacts);
+                else uncleanSessions.Add(session);
+
+            artifacts.PreviousExitWasClean = uncleanSessions.Count == 0;
+
+            // 正常終了なら前回分は要らない。前世代の退避物も含めて空にし、1世代だけ保持する規律を毎回満たす
+            // A clean exit needs nothing kept: the previous generation is emptied too, so "keep exactly one generation" holds every boot
+            if (artifacts.PreviousExitWasClean)
             {
-                ClearDirectory(recordingDirectory);
+                ClearPreviousGeneration(recordingDestination, artifacts);
+                ClearPreviousGeneration(snapshotDestination, artifacts);
                 return artifacts;
             }
 
-            artifacts.RecordingDirectory = MoveFilesInto(recordingDirectory, Path.Combine(lastSessionDirectory, "recording"), "recording", artifacts);
-            artifacts.SnapshotsDirectory = MoveFilesInto(worldSnapshotDirectory, Path.Combine(lastSessionDirectory, "snapshots"), "snapshots", artifacts);
+            MoveUncleanRecordings(uncleanSessions, recordingDestination, artifacts);
+            MoveWorldSnapshots(request, snapshotDestination, artifacts);
+
+            artifacts.RecordingDirectory = ResolveSalvagedDirectory(recordingDestination, BugReportBundleLayout.RecordingDirectoryName, artifacts);
+            artifacts.SnapshotsDirectory = ResolveSalvagedDirectory(snapshotDestination, BugReportBundleLayout.SnapshotDirectoryName, artifacts);
 
             artifacts.PlayerLogPath = PlayerLogLocator.PreviousSessionLogPath();
-            if (artifacts.PlayerLogPath == null) artifacts.Missing.Add(new MissingItem { Item = "playerLog", Reason = "前回セッションのPlayer-prev.logが見つからない" });
+            if (artifacts.PlayerLogPath == null) ReportMissing(artifacts, "playerLog", "前回セッションのPlayer-prev.logが見つからない");
 
             var crashDumpScan = CrashDumpLocator.FindDumpFiles();
             artifacts.CrashDumpFiles = crashDumpScan.Files;
-            if (artifacts.CrashDumpFiles.Count == 0) artifacts.Missing.Add(new MissingItem { Item = "crashDump", Reason = CrashDumpMissingReason(crashDumpScan) });
+            if (artifacts.CrashDumpFiles.Count == 0) ReportMissing(artifacts, "crashDump", CrashDumpLocator.MissingReason(crashDumpScan));
 
             return artifacts;
         }
 
-        // 「そもそも無かった」と「他アプリとして除外した結果0件」を読み分けられる理由文にする。無音の縮退を残さない
-        // The reason distinguishes "there were none" from "all were filtered out as other apps'", leaving no silent degradation
-        private static string CrashDumpMissingReason(CrashDumpScanResult scan)
+        // 録画の有無に依らず、印を置いたまま消えたpidも前回セッションとして数える（ffmpegが無い起動でもクラッシュは拾う）
+        // A pid that left a mark counts as a previous session even with no recording, so a boot without ffmpeg still reports its crash
+        private static List<PreviousProcessSession> CollectPreviousSessions(int currentProcessId, RecordingProcessTakeover takeover)
         {
-            var roots = string.Join(", ", CrashDumpLocator.CandidateRoots());
-            if (scan.ExcludedAsOtherApps == 0) return $"クラッシュダンプが見つからない（探索先: {roots}）";
-            return $"共有置き場に{scan.ExcludedAsOtherApps}件あったが自プロセス（{Application.productName} / {CrashDumpLocator.EditorProcessName}）のものは0件だった（除外元: {string.Join(", ", scan.ExcludedRoots)}、探索先: {roots}）";
+            var recordingDirectories = new Dictionary<int, string>();
+            foreach (var directory in takeover.Directories) recordingDirectories[directory.ProcessId] = directory.Path;
+
+            var processIds = new List<int>(recordingDirectories.Keys);
+            foreach (var processId in CleanExitMarker.SessionProcessIds())
+            {
+                if (processId == currentProcessId || takeover.SkippedLiveProcessIds.Contains(processId)) continue;
+                if (!recordingDirectories.ContainsKey(processId)) processIds.Add(processId);
+            }
+
+            var sessions = new List<PreviousProcessSession>();
+            foreach (var processId in processIds)
+                sessions.Add(new PreviousProcessSession
+                {
+                    ProcessId = processId,
+                    ExitedCleanly = CleanExitMarker.ConsumeExitCleanFlag(processId),
+                    RecordingDirectory = recordingDirectories.GetValueOrDefault(processId),
+                });
+            return sessions;
         }
 
-        // 中身のあるディレクトリだけを退避先へ移す。GameFrameRecorderはpid_<PID>のサブディレクトリへ書くため再帰的に走査する
-        // Moves only a non-empty directory; recurses because GameFrameRecorder writes under a pid_<PID> subdirectory
-        private static string MoveFilesInto(string source, string destination, string item, PreviousSessionArtifacts artifacts)
+        private static void ReportSkippedLiveProcesses(PreviousSessionSalvageRequest request, PreviousSessionArtifacts artifacts)
         {
-            if (source == null || !Directory.Exists(source))
+            foreach (var processId in request.SkippedLiveProcessIds)
             {
-                artifacts.Missing.Add(new MissingItem { Item = item, Reason = $"退避元が無い: {source}" });
-                return null;
+                var reason = $"pid {processId} は実行中のため退避も削除もしていない（並列起動のセッション）";
+                Debug.LogWarning($"前回セッションの退避: {reason}");
+                artifacts.Missing.Add(new MissingItem { Item = BugReportBundleLayout.RecordingDirectoryName, Reason = reason });
             }
-            var files = Directory.GetFiles(source, "*", SearchOption.AllDirectories);
-            if (files.Length == 0)
-            {
-                artifacts.Missing.Add(new MissingItem { Item = item, Reason = $"退避元が空: {source}" });
-                return null;
-            }
-
-            ClearDirectory(destination);
-            Directory.CreateDirectory(destination);
-            // サブディレクトリ構造(pid_<PID>/segment-0.mp4等)を保ったまま退避先へ移す
-            // Preserve the subdirectory structure (pid_<PID>/segment-0.mp4, etc.) while moving into the destination
-            foreach (var file in files)
-            {
-                var relativePath = Path.GetRelativePath(source, file);
-                var destinationFile = Path.Combine(destination, relativePath);
-                Directory.CreateDirectory(Path.GetDirectoryName(destinationFile));
-                File.Move(file, destinationFile);
-            }
-            return destination;
         }
 
-        // source配下のファイルとサブディレクトリを再帰的に削除する。source自体は残す
-        // Recursively removes files and subdirectories under source; source itself is left intact
-        private static void ClearDirectory(string directory)
+        private static void DiscardCleanSessionRecording(PreviousProcessSession session, PreviousSessionArtifacts artifacts)
         {
-            if (!Directory.Exists(directory)) return;
-            foreach (var file in Directory.GetFiles(directory)) File.Delete(file);
-            foreach (var subDirectory in Directory.GetDirectories(directory)) Directory.Delete(subDirectory, true);
+            if (session.RecordingDirectory == null) return;
+            var deletion = SalvageFileOperations.DeleteDirectory(session.RecordingDirectory);
+            if (!deletion.Succeeded) ReportMissing(artifacts, BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId} の録画を消せなかった: {deletion.FailureReason}");
+        }
+
+        private static void ClearPreviousGeneration(string destination, PreviousSessionArtifacts artifacts)
+        {
+            var clearing = SalvageFileOperations.ClearDirectory(destination);
+            if (!clearing.Succeeded) ReportMissing(artifacts, Path.GetFileName(destination), $"前世代の退避物を消せなかった: {clearing.FailureReason}");
+        }
+
+        // 新しい退避物があるときだけ退避先を空にする。無いまま空にすると、前世代の本物のクラッシュ資料が二度と提示されない
+        // The destination is emptied only when new files arrive; emptying it regardless would drop an older real crash's evidence for good
+        private static void MoveUncleanRecordings(List<PreviousProcessSession> uncleanSessions, string destination, PreviousSessionArtifacts artifacts)
+        {
+            var hasNewRecording = false;
+            foreach (var session in uncleanSessions) hasNewRecording |= session.RecordingDirectory != null;
+            if (!hasNewRecording) return;
+
+            ClearPreviousGeneration(destination, artifacts);
+            foreach (var session in uncleanSessions)
+            {
+                if (session.RecordingDirectory == null) continue;
+                var processDirectoryName = RecordingProcessDirectories.ProcessDirectoryPrefix + session.ProcessId;
+                var move = SalvageFileOperations.MoveDirectory(session.RecordingDirectory, Path.Combine(destination, processDirectoryName));
+                if (move.Succeeded) artifacts.SalvagedProcessIds.Add(session.ProcessId);
+                else ReportMissing(artifacts, BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId}: {move.FailureReason}");
+            }
+        }
+
+        // リモート接続にはスナップショットを書く内蔵サーバーがそもそも居ない。退避失敗と同じ理由文にすると毎回「失敗」に見える
+        // A remote connection has no embedded server writing snapshots at all; sharing the failure wording would read as a failure every time
+        private static void MoveWorldSnapshots(PreviousSessionSalvageRequest request, string destination, PreviousSessionArtifacts artifacts)
+        {
+            if (request.IsRemoteConnection)
+            {
+                ReportMissing(artifacts, BugReportBundleLayout.SnapshotDirectoryName, "リモート接続のセッションのため内蔵サーバーのスナップショットは存在しない");
+                return;
+            }
+
+            var move = SalvageFileOperations.MoveFilesInto(request.WorldSnapshotDirectory, destination);
+            if (!move.Succeeded) ReportMissing(artifacts, BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
+        }
+
+        // 退避先に中身があれば、今回移した分でも前世代の持ち越しでも同じく提示する（次回起動で聞き直せるという約束を守る）
+        // Whatever sits in the destination is presented, newly moved or carried over, keeping the promise that the next boot can ask again
+        private static string ResolveSalvagedDirectory(string destination, string item, PreviousSessionArtifacts artifacts)
+        {
+            var probe = SalvageFileOperations.ProbeHasAnyFile(destination);
+            if (probe.Succeeded) return destination;
+            ReportMissing(artifacts, item, probe.FailureReason);
+            return null;
+        }
+
+        // 欠損は必ず開発者ログと報告の両方へ積む。片方だけだと拒否理由が誰にも届かない
+        // Every gap lands in both the developer log and the report; one alone leaves the reason unreachable
+        private static void ReportMissing(PreviousSessionArtifacts artifacts, string item, string reason)
+        {
+            Debug.LogWarning($"前回セッションの退避で欠損 {item}: {reason}");
+            artifacts.Missing.Add(new MissingItem { Item = item, Reason = reason });
         }
     }
 }

@@ -1,12 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using NUnit.Framework;
 
 namespace Client.Tests.BugReport
 {
     public class PreviousSessionSalvageTest
     {
+        private const int DeadProcessId = 1234;
+        private const int LiveProcessId = 5678;
+
         private string _root;
         private string _recording;
         private string _snapshots;
@@ -21,7 +26,6 @@ namespace Client.Tests.BugReport
             _lastSession = Path.Combine(_root, "last-session");
             Directory.CreateDirectory(_recording);
             Directory.CreateDirectory(_snapshots);
-            File.WriteAllText(Path.Combine(_recording, "seg_00.mp4"), "video");
             File.WriteAllText(Path.Combine(_snapshots, "tick_600.json"), "{}");
             File.WriteAllText(Path.Combine(_snapshots, "packets_601.bin"), "b");
         }
@@ -33,82 +37,132 @@ namespace Client.Tests.BugReport
         }
 
         [Test]
-        public void 異常終了なら録画とスナップショットを退避する()
+        public void 異常終了なら自分以外の死んだpidの録画とスナップショットを退避する()
         {
-            var artifacts = PreviousSessionSalvage.Salvage(false, _recording, _snapshots, _lastSession);
+            var deadDirectory = CreateProcessRecording(DeadProcessId);
+
+            var artifacts = PreviousSessionSalvage.Salvage(Request(Session(DeadProcessId, false, deadDirectory)));
 
             Assert.IsFalse(artifacts.PreviousExitWasClean);
-            Assert.IsTrue(File.Exists(Path.Combine(artifacts.RecordingDirectory, "seg_00.mp4")));
+            Assert.Contains(DeadProcessId, artifacts.SalvagedProcessIds);
+            Assert.IsTrue(File.Exists(Path.Combine(artifacts.RecordingDirectory, $"pid_{DeadProcessId}", "segment-0.mp4")));
             Assert.IsTrue(File.Exists(Path.Combine(artifacts.SnapshotsDirectory, "tick_600.json")));
-            Assert.IsTrue(File.Exists(Path.Combine(artifacts.SnapshotsDirectory, "packets_601.bin")));
             Assert.IsTrue(artifacts.HasAnythingToSend);
 
             // 次のセッションのリングが前回分の上に書かないよう、元は空になっている
             // The originals are emptied so the next session's ring never writes on top of them
-            Assert.AreEqual(0, Directory.GetFiles(_recording).Length);
-            Assert.AreEqual(0, Directory.GetFiles(_snapshots).Length);
+            Assert.IsFalse(Directory.Exists(deadDirectory));
+            Assert.AreEqual(0, Directory.GetFiles(_snapshots, "*", SearchOption.AllDirectories).Length);
         }
 
         [Test]
-        public void 正常終了なら退避せず元を消す()
+        public void 生存している他プロセスの録画は退避も削除もせず理由を残す()
         {
-            var artifacts = PreviousSessionSalvage.Salvage(true, _recording, _snapshots, _lastSession);
+            var liveDirectory = CreateProcessRecording(LiveProcessId);
+            var request = Request();
+            request.SkippedLiveProcessIds.Add(LiveProcessId);
+
+            var artifacts = PreviousSessionSalvage.Salvage(request);
+
+            // 実プレイ中のプロセスの映像を奪うと、そのセッションのバグ報告から動画が黙って消える
+            // Stealing a live session's footage would silently erase the video from that session's own bug report
+            Assert.IsTrue(File.Exists(Path.Combine(liveDirectory, "segment-0.mp4")));
+            StringAssert.Contains($"pid {LiveProcessId}", MissingReasons(artifacts));
+        }
+
+        [Test]
+        public void 正常終了なら死んだpidの録画をディレクトリごと消す()
+        {
+            var deadDirectory = CreateProcessRecording(DeadProcessId);
+
+            var artifacts = PreviousSessionSalvage.Salvage(Request(Session(DeadProcessId, true, deadDirectory)));
 
             Assert.IsTrue(artifacts.PreviousExitWasClean);
             Assert.IsNull(artifacts.RecordingDirectory);
+
+            // 空のpid_<PID>を残すと recording/ に積み上がり、起動ごとの全走査が単調に重くなる
+            // Leaving an empty pid_<PID> behind piles them up in recording/ and makes every boot's full scan monotonically heavier
+            Assert.IsFalse(Directory.Exists(deadDirectory));
+            Assert.AreEqual(0, Directory.GetDirectories(_recording).Length);
+        }
+
+        [Test]
+        public void 正常終了なら前世代の退避物も消して1世代だけ保持する()
+        {
+            var previousGeneration = Path.Combine(_lastSession, "recording", "pid_777");
+            Directory.CreateDirectory(previousGeneration);
+            File.WriteAllText(Path.Combine(previousGeneration, "segment-0.mp4"), "old");
+
+            PreviousSessionSalvage.Salvage(Request());
+
+            Assert.AreEqual(0, Directory.GetFiles(Path.Combine(_lastSession, "recording"), "*", SearchOption.AllDirectories).Length);
+        }
+
+        [Test]
+        public void 退避元が空なら前世代の退避物を読み戻して聞き直せる()
+        {
+            var previousGeneration = Path.Combine(_lastSession, "recording", "pid_777");
+            Directory.CreateDirectory(previousGeneration);
+            File.WriteAllText(Path.Combine(previousGeneration, "segment-0.mp4"), "old");
+
+            var artifacts = PreviousSessionSalvage.Salvage(Request(Session(DeadProcessId, false, null)));
+
+            // 「前回分は last-session に残るので次回起動で聞き直せる」を実際に成立させる経路
+            // The path that actually makes "the salvage stays in last-session so the next boot can ask again" true
+            Assert.AreEqual(Path.Combine(_lastSession, "recording"), artifacts.RecordingDirectory);
+            Assert.IsTrue(File.Exists(Path.Combine(previousGeneration, "segment-0.mp4")));
+        }
+
+        [Test]
+        public void リモート接続ならスナップショットの不在を退避失敗と書かない()
+        {
+            var request = Request(Session(DeadProcessId, false, null));
+            request.IsRemoteConnection = true;
+
+            var artifacts = PreviousSessionSalvage.Salvage(request);
+
             Assert.IsNull(artifacts.SnapshotsDirectory);
-            Assert.AreEqual(0, Directory.GetFiles(_recording).Length);
-
-            // スナップショットはサーバーのリングが世代管理するので消さない
-            // Snapshots stay because the server ring manages their generations
-            Assert.AreEqual(2, Directory.GetFiles(_snapshots).Length);
+            StringAssert.Contains("リモート接続", MissingReasons(artifacts));
         }
 
         [Test]
-        public void 退避元が空でも欠損理由を残して続行する()
+        public void 初回起動は異常終了として扱わない()
         {
-            File.Delete(Path.Combine(_recording, "seg_00.mp4"));
-            var artifacts = PreviousSessionSalvage.Salvage(false, _recording, "/nonexistent/snapshots", _lastSession);
+            var request = Request();
+            request.IsFirstBoot = true;
 
-            Assert.IsNull(artifacts.RecordingDirectory);
-            Assert.IsNull(artifacts.SnapshotsDirectory);
-            StringAssert.Contains("recording", string.Join(",", artifacts.Missing.ConvertAll(m => m.Item)));
-            StringAssert.Contains("snapshots", string.Join(",", artifacts.Missing.ConvertAll(m => m.Item)));
+            var artifacts = PreviousSessionSalvage.Salvage(request);
+
+            Assert.IsTrue(artifacts.IsFirstBoot);
+            Assert.IsTrue(artifacts.PreviousExitWasClean);
         }
 
-        [Test]
-        public void 異常終了ならpidサブディレクトリの録画も退避する()
+        private string CreateProcessRecording(int processId)
         {
-            // GameFrameRecorderはpid_<PID>配下に書くため、その構造を再現する
-            // Reproduces GameFrameRecorder's layout, which writes under a pid_<PID> subdirectory
-            var pidDirectory = Path.Combine(_recording, "pid_1234");
-            Directory.CreateDirectory(pidDirectory);
-            File.WriteAllText(Path.Combine(pidDirectory, "segment-0.mp4"), "video");
-
-            var artifacts = PreviousSessionSalvage.Salvage(false, _recording, _snapshots, _lastSession);
-
-            Assert.IsTrue(File.Exists(Path.Combine(artifacts.RecordingDirectory, "pid_1234", "segment-0.mp4")));
-            Assert.IsTrue(File.Exists(Path.Combine(artifacts.RecordingDirectory, "seg_00.mp4")));
-
-            // サブディレクトリ含め、次セッションのリングが上書きしないよう元は空になっている
-            // The original is fully emptied, subdirectories included, so the next session's ring never overwrites it
-            Assert.AreEqual(0, Directory.GetFiles(_recording, "*", SearchOption.AllDirectories).Length);
+            var directory = RecordingProcessDirectories.DirectoryFor(_recording, processId);
+            Directory.CreateDirectory(Path.Combine(directory, "live_0000"));
+            File.WriteAllText(Path.Combine(directory, "segment-0.mp4"), "video");
+            return directory;
         }
 
-        [Test]
-        public void 正常終了ならpidサブディレクトリごと録画を消す()
+        private static PreviousProcessSession Session(int processId, bool exitedCleanly, string recordingDirectory)
         {
-            var pidDirectory = Path.Combine(_recording, "pid_5678");
-            Directory.CreateDirectory(pidDirectory);
-            File.WriteAllText(Path.Combine(pidDirectory, "segment-0.mp4"), "video");
+            return new PreviousProcessSession { ProcessId = processId, ExitedCleanly = exitedCleanly, RecordingDirectory = recordingDirectory };
+        }
 
-            var artifacts = PreviousSessionSalvage.Salvage(true, _recording, _snapshots, _lastSession);
+        private PreviousSessionSalvageRequest Request(params PreviousProcessSession[] sessions)
+        {
+            return new PreviousSessionSalvageRequest
+            {
+                WorldSnapshotDirectory = _snapshots,
+                LastSessionDirectory = _lastSession,
+                PreviousSessions = new List<PreviousProcessSession>(sessions),
+            };
+        }
 
-            Assert.IsNull(artifacts.RecordingDirectory);
-            // 録画リングが溜まり続けないよう、サブディレクトリごと消えている
-            // The subdirectory is removed too, so the recording ring never keeps piling up
-            Assert.AreEqual(0, Directory.GetFiles(_recording, "*", SearchOption.AllDirectories).Length);
-            Assert.IsFalse(Directory.Exists(pidDirectory));
+        private static string MissingReasons(PreviousSessionArtifacts artifacts)
+        {
+            return string.Join(" / ", artifacts.Missing.ConvertAll(missing => $"{missing.Item}:{missing.Reason}"));
         }
     }
 }
