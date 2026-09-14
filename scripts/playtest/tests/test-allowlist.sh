@@ -74,4 +74,40 @@ if PLAYTEST_ENV_FILE="$TMP/env.sh" CURL_CMD="$TMP/curl-401" STATE_FILE="$TMP/sta
 fi
 grep -q '401' "$TMP/401.log" || { echo "NG: 401がstderrに出ていない"; exit 1; }
 
+# GETの1回目が失敗し2回目以降なら成功するスタブでも、addは1回目の失敗で止まりPUTへ進まない。
+# 途中の失敗を後続呼び出しの成功で覆い隠して偽成功にしないことを確認する（回帰: 偽成功でexit 0になっていた）
+# Even with a stub whose GET fails on the first call and would succeed afterward, add must stop at the
+# first failure rather than proceed to PUT. Confirms a mid-flight failure is never papered over into a
+# false success (regression: this used to exit 0 without ever sending the PUT)
+echo '{"steamIds":["76561198000000003"]}' > "$TMP/flaky-state.json"
+rm -f "$TMP/flaky-count"
+cat > "$TMP/curl-flaky" <<'SH'
+#!/usr/bin/env bash
+state="$STATE_FILE"
+count_file="$FLAKY_COUNT_FILE"
+n=0
+[ -f "$count_file" ] && n="$(cat "$count_file")"
+n=$((n + 1))
+echo "$n" > "$count_file"
+method=GET; data=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -X) method="$2"; shift 2;;
+    --data) data="$2"; shift 2;;
+    *) shift;;
+  esac
+done
+if [ "$n" = "1" ]; then printf '{"error":"unauthorized"}\n401'; exit 0; fi
+if [ "$method" = "PUT" ]; then printf '%s' "$data" > "$state"; printf '%s\n200' "$data"; else printf '%s\n200' "$(cat "$state")"; fi
+SH
+chmod +x "$TMP/curl-flaky"
+before="$(cat "$TMP/flaky-state.json")"
+if PLAYTEST_ENV_FILE="$TMP/env.sh" CURL_CMD="$TMP/curl-flaky" STATE_FILE="$TMP/flaky-state.json" FLAKY_COUNT_FILE="$TMP/flaky-count" \
+   bash "$HERE/../allowlist.sh" add 76561198000000099 >/dev/null 2>"$TMP/flaky.log"; then
+  echo "NG: 1回目GET失敗・2回目成功のケースでaddが成功してしまった（偽成功）"; exit 1
+fi
+after="$(cat "$TMP/flaky-state.json")"
+[ "$before" = "$after" ] || { echo "NG: 1回目GET失敗なのにstate.jsonが変わった"; exit 1; }
+grep -q 'added: 76561198000000099' "$TMP/flaky.log" && { echo "NG: 実際には失敗しているのにaddedログが出た"; exit 1; }
+
 echo "OK"
