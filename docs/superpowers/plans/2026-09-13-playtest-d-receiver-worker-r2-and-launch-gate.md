@@ -3612,6 +3612,43 @@ Allowed → PlaytestUploadRunner.RequestUpload → PlaytestUploader → outbox �
 - **Task 7 Step 8 の実測**: `SteamManagerInMainMenu=True, steam_appid.txt=True`（Task 7 実装時に MainMenu.unity を開いて実測）。両方 true なので `SteamManager` の配置漏れ・AppID 未配置は無く、plan E への `bd create` は不要。`SteamAPI.RestartAppIfNecessary(AppId_t.Invalid)` のままで Steam 経由起動時に AppID が解決されるかは Editor からは観測できず未確認のまま（配布ビルドでの確認事項）。
 - **Task 8 Step 6 の可否**: 実施。plan B は PR #1352 でマージ済みだったため `BugReportSubmitActionHandler` への送信直後フック（`IPlaytestUploadRequester` を DI で受ける形）を本planで入れた。
 
+### 無人実装セッション（2026-09-15）でコントローラーが下した裁定 — 裁定サイトでの追認待ち
+
+- A1 ブランチ名: 指示の `feature/save-migration-chain` は別plan（セーブ互換）の既存ブランチだったため、plan記載の `feature/playtest-receiver` を採用（前セッションの Task 1 コミットを継承）。
+- A2 CI: `tools/playtest-receiver` の `pnpm test`/`typecheck` と `scripts/playtest/tests` を CI に載せるか（現状ジョブ無し・本PRでは追加していない）。
+- A3 compatibility_date: plan の `2026-09-01` は手元 workerd 未対応のため `2026-08-22` へ。README に「デプロイ前に見直す」を明記。
+- A4 PUT の Content-Length: plan コード例は fail-open だったが Global Constraints の fail-closed を優先し、欠落 411 / 不正 400 / 超過 413。
+- A5 再 ack: 索引が無くても ACKED があれば 200（冪等）。at-least-once 前提と整合。
+- A6 HttpClient.Timeout: Infinite にし呼び出し毎 CancelAfter（session/complete 60s、PUT 60s+128KiB/s 換算・上限 900s）。
+- A7 パス文字: クライアントはセグメント毎に percent-encode、Worker は decodeURIComponent 後に空・`.`・`..`・区切り・制御文字のみ拒否（UTF-8 名を許容）。plan H は R2 キーを再デコードしてはならない。
+- A8 try/finally: catch 無しの finally による状態復帰は try-catch 禁止の対象外と解釈（PlaytestSession の走行フラグ）。
+- A9 照合中の関所: 配布版では EvaluateAsync 開始時点で `Checking`（IsBlocked）を固定し結果で置換（ポップアップを閉じて開始できる fail-open を封鎖）。
+- A10 EventModeAutoStart: `AfterSceneLoad` で View の Start より先に走り関所を素通しする（Task 7 レビュー Minor #8）。イベントモードビルドは照合対象外とするか、関所を EventModeAutoStart にも挿すか。
+- A11 送信可否判定: `PlaytestUploadPath.ForFile` に一本化（Worker 規則と同一）。plan のテスト（ASCII 限定）は書き換えた。
+- A12 PlaytestSession の1本化: `PlaytestLaunchGate.Session` を保持し、DI には `IPlaytestUploadRequester` のみ登録（開発者モードで Session=null のため RegisterInstance は不可）。
+- A13 Task 9 デプロイ: このマシンに wrangler 認証（OAuth/API token）と STEAM_WEB_API_KEY が無く未実施（bd moorestech-uet4.1）。`wrangler deploy --dry-run` はバンドル成功。
+- A14 plan 文書の追随: 型名一覧に `PlaytestUploadPath`・`PlaytestSessionResult`・`IPlaytestUploadRequester` を追記、try-catch 許容箇所に File.OpenRead と JSON パースを追記、Task 1 ブリーフの依存版（vitest 4 / pool 0.22）を更新する（最終レビュー時に実施予定）。
+
+### 全ブランチレビュー（moores-code-review 2026-09-15-0517）で保留した設計判断 — 裁定待ち
+
+無人セッションのため AskUserQuestion は使わず、以下を裁定サイト（独立レビュー）へ回す。各項目の案A〜C の全文は `moorestech_logs/harness/moores-code-review/runs/2026-09-15-0517/integrated.md` §設計判断。推奨は各案A。
+
+- **D1（C1・7系統一致）配布版の関所が「照合前」「関所外」の起動経路を素通しする（fail-open）**: `Current` の初期値と `ResetOnPlayMode` が `DeveloperMode` のため、`EventModeAutoStart`（`AfterSceneLoad`、View の `Start` より先）と `StandaloneTerrainQaBootstrap:93`（`LoadScene` 直呼び）が許可リスト未照合で開始できる。案A（推奨）: 未評価＝配布版なら `Checking`（Blocked）を初期値にする `InitialVerdict()` を置き、`StandaloneTerrainQaBootstrap` にも `RejectStart` を1行足す。案B: `TryLoadGameInitializer` ラッパへ関所を移す（ADR 0058 の再裁定）。案C: 未加入2経路に個別に `RejectStart` を足す。
+- **D2（C2）受け口 base URL の環境変数上書き**: `PlaytestReceiverConfig` の `MOORESTECH_PLAYTEST_RECEIVER_URL`（plan のコード例由来）が「バイパス環境変数は作らない」裁定の穴。案A（推奨）: 環境変数を廃止し `DefaultBaseUrl` 固定。案B: `build-info.json` に `receiverBaseUrl` を持たせ plan E が焼く。案C: 開発ビルドだけ env を許す。
+- **D3（C3）開発者モード判定が3箇所に分裂**: `RequiresCheck`・`Decide(hasBuildInfo, isSteamRunning, …)`・View の early return。案A（推奨）: `Decide(outcome, detail)` へ縮め `RequiresCheck` を正本に、`SetCurrent` を private 化。案B: 逆に `Decide` 1本に畳む。案C: `PlaytestLaunchEnvironment` 型へ分離。
+- **D4（C4）押し場2箇所の gate 判定複製**: `PlaytestLaunchGateView` と `BugReportSubmitActionHandler` が同じ「Allowed なら RequestUpload」を持つ。案A（推奨）: `PlaytestLaunchGate.RequestUploadIfAllowed(requester, callerName)` を足し押し場を1行に。案B: `IPlaytestUploadRequester.RequestUpload(callerName)` にして Runner が gate を読む。案C: `IPlaytestGateLookup` 注入。
+- **D5（C7）一時的失敗（回線断・5xx・408/429）が恒久失敗と同じ5回カウンタに合流**: 案A（推奨）: `PlaytestUploadFailureKind { Unauthorized, Retryable, PermanentForFile }` で分類し恒久由来のみ上限に数える。案B: 一時失敗に別上限（20回 or 30日）。案C: 現状維持。
+- **D6（C9）`EvaluateAsync` が例外・打ち切りで抜けると `Checking` に固着**: 案A（推奨）: catch 無し try/finally で `Checking` のまま抜ける経路を `LogError` ＋ `Unreachable` へ倒す。案B: 現状＋ログのみ。案C: View の再 Start で再照合可能にする。
+- **D7（C12）`TicketUnavailable` が「チケット不可」と「別の認証が走行中」を1値に潰す**: 案A（推奨）: `AuthenticationInFlight` を足し `Decide` を網羅 switch に。案B: 8 variant へ細分（localization 2キー追加）。案C: `Detail` で切り分け（現状）。
+- **D8（C14）結果型 `PlaytestSessionResult` / `PlaytestApiResult` の public 可変フィールド**: 案A（推奨）: private ctor ＋ 種別ごとの static factory ＋ readonly。案B: 抽象基底＋3派生。案C: 生成箇所の規律のみ。C15 の残り（`HasToken`/`SteamId` の削除）はこの裁定後に一括。
+- **D9（C17）2つの関所で拒否時の見え方が非対称**（ローカル開始は無反応）: 案A（推奨）: `PlaytestGateResult.BlockedMessage()` を足し `StartLocal` に `ServerConnectPopup` を配線（uloop 経由）。案B: `RejectStart(callerName, out blocked)`。案C: View の popup を閉じられなくする。
+- **D10（C19）`readAllowlist` が破損・型不正を `[]` に畳み、`allowlist.sh` の全置換 PUT で既存テスターが消える**: 案A（推奨）: `{status:"ok"|"unreadable"}` を返し、GET は 503 `allowlist-unreadable`、session は 500。案B: 200 本文に `source` を足す。案C: `allowlist.sh` 側だけ厳格化。
+- **D11（C27）`completeUpload` が無検査本文で ACK 済みの箱を pending へ復活させる**: 案A（推奨）: `getInbox` が ACKED を head で除外（真実は ACKED マーカー）。案B: ack を delete(index)→put(ACKED) 順にし索引不在を真実に。案C: 索引の customMetadata に state。いずれも complete への Content-Length 3段検査＋JSON 確認は必要。
+- **D12（C28）try-catch の許可境界（決定論 confirmed 3件: `File.OpenRead`・Steamworks interop）**: 案A（推奨）: AGENTS.md の許可境界に「OS/ネイティブ境界（ファイルI/O・P/Invoke）」を明記。案B: コードを規約に合わせる（事前検査へ置換）。案C: 現状（毎回 confirmed が出続ける）。
+- **D13（W13/W14）送信済みファイルの追跡と箱の刈り取り**: 途中失敗で既送ファイルを再送・送信済みバンドルがディスクに残り続ける。案A（推奨）: `UPLOAD_SENT` 記録で既送をスキップし `MarkUploaded` で箱を刈る。案B: `MarkUploaded` で箱ディレクトリを削除。案C: 現状維持（ADR に1行）。
+- **設計判断未満・未適用の Critical**: C5（走行中 RequestUpload のテスト）は D4 後に、C16（`#region Internal` 16件）は次パスで、C15 の残り3件は D8 後に。
+- **Warning 45件・Info 38件**は integrated.md に全件列挙（Warning のうち特に: `RegisterInstance` が全 MainGame 起動で Runner を生成／`Decide` と `ReasonKey` の fall-through 既定／`UPLOAD_ATTEMPTS` 破損時に上限へ到達しない／`ConnectServer.Connect` の関所にテスト無し／R2 put が宣言長と実バイト数を照合しない）。
+
 ## Execution Handoff
 
 planが完成し `docs/superpowers/plans/2026-09-13-playtest-d-receiver-worker-r2-and-launch-gate.md` に保存されました。新規セッションを開き、以下を貼り付けて実装を開始してください:
