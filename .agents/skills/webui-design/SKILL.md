@@ -103,10 +103,11 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
     持ち物パネルとは重ならない（重畳ではなく棲み分け）。研究画面では持ち物をstage左paddingごと画面左端へ寄せ、
     常時表示族のホットバー・装備HUDは描画しない。チャレンジHUD・キー操作ヒント・採掘進捗バーは
     このパネルより上の層（`.viewportOverlay` の `--z-stage-overlay-panel-chrome`）に残す。
-  - 例外（ADR 0040・出展モードの言語選択ゲート・§8.20）: 出展モード（`MOORESTECH_EVENT_MODE=1`）の
+  - 例外（ADR 0040・出展モードの言語選択ゲート・§8.20a）: 出展モード（`MOORESTECH_EVENT_MODE=1`）の
     言語選択ゲートのみ、全画面を不透明黒（`--event-language-gate-face`）で塗り潰してよい。
   - 例外（前回異常終了の確認ゲート・§8.21）: 前回セッションが異常終了していたときの送信確認ゲートのみ、
-    全画面を不透明黒（`--playtest-gate-face`）で塗り潰してよい。言語選択ゲートと同じ「開始を止めるゲート」族。
+    全画面を不透明黒（同じ `--event-language-gate-face`）で塗り潰してよい。言語選択ゲートと同じ「開始を止めるゲート」族で、
+    面色・z層トークンも1本に集約されている（§8.20）。
 - **背景ディムは App の screen backdrop 1枚だけが担う。** 各パネルが独自に画面を暗くしない。
 - **常時の縁ヴィネットは App の実viewport全面が担う。** 1280基準stageへ置くと横長画面の途中で切れるため、stage背景へ戻さない。ヴィネットの楕円寸法・中心・停止位置だけは、縦横比が異なる実viewportの四辺へ同じ比率で沿わせる必要があるため、固定長原則の例外としてviewport比例の`%`トークンを使う。
 - **重なり順は `index.css` の `--z-*` トークンのみで制御する。** 数値のz-index直書き禁止。
@@ -551,33 +552,56 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - 配置は常時表示HUD族の `.viewportOverlay` 内・画面下中央で、ホットバーの床（`--hotbar-floor-offset`）から `--tutorial-key-hint-hotbar-gap` だけ上に置き、採掘ゲージと重ねない。複数は `--tutorial-key-hint-gap` で縦積み。床位置の計算式（`--hotbar-floor-offset` + 各HUD固有のgap）は採掘プログレスバー（§8.18）と共有する。
 - 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。**文字色だけは `--tutorial-key-hint-color`（原色赤 `--tutorial-attention-red` = `#ff0000` を参照）で上書きする**: 面を持たずワールド上に浮くため白文字では埋もれる（ユーザー裁定 2026-08-22、色を原色赤へ引き上げたのはユーザー裁定 2026-08-28 / ADR 0039）。赤の適用はこのHUDだけで、共有様式 `:where(.keyHintText)` の白は変えない（インベントリ画面左下・研究画面左下は白のまま）。面・枠・光彩は持たず `pointer-events: none`。**拡縮ループは持つ**: `animation: var(--tutorial-pulse-strong) var(--tutorial-pulse-duration) ease-in-out infinite`（1.08 / 1200ms）（ユーザー裁定 2026-08-28。従来の「アニメーションは持たず」は撤回）。
 
-## 8.20 出展モードの言語選択ゲート
+## 8.20 全画面ゲートの共有外殻（`shared/ui/FullScreenGate`）
+
+- **開始を止める全画面ゲート3枚（言語選択・プレイテスト同意・前回異常終了）は `FullScreenGate` 1本を共有する。**
+  外殻（不透明面・Portal・z層・待機topicの購読・「待っていなければ何も描かない」判定）はこのコンポーネントだけが持ち、
+  各ゲートは `topic` / `testId` / `title` / `children`（本体）を渡すだけ。新しい全画面ゲートを足すときも独自のOverlayを書かず、これを使う。
+- **排他はコンポーネント自身が持つ**（同一ファイル内）。起動順（C#側と同じ：言語選択→同意→前回異常終了、`GatePrecedence`）の中で最も手前のゲートだけを描き、
+  複数が同時に待つ経路は現状無いが、3枚とも無条件マウントされるためWeb側にも排他が要る。
+- 面色は `--event-language-gate-face`（不透明黒）、z層は `--z-portal-event-language-gate` の1本を3枚が共有する
+  （**旧 `--playtest-gate-face` / `--z-portal-playtest-gate` は削除済み**。前回異常終了ゲートは独自トークンを持たない）。
+- 見出し・本文の最大幅は `--full-screen-gate-text-width`（900px）の1本を3枚が共有する
+  （**旧 `--playtest-gate-body-width` / `--playtest-gate-title-width` は削除済み**）。無制約だと画面端まで達し
+  左右の文字が余白ゼロで接触するための上限であり、狭いビューポートでの左右余白そのものは `FullScreenGate` 側の
+  固定長パディングが別途担う。
+- **辞書配信前の文言は `t(key, {}, fallback)` の1回呼びで書く。** `useI18n().t` は `dictionaryAbsent` のとき
+  第3引数の `fallback` をそのまま返す（`shared/i18n/i18nStore.ts` の `createTranslator`）ので、呼び出し側で
+  `status === "ready" ? t(key) : fallback` のような分岐を新たに書かない。ゲート系の辞書非依存文言は
+  `shared/i18n/dictionaryIndependentText.ts` の `DictionaryIndependentText` にまとめて持つ。
+
+## 8.20a 出展モードの言語選択ゲート
 
 - **§1「画面全体を不透明な面で塗り潰す禁止」の2つ目の例外**（ADR 0040）。出展モード（`MOORESTECH_EVENT_MODE=1`）で
   ロード完了後・オープニングスキット前に出し、言語が選ばれるまで待つ。世界を透かすと来場者が
   「まだ遊べる」と誤解して操作でき、その入力が最初の操作として無操作タイマーを誤武装するため、面は不透明にする。
-- 面色は `--event-language-gate-face`（不透明黒）、z層は `--z-portal-event-language-gate` で
-  再接続オーバーレイより前。トースト・再接続表示はこの下に隠れるため、押下が通らなかったことは
+  外殻は §8.20 の `FullScreenGate`。トースト・再接続表示はこの下に隠れるため、押下が通らなかったことは
   ゲート自身が辞書非依存の1行（`DictionaryIndependentText`）で伝える。
 - 見出しは英語固定リテラル、選択肢は各言語の母国語表記。選び直し導線は置かない（誤選択は無操作復帰で回収する）。
 - 待機中だけ本体をマウントし、通常起動では言語一覧を取りに行かない。
 
-## 8.21 前回異常終了の確認ゲート
+## 8.21 前回異常終了の確認ゲート・プレイテスト同意ゲート
 
-- **§1「画面全体を不透明な面で塗り潰す禁止」の例外**（§9 の列挙では §8.12 のスキット暗転・§8.20 の出展モード言語選択ゲートに続く3つ目）。前回セッションが異常終了していたとき、
-  ロード完了後・言語選択ゲートの直後に出し、送るか送らないかが答えられるまで待つ。
-  世界を透かすと「もう遊べる」と読めてしまい、答えないまま操作が始まって確認が永久に流れるため、面は不透明にする。
-- 面色は `--playtest-gate-face`（不透明黒）、z層は `--z-portal-playtest-gate` で再接続オーバーレイより前。
-  言語選択ゲートと同層に置く（両者が同時に待つ経路は無い）。
-- 見出し・本文・ボタンは辞書経由（`L.ui.playtest.crashGate.*`）。記述欄は§8.9の検索入力族の様式で、
-  寸法だけ `--playtest-gate-textarea-*` の固定長を持つ。説明文は任意で、どちらのボタンでも待機が解ける。
+- **§1「画面全体を不透明な面で塗り潰す禁止」の例外**（§9 の列挙では §8.12 のスキット暗転・§8.20a の出展モード言語選択ゲートに続く3つ目）。
+  外殻は §8.20 の `FullScreenGate` を言語選択ゲートと共有する（面色・z層とも同一トークン。両者が同時に待つ経路は無い）。
+- **前回異常終了の確認ゲート**（`CrashReportGate`）: 前回セッションが異常終了していたとき、ロード完了後・言語選択ゲートの直後に出し、
+  送るか送らないかが答えられるまで待つ。世界を透かすと「もう遊べる」と読めてしまい、答えないまま操作が始まって確認が永久に流れるため、面は不透明にする。
+  見出し・本文・ボタンは辞書経由（`L.ui.playtest.crashGate.*`）。記述欄は§8.9の検索入力族の様式で、寸法だけ `--playtest-gate-textarea-*` の固定長を持つ。
+  説明文は任意で、どちらのボタンでも待機が解ける。
+- **プレイテスト同意ゲート**（`PlaytestConsentGate`）: 初回起動時、送信内容（録画・スナップショット・ログ類）へ同意させる1回。
+  見出し・本文は `L.ui.playtest.consent.*`、了解ボタン1個だけで待機が解ける。
+- 両ゲートとも記述欄の様式は `shared/ui/textAreaField.module.css` の `.field` を `composes` で流用し（`playtestGate/style.module.css` の `.description`）、
+  ゲート固有の寸法だけをこのファイルで足す。
+- 応答の状態機械（押下可否・受理後の待ち・失敗理由ごとの文言）は両ゲート共通の `useGateAnswer` が持ち、
+  ローカライズキーは `L.ui.playtest.gate.*`（`answerAccepted` / `notClosed` / `disconnected` / `respondFailed`）に集約されている
+  （**`crashGate.respondFailed` 等ゲート別キーは無い**。同じキー族を両ゲートが共有する）。
 - 待機中だけ本体をマウントする。応答は1回だけ効かせ、押下と同時に両ボタンを閉じる。トースト・再接続表示は
-  この下に隠れるため、押下が通らなかったときだけ押下可へ戻し、その1行（`L.ui.playtest.crashGate.respondFailed`）を
-  ゲート自身が出す（§8.20 と同じ扱い）。
+  この下に隠れるため、押下が通らなかったときだけ押下可へ戻し、その1行（`L.ui.playtest.gate.respondFailed`）を
+  ゲート自身が出す（§8.20a と同じ扱い）。
 
 ## 9. やらないことリスト（再掲・明示）
 
-- 全画面UI・不透明な面での塗り潰し（例外は §8.12 のスキット暗転・§8.20 の出展モード言語選択ゲート・§8.21 の前回異常終了確認ゲートだけ）
+- 全画面UI・不透明な面での塗り潰し（例外は §8.12 のスキット暗転・§8.20a の出展モード言語選択ゲート・§8.21 の前回異常終了確認ゲート・プレイテスト同意ゲートだけ。外殻は §8.20 の `FullScreenGate` を共有）
 - Mantine標準テーマ剥き出しの見た目
 - UI装飾のための画像アセット追加
 - GamePanel 以外のパネル背景 / shared/ui 以外のスロット表現
