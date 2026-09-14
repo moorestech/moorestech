@@ -12,6 +12,10 @@ namespace Client.Game.InGame.BugReport.LastSession
     // The unit is the pid: a live process's records are left alone, and the reason for leaving them is kept in the report
     public static class PreviousSessionSalvage
     {
+        // 触らなかった生存pidの欠損名。録画の欠損と混ぜないための独立した綴り
+        // The item name for a live pid that was left alone; a separate spelling so it never mixes with a missing recording
+        public const string LiveProcessMissingItem = "liveProcess";
+
         public static PreviousSessionArtifacts Artifacts { get; private set; }
 
         public static PreviousSessionArtifacts RunAtStartup(bool isRemoteConnection, string worldSnapshotDirectory)
@@ -24,11 +28,15 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             var currentProcessId = RecordingProcessDirectories.CurrentProcessId();
 
+            // 印を先に読んでから生存集合を採る。逆順だと、集合を採った後に起動して印を書いたpidが集合に居ず、死んだ前回セッションとして畳まれる
+            // The marks are read before the liveness set; the reverse order would miss a pid that booted and marked itself after the set was taken, folding a live session as a dead one
+            var markedProcessIds = CleanExitMarker.SessionProcessIds();
+
             // 生存判定は3資源（録画・印・current/）で1つ。ここで1回だけ採り、録画と印の両方へ同じ集合を当てる
             // One liveness set serves all three resources (recordings, marks, current/); taken once here and applied to recordings and marks alike
             var liveProcessIds = RecordingProcessDirectories.CollectLiveProcessIds();
             var takeover = RecordingProcessDirectories.SelectTakeover(GameSystemPaths.BugReportRecordingDirectory, currentProcessId, liveProcessIds);
-            var scan = PreviousProcessScanner.Scan(currentProcessId, takeover, CleanExitMarker.SessionProcessIds(), liveProcessIds);
+            var scan = PreviousProcessScanner.Scan(currentProcessId, takeover, markedProcessIds, liveProcessIds);
 
             var request = new PreviousSessionSalvageRequest
             {
@@ -103,7 +111,10 @@ namespace Client.Game.InGame.BugReport.LastSession
                 {
                     var reason = $"pid {processId} は実行中のため退避も削除もしていない（並列起動のセッション）";
                     Debug.LogWarning($"前回セッションの退避: {reason}");
-                    artifacts.Missing.Add(new MissingItem { Item = BugReportBundleLayout.RecordingDirectoryName, Reason = reason });
+
+                    // itemは recording ではなく liveProcess。常時記録オフの並列Editorは録画自体を作らないため、recording名義だと「録画が欠けた」と読めてしまう
+                    // The item is liveProcess rather than recording: a parallel capture-off Editor makes no recording at all, so the recording name would read as "the footage is missing"
+                    artifacts.Missing.Add(new MissingItem { Item = LiveProcessMissingItem, Reason = reason });
                 }
             }
 

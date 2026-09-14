@@ -6,8 +6,11 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Game.Paths;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.BugReport
 {
@@ -58,6 +61,39 @@ namespace Client.Tests.BugReport
             {
                 CrashBundleWriter.RestoreSalvageFromUnfinishedBundle(Path.Combine(root, "box"), artifacts);
                 Assert.IsTrue(File.Exists(Path.Combine(salvage, "pid_1234", "segment-0.mp4")), "退避物が last-session へ戻っていない");
+                Assert.IsFalse(Directory.Exists(Path.Combine(root, "box")), "全件戻したのに未完成の箱が残っている");
+            }
+            finally
+            {
+                Directory.Delete(root, true);
+            }
+        }
+
+        // 戻しが途中で失敗すると退避物は箱と退避元に分断される。欠損として表明しないと、片肺の箱がREADY付きで出荷される
+        // A restore that fails midway splits the salvage between the box and the source; without declaring the gap a half-filled box ships with READY on it
+        [Test]
+        public void 戻せなかった退避物は欠損として表明される()
+        {
+            var root = Path.Combine(Path.GetTempPath(), $"moorestech-crash-{Guid.NewGuid():N}");
+            var salvage = Path.Combine(root, "last-session", "recording");
+            var unfinished = Path.Combine(root, "box", BugReportBundleLayout.RecordingDirectoryName, "pid_1234");
+            Directory.CreateDirectory(Path.Combine(salvage, "pid_1234"));
+            Directory.CreateDirectory(unfinished);
+            File.WriteAllText(Path.Combine(unfinished, "segment-0.mp4"), "video");
+
+            // 戻し先に同名ファイルが居ると File.Move が IOException を投げる。ロックや権限と同じ経路をテストから起こせる唯一の手
+            // A same-named file at the destination makes File.Move throw IOException, the only way a test can take the same path as a lock or a permission refusal
+            File.WriteAllText(Path.Combine(salvage, "pid_1234", "segment-0.mp4"), "already there");
+
+            var artifacts = new PreviousSessionArtifacts { PreviousExitWasClean = false, RecordingDirectory = salvage };
+
+            try
+            {
+                LogAssert.Expect(LogType.Error, new Regex("退避物を last-session へ戻せませんでした"));
+                CrashBundleWriter.RestoreSalvageFromUnfinishedBundle(Path.Combine(root, "box"), artifacts);
+
+                Assert.IsTrue(artifacts.Missing.Any(item => item.Item == BugReportBundleLayout.RecordingDirectoryName), "戻せなかった退避物が欠損として積まれていない");
+                Assert.IsTrue(Directory.Exists(Path.Combine(root, "box")), "戻し切れていないのに未完成の箱が消えている");
             }
             finally
             {

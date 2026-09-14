@@ -62,8 +62,10 @@ namespace Client.Game.InGame.BugReport.Recording.ProcessScope
 
         // 死んだpidが別プロセスに再利用されていると「生存」と読むが、その場合に触らないのは安全側の誤りなので許容する
         // A recycled pid reads as live, but erring toward leaving it alone is the safe direction, so it is accepted
-        // 録画・CLEAN_EXIT印・進行記録のcurrent/は同じこの集合で割る。資源ごとに判定を持つと、録画が無い生存pidだけ素通りする
-        // Recordings, the CLEAN_EXIT marks and the progress current/ all split on this one set; a per-resource verdict would let a live pid with no recording slip through
+        // 録画・CLEAN_EXIT印・進行記録のcurrent/は同じこの判定で割る。資源ごとに述語を持つと、録画が無い生存pidだけ素通りする
+        // Recordings, the CLEAN_EXIT marks and the progress current/ all split on this one verdict; a per-resource predicate would let a live pid with no recording slip through
+        // 集合そのものを共有するのは退避（録画と印）まで。current/ は起動順が別のため TakeOverPreviousProcessDirectories 経由でここを呼び直す
+        // The set itself is shared only across the salvage (recordings and marks); current/ runs at a different point in the boot and re-enters here through TakeOverPreviousProcessDirectories
         public static HashSet<int> CollectLiveProcessIds()
         {
             var ids = new HashSet<int>();

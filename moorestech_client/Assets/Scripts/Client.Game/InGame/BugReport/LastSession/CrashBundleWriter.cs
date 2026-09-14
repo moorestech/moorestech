@@ -131,25 +131,42 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Only when the box could not be closed does the moved salvage go back to last-session; this is what actually makes adjudication 1's "you can resend" true
         internal static void RestoreSalvageFromUnfinishedBundle(string bundleDirectory, PreviousSessionArtifacts artifacts)
         {
-            RestoreTree(Path.Combine(bundleDirectory, BugReportBundleLayout.RecordingDirectoryName), artifacts.RecordingDirectory);
-            RestoreTree(Path.Combine(bundleDirectory, BugReportBundleLayout.SnapshotDirectoryName), artifacts.SnapshotsDirectory);
+            var fullyRestored = RestoreTree(BugReportBundleLayout.RecordingDirectoryName, artifacts.RecordingDirectory);
+            fullyRestored &= RestoreTree(BugReportBundleLayout.SnapshotDirectoryName, artifacts.SnapshotsDirectory);
+
+            // 全件戻せたときだけ未完成の箱を消す。残っている箱そのものが「戻し切れなかった証跡がここにある」という印になる
+            // The unfinished box is deleted only when everything came back; a box left behind is itself the mark that evidence stayed in it
+            if (fullyRestored) DeleteUnfinishedBundle();
 
             #region Internal
 
-            void RestoreTree(string boxSubDirectory, string salvageDirectory)
+            bool RestoreTree(string item, string salvageDirectory)
             {
-                if (salvageDirectory == null || !Directory.Exists(boxSubDirectory)) return;
+                var boxSubDirectory = Path.Combine(bundleDirectory, item);
+                if (salvageDirectory == null || !Directory.Exists(boxSubDirectory)) return true;
                 // 退避物を last-session へ戻す move はディスクIO。他プロセスのロックで失敗しても未完成の箱を残すだけで済ませる
                 // Moving the salvage back to last-session is disk IO; a failure from another process's lock is tolerated by leaving it in the unfinished box
                 try
                 {
                     var restored = MoveTree(boxSubDirectory, salvageDirectory);
                     Debug.LogWarning($"箱を閉じられなかったため退避物を戻しました（次の送信で送り直せます） {salvageDirectory} files:{restored.Count}");
+                    return true;
                 }
                 catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
                 {
-                    Debug.LogError($"退避物を last-session へ戻せませんでした（未完成の箱 {boxSubDirectory} に残っています）: {e.Message}");
+                    // 戻しは途中まで進む。開発者ログだけでは次の再送に届かないため、欠損として artifacts へ積み manifest に必ず載せる
+                    // A restore stops midway, and the developer log never reaches the next resend, so the gap is pushed into artifacts and always lands in the manifest
+                    var reason = $"未完成の箱 {boxSubDirectory} へ退避物が残ったまま戻せなかった: {e.Message}";
+                    Debug.LogError($"退避物を last-session へ戻せませんでした: {reason}");
+                    artifacts.Missing.Add(new MissingItem { Item = item, Reason = reason });
+                    return false;
                 }
+            }
+
+            void DeleteUnfinishedBundle()
+            {
+                var deletion = SalvageFileOperations.DeleteDirectory(bundleDirectory);
+                if (!deletion.Succeeded) Debug.LogWarning($"閉じられなかった箱を消せませんでした（outbox に残りますがREADYが無いため運搬はされません） {bundleDirectory}: {deletion.FailureReason}");
             }
 
             #endregion

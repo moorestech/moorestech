@@ -83,9 +83,14 @@ namespace Client.Game.InGame.BugReport.LastSession
                     foreach (var file in Directory.GetFiles(root.Path, "*", SearchOption.AllDirectories))
                     {
                         var info = new FileInfo(file);
+
+                        // 年代で落とした件数を数えるのは「自分のダンプになり得たファイル」だけ。共有置き場の他アプリ分まで数えると件数が置き場の総数になり信号が読めない
+                        // Only files that could have been our own dump feed the too-old count; counting a shared root's other apps would turn the number into that folder's total and drown the signal
+                        if (!IsDumpLikeName(info.Name)) continue;
+                        var isOwnDump = !root.SharedWithOtherApps || IsOwnProcessDumpName(info.Name, UnityEngine.Application.productName);
                         if (info.LastWriteTimeUtc < since)
                         {
-                            excludedAsTooOld++;
+                            if (isOwnDump) excludedAsTooOld++;
                             continue;
                         }
                         candidates.Add(new CrashDumpCandidate { Root = root, FileName = info.Name, FullPath = file });
@@ -101,7 +106,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             // Every drop reaches the developer log; a silent drop makes "none found" and "filtered out" indistinguishable
             void LogExclusion()
             {
-                if (0 < result.ExcludedAsTooOld) Debug.Log($"前回セッションより古いクラッシュレポート{result.ExcludedAsTooOld}件を除外しました 境界:{since:o}（前回ログの最終書き込みから{-BoundaryMarginMinutes}分の余裕を引いた時刻）");
+                if (0 < result.ExcludedAsTooOld) Debug.Log($"自プロセスのクラッシュレポートのうち前回セッションより古い{result.ExcludedAsTooOld}件を除外しました 境界:{since:o}（前回ログの最終書き込みから{-BoundaryMarginMinutes}分の余裕を引いた時刻）");
                 if (result.ExcludedAsOtherApps == 0) return;
                 var condition = $"ファイル名が {UnityEngine.Application.productName}- または {EditorProcessName}- で始まること";
                 Debug.Log($"共有置き場のクラッシュレポート{result.ExcludedAsOtherApps}件を他アプリのものとして除外しました 条件:{condition} 除外元:{string.Join(", ", result.ExcludedRoots)}");
@@ -115,7 +120,7 @@ namespace Client.Game.InGame.BugReport.LastSession
         internal static string MissingReason(CrashDumpScanResult scan)
         {
             var roots = string.Join(", ", CandidateRoots());
-            var tooOld = scan.ExcludedAsTooOld == 0 ? "" : $"、前回セッションより古いとして{scan.ExcludedAsTooOld}件を除外";
+            var tooOld = scan.ExcludedAsTooOld == 0 ? "" : $"、自プロセスのもののうち前回セッションより古い{scan.ExcludedAsTooOld}件を除外";
             if (scan.ExcludedAsOtherApps == 0) return $"クラッシュダンプが見つからない（探索先: {roots}{tooOld}）";
             return $"共有置き場に{scan.ExcludedAsOtherApps}件あったが自プロセス（{UnityEngine.Application.productName} / {EditorProcessName}）のものは0件だった（除外元: {string.Join(", ", scan.ExcludedRoots)}、探索先: {roots}{tooOld}）";
 
@@ -148,16 +153,14 @@ namespace Client.Game.InGame.BugReport.LastSession
                 result.Files.Add(candidate.FullPath);
             }
             return result;
+        }
 
-            #region Internal
-
-            bool IsDumpLikeName(string fileName)
-            {
-                var name = fileName.ToLowerInvariant();
-                return name.EndsWith(".dmp") || name.EndsWith(".crash") || name.EndsWith(".ips") || name == "error.log";
-            }
-
-            #endregion
+        // クラッシュダンプらしい綴りかどうか。走査側と選別側の両方が同じ判定を使う
+        // Whether the name spells a crash dump; both the scan and the selection share this one verdict
+        private static bool IsDumpLikeName(string fileName)
+        {
+            var name = fileName.ToLowerInvariant();
+            return name.EndsWith(".dmp") || name.EndsWith(".crash") || name.EndsWith(".ips") || name == "error.log";
         }
 
         // 共有置き場のクラッシュレポートは <プロセス名>-<日付>.ips 形式。プロセス名ちょうどで始まるものだけを自分の記録として扱う
