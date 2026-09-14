@@ -1,5 +1,6 @@
 import type { Env } from "./env";
 import { notFound } from "./http";
+import { routeAdmin } from "./routes/admin";
 import { routeSession } from "./routes/session";
 import { routeUploads } from "./routes/uploads";
 
@@ -14,6 +15,9 @@ export async function handle(request: Request, env: Env, steamFetch: typeof fetc
 
   const uploads = await routeUploads(request, env, segments);
   if (uploads !== null) return uploads;
+
+  const admin = await routeAdmin(request, env, segments);
+  if (admin !== null) return admin;
 
   // 未知パスだけがR1逐語の {"error":"not_found"} を返す経路
   // Only the unknown-path route answers with R1's verbatim {"error":"not_found"}
