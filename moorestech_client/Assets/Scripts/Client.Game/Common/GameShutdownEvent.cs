@@ -16,8 +16,8 @@ namespace Client.Game.Common
         private static readonly List<IGameShutdownParticipant> _participants = new();
         private static bool _fired;
 
-        // ゲーム終了時に終了理由つきで発火するイベント
-        // Event fired with the shutdown reason when game shutdown begins
+        // 終了理由つきで発火するイベント
+        // Event carrying the shutdown reason
         public static IObservable<GameShutdownReason> OnGameShutdown => _onGameShutdown;
 
         // 起動シーケンスの開始でガードを戻す。初期化失敗が続いても各回の終了通知を落とさない
