@@ -81,6 +81,8 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Writing a mark runs inside the shutdown pipeline; an exception escaping here would strand both the save and Application.Quit
         private static void WriteMarker(string path, string label)
         {
+            // 起動直後・終了直前の印書き込みはディスクIO。権限や他Editorのロックで失敗しても起動/終了は続ける
+            // Writing the mark at boot or shutdown is disk IO; boot and shutdown continue even if permissions or another Editor's lock make it fail
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));

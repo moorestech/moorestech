@@ -45,6 +45,8 @@ namespace Client.Game.InGame.BugReport.LastSession
         public static SalvageOperationResult ClearDirectory(string directory)
         {
             if (directory == null || !Directory.Exists(directory)) return SalvageOperationResult.Success();
+            // 中身の列挙・削除はディスクIO。並走プロセスのロックや権限不足で個々のDelete呼び出しが失敗しうる
+            // Enumerating and deleting the contents is disk IO; a concurrent process's lock or missing permission can fail an individual Delete call
             try
             {
                 foreach (var file in Directory.GetFiles(directory)) File.Delete(file);
@@ -60,6 +62,8 @@ namespace Client.Game.InGame.BugReport.LastSession
         public static SalvageOperationResult DeleteDirectory(string directory)
         {
             if (directory == null || !Directory.Exists(directory)) return SalvageOperationResult.Success();
+            // ディレクトリごとの再帰削除はディスクIO。子孫のどれかが他プロセスに掴まれていると失敗しうる
+            // Recursively deleting the whole directory is disk IO; it can fail when any descendant is held open by another process
             try
             {
                 Directory.Delete(directory, true);
@@ -74,6 +78,8 @@ namespace Client.Game.InGame.BugReport.LastSession
         public static SalvageOperationResult DeleteFile(string path)
         {
             if (path == null || !File.Exists(path)) return SalvageOperationResult.Success();
+            // 単一ファイルの削除はディスクIO。ウイルススキャナ等の他プロセスに一時的にロックされて失敗しうる
+            // Deleting a single file is disk IO; a transient lock from another process such as a virus scanner can fail it
             try
             {
                 File.Delete(path);
@@ -90,6 +96,8 @@ namespace Client.Game.InGame.BugReport.LastSession
         public static SalvageOperationResult MoveDirectory(string source, string destination)
         {
             if (source == null || !Directory.Exists(source)) return SalvageOperationResult.Failure($"退避元が無い: {source}");
+            // ディレクトリの改名移動はディスクIO。移動先が別ボリュームだと非アトミックになりIOExceptionで失敗しうる
+            // Renaming the directory across is disk IO; moving across volumes loses atomicity and can throw IOException
             try
             {
                 if (Directory.Exists(destination)) Directory.Delete(destination, true);
@@ -108,6 +116,8 @@ namespace Client.Game.InGame.BugReport.LastSession
         public static SalvageOperationResult MoveFilesInto(string source, string destination)
         {
             if (source == null || !Directory.Exists(source)) return SalvageOperationResult.Failure($"退避元が無い: {source}");
+            // ファイル単位の移動と掃除はディスクIO。退避先の準備・個々のFile.Moveのどこで転んでも失敗しうる
+            // Moving files one by one and folding empty subdirectories is disk IO; a failure can strike anywhere from preparing the destination to any single File.Move
             try
             {
                 var files = Directory.GetFiles(source, "*", SearchOption.AllDirectories);
@@ -139,6 +149,8 @@ namespace Client.Game.InGame.BugReport.LastSession
         public static SalvageOperationResult ProbeHasAnyFile(string directory)
         {
             if (directory == null || !Directory.Exists(directory)) return SalvageOperationResult.Failure($"退避先が無い: {directory}");
+            // 退避先の走査はディスクIO。権限不足やロックで列挙自体が失敗しうる
+            // Scanning the salvage destination is disk IO; enumeration itself can fail from missing permission or a lock
             try
             {
                 if (Directory.GetFiles(directory, "*", SearchOption.AllDirectories).Length == 0) return SalvageOperationResult.Failure($"退避先が空: {directory}");

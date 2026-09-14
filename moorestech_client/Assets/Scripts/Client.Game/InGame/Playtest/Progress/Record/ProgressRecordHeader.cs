@@ -53,6 +53,8 @@ namespace Client.Game.InGame.Playtest.Progress
         // The boundary that reads a leftover session; returns null when broken so the caller drops it with a reason
         public static ProgressRecordHeader FromJson(string json)
         {
+            // DeserializeObjectは外部入力JSONのパース境界。前回セッションの壊れたヘッダもここで吸収しnullへ落とす
+            // DeserializeObject is the boundary for parsing externally-sourced JSON; a broken header from the previous session is absorbed here and turned into null
             try
             {
                 return JsonConvert.DeserializeObject<ProgressRecordHeader>(json, Settings);

@@ -29,6 +29,8 @@ namespace Client.Game.InGame.Playtest.Progress
 
         public static SalvageOperationResult WriteText(string path, string text)
         {
+            // 内容の書き出しはディスクIO。容量不足や権限で失敗しても終了パイプラインは止めない
+            // Writing the content is disk IO; running out of space or lacking permission must not stop the shutdown pipeline
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -46,6 +48,8 @@ namespace Client.Game.InGame.Playtest.Progress
         public static SalvageOperationResult OpenAppender(string path, out StreamWriter appender)
         {
             appender = null;
+            // 追記口を開くopenはディスクIO。他プロセスに掴まれている等で失敗しうる
+            // Opening the append handle is disk IO; it can fail when the file is held by another process, among other causes
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
@@ -62,6 +66,8 @@ namespace Client.Game.InGame.Playtest.Progress
         // Flushes per line so a crash loses at most the one line being written
         public static SalvageOperationResult AppendLine(StreamWriter appender, string line)
         {
+            // 1行ごとのwrite/flushはディスクIO。書き込み最中に容量不足で失敗しうる
+            // The per-line write and flush are disk IO; running out of space mid-write can fail them
             try
             {
                 appender.WriteLine(line);
@@ -76,6 +82,8 @@ namespace Client.Game.InGame.Playtest.Progress
 
         public static SalvageOperationResult CloseAppender(StreamWriter appender)
         {
+            // ハンドルのdisposeはディスクIO。バッファの最終flushが容量不足やロックで失敗しうる
+            // Disposing the handle is disk IO; the final buffered flush can fail from a full disk or a lock
             try
             {
                 appender.Dispose();
@@ -91,6 +99,8 @@ namespace Client.Game.InGame.Playtest.Progress
         {
             text = null;
             if (!File.Exists(path)) return SalvageOperationResult.Failure($"ファイルが無い: {path}");
+            // 全文読み込みはディスクIO。読んでいる最中に他プロセスに削除・ロックされて失敗しうる
+            // Reading the whole file is disk IO; another process deleting or locking it mid-read can fail this
             try
             {
                 text = File.ReadAllText(path);
@@ -106,6 +116,8 @@ namespace Client.Game.InGame.Playtest.Progress
         {
             lines = Array.Empty<string>();
             if (!File.Exists(path)) return SalvageOperationResult.Success();
+            // 全行読み込みもディスクIO。ReadTextと同じく読み取り中の削除・ロックで失敗しうる
+            // Reading all lines is disk IO too; like ReadText it can fail from a delete or lock mid-read
             try
             {
                 lines = File.ReadAllLines(path);

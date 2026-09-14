@@ -74,6 +74,8 @@ namespace Client.Game.InGame.BugReport
                 // 2段の資料を書くCopyとWriteは内側で段ごとに隔離する。ここで一括して握ると、どちらが落ちたか分からないまま片方の名前で欠損が立つ
                 // Copy and Write each produce two materials and isolate them inside; one catch here would blame a single name without knowing which stage failed
                 BugReportWorldFilesCopier.Copy(data, directory, manifest);
+                // 直後の4件はそれぞれ独立したディスクIO（動画組立・tick書き出し・ログ書き出し・スクリーンショット保存）。1件の失敗が他を巻き込まないよう境界をここでまとめて主張する
+                // Each of the next four is an independent disk IO (video assembly, tick log, text log, screenshot save); the boundary is claimed here once so one failure never drags down the rest
                 try { AssembleVideo(); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("video", $"組み立てに失敗した: {e.Message}"); }
                 try { WriteFrameTicks(); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.FrameTicksFileName, $"書き出しに失敗した: {e.Message}"); }
                 try { WriteLogs(); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"書き出しに失敗した: {e.Message}"); }

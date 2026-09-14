@@ -46,6 +46,8 @@ namespace Client.Game.InGame.Playtest.Progress
         // A line can be torn by a crash mid-append; this read boundary catches, drops the bad line and lets the caller count it
         public static ProgressEventEntry FromJsonLine(string line)
         {
+            // JObject.Parseは外部入力JSONのパース境界。追記中断で壊れた行が来てもここだけで吸収する
+            // JObject.Parse is the boundary for parsing externally-sourced JSON; a line torn by a mid-append crash is absorbed right here
             try
             {
                 var json = JObject.Parse(line);

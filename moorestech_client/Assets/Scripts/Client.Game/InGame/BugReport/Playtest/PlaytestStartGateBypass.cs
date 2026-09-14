@@ -57,6 +57,8 @@ namespace Client.Game.InGame.BugReport.Playtest
 
         private static void DeleteMarker(string path)
         {
+            // 迂回印の削除もディスクIO。書き込みと同じ資源なので消せなくてもEditor終了は続ける
+            // Deleting the bypass mark is disk IO too; it shares the same resource as the write, so failure never blocks the Editor from closing
             try
             {
                 if (File.Exists(path)) File.Delete(path);

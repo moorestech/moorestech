@@ -51,6 +51,8 @@ namespace Client.Game.InGame.BugReport.LastSession
             string WriteOnThreadPool()
             {
                 string directory;
+                // 箱の置き場作りはディスクIO。満杯や権限で失敗しても前回クラッシュの検知自体は続けたい
+                // Creating the box's directory is disk IO; even if a full disk or missing permission fails it, detecting the earlier crash still proceeds
                 try
                 {
                     directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
@@ -137,6 +139,8 @@ namespace Client.Game.InGame.BugReport.LastSession
             void RestoreTree(string boxSubDirectory, string salvageDirectory)
             {
                 if (salvageDirectory == null || !Directory.Exists(boxSubDirectory)) return;
+                // 退避物を last-session へ戻す move はディスクIO。他プロセスのロックで失敗しても未完成の箱を残すだけで済ませる
+                // Moving the salvage back to last-session is disk IO; a failure from another process's lock is tolerated by leaving it in the unfinished box
                 try
                 {
                     var restored = MoveTree(boxSubDirectory, salvageDirectory);

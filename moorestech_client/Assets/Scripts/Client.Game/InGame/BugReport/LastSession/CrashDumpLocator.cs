@@ -76,6 +76,8 @@ namespace Client.Game.InGame.BugReport.LastSession
             void CollectFrom(CrashDumpRoot root)
             {
                 if (!Directory.Exists(root.Path)) return;
+                // 共有置き場の列挙はOS保護領域に触れるディスクIO。権限拒否は握って対象外の置き場として扱う
+                // Enumerating the shared root is disk IO touching an OS-protected area; a permission refusal is caught and the root is treated as unavailable
                 try
                 {
                     foreach (var file in Directory.GetFiles(root.Path, "*", SearchOption.AllDirectories))
