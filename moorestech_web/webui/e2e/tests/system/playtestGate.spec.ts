@@ -4,6 +4,7 @@ import { setTopicScenario } from "../../support/mockControl";
 // ゲートは全画面を塞ぐため、待機を残したまま抜けると後続specの操作が全て通らなくなる
 // A gate blocks the whole screen, so leaving it waiting would make every later spec's interaction fail
 test.afterEach(async ({ page }) => {
+  await setTopicScenario(page, "eventLanguageGateClosed");
   await setTopicScenario(page, "consentGateClosed");
   await setTopicScenario(page, "crashReportGateClosed");
 });
@@ -43,6 +44,18 @@ test("2枚が同時に待っても起動順の手前（同意ゲート）だけ�
 
   await expect(page.getByTestId("playtest-consent-gate")).toBeVisible();
   await expect(page.getByTestId("crash-report-gate")).toHaveCount(0);
+});
+
+// 言語選択ゲートは3枚のうち最も手前。同意ゲートと同時に待っても言語選択だけが出る
+// The language gate is the frontmost of the three: waiting alongside the consent gate, only the language gate shows
+test("言語選択ゲートは同意ゲートより手前に立つ", async ({ page }) => {
+  await setTopicScenario(page, "eventLanguageGateWaiting");
+  await setTopicScenario(page, "consentGateWaiting");
+  await page.goto("/");
+
+  await expect(page.getByTestId("event-language-gate")).toBeVisible();
+  await expect(page.getByTestId("event-language-gate-title")).toBeVisible();
+  await expect(page.getByTestId("playtest-consent-gate")).toHaveCount(0);
 });
 
 // 待機が解ければゲートは消え、下のゲーム画面が操作できる状態へ戻る
