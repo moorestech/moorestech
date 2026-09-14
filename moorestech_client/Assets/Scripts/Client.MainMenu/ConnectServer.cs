@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using Client.Common;
 using Client.Localization;
 using Client.MainMenu.PopUp;
+using Client.PlaytestReceiver.Gate;
 using Client.Starter;
 using Mooresmaster.Localization.Generated;
 using Server.Boot;
@@ -34,6 +35,15 @@ namespace Client.MainMenu
 
         private void Connect()
         {
+            // 同じ関所を通す。判定はPlaytestLaunchGate 1箇所にしか無い
+            // The same gate is consulted here; the decision lives only in PlaytestLaunchGate
+            if (PlaytestLaunchGate.RejectStart(nameof(Connect)))
+            {
+                var blocked = PlaytestLaunchGate.Current;
+                serverConnectPopup.SetText(Localize.GetFormatted(blocked.ReasonKey, new[] { blocked.Detail }));
+                return;
+            }
+
             var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
             if (!InitializeProprieties.TryCreateRemoteConnection(serverIp.text, serverPort.text, playerId, out var properties, out var denyReason))
             {

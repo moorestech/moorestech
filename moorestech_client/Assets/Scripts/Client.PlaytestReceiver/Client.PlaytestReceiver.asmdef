@@ -5,7 +5,6 @@
         "Game.Paths",
         "Nuget",
         "UniTask",
-        "UniRx",
         "Client.Localization",
         "com.rlabrecque.steamworks.net"
     ],
