@@ -34,6 +34,7 @@ namespace Client.Game.InGame.Playtest.Progress
         private GameShutdownReason _shutdownReason = GameShutdownReason.IntentionalExit;
         private int _placedBlockCount;
         private bool _started;
+        private bool _pushWithoutSessionLogged;
 
         public ProgressRecorder(InitialHandshakeResponse handshake, UIStateControl uiStateControl, IPlaytestSessionIdentity identity)
         {
@@ -153,12 +154,27 @@ namespace Client.Game.InGame.Playtest.Progress
 
         public void RecordCraftRequested(Guid recipeGuid)
         {
+            if (!IsRecording(ProgressEventType.CraftRequested)) return;
             _writer.Append(ProgressEvents.CraftRequested(DateTime.UtcNow, GameUpdater.CurrentTick, recipeGuid));
         }
 
         public void RecordReportSent(string kind)
         {
+            if (!IsRecording(ProgressEventType.ReportSent)) return;
             _writer.Append(ProgressEvents.ReportSent(DateTime.UtcNow, GameUpdater.CurrentTick, kind));
+        }
+
+        // 記録を開始していない起動（常時記録オフのテスト・DSL・調査用）でプッシュを書くと、ヘッダの無い current/ が湧く
+        // Pushing without a started session (a capture-off test, DSL or investigation boot) would conjure a headerless current/
+        // その残骸は次回起動で「一度も遊んでいないセッション」として1件出荷されるため、理由を1度だけ出して捨てる
+        // The next boot would ship that leftover as a session nobody ever played, so it is dropped with its reason logged once
+        private bool IsRecording(string eventType)
+        {
+            if (_started) return true;
+            if (_pushWithoutSessionLogged) return false;
+            _pushWithoutSessionLogged = true;
+            Debug.Log($"進行記録を開始していないためプッシュを記録しません type:{eventType}: {AlwaysOnCaptureSetting.DisabledReason}");
+            return false;
         }
 
         private void OnUiStateChanged(UIStateEnum state)

@@ -113,7 +113,11 @@ namespace Client.Game.InGame.BugReport.LastSession
                 var files = Directory.GetFiles(source, "*", SearchOption.AllDirectories);
                 if (files.Length == 0) return SalvageOperationResult.Failure($"退避元が空: {source}");
 
-                ClearDirectory(destination);
+                // 掃除の失敗を握ると前世代と今世代のスナップショットが混ざり、再現側は tick 番号だけでは世代を見分けられない
+                // Swallowing a failed clean would mix two generations of snapshots, and the reproduction cannot tell them apart by tick number alone
+                var clearing = ClearDirectory(destination);
+                if (!clearing.Succeeded) return SalvageOperationResult.Failure($"退避先を空にできなかった: {clearing.FailureReason}");
+
                 Directory.CreateDirectory(destination);
                 foreach (var file in files)
                 {

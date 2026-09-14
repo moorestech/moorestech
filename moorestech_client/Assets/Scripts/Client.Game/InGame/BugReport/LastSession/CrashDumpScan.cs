@@ -25,6 +25,10 @@ namespace Client.Game.InGame.BugReport.LastSession
     {
         public List<string> Files = new();
         public int ExcludedAsOtherApps;
+
+        // 時刻境界で落とした件数。無音で捨てると「ダンプが無い」と「境界で捨てた」を開発者が区別できない
+        // How many were dropped by the time boundary; dropping them silently would make "no dump" and "filtered by time" indistinguishable
+        public int ExcludedAsTooOld;
         public List<string> ExcludedRoots = new();
     }
 }

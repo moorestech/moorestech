@@ -1,20 +1,19 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Playtest.Progress;
-using Game.Paths;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Client.Tests.Playtest
 {
-    // 購読では観測できない操作のプッシュが、1回につき events.jsonl の1行になることを固定する
-    // Fixes that each push of an operation no subscription observes becomes exactly one line in events.jsonl
+    // 記録を開始していない起動（常時記録オフのテスト・DSL・調査用）で、プッシュが current/ を作らないことを固定する
+    // Fixes that a push never conjures current/ on a boot that started no recording (a capture-off test, DSL or investigation boot)
+    // 開始済みセッションでのプッシュ→record.json は PlaytestReportAndProgressTest が実起動で押さえている
+    // The started-session push reaching record.json is pinned by PlaytestReportAndProgressTest on a real boot
     public class ProgressRecorderPushTest
     {
         [SetUp]
@@ -31,69 +30,19 @@ namespace Client.Tests.Playtest
             return new ProgressRecorder(null, null, new EmptyPlaytestSessionIdentity());
         }
 
+        // ヘッダの無い events.jsonl が残ると、次回起動が「一度も遊んでいないセッション」を1件 outbox へ出す
+        // A headerless events.jsonl left behind makes the next boot ship one record for a session nobody ever played
         [Test]
-        public void クラフト要求のプッシュが1行のcraftRequestedになる()
-        {
-            var recorder = CreateRecorderForPushOnly();
-            var recipeGuid = Guid.NewGuid();
-
-            recorder.RecordCraftRequested(recipeGuid);
-
-            var events = ProgressRecordFiles.ReadEvents(ProgressTestSession.Directory, out _);
-            Assert.AreEqual(1, events.Count);
-            Assert.AreEqual(ProgressEventType.CraftRequested, events[0].Type);
-            Assert.AreEqual(recipeGuid.ToString(), ProgressEvents.ReadCraftRecipeGuid(events[0]));
-        }
-
-        [Test]
-        public void 報告送信のプッシュが1行のreportSentになる()
+        public void 記録を開始していなければプッシュはcurrentを作らない()
         {
             var recorder = CreateRecorderForPushOnly();
 
-            recorder.RecordReportSent(PlaytestReportKind.Feedback);
-
-            var events = ProgressRecordFiles.ReadEvents(ProgressTestSession.Directory, out _);
-            Assert.AreEqual(1, events.Count);
-            Assert.AreEqual(ProgressEventType.ReportSent, events[0].Type);
-            Assert.AreEqual(PlaytestReportKind.Feedback, ProgressEvents.ReadReportKind(events[0]));
-        }
-
-        [Test]
-        public void プッシュ回数と行数が一致する()
-        {
-            var recorder = CreateRecorderForPushOnly();
-
+            LogAssert.Expect(LogType.Log, new Regex("進行記録を開始していないためプッシュを記録しません"));
             recorder.RecordCraftRequested(Guid.NewGuid());
             recorder.RecordReportSent(PlaytestReportKind.Bug);
-            recorder.RecordCraftRequested(Guid.NewGuid());
 
-            Assert.AreEqual(3, File.ReadAllLines(ProgressRecordPaths.EventsPathIn(ProgressTestSession.Directory)).Length);
-        }
-
-        [Test]
-        public void 書き出し後のプッシュは記録されない()
-        {
-            var recorder = CreateRecorderForPushOnly();
-            ProgressTestSession.WriteHeader(new ProgressRecordHeader { SessionStart = ProgressUtcTime.ToIso(DateTime.UtcNow) });
-            recorder.RecordCraftRequested(Guid.NewGuid());
-            var before = Directory.Exists(GameSystemPaths.ProgressRecordOutboxDirectory) ? Directory.GetDirectories(GameSystemPaths.ProgressRecordOutboxDirectory) : Array.Empty<string>();
-
-            Assert.AreEqual(ShutdownFlushResult.Flushed, recorder.FlushOnShutdownAsync().GetAwaiter().GetResult());
-            recorder.RecordReportSent(PlaytestReportKind.Bug);
-
-            // 閉じた後の追記は current/ を作り直してしまうため、ファイルが復活していないことで見る
-            // An append after closing would recreate current/, so the check is that the file never comes back
             Assert.IsFalse(File.Exists(ProgressRecordPaths.EventsPathIn(ProgressTestSession.Directory)));
             Assert.IsFalse(ProgressTestSession.HasCurrentSession());
-
-            var added = new List<string>(Directory.GetDirectories(GameSystemPaths.ProgressRecordOutboxDirectory));
-            foreach (var directory in before) added.Remove(directory);
-            Assert.AreEqual(1, added.Count);
-
-            var record = JObject.Parse(File.ReadAllText(Path.Combine(added[0], ProgressRecordPaths.RecordFileName)));
-            Assert.AreEqual(ProgressEndReason.Quit, (string)record["endReason"]);
-            Assert.AreEqual(1, ((JArray)record["events"]).Count);
-            Directory.Delete(added[0], true);
         }
 
         // 書き出す中身が無いのに Flushed を返すと、記録が1件も出ていない起動が成功として流れる

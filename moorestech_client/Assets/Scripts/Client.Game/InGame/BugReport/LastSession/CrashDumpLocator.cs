@@ -19,6 +19,10 @@ namespace Client.Game.InGame.BugReport.LastSession
         // A fallback window used only when no real boundary for the previous session exists; a real one always wins
         private const int FallbackLookbackHours = -24;
 
+        // ログの最終書き込みとダンプの書き込みの前後関係はOSが保証しない。境界ちょうどのダンプを落とさないための余裕
+        // The OS guarantees no ordering between the log's last write and the dump's, so the boundary keeps this much slack
+        private const int BoundaryMarginMinutes = -5;
+
         // どの置き場が共有かの宣言そのものが絞り込みの要。宣言を落とすと他アプリのダンプが素通りするためテストから見える形で置く
         // The shared/dedicated declaration is the filter itself: dropping it lets other apps' dumps through, so tests can read it
         internal static IReadOnlyList<CrashDumpRoot> CandidateDumpRoots()
@@ -48,9 +52,11 @@ namespace Client.Game.InGame.BugReport.LastSession
         {
             var since = PreviousSessionBoundaryUtc();
             var candidates = new List<CrashDumpCandidate>();
+            var excludedAsTooOld = 0;
             foreach (var root in CandidateDumpRoots()) CollectFrom(root);
 
             var result = SelectDumpFiles(candidates, UnityEngine.Application.productName);
+            result.ExcludedAsTooOld = excludedAsTooOld;
             LogExclusion();
             return result;
 
@@ -62,7 +68,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 var previousLogPath = PlayerLogLocator.PreviousSessionLogPath();
                 if (previousLogPath == null) return DateTime.UtcNow.AddHours(FallbackLookbackHours);
-                return new FileInfo(previousLogPath).LastWriteTimeUtc;
+                return new FileInfo(previousLogPath).LastWriteTimeUtc.AddMinutes(BoundaryMarginMinutes);
             }
 
             // 共有置き場の走査はOSの保護領域（macOSのDiagnosticReportsはTCC配下）に触れる外部境界。拒否されても起動は続ける
@@ -75,7 +81,11 @@ namespace Client.Game.InGame.BugReport.LastSession
                     foreach (var file in Directory.GetFiles(root.Path, "*", SearchOption.AllDirectories))
                     {
                         var info = new FileInfo(file);
-                        if (info.LastWriteTimeUtc < since) continue;
+                        if (info.LastWriteTimeUtc < since)
+                        {
+                            excludedAsTooOld++;
+                            continue;
+                        }
                         candidates.Add(new CrashDumpCandidate { Root = root, FileName = info.Name, FullPath = file });
                     }
                 }
@@ -89,6 +99,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             // Every drop reaches the developer log; a silent drop makes "none found" and "filtered out" indistinguishable
             void LogExclusion()
             {
+                if (0 < result.ExcludedAsTooOld) Debug.Log($"前回セッションより古いクラッシュレポート{result.ExcludedAsTooOld}件を除外しました 境界:{since:o}（前回ログの最終書き込みから{-BoundaryMarginMinutes}分の余裕を引いた時刻）");
                 if (result.ExcludedAsOtherApps == 0) return;
                 var condition = $"ファイル名が {UnityEngine.Application.productName}- または {EditorProcessName}- で始まること";
                 Debug.Log($"共有置き場のクラッシュレポート{result.ExcludedAsOtherApps}件を他アプリのものとして除外しました 条件:{condition} 除外元:{string.Join(", ", result.ExcludedRoots)}");
@@ -102,8 +113,9 @@ namespace Client.Game.InGame.BugReport.LastSession
         internal static string MissingReason(CrashDumpScanResult scan)
         {
             var roots = string.Join(", ", CandidateRoots());
-            if (scan.ExcludedAsOtherApps == 0) return $"クラッシュダンプが見つからない（探索先: {roots}）";
-            return $"共有置き場に{scan.ExcludedAsOtherApps}件あったが自プロセス（{UnityEngine.Application.productName} / {EditorProcessName}）のものは0件だった（除外元: {string.Join(", ", scan.ExcludedRoots)}、探索先: {roots}）";
+            var tooOld = scan.ExcludedAsTooOld == 0 ? "" : $"、前回セッションより古いとして{scan.ExcludedAsTooOld}件を除外";
+            if (scan.ExcludedAsOtherApps == 0) return $"クラッシュダンプが見つからない（探索先: {roots}{tooOld}）";
+            return $"共有置き場に{scan.ExcludedAsOtherApps}件あったが自プロセス（{UnityEngine.Application.productName} / {EditorProcessName}）のものは0件だった（除外元: {string.Join(", ", scan.ExcludedRoots)}、探索先: {roots}{tooOld}）";
 
             #region Internal
 

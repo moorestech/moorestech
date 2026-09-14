@@ -2104,7 +2104,7 @@ namespace Client.Tests.Playtest
                 ProgressEventEntry.Create(Start.AddSeconds(2), 20, ProgressEventType.BlockPlaced, new JObject { ["blockGuid"] = "b2" }),
                 ProgressEventEntry.Create(Start.AddSeconds(3), 30, ProgressEventType.ChallengeCompleted, new JObject { ["challengeGuid"] = "22222222-2222-2222-2222-222222222222" }),
                 ProgressEventEntry.Create(Start.AddSeconds(4), 40, ProgressEventType.ResearchCompleted, new JObject { ["researchGuid"] = "33333333-3333-3333-3333-333333333333" }),
-                ProgressEventEntry.Create(Start.AddSeconds(5), 50, "craftExecuted", new JObject { ["recipeGuid"] = "r1" }),
+                ProgressEventEntry.Create(Start.AddSeconds(5), 50, "craftRequested", new JObject { ["recipeGuid"] = "r1" }),
                 ProgressEventEntry.Create(Start.AddSeconds(6), 60, ProgressEventType.UiStateChanged, new JObject { ["state"] = "BuildMenu" }),
             };
 
@@ -2285,7 +2285,7 @@ namespace Client.Game.InGame.Playtest.Progress
         public const string BuildModeCancelled = "buildModeCancelled";
         public const string BlockPlaced = "blockPlaced";
         public const string ReportSent = "reportSent";
-        public const string CraftExecuted = "craftExecuted";
+        public const string CraftRequested = "craftRequested";
     }
 
     public sealed class ProgressEventEntry
@@ -2426,7 +2426,7 @@ namespace Client.Game.InGame.Playtest.Progress
                     case ProgressEventType.BlockPlaced:
                         placedBlockCount++;
                         break;
-                    case ProgressEventType.CraftExecuted:
+                    case ProgressEventType.CraftRequested:
                         craftCount++;
                         break;
                     case ProgressEventType.ChallengeCompleted:
@@ -2619,7 +2619,7 @@ git commit -m "feat(client): 進行記録の追記ファイルと record.json �
 **Interfaces:**
 - Consumes: Task 7 の全型、Task 6 `VanillaApiWithResponse.GetWorldPlaySessionInfo`、Task 4 `IPlaytestSessionIdentity`／`BuildInfoReader`、Task 3 `PreviousSessionSalvage.Artifacts`、`Client.Game.Common.GameShutdownEvent`／`IGameShutdownParticipant`／`ShutdownFlushResult`、`UIStateControl.OnStateChanged`、`ResearchCompleteEventPacket`／`CompletedChallengeEventPacket`／`PlaceBlockEventPacket`、`InitialHandshakeResponse`
 - Produces:
-  - `public interface IPlaytestProgressSink { void RecordCraftExecuted(Guid recipeGuid); void RecordReportSent(string kind); }`
+  - `public interface IPlaytestProgressSink { void RecordCraftRequested(Guid recipeGuid); void RecordReportSent(string kind); }`
   - `public static class ProgressBaseline { public static List<string> CompletedChallengeGuids(IEnumerable<Guid> completedChallenges); public static List<string> CompletedResearchGuids(IEnumerable<KeyValuePair<Guid, ResearchNodeState>> researchStates); }`
   - `public static class ProgressSessionRecovery { public static string RecoverLeftoverSession(bool previousExitWasClean); }`（残骸が無ければ `null`）
   - `public sealed class ProgressRecorder : IInitializable, IDisposable, IGameShutdownParticipant, IPlaytestProgressSink`
@@ -2834,7 +2834,7 @@ namespace Client.Game.InGame.Playtest.Progress
     // The window that pushes actions themselves, which no subscription observes; ProgressRecorder is the only implementation
     public interface IPlaytestProgressSink
     {
-        void RecordCraftExecuted(Guid recipeGuid);
+        void RecordCraftRequested(Guid recipeGuid);
         void RecordReportSent(string kind);
     }
 }
@@ -2909,9 +2909,9 @@ namespace Client.Game.InGame.Playtest.Progress
             return UniTask.FromResult(ShutdownFlushResult.Flushed);
         }
 
-        public void RecordCraftExecuted(Guid recipeGuid)
+        public void RecordCraftRequested(Guid recipeGuid)
         {
-            Append(ProgressEventType.CraftExecuted, new JObject { ["recipeGuid"] = recipeGuid.ToString() });
+            Append(ProgressEventType.CraftRequested, new JObject { ["recipeGuid"] = recipeGuid.ToString() });
         }
 
         public void RecordReportSent(string kind)
@@ -2998,7 +2998,7 @@ namespace Client.Game.InGame.Playtest.Progress
 
             // クラフトは送信のみで応答が無いため、変化を起こした操作の直後にプッシュする
             // A craft has no response, so the progress push happens right after the operation that causes the change
-            _progressSink.RecordCraftExecuted(recipeGuid);
+            _progressSink.RecordCraftRequested(recipeGuid);
             return UniTask.FromResult(ActionResult.Success());
 ```
 （`using Client.Game.InGame.Playtest.Progress;` を追加する）
@@ -3030,7 +3030,7 @@ namespace Client.Tests.Playtest
         public readonly List<Guid> CraftedRecipes = new();
         public readonly List<string> SentReportKinds = new();
 
-        public void RecordCraftExecuted(Guid recipeGuid) => CraftedRecipes.Add(recipeGuid);
+        public void RecordCraftRequested(Guid recipeGuid) => CraftedRecipes.Add(recipeGuid);
         public void RecordReportSent(string kind) => SentReportKinds.Add(kind);
     }
 }

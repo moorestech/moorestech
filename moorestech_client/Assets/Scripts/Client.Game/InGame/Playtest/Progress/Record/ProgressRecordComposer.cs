@@ -26,6 +26,10 @@ namespace Client.Game.InGame.Playtest.Progress
             var playSeconds = ResolvePlaySeconds();
             var totalPlaySeconds = ResolveTotalPlaySeconds();
 
+            // 設置数は区間ごとの集計で、終了flushを通らないcrash-recoveredでは最後のUI遷移以降のぶんが記録に残らない（ADR 0060 裁定9の代償）
+            // Placements are aggregated per interval, and crash-recovered never passes the shutdown flush, so whatever followed the last UI transition is gone (the cost of ADR 0060 adjudication 9)
+            if (endReason == ProgressEndReason.CrashRecovered) AddMissing("placedBlockCount", "最後のUI状態遷移以降に設置したブロック数は記録されていない（集計の書き出し前に異常終了した）");
+
             var eventArray = new JArray();
             foreach (var entry in enriched) eventArray.Add(entry.ToJObject());
 
