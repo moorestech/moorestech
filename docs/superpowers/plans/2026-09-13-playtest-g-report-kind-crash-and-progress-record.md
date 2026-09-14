@@ -19,7 +19,7 @@
 - R7. 進行記録の器: セッション開始で `ProgressRecords/current/header.json` を書き、イベントを `events.jsonl` へ追記し、終了時に `record.json`（§3 の形）を `ProgressRecords/outbox/<id>/` に書いて `READY` を置く。受入: EditMode 単体テストで 0 件・1 件のイベントどちらでも `record.json` が書け、必須キーが全て出る。
 - R8. 途中終了の回収: 起動時に `ProgressRecords/current/` が残っていたら必ず閉じて outbox へ出す。前回異常終了なら `endReason="crash-recovered"`、正常終了なら `endReason="quit"`。受入: EditMode 単体テストで、残骸あり×クリーン／非クリーンの2ケースがそれぞれの `endReason` で outbox に出て `current/` が空になる。
 - R9. 進行記録のイベント: 研究完了・チャレンジ達成はサーバーの既存イベントパケット購読、UI遷移は `UIStateControl.OnStateChanged` 購読、ブロック設置は `PlaceBlockEventPacket` 購読、クラフトは `craft.execute` の送信直後プッシュ、報告送信は `bug_report.submit` の成功直後プッシュで記録する。`Update()` のポーリングは足さない。受入: EditMode 単体テストで各 push が `events.jsonl` に1行ずつ出る。
-- R10. 集計値: `record.json` の `reachedChallenges`・`completedResearch` は初期ハンドシェイクの完了集合とセッション中の完了イベントの和、`placedBlockCount`・`craftCount` はイベント数、`lastUiState` は最後の `uiStateChanged`、`buildModeCancelled` は「PlaceBlock 滞在中に `blockPlaced` が1件も無いまま抜けた」ときに合成する。受入: 純関数テストで、設置あり／なしの PlaceBlock 滞在それぞれについて合成の有無が変わる。
+- R10. 集計値: `record.json` の `reachedChallenges`・`completedResearch` は初期ハンドシェイクの完了集合とセッション中の完了イベントの和、`placedBlockCount` は `blockPlaced` イベントの `data.count` の総和（ADR 0060 裁定9 で1件ずつの行から区間合計へ集約）、`craftCount` は `craftRequested` イベント数、`lastUiState` は最後の `uiStateChanged`、`buildModeCancelled` は「PlaceBlock 滞在中に `blockPlaced` が1件も無いまま抜けた」ときに合成する。受入: 純関数テストで、設置あり／なしの PlaceBlock 滞在それぞれについて合成の有無が変わる。
 - R11. 同意表示: 初回起動時のみ、タイトルで「送られる内容」を全画面で出し、了解ボタンでローカル既読フラグを書いて先へ進む。文言は日本語・英語・ドイツ語。受入: EditMode 単体テストでフラグ無し起動だけ待機し、フラグ有り起動は待機しない。vitest で本文と了解ボタンが描かれる。
 - R12. `steamId`・`buildInfo`: プレイ報告 manifest と進行記録 record の両方に `steamId`（未取得は `""`）と `buildInfo`（`build-info.json` 不在なら `null`）を入れる。受入: EditMode 単体テストで、`build-info.json` 不在時に `buildInfo` が `null`・`steamId` が `""` で書け、JSON が壊れない。
 - R13. ローカライズ: 追加文言（種別トグル・クラッシュ確認・同意表示）を `Localization/localization.csv` に ja/en/de で足し、`pnpm gen:i18n` と C# 生成を通す。受入: `L.ui.playtest.*` が TS/C# 両方から参照できる。
@@ -37,7 +37,9 @@
 - fail-closed 経路（マーカー不在・退避元不在・ダンプ不在・プロトコル失敗・JSONパース失敗）は必ず `Debug.LogWarning/LogError` と manifest／record の `missing` に理由を残す。無音の縮退禁止。
 - 経過時間: クライアントの実世界時刻は `DateTime.UtcNow`（セッション開始・終了・累計プレイ時間の記録用途は AGENTS.md で許可）。サーバーtickは `Core.Update.GameUpdater.CurrentTick` を読むだけ。ゲームロジックの経過時間計測は本planに無い。
 
-### 共有契約（`scratchpad/plans/shared-contracts.md` §2・§3 の逐語転記。変更禁止・矛盾禁止）
+### 共有契約（`scratchpad/plans/shared-contracts.md` §2・§3 の転記。改訂は ADR でのみ行う・矛盾禁止）
+
+> §3 は ADR 0060（裁定6・裁定9）で改訂済み。plan D〜H が読むのは**本節の現在の記述**であり、shared-contracts の初版ではない。
 
 **§2. outbox（plan B `BugReportOutbox` を流用）**
 
@@ -45,14 +47,32 @@
 - 進行記録: `<GameSystemDirectory>/ProgressRecords/outbox/<id>/record.json` + `READY` + 送信後 `UPLOADED`。
 - 前回異常終了: `<GameSystemDirectory>/BugReports/last-session/` に「正常終了マーカー `CLEAN_EXIT`」。起動時に無ければ前回異常終了。常時記録のリング（`BugReports/recording/`・サーバースナップショットリング）は終了時に消さない。
 
-**§3. 進行記録 record.json**
+**§3. 進行記録 record.json**（ADR 0060 裁定6・裁定9 で改訂済み。下の形が実装と一致する正本）
 
 ```json
 { "schemaVersion": 1, "steamId": "7656...", "buildInfo": {...§1}, "sessionStart": "<ISO>", "sessionEnd": "<ISO>", "endReason": "quit|crash-recovered",
   "playSeconds": 1234.5, "worldCreatedAt": "<ISO>", "totalPlaySeconds": 5678.9,
   "reachedChallenges": ["<guid>"], "completedResearch": ["<guid>"], "placedBlockCount": 120, "craftCount": 40,
-  "lastUiState": "GameScreen", "events": [ { "t": "<ISO>", "tick": 12345, "type": "researchCompleted|challengeCompleted|uiStateChanged|buildModeCancelled|blockPlaced|reportSent", "data": {} } ] }
+  "lastUiState": "GameScreen",
+  "missing": [ { "item": "worldPlayTime", "reason": "<日本語の理由>" } ],
+  "events": [ { "t": "<ISO>", "tick": 12345, "type": "researchCompleted|challengeCompleted|uiStateChanged|buildModeCancelled|blockPlaced|craftRequested|reportSent", "data": {} } ] }
 ```
+
+`data` の形は種別ごとに固定:
+
+| type | data |
+| --- | --- |
+| `researchCompleted` | `{"researchGuid":"<guid>"}` |
+| `challengeCompleted` | `{"challengeGuid":"<guid>"}` |
+| `uiStateChanged` | `{"state":"<UIStateEnum名>"}` |
+| `buildModeCancelled` | `{"nextState":"<UIStateEnum名>"}` |
+| `blockPlaced` | `{"count":N}`（1件ずつではなく区間の合計・ADR 0060 裁定9） |
+| `craftRequested` | `{"recipeGuid":"<guid>"}`（送信しただけで結果は見ていない。素材不足で拒否された要求も載る） |
+| `reportSent` | `{"kind":"bug\|feedback\|crash"}` |
+
+**欠損の表明は `missing` 1列に集約する（ADR 0060 裁定6）。** 埋められなかった値は実データと同じ形の既定値（`""`・`0`・現在時刻）で埋めず、
+`{"item","reason"}` として `missing` に積む。旧案の `headerMissing` 列は廃止し、ヘッダ喪失は `item:"header"` としてこの列へ畳んだ。
+`missing` が空でも列自体は必ず出る（読み側は `.get("missing") or []` で足りる）。
 
 イベントは購読で取る（研究完了・チャレンジ達成はサーバーの既存イベントパケット購読、UI遷移は `UIStateControl.OnStateChanged`）。`Update()` ポーリング禁止。
 
@@ -2023,7 +2043,7 @@ git commit -m "feat(server): ワールド作成日時と累計プレイ時間を
 - Produces:
   - `GameSystemPaths.ProgressRecordDirectory`（`<GameSystemDirectory>/ProgressRecords`）・`ProgressRecordOutboxDirectory`（`.../outbox`）・`ProgressRecordCurrentDirectory`（`.../current`）
   - `public static class ProgressRecordPaths { public const string HeaderFileName = "header.json"; public const string EventsFileName = "events.jsonl"; public const string RecordFileName = "record.json"; public const string ReadyMarkerFileName = "READY"; public static string CurrentHeaderPath { get; } public static string CurrentEventsPath { get; } public static string CreateOutboxDirectory(DateTime now, string shortId); }`
-  - `public static class ProgressEventType { public const string ResearchCompleted = "researchCompleted"; public const string ChallengeCompleted = "challengeCompleted"; public const string UiStateChanged = "uiStateChanged"; public const string BuildModeCancelled = "buildModeCancelled"; public const string BlockPlaced = "blockPlaced"; public const string ReportSent = "reportSent"; public const string CraftExecuted = "craftExecuted"; }`
+  - `public static class ProgressEventType { public const string ResearchCompleted = "researchCompleted"; public const string ChallengeCompleted = "challengeCompleted"; public const string UiStateChanged = "uiStateChanged"; public const string BuildModeCancelled = "buildModeCancelled"; public const string BlockPlaced = "blockPlaced"; public const string ReportSent = "reportSent"; public const string CraftRequested = "craftRequested"; }`
   - `public sealed class ProgressEventEntry { public string T; public ulong Tick; public string Type; public JObject Data; public static ProgressEventEntry Create(DateTime utc, ulong tick, string type, JObject data); public string ToJsonLine(); public JObject ToJObject(); public static ProgressEventEntry FromJsonLine(string line); }`
   - `public sealed class ProgressRecordHeader { public int SchemaVersion = 1; public string SteamId; public BuildInfo BuildInfo; public string SessionStart; public string WorldCreatedAt; public double TotalPlaySecondsAtStart; public List<string> BaselineChallenges = new(); public List<string> BaselineResearch = new(); public string ToJson(); public static ProgressRecordHeader FromJson(string json); }`
   - `public static class ProgressRecordFiles { public static void WriteHeader(ProgressRecordHeader header); public static void AppendEvent(ProgressEventEntry entry); public static bool HasCurrentSession(); public static ProgressRecordHeader ReadHeader(); public static List<ProgressEventEntry> ReadEvents(); public static string CloseCurrentInto(string endReason, DateTime sessionEndUtc); public static void ClearCurrent(); }`（`CloseCurrentInto` は outbox の箱パスを返し、`current/` を空にする）
