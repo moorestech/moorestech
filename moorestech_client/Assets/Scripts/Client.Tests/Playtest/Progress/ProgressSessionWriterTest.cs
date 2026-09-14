@@ -32,7 +32,7 @@ namespace Client.Tests.Playtest
             var writer = new ProgressSessionWriter();
             writer.WriteHeader(CreateHeader());
             writer.Append(ProgressEvents.BlockPlaced(DateTime.UtcNow, 1, 1));
-            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow);
+            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow).BundleDirectory;
             Assert.IsNotNull(bundle);
 
             LogAssert.Expect(LogType.Warning, new Regex("ヘッダを更新しません"));
@@ -48,7 +48,7 @@ namespace Client.Tests.Playtest
         {
             var writer = new ProgressSessionWriter();
             writer.WriteHeader(CreateHeader());
-            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow);
+            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow).BundleDirectory;
 
             LogAssert.Expect(LogType.Warning, new Regex("追記しません"));
             writer.Append(ProgressEvents.BlockPlaced(DateTime.UtcNow, 2, 1));
@@ -66,7 +66,7 @@ namespace Client.Tests.Playtest
             var writer = new ProgressSessionWriter();
             writer.WriteHeader(CreateHeader());
             LogAssert.Expect(LogType.Warning, new Regex("worldPlayTime"));
-            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow);
+            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow).BundleDirectory;
 
             var record = JObject.Parse(File.ReadAllText(Path.Combine(bundle, ProgressRecordPaths.RecordFileName)));
             var items = ((JArray)record["missing"]).Select(item => (string)item["item"]).ToList();
@@ -85,7 +85,7 @@ namespace Client.Tests.Playtest
             var capturedAt = sessionStart.AddSeconds(40);
             writer.UpdateWorldPlayTime(ProgressWorldPlayTime.Received("2026-09-10T09:00:00Z", 100, capturedAt));
 
-            var bundle = writer.Close(ProgressEndReason.Quit, capturedAt.AddSeconds(20));
+            var bundle = writer.Close(ProgressEndReason.Quit, capturedAt.AddSeconds(20)).BundleDirectory;
 
             var record = JObject.Parse(File.ReadAllText(Path.Combine(bundle, ProgressRecordPaths.RecordFileName)));
             Assert.AreEqual(120d, (double)record["totalPlaySeconds"], 1d, "取得時刻からの20秒だけが足されていない");

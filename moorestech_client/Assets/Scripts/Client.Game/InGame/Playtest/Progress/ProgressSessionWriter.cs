@@ -78,16 +78,16 @@ namespace Client.Game.InGame.Playtest.Progress
             if (!appended.Succeeded) Debug.LogError($"進行記録のイベントを追記できません type:{entry.Type}: {appended.FailureReason}");
         }
 
-        // 書けなければ null。書けなかったセッションは閉じない（current/ に残し、次回起動の回収へ回す）
-        // Returns null when it could not write; a session that failed to close stays open in current/ for the next boot to recover
-        public string Close(string endReason, DateTime sessionEndUtc)
+        // 書けなかったセッションは閉じない（current/ に残し、次回起動の回収へ回す）。中身が無かったのか書けなかったのかは呼び出し側へ分けて返す
+        // A session that failed to write stays open in current/ for the next boot; whether it was empty or unwritable is handed back separately
+        public ProgressCloseResult Close(string endReason, DateTime sessionEndUtc)
         {
             ReportUnfilledWorldPlayTime();
             CloseAppender();
 
-            var bundle = ProgressRecordFiles.CloseCurrentInto(_sessionDirectory, endReason, sessionEndUtc, Array.Empty<MissingItem>());
-            Closed = bundle != null;
-            return bundle;
+            var result = ProgressRecordFiles.CloseCurrentInto(_sessionDirectory, endReason, sessionEndUtc, Array.Empty<MissingItem>());
+            Closed = result.BundleDirectory != null;
+            return result;
         }
 
         // 追記口だけを閉じる。記録は書き出さないので、このセッションは次回起動の回収対象として current/ に残る

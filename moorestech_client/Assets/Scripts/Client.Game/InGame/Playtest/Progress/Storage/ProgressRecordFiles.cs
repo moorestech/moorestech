@@ -59,11 +59,11 @@ namespace Client.Game.InGame.Playtest.Progress
             return entries;
         }
 
-        // 閉じられなければ null。呼び出し側は理由をログへ出す（無音で消さない）
-        // Returns null when it cannot close; the caller logs the reason and never drops it silently
-        public static string CloseCurrentInto(string sessionDirectory, string endReason, DateTime sessionEndUtc, IReadOnlyList<MissingItem> extraMissing)
+        // 閉じられなかった理由は「中身が無い」と「書けなかった」で分けて返す。呼び出し側は理由をログへ出す（無音で消さない）
+        // The failure to close comes back split into "nothing there" and "could not write"; the caller logs the reason and never drops it silently
+        public static ProgressCloseResult CloseCurrentInto(string sessionDirectory, string endReason, DateTime sessionEndUtc, IReadOnlyList<MissingItem> extraMissing)
         {
-            if (!HasCurrentSession(sessionDirectory)) return null;
+            if (!HasCurrentSession(sessionDirectory)) return ProgressCloseResult.NothingToClose();
 
             var events = ReadEvents(sessionDirectory, out var brokenLineCount);
             var header = ReadHeader(sessionDirectory) ?? CreateHeaderForLostHeader();
@@ -74,7 +74,7 @@ namespace Client.Game.InGame.Playtest.Progress
             if (!creation.Succeeded)
             {
                 Debug.LogError($"進行記録の箱を作れませんでした（この記録は current/ に残り次回起動で回収されます）: {creation.FailureReason}");
-                return null;
+                return ProgressCloseResult.Failed();
             }
 
             var write = ProgressDiskIo.WriteText(Path.Combine(directory, ProgressRecordPaths.RecordFileName), ProgressRecordComposer.Compose(header, events, endReason, sessionEndUtc));
@@ -82,7 +82,7 @@ namespace Client.Game.InGame.Playtest.Progress
             {
                 Debug.LogError($"進行記録を書けませんでした（この記録は運搬されません） {directory}: {write.FailureReason}");
                 DeleteUnfinishedBundle();
-                return null;
+                return ProgressCloseResult.Failed();
             }
 
             // READY を置いてから current/ を消す。逆順だと運搬されない箱だけが残って記録が1件消える
@@ -92,12 +92,12 @@ namespace Client.Game.InGame.Playtest.Progress
             {
                 Debug.LogError($"進行記録のREADYを置けませんでした（current/ は残し次回起動の回収へ回します） {directory}: {ready.FailureReason}");
                 DeleteUnfinishedBundle();
-                return null;
+                return ProgressCloseResult.Failed();
             }
 
             ClearCurrent(sessionDirectory);
             Debug.Log($"進行記録を書きました {directory} endReason:{endReason} missing:{header.Missing.Count}");
-            return directory;
+            return ProgressCloseResult.Closed(directory);
 
             #region Internal
 

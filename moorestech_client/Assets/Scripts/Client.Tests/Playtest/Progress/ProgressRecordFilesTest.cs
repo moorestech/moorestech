@@ -36,7 +36,7 @@ namespace Client.Tests.Playtest
             ProgressTestSession.AppendEvent(ProgressEvents.BlockPlaced(start, 1, 2));
             Assert.AreEqual(1, ProgressRecordFiles.ReadEvents(ProgressTestSession.Directory, out _).Count);
 
-            var bundle = ProgressRecordFiles.CloseCurrentInto(ProgressTestSession.Directory, ProgressEndReason.CrashRecovered, start.AddSeconds(30), NoExtraMissing);
+            var bundle = ProgressRecordFiles.CloseCurrentInto(ProgressTestSession.Directory, ProgressEndReason.CrashRecovered, start.AddSeconds(30), NoExtraMissing).BundleDirectory;
 
             Assert.IsTrue(File.Exists(Path.Combine(bundle, ProgressRecordPaths.RecordFileName)));
             Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)));
@@ -48,9 +48,14 @@ namespace Client.Tests.Playtest
         }
 
         [Test]
-        public void ヘッダが無いのに閉じようとしたらnullを返す()
+        // 「畳む中身が無い」を「書けなかった」と同じ結果にすると、終了コードが書き出し失敗として出てしまう
+        // Reporting "nothing to fold" as "could not write" would surface the shutdown as a failed flush
+        public void 閉じる中身が無いときは書き出し失敗ではなく中身無しを返す()
         {
-            Assert.IsNull(ProgressRecordFiles.CloseCurrentInto(ProgressTestSession.Directory, ProgressEndReason.Quit, DateTime.UtcNow, NoExtraMissing));
+            var result = ProgressRecordFiles.CloseCurrentInto(ProgressTestSession.Directory, ProgressEndReason.Quit, DateTime.UtcNow, NoExtraMissing);
+
+            Assert.IsNull(result.BundleDirectory);
+            Assert.IsFalse(result.WriteFailed, "中身が無いだけなのに書き出し失敗として返っている");
         }
 
         // 壊れた行は捨てるが、捨てた件数は欠損として記録に載る（無音で消さない）
@@ -67,7 +72,7 @@ namespace Client.Tests.Playtest
             Assert.AreEqual(2, events.Count);
             Assert.AreEqual(1, brokenLineCount);
 
-            var bundle = ProgressRecordFiles.CloseCurrentInto(ProgressTestSession.Directory, ProgressEndReason.Quit, DateTime.UtcNow, NoExtraMissing);
+            var bundle = ProgressRecordFiles.CloseCurrentInto(ProgressTestSession.Directory, ProgressEndReason.Quit, DateTime.UtcNow, NoExtraMissing).BundleDirectory;
             var record = JObject.Parse(File.ReadAllText(Path.Combine(bundle, ProgressRecordPaths.RecordFileName)));
             var missingItems = ((JArray)record["missing"]).Select(item => (string)item["item"]).ToList();
             CollectionAssert.Contains(missingItems, ProgressRecordPaths.EventsFileName, "捨てた行が欠損として載っていない");

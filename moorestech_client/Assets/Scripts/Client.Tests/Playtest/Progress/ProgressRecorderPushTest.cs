@@ -54,7 +54,7 @@ namespace Client.Tests.Playtest
         {
             var recorder = CreateRecorderForPushOnly();
 
-            LogAssert.Expect(LogType.Warning, new Regex("書き出せませんでした"));
+            LogAssert.Expect(LogType.Warning, new Regex("書き出す進行記録がありませんでした"));
             Assert.AreEqual(ShutdownFlushResult.NothingFlushed, recorder.FlushOnShutdownAsync().GetAwaiter().GetResult());
         }
     }

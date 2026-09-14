@@ -68,14 +68,23 @@ namespace Client.Game.Common
             for (var i = 0; i < participants.Length; i++) flushTasks[i] = FlushIsolated(participants[i]);
             var results = await UniTask.WhenAll(flushTasks);
 
+            // 戻り値は1つだけなので、畳んで消える失敗は捨てる前にログへ残す
+            // Only one value can come back, so the failures that folding erases are logged before they go
+            var aggregated = AggregateByPriority(results);
+            ReportMaskedFailures(results, aggregated);
+            return aggregated;
+        }
+
+        private static ShutdownFlushResult AggregateByPriority(ShutdownFlushResult[] results)
+        {
             // 諦めは上限到達より重い。世界が保存されていない事実は待ち切れなかった事実に埋もれてはいけない
             // A give-up outweighs a timeout: an unsaved world must not be hidden behind "did not finish waiting"
             foreach (var result in results)
                 if (result == ShutdownFlushResult.SaveAbandoned)
                     return ShutdownFlushResult.SaveAbandoned;
 
-            // 例外で落ちた参加者は「書けた」と名乗れない。正常値のNothingFlushedへ潰すと、保存されていない世界がFlushedとして閉じる
-            // A participant that died on an exception cannot claim success; folding it into the normal NothingFlushed would close an unsaved world as Flushed
+            // 書き出しが失敗した参加者は「書けた」と名乗れない。正常値のNothingFlushedへ潰すと、保存されていない世界がFlushedとして閉じる
+            // A participant whose flush failed cannot claim success; folding it into the normal NothingFlushed would close an unsaved world as Flushed
             foreach (var result in results)
                 if (result == ShutdownFlushResult.FlushFailed)
                     return ShutdownFlushResult.FlushFailed;
@@ -86,6 +95,21 @@ namespace Client.Game.Common
                 if (result == ShutdownFlushResult.FlushTimedOut)
                     return ShutdownFlushResult.FlushTimedOut;
             return ShutdownFlushResult.Flushed;
+        }
+
+        // 例外と上限到達が同時に起きると、戻り値に残らなかった側は QuitApplicationAsync のログにも出ない。種類ごとに1度だけ事実を残す
+        // When an exception and a timeout happen together, the one the return value dropped never reaches QuitApplicationAsync's log, so each kind is stated once here
+        private static void ReportMaskedFailures(ShutdownFlushResult[] results, ShutdownFlushResult aggregated)
+        {
+            var reported = new List<ShutdownFlushResult>();
+            foreach (var result in results)
+            {
+                if (result == aggregated || result == ShutdownFlushResult.Flushed) continue;
+                if (result == ShutdownFlushResult.NothingFlushed || result == ShutdownFlushResult.AlreadyShutdown) continue;
+                if (reported.Contains(result)) continue;
+                reported.Add(result);
+                Debug.LogError($"終了時の書き出しで別の失敗も同時に起きています（戻り値は {aggregated} に畳まれます）: {result}");
+            }
         }
 
         // アプリを終了する唯一の口。書き出しを待ってから落とす

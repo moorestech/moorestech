@@ -67,28 +67,28 @@ namespace Client.Tests.Playtest
             Assert.AreEqual("BuildMenu", (string)json["lastUiState"]);
         }
 
-        // crash-recovered が無条件に設置数の欠損を名乗ると、建築と無縁のセッションの記録まで毎回欠損付きで届く
-        // An unconditional placement gap on crash-recovered would put a gap on every record, including sessions that never built anything
+        // 設置数はサーバーの全体配信で増えるため、建築モードへ入っていない残骸でも最後の遷移以降の設置は失われている
+        // The count rises on the server's broadcast, so even a leftover that never entered build mode lost whatever was placed after the last transition
         [Test]
-        public void 建築モードへ入っていない異常終了は設置数の欠損を名乗らない()
+        public void 建築モードへ入っていない異常終了も設置数の欠損を名乗る()
         {
             var events = new List<ProgressEventEntry> { ProgressEvents.UiStateChanged(Start.AddSeconds(2), 20, "GameScreen") };
 
             var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, ProgressEndReason.CrashRecovered, Start.AddSeconds(10)));
 
-            CollectionAssert.DoesNotContain(MissingItems(json), "placedBlockCount");
+            CollectionAssert.Contains(MissingItems(json), "placedBlockCount");
         }
 
-        // 建築モードに入った跡があれば、最後の遷移以降の設置は実際に失われている。そこは必ず表明する
-        // Once there is a trace of build mode, placements after the last transition really are lost, and that is always declared
+        // 終了flushを通った記録の設置数は完全。ここで欠損を名乗ると読み手が全記録の設置数を疑い始める
+        // A record that passed the shutdown flush has a complete count; a gap here would make every record's count suspect
         [Test]
-        public void 建築モードへ入った異常終了は設置数の欠損を名乗る()
+        public void 正常終了は設置数の欠損を名乗らない()
         {
             var events = new List<ProgressEventEntry> { ProgressEvents.UiStateChanged(Start.AddSeconds(2), 20, "PlaceBlock") };
 
-            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, ProgressEndReason.CrashRecovered, Start.AddSeconds(10)));
+            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, ProgressEndReason.Quit, Start.AddSeconds(10)));
 
-            CollectionAssert.Contains(MissingItems(json), "placedBlockCount");
+            CollectionAssert.DoesNotContain(MissingItems(json), "placedBlockCount");
         }
 
         // baseline に既に入っている到達がイベントでも届く（再ログイン直後の再送等）。二重に数えない

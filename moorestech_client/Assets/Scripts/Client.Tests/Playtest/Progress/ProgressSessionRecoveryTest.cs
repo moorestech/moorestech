@@ -100,7 +100,7 @@ namespace Client.Tests.Playtest
             var writer = new ProgressSessionWriter();
             writer.WriteHeader(new ProgressRecordHeader { SessionStart = ProgressUtcTime.ToIso(DateTime.UtcNow) });
             writer.Append(ProgressEvents.BlockPlaced(DateTime.UtcNow, 2, 1));
-            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow);
+            var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow).BundleDirectory;
 
             var record = JObject.Parse(File.ReadAllText(Path.Combine(bundle, ProgressRecordPaths.RecordFileName)));
             var events = (JArray)record["events"];

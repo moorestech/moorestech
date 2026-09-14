@@ -35,9 +35,9 @@ namespace Client.Game.InGame.Playtest.Progress
             var sessionEnd = ResolveSessionEnd();
             var endReason = previousExitWasClean ? ProgressEndReason.Quit : ProgressEndReason.CrashRecovered;
 
-            var bundle = ProgressRecordFiles.CloseCurrentInto(sessionDirectory, endReason, sessionEnd, missing);
-            if (bundle == null) Debug.LogWarning($"前回の進行記録を閉じられなかったため送れません {sessionDirectory} endReason:{endReason}");
-            return bundle;
+            var closeResult = ProgressRecordFiles.CloseCurrentInto(sessionDirectory, endReason, sessionEnd, missing);
+            if (closeResult.BundleDirectory == null) Debug.LogWarning($"前回の進行記録を閉じられなかったため送れません {sessionDirectory} endReason:{endReason} writeFailed:{closeResult.WriteFailed}");
+            return closeResult.BundleDirectory;
 
             #region Internal
 

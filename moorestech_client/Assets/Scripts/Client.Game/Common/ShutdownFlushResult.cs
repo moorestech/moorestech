@@ -12,12 +12,12 @@ namespace Client.Game.Common
         SaveAbandoned,
         AlreadyShutdown,
 
-        // 書き出す中身が無い、または書けなかった。待ちは正常に明けているが成果物は1件も出ていない
-        // Nothing was there to write, or it could not be written; the wait cleared normally but no artifact came out
+        // 書き出す中身が1件も無かった。待ちは正常に明けており、書けなかったのではなく書くものが無い
+        // There was nothing at all to write; the wait cleared normally and this is an empty flush, never a failed one
         NothingFlushed,
 
-        // 参加者の書き出しが例外で落ちた。何が書けて何が書けていないかは参加者自身にも分かっていない
-        // A participant's flush died on an exception; not even the participant knows what was written and what was not
+        // 参加者の書き出しが失敗した（例外で落ちた、または握った失敗で書けなかった）。何が書けたかは参加者自身にも分かっていない
+        // A participant's flush failed, either by throwing or by a caught failure that left it unwritten; not even the participant knows what got out
         FlushFailed,
     }
 }

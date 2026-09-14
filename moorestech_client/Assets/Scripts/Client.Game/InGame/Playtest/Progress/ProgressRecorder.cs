@@ -117,12 +117,20 @@ namespace Client.Game.InGame.Playtest.Progress
             if (_writer.Closed) return UniTask.FromResult(ShutdownFlushResult.AlreadyShutdown);
 
             FlushPlacedBlocks();
-            var bundle = _writer.Close(ProgressEndReason.FromShutdownReason(_shutdownReason), DateTime.UtcNow);
-            if (bundle != null) return UniTask.FromResult(ShutdownFlushResult.Flushed);
+            var closeResult = _writer.Close(ProgressEndReason.FromShutdownReason(_shutdownReason), DateTime.UtcNow);
+            if (closeResult.BundleDirectory != null) return UniTask.FromResult(ShutdownFlushResult.Flushed);
 
-            // 閉じられないのは current/ に何も無い時と書けなかった時。記録が1件出ないので黙って終わらせない
-            // Closing fails when current/ holds nothing or the write failed; one missing record must never end in silence
-            Debug.LogWarning("今回のセッションの進行記録を書き出せませんでした（current/ が空か、書き出しに失敗しています）");
+            // 書けずに閉じられなかった終了を成功として畳むと、例外で落ちた参加者より軽い扱いになる。原因（ディスク）は同じなので同じ重さで返す
+            // Folding an unwritable close into success would rank it below a participant that threw, yet the cause (the disk) is the same, so it returns the same weight
+            if (closeResult.WriteFailed)
+            {
+                Debug.LogError("今回のセッションの進行記録を書き出せませんでした（書き出しに失敗。記録は current/ に残り次回起動で回収されます）");
+                return UniTask.FromResult(ShutdownFlushResult.FlushFailed);
+            }
+
+            // 書く中身が1件も無かった。記録が1件出ない事実は黙って終わらせない
+            // There was nothing to write; one missing record must never end in silence
+            Debug.LogWarning("今回のセッションに書き出す進行記録がありませんでした（current/ が空）");
             return UniTask.FromResult(ShutdownFlushResult.NothingFlushed);
         }
 
@@ -173,6 +181,8 @@ namespace Client.Game.InGame.Playtest.Progress
         // BlockId is volatile, renumbered per master load; recording it would replay as a different block on another load
         // 設置数だけが集計対象。1件ずつ行にすると設置のたびに追記が走るので、区間の合計だけを書く（ADR 0060 裁定9）
         // Only the count is aggregated; one line per placement would append on every block, so only the interval total is written (ADR 0060 adjudication 9)
+        // 数えるのは「このワールドで置かれた数」で、テスター自身のぶんではない。設置イベントは設置者を載せずに全クライアントへ配られるため、協力プレイでは相方の設置も入る
+        // The number counts placements in this world rather than this tester's own: the placement event carries no placer and reaches every client, so a co-op partner's blocks land here too
         private void OnBlockPlaced(byte[] payload)
         {
             _placedBlockCount++;
