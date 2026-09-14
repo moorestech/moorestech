@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** ポーズメニューのプレイ報告に種別（バグ／感想）を足し、前回の異常終了をタイトルで検知して前回の記録を `kind=crash` の箱として送れるようにし、セッションの進行記録を購読で集めて終了時に outbox へ書き、初回起動時に「送られる内容」の同意表示を一度だけ出す（ADR 0058 のクライアント側 5 裁定）。
+**Goal:** ポーズメニューのプレイ報告に種別（バグ／感想）を足し、前回の異常終了をタイトルで検知して前回の記録を `kind=crash` の箱として送れるようにし、セッションの進行記録を購読で集めて終了時に outbox へ書き、初回起動時に「送られる内容」の同意表示を一度だけ出す（ADR 0061 のクライアント側 5 裁定）。
 
 **Architecture:** (1) plan B の `BugReportManifest`・`BugReportBundleWriter`・`bug_report.submit` に `kind` を通し、webui は既存の共通 `ModeSwitch` でバグ／感想を選ばせる。(2) 正常終了の意図は `GameShutdownEvent.OnGameShutdown` の購読で `CLEAN_EXIT` マーカーを書き、起動時にマーカーの有無で前回異常終了を判定してから消す。マーカーが無ければ前回の録画リング・スナップショット・パケットログ・`Player-prev.log`・クラッシュダンプを `BugReports/last-session/` へ退避し、タイトル（ADR 0040 の言語選択ゲートと同型の全画面ゲート）で説明欄付きの送信確認を出す。(3) 進行記録は `ProgressRecorder` が `ProgressRecords/current/` に `header.json` と `events.jsonl` を追記し、終了時（`IGameShutdownParticipant`）に純関数 `ProgressRecordComposer` が `record.json` を組んで outbox へ書く。イベントはサーバーの既存イベントパケット購読・`UIStateControl.OnStateChanged` 購読・操作直後のプッシュだけで集め、`Update()` の毎tick判定は足さない。(4) 同意表示は既読フラグファイルで一度きり判定する同型のゲート。(5) `steamId` は plan D が差し替える `IPlaytestSessionIdentity` 経由、`buildInfo` は plan E が焼く `StreamingAssets/build-info.json` を読むだけで、どちらも未実装なら空文字／null で動く。
 
@@ -23,7 +23,7 @@
 - R11. 同意表示: 初回起動時のみ、タイトルで「送られる内容」を全画面で出し、了解ボタンでローカル既読フラグを書いて先へ進む。文言は日本語・英語・ドイツ語。受入: EditMode 単体テストでフラグ無し起動だけ待機し、フラグ有り起動は待機しない。vitest で本文と了解ボタンが描かれる。
 - R12. `steamId`・`buildInfo`: プレイ報告 manifest と進行記録 record の両方に `steamId`（未取得は `""`）と `buildInfo`（`build-info.json` 不在なら `null`）を入れる。受入: EditMode 単体テストで、`build-info.json` 不在時に `buildInfo` が `null`・`steamId` が `""` で書け、JSON が壊れない。
 - R13. ローカライズ: 追加文言（種別トグル・クラッシュ確認・同意表示）を `Localization/localization.csv` に ja/en/de で足し、`pnpm gen:i18n` と C# 生成を通す。受入: `L.ui.playtest.*` が TS/C# 両方から参照できる。
-- やらないこと: 受け口へのアップロード（plan D）／`build-info.json` の生成と Windows 配布ビルド（plan E）／セーブ互換とマスタ欠損の除去（plan F）／Mac mini の取り込み・日次ダイジェスト（plan H）／報告ごとの添付選択UI（ADR 0058 で不要と裁定）／進行記録を断る設定トグル（同）／Unity CrashReport 等のクラッシュ自動検知ハンドラ（同）／起動時の許可リスト照合（plan D）。
+- やらないこと: 受け口へのアップロード（plan D）／`build-info.json` の生成と Windows 配布ビルド（plan E）／セーブ互換とマスタ欠損の除去（plan F）／Mac mini の取り込み・日次ダイジェスト（plan H）／報告ごとの添付選択UI（ADR 0061 で不要と裁定）／進行記録を断る設定トグル（同）／Unity CrashReport 等のクラッシュ自動検知ハンドラ（[agent前提]。ADR 0061 は前回正常終了マーカーの欠落による検知のみを裁定しており、この自動検知ハンドラの除外は同ADRに記載が無い）／起動時の許可リスト照合（plan D）。
 
 ## Global Constraints
 
@@ -219,8 +219,8 @@ Expected: `PlaytestReportKind` が無い／`BugReportManifest.Kind` が無いと
 ```csharp
 namespace Client.Game.InGame.BugReport.Playtest
 {
-    // プレイ報告の種別。文字列は受け口・取り込み側と共有する契約値なのでここが正本（ADR 0058）
-    // The play-report kind; these strings are the contract shared with the receiver and the ingest side (ADR 0058)
+    // プレイ報告の種別。文字列は受け口・取り込み側と共有する契約値なのでここが正本（ADR 0061）
+    // The play-report kind; these strings are the contract shared with the receiver and the ingest side (ADR 0061)
     public static class PlaytestReportKind
     {
         public const string Bug = "bug";
@@ -246,8 +246,8 @@ namespace Client.Game.InGame.BugReport.Playtest
 
 `BugReportManifest.cs` の `public string Description;` の直後に足す:
 ```csharp
-        // プレイ報告の種別。取り込み側は bug のときだけ自動修正ランを起動する（ADR 0058）
-        // The report kind; the ingest side starts an auto-fix run only for bug (ADR 0058)
+        // プレイ報告の種別。取り込み側は bug のときだけ自動修正ランを起動する（ADR 0061）
+        // The report kind; the ingest side starts an auto-fix run only for bug (ADR 0061)
         public string Kind;
 ```
 
@@ -391,8 +391,8 @@ type Props = {
   onSent: () => void;
 };
 
-// 契約値はC#の PlaytestReportKind と同じ文字列。既定はバグ（ADR 0058）
-// The contract strings match C#'s PlaytestReportKind; bug is the default (ADR 0058)
+// 契約値はC#の PlaytestReportKind と同じ文字列。既定はバグ（ADR 0061）
+// The contract strings match C#'s PlaytestReportKind; bug is the default (ADR 0061)
 const KindBug = "bug";
 const KindFeedback = "feedback";
 
@@ -2840,8 +2840,8 @@ using VContainer.Unity;
 
 namespace Client.Game.InGame.Playtest.Progress
 {
-    // セッションの進行を購読で集めて追記し、終了時に1件の進行記録として書き出す（ADR 0058）
-    // Collects the session's progress through subscriptions, appends it, and writes one progress record at shutdown (ADR 0058)
+    // セッションの進行を購読で集めて追記し、終了時に1件の進行記録として書き出す（ADR 0061）
+    // Collects the session's progress through subscriptions, appends it, and writes one progress record at shutdown (ADR 0061)
     public sealed class ProgressRecorder : IInitializable, IDisposable, IGameShutdownParticipant, IPlaytestProgressSink
     {
         private readonly InitialHandshakeResponse _handshake;
@@ -3565,7 +3565,7 @@ git commit -m "test(client): 種別付き送信と進行記録と前回異常終
 
 - 正常終了マーカー: 受動的統合案「`GameShutdownEvent.OnGameShutdown` を購読して書く」対 能動介入案「`GameShutdownEvent.QuitApplicationAsync` にマーカー書き込みを差し込む」。後者は汎用の終了パイプラインにプレイテストの語彙を持ち込み、かつ `FireGameShutdown()`（待てない経路）を通る終了で書かれない。**購読案を採る**。
 - 録画リングの残骸: 受動的統合案「`GameFrameRecorder.Initialize` の削除を外し、掃除の所有者を `PreviousSessionSalvage` へ一本化」対 能動介入案「recorder に『前回分を残すモード』フラグを足す」。後者は録画部品にセッション跨ぎの概念を持ち込む。**所有者一本化を採る**（削除1行の除去と、起動時の1箇所での掃除）。
-- 前回異常終了の確認UI: 受動的統合案「ADR 0040 の開始ゲートと同型の全画面オーバーレイをもう1枚足す」対 能動介入案「ポーズメニューへ『前回のクラッシュを送る』欄を常設する」。後者はタイトルで聞くというADR 0058 の裁定に反し、ポーズメニューの責務も膨らむ。**同型ゲートを採る**。
+- 前回異常終了の確認UI: 受動的統合案「ADR 0040 の開始ゲートと同型の全画面オーバーレイをもう1枚足す」対 能動介入案「ポーズメニューへ『前回のクラッシュを送る』欄を常設する」。後者はタイトルで聞くというADR 0061 の裁定に反し、ポーズメニューの責務も膨らむ。**同型ゲートを採る**。
 
 **死活表（Phase 2.5）**
 
@@ -3582,7 +3582,7 @@ git commit -m "test(client): 種別付き送信と進行記録と前回異常終
 
 ## 判断記録（ADR）
 
-- 設計ADR: `docs/adr/0058-steam-closed-playtest-report-receiver-and-save-compat.md`（本planはそのクライアント側5裁定）、`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（改訂3裁定以外は有効）、`docs/adr/0040-event-mode-language-select-gate.md`（ゲートの前例）
+- 設計ADR: `docs/adr/0061-steam-closed-playtest-report-receiver-and-save-compat.md`（本planはそのクライアント側5裁定）、`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（改訂3裁定以外は有効）、`docs/adr/0040-event-mode-language-select-gate.md`（ゲートの前例）
 - 裁定: `.decisions/2026-09-13-感想もポーズメニューの報告UIで受け種別バグと感想を選ばせる.md`／`-クラッシュは次回起動時に前回の異常終了を検知し記録を送るか聞く.md`／`-プレイ状況はセッションサマリとイベント列を自動送信する.md`／`-報告の添付は外せず参加時の包括同意で一式送る.md`／`-進行記録の自動送信は参加条件とし断る選択肢を作らない.md`／`-テスター向け文言は日英独すべて必須とする.md`
 - 共有契約: `scratchpad/plans/shared-contracts.md` §1・§2・§3（本plan Global Constraints へ逐語転記済み）
 - **正常終了マーカーは終了パイプラインの発火時点で書く**（agent前提）: 参加者の書き出し完了を待つと、強制終了で待ちが切れたときに正常終了が異常終了として記録される。「正常終了の意図が表明されたか」を判定軸にすると、クラッシュ（パイプラインに入らない）とだけ確実に区別できる。副作用として、マーカー後に落ちると `current/` の進行記録だけが残るため、起動時の残骸回収を `endReason="quit"` で必ず行う（Task 8 のテストで固定）。
@@ -3590,7 +3590,7 @@ git commit -m "test(client): 種別付き送信と進行記録と前回異常終
 - **「送らない」を選んだ退避物は消さず1世代だけ残す**（agent前提）: `PreviousSessionSalvage.MoveFilesInto` が退避先を毎回空にしてから移すため、`last-session/` に溜まるのは常に直近1回ぶんに限られる。積極的に消さないのは、送らない判断のあとで開発者が手で回収できる余地を残すため。増え続ける経路は無い。
 - **クラッシュダンプは候補ディレクトリの探索で解決する**（agent前提）: Windows 実機が手元に無いため実パスを固定できない。`%LOCALAPPDATA%\Temp\<company>\<product>\Crashes` を第1候補、`%LOCALAPPDATA%\<company>\<product>\Crashes` を第2候補、macOS の `~/Library/Logs/DiagnosticReports` を第3候補として探索し、見つからなければ理由（探索先一覧つき）を `missing` に残す。**Task 10 Step 3 の Windows 検証（plan E の検証機）で実パスを確定し、この項に転記する**。
 - **前回セッションのUnityログは `Player-prev.log`**（agent前提）: Unity は起動時に前回の `Player.log` を `Player-prev.log` へ回すため、`Application.consoleLogPath` の隣を見れば配布版・Editor の双方で同じ規則で解決できる。ハードコードされた OS 別パスは持たない。
-- **進行記録は追記（`events.jsonl`）で持つ**（agent前提）: 終了時にまとめて書くとクラッシュで全部失われる。追記なら直前まで残り、`endReason="crash-recovered"` で回収できる。壊れた最終行は読み飛ばす（ADR 0058 の「イベント列を送る」を満たす最小の耐障害設計）。
+- **進行記録は追記（`events.jsonl`）で持つ**（agent前提）: 終了時にまとめて書くとクラッシュで全部失われる。追記なら直前まで残り、`endReason="crash-recovered"` で回収できる。壊れた最終行は読み飛ばす（ADR 0061 の「イベント列を送る」を満たす最小の耐障害設計）。
 - **`buildModeCancelled` はイベント列から合成する**（agent前提）: 「設置せずに建築モードを抜けた」は単一の通知として存在せず、`uiStateChanged` と `blockPlaced` の順序から導ける。記録側に判定を足すより純関数で後段合成する方がテストしやすく、`PlaceBlockState` に記録の語彙を持ち込まずに済む。
 - **`worldCreatedAt`・`totalPlaySeconds` は新規プロトコルで取る**（agent前提）: 既存の初期ハンドシェイクにも既存イベントにも含まれておらず、他ドメインの応答から推測合成するのは層マップが禁じる「間接導出Applier」に当たる。1回読むだけで可変状態の同期ではないため、イベントパケットは作らず `va:get*` のみとする。
 - **`steamId` は DI 差込口で受ける**（agent前提）: plan D（Steam 認証）の完成を待たずに plan G を出せるようにするため。既定実装は空文字を返し、plan D は `MainGameModelRegistration` の1行を差し替える。

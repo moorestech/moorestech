@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** テスターのワールドが、セーブ形式の変更（worldVersion 更新）とマスタデータからの削除（ブロック・アイテム・研究ノード）をまたいでロードでき、元セーブと除去データが世代付きで残り、除去件数がプレイヤーへ1回通知される状態にする（ADR 0058 のセーブ互換2裁定）。
+**Goal:** テスターのワールドが、セーブ形式の変更（worldVersion 更新）とマスタデータからの削除（ブロック・アイテム・研究ノード）をまたいでロードでき、元セーブと除去データが世代付きで残り、除去件数がプレイヤーへ1回通知される状態にする（ADR 0061 のセーブ互換2裁定）。
 
 **Architecture:** (1) `Game.SaveLoad/Migration/` に `ISaveMigrationStep`＋`SaveMigrationChain` を置き、ロード前に JSON（`JObject`）の `worldVersion` を見て V(n)→V(n+1) を順に適用する。未知の未来版・連鎖の欠番は fail-closed（ロードせず理由ログ）。マイグレーション実行時のみ元セーブを `Saves/backup/<version>/save.json` へ退避する。(2) `Game.SaveLoad/Pruning/` の `MissingMasterPruner` が、マイグレーション後の JSON からマスタに存在しないブロック・アイテムスタック・研究ノードを取り除き、取り除いた実体を `Saves/pruned/<ISO>.json` へ残し、件数を `MissingMasterPruneReportStore` に載せる。(3) この2段を `SaveLoadPreparer` が束ね、`WorldLoaderFromJson.LoadOrInitialize` が「ファイル読み → Prepare → 既存 `Load(json)`」の順で通る。既存の `Load(string)` は 400 本超のテストが直接呼ぶ入口なので形を変えない。(4) 除去件数はサーバー既存の通知基盤（`NotificationService` の `va:event:notification`）に新カテゴリ `SaveMigration` を足し、`EventProtocolProvider.OnPlayerEventStreamRegistered`（sink 登録直後の同期push契約）で接続したプレイヤーへ1回だけ送る。表示は既存の `notification.events` トピック→`NotificationHost` を素通りし、文言は `Localization/localization.csv` の日英独で持つ。(5) 規約は AGENTS.md へ追記し、`moorestech-save-migration` スキルを「手変換の手順書」から「マイグレーションステップの書き方」へ書き換える。
 
@@ -23,7 +23,7 @@
 - R11. クライアント側の表示: `NotificationCategoryTable` に `SaveMigration => "saveMigration"` を足し、webui の `NotificationDataSchema` のカテゴリ列挙・`notificationMessages.ts` の対応表と `resolveNotificationText` の分岐を更新する。文言キー `ui.notification.saveMigrationMissingMasterPruned` を `Localization/localization.csv` に日本語・英語・ドイツ語で追加し、`pnpm gen:i18n` で生成物を更新する。受入: webui の `pnpm test` が通り、`localizationKeys freshness` テストが緑。
 - R12. 規約の追記: `AGENTS.md` の「## 互換性とパフォーマンス」に、セーブ形式変更PRはマイグレーションステップとテストを同梱する旨を追記する。受入: 追記後の文が「後方互換不要」の原則とセーブ形式だけの例外を両方読めること。
 - R13. スキルの役割変更: `.agents/skills/moorestech-save-migration/SKILL.md` を「手でセーブファイルを変換する手順」から「`ISaveMigrationStep` の書き方」へ書き換え、`references/save-migration-step-template.md` に plan A の形式変更（`currentTick`・`randomState` 追加、ブロック state のオブジェクト化）を題材にした完全なステップ実装例を置く。旧手順は「worldVersion 導入前のセーブ・開発者手元セーブ専用」として残す。受入: SKILL.md の Use When とステップ手順が新方式を指し、テンプレートがそのままコピーして書き始められる粒度。
-- やらないこと: 置換・返金マイグレーション（除去データを `Saves/pruned/` に残すところまでで、後日ステップを足せる形にするだけ）／レシピ・コスト改変への補償（次回から新値。ADR 0058 の裁定どおり何もしない）／plan A の形式変更そのものの実装（本planは雛形とテンプレートのみ）／`blueprints`・`hotbarAssignments`・`itemStackLevels` の欠損 guid 掃除（既存ローダーが `Guid.Empty` 落ちや `continue` で既に耐えるため。詳細は「## 配置と前例」の備考）／セーブ以外（`map.json`・terrain）のマイグレーション／マイグレーション UI・進捗表示。
+- やらないこと: 置換・返金マイグレーション（除去データを `Saves/pruned/` に残すところまでで、後日ステップを足せる形にするだけ）／レシピ・コスト改変への補償（次回から新値。ADR 0061 の裁定どおり何もしない）／plan A の形式変更そのものの実装（本planは雛形とテンプレートのみ）／`blueprints`・`hotbarAssignments`・`itemStackLevels` の欠損 guid 掃除（既存ローダーが `Guid.Empty` 落ちや `continue` で既に耐えるため。詳細は「## 配置と前例」の備考）／セーブ以外（`map.json`・terrain）のマイグレーション／マイグレーション UI・進捗表示。
 
 ## Global Constraints
 
@@ -1724,7 +1724,7 @@ EOF
 ## 互換性とパフォーマンス
 計画立案時、後方互換性・パフォーマンス最適化・将来の拡張性は考慮不要です。より良い設計と動作する実装を優先し、改善は必要に応じて後から行います。
 
-**唯一の例外: セーブ形式。** テスターのワールドを跨いで保つ必要があるため、セーブ形式を変えるPRは (1) `WorldSaveAllInfoV1.CurrentVersion` を1つ上げ、(2) `Game.SaveLoad/Migration/` に `ISaveMigrationStep` 実装を1本足して `MoorestechServerDIContainerGenerator` の `SaveMigrationChain` へ登録し、(3) 旧版セーブが新版へ変換されることを確かめるテストを、同じPRに同梱してください。連鎖に欠番があると起動時に例外で落ちます。書き方は moorestech-save-migration スキルが正本です（裁定: ADR 0058・`.decisions/2026-09-13-テスターのセーブ互換はゲーム内ロード時マイグレーション連鎖で保つ.md`）。
+**唯一の例外: セーブ形式。** テスターのワールドを跨いで保つ必要があるため、セーブ形式を変えるPRは (1) `WorldSaveAllInfoV1.CurrentVersion` を1つ上げ、(2) `Game.SaveLoad/Migration/` に `ISaveMigrationStep` 実装を1本足して `MoorestechServerDIContainerGenerator` の `SaveMigrationChain` へ登録し、(3) 旧版セーブが新版へ変換されることを確かめるテストを、同じPRに同梱してください。連鎖に欠番があると起動時に例外で落ちます。書き方は moorestech-save-migration スキルが正本です（裁定: ADR 0061・`.decisions/2026-09-13-テスターのセーブ互換はゲーム内ロード時マイグレーション連鎖で保つ.md`）。
 ```
 
 - [ ] **Step 2: ステップのテンプレートを書く**
@@ -1907,7 +1907,7 @@ description: moorestech のセーブ形式を変えるとき、ロード時マ�
 
 ## 方針（2026-09-13 に反転した）
 
-テスター配布が始まったため、**セーブ形式を変えるPRはロード時マイグレーションのステップを同梱する**（ADR 0058、
+テスター配布が始まったため、**セーブ形式を変えるPRはロード時マイグレーションのステップを同梱する**（ADR 0061、
 `.decisions/2026-09-13-テスターのセーブ互換はゲーム内ロード時マイグレーション連鎖で保つ.md`、AGENTS.md
 「互換性とパフォーマンス」の例外項）。以前の「コード側に互換を書かずセーブファイルを手で変換する」方針は、
 worldVersion 導入前のセーブと開発者手元のセーブに限った補助手順へ降格した。
@@ -2118,11 +2118,11 @@ save.json（ファイル）→ WorldLoaderFromJson.LoadOrInitialize
 | webui のトースト（bridge の失敗通知） | 生きる | `features/toast` は触らない（本planは `notification.events` 側だけを使う） |
 | 開発者手元の旧セーブ手変換 | 生きる | `moorestech-save-migration` スキルの補助手順として残す（references のスクリプトも削除しない） |
 | 除去件数の通知（ロード前に接続したプレイヤー） | 起きない | `ServerInstanceManager.Start` は `LoadOrInitialize()` を終えてから `ServerListenAcceptor.CreateBoundListener` で待ち受けを開く。report が `None` のまま接続される順序は製品起動経路に存在しない。**リッスン開始をロードより前へ動かす変更を入れると、この通知が無音で消える**（その変更をするときは通知の再送経路を同時に設計すること） |
-| 未来版セーブを持つプレイヤーの起動 | **止まる（意図した fail-closed）** | 新しいビルドのセーブを古いビルドで開いた場合。黙って新規ワールドを作ると原本を上書きするため、理由をログして中断する。解消条件は「ゲームを更新する」で、Steam の自動配信で必ず到達する（ADR 0058「更新はSteamの自動配信」）。これは既存の動作の喪失ではなく、これまで例外で落ちていた経路に理由を付けたもの |
+| 未来版セーブを持つプレイヤーの起動 | **止まる（意図した fail-closed）** | 新しいビルドのセーブを古いビルドで開いた場合。黙って新規ワールドを作ると原本を上書きするため、理由をログして中断する。解消条件は「ゲームを更新する」で、Steam の自動配信で必ず到達する（ADR 0061「更新はSteamの自動配信」）。これは既存の動作の喪失ではなく、これまで例外で落ちていた経路に理由を付けたもの |
 
 ## 判断記録（ADR）
 
-- 設計ADR: `docs/adr/0058-steam-closed-playtest-report-receiver-and-save-compat.md`（セーブ互換2裁定と Consequences）／`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（plan A の形式変更の出所）
+- 設計ADR: `docs/adr/0061-steam-closed-playtest-report-receiver-and-save-compat.md`（セーブ互換2裁定と Consequences）／`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（plan A の形式変更の出所）
 - 裁定: `.decisions/2026-09-13-テスターのセーブ互換はゲーム内ロード時マイグレーション連鎖で保つ.md`、`.decisions/2026-09-13-マスタ削除はロード時除去で続行し除去データとマイグレーション前セーブを保持する.md`、`.decisions/2026-08-04-セーブの欠損mapObjectはロード時スキップにする.md`、`.decisions/2026-08-18-旧セーブのBPは未解放扱いでデータは保持する.md`、`.decisions/2026-08-18-セーブバックアップはworld_1固定でディレクトリ丸ごと.md`
 - 共有契約: `shared-contracts.md` §8（本plan の Global Constraints へ逐語転記済み）
 
@@ -2130,7 +2130,7 @@ save.json（ファイル）→ WorldLoaderFromJson.LoadOrInitialize
 
 - **通知経路は「既存イベント＋接続時同期push＋既存購読」を選び、新規イベントパケットも初期ハンドシェイクへのフィールド追加も作らない**（agent前提。**新規パターンとしてレビュー注目点**）。役割で前例を選ぶと、除去件数は「サーバー可変状態」ではなく「ロード時に確定し二度と変わらない、プレイヤーへ1回見せるだけの知らせ」である。(a) 新規イベントパケット案は、除去がワールドロード時＝誰も接続していない時刻に完了するため `AddBroadcastEvent` の宛先が空で、発火しても必ず捨てられる恒久的な死経路になる。(b) 初期ハンドシェイクへのフィールド追加案（`ItemStackLevels`／`HotbarAssignments` の前例）は、クライアントが**保持して後から読む状態**のための形であり、表示して消える知らせには過剰で、しかも文言のローカライズ表（`notificationMessages.ts`）を通らない別経路を作る。(c) 採用案は、`EventProtocolProvider` 自身が宣言する順序契約（「sink登録完了直後に発火。購読者は同期的にAddEventすること（初期同期の順序契約）」）に乗るもので、役割同型の前例 `TrainFullSnapshotEventPacket`（接続時に蓄積済み状態をそのプレイヤーへ押し込む）がそのまま当てはまる。3点セットの①は既存 `NotificationService`、②は接続時 push、③は既存 `NotificationTopic` が担う。
 - **「導出できる」とは主張しない**（agent前提）。除去件数はサーバーがロード時にしか知り得ず、クライアントが既存の同期情報から復元する手段は無い。層マップの「導出＝既存イベントが同じ情報をそのまま運んでいる場合のみ」に該当しないため、通知そのものは新設する（新設するのは payload の1カテゴリだけで、イベント・プロトコルは既存を使う）。
-- **トーストは `features/toast` の `emitToast` ではなく `notification.events`→`NotificationHost` を使う**（agent前提。**契約文言の具体化としてレビュー注目点**）。`emitToast` の呼び出し側（`bridge/transport/actions.ts` 等）はすべて生の英語文字列を渡しており、ローカライズ経路を持たない。ADR 0058 は「テスター向け文言は日英独すべて必須」なので、messageId＋params でサーバーから送り Web 側の辞書で解決する既存の通知面が唯一の適合先。
+- **トーストは `features/toast` の `emitToast` ではなく `notification.events`→`NotificationHost` を使う**（agent前提。**契約文言の具体化としてレビュー注目点**）。`emitToast` の呼び出し側（`bridge/transport/actions.ts` 等）はすべて生の英語文字列を渡しており、ローカライズ経路を持たない。ADR 0061 は「テスター向け文言は日英独すべて必須」なので、messageId＋params でサーバーから送り Web 側の辞書で解決する既存の通知面が唯一の適合先。
 - **`Saves/backup/` と `Saves/pruned/` は `GameSystemPaths.SaveFileDirectory` 直下に置く**（agent前提）。共有契約 §8 の綴りどおり。ワールドディレクトリ配下にしなかったのは、(a) 契約が `Saves/...` と書いている、(b) 実プレイのワールドは `world_1` 固定（`.decisions/2026-08-18-セーブバックアップはworld_1固定でディレクトリ丸ごと.md`）で曖昧さが無い、(c) テスト経路の `WorldDataDirectory.FromServerDataMap` は `Root` が null で、ワールド配下にすると 427 本のテスト経路で退避先が決まらない、の3点。
 - **`<ISO>` はコロン無しの基本形式 `yyyyMMdd'T'HHmmss'Z'`**（agent前提）。配布対象は Windows で、拡張ISO形式のコロンはファイル名に使えない。ファイル**中身**の `prunedAt` は読みやすさを取って拡張形式（`2026-09-13T08:30:00Z`）にする。
 - **同秒の除去データは `-1`, `-2` の連番で退避する**（agent前提）。1秒以内に2度ロードする経路（テスト・再起動）で片方が黙って消えると「除去データを保持する」裁定が無音で破れる。100件埋まった場合は `Debug.LogError` を出す。
@@ -2138,7 +2138,7 @@ save.json（ファイル）→ WorldLoaderFromJson.LoadOrInitialize
 - **除去（pruning）は版が上がらなくても毎回のロードで走らせる**（agent前提）。マスタからの削除は `worldVersion` を上げない変更なので、版に紐づけると裁定の主目的（マスタ削除への耐性）が働かない。
 - **`ISaveMigrationStep.FromVersion` は `{ get; }` プロパティにする**（agent前提）。共有契約は `int FromVersion;` と書いているが、C# の interface はフィールドを宣言できないため。意味は同じ。
 - **連鎖の欠番・重複は構築時（起動時）に例外で落とす**（agent前提）。ロード時の判定にすると「その版のセーブだけが永久にロードできない」恒久封鎖が、その版のセーブを持つ人が現れるまで発覚しない。起動即失敗にすれば、形式変更PRのCI・開発者の初回起動で必ず露見する。
-- **未来版セーブは新規ワールド作成へ落とさず例外で中断する**（agent前提）。落とすと autosave が古いビルドの形式で原本を上書きし、テスターのワールドが失われる。解消条件は「ゲームを更新する」で、Steam の自動配信により必ず到達する（ADR 0058）。
+- **未来版セーブは新規ワールド作成へ落とさず例外で中断する**（agent前提）。落とすと autosave が古いビルドの形式で原本を上書きし、テスターのワールドが失われる。解消条件は「ゲームを更新する」で、Steam の自動配信により必ず到達する（ADR 0061）。
 - **`Load(string jsonText)` のシグネチャと責務は変えない**（agent前提）。400本超のテストが直接呼ぶ入口であり、ここに前段処理を混ぜると「整った形だけを受ける」契約が壊れる。前段は `SaveLoadPreparer` に分ける。
 - **plan A の形式変更そのものは実装せず、テンプレートとして書き残す**（ユーザー指示）。plan A（`docs/superpowers/plans/2026-09-11-bug-report-a-server-foundation.md` R3/R4）は未実装なので、V1→V2 ステップを本planで登録すると `CurrentVersion` だけが先に上がって形式が伴わない。完全な実装例を `.agents/skills/moorestech-save-migration/references/save-migration-step-template.md` に置き、plan A がマージされるときにコピーする。連鎖の機構自体はテスト内の疑似ステップ2本で検証する（本番コードに死んだステップを置かない）。
 - **plan A R11（`scripts/save_migration/migrate_block_state_objects.py` による一括手変換）は本planの規約で置き換わる**（agent前提）。plan A を実行する時点で、R11 のPython手変換ではなく上記テンプレートのステップを書くこと。plan A 側の文面は plan A 実行セッションが本planの AGENTS.md 追記に従って読み替える。
