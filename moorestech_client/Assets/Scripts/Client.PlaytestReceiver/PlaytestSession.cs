@@ -56,9 +56,17 @@ namespace Client.PlaytestReceiver
             }
 
             _authenticating = true;
-            var result = await AuthenticateOnceAsync(utcNow, token);
-            _authenticating = false;
-            return result;
+
+            // 打ち切り後も再認証できるよう、走行フラグは例外経路でも必ず戻す
+            // The in-flight flag is always restored, even on the cancellation path, so authentication can be retried
+            try
+            {
+                return await AuthenticateOnceAsync(utcNow, token);
+            }
+            finally
+            {
+                _authenticating = false;
+            }
         }
 
         private async UniTask<PlaytestSessionResult> AuthenticateOnceAsync(DateTime utcNow, CancellationToken token)

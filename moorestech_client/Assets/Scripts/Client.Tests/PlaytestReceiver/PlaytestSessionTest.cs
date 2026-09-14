@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
-using Client.PlaytestReceiver.Steam;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 
@@ -129,11 +127,30 @@ namespace Client.Tests.PlaytestReceiver
             var first = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None);
             var second = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
 
+            Assert.AreEqual(PlaytestSessionOutcome.TicketUnavailable, second.Outcome);
             Assert.AreEqual("another authentication is already in flight", second.Detail);
             Assert.AreEqual(0, api.SessionCallCount);
 
             gate.TrySetResult("aabb");
             Assert.AreEqual(PlaytestSessionOutcome.Allowed, first.GetAwaiter().GetResult().Outcome);
+        }
+
+        [Test]
+        public void 打ち切られた後も認証をやり直せる()
+        {
+            // 走行フラグが例外経路で立ったままだと、以後の認証が恒久的に拒否される
+            // A flag left standing on the exception path would refuse every later authentication forever
+            var api = new FakeApi();
+            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}" });
+            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
+            var cancelled = new CancellationTokenSource();
+            cancelled.Cancel();
+
+            Assert.Catch<OperationCanceledException>(() => session.AuthenticateAsync(DateTime.UtcNow, cancelled.Token).GetAwaiter().GetResult());
+            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
+
+            Assert.AreEqual(PlaytestSessionOutcome.Allowed, result.Outcome);
+            Assert.IsTrue(session.HasToken);
         }
 
         private static void AssertOutcome(PlaytestApiResult response, PlaytestSessionOutcome expected)
@@ -143,47 +160,6 @@ namespace Client.Tests.PlaytestReceiver
             var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
             var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
             Assert.AreEqual(expected, result.Outcome, result.Detail);
-        }
-
-        private sealed class FakeTicketProvider : IPlaytestSteamTicketProvider
-        {
-            private readonly string _ticketHex;
-            public FakeTicketProvider(string ticketHex) { _ticketHex = ticketHex; }
-            public bool IsSteamRunning() { return true; }
-            public UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token) { return UniTask.FromResult(_ticketHex); }
-        }
-
-        // チケットを返す時刻をテストが決める。1本目を待たせたまま2本目を呼ぶために使う
-        // The test decides when the ticket arrives, so a second call can start while the first is still waiting
-        private sealed class GatedTicketProvider : IPlaytestSteamTicketProvider
-        {
-            private readonly UniTaskCompletionSource<string> _gate;
-            public GatedTicketProvider(UniTaskCompletionSource<string> gate) { _gate = gate; }
-            public bool IsSteamRunning() { return true; }
-            public UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token) { return _gate.Task; }
-        }
-
-        private sealed class FakeApi : IPlaytestReceiverApi
-        {
-            public readonly List<PlaytestApiResult> SessionResponses = new();
-            public int SessionCallCount;
-
-            public UniTask<PlaytestApiResult> PostSessionAsync(string ticketHex, CancellationToken token)
-            {
-                var response = SessionResponses[SessionCallCount];
-                SessionCallCount++;
-                return UniTask.FromResult(response);
-            }
-
-            public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, string kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
-            {
-                return UniTask.FromResult(new PlaytestApiResult { StatusCode = 200, Body = "{}" });
-            }
-
-            public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, string kind, string bundleId, string summaryJson, CancellationToken token)
-            {
-                return UniTask.FromResult(new PlaytestApiResult { StatusCode = 200, Body = "{}" });
-            }
         }
     }
 }
