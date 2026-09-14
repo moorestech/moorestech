@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
@@ -37,31 +38,30 @@ namespace Client.Game.InGame.BugReport
 
         public async UniTask<BugReportBundleResult> WriteAsync(BugReportCapturedData data, string description, string kind)
         {
-            var directory = BugReportOutbox.CreateBundleDirectory(DateTime.UtcNow, Guid.NewGuid().ToString("N").Substring(0, 8));
+            // 種別は箱の契約値で、取り込み側の分岐もこれだけを見る。呼び出し口ごとの検証に頼らず書き出し側でも拒否する
+            // The kind is a contract value the ingest side branches on, so the writer rejects a broken one instead of trusting each caller's check
+            if (!PlaytestReportKind.IsKnown(kind))
+            {
+                Debug.LogError($"プレイ報告の種別が不正なため箱を作りません kind:{kind}");
+                return new BugReportBundleResult { Missing = new List<MissingItem>(), Ready = false };
+            }
+
+            var directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
 
             // Applicationのパス系はメインスレッドでしか読めないため、焼き込み情報とリポジトリの場所はここで先に読む
             // Application's path APIs are main-thread only, so the baked build info and repository roots are read here first
-            var buildInfo = Application.isEditor ? null : RepositoryStateProbe.ReadBuildInfo();
+            var buildInfo = RepositoryStateProbe.ReadBuildInfo();
             var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
             var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
 
-            var manifest = new BugReportManifest
-            {
-                CreatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture),
-                Description = description,
-                Kind = kind,
-                SteamId = _identity.SteamId,
-                BuildInfo = buildInfo,
-                Platform = Application.platform.ToString(),
-                IsEditor = Application.isEditor,
-                ReportTick = data.ReportTick,
-                ClientState = data.ClientState,
-                Missing = new List<MissingItem>(data.Missing),
-            };
+            var manifest = BugReportManifest.CreateHeader(description, kind, _identity.SteamId, buildInfo);
+            manifest.ReportTick = data.ReportTick;
+            manifest.ClientState = data.ClientState;
+            manifest.Missing = new List<MissingItem>(data.Missing);
 
             // 既存消費側（BugReportRepositoryFiles）向けの射影。Editorではnullのまま渡し、従来どおりgit probe側の分岐へ通す
             // Projection for the existing consumer (BugReportRepositoryFiles); stays null in the Editor to keep taking the git-probe branch as before
-            var buildInfoForFiles = Application.isEditor ? null : BuildInfoJson.ToBugReportBuildInfo(buildInfo);
+            var buildInfoForFiles = buildInfo == null ? null : BuildInfoJson.ToBugReportBuildInfo(buildInfo);
 
             // ファイルコピーと ffmpeg はメインスレッドを塞がないようスレッドプールで行う
             // File copies and ffmpeg run on the thread pool so the main thread never blocks
@@ -82,20 +82,7 @@ namespace Client.Game.InGame.BugReport
                 ServerDataLocation.Record(data.ServerDataDirectory, manifest, repositoryRoot, masterDataRoot);
             });
 
-            // manifestとREADYの書き出しも外部境界。ここが失敗した箱は運搬されないので必ず理由を残す
-            // Writing the manifest and READY is an external boundary too; an unshipped box must always say why
-            var ready = false;
-            try
-            {
-                File.WriteAllText(Path.Combine(directory, BugReportBundleLayout.ManifestFileName), manifest.ToJson());
-                BugReportOutbox.MarkReady(directory);
-                ready = true;
-                Debug.Log($"バグ報告バンドルを書きました {directory} missing:{manifest.Missing.Count}");
-            }
-            catch (Exception e) when (IsDiskFailure(e))
-            {
-                Debug.LogError($"バグ報告バンドルのmanifestを書けませんでした（この箱は運搬されません） {directory}: {e.Message}");
-            }
+            var ready = BugReportOutbox.TryFinishBundle(directory, manifest);
             return new BugReportBundleResult { BundleDirectory = directory, Missing = manifest.Missing, Ready = ready };
         }
 

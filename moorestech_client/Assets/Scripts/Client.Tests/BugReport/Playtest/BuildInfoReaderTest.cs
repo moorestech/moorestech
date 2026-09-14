@@ -1,4 +1,5 @@
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.Playtest;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;

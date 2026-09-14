@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;

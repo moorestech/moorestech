@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using Client.Game.InGame.BugReport.BuildOrigin;
+using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using UnityEngine;
@@ -45,6 +48,22 @@ namespace Client.Game.InGame.BugReport
         public ClientStateSnapshot ClientState;
         public List<MissingItem> Missing = new();
         public double VideoSeconds;
+
+        // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
+        // The header every kind of box shares; while crash and bug built it separately, a column missing on one side went unnoticed
+        public static BugReportManifest CreateHeader(string description, string kind, string steamId, BuildInfo buildInfo)
+        {
+            return new BugReportManifest
+            {
+                CreatedAt = DateTime.UtcNow.ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture),
+                Description = description,
+                Kind = kind,
+                SteamId = steamId,
+                BuildInfo = buildInfo,
+                Platform = Application.platform.ToString(),
+                IsEditor = Application.isEditor,
+            };
+        }
 
         // 欠損は開発者向けログとmanifestの両方へ残す。片方だけだと調査時にもう片方へ辿り着けない
         // Every missing item goes to both the developer log and the manifest; one alone leaves an investigator stranded

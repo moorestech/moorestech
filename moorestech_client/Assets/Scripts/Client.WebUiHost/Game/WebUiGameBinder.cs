@@ -18,6 +18,7 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Playtest.Progress;
 using Client.WebUiHost.Game.Actions;
+using Client.WebUiHost.Game.Playtest;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Game.Construction;
@@ -91,10 +92,9 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
             C4WebUiRegistration.Register(hub);
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
-            // 現在言語トピックを登録（辞書本体はHTTP endpointから取得）
-            // Register the current-locale topic (dictionary bodies come from the HTTP endpoint)
-            var localizationTopic = new LocalizationTopic(hub);
-            hub.RegisterTopic(LocalizationTopic.TopicName, localizationTopic);
+            // 現在言語トピックは開始ゲートより前に登録済み。ゲートを通らない接続経路のためここでも冪等に確かめる
+            // The current-locale topic is registered ahead of the start gates; this idempotent call covers paths that skip them
+            LocalizationTopicRegistration.EnsureRegistered(hub);
 
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
@@ -172,7 +172,7 @@ namespace Client.WebUiHost.Game
 
             // 購読で観測できない操作は記録側へプッシュする。窓口は1つだけ解決して各ハンドラへ渡す
             // Operations no subscription observes are pushed to the recorder; the single window is resolved once and handed to each handler
-            var progressSink = resolver.Resolve<IPlaytestProgressSink>();
+            var progressSink = PlaytestProgressSinkResolver.Resolve(resolver);
 
             // action ハンドラ登録
             // Register action handlers

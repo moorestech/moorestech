@@ -41,7 +41,9 @@ namespace Client.WebUiHost.Game.Actions.Playtest
                 // 二度目の了解は何も変えないので成功へ丸めない
                 // A second acknowledgement changes nothing, so it is not folded into success
                 PlaytestConsentResult.AlreadyAcknowledged => ActionResult.Fail("already_acknowledged"),
-                _ => ActionResult.Fail("already_acknowledged"),
+                // enumは宣言外の値も取り得る。了解済みと同じコードに相乗りさせると別事象が同じ理由で報告される
+                // An enum can hold an undeclared value; sharing the already-acknowledged code would report a different event under the same reason
+                _ => ActionResult.Fail("unknown_result"),
             });
         }
     }

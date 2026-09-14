@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
@@ -16,7 +17,7 @@ namespace Client.Tests.BugReport
     public class CrashBundleWriterTest
     {
         [Test]
-        public void 退避物と説明文からcrashの箱を書く()
+        public async Task 退避物と説明文からcrashの箱を書く()
         {
             var source = Path.Combine(Path.GetTempPath(), $"moorestech-crash-{Guid.NewGuid():N}");
             var recording = Path.Combine(source, "recording");
@@ -32,7 +33,7 @@ namespace Client.Tests.BugReport
                 PlayerLogPath = playerLog,
             };
 
-            var bundle = new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).Write(artifacts, "落ちた");
+            var bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "落ちた");
 
             try
             {
@@ -53,7 +54,7 @@ namespace Client.Tests.BugReport
         // 退避は pid_<PID>/ の入れ子を保ったまま移すため、箱への写しも入れ子を辿らないと録画が丸ごと落ちる
         // The salvage preserves the pid_<PID>/ nesting, so a non-recursive copy would drop the whole recording
         [Test]
-        public void 入れ子のまま退避された録画も箱へ入る()
+        public async Task 入れ子のまま退避された録画も箱へ入る()
         {
             var source = Path.Combine(Path.GetTempPath(), $"moorestech-crash-{Guid.NewGuid():N}");
             var recording = Path.Combine(source, "recording", "pid_1234");
@@ -66,7 +67,7 @@ namespace Client.Tests.BugReport
                 RecordingDirectory = Path.Combine(source, "recording"),
             };
 
-            var bundle = new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).Write(artifacts, "入れ子");
+            var bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "入れ子");
 
             try
             {
@@ -80,12 +81,12 @@ namespace Client.Tests.BugReport
         }
 
         [Test]
-        public void 退避物が空でも説明文だけで箱になり欠損が残る()
+        public async Task 退避物が空でも説明文だけで箱になり欠損が残る()
         {
             var artifacts = new PreviousSessionArtifacts { PreviousExitWasClean = false };
             artifacts.Missing.Add(new MissingItem { Item = "recording", Reason = "退避元が空" });
 
-            var bundle = new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).Write(artifacts, "起動しない");
+            var bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "起動しない");
 
             try
             {
@@ -102,7 +103,7 @@ namespace Client.Tests.BugReport
         // ディスク由来の失敗（読み取り不能）は項目ごとに隔離され、他の退避物・manifest・READYの書き出しは続く
         // A disk-originated failure (unreadable source) is isolated per item; the other artifacts, manifest and READY still get written
         [Test]
-        public void 退避物の読み取り不能はmissingへ隔離され他の項目とREADYは書かれる()
+        public async Task 退避物の読み取り不能はmissingへ隔離され他の項目とREADYは書かれる()
         {
             var source = Path.Combine(Path.GetTempPath(), $"moorestech-crash-{Guid.NewGuid():N}");
             var recording = Path.Combine(source, "recording");
@@ -122,7 +123,7 @@ namespace Client.Tests.BugReport
             string bundle = null;
             try
             {
-                bundle = new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).Write(artifacts, "読めない");
+                bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "読めない");
 
                 Assert.IsNotNull(bundle, "1項目の失敗でゲート応答処理まで例外が伝播せず箱自体は書けること");
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)));

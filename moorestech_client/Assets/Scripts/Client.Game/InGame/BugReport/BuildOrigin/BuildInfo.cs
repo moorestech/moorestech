@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.BugReport
+namespace Client.Game.InGame.BugReport.BuildOrigin
 {
     // 配布ビルドの出所。plan E が StreamingAssets/build-info.json へ焼き、報告と進行記録が読むだけの契約（shared-contracts §1）
     // The distributed build's origin; plan E bakes StreamingAssets/build-info.json and reports/records only read it (shared-contracts §1)

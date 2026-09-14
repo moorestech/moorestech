@@ -1,4 +1,5 @@
 using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Actions.Playtest;
 using Client.WebUiHost.Game.Topics.Playtest;
@@ -13,23 +14,43 @@ namespace Client.WebUiHost.Game.Playtest
     /// </summary>
     public static class PlaytestGateBinder
     {
-        public static CrashReportGate BindCrashReportGate(WebSocketHub hub, PreviousSessionArtifacts artifacts, ICrashBundleWriter writer)
+        /// <summary>
+        /// 応答を待つゲート一式。同意の既読・テスター識別・箱の書き出し口の解決はすべてここが持つ。
+        /// The gates that wait for an answer; the consent flag, the tester identity and the writer are all resolved here.
+        /// </summary>
+        public static PlaytestStartGateHandles BindWaitingGates(WebSocketHub hub, PreviousSessionArtifacts artifacts)
         {
-            // 異常終了なら常に確認する。退避物ゼロでも説明文だけの箱には価値があるので待機条件から外さない
-            // Always ask after an unclean exit; a description-only box still has value, so an empty salvage does not skip the wait
-            var startsWaiting = !artifacts.PreviousExitWasClean;
-            var gate = new CrashReportGate(startsWaiting, writer, artifacts);
-            hub.RegisterTopic(CrashReportGateTopic.TopicName, new CrashReportGateTopic(hub, gate));
-            CrashReportGateActions.Register(hub, gate);
-            return gate;
+            return Bind(hub, artifacts, PlaytestConsentFlag.IsAcknowledged());
         }
 
-        public static PlaytestConsentGate BindConsentGate(WebSocketHub hub, bool alreadyAcknowledged)
+        /// <summary>
+        /// 無人起動向けに、どちらも閉じた状態で登録する。登録自体を飛ばすとWeb側の購読が固着する。
+        /// Registers both gates already closed for an unattended boot; skipping the registration would wedge the web subscription.
+        /// </summary>
+        public static PlaytestStartGateHandles BindClosedGates(WebSocketHub hub)
         {
-            var gate = new PlaytestConsentGate(!alreadyAcknowledged);
-            hub.RegisterTopic(PlaytestConsentGateTopic.TopicName, new PlaytestConsentGateTopic(hub, gate));
-            PlaytestConsentGateActions.Register(hub, gate);
-            return gate;
+            return Bind(hub, new PreviousSessionArtifacts { PreviousExitWasClean = true }, true);
         }
+
+        private static PlaytestStartGateHandles Bind(WebSocketHub hub, PreviousSessionArtifacts artifacts, bool consentAcknowledged)
+        {
+            var consentGate = new PlaytestConsentGate(!consentAcknowledged);
+            hub.RegisterTopic(PlaytestConsentGateTopic.TopicName, new PlaytestConsentGateTopic(hub, consentGate));
+            PlaytestConsentGateActions.Register(hub, consentGate);
+
+            var crashGate = new CrashReportGate(new CrashBundleWriter(PlaytestSessionIdentityProvider.Current), artifacts);
+            hub.RegisterTopic(CrashReportGateTopic.TopicName, new CrashReportGateTopic(hub, crashGate));
+            CrashReportGateActions.Register(hub, crashGate);
+
+            return new PlaytestStartGateHandles { Consent = consentGate, CrashReport = crashGate };
+        }
+    }
+
+    // 束ねた2ゲートの持ち手。待つ順序は開始側（PlaytestStartGates）が決めるのでここでは待たない
+    // Handles to the two bound gates; the starter decides the order of the waits, so none happens here
+    public sealed class PlaytestStartGateHandles
+    {
+        public PlaytestConsentGate Consent;
+        public CrashReportGate CrashReport;
     }
 }

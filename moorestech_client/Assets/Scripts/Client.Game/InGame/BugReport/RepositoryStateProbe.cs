@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using Client.Game.InGame.BugReport.BuildOrigin;
+using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -103,6 +105,14 @@ namespace Client.Game.InGame.BugReport
         // Parsing and projection for existing consumers live in BuildInfoJson (kept out of this file to stay under the line limit)
         public static BuildInfo ReadBuildInfo()
         {
+            // build-info.json はビルドにしか焼かれない。Editorで読まない判断は唯一の読み手であるここが持つ（呼び出し側へ複製しない）
+            // build-info.json is baked only into builds; the "never read it in the Editor" rule lives in this single reader, never copied to callers
+            if (Application.isEditor)
+            {
+                Debug.Log("Editor実行のため build-info.json は読まず buildInfo は null になります（作業ツリーの状態はgit probeが名乗る）");
+                return null;
+            }
+
             var path = Path.Combine(Application.streamingAssetsPath, BuildInfoFileName);
             if (!File.Exists(path))
             {
@@ -123,7 +133,7 @@ namespace Client.Game.InGame.BugReport
                 ["dirty"] = repo.State?.Dirty ?? false,
                 ["masterCommit"] = master.State?.Commit ?? "",
                 ["masterDirty"] = master.State?.Dirty ?? false,
-                ["builtAt"] = builtAt.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture),
+                ["builtAt"] = builtAt.ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture),
             };
             return info.ToString(Formatting.Indented);
         }

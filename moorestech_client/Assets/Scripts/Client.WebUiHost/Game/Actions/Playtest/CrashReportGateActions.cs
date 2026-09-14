@@ -32,25 +32,28 @@ namespace Client.WebUiHost.Game.Actions.Playtest
             _gate = gate;
         }
 
-        public UniTask<ActionResult> ExecuteAsync(JObject payload)
+        public async UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
             var send = payload?["send"]?.Value<bool>() ?? false;
             var description = payload?["description"]?.ToString() ?? "";
 
             // 判定をゲートに委譲し、全variantを並べた写像で失敗契約へ変換する
             // Delegate the judgement to the gate and map every variant to the failure contract
-            var result = _gate.Respond(send, description);
-            return UniTask.FromResult(result switch
+            var result = await _gate.RespondAsync(send, description);
+            return result switch
             {
                 CrashReportResponseResult.Sent => ActionResult.Success(),
                 CrashReportResponseResult.Skipped => ActionResult.Success(),
+                // 箱を書けなかった送信は成功にしない。理由コードはポーズメニュー経路の書き出し失敗と同じものを使う
+                // A send whose box could not be written is never a success; the reason code matches the pause-menu write failure
+                CrashReportResponseResult.WriteFailed => ActionResult.Fail("bundle_write_failed"),
                 // 二度目の応答は何も変えないので成功へ丸めない
                 // A second answer changes nothing, so it is not folded into success
                 CrashReportResponseResult.AlreadyResponded => ActionResult.Fail("already_responded"),
-                // enumは宣言外の値も取り得るため、未知の結果は応答済みと同じ失敗へ倒す
-                // An enum can hold an undeclared value, so an unknown outcome falls into the same failure as an already-answered one
-                _ => ActionResult.Fail("already_responded"),
-            });
+                // enumは宣言外の値も取り得る。応答済みと同じコードに相乗りさせると別事象が同じ理由で報告される
+                // An enum can hold an undeclared value; sharing the already-answered code would report a different event under the same reason
+                _ => ActionResult.Fail("unknown_result"),
+            };
         }
     }
 }

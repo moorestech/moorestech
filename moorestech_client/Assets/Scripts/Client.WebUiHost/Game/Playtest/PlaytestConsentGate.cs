@@ -2,6 +2,7 @@ using System;
 using Client.Game.InGame.BugReport.Playtest;
 using Cysharp.Threading.Tasks;
 using UniRx;
+using UnityEngine;
 
 namespace Client.WebUiHost.Game.Playtest
 {
@@ -43,7 +44,11 @@ namespace Client.WebUiHost.Game.Playtest
         // Only the first acknowledgement takes effect; the read flag is written here so later boots pass straight through
         public PlaytestConsentResult Acknowledge()
         {
-            if (!_isWaiting) return PlaytestConsentResult.AlreadyAcknowledged;
+            if (!_isWaiting)
+            {
+                Debug.LogWarning("PlaytestConsentGate: 了解済みまたは待機していないゲートへ了解が届いたため無視します");
+                return PlaytestConsentResult.AlreadyAcknowledged;
+            }
             _isWaiting = false;
 
             // フラグ書き込みに関わらずゲートは必ず閉じる。例外で抜けても起動が永久に止まらないよう解除はfinallyに置く

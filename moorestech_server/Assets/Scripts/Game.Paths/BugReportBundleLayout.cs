@@ -6,6 +6,10 @@ namespace Game.Paths
     // A one-sided rename still compiles and still writes successfully while only the reproduction dies, so the names live here
     public static class BugReportBundleLayout
     {
+        // 箱の中の日時表記。client/server の全箇所がこれを参照し、再現側が1つのパーサで読めるようにする（ADR 0060 裁定3）
+        // The timestamp format inside a box; every client/server site references it so the reproduction side needs one parser (ADR 0060 adjudication 3)
+        public const string Utc8601Format = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
         public const string SnapshotDirectoryName = "snapshots";
         public const string WorldDirectoryName = "world";
         public const string ManifestFileName = "manifest.json";

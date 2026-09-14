@@ -32,6 +32,16 @@
     "unknown_choice",
     "blueprint_delete_not_found",
     "blueprint_delete_not_unlocked",
-    "blueprint_delete_request_failed"
+    "blueprint_delete_request_failed",
+    "empty_description",
+    "invalid_kind",
+    "bundle_write_failed",
+    "no_capture_session",
+    "capture_pending",
+    "already_submitted",
+    "submit_in_flight",
+    "already_responded",
+    "already_acknowledged",
+    "unknown_result"
   ]
 }

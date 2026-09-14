@@ -1,4 +1,5 @@
 using Client.Game;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.DebugSystem.Environment;
 using Client.Playtest.Core;
 using Client.Starter;
@@ -131,6 +132,7 @@ namespace Client.Playtest
             SessionState.SetBool(PendingBootKey, false);
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
             PlaytestWorldBootSession.Clear();
+            PlaytestStartGateBypass.Clear();
             UnsubscribeWorldBootScene();
             UnsubscribeEnvironmentScene();
             EditorSceneManager.playModeStartScene = null;
@@ -149,6 +151,10 @@ namespace Client.Playtest
             // IngameDebugConsole等のPlaytestノイズを防ぐためdebug object生成を止める
             // Stop debug object creation to prevent playtest noise such as IngameDebugConsole
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
+
+            // DSLセッションには開始ゲートへ応答する者が居ない。印を置いてゲートを出さずに進ませる
+            // A DSL session has nobody to answer the start gates, so the mark lets the boot proceed without showing them
+            PlaytestStartGateBypass.Apply();
             PlaytestPaths.ResetSession();
 
             // 開発者設定を複製したセッション専用cacheへ切り替えてからmasterパスを書く

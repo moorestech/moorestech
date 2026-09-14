@@ -49,9 +49,9 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
 
-            // plan D の Steam 認証が入るまでは空のSteamIDで動かす（登録の差し替えだけで切り替わる）
-            // Runs with an empty SteamID until plan D's Steam auth arrives; swapping this registration is the whole switch
-            builder.Register<IPlaytestSessionIdentity, EmptyPlaytestSessionIdentity>(Lifetime.Singleton);
+            // テスター識別の差し替え点は PlaytestSessionIdentityProvider 1つ。DI確立前に走る開始ゲートも同じ値を読む（ADR 0060 裁定4）
+            // PlaytestSessionIdentityProvider is the single seam for the tester identity; the start gates, which run before DI exists, read the same value (ADR 0060 adjudication 4)
+            builder.Register<IPlaytestSessionIdentity>(_ => PlaytestSessionIdentityProvider.Current, Lifetime.Singleton);
             builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
             builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
             builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
