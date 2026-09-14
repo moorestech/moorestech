@@ -68,6 +68,12 @@ describe("POST /v1/session", () => {
     expect(response.status).toBe(400);
   });
 
+  it("bodyがJSONのnullなら400（tryの外でbody.ticketに触るとTypeErrorになる回帰の再発防止）", async () => {
+    const response = await handle(sessionRequest("null"), workerEnv, steamOk("1"));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ reason: "bad-request" });
+  });
+
   describe("400経路のwarnログ（レビューImportant 1: 無音の縮退禁止）", () => {
     afterEach(() => {
       vi.restoreAllMocks();
@@ -82,16 +88,25 @@ describe("POST /v1/session", () => {
     it("ticketが16進形式でなければ理由付きでwarnする", async () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       await handle(sessionRequest(JSON.stringify({ ticket: "zz" })), workerEnv, steamOk("1"));
-      expect(warn).toHaveBeenCalledWith("[session] rejected: ticket is not a hex string");
+      expect(warn).toHaveBeenCalledWith("[session] rejected: ticket is not an even-length hex string");
     });
 
-    it("2つの400理由は別文言で、片方だけでは通らない", async () => {
+    it("body非JSONのときhex側の文言は出ない", async () => {
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       await handle(sessionRequest("not json"), workerEnv, steamOk("1"));
       const jsonReasonCalls = warn.mock.calls.filter((call) => String(call[0]).includes("is not JSON"));
-      const hexReasonCalls = warn.mock.calls.filter((call) => String(call[0]).includes("is not a hex string"));
+      const hexReasonCalls = warn.mock.calls.filter((call) => String(call[0]).includes("is not an even-length hex string"));
       expect(jsonReasonCalls.length).toBe(1);
       expect(hexReasonCalls.length).toBe(0);
+    });
+
+    it("ticketがhex不正のときJSON側の文言は出ない", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      await handle(sessionRequest(JSON.stringify({ ticket: "zz" })), workerEnv, steamOk("1"));
+      const jsonReasonCalls = warn.mock.calls.filter((call) => String(call[0]).includes("is not JSON"));
+      const hexReasonCalls = warn.mock.calls.filter((call) => String(call[0]).includes("is not an even-length hex string"));
+      expect(jsonReasonCalls.length).toBe(0);
+      expect(hexReasonCalls.length).toBe(1);
     });
   });
 

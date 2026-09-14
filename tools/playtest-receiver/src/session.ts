@@ -34,15 +34,17 @@ export async function postSession(request: Request, env: Env, steamFetch: typeof
 async function readTicket(request: Request): Promise<string | null> {
   // クライアントが送るJSONのパースは外部入力境界。壊れた入力は400へ隔離する
   // Parsing client-supplied JSON is an external-input boundary; malformed input is isolated into a 400
-  let body: { ticket?: unknown };
+  let body: { ticket?: unknown } | null;
   try {
-    body = (await request.json()) as { ticket?: unknown };
+    body = (await request.json()) as { ticket?: unknown } | null;
   } catch (error) {
     console.warn(`[session] rejected: body is not JSON (${error instanceof Error ? error.message : String(error)})`);
     return null;
   }
-  if (typeof body.ticket !== "string" || !TICKET_PATTERN.test(body.ticket)) {
-    console.warn("[session] rejected: ticket is not a hex string");
+  // JSONの`null`・数値・文字列等も正当なJSONなのでtry内では捕まらない。ここで型ごと弾く
+  // JSON `null`, numbers, strings, etc. are all valid JSON and slip past the try above; reject the shape here
+  if (body === null || typeof body !== "object" || typeof body.ticket !== "string" || !TICKET_PATTERN.test(body.ticket)) {
+    console.warn("[session] rejected: ticket is not an even-length hex string");
     return null;
   }
   return body.ticket;
