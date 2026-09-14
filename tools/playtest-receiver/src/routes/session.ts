@@ -1,14 +1,25 @@
-import { readAllowlist } from "./allowlist";
-import type { Env } from "./env";
-import { fail, json } from "./http";
-import { authenticateUserTicket } from "./steamAuth";
-import { signToken } from "./token";
+import { readAllowlist } from "../allowlist";
+import type { Env } from "../env";
+import { fail, json } from "../http";
+import { authenticateUserTicket } from "../steamAuth";
+import { signToken } from "../token";
 
 // hexエンコードされたバイナリチケットは必ず偶数長。奇数長は形の時点で弾く
 // A hex-encoded binary ticket is always even length; odd lengths are rejected by shape alone
 const TICKET_PATTERN = /^(?:[0-9a-fA-F]{2}){1,4096}$/;
 
-export async function postSession(request: Request, env: Env, steamFetch: typeof fetch): Promise<Response> {
+// セッション経路の一致判定とメソッド検査をここへ寄せる。一致しなければnullでindex.tsの次の経路へ委ねる
+// Path matching and method checks live here; returns null on a non-match so index.ts can try the next route
+export async function routeSession(request: Request, env: Env, steamFetch: typeof fetch, segments: string[]): Promise<Response | null> {
+  if (!(segments.length === 2 && segments[0] === "v1" && segments[1] === "session")) return null;
+  if (request.method !== "POST") {
+    console.warn(`[router] rejected method ${request.method} for /v1/session`);
+    return fail("method-not-allowed", 405);
+  }
+  return postSession(request, env, steamFetch);
+}
+
+async function postSession(request: Request, env: Env, steamFetch: typeof fetch): Promise<Response> {
   const ticket = await readTicket(request);
   if (ticket === null) return fail("bad-request", 400);
 
