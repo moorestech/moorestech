@@ -13,8 +13,30 @@ CURL_CMD="${CURL_CMD:-curl}"
 
 log() { echo "[allowlist] $*" >&2; }
 
+# curl呼び出しの失敗経路を無音で通さない。何を・どのURLへ呼んだかと、非2xxならstatus・bodyをstderrへ出す
+# Never let a curl failure pass silently; log what was called and the URL, and on a non-2xx response its status and body
+http_call() {
+  local method="$1" url="$2" data="${3:-}" out status body rc=0
+  if [ -n "$data" ]; then
+    out="$("$CURL_CMD" -sS -w '\n%{http_code}' -X "$method" -H "X-Admin-Key: $ADMIN_KEY" -H "Content-Type: application/json" --data "$data" "$url")" || rc=$?
+  else
+    out="$("$CURL_CMD" -sS -w '\n%{http_code}' -H "X-Admin-Key: $ADMIN_KEY" "$url")" || rc=$?
+  fi
+  if [ "$rc" -ne 0 ]; then
+    log "許可リストAPIへ到達できない（curl終了コード $rc）: $method $url"
+    exit 1
+  fi
+  status="${out##*$'\n'}"
+  body="${out%$'\n'*}"
+  case "$status" in
+    2??) ;;
+    *) log "許可リストAPIが失敗を返した（ADMIN_KEY不一致の可能性を含む）: $method $url status=$status body=$body"; exit 1 ;;
+  esac
+  printf '%s' "$body"
+}
+
 fetch_list() {
-  "$CURL_CMD" -sS -f -H "X-Admin-Key: $ADMIN_KEY" "$BASE/v1/allowlist"
+  http_call GET "$BASE/v1/allowlist"
 }
 
 # 現在のリストへ1件足す/引く。編集はpythonのjsonに任せ、順序は入力順を保つ
@@ -35,14 +57,18 @@ print(json.dumps({"steamIds": ids}))
 ' "$mode" "$steam_id"
 }
 
+# 全置換PUT。成功時のレスポンス本文（更新後リスト）は呼び出し元で使わないため捨てる
+# A full-replace PUT; the response body (the updated list) is unused by callers so it is discarded
 put_list() {
-  "$CURL_CMD" -sS -f -X PUT -H "X-Admin-Key: $ADMIN_KEY" -H "Content-Type: application/json" --data "$1" "$BASE/v1/allowlist" >/dev/null
+  http_call PUT "$BASE/v1/allowlist" "$1" >/dev/null
 }
 
 require_steam_id() {
   [ "${1:-}" != "" ] || { log "steamId を指定してください: $0 $2 <steamId>"; exit 2; }
 }
 
+# サブコマンドの振り分け。未知のサブコマンドは使い方を出して失敗する
+# Dispatches the subcommand; an unknown one prints usage and fails
 case "${1:-}" in
   add)
     require_steam_id "${2:-}" add

@@ -6,8 +6,8 @@
 
 `~/hermes-agent/data/services/playtest/env.sh`（git 管理外・実シークレット）:
 ```
-PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com
-PLAYTEST_ADMIN_KEY=<wrangler secret put ADMIN_KEY で入れたのと同じ値>
+export PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com
+export PLAYTEST_ADMIN_KEY=<wrangler secret put ADMIN_KEY で入れたのと同じ値>
 ```
 別の場所に置く場合は `PLAYTEST_ENV_FILE` で指す。
 

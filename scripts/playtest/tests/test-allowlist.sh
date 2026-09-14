@@ -8,8 +8,10 @@ trap 'rm -rf "$TMP"' EXIT
 
 echo '{"steamIds":[]}' > "$TMP/state.json"
 
-# curl スタブ: -X PUT なら --data を state.json へ書き、そうでなければ state.json を返す
-# curl stub: with -X PUT it stores --data into state.json, otherwise it prints state.json
+# curl スタブ: -X PUT なら --data を state.json へ書き、そうでなければ state.json を返す。
+# 実curlの `-w '\n%{http_code}'` と同じく、本文の末尾に改行区切りでstatusを付ける（常に200）
+# curl stub: with -X PUT it stores --data into state.json, otherwise it prints state.json.
+# Like real curl's `-w '\n%{http_code}'`, the body is followed by a newline-separated status (always 200)
 cat > "$TMP/curl" <<'SH'
 #!/usr/bin/env bash
 state="$STATE_FILE"
@@ -21,7 +23,7 @@ while [ $# -gt 0 ]; do
     *) shift;;
   esac
 done
-if [ "$method" = "PUT" ]; then printf '%s' "$data" > "$state"; printf '%s' "$data"; else cat "$state"; fi
+if [ "$method" = "PUT" ]; then printf '%s' "$data" > "$state"; printf '%s\n200' "$data"; else printf '%s\n200' "$(cat "$state")"; fi
 SH
 chmod +x "$TMP/curl"
 
@@ -59,5 +61,17 @@ fi
 # Missing arguments and unknown subcommands must fail too
 if run add >/dev/null 2>&1; then echo "NG: steamId 無しの add が通った"; exit 1; fi
 if run nope >/dev/null 2>&1; then echo "NG: 未知のサブコマンドが通った"; exit 1; fi
+
+# curl スタブが401を返すと非0終了し、stderrにstatusが出る（無音で通さない）
+# A curl stub returning 401 must fail loudly, with the status logged to stderr
+cat > "$TMP/curl-401" <<'SH'
+#!/usr/bin/env bash
+printf '{"error":"unauthorized"}\n401'
+SH
+chmod +x "$TMP/curl-401"
+if PLAYTEST_ENV_FILE="$TMP/env.sh" CURL_CMD="$TMP/curl-401" STATE_FILE="$TMP/state.json" bash "$HERE/../allowlist.sh" list >/dev/null 2>"$TMP/401.log"; then
+  echo "NG: curlが401を返しても成功してしまった"; exit 1
+fi
+grep -q '401' "$TMP/401.log" || { echo "NG: 401がstderrに出ていない"; exit 1; }
 
 echo "OK"
