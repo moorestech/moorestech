@@ -19,5 +19,6 @@ export { default as ModeSwitch, type ModeSwitchOption } from "./ModeSwitch";
 export { default as IconButton } from "./IconButton";
 export { default as PanelActionButton } from "./PanelActionButton";
 export { default as FadeRule } from "./FadeRule";
+export { default as FullScreenGate, type GateTopic } from "./FullScreenGate";
 export { default as PlacementTargetFace } from "./PlacementTargetFace";
 export { default as RecipeListScrollArea } from "./RecipeListScrollArea";

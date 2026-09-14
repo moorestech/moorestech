@@ -1,0 +1,5 @@
+/* 見出しの最大幅。無制約だと辞書未配信のEN/JA併記が画面端に接触して折り返す（目視QA 2026-09-14） */
+/* Max width for the heading; unconstrained, the dictionary-less EN/JA pairing touches the screen edge and wraps (visual QA 2026-09-14) */
+.title {
+  max-width: var(--full-screen-gate-text-width);
+}

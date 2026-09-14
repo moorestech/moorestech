@@ -86,18 +86,12 @@
   --z-portal-toast: 300;
   --z-portal-tutorial: 900;
   --z-portal-reconnect: 2000;
-  /* 出展モードの言語選択ゲートは再接続オーバーレイより前へ出す（待機中は再接続表示より優先） */
-  /* The event-mode language gate stands ahead of the reconnect overlay while waiting */
+  /* 全画面ゲート（言語選択・同意・前回異常終了）は再接続オーバーレイより前へ出す。3つが同時に待つ経路は無い */
+  /* The full-screen gates (language, consent, previous-crash) stand ahead of the reconnect overlay; no path has them waiting at once */
   --z-portal-event-language-gate: 2500;
-  /* 出展モードの言語選択ゲートだけは全画面の不透明黒（§1の例外・ADR 0040） */
-  /* The event-mode language gate alone is opaque full-screen black (the §1 exception, ADR 0040) */
+  /* 全画面ゲートだけは全画面の不透明黒（§1の例外・ADR 0040・§8.21） */
+  /* The full-screen gates alone are opaque full-screen black (the §1 exception, ADR 0040, §8.21) */
   --event-language-gate-face: rgb(0 0 0);
-  /* 前回異常終了の確認ゲート。言語選択ゲートと同じ層に置く（両者が同時に待つことはない） */
-  /* The previous-crash confirmation gate sits on the same layer as the language gate; the two never wait at once */
-  --z-portal-playtest-gate: 2500;
-  /* 前回異常終了の確認ゲートも全画面の不透明黒（§1の例外・§8.21） */
-  /* The previous-crash confirmation gate is opaque full-screen black too (the §1 exception, §8.21) */
-  --playtest-gate-face: rgb(0 0 0);
   --text-default: #eee;
   --text-high-contrast: #fff;
   /* 従属テキストには通常テキストより抑えた寒色グレーを使う */
@@ -154,12 +148,9 @@
   /* The previous-crash gate's textarea; wider than the pause-menu one since it sits full-screen, with four lines as fixed lengths */
   --playtest-gate-textarea-width: 480px;
   --playtest-gate-textarea-height: 96px;
-  /* 同意ゲート・確認ゲート本文の最大幅。無制約だと画面端まで達し左右の文字が余白ゼロで接触する */
-  /* Max width for the consent/crash gate body text; unconstrained it reaches the screen edge with zero side margin */
-  --playtest-gate-body-width: 900px;
-  /* 同じゲートの見出しの最大幅。辞書未配信のEN/JA併記は本文より長くなるため、見出しにも同じ制約が要る */
-  /* Max width for the same gates' heading; the dictionary-less EN/JA pairing runs longer than the body, so the heading needs the same constraint */
-  --playtest-gate-title-width: 900px;
+  /* 全画面ゲートの見出し・本文の最大幅。無制約だと画面端まで達し左右の文字が余白ゼロで接触する */
+  /* Max width for a full-screen gate's heading and body; unconstrained they reach the screen edge with zero side margin */
+  --full-screen-gate-text-width: 900px;
   /* HUD面の安全帯。フェード帯を超える余白で、チャレンジHUDの面幅導出とも共有する */
   /* HUD face safe area: padding wider than the fade band, shared with the challenge HUD's width derivation */
   --hud-panel-padding: 14px;

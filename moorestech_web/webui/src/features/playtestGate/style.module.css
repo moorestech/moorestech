@@ -1,33 +1,13 @@
 /* 本文の最大幅。無制約だと画面端まで達し左右の文字が余白ゼロで接触する（同意/確認ゲート共通） */
 /* Max width for the body text; unconstrained it reaches the screen edge with zero side margin (shared by both gates) */
 .body {
-  max-width: var(--playtest-gate-body-width);
+  max-width: var(--full-screen-gate-text-width);
 }
 
-/* 見出しの最大幅。本文と同じ理由で、無制約だと辞書未配信の長い併記が画面端に接触して折り返す */
-/* Max width for the heading; for the same reason as the body, an unconstrained long dictionary-less pairing touches the screen edge */
-.title {
-  max-width: var(--playtest-gate-title-width);
-}
-
-/* 記述欄はポーズメニューのバグ報告欄と同じ様式（§8.9の検索入力族）。寸法だけゲート用の固定長を持つ */
-/* The textarea follows the pause menu's bug-report field (the §8.9 search-input family); only its fixed dimensions differ */
+/* 様式はtextAreaFieldが持ち、ここは全画面に載るゲート固有の寸法だけを足す */
+/* textAreaField owns the style; this file adds only the dimensions specific to a gate sitting full-screen */
 .description {
+  composes: field from "../../shared/ui/textAreaField.module.css";
   width: var(--playtest-gate-textarea-width);
   height: var(--playtest-gate-textarea-height);
-  background: var(--gauge-track);
-  border: var(--bevel-1) solid var(--bevel-c1);
-  color: var(--text-default);
-  padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
-  font-family: inherit;
-  resize: none;
-}
-
-.description::placeholder {
-  color: var(--text-muted);
-}
-
-.description:focus-visible {
-  outline: var(--bevel-1) solid var(--text-high-contrast);
-  outline-offset: var(--bevel-1);
 }

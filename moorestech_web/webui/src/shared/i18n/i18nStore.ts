@@ -130,17 +130,19 @@ export function createTranslationResolver(current: I18nSnapshot) {
   };
 }
 
+// fallback は「辞書が来る前に出る画面」の文言。所有者はこの1本で、呼び出し側にstatus分岐を作らせない
+// fallback is the copy for screens that render before the dictionary; this single path owns it so callers need no status branch
 export function createTranslator(current: I18nSnapshot) {
   const resolve = createTranslationResolver(current);
-  return (key: TranslationKey, values: InterpolationValues = {}): string => {
-    const translation = resolve(key, values);
+  return (key: TranslationKey, values?: InterpolationValues, fallback?: string): string => {
+    const translation = resolve(key, values ?? {});
     switch (translation.kind) {
       case "resolved":
         return translation.text;
-      // 表示できる辞書が無い間は空文字。取得中でも失敗後でも欠落マーカーで画面を埋めない
-      // Without a displayable dictionary return empty text, both while loading and after a failure
+      // 表示できる辞書が無い間は辞書非依存の文言へ落ちる。無ければ空文字で、欠落マーカーで画面を埋めない
+      // Without a displayable dictionary this drops to the dictionary-independent copy, else empty text rather than a marker
       case "dictionaryAbsent":
-        return "";
+        return fallback ?? "";
       // 欠落キーは目立つプレースホルダで露出させる
       // Surface missing keys with a loud placeholder
       case "keyMissing":

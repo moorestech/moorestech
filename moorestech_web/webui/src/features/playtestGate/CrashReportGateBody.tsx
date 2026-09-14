@@ -11,18 +11,17 @@ import styles from "./style.module.css";
 type RespondState = "idle" | "pending" | "failed";
 
 export function CrashReportGateBody() {
-  const { status, t } = useI18n();
+  const { t } = useI18n();
   const [description, setDescription] = useState("");
   const [respondState, setRespondState] = useState<RespondState>("idle");
 
-  // ゲートは辞書配信より前に出るため、未確定の間は t() の空文字ではなく辞書非依存の文言を描く
-  // The gate precedes dictionary delivery, so until it is ready the copy comes from dictionary-independent literals
-  const dictionaryReady = status === "ready";
-  const body = dictionaryReady ? t(L.ui.playtest.crashGate.body) : DictionaryIndependentText.crashGateBody;
-  const placeholder = dictionaryReady ? t(L.ui.playtest.crashGate.placeholder) : DictionaryIndependentText.crashGatePlaceholder;
-  const sendLabel = dictionaryReady ? t(L.ui.playtest.crashGate.send) : DictionaryIndependentText.crashGateSend;
-  const skipLabel = dictionaryReady ? t(L.ui.playtest.crashGate.skip) : DictionaryIndependentText.crashGateSkip;
-  const respondFailedLabel = dictionaryReady ? t(L.ui.playtest.crashGate.respondFailed) : DictionaryIndependentText.crashGateRespondFailed;
+  // ゲートは辞書配信より前に出るため、第3引数の辞書非依存文言が未確定の間の表示になる
+  // The gate precedes dictionary delivery, so the third argument's dictionary-independent copy is what shows until it arrives
+  const body = t(L.ui.playtest.crashGate.body, {}, DictionaryIndependentText.crashGateBody);
+  const placeholder = t(L.ui.playtest.crashGate.placeholder, {}, DictionaryIndependentText.crashGatePlaceholder);
+  const sendLabel = t(L.ui.playtest.crashGate.send, {}, DictionaryIndependentText.crashGateSend);
+  const skipLabel = t(L.ui.playtest.crashGate.skip, {}, DictionaryIndependentText.crashGateSkip);
+  const respondFailedLabel = t(L.ui.playtest.crashGate.respondFailed, {}, DictionaryIndependentText.crashGateRespondFailed);
 
   // 二度押しはC#側が already_responded で弾くが、そこまで届かせない。押した時点で両方を閉じる
   // C# rejects a second press with already_responded, but it never gets that far: one press closes both buttons

@@ -24,11 +24,17 @@ vi.mock("@mantine/core", () => ({
   Title: ({ children, ...props }: { children: unknown }) => createElement("mock-title", props, children as never),
 }));
 
-// 辞書未確定の状態を再現する。t() は辞書が無い間つねに空文字を返す（i18nStore の dictionaryAbsent）
-// Reproduces the not-ready state: without a dictionary t() always returns an empty string (i18nStore's dictionaryAbsent)
+// 辞書未確定の状態を再現する。t() は辞書が無い間つねに第3引数へ落ちる（i18nStore の dictionaryAbsent）
+// Reproduces the not-ready state: without a dictionary t() always drops to its third argument (i18nStore's dictionaryAbsent)
 vi.mock("@/shared/i18n", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/shared/i18n")>()),
-  useI18n: () => ({ status: "loading", locale: "english", requestedLocale: "english", t: () => "", resolveTranslation: () => ({ kind: "dictionaryAbsent" }) }),
+  useI18n: () => ({
+    status: "loading",
+    locale: "english",
+    requestedLocale: "english",
+    t: (_key: string, _values?: unknown, fallback?: string) => fallback ?? "",
+    resolveTranslation: () => ({ kind: "dictionaryAbsent" }),
+  }),
 }));
 
 import { CrashReportGate } from "./CrashReportGate";

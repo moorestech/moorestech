@@ -11,15 +11,14 @@ import styles from "./style.module.css";
 type AcknowledgeState = "idle" | "pending" | "failed";
 
 export function PlaytestConsentGateBody() {
-  const { status, t } = useI18n();
+  const { t } = useI18n();
   const [acknowledgeState, setAcknowledgeState] = useState<AcknowledgeState>("idle");
 
-  // ゲートは辞書配信より前に出るため、未確定の間は t() の空文字ではなく辞書非依存の文言を描く
-  // The gate precedes dictionary delivery, so until it is ready the copy comes from dictionary-independent literals
-  const dictionaryReady = status === "ready";
-  const body = dictionaryReady ? t(L.ui.playtest.consent.body) : DictionaryIndependentText.playtestConsentBody;
-  const agreeLabel = dictionaryReady ? t(L.ui.playtest.consent.agree) : DictionaryIndependentText.playtestConsentAgree;
-  const failedLabel = dictionaryReady ? t(L.ui.playtest.consent.failed) : DictionaryIndependentText.playtestConsentFailed;
+  // ゲートは辞書配信より前に出るため、第3引数の辞書非依存文言が未確定の間の表示になる
+  // The gate precedes dictionary delivery, so the third argument's dictionary-independent copy is what shows until it arrives
+  const body = t(L.ui.playtest.consent.body, {}, DictionaryIndependentText.playtestConsentBody);
+  const agreeLabel = t(L.ui.playtest.consent.agree, {}, DictionaryIndependentText.playtestConsentAgree);
+  const failedLabel = t(L.ui.playtest.consent.failed, {}, DictionaryIndependentText.playtestConsentFailed);
 
   // 二度押しはC#側が already_acknowledged で弾くが、そこまで届かせない。押した時点でボタンを閉じる
   // C# rejects a second press with already_acknowledged, but it never gets that far: one press closes the button

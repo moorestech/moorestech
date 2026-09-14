@@ -14,26 +14,12 @@
   transform: translate(-50%, -50%);
 }
 
-/* 記述欄は検索入力（§8.9）と同族: --gauge-track の面・--text-muted のプレースホルダ・ModeSwitch踏襲のフォーカス */
-/* The description field follows the search input (§8.9): --gauge-track face, --text-muted placeholder, ModeSwitch focus */
+/* 様式はtextAreaFieldが持ち、ここはポーズメニュー本文幅（420−32×2）に合わせた寸法だけを足す */
+/* textAreaField owns the style; this file adds only the dimensions matching the pause-menu body width (420−32×2) */
 .description {
+  composes: field from "../../shared/ui/textAreaField.module.css";
   width: var(--bug-report-textarea-width);
   height: var(--bug-report-textarea-height);
-  background: var(--gauge-track);
-  border: var(--bevel-1) solid var(--bevel-c1);
-  color: var(--text-default);
-  padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
-  font-family: inherit;
-  resize: none;
-}
-
-.description::placeholder {
-  color: var(--text-muted);
-}
-
-.description:focus-visible {
-  outline: var(--bevel-1) solid var(--text-high-contrast);
-  outline-offset: var(--bevel-1);
 }
 
 .status {
