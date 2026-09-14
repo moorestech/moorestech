@@ -29,7 +29,7 @@ export async function authenticateUserTicket(steamFetch: typeof fetch, env: Env,
     }
     body = (await response.json()) as SteamResponseBody;
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
+    const message = redactApiKey(error instanceof Error ? error.message : String(error), env.STEAM_WEB_API_KEY);
     console.warn(`[steam] AuthenticateUserTicket failed: ${message}`);
     return { steamId: null, reason: message };
   }
@@ -46,4 +46,13 @@ export async function authenticateUserTicket(steamFetch: typeof fetch, env: Env,
     return { steamId: null, reason: `result-${params?.result ?? "missing"}` };
   }
   return { steamId: params.steamid, reason: "ok" };
+}
+
+// fetch例外のmessageはランタイムによって対象URLを含みうる。key（publisher秘密鍵）が
+// ログへ漏れないよう、ここでだけ置換してから warn/reason へ渡す
+// A fetch exception's message can embed the target URL depending on the runtime; redact the
+// publisher key here, the only place it could leak into logs or the returned reason
+function redactApiKey(message: string, apiKey: string): string {
+  if (!apiKey) return message;
+  return message.split(apiKey).join("***");
 }

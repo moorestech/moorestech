@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handle } from "../src/index";
 import { ALLOWLIST_KEY, writeAllowlist } from "../src/allowlist";
 import { verifyToken } from "../src/token";
@@ -57,9 +57,42 @@ describe("POST /v1/session", () => {
     expect(await response.json()).toEqual({ reason: "bad-request" });
   });
 
+  it("ticketが奇数長の16進なら400（バイナリチケットは必ず偶数長）", async () => {
+    const response = await handle(sessionRequest(JSON.stringify({ ticket: "abc" })), workerEnv, steamOk("1"));
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ reason: "bad-request" });
+  });
+
   it("bodyがJSONでなければ400", async () => {
     const response = await handle(sessionRequest("not json"), workerEnv, steamOk("1"));
     expect(response.status).toBe(400);
+  });
+
+  describe("400経路のwarnログ（レビューImportant 1: 無音の縮退禁止）", () => {
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("bodyが非JSONなら理由付きでwarnする", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      await handle(sessionRequest("not json"), workerEnv, steamOk("1"));
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining("[session] rejected: body is not JSON"));
+    });
+
+    it("ticketが16進形式でなければ理由付きでwarnする", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      await handle(sessionRequest(JSON.stringify({ ticket: "zz" })), workerEnv, steamOk("1"));
+      expect(warn).toHaveBeenCalledWith("[session] rejected: ticket is not a hex string");
+    });
+
+    it("2つの400理由は別文言で、片方だけでは通らない", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      await handle(sessionRequest("not json"), workerEnv, steamOk("1"));
+      const jsonReasonCalls = warn.mock.calls.filter((call) => String(call[0]).includes("is not JSON"));
+      const hexReasonCalls = warn.mock.calls.filter((call) => String(call[0]).includes("is not a hex string"));
+      expect(jsonReasonCalls.length).toBe(1);
+      expect(hexReasonCalls.length).toBe(0);
+    });
   });
 
   it("SESSION_HMAC_SECRETが空なら500 server-misconfiguredを返しtoken:nullを漏らさない", async () => {

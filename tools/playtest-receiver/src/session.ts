@@ -4,7 +4,9 @@ import { fail, json } from "./http";
 import { authenticateUserTicket } from "./steamAuth";
 import { signToken } from "./token";
 
-const TICKET_PATTERN = /^[0-9a-fA-F]{2,8192}$/;
+// hexエンコードされたバイナリチケットは必ず偶数長。奇数長は形の時点で弾く
+// A hex-encoded binary ticket is always even length; odd lengths are rejected by shape alone
+const TICKET_PATTERN = /^(?:[0-9a-fA-F]{2}){1,4096}$/;
 
 export async function postSession(request: Request, env: Env, steamFetch: typeof fetch): Promise<Response> {
   const ticket = await readTicket(request);
@@ -32,11 +34,16 @@ export async function postSession(request: Request, env: Env, steamFetch: typeof
 async function readTicket(request: Request): Promise<string | null> {
   // クライアントが送るJSONのパースは外部入力境界。壊れた入力は400へ隔離する
   // Parsing client-supplied JSON is an external-input boundary; malformed input is isolated into a 400
+  let body: { ticket?: unknown };
   try {
-    const body = (await request.json()) as { ticket?: unknown };
-    if (typeof body.ticket !== "string" || !TICKET_PATTERN.test(body.ticket)) return null;
-    return body.ticket;
-  } catch {
+    body = (await request.json()) as { ticket?: unknown };
+  } catch (error) {
+    console.warn(`[session] rejected: body is not JSON (${error instanceof Error ? error.message : String(error)})`);
     return null;
   }
+  if (typeof body.ticket !== "string" || !TICKET_PATTERN.test(body.ticket)) {
+    console.warn("[session] rejected: ticket is not a hex string");
+    return null;
+  }
+  return body.ticket;
 }

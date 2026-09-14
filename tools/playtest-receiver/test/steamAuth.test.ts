@@ -58,4 +58,14 @@ describe("authenticateUserTicket", () => {
     expect(result.steamId).toBeNull();
     expect(result.reason).toContain("connection reset");
   });
+
+  it("fetch例外のメッセージにpublisher keyが含まれていればログ・reasonから伏せる（レビューMinor 2）", async () => {
+    const leaking = (async () => {
+      throw new Error(`fetch failed: https://partner.steam-api.com/...?key=${workerEnv.STEAM_WEB_API_KEY}&appid=1`);
+    }) as unknown as typeof fetch;
+    const result = await authenticateUserTicket(leaking, workerEnv, "aabb");
+    expect(result.steamId).toBeNull();
+    expect(result.reason).not.toContain(workerEnv.STEAM_WEB_API_KEY);
+    expect(result.reason).toContain("***");
+  });
 });
