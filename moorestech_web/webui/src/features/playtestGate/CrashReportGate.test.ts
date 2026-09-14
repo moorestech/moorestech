@@ -8,11 +8,17 @@ const mocks = vi.hoisted(() => ({
   waiting: true,
 }));
 
-vi.mock("@/bridge", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/bridge")>()),
-  useTopicSelector: (_topic: unknown, select: (data: unknown) => unknown) => select({ waiting: mocks.waiting }),
-  dispatchActionOutcome: mocks.dispatchActionOutcome,
-}));
+// 外殻は3ゲート全ての待機を読んで手前の1枚だけ描くため、topic ごとに待機を返し分ける
+// The shell reads all three gates' waiting flags and draws only the frontmost, so the mock answers per topic
+vi.mock("@/bridge", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/bridge")>();
+  return {
+    ...original,
+    useTopicSelector: (topic: string, select: (data: unknown) => unknown) =>
+      select({ waiting: topic === original.Topics.crashReportGate && mocks.waiting }),
+    dispatchActionOutcome: mocks.dispatchActionOutcome,
+  };
+});
 vi.mock("@mantine/core", () => ({
   Button: ({ children, ...props }: { children: unknown }) => createElement("mock-button", props, children as never),
   Group: ({ children, ...props }: { children: unknown }) => createElement("mock-group", props, children as never),

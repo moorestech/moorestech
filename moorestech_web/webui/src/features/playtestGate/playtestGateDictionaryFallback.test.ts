@@ -9,13 +9,16 @@ import { DictionaryIndependentText } from "@/shared/i18n";
 import { parseLocalizationCsv } from "../../../scripts/generate-localization-keys.mjs";
 
 const mocks = vi.hoisted(() => ({
-  dispatchAction: vi.fn(),
+  dispatchActionOutcome: vi.fn(),
+  waitingTopic: "",
 }));
 
+// 外殻は3ゲート全ての待機を読んで手前の1枚だけ描くため、待機させるゲートを1つに絞って返す
+// The shell reads all three gates' waiting flags and draws only the frontmost, so exactly one gate is put into waiting
 vi.mock("@/bridge", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/bridge")>()),
-  useTopicSelector: (_topic: unknown, select: (data: unknown) => unknown) => select({ waiting: true }),
-  dispatchAction: mocks.dispatchAction,
+  useTopicSelector: (topic: string, select: (data: unknown) => unknown) => select({ waiting: topic === mocks.waitingTopic }),
+  dispatchActionOutcome: mocks.dispatchActionOutcome,
 }));
 vi.mock("@mantine/core", () => ({
   Button: ({ children, ...props }: { children: unknown }) => createElement("mock-button", props, children as never),
@@ -40,15 +43,17 @@ vi.mock("@/shared/i18n", async (importOriginal) => ({
   }),
 }));
 
+import { Topics } from "@/bridge";
 import { CrashReportGate } from "./CrashReportGate";
 import { PlaytestConsentGate } from "./PlaytestConsentGate";
 
 beforeEach(() => {
-  mocks.dispatchAction.mockResolvedValue(true);
+  mocks.dispatchActionOutcome.mockResolvedValue({ kind: "accepted" });
 });
 
 describe("開始ゲートの辞書非依存フォールバック", () => {
   it("辞書が来ていなくても同意ゲートの見出し・本文・ボタンに文言が出る", async () => {
+    mocks.waitingTopic = Topics.consentGate;
     const renderer = await render(PlaytestConsentGate);
 
     expect(allTexts(renderer)).toContain(DictionaryIndependentText.playtestConsentTitle);
@@ -59,6 +64,7 @@ describe("開始ゲートの辞書非依存フォールバック", () => {
   });
 
   it("辞書が来ていなくてもクラッシュゲートの見出し・本文・両ボタンと入力欄の説明に文言が出る", async () => {
+    mocks.waitingTopic = Topics.crashReportGate;
     const renderer = await render(CrashReportGate);
 
     expect(allTexts(renderer)).toContain(DictionaryIndependentText.crashGateTitle);

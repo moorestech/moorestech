@@ -159,14 +159,12 @@ export default function App() {
           </Overlay>
         </Portal>
       )}
-      {/* 出展モードの開始ゲート。再接続表示より前へ出し、待機中の操作を全て塞ぐ */}
-      {/* The event-mode start gate; sits ahead of the reconnect overlay and blocks every input while waiting */}
+      {/* 開始ゲート3種。再接続表示より前へ出し、待機中の操作を全て塞ぐ */}
+      {/* The three start gates; they sit ahead of the reconnect overlay and block every input while waiting */}
+      {/* 同時に待った場合の順（言語→同意→前回異常終了）と排他は FullScreenGate が持つ。ここは無条件にマウントする */}
+      {/* FullScreenGate owns the order (language → consent → previous crash) and the exclusion; these just mount unconditionally */}
       <EventLanguageGate />
-      {/* 初回起動の同意表示。言語選択の直後・クラッシュ確認の直前に出し、了解するまで操作を塞ぐ */}
-      {/* The first-boot consent notice; appears right after the language choice and right before the crash confirmation, blocking input until acknowledged */}
       <PlaytestConsentGate />
-      {/* 前回異常終了の確認ゲート。同意表示の直後に出し、応答するまで操作を塞ぐ */}
-      {/* The previous-crash confirmation gate; appears right after the consent notice and blocks input until answered */}
       <CrashReportGate />
     </div>
   );
