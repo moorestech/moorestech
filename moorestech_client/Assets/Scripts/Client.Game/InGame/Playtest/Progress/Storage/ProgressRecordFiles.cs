@@ -81,6 +81,7 @@ namespace Client.Game.InGame.Playtest.Progress
             if (!write.Succeeded)
             {
                 Debug.LogError($"進行記録を書けませんでした（この記録は運搬されません） {directory}: {write.FailureReason}");
+                DeleteUnfinishedBundle();
                 return null;
             }
 
@@ -90,6 +91,7 @@ namespace Client.Game.InGame.Playtest.Progress
             if (!ready.Succeeded)
             {
                 Debug.LogError($"進行記録のREADYを置けませんでした（current/ は残し次回起動の回収へ回します） {directory}: {ready.FailureReason}");
+                DeleteUnfinishedBundle();
                 return null;
             }
 
@@ -98,6 +100,14 @@ namespace Client.Game.InGame.Playtest.Progress
             return directory;
 
             #region Internal
+
+            // 閉じられなかった箱はREADYが無く運搬されないが、消す者も居ないとoutboxへ溜まり続ける。記録本体はcurrent/に残るので消して困らない
+            // An unclosed box has no READY and never ships, but with nobody deleting it the outbox only grows; the record itself stays in current/, so dropping the box costs nothing
+            void DeleteUnfinishedBundle()
+            {
+                var deletion = SalvageFileOperations.DeleteDirectory(directory);
+                if (!deletion.Succeeded) Debug.LogWarning($"閉じられなかった進行記録の箱を消せませんでした（運搬はされませんがoutboxに残ります） {directory}: {deletion.FailureReason}");
+            }
 
             // ヘッダを失った残骸でもイベントは救う。埋められない値は欠損として理由付きで残し、既定値へ黙って落とさない
             // A leftover that lost its header still yields its events; unfillable values are declared as gaps with reasons instead of silently defaulting

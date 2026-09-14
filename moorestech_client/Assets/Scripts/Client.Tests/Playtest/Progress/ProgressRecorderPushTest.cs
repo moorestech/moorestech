@@ -12,8 +12,10 @@ namespace Client.Tests.Playtest
 {
     // 記録を開始していない起動（常時記録オフのテスト・DSL・調査用）で、プッシュが current/ を作らないことを固定する
     // Fixes that a push never conjures current/ on a boot that started no recording (a capture-off test, DSL or investigation boot)
-    // 開始済みセッションでのプッシュ→record.json は PlaytestReportAndProgressTest が実起動で押さえている
-    // The started-session push reaching record.json is pinned by PlaytestReportAndProgressTest on a real boot
+    // 開始済みセッションでのプッシュ→record.json は reportSent だけ PlaytestReportAndProgressTest が実起動で押さえている
+    // Of the started-session pushes reaching record.json, only reportSent is pinned by PlaytestReportAndProgressTest on a real boot
+    // craftRequested の recorder→writer 配線はどのテストも通らない。ProgressRecorder.StartSession が handshake と ClientContext を要求しEditModeで立たないため
+    // No test covers craftRequested's recorder-to-writer wiring: ProgressRecorder.StartSession demands the handshake and ClientContext and will not stand up in EditMode
     public class ProgressRecorderPushTest
     {
         [SetUp]

@@ -67,6 +67,30 @@ namespace Client.Tests.Playtest
             Assert.AreEqual("BuildMenu", (string)json["lastUiState"]);
         }
 
+        // crash-recovered が無条件に設置数の欠損を名乗ると、建築と無縁のセッションの記録まで毎回欠損付きで届く
+        // An unconditional placement gap on crash-recovered would put a gap on every record, including sessions that never built anything
+        [Test]
+        public void 建築モードへ入っていない異常終了は設置数の欠損を名乗らない()
+        {
+            var events = new List<ProgressEventEntry> { ProgressEvents.UiStateChanged(Start.AddSeconds(2), 20, "GameScreen") };
+
+            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, ProgressEndReason.CrashRecovered, Start.AddSeconds(10)));
+
+            CollectionAssert.DoesNotContain(MissingItems(json), "placedBlockCount");
+        }
+
+        // 建築モードに入った跡があれば、最後の遷移以降の設置は実際に失われている。そこは必ず表明する
+        // Once there is a trace of build mode, placements after the last transition really are lost, and that is always declared
+        [Test]
+        public void 建築モードへ入った異常終了は設置数の欠損を名乗る()
+        {
+            var events = new List<ProgressEventEntry> { ProgressEvents.UiStateChanged(Start.AddSeconds(2), 20, "PlaceBlock") };
+
+            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, ProgressEndReason.CrashRecovered, Start.AddSeconds(10)));
+
+            CollectionAssert.Contains(MissingItems(json), "placedBlockCount");
+        }
+
         // baseline に既に入っている到達がイベントでも届く（再ログイン直後の再送等）。二重に数えない
         // A reach already in the baseline can arrive as an event again; it must never be counted twice
         [Test]
