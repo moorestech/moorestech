@@ -37,6 +37,36 @@ describe("uploads", () => {
     expect(await workerEnv.BUCKET.get(`progress/${STEAM_ID}/${ID}/record.json`)).toBeNull();
   });
 
+  // クライアントはセグメントをpercent-encodeして送る。復号した実ファイル名がそのままキーになる
+  // The client percent-encodes each segment, and the decoded real file name is what becomes the key
+  it("エスケープされた名前は復号した実ファイル名でキーになる", async () => {
+    const response = await handle(
+      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/snapshots/shot%231%20a%3Fb.png`, {
+        method: "PUT",
+        headers: { authorization: await bearer(), "content-length": "3" },
+        body: "png",
+      }),
+      workerEnv,
+      noNetwork,
+    );
+    expect(response.status).toBe(200);
+    expect(await (await workerEnv.BUCKET.get(`reports/${STEAM_ID}/${ID}/snapshots/shot#1 a?b.png`))?.text()).toBe("png");
+  });
+
+  it("日本語のファイル名も保存できる", async () => {
+    const response = await handle(
+      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/%E3%81%82.png`, {
+        method: "PUT",
+        headers: { authorization: await bearer(), "content-length": "3" },
+        body: "png",
+      }),
+      workerEnv,
+      noNetwork,
+    );
+    expect(response.status).toBe(200);
+    expect(await workerEnv.BUCKET.get(`reports/${STEAM_ID}/${ID}/あ.png`)).not.toBeNull();
+  });
+
   it("トークンが無ければ401", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(

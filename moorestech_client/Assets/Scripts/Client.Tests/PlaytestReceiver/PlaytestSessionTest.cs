@@ -118,6 +118,24 @@ namespace Client.Tests.PlaytestReceiver
             Assert.AreEqual(0, api.SessionCallCount);
         }
 
+        [Test]
+        public void 認証中の二重呼び出しはチケット失敗と区別できる()
+        {
+            var api = new FakeApi();
+            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}" });
+            var gate = new UniTaskCompletionSource<string>();
+            var session = new PlaytestSession(api, new GatedTicketProvider(gate));
+
+            var first = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None);
+            var second = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
+
+            Assert.AreEqual("another authentication is already in flight", second.Detail);
+            Assert.AreEqual(0, api.SessionCallCount);
+
+            gate.TrySetResult("aabb");
+            Assert.AreEqual(PlaytestSessionOutcome.Allowed, first.GetAwaiter().GetResult().Outcome);
+        }
+
         private static void AssertOutcome(PlaytestApiResult response, PlaytestSessionOutcome expected)
         {
             var api = new FakeApi();
@@ -133,6 +151,16 @@ namespace Client.Tests.PlaytestReceiver
             public FakeTicketProvider(string ticketHex) { _ticketHex = ticketHex; }
             public bool IsSteamRunning() { return true; }
             public UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token) { return UniTask.FromResult(_ticketHex); }
+        }
+
+        // チケットを返す時刻をテストが決める。1本目を待たせたまま2本目を呼ぶために使う
+        // The test decides when the ticket arrives, so a second call can start while the first is still waiting
+        private sealed class GatedTicketProvider : IPlaytestSteamTicketProvider
+        {
+            private readonly UniTaskCompletionSource<string> _gate;
+            public GatedTicketProvider(UniTaskCompletionSource<string> gate) { _gate = gate; }
+            public bool IsSteamRunning() { return true; }
+            public UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token) { return _gate.Task; }
         }
 
         private sealed class FakeApi : IPlaytestReceiverApi

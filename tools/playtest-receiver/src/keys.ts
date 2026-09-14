@@ -5,7 +5,9 @@ export const KIND_PREFIX = { report: "reports", progress: "progress" } as const;
 export type PlaytestKind = keyof typeof KIND_PREFIX;
 
 const PENDING_ROOT = "index/pending";
-const SEGMENT_PATTERN = /^[A-Za-z0-9._-]+$/;
+// キーはR2のオブジェクト名でUTF-8が通る。逸脱と制御文字だけを拒み、報告バンドル内の実ファイル名をそのまま残す
+// Keys are R2 object names and accept UTF-8, so only traversal and control characters are rejected, keeping real file names intact
+const UNSAFE_SEGMENT_PATTERN = /[/\\\u0000-\u001f\u007f]/;
 
 export function isKind(value: string): value is PlaytestKind {
   return value === "report" || value === "progress";
@@ -32,7 +34,7 @@ export function parsePendingIndexKey(key: string): { kind: PlaytestKind; steamId
 // This is the only entry point for traversal; rejecting ".", "..", empty and separators keeps every key under the prefix
 export function isSafeSegment(segment: string): boolean {
   if (segment.length === 0 || segment === "." || segment === "..") return false;
-  return SEGMENT_PATTERN.test(segment);
+  return !UNSAFE_SEGMENT_PATTERN.test(segment);
 }
 
 export function joinSafePath(segments: string[]): string | null {

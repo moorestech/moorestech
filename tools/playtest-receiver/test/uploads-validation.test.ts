@@ -43,6 +43,24 @@ describe("uploads validation", () => {
     warn.mockRestore();
   });
 
+  it("不正なpercentエンコードのパスは400で何も書かない", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const response = await handle(
+      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/%ZZ.png`, {
+        method: "PUT",
+        headers: { authorization: await bearer(), "content-length": "1" },
+        body: "x",
+      }),
+      workerEnv,
+      noNetwork,
+    );
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ reason: "bad-path" });
+    expect((await workerEnv.BUCKET.list({ limit: 10 })).objects).toHaveLength(0);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it("Content-Lengthが100MiBを超えたら413", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(

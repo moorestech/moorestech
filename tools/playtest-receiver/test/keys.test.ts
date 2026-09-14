@@ -35,6 +35,13 @@ describe("keys", () => {
     expect(isSafeSegment(".")).toBe(false);
     expect(isSafeSegment("")).toBe(false);
     expect(isSafeSegment("a\\b")).toBe(false);
+    expect(isSafeSegment("a\u0000b")).toBe(false);
+    expect(isSafeSegment("a\u007fb")).toBe(false);
+  });
+
+  it("復号後の実ファイル名（空白・記号・日本語）は通す", () => {
+    expect(isSafeSegment("shot#1 a?b.png")).toBe(true);
+    expect(isSafeSegment("\u3042.png")).toBe(true);
   });
 
   it("安全なセグメントだけを連結する", () => {

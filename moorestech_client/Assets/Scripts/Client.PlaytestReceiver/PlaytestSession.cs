@@ -34,6 +34,7 @@ namespace Client.PlaytestReceiver
 
         private string _token;
         private DateTime _tokenIssuedAtUtc;
+        private bool _authenticating;
 
         public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSteamTicketProvider ticketProvider)
         {
@@ -44,7 +45,23 @@ namespace Client.PlaytestReceiver
         public string SteamId { get; private set; }
         public bool HasToken => _token != null;
 
+        // 認証は常に1本。重ねて呼ばれたらチケット取得失敗と区別できるDetailで断る（チケット待ちは重ねられない）
+        // Authentication is single-flight; an overlapping call is refused with a Detail that is not a ticket failure
         public async UniTask<PlaytestSessionResult> AuthenticateAsync(DateTime utcNow, CancellationToken token)
+        {
+            if (_authenticating)
+            {
+                Debug.LogWarning("[PlaytestReceiver] refused an authentication while another one is in flight");
+                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.TicketUnavailable, Detail = "another authentication is already in flight" };
+            }
+
+            _authenticating = true;
+            var result = await AuthenticateOnceAsync(utcNow, token);
+            _authenticating = false;
+            return result;
+        }
+
+        private async UniTask<PlaytestSessionResult> AuthenticateOnceAsync(DateTime utcNow, CancellationToken token)
         {
             var ticketHex = await _ticketProvider.RequestWebApiTicketHexAsync(token);
             if (ticketHex == null)

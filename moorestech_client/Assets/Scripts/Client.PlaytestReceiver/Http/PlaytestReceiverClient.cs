@@ -33,7 +33,17 @@ namespace Client.PlaytestReceiver.Http
 
         public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, string kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/v1/uploads/{PlaytestUploadPath.ForFile(kind, bundleId, relativePath)}");
+            var uploadPath = PlaytestUploadPath.ForFile(kind, bundleId, relativePath);
+
+            // 逸脱を含む名前は送っても受け口が400を返すだけ。同じ拒否をここで返し、再試行では直らないと呼び出し側へ伝える
+            // Such a name would only earn a 400 from the receiver, so the same refusal is returned here: retrying cannot fix it
+            if (uploadPath == null)
+            {
+                Debug.LogError($"[PlaytestReceiver] refused to upload '{relativePath}': it is not a safe relative path");
+                return UniTask.FromResult(new PlaytestApiResult { StatusCode = 400, Body = "{\"reason\":\"bad-path\"}" });
+            }
+
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/v1/uploads/{uploadPath}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 
             // ファイルを開くのはOS境界。開けないときは送信前に到達失敗へ畳み、呼び出し側の分岐を増やさない
