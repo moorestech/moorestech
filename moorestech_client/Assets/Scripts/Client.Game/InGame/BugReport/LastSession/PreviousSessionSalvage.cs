@@ -23,20 +23,24 @@ namespace Client.Game.InGame.BugReport.LastSession
             var isFirstBoot = !Directory.Exists(lastSessionDirectory);
 
             var currentProcessId = RecordingProcessDirectories.CurrentProcessId();
-            var takeover = RecordingProcessDirectories.TakeOverPreviousProcessDirectories(GameSystemPaths.BugReportRecordingDirectory, currentProcessId);
+
+            // 生存判定は3資源（録画・印・current/）で1つ。ここで1回だけ採り、録画と印の両方へ同じ集合を当てる
+            // One liveness set serves all three resources (recordings, marks, current/); taken once here and applied to recordings and marks alike
+            var liveProcessIds = RecordingProcessDirectories.CollectLiveProcessIds();
+            var takeover = RecordingProcessDirectories.SelectTakeover(GameSystemPaths.BugReportRecordingDirectory, currentProcessId, liveProcessIds);
+            var scan = PreviousProcessScanner.Scan(currentProcessId, takeover, CleanExitMarker.SessionProcessIds(), liveProcessIds);
 
             var request = new PreviousSessionSalvageRequest
             {
-                IsFirstBoot = isFirstBoot,
                 IsRemoteConnection = isRemoteConnection,
                 WorldSnapshotDirectory = worldSnapshotDirectory,
                 LastSessionDirectory = lastSessionDirectory,
-                SkippedLiveProcessIds = takeover.SkippedLiveProcessIds,
-                PreviousSessions = CollectPreviousSessions(currentProcessId, takeover),
+                SkippedLiveProcessIds = scan.SkippedLiveProcessIds,
+                PreviousSessions = ConsumeExitFlags(scan.Sessions),
             };
 
             Artifacts = Salvage(request);
-            Debug.Log($"前回セッションの退避が終わりました clean:{Artifacts.PreviousExitWasClean} firstBoot:{Artifacts.IsFirstBoot} salvagedPids:{Artifacts.SalvagedProcessIds.Count} sendable:{Artifacts.HasAnythingToSend} missing:{Artifacts.Missing.Count}");
+            Debug.Log($"前回セッションの退避が終わりました clean:{Artifacts.PreviousExitWasClean} firstBoot:{isFirstBoot} salvagedPids:{Artifacts.SalvagedProcessIds.Count} sendable:{Artifacts.HasAnythingToSend} missing:{Artifacts.Missing.Count}");
             return Artifacts;
         }
 
@@ -51,7 +55,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
         public static PreviousSessionArtifacts Salvage(PreviousSessionSalvageRequest request)
         {
-            var artifacts = new PreviousSessionArtifacts { IsFirstBoot = request.IsFirstBoot };
+            var artifacts = new PreviousSessionArtifacts();
             ReportSkippedLiveProcesses();
 
             var creation = SalvageFileOperations.CreateDirectory(request.LastSessionDirectory);
@@ -170,28 +174,11 @@ namespace Client.Game.InGame.BugReport.LastSession
             #endregion
         }
 
-        // 録画の有無に依らず、印を置いたまま消えたpidも前回セッションとして数える（ffmpegが無い起動でもクラッシュは拾う）
-        // A pid that left a mark counts as a previous session even with no recording, so a boot without ffmpeg still reports its crash
-        private static List<PreviousProcessSession> CollectPreviousSessions(int currentProcessId, RecordingProcessTakeover takeover)
+        // 印を消してよいのは選別を通ったpidだけ。生きているpidの印まで消すと、そのプロセスが本当に落ちても次回起動で検知できない
+        // Only the pids that passed the selection may have their marks removed; erasing a live pid's would leave its real crash undetectable next boot
+        private static List<PreviousProcessSession> ConsumeExitFlags(List<PreviousProcessSession> sessions)
         {
-            var recordingDirectories = new Dictionary<int, string>();
-            foreach (var directory in takeover.Directories) recordingDirectories[directory.ProcessId] = directory.Path;
-
-            var processIds = new List<int>(recordingDirectories.Keys);
-            foreach (var processId in CleanExitMarker.SessionProcessIds())
-            {
-                if (processId == currentProcessId || takeover.SkippedLiveProcessIds.Contains(processId)) continue;
-                if (!recordingDirectories.ContainsKey(processId)) processIds.Add(processId);
-            }
-
-            var sessions = new List<PreviousProcessSession>();
-            foreach (var processId in processIds)
-                sessions.Add(new PreviousProcessSession
-                {
-                    ProcessId = processId,
-                    ExitedCleanly = CleanExitMarker.ConsumeExitCleanFlag(processId),
-                    RecordingDirectory = recordingDirectories.GetValueOrDefault(processId),
-                });
+            foreach (var session in sessions) session.ExitedCleanly = CleanExitMarker.ConsumeExitCleanFlag(session.ProcessId);
             return sessions;
         }
     }

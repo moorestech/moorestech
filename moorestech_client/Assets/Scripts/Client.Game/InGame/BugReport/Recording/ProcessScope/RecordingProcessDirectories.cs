@@ -24,7 +24,7 @@ namespace Client.Game.InGame.BugReport.Recording.ProcessScope
         // Only a dead other process's directory may be taken over; stealing a live one would erase that session's actual footage
         public static RecordingProcessTakeover TakeOverPreviousProcessDirectories(string recordingRoot, int currentProcessId)
         {
-            return SelectTakeover(recordingRoot, currentProcessId, LiveProcessIds());
+            return SelectTakeover(recordingRoot, currentProcessId, CollectLiveProcessIds());
         }
 
         // 生存判定を引数で受ける純粋な選別。実プロセスを起こさずに「生きているpidは触らない」を検証できる
@@ -62,7 +62,9 @@ namespace Client.Game.InGame.BugReport.Recording.ProcessScope
 
         // 死んだpidが別プロセスに再利用されていると「生存」と読むが、その場合に触らないのは安全側の誤りなので許容する
         // A recycled pid reads as live, but erring toward leaving it alone is the safe direction, so it is accepted
-        private static HashSet<int> LiveProcessIds()
+        // 録画・CLEAN_EXIT印・進行記録のcurrent/は同じこの集合で割る。資源ごとに判定を持つと、録画が無い生存pidだけ素通りする
+        // Recordings, the CLEAN_EXIT marks and the progress current/ all split on this one set; a per-resource verdict would let a live pid with no recording slip through
+        public static HashSet<int> CollectLiveProcessIds()
         {
             var ids = new HashSet<int>();
             foreach (var process in Process.GetProcesses()) ids.Add(process.Id);

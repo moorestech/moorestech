@@ -11,6 +11,7 @@ namespace Client.Tests.BugReport
     {
         private const int DeadProcessId = 1234;
         private const int LiveProcessId = 5678;
+        private const int CurrentProcessId = 4321;
 
         private string _root;
         private string _recording;
@@ -125,16 +126,36 @@ namespace Client.Tests.BugReport
             StringAssert.Contains("リモート接続", MissingReasons(artifacts));
         }
 
+        // 「初回起動を異常終了にしない」は印が1件も無いことから出る。印が1件でも残れば異常終了へ倒れる
+        // "A first boot is not a crash" follows from there being no marks at all; a single leftover mark tips it to unclean
         [Test]
-        public void 初回起動は異常終了として扱わない()
+        public void 前回セッションが1件も無ければ異常終了として扱わない()
         {
-            var request = Request();
-            request.IsFirstBoot = true;
+            Assert.IsTrue(PreviousSessionSalvage.Salvage(Request()).PreviousExitWasClean);
+            Assert.IsFalse(PreviousSessionSalvage.Salvage(Request(Session(DeadProcessId, false, null))).PreviousExitWasClean);
+        }
 
-            var artifacts = PreviousSessionSalvage.Salvage(request);
+        // 常時記録オフやffmpeg不在のEditorは録画ディレクトリを作らない。録画の有無で生存を判定すると、この印が消えて偽のクラッシュになる
+        // An Editor with capture off or no ffmpeg creates no recording directory; judging liveness by that would erase its mark and fabricate a crash
+        [Test]
+        public void 録画が無くても生存しているpidは前回セッションに数えない()
+        {
+            var scan = PreviousProcessScanner.Scan(CurrentProcessId, new RecordingProcessTakeover(), new[] { LiveProcessId, DeadProcessId }, new[] { LiveProcessId, CurrentProcessId });
 
-            Assert.IsTrue(artifacts.IsFirstBoot);
-            Assert.IsTrue(artifacts.PreviousExitWasClean);
+            Assert.AreEqual(1, scan.Sessions.Count);
+            Assert.AreEqual(DeadProcessId, scan.Sessions[0].ProcessId);
+            Assert.Contains(LiveProcessId, scan.SkippedLiveProcessIds);
+        }
+
+        // 録画ディレクトリを持つ生存pidも、印だけの生存pidも、同じ1つの生存集合で弾かれる
+        // A live pid with a recording directory and one with only a mark are both rejected by the same single liveness set
+        [Test]
+        public void 自分のpidは印があっても前回セッションにしない()
+        {
+            var scan = PreviousProcessScanner.Scan(CurrentProcessId, new RecordingProcessTakeover(), new[] { CurrentProcessId }, new[] { CurrentProcessId });
+
+            Assert.AreEqual(0, scan.Sessions.Count);
+            Assert.AreEqual(0, scan.SkippedLiveProcessIds.Count);
         }
 
         private string CreateProcessRecording(int processId)

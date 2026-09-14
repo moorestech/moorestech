@@ -1,6 +1,7 @@
 using System.IO;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using NUnit.Framework;
 
 namespace Client.Tests.BugReport
@@ -38,6 +39,20 @@ namespace Client.Tests.BugReport
 
             CollectionAssert.Contains(CleanExitMarker.SessionProcessIds(), TestProcessId);
             Assert.IsFalse(CleanExitMarker.ConsumeExitCleanFlag(TestProcessId));
+        }
+
+        // 生きているpidの印を消すと、そのEditorが本当に落ちても次回起動で検知できない（印が1つも残らないため）
+        // Erasing a live pid's marks would leave its real crash undetectable at the next boot, since no mark survives it
+        [Test]
+        public void 生存しているpidの印は回収の対象にならず消えない()
+        {
+            CleanExitMarker.MarkSessionStarted(TestProcessId);
+
+            var scan = PreviousProcessScanner.Scan(0, new RecordingProcessTakeover(), CleanExitMarker.SessionProcessIds(), new[] { TestProcessId });
+            foreach (var session in scan.Sessions) CleanExitMarker.ConsumeExitCleanFlag(session.ProcessId);
+
+            Assert.Contains(TestProcessId, scan.SkippedLiveProcessIds);
+            Assert.IsTrue(File.Exists(CleanExitMarker.SessionMarkerPath(TestProcessId)));
         }
 
         [Test]
