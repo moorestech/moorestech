@@ -7,19 +7,19 @@ export async function handle(request: Request, env: Env, steamFetch: typeof fetc
   const url = new URL(request.url);
   const segments = url.pathname.split("/").filter((segment) => segment.length > 0);
 
-  if (segments[0] !== "v1") {
-    console.warn(`[router] rejected unknown path: ${url.pathname}`);
-    return notFound();
-  }
-
-  if (segments.length === 2 && segments[1] === "session") {
+  if (segments[0] === "v1" && segments.length === 2 && segments[1] === "session") {
     if (request.method !== "POST") {
       console.warn(`[router] rejected method ${request.method} for ${url.pathname}`);
       return fail("method-not-allowed", 405);
     }
-    return notFound();
+    // Task 2 が中身を入れるまでの仮応答。既知パスなのでreason形のまま返す
+    // Placeholder until Task 2 fills it in; a known path keeps the reason-shaped body
+    console.warn("[router] /v1/session has no handler yet");
+    return fail("not-found", 404);
   }
 
+  // 未知パスだけがR1逐語の {"error":"not_found"} を返す経路
+  // Only the unknown-path route answers with R1's verbatim {"error":"not_found"}
   console.warn(`[router] rejected unknown path: ${url.pathname}`);
   return notFound();
 }
