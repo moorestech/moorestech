@@ -2,18 +2,14 @@
 // The body mounted only while waiting; the description is optional and either button releases the wait
 import { useState } from "react";
 import { Button, Group, Stack, Text } from "@mantine/core";
-import { dispatchAction } from "@/bridge";
 import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
+import { useGateAnswer } from "./useGateAnswer";
 import styles from "./style.module.css";
-
-// 応答待ちと失敗をテスターに見せるための状態。成功は待機解除でゲートごと消える
-// The state that shows a pending response and a failure to the tester; success removes the gate itself
-type RespondState = "idle" | "pending" | "failed";
 
 export function CrashReportGateBody() {
   const { t } = useI18n();
   const [description, setDescription] = useState("");
-  const [respondState, setRespondState] = useState<RespondState>("idle");
+  const { disabled, message, answer } = useGateAnswer("playtest.crash_report.respond");
 
   // ゲートは辞書配信より前に出るため、第3引数の辞書非依存文言が未確定の間の表示になる
   // The gate precedes dictionary delivery, so the third argument's dictionary-independent copy is what shows until it arrives
@@ -21,23 +17,6 @@ export function CrashReportGateBody() {
   const placeholder = t(L.ui.playtest.crashGate.placeholder, {}, DictionaryIndependentText.crashGatePlaceholder);
   const sendLabel = t(L.ui.playtest.crashGate.send, {}, DictionaryIndependentText.crashGateSend);
   const skipLabel = t(L.ui.playtest.crashGate.skip, {}, DictionaryIndependentText.crashGateSkip);
-  const respondFailedLabel = t(L.ui.playtest.crashGate.respondFailed, {}, DictionaryIndependentText.crashGateRespondFailed);
-
-  // 二度押しはC#側が already_responded で弾くが、そこまで届かせない。押した時点で両方を閉じる
-  // C# rejects a second press with already_responded, but it never gets that far: one press closes both buttons
-  async function respond(send: boolean) {
-    setRespondState("pending");
-    const accepted = await dispatchAction("playtest.crash_report.respond", { send, description: send ? description.trim() : "" });
-
-    // 受理されたときは押下不可のまま保つ。ゲートは待機解除のtopic eventで消える
-    // Keep the buttons disabled once accepted; the gate disappears on the waiting-released topic event
-    if (accepted) return;
-
-    // 押下が通らなければゲートは開いたままなので、押下可へ戻し理由を開発者ログにも残す
-    // A rejected press leaves the gate open, so the buttons come back and the reason also reaches the developer log
-    console.warn(`[playtest.crash_report.respond] rejected: send=${send}`);
-    setRespondState("failed");
-  }
 
   return (
     <Stack align="center" gap="md">
@@ -50,20 +29,26 @@ export function CrashReportGateBody() {
         data-testid="crash-report-description"
       />
       <Group justify="center" gap="lg">
-        <Button size="xl" disabled={respondState === "pending"} onClick={() => void respond(true)} data-testid="crash-report-send">
+        <Button size="xl" disabled={disabled} onClick={() => void respond(true)} data-testid="crash-report-send">
           {sendLabel}
         </Button>
-        <Button size="xl" disabled={respondState === "pending"} onClick={() => void respond(false)} data-testid="crash-report-skip">
+        <Button size="xl" disabled={disabled} onClick={() => void respond(false)} data-testid="crash-report-skip">
           {skipLabel}
         </Button>
       </Group>
-      {/* トーストはゲートの下に隠れるため、押下が通らなかったことはこの1行だけが伝える */}
-      {/* Toasts hide beneath the gate, so this single line is the only report that a press did not go through */}
-      {respondState === "failed" && (
-        <Text c="white" data-testid="crash-report-respond-failed">
-          {respondFailedLabel}
+      {/* トーストはゲートの下に隠れるため、応答がどうなったかはこの1行だけが伝える */}
+      {/* Toasts hide beneath the gate, so this single line is the only report of what became of the answer */}
+      {message !== null && (
+        <Text c="white" data-testid="crash-report-gate-status">
+          {message}
         </Text>
       )}
     </Stack>
   );
+
+  // 送らないを選んだときは書きかけの説明文を送らない。送る意思が無い記述を箱へ入れない
+  // Choosing not to send withholds the half-written description: text the tester never meant to send stays out of the box
+  async function respond(send: boolean): Promise<void> {
+    await answer({ send, description: send ? description.trim() : "" });
+  }
 }

@@ -13,11 +13,16 @@ export const DictionaryIndependentText = {
   playtestConsentTitle: "About this playtest / このプレイテストについて",
   playtestConsentBody: "When you send a report we upload your description, the last 2 minutes of gameplay video, a world snapshot, the packet log, the Unity log and a screenshot. A session summary and an event list are sent automatically when you quit. Nothing else leaves your PC. / 報告を送ると、説明文・直前2分の録画・ワールドのスナップショット・パケットログ・Unityログ・スクリーンショットが送信されます。終了時にはセッションの要約とイベント列が自動送信されます。これ以外はPCから送信されません。",
   playtestConsentAgree: "Got it / 了解",
-  playtestConsentFailed: "Could not answer. Please press again. / 応答できませんでした。もう一度押してください。",
   crashGateTitle: "The game did not close normally last time / 前回ゲームが正常に終了しませんでした",
   crashGateBody: "Send the last session's recording, world snapshot, packet log, Unity log and crash dump to the developer? / 前回セッションの録画・ワールドのスナップショット・パケットログ・Unityログ・クラッシュダンプを開発者へ送りますか？",
   crashGatePlaceholder: "What were you doing when it stopped? (optional) / 止まったとき何をしていましたか？（任意）",
   crashGateSend: "Send / 送る",
   crashGateSkip: "Do not send / 送らない",
-  crashGateRespondFailed: "Could not answer. Please press again. / 応答できませんでした。もう一度押してください。",
+
+  // 応答の結末はどちらのゲートでも同じ4通りなので、文言も1組だけ持つ
+  // Both gates end an answer in the same four ways, so the copy exists as a single set
+  gateRespondFailed: "Could not answer. Please press again. / 応答できませんでした。もう一度押してください。",
+  gateAnswerAccepted: "Your answer was received. This closes shortly. / 応答を受け付けました。まもなく閉じます。",
+  gateDisconnected: "Disconnected. Please press again once it reconnects. / 接続が切れています。つながったらもう一度押してください。",
+  gateNotClosed: "The answer arrived but this screen did not close. Please press again. / 応答は届きましたが画面が閉じません。もう一度押してください。",
 } as const;
