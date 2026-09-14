@@ -56,13 +56,16 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class ResponseWorldPlaySessionInfoMessagePack : ProtocolMessagePackBase
         {
-            [Key(2)] public string WorldCreatedAt;
-            [Key(3)] public double TotalPlaySeconds;
+            [Key(2)] public string WorldCreatedAt { get; set; }
+            [Key(3)] public double TotalPlaySeconds { get; set; }
 
             // 取得できなかった理由。null なら値が揃っている。空文字や0で埋めると欠損と実データを読み手が区別できない
             // Why the values could not be obtained; null means they are complete. Empty strings and zeros would be indistinguishable from real data
-            [Key(4)] public string MissingReason;
+            [Key(4)] public string MissingReason { get; set; }
 
+            // 復号はこの引数なしコンストラクタ＋セッターで行う。指定しないと3引数コンストラクタが位置で束ねられ、tag が worldCreatedAt に入る
+            // Decoding goes through this parameterless constructor and the setters; without it the 3-argument one is bound positionally and the tag lands in worldCreatedAt
+            [SerializationConstructor]
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseWorldPlaySessionInfoMessagePack() { }
 
