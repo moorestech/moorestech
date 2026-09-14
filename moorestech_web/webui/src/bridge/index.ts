@@ -8,7 +8,7 @@ export { useLanguageList } from "./store/languageList/useLanguageList";
 export type { LanguageListState } from "./store/languageList/useLanguageList";
 export type { LanguageEntries, LanguageEntry } from "./store/languageList/languageListStore";
 export { dispatchAction, dispatchActionOutcome, GATE_ALREADY_ANSWERED_ERRORS } from "./transport/actions";
-export type { ActionOutcome, GateAnswerActionType } from "./transport/actions";
+export type { GateAnswerActionType } from "./transport/actions";
 export { blockIconUrl, itemIconUrl, fluidIconUrl, itemMasterUrl, fluidMasterUrl, localizationDictionaryUrl, localizationLanguagesUrl } from "./transport/httpEndpoints";
 export { setToastSink } from "./transport/notify";
 export type { NotifyVariant } from "./transport/notify";
