@@ -116,6 +116,10 @@ catch を外すと C3 の故障シナリオ（起動不能・終了不能）が�
   `VanillaApiEvent` は UniRx の `Subject<byte[]>` を逐次配信しており、1購読者の例外は後続購読者への配信を止める。
   裁定自体（catch を外す）は維持し、配信側 `VanillaApiEvent.SubscribeEventResponse` で購読者ごとに隔離した。
   これで前提が購読順に依存しなくなり、catch 無しで復号している他25箇所も同時に守られる。
+- 追記（refix round2）: この隔離が新しい前提になったのに回帰テストが1本も無く、行が落ちても誰も赤にならない状態だった。
+  隔離とタグ別配信を `EventResponseDispatcher`（`Client.Network/API/`）へ切り出し、`VanillaApiEvent` は通信の配線だけを持つ形にした
+  （`PacketExchangeManager` を ctor で要求する `VanillaApiEvent` は無限 UniTask ループのため EditMode で立てられない）。
+  `Client.Tests/Network/EventResponseDispatcherTest` が「1人目が例外でも2人目へ届く」「例外を投げた購読者が購読解除されない」を固定する。
 
 ### C. `ProgressRecorder` の `IDisposable`
 
