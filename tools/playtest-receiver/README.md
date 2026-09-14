@@ -8,7 +8,7 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
 | メソッド | パス | 認証 | 用途 |
 |---|---|---|---|
 | POST | `/v1/session` | なし（Steamチケット） | チケット検証＋許可リスト照合＋1時間トークン発行 |
-| PUT | `/v1/uploads/{kind}/{id}/{path...}` | `Authorization: Bearer` | 1ファイル保存（≤100MiB） |
+| PUT | `/v1/uploads/{kind}/{id}/{path...}` | `Authorization: Bearer` | 1ファイル保存。`Content-Length` 必須（欠落411・非数値400・100MiB超413） |
 | POST | `/v1/uploads/{kind}/{id}/complete` | `Authorization: Bearer` | `READY` と未ACK索引を書く |
 | GET | `/v1/inbox?cursor=` | `X-Admin-Key` | 未ACKの一覧 |
 | GET | `/v1/inbox/{kind}/{steamId}/{id}/{path...}` | `X-Admin-Key` | 個別ファイル取得 |
@@ -19,6 +19,12 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
 
 ## 初回セットアップ
 
+0. Cloudflare へ認証する（未認証だと以下の `wrangler` コマンドが対話ログインで止まる、または複数アカウント環境では account 選択で失敗する）:
+   ```bash
+   pnpm exec wrangler login                 # ブラウザでログイン。またはCLOUDFLARE_API_TOKEN環境変数を渡す
+   pnpm exec wrangler whoami                 # Account Nameが複数出る場合はCLOUDFLARE_ACCOUNT_IDを対象アカウントのIDに設定する
+   ```
+   `wrangler.toml` に `account_id` は書かない（秘密ではないが環境依存の値のため、環境変数側で解決する）。
 1. R2 バケットを作る:
    ```bash
    cd tools/playtest-receiver
@@ -37,15 +43,26 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
    pnpm run deploy
    ```
 5. DNS: `wrangler.toml` の `routes` に `playtest.tar-atari.com` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が tar-atari.com ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.tar-atari.com` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
-6. 許可リストへ最初のテスターを入れる: `scripts/playtest/allowlist.sh add <steamId>`
+6. Mac mini 側の env ファイルを作る。`scripts/playtest/allowlist.sh`（Task 7）はここから `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む:
+   ```bash
+   mkdir -p ~/hermes-agent/data/services/playtest
+   cat > ~/hermes-agent/data/services/playtest/env.sh <<'EOF'
+   export PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com
+   export PLAYTEST_ADMIN_KEY=<手順2でADMIN_KEYに入れた値と同じもの>
+   EOF
+   chmod 600 ~/hermes-agent/data/services/playtest/env.sh
+   ```
+   既定パスと異なる場所に置く場合は `PLAYTEST_ENV_FILE` でそのパスを指す。
+7. 許可リストへ最初のテスターを入れる: `. ~/hermes-agent/data/services/playtest/env.sh && scripts/playtest/allowlist.sh add <steamId>`
 
 ## 動作確認
 
 ```bash
-BASE=https://playtest.tar-atari.com
+. ~/hermes-agent/data/services/playtest/env.sh
+BASE="$PLAYTEST_RECEIVER_BASE"
 curl -s -o /dev/null -w '%{http_code}\n' "$BASE/v1/inbox"                          # 401 を期待
 curl -s -H "X-Admin-Key: $PLAYTEST_ADMIN_KEY" "$BASE/v1/allowlist"                 # {"steamIds":[...]}
-curl -s -X POST -d '{"ticket":"00"}' "$BASE/v1/session"                            # 401（無効チケット）
+curl -s -o /dev/null -w '%{http_code}\n' -X POST -d '{"ticket":"00"}' "$BASE/v1/session"  # 401 を期待（無効チケット）
 ```
 
 ## 開発

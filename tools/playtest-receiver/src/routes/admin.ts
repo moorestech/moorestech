@@ -11,6 +11,12 @@ const PENDING_PREFIX = "index/pending/";
 // Path matching and dispatch for the admin API live here; returns null on a non-match so index.ts can try the next route
 export async function routeAdmin(request: Request, env: Env, segments: string[]): Promise<Response | null> {
   if (segments[0] !== "v1") return null;
+  if (segments[1] !== "allowlist" && segments[1] !== "inbox") return null;
+
+  // 管理APIの認証はここ1箇所だけで行う。経路の形やメソッドの正誤に関わらず、鍵なし・不一致は必ず401
+  // The admin API is authenticated in exactly one place; a missing or mismatched key is always 401, regardless of path shape or method
+  const denied = requireAdmin(request, env);
+  if (denied !== null) return denied;
 
   if (segments[1] === "allowlist" && segments.length === 2) {
     if (request.method === "GET") return getAllowlist(request, env);
@@ -66,10 +72,9 @@ async function routeInbox(request: Request, env: Env, segments: string[]): Promi
   return getInboxObject(request, env, kind, steamId, id, rest);
 }
 
+// 認証はrouteAdmin/routeInboxが済ませている。ここでは呼び出さない（重複させない）
+// Authentication is already done by routeAdmin/routeInbox; not repeated here
 export async function getInbox(request: Request, env: Env): Promise<Response> {
-  const denied = requireAdmin(request, env);
-  if (denied !== null) return denied;
-
   const cursor = new URL(request.url).searchParams.get("cursor") ?? undefined;
   const listed = await env.BUCKET.list({ prefix: PENDING_PREFIX, limit: INBOX_PAGE_SIZE, cursor });
 
@@ -94,9 +99,6 @@ export async function getInboxObject(
   id: string,
   pathSegments: string[],
 ): Promise<Response> {
-  const denied = requireAdmin(request, env);
-  if (denied !== null) return denied;
-
   const relativePath = joinSafePath(pathSegments);
   if (relativePath === null) {
     console.warn(`[inbox] rejected an unsafe object path: ${pathSegments.join("/")}`);
@@ -112,29 +114,30 @@ export async function getInboxObject(
   return new Response(object.body, { headers: { "content-type": "application/octet-stream" } });
 }
 
-// ackは「ACKEDを書いてから索引を消す」の2手。途中で落ちても項目は見えたままになる
-// Ack is two steps: write ACKED, then drop the index, so a crash in between leaves the item still visible
+// ackは「pendingの実在確認→ACKEDを書く→索引を消す」の3手。途中で落ちても項目は見えたままになる
+// Ack is three steps: confirm the pending entry exists, write ACKED, then drop the index, so a crash in between leaves the item still visible
 export async function postAck(request: Request, env: Env, kind: PlaytestKind, steamId: string, id: string): Promise<Response> {
-  const denied = requireAdmin(request, env);
-  if (denied !== null) return denied;
+  const indexKey = pendingIndexKey(kind, steamId, id);
+  // 索引が無ければID取り違え等で存在しない項目。ACKEDだけのゴミオブジェクトを作らず404で拒否する
+  // A missing index means the id doesn't refer to a pending item (e.g. a typo); reject with 404 instead of creating an orphaned ACKED object
+  const pending = await env.BUCKET.head(indexKey);
+  if (pending === null) {
+    console.warn(`[inbox] rejected ack for an item that is not pending: ${indexKey}`);
+    return fail("not-found", 404);
+  }
 
   await env.BUCKET.put(`${bundlePrefix(kind, steamId, id)}/${ACKED_MARKER}`, new Date().toISOString());
-  await env.BUCKET.delete(pendingIndexKey(kind, steamId, id));
+  await env.BUCKET.delete(indexKey);
   return json({ acked: true });
 }
 
 export async function getAllowlist(request: Request, env: Env): Promise<Response> {
-  const denied = requireAdmin(request, env);
-  if (denied !== null) return denied;
   return json({ steamIds: await readAllowlist(env.BUCKET) });
 }
 
 export async function putAllowlist(request: Request, env: Env): Promise<Response> {
-  const denied = requireAdmin(request, env);
-  if (denied !== null) return denied;
-
-  // 全置換なので壊れた本文で上書きしない。パースまたは形が不正なら現状を残して400を返す
-  // This replaces the whole list, so a malformed body must never overwrite it; a parse or shape failure keeps the current list
+  // 管理者が手で送るJSON本文のパースは外部入力境界。全置換なので壊れた本文で上書きせず現状を残して400を返す
+  // Parsing an admin-supplied JSON body is an external-input boundary; this replaces the whole list, so a parse/shape failure keeps the current list and answers 400
   let steamIds: string[];
   try {
     const body = (await request.json()) as { steamIds?: unknown };
@@ -149,6 +152,8 @@ export async function putAllowlist(request: Request, env: Env): Promise<Response
   }
 
   await writeAllowlist(env.BUCKET, steamIds);
-  console.warn(`[allowlist] replaced with ${new Set(steamIds).size} steamIds`);
+  // 成功時の監査ログ。拒否理由ではないのでwarnではなくlogを使う
+  // Success-path audit log; not a rejection reason, so this uses log rather than warn
+  console.log(`[allowlist] replaced with ${new Set(steamIds).size} steamIds`);
   return json({ steamIds: [...new Set(steamIds)] });
 }
