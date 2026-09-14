@@ -74,6 +74,12 @@ namespace Client.Game.Common
                 if (result == ShutdownFlushResult.SaveAbandoned)
                     return ShutdownFlushResult.SaveAbandoned;
 
+            // 例外で落ちた参加者は「書けた」と名乗れない。正常値のNothingFlushedへ潰すと、保存されていない世界がFlushedとして閉じる
+            // A participant that died on an exception cannot claim success; folding it into the normal NothingFlushed would close an unsaved world as Flushed
+            foreach (var result in results)
+                if (result == ShutdownFlushResult.FlushFailed)
+                    return ShutdownFlushResult.FlushFailed;
+
             // 1つでも書き切れていなければ全体を上限到達として返す
             // Report the whole flush as timed out if any single participant failed to finish
             foreach (var result in results)
@@ -91,6 +97,8 @@ namespace Client.Game.Common
                 Debug.LogError("セーブの書き出し完了を待ち切れないままアプリを終了します");
             if (flushResult == ShutdownFlushResult.SaveAbandoned)
                 Debug.LogError("セーブの書き出しを諦めたため、世界が保存されないままアプリを終了します");
+            if (flushResult == ShutdownFlushResult.FlushFailed)
+                Debug.LogError("終了時の書き出しが例外で失敗したため、何が保存されたか分からないままアプリを終了します");
 
             Application.Quit();
 #if UNITY_EDITOR
@@ -109,7 +117,7 @@ namespace Client.Game.Common
             catch (Exception exception)
             {
                 Debug.LogError($"終了時の書き出しが失敗しました（他の参加者の書き出しは続行します） {participant.GetType().Name}: {exception.GetBaseException().Message}");
-                return ShutdownFlushResult.NothingFlushed;
+                return ShutdownFlushResult.FlushFailed;
             }
         }
 
