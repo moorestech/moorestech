@@ -21,6 +21,8 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             CleanExitMarker.MarkSessionStarted(processId);
 
+            // 終了処理側にプレイテストの語彙を持ち込まないため、直接呼び出しでなく汎用イベントの購読で受ける
+            // Subscribing to the generic event, not a direct call, keeps playtest vocabulary out of the shutdown code
             // 意図的な終了だけを正常終了として記録する。初期化失敗で畳む経路はクラッシュ側なので印を書かせない
             // Only a deliberate exit counts as clean; the fold-up after a failed initialization is the crash side and writes nothing
             _subscription = GameShutdownEvent.OnGameShutdown.Subscribe(reason =>
@@ -30,6 +32,9 @@ namespace Client.Game.InGame.BugReport.LastSession
                     Debug.Log($"正常終了マーカーを書きません（終了理由: {reason}）。次回起動は前回異常終了として扱われます");
                     return;
                 }
+
+                // 参加者のflush完了を待たず意図表明の時点で書く。直後に強制終了されても正常終了として残る
+                // Written at the moment intent is declared, without awaiting participant flushes, so a forced kill still counts as clean
                 CleanExitMarker.MarkCleanExit(processId);
             });
         }

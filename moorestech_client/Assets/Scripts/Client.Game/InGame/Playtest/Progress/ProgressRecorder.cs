@@ -179,6 +179,8 @@ namespace Client.Game.InGame.Playtest.Progress
             _writer.Append(ProgressServerEvents.ChallengeCompleted(payload, DateTime.UtcNow, GameUpdater.CurrentTick));
         }
 
+        // BlockIdはマスタのロード順で採番される揮発値。記録に残すと別ロードで別ブロックとして再生される
+        // BlockId is volatile, renumbered per master load; recording it would replay as a different block on another load
         // 設置数だけが集計対象。1件ずつ行にすると設置のたびに追記が走るので、区間の合計だけを書く（ADR 0060 裁定9）
         // Only the count is aggregated; one line per placement would append on every block, so only the interval total is written (ADR 0060 adjudication 9)
         private void OnBlockPlaced(byte[] payload)
