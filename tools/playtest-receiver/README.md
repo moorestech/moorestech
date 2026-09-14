@@ -43,7 +43,7 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
    pnpm run deploy
    ```
 5. DNS: `wrangler.toml` の `routes` に `playtest.tar-atari.com` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が tar-atari.com ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.tar-atari.com` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
-6. Mac mini 側の env ファイルを作る。`scripts/playtest/allowlist.sh`（Task 7）はここから `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む。ヒアドキュメントは Markdown リスト内の字下げでコピー時に終端行を見失うため、`echo` を積み上げる形にしてある:
+6. Mac mini 側の env ファイルを作る。`scripts/playtest/allowlist.sh`（Task 5）はここから `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む。ヒアドキュメントは Markdown リスト内の字下げでコピー時に終端行を見失うため、`echo` を積み上げる形にしてある:
    ```bash
    mkdir -p ~/hermes-agent/data/services/playtest
    {
