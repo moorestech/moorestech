@@ -125,3 +125,24 @@ catch を外すと C3 の故障シナリオ（起動不能・終了不能）が�
 
 レビュー側で解決済み（`MainGameStarter.OnDestroy` の `_resolver?.Dispose()` により `Dispose` は到達可能）。
 `Dispose` は残し、`CancellationTokenSource` のキャンセルを足す。
+
+## 免責（suppressed）3件の裁定
+
+レビューは「context.md の出所ラベルが解決不能なので、免責されていた3件は通常の Warning として再統合が必要」と指摘した（C30）。
+context.md はレビュー run の**凍結済み入力**（何をどう測ってその結論に至ったかの証跡）なので後から書き換えず、ここで3件を裁定する。
+
+1. `BuildInfo.SteamBuildLabel` / `BuiltAt` / `Target` が常に null で成果物へ出る
+   → **免責を維持。** `build-info.json` の生成と Windows 配布ビルドは plan E の範囲で、値を埋める側がまだ存在しない。
+   欠損は裁定6 の `missing` 列で理由付きに表明されるので、無音ではない。
+
+2. `BuildInfoJson.MasterDataCommit` が `masterCommit` からのみ読み、共有契約 §1 の `masterDataCommit` を見ない
+   → **免責を維持。** 出所は ADR 0059（実在する。台帳項目は「JSON キーの不一致について」）。
+   実装済みの焼く側が出すキーを正とし、両キーを見るフォールバックは採らない。
+
+3. `EmptyPlaytestSessionIdentity` が常に空文字を返し `manifest.steamId` が識別子として機能しない
+   → **免責は不要になった。** 裁定4（案A・静的プロバイダ）で差し替え点が1つに畳まれたので、
+   plan D が `PlaytestSessionIdentityProvider.SetCurrent` を呼べばゲートも DI も同じ実体を見る。
+   「差込口を名乗っているが DI 差し替えでは切り替わらない」という中途半端な状態は解消済み。
+
+なお `context-source-label` の confirmed 8件は、この凍結入力に対する指摘なので残り続ける。
+将来の run で同じ指摘を出さないために、plan G 側のラベルは `ead0551bf` で訂正済み。
