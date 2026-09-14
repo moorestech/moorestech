@@ -12,7 +12,6 @@ using Core.Update;
 using Cysharp.Threading.Tasks;
 using Server.Boot;
 using Server.Event.EventReceive;
-using Server.Protocol.PacketResponse;
 using UniRx;
 using UnityEngine;
 using VContainer.Unity;
@@ -69,7 +68,7 @@ namespace Client.Game.InGame.Playtest.Progress
             // ヘッダを先に同期で書き、その後で購読を張る。イベント追記は必ずヘッダ付きの current/ に入る
             // The header is written synchronously before any subscription, so appends always land in a current/ that has one
             _writer.WriteHeader(CreateHeader());
-            FillWorldPlayTimeAsync().Forget(LogWorldPlayTimeFailure);
+            ProgressWorldPlayTimeQuery.FillAsync(_writer, _sessionCancellation.Token).Forget(ProgressWorldPlayTimeQuery.LogFailure);
 
             _uiStateControl.OnStateChanged += OnUiStateChanged;
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(ResearchCompleteEventPacket.EventTag, OnResearchCompleted));
@@ -96,31 +95,6 @@ namespace Client.Game.InGame.Playtest.Progress
                     BaselineChallenges = ProgressBaseline.CompletedChallengeGuids(completedChallenges),
                     BaselineResearch = ProgressBaseline.CompletedResearchGuids(_handshake.ResearchNodeStates),
                 };
-            }
-
-            async UniTask FillWorldPlayTimeAsync()
-            {
-                var info = await ClientContext.VanillaApi.Response.GetWorldPlaySessionInfo(_sessionCancellation.Token);
-                _writer.UpdateWorldPlayTime(ToWorldPlayTime(info));
-            }
-
-            // 応答なし（10秒のタイムアウト）も欠損の一種。空文字と0で埋めず理由を持たせる
-            // A missing response (the 10 second timeout) is a gap too, carried with its reason instead of an empty string and a zero
-            ProgressWorldPlayTime ToWorldPlayTime(GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack info)
-            {
-                if (info == null) return ProgressWorldPlayTime.Unavailable("ワールドのプレイ時間の応答が返らなかった");
-                if (info.MissingReason != null) return ProgressWorldPlayTime.Unavailable(info.MissingReason);
-                return ProgressWorldPlayTime.Received(info.WorldCreatedAt, info.TotalPlaySeconds, DateTime.UtcNow);
-            }
-
-            void LogWorldPlayTimeFailure(Exception exception)
-            {
-                if (exception is OperationCanceledException)
-                {
-                    Debug.Log("セッションが終わったためワールドのプレイ時間の取得を打ち切りました");
-                    return;
-                }
-                Debug.LogError($"進行記録のヘッダにプレイ時間を書けませんでした: {exception.GetBaseException().Message}");
             }
 
             #endregion
