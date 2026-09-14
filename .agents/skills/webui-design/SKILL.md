@@ -563,8 +563,9 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
   （**旧 `--playtest-gate-face` / `--z-portal-playtest-gate` は削除済み**。前回異常終了ゲートは独自トークンを持たない）。
 - 見出し・本文の最大幅は `--full-screen-gate-text-width`（900px）の1本を3枚が共有する
   （**旧 `--playtest-gate-body-width` / `--playtest-gate-title-width` は削除済み**）。無制約だと画面端まで達し
-  左右の文字が余白ゼロで接触するための上限であり、狭いビューポートでの左右余白そのものは `FullScreenGate` 側の
-  固定長パディングが別途担う。
+  左右の文字が余白ゼロで接触するための上限であり、外殻(`Overlay`)自身も固定長 `--full-screen-gate-side-gutter`
+  （32px）を左右paddingとして持つ。本文幅と外殻幅の上限が同値(900px)のため、ガターが無いと900px幅ビューポートで
+  両端が接触する（目視QA 2026-09-14）。
 - **辞書配信前の文言は `t(key, {}, fallback)` の1回呼びで書く。** `useI18n().t` は `dictionaryAbsent` のとき
   第3引数の `fallback` をそのまま返す（`shared/i18n/i18nStore.ts` の `createTranslator`）ので、呼び出し側で
   `status === "ready" ? t(key) : fallback` のような分岐を新たに書かない。ゲート系の辞書非依存文言は

@@ -1,3 +1,10 @@
+/* 外殻の左右余白。900px幅ビューポートでは本文の最大幅(900px)がそのまま画面幅と一致し、余白ゼロで両端に接触する（目視QA 2026-09-14） */
+/* Side gutter on the shell; at a 900px viewport the body's max-width (900px) equals the screen width, so with no gutter it touches both edges (visual QA 2026-09-14) */
+.overlay {
+  padding-inline: var(--full-screen-gate-side-gutter);
+  box-sizing: border-box;
+}
+
 /* 見出しの最大幅。無制約だと辞書未配信のEN/JA併記が画面端に接触して折り返す（目視QA 2026-09-14） */
 /* Max width for the heading; unconstrained, the dictionary-less EN/JA pairing touches the screen edge and wraps (visual QA 2026-09-14) */
 .title {

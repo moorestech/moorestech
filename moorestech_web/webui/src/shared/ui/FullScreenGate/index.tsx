@@ -42,6 +42,7 @@ export default function FullScreenGate({ topic, testId, title, children }: Props
         backgroundOpacity={1}
         color="var(--event-language-gate-face)"
         zIndex="var(--z-portal-event-language-gate)"
+        className={styles.overlay}
         data-testid={testId}
       >
         <Stack align="center" gap="xl">
