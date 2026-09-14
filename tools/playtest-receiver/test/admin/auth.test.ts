@@ -2,10 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { handle } from "../../src/index";
 import { STEAM_ID, noNetwork, workerEnv } from "../support/uploadsFixture";
 
-// 管理APIの認証（routeAdminの入口1箇所）に関するテスト。個々のエンドポイントの中身は
-// admin/inbox.test.ts・admin/allowlist.test.ts が担う（200行規約での分割）
-// Tests for admin-API authentication (the single gate in routeAdmin); each endpoint's own
-// behavior lives in admin/inbox.test.ts and admin/allowlist.test.ts (split for the 200-line rule)
+// 管理APIの認証（routeAdminの入口1箇所）のテスト。個々のエンドポイントはadmin/inbox.test.ts等が担う
+// Tests for admin-API authentication (the single gate in routeAdmin); each endpoint is tested elsewhere
 describe("admin api auth", () => {
   it("adminキーが無ければ401でwarnする", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -28,10 +26,8 @@ describe("admin api auth", () => {
     warn.mockRestore();
   });
 
-  // 認証は経路の形やメソッドより前で行われる。鍵なしでは、不正kind・不正メソッド等いずれの経路形でも
-  // 405/400/404を漏らさず必ず401になることを確認する
-  // Authentication runs before any path-shape or method check; without a key, no path shape (bad kind,
-  // wrong method) should leak a 405/400/404 — it must always be 401
+  // 認証は経路の形やメソッドより前で行われる。鍵なしなら不正kind・不正メソッド等どの形でも必ず401になる
+  // Authentication runs before any path/method check; without a key, every path shape must always be 401
   it("adminキーが無ければ経路の形に関わらず401になる（不正kindの inbox パス）", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(

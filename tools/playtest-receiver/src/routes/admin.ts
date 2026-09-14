@@ -1,11 +1,19 @@
 import { readAllowlist, writeAllowlist } from "../allowlist";
 import type { Env } from "../env";
-import { fail, json, requireAdmin } from "../http";
-import { bundlePrefix, isKind, isSafeSegment, joinSafePath, parsePendingIndexKey, pendingIndexKey, type PlaytestKind } from "../keys";
+import { fail, json, requireAdmin, requireMethod } from "../http";
+import {
+  bundlePrefix,
+  isKind,
+  isSafeSegment,
+  joinSafePath,
+  parsePendingIndexKey,
+  PENDING_LIST_PREFIX,
+  pendingIndexKey,
+  type PlaytestKind,
+} from "../keys";
 import { ACKED_MARKER } from "./uploads";
 
 const INBOX_PAGE_SIZE = 100;
-const PENDING_PREFIX = "index/pending/";
 
 // 管理API経路の一致判定とディスパッチをここへ寄せる。一致しなければnullでindex.tsの次の経路へ委ねる
 // Path matching and dispatch for the admin API live here; returns null on a non-match so index.ts can try the next route
@@ -27,22 +35,18 @@ export async function routeAdmin(request: Request, env: Env, segments: string[])
 
   if (segments[1] === "inbox") return routeInbox(request, env, segments);
 
-  // ここに来るのは /v1/allowlist/余分なセグメント のような未知の形だけ。認証を経路の存在確認より前に
-  // 置いた結果、鍵なしなら401・鍵ありならnullでindex.tsのR1逐語404に落ちる（意図的な非対称。存在を明かす前に認証する側へ倒す）
-  // Only unknown shapes like /v1/allowlist/extra-segment reach here. Since auth runs before existence checks,
-  // an unauthenticated caller gets 401 while an authenticated one falls through to index.ts's verbatim R1 404 (deliberate asymmetry: authenticate before revealing existence)
+  // 未知の形はここに来る。認証を存在確認より前に置くため、鍵なしは401・鍵ありはnullで404に落ちる（意図的な非対称）
+  // Unknown shapes land here; auth runs before existence checks, so unauthed=401, authed falls through to 404 (deliberate asymmetry)
   return null;
 }
 
 async function routeInbox(request: Request, env: Env, segments: string[]): Promise<Response> {
   if (segments.length === 2) {
-    if (request.method !== "GET") {
-      console.warn(`[router] rejected method ${request.method} for /v1/inbox`);
-      return fail("method-not-allowed", 405);
-    }
+    const denied = requireMethod(request, "GET", "/v1/inbox");
+    if (denied !== null) return denied;
     return getInbox(request, env);
   }
-  // {kind}/{steamId}/{id} の3セグメントに加え、ackか個別パス(1つ以上)が要る
+  // 3セグメント後にackか個別パス要る
   // Needs the {kind}/{steamId}/{id} trio plus either "ack" or at least one more path segment
   if (segments.length < 6) {
     console.warn(`[router] rejected a malformed inbox path: /${segments.join("/")}`);
@@ -63,24 +67,20 @@ async function routeInbox(request: Request, env: Env, segments: string[]): Promi
 
   const rest = segments.slice(5);
   if (rest.length === 1 && rest[0] === "ack") {
-    if (request.method !== "POST") {
-      console.warn(`[router] rejected method ${request.method} for inbox ack`);
-      return fail("method-not-allowed", 405);
-    }
+    const denied = requireMethod(request, "POST", "inbox ack");
+    if (denied !== null) return denied;
     return postAck(env, kind, steamId, id);
   }
-  if (request.method !== "GET") {
-    console.warn(`[router] rejected method ${request.method} for inbox object`);
-    return fail("method-not-allowed", 405);
-  }
+  const denied = requireMethod(request, "GET", "inbox object");
+  if (denied !== null) return denied;
   return getInboxObject(env, kind, steamId, id, rest);
 }
 
 // 認証はrouteAdminが済ませている。ここでは呼び出さない（重複させない）
 // Authentication is already done by routeAdmin; not repeated here
-export async function getInbox(request: Request, env: Env): Promise<Response> {
+async function getInbox(request: Request, env: Env): Promise<Response> {
   const cursor = new URL(request.url).searchParams.get("cursor") ?? undefined;
-  const listed = await env.BUCKET.list({ prefix: PENDING_PREFIX, limit: INBOX_PAGE_SIZE, cursor });
+  const listed = await env.BUCKET.list({ prefix: PENDING_LIST_PREFIX, limit: INBOX_PAGE_SIZE, cursor });
 
   const items = [];
   for (const object of listed.objects) {
@@ -95,7 +95,7 @@ export async function getInbox(request: Request, env: Env): Promise<Response> {
   return json({ items, cursor: listed.truncated ? listed.cursor : null });
 }
 
-export async function getInboxObject(
+async function getInboxObject(
   env: Env,
   kind: PlaytestKind,
   steamId: string,
@@ -119,16 +119,13 @@ export async function getInboxObject(
 
 // ackは「pendingの実在確認→ACKEDを書く→索引を消す」の3手。途中で落ちても項目は見えたままになる
 // Ack is three steps: confirm the pending entry exists, write ACKED, then drop the index, so a crash in between leaves the item still visible
-export async function postAck(env: Env, kind: PlaytestKind, steamId: string, id: string): Promise<Response> {
+async function postAck(env: Env, kind: PlaytestKind, steamId: string, id: string): Promise<Response> {
   const indexKey = pendingIndexKey(kind, steamId, id);
   const ackedKey = `${bundlePrefix(kind, steamId, id)}/${ACKED_MARKER}`;
   const pending = await env.BUCKET.head(indexKey);
   if (pending === null) {
-    // 索引が無くてもACKED済みならこの呼び出しは再送（at-least-onceの取り込みがackの応答だけ取りこぼした形）。
-    // 冪等にするため200を返す。ACKEDも無ければ本物のID取り違えなので404
-    // A missing index doesn't necessarily mean unknown; if ACKED already exists this is a retry (the ingest side
-    // lost only the ack response under at-least-once retries), so answer 200 to stay idempotent. If ACKED is
-    // also absent, the id is a genuine mismatch, so 404
+    // 索引が無くてもACKED済みなら再送とみなし冪等に200。ACKEDも無ければ本物のID取り違えで404
+    // No index but ACKED present means a retry, so answer 200 idempotently; if ACKED is absent too, it's a genuine mismatch, so 404
     const alreadyAcked = await env.BUCKET.head(ackedKey);
     if (alreadyAcked !== null) return json({ acked: true });
     console.warn(`[inbox] rejected ack for an item that is not pending: ${indexKey}`);
@@ -140,11 +137,11 @@ export async function postAck(env: Env, kind: PlaytestKind, steamId: string, id:
   return json({ acked: true });
 }
 
-export async function getAllowlist(env: Env): Promise<Response> {
+async function getAllowlist(env: Env): Promise<Response> {
   return json({ steamIds: await readAllowlist(env.BUCKET) });
 }
 
-export async function putAllowlist(request: Request, env: Env): Promise<Response> {
+async function putAllowlist(request: Request, env: Env): Promise<Response> {
   // 管理者が手で送るJSON本文のパースは外部入力境界。全置換なので壊れた本文で上書きせず現状を残して400を返す
   // Parsing an admin-supplied JSON body is an external-input boundary; this replaces the whole list, so a parse/shape failure keeps the current list and answers 400
   let steamIds: string[];

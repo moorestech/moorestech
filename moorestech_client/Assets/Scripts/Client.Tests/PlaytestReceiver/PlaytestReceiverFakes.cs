@@ -14,6 +14,7 @@ namespace Client.Tests.PlaytestReceiver
         public FakeTicketProvider(string ticketHex) { _ticketHex = ticketHex; }
         public bool IsSteamRunning() { return true; }
         public UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token) { return UniTask.FromResult(_ticketHex); }
+        public void ReleaseWebApiTicket() { }
     }
 
     // チケットを返す時刻をテストが決める。1本目を待たせたまま2本目を呼ぶために使う
@@ -24,11 +25,25 @@ namespace Client.Tests.PlaytestReceiver
         public GatedTicketProvider(UniTaskCompletionSource<string> gate) { _gate = gate; }
         public bool IsSteamRunning() { return true; }
         public UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token) { return _gate.Task; }
+        public void ReleaseWebApiTicket() { }
+    }
+
+    // チケット解放の順序をテストが見えるように記録する。ReleaseWebApiTicketがPostSessionAsyncより前に来ていないかを固定する
+    // Records ticket-release ordering so a test can pin ReleaseWebApiTicket to never precede PostSessionAsync
+    internal sealed class TrackingTicketProvider : IPlaytestSteamTicketProvider
+    {
+        private readonly string _ticketHex;
+        private readonly List<string> _events;
+        public TrackingTicketProvider(string ticketHex, List<string> events) { _ticketHex = ticketHex; _events = events; }
+        public bool IsSteamRunning() { return true; }
+        public UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token) { return UniTask.FromResult(_ticketHex); }
+        public void ReleaseWebApiTicket() { _events.Add("release"); }
     }
 
     internal sealed class FakeApi : IPlaytestReceiverApi
     {
         public readonly List<PlaytestApiResult> SessionResponses = new();
+        public readonly List<string> Events = new();
         public int SessionCallCount;
 
         // 実装と同じく打ち切りは例外で伝える。畳んで結果にすると打ち切り経路の挙動を検証できない
@@ -36,6 +51,7 @@ namespace Client.Tests.PlaytestReceiver
         public UniTask<PlaytestApiResult> PostSessionAsync(string ticketHex, CancellationToken token)
         {
             token.ThrowIfCancellationRequested();
+            Events.Add("post-session");
             var response = SessionResponses[SessionCallCount];
             SessionCallCount++;
             return UniTask.FromResult(response);

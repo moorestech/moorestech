@@ -4,13 +4,14 @@ export const KIND_PREFIX = { report: "reports", progress: "progress" } as const;
 
 export type PlaytestKind = keyof typeof KIND_PREFIX;
 
-const PENDING_ROOT = "index/pending";
+export const PENDING_ROOT = "index/pending";
+export const PENDING_LIST_PREFIX = `${PENDING_ROOT}/`;
 // キーはR2のオブジェクト名でUTF-8が通る。逸脱と制御文字だけを拒み、報告バンドル内の実ファイル名をそのまま残す
 // Keys are R2 object names and accept UTF-8, so only traversal and control characters are rejected, keeping real file names intact
 const UNSAFE_SEGMENT_PATTERN = /[/\\\u0000-\u001f\u007f]/;
 
 export function isKind(value: string): value is PlaytestKind {
-  return value === "report" || value === "progress";
+  return Object.prototype.hasOwnProperty.call(KIND_PREFIX, value);
 }
 
 export function bundlePrefix(kind: PlaytestKind, steamId: string, id: string): string {
@@ -22,10 +23,10 @@ export function pendingIndexKey(kind: PlaytestKind, steamId: string, id: string)
 }
 
 export function parsePendingIndexKey(key: string): { kind: PlaytestKind; steamId: string; id: string } | null {
-  const segments = key.split("/");
-  if (segments.length !== 5) return null;
-  if (segments[0] !== "index" || segments[1] !== "pending") return null;
-  const [, , kind, steamId, id] = segments as [string, string, string, string, string];
+  if (!key.startsWith(PENDING_LIST_PREFIX)) return null;
+  const rest = key.slice(PENDING_LIST_PREFIX.length).split("/");
+  if (rest.length !== 3) return null;
+  const [kind, steamId, id] = rest as [string, string, string];
   if (!isKind(kind)) return null;
   return { kind, steamId, id };
 }

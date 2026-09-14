@@ -34,7 +34,15 @@ export function requireAdmin(request: Request, env: Env): Response | null {
   return null;
 }
 
-function constantTimeEquals(a: string, b: string): boolean {
+// メソッド検査＋warn＋405 fail の3行を1箇所へ。7経路がこの形を個別実装していた
+// Bundles method check + warn + 405 fail into one call; 7 routes used to repeat this shape individually
+export function requireMethod(request: Request, method: string, label: string): Response | null {
+  if (request.method === method) return null;
+  console.warn(`[router] rejected method ${request.method} for ${label}`);
+  return fail("method-not-allowed", 405);
+}
+
+export function constantTimeEquals(a: string, b: string): boolean {
   const left = new TextEncoder().encode(a);
   const right = new TextEncoder().encode(b);
   let diff = left.length ^ right.length;

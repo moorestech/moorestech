@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using Client.PlaytestReceiver.Http;
 using Cysharp.Threading.Tasks;
+using Game.Paths;
 using Newtonsoft.Json;
 using UnityEngine;
 
@@ -61,6 +62,15 @@ namespace Client.PlaytestReceiver.Upload
                 {
                     skipped.Add(skip);
                     continue;
+                }
+
+                // PUT直前に実時計でトークンを取る。走行開始時刻のままだと長い走行中に期限切れを検知できない
+                // The token is fetched with the real clock right before each PUT; the run's start time never expires mid-run
+                _bearerToken = await _session.GetValidTokenAsync(DateTime.UtcNow, token);
+                if (_bearerToken == null)
+                {
+                    PlaytestUploadAttemptLog.Increment(box.Directory, $"{relativePath}: the session token could not be renewed");
+                    return false;
                 }
 
                 var result = await PutWithRefreshAsync(box, relativePath, file, utcNow, token);
@@ -134,6 +144,15 @@ namespace Client.PlaytestReceiver.Upload
                 return new { path = relativePath, reason = "unsafe-path" };
             }
 
+            // 先頭セグメントが受け口の予約名と衝突すると405やREADY/ACKEDの上書きになる。送信前に見送る
+            // A first segment colliding with a receiver-reserved name would 405 or overwrite READY/ACKED; skip before sending
+            var firstSegment = relativePath.Split('/')[0];
+            if (0 <= Array.IndexOf(PlaytestOutboxScanner.ReservedUploadSegments, firstSegment))
+            {
+                Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: its first segment is a reserved name on the receiver");
+                return new { path = relativePath, reason = "reserved-name" };
+            }
+
             var length = new FileInfo(absoluteFilePath).Length;
             if (length <= PlaytestReceiverConfig.MaxFileBytes) return null;
 
@@ -164,23 +183,15 @@ namespace Client.PlaytestReceiver.Upload
         private async UniTask<bool> RefreshTokenAsync(DateTime utcNow, CancellationToken token)
         {
             Debug.Log("[PlaytestReceiver] the receiver rejected the token; renewing it once and retrying");
-
-            var authenticated = await _session.AuthenticateAsync(utcNow, token);
-            if (authenticated.Outcome != PlaytestSessionOutcome.Allowed)
-            {
-                Debug.LogWarning($"[PlaytestReceiver] could not renew the token: {authenticated.Outcome} {authenticated.Detail}");
-                return false;
-            }
-
-            _bearerToken = await _session.GetValidTokenAsync(utcNow, token);
+            _bearerToken = await _session.RenewTokenAsync(utcNow, token);
             return _bearerToken != null;
         }
 
-        // manifest.json はplan Bが書く。取り込み側の一覧表示用に本文をそのまま要約へ載せる
+        // manifest.jsonはplanBが書く。要約へ転記
         // plan B writes manifest.json; its raw text rides along in the summary for the ingest side's listing
         private static string ReadManifestSummary(string boxDirectory)
         {
-            var path = Path.Combine(boxDirectory, "manifest.json");
+            var path = Path.Combine(boxDirectory, BugReportBundleLayout.ManifestFileName);
             if (!File.Exists(path)) return null;
             return File.ReadAllText(path);
         }

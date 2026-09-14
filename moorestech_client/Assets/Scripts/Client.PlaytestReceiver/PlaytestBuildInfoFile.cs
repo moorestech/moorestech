@@ -3,11 +3,11 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver
 {
-    // 配布ビルドの印。plan E がビルド時に焼き、本アセンブリは在るかどうかしか見ない
+    // 配布ビルドの印（plan Eが焼く）。有無のみ見る
     // The distribution-build marker; plan E bakes it at build time and this assembly only checks its presence
     public static class PlaytestBuildInfoFile
     {
-        public const string FileName = "build-info.json";
+        private const string FileName = "build-info.json";
 
         public static string Path => System.IO.Path.Combine(Application.streamingAssetsPath, FileName);
 

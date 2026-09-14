@@ -48,10 +48,8 @@ export async function authenticateUserTicket(steamFetch: typeof fetch, env: Env,
   return { steamId: params.steamid, reason: "ok" };
 }
 
-// fetch例外のmessageはランタイムによって対象URLを含みうる。key（publisher秘密鍵）が
-// ログへ漏れないよう、ここでだけ置換してから warn/reason へ渡す
-// A fetch exception's message can embed the target URL depending on the runtime; redact the
-// publisher key here, the only place it could leak into logs or the returned reason
+// fetch例外messageはURLを含みうるため、publisher秘密鍵漏洩防止でここだけ置換しwarn/reasonへ渡す
+// A fetch exception's message can embed the URL; redact the publisher key here before it reaches warn/reason
 function redactApiKey(message: string, apiKey: string): string {
   if (!apiKey) return message;
   return message.split(apiKey).join("***");

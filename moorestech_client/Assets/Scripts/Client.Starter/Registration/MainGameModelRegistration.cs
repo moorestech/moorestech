@@ -54,7 +54,7 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<BugReportUiStatePusher>();
             builder.RegisterEntryPoint<BugReportPauseMenuTrigger>();
 
-            // 報告を書けた直後の押し場。押す側は面だけを受け取り、走行の単線化は受け手が持つ
+            // 報告直後の押し場。単線化は受け手側
             // The push site used right after a report is written; the caller receives only the face, the runner keeps runs single
             builder.RegisterInstance<IPlaytestUploadRequester>(PlaytestUploadRunner.Instance);
 

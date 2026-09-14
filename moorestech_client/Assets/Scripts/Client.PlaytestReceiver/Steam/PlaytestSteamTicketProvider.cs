@@ -13,6 +13,7 @@ namespace Client.PlaytestReceiver.Steam
     {
         bool IsSteamRunning();
         UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token);
+        void ReleaseWebApiTicket();
     }
 
     // Web API用の認証チケットを取る。SteamManagerはAssembly-CSharp側にあり参照できないのでネイティブへ直接聞く
@@ -21,6 +22,7 @@ namespace Client.PlaytestReceiver.Steam
     {
         private UniTaskCompletionSource<string> _pending;
         private Callback<GetTicketForWebApiResponse_t> _callback;
+        private HAuthTicket _issuedTicket = HAuthTicket.Invalid;
 
         public bool IsSteamRunning()
         {
@@ -51,6 +53,7 @@ namespace Client.PlaytestReceiver.Steam
             if (!TryRequestTicket())
             {
                 DisposeCallback();
+                ReleaseIssuedTicket();
                 return null;
             }
 
@@ -61,12 +64,26 @@ namespace Client.PlaytestReceiver.Steam
                 var (timedOut, ticketHex) = await _pending.Task.TimeoutWithoutException(TimeSpan.FromSeconds(PlaytestReceiverConfig.TicketTimeoutSeconds), DelayType.Realtime);
                 DisposeCallback();
 
+                // hexを呼び出し元へ返す経路だけがチケットの寿命を引き継ぐ。受け口の検証後にReleaseWebApiTicketで解放される
+                // Only the exit that hands a hex to the caller keeps the ticket alive; it is released via ReleaseWebApiTicket after the receiver verifies it
+                if (ticketHex == null)
+                {
+                    ReleaseIssuedTicket();
+                }
+
                 token.ThrowIfCancellationRequested();
                 if (!timedOut) return ticketHex;
 
                 Debug.LogWarning($"[PlaytestReceiver] Steam did not answer GetAuthTicketForWebApi within {PlaytestReceiverConfig.TicketTimeoutSeconds}s");
                 return null;
             }
+        }
+
+        // 受け口がチケットの検証を終えた直後に呼ぶ（成功・失敗いずれも）。検証前に取り消すと相手先の検証が失敗する
+        // Call right after the receiver finishes verifying the ticket (success or failure); cancelling earlier fails their verification
+        public void ReleaseWebApiTicket()
+        {
+            ReleaseIssuedTicket();
         }
 
         private bool TryRequestTicket()
@@ -76,7 +93,7 @@ namespace Client.PlaytestReceiver.Steam
             try
             {
                 _callback = Callback<GetTicketForWebApiResponse_t>.Create(OnTicketReceived);
-                SteamUser.GetAuthTicketForWebApi(PlaytestReceiverConfig.SteamIdentity);
+                _issuedTicket = SteamUser.GetAuthTicketForWebApi(PlaytestReceiverConfig.SteamIdentity);
                 return true;
             }
             catch (Exception exception)
@@ -93,6 +110,7 @@ namespace Client.PlaytestReceiver.Steam
 
         private void OnTicketReceived(GetTicketForWebApiResponse_t response)
         {
+            _issuedTicket = response.m_hAuthTicket;
             if (response.m_eResult != EResult.k_EResultOK)
             {
                 Debug.LogWarning($"[PlaytestReceiver] web api ticket result was {response.m_eResult}");
@@ -106,6 +124,26 @@ namespace Client.PlaytestReceiver.Steam
         {
             _callback?.Dispose();
             _callback = null;
+        }
+
+        private void ReleaseIssuedTicket()
+        {
+            if (_issuedTicket == HAuthTicket.Invalid) return;
+
+            // ネイティブ呼び出しはdllが無い・Steamが落ちた環境で例外になる境界。ここで畳んで戻り値を諦めない
+            // The native call throws where the dll is absent or Steam has gone away; that boundary is folded here so callers never hang
+            try
+            {
+                SteamUser.CancelAuthTicket(_issuedTicket);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[PlaytestReceiver] CancelAuthTicket failed: {exception.GetBaseException().Message}");
+            }
+            finally
+            {
+                _issuedTicket = HAuthTicket.Invalid;
+            }
         }
 
         private static string ToHex(byte[] ticket, int length)

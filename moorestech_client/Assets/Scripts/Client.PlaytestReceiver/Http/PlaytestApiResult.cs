@@ -1,6 +1,6 @@
 namespace Client.PlaytestReceiver.Http
 {
-    // HTTPの結末。到達できたかどうかと、到達できたときの状態コードを分けて持つ
+    // HTTPの結末。到達可否と状態コードを分離保持
     // The outcome of one HTTP call; reachability and the status code are kept apart
     public sealed class PlaytestApiResult
     {

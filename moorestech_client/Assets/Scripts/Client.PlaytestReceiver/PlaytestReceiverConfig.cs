@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver
 {
-    // 受け口の接続先と時間の定数。検証機・ステージング用に環境変数でbaseだけ差し替えられる
+    // 受け口の接続先/時間の定数。baseのみ環境変数で差替可
     // Connection and timing constants for the receiver; only the base URL can be overridden by env for verification machines
     public static class PlaytestReceiverConfig
     {
-        public const string DefaultBaseUrl = "https://playtest.tar-atari.com";
+        private const string DefaultBaseUrl = "https://playtest.tar-atari.com";
         public const string SteamIdentity = "moorestech-playtest";
-        public const string BaseUrlEnvironmentVariable = "MOORESTECH_PLAYTEST_RECEIVER_BASE";
+        private const string BaseUrlEnvironmentVariable = "MOORESTECH_PLAYTEST_RECEIVER_BASE";
         public const int TicketTimeoutSeconds = 15;
         public const int HttpTimeoutSeconds = 60;
 

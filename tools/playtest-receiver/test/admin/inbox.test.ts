@@ -127,10 +127,8 @@ describe("admin api inbox", () => {
     expect(((await inbox.json()) as { items: unknown[] }).items).toHaveLength(0);
   });
 
-  // at-least-onceの再送でackを2回叩いても失敗させない（冪等）。plan Hの取り込みがack応答だけ
-  // 取りこぼしてリトライしても404にならないことを保証する
-  // A retried ack (under at-least-once semantics) must not fail; this guarantees plan H's ingest can
-  // retry after losing only the ack response, without getting a 404
+  // at-least-onceの再送でackを2回叩いても失敗させない（冪等）。ack応答だけ取りこぼしても404にならない
+  // A retried ack (at-least-once) must not fail; losing only the ack response and retrying must not 404
   it("ackを2回呼んでも200でACKEDは1つのまま", async () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
     const request = () =>

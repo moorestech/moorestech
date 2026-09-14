@@ -202,6 +202,7 @@ namespace Client.Tests.PlaytestReceiver
         {
             public bool IsSteamRunning() { return true; }
             public UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token) { return UniTask.FromResult("aabb"); }
+            public void ReleaseWebApiTicket() { }
         }
 
         private sealed class FakeApi : IPlaytestReceiverApi

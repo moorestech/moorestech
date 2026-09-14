@@ -1,6 +1,6 @@
 import { readAllowlist } from "../allowlist";
 import type { Env } from "../env";
-import { fail, json } from "../http";
+import { fail, json, requireMethod } from "../http";
 import { authenticateUserTicket } from "../steamAuth";
 import { signToken } from "../token";
 
@@ -12,10 +12,8 @@ const TICKET_PATTERN = /^(?:[0-9a-fA-F]{2}){1,4096}$/;
 // Path matching and method checks live here; returns null on a non-match so index.ts can try the next route
 export async function routeSession(request: Request, env: Env, steamFetch: typeof fetch, segments: string[]): Promise<Response | null> {
   if (!(segments.length === 2 && segments[0] === "v1" && segments[1] === "session")) return null;
-  if (request.method !== "POST") {
-    console.warn(`[router] rejected method ${request.method} for /v1/session`);
-    return fail("method-not-allowed", 405);
-  }
+  const denied = requireMethod(request, "POST", "/v1/session");
+  if (denied !== null) return denied;
   return postSession(request, env, steamFetch);
 }
 

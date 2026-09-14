@@ -16,7 +16,7 @@ namespace Client.PlaytestReceiver.Upload
             var attempts = Read(path) + 1;
             File.WriteAllText(path, $"{attempts}\n{reason}");
 
-            if (attempts >= MaxAttempts)
+            if (MaxAttempts <= attempts)
             {
                 MarkFailed(boxDirectory, reason);
                 return attempts;
@@ -26,7 +26,7 @@ namespace Client.PlaytestReceiver.Upload
             return attempts;
         }
 
-        public static void MarkFailed(string boxDirectory, string reason)
+        private static void MarkFailed(string boxDirectory, string reason)
         {
             File.WriteAllText(Path.Combine(boxDirectory, PlaytestOutboxScanner.FailedMarker), reason);
             Debug.LogError($"[PlaytestReceiver] giving up on {Path.GetFileName(boxDirectory)} after {MaxAttempts} attempts: {reason}. 手動で送る場合は rsync 経路を使うこと");

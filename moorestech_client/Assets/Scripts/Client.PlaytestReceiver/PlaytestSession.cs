@@ -16,7 +16,7 @@ namespace Client.PlaytestReceiver
         Unreachable,
     }
 
-    // 認証1回の結末。呼び出し側はOutcomeで分岐し、Detailは開発者向けのログにだけ使う
+    // 認証1回の結末。Outcomeで分岐、Detailはログ専用
     // The outcome of one authentication; callers branch on Outcome and Detail only feeds developer logs
     public sealed class PlaytestSessionResult
     {
@@ -27,7 +27,7 @@ namespace Client.PlaytestReceiver
 
     // Steamチケットと受け口トークンの保持者。トークンの寿命管理はここ1箇所
     // Holder of the Steam ticket exchange and the receiver token; token lifetime lives here alone
-    public sealed class PlaytestSession : IPlaytestSessionLookup
+    public sealed class PlaytestSession
     {
         private readonly IPlaytestReceiverApi _api;
         private readonly IPlaytestSteamTicketProvider _ticketProvider;
@@ -78,6 +78,11 @@ namespace Client.PlaytestReceiver
             }
 
             var response = await _api.PostSessionAsync(ticketHex, token);
+
+            // 受け口の検証が終わった直後に解放する。検証前に取り消すとSteam側でチケットが無効になる
+            // Released right after the receiver's verification finishes; cancelling earlier invalidates the ticket on Steam's side
+            _ticketProvider.ReleaseWebApiTicket();
+
             if (response.IsTransportFailure)
             {
                 return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Unreachable, Detail = response.TransportError };
@@ -118,6 +123,13 @@ namespace Client.PlaytestReceiver
             var age = utcNow - _tokenIssuedAtUtc;
             if (_token != null && age.TotalSeconds < PlaytestReceiverConfig.TokenRefreshAfterSeconds) return _token;
 
+            return await RenewTokenAsync(utcNow, token);
+        }
+
+        // 年齢を見ずに強制的に取り直す。401等で「今のトークンは既に無効」と分かっている呼び出し専用
+        // Forces a fresh authentication regardless of age; for callers that already know the current token is invalid (e.g. after a 401)
+        public async UniTask<string> RenewTokenAsync(DateTime utcNow, CancellationToken token)
+        {
             var result = await AuthenticateAsync(utcNow, token);
             if (result.Outcome == PlaytestSessionOutcome.Allowed) return _token;
 

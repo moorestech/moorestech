@@ -1,3 +1,5 @@
+import { constantTimeEquals } from "./http";
+
 export const TOKEN_TTL_SECONDS = 3600;
 
 interface TokenPayload {
@@ -29,7 +31,7 @@ export async function verifyToken(secret: string, token: string, nowSeconds: num
   const [header, body, signature] = parts as [string, string, string];
 
   const expected = await sign(secret, `${header}.${body}`);
-  if (!signatureMatches(signature, expected)) {
+  if (!constantTimeEquals(signature, expected)) {
     console.warn("[token] rejected: bad-signature");
     return null;
   }
@@ -53,15 +55,6 @@ function isSecretConfigured(secret: string): boolean {
   if (secret) return true;
   console.warn("[token] rejected: SESSION_HMAC_SECRET is not configured");
   return false;
-}
-
-// 署名比較は長さも内容も定数時間で。理由は呼び出し元が1箇所でログする
-// Signatures are compared in constant time, length included; the caller logs the single reason
-function signatureMatches(signature: string, expected: string): boolean {
-  let diff = signature.length ^ expected.length;
-  const length = Math.max(signature.length, expected.length);
-  for (let i = 0; i < length; i++) diff |= (signature.charCodeAt(i) || 0) ^ (expected.charCodeAt(i) || 0);
-  return diff === 0;
 }
 
 function decodePayload(body: string): TokenPayload | null {

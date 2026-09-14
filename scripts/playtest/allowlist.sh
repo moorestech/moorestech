@@ -44,10 +44,8 @@ fetch_list() {
   http_get "$BASE/v1/allowlist"
 }
 
-# 現在のリストへ1件足す/引く。HTTPは呼ばず、渡された内容をpythonのjsonで編集するだけ。
-# 順序は入力順を保つ。呼び出し元でfetchとputの間にこの関数を挟み、段ごとに失敗を検知できるようにする
-# Does not call HTTP; only edits the JSON given to it (input order is preserved). Callers keep fetch and
-# put as separate top-level steps around this so each stage's failure can be checked explicitly
+# 現在のリストへ1件足す/引く。順序は入力順のまま、段ごとの失敗検知用に関数化
+# Edits the JSON in place (order preserved); kept as its own step so each stage's failure can be checked
 edit_list() {
   local mode="$1" steam_id="$2" current="$3"
   printf '%s' "$current" | python3 -c '
@@ -73,13 +71,8 @@ require_steam_id() {
   [ "${1:-}" != "" ] || { log "steamId を指定してください: $0 $2 <steamId>"; exit 2; }
 }
 
-# add/removeの3段（fetch→edit→put）。ネストしたコマンド置換にすると内側の失敗がbashのerrexitで
-# 外側まで伝播しない（コマンド置換の中では-eが既定で継承されない）ため、各段をここで変数に受けて
-# 明示的に`||`でチェックする。edit_listはHTTPを呼ばないので、この3段のうちHTTPが絡むのはfetchとputだけ
-# Three top-level steps (fetch, edit, put) for add/remove. Nesting these as command substitutions inside
-# each other would let an inner failure escape bash's errexit (command substitutions don't inherit -e by
-# default), so each step's result is captured in a variable here and checked explicitly with `||`.
-# edit_list makes no HTTP call, so only fetch and put touch the network
+# add/removeの3段（fetch→edit→put）。ネストしたコマンド置換だとerrexitが内側の失敗を拾えないため、変数受け+`||`で明示チェック
+# Three steps (fetch/edit/put); nested substitutions would hide inner failures from errexit, so each is captured in a variable and checked with `||`
 run_edit() {
   local mode="$1" steam_id="$2" current updated
   current="$(fetch_list)" || { log "許可リストの取得に失敗したため中止した: $mode $steam_id"; exit 1; }

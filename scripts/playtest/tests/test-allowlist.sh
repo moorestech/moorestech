@@ -8,10 +8,8 @@ trap 'rm -rf "$TMP"' EXIT
 
 echo '{"steamIds":[]}' > "$TMP/state.json"
 
-# curl スタブ: -X PUT なら --data を state.json へ書き、そうでなければ state.json を返す。
-# 実curlの `-w '\n%{http_code}'` と同じく、本文の末尾に改行区切りでstatusを付ける（常に200）
-# curl stub: with -X PUT it stores --data into state.json, otherwise it prints state.json.
-# Like real curl's `-w '\n%{http_code}'`, the body is followed by a newline-separated status (always 200)
+# curl スタブ: -X PUT なら state.json へ書き込み、そうでなければ返す（末尾に改行区切りでstatus付与）
+# curl stub: -X PUT writes state.json, otherwise it returns it (status appended after a newline)
 cat > "$TMP/curl" <<'SH'
 #!/usr/bin/env bash
 state="$STATE_FILE"
@@ -74,11 +72,8 @@ if PLAYTEST_ENV_FILE="$TMP/env.sh" CURL_CMD="$TMP/curl-401" STATE_FILE="$TMP/sta
 fi
 grep -q '401' "$TMP/401.log" || { echo "NG: 401がstderrに出ていない"; exit 1; }
 
-# GETの1回目が失敗し2回目以降なら成功するスタブでも、addは1回目の失敗で止まりPUTへ進まない。
-# 途中の失敗を後続呼び出しの成功で覆い隠して偽成功にしないことを確認する（回帰: 偽成功でexit 0になっていた）
-# Even with a stub whose GET fails on the first call and would succeed afterward, add must stop at the
-# first failure rather than proceed to PUT. Confirms a mid-flight failure is never papered over into a
-# false success (regression: this used to exit 0 without ever sending the PUT)
+# GETが1回目失敗し2回目以降成功するスタブでも、addは1回目の失敗で止まりPUTへ進まない（回帰: 偽成功でexit 0だった）
+# Even if GET fails first then would succeed, add must stop at the first failure (regression: used to exit 0)
 echo '{"steamIds":["76561198000000003"]}' > "$TMP/flaky-state.json"
 rm -f "$TMP/flaky-count"
 cat > "$TMP/curl-flaky" <<'SH'

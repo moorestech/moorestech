@@ -1,4 +1,4 @@
-// Workerが受け取るbindings。secretsは wrangler secret put で設定する
+// Workerのbindings。secretsはCLIで設定
 // Bindings the Worker receives; secrets are provisioned with `wrangler secret put`
 export interface Env {
   BUCKET: R2Bucket;

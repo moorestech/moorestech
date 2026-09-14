@@ -153,6 +153,20 @@ namespace Client.Tests.PlaytestReceiver
             Assert.IsTrue(session.HasToken);
         }
 
+        [Test]
+        public void チケットは受け口の検証後に解放される()
+        {
+            // 検証前に解放するとSteam側でチケットが無効になり、受け口が401で拒否する
+            // Releasing before verification invalidates the ticket on Steam's side, so the receiver would answer 401
+            var api = new FakeApi();
+            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}" });
+            var session = new PlaytestSession(api, new TrackingTicketProvider("aabb", api.Events));
+
+            session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
+
+            CollectionAssert.AreEqual(new[] { "post-session", "release" }, api.Events);
+        }
+
         private static void AssertOutcome(PlaytestApiResult response, PlaytestSessionOutcome expected)
         {
             var api = new FakeApi();

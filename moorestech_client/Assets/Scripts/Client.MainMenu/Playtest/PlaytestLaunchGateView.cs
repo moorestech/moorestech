@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace Client.MainMenu.Playtest
 {
-    // タイトルでの表示専用オブザーバ。開始の可否は決めず、照合を回して理由を出すだけ
+    // タイトル用の表示専用View。開始可否は決めず理由表示のみ
     // A display-only observer on the title screen; it never decides whether the game may start, it only shows the reason
     public class PlaytestLaunchGateView : MonoBehaviour
     {

@@ -19,7 +19,7 @@ namespace Client.PlaytestReceiver.Upload
         public static bool IsPermanentForFile(PlaytestApiResult result)
         {
             if (result.IsTransportFailure) return false;
-            if (Array.IndexOf(BoxLevelStatusCodes, result.StatusCode) >= 0) return false;
+            if (0 <= Array.IndexOf(BoxLevelStatusCodes, result.StatusCode)) return false;
             return 400 <= result.StatusCode && result.StatusCode < 500;
         }
 

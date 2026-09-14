@@ -1,11 +1,14 @@
 import type { Env } from "../env";
-import { fail, json } from "../http";
+import { fail, json, requireMethod } from "../http";
 import { bundlePrefix, isKind, isSafeSegment, joinSafePath, pendingIndexKey, type PlaytestKind } from "../keys";
 import { verifyToken } from "../token";
 
-export const MAX_FILE_BYTES = 100 * 1024 * 1024;
-export const READY_MARKER = "READY";
+const MAX_FILE_BYTES = 100 * 1024 * 1024;
+const READY_MARKER = "READY";
 export const ACKED_MARKER = "ACKED";
+// PUTの相対パス先頭セグメントとしては使わせない予約名。取り込み側の完了マーカー・確認マーカーと衝突するため
+// Reserved first-segment names a PUT may not target; they would collide with the ingest-side completion/ack markers
+const RESERVED_SEGMENTS = new Set([READY_MARKER, ACKED_MARKER, "complete"]);
 
 // アップロード経路の一致判定とディスパッチをここへ寄せる。一致しなければnullでindex.tsの次の経路へ委ねる
 // Path matching and dispatch live here; returns null on a non-match so index.ts can try the next route
@@ -33,16 +36,12 @@ export async function routeUploads(request: Request, env: Env, segments: string[
 
   const rest = segments.slice(4);
   if (rest.length === 1 && rest[0] === "complete") {
-    if (request.method !== "POST") {
-      console.warn(`[router] rejected method ${request.method} for upload complete`);
-      return fail("method-not-allowed", 405);
-    }
+    const denied = requireMethod(request, "POST", "upload complete");
+    if (denied !== null) return denied;
     return completeUpload(request, env, kind, id);
   }
-  if (request.method !== "PUT") {
-    console.warn(`[router] rejected method ${request.method} for upload put`);
-    return fail("method-not-allowed", 405);
-  }
+  const denied = requireMethod(request, "PUT", "upload put");
+  if (denied !== null) return denied;
   return putUpload(request, env, kind, id, rest);
 }
 
@@ -65,7 +64,7 @@ async function authorize(request: Request, env: Env): Promise<string | null> {
   return steamId;
 }
 
-export async function putUpload(
+async function putUpload(
   request: Request,
   env: Env,
   kind: PlaytestKind,
@@ -80,19 +79,23 @@ export async function putUpload(
     console.warn(`[upload] rejected an unsafe path: ${pathSegments.join("/")}`);
     return fail("bad-path", 400);
   }
+  if (RESERVED_SEGMENTS.has(pathSegments[0] as string)) {
+    console.warn(`[upload] rejected a PUT into a reserved name: ${relativePath}`);
+    return fail("reserved-name", 400);
+  }
 
-  // 解釈できないContent-Lengthは拒否側へ倒す: 欠落は411、非数値・非有限は400、上限超過は413
-  // An unreadable Content-Length is rejected outright: missing is 411, non-numeric/non-finite is 400, over the limit is 413
+  // 解釈できないContent-Lengthは拒否側へ倒す: 欠落は411、数字以外は400、上限超過は413
+  // An unreadable Content-Length is rejected outright: missing is 411, non-digits is 400, over the limit is 413
   const rawLength = request.headers.get("content-length");
   if (rawLength === null) {
     console.warn(`[upload] ${steamId}/${id}/${relativePath} is missing a Content-Length header`);
     return fail("length-required", 411);
   }
-  const declared = Number(rawLength);
-  if (!Number.isFinite(declared)) {
+  if (!/^\d+$/.test(rawLength)) {
     console.warn(`[upload] ${steamId}/${id}/${relativePath} declares a non-numeric Content-Length: "${rawLength}"`);
     return fail("bad-request", 400);
   }
+  const declared = Number(rawLength);
   if (declared > MAX_FILE_BYTES) {
     console.warn(`[upload] ${steamId}/${id}/${relativePath} declares ${declared} bytes, over the limit`);
     return fail("too-large", 413);
@@ -102,7 +105,7 @@ export async function putUpload(
   return json({ stored: relativePath });
 }
 
-export async function completeUpload(request: Request, env: Env, kind: PlaytestKind, id: string): Promise<Response> {
+async function completeUpload(request: Request, env: Env, kind: PlaytestKind, id: string): Promise<Response> {
   const steamId = await authorize(request, env);
   if (steamId === null) return fail("unauthorized", 401);
 

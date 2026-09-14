@@ -46,8 +46,8 @@ namespace Client.PlaytestReceiver.Http
             var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/v1/uploads/{uploadPath}");
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
 
-            // ファイルを開くのはOS境界。開けないときは送信前に到達失敗へ畳み、呼び出し側の分岐を増やさない
-            // Opening the file is an OS boundary; a failure folds into a transport failure before anything is sent
+            // ファイルを開くのはOS境界。開けないのはそのファイル固有の恒久事情なので、bad-pathと同じ形で畳む
+            // Opening the file is an OS boundary; an unreadable file is permanent to that file, so it folds like bad-path
             FileStream stream;
             try
             {
@@ -58,7 +58,7 @@ namespace Client.PlaytestReceiver.Http
                 request.Dispose();
                 var message = exception.GetBaseException().Message;
                 Debug.LogWarning($"[PlaytestReceiver] could not open {absoluteFilePath}: {message}");
-                return UniTask.FromResult(new PlaytestApiResult { TransportError = message });
+                return UniTask.FromResult(new PlaytestApiResult { StatusCode = 400, Body = "{\"reason\":\"unreadable-file\"}" });
             }
 
             var content = new StreamContent(stream);

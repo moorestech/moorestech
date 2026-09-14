@@ -24,6 +24,7 @@ namespace Client.PlaytestReceiver.Upload
         private readonly string _progressOutbox;
 
         private bool _running;
+        private bool _rerunRequested;
 
         public PlaytestUploadRunner(IPlaytestReceiverApi api, string reportOutbox, string progressOutbox)
         {
@@ -44,9 +45,10 @@ namespace Client.PlaytestReceiver.Upload
         {
             if (_running)
             {
-                // 走行はスキャン済みなので、この要求で書かれた箱は今回では送られない。次の押し場で送る
-                // The running pass has already scanned, so a box written for this request waits for the next push
-                Debug.Log("[PlaytestReceiver] an upload run is already in flight; this request waits for the next run");
+                // 走行中の再要求は捨てずに記録する。今回の走行が終わった直後にもう一度走らせる
+                // A re-request while running is remembered instead of dropped, and reruns right after the current pass
+                _rerunRequested = true;
+                Debug.Log("[PlaytestReceiver] an upload run is already in flight; a rerun is scheduled after it finishes");
                 return;
             }
             _running = true;
@@ -66,6 +68,14 @@ namespace Client.PlaytestReceiver.Upload
             finally
             {
                 _running = false;
+            }
+
+            // 走行中に再要求が来ていたら、今回の走行完了直後にもう一度回す
+            // If a rerun was requested while running, kick another pass right after this one finished
+            if (_rerunRequested)
+            {
+                _rerunRequested = false;
+                RequestUpload(session);
             }
         }
     }
