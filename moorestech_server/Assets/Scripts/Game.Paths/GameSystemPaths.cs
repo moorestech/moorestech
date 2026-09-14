@@ -42,6 +42,11 @@ namespace Game.Paths
         // Holds data derived from the server; deleting it only forces a re-fetch
         public static string WorldCacheDirectory => DirectoryCreator(GameSystemDirectory, "cache", "worlds");
 
+        // 進行記録のoutbox。plan G が書き、plan D のアップローダが送る
+        // The outbox for progress records; plan G writes them and plan D's uploader ships them
+        public static string ProgressRecordDirectory => Path.Combine(GameSystemDirectory, "ProgressRecords");
+        public static string ProgressRecordOutboxDirectory => Path.Combine(ProgressRecordDirectory, "outbox");
+
         // バグ報告の常時記録とoutbox。ワールドとは独立に持つ
         // Always-on capture and outbox for bug reports; independent of any world
         public static string BugReportDirectory => Path.Combine(GameSystemDirectory, "BugReports");

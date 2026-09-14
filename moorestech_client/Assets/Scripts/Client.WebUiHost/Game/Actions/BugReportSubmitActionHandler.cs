@@ -1,6 +1,9 @@
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.UI.UIState;
+using Client.PlaytestReceiver;
+using Client.PlaytestReceiver.Gate;
+using Client.PlaytestReceiver.Upload;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -14,13 +17,15 @@ namespace Client.WebUiHost.Game.Actions
         private readonly BugReportBundleWriter _writer;
         private readonly BugReportCaptureSession _session;
         private readonly UIStateControl _uiStateControl;
+        private readonly PlaytestSession _playtestSession;
         public string ActionType => "bug_report.submit";
 
-        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl)
+        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl, PlaytestSession playtestSession)
         {
             _writer = writer;
             _session = session;
             _uiStateControl = uiStateControl;
+            _playtestSession = playtestSession;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -52,6 +57,13 @@ namespace Client.WebUiHost.Game.Actions
             }
 
             Debug.Log($"バグ報告を書き出しました {result.BundleDirectory} missing:{result.Missing.Count}");
+
+            // 照合を通った配布版だけ、書けた箱をその場で送りにいく。照合していない起動では送らない
+            // Only a distribution build that passed the check ships the freshly written box; an unchecked launch never does
+            if (PlaytestLaunchGate.Current.Status == PlaytestGateStatus.Allowed)
+            {
+                PlaytestUploadRunner.Instance.RequestUpload(_playtestSession);
+            }
 
             // 閉じは既存のWeb境界1本へ寄せる。閉じられなくても報告自体は書けているので成功として返す
             // Closing goes through the one existing web boundary; a refused close still leaves a written report, so the send succeeds

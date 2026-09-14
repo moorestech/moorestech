@@ -5,6 +5,7 @@ using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Gate;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;
+using Client.PlaytestReceiver.Upload;
 using Cysharp.Threading.Tasks;
 using Mooresmaster.Localization.Generated;
 using UnityEngine;
@@ -45,6 +46,10 @@ namespace Client.MainMenu.Playtest
             }
 
             messagePopup.gameObject.SetActive(false);
+
+            // 照合を通った配布版は、前回持ち越した箱をここで送り始める（起動直後の1回）
+            // A distribution build that passed the check starts shipping any deferred boxes here (the once-per-launch run)
+            PlaytestUploadRunner.Instance.RequestUpload(session);
         }
     }
 }

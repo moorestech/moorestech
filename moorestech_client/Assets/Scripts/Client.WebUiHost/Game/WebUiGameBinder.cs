@@ -16,6 +16,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.Hotbar;
+using Client.PlaytestReceiver;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
@@ -199,7 +200,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));
             hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
-            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>()));
+            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>(), resolver.Resolve<PlaytestSession>()));
         }
     }
 }

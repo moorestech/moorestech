@@ -9,5 +9,9 @@ namespace Client.PlaytestReceiver.Http
         public string TransportError;
 
         public bool IsTransportFailure => TransportError != null;
+
+        // 成功は2xxだけ。到達できていないものを状態コード0の成功と取り違えないよう到達判定を先に見る
+        // Only a 2xx succeeds; reachability is checked first so an unreached call cannot pass as a status-0 success
+        public bool IsSuccess => !IsTransportFailure && 200 <= StatusCode && StatusCode < 300;
     }
 }
