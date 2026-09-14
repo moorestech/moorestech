@@ -54,7 +54,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("テスト報告", (string)manifest["description"]);
-                AssertPlanCManifestContract(bundle, manifest);
+                BundleManifestContract.AssertPlanC(bundle, manifest);
 
                 var missing = MissingItems(manifest);
                 Assert.IsFalse(missing.Contains("serverSnapshot"), "サーバースナップショットが欠損扱いになっている");
@@ -115,7 +115,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
                 // 添付が欠けても残った資料で送る（.decisions 2026-09-11）。運搬対象の印と契約キーは欠損時も揃っている
                 // Ship whatever survived even when attachments are missing (.decisions 2026-09-11); the ship marker and contract keys stay
-                AssertPlanCManifestContract(bundle, manifest);
+                BundleManifestContract.AssertPlanC(bundle, manifest);
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, "logs", "unity.log")), "確保に失敗した報告からUnityログまで落ちている");
 
                 var missing = MissingItems(manifest);
@@ -131,22 +131,6 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
             }
 
             #endregion
-        }
-
-        // plan C の prepare-run.sh / ship-outbox.sh が読むキー。欠けると Mac mini 側が最初の1行で落ちる
-        // The keys plan C's prepare-run.sh and ship-outbox.sh read; missing one kills the Mac mini side on its first line
-        private static void AssertPlanCManifestContract(string bundle, JObject manifest)
-        {
-            Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)), "READYが無い箱は運搬されない");
-            Assert.IsNotNull(manifest["repository"], "prepare-run.sh が読む repository が無い");
-            // 40桁で確認する。スレッド違反でgitを呼べていないと空文字のまま通ってしまう
-            // Checked as 40 digits: a thread violation that never reaches git would slip through as an empty string
-            Assert.AreEqual(40, ((string)manifest["repository"]["commit"]).Length, "prepare-run.sh が読む repository.commit がコミットハッシュでない");
-            Assert.IsNotNull((string)manifest["repository"]["branch"], "prepare-run.sh が読む repository.branch が無い");
-            Assert.IsNotNull(manifest["masterData"], "prepare-run.sh が読む masterData が無い");
-            Assert.IsNotNull((string)manifest["masterData"]["commit"], "prepare-run.sh が読む masterData.commit が無い");
-            Assert.IsInstanceOf<JArray>(manifest["snapshotTicks"], "prepare-run.sh が読む snapshotTicks が配列でない");
-            Assert.IsInstanceOf<JArray>(manifest["missing"], "missing が配列でない");
         }
 
         // 欠損は同じ項目名が複数回載りうる（確保側と書き出し側の両方が理由を足す）ため一覧のまま扱う

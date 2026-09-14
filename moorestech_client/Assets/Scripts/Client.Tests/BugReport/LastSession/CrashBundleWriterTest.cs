@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace Client.Tests.BugReport
     // Pins that one kind=crash box comes out of the previous session's salvaged files
     public class CrashBundleWriterTest
     {
+        // スナップショットとパケットログとダンプまで通しで置く。接頭辞の代入先を入れ替えても緑になるテストにしない
+        // Lays down snapshots, packet logs and a dump end to end, so swapping the prefixes' destinations can no longer stay green
         [Test]
         public async Task 退避物と説明文からcrashの箱を書く()
         {
@@ -26,23 +29,52 @@ namespace Client.Tests.BugReport
             var playerLog = Path.Combine(source, "Player-prev.log");
             File.WriteAllText(playerLog, "log");
 
+            // 退避は入れ子を保ったまま移すため、入れ子の中のスナップショットも分類されないと再現側が読み落とす
+            // The salvage keeps its nesting, so a snapshot inside a subdirectory must be classified too or the reproduction misses it
+            var snapshots = Path.Combine(source, "snapshots");
+            var nested = Path.Combine(snapshots, "pid_4321");
+            Directory.CreateDirectory(nested);
+            File.WriteAllText(Path.Combine(snapshots, "tick_600.json"), "{}");
+            File.WriteAllText(Path.Combine(snapshots, "packets_601.bin"), "packets");
+            File.WriteAllText(Path.Combine(nested, "tick_602.json"), "{}");
+
+            var dump = Path.Combine(source, "moorestech-2026-09-14.ips");
+            File.WriteAllText(dump, "dump");
+
             var artifacts = new PreviousSessionArtifacts
             {
                 PreviousExitWasClean = false,
                 RecordingDirectory = recording,
+                SnapshotsDirectory = snapshots,
                 PlayerLogPath = playerLog,
+                CrashDumpFiles = new List<string> { dump },
             };
 
             var bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "落ちた");
 
             try
             {
-                Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)));
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
+                BundleManifestContract.AssertPlanC(bundle, manifest);
                 Assert.AreEqual(PlaytestReportKind.Crash, (string)manifest["kind"]);
                 Assert.AreEqual("落ちた", (string)manifest["description"]);
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.RecordingDirectoryName, "seg_00.mp4")));
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.LogsDirectoryName, "Player-prev.log")));
+
+                var snapshotDirectory = Path.Combine(bundle, BugReportBundleLayout.SnapshotDirectoryName);
+                Assert.IsTrue(File.Exists(Path.Combine(snapshotDirectory, "tick_600.json")), "スナップショットが snapshots/ へ移っていない");
+                Assert.IsTrue(File.Exists(Path.Combine(snapshotDirectory, "packets_601.bin")), "パケットログが snapshots/ へ移っていない");
+                Assert.IsTrue(File.Exists(Path.Combine(snapshotDirectory, "pid_4321", "tick_602.json")), "入れ子のスナップショットが落ちている");
+
+                var snapshotFiles = BundleManifestContract.StringList(manifest, "snapshotFiles");
+                var packetLogFiles = BundleManifestContract.StringList(manifest, "packetLogFiles");
+                CollectionAssert.Contains(snapshotFiles, "tick_600.json", "tick_ がsnapshotFilesへ分類されていない");
+                CollectionAssert.Contains(snapshotFiles, Path.Combine("pid_4321", "tick_602.json"), "入れ子のtick_がsnapshotFilesへ分類されていない");
+                CollectionAssert.DoesNotContain(snapshotFiles, "packets_601.bin", "packets_ がsnapshotFilesへ混ざっている");
+                CollectionAssert.Contains(packetLogFiles, "packets_601.bin", "packets_ がpacketLogFilesへ分類されていない");
+                CollectionAssert.DoesNotContain(packetLogFiles, "tick_600.json", "tick_ がpacketLogFilesへ混ざっている");
+
+                Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.CrashDumpsDirectoryName, "moorestech-2026-09-14.ips")), "クラッシュダンプが crashDumps/ へ入っていない");
             }
             finally
             {
