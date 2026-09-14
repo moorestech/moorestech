@@ -45,9 +45,12 @@ BOUNDARY_ALLOWLIST = {
                             "JsonConvert", "JsonSerializer", "外部入力", "外部JSON"),
     # ディスクIOは2026-09-14にAGENTS.mdへ明記された境界（他プロセスのロック・権限・容量不足）
     # Disk IO became an explicit boundary in AGENTS.md on 2026-09-14 (foreign locks, permissions, full volume)
+    # 「権限」「ロック」「File.」等の単独語は境界でないtry-catchも通してしまうため、ディスクを名指しする語と複合語だけを許す
+    # Bare words like "権限", "ロック" or "File." would wave through try-catch that is no boundary at all, so only words naming the disk and compounds are allowed
     "disk-io": ("ディスクIO", "ディスク", "disk", "Disk", "ファイルシステム", "file system",
-                "容量不足", "権限", "ロック", "IOException", "UnauthorizedAccessException",
-                "File.", "Directory."),
+                "容量不足", "空き容量", "アクセス権", "書き込み権限", "読み取り権限",
+                "ファイルのロック", "他プロセスのロック", "file lock",
+                "IOException", "UnauthorizedAccessException"),
 }
 # 根拠コメントを探す遡り幅（try の直前に置かれた2行セットコメントまで届く距離）
 # Look-back window for the rationale comment (reaches the 2-line comment set placed above `try`)

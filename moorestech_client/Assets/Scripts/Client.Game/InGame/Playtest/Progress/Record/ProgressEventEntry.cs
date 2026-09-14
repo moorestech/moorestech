@@ -42,28 +42,39 @@ namespace Client.Game.InGame.Playtest.Progress
             return new JObject { ["t"] = T, ["tick"] = Tick, ["type"] = Type, ["data"] = Data };
         }
 
-        // 追記中に落ちた行は壊れうる。読み側の境界なのでここだけcatchし、壊れた行は捨てて件数を呼び出し側へ返す
-        // A line can be torn by a crash mid-append; this read boundary catches, drops the bad line and lets the caller count it
+        // 壊れた行は捨てて null を返す。件数は呼び出し側が数えて欠損として記録へ載せる
+        // A broken line is dropped as null; the caller counts them and puts the gap into the record
         public static ProgressEventEntry FromJsonLine(string line)
         {
-            // JObject.Parseは外部入力JSONのパース境界。追記中断で壊れた行が来てもここだけで吸収する
-            // JObject.Parse is the boundary for parsing externally-sourced JSON; a line torn by a mid-append crash is absorbed right here
+            // catchするのは JObject.Parse だけ。追記中断で千切れた行はここでしか判別できない外部入力のパース境界
+            // Only JObject.Parse is caught: a line torn by a mid-append crash is externally-sourced input whose damage shows up nowhere else
+            JObject json;
             try
             {
-                var json = JObject.Parse(line);
-                return new ProgressEventEntry
-                {
-                    T = (string)json["t"],
-                    Tick = (ulong)json["tick"],
-                    Type = (string)json["type"],
-                    Data = json["data"] as JObject ?? new JObject(),
-                };
+                json = JObject.Parse(line);
             }
             catch (Exception exception)
             {
                 Debug.LogWarning($"進行記録のイベント行を読めないため飛ばします: {exception.GetBaseException().Message}");
                 return null;
             }
+
+            // 形の検証は自分が書いた行の点検なので例外では吸わない。欠けたキー・負のtickは理由を出して1行だけ捨てる
+            // Validating the shape inspects lines we wrote ourselves, so no exception absorbs it; a missing key or a negative tick drops just that line with a reason
+            var tick = json["tick"];
+            if (json["t"] == null || json["type"] == null || tick == null || tick.Type != JTokenType.Integer || tick.Value<long>() < 0)
+            {
+                Debug.LogWarning($"進行記録のイベント行の形が違うため飛ばします: {line}");
+                return null;
+            }
+
+            return new ProgressEventEntry
+            {
+                T = (string)json["t"],
+                Tick = (ulong)tick.Value<long>(),
+                Type = (string)json["type"],
+                Data = json["data"] as JObject ?? new JObject(),
+            };
         }
     }
 }

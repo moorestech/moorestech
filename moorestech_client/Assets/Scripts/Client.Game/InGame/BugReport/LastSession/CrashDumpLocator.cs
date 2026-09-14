@@ -71,13 +71,11 @@ namespace Client.Game.InGame.BugReport.LastSession
                 return new FileInfo(previousLogPath).LastWriteTimeUtc.AddMinutes(BoundaryMarginMinutes);
             }
 
-            // 共有置き場の走査はOSの保護領域（macOSのDiagnosticReportsはTCC配下）に触れる外部境界。拒否されても起動は続ける
-            // Scanning a shared root touches an OS-protected area (macOS DiagnosticReports sits under TCC); a refusal must not stop the boot
             void CollectFrom(CrashDumpRoot root)
             {
                 if (!Directory.Exists(root.Path)) return;
-                // 共有置き場の列挙はOS保護領域に触れるディスクIO。権限拒否は握って対象外の置き場として扱う
-                // Enumerating the shared root is disk IO touching an OS-protected area; a permission refusal is caught and the root is treated as unavailable
+                // 共有置き場の列挙はOSの保護領域（macOSのDiagnosticReportsはTCC配下）に触れるディスクIO。拒否は握って対象外の置き場として扱い、起動は続ける
+                // Enumerating a shared root is disk IO touching an OS-protected area (macOS DiagnosticReports sits under TCC); a refusal is caught, the root is treated as unavailable and the boot continues
                 try
                 {
                     foreach (var file in Directory.GetFiles(root.Path, "*", SearchOption.AllDirectories))

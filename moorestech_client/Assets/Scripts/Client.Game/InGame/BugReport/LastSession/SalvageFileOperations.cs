@@ -96,8 +96,8 @@ namespace Client.Game.InGame.BugReport.LastSession
         public static SalvageOperationResult MoveDirectory(string source, string destination)
         {
             if (source == null || !Directory.Exists(source)) return SalvageOperationResult.Failure($"退避元が無い: {source}");
-            // ディレクトリの改名移動はディスクIO。移動先が別ボリュームだと非アトミックになりIOExceptionで失敗しうる
-            // Renaming the directory across is disk IO; moving across volumes loses atomicity and can throw IOException
+            // ディレクトリの改名移動はディスクIO。移動先が別ボリュームならDirectory.Moveはそもそも成立せずIOExceptionで失敗する
+            // Renaming the directory is disk IO; across volumes Directory.Move cannot work at all and fails with IOException
             try
             {
                 if (Directory.Exists(destination)) Directory.Delete(destination, true);

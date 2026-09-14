@@ -69,6 +69,10 @@ namespace Client.Tests.BugReport
             // Stealing a live session's footage would silently erase the video from that session's own bug report
             Assert.IsTrue(File.Exists(Path.Combine(liveDirectory, "segment-0.mp4")));
             StringAssert.Contains($"pid {LiveProcessId}", MissingReasons(artifacts));
+
+            // item名が recording だと「録画が欠けた」と読める。飛ばした理由は専用のitem名で届く
+            // The recording name would read as missing footage, so the skip arrives under its own item name
+            Assert.AreEqual(PreviousSessionSalvage.LiveProcessMissingItem, artifacts.Missing.Find(missing => missing.Reason.Contains($"pid {LiveProcessId}")).Item);
         }
 
         [Test]
