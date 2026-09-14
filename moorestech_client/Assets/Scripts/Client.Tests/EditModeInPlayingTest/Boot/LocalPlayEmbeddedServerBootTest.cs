@@ -89,7 +89,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
                     // 終了通知1本で内蔵サーバーが畳まれる。破棄経路を消すとここが赤くなる
                     // A single shutdown notification folds the embedded server; deleting the teardown path turns this red
-                    GameShutdownEvent.FireGameShutdown();
+                    GameShutdownEvent.FireGameShutdown(GameShutdownReason.IntentionalExit);
                     var foldedEmbeddedServer = false;
                     for (var frame = 0; frame < ShutdownWaitFrameLimit && !foldedEmbeddedServer; frame++)
                     {

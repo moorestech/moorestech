@@ -39,7 +39,7 @@ namespace Client.Game.InGame.Presenter.PauseMenu
         private void Disconnect()
         {
             ClientContext.VanillaApi.Disconnect();
-            GameShutdownEvent.FireGameShutdown();
+            GameShutdownEvent.FireGameShutdown(GameShutdownReason.IntentionalExit);
         }
 
         private void LogQuitFailure(Exception exception)

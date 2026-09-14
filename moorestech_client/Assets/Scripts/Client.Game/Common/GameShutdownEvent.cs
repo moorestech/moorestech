@@ -12,13 +12,13 @@ namespace Client.Game.Common
     /// </summary>
     public static class GameShutdownEvent
     {
-        private static readonly Subject<Unit> _onGameShutdown = new();
+        private static readonly Subject<GameShutdownReason> _onGameShutdown = new();
         private static readonly List<IGameShutdownParticipant> _participants = new();
         private static bool _fired;
 
-        // ゲーム終了時に発火するイベント
-        // Event fired when game shutdown begins
-        public static IObservable<Unit> OnGameShutdown => _onGameShutdown;
+        // ゲーム終了時に終了理由つきで発火するイベント
+        // Event fired with the shutdown reason when game shutdown begins
+        public static IObservable<GameShutdownReason> OnGameShutdown => _onGameShutdown;
 
         // 起動シーケンスの開始でガードを戻す。初期化失敗が続いても各回の終了通知を落とさない
         // Reset the guard when a boot sequence starts, so repeated initialization failures never drop a shutdown
@@ -43,21 +43,21 @@ namespace Client.Game.Common
 
         // 待てない経路（メインメニューへの復帰・破棄）用の通知。書き出し待ちは観測付きで併走させる
         // Notification for paths that cannot await (returning to the menu, teardown); the flush runs alongside, observed
-        public static void FireGameShutdown()
+        public static void FireGameShutdown(GameShutdownReason reason)
         {
             if (_fired) return;
-            FireGameShutdownAsync().Forget(LogShutdownFailure);
+            FireGameShutdownAsync(reason).Forget(LogShutdownFailure);
         }
 
         // 発火して全参加者の書き出し完了まで待つ。待てる終了経路はこちらを通す
         // Fire and await every participant's flush; every awaitable exit path goes through here
-        public static async UniTask<ShutdownFlushResult> FireGameShutdownAsync()
+        public static async UniTask<ShutdownFlushResult> FireGameShutdownAsync(GameShutdownReason reason)
         {
             // 同一セッション内の二重発火（Back → LoadScene → OnDestroy）を弾く
             // Suppress double-fire within the same session (Back → LoadScene → OnDestroy)
             if (_fired) return ShutdownFlushResult.AlreadyShutdown;
             _fired = true;
-            _onGameShutdown.OnNext(Unit.Default);
+            _onGameShutdown.OnNext(reason);
 
             // 購読中に登録された分を取り切ってから待つ。参加者の再入を避けリストは先に空にする
             // Take what the subscribers just registered and clear first, avoiding participant re-entry
@@ -86,7 +86,7 @@ namespace Client.Game.Common
         // The single application-exit entry point; waits for the flush before going down
         public static async UniTask QuitApplicationAsync()
         {
-            var flushResult = await FireGameShutdownAsync();
+            var flushResult = await FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
             if (flushResult == ShutdownFlushResult.FlushTimedOut)
                 Debug.LogError("セーブの書き出し完了を待ち切れないままアプリを終了します");
             if (flushResult == ShutdownFlushResult.SaveAbandoned)
