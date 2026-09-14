@@ -63,7 +63,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
                 // ディスクは外部資源。1項目の失敗で他の退避物まで巻き添えにしないよう項目ごとに隔離し、理由はmanifestと開発者ログの両方へ残す
                 // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
-                try { MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName)); }
+                try { DeclareEmptySource(BugReportBundleLayout.RecordingDirectoryName, artifacts.RecordingDirectory, MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName)).Count); }
                 catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RecordingDirectoryName, $"移動に失敗した: {e.Message}"); }
 
                 try { MoveSnapshots(artifacts.SnapshotsDirectory, directory); }
@@ -82,7 +82,20 @@ namespace Client.Game.InGame.BugReport.LastSession
                 // The repository state and master origin go through the same path as a bug box; leaving them null only for crash replays a different commit
                 BugReportRepositoryFiles.Write(directory, manifest, buildInfoForFiles, repositoryRoot, masterDataRoot);
 
-                return BugReportOutbox.TryFinishBundle(directory, manifest) ? directory : null;
+                if (BugReportOutbox.TryFinishBundle(directory, manifest)) return directory;
+
+                // 箱を閉じられなければ退避物を last-session へ戻す。戻さないと再送が空の退避元を素通りし、中身の無い箱をREADY付きで出荷する
+                // A box that cannot be closed gives the salvage back to last-session; otherwise a retry sails past the emptied source and ships an empty box with READY on it
+                RestoreSalvageFromUnfinishedBundle(directory, artifacts);
+                return null;
+            }
+
+            // 退避元が在るのに0件なのは、前回の書き出しで箱へ移し終えた跡。黙って通すと証跡が無いことを隠した箱が正式に出荷される
+            // A source that exists yet yields nothing is the trace of an earlier write; passing it silently would ship a box that hides the absence of its evidence
+            void DeclareEmptySource(string item, string source, int movedCount)
+            {
+                if (source == null || movedCount != 0 || !Directory.Exists(source)) return;
+                manifest.AddMissing(item, "退避元が空だった（前回の書き出しで箱へ移動済みの可能性）");
             }
 
             // スナップショットとパケットログは plan B のプレイ報告と同じ snapshots/ 配下へ揃える（再現側の入口を1つに保つ）
@@ -90,12 +103,14 @@ namespace Client.Game.InGame.BugReport.LastSession
             void MoveSnapshots(string source, string boxDirectory)
             {
                 var destination = Path.Combine(boxDirectory, BugReportBundleLayout.SnapshotDirectoryName);
-                foreach (var relativePath in MoveTree(source, destination))
+                var moved = MoveTree(source, destination);
+                foreach (var relativePath in moved)
                 {
                     var name = Path.GetFileName(relativePath);
                     if (name.StartsWith("tick_", StringComparison.Ordinal)) manifest.SnapshotFiles.Add(relativePath);
                     if (name.StartsWith("packets_", StringComparison.Ordinal)) manifest.PacketLogFiles.Add(relativePath);
                 }
+                DeclareEmptySource(BugReportBundleLayout.SnapshotDirectoryName, source, moved.Count);
             }
 
             // Player-prev.log とクラッシュダンプは Unity と OS が持つファイル。所有者から取り上げないよう写すだけにする
@@ -110,8 +125,36 @@ namespace Client.Game.InGame.BugReport.LastSession
             #endregion
         }
 
+        // 箱を閉じられなかったときだけ、移した退避物を last-session へ戻す。裁定1の「送り直せる」を実際に成立させる唯一の経路
+        // Only when the box could not be closed does the moved salvage go back to last-session; this is what actually makes adjudication 1's "you can resend" true
+        internal static void RestoreSalvageFromUnfinishedBundle(string bundleDirectory, PreviousSessionArtifacts artifacts)
+        {
+            RestoreTree(Path.Combine(bundleDirectory, BugReportBundleLayout.RecordingDirectoryName), artifacts.RecordingDirectory);
+            RestoreTree(Path.Combine(bundleDirectory, BugReportBundleLayout.SnapshotDirectoryName), artifacts.SnapshotsDirectory);
+
+            #region Internal
+
+            void RestoreTree(string boxSubDirectory, string salvageDirectory)
+            {
+                if (salvageDirectory == null || !Directory.Exists(boxSubDirectory)) return;
+                try
+                {
+                    var restored = MoveTree(boxSubDirectory, salvageDirectory);
+                    Debug.LogWarning($"箱を閉じられなかったため退避物を戻しました（次の送信で送り直せます） {salvageDirectory} files:{restored.Count}");
+                }
+                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+                {
+                    Debug.LogError($"退避物を last-session へ戻せませんでした（未完成の箱 {boxSubDirectory} に残っています）: {e.Message}");
+                }
+            }
+
+            #endregion
+        }
+
         // 退避先から箱へは移動で渡す。退避の時点で既に last-session へ改名済みなので、写すと同じ数十MBを2度書くだけになる
         // The salvage moves into the box: it was already renamed into last-session, so copying would write the same tens of megabytes twice
+        // コピーへ戻せば再送は成立するが二重書き込みが復活するため、失敗時だけ戻す形で「送り直せる」を満たす
+        // Reverting to a copy would also make the resend work, but it brings back the double write, so restoring only on failure buys the same guarantee
         // 退避は pid_<PID>/ 等の入れ子を保ったまま移すため、こちらも入れ子ごと辿る。戻り値は移した相対パス
         // The salvage keeps nesting such as pid_<PID>/, so this walks the whole tree too; the relative paths moved are returned
         private static IReadOnlyList<string> MoveTree(string source, string destination)
