@@ -2,6 +2,7 @@ using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Actions.Playtest;
+using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.Playtest;
 
 namespace Client.WebUiHost.Game.Playtest
@@ -34,6 +35,10 @@ namespace Client.WebUiHost.Game.Playtest
 
         private static PlaytestStartGateHandles Bind(WebSocketHub hub, PreviousSessionArtifacts artifacts, bool consentAcknowledged)
         {
+            // ゲート文言は通常の辞書経路から出す。登録がゲートより後だと辞書が届かず fallback だけが見える（ADR 0060 裁定10）
+            // The gate texts come from the normal dictionary path; registering after the gates leaves only the fallback visible (ADR 0060 adjudication 10)
+            LocalizationTopic.EnsureRegistered(hub);
+
             var consentGate = new PlaytestConsentGate(!consentAcknowledged);
             hub.RegisterTopic(PlaytestConsentGateTopic.TopicName, new PlaytestConsentGateTopic(hub, consentGate));
             PlaytestConsentGateActions.Register(hub, consentGate);

@@ -94,7 +94,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
             // 現在言語トピックは開始ゲートより前に登録済み。ゲートを通らない接続経路のためここでも冪等に確かめる
             // The current-locale topic is registered ahead of the start gates; this idempotent call covers paths that skip them
-            LocalizationTopicRegistration.EnsureRegistered(hub);
+            LocalizationTopic.EnsureRegistered(hub);
 
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
