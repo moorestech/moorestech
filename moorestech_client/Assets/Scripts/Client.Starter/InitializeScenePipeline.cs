@@ -4,16 +4,12 @@ using System.Threading;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
-using Client.Game.InGame.BugReport.LastSession;
-using Client.Game.InGame.BugReport.Recording.ProcessScope;
-using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.Context;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.Progress;
 using Cysharp.Threading.Tasks;
 using Game.Context;
-using Game.Paths;
 using Mooresmaster.Localization.Generated;
 using Server.Boot;
 using Server.Boot.Args;
@@ -78,34 +74,15 @@ namespace Client.Starter
             }
 
 #if UNITY_EDITOR
-            // 起動引数は内蔵サーバー専用のためローカル接続時のみ上書きする
-            // Launch args belong to the embedded server, so override them only for local connections
-            if (!_proprieties.IsRemoteConnection)
-            {
-                // 専用再生ボタン時はセーブ無効化
-                // Skip save/load for the dedicated play button
-                Editor.SkipSaveLoadPlayModeSettings.ApplyIfNeeded(_proprieties);
-
-                // 生成ワールド起動引数を上書き
-                // Override launch args for the generated-world play button
-                Editor.GeneratedWorldPlayModeSettings.ApplyIfNeeded(_proprieties);
-            }
+            Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);
 #endif
 
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
 
-            // 内蔵サーバーのスナップショットリングと録画リングが上書きを始める前に、前回セッションの記録を退避する
-            // Salvage the previous session's records before the embedded snapshot ring and the recording ring start overwriting
-            PreviousSessionSalvage.RunAtStartup(_proprieties.IsRemoteConnection, WorldDataDirectory.FromWorldRoot(args.WorldDirectory).SnapshotDirectory);
-
-            // 正常終了マーカーの書き手を、消費と同じこの1箇所で据える。ロード中やゲート表示中の終了が異常終了に化ける窓を開けない
-            // The clean-exit writer is installed at the same single spot that consumes the marks, leaving no window where a load-time or gate-time exit reads as a crash
-            CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId());
-
-            // 前回の書きかけの進行記録も、印を読む同じ1箇所で畳む。書く側（ProgressRecorder）は回収を知らない
-            // The half-written progress records are folded at the same single spot that reads the marks; the writer (ProgressRecorder) knows nothing of the recovery
-            ProgressSessionRecovery.RecoverLeftoverSessions(PreviousSessionSalvage.ArtifactsOrNotRunDefault().PreviousExitWasClean);
+            // 前回セッションの印を読む処理はここ1箇所へ束ねてある（ADR 0060 裁定5）
+            // Everything that reads the previous session's marks is bundled into this single spot (ADR 0060 adjudication 5)
+            Playtest.PreviousSessionStartupTasks.RunAtStartup(_proprieties.IsRemoteConnection, args.WorldDirectory);
 
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
@@ -207,6 +184,5 @@ namespace Client.Starter
 
             #endregion
         }
-
     }
 }
