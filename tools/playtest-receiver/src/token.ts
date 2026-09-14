@@ -6,7 +6,10 @@ interface TokenPayload {
   exp: number;
 }
 
-export async function signToken(secret: string, steamId: string, nowSeconds: number): Promise<string> {
+// 秘密鍵が無ければ署名できない。呼び出し側が500を返せるようnullへ畳む（例外にはしない）
+// Without a secret there is nothing to sign, so this collapses to null and lets the caller answer 500
+export async function signToken(secret: string, steamId: string, nowSeconds: number): Promise<string | null> {
+  if (!isSecretConfigured(secret)) return null;
   const header = encode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
   const payload: TokenPayload = { sub: steamId, iat: nowSeconds, exp: nowSeconds + TOKEN_TTL_SECONDS };
   const body = encode(JSON.stringify(payload));
@@ -17,6 +20,7 @@ export async function signToken(secret: string, steamId: string, nowSeconds: num
 // 検証は「形・署名・期限」の3段。どれで落ちてもnullへ畳み、呼び出し側は401だけを返す
 // Verification is shape, signature, expiry; any failure collapses to null and the caller answers 401
 export async function verifyToken(secret: string, token: string, nowSeconds: number): Promise<string | null> {
+  if (!isSecretConfigured(secret)) return null;
   const parts = token.split(".");
   if (parts.length !== 3) {
     console.warn("[token] rejected: bad-format");
@@ -25,13 +29,7 @@ export async function verifyToken(secret: string, token: string, nowSeconds: num
   const [header, body, signature] = parts as [string, string, string];
 
   const expected = await sign(secret, `${header}.${body}`);
-  if (signature.length !== expected.length) {
-    console.warn("[token] rejected: bad-signature");
-    return null;
-  }
-  let diff = 0;
-  for (let i = 0; i < expected.length; i++) diff |= signature.charCodeAt(i) ^ expected.charCodeAt(i);
-  if (diff !== 0) {
+  if (!signatureMatches(signature, expected)) {
     console.warn("[token] rejected: bad-signature");
     return null;
   }
@@ -47,6 +45,23 @@ export async function verifyToken(secret: string, token: string, nowSeconds: num
     return null;
   }
   return payload.sub;
+}
+
+// 秘密鍵の欠落は全経路で同じ形で拒否する。ADMIN_KEYと同じく内容を見る前に落とす
+// A missing secret is rejected the same way everywhere, before touching content, just like ADMIN_KEY
+function isSecretConfigured(secret: string): boolean {
+  if (secret) return true;
+  console.warn("[token] rejected: SESSION_HMAC_SECRET is not configured");
+  return false;
+}
+
+// 署名比較は長さも内容も定数時間で。理由は呼び出し元が1箇所でログする
+// Signatures are compared in constant time, length included; the caller logs the single reason
+function signatureMatches(signature: string, expected: string): boolean {
+  let diff = signature.length ^ expected.length;
+  const length = Math.max(signature.length, expected.length);
+  for (let i = 0; i < length; i++) diff |= (signature.charCodeAt(i) || 0) ^ (expected.charCodeAt(i) || 0);
+  return diff === 0;
 }
 
 function decodePayload(body: string): TokenPayload | null {
@@ -66,6 +81,8 @@ function decodePayload(body: string): TokenPayload | null {
   }
 }
 
+// 秘密鍵をそのまま生バイトのHMAC鍵にする（HS256の定義どおり。導出やsaltは挟まない）
+// The secret is the raw HMAC key exactly as HS256 defines it; no derivation or salt is applied
 async function sign(secret: string, message: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
@@ -82,6 +99,8 @@ function encode(text: string): string {
   return base64Url(new TextEncoder().encode(text));
 }
 
+// JWTのbase64urlはURL安全な字種で、末尾のパディング`=`を必ず落とす
+// JWT's base64url uses the URL-safe alphabet and always drops the trailing `=` padding
 function base64Url(bytes: Uint8Array): string {
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
