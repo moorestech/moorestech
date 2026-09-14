@@ -20,11 +20,13 @@ describe("router", () => {
     expect(await response.json()).toEqual({ error: "not_found" });
   });
 
-  it("POST /v1/session はTask 2まで既知パスのreason形404を返す", async () => {
+  it("POST /v1/session はpostSessionへルーティングされる（bodyなしはbad-request）", async () => {
+    // ルーティングの確認のみが目的。認証成功系のケースはsession.test.tsが担う
+    // This only checks routing; the auth-success paths are covered by session.test.ts
     const request = new Request("https://playtest.tar-atari.com/v1/session", { method: "POST" });
     const response = await handle(request, env as unknown as Env, noNetwork);
-    expect(response.status).toBe(404);
-    expect(await response.json()).toEqual({ reason: "not-found" });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ reason: "bad-request" });
   });
 
   it("知っているパスでもメソッドが違えば405を返す", async () => {
