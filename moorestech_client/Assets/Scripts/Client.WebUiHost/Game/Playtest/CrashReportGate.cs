@@ -9,8 +9,6 @@ namespace Client.WebUiHost.Game.Playtest
     /// <summary>
     /// 前回異常終了の送信確認。応答があるまでゲーム開始を止める（ADR 0040 の言語選択ゲートと同型）。
     /// The previous-crash send confirmation that holds the game start until it is answered (same shape as the ADR 0040 language gate).
-    /// 生成は PlaytestGateBinder 経由に限る。Client.Tests から internal が見えないため公開面は public に留める。
-    /// Only PlaytestGateBinder constructs this; the surface stays public because Client.Tests cannot see internals.
     /// </summary>
     public class CrashReportGate
     {
@@ -18,29 +16,26 @@ namespace Client.WebUiHost.Game.Playtest
         private readonly Subject<Unit> _onWaitingChanged = new();
         private readonly ICrashBundleWriter _writer;
         private readonly PreviousSessionArtifacts _artifacts;
-        private bool _isWaitingResponse;
 
-        public IObservable<Unit> OnWaitingChanged => _onWaitingChanged;
+        // 待機状態と応答の受付はこのアセンブリ内のtopic・actionだけが触る
+        // Only this assembly's topic and action touch the waiting state and the answer intake
+        internal bool IsWaitingResponse { get; private set; }
+        internal IObservable<Unit> OnWaitingChanged => _onWaitingChanged;
 
         // 登録は常に無条件、待つかどうかは退避結果から導く（未登録によるWeb側購読の固着を避ける）
         // Registration is always unconditional; whether to wait is derived from the salvage result to avoid a stuck web subscription
         // 異常終了なら常に確認する。退避物ゼロでも説明文だけの箱には価値があるので待機条件から外さない
         // Always ask after an unclean exit; a description-only box still has value, so an empty salvage does not skip the wait
-        public CrashReportGate(ICrashBundleWriter writer, PreviousSessionArtifacts artifacts)
+        internal CrashReportGate(ICrashBundleWriter writer, PreviousSessionArtifacts artifacts)
         {
             _writer = writer;
             _artifacts = artifacts;
-            _isWaitingResponse = !artifacts.PreviousExitWasClean;
-            if (!_isWaitingResponse) _responseSource.TrySetResult();
+            IsWaitingResponse = !artifacts.PreviousExitWasClean;
+            if (!IsWaitingResponse) _responseSource.TrySetResult();
         }
 
-        public bool IsWaitingSelection()
-        {
-            return _isWaitingResponse;
-        }
-
-        // 開始側（Client.Starter）が待ち合わせる唯一の窓口
-        // The single window the starter assembly awaits on
+        // 開始側（Client.Starter）が待ち合わせる唯一の窓口なのでここだけpublicに残す
+        // The single window the starter assembly awaits on, so this alone stays public
         public UniTask WaitForResponseAsync()
         {
             return _responseSource.Task;
@@ -48,14 +43,14 @@ namespace Client.WebUiHost.Game.Playtest
 
         // 応答は1回だけ効く。二重クリックと再送は「応答済み」として区別し、成功と一律に丸めない
         // Only the first answer takes effect; double clicks and resends are distinguished instead of folded into success
-        public async UniTask<CrashReportResponseResult> RespondAsync(bool send, string description)
+        internal async UniTask<CrashReportResponseResult> RespondAsync(bool send, string description)
         {
-            if (!_isWaitingResponse)
+            if (!IsWaitingResponse)
             {
                 Debug.LogWarning("CrashReportGate: 応答済みまたは待機していないゲートへ応答が届いたため無視します");
                 return CrashReportResponseResult.AlreadyResponded;
             }
-            _isWaitingResponse = false;
+            IsWaitingResponse = false;
 
             // 「送らない」でも退避物は消さない。last-session は退避のたびに空になるので1世代だけ残る
             // Skipping keeps the salvage: last-session is emptied on every salvage, so exactly one generation survives
@@ -94,7 +89,7 @@ namespace Client.WebUiHost.Game.Playtest
         private void ReturnToWaiting()
         {
             Debug.LogError("前回異常終了の箱を書けなかったため確認を閉じません（送り直すか、送らないを選べます）");
-            _isWaitingResponse = true;
+            IsWaitingResponse = true;
             _onWaitingChanged.OnNext(Unit.Default);
         }
     }

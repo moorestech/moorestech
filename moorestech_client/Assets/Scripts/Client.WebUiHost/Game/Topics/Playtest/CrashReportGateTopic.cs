@@ -43,7 +43,7 @@ namespace Client.WebUiHost.Game.Topics.Playtest
         {
             return WebUiJson.Serialize(new CrashReportGateData
             {
-                Waiting = _gate.IsWaitingSelection(),
+                Waiting = _gate.IsWaitingResponse,
             });
         }
 

@@ -9,9 +9,9 @@ namespace Client.WebUiHost.Game.Actions.Playtest
     /// 前回異常終了の応答アクションを Hub へ登録する。
     /// Registers the previous-crash answer action with the Hub.
     /// </summary>
-    public static class CrashReportGateActions
+    internal static class CrashReportGateActions
     {
-        public static void Register(WebSocketHub hub, CrashReportGate gate)
+        internal static void Register(WebSocketHub hub, CrashReportGate gate)
         {
             hub.RegisterAction(new CrashReportRespondActionHandler(gate));
         }

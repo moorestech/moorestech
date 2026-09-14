@@ -22,10 +22,10 @@ namespace Client.Tests.BugReport
         {
             Assert.IsFalse(PlaytestConsentFlag.IsAcknowledged());
             var gate = new PlaytestConsentGate(!PlaytestConsentFlag.IsAcknowledged());
-            Assert.IsTrue(gate.IsWaitingAcknowledgement());
+            Assert.IsTrue(gate.IsWaitingAcknowledgement);
 
             Assert.AreEqual(PlaytestConsentResult.Acknowledged, gate.Acknowledge());
-            Assert.IsFalse(gate.IsWaitingAcknowledgement());
+            Assert.IsFalse(gate.IsWaitingAcknowledgement);
             Assert.IsTrue(gate.WaitForAcknowledgementAsync().Status.IsCompleted());
             Assert.IsTrue(PlaytestConsentFlag.IsAcknowledged());
         }
@@ -35,7 +35,7 @@ namespace Client.Tests.BugReport
         {
             PlaytestConsentFlag.Acknowledge();
             var gate = new PlaytestConsentGate(!PlaytestConsentFlag.IsAcknowledged());
-            Assert.IsFalse(gate.IsWaitingAcknowledgement());
+            Assert.IsFalse(gate.IsWaitingAcknowledgement);
             Assert.IsTrue(gate.WaitForAcknowledgementAsync().Status.IsCompleted());
         }
 

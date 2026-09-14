@@ -57,5 +57,17 @@ namespace Client.WebUiHost.Game.Playtest
     {
         public PlaytestConsentGate Consent;
         public CrashReportGate CrashReport;
+
+        // 待機状態の読み出しはこのアセンブリに閉じる。開始側へ渡すのは「待ちが実際に開始を止めるか」だけ
+        // Reading the waiting state stays inside this assembly; only "does the wait actually block the start" crosses out
+        public bool ConsentBlocksStart()
+        {
+            return Consent.IsWaitingAcknowledgement;
+        }
+
+        public bool CrashReportBlocksStart()
+        {
+            return CrashReport.IsWaitingResponse;
+        }
     }
 }

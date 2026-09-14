@@ -43,7 +43,7 @@ namespace Client.WebUiHost.Game.Topics.Playtest
         {
             return WebUiJson.Serialize(new PlaytestConsentGateData
             {
-                Waiting = _gate.IsWaitingAcknowledgement(),
+                Waiting = _gate.IsWaitingAcknowledgement,
             });
         }
 

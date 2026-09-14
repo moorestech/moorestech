@@ -45,8 +45,8 @@ namespace Client.Starter.Playtest
             // 登録は待機の有無に関わらず無条件。条件付き登録だとWeb側の購読が固着する
             // Registration happens unconditionally regardless of the wait; conditional registration would wedge the web-side subscription
             var gates = PlaytestGateBinder.BindWaitingGates(hub, artifacts);
-            await WaitWithStartLog(gates.Consent.WaitForAcknowledgementAsync(), "同意表示", gates.Consent.IsWaitingAcknowledgement());
-            await WaitWithStartLog(gates.CrashReport.WaitForResponseAsync(), "前回異常終了の確認", gates.CrashReport.IsWaitingSelection());
+            await WaitWithStartLog(gates.Consent.WaitForAcknowledgementAsync(), "同意表示", gates.ConsentBlocksStart());
+            await WaitWithStartLog(gates.CrashReport.WaitForResponseAsync(), "前回異常終了の確認", gates.CrashReportBlocksStart());
 
             // 応答の継続はaction処理スタックの中で走る。ここで手放さないと初期化の間WSの受信ループが止まる
             // The continuation resumes inside the action's stack, so yielding here keeps the WS receive loop alive during initialization

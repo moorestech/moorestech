@@ -9,9 +9,9 @@ namespace Client.WebUiHost.Game.Actions.Playtest
     /// 初回起動の同意表示の了解アクションを Hub へ登録する。
     /// Registers the first-boot consent acknowledgement action with the Hub.
     /// </summary>
-    public static class PlaytestConsentGateActions
+    internal static class PlaytestConsentGateActions
     {
-        public static void Register(WebSocketHub hub, PlaytestConsentGate gate)
+        internal static void Register(WebSocketHub hub, PlaytestConsentGate gate)
         {
             hub.RegisterAction(new AcknowledgePlaytestConsentActionHandler(gate));
         }

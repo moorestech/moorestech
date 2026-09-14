@@ -23,7 +23,7 @@ namespace Client.Tests.BugReport
         public void 前回が正常終了ならゲートは待たない()
         {
             var gate = new CrashReportGate(new RecordingCrashBundleWriter(WrittenDirectory), new PreviousSessionArtifacts { PreviousExitWasClean = true });
-            Assert.IsFalse(gate.IsWaitingSelection());
+            Assert.IsFalse(gate.IsWaitingResponse);
             Assert.IsTrue(gate.WaitForResponseAsync().Status.IsCompleted());
         }
 
@@ -34,7 +34,7 @@ namespace Client.Tests.BugReport
             var gate = new CrashReportGate(writer, Unclean());
 
             Assert.AreEqual(CrashReportResponseResult.Skipped, gate.RespondAsync(false, "").GetAwaiter().GetResult());
-            Assert.IsFalse(gate.IsWaitingSelection());
+            Assert.IsFalse(gate.IsWaitingResponse);
             CollectionAssert.IsEmpty(writer.Descriptions);
             Assert.IsTrue(gate.WaitForResponseAsync().Status.IsCompleted());
         }
@@ -72,7 +72,7 @@ namespace Client.Tests.BugReport
             LogAssert.Expect(LogType.Error, "前回異常終了の箱を書けなかったため確認を閉じません（送り直すか、送らないを選べます）");
 
             Assert.AreEqual(CrashReportResponseResult.WriteFailed, gate.RespondAsync(true, "書けない").GetAwaiter().GetResult());
-            Assert.IsTrue(gate.IsWaitingSelection());
+            Assert.IsTrue(gate.IsWaitingResponse);
             Assert.IsFalse(gate.WaitForResponseAsync().Status.IsCompleted());
 
             // 「送らない」は常に押せるので、書き出しが直らなくても起動は先へ進める
@@ -91,7 +91,7 @@ namespace Client.Tests.BugReport
 
             Assert.Throws<NotSupportedException>(() => gate.RespondAsync(true, "書けない").GetAwaiter().GetResult());
 
-            Assert.IsTrue(gate.IsWaitingSelection());
+            Assert.IsTrue(gate.IsWaitingResponse);
             Assert.IsFalse(gate.WaitForResponseAsync().Status.IsCompleted());
         }
 
