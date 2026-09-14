@@ -5,6 +5,7 @@ using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.Game.InGame.Context;
 using Client.Network.Settings;
 using Client.Starter.Initialization;
@@ -95,8 +96,11 @@ namespace Client.Starter
 
             // 内蔵サーバーのスナップショットリングと録画リングが上書きを始める前に、前回セッションの記録を退避する
             // Salvage the previous session's records before the embedded snapshot ring and the recording ring start overwriting
-            var previousWorldSnapshotDirectory = _proprieties.IsRemoteConnection ? null : WorldDataDirectory.FromWorldRoot(args.WorldDirectory).SnapshotDirectory;
-            PreviousSessionSalvage.RunAtStartup(previousWorldSnapshotDirectory);
+            PreviousSessionSalvage.RunAtStartup(_proprieties.IsRemoteConnection, WorldDataDirectory.FromWorldRoot(args.WorldDirectory).SnapshotDirectory);
+
+            // 正常終了マーカーの書き手を、消費と同じこの1箇所で据える。ロード中やゲート表示中の終了が異常終了に化ける窓を開けない
+            // The clean-exit writer is installed at the same single spot that consumes the marks, leaving no window where a load-time or gate-time exit reads as a crash
+            CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId());
 
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
@@ -143,7 +147,7 @@ namespace Client.Starter
 
                 // 起動済みの内蔵サーバーを道連れに畳む。残すと同一セーブへ書く権威が二重になる
                 // Fold the embedded server that already started; leaving it doubles the authority writing the same save
-                GameShutdownEvent.FireGameShutdown();
+                GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
 
                 loadingProgressLog.Append(LocalizationKeys.Ui.Loading.InitializationFailed);
                 await UniTask.Delay(2000);
@@ -184,13 +188,13 @@ namespace Client.Starter
 
                 // Forget境界の例外を専用callbackで観測し、DI未構築のMainGameへ取り残さない
                 // Observe the forgotten boundary through its dedicated callback so MainGame is never stranded without DI
-                new MainGameInitializationFinalizer(serverResult, serverDirectory).RunAsync().Forget(exception =>
+                new MainGameInitializationFinalizer(serverResult, serverDirectory, _proprieties.IsRemoteConnection).RunAsync().Forget(exception =>
                 {
                     Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
 
                     // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
                     // Every path back to the main menu takes the embedded server down with it
-                    GameShutdownEvent.FireGameShutdown();
+                    GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
 
                     SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 });

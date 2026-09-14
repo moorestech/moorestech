@@ -43,9 +43,18 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             var result = await handler.ExecuteAsync(new JObject { ["description"] = description, ["kind"] = kind });
             Assert.IsTrue(result.Ok, result.Error);
 
-            var added = ExistingBundles().Except(before).ToList();
-            Assert.AreEqual(1, added.Count, "送信でoutboxに増えた箱が1つではない");
+            // 起動時の退避が kind=crash の箱を同じoutboxへ足すため、増えた箱を数えるだけでは偽陽性になる。種別で絞る
+            // The boot-time salvage adds a kind=crash box to the same outbox, so counting new boxes alone yields false positives; filter by kind
+            var added = ExistingBundles().Except(before).Where(bundle => BundleKind(bundle) == kind).ToList();
+            Assert.AreEqual(1, added.Count, $"送信でoutboxに増えた kind={kind} の箱が1つではない");
             return added[0];
+        }
+
+        private static string BundleKind(string bundleDirectory)
+        {
+            var manifestPath = Path.Combine(bundleDirectory, BugReportBundleLayout.ManifestFileName);
+            if (!File.Exists(manifestPath)) return null;
+            return JObject.Parse(File.ReadAllText(manifestPath))["kind"]?.ToString();
         }
 
         public static List<string> ExistingBundles()

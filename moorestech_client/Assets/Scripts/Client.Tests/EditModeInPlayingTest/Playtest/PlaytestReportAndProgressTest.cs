@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
@@ -63,8 +64,8 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
 
                 // 終了パイプラインを回すと、正常終了マーカーと進行記録が揃う
                 // Running the shutdown pipeline produces both the clean-exit marker and the progress record
-                await Client.Game.Common.GameShutdownEvent.FireGameShutdownAsync();
-                Assert.IsTrue(File.Exists(CleanExitMarker.FilePath), "正常終了マーカーが書かれていない");
+                await Client.Game.Common.GameShutdownEvent.FireGameShutdownAsync(Client.Game.Common.GameShutdownReason.IntentionalExit);
+                Assert.IsTrue(File.Exists(CleanExitMarker.CleanMarkerPath(RecordingProcessDirectories.CurrentProcessId())), "正常終了マーカーが書かれていない");
                 Assert.IsFalse(ProgressRecordFiles.HasCurrentSession(), "進行記録が閉じられていない");
 
                 var record = TakeSingleNewDirectory(GameSystemPaths.ProgressRecordOutboxDirectory, recordsBefore, "終了で進行記録が1件だけ増えていない");

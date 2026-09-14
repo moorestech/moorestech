@@ -47,7 +47,6 @@ namespace Client.Starter.Registration
             // バグ報告の常時記録（ログリング・録画リング）
             // Always-on capture for bug reports (log ring, frame recording ring)
             builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
-            builder.RegisterEntryPoint<CleanExitMarkWriter>();
             builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
 
             // plan D の Steam 認証が入るまでは空のSteamIDで動かす（登録の差し替えだけで切り替わる）

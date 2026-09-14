@@ -24,11 +24,13 @@ namespace Client.Starter.Initialization
     {
         private readonly ServerConnectionResult _serverResult;
         private readonly string _localMasterDirectory;
+        private readonly bool _isRemoteConnection;
 
-        public MainGameInitializationFinalizer(ServerConnectionResult serverResult, string localMasterDirectory)
+        public MainGameInitializationFinalizer(ServerConnectionResult serverResult, string localMasterDirectory, bool isRemoteConnection)
         {
             _serverResult = serverResult;
             _localMasterDirectory = localMasterDirectory;
+            _isRemoteConnection = isRemoteConnection;
         }
 
         public async UniTask RunAsync()
@@ -45,7 +47,10 @@ namespace Client.Starter.Initialization
 
             // 前回異常終了の確認をタイトルで出す。オープニングとチュートリアルが走り出す前に挟む
             // Ask about the previous crash at the title, ahead of the opening skit and the tutorials
-            await Playtest.PlaytestStartGates.WaitForPlaytestGatesAsync();
+            // 他人のサーバーへ繋ぐ都度は挟まない。プレイテストの対象は内蔵サーバーのセッションで、退避物もそちらにしか無い
+            // A connection to someone else's server never gets the gates: the playtest targets embedded-server sessions, and only those have salvage
+            if (_isRemoteConnection) Debug.Log("MainGameInitializationFinalizer: リモート接続のためプレイテスト開始ゲートを出しません");
+            else await Playtest.PlaytestStartGates.WaitForPlaytestGatesAsync();
 
             var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
