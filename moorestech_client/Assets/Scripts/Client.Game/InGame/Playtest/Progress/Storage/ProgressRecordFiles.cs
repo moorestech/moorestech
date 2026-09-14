@@ -66,7 +66,7 @@ namespace Client.Game.InGame.Playtest.Progress
             if (!HasCurrentSession(sessionDirectory)) return null;
 
             var events = ReadEvents(sessionDirectory, out var brokenLineCount);
-            var header = ReadHeader(sessionDirectory) ?? CreateHeaderForLostHeader(events);
+            var header = ReadHeader(sessionDirectory) ?? CreateHeaderForLostHeader();
             if (0 < brokenLineCount) header.AddMissing(ProgressRecordPaths.EventsFileName, $"読めないイベント行を捨てた count:{brokenLineCount}");
             foreach (var item in extraMissing) header.Missing.Add(item);
 
@@ -84,15 +84,19 @@ namespace Client.Game.InGame.Playtest.Progress
             ClearCurrent(sessionDirectory);
             Debug.Log($"進行記録を書きました {directory} endReason:{endReason} missing:{header.Missing.Count}");
             return directory;
-        }
 
-        // ヘッダを失った残骸でもイベントは救う。埋められない値は欠損として理由付きで残し、既定値へ黙って落とさない
-        // A leftover that lost its header still yields its events; unfillable values are declared as gaps with reasons instead of silently defaulting
-        private static ProgressRecordHeader CreateHeaderForLostHeader(List<ProgressEventEntry> events)
-        {
-            var header = new ProgressRecordHeader { SessionStart = 0 < events.Count ? events[0].T : "" };
-            header.AddMissing("header", $"ヘッダが無い（または壊れている）ため steamId・worldCreatedAt・baseline を埋められない events:{events.Count}");
-            return header;
+            #region Internal
+
+            // ヘッダを失った残骸でもイベントは救う。埋められない値は欠損として理由付きで残し、既定値へ黙って落とさない
+            // A leftover that lost its header still yields its events; unfillable values are declared as gaps with reasons instead of silently defaulting
+            ProgressRecordHeader CreateHeaderForLostHeader()
+            {
+                var lostHeader = new ProgressRecordHeader { SessionStart = 0 < events.Count ? events[0].T : "" };
+                lostHeader.AddMissing("header", $"ヘッダが無い（または壊れている）ため steamId・worldCreatedAt・baseline を埋められない events:{events.Count}");
+                return lostHeader;
+            }
+
+            #endregion
         }
 
         public static void ClearCurrent(string sessionDirectory)

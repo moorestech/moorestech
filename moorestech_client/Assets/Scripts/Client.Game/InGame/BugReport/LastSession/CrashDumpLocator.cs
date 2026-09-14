@@ -19,13 +19,6 @@ namespace Client.Game.InGame.BugReport.LastSession
         // A fallback window used only when no real boundary for the previous session exists; a real one always wins
         private const int FallbackLookbackHours = -24;
 
-        private static IReadOnlyList<string> CandidateRoots()
-        {
-            var roots = new List<string>();
-            foreach (var root in CandidateDumpRoots()) roots.Add(root.Path);
-            return roots;
-        }
-
         // どの置き場が共有かの宣言そのものが絞り込みの要。宣言を落とすと他アプリのダンプが素通りするためテストから見える形で置く
         // The shared/dedicated declaration is the filter itself: dropping it lets other apps' dumps through, so tests can read it
         internal static IReadOnlyList<CrashDumpRoot> CandidateDumpRoots()
@@ -55,40 +48,53 @@ namespace Client.Game.InGame.BugReport.LastSession
         {
             var since = PreviousSessionBoundaryUtc();
             var candidates = new List<CrashDumpCandidate>();
-            foreach (var root in CandidateDumpRoots()) CollectFrom(root, since, candidates);
+            foreach (var root in CandidateDumpRoots()) CollectFrom(root);
 
             var result = SelectDumpFiles(candidates, UnityEngine.Application.productName);
-            LogExclusion(result);
+            LogExclusion();
             return result;
-        }
 
-        // 前回セッションのログの最終更新時刻が「そのセッションが確かに動いていた」唯一の実在する印
-        // The previous session log's last write is the only real evidence of when that session was actually running
-        private static DateTime PreviousSessionBoundaryUtc()
-        {
-            var previousLogPath = PlayerLogLocator.PreviousSessionLogPath();
-            if (previousLogPath == null) return DateTime.UtcNow.AddHours(FallbackLookbackHours);
-            return new FileInfo(previousLogPath).LastWriteTimeUtc;
-        }
+            #region Internal
 
-        // 共有置き場の走査はOSの保護領域（macOSのDiagnosticReportsはTCC配下）に触れる外部境界。拒否されても起動は続ける
-        // Scanning a shared root touches an OS-protected area (macOS DiagnosticReports sits under TCC); a refusal must not stop the boot
-        private static void CollectFrom(CrashDumpRoot root, DateTime since, List<CrashDumpCandidate> candidates)
-        {
-            if (!Directory.Exists(root.Path)) return;
-            try
+            // 前回セッションのログの最終更新時刻が「そのセッションが確かに動いていた」唯一の実在する印
+            // The previous session log's last write is the only real evidence of when that session was actually running
+            DateTime PreviousSessionBoundaryUtc()
             {
-                foreach (var file in Directory.GetFiles(root.Path, "*", SearchOption.AllDirectories))
+                var previousLogPath = PlayerLogLocator.PreviousSessionLogPath();
+                if (previousLogPath == null) return DateTime.UtcNow.AddHours(FallbackLookbackHours);
+                return new FileInfo(previousLogPath).LastWriteTimeUtc;
+            }
+
+            // 共有置き場の走査はOSの保護領域（macOSのDiagnosticReportsはTCC配下）に触れる外部境界。拒否されても起動は続ける
+            // Scanning a shared root touches an OS-protected area (macOS DiagnosticReports sits under TCC); a refusal must not stop the boot
+            void CollectFrom(CrashDumpRoot root)
+            {
+                if (!Directory.Exists(root.Path)) return;
+                try
                 {
-                    var info = new FileInfo(file);
-                    if (info.LastWriteTimeUtc < since) continue;
-                    candidates.Add(new CrashDumpCandidate { Root = root, FileName = info.Name, FullPath = file });
+                    foreach (var file in Directory.GetFiles(root.Path, "*", SearchOption.AllDirectories))
+                    {
+                        var info = new FileInfo(file);
+                        if (info.LastWriteTimeUtc < since) continue;
+                        candidates.Add(new CrashDumpCandidate { Root = root, FileName = info.Name, FullPath = file });
+                    }
+                }
+                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+                {
+                    Debug.LogWarning($"クラッシュダンプの置き場を読めませんでした（この置き場は対象外になります） {root.Path}: {e.Message}");
                 }
             }
-            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+
+            // 落としたことは必ず開発者ログへ出す。無音で捨てると「見つからない」と「捨てた」が区別できなくなる
+            // Every drop reaches the developer log; a silent drop makes "none found" and "filtered out" indistinguishable
+            void LogExclusion()
             {
-                Debug.LogWarning($"クラッシュダンプの置き場を読めませんでした（この置き場は対象外になります） {root.Path}: {e.Message}");
+                if (result.ExcludedAsOtherApps == 0) return;
+                var condition = $"ファイル名が {UnityEngine.Application.productName}- または {EditorProcessName}- で始まること";
+                Debug.Log($"共有置き場のクラッシュレポート{result.ExcludedAsOtherApps}件を他アプリのものとして除外しました 条件:{condition} 除外元:{string.Join(", ", result.ExcludedRoots)}");
             }
+
+            #endregion
         }
 
         // 「そもそも無かった」と「他アプリとして除外した結果0件」を読み分けられる理由文にする。無音の縮退を残さない
@@ -98,6 +104,17 @@ namespace Client.Game.InGame.BugReport.LastSession
             var roots = string.Join(", ", CandidateRoots());
             if (scan.ExcludedAsOtherApps == 0) return $"クラッシュダンプが見つからない（探索先: {roots}）";
             return $"共有置き場に{scan.ExcludedAsOtherApps}件あったが自プロセス（{UnityEngine.Application.productName} / {EditorProcessName}）のものは0件だった（除外元: {string.Join(", ", scan.ExcludedRoots)}、探索先: {roots}）";
+
+            #region Internal
+
+            IReadOnlyList<string> CandidateRoots()
+            {
+                var paths = new List<string>();
+                foreach (var root in CandidateDumpRoots()) paths.Add(root.Path);
+                return paths;
+            }
+
+            #endregion
         }
 
         // 置き場の共有宣言だけを見て選別する純粋関数。実ファイルを置かずに配線ごと検証できる
@@ -117,15 +134,16 @@ namespace Client.Game.InGame.BugReport.LastSession
                 result.Files.Add(candidate.FullPath);
             }
             return result;
-        }
 
-        // 落としたことは必ず開発者ログへ出す。無音で捨てると「見つからない」と「捨てた」が区別できなくなる
-        // Every drop reaches the developer log; a silent drop makes "none found" and "filtered out" indistinguishable
-        private static void LogExclusion(CrashDumpScanResult result)
-        {
-            if (result.ExcludedAsOtherApps == 0) return;
-            var condition = $"ファイル名が {UnityEngine.Application.productName}- または {EditorProcessName}- で始まること";
-            Debug.Log($"共有置き場のクラッシュレポート{result.ExcludedAsOtherApps}件を他アプリのものとして除外しました 条件:{condition} 除外元:{string.Join(", ", result.ExcludedRoots)}");
+            #region Internal
+
+            bool IsDumpLikeName(string fileName)
+            {
+                var name = fileName.ToLowerInvariant();
+                return name.EndsWith(".dmp") || name.EndsWith(".crash") || name.EndsWith(".ips") || name == "error.log";
+            }
+
+            #endregion
         }
 
         // 共有置き場のクラッシュレポートは <プロセス名>-<日付>.ips 形式。プロセス名ちょうどで始まるものだけを自分の記録として扱う
@@ -138,18 +156,16 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // Editor起動のプロセス名はUnity。テスターのビルドは productName なので両方を自分として認める
             // An Editor boot's process is Unity while a tester's build is productName, so both count as ours
-            return StartsWithProcessName(fileName, productName) || StartsWithProcessName(fileName, EditorProcessName);
-        }
+            return StartsWithProcessName(productName) || StartsWithProcessName(EditorProcessName);
 
-        private static bool StartsWithProcessName(string fileName, string processName)
-        {
-            return !string.IsNullOrEmpty(processName) && fileName.StartsWith(processName + "-", StringComparison.OrdinalIgnoreCase);
-        }
+            #region Internal
 
-        private static bool IsDumpLikeName(string fileName)
-        {
-            var name = fileName.ToLowerInvariant();
-            return name.EndsWith(".dmp") || name.EndsWith(".crash") || name.EndsWith(".ips") || name == "error.log";
+            bool StartsWithProcessName(string processName)
+            {
+                return !string.IsNullOrEmpty(processName) && fileName.StartsWith(processName + "-", StringComparison.OrdinalIgnoreCase);
+            }
+
+            #endregion
         }
     }
 }

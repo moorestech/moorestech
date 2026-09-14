@@ -23,8 +23,8 @@ namespace Client.Game.InGame.Playtest.Progress
             var aggregate = ProgressRecordAggregate.From(header, enriched);
             missing.AddRange(aggregate.Missing);
 
-            var playSeconds = ResolvePlaySeconds(header, sessionEndUtc, missing);
-            var totalPlaySeconds = ResolveTotalPlaySeconds(header, sessionEndUtc, playSeconds, missing);
+            var playSeconds = ResolvePlaySeconds();
+            var totalPlaySeconds = ResolveTotalPlaySeconds();
 
             var eventArray = new JArray();
             foreach (var entry in enriched) eventArray.Add(entry.ToJObject());
@@ -45,10 +45,61 @@ namespace Client.Game.InGame.Playtest.Progress
                 ["placedBlockCount"] = aggregate.PlacedBlockCount,
                 ["craftCount"] = aggregate.CraftRequestCount,
                 ["lastUiState"] = aggregate.LastUiState,
-                ["missing"] = ToJsonArray(missing),
+                ["missing"] = ToJsonArray(),
                 ["events"] = eventArray,
             };
             return record.ToString(Formatting.Indented);
+
+            #region Internal
+
+            // 開始時刻が読めない・終了より後ろ、のどちらも実データと同じ0秒へ潰さず理由を残す
+            // Neither an unreadable start nor one later than the end collapses into a plain 0 seconds; the reason is kept
+            double ResolvePlaySeconds()
+            {
+                if (!ProgressUtcTime.TryParseIso(header.SessionStart, out var sessionStart))
+                {
+                    AddMissing("playSeconds", $"セッション開始時刻を読めないため0秒として記録した value:{header.SessionStart}");
+                    return 0;
+                }
+
+                var seconds = (sessionEndUtc - sessionStart).TotalSeconds;
+                if (0 <= seconds) return seconds;
+
+                AddMissing("playSeconds", $"終了時刻が開始時刻より前のため0秒として記録した start:{header.SessionStart} end:{ProgressUtcTime.ToIso(sessionEndUtc)}");
+                return 0;
+            }
+
+            // 累計は「取得した瞬間からの経過」だけを足す。セッション開始起点で足すとロードと応答待ちのぶんが二重に乗る
+            // Only the span since the value was captured is added; adding from the session start would double count the load and the response wait
+            double ResolveTotalPlaySeconds()
+            {
+                if (!ProgressUtcTime.TryParseIso(header.TotalPlaySecondsCapturedAt, out var capturedAt))
+                {
+                    AddMissing("totalPlaySeconds", "累計プレイ時間の取得時刻が無いため、今回のプレイ時間を足した概算を記録した");
+                    return header.TotalPlaySecondsAtStart + playSeconds;
+                }
+
+                var sinceCaptured = (sessionEndUtc - capturedAt).TotalSeconds;
+                if (0 <= sinceCaptured) return header.TotalPlaySecondsAtStart + sinceCaptured;
+
+                AddMissing("totalPlaySeconds", $"取得時刻が終了時刻より後のため取得時点の値をそのまま記録した capturedAt:{header.TotalPlaySecondsCapturedAt}");
+                return header.TotalPlaySecondsAtStart;
+            }
+
+            void AddMissing(string item, string reason)
+            {
+                Debug.LogWarning($"進行記録の欠損 {item}: {reason}");
+                missing.Add(new MissingItem { Item = item, Reason = reason });
+            }
+
+            JArray ToJsonArray()
+            {
+                var array = new JArray();
+                foreach (var item in missing) array.Add(new JObject { ["item"] = item.Item, ["reason"] = item.Reason });
+                return array;
+            }
+
+            #endregion
         }
 
         // 「PlaceBlock に入って、1件も設置しないまま抜けた」滞在だけを離脱として合成する
@@ -76,53 +127,6 @@ namespace Client.Game.InGame.Playtest.Progress
                 result.Add(entry);
             }
             return result;
-        }
-
-        // 開始時刻が読めない・終了より後ろ、のどちらも実データと同じ0秒へ潰さず理由を残す
-        // Neither an unreadable start nor one later than the end collapses into a plain 0 seconds; the reason is kept
-        private static double ResolvePlaySeconds(ProgressRecordHeader header, DateTime sessionEndUtc, List<MissingItem> missing)
-        {
-            if (!ProgressUtcTime.TryParseIso(header.SessionStart, out var sessionStart))
-            {
-                AddMissing(missing, "playSeconds", $"セッション開始時刻を読めないため0秒として記録した value:{header.SessionStart}");
-                return 0;
-            }
-
-            var seconds = (sessionEndUtc - sessionStart).TotalSeconds;
-            if (0 <= seconds) return seconds;
-
-            AddMissing(missing, "playSeconds", $"終了時刻が開始時刻より前のため0秒として記録した start:{header.SessionStart} end:{ProgressUtcTime.ToIso(sessionEndUtc)}");
-            return 0;
-        }
-
-        // 累計は「取得した瞬間からの経過」だけを足す。セッション開始起点で足すとロードと応答待ちのぶんが二重に乗る
-        // Only the span since the value was captured is added; adding from the session start would double count the load and the response wait
-        private static double ResolveTotalPlaySeconds(ProgressRecordHeader header, DateTime sessionEndUtc, double playSeconds, List<MissingItem> missing)
-        {
-            if (!ProgressUtcTime.TryParseIso(header.TotalPlaySecondsCapturedAt, out var capturedAt))
-            {
-                AddMissing(missing, "totalPlaySeconds", "累計プレイ時間の取得時刻が無いため、今回のプレイ時間を足した概算を記録した");
-                return header.TotalPlaySecondsAtStart + playSeconds;
-            }
-
-            var sinceCaptured = (sessionEndUtc - capturedAt).TotalSeconds;
-            if (0 <= sinceCaptured) return header.TotalPlaySecondsAtStart + sinceCaptured;
-
-            AddMissing(missing, "totalPlaySeconds", $"取得時刻が終了時刻より後のため取得時点の値をそのまま記録した capturedAt:{header.TotalPlaySecondsCapturedAt}");
-            return header.TotalPlaySecondsAtStart;
-        }
-
-        private static void AddMissing(List<MissingItem> missing, string item, string reason)
-        {
-            Debug.LogWarning($"進行記録の欠損 {item}: {reason}");
-            missing.Add(new MissingItem { Item = item, Reason = reason });
-        }
-
-        private static JArray ToJsonArray(List<MissingItem> missing)
-        {
-            var array = new JArray();
-            foreach (var item in missing) array.Add(new JObject { ["item"] = item.Item, ["reason"] = item.Reason });
-            return array;
         }
     }
 }

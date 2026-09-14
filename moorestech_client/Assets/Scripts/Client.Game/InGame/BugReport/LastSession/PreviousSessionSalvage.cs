@@ -52,17 +52,17 @@ namespace Client.Game.InGame.BugReport.LastSession
         public static PreviousSessionArtifacts Salvage(PreviousSessionSalvageRequest request)
         {
             var artifacts = new PreviousSessionArtifacts { IsFirstBoot = request.IsFirstBoot };
-            ReportSkippedLiveProcesses(request, artifacts);
+            ReportSkippedLiveProcesses();
 
             var creation = SalvageFileOperations.CreateDirectory(request.LastSessionDirectory);
-            if (!creation.Succeeded) ReportMissing(artifacts, "lastSession", creation.FailureReason);
+            if (!creation.Succeeded) ReportMissing("lastSession", creation.FailureReason);
 
             var recordingDestination = Path.Combine(request.LastSessionDirectory, BugReportBundleLayout.RecordingDirectoryName);
             var snapshotDestination = Path.Combine(request.LastSessionDirectory, BugReportBundleLayout.SnapshotDirectoryName);
 
             var uncleanSessions = new List<PreviousProcessSession>();
             foreach (var session in request.PreviousSessions)
-                if (session.ExitedCleanly) DiscardCleanSessionRecording(session, artifacts);
+                if (session.ExitedCleanly) DiscardCleanSessionRecording(session);
                 else uncleanSessions.Add(session);
 
             artifacts.PreviousExitWasClean = uncleanSessions.Count == 0;
@@ -71,25 +71,103 @@ namespace Client.Game.InGame.BugReport.LastSession
             // A clean exit needs nothing kept: the previous generation is emptied too, so "keep exactly one generation" holds every boot
             if (artifacts.PreviousExitWasClean)
             {
-                ClearPreviousGeneration(recordingDestination, artifacts);
-                ClearPreviousGeneration(snapshotDestination, artifacts);
+                ClearPreviousGeneration(recordingDestination);
+                ClearPreviousGeneration(snapshotDestination);
                 return artifacts;
             }
 
-            MoveUncleanRecordings(uncleanSessions, recordingDestination, artifacts);
-            MoveWorldSnapshots(request, snapshotDestination, artifacts);
+            MoveUncleanRecordings(uncleanSessions, recordingDestination);
+            MoveWorldSnapshots(snapshotDestination);
 
-            artifacts.RecordingDirectory = ResolveSalvagedDirectory(recordingDestination, BugReportBundleLayout.RecordingDirectoryName, artifacts);
-            artifacts.SnapshotsDirectory = ResolveSalvagedDirectory(snapshotDestination, BugReportBundleLayout.SnapshotDirectoryName, artifacts);
+            artifacts.RecordingDirectory = ResolveSalvagedDirectory(recordingDestination, BugReportBundleLayout.RecordingDirectoryName);
+            artifacts.SnapshotsDirectory = ResolveSalvagedDirectory(snapshotDestination, BugReportBundleLayout.SnapshotDirectoryName);
 
             artifacts.PlayerLogPath = PlayerLogLocator.PreviousSessionLogPath();
-            if (artifacts.PlayerLogPath == null) ReportMissing(artifacts, "playerLog", "前回セッションのPlayer-prev.logが見つからない");
+            if (artifacts.PlayerLogPath == null) ReportMissing("playerLog", "前回セッションのPlayer-prev.logが見つからない");
 
             var crashDumpScan = CrashDumpLocator.FindDumpFiles();
             artifacts.CrashDumpFiles = crashDumpScan.Files;
-            if (artifacts.CrashDumpFiles.Count == 0) ReportMissing(artifacts, "crashDump", CrashDumpLocator.MissingReason(crashDumpScan));
+            if (artifacts.CrashDumpFiles.Count == 0) ReportMissing("crashDump", CrashDumpLocator.MissingReason(crashDumpScan));
 
             return artifacts;
+
+            #region Internal
+
+            void ReportSkippedLiveProcesses()
+            {
+                foreach (var processId in request.SkippedLiveProcessIds)
+                {
+                    var reason = $"pid {processId} は実行中のため退避も削除もしていない（並列起動のセッション）";
+                    Debug.LogWarning($"前回セッションの退避: {reason}");
+                    artifacts.Missing.Add(new MissingItem { Item = BugReportBundleLayout.RecordingDirectoryName, Reason = reason });
+                }
+            }
+
+            void DiscardCleanSessionRecording(PreviousProcessSession session)
+            {
+                if (session.RecordingDirectory == null) return;
+                var deletion = SalvageFileOperations.DeleteDirectory(session.RecordingDirectory);
+                if (!deletion.Succeeded) ReportMissing(BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId} の録画を消せなかった: {deletion.FailureReason}");
+            }
+
+            void ClearPreviousGeneration(string destination)
+            {
+                var clearing = SalvageFileOperations.ClearDirectory(destination);
+                if (!clearing.Succeeded) ReportMissing(Path.GetFileName(destination), $"前世代の退避物を消せなかった: {clearing.FailureReason}");
+            }
+
+            // 新しい退避物があるときだけ退避先を空にする。無いまま空にすると、前世代の本物のクラッシュ資料が二度と提示されない
+            // The destination is emptied only when new files arrive; emptying it regardless would drop an older real crash's evidence for good
+            void MoveUncleanRecordings(List<PreviousProcessSession> sessions, string destination)
+            {
+                var hasNewRecording = false;
+                foreach (var session in sessions) hasNewRecording |= session.RecordingDirectory != null;
+                if (!hasNewRecording) return;
+
+                ClearPreviousGeneration(destination);
+                foreach (var session in sessions)
+                {
+                    if (session.RecordingDirectory == null) continue;
+                    var processDirectoryName = RecordingProcessDirectories.ProcessDirectoryPrefix + session.ProcessId;
+                    var move = SalvageFileOperations.MoveDirectory(session.RecordingDirectory, Path.Combine(destination, processDirectoryName));
+                    if (move.Succeeded) artifacts.SalvagedProcessIds.Add(session.ProcessId);
+                    else ReportMissing(BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId}: {move.FailureReason}");
+                }
+            }
+
+            // リモート接続にはスナップショットを書く内蔵サーバーがそもそも居ない。退避失敗と同じ理由文にすると毎回「失敗」に見える
+            // A remote connection has no embedded server writing snapshots at all; sharing the failure wording would read as a failure every time
+            void MoveWorldSnapshots(string destination)
+            {
+                if (request.IsRemoteConnection)
+                {
+                    ReportMissing(BugReportBundleLayout.SnapshotDirectoryName, "リモート接続のセッションのため内蔵サーバーのスナップショットは存在しない");
+                    return;
+                }
+
+                var move = SalvageFileOperations.MoveFilesInto(request.WorldSnapshotDirectory, destination);
+                if (!move.Succeeded) ReportMissing(BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
+            }
+
+            // 退避先に中身があれば、今回移した分でも前世代の持ち越しでも同じく提示する（次回起動で聞き直せるという約束を守る）
+            // Whatever sits in the destination is presented, newly moved or carried over, keeping the promise that the next boot can ask again
+            string ResolveSalvagedDirectory(string destination, string item)
+            {
+                var probe = SalvageFileOperations.ProbeHasAnyFile(destination);
+                if (probe.Succeeded) return destination;
+                ReportMissing(item, probe.FailureReason);
+                return null;
+            }
+
+            // 欠損は必ず開発者ログと報告の両方へ積む。片方だけだと拒否理由が誰にも届かない
+            // Every gap lands in both the developer log and the report; one alone leaves the reason unreachable
+            void ReportMissing(string item, string reason)
+            {
+                Debug.LogWarning($"前回セッションの退避で欠損 {item}: {reason}");
+                artifacts.Missing.Add(new MissingItem { Item = item, Reason = reason });
+            }
+
+            #endregion
         }
 
         // 録画の有無に依らず、印を置いたまま消えたpidも前回セッションとして数える（ffmpegが無い起動でもクラッシュは拾う）
@@ -115,80 +193,6 @@ namespace Client.Game.InGame.BugReport.LastSession
                     RecordingDirectory = recordingDirectories.GetValueOrDefault(processId),
                 });
             return sessions;
-        }
-
-        private static void ReportSkippedLiveProcesses(PreviousSessionSalvageRequest request, PreviousSessionArtifacts artifacts)
-        {
-            foreach (var processId in request.SkippedLiveProcessIds)
-            {
-                var reason = $"pid {processId} は実行中のため退避も削除もしていない（並列起動のセッション）";
-                Debug.LogWarning($"前回セッションの退避: {reason}");
-                artifacts.Missing.Add(new MissingItem { Item = BugReportBundleLayout.RecordingDirectoryName, Reason = reason });
-            }
-        }
-
-        private static void DiscardCleanSessionRecording(PreviousProcessSession session, PreviousSessionArtifacts artifacts)
-        {
-            if (session.RecordingDirectory == null) return;
-            var deletion = SalvageFileOperations.DeleteDirectory(session.RecordingDirectory);
-            if (!deletion.Succeeded) ReportMissing(artifacts, BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId} の録画を消せなかった: {deletion.FailureReason}");
-        }
-
-        private static void ClearPreviousGeneration(string destination, PreviousSessionArtifacts artifacts)
-        {
-            var clearing = SalvageFileOperations.ClearDirectory(destination);
-            if (!clearing.Succeeded) ReportMissing(artifacts, Path.GetFileName(destination), $"前世代の退避物を消せなかった: {clearing.FailureReason}");
-        }
-
-        // 新しい退避物があるときだけ退避先を空にする。無いまま空にすると、前世代の本物のクラッシュ資料が二度と提示されない
-        // The destination is emptied only when new files arrive; emptying it regardless would drop an older real crash's evidence for good
-        private static void MoveUncleanRecordings(List<PreviousProcessSession> uncleanSessions, string destination, PreviousSessionArtifacts artifacts)
-        {
-            var hasNewRecording = false;
-            foreach (var session in uncleanSessions) hasNewRecording |= session.RecordingDirectory != null;
-            if (!hasNewRecording) return;
-
-            ClearPreviousGeneration(destination, artifacts);
-            foreach (var session in uncleanSessions)
-            {
-                if (session.RecordingDirectory == null) continue;
-                var processDirectoryName = RecordingProcessDirectories.ProcessDirectoryPrefix + session.ProcessId;
-                var move = SalvageFileOperations.MoveDirectory(session.RecordingDirectory, Path.Combine(destination, processDirectoryName));
-                if (move.Succeeded) artifacts.SalvagedProcessIds.Add(session.ProcessId);
-                else ReportMissing(artifacts, BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId}: {move.FailureReason}");
-            }
-        }
-
-        // リモート接続にはスナップショットを書く内蔵サーバーがそもそも居ない。退避失敗と同じ理由文にすると毎回「失敗」に見える
-        // A remote connection has no embedded server writing snapshots at all; sharing the failure wording would read as a failure every time
-        private static void MoveWorldSnapshots(PreviousSessionSalvageRequest request, string destination, PreviousSessionArtifacts artifacts)
-        {
-            if (request.IsRemoteConnection)
-            {
-                ReportMissing(artifacts, BugReportBundleLayout.SnapshotDirectoryName, "リモート接続のセッションのため内蔵サーバーのスナップショットは存在しない");
-                return;
-            }
-
-            var move = SalvageFileOperations.MoveFilesInto(request.WorldSnapshotDirectory, destination);
-            if (!move.Succeeded) ReportMissing(artifacts, BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
-        }
-
-        // 退避先に中身があれば、今回移した分でも前世代の持ち越しでも同じく提示する（次回起動で聞き直せるという約束を守る）
-        // Whatever sits in the destination is presented, newly moved or carried over, keeping the promise that the next boot can ask again
-        private static string ResolveSalvagedDirectory(string destination, string item, PreviousSessionArtifacts artifacts)
-        {
-            var probe = SalvageFileOperations.ProbeHasAnyFile(destination);
-            if (probe.Succeeded) return destination;
-            ReportMissing(artifacts, item, probe.FailureReason);
-            return null;
-        }
-
-        // 欠損は必ず開発者ログと報告の両方へ積む。片方だけだと拒否理由が誰にも届かない
-        // Every gap lands in both the developer log and the report; one alone leaves the reason unreachable
-        private static void ReportMissing(PreviousSessionArtifacts artifacts, string item, string reason)
-        {
-            Debug.LogWarning($"前回セッションの退避で欠損 {item}: {reason}");
-            artifacts.Missing.Add(new MissingItem { Item = item, Reason = reason });
         }
     }
 }

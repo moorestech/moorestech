@@ -39,62 +39,75 @@ namespace Client.Game.InGame.BugReport.LastSession
             var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
             var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
 
-            string directory = null;
+            string bundleDirectory = null;
 
             // 退避物は録画とパケットログで数十MBに達する。兄弟のBugReportBundleWriterと同じくスレッドプールへ載せ、action処理スレッドを塞がない
             // The salvage reaches tens of megabytes of footage and packet logs; like its sibling BugReportBundleWriter it runs on the thread pool, never blocking the action thread
-            await UniTask.RunOnThreadPool(() => { directory = WriteOnThreadPool(artifacts, manifest, buildInfoForFiles, repositoryRoot, masterDataRoot); });
-            return directory;
-        }
+            await UniTask.RunOnThreadPool(() => { bundleDirectory = WriteOnThreadPool(); });
+            return bundleDirectory;
 
-        private static string WriteOnThreadPool(PreviousSessionArtifacts artifacts, BugReportManifest manifest, BugReportBuildInfo buildInfoForFiles, string repositoryRoot, string masterDataRoot)
-        {
-            string directory;
-            try
+            #region Internal
+
+            string WriteOnThreadPool()
             {
-                directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
+                string directory;
+                try
+                {
+                    directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
+                }
+                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+                {
+                    Debug.LogError($"前回異常終了の箱の置き場を作れませんでした: {e.Message}");
+                    return null;
+                }
+
+                // ディスクは外部資源。1項目の失敗で他の退避物まで巻き添えにしないよう項目ごとに隔離し、理由はmanifestと開発者ログの両方へ残す
+                // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
+                try { MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName)); }
+                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RecordingDirectoryName, $"移動に失敗した: {e.Message}"); }
+
+                try { MoveSnapshots(artifacts.SnapshotsDirectory, directory); }
+                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.SnapshotDirectoryName, $"移動に失敗した: {e.Message}"); }
+
+                try { CopyFileInto(artifacts.PlayerLogPath, Path.Combine(directory, BugReportBundleLayout.LogsDirectoryName)); }
+                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"コピーに失敗した: {e.Message}"); }
+
+                foreach (var dump in artifacts.CrashDumpFiles)
+                {
+                    try { CopyFileInto(dump, Path.Combine(directory, BugReportBundleLayout.CrashDumpsDirectoryName)); }
+                    catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.CrashDumpsDirectoryName, $"コピーに失敗した: {e.Message}"); }
+                }
+
+                // リポジトリ状態とマスタの出所は bug の箱と同じ経路で入れる。crash だけ null だと再現側が別コミットで再生する
+                // The repository state and master origin go through the same path as a bug box; leaving them null only for crash replays a different commit
+                BugReportRepositoryFiles.Write(directory, manifest, buildInfoForFiles, repositoryRoot, masterDataRoot);
+
+                return BugReportOutbox.TryFinishBundle(directory, manifest) ? directory : null;
             }
-            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+
+            // スナップショットとパケットログは plan B のプレイ報告と同じ snapshots/ 配下へ揃える（再現側の入口を1つに保つ）
+            // Snapshots and packet logs land under the same snapshots/ as plan B's report, keeping one entry point for reproduction
+            void MoveSnapshots(string source, string boxDirectory)
             {
-                Debug.LogError($"前回異常終了の箱の置き場を作れませんでした: {e.Message}");
-                return null;
+                var destination = Path.Combine(boxDirectory, BugReportBundleLayout.SnapshotDirectoryName);
+                foreach (var relativePath in MoveTree(source, destination))
+                {
+                    var name = Path.GetFileName(relativePath);
+                    if (name.StartsWith("tick_", StringComparison.Ordinal)) manifest.SnapshotFiles.Add(relativePath);
+                    if (name.StartsWith("packets_", StringComparison.Ordinal)) manifest.PacketLogFiles.Add(relativePath);
+                }
             }
 
-            // ディスクは外部資源。1項目の失敗で他の退避物まで巻き添えにしないよう項目ごとに隔離し、理由はmanifestと開発者ログの両方へ残す
-            // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
-            try { MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName)); }
-            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RecordingDirectoryName, $"移動に失敗した: {e.Message}"); }
-
-            try { MoveSnapshots(artifacts.SnapshotsDirectory, directory, manifest); }
-            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.SnapshotDirectoryName, $"移動に失敗した: {e.Message}"); }
-
-            try { CopyFileInto(artifacts.PlayerLogPath, Path.Combine(directory, BugReportBundleLayout.LogsDirectoryName)); }
-            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"コピーに失敗した: {e.Message}"); }
-
-            foreach (var dump in artifacts.CrashDumpFiles)
+            // Player-prev.log とクラッシュダンプは Unity と OS が持つファイル。所有者から取り上げないよう写すだけにする
+            // Player-prev.log and the crash dumps belong to Unity and the OS, so they are copied rather than taken away from their owner
+            void CopyFileInto(string sourceFile, string destinationDirectory)
             {
-                try { CopyFileInto(dump, Path.Combine(directory, BugReportBundleLayout.CrashDumpsDirectoryName)); }
-                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.CrashDumpsDirectoryName, $"コピーに失敗した: {e.Message}"); }
+                if (sourceFile == null || !File.Exists(sourceFile)) return;
+                Directory.CreateDirectory(destinationDirectory);
+                File.Copy(sourceFile, Path.Combine(destinationDirectory, Path.GetFileName(sourceFile)), true);
             }
 
-            // リポジトリ状態とマスタの出所は bug の箱と同じ経路で入れる。crash だけ null だと再現側が別コミットで再生する
-            // The repository state and master origin go through the same path as a bug box; leaving them null only for crash replays a different commit
-            BugReportRepositoryFiles.Write(directory, manifest, buildInfoForFiles, repositoryRoot, masterDataRoot);
-
-            return BugReportOutbox.TryFinishBundle(directory, manifest) ? directory : null;
-        }
-
-        // スナップショットとパケットログは plan B のプレイ報告と同じ snapshots/ 配下へ揃える（再現側の入口を1つに保つ）
-        // Snapshots and packet logs land under the same snapshots/ as plan B's report, keeping one entry point for reproduction
-        private static void MoveSnapshots(string source, string bundleDirectory, BugReportManifest manifest)
-        {
-            var destination = Path.Combine(bundleDirectory, BugReportBundleLayout.SnapshotDirectoryName);
-            foreach (var relativePath in MoveTree(source, destination))
-            {
-                var name = Path.GetFileName(relativePath);
-                if (name.StartsWith("tick_", StringComparison.Ordinal)) manifest.SnapshotFiles.Add(relativePath);
-                if (name.StartsWith("packets_", StringComparison.Ordinal)) manifest.PacketLogFiles.Add(relativePath);
-            }
+            #endregion
         }
 
         // 退避先から箱へは移動で渡す。退避の時点で既に last-session へ改名済みなので、写すと同じ数十MBを2度書くだけになる
@@ -116,15 +129,6 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
             foreach (var subDirectory in Directory.GetDirectories(source)) Directory.Delete(subDirectory, true);
             return moved;
-        }
-
-        // Player-prev.log とクラッシュダンプは Unity と OS が持つファイル。所有者から取り上げないよう写すだけにする
-        // Player-prev.log and the crash dumps belong to Unity and the OS, so they are copied rather than taken away from their owner
-        private static void CopyFileInto(string sourceFile, string destinationDirectory)
-        {
-            if (sourceFile == null || !File.Exists(sourceFile)) return;
-            Directory.CreateDirectory(destinationDirectory);
-            File.Copy(sourceFile, Path.Combine(destinationDirectory, Path.GetFileName(sourceFile)), true);
         }
     }
 }

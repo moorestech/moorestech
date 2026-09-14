@@ -72,10 +72,25 @@ namespace Client.Game.InGame.BugReport
             // Claiming Dirty=false when status is unreadable would reproduce the report as a clean working tree with no edits
             var dirty = !statusRead || status.Trim().Length > 0;
             result.State = new RepositoryState { Commit = commit.Trim(), Branch = branchRead ? branch.Trim() : "", Dirty = dirty };
-            result.TrackedChangesPresent = !statusRead || HasTrackedChange(status);
+            result.TrackedChangesPresent = !statusRead || HasTrackedChange();
             result.DiffText = diff;
             result.UntrackedFiles = new List<string>(untracked.Split('\n', StringSplitOptions.RemoveEmptyEntries));
             return result;
+
+            #region Internal
+
+            // 未追跡だけのdirtyでは diff HEAD は空が正常。先頭2文字が ?? 以外の行だけを追跡ファイルの変更とみなす
+            // With untracked-only dirt an empty diff HEAD is normal; only lines whose first two characters are not ?? count as tracked changes
+            bool HasTrackedChange()
+            {
+                foreach (var line in status.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (!line.StartsWith("??", StringComparison.Ordinal)) return true;
+                }
+                return false;
+            }
+
+            #endregion
         }
 
         // 失敗した問い合わせは結果へ理由を積む。捨てると「取れなかった」と「空だった」が同じ見た目になる
@@ -85,17 +100,6 @@ namespace Client.Game.InGame.BugReport
             if (TryGit(repositoryRoot, arguments, out stdout, out var error)) return true;
             Debug.LogWarning($"リポジトリ状態の一部を取れません: {error}");
             result.QueryFailures.Add(error);
-            return false;
-        }
-
-        // 未追跡だけのdirtyでは diff HEAD は空が正常。先頭2文字が ?? 以外の行だけを追跡ファイルの変更とみなす
-        // With untracked-only dirt an empty diff HEAD is normal; only lines whose first two characters are not ?? count as tracked changes
-        private static bool HasTrackedChange(string statusPorcelain)
-        {
-            foreach (var line in statusPorcelain.Split('\n', StringSplitOptions.RemoveEmptyEntries))
-            {
-                if (!line.StartsWith("??", StringComparison.Ordinal)) return true;
-            }
             return false;
         }
 

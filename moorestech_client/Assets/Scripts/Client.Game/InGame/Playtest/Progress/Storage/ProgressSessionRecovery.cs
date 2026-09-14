@@ -32,27 +32,31 @@ namespace Client.Game.InGame.Playtest.Progress
             var missing = new List<MissingItem>(skipped);
             var header = ProgressRecordFiles.ReadHeader(sessionDirectory);
             var events = ProgressRecordFiles.ReadEvents(sessionDirectory, out _);
-            var sessionEnd = ResolveSessionEnd(header, events, missing);
+            var sessionEnd = ResolveSessionEnd();
             var endReason = previousExitWasClean ? ProgressEndReason.Quit : ProgressEndReason.CrashRecovered;
 
             var bundle = ProgressRecordFiles.CloseCurrentInto(sessionDirectory, endReason, sessionEnd, missing);
             if (bundle == null) Debug.LogWarning($"前回の進行記録を閉じられなかったため送れません {sessionDirectory} endReason:{endReason}");
             return bundle;
-        }
 
-        // 終了時刻は分からないので最後のイベント時刻を使う。イベントが無ければ開始時刻に潰れる
-        // The exit time is unknown, so the last event's time is used; with no events it collapses to the session start
-        private static DateTime ResolveSessionEnd(ProgressRecordHeader header, List<ProgressEventEntry> events, List<MissingItem> missing)
-        {
-            var last = 0 < events.Count ? events[events.Count - 1].T : header?.SessionStart;
-            if (ProgressUtcTime.TryParseIso(last, out var parsed)) return parsed;
+            #region Internal
 
-            // 読めない時刻で潰すと playSeconds が回収時刻基準になる。壊れていた事実を残す
-            // Collapsing an unreadable time bases playSeconds on the recovery moment, so the corruption is recorded
-            var reason = $"前回セッションの終了時刻を読めないため回収時刻で代用した value:{last}";
-            Debug.LogWarning($"進行記録の回収: {reason}");
-            missing.Add(new MissingItem { Item = "sessionEnd", Reason = reason });
-            return DateTime.UtcNow;
+            // 終了時刻は分からないので最後のイベント時刻を使う。イベントが無ければ開始時刻に潰れる
+            // The exit time is unknown, so the last event's time is used; with no events it collapses to the session start
+            DateTime ResolveSessionEnd()
+            {
+                var last = 0 < events.Count ? events[events.Count - 1].T : header?.SessionStart;
+                if (ProgressUtcTime.TryParseIso(last, out var parsed)) return parsed;
+
+                // 読めない時刻で潰すと playSeconds が回収時刻基準になる。壊れていた事実を残す
+                // Collapsing an unreadable time bases playSeconds on the recovery moment, so the corruption is recorded
+                var reason = $"前回セッションの終了時刻を読めないため回収時刻で代用した value:{last}";
+                Debug.LogWarning($"進行記録の回収: {reason}");
+                missing.Add(new MissingItem { Item = "sessionEnd", Reason = reason });
+                return DateTime.UtcNow;
+            }
+
+            #endregion
         }
     }
 }
