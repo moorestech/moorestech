@@ -66,6 +66,47 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
+        public void トークンの無い200では許可しない()
+        {
+            var api = new FakeApi();
+            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true}" });
+            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
+
+            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
+
+            Assert.AreEqual(PlaytestSessionOutcome.Unreachable, result.Outcome);
+            Assert.IsFalse(session.HasToken);
+        }
+
+        [Test]
+        public void JSONでない200では許可しない()
+        {
+            // キャプティブポータルは200でHTMLを返す。例外を外へ漏らさずUnreachableへ畳む
+            // A captive portal answers 200 with HTML; that must fold into Unreachable instead of throwing out
+            var api = new FakeApi();
+            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "<html>sign in to the wifi</html>" });
+            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
+
+            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
+
+            Assert.AreEqual(PlaytestSessionOutcome.Unreachable, result.Outcome);
+            Assert.IsFalse(session.HasToken);
+        }
+
+        [Test]
+        public void allowedが立っていない200では許可しない()
+        {
+            var api = new FakeApi();
+            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":false,\"token\":\"tok-1\"}" });
+            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
+
+            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
+
+            Assert.AreEqual(PlaytestSessionOutcome.NotAllowed, result.Outcome);
+            Assert.IsFalse(session.HasToken);
+        }
+
+        [Test]
         public void チケットが取れなければ受け口を叩かない()
         {
             var api = new FakeApi();

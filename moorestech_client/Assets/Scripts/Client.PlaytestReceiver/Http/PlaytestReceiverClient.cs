@@ -28,11 +28,14 @@ namespace Client.PlaytestReceiver.Http
             {
                 Content = new StringContent($"{{\"ticket\":\"{ticketHex}\"}}", Encoding.UTF8, "application/json"),
             };
-            return SendAsync(request, token);
+            return SendAsync(request, TimeSpan.FromSeconds(PlaytestReceiverConfig.HttpTimeoutSeconds), token);
         }
 
         public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, string kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
         {
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/v1/uploads/{PlaytestUploadPath.ForFile(kind, bundleId, relativePath)}");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+
             // ファイルを開くのはOS境界。開けないときは送信前に到達失敗へ畳み、呼び出し側の分岐を増やさない
             // Opening the file is an OS boundary; a failure folds into a transport failure before anything is sent
             FileStream stream;
@@ -42,6 +45,7 @@ namespace Client.PlaytestReceiver.Http
             }
             catch (Exception exception)
             {
+                request.Dispose();
                 var message = exception.GetBaseException().Message;
                 Debug.LogWarning($"[PlaytestReceiver] could not open {absoluteFilePath}: {message}");
                 return UniTask.FromResult(new PlaytestApiResult { TransportError = message });
@@ -53,35 +57,35 @@ namespace Client.PlaytestReceiver.Http
             // The receiver requires Content-Length and answers 411 without it, so the length is set explicitly
             content.Headers.ContentLength = stream.Length;
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            request.Content = content;
 
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/v1/uploads/{kind}/{bundleId}/{relativePath}")
-            {
-                Content = content,
-            };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            return SendAsync(request, token);
+            return SendAsync(request, PlaytestReceiverConfig.UploadTimeout(stream.Length), token);
         }
 
         public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, string kind, string bundleId, string summaryJson, CancellationToken token)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v1/uploads/{kind}/{bundleId}/complete")
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v1/uploads/{PlaytestUploadPath.ForComplete(kind, bundleId)}")
             {
                 Content = new StringContent(summaryJson, Encoding.UTF8, "application/json"),
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            return SendAsync(request, token);
+            return SendAsync(request, TimeSpan.FromSeconds(PlaytestReceiverConfig.HttpTimeoutSeconds), token);
         }
 
-        private static async UniTask<PlaytestApiResult> SendAsync(HttpRequestMessage request, CancellationToken token)
+        // 期限は呼び出しごとに与える。HttpClient.Timeoutは本文送信を含む全体に効き、大きい箱を回線速度で殺すため使わない
+        // The deadline is per call; HttpClient.Timeout covers body upload too and would kill big bundles on slow lines
+        private static async UniTask<PlaytestApiResult> SendAsync(HttpRequestMessage request, TimeSpan timeout, CancellationToken token)
         {
             var requestUri = request.RequestUri;
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+            deadline.CancelAfter(timeout);
 
             // ネットワーク送受信は外部境界。到達失敗をTransportErrorへ隔離し、呼び出し側は状態コードだけを見る
             // Network I/O is an external boundary; unreachability is isolated into TransportError for the caller
             try
             {
                 using (request)
-                using (var response = await Client.SendAsync(request, token))
+                using (var response = await Client.SendAsync(request, deadline.Token))
                 {
                     var body = await response.Content.ReadAsStringAsync();
                     return new PlaytestApiResult { StatusCode = (int)response.StatusCode, Body = body };
@@ -91,9 +95,17 @@ namespace Client.PlaytestReceiver.Http
             {
                 throw;
             }
+            catch (OperationCanceledException)
+            {
+                var message = $"timed out after {timeout.TotalSeconds:0}s";
+                Debug.LogWarning($"[PlaytestReceiver] request to {requestUri} {message}");
+                return new PlaytestApiResult { TransportError = message };
+            }
             catch (Exception exception)
             {
-                var message = exception.GetBaseException().Message;
+                // 例外の型名も残す。到達失敗に見える実装バグを後から選り分けられるようにする
+                // The exception type is kept so an implementation bug disguised as unreachability can be told apart later
+                var message = $"{exception.GetType().Name}: {exception.GetBaseException().Message}";
                 Debug.LogWarning($"[PlaytestReceiver] request to {requestUri} failed: {message}");
                 return new PlaytestApiResult { TransportError = message };
             }
@@ -101,7 +113,7 @@ namespace Client.PlaytestReceiver.Http
 
         private static HttpClient CreateClient()
         {
-            return new HttpClient { Timeout = TimeSpan.FromSeconds(PlaytestReceiverConfig.HttpTimeoutSeconds) };
+            return new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
         }
     }
 }

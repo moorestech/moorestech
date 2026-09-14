@@ -3,7 +3,6 @@ using System.Threading;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;
 using Cysharp.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Client.PlaytestReceiver
@@ -65,9 +64,24 @@ namespace Client.PlaytestReceiver
             if (response.StatusCode == 401) return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.TicketRejected, Detail = response.Body };
             if (response.StatusCode != 200) return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Unreachable, Detail = $"HTTP {response.StatusCode}" };
 
-            var parsed = JObject.Parse(response.Body);
-            SteamId = (string)parsed["steamId"];
-            _token = (string)parsed["token"];
+            // 200でも本文は外部入力。形が違えば到達できなかったのと同じ扱いにし、トークン無しでAllowedを返さない
+            // Even a 200 body is external input; a malformed one counts as not reaching the receiver, never as Allowed
+            var parsed = PlaytestSessionResponse.Parse(response.Body);
+            if (parsed == null)
+            {
+                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Unreachable, Detail = "malformed session response" };
+            }
+
+            // 受け口は拒否を403で返す。200でallowedが立っていないのは契約違反なので、拒否側へ倒す
+            // The receiver denies with 403, so a 200 without allowed breaks the contract and falls to the denying side
+            if (!parsed.Allowed)
+            {
+                Debug.LogWarning("[PlaytestReceiver] session answered 200 without allowed; treating it as not allowed");
+                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.NotAllowed, Detail = "200 without allowed" };
+            }
+
+            SteamId = parsed.SteamId;
+            _token = parsed.Token;
             _tokenIssuedAtUtc = utcNow;
             return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Allowed, SteamId = SteamId };
         }

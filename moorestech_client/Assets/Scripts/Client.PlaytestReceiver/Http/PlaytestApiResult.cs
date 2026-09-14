@@ -9,6 +9,5 @@ namespace Client.PlaytestReceiver.Http
         public string TransportError;
 
         public bool IsTransportFailure => TransportError != null;
-        public bool IsSuccess => TransportError == null && StatusCode >= 200 && StatusCode < 300;
     }
 }

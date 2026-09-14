@@ -39,6 +39,14 @@ namespace Client.PlaytestReceiver.Steam
 
         public async UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token)
         {
+            // 待ち受けは1本だけ。重ねると前の待ちが宙に浮き、どちらのチケットが返ったのか分からなくなる
+            // Only one wait may be in flight; overlapping ones orphan the previous await and blur which ticket arrived
+            if (_callback != null)
+            {
+                Debug.LogWarning("[PlaytestReceiver] a web api ticket request is already in flight");
+                return null;
+            }
+
             _pending = new UniTaskCompletionSource<string>();
             if (!TryRequestTicket())
             {

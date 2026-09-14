@@ -18,6 +18,17 @@ namespace Client.PlaytestReceiver
         public const int TokenRefreshAfterSeconds = 2700;
         public const long MaxFileBytes = 100L * 1024 * 1024;
 
+        // アップロードの期限は本文の送信時間を含む。遅い回線の大きい箱を殺さないよう、サイズに比例した猶予を足す
+        // An upload deadline covers the body too, so slow lines get extra time proportional to the file size
+        public const int UploadBytesPerSecondBudget = 128 * 1024;
+        public const int MaxUploadTimeoutSeconds = 900;
+
+        public static TimeSpan UploadTimeout(long fileBytes)
+        {
+            var seconds = HttpTimeoutSeconds + fileBytes / UploadBytesPerSecondBudget;
+            return TimeSpan.FromSeconds(Math.Min(seconds, MaxUploadTimeoutSeconds));
+        }
+
         public static string BaseUrl
         {
             get
