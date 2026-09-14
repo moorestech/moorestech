@@ -44,7 +44,7 @@ namespace Client.Game.InGame.Playtest.Progress
         // The exit time is unknown, so the last event's time is used; with no events it collapses to the session start
         private static DateTime ResolveSessionEnd(ProgressRecordHeader header, List<ProgressEventEntry> events, List<MissingItem> missing)
         {
-            var last = events.Count > 0 ? events[events.Count - 1].T : header?.SessionStart;
+            var last = 0 < events.Count ? events[events.Count - 1].T : header?.SessionStart;
             if (ProgressUtcTime.TryParseIso(last, out var parsed)) return parsed;
 
             // 読めない時刻で潰すと playSeconds が回収時刻基準になる。壊れていた事実を残す

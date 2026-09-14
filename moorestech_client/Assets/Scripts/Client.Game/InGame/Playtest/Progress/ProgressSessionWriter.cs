@@ -8,7 +8,7 @@ namespace Client.Game.InGame.Playtest.Progress
 {
     // 1セッションぶんの current/pid_<PID>/ への書き込み口。書き出した後はヘッダ更新も追記も受け付けず current/ を復活させない
     // The single write port into current/pid_<PID>/ for one session; after the record is written no header update or append may resurrect current/
-    public sealed class ProgressSessionWriter : IDisposable
+    internal sealed class ProgressSessionWriter : IDisposable
     {
         private readonly string _sessionDirectory = ProgressCurrentSession.DirectoryForCurrentProcess();
         private ProgressRecordHeader _header;

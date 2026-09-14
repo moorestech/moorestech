@@ -6,7 +6,7 @@ namespace Client.Game.InGame.Playtest.Progress
 {
     // イベント列から集計値を導く。baseline と event 由来の重複判定を1つの集合で行い、二重計上を構造的に防ぐ
     // Derives the aggregates from the event list; one set decides duplicates for both baseline and event origins, so double counting cannot happen
-    public sealed class ProgressRecordAggregate
+    internal sealed class ProgressRecordAggregate
     {
         public List<string> ReachedChallenges;
         public List<string> CompletedResearch;

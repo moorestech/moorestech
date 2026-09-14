@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using Game.Paths;
 
@@ -20,7 +21,7 @@ namespace Client.Game.InGame.BugReport.Playtest
         public static void Acknowledge()
         {
             Directory.CreateDirectory(GameSystemPaths.BugReportDirectory);
-            File.WriteAllText(FilePath, DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'"));
+            File.WriteAllText(FilePath, DateTime.UtcNow.ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture));
         }
     }
 }

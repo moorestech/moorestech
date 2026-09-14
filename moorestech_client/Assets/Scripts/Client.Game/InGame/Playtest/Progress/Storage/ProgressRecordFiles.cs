@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Playtest.Progress
 {
     // 進行中セッションを current/pid_<PID>/ に追記し、終了時に outbox の1箱へ畳む。追記形式なので落ちても直前まで残る
     // Appends the in-flight session under current/pid_<PID>/ and folds it into one outbox box at the end; append-only survives a crash
-    public static class ProgressRecordFiles
+    internal static class ProgressRecordFiles
     {
         public static SalvageOperationResult WriteHeader(string sessionDirectory, ProgressRecordHeader header)
         {
@@ -67,7 +67,7 @@ namespace Client.Game.InGame.Playtest.Progress
 
             var events = ReadEvents(sessionDirectory, out var brokenLineCount);
             var header = ReadHeader(sessionDirectory) ?? CreateHeaderForLostHeader(events);
-            if (brokenLineCount > 0) header.AddMissing(ProgressRecordPaths.EventsFileName, $"読めないイベント行を捨てた count:{brokenLineCount}");
+            if (0 < brokenLineCount) header.AddMissing(ProgressRecordPaths.EventsFileName, $"読めないイベント行を捨てた count:{brokenLineCount}");
             foreach (var item in extraMissing) header.Missing.Add(item);
 
             var directory = BugReportOutbox.CreateBundleDirectory(GameSystemPaths.ProgressRecordOutboxDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
@@ -90,7 +90,7 @@ namespace Client.Game.InGame.Playtest.Progress
         // A leftover that lost its header still yields its events; unfillable values are declared as gaps with reasons instead of silently defaulting
         private static ProgressRecordHeader CreateHeaderForLostHeader(List<ProgressEventEntry> events)
         {
-            var header = new ProgressRecordHeader { SessionStart = events.Count > 0 ? events[0].T : "" };
+            var header = new ProgressRecordHeader { SessionStart = 0 < events.Count ? events[0].T : "" };
             header.AddMissing("header", $"ヘッダが無い（または壊れている）ため steamId・worldCreatedAt・baseline を埋められない events:{events.Count}");
             return header;
         }

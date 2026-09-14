@@ -5,7 +5,7 @@ namespace Client.Game.InGame.Playtest.Progress
 {
     // 1種別につき「組む」と「読む」を隣に置く。キー文字列が生成側と消費側へ二重定義されると片側改名が無音で集計を落とす
     // Builder and reader sit together per type; duplicating the key strings across producer and consumer lets a one-sided rename drop the aggregate in silence
-    public static class ProgressEvents
+    internal static class ProgressEvents
     {
         private const string CountKey = "count";
         private const string StateKey = "state";

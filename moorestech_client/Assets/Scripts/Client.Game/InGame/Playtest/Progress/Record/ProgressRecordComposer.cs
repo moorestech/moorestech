@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Playtest.Progress
 {
     // ヘッダとイベント列から record.json を組む純関数。集計もキャンセル合成もここだけで行う（shared-contracts §3）
     // A pure function composing record.json from the header and events; all aggregation and cancel synthesis live here (shared-contracts §3)
-    public static class ProgressRecordComposer
+    internal static class ProgressRecordComposer
     {
         // 建築モードの判定はUI状態のSSOTから引く。文字列を持つと状態名の改名で合成が無音で止まる
         // The build-mode check comes from the UI state SSOT; a literal would silently stop the synthesis when the state is renamed
@@ -62,7 +62,7 @@ namespace Client.Game.InGame.Playtest.Progress
             foreach (var entry in events)
             {
                 if (insideBuildMode && entry.Type == ProgressEventType.BlockPlaced)
-                    placedInsideBuildMode |= ProgressEvents.TryReadPlacedCount(entry, out var count) && count > 0;
+                    placedInsideBuildMode |= ProgressEvents.TryReadPlacedCount(entry, out var count) && 0 < count;
 
                 if (entry.Type == ProgressEventType.UiStateChanged)
                 {
@@ -89,7 +89,7 @@ namespace Client.Game.InGame.Playtest.Progress
             }
 
             var seconds = (sessionEndUtc - sessionStart).TotalSeconds;
-            if (seconds >= 0) return seconds;
+            if (0 <= seconds) return seconds;
 
             AddMissing(missing, "playSeconds", $"終了時刻が開始時刻より前のため0秒として記録した start:{header.SessionStart} end:{ProgressUtcTime.ToIso(sessionEndUtc)}");
             return 0;
@@ -106,7 +106,7 @@ namespace Client.Game.InGame.Playtest.Progress
             }
 
             var sinceCaptured = (sessionEndUtc - capturedAt).TotalSeconds;
-            if (sinceCaptured >= 0) return header.TotalPlaySecondsAtStart + sinceCaptured;
+            if (0 <= sinceCaptured) return header.TotalPlaySecondsAtStart + sinceCaptured;
 
             AddMissing(missing, "totalPlaySeconds", $"取得時刻が終了時刻より後のため取得時点の値をそのまま記録した capturedAt:{header.TotalPlaySecondsCapturedAt}");
             return header.TotalPlaySecondsAtStart;

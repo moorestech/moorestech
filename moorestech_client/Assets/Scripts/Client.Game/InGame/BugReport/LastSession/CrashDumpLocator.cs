@@ -7,19 +7,19 @@ namespace Client.Game.InGame.BugReport.LastSession
 {
     // Unityが残すクラッシュダンプの置き場。Windowsは %LOCALAPPDATA%\Temp\<company>\<product>\Crashes が既定
     // Where Unity leaves crash dumps; on Windows the default is %LOCALAPPDATA%\Temp\<company>\<product>\Crashes
-    public static class CrashDumpLocator
+    internal static class CrashDumpLocator
     {
-        public const string CrashesFolderName = "Crashes";
+        internal const string CrashesFolderName = "Crashes";
 
         // Editorのプロセス名。Editor起動のクラッシュを自分の記録として拾うための正本
         // The Editor's process name; the single source for recognizing an Editor boot's crash as ours
-        public const string EditorProcessName = "Unity";
+        private const string EditorProcessName = "Unity";
 
         // 前回セッションの時刻境界が取れないときだけ使う保険の窓。実在する境界が取れるならそちらが常に優先される
         // A fallback window used only when no real boundary for the previous session exists; a real one always wins
-        public const int FallbackLookbackHours = -24;
+        private const int FallbackLookbackHours = -24;
 
-        public static IReadOnlyList<string> CandidateRoots()
+        private static IReadOnlyList<string> CandidateRoots()
         {
             var roots = new List<string>();
             foreach (var root in CandidateDumpRoots()) roots.Add(root.Path);
@@ -28,7 +28,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
         // どの置き場が共有かの宣言そのものが絞り込みの要。宣言を落とすと他アプリのダンプが素通りするためテストから見える形で置く
         // The shared/dedicated declaration is the filter itself: dropping it lets other apps' dumps through, so tests can read it
-        public static IReadOnlyList<CrashDumpRoot> CandidateDumpRoots()
+        internal static IReadOnlyList<CrashDumpRoot> CandidateDumpRoots()
         {
             // Client.Game.InGame.Environment（地形namespace）と同名衝突するため System.Environment を完全修飾する
             // Fully-qualified as System.Environment to avoid colliding with the sibling Client.Game.InGame.Environment namespace
@@ -51,7 +51,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
         // 前回セッションが実在した時刻より後のダンプだけを拾う。境界を「直近24時間」で代用すると他アプリの古い記録まで入る
         // Takes only dumps newer than when the previous session actually existed; a "last 24 hours" stand-in would sweep in other apps' old records
-        public static CrashDumpScanResult FindDumpFiles()
+        internal static CrashDumpScanResult FindDumpFiles()
         {
             var since = PreviousSessionBoundaryUtc();
             var candidates = new List<CrashDumpCandidate>();
@@ -64,7 +64,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
         // 前回セッションのログの最終更新時刻が「そのセッションが確かに動いていた」唯一の実在する印
         // The previous session log's last write is the only real evidence of when that session was actually running
-        public static DateTime PreviousSessionBoundaryUtc()
+        private static DateTime PreviousSessionBoundaryUtc()
         {
             var previousLogPath = PlayerLogLocator.PreviousSessionLogPath();
             if (previousLogPath == null) return DateTime.UtcNow.AddHours(FallbackLookbackHours);
@@ -93,7 +93,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
         // 「そもそも無かった」と「他アプリとして除外した結果0件」を読み分けられる理由文にする。無音の縮退を残さない
         // The reason distinguishes "there were none" from "all were filtered out as other apps'", leaving no silent degradation
-        public static string MissingReason(CrashDumpScanResult scan)
+        internal static string MissingReason(CrashDumpScanResult scan)
         {
             var roots = string.Join(", ", CandidateRoots());
             if (scan.ExcludedAsOtherApps == 0) return $"クラッシュダンプが見つからない（探索先: {roots}）";
@@ -102,7 +102,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
         // 置き場の共有宣言だけを見て選別する純粋関数。実ファイルを置かずに配線ごと検証できる
         // A pure selection driven only by the roots' shared declaration, so the wiring is verifiable without real files
-        public static CrashDumpScanResult SelectDumpFiles(IReadOnlyList<CrashDumpCandidate> candidates, string productName)
+        internal static CrashDumpScanResult SelectDumpFiles(IReadOnlyList<CrashDumpCandidate> candidates, string productName)
         {
             var result = new CrashDumpScanResult();
             foreach (var candidate in candidates)
@@ -132,7 +132,7 @@ namespace Client.Game.InGame.BugReport.LastSession
         // A shared root's report is named <process>-<date>.ips, so only names starting with the exact process name count as ours
         // '-'で切ると、プロセス名自体にハイフンを含む製品が自分のダンプを他アプリとして捨てる
         // Splitting on '-' would make a product whose own name contains a hyphen discard its own dumps as another app's
-        public static bool IsOwnProcessDumpName(string fileName, string productName)
+        internal static bool IsOwnProcessDumpName(string fileName, string productName)
         {
             if (string.IsNullOrEmpty(fileName)) return false;
 

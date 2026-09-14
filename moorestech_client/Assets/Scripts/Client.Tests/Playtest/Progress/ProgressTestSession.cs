@@ -8,14 +8,14 @@ namespace Client.Tests.Playtest
     {
         public static string Directory => ProgressCurrentSession.DirectoryForCurrentProcess();
 
-        public static void WriteHeader(ProgressRecordHeader header)
+        internal static void WriteHeader(ProgressRecordHeader header)
         {
             ProgressRecordFiles.WriteHeader(Directory, header);
         }
 
         // 追記口を開いて閉じるだけ。記録は書き出さないので、呼んだ後の current/ は「落ちた直後」と同じ状態になる
         // Opens and closes the appender without writing a record, so current/ ends up exactly as it looks right after a crash
-        public static void AppendEvent(ProgressEventEntry entry)
+        internal static void AppendEvent(ProgressEventEntry entry)
         {
             var writer = new ProgressSessionWriter();
             writer.Append(entry);

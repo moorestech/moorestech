@@ -6,7 +6,7 @@ namespace Client.Game.InGame.Playtest.Progress
 {
     // 進行記録のイベント種別。文字列は受け口・集計側と共有する契約値（shared-contracts §3）
     // Progress event types; these strings are the contract shared with the receiver and the digest (shared-contracts §3)
-    public static class ProgressEventType
+    internal static class ProgressEventType
     {
         public const string ResearchCompleted = "researchCompleted";
         public const string ChallengeCompleted = "challengeCompleted";
@@ -20,7 +20,7 @@ namespace Client.Game.InGame.Playtest.Progress
         public const string CraftRequested = "craftRequested";
     }
 
-    public sealed class ProgressEventEntry
+    internal sealed class ProgressEventEntry
     {
         public string T;
         public ulong Tick;

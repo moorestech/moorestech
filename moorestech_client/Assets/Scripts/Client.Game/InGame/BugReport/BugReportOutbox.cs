@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using Game.Paths;
 using UnityEngine;
@@ -13,11 +14,15 @@ namespace Client.Game.InGame.BugReport
 
         public static string DefaultRootDirectory => GameSystemPaths.BugReportOutboxDirectory;
 
+        // 箱名の日時。暦がグレゴリオ暦でないロケールだと年が別暦で刻まれ、運搬側の時系列が崩れる
+        // The timestamp in a box name; a non-Gregorian locale would stamp another calendar's year and break the shipper's ordering
+        private const string DirectoryTimestampFormat = "yyyyMMdd_HHmmss";
+
         // 箱の名前は「時刻＋短いid」の1規約。進行記録など別ツリーの置き場も同じ規約を共有するため root を引数で受ける
         // One naming rule of "timestamp + short id"; the root is an argument so other trees such as the progress records share the same rule
         public static string CreateBundleDirectory(string rootDirectory, DateTime now, string shortId)
         {
-            var directory = Path.Combine(rootDirectory, $"{now:yyyyMMdd_HHmmss}_{shortId}");
+            var directory = Path.Combine(rootDirectory, $"{now.ToString(DirectoryTimestampFormat, CultureInfo.InvariantCulture)}_{shortId}");
             Directory.CreateDirectory(directory);
             return directory;
         }

@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Playtest.Progress
 {
     // セッション開始時に確定する文脈。終了時に組む record.json の土台になる
     // The context fixed at session start; the base for the record.json composed at the end
-    public sealed class ProgressRecordHeader
+    internal sealed class ProgressRecordHeader
     {
         private static readonly JsonSerializerSettings Settings = new()
         {

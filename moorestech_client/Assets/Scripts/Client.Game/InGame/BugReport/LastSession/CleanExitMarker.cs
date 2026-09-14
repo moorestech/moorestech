@@ -16,8 +16,6 @@ namespace Client.Game.InGame.BugReport.LastSession
         public const string SessionMarkerPrefix = "session_";
         public const string CleanMarkerPrefix = "clean_";
 
-        // Client.Game に InternalsVisibleTo が無く Client.Tests から internal が見えないため、公開面は public に留める
-        // The surface stays public because Client.Game has no InternalsVisibleTo and Client.Tests cannot see internals
         public static string SessionMarkerPath(int processId)
         {
             return Path.Combine(GameSystemPaths.BugReportLastSessionDirectory, SessionMarkerPrefix + processId.ToString(CultureInfo.InvariantCulture));
@@ -86,7 +84,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
-                File.WriteAllText(path, DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture));
+                File.WriteAllText(path, DateTime.UtcNow.ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture));
             }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
             {
