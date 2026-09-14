@@ -62,11 +62,11 @@
 - 作業ブランチ: `feature/playtest-receiver`。`moores-wt new feature/playtest-receiver` で使い捨て worktree を切って作業する（CLAUDE.local.md）。
 - `.cs` を変更したら `uloop compile --project-path ./moorestech_client`。EditMode テストは `uloop run-tests --project-path ./moorestech_client --test-mode EditMode --filter-type regex --filter-value "Client\.Tests\.PlaytestReceiver\..*"`（Domain Reload エラーは45秒待ってリトライ）。
 - Worker は `cd tools/playtest-receiver && pnpm install`／`pnpm test`／`pnpm typecheck`。`pnpm test` はネットワークへ出ない（Steam Web API は必ず fetch 差し替えで検証する）。
-- ネットワーク送受信は AGENTS.md が認める外部境界。`try-catch` を使ってよいのは `PlaytestReceiverClient` の HTTP 呼び出しと `PlaytestSteamTicketProvider` のネイティブ interop だけで、`EditorProcessRunner.cs:39-50` と同じく **`try` の直上に日英2行で「なぜここが境界か」を書く**。それ以外の try-catch は禁止。
+- ネットワーク送受信は AGENTS.md が認める外部境界。`try-catch` を使ってよいのは `PlaytestReceiverClient` の HTTP 呼び出し・`File.OpenRead`、`PlaytestSessionResponse` の応答 JSON パース、`PlaytestSteamTicketProvider` のネイティブ interop、`PlaytestOutboxScanner`/`PlaytestUploadAttemptLog` のファイル I/O だけで（実装時に外部境界として拡張。catch を持たない `finally` の状態復帰は対象外）、`EditorProcessRunner.cs:39-50` と同じく **`try` の直上に日英2行で「なぜここが境界か」を書く**。それ以外の try-catch は禁止。
 - fail-closed で拒否・スキップする経路（照合不許可・到達不能・チケット失敗・巨大ファイルのスキップ・箱の恒久失敗）は必ず `Debug.LogWarning`／`Debug.LogError`（Worker 側は `console.warn`）に理由を出す。無音の縮退は禁止。
 - コメントは「// 日本語 → // English」2行セット、3〜10行ごと。1ファイル200行以下、1ディレクトリ10ファイル以下。partial・`Func<>`・デフォルト引数・単純getter/setter プロパティ禁止。イベント通知は UniRx。`Update()` ポーリング禁止。
 - Worker の TypeScript にも日英2行コメント規約と200行/10ファイル制限を適用する。
-- 型名・ファイル名は本plan記載のとおり（`PlaytestReceiverConfig`・`PlaytestSteamTicketProvider`・`IPlaytestReceiverApi`・`PlaytestReceiverClient`・`PlaytestApiResult`・`PlaytestSessionResponse`・`IPlaytestSessionLookup`・`PlaytestSession`・`PlaytestGateStatus`・`PlaytestGateResult`・`PlaytestGateDecision`・`PlaytestLaunchGate`・`PlaytestBuildInfoFile`・`PlaytestLaunchGateView`・`PlaytestOutboxScanner`・`PlaytestOutboxBox`・`PlaytestUploadAttemptLog`・`IPlaytestUploadRequester`・`PlaytestUploader`）。
+- 型名・ファイル名は本plan記載のとおり（`PlaytestReceiverConfig`・`PlaytestSteamTicketProvider`・`IPlaytestReceiverApi`・`PlaytestReceiverClient`・`PlaytestApiResult`・`PlaytestSessionResponse`・`IPlaytestSessionLookup`・`PlaytestSession`・`PlaytestSessionResult`・`PlaytestSessionResponse`・`PlaytestUploadPath`・`PlaytestGateStatus`・`PlaytestGateResult`・`PlaytestGateDecision`・`PlaytestLaunchGate`・`PlaytestBuildInfoFile`・`PlaytestLaunchGateView`・`PlaytestOutboxScanner`・`PlaytestOutboxBox`・`PlaytestUploadAttemptLog`・`IPlaytestUploadRequester`・`PlaytestUploader`・`PlaytestUploadRunner`・`PlaytestUploadFailurePolicy`）。
 - `.meta` ファイルは絶対に手で作らない。新規 `.asmdef`・`.cs` を足したら `uloop compile` を回し、Unity が生成した `.meta` をコミットに含める。
 - Unity のシーン・Prefab をテキストで編集しない。MainMenu シーンへのコンポーネント追加は `uloop execute-dynamic-code` 経由のみ。
 - 各タスク末尾でコミット。コミットメッセージ末尾に以下を付ける:
@@ -105,7 +105,7 @@
 mkdir -p tools/playtest-receiver/src tools/playtest-receiver/test
 cd tools/playtest-receiver
 pnpm init
-pnpm add -D typescript@^5.7.2 wrangler@^4 vitest@^3.2.4 @cloudflare/vitest-pool-workers@^0.9.0
+pnpm add -D typescript@^5.7.2 wrangler@^4 vitest@^4 @cloudflare/vitest-pool-workers@^0.22   # 実装時: vitest 4 + pool 0.22（config は defineConfig + cloudflareTest() プラグイン形式、types は @cloudflare/vitest-pool-workers/types）
 ```
 Expected: `node_modules/` と `pnpm-lock.yaml` が出来る。`@cloudflare/vitest-pool-workers` が要求する vitest のバージョン範囲が合わなければ peer 警告が出るので、警告に書かれた範囲へ `pnpm add -D vitest@<範囲>` で合わせる（別のテスト機構へ逃げない）。
 
@@ -3608,9 +3608,9 @@ Allowed → PlaytestUploadRunner.RequestUpload → PlaytestUploader → outbox �
 - **アップロードの恒久失敗を `UPLOAD_FAILED` で打ち切る** — agent前提。契約 §5 は「失敗は次回に持ち越し」としか言わない。100MiB 超などで恒久的に失敗する箱があると毎回同じ失敗を繰り返すため、5回で見送り印を打ち、理由を `Debug.LogError` に出す（無音で捨てない）。見送った箱は rsync 経路で手動回収できる。
 - **`Client.PlaytestReceiver` は `BuildInfo` 型（共有契約 §1）を参照しない** — agent前提。`BuildInfo` は `Client.Game/InGame/BugReport/` に置かれ、`Client.Game` は `Client.PlaytestReceiver` の下流になる（逆参照は循環）。本planは `build-info.json` の存在判定しかしないため、パス定数だけを重複させる。中身を読む必要が出たら `Game.Paths` 相当の共有層へ型を移す。
 - **`tools/playtest-receiver` は `moorestech_web/webui` と別の pnpm プロジェクトにする** — agent前提。webui の `pnpm-workspace.yaml` は webui 配下に閉じており、Worker は React/Vite と依存が全く重ならない。ワークスペース化はレビューの注目点として提示する。
-- **Task 9 の実出力**: （実装時に転記。`inbox-without-key: <code>` / `allowlist list: <末尾4桁>` / `session-with-bad-ticket: <code>` の3行。鍵と完全な SteamID は書かない）
+- **Task 9 の実出力**: 未実施（2026-09-15 無人実装セッション）。このマシンに wrangler の認証（OAuth ログイン／Workers 権限の API token）と Steamworks publisher key（`STEAM_WEB_API_KEY`）が無く、`wrangler r2 bucket create`・`secret put`・`deploy` を実行できなかった。`pnpm exec wrangler deploy --dry-run` はバンドル成功（20KiB、bindings `BUCKET`・`STEAM_APP_ID`）。実デプロイと3本の curl は bd `moorestech-uet4.1` に子タスクとして積み、実施後にここへ転記する。
 - **Task 7 Step 8 の実測**: `SteamManagerInMainMenu=True, steam_appid.txt=True`（Task 7 実装時に MainMenu.unity を開いて実測）。両方 true なので `SteamManager` の配置漏れ・AppID 未配置は無く、plan E への `bd create` は不要。`SteamAPI.RestartAppIfNecessary(AppId_t.Invalid)` のままで Steam 経由起動時に AppID が解決されるかは Editor からは観測できず未確認のまま（配布ビルドでの確認事項）。
-- **Task 8 Step 6 の可否**: （実装時に転記。plan B 未マージで飛ばしたなら、その旨と積んだ bd の id）
+- **Task 8 Step 6 の可否**: 実施。plan B は PR #1352 でマージ済みだったため `BugReportSubmitActionHandler` への送信直後フック（`IPlaytestUploadRequester` を DI で受ける形）を本planで入れた。
 
 ## Execution Handoff
 
