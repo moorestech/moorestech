@@ -5,6 +5,7 @@ namespace Client.PlaytestReceiver.Gate
     public enum PlaytestGateStatus
     {
         DeveloperMode,
+        Checking,
         Allowed,
         NotAllowed,
         Unreachable,
@@ -35,6 +36,7 @@ namespace Client.PlaytestReceiver.Gate
         {
             get
             {
+                if (Status == PlaytestGateStatus.Checking) return LocalizationKeys.Ui.Playtest.Checking;
                 if (Status == PlaytestGateStatus.NotAllowed) return LocalizationKeys.Ui.Playtest.NotAllowed;
                 if (Status == PlaytestGateStatus.TicketFailed) return LocalizationKeys.Ui.Playtest.TicketFailed;
                 return LocalizationKeys.Ui.Playtest.Unreachable;

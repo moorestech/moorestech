@@ -3609,7 +3609,7 @@ Allowed → PlaytestUploadRunner.RequestUpload → PlaytestUploader → outbox �
 - **`Client.PlaytestReceiver` は `BuildInfo` 型（共有契約 §1）を参照しない** — agent前提。`BuildInfo` は `Client.Game/InGame/BugReport/` に置かれ、`Client.Game` は `Client.PlaytestReceiver` の下流になる（逆参照は循環）。本planは `build-info.json` の存在判定しかしないため、パス定数だけを重複させる。中身を読む必要が出たら `Game.Paths` 相当の共有層へ型を移す。
 - **`tools/playtest-receiver` は `moorestech_web/webui` と別の pnpm プロジェクトにする** — agent前提。webui の `pnpm-workspace.yaml` は webui 配下に閉じており、Worker は React/Vite と依存が全く重ならない。ワークスペース化はレビューの注目点として提示する。
 - **Task 9 の実出力**: （実装時に転記。`inbox-without-key: <code>` / `allowlist list: <末尾4桁>` / `session-with-bad-ticket: <code>` の3行。鍵と完全な SteamID は書かない）
-- **Task 7 Step 8 の実測**: （実装時に転記。`SteamManagerInMainMenu=<bool>, steam_appid.txt=<bool>`）
+- **Task 7 Step 8 の実測**: `SteamManagerInMainMenu=True, steam_appid.txt=True`（Task 7 実装時に MainMenu.unity を開いて実測）。両方 true なので `SteamManager` の配置漏れ・AppID 未配置は無く、plan E への `bd create` は不要。`SteamAPI.RestartAppIfNecessary(AppId_t.Invalid)` のままで Steam 経由起動時に AppID が解決されるかは Editor からは観測できず未確認のまま（配布ビルドでの確認事項）。
 - **Task 8 Step 6 の可否**: （実装時に転記。plan B 未マージで飛ばしたなら、その旨と積んだ bd の id）
 
 ## Execution Handoff

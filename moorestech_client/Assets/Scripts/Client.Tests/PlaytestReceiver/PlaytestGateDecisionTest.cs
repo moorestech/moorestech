@@ -62,6 +62,17 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
+        public void 照合中は止まっていて待ち文言を理由に出す()
+        {
+            // 判定が出るまでの暫定値。ここがIsBlockedでないと待ち時間がそのまま素通しの窓になる
+            // The provisional verdict; if it were not blocked the wait itself would become a bypass window
+            var checking = PlaytestGateDecision.Checking;
+            Assert.AreEqual(PlaytestGateStatus.Checking, checking.Status);
+            Assert.IsTrue(checking.IsBlocked);
+            Assert.AreEqual(LocalizationKeys.Ui.Playtest.Checking.Key, checking.ReasonKey.Key);
+        }
+
+        [Test]
         public void 理由の文言に渡すDetailはnullでも空文字になる()
         {
             // ReasonKeyの文言は{p0}を持つ。nullのまま整形へ流すと呼び出し側ごとにnull対策が要る

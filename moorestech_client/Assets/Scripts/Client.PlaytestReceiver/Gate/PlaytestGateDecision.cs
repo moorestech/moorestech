@@ -6,6 +6,10 @@ namespace Client.PlaytestReceiver.Gate
     {
         public static PlaytestGateResult DeveloperMode => new(PlaytestGateStatus.DeveloperMode, "");
 
+        // 照合の結果が出るまでの暫定値。Decideの分岐ではなく、照合を始めた側が置く
+        // The provisional verdict until the check answers; it is set by whoever starts the check, not by a Decide branch
+        public static PlaytestGateResult Checking => new(PlaytestGateStatus.Checking, "");
+
         public static PlaytestGateResult Decide(bool hasBuildInfo, bool isSteamRunning, PlaytestSessionOutcome outcome, string detail)
         {
             // 配布ビルドの印が無い、またはSteamが動いていない = 開発者の自作ビルド。照合せずrsync経路に任せる

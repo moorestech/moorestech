@@ -47,6 +47,10 @@ namespace Client.PlaytestReceiver.Gate
                 return Current;
             }
 
+            // 判定が出るまでは開始させない。ここがDeveloperModeのままだと、待ち文言を閉じて押すだけで照合を素通しできる
+            // Nothing may start before the verdict; leaving DeveloperMode here lets a tester close the waiting message and start anyway
+            SetCurrent(PlaytestGateDecision.Checking);
+
             var authenticated = await session.AuthenticateAsync(utcNow, token);
             var result = PlaytestGateDecision.Decide(true, true, authenticated.Outcome, authenticated.Detail);
             if (result.IsBlocked)
