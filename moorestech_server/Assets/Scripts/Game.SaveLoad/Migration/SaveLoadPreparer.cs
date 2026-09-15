@@ -29,14 +29,14 @@ namespace Game.SaveLoad.Migration
             {
                 var parseReason = "セーブファイルがJSONとして読めません。";
                 Debug.LogError(parseReason);
-                return PreparedSaveJson.Blocked(parseReason);
+                return PreparedSaveJson.Blocked(SaveLoadBlockedCause.UnreadableJson, parseReason);
             }
 
             var migration = _chain.Migrate(save);
             if (!migration.CanLoad)
             {
-                Debug.LogError($"セーブをロードできません: {migration.BlockedReason}");
-                return PreparedSaveJson.Blocked(migration.BlockedReason);
+                Debug.LogError($"セーブをロードできません: cause={migration.BlockedCause} {migration.BlockedReason}");
+                return PreparedSaveJson.Blocked(migration.BlockedCause.Value, migration.BlockedReason);
             }
 
             // 版が上がらないロードでも除去結果はautosaveで原本を上書きするので、除去の前に必ず原本を退避する

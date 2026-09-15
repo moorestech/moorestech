@@ -107,7 +107,7 @@ namespace Game.SaveLoad.Json
                 if (!prepared.CanLoad)
                 {
                     Debug.LogError($"セーブファイルパス {_worldDataDirectory.SaveJsonFilePath}");
-                    throw new Exception($"セーブファイルをロードできないため起動を中断しました。\n Reason : {prepared.BlockedReason}");
+                    throw new Exception($"セーブファイルをロードできないため起動を中断しました。\n Cause : {prepared.BlockedCause} \n Reason : {prepared.BlockedReason}");
                 }
 
                 try

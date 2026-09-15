@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using Game.Block.Interface;
 using Game.Context;
 using Game.Paths;
@@ -10,6 +11,8 @@ using Game.SaveLoad.Pruning;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.CombinedTest.Game
 {
@@ -106,6 +109,21 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
             Assert.IsFalse(reportStore.Report.HasRemoval);
             Assert.IsFalse(Directory.Exists(WorldDataDirectory.FromWorldRoot(_archiveRoot).SavePrunedDirectory));
+        }
+
+        // JSONとして読めないセーブは生の例外で落とさず、原因つきで拒否する
+        // A save unreadable as JSON is rejected with its cause instead of dying on a raw exception
+        [Test]
+        public void JSONとして読めないセーブは原因つきで拒否されるTest()
+        {
+            LogAssert.Expect(LogType.Error, new Regex("^セーブファイルのJSON解析に失敗しました"));
+            LogAssert.Expect(LogType.Error, new Regex("^セーブファイルがJSONとして読めません"));
+            var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(_archiveRoot);
+
+            var prepared = preparer.Prepare("{ not json");
+
+            Assert.IsFalse(prepared.CanLoad);
+            Assert.AreEqual(SaveLoadBlockedCause.UnreadableJson, prepared.BlockedCause);
         }
 
         // 読み取り面と書き込み面が同じ実体を指していること。別実体だと通知側が常に0件を読む

@@ -82,13 +82,17 @@ namespace Tests.UnitTest.Game.SaveLoad
             var result = CurrentVersionChain().Migrate(JObject.Parse("{\"worldVersion\":999}"));
 
             Assert.IsFalse(result.CanLoad);
+            Assert.AreEqual(SaveLoadBlockedCause.FutureVersion, result.BlockedCause);
             StringAssert.Contains("999", result.BlockedReason);
         }
 
         [Test]
         public void 版0以下のセーブはロードを拒否するTest()
         {
-            Assert.IsFalse(CurrentVersionChain().Migrate(JObject.Parse("{\"worldVersion\":0}")).CanLoad);
+            var result = CurrentVersionChain().Migrate(JObject.Parse("{\"worldVersion\":0}"));
+
+            Assert.IsFalse(result.CanLoad);
+            Assert.AreEqual(SaveLoadBlockedCause.InvalidVersion, result.BlockedCause);
         }
 
         // 変換できなかった手を握り潰すと、未変換のセーブに新版の版番号だけが刻まれてLoadへ渡る
@@ -102,6 +106,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             var result = new SaveMigrationChain(new ISaveMigrationStep[] { new FailingStep(1) }, 2).Migrate(save);
 
             Assert.IsFalse(result.CanLoad);
+            Assert.AreEqual(SaveLoadBlockedCause.StepFailed, result.BlockedCause);
             StringAssert.Contains(FailingStep.Reason, result.BlockedReason);
             Assert.AreEqual(1, result.FromVersion);
             Assert.AreEqual(1, save["worldVersion"].Value<int>());

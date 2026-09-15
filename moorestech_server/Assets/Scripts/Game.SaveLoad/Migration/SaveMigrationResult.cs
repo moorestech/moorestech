@@ -7,28 +7,33 @@ namespace Game.SaveLoad.Migration
     public sealed class SaveMigrationResult
     {
         public bool CanLoad { get; }
+
+        // 原因は分岐と表示の正本、理由文は開発者がログで読むための詳細
+        // The cause is the source of truth for branching and display; the reason text is detail for developers reading logs
+        public SaveLoadBlockedCause? BlockedCause { get; }
         public string BlockedReason { get; }
         public int FromVersion { get; }
         public bool Migrated { get; }
         public JObject Save { get; }
 
-        private SaveMigrationResult(bool canLoad, string blockedReason, int fromVersion, bool migrated, JObject save)
+        private SaveMigrationResult(bool canLoad, SaveLoadBlockedCause? blockedCause, string blockedReason, int fromVersion, bool migrated, JObject save)
         {
             CanLoad = canLoad;
+            BlockedCause = blockedCause;
             BlockedReason = blockedReason;
             FromVersion = fromVersion;
             Migrated = migrated;
             Save = save;
         }
 
-        public static SaveMigrationResult Blocked(int fromVersion, string reason)
+        public static SaveMigrationResult Blocked(int fromVersion, SaveLoadBlockedCause cause, string reason)
         {
-            return new SaveMigrationResult(false, reason, fromVersion, false, null);
+            return new SaveMigrationResult(false, cause, reason, fromVersion, false, null);
         }
 
         public static SaveMigrationResult Completed(int fromVersion, bool migrated, JObject save)
         {
-            return new SaveMigrationResult(true, null, fromVersion, migrated, save);
+            return new SaveMigrationResult(true, null, null, fromVersion, migrated, save);
         }
     }
 }

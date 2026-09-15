@@ -51,14 +51,14 @@ namespace Game.SaveLoad.Migration
         public SaveMigrationResult Migrate(JObject save)
         {
             if (!TryReadWorldVersion(out var fromVersion, out var unreadableReason))
-                return SaveMigrationResult.Blocked(UnreadableWorldVersion, unreadableReason);
+                return SaveMigrationResult.Blocked(UnreadableWorldVersion, SaveLoadBlockedCause.UnreadableWorldVersion, unreadableReason);
 
             if (_currentVersion < fromVersion)
-                return SaveMigrationResult.Blocked(fromVersion,
+                return SaveMigrationResult.Blocked(fromVersion, SaveLoadBlockedCause.FutureVersion,
                     $"セーブの版{fromVersion}はこのビルドが知る現在版{_currentVersion}より新しいため、ロードせずに中断します。ゲームを更新してください。");
 
             if (fromVersion < 1)
-                return SaveMigrationResult.Blocked(fromVersion,
+                return SaveMigrationResult.Blocked(fromVersion, SaveLoadBlockedCause.InvalidVersion,
                     $"セーブの版{fromVersion}は不正です（1以上である必要があります）。ロードせずに中断します。");
 
             if (fromVersion == _currentVersion)
@@ -76,7 +76,7 @@ namespace Game.SaveLoad.Migration
                 {
                     var reason = $"セーブをV{step.FromVersion}からV{step.FromVersion + 1}へ変換できませんでした: {stepResult.FailureReason}";
                     Debug.LogError(reason);
-                    return SaveMigrationResult.Blocked(fromVersion, reason);
+                    return SaveMigrationResult.Blocked(fromVersion, SaveLoadBlockedCause.StepFailed, reason);
                 }
 
                 migrated = stepResult.Save;

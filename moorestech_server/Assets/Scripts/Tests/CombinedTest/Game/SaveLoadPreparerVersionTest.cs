@@ -47,6 +47,7 @@ namespace Tests.CombinedTest.Game
             var prepared = preparer.Prepare(save.ToString());
 
             Assert.IsFalse(prepared.CanLoad);
+            Assert.AreEqual(SaveLoadBlockedCause.FutureVersion, prepared.BlockedCause);
             StringAssert.Contains("999", prepared.BlockedReason);
             Assert.IsNull(prepared.SaveJsonText);
         }
@@ -62,6 +63,7 @@ namespace Tests.CombinedTest.Game
             var prepared = preparer.Prepare(save.ToString());
 
             Assert.IsFalse(prepared.CanLoad);
+            Assert.AreEqual(SaveLoadBlockedCause.InvalidVersion, prepared.BlockedCause);
             StringAssert.Contains("版0", prepared.BlockedReason);
         }
 
@@ -84,6 +86,7 @@ namespace Tests.CombinedTest.Game
             var prepared = preparer.Prepare(save.ToString());
 
             Assert.IsFalse(prepared.CanLoad);
+            Assert.AreEqual(SaveLoadBlockedCause.UnreadableWorldVersion, prepared.BlockedCause);
             Assert.IsNotEmpty(prepared.BlockedReason);
             Assert.IsNull(prepared.SaveJsonText);
         }
