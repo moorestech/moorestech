@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -7,11 +6,9 @@ using System.Linq;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
-using Cysharp.Threading.Tasks;
 using Game.Paths;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
-using UnityEngine.TestTools;
 
 namespace Client.Tests.BugReport
 {
@@ -19,13 +16,13 @@ namespace Client.Tests.BugReport
     // Pins that one kind=crash box comes out of the previous session's salvaged files
     public class CrashBundleWriterTest
     {
-        // WriteAsyncはスレッドプールからPlayerLoopで戻る。CIのバッチモードではasync TaskテストだとPlayerLoopが回らず戻れないためUnityTestで回す
-        // WriteAsync returns from the thread pool via the PlayerLoop, which a plain async Task test never pumps in CI batch mode, so these run as UnityTest
+        // WriteAsyncはスレッドプールからPlayerLoopで戻るが、CIのバッチモードEditModeではPlayerLoopが回らず戻れない。本体のWriteを同期で呼ぶ
+        // WriteAsync returns from the thread pool via the PlayerLoop, which CI's batch-mode EditMode never pumps, so the synchronous Write core is called
 
         // スナップショットとパケットログとダンプまで通しで置く。接頭辞の代入先を入れ替えても緑になるテストにしない
         // Lays down snapshots, packet logs and a dump end to end, so swapping the prefixes' destinations can no longer stay green
-        [UnityTest]
-        public IEnumerator 退避物と説明文からcrashの箱を書く() => UniTask.ToCoroutine(async () =>
+        [Test]
+        public void 退避物と説明文からcrashの箱を書く()
         {
             var source = Path.Combine(Path.GetTempPath(), $"moorestech-crash-{Guid.NewGuid():N}");
             var recording = Path.Combine(source, "recording");
@@ -48,7 +45,7 @@ namespace Client.Tests.BugReport
 
             var artifacts = TestPreviousSessionArtifacts.Unclean(TestPreviousSessionArtifacts.UnusedLastSessionDirectory, recording, snapshots, playerLog, new List<string> { dump });
 
-            var bundle = await new CrashBundleWriter().WriteAsync(artifacts, "落ちた");
+            var bundle = WriteBundle(artifacts, "落ちた");
 
             try
             {
@@ -79,12 +76,12 @@ namespace Client.Tests.BugReport
                 Directory.Delete(bundle, true);
                 Directory.Delete(source, true);
             }
-        });
+        }
 
         // 退避は pid_<PID>/ の入れ子を保ったまま移すため、箱への写しも入れ子を辿らないと録画が丸ごと落ちる
         // The salvage preserves the pid_<PID>/ nesting, so a non-recursive copy would drop the whole recording
-        [UnityTest]
-        public IEnumerator 入れ子のまま退避された録画も箱へ入る() => UniTask.ToCoroutine(async () =>
+        [Test]
+        public void 入れ子のまま退避された録画も箱へ入る()
         {
             var source = Path.Combine(Path.GetTempPath(), $"moorestech-crash-{Guid.NewGuid():N}");
             var recording = Path.Combine(source, "recording", "pid_1234");
@@ -93,7 +90,7 @@ namespace Client.Tests.BugReport
 
             var artifacts = TestPreviousSessionArtifacts.UncleanWithRecording(Path.Combine(source, "recording"));
 
-            var bundle = await new CrashBundleWriter().WriteAsync(artifacts, "入れ子");
+            var bundle = WriteBundle(artifacts, "入れ子");
 
             try
             {
@@ -104,15 +101,15 @@ namespace Client.Tests.BugReport
                 Directory.Delete(bundle, true);
                 Directory.Delete(source, true);
             }
-        });
+        }
 
-        [UnityTest]
-        public IEnumerator 退避物が空でも説明文だけで箱になり欠損が残る() => UniTask.ToCoroutine(async () =>
+        [Test]
+        public void 退避物が空でも説明文だけで箱になり欠損が残る()
         {
             var artifacts = TestPreviousSessionArtifacts.Unclean();
             artifacts.Missing.Add(new MissingItem { Item = "recording", Reason = "退避元が空" });
 
-            var bundle = await new CrashBundleWriter().WriteAsync(artifacts, "起動しない");
+            var bundle = WriteBundle(artifacts, "起動しない");
 
             try
             {
@@ -124,12 +121,12 @@ namespace Client.Tests.BugReport
             {
                 Directory.Delete(bundle, true);
             }
-        });
+        }
 
         // ディスク由来の失敗（読み取り不能）は項目ごとに隔離され、他の退避物・manifest・READYの書き出しは続く
         // A disk-originated failure (unreadable source) is isolated per item; the other artifacts, manifest and READY still get written
-        [UnityTest]
-        public IEnumerator 退避物の読み取り不能はmissingへ隔離され他の項目とREADYは書かれる() => UniTask.ToCoroutine(async () =>
+        [Test]
+        public void 退避物の読み取り不能はmissingへ隔離され他の項目とREADYは書かれる()
         {
             var source = Path.Combine(Path.GetTempPath(), $"moorestech-crash-{Guid.NewGuid():N}");
             var recording = Path.Combine(source, "recording");
@@ -144,7 +141,7 @@ namespace Client.Tests.BugReport
             string bundle = null;
             try
             {
-                bundle = await new CrashBundleWriter().WriteAsync(artifacts, "読めない");
+                bundle = WriteBundle(artifacts, "読めない");
 
                 Assert.IsNotNull(bundle, "1項目の失敗でゲート応答処理まで例外が伝播せず箱自体は書けること");
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)));
@@ -161,7 +158,7 @@ namespace Client.Tests.BugReport
                 if (bundle != null) Directory.Delete(bundle, true);
                 Directory.Delete(source, true);
             }
-        });
+        }
 
         // テスト専用: chmodでディスクの読み取り失敗（IsDiskFailure対象のUnauthorizedAccessException）を確実に再現する
         // Test-only: chmod deterministically reproduces the disk read failure (an UnauthorizedAccessException IsDiskFailure catches)
@@ -169,6 +166,11 @@ namespace Client.Tests.BugReport
         {
             using var process = Process.Start(new ProcessStartInfo("chmod", $"{mode} \"{path}\"") { UseShellExecute = false });
             process.WaitForExit();
+        }
+
+        private static string WriteBundle(PreviousSessionArtifacts artifacts, string description)
+        {
+            return CrashBundleWriter.Write(artifacts, description, RepositoryStateProbe.RepositoryRoot, RepositoryStateProbe.MasterDataRoot);
         }
     }
 }

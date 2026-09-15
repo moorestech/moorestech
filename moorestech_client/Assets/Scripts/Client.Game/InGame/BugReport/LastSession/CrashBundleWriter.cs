@@ -24,13 +24,6 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Called from the startup gate; letting an exception escape here would break the gate itself, so an unwritable box logs its reason and returns null
         public async UniTask<string> WriteAsync(PreviousSessionArtifacts artifacts, string description)
         {
-            // 出所とSteamIDは落ちたセッション自身が開始時に書き残した値を載せる。今回起動したビルドを付けると別ビルドで再現される（F12）
-            // The origin and SteamID come from what the crashed session wrote at its own start; attaching this boot's build would reproduce on a different build (F12)
-            var origin = artifacts.PreviousOrigin;
-            var buildOrigin = origin == null ? BuildOriginReading.WithoutInfo("前回セッションの出所の印が無いため、どのビルドで落ちたか分からない") : origin.BuildOrigin;
-            var manifest = BugReportManifest.CreateHeader(description, PlaytestReportKind.Crash, origin?.SteamId, buildOrigin);
-            manifest.Missing.AddRange(artifacts.Missing);
-
             // Applicationのパス系はメインスレッドでしか読めないため、スレッドプールへ出る前に読む
             // Application's path APIs are main-thread only, so they are read before leaving for the thread pool
             var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
@@ -40,54 +33,63 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // 退避物は録画とパケットログで数十MBに達する。兄弟のBugReportBundleWriterと同じくスレッドプールへ載せ、action処理スレッドを塞がない
             // The salvage reaches tens of megabytes of footage and packet logs; like its sibling BugReportBundleWriter it runs on the thread pool, never blocking the action thread
-            await UniTask.RunOnThreadPool(() => { bundleDirectory = WriteOnThreadPool(); });
+            await UniTask.RunOnThreadPool(() => { bundleDirectory = Write(artifacts, description, repositoryRoot, masterDataRoot); });
             return bundleDirectory;
+        }
 
-            #region Internal
+        // 書き出しの本体。スレッドプールからの復帰はPlayerLoop頼みで、CIのバッチモードEditModeテストでは戻れないため、同期で呼べる形に切り出す
+        // The write itself; returning from the thread pool relies on the PlayerLoop, which CI's batch-mode EditMode tests never pump, so it is callable synchronously
+        internal static string Write(PreviousSessionArtifacts artifacts, string description, string repositoryRoot, string masterDataRoot)
+        {
+            // 出所とSteamIDは落ちたセッション自身が開始時に書き残した値を載せる。今回起動したビルドを付けると別ビルドで再現される（F12）
+            // The origin and SteamID come from what the crashed session wrote at its own start; attaching this boot's build would reproduce on a different build (F12)
+            var origin = artifacts.PreviousOrigin;
+            var buildOrigin = origin == null ? BuildOriginReading.WithoutInfo("前回セッションの出所の印が無いため、どのビルドで落ちたか分からない") : origin.BuildOrigin;
+            var manifest = BugReportManifest.CreateHeader(description, PlaytestReportKind.Crash, origin?.SteamId, buildOrigin);
+            manifest.Missing.AddRange(artifacts.Missing);
 
-            string WriteOnThreadPool()
+            string directory;
+            // 箱の置き場作りはディスクIO。満杯や権限で失敗しても前回クラッシュの検知自体は続けたい
+            // Creating the box's directory is disk IO; even if a full disk or missing permission fails it, detecting the earlier crash still proceeds
+            try
             {
-                string directory;
-                // 箱の置き場作りはディスクIO。満杯や権限で失敗しても前回クラッシュの検知自体は続けたい
-                // Creating the box's directory is disk IO; even if a full disk or missing permission fails it, detecting the earlier crash still proceeds
-                try
-                {
-                    directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
-                }
-                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
-                {
-                    Debug.LogError($"前回異常終了の箱の置き場を作れませんでした: {e.Message}");
-                    return null;
-                }
-
-                // ディスクは外部資源。1項目の失敗で他の退避物まで巻き添えにしないよう項目ごとに隔離し、理由はmanifestと開発者ログの両方へ残す
-                // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
-                var recordingMove = BugReportDiskOperations.MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName), out var movedRecordings);
-                if (recordingMove.Succeeded) DeclareEmptySource(BugReportBundleLayout.RecordingDirectoryName, artifacts.RecordingDirectory, movedRecordings.Count);
-                else manifest.AddMissing(BugReportBundleLayout.RecordingDirectoryName, recordingMove.FailureReason);
-
-                MoveSnapshots(artifacts.SnapshotsDirectory, directory);
-
-                try { CopyFileInto(artifacts.PlayerLogPath, Path.Combine(directory, BugReportBundleLayout.LogsDirectoryName)); }
-                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"コピーに失敗した: {e.Message}"); }
-
-                foreach (var dump in artifacts.CrashDumpFiles)
-                {
-                    try { CopyFileInto(dump, Path.Combine(directory, BugReportBundleLayout.CrashDumpsDirectoryName)); }
-                    catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.CrashDumpsDirectoryName, $"コピーに失敗した: {e.Message}"); }
-                }
-
-                // リポジトリ状態とマスタの出所は bug の箱と同じ経路で入れる。crash だけ null だと再現側が別コミットで再生する
-                // The repository state and master origin go through the same path as a bug box; leaving them null only for crash replays a different commit
-                BugReportRepositoryFiles.Write(directory, manifest, buildOrigin, repositoryRoot, masterDataRoot);
-
-                if (BugReportOutbox.TryFinishBundle(directory, manifest)) return directory;
-
-                // 箱を閉じられなければ退避物を last-session へ戻す。戻さないと再送が空の退避元を素通りし、中身の無い箱をREADY付きで出荷する
-                // A box that cannot be closed gives the salvage back to last-session; otherwise a retry sails past the emptied source and ships an empty box with READY on it
-                CrashBundleSalvageMover.RestoreSalvageFromUnfinishedBundle(directory, artifacts);
+                directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
+            }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+            {
+                Debug.LogError($"前回異常終了の箱の置き場を作れませんでした: {e.Message}");
                 return null;
             }
+
+            // ディスクは外部資源。1項目の失敗で他の退避物まで巻き添えにしないよう項目ごとに隔離し、理由はmanifestと開発者ログの両方へ残す
+            // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
+            var recordingMove = BugReportDiskOperations.MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName), out var movedRecordings);
+            if (recordingMove.Succeeded) DeclareEmptySource(BugReportBundleLayout.RecordingDirectoryName, artifacts.RecordingDirectory, movedRecordings.Count);
+            else manifest.AddMissing(BugReportBundleLayout.RecordingDirectoryName, recordingMove.FailureReason);
+
+            MoveSnapshots(artifacts.SnapshotsDirectory, directory);
+
+            try { CopyFileInto(artifacts.PlayerLogPath, Path.Combine(directory, BugReportBundleLayout.LogsDirectoryName)); }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"コピーに失敗した: {e.Message}"); }
+
+            foreach (var dump in artifacts.CrashDumpFiles)
+            {
+                try { CopyFileInto(dump, Path.Combine(directory, BugReportBundleLayout.CrashDumpsDirectoryName)); }
+                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.CrashDumpsDirectoryName, $"コピーに失敗した: {e.Message}"); }
+            }
+
+            // リポジトリ状態とマスタの出所は bug の箱と同じ経路で入れる。crash だけ null だと再現側が別コミットで再生する
+            // The repository state and master origin go through the same path as a bug box; leaving them null only for crash replays a different commit
+            BugReportRepositoryFiles.Write(directory, manifest, buildOrigin, repositoryRoot, masterDataRoot);
+
+            if (BugReportOutbox.TryFinishBundle(directory, manifest)) return directory;
+
+            // 箱を閉じられなければ退避物を last-session へ戻す。戻さないと再送が空の退避元を素通りし、中身の無い箱をREADY付きで出荷する
+            // A box that cannot be closed gives the salvage back to last-session; otherwise a retry sails past the emptied source and ships an empty box with READY on it
+            CrashBundleSalvageMover.RestoreSalvageFromUnfinishedBundle(directory, artifacts);
+            return null;
+
+            #region Internal
 
             // 退避元が在るのに0件なのは、前回の書き出しで箱へ移し終えた跡。黙って通すと証跡が無いことを隠した箱が正式に出荷される
             // A source that exists yet yields nothing is the trace of an earlier write; passing it silently would ship a box that hides the absence of its evidence
