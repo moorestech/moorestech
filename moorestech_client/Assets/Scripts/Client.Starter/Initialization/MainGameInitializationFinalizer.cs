@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Client.Common;
 using Client.Game.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
@@ -25,36 +26,40 @@ namespace Client.Starter.Initialization
         private readonly ServerConnectionResult _serverResult;
         private readonly string _localMasterDirectory;
         private readonly bool _isRemoteConnection;
+        private readonly bool _collectsPlaytestRecords;
 
-        public MainGameInitializationFinalizer(ServerConnectionResult serverResult, string localMasterDirectory, bool isRemoteConnection)
+        public MainGameInitializationFinalizer(ServerConnectionResult serverResult, string localMasterDirectory, bool isRemoteConnection, bool collectsPlaytestRecords)
         {
             _serverResult = serverResult;
             _localMasterDirectory = localMasterDirectory;
             _isRemoteConnection = isRemoteConnection;
+            _collectsPlaytestRecords = collectsPlaytestRecords;
         }
 
-        public async UniTask RunAsync()
+        // 開始ゲートは人の応答を上限なく待つため、Play終了・アプリ終了のキャンセルを最後まで渡す
+        // The start gates wait for a human answer without a bound, so the play-exit / quit cancellation is threaded all the way down
+        public async UniTask RunAsync(CancellationToken exitToken)
         {
-            await FinalizeAsync();
+            await FinalizeAsync(exitToken);
             GameInitializedEvent.FireGameInitialized();
         }
 
-        private async UniTask FinalizeAsync()
+        private async UniTask FinalizeAsync(CancellationToken exitToken)
         {
             // 出展モードは言語が決まるまで開始を止める。スキットとチュートリアルが英語で走り出す前に挟む
             // Event mode holds the start until a language is chosen, ahead of skits and tutorials starting in English
-            await EventMode.EventModeStartGate.WaitForLanguageSelectionAsync();
+            await EventMode.EventModeStartGate.WaitForLanguageSelectionAsync(exitToken);
 
             // 前回異常終了の確認をタイトルで出す。オープニングとチュートリアルが走り出す前に挟む
             // Ask about the previous crash at the title, ahead of the opening skit and the tutorials
             // 他人のサーバーへ繋ぐ都度は挟まない。プレイテストの対象は内蔵サーバーのセッションで、退避物もそちらにしか無い
             // A connection to someone else's server never gets the gates: the playtest targets embedded-server sessions, and only those have salvage
             if (_isRemoteConnection) Debug.Log("MainGameInitializationFinalizer: リモート接続のためプレイテスト開始ゲートを出しません");
-            else await Playtest.PlaytestStartGates.WaitForPlaytestGatesAsync();
+            else await Playtest.PlaytestStartGates.WaitForPlaytestGatesAsync(exitToken);
 
             var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
-            var resolver = starter.StartGame(_serverResult.HandshakeResponse);
+            var resolver = starter.StartGame(_serverResult.HandshakeResponse, _collectsPlaytestRecords);
             new ClientDIContext(new DIContainer(resolver));
             WebUiHost.Game.WebUiGameBinder.Bind();
 

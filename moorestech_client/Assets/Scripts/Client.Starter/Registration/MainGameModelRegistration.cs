@@ -31,7 +31,7 @@ namespace Client.Starter.Registration
 {
     internal static class MainGameModelRegistration
     {
-        public static void Register(ContainerBuilder builder, InitialHandshakeResponse initialHandshakeResponse)
+        public static void Register(ContainerBuilder builder, InitialHandshakeResponse initialHandshakeResponse, bool collectsPlaytestRecords)
         {
             builder.RegisterInstance(initialHandshakeResponse);
             builder.RegisterInstance(ClientContext.VanillaApi.Event);
@@ -44,24 +44,9 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<NetworkDisconnectState>().AsSelf();
             builder.Register<GameSaveRequester>(Lifetime.Singleton);
 
-            // バグ報告の常時記録（ログリング・録画リング）
-            // Always-on capture for bug reports (log ring, frame recording ring)
-            builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
-            builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
-
-            // テスター識別の差し替え点は PlaytestSessionIdentityProvider 1つ。DI確立前に走る開始ゲートも同じ値を読む（ADR 0060 裁定4）
-            // PlaytestSessionIdentityProvider is the single seam for the tester identity; the start gates, which run before DI exists, read the same value (ADR 0060 adjudication 4)
-            builder.Register<IPlaytestSessionIdentity>(_ => PlaytestSessionIdentityProvider.Current, Lifetime.Singleton);
-            builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
-            builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
-            builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
-            builder.RegisterEntryPoint<BugReportUiStatePusher>();
-            builder.RegisterEntryPoint<BugReportPauseMenuTrigger>();
-
-            // 進行記録は購読で集める。UIStateControl はシーン上のcomponentとして既存の登録から解決される
-            // The progress record collects through subscriptions; UIStateControl resolves from the existing scene component registration
-            builder.RegisterEntryPoint<ProgressRecorder>().AsSelf().As<IPlaytestProgressSink>();
+            // バグ報告の確保と進行記録。同意ゲートを出せない起動では集めない
+            // Bug-report capture and the progress record; boots that cannot show the consent gate collect nothing
+            PlaytestRecordRegistration.Register(builder, collectsPlaytestRecords);
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

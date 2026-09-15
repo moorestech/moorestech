@@ -37,8 +37,8 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             // Disable debug object creation during test (persists across domain reload).
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
 
-            // 応答者のいないテスト起動なので開始ゲートを出さない。印はPlayMode終了時にPlaytestStartGateBypassCleanupが消す
-            // A test boot has nobody to answer, so the start gates stay closed; PlaytestStartGateBypassCleanup removes the mark when Play Mode ends
+            // 応答者のいないテスト起動なので開始ゲートを出さない。印は起動時にゲートが読んだ時点で消費される
+            // A test boot has nobody to answer, so the start gates stay closed; the gate consumes the mark when it reads it at boot
             PlaytestStartGateBypass.Apply();
 
             AssetBundle.UnloadAllAssetBundles(true);

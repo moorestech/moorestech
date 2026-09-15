@@ -555,21 +555,29 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 ## 8.20 全画面ゲートの共有外殻（`shared/ui/FullScreenGate`）
 
 - **開始を止める全画面ゲート3枚（言語選択・プレイテスト同意・前回異常終了）は `FullScreenGate` 1本を共有する。**
-  外殻（不透明面・Portal・z層・待機topicの購読・「待っていなければ何も描かない」判定）はこのコンポーネントだけが持ち、
-  各ゲートは `topic` / `testId` / `title` / `children`（本体）を渡すだけ。新しい全画面ゲートを足すときも独自のOverlayを書かず、これを使う。
-- **排他はコンポーネント自身が持つ**（同一ファイル内）。起動順（C#側と同じ：言語選択→同意→前回異常終了、`GatePrecedence`）の中で最も手前のゲートだけを描き、
-  複数が同時に待つ経路は現状無いが、3枚とも無条件マウントされるためWeb側にも排他が要る。
-- 面色は `--event-language-gate-face`（不透明黒）、z層は `--z-portal-event-language-gate` の1本を3枚が共有する
-  （**旧 `--playtest-gate-face` / `--z-portal-playtest-gate` は削除済み**。前回異常終了ゲートは独自トークンを持たない）。
+  `FullScreenGate` は `visible` / `testId` / `title` / `children`（本体）を受けて描くだけの共通部品で、
+  持つのは外殻（不透明面・Portal・z層・`visible=false` なら何も描かない）だけ。**topicの購読もゲート種別も優先順位も知らない**。
+  新しい全画面ゲートを足すときも独自のOverlayを書かず、これを使う。
+- **どのゲートを見せるかはapp層が決める**（`src/app/startGates/useFrontmostStartGate.ts`）。3トピック
+  （`event_mode.language_gate` / `playtest.consent_gate` / `playtest.crash_report_gate`）を購読し、
+  `pickFrontmostStartGate` が「待機中のうち `precedence` 最小の1枚」を選ぶ。`App.tsx` は3ゲートを無条件マウントし、
+  結果と一致する1枚だけに `visible` を渡す。**順序の正本はC#**（`Client.WebUiHost/Game/StartGates/StartGateTopics`：言語0・同意1・前回異常終了2＝起動時に待つ順）で、
+  各topicのpayload `{ waiting: boolean, precedence: number }` に載って届く。Web側に並び順の表を置かない（payloadの `precedence` 欠落はスキーマで拒否される）。
+- 応答の状態機械は `shared/ui/FullScreenGate/useGateAnswer` 1本を3ゲートが共有する（押下不可・受理後の閉じ待ち・閉じない/切断/拒否の1行）。
+  結末の文言は `GateAnswerCopy` として注入式で、言語選択は `DictionaryIndependentText`、プレイテスト2枚は `L.ui.playtest.gate.*` を渡す。
+- 面色は `--full-screen-gate-face`（不透明黒）、z層は `--z-portal-full-screen-gate` の1本を3枚が共有する
+  （**旧 `--event-language-gate-face` / `--z-portal-event-language-gate` / `--playtest-gate-face` / `--z-portal-playtest-gate` は削除済み**。ゲートごとの独自トークンは持たない）。
 - 見出し・本文の最大幅は `--full-screen-gate-text-width`（900px）の1本を3枚が共有する
   （**旧 `--playtest-gate-body-width` / `--playtest-gate-title-width` は削除済み**）。無制約だと画面端まで達し
   左右の文字が余白ゼロで接触するための上限であり、外殻(`Overlay`)自身も固定長 `--full-screen-gate-side-gutter`
   （32px）を左右paddingとして持つ。本文幅と外殻幅の上限が同値(900px)のため、ガターが無いと900px幅ビューポートで
   両端が接触する（目視QA 2026-09-14）。
-- **辞書配信前の文言は `t(key, {}, fallback)` の1回呼びで書く。** `useI18n().t` は `dictionaryAbsent` のとき
-  第3引数の `fallback` をそのまま返す（`shared/i18n/i18nStore.ts` の `createTranslator`）ので、呼び出し側で
-  `status === "ready" ? t(key) : fallback` のような分岐を新たに書かない。ゲート系の辞書非依存文言は
-  `shared/i18n/dictionaryIndependentText.ts` の `DictionaryIndependentText` にまとめて持つ。
+- **辞書配信前に出る画面の文言も `t(key, values?)` で書く。fallback引数は無い。** `createTranslator`（`shared/i18n/i18nStore.ts`）は
+  表示できる辞書が無い（`dictionaryAbsent`）間、i18n内部の辞書前文言表 `PreDictionaryText`（`shared/i18n/preDictionaryText.ts`、
+  localization.csv の english / japanese / german を併記した値）へ落ち、表に無いキーは空文字を返す。
+  この表は **i18n の private**（公開barrelに載せない）で、呼び出し側は文言も `status === "ready" ? ... : ...` の分岐も持たない。
+  辞書前に出る画面へキーを足すときは、この表へ3言語併記の値を足す。
+- `DictionaryIndependentText` は「辞書そのものが読めない／辞書を選ぶ画面」専用の t() を通さない文言（辞書ロード失敗・再読み込み・言語選択ゲートの一覧読み込みと応答の結末）に限る。
 
 ## 8.20a 出展モードの言語選択ゲート
 
@@ -584,18 +592,18 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 ## 8.21 前回異常終了の確認ゲート・プレイテスト同意ゲート
 
 - **§1「画面全体を不透明な面で塗り潰す禁止」の例外**（§9 の列挙では §8.12 のスキット暗転・§8.20a の出展モード言語選択ゲートに続く3つ目）。
-  外殻は §8.20 の `FullScreenGate` を言語選択ゲートと共有する（面色・z層とも同一トークン。両者が同時に待つ経路は無い）。
+  外殻は §8.20 の `FullScreenGate` を言語選択ゲートと共有する（面色・z層とも同一トークン。同時に待った場合もapp層が `precedence` の小さい1枚だけを見せる）。
 - **前回異常終了の確認ゲート**（`CrashReportGate`）: 前回セッションが異常終了していたとき、ロード完了後・言語選択ゲートの直後に出し、
   送るか送らないかが答えられるまで待つ。世界を透かすと「もう遊べる」と読めてしまい、答えないまま操作が始まって確認が永久に流れるため、面は不透明にする。
-  見出し・本文・ボタンは辞書経由（`L.ui.playtest.crashGate.*`）。記述欄は§8.9の検索入力族の様式で、寸法だけ `--playtest-gate-textarea-*` の固定長を持つ。
+  見出し・本文・ボタンは辞書経由（`L.ui.playtest.crashGate.*`。辞書配信前は §8.20 の辞書前文言表が出る）。記述欄は§8.9の検索入力族の様式で、寸法だけ `--playtest-gate-textarea-*` の固定長を持つ。
   説明文は任意で、どちらのボタンでも待機が解ける。
 - **プレイテスト同意ゲート**（`PlaytestConsentGate`）: 初回起動時、送信内容（録画・スナップショット・ログ類）へ同意させる1回。
   見出し・本文は `L.ui.playtest.consent.*`、了解ボタン1個だけで待機が解ける。
 - 両ゲートとも記述欄の様式は `shared/ui/textAreaField.module.css` の `.field` を `composes` で流用し（`playtestGate/style.module.css` の `.description`）、
   ゲート固有の寸法だけをこのファイルで足す。
-- 応答の状態機械（押下可否・受理後の待ち・失敗理由ごとの文言）は両ゲート共通の `useGateAnswer` が持ち、
-  ローカライズキーは `L.ui.playtest.gate.*`（`answerAccepted` / `notClosed` / `disconnected` / `respondFailed`）に集約されている
-  （**`crashGate.respondFailed` 等ゲート別キーは無い**。同じキー族を両ゲートが共有する）。
+- 応答の状態機械（押下可否・受理後の待ち・失敗理由ごとの文言）は §8.20 の `useGateAnswer`（`shared/ui/FullScreenGate`）が持ち、
+  両ゲートは `usePlaytestGateAnswerCopy`（`features/playtestGate`）で `L.ui.playtest.gate.*`（`answerAccepted` / `notClosed` / `disconnected` / `respondFailed`）を渡す
+  （**`crashGate.respondFailed` 等ゲート別キーは無い**。同じキー族を両ゲートが共有する）。二重応答（`already_responded` / `already_acknowledged`）は受理と同じ扱いで閉じ待ちへ進む。
 - 待機中だけ本体をマウントする。応答は1回だけ効かせ、押下と同時に両ボタンを閉じる。トースト・再接続表示は
   この下に隠れるため、押下が通らなかったときだけ押下可へ戻し、その1行（`L.ui.playtest.gate.respondFailed`）を
   ゲート自身が出す（§8.20a と同じ扱い）。

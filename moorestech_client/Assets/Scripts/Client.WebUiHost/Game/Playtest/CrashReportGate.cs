@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.WebUiHost.Game.StartGates;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
@@ -10,7 +11,7 @@ namespace Client.WebUiHost.Game.Playtest
     /// 前回異常終了の送信確認。応答があるまでゲーム開始を止める（ADR 0040 の言語選択ゲートと同型）。
     /// The previous-crash send confirmation that holds the game start until it is answered (same shape as the ADR 0040 language gate).
     /// </summary>
-    public class CrashReportGate
+    public class CrashReportGate : IStartGateWaitState
     {
         private readonly UniTaskCompletionSource _responseSource = new();
         private readonly Subject<Unit> _onWaitingChanged = new();
@@ -21,6 +22,8 @@ namespace Client.WebUiHost.Game.Playtest
         // Only this assembly's topic and action touch the waiting state and the answer intake
         internal bool IsWaitingResponse { get; private set; }
         internal IObservable<Unit> OnWaitingChanged => _onWaitingChanged;
+        bool IStartGateWaitState.IsWaiting => IsWaitingResponse;
+        IObservable<Unit> IStartGateWaitState.OnWaitingChanged => _onWaitingChanged;
 
         // 登録は常に無条件、待つかどうかは退避結果から導く（未登録によるWeb側購読の固着を避ける）
         // Registration is always unconditional; whether to wait is derived from the salvage result to avoid a stuck web subscription
@@ -45,9 +48,9 @@ namespace Client.WebUiHost.Game.Playtest
             return new CrashReportGate(null, null, false);
         }
 
-        // 開始側（Client.Starter）が待ち合わせる唯一の窓口なのでここだけpublicに残す
-        // The single window the starter assembly awaits on, so this alone stays public
-        public UniTask WaitForResponseAsync()
+        // 待ち合わせは開始ゲートの持ち手（PlaytestStartGateHandles）が順序どおりに行う
+        // The start-gate handles (PlaytestStartGateHandles) await this in the boot order
+        internal UniTask WaitForResponseAsync()
         {
             return _responseSource.Task;
         }

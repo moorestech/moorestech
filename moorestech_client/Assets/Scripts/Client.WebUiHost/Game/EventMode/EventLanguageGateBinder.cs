@@ -1,6 +1,6 @@
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Actions.EventMode;
-using Client.WebUiHost.Game.Topics.EventMode;
+using Client.WebUiHost.Game.StartGates;
 
 namespace Client.WebUiHost.Game.EventMode
 {
@@ -15,7 +15,7 @@ namespace Client.WebUiHost.Game.EventMode
         public static EventLanguageGate Bind(WebSocketHub hub, bool startsWaiting)
         {
             var gate = new EventLanguageGate(startsWaiting);
-            hub.RegisterTopic(EventLanguageGateTopic.TopicName, new EventLanguageGateTopic(hub, gate));
+            WaitingGateTopic.Register(hub, StartGateTopics.EventLanguageName, StartGateTopics.EventLanguagePrecedence, gate);
             EventLanguageGateActions.Register(hub, gate);
             return gate;
         }

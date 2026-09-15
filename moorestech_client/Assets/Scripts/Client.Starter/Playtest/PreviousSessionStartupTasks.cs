@@ -12,7 +12,7 @@ namespace Client.Starter.Playtest
     /// </summary>
     public static class PreviousSessionStartupTasks
     {
-        public static void RunAtStartup(bool isRemoteConnection, string worldDirectory)
+        public static void RunAtStartup(bool collectsPlaytestRecords, bool isRemoteConnection, string worldDirectory)
         {
             // この起動のセッション名を最初に確定する。退避は「今回以外」を畳み、書き手は全員この名前の下へ書く（F05）
             // This boot's session name is fixed first: the salvage folds everything else, and every writer writes under this name (F05)
@@ -21,6 +21,10 @@ namespace Client.Starter.Playtest
             // 内蔵サーバーのスナップショットリングと録画リングが上書きを始める前に、前回セッションの記録を退避する
             // Salvage the previous session's records before the embedded snapshot ring and the recording ring start overwriting
             var artifacts = PreviousSessionSalvage.RunAtStartup(isRemoteConnection, WorldDataDirectory.FromWorldRoot(worldDirectory).SnapshotDirectory);
+
+            // 記録を集めない起動は今回の印を書かず、前回の進行記録も回収しない。回収は次に集める起動が行う（理由はPlaytestRecordCollectionがログ済み）
+            // A boot that collects nothing writes no marks of its own and leaves the leftover progress records to the next collecting boot (PlaytestRecordCollection logged why)
+            if (!collectsPlaytestRecords) return;
 
             // 正常終了マーカーの書き手を、消費と同じこの1箇所で据える。ロード中やゲート表示中の終了が異常終了に化ける窓を開けない
             // The clean-exit writer is installed at the same single spot that consumes the marks, leaving no window where a load-time or gate-time exit reads as a crash

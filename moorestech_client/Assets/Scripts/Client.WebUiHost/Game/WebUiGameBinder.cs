@@ -18,7 +18,6 @@ using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Playtest.Progress;
 using Client.WebUiHost.Game.Actions;
-using Client.WebUiHost.Game.Playtest;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
 using Game.Construction;
@@ -170,9 +169,9 @@ namespace Client.WebUiHost.Game
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
             HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>(), uiStateControl);
 
-            // 購読で観測できない操作は記録側へプッシュする。窓口は1つだけ解決して各ハンドラへ渡す
-            // Operations no subscription observes are pushed to the recorder; the single window is resolved once and handed to each handler
-            var progressSink = PlaytestProgressSinkResolver.Resolve(resolver);
+            // 購読で観測できない操作は記録側へプッシュする。窓口は記録を集めない起動でも必ず登録されている
+            // Operations no subscription observes are pushed to the recorder; the window is registered even on boots that collect no records
+            var progressSink = resolver.Resolve<IPlaytestProgressSink>();
 
             // action ハンドラ登録
             // Register action handlers

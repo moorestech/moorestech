@@ -80,9 +80,10 @@ namespace Client.Starter
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
 
-            // 前回セッションの印を読む処理はここ1箇所へ束ねてある（ADR 0060 裁定5）
-            // Everything that reads the previous session's marks is bundled into this single spot (ADR 0060 adjudication 5)
-            Playtest.PreviousSessionStartupTasks.RunAtStartup(_proprieties.IsRemoteConnection, args.WorldDirectory);
+            // 前回セッションの印を読む処理はここ1箇所へ束ねてある（ADR 0060 裁定5）。記録を集めるかもここで1度だけ決める
+            // Everything that reads the previous session's marks is bundled into this single spot (ADR 0060 adjudication 5); whether to collect records is decided once here too
+            var collectsPlaytestRecords = Playtest.PlaytestRecordCollection.Decide(_proprieties.IsRemoteConnection, Client.WebUiHost.Boot.WebUiHost.Hub != null);
+            Playtest.PreviousSessionStartupTasks.RunAtStartup(collectsPlaytestRecords, _proprieties.IsRemoteConnection, args.WorldDirectory);
 
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
@@ -170,8 +171,15 @@ namespace Client.Starter
 
                 // Forget境界の例外を専用callbackで観測し、DI未構築のMainGameへ取り残さない
                 // Observe the forgotten boundary through its dedicated callback so MainGame is never stranded without DI
-                new MainGameInitializationFinalizer(serverResult, serverDirectory, _proprieties.IsRemoteConnection).RunAsync().Forget(exception =>
+                new MainGameInitializationFinalizer(serverResult, serverDirectory, _proprieties.IsRemoteConnection, collectsPlaytestRecords).RunAsync(exitToken).Forget(exception =>
                 {
+                    // Play終了で開始ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
+                    // Cancelling the start-gate wait on play exit is not a failure, so it never returns to the main menu
+                    if (exception is OperationCanceledException)
+                    {
+                        Debug.Log("初期化の途中で終了のキャンセルが来たため、以降の初期化を打ち切りました");
+                        return;
+                    }
                     Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
 
                     // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする

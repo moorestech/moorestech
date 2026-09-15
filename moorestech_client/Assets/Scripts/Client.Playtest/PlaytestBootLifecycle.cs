@@ -132,7 +132,6 @@ namespace Client.Playtest
             SessionState.SetBool(PendingBootKey, false);
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
             PlaytestWorldBootSession.Clear();
-            PlaytestStartGateBypass.Clear();
             UnsubscribeWorldBootScene();
             UnsubscribeEnvironmentScene();
             EditorSceneManager.playModeStartScene = null;

@@ -1,10 +1,9 @@
 using System.IO;
-using Client.Game.InGame.BugReport.LastSession;
+using System.Threading;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Starter.Playtest;
 using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.Playtest;
-using Client.WebUiHost.Game.Topics.Playtest;
+using Client.WebUiHost.Game.StartGates;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -22,16 +21,19 @@ namespace Client.Tests.BugReport
         [SetUp]
         public void SetUp()
         {
-            // 同意の既読フラグと迂回の印は本番と同じ場所にある。自分が作った分だけ後始末する
-            // The consent flag and the bypass mark live in the production locations, so only what this test creates is cleaned up
+            // 同意の既読フラグは本番と同じ場所にある。自分が作った分だけ後始末する
+            // The consent flag lives in the production location, so only what this test creates is cleaned up
             _consentExisted = PlaytestConsentFlag.IsAcknowledged();
-            PlaytestStartGateBypass.Clear();
+
+            // 迂回の印は読んだ時点で消費される。前のテストの残りをここで読み捨てる
+            // The bypass mark is consumed on read, so any leftover from an earlier test is read away here
+            PlaytestStartGateBypass.UnattendedReason();
         }
 
         [TearDown]
         public void TearDown()
         {
-            PlaytestStartGateBypass.Clear();
+            PlaytestStartGateBypass.UnattendedReason();
             if (!_consentExisted && File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
         }
 
@@ -42,7 +44,7 @@ namespace Client.Tests.BugReport
         {
             LogAssert.Expect(LogType.Error, "PlaytestStartGates: WebUiHostが起動しておらず前回異常終了の確認を出せないため、確認せずに開始します");
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(null, TestPreviousSessionArtifacts.Unclean());
+            var wait = PlaytestStartGates.WaitForGatesAsync(null, TestPreviousSessionArtifacts.Unclean(), CancellationToken.None);
             Assert.IsTrue(wait.Status.IsCompleted());
         }
 
@@ -54,11 +56,11 @@ namespace Client.Tests.BugReport
             PlaytestStartGateBypass.Apply();
             var hub = new WebSocketHub();
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean());
+            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), CancellationToken.None);
 
             Assert.IsTrue(wait.Status.IsCompleted(), "無人起動なのに開始ゲートで待っている");
-            Assert.IsNotNull(hub.ResolveTopic(CrashReportGateTopic.TopicName), "ゲートのtopicが未登録だとWeb側の購読が固着する");
-            Assert.IsNotNull(hub.ResolveTopic(PlaytestConsentGateTopic.TopicName), "同意表示のtopicが未登録だとWeb側の購読が固着する");
+            Assert.IsNotNull(hub.ResolveTopic(StartGateTopics.CrashReportName), "ゲートのtopicが未登録だとWeb側の購読が固着する");
+            Assert.IsNotNull(hub.ResolveTopic(StartGateTopics.ConsentName), "同意表示のtopicが未登録だとWeb側の購読が固着する");
         }
 
         // 同意を先に待つ。何が送られるかを読む前に送信可否を聞かないための順序で、逆順だと同意画面が後ろに隠れる
@@ -69,19 +71,67 @@ namespace Client.Tests.BugReport
             if (File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
             var hub = new WebSocketHub();
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean());
+            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), CancellationToken.None);
             Assert.IsFalse(wait.Status.IsCompleted(), "同意表示で待っていない");
+
+            // 待機はWebへ配られている。配られなければゲートは描かれず、応答者の居ないまま止まる
+            // The wait is published to the web; without it no gate is painted and the boot stalls with nobody to answer
+            AssertWaiting(hub, StartGateTopics.ConsentName, true, StartGateTopics.ConsentPrecedence);
+            AssertWaiting(hub, StartGateTopics.CrashReportName, true, StartGateTopics.CrashReportPrecedence);
 
             // 同意だけ答えても、前回異常終了の確認が残っているので開始はまだ進まない
             // Answering only the consent leaves the crash confirmation outstanding, so the boot still does not proceed
-            hub.ResolveAction("playtest.consent.acknowledge").ExecuteAsync(null).GetAwaiter().GetResult();
+            var acknowledged = hub.ResolveAction("playtest.consent.acknowledge").ExecuteAsync(null).GetAwaiter().GetResult();
+            Assert.IsTrue(acknowledged.Ok, $"同意の了解が受理されていない error:{acknowledged.Error}");
             Assert.IsFalse(wait.Status.IsCompleted(), "同意だけで前回異常終了の確認を飛ばしている");
 
             // 2つ目に答えると両方の待機が解ける。最後の UniTask.Yield はEditModeでは進まないので待機解除の側を見る
             // Answering the second releases both waits; the trailing UniTask.Yield never advances in EditMode, so the released state is observed instead
             hub.ResolveAction("playtest.crash_report.respond").ExecuteAsync(new JObject { ["send"] = false }).GetAwaiter().GetResult();
-            StringAssert.Contains("\"waiting\":false", hub.ResolveTopic(CrashReportGateTopic.TopicName).GetSnapshotJsonAsync().GetAwaiter().GetResult());
-            StringAssert.Contains("\"waiting\":false", hub.ResolveTopic(PlaytestConsentGateTopic.TopicName).GetSnapshotJsonAsync().GetAwaiter().GetResult());
+            AssertWaiting(hub, StartGateTopics.CrashReportName, false, StartGateTopics.CrashReportPrecedence);
+            AssertWaiting(hub, StartGateTopics.ConsentName, false, StartGateTopics.ConsentPrecedence);
+        }
+
+        // 既読の起動では同意を出さず、前回異常終了の確認だけで待つ
+        // A boot with the consent already read skips the notice and waits only on the crash confirmation
+        [Test]
+        public void 同意が既読なら同意を出さず前回異常終了の確認だけを待つ()
+        {
+            PlaytestConsentFlag.Acknowledge();
+            var hub = new WebSocketHub();
+
+            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), CancellationToken.None);
+
+            AssertWaiting(hub, StartGateTopics.ConsentName, false, StartGateTopics.ConsentPrecedence);
+            AssertWaiting(hub, StartGateTopics.CrashReportName, true, StartGateTopics.CrashReportPrecedence);
+            Assert.IsFalse(wait.Status.IsCompleted(), "前回異常終了の確認で待っていない");
+
+            // 既読なら了解は二度目扱い。成功に丸めると待機していないゲートへ答えたことが見えなくなる
+            // With the flag read, an acknowledgement counts as a second one; folding it into success would hide an answer to a non-waiting gate
+            var acknowledged = hub.ResolveAction("playtest.consent.acknowledge").ExecuteAsync(null).GetAwaiter().GetResult();
+            Assert.IsFalse(acknowledged.Ok);
+            Assert.AreEqual("already_acknowledged", acknowledged.Error);
+        }
+
+        // 終了のキャンセルが来たら人の応答を待たずに抜ける。抜けないとPlay終了後も初期化の続きが残る
+        // An exit cancellation leaves without waiting for a human answer; otherwise initialization lingers past play exit
+        [Test]
+        public void 終了のキャンセルで開始ゲートの待ちを打ち切る()
+        {
+            if (File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
+            using var exit = new CancellationTokenSource();
+
+            var wait = PlaytestStartGates.WaitForGatesAsync(new WebSocketHub(), TestPreviousSessionArtifacts.Unclean(), exit.Token);
+            exit.Cancel();
+
+            Assert.IsTrue(wait.Status.IsCanceled());
+        }
+
+        private static void AssertWaiting(WebSocketHub hub, string topicName, bool waiting, int precedence)
+        {
+            var json = JObject.Parse(hub.ResolveTopic(topicName).GetSnapshotJsonAsync().GetAwaiter().GetResult());
+            Assert.AreEqual(waiting, json["waiting"].Value<bool>(), $"{topicName} の waiting が期待と違う");
+            Assert.AreEqual(precedence, json["precedence"].Value<int>(), $"{topicName} の precedence が期待と違う");
         }
     }
 }
