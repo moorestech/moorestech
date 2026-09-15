@@ -56,7 +56,10 @@ namespace Game.SaveLoad.Pruning
         {
             if (property.Value is not JValue guidValue) return;
 
+            // 燃料切れ等で元々空欄の値は除去対象でも壊れた値でもないので、警告を出さずに抜ける
+            // A value blank from the start (e.g. out of fuel) is neither missing nor corrupt, so leave without a warning
             var guidText = guidValue.Value<string>();
+            if (guidValue.Type == JTokenType.Null || string.IsNullOrEmpty(guidText)) return;
             if (!IsMissingItem(guidText)) return;
 
             // countは在庫スタックと同じキーで揃える。裸guidは1件そのものを指すので1固定（在庫のcountとは意味が違うが後日の返金入力として形を合わせる）
