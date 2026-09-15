@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using Client.Game.InGame.BugReport.DiskOperations;
 using Game.Paths;
 using UnityEngine;
 
@@ -41,7 +42,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
         public static void Clear(string lastSessionDirectory)
         {
-            var deletion = SalvageFileOperations.DeleteFile(PathIn(lastSessionDirectory));
+            var deletion = BugReportFileOperations.DeleteFile(PathIn(lastSessionDirectory));
             if (!deletion.Succeeded) Debug.LogWarning($"未応答のクラッシュ報告の印を消せませんでした（次回起動でも同じ確認が再提示されます） {lastSessionDirectory}: {deletion.FailureReason}");
         }
     }

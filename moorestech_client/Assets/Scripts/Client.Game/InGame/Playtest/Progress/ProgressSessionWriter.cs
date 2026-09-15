@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.DiskOperations;
 using UnityEngine;
 
 namespace Client.Game.InGame.Playtest.Progress
@@ -79,7 +80,7 @@ namespace Client.Game.InGame.Playtest.Progress
                 }
             }
 
-            var appended = ProgressDiskIo.AppendLine(_appender, entry.ToJsonLine());
+            var appended = BugReportFileOperations.AppendLine(_appender, entry.ToJsonLine());
             if (!appended.Succeeded) Debug.LogError($"進行記録のイベントを追記できません type:{entry.Type}: {appended.FailureReason}");
         }
 
@@ -120,7 +121,7 @@ namespace Client.Game.InGame.Playtest.Progress
         private void CloseAppender()
         {
             if (_appender == null) return;
-            var closed = ProgressDiskIo.CloseAppender(_appender);
+            var closed = BugReportFileOperations.CloseAppender(_appender);
             if (!closed.Succeeded) Debug.LogError($"進行記録の追記口を閉じられませんでした: {closed.FailureReason}");
             _appender = null;
         }

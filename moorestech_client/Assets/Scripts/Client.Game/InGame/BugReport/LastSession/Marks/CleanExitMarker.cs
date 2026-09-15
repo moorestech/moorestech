@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Game.Paths;
 using UnityEngine;
@@ -125,10 +126,10 @@ namespace Client.Game.InGame.BugReport.LastSession
             if (record.ShutdownStalled) Debug.LogWarning($"pid {processId} {sessionName} は終了の意思表明の後、書き出し完了の前に止まりました（終了処理中の停止として異常終了に数えます）");
 
             var directory = SessionMarkDirectory(processId, sessionName);
-            var deletion = SalvageFileOperations.DeleteDirectory(directory);
+            var deletion = BugReportDiskOperations.DeleteDirectory(directory);
             if (!deletion.Succeeded) Debug.LogWarning($"セッションの印を消せませんでした pid:{processId} {sessionName}: {deletion.FailureReason}");
 
-            var parentDeletion = SalvageFileOperations.DeleteDirectoryIfEmpty(Path.GetDirectoryName(directory));
+            var parentDeletion = BugReportDiskOperations.DeleteDirectoryIfEmpty(Path.GetDirectoryName(directory));
             if (!parentDeletion.Succeeded) Debug.LogWarning($"空になったpidの印ディレクトリを消せませんでした pid:{processId}: {parentDeletion.FailureReason}");
             return record;
         }

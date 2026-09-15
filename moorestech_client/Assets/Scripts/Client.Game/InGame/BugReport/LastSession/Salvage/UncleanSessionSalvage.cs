@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Game.Paths;
 using UnityEngine;
@@ -59,7 +60,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                 {
                     if (session.RecordingDirectory == null) continue;
                     var processDirectoryName = RecordingProcessDirectories.ProcessDirectoryPrefix + session.ProcessId;
-                    var move = SalvageFileOperations.MoveDirectory(session.RecordingDirectory, Path.Combine(recordingDestination, processDirectoryName, session.SessionName));
+                    var move = BugReportDiskOperations.MoveDirectory(session.RecordingDirectory, Path.Combine(recordingDestination, processDirectoryName, session.SessionName));
                     if (!move.Succeeded)
                     {
                         missing.Report(BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId} {session.SessionName}: {move.FailureReason}");
@@ -80,7 +81,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                     return;
                 }
 
-                var move = SalvageFileOperations.MoveFilesInto(request.WorldSnapshotDirectory, snapshotDestination);
+                var move = BugReportDiskOperations.MoveFilesInto(request.WorldSnapshotDirectory, snapshotDestination);
                 if (!move.Succeeded) missing.Report(BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
             }
 
@@ -100,7 +101,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                 }
 
                 missing.Report("previousOrigin", $"前回セッションの出所が不明（どのビルドで落ちたか分からない）: {latest.OriginMissingReason}");
-                var deletion = SalvageFileOperations.DeleteFile(originPath);
+                var deletion = BugReportFileOperations.DeleteFile(originPath);
                 if (!deletion.Succeeded) missing.Report("previousOrigin", $"前世代の出所を消せなかった: {deletion.FailureReason}");
                 return null;
             }
@@ -116,7 +117,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             // Whatever sits in the destination is presented, newly moved or carried over, keeping the promise that the next boot can ask again
             string ResolveSalvagedDirectory(string destination, string item)
             {
-                var probe = SalvageFileOperations.ProbeHasAnyFile(destination);
+                var probe = BugReportDiskOperations.ProbeHasAnyFile(destination);
                 if (probe.Succeeded) return destination;
                 missing.Report(item, probe.FailureReason);
                 return null;

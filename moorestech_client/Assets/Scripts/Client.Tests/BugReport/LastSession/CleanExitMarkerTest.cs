@@ -1,6 +1,7 @@
 using System.IO;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.BuildOrigin;
+using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Cysharp.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Client.Tests.BugReport
         public void RemoveMarkers()
         {
             GameShutdownEvent.ResetForNewSession();
-            SalvageFileOperations.DeleteDirectory(RecordingProcessDirectories.DirectoryFor(CleanExitMarker.MarksRoot, TestProcessId));
+            BugReportDiskOperations.DeleteDirectory(RecordingProcessDirectories.DirectoryFor(CleanExitMarker.MarksRoot, TestProcessId));
         }
 
         [Test]

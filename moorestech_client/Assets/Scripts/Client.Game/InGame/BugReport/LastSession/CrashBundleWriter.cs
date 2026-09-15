@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Client.Game.InGame.BugReport.BuildOrigin;
+using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.Playtest;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
@@ -61,11 +62,11 @@ namespace Client.Game.InGame.BugReport.LastSession
 
                 // ディスクは外部資源。1項目の失敗で他の退避物まで巻き添えにしないよう項目ごとに隔離し、理由はmanifestと開発者ログの両方へ残す
                 // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
-                try { DeclareEmptySource(BugReportBundleLayout.RecordingDirectoryName, artifacts.RecordingDirectory, CrashBundleSalvageMover.MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName)).Count); }
-                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RecordingDirectoryName, $"移動に失敗した: {e.Message}"); }
+                var recordingMove = BugReportDiskOperations.MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName), out var movedRecordings);
+                if (recordingMove.Succeeded) DeclareEmptySource(BugReportBundleLayout.RecordingDirectoryName, artifacts.RecordingDirectory, movedRecordings.Count);
+                else manifest.AddMissing(BugReportBundleLayout.RecordingDirectoryName, recordingMove.FailureReason);
 
-                try { MoveSnapshots(artifacts.SnapshotsDirectory, directory); }
-                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.SnapshotDirectoryName, $"移動に失敗した: {e.Message}"); }
+                MoveSnapshots(artifacts.SnapshotsDirectory, directory);
 
                 try { CopyFileInto(artifacts.PlayerLogPath, Path.Combine(directory, BugReportBundleLayout.LogsDirectoryName)); }
                 catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"コピーに失敗した: {e.Message}"); }
@@ -103,14 +104,17 @@ namespace Client.Game.InGame.BugReport.LastSession
             void MoveSnapshots(string source, string boxDirectory)
             {
                 var destination = Path.Combine(boxDirectory, BugReportBundleLayout.SnapshotDirectoryName);
-                var moved = CrashBundleSalvageMover.MoveTree(source, destination);
+                // 途中で転んでも移し終えた分は箱に入っているので、分類はその分だけ行い失敗は欠損として名乗る
+                // A failure midway still leaves the moved files in the box, so those are classified and the failure is declared as a gap
+                var move = BugReportDiskOperations.MoveTree(source, destination, out var moved);
+                if (!move.Succeeded) manifest.AddMissing(BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
                 foreach (var relativePath in moved)
                 {
                     var name = Path.GetFileName(relativePath);
                     if (WorldDataDirectory.TryParseSnapshotTick(name, out _)) manifest.SnapshotFiles.Add(relativePath);
                     if (WorldDataDirectory.TryParsePacketLogFromTick(name, out _)) manifest.PacketLogFiles.Add(relativePath);
                 }
-                DeclareEmptySource(BugReportBundleLayout.SnapshotDirectoryName, source, moved.Count);
+                if (move.Succeeded) DeclareEmptySource(BugReportBundleLayout.SnapshotDirectoryName, source, moved.Count);
             }
 
             // Player-prev.log とクラッシュダンプは Unity と OS が持つファイル。所有者から取り上げないよう写すだけにする

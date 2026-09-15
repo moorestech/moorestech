@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport;
-using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.DiskOperations;
 using Game.Paths;
 using UnityEngine;
 
@@ -14,12 +14,12 @@ namespace Client.Game.InGame.Playtest.Progress
     {
         public static SalvageOperationResult WriteHeader(string sessionDirectory, ProgressRecordHeader header)
         {
-            return ProgressDiskIo.WriteText(ProgressRecordPaths.HeaderPathIn(sessionDirectory), header.ToJson());
+            return BugReportFileOperations.WriteText(ProgressRecordPaths.HeaderPathIn(sessionDirectory), header.ToJson());
         }
 
         public static SalvageOperationResult OpenEventAppender(string sessionDirectory, out StreamWriter appender)
         {
-            return ProgressDiskIo.OpenAppender(ProgressRecordPaths.EventsPathIn(sessionDirectory), out appender);
+            return BugReportFileOperations.OpenAppender(ProgressRecordPaths.EventsPathIn(sessionDirectory), out appender);
         }
 
         // ヘッダが無く events.jsonl だけの残骸も1セッションぶんの残骸。見落とすと次の記録へ黙って混ざる
@@ -31,7 +31,7 @@ namespace Client.Game.InGame.Playtest.Progress
 
         public static ProgressRecordHeader ReadHeader(string sessionDirectory)
         {
-            var read = ProgressDiskIo.ReadText(ProgressRecordPaths.HeaderPathIn(sessionDirectory), out var json);
+            var read = BugReportFileOperations.ReadText(ProgressRecordPaths.HeaderPathIn(sessionDirectory), out var json);
             if (!read.Succeeded) return null;
             return ProgressRecordHeader.FromJson(json);
         }
@@ -42,7 +42,7 @@ namespace Client.Game.InGame.Playtest.Progress
         {
             brokenLineCount = 0;
             var entries = new List<ProgressEventEntry>();
-            var read = ProgressDiskIo.ReadLines(ProgressRecordPaths.EventsPathIn(sessionDirectory), out var lines);
+            var read = BugReportFileOperations.ReadLines(ProgressRecordPaths.EventsPathIn(sessionDirectory), out var lines);
             if (!read.Succeeded)
             {
                 Debug.LogError($"進行記録のイベントを読めませんでした: {read.FailureReason}");
@@ -70,14 +70,14 @@ namespace Client.Game.InGame.Playtest.Progress
             if (0 < brokenLineCount) header.AddMissing(ProgressRecordPaths.EventsFileName, $"読めないイベント行を捨てた count:{brokenLineCount}");
             foreach (var item in extraMissing) header.Missing.Add(item);
 
-            var creation = ProgressDiskIo.CreateBundleDirectory(GameSystemPaths.ProgressRecordOutboxDirectory, out var directory);
+            var creation = BugReportFileOperations.CreateBundleDirectory(GameSystemPaths.ProgressRecordOutboxDirectory, out var directory);
             if (!creation.Succeeded)
             {
                 Debug.LogError($"進行記録の箱を作れませんでした（この記録は current/ に残り次回起動で回収されます）: {creation.FailureReason}");
                 return ProgressCloseResult.Failed();
             }
 
-            var write = ProgressDiskIo.WriteText(Path.Combine(directory, ProgressRecordPaths.RecordFileName), ProgressRecordComposer.Compose(header, events, endReason, sessionEndUtc));
+            var write = BugReportFileOperations.WriteText(Path.Combine(directory, ProgressRecordPaths.RecordFileName), ProgressRecordComposer.Compose(header, events, endReason, sessionEndUtc));
             if (!write.Succeeded)
             {
                 Debug.LogError($"進行記録を書けませんでした（この記録は運搬されません） {directory}: {write.FailureReason}");
@@ -87,7 +87,7 @@ namespace Client.Game.InGame.Playtest.Progress
 
             // READY を置いてから current/ を消す。逆順だと運搬されない箱だけが残って記録が1件消える
             // READY is placed before current/ is cleared; the reverse order would leave an unshippable box and lose one record
-            var ready = ProgressDiskIo.WriteText(Path.Combine(directory, BugReportOutbox.ReadyMarkerFileName), "");
+            var ready = BugReportFileOperations.WriteText(Path.Combine(directory, BugReportOutbox.ReadyMarkerFileName), "");
             if (!ready.Succeeded)
             {
                 Debug.LogError($"進行記録のREADYを置けませんでした（current/ は残し次回起動の回収へ回します） {directory}: {ready.FailureReason}");
@@ -105,7 +105,7 @@ namespace Client.Game.InGame.Playtest.Progress
             // An unclosed box has no READY and never ships, but with nobody deleting it the outbox only grows; the record itself stays in current/, so dropping the box costs nothing
             void DeleteUnfinishedBundle()
             {
-                var deletion = SalvageFileOperations.DeleteDirectory(directory);
+                var deletion = BugReportDiskOperations.DeleteDirectory(directory);
                 if (!deletion.Succeeded) Debug.LogWarning($"閉じられなかった進行記録の箱を消せませんでした（運搬はされませんがoutboxに残ります） {directory}: {deletion.FailureReason}");
             }
 
@@ -123,10 +123,10 @@ namespace Client.Game.InGame.Playtest.Progress
 
         public static void ClearCurrent(string sessionDirectory)
         {
-            var headerDeletion = SalvageFileOperations.DeleteFile(ProgressRecordPaths.HeaderPathIn(sessionDirectory));
+            var headerDeletion = BugReportFileOperations.DeleteFile(ProgressRecordPaths.HeaderPathIn(sessionDirectory));
             if (!headerDeletion.Succeeded) Debug.LogError($"進行記録のヘッダを消せませんでした（次回起動で偽の記録が出ます）: {headerDeletion.FailureReason}");
 
-            var eventsDeletion = SalvageFileOperations.DeleteFile(ProgressRecordPaths.EventsPathIn(sessionDirectory));
+            var eventsDeletion = BugReportFileOperations.DeleteFile(ProgressRecordPaths.EventsPathIn(sessionDirectory));
             if (!eventsDeletion.Succeeded) Debug.LogError($"進行記録のイベントを消せませんでした（次回起動の記録へ混ざります）: {eventsDeletion.FailureReason}");
         }
     }

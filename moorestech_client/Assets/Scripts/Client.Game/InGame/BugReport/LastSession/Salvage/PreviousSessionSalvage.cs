@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Game.Paths;
 using UnityEngine;
@@ -78,7 +79,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                 missing.Report(LiveProcessMissingItem, $"pid {processId} は実行中のため退避も削除もしていない（並列起動のセッション）");
             }
 
-            var creation = SalvageFileOperations.CreateDirectory(request.LastSessionDirectory);
+            var creation = BugReportDiskOperations.CreateDirectory(request.LastSessionDirectory);
             if (!creation.Succeeded) missing.Report("lastSession", creation.FailureReason);
 
             var exitedCleanlyByProcessId = new Dictionary<int, bool>();
@@ -96,7 +97,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 ClearPreviousGeneration(Path.Combine(request.LastSessionDirectory, BugReportBundleLayout.RecordingDirectoryName), missing);
                 ClearPreviousGeneration(Path.Combine(request.LastSessionDirectory, BugReportBundleLayout.SnapshotDirectoryName), missing);
-                var originDeletion = SalvageFileOperations.DeleteFile(Path.Combine(request.LastSessionDirectory, PreviousOriginFileName));
+                var originDeletion = BugReportFileOperations.DeleteFile(Path.Combine(request.LastSessionDirectory, PreviousOriginFileName));
                 if (!originDeletion.Succeeded) missing.Report("previousOrigin", $"前世代の出所を消せなかった: {originDeletion.FailureReason}");
                 return PreviousSessionArtifacts.Clean(request.LastSessionDirectory, exitedCleanlyByProcessId, missing.Items);
             }
@@ -122,7 +123,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             void DiscardCleanSessionRecording(PreviousProcessSession session)
             {
                 if (session.RecordingDirectory == null) return;
-                var deletion = SalvageFileOperations.DeleteDirectory(session.RecordingDirectory);
+                var deletion = BugReportDiskOperations.DeleteDirectory(session.RecordingDirectory);
                 if (!deletion.Succeeded) missing.Report(BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId} {session.SessionName} の録画を消せなかった: {deletion.FailureReason}");
                 DeleteEmptiedProcessDirectory(session, missing);
             }
@@ -134,13 +135,13 @@ namespace Client.Game.InGame.BugReport.LastSession
         // Clears the pid_<PID> left empty after its session was folded; leaving it piles them up in recording/ and makes every boot's scan heavier
         internal static void DeleteEmptiedProcessDirectory(PreviousProcessSession session, SalvageMissingLog missing)
         {
-            var deletion = SalvageFileOperations.DeleteDirectoryIfEmpty(Path.GetDirectoryName(session.RecordingDirectory));
+            var deletion = BugReportDiskOperations.DeleteDirectoryIfEmpty(Path.GetDirectoryName(session.RecordingDirectory));
             if (!deletion.Succeeded) missing.Report(BugReportBundleLayout.RecordingDirectoryName, $"pid {session.ProcessId} の空ディレクトリを消せなかった: {deletion.FailureReason}");
         }
 
         internal static void ClearPreviousGeneration(string destination, SalvageMissingLog missing)
         {
-            var clearing = SalvageFileOperations.ClearDirectory(destination);
+            var clearing = BugReportDiskOperations.ClearDirectory(destination);
             if (!clearing.Succeeded) missing.Report(Path.GetFileName(destination), $"前世代の退避物を消せなかった: {clearing.FailureReason}");
         }
 
