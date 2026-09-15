@@ -14,15 +14,25 @@ namespace Game.SaveLoad.Pruning
     /// </summary>
     public sealed class MissingMasterPruner
     {
+        // world節は最初に除去する。除去したブロックの座標を、レールに載る節の巻き添え判定へ渡すため
+        // The world section is pruned first, because the pruned blocks' positions feed the collateral check of sections that sit on rails
+        private readonly WorldSectionPruner _worldSectionPruner = new();
+
         // ロードでマスタ解決が例外になりうる節、または除去データを残すべき節の除去器
         // Pruners for sections whose load can throw on master resolution or whose removals must be archived
         private readonly IReadOnlyList<IMissingMasterSectionPruner> _sectionPruners = new IMissingMasterSectionPruner[]
         {
-            new WorldSectionPruner(),
             new PlayerInventorySectionPruner(),
             new GameUnlockStateSectionPruner(),
             new ResearchSectionPruner(),
+        };
+
+        // レールノードは除去したブロックを座標で指す。残すと列車の位置やレール接続がロードで解決できず無音で消える
+        // Rail nodes point at pruned blocks by position; left in place, trains' positions and rail connections fail to resolve on load and vanish silently
+        private readonly IReadOnlyList<IRemovedBlockAwareSectionPruner> _removedBlockAwareSectionPruners = new IRemovedBlockAwareSectionPruner[]
+        {
             new TrainUnitsSectionPruner(),
+            new RailSegmentsSectionPruner(),
         };
 
         // 除去器を持たない節。マスタguidを持たないか、ロード側がマスタに無いguidを読み飛ばすもの
@@ -39,9 +49,6 @@ namespace Game.SaveLoad.Pruning
             // challenge/currentlyActiveChallenge: ChallengeMaster.GetChallengeがnullなら読み飛ばす
             // challenge/currentlyActiveChallenge: skipped when ChallengeMaster.GetChallenge returns null
             "challenge", "currentlyActiveChallenge",
-            // railSegments: レール種別guidはマスタ解決せずグラフへ戻すだけ
-            // railSegments: the rail type guid is put back into the graph without master resolution
-            "railSegments",
             // blueprints: ロードは一覧を保持するだけ。貼り付け時にGetBlockIdOrNullで解決する
             // blueprints: load only keeps the list; paste resolves through GetBlockIdOrNull
             "blueprints",
@@ -53,23 +60,40 @@ namespace Game.SaveLoad.Pruning
         public MissingMasterPruneOutcome Prune(JObject save)
         {
             LogUnclassifiedSections();
-            var sectionResults = _sectionPruners.Select(PruneSection).ToList();
+
+            // world節の除去結果から巻き添え判定用の座標を作り、残りの節へ値として渡す
+            // Build the collateral-check positions from the world section's result and hand them to the other sections as a value
+            var worldResult = PruneSection(_worldSectionPruner);
+            var removedWorldBlockPositions = new RemovedWorldBlockPositions(worldResult.RemovedBlocks);
+
+            var sectionResults = new List<MissingMasterSectionPruneResult> { worldResult };
+            sectionResults.AddRange(_sectionPruners.Select(PruneSection));
+            sectionResults.AddRange(_removedBlockAwareSectionPruners.Select(PruneRemovedBlockAwareSection));
             return new MissingMasterPruneOutcome(save, sectionResults);
 
             #region Internal
 
             MissingMasterSectionPruneResult PruneSection(IMissingMasterSectionPruner pruner)
             {
-                // 節が無いセーブもありうるが、除去が不発だった事実は読めるようにしておく
-                // A save can legitimately lack a section, but the no-op still has to leave a trace
-                var section = save[pruner.SaveSectionName];
-                if (section == null || section.Type == JTokenType.Null)
-                {
-                    Debug.Log($"セーブに{pruner.SaveSectionName}節が無いため、この節のマスタ欠損除去を行いません。");
-                    return new MissingMasterSectionPruneResult();
-                }
+                var section = FindSection(pruner.SaveSectionName);
+                return section == null ? new MissingMasterSectionPruneResult() : pruner.Prune(section);
+            }
 
-                return pruner.Prune(section);
+            MissingMasterSectionPruneResult PruneRemovedBlockAwareSection(IRemovedBlockAwareSectionPruner pruner)
+            {
+                var section = FindSection(pruner.SaveSectionName);
+                return section == null ? new MissingMasterSectionPruneResult() : pruner.Prune(section, removedWorldBlockPositions);
+            }
+
+            // 節が無いセーブもありうるが、除去が不発だった事実は読めるようにしておく
+            // A save can legitimately lack a section, but the no-op still has to leave a trace
+            JToken FindSection(string sectionName)
+            {
+                var section = save[sectionName];
+                if (section != null && section.Type != JTokenType.Null) return section;
+
+                Debug.Log($"セーブに{sectionName}節が無いため、この節のマスタ欠損除去を行いません。");
+                return null;
             }
 
             // 分類の無い節は除去されないまま素通る。マスタguidを持つ新しい節の足し忘れに気づけるよう警告する
@@ -90,7 +114,10 @@ namespace Game.SaveLoad.Pruning
         // Whether the section has a pruner or is declared as needing none
         public bool IsClassifiedSection(string sectionName)
         {
-            return _sectionPruners.Any(pruner => pruner.SaveSectionName == sectionName) || SectionsWithoutMasterPruning.Contains(sectionName);
+            return _worldSectionPruner.SaveSectionName == sectionName
+                   || _sectionPruners.Any(pruner => pruner.SaveSectionName == sectionName)
+                   || _removedBlockAwareSectionPruners.Any(pruner => pruner.SaveSectionName == sectionName)
+                   || SectionsWithoutMasterPruning.Contains(sectionName);
         }
     }
 }

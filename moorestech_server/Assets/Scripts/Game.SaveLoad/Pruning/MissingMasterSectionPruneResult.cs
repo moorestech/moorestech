@@ -18,9 +18,10 @@ namespace Game.SaveLoad.Pruning
 
         public JArray RemovedResearchGuids { get; } = new();
 
-        // 解放状態と列車はプレイヤーへの通知件数に入れない。ファイルにだけ残す
-        // Unlock states and trains do not count toward the player notice; they are only kept in the file
+        // 解放状態・列車・レール接続はプレイヤーへの通知件数に入れない。ファイルにだけ残す
+        // Unlock states, trains and rail connections do not count toward the player notice; they are only kept in the file
         public JArray RemovedUnlockStates { get; } = new();
         public JArray RemovedTrainUnits { get; } = new();
+        public JArray RemovedRailSegments { get; } = new();
     }
 }

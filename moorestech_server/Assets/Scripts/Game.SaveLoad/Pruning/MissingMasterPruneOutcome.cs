@@ -29,6 +29,7 @@ namespace Game.SaveLoad.Pruning
                 Append(_removed.RemovedResearchGuids, sectionResult.RemovedResearchGuids);
                 Append(_removed.RemovedUnlockStates, sectionResult.RemovedUnlockStates);
                 Append(_removed.RemovedTrainUnits, sectionResult.RemovedTrainUnits);
+                Append(_removed.RemovedRailSegments, sectionResult.RemovedRailSegments);
             }
 
             // 裸guid（燃焼中の燃料スロット等）もEmptiedItemStackCountに含める。通知の文言は「枠数」ではなく「取り除いた件数」を指す
@@ -41,7 +42,8 @@ namespace Game.SaveLoad.Pruning
         public bool HasRemoval => Report.HasRemoval
                                   || 0 < _removed.NeutralizedConnectionMaterials.Count
                                   || 0 < _removed.RemovedUnlockStates.Count
-                                  || 0 < _removed.RemovedTrainUnits.Count;
+                                  || 0 < _removed.RemovedTrainUnits.Count
+                                  || 0 < _removed.RemovedRailSegments.Count;
 
         // 実世界の日時そのものを記録する用途なのでDateTimeでよい（AGENTS.mdの例外）
         // Recording a real-world timestamp is the sanctioned DateTime use (AGENTS.md exception)
@@ -60,6 +62,7 @@ namespace Game.SaveLoad.Pruning
                 ["research"] = _removed.RemovedResearchGuids.DeepClone(),
                 ["unlockStates"] = _removed.RemovedUnlockStates.DeepClone(),
                 ["trainUnits"] = _removed.RemovedTrainUnits.DeepClone(),
+                ["railSegments"] = _removed.RemovedRailSegments.DeepClone(),
             };
         }
 

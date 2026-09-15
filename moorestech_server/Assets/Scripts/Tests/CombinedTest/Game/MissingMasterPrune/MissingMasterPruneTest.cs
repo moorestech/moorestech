@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Game.MissingMasterPrune
             Assert.AreEqual(1, ((JArray)pruned["blocks"]).Count);
             Assert.AreEqual(MissingGuid, pruned["blocks"][0]["blockGuid"].Value<string>());
             Assert.AreEqual(987656, pruned["blocks"][0]["instanceId"].Value<int>());
-            foreach (var emptyKind in new[] { "items", "connectionMaterials", "research", "unlockStates", "trainUnits" })
+            foreach (var emptyKind in new[] { "items", "connectionMaterials", "research", "unlockStates", "trainUnits", "railSegments" })
             {
                 Assert.AreEqual(0, ((JArray)pruned[emptyKind]).Count, emptyKind);
             }
