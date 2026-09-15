@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { useTopicEvents, Topics } from "@/bridge";
 import { useI18n, useItemDisplayName } from "@/shared/i18n";
 import ItemIcon from "@/shared/ui/ItemIcon";
-import { NOTIFICATION_DISPLAY_MS, useNotificationStore } from "./notificationStore";
+import { claimSaveMigrationNotice, NOTIFICATION_DISPLAY_MS, useNotificationStore } from "./notificationStore";
 import type { GameNotification } from "./notificationStore";
 import { resolveNotificationText } from "./notificationMessages";
 import styles from "./style.module.css";
@@ -20,6 +20,9 @@ export default function NotificationHost() {
     // 接続直後の空snapshotだけ弾く
     // Only the empty snapshot arriving right after connect is dropped
     if (!("seq" in payload)) return;
+    // snapshotで再提示された除去告知の再表示を弾く
+    // Drop a repeat of the prune notice re-served through the snapshot
+    if (payload.category === "saveMigration" && !claimSaveMigrationNotice(payload.seq)) return;
     if (payload.category === "itemEarned") {
       useNotificationStore.getState().addNotification({
         category: "itemEarned",

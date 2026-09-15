@@ -112,7 +112,7 @@ export const TooltipDataSchema = z.discriminatedUnion("visible", [
 // itemId is normally omitted (not sent as null) when there is no item, but nullable is accepted too
 const MessageNotificationSchema = z.object({
   seq: z.number(),
-  category: z.enum(["achievement", "operationDenied"]),
+  category: z.enum(["achievement", "operationDenied", "saveMigration"]),
   messageId: z.string(),
   messageParams: z.array(z.string()),
   // シリアライザ揺れでnullが来ても弾かないよう外部境界として広めに受ける

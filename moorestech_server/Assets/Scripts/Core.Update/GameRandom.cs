@@ -21,11 +21,17 @@ namespace Core.Update
         // Seed the four state words with SplitMix64 (must match the migration script)
         public static void Reseed(ulong seed)
         {
+            RestoreState(StateFromSeed(seed));
+        }
+
+        // 種から状態語を作る手順。旧セーブへ乱数状態を補うマイグレーションと共有し、splitmix64の再実装を防ぐ
+        // Builds the state words from a seed; shared with the legacy-save backfill migration so splitmix64 is not reimplemented
+        public static ulong[] StateFromSeed(ulong seed)
+        {
             var x = seed;
-            _s0 = SplitMix64(ref x);
-            _s1 = SplitMix64(ref x);
-            _s2 = SplitMix64(ref x);
-            _s3 = SplitMix64(ref x);
+            var state = new ulong[StateLength];
+            for (var i = 0; i < StateLength; i++) state[i] = SplitMix64(ref x);
+            return state;
         }
 
         public static ulong[] ExportState()

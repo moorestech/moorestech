@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Game.Train.Unit;
+using UnityEngine;
 
 namespace Game.Train.SaveLoad
 {
@@ -47,11 +48,19 @@ namespace Game.Train.SaveLoad
             // Register restored TrainUnits so lookup and save flows can see them again.
             foreach (var data in saveData)
             {
+                // マスタ欠損の除去器が復元不能な列車を事前に外すので通常は来ない。来たら次のautosaveで消えるため理由を残す
+                // The missing-master pruner removes unrestorable trains beforehand, so this is abnormal; it vanishes on the next autosave, hence the log
                 if (data == null)
+                {
+                    Debug.LogWarning("セーブのtrainUnitsにnullの列車があるため復元せず読み飛ばします。次のセーブで消えます。");
                     continue;
+                }
                 var trainUnit = TrainUnit.RestoreFromSaveData(data);
                 if (trainUnit == null)
+                {
+                    Debug.LogWarning($"列車のレール位置を解決できないため復元せず読み飛ばします。次のセーブで貨車と積荷ごと消えます。 trainUnitInstanceId={data.TrainUnitInstanceId} cars={data.Cars?.Count}");
                     continue;
+                }
                 _trainUnitDatastore.RegisterTrain(trainUnit);
             }
         }

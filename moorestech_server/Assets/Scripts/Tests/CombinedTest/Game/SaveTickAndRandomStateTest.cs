@@ -5,6 +5,7 @@ using Game.Map;
 using Game.Paths;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Json;
+using Game.SaveLoad.Json.WorldVersions;
 using Microsoft.Extensions.DependencyInjection;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
@@ -70,22 +71,79 @@ namespace Tests.CombinedTest.Game
             CollectionAssert.AreEqual(freshState, GameRandom.ExportState(), "新規ワールドの乱数が初期化されていない");
         }
 
+        // 版1の実セーブには3項目がそもそも無い。V1→V2ステップが補うので、前段を通せばロードは通る
+        // A real version 1 save has none of the three fields; the V1-to-V2 step backfills them so the prepared save loads
+        // 補填値は「時刻0・種0の乱数列・クールダウン無し」であり、この3つが今の正しい挙動そのもの
+        // The backfilled values are tick 0, the seed-0 random stream and no cooldown, and those three are the correct behaviour now
+        [Test]
+        public void 版1のセーブは3項目が欠けていても補填されて実ロードできる()
+        {
+            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
+            save["worldVersion"] = 1;
+            save.Remove("currentTick");
+            save.Remove("randomState");
+            save.Remove("miningCooldowns");
+
+            var archiveRoot = SaveLoadPreparerTestFixture.ArchiveRootForThisRun();
+            var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(archiveRoot);
+            var prepared = preparer.Prepare(save.ToString());
+            Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
+
+            var loader = SaveLoadPreparerTestFixture.CreateContainer().GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
+
+            // 補填値と紛れないよう、ロード直前に別の時刻と乱数へ動かしておく
+            // Move to a different clock and stream right before load so the backfilled values cannot be mistaken for leftovers
+            GameUpdater.RestoreCurrentTick(4242);
+            GameRandom.Reseed(999UL);
+
+            Assert.DoesNotThrow(() => loader.Load(prepared.Save));
+
+            Assert.AreEqual(0UL, GameUpdater.CurrentTick, "補填したcurrentTickが0で復元されていない");
+            CollectionAssert.AreEqual(GameRandom.StateFromSeed(0UL), GameRandom.ExportState(), "補填したrandomStateが種0の状態になっていない");
+
+            if (Directory.Exists(archiveRoot)) Directory.Delete(archiveRoot, true);
+        }
+
         // currentTick は値型なので欠損しても既定の0で通り、tickが無音で巻き戻ったまま再生が始まる
         // currentTick is a value type, so a missing field passes as the default 0 and replay starts from a silently rewound clock
+        // 補填は版1からの変換の仕事なので、現在版で欠けているのは手編集の破損であり例外で止める
+        // Backfilling belongs to the version 1 migration, so a field missing at the current version is hand-edited corruption and must throw
         [Test]
-        public void currentTickが無いセーブは無音で0にせず落とす()
+        public void currentTickが無い現在版のセーブは無音で0にせず落とす()
         {
             var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             GameUpdater.RestoreCurrentTick(555);
             var json = provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var root = JObject.Parse(json);
+            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, root["worldVersion"].Value<int>(), "この検証は現在版のセーブが前提");
             root.Remove("currentTick");
-            LogAssert.Expect(LogType.Error, new Regex("currentTick / randomState / miningCooldowns がありません"));
+            LogAssert.Expect(LogType.Error, new Regex("^セーブに currentTick がありません"));
 
             var loader = provider.GetRequiredService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
             var exception = Assert.Throws<InvalidOperationException>(() => loader.Load(root.ToString()));
-            StringAssert.Contains("migrate_block_state_objects.py", exception.Message);
+            StringAssert.Contains("currentTick", exception.Message);
+            Assert.AreEqual(555UL, GameUpdater.CurrentTick, "欠損したセーブのロードでtickが0へ巻き戻っている");
+        }
+
+        // miningCooldowns は参照型で、欠損をそのまま通すと復元先で素のNullReferenceExceptionになり理由が残らない
+        // miningCooldowns is a reference type; letting a missing one through gives a bare NullReferenceException with no reason
+        [Test]
+        public void miningCooldownsが無い現在版のセーブは理由付きで落とす()
+        {
+            var (_, provider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var json = provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
+
+            var root = JObject.Parse(json);
+            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, root["worldVersion"].Value<int>(), "この検証は現在版のセーブが前提");
+            root.Remove("miningCooldowns");
+
+            LogAssert.Expect(LogType.Error, new Regex("^セーブに miningCooldowns がありません"));
+
+            var loader = provider.GetRequiredService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
+            var exception = Assert.Throws<InvalidOperationException>(() => loader.Load(root.ToString()));
+            StringAssert.Contains("miningCooldowns", exception.Message);
+            StringAssert.Contains("マイグレーション連鎖", exception.Message);
         }
 
         // クールダウンを保存しないと、ロード直後の再生が保存前の世界では拒否された採掘を通して発散する

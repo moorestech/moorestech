@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Core.Item;
 using Core.Update;
 using Game.Blueprint;
@@ -38,6 +39,7 @@ namespace Game.SaveLoad.Json
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
+        private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
 
         public AssembleSaveJsonText(
             IPlayerInventoryDataStore inventoryDataStore,
@@ -56,7 +58,8 @@ namespace Game.SaveLoad.Json
             ItemStackLevelDataStore itemStackLevelDataStore,
             IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore,
             CleanRoomDatastore cleanRoomDatastore,
-            IMiningCooldownDatastore miningCooldownDatastore)
+            IMiningCooldownDatastore miningCooldownDatastore,
+            SaveBackfilledFieldsRecord saveBackfilledFieldsRecord)
         {
             _inventoryDataStore = inventoryDataStore;
             _entitiesDatastore = entitiesDatastore;
@@ -75,6 +78,7 @@ namespace Game.SaveLoad.Json
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
             _miningCooldownDatastore = miningCooldownDatastore;
+            _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
         }
 
         public string AssembleSaveJson()
@@ -109,7 +113,8 @@ namespace Game.SaveLoad.Json
                 _playerInventorySlotLevelDataStore.GetSaveLevel(),
                 _cleanRoomDatastore.GetSaveData(),
                 _miningCooldownDatastore.GetSaveJsonObject(),
-                GameRandom.ExportState()
+                GameRandom.ExportState(),
+                new List<string>(_saveBackfilledFieldsRecord.Fields)
             );
             saveAllInfo.CurrentTick = GameUpdater.CurrentTick;
             return saveAllInfo;

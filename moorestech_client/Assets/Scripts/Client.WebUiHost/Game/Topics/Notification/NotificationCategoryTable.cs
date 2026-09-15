@@ -24,6 +24,7 @@ namespace Client.WebUiHost.Game.Topics
                 NotificationCategory.Achievement => "achievement",
                 NotificationCategory.OperationDenied => "operationDenied",
                 NotificationCategory.ItemEarned => "itemEarned",
+                NotificationCategory.SaveMigration => "saveMigration",
             };
             return true;
         }

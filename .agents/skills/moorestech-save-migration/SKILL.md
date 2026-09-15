@@ -1,75 +1,101 @@
 ---
 name: moorestech-save-migration
-description: moorestech のセーブ(JSON)を、コード変更で変わった新シリアライズ形式へ安全に移行する。揮発int→GUID解決、MessagePack/flat→JSON変換、実ロード検証まで行う。Use When — 「セーブが旧形式でロードできない」「ブランチでセーブ形式が変わった」「save_N.json をマイグレーションして」「ロード時にNRE/JSONパースエラーが出る」「保存周りを変えたから既存セーブを直して」と言われた場合。
+description: moorestech のセーブ形式を変えるとき、ロード時マイグレーションのステップ（ISaveMigrationStep）を書いて既存ワールドを保つ。旧版セーブの手変換（worldVersion 導入前・開発者手元セーブ）も扱う。Use When — 「セーブ形式を変える」「WorldSaveAllInfoV1にフィールドを足す」「セーブが旧形式でロードできない」「マイグレーションステップを書いて」「ロード時にNRE/JSONパースエラーが出る」と言われた場合。
 ---
 
 # moorestech Save Migration
 
-## 概要
-moorestech は開発フェーズのため、コード変更でセーブのシリアライズ形式を頻繁に破壊的変更する（AGENTS方針: 旧セーブ互換不要）。本スキルは、形式変更で読めなくなった既存セーブファイルを新形式へ一括移行する手順。**コード側に互換コードを足すのではなく、セーブファイルを変換する**方針。
+## 方針（2026-09-13 に反転した）
 
-セーブ実体は `~/Library/Application Support/moorestech/saves/save_N.json`（mac、`GameSystemPaths.SaveFileDirectory`）。
+テスター配布が始まったため、**セーブ形式を変えるPRはロード時マイグレーションのステップを同梱する**（ADR 0058、
+`.decisions/2026-09-13-テスターのセーブ互換はゲーム内ロード時マイグレーション連鎖で保つ.md`、AGENTS.md
+「互換性とパフォーマンス」の例外項）。以前の「コード側に互換を書かずセーブファイルを手で変換する」方針は、
+worldVersion 導入前のセーブと開発者手元のセーブに限った補助手順へ降格した。
 
-## 前提条件
-- Unity エディタが起動中で `uloop` が通ること（`uloop execute-dynamic-code --project-path ./moorestech_client`）。
-- 変換対象セーブを作成したのと**同じ mod**（通常 `../../moorestech_master/server_v8`、`ServerDirectory.GetDirectory()` が返す）。揮発 int id はこの mod のロード順で決まるため、別 mod だと id がズレて別アイテムに化ける。
-- Python3（標準ライブラリのみ。base64/struct/json）。
-- 変換前後の比較用に git の merge-base（ブランチ分岐点）が分かること。
+セーブ実体は `<GameSystemPaths.SaveFileDirectory>/world_1/save.json`（mac なら
+`~/Library/Application Support/moorestech/Saves/world_1/save.json`）。
+マイグレーション前の原本はその隣の `backup/<元のworldVersion>/save.json`、マスタ欠損で除去した実体は
+`pruned/<UTC時刻>.json` に残る（退避先は `SaveArchiveDirectory.FromWorldDataDirectory` がセーブの隣へ導出する）。
 
-## 手順
+## 主手順: マイグレーションステップを書く
 
-### Step 1: 全形式変更を diff で「網羅列挙」する（最重要・最初にやる）
-**クラッシュを1つずつ潰す方法は禁止。** ロードエラーは1ブロックで止まるので、直しても次が出るだけ。最初に変更された全セーブ形式を列挙する。
+1. **`WorldSaveAllInfoV1.CurrentVersion` を1つ上げる**（`Game.SaveLoad/Json/WorldVersions/`）。
+2. **`Game.SaveLoad/Migration/Steps/SaveMigrationStepV<n>ToV<n+1>.cs` を作る。**
+   `references/save-migration-step-template.md` の骨格と、実装済みの `SaveMigrationStepV1ToV2.cs` を写して書き始める。
+   変換は `JObject` の上だけで行い、`worldVersion` は触らない（連鎖が書く）。
+3. **`MoorestechServerDIContainerGenerator` の `new SaveMigrationChain(new ISaveMigrationStep[] {...}, WorldSaveAllInfoV1.CurrentVersion)` へ足す。**
+   `FromVersion` が `1..CurrentVersion-1` を欠番・重複なく覆っていないと、構築時（起動時）に `ArgumentException` で止まる。
+4. **単体テストを同じPRに入れる**（`Tests/UnitTest/Game/SaveLoad/SaveMigrationStepV<n>ToV<n+1>Test.cs`）。
+   テンプレートの「3. テスト」と既存 `SaveMigrationStepV1ToV2Test.cs` がそのまま雛形。
+5. **実ロードで確かめる**（下の「実ロード検証」）。デシリアライズ単体の確認では足りない。
 
-```bash
-mb=$(git merge-base HEAD origin/master)
-git diff --name-only $mb..HEAD -- '***.cs' | while read f; do
-  git diff $mb..HEAD -- "$f" | grep -qiE "GetSaveState|LoadRailDirection|DeserializeObject|MessagePackSerializer|StateDetail|SaveJsonObject|componentStates|fluidId|itemId" && echo "$f"
-done
-```
-ヒットした各ファイルで「旧形式 → 新形式」を確定する。旧形式は **merge-base のコード**（`git show $mb:path`）と**実セーブの中身**の両方で、新形式は HEAD のセーブオブジェクトクラスで確認する。
+### 連鎖の契約（`Game.SaveLoad/Migration/`）
 
-### Step 2: セーブ内の影響ブロック/状態を棚卸し
-対象セーブを Python で読み、各 `world[].state{}` のキー別件数と、`trainUnits` を集計。どの形式が何件あるか把握する（0件なら無視してよい）。旧形式の典型マーカー: 状態値内の `\"fluidId\":` `\"FluidId\":` `\"itemId\":`、base64文字列（`k`等で始まりJSONでない）。
+| 型 | 役割 |
+| --- | --- |
+| `ISaveMigrationStep` | `int FromVersion { get; }` と `SaveMigrationStepResult Migrate(JObject save)` の1手 |
+| `SaveMigrationChain` | ctor `(IReadOnlyList<ISaveMigrationStep> steps, int currentVersion)`。構築時に欠番・重複を検証し、`Migrate` で昇順適用。未来版・版0以下・ステップの `Failed` は `SaveMigrationResult.CanLoad = false` |
+| `SaveMigrationStepResult` | 1手の結果。`Converted(JObject)` か `Failed(string reason)`。`Failed` を受けた連鎖は版を刻まず `Blocked` を返す |
+| `SaveArchiveWriter` | 変換が走るときだけ原本を `backup/<version>/save.json` へ退避（既存は上書きしない） |
+| `MissingMasterPruner` | 連鎖の**後段**。マスタから消えたブロック・アイテム・研究を除去する（`Game.SaveLoad/Pruning/`） |
+| `SaveLoadPreparer` | 上を束ねた `Prepare(string saveJsonText)`。`WorldLoaderFromJson.LoadOrInitialize` から呼ばれる |
 
-### Step 3: 揮発 id → GUID マップを「独立マスタ」から取得（Unity）
-**グローバル `MasterHolder` を使うな。** 実行中エディタには別の（テスト用）マスタが載っていることがあり、その場合 `ExistItemId(58)` が false を返し解決できない。`ServerDirectory.GetDirectory()` から v8 マスタを**独立にロード**して引く（グローバルに触れない）。`references/dump_id_maps.cs` を `uloop` で実行し、全 item/fluid の id→GUID と `DefaultContainerTypeConst` 定数を取得して スキル実体配下の `outputs/id_maps.json` に保存する（`/tmp` は消えるので使わない）。
+ロード経路: `LoadOrInitialize` がファイルを読み → `SaveLoadPreparer.Prepare`（版検出→退避→変換→除去→件数記録）
+→ 既存 `Load(string)`。`Load(string)` は無改変で、整った形だけを受ける契約のまま。
 
-### Step 4: 各新形式を実クラスから確認
-変換先は**ゲームの実シリアライザ出力を正確に模倣**する。新セーブオブジェクトクラスを Read し、`[JsonProperty]` のキー名を厳密に合わせる（順序は不問、キー名は厳密）。代表例:
-- `FluidContainerSaveJsonObject` → `{"fluidGuid":"<g>","amount":<double>}`（capacity は持たない＝ロード時に master から取得）
-- `ItemStackSaveJsonObject` → `{"itemGuid":"<g>","count":<int>}`（空は Guid.Empty / count 0）
-- 揮発 id 0（空）→ GUID は `00000000-0000-0000-0000-000000000000`
+**マスタからの削除はマイグレーションではない。** ブロック・アイテム・研究ノードを消しただけなら
+ステップは要らない。`MissingMasterPruner` が毎回のロードで除去し、件数がプレイヤーへ通知される。
 
-### Step 5: Python で実変換（backup → 変換 → 安全スキャン → 書き戻し）
-`references/migrate_save_template.py` をベースに、Step 1 で列挙した形式ごとの変換関数を実装。必ず:
-1. 変換前にタイムスタンプ付きバックアップディレクトリへコピー。
-2. 解決できない id があれば**中断**（`ExistItemId` 相当: マップに無ければ abort）。mod ズレの早期検出。
-3. **安全スキャン**: 変換後、全 `world[].state` 値が valid JSON か検査。非JSONが残れば未対応の base64/MessagePack 形式 → Step 1 の見落とし。
-4. 書き戻しは全体 re-dump（compact JSON）で可。C# は型でパースするため float 整形差は無害。
+**未来版のセーブは新規ワールド作成へ落とさず中断する。** 古いビルドで新しいセーブを開いた場合で、
+解消条件は「ゲームを更新する」。この経路を「落ちるから直す」と読み替えてはいけない（意図した fail-closed）。
 
-### Step 6: 実ロードで検証（必須・「変換成功」≠「ロード可能」）
-**デシリアライズ単体の確認では不十分。** ゲーム起動と同じ経路でフルロードする。`references/load_test.cs` を `uloop` で実行（`MoorestechServerDIContainerGenerator.Create` → `IWorldSaveDataLoader.LoadOrInitialize()`）。`LOAD OK | blocks=N` が出れば成功。失敗時は例外メッセージで次の未対応形式が分かる → Step 1 へ戻り列挙を補強。
-さらに重要データ（列車インベントリ等）を `references/verify_loaded.cs` で実値確認し、サイレントなデータ欠損が無いか見る。
+## 実ロード検証（必須）
 
-### Step 7: 完了後
-ユーザーがゲームを起動してロードすると、以降は**純正の新形式で再セーブ**されるので移行は一度きり。逆に、検証ロード後にゲームが再セーブすると切り詰め等が確定するので注意（下記 Gotchas）。検証ロードはエディタの `ServerContext` にワールドを載せるため、**検証後は Unity 再起動を推奨**。
+`references/load_test.cs` を `uloop execute-dynamic-code --project-path ./moorestech_client` で実行し、
+`MoorestechServerDIContainerGenerator.Create` → `IWorldSaveDataLoader.LoadOrInitialize()` の経路で
+`LOAD OK | blocks=N` を確認する。失敗時の例外メッセージが次の未対応形式を教える。
+重要データ（列車インベントリ等）の実値は `references/verify_loaded.cs` で確認する。
+
+## 補助手順: セーブファイルの手変換（worldVersion 導入前・開発者手元セーブ限定）
+
+**プロダクションコードはもうこの手順を案内しない**（`WorldLoaderFromJson` にあった
+`scripts/save_migration/migrate_block_state_objects.py` への案内は、版1→版2ステップの実装に伴い撤去済み）。
+配布済みビルドのセーブにこの手順を使ってはいけない（テスターの手元では実行できない）。
+使ってよいのは、worldVersion より前に作られた自分のセーブを1回だけ救うときだけ。
+
+1. `mb=$(git merge-base HEAD origin/master)` を取り、`git diff --name-only $mb..HEAD -- '***.cs'` から
+   セーブ形式に触れた全ファイルを**最初に網羅列挙**する（クラッシュを1つずつ潰すのは禁止。ロードは
+   最初の失敗ブロックで止まるので、直しても次が出るだけ）。
+2. 対象セーブを Python で読み、`world[].state` のキー別件数と `trainUnits` を集計する。
+3. 揮発 int → GUID の対応は `references/dump_id_maps.cs` を `uloop` で実行して取る。
+   **グローバル `MasterHolder` を使わない**（エディタに別のテスト用マスタが載っていることがある）。
+   `ServerDirectory.GetDirectory()` から独立にロードする。
+4. `references/migrate_save_template.py` をベースに変換する。必ず backup → 変換 → 安全スキャン
+   （全 `world[].state` 値が valid JSON か）→ 書き戻しの順。解決できない id があれば中断する。
+5. 上の「実ロード検証」を行う。
 
 ## Gotchas
-- **クラッシュ駆動で直すな。** ロードは最初の失敗ブロックで止まる。Step 1 の diff 網羅列挙を先にやらないと、FuelGearGenerator を直したら次は Rail、と無限に出る（実際にそうなった）。
-- **「移行した」と言う前に必ず実ロード（Step 6）。** デシリアライズ単体テストだけで「完了」と報告するのは誤り。形式は他にも変わっている可能性がある。
-- **グローバル MasterHolder ≠ 対象 mod。** `loaded=false`（既ロード）で `missing:[58,79]`（解決不能）が出たら、別マスタが載っている。独立マスタ構築（Step 3）が必須。
-- **揮発 int は mod ロード順依存。** save 作成時と同じ mod でないと id が別アイテムに化ける。マップに無い id があれば中断する（黙って続行しない）。
-- **`uloop execute-dynamic-code` は `System.IO` 全面禁止**（File/Directory/**Path も**）。ファイル入出力は Python/bash 側で行う。スニペット内のパス連結は `Path.Combine` でなく文字列連結（`dir.EndsWith("/") ? dir+"mods" : dir+"/mods"`）。
-- **C# の char リテラル `'/'` はシェルの single quote と衝突**して壊れる。スニペットは一時 `.cs` ファイルに書き、`--code "$(cat file.cs)"` で渡す（ダブルクォート内コマンド置換は内容を再解釈しない）。大きな入力は base64 で埋め込む。
-- **base64-MessagePack 状態がある**（例 RailComponentStateDetail = `kZP...`）。`json.loads` が失敗する state は MessagePack。`[[x,y,z]]` 等を手デコードして JSON 化する。安全スキャン（Step 5-3）で取りこぼしを検出。
-- **コンテナのスロット数 > master.InventorySlots だとロード時に切り詰められデータ欠損**（旧 MessagePack は切り詰めず復元していた＝ブランチの新挙動）。変換ファイル自体は全スロット保持できるが、ロードで落ちる。事前検出してユーザーに警告し、master のスロット数修正で回避可能か確認する。
-- **マスタ参照値（capacity/スロット数）は新形式に含めない**。新シリアライザがそれらを出力しないので、模倣する変換も出力しない。ロード時に master から解決される。
-- **id 0（空）の GUID は `Guid.Empty`**（`GetItemGuid/GetFluidGuid(Empty*) == Guid.Empty`）。マップには 0 が無いので明示的に空 GUID を割り当てる。
+
+- **ステップの中で `MasterHolder` を引かない。** 削除済みマスタで変換自体が落ちる。マスタ欠損の始末は
+  後段の `MissingMasterPruner` の責務。
+- **ステップは冪等に書く。** バックアップから戻して再実行する運用がある。
+- **`CurrentVersion` を上げ忘れるとステップが宙に浮く。** `SaveMigrationChain` の構築検証が
+  「期待={...} 実際={...}」で落ちるので、起動した瞬間に気づける（意図した早期失敗）。
+- **前の版のセーブクラスを参照しない。** `JObject` だけで書く。過去のステップが将来の形式変更で壊れる。
+- **新規サーバー側 `.cs` の追加直後は Unity 再起動が要る**（`uloop launch ./moorestech_client --restart`）。
+- **`uloop execute-dynamic-code` は `System.IO` 全面禁止**（`Path` も）。ファイル入出力は Python/bash 側。
+- **C# の char リテラル `'/'` はシェルの single quote と衝突**する。スニペットは一時 `.cs` に書き
+  `--code "$(cat file.cs)"` で渡す。
+- **base64-MessagePack の状態値がある**（例 `RailComponentStateDetail = "kZP..."`）。JSON として読めない
+  値は触らず素通しし、理由を `Debug.Log` に残す。
+- **コンテナのスロット数 > master.InventorySlots だとロード時に切り詰められる。** 変換ファイル側では
+  保持できてもロードで落ちるので、事前検出して master 側の修正で回避できるか確認する。
+- **マスタ参照値（capacity・スロット数）は保存形式に含めない。** ロード時に master から解決される。
 
 ## Available scripts (references/)
-呼び出し時に Read して用途に合わせ調整する（対象 save 番号・形式関数は都度書き換え）。
-- `references/dump_id_maps.cs` — 独立 v8 マスタから item/fluid の id→GUID 全マップ＋定数を JSON で返す（Step 3）。`uloop execute-dynamic-code --project-path ./moorestech_client --code "$(cat ...)"`。
-- `references/migrate_save_template.py` — backup→形式別変換→安全スキャン→書き戻しの雛形（Step 5）。形式ごとの `t_*` 関数を実装して使う。
-- `references/load_test.cs` — DI フルロードで `LOAD OK | blocks=N` を確認（Step 6）。
-- `references/verify_loaded.cs` — ロード後の列車インベントリ等を実値ダンプし欠損検査（Step 6）。
+
+- `references/save-migration-step-template.md` — ステップの骨格（本体・登録・テスト・落とし穴）。**主手順の入口**
+- `references/dump_id_maps.cs` — 独立 v8 マスタから item/fluid の id→GUID 全マップを返す（補助手順）
+- `references/migrate_save_template.py` — backup→変換→安全スキャン→書き戻しの雛形（補助手順）
+- `references/load_test.cs` — DI フルロードで `LOAD OK | blocks=N` を確認（実ロード検証）
+- `references/verify_loaded.cs` — ロード後の実値ダンプで欠損検査（実ロード検証）
