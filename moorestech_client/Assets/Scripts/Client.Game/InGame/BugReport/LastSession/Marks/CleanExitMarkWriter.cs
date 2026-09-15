@@ -38,13 +38,19 @@ namespace Client.Game.InGame.BugReport.LastSession
             // Only a deliberate exit is recorded; the fold-up after a failed initialization is the crash side and writes nothing
             void OnShutdownDeclared(GameShutdownReason reason)
             {
-                if (reason != GameShutdownReason.IntentionalExit)
+                if (reason == GameShutdownReason.InitializationFailed)
                 {
                     Debug.Log($"正常終了マーカーを書きません（終了理由: {reason}）。次回起動は前回異常終了として扱われます");
                     return;
                 }
                 exitIntentDeclared = true;
                 CleanExitMarker.MarkExitIntent(processId, sessionName);
+
+                // 待てない経路は書き出し完了の前にプロセスや再生が止まり、完了の印を置く機会が来ない。待たずに書かないと毎回偽のクラッシュになる
+                // An unawaitable exit stops before the flush completes and never gets a chance to settle; not writing now would fake a crash every time
+                if (reason != GameShutdownReason.UnawaitableExit) return;
+                Debug.LogWarning("書き出し完了を待てない終了のため、意思表明の時点で正常終了として記録します（終了処理中の停止はこの経路では検知できません）");
+                CleanExitMarker.MarkCleanExit(processId, sessionName);
             }
 
             // 正常終了の印は全参加者の書き出しが終わってから確定する。意思表明の時点で書くと、終了処理中のフリーズを検知できない（F03）

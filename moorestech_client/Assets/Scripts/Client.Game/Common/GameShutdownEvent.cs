@@ -16,6 +16,9 @@ namespace Client.Game.Common
         private static readonly Subject<ShutdownFlushResult> _onShutdownFlushed = new();
         private static readonly List<IGameShutdownParticipant> _participants = new();
         private static bool _fired;
+        private static bool _quitDeferralInstalled;
+        private static bool _quitInProgress;
+        private static bool _quitAllowed;
 
         // 終了理由つきで発火するイベント。終了の意思が表明された時点で飛び、書き出しの完了は待たない
         // Event carrying the shutdown reason; it fires when the intent to exit is declared, without waiting for any flush
@@ -31,6 +34,30 @@ namespace Client.Game.Common
         {
             _fired = false;
             _participants.Clear();
+        }
+
+        // ウィンドウを閉じる等のOS由来の終了要求を一度止め、書き出しを待つ正規の終了口へ流す。止めないと完了前にプロセスが消える
+        // Holds OS-originated quit requests (closing the window) and routes them through the awaiting exit; otherwise the process dies before the flush
+        public static void InstallApplicationQuitDeferral()
+        {
+            // Editorの終了要求を止めるとEditor自体が閉じられなくなる。Editorでの停止はUnawaitableExitで記録する
+            // Holding the Editor's own quit would keep the Editor from closing; an Editor stop is recorded as UnawaitableExit instead
+            if (Application.isEditor || _quitDeferralInstalled) return;
+            _quitDeferralInstalled = true;
+            Application.wantsToQuit += OnApplicationWantsToQuit;
+        }
+
+        private static bool OnApplicationWantsToQuit()
+        {
+            if (_quitAllowed) return true;
+            if (_quitInProgress)
+            {
+                Debug.Log("終了処理の書き出し中のため、重ねて来た終了要求は保留します");
+                return false;
+            }
+            Debug.Log("終了要求を保留し、書き出しの完了を待ってから終了します");
+            QuitApplicationAsync().Forget(LogShutdownFailure);
+            return false;
         }
 
         // 終了時に書き出しを終わらせる相手を登録する。待ち上限は参加者自身が持つ
@@ -122,6 +149,7 @@ namespace Client.Game.Common
         // The single application-exit entry point; waits for the flush before going down
         public static async UniTask QuitApplicationAsync()
         {
+            _quitInProgress = true;
             var flushResult = await FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
             if (flushResult == ShutdownFlushResult.FlushTimedOut)
                 Debug.LogError("セーブの書き出し完了を待ち切れないままアプリを終了します");
@@ -130,6 +158,7 @@ namespace Client.Game.Common
             if (flushResult == ShutdownFlushResult.FlushFailed)
                 Debug.LogError("終了時の書き出しが例外で失敗したため、何が保存されたか分からないままアプリを終了します");
 
+            _quitAllowed = true;
             Application.Quit();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;

@@ -50,6 +50,7 @@ namespace Client.Starter
             // 新しい起動シーケンスの開始。前回セッションの終了ガードをここで戻す
             // A new boot sequence begins; clear the previous session's shutdown guard here
             GameShutdownEvent.ResetForNewSession();
+            GameShutdownEvent.InstallApplicationQuitDeferral();
 
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene

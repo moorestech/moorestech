@@ -136,6 +136,20 @@ namespace Client.Tests.BugReport
             Assert.IsTrue(CleanExitMarker.ConsumeSessionMarks(TestProcessId, CurrentSessionName).ExitedCleanly, "書き出し完了後に正常終了の印が書かれていない");
         }
 
+        // EditorのPlay停止や破棄は書き出し完了を待てない。完了の印を待つと、正常に止めたのに次回が毎回クラッシュ扱いになる
+        // An Editor Play stop or teardown cannot await the flush; waiting for completion would make every normal stop read as a crash next time
+        [Test]
+        public void 待てない終了は意思表明の時点で正常終了の印を書く()
+        {
+            CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName);
+            GameShutdownEvent.RegisterParticipant(new ControllableShutdownParticipant());
+
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, "書き出し完了を待てない終了のため、意思表明の時点で正常終了として記録します（終了処理中の停止はこの経路では検知できません）");
+            GameShutdownEvent.FireGameShutdown(GameShutdownReason.UnawaitableExit);
+
+            Assert.IsTrue(CleanExitMarker.ConsumeSessionMarks(TestProcessId, CurrentSessionName).ExitedCleanly, "待てない終了で正常終了の印が書かれていない");
+        }
+
         private static bool ContainsMarked(string sessionName)
         {
             foreach (var marked in CleanExitMarker.MarkedSessions())
