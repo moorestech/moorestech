@@ -39,11 +39,11 @@ namespace Game.SaveLoad.Migration
                 return PreparedSaveJson.Blocked(migration.BlockedReason);
             }
 
-            // 変換を実際に行った版のときだけ原本を退避する。現在版で毎回同じ原本を書き直さない
-            // Archive the original only when a migration actually ran, so the same original is not rewritten on every boot
-            // 変換はメモリ上だけで進み、この時点でもディスクのsave.jsonは原本のままなので退避は取り逃さない
-            // The migration happens only in memory and save.json on disk is still the original here, so nothing is missed
-            if (migration.Migrated) _archiveWriter.WriteBackup(migration.FromVersion, saveJsonText);
+            // 版が上がらないロードでも除去結果はautosaveで原本を上書きするので、除去の前に必ず原本を退避する
+            // Even a load that keeps the version lets autosave overwrite the original with the pruned result, so always archive before pruning
+            // 版ごとに最初の1本だけが残り、2回目以降は書き手側が上書きせずに抜ける
+            // Only the first original per version is kept; the writer skips later runs without overwriting
+            _archiveWriter.WriteBackup(migration.FromVersion, saveJsonText);
 
             // 版が上がらなくてもマスタは変わるので、除去は毎回のロードで走らせる
             // The master changes even when the version does not, so pruning runs on every load

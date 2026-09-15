@@ -51,7 +51,7 @@ namespace Game.SaveLoad.Migration
 
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, saveJsonText);
-            Debug.Log($"マイグレーション前のセーブを退避しました。 path={path}");
+            Debug.Log($"ロード前のセーブを退避しました。 path={path}");
         }
 
         // ファイル名とprunedAtに同じ時刻を使う。呼び出し側で2度綴らせない

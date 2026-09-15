@@ -88,20 +88,23 @@ namespace Tests.CombinedTest.Game
             Assert.IsNull(prepared.SaveJsonText);
         }
 
-        // マイグレーションが走らない現在版ではバックアップを作らない（毎回同じ原本を書き直さない）
-        // No migration means no backup, so the same original is not rewritten on every boot
+        // 版が上がらないロードでも除去結果がautosaveで原本を上書きするので、現在版でも原本を退避する
+        // Even without a migration autosave would overwrite the original with the pruned result, so the current version is archived too
         [Test]
-        public void 現在版のセーブではバックアップを作らないTest()
+        public void 現在版のセーブも欠損ブロックの除去前に原本を退避するTest()
         {
+            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
+            ((JArray)save["world"]).Add(SaveLoadPreparerTestFixture.MissingBlock(987663, 83));
+            var originalText = save.ToString();
+
             var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(_archiveRoot);
+            preparer.Prepare(originalText);
 
-            preparer.Prepare(SaveLoadPreparerTestFixture.BuildSaveJson().ToString());
-
-            // どちらか片方だけを見ると、退避版が固定値へ退行してもMigratedガードが落ちても素通りする
-            // Watching only one of the two would let both a hard-coded version and a dropped Migrated guard pass unnoticed
+            // 退避版が固定値へ退行していないことも、版1側に作られていないことで一緒に見る
+            // Checking that nothing lands under version 1 also catches a regression to a hard-coded version
             var archive = WorldDataDirectory.FromWorldRoot(_archiveRoot);
-            Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(1)), "版1のバックアップが作られています");
-            Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(WorldSaveAllInfoV1.CurrentVersion)), "現在版のバックアップが作られています");
+            Assert.AreEqual(originalText, File.ReadAllText(archive.BackupSaveJsonPath(WorldSaveAllInfoV1.CurrentVersion)));
+            Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(1)), "現在版のセーブが版1として退避されています");
         }
 
         // 版1と記された既存セーブ（形式は既に版2相当）が、3項目を上書きされずに版2へ上がること
