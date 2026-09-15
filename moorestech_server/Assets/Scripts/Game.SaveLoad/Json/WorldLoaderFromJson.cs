@@ -134,21 +134,12 @@ namespace Game.SaveLoad.Json
         {
             var load = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(jsonText);
 
-            // 版が古いセーブの欠損はV1→V2ステップが補うので、ここで補填はしない
-            // A missing field in an older save is backfilled by the V1-to-V2 step, so nothing is backfilled here
-            // miningCooldownsだけは参照型で、欠けたまま進むと復元先で素のNullReferenceExceptionになり理由が残らない
-            // Only miningCooldowns is a reference type; passing it through would surface as a bare NullReferenceException with no reason
-            if (load.MiningCooldowns == null)
-            {
-                var reason = "セーブに miningCooldowns がありません。版が古いセーブはマイグレーション連鎖（Game.SaveLoad/Migration）が補填するため、現在版のセーブで欠けているのは手編集による破損です";
-                Debug.LogError(reason);
-                throw new InvalidOperationException(reason);
-            }
+            // 版が古いセーブの欠損はV1→V2ステップが補うので、ここで補填はしない。欠けたまま進むと理由の無い素の例外になる
+            // An older save's gaps are backfilled by the V1-to-V2 step, not here; passing one through would fail with a reasonless bare exception
+            ThrowIfRequiredFieldMissing();
 
             // 時刻と乱数状態を最初に戻す。以降の復元（残りtick等）がこの時刻を基準にする
             // Restore the clock and random state first; later restorations reference this tick
-            // currentTickとrandomStateは使用時点で理由の分かる例外になるため、ここに追加のガードは置かない
-            // currentTick and randomState already fail with a telling exception at their use site, so no extra guard is placed here
             GameUpdater.RestoreCurrentTick(load.CurrentTick.Value);
             GameRandom.RestoreState(load.RandomState);
             
@@ -224,6 +215,19 @@ namespace Game.SaveLoad.Json
             WarnIfRandomStreamAdvanced(load.RandomState);
 
             #region Internal
+
+            void ThrowIfRequiredFieldMissing()
+            {
+                var missing = new List<string>();
+                if (!load.CurrentTick.HasValue) missing.Add("currentTick");
+                if (load.RandomState == null) missing.Add("randomState");
+                if (load.MiningCooldowns == null) missing.Add("miningCooldowns");
+                if (missing.Count == 0) return;
+
+                var reason = $"セーブに {string.Join(" / ", missing)} がありません。版が古いセーブはマイグレーション連鎖（Game.SaveLoad/Migration）が補填するため、現在版のセーブで欠けているのは手編集による破損です";
+                Debug.LogError(reason);
+                throw new InvalidOperationException(reason);
+            }
 
             void WarnIfRandomStreamAdvanced(ulong[] savedState)
             {

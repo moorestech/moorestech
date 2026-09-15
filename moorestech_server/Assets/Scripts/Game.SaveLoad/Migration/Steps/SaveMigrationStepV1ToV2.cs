@@ -133,25 +133,33 @@ namespace Game.SaveLoad.Migration.Steps
             {
                 var added = new List<string>();
 
-                if (save["currentTick"] == null)
+                if (IsAbsent("currentTick"))
                 {
                     save["currentTick"] = 0;
                     added.Add("currentTick");
                 }
 
-                if (save["randomState"] == null)
+                if (IsAbsent("randomState"))
                 {
                     save["randomState"] = JArray.FromObject(GameRandom.StateFromSeed(LegacySaveRandomSeed));
                     added.Add("randomState");
                 }
 
-                if (save["miningCooldowns"] == null)
+                if (IsAbsent("miningCooldowns"))
                 {
                     save["miningCooldowns"] = new JArray();
                     added.Add("miningCooldowns");
                 }
 
                 return added.Count == 0 ? "なし" : string.Join(",", added);
+            }
+
+            // キーが無いのと値がnullなのは、デシリアライズ後はどちらも欠損になるので同じに扱う
+            // A missing key and a null value both deserialize as absent, so they are treated alike
+            bool IsAbsent(string key)
+            {
+                var token = save[key];
+                return token == null || token.Type == JTokenType.Null;
             }
 
             #endregion

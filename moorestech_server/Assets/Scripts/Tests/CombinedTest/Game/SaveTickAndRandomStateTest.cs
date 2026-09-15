@@ -118,9 +118,11 @@ namespace Tests.CombinedTest.Game
             var root = JObject.Parse(json);
             Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, root["worldVersion"].Value<int>(), "この検証は現在版のセーブが前提");
             root.Remove("currentTick");
+            LogAssert.Expect(LogType.Error, new Regex("^セーブに currentTick がありません"));
 
             var loader = provider.GetRequiredService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
-            Assert.Throws<InvalidOperationException>(() => loader.Load(root.ToString()));
+            var exception = Assert.Throws<InvalidOperationException>(() => loader.Load(root.ToString()));
+            StringAssert.Contains("currentTick", exception.Message);
             Assert.AreEqual(555UL, GameUpdater.CurrentTick, "欠損したセーブのロードでtickが0へ巻き戻っている");
         }
 
