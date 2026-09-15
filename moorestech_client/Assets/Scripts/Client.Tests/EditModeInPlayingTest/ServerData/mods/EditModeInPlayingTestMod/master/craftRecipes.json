@@ -1,3 +1,17 @@
 {
-  "data": []
+  "data": [
+    {
+      "craftRecipeGuid": "5c2b8f0e-7a41-4f6d-9e3b-1d2c3a4b5e61",
+      "craftResultItemGuid": "5def2be9-1bfa-4d6b-b827-8d82712bf70b",
+      "craftResultCount": 1,
+      "craftTime": 1,
+      "initialUnlocked": true,
+      "requiredItems": [
+        {
+          "itemGuid": "91458a7e-5eaa-47fd-b79e-8390af20bb84",
+          "count": 2
+        }
+      ]
+    }
+  ]
 }

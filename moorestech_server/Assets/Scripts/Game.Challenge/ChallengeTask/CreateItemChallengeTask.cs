@@ -27,7 +27,7 @@ namespace Game.Challenge.Task
             ChallengeMasterElement = challengeMasterElement;
             
             var craftEvent = ServerContext.GetService<CraftEvent>();
-            craftEvent.OnCraftItem.Subscribe(CreateItem);
+            craftEvent.OnCraftItem.Subscribe(craft => CreateItem(craft.craftRecipe));
         }
         
         private void CreateItem(CraftRecipeMasterElement craftRecipeMasterElement)

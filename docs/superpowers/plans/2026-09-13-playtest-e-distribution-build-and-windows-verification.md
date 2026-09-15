@@ -1450,7 +1450,7 @@ Expected: `PASS: release-playtest contract`
 # プレイテスト配布工程
 
 配布ビルドを焼き、Steam の `playtest` ブランチへ上げ、検証機で通し検証するまでの運用。
-用語は CONTEXT.md「プレイテスト」節、裁定は docs/adr/0058 を正とする。
+用語は CONTEXT.md「プレイテスト」節、裁定は docs/adr/0061 を正とする。
 
 ## 1回だけ行う準備
 
@@ -1940,7 +1940,7 @@ PR を作成したら、その場で `moores-wt rm <name>` で worktree と Unit
 | 10 | アップロード完了の観測 | `Client.Starter` | outbox の `UPLOADED` マーカーを期限付きファイルポーリング | 共有契約 §2、`PlaytestGameReady.WaitUntilReady`（固定 sleep でなく期限付きポーリング） | ok |
 | 11 | Steam アップロード資材と配布スクリプト | `scripts/playtest/`（コードrepo） | bash＋env 差し替え＋スタブ bash テスト | `scripts/event/start-gamescom-loop.command`（配布運用スクリプトの置き場）、`.agents/skills/unity-playmode-recorded-playtest/scripts/tests/fixed-world-environment-test.sh`（bash テストの様式） | ok |
 | 12 | 検証機側スクリプト | `scripts/playtest/windows/run-smoke.ps1`（コードrepoが正本・毎回 scp） | PowerShell | `scripts/setup-cef.ps1`（repo に PowerShell を置く前例） | ok |
-| 13 | Mac mini の常駐化 | 追加しない（手動コマンド） | — | ADR 0058「起動は手動コマンド」、`.decisions/2026-09-13-配布ビルドはMac miniがコマンド1つで…` | ok（supervisor へは足さない。取り込み〈plan H〉が periodic を足す側） |
+| 13 | Mac mini の常駐化 | 追加しない（手動コマンド） | — | ADR 0061「起動は手動コマンド」、`.decisions/2026-09-13-配布ビルドはMac miniがコマンド1つで…` | ok（supervisor へは足さない。取り込み〈plan H〉が periodic を足す側） |
 | 14 | ffmpeg バイナリの置き場 | `moorestech-client-private`（別 repo）＋ピン更新 | Git LFS | `.moorestech-external-revisions.json` の既存 `moorestech_client_private` エントリ、AGENTS.md「別リポジトリに変更が及ぶ場合も PR を作る」 | ok |
 
 ### データフロー地図（Phase 1.5）
@@ -1970,7 +1970,7 @@ release-playtest.sh →（moores-wt worktree）→ Unity batchmode（BuildInfoWr
 
 ### 設計セッションのADR・裁定
 
-- `docs/adr/0058-steam-closed-playtest-report-receiver-and-save-compat.md`（本 plan の親。配布ビルド・検証機・BuildInfo・ffmpeg 同梱の裁定）
+- `docs/adr/0061-steam-closed-playtest-report-receiver-and-save-compat.md`（本 plan の親。配布ビルド・検証機・BuildInfo・ffmpeg 同梱の裁定）
 - `docs/adr/0036-release-local-build-menu-entry.md`（Release 固定メニューの型。Mac 版）
 - `.decisions/2026-09-13-配布ビルドはMac miniがコマンド1つでビルドからsteamcmdアップロードまで無人で行う.md`
 - `.decisions/2026-08-02-PlayerBuildRequestは3boolのまま維持する.md`
@@ -1979,15 +1979,15 @@ release-playtest.sh →（moores-wt worktree）→ Unity batchmode（BuildInfoWr
 
 ### planning 中に生じた判断
 
-- **D-1. `ReleaseLocalBuildCli` を復活させる。** ADR 0036 の訂正（2026-09-04）で同名クラスは「参照0」を理由に削除されたが、その訂正自身が「恒久的な無人ビルド入口が要るなら別途設計する」と述べている。ADR 0058 の「Mac mini がコマンド1つで無人ビルド」がその要件であり、今回は参照元（`release-playtest.sh`）が実在する。GUI メニューと同一の `CreateRequest` を共有させ、ADR 0036 が問題視した「GUI から押すと Editor が落ちる」事故は `[MenuItem]` を付けないことで防ぐ。出所: agent前提（ADR 0036 訂正文＋ADR 0058 の帰結）
+- **D-1. `ReleaseLocalBuildCli` を復活させる。** ADR 0036 の訂正（2026-09-04）で同名クラスは「参照0」を理由に削除されたが、その訂正自身が「恒久的な無人ビルド入口が要るなら別途設計する」と述べている。ADR 0061 の「Mac mini がコマンド1つで無人ビルド」がその要件であり、今回は参照元（`release-playtest.sh`）が実在する。GUI メニューと同一の `CreateRequest` を共有させ、ADR 0036 が問題視した「GUI から押すと Editor が落ちる」事故は `[MenuItem]` を付けないことで防ぐ。出所: agent前提（ADR 0036 訂正文＋ADR 0061 の帰結）
 - **D-2. 「配布ビルドに対してプレイテストDSLを動かす」は成立しないため、配布ビルド向けシナリオ起動を最小追加する。** `Client.Playtest.asmdef` は `includePlatforms: ["Editor"]`・`Unity.Recorder.Editor` 参照で Player に入らず、投入経路も `uloop execute-dynamic-code`（稼働中 Editor 必須）。DSL をランタイム化する案は Recorder 依存とオーバーレイ・入力注入一式の移設を伴い plan E の範囲を超える。役割同型の既存前例 `StandaloneTerrainQa*`（CLI 引数で Player を自動運転し `result.json` を残す）に合わせ、`Client.Starter/PlaytestSmoke/` に2フェーズ固定のランナーを置く。Editor DSL は Editor 側の検証手段として無傷で残す。出所: agent前提（共有契約 §7 の意図を満たす読み替え。**ユーザー裁定に上げる注目点**）
 - **D-3. smoke の報告送信は WebUI のクリック経路ではなく `BugReportBundleWriter` の直呼びにする。** 配布ビルドで CEF の DOM を叩くには `Client.Playtest/WebUi` の testid 解決と `SemanticInput` の移設が要り、D-2 と同じ理由で範囲外。通し検証の目的は配布ゲート（起動・ワールド往復・報告が受け口へ届く）であって UI 操作の網羅ではなく、UI クリック経路は Editor DSL 側が担当する。出所: agent前提（**注目点**）
 - **D-4. smoke は2回起動（phase1/phase2）に分ける。** 「終了→ロード」を1プロセス内で表現するとプロセス終了の検証にならない。CLI 引数で phase を切る形にすれば、検証機側 PowerShell の逐次実行だけで「起動→…→終了」と「起動→ロード→…」を実プロセス境界越しに確認できる。出所: agent前提
-- **D-5. Steam の depot id は repo に書かず env から差し込む。** app id 1958160 は ADR 0058 に明記があるが depot id はアカウント固有で、この repo・この会話のどこにも実値が無い。推測値をコミットすると別 depot へ上げる事故になるため、vdf にはトークン `__DEPOT_ID__` を置き `MOORESTECH_STEAM_DEPOT_ID` から差し込む。差し込み漏れは bash テストが検出する。出所: agent前提
+- **D-5. Steam の depot id は repo に書かず env から差し込む。** app id 1958160 は ADR 0061 に明記があるが depot id はアカウント固有で、この repo・この会話のどこにも実値が無い。推測値をコミットすると別 depot へ上げる事故になるため、vdf にはトークン `__DEPOT_ID__` を置き `MOORESTECH_STEAM_DEPOT_ID` から差し込む。差し込み漏れは bash テストが検出する。出所: agent前提
 - **D-6. `BuildInfoWriter` は master data のピンずれでビルドを失敗させる。** §1 の `masterDataCommit` が「実 HEAD」であり、ピンとずれた成果物はテスターの報告の出所を偽る。Unity がピンファイルを書き戻す既知の癖（`.moorestech-external-revisions.json`）があるため、無音で通すと恒久的に嘘の BuildInfo が配られる。fail-closed の理由は `BuildFailedException` のメッセージに出す。出所: agent前提
-- **D-7. Mac mini の always-on supervisor にサービスを足さない。** ADR 0058 は「起動は手動コマンド」。`repo-auto-pull` 型の dispatch（`nohup` で worker を切り離す periodic）は plan H の取り込みが使う形で、plan E の配布は人が判断して打つコマンドに留める。出所: ADR 0058 の裁定
+- **D-7. Mac mini の always-on supervisor にサービスを足さない。** ADR 0061 は「起動は手動コマンド」。`repo-auto-pull` 型の dispatch（`nohup` で worker を切り離す periodic）は plan H の取り込みが使う形で、plan E の配布は人が判断して打つコマンドに留める。出所: ADR 0061 の裁定
 - **D-8. 検証機側スクリプトは毎回 `scp` で送る。** 検証機に手置きしたコピーは repo の版とずれ、「直したはずの検証が古い手順で通る」偽陽性を生む。正本はコードrepo1箇所。出所: agent前提
-- **D-9. `verify-on-windows.sh` は WoL 送信失敗を警告に留め、ssh 到達失敗を致命にする。** 既に起動している機体へ WoL を送ると送信自体が失敗しうる一方、実際に検証できないのは ssh に到達しないときだけ。ただし到達失敗は ADR 0058 の「起こせなければ検証失敗として告知しない」に従い非0終了とし、`release-playtest.sh` は `announce.md` を書かない。出所: ADR 0058（agent前提の Wake-on-LAN 項）
+- **D-9. `verify-on-windows.sh` は WoL 送信失敗を警告に留め、ssh 到達失敗を致命にする。** 既に起動している機体へ WoL を送ると送信自体が失敗しうる一方、実際に検証できないのは ssh に到達しないときだけ。ただし到達失敗は ADR 0061 の「起こせなければ検証失敗として告知しない」に従い非0終了とし、`release-playtest.sh` は `announce.md` を書かない。出所: ADR 0061（agent前提の Wake-on-LAN 項）
 - **D-10. 出展モードと smoke は併用しない運用にする。** 両者ともメインメニューで `StartLocalGame` を押すため、同時指定すると二重開始になる。片方を暗黙に勝たせるより、README で併用しないことを明記して単純に保つ（実運用で併用する要求が無い）。出所: agent前提（**注目点**）
 - **D-11. 受け口到達の確認は「未ACKの inbox」に頼るため、取り込み（plan H）と競合する。** `GET /v1/inbox` は READY 済みで未ACKのものだけを返すので、plan H の periodic 取り込みが smoke の報告を先に ACK すると偽の失敗になる。plan E 側は (a) 6回リトライ、(b) 失敗メッセージで取り込みを止めるよう名指し、(c) README に明記、の3点で対処する。恒久解（受け口に「ACK済みも引ける照会」を足す）は plan D/H 側の裁定事項として送る。出所: agent前提（**注目点**）
 - **D-13. CEF raw input の実害確認は自動化せず、初回合格ビルドで人が Remote Desktop から確認する。** 配布ビルドには入力注入経路（`Client.Playtest`）が無く、raw input 奪取は OS 入力を伴う操作でしか再現しない。裁定は「通し検証で実害を確かめてから決める」なので、自動 smoke に含めず R14 の手動手順にする。出所: ユーザー裁定 2026-09-13（CEF raw input）＋agent前提（自動化不能の理由）

@@ -1,6 +1,6 @@
 using System;
-using System.Diagnostics;
 using System.IO;
+using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Core.Update;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
@@ -23,7 +23,6 @@ namespace Client.Game.InGame.BugReport.Recording
         // Passed to ffmpeg's own segment_wrap; a safety margin that normally never fills since each capture switches generations
         public const int LiveSegmentWrapCount = 12;
 
-        public const string MissingFfmpegReason = "ffmpeg が見つかりません（MOORESTECH_FFMPEG か PATH で指定）";
         private const int Width = 1280;
         private const int Height = 720;
         private const int Fps = 10;
@@ -32,11 +31,14 @@ namespace Client.Game.InGame.BugReport.Recording
         private const int FrameBufferCount = 2;
 
         private const string LiveDirectoryPrefix = "live_";
-        // 並列worktreeが同じマシン共通パスを取り合わないよう、このプロセス専用のサブディレクトリへ書く
-        // Scoped to this process's own subdirectory so parallel worktrees never fight over the machine-wide path
-        private static readonly string ProcessDirectory = Path.Combine(GameSystemPaths.BugReportRecordingDirectory, $"pid_{Process.GetCurrentProcess().Id}");
 
-        private readonly string _directory = ProcessDirectory;
+        // 読み出し中フレームの落ち着きを待つ上限フレーム数。10fpsの1枚ぶんに数フレームの余裕を足した値
+        // The frame budget for letting an in-flight readback settle: one 10fps frame plus a few frames of slack
+        private const int ReadbackSettleFrameLimit = 10;
+
+        // 並列worktreeと同じpidでの再生し直しが互いの録画へ書き足さないよう、このプロセスの今回のセッション専用ディレクトリへ書く
+        // Scoped to this process's current-session directory so neither parallel worktrees nor a same-pid replay append to another's footage
+        private readonly string _directory = ProcessSessionScope.CurrentSessionDirectory(GameSystemPaths.BugReportRecordingDirectory);
 
         // 世代の退避は連番を採るので直列化する。連続したEscapeが同じ番号を取り合わないため
         // Promotion assigns sequence numbers, so it is serialized; back-to-back Escapes must not race for one number
@@ -62,15 +64,6 @@ namespace Client.Game.InGame.BugReport.Recording
         private RecordingAvailability Availability =>
             _ffmpeg != null && _ffmpeg.IsRunning ? RecordingAvailability.Available() : RecordingAvailability.Unavailable(_latchedUnavailableReason);
 
-        // ffmpegが無いときの縮退理由。無音で諦めず理由を残し、報告側が欠損として記録できるようにする
-        // The degradation reason when ffmpeg is absent; never fail silently so the report can record the gap
-        public static RecordingAvailability ResolveInitialAvailability(string ffmpegPath)
-        {
-            if (ffmpegPath != null) return RecordingAvailability.Available();
-            Debug.LogWarning($"録画リングを開始しません: {MissingFfmpegReason}");
-            return RecordingAvailability.Unavailable(MissingFfmpegReason);
-        }
-
         private bool IsRecording => _ffmpeg != null && _ffmpeg.IsRunning;
         public void Initialize()
         {
@@ -83,9 +76,10 @@ namespace Client.Game.InGame.BugReport.Recording
                 return;
             }
             _ffmpegPath = FfmpegLocator.Find();
-            _latchedUnavailableReason = ResolveInitialAvailability(_ffmpegPath).Reason;
+            _latchedUnavailableReason = FfmpegLocator.ResolveInitialAvailability(_ffmpegPath).Reason;
             if (_ffmpegPath == null) return;
-            if (Directory.Exists(_directory)) Directory.Delete(_directory, true);
+            // 前回分の掃除は起動時の PreviousSessionSalvage がセッション単位で済ませている。書き先は常に新しいセッションなので消す物は無い
+            // PreviousSessionSalvage already folded the previous sessions at boot; the target is always a fresh session, so nothing needs deleting
             Directory.CreateDirectory(_directory);
             _framePool = new FrameBufferPool(FrameBufferCount, Width * Height * 4);
             _screenFrameReader = new ScreenFrameReader(Width, Height);
@@ -118,8 +112,13 @@ namespace Client.Game.InGame.BugReport.Recording
                 return CapturedRecording.Unavailable(availability.Reason);
             }
 
-            // 先に次の世代へ切り替える。これ以降のフレームは新しいliveへ入り、確保した区間へ混ざらない
-            // Switch to the next generation first; later frames land in the new live directory, never in the captured segments
+            // 読み出し中の1枚はEscape以前のフレーム。切り替え前に落ち着かせないと確保区間の境界が読み出し1回ぶんずれる
+            // The in-flight frame predates the Escape; without settling it first the captured boundary slips by one readback
+            for (var i = 0; i < ReadbackSettleFrameLimit && _readbackInFlight; i++) await UniTask.Yield();
+            if (_readbackInFlight) Debug.LogWarning("録画フレームの読み出し完了を待ち切れないまま世代を切り替えます（記録境界が1フレームずれます）");
+
+            // 次の世代へ切り替える。これ以降のフレームは新しいliveへ入り、確保した区間へ混ざらない
+            // Switch to the next generation; later frames land in the new live directory, never in the captured segments
             var finished = _ffmpeg;
             var finishedLiveDirectory = _liveDirectory;
             _segmentGeneration++;
@@ -163,8 +162,8 @@ namespace Client.Game.InGame.BugReport.Recording
         {
             finished.Stop();
 
-            // 空になった世代のliveディレクトリは残すが、起動時に_directoryごと作り直すので積み上がらない
-            // The emptied generation directory is left behind; Initialize recreates _directory wholesale, so they never pile up
+            // 空になった世代のliveディレクトリは残るが、次回起動のPreviousSessionSalvageがこのセッションのディレクトリごと畳む
+            // The emptied generation directory is left behind; the next boot's PreviousSessionSalvage folds this session's directory whole
             lock (_promoteLock)
             {
                 RecordingSegmentRing.PromoteCompletedSegments(liveDirectory, _directory, RetentionSeconds);

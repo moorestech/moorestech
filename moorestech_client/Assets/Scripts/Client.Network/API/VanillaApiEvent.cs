@@ -12,7 +12,7 @@ namespace Client.Network.API
     
     public class VanillaApiEvent : IVanillaApiEvent
     {
-        private readonly Dictionary<string, Subject<byte[]>> _eventResponseSubjects = new();
+        private readonly EventResponseDispatcher _dispatcher = new();
         private readonly List<EventMessagePack> _bufferedEvents = new();
         private bool _isDispatchStarted;
 
@@ -51,19 +51,12 @@ namespace Client.Network.API
 
         private void Dispatch(EventMessagePack eventMessagePack)
         {
-            if (!_eventResponseSubjects.TryGetValue(eventMessagePack.Tag, out var subject)) return;
-            subject.OnNext(eventMessagePack.Payload);
+            _dispatcher.Dispatch(eventMessagePack.Tag, eventMessagePack.Payload);
         }
 
         public IDisposable SubscribeEventResponse(string tag, Action<byte[]> responseAction)
         {
-            if (!_eventResponseSubjects.TryGetValue(tag, out var subject))
-            {
-                subject = new Subject<byte[]>();
-                _eventResponseSubjects.Add(tag, subject);
-            }
-
-            return subject.Subscribe(responseAction);
+            return _dispatcher.Subscribe(tag, responseAction);
         }
     }
 }

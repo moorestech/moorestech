@@ -25,16 +25,16 @@ namespace Client.Tests.BugReport
             Assert.AreEqual("2026-09-11T00:00:00Z", (string)json["builtAt"]);
         }
 
-        // git が無い機械でもビルドは通す。取れなかった状態は空文字として焼き込まれる
-        // A machine without git still builds; an unavailable state is baked in as an empty string
+        // git が無い機械でもビルドは通す。取れなかった状態は ""・false でなくnullとして焼き込まれる（F02）
+        // A machine without git still builds; an unavailable state is baked in as null rather than "" or false (F02)
         [Test]
-        public void 状態が取れなかった場合も有効なJSONになる()
+        public void 状態が取れなかった場合もnullで有効なJSONになる()
         {
             var failed = new RepositoryProbeResult { Error = "git を起動できない" };
             var json = ParseWithoutDateConversion(RepositoryStateProbe.ComposeBuildInfoJson(failed, failed, DateTime.UtcNow));
-            Assert.AreEqual("", (string)json["commit"]);
-            Assert.AreEqual("", (string)json["masterCommit"]);
-            Assert.AreEqual(false, (bool)json["dirty"]);
+            Assert.AreEqual(JTokenType.Null, json["commit"].Type);
+            Assert.AreEqual(JTokenType.Null, json["masterCommit"].Type);
+            Assert.AreEqual(JTokenType.Null, json["dirty"].Type, "取れなかったdirtyがfalse（クリーン）として焼かれている");
         }
 
         // 既定のJObject.ParseはISO日時文字列をDateTimeへ戻してしまい、焼き込んだ文字列そのものを検証できない

@@ -1428,7 +1428,7 @@ Expected: 全 PASS
 # playtest-receiver — プレイテスト報告の受け口（Cloudflare Worker + R2）
 
 配布版 moorestech（Steam プレイテスト）からプレイ報告と進行記録を受け取り、R2 に貯める Worker。
-Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む。設計は `docs/adr/0058-steam-closed-playtest-report-receiver-and-save-compat.md`。
+Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む。設計は `docs/adr/0061-steam-closed-playtest-report-receiver-and-save-compat.md`。
 
 ## エンドポイント
 
@@ -1587,8 +1587,8 @@ Expected: `allowlist.sh` が無いので失敗
 `scripts/playtest/allowlist.sh`:
 ```bash
 #!/usr/bin/env bash
-# プレイテスト受け口の許可SteamIDを管理APIで操作する（ADR 0058）。全置換PUTなので必ずGET→編集→PUTの順で行う
-# Manages the playtest allowlist through the admin API (ADR 0058); PUT replaces the list, so always GET, edit, then PUT
+# プレイテスト受け口の許可SteamIDを管理APIで操作する（ADR 0061）。全置換PUTなので必ずGET→編集→PUTの順で行う
+# Manages the playtest allowlist through the admin API (ADR 0061); PUT replaces the list, so always GET, edit, then PUT
 set -euo pipefail
 
 ENV_FILE="${PLAYTEST_ENV_FILE:-$HOME/hermes-agent/data/services/playtest/env.sh}"
@@ -2633,8 +2633,8 @@ namespace Client.PlaytestReceiver.Gate
 ```csharp
         public static void StartLocalGame()
         {
-            // プレイテスト配布版で照合に落ちていたら開始しない（ADR 0058・オンライン必須）
-            // A distribution build that failed the playtest check never starts (ADR 0058, online required)
+            // プレイテスト配布版で照合に落ちていたら開始しない（ADR 0061・オンライン必須）
+            // A distribution build that failed the playtest check never starts (ADR 0061, online required)
             if (PlaytestLaunchGate.RejectStart(nameof(StartLocalGame))) return;
 ```
 （先頭に `using Client.PlaytestReceiver.Gate;` を足し、`Client.Starter.asmdef` の references に `"Client.PlaytestReceiver"` を追加する）
@@ -3572,7 +3572,7 @@ Allowed → PlaytestUploadRunner.RequestUpload → PlaytestUploader → outbox �
 ```
 新規要素はすべて「書き手（`Current` を1回書く・outbox にマーカーを書く）」と「読み手（`Current` を読んで開始可否を決める）」で、既存の開始フローに分岐を足すのは `RejectStart` の early return 1箇所のみ。下流へ制御を返す `bool` は `RejectStart` だけで、これは既存の `TryCreateRemoteConnection` と同型の拒否判定である。
 
-**機構選択（検査4）:** 起動時照合は「動作中の開始フロー（`LocalGameLauncher`・`ConnectServer`）に拒否を差し込む」能動介入である。受動的統合案「照合結果を購読してボタンの `interactable` を落とすだけにし、開始フロー自体は無傷にする」と比較した。受動案は (a) ボタン経由以外の開始（`EventModeAutoStart`・将来の自動起動）を止められない、(b) シーンのボタン参照を新たに配線する必要があり `MainMenu.unity` への変更が増える、の2点で「不許可なら止める」（ADR 0058・オンライン必須）を保証できない。よって能動介入を採り、介入点は**1関数の early return のみ**に絞った（表示は受動側＝View に寄せた）。
+**機構選択（検査4）:** 起動時照合は「動作中の開始フロー（`LocalGameLauncher`・`ConnectServer`）に拒否を差し込む」能動介入である。受動的統合案「照合結果を購読してボタンの `interactable` を落とすだけにし、開始フロー自体は無傷にする」と比較した。受動案は (a) ボタン経由以外の開始（`EventModeAutoStart`・将来の自動起動）を止められない、(b) シーンのボタン参照を新たに配線する必要があり `MainMenu.unity` への変更が増える、の2点で「不許可なら止める」（ADR 0061・オンライン必須）を保証できない。よって能動介入を採り、介入点は**1関数の early return のみ**に絞った（表示は受動側＝View に寄せた）。
 
 **死活表（Phase 2.5）:** MainMenu の既存操作が本planでどうなるか。
 
@@ -3586,11 +3586,11 @@ Allowed → PlaytestUploadRunner.RequestUpload → PlaytestUploader → outbox �
 | サーバー接続失敗ポップアップ | 生きる | `ServerConnectPopup.SetText` の呼び出しが1つ増えるだけ（新規UIを作らない） |
 | Editor から MainGame シーンを直接 Play | 生きる | `build-info.json` が無いので常に `DeveloperMode` |
 
-退化する操作は無い。**唯一の挙動変化は「配布版で照合に落ちたときにゲームを開始できない」で、これは ADR 0058 の裁定そのもの**である。
+退化する操作は無い。**唯一の挙動変化は「配布版で照合に落ちたときにゲームを開始できない」で、これは ADR 0061 の裁定そのもの**である。
 
 ## 判断記録（ADR）
 
-- 設計ADR: `docs/adr/0058-steam-closed-playtest-report-receiver-and-save-compat.md`（正）、`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（改訂3裁定を除き有効）、`docs/adr/0040-event-mode-language-select-gate.md`（タイトルゲートの前例）
+- 設計ADR: `docs/adr/0061-steam-closed-playtest-report-receiver-and-save-compat.md`（正）、`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（改訂3裁定を除き有効）、`docs/adr/0040-event-mode-language-select-gate.md`（タイトルゲートの前例）
 - 裁定: `.decisions/2026-09-13-報告受け口はSteam認証チケットをWorkerで検証しSteamIDを報告に付ける.md`、`.decisions/2026-09-13-起動時にWorkerの許可リストでSteamIDを照合し個別に参加停止できるようにする.md`、`.decisions/2026-09-13-起動時照合はオンライン必須でWorkerに届かなければタイトルで止める.md`、`.decisions/2026-09-13-プレイテスト報告の受け口はCloudflare Worker+R2としMac miniは取り込むだけにする.md`
 - 共有契約: セッションの scratchpad `plans/shared-contracts.md` §4・§5（本plan の Global Constraints へ逐語転記済み）
 
@@ -3604,7 +3604,7 @@ Allowed → PlaytestUploadRunner.RequestUpload → PlaytestUploader → outbox �
 - **発行済みトークンは失効させない** — agent前提。許可リストから外した直後でも、発行済みの1時間トークンでアップロードだけは通る。起動時照合は次回起動から効くため、参加停止の即時性は「起動できない」で担保される（裁定の主旨と一致）。アップロードだけを即時に止める必要が出たら、`/v1/uploads` でも許可リストを引く形へ変える。
 - **`Client.PlaytestReceiver` は `includePlatforms` を空にする** — agent前提。参照先の `com.rlabrecque.steamworks.net` は Editor と Standalone に限定されているため、Standalone/Editor 以外へビルドすると参照エラーになる。moorestech は Windows/macOS Standalone しかビルドしないので許容する。将来 Android/WebGL を足すならこのアセンブリを分割する。
 - **`SteamManager` の配置と AppID 焼き込みは本planの外** — agent前提。`SteamManager` は MainMenu.unity に配置済み・`steam_appid.txt` は存在（起票セッションで確認済み）。`SteamAPI.RestartAppIfNecessary(AppId_t.Invalid)` のままで Steam 経由起動時に AppID が解決されるかだけが未確認。Task 7 Step 8 で実測し、未配置なら plan E の課題として `bd create` する。**本planのコードは fail-closed 側に倒してあるため、Steam が初期化されない状態では「開発者モードで素通し」になり、配布版としては照合が効かない。**この一点だけが本planの完成度をビルド側に依存させている。
-- **開発者が Steam を起動したまま自作ビルド（`build-info.json` 付き）を動かすと止まる** — agent前提。回避は「自分の SteamID を `allowlist.sh add` で入れる」か「Steam を落として起動する」。専用のバイパス環境変数は作らない（ADR 0058 の「オンライン必須」を穴だらけにしないため）。
+- **開発者が Steam を起動したまま自作ビルド（`build-info.json` 付き）を動かすと止まる** — agent前提。回避は「自分の SteamID を `allowlist.sh add` で入れる」か「Steam を落として起動する」。専用のバイパス環境変数は作らない（ADR 0061 の「オンライン必須」を穴だらけにしないため）。
 - **アップロードの恒久失敗を `UPLOAD_FAILED` で打ち切る** — agent前提。契約 §5 は「失敗は次回に持ち越し」としか言わない。100MiB 超などで恒久的に失敗する箱があると毎回同じ失敗を繰り返すため、5回で見送り印を打ち、理由を `Debug.LogError` に出す（無音で捨てない）。見送った箱は rsync 経路で手動回収できる。
 - **`Client.PlaytestReceiver` は `BuildInfo` 型（共有契約 §1）を参照しない** — agent前提。`BuildInfo` は `Client.Game/InGame/BugReport/` に置かれ、`Client.Game` は `Client.PlaytestReceiver` の下流になる（逆参照は循環）。本planは `build-info.json` の存在判定しかしないため、パス定数だけを重複させる。中身を読む必要が出たら `Game.Paths` 相当の共有層へ型を移す。
 - **`tools/playtest-receiver` は `moorestech_web/webui` と別の pnpm プロジェクトにする** — agent前提。webui の `pnpm-workspace.yaml` は webui 配下に閉じており、Worker は React/Vite と依存が全く重ならない。ワークスペース化はレビューの注目点として提示する。

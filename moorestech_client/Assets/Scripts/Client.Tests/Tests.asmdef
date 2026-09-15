@@ -51,6 +51,7 @@
         "Unity.Mathematics",
         "Game.PlayerRiding.Interface",
         "Game.Research",
+        "Game.Challenge",
         "VContainer",
         "StarterAssetsInputs",
         "ThirdPersonController",
