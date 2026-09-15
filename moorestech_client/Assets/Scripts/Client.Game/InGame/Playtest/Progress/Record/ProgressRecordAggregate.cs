@@ -11,7 +11,7 @@ namespace Client.Game.InGame.Playtest.Progress
         public List<string> ReachedChallenges;
         public List<string> CompletedResearch;
         public int PlacedBlockCount;
-        public int CraftRequestCount;
+        public int CraftCount;
         public string LastUiState = "";
         public readonly List<MissingItem> Missing = new();
 
@@ -32,8 +32,8 @@ namespace Client.Game.InGame.Playtest.Progress
                     case ProgressEventType.BlockPlaced:
                         aggregate.AddPlacedBlocks(entry);
                         break;
-                    case ProgressEventType.CraftRequested:
-                        aggregate.CraftRequestCount++;
+                    case ProgressEventType.CraftCompleted:
+                        aggregate.CraftCount++;
                         break;
                     case ProgressEventType.ChallengeCompleted:
                         AddDistinct(aggregate.ReachedChallenges, reachedChallengeSet, ProgressEvents.ReadChallengeGuid(entry));

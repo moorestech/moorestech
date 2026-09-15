@@ -54,7 +54,7 @@ namespace Client.Tests.Playtest
                 ProgressEvents.BlockPlaced(Start.AddSeconds(1), 10, 2),
                 ProgressEvents.ChallengeCompleted(Start.AddSeconds(3), 30, "22222222-2222-2222-2222-222222222222"),
                 ProgressEvents.ResearchCompleted(Start.AddSeconds(4), 40, "33333333-3333-3333-3333-333333333333"),
-                ProgressEvents.CraftRequested(Start.AddSeconds(5), 50, Guid.NewGuid()),
+                ProgressEvents.CraftCompleted(Start.AddSeconds(5), 50, Guid.NewGuid().ToString()),
                 ProgressEvents.UiStateChanged(Start.AddSeconds(6), 60, "BuildMenu"),
             };
 

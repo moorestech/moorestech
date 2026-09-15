@@ -187,7 +187,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new SplitDragActionHandler(controller));
             hub.RegisterAction(new CollectActionHandler(controller));
             hub.RegisterAction(new SortInventoryActionHandler(controller));
-            hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData, progressSink));
+            hub.RegisterAction(new CraftExecuteActionHandler(unlockStateData));
             hub.RegisterAction(new SelectEquipmentActionHandler(localPlayerEquipment));
             hub.RegisterAction(new ModalRespondActionHandler(modalService));
             hub.RegisterAction(new BlockMoveItemActionHandler(controller, subInventoryState));

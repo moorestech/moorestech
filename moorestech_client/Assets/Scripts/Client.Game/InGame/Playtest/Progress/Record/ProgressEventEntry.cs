@@ -15,9 +15,9 @@ namespace Client.Game.InGame.Playtest.Progress
         public const string BlockPlaced = "blockPlaced";
         public const string ReportSent = "reportSent";
 
-        // 送信しただけで結果は見ていない。素材不足でサーバーに拒否された要求もこれに載る
-        // Only the request was sent and its outcome is unseen; a request the server rejected for missing materials still lands here
-        public const string CraftRequested = "craftRequested";
+        // サーバーで素材を消費し終えたクラフト。素材不足で拒否された要求は載らない
+        // A craft the server finished consuming materials for; a request rejected for missing materials never lands here
+        public const string CraftCompleted = "craftCompleted";
     }
 
     internal sealed class ProgressEventEntry

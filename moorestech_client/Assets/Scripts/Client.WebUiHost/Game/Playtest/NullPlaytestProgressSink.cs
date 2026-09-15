@@ -1,4 +1,3 @@
-using System;
 using Client.Game.InGame.Playtest.Progress;
 using UnityEngine;
 
@@ -13,11 +12,6 @@ namespace Client.WebUiHost.Game.Playtest
         public static readonly NullPlaytestProgressSink Instance = new();
 
         private bool _reported;
-
-        public void RecordCraftRequested(Guid recipeGuid)
-        {
-            ReportOnce();
-        }
 
         public void RecordReportSent(string kind)
         {

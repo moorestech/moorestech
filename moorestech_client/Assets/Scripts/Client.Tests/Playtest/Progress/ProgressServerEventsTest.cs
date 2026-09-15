@@ -40,5 +40,18 @@ namespace Client.Tests.Playtest
             Assert.AreEqual(ProgressEventType.ChallengeCompleted, entry.Type);
             Assert.AreEqual(challengeGuid.ToString(), ProgressEvents.ReadChallengeGuid(entry));
         }
+
+        [Test]
+        public void クラフト成立のpayloadがレシピ付きのcraftCompletedの1件になる()
+        {
+            var recipeGuid = Guid.NewGuid();
+            var payload = MessagePackSerializer.Serialize(new CraftCompletedEventPacket.CraftCompletedEventMessagePack(1, recipeGuid));
+
+            var entry = ProgressServerEvents.CraftCompleted(payload, Now, 9);
+
+            Assert.AreEqual(ProgressEventType.CraftCompleted, entry.Type);
+            Assert.AreEqual(recipeGuid.ToString(), (string)entry.Data["recipeGuid"]);
+            Assert.AreEqual(9ul, entry.Tick);
+        }
     }
 }

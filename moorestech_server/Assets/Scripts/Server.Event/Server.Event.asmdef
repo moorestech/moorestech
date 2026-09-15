@@ -15,6 +15,7 @@
     "Game.Context",
     "Game.Challenge",
     "Game.Challenge.Interface",
+    "Game.Crafting.Interface",
     "Core.Master",
     "Core.Update",
     "Game.UnlockState",

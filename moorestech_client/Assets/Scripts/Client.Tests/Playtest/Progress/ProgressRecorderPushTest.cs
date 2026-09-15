@@ -12,10 +12,8 @@ namespace Client.Tests.Playtest
 {
     // 記録を開始していない起動（常時記録オフのテスト・DSL・調査用）で、プッシュが current/ を作らないことを固定する
     // Fixes that a push never conjures current/ on a boot that started no recording (a capture-off test, DSL or investigation boot)
-    // 開始済みセッションでのプッシュ→record.json は reportSent だけ PlaytestReportAndProgressTest が実起動で押さえている
-    // Of the started-session pushes reaching record.json, only reportSent is pinned by PlaytestReportAndProgressTest on a real boot
-    // craftRequested の recorder→writer 配線はどのテストも通らない。ProgressRecorder.StartSession が handshake と ClientContext を要求しEditModeで立たないため
-    // No test covers craftRequested's recorder-to-writer wiring: ProgressRecorder.StartSession demands the handshake and ClientContext and will not stand up in EditMode
+    // 開始済みセッションでのプッシュ→record.json は PlaytestReportAndProgressTest が実起動で押さえている
+    // A push reaching record.json in a started session is pinned by PlaytestReportAndProgressTest on a real boot
     public class ProgressRecorderPushTest
     {
         [SetUp]
@@ -40,7 +38,6 @@ namespace Client.Tests.Playtest
             var recorder = CreateRecorderForPushOnly();
 
             LogAssert.Expect(LogType.Log, new Regex("進行記録を開始していないためプッシュを記録しません"));
-            recorder.RecordCraftRequested(Guid.NewGuid());
             recorder.RecordReportSent(PlaytestReportKind.Bug);
 
             Assert.IsFalse(File.Exists(ProgressRecordPaths.EventsPathIn(ProgressTestSession.Directory)));

@@ -49,7 +49,7 @@ namespace Client.Game.InGame.Playtest.Progress
                 ["reachedChallenges"] = new JArray(aggregate.ReachedChallenges),
                 ["completedResearch"] = new JArray(aggregate.CompletedResearch),
                 ["placedBlockCount"] = aggregate.PlacedBlockCount,
-                ["craftCount"] = aggregate.CraftRequestCount,
+                ["craftCount"] = aggregate.CraftCount,
                 ["lastUiState"] = aggregate.LastUiState,
                 ["missing"] = ToJsonArray(),
                 ["events"] = eventArray,

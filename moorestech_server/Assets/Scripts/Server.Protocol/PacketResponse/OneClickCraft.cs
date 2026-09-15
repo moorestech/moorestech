@@ -59,7 +59,7 @@ namespace Server.Protocol.PacketResponse
             var resultItem = ServerContext.ItemStackFactory.Create(craftConfig.CraftResultItemGuid, craftConfig.CraftResultCount);
             playerInventory.MainOpenableInventory.InsertItem(resultItem);
 
-            _craftEvent.InvokeCraftItem(craftConfig);
+            _craftEvent.InvokeCraftItem(data.PlayerId, craftConfig);
 
             return null;
 

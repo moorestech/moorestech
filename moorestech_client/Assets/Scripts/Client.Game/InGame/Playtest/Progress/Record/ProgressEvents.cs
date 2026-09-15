@@ -74,9 +74,9 @@ namespace Client.Game.InGame.Playtest.Progress
             return (string)entry.Data[ResearchGuidKey];
         }
 
-        public static ProgressEventEntry CraftRequested(DateTime utc, ulong tick, Guid recipeGuid)
+        public static ProgressEventEntry CraftCompleted(DateTime utc, ulong tick, string recipeGuid)
         {
-            return ProgressEventEntry.Create(utc, tick, ProgressEventType.CraftRequested, new JObject { [RecipeGuidKey] = recipeGuid.ToString() });
+            return ProgressEventEntry.Create(utc, tick, ProgressEventType.CraftCompleted, new JObject { [RecipeGuidKey] = recipeGuid });
         }
 
         public static string ReadCraftRecipeGuid(ProgressEventEntry entry)

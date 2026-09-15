@@ -21,5 +21,11 @@ namespace Client.Game.InGame.Playtest.Progress
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(payload);
             return ProgressEvents.ChallengeCompleted(utc, tick, message.CompletedChallengeGuidStr);
         }
+
+        public static ProgressEventEntry CraftCompleted(byte[] payload, DateTime utc, ulong tick)
+        {
+            var message = MessagePackSerializer.Deserialize<CraftCompletedEventPacket.CraftCompletedEventMessagePack>(payload);
+            return ProgressEvents.CraftCompleted(utc, tick, message.CraftRecipeGuidStr);
+        }
     }
 }

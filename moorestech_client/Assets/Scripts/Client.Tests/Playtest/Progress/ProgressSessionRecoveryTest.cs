@@ -74,7 +74,7 @@ namespace Client.Tests.Playtest
         [Test]
         public void ヘッダ無しでイベントだけの残骸も回収されcurrentが空になる()
         {
-            ProgressTestSession.AppendEvent(ProgressEvents.CraftRequested(DateTime.UtcNow.AddMinutes(-3), 1, Guid.NewGuid()));
+            ProgressTestSession.AppendEvent(ProgressEvents.CraftCompleted(DateTime.UtcNow.AddMinutes(-3), 1, Guid.NewGuid().ToString()));
 
             LogAssert.Expect(LogType.Warning, new Regex("ヘッダが無い"));
             var bundle = Recover(false);
@@ -91,7 +91,7 @@ namespace Client.Tests.Playtest
         [Test]
         public void ヘッダ無しの残骸のイベントは次のセッションの記録に混ざらない()
         {
-            ProgressTestSession.AppendEvent(ProgressEvents.CraftRequested(DateTime.UtcNow.AddMinutes(-3), 1, Guid.NewGuid()));
+            ProgressTestSession.AppendEvent(ProgressEvents.CraftCompleted(DateTime.UtcNow.AddMinutes(-3), 1, Guid.NewGuid().ToString()));
             LogAssert.Expect(LogType.Warning, new Regex("ヘッダが無い"));
             var recovered = Recover(false);
 

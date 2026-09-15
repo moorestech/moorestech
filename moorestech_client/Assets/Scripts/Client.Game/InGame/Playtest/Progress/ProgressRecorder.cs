@@ -73,6 +73,7 @@ namespace Client.Game.InGame.Playtest.Progress
             _uiStateControl.OnStateChanged += OnUiStateChanged;
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(ResearchCompleteEventPacket.EventTag, OnResearchCompleted));
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(CompletedChallengeEventPacket.EventTag, OnChallengeCompleted));
+            _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(CraftCompletedEventPacket.EventTag, OnCraftCompleted));
             _eventSubscriptions.Add(ClientContext.VanillaApi.Event.SubscribeEventResponse(PlaceBlockEventPacket.EventTag, OnBlockPlaced));
 
             // 終了理由は書き出しの前に流れてくる。初期化失敗の終了をプレイヤーが選んだ終了と同じ quit で閉じない
@@ -134,12 +135,6 @@ namespace Client.Game.InGame.Playtest.Progress
             return UniTask.FromResult(ShutdownFlushResult.NothingFlushed);
         }
 
-        public void RecordCraftRequested(Guid recipeGuid)
-        {
-            if (!IsRecording(ProgressEventType.CraftRequested)) return;
-            _writer.Append(ProgressEvents.CraftRequested(DateTime.UtcNow, GameUpdater.CurrentTick, recipeGuid));
-        }
-
         public void RecordReportSent(string kind)
         {
             if (!IsRecording(ProgressEventType.ReportSent)) return;
@@ -175,6 +170,11 @@ namespace Client.Game.InGame.Playtest.Progress
         private void OnChallengeCompleted(byte[] payload)
         {
             _writer.Append(ProgressServerEvents.ChallengeCompleted(payload, DateTime.UtcNow, GameUpdater.CurrentTick));
+        }
+
+        private void OnCraftCompleted(byte[] payload)
+        {
+            _writer.Append(ProgressServerEvents.CraftCompleted(payload, DateTime.UtcNow, GameUpdater.CurrentTick));
         }
 
         // BlockIdはマスタのロード順で採番される揮発値。記録に残すと別ロードで別ブロックとして再生される
