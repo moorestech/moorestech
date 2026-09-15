@@ -133,7 +133,7 @@ namespace Client.Tests.WebUi
                 "blueprint_delete_not_found", "blueprint_delete_not_unlocked", "blueprint_delete_request_failed",
                 // プレイ報告（plan G）: ポーズメニューの送信と、初回同意・前回異常終了の2ゲート
                 // Play reports (plan G): the pause-menu send plus the first-boot consent and previous-crash gates
-                "empty_description", "invalid_kind", "bundle_write_failed", "no_capture_session", "capture_pending", "already_submitted", "submit_in_flight", "already_responded", "already_acknowledged", "unknown_result",
+                "empty_description", "invalid_kind", "bundle_write_failed", "no_capture_session", "capture_pending", "already_submitted", "submit_in_flight", "already_responded", "already_acknowledged", "invalid_send", "unknown_result",
             };
 
             var shared = JObject.Parse(LoadFixture("error_codes.json"))["codes"].ToObject<List<string>>();

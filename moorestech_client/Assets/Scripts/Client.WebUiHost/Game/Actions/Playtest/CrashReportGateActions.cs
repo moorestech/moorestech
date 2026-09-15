@@ -2,6 +2,7 @@ using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Playtest;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 namespace Client.WebUiHost.Game.Actions.Playtest
 {
@@ -34,7 +35,14 @@ namespace Client.WebUiHost.Game.Actions.Playtest
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
         {
-            var send = payload?["send"]?.Value<bool>() ?? false;
+            // 送るかどうかはテスターの明示回答。欠けた・boolでない要求を「送らない」へ丸めると答えを捏造する
+            // Sending is the tester's explicit answer; folding a missing or non-bool value into "do not send" fabricates the answer
+            if (payload?["send"] is not JValue { Type: JTokenType.Boolean } sendToken)
+            {
+                Debug.LogWarning($"前回異常終了の応答に bool の send が無いため拒否します send:{payload?["send"]?.Type.ToString() ?? "missing"}");
+                return ActionResult.Fail("invalid_send");
+            }
+            var send = sendToken.Value<bool>();
             var description = payload?["description"]?.ToString() ?? "";
 
             // 判定をゲートに委譲し、全variantを並べた写像で失敗契約へ変換する
