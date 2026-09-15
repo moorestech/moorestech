@@ -52,7 +52,9 @@ namespace Game.SaveLoad.Pruning.Sections
                 var removedCount = 0;
                 foreach (var trainUnit in trainUnits.OfType<JObject>().ToList())
                 {
-                    if (trainUnit[RailPositionSaveDataKey]?[RailSnapshotKey] is not JArray railSnapshot)
+                    // JSONのnullはJValueで返り?.を素通りするため、JObjectであることを型で確かめてから降りる
+                    // A JSON null comes back as a JValue that slips past ?., so check for JObject before descending
+                    if (trainUnit[RailPositionSaveDataKey] is not JObject railPositionSaveData || railPositionSaveData[RailSnapshotKey] is not JArray railSnapshot)
                     {
                         Debug.LogWarning($"列車のレール位置が読めないため、除去したブロックのレールに載るかを判定せず残します。 trainUnitInstanceId={trainUnit[TrainUnitInstanceIdKey]}");
                         continue;
