@@ -88,10 +88,10 @@
   --z-portal-reconnect: 2000;
   /* 全画面ゲート（言語選択・同意・前回異常終了）は再接続オーバーレイより前へ出す。3つが同時に待つ経路は無い */
   /* The full-screen gates (language, consent, previous-crash) stand ahead of the reconnect overlay; no path has them waiting at once */
-  --z-portal-event-language-gate: 2500;
+  --z-portal-full-screen-gate: 2500;
   /* 全画面ゲートだけは全画面の不透明黒（§1の例外・ADR 0040・§8.21） */
   /* The full-screen gates alone are opaque full-screen black (the §1 exception, ADR 0040, §8.21) */
-  --event-language-gate-face: rgb(0 0 0);
+  --full-screen-gate-face: rgb(0 0 0);
   --text-default: #eee;
   --text-high-contrast: #fff;
   /* 従属テキストには通常テキストより抑えた寒色グレーを使う */

@@ -8,17 +8,12 @@ const mocks = vi.hoisted(() => ({
   waiting: true,
 }));
 
-// 外殻は3ゲート全ての待機を読んで手前の1枚だけ描くため、topic ごとに待機を返し分ける
-// The shell reads all three gates' waiting flags and draws only the frontmost, so the mock answers per topic
-vi.mock("@/bridge", async (importOriginal) => {
-  const original = await importOriginal<typeof import("@/bridge")>();
-  return {
-    ...original,
-    useTopicSelector: (topic: string, select: (data: unknown) => unknown) =>
-      select({ waiting: topic === original.Topics.consentGate && mocks.waiting }),
-    dispatchActionOutcome: mocks.dispatchActionOutcome,
-  };
-});
+// 見せるかはapp層が決めて visible で渡すため、ここでは待機を visible として直接与える
+// Visibility is decided in the app layer and passed as visible, so the wait is handed in directly as visible
+vi.mock("@/bridge", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/bridge")>()),
+  dispatchActionOutcome: mocks.dispatchActionOutcome,
+}));
 vi.mock("@mantine/core", () => ({
   Button: ({ children, ...props }: { children: unknown }) => createElement("mock-button", props, children as never),
   Overlay: ({ children, ...props }: { children: unknown }) => createElement("mock-overlay", props, children as never),
@@ -151,7 +146,7 @@ describe("PlaytestConsentGate", () => {
 
 async function renderGate(): Promise<ReactTestRenderer> {
   let renderer!: ReactTestRenderer;
-  await act(async () => { renderer = create(createElement(PlaytestConsentGate)); });
+  await act(async () => { renderer = create(createElement(PlaytestConsentGate, { visible: mocks.waiting })); });
   return renderer;
 }
 

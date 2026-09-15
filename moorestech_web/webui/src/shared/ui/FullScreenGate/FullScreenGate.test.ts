@@ -1,17 +1,9 @@
-// 3ゲートは無条件マウントなので、2枚が同時に待つと排他が無ければ重なって描かれる
-// The three gates mount unconditionally, so without the exclusion two simultaneous waits would draw on top of each other
+// 外殻は描画だけを持つ。見せるかの判断はapp層から visible で届く
+// The shell only renders; whether to show arrives from the app layer as visible
 import { createElement } from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
-  waitingTopics: new Set<string>(),
-}));
-
-vi.mock("@/bridge", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/bridge")>()),
-  useTopicSelector: (topic: string, select: (data: unknown) => unknown) => select({ waiting: mocks.waitingTopics.has(topic) }),
-}));
 vi.mock("@mantine/core", () => ({
   Overlay: ({ children, ...props }: { children: unknown }) => createElement("mock-overlay", props, children as never),
   Portal: ({ children }: { children: unknown }) => children as never,
@@ -19,54 +11,38 @@ vi.mock("@mantine/core", () => ({
   Title: ({ children, ...props }: { children: unknown }) => createElement("mock-title", props, children as never),
 }));
 
-import { Topics } from "@/bridge";
 import FullScreenGate from ".";
 
-beforeEach(() => {
-  mocks.waitingTopics = new Set<string>();
-});
-
 describe("FullScreenGate", () => {
-  it("自分のtopicが待機していなければ何も描かない", async () => {
-    mocks.waitingTopics.add(Topics.consentGate);
-
-    const renderer = await render(Topics.crashReportGate);
+  it("visible でなければ何も描かない", async () => {
+    const renderer = await render(false);
 
     expect(renderer.toJSON()).toBeNull();
     act(() => renderer.unmount());
   });
 
-  it("待機が重なったら起動順の手前だけを描く", async () => {
-    mocks.waitingTopics.add(Topics.consentGate);
-    mocks.waitingTopics.add(Topics.crashReportGate);
+  it("visible なら不透明面に見出しと本体を描く", async () => {
+    const renderer = await render(true);
 
-    const consent = await render(Topics.consentGate);
-    const crash = await render(Topics.crashReportGate);
-
-    expect(consent.toJSON()).not.toBeNull();
-    expect(crash.toJSON()).toBeNull();
-    act(() => consent.unmount());
-    act(() => crash.unmount());
-  });
-
-  it("言語選択ゲートは同意ゲートより手前に立つ", async () => {
-    mocks.waitingTopics.add(Topics.eventLanguageGate);
-    mocks.waitingTopics.add(Topics.consentGate);
-
-    const language = await render(Topics.eventLanguageGate);
-    const consent = await render(Topics.consentGate);
-
-    expect(language.toJSON()).not.toBeNull();
-    expect(consent.toJSON()).toBeNull();
-    act(() => language.unmount());
-    act(() => consent.unmount());
+    const overlay = renderer.root.findByType("mock-overlay" as never);
+    expect(overlay.props["data-testid"]).toBe("gate");
+    expect(overlay.props.color).toBe("var(--full-screen-gate-face)");
+    expect(overlay.props.zIndex).toBe("var(--z-portal-full-screen-gate)");
+    expect(renderer.root.findByType("mock-title" as never).props.children).toBe("見出し");
+    expect(renderer.root.findAll((node) => node.props["data-testid"] === "gate-body")).toHaveLength(1);
+    act(() => renderer.unmount());
   });
 });
 
-async function render(topic: typeof Topics.eventLanguageGate | typeof Topics.consentGate | typeof Topics.crashReportGate): Promise<ReactTestRenderer> {
+async function render(visible: boolean): Promise<ReactTestRenderer> {
   let renderer!: ReactTestRenderer;
   await act(async () => {
-    renderer = create(createElement(FullScreenGate, { topic, testId: "gate", title: "見出し", children: null }));
+    renderer = create(createElement(FullScreenGate, {
+      visible,
+      testId: "gate",
+      title: "見出し",
+      children: createElement("mock-body", { "data-testid": "gate-body" }),
+    }));
   });
   return renderer;
 }

@@ -1,9 +1,7 @@
 import { useMemo, useSyncExternalStore } from "react";
-import {
-  VanillaLocalizationKeys,
-  type VanillaLocalizationKey,
-} from "./generated/localizationKeys";
+import { VanillaLocalizationKeys, type VanillaLocalizationKey } from "./generated/localizationKeys";
 import type { ContentLocalizationKey } from "./contentKeys";
+import { resolvePreDictionaryText } from "./preDictionaryText";
 
 export const FALLBACK_LOCALE = "english";
 
@@ -130,19 +128,19 @@ export function createTranslationResolver(current: I18nSnapshot) {
   };
 }
 
-// fallback は「辞書が来る前に出る画面」の文言。所有者はこの1本で、呼び出し側にstatus分岐を作らせない
-// fallback is the copy for screens that render before the dictionary; this single path owns it so callers need no status branch
+// 辞書が来る前に出る画面の文言もキーから引く。対応表はi18n内部が持ち、呼び出し側に文言もstatus分岐も持たせない
+// Pre-dictionary copy is also looked up by key; i18n owns the table internally so callers carry neither copy nor a status branch
 export function createTranslator(current: I18nSnapshot) {
   const resolve = createTranslationResolver(current);
-  return (key: TranslationKey, values?: InterpolationValues, fallback?: string): string => {
+  return (key: TranslationKey, values?: InterpolationValues): string => {
     const translation = resolve(key, values ?? {});
     switch (translation.kind) {
       case "resolved":
         return translation.text;
-      // 表示できる辞書が無い間は辞書非依存の文言へ落ちる。無ければ空文字で、欠落マーカーで画面を埋めない
-      // Without a displayable dictionary this drops to the dictionary-independent copy, else empty text rather than a marker
+      // 表示できる辞書が無い間は辞書前文言表へ落ちる。無ければ空文字で、欠落マーカーで画面を埋めない
+      // Without a displayable dictionary this drops to the pre-dictionary table, else empty text rather than a marker
       case "dictionaryAbsent":
-        return fallback ?? "";
+        return resolvePreDictionaryText(key);
       // 欠落キーは目立つプレースホルダで露出させる
       // Surface missing keys with a loud placeholder
       case "keyMissing":

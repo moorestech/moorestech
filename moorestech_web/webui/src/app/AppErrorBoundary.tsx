@@ -1,6 +1,6 @@
 import { Component, type ReactNode } from "react";
 import { Button, Stack, Text, Title } from "@mantine/core";
-import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
@@ -37,9 +37,9 @@ function AppErrorFallback() {
 
   // 辞書が未確定なら t() は第3引数の辞書非依存リテラルへ落ちる
   // Before the dictionary is ready t() drops to the third argument's dictionary-independent literal
-  const title = t(L.ui.error.uiErrorOccurred, {}, DictionaryIndependentText.uiErrorOccurred);
-  const description = t(L.ui.error.renderFailed, {}, DictionaryIndependentText.renderFailed);
-  const reloadLabel = t(L.ui.error.reload, {}, DictionaryIndependentText.reload);
+  const title = t(L.ui.error.uiErrorOccurred);
+  const description = t(L.ui.error.renderFailed);
+  const reloadLabel = t(L.ui.error.reload);
 
   return (
     <Stack align="center" justify="center" h="100vh" gap="md" p="lg">

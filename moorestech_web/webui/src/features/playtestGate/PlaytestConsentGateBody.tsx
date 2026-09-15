@@ -1,18 +1,19 @@
 // 待機中だけマウントされる本体。本文を読ませてから了解1回で待機が解ける
 // The body mounted only while waiting; the body text is read, and a single acknowledgement releases the wait
 import { Button, Stack, Text } from "@mantine/core";
-import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
-import { useGateAnswer } from "./useGateAnswer";
+import { L, useI18n } from "@/shared/i18n";
+import { useGateAnswer } from "@/shared/ui";
+import { usePlaytestGateAnswerCopy } from "./usePlaytestGateAnswerCopy";
 import styles from "./style.module.css";
 
 export function PlaytestConsentGateBody() {
   const { t } = useI18n();
-  const { disabled, message, answer } = useGateAnswer("playtest.consent.acknowledge");
+  const { disabled, message, answer } = useGateAnswer("playtest.consent.acknowledge", usePlaytestGateAnswerCopy());
 
-  // ゲートは辞書配信より前に出るため、第3引数の辞書非依存文言が未確定の間の表示になる
-  // The gate precedes dictionary delivery, so the third argument's dictionary-independent copy is what shows until it arrives
-  const body = t(L.ui.playtest.consent.body, {}, DictionaryIndependentText.playtestConsentBody);
-  const agreeLabel = t(L.ui.playtest.consent.agree, {}, DictionaryIndependentText.playtestConsentAgree);
+  // ゲートは辞書配信より前に出るため、辞書が来るまではi18nの辞書前文言が出る
+  // The gate precedes dictionary delivery, so i18n's pre-dictionary copy shows until the dictionary arrives
+  const body = t(L.ui.playtest.consent.body);
+  const agreeLabel = t(L.ui.playtest.consent.agree);
 
   return (
     <Stack align="center" gap="md">

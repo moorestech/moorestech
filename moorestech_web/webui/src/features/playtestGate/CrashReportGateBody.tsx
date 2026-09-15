@@ -2,21 +2,22 @@
 // The body mounted only while waiting; the description is optional and either button releases the wait
 import { useState } from "react";
 import { Button, Group, Stack, Text } from "@mantine/core";
-import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
-import { useGateAnswer } from "./useGateAnswer";
+import { L, useI18n } from "@/shared/i18n";
+import { useGateAnswer } from "@/shared/ui";
+import { usePlaytestGateAnswerCopy } from "./usePlaytestGateAnswerCopy";
 import styles from "./style.module.css";
 
 export function CrashReportGateBody() {
   const { t } = useI18n();
   const [description, setDescription] = useState("");
-  const { disabled, message, answer } = useGateAnswer("playtest.crash_report.respond");
+  const { disabled, message, answer } = useGateAnswer("playtest.crash_report.respond", usePlaytestGateAnswerCopy());
 
-  // ゲートは辞書配信より前に出るため、第3引数の辞書非依存文言が未確定の間の表示になる
-  // The gate precedes dictionary delivery, so the third argument's dictionary-independent copy is what shows until it arrives
-  const body = t(L.ui.playtest.crashGate.body, {}, DictionaryIndependentText.crashGateBody);
-  const placeholder = t(L.ui.playtest.crashGate.placeholder, {}, DictionaryIndependentText.crashGatePlaceholder);
-  const sendLabel = t(L.ui.playtest.crashGate.send, {}, DictionaryIndependentText.crashGateSend);
-  const skipLabel = t(L.ui.playtest.crashGate.skip, {}, DictionaryIndependentText.crashGateSkip);
+  // ゲートは辞書配信より前に出るため、辞書が来るまではi18nの辞書前文言が出る
+  // The gate precedes dictionary delivery, so i18n's pre-dictionary copy shows until the dictionary arrives
+  const body = t(L.ui.playtest.crashGate.body);
+  const placeholder = t(L.ui.playtest.crashGate.placeholder);
+  const sendLabel = t(L.ui.playtest.crashGate.send);
+  const skipLabel = t(L.ui.playtest.crashGate.skip);
 
   return (
     <Stack align="center" gap="md">

@@ -4,9 +4,8 @@ import type { ActionPayloads } from "./protocol";
 
 // 全画面ゲートの「すでに応答済み」を表す拒否コード。ゲートはこの1表から文言を選ぶ
 // The rejection code meaning "already answered" for a full-screen gate; the gate picks its copy from this single table
-// BENIGN_ERRORS へ載せるには共有 error_codes.json（と WireContractTest の正準セット）に両コードが要るため、載せるのは先送り
-// Listing them in BENIGN_ERRORS needs both codes in the shared error_codes.json (and WireContractTest's canonical set) first, so that is deferred
 export const GATE_ALREADY_ANSWERED_ERRORS = {
+  "event_mode.select_language": "already_selected",
   "playtest.crash_report.respond": "already_responded",
   "playtest.consent.acknowledge": "already_acknowledged",
 } as const;
@@ -32,6 +31,11 @@ export const BENIGN_ERRORS: Partial<Record<keyof ActionPayloads, ReadonlySet<str
   // 二重右クリック等でサーバーが既にNotFoundを返す stale 削除はトースト不要（通信失敗は別コードで従来通りトーストする）
   // A stale delete where the server already returns NotFound (e.g. double right-click) needs no toast; communication failure keeps toasting under a separate code
   "blueprint.delete": new Set(["blueprint_delete_not_found"]),
+  // 全画面ゲートの二重応答はサーバーが答えを持っており、ゲートが受理として扱う。トーストはゲートの下に隠れて誤報になる
+  // A second gate answer finds the server already holding one and the gate treats it as accepted; a toast would be a hidden false alarm
+  "event_mode.select_language": new Set([GATE_ALREADY_ANSWERED_ERRORS["event_mode.select_language"]]),
+  "playtest.crash_report.respond": new Set([GATE_ALREADY_ANSWERED_ERRORS["playtest.crash_report.respond"]]),
+  "playtest.consent.acknowledge": new Set([GATE_ALREADY_ANSWERED_ERRORS["playtest.consent.acknowledge"]]),
 };
 
 // 既定の待ち時間。UI操作は即応するので、これを超えたら通信が壊れている
@@ -56,7 +60,7 @@ export function shouldToastFailure(type: keyof ActionPayloads, error: string | u
 
 // 失敗を真偽値へ潰さずに受け取るための結果型。「サーバーが断った」と「届かなかった」は別の対処になる
 // Outcome type that keeps failures out of a boolean: "the server refused" and "it never arrived" call for different handling
-export type ActionOutcome =
+type ActionOutcome =
   | { kind: "accepted" }
   | { kind: "rejected"; error: string }
   | { kind: "unreachable"; reason: "timeout" | "disconnected" | "other" };

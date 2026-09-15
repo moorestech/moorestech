@@ -2,7 +2,6 @@
 // The state machine for one full-screen-gate answer; this single place owns the disabled decision and the line the tester reads
 import { useEffect, useRef, useState } from "react";
 import { dispatchActionOutcome, GATE_ALREADY_ANSWERED_ERRORS, type ActionPayloads, type GateAnswerActionType } from "@/bridge";
-import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 
 // 受理からゲートが閉じるまでの猶予。これを過ぎても閉じないのは待機解除のpublishが落ちた疑い
 // The grace period from acceptance to the gate closing; past it the waiting-release publish is suspected lost
@@ -10,26 +9,39 @@ const CloseGraceMs = 10000;
 
 // 失敗を1状態へ畳むと「もう一度押してください」が二重応答に対して必ず無効な指示になる
 // Collapsing failures into one state makes "press again" an always-invalid instruction for a second answer
-export type GateAnswerState = "idle" | "pending" | "awaitingClose" | "stalled" | "failed" | "disconnected";
+type GateAnswerState = "idle" | "pending" | "awaitingClose" | "stalled" | "failed" | "disconnected";
 
-export type GateAnswer<K extends GateAnswerActionType> = {
-  state: GateAnswerState;
+// 結末ごとの1行。辞書経由か辞書非依存かはゲート側が決めて解決済みの文字列で渡す
+// One line per outcome; the gate decides between dictionary and dictionary-independent copy and passes resolved strings
+export type GateAnswerCopy = {
+  answerAccepted: string;
+  notClosed: string;
+  disconnected: string;
+  respondFailed: string;
+};
+
+type GateAnswer<K extends GateAnswerActionType> = {
   disabled: boolean;
   message: string | null;
   answer: (payload: ActionPayloads[K]) => Promise<void>;
 };
 
-export function useGateAnswer<K extends GateAnswerActionType>(type: K): GateAnswer<K> {
-  const { t } = useI18n();
+export function useGateAnswer<K extends GateAnswerActionType>(type: K, copy: GateAnswerCopy): GateAnswer<K> {
   const [state, setState] = useState<GateAnswerState>("idle");
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mounted = useRef(false);
 
-  // 閉じない見張りはゲートが消えると同時に止める。残すと消えた木へsetStateが走る
-  // The not-closing watch stops with the gate; left running it would setState into an unmounted tree
-  useEffect(() => () => clearCloseWatch(), []);
+  // 受理でゲートが消えるのは正常経路。消えた後に解決した応答が見張りを張り直さないよう生存を持つ
+  // Unmounting on acceptance is the normal path; tracking liveness keeps an answer settling afterwards from re-arming the watch
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      clearCloseWatch();
+    };
+  }, []);
 
   return {
-    state,
     // 受理済み・応答中は押させない。それ以外（拒否・切断・閉じない）はテスターが押し直せる
     // A pending or accepted answer blocks presses; every other state (refused, disconnected, not closing) stays pressable
     disabled: state === "pending" || state === "awaitingClose",
@@ -40,6 +52,13 @@ export function useGateAnswer<K extends GateAnswerActionType>(type: K): GateAnsw
   async function answer(payload: ActionPayloads[K]): Promise<void> {
     setState("pending");
     const outcome = await dispatchActionOutcome(type, payload);
+
+    // ゲートが先に閉じたら結末を描く先が無い。見張りも張らない
+    // If the gate closed first there is nowhere to show the outcome, and no watch is armed
+    if (!mounted.current) {
+      console.info(`[${type}] gate closed before the answer settled: ${outcome.kind}`);
+      return;
+    }
 
     // 受理と「すでに応答済み」は同じ結末。サーバーは答えを持っているので待機解除を待つ
     // Acceptance and "already answered" end the same way: the server holds the answer, so this waits for the release
@@ -90,13 +109,13 @@ export function useGateAnswer<K extends GateAnswerActionType>(type: K): GateAnsw
       case "pending":
         return null;
       case "awaitingClose":
-        return t(L.ui.playtest.gate.answerAccepted, {}, DictionaryIndependentText.gateAnswerAccepted);
+        return copy.answerAccepted;
       case "stalled":
-        return t(L.ui.playtest.gate.notClosed, {}, DictionaryIndependentText.gateNotClosed);
+        return copy.notClosed;
       case "disconnected":
-        return t(L.ui.playtest.gate.disconnected, {}, DictionaryIndependentText.gateDisconnected);
+        return copy.disconnected;
       case "failed":
-        return t(L.ui.playtest.gate.respondFailed, {}, DictionaryIndependentText.gateRespondFailed);
+        return copy.respondFailed;
     }
   }
 }

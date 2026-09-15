@@ -66,6 +66,6 @@ describe("z-layer tokens: body直下Portal", () => {
   it("全画面ゲートは再接続オーバーレイより前に立つ", () => {
     // ゲート待機中にWSが切れると再接続オーバーレイが被さり、ゲートのボタンが押せなくなる
     // A WS drop during the wait would cover the gate's buttons with the reconnect overlay
-    expect(portalLayer("reconnect")).toBeLessThan(portalLayer("event-language-gate"));
+    expect(portalLayer("reconnect")).toBeLessThan(portalLayer("full-screen-gate"));
   });
 });
