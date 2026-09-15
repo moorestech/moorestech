@@ -128,6 +128,10 @@ namespace Client.Tests.BugReport
         [Test]
         public void 退避物の読み取り不能はmissingへ隔離され他の項目とREADYは書かれる()
         {
+            // rootはchmod 000でも読めるため読み取り失敗を再現できない（CIのコンテナはroot実行）
+            // Root reads through chmod 000, so the read failure cannot be reproduced there (CI containers run as root)
+            if (Environment.UserName == "root") Assert.Ignore("root実行ではchmodで読み取り失敗を再現できないためスキップ（非rootの開発機で検証される）");
+
             var source = Path.Combine(Path.GetTempPath(), $"moorestech-crash-{Guid.NewGuid():N}");
             var recording = Path.Combine(source, "recording");
             Directory.CreateDirectory(recording);
