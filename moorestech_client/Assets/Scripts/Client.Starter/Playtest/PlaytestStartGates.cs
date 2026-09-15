@@ -33,11 +33,14 @@ namespace Client.Starter.Playtest
             // 登録・無人判定・待つ順序はゲート側が持つ。ここはhub不在の縮退と、応答後に手放すことだけを受け持つ
             // Registration, the unattended decision and the order belong to the gates; this keeps only the hub-less degradation and the post-answer yield
             var gates = PlaytestGateBinder.BindForBoot(hub, artifacts);
+            var waitsForAnswer = gates.IsAnyGateWaiting();
             await gates.WaitInOrderAsync(ct);
 
             // 応答の継続はaction処理スタックの中で走る。ここで手放さないと初期化の間WSの受信ループが止まる
             // The continuation resumes inside the action's stack, so yielding here keeps the WS receive loop alive during initialization
-            await UniTask.Yield();
+            // 待たなかった起動（無人・応答済み）は継続がaction内に無いので、手放さず同期で進める
+            // A boot that never waited (unattended or already answered) has no continuation inside an action, so it proceeds synchronously
+            if (waitsForAnswer) await UniTask.Yield();
         }
     }
 }

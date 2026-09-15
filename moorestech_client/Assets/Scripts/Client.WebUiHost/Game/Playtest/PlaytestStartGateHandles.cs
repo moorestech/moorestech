@@ -19,6 +19,11 @@ namespace Client.WebUiHost.Game.Playtest
             _crashReport = crashReport;
         }
 
+        public bool IsAnyGateWaiting()
+        {
+            return _consent.IsWaitingAcknowledgement || _crashReport.IsWaitingResponse;
+        }
+
         // 何が送られるかを読む前に送信可否を聞かない。終了のキャンセルが来たら人の応答を待たずに抜ける
         // Never ask to send before showing what gets sent; an exit cancellation leaves without waiting for a human answer
         public async UniTask WaitInOrderAsync(CancellationToken ct)

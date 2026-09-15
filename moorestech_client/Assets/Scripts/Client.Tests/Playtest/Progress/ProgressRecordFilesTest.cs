@@ -87,7 +87,11 @@ namespace Client.Tests.Playtest
 
         internal static JObject ReadRecord(string bundle)
         {
-            return JObject.Parse(File.ReadAllText(Path.Combine(bundle, ProgressRecordPaths.RecordFileName)));
+            // 日時は契約上の文字列のまま比べる。既定の読み込みはDateTimeへ変換しカルチャ書式で返してしまう
+            // Timestamps are compared as their contract strings; the default reader converts them to DateTime and returns a culture format
+            var json = File.ReadAllText(Path.Combine(bundle, ProgressRecordPaths.RecordFileName));
+            using var reader = new Newtonsoft.Json.JsonTextReader(new StringReader(json)) { DateParseHandling = Newtonsoft.Json.DateParseHandling.None };
+            return JObject.Load(reader);
         }
 
         internal static System.Collections.Generic.List<string> MissingItems(JObject record)
