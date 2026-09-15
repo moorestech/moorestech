@@ -25,9 +25,10 @@ namespace Game.SaveLoad.Json
         private readonly IWorldSettingsDatastore _worldSettingsDatastore;
         private readonly SaveLoadPreparer _saveLoadPreparer;
         private readonly WorldSaveDataRestorer _worldSaveDataRestorer;
+        private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
 
         public WorldLoaderFromJson(WorldDataDirectory worldDataDirectory, IWorldSettingsDatastore worldSettingsDatastore, ChallengeDatastore challengeDatastore,
-            MapInfoJson mapInfoJson, SaveLoadPreparer saveLoadPreparer, WorldSaveDataRestorer worldSaveDataRestorer)
+            MapInfoJson mapInfoJson, SaveLoadPreparer saveLoadPreparer, WorldSaveDataRestorer worldSaveDataRestorer, SaveBackfilledFieldsRecord saveBackfilledFieldsRecord)
         {
             _worldDataDirectory = worldDataDirectory;
             _worldSettingsDatastore = worldSettingsDatastore;
@@ -35,6 +36,7 @@ namespace Game.SaveLoad.Json
             _mapInfoJson = mapInfoJson;
             _saveLoadPreparer = saveLoadPreparer;
             _worldSaveDataRestorer = worldSaveDataRestorer;
+            _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
         }
 
         public void LoadOrInitialize()
@@ -91,6 +93,10 @@ namespace Game.SaveLoad.Json
             GameUpdater.RestoreCurrentTick(0);
             GameRandom.Reseed(NewWorldRandomSeed);
             Debug.Log($"新規ワールドの時刻と乱数を初期化しました tick:0 seed:{NewWorldRandomSeed}");
+
+            // 新規ワールドは何も補填していない。前のワールドの一覧を持ち越すと実値を捏造扱いにしてしまう
+            // A new world has backfilled nothing; carrying over the previous world's list would mark real values as fabricated
+            _saveBackfilledFieldsRecord.SetFields(Array.Empty<string>());
 
             _worldSettingsDatastore.Initialize(_mapInfoJson);
             _challengeDatastore.InitializeCurrentChallenges();

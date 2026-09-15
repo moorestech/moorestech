@@ -45,7 +45,8 @@ namespace Game.SaveLoad.Json.WorldVersions
             int inventorySlotLevel,
             List<CleanRoomSaveData> cleanRoomRooms,
             List<PlayerMiningCooldownSaveJsonObject> miningCooldowns,
-            ulong[] randomState)
+            ulong[] randomState,
+            List<string> backfilledFields)
         {
             World = world;
             Inventory = inventory;
@@ -67,6 +68,7 @@ namespace Game.SaveLoad.Json.WorldVersions
             CleanRoomRooms = cleanRoomRooms ?? new List<CleanRoomSaveData>();
             MiningCooldowns = miningCooldowns;
             RandomState = randomState;
+            BackfilledFields = backfilledFields;
         }
         
         [JsonProperty("world")] public List<BlockJsonObject> World { get; }
@@ -101,5 +103,11 @@ namespace Game.SaveLoad.Json.WorldVersions
         // As a constructor parameter Newtonsoft fills a missing value with 0 and HasValue becomes true, so it is assigned instead
         [JsonProperty("currentTick")] public ulong? CurrentTick { get; set; }
         [JsonProperty("randomState")] public ulong[] RandomState { get; }
+
+        // マイグレーションが実データでなく補填値を入れた項目名。捏造tick/乱数状態をセーブ上で自己申告にする
+        // Names of fields a migration filled with placeholders instead of real data, so a fabricated tick or random state is self-declared in the save
+        // 後からリプレイ・バグ報告・置換マイグレーションがこの一覧で分岐できる
+        // Replays, bug reports and later replacing migrations can branch on this list
+        [JsonProperty("backfilledFields")] public List<string> BackfilledFields { get; }
     }
 }

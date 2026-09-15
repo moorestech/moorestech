@@ -111,6 +111,28 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(Directory.Exists(WorldDataDirectory.FromWorldRoot(_archiveRoot).SavePrunedDirectory));
         }
 
+        // 補填の痕跡をロードで読み捨てると、次のautosaveで消えて捏造値と実値を区別できなくなる
+        // Dropping the backfill trace on load would let the next autosave erase it, leaving placeholders indistinguishable from real values
+        [Test]
+        public void 補填した項目名はロードしてセーブし直しても残るTest()
+        {
+            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
+            save["worldVersion"] = 1;
+            save.Remove("currentTick");
+            save.Remove("randomState");
+            save.Remove("backfilledFields");
+
+            var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(_archiveRoot);
+            var prepared = preparer.Prepare(save.ToString());
+            Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
+
+            var serviceProvider = SaveLoadPreparerTestFixture.CreateContainer();
+            (serviceProvider.GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson).Load(prepared.Save);
+            var resaved = JObject.Parse(serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
+
+            CollectionAssert.AreEqual(new[] { "currentTick", "randomState" }, resaved["backfilledFields"].ToObject<string[]>());
+        }
+
         // 日付らしい文字列が既定のパースで日付型へ化けると、ロード・autosaveで綴りが書き換わる
         // If a date-like string became a date under the default parse, load and autosave would rewrite its spelling
         [Test]

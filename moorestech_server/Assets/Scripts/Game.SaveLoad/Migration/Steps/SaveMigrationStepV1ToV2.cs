@@ -156,6 +156,10 @@ namespace Game.SaveLoad.Migration.Steps
                     added.Add("miningCooldowns");
                 }
 
+                // 補填した事実をセーブの形式として刻む。ログだけだと次のセーブで捏造値が実値の顔になる
+                // Stamp the backfill into the save format itself; a log alone would let the next save pass placeholders off as real
+                save["backfilledFields"] = new JArray(added);
+
                 return added.Count == 0 ? "なし" : string.Join(",", added);
             }
 

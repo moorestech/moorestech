@@ -47,13 +47,15 @@ namespace Game.SaveLoad.Json
         private readonly IPlayerInventorySlotLevelDataStore _playerInventorySlotLevelDataStore;
         private readonly CleanRoomDatastore _cleanRoomDatastore;
         private readonly IMiningCooldownDatastore _miningCooldownDatastore;
+        private readonly SaveBackfilledFieldsRecord _saveBackfilledFieldsRecord;
 
         public WorldSaveDataRestorer(
             IPlayerInventoryDataStore inventoryDataStore, IEntitiesDatastore entitiesDatastore, IWorldSettingsDatastore worldSettingsDatastore,
             ChallengeDatastore challengeDatastore, IGameUnlockStateDataController gameUnlockStateDataController,
             IResearchDataStore researchDataStore, TrainSaveLoadService trainSaveLoadService, RailGraphSaveLoadService railGraphSaveLoadService, TrainDockingStateRestorer trainDockingStateRestorer,
             IPlayerRidingDatastore playerRidingDatastore, IBlueprintDatastore blueprintDatastore, HotbarAssignmentDatastore hotbarAssignmentDatastore, RemainingPlacementCountDataStore remainingPlacementCountDataStore, ConstructionPayerDataStore constructionPayerDataStore, ItemStackLevelDataStore itemStackLevelDataStore,
-            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore)
+            IPlayerInventorySlotLevelDataStore playerInventorySlotLevelDataStore, CleanRoomDatastore cleanRoomDatastore, IMiningCooldownDatastore miningCooldownDatastore,
+            SaveBackfilledFieldsRecord saveBackfilledFieldsRecord)
         {
             _worldBlockDatastore = ServerContext.WorldBlockDatastore;
             _mapObjectDatastore = ServerContext.MapObjectDatastore;
@@ -76,6 +78,7 @@ namespace Game.SaveLoad.Json
             _playerInventorySlotLevelDataStore = playerInventorySlotLevelDataStore;
             _cleanRoomDatastore = cleanRoomDatastore;
             _miningCooldownDatastore = miningCooldownDatastore;
+            _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
         }
 
         public void Restore(WorldSaveAllInfoV1 load)
@@ -88,6 +91,7 @@ namespace Game.SaveLoad.Json
             // Restore the clock and random state first; later restorations reference this tick
             GameUpdater.RestoreCurrentTick(load.CurrentTick.Value);
             GameRandom.RestoreState(load.RandomState);
+            _saveBackfilledFieldsRecord.SetFields(load.BackfilledFields);
 
             _gameUnlockStateDataController.LoadUnlockState(load.GameUnlockStateJsonObject);
             // ブロック・インベントリ復元前にスタックレベルを復元する（上限超過例外の防止）
@@ -146,6 +150,7 @@ namespace Game.SaveLoad.Json
                 if (!load.CurrentTick.HasValue) missing.Add("currentTick");
                 if (load.RandomState == null) missing.Add("randomState");
                 if (load.MiningCooldowns == null) missing.Add("miningCooldowns");
+                if (load.BackfilledFields == null) missing.Add("backfilledFields");
                 if (missing.Count == 0) return;
 
                 var reason = $"セーブに {string.Join(" / ", missing)} がありません。版が古いセーブはマイグレーション連鎖（Game.SaveLoad/Migration）が補填するため、現在版のセーブで欠けているのは手編集による破損です";

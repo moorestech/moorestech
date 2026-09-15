@@ -46,6 +46,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(GameRandom.StateFromSeed(0UL), migrated["randomState"].ToObject<ulong[]>());
             Assert.AreEqual(JTokenType.Array, migrated["miningCooldowns"].Type);
             Assert.AreEqual(0, ((JArray)migrated["miningCooldowns"]).Count);
+            CollectionAssert.AreEqual(new[] { "currentTick", "randomState", "miningCooldowns" }, migrated["backfilledFields"].ToObject<string[]>());
         }
 
         // 既に値がある版1セーブを補填で塗り潰すと、進んでいた時刻や乱数列が無音で消える
@@ -60,6 +61,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.AreEqual(42UL, migrated["currentTick"].Value<ulong>());
             Assert.AreEqual(new ulong[] { 1, 2, 3, 4 }, migrated["randomState"].ToObject<ulong[]>());
             Assert.AreEqual(1, ((JArray)migrated["miningCooldowns"]).Count);
+            Assert.AreEqual(0, ((JArray)migrated["backfilledFields"]).Count, "補填していない項目が補填済みとして刻まれている");
         }
 
         // 二重エンコードは1回の展開では文字列のまま残り、移行済みに見えてロード時に落ちる
