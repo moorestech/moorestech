@@ -85,6 +85,23 @@ namespace Client.Game.InGame.BugReport.DiskOperations
             }
         }
 
+        // ディレクトリが無いのは0件の成功。列挙そのものに失敗したときだけ理由付きで返す
+        // A missing directory is a zero-file success; only a failed enumeration comes back with its reason
+        public static SalvageOperationResult ListFiles(string directory, string searchPattern, out string[] files)
+        {
+            files = Array.Empty<string>();
+            if (directory == null || !Directory.Exists(directory)) return SalvageOperationResult.Success();
+            try
+            {
+                files = Directory.GetFiles(directory, searchPattern);
+                return SalvageOperationResult.Success();
+            }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+            {
+                return SalvageOperationResult.Failure($"一覧を読めなかった {directory}: {e.Message}");
+            }
+        }
+
         // 追記口は1セッションに1本だけ開く。行ごとに開き直すとメインスレッドで mkdir/open/close が設置のたびに走る
         // Exactly one appender per session; reopening per line would run mkdir/open/close on the main thread for every placement
         public static SalvageOperationResult OpenAppender(string path, out StreamWriter appender)

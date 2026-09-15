@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace Client.Game.InGame.Playtest.Progress
+namespace Client.Game.InGame.Playtest.Progress.Storage
 {
     // 進行記録の1セッションぶんのファイル名。箱の綴りと READY は plan B の outbox（BugReportOutbox）が持つ
     // The file names of one progress session; the box naming and READY belong to plan B's outbox (BugReportOutbox)

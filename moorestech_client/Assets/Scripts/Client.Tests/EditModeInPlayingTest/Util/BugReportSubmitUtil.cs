@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
 using Client.WebUiHost.Game.Actions;
@@ -33,19 +34,20 @@ namespace Client.Tests.EditModeInPlayingTest.Util
 
         // 種別はwebuiのトグルが必ず載せる契約値で、欠けた要求は invalid_kind で拒否される
         // The kind is a contract value the webui toggle always sends; a request without it is refused as invalid_kind
-        public static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, string kind, IReadOnlyCollection<string> before)
+        public static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, PlaytestReportKind kind, IReadOnlyCollection<string> before)
         {
             var handler = new BugReportSubmitActionHandler(
                 resolver.Resolve<BugReportBundleWriter>(),
                 resolver.Resolve<BugReportCaptureSession>(),
                 resolver.Resolve<UIStateControl>(),
                 resolver.Resolve<IPlaytestProgressSink>());
-            var result = await handler.ExecuteAsync(new JObject { ["description"] = description, ["kind"] = kind });
+            var kindText = PlaytestReportKindText.ToContractText(kind);
+            var result = await handler.ExecuteAsync(new JObject { ["description"] = description, ["kind"] = kindText });
             Assert.IsTrue(result.Ok, result.Error);
 
             // 起動時の退避が kind=crash の箱を同じoutboxへ足すため、増えた箱を数えるだけでは偽陽性になる。種別で絞る
             // The boot-time salvage adds a kind=crash box to the same outbox, so counting new boxes alone yields false positives; filter by kind
-            var added = ExistingBundles().Except(before).Where(bundle => BundleKind(bundle) == kind).ToList();
+            var added = ExistingBundles().Except(before).Where(bundle => BundleKind(bundle) == kindText).ToList();
             Assert.AreEqual(1, added.Count, $"送信でoutboxに増えた kind={kind} の箱が1つではない");
             return added[0];
         }

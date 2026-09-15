@@ -49,7 +49,7 @@ namespace Client.Tests.BugReport
             {
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
                 BundleManifestContract.AssertPlanC(bundle, manifest);
-                Assert.AreEqual(PlaytestReportKind.Crash, (string)manifest["kind"]);
+                Assert.AreEqual("crash", (string)manifest["kind"]);
                 Assert.AreEqual("落ちた", (string)manifest["description"]);
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.RecordingDirectoryName, "seg_00.mp4")));
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportBundleLayout.LogsDirectoryName, "Player-prev.log")));
@@ -112,7 +112,7 @@ namespace Client.Tests.BugReport
             try
             {
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
-                Assert.AreEqual(PlaytestReportKind.Crash, (string)manifest["kind"]);
+                Assert.AreEqual("crash", (string)manifest["kind"]);
                 Assert.IsTrue(((JArray)manifest["missing"]).Any(item => (string)item["item"] == "recording" && (string)item["reason"] == "退避元が空"), "退避で積んだ欠損がmanifestに残っていない");
             }
             finally

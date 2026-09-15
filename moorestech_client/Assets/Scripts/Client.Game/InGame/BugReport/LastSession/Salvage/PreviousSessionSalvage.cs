@@ -22,7 +22,7 @@ namespace Client.Game.InGame.BugReport.LastSession
         // The salvaged evidence's origin, persisted in last-session so a later boot re-presenting unanswered evidence carries the same origin
         public const string PreviousOriginFileName = "previous-origin.json";
 
-        public static PreviousSessionArtifacts Artifacts { get; private set; }
+        private static PreviousSessionArtifacts _artifacts;
 
         // 呼ぶ前に ProcessSessionScope.BeginNewSession() でこの起動のセッション名を確定しておくこと
         // ProcessSessionScope.BeginNewSession() must have fixed this boot's session name before this is called
@@ -56,16 +56,16 @@ namespace Client.Game.InGame.BugReport.LastSession
                 PreviousSessions = ConsumeExitMarks(scan.Sessions),
             };
 
-            Artifacts = Salvage(request);
-            Debug.Log($"前回セッションの退避が終わりました clean:{Artifacts.PreviousExitWasClean} firstBoot:{isFirstBoot} sessions:{request.PreviousSessions.Count} salvagedPids:{Artifacts.SalvagedProcessIds.Count} sendable:{Artifacts.HasAnythingToSend} missing:{Artifacts.Missing.Count}");
-            return Artifacts;
+            _artifacts = Salvage(request);
+            Debug.Log($"前回セッションの退避が終わりました clean:{_artifacts.PreviousExitWasClean} firstBoot:{isFirstBoot} sessions:{request.PreviousSessions.Count} salvagedPids:{_artifacts.SalvagedProcessIds.Count} sendable:{_artifacts.HasAnythingToSend} missing:{_artifacts.Missing.Count}");
+            return _artifacts;
         }
 
         // 退避結果の唯一の窓口。退避より前に到達するのは起動順の契約違反なので、正常終了の値で偽装せず例外にする（F13）
         // The single window onto the salvage result; arriving before the salvage breaks the boot-order contract, so it throws instead of posing as a clean exit (F13)
         public static PreviousSessionArtifacts RequireArtifacts()
         {
-            if (Artifacts != null) return Artifacts;
+            if (_artifacts != null) return _artifacts;
             throw new InvalidOperationException("PreviousSessionSalvage: 退避が未実行のまま結果が要求されました（起動順が変わり PreviousSessionStartupTasks より前へ到達しています）");
         }
 

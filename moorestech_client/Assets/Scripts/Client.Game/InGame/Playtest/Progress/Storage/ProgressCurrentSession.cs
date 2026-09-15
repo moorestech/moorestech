@@ -5,13 +5,13 @@ using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Game.Paths;
 using UnityEngine;
 
-namespace Client.Game.InGame.Playtest.Progress
+namespace Client.Game.InGame.Playtest.Progress.Storage
 {
-    // 起動時に畳んでよい残骸と、触ってはいけない残骸の選別結果
-    // What may be folded at boot and what must be left alone
+    // 起動時に畳んでよい残骸（pid付き）と、触ってはいけない残骸の選別結果
+    // What may be folded at boot (with its pid) and what must be left alone
     public sealed class ProgressLeftoverScan
     {
-        public readonly List<string> Directories = new();
+        public readonly List<RecordingProcessDirectory> Sessions = new();
         public readonly List<MissingItem> Skipped = new();
     }
 
@@ -43,9 +43,9 @@ namespace Client.Game.InGame.Playtest.Progress
             // 同じpidの旧セッション（Editorの再生し直し）は takeover が拾う。今回のセッションの段は起動時点では空で、在れば同じく畳む
             // A same-pid older session (an Editor replay) comes through the takeover; the current session's level is empty at boot and is folded too if present
             var ownDirectory = DirectoryForCurrentProcess();
-            if (Directory.Exists(ownDirectory)) scan.Directories.Add(ownDirectory);
+            if (Directory.Exists(ownDirectory)) scan.Sessions.Add(new RecordingProcessDirectory { ProcessId = currentProcessId, SessionName = ProcessSessionScope.CurrentSessionName, Path = ownDirectory });
 
-            foreach (var directory in takeover.Directories) scan.Directories.Add(directory.Path);
+            scan.Sessions.AddRange(takeover.Directories);
             foreach (var processId in takeover.SkippedLiveProcessIds) AddSkipped(scan, $"pid {processId} は実行中のため進行記録の残骸を畳んでいない（並列起動のセッション）");
             foreach (var directory in takeover.UnknownDirectories) AddSkipped(scan, $"pid_<PID>/session_<utcTicks> の綴りでないディレクトリのため触っていない: {directory}");
             return scan;

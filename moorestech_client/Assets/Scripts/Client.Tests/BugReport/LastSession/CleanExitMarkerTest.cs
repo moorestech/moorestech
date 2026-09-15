@@ -1,7 +1,5 @@
-using System.IO;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.BuildOrigin;
-using Client.Game.InGame.BugReport.DiskOperations;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Cysharp.Threading.Tasks;
@@ -9,6 +7,8 @@ using NUnit.Framework;
 
 namespace Client.Tests.BugReport
 {
+    // 印のパスは CleanExitMarker の内側に閉じている。検証は公開の書き手・一覧・消費を通した結果だけで行う（C15）
+    // The mark paths stay inside CleanExitMarker; verification goes only through the public writers, listing and consumption (C15)
     public class CleanExitMarkerTest
     {
         // 実プロセスと衝突しないpid。マーカーはマシン共通のBugReports/配下に置かれるため必ず後始末する
@@ -17,12 +17,15 @@ namespace Client.Tests.BugReport
         private const string OlderSessionName = "session_100";
         private const string CurrentSessionName = "session_200";
 
+        // 消費は印を読んで段ごと消す。空になったpidのディレクトリも畳まれるので、後始末はこれで足りる
+        // Consuming reads and removes a session's marks, folding the emptied pid directory too, so it is enough for cleanup
         [SetUp]
         [TearDown]
         public void RemoveMarkers()
         {
             GameShutdownEvent.ResetForNewSession();
-            BugReportDiskOperations.DeleteDirectory(RecordingProcessDirectories.DirectoryFor(CleanExitMarker.MarksRoot, TestProcessId));
+            CleanExitMarker.ConsumeSessionMarks(TestProcessId, OlderSessionName);
+            CleanExitMarker.ConsumeSessionMarks(TestProcessId, CurrentSessionName);
         }
 
         [Test]
@@ -38,7 +41,13 @@ namespace Client.Tests.BugReport
             Assert.IsFalse(record.ShutdownStalled);
             Assert.AreEqual("steam-1", record.Origin.SteamId, "開始時に書いた出所が読み戻せていない");
             Assert.AreEqual(BuildOriginKind.Editor, record.Origin.BuildOrigin.Kind);
-            Assert.IsFalse(Directory.Exists(CleanExitMarker.SessionMarkDirectory(TestProcessId, OlderSessionName)));
+
+            // 消えていれば一覧に出ず、もう一度消費しても正常終了の印も出所も読めない
+            // Once removed it is not listed, and consuming again reads neither the clean mark nor the origin
+            Assert.IsFalse(ContainsMarked(OlderSessionName), "消費した印が一覧に残っている");
+            var again = CleanExitMarker.ConsumeSessionMarks(TestProcessId, OlderSessionName);
+            Assert.IsFalse(again.ExitedCleanly, "消費した正常終了の印が残っている");
+            Assert.IsNull(again.Origin, "消費した出所が残っている");
         }
 
         [Test]
@@ -75,7 +84,7 @@ namespace Client.Tests.BugReport
             var scan = PreviousProcessScanner.Scan(0, CurrentSessionName, new RecordingProcessTakeover(), CleanExitMarker.MarkedSessions(), new[] { TestProcessId });
 
             Assert.Contains(TestProcessId, scan.SkippedLiveProcessIds);
-            Assert.IsTrue(File.Exists(CleanExitMarker.StartedMarkerPath(TestProcessId, OlderSessionName)));
+            Assert.IsTrue(ContainsMarked(OlderSessionName), "回収の対象外にした生存pidの印が消えている");
         }
 
         // 同じpidでの再生し直し。旧セッションの印を「生きているから」と残すと、次のセッションの判定へ持ち越される（F05）
@@ -101,8 +110,9 @@ namespace Client.Tests.BugReport
             // 初期化失敗でメインメニューへ戻る経路は、拾いたいクラッシュ側。ここで印を書くと録画が次回起動で捨てられる
             // The fold-up to the main menu after a failed initialization is the crash side; a mark here would discard the recording at the next boot
             GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
-            Assert.IsFalse(File.Exists(CleanExitMarker.ExitIntentMarkerPath(TestProcessId, CurrentSessionName)));
-            Assert.IsFalse(File.Exists(CleanExitMarker.CleanMarkerPath(TestProcessId, CurrentSessionName)));
+            var record = CleanExitMarker.ConsumeSessionMarks(TestProcessId, CurrentSessionName);
+            Assert.IsFalse(record.ShutdownStalled, "意図的でない終了に終了の意思表明の印が書かれている");
+            Assert.IsFalse(record.ExitedCleanly, "意図的でない終了に正常終了の印が書かれている");
         }
 
         // 意思表明の時点では正常終了の印を書かない。書き出しの途中で止まったセッションを正常終了と読まないため（F03）
@@ -114,13 +124,16 @@ namespace Client.Tests.BugReport
             var participant = new ControllableShutdownParticipant();
             GameShutdownEvent.RegisterParticipant(participant);
 
+            // 書き出し中に消費すると「意思表明あり・完了なし」＝終了処理中の停止として読める
+            // Consuming during the flush reads "intent present, completion absent", i.e. a stop during shutdown
             var shutdown = GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
-            Assert.IsTrue(File.Exists(CleanExitMarker.ExitIntentMarkerPath(TestProcessId, CurrentSessionName)), "終了の意思表明の印が書かれていない");
-            Assert.IsFalse(File.Exists(CleanExitMarker.CleanMarkerPath(TestProcessId, CurrentSessionName)), "書き出しの完了前に正常終了の印が書かれている");
+            var duringFlush = CleanExitMarker.ConsumeSessionMarks(TestProcessId, CurrentSessionName);
+            Assert.IsTrue(duringFlush.ShutdownStalled, "終了の意思表明の印が書かれていない");
+            Assert.IsFalse(duringFlush.ExitedCleanly, "書き出しの完了前に正常終了の印が書かれている");
 
             participant.Complete(ShutdownFlushResult.Flushed);
             shutdown.GetAwaiter().GetResult();
-            Assert.IsTrue(File.Exists(CleanExitMarker.CleanMarkerPath(TestProcessId, CurrentSessionName)), "書き出し完了後に正常終了の印が書かれていない");
+            Assert.IsTrue(CleanExitMarker.ConsumeSessionMarks(TestProcessId, CurrentSessionName).ExitedCleanly, "書き出し完了後に正常終了の印が書かれていない");
         }
 
         private static bool ContainsMarked(string sessionName)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Playtest.Progress;
 
 namespace Client.Tests.Playtest
@@ -7,9 +8,9 @@ namespace Client.Tests.Playtest
     // A test sink that only remembers what was pushed
     public sealed class RecordingProgressSink : IPlaytestProgressSink
     {
-        public readonly List<string> SentReportKinds = new();
+        public readonly List<PlaytestReportKind> SentReportKinds = new();
 
-        public void RecordReportSent(string kind)
+        public void RecordReportSent(PlaytestReportKind kind)
         {
             SentReportKinds.Add(kind);
         }

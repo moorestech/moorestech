@@ -1,9 +1,9 @@
-using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using Client.Game.Common;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Playtest.Progress;
+using Client.Game.InGame.Playtest.Progress.Storage;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -12,8 +12,8 @@ namespace Client.Tests.Playtest
 {
     // 記録を開始していない起動（常時記録オフのテスト・DSL・調査用）で、プッシュが current/ を作らないことを固定する
     // Fixes that a push never conjures current/ on a boot that started no recording (a capture-off test, DSL or investigation boot)
-    // 開始済みセッションでのプッシュ→record.json は PlaytestReportAndProgressTest が実起動で押さえている
-    // A push reaching record.json in a started session is pinned by PlaytestReportAndProgressTest on a real boot
+    // 開始済みセッションでのプッシュ→record.json は PlaytestReportAndProgressTest が常時記録を有効にした実起動で押さえている
+    // A push reaching record.json in a started session is pinned by PlaytestReportAndProgressTest on a real boot with capture enabled
     public class ProgressRecorderPushTest
     {
         [SetUp]
@@ -23,8 +23,8 @@ namespace Client.Tests.Playtest
             ProgressTestSession.Clear();
         }
 
-        // プッシュ経路は ctor で受けた依存を一切使わない。StartSession を呼ばない限り購読も張られない
-        // The push path touches none of the ctor dependencies, and no subscription is made unless StartSession runs
+        // プッシュ経路は ctor で受けた依存を一切使わない。Initialize を呼ばない限り購読も張られない
+        // The push path touches none of the ctor dependencies, and no subscription is made unless Initialize runs
         private static ProgressRecorder CreateRecorderForPushOnly()
         {
             return new ProgressRecorder(null, null, new EmptyPlaytestSessionIdentity());

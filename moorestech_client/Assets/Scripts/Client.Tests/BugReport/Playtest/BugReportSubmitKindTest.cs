@@ -20,7 +20,7 @@ namespace Client.Tests.BugReport
                 Description = "説明",
                 Platform = "OSXEditor",
                 IsEditor = true,
-                Kind = PlaytestReportKind.Feedback,
+                Kind = PlaytestReportKindText.ToContractText(PlaytestReportKind.Feedback),
                 SnapshotTicks = new List<ulong>(),
                 SnapshotFiles = new List<string>(),
                 PacketLogFiles = new List<string>(),

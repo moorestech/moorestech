@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using UnityEngine;
 
-namespace Client.Game.InGame.Playtest.Progress
+namespace Client.Game.InGame.Playtest.Progress.Record
 {
     // セッション開始時に確定する文脈。終了時に組む record.json の土台になる
     // The context fixed at session start; the base for the record.json composed at the end
@@ -19,21 +19,24 @@ namespace Client.Game.InGame.Playtest.Progress
         };
 
         public int SchemaVersion = 1;
-        public string SteamId = "";
+
+        // 取れなかった値は null のまま持つ。空文字や0で埋めると実値に化けるため、理由は Missing に積む（F02）
+        // Unavailable values stay null; an empty string or 0 would pose as real data, so the reason goes into Missing (F02)
+        public string SteamId;
         public BuildInfo BuildInfo;
         public string SessionStart;
-        public string WorldCreatedAt = "";
-        public double TotalPlaySecondsAtStart;
+        public string WorldCreatedAt;
+        public double? TotalPlaySecondsAtStart;
 
         // 累計プレイ時間をサーバーから受け取った瞬間。終了時刻との差だけを足すので、応答待ちの数秒が二重計上されない
         // The instant the total play time arrived from the server; only the span to the session end is added, so the wait is never counted twice
-        public string TotalPlaySecondsCapturedAt = "";
+        public string TotalPlaySecondsCapturedAt;
 
         public List<string> BaselineChallenges = new();
         public List<string> BaselineResearch = new();
 
-        // 埋められなかった値と、その理由。実データと同じ形の既定値で埋めず、欠損をこの1列で表明する（ADR 0060 裁定6）
-        // What could not be filled and why; instead of defaults shaped like real data, every gap is declared in this one column (ADR 0060 adjudication 6)
+        // 埋められなかった値と、その理由。欠損をこの1列で表明する（ADR 0060 裁定6）
+        // What could not be filled and why; every gap is declared in this one column (ADR 0060 adjudication 6)
         public List<MissingItem> Missing = new();
 
         // 欠損は必ず開発者ログと記録の両方へ積む。片方だけだと縮退した理由が誰にも届かない

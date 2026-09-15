@@ -1,3 +1,4 @@
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Playtest.Progress;
 using UnityEngine;
 
@@ -11,7 +12,7 @@ namespace Client.Starter.Registration
     {
         // 記録しないことを無音にしない。この起動では進行記録そのものが無いことをログへ残す
         // Not recording is never silent: the log states this boot keeps no progress record at all
-        public void RecordReportSent(string kind)
+        public void RecordReportSent(PlaytestReportKind kind)
         {
             Debug.Log($"UncollectedPlaytestProgressSink: この起動はプレイテストの記録を集めないため、報告の送信を進行記録へ残しません kind:{kind}");
         }

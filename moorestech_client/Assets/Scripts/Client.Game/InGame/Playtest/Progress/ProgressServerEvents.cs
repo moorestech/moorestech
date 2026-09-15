@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.Playtest.Progress.Record.Events;
 using MessagePack;
 using Server.Event.EventReceive;
 
@@ -10,22 +11,22 @@ namespace Client.Game.InGame.Playtest.Progress
     // Decoding is not caught, following precedent (ADR 0060 adjudication B); VanillaApiEvent isolates each subscriber, so a broken packet never stops delivery to the others
     internal static class ProgressServerEvents
     {
-        public static ProgressEventEntry ResearchCompleted(byte[] payload, DateTime utc, ulong tick)
+        public static ResearchCompletedEvent ResearchCompleted(byte[] payload, DateTime utc, ulong tick)
         {
             var message = MessagePackSerializer.Deserialize<ResearchCompleteEventPacket.ResearchCompleteEventMessagePack>(payload);
-            return ProgressEvents.ResearchCompleted(utc, tick, message.ResearchGuidStr);
+            return new ResearchCompletedEvent(utc, tick, message.ResearchGuidStr);
         }
 
-        public static ProgressEventEntry ChallengeCompleted(byte[] payload, DateTime utc, ulong tick)
+        public static ChallengeCompletedEvent ChallengeCompleted(byte[] payload, DateTime utc, ulong tick)
         {
             var message = MessagePackSerializer.Deserialize<CompletedChallengeEventMessagePack>(payload);
-            return ProgressEvents.ChallengeCompleted(utc, tick, message.CompletedChallengeGuidStr);
+            return new ChallengeCompletedEvent(utc, tick, message.CompletedChallengeGuidStr);
         }
 
-        public static ProgressEventEntry CraftCompleted(byte[] payload, DateTime utc, ulong tick)
+        public static CraftCompletedEvent CraftCompleted(byte[] payload, DateTime utc, ulong tick)
         {
             var message = MessagePackSerializer.Deserialize<CraftCompletedEventPacket.CraftCompletedEventMessagePack>(payload);
-            return ProgressEvents.CraftCompleted(utc, tick, message.CraftRecipeGuidStr);
+            return new CraftCompletedEvent(utc, tick, message.CraftRecipeGuidStr);
         }
     }
 }

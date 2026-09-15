@@ -1,66 +1,74 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.Playtest.Progress.Record.Events;
 using UnityEngine;
 
-namespace Client.Game.InGame.Playtest.Progress
+namespace Client.Game.InGame.Playtest.Progress.Record
 {
-    // イベント列から集計値を導く。baseline と event 由来の重複判定を1つの集合で行い、二重計上を構造的に防ぐ
-    // Derives the aggregates from the event list; one set decides duplicates for both baseline and event origins, so double counting cannot happen
+    // イベント列から集計値を導く。種別ごとの足し方は各イベントの ApplyTo が持ち、ここは足し先だけを持つ
+    // Derives the aggregates from the event list; each event's ApplyTo owns how it adds, and this class only owns where it adds to
+    // baseline と event 由来の重複判定を1つの集合で行い、二重計上を構造的に防ぐ
+    // One set decides duplicates for both baseline and event origins, so double counting cannot happen
     internal sealed class ProgressRecordAggregate
     {
-        public List<string> ReachedChallenges;
-        public List<string> CompletedResearch;
-        public int PlacedBlockCount;
-        public int CraftCount;
-        public string LastUiState = "";
+        public readonly List<string> ReachedChallenges;
+        public readonly List<string> CompletedResearch;
         public readonly List<MissingItem> Missing = new();
 
-        public static ProgressRecordAggregate From(ProgressRecordHeader header, IReadOnlyList<ProgressEventEntry> events)
+        private readonly HashSet<string> _reachedChallengeSet;
+        private readonly HashSet<string> _completedResearchSet;
+        private int _uiStateChangeCount;
+
+        public int PlacedBlockCount { get; private set; }
+        public int CraftCount { get; private set; }
+
+        // UI状態が1件も届かなければ null。空文字は実在の状態名と見分けられない
+        // Null when no UI state arrived at all; an empty string cannot be told apart from a real state name
+        public string LastUiState { get; private set; }
+
+        private ProgressRecordAggregate(ProgressRecordHeader header)
         {
-            var aggregate = new ProgressRecordAggregate
-            {
-                ReachedChallenges = new List<string>(header.BaselineChallenges),
-                CompletedResearch = new List<string>(header.BaselineResearch),
-            };
-            var reachedChallengeSet = new HashSet<string>(aggregate.ReachedChallenges);
-            var completedResearchSet = new HashSet<string>(aggregate.CompletedResearch);
-            var uiStateChangeCount = 0;
+            ReachedChallenges = new List<string>(header.BaselineChallenges);
+            CompletedResearch = new List<string>(header.BaselineResearch);
+            _reachedChallengeSet = new HashSet<string>(ReachedChallenges);
+            _completedResearchSet = new HashSet<string>(CompletedResearch);
+        }
 
-            foreach (var entry in events)
-                switch (entry.Type)
-                {
-                    case ProgressEventType.BlockPlaced:
-                        aggregate.AddPlacedBlocks(entry);
-                        break;
-                    case ProgressEventType.CraftCompleted:
-                        aggregate.CraftCount++;
-                        break;
-                    case ProgressEventType.ChallengeCompleted:
-                        AddDistinct(aggregate.ReachedChallenges, reachedChallengeSet, ProgressEvents.ReadChallengeGuid(entry));
-                        break;
-                    case ProgressEventType.ResearchCompleted:
-                        AddDistinct(aggregate.CompletedResearch, completedResearchSet, ProgressEvents.ReadResearchGuid(entry));
-                        break;
-                    case ProgressEventType.UiStateChanged:
-                        uiStateChangeCount++;
-                        aggregate.LastUiState = ProgressEvents.ReadUiState(entry) ?? aggregate.LastUiState;
-                        break;
-                }
+        public static ProgressRecordAggregate From(ProgressRecordHeader header, IReadOnlyList<IProgressEvent> events)
+        {
+            var aggregate = new ProgressRecordAggregate(header);
+            foreach (var progressEvent in events) progressEvent.ApplyTo(aggregate);
 
-            // UI状態は1件も届かないことがある（遷移前に終了した・購読が張られていない）。空文字のまま出すと「GameScreenで離脱」と区別できない
-            // No UI state may arrive at all (an exit before the first transition, or a subscription that never attached); an empty string alone is indistinguishable from a real state
-            if (uiStateChangeCount == 0) aggregate.AddMissing("lastUiState", "UI状態の遷移イベントが1件も記録されていない");
+            // UI状態は1件も届かないことがある（遷移前に終了した・購読が張られていない）。欠損として表明する
+            // No UI state may arrive at all (an exit before the first transition, or a subscription that never attached); it is declared as a gap
+            if (aggregate._uiStateChangeCount == 0) aggregate.AddMissing("lastUiState", "UI状態の遷移イベントが1件も記録されていない");
             return aggregate;
         }
 
-        private void AddPlacedBlocks(ProgressEventEntry entry)
+        public void AddPlacedBlocks(int count)
         {
-            if (!ProgressEvents.TryReadPlacedCount(entry, out var count))
-            {
-                AddMissing(ProgressEventType.BlockPlaced, $"設置数の入っていない集約イベントを読み飛ばした t:{entry.T}");
-                return;
-            }
             PlacedBlockCount += count;
+        }
+
+        public void CountCraft()
+        {
+            CraftCount++;
+        }
+
+        public void AddReachedChallenge(string challengeGuid)
+        {
+            AddDistinct(ReachedChallenges, _reachedChallengeSet, challengeGuid);
+        }
+
+        public void AddCompletedResearch(string researchGuid)
+        {
+            AddDistinct(CompletedResearch, _completedResearchSet, researchGuid);
+        }
+
+        public void SetLastUiState(string state)
+        {
+            _uiStateChangeCount++;
+            LastUiState = state;
         }
 
         private void AddMissing(string item, string reason)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using Client.Game.InGame.BugReport.BuildOrigin;
+using Client.Game.InGame.BugReport.Playtest;
 using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -28,8 +29,8 @@ namespace Client.Game.InGame.BugReport
         public string CreatedAt;
         public string Description;
 
-        // プレイ報告の種別。取り込み側は bug のときだけ自動修正ランを起動する（ADR 0058）
-        // The report kind; the ingest side starts an auto-fix run only for bug (ADR 0058)
+        // プレイ報告の種別の契約値（JSON化の時点で PlaytestReportKindText が綴る）。取り込み側は bug のときだけ自動修正ランを起動する（ADR 0058）
+        // The report kind's contract value, spelled by PlaytestReportKindText at serialization; the ingest side starts an auto-fix run only for bug (ADR 0058)
         public string Kind;
 
         // 送り手のSteamIDと配布ビルドの出所。取れなければ空文字でなくnullで、理由は missing 列に残す。Editorなら buildInfo は null
@@ -51,13 +52,13 @@ namespace Client.Game.InGame.BugReport
 
         // 箱の種別に依らない共通見出し。crash と bug で別々に組み立てていた頃は片方だけ列が欠けても誰も気づけなかった
         // The header every kind of box shares; while crash and bug built it separately, a column missing on one side went unnoticed
-        public static BugReportManifest CreateHeader(string description, string kind, string steamId, BuildOriginReading buildOrigin)
+        public static BugReportManifest CreateHeader(string description, PlaytestReportKind kind, string steamId, BuildOriginReading buildOrigin)
         {
             var manifest = new BugReportManifest
             {
                 CreatedAt = DateTime.UtcNow.ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture),
                 Description = description,
-                Kind = kind,
+                Kind = PlaytestReportKindText.ToContractText(kind),
                 SteamId = string.IsNullOrEmpty(steamId) ? null : steamId,
                 BuildInfo = buildOrigin.BuildInfo,
                 Platform = Application.platform.ToString(),

@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
-using Client.Game.InGame.Playtest.Progress;
+using Client.Game.InGame.Playtest.Progress.Storage;
 using Game.Paths;
 
 namespace Client.Starter.Playtest
@@ -30,16 +29,9 @@ namespace Client.Starter.Playtest
             // The clean-exit writer is installed at the same single spot that consumes the marks, leaving no window where a load-time or gate-time exit reads as a crash
             CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId(), ProcessSessionScope.CurrentSessionName);
 
-            // 前回の書きかけの進行記録も、印を読む同じ1箇所で畳む。pidごとの判定へ移すまでは、全pidが正常終了だったかへ畳んで渡す（F19の暫定）
-            // The half-written progress records are folded at the same single spot; until the per-pid verdict lands they receive "did every pid exit cleanly" (interim for F19)
-            ProgressSessionRecovery.RecoverLeftoverSessions(AllExitedCleanly(artifacts.ExitedCleanlyByProcessId));
-        }
-
-        private static bool AllExitedCleanly(IReadOnlyDictionary<int, bool> exitedCleanlyByProcessId)
-        {
-            foreach (var exitedCleanly in exitedCleanlyByProcessId.Values)
-                if (!exitedCleanly) return false;
-            return true;
+            // 前回の書きかけの進行記録も、印を読む同じ1箇所で畳む。終わり方は残骸のpidごとに、消費した印の結果で決める（F19）
+            // The half-written progress records are folded at the same single spot; each leftover's ending is decided per pid from the consumed marks (F19)
+            ProgressSessionRecovery.RecoverLeftoverSessions(artifacts.ExitedCleanlyByProcessId);
         }
     }
 }

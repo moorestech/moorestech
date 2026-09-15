@@ -3,6 +3,9 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Client.Game.InGame.Playtest.Progress;
+using Client.Game.InGame.Playtest.Progress.Record;
+using Client.Game.InGame.Playtest.Progress.Record.Events;
+using Client.Game.InGame.Playtest.Progress.Storage;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -31,7 +34,7 @@ namespace Client.Tests.Playtest
         {
             var writer = new ProgressSessionWriter();
             writer.WriteHeader(CreateHeader());
-            writer.Append(ProgressEvents.BlockPlaced(DateTime.UtcNow, 1, 1));
+            writer.Append(new BlockPlacedEvent(DateTime.UtcNow, 1, 1));
             var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow).BundleDirectory;
             Assert.IsNotNull(bundle);
 
@@ -51,17 +54,17 @@ namespace Client.Tests.Playtest
             var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow).BundleDirectory;
 
             LogAssert.Expect(LogType.Warning, new Regex("追記しません"));
-            writer.Append(ProgressEvents.BlockPlaced(DateTime.UtcNow, 2, 1));
+            writer.Append(new BlockPlacedEvent(DateTime.UtcNow, 2, 1));
 
             Assert.IsFalse(File.Exists(ProgressRecordPaths.EventsPathIn(ProgressTestSession.Directory)));
             Assert.IsFalse(ProgressTestSession.HasCurrentSession());
             Directory.Delete(bundle, true);
         }
 
-        // 応答が終了に間に合わなかったケースだけが無音で 空/0 に確定していた。欠損として理由が残ることを固定する
-        // Only the case where the response missed the shutdown settled silently into empty/zero; this pins that the reason is recorded
+        // 応答が終了に間に合わなかったケースは null と欠損の理由で残る。空文字や0に化けない
+        // A response that missed the shutdown stays as null with its reason, never turning into an empty string or zero
         [Test]
-        public void プレイ時間が届かないまま閉じると欠損として残る()
+        public void プレイ時間が届かないまま閉じるとnullと欠損として残る()
         {
             var writer = new ProgressSessionWriter();
             writer.WriteHeader(CreateHeader());
@@ -73,6 +76,8 @@ namespace Client.Tests.Playtest
             var items = ((JArray)record["missing"]).Select(item => (string)item["item"]).ToList();
             CollectionAssert.Contains(items, "worldCreatedAt");
             CollectionAssert.Contains(items, "totalPlaySeconds");
+            Assert.AreEqual(JTokenType.Null, record["worldCreatedAt"].Type, "取れなかった作成日時が実値と同じ形で載っている");
+            Assert.AreEqual(JTokenType.Null, record["totalPlaySeconds"].Type, "取れなかった累計プレイ時間が実値と同じ形で載っている");
             Directory.Delete(bundle, true);
         }
 

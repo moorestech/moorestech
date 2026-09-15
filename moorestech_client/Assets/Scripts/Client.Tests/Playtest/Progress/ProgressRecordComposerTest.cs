@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.Playtest.Progress;
+using Client.Game.InGame.Playtest.Progress.Record;
+using Client.Game.InGame.Playtest.Progress.Record.Events;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
@@ -15,7 +17,7 @@ namespace Client.Tests.Playtest
         {
             return new ProgressRecordHeader
             {
-                SteamId = "",
+                SteamId = null,
                 BuildInfo = null,
                 SessionStart = ProgressUtcTime.ToIso(Start),
                 WorldCreatedAt = "2026-09-10T09:00:00Z",
@@ -29,7 +31,7 @@ namespace Client.Tests.Playtest
         [Test]
         public void イベントが0件でも必須キーが揃う()
         {
-            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), new List<ProgressEventEntry>(), ProgressEndReason.Quit, Start.AddSeconds(60)));
+            var json = Compose(new List<IProgressEvent>(), ProgressEndReason.Quit, Start.AddSeconds(60));
 
             foreach (var key in new[] { "schemaVersion", "steamId", "buildInfo", "sessionStart", "sessionEnd", "endReason", "playSeconds", "worldCreatedAt", "totalPlaySeconds", "reachedChallenges", "completedResearch", "placedBlockCount", "craftCount", "lastUiState", "missing", "events" })
             {
@@ -37,28 +39,39 @@ namespace Client.Tests.Playtest
             }
             Assert.AreEqual(60d, (double)json["playSeconds"]);
             Assert.AreEqual(160d, (double)json["totalPlaySeconds"]);
-            Assert.AreEqual(ProgressEndReason.Quit, (string)json["endReason"]);
+            Assert.AreEqual("quit", (string)json["endReason"]);
             Assert.AreEqual(0, (int)json["placedBlockCount"]);
             Assert.AreEqual(1, ((JArray)json["reachedChallenges"]).Count);
 
-            // UI状態が1件も無い記録は「空文字で離脱した」ではなく欠損として表明する
-            // A record with no UI state declares a gap instead of claiming an exit at an empty state
+            // 取れなかった SteamID と UI状態は空文字でなく null（F02）
+            // An unavailable SteamID and UI state are null rather than empty strings (F02)
+            Assert.AreEqual(JTokenType.Null, json["steamId"].Type);
+            Assert.AreEqual(JTokenType.Null, json["lastUiState"].Type);
             CollectionAssert.Contains(MissingItems(json), "lastUiState");
+        }
+
+        // 契約値の綴りはJSON化の1箇所で決まる。enum名がそのまま漏れると集計側の分岐が全て外れる
+        // The contract spelling is decided at the single serialization point; leaking the enum name would miss every branch on the digest side
+        [Test]
+        public void 終了理由は契約値の綴りで出る()
+        {
+            Assert.AreEqual("crash-recovered", (string)Compose(new List<IProgressEvent>(), ProgressEndReason.CrashRecovered, Start)["endReason"]);
+            Assert.AreEqual("init-failed", (string)Compose(new List<IProgressEvent>(), ProgressEndReason.InitializationFailed, Start)["endReason"]);
         }
 
         [Test]
         public void 集計値はイベント列から導出される()
         {
-            var events = new List<ProgressEventEntry>
+            var events = new List<IProgressEvent>
             {
-                ProgressEvents.BlockPlaced(Start.AddSeconds(1), 10, 2),
-                ProgressEvents.ChallengeCompleted(Start.AddSeconds(3), 30, "22222222-2222-2222-2222-222222222222"),
-                ProgressEvents.ResearchCompleted(Start.AddSeconds(4), 40, "33333333-3333-3333-3333-333333333333"),
-                ProgressEvents.CraftCompleted(Start.AddSeconds(5), 50, Guid.NewGuid().ToString()),
-                ProgressEvents.UiStateChanged(Start.AddSeconds(6), 60, "BuildMenu"),
+                new BlockPlacedEvent(Start.AddSeconds(1), 10, 2),
+                new ChallengeCompletedEvent(Start.AddSeconds(3), 30, "22222222-2222-2222-2222-222222222222"),
+                new ResearchCompletedEvent(Start.AddSeconds(4), 40, "33333333-3333-3333-3333-333333333333"),
+                new CraftCompletedEvent(Start.AddSeconds(5), 50, Guid.NewGuid().ToString()),
+                new UiStateChangedEvent(Start.AddSeconds(6), 60, "BuildMenu"),
             };
 
-            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, ProgressEndReason.Quit, Start.AddSeconds(10)));
+            var json = Compose(events, ProgressEndReason.Quit, Start.AddSeconds(10));
 
             Assert.AreEqual(2, (int)json["placedBlockCount"]);
             Assert.AreEqual(1, (int)json["craftCount"]);
@@ -67,16 +80,14 @@ namespace Client.Tests.Playtest
             Assert.AreEqual("BuildMenu", (string)json["lastUiState"]);
         }
 
-        // 設置数はサーバーの全体配信で増えるため、建築モードへ入っていない残骸でも最後の遷移以降の設置は失われている
-        // The count rises on the server's broadcast, so even a leftover that never entered build mode lost whatever was placed after the last transition
+        // 設置数は区間ごとの集計なので、建築モードへ入っていない残骸でも最後の遷移以降の設置は失われている
+        // The count is aggregated per interval, so even a leftover that never entered build mode lost whatever was placed after the last transition
         [Test]
         public void 建築モードへ入っていない異常終了も設置数の欠損を名乗る()
         {
-            var events = new List<ProgressEventEntry> { ProgressEvents.UiStateChanged(Start.AddSeconds(2), 20, "GameScreen") };
+            var events = new List<IProgressEvent> { new UiStateChangedEvent(Start.AddSeconds(2), 20, "GameScreen") };
 
-            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, ProgressEndReason.CrashRecovered, Start.AddSeconds(10)));
-
-            CollectionAssert.Contains(MissingItems(json), "placedBlockCount");
+            CollectionAssert.Contains(MissingItems(Compose(events, ProgressEndReason.CrashRecovered, Start.AddSeconds(10))), "placedBlockCount");
         }
 
         // 終了flushを通った記録の設置数は完全。ここで欠損を名乗ると読み手が全記録の設置数を疑い始める
@@ -84,11 +95,9 @@ namespace Client.Tests.Playtest
         [Test]
         public void 正常終了は設置数の欠損を名乗らない()
         {
-            var events = new List<ProgressEventEntry> { ProgressEvents.UiStateChanged(Start.AddSeconds(2), 20, "PlaceBlock") };
+            var events = new List<IProgressEvent> { new UiStateChangedEvent(Start.AddSeconds(2), 20, "PlaceBlock") };
 
-            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, ProgressEndReason.Quit, Start.AddSeconds(10)));
-
-            CollectionAssert.DoesNotContain(MissingItems(json), "placedBlockCount");
+            CollectionAssert.DoesNotContain(MissingItems(Compose(events, ProgressEndReason.Quit, Start.AddSeconds(10))), "placedBlockCount");
         }
 
         // baseline に既に入っている到達がイベントでも届く（再ログイン直後の再送等）。二重に数えない
@@ -96,45 +105,44 @@ namespace Client.Tests.Playtest
         [Test]
         public void baselineと同じ到達はイベントで届いても二重計上しない()
         {
-            var events = new List<ProgressEventEntry> { ProgressEvents.ChallengeCompleted(Start.AddSeconds(1), 10, "11111111-1111-1111-1111-111111111111") };
-            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, ProgressEndReason.Quit, Start.AddSeconds(10)));
+            var events = new List<IProgressEvent> { new ChallengeCompletedEvent(Start.AddSeconds(1), 10, "11111111-1111-1111-1111-111111111111") };
 
-            Assert.AreEqual(1, ((JArray)json["reachedChallenges"]).Count);
+            Assert.AreEqual(1, ((JArray)Compose(events, ProgressEndReason.Quit, Start.AddSeconds(10))["reachedChallenges"]).Count);
         }
 
-        // 時刻の逆転を無音で0へ丸めると「一瞬で終わったセッション」と区別できない
-        // Silently rounding a reversed clock to 0 makes it indistinguishable from a session that really lasted no time
+        // 時刻の逆転を0へ丸めると「一瞬で終わったセッション」と区別できない。null と理由で残す
+        // Rounding a reversed clock to 0 is indistinguishable from a session that really lasted no time, so it stays as null with a reason
         [Test]
-        public void 終了時刻が開始より前なら欠損として残る()
+        public void 終了時刻が開始より前ならnullと欠損として残る()
         {
-            var json = JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), new List<ProgressEventEntry>(), ProgressEndReason.Quit, Start.AddSeconds(-30)));
+            var json = Compose(new List<IProgressEvent>(), ProgressEndReason.Quit, Start.AddSeconds(-30));
 
-            Assert.AreEqual(0d, (double)json["playSeconds"]);
+            Assert.AreEqual(JTokenType.Null, json["playSeconds"].Type);
             CollectionAssert.Contains(MissingItems(json), "playSeconds");
         }
 
         [Test]
         public void 設置せずにビルドモードを抜けたときだけキャンセルを合成する()
         {
-            var cancelled = new List<ProgressEventEntry>
+            var cancelled = new List<IProgressEvent>
             {
-                ProgressEvents.UiStateChanged(Start.AddSeconds(1), 10, "PlaceBlock"),
-                ProgressEvents.UiStateChanged(Start.AddSeconds(2), 20, "GameScreen"),
+                new UiStateChangedEvent(Start.AddSeconds(1), 10, "PlaceBlock"),
+                new UiStateChangedEvent(Start.AddSeconds(2), 20, "GameScreen"),
             };
-            var placed = new List<ProgressEventEntry>
+            var placed = new List<IProgressEvent>
             {
-                ProgressEvents.UiStateChanged(Start.AddSeconds(1), 10, "PlaceBlock"),
-                ProgressEvents.BlockPlaced(Start.AddSeconds(2), 15, 1),
-                ProgressEvents.UiStateChanged(Start.AddSeconds(3), 20, "GameScreen"),
+                new UiStateChangedEvent(Start.AddSeconds(1), 10, "PlaceBlock"),
+                new BlockPlacedEvent(Start.AddSeconds(2), 15, 1),
+                new UiStateChangedEvent(Start.AddSeconds(3), 20, "GameScreen"),
             };
 
-            Assert.AreEqual(1, CountCancel(ProgressRecordComposer.WithSynthesizedBuildModeCancel(cancelled)));
-            Assert.AreEqual(0, CountCancel(ProgressRecordComposer.WithSynthesizedBuildModeCancel(placed)));
+            Assert.AreEqual(1, ProgressRecordComposer.WithSynthesizedBuildModeCancel(cancelled).OfType<BuildModeCancelledEvent>().Count());
+            Assert.AreEqual(0, ProgressRecordComposer.WithSynthesizedBuildModeCancel(placed).OfType<BuildModeCancelledEvent>().Count());
 
             // 抜けないまま終わった滞在は合成しない（終了は別のイベントで表現される）
             // A stay that never ends is not synthesized; the exit is expressed by another event
-            var stillInside = new List<ProgressEventEntry> { ProgressEvents.UiStateChanged(Start.AddSeconds(1), 10, "PlaceBlock") };
-            Assert.AreEqual(0, CountCancel(ProgressRecordComposer.WithSynthesizedBuildModeCancel(stillInside)));
+            var stillInside = new List<IProgressEvent> { new UiStateChangedEvent(Start.AddSeconds(1), 10, "PlaceBlock") };
+            Assert.AreEqual(0, ProgressRecordComposer.WithSynthesizedBuildModeCancel(stillInside).OfType<BuildModeCancelledEvent>().Count());
         }
 
         // 合成されたキャンセルは離脱を起こした遷移の時刻を引き継ぐ。回収時の現在時刻を焼き付けると数日ずれる
@@ -142,18 +150,18 @@ namespace Client.Tests.Playtest
         [Test]
         public void 合成したキャンセルは遷移の時刻を引き継ぐ()
         {
-            var transition = ProgressEvents.UiStateChanged(Start.AddSeconds(2), 20, "GameScreen");
-            var events = new List<ProgressEventEntry> { ProgressEvents.UiStateChanged(Start.AddSeconds(1), 10, "PlaceBlock"), transition };
+            var transition = new UiStateChangedEvent(Start.AddSeconds(2), 20, "GameScreen");
+            var events = new List<IProgressEvent> { new UiStateChangedEvent(Start.AddSeconds(1), 10, "PlaceBlock"), transition };
 
-            var cancel = ProgressRecordComposer.WithSynthesizedBuildModeCancel(events).First(entry => entry.Type == ProgressEventType.BuildModeCancelled);
+            var cancel = ProgressRecordComposer.WithSynthesizedBuildModeCancel(events).OfType<BuildModeCancelledEvent>().First();
 
             Assert.AreEqual(transition.T, cancel.T);
             Assert.AreEqual(transition.Tick, cancel.Tick);
         }
 
-        private static int CountCancel(List<ProgressEventEntry> events)
+        private static JObject Compose(List<IProgressEvent> events, ProgressEndReason endReason, DateTime sessionEndUtc)
         {
-            return events.FindAll(e => e.Type == ProgressEventType.BuildModeCancelled).Count;
+            return JObject.Parse(ProgressRecordComposer.Compose(CreateHeader(), events, endReason, sessionEndUtc));
         }
 
         private static List<string> MissingItems(JObject record)

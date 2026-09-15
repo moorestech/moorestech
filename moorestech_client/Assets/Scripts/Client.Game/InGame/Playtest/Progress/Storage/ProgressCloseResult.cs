@@ -1,4 +1,4 @@
-namespace Client.Game.InGame.Playtest.Progress
+namespace Client.Game.InGame.Playtest.Progress.Storage
 {
     // 閉じられなかった理由を「畳む中身が無い」と「書けずに失敗した」で分ける。どちらも null で返すと終了コードが成功へ潰れる
     // Separates "nothing to fold" from "the write failed": returning null for both collapses the shutdown result into success

@@ -1,5 +1,7 @@
 using System;
 using Client.Game.InGame.Playtest.Progress;
+using Client.Game.InGame.Playtest.Progress.Record;
+using Client.Game.InGame.Playtest.Progress.Record.Events;
 using MessagePack;
 using NUnit.Framework;
 using Server.Event.EventReceive;
@@ -18,12 +20,12 @@ namespace Client.Tests.Playtest
             var researchGuid = Guid.NewGuid();
             var payload = MessagePackSerializer.Serialize(new ResearchCompleteEventPacket.ResearchCompleteEventMessagePack(1, researchGuid));
 
-            var entry = ProgressServerEvents.ResearchCompleted(payload, Now, 42);
+            var progressEvent = ProgressServerEvents.ResearchCompleted(payload, Now, 42);
 
-            Assert.AreEqual(ProgressEventType.ResearchCompleted, entry.Type);
-            Assert.AreEqual(researchGuid.ToString(), ProgressEvents.ReadResearchGuid(entry));
-            Assert.AreEqual(42ul, entry.Tick);
-            Assert.AreEqual(ProgressUtcTime.ToIso(Now), entry.T);
+            Assert.AreEqual("researchCompleted", (string)progressEvent.ToJson()["type"]);
+            Assert.AreEqual(researchGuid.ToString(), progressEvent.ResearchGuid);
+            Assert.AreEqual(42ul, progressEvent.Tick);
+            Assert.AreEqual(ProgressUtcTime.ToIso(Now), progressEvent.T);
         }
 
         [Test]
@@ -35,10 +37,10 @@ namespace Client.Tests.Playtest
 #pragma warning restore CS0618
             var payload = MessagePackSerializer.Serialize(message);
 
-            var entry = ProgressServerEvents.ChallengeCompleted(payload, Now, 7);
+            var progressEvent = ProgressServerEvents.ChallengeCompleted(payload, Now, 7);
 
-            Assert.AreEqual(ProgressEventType.ChallengeCompleted, entry.Type);
-            Assert.AreEqual(challengeGuid.ToString(), ProgressEvents.ReadChallengeGuid(entry));
+            Assert.AreEqual("challengeCompleted", (string)progressEvent.ToJson()["type"]);
+            Assert.AreEqual(challengeGuid.ToString(), progressEvent.ChallengeGuid);
         }
 
         [Test]
@@ -47,11 +49,26 @@ namespace Client.Tests.Playtest
             var recipeGuid = Guid.NewGuid();
             var payload = MessagePackSerializer.Serialize(new CraftCompletedEventPacket.CraftCompletedEventMessagePack(1, recipeGuid));
 
-            var entry = ProgressServerEvents.CraftCompleted(payload, Now, 9);
+            var json = ProgressServerEvents.CraftCompleted(payload, Now, 9).ToJson();
 
-            Assert.AreEqual(ProgressEventType.CraftCompleted, entry.Type);
-            Assert.AreEqual(recipeGuid.ToString(), (string)entry.Data["recipeGuid"]);
-            Assert.AreEqual(9ul, entry.Tick);
+            Assert.AreEqual("craftCompleted", (string)json["type"]);
+            Assert.AreEqual(recipeGuid.ToString(), (string)json["data"]["recipeGuid"]);
+            Assert.AreEqual(9ul, (ulong)json["tick"]);
+        }
+
+        // 書いた行は種別ごとのクラスへそのまま戻る。未知の種別は例外にせず捨てる
+        // A written line comes back as its own type's class unchanged; an unknown type is dropped rather than thrown
+        [Test]
+        public void 書いた行は同じ種別へ読み戻せ未知の種別は捨てる()
+        {
+            var line = ProgressEventLine.ToJsonLine(new CraftCompletedEvent(Now, 3, "recipe-1"));
+
+            var restored = ProgressEventLine.FromJsonLine(line) as CraftCompletedEvent;
+            Assert.IsNotNull(restored, "書いた種別のクラスへ戻っていない");
+            Assert.AreEqual("recipe-1", restored.RecipeGuid);
+
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("未知のイベント種別"));
+            Assert.IsNull(ProgressEventLine.FromJsonLine("{\"t\":\"2026-09-14T01:02:03Z\",\"tick\":1,\"type\":\"nope\",\"data\":{}}"));
         }
     }
 }

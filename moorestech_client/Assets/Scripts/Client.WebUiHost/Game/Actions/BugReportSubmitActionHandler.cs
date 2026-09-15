@@ -38,10 +38,12 @@ namespace Client.WebUiHost.Game.Actions
 
             // 種別は webui のトグルが必ず載せる。載っていない・範囲外は壊れた要求として拒否する
             // The webui toggle always sends a kind; a missing or out-of-range value is a broken request
-            var kind = payload?["kind"]?.ToString() ?? "";
-            if (!PlaytestReportKind.IsSubmittableFromPauseMenu(kind))
+            // 文字列からの変換はこの payload パースだけで行い、以降は enum で持ち回す
+            // Conversion from the string happens only at this payload parse; the enum is carried from here on
+            var kindText = payload?["kind"]?.ToString() ?? "";
+            if (!PlaytestReportKindText.TryParseSubmittableFromPauseMenu(kindText, out var kind))
             {
-                Debug.LogWarning($"プレイ報告の種別が不正なため送信しません kind:{kind}");
+                Debug.LogWarning($"プレイ報告の種別が不正なため送信しません kind:{kindText}");
                 return ActionResult.Fail("invalid_kind");
             }
 

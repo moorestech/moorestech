@@ -1,8 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
-using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.DiskOperations;
+using Client.Game.InGame.Playtest.Progress.Record;
+using Client.Game.InGame.Playtest.Progress.Record.Events;
+using Client.Game.InGame.Playtest.Progress.Storage;
 using UnityEngine;
 
 namespace Client.Game.InGame.Playtest.Progress
@@ -62,11 +63,12 @@ namespace Client.Game.InGame.Playtest.Progress
 
         // 書き出し済みのセッションへ足すと outbox に出ない行が current/ に湧く。黙らず理由を残して捨てる
         // Appending to a written session would leave lines in current/ that no outbox holds, so it is dropped with a reason
-        public void Append(ProgressEventEntry entry)
+        public void Append(IProgressEvent progressEvent)
         {
+            var eventName = progressEvent.GetType().Name;
             if (Closed)
             {
-                Debug.LogWarning($"進行記録は書き出し済みのため追記しません type:{entry.Type}");
+                Debug.LogWarning($"進行記録は書き出し済みのため追記しません event:{eventName}");
                 return;
             }
 
@@ -75,23 +77,23 @@ namespace Client.Game.InGame.Playtest.Progress
                 var opened = ProgressRecordFiles.OpenEventAppender(_sessionDirectory, out _appender);
                 if (!opened.Succeeded)
                 {
-                    Debug.LogError($"進行記録のイベントを追記できません type:{entry.Type}: {opened.FailureReason}");
+                    Debug.LogError($"進行記録のイベントを追記できません event:{eventName}: {opened.FailureReason}");
                     return;
                 }
             }
 
-            var appended = BugReportFileOperations.AppendLine(_appender, entry.ToJsonLine());
-            if (!appended.Succeeded) Debug.LogError($"進行記録のイベントを追記できません type:{entry.Type}: {appended.FailureReason}");
+            var appended = BugReportFileOperations.AppendLine(_appender, ProgressEventLine.ToJsonLine(progressEvent));
+            if (!appended.Succeeded) Debug.LogError($"進行記録のイベントを追記できません event:{eventName}: {appended.FailureReason}");
         }
 
         // 書けなかったセッションは閉じない（current/ に残し、次回起動の回収へ回す）。中身が無かったのか書けなかったのかは呼び出し側へ分けて返す
         // A session that failed to write stays open in current/ for the next boot; whether it was empty or unwritable is handed back separately
-        public ProgressCloseResult Close(string endReason, DateTime sessionEndUtc)
+        public ProgressCloseResult Close(ProgressEndReason endReason, DateTime sessionEndUtc)
         {
             ReportUnfilledWorldPlayTime();
             CloseAppender();
 
-            var result = ProgressRecordFiles.CloseCurrentInto(_sessionDirectory, endReason, sessionEndUtc, Array.Empty<MissingItem>());
+            var result = ProgressRecordFiles.CloseCurrentInto(_sessionDirectory, endReason, sessionEndUtc);
             Closed = result.BundleDirectory != null;
             return result;
         }

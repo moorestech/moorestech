@@ -21,24 +21,24 @@ namespace Client.Game.InGame.BugReport.LastSession
         public const string CleanFileName = "clean";
         public const string OriginFileName = "origin.json";
 
-        public static string MarksRoot => Path.Combine(GameSystemPaths.BugReportLastSessionDirectory, MarksDirectoryName);
+        private static string MarksRoot => Path.Combine(GameSystemPaths.BugReportLastSessionDirectory, MarksDirectoryName);
 
-        public static string SessionMarkDirectory(int processId, string sessionName)
+        private static string SessionMarkDirectory(int processId, string sessionName)
         {
             return ProcessSessionScope.SessionDirectoryFor(MarksRoot, processId, sessionName);
         }
 
-        public static string StartedMarkerPath(int processId, string sessionName)
+        private static string StartedMarkerPath(int processId, string sessionName)
         {
             return Path.Combine(SessionMarkDirectory(processId, sessionName), StartedFileName);
         }
 
-        public static string ExitIntentMarkerPath(int processId, string sessionName)
+        private static string ExitIntentMarkerPath(int processId, string sessionName)
         {
             return Path.Combine(SessionMarkDirectory(processId, sessionName), ExitIntentFileName);
         }
 
-        public static string CleanMarkerPath(int processId, string sessionName)
+        private static string CleanMarkerPath(int processId, string sessionName)
         {
             return Path.Combine(SessionMarkDirectory(processId, sessionName), CleanFileName);
         }

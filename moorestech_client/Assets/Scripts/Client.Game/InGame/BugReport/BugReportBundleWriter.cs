@@ -36,16 +36,8 @@ namespace Client.Game.InGame.BugReport
             _identity = identity;
         }
 
-        public async UniTask<BugReportBundleResult> WriteAsync(BugReportCapturedData data, string description, string kind)
+        public async UniTask<BugReportBundleResult> WriteAsync(BugReportCapturedData data, string description, PlaytestReportKind kind)
         {
-            // 種別は箱の契約値で、取り込み側の分岐もこれだけを見る。呼び出し口ごとの検証に頼らず書き出し側でも拒否する
-            // The kind is a contract value the ingest side branches on, so the writer rejects a broken one instead of trusting each caller's check
-            if (!PlaytestReportKind.IsKnown(kind))
-            {
-                Debug.LogError($"プレイ報告の種別が不正なため箱を作りません kind:{kind}");
-                return new BugReportBundleResult { Missing = new List<MissingItem>(), Ready = false };
-            }
-
             var directory = BugReportOutbox.CreateBundleDirectory(BugReportOutbox.DefaultRootDirectory, DateTime.UtcNow, BugReportOutbox.CreateShortId());
 
             // Applicationのパス系はメインスレッドでしか読めないため、焼き込み情報とリポジトリの場所はここで先に読む
