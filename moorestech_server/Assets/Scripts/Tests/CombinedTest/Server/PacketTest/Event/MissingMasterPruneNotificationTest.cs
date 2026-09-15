@@ -1,9 +1,13 @@
+using System.Linq;
 using Game.SaveLoad.Interface;
 using Game.SaveLoad.Pruning;
 using MessagePack;
+using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
+using Server.Boot;
 using Server.Event;
 using Server.Event.Notification;
+using Tests.Module.TestMod;
 
 namespace Tests.CombinedTest.Server.PacketTest.Event
 {
@@ -28,6 +32,29 @@ namespace Tests.CombinedTest.Server.PacketTest.Event
             Assert.AreEqual(NotificationCategory.SaveMigration, message.Category);
             Assert.AreEqual("saveMigration.missingMasterPruned", message.MessageId);
             Assert.AreEqual(new[] { "3", "4", "5" }, message.MessageParams);
+        }
+
+        // 本番DIの結線で届くこと。手組みnewでは登録漏れ・別インスタンス注入を検出できない
+        // Arrives through the production DI wiring; hand-built instances cannot catch a missing registration or a split singleton
+        [Test]
+        public void 本番DI結線で除去件数の通知が接続時に届くTest()
+        {
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            serviceProvider.GetService<MissingMasterPruneReportStore>().SetReport(new MissingMasterPruneReport(3, 4, 5));
+
+            // RegisterCaptureSinkは登録時pushを捨てるため、この通知の検証には使えない
+            // RegisterCaptureSink discards pushes made at registration, so it cannot observe this notice
+            var sink = new CapturedEventSink();
+            serviceProvider.GetService<EventProtocolProvider>().RegisterPlayer(1, sink);
+
+            var notifications = sink.TakeAll()
+                .Where(e => e.Tag == NotificationService.EventTag)
+                .Select(e => MessagePackSerializer.Deserialize<NotificationMessagePack>(e.Payload))
+                .ToList();
+            Assert.AreEqual(1, notifications.Count);
+            Assert.AreEqual(NotificationCategory.SaveMigration, notifications[0].Category);
+            Assert.AreEqual("saveMigration.missingMasterPruned", notifications[0].MessageId);
+            Assert.AreEqual(new[] { "3", "4", "5" }, notifications[0].MessageParams);
         }
 
         // 除去0件（本番の常態）で通知が出ないこと
