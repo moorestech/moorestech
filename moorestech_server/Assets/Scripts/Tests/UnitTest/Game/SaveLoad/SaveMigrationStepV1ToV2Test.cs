@@ -76,16 +76,19 @@ namespace Tests.UnitTest.Game.SaveLoad
             Assert.IsNull(result.Save);
         }
 
-        // base64-MessagePackのようにJSONとして読めない値は、壊さずそのまま残す（理由はログへ）
-        // A value that is not JSON, such as base64 MessagePack, is left untouched and the reason is logged
+        // base64-MessagePackのようにJSONとして読めない値を素通しすると、未変換のまま版2が刻まれる
+        // Passing a non-JSON value such as base64 MessagePack would stamp version 2 onto an unconverted save
         [Test]
-        public void JSONとして読めないstate値はそのまま残るTest()
+        public void JSONとして読めないstate値は変換不能として返るTest()
         {
             var save = JObject.Parse("{\"world\":[{\"state\":{\"blob\":\"AAECAw==\"}}]}");
 
-            var migrated = Convert(save);
+            var result = new SaveMigrationStepV1ToV2().Migrate(save);
 
-            Assert.AreEqual("AAECAw==", migrated["world"][0]["state"]["blob"].Value<string>());
+            Assert.IsFalse(result.IsConverted);
+            StringAssert.Contains("JSONとして読めない", result.FailureReason);
+            StringAssert.Contains("AAECAw==", result.FailureReason);
+            Assert.IsNull(result.Save);
         }
 
         // stateが非オブジェクト(文字列等)のセーブは変換できない。とばして通すと未変換のまま版だけ上がる

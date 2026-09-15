@@ -19,9 +19,9 @@ namespace Game.SaveLoad.Migration.Steps
         // For an already-played world the position in the sequence is unrecoverable anyway; determinism alone suffices
         private const ulong LegacySaveRandomSeed = 0UL;
 
-        // ログに含めるサンプル長。python移行スクリプトのvalue[:80]と揃える
-        // Sample length for the log; matches the python migration script's value[:80]
-        private const int DoubleEncodedSampleLength = 80;
+        // 失敗理由に含めるサンプル長。python移行スクリプトのvalue[:80]と揃える
+        // Sample length for the failure reason; matches the python migration script's value[:80]
+        private const int FailureSampleLength = 80;
 
         public int FromVersion => 1;
 
@@ -89,17 +89,22 @@ namespace Game.SaveLoad.Migration.Steps
                     if (property.Value.Type != JTokenType.String) continue;
 
                     var text = property.Value.Value<string>();
+                    var sample = text.Length <= FailureSampleLength ? text : text.Substring(0, FailureSampleLength);
+
+                    // JSONでない値は版1の形として解釈できない。素通しすると未変換のまま版2が刻まれる
+                    // A non-JSON value cannot be read as the version 1 shape; passing it would stamp version 2 on an unconverted save
+                    // 止めれば原本は版1のまま残り、後から復号ステップを足して遡って救える
+                    // Stopping keeps the original at version 1 so a later decoding step can still rescue it
                     if (!TryParseJson(text, out var parsed))
                     {
-                        Debug.Log($"state['{property.Name}']はJSONとして読めないため展開せずそのまま残します。");
-                        continue;
+                        reason = $"state['{property.Name}']がJSONとして読めないため展開できません: {sample}";
+                        return false;
                     }
 
                     // 二重エンコードは1回の展開では文字列のまま残り、移行済みに見えてロード時に落ちる
                     // A double-encoded value stays a string after one unwrap; it would look migrated yet break the load
                     if (parsed.Type == JTokenType.String)
                     {
-                        var sample = text.Length <= DoubleEncodedSampleLength ? text : text.Substring(0, DoubleEncodedSampleLength);
                         reason = $"state['{property.Name}']が二重エンコードされています。1回の展開では文字列のままです: {sample}";
                         return false;
                     }
