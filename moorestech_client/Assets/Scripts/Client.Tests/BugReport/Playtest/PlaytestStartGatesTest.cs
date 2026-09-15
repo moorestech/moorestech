@@ -16,6 +16,10 @@ namespace Client.Tests.BugReport
     // The start gates run consent first, then the crash confirmation, and never block when no screen can be shown; both are pinned here
     public class PlaytestStartGatesTest
     {
+        // CIはバッチモードで無人判定が常に立つ。対話起動の待ち方を検証するテストは理由なし（対話）を明示して渡す
+        // CI runs in batch mode where the unattended check always fires, so attended-wait tests pass an explicit no-reason (attended) boot
+        private const string AttendedBoot = null;
+
         private bool _consentExisted;
 
         [SetUp]
@@ -44,7 +48,7 @@ namespace Client.Tests.BugReport
         {
             LogAssert.Expect(LogType.Error, "PlaytestStartGates: WebUiHostが起動しておらず前回異常終了の確認を出せないため、確認せずに開始します");
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(null, TestPreviousSessionArtifacts.Unclean(), CancellationToken.None);
+            var wait = PlaytestStartGates.WaitForGatesAsync(null, TestPreviousSessionArtifacts.Unclean(), null, CancellationToken.None);
             Assert.IsTrue(wait.Status.IsCompleted());
         }
 
@@ -56,7 +60,7 @@ namespace Client.Tests.BugReport
             PlaytestStartGateBypass.Apply();
             var hub = new WebSocketHub();
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), CancellationToken.None);
+            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), PlaytestStartGateBypass.UnattendedReason(), CancellationToken.None);
 
             Assert.IsTrue(wait.Status.IsCompleted(), "無人起動なのに開始ゲートで待っている");
             Assert.IsNotNull(hub.ResolveTopic(StartGateTopics.CrashReportName), "ゲートのtopicが未登録だとWeb側の購読が固着する");
@@ -71,7 +75,7 @@ namespace Client.Tests.BugReport
             if (File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
             var hub = new WebSocketHub();
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), CancellationToken.None);
+            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), AttendedBoot, CancellationToken.None);
             Assert.IsFalse(wait.Status.IsCompleted(), "同意表示で待っていない");
 
             // 待機はWebへ配られている。配られなければゲートは描かれず、応答者の居ないまま止まる
@@ -100,7 +104,7 @@ namespace Client.Tests.BugReport
             PlaytestConsentFlag.Acknowledge();
             var hub = new WebSocketHub();
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), CancellationToken.None);
+            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), AttendedBoot, CancellationToken.None);
 
             AssertWaiting(hub, StartGateTopics.ConsentName, false, StartGateTopics.ConsentPrecedence);
             AssertWaiting(hub, StartGateTopics.CrashReportName, true, StartGateTopics.CrashReportPrecedence);
@@ -121,7 +125,7 @@ namespace Client.Tests.BugReport
             if (File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
             using var exit = new CancellationTokenSource();
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(new WebSocketHub(), TestPreviousSessionArtifacts.Unclean(), exit.Token);
+            var wait = PlaytestStartGates.WaitForGatesAsync(new WebSocketHub(), TestPreviousSessionArtifacts.Unclean(), AttendedBoot, exit.Token);
             exit.Cancel();
 
             Assert.IsTrue(wait.Status.IsCanceled());

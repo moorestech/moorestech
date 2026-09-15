@@ -1,5 +1,6 @@
 using System.Threading;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Playtest;
 using Cysharp.Threading.Tasks;
@@ -15,12 +16,12 @@ namespace Client.Starter.Playtest
     {
         public static UniTask WaitForPlaytestGatesAsync(CancellationToken ct)
         {
-            return WaitForGatesAsync(Client.WebUiHost.Boot.WebUiHost.Hub, PreviousSessionSalvage.RequireArtifacts(), ct);
+            return WaitForGatesAsync(Client.WebUiHost.Boot.WebUiHost.Hub, PreviousSessionSalvage.RequireArtifacts(), PlaytestStartGateBypass.UnattendedReason(), ct);
         }
 
-        // hubと退避結果を引数で受ける本体。順序とhub不在の縮退を、実プロセスを起こさずに検証できるようにするため分ける
-        // The body takes the hub and the salvage result as arguments so the order and the hub-less degradation are verifiable without spawning a process
-        internal static async UniTask WaitForGatesAsync(WebSocketHub hub, PreviousSessionArtifacts artifacts, CancellationToken ct)
+        // hub・退避結果・無人の理由を引数で受ける本体。CIはバッチモードで常に無人となるため、対話起動の順序も実プロセス無しで検証できるよう分ける
+        // The body takes the hub, the salvage result and the unattended reason so attended ordering stays verifiable even under CI's always-unattended batch mode
+        internal static async UniTask WaitForGatesAsync(WebSocketHub hub, PreviousSessionArtifacts artifacts, string unattendedReason, CancellationToken ct)
         {
             // 画面を出せないなら止めない方を採る。退避物は last-session に残り、次回起動の退避が空でも読み戻して聞き直せる
             // With no screen to show, not blocking wins: the salvage stays in last-session and the next boot re-presents it even with an empty source
@@ -32,7 +33,7 @@ namespace Client.Starter.Playtest
 
             // 登録・無人判定・待つ順序はゲート側が持つ。ここはhub不在の縮退と、応答後に手放すことだけを受け持つ
             // Registration, the unattended decision and the order belong to the gates; this keeps only the hub-less degradation and the post-answer yield
-            var gates = PlaytestGateBinder.BindForBoot(hub, artifacts);
+            var gates = PlaytestGateBinder.BindForBoot(hub, artifacts, unattendedReason);
             var waitsForAnswer = gates.IsAnyGateWaiting();
             await gates.WaitInOrderAsync(ct);
 

@@ -178,7 +178,7 @@ namespace Client.Starter
                     // Cancelling the start-gate wait on play exit is not a failure, so it never returns to the main menu
                     if (exception is OperationCanceledException)
                     {
-                        Debug.Log("初期化の途中で終了のキャンセルが来たため、以降の初期化を打ち切りました");
+                        Debug.Log("Initialization was aborted because an exit cancellation arrived midway");
                         return;
                     }
                     Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");

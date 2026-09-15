@@ -20,11 +20,10 @@ namespace Client.WebUiHost.Game.Playtest
         /// 起動時の唯一の登録口。無人起動かの判定もここが持ち、登録自体は常に行う（飛ばすとWeb側の購読が固着する）。
         /// The single boot-time registration port; it owns the unattended decision and always registers, since skipping would wedge the web subscription.
         /// </summary>
-        public static PlaytestStartGateHandles BindForBoot(WebSocketHub hub, PreviousSessionArtifacts artifacts)
+        public static PlaytestStartGateHandles BindForBoot(WebSocketHub hub, PreviousSessionArtifacts artifacts, string unattendedReason)
         {
             // 無人起動（バッチモード・テスト・プレイテストDSL）には応答者が居ない。待つと恒久停止するので閉じたゲートだけ登録する
             // An unattended boot (batch mode, tests, the playtest DSL) has nobody to answer; waiting would halt forever, so only closed gates are registered
-            var unattendedReason = PlaytestStartGateBypass.UnattendedReason();
             if (unattendedReason == null) return BindWaitingGates(hub, artifacts);
 
             Debug.LogWarning($"PlaytestGateBinder: 無人起動のため開始ゲートを出さずに進みます reason:{unattendedReason} previousExitWasClean:{artifacts.PreviousExitWasClean}（退避物は last-session に残り次回の対話起動で聞き直せます）");
