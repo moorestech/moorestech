@@ -257,6 +257,7 @@ namespace Server.Boot
             services.AddSingleton(modResource);
             services.AddSingleton(serverDataDirectory);
             services.AddSingleton<IWorldSaveDataLoader, WorldLoaderFromJson>();
+            services.AddSingleton<WorldSaveDataRestorer>();
             services.AddSingleton(options.worldDataDirectory);
             // セーブ要求（オートセーブ・クライアント要求）はcoordinatorへ集約し、実行はtick末尾の安定点のみ
             // Save requests (auto-save and client requests) funnel into the coordinator; execution happens only at the tick-end stable point

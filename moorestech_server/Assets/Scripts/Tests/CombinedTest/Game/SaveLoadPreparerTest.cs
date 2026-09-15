@@ -52,7 +52,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(reportStore.Report.HasRemoval);
 
             var loader = SaveLoadPreparerTestFixture.CreateContainer().GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
-            Assert.DoesNotThrow(() => loader.Load(prepared.SaveJsonText));
+            Assert.DoesNotThrow(() => loader.Load(prepared.Save));
 
             // 除去ブロックIDがロード後残っていないこと
             // The removed block's instance id must be absent from the world after load
@@ -109,6 +109,24 @@ namespace Tests.CombinedTest.Game
             Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
             Assert.IsFalse(reportStore.Report.HasRemoval);
             Assert.IsFalse(Directory.Exists(WorldDataDirectory.FromWorldRoot(_archiveRoot).SavePrunedDirectory));
+        }
+
+        // 日付らしい文字列が既定のパースで日付型へ化けると、ロード・autosaveで綴りが書き換わる
+        // If a date-like string became a date under the default parse, load and autosave would rewrite its spelling
+        [Test]
+        public void 日付らしい文字列は準備後も文字列のまま綴りが変わらないTest()
+        {
+            const string dateLikeText = "2026-09-13T08:30:00.1234567+09:00";
+            var save = SaveLoadPreparerTestFixture.BuildSaveJson();
+            save["dateLikeProbe"] = dateLikeText;
+
+            var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(_archiveRoot);
+            var prepared = preparer.Prepare(save.ToString());
+
+            Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
+            var probe = prepared.Save["dateLikeProbe"];
+            Assert.AreEqual(JTokenType.String, probe.Type);
+            Assert.AreEqual(dateLikeText, probe.Value<string>());
         }
 
         // JSONとして読めないセーブは生の例外で落とさず、原因つきで拒否する

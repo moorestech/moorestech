@@ -1,4 +1,5 @@
 using System;
+using Game.SaveLoad.Json;
 using Game.SaveLoad.Pruning;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -57,7 +58,7 @@ namespace Game.SaveLoad.Migration
             }
 
             _reportStore.SetReport(outcome.Report);
-            return PreparedSaveJson.Ready(outcome.Save.ToString());
+            return PreparedSaveJson.Ready(outcome.Save);
 
             #region Internal
 
@@ -67,7 +68,7 @@ namespace Game.SaveLoad.Migration
             {
                 try
                 {
-                    parsedSave = JObject.Parse(saveJsonText);
+                    parsedSave = SaveJsonObjectReader.Read(saveJsonText);
                     return true;
                 }
                 catch (JsonReaderException e)

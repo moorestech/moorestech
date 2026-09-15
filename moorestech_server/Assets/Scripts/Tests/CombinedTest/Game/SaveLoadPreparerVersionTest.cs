@@ -49,7 +49,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(prepared.CanLoad);
             Assert.AreEqual(SaveLoadBlockedCause.FutureVersion, prepared.BlockedCause);
             StringAssert.Contains("999", prepared.BlockedReason);
-            Assert.IsNull(prepared.SaveJsonText);
+            Assert.IsNull(prepared.Save);
         }
 
         [Test]
@@ -88,7 +88,7 @@ namespace Tests.CombinedTest.Game
             Assert.IsFalse(prepared.CanLoad);
             Assert.AreEqual(SaveLoadBlockedCause.UnreadableWorldVersion, prepared.BlockedCause);
             Assert.IsNotEmpty(prepared.BlockedReason);
-            Assert.IsNull(prepared.SaveJsonText);
+            Assert.IsNull(prepared.Save);
         }
 
         // 版が上がらないロードでも除去結果がautosaveで原本を上書きするので、現在版でも原本を退避する
@@ -123,14 +123,14 @@ namespace Tests.CombinedTest.Game
             var prepared = preparer.Prepare(save.ToString());
 
             Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
-            var migrated = JObject.Parse(prepared.SaveJsonText);
+            var migrated = prepared.Save;
             Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, migrated["worldVersion"].Value<int>());
             Assert.AreEqual(4321, migrated["currentTick"].Value<long>());
             Assert.AreEqual(save["randomState"].ToString(), migrated["randomState"].ToString());
             Assert.AreEqual(save["miningCooldowns"].ToString(), migrated["miningCooldowns"].ToString());
 
             var loader = SaveLoadPreparerTestFixture.CreateContainer().GetService<IWorldSaveDataLoader>() as WorldLoaderFromJson;
-            Assert.DoesNotThrow(() => loader.Load(prepared.SaveJsonText));
+            Assert.DoesNotThrow(() => loader.Load(prepared.Save));
         }
 
         // 退避原本は原文一致で不変であること

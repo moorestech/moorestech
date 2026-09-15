@@ -1,3 +1,5 @@
+using Newtonsoft.Json.Linq;
+
 namespace Game.SaveLoad.Migration
 {
     /// <summary>ロード直前まで整えたセーブ。ロード不可のときは原因と理由だけを運ぶ</summary>
@@ -10,14 +12,14 @@ namespace Game.SaveLoad.Migration
         // The cause is the source of truth for branching and display; the reason text is detail for developers reading logs
         public SaveLoadBlockedCause? BlockedCause { get; }
         public string BlockedReason { get; }
-        public string SaveJsonText { get; }
+        public JObject Save { get; }
 
-        private PreparedSaveJson(bool canLoad, SaveLoadBlockedCause? blockedCause, string blockedReason, string saveJsonText)
+        private PreparedSaveJson(bool canLoad, SaveLoadBlockedCause? blockedCause, string blockedReason, JObject save)
         {
             CanLoad = canLoad;
             BlockedCause = blockedCause;
             BlockedReason = blockedReason;
-            SaveJsonText = saveJsonText;
+            Save = save;
         }
 
         public static PreparedSaveJson Blocked(SaveLoadBlockedCause cause, string reason)
@@ -25,9 +27,9 @@ namespace Game.SaveLoad.Migration
             return new PreparedSaveJson(false, cause, reason, null);
         }
 
-        public static PreparedSaveJson Ready(string saveJsonText)
+        public static PreparedSaveJson Ready(JObject save)
         {
-            return new PreparedSaveJson(true, null, null, saveJsonText);
+            return new PreparedSaveJson(true, null, null, save);
         }
     }
 }

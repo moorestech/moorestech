@@ -96,7 +96,7 @@ namespace Tests.CombinedTest.Game
             GameUpdater.RestoreCurrentTick(4242);
             GameRandom.Reseed(999UL);
 
-            Assert.DoesNotThrow(() => loader.Load(prepared.SaveJsonText));
+            Assert.DoesNotThrow(() => loader.Load(prepared.Save));
 
             Assert.AreEqual(0UL, GameUpdater.CurrentTick, "補填したcurrentTickが0で復元されていない");
             CollectionAssert.AreEqual(GameRandom.StateFromSeed(0UL), GameRandom.ExportState(), "補填したrandomStateが種0の状態になっていない");
