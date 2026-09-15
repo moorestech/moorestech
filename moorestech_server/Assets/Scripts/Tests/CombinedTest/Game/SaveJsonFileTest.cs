@@ -23,7 +23,10 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void SaveJsonAndLoadTest()
         {
-            var savePath = Path.Combine(Environment.CurrentDirectory, "../", "moorestech_server", "SaveJsonAndLoadTest.json");
+            // ロードは原本をセーブの隣のbackup/へ退避するので、リポジトリ内でなく使い捨ての一時ディレクトリに置く
+            // Load archives the original into backup/ beside the save, so the save lives in a throwaway temp directory rather than the repository
+            var saveDirectory = Path.Combine(Path.GetTempPath(), $"moorestech-save-json-{Guid.NewGuid():N}");
+            var savePath = Path.Combine(saveDirectory, "save.json");
 
             var (_, saveServiceProvider) =
                 new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
@@ -59,8 +62,9 @@ namespace Tests.CombinedTest.Game
             loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
             var loadWorldBlockDatastore = ServerContext.WorldBlockDatastore;
 
-            // ファイルを削除
-            File.Delete(savePath);
+            // 退避物ごと削除する
+            // Delete the save together with its archives
+            Directory.Delete(saveDirectory, true);
 
             //追加したブロックのチェック
             var block = loadWorldBlockDatastore.GetBlock(new Vector3Int(0, 0));

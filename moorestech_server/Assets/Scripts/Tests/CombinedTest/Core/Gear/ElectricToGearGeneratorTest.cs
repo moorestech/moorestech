@@ -105,7 +105,10 @@ namespace Tests.CombinedTest.Core.Gear
         [Test]
         public void SelectedIndexSurvivesSaveLoad()
         {
-            var savePath = Path.Combine(Environment.CurrentDirectory, "../", "moorestech_server", "ElectricToGearSaveLoadTest.json");
+            // ロードは原本をセーブの隣のbackup/へ退避するので、リポジトリ内でなく使い捨ての一時ディレクトリに置く
+            // Load archives the original into backup/ beside the save, so the save lives in a throwaway temp directory rather than the repository
+            var saveDirectory = Path.Combine(Path.GetTempPath(), $"moorestech-electric-to-gear-{Guid.NewGuid():N}");
+            var savePath = Path.Combine(saveDirectory, "save.json");
 
             var (_, saveServiceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
             {
@@ -128,7 +131,7 @@ namespace Tests.CombinedTest.Core.Gear
             loadServiceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
 
             var reloaded = ServerContext.WorldBlockDatastore.GetBlock(Vector3Int.zero);
-            File.Delete(savePath);
+            Directory.Delete(saveDirectory, true);
 
             Assert.AreEqual(2, reloaded.GetComponent<ElectricToGearGeneratorComponent>().SelectedIndex);
         }

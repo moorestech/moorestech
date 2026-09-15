@@ -14,32 +14,27 @@ namespace Game.SaveLoad.Migration
         // How many same-second names to try; loads never repeat this often within one second
         private const int MaxCollisionRetry = 100;
 
-        // 置き場の導出はワールドのレイアウトが持つ。セーブファイルパスが無い構成では置き場もnullのまま
-        // The world layout owns where the archives go; a layout without a save file path leaves them null
+        // 置き場の導出はワールドのレイアウトが持つ。セーブファイルパスが無い構成だけ一時ディレクトリへ落とす
+        // The world layout owns where the archives go; only a layout without a save file path falls back to a temp directory
         private readonly WorldDataDirectory _directory;
 
         public SaveArchiveWriter(WorldDataDirectory directory)
         {
-            _directory = directory;
-
-            // 置き場が決まらないまま黙って進むと、原本が一度も残らないまま変換が走る
-            // Moving on silently without a location would let the migration run while the original is never kept
-            if (directory.SaveBackupDirectory == null)
+            if (directory.SaveJsonFilePath != null)
             {
-                Debug.LogError("ワールドのセーブファイルパスが無いため、マイグレーション前の原本と除去データを退避しません。");
+                _directory = directory;
+                return;
             }
+
+            // 実ユーザーデータ領域やカレント基準へ書くと開発者のセーブを汚すので、テスト経路は使い捨ての一時ディレクトリへ落とす
+            // Writing to the real user data area or the current directory would pollute developer saves, so this test path uses a throwaway temp directory
+            var temporaryRoot = Path.Combine(Path.GetTempPath(), "moorestech-save-archive-" + Guid.NewGuid().ToString("N"));
+            _directory = WorldDataDirectory.FromWorldRoot(temporaryRoot);
+            Debug.Log($"ワールドのセーブファイルパスが無いため、退避先を一時ディレクトリにします。 root={temporaryRoot}");
         }
 
         public void WriteBackup(int worldVersion, string saveJsonText)
         {
-            // 退避先が無いまま黙って進むと、変換後のセーブしか残らない
-            // Moving on silently without a location would leave only the converted save behind
-            if (_directory.SaveBackupDirectory == null)
-            {
-                Debug.LogError($"退避先が無いため版{worldVersion}のマイグレーション前セーブを退避できませんでした。");
-                return;
-            }
-
             var path = _directory.BackupSaveJsonPath(worldVersion);
             if (File.Exists(path))
             {
@@ -58,14 +53,6 @@ namespace Game.SaveLoad.Migration
         // The file name and prunedAt share one timestamp, so the caller never spells it twice
         public void WritePruned(MissingMasterPruneOutcome outcome, DateTime utcNow)
         {
-            // 除去した実体を捨てると後からの置換・返金の入力が失われるので、落ちた理由を残す
-            // Dropping the removed entities would lose the input for a later replace/refund, so log why it was lost
-            if (_directory.SavePrunedDirectory == null)
-            {
-                Debug.LogError("退避先が無いためマスタ欠損で除去したデータを保存できませんでした。");
-                return;
-            }
-
             Directory.CreateDirectory(_directory.SavePrunedDirectory);
 
             for (var collisionIndex = 0; collisionIndex < MaxCollisionRetry; collisionIndex++)
