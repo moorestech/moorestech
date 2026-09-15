@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Client.PlaytestReceiver.Http;
 
 namespace Client.PlaytestReceiver.Upload
 {
@@ -18,19 +19,36 @@ namespace Client.PlaytestReceiver.Upload
 
         private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker };
 
-        // 受け口が予約するセグメント名。送信前にこの一覧で見送り、受け口の405/上書き事故を避ける
-        // Segment names the receiver reserves; skipped before sending to avoid a 405 or an overwrite on the receiver side
-        public static readonly string[] ReservedUploadSegments = { "READY", "ACKED", "complete" };
+        // 受け口が予約するセグメント名。送信前にこの一覧で見送る。受け口側の一覧とは contract.json でテスト固定する
+        // Segment names the receiver reserves, skipped before sending; the receiver's list is pinned via contract.json in a test
+        internal static readonly string[] ReservedUploadSegments = { "READY", "ACKED", "complete" };
 
         public static IReadOnlyList<PlaytestOutboxBox> ScanPending(string reportOutbox, string progressOutbox)
         {
             var boxes = new List<PlaytestOutboxBox>();
-            boxes.AddRange(ScanOne(reportOutbox, "report"));
-            boxes.AddRange(ScanOne(progressOutbox, "progress"));
+            boxes.AddRange(ScanOne(reportOutbox, PlaytestUploadKind.Report));
+            boxes.AddRange(ScanOne(progressOutbox, PlaytestUploadKind.Progress));
 
             // 箱のIDは yyyyMMdd_HHmmss_<hex> なので辞書順が時刻順になる。古い順に送る
             // Bundle ids are yyyyMMdd_HHmmss_<hex>, so lexicographic order is chronological; ship oldest first
             return boxes.OrderBy(box => box.BundleId, StringComparer.Ordinal).ToList();
+
+            #region Internal
+
+            IEnumerable<PlaytestOutboxBox> ScanOne(string outbox, PlaytestUploadKind kind)
+            {
+                if (!Directory.Exists(outbox)) yield break;
+
+                foreach (var directory in Directory.GetDirectories(outbox))
+                {
+                    if (!File.Exists(Path.Combine(directory, ReadyMarker))) continue;
+                    if (File.Exists(Path.Combine(directory, UploadedMarker))) continue;
+                    if (File.Exists(Path.Combine(directory, FailedMarker))) continue;
+                    yield return new PlaytestOutboxBox(directory, Path.GetFileName(directory), kind);
+                }
+            }
+
+            #endregion
         }
 
         public static IReadOnlyList<string> ListPayloadFiles(string boxDirectory)
@@ -46,19 +64,6 @@ namespace Client.PlaytestReceiver.Upload
         {
             var relative = filePath.Substring(boxDirectory.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
             return relative.Replace(Path.DirectorySeparatorChar, '/');
-        }
-
-        private static IEnumerable<PlaytestOutboxBox> ScanOne(string outbox, string kind)
-        {
-            if (!Directory.Exists(outbox)) yield break;
-
-            foreach (var directory in Directory.GetDirectories(outbox))
-            {
-                if (!File.Exists(Path.Combine(directory, ReadyMarker))) continue;
-                if (File.Exists(Path.Combine(directory, UploadedMarker))) continue;
-                if (File.Exists(Path.Combine(directory, FailedMarker))) continue;
-                yield return new PlaytestOutboxBox { Directory = directory, BundleId = Path.GetFileName(directory), Kind = kind };
-            }
         }
     }
 }

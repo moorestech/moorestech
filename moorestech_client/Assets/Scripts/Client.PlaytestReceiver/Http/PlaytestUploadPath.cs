@@ -9,7 +9,7 @@ namespace Client.PlaytestReceiver.Http
     {
         // 逸脱を含む名前は受け口が400で弾く。送る前にnullで返し、呼び出し側が到達失敗と取り違えないようにする
         // The receiver rejects traversal with a 400, so an unsafe name returns null here instead of looking unreachable
-        public static string ForFile(string kind, string bundleId, string relativePath)
+        public static string ForFile(PlaytestUploadKind kind, string bundleId, string relativePath)
         {
             var segments = relativePath.Replace('\\', '/').Trim('/').Split('/');
             var escaped = new List<string>(segments.Length);
@@ -20,12 +20,24 @@ namespace Client.PlaytestReceiver.Http
             }
             if (escaped.Count == 0) return null;
 
-            return $"{Escape(kind)}/{Escape(bundleId)}/{string.Join("/", escaped)}";
+            return $"{KindSegment(kind)}/{Escape(bundleId)}/{string.Join("/", escaped)}";
         }
 
-        public static string ForComplete(string kind, string bundleId)
+        public static string ForComplete(PlaytestUploadKind kind, string bundleId)
         {
-            return $"{Escape(kind)}/{Escape(bundleId)}/complete";
+            return $"{KindSegment(kind)}/{Escape(bundleId)}/complete";
+        }
+
+        // 種別から受け口の語への唯一の変換。語の集合は contract.json と一致をテストで固定する
+        // The only mapping from kind to the receiver's word; the word set is pinned to contract.json by a test
+        public static string KindSegment(PlaytestUploadKind kind)
+        {
+            switch (kind)
+            {
+                case PlaytestUploadKind.Report: return "report";
+                case PlaytestUploadKind.Progress: return "progress";
+                default: throw new ArgumentOutOfRangeException(nameof(kind), kind, "unknown upload kind");
+            }
         }
 
         // セグメントごとにエスケープする。#や?を含む名前が別キーへ化けるのを防ぐ（受け口は1回だけ復号する）

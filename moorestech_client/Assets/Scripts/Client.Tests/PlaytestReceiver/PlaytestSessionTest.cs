@@ -9,99 +9,61 @@ namespace Client.Tests.PlaytestReceiver
 {
     public class PlaytestSessionTest
     {
+        private static readonly DateTime IssuedAt = new(2026, 9, 13, 0, 0, 0, DateTimeKind.Utc);
+
         [Test]
-        public void 許可されればトークンを保持しSteamIdが読める()
+        public void 許可されればトークンを保持する()
         {
-            var api = new FakeApi();
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}" });
+            var api = ApiAnswering(PlaytestSessionBodies.Allowed("tok-1", "2026-09-13T01:00:00.000Z"));
             var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
 
-            var result = session.AuthenticateAsync(new DateTime(2026, 9, 13, 0, 0, 0, DateTimeKind.Utc), CancellationToken.None).GetAwaiter().GetResult();
+            var result = Authenticate(session, IssuedAt);
 
             Assert.AreEqual(PlaytestSessionOutcome.Allowed, result.Outcome);
-            Assert.AreEqual("7656", session.SteamId);
-            Assert.IsTrue(session.HasToken);
-        }
-
-        [Test]
-        public void 期限内はトークンを取り直さない()
-        {
-            var api = new FakeApi();
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}" });
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-            var issuedAt = new DateTime(2026, 9, 13, 0, 0, 0, DateTimeKind.Utc);
-            session.AuthenticateAsync(issuedAt, CancellationToken.None).GetAwaiter().GetResult();
-
-            var token = session.GetValidTokenAsync(issuedAt.AddSeconds(PlaytestReceiverConfig.TokenRefreshAfterSeconds - 1), CancellationToken.None).GetAwaiter().GetResult();
-
-            Assert.AreEqual("tok-1", token);
+            Assert.AreEqual("tok-1", session.GetValidTokenAsync(IssuedAt, CancellationToken.None).GetAwaiter().GetResult());
             Assert.AreEqual(1, api.SessionCallCount);
         }
 
         [Test]
-        public void 期限が近づいたらトークンを取り直す()
+        public void 受け口の期限より余裕を持って取り直す()
         {
-            var api = new FakeApi();
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}" });
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-2\"}" });
+            // 更新時刻は受け口が名乗った期限から逆算する。クライアント側にトークン寿命の複製を持たない
+            // The refresh time is derived from the stated expiry; the client keeps no copy of the token lifetime
+            var api = ApiAnswering(PlaytestSessionBodies.Allowed("tok-1", "2026-09-13T01:00:00.000Z"), PlaytestSessionBodies.Allowed("tok-2", "2026-09-13T02:00:00.000Z"));
             var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-            var issuedAt = new DateTime(2026, 9, 13, 0, 0, 0, DateTimeKind.Utc);
-            session.AuthenticateAsync(issuedAt, CancellationToken.None).GetAwaiter().GetResult();
+            Authenticate(session, IssuedAt);
+            var refreshAt = IssuedAt.AddHours(1).AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
 
-            var token = session.GetValidTokenAsync(issuedAt.AddSeconds(PlaytestReceiverConfig.TokenRefreshAfterSeconds + 1), CancellationToken.None).GetAwaiter().GetResult();
-
-            Assert.AreEqual("tok-2", token);
+            Assert.AreEqual("tok-1", session.GetValidTokenAsync(refreshAt.AddSeconds(-1), CancellationToken.None).GetAwaiter().GetResult());
+            Assert.AreEqual(1, api.SessionCallCount);
+            Assert.AreEqual("tok-2", session.GetValidTokenAsync(refreshAt.AddSeconds(1), CancellationToken.None).GetAwaiter().GetResult());
             Assert.AreEqual(2, api.SessionCallCount);
         }
 
         [Test]
         public void 応答コードごとに結末が分かれる()
         {
-            AssertOutcome(new PlaytestApiResult { StatusCode = 403, Body = "{\"reason\":\"not-allowed\"}" }, PlaytestSessionOutcome.NotAllowed);
-            AssertOutcome(new PlaytestApiResult { StatusCode = 401, Body = "{\"reason\":\"invalid-ticket\"}" }, PlaytestSessionOutcome.TicketRejected);
-            AssertOutcome(new PlaytestApiResult { StatusCode = 500, Body = "" }, PlaytestSessionOutcome.Unreachable);
-            AssertOutcome(new PlaytestApiResult { TransportError = "name resolution failed" }, PlaytestSessionOutcome.Unreachable);
+            AssertOutcome(PlaytestApiResult.Responded(403, "{\"reason\":\"not-allowed\"}"), PlaytestSessionOutcome.NotAllowed);
+            AssertOutcome(PlaytestApiResult.Responded(401, "{\"reason\":\"invalid-ticket\"}"), PlaytestSessionOutcome.TicketRejected);
+            AssertOutcome(PlaytestApiResult.Responded(503, "{\"reason\":\"steam-unavailable\"}"), PlaytestSessionOutcome.Unreachable);
+            AssertOutcome(PlaytestApiResult.Responded(500, ""), PlaytestSessionOutcome.Unreachable);
+            AssertOutcome(PlaytestApiResult.TransportFailure("name resolution failed"), PlaytestSessionOutcome.Unreachable);
         }
 
         [Test]
-        public void トークンの無い200では許可しない()
+        public void 形の欠けた200では許可しない()
         {
-            var api = new FakeApi();
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true}" });
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-
-            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
-
-            Assert.AreEqual(PlaytestSessionOutcome.Unreachable, result.Outcome);
-            Assert.IsFalse(session.HasToken);
-        }
-
-        [Test]
-        public void JSONでない200では許可しない()
-        {
-            // キャプティブポータルは200でHTMLを返す。例外を外へ漏らさずUnreachableへ畳む
-            // A captive portal answers 200 with HTML; that must fold into Unreachable instead of throwing out
-            var api = new FakeApi();
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "<html>sign in to the wifi</html>" });
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-
-            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
-
-            Assert.AreEqual(PlaytestSessionOutcome.Unreachable, result.Outcome);
-            Assert.IsFalse(session.HasToken);
+            // トークン欠落・期限欠落・JSONでない（キャプティブポータル）はいずれも到達不能へ畳む
+            // A missing token, a missing expiry or a non-JSON body (captive portal) all fold into Unreachable
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":true,\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.Unreachable);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}"), PlaytestSessionOutcome.Unreachable);
+            AssertOutcome(PlaytestApiResult.Responded(200, "<html>sign in to the wifi</html>"), PlaytestSessionOutcome.Unreachable);
         }
 
         [Test]
         public void allowedが立っていない200では許可しない()
         {
-            var api = new FakeApi();
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":false,\"token\":\"tok-1\"}" });
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-
-            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
-
-            Assert.AreEqual(PlaytestSessionOutcome.NotAllowed, result.Outcome);
-            Assert.IsFalse(session.HasToken);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"allowed\":false,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.NotAllowed);
         }
 
         [Test]
@@ -110,47 +72,40 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeApi();
             var session = new PlaytestSession(api, new FakeTicketProvider(null));
 
-            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
-
-            Assert.AreEqual(PlaytestSessionOutcome.TicketUnavailable, result.Outcome);
+            Assert.AreEqual(PlaytestSessionOutcome.TicketUnavailable, Authenticate(session, IssuedAt).Outcome);
             Assert.AreEqual(0, api.SessionCallCount);
         }
 
         [Test]
-        public void 認証中の二重呼び出しはチケット失敗と区別できる()
+        public void 認証中に重なった呼び出しは実行中の認証に相乗りする()
         {
-            var api = new FakeApi();
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}" });
+            var api = ApiAnswering(PlaytestSessionBodies.AllowedFarFuture);
             var gate = new UniTaskCompletionSource<string>();
             var session = new PlaytestSession(api, new GatedTicketProvider(gate));
 
-            var first = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None);
-            var second = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
-
-            Assert.AreEqual(PlaytestSessionOutcome.TicketUnavailable, second.Outcome);
-            Assert.AreEqual("another authentication is already in flight", second.Detail);
-            Assert.AreEqual(0, api.SessionCallCount);
-
+            var first = session.AuthenticateAsync(IssuedAt, CancellationToken.None);
+            var second = session.AuthenticateAsync(IssuedAt, CancellationToken.None);
             gate.TrySetResult("aabb");
+
             Assert.AreEqual(PlaytestSessionOutcome.Allowed, first.GetAwaiter().GetResult().Outcome);
+            Assert.AreEqual(PlaytestSessionOutcome.Allowed, second.GetAwaiter().GetResult().Outcome);
+            Assert.AreEqual(1, api.SessionCallCount);
         }
 
         [Test]
-        public void 打ち切られた後も認証をやり直せる()
+        public void 打ち切られた後も認証をやり直せチケットは解放される()
         {
-            // 走行フラグが例外経路で立ったままだと、以後の認証が恒久的に拒否される
-            // A flag left standing on the exception path would refuse every later authentication forever
-            var api = new FakeApi();
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}" });
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
+            // 走行フラグが例外経路で残ると以後の認証が恒久に拒否され、解放漏れはSteam側にチケットを溜める
+            // A flag left on the exception path would refuse every later authentication, and a missed release piles tickets up on Steam
+            var api = ApiAnswering(PlaytestSessionBodies.AllowedFarFuture);
+            var session = new PlaytestSession(api, new TrackingTicketProvider("aabb", api.Events));
             var cancelled = new CancellationTokenSource();
             cancelled.Cancel();
 
-            Assert.Catch<OperationCanceledException>(() => session.AuthenticateAsync(DateTime.UtcNow, cancelled.Token).GetAwaiter().GetResult());
-            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
+            Assert.Catch<OperationCanceledException>(() => session.AuthenticateAsync(IssuedAt, cancelled.Token).GetAwaiter().GetResult());
+            CollectionAssert.AreEqual(new[] { "release" }, api.Events);
 
-            Assert.AreEqual(PlaytestSessionOutcome.Allowed, result.Outcome);
-            Assert.IsTrue(session.HasToken);
+            Assert.AreEqual(PlaytestSessionOutcome.Allowed, Authenticate(session, IssuedAt).Outcome);
         }
 
         [Test]
@@ -158,21 +113,31 @@ namespace Client.Tests.PlaytestReceiver
         {
             // 検証前に解放するとSteam側でチケットが無効になり、受け口が401で拒否する
             // Releasing before verification invalidates the ticket on Steam's side, so the receiver would answer 401
-            var api = new FakeApi();
-            api.SessionResponses.Add(new PlaytestApiResult { StatusCode = 200, Body = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}" });
+            var api = ApiAnswering(PlaytestSessionBodies.AllowedFarFuture);
             var session = new PlaytestSession(api, new TrackingTicketProvider("aabb", api.Events));
 
-            session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
+            Authenticate(session, IssuedAt);
 
             CollectionAssert.AreEqual(new[] { "post-session", "release" }, api.Events);
+        }
+
+        private static FakeApi ApiAnswering(params string[] bodies)
+        {
+            var api = new FakeApi();
+            foreach (var body in bodies) api.SessionResponses.Add(PlaytestApiResult.Responded(200, body));
+            return api;
+        }
+
+        private static PlaytestSessionResult Authenticate(PlaytestSession session, DateTime utcNow)
+        {
+            return session.AuthenticateAsync(utcNow, CancellationToken.None).GetAwaiter().GetResult();
         }
 
         private static void AssertOutcome(PlaytestApiResult response, PlaytestSessionOutcome expected)
         {
             var api = new FakeApi();
             api.SessionResponses.Add(response);
-            var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-            var result = session.AuthenticateAsync(DateTime.UtcNow, CancellationToken.None).GetAwaiter().GetResult();
+            var result = Authenticate(new PlaytestSession(api, new FakeTicketProvider("aabb")), IssuedAt);
             Assert.AreEqual(expected, result.Outcome, result.Detail);
         }
     }

@@ -1,5 +1,5 @@
 using System.IO;
-using Client.PlaytestReceiver;
+using Game.Paths;
 using NUnit.Framework;
 
 namespace Client.Tests.PlaytestReceiver
@@ -9,7 +9,7 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void パスはStreamingAssets直下のbuildInfoJsonを指す()
         {
-            StringAssert.EndsWith(Path.Combine("StreamingAssets", "build-info.json"), PlaytestBuildInfoFile.Path);
+            StringAssert.EndsWith(Path.Combine("StreamingAssets", "build-info.json"), GameSystemPaths.BuildInfoFilePath);
         }
 
         [Test]
@@ -17,7 +17,7 @@ namespace Client.Tests.PlaytestReceiver
         {
             // 配布ビルドだけがbuild-info.jsonを持つ。Editorに置かれていたら照合が誤発火する
             // Only distribution builds carry build-info.json; one left in the Editor would misfire the gate
-            Assert.IsFalse(PlaytestBuildInfoFile.Exists(), $"Editorに {PlaytestBuildInfoFile.Path} が残っている");
+            Assert.IsFalse(File.Exists(GameSystemPaths.BuildInfoFilePath), $"Editorに {GameSystemPaths.BuildInfoFilePath} が残っている");
         }
     }
 }

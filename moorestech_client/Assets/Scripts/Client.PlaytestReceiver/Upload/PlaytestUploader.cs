@@ -10,46 +10,65 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Upload
 {
-    // 未送の箱を古い順に受け口へ送る。1回の走行で使い捨てる想定で、トークンは走行の中だけで持ち回る
-    // Ships pending boxes oldest first; one instance serves one run and carries the token only within it
+    // 未送の箱を古い順に受け口へ送る。トークンの寿命と401時の取り直しはセッションに任せる
+    // Ships pending boxes oldest first; the token lifetime and the 401 refresh are left to the session
     public sealed class PlaytestUploader
     {
+        private enum BoxOutcome
+        {
+            Sent,
+            BoxDeferred,
+            RunAborted,
+        }
+
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestSession _session;
-        private readonly string _reportOutbox;
-        private readonly string _progressOutbox;
+        private readonly PlaytestOutboxDirectories _directories;
 
-        private string _bearerToken;
-
-        public PlaytestUploader(IPlaytestReceiverApi api, PlaytestSession session, string reportOutbox, string progressOutbox)
+        public PlaytestUploader(IPlaytestReceiverApi api, PlaytestSession session, PlaytestOutboxDirectories directories)
         {
             _api = api;
             _session = session;
-            _reportOutbox = reportOutbox;
-            _progressOutbox = progressOutbox;
+            _directories = directories;
         }
 
-        public async UniTask<int> UploadPendingAsync(DateTime utcNow, CancellationToken token)
+        public async UniTask<int> UploadPendingAsync(CancellationToken token)
         {
-            var boxes = PlaytestOutboxScanner.ScanPending(_reportOutbox, _progressOutbox);
-            if (boxes.Count == 0) return 0;
-
-            _bearerToken = await _session.GetValidTokenAsync(utcNow, token);
-            if (_bearerToken == null)
-            {
-                Debug.LogWarning($"[PlaytestReceiver] deferring {boxes.Count} box(es): no valid session token");
-                return 0;
-            }
-
+            var boxes = PlaytestOutboxScanner.ScanPending(_directories.ReportOutbox, _directories.ProgressOutbox);
             var sent = 0;
-            foreach (var box in boxes)
+            for (var index = 0; index < boxes.Count; index++)
             {
-                if (await UploadOneAsync(box, utcNow, token)) sent++;
+                var outcome = await UploadWithinBoxBoundaryAsync(boxes[index], token);
+                if (outcome == BoxOutcome.Sent) sent++;
+                if (outcome != BoxOutcome.RunAborted) continue;
+
+                Debug.LogWarning($"[PlaytestReceiver] stopping this run; {boxes.Count - index} box(es) carried over to a later run");
+                break;
             }
             return sent;
         }
 
-        private async UniTask<bool> UploadOneAsync(PlaytestOutboxBox box, DateTime utcNow, CancellationToken token)
+        // 箱の中身のファイルI/Oは外部境界（消えた・他プロセスに掴まれた）。1箱の例外で走行全体を恒久に止めず、数えて次の箱へ進む
+        // File I/O inside a box is an external boundary (vanished or locked files); one box's exception is counted instead of halting every run
+        private async UniTask<BoxOutcome> UploadWithinBoxBoundaryAsync(PlaytestOutboxBox box, CancellationToken token)
+        {
+            try
+            {
+                return await UploadOneAsync(box, token);
+            }
+            catch (IOException exception)
+            {
+                PlaytestUploadAttemptLog.Increment(box.Directory, $"file I/O failed: {exception.GetType().Name}: {exception.Message}");
+                return BoxOutcome.BoxDeferred;
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                PlaytestUploadAttemptLog.Increment(box.Directory, $"file access denied: {exception.Message}");
+                return BoxOutcome.BoxDeferred;
+            }
+        }
+
+        private async UniTask<BoxOutcome> UploadOneAsync(PlaytestOutboxBox box, CancellationToken token)
         {
             var skipped = new List<object>();
             var putCount = 0;
@@ -57,143 +76,92 @@ namespace Client.PlaytestReceiver.Upload
             foreach (var file in PlaytestOutboxScanner.ListPayloadFiles(box.Directory))
             {
                 var relativePath = PlaytestOutboxScanner.ToRelativePath(box.Directory, file);
-                var skip = DescribeSkip(box, file, relativePath);
+                var skip = DescribeSkip(file, relativePath);
                 if (skip != null)
                 {
                     skipped.Add(skip);
                     continue;
                 }
 
-                // PUT直前に実時計でトークンを取る。走行開始時刻のままだと長い走行中に期限切れを検知できない
-                // The token is fetched with the real clock right before each PUT; the run's start time never expires mid-run
-                _bearerToken = await _session.GetValidTokenAsync(DateTime.UtcNow, token);
-                if (_bearerToken == null)
-                {
-                    PlaytestUploadAttemptLog.Increment(box.Directory, $"{relativePath}: the session token could not be renewed");
-                    return false;
-                }
-
-                var result = await PutWithRefreshAsync(box, relativePath, file, utcNow, token);
-
-                // 取り直しても認可が下りない箱は、期限切れではなく権利の問題。試行を数えて後の走行へ回す
-                // A box that stays unauthorized after a refresh is a permission matter, not an expiry; count it and defer
-                if (result == null)
-                {
-                    PlaytestUploadAttemptLog.Increment(box.Directory, $"{relativePath}: the session token could not be renewed");
-                    return false;
-                }
+                var result = await _session.SendAuthorizedAsync(new PlaytestPutFileCall(_api, box, relativePath, file), token);
                 if (result.IsSuccess)
                 {
                     putCount++;
                     continue;
                 }
 
-                // 恒久的な4xxは再試行しても直らない。そのファイルだけ見送り、箱ごと詰まらせない
-                // A permanent 4xx never heals on retry, so only that file is dropped instead of stalling the whole box
-                if (PlaytestUploadFailurePolicy.IsPermanentForFile(result))
+                // 何度送っても直らないファイルだけ見送り、箱ごと詰まらせない
+                // Only a file that can never succeed is dropped, so the box as a whole does not stall
+                if (PlaytestUploadFailurePolicy.Classify(result) == PlaytestUploadFailureKind.PermanentForFile)
                 {
                     skipped.Add(new { path = relativePath, reason = PlaytestUploadFailurePolicy.ToSkipReason(result) });
-                    Debug.LogWarning($"[PlaytestReceiver] skipping {PlaytestUploadFailurePolicy.Describe(relativePath, result)}: the receiver refused it permanently");
+                    Debug.LogWarning($"[PlaytestReceiver] skipping {PlaytestUploadFailurePolicy.Describe(relativePath, result)}: it can never be accepted");
                     continue;
                 }
 
-                PlaytestUploadAttemptLog.Increment(box.Directory, PlaytestUploadFailurePolicy.Describe(relativePath, result));
-                return false;
+                return Defer(relativePath, result);
             }
 
-            return await CompleteAsync(box, putCount, skipped, utcNow, token);
-        }
-
-        private async UniTask<bool> CompleteAsync(PlaytestOutboxBox box, int putCount, List<object> skipped, DateTime utcNow, CancellationToken token)
-        {
-            var summary = JsonConvert.SerializeObject(new
-            {
-                kind = box.Kind,
-                id = box.BundleId,
-                fileCount = putCount,
-                skipped,
-                manifest = ReadManifestSummary(box.Directory),
-            });
-
-            var completed = await CompleteWithRefreshAsync(box, summary, utcNow, token);
-            if (completed == null)
-            {
-                PlaytestUploadAttemptLog.Increment(box.Directory, "complete: the session token could not be renewed");
-                return false;
-            }
-            if (!completed.IsSuccess)
-            {
-                PlaytestUploadAttemptLog.Increment(box.Directory, PlaytestUploadFailurePolicy.Describe("complete", completed));
-                return false;
-            }
+            var completed = await _session.SendAuthorizedAsync(new PlaytestCompleteCall(_api, box, ComposeSummary()), token);
+            if (!completed.IsSuccess) return Defer("complete", completed);
 
             PlaytestUploadAttemptLog.MarkUploaded(box.Directory);
-            Debug.Log($"[PlaytestReceiver] uploaded {box.Kind}/{box.BundleId} ({putCount} files, {skipped.Count} skipped)");
-            return true;
-        }
+            Debug.Log($"[PlaytestReceiver] uploaded {PlaytestUploadPath.KindSegment(box.Kind)}/{box.BundleId} ({putCount} files, {skipped.Count} skipped)");
+            return BoxOutcome.Sent;
 
-        // 送る前に分かる見送り理由だけを返す。送れるなら null で、通信の失敗とは混ぜない
-        // Returns only the skip reasons knowable before any request, or null; transport failures never come through here
-        private static object DescribeSkip(PlaytestOutboxBox box, string absoluteFilePath, string relativePath)
-        {
-            // 送れるパスかどうかの判定は組み立て地点（PlaytestUploadPath）が正本。ここで別の文字規則を持つと受け口より厳しくなる
-            // The upload path builder owns what is sendable; a second character rule here would be stricter than the receiver
-            if (PlaytestUploadPath.ForFile(box.Kind, box.BundleId, relativePath) == null)
+            #region Internal
+
+            // 送る前に分かる見送り理由だけを返す。パスの安全性はクライアントの送信口が1箇所で検査する
+            // Returns only the skip reasons knowable before any request; path safety is checked once at the client's send site
+            object DescribeSkip(string absoluteFilePath, string relativePath)
             {
-                Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: it is not a safe relative path for the receiver");
-                return new { path = relativePath, reason = "unsafe-path" };
+                // 先頭セグメントが受け口の予約名と衝突すると405やREADY/ACKEDの上書きになる。送信前に見送る
+                // A first segment colliding with a receiver-reserved name would 405 or overwrite READY/ACKED; skip before sending
+                var firstSegment = relativePath.Split('/')[0];
+                if (0 <= Array.IndexOf(PlaytestOutboxScanner.ReservedUploadSegments, firstSegment))
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: its first segment is a reserved name on the receiver");
+                    return new { path = relativePath, reason = "reserved-name" };
+                }
+
+                var length = new FileInfo(absoluteFilePath).Length;
+                if (length <= PlaytestReceiverConfig.MaxFileBytes) return null;
+
+                Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: {length} bytes exceeds the {PlaytestReceiverConfig.MaxFileBytes} byte limit");
+                return new { path = relativePath, reason = "too-large", bytes = length };
             }
 
-            // 先頭セグメントが受け口の予約名と衝突すると405やREADY/ACKEDの上書きになる。送信前に見送る
-            // A first segment colliding with a receiver-reserved name would 405 or overwrite READY/ACKED; skip before sending
-            var firstSegment = relativePath.Split('/')[0];
-            if (0 <= Array.IndexOf(PlaytestOutboxScanner.ReservedUploadSegments, firstSegment))
+            // 数えるのは再試行で直らない失敗だけ。一時的な失敗は数えずに持ち越し、到達不能やトークン不調なら走行ごと止める
+            // Only failures retrying cannot heal are counted; transient ones defer uncounted, and unreachability stops the run
+            BoxOutcome Defer(string what, PlaytestApiResult result)
             {
-                Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: its first segment is a reserved name on the receiver");
-                return new { path = relativePath, reason = "reserved-name" };
+                var description = PlaytestUploadFailurePolicy.Describe(what, result);
+                if (PlaytestUploadFailurePolicy.Classify(result) != PlaytestUploadFailureKind.Retryable)
+                {
+                    PlaytestUploadAttemptLog.Increment(box.Directory, description);
+                    return BoxOutcome.BoxDeferred;
+                }
+
+                PlaytestUploadAttemptLog.LogRetryable(box.Directory, description);
+                return PlaytestUploadFailurePolicy.AbortsRun(result) ? BoxOutcome.RunAborted : BoxOutcome.BoxDeferred;
             }
 
-            var length = new FileInfo(absoluteFilePath).Length;
-            if (length <= PlaytestReceiverConfig.MaxFileBytes) return null;
+            // manifest.jsonはplanBが書く。取り込み側の一覧用に生テキストを要約へ転記する
+            // plan B writes manifest.json; its raw text rides along in the summary for the ingest side's listing
+            string ComposeSummary()
+            {
+                var manifestPath = Path.Combine(box.Directory, BugReportBundleLayout.ManifestFileName);
+                return JsonConvert.SerializeObject(new
+                {
+                    kind = PlaytestUploadPath.KindSegment(box.Kind),
+                    id = box.BundleId,
+                    fileCount = putCount,
+                    skipped,
+                    manifest = File.Exists(manifestPath) ? File.ReadAllText(manifestPath) : null,
+                });
+            }
 
-            Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: {length} bytes exceeds the {PlaytestReceiverConfig.MaxFileBytes} byte limit");
-            return new { path = relativePath, reason = "too-large", bytes = length };
-        }
-
-        // 401はトークンの期限切れ。取り直して1回だけやり直し、取り直せなければnullで呼び出し側へ返す
-        // A 401 means the token expired; it is refreshed and retried exactly once, and a failed refresh returns null
-        private async UniTask<PlaytestApiResult> PutWithRefreshAsync(PlaytestOutboxBox box, string relativePath, string absoluteFilePath, DateTime utcNow, CancellationToken token)
-        {
-            var result = await _api.PutFileAsync(_bearerToken, box.Kind, box.BundleId, relativePath, absoluteFilePath, token);
-            if (!PlaytestUploadFailurePolicy.IsUnauthorized(result)) return result;
-            if (!await RefreshTokenAsync(utcNow, token)) return null;
-
-            return await _api.PutFileAsync(_bearerToken, box.Kind, box.BundleId, relativePath, absoluteFilePath, token);
-        }
-
-        private async UniTask<PlaytestApiResult> CompleteWithRefreshAsync(PlaytestOutboxBox box, string summaryJson, DateTime utcNow, CancellationToken token)
-        {
-            var result = await _api.PostCompleteAsync(_bearerToken, box.Kind, box.BundleId, summaryJson, token);
-            if (!PlaytestUploadFailurePolicy.IsUnauthorized(result)) return result;
-            if (!await RefreshTokenAsync(utcNow, token)) return null;
-
-            return await _api.PostCompleteAsync(_bearerToken, box.Kind, box.BundleId, summaryJson, token);
-        }
-
-        private async UniTask<bool> RefreshTokenAsync(DateTime utcNow, CancellationToken token)
-        {
-            Debug.Log("[PlaytestReceiver] the receiver rejected the token; renewing it once and retrying");
-            _bearerToken = await _session.RenewTokenAsync(utcNow, token);
-            return _bearerToken != null;
-        }
-
-        // manifest.jsonはplanBが書く。要約へ転記
-        // plan B writes manifest.json; its raw text rides along in the summary for the ingest side's listing
-        private static string ReadManifestSummary(string boxDirectory)
-        {
-            var path = Path.Combine(boxDirectory, BugReportBundleLayout.ManifestFileName);
-            if (!File.Exists(path)) return null;
-            return File.ReadAllText(path);
+            #endregion
         }
     }
 }

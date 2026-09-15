@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;
 using Cysharp.Threading.Tasks;
@@ -40,6 +41,24 @@ namespace Client.Tests.PlaytestReceiver
         public void ReleaseWebApiTicket() { _events.Add("release"); }
     }
 
+    // 押し場が何回押したかだけを記録する。送信起動箇所のテストで使う
+    // Records only how many times a push site pushed; used by the tests of the upload trigger sites
+    internal sealed class RecordingUploadRequester : IPlaytestUploadRequester
+    {
+        public int RequestCount;
+        public void RequestUpload() { RequestCount++; }
+    }
+
+    internal static class PlaytestSessionBodies
+    {
+        public const string AllowedFarFuture = "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok\",\"expiresAt\":\"2999-01-01T00:00:00.000Z\"}";
+
+        public static string Allowed(string token, string expiresAt)
+        {
+            return $"{{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"{token}\",\"expiresAt\":\"{expiresAt}\"}}";
+        }
+    }
+
     internal sealed class FakeApi : IPlaytestReceiverApi
     {
         public readonly List<PlaytestApiResult> SessionResponses = new();
@@ -57,14 +76,53 @@ namespace Client.Tests.PlaytestReceiver
             return UniTask.FromResult(response);
         }
 
-        public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, string kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
+        public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
         {
-            return UniTask.FromResult(new PlaytestApiResult { StatusCode = 200, Body = "{}" });
+            return UniTask.FromResult(PlaytestApiResult.Responded(200, "{}"));
         }
 
-        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, string kind, string bundleId, string summaryJson, CancellationToken token)
+        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string summaryJson, CancellationToken token)
         {
-            return UniTask.FromResult(new PlaytestApiResult { StatusCode = 200, Body = "{}" });
+            return UniTask.FromResult(PlaytestApiResult.Responded(200, "{}"));
+        }
+    }
+
+    // アップロード用。PUTとcompleteの結果をキューで順に返し、呼ばれた回数を数える
+    // For uploads; PUT and complete results are dequeued in order and every call is counted
+    internal sealed class FakeUploadApi : IPlaytestReceiverApi
+    {
+        public readonly List<string> PutPaths = new();
+        public readonly Queue<PlaytestApiResult> PutResultQueue = new();
+        public readonly Queue<PlaytestApiResult> CompleteResultQueue = new();
+        public int CompleteCount;
+        public int PutAttemptCount;
+        public int SessionCallCount;
+        public string LastSummary = "";
+        public UniTaskCompletionSource<PlaytestApiResult> PendingPut;
+        public PlaytestApiResult PutResult = PlaytestApiResult.Responded(200, "{}");
+        public PlaytestApiResult SessionResult = PlaytestApiResult.Responded(200, PlaytestSessionBodies.AllowedFarFuture);
+
+        public UniTask<PlaytestApiResult> PostSessionAsync(string ticketHex, CancellationToken token)
+        {
+            SessionCallCount++;
+            return UniTask.FromResult(SessionResult);
+        }
+
+        public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
+        {
+            PutAttemptCount++;
+            if (PendingPut != null) return PendingPut.Task;
+
+            var result = PutResultQueue.Count != 0 ? PutResultQueue.Dequeue() : PutResult;
+            if (result.IsSuccess) PutPaths.Add(relativePath);
+            return UniTask.FromResult(result);
+        }
+
+        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string summaryJson, CancellationToken token)
+        {
+            CompleteCount++;
+            LastSummary = summaryJson;
+            return UniTask.FromResult(CompleteResultQueue.Count != 0 ? CompleteResultQueue.Dequeue() : PlaytestApiResult.Responded(200, "{}"));
         }
     }
 }

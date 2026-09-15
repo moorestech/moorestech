@@ -1,80 +1,100 @@
 using System;
+using System.IO;
 using System.Threading;
+using Client.Localization;
+using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;
 using Cysharp.Threading.Tasks;
+using Game.Paths;
+using UniRx;
 using UnityEngine;
 
 namespace Client.PlaytestReceiver.Gate
 {
-    // 起動時照合の唯一の関所。開始経路（ローカル開始・サーバー接続）はここへ問い合わせてから進む
-    // The single gate for the launch check; every start path asks here before proceeding
+    // 起動時照合の唯一の関所。開始経路はここへ問い合わせ、表示側は照合結果を購読する
+    // The single gate for the launch check; start paths ask here and the title view subscribes to the verdict
     public static class PlaytestLaunchGate
     {
         // シーン跨ぎで持ち回る必要があり、MainMenuシーンにはDIコンテナが無いのでstaticで保持する
         // The verdict must survive a scene load and the MainMenu scene has no DI container, so it is held statically
-        public static PlaytestGateResult Current { get; private set; } = PlaytestGateDecision.DeveloperMode;
-
-        // 照合に使ったセッションはそのままアップロードにも使う。トークンの寿命を持つ場所を1つに保つため
-        // The session used for the check is the one that uploads too, keeping a single holder of the token's lifetime
-        public static PlaytestSession Session { get; private set; }
+        private static readonly ReactiveProperty<PlaytestGateResult> CurrentProperty = new(PlaytestGateResult.NotEvaluated);
+        public static IReadOnlyReactiveProperty<PlaytestGateResult> Current => CurrentProperty;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnPlayMode()
         {
-            Current = PlaytestGateDecision.DeveloperMode;
-            Session = null;
+            SetCurrent(PlaytestGateResult.NotEvaluated);
         }
 
-        public static void SetCurrent(PlaytestGateResult result)
-        {
-            Current = result;
-        }
-
-        // 配布版でSteamが動いている場合だけ照合する。表示側も開始側もこの1箇所へ聞く
-        // Only a distribution build with Steam running is checked; both the view and the start paths ask here
-        public static bool RequiresCheck(IPlaytestSteamTicketProvider ticketProvider)
-        {
-            var hasBuildInfo = PlaytestBuildInfoFile.Exists();
-            var isSteamRunning = ticketProvider.IsSteamRunning();
-            if (hasBuildInfo && isSteamRunning) return true;
-
-            // 素通しも縮退経路。理由を残さないと配布版で照合が効いていないことに気づけない
-            // Passing through is a degraded path too; without this line a distribution build could skip the check unnoticed
-            Debug.Log($"[PlaytestReceiver] developer mode (buildInfo={hasBuildInfo}, steam={isSteamRunning}); skipping the launch check");
-            return false;
-        }
-
-        public static async UniTask<PlaytestGateResult> EvaluateAsync(PlaytestSession session, IPlaytestSteamTicketProvider ticketProvider, DateTime utcNow, CancellationToken token)
+        public static async UniTask EvaluateAsync(IPlaytestSteamTicketProvider ticketProvider, IPlaytestReceiverApi api, DateTime utcNow, CancellationToken token)
         {
             if (!RequiresCheck(ticketProvider))
             {
-                SetCurrent(PlaytestGateDecision.DeveloperMode);
-                return Current;
+                SetCurrent(PlaytestGateResult.DeveloperMode);
+                return;
             }
 
-            Session = session;
+            // 判定が出るまでは開始させない。待ち文言を閉じて押すだけで照合を素通しできないようにする
+            // Nothing may start before the verdict, so closing the waiting message cannot bypass the check
+            SetCurrent(PlaytestGateResult.Checking);
 
-            // 判定が出るまでは開始させない。ここがDeveloperModeのままだと、待ち文言を閉じて押すだけで照合を素通しできる
-            // Nothing may start before the verdict; leaving DeveloperMode here lets a tester close the waiting message and start anyway
-            SetCurrent(PlaytestGateDecision.Checking);
-
+            var session = new PlaytestSession(api, ticketProvider);
             var authenticated = await session.AuthenticateAsync(utcNow, token);
-            var result = PlaytestGateDecision.Decide(true, true, authenticated.Outcome, authenticated.Detail);
+            var result = PlaytestGateDecision.Decide(true, true, authenticated.Outcome, authenticated.Detail, session);
             if (result.IsBlocked)
             {
                 Debug.LogError($"[PlaytestReceiver] launch blocked: {result.Status} {result.Detail}");
             }
 
             SetCurrent(result);
-            return result;
         }
 
-        // 開始を拒否したら必ず理由をログへ出す。無音で押せないボタンにしない
-        // Every refusal logs its reason; a silently dead button is forbidden
-        public static bool RejectStart(string callerName)
+        // 通れなければ理由をログへ出し、テスター向けの文言をここで解決して返す。呼び手は表示するだけ
+        // A refusal is logged and its tester-facing text is resolved here; callers only display it
+        public static bool TryPassStart(string callerName, out string denyReasonText)
         {
-            if (!Current.IsBlocked) return false;
-            Debug.LogWarning($"[PlaytestReceiver] {callerName} refused: {Current.Status} {Current.Detail}");
+            // 未評価のまま開始が来たら遅延評価する。照合の要らない起動（Editor・自作ビルド）はここで開発者モードに確定する
+            // A start before any evaluation is judged lazily; a launch that needs no check (Editor, own build) settles as developer mode here
+            if (CurrentProperty.Value.Status == PlaytestGateStatus.NotEvaluated && !RequiresCheck(new PlaytestSteamTicketProvider()))
+            {
+                SetCurrent(PlaytestGateResult.DeveloperMode);
+            }
+
+            var current = CurrentProperty.Value;
+            if (!current.IsBlocked)
+            {
+                denyReasonText = "";
+                return true;
+            }
+
+            Debug.LogWarning($"[PlaytestReceiver] {callerName} refused: {current.Status} {current.Detail}");
+            denyReasonText = Localize.Get(current.ReasonKey);
+            return false;
+        }
+
+        // 照合結果を置けるのは本クラスとテストだけ。表示側・開始経路からは書き換えさせない
+        // Only this class and the tests may place a verdict; views and start paths never overwrite it
+        internal static void SetCurrent(PlaytestGateResult result)
+        {
+            CurrentProperty.Value = result;
+        }
+
+        // 配布版でSteamが動いている場合だけ照合する
+        // Only a distribution build with Steam running is checked
+        private static bool RequiresCheck(IPlaytestSteamTicketProvider ticketProvider)
+        {
+            // 素通しも縮退経路。理由を残さないと配布版で照合が効いていないことに気づけない
+            // Passing through is a degraded path too; without these lines a distribution build could skip the check unnoticed
+            if (!File.Exists(GameSystemPaths.BuildInfoFilePath))
+            {
+                Debug.Log("[PlaytestReceiver] developer mode (no build-info.json); skipping the launch check");
+                return false;
+            }
+            if (!ticketProvider.IsSteamRunning())
+            {
+                Debug.Log("[PlaytestReceiver] developer mode (Steam is not running); skipping the launch check");
+                return false;
+            }
             return true;
         }
     }

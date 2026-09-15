@@ -21,20 +21,19 @@ namespace Client.PlaytestReceiver
     public sealed class PlaytestSessionResult
     {
         public PlaytestSessionOutcome Outcome;
-        public string SteamId;
         public string Detail;
     }
 
-    // Steamチケットと受け口トークンの保持者。トークンの寿命管理はここ1箇所
-    // Holder of the Steam ticket exchange and the receiver token; token lifetime lives here alone
+    // Steamチケットと受け口トークンの保持者。トークンの寿命管理と401時の取り直しはここ1箇所
+    // Holder of the Steam ticket exchange and the receiver token; token lifetime and the 401 refresh live here alone
     public sealed class PlaytestSession
     {
         private readonly IPlaytestReceiverApi _api;
         private readonly IPlaytestSteamTicketProvider _ticketProvider;
 
         private string _token;
-        private DateTime _tokenIssuedAtUtc;
-        private bool _authenticating;
+        private DateTime _tokenRefreshAtUtc;
+        private UniTaskCompletionSource<PlaytestSessionResult> _inFlight;
 
         public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSteamTicketProvider ticketProvider)
         {
@@ -42,100 +41,117 @@ namespace Client.PlaytestReceiver
             _ticketProvider = ticketProvider;
         }
 
-        public string SteamId { get; private set; }
-        public bool HasToken => _token != null;
-
-        // 認証は常に1本。重ねて呼ばれたらチケット取得失敗と区別できるDetailで断る（チケット待ちは重ねられない）
-        // Authentication is single-flight; an overlapping call is refused with a Detail that is not a ticket failure
+        // 認証は常に1本。重なった呼び手は実行中の認証に相乗りし、同じ結果を受け取る
+        // Authentication is single-flight; an overlapping caller joins the one in flight and receives the same result
         public async UniTask<PlaytestSessionResult> AuthenticateAsync(DateTime utcNow, CancellationToken token)
         {
-            if (_authenticating)
-            {
-                Debug.LogWarning("[PlaytestReceiver] refused an authentication while another one is in flight");
-                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.TicketUnavailable, Detail = "another authentication is already in flight" };
-            }
+            if (_inFlight != null) return await _inFlight.Task;
 
-            _authenticating = true;
+            var flight = new UniTaskCompletionSource<PlaytestSessionResult>();
+            _inFlight = flight;
 
-            // 打ち切り後も再認証できるよう、走行フラグは例外経路でも必ず戻す
-            // The in-flight flag is always restored, even on the cancellation path, so authentication can be retried
+            // 打ち切り・例外でも相乗り側を宙に浮かせず、次の認証も塞がない
+            // Even on cancellation or failure the joiners are released and the next authentication stays possible
             try
             {
-                return await AuthenticateOnceAsync(utcNow, token);
+                var result = await AuthenticateOnceAsync();
+                flight.TrySetResult(result);
+                return result;
             }
             finally
             {
-                _authenticating = false;
+                _inFlight = null;
+                flight.TrySetCanceled();
             }
+
+            #region Internal
+
+            async UniTask<PlaytestSessionResult> AuthenticateOnceAsync()
+            {
+                var ticketHex = await _ticketProvider.RequestWebApiTicketHexAsync(token);
+                if (ticketHex == null) return Result(PlaytestSessionOutcome.TicketUnavailable, "no web api ticket");
+
+                // 受け口の検証が終わった直後に解放する。打ち切りで抜けても発行済みチケットを残さない
+                // Released right after the receiver's verification; a cancelled request never leaves the issued ticket behind
+                PlaytestApiResult response;
+                try
+                {
+                    response = await _api.PostSessionAsync(ticketHex, token);
+                }
+                finally
+                {
+                    _ticketProvider.ReleaseWebApiTicket();
+                }
+
+                if (response.Kind != PlaytestApiResultKind.Responded) return Result(PlaytestSessionOutcome.Unreachable, response.Detail);
+
+                // 状態コードの意味は受け口の契約そのまま。503（Steam・許可リストの障害）は到達不能と同じく止める
+                // Status codes carry the receiver's contract verbatim; a 503 (Steam or allowlist outage) stops like unreachability
+                if (response.StatusCode == 403) return Result(PlaytestSessionOutcome.NotAllowed, response.Body);
+                if (response.StatusCode == 401) return Result(PlaytestSessionOutcome.TicketRejected, response.Body);
+                if (response.StatusCode != 200) return Result(PlaytestSessionOutcome.Unreachable, $"HTTP {response.StatusCode} {response.Body}");
+
+                // 200でも本文は外部入力。形が違えば到達できなかったのと同じ扱いにし、トークン無しでAllowedを返さない
+                // Even a 200 body is external input; a malformed one counts as not reaching the receiver, never as Allowed
+                var parsed = PlaytestSessionResponse.Parse(response.Body);
+                if (parsed == null) return Result(PlaytestSessionOutcome.Unreachable, "malformed session response");
+
+                if (!parsed.Allowed)
+                {
+                    Debug.LogWarning("[PlaytestReceiver] session answered 200 without allowed; treating it as not allowed");
+                    return Result(PlaytestSessionOutcome.NotAllowed, "200 without allowed");
+                }
+
+                // 更新時刻は受け口が名乗った期限から逆算する。寿命の正本を受け口1箇所に保つ
+                // The refresh time is derived from the expiry the receiver states, keeping the lifetime's source there alone
+                _token = parsed.Token;
+                _tokenRefreshAtUtc = parsed.ExpiresAtUtc.AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
+                return Result(PlaytestSessionOutcome.Allowed, "");
+            }
+
+            #endregion
         }
 
-        private async UniTask<PlaytestSessionResult> AuthenticateOnceAsync(DateTime utcNow, CancellationToken token)
-        {
-            var ticketHex = await _ticketProvider.RequestWebApiTicketHexAsync(token);
-            if (ticketHex == null)
-            {
-                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.TicketUnavailable, Detail = "no web api ticket" };
-            }
-
-            var response = await _api.PostSessionAsync(ticketHex, token);
-
-            // 受け口の検証が終わった直後に解放する。検証前に取り消すとSteam側でチケットが無効になる
-            // Released right after the receiver's verification finishes; cancelling earlier invalidates the ticket on Steam's side
-            _ticketProvider.ReleaseWebApiTicket();
-
-            if (response.IsTransportFailure)
-            {
-                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Unreachable, Detail = response.TransportError };
-            }
-
-            // 状態コードの意味は受け口の契約（§4）そのまま。ここが唯一の対応表
-            // Status codes carry the receiver's contract (§4) verbatim; this is the single mapping table
-            if (response.StatusCode == 403) return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.NotAllowed, Detail = response.Body };
-            if (response.StatusCode == 401) return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.TicketRejected, Detail = response.Body };
-            if (response.StatusCode != 200) return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Unreachable, Detail = $"HTTP {response.StatusCode}" };
-
-            // 200でも本文は外部入力。形が違えば到達できなかったのと同じ扱いにし、トークン無しでAllowedを返さない
-            // Even a 200 body is external input; a malformed one counts as not reaching the receiver, never as Allowed
-            var parsed = PlaytestSessionResponse.Parse(response.Body);
-            if (parsed == null)
-            {
-                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Unreachable, Detail = "malformed session response" };
-            }
-
-            // 受け口は拒否を403で返す。200でallowedが立っていないのは契約違反なので、拒否側へ倒す
-            // The receiver denies with 403, so a 200 without allowed breaks the contract and falls to the denying side
-            if (!parsed.Allowed)
-            {
-                Debug.LogWarning("[PlaytestReceiver] session answered 200 without allowed; treating it as not allowed");
-                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.NotAllowed, Detail = "200 without allowed" };
-            }
-
-            SteamId = parsed.SteamId;
-            _token = parsed.Token;
-            _tokenIssuedAtUtc = utcNow;
-            return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Allowed, SteamId = SteamId };
-        }
-
-        // 送信の直前に呼ぶ。45分を超えていたら取り直し、取り直せなければnullを返して呼び出し側が持ち越す
-        // Called right before an upload; refreshes past 45 minutes and returns null so the caller defers on failure
+        // 期限が近ければ取り直す。取り直せなければnull
+        // Refreshes near expiry; returns null when the refresh fails
         public async UniTask<string> GetValidTokenAsync(DateTime utcNow, CancellationToken token)
         {
-            var age = utcNow - _tokenIssuedAtUtc;
-            if (_token != null && age.TotalSeconds < PlaytestReceiverConfig.TokenRefreshAfterSeconds) return _token;
-
-            return await RenewTokenAsync(utcNow, token);
+            var ensured = await EnsureTokenAsync(utcNow, false, token);
+            return ensured.Outcome == PlaytestSessionOutcome.Allowed ? _token : null;
         }
 
-        // 年齢を見ずに強制的に取り直す。401等で「今のトークンは既に無効」と分かっている呼び出し専用
-        // Forces a fresh authentication regardless of age; for callers that already know the current token is invalid (e.g. after a 401)
-        public async UniTask<string> RenewTokenAsync(DateTime utcNow, CancellationToken token)
+        // 認可付きの呼び出し。401は期限切れとして1回だけ取り直して再送し、トークンが取れなければ理由付きで返す
+        // An authorized call; a 401 is treated as expiry and retried once, and a token failure comes back with its outcome
+        internal async UniTask<PlaytestApiResult> SendAuthorizedAsync(IPlaytestAuthorizedCall call, CancellationToken token)
         {
+            var ensured = await EnsureTokenAsync(DateTime.UtcNow, false, token);
+            if (ensured.Outcome != PlaytestSessionOutcome.Allowed) return PlaytestApiResult.SessionUnavailable($"{ensured.Outcome} {ensured.Detail}");
+
+            var response = await call.SendAsync(_token, token);
+            if (response.Kind != PlaytestApiResultKind.Responded || response.StatusCode != 401) return response;
+
+            Debug.Log("[PlaytestReceiver] the receiver rejected the token; renewing it once and retrying");
+            var renewed = await EnsureTokenAsync(DateTime.UtcNow, true, token);
+            if (renewed.Outcome != PlaytestSessionOutcome.Allowed) return PlaytestApiResult.SessionUnavailable($"{renewed.Outcome} {renewed.Detail}");
+
+            return await call.SendAsync(_token, token);
+        }
+
+        private async UniTask<PlaytestSessionResult> EnsureTokenAsync(DateTime utcNow, bool forceRenew, CancellationToken token)
+        {
+            if (!forceRenew && _token != null && utcNow < _tokenRefreshAtUtc) return Result(PlaytestSessionOutcome.Allowed, "");
+
             var result = await AuthenticateAsync(utcNow, token);
-            if (result.Outcome == PlaytestSessionOutcome.Allowed) return _token;
+            if (result.Outcome == PlaytestSessionOutcome.Allowed) return result;
 
             _token = null;
             Debug.LogWarning($"[PlaytestReceiver] could not refresh the session token: {result.Outcome} {result.Detail}");
-            return null;
+            return result;
+        }
+
+        private static PlaytestSessionResult Result(PlaytestSessionOutcome outcome, string detail)
+        {
+            return new PlaytestSessionResult { Outcome = outcome, Detail = detail };
         }
     }
 }

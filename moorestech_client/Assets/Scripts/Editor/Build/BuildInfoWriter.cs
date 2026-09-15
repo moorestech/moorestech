@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Client.Game.InGame.BugReport;
+using Game.Paths;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -17,7 +18,7 @@ namespace Client.Editor.Build
         {
             var repo = RepositoryStateProbe.ProbeGit(RepositoryStateProbe.RepositoryRoot);
             var master = RepositoryStateProbe.ProbeGit(RepositoryStateProbe.MasterDataRoot);
-            var path = Path.Combine(Application.streamingAssetsPath, RepositoryStateProbe.BuildInfoFileName);
+            var path = GameSystemPaths.BuildInfoFilePath;
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, RepositoryStateProbe.ComposeBuildInfoJson(repo, master, DateTime.UtcNow));
             Debug.Log($"build-info.json を書きました commit:{repo.State?.Commit} dirty:{repo.State?.Dirty}");

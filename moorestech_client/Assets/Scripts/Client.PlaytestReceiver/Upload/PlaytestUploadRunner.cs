@@ -1,48 +1,49 @@
-using System;
+using Client.PlaytestReceiver.Gate;
 using Client.PlaytestReceiver.Http;
 using Cysharp.Threading.Tasks;
-using Game.Paths;
 using UnityEngine;
 
 namespace Client.PlaytestReceiver.Upload
 {
-    // 起動直後と報告送信直後の2箇所から呼ばれる入口。走行中の再要求は無視して1本に保つ
-    // The entry point called right after launch and right after a report; re-requests while running are ignored
+    // 起動直後と報告送信直後の押し場の受け手。送るかどうかは照合結果から自分で決め、走行は1本に保つ
+    // Receives the post-launch and post-report pushes; it decides from the gate verdict whether to ship and keeps runs single
     public sealed class PlaytestUploadRunner : IPlaytestUploadRequester
     {
-        private static PlaytestUploadRunner _instance;
-
-        // 実パスと実クライアントを掴むのは初回の要求時だけ。テストは自前の引数で組むのでここには来ない
-        // The real paths and client are taken only on the first request; tests build their own and never reach here
-        public static PlaytestUploadRunner Instance => _instance ??= new PlaytestUploadRunner(
-            new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl),
-            GameSystemPaths.BugReportOutboxDirectory,
-            GameSystemPaths.ProgressRecordOutboxDirectory);
+        // 走行はプロセスで1本。MainMenuとMainGameがそれぞれの合成ルートで組んだ走行役同士でも重ねないため型で共有する
+        // One run per process; the flags are shared by type so runners built by the MainMenu and MainGame roots never overlap
+        private static bool _running;
+        private static bool _rerunRequested;
 
         private readonly IPlaytestReceiverApi _api;
-        private readonly string _reportOutbox;
-        private readonly string _progressOutbox;
+        private readonly PlaytestOutboxDirectories _directories;
 
-        private bool _running;
-        private bool _rerunRequested;
-
-        public PlaytestUploadRunner(IPlaytestReceiverApi api, string reportOutbox, string progressOutbox)
+        public PlaytestUploadRunner(IPlaytestReceiverApi api, PlaytestOutboxDirectories directories)
         {
             _api = api;
-            _reportOutbox = reportOutbox;
-            _progressOutbox = progressOutbox;
+            _directories = directories;
         }
 
         // 走行フラグはEditorの再生跨ぎで残る。残したままだと2回目の再生で一度もアップロードが始まらない
-        // The in-flight flag would survive between Editor play sessions, and a stale one would stop every later upload
+        // The in-flight flags would survive between Editor play sessions, and stale ones would stop every later upload
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetOnPlayMode()
         {
-            _instance = null;
+            _running = false;
+            _rerunRequested = false;
         }
 
-        public void RequestUpload(PlaytestSession session)
+        public void RequestUpload()
         {
+            // 送るのは照合を通った配布版だけ。送らない場合も理由をログへ出す
+            // Only a distribution build that passed the check ships, and not shipping is logged too
+            var gate = PlaytestLaunchGate.Current.Value;
+            if (!gate.TryGetAllowedSession(out var session))
+            {
+                if (gate.Status == PlaytestGateStatus.DeveloperMode) Debug.Log("[PlaytestReceiver] developer mode; outbox boxes are left for the rsync path");
+                else Debug.LogWarning($"[PlaytestReceiver] not shipping outbox boxes: the launch gate is {gate.Status} {gate.Detail}");
+                return;
+            }
+
             if (_running)
             {
                 // 走行中の再要求は捨てずに記録する。今回の走行が終わった直後にもう一度走らせる
@@ -57,25 +58,22 @@ namespace Client.PlaytestReceiver.Upload
 
         private async UniTaskVoid RunAsync(PlaytestSession session)
         {
-            // 途中で何が起きても走行フラグを必ず戻す。戻し損ねると以後のアップロードが恒久停止する
-            // The in-flight flag is always cleared; leaking it would permanently stop every later upload
+            // 途中で何が起きても走行フラグを戻し、再走行の要求も例外経路で評価する。取りこぼすと以後のアップロードが止まる
+            // The flag is always cleared and a pending rerun is honoured even on the exception path; missing either stops later uploads
             try
             {
-                var uploader = new PlaytestUploader(_api, session, _reportOutbox, _progressOutbox);
-                var sent = await uploader.UploadPendingAsync(DateTime.UtcNow, Application.exitCancellationToken);
+                var uploader = new PlaytestUploader(_api, session, _directories);
+                var sent = await uploader.UploadPendingAsync(Application.exitCancellationToken);
                 Debug.Log($"[PlaytestReceiver] upload run finished: {sent} box(es) sent");
             }
             finally
             {
                 _running = false;
-            }
-
-            // 走行中に再要求が来ていたら、今回の走行完了直後にもう一度回す
-            // If a rerun was requested while running, kick another pass right after this one finished
-            if (_rerunRequested)
-            {
-                _rerunRequested = false;
-                RequestUpload(session);
+                if (_rerunRequested)
+                {
+                    _rerunRequested = false;
+                    RequestUpload();
+                }
             }
         }
     }

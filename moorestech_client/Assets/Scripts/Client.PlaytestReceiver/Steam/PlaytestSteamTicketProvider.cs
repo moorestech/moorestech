@@ -77,6 +77,33 @@ namespace Client.PlaytestReceiver.Steam
                 Debug.LogWarning($"[PlaytestReceiver] Steam did not answer GetAuthTicketForWebApi within {PlaytestReceiverConfig.TicketTimeoutSeconds}s");
                 return null;
             }
+
+            #region Internal
+
+            bool TryRequestTicket()
+            {
+                // Steam未初期化・ネイティブ不在ならSteamworksが例外を投げる境界。ここで畳んで「チケット無し」にする
+                // Steamworks throws when uninitialized or absent; that boundary is folded here into "no ticket"
+                try
+                {
+                    _callback = Callback<GetTicketForWebApiResponse_t>.Create(OnTicketReceived);
+                    _issuedTicket = SteamUser.GetAuthTicketForWebApi(PlaytestReceiverConfig.SteamIdentity);
+                    return true;
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] GetAuthTicketForWebApi failed: {exception.GetBaseException().Message}");
+                    return false;
+                }
+            }
+
+            void DisposeCallback()
+            {
+                _callback?.Dispose();
+                _callback = null;
+            }
+
+            #endregion
         }
 
         // 受け口がチケットの検証を終えた直後に呼ぶ（成功・失敗いずれも）。検証前に取り消すと相手先の検証が失敗する
@@ -84,23 +111,6 @@ namespace Client.PlaytestReceiver.Steam
         public void ReleaseWebApiTicket()
         {
             ReleaseIssuedTicket();
-        }
-
-        private bool TryRequestTicket()
-        {
-            // Steam未初期化・ネイティブ不在ならSteamworksが例外を投げる境界。ここで畳んで「チケット無し」にする
-            // Steamworks throws when uninitialized or absent; that boundary is folded here into "no ticket"
-            try
-            {
-                _callback = Callback<GetTicketForWebApiResponse_t>.Create(OnTicketReceived);
-                _issuedTicket = SteamUser.GetAuthTicketForWebApi(PlaytestReceiverConfig.SteamIdentity);
-                return true;
-            }
-            catch (Exception exception)
-            {
-                Debug.LogWarning($"[PlaytestReceiver] GetAuthTicketForWebApi failed: {exception.GetBaseException().Message}");
-                return false;
-            }
         }
 
         private void OnCancelled()
@@ -118,12 +128,6 @@ namespace Client.PlaytestReceiver.Steam
                 return;
             }
             _pending.TrySetResult(ToHex(response.m_rgubTicket, response.m_cubTicket));
-        }
-
-        private void DisposeCallback()
-        {
-            _callback?.Dispose();
-            _callback = null;
         }
 
         private void ReleaseIssuedTicket()

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport;
+using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload;
 using NUnit.Framework;
 
@@ -37,8 +38,8 @@ namespace Client.Tests.PlaytestReceiver
 
             Assert.AreEqual(3, boxes.Count);
             Assert.AreEqual(new[] { "20260913_110000_aaaa", "20260913_120000_bbbb", "20260913_125959_dddd" }, boxes.Select(box => box.BundleId).ToArray());
-            Assert.AreEqual("report", boxes[0].Kind);
-            Assert.AreEqual("progress", boxes[2].Kind);
+            Assert.AreEqual(PlaytestUploadKind.Report, boxes[0].Kind);
+            Assert.AreEqual(PlaytestUploadKind.Progress, boxes[2].Kind);
         }
 
         [Test]

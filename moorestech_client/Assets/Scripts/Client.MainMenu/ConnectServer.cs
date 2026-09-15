@@ -35,12 +35,11 @@ namespace Client.MainMenu
 
         private void Connect()
         {
-            // 同じ関所を通す。判定はPlaytestLaunchGate 1箇所にしか無い
-            // The same gate is consulted here; the decision lives only in PlaytestLaunchGate
-            if (PlaytestLaunchGate.RejectStart(nameof(Connect)))
+            // 同じ関所を通す。判定と拒否理由の文言はPlaytestLaunchGate 1箇所にしか無い
+            // The same gate is consulted here; the decision and the refusal text live only in PlaytestLaunchGate
+            if (!PlaytestLaunchGate.TryPassStart(nameof(Connect), out var gateDenyReasonText))
             {
-                var blocked = PlaytestLaunchGate.Current;
-                serverConnectPopup.SetText(Localize.GetFormatted(blocked.ReasonKey, new[] { blocked.Detail }));
+                serverConnectPopup.SetText(gateDenyReasonText);
                 return;
             }
 

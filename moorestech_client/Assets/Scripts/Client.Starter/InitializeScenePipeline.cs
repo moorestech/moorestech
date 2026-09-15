@@ -6,6 +6,7 @@ using Client.Game.Common;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.Context;
 using Client.Network.Settings;
+using Client.PlaytestReceiver.Gate;
 using Client.Starter.Initialization;
 using Client.Starter.Initialization.Progress;
 using Cysharp.Threading.Tasks;
@@ -47,6 +48,9 @@ namespace Client.Starter
 
         private async UniTask Initialize()
         {
+            // 開始経路（メニュー・イベント自動開始・QA起動）は全てここを通る。照合を通っていない配布版はメニューへ戻す
+            // Every start path (menu, event auto-start, QA boot) passes here; an unchecked distribution build returns to the menu
+            if (!PlaytestLaunchGate.TryPassStart(nameof(InitializeScenePipeline), out _)) { SceneManager.LoadScene(SceneConstant.MainMenuSceneName); return; }
             // 新しい起動シーケンスの開始。前回セッションの終了ガードをここで戻す
             // A new boot sequence begins; clear the previous session's shutdown guard here
             GameShutdownEvent.ResetForNewSession();
@@ -191,6 +195,5 @@ namespace Client.Starter
 
             #endregion
         }
-
     }
 }

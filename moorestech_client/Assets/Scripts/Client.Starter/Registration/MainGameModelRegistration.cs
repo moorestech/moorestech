@@ -19,6 +19,7 @@ using Client.Game.InGame.World;
 using Client.Game.InGame.UnlockState;
 using Client.Network.API;
 using Client.PlaytestReceiver;
+using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload;
 using Core.Item.Interface;
 using Game.Construction;
@@ -54,9 +55,11 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<BugReportUiStatePusher>();
             builder.RegisterEntryPoint<BugReportPauseMenuTrigger>();
 
-            // 報告直後の押し場。単線化は受け手側
-            // The push site used right after a report is written; the caller receives only the face, the runner keeps runs single
-            builder.RegisterInstance<IPlaytestUploadRequester>(PlaytestUploadRunner.Instance);
+            // 報告直後の押し場。送るかの判断と単線化は走行役側
+            // The push site used right after a report; the runner decides whether to ship and keeps runs single
+            builder.RegisterInstance<IPlaytestReceiverApi>(new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl));
+            builder.RegisterInstance(PlaytestOutboxDirectories.FromGameSystemPaths());
+            builder.Register<PlaytestUploadRunner>(Lifetime.Singleton).As<IPlaytestUploadRequester>();
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

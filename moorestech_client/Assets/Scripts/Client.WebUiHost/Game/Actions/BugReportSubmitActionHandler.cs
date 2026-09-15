@@ -2,7 +2,6 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.UI.UIState;
 using Client.PlaytestReceiver;
-using Client.PlaytestReceiver.Gate;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -57,21 +56,9 @@ namespace Client.WebUiHost.Game.Actions
 
             Debug.Log($"バグ報告を書き出しました {result.BundleDirectory} missing:{result.Missing.Count}");
 
-            // 照合を通った配布版だけ、書けた箱をその場で送りにいく。送らない場合も理由をログへ出す
-            // Only a distribution build that passed the check ships the freshly written box, and not shipping is logged too
-            var gate = PlaytestLaunchGate.Current;
-            if (gate.Status == PlaytestGateStatus.Allowed)
-            {
-                _uploadRequester.RequestUpload(PlaytestLaunchGate.Session);
-            }
-            else if (gate.Status == PlaytestGateStatus.DeveloperMode)
-            {
-                Debug.Log("[PlaytestReceiver] 開発者モードなので書けた箱は送らない（配布版では送られる）");
-            }
-            else
-            {
-                Debug.LogWarning($"[PlaytestReceiver] 照合を通っていないので書けた箱を今は送れない gate:{gate.Status} {gate.Detail}");
-            }
+            // 書けた箱をその場で送りにいく。送るかどうかは走行役が照合結果から決める
+            // Ask for the freshly written box to ship; the runner decides from the gate verdict whether it actually ships
+            _uploadRequester.RequestUpload();
 
             // 閉じは既存のWeb境界1本へ寄せる。閉じられなくても報告自体は書けているので成功として返す
             // Closing goes through the one existing web boundary; a refused close still leaves a written report, so the send succeeds

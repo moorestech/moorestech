@@ -6,7 +6,8 @@
         "Nuget",
         "UniTask",
         "Client.Localization",
-        "com.rlabrecque.steamworks.net"
+        "com.rlabrecque.steamworks.net",
+        "UniRx"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

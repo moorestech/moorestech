@@ -8,7 +8,7 @@ namespace Client.PlaytestReceiver.Http
     public interface IPlaytestReceiverApi
     {
         UniTask<PlaytestApiResult> PostSessionAsync(string ticketHex, CancellationToken token);
-        UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, string kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token);
-        UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, string kind, string bundleId, string summaryJson, CancellationToken token);
+        UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token);
+        UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string summaryJson, CancellationToken token);
     }
 }

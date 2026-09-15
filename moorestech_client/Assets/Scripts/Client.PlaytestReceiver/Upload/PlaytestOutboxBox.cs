@@ -1,11 +1,20 @@
+using Client.PlaytestReceiver.Http;
+
 namespace Client.PlaytestReceiver.Upload
 {
-    // 送る単位。kindは受け口のパス（report|progress）と同じ語をそのまま持つ
-    // One shippable unit; Kind carries the receiver's own word (report|progress) verbatim
+    // 送る単位。生成時に必須値を受け、以後は書き換えない
+    // One shippable unit; required values are taken at construction and never change afterwards
     public sealed class PlaytestOutboxBox
     {
-        public string Directory;
-        public string BundleId;
-        public string Kind;
+        public readonly string Directory;
+        public readonly string BundleId;
+        public readonly PlaytestUploadKind Kind;
+
+        public PlaytestOutboxBox(string directory, string bundleId, PlaytestUploadKind kind)
+        {
+            Directory = directory;
+            BundleId = bundleId;
+            Kind = kind;
+        }
     }
 }

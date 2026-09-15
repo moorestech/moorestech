@@ -3585,6 +3585,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startLocalButton: {fileID: 1131031188}
+  messagePopup: {fileID: 1453508732}
 --- !u!1 &1138668180
 GameObject:
   m_ObjectHideFlags: 0

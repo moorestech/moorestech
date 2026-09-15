@@ -31,48 +31,39 @@ namespace Client.PlaytestReceiver.Http
             return SendAsync(request, TimeSpan.FromSeconds(PlaytestReceiverConfig.HttpTimeoutSeconds), token);
         }
 
-        public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, string kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
+        public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
         {
+            // 送れるパスかどうかの検査はここ1箇所。受け口の応答とは混ぜず、送る前のローカル拒否として返す
+            // This is the only sendable-path check; it comes back as a local refusal, never mixed with a receiver response
             var uploadPath = PlaytestUploadPath.ForFile(kind, bundleId, relativePath);
-
-            // 逸脱を含む名前は送っても受け口が400を返すだけ。同じ拒否をここで返し、再試行では直らないと呼び出し側へ伝える
-            // Such a name would only earn a 400 from the receiver, so the same refusal is returned here: retrying cannot fix it
             if (uploadPath == null)
             {
-                Debug.LogError($"[PlaytestReceiver] refused to upload '{relativePath}': it is not a safe relative path");
-                return UniTask.FromResult(new PlaytestApiResult { StatusCode = 400, Body = "{\"reason\":\"bad-path\"}" });
+                Debug.LogWarning($"[PlaytestReceiver] refused to upload '{relativePath}': it is not a safe relative path");
+                return UniTask.FromResult(PlaytestApiResult.LocalUnsafePath($"'{relativePath}' is not a safe relative path"));
             }
 
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/v1/uploads/{uploadPath}");
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-
-            // ファイルを開くのはOS境界。開けないのはそのファイル固有の恒久事情なので、bad-pathと同じ形で畳む
-            // Opening the file is an OS boundary; an unreadable file is permanent to that file, so it folds like bad-path
-            FileStream stream;
-            try
+            // 消えたファイルは例外に頼らず先に見分ける。掴まれている等の開けないI/O例外は箱単位の境界（PlaytestUploader）が受ける
+            // A vanished file is detected up front; other I/O failures on open are caught at the per-box boundary in PlaytestUploader
+            if (!File.Exists(absoluteFilePath))
             {
-                stream = File.OpenRead(absoluteFilePath);
-            }
-            catch (Exception exception)
-            {
-                request.Dispose();
-                var message = exception.GetBaseException().Message;
-                Debug.LogWarning($"[PlaytestReceiver] could not open {absoluteFilePath}: {message}");
-                return UniTask.FromResult(new PlaytestApiResult { StatusCode = 400, Body = "{\"reason\":\"unreadable-file\"}" });
+                Debug.LogWarning($"[PlaytestReceiver] {absoluteFilePath} disappeared before upload");
+                return UniTask.FromResult(PlaytestApiResult.LocalUnreadableFile($"{absoluteFilePath} does not exist"));
             }
 
+            var stream = File.OpenRead(absoluteFilePath);
             var content = new StreamContent(stream);
 
             // 受け口は Content-Length 必須で、欠落すると411を返す。長さを明示して chunked 送信に落とさない
             // The receiver requires Content-Length and answers 411 without it, so the length is set explicitly
             content.Headers.ContentLength = stream.Length;
             content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-            request.Content = content;
 
+            var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/v1/uploads/{uploadPath}") { Content = content };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             return SendAsync(request, PlaytestReceiverConfig.UploadTimeout(stream.Length), token);
         }
 
-        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, string kind, string bundleId, string summaryJson, CancellationToken token)
+        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string summaryJson, CancellationToken token)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v1/uploads/{PlaytestUploadPath.ForComplete(kind, bundleId)}")
             {
@@ -90,15 +81,15 @@ namespace Client.PlaytestReceiver.Http
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
             deadline.CancelAfter(timeout);
 
-            // ネットワーク送受信は外部境界。到達失敗をTransportErrorへ隔離し、呼び出し側は状態コードだけを見る
-            // Network I/O is an external boundary; unreachability is isolated into TransportError for the caller
+            // ネットワーク送受信は外部境界。到達失敗をTransportFailureへ隔離し、呼び出し側は種別と状態コードだけを見る
+            // Network I/O is an external boundary; unreachability is isolated into TransportFailure for the caller
             try
             {
                 using (request)
                 using (var response = await Client.SendAsync(request, deadline.Token))
                 {
                     var body = await response.Content.ReadAsStringAsync();
-                    return new PlaytestApiResult { StatusCode = (int)response.StatusCode, Body = body };
+                    return PlaytestApiResult.Responded((int)response.StatusCode, body);
                 }
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -109,7 +100,7 @@ namespace Client.PlaytestReceiver.Http
             {
                 var message = $"timed out after {timeout.TotalSeconds:0}s";
                 Debug.LogWarning($"[PlaytestReceiver] request to {requestUri} {message}");
-                return new PlaytestApiResult { TransportError = message };
+                return PlaytestApiResult.TransportFailure(message);
             }
             catch (Exception exception)
             {
@@ -117,7 +108,7 @@ namespace Client.PlaytestReceiver.Http
                 // The exception type is kept so an implementation bug disguised as unreachability can be told apart later
                 var message = $"{exception.GetType().Name}: {exception.GetBaseException().Message}";
                 Debug.LogWarning($"[PlaytestReceiver] request to {requestUri} failed: {message}");
-                return new PlaytestApiResult { TransportError = message };
+                return PlaytestApiResult.TransportFailure(message);
             }
         }
 

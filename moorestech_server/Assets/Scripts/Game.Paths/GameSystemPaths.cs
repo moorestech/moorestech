@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace Game.Paths
 {
@@ -44,8 +45,12 @@ namespace Game.Paths
 
         // 進行記録のoutbox（planGが書きplanDが送る）
         // The outbox for progress records; plan G writes them and plan D's uploader ships them
-        public static string ProgressRecordDirectory => Path.Combine(GameSystemDirectory, "ProgressRecords");
+        private static string ProgressRecordDirectory => Path.Combine(GameSystemDirectory, "ProgressRecords");
         public static string ProgressRecordOutboxDirectory => Path.Combine(ProgressRecordDirectory, "outbox");
+
+        // ビルド時に焼くbuild-info.json。配布ビルドの印とリポジトリ状態の置き場を兼ねる
+        // The build-info.json baked at build time; it marks a distribution build and carries the repository state
+        public static string BuildInfoFilePath => Path.Combine(Application.streamingAssetsPath, "build-info.json");
 
         // バグ報告の常時記録とoutbox。ワールドとは独立に持つ
         // Always-on capture and outbox for bug reports; independent of any world

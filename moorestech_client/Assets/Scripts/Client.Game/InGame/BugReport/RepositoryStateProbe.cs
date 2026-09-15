@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -33,7 +34,6 @@ namespace Client.Game.InGame.BugReport
     // Probes the working tree via git when running in the Editor; reads the baked build-info.json in a build
     public static class RepositoryStateProbe
     {
-        public const string BuildInfoFileName = "build-info.json";
         public static string RepositoryRoot => Path.GetFullPath(Path.Combine(Application.dataPath, "..", ".."));
 
         // マスタrepoの置き場はピンの relativePath だけが定義元。隣の名前を推測すると別repoの状態をマスタとして名乗る
@@ -99,7 +99,7 @@ namespace Client.Game.InGame.BugReport
 
         public static BugReportBuildInfo ReadBuildInfo()
         {
-            var path = Path.Combine(Application.streamingAssetsPath, BuildInfoFileName);
+            var path = GameSystemPaths.BuildInfoFilePath;
             if (!File.Exists(path))
             {
                 Debug.LogWarning($"build-info.json が無いためリポジトリ状態は不明です path:{path}");
