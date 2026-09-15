@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Game.SaveLoad.Json.WorldVersions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -20,8 +21,15 @@ namespace Game.SaveLoad.Migration
         private readonly List<ISaveMigrationStep> _steps;
         private readonly int _currentVersion;
 
-        // 目標版を固定にすると、現在版が小さい間は不変条件（重複禁止・欠番禁止・昇順適用）をテストできない
-        // Hard-coding the target version would leave the invariants untestable while the current version is small
+        // 本番の入口。目標版はセーブ形式の現在版だけで、呼び出し側に綴らせない
+        // The production entry point; the target is always the save format's current version, never spelled by the caller
+        public static SaveMigrationChain ForCurrentVersion(IReadOnlyList<ISaveMigrationStep> steps)
+        {
+            return new SaveMigrationChain(steps, WorldSaveAllInfoV1.CurrentVersion);
+        }
+
+        // テストが任意の目標版を渡す注入口。固定にすると現在版が小さい間は不変条件（重複禁止・欠番禁止・昇順適用）をテストできない
+        // The injection point letting tests pass any target; hard-coding it would leave the invariants untestable while the current version is small
         public SaveMigrationChain(IReadOnlyList<ISaveMigrationStep> steps, int currentVersion)
         {
             _steps = steps.OrderBy(step => step.FromVersion).ToList();
@@ -42,7 +50,7 @@ namespace Game.SaveLoad.Migration
 
         public SaveMigrationResult Migrate(JObject save)
         {
-            if (!TryReadWorldVersion(save, out var fromVersion, out var unreadableReason))
+            if (!TryReadWorldVersion(out var fromVersion, out var unreadableReason))
                 return SaveMigrationResult.Blocked(UnreadableWorldVersion, unreadableReason);
 
             if (_currentVersion < fromVersion)
@@ -77,31 +85,31 @@ namespace Game.SaveLoad.Migration
             }
 
             return SaveMigrationResult.Completed(fromVersion, true, migrated);
-        }
-
-        // worldVersionが無いセーブは版1。将来版と取り違えて拒否すると原本を触れなくなる
-        // A save without worldVersion is version 1; mistaking it for a future one would lock the original away
-        // 整数として読めないworldVersionは「版0」へ潰さず専用理由を返す。潰すとプレイヤーに存在しない版番号を見せてしまう
-        // A worldVersion unreadable as an integer is not collapsed into "version 0"; a dedicated reason avoids naming a version the save never had
-        private static bool TryReadWorldVersion(JObject save, out int version, out string unreadableReason)
-        {
-            unreadableReason = null;
-
-            var token = save[WorldVersionKey];
-            if (token == null)
-            {
-                Debug.Log($"セーブに{WorldVersionKey}がないため版1として扱います。");
-                version = 1;
-                return true;
-            }
-
-            if (TryReadVersionInt32(token, out version)) return true;
-
-            unreadableReason = $"セーブの{WorldVersionKey}が整数として読めません。ロードせずに中断します。 value={token.ToString(Formatting.None)} type={token.Type}";
-            Debug.LogError(unreadableReason);
-            return false;
 
             #region Internal
+
+            // worldVersionが無いセーブは版1。将来版と取り違えて拒否すると原本を触れなくなる
+            // A save without worldVersion is version 1; mistaking it for a future one would lock the original away
+            // 整数として読めないworldVersionは「版0」へ潰さず専用理由を返す。潰すとプレイヤーに存在しない版番号を見せてしまう
+            // A worldVersion unreadable as an integer is not collapsed into "version 0"; a dedicated reason avoids naming a version the save never had
+            bool TryReadWorldVersion(out int version, out string reason)
+            {
+                reason = null;
+
+                var token = save[WorldVersionKey];
+                if (token == null)
+                {
+                    Debug.Log($"セーブに{WorldVersionKey}がないため版1として扱います。");
+                    version = 1;
+                    return true;
+                }
+
+                if (TryReadVersionInt32(token, out version)) return true;
+
+                reason = $"セーブの{WorldVersionKey}が整数として読めません。ロードせずに中断します。 value={token.ToString(Formatting.None)} type={token.Type}";
+                Debug.LogError(reason);
+                return false;
+            }
 
             // 巨大整数はJson.NETがlongやBigIntegerで持つ。int範囲に収まるものだけを版として受け取る
             // Json.NET holds a huge integer as long or BigInteger; only values fitting in int are accepted as a version

@@ -129,7 +129,7 @@ namespace Tests.UnitTest.Game.SaveLoad
         // The production configuration; building it also verifies the real step set matches the current version
         private static SaveMigrationChain CurrentVersionChain()
         {
-            return new SaveMigrationChain(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2() }, WorldSaveAllInfoV1.CurrentVersion);
+            return SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2() });
         }
 
         // テスト専用の疑似ステップ。適用順の記録とJSONへの痕跡付けだけを行う

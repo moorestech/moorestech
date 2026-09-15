@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 
 namespace Game.Paths
@@ -70,47 +72,40 @@ namespace Game.Paths
 
         public static bool TryParseSnapshotTick(string fileName, out ulong tick)
         {
-            return TryParseTick(fileName, SnapshotFilePrefix, SnapshotFileExtension, out tick);
+            return TickSuffixedFileNames.TryParseTick(fileName, SnapshotFilePrefix, SnapshotFileExtension, out tick);
         }
 
         public static bool TryParsePacketLogFromTick(string fileName, out ulong fromTick)
         {
-            return TryParseTick(fileName, PacketLogFilePrefix, PacketLogFileExtension, out fromTick);
+            return TickSuffixedFileNames.TryParseTick(fileName, PacketLogFilePrefix, PacketLogFileExtension, out fromTick);
         }
 
-        // 置き場のスナップショット／区間ファイルをtick昇順で返す。辞書順で並べると桁を跨いだ瞬間に最古が最新になる
-        // List the snapshot / segment files in tick order; lexicographic order makes the oldest look newest once the digits grow
+        // 置き場のスナップショット／区間ファイルをtick昇順で返す
+        // List the snapshot / segment files in tick order
         public static IReadOnlyList<string> EnumerateSnapshotFiles(string snapshotDirectory)
         {
-            return EnumerateByTick(snapshotDirectory, SnapshotFilePrefix, SnapshotFileExtension);
+            return TickSuffixedFileNames.EnumerateByTick(snapshotDirectory, SnapshotFilePrefix, SnapshotFileExtension);
         }
 
         public static IReadOnlyList<string> EnumeratePacketLogFiles(string snapshotDirectory)
         {
-            return EnumerateByTick(snapshotDirectory, PacketLogFilePrefix, PacketLogFileExtension);
+            return TickSuffixedFileNames.EnumerateByTick(snapshotDirectory, PacketLogFilePrefix, PacketLogFileExtension);
         }
 
-        private static IReadOnlyList<string> EnumerateByTick(string snapshotDirectory, string prefix, string extension)
+        // 版ごとに1本だけ原本を残す。後から置換・返金のマイグレーションを足すとき遡れる単位
+        // Keeps one original per version, the unit a later replace/refund migration can go back to
+        public string BackupSaveJsonPath(int worldVersion)
         {
-            var ticks = new List<ulong>();
-            if (snapshotDirectory == null || !Directory.Exists(snapshotDirectory)) return new List<string>();
-            foreach (var path in Directory.GetFiles(snapshotDirectory, prefix + "*" + extension))
-            {
-                if (TryParseTick(Path.GetFileName(path), prefix, extension, out var tick)) ticks.Add(tick);
-            }
-            ticks.Sort();
-
-            var result = new List<string>(ticks.Count);
-            foreach (var tick in ticks) result.Add(Path.Combine(snapshotDirectory, $"{prefix}{tick}{extension}"));
-            return result;
+            return Path.Combine(SaveBackupDirectory, worldVersion.ToString(CultureInfo.InvariantCulture), "save.json");
         }
 
-        private static bool TryParseTick(string fileName, string prefix, string extension, out ulong tick)
+        // 拡張ISO形式のコロンはWindowsのファイル名に使えないので基本形式で、年が化けないようInvariantCultureで綴る
+        // The extended ISO colons are invalid in Windows file names, so the basic form is spelled with InvariantCulture
+        public string PrunedJsonPath(DateTime utcNow, int collisionIndex)
         {
-            tick = 0;
-            if (!fileName.StartsWith(prefix) || !fileName.EndsWith(extension)) return false;
-            var core = fileName.Substring(prefix.Length, fileName.Length - prefix.Length - extension.Length);
-            return ulong.TryParse(core, out tick);
+            var stamp = utcNow.ToString("yyyyMMdd'T'HHmmss'Z'", CultureInfo.InvariantCulture);
+            var name = collisionIndex == 0 ? $"{stamp}.json" : $"{stamp}-{collisionIndex}.json";
+            return Path.Combine(SavePrunedDirectory, name);
         }
 
         // タイル座標からterrainバイナリのパスを導出する。ファイル名規則の定義はここだけに置く

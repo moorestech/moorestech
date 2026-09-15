@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Game.Paths;
 using Game.SaveLoad.Migration;
+using Game.SaveLoad.Pruning;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
@@ -15,13 +16,13 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void バックアップは既存の原本を上書きしないTest()
         {
             var root = Path.Combine(Path.GetTempPath(), "moorestech-save-archive-" + Guid.NewGuid().ToString("N"));
-            var writer = new SaveArchiveWriter(SaveArchiveDirectory.FromArchiveRoot(root));
+            var directory = WorldDataDirectory.FromWorldRoot(root);
+            var writer = new SaveArchiveWriter(directory);
 
             writer.WriteBackup(1, "{\"first\":true}");
             writer.WriteBackup(1, "{\"second\":true}");
 
-            var path = SaveArchiveDirectory.FromArchiveRoot(root).BackupSaveJsonPath(1);
-            Assert.AreEqual("{\"first\":true}", File.ReadAllText(path));
+            Assert.AreEqual("{\"first\":true}", File.ReadAllText(directory.BackupSaveJsonPath(1)));
             Directory.Delete(root, true);
         }
 
@@ -31,17 +32,26 @@ namespace Tests.UnitTest.Game.SaveLoad
         public void 除去データは同秒でも連番で別ファイルになるTest()
         {
             var root = Path.Combine(Path.GetTempPath(), "moorestech-save-archive-" + Guid.NewGuid().ToString("N"));
-            var directory = SaveArchiveDirectory.FromArchiveRoot(root);
+            var directory = WorldDataDirectory.FromWorldRoot(root);
             var writer = new SaveArchiveWriter(directory);
             var at = new DateTime(2026, 9, 13, 8, 30, 0, DateTimeKind.Utc);
 
-            writer.WritePruned(JObject.Parse("{\"a\":1}"), at);
-            writer.WritePruned(JObject.Parse("{\"a\":2}"), at);
+            writer.WritePruned(EmptyOutcome(), at);
+            writer.WritePruned(EmptyOutcome(), at);
 
-            Assert.AreEqual(2, Directory.GetFiles(directory.PrunedRoot, "*.json").Length);
+            Assert.AreEqual(2, Directory.GetFiles(directory.SavePrunedDirectory, "*.json").Length);
             Assert.IsTrue(File.Exists(directory.PrunedJsonPath(at, 0)));
             Assert.IsTrue(File.Exists(directory.PrunedJsonPath(at, 1)));
+
+            // ファイル名とprunedAtが同じ時刻から綴られていること。JObject.Parseは日付を解釈し直すので原文で見る
+            // The file name and prunedAt must share one timestamp; JObject.Parse reinterprets dates, so the raw text is checked
+            StringAssert.Contains("\"prunedAt\": \"2026-09-13T08:30:00Z\"", File.ReadAllText(directory.PrunedJsonPath(at, 0)));
             Directory.Delete(root, true);
+        }
+
+        private static MissingMasterPruneOutcome EmptyOutcome()
+        {
+            return new MissingMasterPruneOutcome(new JObject(), new JArray(), new ItemPruneWalkResult(new JArray(), new JArray()), new JArray());
         }
     }
 }

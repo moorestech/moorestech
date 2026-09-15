@@ -52,8 +52,7 @@ namespace Game.SaveLoad.Migration
             {
                 // 実世界の日時そのものを記録する用途なのでDateTimeでよい（AGENTS.mdの例外）
                 // Recording a real-world timestamp is the sanctioned DateTime use (AGENTS.md exception)
-                var utcNow = DateTime.UtcNow;
-                _archiveWriter.WritePruned(outcome.ToPrunedJson(utcNow), utcNow);
+                _archiveWriter.WritePruned(outcome, DateTime.UtcNow);
                 Debug.Log($"マスタ欠損で除去しました。 blocks={outcome.Report.RemovedBlockCount} items={outcome.Report.EmptiedItemStackCount} research={outcome.Report.RemovedResearchCount}");
             }
 

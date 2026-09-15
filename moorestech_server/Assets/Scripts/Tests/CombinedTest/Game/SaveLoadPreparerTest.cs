@@ -67,7 +67,7 @@ namespace Tests.CombinedTest.Game
             var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(_archiveRoot);
             preparer.Prepare(save.ToString());
 
-            var files = Directory.GetFiles(SaveArchiveDirectory.FromArchiveRoot(_archiveRoot).PrunedRoot, "*.json");
+            var files = Directory.GetFiles(WorldDataDirectory.FromWorldRoot(_archiveRoot).SavePrunedDirectory, "*.json");
             Assert.AreEqual(1, files.Length);
             StringAssert.IsMatch(@"^\d{8}T\d{6}Z\.json$", Path.GetFileName(files[0]));
 
@@ -81,12 +81,14 @@ namespace Tests.CombinedTest.Game
         [Test]
         public void 同じ秒の除去データは連番で全件残るTest()
         {
-            var writer = new SaveArchiveWriter(SaveArchiveDirectory.FromArchiveRoot(_archiveRoot));
+            var directory = WorldDataDirectory.FromWorldRoot(_archiveRoot);
+            var writer = new SaveArchiveWriter(directory);
             var utcNow = new DateTime(2026, 9, 13, 8, 30, 0, DateTimeKind.Utc);
+            var outcome = new MissingMasterPruneOutcome(new JObject(), new JArray(), new ItemPruneWalkResult(new JArray(), new JArray()), new JArray());
 
-            for (var i = 0; i < 3; i++) writer.WritePruned(new JObject { ["blocks"] = new JArray() }, utcNow);
+            for (var i = 0; i < 3; i++) writer.WritePruned(outcome, utcNow);
 
-            var prunedRoot = SaveArchiveDirectory.FromArchiveRoot(_archiveRoot).PrunedRoot;
+            var prunedRoot = directory.SavePrunedDirectory;
             CollectionAssert.AreEquivalent(
                 new[] { "20260913T083000Z.json", "20260913T083000Z-1.json", "20260913T083000Z-2.json" },
                 Array.ConvertAll(Directory.GetFiles(prunedRoot, "*.json"), Path.GetFileName));
@@ -103,7 +105,7 @@ namespace Tests.CombinedTest.Game
 
             Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
             Assert.IsFalse(reportStore.Report.HasRemoval);
-            Assert.IsFalse(Directory.Exists(SaveArchiveDirectory.FromArchiveRoot(_archiveRoot).PrunedRoot));
+            Assert.IsFalse(Directory.Exists(WorldDataDirectory.FromWorldRoot(_archiveRoot).SavePrunedDirectory));
         }
 
         // 読み取り面と書き込み面が同じ実体を指していること。別実体だと通知側が常に0件を読む

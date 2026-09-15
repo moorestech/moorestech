@@ -275,9 +275,8 @@ namespace Server.Boot
             // Version migration, missing-master pruning and generational archiving form one pre-load stage
             // 退避先はワールドのセーブファイルの隣。登録時に解決すると実セーブ領域をテストからも掴んでしまう
             // The archives sit beside that world's save file; resolving at registration time would grab the real save area even from tests
-            services.AddSingleton(provider => SaveArchiveDirectory.FromWorldDataDirectory(provider.GetRequiredService<WorldDataDirectory>()));
             services.AddSingleton<SaveArchiveWriter>();
-            services.AddSingleton(new SaveMigrationChain(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2() }, WorldSaveAllInfoV1.CurrentVersion));
+            services.AddSingleton(SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2() }));
             services.AddSingleton<MissingMasterPruner>();
             services.AddSingleton<MissingMasterPruneReportStore>();
             services.AddSingleton<IMissingMasterPruneReportLookup>(provider => provider.GetRequiredService<MissingMasterPruneReportStore>());

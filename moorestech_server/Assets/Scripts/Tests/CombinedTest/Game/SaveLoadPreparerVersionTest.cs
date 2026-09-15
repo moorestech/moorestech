@@ -99,7 +99,7 @@ namespace Tests.CombinedTest.Game
 
             // どちらか片方だけを見ると、退避版が固定値へ退行してもMigratedガードが落ちても素通りする
             // Watching only one of the two would let both a hard-coded version and a dropped Migrated guard pass unnoticed
-            var archive = SaveArchiveDirectory.FromArchiveRoot(_archiveRoot);
+            var archive = WorldDataDirectory.FromWorldRoot(_archiveRoot);
             Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(1)), "版1のバックアップが作られています");
             Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(WorldSaveAllInfoV1.CurrentVersion)), "現在版のバックアップが作られています");
         }
@@ -139,7 +139,7 @@ namespace Tests.CombinedTest.Game
             var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(_archiveRoot);
             preparer.Prepare(originalText);
 
-            var backupPath = SaveArchiveDirectory.FromArchiveRoot(_archiveRoot).BackupSaveJsonPath(1);
+            var backupPath = WorldDataDirectory.FromWorldRoot(_archiveRoot).BackupSaveJsonPath(1);
             Assert.AreEqual(originalText, File.ReadAllText(backupPath));
 
             // 2回目は別内容を渡す。上書きされるならここで原本が失われる
