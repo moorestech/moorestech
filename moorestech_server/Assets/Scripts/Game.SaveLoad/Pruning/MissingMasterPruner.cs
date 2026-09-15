@@ -1,105 +1,96 @@
-using System;
+using System.Collections.Generic;
 using System.Linq;
-using Core.Master;
+using Game.SaveLoad.Pruning.Sections;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Game.SaveLoad.Pruning
 {
     /// <summary>
-    /// マスタから消えたブロック・アイテム・研究ノードをロード前のセーブJSONから取り除く
-    /// Removes blocks, items and research nodes that vanished from the master out of the save JSON before load
+    /// マスタから消えた参照を、セーブの節ごとの除去器でロード前のセーブJSONから取り除く
+    /// Removes references that vanished from the master out of the save JSON before load, one section pruner per save section
     /// 渡したJObjectをその場で書き換え、同じインスタンスをOutcome.Saveとして返す
     /// The given JObject is rewritten in place and the very same instance comes back as Outcome.Save
-    /// mapObjectは対象外。マップ側に無いinstanceIdをMapObjectDatastore.LoadMapObjectが既にスキップする
-    /// Map objects are out of scope; MapObjectDatastore.LoadMapObject already skips instance ids absent from the map
-    /// アイテム参照として何を見る・見ないかはSaveItemReferenceFieldsが持つ
-    /// SaveItemReferenceFields holds what does and does not count as an item reference
     /// </summary>
     public sealed class MissingMasterPruner
     {
+        // ロードでマスタ解決が例外になりうる節、または除去データを残すべき節の除去器
+        // Pruners for sections whose load can throw on master resolution or whose removals must be archived
+        private readonly IReadOnlyList<IMissingMasterSectionPruner> _sectionPruners = new IMissingMasterSectionPruner[]
+        {
+            new WorldSectionPruner(),
+            new PlayerInventorySectionPruner(),
+            new GameUnlockStateSectionPruner(),
+            new ResearchSectionPruner(),
+            new TrainUnitsSectionPruner(),
+        };
+
+        // 除去器を持たない節。マスタguidを持たないか、ロード側がマスタに無いguidを読み飛ばすもの
+        // Sections with no pruner: they hold no master guid, or their loader already skips guids absent from the master
+        private static readonly IReadOnlyList<string> SectionsWithoutMasterPruning = new[]
+        {
+            // マスタguidを持たない
+            // No master guid at all
+            "worldVersion", "entities", "setting", "playerRidingStates", "constructionPayers", "inventorySlotLevel",
+            "cleanRoomRooms", "miningCooldowns", "currentTick", "randomState", "backfilledFields",
+            // mapObjects: マップ側に無いinstanceIdをMapObjectDatastore.LoadMapObjectが読み飛ばす
+            // mapObjects: MapObjectDatastore.LoadMapObject skips instance ids absent from the map
+            "mapObjects",
+            // challenge/currentlyActiveChallenge: ChallengeMaster.GetChallengeがnullなら読み飛ばす
+            // challenge/currentlyActiveChallenge: skipped when ChallengeMaster.GetChallenge returns null
+            "challenge", "currentlyActiveChallenge",
+            // railSegments: レール種別guidはマスタ解決せずグラフへ戻すだけ
+            // railSegments: the rail type guid is put back into the graph without master resolution
+            "railSegments",
+            // blueprints: ロードは一覧を保持するだけ。貼り付け時にGetBlockIdOrNullで解決する
+            // blueprints: load only keeps the list; paste resolves through GetBlockIdOrNull
+            "blueprints",
+            // hotbarAssignments/remainingPlacementCounts/itemStackLevels: ロード側が未解決guidを空枠・破棄へ落とす
+            // hotbarAssignments/remainingPlacementCounts/itemStackLevels: their loaders drop unresolved guids to empty or discard
+            "hotbarAssignments", "remainingPlacementCounts", "itemStackLevels",
+        };
+
         public MissingMasterPruneOutcome Prune(JObject save)
         {
-            var removedBlocks = PruneBlocks();
-            var removedItemReferences = PruneItemReferences();
-            var removedResearchGuids = PruneResearch();
-
-            return new MissingMasterPruneOutcome(save, removedBlocks, removedItemReferences, removedResearchGuids);
+            LogUnclassifiedSections();
+            var sectionResults = _sectionPruners.Select(PruneSection).ToList();
+            return new MissingMasterPruneOutcome(save, sectionResults);
 
             #region Internal
 
-            JArray PruneBlocks()
+            MissingMasterSectionPruneResult PruneSection(IMissingMasterSectionPruner pruner)
             {
-                var removed = new JArray();
-                // world節が無い・配列でないセーブは除去できない。素通しを黙認すると不発に気づけない
-                // A save without a world array cannot be pruned, and a silent pass would hide the no-op
-                if (save["world"] is not JArray world)
+                // 節が無いセーブもありうるが、除去が不発だった事実は読めるようにしておく
+                // A save can legitimately lack a section, but the no-op still has to leave a trace
+                var section = save[pruner.SaveSectionName];
+                if (section == null || section.Type == JTokenType.Null)
                 {
-                    Debug.Log($"world節が配列でないためブロックの除去を行いません。 type={save["world"]?.Type}");
-                    return removed;
+                    Debug.Log($"セーブに{pruner.SaveSectionName}節が無いため、この節のマスタ欠損除去を行いません。");
+                    return new MissingMasterSectionPruneResult();
                 }
 
-                foreach (var block in world.OfType<JObject>().ToList())
-                {
-                    // guidが読めないブロックは除去判定できないので残す。ロードで落ちうるため理由を残す
-                    // A block with an unreadable guid cannot be judged so it stays; load may still throw, hence the log
-                    var guidText = block["blockGuid"]?.Value<string>();
-                    if (!Guid.TryParse(guidText, out var guid))
-                    {
-                        Debug.LogWarning($"blockGuidがguidとして読めないため除去判定せず残します。 blockGuid={guidText} instanceId={block["instanceId"]}");
-                        continue;
-                    }
-
-                    if (MasterHolder.BlockMaster.GetBlockIdOrNull(guid) != null) continue;
-
-                    Debug.LogWarning($"マスタに存在しないブロックをセーブから除去します。 blockGuid={guidText} instanceId={block["instanceId"]}");
-                    removed.Add(block.DeepClone());
-                    block.Remove();
-                }
-
-                return removed;
+                return pruner.Prune(section);
             }
 
-            ItemPruneWalkResult PruneItemReferences()
+            // 分類の無い節は除去されないまま素通る。マスタguidを持つ新しい節の足し忘れに気づけるよう警告する
+            // An unclassified section passes through unpruned; warn so a new section holding master guids is not forgotten
+            void LogUnclassifiedSections()
             {
-                // ブロック除去後の木を丸ごと歩く。プレイヤー・チェスト・機械のどこに参照があっても拾う
-                // Walk the whole tree after block removal so references are caught wherever they sit
-                return new ItemStackPruneWalker().Walk(save);
-            }
-
-            JArray PruneResearch()
-            {
-                var removed = new JArray();
-                // 研究節が無いセーブもありうるが、除去が不発だった事実は読めるようにしておく
-                // A save can legitimately lack the research node, but the no-op still has to leave a trace
-                if (save["research"]?["CompletedResearchGuids"] is not JArray completed)
+                foreach (var property in save.Properties())
                 {
-                    Debug.Log("research.CompletedResearchGuidsが配列でないため研究ノードの除去を行いません。");
-                    return removed;
+                    if (IsClassifiedSection(property.Name)) continue;
+                    Debug.LogWarning($"マスタ欠損の除去器にも除去不要一覧にも無い節は除去せず素通しします。マスタguidを持つなら除去器を足してください。 section={property.Name}");
                 }
-
-                foreach (var entry in completed.ToList())
-                {
-                    // 読めないguidは完了扱いのまま残る。研究解放の判定に響くので警告する
-                    // An unreadable guid stays marked complete, which skews unlock checks, so warn
-                    var guidText = entry.Value<string>();
-                    if (!Guid.TryParse(guidText, out var guid))
-                    {
-                        Debug.LogWarning($"研究guidがguidとして読めないため除去判定せず残します。 researchGuid={guidText}");
-                        continue;
-                    }
-
-                    if (MasterHolder.ResearchMaster.GetResearch(guid) != null) continue;
-
-                    Debug.LogWarning($"マスタに存在しない研究ノードを完了一覧から除去します。 researchGuid={guidText}");
-                    removed.Add(guidText);
-                    entry.Remove();
-                }
-
-                return removed;
             }
 
             #endregion
+        }
+
+        // 除去器を持つか、除去不要と宣言済みの節か
+        // Whether the section has a pruner or is declared as needing none
+        public bool IsClassifiedSection(string sectionName)
+        {
+            return _sectionPruners.Any(pruner => pruner.SaveSectionName == sectionName) || SectionsWithoutMasterPruning.Contains(sectionName);
         }
     }
 }

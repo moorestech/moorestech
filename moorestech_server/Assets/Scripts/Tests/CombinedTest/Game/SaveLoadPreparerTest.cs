@@ -87,7 +87,7 @@ namespace Tests.CombinedTest.Game
             var directory = WorldDataDirectory.FromWorldRoot(_archiveRoot);
             var writer = new SaveArchiveWriter(directory);
             var utcNow = new DateTime(2026, 9, 13, 8, 30, 0, DateTimeKind.Utc);
-            var outcome = new MissingMasterPruneOutcome(new JObject(), new JArray(), new ItemPruneWalkResult(new JArray(), new JArray()), new JArray());
+            var outcome = new MissingMasterPruneOutcome(new JObject(), Array.Empty<MissingMasterSectionPruneResult>());
 
             for (var i = 0; i < 3; i++) writer.WritePruned(outcome, utcNow);
 

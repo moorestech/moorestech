@@ -51,7 +51,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 
         private static MissingMasterPruneOutcome EmptyOutcome()
         {
-            return new MissingMasterPruneOutcome(new JObject(), new JArray(), new ItemPruneWalkResult(new JArray(), new JArray()), new JArray());
+            return new MissingMasterPruneOutcome(new JObject(), Array.Empty<MissingMasterSectionPruneResult>());
         }
     }
 }
