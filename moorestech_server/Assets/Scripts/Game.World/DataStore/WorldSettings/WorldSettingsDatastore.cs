@@ -13,8 +13,9 @@ namespace Game.World.DataStore.WorldSettings
     public class WorldSettingsDatastore : IWorldSettingsDatastore
     {
         public Vector3 WorldSpawnPoint { get; private set; }
-        public DateTime WorldCreationDateTimeUtc { get; private set; }
 
+        private DateTime _worldCreationDateTimeUtc;
+        private bool _hasWorldCreationDateTime;
         private double _totalPlayTimeSeconds;
         private DateTime _currentSessionStartDateTime;
 
@@ -22,7 +23,8 @@ namespace Game.World.DataStore.WorldSettings
         {
             WorldSpawnPoint = mapInfoJson.DefaultSpawnPointJson.Position;
 
-            WorldCreationDateTimeUtc = DateTime.UtcNow;
+            _worldCreationDateTimeUtc = DateTime.UtcNow;
+            _hasWorldCreationDateTime = true;
             _totalPlayTimeSeconds = 0;
             _currentSessionStartDateTime = DateTime.UtcNow;
         }
@@ -43,14 +45,26 @@ namespace Game.World.DataStore.WorldSettings
 
             // RoundtripKindを付けないとUTC保存がローカル時刻へ倒れ、保存し直すと同じ瞬間が別表記になる（再生の忠実性が壊れる）
             // Without RoundtripKind a UTC save falls back to local time and re-saving writes the same instant in a different notation, breaking replay fidelity
-            WorldCreationDateTimeUtc = DateTime.Parse(json.WorldCreationDateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+            _worldCreationDateTimeUtc = DateTime.Parse(json.WorldCreationDateTime, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+            _hasWorldCreationDateTime = true;
+        }
+
+        public bool TryGetWorldCreationDateTimeUtc(out DateTime worldCreationDateTimeUtc)
+        {
+            worldCreationDateTimeUtc = _worldCreationDateTimeUtc;
+            return _hasWorldCreationDateTime;
         }
 
         public WorldSettingJsonObject GetSaveJsonObject()
         {
             var currentPlayTime = GetCurrentPlayTime();
 
-            return new WorldSettingJsonObject(WorldSpawnPoint, WorldCreationDateTimeUtc, currentPlayTime, DateTime.UtcNow);
+            var json = new WorldSettingJsonObject(WorldSpawnPoint, _worldCreationDateTimeUtc, currentPlayTime, DateTime.UtcNow);
+
+            // 欠損は欠損のまま保存する。既定値を書くと次のロードで0001年が実日時として読まれる
+            // A missing creation time is saved as missing; writing the default would be read back as a real year-0001 time on the next load
+            if (!_hasWorldCreationDateTime) json.WorldCreationDateTime = null;
+            return json;
         }
 
         public TimeSpan GetCurrentPlayTime()

@@ -24,8 +24,10 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var info = GetResponse(packet);
 
-            Assert.IsNull(info.MissingReason);
-            Assert.AreEqual(worldSettings.WorldCreationDateTimeUtc.ToUniversalTime().ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture), info.WorldCreatedAt);
+            Assert.IsTrue(worldSettings.TryGetWorldCreationDateTimeUtc(out var worldCreationDateTimeUtc));
+            Assert.IsNull(info.WorldCreatedAtMissingReason);
+            Assert.IsNull(info.TotalPlaySecondsMissingReason);
+            Assert.AreEqual(worldCreationDateTimeUtc.ToUniversalTime().ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture), info.WorldCreatedAt);
             Assert.AreEqual(worldSettings.GetCurrentPlayTime().TotalSeconds, info.TotalPlaySeconds, 5d);
         }
 
@@ -41,7 +43,7 @@ namespace Tests.CombinedTest.Server.PacketTest
 
             var info = GetResponse(packet);
 
-            Assert.IsNull(info.MissingReason);
+            Assert.IsNull(info.WorldCreatedAtMissingReason);
             Assert.AreEqual("2026-03-04T05:06:07Z", info.WorldCreatedAt);
             Assert.GreaterOrEqual(info.TotalPlaySeconds, 600d);
         }
@@ -49,15 +51,24 @@ namespace Tests.CombinedTest.Server.PacketTest
         // 作成日時が欠けたセーブは警告付きで通る（WorldSettingsDatastore）。もっともらしい実日時を名乗らず欠損として返す
         // A save without a creation time passes with a warning (WorldSettingsDatastore); it is returned as a gap instead of a plausible timestamp
         [Test]
-        public void 作成日時が無いセーブは欠損理由つきで返る()
+        public void 作成日時が無いセーブは作成日時だけが欠損理由つきで返る()
         {
             var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
-            serviceProvider.GetService<IWorldSettingsDatastore>().LoadSettingData(new WorldSettingJsonObject(UnityEngine.Vector3.zero, default, TimeSpan.Zero, DateTime.UtcNow));
+            var worldSettings = serviceProvider.GetService<IWorldSettingsDatastore>();
+            var json = new WorldSettingJsonObject(UnityEngine.Vector3.zero, default, TimeSpan.FromSeconds(600), DateTime.UtcNow);
+            json.WorldCreationDateTime = null;
+            worldSettings.LoadSettingData(json);
 
             var info = GetResponse(packet);
 
+            Assert.IsFalse(worldSettings.TryGetWorldCreationDateTimeUtc(out _));
             Assert.IsNull(info.WorldCreatedAt);
-            Assert.IsNotNull(info.MissingReason);
+            Assert.IsNotNull(info.WorldCreatedAtMissingReason);
+
+            // 作成日時の欠損に累計プレイ時間を巻き込まない。1本の理由で両方を捨てると実値の累計まで失われる
+            // The creation-time gap never drags the total play time along; one shared reason would throw away a real total too
+            Assert.IsNull(info.TotalPlaySecondsMissingReason);
+            Assert.GreaterOrEqual(info.TotalPlaySeconds, 600d);
         }
 
         // 復号がキーの順で束ねられると tag が worldCreatedAt に入り、進行記録には毎回「読めない日時」が載る
@@ -65,12 +76,13 @@ namespace Tests.CombinedTest.Server.PacketTest
         [Test]
         public void 応答は復号してもフィールドがずれない()
         {
-            var encoded = MessagePackSerializer.Serialize(new GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack("2026-03-04T05:06:07Z", 12.5, "理由"));
+            var encoded = MessagePackSerializer.Serialize(new GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack("2026-03-04T05:06:07Z", "作成日時の理由", 12.5, "累計の理由"));
             var decoded = MessagePackSerializer.Deserialize<GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack>(encoded);
 
             Assert.AreEqual("2026-03-04T05:06:07Z", decoded.WorldCreatedAt);
+            Assert.AreEqual("作成日時の理由", decoded.WorldCreatedAtMissingReason);
             Assert.AreEqual(12.5, decoded.TotalPlaySeconds);
-            Assert.AreEqual("理由", decoded.MissingReason);
+            Assert.AreEqual("累計の理由", decoded.TotalPlaySecondsMissingReason);
             Assert.AreEqual(GetWorldPlaySessionInfoProtocol.ProtocolTag, decoded.Tag);
         }
 

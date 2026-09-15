@@ -8,9 +8,9 @@ namespace Game.World.Interface.DataStore
     {
         public Vector3 WorldSpawnPoint { get; }
 
-        // ワールドが作られた実世界日時。進行記録がセッションの外側の文脈として読む
-        // The real-world time the world was created; the progress record reads it as context outside the session
-        public DateTime WorldCreationDateTimeUtc { get; }
+        // ワールドが作られた実世界日時。作成日時の無いセーブでは false を返し、既定値を実日時として名乗らない
+        // The real-world time the world was created; a save without one returns false instead of passing the default off as a real time
+        public bool TryGetWorldCreationDateTimeUtc(out DateTime worldCreationDateTimeUtc);
         public TimeSpan GetCurrentPlayTime();
         
         public void Initialize(MapInfoJson mapInfoJson);

@@ -65,12 +65,14 @@ namespace Client.Tests.Playtest
         {
             var writer = new ProgressSessionWriter();
             writer.WriteHeader(CreateHeader());
-            LogAssert.Expect(LogType.Warning, new Regex("worldPlayTime"));
+            LogAssert.Expect(LogType.Warning, new Regex("worldCreatedAt"));
+            LogAssert.Expect(LogType.Warning, new Regex("totalPlaySeconds"));
             var bundle = writer.Close(ProgressEndReason.Quit, DateTime.UtcNow).BundleDirectory;
 
             var record = JObject.Parse(File.ReadAllText(Path.Combine(bundle, ProgressRecordPaths.RecordFileName)));
             var items = ((JArray)record["missing"]).Select(item => (string)item["item"]).ToList();
-            CollectionAssert.Contains(items, "worldPlayTime");
+            CollectionAssert.Contains(items, "worldCreatedAt");
+            CollectionAssert.Contains(items, "totalPlaySeconds");
             Directory.Delete(bundle, true);
         }
 
@@ -83,7 +85,7 @@ namespace Client.Tests.Playtest
             var sessionStart = DateTime.UtcNow.AddSeconds(-60);
             writer.WriteHeader(new ProgressRecordHeader { SessionStart = ProgressUtcTime.ToIso(sessionStart) });
             var capturedAt = sessionStart.AddSeconds(40);
-            writer.UpdateWorldPlayTime(ProgressWorldPlayTime.Received("2026-09-10T09:00:00Z", 100, capturedAt));
+            writer.UpdateWorldPlayTime(ProgressWorldPlayTime.Received("2026-09-10T09:00:00Z", null, 100, null, capturedAt));
 
             var bundle = writer.Close(ProgressEndReason.Quit, capturedAt.AddSeconds(20)).BundleDirectory;
 

@@ -22,26 +22,18 @@ namespace Server.Protocol.PacketResponse
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
         {
-            // 登録漏れの NullReferenceException は PacketResponseCreator の catch が空リストへ握り潰す。取得できない事実を理由付きで返す
-            // A registration gap's NullReferenceException is swallowed into an empty list by PacketResponseCreator, so the failure is returned with its reason instead
-            if (_worldSettingsDatastore == null)
-            {
-                Debug.LogError("IWorldSettingsDatastore が登録されていないため、ワールドの作成日時と累計プレイ時間を返せません");
-                return new ResponseWorldPlaySessionInfoMessagePack(null, 0, "IWorldSettingsDatastore が登録されていない");
-            }
-
             var totalPlaySeconds = _worldSettingsDatastore.GetCurrentPlayTime().TotalSeconds;
 
-            // 作成日時が欠けたセーブは既定値のままロードされる。DateTime.MinValue をUTC化してもっともらしい実日時として名乗らない
-            // A save without a creation time loads with the default; converting DateTime.MinValue to UTC would claim it as a plausible real timestamp
-            if (_worldSettingsDatastore.WorldCreationDateTimeUtc == default)
+            // 作成日時の欠損は累計プレイ時間と独立。片方が欠けてももう片方は実値のまま返す
+            // A missing creation time is independent of the total play time; one gap never discards the other value
+            if (!_worldSettingsDatastore.TryGetWorldCreationDateTimeUtc(out var worldCreationDateTimeUtc))
             {
                 Debug.LogWarning("セーブに世界作成日時が無いため、進行記録へは欠損として返します");
-                return new ResponseWorldPlaySessionInfoMessagePack(null, totalPlaySeconds, "セーブに世界作成日時が無い");
+                return new ResponseWorldPlaySessionInfoMessagePack(null, "セーブに世界作成日時が無い", totalPlaySeconds, null);
             }
 
-            var createdAt = _worldSettingsDatastore.WorldCreationDateTimeUtc.ToUniversalTime().ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture);
-            return new ResponseWorldPlaySessionInfoMessagePack(createdAt, totalPlaySeconds, null);
+            var createdAt = worldCreationDateTimeUtc.ToUniversalTime().ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture);
+            return new ResponseWorldPlaySessionInfoMessagePack(createdAt, null, totalPlaySeconds, null);
         }
 
         [MessagePackObject]
@@ -56,25 +48,26 @@ namespace Server.Protocol.PacketResponse
         [MessagePackObject]
         public class ResponseWorldPlaySessionInfoMessagePack : ProtocolMessagePackBase
         {
+            // 値と欠損理由を項目ごとに組で持つ。理由が null なら値が実データで、空文字や0で埋めた偽の値とは区別される
+            // Each item pairs its value with its own missing reason; a null reason means real data, never an empty string or zero standing in
             [Key(2)] public string WorldCreatedAt { get; set; }
-            [Key(3)] public double TotalPlaySeconds { get; set; }
+            [Key(3)] public string WorldCreatedAtMissingReason { get; set; }
+            [Key(4)] public double TotalPlaySeconds { get; set; }
+            [Key(5)] public string TotalPlaySecondsMissingReason { get; set; }
 
-            // 取得できなかった理由。null なら値が揃っている。空文字や0で埋めると欠損と実データを読み手が区別できない
-            // Why the values could not be obtained; null means they are complete. Empty strings and zeros would be indistinguishable from real data
-            [Key(4)] public string MissingReason { get; set; }
-
-            // 復号はこの引数なしコンストラクタ＋セッターで行う。指定しないと3引数コンストラクタが位置で束ねられ、tag が worldCreatedAt に入る
-            // Decoding goes through this parameterless constructor and the setters; without it the 3-argument one is bound positionally and the tag lands in worldCreatedAt
+            // 復号はこの引数なしコンストラクタ＋セッターで行う。指定しないと4引数コンストラクタが位置で束ねられ、tag が worldCreatedAt に入る
+            // Decoding goes through this parameterless constructor and the setters; without it the 4-argument one is bound positionally and the tag lands in worldCreatedAt
             [SerializationConstructor]
             [Obsolete("デシリアライズ用のコンストラクタです。基本的に使用しないでください。")]
             public ResponseWorldPlaySessionInfoMessagePack() { }
 
-            public ResponseWorldPlaySessionInfoMessagePack(string worldCreatedAt, double totalPlaySeconds, string missingReason)
+            public ResponseWorldPlaySessionInfoMessagePack(string worldCreatedAt, string worldCreatedAtMissingReason, double totalPlaySeconds, string totalPlaySecondsMissingReason)
             {
                 Tag = ProtocolTag;
                 WorldCreatedAt = worldCreatedAt;
+                WorldCreatedAtMissingReason = worldCreatedAtMissingReason;
                 TotalPlaySeconds = totalPlaySeconds;
-                MissingReason = missingReason;
+                TotalPlaySecondsMissingReason = totalPlaySecondsMissingReason;
             }
         }
     }

@@ -23,8 +23,7 @@ namespace Client.Game.InGame.Playtest.Progress
             ProgressWorldPlayTime ToWorldPlayTime(GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack response)
             {
                 if (response == null) return ProgressWorldPlayTime.Unavailable("ワールドのプレイ時間の応答が返らなかった");
-                if (response.MissingReason != null) return ProgressWorldPlayTime.Unavailable(response.MissingReason);
-                return ProgressWorldPlayTime.Received(response.WorldCreatedAt, response.TotalPlaySeconds, DateTime.UtcNow);
+                return ProgressWorldPlayTime.Received(response.WorldCreatedAt, response.WorldCreatedAtMissingReason, response.TotalPlaySeconds, response.TotalPlaySecondsMissingReason, DateTime.UtcNow);
             }
 
             #endregion

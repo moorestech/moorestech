@@ -41,16 +41,21 @@ namespace Client.Game.InGame.Playtest.Progress
             }
 
             _worldPlayTimeApplied = true;
-            if (worldPlayTime.MissingReason != null)
-            {
-                _header.AddMissing("worldPlayTime", worldPlayTime.MissingReason);
-                PersistHeader();
-                return;
-            }
 
-            _header.WorldCreatedAt = worldPlayTime.WorldCreatedAt;
-            _header.TotalPlaySecondsAtStart = worldPlayTime.TotalPlaySeconds;
-            _header.TotalPlaySecondsCapturedAt = ProgressUtcTime.ToIso(worldPlayTime.CapturedAtUtc);
+            // 2項目は独立に欠ける。片方の欠損でもう片方の実値を捨てない
+            // The two items go missing independently; one gap never discards the other's real value
+            if (worldPlayTime.WorldCreatedAtMissingReason != null) _header.AddMissing("worldCreatedAt", worldPlayTime.WorldCreatedAtMissingReason);
+            else _header.WorldCreatedAt = worldPlayTime.WorldCreatedAt;
+
+            if (worldPlayTime.TotalPlaySecondsMissingReason != null)
+            {
+                _header.AddMissing("totalPlaySeconds", worldPlayTime.TotalPlaySecondsMissingReason);
+            }
+            else
+            {
+                _header.TotalPlaySecondsAtStart = worldPlayTime.TotalPlaySeconds;
+                _header.TotalPlaySecondsCapturedAt = ProgressUtcTime.ToIso(worldPlayTime.CapturedAtUtc);
+            }
             PersistHeader();
         }
 
@@ -100,7 +105,9 @@ namespace Client.Game.InGame.Playtest.Progress
         private void ReportUnfilledWorldPlayTime()
         {
             if (_worldPlayTimeApplied || _header == null) return;
-            _header.AddMissing("worldPlayTime", "サーバー応答が終了までに届かなかったため worldCreatedAt と totalPlaySeconds を埋められない");
+            const string reason = "サーバー応答が終了までに届かなかった";
+            _header.AddMissing("worldCreatedAt", reason);
+            _header.AddMissing("totalPlaySeconds", reason);
             PersistHeader();
         }
 
