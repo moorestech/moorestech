@@ -15,7 +15,7 @@ namespace Client.Starter.Playtest
     {
         public static UniTask WaitForPlaytestGatesAsync()
         {
-            return WaitForGatesAsync(Client.WebUiHost.Boot.WebUiHost.Hub, PreviousSessionSalvage.ArtifactsOrNotRunDefault());
+            return WaitForGatesAsync(Client.WebUiHost.Boot.WebUiHost.Hub, PreviousSessionSalvage.RequireArtifacts());
         }
 
         // hubと退避結果を引数で受ける本体。順序とhub不在の縮退を、実プロセスを起こさずに検証できるようにするため分ける

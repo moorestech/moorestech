@@ -82,7 +82,7 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
                 // 終了パイプラインを回すと、正常終了マーカーと進行記録が揃う
                 // Running the shutdown pipeline produces both the clean-exit marker and the progress record
                 await Client.Game.Common.GameShutdownEvent.FireGameShutdownAsync(Client.Game.Common.GameShutdownReason.IntentionalExit);
-                Assert.IsTrue(File.Exists(CleanExitMarker.CleanMarkerPath(RecordingProcessDirectories.CurrentProcessId())), "正常終了マーカーが書かれていない");
+                Assert.IsTrue(File.Exists(CleanExitMarker.CleanMarkerPath(RecordingProcessDirectories.CurrentProcessId(), ProcessSessionScope.CurrentSessionName)), "正常終了マーカーが書かれていない");
                 Assert.IsFalse(ProgressTestSession.HasCurrentSession(), "進行記録が閉じられていない");
 
                 var record = TakeSingleNewDirectory(GameSystemPaths.ProgressRecordOutboxDirectory, recordsBefore, "終了で進行記録が1件だけ増えていない");
@@ -102,9 +102,11 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
             Assert.AreEqual("感想テスト", (string)manifest["description"]);
             Assert.AreEqual(PlaytestReportKind.Feedback, (string)manifest["kind"], "選ばれた種別がmanifestに載っていない");
 
-            // 既定の識別は空文字（開発者のrsync経路）。キー自体が欠けると取り込み側が読む先を失う
-            // The default identity is an empty string (the developer rsync path); a missing key robs the ingest side of what it reads
-            Assert.AreEqual("", (string)manifest["steamId"], "SteamIDが既定の空文字で載っていない");
+            // 既定の識別は null（開発者のrsync経路）で、取れなかった理由は missing に載る。キー自体が欠けると取り込み側が読む先を失う
+            // The default identity is null (the developer rsync path) with the reason in missing; a missing key robs the ingest side of what it reads
+            Assert.IsTrue(manifest.ContainsKey("steamId"), "steamId のキーがmanifestに無い");
+            Assert.AreEqual(JTokenType.Null, manifest["steamId"].Type, "SteamIDが無いのに実値と同じ形で載っている");
+            Assert.IsTrue(((JArray)manifest["missing"]).Any(item => (string)item["item"] == "steamId"), "SteamIDが取れなかった理由がmissingに無い");
             Assert.IsTrue(manifest.ContainsKey("buildInfo"), "buildInfo のキーがmanifestに無い");
 
             // Editor起動は焼き込み情報を持たないので null。値を名乗ると出所の分からない記録が混ざる

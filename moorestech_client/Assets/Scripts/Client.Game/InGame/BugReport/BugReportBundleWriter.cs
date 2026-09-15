@@ -50,18 +50,16 @@ namespace Client.Game.InGame.BugReport
 
             // Applicationのパス系はメインスレッドでしか読めないため、焼き込み情報とリポジトリの場所はここで先に読む
             // Application's path APIs are main-thread only, so the baked build info and repository roots are read here first
-            var buildInfo = RepositoryStateProbe.ReadBuildInfo();
+            var buildOrigin = RepositoryStateProbe.ReadBuildOrigin();
             var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
             var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
 
-            var manifest = BugReportManifest.CreateHeader(description, kind, _identity.SteamId, buildInfo);
+            // 見出しが積んだ欠損（steamId等）を消さないよう、確保時の欠損は上書きせず後ろへ足す
+            // The capture's gaps are appended rather than assigned, so the header's own gaps (steamId and friends) survive
+            var manifest = BugReportManifest.CreateHeader(description, kind, _identity.SteamId, buildOrigin);
             manifest.ReportTick = data.ReportTick;
             manifest.ClientState = data.ClientState;
-            manifest.Missing = new List<MissingItem>(data.Missing);
-
-            // 既存消費側（BugReportRepositoryFiles）向けの射影。Editorではnullのまま渡し、従来どおりgit probe側の分岐へ通す
-            // Projection for the existing consumer (BugReportRepositoryFiles); stays null in the Editor to keep taking the git-probe branch as before
-            var buildInfoForFiles = buildInfo == null ? null : BuildInfoJson.ToBugReportBuildInfo(buildInfo);
+            manifest.Missing.AddRange(data.Missing);
 
             // ファイルコピーと ffmpeg はメインスレッドを塞がないようスレッドプールで行う
             // File copies and ffmpeg run on the thread pool so the main thread never blocks
@@ -80,7 +78,7 @@ namespace Client.Game.InGame.BugReport
                 try { WriteFrameTicks(); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.FrameTicksFileName, $"書き出しに失敗した: {e.Message}"); }
                 try { WriteLogs(); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.LogsDirectoryName, $"書き出しに失敗した: {e.Message}"); }
                 try { CopyScreenshot(); } catch (Exception e) when (IsDiskFailure(e)) { manifest.AddMissing("screenshot", $"コピーに失敗した: {e.Message}"); }
-                BugReportRepositoryFiles.Write(directory, manifest, buildInfoForFiles, repositoryRoot, masterDataRoot);
+                BugReportRepositoryFiles.Write(directory, manifest, buildOrigin, repositoryRoot, masterDataRoot);
                 ServerDataLocation.Record(data.ServerDataDirectory, manifest, repositoryRoot, masterDataRoot);
             });
 
@@ -136,7 +134,7 @@ namespace Client.Game.InGame.BugReport
                 foreach (var entry in data.Logs)
                 {
                     builder.Append(entry.Time.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture)).Append('\t').Append(entry.Tick).Append('\t').Append(entry.Type).Append('\t').Append(entry.Message).Append('\n');
-                    if (entry.StackTrace.Length > 0) builder.Append(entry.StackTrace).Append('\n');
+                    if (0 < entry.StackTrace.Length) builder.Append(entry.StackTrace).Append('\n');
                 }
                 File.WriteAllText(Path.Combine(logs, BugReportBundleLayout.UnityLogFileName), builder.ToString());
             }

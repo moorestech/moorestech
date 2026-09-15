@@ -36,9 +36,9 @@ namespace Client.Game.InGame.BugReport.Recording
         // The frame budget for letting an in-flight readback settle: one 10fps frame plus a few frames of slack
         private const int ReadbackSettleFrameLimit = 10;
 
-        // 並列worktreeが同じマシン共通パスを取り合わないよう、このプロセス専用のサブディレクトリへ書く
-        // Scoped to this process's own subdirectory so parallel worktrees never fight over the machine-wide path
-        private readonly string _directory = RecordingProcessDirectories.DirectoryFor(GameSystemPaths.BugReportRecordingDirectory, RecordingProcessDirectories.CurrentProcessId());
+        // 並列worktreeと同じpidでの再生し直しが互いの録画へ書き足さないよう、このプロセスの今回のセッション専用ディレクトリへ書く
+        // Scoped to this process's current-session directory so neither parallel worktrees nor a same-pid replay append to another's footage
+        private readonly string _directory = ProcessSessionScope.CurrentSessionDirectory(GameSystemPaths.BugReportRecordingDirectory);
 
         // 世代の退避は連番を採るので直列化する。連続したEscapeが同じ番号を取り合わないため
         // Promotion assigns sequence numbers, so it is serialized; back-to-back Escapes must not race for one number
@@ -78,8 +78,8 @@ namespace Client.Game.InGame.BugReport.Recording
             _ffmpegPath = FfmpegLocator.Find();
             _latchedUnavailableReason = FfmpegLocator.ResolveInitialAvailability(_ffmpegPath).Reason;
             if (_ffmpegPath == null) return;
-            // 前回分の掃除は起動時の PreviousSessionSalvage が pid 単位で済ませている。ここで消すと異常終了の残骸を失う
-            // PreviousSessionSalvage already cleaned the previous pids at boot; deleting here would lose the crash remnants
+            // 前回分の掃除は起動時の PreviousSessionSalvage がセッション単位で済ませている。書き先は常に新しいセッションなので消す物は無い
+            // PreviousSessionSalvage already folded the previous sessions at boot; the target is always a fresh session, so nothing needs deleting
             Directory.CreateDirectory(_directory);
             _framePool = new FrameBufferPool(FrameBufferCount, Width * Height * 4);
             _screenFrameReader = new ScreenFrameReader(Width, Height);
@@ -162,8 +162,8 @@ namespace Client.Game.InGame.BugReport.Recording
         {
             finished.Stop();
 
-            // 空になった世代のliveディレクトリは残るが、次回起動のPreviousSessionSalvageがこのpidのディレクトリごと畳む
-            // The emptied generation directory is left behind; the next boot's PreviousSessionSalvage folds this pid's directory whole
+            // 空になった世代のliveディレクトリは残るが、次回起動のPreviousSessionSalvageがこのセッションのディレクトリごと畳む
+            // The emptied generation directory is left behind; the next boot's PreviousSessionSalvage folds this session's directory whole
             lock (_promoteLock)
             {
                 RecordingSegmentRing.PromoteCompletedSegments(liveDirectory, _directory, RetentionSeconds);

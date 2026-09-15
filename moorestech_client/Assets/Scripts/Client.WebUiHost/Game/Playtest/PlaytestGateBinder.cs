@@ -21,19 +21,19 @@ namespace Client.WebUiHost.Game.Playtest
         /// </summary>
         public static PlaytestStartGateHandles BindWaitingGates(WebSocketHub hub, PreviousSessionArtifacts artifacts)
         {
-            return Bind(hub, artifacts, PlaytestConsentFlag.IsAcknowledged());
+            return Bind(hub, new CrashReportGate(new CrashBundleWriter(), artifacts), PlaytestConsentFlag.IsAcknowledged());
         }
 
         /// <summary>
-        /// 無人起動向けに、どちらも閉じた状態で登録する。登録自体を飛ばすとWeb側の購読が固着する。
-        /// Registers both gates already closed for an unattended boot; skipping the registration would wedge the web subscription.
+        /// 無人起動向けに、どちらも閉じた状態で登録する。登録自体を飛ばすとWeb側の購読が固着する。退避結果は借りない。
+        /// Registers both gates already closed for an unattended boot without borrowing any salvage result; skipping the registration would wedge the web subscription.
         /// </summary>
         public static PlaytestStartGateHandles BindClosedGates(WebSocketHub hub)
         {
-            return Bind(hub, new PreviousSessionArtifacts { PreviousExitWasClean = true }, true);
+            return Bind(hub, CrashReportGate.Closed(), true);
         }
 
-        private static PlaytestStartGateHandles Bind(WebSocketHub hub, PreviousSessionArtifacts artifacts, bool consentAcknowledged)
+        private static PlaytestStartGateHandles Bind(WebSocketHub hub, CrashReportGate crashGate, bool consentAcknowledged)
         {
             // ゲート文言は通常の辞書経路から出す。登録がゲートより後だと辞書が届かず fallback だけが見える（ADR 0060 裁定10）
             // The gate texts come from the normal dictionary path; registering after the gates leaves only the fallback visible (ADR 0060 adjudication 10)
@@ -43,7 +43,6 @@ namespace Client.WebUiHost.Game.Playtest
             hub.RegisterTopic(PlaytestConsentGateTopic.TopicName, new PlaytestConsentGateTopic(hub, consentGate));
             PlaytestConsentGateActions.Register(hub, consentGate);
 
-            var crashGate = new CrashReportGate(new CrashBundleWriter(PlaytestSessionIdentityProvider.Current), artifacts);
             hub.RegisterTopic(CrashReportGateTopic.TopicName, new CrashReportGateTopic(hub, crashGate));
             CrashReportGateActions.Register(hub, crashGate);
 

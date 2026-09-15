@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.Playtest;
@@ -20,22 +19,19 @@ namespace Client.Game.InGame.BugReport.LastSession
     // Writes one kind=crash box from the salvaged files and the description; a path without a capture session, so it is separate from plan B's writer
     public sealed class CrashBundleWriter : ICrashBundleWriter
     {
-        private readonly IPlaytestSessionIdentity _identity;
-
-        public CrashBundleWriter(IPlaytestSessionIdentity identity)
-        {
-            _identity = identity;
-        }
-
         // 起動ゲートから呼ばれるため、ここで例外を上へ投げるとゲートごと起動が壊れる。書けなかった場合はnullで理由をログに残す
         // Called from the startup gate; letting an exception escape here would break the gate itself, so an unwritable box logs its reason and returns null
         public async UniTask<string> WriteAsync(PreviousSessionArtifacts artifacts, string description)
         {
-            // Applicationのパス系と焼き込み情報はメインスレッドでしか読めないため、スレッドプールへ出る前に読む
-            // Application's path APIs and the baked build info are main-thread only, so they are read before leaving for the thread pool
-            var manifest = BugReportManifest.CreateHeader(description, PlaytestReportKind.Crash, _identity.SteamId, RepositoryStateProbe.ReadBuildInfo());
-            manifest.Missing = new List<MissingItem>(artifacts.Missing);
-            var buildInfoForFiles = manifest.BuildInfo == null ? null : BuildInfoJson.ToBugReportBuildInfo(manifest.BuildInfo);
+            // 出所とSteamIDは落ちたセッション自身が開始時に書き残した値を載せる。今回起動したビルドを付けると別ビルドで再現される（F12）
+            // The origin and SteamID come from what the crashed session wrote at its own start; attaching this boot's build would reproduce on a different build (F12)
+            var origin = artifacts.PreviousOrigin;
+            var buildOrigin = origin == null ? BuildOriginReading.WithoutInfo("前回セッションの出所の印が無いため、どのビルドで落ちたか分からない") : origin.BuildOrigin;
+            var manifest = BugReportManifest.CreateHeader(description, PlaytestReportKind.Crash, origin?.SteamId, buildOrigin);
+            manifest.Missing.AddRange(artifacts.Missing);
+
+            // Applicationのパス系はメインスレッドでしか読めないため、スレッドプールへ出る前に読む
+            // Application's path APIs are main-thread only, so they are read before leaving for the thread pool
             var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
             var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
 
@@ -65,7 +61,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
                 // ディスクは外部資源。1項目の失敗で他の退避物まで巻き添えにしないよう項目ごとに隔離し、理由はmanifestと開発者ログの両方へ残す
                 // Disk is an external resource; each item is isolated so one failure never takes the rest down, with the reason in both the manifest and the log
-                try { DeclareEmptySource(BugReportBundleLayout.RecordingDirectoryName, artifacts.RecordingDirectory, MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName)).Count); }
+                try { DeclareEmptySource(BugReportBundleLayout.RecordingDirectoryName, artifacts.RecordingDirectory, CrashBundleSalvageMover.MoveTree(artifacts.RecordingDirectory, Path.Combine(directory, BugReportBundleLayout.RecordingDirectoryName)).Count); }
                 catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing(BugReportBundleLayout.RecordingDirectoryName, $"移動に失敗した: {e.Message}"); }
 
                 try { MoveSnapshots(artifacts.SnapshotsDirectory, directory); }
@@ -82,13 +78,13 @@ namespace Client.Game.InGame.BugReport.LastSession
 
                 // リポジトリ状態とマスタの出所は bug の箱と同じ経路で入れる。crash だけ null だと再現側が別コミットで再生する
                 // The repository state and master origin go through the same path as a bug box; leaving them null only for crash replays a different commit
-                BugReportRepositoryFiles.Write(directory, manifest, buildInfoForFiles, repositoryRoot, masterDataRoot);
+                BugReportRepositoryFiles.Write(directory, manifest, buildOrigin, repositoryRoot, masterDataRoot);
 
                 if (BugReportOutbox.TryFinishBundle(directory, manifest)) return directory;
 
                 // 箱を閉じられなければ退避物を last-session へ戻す。戻さないと再送が空の退避元を素通りし、中身の無い箱をREADY付きで出荷する
                 // A box that cannot be closed gives the salvage back to last-session; otherwise a retry sails past the emptied source and ships an empty box with READY on it
-                RestoreSalvageFromUnfinishedBundle(directory, artifacts);
+                CrashBundleSalvageMover.RestoreSalvageFromUnfinishedBundle(directory, artifacts);
                 return null;
             }
 
@@ -102,15 +98,17 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // スナップショットとパケットログは plan B のプレイ報告と同じ snapshots/ 配下へ揃える（再現側の入口を1つに保つ）
             // Snapshots and packet logs land under the same snapshots/ as plan B's report, keeping one entry point for reproduction
+            // 分類は綴りの正本（WorldDataDirectory）で行う。裸の接頭辞だと拡張子違いの別ファイルまで混ざる（F28）
+            // Classification uses the spelling's single source (WorldDataDirectory); bare prefixes would sweep in other files that merely share the prefix (F28)
             void MoveSnapshots(string source, string boxDirectory)
             {
                 var destination = Path.Combine(boxDirectory, BugReportBundleLayout.SnapshotDirectoryName);
-                var moved = MoveTree(source, destination);
+                var moved = CrashBundleSalvageMover.MoveTree(source, destination);
                 foreach (var relativePath in moved)
                 {
                     var name = Path.GetFileName(relativePath);
-                    if (name.StartsWith("tick_", StringComparison.Ordinal)) manifest.SnapshotFiles.Add(relativePath);
-                    if (name.StartsWith("packets_", StringComparison.Ordinal)) manifest.PacketLogFiles.Add(relativePath);
+                    if (WorldDataDirectory.TryParseSnapshotTick(name, out _)) manifest.SnapshotFiles.Add(relativePath);
+                    if (WorldDataDirectory.TryParsePacketLogFromTick(name, out _)) manifest.PacketLogFiles.Add(relativePath);
                 }
                 DeclareEmptySource(BugReportBundleLayout.SnapshotDirectoryName, source, moved.Count);
             }
@@ -125,74 +123,6 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             #endregion
-        }
-
-        // 箱を閉じられなかったときだけ、移した退避物を last-session へ戻す。裁定1の「送り直せる」を実際に成立させる唯一の経路
-        // Only when the box could not be closed does the moved salvage go back to last-session; this is what actually makes adjudication 1's "you can resend" true
-        internal static void RestoreSalvageFromUnfinishedBundle(string bundleDirectory, PreviousSessionArtifacts artifacts)
-        {
-            var fullyRestored = RestoreTree(BugReportBundleLayout.RecordingDirectoryName, artifacts.RecordingDirectory);
-            fullyRestored &= RestoreTree(BugReportBundleLayout.SnapshotDirectoryName, artifacts.SnapshotsDirectory);
-
-            // 全件戻せたときだけ未完成の箱を消す。残っている箱そのものが「戻し切れなかった証跡がここにある」という印になる
-            // The unfinished box is deleted only when everything came back; a box left behind is itself the mark that evidence stayed in it
-            if (fullyRestored) DeleteUnfinishedBundle();
-
-            #region Internal
-
-            bool RestoreTree(string item, string salvageDirectory)
-            {
-                var boxSubDirectory = Path.Combine(bundleDirectory, item);
-                if (salvageDirectory == null || !Directory.Exists(boxSubDirectory)) return true;
-                // 退避物を last-session へ戻す move はディスクIO。他プロセスのロックで失敗しても未完成の箱を残すだけで済ませる
-                // Moving the salvage back to last-session is disk IO; a failure from another process's lock is tolerated by leaving it in the unfinished box
-                try
-                {
-                    var restored = MoveTree(boxSubDirectory, salvageDirectory);
-                    Debug.LogWarning($"箱を閉じられなかったため退避物を戻しました（次の送信で送り直せます） {salvageDirectory} files:{restored.Count}");
-                    return true;
-                }
-                catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
-                {
-                    // 戻しは途中まで進む。開発者ログだけでは次の再送に届かないため、欠損として artifacts へ積み manifest に必ず載せる
-                    // A restore stops midway, and the developer log never reaches the next resend, so the gap is pushed into artifacts and always lands in the manifest
-                    var reason = $"未完成の箱 {boxSubDirectory} へ退避物が残ったまま戻せなかった: {e.Message}";
-                    Debug.LogError($"退避物を last-session へ戻せませんでした: {reason}");
-                    artifacts.Missing.Add(new MissingItem { Item = item, Reason = reason });
-                    return false;
-                }
-            }
-
-            void DeleteUnfinishedBundle()
-            {
-                var deletion = SalvageFileOperations.DeleteDirectory(bundleDirectory);
-                if (!deletion.Succeeded) Debug.LogWarning($"閉じられなかった箱を消せませんでした（outbox に残りますがREADYが無いため運搬はされません） {bundleDirectory}: {deletion.FailureReason}");
-            }
-
-            #endregion
-        }
-
-        // 退避先から箱へは移動で渡す。退避の時点で既に last-session へ改名済みなので、写すと同じ数十MBを2度書くだけになる
-        // The salvage moves into the box: it was already renamed into last-session, so copying would write the same tens of megabytes twice
-        // コピーへ戻せば再送は成立するが二重書き込みが復活するため、失敗時だけ戻す形で「送り直せる」を満たす
-        // Reverting to a copy would also make the resend work, but it brings back the double write, so restoring only on failure buys the same guarantee
-        // 退避は pid_<PID>/ 等の入れ子を保ったまま移すため、こちらも入れ子ごと辿る。戻り値は移した相対パス
-        // The salvage keeps nesting such as pid_<PID>/, so this walks the whole tree too; the relative paths moved are returned
-        private static IReadOnlyList<string> MoveTree(string source, string destination)
-        {
-            var moved = new List<string>();
-            if (source == null || !Directory.Exists(source)) return moved;
-
-            foreach (var file in Directory.GetFiles(source, "*", SearchOption.AllDirectories))
-            {
-                var relativePath = Path.GetRelativePath(source, file);
-                var destinationFile = Path.Combine(destination, relativePath);
-                Directory.CreateDirectory(Path.GetDirectoryName(destinationFile));
-                File.Move(file, destinationFile);
-                moved.Add(relativePath);
-            }
-            foreach (var subDirectory in Directory.GetDirectories(source)) Directory.Delete(subDirectory, true);
-            return moved;
         }
     }
 }

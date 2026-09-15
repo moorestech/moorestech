@@ -2,11 +2,12 @@ using System.Collections.Generic;
 
 namespace Client.Game.InGame.BugReport.Recording.ProcessScope
 {
-    // 引き継ぎ対象の1件。pidは退避先の階層名と正常終了マーカーの割り当てにそのまま使う
-    // One directory to take over; the pid is reused verbatim for the salvage layout and for the clean-exit marker
+    // 引き継ぎ対象の1セッション。pidとセッション名は退避先の階層名と正常終了マーカーの突き合わせにそのまま使う
+    // One session directory to take over; the pid and session name are reused verbatim for the salvage layout and for matching the clean-exit marks
     public sealed class RecordingProcessDirectory
     {
         public int ProcessId;
+        public string SessionName;
         public string Path;
     }
 

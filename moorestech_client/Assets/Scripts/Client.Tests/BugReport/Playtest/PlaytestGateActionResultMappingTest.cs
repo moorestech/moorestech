@@ -75,7 +75,7 @@ namespace Client.Tests.BugReport
 
         private static PreviousSessionArtifacts Unclean()
         {
-            return new PreviousSessionArtifacts { PreviousExitWasClean = false };
+            return TestPreviousSessionArtifacts.Unclean();
         }
     }
 }

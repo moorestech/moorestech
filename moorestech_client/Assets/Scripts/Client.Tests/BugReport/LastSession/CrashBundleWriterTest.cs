@@ -41,16 +41,9 @@ namespace Client.Tests.BugReport
             var dump = Path.Combine(source, "moorestech-2026-09-14.ips");
             File.WriteAllText(dump, "dump");
 
-            var artifacts = new PreviousSessionArtifacts
-            {
-                PreviousExitWasClean = false,
-                RecordingDirectory = recording,
-                SnapshotsDirectory = snapshots,
-                PlayerLogPath = playerLog,
-                CrashDumpFiles = new List<string> { dump },
-            };
+            var artifacts = TestPreviousSessionArtifacts.Unclean(TestPreviousSessionArtifacts.UnusedLastSessionDirectory, recording, snapshots, playerLog, new List<string> { dump });
 
-            var bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "落ちた");
+            var bundle = await new CrashBundleWriter().WriteAsync(artifacts, "落ちた");
 
             try
             {
@@ -93,13 +86,9 @@ namespace Client.Tests.BugReport
             Directory.CreateDirectory(recording);
             File.WriteAllText(Path.Combine(recording, "segment-0.mp4"), "video");
 
-            var artifacts = new PreviousSessionArtifacts
-            {
-                PreviousExitWasClean = false,
-                RecordingDirectory = Path.Combine(source, "recording"),
-            };
+            var artifacts = TestPreviousSessionArtifacts.UncleanWithRecording(Path.Combine(source, "recording"));
 
-            var bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "入れ子");
+            var bundle = await new CrashBundleWriter().WriteAsync(artifacts, "入れ子");
 
             try
             {
@@ -115,16 +104,16 @@ namespace Client.Tests.BugReport
         [Test]
         public async Task 退避物が空でも説明文だけで箱になり欠損が残る()
         {
-            var artifacts = new PreviousSessionArtifacts { PreviousExitWasClean = false };
+            var artifacts = TestPreviousSessionArtifacts.Unclean();
             artifacts.Missing.Add(new MissingItem { Item = "recording", Reason = "退避元が空" });
 
-            var bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "起動しない");
+            var bundle = await new CrashBundleWriter().WriteAsync(artifacts, "起動しない");
 
             try
             {
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, BugReportBundleLayout.ManifestFileName)));
                 Assert.AreEqual(PlaytestReportKind.Crash, (string)manifest["kind"]);
-                Assert.AreEqual(1, ((JArray)manifest["missing"]).Count);
+                Assert.IsTrue(((JArray)manifest["missing"]).Any(item => (string)item["item"] == "recording" && (string)item["reason"] == "退避元が空"), "退避で積んだ欠損がmanifestに残っていない");
             }
             finally
             {
@@ -145,17 +134,12 @@ namespace Client.Tests.BugReport
             File.WriteAllText(playerLog, "log");
             Chmod(playerLog, "000");
 
-            var artifacts = new PreviousSessionArtifacts
-            {
-                PreviousExitWasClean = false,
-                RecordingDirectory = recording,
-                PlayerLogPath = playerLog,
-            };
+            var artifacts = TestPreviousSessionArtifacts.Unclean(TestPreviousSessionArtifacts.UnusedLastSessionDirectory, recording, null, playerLog, new List<string>());
 
             string bundle = null;
             try
             {
-                bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "読めない");
+                bundle = await new CrashBundleWriter().WriteAsync(artifacts, "読めない");
 
                 Assert.IsNotNull(bundle, "1項目の失敗でゲート応答処理まで例外が伝播せず箱自体は書けること");
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)));

@@ -75,6 +75,24 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
         }
 
+        // 中身が残っていれば消さずに成功を返す。セッションの段を畳んだ後の空のpid_<PID>だけを片付ける用途
+        // Returns success without deleting when anything remains; meant for clearing a pid_<PID> left empty after its sessions were folded
+        public static SalvageOperationResult DeleteDirectoryIfEmpty(string directory)
+        {
+            if (directory == null || !Directory.Exists(directory)) return SalvageOperationResult.Success();
+            // 空判定と削除はディスクIO。判定と削除の間に並走プロセスが書き足すと Delete が IOException で失敗しうる
+            // Checking emptiness and deleting are disk IO; a concurrent process writing in between can fail the Delete with IOException
+            try
+            {
+                if (Directory.GetFileSystemEntries(directory).Length == 0) Directory.Delete(directory, false);
+                return SalvageOperationResult.Success();
+            }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
+            {
+                return SalvageOperationResult.Failure($"空のディレクトリを消せなかった: {e.Message}");
+            }
+        }
+
         public static SalvageOperationResult DeleteFile(string path)
         {
             if (path == null || !File.Exists(path)) return SalvageOperationResult.Success();

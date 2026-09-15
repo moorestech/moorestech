@@ -26,12 +26,23 @@ namespace Client.WebUiHost.Game.Playtest
         // Registration is always unconditional; whether to wait is derived from the salvage result to avoid a stuck web subscription
         // 異常終了なら常に確認する。退避物ゼロでも説明文だけの箱には価値があるので待機条件から外さない
         // Always ask after an unclean exit; a description-only box still has value, so an empty salvage does not skip the wait
-        internal CrashReportGate(ICrashBundleWriter writer, PreviousSessionArtifacts artifacts)
+        internal CrashReportGate(ICrashBundleWriter writer, PreviousSessionArtifacts artifacts) : this(writer, artifacts, !artifacts.PreviousExitWasClean)
+        {
+        }
+
+        private CrashReportGate(ICrashBundleWriter writer, PreviousSessionArtifacts artifacts, bool isWaitingResponse)
         {
             _writer = writer;
             _artifacts = artifacts;
-            IsWaitingResponse = !artifacts.PreviousExitWasClean;
+            IsWaitingResponse = isWaitingResponse;
             if (!IsWaitingResponse) _responseSource.TrySetResult();
+        }
+
+        // 無人起動向けの閉じたゲート。退避結果を「正常終了」に偽装して借りず、閉じた状態そのものとして作る（F13）
+        // A closed gate for unattended boots, built as closed in its own right instead of borrowing a salvage result disguised as a clean exit (F13)
+        internal static CrashReportGate Closed()
+        {
+            return new CrashReportGate(null, null, false);
         }
 
         // 開始側（Client.Starter）が待ち合わせる唯一の窓口なのでここだけpublicに残す
@@ -54,9 +65,12 @@ namespace Client.WebUiHost.Game.Playtest
 
             // 「送らない」でも退避物は消さない。last-session は退避のたびに空になるので1世代だけ残る
             // Skipping keeps the salvage: last-session is emptied on every salvage, so exactly one generation survives
+            // 答えた時点で未応答の印を消す。消さないと次の正常起動でも同じ確認が出続ける（F04）
+            // Answering clears the pending mark; otherwise the same confirmation keeps appearing on every later clean boot (F04)
             if (!send)
             {
                 Debug.Log("前回異常終了の記録は送らないと選ばれました");
+                PendingCrashReportMark.Clear(_artifacts.LastSessionDirectory);
                 Release();
                 return CrashReportResponseResult.Skipped;
             }
@@ -72,7 +86,11 @@ namespace Client.WebUiHost.Game.Playtest
             }
             finally
             {
-                if (written) Release();
+                if (written)
+                {
+                    PendingCrashReportMark.Clear(_artifacts.LastSessionDirectory);
+                    Release();
+                }
                 else ReturnToWaiting();
             }
             return written ? CrashReportResponseResult.Sent : CrashReportResponseResult.WriteFailed;

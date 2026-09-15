@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.Game.InGame.Playtest.Progress;
@@ -13,17 +14,28 @@ namespace Client.Starter.Playtest
     {
         public static void RunAtStartup(bool isRemoteConnection, string worldDirectory)
         {
+            // この起動のセッション名を最初に確定する。退避は「今回以外」を畳み、書き手は全員この名前の下へ書く（F05）
+            // This boot's session name is fixed first: the salvage folds everything else, and every writer writes under this name (F05)
+            ProcessSessionScope.BeginNewSession();
+
             // 内蔵サーバーのスナップショットリングと録画リングが上書きを始める前に、前回セッションの記録を退避する
             // Salvage the previous session's records before the embedded snapshot ring and the recording ring start overwriting
-            PreviousSessionSalvage.RunAtStartup(isRemoteConnection, WorldDataDirectory.FromWorldRoot(worldDirectory).SnapshotDirectory);
+            var artifacts = PreviousSessionSalvage.RunAtStartup(isRemoteConnection, WorldDataDirectory.FromWorldRoot(worldDirectory).SnapshotDirectory);
 
             // 正常終了マーカーの書き手を、消費と同じこの1箇所で据える。ロード中やゲート表示中の終了が異常終了に化ける窓を開けない
             // The clean-exit writer is installed at the same single spot that consumes the marks, leaving no window where a load-time or gate-time exit reads as a crash
-            CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId());
+            CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId(), ProcessSessionScope.CurrentSessionName);
 
-            // 前回の書きかけの進行記録も、印を読む同じ1箇所で畳む。書く側（ProgressRecorder）は回収を知らない
-            // The half-written progress records are folded at the same single spot that reads the marks; the writer (ProgressRecorder) knows nothing of the recovery
-            ProgressSessionRecovery.RecoverLeftoverSessions(PreviousSessionSalvage.ArtifactsOrNotRunDefault().PreviousExitWasClean);
+            // 前回の書きかけの進行記録も、印を読む同じ1箇所で畳む。pidごとの判定へ移すまでは、全pidが正常終了だったかへ畳んで渡す（F19の暫定）
+            // The half-written progress records are folded at the same single spot; until the per-pid verdict lands they receive "did every pid exit cleanly" (interim for F19)
+            ProgressSessionRecovery.RecoverLeftoverSessions(AllExitedCleanly(artifacts.ExitedCleanlyByProcessId));
+        }
+
+        private static bool AllExitedCleanly(IReadOnlyDictionary<int, bool> exitedCleanlyByProcessId)
+        {
+            foreach (var exitedCleanly in exitedCleanlyByProcessId.Values)
+                if (!exitedCleanly) return false;
+            return true;
         }
     }
 }

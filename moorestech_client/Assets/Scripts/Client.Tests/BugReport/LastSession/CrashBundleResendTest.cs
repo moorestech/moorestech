@@ -27,8 +27,8 @@ namespace Client.Tests.BugReport
             var recording = Path.Combine(source, "recording");
             Directory.CreateDirectory(recording);
 
-            var artifacts = new PreviousSessionArtifacts { PreviousExitWasClean = false, RecordingDirectory = recording };
-            var bundle = await new CrashBundleWriter(new EmptyPlaytestSessionIdentity()).WriteAsync(artifacts, "再送");
+            var artifacts = TestPreviousSessionArtifacts.UncleanWithRecording(recording);
+            var bundle = await new CrashBundleWriter().WriteAsync(artifacts, "再送");
 
             try
             {
@@ -55,11 +55,11 @@ namespace Client.Tests.BugReport
             Directory.CreateDirectory(unfinished);
             File.WriteAllText(Path.Combine(unfinished, "segment-0.mp4"), "video");
 
-            var artifacts = new PreviousSessionArtifacts { PreviousExitWasClean = false, RecordingDirectory = salvage };
+            var artifacts = TestPreviousSessionArtifacts.UncleanWithRecording(salvage);
 
             try
             {
-                CrashBundleWriter.RestoreSalvageFromUnfinishedBundle(Path.Combine(root, "box"), artifacts);
+                CrashBundleSalvageMover.RestoreSalvageFromUnfinishedBundle(Path.Combine(root, "box"), artifacts);
                 Assert.IsTrue(File.Exists(Path.Combine(salvage, "pid_1234", "segment-0.mp4")), "退避物が last-session へ戻っていない");
                 Assert.IsFalse(Directory.Exists(Path.Combine(root, "box")), "全件戻したのに未完成の箱が残っている");
             }
@@ -85,12 +85,12 @@ namespace Client.Tests.BugReport
             // A same-named file at the destination makes File.Move throw IOException, the only way a test can take the same path as a lock or a permission refusal
             File.WriteAllText(Path.Combine(salvage, "pid_1234", "segment-0.mp4"), "already there");
 
-            var artifacts = new PreviousSessionArtifacts { PreviousExitWasClean = false, RecordingDirectory = salvage };
+            var artifacts = TestPreviousSessionArtifacts.UncleanWithRecording(salvage);
 
             try
             {
                 LogAssert.Expect(LogType.Error, new Regex("退避物を last-session へ戻せませんでした"));
-                CrashBundleWriter.RestoreSalvageFromUnfinishedBundle(Path.Combine(root, "box"), artifacts);
+                CrashBundleSalvageMover.RestoreSalvageFromUnfinishedBundle(Path.Combine(root, "box"), artifacts);
 
                 Assert.IsTrue(artifacts.Missing.Any(item => item.Item == BugReportBundleLayout.RecordingDirectoryName), "戻せなかった退避物が欠損として積まれていない");
                 Assert.IsTrue(Directory.Exists(Path.Combine(root, "box")), "戻し切れていないのに未完成の箱が消えている");

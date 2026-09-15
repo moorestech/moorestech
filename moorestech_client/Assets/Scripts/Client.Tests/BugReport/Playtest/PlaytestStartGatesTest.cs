@@ -42,7 +42,7 @@ namespace Client.Tests.BugReport
         {
             LogAssert.Expect(LogType.Error, "PlaytestStartGates: WebUiHostが起動しておらず前回異常終了の確認を出せないため、確認せずに開始します");
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(null, new PreviousSessionArtifacts { PreviousExitWasClean = false });
+            var wait = PlaytestStartGates.WaitForGatesAsync(null, TestPreviousSessionArtifacts.Unclean());
             Assert.IsTrue(wait.Status.IsCompleted());
         }
 
@@ -54,7 +54,7 @@ namespace Client.Tests.BugReport
             PlaytestStartGateBypass.Apply();
             var hub = new WebSocketHub();
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(hub, new PreviousSessionArtifacts { PreviousExitWasClean = false });
+            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean());
 
             Assert.IsTrue(wait.Status.IsCompleted(), "無人起動なのに開始ゲートで待っている");
             Assert.IsNotNull(hub.ResolveTopic(CrashReportGateTopic.TopicName), "ゲートのtopicが未登録だとWeb側の購読が固着する");
@@ -69,7 +69,7 @@ namespace Client.Tests.BugReport
             if (File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
             var hub = new WebSocketHub();
 
-            var wait = PlaytestStartGates.WaitForGatesAsync(hub, new PreviousSessionArtifacts { PreviousExitWasClean = false });
+            var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean());
             Assert.IsFalse(wait.Status.IsCompleted(), "同意表示で待っていない");
 
             // 同意だけ答えても、前回異常終了の確認が残っているので開始はまだ進まない

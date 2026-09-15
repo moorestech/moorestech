@@ -11,7 +11,7 @@ namespace Client.Tests.BugReport
     {
         private const int DeadProcessId = 1234;
         private const int LiveProcessId = 5678;
-        private const int CurrentProcessId = 4321;
+        private const string SessionName = "session_100";
 
         private string _root;
         private string _recording;
@@ -40,26 +40,27 @@ namespace Client.Tests.BugReport
         [Test]
         public void 異常終了なら自分以外の死んだpidの録画とスナップショットを退避する()
         {
-            var deadDirectory = CreateProcessRecording(DeadProcessId);
+            var deadDirectory = CreateSessionRecording(DeadProcessId);
 
             var artifacts = PreviousSessionSalvage.Salvage(Request(Session(DeadProcessId, false, deadDirectory)));
 
             Assert.IsFalse(artifacts.PreviousExitWasClean);
-            Assert.Contains(DeadProcessId, artifacts.SalvagedProcessIds);
-            Assert.IsTrue(File.Exists(Path.Combine(artifacts.RecordingDirectory, $"pid_{DeadProcessId}", "segment-0.mp4")));
+            Assert.Contains(DeadProcessId, (System.Collections.ICollection)artifacts.SalvagedProcessIds);
+            Assert.IsTrue(File.Exists(Path.Combine(artifacts.RecordingDirectory, $"pid_{DeadProcessId}", SessionName, "segment-0.mp4")));
             Assert.IsTrue(File.Exists(Path.Combine(artifacts.SnapshotsDirectory, "tick_600.json")));
             Assert.IsTrue(artifacts.HasAnythingToSend);
 
-            // 次のセッションのリングが前回分の上に書かないよう、元は空になっている
-            // The originals are emptied so the next session's ring never writes on top of them
+            // 次のセッションのリングが前回分の上に書かないよう、元は空になり空のpid_<PID>も残らない
+            // The originals are emptied, including the emptied pid_<PID>, so the next session's ring never writes on top of them
             Assert.IsFalse(Directory.Exists(deadDirectory));
+            Assert.AreEqual(0, Directory.GetDirectories(_recording).Length);
             Assert.AreEqual(0, Directory.GetFiles(_snapshots, "*", SearchOption.AllDirectories).Length);
         }
 
         [Test]
         public void 生存している他プロセスの録画は退避も削除もせず理由を残す()
         {
-            var liveDirectory = CreateProcessRecording(LiveProcessId);
+            var liveDirectory = CreateSessionRecording(LiveProcessId);
             var request = Request();
             request.SkippedLiveProcessIds.Add(LiveProcessId);
 
@@ -78,7 +79,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 正常終了なら死んだpidの録画をディレクトリごと消す()
         {
-            var deadDirectory = CreateProcessRecording(DeadProcessId);
+            var deadDirectory = CreateSessionRecording(DeadProcessId);
 
             var artifacts = PreviousSessionSalvage.Salvage(Request(Session(DeadProcessId, true, deadDirectory)));
 
@@ -94,7 +95,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 正常終了なら前世代の退避物も消して1世代だけ保持する()
         {
-            var previousGeneration = Path.Combine(_lastSession, "recording", "pid_777");
+            var previousGeneration = Path.Combine(_lastSession, "recording", "pid_777", SessionName);
             Directory.CreateDirectory(previousGeneration);
             File.WriteAllText(Path.Combine(previousGeneration, "segment-0.mp4"), "old");
 
@@ -106,7 +107,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 退避元が空なら前世代の退避物を読み戻して聞き直せる()
         {
-            var previousGeneration = Path.Combine(_lastSession, "recording", "pid_777");
+            var previousGeneration = Path.Combine(_lastSession, "recording", "pid_777", SessionName);
             Directory.CreateDirectory(previousGeneration);
             File.WriteAllText(Path.Combine(previousGeneration, "segment-0.mp4"), "old");
 
@@ -139,32 +140,9 @@ namespace Client.Tests.BugReport
             Assert.IsFalse(PreviousSessionSalvage.Salvage(Request(Session(DeadProcessId, false, null))).PreviousExitWasClean);
         }
 
-        // 常時記録オフやffmpeg不在のEditorは録画ディレクトリを作らない。録画の有無で生存を判定すると、この印が消えて偽のクラッシュになる
-        // An Editor with capture off or no ffmpeg creates no recording directory; judging liveness by that would erase its mark and fabricate a crash
-        [Test]
-        public void 録画が無くても生存しているpidは前回セッションに数えない()
+        private string CreateSessionRecording(int processId)
         {
-            var scan = PreviousProcessScanner.Scan(CurrentProcessId, new RecordingProcessTakeover(), new[] { LiveProcessId, DeadProcessId }, new[] { LiveProcessId, CurrentProcessId });
-
-            Assert.AreEqual(1, scan.Sessions.Count);
-            Assert.AreEqual(DeadProcessId, scan.Sessions[0].ProcessId);
-            Assert.Contains(LiveProcessId, scan.SkippedLiveProcessIds);
-        }
-
-        // 録画ディレクトリを持つ生存pidも、印だけの生存pidも、同じ1つの生存集合で弾かれる
-        // A live pid with a recording directory and one with only a mark are both rejected by the same single liveness set
-        [Test]
-        public void 自分のpidは印があっても前回セッションにしない()
-        {
-            var scan = PreviousProcessScanner.Scan(CurrentProcessId, new RecordingProcessTakeover(), new[] { CurrentProcessId }, new[] { CurrentProcessId });
-
-            Assert.AreEqual(0, scan.Sessions.Count);
-            Assert.AreEqual(0, scan.SkippedLiveProcessIds.Count);
-        }
-
-        private string CreateProcessRecording(int processId)
-        {
-            var directory = RecordingProcessDirectories.DirectoryFor(_recording, processId);
+            var directory = ProcessSessionScope.SessionDirectoryFor(_recording, processId, SessionName);
             Directory.CreateDirectory(Path.Combine(directory, "live_0000"));
             File.WriteAllText(Path.Combine(directory, "segment-0.mp4"), "video");
             return directory;
@@ -172,7 +150,7 @@ namespace Client.Tests.BugReport
 
         private static PreviousProcessSession Session(int processId, bool exitedCleanly, string recordingDirectory)
         {
-            return new PreviousProcessSession { ProcessId = processId, ExitedCleanly = exitedCleanly, RecordingDirectory = recordingDirectory };
+            return new PreviousProcessSession { ProcessId = processId, SessionName = SessionName, ExitedCleanly = exitedCleanly, RecordingDirectory = recordingDirectory };
         }
 
         private PreviousSessionSalvageRequest Request(params PreviousProcessSession[] sessions)

@@ -13,12 +13,17 @@ namespace Client.Game.Common
     public static class GameShutdownEvent
     {
         private static readonly Subject<GameShutdownReason> _onGameShutdown = new();
+        private static readonly Subject<ShutdownFlushResult> _onShutdownFlushed = new();
         private static readonly List<IGameShutdownParticipant> _participants = new();
         private static bool _fired;
 
-        // 終了理由つきで発火するイベント
-        // Event carrying the shutdown reason
+        // 終了理由つきで発火するイベント。終了の意思が表明された時点で飛び、書き出しの完了は待たない
+        // Event carrying the shutdown reason; it fires when the intent to exit is declared, without waiting for any flush
         public static IObservable<GameShutdownReason> OnGameShutdown => _onGameShutdown;
+
+        // 全参加者の書き出しが終わった時点で、畳んだ結果つきで飛ぶ。意思表明（OnGameShutdown）と分けるのは、終了処理中の停止を検知可能にするため
+        // Fires once every participant's flush has finished, carrying the folded result; kept apart from the intent (OnGameShutdown) so a stall during shutdown stays detectable
+        public static IObservable<ShutdownFlushResult> OnShutdownFlushed => _onShutdownFlushed;
 
         // 起動シーケンスの開始でガードを戻す。初期化失敗が続いても各回の終了通知を落とさない
         // Reset the guard when a boot sequence starts, so repeated initialization failures never drop a shutdown
@@ -72,6 +77,7 @@ namespace Client.Game.Common
             // Only one value can come back, so the failures that folding erases are logged before they go
             var aggregated = AggregateByPriority(results);
             ReportMaskedFailures(results, aggregated);
+            _onShutdownFlushed.OnNext(aggregated);
             return aggregated;
         }
 
