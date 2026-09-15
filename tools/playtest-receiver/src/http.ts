@@ -34,11 +34,11 @@ export function requireAdmin(request: Request, env: Env): Response | null {
   return null;
 }
 
-// メソッド検査＋warn＋405 fail の3行を1箇所へ。7経路がこの形を個別実装していた
-// Bundles method check + warn + 405 fail into one call; 7 routes used to repeat this shape individually
-export function requireMethod(request: Request, method: string, label: string): Response | null {
-  if (request.method === method) return null;
-  console.warn(`[router] rejected method ${request.method} for ${label}`);
+// 全経路のメソッド検査＋warn＋405をここ1箇所で行う。複数メソッドを受ける経路も配列で渡す
+// Every route's method check + warn + 405 lives here; routes accepting several methods pass them as an array
+export function requireMethod(request: Request, allowedMethods: readonly string[], label: string): Response | null {
+  if (allowedMethods.includes(request.method)) return null;
+  console.warn(`[router] rejected method ${request.method} for ${label} (allowed: ${allowedMethods.join(", ")})`);
   return fail("method-not-allowed", 405);
 }
 

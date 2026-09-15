@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { handle } from "../src/index";
-import { pendingIndexKey } from "../src/keys";
-import { bearer, clean, ID, noNetwork, STEAM_ID, workerEnv } from "./support/uploadsFixture";
+import { handle } from "../../src/index";
+import { pendingIndexKey } from "../../src/keys";
+import { bearer, clean, ID, noNetwork, STEAM_ID, workerEnv } from "../support/uploadsFixture";
 
-// kind/path/Content-Length/メソッドの拒否系は uploads-validation.test.ts に分けている（200行規約）
-// Kind/path/Content-Length/method rejection cases live in uploads-validation.test.ts (the 200-line rule)
+// kind/path/Content-Length/メソッドの拒否系は uploads/validation.test.ts に分けている（200行規約）
+// Kind/path/Content-Length/method rejection cases live in uploads/validation.test.ts (the 200-line rule)
 describe("uploads", () => {
   beforeEach(clean);
 

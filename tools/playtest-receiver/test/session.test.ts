@@ -2,6 +2,7 @@ import { env } from "cloudflare:test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { handle } from "../src/index";
 import { ALLOWLIST_KEY, writeAllowlist } from "../src/allowlist";
+import { TOKEN_TTL_SECONDS } from "../src/contract";
 import { verifyToken } from "../src/token";
 import type { Env } from "../src/env";
 
@@ -27,10 +28,33 @@ describe("POST /v1/session", () => {
     await writeAllowlist(workerEnv.BUCKET, ["76561198000000001"]);
     const response = await handle(sessionRequest(JSON.stringify({ ticket: "aabb" })), workerEnv, steamOk("76561198000000001"));
     expect(response.status).toBe(200);
-    const body = (await response.json()) as { steamId: string; allowed: boolean; token: string };
+    const body = (await response.json()) as { steamId: string; allowed: boolean; token: string; expiresAt: string };
+    expect(Object.keys(body).sort()).toEqual(["allowed", "expiresAt", "steamId", "token"]);
     expect(body.steamId).toBe("76561198000000001");
     expect(body.allowed).toBe(true);
-    expect(await verifyToken(workerEnv.SESSION_HMAC_SECRET, body.token, Math.floor(Date.now() / 1000))).toBe("76561198000000001");
+    expect(await verifyToken(workerEnv.SESSION_HMAC_SECRET, body.token, Math.floor(Date.now() / 1000))).toEqual({ kind: "ok", steamId: "76561198000000001" });
+
+    // expiresAtはUTCのISO8601で、署名済みトークンのexp（発行時刻+TTL）と一致する
+    // expiresAt is a UTC ISO8601 string equal to the signed token's exp (issue time + TTL)
+    const payload = JSON.parse(atob(body.token.split(".")[1]!.replace(/-/g, "+").replace(/_/g, "/"))) as { iat: number; exp: number };
+    expect(body.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z$/);
+    expect(body.expiresAt).toBe(new Date(payload.exp * 1000).toISOString());
+    expect(payload.exp - payload.iat).toBe(TOKEN_TTL_SECONDS);
+  });
+
+  it("保存済みの許可リストが壊れていれば403ではなく503 allowlist-unavailable", async () => {
+    await workerEnv.BUCKET.put(ALLOWLIST_KEY, "{ broken");
+    const response = await handle(sessionRequest(JSON.stringify({ ticket: "aabb" })), workerEnv, steamOk("76561198000000001"));
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ reason: "allowlist-unavailable" });
+  });
+
+  it("Steam Web APIに到達できなければ401ではなく503 steam-unavailable", async () => {
+    await writeAllowlist(workerEnv.BUCKET, ["76561198000000001"]);
+    const steamDown = (async () => new Response("upstream error", { status: 502 })) as unknown as typeof fetch;
+    const response = await handle(sessionRequest(JSON.stringify({ ticket: "aabb" })), workerEnv, steamDown);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ reason: "steam-unavailable" });
   });
 
   it("許可リストに無ければ403", async () => {

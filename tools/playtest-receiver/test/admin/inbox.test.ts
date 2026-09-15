@@ -101,6 +101,19 @@ describe("admin api inbox", () => {
     expect(secondBody.cursor).toBeNull();
   });
 
+  // ACKEDが正本（F28）。ack途中で索引だけ残っても一覧に出さず、古い索引を片付ける
+  // ACKED is the source of truth (F28); a leftover index entry is hidden from the list and its stale key deleted
+  it("ACKED済みの索引はinboxに出ず索引も消える", async () => {
+    await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
+    await workerEnv.BUCKET.put(`reports/${STEAM_ID}/20260913_120000_aaaa1111/ACKED`, "2026-09-15T00:00:00.000Z");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const inbox = await handle(new Request("https://playtest.tar-atari.com/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
+    expect(((await inbox.json()) as { items: unknown[] }).items).toHaveLength(0);
+    expect(await workerEnv.BUCKET.head(`index/pending/report/${STEAM_ID}/20260913_120000_aaaa1111`)).toBeNull();
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it("pendingでないidをackすると404でwarnする", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(

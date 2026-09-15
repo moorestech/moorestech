@@ -1,12 +1,13 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { authenticateUserTicket, STEAM_IDENTITY } from "../src/steamAuth";
+import { STEAM_IDENTITY } from "../src/contract";
+import { authenticateUserTicket } from "../src/steamAuth";
 import type { Env } from "../src/env";
 
 const workerEnv = env as unknown as Env;
 
-function respond(body: unknown): typeof fetch {
-  return (async () => new Response(JSON.stringify(body), { status: 200 })) as unknown as typeof fetch;
+function respond(body: unknown, status = 200): typeof fetch {
+  return (async () => new Response(JSON.stringify(body), { status })) as unknown as typeof fetch;
 }
 
 describe("authenticateUserTicket", () => {
@@ -16,7 +17,7 @@ describe("authenticateUserTicket", () => {
       workerEnv,
       "aabb",
     );
-    expect(result.steamId).toBe("76561198000000001");
+    expect(result).toEqual({ kind: "verified", steamId: "76561198000000001" });
   });
 
   it("appid・identity・ticketをクエリに載せる", async () => {
@@ -31,32 +32,42 @@ describe("authenticateUserTicket", () => {
     expect(seen).toContain("ticket=aabb");
   });
 
-  it("error応答は失敗として理由を返す", async () => {
+  it("error応答はrejectedとして理由を返す", async () => {
     const result = await authenticateUserTicket(
       respond({ response: { error: { errorcode: 101, errordesc: "Invalid ticket" } } }),
       workerEnv,
       "aabb",
     );
-    expect(result.steamId).toBeNull();
-    expect(result.reason).toContain("101");
+    expect(result.kind).toBe("rejected");
+    expect(result.kind !== "verified" && result.reason).toContain("101");
   });
 
-  it("resultがOK以外なら失敗", async () => {
+  it("resultがOK以外ならrejected", async () => {
     const result = await authenticateUserTicket(
       respond({ response: { params: { result: "Expired", steamid: "76561198000000001" } } }),
       workerEnv,
       "aabb",
     );
-    expect(result.steamId).toBeNull();
+    expect(result).toEqual({ kind: "rejected", reason: "result-Expired" });
   });
 
-  it("Steam Web APIが落ちていれば失敗として畳む", async () => {
+  it("HTTP 5xxはunverifiable", async () => {
+    const result = await authenticateUserTicket(respond({}, 503), workerEnv, "aabb");
+    expect(result).toEqual({ kind: "unverifiable", reason: "http-503" });
+  });
+
+  it("paramsもerrorも無い応答はunverifiable", async () => {
+    const result = await authenticateUserTicket(respond({ response: {} }), workerEnv, "aabb");
+    expect(result).toEqual({ kind: "unverifiable", reason: "malformed-response" });
+  });
+
+  it("Steam Web APIが落ちていればunverifiableとして畳む", async () => {
     const broken = (async () => {
       throw new Error("connection reset");
     }) as unknown as typeof fetch;
     const result = await authenticateUserTicket(broken, workerEnv, "aabb");
-    expect(result.steamId).toBeNull();
-    expect(result.reason).toContain("connection reset");
+    expect(result.kind).toBe("unverifiable");
+    expect(result.kind !== "verified" && result.reason).toContain("connection reset");
   });
 
   it("fetch例外のメッセージにpublisher keyが含まれていればログ・reasonから伏せる（レビューMinor 2）", async () => {
@@ -64,7 +75,7 @@ describe("authenticateUserTicket", () => {
       throw new Error(`fetch failed: https://partner.steam-api.com/...?key=${workerEnv.STEAM_WEB_API_KEY}&appid=1`);
     }) as unknown as typeof fetch;
     const result = await authenticateUserTicket(leaking, workerEnv, "aabb");
-    expect(result.steamId).toBeNull();
+    if (result.kind === "verified") throw new Error("expected a failure");
     expect(result.reason).not.toContain(workerEnv.STEAM_WEB_API_KEY);
     expect(result.reason).toContain("***");
   });

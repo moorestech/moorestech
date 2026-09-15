@@ -2,7 +2,7 @@ import { readAllowlist } from "../allowlist";
 import type { Env } from "../env";
 import { fail, json, requireMethod } from "../http";
 import { authenticateUserTicket } from "../steamAuth";
-import { signToken } from "../token";
+import { signToken, tokenExpiresAtSeconds } from "../token";
 
 // hexエンコードされたバイナリチケットは必ず偶数長。奇数長は形の時点で弾く
 // A hex-encoded binary ticket is always even length; odd lengths are rejected by shape alone
@@ -12,7 +12,7 @@ const TICKET_PATTERN = /^(?:[0-9a-fA-F]{2}){1,4096}$/;
 // Path matching and method checks live here; returns null on a non-match so index.ts can try the next route
 export async function routeSession(request: Request, env: Env, steamFetch: typeof fetch, segments: string[]): Promise<Response | null> {
   if (!(segments.length === 2 && segments[0] === "v1" && segments[1] === "session")) return null;
-  const denied = requireMethod(request, "POST", "/v1/session");
+  const denied = requireMethod(request, ["POST"], "/v1/session");
   if (denied !== null) return denied;
   return postSession(request, env, steamFetch);
 }
@@ -21,23 +21,37 @@ async function postSession(request: Request, env: Env, steamFetch: typeof fetch)
   const ticket = await readTicket(request);
   if (ticket === null) return fail("bad-request", 400);
 
+  // Steamの否認は401、Steamに聞けなかったときは再試行可能な503。理由はsteamAuth側でwarn済み
+  // A Steam denial is 401 and an unreachable Steam is a retryable 503; steamAuth has already warned the reason
   const verified = await authenticateUserTicket(steamFetch, env, ticket);
-  if (verified.steamId === null) return fail("invalid-ticket", 401);
+  if (verified.kind === "rejected") return fail("invalid-ticket", 401);
+  if (verified.kind === "unverifiable") {
+    console.warn(`[session] refused: Steam could not verify the ticket (${verified.reason})`);
+    return fail("steam-unavailable", 503);
+  }
 
+  // 許可リストが壊れていたら誰も通さず503。空リスト扱いの403にするとテスターへ誤った恒久拒否を返す
+  // A corrupt allowlist lets nobody in with 503; treating it as empty (403) would tell testers they are permanently denied
   const allowlist = await readAllowlist(env.BUCKET);
-  if (!allowlist.includes(verified.steamId)) {
+  if (allowlist.kind === "corrupt") {
+    console.warn(`[session] refused: the allowlist is unavailable (${allowlist.reason})`);
+    return fail("allowlist-unavailable", 503);
+  }
+  if (!allowlist.steamIds.includes(verified.steamId)) {
     console.warn(`[session] ${verified.steamId} is not on the allowlist`);
     return fail("not-allowed", 403);
   }
 
-  const token = await signToken(env.SESSION_HMAC_SECRET, verified.steamId, Math.floor(Date.now() / 1000));
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const token = await signToken(env.SESSION_HMAC_SECRET, verified.steamId, nowSeconds);
   if (token === null) {
     // SESSION_HMAC_SECRET未設定はtoken.ts側で既にwarn済み。ここでは200へtoken:nullを漏らさず500へ畳む
     // token.ts already warns about a missing SESSION_HMAC_SECRET; here we must not leak token:null in a 200
     console.warn("[session] cannot issue a token because signing is unavailable");
     return fail("server-misconfigured", 500);
   }
-  return json({ steamId: verified.steamId, allowed: true, token });
+  const expiresAt = new Date(tokenExpiresAtSeconds(nowSeconds) * 1000).toISOString();
+  return json({ steamId: verified.steamId, allowed: true, token, expiresAt });
 }
 
 async function readTicket(request: Request): Promise<string | null> {

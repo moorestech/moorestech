@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { handle } from "../src/index";
-import { bearer, clean, ID, noNetwork, workerEnv } from "./support/uploadsFixture";
+import { handle } from "../../src/index";
+import { bearer, clean, ID, noNetwork, workerEnv } from "../support/uploadsFixture";
 
 // kind不正・path不正・Content-Length不正・メソッド不正の拒否系。成功系は uploads.test.ts
 // Rejection cases for bad kind/path/Content-Length/method; success cases live in uploads.test.ts

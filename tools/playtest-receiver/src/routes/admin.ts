@@ -1,4 +1,5 @@
 import { readAllowlist, writeAllowlist } from "../allowlist";
+import { ackedMarkerKey, isAcked } from "../bundleMarkers";
 import type { Env } from "../env";
 import { fail, json, requireAdmin, requireMethod } from "../http";
 import {
@@ -11,7 +12,6 @@ import {
   pendingIndexKey,
   type PlaytestKind,
 } from "../keys";
-import { ACKED_MARKER } from "./uploads";
 
 const INBOX_PAGE_SIZE = 100;
 
@@ -27,10 +27,9 @@ export async function routeAdmin(request: Request, env: Env, segments: string[])
   if (denied !== null) return denied;
 
   if (segments[1] === "allowlist" && segments.length === 2) {
-    if (request.method === "GET") return getAllowlist(env);
-    if (request.method === "PUT") return putAllowlist(request, env);
-    console.warn(`[router] rejected method ${request.method} for /v1/allowlist`);
-    return fail("method-not-allowed", 405);
+    const denied = requireMethod(request, ["GET", "PUT"], "/v1/allowlist");
+    if (denied !== null) return denied;
+    return request.method === "GET" ? getAllowlist(env) : putAllowlist(request, env);
   }
 
   if (segments[1] === "inbox") return routeInbox(request, env, segments);
@@ -42,7 +41,7 @@ export async function routeAdmin(request: Request, env: Env, segments: string[])
 
 async function routeInbox(request: Request, env: Env, segments: string[]): Promise<Response> {
   if (segments.length === 2) {
-    const denied = requireMethod(request, "GET", "/v1/inbox");
+    const denied = requireMethod(request, ["GET"], "/v1/inbox");
     if (denied !== null) return denied;
     return getInbox(request, env);
   }
@@ -67,11 +66,11 @@ async function routeInbox(request: Request, env: Env, segments: string[]): Promi
 
   const rest = segments.slice(5);
   if (rest.length === 1 && rest[0] === "ack") {
-    const denied = requireMethod(request, "POST", "inbox ack");
+    const denied = requireMethod(request, ["POST"], "inbox ack");
     if (denied !== null) return denied;
     return postAck(env, kind, steamId, id);
   }
-  const denied = requireMethod(request, "GET", "inbox object");
+  const denied = requireMethod(request, ["GET"], "inbox object");
   if (denied !== null) return denied;
   return getInboxObject(env, kind, steamId, id, rest);
 }
@@ -87,6 +86,13 @@ async function getInbox(request: Request, env: Env): Promise<Response> {
     const parsed = parsePendingIndexKey(object.key);
     if (parsed === null) {
       console.warn(`[inbox] skipped an index key with an unexpected shape: ${object.key}`);
+      continue;
+    }
+    // ACKEDが正本。ack途中の失敗等で索引だけ残った項目は一覧から外し、古い索引も片付ける
+    // ACKED is the source of truth; an index entry left behind (e.g. a crash mid-ack) is excluded and its stale key deleted
+    if (await isAcked(env.BUCKET, parsed.kind, parsed.steamId, parsed.id)) {
+      console.warn(`[inbox] dropped a stale pending index entry for an acked bundle: ${object.key}`);
+      await env.BUCKET.delete(object.key);
       continue;
     }
     items.push({ kind: parsed.kind, steamId: parsed.steamId, id: parsed.id, readyAt: object.uploaded.toISOString() });
@@ -117,28 +123,35 @@ async function getInboxObject(
   return new Response(object.body, { headers: { "content-type": "application/octet-stream" } });
 }
 
-// ackは「pendingの実在確認→ACKEDを書く→索引を消す」の3手。途中で落ちても項目は見えたままになる
-// Ack is three steps: confirm the pending entry exists, write ACKED, then drop the index, so a crash in between leaves the item still visible
+// ackは「ACKED済みなら冪等200→pendingの実在確認→ACKEDを書く→索引を消す」。ACKEDを先に書くので途中で落ちても取り込み済みは確定する
+// Ack: idempotent 200 if already ACKED, else confirm pending, write ACKED, drop the index; ACKED is written first so a crash still settles "ingested"
 async function postAck(env: Env, kind: PlaytestKind, steamId: string, id: string): Promise<Response> {
   const indexKey = pendingIndexKey(kind, steamId, id);
-  const ackedKey = `${bundlePrefix(kind, steamId, id)}/${ACKED_MARKER}`;
-  const pending = await env.BUCKET.head(indexKey);
-  if (pending === null) {
-    // 索引が無くてもACKED済みなら再送とみなし冪等に200。ACKEDも無ければ本物のID取り違えで404
-    // No index but ACKED present means a retry, so answer 200 idempotently; if ACKED is absent too, it's a genuine mismatch, so 404
-    const alreadyAcked = await env.BUCKET.head(ackedKey);
-    if (alreadyAcked !== null) return json({ acked: true });
+  if (await isAcked(env.BUCKET, kind, steamId, id)) {
+    // 再送（at-least-once）。残っていれば索引も消して200
+    // A retry (at-least-once); also drop any leftover index and answer 200
+    await env.BUCKET.delete(indexKey);
+    return json({ acked: true });
+  }
+  if ((await env.BUCKET.head(indexKey)) === null) {
     console.warn(`[inbox] rejected ack for an item that is not pending: ${indexKey}`);
     return fail("not-found", 404);
   }
 
-  await env.BUCKET.put(ackedKey, new Date().toISOString());
+  await env.BUCKET.put(ackedMarkerKey(kind, steamId, id), new Date().toISOString());
   await env.BUCKET.delete(indexKey);
   return json({ acked: true });
 }
 
+// 破損時は503。空リストを返すとGET→編集→全置換PUTで既存の許可リストを消し飛ばす。修復はPUTの全置換で行う
+// Corruption answers 503; returning [] would let GET -> edit -> full PUT wipe the list. Repair is done with a full-replace PUT
 async function getAllowlist(env: Env): Promise<Response> {
-  return json({ steamIds: await readAllowlist(env.BUCKET) });
+  const allowlist = await readAllowlist(env.BUCKET);
+  if (allowlist.kind === "corrupt") {
+    console.warn(`[allowlist] refused GET: the stored allowlist is corrupt (${allowlist.reason})`);
+    return fail("allowlist-unavailable", 503);
+  }
+  return json({ steamIds: allowlist.steamIds });
 }
 
 async function putAllowlist(request: Request, env: Env): Promise<Response> {
@@ -157,9 +170,9 @@ async function putAllowlist(request: Request, env: Env): Promise<Response> {
     return fail("bad-request", 400);
   }
 
-  await writeAllowlist(env.BUCKET, steamIds);
+  const stored = await writeAllowlist(env.BUCKET, steamIds);
   // 成功時の監査ログ。拒否理由ではないのでwarnではなくlogを使う
   // Success-path audit log; not a rejection reason, so this uses log rather than warn
-  console.log(`[allowlist] replaced with ${new Set(steamIds).size} steamIds`);
-  return json({ steamIds: [...new Set(steamIds)] });
+  console.log(`[allowlist] replaced with ${stored.length} steamIds`);
+  return json({ steamIds: stored });
 }

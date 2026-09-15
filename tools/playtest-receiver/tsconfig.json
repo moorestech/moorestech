@@ -8,7 +8,8 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true
   },
-  "include": ["src", "test"]
+  "include": ["src", "test", "contract.json"]
 }
