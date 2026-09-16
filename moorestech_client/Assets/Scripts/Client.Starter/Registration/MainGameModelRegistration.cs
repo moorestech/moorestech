@@ -21,6 +21,9 @@ using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.World;
 using Client.Game.InGame.UnlockState;
 using Client.Network.API;
+using Client.PlaytestReceiver;
+using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Upload;
 using Core.Item.Interface;
 using Game.Construction;
 using Game.Context;
@@ -47,6 +50,12 @@ namespace Client.Starter.Registration
             // バグ報告の確保と進行記録。同意ゲートを出せない起動では集めない
             // Bug-report capture and the progress record; boots that cannot show the consent gate collect nothing
             PlaytestRecordRegistration.Register(builder, collectsPlaytestRecords);
+
+            // 報告直後の押し場。送るかの判断と単線化は走行役側
+            // The push site used right after a report; the runner decides whether to ship and keeps runs single
+            builder.RegisterInstance<IPlaytestReceiverApi>(new PlaytestReceiverClient(PlaytestReceiverConfig.BaseUrl));
+            builder.RegisterInstance(PlaytestOutboxDirectories.FromGameSystemPaths());
+            builder.Register<PlaytestUploadRunner>(Lifetime.Singleton).As<IPlaytestUploadRequester>();
 
             // 操作枠と設置数の状態購読を登録
             // Register state subscriptions for hotbar and remaining placements

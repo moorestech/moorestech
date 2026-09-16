@@ -1,0 +1,21 @@
+{
+    "name": "Client.PlaytestReceiver",
+    "rootNamespace": "",
+    "references": [
+        "Game.Paths",
+        "Nuget",
+        "UniTask",
+        "Client.Localization",
+        "com.rlabrecque.steamworks.net",
+        "UniRx"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

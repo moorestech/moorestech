@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using UnityEngine;
 
 namespace Game.Paths
 {
@@ -41,6 +42,10 @@ namespace Game.Paths
         // サーバーから受け取った派生データの置き場。削除しても再取得で復元される
         // Holds data derived from the server; deleting it only forces a re-fetch
         public static string WorldCacheDirectory => DirectoryCreator(GameSystemDirectory, "cache", "worlds");
+
+        // ビルド時に焼くbuild-info.json。配布ビルドの印とリポジトリ状態の置き場を兼ねる
+        // The build-info.json baked at build time; it marks a distribution build and carries the repository state
+        public static string BuildInfoFilePath => Path.Combine(Application.streamingAssetsPath, "build-info.json");
 
         // バグ報告の常時記録とoutbox。ワールドとは独立に持つ
         // Always-on capture and outbox for bug reports; independent of any world

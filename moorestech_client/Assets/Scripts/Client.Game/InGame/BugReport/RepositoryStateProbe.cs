@@ -117,7 +117,7 @@ namespace Client.Game.InGame.BugReport
                 return BuildOriginReading.Editor();
             }
 
-            var path = Path.Combine(Application.streamingAssetsPath, BuildInfoFileName);
+            var path = GameSystemPaths.BuildInfoFilePath;
             if (!File.Exists(path))
             {
                 var absentReason = $"配布ビルドに build-info.json が無いため出所が不明 path:{path}";

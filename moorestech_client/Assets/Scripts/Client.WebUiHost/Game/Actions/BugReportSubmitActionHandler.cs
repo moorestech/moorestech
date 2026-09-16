@@ -3,6 +3,7 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
+using Client.PlaytestReceiver;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -17,14 +18,16 @@ namespace Client.WebUiHost.Game.Actions
         private readonly BugReportCaptureSession _session;
         private readonly UIStateControl _uiStateControl;
         private readonly IPlaytestProgressSink _progressSink;
+        private readonly IPlaytestUploadRequester _uploadRequester;
         public string ActionType => "bug_report.submit";
 
-        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl, IPlaytestProgressSink progressSink)
+        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl, IPlaytestProgressSink progressSink, IPlaytestUploadRequester uploadRequester)
         {
             _writer = writer;
             _session = session;
             _uiStateControl = uiStateControl;
             _progressSink = progressSink;
+            _uploadRequester = uploadRequester;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -71,6 +74,10 @@ namespace Client.WebUiHost.Game.Actions
             // 送信は購読で観測できないので、成功した操作の直後にプッシュする
             // A send is not observable through any subscription, so it is pushed right after the successful operation
             _progressSink.RecordReportSent(kind);
+
+            // 書き出した箱の送信を要求する
+            // Ask for the freshly written box to ship; the runner decides from the gate verdict whether it actually ships
+            _uploadRequester.RequestUpload();
 
             // 閉じは既存のWeb境界1本へ寄せる。閉じられなくても報告自体は書けているので成功として返す
             // Closing goes through the one existing web boundary; a refused close still leaves a written report, so the send succeeds

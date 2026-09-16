@@ -1,0 +1,72 @@
+using Mooresmaster.Localization.Generated;
+
+namespace Client.PlaytestReceiver.Gate
+{
+    public enum PlaytestGateStatus
+    {
+        NotEvaluated,
+        DeveloperMode,
+        Checking,
+        Allowed,
+        NotAllowed,
+        Unreachable,
+        TicketFailed,
+    }
+
+    // 照合の結末。止めるか・理由の文言キー・許可されたセッションをここだけが持つ
+    // The verdict of the check; whether to stop, which reason key to show and the allowed session live only here
+    public sealed class PlaytestGateResult
+    {
+        public readonly PlaytestGateStatus Status;
+
+        // ログ専用。テスター向けの文言には出さない
+        // For developer logs only; never shown in the tester-facing text
+        public readonly string Detail;
+
+        private readonly PlaytestSession _allowedSession;
+
+        private PlaytestGateResult(PlaytestGateStatus status, string detail, PlaytestSession allowedSession)
+        {
+            Status = status;
+            Detail = detail ?? "";
+            _allowedSession = allowedSession;
+        }
+
+        // 未評価は止める側に倒す。判定前に開始経路が素通しできる窓を作らない
+        // Not-yet-evaluated counts as blocked so no start path can slip through before the verdict
+        public static PlaytestGateResult NotEvaluated => new(PlaytestGateStatus.NotEvaluated, "", null);
+        public static PlaytestGateResult DeveloperMode => new(PlaytestGateStatus.DeveloperMode, "", null);
+        public static PlaytestGateResult Checking => new(PlaytestGateStatus.Checking, "", null);
+
+        public static PlaytestGateResult Allowed(PlaytestSession session)
+        {
+            return new PlaytestGateResult(PlaytestGateStatus.Allowed, "", session);
+        }
+
+        public static PlaytestGateResult Blocked(PlaytestGateStatus status, string detail)
+        {
+            return new PlaytestGateResult(status, detail, null);
+        }
+
+        public bool IsBlocked => Status != PlaytestGateStatus.DeveloperMode && Status != PlaytestGateStatus.Allowed;
+
+        public bool TryGetAllowedSession(out PlaytestSession session)
+        {
+            session = _allowedSession;
+            return Status == PlaytestGateStatus.Allowed;
+        }
+
+        // IsBlockedのときだけ読まれる。到達不能は理由を特定できなかった場合の総称なので既定に置く
+        // Read only while IsBlocked; unreachable is the catch-all for a cause we could not pin down, so it is the default
+        public LocalizationKey ReasonKey
+        {
+            get
+            {
+                if (Status == PlaytestGateStatus.NotEvaluated || Status == PlaytestGateStatus.Checking) return LocalizationKeys.Ui.Playtest.Checking;
+                if (Status == PlaytestGateStatus.NotAllowed) return LocalizationKeys.Ui.Playtest.NotAllowed;
+                if (Status == PlaytestGateStatus.TicketFailed) return LocalizationKeys.Ui.Playtest.TicketFailed;
+                return LocalizationKeys.Ui.Playtest.Unreachable;
+            }
+        }
+    }
+}

@@ -1,0 +1,16 @@
+name = "moorestech-playtest-receiver"
+main = "src/index.ts"
+# テストのworkerdが解釈できる最新日付。これより先を書くとテストと本番で意味論がずれる
+# The newest date the test workerd understands; a later date would split test and production semantics
+compatibility_date = "2026-08-22"
+
+# プレイテスト受け口の固定ドメイン。DNSはCloudflare上のtar-atari.comゾーンに属する
+# Fixed domain for the playtest receiver; DNS lives in the tar-atari.com zone on Cloudflare
+routes = [{ pattern = "playtest.tar-atari.com", custom_domain = true }]
+
+[vars]
+STEAM_APP_ID = "1958160"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "moorestech-playtest"

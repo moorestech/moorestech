@@ -6,6 +6,7 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
+using Client.Tests.PlaytestReceiver;
 using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
@@ -36,14 +37,17 @@ namespace Client.Tests.EditModeInPlayingTest.Util
         // The kind is a contract value the webui toggle always sends; a request without it is refused as invalid_kind
         public static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, PlaytestReportKind kind, IReadOnlyCollection<string> before)
         {
+            var uploadRequester = new RecordingUploadRequester();
             var handler = new BugReportSubmitActionHandler(
                 resolver.Resolve<BugReportBundleWriter>(),
                 resolver.Resolve<BugReportCaptureSession>(),
                 resolver.Resolve<UIStateControl>(),
-                resolver.Resolve<IPlaytestProgressSink>());
+                resolver.Resolve<IPlaytestProgressSink>(),
+                uploadRequester);
             var kindText = PlaytestReportKindText.ToContractText(kind);
             var result = await handler.ExecuteAsync(new JObject { ["description"] = description, ["kind"] = kindText });
             Assert.IsTrue(result.Ok, result.Error);
+            Assert.AreEqual(1, uploadRequester.RequestCount, "書けた箱は送信の押し場を必ず1回押す");
 
             // 起動時の退避が kind=crash の箱を同じoutboxへ足すため、増えた箱を数えるだけでは偽陽性になる。種別で絞る
             // The boot-time salvage adds a kind=crash box to the same outbox, so counting new boxes alone yields false positives; filter by kind
