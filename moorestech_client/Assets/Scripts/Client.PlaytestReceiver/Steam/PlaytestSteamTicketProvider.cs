@@ -2,7 +2,9 @@ using System;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+#if !UNITY_EDITOR_LINUX
 using Steamworks;
+#endif
 using UnityEngine;
 
 namespace Client.PlaytestReceiver.Steam
@@ -16,6 +18,28 @@ namespace Client.PlaytestReceiver.Steam
         void ReleaseWebApiTicket();
     }
 
+    // Linux EditorのCIには非公開Steamworksアセットが無いため、テスト用の拒否実装へ切り替える
+    // CI's Linux Editor lacks the private Steamworks asset, so switch to a rejecting test implementation
+#if UNITY_EDITOR_LINUX
+    public sealed class PlaytestSteamTicketProvider : IPlaytestSteamTicketProvider
+    {
+        public bool IsSteamRunning()
+        {
+            Debug.Log("[PlaytestReceiver] Steam is unavailable in the Linux Editor");
+            return false;
+        }
+
+        public UniTask<string> RequestWebApiTicketHexAsync(CancellationToken token)
+        {
+            Debug.LogWarning("[PlaytestReceiver] Steam ticket requests are unavailable in the Linux Editor");
+            return UniTask.FromResult<string>(null);
+        }
+
+        public void ReleaseWebApiTicket()
+        {
+        }
+    }
+#else
     // Web API用の認証チケットを取る。SteamManagerはAssembly-CSharp側にあり参照できないのでネイティブへ直接聞く
     // Obtains the Web API auth ticket; SteamManager lives in Assembly-CSharp and is unreachable, so we ask Steam directly
     public sealed class PlaytestSteamTicketProvider : IPlaytestSteamTicketProvider
@@ -157,4 +181,5 @@ namespace Client.PlaytestReceiver.Steam
             return builder.ToString();
         }
     }
+#endif
 }
