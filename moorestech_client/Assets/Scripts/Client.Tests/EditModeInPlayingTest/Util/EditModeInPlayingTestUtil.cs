@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Common;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
 using Client.Starter;
 using Core.Item.Interface;
@@ -35,7 +36,11 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             // テスト中はデバッグオブジェクトの生成を無効化（ドメインリロード後も保持される）
             // Disable debug object creation during test (persists across domain reload).
             SessionState.SetBool("DebugObjectsBootstrap_Disabled", true);
-            
+
+            // 応答者のいないテスト起動なので開始ゲートを出さない。印は起動時にゲートが読んだ時点で消費される
+            // A test boot has nobody to answer, so the start gates stay closed; the gate consumes the mark when it reads it at boot
+            PlaytestStartGateBypass.Apply();
+
             AssetBundle.UnloadAllAssetBundles(true);
         }
         

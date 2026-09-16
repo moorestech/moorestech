@@ -116,11 +116,11 @@ namespace Client.Tests.BugReport
         [Test]
         public void ffmpegが無いときは警告を出して理由を残す()
         {
-            LogAssert.Expect(LogType.Warning, $"録画リングを開始しません: {GameFrameRecorder.MissingFfmpegReason}");
-            var missing = GameFrameRecorder.ResolveInitialAvailability(null);
+            LogAssert.Expect(LogType.Warning, $"録画リングを開始しません: {FfmpegLocator.MissingFfmpegReason}");
+            var missing = FfmpegLocator.ResolveInitialAvailability(null);
             Assert.IsFalse(missing.IsAvailable);
-            Assert.AreEqual(GameFrameRecorder.MissingFfmpegReason, missing.Reason);
-            Assert.IsTrue(GameFrameRecorder.ResolveInitialAvailability("/opt/homebrew/bin/ffmpeg").IsAvailable);
+            Assert.AreEqual(FfmpegLocator.MissingFfmpegReason, missing.Reason);
+            Assert.IsTrue(FfmpegLocator.ResolveInitialAvailability("/opt/homebrew/bin/ffmpeg").IsAvailable);
         }
 
         // 録れていないのに理由が空だと、報告側が「録れている」枝へ入って古い区間を同梱していた

@@ -1,9 +1,7 @@
 import { useMemo, useSyncExternalStore } from "react";
-import {
-  VanillaLocalizationKeys,
-  type VanillaLocalizationKey,
-} from "./generated/localizationKeys";
+import { VanillaLocalizationKeys, type VanillaLocalizationKey } from "./generated/localizationKeys";
 import type { ContentLocalizationKey } from "./contentKeys";
+import { resolvePreDictionaryText } from "./preDictionaryText";
 
 export const FALLBACK_LOCALE = "english";
 
@@ -130,17 +128,19 @@ export function createTranslationResolver(current: I18nSnapshot) {
   };
 }
 
+// 辞書が来る前に出る画面の文言もキーから引く。対応表はi18n内部が持ち、呼び出し側に文言もstatus分岐も持たせない
+// Pre-dictionary copy is also looked up by key; i18n owns the table internally so callers carry neither copy nor a status branch
 export function createTranslator(current: I18nSnapshot) {
   const resolve = createTranslationResolver(current);
-  return (key: TranslationKey, values: InterpolationValues = {}): string => {
-    const translation = resolve(key, values);
+  return (key: TranslationKey, values?: InterpolationValues): string => {
+    const translation = resolve(key, values ?? {});
     switch (translation.kind) {
       case "resolved":
         return translation.text;
-      // 表示できる辞書が無い間は空文字。取得中でも失敗後でも欠落マーカーで画面を埋めない
-      // Without a displayable dictionary return empty text, both while loading and after a failure
+      // 表示できる辞書が無い間は辞書前文言表へ落ちる。無ければ空文字で、欠落マーカーで画面を埋めない
+      // Without a displayable dictionary this drops to the pre-dictionary table, else empty text rather than a marker
       case "dictionaryAbsent":
-        return "";
+        return resolvePreDictionaryText(key);
       // 欠落キーは目立つプレースホルダで露出させる
       // Surface missing keys with a loud placeholder
       case "keyMissing":

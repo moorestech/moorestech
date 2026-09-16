@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Client.Game.InGame.BugReport.BuildOrigin;
 using Game.Paths;
 
 namespace Client.Game.InGame.BugReport
@@ -17,29 +18,59 @@ namespace Client.Game.InGame.BugReport
 
         // リポジトリの場所は Application.dataPath 由来でメインスレッドでしか読めない。呼び出し側が読んだ値を受け取る
         // The roots derive from Application.dataPath, readable only on the main thread, so the caller passes what it read
-        public static void Write(string directory, BugReportManifest manifest, BugReportBuildInfo buildInfo, string repositoryRoot, string masterDataRoot)
+        // 分岐は出所の3状態だけを見る。Editor以外で git probe に入ると、配布先に偶然ある無関係な作業ツリーを名乗ってしまう（F01）
+        // The branch looks only at the three origin states; entering the git probe outside the Editor would claim some unrelated working tree on the player's machine (F01)
+        public static void Write(string directory, BugReportManifest manifest, BuildOriginReading buildOrigin, string repositoryRoot, string masterDataRoot)
         {
-            // ビルド実行にはgitも作業ツリーも無い。焼き込んだコミットだけを載せ、取れない分は理由付きで欠損に残す
-            // A build has neither git nor a working tree; it carries only the baked commit and records the rest as missing
-            if (buildInfo != null)
+            switch (buildOrigin.Kind)
             {
-                manifest.Repository = buildInfo.Repository;
-                if (string.IsNullOrEmpty(buildInfo.Repository.Commit)) manifest.AddMissing("repository", "build-info.jsonが無くリポジトリ状態が不明");
-                manifest.AddMissing($"{BugReportBundleLayout.RepositoryDirectoryName}/{HeadDiffFileName}", "ビルド実行のため未コミット差分は取れない");
-
-                // 焼き込まれたマスタの状態は読めたときだけ載せる。空の状態を載せると別マスタでの再現がクリーン扱いになる
-                // The baked master state is claimed only when it was readable; an empty one would make a different master look clean
-                if (buildInfo.MasterData != null) manifest.MasterData = buildInfo.MasterData;
-                else manifest.AddMissing("masterData", "ビルドにマスタデータのリポジトリ状態が焼かれていない");
-                manifest.AddMissing($"{BugReportBundleLayout.RepositoryDirectoryName}/{MasterDiffFileName}", "ビルド実行のためマスタデータの未コミット差分は取れない");
-                return;
+                case BuildOriginKind.Editor:
+                    WriteWorkingTreeState(directory, manifest, repositoryRoot, masterDataRoot);
+                    return;
+                case BuildOriginKind.BakedBuild:
+                    WriteBakedState(manifest, buildOrigin);
+                    return;
+                case BuildOriginKind.BuildWithoutInfo:
+                    WriteUnknownOrigin(manifest, buildOrigin.MissingReason);
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(buildOrigin), buildOrigin.Kind, "未知の出所の種類");
             }
+        }
 
-            // ディスクは外部資源。本体repoとマスタrepoを別々に隔離し、片方の失敗でもう片方の状態まで落とさない
-            // Disk is an external resource; the two repositories are isolated separately so one failure never drops the other's state
+        // ディスクは外部資源。本体repoとマスタrepoを別々に隔離し、片方の失敗でもう片方の状態まで落とさない
+        // Disk is an external resource; the two repositories are isolated separately so one failure never drops the other's state
+        private static void WriteWorkingTreeState(string directory, BugReportManifest manifest, string repositoryRoot, string masterDataRoot)
+        {
             var repo = Path.Combine(directory, BugReportBundleLayout.RepositoryDirectoryName);
             manifest.Repository = WriteIsolated(repositoryRoot, repo, HeadDiffFileName, "untracked", manifest);
             manifest.MasterData = WriteIsolated(masterDataRoot, repo, MasterDiffFileName, "master-untracked", manifest);
+        }
+
+        // ビルド実行にはgitも作業ツリーも無い。焼き込んだ状態だけを載せ、取れない分は理由付きで欠損に残す
+        // A build has neither git nor a working tree; it carries only the baked state and records the rest as missing
+        private static void WriteBakedState(BugReportManifest manifest, BuildOriginReading buildOrigin)
+        {
+            var baked = BuildInfoJson.ToBugReportBuildInfo(buildOrigin.BuildInfo);
+            manifest.Repository = baked.Repository;
+            foreach (var missing in buildOrigin.Missing) manifest.AddMissing(missing.Item, missing.Reason);
+            manifest.AddMissing($"{BugReportBundleLayout.RepositoryDirectoryName}/{HeadDiffFileName}", "ビルド実行のため未コミット差分は取れない");
+
+            // 焼き込まれたマスタの状態は読めたときだけ載せる。空の状態を載せると別マスタでの再現がクリーン扱いになる
+            // The baked master state is claimed only when it was readable; an empty one would make a different master look clean
+            if (baked.MasterData != null) manifest.MasterData = baked.MasterData;
+            else manifest.AddMissing("masterData", "ビルドにマスタデータのリポジトリ状態が焼かれていない");
+            manifest.AddMissing($"{BugReportBundleLayout.RepositoryDirectoryName}/{MasterDiffFileName}", "ビルド実行のためマスタデータの未コミット差分は取れない");
+        }
+
+        // 焼き込み情報の無い配布ビルドは、どのコミットかを名乗れない。空の状態も作業ツリーの状態も載せずnullのまま理由を残す
+        // A distributed build without baked info cannot name its commit; neither an empty state nor a working tree's is claimed, only the reason
+        private static void WriteUnknownOrigin(BugReportManifest manifest, string reason)
+        {
+            manifest.Repository = null;
+            manifest.MasterData = null;
+            manifest.AddMissing("repository", reason);
+            manifest.AddMissing("masterData", reason);
         }
 
         // ディスクIOは外部境界。握るのはディスク由来の失敗だけで、実装バグは握らず呼び出し側へ抜けさせる
@@ -53,7 +84,7 @@ namespace Client.Game.InGame.BugReport
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
             {
                 manifest.AddMissing(diffName, $"リポジトリ状態の書き出しに失敗した: {e.Message}");
-                return new RepositoryState { Commit = "", Branch = "", Dirty = false };
+                return null;
             }
         }
 
@@ -64,7 +95,7 @@ namespace Client.Game.InGame.BugReport
             if (probe.Error != null)
             {
                 manifest.AddMissing(diffName, probe.Error);
-                return new RepositoryState { Commit = "", Branch = "", Dirty = false };
+                return null;
             }
 
             // 問い合わせの失敗は1件ずつ箱へ残す。受け側はこれが無いと「差分なし」と「取れなかった」を区別できない

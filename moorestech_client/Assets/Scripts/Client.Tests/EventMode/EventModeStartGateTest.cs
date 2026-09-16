@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Localization;
 using Client.Starter.EventMode;
 using Client.WebUiHost.Game.EventMode;
@@ -34,7 +35,7 @@ namespace Client.Tests.EventMode
         [Test]
         public void 出展モードでなければ即座に完了し監視も作らない()
         {
-            var task = EventModeStartGate.WaitForLanguageSelectionAsync();
+            var task = EventModeStartGate.WaitForLanguageSelectionAsync(CancellationToken.None);
 
             Assert.IsTrue(task.Status.IsCompletedSuccessfully());
             Assert.AreEqual(0, Object.FindObjectsByType<EventIdleQuitWatcher>(FindObjectsSortMode.None).Length);
@@ -48,9 +49,25 @@ namespace Client.Tests.EventMode
             var gate = new EventLanguageGate(true);
             var armer = new RecordingIdleWatchArmer(gate);
 
-            var order = EventModeStartGate.AwaitSelectionThenArmAsync(gate, IdleTimeoutSeconds, armer);
+            var order = EventModeStartGate.AwaitSelectionThenArmAsync(gate, IdleTimeoutSeconds, armer, CancellationToken.None);
 
             Assert.IsFalse(order.Status.IsCompleted());
+            Assert.AreEqual(0, armer.ArmedTimeoutSeconds.Count);
+        }
+
+        // 終了のキャンセルが来たら選択を待たずに抜け、武装もしない
+        // An exit cancellation leaves without waiting for the choice and never arms
+        [Test]
+        public void 終了のキャンセルで言語選択の待ちを打ち切り武装しない()
+        {
+            var gate = new EventLanguageGate(true);
+            var armer = new RecordingIdleWatchArmer(gate);
+            using var exit = new CancellationTokenSource();
+
+            var order = EventModeStartGate.AwaitSelectionThenArmAsync(gate, IdleTimeoutSeconds, armer, exit.Token);
+            exit.Cancel();
+
+            Assert.IsTrue(order.Status.IsCanceled());
             Assert.AreEqual(0, armer.ArmedTimeoutSeconds.Count);
         }
 
@@ -60,7 +77,7 @@ namespace Client.Tests.EventMode
             var gate = new EventLanguageGate(true);
             var armer = new RecordingIdleWatchArmer(gate);
 
-            var order = EventModeStartGate.AwaitSelectionThenArmAsync(gate, IdleTimeoutSeconds, armer);
+            var order = EventModeStartGate.AwaitSelectionThenArmAsync(gate, IdleTimeoutSeconds, armer, CancellationToken.None);
             Assert.AreEqual(EventLanguageSelectionResult.Applied, gate.TrySelectLanguage("english"));
 
             yield return order.ToCoroutine();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
@@ -5,6 +6,7 @@ using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.SoundEffect;
 using Server.Protocol.PacketResponse;
+using UniRx;
 
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
 {
@@ -14,6 +16,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     /// </summary>
     public static class PlaceBlockProtocolSender
     {
+        private static readonly Subject<int> _placeBlockSent = new();
+
+        // このクライアントが送った設置確定のセル数。サーバーの設置イベントは設置者を載せないため、本人の設置はここでしか分からない
+        // The cell count of each placement this client confirmed; the server's placement event carries no placer, so only this reveals one's own placements
+        public static IObservable<int> OnPlaceBlockSent => _placeBlockSent;
+
         // 空バッチは送らないという不変条件を送信本体が持つ。戻り値は送信したか
         // The "never send an empty batch" invariant lives here in the sender; returns whether it sent
         public static bool SendPlaceBlockProtocol(List<PlaceInfo> currentPlaceInfos)
@@ -30,6 +38,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             if (record.HasCells) ClientDIContext.BuildOperationHistory.Push(record);
 
             SoundEffectManager.Instance.PlaySoundEffect(SoundEffectType.PlaceBlock);
+            _placeBlockSent.OnNext(currentPlaceInfos.Count);
             return true;
         }
 

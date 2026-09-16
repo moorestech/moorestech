@@ -1,6 +1,6 @@
 import { Component, type ReactNode } from "react";
 import { Button, Stack, Text, Title } from "@mantine/core";
-import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
+import { L, useI18n } from "@/shared/i18n";
 
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
@@ -33,14 +33,13 @@ export class AppErrorBoundary extends Component<Props, State> {
 }
 
 function AppErrorFallback() {
-  const { status, t } = useI18n();
+  const { t } = useI18n();
 
-  // 辞書が未確定なら t() は空文字か欠落マーカーになるため、辞書非依存リテラルへ落とす
-  // Before the dictionary is ready t() yields empty text or markers, so fall back to dictionary-independent literals
-  const dictionaryReady = status === "ready";
-  const title = dictionaryReady ? t(L.ui.error.uiErrorOccurred) : DictionaryIndependentText.uiErrorOccurred;
-  const description = dictionaryReady ? t(L.ui.error.renderFailed) : DictionaryIndependentText.renderFailed;
-  const reloadLabel = dictionaryReady ? t(L.ui.error.reload) : DictionaryIndependentText.reload;
+  // 辞書が未確定なら t() は第3引数の辞書非依存リテラルへ落ちる
+  // Before the dictionary is ready t() drops to the third argument's dictionary-independent literal
+  const title = t(L.ui.error.uiErrorOccurred);
+  const description = t(L.ui.error.renderFailed);
+  const reloadLabel = t(L.ui.error.reload);
 
   return (
     <Stack align="center" justify="center" h="100vh" gap="md" p="lg">

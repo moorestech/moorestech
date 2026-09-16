@@ -50,6 +50,7 @@ namespace Client.Starter
             // 新しい起動シーケンスの開始。前回セッションの終了ガードをここで戻す
             // A new boot sequence begins; clear the previous session's shutdown guard here
             GameShutdownEvent.ResetForNewSession();
+            GameShutdownEvent.InstallApplicationQuitDeferral();
 
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
@@ -74,22 +75,16 @@ namespace Client.Starter
             }
 
 #if UNITY_EDITOR
-            // 起動引数は内蔵サーバー専用のためローカル接続時のみ上書きする
-            // Launch args belong to the embedded server, so override them only for local connections
-            if (!_proprieties.IsRemoteConnection)
-            {
-                // 専用再生ボタン時はセーブ無効化
-                // Skip save/load for the dedicated play button
-                Editor.SkipSaveLoadPlayModeSettings.ApplyIfNeeded(_proprieties);
-
-                // 生成ワールド起動引数を上書き
-                // Override launch args for the generated-world play button
-                Editor.GeneratedWorldPlayModeSettings.ApplyIfNeeded(_proprieties);
-            }
+            Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);
 #endif
 
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
+
+            // 前回セッションの印を読む処理はここ1箇所へ束ねてある（ADR 0060 裁定5）。記録を集めるかもここで1度だけ決める
+            // Everything that reads the previous session's marks is bundled into this single spot (ADR 0060 adjudication 5); whether to collect records is decided once here too
+            var collectsPlaytestRecords = Playtest.PlaytestRecordCollection.Decide(_proprieties.IsRemoteConnection, Client.WebUiHost.Boot.WebUiHost.Hub != null);
+            Playtest.PreviousSessionStartupTasks.RunAtStartup(collectsPlaytestRecords, _proprieties.IsRemoteConnection, args.WorldDirectory);
 
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();
@@ -136,7 +131,7 @@ namespace Client.Starter
 
                 // 起動済みの内蔵サーバーを道連れに畳む。残すと同一セーブへ書く権威が二重になる
                 // Fold the embedded server that already started; leaving it doubles the authority writing the same save
-                GameShutdownEvent.FireGameShutdown();
+                GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
 
                 loadingProgressLog.Append(LocalizationKeys.Ui.Loading.InitializationFailed);
                 await UniTask.Delay(2000);
@@ -177,13 +172,20 @@ namespace Client.Starter
 
                 // Forget境界の例外を専用callbackで観測し、DI未構築のMainGameへ取り残さない
                 // Observe the forgotten boundary through its dedicated callback so MainGame is never stranded without DI
-                new MainGameInitializationFinalizer(serverResult, serverDirectory).RunAsync().Forget(exception =>
+                new MainGameInitializationFinalizer(serverResult, serverDirectory, _proprieties.IsRemoteConnection, collectsPlaytestRecords).RunAsync(exitToken).Forget(exception =>
                 {
+                    // Play終了で開始ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
+                    // Cancelling the start-gate wait on play exit is not a failure, so it never returns to the main menu
+                    if (exception is OperationCanceledException)
+                    {
+                        Debug.Log("Initialization was aborted because an exit cancellation arrived midway");
+                        return;
+                    }
                     Debug.LogError($"初期化処理中にエラーが発生しました: {exception.GetType()} {exception.Message}\n{exception.StackTrace}");
 
                     // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
                     // Every path back to the main menu takes the embedded server down with it
-                    GameShutdownEvent.FireGameShutdown();
+                    GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
 
                     SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 });
@@ -191,6 +193,5 @@ namespace Client.Starter
 
             #endregion
         }
-
     }
 }

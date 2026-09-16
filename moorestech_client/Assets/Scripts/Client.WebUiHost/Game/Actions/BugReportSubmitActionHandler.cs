@@ -1,5 +1,7 @@
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -14,13 +16,15 @@ namespace Client.WebUiHost.Game.Actions
         private readonly BugReportBundleWriter _writer;
         private readonly BugReportCaptureSession _session;
         private readonly UIStateControl _uiStateControl;
+        private readonly IPlaytestProgressSink _progressSink;
         public string ActionType => "bug_report.submit";
 
-        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl)
+        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl, IPlaytestProgressSink progressSink)
         {
             _writer = writer;
             _session = session;
             _uiStateControl = uiStateControl;
+            _progressSink = progressSink;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -32,12 +36,23 @@ namespace Client.WebUiHost.Game.Actions
                 return ActionResult.Fail("empty_description");
             }
 
+            // 種別は webui のトグルが必ず載せる。載っていない・範囲外は壊れた要求として拒否する
+            // The webui toggle always sends a kind; a missing or out-of-range value is a broken request
+            // 文字列からの変換はこの payload パースだけで行い、以降は enum で持ち回す
+            // Conversion from the string happens only at this payload parse; the enum is carried from here on
+            var kindText = payload?["kind"]?.ToString() ?? "";
+            if (!PlaytestReportKindText.TryParseSubmittableFromPauseMenu(kindText, out var kind))
+            {
+                Debug.LogWarning($"プレイ報告の種別が不正なため送信しません kind:{kindText}");
+                return ActionResult.Fail("invalid_kind");
+            }
+
             // 確保中・確保なし・二重送信の判定は確保セッションが持つ。ここで再実装すると判定の権威が2つになる
             // The capture session owns the pending / no-session / double-send decision; re-implementing it here would create a second authority
             var ticket = _session.TryBeginSubmit();
             if (!ticket.Allowed) return ActionResult.Fail(ticket.RefusedCode);
 
-            var result = await _writer.WriteAsync(ticket.Data, description);
+            var result = await _writer.WriteAsync(ticket.Data, description, kind);
 
             // 書き出しで判明した欠損は確保状態へ戻す。戻さないと報告者は欠けたまま送ったことを知る機会が無い
             // Missing items found while writing go back into the capture state; otherwise the reporter never learns what was dropped
@@ -52,6 +67,10 @@ namespace Client.WebUiHost.Game.Actions
             }
 
             Debug.Log($"バグ報告を書き出しました {result.BundleDirectory} missing:{result.Missing.Count}");
+
+            // 送信は購読で観測できないので、成功した操作の直後にプッシュする
+            // A send is not observable through any subscription, so it is pushed right after the successful operation
+            _progressSink.RecordReportSent(kind);
 
             // 閉じは既存のWeb境界1本へ寄せる。閉じられなくても報告自体は書けているので成功として返す
             // Closing goes through the one existing web boundary; a refused close still leaves a written report, so the send succeeds

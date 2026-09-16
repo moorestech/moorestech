@@ -15,7 +15,7 @@ namespace Client.Tests.Starter
             var participant = new ControllableShutdownParticipant();
             GameShutdownEvent.RegisterParticipant(participant);
 
-            var shutdown = GameShutdownEvent.FireGameShutdownAsync();
+            var shutdown = GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
             Assert.AreEqual(UniTaskStatus.Pending, shutdown.Status);
 
             participant.Complete(ShutdownFlushResult.FlushTimedOut);
@@ -29,11 +29,11 @@ namespace Client.Tests.Starter
             var participant = new ControllableShutdownParticipant();
             GameShutdownEvent.RegisterParticipant(participant);
 
-            var shutdown = GameShutdownEvent.FireGameShutdownAsync();
+            var shutdown = GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
             participant.Complete(ShutdownFlushResult.Flushed);
             Assert.AreEqual(ShutdownFlushResult.Flushed, shutdown.GetAwaiter().GetResult());
 
-            var secondShutdown = GameShutdownEvent.FireGameShutdownAsync();
+            var secondShutdown = GameShutdownEvent.FireGameShutdownAsync(GameShutdownReason.IntentionalExit);
             Assert.AreEqual(ShutdownFlushResult.AlreadyShutdown, secondShutdown.GetAwaiter().GetResult());
         }
 
