@@ -75,7 +75,7 @@ namespace Client.WebUiHost.Game.Actions
             // A send is not observable through any subscription, so it is pushed right after the successful operation
             _progressSink.RecordReportSent(kind);
 
-            // 書けた箱をその場で送りにいく。送るかどうかは走行役が照合結果から決める
+            // 書き出した箱の送信を要求する
             // Ask for the freshly written box to ship; the runner decides from the gate verdict whether it actually ships
             _uploadRequester.RequestUpload();
 
