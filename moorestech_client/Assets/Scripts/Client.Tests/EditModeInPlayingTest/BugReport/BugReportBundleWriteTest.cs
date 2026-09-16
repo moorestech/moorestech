@@ -3,12 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport;
-using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.UI.UIState;
-using Client.Tests.PlaytestReceiver;
 using Client.Tests.EditModeInPlayingTest.Util;
-using Client.WebUiHost.Game.Actions;
 using Cysharp.Threading.Tasks;
 using Game.Context;
 using Game.Paths;
@@ -34,6 +32,7 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
 
             yield return Body().ToCoroutine();
             yield return new ExitPlayMode();
+
             UnityEditor.SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
 
             #region Internal
@@ -48,14 +47,14 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 ServerContext.GetService<WorldSnapshotRing>().Start(null, null, null);
                 await UniTask.Delay(1000);
 
-                var before = ExistingBundles();
-                var session = await OpenPauseMenuAndWaitCapture(resolver);
+                var before = BugReportSubmitUtil.ExistingBundles();
+                var session = await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
                 Assert.IsFalse(session.Status.Value.Missing.Contains("serverSnapshot"), "サーバースナップショットの確保に失敗した");
 
-                var bundle = await SubmitAndTakeNewBundle(resolver, "テスト報告", before);
+                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "テスト報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("テスト報告", (string)manifest["description"]);
-                AssertPlanCManifestContract(bundle, manifest);
+                BundleManifestContract.AssertPlanC(bundle, manifest);
 
                 var missing = MissingItems(manifest);
                 Assert.IsFalse(missing.Contains("serverSnapshot"), "サーバースナップショットが欠損扱いになっている");
@@ -106,17 +105,17 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
                 var resolver = ClientDIContext.DIContainer.DIContainerResolver;
                 Assert.IsFalse(ServerContext.GetService<WorldSnapshotRing>().IsActive, "常時記録が動いていては拒否経路を通れない");
 
-                var before = ExistingBundles();
-                var session = await OpenPauseMenuAndWaitCapture(resolver);
+                var before = BugReportSubmitUtil.ExistingBundles();
+                var session = await BugReportSubmitUtil.OpenPauseMenuAndWaitCapture(resolver);
                 Assert.IsTrue(session.Status.Value.Missing.Contains("serverSnapshot"), "拒否されたのに確保状態が欠損を持っていない");
 
-                var bundle = await SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", before);
+                var bundle = await BugReportSubmitUtil.SubmitAndTakeNewBundle(resolver, "確保に失敗した報告", PlaytestReportKind.Bug, before);
                 var manifest = JObject.Parse(File.ReadAllText(Path.Combine(bundle, "manifest.json")));
                 Assert.AreEqual("確保に失敗した報告", (string)manifest["description"]);
 
                 // 添付が欠けても残った資料で送る（.decisions 2026-09-11）。運搬対象の印と契約キーは欠損時も揃っている
                 // Ship whatever survived even when attachments are missing (.decisions 2026-09-11); the ship marker and contract keys stay
-                AssertPlanCManifestContract(bundle, manifest);
+                BundleManifestContract.AssertPlanC(bundle, manifest);
                 Assert.IsTrue(File.Exists(Path.Combine(bundle, "logs", "unity.log")), "確保に失敗した報告からUnityログまで落ちている");
 
                 var missing = MissingItems(manifest);
@@ -134,48 +133,6 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
             #endregion
         }
 
-        private static async UniTask<BugReportCaptureSession> OpenPauseMenuAndWaitCapture(IObjectResolver resolver)
-        {
-            var session = resolver.Resolve<BugReportCaptureSession>();
-            resolver.Resolve<UIStateControl>().RequestTransition(UIStateEnum.PauseMenu);
-
-            // サーバー確保の打ち切り上限は15秒なので、それより長く待って確定を見届ける
-            // The server capture gives up after 15 seconds, so wait longer than that to see it settle
-            for (var i = 0; i < 400 && session.Status.Value.Kind != BugReportCaptureStatus.Ready; i++) await UniTask.Delay(50);
-
-            Assert.AreEqual(BugReportCaptureStatus.Ready, session.Status.Value.Kind, "ポーズメニューを開いても20秒以内に送信できる状態にならない");
-            return session;
-        }
-
-        private static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, IReadOnlyCollection<string> before)
-        {
-            var uploadRequester = new RecordingUploadRequester();
-            var handler = new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>(), uploadRequester);
-            var result = await handler.ExecuteAsync(new JObject { ["description"] = description });
-            Assert.IsTrue(result.Ok, result.Error);
-            Assert.AreEqual(1, uploadRequester.RequestCount, "書けた箱は送信の押し場を必ず1回押す");
-
-            var added = ExistingBundles().Except(before).ToList();
-            Assert.AreEqual(1, added.Count, "送信でoutboxに増えた箱が1つではない");
-            return added[0];
-        }
-
-        // plan C の prepare-run.sh / ship-outbox.sh が読むキー。欠けると Mac mini 側が最初の1行で落ちる
-        // The keys plan C's prepare-run.sh and ship-outbox.sh read; missing one kills the Mac mini side on its first line
-        private static void AssertPlanCManifestContract(string bundle, JObject manifest)
-        {
-            Assert.IsTrue(File.Exists(Path.Combine(bundle, BugReportOutbox.ReadyMarkerFileName)), "READYが無い箱は運搬されない");
-            Assert.IsNotNull(manifest["repository"], "prepare-run.sh が読む repository が無い");
-            // 40桁で確認する。スレッド違反でgitを呼べていないと空文字のまま通ってしまう
-            // Checked as 40 digits: a thread violation that never reaches git would slip through as an empty string
-            Assert.AreEqual(40, ((string)manifest["repository"]["commit"]).Length, "prepare-run.sh が読む repository.commit がコミットハッシュでない");
-            Assert.IsNotNull((string)manifest["repository"]["branch"], "prepare-run.sh が読む repository.branch が無い");
-            Assert.IsNotNull(manifest["masterData"], "prepare-run.sh が読む masterData が無い");
-            Assert.IsNotNull((string)manifest["masterData"]["commit"], "prepare-run.sh が読む masterData.commit が無い");
-            Assert.IsInstanceOf<JArray>(manifest["snapshotTicks"], "prepare-run.sh が読む snapshotTicks が配列でない");
-            Assert.IsInstanceOf<JArray>(manifest["missing"], "missing が配列でない");
-        }
-
         // 欠損は同じ項目名が複数回載りうる（確保側と書き出し側の両方が理由を足す）ため一覧のまま扱う
         // The same item can appear more than once (both capture and writer add reasons), so keep it as a list
         private static List<string> MissingItems(JObject manifest)
@@ -188,12 +145,6 @@ namespace Client.Tests.EditModeInPlayingTest.BugReport
             var uiState = resolver.Resolve<UIStateControl>();
             for (var i = 0; i < 40 && uiState.CurrentState != UIStateEnum.GameScreen; i++) await UniTask.Delay(50);
             Assert.AreEqual(UIStateEnum.GameScreen, uiState.CurrentState, "送信後にポーズメニューが閉じていない");
-        }
-
-        private static List<string> ExistingBundles()
-        {
-            Directory.CreateDirectory(GameSystemPaths.BugReportOutboxDirectory);
-            return Directory.GetDirectories(GameSystemPaths.BugReportOutboxDirectory).ToList();
         }
     }
 }

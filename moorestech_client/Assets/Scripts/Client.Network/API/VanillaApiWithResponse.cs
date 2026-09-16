@@ -261,6 +261,14 @@ namespace Client.Network.API
             return response.PlayedSkitIds;
         }
 
+        // 進行記録がセッション開始時に1回だけ読む。可変状態の同期ではないので初期データ取得のみ
+        // The progress record reads this once at session start; it syncs no mutable state, so a fetch is enough
+        public async UniTask<GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack> GetWorldPlaySessionInfo(CancellationToken ct)
+        {
+            var request = new GetWorldPlaySessionInfoProtocol.RequestWorldPlaySessionInfoMessagePack();
+            return await _packetExchangeManager.GetPacketResponse<GetWorldPlaySessionInfoProtocol.ResponseWorldPlaySessionInfoMessagePack>(request, ct);
+        }
+
         public async UniTask<CompleteResearchProtocol.ResponseCompleteResearchMessagePack> CompleteResearch(Guid researchGuid, CancellationToken ct)
         {
             var request = new CompleteResearchProtocol.RequestCompleteResearchMessagePack(_playerConnectionSetting.PlayerId, researchGuid);

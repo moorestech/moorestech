@@ -3,11 +3,14 @@ using Client.Game.InGame.ColliderStreaming.Block;
 using Client.Game.InGame.BlockSystem.StateProcessor;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
 using Client.Game.InGame.Player;
+using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.Presenter.Player;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.Skit;
@@ -31,7 +34,7 @@ namespace Client.Starter.Registration
 {
     internal static class MainGameModelRegistration
     {
-        public static void Register(ContainerBuilder builder, InitialHandshakeResponse initialHandshakeResponse)
+        public static void Register(ContainerBuilder builder, InitialHandshakeResponse initialHandshakeResponse, bool collectsPlaytestRecords)
         {
             builder.RegisterInstance(initialHandshakeResponse);
             builder.RegisterInstance(ClientContext.VanillaApi.Event);
@@ -44,16 +47,9 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<NetworkDisconnectState>().AsSelf();
             builder.Register<GameSaveRequester>(Lifetime.Singleton);
 
-            // バグ報告の常時記録（ログリング・録画リング）
-            // Always-on capture for bug reports (log ring, frame recording ring)
-            builder.RegisterEntryPoint<UnityLogRing>().AsSelf();
-            builder.RegisterEntryPoint<GameFrameRecorder>().AsSelf();
-            builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
-            builder.Register<IBugReportCaptureSources, BugReportCaptureSources>(Lifetime.Singleton);
-            builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
-            builder.RegisterEntryPoint<BugReportCaptureEventHandler>();
-            builder.RegisterEntryPoint<BugReportUiStatePusher>();
-            builder.RegisterEntryPoint<BugReportPauseMenuTrigger>();
+            // バグ報告の確保と進行記録。同意ゲートを出せない起動では集めない
+            // Bug-report capture and the progress record; boots that cannot show the consent gate collect nothing
+            PlaytestRecordRegistration.Register(builder, collectsPlaytestRecords);
 
             // 報告直後の押し場。送るかの判断と単線化は走行役側
             // The push site used right after a report; the runner decides whether to ship and keeps runs single

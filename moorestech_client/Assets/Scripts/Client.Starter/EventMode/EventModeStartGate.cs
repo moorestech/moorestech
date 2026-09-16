@@ -1,3 +1,4 @@
+using System.Threading;
 using Client.WebUiHost.Game.EventMode;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -10,7 +11,7 @@ namespace Client.Starter.EventMode
     /// </summary>
     public static class EventModeStartGate
     {
-        public static async UniTask WaitForLanguageSelectionAsync()
+        public static async UniTask WaitForLanguageSelectionAsync(CancellationToken ct)
         {
             var settings = EventExhibitionSettings.FromEnvironment();
 
@@ -33,14 +34,16 @@ namespace Client.Starter.EventMode
                 return;
             }
 
-            await AwaitSelectionThenArmAsync(gate, settings.IdleTimeoutSeconds, armer);
+            await AwaitSelectionThenArmAsync(gate, settings.IdleTimeoutSeconds, armer, ct);
         }
 
         // 「選択を待ってから武装する」順序がこのゲートの契約そのものなので、順序だけを切り出して押さえる
         // The wait-then-arm order is this gate's contract itself, so the order alone is split out to be pinned by tests
-        internal static async UniTask AwaitSelectionThenArmAsync(EventLanguageGate gate, int idleTimeoutSeconds, IEventIdleWatchArmer armer)
+        // 待ちは上限を持たないため、終了のキャンセルが来たら来場者の選択を待たずに抜ける
+        // The wait is unbounded, so an exit cancellation leaves without waiting for the visitor's choice
+        internal static async UniTask AwaitSelectionThenArmAsync(EventLanguageGate gate, int idleTimeoutSeconds, IEventIdleWatchArmer armer, CancellationToken ct)
         {
-            await gate.WaitForSelectionAsync();
+            await gate.WaitForSelectionAsync().AttachExternalCancellation(ct);
 
             // 選択の継続はaction処理スタックの中で走る。ここで手放さないと初期化の間WSの受信ループが止まる
             // The continuation resumes inside the action's stack, so yielding here keeps the WS receive loop alive during initialization

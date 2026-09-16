@@ -16,6 +16,7 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.Playtest.Progress;
 using Client.PlaytestReceiver;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
@@ -91,10 +92,9 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
             C4WebUiRegistration.Register(hub);
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
-            // 現在言語トピックを登録（辞書本体はHTTP endpointから取得）
-            // Register the current-locale topic (dictionary bodies come from the HTTP endpoint)
-            var localizationTopic = new LocalizationTopic(hub);
-            hub.RegisterTopic(LocalizationTopic.TopicName, localizationTopic);
+            // 現在言語トピックは開始ゲートより前に登録済み。ゲートを通らない接続経路のためここでも冪等に確かめる
+            // The current-locale topic is registered ahead of the start gates; this idempotent call covers paths that skip them
+            LocalizationTopic.EnsureRegistered(hub);
 
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
@@ -170,6 +170,10 @@ namespace Client.WebUiHost.Game
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
             HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>(), uiStateControl);
 
+            // 購読で観測できない操作は記録側へプッシュする。窓口は記録を集めない起動でも必ず登録されている
+            // Operations no subscription observes are pushed to the recorder; the window is registered even on boots that collect no records
+            var progressSink = resolver.Resolve<IPlaytestProgressSink>();
+
             // action ハンドラ登録
             // Register action handlers
             // debug.echo は EchoActionHandler と同じくエディタ/開発ビルド限定で登録する
@@ -200,7 +204,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));
             hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
-            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>(), resolver.Resolve<IPlaytestUploadRequester>()));
+            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), uiStateControl, progressSink, resolver.Resolve<IPlaytestUploadRequester>()));
         }
     }
 }

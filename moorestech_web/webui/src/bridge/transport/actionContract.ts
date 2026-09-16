@@ -23,6 +23,15 @@ export const NestedPauseSubStateNames = {
   pauseMenuScreen: "PauseMenuScreen",
 } as const;
 
+// C#のPlaytestReportKindと1対1で対応する報告種別。既定はバグ（ADR 0058）
+// Report kinds mirroring C#'s PlaytestReportKind one-to-one; bug is the default (ADR 0058)
+export const PauseMenuReportKinds = {
+  bug: "bug",
+  feedback: "feedback",
+} as const;
+
+export type PauseMenuReportKind = (typeof PauseMenuReportKinds)[keyof typeof PauseMenuReportKinds];
+
 // action type → payload 型の対応表。dispatchAction がこれで型付けされる
 // action type → payload type registry; types dispatchAction
 export type ActionPayloads = {
@@ -54,9 +63,11 @@ export type ActionPayloads = {
   "ui_state.request": { state: typeof UiStateNames.gameScreen | typeof UiStateNames.playerInventory };
   "pause_menu.save": Record<string, never>;
   "pause_menu.save_and_quit": Record<string, never>;
-  "bug_report.submit": { description: string };
+  "bug_report.submit": { description: string; kind: PauseMenuReportKind };
   "localization.setLocale": { locale: string };
   "event_mode.select_language": { locale: string };
+  "playtest.crash_report.respond": { send: boolean; description: string };
+  "playtest.consent.acknowledge": Record<string, never>;
   "research.complete": { researchGuid: string };
   "machine_recipe.select": { operation: "set" | "clear"; recipeGuid?: string };
   "filter_splitter.set_mode": { directionIndex: number; mode: "default" | "whitelist" | "blacklist" };
@@ -104,6 +115,8 @@ export const ACTION_TYPES = [
   "bug_report.submit",
   "localization.setLocale",
   "event_mode.select_language",
+  "playtest.crash_report.respond",
+  "playtest.consent.acknowledge",
   "research.complete",
   "machine_recipe.select",
   "filter_splitter.set_mode",

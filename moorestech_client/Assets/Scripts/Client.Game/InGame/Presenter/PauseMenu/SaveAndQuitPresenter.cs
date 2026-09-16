@@ -36,10 +36,12 @@ namespace Client.Game.InGame.Presenter.PauseMenu
 
         // 通信の切断は終了経路と破棄経路の双方から来る。終了通知は既発火なら無視される
         // Teardown reaches here from both the exit and destroy paths; an already-fired shutdown notice is ignored
+        // ここへ来るのは待てない経路だけ（ビルドのウィンドウ閉じは終了要求の保留で待つ正規口を先に通る）
+        // Only unawaitable paths arrive here; a build's window close already went through the awaiting exit via the quit deferral
         private void Disconnect()
         {
             ClientContext.VanillaApi.Disconnect();
-            GameShutdownEvent.FireGameShutdown();
+            GameShutdownEvent.FireGameShutdown(GameShutdownReason.UnawaitableExit);
         }
 
         private void LogQuitFailure(Exception exception)

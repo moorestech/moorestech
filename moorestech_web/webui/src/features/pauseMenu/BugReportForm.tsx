@@ -2,9 +2,10 @@
 // Bug-report form placed directly in the pause menu; C# has secured the Escape-moment records, this only adds text and sends
 import { Button } from "@mantine/core";
 import { useState } from "react";
-import { dispatchAction, readTopic, Topics, type PauseMenuData } from "@/bridge";
+import { dispatchAction, PauseMenuReportKinds, readTopic, Topics, type PauseMenuData, type PauseMenuReportKind } from "@/bridge";
 import { emitToast } from "@/features/toast";
 import { L, useI18n } from "@/shared/i18n";
+import { ModeSwitch } from "@/shared/ui";
 import styles from "./style.module.css";
 
 type Props = {
@@ -14,6 +15,7 @@ type Props = {
 export function BugReportForm({ status }: Props) {
   const { t } = useI18n();
   const [description, setDescription] = useState("");
+  const [kind, setKind] = useState<PauseMenuReportKind>(PauseMenuReportKinds.bug);
   const [sending, setSending] = useState(false);
 
   const trimmedDescription = description.trim();
@@ -29,7 +31,7 @@ export function BugReportForm({ status }: Props) {
     setSending(true);
     // 失敗時のトーストは dispatchAction が出すため、ここでは書き出し成功だけを伝える
     // dispatchAction toasts the failure itself, so this path only reports a successful write
-    const ok = await dispatchAction("bug_report.submit", { description: trimmedDescription });
+    const ok = await dispatchAction("bug_report.submit", { description: trimmedDescription, kind });
     setSending(false);
     if (!ok) return;
 
@@ -38,24 +40,39 @@ export function BugReportForm({ status }: Props) {
     const missing = readTopic(Topics.pauseMenu)?.bugReport.missing ?? [];
     if (missing.length === 0) emitToast(t(L.ui.bugReport.sent), "info");
     else emitToast(t(L.ui.bugReport.missing, { items: missing.join(", ") }), "error");
+
+    // 種別も既定へ戻す。残すと次の1件が前回の種別のまま箱詰めされ、既定はバグ（ADR 0058）が効かなくなる
+    // Reset the kind too: leaving it boxes the next report under the previous kind and voids the bug default (ADR 0058)
     setDescription("");
+    setKind(PauseMenuReportKinds.bug);
   };
 
-  const statusLine = describeStatus();
+  // 状態行は1行だけ出す。送れない理由と欠損は同時に出すと同じ testid が2つ描かれる
+  // Only one status line renders: showing the blocked reason and the missing list at once would draw the same testid twice
+  const statusLine = describeStatus() ?? describeMissing();
 
   return (
     <>
+      <span className={styles.fieldLabel}>{t(L.ui.playtest.reportKind.label)}</span>
+      <ModeSwitch
+        value={kind}
+        options={[
+          { value: PauseMenuReportKinds.bug, label: t(L.ui.playtest.reportKind.bug), testId: "bug-report-kind-bug" },
+          { value: PauseMenuReportKinds.feedback, label: t(L.ui.playtest.reportKind.feedback), testId: "bug-report-kind-feedback" },
+        ]}
+        onChange={(value) => setKind(value as PauseMenuReportKind)}
+        disabled={sending}
+        testId="bug-report-kind"
+      />
       <textarea
         className={styles.description}
         value={description}
         placeholder={t(L.ui.bugReport.placeholder)}
+        disabled={sending}
         onChange={(e) => setDescription(e.currentTarget.value)}
         data-testid="bug-report-description"
       />
       {statusLine && <span className={styles.status} data-testid="bug-report-status">{statusLine}</span>}
-      {status.missing.length > 0 && (
-        <span className={styles.status} data-testid="bug-report-status">{t(L.ui.bugReport.missing, { items: status.missing.join(", ") })}</span>
-      )}
       <Button onClick={send} disabled={blocked} data-testid="bug-report-send">{t(L.ui.bugReport.send)}</Button>
     </>
   );
@@ -71,5 +88,12 @@ export function BugReportForm({ status }: Props) {
       case "submitted": return t(L.ui.bugReport.sent);
       case "ready": return null;
     }
+  }
+
+  // 送れる状態でも取りこぼした記録があるなら、その一覧を同じ1行で伝える
+  // When a send is possible but some records were missed, the same single line lists them
+  function describeMissing(): string | null {
+    if (status.missing.length === 0) return null;
+    return t(L.ui.bugReport.missing, { items: status.missing.join(", ") });
   }
 }

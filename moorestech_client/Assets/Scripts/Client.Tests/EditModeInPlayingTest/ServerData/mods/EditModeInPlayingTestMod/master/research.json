@@ -1,3 +1,29 @@
 {
-  "data": []
+  "data": [
+    {
+      "researchNodeGuid": "8e4d2a61-3b5c-4f7e-a9d0-6c1b2e3f4a57",
+      "researchNodeName": "テスト研究1",
+      "researchNodeDescription": "前提の無いテスト研究",
+      "consumeItems": [
+        {
+          "itemGuid": "b3a8a7af-8612-42bf-9c94-0e95d3bebf70",
+          "itemCount": 1
+        }
+      ],
+      "prevResearchNodeGuids": [],
+      "clearedActions": [],
+      "graphViewSettings": {
+        "UIPosition": [
+          0,
+          0
+        ],
+        "UIScale": [
+          1,
+          1,
+          1
+        ],
+        "IconItem": ""
+      }
+    }
+  ]
 }

@@ -1,0 +1,13 @@
+/* 本文の最大幅。無制約だと画面端まで達し左右の文字が余白ゼロで接触する（同意/確認ゲート共通） */
+/* Max width for the body text; unconstrained it reaches the screen edge with zero side margin (shared by both gates) */
+.body {
+  max-width: var(--full-screen-gate-text-width);
+}
+
+/* 様式はtextAreaFieldが持ち、ここは全画面に載るゲート固有の寸法だけを足す */
+/* textAreaField owns the style; this file adds only the dimensions specific to a gate sitting full-screen */
+.description {
+  composes: field from "../../shared/ui/textAreaField.module.css";
+  width: var(--playtest-gate-textarea-width);
+  height: var(--playtest-gate-textarea-height);
+}
