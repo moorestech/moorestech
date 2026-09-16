@@ -1,0 +1,7 @@
+{
+  "steamIdentity": "moorestech-playtest",
+  "maxFileBytes": 104857600,
+  "reservedUploadSegments": ["READY", "ACKED", "complete"],
+  "kinds": ["report", "progress"],
+  "tokenTtlSeconds": 3600
+}

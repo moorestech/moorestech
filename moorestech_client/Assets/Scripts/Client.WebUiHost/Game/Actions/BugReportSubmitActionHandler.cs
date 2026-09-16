@@ -1,6 +1,7 @@
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.UI.UIState;
+using Client.PlaytestReceiver;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -14,13 +15,15 @@ namespace Client.WebUiHost.Game.Actions
         private readonly BugReportBundleWriter _writer;
         private readonly BugReportCaptureSession _session;
         private readonly UIStateControl _uiStateControl;
+        private readonly IPlaytestUploadRequester _uploadRequester;
         public string ActionType => "bug_report.submit";
 
-        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl)
+        public BugReportSubmitActionHandler(BugReportBundleWriter writer, BugReportCaptureSession session, UIStateControl uiStateControl, IPlaytestUploadRequester uploadRequester)
         {
             _writer = writer;
             _session = session;
             _uiStateControl = uiStateControl;
+            _uploadRequester = uploadRequester;
         }
 
         public async UniTask<ActionResult> ExecuteAsync(JObject payload)
@@ -52,6 +55,10 @@ namespace Client.WebUiHost.Game.Actions
             }
 
             Debug.Log($"バグ報告を書き出しました {result.BundleDirectory} missing:{result.Missing.Count}");
+
+            // 書けた箱をその場で送りにいく。送るかどうかは走行役が照合結果から決める
+            // Ask for the freshly written box to ship; the runner decides from the gate verdict whether it actually ships
+            _uploadRequester.RequestUpload();
 
             // 閉じは既存のWeb境界1本へ寄せる。閉じられなくても報告自体は書けているので成功として返す
             // Closing goes through the one existing web boundary; a refused close still leaves a written report, so the send succeeds

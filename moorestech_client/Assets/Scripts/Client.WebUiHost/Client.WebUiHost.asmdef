@@ -28,7 +28,8 @@
         "UniRx",
         "UniTask",
         "VContainer",
-        "Game.PlacementTarget"
+        "Game.PlacementTarget",
+        "Client.PlaytestReceiver"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
