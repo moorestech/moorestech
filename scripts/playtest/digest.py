@@ -18,6 +18,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import digest_candidates as dcand  # noqa: E402
 import digest_collect as dc  # noqa: E402
 from digest_schema import neutralize_discord_markup as safe  # noqa: E402
+from digest_schema import protect_pasteable_commands as protect_cmds, restore_pasteable_commands as restore_cmds  # noqa: E402
 
 
 def top_line(counter: Counter, limit: int) -> str:
@@ -177,9 +178,11 @@ def main(argv: list[str] | None = None) -> int:
     lines += format_feedback(reports)
     lines += format_progress(progress_agg, progress_stats)
     lines += format_runs(runs, run_stats)
-    # テスター由来の値（感想・kind・終了理由・イベント名・id 等）が散在するため、出力の境界で本文全体を一度だけ無害化する
-    # Tester-supplied values (feedback, kind, end reason, event names, ids...) are scattered, so neutralise the whole body once at the output boundary
-    body = safe("\n".join(lines) + "\n")
+    # テスター由来の値が散在するため出力境界で本文全体を無害化するが、コマンド行だけは退避して書き戻す
+    # Tester-supplied values are scattered so the whole body is neutralized at the boundary, but command lines are stashed and restored
+    raw_body = "\n".join(lines) + "\n"
+    protected_body, stashed_commands = protect_cmds(raw_body)
+    body = restore_cmds(safe(protected_body), stashed_commands)
 
     archive = playtest / "digests" / f"{date}.md"
     if not args.no_archive:

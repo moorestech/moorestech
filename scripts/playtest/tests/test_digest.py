@@ -15,6 +15,7 @@ from digest_fixture import SCRIPTS, TARGET_DATE, build_fixture, run_digest, writ
 sys.path.insert(0, str(SCRIPTS))
 import digest_candidates as dcand  # noqa: E402
 import digest_collect as dc  # noqa: E402
+import digest_schema as dschema  # noqa: E402
 
 
 class DigestTest(unittest.TestCase):
@@ -164,6 +165,24 @@ class DigestTest(unittest.TestCase):
             result = subprocess.run(["bash", "-c", harmless], cwd=tmp, capture_output=True, text=True)
             self.assertFalse((Path(tmp) / "pwned").exists())
             self.assertEqual(result.stdout, "7656006\n$(touch pwned)\n")
+
+    def test_enqueue_command_survives_at_sign_neutralization(self):
+        """id/steamIdに@を含んでも本文全体の無害化でコマンド中の@がZWSPで壊されず貼り付けたコマンドは元の値のまま渡る。
+        コマンド外の@everyoneは従来どおり無害化される（回帰: 2026-09-17）
+        An @ in id/steamId is not corrupted inside the pasted command by whole-body neutralization; @everyone outside
+        the command still gets neutralized (regression: 2026-09-17)"""
+        box = self.root / "harness/playtest/reports/7656007/20260912_170000_atsign"
+        write_json(box / "ingest.json", {"kind": "report", "steamId": "7656007@evil",
+                                          "id": "20260912_170000_atsign@evil", "readyAt": "2026-09-12T09:45:00Z"})
+        write_json(box / "manifest.json", {"kind": "bug", "description": "@everyone check this"})
+        out = self.run_ok("--max-chars", "0")
+        self.assertIn(f"@{dschema.ZERO_WIDTH_SPACE}everyone", out)
+        cmd_line = next(line for line in out.splitlines()
+                        if "enqueue-autofix.sh 7656007" in line).strip().strip("`")
+        harmless = cmd_line.replace("scripts/playtest/enqueue-autofix.sh", "printf '%s\\n'", 1)
+        with tempfile.TemporaryDirectory() as tmp:
+            result = subprocess.run(["bash", "-c", harmless], cwd=tmp, capture_output=True, text=True)
+            self.assertEqual(result.stdout, "7656007@evil\n20260912_170000_atsign@evil\n")
 
     def test_digest_truncates_and_points_at_archive(self):
         long_box = self.root / "harness/playtest/reports/7656005/20260912_150000_fb2"
