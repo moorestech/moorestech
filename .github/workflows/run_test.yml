@@ -175,6 +175,13 @@ jobs:
         # 上流がv4タグを動かしCIが全滅したため、動作実績のあるSHAへ固定する（2026-09-09）
         # Pinned to a known-good SHA because an upstream v4 tag move broke all CI (2026-09-09)
         uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
+        # 起動boot中にEditorのメインスレッドが固着する既知のflake（moorestech-7gsc）を、jobのtimeoutより先に打ち切る。
+        # Cut off the known main-thread freeze during boot (moorestech-7gsc) before the job-level timeout fires.
+        # jobのtimeoutは打ち切りをcancelledにして ci-auto-rerun の発火条件（failure / timed_out）を素通りするが、stepのtimeoutはfailureになるため自動再実行が効く（ADR 0063）。
+        # A job-level timeout ends as cancelled and slips past ci-auto-rerun's failure/timed_out trigger, while a step-level timeout fails the job so the auto-rerun fires (ADR 0063).
+        # 値は実測最長28分（server-remainder）に対する余裕込み。client-play系の実測は9〜11分。
+        # The value allows headroom over the measured 28-minute maximum (server-remainder); client-play shards measure 9-11 minutes.
+        timeout-minutes: 40
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
