@@ -19,7 +19,7 @@ ACK_LINE=$(grep -n -- "-X POST .*/v1/inbox/report/7656/20260913_180000_aaaa1111/
 [ -n "$ACK_LINE" ] && [ "${READY_LINE:-0}" -lt "$ACK_LINE" ] || fail "the report was not ACKed after READY was confirmed"
 grep -q -- "--max-time" "$SANDBOX/calls.log" || fail "the receiver was not reached through lib/receiver-api.sh"
 grep -q "CURL_BIN\|\bcurl \|/v1/inbox\"" "$SCRIPT_DIR/../verify-on-windows.sh" && fail "verify-on-windows.sh still calls the receiver with raw curl"
-grep -q -- "-ExpectedBuildLabel '$LABEL'" "$SANDBOX/calls.log" || fail "run-smoke.ps1 was not told the expected build label"
+grep -q -- "-ExpectedBuildLabel \"$LABEL\"" "$SANDBOX/calls.log" || fail "run-smoke.ps1 was not told the expected build label"
 
 # ssh到達が遅れても期限内なら成功する
 make_sandbox
