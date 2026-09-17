@@ -19,7 +19,7 @@ jobs:
       - name: Run Unity Test - probe
         id: unity_test
         continue-on-error: true
-        timeout-minutes: ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }}
+        timeout-minutes: ${{ fromJSON(env.UNITY_TEST_STEP_TIMEOUT_MINUTES) }}
         shell: bash
         run: sleep 300
 
@@ -62,7 +62,7 @@ jobs:
       - name: Run Unity Test - probe
         id: unity_test
         continue-on-error: true
-        timeout-minutes: ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }}
+        timeout-minutes: ${{ fromJSON(env.UNITY_TEST_STEP_TIMEOUT_MINUTES) }}
         shell: bash
         run: |
           echo "pretending a test assertion failed"

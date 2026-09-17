@@ -195,7 +195,7 @@ jobs:
         # A job-level timeout ends as cancelled and slips past ci-auto-rerun's failure/timed_out trigger, while a step-level timeout fails so the following detector can catch it (ADR 0063).
         # 値は実測最長28分（server-remainder）に対する余裕込み。client-play系の実測は9〜11分。
         # The value allows headroom over the measured 28-minute maximum (server-remainder); client-play shards measure 9-11 minutes.
-        timeout-minutes: ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }}
+        timeout-minutes: ${{ fromJSON(env.UNITY_TEST_STEP_TIMEOUT_MINUTES) }}
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
