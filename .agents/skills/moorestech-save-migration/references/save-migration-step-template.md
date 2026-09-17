@@ -103,10 +103,10 @@ services.AddSingleton(new SaveMigrationChain(new ISaveMigrationStep[]
 {
     new SaveMigrationStepV1ToV2(),
     new SaveMigrationStepV2ToV3(),
-}, WorldSaveAllInfoV1.CurrentVersion));
+}, WorldSaveAllInfo.CurrentVersion));
 ```
 
-同じPRで `WorldSaveAllInfoV1.CurrentVersion`（`Game.SaveLoad/Json/WorldVersions/`）を1つ上げる。
+同じPRで `WorldSaveAllInfo.CurrentVersion`（`Game.SaveLoad/Json/WorldVersions/`）を1つ上げる。
 上げ忘れる（またはステップを足し忘れる）と、`SaveMigrationChain` の構築検証が
 `マイグレーションステップのFromVersionが不正です。期待={1} 実際={1,2}（目標版=2）` の
 `ArgumentException` を投げ、**起動時に**落ちる（意図した早期失敗）。
@@ -160,7 +160,7 @@ namespace Tests.UnitTest.Game.SaveLoad
 - **`worldVersion` はステップで触らない。** `SaveMigrationChain` が1手ごとに `FromVersion + 1` を書く。
 - **マスタを引かない。** マスタに無い guid の始末は `MissingMasterPruner`（連鎖の後段）の仕事。
   ステップの中で `MasterHolder` を引くと、削除済みマスタで変換自体が落ちる。
-- **前の版のセーブクラスを参照しない。** 変換は `JObject` の上だけで行う。`WorldSaveAllInfoV1` を
+- **前の版のセーブクラスを参照しない。** 変換は `JObject` の上だけで行う。`WorldSaveAllInfo` を
   旧版形状で読もうとすると、次の形式変更のたびに過去のステップが壊れる。
 - **冪等にする。** 既にキーが在るときは足さない・上書きしない。バックアップから戻して再実行する運用がある。
 - **`Migration/` 直下は10ファイル上限に近い。** ステップは必ず `Migration/Steps/` へ置く。

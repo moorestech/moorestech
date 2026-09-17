@@ -1,6 +1,6 @@
 ---
 name: moorestech-save-migration
-description: moorestech のセーブ形式を変えるとき、ロード時マイグレーションのステップ（ISaveMigrationStep）を書いて既存ワールドを保つ。旧版セーブの手変換（worldVersion 導入前・開発者手元セーブ）も扱う。Use When — 「セーブ形式を変える」「WorldSaveAllInfoV1にフィールドを足す」「セーブが旧形式でロードできない」「マイグレーションステップを書いて」「ロード時にNRE/JSONパースエラーが出る」と言われた場合。
+description: moorestech のセーブ形式を変えるとき、ロード時マイグレーションのステップ（ISaveMigrationStep）を書いて既存ワールドを保つ。旧版セーブの手変換（worldVersion 導入前・開発者手元セーブ）も扱う。Use When — 「セーブ形式を変える」「WorldSaveAllInfoにフィールドを足す」「セーブが旧形式でロードできない」「マイグレーションステップを書いて」「ロード時にNRE/JSONパースエラーが出る」と言われた場合。
 ---
 
 # moorestech Save Migration
@@ -19,11 +19,11 @@ worldVersion 導入前のセーブと開発者手元のセーブに限った補�
 
 ## 主手順: マイグレーションステップを書く
 
-1. **`WorldSaveAllInfoV1.CurrentVersion` を1つ上げる**（`Game.SaveLoad/Json/WorldVersions/`）。
+1. **`WorldSaveAllInfo.CurrentVersion` を1つ上げる**（`Game.SaveLoad/Json/WorldVersions/`）。
 2. **`Game.SaveLoad/Migration/Steps/SaveMigrationStepV<n>ToV<n+1>.cs` を作る。**
    `references/save-migration-step-template.md` の骨格と、実装済みの `SaveMigrationStepV1ToV2.cs` を写して書き始める。
    変換は `JObject` の上だけで行い、`worldVersion` は触らない（連鎖が書く）。
-3. **`MoorestechServerDIContainerGenerator` の `new SaveMigrationChain(new ISaveMigrationStep[] {...}, WorldSaveAllInfoV1.CurrentVersion)` へ足す。**
+3. **`MoorestechServerDIContainerGenerator` の `new SaveMigrationChain(new ISaveMigrationStep[] {...}, WorldSaveAllInfo.CurrentVersion)` へ足す。**
    `FromVersion` が `1..CurrentVersion-1` を欠番・重複なく覆っていないと、構築時（起動時）に `ArgumentException` で止まる。
 4. **単体テストを同じPRに入れる**（`Tests/UnitTest/Game/SaveLoad/SaveMigrationStepV<n>ToV<n+1>Test.cs`）。
    テンプレートの「3. テスト」と既存 `SaveMigrationStepV1ToV2Test.cs` がそのまま雛形。

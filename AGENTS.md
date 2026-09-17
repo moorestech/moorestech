@@ -7,7 +7,7 @@
 ## 互換性とパフォーマンス
 計画立案時、後方互換性・パフォーマンス最適化・将来の拡張性は考慮不要です。より良い設計と動作する実装を優先し、改善は必要に応じて後から行います。
 
-**唯一の例外: セーブ形式。** テスターのワールドを跨いで保つ必要があるため、セーブ形式を変えるPRは (1) `WorldSaveAllInfoV1.CurrentVersion` を1つ上げ、(2) `Game.SaveLoad/Migration/Steps/` に `ISaveMigrationStep` 実装（`SaveMigrationStepResult Migrate(JObject save)`。変換できない形に出会ったら例外ではなく `SaveMigrationStepResult.Failed(reason)` を返す）を1本足して `MoorestechServerDIContainerGenerator` の `new SaveMigrationChain(...)` の配列へ登録し、(3) 旧版セーブが新版へ変換されることを確かめるテストを、同じPRに同梱してください。`FromVersion` が `1..CurrentVersion-1` を欠番・重複なく覆っていないと、連鎖の構築時（＝起動時）に例外で落ちます。書き方は moorestech-save-migration スキルが正本です（裁定: ADR 0058・`.decisions/2026-09-13-テスターのセーブ互換はゲーム内ロード時マイグレーション連鎖で保つ.md`）。
+**唯一の例外: セーブ形式。** テスターのワールドを跨いで保つ必要があるため、セーブ形式を変えるPRは (1) `WorldSaveAllInfo.CurrentVersion` を1つ上げ、(2) `Game.SaveLoad/Migration/Steps/` に `ISaveMigrationStep` 実装（`SaveMigrationStepResult Migrate(JObject save)`。変換できない形に出会ったら例外ではなく `SaveMigrationStepResult.Failed(reason)` を返す）を1本足して `MoorestechServerDIContainerGenerator` の `new SaveMigrationChain(...)` の配列へ登録し、(3) 旧版セーブが新版へ変換されることを確かめるテストを、同じPRに同梱してください。`FromVersion` が `1..CurrentVersion-1` を欠番・重複なく覆っていないと、連鎖の構築時（＝起動時）に例外で落ちます。書き方は moorestech-save-migration スキルが正本です（裁定: ADR 0058・`.decisions/2026-09-13-テスターのセーブ互換はゲーム内ロード時マイグレーション連鎖で保つ.md`）。
 
 ## 既知の制約（設計上の割り切り）
 - ゲームは起動後メインメニューへ戻らない（modによるコード・static書き換えがあるため再開時の状態を保証できず、終了以外の道を作らない設計）。よってゲーム寿命オブジェクトのdispose漏れ・IDisposable付与は考慮不要
