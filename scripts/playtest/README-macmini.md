@@ -68,3 +68,10 @@ bash ~/hermes-agent/data/repos/moorestech/scripts/playtest/enqueue-autofix.sh <s
 
 - `[ingest] ERROR: READY 本文の files[] が…` → 受け口（plan D）が `complete` で書く要約 JSON に `files[]` が無い。箱は ack されずに残るので、受け口を直せば次の周期で自然に取り込まれる
 - `[ingest] ERROR: ack 失敗` → 箱は取り込み済みなので、次の周期で再配信されても再ダウンロードせず ack だけやり直す
+
+## 日次ダイジェスト
+
+Hermes 内蔵 cron で毎朝9時に投稿する。手順は `scripts/playtest/hermes-cron/README.md`。
+
+- 手動確認: `MOORESTECH_LOGS=~/hermes-agent/data/repos/moorestech_logs python3 scripts/playtest/digest.py --date yesterday`
+- 全文は `moorestech_logs/harness/playtest/digests/<日付>.md`。次の取り込み周期（最大5分）で logs repo へ commit される
