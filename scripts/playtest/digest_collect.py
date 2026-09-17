@@ -86,9 +86,12 @@ def flatten_progress_record(record: dict, box: dict) -> dict:
     """型の保証された record.json を集計用の1行へ畳む
     Flattens a type-guaranteed record.json into one aggregation row"""
     events = record["events"]
+    # playSeconds が null（測れなかった正規のケース）はそのまま None を通す。集計側が非欠損だけで平均を取る
+    # A null playSeconds (the producer's legitimate "unmeasured" case) is passed through as None; aggregation averages only the present ones
+    raw_seconds = record["playSeconds"]
     return {
         "steamId": record["steamId"] or box["meta"]["steamId"],
-        "playSeconds": float(record["playSeconds"]),
+        "playSeconds": float(raw_seconds) if raw_seconds is not None else None,
         "endReason": record["endReason"] or "unknown",
         "reached": len(record["reachedChallenges"]),
         "research": len(record["completedResearch"]),
@@ -122,16 +125,21 @@ def bucket_reached(count: int) -> str:
 
 
 def aggregate_progress(records: list[dict]) -> dict:
-    """人数・平均プレイ時間・到達段階分布・離脱地点上位を出す
-    Produces tester count, mean play time, reached-stage histogram and top drop-off points"""
+    """人数・平均プレイ時間・到達段階分布・離脱地点上位を出す。playSeconds が null の記録は
+    セッション数・人数には数えるが平均の分母からは外し、欠落件数を別途返す
+    Produces tester count, mean play time, reached-stage histogram and top drop-off points.
+    Records with a null playSeconds still count toward sessions/testers but not the mean; the
+    missing count is returned separately"""
     if not records:
-        return {"testers": 0, "sessions": 0, "meanPlaySeconds": 0.0, "meanResearch": 0.0,
-                "reachBuckets": Counter(), "lastEvents": Counter(),
+        return {"testers": 0, "sessions": 0, "meanPlaySeconds": None, "playSecondsMissing": 0,
+                "meanResearch": 0.0, "reachBuckets": Counter(), "lastEvents": Counter(),
                 "lastUiStates": Counter(), "endReasons": Counter()}
+    play_seconds = [r["playSeconds"] for r in records if r["playSeconds"] is not None]
     return {
         "testers": len({r["steamId"] for r in records if r["steamId"]}),
         "sessions": len(records),
-        "meanPlaySeconds": sum(r["playSeconds"] for r in records) / len(records),
+        "meanPlaySeconds": (sum(play_seconds) / len(play_seconds)) if play_seconds else None,
+        "playSecondsMissing": len(records) - len(play_seconds),
         "meanResearch": sum(r["research"] for r in records) / len(records),
         "reachBuckets": Counter(bucket_reached(r["reached"]) for r in records),
         "lastEvents": Counter(r["lastEvent"] for r in records),

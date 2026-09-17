@@ -74,12 +74,19 @@ def format_progress(agg: dict, stats: dict) -> list[str]:
         lines.append("- なし")
     else:
         lines.append(f"- 人数 {agg['testers']} 人 / セッション {agg['sessions']} 件")
-        lines.append(f"- 平均プレイ時間 {agg['meanPlaySeconds'] / 60:.1f} 分")
+        # 全件 playSeconds 欠落なら 0 分と偽らず「不明」と明示する
+        # When every session lacks playSeconds, say "unknown" rather than falsely printing 0 minutes
+        if agg["meanPlaySeconds"] is None:
+            lines.append("- 平均プレイ時間 不明（playSeconds が全件欠落）")
+        else:
+            lines.append(f"- 平均プレイ時間 {agg['meanPlaySeconds'] / 60:.1f} 分")
         lines.append(f"- 平均研究完了数 {agg['meanResearch']:.1f}")
         lines.append("- 到達チャレンジ数の分布: " + top_line(agg["reachBuckets"], 5))
         lines.append("- 離脱時の最後のイベント上位: " + top_line(agg["lastEvents"], 5))
         lines.append("- 離脱時のUI状態上位: " + top_line(agg["lastUiStates"], 5))
         lines.append("- 終了理由: " + top_line(agg["endReasons"], 5))
+        if agg.get("playSecondsMissing"):
+            lines.append(f"- ⚠ playSeconds が欠落し平均から除外したセッション {agg['playSecondsMissing']}件")
     if stats.get("unreadable"):
         lines.append(f"- ⚠ ingest.json を読めない/日付を解釈できず除外した箱 {stats['unreadable']}件")
     if stats.get("readyAtFallback"):
@@ -135,6 +142,7 @@ def emit_warnings(report_stats: dict, progress_stats: dict, run_stats: dict) -> 
         "progress.unreadable": progress_stats.get("unreadable", 0),
         "progress.readyAtFallback": progress_stats.get("readyAtFallback", 0),
         "progress.invalidRecord": progress_stats.get("invalidRecord", 0),
+        "progress.playSecondsMissing": progress_stats.get("playSecondsMissing", 0),
         "runs.finishedAtFallback": run_stats["finishedAtFallback"],
         "runs.invalidResult": run_stats["invalidResult"],
     }
@@ -159,12 +167,16 @@ def main(argv: list[str] | None = None) -> int:
     reports, report_stats = dc.load_reports(playtest / "reports", date)
     progress, progress_stats = dc.load_progress(playtest / "progress", date)
     runs, run_stats = dc.load_fix_results(logs / "harness" / "bug-report" / "runs", date)
+    progress_agg = dc.aggregate_progress(progress)
+    # stderr WARN 集計へも playSeconds 欠落件数を載せる（agg 側にしか無い値なので合流させる）
+    # Also feed the playSeconds-missing count into the stderr WARN summary; it only lives in agg
+    progress_stats = dict(progress_stats, playSecondsMissing=progress_agg["playSecondsMissing"])
 
     lines = [f"# moorestech プレイテスト日次ダイジェスト {date}"]
     lines += format_counts(reports, report_stats)
     lines += format_candidates(reports)
     lines += format_feedback(reports)
-    lines += format_progress(dc.aggregate_progress(progress), progress_stats)
+    lines += format_progress(progress_agg, progress_stats)
     lines += format_runs(runs, run_stats)
     body = "\n".join(lines) + "\n"
 

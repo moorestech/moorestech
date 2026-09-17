@@ -27,7 +27,9 @@ MANIFEST_SCHEMA = {
     "buildInfo": ({"steamBuildLabel": (STR, "")}, None),
 }
 RECORD_SCHEMA = {
-    "steamId": (STR, ""), "playSeconds": (NUMBER, 0.0), "endReason": (STR, ""), "lastUiState": (STR, ""),
+    # playSeconds は既定値を None にする（0.0 だと「計測0秒」と「未計測」が区別できず平均へ無言混入する）
+    # playSeconds defaults to None: 0.0 would conflate "measured zero" with "unmeasured" and silently skew the mean
+    "steamId": (STR, ""), "playSeconds": (NUMBER, None), "endReason": (STR, ""), "lastUiState": (STR, ""),
     "reachedChallenges": ([None], None), "completedResearch": ([None], None),
     "events": ([{"type": (STR, "")}], None),
 }
