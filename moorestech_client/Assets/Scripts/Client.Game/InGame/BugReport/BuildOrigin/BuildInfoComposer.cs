@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BugReport.BuildOrigin
 {
     // ビルド時のリポジトリ状態から build-info.json（shared-contracts §1）の中身を組み、strict なら出所を偽る焼き込みを拒む
-    // Composes build-info.json (shared-contracts §1) from the repository state at build time, refusing an origin-misreporting bake when strict
     // Editorアセンブリを参照できないテストからも検証できるよう、焼く側の判断は BuildInfoWriter ではなくここに置く
+    // Composes build-info.json (shared-contracts §1) from the repository state at build time, refusing an origin-misreporting bake when strict
     // The baking decisions live here rather than in BuildInfoWriter so tests that cannot reference the Editor assembly can verify them
     public static class BuildInfoComposer
     {
@@ -22,6 +22,7 @@ namespace Client.Game.InGame.BugReport.BuildOrigin
             RepositoryProbeResult repo,
             RepositoryProbeResult masterData,
             string pinnedMasterDataCommit,
+            string pinUnreadableReason,
             string steamBuildLabel,
             DateTime builtAtUtc,
             string target,
@@ -62,7 +63,7 @@ namespace Client.Game.InGame.BugReport.BuildOrigin
 
                 // ピンと実チェックアウトがずれた成果物は「どのマスタで焼いたか」の突き合わせが成立しない（D-6）
                 // An artifact whose pin drifted from the checkout cannot be matched to the master data it was built with (D-6)
-                if (pinnedMasterDataCommit == null) found.Add("master data のピンコミットを読めない");
+                if (pinnedMasterDataCommit == null) found.Add($"master data のピンコミットを読めない: {pinUnreadableReason}");
                 else if (masterData.State != null && masterData.State.Commit != pinnedMasterDataCommit)
                     found.Add($"master data のピン({pinnedMasterDataCommit})と実HEAD({masterData.State.Commit})が一致しない");
                 return found;

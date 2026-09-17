@@ -27,17 +27,17 @@ plan のとおり `BuildInfoReader` を新設すると、同一ファイルに�
 - 共有契約 §1 の形を表す `BuildInfo` 型は作る（`manifest.buildInfo` の DTO として必要）。
 - ただしファイルを読むのは `RepositoryStateProbe.ReadBuildInfo()` のみとし、そこが `BuildInfo` を返す。
   既存消費側が使う `BugReportBuildInfo`（`Repository`/`MasterData`）は `BuildInfo` からの射影として導く。
-- 既存の `Editor/Build/BuildInfoWriter` と `ComposeBuildInfoJson` は本 plan では変更しない。
+- 既存の `Editor/Build/BuildInfoWriter` と `ComposeBuildInfoJson` は本 plan では変更しない。（→ 末尾の追記（2026-09-17）で改訂: plan E で変更済み）
 
 ### JSON キーの不一致について
 
 共有契約 §1 は `masterDataCommit`・`steamBuildLabel`・`target` を挙げるが、実装済みの焼く側が出すキーは
 `commit`・`branch`・`dirty`・`masterCommit`・`masterDirty`・`builtAt` である。
 
-**実装済みの焼く側のキーを正とする。** `BuildInfo.MasterDataCommit` は `masterCommit` から読む。
+**実装済みの焼く側のキーを正とする。**（→ 末尾の追記（2026-09-17）で改訂: `masterDataCommit` へ一括改名） `BuildInfo.MasterDataCommit` は `masterCommit` から読む。
 `steamBuildLabel`・`target` は現在の焼く側が出さないため `null` のまま置き、plan E が焼く側を拡張した時点で値が入る。
 両方のキーを見るフォールバック（`masterDataCommit ?? masterCommit`）は採らない（AGENTS.md「フォールバックで吸収するのは設計の敗北」）。
-plan E / plan H はこのキー名に合わせること。
+plan E / plan H はこのキー名に合わせること。（→ 追記（2026-09-17）で上書き）
 
 ## 却下した案
 
@@ -67,3 +67,6 @@ plan E / plan H はこのキー名に合わせること。
   ピンと実 HEAD の不一致は、`PlayerBuildRequest.IsStrictBundling=true` なら `BuildFailedException`。非 strict（CI互換）は理由を警告ログに出し、
   取れなかった値は null、ピンずれ時は実 HEAD を焼いて続行する。strict は `BuildPipeline` が `BuildInfoWriter.SetStrictBundling` で
   `BuildPlayer` 直前に渡す（`PlayerBuildRequest` は3boolのまま）。ピンの読み取りは `MasterDataRootLocator.ReadPinnedCommit` に寄せた。
+- **master data の解決先はビルドする checkout 基準**: 焼く `masterDataCommit` は `GameDataBundler.MasterDataRepositoryRoot`
+  （`MasterDataRootLocator.ResolveForBuildingCheckout`＝ビルドする checkout ＋ピンの `relativePath`）の HEAD を読む。同梱元も同じプロパティなので、
+  焼いたコミット＝同梱した中身が構造上成立する。バグ報告 probe の `MasterDataRootLocator.Resolve`（正本clone基準）は変更しない。

@@ -14,8 +14,8 @@ namespace Client.Editor.Build
     public class BuildInfoWriter : IPreprocessBuildWithReport
     {
         // Unityのビルドコールバックは PlayerBuildRequest を受け取れないため、BuildPipeline が BuildPlayer 直前に押し込む
-        // Unity's build callback cannot receive the PlayerBuildRequest, so BuildPipeline pushes this right before BuildPlayer
         // BuildPipeline を通らないビルド（Build Settings 画面等）は既定の非strict（CI互換）で焼く
+        // Unity's build callback cannot receive the PlayerBuildRequest, so BuildPipeline pushes this right before BuildPlayer
         // Builds that bypass BuildPipeline (e.g. the Build Settings window) bake with the default non-strict, CI-compatible mode
         private static bool _isStrictBundling;
 
@@ -29,10 +29,12 @@ namespace Client.Editor.Build
         public void OnPreprocessBuild(BuildReport report)
         {
             var repo = RepositoryStateProbe.ProbeGit(RepositoryStateProbe.RepositoryRoot);
-            var masterData = RepositoryStateProbe.ProbeGit(RepositoryStateProbe.MasterDataRoot);
-            var pinned = MasterDataRootLocator.ReadPinnedCommit(RepositoryStateProbe.RepositoryRoot);
+            // 正本cloneの隣ではなく同梱元と同じ repo の HEAD を焼く。worktree ビルドで両者は別ディレクトリになりうる
+            // Bake the HEAD of the very repo that gets bundled, not the primary clone's neighbour; they can differ in a worktree build
+            var masterData = RepositoryStateProbe.ProbeGit(GameDataBundler.MasterDataRepositoryRoot);
+            var pinned = MasterDataRootLocator.ReadPinnedCommit(RepositoryStateProbe.RepositoryRoot, out var pinUnreadableReason);
             var label = Environment.GetEnvironmentVariable(BuildInfoComposer.SteamBuildLabelEnvKey) ?? "";
-            var json = BuildInfoComposer.Compose(repo, masterData, pinned, label, DateTime.UtcNow, report.summary.platform.ToString(), _isStrictBundling, out var buildFailureReason);
+            var json = BuildInfoComposer.Compose(repo, masterData, pinned, pinUnreadableReason, label, DateTime.UtcNow, report.summary.platform.ToString(), _isStrictBundling, out var buildFailureReason);
 
             // strict の配布物で出所を偽る焼き込みは作らせない。理由はビルド失敗メッセージに出す
             // A strict distribution build must not bake a misreported origin; the reason goes into the build failure message

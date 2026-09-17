@@ -15,11 +15,7 @@ namespace Client.Game.InGame.BugReport
 
         public static string Resolve()
         {
-            var revisionsPath = Path.Combine(RepositoryStateProbe.RepositoryRoot, ExternalRevisionsFileName);
-            if (!File.Exists(revisionsPath)) return UnresolvedMasterDataRoot($"ピンファイルが無い path:{revisionsPath}");
-
-            var relativePath = ReadMasterPinField(revisionsPath, "relativePath");
-            if (string.IsNullOrEmpty(relativePath)) return UnresolvedMasterDataRoot($"ピンに {MasterRepositoryKey} の relativePath が無い path:{revisionsPath}");
+            if (!TryReadRelativePath(RepositoryStateProbe.RepositoryRoot, out var relativePath, out var reason)) return UnresolvedMasterDataRoot(reason);
 
             // relativePath は正本repoからの相対。worktreeから起動されても正本の隣を見るため共通gitディレクトリで正本を特定する
             // relativePath is relative to the primary repo, so the common git directory locates it even when running from a worktree
@@ -30,20 +26,40 @@ namespace Client.Game.InGame.BugReport
             return Path.GetFullPath(Path.Combine(primaryRepositoryRoot.FullName, relativePath));
         }
 
-        // ビルドに焼く masterDataCommit の突き合わせ先。ピンが無い・読めない・キーが無いときは null を返し、呼び出し側が縮退か失敗かを決める
-        // The pin the baked masterDataCommit is checked against; null when the pin is absent, unreadable or lacks the key, leaving degrade-or-fail to the caller
-        public static string ReadPinnedCommit(string repositoryRoot)
+        // ビルドが同梱するマスタrepo。worktreeでも正本でなくビルドする checkout 自身から relativePath を解く（同梱元と焼くコミットを同じ場所に揃える・D-6）
+        // The master repo a build bundles: relativePath is resolved from the building checkout itself, not the primary clone, so the bundled source and baked commit share one place (D-6)
+        public static string ResolveForBuildingCheckout(string checkoutRoot)
         {
+            if (!TryReadRelativePath(checkoutRoot, out var relativePath, out var reason)) return UnresolvedMasterDataRoot(reason);
+            return Path.GetFullPath(Path.Combine(checkoutRoot, relativePath));
+        }
+
+        // ビルドに焼く masterDataCommit の突き合わせ先。読めないときは null と理由を返し、縮退か失敗かとそのログは呼び出し側が決める
+        // The pin the baked masterDataCommit is checked against; when unreadable it returns null plus a reason, leaving degrade-or-fail and its logging to the caller
+        public static string ReadPinnedCommit(string repositoryRoot, out string unreadableReason)
+        {
+            unreadableReason = null;
             var revisionsPath = Path.Combine(repositoryRoot, ExternalRevisionsFileName);
             if (!File.Exists(revisionsPath))
             {
-                Debug.LogWarning($"ピンファイルが無いため master data のピンコミットを読めません path:{revisionsPath}");
+                unreadableReason = $"ピンファイルが無い path:{revisionsPath}";
                 return null;
             }
 
             var commit = ReadMasterPinField(revisionsPath, "commitHash");
-            if (string.IsNullOrEmpty(commit)) Debug.LogWarning($"ピンに {MasterRepositoryKey} の commitHash が無い path:{revisionsPath}");
-            return string.IsNullOrEmpty(commit) ? null : commit;
+            if (!string.IsNullOrEmpty(commit)) return commit;
+            unreadableReason = $"ピンに {MasterRepositoryKey} の commitHash が無い path:{revisionsPath}";
+            return null;
+        }
+
+        private static bool TryReadRelativePath(string repositoryRoot, out string relativePath, out string reason)
+        {
+            reason = null;
+            var revisionsPath = Path.Combine(repositoryRoot, ExternalRevisionsFileName);
+            relativePath = File.Exists(revisionsPath) ? ReadMasterPinField(revisionsPath, "relativePath") : null;
+            if (!File.Exists(revisionsPath)) reason = $"ピンファイルが無い path:{revisionsPath}";
+            else if (string.IsNullOrEmpty(relativePath)) reason = $"ピンに {MasterRepositoryKey} の relativePath が無い path:{revisionsPath}";
+            return reason == null;
         }
 
         // 解決できないまま推測パスを名乗ると別repoの差分が混ざる。実在しない場所を返し、突き合わせを全て外したうえで理由を残す
