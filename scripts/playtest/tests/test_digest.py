@@ -132,7 +132,7 @@ class DigestTest(unittest.TestCase):
         write_json(old_bug / "ingest.json", {"kind": "report", "steamId": "7656005",
                                              "id": "20260905_100000_oldbug", "readyAt": "2026-09-05T05:00:00Z"})
         write_json(old_bug / "manifest.json", {"kind": "bug", "description": "対象日より前の未投入バグ"})
-        candidates = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
+        candidates, _stats = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
         self.assertIn("20260905_100000_oldbug", {c["id"] for c in candidates})
         out = self.run_ok("--max-chars", "0")
         self.assertIn("enqueue-autofix.sh 7656005 20260905_100000_oldbug", out)
@@ -148,18 +148,22 @@ class DigestTest(unittest.TestCase):
         self.assertNotIn("enqueue-autofix.sh 7656005 20260905_100000_oldbug", out2)
 
     def test_enqueue_command_id_is_shell_safe(self):
-        """id にシェルメタ文字が混じっても、貼り付けたコマンドは注入されず literal として渡る
-        A shell-meta-character id in the pasted command never injects; it is passed through literally"""
+        """id にシェルメタ文字が混じっても、貼り付けたコマンドは注入されず literal として渡る。
+        評価時はコマンド名を printf へ差し替え、実スクリプトを決して走らせない
+        A shell-meta-character id in the pasted command never injects and is passed literally; the command
+        name is swapped for printf when evaluated so the real script never runs"""
         malicious = self.root / "harness/playtest/reports/7656006/20260912_160000_evil"
         write_json(malicious / "ingest.json", {"kind": "report", "steamId": "7656006",
                                                 "id": "$(touch pwned)", "readyAt": "2026-09-12T09:40:00Z"})
         write_json(malicious / "manifest.json", {"kind": "bug", "description": "injection test"})
-        candidates = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
-        lines = dcand.format_candidates(candidates)
-        cmd_line = next(line for line in lines if "7656006" in line).strip().strip("`")
+        lines = dcand.format_candidates(*dcand.load_candidate_reports(self.root / "harness/playtest/reports"))
+        cmd_line = next(line for line in lines if "enqueue-autofix.sh 7656006" in line).strip().strip("`")
+        harmless = cmd_line.replace("scripts/playtest/enqueue-autofix.sh", "printf '%s\\n'", 1)
+        self.assertNotEqual(harmless, cmd_line)
         with tempfile.TemporaryDirectory() as tmp:
-            subprocess.run(["bash", "-c", cmd_line + " 2>/dev/null || true"], cwd=tmp)
+            result = subprocess.run(["bash", "-c", harmless], cwd=tmp, capture_output=True, text=True)
             self.assertFalse((Path(tmp) / "pwned").exists())
+            self.assertEqual(result.stdout, "7656006\n$(touch pwned)\n")
 
     def test_digest_truncates_and_points_at_archive(self):
         long_box = self.root / "harness/playtest/reports/7656005/20260912_150000_fb2"

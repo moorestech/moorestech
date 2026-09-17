@@ -17,6 +17,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import digest_candidates as dcand  # noqa: E402
 import digest_collect as dc  # noqa: E402
+from digest_schema import neutralize_discord_markup as safe  # noqa: E402
 
 
 def top_line(counter: Counter, limit: int) -> str:
@@ -53,9 +54,11 @@ def format_feedback(reports: list[dict]) -> list[str]:
     if not items:
         return lines + ["- なし"]
     for report in items:
-        label = report["buildLabel"] or "不明"
-        lines.append(f"### {report['id']}（SteamID {report['steamId']} / build {label}）")
-        lines.append(report["description"].strip() or "（説明文が空）")
+        # テスター由来の値はメンション・コードフェンスを無害化してから Discord へ出す
+        # Tester-supplied values have mentions and code fences neutralised before reaching Discord
+        label = safe(report["buildLabel"]) or "不明"
+        lines.append(f"### {safe(report['id'])}（SteamID {safe(report['steamId'])} / build {label}）")
+        lines.append(safe(report["description"].strip()) or "（説明文が空）")
     return lines
 
 
@@ -83,7 +86,7 @@ def format_progress(agg: dict, stats: dict) -> list[str]:
     if stats.get("readyAtFallback"):
         lines.append(f"- ⚠ readyAt が無く ingestedAt で日付判定した箱 {stats['readyAtFallback']}件")
     if stats.get("invalidRecord"):
-        lines.append(f"- ⚠ record.json の型が想定外で除外した件数 {stats['invalidRecord']}件")
+        lines.append(f"- ⚠ record.json の型・値が想定外で除外した件数 {stats['invalidRecord']}件")
     return lines
 
 
@@ -96,8 +99,8 @@ def format_runs(runs: list[dict], stats: dict) -> list[str]:
             r["status"] for r in runs).items())))
         for run in runs:
             pr = f"#{run['prNumber']}" if run["prNumber"] else "PRなし"
-            lines.append(f"- {run['id']} … {run['status']} / {pr} / "
-                         f"base {run['base'] or '不明'} / {run['summary']}")
+            lines.append(safe(f"- {run['id']} … {run['status']} / {pr} / "
+                              f"base {run['base'] or '不明'} / {run['summary']}"))
     if stats["finishedAtFallback"]:
         lines.append(f"- ⚠ finishedAt が無い/解釈できず mtime で日付判定したラン {stats['finishedAtFallback']}件")
     if stats["invalidResult"]:
@@ -158,7 +161,7 @@ def main(argv: list[str] | None = None) -> int:
     logs = Path(args.logs)
     playtest = logs / "harness" / "playtest"
     reports, report_stats = dc.load_reports(playtest / "reports", date)
-    candidates = dcand.load_candidate_reports(playtest / "reports")
+    candidates, candidate_stats = dcand.load_candidate_reports(playtest / "reports")
     progress, progress_stats = dc.load_progress(playtest / "progress", date)
     runs, run_stats = dc.load_fix_results(logs / "harness" / "bug-report" / "runs", date)
     progress_agg = dc.aggregate_progress(progress)
@@ -168,7 +171,7 @@ def main(argv: list[str] | None = None) -> int:
 
     lines = [f"# moorestech プレイテスト日次ダイジェスト {date}"]
     lines += format_counts(reports, report_stats)
-    lines += dcand.format_candidates(candidates)
+    lines += dcand.format_candidates(candidates, candidate_stats)
     lines += format_feedback(reports)
     lines += format_progress(progress_agg, progress_stats)
     lines += format_runs(runs, run_stats)

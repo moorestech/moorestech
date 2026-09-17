@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# 手動投入コマンドの4経路（投入・二重投入拒否・種別拒否・--force）を検証する
-# Verifies the four paths of the manual enqueue command: enqueue, duplicate, kind guard, --force
+# 手動投入コマンドの経路（投入・二重投入拒否・種別拒否・--force・不正引数・READY 欠落・既存ラン）を検証する
+# Verifies the manual enqueue paths: enqueue, duplicate, kind guard, --force, unsafe args, missing READY and an existing run
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
@@ -36,4 +36,29 @@ grep -q '^forced kind=feedback' "$I/20260913_110000_fb1/AUTOFIX_FORCED" || { ech
 
 set +e; run 7656001 存在しないID; code=$?; set -e
 [ "$code" = 1 ] || { echo "NG: 箱が無いのに失敗しない（exit=$code）"; exit 1; }
+
+# パスへ連結される引数は単一の安全セグメントでなければ拒否する（.. で箱の外を指せない）
+# Arguments joined into paths must be single safe segments (no .. escaping the box tree)
+for bad in ".." "a/b" ""; do
+  set +e; run 7656001 "$bad" 2>/dev/null; code=$?; set -e
+  [ "$code" = 1 ] || { echo "NG: 不正な id '$bad' が拒否されない（exit=$code）"; exit 1; }
+done
+set +e; run .. 20260913_100000_bug1 2>/dev/null; code=$?; set -e
+[ "$code" = 1 ] || { echo "NG: 不正な steamId が拒否されない（exit=$code）"; exit 1; }
+
+# 元箱に READY が無ければ捏造せず拒否する
+# A source box without READY is refused rather than given a fabricated one
+NOREADY="$LOGS/harness/playtest/reports/7656003/20260913_120000_noready"
+mkdir -p "$NOREADY"; echo '{"kind":"bug"}' > "$NOREADY/manifest.json"
+set +e; run 7656003 20260913_120000_noready 2>/dev/null; code=$?; set -e
+[ "$code" = 1 ] && [ ! -e "$I/20260913_120000_noready" ] || { echo "NG: READY 無しの箱が投入された（exit=$code）"; exit 1; }
+
+# 同名のラン記録が既にあれば poller が走らせないので投入しない
+# An existing run record of the same name is refused, since the poller would never run it
+RUNBOX="$LOGS/harness/playtest/reports/7656004/20260913_130000_rerun"
+mkdir -p "$RUNBOX" "$LOGS/harness/bug-report/runs/20260913_130000_rerun"
+echo '{"kind":"bug"}' > "$RUNBOX/manifest.json"; echo 'READY-summary' > "$RUNBOX/READY"
+set +e; run 7656004 20260913_130000_rerun 2>"$TMP/rerun.log"; code=$?; set -e
+[ "$code" = 5 ] && [ ! -e "$I/20260913_130000_rerun" ] || { echo "NG: 既存ランのある id が投入された（exit=$code）"; exit 1; }
+grep -q '同名のラン記録が既にある' "$TMP/rerun.log" || { echo "NG: 既存ランの拒否理由が出ていない"; exit 1; }
 echo OK

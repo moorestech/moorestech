@@ -27,6 +27,8 @@ fi
 # expansions before env.sh's exports land, so the override would never take effect
 # shellcheck source=lib/receiver-api.sh
 . "$HERE/lib/receiver-api.sh"
+# shellcheck source=lib/ingest-lock.sh
+. "$HERE/lib/ingest-lock.sh"
 
 LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
 PLAYTEST_DIR="$LOGS/harness/playtest"
@@ -34,7 +36,11 @@ GIT_CMD="${GIT_CMD:-git}"
 GIT_PUSH="${GIT_PUSH:-1}"
 MAX_ITEMS="${PLAYTEST_INGEST_MAX_ITEMS:-50}"
 MAX_PAGES="${PLAYTEST_INGEST_MAX_PAGES:-20}"
-LOCK="${TMPDIR:-/tmp}/moorestech-playtest-ingest.lock"
+# ロックは logs repo の .git 内の固定パスに置く。$TMPDIR は supervisor 配下と手動実行で異なり相互排他が効かない。
+# .git 内なら harness/playtest の git add にも掴まれない
+# The lock lives at a fixed path inside the logs repo's .git: $TMPDIR differs between supervisor and manual runs,
+# so it would not exclude them; inside .git it is also never picked up by the harness/playtest git add
+LOCK="$LOGS/.git/moorestech-playtest-ingest.lock"
 
 # R2 側の kind（report|progress）と logs 側のディレクトリ名を明示対応させる
 # Maps the receiver kind (report|progress) onto the logs directory name explicitly
@@ -49,6 +55,10 @@ dest_subdir() {
 ingest_one() {
   local kind="$1" steam_id="$2" id="$3" ready_at="$4"
   local sub; sub="$(dest_subdir "$kind")" || { log "ERROR: 未知の kind=${kind} id=${id}（ack しない）"; return 1; }
+  # steamId/id は受け口由来の外部入力。rm -rf・mv のパスへ連結する前に単一の安全セグメントか検証する
+  # steamId/id come from the receiver; verify each is a single safe segment before joining it into rm -rf/mv paths
+  python3 "$HERE/lib/safe_segment.py" segment "$steam_id" && python3 "$HERE/lib/safe_segment.py" segment "$id" \
+    || { log "ERROR: steamId/id が安全なパスセグメントでない: $kind/$steam_id/${id}（ack しない）"; return 1; }
   local dest="$PLAYTEST_DIR/$sub/$steam_id/$id"
   local partial="$PLAYTEST_DIR/$sub/$steam_id/$id.partial"
 
@@ -60,18 +70,10 @@ ingest_one() {
     receiver_get_object "$kind" "$steam_id" "$id" READY "$partial/READY" \
       || { log "ERROR: READY 取得失敗 $kind/$steam_id/$id"; rm -rf "$partial"; return 1; }
     local files py_rc=0
-    files="$(python3 -c '
-import json,sys
-d=json.load(open(sys.argv[1]))
-fs=d.get("files") or []
-if not fs: sys.exit(3)
-for p in fs:
-    if p.startswith("/") or ".." in p.split("/"): sys.exit(4)
-    print(p)
-' "$partial/READY")" || py_rc=$?
+    files="$(python3 "$HERE/lib/safe_segment.py" ready-files "$partial/READY")" || py_rc=$?
     if [ "$py_rc" -ne 0 ]; then
       case "$py_rc" in
-        3) log "ERROR: READY 本文に files[] が無い: $kind/$steam_id/${id}（受け口側の修正が要る。ack しない）" ;;
+        3) log "ERROR: READY 本文に files[] が無い: $kind/$steam_id/${id}（files を書く前の古いクライアントの要約。ack しない）" ;;
         4) log "ERROR: READY 本文の files[] に不正なパスを含む: $kind/$steam_id/${id}（ack しない）" ;;
         *) log "ERROR: READY 本文の解析に失敗（exit ${py_rc}）: $kind/$steam_id/${id}（ack しない）" ;;
       esac
@@ -122,36 +124,15 @@ commit_logs() {
   [ "$GIT_PUSH" = 1 ] || return 0
   (
     cd "$LOGS"
-    [ "$($GIT_CMD rev-list --count '@{u}..HEAD' 2>/dev/null || echo 0)" != 0 ] || exit 0
+    local ahead
+    # 数えられない（上流未設定等）を 0 と読み替えると push 漏れが無音になるので理由を出す
+    # Reading a failed count (e.g. no upstream) as 0 would silently skip the push, so log why
+    ahead="$($GIT_CMD rev-list --count '@{u}..HEAD' 2>&1)" \
+      || { log "ERROR: upstream との差を数えられず push しない: ${ahead}"; exit 0; }
+    [ "$ahead" != 0 ] || exit 0
     $GIT_CMD push -q || exit 1
   ) || log "ERROR: logs repo の push に失敗（次回に持ち越し）"
 }
-
-# mkdir ロックに PID を添えて生存確認する。worker は nohup で切り離されており
-# SIGKILL・OOM・再起動で EXIT trap が走らず残骸ロックが残りうるため、死んでいれば奪う
-# The mkdir lock carries a PID so a stale one can be reclaimed: the detached
-# nohup worker can die without the EXIT trap running, leaving an orphan lock
-acquire_lock() {
-  if mkdir "$LOCK" 2>/dev/null; then
-    echo $$ > "$LOCK/pid"
-    return 0
-  fi
-  local owner_pid
-  owner_pid="$(cat "${LOCK}/pid" 2>/dev/null || true)"
-  if [ -n "$owner_pid" ] && kill -0 "$owner_pid" 2>/dev/null; then
-    log "別の取り込みが進行中（pid=${owner_pid}, ${LOCK}）"
-    return 1
-  fi
-  log "ロックの所有者（pid=${owner_pid:-不明}）が死んでいる。奪取する（${LOCK}）"
-  rm -rf "$LOCK"
-  mkdir "$LOCK" 2>/dev/null || { log "ロック奪取に失敗（${LOCK}）"; return 1; }
-  echo $$ > "$LOCK/pid"
-  return 0
-}
-
-acquire_lock || exit 0
-WORK="$(mktemp -d)"
-trap 'rm -rf "$LOCK" "$WORK"' EXIT
 
 # logs repo が無ければ受け口に触る前に止める。位置から導出した既定パスは
 # 本体clone以外（タスクworktree等）で解決しないため、ここで fail-closed にする
@@ -159,7 +140,11 @@ trap 'rm -rf "$LOCK" "$WORK"' EXIT
 # default resolves to nothing outside the main clone (task worktrees etc.), so fail closed here
 [ -d "${LOGS}/.git" ] || { log "ERROR: logs repo が無い（${LOGS}）。取り込み・ack をしない"; exit 1; }
 
-ITEMS="$WORK/items.tsv"; : > "$ITEMS"
+acquire_lock || exit 0
+WORK="$(mktemp -d)"
+trap 'rm -rf "$LOCK" "$WORK"' EXIT
+
+ITEMS="$WORK/items.txt"; : > "$ITEMS"
 cursor=""; page=0
 while [ "$page" -lt "$MAX_PAGES" ]; do
   page=$((page + 1))
@@ -169,7 +154,10 @@ while [ "$page" -lt "$MAX_PAGES" ]; do
 import json,sys
 d=json.load(open(sys.argv[1]))
 for it in d.get("items") or []:
-    print("\t".join([it.get("kind",""),it.get("steamId",""),it.get("id",""),it.get("readyAt","")]))
+    row=[str(it.get(k) or "") for k in ("kind","steamId","id","readyAt")]
+    if any(c < " " or c == "\x7f" for c in "".join(row)):
+        print("[ingest] ERROR: 制御文字を含む item を飛ばす（行区切りを壊すため）: %r" % (row,), file=sys.stderr); continue
+    print("\x1f".join(row))
 ' "$WORK/page.json" >> "$ITEMS"
   cursor="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1])).get("cursor") or "")' "$WORK/page.json")"
   [ -n "$cursor" ] || break
@@ -180,8 +168,12 @@ done
 # MAX_ITEMS counts successes, not attempts: counting attempts would let permanently-failing
 # boxes (e.g. missing files[]) occupy the cap forever and starve later, healthy boxes
 success=0; failed=0
-while IFS=$'\t' read -r kind steam_id id ready_at; do
-  [ -n "$kind" ] && [ -n "$id" ] || continue
+# 区切りは US(0x1f)。タブは IFS 空白扱いで連続が畳まれ、空フィールドがあると列がずれる
+# Fields are split on US (0x1f): tabs are IFS whitespace, so consecutive ones collapse and shift columns when a field is empty
+while IFS=$'\x1f' read -r kind steam_id id ready_at; do
+  # 空行だけ飛ばす。欠けたフィールドは ingest_one の検証で理由付きで拒否される
+  # Skip only blank rows; missing fields are rejected with a reason by ingest_one's validation
+  [ -n "${kind}${steam_id}${id}" ] || continue
   if [ "$success" -ge "$MAX_ITEMS" ]; then log "成功 $MAX_ITEMS 件に達した。残りは次回"; break; fi
   if ingest_one "$kind" "$steam_id" "$id" "$ready_at"; then
     success=$((success + 1))

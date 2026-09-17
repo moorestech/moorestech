@@ -114,17 +114,18 @@ def flatten_progress_record(record: dict, box: dict) -> dict:
 
 
 def load_progress(root: Path, date: str) -> tuple[list[dict], dict]:
-    """進行記録1件を集計しやすい形へ畳む。離脱地点は最後のイベントと最後の UI 状態で見る。
-    型が契約と食い違う record.json は件数に数えて除外する（1件の異常で全体を止めない）
-    Flattens one progress record; drop-off is read from the last event and last UI state.
-    A type-mismatched record.json is counted and excluded rather than crashing the whole run"""
+    """進行記録1件を集計しやすい形へ畳む。離脱地点は最後のイベントと最後の UI 状態で見る。型・値
+    （schemaVersion・playSeconds）が契約と食い違う record.json は件数に数えて除外する（1件の異常で全体を止めない）
+    Flattens one progress record; drop-off is read from the last event and last UI state. A record.json whose
+    types or values (schemaVersion, playSeconds) break the contract is counted and excluded rather than crashing the run"""
     boxes, stats = collect_boxes(root, date)
     stats = dict(stats, invalidRecord=0)
     records = []
     for box in boxes:
         record, reason = schema.read_conformed(box["dir"] / "record.json", schema.RECORD_SCHEMA)
-        if record is None:
-            warn(reason or "record.json の型が想定外", box["dir"] / "record.json")
+        reason = reason if record is None else schema.record_value_problem(record)
+        if reason is not None:
+            warn(reason, box["dir"] / "record.json")
             stats["invalidRecord"] += 1
             continue
         records.append(flatten_progress_record(record, box))

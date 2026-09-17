@@ -43,7 +43,7 @@ tail -f /Users/sakastudio/hermes-agent/data/services/always-on/logs/playtest-ing
 bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/ingest.sh
 ```
 
-ロックは `$TMPDIR/moorestech-playtest-ingest.lock`（PID 入り）。前回のプロセスが生きていれば何もせず終わり、死んでいれば（SIGKILL・OOM・再起動等で trap が走らず残った場合）理由をログして奪取する。
+ロックは logs repo の `.git/moorestech-playtest-ingest.lock`（PID 入り。`$TMPDIR` に依らないので supervisor 配下と手動実行でも排他が効き、`git add` にも掴まれない）。前回のプロセスが生きていれば何もせず終わり、死んでいれば（SIGKILL・OOM・再起動等で trap が走らず残った場合）理由をログして奪取する。
 
 ## 成果物
 
@@ -61,6 +61,8 @@ bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/enque
 
 - 投入すると `moorestech_logs/harness/bug-report/inbox/<id>/` に置かれ、plan C の `inbox-poller.sh` が最大60秒で拾う
 - 二度目は `exit 2`（箱の `AUTOFIX_QUEUED` マーカーで判定）。やり直すならマーカーを消す
+- `harness/bug-report/runs/<id>` が既にあると `exit 5`（poller が `.duplicate` へ隔離してランを起こさないため）。やり直すなら旧ランを改名・退避してからマーカーを消す
+- 元箱に `READY` が無い（取り込みが完結していない）箱、steamId/id が安全な単一パスセグメントでない（空・`.`・`..`・`/`・`\`・制御文字）引数は `exit 1` で拒否する
 - 感想・クラッシュは `exit 3` で拒否。どうしても走らせるなら `--force`（inbox 側に `AUTOFIX_FORCED` が付き、poller の種別ガードを通る）
 - 結果は `moorestech_logs/harness/bug-report/runs/<id>/fix-result.json`、翌朝のダイジェストの「自動修正ラン」節にも出る
 

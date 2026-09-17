@@ -21,7 +21,7 @@ READY_INGEST = {"kind": "report", "steamId": "7656099", "id": "20260912_990000_x
                 "readyAt": "2026-09-12T09:50:00Z"}
 UNREADABLE_BOX = "ingest.json を読めない/日付を解釈できず除外した箱 1件"
 INVALID_MANIFEST = "manifest.json の型が想定外で除外した箱 1件"
-INVALID_RECORD = "record.json の型が想定外で除外した件数 1件"
+INVALID_RECORD = "record.json の型・値が想定外で除外した件数 1件"
 INVALID_RESULT = "fix-result.json の型が想定外で除外したラン 1件"
 
 # (説明, 箱の種類, ファイル名→内容, 出力に出るべき警告) / (label, box area, files, expected warning)

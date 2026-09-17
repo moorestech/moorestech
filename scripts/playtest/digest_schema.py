@@ -3,15 +3,19 @@
 
 型の検証と既定値の補完をこの1箇所で行い、集計側は型が保証された dict だけを扱う。
 値が null・欠落なら既定値、型が契約と食い違えば箱/記録ごと None＋理由文字列（呼び出し側が理由をログし件数に数えて除外する）。
+テスター由来の文字列を Discord へ出す側の無害化（neutralize_discord_markup）も外部入力の境界としてここに置く。
 
 Read boundary for external JSON (ingest.json / manifest.json / record.json / fix-result.json).
 Type validation and defaulting happen only here, so aggregation code handles type-guaranteed dicts.
 A null or missing value takes its default; a type mismatch yields (None, reason) for the whole file
-(callers log the reason and count/exclude it).
+(callers log the reason and count/exclude it). Neutralising tester-supplied text for Discord output
+(neutralize_discord_markup) also lives here as part of the external-input boundary.
 """
 from __future__ import annotations
 
 import json
+import math
+import re
 from pathlib import Path
 
 STR = (str,)
@@ -30,7 +34,7 @@ MANIFEST_SCHEMA = {
 RECORD_SCHEMA = {
     # playSeconds は既定値を None にする（0.0 だと「計測0秒」と「未計測」が区別できず平均へ無言混入する）
     # playSeconds defaults to None: 0.0 would conflate "measured zero" with "unmeasured" and silently skew the mean
-    "steamId": (STR, ""), "playSeconds": (NUMBER, None), "endReason": (STR, ""), "lastUiState": (STR, ""),
+    "schemaVersion": (INT, None), "steamId": (STR, ""), "playSeconds": (NUMBER, None), "endReason": (STR, ""), "lastUiState": (STR, ""),
     "reachedChallenges": ([None], None), "completedResearch": ([None], None),
     "events": ([{"type": (STR, "")}], None),
 }
@@ -127,3 +131,27 @@ def read_conformed(path: Path, schema: dict) -> tuple[dict | None, str | None]:
     if isinstance(conformed, Invalid):
         return None, f"型不一致: {conformed.path}"
     return conformed, None
+
+
+def record_value_problem(record: dict) -> str | None:
+    """型では弾けない record.json の値の契約違反を理由として返す（schemaVersion が 1 でない・
+    playSeconds が NaN/Infinity/負数。json.loads は NaN/Infinity を受理するため平均が nan になる）
+    Returns the reason for value-level contract violations types cannot catch (schemaVersion other than 1,
+    or a NaN/Infinity/negative playSeconds, which json.loads accepts and which would turn the mean into nan)"""
+    if record["schemaVersion"] != 1:
+        return f"schemaVersion が 1 でない: {record['schemaVersion']!r}"
+    seconds = record["playSeconds"]
+    if seconds is not None and (not math.isfinite(seconds) or seconds < 0):
+        return f"playSeconds が有限の非負数でない: {seconds!r}"
+    return None
+
+
+ZERO_WIDTH_SPACE = "\u200b"
+
+
+def neutralize_discord_markup(text: str) -> str:
+    """テスター由来の文字列を Discord へ出す前に無害化する。@ の直後にゼロ幅スペースを入れて
+    @everyone/@here/<@id> を発火させず、連続するバッククォートの間にも入れてコードフェンスを開閉させない
+    Neutralises tester-supplied text before it reaches Discord: a zero-width space after every @ stops
+    @everyone/@here/<@id> pings, and one between consecutive backticks stops code fences opening or closing"""
+    return re.sub(r"`(?=`)", "`" + ZERO_WIDTH_SPACE, text.replace("@", "@" + ZERO_WIDTH_SPACE))
