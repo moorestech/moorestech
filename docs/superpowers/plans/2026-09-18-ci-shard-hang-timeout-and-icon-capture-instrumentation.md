@@ -470,4 +470,5 @@ planning 中に生じた判断:
 - **テストのログ収集を `Application.logMessageReceived` で行う（`LogAssert.Expect` を使わない）。** 出所: agent前提。順序と件数まで固定したいため、収集してから並びを検証する形にした。
 - **`foreach` を添字 `for` に変えた。** 出所: agent前提。進捗の `{i}/{N}` を出すために添字が要る。挙動は変わらない。
 - **step timeout の挙動を実測してから本適用する（Task 1）。** 出所: agent前提。公式ドキュメントは step timeout 超過時の結論を明記しておらず、「step の `timeout-minutes` は無視される」と書く二次情報もある。planの全体がこの外部挙動に乗るため、伝聞のまま所与にしない（writing-plans Self-Review §6）。実測結果はこの行の下へ追記する。
-  - 実測結果: （Task 1 Step 4 でここへ run / job / step の conclusion を記入する）
+  - 実測結果: run `failure` / job `probe` `failure` / step `Sleep past the step timeout` `failure`（run id 35262375455・2026-09-17T19:01Z・`actions/github-script@v7` に `timeout-minutes: 1`）。後続の `if: always()` step は `success` で走った。よって Task 2 は `timeout-minutes: 40` を足すだけの形を採る（`continue-on-error` の代替形は不要）。
+  - なお `workflow_dispatch` はデフォルトブランチに存在しない workflow を起動できず404になるため、検証workflowは自ブランチへの push 起動に変えて実測した（plan の Step 3 のコマンドからの逸脱はこの点のみ）。
