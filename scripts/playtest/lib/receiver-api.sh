@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 受け口 admin API の薄いラッパ。curl は差し替え可能で、admin key は引数にしか現れない
 # Thin wrappers over the receiver admin API; curl is swappable and the admin key appears only as an argument
-RECEIVER_BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.tar-atari.com}"
+RECEIVER_BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.moores.tech}"
 CURL_CMD="${CURL_CMD:-curl}"
 RECEIVER_MAX_TIME="${RECEIVER_MAX_TIME:-120}"
 

@@ -3,7 +3,7 @@ import { handle } from "../../src/index";
 import { pendingIndexKey } from "../../src/keys";
 import { bearer, clean, ID, noNetwork, STEAM_ID, workerEnv } from "../support/uploadsFixture";
 
-const BASE = `https://playtest.tar-atari.com/v1/uploads/report/${ID}`;
+const BASE = `https://playtest.moores.tech/v1/uploads/report/${ID}`;
 
 async function putFile(path: string, body: string, contentLength: string): Promise<Response> {
   return handle(
