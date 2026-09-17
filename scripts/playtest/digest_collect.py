@@ -5,10 +5,11 @@ Collects ingested play reports, progress records and auto-fix run results for on
 """
 from __future__ import annotations
 
-import json
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import digest_schema as schema
 
 JST = timezone(timedelta(hours=9))
 REACH_BUCKETS = ((0, 0, "0"), (1, 2, "1-2"), (3, 5, "3-5"), (6, 9, "6-9"))
@@ -30,32 +31,19 @@ def jst_date(iso: str) -> str:
     return parsed.astimezone(JST).strftime("%Y-%m-%d")
 
 
-def read_json(path: Path) -> dict:
-    """壊れている・読めない・dict でない JSON はすべて空 dict にする。呼び出し側が件数として報告する
-    Broken, unreadable or non-dict JSON all become an empty dict; callers report the count"""
-    # 外部（受け口・ゲーム本体・自動修正ラン）が書いたファイルの読み取りなので例外を隔離する
-    # This reads files written by external producers, so the exception is isolated here
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
-
-
 def collect_boxes(root: Path, date: str) -> tuple[list[dict], dict]:
-    """ingest.json の readyAt（無ければ ingestedAt）が指定日の箱を集める。読めない・
+    """ingest.json の readyAt（無ければ ingestedAt）が指定日の箱を集める。読めない・型不一致・
     日付不明の箱は除外件数、readyAt欠落でingestedAtへ落とした箱はフォールバック件数へ計上する
     Collects boxes whose ingest.json readyAt (or ingestedAt fallback) falls on the given day;
-    unreadable/undated boxes count as excluded, readyAt-missing boxes count as a fallback"""
+    unreadable/undated/type-mismatched boxes count as excluded, readyAt-missing boxes count as a fallback"""
     boxes: list[dict] = []
     stats = {"unreadable": 0, "readyAtFallback": 0}
     if not root.is_dir():
         return boxes, stats
     for ingest_path in sorted(root.glob("*/*/ingest.json")):
-        meta = read_json(ingest_path)
-        ready_at = meta.get("readyAt") or ""
-        stamp = ready_at or meta.get("ingestedAt") or ""
-        day = jst_date(stamp)
+        meta = schema.read_conformed(ingest_path, schema.INGEST_SCHEMA)
+        ready_at = meta["readyAt"] if meta else ""
+        day = jst_date(ready_at or meta["ingestedAt"]) if meta else ""
         if not day:
             stats["unreadable"] += 1
             continue
@@ -68,19 +56,24 @@ def collect_boxes(root: Path, date: str) -> tuple[list[dict], dict]:
 
 
 def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
-    """プレイ報告の manifest から種別・説明文・ビルド識別と、投入済みかどうかを取り出す
-    Extracts kind, description, build label and the enqueued flag from each play report manifest"""
+    """プレイ報告の manifest から種別・説明文・ビルド識別と、投入済みかどうかを取り出す。
+    型が契約と食い違う manifest.json の箱は件数に数えて除外する
+    Extracts kind, description, build label and the enqueued flag from each play report manifest;
+    boxes whose manifest.json types mismatch the contract are counted and excluded"""
     boxes, stats = collect_boxes(root, date)
+    stats = dict(stats, invalidManifest=0)
     reports = []
     for box in boxes:
-        manifest = read_json(box["dir"] / "manifest.json")
-        build_info = manifest.get("buildInfo") or {}
+        manifest = schema.read_conformed(box["dir"] / "manifest.json", schema.MANIFEST_SCHEMA)
+        if manifest is None:
+            stats["invalidManifest"] += 1
+            continue
         reports.append({
-            "id": box["meta"].get("id") or box["dir"].name,
-            "steamId": box["meta"].get("steamId", ""),
-            "kind": manifest.get("kind") or "unknown",
-            "description": manifest.get("description") or "",
-            "buildLabel": build_info.get("steamBuildLabel", ""),
+            "id": box["meta"]["id"] or box["dir"].name,
+            "steamId": box["meta"]["steamId"],
+            "kind": manifest["kind"] or "unknown",
+            "description": manifest["description"],
+            "buildLabel": manifest["buildInfo"]["steamBuildLabel"],
             # AUTOFIX_QUEUED は enqueue-autofix.sh だけが書く。投入候補一覧から外す判定に使う
             # AUTOFIX_QUEUED is written only by enqueue-autofix.sh and removes the box from the candidate list
             "queued": (box["dir"] / "AUTOFIX_QUEUED").is_file(),
@@ -89,28 +82,18 @@ def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
     return reports, stats
 
 
-def coerce_progress_record(record: dict, box: dict) -> dict | None:
-    """record.json の型が契約と食い違えば None を返す（ゲーム側の壊れた出力を弾く）
-    Returns None when record.json's field types don't match the contract, rejecting malformed game output"""
-    play_seconds = record.get("playSeconds", 0.0)
-    events = record.get("events") or []
-    reached = record.get("reachedChallenges") or []
-    research = record.get("completedResearch") or []
-    if not isinstance(play_seconds, (int, float)):
-        return None
-    if not isinstance(events, list) or not all(isinstance(e, dict) for e in events):
-        return None
-    if not isinstance(reached, list) or not isinstance(research, list):
-        return None
-    last_event = events[-1].get("type") if events else "none"
+def flatten_progress_record(record: dict, box: dict) -> dict:
+    """型の保証された record.json を集計用の1行へ畳む
+    Flattens a type-guaranteed record.json into one aggregation row"""
+    events = record["events"]
     return {
-        "steamId": record.get("steamId") or box["meta"].get("steamId", ""),
-        "playSeconds": float(play_seconds),
-        "endReason": record.get("endReason") or "unknown",
-        "reached": len(reached),
-        "research": len(research),
-        "lastUiState": record.get("lastUiState") or "unknown",
-        "lastEvent": last_event if isinstance(last_event, str) and last_event else "none",
+        "steamId": record["steamId"] or box["meta"]["steamId"],
+        "playSeconds": float(record["playSeconds"]),
+        "endReason": record["endReason"] or "unknown",
+        "reached": len(record["reachedChallenges"]),
+        "research": len(record["completedResearch"]),
+        "lastUiState": record["lastUiState"] or "unknown",
+        "lastEvent": (events[-1]["type"] if events else "") or "none",
     }
 
 
@@ -123,12 +106,11 @@ def load_progress(root: Path, date: str) -> tuple[list[dict], dict]:
     stats = dict(stats, invalidRecord=0)
     records = []
     for box in boxes:
-        record = read_json(box["dir"] / "record.json")
-        parsed = coerce_progress_record(record, box)
-        if parsed is None:
+        record = schema.read_conformed(box["dir"] / "record.json", schema.RECORD_SCHEMA)
+        if record is None:
             stats["invalidRecord"] += 1
             continue
-        records.append(parsed)
+        records.append(flatten_progress_record(record, box))
     return records, stats
 
 
@@ -158,29 +140,33 @@ def aggregate_progress(records: list[dict]) -> dict:
     }
 
 
-def load_fix_results(runs_root: Path, date: str) -> tuple[list[dict], int]:
-    """自動修正ランを finishedAt で拾う。欠けている・解釈できない分は mtime に落とし、件数を返して出力に出す
-    Picks runs by finishedAt; falls back to mtime for missing or unparsable stamps and reports the count"""
+def load_fix_results(runs_root: Path, date: str) -> tuple[list[dict], dict]:
+    """自動修正ランを finishedAt で拾う。欠けている・解釈できない分は mtime に落とし、
+    型が契約と食い違う fix-result.json は除外して、それぞれ件数を返して出力に出す
+    Picks runs by finishedAt; missing or unparsable stamps fall back to mtime and
+    type-mismatched fix-result.json files are excluded, both reported as counts"""
     runs: list[dict] = []
-    fallback = 0
+    stats = {"finishedAtFallback": 0, "invalidResult": 0}
     if not runs_root.is_dir():
-        return runs, fallback
+        return runs, stats
     for result_path in sorted(runs_root.glob("*/fix-result.json")):
-        result = read_json(result_path)
-        stamp = result.get("finishedAt") or ""
+        result = schema.read_conformed(result_path, schema.FIX_RESULT_SCHEMA)
+        if result is None:
+            stats["invalidResult"] += 1
+            continue
         # 欠落と、7桁小数等で python3.9 の fromisoformat が拒否する解釈不能を同じフォールバックに束ねる
         # Missing and unparsable (e.g. 7-digit fractions python3.9's fromisoformat rejects) share one fallback
-        day = jst_date(stamp) if stamp else ""
+        day = jst_date(result["finishedAt"])
         if not day:
-            fallback += 1
+            stats["finishedAtFallback"] += 1
             day = datetime.fromtimestamp(result_path.stat().st_mtime, JST).strftime("%Y-%m-%d")
         if day != date:
             continue
         runs.append({
             "id": result_path.parent.name,
-            "status": result.get("status") or "missing",
-            "prNumber": result.get("pr_number"),
-            "base": result.get("base") or "",
-            "summary": result.get("summary") or "",
+            "status": result["status"] or "missing",
+            "prNumber": result["pr_number"],
+            "base": result["base"],
+            "summary": result["summary"],
         })
-    return runs, fallback
+    return runs, stats

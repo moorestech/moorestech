@@ -35,6 +35,8 @@ def format_counts(reports: list[dict], stats: dict) -> list[str]:
         lines.append(f"- ⚠ ingest.json を読めない/日付を解釈できず除外した箱 {stats['unreadable']}件")
     if stats.get("readyAtFallback"):
         lines.append(f"- ⚠ readyAt が無く ingestedAt で日付判定した箱 {stats['readyAtFallback']}件")
+    if stats.get("invalidManifest"):
+        lines.append(f"- ⚠ manifest.json の型が想定外で除外した箱 {stats['invalidManifest']}件")
     return lines
 
 
@@ -87,7 +89,7 @@ def format_progress(agg: dict, stats: dict) -> list[str]:
     return lines
 
 
-def format_runs(runs: list[dict], fallback: int) -> list[str]:
+def format_runs(runs: list[dict], stats: dict) -> list[str]:
     lines = ["", "## 自動修正ラン"]
     if not runs:
         lines.append("- なし")
@@ -98,8 +100,10 @@ def format_runs(runs: list[dict], fallback: int) -> list[str]:
             pr = f"#{run['prNumber']}" if run["prNumber"] else "PRなし"
             lines.append(f"- {run['id']} … {run['status']} / {pr} / "
                          f"base {run['base'] or '不明'} / {run['summary']}")
-    if fallback:
-        lines.append(f"- ⚠ finishedAt が無い/解釈できず mtime で日付判定したラン {fallback}件")
+    if stats["finishedAtFallback"]:
+        lines.append(f"- ⚠ finishedAt が無い/解釈できず mtime で日付判定したラン {stats['finishedAtFallback']}件")
+    if stats["invalidResult"]:
+        lines.append(f"- ⚠ fix-result.json の型が想定外で除外したラン {stats['invalidResult']}件")
     return lines
 
 
@@ -121,16 +125,18 @@ def resolve_date(raw: str) -> str:
     return raw
 
 
-def emit_warnings(report_stats: dict, progress_stats: dict, run_fallback: int) -> None:
+def emit_warnings(report_stats: dict, progress_stats: dict, run_stats: dict) -> None:
     """除外・フォールバックが起きたら stderr にも出す（Discord に届く stdout とは別に運用者が拾えるように）
     Also prints to stderr when boxes were excluded or fell back, so operators see it beyond the Discord stdout"""
     counters = {
         "reports.unreadable": report_stats.get("unreadable", 0),
         "reports.readyAtFallback": report_stats.get("readyAtFallback", 0),
+        "reports.invalidManifest": report_stats.get("invalidManifest", 0),
         "progress.unreadable": progress_stats.get("unreadable", 0),
         "progress.readyAtFallback": progress_stats.get("readyAtFallback", 0),
         "progress.invalidRecord": progress_stats.get("invalidRecord", 0),
-        "runs.finishedAtFallback": run_fallback,
+        "runs.finishedAtFallback": run_stats["finishedAtFallback"],
+        "runs.invalidResult": run_stats["invalidResult"],
     }
     for name, count in counters.items():
         if count:
@@ -152,14 +158,14 @@ def main(argv: list[str] | None = None) -> int:
     playtest = logs / "harness" / "playtest"
     reports, report_stats = dc.load_reports(playtest / "reports", date)
     progress, progress_stats = dc.load_progress(playtest / "progress", date)
-    runs, fallback = dc.load_fix_results(logs / "harness" / "bug-report" / "runs", date)
+    runs, run_stats = dc.load_fix_results(logs / "harness" / "bug-report" / "runs", date)
 
     lines = [f"# moorestech プレイテスト日次ダイジェスト {date}"]
     lines += format_counts(reports, report_stats)
     lines += format_candidates(reports)
     lines += format_feedback(reports)
     lines += format_progress(dc.aggregate_progress(progress), progress_stats)
-    lines += format_runs(runs, fallback)
+    lines += format_runs(runs, run_stats)
     body = "\n".join(lines) + "\n"
 
     archive = playtest / "digests" / f"{date}.md"
@@ -167,7 +173,7 @@ def main(argv: list[str] | None = None) -> int:
         archive.parent.mkdir(parents=True, exist_ok=True)
         archive.write_text(body, encoding="utf-8")
 
-    emit_warnings(report_stats, progress_stats, fallback)
+    emit_warnings(report_stats, progress_stats, run_stats)
     sys.stdout.write(truncate(body, args.max_chars, archive))
     return 0
 
