@@ -6,6 +6,7 @@
 # 資格情報は ~/hermes-agent/data/services/playtest/env.sh から供給する（このスクリプトは値を出力しない）
 # Credentials come from ~/hermes-agent/data/services/playtest/env.sh; this script never echoes their values
 set -eu
+set -o pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 COMMIT="${1:?usage: release-playtest.sh <commit>}"
@@ -57,18 +58,21 @@ for required in "$BUILD_DIR/moorestech.exe" "$BUILD_DIR/game/mods" "$BUILD_INFO"
         exit 4
     fi
 done
-if ! grep -q "\"$BUILD_LABEL\"" "$BUILD_INFO"; then
-    echo "ERROR: build-info.json に steamBuildLabel=$BUILD_LABEL が焼かれていません" >&2
+if ! grep -q "\"steamBuildLabel\"[[:space:]]*:[[:space:]]*\"$BUILD_LABEL\"" "$BUILD_INFO"; then
+    echo "ERROR: build-info.json に steamBuildLabel=$BUILD_LABEL が焼かれていません（共有契約 Global Constraints §1 のキー名）" >&2
     exit 4
 fi
 
 # vdfのトークンを差し込む（depot idはアカウント固有なのでrepoへ書かない）
+# sedの区切り文字はパスに現れないASCII制御文字を使い、RUN_DIR/BUILD_DIRに'|'を含む環境でも壊れないようにする
 # Substitute the vdf tokens; the depot id is account-specific and never committed to the repo
+# The sed delimiter is a control char that paths never contain, so a '|' in RUN_DIR/BUILD_DIR cannot break it
+SED_DELIM=$'\x01'
 for template in app_build_playtest.vdf depot_build_windows.vdf; do
-    sed -e "s|__BUILD_LABEL__|$BUILD_LABEL|g" \
-        -e "s|__RUN_DIR__|$RUN_DIR|g" \
-        -e "s|__CONTENT_ROOT__|$BUILD_DIR|g" \
-        -e "s|__DEPOT_ID__|$MOORESTECH_STEAM_DEPOT_ID|g" \
+    sed -e "s${SED_DELIM}__BUILD_LABEL__${SED_DELIM}${BUILD_LABEL}${SED_DELIM}g" \
+        -e "s${SED_DELIM}__RUN_DIR__${SED_DELIM}${RUN_DIR}${SED_DELIM}g" \
+        -e "s${SED_DELIM}__CONTENT_ROOT__${SED_DELIM}${BUILD_DIR}${SED_DELIM}g" \
+        -e "s${SED_DELIM}__DEPOT_ID__${SED_DELIM}${MOORESTECH_STEAM_DEPOT_ID}${SED_DELIM}g" \
         "$SCRIPT_DIR/steam/$template" >"$STEAM_DIR/$template"
 done
 

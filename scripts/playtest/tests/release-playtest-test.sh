@@ -17,8 +17,11 @@ make_sandbox() {
     cat >"$SANDBOX/bin/moores-wt" <<EOF
 #!/bin/bash
 echo "moores-wt \$*" >>"$SANDBOX/calls.log"
+# 既存の(stale)worktreeディレクトリを模して先に作ってから失敗するケースをMOORES_WT_EXITで再現する
+# MOORES_WT_EXIT reproduces a stale worktree dir that already exists before the command fails
 mkdir -p "$SANDBOX/wt/moorestech_client"
 echo "$SANDBOX/wt"
+exit "\${MOORES_WT_EXIT:-0}"
 EOF
     cat >"$SANDBOX/bin/unity" <<EOF
 #!/bin/bash
@@ -50,6 +53,7 @@ run_target() {
       STEAMCMD_BIN="$SANDBOX/bin/steamcmd" VERIFY_SCRIPT="$SANDBOX/bin/verify" \
       PLAYTEST_RUN_ROOT="$SANDBOX/runs" \
       UNITY_EXIT="${UNITY_EXIT-0}" STEAMCMD_EXIT="${STEAMCMD_EXIT-0}" VERIFY_EXIT="${VERIFY_EXIT-0}" \
+      MOORES_WT_EXIT="${MOORES_WT_EXIT-0}" \
       bash "$TARGET" "$COMMIT" 2>&1 )
 }
 
@@ -82,6 +86,31 @@ make_sandbox
 OUTPUT=$(VERIFY_EXIT=1 run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "verification failure did not fail the run"
 ls "$SANDBOX"/runs/*/announce.md >/dev/null 2>&1 && fail "announce.md was written for a failed verification"
+
+# moores-wtがstaleな(既に存在する)worktreeディレクトリを残しつつ非0終了しても、
+# set -o pipefailがパイプの失敗を伝搬させ、そのまま後続(unity等)へ進まない
+# Even when moores-wt leaves a stale worktree dir behind before exiting non-zero,
+# set -o pipefail must propagate the pipe failure so the run never reaches unity/steamcmd
+make_sandbox
+OUTPUT=$(MOORES_WT_EXIT=1 run_target); STATUS=$?
+[ "$STATUS" -ne 0 ] || fail "moores-wt failure did not fail the run (pipefail missing?)"
+grep -q "^unity" "$SANDBOX/calls.log" 2>/dev/null && fail "unity ran after moores-wt failed"
+
+# build-info.jsonの他キーの値がたまたまBUILD_LABELと一致しても、steamBuildLabelキー名まで見て弾く
+# A coincidental match on another key's value must not pass; the check must name the steamBuildLabel key
+make_sandbox
+cat >"$SANDBOX/bin/unity" <<EOF
+#!/bin/bash
+echo "unity \$*" >>"$SANDBOX/calls.log"
+mkdir -p "\$MOORESTECH_BUILD_OUTPUT/moorestech_Data/StreamingAssets" "\$MOORESTECH_BUILD_OUTPUT/game/mods"
+touch "\$MOORESTECH_BUILD_OUTPUT/moorestech.exe"
+printf '{"commit":"%s","someOtherField":"%s"}' "$COMMIT" "\$MOORESTECH_STEAM_BUILD_LABEL" \
+  >"\$MOORESTECH_BUILD_OUTPUT/moorestech_Data/StreamingAssets/build-info.json"
+EOF
+chmod +x "$SANDBOX/bin/unity"
+OUTPUT=$(run_target); STATUS=$?
+[ "$STATUS" -ne 0 ] || fail "build-info.json missing steamBuildLabel key did not fail"
+grep -q "^steamcmd" "$SANDBOX/calls.log" 2>/dev/null && fail "steamcmd ran despite missing steamBuildLabel key"
 
 if [ "$FAILURES" -ne 0 ]; then
     echo "FAILED: $FAILURES contract checks"
