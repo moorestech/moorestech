@@ -19,12 +19,17 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
 
 ## 初回セットアップ
 
-0. Cloudflare へ認証する（未認証だと以下の `wrangler` コマンドが対話ログインで止まる、または複数アカウント環境では account 選択で失敗する）:
+0. Cloudflare へ認証する（未認証だと以下の `wrangler` コマンドが対話ログインで止まる、または複数アカウント環境では account 選択で失敗する）。複数アカウントを使い分けるマシンでは**認証プロファイル**でこのディレクトリを対象アカウントへ固定する:
    ```bash
-   pnpm exec wrangler login                 # ブラウザでログイン。またはCLOUDFLARE_API_TOKEN環境変数を渡す
-   pnpm exec wrangler whoami                 # Account Nameが複数出る場合はCLOUDFLARE_ACCOUNT_IDを対象アカウントのIDに設定する
+   cd tools/playtest-receiver
+   pnpm exec wrangler auth list                  # 作成済みプロファイルの一覧（無ければ auth create <profile> でログイン）
+   pnpm exec wrangler auth activate <profile>    # 一度だけ。以後このディレクトリ配下の wrangler / pnpm run deploy はそのアカウントで動く
+   pnpm exec wrangler whoami                     # 紐付け先のアカウントを確認（whoami は --profile を受け付けない）
    ```
-   `wrangler.toml` に `account_id` は書かない（秘密ではないが環境依存の値のため、環境変数側で解決する）。
+   - 紐付けずに1回だけ指定するなら各コマンドへ `--profile <profile>` を付ける。解除は `wrangler auth deactivate`。
+   - **`CLOUDFLARE_API_TOKEN` が環境にあるとプロファイルより優先される**ので、プロファイルを使うシェルでは `unset CLOUDFLARE_API_TOKEN` しておく。プロファイルを使わない環境（CI 等）は従来どおり `wrangler login` か `CLOUDFLARE_API_TOKEN` でよい。
+   - `whoami` に Account が複数出る場合は `CLOUDFLARE_ACCOUNT_ID` を対象アカウントの ID に設定する。`wrangler.toml` に `account_id` は書かない（秘密ではないが環境依存の値のため、環境変数側で解決する）。
+   - `routes` の `playtest.tar-atari.com`（custom domain）へ出せるのは **tar-atari.com ゾーンを持つアカウントだけ**。別アカウントへデプロイすると手順4が失敗する。
 1. R2 バケットを作る:
    ```bash
    cd tools/playtest-receiver
