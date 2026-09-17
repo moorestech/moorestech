@@ -5,7 +5,13 @@
 name: Tmp Step Timeout Probe
 
 on:
-  workflow_dispatch: {}
+  # workflow_dispatch はデフォルトブランチに無いworkflowを起動できないため、この検証ブランチへのpushで起動する。
+  # workflow_dispatch cannot start a workflow absent from the default branch, so this probe runs on pushes to its own branch.
+  push:
+    branches:
+      - fix/ci-shard-hang-timeout-and-icon-instrumentation
+    paths:
+      - '.github/workflows/tmp-step-timeout-probe.yml'
 
 jobs:
   probe:
