@@ -10,22 +10,44 @@ mkdir -p "$LOGS/harness/playtest" "$LOGS/harness/bug-report/inbox" "$R2/objects"
 ( cd "$LOGS" && git init -q && git config user.email t@t && git config user.name t \
   && echo x > .gitkeep && git add -A && git commit -qm init )
 
-# 偽の R2: バグ報告・感想・進行記録・files[] が壊れた箱の4件
-# Fake R2 with four boxes: a bug report, a feedback report, a progress record and a broken one
+# 偽の R2: バグ報告・感想・進行記録・files[] が無い箱・特殊文字ファイル名の箱の5件
+# Fake R2 with five boxes: bug, feedback, progress, one without files[] and one with special file names
 mk_object() { mkdir -p "$(dirname "$R2/objects/$1")"; printf '%s' "$2" > "$R2/objects/$1"; }
-mk_object report/7656001/20260913_100000_bug1/READY '{"kind":"bug","files":["manifest.json","screenshot.png"]}'
+# READY 本文は PlaytestUploader.ComposeSummary() と同じ形（kind/id/fileCount/files/skipped/manifest）で作る。
+# files を空文字で渡すと files キー自体を持たない（旧クライアント相当の）要約になる
+# READY bodies mirror PlaytestUploader.ComposeSummary() (kind/id/fileCount/files/skipped/manifest);
+# an empty files argument omits the files key entirely, like a legacy client summary
+mk_ready() {
+  mk_object "$1/READY" "$(python3 -c '
+import json, os, sys
+box, files = sys.argv[1], sys.argv[2]
+kind, _steam, bundle_id = box.split("/")
+manifest_path = os.path.join(sys.argv[3], box, "manifest.json")
+summary = {"kind": kind, "id": bundle_id}
+if files:
+    summary["fileCount"] = len(json.loads(files))
+    summary["files"] = json.loads(files)
+else:
+    summary["fileCount"] = 0
+summary["skipped"] = []
+summary["manifest"] = open(manifest_path).read() if os.path.isfile(manifest_path) else None
+print(json.dumps(summary, ensure_ascii=False))
+' "$1" "$2" "$R2/objects")"
+}
 mk_object report/7656001/20260913_100000_bug1/manifest.json '{"kind":"bug","steamId":"7656001","description":"ベルトが止まる"}'
 mk_object report/7656001/20260913_100000_bug1/screenshot.png 'PNG'
-mk_object report/7656002/20260913_110000_fb1/READY '{"kind":"feedback","files":["manifest.json"]}'
+mk_ready report/7656001/20260913_100000_bug1 '["manifest.json","screenshot.png"]'
 mk_object report/7656002/20260913_110000_fb1/manifest.json '{"kind":"feedback","steamId":"7656002","description":"序盤が長い"}'
-mk_object progress/7656001/20260913_120000_pg1/READY '{"files":["record.json"]}'
+mk_ready report/7656002/20260913_110000_fb1 '["manifest.json"]'
 mk_object progress/7656001/20260913_120000_pg1/record.json '{"schemaVersion":1,"steamId":"7656001","playSeconds":600}'
-mk_object report/7656003/20260913_130000_bad1/READY '{"kind":"bug"}'
+mk_ready progress/7656001/20260913_120000_pg1 '["record.json"]'
+mk_object report/7656003/20260913_130000_bad1/manifest.json '{"kind":"bug"}'
+mk_ready report/7656003/20260913_130000_bad1 ''
 # files[] に空白・#・日本語を含む箱（percent-encode/decode の往復を検証する）
 # A box whose files[] entry has a space, a '#' and Japanese characters (round-trips through percent-encoding)
-mk_object 'report/7656004/20260913_140000_bug2/READY' '{"kind":"bug","files":["manifest.json","note #1 メモ.txt"]}'
 mk_object 'report/7656004/20260913_140000_bug2/manifest.json' '{"kind":"bug","steamId":"7656004","description":"特殊文字ファイル名"}'
 mk_object 'report/7656004/20260913_140000_bug2/note #1 メモ.txt' 'hello'
+mk_ready 'report/7656004/20260913_140000_bug2' '["manifest.json","note #1 メモ.txt"]'
 cat > "$R2/inbox.json" <<'JSON'
 {"items":[
  {"kind":"report","steamId":"7656001","id":"20260913_100000_bug1","readyAt":"2026-09-13T01:00:00Z"},
