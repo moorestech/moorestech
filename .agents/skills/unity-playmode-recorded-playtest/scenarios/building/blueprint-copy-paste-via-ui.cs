@@ -169,7 +169,7 @@ return PlaytestRunner.Run("blueprint-copy-paste-via-ui", options, async p =>
     ClientContext.VanillaApi.SendOnly.Save();
     await p.Until(() => System.IO.File.Exists(savePath) && System.IO.File.ReadAllText(savePath).Contains("conveyor"), 30f, "セーブファイルにBPが書き出される");
 
-    var loaded = JsonConvert.DeserializeObject<WorldSaveAllInfoV1>(System.IO.File.ReadAllText(savePath));
+    var loaded = JsonConvert.DeserializeObject<WorldSaveAllInfo>(System.IO.File.ReadAllText(savePath));
     p.Assert(loaded.Blueprints != null && loaded.Blueprints.Any(b => b.Name == "conveyor" && b.Blocks.Count == 3), "セーブJSONのblueprintsにconveyor(3ブロック)が含まれる");
 
     datastore.LoadBlueprints(new System.Collections.Generic.List<BlueprintJsonObject>());

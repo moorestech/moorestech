@@ -37,7 +37,8 @@ namespace Tests.UnitTest.Game.SaveLoad
         {
             var states = new Dictionary<string, object> { { "k", "{\"Count\":3}" } };
             var e = Assert.Throws<InvalidOperationException>(() => BlockComponentStateReader.Read<SampleState>(states, "k"));
-            StringAssert.Contains("migrate_block_state_objects.py", e.Message);
+            StringAssert.Contains("旧形式", e.Message);
+            StringAssert.Contains("ISaveMigrationStep", e.Message);
         }
         
         [Test]

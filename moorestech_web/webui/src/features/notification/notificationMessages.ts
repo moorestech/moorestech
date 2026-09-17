@@ -44,6 +44,7 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["denied.electricWireDisconnect.InventoryFull", L.ui.notification.electricWireDisconnectInventoryFull],
   ["denied.electricWireDisconnect.InvalidTarget", L.ui.notification.electricWireDisconnectFailed],
   ["denied.blueprint.NotUnlocked", L.ui.notification.blueprintNotUnlocked],
+  ["saveMigration.missingMasterPruned", L.ui.notification.saveMigrationMissingMasterPruned],
 ]);
 
 // 外部IDを有限の型付きキーへ閉じ、未知IDも専用キーで可視化する
@@ -100,6 +101,7 @@ export function resolveNotificationText(
       };
     case "achievement":
     case "operationDenied":
+    case "saveMigration":
       return { key: resolveNotificationKey(notification.messageId), values };
     default: {
       // categoryが増えたらここがコンパイルエラーになる

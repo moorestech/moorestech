@@ -36,11 +36,11 @@ namespace Game.Block.Interface.Component
                 return false;
             }
             
-            // 旧形式のJSON文字列は、CLR文字列でもJValue文字列でも黙って読み飛ばさず移行スクリプトの案内とともに落とす
-            // Old-format JSON strings, as CLR strings or JValue strings, fail loudly with a pointer to the migration script
+            // 旧形式のJSON文字列は、CLR文字列でもJValue文字列でも黙って読み飛ばさずマイグレーション連鎖の案内とともに落とす
+            // Old-format JSON strings, as CLR strings or JValue strings, fail loudly with a pointer to the migration chain
             if (raw is string || (raw is JValue jsonValue && jsonValue.Type == JTokenType.String))
             {
-                throw new InvalidOperationException($"キー {saveKey} のセーブ状態が旧形式（JSON文字列）です。scripts/save_migration/migrate_block_state_objects.py で移行してください");
+                throw new InvalidOperationException($"キー {saveKey} のセーブ状態が旧形式（JSON文字列）です。ロード前のマイグレーション連鎖（Game.SaveLoad/Migration の ISaveMigrationStep）が展開するため、ここへ届いたのは版が上がっていないか手編集で壊れたセーブです");
             }
             
             value = raw is JToken token ? token.ToObject<T>() : (T)raw;

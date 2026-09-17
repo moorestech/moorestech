@@ -67,6 +67,18 @@ describe("notificationMessages", () => {
     );
     expect(resolveItemDisplayName).not.toHaveBeenCalled();
   });
+  it("マスタ欠損の除去通知は3つの件数を補間する", () => {
+    const translate = (key: string) => `resolved:${key}`;
+    expect(resolveNotificationText(
+      { category: "saveMigration", messageId: "saveMigration.missingMasterPruned", messageParams: ["3", "4", "5"], itemId: null, id: 9, lifetimeEpoch: 0 },
+      translate,
+      (itemId: number) => `item:${itemId}`,
+    )).toEqual({
+      key: L.ui.notification.saveMigrationMissingMasterPruned,
+      values: { messageId: "saveMigration.missingMasterPruned", p0: "3", p1: "4", p2: "5" },
+    });
+  });
+
   it("Guidパラメータ通知はcontentキーで表示名へ解決する", () => {
     const guid = "13C3D42F-BBBC-5EB4-8CD0-7B841EF53079";
     const translate = (key: string) => `resolved:${key}`;

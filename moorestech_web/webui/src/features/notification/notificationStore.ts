@@ -51,6 +51,18 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
   removeNotification: (id) => set((s) => ({ notifications: s.notifications.filter((x) => x.id !== id) })),
 }));
 
+// 除去告知はホストがsnapshotで再提示するため、再購読（カットシーン明け・WS再接続）で同じseqが再着する
+// The prune notice is re-served by the host's snapshot, so a resubscribe (after a cutscene, a WS reconnect) delivers the same seq again
+const shownSaveMigrationSeqs = new Set<number>();
+
+// 初めて見るseqならtrueを返して既読にする。ページ寿命で持ち、ページ再読込では出し直す
+// Returns true and marks it shown for an unseen seq; kept for the page lifetime, so a page reload shows it again
+export function claimSaveMigrationNotice(seq: number): boolean {
+  if (shownSaveMigrationSeqs.has(seq)) return false;
+  shownSaveMigrationSeqs.add(seq);
+  return true;
+}
+
 // countを読むため獲得通知へ絞り込んだ行を返す
 // Returns the row narrowed to an earned notification so its count is readable
 function findEarnedRow(notifications: GameNotification[], messageId: string, itemId: number) {

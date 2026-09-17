@@ -1,8 +1,12 @@
 using System.IO;
+using Client.Tests.Inventory;
+using Client.WebUiHost.Boot;
 using Client.WebUiHost.Common;
 using Client.WebUiHost.Game.Topics;
+using MessagePack;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using Server.Event.Notification;
 using UnityEngine;
 
 namespace Client.Tests.WebUi
@@ -49,9 +53,38 @@ namespace Client.Tests.WebUi
             Assert.IsNull(json["itemId"]);
         }
 
+        [Test]
+        public void SaveMigrationNoticeIsServedInSnapshotMatchingFixture()
+        {
+            // 実topicへサーバー通知を流し、配信形とsnapshot再提示の両方をfixtureで固定する
+            // Feed a server notification through the real topic and pin both the wire shape and the snapshot re-serve
+            var vanillaApiEvent = new CapturingVanillaApiEvent();
+            var topic = new NotificationTopic(new WebSocketHub(), vanillaApiEvent);
+            vanillaApiEvent.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateSaveMigrationPruned(3, 4, 5)));
+
+            AssertMatchesFixture(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult(), "notification_save_migration.json");
+        }
+
+        [Test]
+        public void TransientNotificationIsNotServedInSnapshot()
+        {
+            // 除去告知以外は揮発。snapshotへ載せると購読し直しのたびに再表示される
+            // Everything but the prune notice is transient; serving it in the snapshot would re-show it on every resubscribe
+            var vanillaApiEvent = new CapturingVanillaApiEvent();
+            var topic = new NotificationTopic(new WebSocketHub(), vanillaApiEvent);
+            vanillaApiEvent.Dispatch(NotificationService.EventTag, MessagePackSerializer.Serialize(NotificationMessagePack.CreateOperationDenied("denied.miningInventoryFull", System.Array.Empty<string>())));
+
+            Assert.AreEqual("{}", topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
+        }
+
         private static void AssertMatchesFixture(object dto, string fixtureName)
         {
-            var actual = JToken.Parse(WebUiJson.Serialize(dto));
+            AssertMatchesFixture(WebUiJson.Serialize(dto), fixtureName);
+        }
+
+        private static void AssertMatchesFixture(string actualJson, string fixtureName)
+        {
+            var actual = JToken.Parse(actualJson);
             var path = Path.Combine(Application.dataPath, "Scripts/Client.Tests/WebUi/WireFixtures", fixtureName);
             var expected = JToken.Parse(File.ReadAllText(path));
             Assert.IsTrue(JToken.DeepEquals(expected, actual), $"fixture mismatch: {fixtureName}\nexpected: {expected}\nactual: {actual}");
