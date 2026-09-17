@@ -1,9 +1,9 @@
-﻿# 検証機で playtest ブランチの更新を待ち、配布ビルドの通し検証（phase1/phase2）を Steam 経由で実行する
+﻿# 検証機の対話セッションで Steam を再起動し、配布ビルドの通し検証（phase1/phase2）を Steam 経由で実行する（更新は phase1 の起動時に当たる）
 # SteamUser 引数は使わない。Steam はテスター用アカウントで事前ログイン済み前提（README 手順6）
-# 終了コード: 2=ラベル更新待ちの期限切れ 3=ゲーム未インストール 4=result.json 無し 5=検証失敗 6=フェーズ期限切れ 7=steam.exe 不在
-# Waits for the playtest branch update on the check machine and runs the distribution smoke (phase1/phase2) through Steam
+# 終了コード: 2=起動したビルドのラベル不一致 3=ゲーム未インストール 4=result.json 無し 5=検証失敗 6=フェーズ期限切れ 7=steam.exe 不在 8=対話セッションで起動できない
+# Restarts Steam in the check machine's interactive session and runs the distribution smoke (phase1/phase2) through Steam (phase1's launch applies the update)
 # No SteamUser parameter: Steam is expected to be pre-logged-in with the tester account (README step 6)
-# Exit codes: 2=label wait expired 3=game not installed 4=no result.json 5=smoke failed 6=phase timed out 7=steam.exe missing
+# Exit codes: 2=launched build label mismatch 3=game not installed 4=no result.json 5=smoke failed 6=phase timed out 7=steam.exe missing 8=cannot launch in the interactive session
 param(
     [Parameter(Mandatory = $true)][string]$ResultRoot,
     [Parameter(Mandatory = $true)][string]$ExpectedBuildLabel
@@ -71,36 +71,50 @@ Write-Output "steam.exe: $SteamExe"
 if (Test-Path $ResultRoot) { Remove-Item $ResultRoot -Recurse -Force }
 New-Item -ItemType Directory -Path $ResultRoot | Out-Null
 
-# ゲームを起動せずに Steam を常駐させ、playtest ブランチの自動更新で build-info.json のラベルが切り替わるまで待つ
-# （ゲームが動いていると更新が保留されるので先に畳む。exe の更新時刻は差分更新で変わらないことがあるため使わない）
-# Keep Steam running without launching the game and wait until the playtest branch auto-update switches build-info.json's label
-# (a running game holds the update, so close it first; the exe timestamp can be unchanged on a partial update)
-Stop-LeftoverGame "before the update wait"
-Start-Process -FilePath $SteamExe -ArgumentList @("-silent")
-
-$deadline = (Get-Date).AddMinutes(20)
-$matched = $false
-$lastReadError = "build-info.json がまだ存在しない"
-$lastSeenLabel = "(none)"
-while ((Get-Date) -lt $deadline) {
-    if (Test-Path $BuildInfoPath) {
-        try {
-            $buildInfo = Get-Content $BuildInfoPath -Raw | ConvertFrom-Json
-            $lastSeenLabel = "$($buildInfo.steamBuildLabel)"
-            if ($buildInfo.steamBuildLabel -eq $ExpectedBuildLabel) { $matched = $true; break }
-        } catch {
-            # 更新中の断片 JSON なら次のポーリングで読める。恒常的な失敗（権限・破損）は最後の理由として期限切れ時に出す
-            # A mid-write fragment reads fine on the next poll; a persistent failure (permission, corruption) surfaces in the expiry message
-            $lastReadError = $_.Exception.Message
-        }
+# ssh はセッション0で動き、そこから起動した Steam/ゲームはデスクトップを持たず ssh 終了と共に消える。
+# ログイン中の対話セッションで動かすため、使い捨てのスケジュールタスク（cmd /c start で即終了し多重起動拒否に掛からない）を介して起動する
+# ssh runs in session 0, where a launched Steam/game has no desktop and dies with the ssh session.
+# To run in the logged-in interactive session, launch through a disposable scheduled task (cmd /c start exits at once, so it never trips the multiple-instance refusal)
+function Start-SteamInInteractiveSession([string]$Arguments) {
+    $taskName = "moorestech-smoke-launch-" + [Guid]::NewGuid().ToString("N").Substring(0, 8)
+    $action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c start `"`" `"$SteamExe`" $Arguments"
+    $principal = New-ScheduledTaskPrincipal -UserId (whoami) -LogonType Interactive
+    Register-ScheduledTask -TaskName $taskName -Action $action -Principal $principal -Force | Out-Null
+    Start-ScheduledTask -TaskName $taskName
+    Start-Sleep -Seconds 5
+    $taskResult = (Get-ScheduledTaskInfo -TaskName $taskName).LastTaskResult
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    if ($taskResult -ne 0) {
+        Fail 8 "対話セッションで Steam を起動できませんでした（タスク結果 $taskResult。検証機に誰もログインしていない可能性。自動ログインを確認すること）: $Arguments"
     }
-    Start-Sleep -Seconds 15
 }
-if (-not $matched) {
-    Fail 2 "期限内に steamBuildLabel=$ExpectedBuildLabel へ更新されませんでした（最後に読めたラベル: $lastSeenLabel、最後の読み取り失敗: $lastReadError。Steam のダウンロード状況を確認すること）: $BuildInfoPath"
+
+# Steam の自動更新は数時間先へ予約されるため待っても来ない。Steam を再起動してアプリ情報を取り直させ、
+# 更新そのものは phase1 の -applaunch に任せる（Steam は起動前に保留中の更新を必ず当てる）
+# Steam schedules auto-updates hours ahead, so waiting never gets one. Restart Steam to refresh app info and
+# leave the update itself to phase1's -applaunch (Steam always applies a pending update before launching)
+Stop-LeftoverGame "before restarting Steam"
+if (Get-Process -Name steam -ErrorAction SilentlyContinue) {
+    Start-SteamInInteractiveSession "-shutdown"
+    $shutdownDeadline = (Get-Date).AddSeconds(90)
+    while ((Get-Process -Name steam -ErrorAction SilentlyContinue) -and ((Get-Date) -lt $shutdownDeadline)) { Start-Sleep -Seconds 3 }
 }
+Start-SteamInInteractiveSession "-silent"
+Start-Sleep -Seconds 30
+
+# 起動したゲームが期待ラベルのビルドかを build-info.json で確かめる。更新が当たらず旧ビルドが起動したら検証の意味が無い
+# Confirm through build-info.json that the launched game is the expected build; an old build launching would void the verification
+function Assert-ExpectedBuildLabel {
+    $seenLabel = "(build-info.json が無い)"
+    if (Test-Path $BuildInfoPath) { $seenLabel = "$((Get-Content $BuildInfoPath -Raw | ConvertFrom-Json).steamBuildLabel)" }
+    if ($seenLabel -ne $ExpectedBuildLabel) {
+        Stop-LeftoverGame "unexpected build label"
+        Fail 2 "起動したビルドのラベルが違います（期待: $ExpectedBuildLabel、実際: $seenLabel。Steam が更新を当てずに起動した。Steam のダウンロード状況を確認すること）: $BuildInfoPath"
+    }
+}
+
 if (-not (Test-Path $GameExe)) {
-    Fail 3 "moorestech.exe が見つかりません: $GameExe"
+    Fail 3 "moorestech.exe が見つかりません（Steam で playtest ブランチをインストールしておくこと）: $GameExe"
 }
 
 # テスターと同じ起動経路（Steam の DRM・AppID 決定）を通すため、smoke 引数ごと steam.exe -applaunch で起動する
@@ -112,14 +126,19 @@ foreach ($phase in @("phase1", "phase2")) {
     $resultPath = Join-Path $phaseDirectory "result.json"
     New-Item -ItemType Directory -Path $phaseDirectory | Out-Null
     Stop-LeftoverGame "before $phase"
-    Start-Process -FilePath $SteamExe -ArgumentList @("-applaunch", $AppId, "--playtestSmoke", "--smokePhase", $phase, "--smokeResultDirectory", $phaseDirectory)
+    Start-SteamInInteractiveSession "-applaunch $AppId --playtestSmoke --smokePhase $phase --smokeResultDirectory $phaseDirectory"
 
     # result.json が出て、かつゲームが自分で終了するまで待つ。書きかけの読み取りと、次フェーズ起動時の二重起動を避けるため
     # Wait until result.json exists AND the game has quit by itself, avoiding a half-written read and a double launch in the next phase
-    $phaseDeadline = (Get-Date).AddSeconds($PhaseTimeoutSeconds)
+    # phase1 だけは Steam が起動前に当てる更新のダウンロード時間（最長20分）を期限へ足す
+    # Only phase1 adds the download time of the update Steam applies before launching (up to 20 minutes)
+    $updateAllowanceSeconds = if ($phase -eq "phase1") { 1200 } else { 0 }
+    $phaseDeadline = (Get-Date).AddSeconds($PhaseTimeoutSeconds + $updateAllowanceSeconds)
     $finished = $false
+    $labelChecked = $false
     while ((Get-Date) -lt $phaseDeadline) {
         $running = Get-Process -Name $GameProcessName -ErrorAction SilentlyContinue
+        if (-not $labelChecked -and ($running -or (Test-Path $resultPath))) { Assert-ExpectedBuildLabel; $labelChecked = $true }
         if ((Test-Path $resultPath) -and -not $running) { $finished = $true; break }
         Start-Sleep -Seconds 5
     }
