@@ -1,0 +1,16 @@
+"DepotBuild"
+{
+	"DepotID" "__DEPOT_ID__"
+	"contentroot" "__CONTENT_ROOT__"
+
+	"FileMapping"
+	{
+		"LocalPath" "*"
+		"DepotPath" "."
+		"recursive" "1"
+	}
+
+	"FileExclusion" "*.pdb"
+	"FileExclusion" "**/*_BurstDebugInformation_DoNotShip/*"
+	"FileExclusion" "**/*_BackUpThisFolder_ButDontShipItWithYourGame/*"
+}

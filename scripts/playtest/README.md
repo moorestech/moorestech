@@ -25,8 +25,42 @@ scripts/playtest/allowlist.sh remove 76561198000000001
 不許可にした瞬間から新しいセッショントークンは出なくなるが、発行済みトークンは最大1時間有効で、
 その間はアップロードだけ通る。起動時照合（クライアント）は次回起動から効く。
 
+## 配布工程
+
+配布ビルドを焼き、Steam の `playtest` ブランチへ上げ、検証機で通し検証するまでの運用。
+用語は CONTEXT.md「プレイテスト」節、裁定は docs/adr/0061 を正とする。
+
+### 1回だけ行う準備
+
+#### Steamworks 側（Web の手動作業。自動化しない）
+
+1. アプリ 1958160 の Steamworks 管理画面 → SteamPipe → Builds でベータブランチ `playtest` を作成する。
+2. `playtest` ブランチにパスワードを設定する（テスターへキーと一緒に配る）。
+3. Depot のIDを控える（Steamworks → SteamPipe → Depots）。`MOORESTECH_STEAM_DEPOT_ID` に設定する。
+4. Steam Web API の publisher key を発行する（受け口 plan D の `STEAM_WEB_API_KEY` に使う）。
+5. テスター配布用のキーを発行する（Steamworks → Packages → キー生成）。
+
+#### Mac mini 側
+
+1. steamcmd を入れる: `brew install --cask steamcmd`（`steamcmd` が PATH に載る）。
+2. 初回だけ対話で Steam Guard を通す: `steamcmd +login <user> +quit`（以降は保存された資格で無人ログインできる）。
+3. `~/hermes-agent/data/services/playtest/env.sh` に次を追記して export する（このファイルは封じ込め env の外に置かず、値をログへ出さない）:
+   - `MOORESTECH_STEAM_USER`
+   - `MOORESTECH_STEAM_DEPOT_ID`
+   - 検証機向けの変数（Task 6 の節を参照）
+
+### 使い方
+
+```bash
+. ~/hermes-agent/data/services/playtest/env.sh
+scripts/playtest/release-playtest.sh <master のコミット>
+```
+
+成果物・ログ・告知テキストは `~/hermes-agent/data/services/playtest/runs/<label>/` に残る。
+
 ## テスト
 
 ```bash
-bash scripts/playtest/tests/test-allowlist.sh   # OK と出れば合格
+bash scripts/playtest/tests/test-allowlist.sh          # OK と出れば合格
+bash scripts/playtest/tests/release-playtest-test.sh    # PASS: release-playtest contract と出れば合格
 ```
