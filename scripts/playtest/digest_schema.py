@@ -2,11 +2,12 @@
 """外部 JSON（ingest.json / manifest.json / record.json / fix-result.json）の読み込み境界。
 
 型の検証と既定値の補完をこの1箇所で行い、集計側は型が保証された dict だけを扱う。
-値が null・欠落なら既定値、型が契約と食い違えば箱/記録ごと None（呼び出し側が件数に数えて除外する）。
+値が null・欠落なら既定値、型が契約と食い違えば箱/記録ごと None＋理由文字列（呼び出し側が理由をログし件数に数えて除外する）。
 
 Read boundary for external JSON (ingest.json / manifest.json / record.json / fix-result.json).
 Type validation and defaulting happen only here, so aggregation code handles type-guaranteed dicts.
-A null or missing value takes its default; a type mismatch yields None for the whole file (callers count and exclude it).
+A null or missing value takes its default; a type mismatch yields (None, reason) for the whole file
+(callers log the reason and count/exclude it).
 """
 from __future__ import annotations
 
@@ -39,38 +40,45 @@ FIX_RESULT_SCHEMA = {
 }
 
 
-class _Invalid:
-    """型不一致を表す番兵 / Sentinel for a type mismatch"""
+class Invalid:
+    """型不一致の箇所を運ぶ番兵（入れ子は buildInfo.steamBuildLabel 形のパスになる）
+    Sentinel carrying the mismatched field path (nested fields read as buildInfo.steamBuildLabel)"""
+
+    def __init__(self, path: str) -> None:
+        self.path = path
 
 
-INVALID = _Invalid()
-
-
-def read_json(path: Path) -> dict:
-    """壊れている・読めない・dict でない JSON はすべて空 dict にする。呼び出し側が件数として報告する
-    Broken, unreadable or non-dict JSON all become an empty dict; callers report the count"""
+def read_json(path: Path) -> tuple[dict | None, str | None]:
+    """壊れている・読めない・dict でない JSON は (None, 理由) にする。理由は呼び出し側がログする
+    Broken, unreadable or non-dict JSON becomes (None, reason); callers log the reason"""
     # 外部（受け口・ゲーム本体・自動修正ラン）が書いたファイルの読み取りなので例外を隔離する
     # This reads files written by external producers, so the exception is isolated here
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    return data if isinstance(data, dict) else {}
+        raw = path.read_text(encoding="utf-8")
+    except OSError as e:
+        return None, f"読み込み失敗: {e}"
+    try:
+        data = json.loads(raw)
+    except ValueError as e:
+        return None, f"JSON解析失敗: {e}"
+    if not isinstance(data, dict):
+        return None, f"JSONがオブジェクトでない(got {type(data).__name__})"
+    return data, None
 
 
-def conform(data: dict, schema: dict) -> dict | None:
-    """スキーマどおりの dict を返す。型不一致が1つでもあれば None
-    Returns a dict shaped by the schema, or None on any type mismatch"""
+def conform(data: dict, schema: dict) -> dict | Invalid:
+    """スキーマどおりの dict を返す。型不一致が1つでもあれば不一致箇所を運ぶ Invalid
+    Returns a dict shaped by the schema, or an Invalid carrying the mismatched field on any type mismatch"""
     out = {}
     for name, (kind, default) in schema.items():
-        value = conform_value(data.get(name), kind, default)
-        if value is INVALID:
-            return None
+        value = conform_value(data.get(name), kind, default, name)
+        if isinstance(value, Invalid):
+            return value
         out[name] = value
     return out
 
 
-def conform_value(value, kind, default):
+def conform_value(value, kind, default, path):
     # null・欠落は既定値。入れ子と list は空の形を既定にする
     # Null or missing takes the default; nested schemas and lists default to their empty shape
     if value is None:
@@ -78,33 +86,44 @@ def conform_value(value, kind, default):
             return conform({}, kind)
         return [] if isinstance(kind, list) else default
     if isinstance(kind, dict):
-        return conform(value, kind) if isinstance(value, dict) else INVALID
+        if not isinstance(value, dict):
+            return Invalid(path)
+        nested = conform(value, kind)
+        return Invalid(f"{path}.{nested.path}") if isinstance(nested, Invalid) else nested
     if isinstance(kind, list):
-        return conform_list(value, kind[0])
+        return conform_list(value, kind[0], path)
     # bool は int の派生だが数値として受け入れない
     # bool subclasses int but is not accepted as a number
     if isinstance(value, bool) or not isinstance(value, kind):
-        return INVALID
+        return Invalid(path)
     return value
 
 
-def conform_list(value, element_kind):
+def conform_list(value, element_kind, path):
     """要素型 None は中身を問わない（件数だけ使う list）
     An element kind of None accepts any element (lists used only for their length)"""
     if not isinstance(value, list):
-        return INVALID
+        return Invalid(path)
     if element_kind is None:
         return value
     items = []
-    for element in value:
-        conformed = conform(element, element_kind) if isinstance(element, dict) else None
-        if conformed is None:
-            return INVALID
+    for i, element in enumerate(value):
+        if not isinstance(element, dict):
+            return Invalid(f"{path}[{i}]")
+        conformed = conform(element, element_kind)
+        if isinstance(conformed, Invalid):
+            return Invalid(f"{path}[{i}].{conformed.path}")
         items.append(conformed)
     return items
 
 
-def read_conformed(path: Path, schema: dict) -> dict | None:
-    """読み込みと型の正規化を一度に行う（外部 JSON の唯一の入口）
-    Reads and normalises types in one step; the single entry point for external JSON"""
-    return conform(read_json(path), schema)
+def read_conformed(path: Path, schema: dict) -> tuple[dict | None, str | None]:
+    """読み込みと型の正規化を一度に行う（外部 JSON の唯一の入口）。None のときは理由も返す
+    Reads and normalises types in one step, the single entry point for external JSON; returns a reason on None"""
+    data, reason = read_json(path)
+    if data is None:
+        return None, reason
+    conformed = conform(data, schema)
+    if isinstance(conformed, Invalid):
+        return None, f"型不一致: {conformed.path}"
+    return conformed, None

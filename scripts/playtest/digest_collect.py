@@ -5,6 +5,7 @@ Collects ingested play reports, progress records and auto-fix run results for on
 """
 from __future__ import annotations
 
+import sys
 from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -13,6 +14,15 @@ import digest_schema as schema
 
 JST = timezone(timedelta(hours=9))
 REACH_BUCKETS = ((0, 0, "0"), (1, 2, "1-2"), (3, 5, "3-5"), (6, 9, "6-9"))
+# バグ報告の manifest.kind として想定する値。これ以外（空含む）は件数からも警告からも消えないよう別枠で出す
+# The manifest.kind values the digest expects; anything else (including empty) surfaces as its own warning
+KNOWN_KINDS = ("bug", "feedback", "crash")
+
+
+def warn(reason: str, path: Path) -> None:
+    """除外・フォールバックの理由を Discord 本文とは別の stderr へ出す
+    Prints an exclusion/fallback reason to stderr, kept separate from the Discord-bound stdout"""
+    print(f"[digest] {reason}: {path}", file=sys.stderr)
 
 
 def jst_date(iso: str) -> str:
@@ -41,15 +51,17 @@ def collect_boxes(root: Path, date: str) -> tuple[list[dict], dict]:
     if not root.is_dir():
         return boxes, stats
     for ingest_path in sorted(root.glob("*/*/ingest.json")):
-        meta = schema.read_conformed(ingest_path, schema.INGEST_SCHEMA)
+        meta, reason = schema.read_conformed(ingest_path, schema.INGEST_SCHEMA)
         ready_at = meta["readyAt"] if meta else ""
         day = jst_date(ready_at or meta["ingestedAt"]) if meta else ""
         if not day:
+            warn(reason or "readyAt/ingestedAt を解釈できない", ingest_path)
             stats["unreadable"] += 1
             continue
         if day != date:
             continue
         if not ready_at:
+            warn("readyAt が無く ingestedAt で日付判定", ingest_path)
             stats["readyAtFallback"] += 1
         boxes.append({"dir": ingest_path.parent, "meta": meta})
     return boxes, stats
@@ -64,14 +76,15 @@ def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
     stats = dict(stats, invalidManifest=0)
     reports = []
     for box in boxes:
-        manifest = schema.read_conformed(box["dir"] / "manifest.json", schema.MANIFEST_SCHEMA)
+        manifest, reason = schema.read_conformed(box["dir"] / "manifest.json", schema.MANIFEST_SCHEMA)
         if manifest is None:
+            warn(reason or "manifest.json の型が想定外", box["dir"] / "manifest.json")
             stats["invalidManifest"] += 1
             continue
         reports.append({
             "id": box["meta"]["id"] or box["dir"].name,
             "steamId": box["meta"]["steamId"],
-            "kind": manifest["kind"] or "unknown",
+            "kind": manifest["kind"],
             "description": manifest["description"],
             "buildLabel": manifest["buildInfo"]["steamBuildLabel"],
             # AUTOFIX_QUEUED は enqueue-autofix.sh だけが書く。投入候補一覧から外す判定に使う
@@ -109,8 +122,9 @@ def load_progress(root: Path, date: str) -> tuple[list[dict], dict]:
     stats = dict(stats, invalidRecord=0)
     records = []
     for box in boxes:
-        record = schema.read_conformed(box["dir"] / "record.json", schema.RECORD_SCHEMA)
+        record, reason = schema.read_conformed(box["dir"] / "record.json", schema.RECORD_SCHEMA)
         if record is None:
+            warn(reason or "record.json の型が想定外", box["dir"] / "record.json")
             stats["invalidRecord"] += 1
             continue
         records.append(flatten_progress_record(record, box))
@@ -158,14 +172,16 @@ def load_fix_results(runs_root: Path, date: str) -> tuple[list[dict], dict]:
     if not runs_root.is_dir():
         return runs, stats
     for result_path in sorted(runs_root.glob("*/fix-result.json")):
-        result = schema.read_conformed(result_path, schema.FIX_RESULT_SCHEMA)
+        result, reason = schema.read_conformed(result_path, schema.FIX_RESULT_SCHEMA)
         if result is None:
+            warn(reason or "fix-result.json の型が想定外", result_path)
             stats["invalidResult"] += 1
             continue
         # 欠落と、7桁小数等で python3.9 の fromisoformat が拒否する解釈不能を同じフォールバックに束ねる
         # Missing and unparsable (e.g. 7-digit fractions python3.9's fromisoformat rejects) share one fallback
         day = jst_date(result["finishedAt"])
         if not day:
+            warn("finishedAt が無い/解釈できず mtime で日付判定", result_path)
             stats["finishedAtFallback"] += 1
             day = datetime.fromtimestamp(result_path.stat().st_mtime, JST).strftime("%Y-%m-%d")
         if day != date:

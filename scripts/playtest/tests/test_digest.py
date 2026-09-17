@@ -3,6 +3,7 @@
 
 Verifies the daily digest aggregation and output (happy path) against a fixture tree.
 """
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -12,6 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from digest_fixture import SCRIPTS, TARGET_DATE, build_fixture, run_digest, write_json  # noqa: E402
 
 sys.path.insert(0, str(SCRIPTS))
+import digest_candidates as dcand  # noqa: E402
 import digest_collect as dc  # noqa: E402
 
 
@@ -120,6 +122,44 @@ class DigestTest(unittest.TestCase):
         self.assertIn("ベルトが止まる", out)
         self.assertNotIn("enqueue-autofix.sh 7656001 20260912_101000_bug2", out)
         self.assertNotIn("投入済みのバグ", out)
+
+    def test_digest_lists_pre_target_day_candidate_until_enqueued(self):
+        """対象日より前の readyAt を持つ未投入バグは、投入候補として JST 日付付きで出続け、
+        件数節（バグN件）には数えず、AUTOFIX_QUEUED を付けると消える
+        A pre-target-day un-enqueued bug keeps resurfacing in the candidates section with its
+        JST date, is never counted in the "バグN件" tally, and disappears once AUTOFIX_QUEUED is written"""
+        old_bug = self.root / "harness/playtest/reports/7656005/20260905_100000_oldbug"
+        write_json(old_bug / "ingest.json", {"kind": "report", "steamId": "7656005",
+                                             "id": "20260905_100000_oldbug", "readyAt": "2026-09-05T05:00:00Z"})
+        write_json(old_bug / "manifest.json", {"kind": "bug", "description": "対象日より前の未投入バグ"})
+        candidates = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
+        self.assertIn("20260905_100000_oldbug", {c["id"] for c in candidates})
+        out = self.run_ok("--max-chars", "0")
+        self.assertIn("enqueue-autofix.sh 7656005 20260905_100000_oldbug", out)
+        self.assertIn("20260905_100000_oldbug（2026-09-05）", out)
+        # 対象日フィルタで拾われないため、対象日のバグ件数節（2件）には混入しない
+        # It falls outside the target-day filter, so it never inflates the "バグ2件" tally
+        self.assertIn("バグ 2件 / 感想 1件 / クラッシュ 1件", out)
+        # bug1 は対象日内かつ未投入 → 候補にも同時に出る
+        # bug1 is within the target day and also un-enqueued, so it appears as a candidate too
+        self.assertIn("enqueue-autofix.sh 7656001 20260912_100000_bug1", out)
+        (old_bug / "AUTOFIX_QUEUED").write_text("queued\n", encoding="utf-8")
+        out2 = self.run_ok("--max-chars", "0")
+        self.assertNotIn("enqueue-autofix.sh 7656005 20260905_100000_oldbug", out2)
+
+    def test_enqueue_command_id_is_shell_safe(self):
+        """id にシェルメタ文字が混じっても、貼り付けたコマンドは注入されず literal として渡る
+        A shell-meta-character id in the pasted command never injects; it is passed through literally"""
+        malicious = self.root / "harness/playtest/reports/7656006/20260912_160000_evil"
+        write_json(malicious / "ingest.json", {"kind": "report", "steamId": "7656006",
+                                                "id": "$(touch pwned)", "readyAt": "2026-09-12T09:40:00Z"})
+        write_json(malicious / "manifest.json", {"kind": "bug", "description": "injection test"})
+        candidates = dcand.load_candidate_reports(self.root / "harness/playtest/reports")
+        lines = dcand.format_candidates(candidates)
+        cmd_line = next(line for line in lines if "7656006" in line).strip().strip("`")
+        with tempfile.TemporaryDirectory() as tmp:
+            subprocess.run(["bash", "-c", cmd_line + " 2>/dev/null || true"], cwd=tmp)
+            self.assertFalse((Path(tmp) / "pwned").exists())
 
     def test_digest_truncates_and_points_at_archive(self):
         long_box = self.root / "harness/playtest/reports/7656005/20260912_150000_fb2"

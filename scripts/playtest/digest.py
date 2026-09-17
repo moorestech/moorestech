@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import digest_candidates as dcand  # noqa: E402
 import digest_collect as dc  # noqa: E402
 
 
@@ -29,8 +30,12 @@ def format_counts(reports: list[dict], stats: dict) -> list[str]:
     lines = ["", "## プレイ報告の件数",
              f"- バグ {counts.get('bug', 0)}件 / 感想 {counts.get('feedback', 0)}件 / "
              f"クラッシュ {counts.get('crash', 0)}件"]
-    if counts.get("unknown"):
-        lines.append(f"- ⚠ manifest.kind を読めなかった箱 {counts['unknown']}件")
+    # KNOWN_KINDS 以外（空文字含む）は件数からも警告からも無音で消さず、値ごとに出す
+    # Anything outside KNOWN_KINDS (including empty) never disappears silently; each value gets its own line
+    unexpected = {k: v for k, v in counts.items() if k not in dc.KNOWN_KINDS}
+    for kind, count in sorted(unexpected.items()):
+        label = kind or "(空/読めなかった)"
+        lines.append(f"- ⚠ 想定外 kind: {label} {count}件")
     if stats.get("unreadable"):
         lines.append(f"- ⚠ ingest.json を読めない/日付を解釈できず除外した箱 {stats['unreadable']}件")
     if stats.get("readyAtFallback"):
@@ -51,20 +56,6 @@ def format_feedback(reports: list[dict]) -> list[str]:
         label = report["buildLabel"] or "不明"
         lines.append(f"### {report['id']}（SteamID {report['steamId']} / build {label}）")
         lines.append(report["description"].strip() or "（説明文が空）")
-    return lines
-
-
-def format_candidates(reports: list[dict]) -> list[str]:
-    """未投入のバグ報告を、そのまま貼れる enqueue コマンド付きで並べる（投入の判断は人が持つ）
-    Lists un-enqueued bug reports with a copy-pastable enqueue command; the decision stays with a human"""
-    lines = ["", "## 投入候補のバグ報告"]
-    items = [r for r in reports if r["kind"] == "bug" and not r["queued"]]
-    if not items:
-        return lines + ["- なし"]
-    for report in items:
-        head = (report["description"].strip().splitlines() or ["（説明文が空）"])[0]
-        lines.append(f"- {report['id']} … {head}")
-        lines.append(f"  `scripts/playtest/enqueue-autofix.sh {report['steamId']} {report['id']}`")
     return lines
 
 
@@ -165,6 +156,7 @@ def main(argv: list[str] | None = None) -> int:
     logs = Path(args.logs)
     playtest = logs / "harness" / "playtest"
     reports, report_stats = dc.load_reports(playtest / "reports", date)
+    candidates = dcand.load_candidate_reports(playtest / "reports")
     progress, progress_stats = dc.load_progress(playtest / "progress", date)
     runs, run_stats = dc.load_fix_results(logs / "harness" / "bug-report" / "runs", date)
     progress_agg = dc.aggregate_progress(progress)
@@ -174,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
 
     lines = [f"# moorestech プレイテスト日次ダイジェスト {date}"]
     lines += format_counts(reports, report_stats)
-    lines += format_candidates(reports)
+    lines += dcand.format_candidates(candidates)
     lines += format_feedback(reports)
     lines += format_progress(progress_agg, progress_stats)
     lines += format_runs(runs, run_stats)

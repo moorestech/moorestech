@@ -21,12 +21,18 @@ mk_object report/7656002/20260913_110000_fb1/manifest.json '{"kind":"feedback","
 mk_object progress/7656001/20260913_120000_pg1/READY '{"files":["record.json"]}'
 mk_object progress/7656001/20260913_120000_pg1/record.json '{"schemaVersion":1,"steamId":"7656001","playSeconds":600}'
 mk_object report/7656003/20260913_130000_bad1/READY '{"kind":"bug"}'
+# files[] に空白・#・日本語を含む箱（percent-encode/decode の往復を検証する）
+# A box whose files[] entry has a space, a '#' and Japanese characters (round-trips through percent-encoding)
+mk_object 'report/7656004/20260913_140000_bug2/READY' '{"kind":"bug","files":["manifest.json","note #1 メモ.txt"]}'
+mk_object 'report/7656004/20260913_140000_bug2/manifest.json' '{"kind":"bug","steamId":"7656004","description":"特殊文字ファイル名"}'
+mk_object 'report/7656004/20260913_140000_bug2/note #1 メモ.txt' 'hello'
 cat > "$R2/inbox.json" <<'JSON'
 {"items":[
  {"kind":"report","steamId":"7656001","id":"20260913_100000_bug1","readyAt":"2026-09-13T01:00:00Z"},
  {"kind":"report","steamId":"7656002","id":"20260913_110000_fb1","readyAt":"2026-09-13T02:00:00Z"},
  {"kind":"progress","steamId":"7656001","id":"20260913_120000_pg1","readyAt":"2026-09-13T03:00:00Z"},
- {"kind":"report","steamId":"7656003","id":"20260913_130000_bad1","readyAt":"2026-09-13T04:00:00Z"}],
+ {"kind":"report","steamId":"7656003","id":"20260913_130000_bad1","readyAt":"2026-09-13T04:00:00Z"},
+ {"kind":"report","steamId":"7656004","id":"20260913_140000_bug2","readyAt":"2026-09-13T05:00:00Z"}],
  "cursor":null}
 JSON
 
@@ -34,22 +40,42 @@ JSON
 # curl stub: copies fake-R2 files to the -o target and records POSTs as acks
 cat > "$TMP/curl" <<'SH'
 #!/usr/bin/env bash
+# receiver-api.sh は -w '%{http_code}' で status を読むので、この偽 curl も
+# 常に exit 0 でステータス3桁を標準出力へ書く（本物の curl の非--fail挙動と同じ）
+# receiver-api.sh reads status via -w '%{http_code}', so this fake curl also
+# always exits 0 and prints a 3-digit status to stdout (matching real curl without --fail)
 out=""; url=""; method=GET
 while [ $# -gt 0 ]; do
   case "$1" in
     -o) out="$2"; shift 2 ;;
     -X) method="$2"; shift 2 ;;
+    -w) shift 2 ;;
     -H|--max-time) shift 2 ;;
     --silent|--show-error|--fail|--location) shift ;;
     *) url="$1"; shift ;;
   esac
 done
 path="${url#*://*/v1/}"; path="${path%%\?*}"
-if [ "$method" = POST ]; then echo "$path" >> "$FAKE_R2/acked.txt"; : > "$out"; exit 0; fi
-if [ "$path" = inbox ]; then cp "$FAKE_R2/inbox.json" "$out"; exit 0; fi
-src="$FAKE_R2/objects/${path#inbox/}"
-[ -f "$src" ] || exit 22
-mkdir -p "$(dirname "$out")"; cp "$src" "$out"
+if [ "$method" = POST ]; then echo "$path" >> "$FAKE_R2/acked.txt"; : > "$out"; echo 200; exit 0; fi
+if [ "$path" = inbox ]; then cp "$FAKE_R2/inbox.json" "$out"; echo 200; exit 0; fi
+# decode前の生パスを記録する。空白・#・非ASCIIが生のまま届いたら、それは
+# percent-encodeされていない壊れたURL（本物のcurlなら#以降がfragmentとして
+# 落ちる/空白で不正URLになる）なので400で拒否する
+# Record the raw pre-decode path. A literal space/#/non-ASCII byte means the
+# URL was never percent-encoded (real curl would drop everything after '#'
+# as a fragment, or choke on the space), so reject it with 400
+echo "$path" >> "$FAKE_R2/requested.txt"
+if python3 -c 'import sys
+p = sys.argv[1]
+sys.exit(1 if any(ord(c) > 126 or c in " #" for c in p) else 0)' "$path"; then :; else echo 400; exit 0; fi
+# receiver-api.sh は各セグメントを percent-encode して渡す。実オブジェクト名（空白・#・日本語等）へ
+# 戻すには decode してからファイル系へ当てる必要がある
+# receiver-api.sh percent-encodes each segment; decode before mapping onto the real object name
+# (spaces, '#', Japanese, etc.)
+decoded="$(python3 -c 'import sys,urllib.parse;print(urllib.parse.unquote(sys.argv[1]))' "$path")"
+src="$FAKE_R2/objects/${decoded#inbox/}"
+[ -f "$src" ] || { echo 404; exit 0; }
+mkdir -p "$(dirname "$out")"; cp "$src" "$out"; echo 200
 SH
 chmod +x "$TMP/curl"
 
@@ -68,6 +94,9 @@ grep -q '"readyAt":"2026-09-13T01:00:00Z"' "$P/reports/7656001/20260913_100000_b
 [ -f "$P/reports/7656002/20260913_110000_fb1/manifest.json" ] || { echo "NG: 感想が置かれていない"; exit 1; }
 [ -f "$P/progress/7656001/20260913_120000_pg1/record.json" ] || { echo "NG: 進行記録が置かれていない"; exit 1; }
 [ ! -e "$P/reports/7656003/20260913_130000_bad1" ] || { echo "NG: files[] 無しの箱が公開された"; exit 1; }
+[ -f "$P/reports/7656004/20260913_140000_bug2/note #1 メモ.txt" ] || { echo "NG: 空白/#/日本語を含むファイル名が取り込まれていない"; exit 1; }
+grep -q 'report/7656004/20260913_140000_bug2/ack' "$R2/acked.txt" || { echo "NG: 特殊文字ファイル名の箱が ack されていない"; exit 1; }
+grep -qF 'report/7656004/20260913_140000_bug2/note%20%231%20%E3%83%A1%E3%83%A2.txt' "$R2/requested.txt" || { echo "NG: 特殊文字ファイル名がURLエンコード済みの形で届いていない"; exit 1; }
 
 # 自動投入しない（ADR 0061）。inbox は空のまま、マーカーも付かない
 # No auto-enqueue (ADR 0061): the auto-fix inbox stays empty and no marker is written

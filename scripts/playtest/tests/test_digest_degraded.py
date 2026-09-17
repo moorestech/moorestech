@@ -85,6 +85,70 @@ class DigestDegradedTest(unittest.TestCase):
         self.assertIn(f"⚠ {INVALID_RESULT}", result.stdout)
         self.assertIn("[digest] WARN runs.invalidResult=1", result.stderr)
 
+    def _write_raw(self, path: Path, text: str) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    def test_manifest_broken_or_non_dict_json_is_excluded_and_reported(self):
+        """manifest.json が壊れたJSON/非dict（list等）でも既定値へ混ざらず件数に数えて除外する
+        A malformed or non-dict manifest.json (e.g. a list) is counted and excluded, never
+        treated as a valid record with defaults"""
+        for label, text, expected_reason in (
+            ("broken json", "{", "JSON解析失敗"),
+            ("json array", "[]", "JSONがオブジェクトでない"),
+        ):
+            with self.subTest(label), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                build_fixture(root)
+                box = root / "harness/playtest/reports/7656099/20260912_990000_x"
+                write_json(box / "ingest.json", READY_INGEST)
+                self._write_raw(box / "manifest.json", text)
+                result = run_digest(root, self.date, "--max-chars", "0", "--no-archive")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(f"⚠ {INVALID_MANIFEST}", result.stdout)
+                self.assertIn("[digest] WARN reports.invalidManifest=1", result.stderr)
+                self.assertIn(expected_reason, result.stderr)
+                self.assertIn("manifest.json", result.stderr)
+
+    def test_record_broken_or_non_dict_json_is_excluded_and_reported(self):
+        """record.json が壊れたJSON/非dictでも既定値へ混ざらず件数に数えて除外する
+        A malformed or non-dict record.json is counted and excluded, never treated as valid defaults"""
+        for label, text, expected_reason in (
+            ("broken json", "{", "JSON解析失敗"),
+            ("json array", "[]", "JSONがオブジェクトでない"),
+        ):
+            with self.subTest(label), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                build_fixture(root)
+                box = root / "harness/playtest/progress/7656099/20260912_990000_x"
+                write_json(box / "ingest.json", READY_INGEST)
+                self._write_raw(box / "record.json", text)
+                result = run_digest(root, self.date, "--max-chars", "0", "--no-archive")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(f"⚠ {INVALID_RECORD}", result.stdout)
+                self.assertIn("[digest] WARN progress.invalidRecord=1", result.stderr)
+                self.assertIn(expected_reason, result.stderr)
+                self.assertIn("record.json", result.stderr)
+
+    def test_fix_result_broken_or_non_dict_json_is_excluded_and_reported(self):
+        """fix-result.json が壊れたJSON/非dictでも既定値へ混ざらず件数に数えて除外する
+        A malformed or non-dict fix-result.json is counted and excluded, never treated as valid defaults"""
+        for label, text, expected_reason in (
+            ("broken json", "{", "JSON解析失敗"),
+            ("json array", "[]", "JSONがオブジェクトでない"),
+        ):
+            with self.subTest(label), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                build_fixture(root)
+                path = root / "harness/bug-report/runs/20260912_083000_badraw/fix-result.json"
+                self._write_raw(path, text)
+                result = run_digest(root, self.date, "--max-chars", "0", "--no-archive")
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(f"⚠ {INVALID_RESULT}", result.stdout)
+                self.assertIn("[digest] WARN runs.invalidResult=1", result.stderr)
+                self.assertIn(expected_reason, result.stderr)
+                self.assertIn("badraw/fix-result.json", result.stderr)
+
     def test_load_reports_counts_broken_ingest_json(self):
         broken = self.root / "harness/playtest/reports/7656009/20260912_990000_broken"
         broken.mkdir(parents=True)

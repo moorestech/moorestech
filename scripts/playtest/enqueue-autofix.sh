@@ -35,13 +35,21 @@ if [ -f "${BOX}/AUTOFIX_QUEUED" ]; then
   exit 2
 fi
 
+# manifest は壊れうる外部入力。読めない理由をログして空を返す（無音で握り潰さない。ship-outbox.sh前例）
+# manifest is fallible external input: log why it could not be read and return empty (precedent: ship-outbox.sh)
+KIND_ERR="$(mktemp)"
 MANIFEST_KIND="$(python3 -c '
 import json,sys
-try:
-    print(json.load(open(sys.argv[1])).get("kind",""))
-except Exception:
-    print("")
-' "${BOX}/manifest.json")"
+kind = json.load(open(sys.argv[1])).get("kind", "")
+if not isinstance(kind, str):
+    sys.stderr.write(f"kind が文字列でない: {kind!r}")
+    kind = ""
+print(kind)
+' "${BOX}/manifest.json" 2>"$KIND_ERR")" || MANIFEST_KIND=""
+if [ -s "$KIND_ERR" ]; then
+  log "manifest.json の kind を読めない（$(tr '\n' ' ' < "$KIND_ERR")）: ${ID}"
+fi
+rm -f "$KIND_ERR"
 [ -n "${MANIFEST_KIND}" ] || { log "ERROR: manifest.json の kind を読めない: ${ID}"; exit 1; }
 if [ "${MANIFEST_KIND}" != bug ] && [ "${FORCE}" != 1 ]; then
   log "kind=${MANIFEST_KIND} は自動修正ランの対象外。投入するなら --force: ${ID}"
@@ -49,16 +57,24 @@ if [ "${MANIFEST_KIND}" != bug ] && [ "${FORCE}" != 1 ]; then
 fi
 [ "${MANIFEST_KIND}" != bug ] && log "--force で kind=${MANIFEST_KIND} を投入する: ${ID}"
 
-# .partial へ組んでから mv で公開する。poller が途中の箱を掴まないため（plan C と同じ作法）
-# Build in .partial and publish with mv so the poller never sees a half box (same idiom as plan C)
+# .partial へ組んでから mv で公開する。poller が途中の箱を掴まないため（plan C と同じ作法）。
+# 既に公開済み/組立中の箱があれば無言で消さず据え置く（前例 ship-outbox.sh:96-103。並行実行や
+# 中断後の再実行で poller 未回収の箱を壊さないため）
+# Build in .partial and publish with mv so the poller never sees a half box (same idiom as plan C).
+# A pre-existing published/partial box is left alone rather than silently deleted (precedent:
+# ship-outbox.sh:96-103), so a concurrent run or a resume-after-interrupt never corrupts an unclaimed box
 PARTIAL="${BUG_INBOX}/${ID}.partial"
-mkdir -p "${BUG_INBOX}"; rm -rf "${PARTIAL}"
+mkdir -p "${BUG_INBOX}"
+if [ -e "${PARTIAL}" ] || [ -e "${BUG_INBOX}/${ID}" ]; then
+  log "ERROR: inbox に既存の箱がある（前回の投入が未完了か同時実行の疑い）。壊さないため投入しない: ${BUG_INBOX}/${ID}"
+  exit 4
+fi
 cp -R "${BOX}" "${PARTIAL}"
 rm -f "${PARTIAL}/AUTOFIX_QUEUED"
 # --force の印は inbox 側へ持たせる。poller の種別ガードはこの印がある箱だけ通す（plan C 改訂メモ2）
 # The --force marker travels with the inbox copy; the poller's kind guard lets only marked boxes through
 [ "${FORCE}" = 1 ] && printf 'forced kind=%s at %s\n' "${MANIFEST_KIND}" "$(now_utc)" > "${PARTIAL}/AUTOFIX_FORCED"
 [ -f "${PARTIAL}/READY" ] || now_utc > "${PARTIAL}/READY"
-rm -rf "${BUG_INBOX}/${ID}"; mv "${PARTIAL}" "${BUG_INBOX}/${ID}"
+mv "${PARTIAL}" "${BUG_INBOX}/${ID}"
 printf 'queued at %s\n' "$(now_utc)" > "${BOX}/AUTOFIX_QUEUED"
 log "投入した: ${ID}（poller が最大60秒で拾う）"
