@@ -84,6 +84,10 @@ jobs:
     # Unityはアセンブリリロード中に落ちても終了せず居座る。既定6時間だと1本のハングがPRを半日塞ぐ
     # Unity can crash during an assembly reload yet never exit; at the 6-hour default one hang blocks a PR for half a day
     timeout-minutes: 75
+    # 打ち切り時間の正本はここ1箇所。テストstepの timeout-minutes とハング判定stepの閾値が同じ値を参照する。
+    # This is the single source of the cutoff: both the test step's timeout-minutes and the hang detector's threshold read this value.
+    env:
+      UNITY_TEST_STEP_TIMEOUT_MINUTES: 40
     strategy:
       fail-fast: false
       matrix:
@@ -169,23 +173,29 @@ jobs:
           restore-keys: |
             Library_Test_client-
 
+      # 打ち切りに達したかを後続stepが根拠付きで判定できるよう、テスト開始時刻をepoch秒で残す。
+      # Record the test start time in epoch seconds so a later step can decide on evidence whether the cutoff was reached.
+      - name: Record Unity shard start time.
+        shell: bash
+        run: echo "UNITY_TEST_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
       # 専用fixtureはCategoryだけ、残余は検証済みassemblyも併用し、網羅性を保って探索固定費を抑える。
       # Use categories alone for dedicated fixtures and verified assemblies for remainders to retain coverage with lower discovery overhead.
-      # step名は ci-auto-rerun.cjs の分類にそのまま効く。INFRA_KEYWORDS の 'runner' を含み CODE_KEYWORDS（'test'・'build' 等）を含まない名前を保つこと。
-      # This step name feeds ci-auto-rerun.cjs directly: keep the INFRA_KEYWORDS word 'runner' and keep out CODE_KEYWORDS such as 'test' and 'build'.
-      # 'test' を含む名前へ戻すと step timeout の failure が code 失敗と判定され、attempt 2 以降の自動再実行が止まる（ADR 0063）。
-      # Reintroducing 'test' would classify the step-timeout failure as a code failure and stop the auto-rerun from attempt 2 on (ADR 0063).
-      - name: Unity shard runner - ${{ matrix.shard }}
+      # このstepはcontinue-on-errorで自身をjobの赤にせず、失敗の種類（ハングか通常のテスト失敗か）を後続2stepへ振り分ける。
+      # This step uses continue-on-error so it never reddens the job itself; the two following steps sort the failure into hang or plain test failure.
+      - name: Run Unity Test - ${{ matrix.shard }}
+        id: unity_test
+        continue-on-error: true
         # 上流がv4タグを動かしCIが全滅したため、動作実績のあるSHAへ固定する（2026-09-09）
         # Pinned to a known-good SHA because an upstream v4 tag move broke all CI (2026-09-09)
         uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
         # 起動boot中にEditorのメインスレッドが固着する既知のflake（moorestech-7gsc）を、jobのtimeoutより先に打ち切る。
         # Cut off the known main-thread freeze during boot (moorestech-7gsc) before the job-level timeout fires.
-        # jobのtimeoutは打ち切りをcancelledにして ci-auto-rerun の発火条件（failure / timed_out）を素通りするが、stepのtimeoutはfailureになるため自動再実行が効く（ADR 0063）。
-        # A job-level timeout ends as cancelled and slips past ci-auto-rerun's failure/timed_out trigger, while a step-level timeout fails the job so the auto-rerun fires (ADR 0063).
+        # jobのtimeoutは打ち切りをcancelledにして ci-auto-rerun の発火条件（failure / timed_out）を素通りするが、stepのtimeoutはfailureになるため後続の判定stepが拾える（ADR 0063）。
+        # A job-level timeout ends as cancelled and slips past ci-auto-rerun's failure/timed_out trigger, while a step-level timeout fails so the following detector can catch it (ADR 0063).
         # 値は実測最長28分（server-remainder）に対する余裕込み。client-play系の実測は9〜11分。
         # The value allows headroom over the measured 28-minute maximum (server-remainder); client-play shards measure 9-11 minutes.
-        timeout-minutes: 40
+        timeout-minutes: ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }}
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
@@ -199,6 +209,39 @@ jobs:
           customParameters: >-
             ${{ steps.shard.outputs.use_assembly_filter == 'true' && format('-assemblyNames "{0}"', steps.shard.outputs.assembly_names) || '' }}
             -testCategory "${{ steps.shard.outputs.test_category }}"
+
+      # ハング（step timeoutでの打ち切り）に限ってここで失敗させる。名前の 'runner' が INFRA_KEYWORDS に当たり attempt 2 以降も自動再実行される（ADR 0063）。
+      # Fail here only for a hang (the step-timeout cutoff): the word 'runner' matches INFRA_KEYWORDS so the auto-rerun keeps firing from attempt 2 on (ADR 0063).
+      # ci-auto-rerun.cjs は INFRA を CODE より先に評価するため、infra語を含むこのstepが落ちた時点で分類はinfraに確定する。
+      # ci-auto-rerun.cjs evaluates INFRA before CODE, so the classification is settled as infra the moment this infra-named step fails.
+      - name: Detect Unity shard runner hang
+        if: always()
+        shell: bash
+        env:
+          TEST_OUTCOME: ${{ steps.unity_test.outcome }}
+        run: |
+          # 打ち切り判定は推測せず、開始時刻からの経過が timeout 値に達したかで決める（30秒は計測stepとstep起動の誤差）
+          # Decide the cutoff on measured elapsed time against the timeout value, not on guesswork (30s covers the gap between the recorder and the step start)
+          threshold=$(( UNITY_TEST_STEP_TIMEOUT_MINUTES * 60 - 30 ))
+          elapsed=$(( $(date +%s) - UNITY_TEST_STARTED_AT ))
+          echo "unity test outcome=$TEST_OUTCOME elapsed=${elapsed}s threshold=${threshold}s"
+          if [[ "$TEST_OUTCOME" != 'success' && "$elapsed" -ge "$threshold" ]]; then
+            echo "Unity shard runner hung and hit the ${UNITY_TEST_STEP_TIMEOUT_MINUTES}-minute cutoff." >&2
+            exit 1
+          fi
+
+      # 通常のテスト失敗をjobの失敗として残す口。名前は CODE_KEYWORDS の 'test' に当たり infra語を含まないため code 判定になる。
+      # This is where a plain test failure stays a job failure; the name matches CODE_KEYWORDS 'test' and carries no infra word, so it classifies as code.
+      - name: Fail the shard when the Unity test did not pass
+        if: always()
+        shell: bash
+        env:
+          TEST_OUTCOME: ${{ steps.unity_test.outcome }}
+        run: |
+          if [[ "$TEST_OUTCOME" != 'success' ]]; then
+            echo "Unity test outcome was $TEST_OUTCOME." >&2
+            exit 1
+          fi
 
       # shard別artifact名で結果の上書きを防ぎ、全件同一性と所要時間を後から検証可能にする。
       # Use per-shard artifact names to prevent overwrites and preserve evidence for coverage and timing audits.

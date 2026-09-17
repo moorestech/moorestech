@@ -1,0 +1,94 @@
+name: TMP Hang Detector Probe
+on:
+  push:
+    branches:
+      - fix/ci-shard-hang-timeout-and-icon-instrumentation
+
+jobs:
+  hang_case:
+    name: hang case
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      UNITY_TEST_STEP_TIMEOUT_MINUTES: 1
+    steps:
+      - name: Record Unity shard start time.
+        shell: bash
+        run: echo "UNITY_TEST_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Run Unity Test - probe
+        id: unity_test
+        continue-on-error: true
+        timeout-minutes: ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }}
+        shell: bash
+        run: sleep 300
+
+      - name: Detect Unity shard runner hang
+        if: always()
+        shell: bash
+        env:
+          TEST_OUTCOME: ${{ steps.unity_test.outcome }}
+        run: |
+          threshold=$(( UNITY_TEST_STEP_TIMEOUT_MINUTES * 60 - 30 ))
+          elapsed=$(( $(date +%s) - UNITY_TEST_STARTED_AT ))
+          echo "unity test outcome=$TEST_OUTCOME elapsed=${elapsed}s threshold=${threshold}s"
+          if [[ "$TEST_OUTCOME" != 'success' && "$elapsed" -ge "$threshold" ]]; then
+            echo "Unity shard runner hung and hit the ${UNITY_TEST_STEP_TIMEOUT_MINUTES}-minute cutoff." >&2
+            exit 1
+          fi
+
+      - name: Fail the shard when the Unity test did not pass
+        if: always()
+        shell: bash
+        env:
+          TEST_OUTCOME: ${{ steps.unity_test.outcome }}
+        run: |
+          if [[ "$TEST_OUTCOME" != 'success' ]]; then
+            echo "Unity test outcome was $TEST_OUTCOME." >&2
+            exit 1
+          fi
+
+  plain_failure_case:
+    name: plain failure case
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      UNITY_TEST_STEP_TIMEOUT_MINUTES: 1
+    steps:
+      - name: Record Unity shard start time.
+        shell: bash
+        run: echo "UNITY_TEST_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Run Unity Test - probe
+        id: unity_test
+        continue-on-error: true
+        timeout-minutes: ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }}
+        shell: bash
+        run: |
+          echo "pretending a test assertion failed"
+          exit 1
+
+      - name: Detect Unity shard runner hang
+        if: always()
+        shell: bash
+        env:
+          TEST_OUTCOME: ${{ steps.unity_test.outcome }}
+        run: |
+          threshold=$(( UNITY_TEST_STEP_TIMEOUT_MINUTES * 60 - 30 ))
+          elapsed=$(( $(date +%s) - UNITY_TEST_STARTED_AT ))
+          echo "unity test outcome=$TEST_OUTCOME elapsed=${elapsed}s threshold=${threshold}s"
+          if [[ "$TEST_OUTCOME" != 'success' && "$elapsed" -ge "$threshold" ]]; then
+            echo "Unity shard runner hung and hit the ${UNITY_TEST_STEP_TIMEOUT_MINUTES}-minute cutoff." >&2
+            exit 1
+          fi
+
+      - name: Fail the shard when the Unity test did not pass
+        if: always()
+        shell: bash
+        env:
+          TEST_OUTCOME: ${{ steps.unity_test.outcome }}
+        run: |
+          if [[ "$TEST_OUTCOME" != 'success' ]]; then
+            echo "Unity test outcome was $TEST_OUTCOME." >&2
+            exit 1
+          fi
