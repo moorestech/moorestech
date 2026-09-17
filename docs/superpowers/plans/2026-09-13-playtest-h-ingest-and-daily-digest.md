@@ -1388,8 +1388,8 @@ git commit -m "docs: plan A/B/C に ADR 0061 の改訂メモを追記"
 - **logs repo の PR ベースは `main`**（実測）: `moorestech_logs` の `origin/HEAD` は `main`。plan C Task 2 の `origin/master` は誤りで、Task 6 の改訂メモで訂正する
 - **取り込みは1件ずつ独立に失敗する**（agent前提）: 1つの壊れた箱で全体を止めない。異常箱は ack されないため受け口に残り、直せば次の周期で流れる。証拠（未 ack 状態）は R2 側にあり Mac mini の再起動・`/tmp` の消去では失われない
 - **二重投入防止は箱側の `AUTOFIX_QUEUED` マーカー**（agent前提）: poller は `inbox` から箱を持ち去るので、inbox の有無では「投入済みか」を判定できない。判定の記録は logs repo 側の箱（永続・git 管理）に置く。日次ダイジェストの投入候補一覧も同じマーカーで絞るため、投入した報告は翌日の候補から自然に消える
-- Task 1 の logs repo PR URL: （実装時に転記）
-- Task 7 のレビュー結果と AskUserQuestion の裁定: （実装時に転記）
+- Task 1 の logs repo PR URL: https://github.com/moorestech/moorestech_logs/pull/2
+- Task 7 のレビュー結果と AskUserQuestion の裁定: moores-code-review（7系統+Codex3・欠員0）で Critical14件、12件自動適用。裁定 2026-09-17: D1 READY 要約の `files` はクライアント `ComposeSummary` が書く／D2 Mac mini 運用スクリプトの既定パスはスクリプト位置から導出（既存 allowlist.sh・inbox-poller.sh も追随）／D3 admin API ラッパは `lib/receiver-api.sh` に一本化／D4 `finishedAt` は書き手（fix-result.md・inbox-poller.sh・bug-report-auto-fix）にも本PRで追加。記録 `moorestech_logs/harness/moores-code-review/records/2026-09-17-playtest-h-ingest-digest.md`・`.decisions/2026-09-17-*.md`
 
 ## Self-Review
 
