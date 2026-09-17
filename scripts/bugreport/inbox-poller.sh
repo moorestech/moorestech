@@ -16,6 +16,9 @@ CANON_SKILL_REL=".agents/skills/bug-report-auto-fix/SKILL.md"
 GIT_PUSH="${GIT_PUSH:-1}"
 LOCK="${TMPDIR:-/tmp}/moorestech-bugreport-poller.lock"
 log() { echo "[poller] $*" >&2; }
+# fix-result.json の finishedAt（日次ダイジェストの日付判定に使う）と同じ ISO8601 UTC 形式
+# Same ISO8601 UTC form as fix-result.json finishedAt, which the daily digest dates runs by
+now_utc() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 mkdir "$LOCK" 2>/dev/null || { log "別のランが進行中（${LOCK}）"; exit 0; }
 trap 'rmdir "$LOCK"' EXIT
@@ -84,10 +87,10 @@ resolve_canon() {
 # Never fall back to the main working tree when the isolated worktree is missing; it is shared with other sessions
 if [ -z "${WORKTREE:-}" ] || [ ! -d "$WORKTREE" ]; then
   log "隔離 worktree が無いため自動修正ランを起こさない（WORKTREE='${WORKTREE:-}'）: $id"
-  printf '{"status": "failure", "summary": "prepare が隔離 worktree を用意できなかった", "remaining": "runs/%s/ の prepare ログを確認"}\n' "$id" > "$run/fix-result.json"
+  printf '{"status": "failure", "finishedAt": "%s", "summary": "prepare が隔離 worktree を用意できなかった", "remaining": "runs/%s/ の prepare ログを確認"}\n' "$(now_utc)" "$id" > "$run/fix-result.json"
 elif ! resolve_canon; then
   log "実行制御の正本（canon）が無いため自動修正ランを起こさない: $id"
-  printf '{"status": "failure", "summary": "SHA固定の canon worktree を用意できなかった", "remaining": "runs/%s/canon.err.log と poller ログを確認"}\n' "$id" > "$run/fix-result.json"
+  printf '{"status": "failure", "finishedAt": "%s", "summary": "SHA固定の canon worktree を用意できなかった", "remaining": "runs/%s/canon.err.log と poller ログを確認"}\n' "$(now_utc)" "$id" > "$run/fix-result.json"
 else
   # 非対話で起動し、終了まで待つ。上限は設けない（裁定）。cwd は canon（読み取り専用）、コードを直す先は --add-dir の worktree
   # Launch non-interactively and wait; no time budget (ruling). cwd is the read-only canon; code is fixed in the --add-dir worktree
@@ -95,7 +98,7 @@ else
 
   if [ ! -f "$run/fix-result.json" ]; then
     log "fix-result.json が無いため failure で補完する: $id"
-    printf '{"status": "failure", "summary": "claude exited without fix-result.json", "remaining": "runs/%s/claude.err.log を確認"}\n' "$id" > "$run/fix-result.json"
+    printf '{"status": "failure", "finishedAt": "%s", "summary": "claude exited without fix-result.json", "remaining": "runs/%s/claude.err.log を確認"}\n' "$(now_utc)" "$id" > "$run/fix-result.json"
   fi
 fi
 

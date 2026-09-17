@@ -172,6 +172,16 @@ class DigestDegradedTest(unittest.TestCase):
         self.assertEqual(stats["finishedAtFallback"], 1)
         self.assertEqual({r["id"] for r in runs}, {"20260910_090000_bug0", "20260912_080000_nofinished"})
 
+    def test_fallback_outside_target_day_is_not_counted(self):
+        """mtime へ落としたランでも対象日外ならフォールバック件数に数えない
+        A mtime-fallback run outside the target day is not counted as a fallback"""
+        path = self.dated_run("20260901_080000_oldnofinished", {"status": "fixed", "pr_number": 1404})
+        old = time.mktime(datetime(2026, 9, 1, 12).timetuple())
+        os.utime(path, (old, old))
+        runs, stats = dc.load_fix_results(self.root / "harness/bug-report/runs", self.date)
+        self.assertEqual(stats["finishedAtFallback"], 0)
+        self.assertNotIn("20260901_080000_oldnofinished", {r["id"] for r in runs})
+
     def test_load_fix_results_falls_back_on_unparseable_finished_at(self):
         """7桁小数の finishedAt は python3.9 の fromisoformat が拒否するため mtime へ落とす
         A 7-digit-fraction finishedAt is rejected by python3.9's fromisoformat and falls back to mtime"""
