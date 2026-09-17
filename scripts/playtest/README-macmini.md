@@ -2,8 +2,8 @@
 
 ## 前提
 
-- `~/hermes-agent/data/repos/{moorestech,moorestech_logs}` がある
-- `~/hermes-agent/data/services/playtest/env.sh` を `chmod 600` で作る（**値はこのREADMEにもrepoにも書かない**）:
+- `/Users/sakastudio/hermes-agent/data/repos/{moorestech,moorestech_logs}` がある
+- `/Users/sakastudio/hermes-agent/data/services/playtest/env.sh` を `chmod 600` で作る（**値はこのREADMEにもrepoにも書かない**）:
   ```bash
   export PLAYTEST_ADMIN_KEY=...                    # 受け口 Worker の ADMIN_KEY
   export PLAYTEST_DIGEST_DISCORD_CHANNEL_ID=...    # 日次ダイジェストの投稿先
@@ -11,7 +11,7 @@
 
 ## supervisor へ登録する
 
-`~/hermes-agent/data/services/always-on/services.json` の `services` 配列へ次を足す（`services.json` はループ毎に再読込されるので supervisor の再起動は不要）。
+`/Users/sakastudio/hermes-agent/data/services/always-on/services.json` の `services` 配列へ次を足す（`services.json` はループ毎に再読込されるので supervisor の再起動は不要）。
 supervisor.py の `run_once` はシェルを介さず `subprocess.run(cmd, cwd=cwd, ...)` を呼ぶため `~` は展開されない。既存の `repo-auto-pull` エントリ（`services.json` 実物）と同じく **絶対パスで書く**:
 
 ```json
@@ -27,20 +27,20 @@ supervisor.py の `run_once` はシェルを介さず `subprocess.run(cmd, cwd=c
 
 **必ず本体 clone（`/Users/sakastudio/hermes-agent/data/repos/moorestech`）のスクリプトを指すこと。** `moores-wt` が切るタスク用worktree（`moorestech-worktrees/<name>`）は兄弟パス（`../moorestech_logs`・`../../services/...`）が本体と異なる位置にずれるため、そこを指すと壊れる。
 
-`ingest.sh`・`ingest-dispatch.sh` の既定パスはどちらも **`$HOME` を経由せずスクリプト自身の位置から導出**する（supervisor は HOME を封じ込め用ディレクトリへ差し替えるため）。既定を上書きしたい場合は `services.json` の `command` に環境変数を渡すか、`env.sh` で export すればよい（`MOORESTECH_REPO`・`MOORESTECH_LOGS`・`PLAYTEST_ENV_FILE`・`PLAYTEST_INGEST_LOG`）。
+`ingest.sh`・`ingest-dispatch.sh`・`enqueue-autofix.sh`・`allowlist.sh`・`digest.py` の既定パスはいずれも **`$HOME` を経由せずスクリプト自身の位置から導出**する（supervisor は HOME を封じ込め用ディレクトリへ差し替えるため）。既定を上書きしたい場合は `services.json` の `command` に環境変数を渡すか、`env.sh` で export すればよい（`MOORESTECH_REPO`・`MOORESTECH_LOGS`・`PLAYTEST_ENV_FILE`・`PLAYTEST_INGEST_LOG`）。
 
 確認（periodic の実行は `supervisor.log` には出ない。サービス個別のログを見る）:
 
 ```bash
-tail -f ~/hermes-agent/data/services/always-on/logs/playtest-ingest.log        # "run reason=periodic" マーカー
-tail -f ~/hermes-agent/data/services/always-on/logs/playtest-ingest-worker.log # "[ingest] ..." 本体
+tail -f /Users/sakastudio/hermes-agent/data/services/always-on/logs/playtest-ingest.log        # "run reason=periodic" マーカー
+tail -f /Users/sakastudio/hermes-agent/data/services/always-on/logs/playtest-ingest-worker.log # "[ingest] ..." 本体
 ```
 
 ## 手動実行
 
 ```bash
-. ~/hermes-agent/data/services/playtest/env.sh
-bash ~/hermes-agent/data/repos/moorestech/scripts/playtest/ingest.sh
+. /Users/sakastudio/hermes-agent/data/services/playtest/env.sh
+bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/ingest.sh
 ```
 
 ロックは `$TMPDIR/moorestech-playtest-ingest.lock`（PID 入り）。前回のプロセスが生きていれば何もせず終わり、死んでいれば（SIGKILL・OOM・再起動等で trap が走らず残った場合）理由をログして奪取する。
@@ -56,7 +56,7 @@ bash ~/hermes-agent/data/repos/moorestech/scripts/playtest/ingest.sh
 そのまま貼れるコマンドが並ぶので、直したいものだけ選んで叩く。
 
 ```bash
-bash ~/hermes-agent/data/repos/moorestech/scripts/playtest/enqueue-autofix.sh <steamId> <id>
+bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/enqueue-autofix.sh <steamId> <id>
 ```
 
 - 投入すると `moorestech_logs/harness/bug-report/inbox/<id>/` に置かれ、plan C の `inbox-poller.sh` が最大60秒で拾う
@@ -66,12 +66,12 @@ bash ~/hermes-agent/data/repos/moorestech/scripts/playtest/enqueue-autofix.sh <s
 
 ## 詰まったとき
 
-- `[ingest] ERROR: READY 本文の files[] が…` → 受け口（plan D）が `complete` で書く要約 JSON に `files[]` が無い。箱は ack されずに残るので、受け口を直せば次の周期で自然に取り込まれる
+- `[ingest] ERROR: READY 本文の files[] が…` → READY 要約（クライアントの `PlaytestUploader.ComposeSummary()` が書き、受け口は転写するだけ）に `files[]` が無い。`files` を書く前の古い配布ビルドからの箱。ack されずに残るので理由を確認して扱いを決める
 - `[ingest] ERROR: ack 失敗` → 箱は取り込み済みなので、次の周期で再配信されても再ダウンロードせず ack だけやり直す
 
 ## 日次ダイジェスト
 
 Hermes 内蔵 cron で毎朝9時に投稿する。手順は `scripts/playtest/hermes-cron/README.md`。
 
-- 手動確認: `MOORESTECH_LOGS=~/hermes-agent/data/repos/moorestech_logs python3 scripts/playtest/digest.py --date yesterday`
+- 手動確認: `/usr/bin/python3 /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/digest.py --date yesterday`（logs の既定はスクリプト位置から導出。別の場所なら `MOORESTECH_LOGS`）
 - 全文は `moorestech_logs/harness/playtest/digests/<日付>.md`。次の取り込み周期（最大5分）で logs repo へ commit される

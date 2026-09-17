@@ -143,8 +143,10 @@ def emit_warnings(report_stats: dict, progress_stats: dict, run_stats: dict) -> 
 
 
 def main(argv: list[str] | None = None) -> int:
+    # 既定は repo の兄弟の moorestech_logs（シェル側と同じくスクリプト位置から導出。HOME は差し替わりうる）
+    # Defaults to moorestech_logs beside the repo, derived from the script location like the shell side (HOME may be swapped)
     default_logs = os.environ.get(
-        "MOORESTECH_LOGS", str(Path.home() / "hermes-agent/data/repos/moorestech_logs"))
+        "MOORESTECH_LOGS", str(Path(__file__).resolve().parents[2].parent / "moorestech_logs"))
     parser = argparse.ArgumentParser(description="プレイテスト日次ダイジェスト / playtest daily digest")
     parser.add_argument("--date", default="yesterday", help="YYYY-MM-DD か yesterday")
     parser.add_argument("--logs", default=default_logs, help="moorestech_logs のルート")

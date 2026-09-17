@@ -2,15 +2,18 @@
 # inbox から1件取り出し、隔離 worktree を用意して自動修正ランを起動する。単一飛行（サーバーポート固定のため）
 # Takes one box from the inbox, prepares an isolated worktree and launches the auto-fix run; single flight (fixed server port)
 set -euo pipefail
-LOGS="${MOORESTECH_LOGS:-$HOME/hermes-agent/data/repos/moorestech_logs}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# 既定値はスクリプト自身の位置から導出する。supervisor は HOME を封じ込め用に差し替えるため $HOME 基準は本番で解決しない
+# Defaults derive from the script's own location; supervisor swaps HOME for containment, so $HOME-based defaults break in production
+REPO="${MOORESTECH_REPO:-$(cd "$HERE/../.." && pwd)}"
+LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
 BASE="$LOGS/harness/bug-report"; INBOX="$BASE/inbox"; RUNS="$BASE/runs"
 # 隔離先は dot 始まりにする。READY 付きのまま置いても候補 glob に掴まれない
 # The quarantine directory starts with a dot so a box kept there with its READY marker never matches the candidate glob
 DUPLICATE="$INBOX/.duplicate"
-REPO="${MOORESTECH_REPO:-$HOME/hermes-agent/data/repos/moorestech}"
-WORKTREES="${MOORESTECH_WORKTREES:-$HOME/hermes-agent/data/repos/moorestech-worktrees}"
+WORKTREES="${MOORESTECH_WORKTREES:-$REPO/../moorestech-worktrees}"
 CLAUDE_CMD="${CLAUDE_CMD:-claude}"
-PREPARE_CMD="${PREPARE_CMD:-$(cd "$(dirname "$0")" && pwd)/prepare-run.sh}"
+PREPARE_CMD="${PREPARE_CMD:-$HERE/prepare-run.sh}"
 CANON_SETUP_CMD="${CANON_SETUP_CMD:-python3 $REPO/.agents/skills/pr-independent-review/scripts/canon_setup.py}"
 CANON_SKILL_REL=".agents/skills/bug-report-auto-fix/SKILL.md"
 GIT_PUSH="${GIT_PUSH:-1}"

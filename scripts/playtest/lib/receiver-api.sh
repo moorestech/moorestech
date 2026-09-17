@@ -20,14 +20,16 @@ url_encode_path() {
 print("/".join(urllib.parse.quote(seg, safe="") for seg in sys.argv[1].split("/")))' "$1"
 }
 
-# 共通の curl 呼び出し。$1 は出力先、以降はフラグ…最後に URL。非2xx はステータスと本文先頭を
-# stderr へ出す（allowlist.sh http_call と同じ作法。admin key は出さない）
-# Shared curl call: $1 is the output path, the rest are flags followed by the URL. Non-2xx
-# statuses print status+body-head to stderr (same idiom as allowlist.sh's http_call; never the admin key)
+# 受け口 admin API の唯一の curl 呼び出し口。$1 は出力先、以降はフラグ…最後に URL。非2xx はステータスと
+# 本文先頭を stderr へ出す（admin key は出さない）。リダイレクトは追わない（curl は X-Admin-Key を
+# リダイレクト先の別ホストへも送るため、鍵の流出経路になる）
+# The single curl entry point for the receiver admin API: $1 is the output path, the rest are flags then the URL.
+# Non-2xx prints status and body head to stderr (never the admin key). Redirects are never followed, because
+# curl would forward X-Admin-Key to a different redirect host and leak the key
 receiver_curl() {
   local out="$1"; shift
   local code
-  code="$("$CURL_CMD" --silent --show-error --location \
+  code="$("$CURL_CMD" --silent --show-error \
     --max-time "$RECEIVER_MAX_TIME" \
     -H "X-Admin-Key: ${PLAYTEST_ADMIN_KEY:?PLAYTEST_ADMIN_KEY が未設定}" \
     -w '%{http_code}' -o "$out" "$@")" || { echo "[receiver] curl 自体が失敗: $*" >&2; return 1; }
@@ -57,4 +59,23 @@ receiver_ack() {
   local kind="$1" steam_id="$2" id="$3"
   receiver_curl /dev/null -X POST \
     "$RECEIVER_BASE/v1/inbox/$(url_encode "$kind")/$(url_encode "$steam_id")/$(url_encode "$id")/ack"
+}
+
+# 応答本文を標準出力へ返す版（許可リストの GET/PUT 用）。失敗時は何も出さず非0で返す
+# Variant that returns the response body on stdout (for allowlist GET/PUT); prints nothing and fails on error
+receiver_admin_body() {
+  local body rc=0
+  body="$(mktemp)"
+  receiver_curl "$body" "$@" || rc=$?
+  [ "$rc" -ne 0 ] || cat "$body"
+  rm -f "$body"
+  return "$rc"
+}
+
+receiver_allowlist_get() {
+  receiver_admin_body "$RECEIVER_BASE/v1/allowlist"
+}
+
+receiver_allowlist_put() {
+  receiver_admin_body -X PUT -H "Content-Type: application/json" --data "$1" "$RECEIVER_BASE/v1/allowlist"
 }
