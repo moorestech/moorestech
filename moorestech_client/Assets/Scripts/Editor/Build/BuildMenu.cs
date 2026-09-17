@@ -28,7 +28,15 @@ namespace Client.Editor.Build
         [MenuItem("moorestech/Build/MacOsReleaseLocalBuild")]
         public static void MacOsReleaseLocalBuild()
         {
-            BuildInteractive(BuildTarget.StandaloneOSX, false);
+            BuildReleaseLocalInteractive(BuildTarget.StandaloneOSX);
+        }
+
+        // プレイテスト配布用のWindows成果物。契約はmac版と同一
+        // The Windows artifact for playtest distribution; same contract as the mac entry
+        [MenuItem("moorestech/Build/WindowsReleaseLocalBuild")]
+        public static void WindowsReleaseLocalBuild()
+        {
+            BuildReleaseLocalInteractive(BuildTarget.StandaloneWindows64);
         }
 
         [MenuItem("moorestech/Build/LinuxBuild")]
@@ -76,8 +84,26 @@ namespace Client.Editor.Build
                 BundleLocalGameData = true,
             });
 
-            // 失敗した成果物をFinderで開いて成功に見せない
-            // Never reveal a failed artifact as if the build had succeeded
+            ReportOutcome(outcome, outputDirectory);
+        }
+
+        private static void BuildReleaseLocalInteractive(BuildTarget buildTarget)
+        {
+            // 出力先を選択する（前回パスを記憶）
+            // Choose the output directory, remembering the previous path
+            var playerPrefsKey = OutputPathKey + buildTarget;
+            var outputDirectory = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey, ""), "");
+            if (outputDirectory == string.Empty) return;
+            PlayerPrefs.SetString(playerPrefsKey, outputDirectory);
+            PlayerPrefs.Save();
+
+            ReportOutcome(BuildPipeline.Execute(ReleaseLocalBuildCli.CreateRequest(buildTarget, outputDirectory)), outputDirectory);
+        }
+
+        // 失敗した成果物をFinderで開いて成功に見せない
+        // Never reveal a failed artifact as if the build had succeeded
+        private static void ReportOutcome(PlayerBuildOutcome outcome, string outputDirectory)
+        {
             switch (outcome)
             {
                 case PlayerBuildOutcome.Succeeded:
