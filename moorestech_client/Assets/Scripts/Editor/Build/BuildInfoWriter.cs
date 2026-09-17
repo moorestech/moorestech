@@ -9,8 +9,14 @@ using UnityEngine;
 
 namespace Client.Editor.Build
 {
-    // ビルドに出所（コミット・master dataピン・Steamビルド識別）を焼き込む（shared-contracts §1）
-    // Bakes the origin (commit, master-data pin, Steam build label) into the build (shared-contracts §1)
+    // ビルドに出所を焼き込む（shared-contracts §1）
+    // - コミット
+    // - master dataピン
+    // - Steamビルド識別
+    // Bakes the origin into the build (shared-contracts §1)
+    // - commit
+    // - master-data pin
+    // - Steam build label
     public class BuildInfoWriter : IPreprocessBuildWithReport
     {
         // Unityのビルドコールバックは PlayerBuildRequest を受け取れないため、BuildPipeline が BuildPlayer 直前に押し込む

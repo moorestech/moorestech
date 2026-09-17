@@ -1,5 +1,6 @@
 using System.IO;
 using Client.Editor;
+using Client.Game.InGame.BugReport.Recording;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
@@ -14,14 +15,13 @@ namespace Client.Editor.Build
     /// </summary>
     public static class FfmpegRuntimeBundler
     {
-        public const string BundledExecutableName = "ffmpeg.exe";
-        public const string BundledLicenseName = "ffmpeg-LICENSE.txt";
         private const string SourceExecutableName = "ffmpeg.exe";
         private const string SourceLicenseName = "LICENSE";
+        private const string BundledLicenseName = "ffmpeg-LICENSE.txt";
 
         // 正本は非公開アセットリポジトリの ffmpeg/win-x64
         // The source of truth is ffmpeg/win-x64 in the private asset repository
-        public static string SourceDirectory =>
+        private static string SourceDirectory =>
             Path.GetFullPath(Path.Combine(Application.dataPath, "PersonalAssets", "moorestech-client-private", "ffmpeg", "win-x64"));
 
         public static void Bundle(BuildTarget buildTarget, string playerOutputPath, bool isStrict)
@@ -57,7 +57,7 @@ namespace Client.Editor.Build
                 return;
             }
 
-            File.Copy(sourceExecutable, Path.Combine(destinationDirectory, BundledExecutableName), true);
+            File.Copy(sourceExecutable, Path.Combine(destinationDirectory, FfmpegLocator.BundledWindowsExecutableName), true);
             File.Copy(sourceLicense, Path.Combine(destinationDirectory, BundledLicenseName), true);
             Debug.Log($"[FfmpegRuntimeBundler] bundled ffmpeg at {destinationDirectory}");
 

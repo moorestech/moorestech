@@ -12,7 +12,7 @@ namespace Client.Starter.PlaytestSmoke
     {
         private const string ResultFileName = "result.json";
 
-        public static void Write(string resultDirectory, StandalonePlaytestSmokeResult result)
+        internal static void Write(string resultDirectory, StandalonePlaytestSmokeResult result)
         {
             var path = Path.Combine(resultDirectory, ResultFileName);
 
@@ -32,9 +32,9 @@ namespace Client.Starter.PlaytestSmoke
             }
         }
 
-        // 1ステップで打ち切った結果を組む。ゲーム開始前の前提確認で落ちた経路が使う
-        // Builds a result that stopped at one step; used when a pre-launch precondition fails
-        public static StandalonePlaytestSmokeResult CreateSingleStepFailure(string phase, string stepName, string message)
+        // 1ステップで打ち切った結果を組む（前提確認失敗時）
+        // Builds a result that stopped at one step (pre-launch precondition failure)
+        internal static StandalonePlaytestSmokeResult CreateSingleStepFailure(string phase, string stepName, string message)
         {
             var step = new StandalonePlaytestSmokeStep { name = stepName, success = false, message = message, elapsedSeconds = 0f };
             return new StandalonePlaytestSmokeResult

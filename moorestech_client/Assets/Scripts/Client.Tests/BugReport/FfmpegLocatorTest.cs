@@ -17,13 +17,30 @@ namespace Client.Tests.BugReport
             Assert.IsTrue(File.Exists(path));
         }
 
+        // 配布物同梱の実行ファイルが、環境変数指定より優先して見つかる
+        // The bundled executable is found ahead of the env-var override
+        [Test]
+        public void 同梱パスが環境変数より優先される()
+        {
+            var bundled = Path.Combine(Path.GetTempPath(), $"moorestech-bundled-{Guid.NewGuid():N}");
+            var overridePath = Path.Combine(Path.GetTempPath(), $"moorestech-override-{Guid.NewGuid():N}");
+            File.WriteAllText(bundled, "");
+            File.WriteAllText(overridePath, "");
+
+            var found = FfmpegLocator.FindIn(bundled, overridePath, Path.GetDirectoryName(overridePath), "ffmpeg", new[] { "/opt/homebrew/bin/ffmpeg" });
+
+            File.Delete(bundled);
+            File.Delete(overridePath);
+            Assert.AreEqual(bundled, found);
+        }
+
         [Test]
         public void 環境変数の指定がPATHより優先される()
         {
             var fake = Path.Combine(Path.GetTempPath(), $"moorestech-ffmpeg-{Guid.NewGuid():N}");
             File.WriteAllText(fake, "");
 
-            var found = FfmpegLocator.FindIn(fake, Path.GetDirectoryName(fake), new[] { "/opt/homebrew/bin/ffmpeg" });
+            var found = FfmpegLocator.FindIn("", fake, Path.GetDirectoryName(fake), "ffmpeg", new[] { "/opt/homebrew/bin/ffmpeg" });
 
             File.Delete(fake);
             Assert.AreEqual(fake, found);
@@ -37,7 +54,7 @@ namespace Client.Tests.BugReport
             var executable = Path.Combine(directory, "ffmpeg");
             File.WriteAllText(executable, "");
 
-            var found = FfmpegLocator.FindIn("", directory, Array.Empty<string>());
+            var found = FfmpegLocator.FindIn("", "", directory, "ffmpeg", Array.Empty<string>());
 
             Directory.Delete(directory, true);
             Assert.AreEqual(executable, found);
@@ -51,7 +68,7 @@ namespace Client.Tests.BugReport
             var empty = Path.Combine(Path.GetTempPath(), $"moorestech-nopath-{Guid.NewGuid():N}");
             Directory.CreateDirectory(empty);
 
-            var found = FfmpegLocator.FindIn("", empty, Array.Empty<string>());
+            var found = FfmpegLocator.FindIn("", "", empty, "ffmpeg", Array.Empty<string>());
 
             Directory.Delete(empty, true);
             Assert.IsNull(found);

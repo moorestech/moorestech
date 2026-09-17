@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Client.Starter.PlaytestSmoke
 {
     /// <summary>
-    /// 通し検証の報告送信。ポーズメニューの確保→送信actionと同じ順で箱を書き、受け口への到達印を待つ
-    /// The smoke run's report send: writes a box in the same order as the pause-menu capture and submit action, then waits for the upload mark
+    /// 通し検証の報告送信（ポーズ確保と同順で送信）
+    /// The smoke run's report send (same order as the pause-menu capture/submit)
     /// WebUIのクリック経路は配布ビルドで叩けないので、送信actionと共有する BugReportSubmitter を直接呼ぶ
     /// The web UI click path cannot be driven in a player build, so this calls the BugReportSubmitter the submit action shares
     /// </summary>
@@ -23,7 +23,7 @@ namespace Client.Starter.PlaytestSmoke
         private readonly BugReportCaptureSession _captureSession;
         private readonly BugReportSubmitter _submitter;
 
-        public StandalonePlaytestSmokeReportSender(BugReportCaptureSession captureSession, BugReportSubmitter submitter)
+        internal StandalonePlaytestSmokeReportSender(BugReportCaptureSession captureSession, BugReportSubmitter submitter)
         {
             _captureSession = captureSession;
             _submitter = submitter;
@@ -46,9 +46,15 @@ namespace Client.Starter.PlaytestSmoke
             // The send goes through the same procedure as the real submit action; recording it in play progress is acceptable on the verifier
             var submitted = await _submitter.SubmitAsync(SmokeDescription, PlaytestReportKind.Bug);
             if (submitted.Submitted) return StandalonePlaytestSmokeStepOutcome.Succeeded(submitted.BundleDirectory);
-            return submitted.FailureCode == BugReportSubmitResult.BundleWriteFailed
-                ? StandalonePlaytestSmokeStepOutcome.Failed($"the report box was not finished with READY: {submitted.BundleDirectory}")
-                : StandalonePlaytestSmokeStepOutcome.Failed($"capture was not submittable within {CaptureTimeoutSeconds}s: {submitted.FailureCode}");
+            if (submitted.FailureCode == BugReportSubmitResult.BundleWriteFailed)
+                return StandalonePlaytestSmokeStepOutcome.Failed($"the report box was not finished with READY: {submitted.BundleDirectory}");
+            // 拒否コードをすべて「期限切れ」と一括りにしない。期限切れはキャプチャが待ちループを抜けた時点でも
+            // まだCapturing中だった場合だけで、NoCaptureSession等の即時拒否は別の理由として区別する
+            // Do not lump every rejection code into "timed out"; that applies only when capture was still
+            // Capturing when the wait loop exited, distinguishing an immediate rejection like NoCaptureSession
+            return _captureSession.Status.Value.Kind == BugReportCaptureStatus.Capturing
+                ? StandalonePlaytestSmokeStepOutcome.Failed($"capture was not submittable within {CaptureTimeoutSeconds}s: {submitted.FailureCode}")
+                : StandalonePlaytestSmokeStepOutcome.Failed($"the capture session refused the submit: {submitted.FailureCode}");
         }
 
         // 受け口へのアップロード完了は UPLOADED 印で観測する。送信を諦めた印が付いたら期限を待たず失敗にする

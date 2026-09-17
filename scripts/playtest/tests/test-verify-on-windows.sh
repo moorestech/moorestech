@@ -1,5 +1,7 @@
-#!/bin/bash
-set -u
+#!/usr/bin/env bash
+# fail()で集計してFAILURES件数を末尾判定する方式のため、set -eは使わない(1件の失敗で打ち切らない)
+# Aggregated via fail() and judged by FAILURES at the end, so set -e is not used (one failure must not abort the rest)
+set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 TARGET="$SCRIPT_DIR/../verify-on-windows.sh"
@@ -8,8 +10,15 @@ LABEL="playtest-20260913-1730"
 
 fail() { echo "FAIL: $1"; FAILURES=$((FAILURES + 1)); }
 
+# 各make_sandboxが作った一時ディレクトリを配列に積み、終了時にまとめて削除する
+# Every temp dir created by make_sandbox is tracked here and removed together on exit
+SANDBOXES=()
+cleanup() { for dir in "${SANDBOXES[@]}"; do rm -rf "$dir"; done; }
+trap cleanup EXIT
+
 make_sandbox() {
     SANDBOX="$(mktemp -d)"
+    SANDBOXES+=("$SANDBOX")
     mkdir -p "$SANDBOX/bin" "$SANDBOX/artifacts"
     cat >"$SANDBOX/bin/wakeonlan" <<EOF
 #!/bin/bash
@@ -39,13 +48,22 @@ case "\$last" in
   "$SANDBOX"/artifacts*)
     dest="\$last/results"
     mkdir -p "\$dest/phase1" "\$dest/phase2"
-    printf '{"phase": "phase1", "success": %s}' "\${PHASE1_SUCCESS:-true}" >"\$dest/phase1/result.json"
+    # stepsにトップレベルとは独立した"success"キーを持たせ、全文一致(旧grep実装)が
+    # トップレベルfalseでも合格にしてしまう退行を検知できるようにする
+    # steps carries its own independent "success" key so a whole-text match (the old grep
+    # implementation) regressing into a pass despite a false top-level value can be caught
+    printf '{"phase": "phase1", "success": %s, "steps": [{"name": "tutorial", "success": true}]}' \
+      "\${PHASE1_SUCCESS:-true}" >"\$dest/phase1/result.json"
     # reportBundleDirectoryは検証機(Windows)のパス。バックスラッシュ区切りでIDを末尾に持たせ、
     # basenameがそのままでは割れないことを再現する
     # reportBundleDirectory is the check machine's (Windows) path; backslash-separated with the id
     # as the leaf, reproducing that a plain basename cannot split it
-    BS='\'
-    printf '{"phase": "phase2", "success": %s, "reportBundleDirectory": "C:%smoorestech-smoke%soutbox%sreport%s20260913_180000_%s"}' \
+    # JSON中のバックスラッシュは \\ とエスケープしないと不正なJSONになる(実物はJsonUtilityがエスケープ済みで書く)。
+    # 外側がクォート無しheredocのため \\\\ の4つで初めてスタブ内に \\ の2文字が残る
+    # A backslash inside JSON must be escaped as \\, or the text is invalid JSON (the real writer, JsonUtility,
+    # already escapes it); since the outer heredoc is unquoted, 4 backslashes are needed to leave 2 in the stub
+    BS='\\\\'
+    printf '{"phase": "phase2", "success": %s, "steps": [{"name": "save", "success": true}], "reportBundleDirectory": "C:%smoorestech-smoke%soutbox%sreport%s20260913_180000_%s"}' \
       "\${PHASE2_SUCCESS:-true}" "\$BS" "\$BS" "\$BS" "\$BS" "\${SMOKE_REPORT_ID:-aaaa1111}" >"\$dest/phase2/result.json"
     ;;
 esac
@@ -73,8 +91,8 @@ EOF
 run_target() {
     ( MOORESTECH_VERIFY_HOST=verify-pc MOORESTECH_VERIFY_USER=moores \
       MOORESTECH_VERIFY_MAC=00:11:22:33:44:55 \
-      MOORESTECH_RECEIVER_BASE=https://playtest.tar-atari.com \
-      MOORESTECH_RECEIVER_ADMIN_KEY=dummy \
+      PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com \
+      PLAYTEST_ADMIN_KEY=dummy \
       WAKEONLAN_BIN="$SANDBOX/bin/wakeonlan" SSH_BIN="$SANDBOX/bin/ssh" \
       SCP_BIN="$SANDBOX/bin/scp" CURL_BIN="$SANDBOX/bin/curl" \
       VERIFY_ARTIFACT_ROOT="$SANDBOX/artifacts" \
@@ -93,6 +111,7 @@ OUTPUT=$(run_target); STATUS=$?
 grep -q "^wakeonlan " "$SANDBOX/calls.log" || fail "WoL was not sent"
 grep -q "run-smoke.ps1" "$SANDBOX/calls.log" || fail "run-smoke.ps1 was not copied to the machine"
 grep -q "/v1/inbox" "$SANDBOX/calls.log" || fail "the receiver inbox was not checked"
+grep -q -- "-ExpectedBuildLabel '$LABEL'" "$SANDBOX/calls.log" || fail "run-smoke.ps1 was not told the expected build label"
 
 # ssh到達が遅れても期限内なら成功する
 make_sandbox
@@ -110,7 +129,7 @@ grep -q "/v1/inbox" "$SANDBOX/calls.log" && fail "inbox was checked despite an u
 make_sandbox
 OUTPUT=$(MOORESTECH_VERIFY_MAC="" bash -c '
   MOORESTECH_VERIFY_HOST=verify-pc MOORESTECH_VERIFY_USER=moores MOORESTECH_VERIFY_MAC= \
-  MOORESTECH_RECEIVER_BASE=x MOORESTECH_RECEIVER_ADMIN_KEY=y MOORESTECH_STEAM_USER=z \
+  PLAYTEST_RECEIVER_BASE=x PLAYTEST_ADMIN_KEY=y MOORESTECH_STEAM_USER=z \
   bash "$1" "$2"' _ "$TARGET" "$LABEL" 2>&1); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "missing MAC did not fail"
 case "$OUTPUT" in *MOORESTECH_VERIFY_MAC*) ;; *) fail "missing MAC was not named";; esac
@@ -120,6 +139,15 @@ make_sandbox
 OUTPUT=$(PHASE2_SUCCESS=false run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "failed phase2 did not fail the verification"
 grep -q "/v1/inbox" "$SANDBOX/calls.log" && fail "inbox was checked despite a failed phase2"
+
+# 退行防止: フェーズのトップレベルsuccessがfalseでも、配下のstepsに真のsuccessが
+# 1件でもあれば全文一致(旧grep実装)は合格にしてしまっていた。トップレベルだけを見て弾く
+# Regression: even when a phase's top-level success is false, a whole-text match (the old grep
+# implementation) would pass if any nested step's success was true. Only the top level must count
+make_sandbox
+OUTPUT=$(PHASE1_SUCCESS=false run_target); STATUS=$?
+[ "$STATUS" -ne 0 ] || fail "a false top-level success with a true nested step did not fail"
+grep -q "/v1/inbox" "$SANDBOX/calls.log" && fail "inbox was checked despite a failed phase1"
 
 # 報告が受け口に届いていなければ落ちる（無関係な進行報告は常にinboxへ同居している）
 make_sandbox

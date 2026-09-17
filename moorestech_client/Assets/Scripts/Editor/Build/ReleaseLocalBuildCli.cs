@@ -10,7 +10,7 @@ namespace Client.Editor.Build
     /// </summary>
     public static class ReleaseLocalBuildCli
     {
-        public const string OutputDirectoryEnvKey = "MOORESTECH_BUILD_OUTPUT";
+        private const string OutputDirectoryEnvKey = "MOORESTECH_BUILD_OUTPUT";
 
         // GUIメニューとbatchmodeで同一の契約を使い、入口ごとの設定差を構造的に消す
         // Menu and batchmode share one contract so per-entry setting drift cannot happen
@@ -26,15 +26,14 @@ namespace Client.Editor.Build
             };
         }
 
-        // Mac miniのrelease-playtest.shが -executeMethod で呼ぶ無人入口
-        // The unattended entry release-playtest.sh calls on the Mac mini via -executeMethod
+        // Mac miniのrelease-playtest.shが -executeMethod で呼ぶ無人入口。ターゲットは呼び出し元が1つしか
+        // 無いWindows固定なので、汎用のtarget引数を持たせず定数として埋め込む
+        // The unattended entry release-playtest.sh calls on the Mac mini via -executeMethod. Only one
+        // caller ever exists, always Windows, so the target is inlined instead of a generic parameter
         public static void WindowsReleaseLocalBuild()
         {
-            Run(BuildTarget.StandaloneWindows64);
-        }
+            const BuildTarget target = BuildTarget.StandaloneWindows64;
 
-        private static void Run(BuildTarget target)
-        {
             // 出力先未指定で走らせるとカレント直下を汚すため、理由を残して拒否する
             // Running without an output directory would pollute the CWD, so refuse and log why
             var outputDirectory = Environment.GetEnvironmentVariable(OutputDirectoryEnvKey);

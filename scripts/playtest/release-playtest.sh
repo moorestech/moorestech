@@ -1,16 +1,16 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # 指定コミットからWindows配布ビルドを焼き、Steamのplaytestブランチへ上げ、検証機で通し検証する
 # Bakes the Windows distribution build from a commit, ships it to the Steam playtest branch and verifies it on the check machine
 #
 # usage: release-playtest.sh <commit>
 # 資格情報は ~/hermes-agent/data/services/playtest/env.sh から供給する（このスクリプトは値を出力しない）
 # Credentials come from ~/hermes-agent/data/services/playtest/env.sh; this script never echoes their values
-set -eu
-set -o pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 COMMIT="${1:?usage: release-playtest.sh <commit>}"
 
+GIT_BIN="${GIT_BIN:-git}"
 MOORES_WT_BIN="${MOORES_WT_BIN:-moores-wt}"
 UNITY_BIN="${UNITY_BIN:-/Applications/Unity/Hub/Editor/6000.3.8f1/Unity.app/Contents/MacOS/Unity}"
 STEAMCMD_BIN="${STEAMCMD_BIN:-steamcmd}"
@@ -27,19 +27,51 @@ if [ -n "$missing" ]; then
     exit 2
 fi
 
+# 解決の前にfetchする。マージ直後のコミットや古いorigin/masterのrefを掴まないため
+# Fetch before resolving, so a just-merged commit or a stale origin/master ref is never used
+"$GIT_BIN" -C "$SCRIPT_DIR" fetch origin || {
+    echo "ERROR: git fetch origin に失敗しました" >&2
+    exit 2
+}
+
+# 短縮SHAやブランチ名でも受け付けられるよう、比較の前に40桁へ解決する
+# Resolve the input to a 40-char SHA before any comparison, so a short SHA or branch name still works
+COMMIT_FULL="$("$GIT_BIN" -C "$SCRIPT_DIR" rev-parse --verify "${COMMIT}^{commit}" 2>/dev/null)" || {
+    echo "ERROR: COMMIT を解決できません（存在しないコミットか、このrepoにfetchされていません）: $COMMIT" >&2
+    exit 2
+}
+
 BUILD_LABEL="${MOORESTECH_STEAM_BUILD_LABEL:-playtest-$(date +%Y%m%d-%H%M)}"
 RUN_DIR="$PLAYTEST_RUN_ROOT/$BUILD_LABEL"
 BUILD_DIR="$RUN_DIR/build"
 STEAM_DIR="$RUN_DIR/steam"
+# RUN_DIRの再利用は前回の成果物・announce.mdを黙って読ませる温床になるためfail-closedで拒否する
+# Reusing RUN_DIR would silently read a previous run's artifacts/announce.md, so refuse it fail-closed
+if [ -e "$RUN_DIR" ]; then
+    echo "ERROR: RUN_DIR が既に存在します（前回実行の残骸の可能性）: $RUN_DIR" >&2
+    exit 2
+fi
 mkdir -p "$BUILD_DIR" "$STEAM_DIR/output"
 echo "[release-playtest] label=$BUILD_LABEL commit=$COMMIT run=$RUN_DIR"
 
 # 使い捨てworktreeで焼く（メインワークツリーのEditorとブランチを触らない）
 # Bake in a disposable worktree so the main worktree's Editor and branch stay untouched
-BRANCH="playtest/build-${COMMIT:0:8}"
-WORKTREE="$("$MOORES_WT_BIN" new "$BRANCH" --from "$COMMIT" --no-editor --fetch | tail -n 1)"
+BRANCH="playtest/build-${COMMIT_FULL:0:8}"
+WORKTREE="$("$MOORES_WT_BIN" new "$BRANCH" --from "$COMMIT_FULL" --no-editor --fetch | tail -n 1)"
 if [ ! -d "$WORKTREE/moorestech_client" ]; then
     echo "ERROR: worktreeを作れませんでした: $WORKTREE" >&2
+    exit 3
+fi
+# 使い捨てworktreeを終了時に必ず畳む(成果物はRUN_DIR側にあるので消して問題ない)。
+# HEAD照合より前に登録し、照合が失敗してもstaleなworktree/ブランチを残さない
+# Always tear down the disposable worktree on exit (artifacts live under RUN_DIR, so this is safe).
+# Registered before the HEAD check so a mismatch never leaves a stale worktree/branch behind
+trap '"$MOORES_WT_BIN" rm "$WORKTREE" --force --prune-branch' EXIT
+# worktreeのHEADが要求コミットとずれていないか、数十分かかるビルドへ入る前に確認する（staleなローカルブランチの再利用対策）
+# Confirm the worktree's HEAD matches the requested commit before the lengthy build (guards against reusing a stale local branch)
+EXPECTED_COMMIT="$("$GIT_BIN" -C "$WORKTREE" rev-parse HEAD)"
+if [ "$EXPECTED_COMMIT" != "$COMMIT_FULL" ]; then
+    echo "ERROR: worktree の HEAD が要求コミットと一致しません: got $EXPECTED_COMMIT want $COMMIT_FULL" >&2
     exit 3
 fi
 
@@ -58,8 +90,27 @@ for required in "$BUILD_DIR/moorestech.exe" "$BUILD_DIR/game/mods" "$BUILD_INFO"
         exit 4
     fi
 done
-if ! grep -q "\"steamBuildLabel\"[[:space:]]*:[[:space:]]*\"$BUILD_LABEL\"" "$BUILD_INFO"; then
-    echo "ERROR: build-info.json に steamBuildLabel=$BUILD_LABEL が焼かれていません（共有契約 Global Constraints §1 のキー名）" >&2
+# steamBuildLabel・成果物のcommitが指定コミットと一致すること・targetが存在することを検査する。
+# grepの文字列一致だけではstaleなworktreeや取り違えた成果物のcommitずれに気づけない
+# Verify steamBuildLabel, that the artifact's commit matches the requested commit, and that target
+# is present; a plain grep match alone cannot catch a stale worktree or a mismatched artifact's commit
+if ! BUILD_LABEL="$BUILD_LABEL" COMMIT="$COMMIT_FULL" python3 -c '
+import json, os, sys
+info = json.load(open(sys.argv[1]))
+label, commit = os.environ["BUILD_LABEL"], os.environ["COMMIT"]
+got_label = info.get("steamBuildLabel")
+got_commit = info.get("commit")
+if got_label != label:
+    print(f"steamBuildLabel mismatch: got {got_label!r} want {label!r}", file=sys.stderr)
+    sys.exit(1)
+if got_commit != commit:
+    print(f"commit mismatch: got {got_commit!r} want {commit!r}", file=sys.stderr)
+    sys.exit(1)
+if not info.get("target"):
+    print("target is missing", file=sys.stderr)
+    sys.exit(1)
+' "$BUILD_INFO"; then
+    echo "ERROR: build-info.json の内容が指定コミット/ラベルと一致しません（共有契約 Global Constraints §1 のキー名。stale worktreeや取り違えた成果物の可能性）: $BUILD_INFO" >&2
     exit 4
 fi
 

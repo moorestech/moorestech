@@ -17,12 +17,12 @@ namespace Client.Starter.PlaytestSmoke
             FailureReason = failureReason;
         }
 
-        public static StandalonePlaytestSmokeStepOutcome Succeeded(string value)
+        internal static StandalonePlaytestSmokeStepOutcome Succeeded(string value)
         {
             return new StandalonePlaytestSmokeStepOutcome(true, value, "");
         }
 
-        public static StandalonePlaytestSmokeStepOutcome Failed(string failureReason)
+        internal static StandalonePlaytestSmokeStepOutcome Failed(string failureReason)
         {
             return new StandalonePlaytestSmokeStepOutcome(false, "", failureReason);
         }

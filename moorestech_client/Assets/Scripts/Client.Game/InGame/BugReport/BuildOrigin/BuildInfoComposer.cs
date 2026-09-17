@@ -8,9 +8,9 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.BuildOrigin
 {
-    // ビルド時のリポジトリ状態から build-info.json（shared-contracts §1）の中身を組み、strict なら出所を偽る焼き込みを拒む
+    // リポジトリ状態から build-info.json（§1）を組む
     // Editorアセンブリを参照できないテストからも検証できるよう、焼く側の判断は BuildInfoWriter ではなくここに置く
-    // Composes build-info.json (shared-contracts §1) from the repository state at build time, refusing an origin-misreporting bake when strict
+    // Composes build-info.json (§1) from the repository state at build time
     // The baking decisions live here rather than in BuildInfoWriter so tests that cannot reference the Editor assembly can verify them
     public static class BuildInfoComposer
     {

@@ -13,7 +13,7 @@ namespace Client.Starter.PlaytestSmoke
     {
         // 越えられない関門があればその理由を、無ければ空文字を返す
         // Returns the reason when a gate cannot be passed, or an empty string when all hold
-        public static string FindFailure(StandalonePlaytestSmokeSettings settings, PlaytestGateResult gate)
+        internal static string FindFailure(StandalonePlaytestSmokeSettings settings, PlaytestGateResult gate)
         {
             // 通し検証の対象は照合を通った配布版だけ。開発者モードでは報告が受け口へ運ばれない
             // Only a checked distribution build is in scope; in developer mode no report ever reaches the receiver

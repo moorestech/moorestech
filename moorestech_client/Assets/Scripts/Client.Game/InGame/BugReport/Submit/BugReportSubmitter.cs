@@ -7,8 +7,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.Submit
 {
-    // 確保済みの記録を報告箱へ書き、送信を要求する手続き本体。ポーズメニューの送信actionと配布ビルドの通し検証が共有する
-    // The send procedure: writes the captured records into a box and requests its upload; shared by the pause-menu action and the distribution smoke run
+    // 確保記録を箱へ書き送信要求する（ポーズ/配布共有）
+    // Writes captured records into a box and requests upload (shared by pause menu / distribution smoke)
     public sealed class BugReportSubmitter
     {
         private readonly BugReportBundleWriter _writer;

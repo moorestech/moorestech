@@ -88,8 +88,8 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainFullSnapshotEventNetworkHandler>().AsSelf();
 
-            // 配布ビルドの通し検証ランナー。マーカー引数が無ければ Start() で即 return する
-            // The distribution smoke runner; without the marker argument it returns immediately in Start()
+            // マーカー無しは Start() で即 return
+            // No marker argument returns immediately in Start()
             builder.RegisterEntryPoint<StandalonePlaytestSmokeRunner>();
         }
     }

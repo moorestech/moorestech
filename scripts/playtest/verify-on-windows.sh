@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # 検証機を起こし、配布ビルドの通し検証を回して結果と受け口への到達を確認する
 # Wakes the check machine, runs the distribution smoke and confirms the result and the receiver delivery
 #
 # usage: verify-on-windows.sh <steamBuildLabel>
-set -eu
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_LABEL="${1:?usage: verify-on-windows.sh <steamBuildLabel>}"
@@ -15,13 +15,13 @@ CURL_BIN="${CURL_BIN:-curl}"
 SSH_WAIT_TIMEOUT_SECONDS="${SSH_WAIT_TIMEOUT_SECONDS:-600}"
 SSH_POLL_SECONDS="${SSH_POLL_SECONDS:-10}"
 VERIFY_ARTIFACT_ROOT="${VERIFY_ARTIFACT_ROOT:-$HOME/hermes-agent/data/services/playtest/runs/$BUILD_LABEL/verify}"
+PLAYTEST_RECEIVER_BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.tar-atari.com}"
 
 missing=""
 [ -n "${MOORESTECH_VERIFY_HOST:-}" ] || missing="$missing MOORESTECH_VERIFY_HOST"
 [ -n "${MOORESTECH_VERIFY_USER:-}" ] || missing="$missing MOORESTECH_VERIFY_USER"
 [ -n "${MOORESTECH_VERIFY_MAC:-}" ] || missing="$missing MOORESTECH_VERIFY_MAC"
-[ -n "${MOORESTECH_RECEIVER_BASE:-}" ] || missing="$missing MOORESTECH_RECEIVER_BASE"
-[ -n "${MOORESTECH_RECEIVER_ADMIN_KEY:-}" ] || missing="$missing MOORESTECH_RECEIVER_ADMIN_KEY"
+[ -n "${PLAYTEST_ADMIN_KEY:-}" ] || missing="$missing PLAYTEST_ADMIN_KEY"
 if [ -n "$missing" ]; then
     echo "ERROR: 必須の環境変数が未設定です:$missing" >&2
     exit 2
@@ -54,7 +54,13 @@ done
 
 echo "[verify] running smoke on $MOORESTECH_VERIFY_HOST"
 "$SSH_BIN" -o BatchMode=yes "$REMOTE" \
-    "powershell -NoProfile -ExecutionPolicy Bypass -File '$REMOTE_ROOT/run-smoke.ps1' -ResultRoot '$REMOTE_ROOT/results'"
+    "powershell -NoProfile -ExecutionPolicy Bypass -File '$REMOTE_ROOT/run-smoke.ps1' -ResultRoot '$REMOTE_ROOT/results' -ExpectedBuildLabel '$BUILD_LABEL'"
+
+# 前回実行の残骸を先に消す。scpは宛先に既存のresultsがあるとその中へ入れ子で置くため、
+# 消さないまま再実行すると古いresult.json/announce.mdを読んでしまう
+# Clear any leftover from a previous run first; scp nests results/ inside an existing
+# destination, so skipping this would leave a stale result.json readable by the next run
+rm -rf "$VERIFY_ARTIFACT_ROOT/results"
 
 # ワイルドカード展開はリモート側シェルに依存し、SFTPプロトコルのscpでは効かないことがある。
 # ディレクトリごとコピーして展開を回避する（宛先は既にmkdir -p済みなので中へ results/ ごと入る）
@@ -69,7 +75,11 @@ for phase in phase1 phase2; do
         echo "ERROR: $phase の result.json を回収できませんでした: $result" >&2
         exit 4
     fi
-    if ! grep -q '"success": *true' "$result"; then
+    # トップレベルのsuccessだけを見る。ステップ配列にも同名キーがあるため、
+    # grepの全文一致ではどちらか一方が真なだけで合格にしてしまう(兄弟のallowlist.shに合わせpython3 jsonで読む)
+    # Read only the top-level success; the steps array carries the same key name, so a whole-text
+    # grep would pass when either one alone is true (python3 json, matching sibling allowlist.sh)
+    if ! python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1])).get("success") is True else 1)' "$result"; then
         echo "ERROR: $phase の通し検証が失敗しました: $(cat "$result")" >&2
         exit 5
     fi
@@ -93,7 +103,12 @@ echo "[verify] checking the receiver inbox for $REPORT_ID"
 found=0
 attempt=0
 while [ "$attempt" -lt 6 ]; do
-    inbox="$("$CURL_BIN" -sS -H "X-Admin-Key: $MOORESTECH_RECEIVER_ADMIN_KEY" "$MOORESTECH_RECEIVER_BASE/v1/inbox")"
+    # set -e の下でcurl失敗がそのままスクリプトを落とさないよう、失敗時は空文字にして次の再試行へ回す
+    # Under set -e, a curl failure must not abort the script outright; fall back to empty and retry
+    inbox="$("$CURL_BIN" -sS -H "X-Admin-Key: $PLAYTEST_ADMIN_KEY" "$PLAYTEST_RECEIVER_BASE/v1/inbox")" || {
+        echo "WARN: 受け口inboxの取得に失敗しました（再試行します）" >&2
+        inbox=""
+    }
     echo "$inbox" >"$VERIFY_ARTIFACT_ROOT/inbox.json"
     # itemsは "{...},{...}" のフラットな並び(admin.tsのgetInboxが1オブジェクト1件で返す)なので
     # }{ を境に割ってから各要素にkind/idの両方を要求する。無関係な他報告のkind一致だけでは合格にしない

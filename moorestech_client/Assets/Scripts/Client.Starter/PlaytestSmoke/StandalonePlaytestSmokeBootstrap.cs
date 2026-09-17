@@ -11,8 +11,8 @@ using UnityEngine.SceneManagement;
 namespace Client.Starter.PlaytestSmoke
 {
     /// <summary>
-    /// 配布ビルドを引数で自動運転する。メインメニューを人手で押さずローカルゲームを開始する
-    /// Drives a distribution build from arguments, starting the local game without a human pressing the menu
+    /// 引数で配布ビルドを自動運転する
+    /// Drives a distribution build from arguments
     /// 前例は Client.Starter/StandaloneQa/StandaloneTerrainQaBootstrap（同じ引数マーカー＋result.json＋Quitの型）
     /// The precedent is StandaloneTerrainQaBootstrap: the same marker-argument, result.json and Quit shape
     /// </summary>
@@ -26,8 +26,8 @@ namespace Client.Starter.PlaytestSmoke
         // The initialization deadline matches the 120 seconds of the StandaloneTerrainQaBootstrap precedent
         private const float GameInitializationTimeoutSeconds = 120f;
 
-        public static bool IsActive { get; private set; }
-        public static StandalonePlaytestSmokeSettings Settings { get; private set; }
+        internal static bool IsActive { get; private set; }
+        internal static StandalonePlaytestSmokeSettings Settings { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         public static void AutoStartIfSmokeRun()
@@ -50,8 +50,7 @@ namespace Client.Starter.PlaytestSmoke
             var activeSceneName = SceneManager.GetActiveScene().name;
             if (activeSceneName != SceneConstant.MainMenuSceneName)
             {
-                Debug.LogError($"[PlaytestSmoke] not started: the boot scene was {activeSceneName}, not {SceneConstant.MainMenuSceneName}");
-                Application.Quit(2);
+                FailBeforeRun(settings, "scene", $"boot scene was {activeSceneName}, not {SceneConstant.MainMenuSceneName}");
                 return;
             }
 
@@ -80,8 +79,8 @@ namespace Client.Starter.PlaytestSmoke
                 return;
             }
 
-            // phase1だけ新規ワールドから始める。phase2は直前のphase1が残したワールドをロードする
-            // Only phase1 starts from a fresh world; phase2 loads the world phase1 left behind
+            // phase1=新規ワールド、phase2=継続ロード
+            // phase1 = fresh world, phase2 = continued load
             if (settings.Phase == StandalonePlaytestSmokeSettings.PhaseOne)
                 GameSystemPaths.DeleteDefaultWorldDirectory();
 
@@ -122,6 +121,13 @@ namespace Client.Starter.PlaytestSmoke
             }
 
             #endregion
+        }
+
+        // Runner側の回復不能な失敗(Forgetが拾った例外)が、遅れて来た処理で二重に走らないよう無効化する
+        // Deactivates so a Runner-side unrecoverable failure (caught by Forget) is never re-entered by late work
+        internal static void Deactivate()
+        {
+            IsActive = false;
         }
 
         // 通し手順に入る前の失敗。以降の初期化完了で手順が走らないよう無効化し、理由を結果とログへ残して終了する

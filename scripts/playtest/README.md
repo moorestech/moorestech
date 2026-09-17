@@ -95,8 +95,8 @@ scripts/playtest/release-playtest.sh <master のコミット>
 - `MOORESTECH_VERIFY_HOST` … Tailscale 上のホスト名
 - `MOORESTECH_VERIFY_USER` … ssh ユーザー
 - `MOORESTECH_VERIFY_MAC` … WoL 用 MAC アドレス
-- `MOORESTECH_RECEIVER_BASE` … `https://playtest.tar-atari.com`
-- `MOORESTECH_RECEIVER_ADMIN_KEY` … 受け口の admin キー
+- `PLAYTEST_RECEIVER_BASE` … `https://playtest.tar-atari.com`（既定値あり。省略可）
+- `PLAYTEST_ADMIN_KEY` … 受け口の admin キー
 - `wakeonlan` が要る: `brew install wakeonlan`
 
 ### 単体で回す
@@ -141,6 +141,6 @@ smoke の報告を先にACKすると、届いているのに「届いていな�
 
 ```bash
 bash scripts/playtest/tests/test-allowlist.sh          # OK と出れば合格
-bash scripts/playtest/tests/release-playtest-test.sh    # PASS: release-playtest contract と出れば合格
-bash scripts/playtest/tests/verify-on-windows-test.sh   # PASS: verify-on-windows contract と出れば合格
+bash scripts/playtest/tests/test-release-playtest.sh    # PASS: release-playtest contract と出れば合格
+bash scripts/playtest/tests/test-verify-on-windows.sh   # PASS: verify-on-windows contract と出れば合格
 ```
