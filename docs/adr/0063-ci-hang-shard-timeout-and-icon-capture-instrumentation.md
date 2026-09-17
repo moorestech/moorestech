@@ -62,6 +62,14 @@ step の timeout は job を `failure` にするため、**判定ロジックを
 - 推測でプロダクションコードを書き換えない。CIの赤は §1 で既に止まっているため、確定を待つ余裕がある。
 - 計装の範囲はアイコン撮影の中だけに限る。boot パイプライン全体への進捗ログ追加や、
   別スレッドの監視役の常駐は採らない。
+- 段階は撮影1件を **setup / render / readback / captured / done** の5点に割り、撮影中の全区間を計装で埋める
+  （ユーザー裁定 2026-09-18 D1案A）。各段のログは「その段へ入る直前」に出すため、最後に出た行が固着区間を名指しする。
+  - `stage:setup` … Prefab複製〜Renderer走査〜Camera生成〜Yield の区間へ入る直前。所要計測の起点もここ。
+  - `stage:render` … `Camera.Render()` の直前。
+  - `stage:readback` … 同期読み戻し（`ReadPixels` + `Apply`）の直前。
+  - `stage:captured` … 画素取得完了後、撮影対象・RenderTexture・Camera の破棄の直前。
+  - `stage:done` … 1件の完了。`elapsed` は `stage:setup` からの実所要。
+- 段名は文字列リテラルのまま置く。定数集約・enum化はしない（ユーザー裁定 2026-09-18 D3。接頭辞 `CaptureLogPrefix` のみ定数）。
 
 出所: ユーザー裁定 2026-09-18 選択「計装を入れて箇所を確定させる」「アイコン撮影の中だけ」
 
@@ -91,7 +99,14 @@ step の timeout は job を `failure` にするため、**判定ロジックを
 
 ## 帰結
 
-- ハングしても最大40分で failure になり、既存 watchdog が失敗ジョブだけを自動で再実行する（`run_attempt` 3回で打ち止め）。
-  人手の rerun 運用は不要になる。
+- ハングしても最大40分で failure になり、既存 watchdog が失敗ジョブだけを自動で再実行する。人手の rerun 運用は不要になる。
+- **この自動再実行は step 名に依存する。** `ci-auto-rerun.cjs` は失敗 step の名前を `INFRA_KEYWORDS` / `CODE_KEYWORDS` で
+  分類し、infra と判定した場合だけ attempt 2 でも再実行する（`decideRerun`）。step timeout の step conclusion は
+  `failure` であって `timed_out` ではないため、`hasTimedOutStep` では拾えない。
+  そこで step 名を `Unity shard runner - <shard>` にし、`INFRA_KEYWORDS` の `'runner'` に一致させ
+  `CODE_KEYWORDS` の `'test'` に一致させないことで、attempt 2 も自動再実行の対象に乗せている
+  （ユーザー裁定 2026-09-18 D2案A）。名前へ `test` や `build` を戻すと code 失敗と分類され、
+  自動再実行は attempt 1 の1回だけに戻る。
+- 上限は既存の `run_attempt >= 3` ガード。3回目の試行では再実行しない。
 - 真因が消えるわけではない。moorestech-7gsc は開いたまま残し、次のハングの計装ログで箇所を確定させてから修正する。
 - 撮影が真犯人でなかった場合、計装ログは「撮影は完走していた」という否定の証拠になり、次の探索先が絞れる。

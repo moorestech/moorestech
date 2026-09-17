@@ -4,7 +4,7 @@
 
 **Goal:** CIのshardハングを40分でfailureにして既存の自動再実行に乗せ、同時にアイコン撮影へ進捗ログを入れて次の1件で固着箇所を確定できるようにする。
 
-**Architecture:** 変更は2箇所だけ。(1) `.github/workflows/run_test.yml` のテスト実行stepに `timeout-minutes: 40` を足す。job の `timeout-minutes` による打ち切りは run の結論が `cancelled` になり既存 watchdog（`ci-auto-rerun.yml`・発火条件は `failure` / `timed_out`）を素通りするが、**step の timeout は job を failure にする**ため、判定ロジックを一切増やさずに既存の自動再実行がそのまま発火する。(2) `BlockIconImagePhotographer.TakeIconImages` に、撮影の開始・各対象の段階（render / readback / done）・完了の進捗ログを入れる。固着はメインスレッドごと止まるため、**各段階へ入る直前にログを出しておく以外に箇所を知る方法が無い**。
+**Architecture:** 変更は2箇所だけ。(1) `.github/workflows/run_test.yml` のテスト実行stepに `timeout-minutes: 40` を足す。job の `timeout-minutes` による打ち切りは run の結論が `cancelled` になり既存 watchdog（`ci-auto-rerun.yml`・発火条件は `failure` / `timed_out`）を素通りするが、**step の timeout は job を failure にする**ため、判定ロジックを一切増やさずに既存の自動再実行がそのまま発火する。(2) `BlockIconImagePhotographer.TakeIconImages` に、撮影の開始・各対象の段階（setup / render / readback / captured / done の5点）・完了の進捗ログを入れる。固着はメインスレッドごと止まるため、**各段階へ入る直前にログを出しておく以外に箇所を知る方法が無い**。
 
 **Tech Stack:** GitHub Actions (YAML)、Unity 6000.3.8f1、C#（UniTask）、NUnit / Unity Test Framework（`[UnityTest]`）
 
@@ -13,7 +13,7 @@
 - R1: `.github/workflows/run_test.yml` の `unity_test_shard` のテスト実行 step が40分で打ち切られること。受け入れ基準: step に `timeout-minutes: 40` があり、job 側の `timeout-minutes: 75` は残っている。
 - R2: 打ち切られた shard が `cancelled` ではなく `failure` になること（既存 watchdog の発火条件に合致させるため）。受け入れ基準: Task 1 の実測で job の conclusion が `failure` であることを確認済みであり、そうでなければ Task 1 Step 4 の代替形（`continue-on-error` + 明示的に失敗させる step）を採る。この挙動に依存していることが workflow のコメントに日本語・英語の2行で書かれている。
 - R3: `ci-auto-rerun.cjs` / `ci-auto-rerun.yml` を変更しないこと。受け入れ基準: このPRの差分に両ファイルが含まれない。
-- R4: アイコン撮影が「何個目の・どの撮影対象の・どの段階で」止まったかがログだけで判別できること。受け入れ基準: 撮影の開始（総数）、各対象の render 直前・readback 直前・完了、撮影全体の完了（総数と所要秒）がログに出る。
+- R4: アイコン撮影が「何個目の・どの撮影対象の・どの段階で」止まったかがログだけで判別できること。受け入れ基準: 撮影の開始（総数）、各対象の setup 直前・render 直前・readback 直前・captured（破棄直前）・完了、撮影全体の完了（総数と所要秒）がログに出る。
 - R5: 計装がテストで固定されていること。受け入れ基準: 撮影1件を実行して期待するログ行が期待順で出ることを検証する `[UnityTest]` がある。
 - R6: 計装に環境分岐（batchmode 判定・CI 判定）を入れないこと。受け入れ基準: 追加コードに `Application.isBatchMode` や CI 判定が現れない。
 - R7: 撮影の挙動（生成・破棄のライフサイクル、返すTexture）を変えないこと。受け入れ基準: 既存の `BlockIconImagePhotographerLifetimeTest` の2テストが通る。
@@ -25,7 +25,7 @@
 - コメントは日本語・英語の2行セット（`// 日本語` → `// English`）。各言語1行に収める。自明なコメントは書かない。
 - 1ファイル200行以下。`partial` 禁止。`Func<>` 禁止。try-catch は外部境界のみ。
 - `.cs` を変更したら必ずコンパイルを実行する（`uloop compile --project-path ./moorestech_client`）。
-- `.meta` ファイルは手で作らない。既存ファイルの変更のみのため新規 `.meta` は発生しない。
+- `.meta` ファイルは手で作らない。レビュー反映（R1）でテストファイルを分割したため新規 `.cs` が2本増えており、その `.meta` は Unity Editor に生成させてコミットする。
 - 作業ブランチ: `fix/ci-shard-hang-timeout-and-icon-instrumentation`（worktree: `/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/ci-shard-hang-timeout-and-icon-instrumentation`）。Unity Editor は同worktreeのものを使う。
 - 作業の区切りごとにコミットする。タスク終了前に必ず全変更をコミットする。
 
@@ -147,7 +147,7 @@ Expected: `tmp-step-timeout-probe.yml` が無い。
 ### Task 2: shard のテスト実行 step を40分で failure にする
 
 **Files:**
-- Modify: `.github/workflows/run_test.yml:174-190`（`Run Unity Test - ${{ matrix.shard }}` step）
+- Modify: `.github/workflows/run_test.yml` の shard テスト実行 step（レビュー反映 D2案A で step 名を `Run Unity Test - ${{ matrix.shard }}` から `Unity shard runner - ${{ matrix.shard }}` へ変更した。`ci-auto-rerun.cjs` の `INFRA_KEYWORDS` に乗せるため）
 
 **Interfaces:**
 - Consumes: なし
@@ -218,17 +218,24 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs`
-- Test: `moorestech_client/Assets/Scripts/Client.Tests/Block/BlockIconImagePhotographerLifetimeTest.cs`（既存ファイルにテストを1本追加する。新規ファイルを作らないので `.meta` は発生しない）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Block/BlockIconImagePhotographerCaptureLogTest.cs`（段階ログのテスト。新規クラス）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Block/BlockIconCaptureTestEnvironment.cs`（両テストクラスが共有する命名規約・待機・後片付け。新規）
+- Test: `moorestech_client/Assets/Scripts/Client.Tests/Block/BlockIconImagePhotographerLifetimeTest.cs`（既存の寿命テスト2本を残し、共有部分をヘルパーへ寄せる）
+
+> レビュー反映（2026-09-18・R1）で、段階ログのテストは既存ファイルから切り出して別クラスにした。新規 `.cs` は
+> Unity Editor に `.meta` を生成させてコミットする（手で作らない）。
 
 **Interfaces:**
 - Consumes: なし
-- Produces: `BlockIconImagePhotographer.CaptureLogPrefix`（`public const string` = `"[BlockIconCapture]"`）。テストとログ検索の双方がこの1箇所を参照する。ログ行の形は次の4種:
+- Produces: `BlockIconImagePhotographer.CaptureLogPrefix`（`internal const string` = `"[BlockIconCapture]"`。テストは `InternalsVisibleTo("Client.Tests")` 経由で参照する）。テストとログ検索の双方がこの1箇所を参照する。ログ行の形は次の7種（D1案A・5段）:
   - `[BlockIconCapture] start count:{総数}`
+  - `[BlockIconCapture] {i}/{総数} {debugName} stage:setup`
   - `[BlockIconCapture] {i}/{総数} {debugName} stage:render`
   - `[BlockIconCapture] {i}/{総数} {debugName} stage:readback`
+  - `[BlockIconCapture] {i}/{総数} {debugName} stage:captured`
   - `[BlockIconCapture] {i}/{総数} {debugName} stage:done elapsed:{ms}ms`
   - `[BlockIconCapture] completed count:{総数} elapsed:{秒}s`
-  - `{i}` は1始まり。固着すると最後に出た行が固着箇所を名指しする。
+  - `{i}` は1始まり。固着すると最後に出た行が固着箇所を名指しする。撮影1件は `stage:setup`〜`stage:done` の5行になる。
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -281,7 +288,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 
 - [ ] **Step 2: テストを実行して失敗することを確認する**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockIconImagePhotographerLifetimeTest" --timeout-seconds 600`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockIconImagePhotographer" --timeout-seconds 600`
 
 Expected: `TakeIconImages_撮影の段階をログに残す` がコンパイルエラー（`CaptureLogPrefix` が存在しない）で失敗する。既存2テストの結果は問わない。
 
@@ -294,7 +301,7 @@ Expected: `TakeIconImages_撮影の段階をログに残す` がコンパイル�
 ```csharp
         // 固着時に箇所を名指しするための目印。ログ検索とテストが同じ1箇所を参照する（ADR 0063）
         // The marker that names a freeze site; log searches and tests share this single source (ADR 0063)
-        public const string CaptureLogPrefix = "[BlockIconCapture]";
+        internal const string CaptureLogPrefix = "[BlockIconCapture]";
 ```
 
 `TakeIconImages` を次の形にする（`GetIcon` のシグネチャに段階ログ用の引数を足す）:
@@ -335,6 +342,12 @@ Expected: `TakeIconImages_撮影の段階をログに残す` がコンパイル�
             {
 ```
 
+> **反映後の実装はこの雛形と異なる（2026-09-18 レビュー反映）。** 実装の正本は
+> `BlockIconImagePhotographer.cs` 本体。差分は3点: (a) D1案A で `stage:setup`（`Instantiate` の直前・所要計測の起点）と
+> `stage:captured`（資源破棄の直前）を足して5段にした、(b) C6 で `progress` 文字列の組み立てを `GetIcon` 内へ畳み、
+> 引数を `(prefab, debugName, index, count)` にした（`Instantiate` も `GetIcon` 内へ移り、`stage:setup` の直後に置かれる）、
+> (c) C5 で `CaptureLogPrefix` を `internal` にした。
+
 `GetIcon` の中身は、次の3箇所だけを足す（他の行は変更しない）:
 
 `await UniTask.Yield(PlayerLoopTiming.Update);`（カメラ設定後）の**次**、`var renderTexture = new RenderTexture(...)` の**前**に、所要計測の開始と render 段階のログを置く:
@@ -369,24 +382,30 @@ Expected: ErrorCount 0。
 
 - [ ] **Step 5: テストを実行して通ることを確認する**
 
-Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockIconImagePhotographerLifetimeTest" --timeout-seconds 600`
+Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "BlockIconImagePhotographer" --timeout-seconds 600`
 
 Expected: 3テストすべて PASS（新規の `TakeIconImages_撮影の段階をログに残す` と、既存の `TakeIconImages_撮影用Cameraを残さない`・`TakeIconImages_撮影Cameraを一台ずつ生成する`。R7）。
 
 - [ ] **Step 6: ファイル長と禁止事項を確認する**
 
-Run: `wc -l moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs && grep -n "isBatchMode\|Environment.GetEnvironmentVariable\|Stopwatch" moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs`
+Run: `wc -l moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs moorestech_client/Assets/Scripts/Client.Tests/Block/BlockIcon*.cs && grep -n "isBatchMode\|Environment.GetEnvironmentVariable\|Stopwatch" moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs`
 
-Expected: 行数が200未満。grep は1件もヒットしない（R6。実時間の計測は `Time.realtimeSinceStartup` で行い `Stopwatch` を使わない）。
+Expected: 全ファイルの行数が200未満。grep は1件もヒットしない（R6。実時間の計測は `Time.realtimeSinceStartup` で行い `Stopwatch` を使わない）。
+
+段階が5点そろっていることは、実装側を直接 grep して確認する:
+
+Run: `grep -n "stage:" moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs`
+
+Expected: `stage:setup` / `stage:render` / `stage:readback` / `stage:captured` / `stage:done` が上から順に1件ずつ出る（D1案A）。
 
 - [ ] **Step 7: コミットする**
 
 ```bash
-git add moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs moorestech_client/Assets/Scripts/Client.Tests/Block/BlockIconImagePhotographerLifetimeTest.cs
+git add moorestech_client/Assets/Scripts/Client.Game/InGame/Block/BlockIconImagePhotographer.cs moorestech_client/Assets/Scripts/Client.Tests/Block/
 git commit -m "feat(client): アイコン撮影に段階ログを入れ固着箇所を特定できるようにする
 
-撮影の開始・各対象のrender/readback/done・完了をログに残す。固着はメイン
-スレッドごと止まるため、各段階へ入る直前のログだけが箇所の手掛かりになる。
+撮影の開始・各対象のsetup/render/readback/captured/done・完了をログに残す。
+固着はメインスレッドごと止まるため、各段階へ入る直前のログだけが箇所の手掛かりになる。
 
 Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 ```
@@ -442,7 +461,7 @@ Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>"
 - [ ] **Step 3: 残課題を1件ずつ起票する**
 
 plan・レビューで出た「未検証」「未確認」「残差」を、issue tracker（Beads）へ1件ずつ起票する。少なくとも次の2件は必ず起票または既存issueへの追記を行う:
-- 真因（アイコン撮影の固着）の特定と修正 → 既存 moorestech-7gsc に、本PRで計装を入れたこと・次のハングで読むログ行の形（`[BlockIconCapture]` で grep する）を追記する。
+- 真因（アイコン撮影の固着）の特定と修正 → 既存 moorestech-7gsc に、本PRで計装を入れたこと・次のハングで読むログ行の形（`[BlockIconCapture]` で grep し、最後に出た `stage:setup` / `stage:render` / `stage:readback` / `stage:captured` / `stage:done` のどれかで固着区間を読む）を追記する。
 - step timeout → failure → 自動再実行の連鎖が実際に発火したかの観測（次にハングが起きたとき）。
 
 結論には issue 番号を列挙する。「残差は◯◯のみ」という要約で代えない。
@@ -464,8 +483,9 @@ PR 本文には、既存 watchdog がこのflakeでは発火していなかっ�
 
 planning 中に生じた判断:
 
-- **ログ行の形を `[BlockIconCapture] {i}/{N} {name} stage:{段階}` に固定した。** 出所: agent前提。固着時にログの最後の1行だけで「何個目・どの対象・どの段階」が読めることが計装の目的であり、grep しやすい固定接頭辞を `public const` で1箇所に置いてテストと共有する（前例: `BlockIconImagePhotographer` 内の `CaptureRenderTexturePrefix` を既存テストが参照している形）。
+- **ログ行の形を `[BlockIconCapture] {i}/{N} {name} stage:{段階}` に固定した。** 出所: agent前提。固着時にログの最後の1行だけで「何個目・どの対象・どの段階」が読めることが計装の目的であり、grep しやすい固定接頭辞を `internal const` で1箇所に置いてテストと共有する（前例: `BlockIconImagePhotographer` 内の `CaptureRenderTexturePrefix` を既存テストが参照している形）。
 - **段階を render / readback / done の3点にした。** 出所: agent前提。次の修正候補が `Camera.Render()` 側か同期読み戻し側かで分かれるため、この2つを分離できる粒度が要る。撮影対象は約200件のため、boot 1回あたり約600行のログが増える。この量はEditorログ・バグ報告バンドルに乗るが、接頭辞で絞れるため許容する。
+  - **改訂（2026-09-18・レビュー D1案A・ユーザー裁定）: setup / render / readback / captured / done の5点にした。** 3点では「Instantiate〜Camera生成」と「破棄」の2区間が計装の空白として残り、そこで固着すると `stage:render` や `stage:readback` の行に畳まれて的外れな修正先（例: `AsyncGPUReadback` 化）へ誘導されうる。`stage:setup` が撮影1件の起点となり `stage:done` の `elapsed` はその1件の実所要と一致する。ログは1件5行（boot 1回あたり約1000行）。
 - **経過時間を `Time.realtimeSinceStartup` で測る。** 出所: agent前提。AGENTS.md の「実時間APIを使わない」はサーバーのゲームロジックの経過時間測定に対する規約であり、ここはクライアントの診断ログ。`Stopwatch` を使わないという同規約の趣旨には沿う。
 - **テストのログ収集を `Application.logMessageReceived` で行う（`LogAssert.Expect` を使わない）。** 出所: agent前提。順序と件数まで固定したいため、収集してから並びを検証する形にした。
 - **`foreach` を添字 `for` に変えた。** 出所: agent前提。進捗の `{i}/{N}` を出すために添字が要る。挙動は変わらない。
