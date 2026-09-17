@@ -7,15 +7,19 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BUILD_LABEL="${1:?usage: verify-on-windows.sh <steamBuildLabel>}"
+# ラベルはリモートPowerShell文字列とパスへ埋め込むため、単体実行でも入口で許可リスト検証する
+# The label is embedded in remote PowerShell strings and paths, so it is allowlist-validated at entry even when run standalone
+# shellcheck source=lib/release-preflight.sh
+. "$SCRIPT_DIR/lib/release-preflight.sh"
+playtest_require_build_label "$BUILD_LABEL"
 
 WAKEONLAN_BIN="${WAKEONLAN_BIN:-wakeonlan}"
 SSH_BIN="${SSH_BIN:-ssh}"
 SCP_BIN="${SCP_BIN:-scp}"
-CURL_BIN="${CURL_BIN:-curl}"
 SSH_WAIT_TIMEOUT_SECONDS="${SSH_WAIT_TIMEOUT_SECONDS:-600}"
 SSH_POLL_SECONDS="${SSH_POLL_SECONDS:-10}"
 VERIFY_ARTIFACT_ROOT="${VERIFY_ARTIFACT_ROOT:-$HOME/hermes-agent/data/services/playtest/runs/$BUILD_LABEL/verify}"
-PLAYTEST_RECEIVER_BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.tar-atari.com}"
+RECEIVER_ATTEMPTS="${RECEIVER_ATTEMPTS:-6}"
 
 missing=""
 [ -n "${MOORESTECH_VERIFY_HOST:-}" ] || missing="$missing MOORESTECH_VERIFY_HOST"
@@ -26,6 +30,10 @@ if [ -n "$missing" ]; then
     echo "ERROR: 必須の環境変数が未設定です:$missing" >&2
     exit 2
 fi
+# 受け口 admin API は共有 lib だけを通す（リダイレクト非追従・鍵非出力の約束を一箇所に保つ）
+# The receiver admin API is reached only through the shared lib (keeps no-redirect and never-print-key in one place)
+# shellcheck source=lib/receiver-api.sh
+. "$SCRIPT_DIR/lib/receiver-api.sh"
 
 REMOTE="$MOORESTECH_VERIFY_USER@$MOORESTECH_VERIFY_HOST"
 REMOTE_ROOT="C:/moorestech-smoke/$BUILD_LABEL"
@@ -37,14 +45,16 @@ echo "[verify] waking $MOORESTECH_VERIFY_HOST"
 # 起動待ちは期限付きポーリング。起こせなければ検証失敗として告知しない
 # Bounded polling for boot; if it never wakes, the verification fails and nothing gets announced
 echo "[verify] waiting for ssh (timeout ${SSH_WAIT_TIMEOUT_SECONDS}s)"
-waited=0
+# 経過は実時間の絶対締め切りで測る（ssh自体のConnectTimeout分を見積もりで足すと実時間とずれる）。sleepも残り時間で打ち切る
+# Elapsed time is measured against an absolute wall-clock deadline (estimating ssh's own ConnectTimeout drifts); sleep is capped by the remainder
+deadline=$((SECONDS + SSH_WAIT_TIMEOUT_SECONDS))
 until "$SSH_BIN" -o BatchMode=yes -o ConnectTimeout=5 "$REMOTE" "echo ok" >/dev/null 2>&1; do
-    if [ "$waited" -ge "$SSH_WAIT_TIMEOUT_SECONDS" ]; then
+    remaining=$((deadline - SECONDS))
+    if [ "$remaining" -le 0 ]; then
         echo "ERROR: 検証機 $MOORESTECH_VERIFY_HOST に ${SSH_WAIT_TIMEOUT_SECONDS}秒以内へ到達できませんでした" >&2
         exit 3
     fi
-    sleep "$SSH_POLL_SECONDS"
-    waited=$((waited + SSH_POLL_SECONDS + 1))
+    sleep "$((SSH_POLL_SECONDS < remaining ? SSH_POLL_SECONDS : remaining))"
 done
 
 # 検証機側スクリプトは毎回送る（手置きコピーとの版ずれを構造的に消す）
@@ -85,52 +95,49 @@ for phase in phase1 phase2; do
     fi
 done
 
-# 報告が受け口まで届いたことを確認する（クライアント側のUPLOADEDだけでは受領を保証できない）
-# Confirm the report reached the receiver; the client-side UPLOADED marker alone does not prove receipt
-# 照合はバンドルIDで行う。inboxは未ACKのものだけを返すため、取り込み(plan H)が先にACKすると見えなくなる
-# Match by bundle id; the inbox lists only un-ACKed items, so an ingest run (plan H) that ACKs first hides it
-# reportBundleDirectoryは検証機(Windows)のパスで、JSON中はバックスラッシュがエスケープされ2文字("\\")で
-# 現れる。basenameはスラッシュしか割らないため使わず、末尾の区切り文字(\または/、連続もまとめて)より後ろだけ取る
-# reportBundleDirectory is a Windows path; JSON escaping renders each backslash as two chars ("\\").
-# basename only splits on '/', so instead strip everything through the last run of '\' or '/' chars
-REPORT_DIRECTORY_RAW="$(sed -n 's/.*"reportBundleDirectory" *: *"\([^"]*\)".*/\1/p' "$COLLECTED_ROOT/phase2/result.json")"
-REPORT_ID="$(printf '%s' "$REPORT_DIRECTORY_RAW" | sed 's#.*[\\/]##')"
-if [ -z "$REPORT_ID" ]; then
-    echo "ERROR: phase2 の result.json から報告バンドルIDを読めませんでした" >&2
+# 報告が受け口まで届いたことを、ACK状態に左右されない READY マーカーの取得で確認し、確認後は自分でACKする
+# （未ACKだけを返す inbox 照合は取り込みが先にACKすると偽陰性になるため使わない）。ただしアップロードからこのACKまでの間に
+# 定期取り込みが走ると検証用の報告をバグ報告として取り込みACKしてしまい、こちらのACKは冪等に成功して気づけない。
+# ACKは後片付けであって取り込みとの競合を防がないため、検証中は playtest-ingest を止める運用が前提（README 参照）
+# Confirm the report reached the receiver by fetching its READY marker, independent of ACK state, then ACK it ourselves
+# (the un-ACKed-only inbox match false-negatives once ingest ACKs first). If the periodic ingest runs between the upload and
+# this ACK, it ingests and ACKs the smoke report as a real bug report and our idempotent ACK still succeeds silently.
+# The ACK is cleanup, not protection against that race, so playtest-ingest must be stopped during verification (see README)
+# reportBundleDirectory は検証機(Windows)のパスなので、末尾の区切り文字(\ または /)より後ろをバンドルIDとして取る
+# reportBundleDirectory is a Windows path, so the bundle id is whatever follows the last separator (\ or /)
+REPORT_FIELDS="$(python3 -c '
+import json, re, sys
+result = json.load(open(sys.argv[1]))
+print(re.split(r"[\\/]+", result.get("reportBundleDirectory", "").rstrip("\\/"))[-1]); print(result.get("reportSteamId", ""))
+' "$COLLECTED_ROOT/phase2/result.json")"
+REPORT_ID="$(printf '%s\n' "$REPORT_FIELDS" | sed -n 1p)"
+REPORT_STEAM_ID="$(printf '%s\n' "$REPORT_FIELDS" | sed -n 2p)"
+if [ -z "$REPORT_ID" ] || [ -z "$REPORT_STEAM_ID" ]; then
+    echo "ERROR: phase2 の result.json から報告バンドルID/reportSteamId を読めませんでした: id='${REPORT_ID}' steamId='${REPORT_STEAM_ID}'" >&2
     exit 6
 fi
-echo "[verify] checking the receiver inbox for $REPORT_ID"
+echo "[verify] checking the receiver for report $REPORT_STEAM_ID/$REPORT_ID"
 found=0
 attempt=0
-while [ "$attempt" -lt 6 ]; do
-    # set -e の下でcurl失敗がそのままスクリプトを落とさないよう、失敗時は空文字にして次の再試行へ回す
-    # Under set -e, a curl failure must not abort the script outright; fall back to empty and retry
-    inbox="$("$CURL_BIN" -sS -H "X-Admin-Key: $PLAYTEST_ADMIN_KEY" "$PLAYTEST_RECEIVER_BASE/v1/inbox")" || {
-        echo "WARN: 受け口inboxの取得に失敗しました（再試行します）" >&2
-        inbox=""
-    }
-    echo "$inbox" >"$VERIFY_ARTIFACT_ROOT/inbox.json"
-    # itemsは "{...},{...}" のフラットな並び(admin.tsのgetInboxが1オブジェクト1件で返す)なので
-    # }{ を境に割ってから各要素にkind/idの両方を要求する。無関係な他報告のkind一致だけでは合格にしない
-    # items is a flat "{...},{...}" list (admin.ts's getInbox emits one flat object per entry); split
-    # on }{ and require BOTH kind and id per element so an unrelated report's mere presence never passes
-    while IFS= read -r item; do
-        case "$item" in
-            *'"kind":"report"'*'"id":"'"$REPORT_ID"'"'*)
-                found=1
-                break
-                ;;
-        esac
-    done <<EOF
-$(printf '%s' "$inbox" | sed 's/},{/}\n{/g')
-EOF
-    [ "$found" -eq 1 ] && break
+while [ "$attempt" -lt "$RECEIVER_ATTEMPTS" ]; do
+    # 取得失敗は lib が理由を stderr へ出す。set -e で落とさず次の再試行へ回す
+    # The lib logs the reason for a failed fetch; do not abort under set -e, retry instead
+    if receiver_get_object report "$REPORT_STEAM_ID" "$REPORT_ID" READY "$VERIFY_ARTIFACT_ROOT/report-ready"; then
+        found=1
+        break
+    fi
     attempt=$((attempt + 1))
     sleep "$SSH_POLL_SECONDS"
 done
 if [ "$found" -eq 0 ]; then
-    echo "ERROR: 受け口に報告 $REPORT_ID が届いていません（取り込みが先にACKした可能性があるため、検証中は plan H の ingest を止めること）: $inbox" >&2
+    echo "ERROR: 受け口に報告 ${REPORT_STEAM_ID}/${REPORT_ID} の READY が ${RECEIVER_ATTEMPTS} 回試しても見つかりません" >&2
     exit 6
+fi
+# 検証用の報告が取り込み再開後に拾われないよう、確認できたらACKする。ACKできなければ後で取り込まれるため失敗にする
+# ACK the verified smoke report so it is not picked up once ingest resumes; failing to ACK would let it in later, so that fails the run
+if ! receiver_ack report "$REPORT_STEAM_ID" "$REPORT_ID"; then
+    echo "ERROR: 受け口の報告 ${REPORT_STEAM_ID}/${REPORT_ID} を ACK できませんでした（取り込みに検証用の報告が混ざるため手でACKしてください）" >&2
+    exit 8
 fi
 
 echo "[verify] passed: $BUILD_LABEL"

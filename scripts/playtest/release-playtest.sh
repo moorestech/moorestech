@@ -20,19 +20,20 @@ UNITY_BIN="${UNITY_BIN:-/Applications/Unity/Hub/Editor/6000.3.8f1/Unity.app/Cont
 STEAMCMD_BIN="${STEAMCMD_BIN:-steamcmd}"
 VERIFY_SCRIPT="${VERIFY_SCRIPT:-$SCRIPT_DIR/verify-on-windows.sh}"
 PLAYTEST_RUN_ROOT="${PLAYTEST_RUN_ROOT:-$HOME/hermes-agent/data/services/playtest/runs}"
+# master data worktree を列挙する moorestech_master のメインclone（moores-wt の MASTER と同じ）
+# The moorestech_master main clone whose worktrees are listed (same as moores-wt's MASTER)
+MASTER_CLONE="${MOORESTECH_MASTER_CLONE:-$HOME/hermes-agent/data/repos/moorestech_master}"
 # build-info.json の branch に焼く配布元 ref。使い捨て worktree の一時ブランチ名を焼かないために明示する
 # The distribution ref baked into build-info.json's branch, so the disposable worktree's temporary branch name is never baked
 BUILD_BRANCH="${MOORESTECH_BUILD_BRANCH:-master}"
 
-# 必須envはビルド前に全部そろっているか見る（半端に焼いてから落ちない）
-# Check every required env before building so a half-baked artifact never happens
-missing=""
-[ -n "${MOORESTECH_STEAM_USER:-}" ] || missing="$missing MOORESTECH_STEAM_USER"
-[ -n "${MOORESTECH_STEAM_DEPOT_ID:-}" ] || missing="$missing MOORESTECH_STEAM_DEPOT_ID"
-if [ -n "$missing" ]; then
-    echo "ERROR: 必須の環境変数が未設定です:$missing (~/hermes-agent/data/services/playtest/env.sh を読み込んでください)" >&2
-    exit 2
-fi
+# 検証機を含む必須envとラベルはビルド前に全部見る（半端に焼いてから・上げてから落ちない）
+# Check every required env (check machine included) and the label before building, so nothing fails after baking or upload
+# shellcheck source=lib/release-preflight.sh
+. "$SCRIPT_DIR/lib/release-preflight.sh"
+release_require_env
+BUILD_LABEL="${MOORESTECH_STEAM_BUILD_LABEL:-playtest-$(date +%Y%m%d-%H%M)}"
+playtest_require_build_label "$BUILD_LABEL"
 
 # 解決の前にfetchする。マージ直後のコミットや古いorigin/masterのrefを掴まないため
 # Fetch before resolving, so a just-merged commit or a stale origin/master ref is never used
@@ -66,7 +67,6 @@ elif [ "$ANCESTOR_STATUS" -ne 0 ]; then
     exit 2
 fi
 
-BUILD_LABEL="${MOORESTECH_STEAM_BUILD_LABEL:-playtest-$(date +%Y%m%d-%H%M)}"
 RUN_DIR="$PLAYTEST_RUN_ROOT/$BUILD_LABEL"
 BUILD_DIR="$RUN_DIR/build"
 STEAM_DIR="$RUN_DIR/steam"
@@ -100,34 +100,16 @@ if [ "$EXPECTED_COMMIT" != "$COMMIT_FULL" ]; then
     exit 3
 fi
 
-# ビルドが同梱する master data（worktree + ピンの relativePath。GameDataBundler.MasterDataRepositoryRoot と同じ解決）の HEAD を
-# コミット済みのピンと突き合わせる。ずれたまま焼くと strict が数十分後に落ちるか、ずれたマスタを同梱するため、合わせるのは人に任せて止まる
-# Match the HEAD of the master data the build bundles (worktree + the pin's relativePath, the same resolution as
-# GameDataBundler.MasterDataRepositoryRoot) against the committed pin; baking with drift fails strict much later or ships the wrong
-# master, so stop and leave the realignment to a human
-PIN_FIELDS="$("$GIT_BIN" -C "$WORKTREE" show HEAD:.moorestech-external-revisions.json | python3 -c '
-import json, sys
-for revision in json.load(sys.stdin)["repositories"]:
-    if revision["key"] == "moorestech_master":
-        print(revision["relativePath"]); print(revision["commitHash"]); sys.exit(0)
-sys.exit(1)
-')" || {
-    echo "ERROR: worktree のコミット済みピンから moorestech_master の relativePath/commitHash を読めません: ${WORKTREE}/.moorestech-external-revisions.json" >&2
-    exit 3
-}
-MASTER_RELATIVE_PATH="$(printf '%s\n' "$PIN_FIELDS" | sed -n 1p)"
-PINNED_MASTER_COMMIT="$(printf '%s\n' "$PIN_FIELDS" | sed -n 2p)"
-MASTER_DATA_ROOT="$(python3 -c 'import os, sys; print(os.path.normpath(os.path.join(sys.argv[1], sys.argv[2])))' "$WORKTREE" "$MASTER_RELATIVE_PATH")"
-MASTER_HEAD="$("$GIT_BIN" -C "$MASTER_DATA_ROOT" rev-parse HEAD)" || {
-    echo "ERROR: 同梱元の master data の HEAD を読めません: ${MASTER_DATA_ROOT}（ピン ${PINNED_MASTER_COMMIT} のチェックアウトを用意してください）" >&2
-    exit 3
-}
-if [ "$MASTER_HEAD" != "$PINNED_MASTER_COMMIT" ]; then
-    echo "ERROR: 同梱元の master data がピンとずれています: ${MASTER_DATA_ROOT} は ${MASTER_HEAD}、ピンは ${PINNED_MASTER_COMMIT}。${MASTER_DATA_ROOT} を ${PINNED_MASTER_COMMIT} へ合わせてから再実行してください" >&2
-    exit 3
-fi
+# 同梱元 master data（ピンを HEAD に持つ worktree）と非公開アセット（ffmpeg）をコミット済みピンと突き合わせ、未コミット変更も拒む。
+# ずれたまま焼くと strict が数十分後に落ちるか出所の違う成果物になるため、合わせるのは人に任せて止まる
+# Match the bundled master data (the worktree at the pin) and private assets (ffmpeg) against the committed pins and refuse dirty trees;
+# baking with drift fails strict much later or ships an artifact of a different origin, so stop and leave it to a human
+release_resolve_master_data_root "$WORKTREE"
+release_require_private_assets "$WORKTREE"
+echo "[release-playtest] master data root=$MOORESTECH_MASTER_DATA_ROOT"
 
 MOORESTECH_BUILD_OUTPUT="$BUILD_DIR" MOORESTECH_STEAM_BUILD_LABEL="$BUILD_LABEL" MOORESTECH_BUILD_BRANCH="$BUILD_BRANCH" \
+    MOORESTECH_MASTER_DATA_ROOT="$MOORESTECH_MASTER_DATA_ROOT" \
     "$UNITY_BIN" -batchmode -nographics \
     -projectPath "$WORKTREE/moorestech_client" \
     -executeMethod Client.Editor.Build.ReleaseLocalBuildCli.WindowsReleaseLocalBuild \
@@ -161,9 +143,9 @@ if not info.get("target"):
     exit 4
 fi
 
-# vdfのトークンを差し込む（depot idはアカウント固有なのでrepoへ書かない）
+# vdfのトークンを差し込む（depot idはアカウント固有なのでrepoへ書かない。ラベルとdepot idは入口で許可リスト検証済み）
 # sedの区切り文字はパスに現れないASCII制御文字を使い、RUN_DIR/BUILD_DIRに'|'を含む環境でも壊れないようにする
-# Substitute the vdf tokens; the depot id is account-specific and never committed to the repo
+# Substitute the vdf tokens; the depot id is account-specific and never committed (label and depot id were allowlist-checked at entry)
 # The sed delimiter is a control char that paths never contain, so a '|' in RUN_DIR/BUILD_DIR cannot break it
 SED_DELIM=$'\x01'
 for template in app_build_playtest.vdf depot_build_windows.vdf; do

@@ -4,121 +4,21 @@
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-TARGET="$SCRIPT_DIR/../verify-on-windows.sh"
-FAILURES=0
-LABEL="playtest-20260913-1730"
+# shellcheck source=lib/verify-on-windows-sandbox.sh
+. "$SCRIPT_DIR/lib/verify-on-windows-sandbox.sh"
 
-fail() { echo "FAIL: $1"; FAILURES=$((FAILURES + 1)); }
-
-# 各make_sandboxが作った一時ディレクトリを配列に積み、終了時にまとめて削除する
-# Every temp dir created by make_sandbox is tracked here and removed together on exit
-SANDBOXES=()
-cleanup() { for dir in "${SANDBOXES[@]}"; do rm -rf "$dir"; done; }
-trap cleanup EXIT
-
-make_sandbox() {
-    SANDBOX="$(mktemp -d)"
-    SANDBOXES+=("$SANDBOX")
-    mkdir -p "$SANDBOX/bin" "$SANDBOX/artifacts"
-    cat >"$SANDBOX/bin/wakeonlan" <<EOF
-#!/bin/bash
-echo "wakeonlan \$*" >>"$SANDBOX/calls.log"
-exit \${WOL_EXIT:-0}
-EOF
-    # sshは SSH_READY_AT 回目の呼び出しから成功する（到達待ちのループを再現する）
-    # ssh starts succeeding at call number SSH_READY_AT, reproducing the reachability loop
-    cat >"$SANDBOX/bin/ssh" <<EOF
-#!/bin/bash
-echo "ssh \$*" >>"$SANDBOX/calls.log"
-count=\$(grep -c '^ssh ' "$SANDBOX/calls.log")
-[ "\$count" -ge "\${SSH_READY_AT:-1}" ] || exit 255
-# 検証機側 run-smoke.ps1 の実行だけ SMOKE_RUN_EXIT で終了コードを差し替える（ラベル不一致=2 等の伝搬を固定する）
-# Only the run-smoke.ps1 invocation takes SMOKE_RUN_EXIT, pinning propagation of e.g. the label-mismatch exit 2
-case "\$*" in *"-File"*"run-smoke.ps1"*) exit \${SMOKE_RUN_EXIT:-0} ;; esac
-exit \${SSH_RUN_EXIT:-0}
-EOF
-    # scpはディレクトリごとコピーする実装（-r remote:.../results dest）に合わせ、
-    # destの直下ではなく dest/results/<phase> へ result.json を置く
-    # scp copies the directory itself (-r remote:.../results dest), so results land under
-    # dest/results/<phase>, mirroring scp's real nesting behavior when the dest already exists
-    cat >"$SANDBOX/bin/scp" <<EOF
-#!/bin/bash
-echo "scp \$*" >>"$SANDBOX/calls.log"
-# 最後の引数がローカルの回収先なら、検証機が残したはずの result.json を再現する
-# When the last argument is the local collection directory, reproduce the result.json the machine would leave
-for last; do :; done
-case "\$last" in
-  "$SANDBOX"/artifacts*)
-    dest="\$last/results"
-    mkdir -p "\$dest/phase1"
-    # stepsにトップレベルとは独立した"success"キーを持たせ、全文一致(旧grep実装)が
-    # トップレベルfalseでも合格にしてしまう退行を検知できるようにする
-    # steps carries its own independent "success" key so a whole-text match (the old grep
-    # implementation) regressing into a pass despite a false top-level value can be caught
-    printf '{"phase": "phase1", "success": %s, "steps": [{"name": "tutorial", "success": true}]}' \
-      "\${PHASE1_SUCCESS:-true}" >"\$dest/phase1/result.json"
-    # reportBundleDirectoryは検証機(Windows)のパス。バックスラッシュ区切りでIDを末尾に持たせ、
-    # basenameがそのままでは割れないことを再現する
-    # reportBundleDirectory is the check machine's (Windows) path; backslash-separated with the id
-    # as the leaf, reproducing that a plain basename cannot split it
-    # JSON中のバックスラッシュは \\ とエスケープしないと不正なJSONになる(実物はJsonUtilityがエスケープ済みで書く)。
-    # 外側がクォート無しheredocのため \\\\ の4つで初めてスタブ内に \\ の2文字が残る
-    # A backslash inside JSON must be escaped as \\, or the text is invalid JSON (the real writer, JsonUtility,
-    # already escapes it); since the outer heredoc is unquoted, 4 backslashes are needed to leave 2 in the stub
-    BS='\\\\'
-    # SCP_OMIT_PHASE2=1 は検証機が phase2 の result.json を残さなかった回を再現する
-    # SCP_OMIT_PHASE2=1 reproduces a run where the machine left no phase2 result.json
-    [ "\${SCP_OMIT_PHASE2:-0}" = "1" ] && exit 0
-    mkdir -p "\$dest/phase2"
-    printf '{"phase": "phase2", "success": %s, "steps": [{"name": "save", "success": true}], "reportBundleDirectory": "C:%smoorestech-smoke%soutbox%sreport%s20260913_180000_%s"}' \
-      "\${PHASE2_SUCCESS:-true}" "\$BS" "\$BS" "\$BS" "\$BS" "\${SMOKE_REPORT_ID:-aaaa1111}" >"\$dest/phase2/result.json"
-    ;;
-esac
-exit 0
-EOF
-    # inboxは常に無関係な進行報告(progress)を1件含む(現実の運用は無人)。
-    # 対象のreport項目はINBOX_HAS_REPORTでon/offし、無関係項目だけでは合格にならないことを検証できるようにする
-    # The inbox always carries one unrelated progress item (real operation is unattended);
-    # the target report item is toggled by INBOX_HAS_REPORT so a mismatch-only inbox can be tested
-    cat >"$SANDBOX/bin/curl" <<EOF
-#!/bin/bash
-echo "curl \$*" >>"$SANDBOX/calls.log"
-items='{"kind":"progress","steamId":"7656","id":"zzzz9999","readyAt":"2026-09-13T17:00:00Z"}'
-if [ "\${INBOX_HAS_REPORT:-1}" = "1" ]; then
-  items="\$items,{\"kind\":\"report\",\"steamId\":\"7656\",\"id\":\"20260913_180000_\${SMOKE_REPORT_ID:-aaaa1111}\",\"readyAt\":\"2026-09-13T18:00:00Z\"}"
-fi
-if [ "\${INBOX_HAS_UNRELATED_REPORT:-0}" = "1" ]; then
-  items="\$items,{\"kind\":\"report\",\"steamId\":\"7656\",\"id\":\"yyyy8888\",\"readyAt\":\"2026-09-13T17:30:00Z\"}"
-fi
-echo "{\"items\":[\$items],\"cursor\":\"\"}"
-EOF
-    chmod +x "$SANDBOX/bin/"*
-}
-
-run_target() {
-    ( MOORESTECH_VERIFY_HOST=verify-pc MOORESTECH_VERIFY_USER=moores \
-      MOORESTECH_VERIFY_MAC=00:11:22:33:44:55 \
-      PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com \
-      PLAYTEST_ADMIN_KEY=dummy \
-      WAKEONLAN_BIN="$SANDBOX/bin/wakeonlan" SSH_BIN="$SANDBOX/bin/ssh" \
-      SCP_BIN="$SANDBOX/bin/scp" CURL_BIN="$SANDBOX/bin/curl" \
-      VERIFY_ARTIFACT_ROOT="$SANDBOX/artifacts" \
-      SSH_WAIT_TIMEOUT_SECONDS="${SSH_WAIT_TIMEOUT_SECONDS-60}" SSH_POLL_SECONDS=0 \
-      WOL_EXIT="${WOL_EXIT-0}" SSH_READY_AT="${SSH_READY_AT-1}" SSH_RUN_EXIT="${SSH_RUN_EXIT-0}" \
-      PHASE1_SUCCESS="${PHASE1_SUCCESS-true}" PHASE2_SUCCESS="${PHASE2_SUCCESS-true}" \
-      INBOX_HAS_REPORT="${INBOX_HAS_REPORT-1}" SMOKE_REPORT_ID="${SMOKE_REPORT_ID-aaaa1111}" \
-      INBOX_HAS_UNRELATED_REPORT="${INBOX_HAS_UNRELATED_REPORT-0}" \
-      SMOKE_RUN_EXIT="${SMOKE_RUN_EXIT-0}" SCP_OMIT_PHASE2="${SCP_OMIT_PHASE2-0}" \
-      bash "$TARGET" "$LABEL" 2>&1 )
-}
-
-# 成功系: WoL→ssh待ち→ps1送付→実行→回収→inbox確認
+# 成功系: WoL→ssh待ち→ps1送付→実行→回収→READY確認→ACK
 make_sandbox
 OUTPUT=$(run_target); STATUS=$?
 [ "$STATUS" -eq 0 ] || fail "success run exited $STATUS: $OUTPUT"
 grep -q "^wakeonlan " "$SANDBOX/calls.log" || fail "WoL was not sent"
 grep -q "run-smoke.ps1" "$SANDBOX/calls.log" || fail "run-smoke.ps1 was not copied to the machine"
-grep -q "/v1/inbox" "$SANDBOX/calls.log" || fail "the receiver inbox was not checked"
+READY_LINE=$(grep -n "/v1/inbox/report/7656/20260913_180000_aaaa1111/READY" "$SANDBOX/calls.log" | head -n1 | cut -d: -f1)
+ACK_LINE=$(grep -n -- "-X POST .*/v1/inbox/report/7656/20260913_180000_aaaa1111/ack" "$SANDBOX/calls.log" | head -n1 | cut -d: -f1)
+[ -n "$READY_LINE" ] || fail "the report's READY was not fetched by reportSteamId/bundle id"
+[ -n "$ACK_LINE" ] && [ "${READY_LINE:-0}" -lt "$ACK_LINE" ] || fail "the report was not ACKed after READY was confirmed"
+grep -q -- "--max-time" "$SANDBOX/calls.log" || fail "the receiver was not reached through lib/receiver-api.sh"
+grep -q "CURL_BIN\|\bcurl \|/v1/inbox\"" "$SCRIPT_DIR/../verify-on-windows.sh" && fail "verify-on-windows.sh still calls the receiver with raw curl"
 grep -q -- "-ExpectedBuildLabel '$LABEL'" "$SANDBOX/calls.log" || fail "run-smoke.ps1 was not told the expected build label"
 
 # ssh到達が遅れても期限内なら成功する
@@ -132,6 +32,21 @@ OUTPUT=$(SSH_READY_AT=999 SSH_WAIT_TIMEOUT_SECONDS=0 run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "unreachable machine did not fail"
 case "$OUTPUT" in *"到達"*) ;; *) fail "unreachable machine did not say why";; esac
 grep -q "/v1/inbox" "$SANDBOX/calls.log" && fail "inbox was checked despite an unreachable machine"
+
+# 待ちは実時間の締め切りで打ち切る。ssh 自体が時間を食い sleep が長くても期限を大きく超えない（F15）
+# The wait is cut off by a wall-clock deadline; even with slow ssh calls and a long poll sleep it never overruns much
+make_sandbox
+STARTED=$SECONDS
+OUTPUT=$(SSH_READY_AT=999 SSH_UNREACHABLE_DELAY=1 SSH_WAIT_TIMEOUT_SECONDS=3 SSH_POLL_SECONDS=30 run_target); STATUS=$?
+[ "$STATUS" -eq 3 ] || fail "a slow unreachable machine did not exit 3 (got $STATUS): $OUTPUT"
+[ $((SECONDS - STARTED)) -le 8 ] || fail "the ssh wait overran its 3s deadline (took $((SECONDS - STARTED))s)"
+
+# 許可リスト外のラベルは何も呼ばずに落ちる（リモートPowerShell文字列への注入対策・F14）
+# A label outside the allowlist fails before any call (guards injection into the remote PowerShell string)
+make_sandbox
+OUTPUT=$(VERIFY_LABEL="x'; Remove-Item C:/ -Recurse; '" run_target); STATUS=$?
+[ "$STATUS" -eq 2 ] || fail "an injected label was not refused (got $STATUS): $OUTPUT"
+[ ! -f "$SANDBOX/calls.log" ] || fail "an injected label reached wakeonlan/ssh"
 
 # 必須envの欠落は起こす前に落ちる
 make_sandbox
@@ -157,22 +72,36 @@ OUTPUT=$(PHASE1_SUCCESS=false run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "a false top-level success with a true nested step did not fail"
 grep -q "/v1/inbox" "$SANDBOX/calls.log" && fail "inbox was checked despite a failed phase1"
 
-# 報告が受け口に届いていなければ落ちる（無関係な進行報告は常にinboxへ同居している）
+# READY が受け口に無ければ（再試行しても）落ち、ACK もしない
+# When READY never appears on the receiver (even after retries) the run fails and nothing is ACKed
 make_sandbox
-OUTPUT=$(INBOX_HAS_REPORT=0 run_target); STATUS=$?
-[ "$STATUS" -ne 0 ] || fail "missing report in the inbox did not fail"
+OUTPUT=$(RECEIVER_HAS_REPORT=0 run_target); STATUS=$?
+[ "$STATUS" -eq 6 ] || fail "a missing READY did not exit 6 (got $STATUS): $OUTPUT"
+[ "$(grep -c "/READY" "$SANDBOX/calls.log")" -gt 1 ] || fail "a missing READY was not retried"
+grep -q "/ack" "$SANDBOX/calls.log" && fail "an unconfirmed report was ACKed"
 
-# 退行防止: inboxに無関係な報告(別id)だけがあっても合格にしない（レビュー指摘の偽陽性）
-# Regression: an unrelated report (different id) alone in the inbox must not pass (review's false-positive finding)
+# 別の報告IDの READY しか無ければ合格にしない（バンドルIDでの照合が効いている）
+# Only another report id's READY must not pass (bundle-id matching works)
 make_sandbox
-OUTPUT=$(INBOX_HAS_REPORT=0 INBOX_HAS_UNRELATED_REPORT=1 run_target); STATUS=$?
-[ "$STATUS" -ne 0 ] || fail "an unrelated report in the inbox was wrongly treated as this run's report"
+OUTPUT=$(SMOKE_REPORT_ID=bbbb2222 run_target); STATUS=$?
+[ "$STATUS" -eq 0 ] || fail "the matching bundle id did not pass: $OUTPUT"
+grep -q "20260913_180000_bbbb2222/ack" "$SANDBOX/calls.log" || fail "the matching bundle id was not ACKed"
 
-# 対象の報告が無関係な項目に混じっていれば合格にする（バンドルIDでの照合が効いている）
-# The target report succeeds even mixed in with unrelated items (bundle-id matching works)
+# result.json に reportSteamId が無ければ受け口を叩かず落ちる。数値で書かれていても読める
+# Without reportSteamId in result.json the run fails without touching the receiver; a numeric value is still read
 make_sandbox
-OUTPUT=$(INBOX_HAS_REPORT=1 INBOX_HAS_UNRELATED_REPORT=1 SMOKE_REPORT_ID=bbbb2222 run_target); STATUS=$?
-[ "$STATUS" -eq 0 ] || fail "the matching report among unrelated items did not pass: $OUTPUT"
+OUTPUT=$(REPORT_STEAM_ID_FIELD="" run_target); STATUS=$?
+[ "$STATUS" -eq 6 ] || fail "a missing reportSteamId did not exit 6 (got $STATUS): $OUTPUT"
+grep -q "/v1/inbox" "$SANDBOX/calls.log" && fail "the receiver was called without reportSteamId"
+make_sandbox
+OUTPUT=$(REPORT_STEAM_ID_FIELD=', "reportSteamId": 7656' run_target); STATUS=$?
+[ "$STATUS" -eq 0 ] || fail "a numeric reportSteamId did not pass: $OUTPUT"
+
+# ACK に失敗したら、検証用の報告が取り込まれてしまうため失敗にする
+# A failed ACK fails the run, since the smoke report would otherwise be ingested
+make_sandbox
+OUTPUT=$(ACK_STATUS=500 run_target); STATUS=$?
+[ "$STATUS" -eq 8 ] || fail "a failed ACK did not exit 8 (got $STATUS): $OUTPUT"
 
 # 検証機側がラベル不一致等で非0を返したら、verify も非0で終わり回収も受け口確認もしない
 # When the machine side exits non-zero (e.g. label mismatch), verify also fails without collecting or checking the inbox

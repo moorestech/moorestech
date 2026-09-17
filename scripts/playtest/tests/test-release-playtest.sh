@@ -12,7 +12,7 @@ make_sandbox
 OUTPUT=$(run_target); STATUS=$?
 [ "$STATUS" -eq 0 ] || fail "success run exited $STATUS: $OUTPUT"
 ORDER=$(awk '{print $1}' "$SANDBOX/calls.log" | tr '\n' ' ')
-[ "$ORDER" = "git git git moores-wt git git git unity steamcmd verify moores-wt " ] || fail "call order was: $ORDER"
+[ "$ORDER" = "git git git moores-wt git git git git git git git git git unity steamcmd verify moores-wt " ] || fail "call order was: $ORDER"
 grep -q "run_app_build" "$SANDBOX/calls.log" || fail "steamcmd was not asked to run_app_build"
 ls "$SANDBOX"/runs/*/announce.md >/dev/null 2>&1 || fail "announce.md was not written"
 grep -q "__[A-Z_]*__" "$SANDBOX"/runs/*/steam/*.vdf && fail "vdf still contains a raw token"
@@ -26,6 +26,29 @@ OUTPUT=$(MOORESTECH_STEAM_DEPOT_ID="" run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "missing depot id did not fail"
 [ ! -f "$SANDBOX/calls.log" ] || fail "missing env reached the build"
 case "$OUTPUT" in *MOORESTECH_STEAM_DEPOT_ID*) ;; *) fail "missing env did not name the variable";; esac
+
+# 検証機・受け口の env が欠けていても、ビルドやアップロードの後ではなく最初に落ちる（F12）
+# Missing check-machine/receiver env fails up front rather than after the build or the upload
+for name in MOORESTECH_VERIFY_HOST PLAYTEST_ADMIN_KEY; do
+    make_sandbox
+    OUTPUT=$(eval "$name=''" run_target); STATUS=$?
+    [ "$STATUS" -eq 2 ] || fail "missing $name did not exit 2 (got $STATUS)"
+    [ ! -f "$SANDBOX/calls.log" ] || fail "missing $name reached git/build"
+    case "$OUTPUT" in *"$name"*) ;; *) fail "missing $name was not named: $OUTPUT";; esac
+done
+
+# ラベルは許可リスト外（区切り・引用符・空白を含む等）なら何も呼ばずに落ち、depot id は数字以外を拒む（F14）
+# A label outside the allowlist (separators, quotes, spaces) fails before any call, and a non-numeric depot id is refused
+for label in "bad'label" "a/b" "-lead" "has space"; do
+    make_sandbox
+    OUTPUT=$(MOORESTECH_STEAM_BUILD_LABEL="$label" run_target); STATUS=$?
+    [ "$STATUS" -eq 2 ] || fail "label '$label' was not refused (got $STATUS)"
+    [ ! -f "$SANDBOX/calls.log" ] || fail "label '$label' reached git/build"
+done
+make_sandbox
+OUTPUT=$(MOORESTECH_STEAM_DEPOT_ID="1958161|x" run_target); STATUS=$?
+[ "$STATUS" -eq 2 ] || fail "a non-numeric depot id was not refused (got $STATUS)"
+[ ! -f "$SANDBOX/calls.log" ] || fail "a non-numeric depot id reached git/build"
 
 # ビルド失敗ならsteamcmdへ進まない
 make_sandbox

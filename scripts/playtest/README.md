@@ -62,9 +62,18 @@ scripts/playtest/release-playtest.sh <SHA または origin/master>
   worktree はメインクローンで作るため、別 clone（pr-review の baseline clone 等）から実行すると解決した object が無いことがある。
 - `<commit>` は SHA か `origin/<branch>` を渡す。ローカルブランチ名（`master` 等）は fetch で進まないので古いコミットを焼く。
 - 要求コミットが `origin/$MOORESTECH_BUILD_BRANCH`（既定 `origin/master`）に含まれなければビルド前に止まる（焼く `branch` を嘘にしない）。
-- ビルド前に、ビルドが同梱する master data（worktree + ピンの `relativePath`。`GameDataBundler.MasterDataRepositoryRoot` と同じ解決）の
-  HEAD をコミット済みのピンと突き合わせる。ずれていれば「どこをどのコミットへ合わせるか」を出して止まるので、そのディレクトリを
-  ピンのコミットへ合わせてから再実行する（自動では動かさない。並行 worktree のマスタを動かさないため）。
+- ビルド前（worktree 作成前）に、Steam・検証機・受け口の必須 env（`MOORESTECH_STEAM_USER`/`MOORESTECH_STEAM_DEPOT_ID`/
+  `MOORESTECH_VERIFY_HOST`/`MOORESTECH_VERIFY_USER`/`MOORESTECH_VERIFY_MAC`/`PLAYTEST_ADMIN_KEY`）を全部見る。
+  ビルドラベル（`MOORESTECH_STEAM_BUILD_LABEL`）は `^[A-Za-z0-9][A-Za-z0-9._-]*$`、depot id は数字だけを許す
+  （sed 置換・VDF・リモート PowerShell 文字列・パスへ埋め込むため）。`verify-on-windows.sh` も入口で同じラベル検証をする。
+- 同梱元 master data は、moorestech_master のメインclone（`$MOORESTECH_MASTER_CLONE`、既定 `~/hermes-agent/data/repos/moorestech_master`）の
+  `git worktree list --porcelain` から HEAD がピンの `commitHash` と一致する worktree を選び（`pin-*`→detached→その他の順で clean なものを優先）、
+  `MOORESTECH_MASTER_DATA_ROOT` として Unity へ渡す。`moores-wt new` は一致する既存 worktree（メインclone含む）を再利用し、
+  無いときだけ `pin-<commitHash先頭8桁>` を作るため、名前は当てにしない。一致が無ければピンと作り方（`moores-wt new`）を出して止まる。
+  ピン（`relativePath`/`commitHash`）はコミット済み HEAD から読む。
+- ビルド前に、選んだ master worktree と非公開アセット（ピンの `moorestech_client_private`）の HEAD をピンと突き合わせ、
+  `git status --porcelain` が空であること、`ffmpeg/win-x64/ffmpeg.exe`（LFS ポインタでない実体）と `LICENSE` が揃うことを確かめる。
+  ずれていれば「どこをどのコミットへ合わせるか」を出して止まるので、合わせてから再実行する（自動では動かさない）。
 
 成果物・ログ・告知テキストは `~/hermes-agent/data/services/playtest/runs/<label>/` に残る。告知の「コミット」は解決後の40桁 SHA。
 
@@ -118,7 +127,7 @@ scripts/playtest/release-playtest.sh <SHA または origin/master>
 scripts/playtest/verify-on-windows.sh <steamBuildLabel>
 ```
 
-回収した `result.json` と `inbox.json` は
+回収した `result.json` と受け口から取得した `report-ready`（READY マーカー）は
 `~/hermes-agent/data/services/playtest/runs/<label>/verify/` に残る。
 
 ### 起動経路と合否判定（Steam 経由・result.json）
@@ -127,7 +136,7 @@ scripts/playtest/verify-on-windows.sh <steamBuildLabel>
 起動する（テスターと同じ Steam 経由の起動経路・DRM を通すため。exe の直接起動は `SteamAPI.Init` が失敗する）。Steam 経由では
 ゲームのプロセスハンドルも終了コードも得られないので、各フェーズの合否は `result.json` の存在とトップレベルの `success` だけで判定する。
 
-各フェーズは「`result.json` が出て、かつ `moorestech` プロセスが自分で終了する」までを期限（既定600秒）付きでポーリングする。
+各フェーズは「`result.json` が出て、かつ `moorestech` プロセスが自分で終了する」までを期限（既定1020秒＝最長の phase2 のクライアント内部期限合計780秒＋Steam 起動・更新・プロセス終了の余裕240秒）付きでポーリングする。
 期限を超えたら（クラッシュ確認画面・起動引数の確認ダイアログ・Steam の起動拒否など）ゲームを強制終了し、理由付きで exit 6 にする。
 起動前には残っている `moorestech` プロセスを畳む（前フェーズや手動起動が残ると Steam が起動を拒否・更新を保留するため）。
 
@@ -136,11 +145,19 @@ scripts/playtest/verify-on-windows.sh <steamBuildLabel>
 
 `run-smoke.ps1` は UTF-8 BOM 付きで保存しておくこと（Windows PowerShell 5.1 は BOM 無し UTF-8 を ANSI として読み、日本語の文字列で構文が壊れる。テストで固定済み）。
 
+### 受け口への到達確認
+
+phase2 の `result.json` の `reportSteamId` とバンドルID（`reportBundleDirectory` の末尾）で
+`GET /v1/inbox/report/<steamId>/<id>/READY` を取得して到達を確かめ（ACK 状態に左右されない）、確認後は自分で ACK する
+（取り込み再開後に検証用の報告を拾わせないため。ACK に失敗したら exit 8。7 は run-smoke.ps1 の steam.exe 不在）。
+READY が再試行しても取れなければ exit 6。呼び出しは `lib/receiver-api.sh` 経由だけで行う。
+
 ### 注意: 取り込み（plan H）との競合
 
-受け口の `GET /v1/inbox` は未ACKの新着だけを返す。plan H の取り込み（supervisor periodic 300s）が
-smoke の報告を先にACKすると、届いているのに「届いていない」と判定される。検証を回す間は
-`services.json` から `playtest-ingest` を外す（または取り込みを止める）こと。
+ACK は後片付けであり、取り込みとの競合は防がない。phase2 のアップロードから `verify-on-windows.sh` の ACK までの間に
+plan H の取り込み（supervisor periodic 300s）が走ると、smoke の報告を本物のバグ報告として取り込んで ACK してしまい、
+こちらの ACK も冪等に 200 を返すため気づけない。検証を回す間は `services.json` から `playtest-ingest` を外す
+（または取り込みを止める）こと。
 
 ### CEF raw input 確認（初回合格ビルドのみ・手動）
 
