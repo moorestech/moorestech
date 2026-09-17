@@ -17,8 +17,6 @@ namespace Client.Tests.BugReport
         private const string MasterCommit = "2222222222222222222222222222222222222222";
         private const string OtherCommit = "3333333333333333333333333333333333333333";
 
-        private readonly List<string> _temporaryDirectories = new();
-
         [Test]
         public void 生成JSONは共有契約の全キーを持ち読み手でラウンドトリップできる()
         {
@@ -116,44 +114,6 @@ namespace Client.Tests.BugReport
 
             Assert.IsNull(failureReason, failureReason);
             Assert.AreEqual(expectedBranch, (string)ParseWithoutDateConversion(json)["branch"]);
-        }
-
-        // worktree からのビルドでも同梱元は正本cloneの隣でなくビルドする checkout の隣。焼くコミットもここから読む（D-6）
-        // Even in a worktree build the bundled master repo sits beside the building checkout, not the primary clone; the baked commit is read here too (D-6)
-        [Test]
-        public void ビルド用のマスタrepoはビルドするcheckoutからピンのrelativePathで解決する()
-        {
-            var checkoutRoot = CreateCheckoutWithPin(MasterCommit);
-
-            var expected = Path.GetFullPath(Path.Combine(checkoutRoot, "..", "moorestech_master"));
-            Assert.AreEqual(expected, MasterDataRootLocator.ResolveForBuildingCheckout(checkoutRoot));
-        }
-
-        [TearDown]
-        public void DeleteTemporaryDirectories()
-        {
-            foreach (var directory in _temporaryDirectories)
-            {
-                if (Directory.Exists(directory)) Directory.Delete(directory, true);
-            }
-            _temporaryDirectories.Clear();
-        }
-
-        private string CreateTemporaryDirectory()
-        {
-            var parent = Path.Combine(Path.GetTempPath(), "moores-buildinfo-" + Guid.NewGuid().ToString("N"));
-            _temporaryDirectories.Add(parent);
-            var checkoutRoot = Path.Combine(parent, "checkout");
-            Directory.CreateDirectory(checkoutRoot);
-            return checkoutRoot;
-        }
-
-        private string CreateCheckoutWithPin(string commit)
-        {
-            var checkoutRoot = CreateTemporaryDirectory();
-            File.WriteAllText(Path.Combine(checkoutRoot, ".moorestech-external-revisions.json"),
-                "{\"repositories\":[{\"key\":\"moorestech_master\",\"relativePath\":\"../moorestech_master\",\"commitHash\":\"" + commit + "\"}]}");
-            return checkoutRoot;
         }
 
         private static string Compose(RepositoryProbeResult repo, RepositoryProbeResult master, string pinned, string pinUnreadableReason, string label, string branch, bool isStrictBundling, out string failureReason)

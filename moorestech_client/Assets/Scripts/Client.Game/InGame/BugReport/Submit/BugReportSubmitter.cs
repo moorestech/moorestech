@@ -1,7 +1,6 @@
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.Playtest.Progress;
-using Client.PlaytestReceiver;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 

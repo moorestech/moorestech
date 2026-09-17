@@ -15,7 +15,6 @@ namespace Client.Editor.Build.Bundlers
     /// </summary>
     public static class FfmpegRuntimeBundler
     {
-        private const string SourceExecutableName = "ffmpeg.exe";
         private const string SourceLicenseName = "LICENSE";
         private const string BundledLicenseName = "ffmpeg-LICENSE.txt";
 
@@ -34,7 +33,7 @@ namespace Client.Editor.Build.Bundlers
                 return;
             }
 
-            var sourceExecutable = Path.Combine(SourceDirectory, SourceExecutableName);
+            var sourceExecutable = Path.Combine(SourceDirectory, FfmpegLocator.BundledWindowsExecutableName);
             var sourceLicense = Path.Combine(SourceDirectory, SourceLicenseName);
             // 実体の検証（LFS未解決の殻でないこと）。CEF前例と同じ判定点を使う
             // Verify the executable is real, not an unresolved LFS husk, using the same check as the CEF precedent

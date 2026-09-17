@@ -14,7 +14,7 @@ namespace Client.Starter.PlaytestSmoke
     /// WebUIのクリック経路は配布ビルドで叩けないので、送信actionと共有する BugReportSubmitter を直接呼ぶ
     /// The web UI click path cannot be driven in a player build, so this calls the BugReportSubmitter the submit action shares
     /// </summary>
-    public sealed class StandalonePlaytestSmokeReportSender
+    internal sealed class StandalonePlaytestSmokeReportSender
     {
         private const string SmokeDescription = "smoke";
         private const float CaptureTimeoutSeconds = 180f;
@@ -31,7 +31,7 @@ namespace Client.Starter.PlaytestSmoke
 
         // 箱を書いて送信を要求する。成功なら箱の場所、失敗なら理由を返す
         // Writes the box and requests its upload; returns the box location on success, or the reason on failure
-        public async UniTask<StandalonePlaytestSmokeStepOutcome> WriteAndRequestUploadAsync()
+        internal async UniTask<StandalonePlaytestSmokeStepOutcome> WriteAndRequestUploadAsync()
         {
             // ポーズメニューが開いたときと同じ確保を始め、確保の完了を期限付きで待つ
             // Begin the same capture the pause menu starts, then wait for it with a deadline
@@ -48,18 +48,16 @@ namespace Client.Starter.PlaytestSmoke
             if (submitted.Submitted) return StandalonePlaytestSmokeStepOutcome.Succeeded(submitted.BundleDirectory);
             if (submitted.FailureCode == BugReportSubmitResult.BundleWriteFailed)
                 return StandalonePlaytestSmokeStepOutcome.Failed($"the report box was not finished with READY: {submitted.BundleDirectory}");
-            // 拒否コードをすべて「期限切れ」と一括りにしない。期限切れはキャプチャが待ちループを抜けた時点でも
-            // まだCapturing中だった場合だけで、NoCaptureSession等の即時拒否は別の理由として区別する
-            // Do not lump every rejection code into "timed out"; that applies only when capture was still
-            // Capturing when the wait loop exited, distinguishing an immediate rejection like NoCaptureSession
-            return _captureSession.Status.Value.Kind == BugReportCaptureStatus.Capturing
+            // 期限切れは確保セッションが確保中として拒否した場合だけ。NoCaptureSession等の即時拒否は別の理由として区別する
+            // Only a capture-pending refusal from the session means timed out; an immediate refusal like NoCaptureSession is reported separately
+            return submitted.FailureCode == BugReportSubmitTicket.CapturePending
                 ? StandalonePlaytestSmokeStepOutcome.Failed($"capture was not submittable within {CaptureTimeoutSeconds}s: {submitted.FailureCode}")
                 : StandalonePlaytestSmokeStepOutcome.Failed($"the capture session refused the submit: {submitted.FailureCode}");
         }
 
         // 受け口へのアップロード完了は UPLOADED 印で観測する。送信を諦めた印が付いたら期限を待たず失敗にする
         // Upload completion is observed through the UPLOADED mark; a given-up mark fails at once without waiting for the deadline
-        public async UniTask<StandalonePlaytestSmokeStepOutcome> WaitUploadedAsync(string bundleDirectory)
+        internal async UniTask<StandalonePlaytestSmokeStepOutcome> WaitUploadedAsync(string bundleDirectory)
         {
             var uploadedPath = Path.Combine(bundleDirectory, PlaytestOutboxScanner.UploadedMarker);
             var failedPath = Path.Combine(bundleDirectory, PlaytestOutboxScanner.FailedMarker);

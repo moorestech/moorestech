@@ -37,7 +37,7 @@ namespace Client.Game.InGame.BugReport
 
         // マスタrepoの置き場はピンの relativePath だけが定義元。隣の名前を推測すると別repoの状態をマスタとして名乗る
         // The pin's relativePath is the sole definition of where the master repo sits; guessing the neighbour's name would report another repo as the master
-        public static string MasterDataRoot => MasterDataRootLocator.Resolve();
+        public static string MasterDataRoot => MasterDataRootLocator.ResolveForPrimaryRepository();
 
         // 読み取り専用の問い合わせだけを行う。作業ツリーを書き換えるgitコマンドはここに足してはならない
         // Runs read-only queries only; a git command that mutates the working tree must never be added here

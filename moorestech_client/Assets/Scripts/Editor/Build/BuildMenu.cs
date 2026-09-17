@@ -68,14 +68,14 @@ namespace Client.Editor.Build
             var outputDirectory = SelectOutputDirectory(buildTarget);
             if (outputDirectory == null) return;
 
-            // ローカル配布用: 同梱失敗は即失敗・ゲームデータ必須
-            // Local distribution: bundling problems fail the build and game data is mandatory
+            // 開発用: 同梱・出所の問題はCIと同じく警告で続行する。strictは配布入口（ReleaseLocalBuildCli.CreateRequest）に限る
+            // Development use: bundling/origin problems warn and continue like CI; strict is reserved for the distribution entry (ReleaseLocalBuildCli.CreateRequest)
             var outcome = BuildPipeline.Execute(new PlayerBuildRequest
             {
                 Target = buildTarget,
                 OutputDirectory = outputDirectory,
                 IsDevelopmentBuild = isDevelopmentBuild,
-                IsStrictBundling = true,
+                IsStrictBundling = false,
                 BundleLocalGameData = true,
             });
 

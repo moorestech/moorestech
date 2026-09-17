@@ -59,6 +59,17 @@ namespace Client.Tests.BugReport.BuildOrigin
             StringAssert.Contains(checkoutRoot, failureReason);
         }
 
+        // worktree からのビルドでも同梱元はビルドする checkout の隣。relativePath もコミット済みのピンから読む（D-6）
+        // Even in a worktree build the bundled master repo sits beside the building checkout; relativePath is read from the committed pin too (D-6)
+        [Test]
+        public void ビルド用のマスタrepoはビルドするcheckoutのコミット済みピンのrelativePathで解決する()
+        {
+            var checkoutRoot = CreateCheckoutWithCommittedPin(CommittedMasterCommit);
+
+            var expected = Path.GetFullPath(Path.Combine(checkoutRoot, "..", "moorestech_master"));
+            Assert.AreEqual(expected, MasterDataRootLocator.ResolveForBuildingCheckout(checkoutRoot));
+        }
+
         [TearDown]
         public void DeleteTemporaryDirectories()
         {

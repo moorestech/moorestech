@@ -10,6 +10,9 @@ namespace Client.Game.InGame.BugReport.Recording
         // 同梱ffmpeg実行ファイル名
         // The bundled ffmpeg executable name
         public const string BundledWindowsExecutableName = "ffmpeg.exe";
+        // 同梱先の Player データフォルダ（<exe>_Data）からの相対ディレクトリ。ビルド側の同梱先と実行時の探索先で共有する
+        // The bundled directory relative to the player data folder (<exe>_Data), shared by the build bundler and the runtime lookup
+        public static readonly string BundledPluginsRelativeDirectory = Path.Combine("Plugins", "x86_64");
 
         private static readonly string[] KnownPaths = { "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg" };
 
@@ -17,9 +20,9 @@ namespace Client.Game.InGame.BugReport.Recording
         // Search the bundled copy, then env var, then PATH, then known locations; null if absent (the caller records the degradation)
         public static string Find()
         {
-            var bundledPath = Path.Combine(Application.dataPath, "Plugins", "x86_64", BundledWindowsExecutableName);
+            var bundledPath = Path.Combine(Application.dataPath, BundledPluginsRelativeDirectory, BundledWindowsExecutableName);
             var pathExecutableName = Application.platform == RuntimePlatform.WindowsEditor || Application.platform == RuntimePlatform.WindowsPlayer
-                ? "ffmpeg.exe"
+                ? BundledWindowsExecutableName
                 : "ffmpeg";
             return FindIn(bundledPath, global::System.Environment.GetEnvironmentVariable("MOORESTECH_FFMPEG"), global::System.Environment.GetEnvironmentVariable("PATH"), pathExecutableName, KnownPaths);
         }

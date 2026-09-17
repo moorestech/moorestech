@@ -20,20 +20,18 @@ namespace Client.Editor.Build
     // - Steam build label
     public class BuildInfoWriter : IPreprocessBuildWithReport
     {
-        // Unityのビルドコールバックは PlayerBuildRequest を受け取れないため、BuildPipeline が BuildPlayer 直前に押し込む
-        // BuildPipeline を通らないビルド（Build Settings 画面等）は既定の非strict（CI互換）で焼く
-        // Unity's build callback cannot receive the PlayerBuildRequest, so BuildPipeline pushes this right before BuildPlayer
-        // Builds that bypass BuildPipeline (e.g. the Build Settings window) bake with the default non-strict, CI-compatible mode
-        private static bool _isStrictBundling;
-
         public int callbackOrder => 1;
 
-        public static void SetStrictBundling(bool isStrictBundling)
+        // BuildPipeline を通らないビルド（Build Settings 画面等）を非strictで焼くための入口
+        // BuildPipeline 経由では BuildPlayer 直前の Write(strict) が関門を済ませており、ここは同じ状態を非strictで焼き直すだけ
+        // Entry that bakes builds bypassing BuildPipeline (e.g. the Build Settings window) in non-strict mode
+        // Via BuildPipeline the Write(strict) right before BuildPlayer already gated the build, so this only re-bakes the same state non-strict
+        public void OnPreprocessBuild(BuildReport report)
         {
-            _isStrictBundling = isStrictBundling;
+            Write(false, report.summary.platform);
         }
 
-        public void OnPreprocessBuild(BuildReport report)
+        internal static void Write(bool isStrictBundling, UnityEditor.BuildTarget target)
         {
             var repo = RepositoryStateProbe.ProbeGit(RepositoryStateProbe.RepositoryRoot);
             // 正本cloneの隣ではなく同梱元と同じ repo の HEAD を焼く。worktree ビルドで両者は別ディレクトリになりうる
@@ -42,16 +40,25 @@ namespace Client.Editor.Build
             var pinned = MasterDataRootLocator.ReadPinnedCommit(RepositoryStateProbe.RepositoryRoot, out var pinUnreadableReason);
             var label = Environment.GetEnvironmentVariable(BuildInfoComposer.SteamBuildLabelEnvKey);
             var branch = Environment.GetEnvironmentVariable(BuildInfoComposer.BuildBranchEnvKey);
-            var json = BuildInfoComposer.Compose(repo, masterData, pinned, pinUnreadableReason, label, branch, DateTime.UtcNow, report.summary.platform.ToString(), _isStrictBundling, out var buildFailureReason);
+            var json = BuildInfoComposer.Compose(repo, masterData, pinned, pinUnreadableReason, label, branch, DateTime.UtcNow, target.ToString(), isStrictBundling, out var buildFailureReason);
 
             // strict の配布物で出所を偽る焼き込みは作らせない。理由はビルド失敗メッセージに出す
             // A strict distribution build must not bake a misreported origin; the reason goes into the build failure message
             if (buildFailureReason != null) throw new BuildFailedException("[BuildInfoWriter] " + buildFailureReason);
 
+            // 未コミット変更入りのmasterはコミットでは中身を特定できないため、配布では拒否する
+            // A dirty master cannot be identified by its commit, so distribution builds refuse it
+            if (masterData.State?.Dirty == true)
+            {
+                var dirtyReason = $"同梱元の master data に未コミット変更がある root:{GameDataBundler.MasterDataRepositoryRoot} commit:{masterData.State.Commit}";
+                if (isStrictBundling) throw new BuildFailedException("[BuildInfoWriter] " + dirtyReason);
+                Debug.LogWarning($"[BuildInfoWriter] CI互換（非strict）のため焼き込みを続けます: {dirtyReason}");
+            }
+
             var path = GameSystemPaths.BuildInfoFilePath;
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, json);
-            Debug.Log($"[BuildInfoWriter] build-info.json を書きました commit:{repo.State?.Commit} dirty:{repo.State?.Dirty} masterData:{masterData.State?.Commit} label:{label} branchOverride:{branch} strict:{_isStrictBundling}");
+            Debug.Log($"[BuildInfoWriter] build-info.json を書きました commit:{repo.State?.Commit} dirty:{repo.State?.Dirty} masterData:{masterData.State?.Commit} label:{label} branchOverride:{branch} strict:{isStrictBundling}");
         }
     }
 }

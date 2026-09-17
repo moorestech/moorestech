@@ -1,3 +1,5 @@
+using System;
+
 namespace Client.Starter.PlaytestSmoke
 {
     /// <summary>
@@ -22,8 +24,11 @@ namespace Client.Starter.PlaytestSmoke
             return new StandalonePlaytestSmokeStepOutcome(true, value, "");
         }
 
+        // 合否はSuccessが持つ。理由の無い失敗は無音の失敗になるため、作る時点で拒否する
+        // Success carries pass/fail; a failure without a reason would be silent, so it is refused at construction
         internal static StandalonePlaytestSmokeStepOutcome Failed(string failureReason)
         {
+            if (string.IsNullOrEmpty(failureReason)) throw new ArgumentException("a failed smoke step requires a non-empty reason", nameof(failureReason));
             return new StandalonePlaytestSmokeStepOutcome(false, "", failureReason);
         }
     }

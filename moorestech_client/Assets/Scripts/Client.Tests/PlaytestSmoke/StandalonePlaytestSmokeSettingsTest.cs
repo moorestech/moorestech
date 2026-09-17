@@ -10,8 +10,18 @@ namespace Client.Tests.PlaytestSmoke
         {
             var args = new[] { "moorestech.exe", "--playtestSmoke", "--smokePhase", "phase1", "--smokeResultDirectory", "C:/smoke" };
             Assert.IsTrue(StandalonePlaytestSmokeSettings.TryParse(args, out var settings, out var error), error);
-            Assert.AreEqual(StandalonePlaytestSmokeSettings.PhaseOne, settings.Phase);
+            Assert.AreEqual(StandalonePlaytestSmokePhase.PhaseOne, settings.Phase);
             Assert.AreEqual("C:/smoke", settings.ResultDirectory);
+        }
+
+        [Test]
+        public void phase2を受理し結果の段階名は引数と同じ語に戻る()
+        {
+            var args = new[] { "--playtestSmoke", "--smokePhase", "phase2", "--smokeResultDirectory", "C:/smoke" };
+            Assert.IsTrue(StandalonePlaytestSmokeSettings.TryParse(args, out var settings, out var error), error);
+            Assert.AreEqual(StandalonePlaytestSmokePhase.PhaseTwo, settings.Phase);
+            Assert.AreEqual("phase2", StandalonePlaytestSmokeSettings.ToArgument(settings.Phase));
+            Assert.AreEqual("phase1", StandalonePlaytestSmokeSettings.ToArgument(StandalonePlaytestSmokePhase.PhaseOne));
         }
 
         [Test]

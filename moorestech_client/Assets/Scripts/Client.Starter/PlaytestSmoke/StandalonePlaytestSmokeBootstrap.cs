@@ -1,6 +1,7 @@
 using System;
 using Client.Common;
 using Client.Game.Common;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.PlaytestReceiver.Gate;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
@@ -50,16 +51,20 @@ namespace Client.Starter.PlaytestSmoke
             var activeSceneName = SceneManager.GetActiveScene().name;
             if (activeSceneName != SceneConstant.MainMenuSceneName)
             {
-                FailBeforeRun(settings, "scene", $"boot scene was {activeSceneName}, not {SceneConstant.MainMenuSceneName}");
+                Fail(settings, "scene", $"boot scene was {activeSceneName}, not {SceneConstant.MainMenuSceneName}");
                 return;
             }
 
             Settings = settings;
             IsActive = true;
 
+            // smokeは応答者の居ない起動。前回異常終了の確認等で恒久停止しないよう開始ゲートを迂回し、退避物は通常のsalvageとして残す
+            // A smoke run has nobody to answer; bypass the start gates so a previous-crash confirmation never halts it, leaving salvage as usual
+            PlaytestStartGateBypass.DeclareUnattendedProcess("playtestSmoke");
+
             // Forgetに吸われた例外（ワールド削除のIO失敗等）も理由付きの失敗結果にする（前例: InitializeScenePipeline）
             // Exceptions swallowed by Forget, such as world deletion IO failures, also become a reasoned failure (precedent: InitializeScenePipeline)
-            StartWhenPreconditionsHoldAsync(settings).Forget(exception => FailBeforeRun(settings, "bootstrap", $"{exception.GetType()} {exception.Message}"));
+            StartWhenPreconditionsHoldAsync(settings).Forget(exception => Fail(settings, "bootstrap", $"{exception.GetType()} {exception.Message}"));
         }
 
         private static async UniTask StartWhenPreconditionsHoldAsync(StandalonePlaytestSmokeSettings settings)
@@ -72,17 +77,25 @@ namespace Client.Starter.PlaytestSmoke
                 await UniTask.Yield();
             }
 
-            var failure = StandalonePlaytestSmokePreconditions.FindFailure(settings, PlaytestLaunchGate.Current.Value);
-            if (failure.Length != 0)
+            if (StandalonePlaytestSmokePreconditions.TryFindFailure(settings, PlaytestLaunchGate.Current.Value, out var failureReason))
             {
-                FailBeforeRun(settings, "preconditions", failure);
+                Fail(settings, "preconditions", failureReason);
                 return;
             }
 
             // phase1=新規ワールド、phase2=継続ロード
             // phase1 = fresh world, phase2 = continued load
-            if (settings.Phase == StandalonePlaytestSmokeSettings.PhaseOne)
-                GameSystemPaths.DeleteDefaultWorldDirectory();
+            switch (settings.Phase)
+            {
+                case StandalonePlaytestSmokePhase.PhaseOne:
+                    GameSystemPaths.DeleteDefaultWorldDirectory();
+                    break;
+                case StandalonePlaytestSmokePhase.PhaseTwo:
+                    break;
+                default:
+                    Fail(settings, "world", $"unknown smoke phase {settings.Phase}");
+                    return;
+            }
 
             // 初期化完了とメインメニューへの差し戻しを、開始より先に購読しておく（前例と同じ購読＋期限付き待機）
             // Subscribe to initialization completion and a bounce back to the main menu before starting (same subscribe-plus-deadline shape as the precedent)
@@ -91,7 +104,7 @@ namespace Client.Starter.PlaytestSmoke
             using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Take(1).Subscribe(_ => gameInitialized = true);
             SceneManager.sceneLoaded += OnSceneLoaded;
 
-            Debug.Log($"[PlaytestSmoke] starting {settings.Phase} result:{settings.ResultDirectory}");
+            Debug.Log($"[PlaytestSmoke] starting {StandalonePlaytestSmokeSettings.ToArgument(settings.Phase)} result:{settings.ResultDirectory}");
             LocalGameLauncher.StartLocalGame();
 
             var initializationDeadline = Time.realtimeSinceStartup + GameInitializationTimeoutSeconds;
@@ -102,11 +115,11 @@ namespace Client.Starter.PlaytestSmoke
             SceneManager.sceneLoaded -= OnSceneLoaded;
             if (gameInitialized) return;
 
-            // 初期化例外はメニューへ戻し、ブートストラップは再実行されない。無応答の開始ゲートは期限で拾う
-            // An initialization exception returns to the menu where the bootstrap never reruns; an unanswered start gate is caught by the deadline
-            FailBeforeRun(settings, "game-initialized", returnedToMainMenu
+            // 初期化例外はメニューへ戻し、ブートストラップは再実行されない。迂回できない無応答の待ちは期限で拾う
+            // An initialization exception returns to the menu where the bootstrap never reruns; an unanswered wait the bypass misses is caught by the deadline
+            Fail(settings, "game-initialized", returnedToMainMenu
                 ? "game initialization failed and returned to the main menu; see the preceding error log"
-                : $"game initialization did not complete within {GameInitializationTimeoutSeconds}s (a start gate such as the previous-crash confirmation may be waiting for input)");
+                : $"game initialization did not complete within {GameInitializationTimeoutSeconds}s (a start gate the unattended bypass does not cover, such as event mode's language selection, may be waiting for input)");
 
             #region Internal
 
@@ -123,19 +136,14 @@ namespace Client.Starter.PlaytestSmoke
             #endregion
         }
 
-        // Runner側の回復不能な失敗(Forgetが拾った例外)が、遅れて来た処理で二重に走らないよう無効化する
-        // Deactivates so a Runner-side unrecoverable failure (caught by Forget) is never re-entered by late work
-        internal static void Deactivate()
+        // 単一ステップで打ち切る失敗の唯一の手続き（開始前の失敗とRunnerの未処理例外が共有）
+        // The single procedure for a run cut off at one step, shared by pre-run failures and the Runner's unhandled exception
+        // 遅れて来た初期化完了で手順が走らないよう無効化し、理由を結果とログへ残して終了する。IsActiveを書き換えるのはこのクラスだけ
+        // Deactivates so a late initialization never runs the steps, records the reason and quits; only this class rewrites IsActive
+        internal static void Fail(StandalonePlaytestSmokeSettings settings, string stepName, string reason)
         {
             IsActive = false;
-        }
-
-        // 通し手順に入る前の失敗。以降の初期化完了で手順が走らないよう無効化し、理由を結果とログへ残して終了する
-        // A failure before the steps run; deactivate so a later initialization never runs them, record the reason and quit
-        private static void FailBeforeRun(StandalonePlaytestSmokeSettings settings, string stepName, string reason)
-        {
-            IsActive = false;
-            Debug.LogError($"[PlaytestSmoke] {settings.Phase} failed at {stepName}: {reason}");
+            Debug.LogError($"[PlaytestSmoke] {StandalonePlaytestSmokeSettings.ToArgument(settings.Phase)} failed at {stepName}: {reason}");
             StandalonePlaytestSmokeResultWriter.Write(settings.ResultDirectory, StandalonePlaytestSmokeResultWriter.CreateSingleStepFailure(settings.Phase, stepName, reason));
             Application.Quit(1);
         }

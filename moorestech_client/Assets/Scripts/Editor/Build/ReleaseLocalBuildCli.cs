@@ -14,7 +14,7 @@ namespace Client.Editor.Build
 
         // GUIメニューとbatchmodeで同一の契約を使い、入口ごとの設定差を構造的に消す
         // Menu and batchmode share one contract so per-entry setting drift cannot happen
-        public static PlayerBuildRequest CreateRequest(BuildTarget target, string outputDirectory)
+        internal static PlayerBuildRequest CreateRequest(BuildTarget target, string outputDirectory)
         {
             return new PlayerBuildRequest
             {

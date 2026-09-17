@@ -13,7 +13,9 @@ namespace Client.Game.InGame.BugReport
         private const string MasterRepositoryKey = "moorestech_master";
         private const string UnresolvedMasterDataDirectoryName = ".moorestech-master-unresolved";
 
-        public static string Resolve()
+        // 実行中の checkout から見た正本repoの隣のマスタrepo（バグ報告の差分採取用）
+        // The master repo next to the primary clone as seen from the running checkout (for bug-report diff capture)
+        public static string ResolveForPrimaryRepository()
         {
             if (!TryReadRelativePath(RepositoryStateProbe.RepositoryRoot, out var relativePath, out var reason)) return UnresolvedMasterDataRoot(reason);
 
@@ -59,13 +61,19 @@ namespace Client.Game.InGame.BugReport
             return null;
         }
 
+        // relativePath も commitHash と同じくコミット済みHEADのピンから読み、同梱元と焼くコミットの出所を揃える
+        // relativePath is read from the committed HEAD pin like commitHash, so the bundle source and baked commit share one origin
         private static bool TryReadRelativePath(string repositoryRoot, out string relativePath, out string reason)
         {
-            reason = null;
-            var revisionsPath = Path.Combine(repositoryRoot, ExternalRevisionsFileName);
-            relativePath = File.Exists(revisionsPath) ? ReadMasterPinField(File.ReadAllText(revisionsPath), revisionsPath, "relativePath") : null;
-            if (!File.Exists(revisionsPath)) reason = $"ピンファイルが無い path:{revisionsPath}";
-            else if (string.IsNullOrEmpty(relativePath)) reason = $"ピンに {MasterRepositoryKey} の relativePath が無い path:{revisionsPath}";
+            relativePath = null;
+            var committedPinSource = $"HEAD:{ExternalRevisionsFileName} repo:{repositoryRoot}";
+            if (!RepositoryStateProbe.TryGit(repositoryRoot, $"show HEAD:{ExternalRevisionsFileName}", out var committedPinJson, out var error))
+            {
+                reason = $"コミット済みのピンを読めない {committedPinSource}: {error}";
+                return false;
+            }
+            relativePath = ReadMasterPinField(committedPinJson, committedPinSource, "relativePath");
+            reason = string.IsNullOrEmpty(relativePath) ? $"ピンに {MasterRepositoryKey} の relativePath が無い {committedPinSource}" : null;
             return reason == null;
         }
 

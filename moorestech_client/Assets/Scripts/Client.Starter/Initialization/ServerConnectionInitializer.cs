@@ -48,9 +48,13 @@ namespace Client.Starter.Initialization
             //Vanilla APIの作成
             var vanillaApi = new VanillaApi(exchangeManager, packetSender, serverCommunicator, _playerConnectionSetting);
 
+            // セーブ世代の待ち手はゲーム寿命で1つ。完了通知を取りこぼさないよう最初の要求より前に作り、DIへも同じ個体を渡す
+            // One save-generation waiter for the game's lifetime; created before any request so no notice is missed, and handed to DI as the same instance
+            var saveGenerationWaiter = new ServerSaveGenerationWaiter(vanillaApi);
+
             // リモートは内蔵サーバーを持たないため、通信越しに書き出し完了を待つ参加者を立てる
             // A remote connection owns no embedded server, so register a participant that awaits the flush over the wire
-            if (_proprieties.IsRemoteConnection) GameShutdownEvent.RegisterParticipant(new RemoteServerSaveFlushParticipant(vanillaApi));
+            if (_proprieties.IsRemoteConnection) GameShutdownEvent.RegisterParticipant(new RemoteServerSaveFlushParticipant(saveGenerationWaiter));
 
             //最初に必要なデータを取得
             // Fetch the initial data bundle
@@ -58,7 +62,7 @@ namespace Client.Starter.Initialization
 
             _loadingProgressLog.AppendElapsed(LocalizationKeys.Ui.Loading.InitialDataFetched);
 
-            return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse };
+            return new ServerConnectionResult { VanillaApi = vanillaApi, HandshakeResponse = handshakeResponse, SaveGenerationWaiter = saveGenerationWaiter };
 
             #region Internal
 
@@ -125,5 +129,6 @@ namespace Client.Starter.Initialization
     {
         public VanillaApi VanillaApi;
         public InitialHandshakeResponse HandshakeResponse;
+        public ServerSaveGenerationWaiter SaveGenerationWaiter;
     }
 }

@@ -11,26 +11,45 @@ namespace Client.Starter.PlaytestSmoke
     /// </summary>
     public static class StandalonePlaytestSmokePreconditions
     {
-        // 越えられない関門があればその理由を、無ければ空文字を返す
-        // Returns the reason when a gate cannot be passed, or an empty string when all hold
-        internal static string FindFailure(StandalonePlaytestSmokeSettings settings, PlaytestGateResult gate)
+        // 越えられない関門があれば true とその理由を返す
+        // Returns true with the reason when a gate cannot be passed
+        internal static bool TryFindFailure(StandalonePlaytestSmokeSettings settings, PlaytestGateResult gate, out string failureReason)
         {
             // 通し検証の対象は照合を通った配布版だけ。開発者モードでは報告が受け口へ運ばれない
             // Only a checked distribution build is in scope; in developer mode no report ever reaches the receiver
             if (gate.Status != PlaytestGateStatus.Allowed)
-                return $"launch gate is {gate.Status} (Allowed required; developer mode means build-info.json is missing or Steam is not running) {gate.Detail}";
+            {
+                failureReason = $"launch gate is {gate.Status} (Allowed required; developer mode means build-info.json is missing or Steam is not running) {gate.Detail}";
+                return true;
+            }
 
             // 同意表示は応答を上限なく待つ。検証機では初回セットアップで一度だけ人が既読にする
             // The consent notice waits without bound; on the verifier a human acknowledges it once during setup
             if (!PlaytestConsentFlag.IsAcknowledged())
-                return $"the playtest consent notice has not been acknowledged on this machine ({PlaytestConsentFlag.FilePath}); acknowledge it once interactively";
+            {
+                failureReason = $"the playtest consent notice has not been acknowledged on this machine ({PlaytestConsentFlag.FilePath}); acknowledge it once interactively";
+                return true;
+            }
 
-            // phase2はphase1のセーブを読む検証。ワールドが無いと新規生成され、ロードを確かめないまま進んでしまう
-            // phase2 verifies loading phase1's save; without the world a fresh one is generated and loading goes unverified
-            if (settings.Phase == StandalonePlaytestSmokeSettings.PhaseTwo && !Directory.Exists(GameSystemPaths.DefaultWorldDirectory))
-                return $"no saved world to load at {GameSystemPaths.DefaultWorldDirectory}; run phase1 first";
-
-            return "";
+            switch (settings.Phase)
+            {
+                case StandalonePlaytestSmokePhase.PhaseOne:
+                    failureReason = "";
+                    return false;
+                case StandalonePlaytestSmokePhase.PhaseTwo:
+                    // phase2はphase1のセーブを読む検証。ワールドが無いと新規生成され、ロードを確かめないまま進んでしまう
+                    // phase2 verifies loading phase1's save; without the world a fresh one is generated and loading goes unverified
+                    if (Directory.Exists(GameSystemPaths.DefaultWorldDirectory))
+                    {
+                        failureReason = "";
+                        return false;
+                    }
+                    failureReason = $"no saved world to load at {GameSystemPaths.DefaultWorldDirectory}; run phase1 first";
+                    return true;
+                default:
+                    failureReason = $"unknown smoke phase {settings.Phase}";
+                    return true;
+            }
         }
     }
 }

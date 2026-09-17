@@ -34,15 +34,16 @@ namespace Client.Starter.PlaytestSmoke
 
         // 1ステップで打ち切った結果を組む（前提確認失敗時）
         // Builds a result that stopped at one step (pre-launch precondition failure)
-        internal static StandalonePlaytestSmokeResult CreateSingleStepFailure(string phase, string stepName, string message)
+        internal static StandalonePlaytestSmokeResult CreateSingleStepFailure(StandalonePlaytestSmokePhase phase, string stepName, string message)
         {
             var step = new StandalonePlaytestSmokeStep { name = stepName, success = false, message = message, elapsedSeconds = 0f };
             return new StandalonePlaytestSmokeResult
             {
-                phase = phase,
+                phase = StandalonePlaytestSmokeSettings.ToArgument(phase),
                 success = false,
                 message = message,
                 reportBundleDirectory = "",
+                reportSteamId = "",
                 steps = new[] { step },
             };
         }

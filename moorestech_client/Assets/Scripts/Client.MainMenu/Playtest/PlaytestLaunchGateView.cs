@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.BugReport.Submit;
 using Client.Localization;
 using Client.MainMenu.PopUp;
 using Client.PlaytestReceiver;

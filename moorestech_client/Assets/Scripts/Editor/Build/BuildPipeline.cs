@@ -54,20 +54,10 @@ namespace Client.Editor.Build
             }
             Debug.Log("Addressables Build Succeeded: " + addressablesResult.OutputPath);
 
-            // build-info.json の焼き込みは BuildPlayer 内のコールバックで走るため、strict を先に渡し終わったら既定へ戻す
-            // build-info.json is baked inside BuildPlayer's callback, so hand strict over first and restore the default afterwards
-            // BuildPlayer が例外で抜けても strict を次のビルドへ持ち越さない
-            // Never carry strict over to the next build even if BuildPlayer exits by exception
-            BuildReport report;
-            BuildInfoWriter.SetStrictBundling(request.IsStrictBundling);
-            try
-            {
-                report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
-            }
-            finally
-            {
-                BuildInfoWriter.SetStrictBundling(false);
-            }
+            // 他の同梱と同じく strict を引数で渡して焼く。strict の関門は BuildPlayer の数十分より前に落とす
+            // Bake with strict passed as an argument like the other bundlers; the strict gate fails before BuildPlayer's lengthy run
+            BuildInfoWriter.Write(request.IsStrictBundling, request.Target);
+            var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
             Debug.Log("Build Result :" + report.summary.result);
 
             // 成功時のみ、動作に必要なCEFランタイムとゲームデータを同梱する
