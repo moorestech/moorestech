@@ -25,7 +25,7 @@ namespace Game.SaveLoad.Migration
         // The production entry point; the target is always the save format's current version, never spelled by the caller
         public static SaveMigrationChain ForCurrentVersion(IReadOnlyList<ISaveMigrationStep> steps)
         {
-            return new SaveMigrationChain(steps, WorldSaveAllInfoV1.CurrentVersion);
+            return new SaveMigrationChain(steps, WorldSaveAllInfo.CurrentVersion);
         }
 
         // テストが任意の目標版を渡す注入口。固定にすると現在版が小さい間は不変条件（重複禁止・欠番禁止・昇順適用）をテストできない

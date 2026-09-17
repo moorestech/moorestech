@@ -63,7 +63,7 @@ namespace Tests.CombinedTest.Game
 
             var save = JObject.Parse(serviceProvider.GetService<AssembleSaveJsonText>().AssembleSaveJson());
             Assert.Greater(((JArray)save["world"]).Count, 0, "テストの土台のworldが空です");
-            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, save["worldVersion"].Value<int>(), "テストの土台のセーブが現在版ではありません");
+            Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, save["worldVersion"].Value<int>(), "テストの土台のセーブが現在版ではありません");
             return save;
         }
 

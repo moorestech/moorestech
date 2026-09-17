@@ -83,7 +83,7 @@ namespace Game.SaveLoad.Json
 
         public void Load(JObject save)
         {
-            _worldSaveDataRestorer.Restore(save.ToObject<WorldSaveAllInfoV1>());
+            _worldSaveDataRestorer.Restore(save.ToObject<WorldSaveAllInfo>());
         }
 
         public void WorldInitialize()

@@ -25,7 +25,7 @@ namespace Tests.CombinedTest.Game.MissingMasterPrune
         public void セーブ形式の全節が除去器か除去不要宣言に分類されているTest()
         {
             var pruner = new MissingMasterPruner();
-            var members = typeof(WorldSaveAllInfoV1).GetMembers(BindingFlags.Public | BindingFlags.Instance);
+            var members = typeof(WorldSaveAllInfo).GetMembers(BindingFlags.Public | BindingFlags.Instance);
             var sectionNames = members.Select(member => member.GetCustomAttribute<JsonPropertyAttribute>()?.PropertyName).Where(name => name != null).ToList();
 
             Assert.Greater(sectionNames.Count, 0);

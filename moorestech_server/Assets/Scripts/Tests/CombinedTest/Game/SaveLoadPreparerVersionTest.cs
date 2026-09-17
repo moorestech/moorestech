@@ -106,7 +106,7 @@ namespace Tests.CombinedTest.Game
             // 退避版が固定値へ退行していないことも、版1側に作られていないことで一緒に見る
             // Checking that nothing lands under version 1 also catches a regression to a hard-coded version
             var archive = WorldDataDirectory.FromWorldRoot(_archiveRoot);
-            Assert.AreEqual(originalText, File.ReadAllText(archive.BackupSaveJsonPath(WorldSaveAllInfoV1.CurrentVersion)));
+            Assert.AreEqual(originalText, File.ReadAllText(archive.BackupSaveJsonPath(WorldSaveAllInfo.CurrentVersion)));
             Assert.IsFalse(File.Exists(archive.BackupSaveJsonPath(1)), "現在版のセーブが版1として退避されています");
         }
 
@@ -124,7 +124,7 @@ namespace Tests.CombinedTest.Game
 
             Assert.IsTrue(prepared.CanLoad, prepared.BlockedReason);
             var migrated = prepared.Save;
-            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, migrated["worldVersion"].Value<int>());
+            Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, migrated["worldVersion"].Value<int>());
             Assert.AreEqual(4321, migrated["currentTick"].Value<long>());
             Assert.AreEqual(save["randomState"].ToString(), migrated["randomState"].ToString());
             Assert.AreEqual(save["miningCooldowns"].ToString(), migrated["miningCooldowns"].ToString());
@@ -243,7 +243,7 @@ namespace Tests.CombinedTest.Game
 
             Assert.IsTrue(result.CanLoad, result.BlockedReason);
             Assert.IsTrue(result.Migrated);
-            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, result.Save["worldVersion"].Value<int>());
+            Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, result.Save["worldVersion"].Value<int>());
         }
     }
 }

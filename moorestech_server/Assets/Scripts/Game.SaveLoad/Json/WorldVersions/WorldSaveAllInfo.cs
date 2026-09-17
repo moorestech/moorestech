@@ -17,7 +17,7 @@ using Newtonsoft.Json;
 
 namespace Game.SaveLoad.Json.WorldVersions
 {
-    public class WorldSaveAllInfoV1
+    public class WorldSaveAllInfo
     {
         // セーブ形式の現在版。マイグレーション連鎖の終点であり、形式を変えるPRがここを上げる
         // The current save format version; the migration chain's destination, raised by any PR that changes the format
@@ -25,7 +25,7 @@ namespace Game.SaveLoad.Json.WorldVersions
 
         [JsonProperty("worldVersion")] public int WorldVersion = CurrentVersion;
         
-        public WorldSaveAllInfoV1(
+        public WorldSaveAllInfo(
             List<BlockJsonObject> world, 
             List<PlayerInventorySaveJsonObject> inventory,
             List<EntityJsonObject> entities, 

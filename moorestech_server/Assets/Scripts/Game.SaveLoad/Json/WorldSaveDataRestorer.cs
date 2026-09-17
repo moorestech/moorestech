@@ -81,7 +81,7 @@ namespace Game.SaveLoad.Json
             _saveBackfilledFieldsRecord = saveBackfilledFieldsRecord;
         }
 
-        public void Restore(WorldSaveAllInfoV1 load)
+        public void Restore(WorldSaveAllInfo load)
         {
             // 版が古いセーブの欠損はV1→V2ステップが補うので、ここで補填はしない。欠けたまま進むと理由の無い素の例外になる
             // An older save's gaps are backfilled by the V1-to-V2 step, not here; passing one through would fail with a reasonless bare exception

@@ -116,7 +116,7 @@ namespace Tests.CombinedTest.Game
             var json = provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var root = JObject.Parse(json);
-            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, root["worldVersion"].Value<int>(), "この検証は現在版のセーブが前提");
+            Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, root["worldVersion"].Value<int>(), "この検証は現在版のセーブが前提");
             root.Remove("currentTick");
             LogAssert.Expect(LogType.Error, new Regex("^セーブに currentTick がありません"));
 
@@ -135,7 +135,7 @@ namespace Tests.CombinedTest.Game
             var json = provider.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
 
             var root = JObject.Parse(json);
-            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, root["worldVersion"].Value<int>(), "この検証は現在版のセーブが前提");
+            Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, root["worldVersion"].Value<int>(), "この検証は現在版のセーブが前提");
             root.Remove("miningCooldowns");
 
             LogAssert.Expect(LogType.Error, new Regex("^セーブに miningCooldowns がありません"));

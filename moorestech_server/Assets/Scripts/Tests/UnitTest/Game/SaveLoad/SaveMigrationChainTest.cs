@@ -67,13 +67,13 @@ namespace Tests.UnitTest.Game.SaveLoad
         [Test]
         public void 現在版のセーブはステップが当たらずそのまま通るTest()
         {
-            var save = JObject.Parse($"{{\"worldVersion\":{WorldSaveAllInfoV1.CurrentVersion}}}");
+            var save = JObject.Parse($"{{\"worldVersion\":{WorldSaveAllInfo.CurrentVersion}}}");
 
             var result = CurrentVersionChain().Migrate(save);
 
             Assert.IsTrue(result.CanLoad, result.BlockedReason);
             Assert.IsFalse(result.Migrated);
-            Assert.AreEqual(WorldSaveAllInfoV1.CurrentVersion, result.Save["worldVersion"].Value<int>());
+            Assert.AreEqual(WorldSaveAllInfo.CurrentVersion, result.Save["worldVersion"].Value<int>());
         }
 
         [Test]
