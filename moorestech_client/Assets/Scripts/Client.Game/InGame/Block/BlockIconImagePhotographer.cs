@@ -10,7 +10,7 @@ namespace Client.Game.InGame.Block
     {
         // 固着時に箇所を名指しするための目印。ログ検索とテストが同じ1箇所を参照する（ADR 0063）
         // The marker that names a freeze site; log searches and tests share this single source (ADR 0063)
-        public const string CaptureLogPrefix = "[BlockIconCapture]";
+        internal const string CaptureLogPrefix = "[BlockIconCapture]";
 
         [SerializeField] private int iconSize = 512;
         [SerializeField] Camera cameraPrefab;
@@ -35,12 +35,11 @@ namespace Client.Game.InGame.Block
             for (var index = 0; index < targets.Count; index++)
             {
                 var target = targets[index];
-                var progress = $"{index + 1}/{targets.Count} {target.debugName}";
                 var instance = Instantiate(target.prefab, transform);
                 instance.transform.position = Vector3.zero;
                 instance.transform.rotation = Quaternion.identity;
                 instance.transform.localScale = Vector3.one;
-                result.Add(await GetIcon(instance, target.debugName, progress));
+                result.Add(await GetIcon(instance, target.debugName, index, targets.Count));
                 if (Application.isPlaying)
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update);
@@ -52,8 +51,9 @@ namespace Client.Game.InGame.Block
 
             #region Internal
 
-            async UniTask<Texture2D> GetIcon(GameObject captureTarget, string captureDebugName, string captureProgress)
+            async UniTask<Texture2D> GetIcon(GameObject captureTarget, string captureDebugName, int captureIndex, int captureCount)
             {
+                var captureProgress = $"{captureIndex + 1}/{captureCount} {captureDebugName}";
                 var bounds = captureTarget.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
                 if (bounds.Count == 0)
                 {

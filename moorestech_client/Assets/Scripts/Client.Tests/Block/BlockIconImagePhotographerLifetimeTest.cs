@@ -15,9 +15,19 @@ namespace Client.Tests.Block
         private const string CaptureRenderTexturePrefix = "BlockIconCapture:";
         private const string TestObjectPrefix = "BlockIconLifetimeTest";
 
+        private Application.LogCallback _collectLog;
+
         [TearDown]
         public void TearDown()
         {
+            // 撮影失敗時もテスト間で購読が積み上がらないよう無条件で解除する
+            // Unsubscribe unconditionally so a failed capture never leaves the subscription across tests
+            if (_collectLog != null)
+            {
+                Application.logMessageReceived -= _collectLog;
+                _collectLog = null;
+            }
+
             var objects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var target in objects)
             {
@@ -114,7 +124,8 @@ namespace Client.Tests.Block
             var cameraPrefab = cameraPrefabObject.AddComponent<Camera>();
             var targetPrefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
             targetPrefab.name = $"{TestObjectPrefix}LogTarget";
-            const string captureDebugName = "log-test";
+            const string captureDebugNameA = "log-test-a";
+            const string captureDebugNameB = "log-test-b";
 
             var cameraField = typeof(BlockIconImagePhotographer).GetField("cameraPrefab", BindingFlags.Instance | BindingFlags.NonPublic);
             cameraField.SetValue(photographer, cameraPrefab);
@@ -122,27 +133,35 @@ namespace Client.Tests.Block
             // 固着時はメインスレッドごと止まるため、各段階へ入る直前のログだけが箇所の手掛かりになる
             // A freeze stops the main thread itself, so only the log emitted before each stage can locate it
             var captureLogs = new List<string>();
-            void CollectLog(string condition, string stackTrace, LogType type)
+            _collectLog = (condition, stackTrace, type) =>
             {
                 if (type == LogType.Log && condition.StartsWith(BlockIconImagePhotographer.CaptureLogPrefix)) captureLogs.Add(condition);
-            }
+            };
 
-            Application.logMessageReceived += CollectLog;
+            Application.logMessageReceived += _collectLog;
             var captureTask = photographer.TakeIconImages(new List<(GameObject prefab, string debugName)>
             {
-                (targetPrefab, captureDebugName),
+                (targetPrefab, captureDebugNameA),
+                (targetPrefab, captureDebugNameB),
             });
             yield return WaitForCompletion(captureTask);
             var textures = captureTask.GetAwaiter().GetResult();
-            Application.logMessageReceived -= CollectLog;
+            Application.logMessageReceived -= _collectLog;
+            _collectLog = null;
             foreach (var texture in textures) Object.DestroyImmediate(texture);
 
-            Assert.That(captureLogs.Count, Is.EqualTo(5), string.Join(" | ", captureLogs));
-            Assert.That(captureLogs[0], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} start count:1"));
-            Assert.That(captureLogs[1], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} 1/1 {captureDebugName} stage:render"));
-            Assert.That(captureLogs[2], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} 1/1 {captureDebugName} stage:readback"));
-            Assert.That(captureLogs[3], Does.StartWith($"{BlockIconImagePhotographer.CaptureLogPrefix} 1/1 {captureDebugName} stage:done elapsed:"));
-            Assert.That(captureLogs[4], Does.StartWith($"{BlockIconImagePhotographer.CaptureLogPrefix} completed count:1 elapsed:"));
+            Assert.That(captureLogs.Count, Is.EqualTo(8), string.Join(" | ", captureLogs));
+            // 接頭辞リテラルは定数経由の突き合わせと別に固定し、定数値そのものの改変を検出する
+            // Pin the prefix literal independently of the shared constant to catch a change to the constant's own value
+            Assert.That(captureLogs[0], Does.StartWith("[BlockIconCapture] "));
+            Assert.That(captureLogs[0], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} start count:2"));
+            Assert.That(captureLogs[1], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} 1/2 {captureDebugNameA} stage:render"));
+            Assert.That(captureLogs[2], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} 1/2 {captureDebugNameA} stage:readback"));
+            Assert.That(captureLogs[3], Does.StartWith($"{BlockIconImagePhotographer.CaptureLogPrefix} 1/2 {captureDebugNameA} stage:done elapsed:"));
+            Assert.That(captureLogs[4], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} 2/2 {captureDebugNameB} stage:render"));
+            Assert.That(captureLogs[5], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} 2/2 {captureDebugNameB} stage:readback"));
+            Assert.That(captureLogs[6], Does.StartWith($"{BlockIconImagePhotographer.CaptureLogPrefix} 2/2 {captureDebugNameB} stage:done elapsed:"));
+            Assert.That(captureLogs[7], Does.StartWith($"{BlockIconImagePhotographer.CaptureLogPrefix} completed count:2 elapsed:"));
         }
 
         private static int CountCameras()
