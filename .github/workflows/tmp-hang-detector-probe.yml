@@ -92,3 +92,35 @@ jobs:
             echo "Unity test outcome was $TEST_OUTCOME." >&2
             exit 1
           fi
+
+  literal_case:
+    name: literal timeout control
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Run Unity Test - probe
+        id: unity_test
+        continue-on-error: true
+        timeout-minutes: 1
+        shell: bash
+        run: sleep 300
+      - name: report
+        if: always()
+        run: echo "outcome=${{ steps.unity_test.outcome }}"
+
+  fromjson_case:
+    name: fromJSON env timeout
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      UNITY_TEST_STEP_TIMEOUT_MINUTES: 1
+    steps:
+      - name: Run Unity Test - probe
+        id: unity_test
+        continue-on-error: true
+        timeout-minutes: ${{ fromJSON(env.UNITY_TEST_STEP_TIMEOUT_MINUTES) }}
+        shell: bash
+        run: sleep 300
+      - name: report
+        if: always()
+        run: echo "outcome=${{ steps.unity_test.outcome }}"

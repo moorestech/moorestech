@@ -100,13 +100,22 @@ step の timeout は job を `failure` にするため、**判定ロジックを
 ## 帰結
 
 - ハングしても最大40分で failure になり、既存 watchdog が失敗ジョブだけを自動で再実行する。人手の rerun 運用は不要になる。
-- **この自動再実行は step 名に依存する。** `ci-auto-rerun.cjs` は失敗 step の名前を `INFRA_KEYWORDS` / `CODE_KEYWORDS` で
-  分類し、infra と判定した場合だけ attempt 2 でも再実行する（`decideRerun`）。step timeout の step conclusion は
-  `failure` であって `timed_out` ではないため、`hasTimedOutStep` では拾えない。
-  そこで step 名を `Unity shard runner - <shard>` にし、`INFRA_KEYWORDS` の `'runner'` に一致させ
-  `CODE_KEYWORDS` の `'test'` に一致させないことで、attempt 2 も自動再実行の対象に乗せている
-  （ユーザー裁定 2026-09-18 D2案A）。名前へ `test` や `build` を戻すと code 失敗と分類され、
-  自動再実行は attempt 1 の1回だけに戻る。
+- **この自動再実行は step 名に依存し、判定専用の step で切り分ける。** `ci-auto-rerun.cjs` は失敗 step の名前を
+  `INFRA_KEYWORDS` / `CODE_KEYWORDS` で分類し、infra と判定した場合だけ attempt 2 でも再実行する（`decideRerun`）。
+  step timeout の step conclusion は `failure` であって `timed_out` ではないため、`hasTimedOutStep` では拾えない。
+  **分類は `hasInfraStep` を `hasCodeStep` より先に評価する**ので、失敗 step のどれか1つでも `INFRA_KEYWORDS` に
+  部分一致すれば `CODE_KEYWORDS` は評価されず infra で確定する。したがってテスト実行 step 自体の名前を infra 語へ
+  寄せると、ハングだけでなく**通常のテスト失敗まで infra 扱いになり、赤の確定が毎回1回分の再実行だけ遅れる**。
+  そこで shard の step を3本に分ける（ユーザー裁定 2026-09-18・D2案A の是正）:
+  - `Run Unity Test - <shard>` … 実行本体。`continue-on-error: true` で自身は job を赤にせず、`timeout-minutes` で40分打ち切り。
+  - `Detect Unity shard runner hang` … `'runner'` で infra 側。**打ち切り（開始からの経過が timeout 値に到達）に達したときだけ失敗する。**
+  - `Fail the shard when the Unity test did not pass` … `'test'` で code 側。通常のテスト失敗を job の失敗として残す口。
+
+  ハング時は infra 名の step が失敗するので attempt 2 も再実行され、通常のテスト失敗では code 名の step だけが失敗するので
+  従来どおりスキップされる（実測: run 35269005551）。名前を変えるときは「infra が先に評価される」ことに注意する —
+  判定 step から `'runner'` を落とせばハングが code 扱いになり、失敗を残す step へ infra 語を足せばテスト失敗が infra 扱いになる。
+- 打ち切り時間（40分）の正本は job の `env.UNITY_TEST_STEP_TIMEOUT_MINUTES` 1箇所で、テスト step の `timeout-minutes` と
+  判定 step の閾値の両方がそこを参照する。値を二重に持たない。
 - 上限は既存の `run_attempt >= 3` ガード。3回目の試行では再実行しない。
 - 真因が消えるわけではない。moorestech-7gsc は開いたまま残し、次のハングの計装ログで箇所を確定させてから修正する。
 - 撮影が真犯人でなかった場合、計装ログは「撮影は完走していた」という否定の証拠になり、次の探索先が絞れる。

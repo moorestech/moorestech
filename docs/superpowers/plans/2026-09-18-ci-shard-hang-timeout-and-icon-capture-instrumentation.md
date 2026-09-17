@@ -147,7 +147,7 @@ Expected: `tmp-step-timeout-probe.yml` が無い。
 ### Task 2: shard のテスト実行 step を40分で failure にする
 
 **Files:**
-- Modify: `.github/workflows/run_test.yml` の shard テスト実行 step（レビュー反映 D2案A で step 名を `Run Unity Test - ${{ matrix.shard }}` から `Unity shard runner - ${{ matrix.shard }}` へ変更した。`ci-auto-rerun.cjs` の `INFRA_KEYWORDS` に乗せるため）
+- Modify: `.github/workflows/run_test.yml` の shard テスト実行 step。post-check C-1 の是正で、step 名は `Run Unity Test - ${{ matrix.shard }}` のまま据え置き、代わりに前後へ3本（開始時刻の記録・ハング判定・テスト失敗の顕在化）を足す。`ci-auto-rerun.cjs` は `INFRA_KEYWORDS` を `CODE_KEYWORDS` より先に評価するため、テスト実行 step 自体を infra 語へ寄せると通常のテスト失敗まで再実行されてしまう
 
 **Interfaces:**
 - Consumes: なし
@@ -155,42 +155,75 @@ Expected: `tmp-step-timeout-probe.yml` が無い。
 
 - [ ] **Step 1: 現在の step 定義を確認する**
 
-Run: `sed -n 170,192p .github/workflows/run_test.yml`
+Run: `sed -n 170,200p .github/workflows/run_test.yml`
 
-Expected: `- name: Run Unity Test - ${{ matrix.shard }}` の下に `uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1` があり、`timeout-minutes` が**無い**こと。
+Expected: `- name: Run Unity Test - ${{ matrix.shard }}` の下に `uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1` があること。
 
-- [ ] **Step 2: step に timeout-minutes と根拠コメントを足す**
+- [ ] **Step 2: 打ち切り時間の正本・テスト step・判定2 step を置く**
 
-`.github/workflows/run_test.yml` の該当 step を次の形にする（`env:` 以降は既存のまま変更しない）:
+`.github/workflows/run_test.yml` の `unity_test_shard` job に、打ち切り時間の正本となる job 単位の `env` を足す（`timeout-minutes: 75` の直後）:
 
 ```yaml
-      # 専用fixtureはCategoryだけ、残余は検証済みassemblyも併用し、網羅性を保って探索固定費を抑える。
-      # Use categories alone for dedicated fixtures and verified assemblies for remainders to retain coverage with lower discovery overhead.
-      - name: Run Unity Test - ${{ matrix.shard }}
-        # 上流がv4タグを動かしCIが全滅したため、動作実績のあるSHAへ固定する（2026-09-09）
-        # Pinned to a known-good SHA because an upstream v4 tag move broke all CI (2026-09-09)
-        uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
-        # 起動boot中にEditorのメインスレッドが固着する既知のflake（moorestech-7gsc）を、jobのtimeoutより先に打ち切る。
-        # Cut off the known main-thread freeze during boot (moorestech-7gsc) before the job-level timeout fires.
-        # jobのtimeoutは打ち切りをcancelledにして ci-auto-rerun の発火条件（failure / timed_out）を素通りするが、stepのtimeoutはfailureになるため自動再実行が効く（ADR 0063）。
-        # A job-level timeout ends as cancelled and slips past ci-auto-rerun's failure/timed_out trigger, while a step-level timeout fails the job so the auto-rerun fires (ADR 0063).
-        # 値は実測最長28分（server-remainder）に対する余裕込み。client-play系の実測は9〜11分。
-        # The value allows headroom over the measured 28-minute maximum (server-remainder); client-play shards measure 9-11 minutes.
-        timeout-minutes: 40
-        env:
+    env:
+      UNITY_TEST_STEP_TIMEOUT_MINUTES: 40
 ```
 
-- [ ] **Step 3: YAML として壊れていないこと・値が入ったことを確認する**
+該当 step を次の形にする（`env:` 以降の secrets・`with:` は既存のまま変更しない）。名前の割り当ては `ci-auto-rerun.cjs` の分類に直接効く — INFRA が先に評価されるため、infra 語を含む step が落ちた時点で分類は infra に確定する:
 
-Run:
+```yaml
+      # 打ち切りに達したかを後続stepが根拠付きで判定できるよう、テスト開始時刻をepoch秒で残す。
+      # Record the test start time in epoch seconds so a later step can decide on evidence whether the cutoff was reached.
+      - name: Record Unity shard start time.
+        shell: bash
+        run: echo "UNITY_TEST_STARTED_AT=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Run Unity Test - ${{ matrix.shard }}
+        id: unity_test
+        continue-on-error: true
+        uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
+        timeout-minutes: ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }}
+        env:
+
+      # ハングだけをここで失敗させる。名前の 'runner' が INFRA_KEYWORDS に当たり attempt 2 以降も自動再実行される。
+      # Fail here only for a hang: the word 'runner' matches INFRA_KEYWORDS so the auto-rerun keeps firing from attempt 2 on.
+      - name: Detect Unity shard runner hang
+        if: always()
+        # 経過が timeout 値に達したときだけ exit 1（詳細は run_test.yml の実装を参照）
+
+      # 通常のテスト失敗をjobの失敗として残す口。名前は CODE_KEYWORDS の 'test' に当たり infra語を含まない。
+      # This is where a plain test failure stays a job failure; the name matches CODE_KEYWORDS 'test' and carries no infra word.
+      - name: Fail the shard when the Unity test did not pass
+        if: always()
+```
+
+- [ ] **Step 3: YAML の値と step 名の分類を機械で確かめる**
+
+Run（`ci-auto-rerun.cjs` の実際のキーワード配列を読み、9 shard 展開後の名前で突き合わせる。step は `id` で引き名前依存にしない）:
 ```bash
-python3 -c "import yaml,sys;d=yaml.safe_load(open('.github/workflows/run_test.yml'));s=[x for x in d['jobs']['unity_test_shard']['steps'] if str(x.get('name','')).startswith('Run Unity Test')][0];print('step timeout:',s.get('timeout-minutes'));print('job timeout:',d['jobs']['unity_test_shard']['timeout-minutes'])"
+python3 - <<'EOF'
+import re, yaml
+cjs = open('.github/scripts/ci-auto-rerun.cjs').read()
+arr = lambda n: re.findall(r"'([^']+)'", re.search(r'const %s = \[(.*?)\];' % n, cjs, re.S).group(1))
+INFRA, CODE = arr('INFRA_KEYWORDS'), arr('CODE_KEYWORDS')
+hits = lambda name, kws: [k for k in kws if k in name.lower()]
+job = yaml.safe_load(open('.github/workflows/run_test.yml'))['jobs']['unity_test_shard']
+test = [s for s in job['steps'] if s.get('id') == 'unity_test'][0]
+print('job timeout:', job['timeout-minutes'])
+print('step timeout:', job['env']['UNITY_TEST_STEP_TIMEOUT_MINUTES'], '(via', test['timeout-minutes'], ')')
+for s in job['steps']:
+    n = s.get('name', '')
+    if n.startswith(('Run Unity Test', 'Detect Unity shard runner', 'Fail the shard')):
+        print(repr(n), 'infra=', hits(n, INFRA), 'code=', hits(n, CODE))
+EOF
 ```
 
 Expected:
 ```
-step timeout: 40
 job timeout: 75
+step timeout: 40 (via ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }} )
+'Run Unity Test - ${{ matrix.shard }}' infra= [] code= ['test']
+'Detect Unity shard runner hang' infra= ['runner'] code= []
+'Fail the shard when the Unity test did not pass' infra= [] code= ['test']
 ```
 
 - [ ] **Step 4: watchdog 側を触っていないことを確認する**
