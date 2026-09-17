@@ -71,7 +71,7 @@ namespace Client.PlaytestReceiver.Upload
         private async UniTask<BoxOutcome> UploadOneAsync(PlaytestOutboxBox box, CancellationToken token)
         {
             var skipped = new List<object>();
-            var putCount = 0;
+            var uploadedFiles = new List<string>();
 
             foreach (var file in PlaytestOutboxScanner.ListPayloadFiles(box.Directory))
             {
@@ -86,7 +86,7 @@ namespace Client.PlaytestReceiver.Upload
                 var result = await _session.SendAuthorizedAsync(new PlaytestPutFileCall(_api, box, relativePath, file), token);
                 if (result.IsSuccess)
                 {
-                    putCount++;
+                    uploadedFiles.Add(relativePath);
                     continue;
                 }
 
@@ -106,7 +106,7 @@ namespace Client.PlaytestReceiver.Upload
             if (!completed.IsSuccess) return Defer("complete", completed);
 
             PlaytestUploadAttemptLog.MarkUploaded(box.Directory);
-            Debug.Log($"[PlaytestReceiver] uploaded {PlaytestUploadPath.KindSegment(box.Kind)}/{box.BundleId} ({putCount} files, {skipped.Count} skipped)");
+            Debug.Log($"[PlaytestReceiver] uploaded {PlaytestUploadPath.KindSegment(box.Kind)}/{box.BundleId} ({uploadedFiles.Count} files, {skipped.Count} skipped)");
             return BoxOutcome.Sent;
 
             #region Internal
@@ -146,8 +146,8 @@ namespace Client.PlaytestReceiver.Upload
                 return PlaytestUploadFailurePolicy.AbortsRun(result) ? BoxOutcome.RunAborted : BoxOutcome.BoxDeferred;
             }
 
-            // manifest.jsonはplanBが書く。取り込み側の一覧用に生テキストを要約へ転記する
-            // plan B writes manifest.json; its raw text rides along in the summary for the ingest side's listing
+            // planBのmanifest生テキストとPUT成功分のfilesを載せる。受け口に一覧APIが無く取り込み側はfilesだけを取得する
+            // Carries plan B's raw manifest and the successfully PUT files; with no listing API the ingest side fetches only files
             string ComposeSummary()
             {
                 var manifestPath = Path.Combine(box.Directory, BugReportBundleLayout.ManifestFileName);
@@ -155,7 +155,8 @@ namespace Client.PlaytestReceiver.Upload
                 {
                     kind = PlaytestUploadPath.KindSegment(box.Kind),
                     id = box.BundleId,
-                    fileCount = putCount,
+                    fileCount = uploadedFiles.Count,
+                    files = uploadedFiles,
                     skipped,
                     manifest = File.Exists(manifestPath) ? File.ReadAllText(manifestPath) : null,
                 });

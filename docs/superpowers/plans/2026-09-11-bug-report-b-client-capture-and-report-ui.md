@@ -2,6 +2,14 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
+> **改訂（ADR 0061 / 2026-09-13・plan H より）:** 受け口（Cloudflare Worker + R2）と進行記録が加わり、manifest が変わった。
+> 1. **`manifest.json` に `kind`（"bug"|"feedback"|"crash"）・`steamId`（string、Steam未起動なら ""）・`buildInfo` を足す。** `buildInfo` は `StreamingAssets/build-info.json`（`commit`・`branch`・`masterDataCommit`・`dirty`・`steamBuildLabel`・`builtAt`・`target`）で、原文の `BugReportManifest.Repository` を置き換える。Editor 実行時は `build-info.json` が無いので原文の git probe を使い `buildInfo` は null。
+> 2. **報告UIに種別（バグ／感想）の選択を足す。** どちらも同じバンドルを送る。自動修正ランが起動するのはバグだけ。
+> 3. **進行記録の outbox を足す。** `<GameSystemDirectory>/ProgressRecords/outbox/<id>/record.json` + `READY`、送信後 `UPLOADED`。中身は共有契約 §3（`playSeconds`・`reachedChallenges`・`completedResearch`・`lastUiState`・`events[]` 等）。イベントは購読で取り、`Update()` の同値判定は足さない。
+> 4. **前回異常終了の検知。** `<GameSystemDirectory>/BugReports/last-session/` に正常終了マーカー `CLEAN_EXIT` を置き、起動時に無ければタイトルで送信確認を出す（`kind=crash`）。常時記録のリング（`BugReports/recording/`）は終了時に消さない。
+> 5. **送信済みマーカーは2種。** 受け口へ上げたら `UPLOADED`、開発者の rsync 経路（plan C）は `SHIPPED`。
+> 6. **Windows 配布ビルドに `ffmpeg.exe` を同梱する**（録画が配布版でも動くこと。同梱は plan E、依存の明示は本plan側）。
+
 **Goal:** Escapeでポーズメニューを開いた瞬間の記録（サーバー即時スナップショット・録画境界・ログ・クライアント状態）を確保し、説明文を書いて送信するとバンドルがoutboxへ書かれ、ゲームは止まらずトーストで完了を知る（ADR 0057 取得側クライアント部分）。
 
 **Architecture:** (1) `GameFrameRecorder` が10fps・720pで描画結果を非同期読み出しし、子プロセスの `ffmpeg` へ流して直近120秒を分割ファイルでリング保持する（各フレームのサーバーtickを `frames.tsv` に併記）。(2) `UnityLogRing` が `Application.logMessageReceivedThreaded` を直近2000件保持する。(3) `BugReportCaptureSession` が `PauseMenuStateService.OnEnter` から駆動され、サーバーへ `va:bugReportCapture` を要求し、録画区間を確定し、ログとクライアント状態を写し取り、完了イベント（`BugReportCaptureEventHandler`、3点セット③）で「確保済み」になる。状態は `ReactiveProperty` で `PauseMenuTopic` に載せてWebUIへ配信する。(4) 送信は `bug_report.submit` アクション→`BugReportBundleWriter` が outbox `<GameSystemDirectory>/BugReports/outbox/<id>/` に manifest・スナップショット・パケットログ・動画・連番フレーム・ログ・スクリーンショット・未コミット差分を書き、`READY` マーカーで完了を示す。欠損は manifest の `missing` に理由付きで残す。(5) WebUIはポーズメニューに素の `<textarea>`（§8.9様式）と `PanelActionButton` を直置きし、`pause_menu.current` の `bugReport` 状態で「確保中／欠けている項目」を出す。

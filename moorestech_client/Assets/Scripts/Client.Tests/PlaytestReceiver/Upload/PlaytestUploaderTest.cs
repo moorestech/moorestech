@@ -4,6 +4,7 @@ using System.Threading;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -169,6 +170,23 @@ namespace Client.Tests.PlaytestReceiver
             Assert.AreEqual(1, Upload(api));
             CollectionAssert.AreEquivalent(new[] { "ユニティ.log", "a b.log" }, api.PutPaths);
             StringAssert.Contains("\"skipped\":[]", api.LastSummary);
+        }
+
+        // 取り込み側はfilesだけを取得するので、見送り・恒久失敗のファイルが混ざると存在しないキーを取りに行く
+        // The ingest side fetches only files, so a skipped or permanently failed file there would be a missing key
+        [Test]
+        public void READY要約のfilesにはPUTに成功した相対パスだけが入る()
+        {
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("bad.log", "x"), ("good.log", "y"));
+            using (var stream = new FileStream(Path.Combine(box, "video.mp4"), FileMode.Create)) stream.SetLength(PlaytestReceiverConfig.MaxFileBytes + 1);
+            var api = new FakeUploadApi();
+            api.PutResultQueue.Enqueue(PlaytestApiResult.Responded(400, "bad-path"));
+
+            Assert.AreEqual(1, Upload(api));
+            var files = JObject.Parse(api.LastSummary)["files"].ToObject<string[]>();
+            Assert.AreEqual(1, files.Length);
+            CollectionAssert.AreEqual(api.PutPaths, files);
+            CollectionAssert.DoesNotContain(files, "video.mp4");
         }
 
         private int Upload(FakeUploadApi api)

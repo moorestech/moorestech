@@ -50,6 +50,7 @@ RUN="$RUNS/20260911_120000_aaaa1111"
 grep -q "運搬中のためスキップ" "$TMP/run1.log" || { echo "NG: .partial スキップの理由がログされていない"; exit 1; }
 [ -f "$RUN/claude.out.json" ] || { echo "NG: claude 出力が無い"; exit 1; }
 grep -q '"status": *"failure"' "$RUN/fix-result.json" || { echo "NG: result 無しの補完が無い"; exit 1; }
+grep -Eq '"finishedAt": *"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z"' "$RUN/fix-result.json" || { echo "NG: 補完に finishedAt が無い"; exit 1; }
 # 実行制御の正本は canon。cwd が修正対象 worktree だと、報告時の版のスキル・hook で走ってしまう
 # The run-control source is the canon; a cwd of the fix-target worktree would run the report-era skill and hooks
 [ "$(cat "$CLAUDE_PWD_FILE")" = "$CANON" ] || { echo "NG: canon を cwd にしていない: $(cat "$CLAUDE_PWD_FILE")"; exit 1; }
@@ -112,6 +113,7 @@ poll CLAUDE_CALLED_MARKER="$TMP/claude-was-called" CLAUDE_CMD="$TMP/claude-forbi
 [ ! -e "$TMP/claude-was-called" ] || { echo "NG: worktree 無しで claude を起こした"; exit 1; }
 grep -q "隔離 worktree が無いため自動修正ランを起こさない" "$TMP/run4.log" || { echo "NG: 起動見送りの理由がログされていない"; exit 1; }
 grep -q '"status": *"failure"' "$RUNS/20260911_150000_dddd4444/fix-result.json" || { echo "NG: failure の結果が無い"; exit 1; }
+grep -q '"finishedAt": *"' "$RUNS/20260911_150000_dddd4444/fix-result.json" || { echo "NG: failure 補完に finishedAt が無い"; exit 1; }
 
 # canon にスキルが無い（master 未マージ）なら、修正対象 worktree の版で走らせずに理由を残して止まる
 # When the canon lacks the skill (not yet merged to master), the run stops with a reason instead of using the fix-target worktree's revision
@@ -128,6 +130,7 @@ poll CLAUDE_CALLED_MARKER="$TMP/claude-was-called-canon" CLAUDE_CMD="$TMP/claude
 [ ! -e "$TMP/claude-was-called-canon" ] || { echo "NG: canon 不備で claude を起こした"; exit 1; }
 grep -q "が無い（このスキルがまだ master に入っていない）" "$TMP/run7.log" || { echo "NG: canon 不備の理由がログされていない"; exit 1; }
 grep -q '"status": *"failure"' "$RUNS/20260911_170000_ffff6666/fix-result.json" || { echo "NG: canon 不備の failure 結果が無い"; exit 1; }
+grep -q '"finishedAt": *"' "$RUNS/20260911_170000_ffff6666/fix-result.json" || { echo "NG: failure 補完に finishedAt が無い"; exit 1; }
 
 # canon_setup 自体が失敗したときも同じく起こさない / A failing canon_setup blocks the launch just the same
 cat > "$TMP/canon-setup-broken" <<'SH'

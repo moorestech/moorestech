@@ -33,6 +33,7 @@
 - `POST /v1/session` body `{"ticket":"<hex>"}` → Steam Web API `ISteamUserAuth/AuthenticateUserTicket/v1`（`identity=moorestech-playtest`）で検証 → `{ "steamId": "...", "allowed": true, "token": "<HMAC-JWT 1h>" }`。不許可は 403 `{ "reason": "not-allowed" }`、検証失敗は 401。
 - `PUT /v1/uploads/{kind}/{id}/{path...}`（Bearer token、`kind` は report|progress、1ファイル ≤ 100MB）→ R2 `{kind}s/{steamId}/{id}/{path}` へ保存。
 - `POST /v1/uploads/{kind}/{id}/complete` → R2 に `{kind}s/{steamId}/{id}/READY`（本文 = manifest の要約 JSON）。
+  - 改訂（2026-09-17 裁定・実装で追加済み）: 要約 JSON は `{kind, id, fileCount, files, skipped, manifest}`。`files` は PUT に成功した相対パスの配列（見送り分は含めない）で、plan H の `ingest.sh` はこれだけを取得する（`.decisions/2026-09-17-プレイテスト取り込みのファイル一覧はクライアントがREADY要約のfilesに書く.md`）。
 - `GET /v1/inbox?cursor=<opaque>`（`X-Admin-Key` ヘッダ）→ `{ "items": [ { "kind","steamId","id","readyAt" } ], "cursor": "..." }`（READY 済みで未ACKのもの）。
 - `GET /v1/inbox/{kind}/{steamId}/{id}/{path...}`（admin）→ R2 オブジェクト。
 - `POST /v1/inbox/{kind}/{steamId}/{id}/ack`（admin）→ R2 `.../ACKED` を書く。

@@ -5,7 +5,7 @@
 poller はこのファイルだけを見てランの結末を判断する。
 
 ```json
-{"status": "fixed|not_reproduced|needs_ruling|failure", "pr_number": 1234, "base": "master|<branch>", "determinism": "ok|diverged|unchecked", "bd_id": "moorestech-xxxx", "summary": "...", "remaining": "..."}
+{"status": "fixed|not_reproduced|needs_ruling|failure", "pr_number": 1234, "base": "master|<branch>", "determinism": "ok|diverged|unchecked", "bd_id": "moorestech-xxxx", "summary": "...", "remaining": "...", "finishedAt": "2026-09-17T10:00:00Z"}
 ```
 
 ## フィールド
@@ -19,6 +19,7 @@ poller はこのファイルだけを見てランの結末を判断する。
 | `bd_id` | 常に | Step 1 で作った追跡 issue の id |
 | `summary` | 常に | 何が起きたか・何を判断したか・欠損や環境差の有無を1〜数文で |
 | `remaining` | 空でよい | 人がこの後やること／次に試すこと |
+| `finishedAt` | 常に | このファイルを書いた時刻。ISO8601 UTC の秒精度（`date -u +%Y-%m-%dT%H:%M:%SZ`）。日次ダイジェストがランの日付判定に使い、欠けると mtime へ縮退して警告が出る。poller の failure 補完も同じ形で書く |
 
 `summary` と `remaining` にバンドルの中身（スナップショット本文・ログ本文）を貼らない。パスで指す。
 
@@ -32,7 +33,8 @@ PR 本文に裁定事項を残した場合はその旨も書く（人が PR を�
 
 ```json
 {"status": "fixed", "pr_number": 1355, "base": "master", "determinism": "ok",
- "bd_id": "moorestech-0421", "summary": "搬送ベルトの端でアイテムが消える件。InserterConnector の tick 順序が原因。合成NUnit ItemDisappearOnBeltEndTest を追加し master 基底で修正。", "remaining": "PR #1355 のレビューとマージ"}
+ "bd_id": "moorestech-0421", "summary": "搬送ベルトの端でアイテムが消える件。InserterConnector の tick 順序が原因。合成NUnit ItemDisappearOnBeltEndTest を追加し master 基底で修正。", "remaining": "PR #1355 のレビューとマージ",
+ "finishedAt": "2026-09-17T10:00:00Z"}
 ```
 
 ### `not_reproduced`
@@ -42,7 +44,8 @@ Step 3 の観察で症状が出ず、追加シナリオ3本でも出なかった
 
 ```json
 {"status": "not_reproduced", "pr_number": null, "base": null, "determinism": "ok",
- "bd_id": "moorestech-0422", "summary": "観察ラン3本（報告位置で30秒／列車発車／インベントリ開閉）いずれも症状なし。unity.log にも Error 無し。", "remaining": "報告者に直前の操作の詳細を確認。frames/0087.png 以降にUIが写っていないため操作系の記録が要る"}
+ "bd_id": "moorestech-0422", "summary": "観察ラン3本（報告位置で30秒／列車発車／インベントリ開閉）いずれも症状なし。unity.log にも Error 無し。", "remaining": "報告者に直前の操作の詳細を確認。frames/0087.png 以降にUIが写っていないため操作系の記録が要る",
+ "finishedAt": "2026-09-17T10:00:00Z"}
 ```
 
 ### `needs_ruling`
@@ -52,7 +55,8 @@ Step 3 の観察で症状が出ず、追加シナリオ3本でも出なかった
 
 ```json
 {"status": "needs_ruling", "pr_number": null, "base": null, "determinism": "ok",
- "bd_id": "moorestech-0423", "summary": "液体レシピの端数が切り捨てか切り上げかが未定義で、報告の症状はどちらの解釈でも仕様通りになりうる。", "remaining": "裁定 issue moorestech-0424（候補A: 切り捨て / 候補B: 切り上げ、帰結を記載）"}
+ "bd_id": "moorestech-0423", "summary": "液体レシピの端数が切り捨てか切り上げかが未定義で、報告の症状はどちらの解釈でも仕様通りになりうる。", "remaining": "裁定 issue moorestech-0424（候補A: 切り捨て / 候補B: 切り上げ、帰結を記載）",
+ "finishedAt": "2026-09-17T10:00:00Z"}
 ```
 
 ### `failure`
@@ -62,7 +66,8 @@ Step 3 の観察で症状が出ず、追加シナリオ3本でも出なかった
 
 ```json
 {"status": "failure", "pr_number": null, "base": null, "determinism": "unchecked",
- "bd_id": "moorestech-0425", "summary": "MASTER_DIR が空。manifest の masterData.commit が moorestech_master に存在せず worktree を作れなかった。", "remaining": "master 側のコミットを push してから再実行"}
+ "bd_id": "moorestech-0425", "summary": "MASTER_DIR が空。manifest の masterData.commit が moorestech_master に存在せず worktree を作れなかった。", "remaining": "master 側のコミットを push してから再実行",
+ "finishedAt": "2026-09-17T10:00:00Z"}
 ```
 
 ## `determinism`

@@ -3,45 +3,28 @@
 # Manages the playtest allowlist through the admin API (ADR 0058); PUT replaces the list, so always GET, edit, then PUT
 set -euo pipefail
 
-ENV_FILE="${PLAYTEST_ENV_FILE:-$HOME/hermes-agent/data/services/playtest/env.sh}"
-# shellcheck disable=SC1090
-[ -f "$ENV_FILE" ] && . "$ENV_FILE"
-
-BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.tar-atari.com}"
-ADMIN_KEY="${PLAYTEST_ADMIN_KEY:?PLAYTEST_ADMIN_KEY が未設定です（$ENV_FILE に書いてください）}"
-CURL_CMD="${CURL_CMD:-curl}"
-
+HERE="$(cd "$(dirname "$0")" && pwd)"
 log() { echo "[allowlist] $*" >&2; }
 
-# curl呼び出しの失敗経路を無音で通さない。何を・どのURLへ呼んだかと、非2xxならstatus・bodyをstderrへ出す
-# Never let a curl failure pass silently; log what was called and the URL, and on a non-2xx response its status and body
-http_call() {
-  local method="$1" url="$2" data="${3:-}" out status body rc=0
-  if [ "$method" = "PUT" ]; then
-    out="$("$CURL_CMD" -sS -w '\n%{http_code}' -X PUT -H "X-Admin-Key: $ADMIN_KEY" -H "Content-Type: application/json" --data "$data" "$url")" || rc=$?
-  else
-    out="$("$CURL_CMD" -sS -w '\n%{http_code}' -H "X-Admin-Key: $ADMIN_KEY" "$url")" || rc=$?
-  fi
-  if [ "$rc" -ne 0 ]; then
-    log "許可リストAPIへ到達できない（curl終了コード $rc）: $method $url"
-    exit 1
-  fi
-  status="${out##*$'\n'}"
-  body="${out%$'\n'*}"
-  case "$status" in
-    2??) ;;
-    *) log "許可リストAPIが失敗を返した（ADMIN_KEY不一致の可能性を含む）: $method $url status=$status body=$body"; exit 1 ;;
-  esac
-  printf '%s' "$body"
-}
+# 既定値はスクリプト自身の位置から導出する（ingest.sh と同じ。supervisor は HOME を差し替えるため $HOME 基準は不可）
+# Defaults derive from the script's own location (same as ingest.sh; supervisor swaps HOME, so $HOME-based defaults break)
+REPO="${MOORESTECH_REPO:-$(cd "$HERE/../.." && pwd)}"
+ENV_FILE="${PLAYTEST_ENV_FILE:-$REPO/../../services/playtest/env.sh}"
+# shellcheck disable=SC1090
+if [ -f "$ENV_FILE" ]; then
+  . "$ENV_FILE"
+else
+  log "env file が無い（${ENV_FILE}）。PLAYTEST_ADMIN_KEY 等は環境変数頼みになる"
+fi
+: "${PLAYTEST_ADMIN_KEY:?PLAYTEST_ADMIN_KEY が未設定です（${ENV_FILE} に書いてください）}"
 
-# GETとPUTで分岐を共有しない。dataの有無ではなくmethod名だけで経路を決める
-# GET and PUT never share a branch; the route is decided solely by the method name, never by whether data is present
-http_get() { http_call GET "$1"; }
-http_put() { http_call PUT "$1" "$2"; }
+# 受け口 admin API の呼び出しは lib/receiver-api.sh に一本化する。env.sh の後に読む（既定URLの確定が先行しないため）
+# Receiver admin API calls go through lib/receiver-api.sh only; sourced after env.sh so its default URL does not resolve first
+# shellcheck source=lib/receiver-api.sh
+. "$HERE/lib/receiver-api.sh"
 
 fetch_list() {
-  http_get "$BASE/v1/allowlist"
+  receiver_allowlist_get
 }
 
 # 現在のリストへ1件足す/引く。順序は入力順のまま、段ごとの失敗検知用に関数化
@@ -64,7 +47,7 @@ print(json.dumps({"steamIds": ids}))
 # 全置換PUT。成功時のレスポンス本文（更新後リスト）は呼び出し元で使わないため捨てる
 # A full-replace PUT; the response body (the updated list) is unused by callers so it is discarded
 put_list() {
-  http_put "$BASE/v1/allowlist" "$1" >/dev/null
+  receiver_allowlist_put "$1" >/dev/null
 }
 
 require_steam_id() {

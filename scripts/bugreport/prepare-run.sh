@@ -3,13 +3,15 @@
 # Builds an isolated worktree at the report commit plus diff, the master-data worktree, Library, world/, and run.env
 set -euo pipefail
 ID="${1:?run id}"
-LOGS="${MOORESTECH_LOGS:-$HOME/hermes-agent/data/repos/moorestech_logs}"
-REPO="${MOORESTECH_REPO:-$HOME/hermes-agent/data/repos/moorestech}"
-WORKTREES="${MOORESTECH_WORKTREES:-$HOME/hermes-agent/data/repos/moorestech-worktrees}"
-MASTER="${MOORESTECH_MASTER:-$HOME/hermes-agent/data/repos/moorestech_master}"
-MASTER_WORKTREES="${MOORESTECH_MASTER_WORKTREES:-$HOME/hermes-agent/data/repos/moorestech-master-worktrees}"
-RUN="$LOGS/runs/$ID"; [ -d "$RUN" ] || RUN="$LOGS/harness/bug-report/runs/$ID"
 HERE="$(cd "$(dirname "$0")" && pwd)"
+# 既定値はスクリプト自身の位置から導出する（inbox-poller.sh と同じ。supervisor は HOME を差し替えるため $HOME 基準は不可）
+# Defaults derive from the script's own location (same as inbox-poller.sh; supervisor swaps HOME, so $HOME-based defaults break)
+REPO="${MOORESTECH_REPO:-$(cd "$HERE/../.." && pwd)}"
+LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
+WORKTREES="${MOORESTECH_WORKTREES:-$REPO/../moorestech-worktrees}"
+MASTER="${MOORESTECH_MASTER:-$REPO/../moorestech_master}"
+MASTER_WORKTREES="${MOORESTECH_MASTER_WORKTREES:-$REPO/../moorestech-master-worktrees}"
+RUN="$LOGS/runs/$ID"; [ -d "$RUN" ] || RUN="$LOGS/harness/bug-report/runs/$ID"
 log() { echo "[prepare] $*" >&2; }
 
 [ -d "$RUN" ] || { log "run ディレクトリが無い: $RUN"; exit 1; }
