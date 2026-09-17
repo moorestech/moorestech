@@ -24,6 +24,7 @@ using Client.Network.API;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload;
+using Client.Starter.PlaytestSmoke;
 using Core.Item.Interface;
 using Game.Construction;
 using Game.Context;
@@ -86,6 +87,10 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainFullSnapshotEventNetworkHandler>().AsSelf();
+
+            // 配布ビルドの通し検証ランナー。マーカー引数が無ければ Start() で即 return する
+            // The distribution smoke runner; without the marker argument it returns immediately in Start()
+            builder.RegisterEntryPoint<StandalonePlaytestSmokeRunner>();
         }
     }
 }
