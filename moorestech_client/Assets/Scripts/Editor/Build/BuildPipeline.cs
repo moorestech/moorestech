@@ -61,6 +61,7 @@ namespace Client.Editor.Build
             if (report.summary.result == BuildResult.Succeeded)
             {
                 CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
+                FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
                 if (request.BundleLocalGameData)
                 {
                     GameDataBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);
