@@ -16,7 +16,7 @@
 # copy lives under HERMES_HOME/scripts, outside the repo). The default must not depend on $HOME
 # either: the Hermes gateway process swaps HOME to a containment dir, so a `~`-based default
 # would resolve inconsistently depending on which HOME the cron job actually runs under.
-set -uo pipefail
+set -euo pipefail
 REPO="${MOORESTECH_REPO:-/Users/sakastudio/hermes-agent/data/repos/moorestech}"
 export MOORESTECH_LOGS="${MOORESTECH_LOGS:-/Users/sakastudio/hermes-agent/data/repos/moorestech_logs}"
 exec /usr/bin/python3 "$REPO/scripts/playtest/digest.py" --date yesterday
