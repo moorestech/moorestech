@@ -1,0 +1,25 @@
+# step の timeout-minutes を超えた job が failure になるか cancelled になるかを実測する使い捨てworkflow。
+# A throwaway workflow measuring whether exceeding a step-level timeout-minutes ends the job as failure or cancelled.
+# 実測後に削除する（ADR 0063 Task 1）。
+# Deleted right after the measurement (ADR 0063 Task 1).
+name: Tmp Step Timeout Probe
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # 実際のテスト実行stepと同じく uses: のアクションstepで測る（run: とで挙動が違う可能性を潰す）。
+      # Measured on a uses: action step like the real test step, ruling out a difference from run: steps.
+      - name: Sleep past the step timeout
+        uses: actions/github-script@v7
+        timeout-minutes: 1
+        with:
+          script: await new Promise((resolve) => setTimeout(resolve, 150000))
+
+      - name: Report that the probe reached the following step
+        if: always()
+        run: echo "reached the step after the timed-out step"
