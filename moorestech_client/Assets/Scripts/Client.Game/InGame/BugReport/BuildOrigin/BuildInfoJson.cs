@@ -35,9 +35,9 @@ namespace Client.Game.InGame.BugReport.BuildOrigin
                     Dirty = (bool?)obj["dirty"],
                     MasterDataCommit = NullIfEmpty((string)obj["masterDataCommit"]),
                     MasterDataDirty = (bool?)obj["masterDirty"],
-                    SteamBuildLabel = (string)obj["steamBuildLabel"],
+                    SteamBuildLabel = NullIfEmpty((string)obj["steamBuildLabel"]),
                     BuiltAt = (string)obj["builtAt"],
-                    Target = (string)obj["target"],
+                    Target = NullIfEmpty((string)obj["target"]),
                 };
             }
             catch (Exception exception)

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using Client.Editor.Build.Bundlers;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Game.Paths;
@@ -39,8 +40,9 @@ namespace Client.Editor.Build
             // Bake the HEAD of the very repo that gets bundled, not the primary clone's neighbour; they can differ in a worktree build
             var masterData = RepositoryStateProbe.ProbeGit(GameDataBundler.MasterDataRepositoryRoot);
             var pinned = MasterDataRootLocator.ReadPinnedCommit(RepositoryStateProbe.RepositoryRoot, out var pinUnreadableReason);
-            var label = Environment.GetEnvironmentVariable(BuildInfoComposer.SteamBuildLabelEnvKey) ?? "";
-            var json = BuildInfoComposer.Compose(repo, masterData, pinned, pinUnreadableReason, label, DateTime.UtcNow, report.summary.platform.ToString(), _isStrictBundling, out var buildFailureReason);
+            var label = Environment.GetEnvironmentVariable(BuildInfoComposer.SteamBuildLabelEnvKey);
+            var branch = Environment.GetEnvironmentVariable(BuildInfoComposer.BuildBranchEnvKey);
+            var json = BuildInfoComposer.Compose(repo, masterData, pinned, pinUnreadableReason, label, branch, DateTime.UtcNow, report.summary.platform.ToString(), _isStrictBundling, out var buildFailureReason);
 
             // strict の配布物で出所を偽る焼き込みは作らせない。理由はビルド失敗メッセージに出す
             // A strict distribution build must not bake a misreported origin; the reason goes into the build failure message
@@ -49,7 +51,7 @@ namespace Client.Editor.Build
             var path = GameSystemPaths.BuildInfoFilePath;
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, json);
-            Debug.Log($"[BuildInfoWriter] build-info.json を書きました commit:{repo.State?.Commit} dirty:{repo.State?.Dirty} masterData:{masterData.State?.Commit} label:{label} strict:{_isStrictBundling}");
+            Debug.Log($"[BuildInfoWriter] build-info.json を書きました commit:{repo.State?.Commit} dirty:{repo.State?.Dirty} masterData:{masterData.State?.Commit} label:{label} branchOverride:{branch} strict:{_isStrictBundling}");
         }
     }
 }

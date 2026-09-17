@@ -15,15 +15,21 @@ namespace Client.Game.InGame.BugReport.BuildOrigin
     public static class BuildInfoComposer
     {
         public const string SteamBuildLabelEnvKey = "MOORESTECH_STEAM_BUILD_LABEL";
+        // 使い捨てworktreeの一時ブランチ名ではなく、配布元のref（master等）を焼くためにスクリプトが渡す
+        // The release script passes the distribution source ref (e.g. master) so the disposable worktree's temporary branch name is never baked
+        public const string BuildBranchEnvKey = "MOORESTECH_BUILD_BRANCH";
 
         // buildFailureReason は strict で焼き込みを拒むときだけ非null。非strictは同じ理由を警告ログへ出して焼き続ける
         // buildFailureReason is non-null only when strict refuses the bake; non-strict logs the same reasons as warnings and keeps baking
+        // env由来の2値は読んだ値をそのまま受け、未指定（null・空）の解決はここ1箇所で行う
+        // Both env-sourced values arrive exactly as read; resolving "unspecified" (null or empty) happens only here
         public static string Compose(
             RepositoryProbeResult repo,
             RepositoryProbeResult masterData,
             string pinnedMasterDataCommit,
             string pinUnreadableReason,
-            string steamBuildLabel,
+            string steamBuildLabelEnvValue,
+            string buildBranchEnvValue,
             DateTime builtAtUtc,
             string target,
             bool isStrictBundling,
@@ -43,11 +49,13 @@ namespace Client.Game.InGame.BugReport.BuildOrigin
             var info = new JObject
             {
                 ["commit"] = repo.State?.Commit,
-                ["branch"] = repo.State?.Branch,
+                ["branch"] = string.IsNullOrEmpty(buildBranchEnvValue) ? repo.State?.Branch : buildBranchEnvValue,
                 ["dirty"] = repo.State?.Dirty,
                 ["masterDataCommit"] = masterData.State?.Commit,
                 ["masterDirty"] = masterData.State?.Dirty,
-                ["steamBuildLabel"] = steamBuildLabel,
+                // ラベル未指定は空文字でなくnullで焼き、「ラベルなし」と「空ラベル」を区別不能にしない
+                // An unspecified label bakes as null rather than "", keeping "no label" distinguishable from an empty one
+                ["steamBuildLabel"] = string.IsNullOrEmpty(steamBuildLabelEnvValue) ? null : steamBuildLabelEnvValue,
                 ["builtAt"] = builtAtUtc.ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture),
                 ["target"] = target,
             };

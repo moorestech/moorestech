@@ -36,19 +36,26 @@ namespace Client.Game.InGame.BugReport
 
         // ビルドに焼く masterDataCommit の突き合わせ先。読めないときは null と理由を返し、縮退か失敗かとそのログは呼び出し側が決める
         // The pin the baked masterDataCommit is checked against; when unreadable it returns null plus a reason, leaving degrade-or-fail and its logging to the caller
+        // 作業ツリーのピンはGUIビルドの同期が実HEADへ書き戻すため、照合元はコミット済みの値に固定する（同値比較で素通りさせない）
+        // The working-tree pin can be rewritten to the actual HEAD by the GUI build sync, so the committed value is the source, never a self-comparison
         public static string ReadPinnedCommit(string repositoryRoot, out string unreadableReason)
         {
             unreadableReason = null;
-            var revisionsPath = Path.Combine(repositoryRoot, ExternalRevisionsFileName);
-            if (!File.Exists(revisionsPath))
+            var committedPinSource = $"HEAD:{ExternalRevisionsFileName} repo:{repositoryRoot}";
+            if (!Directory.Exists(repositoryRoot))
             {
-                unreadableReason = $"ピンファイルが無い path:{revisionsPath}";
+                unreadableReason = $"コミット済みのピンを読めない（ディレクトリが無い） {committedPinSource}";
+                return null;
+            }
+            if (!RepositoryStateProbe.TryGit(repositoryRoot, $"show HEAD:{ExternalRevisionsFileName}", out var committedPinJson, out var error))
+            {
+                unreadableReason = $"コミット済みのピンを読めない {committedPinSource}: {error}";
                 return null;
             }
 
-            var commit = ReadMasterPinField(revisionsPath, "commitHash");
+            var commit = ReadMasterPinField(committedPinJson, committedPinSource, "commitHash");
             if (!string.IsNullOrEmpty(commit)) return commit;
-            unreadableReason = $"ピンに {MasterRepositoryKey} の commitHash が無い path:{revisionsPath}";
+            unreadableReason = $"ピンに {MasterRepositoryKey} の commitHash が無い {committedPinSource}";
             return null;
         }
 
@@ -56,7 +63,7 @@ namespace Client.Game.InGame.BugReport
         {
             reason = null;
             var revisionsPath = Path.Combine(repositoryRoot, ExternalRevisionsFileName);
-            relativePath = File.Exists(revisionsPath) ? ReadMasterPinField(revisionsPath, "relativePath") : null;
+            relativePath = File.Exists(revisionsPath) ? ReadMasterPinField(File.ReadAllText(revisionsPath), revisionsPath, "relativePath") : null;
             if (!File.Exists(revisionsPath)) reason = $"ピンファイルが無い path:{revisionsPath}";
             else if (string.IsNullOrEmpty(relativePath)) reason = $"ピンに {MasterRepositoryKey} の relativePath が無い path:{revisionsPath}";
             return reason == null;
@@ -72,11 +79,11 @@ namespace Client.Game.InGame.BugReport
 
         // ピンは外部入力のJSON。壊れた1ファイルでバグ報告ごと落とさないよう、ここだけ解析失敗を理由へ変換する
         // The pin is external JSON input; only here a parse failure becomes a reason so one broken file never kills the whole report
-        private static string ReadMasterPinField(string revisionsPath, string fieldName)
+        private static string ReadMasterPinField(string pinJson, string pinSource, string fieldName)
         {
             try
             {
-                foreach (var revision in (JArray)JObject.Parse(File.ReadAllText(revisionsPath))["repositories"])
+                foreach (var revision in (JArray)JObject.Parse(pinJson)["repositories"])
                 {
                     if ((string)revision["key"] == MasterRepositoryKey) return (string)revision[fieldName];
                 }
@@ -84,7 +91,7 @@ namespace Client.Game.InGame.BugReport
             }
             catch (Exception exception)
             {
-                Debug.LogWarning($"ピンファイルを読めません path:{revisionsPath}: {exception.GetBaseException().Message}");
+                Debug.LogWarning($"ピンファイルを読めません source:{pinSource}: {exception.GetBaseException().Message}");
                 return null;
             }
         }

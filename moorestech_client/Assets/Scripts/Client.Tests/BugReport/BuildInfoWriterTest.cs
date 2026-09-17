@@ -22,7 +22,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 生成JSONは共有契約の全キーを持ち読み手でラウンドトリップできる()
         {
-            var json = Compose(Probe(RepoCommit, "master", true), Probe(MasterCommit, "HEAD", false), MasterCommit, null, "playtest-20260913-1730", true, out var failureReason);
+            var json = Compose(Probe(RepoCommit, "master", true), Probe(MasterCommit, "HEAD", false), MasterCommit, null, "playtest-20260913-1730", null, true, out var failureReason);
 
             Assert.IsNull(failureReason, failureReason);
             var raw = ParseWithoutDateConversion(json);
@@ -49,7 +49,7 @@ namespace Client.Tests.BugReport
         public void 非strictでは状態が取れなかった場合もnullで有効なJSONになりビルドを止めない()
         {
             var failed = new RepositoryProbeResult { Error = "git を起動できない" };
-            var json = ParseWithoutDateConversion(Compose(failed, failed, null, "ピンファイルが無い", "", false, out var failureReason));
+            var json = ParseWithoutDateConversion(Compose(failed, failed, null, "ピンファイルが無い", "", null, false, out var failureReason));
 
             Assert.IsNull(failureReason, "非strictなのにビルド失敗理由が返った");
             Assert.AreEqual(JTokenType.Null, json["commit"].Type);
@@ -61,7 +61,7 @@ namespace Client.Tests.BugReport
         public void strictではgitを読めなければ理由付きでビルド失敗になる()
         {
             var failed = new RepositoryProbeResult { Error = "git を起動できない" };
-            Compose(failed, Probe(MasterCommit, "HEAD", false), MasterCommit, null, "", true, out var failureReason);
+            Compose(failed, Probe(MasterCommit, "HEAD", false), MasterCommit, null, "", null, true, out var failureReason);
 
             StringAssert.Contains("git を起動できない", failureReason);
         }
@@ -69,7 +69,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void strictではピンと実HEADが食い違えば両方のコミットを理由に出す()
         {
-            Compose(Probe(RepoCommit, "master", false), Probe(MasterCommit, "HEAD", false), OtherCommit, null, "", true, out var failureReason);
+            Compose(Probe(RepoCommit, "master", false), Probe(MasterCommit, "HEAD", false), OtherCommit, null, "", null, true, out var failureReason);
 
             StringAssert.Contains(MasterCommit, failureReason);
             StringAssert.Contains(OtherCommit, failureReason);
@@ -78,7 +78,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void strictではピンが読めなければビルド失敗になる()
         {
-            Compose(Probe(RepoCommit, "master", false), Probe(MasterCommit, "HEAD", false), null, "ピンファイルが無い", "", true, out var failureReason);
+            Compose(Probe(RepoCommit, "master", false), Probe(MasterCommit, "HEAD", false), null, "ピンファイルが無い", "", null, true, out var failureReason);
 
             Assert.IsNotNull(failureReason);
         }
@@ -86,31 +86,36 @@ namespace Client.Tests.BugReport
         [Test]
         public void 非strictではピンずれでもビルドを止めず実HEADを焼く()
         {
-            var json = ParseWithoutDateConversion(Compose(Probe(RepoCommit, "master", false), Probe(MasterCommit, "HEAD", false), OtherCommit, null, "", false, out var failureReason));
+            var json = ParseWithoutDateConversion(Compose(Probe(RepoCommit, "master", false), Probe(MasterCommit, "HEAD", false), OtherCommit, null, "", null, false, out var failureReason));
 
             Assert.IsNull(failureReason);
             Assert.AreEqual(MasterCommit, (string)json["masterDataCommit"]);
         }
 
-        [Test]
-        public void ピンファイルからmasterDataのコミットを読める()
+        // 未指定ラベルは空文字でなくnullで焼かれ、読み手も空文字をnullとして運ぶ（「ラベルなし」を区別する）
+        // An unspecified label bakes as null instead of "", and the reader also carries "" as null ("no label" stays distinguishable)
+        [TestCase(null)]
+        [TestCase("")]
+        public void 未指定のsteamBuildLabelはnullで焼かれ読み手もnullを返す(string labelEnvValue)
         {
-            var checkoutRoot = CreateCheckoutWithPin(MasterCommit);
+            var json = Compose(Probe(RepoCommit, "master", false), Probe(MasterCommit, "HEAD", false), MasterCommit, null, labelEnvValue, null, false, out _);
 
-            Assert.AreEqual(MasterCommit, MasterDataRootLocator.ReadPinnedCommit(checkoutRoot, out var unreadableReason));
-            Assert.IsNull(unreadableReason);
+            Assert.AreEqual(JTokenType.Null, ParseWithoutDateConversion(json)["steamBuildLabel"].Type);
+            Assert.IsNull(BuildInfoJson.Parse(json).SteamBuildLabel);
+            Assert.IsNull(BuildInfoJson.Parse("{\"steamBuildLabel\":\"\",\"target\":\"\"}").Target);
         }
 
-        // ピン欠落の理由はログを二重に出さず、ビルド失敗理由（strict）へそのまま載る
-        // The missing-pin reason is not logged twice; it travels straight into the strict build failure reason
-        [Test]
-        public void ピンファイルが無ければ理由を返しstrictの失敗理由に載る()
+        // 使い捨てworktreeの一時ブランチ名ではなく、スクリプトが渡した配布元refを焼く。未指定ならgitの値のまま
+        // Bakes the distribution ref passed by the script instead of the disposable worktree's temporary branch; unspecified keeps the git value
+        [TestCase("master", "master")]
+        [TestCase(null, "playtest/build-93ddfdab")]
+        [TestCase("", "playtest/build-93ddfdab")]
+        public void branchは配布元refの指定を優先し未指定ならgitの値を焼く(string branchEnvValue, string expectedBranch)
         {
-            var checkoutRoot = CreateTemporaryDirectory();
+            var json = Compose(Probe(RepoCommit, "playtest/build-93ddfdab", false), Probe(MasterCommit, "HEAD", false), MasterCommit, null, "playtest-20260913-1730", branchEnvValue, true, out var failureReason);
 
-            Assert.IsNull(MasterDataRootLocator.ReadPinnedCommit(checkoutRoot, out var unreadableReason));
-            Compose(Probe(RepoCommit, "master", false), Probe(MasterCommit, "HEAD", false), null, unreadableReason, "", true, out var failureReason);
-            StringAssert.Contains(checkoutRoot, failureReason);
+            Assert.IsNull(failureReason, failureReason);
+            Assert.AreEqual(expectedBranch, (string)ParseWithoutDateConversion(json)["branch"]);
         }
 
         // worktree からのビルドでも同梱元は正本cloneの隣でなくビルドする checkout の隣。焼くコミットもここから読む（D-6）
@@ -151,10 +156,10 @@ namespace Client.Tests.BugReport
             return checkoutRoot;
         }
 
-        private static string Compose(RepositoryProbeResult repo, RepositoryProbeResult master, string pinned, string pinUnreadableReason, string label, bool isStrictBundling, out string failureReason)
+        private static string Compose(RepositoryProbeResult repo, RepositoryProbeResult master, string pinned, string pinUnreadableReason, string label, string branch, bool isStrictBundling, out string failureReason)
         {
             var builtAt = new DateTime(2026, 9, 11, 0, 0, 0, DateTimeKind.Utc);
-            return BuildInfoComposer.Compose(repo, master, pinned, pinUnreadableReason, label, builtAt, "StandaloneWindows64", isStrictBundling, out failureReason);
+            return BuildInfoComposer.Compose(repo, master, pinned, pinUnreadableReason, label, branch, builtAt, "StandaloneWindows64", isStrictBundling, out failureReason);
         }
 
         private static RepositoryProbeResult Probe(string commit, string branch, bool dirty)
