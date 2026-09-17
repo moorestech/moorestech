@@ -22,7 +22,6 @@ missing=""
 [ -n "${MOORESTECH_VERIFY_MAC:-}" ] || missing="$missing MOORESTECH_VERIFY_MAC"
 [ -n "${MOORESTECH_RECEIVER_BASE:-}" ] || missing="$missing MOORESTECH_RECEIVER_BASE"
 [ -n "${MOORESTECH_RECEIVER_ADMIN_KEY:-}" ] || missing="$missing MOORESTECH_RECEIVER_ADMIN_KEY"
-[ -n "${MOORESTECH_STEAM_USER:-}" ] || missing="$missing MOORESTECH_STEAM_USER"
 if [ -n "$missing" ]; then
     echo "ERROR: 必須の環境変数が未設定です:$missing" >&2
     exit 2
@@ -55,12 +54,17 @@ done
 
 echo "[verify] running smoke on $MOORESTECH_VERIFY_HOST"
 "$SSH_BIN" -o BatchMode=yes "$REMOTE" \
-    "powershell -NoProfile -ExecutionPolicy Bypass -File '$REMOTE_ROOT/run-smoke.ps1' -SteamUser '$MOORESTECH_STEAM_USER' -ResultRoot '$REMOTE_ROOT/results'"
+    "powershell -NoProfile -ExecutionPolicy Bypass -File '$REMOTE_ROOT/run-smoke.ps1' -ResultRoot '$REMOTE_ROOT/results'"
 
-"$SCP_BIN" -o BatchMode=yes -r "$REMOTE:$REMOTE_ROOT/results/*" "$VERIFY_ARTIFACT_ROOT"
+# ワイルドカード展開はリモート側シェルに依存し、SFTPプロトコルのscpでは効かないことがある。
+# ディレクトリごとコピーして展開を回避する（宛先は既にmkdir -p済みなので中へ results/ ごと入る）
+# A remote-shell-dependent wildcard can silently no-op under the SFTP scp protocol; copy the
+# directory itself instead (the destination already exists, so scp nests results/ inside it)
+"$SCP_BIN" -o BatchMode=yes -r "$REMOTE:$REMOTE_ROOT/results" "$VERIFY_ARTIFACT_ROOT"
+COLLECTED_ROOT="$VERIFY_ARTIFACT_ROOT/results"
 
 for phase in phase1 phase2; do
-    result="$VERIFY_ARTIFACT_ROOT/$phase/result.json"
+    result="$COLLECTED_ROOT/$phase/result.json"
     if [ ! -f "$result" ]; then
         echo "ERROR: $phase の result.json を回収できませんでした: $result" >&2
         exit 4
@@ -75,7 +79,12 @@ done
 # Confirm the report reached the receiver; the client-side UPLOADED marker alone does not prove receipt
 # 照合はバンドルIDで行う。inboxは未ACKのものだけを返すため、取り込み(plan H)が先にACKすると見えなくなる
 # Match by bundle id; the inbox lists only un-ACKed items, so an ingest run (plan H) that ACKs first hides it
-REPORT_ID="$(basename "$(sed -n 's/.*"reportBundleDirectory" *: *"\([^"]*\)".*/\1/p' "$VERIFY_ARTIFACT_ROOT/phase2/result.json")")"
+# reportBundleDirectoryは検証機(Windows)のパスで、JSON中はバックスラッシュがエスケープされ2文字("\\")で
+# 現れる。basenameはスラッシュしか割らないため使わず、末尾の区切り文字(\または/、連続もまとめて)より後ろだけ取る
+# reportBundleDirectory is a Windows path; JSON escaping renders each backslash as two chars ("\\").
+# basename only splits on '/', so instead strip everything through the last run of '\' or '/' chars
+REPORT_DIRECTORY_RAW="$(sed -n 's/.*"reportBundleDirectory" *: *"\([^"]*\)".*/\1/p' "$COLLECTED_ROOT/phase2/result.json")"
+REPORT_ID="$(printf '%s' "$REPORT_DIRECTORY_RAW" | sed 's#.*[\\/]##')"
 if [ -z "$REPORT_ID" ]; then
     echo "ERROR: phase2 の result.json から報告バンドルIDを読めませんでした" >&2
     exit 6
@@ -86,10 +95,21 @@ attempt=0
 while [ "$attempt" -lt 6 ]; do
     inbox="$("$CURL_BIN" -sS -H "X-Admin-Key: $MOORESTECH_RECEIVER_ADMIN_KEY" "$MOORESTECH_RECEIVER_BASE/v1/inbox")"
     echo "$inbox" >"$VERIFY_ARTIFACT_ROOT/inbox.json"
-    if printf '%s' "$inbox" | grep -q '"kind"'; then
-        found=1
-        break
-    fi
+    # itemsは "{...},{...}" のフラットな並び(admin.tsのgetInboxが1オブジェクト1件で返す)なので
+    # }{ を境に割ってから各要素にkind/idの両方を要求する。無関係な他報告のkind一致だけでは合格にしない
+    # items is a flat "{...},{...}" list (admin.ts's getInbox emits one flat object per entry); split
+    # on }{ and require BOTH kind and id per element so an unrelated report's mere presence never passes
+    while IFS= read -r item; do
+        case "$item" in
+            *'"kind":"report"'*'"id":"'"$REPORT_ID"'"'*)
+                found=1
+                break
+                ;;
+        esac
+    done <<EOF
+$(printf '%s' "$inbox" | sed 's/},{/}\n{/g')
+EOF
+    [ "$found" -eq 1 ] && break
     attempt=$((attempt + 1))
     sleep "$SSH_POLL_SECONDS"
 done

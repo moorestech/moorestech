@@ -1,7 +1,8 @@
 # 検証機で playtest ブランチを更新し、配布ビルドの通し検証（phase1/phase2）を実行する
 # Updates the playtest branch on the check machine and runs the distribution smoke (phase1/phase2)
+# SteamUser 引数は使わない。Steam はテスター用アカウントで事前ログイン済み前提（README 手順6）
+# No SteamUser parameter: Steam is expected to be pre-logged-in with the tester account (README step 6)
 param(
-    [Parameter(Mandatory = $true)][string]$SteamUser,
     [Parameter(Mandatory = $true)][string]$ResultRoot
 )
 
