@@ -6,8 +6,6 @@ using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Context;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using MessagePack;
-using Server.Event.EventReceive;
 using UniRx;
 using UnityEngine;
 using VContainer.Unity;
@@ -29,7 +27,6 @@ namespace Client.Starter.PlaytestSmoke
         private readonly InitialHandshakeResponse _initialHandshakeResponse;
         private readonly StandalonePlaytestSmokeReportSender _reportSender;
         private readonly List<StandalonePlaytestSmokeStep> _steps = new();
-        private long _completedSaveGeneration;
 
         public StandalonePlaytestSmokeRunner(
             InitialHandshakeResponse initialHandshakeResponse,
@@ -116,30 +113,17 @@ namespace Client.Starter.PlaytestSmoke
                     : StandalonePlaytestSmokeStepOutcome.Failed("the initial handshake carried no current challenge, so the tutorial has not started");
             }
 
-            // セーブ要求の番号が書き出し完了通知に追いつくまで待つ（前例: RemoteServerSaveFlushParticipant）
-            // Waits until the save request's generation is reported written (precedent: RemoteServerSaveFlushParticipant)
+            // セーブ要求の番号が書き出し完了通知に追いつくまで待つ（終了時のRemoteServerSaveFlushParticipantと同じ待ち手）
+            // Waits until the save request's generation is reported written (the same waiter RemoteServerSaveFlushParticipant uses at shutdown)
             async UniTask<StandalonePlaytestSmokeStepOutcome> SaveAndWaitWrittenAsync()
             {
-                using var subscription = ClientContext.VanillaApi.Event.SubscribeEventResponse(WorldSaveCompletedEventPacket.EventTag, OnWorldSaveCompleted);
-                // 応答待ちの期限は通信層が持ち、期限切れは null で返る
-                // The response wait is bounded by the network layer, which returns null on timeout
-                var response = await ClientContext.VanillaApi.Response.Save(default);
-                if (response == null) return StandalonePlaytestSmokeStepOutcome.Failed("the save request got no response within the packet timeout");
-
-                var deadline = Time.realtimeSinceStartup + SaveTimeoutSeconds;
-                while (_completedSaveGeneration < response.RequestedSaveGeneration && Time.realtimeSinceStartup < deadline)
+                var waitResult = await new ServerSaveGenerationWaiter(ClientContext.VanillaApi).SaveAndWaitWrittenAsync(SaveTimeoutSeconds);
+                return waitResult switch
                 {
-                    await UniTask.Yield();
-                }
-                return _completedSaveGeneration < response.RequestedSaveGeneration
-                    ? StandalonePlaytestSmokeStepOutcome.Failed($"save generation {response.RequestedSaveGeneration} was not reported written within {SaveTimeoutSeconds}s")
-                    : StandalonePlaytestSmokeStepOutcome.Succeeded("");
-            }
-
-            void OnWorldSaveCompleted(byte[] payload)
-            {
-                var completed = MessagePackSerializer.Deserialize<WorldSaveCompletedEventPacket.WorldSaveCompletedMessagePack>(payload);
-                if (_completedSaveGeneration < completed.CompletedSaveGeneration) _completedSaveGeneration = completed.CompletedSaveGeneration;
+                    ServerSaveGenerationWaiter.SaveWaitResult.Written => StandalonePlaytestSmokeStepOutcome.Succeeded(""),
+                    ServerSaveGenerationWaiter.SaveWaitResult.NoResponse => StandalonePlaytestSmokeStepOutcome.Failed("the save request got no response within the packet timeout"),
+                    _ => StandalonePlaytestSmokeStepOutcome.Failed($"the save was not reported written within {SaveTimeoutSeconds}s"),
+                };
             }
 
             #endregion
