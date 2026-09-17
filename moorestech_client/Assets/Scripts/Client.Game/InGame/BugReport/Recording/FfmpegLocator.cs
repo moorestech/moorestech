@@ -6,7 +6,7 @@ namespace Client.Game.InGame.BugReport.Recording
 {
     public static class FfmpegLocator
     {
-        public const string MissingFfmpegReason = "ffmpeg が見つかりません（配布物同梱・MOORESTECH_FFMPEG・PATH のいずれにも無い）";
+        public const string MissingFfmpegReason = "ffmpeg が見つかりません（配布物同梱 moorestech_Data/Plugins/x86_64/ffmpeg.exe・MOORESTECH_FFMPEG・PATH・既知の場所 /opt/homebrew/bin, /usr/local/bin のいずれにも無い）";
         // 同梱ffmpeg実行ファイル名
         // The bundled ffmpeg executable name
         public const string BundledWindowsExecutableName = "ffmpeg.exe";
