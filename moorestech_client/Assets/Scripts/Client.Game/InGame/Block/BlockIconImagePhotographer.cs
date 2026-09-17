@@ -35,11 +35,7 @@ namespace Client.Game.InGame.Block
             for (var index = 0; index < targets.Count; index++)
             {
                 var target = targets[index];
-                var instance = Instantiate(target.prefab, transform);
-                instance.transform.position = Vector3.zero;
-                instance.transform.rotation = Quaternion.identity;
-                instance.transform.localScale = Vector3.one;
-                result.Add(await GetIcon(instance, target.debugName, index, targets.Count));
+                result.Add(await GetIcon(target.prefab, target.debugName, index, targets.Count));
                 if (Application.isPlaying)
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update);
@@ -51,9 +47,20 @@ namespace Client.Game.InGame.Block
 
             #region Internal
 
-            async UniTask<Texture2D> GetIcon(GameObject captureTarget, string captureDebugName, int captureIndex, int captureCount)
+            async UniTask<Texture2D> GetIcon(GameObject capturePrefab, string captureDebugName, int captureIndex, int captureCount)
             {
                 var captureProgress = $"{captureIndex + 1}/{captureCount} {captureDebugName}";
+
+                // 撮影1件の起点。ここで最後のログが止まっていれば複製〜Camera生成側の固着
+                // The start of one capture; a log stopping here means the freeze is on the clone-to-Camera setup side
+                var iconStartedAt = Time.realtimeSinceStartup;
+                Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:setup");
+
+                var captureTarget = Instantiate(capturePrefab, transform);
+                captureTarget.transform.position = Vector3.zero;
+                captureTarget.transform.rotation = Quaternion.identity;
+                captureTarget.transform.localScale = Vector3.one;
+
                 var bounds = captureTarget.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
                 if (bounds.Count == 0)
                 {
@@ -90,7 +97,6 @@ namespace Client.Game.InGame.Block
 
                 // GPUへ渡す直前。ここで最後のログが止まっていればRender側の固着
                 // Right before handing work to the GPU; a log stopping here means the freeze is on the Render side
-                var iconStartedAt = Time.realtimeSinceStartup;
                 Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:render");
 
                 // ARGB32で透明度を保持
@@ -106,8 +112,8 @@ namespace Client.Game.InGame.Block
                 blockImageCamera.Render();
                 blockImageCamera.targetTexture = null;
 
-                // 同期読み戻しの直前。ここで止まっていればReadPixels側の固着
-                // Right before the synchronous readback; a log stopping here means the freeze is on the ReadPixels side
+                // 同期読み戻しの直前。ここで止まっていればReadPixelsかApplyの固着
+                // Right before the synchronous readback; a log stopping here means the freeze is in ReadPixels or Apply
                 Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:readback");
 
                 // RGBA32へ画素を読み込む
@@ -117,6 +123,10 @@ namespace Client.Game.InGame.Block
                 texture.ReadPixels(new Rect(0, 0, iconSize, iconSize), 0, 0);
                 texture.Apply();
                 RenderTexture.active = null;
+
+                // 画素取得の完了直後。ここで止まっていれば破棄側の固着で、読み戻し窓とは切り分けられる
+                // Right after the pixels are in hand; a log stopping here isolates the freeze to the release side
+                Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:captured");
 
                 // 撮影対象・一時描画資源・撮影Cameraを同じ寿命で破棄する
                 // Destroy the subject, temporary render resource, and capture Camera within the same lifetime
