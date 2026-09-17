@@ -43,6 +43,8 @@ def format_counts(reports: list[dict], stats: dict) -> list[str]:
         lines.append(f"- ⚠ readyAt が無く ingestedAt で日付判定した箱 {stats['readyAtFallback']}件")
     if stats.get("invalidManifest"):
         lines.append(f"- ⚠ manifest.json の型が想定外で除外した箱 {stats['invalidManifest']}件")
+    if stats.get("noPayload"):
+        lines.append(f"- ⚠ manifest.json が無い箱（クライアントが全ファイルを見送った） {stats['noPayload']}件")
     return lines
 
 
@@ -54,11 +56,8 @@ def format_feedback(reports: list[dict]) -> list[str]:
     if not items:
         return lines + ["- なし"]
     for report in items:
-        # テスター由来の値はメンション・コードフェンスを無害化してから Discord へ出す
-        # Tester-supplied values have mentions and code fences neutralised before reaching Discord
-        label = safe(report["buildLabel"]) or "不明"
-        lines.append(f"### {safe(report['id'])}（SteamID {safe(report['steamId'])} / build {label}）")
-        lines.append(safe(report["description"].strip()) or "（説明文が空）")
+        lines.append(f"### {report['id']}（SteamID {report['steamId']} / build {report['buildLabel'] or '不明'}）")
+        lines.append(report["description"].strip() or "（説明文が空）")
     return lines
 
 
@@ -87,6 +86,8 @@ def format_progress(agg: dict, stats: dict) -> list[str]:
         lines.append(f"- ⚠ readyAt が無く ingestedAt で日付判定した箱 {stats['readyAtFallback']}件")
     if stats.get("invalidRecord"):
         lines.append(f"- ⚠ record.json の型・値が想定外で除外した件数 {stats['invalidRecord']}件")
+    if stats.get("noPayload"):
+        lines.append(f"- ⚠ record.json が無い箱（クライアントが全ファイルを見送った） {stats['noPayload']}件")
     return lines
 
 
@@ -99,8 +100,7 @@ def format_runs(runs: list[dict], stats: dict) -> list[str]:
             r["status"] for r in runs).items())))
         for run in runs:
             pr = f"#{run['prNumber']}" if run["prNumber"] else "PRなし"
-            lines.append(safe(f"- {run['id']} … {run['status']} / {pr} / "
-                              f"base {run['base'] or '不明'} / {run['summary']}"))
+            lines.append(f"- {run['id']} … {run['status']} / {pr} / base {run['base'] or '不明'} / {run['summary']}")
     if stats["finishedAtFallback"]:
         lines.append(f"- ⚠ finishedAt が無い/解釈できず mtime で日付判定したラン {stats['finishedAtFallback']}件")
     if stats["invalidResult"]:
@@ -133,9 +133,11 @@ def emit_warnings(report_stats: dict, progress_stats: dict, run_stats: dict) -> 
         "reports.unreadable": report_stats.get("unreadable", 0),
         "reports.readyAtFallback": report_stats.get("readyAtFallback", 0),
         "reports.invalidManifest": report_stats.get("invalidManifest", 0),
+        "reports.noPayload": report_stats.get("noPayload", 0),
         "progress.unreadable": progress_stats.get("unreadable", 0),
         "progress.readyAtFallback": progress_stats.get("readyAtFallback", 0),
         "progress.invalidRecord": progress_stats.get("invalidRecord", 0),
+        "progress.noPayload": progress_stats.get("noPayload", 0),
         "progress.playSecondsMissing": progress_stats.get("playSecondsMissing", 0),
         "runs.finishedAtFallback": run_stats["finishedAtFallback"],
         "runs.invalidResult": run_stats["invalidResult"],
@@ -175,7 +177,9 @@ def main(argv: list[str] | None = None) -> int:
     lines += format_feedback(reports)
     lines += format_progress(progress_agg, progress_stats)
     lines += format_runs(runs, run_stats)
-    body = "\n".join(lines) + "\n"
+    # テスター由来の値（感想・kind・終了理由・イベント名・id 等）が散在するため、出力の境界で本文全体を一度だけ無害化する
+    # Tester-supplied values (feedback, kind, end reason, event names, ids...) are scattered, so neutralise the whole body once at the output boundary
+    body = safe("\n".join(lines) + "\n")
 
     archive = playtest / "digests" / f"{date}.md"
     if not args.no_archive:

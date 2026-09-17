@@ -41,15 +41,13 @@ def jst_date(iso: str) -> str:
     return parsed.astimezone(JST).strftime("%Y-%m-%d")
 
 
-def collect_boxes(root: Path, date: str) -> tuple[list[dict], dict]:
-    """ingest.json の readyAt（無ければ ingestedAt）が指定日の箱を集める。読めない・型不一致・
-    日付不明の箱は除外件数、readyAt欠落でingestedAtへ落とした箱はフォールバック件数へ計上する
-    Collects boxes whose ingest.json readyAt (or ingestedAt fallback) falls on the given day;
-    unreadable/undated/type-mismatched boxes count as excluded, readyAt-missing boxes count as a fallback"""
+def collect_boxes(root: Path, date: str, payload_name: str) -> tuple[list[dict], dict]:
+    """ingest.json の readyAt（無ければ ingestedAt）が指定日の箱を集める。読めない・型不一致・日付不明の箱は除外件数、
+    readyAt欠落でingestedAtへ落とした箱はフォールバック件数、payload_name が無い箱（全ファイル見送り）は noPayload へ計上する
+    Collects boxes whose ingest.json readyAt (or ingestedAt fallback) falls on the given day; unreadable/undated/type-mismatched
+    boxes count as excluded, readyAt-missing ones as a fallback, and ones without payload_name (every file skipped) as noPayload"""
     boxes: list[dict] = []
-    stats = {"unreadable": 0, "readyAtFallback": 0}
-    if not root.is_dir():
-        return boxes, stats
+    stats = {"unreadable": 0, "readyAtFallback": 0, "noPayload": 0}
     for ingest_path in sorted(root.glob("*/*/ingest.json")):
         meta, reason = schema.read_conformed(ingest_path, schema.INGEST_SCHEMA)
         ready_at = meta["readyAt"] if meta else ""
@@ -63,6 +61,10 @@ def collect_boxes(root: Path, date: str) -> tuple[list[dict], dict]:
         if not ready_at:
             warn("readyAt が無く ingestedAt で日付判定", ingest_path)
             stats["readyAtFallback"] += 1
+        if not (ingest_path.parent / payload_name).is_file():
+            warn(f"{payload_name} が無い（クライアントが全ファイルを見送った箱）", ingest_path.parent)
+            stats["noPayload"] += 1
+            continue
         boxes.append({"dir": ingest_path.parent, "meta": meta})
     return boxes, stats
 
@@ -72,7 +74,7 @@ def load_reports(root: Path, date: str) -> tuple[list[dict], dict]:
     型が契約と食い違う manifest.json の箱は件数に数えて除外する
     Extracts kind, description, build label and the enqueued flag from each play report manifest;
     boxes whose manifest.json types mismatch the contract are counted and excluded"""
-    boxes, stats = collect_boxes(root, date)
+    boxes, stats = collect_boxes(root, date, "manifest.json")
     stats = dict(stats, invalidManifest=0)
     reports = []
     for box in boxes:
@@ -118,7 +120,7 @@ def load_progress(root: Path, date: str) -> tuple[list[dict], dict]:
     （schemaVersion・playSeconds）が契約と食い違う record.json は件数に数えて除外する（1件の異常で全体を止めない）
     Flattens one progress record; drop-off is read from the last event and last UI state. A record.json whose
     types or values (schemaVersion, playSeconds) break the contract is counted and excluded rather than crashing the run"""
-    boxes, stats = collect_boxes(root, date)
+    boxes, stats = collect_boxes(root, date, "record.json")
     stats = dict(stats, invalidRecord=0)
     records = []
     for box in boxes:
@@ -133,10 +135,7 @@ def load_progress(root: Path, date: str) -> tuple[list[dict], dict]:
 
 
 def bucket_reached(count: int) -> str:
-    for low, high, label in REACH_BUCKETS:
-        if low <= count <= high:
-            return label
-    return "10+"
+    return next((label for low, high, label in REACH_BUCKETS if low <= count <= high), "10+")
 
 
 def aggregate_progress(records: list[dict]) -> dict:
@@ -170,8 +169,6 @@ def load_fix_results(runs_root: Path, date: str) -> tuple[list[dict], dict]:
     and type-mismatched fix-result.json files are excluded, both reported as counts"""
     runs: list[dict] = []
     stats = {"finishedAtFallback": 0, "invalidResult": 0}
-    if not runs_root.is_dir():
-        return runs, stats
     for result_path in sorted(runs_root.glob("*/fix-result.json")):
         result, reason = schema.read_conformed(result_path, schema.FIX_RESULT_SCHEMA)
         if result is None:

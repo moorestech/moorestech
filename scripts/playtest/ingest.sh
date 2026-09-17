@@ -71,13 +71,20 @@ ingest_one() {
       || { log "ERROR: READY 取得失敗 $kind/$steam_id/$id"; rm -rf "$partial"; return 1; }
     local files py_rc=0
     files="$(python3 "$HERE/lib/safe_segment.py" ready-files "$partial/READY")" || py_rc=$?
-    if [ "$py_rc" -ne 0 ]; then
+    if [ "$py_rc" -ne 0 ] && [ "$py_rc" -ne 5 ]; then
       case "$py_rc" in
         3) log "ERROR: READY 本文に files[] が無い: $kind/$steam_id/${id}（files を書く前の古いクライアントの要約。ack しない）" ;;
         4) log "ERROR: READY 本文の files[] に不正なパスを含む: $kind/$steam_id/${id}（ack しない）" ;;
+        6) log "ERROR: READY 本文の files[] が取り込み側の予約名（ingest.json・READY・AUTOFIX_* 等）と衝突: $kind/$steam_id/${id}（ack しない）" ;;
         *) log "ERROR: READY 本文の解析に失敗（exit ${py_rc}）: $kind/$steam_id/${id}（ack しない）" ;;
       esac
       rm -rf "$partial"; return 1
+    fi
+    # files[] が空配列＝クライアントが全ファイルを見送った正規の箱。READY と ingest.json だけで公開し ack する
+    # An empty files[] is a legitimate box whose client skipped every file; publish READY and ingest.json alone and ack
+    if [ "$py_rc" -eq 5 ]; then
+      log "[WARN] files[] が空（全ファイル見送り・skipped ${files} 件）。READY と ingest.json だけで公開する: $kind/$steam_id/${id}"
+      files=""
     fi
     local rel
     while IFS= read -r rel; do

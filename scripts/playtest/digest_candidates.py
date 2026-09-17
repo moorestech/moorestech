@@ -13,7 +13,6 @@ from pathlib import Path
 
 import digest_schema as schema
 from digest_collect import jst_date, warn
-from digest_schema import neutralize_discord_markup as safe
 
 
 def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
@@ -28,6 +27,11 @@ def load_candidate_reports(root: Path) -> tuple[list[dict], dict]:
     for ingest_path in sorted(root.glob("*/*/ingest.json")):
         meta, reason = schema.read_conformed(ingest_path, schema.INGEST_SCHEMA)
         manifest_path = ingest_path.parent / "manifest.json"
+        # manifest.json が無い＝全ファイル見送りの箱。バグか判定できず投入もできないので候補外（その日の件数表示で出る）
+        # No manifest.json means every file was skipped: it cannot be judged or enqueued, so it is left out (the day's counts show it)
+        if meta is not None and not manifest_path.is_file():
+            warn("manifest.json が無く投入候補の判定から外す（全ファイル見送りの箱）", manifest_path)
+            continue
         manifest, manifest_reason = schema.read_conformed(manifest_path, schema.MANIFEST_SCHEMA) if meta else (None, None)
         if meta is None or manifest is None:
             warn(f"投入候補の判定から除外: {reason or manifest_reason}", ingest_path if meta is None else manifest_path)
@@ -58,7 +62,7 @@ def format_candidates(candidates: list[dict], stats: dict) -> list[str]:
         quoted_id = shlex.quote(report["id"])
         quoted_steam = shlex.quote(report["steamId"])
         head = (report["description"].strip().splitlines() or ["（説明文が空）"])[0]
-        lines.append(f"- {safe(quoted_id)}（{report['readyAtDate']}）… {safe(head)}")
+        lines.append(f"- {quoted_id}（{report['readyAtDate']}）… {head}")
         # バッククォート入りの値はコードスパンを閉じて外へ漏れるので、貼り付けコマンドを出さない
         # A value containing a backtick would close the code span and leak out, so no pasteable command is printed
         if "`" in report["id"] + report["steamId"]:

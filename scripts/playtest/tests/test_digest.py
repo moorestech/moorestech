@@ -40,7 +40,7 @@ class DigestTest(unittest.TestCase):
         reports, stats = dc.load_reports(self.root / "harness/playtest/reports", self.date)
         self.assertEqual({r["kind"] for r in reports}, {"bug", "feedback", "crash"})
         self.assertEqual(len(reports), 4)
-        self.assertEqual(stats, {"unreadable": 0, "readyAtFallback": 0, "invalidManifest": 0})
+        self.assertEqual(stats, {"unreadable": 0, "readyAtFallback": 0, "noPayload": 0, "invalidManifest": 0})
 
     def test_load_reports_marks_queued(self):
         reports, _stats = dc.load_reports(self.root / "harness/playtest/reports", self.date)

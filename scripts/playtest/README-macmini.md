@@ -43,7 +43,7 @@ tail -f /Users/sakastudio/hermes-agent/data/services/always-on/logs/playtest-ing
 bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/ingest.sh
 ```
 
-ロックは logs repo の `.git/moorestech-playtest-ingest.lock`（PID 入り。`$TMPDIR` に依らないので supervisor 配下と手動実行でも排他が効き、`git add` にも掴まれない）。前回のプロセスが生きていれば何もせず終わり、死んでいれば（SIGKILL・OOM・再起動等で trap が走らず残った場合）理由をログして奪取する。
+ロックは logs repo の `.git/moorestech-playtest-ingest.lock`（PID 入り。`$TMPDIR` に依らないので supervisor 配下と手動実行でも排他が効き、`git add` にも掴まれない）。PID を書き終えたディレクトリを rename で置くので、PID の無いロックは公開されない。前回のプロセスが生きていれば何もせず終わり、死んでいれば（SIGKILL・OOM・再起動等で trap が走らず残った場合）理由をログして奪取する。奪取は `.lock.reclaim` の下で直列化され、奪取中に死んだ残骸はその回で退避だけして次回に奪取する。
 
 ## 成果物
 
@@ -69,6 +69,8 @@ bash /Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/enque
 ## 詰まったとき
 
 - `[ingest] ERROR: READY 本文の files[] が…` → READY 要約（クライアントの `PlaytestUploader.ComposeSummary()` が書き、受け口は転写するだけ）に `files[]` が無い。`files` を書く前の古い配布ビルドからの箱。ack されずに残るので理由を確認して扱いを決める
+- `[ingest] ERROR: READY 本文の files[] が取り込み側の予約名…と衝突` → payload に `ingest.json`・`READY`・`AUTOFIX_QUEUED`・`AUTOFIX_FORCED`・`fix-result.json`・`run.env`（大文字小文字無視）や `*.partial` 始まりのパスがある。マーカー偽装・上書きになるので ack しない
+- `[ingest] [WARN] files[] が空（全ファイル見送り…）` → クライアントが全ファイルを見送った正規の箱。READY と ingest.json だけで公開して ack する。ダイジェストでは「manifest.json/record.json が無い箱」の件数に出る
 - `[ingest] ERROR: ack 失敗` → 箱は取り込み済みなので、次の周期で再配信されても再ダウンロードせず ack だけやり直す
 
 ## 日次ダイジェスト

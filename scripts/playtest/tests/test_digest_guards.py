@@ -73,6 +73,34 @@ class DigestGuardsTest(unittest.TestCase):
         self.assertIn("投入候補の判定から除外: JSON解析失敗", result.stderr)
         self.assertIn("投入候補の判定から除外: 型不一致: kind", result.stderr)
 
+    def test_kind_label_and_progress_top_lines_are_neutralised(self):
+        """想定外 kind のラベルと進行記録の上位集計行（終了理由・UI状態・最後のイベント）も無害化する
+        The unexpected-kind label and the progress top lines (end reason, UI state, last event) are neutralised too"""
+        self.add_report("7656026", "20260912_173000_kindping", {"kind": "@everyone", "description": "x"})
+        box = self.root / "harness/playtest/progress/7656027/20260912_181000_ping"
+        write_json(box / "ingest.json", {"kind": "progress", "steamId": "7656027", "id": box.name, "readyAt": READY_AT})
+        write_json(box / "record.json", {"schemaVersion": 1, "playSeconds": 60, "endReason": "@here",
+                                         "lastUiState": "<@789>", "events": [{"type": "```fence"}]})
+        out = self.digest()
+        for raw in ("@everyone", "@here", "<@789>", "```"):
+            self.assertNotIn(raw, out)
+        self.assertIn(f"想定外 kind: @{ZWSP}everyone", out)
+        self.assertIn(f"@{ZWSP}here 1件", out)
+
+    def test_box_without_payload_is_counted_not_silently_dropped(self):
+        """全ファイル見送りで manifest.json/record.json が無い箱は、型不一致と区別して件数に出す
+        Boxes lacking manifest.json/record.json because every file was skipped are counted apart from type mismatches"""
+        for kind, sub, box_id in (("report", "reports", "20260912_174000_empty"), ("progress", "progress", "20260912_182000_empty")):
+            box = self.root / "harness/playtest" / sub / "7656028" / box_id
+            write_json(box / "ingest.json", {"kind": kind, "steamId": "7656028", "id": box_id, "readyAt": READY_AT})
+        result = run_digest(self.root, TARGET_DATE, "--max-chars", "0", "--no-archive")
+        self.assertIn("manifest.json が無い箱（クライアントが全ファイルを見送った） 1件", result.stdout)
+        self.assertIn("record.json が無い箱（クライアントが全ファイルを見送った） 1件", result.stdout)
+        self.assertNotIn("manifest.json の型が想定外で除外した箱", result.stdout)
+        self.assertNotIn("読めず投入候補の判定から除外した箱", result.stdout)
+        self.assertIn("WARN reports.noPayload=1", result.stderr)
+        self.assertIn("WARN progress.noPayload=1", result.stderr)
+
     def test_invalid_record_values_are_excluded(self):
         """NaN・Infinity・負数の playSeconds と schemaVersion≠1 は平均へ混ぜず除外件数へ
         NaN/Infinity/negative playSeconds and schemaVersion other than 1 are excluded and counted"""
