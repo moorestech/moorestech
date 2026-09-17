@@ -65,13 +65,8 @@ namespace Client.Editor.Build
 
         private static void BuildInteractive(BuildTarget buildTarget, bool isDevelopmentBuild)
         {
-            // 出力先を選択する（前回パスを記憶）
-            // Choose the output directory, remembering the previous path
-            var playerPrefsKey = OutputPathKey + buildTarget;
-            var outputDirectory = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey, ""), "");
-            if (outputDirectory == string.Empty) return;
-            PlayerPrefs.SetString(playerPrefsKey, outputDirectory);
-            PlayerPrefs.Save();
+            var outputDirectory = SelectOutputDirectory(buildTarget);
+            if (outputDirectory == null) return;
 
             // ローカル配布用: 同梱失敗は即失敗・ゲームデータ必須
             // Local distribution: bundling problems fail the build and game data is mandatory
@@ -89,15 +84,22 @@ namespace Client.Editor.Build
 
         private static void BuildReleaseLocalInteractive(BuildTarget buildTarget)
         {
-            // 出力先を選択する（前回パスを記憶）
-            // Choose the output directory, remembering the previous path
-            var playerPrefsKey = OutputPathKey + buildTarget;
-            var outputDirectory = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey, ""), "");
-            if (outputDirectory == string.Empty) return;
-            PlayerPrefs.SetString(playerPrefsKey, outputDirectory);
-            PlayerPrefs.Save();
+            var outputDirectory = SelectOutputDirectory(buildTarget);
+            if (outputDirectory == null) return;
 
             ReportOutcome(BuildPipeline.Execute(ReleaseLocalBuildCli.CreateRequest(buildTarget, outputDirectory)), outputDirectory);
+        }
+
+        // 出力先を選択する（前回パスを記憶）。キャンセル時はnull
+        // Choose the output directory, remembering the previous path; null on cancel
+        private static string SelectOutputDirectory(BuildTarget buildTarget)
+        {
+            var playerPrefsKey = OutputPathKey + buildTarget;
+            var outputDirectory = EditorUtility.OpenFolderPanel("Build", PlayerPrefs.GetString(playerPrefsKey, ""), "");
+            if (outputDirectory == string.Empty) return null;
+            PlayerPrefs.SetString(playerPrefsKey, outputDirectory);
+            PlayerPrefs.Save();
+            return outputDirectory;
         }
 
         // 失敗した成果物をFinderで開いて成功に見せない
