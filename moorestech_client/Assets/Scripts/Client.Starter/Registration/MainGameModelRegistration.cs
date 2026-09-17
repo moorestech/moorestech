@@ -6,6 +6,7 @@ using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
+using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Construction;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Hotbar;
@@ -24,6 +25,7 @@ using Client.Network.API;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload;
+using Client.Starter.PlaytestSmoke;
 using Core.Item.Interface;
 using Game.Construction;
 using Game.Context;
@@ -34,7 +36,7 @@ namespace Client.Starter.Registration
 {
     internal static class MainGameModelRegistration
     {
-        public static void Register(ContainerBuilder builder, InitialHandshakeResponse initialHandshakeResponse, bool collectsPlaytestRecords)
+        public static void Register(ContainerBuilder builder, InitialHandshakeResponse initialHandshakeResponse, ServerSaveGenerationWaiter saveGenerationWaiter, bool collectsPlaytestRecords)
         {
             builder.RegisterInstance(initialHandshakeResponse);
             builder.RegisterInstance(ClientContext.VanillaApi.Event);
@@ -46,6 +48,10 @@ namespace Client.Starter.Registration
             // Register the logical models for the web UI
             builder.RegisterEntryPoint<NetworkDisconnectState>().AsSelf();
             builder.Register<GameSaveRequester>(Lifetime.Singleton);
+
+            // セーブ世代の待ち手は接続時に作った1個体。終了時の待ちと共有し購読を1本に保つ
+            // The save-generation waiter is the one instance created at connection, shared with the shutdown wait to keep a single subscription
+            builder.RegisterInstance(saveGenerationWaiter);
 
             // バグ報告の確保と進行記録。同意ゲートを出せない起動では集めない
             // Bug-report capture and the progress record; boots that cannot show the consent gate collect nothing
@@ -86,6 +92,10 @@ namespace Client.Starter.Registration
             builder.RegisterEntryPoint<TrainUnitSnapshotEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainUnitTickDiffBundleEventNetworkHandler>();
             builder.RegisterEntryPoint<TrainFullSnapshotEventNetworkHandler>().AsSelf();
+
+            // 通し検証はsmoke起動時だけ登録する（前例: PlaytestRecordRegistration のフラグ分岐）
+            // The smoke runner is registered only on a smoke launch (precedent: PlaytestRecordRegistration's flag branch)
+            if (StandalonePlaytestSmokeBootstrap.IsActive) builder.RegisterEntryPoint<StandalonePlaytestSmokeRunner>();
         }
     }
 }

@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BugReport;
 using UnityEditor.Build;
 using UnityEngine;
 
-namespace Client.Editor.Build
+namespace Client.Editor.Build.Bundlers
 {
     /// <summary>
     /// ローカルサーバーが読むゲームデータ一式を成果物ルートのgame/へ同梱する
@@ -15,11 +17,26 @@ namespace Client.Editor.Build
         // OS junk files are never read by the server, so they do not ship
         private static readonly IReadOnlyList<string> ExcludedFileNames = new[] { ".DS_Store" };
 
+        // 配布スクリプトがピンのworktreeを解決してUnityへ注入する同梱元。スクリプトとUnityで解決を二重に持たない
+        // The bundling source the release script resolves to the pin worktree and injects into Unity, so the script and Unity never resolve it twice
+        private const string MasterDataRootEnvKey = "MOORESTECH_MASTER_DATA_ROOT";
+
+        // 同梱元のマスタrepo。BuildInfoWriter が焼く masterDataCommit も必ずここを読み、焼いたコミット＝同梱した中身を保つ（D-6）
+        // The master repo bundled from; BuildInfoWriter reads its baked masterDataCommit from here too, so the baked commit is what ships (D-6)
+        internal static string MasterDataRepositoryRoot
+        {
+            get
+            {
+                var injectedRoot = Environment.GetEnvironmentVariable(MasterDataRootEnvKey);
+                if (!string.IsNullOrWhiteSpace(injectedRoot)) return Path.GetFullPath(injectedRoot);
+                return MasterDataRootLocator.ResolveForBuildingCheckout(RepositoryStateProbe.RepositoryRoot);
+            }
+        }
+
         public static void Bundle(string outputDirectory, bool isStrict)
         {
-            // 正本は隣接リポジトリの ../moorestech_master/server_v8
-            // The source of truth is ../moorestech_master/server_v8 beside this repository
-            var sourceDirectory = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "moorestech_master", "server_v8"));
+            var masterDataRepositoryRoot = MasterDataRepositoryRoot;
+            var sourceDirectory = Path.Combine(masterDataRepositoryRoot, "server_v8");
 
             // 必須構成（map/mods）が欠けた成果物を出さない
             // Never ship an artifact missing the required map/mods layout
@@ -33,7 +50,7 @@ namespace Client.Editor.Build
 
             var destinationDirectory = Path.Combine(outputDirectory, "game");
             var copiedFileCount = DirectoryProcessor.CopyAndReplace(sourceDirectory, destinationDirectory, ExcludedFileNames);
-            Debug.Log($"[GameDataBundler] bundled game data: {copiedFileCount} files at {destinationDirectory}");
+            Debug.Log($"[GameDataBundler] bundled game data: {copiedFileCount} files from {masterDataRepositoryRoot} at {destinationDirectory}");
 
             #region Internal
 

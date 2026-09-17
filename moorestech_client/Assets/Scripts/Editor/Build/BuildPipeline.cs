@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Client.Editor.Build.Bundlers;
 using UnityEditor;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build.Reporting;
@@ -53,6 +54,9 @@ namespace Client.Editor.Build
             }
             Debug.Log("Addressables Build Succeeded: " + addressablesResult.OutputPath);
 
+            // 他の同梱と同じく strict を引数で渡して焼く。strict の関門は BuildPlayer の数十分より前に落とす
+            // Bake with strict passed as an argument like the other bundlers; the strict gate fails before BuildPlayer's lengthy run
+            BuildInfoWriter.Write(request.IsStrictBundling, request.Target);
             var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
             Debug.Log("Build Result :" + report.summary.result);
 
@@ -61,6 +65,7 @@ namespace Client.Editor.Build
             if (report.summary.result == BuildResult.Succeeded)
             {
                 CefRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
+                FfmpegRuntimeBundler.Bundle(request.Target, report.summary.outputPath, request.IsStrictBundling);
                 if (request.BundleLocalGameData)
                 {
                     GameDataBundler.Bundle(request.OutputDirectory, request.IsStrictBundling);

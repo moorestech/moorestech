@@ -1,8 +1,6 @@
 using Client.Game.Common;
 using Client.Network.API;
 using Cysharp.Threading.Tasks;
-using MessagePack;
-using Server.Event.EventReceive;
 
 namespace Client.Starter.Initialization
 {
@@ -10,38 +8,23 @@ namespace Client.Starter.Initialization
     // The shutdown wait for a remote connection: waits until the save request's generation is reported written
     public class RemoteServerSaveFlushParticipant : IGameShutdownParticipant
     {
-        // 書き出し完了通知を待つ上限フレーム数。届かなくても終了不能にしない
-        // Frame budget for the completion notice; shutdown must never become impossible
-        private const int SaveFlushWaitFrameLimit = 600;
+        // 書き出し完了通知を待つ上限フレーム数（裁定: 2026-08-23 セーブして終了はサーバーのflush完了を待つ）。届かなくても終了不能にしない
+        // Frame budget for the completion notice (adjudicated 2026-08-23); shutdown must never become impossible
+        private static readonly ServerSaveGenerationWaiter.FrameBudget SaveFlushWaitFrameLimit = new(600);
 
-        private readonly VanillaApi _vanillaApi;
-        private long _completedSaveGeneration;
+        private readonly ServerSaveGenerationWaiter _saveGenerationWaiter;
 
-        public RemoteServerSaveFlushParticipant(VanillaApi vanillaApi)
+        public RemoteServerSaveFlushParticipant(ServerSaveGenerationWaiter saveGenerationWaiter)
         {
-            _vanillaApi = vanillaApi;
-            _vanillaApi.Event.SubscribeEventResponse(WorldSaveCompletedEventPacket.EventTag, OnWorldSaveCompleted);
+            _saveGenerationWaiter = saveGenerationWaiter;
         }
 
         public async UniTask<ShutdownFlushResult> FlushOnShutdownAsync()
         {
             // 応答が無い＝要求の到達すら確認できないため、待たずに上限到達として返す
             // No response means even the request's arrival is unconfirmed, so report the budget as exhausted
-            var saveResponse = await _vanillaApi.Response.Save(default);
-            if (saveResponse == null) return ShutdownFlushResult.FlushTimedOut;
-
-            for (var frame = 0; frame < SaveFlushWaitFrameLimit && _completedSaveGeneration < saveResponse.RequestedSaveGeneration; frame++)
-            {
-                await UniTask.Yield(PlayerLoopTiming.Update);
-            }
-
-            return _completedSaveGeneration < saveResponse.RequestedSaveGeneration ? ShutdownFlushResult.FlushTimedOut : ShutdownFlushResult.Flushed;
-        }
-
-        private void OnWorldSaveCompleted(byte[] payload)
-        {
-            var completed = MessagePackSerializer.Deserialize<WorldSaveCompletedEventPacket.WorldSaveCompletedMessagePack>(payload);
-            if (_completedSaveGeneration < completed.CompletedSaveGeneration) _completedSaveGeneration = completed.CompletedSaveGeneration;
+            var waitResult = await _saveGenerationWaiter.SaveAndWaitWrittenAsync(SaveFlushWaitFrameLimit);
+            return waitResult == ServerSaveGenerationWaiter.SaveWaitResult.Written ? ShutdownFlushResult.Flushed : ShutdownFlushResult.FlushTimedOut;
         }
     }
 }

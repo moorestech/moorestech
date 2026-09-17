@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;

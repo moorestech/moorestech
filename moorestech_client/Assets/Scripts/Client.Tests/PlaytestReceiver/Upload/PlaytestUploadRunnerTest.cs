@@ -1,4 +1,5 @@
 using System.IO;
+using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Gate;
 using Client.PlaytestReceiver.Http;

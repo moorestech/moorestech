@@ -59,7 +59,7 @@ namespace Client.Starter.Initialization
 
             var starter = UnityEngine.Object.FindFirstObjectByType<MainGameStarter>();
 
-            var resolver = starter.StartGame(_serverResult.HandshakeResponse, _collectsPlaytestRecords);
+            var resolver = starter.StartGame(_serverResult.HandshakeResponse, _serverResult.SaveGenerationWaiter, _collectsPlaytestRecords);
             new ClientDIContext(new DIContainer(resolver));
             WebUiHost.Game.WebUiGameBinder.Bind();
 

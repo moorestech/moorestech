@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.BugReport.Submit;
 using Client.Tests.Playtest;
 using Client.Tests.PlaytestReceiver;
 using Client.WebUiHost.Game.Actions;
@@ -37,7 +38,7 @@ namespace Client.Tests.BugReport
             // kind 検証は確保セッション解決より前段なので、UIStateControlはnullのままでも足りる
             // The kind check runs before the capture session is resolved, so UIStateControl may stay null here
             var session = new BugReportCaptureSession(new NullBugReportCaptureSources());
-            var handler = new BugReportSubmitActionHandler(new BugReportBundleWriter(new EmptyPlaytestSessionIdentity()), session, null, new RecordingProgressSink(), new RecordingUploadRequester());
+            var handler = new BugReportSubmitActionHandler(new BugReportSubmitter(new BugReportBundleWriter(new EmptyPlaytestSessionIdentity()), session, new RecordingProgressSink(), new RecordingUploadRequester()), null);
 
             var crash = handler.ExecuteAsync(new JObject { ["description"] = "説明", ["kind"] = "crash" }).GetAwaiter().GetResult();
             Assert.IsFalse(crash.Ok);

@@ -13,14 +13,12 @@ namespace Client.Game.InGame.BugReport.BuildOrigin
         public string MasterDataCommit;
         public bool? Dirty;
 
-        // 焼く側（ComposeBuildInfoJson）が既に出している実キー。shared-contracts §1には無いが、
-        // 落とすとマスタの未コミット変更が常にクリーン扱いになるため保持する（ADR 0059の帰結・本タスクでの追加）
-        // The baking side (ComposeBuildInfoJson) already emits this key. Absent from shared-contracts §1, but
-        // dropping it would always report the master data as clean; kept for fidelity (ADR 0059 follow-on, added by this task)
+        // 焼く側（BuildInfoComposer）が出す masterDirty キー。shared-contracts §1には無いが、
+        // 落とすとマスタの未コミット変更が常にクリーン扱いになるため保持する（ADR 0059）
+        // The masterDirty key the baking side (BuildInfoComposer) emits. Absent from shared-contracts §1, but
+        // dropping it would always report the master data as clean, so it is kept (ADR 0059)
         public bool? MasterDataDirty;
 
-        // 焼く側が未対応（plan E待ち）のため現状は常にnull
-        // Not yet baked by the writer side (pending plan E), so these stay null for now
         public string SteamBuildLabel;
         public string BuiltAt;
         public string Target;

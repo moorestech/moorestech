@@ -2,6 +2,7 @@ using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording;
+using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Playtest.Progress;
 using VContainer;
 using VContainer.Unity;
@@ -24,6 +25,7 @@ namespace Client.Starter.Registration
             // The pause-menu topic and the report action always take the capture session, writer and progress window, so both boots register them
             builder.Register<BugReportBundleWriter>(Lifetime.Singleton);
             builder.Register<BugReportCaptureSession>(Lifetime.Singleton);
+            builder.Register<BugReportSubmitter>(Lifetime.Singleton);
 
             if (!collectsPlaytestRecords)
             {

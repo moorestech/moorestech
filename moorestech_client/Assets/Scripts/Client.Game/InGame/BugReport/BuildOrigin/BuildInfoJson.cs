@@ -33,11 +33,11 @@ namespace Client.Game.InGame.BugReport.BuildOrigin
                     Commit = NullIfEmpty((string)obj["commit"]),
                     Branch = NullIfEmpty((string)obj["branch"]),
                     Dirty = (bool?)obj["dirty"],
-                    MasterDataCommit = NullIfEmpty((string)obj["masterCommit"]),
+                    MasterDataCommit = NullIfEmpty((string)obj["masterDataCommit"]),
                     MasterDataDirty = (bool?)obj["masterDirty"],
-                    SteamBuildLabel = (string)obj["steamBuildLabel"],
+                    SteamBuildLabel = NullIfEmpty((string)obj["steamBuildLabel"]),
                     BuiltAt = (string)obj["builtAt"],
-                    Target = (string)obj["target"],
+                    Target = NullIfEmpty((string)obj["target"]),
                 };
             }
             catch (Exception exception)
@@ -70,11 +70,11 @@ namespace Client.Game.InGame.BugReport.BuildOrigin
         {
             var repository = new RepositoryState { Commit = buildInfo.Commit, Branch = buildInfo.Branch, Dirty = buildInfo.Dirty };
 
-            // マスタを焼いていないビルドもあるため、masterCommit が読めたときだけマスタの状態を名乗る
-            // Some builds bake no master, so the master state is claimed only when masterCommit was actually readable
+            // マスタを焼いていないビルドもあるため、masterDataCommit が読めたときだけマスタの状態を名乗る
+            // Some builds bake no master, so the master state is claimed only when masterDataCommit was actually readable
             if (buildInfo.MasterDataCommit == null)
             {
-                Debug.LogWarning($"build-info.json に masterCommit が無いためマスタデータのリポジトリ状態は不明です path:{Path.Combine(Application.streamingAssetsPath, RepositoryStateProbe.BuildInfoFileName)}");
+                Debug.LogWarning($"build-info.json に masterDataCommit が無いためマスタデータのリポジトリ状態は不明です path:{Path.Combine(Application.streamingAssetsPath, RepositoryStateProbe.BuildInfoFileName)}");
                 return new BugReportBuildInfo { Repository = repository };
             }
 

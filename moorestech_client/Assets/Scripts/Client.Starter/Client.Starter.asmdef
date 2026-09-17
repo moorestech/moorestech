@@ -36,7 +36,8 @@
         "Unity.InputSystem",
         "MessagePack",
         "Game.Block.Interface",
-        "Client.PlaytestReceiver"
+        "Client.PlaytestReceiver",
+        "com.rlabrecque.steamworks.net"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

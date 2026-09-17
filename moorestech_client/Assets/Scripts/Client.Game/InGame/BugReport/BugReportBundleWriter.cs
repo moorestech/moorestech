@@ -45,6 +45,7 @@ namespace Client.Game.InGame.BugReport
             var buildOrigin = RepositoryStateProbe.ReadBuildOrigin();
             var repositoryRoot = RepositoryStateProbe.RepositoryRoot;
             var masterDataRoot = RepositoryStateProbe.MasterDataRoot;
+            var ffmpegPath = FfmpegLocator.Find();
 
             // 見出しが積んだ欠損（steamId等）を消さないよう、確保時の欠損は上書きせず後ろへ足す
             // The capture's gaps are appended rather than assigned, so the header's own gaps (steamId and friends) survive
@@ -87,19 +88,18 @@ namespace Client.Game.InGame.BugReport
                     return;
                 }
 
-                var ffmpeg = FfmpegLocator.Find();
                 var output = Path.Combine(directory, BugReportBundleLayout.VideoFileName);
-                if (ffmpeg == null || !VideoAssembler.Concat(ffmpeg, data.VideoSegmentFiles, output))
+                if (ffmpegPath == null || !VideoAssembler.Concat(ffmpegPath, data.VideoSegmentFiles, output))
                 {
-                    manifest.AddMissing("video", ffmpeg == null ? "ffmpegが見つからなかった" : "区間の結合に失敗した");
+                    manifest.AddMissing("video", ffmpegPath == null ? "ffmpegが見つからなかった" : "区間の結合に失敗した");
                     return;
                 }
 
                 // 尺を測れなかったときに0を書くと「0秒の動画」という実値になるので、欠損として残す
                 // Writing 0 for an unmeasurable duration would bake "a zero-second video" as a real value, so it stays a missing item
-                if (VideoAssembler.TryDurationSeconds(ffmpeg, output, out var videoSeconds)) manifest.VideoSeconds = videoSeconds;
+                if (VideoAssembler.TryDurationSeconds(ffmpegPath, output, out var videoSeconds)) manifest.VideoSeconds = videoSeconds;
                 else manifest.AddMissing("videoSeconds", "結合した動画の尺を読み取れなかった");
-                if (!VideoAssembler.ExtractFrames(ffmpeg, output, Path.Combine(directory, BugReportBundleLayout.FramesDirectoryName), 2)) manifest.AddMissing(BugReportBundleLayout.FramesDirectoryName, "静止画の抜き出しに失敗した");
+                if (!VideoAssembler.ExtractFrames(ffmpegPath, output, Path.Combine(directory, BugReportBundleLayout.FramesDirectoryName), 2)) manifest.AddMissing(BugReportBundleLayout.FramesDirectoryName, "静止画の抜き出しに失敗した");
             }
 
             void WriteFrameTicks()
