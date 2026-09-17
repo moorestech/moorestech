@@ -46,7 +46,7 @@ namespace Tests.UnitTest.Game.SaveLoad
             File.Delete(savePath);
         }
 
-        private static (SaveWriteWorker worker, WorldSaveAllInfoV1 data) CreateWorkerAndCapture(string savePath)
+        private static (SaveWriteWorker worker, WorldSaveAllInfo data) CreateWorkerAndCapture(string savePath)
         {
             var options = new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory)
             {

@@ -9,6 +9,7 @@ namespace Server.Event.Notification
         Achievement,
         OperationDenied,
         ItemEarned,
+        SaveMigration,
     }
 
     [MessagePackObject]
@@ -57,5 +58,12 @@ namespace Server.Event.Notification
             if (itemId == ItemMaster.EmptyItemId) throw new ArgumentException("itemId must not be empty", nameof(itemId));
             return new NotificationMessagePack(NotificationCategory.ItemEarned, ItemEarnedMessageId, Array.Empty<string>(), itemId, count);
         }
+
+        // 除去件数はロード時に確定する3つの数。Web側が文言を持つのでIDと数だけを送る
+        // The three counts settle at load time; only the id and the numbers travel since the web owns the wording
+        public static NotificationMessagePack CreateSaveMigrationPruned(int removedBlockCount, int emptiedItemStackCount, int removedResearchCount)
+            => new(NotificationCategory.SaveMigration, "saveMigration.missingMasterPruned",
+                new[] { removedBlockCount.ToString(), emptiedItemStackCount.ToString(), removedResearchCount.ToString() },
+                ItemMaster.EmptyItemId, 0);
     }
 }

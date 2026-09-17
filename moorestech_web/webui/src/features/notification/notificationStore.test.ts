@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NOTIFICATION_REMOVAL_FALLBACK_MS, useNotificationStore } from "./notificationStore";
+import { claimSaveMigrationNotice, NOTIFICATION_REMOVAL_FALLBACK_MS, useNotificationStore } from "./notificationStore";
 
 describe("notificationStore", () => {
   beforeEach(() => {
@@ -93,6 +93,20 @@ describe("notificationStore", () => {
     useNotificationStore.getState().addNotification(unlocked);
     useNotificationStore.getState().addNotification(unlocked);
     expect(useNotificationStore.getState().notifications).toHaveLength(2);
+  });
+});
+
+describe("claimSaveMigrationNotice", () => {
+  it("snapshotで再着した同じseqの除去告知は1回だけ通す", () => {
+    // 初回配信と再購読時のsnapshot再提示は同じseqで届く
+    // The first delivery and the resubscribe snapshot re-serve arrive with the same seq
+    expect(claimSaveMigrationNotice(101)).toBe(true);
+    expect(claimSaveMigrationNotice(101)).toBe(false);
+  });
+
+  it("サーバー再接続で届いた新しいseqの告知は再び通す", () => {
+    expect(claimSaveMigrationNotice(201)).toBe(true);
+    expect(claimSaveMigrationNotice(202)).toBe(true);
   });
 });
 

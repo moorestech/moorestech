@@ -8,11 +8,11 @@ namespace Game.SaveLoad.Writer
     {
         public long Generation { get; }
         public SaveWriteKind Kind { get; }
-        public WorldSaveAllInfoV1 Data { get; }
+        public WorldSaveAllInfo Data { get; }
         public string TargetPath { get; }
         public bool KeepBackup { get; }
 
-        private SaveWriteJob(long generation, SaveWriteKind kind, WorldSaveAllInfoV1 data, string targetPath, bool keepBackup)
+        private SaveWriteJob(long generation, SaveWriteKind kind, WorldSaveAllInfo data, string targetPath, bool keepBackup)
         {
             Generation = generation;
             Kind = kind;
@@ -23,14 +23,14 @@ namespace Game.SaveLoad.Writer
 
         // プレイヤーのセーブは要求番号で完了と突き合わせ、置換前の版を .bak に残す
         // A player save matches its completion by generation and keeps the pre-swap file as .bak
-        public static SaveWriteJob ForPlayerSave(long generation, WorldSaveAllInfoV1 data, string targetPath)
+        public static SaveWriteJob ForPlayerSave(long generation, WorldSaveAllInfo data, string targetPath)
         {
             return new SaveWriteJob(generation, SaveWriteKind.PlayerSave, data, targetPath, true);
         }
 
         // スナップショットは世代ごとに別ファイルなので要求番号も控えも持たない
         // A snapshot writes its own file per generation, so it carries neither a generation nor a backup
-        public static SaveWriteJob ForSnapshot(WorldSaveAllInfoV1 data, string targetPath)
+        public static SaveWriteJob ForSnapshot(WorldSaveAllInfo data, string targetPath)
         {
             return new SaveWriteJob(0, SaveWriteKind.Snapshot, data, targetPath, false);
         }

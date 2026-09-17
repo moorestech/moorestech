@@ -3,6 +3,7 @@
   "rootNamespace": "",
   "references": [
     "Core.Item",
+    "Core.Master",
     "Core.Update",
     "Game.Paths",
     "Game.Map.Interface",

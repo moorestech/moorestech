@@ -9,7 +9,7 @@
 | Game.Xxx.Interface | ドメインXxxの公開契約 | interface、定数、JsonObject、**マスタ生成物を読むだけの static util** | 実装クラス、可変状態 |
 | Game.Xxx | ドメインXxxの実装・実行時状態の所有 | DataStore/Service実装、UniRx Subject | 他ドメインの状態直接操作 |
 | Game.Action / Game.UnlockState | gameAction実行と永続アンロック状態 | GameActionExecutorのcase追加、Unlock系状態 | — |
-| Game.SaveLoad | セーブJSON集約・ロード順制御 | WorldSaveAllInfoV1へのフィールド追加、ロード順の決定 | ドメインロジック |
+| Game.SaveLoad | セーブJSON集約・ロード順制御 | WorldSaveAllInfoへのフィールド追加、ロード順の決定 | ドメインロジック |
 | Server.Protocol / Server.Event | 通信（MessagePack） | プロトコル、イベントパケット | 永続化への流用（MessagePackはセーブ禁止） |
 | Client.* | 表示・入力・ローカル状態 | View、ローカルインベントリ | サーバー状態の直接変更 |
 
@@ -21,7 +21,7 @@
 | UniRx を新アセンブリで使う | asmdef の references に `"UniRx"` を追加 | `Game.UnlockState/Game.UnlockState.asmdef` |
 | 永続化フォーマット | Newtonsoft JSON（key→value）。MessagePack禁止 | `PlayerInventorySaveJsonObject.cs` |
 | 永続化キー | GUID（ItemGuid等）。揮発int（ItemId/BlockId）禁止。マスタ由来値（容量・スロット数等）は保存せずロード時にマスタから導出 | `ItemStackSaveJsonObject.cs` |
-| グローバル最小状態の永続化 | レベル・カウント等の単一値は `WorldSaveAllInfoV1` に**素のフィールド（int等）で追加してよい**（JsonObjectで包むのはドメイン内に複数値がある場合）。冪等再実行で導出可能でも、ロード順都合での明示保存は正 | `WorldSaveAllInfoV1.cs` の `inventorySlotLevel`（承認済み設計） |
+| グローバル最小状態の永続化 | レベル・カウント等の単一値は `WorldSaveAllInfo` に**素のフィールド（int等）で追加してよい**（JsonObjectで包むのはドメイン内に複数値がある場合）。冪等再実行で導出可能でも、ロード順都合での明示保存は正 | `WorldSaveAllInfo.cs` の `inventorySlotLevel`（承認済み設計） |
 | マスタ生成物へのアクセス | `MasterHolder.XxxMaster` の public readonly フィールド/メソッドを**読むだけ**。`Mooresmaster.Model.*` の手動作成・変更禁止 | `MasterHolder.cs`、AGENTS.md |
 | マスタ値のドメイン解釈 | 該当ドメインの `Game.Xxx.Interface` に static util | `Game.PlayerInventory.Interface/PlayerInventorySlotLevelMasterUtil.cs`（承認済み設計・実装前。実装完了後に実在確認すること） |
 | 永続強化・アンロック | 冪等（unlock/set-max）。increment禁止（ロード時にclearedActions再実行されるため） | `ResearchDataStore.LoadResearchData` |
