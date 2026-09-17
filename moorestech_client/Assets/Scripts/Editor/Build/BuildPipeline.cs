@@ -53,7 +53,11 @@ namespace Client.Editor.Build
             }
             Debug.Log("Addressables Build Succeeded: " + addressablesResult.OutputPath);
 
+            // build-info.json の焼き込みは BuildPlayer 内のコールバックで走るため、strict を先に渡し終わったら既定へ戻す
+            // build-info.json is baked inside BuildPlayer's callback, so hand strict over first and restore the default afterwards
+            BuildInfoWriter.SetStrictBundling(request.IsStrictBundling);
             var report = UnityEditor.BuildPipeline.BuildPlayer(buildOptions);
+            BuildInfoWriter.SetStrictBundling(false);
             Debug.Log("Build Result :" + report.summary.result);
 
             // 成功時のみ、動作に必要なCEFランタイムとゲームデータを同梱する

@@ -20,19 +20,20 @@ namespace Client.Tests.BugReport
                            ""steamBuildLabel"": ""playtest-20260913-1730"", ""builtAt"": ""2026-09-13T17:30:00+09:00"", ""target"": ""StandaloneWindows64"" }";
             var info = BuildInfoJson.Parse(json);
             Assert.AreEqual("abc", info.Commit);
-            Assert.IsNull(info.MasterDataCommit);
+            Assert.AreEqual("def", info.MasterDataCommit);
+            Assert.AreEqual("StandaloneWindows64", info.Target);
             Assert.AreEqual("playtest-20260913-1730", info.SteamBuildLabel);
             Assert.AreEqual(false, info.Dirty);
         }
 
-        // 実装済みの焼く側（ComposeBuildInfoJson）が出すキーは masterCommit。shared-contracts §1の masterDataCommit ではない（ADR 0059）
-        // The baking side (ComposeBuildInfoJson) actually emits masterCommit, not shared-contracts §1's masterDataCommit (ADR 0059)
+        // 旧キー masterCommit はフォールバックで読まない。改名後の焼く側は masterDataCommit だけを出す（ADR 0059 追記）
+        // The old masterCommit key is never read as a fallback; the renamed baking side emits only masterDataCommit (ADR 0059 addendum)
         [Test]
-        public void 実際に焼かれるmasterCommitキーを読める()
+        public void 旧キーmasterCommitは読まずmasterDirtyは読める()
         {
             var json = @"{ ""commit"": ""abc"", ""branch"": ""master"", ""masterCommit"": ""def"", ""dirty"": true, ""masterDirty"": true, ""builtAt"": ""2026-09-13T17:30:00Z"" }";
             var info = BuildInfoJson.Parse(json);
-            Assert.AreEqual("def", info.MasterDataCommit);
+            Assert.IsNull(info.MasterDataCommit, "旧キー masterCommit をフォールバックで読んでいる");
             Assert.AreEqual(true, info.Dirty);
             Assert.AreEqual(true, info.MasterDataDirty);
             Assert.IsNull(info.SteamBuildLabel);
@@ -44,7 +45,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 欠けた必須キーは既定値で埋めずnullのまま欠損として数える()
         {
-            var info = BuildInfoJson.Parse(@"{ ""commit"": """", ""masterCommit"": ""def"" }");
+            var info = BuildInfoJson.Parse(@"{ ""commit"": """", ""masterDataCommit"": ""def"" }");
 
             Assert.IsNull(info.Commit, "空文字のcommitが実値として残っている");
             Assert.IsNull(info.Dirty, "欠けたdirtyがfalse（クリーン）に化けている");

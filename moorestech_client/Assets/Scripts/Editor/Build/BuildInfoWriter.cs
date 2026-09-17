@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Client.Game.InGame.BugReport;
+using Client.Game.InGame.BugReport.BuildOrigin;
 using Game.Paths;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -8,20 +9,39 @@ using UnityEngine;
 
 namespace Client.Editor.Build
 {
-    // ビルドにリポジトリ状態を焼き込む。バグ報告の manifest がビルド版でも出所を書けるようにする
-    // Bakes the repository state into the build so a bug report's manifest can name its origin in a player build
+    // ビルドに出所（コミット・master dataピン・Steamビルド識別）を焼き込む（shared-contracts §1）
+    // Bakes the origin (commit, master-data pin, Steam build label) into the build (shared-contracts §1)
     public class BuildInfoWriter : IPreprocessBuildWithReport
     {
+        // Unityのビルドコールバックは PlayerBuildRequest を受け取れないため、BuildPipeline が BuildPlayer 直前に押し込む
+        // Unity's build callback cannot receive the PlayerBuildRequest, so BuildPipeline pushes this right before BuildPlayer
+        // BuildPipeline を通らないビルド（Build Settings 画面等）は既定の非strict（CI互換）で焼く
+        // Builds that bypass BuildPipeline (e.g. the Build Settings window) bake with the default non-strict, CI-compatible mode
+        private static bool _isStrictBundling;
+
         public int callbackOrder => 1;
+
+        public static void SetStrictBundling(bool isStrictBundling)
+        {
+            _isStrictBundling = isStrictBundling;
+        }
 
         public void OnPreprocessBuild(BuildReport report)
         {
             var repo = RepositoryStateProbe.ProbeGit(RepositoryStateProbe.RepositoryRoot);
-            var master = RepositoryStateProbe.ProbeGit(RepositoryStateProbe.MasterDataRoot);
+            var masterData = RepositoryStateProbe.ProbeGit(RepositoryStateProbe.MasterDataRoot);
+            var pinned = MasterDataRootLocator.ReadPinnedCommit(RepositoryStateProbe.RepositoryRoot);
+            var label = Environment.GetEnvironmentVariable(BuildInfoComposer.SteamBuildLabelEnvKey) ?? "";
+            var json = BuildInfoComposer.Compose(repo, masterData, pinned, label, DateTime.UtcNow, report.summary.platform.ToString(), _isStrictBundling, out var buildFailureReason);
+
+            // strict の配布物で出所を偽る焼き込みは作らせない。理由はビルド失敗メッセージに出す
+            // A strict distribution build must not bake a misreported origin; the reason goes into the build failure message
+            if (buildFailureReason != null) throw new BuildFailedException("[BuildInfoWriter] " + buildFailureReason);
+
             var path = GameSystemPaths.BuildInfoFilePath;
             Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllText(path, RepositoryStateProbe.ComposeBuildInfoJson(repo, master, DateTime.UtcNow));
-            Debug.Log($"build-info.json を書きました commit:{repo.State?.Commit} dirty:{repo.State?.Dirty}");
+            File.WriteAllText(path, json);
+            Debug.Log($"[BuildInfoWriter] build-info.json を書きました commit:{repo.State?.Commit} dirty:{repo.State?.Dirty} masterData:{masterData.State?.Commit} label:{label} strict:{_isStrictBundling}");
         }
     }
 }

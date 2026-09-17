@@ -18,7 +18,7 @@ namespace Client.Game.InGame.BugReport
             var revisionsPath = Path.Combine(RepositoryStateProbe.RepositoryRoot, ExternalRevisionsFileName);
             if (!File.Exists(revisionsPath)) return UnresolvedMasterDataRoot($"ピンファイルが無い path:{revisionsPath}");
 
-            var relativePath = ReadMasterRelativePath(revisionsPath);
+            var relativePath = ReadMasterPinField(revisionsPath, "relativePath");
             if (string.IsNullOrEmpty(relativePath)) return UnresolvedMasterDataRoot($"ピンに {MasterRepositoryKey} の relativePath が無い path:{revisionsPath}");
 
             // relativePath は正本repoからの相対。worktreeから起動されても正本の隣を見るため共通gitディレクトリで正本を特定する
@@ -28,6 +28,22 @@ namespace Client.Game.InGame.BugReport
             var primaryRepositoryRoot = Directory.GetParent(commonGitDirectory.Trim());
             if (primaryRepositoryRoot == null) return UnresolvedMasterDataRoot($"共通gitディレクトリの親を取れない dir:{commonGitDirectory.Trim()}");
             return Path.GetFullPath(Path.Combine(primaryRepositoryRoot.FullName, relativePath));
+        }
+
+        // ビルドに焼く masterDataCommit の突き合わせ先。ピンが無い・読めない・キーが無いときは null を返し、呼び出し側が縮退か失敗かを決める
+        // The pin the baked masterDataCommit is checked against; null when the pin is absent, unreadable or lacks the key, leaving degrade-or-fail to the caller
+        public static string ReadPinnedCommit(string repositoryRoot)
+        {
+            var revisionsPath = Path.Combine(repositoryRoot, ExternalRevisionsFileName);
+            if (!File.Exists(revisionsPath))
+            {
+                Debug.LogWarning($"ピンファイルが無いため master data のピンコミットを読めません path:{revisionsPath}");
+                return null;
+            }
+
+            var commit = ReadMasterPinField(revisionsPath, "commitHash");
+            if (string.IsNullOrEmpty(commit)) Debug.LogWarning($"ピンに {MasterRepositoryKey} の commitHash が無い path:{revisionsPath}");
+            return string.IsNullOrEmpty(commit) ? null : commit;
         }
 
         // 解決できないまま推測パスを名乗ると別repoの差分が混ざる。実在しない場所を返し、突き合わせを全て外したうえで理由を残す
@@ -40,13 +56,13 @@ namespace Client.Game.InGame.BugReport
 
         // ピンは外部入力のJSON。壊れた1ファイルでバグ報告ごと落とさないよう、ここだけ解析失敗を理由へ変換する
         // The pin is external JSON input; only here a parse failure becomes a reason so one broken file never kills the whole report
-        private static string ReadMasterRelativePath(string revisionsPath)
+        private static string ReadMasterPinField(string revisionsPath, string fieldName)
         {
             try
             {
                 foreach (var revision in (JArray)JObject.Parse(File.ReadAllText(revisionsPath))["repositories"])
                 {
-                    if ((string)revision["key"] == MasterRepositoryKey) return (string)revision["relativePath"];
+                    if ((string)revision["key"] == MasterRepositoryKey) return (string)revision[fieldName];
                 }
                 return null;
             }

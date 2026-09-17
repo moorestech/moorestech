@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Game.Paths;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -135,24 +132,6 @@ namespace Client.Game.InGame.BugReport
         public static BuildInfo ReadBuildInfo()
         {
             return ReadBuildOrigin().BuildInfo;
-        }
-
-        // ビルド時に焼き込む内容を組み立てる。Editorアセンブリを参照できないテストからも検証できるようここに置く
-        // Composes what a build bakes in; it lives here so tests that cannot reference the Editor assembly can verify it
-        public static string ComposeBuildInfoJson(RepositoryProbeResult repo, RepositoryProbeResult master, DateTime builtAt)
-        {
-            // 取れなかった状態は ""・false で焼かずnullで焼く。false は「クリーンな作業ツリー」という実値に化ける（F02）
-            // An unavailable state is baked as null, not "" or false; false would pose as a real clean working tree (F02)
-            var info = new JObject
-            {
-                ["commit"] = repo.State?.Commit,
-                ["branch"] = repo.State?.Branch,
-                ["dirty"] = repo.State?.Dirty,
-                ["masterCommit"] = master.State?.Commit,
-                ["masterDirty"] = master.State?.Dirty,
-                ["builtAt"] = builtAt.ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture),
-            };
-            return info.ToString(Formatting.Indented);
         }
 
         internal static bool TryGit(string workingDirectory, string arguments, out string stdout, out string error)

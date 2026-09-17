@@ -51,3 +51,19 @@ plan E / plan H はこのキー名に合わせること。
 
 - plan G Task 4 の「Create: `Playtest/BuildInfoReader.cs`」は実施しない。差分は plan からの意図的な逸脱として PR 本文に記載する。
 - `BuildInfoReaderTest.cs` は `RepositoryStateProbe.ReadBuildInfo()`（不在時 `null` 相当・壊れた JSON の縮退）を対象にする。
+
+## 追記（2026-09-17・plan E Task 3 のユーザー裁定）: 焼く側・読む側を共有契約 §1 のキーへ一括改名
+
+上の「実装済みの焼く側のキーを正とする」は plan G の範囲の暫定であり、plan E で案C（焼く側・読む側を §1 へ揃える）を採った。
+
+- **キー改名**: `masterCommit` → `masterDataCommit`。焼く側・読む側（`BuildInfoJson.Parse`）・既存テストを同じ変更で追随させた。
+  旧キーを読むフォールバックは入れない（旧キーの build-info.json を読むと `MasterDataCommit` は null＝欠損になる）。
+- **追加キー**: `steamBuildLabel`（env `MOORESTECH_STEAM_BUILD_LABEL`、未設定時は空文字）と `target`（ビルドターゲット名）を焼く。
+- **`masterDirty` は残す**: §1 には無いが、落とすとマスタの未コミット変更が常にクリーン扱いになる（F02 と同じ理由）。
+- **`builtAt` は UTC（`...Z`）のまま**: §1 の例の `+09:00` 表記には合わせない。報告 manifest の `createdAt` 等と同じ書式を保つ。
+- **型とリーダーは増やさない**: 唯一の型は `BuildOrigin.BuildInfo`、唯一のリーダーは `BuildInfoJson.Parse`（本 ADR の本旨を維持）。
+  組み立ては `RepositoryStateProbe.ComposeBuildInfoJson` から `BuildOrigin/BuildInfoComposer.Compose` へ移した。
+- **fail-closed は strict のときだけ**: git 読み取り失敗・master data ピン（`.moorestech-external-revisions.json` の `commitHash`）の欠落・
+  ピンと実 HEAD の不一致は、`PlayerBuildRequest.IsStrictBundling=true` なら `BuildFailedException`。非 strict（CI互換）は理由を警告ログに出し、
+  取れなかった値は null、ピンずれ時は実 HEAD を焼いて続行する。strict は `BuildPipeline` が `BuildInfoWriter.SetStrictBundling` で
+  `BuildPlayer` 直前に渡す（`PlayerBuildRequest` は3boolのまま）。ピンの読み取りは `MasterDataRootLocator.ReadPinnedCommit` に寄せた。
