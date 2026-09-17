@@ -1,4 +1,5 @@
 using System.IO;
+using Client.Editor;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
@@ -35,9 +36,11 @@ namespace Client.Editor.Build
 
             var sourceExecutable = Path.Combine(SourceDirectory, SourceExecutableName);
             var sourceLicense = Path.Combine(SourceDirectory, SourceLicenseName);
-            if (!File.Exists(sourceExecutable))
+            // 実体の検証（LFS未解決の殻でないこと）。CEF前例と同じ判定点を使う
+            // Verify the executable is real, not an unresolved LFS husk, using the same check as the CEF precedent
+            if (!File.Exists(sourceExecutable) || CefLfsPointer.IsPointerFile(sourceExecutable))
             {
-                Fail($"ffmpeg executable is missing: {sourceExecutable}");
+                Fail($"ffmpeg executable is missing or an LFS pointer: {sourceExecutable}");
                 return;
             }
             if (!File.Exists(sourceLicense))
