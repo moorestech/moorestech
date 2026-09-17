@@ -47,16 +47,26 @@ scripts/playtest/allowlist.sh remove 76561198000000001
 3. `~/hermes-agent/data/services/playtest/env.sh` に次を追記して export する（このファイルは封じ込め env の外に置かず、値をログへ出さない）:
    - `MOORESTECH_STEAM_USER`
    - `MOORESTECH_STEAM_DEPOT_ID`
-   - 検証機向けの変数（Task 6 の節を参照）
+   - `MOORESTECH_BUILD_BRANCH`（任意。build-info.json の `branch` に焼く配布元 ref。既定 `master`）
+   - 検証機向けの変数（「検証機」節の「Mac mini 側の env」を参照）
 
 ### 使い方
 
 ```bash
 . ~/hermes-agent/data/services/playtest/env.sh
-scripts/playtest/release-playtest.sh <master のコミット>
+cd ~/hermes-agent/data/repos/moorestech   # メインクローンから実行する
+scripts/playtest/release-playtest.sh <SHA または origin/master>
 ```
 
-成果物・ログ・告知テキストは `~/hermes-agent/data/services/playtest/runs/<label>/` に残る。
+- **メインクローン（`moores-wt` が worktree を作る clone）から実行する。** fetch とコミット解決はスクリプトを置いた clone で行い、
+  worktree はメインクローンで作るため、別 clone（pr-review の baseline clone 等）から実行すると解決した object が無いことがある。
+- `<commit>` は SHA か `origin/<branch>` を渡す。ローカルブランチ名（`master` 等）は fetch で進まないので古いコミットを焼く。
+- 要求コミットが `origin/$MOORESTECH_BUILD_BRANCH`（既定 `origin/master`）に含まれなければビルド前に止まる（焼く `branch` を嘘にしない）。
+- ビルド前に、ビルドが同梱する master data（worktree + ピンの `relativePath`。`GameDataBundler.MasterDataRepositoryRoot` と同じ解決）の
+  HEAD をコミット済みのピンと突き合わせる。ずれていれば「どこをどのコミットへ合わせるか」を出して止まるので、そのディレクトリを
+  ピンのコミットへ合わせてから再実行する（自動では動かさない。並行 worktree のマスタを動かさないため）。
+
+成果物・ログ・告知テキストは `~/hermes-agent/data/services/playtest/runs/<label>/` に残る。告知の「コミット」は解決後の40桁 SHA。
 
 ## 検証機（自宅 Windows PC）
 
@@ -77,7 +87,10 @@ scripts/playtest/release-playtest.sh <master のコミット>
    「このデバイスで、コンピューターのスタンバイ状態を解除できるようにする」を ON。高速スタートアップは OFF にする。
    NIC の MAC アドレスを控え `MOORESTECH_VERIFY_MAC` に設定する。
 6. Steam クライアントを入れてテスター用アカウントでログインし、moorestech（app 1958160）をライブラリへ追加。
-   プロパティ → ベータ で `playtest` ブランチのパスワードを1度入力して選択しておく（以後の更新は自動）。
+   プロパティ → ベータ で `playtest` ブランチのパスワードを1度入力して選択しておく。プロパティ → 更新 は「常にこのゲームを最新の状態に保つ」にする
+   （`run-smoke.ps1` はゲームを起動せず Steam の自動更新でラベルが切り替わるのを待つ）。Steam を既定以外の場所に入れた場合は
+   Windows のシステム環境変数 `MOORESTECH_STEAM_EXE` に steam.exe のフルパスを設定する（未設定ならレジストリ→`C:\Program Files (x86)\Steam` の順に探す）。
+   ゲームは Steam ルート直下の `steamapps\common\moorestech` にある前提（別ライブラリフォルダは未対応）。
 7. 初回だけ手でゲームを起動し、同意告知（consent notice）を承諾しておく（`PlaytestConsentFlag`。未承諾のまま
    自動運転すると起動前提の確認で理由付きに失敗する）。あわせて Steam のオーバーレイ初期化と受け口の起動時照合が
    通ることを確認する。
@@ -95,8 +108,7 @@ scripts/playtest/release-playtest.sh <master のコミット>
 - `MOORESTECH_VERIFY_HOST` … Tailscale 上のホスト名
 - `MOORESTECH_VERIFY_USER` … ssh ユーザー
 - `MOORESTECH_VERIFY_MAC` … WoL 用 MAC アドレス
-- `PLAYTEST_RECEIVER_BASE` … `https://playtest.tar-atari.com`（既定値あり。省略可）
-- `PLAYTEST_ADMIN_KEY` … 受け口の admin キー
+- 受け口の `PLAYTEST_RECEIVER_BASE`（既定値あり）・`PLAYTEST_ADMIN_KEY` は冒頭「設定」節のものをそのまま使う
 - `wakeonlan` が要る: `brew install wakeonlan`
 
 ### 単体で回す
@@ -109,20 +121,20 @@ scripts/playtest/verify-on-windows.sh <steamBuildLabel>
 回収した `result.json` と `inbox.json` は
 `~/hermes-agent/data/services/playtest/runs/<label>/verify/` に残る。
 
-### 合否判定の注意（プロセス終了コードではなく result.json）
+### 起動経路と合否判定（Steam 経由・result.json）
 
-ゲーム終了は `GameShutdownEvent` が `Application.Quit` を一旦引き留め、内部の後始末を終えてから
-引数無しで再 `Quit` する経路を持つため、プロセスの終了コードが失われうる（ゲーム開始後に終了した
-場合は終了コードが0になる見込み）。`run-smoke.ps1` は終了コードを参考ログとしてのみ出力し、
-各フェーズの合否は必ず `result.json` の存在と `success` の値で判定する。
+`run-smoke.ps1` は各フェーズを `steam.exe -applaunch 1958160 --playtestSmoke --smokePhase <phase> --smokeResultDirectory <dir>` で
+起動する（テスターと同じ Steam 経由の起動経路・DRM を通すため。exe の直接起動は `SteamAPI.Init` が失敗する）。Steam 経由では
+ゲームのプロセスハンドルも終了コードも得られないので、各フェーズの合否は `result.json` の存在とトップレベルの `success` だけで判定する。
 
-### フェーズ間のクラッシュ対策（プロセスタイムアウト）
+各フェーズは「`result.json` が出て、かつ `moorestech` プロセスが自分で終了する」までを期限（既定600秒）付きでポーリングする。
+期限を超えたら（クラッシュ確認画面・起動引数の確認ダイアログ・Steam の起動拒否など）ゲームを強制終了し、理由付きで exit 6 にする。
+起動前には残っている `moorestech` プロセスを畳む（前フェーズや手動起動が残ると Steam が起動を拒否・更新を保留するため）。
 
-phase1 がクラッシュすると、次回起動時に表示されるクラッシュ確認ダイアログで phase2 が無期限に
-止まってしまう。Task 4 側の初期化待ちにも期限（超過で `result.json` に失敗を書いて終了）が入る想定だが、
-`run-smoke.ps1` は保険として各フェーズに個別のプロセスタイムアウト（既定600秒）を持ち、超過時は
-プロセスを強制終了して理由付きで失敗にする。`result.json` が生成されなかった場合も
-（クラッシュ・タイムアウトのいずれでも）失敗として扱う。
+終了コード: 2=ラベル更新待ちの期限切れ（最後に読めたラベルと読み取り失敗の理由を出す）／3=ゲーム未インストール／
+4=result.json 無し／5=検証失敗／6=フェーズ期限切れ／7=steam.exe が見つからない。`verify-on-windows.sh` はこの非0をそのまま返す。
+
+`run-smoke.ps1` は UTF-8 BOM 付きで保存しておくこと（Windows PowerShell 5.1 は BOM 無し UTF-8 を ANSI として読み、日本語の文字列で構文が壊れる。テストで固定済み）。
 
 ### 注意: 取り込み（plan H）との競合
 
@@ -142,5 +154,6 @@ smoke の報告を先にACKすると、届いているのに「届いていな�
 ```bash
 bash scripts/playtest/tests/test-allowlist.sh          # OK と出れば合格
 bash scripts/playtest/tests/test-release-playtest.sh    # PASS: release-playtest contract と出れば合格
+bash scripts/playtest/tests/test-release-playtest-origin.sh  # PASS: release-playtest origin contract と出れば合格
 bash scripts/playtest/tests/test-verify-on-windows.sh   # PASS: verify-on-windows contract と出れば合格
 ```

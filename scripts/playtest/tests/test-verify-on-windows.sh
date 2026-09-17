@@ -32,6 +32,9 @@ EOF
 echo "ssh \$*" >>"$SANDBOX/calls.log"
 count=\$(grep -c '^ssh ' "$SANDBOX/calls.log")
 [ "\$count" -ge "\${SSH_READY_AT:-1}" ] || exit 255
+# 検証機側 run-smoke.ps1 の実行だけ SMOKE_RUN_EXIT で終了コードを差し替える（ラベル不一致=2 等の伝搬を固定する）
+# Only the run-smoke.ps1 invocation takes SMOKE_RUN_EXIT, pinning propagation of e.g. the label-mismatch exit 2
+case "\$*" in *"-File"*"run-smoke.ps1"*) exit \${SMOKE_RUN_EXIT:-0} ;; esac
 exit \${SSH_RUN_EXIT:-0}
 EOF
     # scpはディレクトリごとコピーする実装（-r remote:.../results dest）に合わせ、
@@ -47,7 +50,7 @@ for last; do :; done
 case "\$last" in
   "$SANDBOX"/artifacts*)
     dest="\$last/results"
-    mkdir -p "\$dest/phase1" "\$dest/phase2"
+    mkdir -p "\$dest/phase1"
     # stepsにトップレベルとは独立した"success"キーを持たせ、全文一致(旧grep実装)が
     # トップレベルfalseでも合格にしてしまう退行を検知できるようにする
     # steps carries its own independent "success" key so a whole-text match (the old grep
@@ -63,6 +66,10 @@ case "\$last" in
     # A backslash inside JSON must be escaped as \\, or the text is invalid JSON (the real writer, JsonUtility,
     # already escapes it); since the outer heredoc is unquoted, 4 backslashes are needed to leave 2 in the stub
     BS='\\\\'
+    # SCP_OMIT_PHASE2=1 は検証機が phase2 の result.json を残さなかった回を再現する
+    # SCP_OMIT_PHASE2=1 reproduces a run where the machine left no phase2 result.json
+    [ "\${SCP_OMIT_PHASE2:-0}" = "1" ] && exit 0
+    mkdir -p "\$dest/phase2"
     printf '{"phase": "phase2", "success": %s, "steps": [{"name": "save", "success": true}], "reportBundleDirectory": "C:%smoorestech-smoke%soutbox%sreport%s20260913_180000_%s"}' \
       "\${PHASE2_SUCCESS:-true}" "\$BS" "\$BS" "\$BS" "\$BS" "\${SMOKE_REPORT_ID:-aaaa1111}" >"\$dest/phase2/result.json"
     ;;
@@ -101,6 +108,7 @@ run_target() {
       PHASE1_SUCCESS="${PHASE1_SUCCESS-true}" PHASE2_SUCCESS="${PHASE2_SUCCESS-true}" \
       INBOX_HAS_REPORT="${INBOX_HAS_REPORT-1}" SMOKE_REPORT_ID="${SMOKE_REPORT_ID-aaaa1111}" \
       INBOX_HAS_UNRELATED_REPORT="${INBOX_HAS_UNRELATED_REPORT-0}" \
+      SMOKE_RUN_EXIT="${SMOKE_RUN_EXIT-0}" SCP_OMIT_PHASE2="${SCP_OMIT_PHASE2-0}" \
       bash "$TARGET" "$LABEL" 2>&1 )
 }
 
@@ -166,6 +174,24 @@ make_sandbox
 OUTPUT=$(INBOX_HAS_REPORT=1 INBOX_HAS_UNRELATED_REPORT=1 SMOKE_REPORT_ID=bbbb2222 run_target); STATUS=$?
 [ "$STATUS" -eq 0 ] || fail "the matching report among unrelated items did not pass: $OUTPUT"
 
+# 検証機側がラベル不一致等で非0を返したら、verify も非0で終わり回収も受け口確認もしない
+# When the machine side exits non-zero (e.g. label mismatch), verify also fails without collecting or checking the inbox
+make_sandbox
+OUTPUT=$(SMOKE_RUN_EXIT=2 run_target); STATUS=$?
+[ "$STATUS" -eq 2 ] || fail "a label mismatch on the machine did not propagate exit 2 (got $STATUS): $OUTPUT"
+grep -q "/v1/inbox" "$SANDBOX/calls.log" && fail "inbox was checked despite a failed smoke on the machine"
+grep -q -- "-r .*results" "$SANDBOX/calls.log" && fail "results were collected despite a failed smoke on the machine"
+
+# 同じラベルの2回目で phase2 の result.json が来なければ、1回目の合格結果を読まずに落ちる
+# On a second run with the same label, a missing phase2 result.json fails instead of reading the first run's pass
+make_sandbox
+run_target >/dev/null 2>&1 || fail "the first same-label run did not pass"
+OUTPUT=$(SCP_OMIT_PHASE2=1 run_target); STATUS=$?
+[ "$STATUS" -eq 4 ] || fail "a stale phase2 result from the first run was reused (got $STATUS): $OUTPUT"
+
+# 検証機の Windows PowerShell 5.1 は BOM 無し UTF-8 を ANSI として読み日本語で壊れるため、run-smoke.ps1 は BOM 付きで保つ
+# Windows PowerShell 5.1 reads BOM-less UTF-8 as ANSI and breaks on Japanese text, so run-smoke.ps1 must keep its BOM
+[ "$(head -c 3 "$SCRIPT_DIR/../windows/run-smoke.ps1" | od -An -tx1 | tr -d ' \n')" = "efbbbf" ] || fail "run-smoke.ps1 lost its UTF-8 BOM"
 if [ "$FAILURES" -ne 0 ]; then
     echo "FAILED: $FAILURES contract checks"
     exit 1
