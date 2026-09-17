@@ -4,10 +4,13 @@
 Verifies the daily digest aggregation and output against a fixture tree.
 """
 import json
+import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
+from datetime import datetime
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parent.parent
@@ -91,18 +94,42 @@ class DigestTest(unittest.TestCase):
         self.assertEqual(dc.jst_date(""), "")
 
     def test_load_reports_filters_by_ready_at(self):
-        reports = dc.load_reports(self.root / "harness/playtest/reports", self.date)
+        reports, stats = dc.load_reports(self.root / "harness/playtest/reports", self.date)
         self.assertEqual({r["kind"] for r in reports}, {"bug", "feedback", "crash"})
         self.assertEqual(len(reports), 4)
+        self.assertEqual(stats, {"unreadable": 0, "readyAtFallback": 0})
 
     def test_load_reports_marks_queued(self):
-        reports = {r["id"]: r for r in dc.load_reports(
-            self.root / "harness/playtest/reports", self.date)}
-        self.assertFalse(reports["20260912_100000_bug1"]["queued"])
-        self.assertTrue(reports["20260912_101000_bug2"]["queued"])
+        reports, _stats = dc.load_reports(self.root / "harness/playtest/reports", self.date)
+        by_id = {r["id"]: r for r in reports}
+        self.assertFalse(by_id["20260912_100000_bug1"]["queued"])
+        self.assertTrue(by_id["20260912_101000_bug2"]["queued"])
+
+    def test_load_reports_counts_broken_ingest_json(self):
+        """ingest.json が壊れている箱は除外され、件数へ計上される
+        A box with a broken ingest.json is excluded and counted"""
+        broken = self.root / "harness/playtest/reports/7656009/20260912_990000_broken"
+        broken.mkdir(parents=True)
+        (broken / "ingest.json").write_text("{broken", encoding="utf-8")
+        reports, stats = dc.load_reports(self.root / "harness/playtest/reports", self.date)
+        self.assertEqual(len(reports), 4)
+        self.assertEqual(stats["unreadable"], 1)
+
+    def test_load_reports_counts_ready_at_fallback(self):
+        """readyAt が無く ingestedAt へ落とした箱はフォールバック件数に入る
+        A box missing readyAt that falls back to ingestedAt is counted as a fallback"""
+        fb = self.root / "harness/playtest/reports/7656010/20260912_991000_noready"
+        write_json(fb / "ingest.json", {"kind": "report", "steamId": "7656010",
+                                        "id": "20260912_991000_noready",
+                                        "ingestedAt": "2026-09-12T05:20:00Z"})
+        write_json(fb / "manifest.json", {"kind": "bug", "description": "readyAt無し"})
+        reports, stats = dc.load_reports(self.root / "harness/playtest/reports", self.date)
+        self.assertEqual(len(reports), 5)
+        self.assertEqual(stats["readyAtFallback"], 1)
 
     def test_aggregate_progress(self):
-        records = dc.load_progress(self.root / "harness/playtest/progress", self.date)
+        records, stats = dc.load_progress(self.root / "harness/playtest/progress", self.date)
+        self.assertEqual(stats["invalidRecord"], 0)
         agg = dc.aggregate_progress(records)
         self.assertEqual(agg["testers"], 2)
         self.assertEqual(agg["sessions"], 2)
@@ -117,6 +144,43 @@ class DigestTest(unittest.TestCase):
         self.assertEqual(len(runs), 1)
         self.assertEqual(runs[0]["prNumber"], 1400)
         self.assertEqual(fallback, 0)
+
+    def test_load_progress_excludes_invalid_types(self):
+        """playSeconds が文字列、events 要素が非 dict の record.json は除外し件数に数える
+        A record.json with a string playSeconds or non-dict events elements is excluded and counted"""
+        bad = self.root / "harness/playtest/progress/7656099/20260912_995000_bad"
+        write_json(bad / "ingest.json", {"kind": "progress", "steamId": "7656099",
+                                         "id": "20260912_995000_bad",
+                                         "readyAt": "2026-09-12T09:50:00Z"})
+        write_json(bad / "record.json", {"schemaVersion": 1, "steamId": "7656099",
+                                         "playSeconds": "abc", "events": ["x"]})
+        records, stats = dc.load_progress(self.root / "harness/playtest/progress", self.date)
+        self.assertEqual(len(records), 2)
+        self.assertEqual(stats["invalidRecord"], 1)
+
+    def test_load_fix_results_falls_back_on_missing_finished_at(self):
+        """finishedAt が無いランは mtime で日付判定し、フォールバック件数に入る
+        A run missing finishedAt is dated by mtime and counted as a fallback"""
+        run = self.root / "harness/bug-report/runs/20260912_080000_nofinished"
+        write_json(run / "fix-result.json", {"status": "fixed", "pr_number": 1401, "base": "master",
+                                             "summary": "finishedAt無し"})
+        target = time.mktime(datetime.strptime(self.date, "%Y-%m-%d").replace(hour=12).timetuple())
+        os.utime(run / "fix-result.json", (target, target))
+        runs, fallback = dc.load_fix_results(self.root / "harness/bug-report/runs", self.date)
+        self.assertEqual(fallback, 1)
+        self.assertEqual({r["id"] for r in runs}, {"20260910_090000_bug0", "20260912_080000_nofinished"})
+
+    def test_load_fix_results_falls_back_on_unparseable_finished_at(self):
+        """7桁小数の finishedAt は python3.9 の fromisoformat が拒否するため mtime へ落とす
+        A 7-digit-fraction finishedAt is rejected by python3.9's fromisoformat and falls back to mtime"""
+        run = self.root / "harness/bug-report/runs/20260912_081000_weird"
+        write_json(run / "fix-result.json", {"status": "fixed", "pr_number": 1402, "base": "master",
+                                             "summary": "小数7桁", "finishedAt": "2026-09-12T10:00:00.1234567Z"})
+        target = time.mktime(datetime.strptime(self.date, "%Y-%m-%d").replace(hour=12).timetuple())
+        os.utime(run / "fix-result.json", (target, target))
+        runs, fallback = dc.load_fix_results(self.root / "harness/bug-report/runs", self.date)
+        self.assertEqual(fallback, 1)
+        self.assertIn("20260912_081000_weird", {r["id"] for r in runs})
 
     def run_digest(self, *extra):
         cmd = [sys.executable, str(SCRIPTS / "digest.py"), "--date", self.date,

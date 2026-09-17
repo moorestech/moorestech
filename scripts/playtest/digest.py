@@ -24,13 +24,17 @@ def top_line(counter: Counter, limit: int) -> str:
     return " / ".join(f"{key} {value}件" for key, value in counter.most_common(limit))
 
 
-def format_counts(reports: list[dict]) -> list[str]:
+def format_counts(reports: list[dict], stats: dict) -> list[str]:
     counts = Counter(r["kind"] for r in reports)
     lines = ["", "## プレイ報告の件数",
              f"- バグ {counts.get('bug', 0)}件 / 感想 {counts.get('feedback', 0)}件 / "
              f"クラッシュ {counts.get('crash', 0)}件"]
     if counts.get("unknown"):
         lines.append(f"- ⚠ manifest.kind を読めなかった箱 {counts['unknown']}件")
+    if stats.get("unreadable"):
+        lines.append(f"- ⚠ ingest.json を読めない/日付を解釈できず除外した箱 {stats['unreadable']}件")
+    if stats.get("readyAtFallback"):
+        lines.append(f"- ⚠ readyAt が無く ingestedAt で日付判定した箱 {stats['readyAtFallback']}件")
     return lines
 
 
@@ -62,17 +66,24 @@ def format_candidates(reports: list[dict]) -> list[str]:
     return lines
 
 
-def format_progress(agg: dict) -> list[str]:
+def format_progress(agg: dict, stats: dict) -> list[str]:
     lines = ["", "## 進行記録"]
     if agg["sessions"] == 0:
-        return lines + ["- なし"]
-    lines.append(f"- 人数 {agg['testers']} 人 / セッション {agg['sessions']} 件")
-    lines.append(f"- 平均プレイ時間 {agg['meanPlaySeconds'] / 60:.1f} 分")
-    lines.append(f"- 平均研究完了数 {agg['meanResearch']:.1f}")
-    lines.append("- 到達チャレンジ数の分布: " + top_line(agg["reachBuckets"], 5))
-    lines.append("- 離脱時の最後のイベント上位: " + top_line(agg["lastEvents"], 5))
-    lines.append("- 離脱時のUI状態上位: " + top_line(agg["lastUiStates"], 5))
-    lines.append("- 終了理由: " + top_line(agg["endReasons"], 5))
+        lines.append("- なし")
+    else:
+        lines.append(f"- 人数 {agg['testers']} 人 / セッション {agg['sessions']} 件")
+        lines.append(f"- 平均プレイ時間 {agg['meanPlaySeconds'] / 60:.1f} 分")
+        lines.append(f"- 平均研究完了数 {agg['meanResearch']:.1f}")
+        lines.append("- 到達チャレンジ数の分布: " + top_line(agg["reachBuckets"], 5))
+        lines.append("- 離脱時の最後のイベント上位: " + top_line(agg["lastEvents"], 5))
+        lines.append("- 離脱時のUI状態上位: " + top_line(agg["lastUiStates"], 5))
+        lines.append("- 終了理由: " + top_line(agg["endReasons"], 5))
+    if stats.get("unreadable"):
+        lines.append(f"- ⚠ ingest.json を読めない/日付を解釈できず除外した箱 {stats['unreadable']}件")
+    if stats.get("readyAtFallback"):
+        lines.append(f"- ⚠ readyAt が無く ingestedAt で日付判定した箱 {stats['readyAtFallback']}件")
+    if stats.get("invalidRecord"):
+        lines.append(f"- ⚠ record.json の型が想定外で除外した件数 {stats['invalidRecord']}件")
     return lines
 
 
@@ -88,7 +99,7 @@ def format_runs(runs: list[dict], fallback: int) -> list[str]:
             lines.append(f"- {run['id']} … {run['status']} / {pr} / "
                          f"base {run['base'] or '不明'} / {run['summary']}")
     if fallback:
-        lines.append(f"- ⚠ finishedAt が無く mtime で日付を判定したラン {fallback}件")
+        lines.append(f"- ⚠ finishedAt が無い/解釈できず mtime で日付判定したラン {fallback}件")
     return lines
 
 
@@ -110,6 +121,22 @@ def resolve_date(raw: str) -> str:
     return raw
 
 
+def emit_warnings(report_stats: dict, progress_stats: dict, run_fallback: int) -> None:
+    """除外・フォールバックが起きたら stderr にも出す（Discord に届く stdout とは別に運用者が拾えるように）
+    Also prints to stderr when boxes were excluded or fell back, so operators see it beyond the Discord stdout"""
+    counters = {
+        "reports.unreadable": report_stats.get("unreadable", 0),
+        "reports.readyAtFallback": report_stats.get("readyAtFallback", 0),
+        "progress.unreadable": progress_stats.get("unreadable", 0),
+        "progress.readyAtFallback": progress_stats.get("readyAtFallback", 0),
+        "progress.invalidRecord": progress_stats.get("invalidRecord", 0),
+        "runs.finishedAtFallback": run_fallback,
+    }
+    for name, count in counters.items():
+        if count:
+            print(f"[digest] WARN {name}={count}", file=sys.stderr)
+
+
 def main(argv: list[str] | None = None) -> int:
     default_logs = os.environ.get(
         "MOORESTECH_LOGS", str(Path.home() / "hermes-agent/data/repos/moorestech_logs"))
@@ -123,15 +150,15 @@ def main(argv: list[str] | None = None) -> int:
     date = resolve_date(args.date)
     logs = Path(args.logs)
     playtest = logs / "harness" / "playtest"
-    reports = dc.load_reports(playtest / "reports", date)
-    progress = dc.load_progress(playtest / "progress", date)
+    reports, report_stats = dc.load_reports(playtest / "reports", date)
+    progress, progress_stats = dc.load_progress(playtest / "progress", date)
     runs, fallback = dc.load_fix_results(logs / "harness" / "bug-report" / "runs", date)
 
     lines = [f"# moorestech プレイテスト日次ダイジェスト {date}"]
-    lines += format_counts(reports)
+    lines += format_counts(reports, report_stats)
     lines += format_candidates(reports)
     lines += format_feedback(reports)
-    lines += format_progress(dc.aggregate_progress(progress))
+    lines += format_progress(dc.aggregate_progress(progress), progress_stats)
     lines += format_runs(runs, fallback)
     body = "\n".join(lines) + "\n"
 
@@ -140,6 +167,7 @@ def main(argv: list[str] | None = None) -> int:
         archive.parent.mkdir(parents=True, exist_ok=True)
         archive.write_text(body, encoding="utf-8")
 
+    emit_warnings(report_stats, progress_stats, fallback)
     sys.stdout.write(truncate(body, args.max_chars, archive))
     return 0
 
