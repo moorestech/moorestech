@@ -1,10 +1,10 @@
 using System;
-using System.IO;
 using Client.Common;
-using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.Common;
 using Client.PlaytestReceiver.Gate;
 using Cysharp.Threading.Tasks;
 using Game.Paths;
+using UniRx;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -21,6 +21,10 @@ namespace Client.Starter.PlaytestSmoke
         // 起動時照合は受け口への通信を伴う。応答が無いまま検証機を占有し続けないよう期限を切る
         // The launch check talks to the receiver; bound it so a silent receiver never holds the verifier forever
         private const float LaunchGateTimeoutSeconds = 180f;
+
+        // 初期化完了の期限は前例 StandaloneTerrainQaBootstrap と同じ120秒
+        // The initialization deadline matches the 120 seconds of the StandaloneTerrainQaBootstrap precedent
+        private const float GameInitializationTimeoutSeconds = 120f;
 
         public static bool IsActive { get; private set; }
         public static StandalonePlaytestSmokeSettings Settings { get; private set; }
@@ -53,25 +57,26 @@ namespace Client.Starter.PlaytestSmoke
 
             Settings = settings;
             IsActive = true;
-            StartWhenPreconditionsHoldAsync(settings).Forget();
+
+            // Forgetに吸われた例外（ワールド削除のIO失敗等）も理由付きの失敗結果にする（前例: InitializeScenePipeline）
+            // Exceptions swallowed by Forget, such as world deletion IO failures, also become a reasoned failure (precedent: InitializeScenePipeline)
+            StartWhenPreconditionsHoldAsync(settings).Forget(exception => FailBeforeRun(settings, "bootstrap", $"{exception.GetType()} {exception.Message}"));
         }
 
         private static async UniTask StartWhenPreconditionsHoldAsync(StandalonePlaytestSmokeSettings settings)
         {
             // 照合の結論を待つ。判定前に開始すると初期化パイプラインがメニューへ戻し、無人のまま止まる
             // Wait for the launch verdict; starting before it makes the pipeline bounce back to the menu and stall unattended
-            var deadline = Time.realtimeSinceStartup + LaunchGateTimeoutSeconds;
-            while (IsGatePending(PlaytestLaunchGate.Current.Value.Status) && Time.realtimeSinceStartup < deadline)
+            var gateDeadline = Time.realtimeSinceStartup + LaunchGateTimeoutSeconds;
+            while (IsGatePending(PlaytestLaunchGate.Current.Value.Status) && Time.realtimeSinceStartup < gateDeadline)
             {
                 await UniTask.Yield();
             }
 
-            var failure = FindPreconditionFailure(settings, PlaytestLaunchGate.Current.Value);
+            var failure = StandalonePlaytestSmokePreconditions.FindFailure(settings, PlaytestLaunchGate.Current.Value);
             if (failure.Length != 0)
             {
-                Debug.LogError($"[PlaytestSmoke] {settings.Phase} not started: {failure}");
-                StandalonePlaytestSmokeResultWriter.Write(settings.ResultDirectory, StandalonePlaytestSmokeResultWriter.CreateSingleStepFailure(settings.Phase, "preconditions", failure));
-                Application.Quit(1);
+                FailBeforeRun(settings, "preconditions", failure);
                 return;
             }
 
@@ -80,8 +85,29 @@ namespace Client.Starter.PlaytestSmoke
             if (settings.Phase == StandalonePlaytestSmokeSettings.PhaseOne)
                 GameSystemPaths.DeleteDefaultWorldDirectory();
 
+            // 初期化完了とメインメニューへの差し戻しを、開始より先に購読しておく（前例と同じ購読＋期限付き待機）
+            // Subscribe to initialization completion and a bounce back to the main menu before starting (same subscribe-plus-deadline shape as the precedent)
+            var gameInitialized = false;
+            var returnedToMainMenu = false;
+            using var initializedSubscription = GameInitializedEvent.OnGameInitialized.Take(1).Subscribe(_ => gameInitialized = true);
+            SceneManager.sceneLoaded += OnSceneLoaded;
+
             Debug.Log($"[PlaytestSmoke] starting {settings.Phase} result:{settings.ResultDirectory}");
             LocalGameLauncher.StartLocalGame();
+
+            var initializationDeadline = Time.realtimeSinceStartup + GameInitializationTimeoutSeconds;
+            while (!gameInitialized && !returnedToMainMenu && Time.realtimeSinceStartup < initializationDeadline)
+            {
+                await UniTask.Yield();
+            }
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+            if (gameInitialized) return;
+
+            // 初期化例外はメニューへ戻し、ブートストラップは再実行されない。無応答の開始ゲートは期限で拾う
+            // An initialization exception returns to the menu where the bootstrap never reruns; an unanswered start gate is caught by the deadline
+            FailBeforeRun(settings, "game-initialized", returnedToMainMenu
+                ? "game initialization failed and returned to the main menu; see the preceding error log"
+                : $"game initialization did not complete within {GameInitializationTimeoutSeconds}s (a start gate such as the previous-crash confirmation may be waiting for input)");
 
             #region Internal
 
@@ -90,29 +116,22 @@ namespace Client.Starter.PlaytestSmoke
                 return status == PlaytestGateStatus.NotEvaluated || status == PlaytestGateStatus.Checking;
             }
 
+            void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+            {
+                if (scene.name == SceneConstant.MainMenuSceneName) returnedToMainMenu = true;
+            }
+
             #endregion
         }
 
-        // 無人では越えられない関門を開始前に検出し、止まる代わりに理由付きで失敗させる
-        // Detects gates nobody can pass unattended before starting, failing with a reason instead of stalling
-        private static string FindPreconditionFailure(StandalonePlaytestSmokeSettings settings, PlaytestGateResult gate)
+        // 通し手順に入る前の失敗。以降の初期化完了で手順が走らないよう無効化し、理由を結果とログへ残して終了する
+        // A failure before the steps run; deactivate so a later initialization never runs them, record the reason and quit
+        private static void FailBeforeRun(StandalonePlaytestSmokeSettings settings, string stepName, string reason)
         {
-            // 通し検証の対象は照合を通った配布版だけ。開発者モードでは報告が受け口へ運ばれない
-            // Only a checked distribution build is in scope; in developer mode no report ever reaches the receiver
-            if (gate.Status != PlaytestGateStatus.Allowed)
-                return $"launch gate is {gate.Status} (Allowed required; developer mode means build-info.json is missing or Steam is not running) {gate.Detail}";
-
-            // 同意表示は応答を上限なく待つ。検証機では初回セットアップで一度だけ人が既読にする
-            // The consent notice waits without bound; on the verifier a human acknowledges it once during setup
-            if (!PlaytestConsentFlag.IsAcknowledged())
-                return $"the playtest consent notice has not been acknowledged on this machine ({PlaytestConsentFlag.FilePath}); acknowledge it once interactively";
-
-            // phase2はphase1のセーブを読む検証。ワールドが無いと新規生成され、ロードを確かめないまま進んでしまう
-            // phase2 verifies loading phase1's save; without the world a fresh one is generated and loading goes unverified
-            if (settings.Phase == StandalonePlaytestSmokeSettings.PhaseTwo && !Directory.Exists(GameSystemPaths.DefaultWorldDirectory))
-                return $"no saved world to load at {GameSystemPaths.DefaultWorldDirectory}; run phase1 first";
-
-            return "";
+            IsActive = false;
+            Debug.LogError($"[PlaytestSmoke] {settings.Phase} failed at {stepName}: {reason}");
+            StandalonePlaytestSmokeResultWriter.Write(settings.ResultDirectory, StandalonePlaytestSmokeResultWriter.CreateSingleStepFailure(settings.Phase, stepName, reason));
+            Application.Quit(1);
         }
     }
 }

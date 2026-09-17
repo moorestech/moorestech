@@ -1,9 +1,7 @@
 using System.IO;
-using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
-using Client.Game.InGame.Playtest.Progress;
-using Client.PlaytestReceiver;
+using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver.Upload;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -13,8 +11,8 @@ namespace Client.Starter.PlaytestSmoke
     /// <summary>
     /// 通し検証の報告送信。ポーズメニューの確保→送信actionと同じ順で箱を書き、受け口への到達印を待つ
     /// The smoke run's report send: writes a box in the same order as the pause-menu capture and submit action, then waits for the upload mark
-    /// 前例は BugReportSubmitActionHandler（WebUIのクリック経路は配布ビルドで叩けないので、その本体を同じ順で呼ぶ）
-    /// The precedent is BugReportSubmitActionHandler; the web UI click path cannot be driven in a player build, so its body is called in the same order
+    /// WebUIのクリック経路は配布ビルドで叩けないので、送信actionと共有する BugReportSubmitter を直接呼ぶ
+    /// The web UI click path cannot be driven in a player build, so this calls the BugReportSubmitter the submit action shares
     /// </summary>
     public sealed class StandalonePlaytestSmokeReportSender
     {
@@ -23,16 +21,12 @@ namespace Client.Starter.PlaytestSmoke
         private const float UploadTimeoutSeconds = 300f;
 
         private readonly BugReportCaptureSession _captureSession;
-        private readonly BugReportBundleWriter _bundleWriter;
-        private readonly IPlaytestProgressSink _progressSink;
-        private readonly IPlaytestUploadRequester _uploadRequester;
+        private readonly BugReportSubmitter _submitter;
 
-        public StandalonePlaytestSmokeReportSender(BugReportCaptureSession captureSession, BugReportBundleWriter bundleWriter, IPlaytestProgressSink progressSink, IPlaytestUploadRequester uploadRequester)
+        public StandalonePlaytestSmokeReportSender(BugReportCaptureSession captureSession, BugReportSubmitter submitter)
         {
             _captureSession = captureSession;
-            _bundleWriter = bundleWriter;
-            _progressSink = progressSink;
-            _uploadRequester = uploadRequester;
+            _submitter = submitter;
         }
 
         // 箱を書いて送信を要求する。成功なら箱の場所、失敗なら理由を返す
@@ -48,19 +42,13 @@ namespace Client.Starter.PlaytestSmoke
                 await UniTask.Yield();
             }
 
-            // 確保中・確保なし・二重送信の判定は確保セッションが持つ。ここでは結論だけを理由に写す
-            // The capture session owns the pending / no-session / double-send decision; only its verdict becomes the reason here
-            var ticket = _captureSession.TryBeginSubmit();
-            if (!ticket.Allowed) return StandalonePlaytestSmokeStepOutcome.Failed($"capture was not submittable within {CaptureTimeoutSeconds}s: {ticket.RefusedCode}");
-
-            var written = await _bundleWriter.WriteAsync(ticket.Data, SmokeDescription, PlaytestReportKind.Bug);
-            _captureSession.CompleteSubmit(ticket.Data, written.Ready, written.Missing);
-            if (!written.Ready) return StandalonePlaytestSmokeStepOutcome.Failed($"the report box was not finished with READY: {written.BundleDirectory}");
-
-            Debug.Log($"[PlaytestSmoke] report box written {written.BundleDirectory} missing:{written.Missing.Count}");
-            _progressSink.RecordReportSent(PlaytestReportKind.Bug);
-            _uploadRequester.RequestUpload();
-            return StandalonePlaytestSmokeStepOutcome.Succeeded(written.BundleDirectory);
+            // 送信手続きは本番の送信actionと同じ1本を通す。検証機専用なので送信記録がプレイ進行へ残るのは許容する
+            // The send goes through the same procedure as the real submit action; recording it in play progress is acceptable on the verifier
+            var submitted = await _submitter.SubmitAsync(SmokeDescription, PlaytestReportKind.Bug);
+            if (submitted.Submitted) return StandalonePlaytestSmokeStepOutcome.Succeeded(submitted.BundleDirectory);
+            return submitted.FailureCode == BugReportSubmitResult.BundleWriteFailed
+                ? StandalonePlaytestSmokeStepOutcome.Failed($"the report box was not finished with READY: {submitted.BundleDirectory}")
+                : StandalonePlaytestSmokeStepOutcome.Failed($"capture was not submittable within {CaptureTimeoutSeconds}s: {submitted.FailureCode}");
         }
 
         // 受け口へのアップロード完了は UPLOADED 印で観測する。送信を諦めた印が付いたら期限を待たず失敗にする

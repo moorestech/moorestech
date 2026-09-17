@@ -1,6 +1,6 @@
 using System.Collections.Generic;
-using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Blueprint;
 using Game.PlacementTarget;
@@ -16,8 +16,6 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.Hotbar;
-using Client.Game.InGame.Playtest.Progress;
-using Client.PlaytestReceiver;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
@@ -160,10 +158,6 @@ namespace Client.WebUiHost.Game
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
             HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>(), uiStateControl);
 
-            // 購読で観測できない操作は記録側へプッシュする。窓口は記録を集めない起動でも必ず登録されている
-            // Operations no subscription observes are pushed to the recorder; the window is registered even on boots that collect no records
-            var progressSink = resolver.Resolve<IPlaytestProgressSink>();
-
             // action ハンドラ登録
             // Register action handlers
             // debug.echo は EchoActionHandler と同じくエディタ/開発ビルド限定で登録する
@@ -194,7 +188,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));
             hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
-            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), uiStateControl, progressSink, resolver.Resolve<IPlaytestUploadRequester>()));
+            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportSubmitter>(), uiStateControl));
         }
     }
 }

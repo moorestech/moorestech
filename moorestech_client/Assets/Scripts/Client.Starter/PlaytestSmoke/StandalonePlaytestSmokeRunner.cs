@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using Client.Game.Common;
-using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Context;
-using Client.Game.InGame.Playtest.Progress;
 using Client.Network.API;
-using Client.PlaytestReceiver;
 using Cysharp.Threading.Tasks;
 using MessagePack;
 using Server.Event.EventReceive;
@@ -31,12 +29,10 @@ namespace Client.Starter.PlaytestSmoke
         public StandalonePlaytestSmokeRunner(
             InitialHandshakeResponse initialHandshakeResponse,
             BugReportCaptureSession captureSession,
-            BugReportBundleWriter bundleWriter,
-            IPlaytestProgressSink progressSink,
-            IPlaytestUploadRequester uploadRequester)
+            BugReportSubmitter submitter)
         {
             _initialHandshakeResponse = initialHandshakeResponse;
-            _reportSender = new StandalonePlaytestSmokeReportSender(captureSession, bundleWriter, progressSink, uploadRequester);
+            _reportSender = new StandalonePlaytestSmokeReportSender(captureSession, submitter);
         }
 
         public void Start()
@@ -50,6 +46,14 @@ namespace Client.Starter.PlaytestSmoke
 
         private async UniTask RunAsync(StandalonePlaytestSmokeSettings settings)
         {
+            // 初期化期限切れで既に失敗を書いて終了要求済みなら、遅れて来た初期化完了で結果を上書きしない
+            // If the initialization deadline already wrote a failure and requested quit, a late initialization must not overwrite it
+            if (!StandalonePlaytestSmokeBootstrap.IsActive)
+            {
+                Debug.LogError("[PlaytestSmoke] game initialized after the smoke run was abandoned; not running the steps");
+                return;
+            }
+
             var reportBundleDirectory = "";
             var failure = "";
 

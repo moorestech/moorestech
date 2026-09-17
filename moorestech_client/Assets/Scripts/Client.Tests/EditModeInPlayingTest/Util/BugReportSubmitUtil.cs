@@ -4,6 +4,7 @@ using System.Linq;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
 using Client.Game.InGame.BugReport.Playtest;
+using Client.Game.InGame.BugReport.Submit;
 using Client.Game.InGame.Playtest.Progress;
 using Client.Game.InGame.UI.UIState;
 using Client.Tests.PlaytestReceiver;
@@ -38,12 +39,12 @@ namespace Client.Tests.EditModeInPlayingTest.Util
         public static async UniTask<string> SubmitAndTakeNewBundle(IObjectResolver resolver, string description, PlaytestReportKind kind, IReadOnlyCollection<string> before)
         {
             var uploadRequester = new RecordingUploadRequester();
-            var handler = new BugReportSubmitActionHandler(
+            var submitter = new BugReportSubmitter(
                 resolver.Resolve<BugReportBundleWriter>(),
                 resolver.Resolve<BugReportCaptureSession>(),
-                resolver.Resolve<UIStateControl>(),
                 resolver.Resolve<IPlaytestProgressSink>(),
                 uploadRequester);
+            var handler = new BugReportSubmitActionHandler(submitter, resolver.Resolve<UIStateControl>());
             var kindText = PlaytestReportKindText.ToContractText(kind);
             var result = await handler.ExecuteAsync(new JObject { ["description"] = description, ["kind"] = kindText });
             Assert.IsTrue(result.Ok, result.Error);

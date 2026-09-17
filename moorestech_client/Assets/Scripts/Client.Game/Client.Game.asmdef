@@ -40,6 +40,7 @@
         "Client.Input",
         "Client.Localization",
         "Client.Network",
+        "Client.PlaytestReceiver",
         "Cinemachine",
         "UniRx",
         "UniTask",
