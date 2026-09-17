@@ -99,4 +99,15 @@ mkdir -p "$LOCK_DIR"; echo "$DEAD_PID" > "$LOCK_DIR/pid"
 rm -f "$R2/acked.txt"
 run_ingest
 grep -q 'report/7656001/20260913_100000_bug1/ack' "$R2/acked.txt" || { echo "NG: 死んだPIDの残骸ロックで取り込みが止まった"; exit 1; }
+
+# LOGS が git repo でなければ、受け口に触る前に止まる（ダウンロードも ack もしない）
+# When LOGS is not a git repo, it stops before touching the receiver (no download, no ack)
+NOGIT="$TMP/nogit"; mkdir -p "$NOGIT"
+rm -f "$R2/acked.txt"
+if MOORESTECH_LOGS="$NOGIT" PLAYTEST_ENV_FILE=/dev/null PLAYTEST_ADMIN_KEY=dummy \
+   FAKE_R2="$R2" CURL_CMD="$TMP/curl" GIT_PUSH=0 TMPDIR="$ISOLATED_TMPDIR" bash "$HERE/../ingest.sh"; then
+  echo "NG: logs repo が無いのに正常終了した"; exit 1
+fi
+[ ! -d "$NOGIT/harness" ] || { echo "NG: logs repo が無いのに取り込みが進んだ"; exit 1; }
+[ ! -f "$R2/acked.txt" ] || { echo "NG: logs repo が無いのに ack された"; exit 1; }
 echo OK

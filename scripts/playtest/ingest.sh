@@ -86,7 +86,7 @@ for p in fs:
 }
 
 commit_logs() {
-  [ -d "$LOGS/.git" ] || { log "logs repo が無い: $LOGS"; return 0; }
+  [ -d "$LOGS/.git" ] || { log "ERROR: logs repo が無い: ${LOGS}（commit しない）"; return 0; }
   ( cd "$LOGS"
     $GIT_CMD add -A harness/playtest || exit 1
     if $GIT_CMD diff --cached --quiet -- harness/playtest; then exit 0; fi
@@ -121,6 +121,12 @@ acquire_lock() {
 acquire_lock || exit 0
 WORK="$(mktemp -d)"
 trap 'rm -rf "$LOCK" "$WORK"' EXIT
+
+# logs repo が無ければ受け口に触る前に止める。位置から導出した既定パスは
+# 本体clone以外（タスクworktree等）で解決しないため、ここで fail-closed にする
+# Stop before touching the receiver if the logs repo is absent: a location-derived
+# default resolves to nothing outside the main clone (task worktrees etc.), so fail closed here
+[ -d "${LOGS}/.git" ] || { log "ERROR: logs repo が無い（${LOGS}）。取り込み・ack をしない"; exit 1; }
 
 ITEMS="$WORK/items.tsv"; : > "$ITEMS"
 cursor=""; page=0
