@@ -8,6 +8,10 @@ namespace Client.Game.InGame.Block
 {
     public class BlockIconImagePhotographer : MonoBehaviour
     {
+        // 固着時に箇所を名指しするための目印。ログ検索とテストが同じ1箇所を参照する（ADR 0063）
+        // The marker that names a freeze site; log searches and tests share this single source (ADR 0063)
+        public const string CaptureLogPrefix = "[BlockIconCapture]";
+
         [SerializeField] private int iconSize = 512;
         [SerializeField] Camera cameraPrefab;
 
@@ -21,26 +25,34 @@ namespace Client.Game.InGame.Block
         {
             var result = new List<Texture2D>();
 
+            // 固着はメインスレッドごと止まるため、各段階へ入る直前に出したログだけが手掛かりになる
+            // A freeze stops the main thread itself, so only logs emitted before each stage remain as evidence
+            Debug.Log($"{CaptureLogPrefix} start count:{targets.Count}");
+            var captureStartedAt = Time.realtimeSinceStartup;
+
             // 撮影資源を一件ずつ破棄し、対象数に依存する瞬間メモリ増加を防ぐ
             // Release capture resources one subject at a time to bound peak memory regardless of subject count
-            foreach (var target in targets)
+            for (var index = 0; index < targets.Count; index++)
             {
+                var target = targets[index];
+                var progress = $"{index + 1}/{targets.Count} {target.debugName}";
                 var instance = Instantiate(target.prefab, transform);
                 instance.transform.position = Vector3.zero;
                 instance.transform.rotation = Quaternion.identity;
                 instance.transform.localScale = Vector3.one;
-                result.Add(await GetIcon(instance, target.debugName));
+                result.Add(await GetIcon(instance, target.debugName, progress));
                 if (Application.isPlaying)
                 {
                     await UniTask.Yield(PlayerLoopTiming.Update);
                 }
             }
 
+            Debug.Log($"{CaptureLogPrefix} completed count:{targets.Count} elapsed:{Time.realtimeSinceStartup - captureStartedAt:F1}s");
             return result;
 
             #region Internal
 
-            async UniTask<Texture2D> GetIcon(GameObject captureTarget, string captureDebugName)
+            async UniTask<Texture2D> GetIcon(GameObject captureTarget, string captureDebugName, string captureProgress)
             {
                 var bounds = captureTarget.GetComponentsInChildren<Renderer>().Select(b => b.bounds).ToList();
                 if (bounds.Count == 0)
@@ -76,6 +88,11 @@ namespace Client.Game.InGame.Block
                     await UniTask.Yield(PlayerLoopTiming.Update);
                 }
 
+                // GPUへ渡す直前。ここで最後のログが止まっていればRender側の固着
+                // Right before handing work to the GPU; a log stopping here means the freeze is on the Render side
+                var iconStartedAt = Time.realtimeSinceStartup;
+                Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:render");
+
                 // ARGB32で透明度を保持
                 // Preserve alpha with an ARGB32 RenderTexture
                 var renderTexture = new RenderTexture(iconSize, iconSize, 24, RenderTextureFormat.ARGB32)
@@ -88,6 +105,10 @@ namespace Client.Game.InGame.Block
                 blockImageCamera.targetTexture = renderTexture;
                 blockImageCamera.Render();
                 blockImageCamera.targetTexture = null;
+
+                // 同期読み戻しの直前。ここで止まっていればReadPixels側の固着
+                // Right before the synchronous readback; a log stopping here means the freeze is on the ReadPixels side
+                Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:readback");
 
                 // RGBA32へ画素を読み込む
                 // Read pixels into an RGBA32 Texture2D
@@ -112,6 +133,7 @@ namespace Client.Game.InGame.Block
                     DestroyImmediate(blockImageCamera.gameObject);
                 }
 
+                Debug.Log($"{CaptureLogPrefix} {captureProgress} stage:done elapsed:{(Time.realtimeSinceStartup - iconStartedAt) * 1000f:F0}ms");
                 return texture;
             }
 

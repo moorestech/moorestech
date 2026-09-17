@@ -105,6 +105,46 @@ namespace Client.Tests.Block
             Assert.That(peakCameraCount, Is.LessThanOrEqualTo(cameraCountBefore + 1));
         }
 
+        [UnityTest]
+        public IEnumerator TakeIconImages_撮影の段階をログに残す()
+        {
+            var photographerObject = new GameObject($"{TestObjectPrefix}LogPhotographer");
+            var photographer = photographerObject.AddComponent<BlockIconImagePhotographer>();
+            var cameraPrefabObject = new GameObject($"{TestObjectPrefix}LogCamera");
+            var cameraPrefab = cameraPrefabObject.AddComponent<Camera>();
+            var targetPrefab = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            targetPrefab.name = $"{TestObjectPrefix}LogTarget";
+            const string captureDebugName = "log-test";
+
+            var cameraField = typeof(BlockIconImagePhotographer).GetField("cameraPrefab", BindingFlags.Instance | BindingFlags.NonPublic);
+            cameraField.SetValue(photographer, cameraPrefab);
+
+            // 固着時はメインスレッドごと止まるため、各段階へ入る直前のログだけが箇所の手掛かりになる
+            // A freeze stops the main thread itself, so only the log emitted before each stage can locate it
+            var captureLogs = new List<string>();
+            void CollectLog(string condition, string stackTrace, LogType type)
+            {
+                if (type == LogType.Log && condition.StartsWith(BlockIconImagePhotographer.CaptureLogPrefix)) captureLogs.Add(condition);
+            }
+
+            Application.logMessageReceived += CollectLog;
+            var captureTask = photographer.TakeIconImages(new List<(GameObject prefab, string debugName)>
+            {
+                (targetPrefab, captureDebugName),
+            });
+            yield return WaitForCompletion(captureTask);
+            var textures = captureTask.GetAwaiter().GetResult();
+            Application.logMessageReceived -= CollectLog;
+            foreach (var texture in textures) Object.DestroyImmediate(texture);
+
+            Assert.That(captureLogs.Count, Is.EqualTo(5), string.Join(" | ", captureLogs));
+            Assert.That(captureLogs[0], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} start count:1"));
+            Assert.That(captureLogs[1], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} 1/1 {captureDebugName} stage:render"));
+            Assert.That(captureLogs[2], Is.EqualTo($"{BlockIconImagePhotographer.CaptureLogPrefix} 1/1 {captureDebugName} stage:readback"));
+            Assert.That(captureLogs[3], Does.StartWith($"{BlockIconImagePhotographer.CaptureLogPrefix} 1/1 {captureDebugName} stage:done elapsed:"));
+            Assert.That(captureLogs[4], Does.StartWith($"{BlockIconImagePhotographer.CaptureLogPrefix} completed count:1 elapsed:"));
+        }
+
         private static int CountCameras()
         {
             return Object.FindObjectsByType<Camera>(FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
