@@ -4,7 +4,7 @@ using UnityEditor.Build;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace Client.Editor.Build
+namespace Client.Editor.Build.Bundlers
 {
     /// <summary>
     /// 展示会用の再起動ループスクリプトを成果物直下へ実行権つきで置く

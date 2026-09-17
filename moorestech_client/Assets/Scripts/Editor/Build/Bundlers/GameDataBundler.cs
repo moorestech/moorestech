@@ -4,7 +4,7 @@ using Client.Game.InGame.BugReport;
 using UnityEditor.Build;
 using UnityEngine;
 
-namespace Client.Editor.Build
+namespace Client.Editor.Build.Bundlers
 {
     /// <summary>
     /// ローカルサーバーが読むゲームデータ一式を成果物ルートのgame/へ同梱する

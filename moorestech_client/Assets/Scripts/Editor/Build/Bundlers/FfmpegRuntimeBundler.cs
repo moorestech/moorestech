@@ -5,7 +5,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEngine;
 
-namespace Client.Editor.Build
+namespace Client.Editor.Build.Bundlers
 {
     /// <summary>
     /// バグ報告の録画組み立てに使う ffmpeg を Windows 成果物へ同梱する
@@ -49,8 +49,7 @@ namespace Client.Editor.Build
                 return;
             }
 
-            var dataDirectory = Path.Combine(Path.GetDirectoryName(playerOutputPath), Path.GetFileNameWithoutExtension(playerOutputPath) + "_Data");
-            var destinationDirectory = Path.Combine(dataDirectory, "Plugins", "x86_64");
+            var destinationDirectory = WindowsPlayerPluginsDirectory.Resolve(playerOutputPath);
             if (!Directory.Exists(destinationDirectory))
             {
                 Fail($"Plugins/x86_64 not found in build output: {destinationDirectory}");

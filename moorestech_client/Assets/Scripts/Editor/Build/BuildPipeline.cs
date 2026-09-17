@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using Client.Editor.Build.Bundlers;
 using UnityEditor;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.Build.Reporting;

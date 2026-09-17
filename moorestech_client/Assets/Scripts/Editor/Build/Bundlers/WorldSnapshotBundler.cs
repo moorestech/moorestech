@@ -8,7 +8,7 @@ using Server.Boot;
 using UnityEditor.Build;
 using UnityEngine;
 
-namespace Client.Editor.Build
+namespace Client.Editor.Build.Bundlers
 {
     /// <summary>
     /// 既定seedの生成済みワールドを成果物へ同梱する。共有キャッシュに無ければ一時ワールドで生成し、キャッシュ(world本体+visual)を game/worldSnapshots/ へ写す
