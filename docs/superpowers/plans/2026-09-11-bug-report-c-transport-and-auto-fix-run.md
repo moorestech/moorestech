@@ -2,6 +2,13 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
+> **改訂（ADR 0061 / 2026-09-13・plan H より）:** テスターからの報告は受け口経由で届き、plan H の `scripts/playtest/ingest.sh` が `moorestech_logs/harness/playtest/` へ保存する。**そこから `inbox/<id>/` へ入れるのは自動ではなく、人が日次ダイジェストを見て `scripts/playtest/enqueue-autofix.sh <steamId> <id>` を叩いたときだけ**（裁定 2026-09-13・[[2026-09-13-テスター報告は自動投入せず日次ダイジェストを見て人が自動修正ランへ投入する]]）。本planの inbox 契約（`inbox/*/READY` を古い順に1件・`runs/<id>/` へ移動）と自動修正ランの中身はそのまま。変わるのは次の5点。
+> 1. **manifest のコミット参照は `manifest.buildInfo.commit` / `manifest.buildInfo.masterDataCommit`。** `ship-outbox.sh` と `prepare-run.sh` の `manifest.repository.commit` / `masterData.commit` を読み替える（配布版の箱には `repository` が無い）。`buildInfo` が null（Editor実行）のときだけ原文の `repository` を見る。
+> 2. **poller は `kind=bug` だけを走らせる。** inbox に入るのは開発者の rsync 経路（感想・クラッシュも運ぶ）と人の手動投入分の2つ。`inbox-poller.sh` は `manifest.kind` を見て `bug` 以外なら `runs/` へ移さず `skipped/<id>/` へ退避し、理由を `[poller]` ログに出す（無音で捨てない）。`kind` が読めない箱も同じく `skipped/` 行き。**例外は箱に `AUTOFIX_FORCED` がある場合**（人が `enqueue-autofix.sh --force` で意図的に入れた印）で、このときは `kind` を問わず走らせ、`[poller] forced: kind=<値>` をログに出す。
+> 3. **`kind=crash` は自動修正ランを起動しない。** 日次ダイジェストに件数として載るだけ（ADR 0061）。
+> 4. **`fix-result.json` に `finishedAt`（ISO8601・UTC）を足す。** 日次ダイジェストがランの日付をこれで判定する（ラン id の日付はバグ報告が作られた日であってランの日ではない）。書くのはスキル `bug-report-auto-fix` の Step 9 と、poller が result 欠落を埋めるとき。
+> 5. **logs repo のベースブランチは `main`。** 本planの Task 2 が `origin/master` と書いているのは誤り（`moorestech_logs` の既定ブランチは `main`）。
+
 **Goal:** MacBookのoutboxに書かれたバンドルをTailscale経由でMac miniのinboxへ運び、Mac miniが1件ずつ隔離worktreeを切って「決定性検査→再現→修正→合成NUnit→draft PR」の自動修正ランを回し、結果を `fix-result.json` と bd に残す（ADR 0057 の運搬と再現側。初版完成条件「Editorで報告→Mac mini再現→draft PR」の通し）。
 
 **Architecture:** (1) 運搬は `scripts/bugreport/ship-outbox.sh`（launchd 60秒周期）。`READY` のある箱だけを対象にし、未pushコミットを `git bundle` で添付してから `rsync` で `inbox/<id>.partial/` へ送り、完了後に `mv` でアトミックに `inbox/<id>/` にする。届かない機材では何もしない（裁定）。(2) Mac mini側は `scripts/bugreport/inbox-poller.sh`（always-on supervisor の periodic に登録。単一飛行ロック）が inbox から1件取り `moorestech_logs/harness/bug-report/runs/<id>/` へ移し、`prepare-run.sh` で報告時コミット＋差分のworktreeとmaster dataのworktreeを用意し、`claude -p "/bug-report-auto-fix <id>"` を起動する。(3) スキル `bug-report-auto-fix` は無人関所（`unattended-gate.py`）付きで、決定性検査（`SnapshotReplayer` を全連続ペアに適用）→スナップショットからのプレイテスト起動と観察→`debug-workflow`→修正→合成NUnit→masterでも落ちるかで修正先を決める→`moores-code-review`→`pr-create`＋draft化→`fix-result.json`。再現不能・仕様曖昧はコードを触らず bd に積む。
