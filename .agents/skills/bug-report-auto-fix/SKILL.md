@@ -196,7 +196,7 @@ Step 3 のシナリオを修正後のバイナリで再実行し `$RUN/observe-a
 
 ## Step 9: 結果を書いて終える
 
-`$RUN/fix-result.json` を `references/fix-result.md` の契約で書く。`status` は `fixed` / `not_reproduced` / `needs_ruling` / `failure`。`needs_ruling` の場合は `bd create` で裁定事項を積み（`--type=task --priority=1`、本文に候補と帰結）、その id を `remaining` に書く。書いた直後に終了する。
+`$RUN/fix-result.json` を `references/fix-result.md` の契約で書く。`status` は `fixed` / `not_reproduced` / `needs_ruling` / `failure`。`finishedAt` には書く時点の時刻を `date -u +%Y-%m-%dT%H:%M:%SZ` の形で必ず入れる（日次ダイジェストの日付判定に使う）。`needs_ruling` の場合は `bd create` で裁定事項を積み（`--type=task --priority=1`、本文に候補と帰結）、その id を `remaining` に書く。書いた直後に終了する。
 
 ## Unity のつまずき（無人で詰まりやすい順）
 

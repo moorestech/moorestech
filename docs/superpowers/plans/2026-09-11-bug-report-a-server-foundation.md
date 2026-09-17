@@ -2,6 +2,10 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
+> **改訂（ADR 0061 / 2026-09-13・plan H より）:** 配布版のテスターも送り手になり、クラッシュ報告が対象に入った。本planで変わるのは次の2点だけで、他は原文どおり。
+> 1. **常時記録のリングを終了時に消さない。** サーバーのスナップショットリングと受信パケットログは、正常終了時もファイルを残す（次回起動時に「前回異常終了」を検知して前回分を送るため）。消すのは新しいセッションが自分のリングを作り直すときだけ。
+> 2. **`kind=crash` の箱が存在する。** クラッシュ箱は plan C の自動修正ランを起動しない（日次ダイジェストに件数として載るだけ）。サーバー側の再現ツール（`SnapshotReplayer`・`SnapshotJsonComparer`）の要件は変わらない。
+
 **Goal:** サーバーが「30秒周期のスナップショットリング＋処理tick付き受信パケットログ」を体感できる引っかかり無しで常時記録し、任意のスナップショットからパケットを流し直して次世代スナップショットと一致することを機械的に検査できる状態にする（ADR 0057 の取得側サーバー部分と再現側の再生器）。
 
 **Architecture:** (1) `Core.Update.GameRandom`（決定的乱数、状態をセーブに含める）と `GameUpdater.RestoreCurrentTick` で「同一スナップショット＋同一パケット列＝同一状態」を成立させる。(2) ブロックコンポーネントのセーブ状態を文字列でなくオブジェクトで返す形へ改め、`AssembleSaveJsonText` を「tickスレッドで取り込み（`Capture`）→別スレッドでJSON化・書き込み（`SaveWriteWorker`）」に分割して停止時間をtick予算内に収める。通常セーブも同じ経路に乗る。(3) `WorldSnapshotRing` が `FinalTickEndUpdates` から周期・即時スナップショットを取り、`ReceivedPacketLog` がサーバーのtick末尾処理点で「処理tick＋生バイト列」を記録する。(4) `SnapshotReplayer` がスナップショットをロードしてパケットを同じtickへ流し直し、`SnapshotJsonComparer` が次世代スナップショットと突き合わせる。(5) クライアントからの即時取得は `BugReportCaptureProtocol`（Operation enum）＋完了イベント `BugReportCaptureCompletedEventPacket`（`SaveProtocol`＋`WorldSaveCompletedEventPacket` と同型）。

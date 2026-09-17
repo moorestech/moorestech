@@ -2,20 +2,26 @@
 # inbox から1件取り出し、隔離 worktree を用意して自動修正ランを起動する。単一飛行（サーバーポート固定のため）
 # Takes one box from the inbox, prepares an isolated worktree and launches the auto-fix run; single flight (fixed server port)
 set -euo pipefail
-LOGS="${MOORESTECH_LOGS:-$HOME/hermes-agent/data/repos/moorestech_logs}"
+HERE="$(cd "$(dirname "$0")" && pwd)"
+# 既定値はスクリプト自身の位置から導出する。supervisor は HOME を封じ込め用に差し替えるため $HOME 基準は本番で解決しない
+# Defaults derive from the script's own location; supervisor swaps HOME for containment, so $HOME-based defaults break in production
+REPO="${MOORESTECH_REPO:-$(cd "$HERE/../.." && pwd)}"
+LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
 BASE="$LOGS/harness/bug-report"; INBOX="$BASE/inbox"; RUNS="$BASE/runs"
 # 隔離先は dot 始まりにする。READY 付きのまま置いても候補 glob に掴まれない
 # The quarantine directory starts with a dot so a box kept there with its READY marker never matches the candidate glob
 DUPLICATE="$INBOX/.duplicate"
-REPO="${MOORESTECH_REPO:-$HOME/hermes-agent/data/repos/moorestech}"
-WORKTREES="${MOORESTECH_WORKTREES:-$HOME/hermes-agent/data/repos/moorestech-worktrees}"
+WORKTREES="${MOORESTECH_WORKTREES:-$REPO/../moorestech-worktrees}"
 CLAUDE_CMD="${CLAUDE_CMD:-claude}"
-PREPARE_CMD="${PREPARE_CMD:-$(cd "$(dirname "$0")" && pwd)/prepare-run.sh}"
+PREPARE_CMD="${PREPARE_CMD:-$HERE/prepare-run.sh}"
 CANON_SETUP_CMD="${CANON_SETUP_CMD:-python3 $REPO/.agents/skills/pr-independent-review/scripts/canon_setup.py}"
 CANON_SKILL_REL=".agents/skills/bug-report-auto-fix/SKILL.md"
 GIT_PUSH="${GIT_PUSH:-1}"
 LOCK="${TMPDIR:-/tmp}/moorestech-bugreport-poller.lock"
 log() { echo "[poller] $*" >&2; }
+# fix-result.json の finishedAt（日次ダイジェストの日付判定に使う）と同じ ISO8601 UTC 形式
+# Same ISO8601 UTC form as fix-result.json finishedAt, which the daily digest dates runs by
+now_utc() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 mkdir "$LOCK" 2>/dev/null || { log "別のランが進行中（${LOCK}）"; exit 0; }
 trap 'rmdir "$LOCK"' EXIT
@@ -84,10 +90,10 @@ resolve_canon() {
 # Never fall back to the main working tree when the isolated worktree is missing; it is shared with other sessions
 if [ -z "${WORKTREE:-}" ] || [ ! -d "$WORKTREE" ]; then
   log "隔離 worktree が無いため自動修正ランを起こさない（WORKTREE='${WORKTREE:-}'）: $id"
-  printf '{"status": "failure", "summary": "prepare が隔離 worktree を用意できなかった", "remaining": "runs/%s/ の prepare ログを確認"}\n' "$id" > "$run/fix-result.json"
+  printf '{"status": "failure", "finishedAt": "%s", "summary": "prepare が隔離 worktree を用意できなかった", "remaining": "runs/%s/ の prepare ログを確認"}\n' "$(now_utc)" "$id" > "$run/fix-result.json"
 elif ! resolve_canon; then
   log "実行制御の正本（canon）が無いため自動修正ランを起こさない: $id"
-  printf '{"status": "failure", "summary": "SHA固定の canon worktree を用意できなかった", "remaining": "runs/%s/canon.err.log と poller ログを確認"}\n' "$id" > "$run/fix-result.json"
+  printf '{"status": "failure", "finishedAt": "%s", "summary": "SHA固定の canon worktree を用意できなかった", "remaining": "runs/%s/canon.err.log と poller ログを確認"}\n' "$(now_utc)" "$id" > "$run/fix-result.json"
 else
   # 非対話で起動し、終了まで待つ。上限は設けない（裁定）。cwd は canon（読み取り専用）、コードを直す先は --add-dir の worktree
   # Launch non-interactively and wait; no time budget (ruling). cwd is the read-only canon; code is fixed in the --add-dir worktree
@@ -95,7 +101,7 @@ else
 
   if [ ! -f "$run/fix-result.json" ]; then
     log "fix-result.json が無いため failure で補完する: $id"
-    printf '{"status": "failure", "summary": "claude exited without fix-result.json", "remaining": "runs/%s/claude.err.log を確認"}\n' "$id" > "$run/fix-result.json"
+    printf '{"status": "failure", "finishedAt": "%s", "summary": "claude exited without fix-result.json", "remaining": "runs/%s/claude.err.log を確認"}\n' "$(now_utc)" "$id" > "$run/fix-result.json"
   fi
 fi
 

@@ -8,20 +8,24 @@ trap 'rm -rf "$TMP"' EXIT
 
 echo '{"steamIds":[]}' > "$TMP/state.json"
 
-# curl スタブ: -X PUT なら state.json へ書き込み、そうでなければ返す（末尾に改行区切りでstatus付与）
-# curl stub: -X PUT writes state.json, otherwise it returns it (status appended after a newline)
+# curl スタブ: 本物の curl と同じく本文は -o の先へ、-w の status は標準出力へ出す。-X PUT なら state.json へ書き込む
+# curl stub: like real curl, the body goes to the -o target and the -w status to stdout; -X PUT writes state.json
 cat > "$TMP/curl" <<'SH'
 #!/usr/bin/env bash
 state="$STATE_FILE"
-method=GET; data=""
+method=GET; data=""; out=/dev/stdout
 while [ $# -gt 0 ]; do
   case "$1" in
     -X) method="$2"; shift 2;;
     --data) data="$2"; shift 2;;
+    -o) out="$2"; shift 2;;
+    -H|-w|--max-time) shift 2;;
+    --location) echo "--location は admin API に付けない" >&2; exit 99;;
     *) shift;;
   esac
 done
-if [ "$method" = "PUT" ]; then printf '%s' "$data" > "$state"; printf '%s\n200' "$data"; else printf '%s\n200' "$(cat "$state")"; fi
+if [ "$method" = "PUT" ]; then printf '%s' "$data" > "$state"; printf '%s' "$data" > "$out"; else cat "$state" > "$out"; fi
+printf '200'
 SH
 chmod +x "$TMP/curl"
 
@@ -64,7 +68,9 @@ if run nope >/dev/null 2>&1; then echo "NG: 未知のサブコマンドが通っ
 # A curl stub returning 401 must fail loudly, with the status logged to stderr
 cat > "$TMP/curl-401" <<'SH'
 #!/usr/bin/env bash
-printf '{"error":"unauthorized"}\n401'
+out=/dev/stdout
+while [ $# -gt 0 ]; do case "$1" in -o) out="$2"; shift 2;; *) shift;; esac; done
+printf '{"error":"unauthorized"}' > "$out"; printf '401'
 SH
 chmod +x "$TMP/curl-401"
 if PLAYTEST_ENV_FILE="$TMP/env.sh" CURL_CMD="$TMP/curl-401" STATE_FILE="$TMP/state.json" bash "$HERE/../allowlist.sh" list >/dev/null 2>"$TMP/401.log"; then
@@ -84,16 +90,18 @@ n=0
 [ -f "$count_file" ] && n="$(cat "$count_file")"
 n=$((n + 1))
 echo "$n" > "$count_file"
-method=GET; data=""
+method=GET; data=""; out=/dev/stdout
 while [ $# -gt 0 ]; do
   case "$1" in
     -X) method="$2"; shift 2;;
     --data) data="$2"; shift 2;;
+    -o) out="$2"; shift 2;;
     *) shift;;
   esac
 done
-if [ "$n" = "1" ]; then printf '{"error":"unauthorized"}\n401'; exit 0; fi
-if [ "$method" = "PUT" ]; then printf '%s' "$data" > "$state"; printf '%s\n200' "$data"; else printf '%s\n200' "$(cat "$state")"; fi
+if [ "$n" = "1" ]; then printf '{"error":"unauthorized"}' > "$out"; printf '401'; exit 0; fi
+if [ "$method" = "PUT" ]; then printf '%s' "$data" > "$state"; printf '%s' "$data" > "$out"; else cat "$state" > "$out"; fi
+printf '200'
 SH
 chmod +x "$TMP/curl-flaky"
 before="$(cat "$TMP/flaky-state.json")"
