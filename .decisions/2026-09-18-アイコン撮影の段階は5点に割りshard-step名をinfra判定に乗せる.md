@@ -4,7 +4,7 @@
 
 決定: (1) アイコン撮影の段階ログを `setup / render / readback / captured / done` の5点にし、セットアップ段と資源破棄段も窓として埋める。(2) `run_test.yml` の shard を3 stepに分ける — テスト実行 step は名前 `Run Unity Test - ${{ matrix.shard }}` のまま `continue-on-error: true` にし、直後に `ci-auto-rerun.cjs` の INFRA_KEYWORDS に当たる名前の判定 step（`Detect Unity shard runner hang`）を置いて**40分の打ち切りに達したときだけ失敗**させ、さらに CODE_KEYWORDS 側の名前の step（`Fail the shard when the Unity test did not pass`）で通常のテスト失敗を job の失敗として残す（`ci-auto-rerun` 自体は無改修）。(3) 段名トークン（`start` / `stage:*` / `completed`）は定数集約も enum 化もせず現状の裸の文字列のままにする。
 
-理由: (1) 3段のままだと、`Instantiate`・Renderer走査・Camera生成からなるセットアップ段と資源破棄段で固着したときに段名が出ず、「何個目のどの対象のどの段階」というこの計装の唯一のゴールが、固着箇所によっては満たされない。窓を全部埋めれば次の1件で必ず箇所が確定する。(2) step timeout は step を failure にするが `timed_out` にはしないため、watchdog は step 名でしか拾えない。ところが `ci-auto-rerun.cjs` は `hasInfraStep` を `hasCodeStep` より先に評価するので、テスト実行 step そのものを `Unity shard runner - ...` へ改名すると、ハングだけでなく通常のテスト失敗まで infra 判定になり、確定的に落ちる PR すべてが毎回1回余分に再実行される（shard 1本あたり最大40分の空費と、赤の確定の遅れ）。判定用の step を別に立てれば「ハング＝infra 名の step が失敗」「通常のテスト失敗＝code 名の step だけが失敗」が両立し、CODE_KEYWORDS の存在意義（明確なコード失敗は再実行しない）を壊さない。打ち切り判定は推測せず、開始時刻を `$GITHUB_ENV` へ記録して経過秒を閾値と比べる。閾値の正本は job の `env.UNITY_TEST_STEP_TIMEOUT_MINUTES` 1箇所で、`timeout-minutes` と判定 step の両方がそこを読む。(3) 段名まで production とテストで共有定数にすると、実装とテストが同じバグを共有して検証力が消える。
+理由: (1) 3段のままだと、`Instantiate`・Renderer走査・Camera生成からなるセットアップ段と資源破棄段で固着したときに段名が出ず、「何個目のどの対象のどの段階」というこの計装の唯一のゴールが、固着箇所によっては満たされない。窓を全部埋めれば次の1件で必ず箇所が確定する。(2) step timeout は step を failure にするが `timed_out` にはしないため、watchdog は step 名でしか拾えない。ところが `ci-auto-rerun.cjs` は `hasInfraStep` を `hasCodeStep` より先に評価するので、テスト実行 step そのものを `Unity shard runner - ...` へ改名すると、ハングだけでなく通常のテスト失敗まで infra 判定になり、確定的に落ちる PR すべてが毎回1回余分に再実行される（shard 1本あたり最大40分の空費と、赤の確定の遅れ）。判定用の step を別に立てれば「ハング＝infra 名の step が失敗」「通常のテスト失敗＝code 名の step だけが失敗」が両立し、CODE_KEYWORDS の存在意義（明確なコード失敗は再実行しない）を壊さない。打ち切り判定は推測せず、開始時刻を `$GITHUB_ENV` へ記録して経過秒を閾値と比べる。閾値の正本は job の `env.UNITY_TEST_STEP_TIMEOUT_MINUTES` 1箇所で、`timeout-minutes` と判定 step の両方がそこを読む（`timeout-minutes` 側は `fromJSON()` 経由。素の `${{ env.X }}` は文字列のため GitHub に無言で無視される — 実測 run 35269448343）。(3) 段名まで production とテストで共有定数にすると、実装とテストが同じバグを共有して検証力が消える。
 
 棄却案:
 - 段階を4段（setup だけ追加）にする — 資源破棄段での固着が readback と同じ最終行に畳まれ、誤って AsyncGPUReadback 化という推測修正へ誘導されうる。
@@ -21,4 +21,4 @@
 - ADR: `docs/adr/0063-ci-hang-shard-timeout-and-icon-capture-instrumentation.md`
 - 前段の裁定: `.decisions/2026-09-18-CIのshardハングはstep-timeoutでfailure化し真因は計装で確定させる.md`
 - レビュー実行記録: `../moorestech_logs/harness/moores-code-review/runs/2026-09-18-0410/`
-- 判定 step の実測: GitHub Actions run 35269005551（使い捨て workflow TMP Hang Detector Probe）
+- 判定 step の実測: GitHub Actions run 35270032962（使い捨て workflow TMP Hang Detector Probe。打ち切り→判定 step failure / 通常失敗→判定 step success）

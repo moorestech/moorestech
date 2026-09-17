@@ -181,7 +181,9 @@ Expected: `- name: Run Unity Test - ${{ matrix.shard }}` の下に `uses: game-c
         id: unity_test
         continue-on-error: true
         uses: game-ci/unity-test-runner@0ff419b913a3630032cbe0de48a0099b5a9f0ed9 # v4.3.1
-        timeout-minutes: ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }}
+        # 素の ${{ env.X }} は文字列のため無視される（実測 run 35269448343）。fromJSON で数値にする。
+        # A bare ${{ env.X }} is a string and gets ignored (measured in run 35269448343); fromJSON makes it a number.
+        timeout-minutes: ${{ fromJSON(env.UNITY_TEST_STEP_TIMEOUT_MINUTES) }}
         env:
 
       # ハングだけをここで失敗させる。名前の 'runner' が INFRA_KEYWORDS に当たり attempt 2 以降も自動再実行される。
@@ -220,7 +222,7 @@ EOF
 Expected:
 ```
 job timeout: 75
-step timeout: 40 (via ${{ env.UNITY_TEST_STEP_TIMEOUT_MINUTES }} )
+step timeout: 40 (via ${{ fromJSON(env.UNITY_TEST_STEP_TIMEOUT_MINUTES) }} )
 'Run Unity Test - ${{ matrix.shard }}' infra= [] code= ['test']
 'Detect Unity shard runner hang' infra= ['runner'] code= []
 'Fail the shard when the Unity test did not pass' infra= [] code= ['test']
@@ -521,6 +523,8 @@ planning 中に生じた判断:
   - **改訂（2026-09-18・レビュー D1案A・ユーザー裁定）: setup / render / readback / captured / done の5点にした。** 3点では「Instantiate〜Camera生成」と「破棄」の2区間が計装の空白として残り、そこで固着すると `stage:render` や `stage:readback` の行に畳まれて的外れな修正先（例: `AsyncGPUReadback` 化）へ誘導されうる。`stage:setup` が撮影1件の起点となり `stage:done` の `elapsed` はその1件の実所要と一致する。ログは1件5行（boot 1回あたり約1000行）。
 - **経過時間を `Time.realtimeSinceStartup` で測る。** 出所: agent前提。AGENTS.md の「実時間APIを使わない」はサーバーのゲームロジックの経過時間測定に対する規約であり、ここはクライアントの診断ログ。`Stopwatch` を使わないという同規約の趣旨には沿う。
 - **テストのログ収集を `Application.logMessageReceived` で行う（`LogAssert.Expect` を使わない）。** 出所: agent前提。順序と件数まで固定したいため、収集してから並びを検証する形にした。
+- **改訂（2026-09-18・post-check C-1 の是正）: shard を「テスト実行 step（`continue-on-error`）＋ infra 名の判定 step ＋ code 名の失敗 step」の3本に分けた。** `ci-auto-rerun.cjs` は INFRA を CODE より先に評価するため、テスト実行 step 自体を `Unity shard runner - <shard>` へ改名すると通常のテスト失敗まで infra 判定になり、赤 PR が毎回1回余分に再実行される。使い捨て workflow `tmp-hang-detector-probe.yml` の実測（run 35270032962）で、打ち切り時は判定 step が `failure`（elapsed=73s）、通常の失敗時は判定 step が `success`（elapsed=0s）で code 名の step だけが `failure` になることを確認した。
+- **step の `timeout-minutes` へ `${{ env.X }}` を素で書くと無視される。** 実測 run 35269448343 で、素の env 参照では 1 分指定の step が `sleep 300` を最後まで走らせた（literal `1` と `fromJSON(env.X)` はどちらも約73秒で打ち切られた）。値は文字列として渡るため、`fromJSON()` で数値化して渡す。
 - **`foreach` を添字 `for` に変えた。** 出所: agent前提。進捗の `{i}/{N}` を出すために添字が要る。挙動は変わらない。
 - **step timeout の挙動を実測してから本適用する（Task 1）。** 出所: agent前提。公式ドキュメントは step timeout 超過時の結論を明記しておらず、「step の `timeout-minutes` は無視される」と書く二次情報もある。planの全体がこの外部挙動に乗るため、伝聞のまま所与にしない（writing-plans Self-Review §6）。実測結果はこの行の下へ追記する。
   - 実測結果: run `failure` / job `probe` `failure` / step `Sleep past the step timeout` `failure`（run id 35262375455・2026-09-17T19:01Z・`actions/github-script@v7` に `timeout-minutes: 1`）。後続の `if: always()` step は `success` で走った。よって Task 2 は `timeout-minutes: 40` を足すだけの形を採る（`continue-on-error` の代替形は不要）。

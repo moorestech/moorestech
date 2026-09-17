@@ -116,6 +116,10 @@ step の timeout は job を `failure` にするため、**判定ロジックを
   判定 step から `'runner'` を落とせばハングが code 扱いになり、失敗を残す step へ infra 語を足せばテスト失敗が infra 扱いになる。
 - 打ち切り時間（40分）の正本は job の `env.UNITY_TEST_STEP_TIMEOUT_MINUTES` 1箇所で、テスト step の `timeout-minutes` と
   判定 step の閾値の両方がそこを参照する。値を二重に持たない。
+  参照は `${{ fromJSON(env.UNITY_TEST_STEP_TIMEOUT_MINUTES) }}` と書く — 素の `${{ env.X }}` は文字列として渡り、
+  GitHub が警告なく無視して step が無制限に走る（実測 run 35269448343: 1分指定の step が `sleep 300` を完走した）。
+- 判定 step は「経過が timeout 値 − 30秒に達したか」で打ち切りを見分ける。通常のテスト失敗が39.5分以降に起きた場合だけ
+  infra 側へ倒れるが、その場合の損失は再実行1回分であり、ハングを取り逃す側へ倒すより安い。
 - 上限は既存の `run_attempt >= 3` ガード。3回目の試行では再実行しない。
 - 真因が消えるわけではない。moorestech-7gsc は開いたまま残し、次のハングの計装ログで箇所を確定させてから修正する。
 - 撮影が真犯人でなかった場合、計装ログは「撮影は完走していた」という否定の証拠になり、次の探索先が絞れる。
