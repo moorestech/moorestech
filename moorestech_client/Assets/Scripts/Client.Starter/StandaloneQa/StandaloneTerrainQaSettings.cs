@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Starter.CommandLine;
 using Game.MapGeneration.Transfer;
 using Server.Boot;
 using Server.Boot.Args;
@@ -28,11 +29,7 @@ namespace Client.Starter.StandaloneQa
 
         public static bool HasMarker(IReadOnlyList<string> args)
         {
-            for (var i = 0; i < args.Count; i++)
-            {
-                if (args[i] == Marker) return true;
-            }
-            return false;
+            return StandaloneCommandLineOptions.HasFlag(args, Marker);
         }
 
         public static bool TryParse(IReadOnlyList<string> args, out StandaloneTerrainQaSettings settings, out string error)
@@ -46,10 +43,10 @@ namespace Client.Starter.StandaloneQa
 
             // 外部CLI入力は欠落と重複を拒否し、曖昧な起動を許可しない
             // Reject missing and duplicate external CLI values so the boot is unambiguous
-            if (!TryReadRequiredOption(args, ServerDirectoryOption, out var serverDirectory, out error)) return false;
-            if (!TryReadRequiredOption(args, WorldDirectoryOption, out var worldDirectory, out error)) return false;
-            if (!TryReadRequiredOption(args, ResultDirectoryOption, out var resultDirectory, out error)) return false;
-            if (!TryReadRequiredOption(args, SeedOption, out var seedText, out error)) return false;
+            if (!StandaloneCommandLineOptions.TryReadRequiredOption(args, ServerDirectoryOption, out var serverDirectory, out error)) return false;
+            if (!StandaloneCommandLineOptions.TryReadRequiredOption(args, WorldDirectoryOption, out var worldDirectory, out error)) return false;
+            if (!StandaloneCommandLineOptions.TryReadRequiredOption(args, ResultDirectoryOption, out var resultDirectory, out error)) return false;
+            if (!StandaloneCommandLineOptions.TryReadRequiredOption(args, SeedOption, out var seedText, out error)) return false;
 
             if (!int.TryParse(seedText, out var seed))
             {
@@ -78,40 +75,6 @@ namespace Client.Starter.StandaloneQa
             var proprieties = InitializeProprieties.CreateLocalServer(null);
             proprieties.CreateLocalServerArgs = CliConvert.Serialize(serverSettings);
             return proprieties;
-        }
-
-        private static bool TryReadRequiredOption(IReadOnlyList<string> args, string option, out string value, out string error)
-        {
-            value = string.Empty;
-            var matchCount = 0;
-            for (var i = 0; i < args.Count; i++)
-            {
-                if (args[i] != option) continue;
-
-                matchCount++;
-                if (i + 1 < args.Count) value = args[i + 1];
-            }
-
-            // 値なし・空値・重複指定を同じ外部入力境界で検査する
-            // Validate missing, empty, and duplicate values at the same external-input boundary
-            if (matchCount == 0)
-            {
-                error = $"{option} is required";
-                return false;
-            }
-            if (matchCount != 1)
-            {
-                error = $"{option} must be specified exactly once";
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(value) || value.StartsWith("--"))
-            {
-                error = $"{option} requires a value";
-                return false;
-            }
-
-            error = string.Empty;
-            return true;
         }
     }
 }

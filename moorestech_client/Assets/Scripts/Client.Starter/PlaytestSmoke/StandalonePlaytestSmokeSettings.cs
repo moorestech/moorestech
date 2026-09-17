@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Client.Starter.CommandLine;
 
 namespace Client.Starter.PlaytestSmoke
 {
@@ -25,11 +26,7 @@ namespace Client.Starter.PlaytestSmoke
 
         public static bool HasMarker(IReadOnlyList<string> args)
         {
-            for (var i = 0; i < args.Count; i++)
-            {
-                if (args[i] == Marker) return true;
-            }
-            return false;
+            return StandaloneCommandLineOptions.HasFlag(args, Marker);
         }
 
         public static bool TryParse(IReadOnlyList<string> args, out StandalonePlaytestSmokeSettings settings, out string error)
@@ -40,8 +37,8 @@ namespace Client.Starter.PlaytestSmoke
                 error = $"{Marker} is required";
                 return false;
             }
-            if (!TryReadRequiredOption(args, PhaseOption, out var phase, out error)) return false;
-            if (!TryReadRequiredOption(args, ResultDirectoryOption, out var resultDirectory, out error)) return false;
+            if (!StandaloneCommandLineOptions.TryReadRequiredOption(args, PhaseOption, out var phase, out error)) return false;
+            if (!StandaloneCommandLineOptions.TryReadRequiredOption(args, ResultDirectoryOption, out var resultDirectory, out error)) return false;
 
             // 未知のphaseは「何も検証しない成功」を作るため、明示的に拒否する
             // An unknown phase would fabricate a success that verified nothing, so refuse it outright
@@ -52,37 +49,6 @@ namespace Client.Starter.PlaytestSmoke
             }
 
             settings = new StandalonePlaytestSmokeSettings(phase, resultDirectory);
-            error = string.Empty;
-            return true;
-        }
-
-        private static bool TryReadRequiredOption(IReadOnlyList<string> args, string option, out string value, out string error)
-        {
-            value = string.Empty;
-            var matchCount = 0;
-            for (var i = 0; i < args.Count; i++)
-            {
-                if (args[i] != option) continue;
-                matchCount++;
-                if (i + 1 < args.Count) value = args[i + 1];
-            }
-
-            if (matchCount == 0)
-            {
-                error = $"{option} is required";
-                return false;
-            }
-            if (matchCount != 1)
-            {
-                error = $"{option} must be specified exactly once";
-                return false;
-            }
-            if (string.IsNullOrWhiteSpace(value) || value.StartsWith("--"))
-            {
-                error = $"{option} requires a value";
-                return false;
-            }
-
             error = string.Empty;
             return true;
         }
