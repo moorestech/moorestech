@@ -16,7 +16,7 @@ const steamNg: typeof fetch = (async () =>
   new Response(JSON.stringify({ response: { error: { errorcode: 101, errordesc: "Invalid ticket" } } }), { status: 200 })) as unknown as typeof fetch;
 
 function sessionRequest(body: string): Request {
-  return new Request("https://playtest.tar-atari.com/v1/session", { method: "POST", body });
+  return new Request("https://playtest.moores.tech/v1/session", { method: "POST", body });
 }
 
 describe("POST /v1/session", () => {

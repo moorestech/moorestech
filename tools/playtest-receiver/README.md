@@ -19,12 +19,14 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
 
 ## 初回セットアップ
 
-0. Cloudflare へ認証する（未認証だと以下の `wrangler` コマンドが対話ログインで止まる、または複数アカウント環境では account 選択で失敗する）:
+0. Cloudflare へ認証する。受け口は sakastudio@moores.tech のアカウント（moores.tech ゾーンを持つ）に置く。複数アカウントを使うマシンでは wrangler の認証プロファイルでこのディレクトリを紐付ける（`CLOUDFLARE_API_TOKEN` が設定されているとプロファイルより優先されるので外す）:
    ```bash
-   pnpm exec wrangler login                 # ブラウザでログイン。またはCLOUDFLARE_API_TOKEN環境変数を渡す
-   pnpm exec wrangler whoami                 # Account Nameが複数出る場合はCLOUDFLARE_ACCOUNT_IDを対象アカウントのIDに設定する
+   unset CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID
+   pnpm exec wrangler auth create moorestech   # 初回のみ。ブラウザで moores.tech のアカウントを選ぶ
+   pnpm exec wrangler auth activate moorestech # tools/playtest-receiver で実行
+   pnpm exec wrangler whoami                   # sakastudio@moores.tech と出ることを確かめる
    ```
-   `wrangler.toml` に `account_id` は書かない（秘密ではないが環境依存の値のため、環境変数側で解決する）。
+   `wrangler.toml` に `account_id` は書かない（秘密ではないが環境依存の値のため、プロファイル側で解決する）。
 1. R2 バケットを作る:
    ```bash
    cd tools/playtest-receiver
@@ -42,12 +44,12 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
    ```bash
    pnpm run deploy
    ```
-5. DNS: `wrangler.toml` の `routes` に `playtest.tar-atari.com` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が tar-atari.com ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.tar-atari.com` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
+5. DNS: `wrangler.toml` の `routes` に `playtest.moores.tech` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が moores.tech ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.moores.tech` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
 6. Mac mini 側の env ファイルを作る。`scripts/playtest/allowlist.sh`（Task 5）はここから `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む。ヒアドキュメントは Markdown リスト内の字下げでコピー時に終端行を見失うため、`echo` を積み上げる形にしてある:
    ```bash
    mkdir -p ~/hermes-agent/data/services/playtest
    {
-     echo 'export PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com'
+     echo 'export PLAYTEST_RECEIVER_BASE=https://playtest.moores.tech'
      echo 'export PLAYTEST_ADMIN_KEY=<手順2でADMIN_KEYに入れた値と同じもの>'
    } > ~/hermes-agent/data/services/playtest/env.sh
    chmod 600 ~/hermes-agent/data/services/playtest/env.sh

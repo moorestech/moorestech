@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** プレイ報告・進行記録を受け取る Cloudflare Worker + R2（`playtest.tar-atari.com`）を本repo `tools/playtest-receiver/` に作り、配布版クライアントが起動時に Steam 認証チケットで許可リストと照合して不許可・到達不能ならタイトルで止まり、outbox の `READY` 箱を受け口へアップロードして `UPLOADED` を付ける。
+**Goal:** プレイ報告・進行記録を受け取る Cloudflare Worker + R2（`playtest.moores.tech`）を本repo `tools/playtest-receiver/` に作り、配布版クライアントが起動時に Steam 認証チケットで許可リストと照合して不許可・到達不能ならタイトルで止まり、outbox の `READY` 箱を受け口へアップロードして `UPLOADED` を付ける。
 
 **Architecture:** (1) 受け口は単一の Cloudflare Worker（TypeScript・wrangler）。`POST /v1/session` が Steam Web API `ISteamUserAuth/AuthenticateUserTicket/v1` でチケットを検証し、R2 の許可リストと突き合わせて HMAC(HS256) の1時間トークンを返す。`PUT /v1/uploads/...` と `POST /v1/uploads/.../complete` がトークン検証のうえ R2 へ書き、`READY` と「未ACK索引」オブジェクトを置く。`GET/POST /v1/inbox...` と `GET/PUT /v1/allowlist` は `X-Admin-Key` の管理APIで、Mac mini（plan H）と `scripts/playtest/allowlist.sh` が使う。(2) クライアント側は新アセンブリ `Client.PlaytestReceiver`。`PlaytestSteamTicketProvider` が `SteamUser.GetAuthTicketForWebApi("moorestech-playtest")` とコールバック `GetTicketForWebApiResponse_t` からチケットhexを取り、`PlaytestReceiverClient`（`HttpClient` + UniTask）が受け口を叩き、`PlaytestSession` がトークンを保持・期限前に再取得する。(3) `PlaytestLaunchGate.EvaluateAsync()` が「`StreamingAssets/build-info.json` が在り、かつ Steam が動いている」ときだけ照合を行い、結果を `PlaytestGateResult` に固定する。タイトル（uGUI の MainMenu シーン）では表示専用の `PlaytestLaunchGateView` が既存 `ServerConnectPopup` に理由を出し、開始経路（`LocalGameLauncher.StartLocalGame` / `ConnectServer.Connect`）が唯一の関所として拒否する。(4) `PlaytestUploader` が2つの outbox（`BugReports/outbox`・`ProgressRecords/outbox`）を走査し、`READY` かつ `UPLOADED` 無しの箱を古い順に PUT → complete → `UPLOADED` で送る。失敗は箱に試行回数を刻んで次回へ持ち越し、5回で `UPLOAD_FAILED` にして後続を塞がない。
 
@@ -15,21 +15,21 @@
 - R3. `POST /v1/session`: body `{"ticket":"<hex>"}`。チケット検証失敗は `401 {"reason":"invalid-ticket"}`、検証成功だが許可リスト外は `403 {"reason":"not-allowed"}`、許可なら `200 { "steamId", "allowed": true, "token" }`。body が JSON でない・`ticket` が16進でないときは `400 {"reason":"bad-request"}`。受入: 4パターンすべての HTTP テストが通る。
 - R4. アップロード: `PUT /v1/uploads/{kind}/{id}/{path...}`（`Authorization: Bearer <token>`）が R2 `{prefix}/{steamId}/{id}/{path}` へ保存する（`kind` は `report`|`progress`、prefix はそれぞれ `reports`/`progress`）。`Content-Length` が 100MiB 超は `413 {"reason":"too-large"}`。`kind` 不正は `400`、トークン不正・期限切れは `401`、`path` に `..`・空セグメント・先頭 `/`・`\` があれば `400 {"reason":"bad-path"}`。`POST /v1/uploads/{kind}/{id}/complete` が `{prefix}/{steamId}/{id}/READY`（本文＝リクエストボディの要約JSON）と索引 `index/pending/{kind}/{steamId}/{id}` を書く。受入: HTTP テストで「PUTしたオブジェクトがR2に入る」「completeでREADYと索引が出来る」「.. を含むパスは400」「他人のtokenでは他人のprefixに書けない（keyがtokenのsteamId固定である）」「巨大Content-Lengthは413」。
 - R5. 管理API: `GET /v1/inbox?cursor=`（`X-Admin-Key`）が索引を列挙して `{ "items": [{kind,steamId,id,readyAt}], "cursor": string|null }` を返す。`GET /v1/inbox/{kind}/{steamId}/{id}/{path...}` がオブジェクトを返す（不在は404）。`POST /v1/inbox/{kind}/{steamId}/{id}/ack` が `{prefix}/{steamId}/{id}/ACKED` を書き索引を消す。`GET /v1/allowlist` が現在のリスト、`PUT /v1/allowlist` が `{"steamIds":[...]}` で全置換する。管理キー不一致・欠落はすべて `401 {"reason":"unauthorized"}`。受入: HTTP テストで「adminキー無しは401」「completeした2件がinboxに出る」「ackすると出なくなりACKEDが出来る」「allowlistのGET/PUTが往復する」。
-- R6. デプロイ手順: `tools/playtest-receiver/README.md` に R2 バケット作成・`wrangler secret put`（`STEAM_WEB_API_KEY`・`SESSION_HMAC_SECRET`・`ADMIN_KEY`）・`wrangler deploy`・`playtest.tar-atari.com` のカスタムドメイン設定・動作確認 curl を書く。`wrangler.toml` に R2 binding（bucket `moorestech-playtest`）と `vars.STEAM_APP_ID = "1958160"`、`routes` のカスタムドメインを書く。受入: README のコマンドだけで初見の開発者がデプロイまで到達できる（手順に未定義の値が無い）。
+- R6. デプロイ手順: `tools/playtest-receiver/README.md` に R2 バケット作成・`wrangler secret put`（`STEAM_WEB_API_KEY`・`SESSION_HMAC_SECRET`・`ADMIN_KEY`）・`wrangler deploy`・`playtest.moores.tech` のカスタムドメイン設定・動作確認 curl を書く。`wrangler.toml` に R2 binding（bucket `moorestech-playtest`）と `vars.STEAM_APP_ID = "1958160"`、`routes` のカスタムドメインを書く。受入: README のコマンドだけで初見の開発者がデプロイまで到達できる（手順に未定義の値が無い）。
 - R7. 許可リスト操作: `scripts/playtest/allowlist.sh add|remove|list <steamId>` が管理APIを叩いて許可リストを更新・表示する。設定は `${PLAYTEST_ENV_FILE:-$HOME/hermes-agent/data/services/playtest/env.sh}` から `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む。`curl` は `CURL_CMD` で差し替え可能。受入: `scripts/playtest/tests/test-allowlist.sh` が curl スタブで「add で1件増える」「同じIDを2回addしても重複しない」「remove で消える」「list が現在のIDを1行ずつ出す」「未設定のenvは即エラー終了」を検証して `OK` を出す。
 - R8. クライアント基盤: 新アセンブリ `Client.PlaytestReceiver` に、`PlaytestSteamTicketProvider`（`SteamUser.GetAuthTicketForWebApi` とコールバックからチケットhexを15秒以内に取る／Steam未初期化なら `null`）、`PlaytestReceiverClient : IPlaytestReceiverApi`（`HttpClient` + UniTask、`PostSessionAsync`・`PutFileAsync`・`PostCompleteAsync`）、`PlaytestSession`（`IPlaytestSessionLookup` で SteamId とトークン期限を読み、書き込みはアセンブリ内部のみ。45分でトークンを取り直す）、`PlaytestBuildInfoFile`（`StreamingAssets/build-info.json` の存在判定）を置く。受入: EditMode 単体テストで「トークン期限が45分未満なら再取得しない／超えたら再取得する」「build-info.json が無い環境で `Exists` が false」。
 - R9. 起動時照合: `PlaytestLaunchGate.EvaluateAsync()` が `PlaytestGateResult` を返し `PlaytestLaunchGate.Current` に固定する。判定は純関数 `PlaytestGateDecision.Decide(...)` に切り出す。`build-info.json` 不在、または Steam 非稼働は `DeveloperMode`（何もしない）。それ以外でチケット取得失敗は `TicketFailed`、`/v1/session` が 403 は `NotAllowed`、401 は `TicketFailed`、到達不能・その他は `Unreachable`、200 は `Allowed`。`DeveloperMode` と `Allowed` 以外はゲーム開始を拒否する。受入: EditMode 単体テストで上記6分岐すべてが `Decide` で確定し、拒否側は `IsBlocked == true`。
 - R10. タイトルで止める: `Client.MainMenu/Playtest/PlaytestLaunchGateView` が MainMenu シーンで `EvaluateAsync()` を回し、判定中は `ui.playtest.checking`、拒否時は理由文言を既存 `ServerConnectPopup` に出す。開始経路 `LocalGameLauncher.StartLocalGame()` と `ConnectServer.Connect()` は `PlaytestLaunchGate.Current.IsBlocked` のとき何もせず理由を出して `Debug.LogWarning` する。文言は `Localization/localization.csv` に `ui.playtest.checking`・`ui.playtest.notAllowed`・`ui.playtest.unreachable`・`ui.playtest.ticketFailed` を english/japanese/german で追加する。受入: EditMode 単体テストで「`IsBlocked` のとき `LocalGameLauncher.StartLocalGame()` がシーンを読み込まない」、Editor 実機で MainMenu が従来どおり開始できる（`DeveloperMode`）。
 - R11. アップロード: `PlaytestUploader.UploadPendingAsync()` が `BugReports/outbox`（kind=report）と `ProgressRecords/outbox`（kind=progress）の `READY` かつ `UPLOADED`・`UPLOAD_FAILED` 無しの箱を古い順に、マーカー以外の全ファイルを相対パスで PUT → complete → `UPLOADED` の順に送る。100MiB 超のファイルは送らず complete 本文の `skipped[]` に理由付きで載せる。失敗した箱は `UPLOAD_ATTEMPTS`（回数と最終理由）を増やして中断し、5回目の失敗で `UPLOAD_FAILED` を書いて以後は飛ばす。すべての分岐で `Debug.LogWarning` に理由を出す。受入: EditMode 単体テストで「READYのみの箱が送られUPLOADEDが付く」「UPLOADED済みは再送されない」「失敗すると回数が増え箱は残る」「5回目でUPLOAD_FAILEDが付き、後続の箱が送られる」「巨大ファイルはskippedに載り箱自体は成功する」。
 - R12. 送信直後の起動: `Client.PlaytestReceiver` の `IPlaytestUploadRequester.RequestUpload()` を plan B の `BugReportSubmitActionHandler` が書き出し成功後に呼び、`PlaytestUploader` が多重起動せず1本だけ走る。起動直後の1回は `PlaytestLaunchGateView` が `Allowed` のとき呼ぶ。受入: EditMode 単体テストで「実行中に2回 `RequestUpload()` しても走行は1本」。
-- R13. 受け口の通し確認: `wrangler deploy` 後に `playtest.tar-atari.com` へ curl で「adminキー無し401」「allowlist PUT→GET」「不許可SteamIDのsession 403」を確認し、結果を判断記録に書く。受入: 3つの curl の実出力を判断記録へ転記する。
+- R13. 受け口の通し確認: `wrangler deploy` 後に `playtest.moores.tech` へ curl で「adminキー無し401」「allowlist PUT→GET」「不許可SteamIDのsession 403」を確認し、結果を判断記録に書く。受入: 3つの curl の実出力を判断記録へ転記する。
 - やらないこと: 進行記録の生成（plan G）／Mac mini の取り込み・日次ダイジェスト（plan H）／配布ビルドと steamcmd と検証機（plan E）／セーブ互換（plan F）／plan B 本体（バンドル生成・報告UI・`BugReportOutbox`・`BugReportManifest`・`BuildInfoWriter`）の実装／R2 のライフサイクル削除ポリシー／受け口の閲覧サイト／テスターごとの流量制限。
 
 ## Global Constraints
 
 **共有契約 §4（受け口 Worker API）— 逐語転記（変更禁止）:**
 
-- 受け口 Worker API（base `https://playtest.tar-atari.com`、実装は本repo `tools/playtest-receiver/`、TypeScript + wrangler、R2 バケット `moorestech-playtest`）
+- 受け口 Worker API（base `https://playtest.moores.tech`、実装は本repo `tools/playtest-receiver/`、TypeScript + wrangler、R2 バケット `moorestech-playtest`）
 - `POST /v1/session` body `{"ticket":"<hex>"}` → Steam Web API `ISteamUserAuth/AuthenticateUserTicket/v1`（`identity=moorestech-playtest`）で検証 → `{ "steamId": "...", "allowed": true, "token": "<HMAC-JWT 1h>" }`。不許可は 403 `{ "reason": "not-allowed" }`、検証失敗は 401。
 - `PUT /v1/uploads/{kind}/{id}/{path...}`（Bearer token、`kind` は report|progress、1ファイル ≤ 100MB）→ R2 `{kind}s/{steamId}/{id}/{path}` へ保存。
 - `POST /v1/uploads/{kind}/{id}/complete` → R2 に `{kind}s/{steamId}/{id}/READY`（本文 = manifest の要約 JSON）。
@@ -153,9 +153,9 @@ name = "moorestech-playtest-receiver"
 main = "src/index.ts"
 compatibility_date = "2026-09-01"
 
-# プレイテスト受け口の固定ドメイン。DNSはCloudflare上のtar-atari.comゾーンに属する
-# Fixed domain for the playtest receiver; DNS lives in the tar-atari.com zone on Cloudflare
-routes = [{ pattern = "playtest.tar-atari.com", custom_domain = true }]
+# プレイテスト受け口の固定ドメイン。DNSはmoorestechのCloudflareアカウントのmoores.techゾーンに属する
+# Fixed domain for the playtest receiver; DNS lives in the moores.tech zone of the moorestech Cloudflare account
+routes = [{ pattern = "playtest.moores.tech", custom_domain = true }]
 
 [vars]
 STEAM_APP_ID = "1958160"
@@ -250,13 +250,13 @@ const noNetwork: typeof fetch = (async () => {
 
 describe("router", () => {
   it("知らないパスはJSONの404を返す", async () => {
-    const response = await handle(new Request("https://playtest.tar-atari.com/nope"), env as unknown as Env, noNetwork);
+    const response = await handle(new Request("https://playtest.moores.tech/nope"), env as unknown as Env, noNetwork);
     expect(response.status).toBe(404);
     expect(await response.json()).toEqual({ reason: "not-found" });
   });
 
   it("知っているパスでもメソッドが違えば405を返す", async () => {
-    const response = await handle(new Request("https://playtest.tar-atari.com/v1/session"), env as unknown as Env, noNetwork);
+    const response = await handle(new Request("https://playtest.moores.tech/v1/session"), env as unknown as Env, noNetwork);
     expect(response.status).toBe(405);
   });
 });
@@ -572,7 +572,7 @@ const steamNg: typeof fetch = (async () =>
   new Response(JSON.stringify({ response: { error: { errorcode: 101, errordesc: "Invalid ticket" } } }), { status: 200 })) as unknown as typeof fetch;
 
 function sessionRequest(body: string): Request {
-  return new Request("https://playtest.tar-atari.com/v1/session", { method: "POST", body });
+  return new Request("https://playtest.moores.tech/v1/session", { method: "POST", body });
 }
 
 describe("POST /v1/session", () => {
@@ -873,7 +873,7 @@ describe("uploads", () => {
 
   it("PUTしたファイルがtokenのsteamId配下へ入る", async () => {
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/logs/unity.log`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/logs/unity.log`, {
         method: "PUT",
         headers: { authorization: await bearer() },
         body: "hello",
@@ -888,7 +888,7 @@ describe("uploads", () => {
 
   it("URLに他人のsteamIdは現れずtokenだけが置き場を決める", async () => {
     await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/progress/${ID}/record.json`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/progress/${ID}/record.json`, {
         method: "PUT",
         headers: { authorization: await bearer("76561198000000009") },
         body: "{}",
@@ -902,7 +902,7 @@ describe("uploads", () => {
 
   it("トークンが無ければ401", async () => {
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/a.txt`, { method: "PUT", body: "x" }),
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/a.txt`, { method: "PUT", body: "x" }),
       workerEnv,
       noNetwork,
     );
@@ -911,7 +911,7 @@ describe("uploads", () => {
 
   it("kindが不正なら400", async () => {
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/config/${ID}/a.txt`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/config/${ID}/a.txt`, {
         method: "PUT",
         headers: { authorization: await bearer() },
         body: "x",
@@ -926,7 +926,7 @@ describe("uploads", () => {
   // The URL constructor collapses a raw ".." first, so traversal attempts are sent percent-encoded
   it("..を含むパスは400で何も書かない", async () => {
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/%2E%2E/%2E%2E/etc/passwd`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/%2E%2E/%2E%2E/etc/passwd`, {
         method: "PUT",
         headers: { authorization: await bearer() },
         body: "x",
@@ -940,7 +940,7 @@ describe("uploads", () => {
 
   it("Content-Lengthが100MiBを超えたら413", async () => {
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/video.mp4`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/video.mp4`, {
         method: "PUT",
         headers: { authorization: await bearer(), "content-length": String(100 * 1024 * 1024 + 1) },
         body: "x",
@@ -954,7 +954,7 @@ describe("uploads", () => {
 
   it("idが..なら400で何も書かない", async () => {
     const response = await handle(
-      new Request("https://playtest.tar-atari.com/v1/uploads/report/%2E%2E/a.txt", {
+      new Request("https://playtest.moores.tech/v1/uploads/report/%2E%2E/a.txt", {
         method: "PUT",
         headers: { authorization: await bearer() },
         body: "x",
@@ -969,7 +969,7 @@ describe("uploads", () => {
   it("completeでREADYと未ACK索引が出来る", async () => {
     const summary = JSON.stringify({ kind: "bug", fileCount: 1 });
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/complete`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/complete`, {
         method: "POST",
         headers: { authorization: await bearer() },
         body: summary,
@@ -1175,7 +1175,7 @@ async function clean(): Promise<void> {
 async function upload(kind: string, id: string, path: string, body: string): Promise<void> {
   const token = await signToken(workerEnv.SESSION_HMAC_SECRET, STEAM_ID, Math.floor(Date.now() / 1000));
   await handle(
-    new Request(`https://playtest.tar-atari.com/v1/uploads/${kind}/${id}/${path}`, {
+    new Request(`https://playtest.moores.tech/v1/uploads/${kind}/${id}/${path}`, {
       method: "PUT",
       headers: { authorization: `Bearer ${token}` },
       body,
@@ -1184,7 +1184,7 @@ async function upload(kind: string, id: string, path: string, body: string): Pro
     noNetwork,
   );
   await handle(
-    new Request(`https://playtest.tar-atari.com/v1/uploads/${kind}/${id}/complete`, {
+    new Request(`https://playtest.moores.tech/v1/uploads/${kind}/${id}/complete`, {
       method: "POST",
       headers: { authorization: `Bearer ${token}` },
       body: JSON.stringify({ kind: "bug" }),
@@ -1198,14 +1198,14 @@ describe("admin api", () => {
   beforeEach(clean);
 
   it("adminキーが無ければ401", async () => {
-    const response = await handle(new Request("https://playtest.tar-atari.com/v1/inbox"), workerEnv, noNetwork);
+    const response = await handle(new Request("https://playtest.moores.tech/v1/inbox"), workerEnv, noNetwork);
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({ reason: "unauthorized" });
   });
 
   it("adminキーが違えば401", async () => {
     const response = await handle(
-      new Request("https://playtest.tar-atari.com/v1/inbox", { headers: { "x-admin-key": "wrong" } }),
+      new Request("https://playtest.moores.tech/v1/inbox", { headers: { "x-admin-key": "wrong" } }),
       workerEnv,
       noNetwork,
     );
@@ -1215,7 +1215,7 @@ describe("admin api", () => {
   it("completeした2件がinboxに出る", async () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
     await upload("progress", "20260913_130000_bbbb2222", "record.json", "{}");
-    const response = await handle(new Request("https://playtest.tar-atari.com/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
+    const response = await handle(new Request("https://playtest.moores.tech/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
     const body = (await response.json()) as { items: { kind: string; steamId: string; id: string; readyAt: string }[]; cursor: string | null };
     expect(body.items).toHaveLength(2);
     expect(body.items.map((item) => item.id).sort()).toEqual(["20260913_120000_aaaa1111", "20260913_130000_bbbb2222"]);
@@ -1226,13 +1226,13 @@ describe("admin api", () => {
   it("inboxの個別ファイルを取れる。不在は404", async () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "hello");
     const ok = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/a.txt`, { headers: ADMIN }),
+      new Request(`https://playtest.moores.tech/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/a.txt`, { headers: ADMIN }),
       workerEnv,
       noNetwork,
     );
     expect(await ok.text()).toBe("hello");
     const missing = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/none.txt`, { headers: ADMIN }),
+      new Request(`https://playtest.moores.tech/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/none.txt`, { headers: ADMIN }),
       workerEnv,
       noNetwork,
     );
@@ -1242,19 +1242,19 @@ describe("admin api", () => {
   it("ackするとinboxから消えACKEDが出来る", async () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
     const acked = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/ack`, { method: "POST", headers: ADMIN }),
+      new Request(`https://playtest.moores.tech/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/ack`, { method: "POST", headers: ADMIN }),
       workerEnv,
       noNetwork,
     );
     expect(acked.status).toBe(200);
     expect(await workerEnv.BUCKET.get(`reports/${STEAM_ID}/20260913_120000_aaaa1111/ACKED`)).not.toBeNull();
-    const inbox = await handle(new Request("https://playtest.tar-atari.com/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
+    const inbox = await handle(new Request("https://playtest.moores.tech/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
     expect(((await inbox.json()) as { items: unknown[] }).items).toHaveLength(0);
   });
 
   it("許可リストがGET/PUTで往復する", async () => {
     const put = await handle(
-      new Request("https://playtest.tar-atari.com/v1/allowlist", {
+      new Request("https://playtest.moores.tech/v1/allowlist", {
         method: "PUT",
         headers: ADMIN,
         body: JSON.stringify({ steamIds: [STEAM_ID] }),
@@ -1263,23 +1263,23 @@ describe("admin api", () => {
       noNetwork,
     );
     expect(put.status).toBe(200);
-    const get = await handle(new Request("https://playtest.tar-atari.com/v1/allowlist", { headers: ADMIN }), workerEnv, noNetwork);
+    const get = await handle(new Request("https://playtest.moores.tech/v1/allowlist", { headers: ADMIN }), workerEnv, noNetwork);
     expect(await get.json()).toEqual({ steamIds: [STEAM_ID] });
   });
 
   it("許可リストPUTの本文が壊れていれば400で現状を壊さない", async () => {
     await handle(
-      new Request("https://playtest.tar-atari.com/v1/allowlist", { method: "PUT", headers: ADMIN, body: JSON.stringify({ steamIds: [STEAM_ID] }) }),
+      new Request("https://playtest.moores.tech/v1/allowlist", { method: "PUT", headers: ADMIN, body: JSON.stringify({ steamIds: [STEAM_ID] }) }),
       workerEnv,
       noNetwork,
     );
     const broken = await handle(
-      new Request("https://playtest.tar-atari.com/v1/allowlist", { method: "PUT", headers: ADMIN, body: "{ nope" }),
+      new Request("https://playtest.moores.tech/v1/allowlist", { method: "PUT", headers: ADMIN, body: "{ nope" }),
       workerEnv,
       noNetwork,
     );
     expect(broken.status).toBe(400);
-    const get = await handle(new Request("https://playtest.tar-atari.com/v1/allowlist", { headers: ADMIN }), workerEnv, noNetwork);
+    const get = await handle(new Request("https://playtest.moores.tech/v1/allowlist", { headers: ADMIN }), workerEnv, noNetwork);
     expect(await get.json()).toEqual({ steamIds: [STEAM_ID] });
   });
 });
@@ -1462,13 +1462,13 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
    ```bash
    pnpm run deploy
    ```
-4. DNS: `wrangler.toml` の `routes` に `playtest.tar-atari.com` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が tar-atari.com ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.tar-atari.com` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
+4. DNS: `wrangler.toml` の `routes` に `playtest.moores.tech` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が moores.tech ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.moores.tech` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
 5. 許可リストへ最初のテスターを入れる: `scripts/playtest/allowlist.sh add <steamId>`
 
 ## 動作確認
 
 ```bash
-BASE=https://playtest.tar-atari.com
+BASE=https://playtest.moores.tech
 curl -s -o /dev/null -w '%{http_code}\n' "$BASE/v1/inbox"                          # 401 を期待
 curl -s -H "X-Admin-Key: $PLAYTEST_ADMIN_KEY" "$BASE/v1/allowlist"                 # {"steamIds":[...]}
 curl -s -X POST -d '{"ticket":"00"}' "$BASE/v1/session"                            # 401（無効チケット）
@@ -1506,7 +1506,7 @@ git commit -m "feat(playtest): 受け口の管理APIとデプロイ手順"
 
 **Interfaces:**
 - Consumes: Task 4 の `GET /v1/allowlist`・`PUT /v1/allowlist`（`X-Admin-Key`）
-- Produces: `scripts/playtest/allowlist.sh add|remove|list [<steamId>]`。設定は `${PLAYTEST_ENV_FILE:-$HOME/hermes-agent/data/services/playtest/env.sh}` から `PLAYTEST_RECEIVER_BASE`（既定 `https://playtest.tar-atari.com`）と `PLAYTEST_ADMIN_KEY`（必須）。`CURL_CMD` で curl を差し替え可能
+- Produces: `scripts/playtest/allowlist.sh add|remove|list [<steamId>]`。設定は `${PLAYTEST_ENV_FILE:-$HOME/hermes-agent/data/services/playtest/env.sh}` から `PLAYTEST_RECEIVER_BASE`（既定 `https://playtest.moores.tech`）と `PLAYTEST_ADMIN_KEY`（必須）。`CURL_CMD` で curl を差し替え可能
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -1595,7 +1595,7 @@ ENV_FILE="${PLAYTEST_ENV_FILE:-$HOME/hermes-agent/data/services/playtest/env.sh}
 # shellcheck disable=SC1090
 [ -f "$ENV_FILE" ] && . "$ENV_FILE"
 
-BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.tar-atari.com}"
+BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.moores.tech}"
 ADMIN_KEY="${PLAYTEST_ADMIN_KEY:?PLAYTEST_ADMIN_KEY が未設定です（$ENV_FILE に書いてください）}"
 CURL_CMD="${CURL_CMD:-curl}"
 
@@ -1666,7 +1666,7 @@ esac
 
 `~/hermes-agent/data/services/playtest/env.sh`（git 管理外・実シークレット）:
 ```
-PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com
+PLAYTEST_RECEIVER_BASE=https://playtest.moores.tech
 PLAYTEST_ADMIN_KEY=<wrangler secret put ADMIN_KEY で入れたのと同じ値>
 ```
 別の場所に置く場合は `PLAYTEST_ENV_FILE` で指す。
@@ -1724,7 +1724,7 @@ git commit -m "feat(playtest): 許可リスト操作スクリプトとMac mini�
 **Interfaces:**
 - Consumes: `Steamworks`（`com.rlabrecque.steamworks.net`）、`Game.Paths.GameSystemPaths`、UniTask
 - Produces:
-  - `public static class PlaytestReceiverConfig { public const string DefaultBaseUrl = "https://playtest.tar-atari.com"; public const string SteamIdentity = "moorestech-playtest"; public const int TicketTimeoutSeconds = 15; public const int HttpTimeoutSeconds = 60; public const int TokenRefreshAfterSeconds = 2700; public const long MaxFileBytes = 100L * 1024 * 1024; public static string BaseUrl { get; } }`（`BaseUrl` は環境変数 `MOORESTECH_PLAYTEST_RECEIVER_BASE` があればそれ、無ければ `DefaultBaseUrl`）
+  - `public static class PlaytestReceiverConfig { public const string DefaultBaseUrl = "https://playtest.moores.tech"; public const string SteamIdentity = "moorestech-playtest"; public const int TicketTimeoutSeconds = 15; public const int HttpTimeoutSeconds = 60; public const int TokenRefreshAfterSeconds = 2700; public const long MaxFileBytes = 100L * 1024 * 1024; public static string BaseUrl { get; } }`（`BaseUrl` は環境変数 `MOORESTECH_PLAYTEST_RECEIVER_BASE` があればそれ、無ければ `DefaultBaseUrl`）
   - `public static class PlaytestBuildInfoFile { public static string Path { get; } public static bool Exists(); }`
   - `public interface IPlaytestSessionLookup { string SteamId { get; } bool HasToken { get; } }`
   - `public sealed class PlaytestSession : IPlaytestSessionLookup { public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSteamTicketProvider ticketProvider); public string SteamId { get; } public bool HasToken { get; } public UniTask<PlaytestSessionResult> AuthenticateAsync(DateTime utcNow, CancellationToken token); public UniTask<string> GetValidTokenAsync(DateTime utcNow, CancellationToken token); }`
@@ -1935,7 +1935,7 @@ namespace Client.PlaytestReceiver
     // Connection and timing constants for the receiver; only the base URL can be overridden by env for verification machines
     public static class PlaytestReceiverConfig
     {
-        public const string DefaultBaseUrl = "https://playtest.tar-atari.com";
+        public const string DefaultBaseUrl = "https://playtest.moores.tech";
         public const string SteamIdentity = "moorestech-playtest";
         public const string BaseUrlEnvironmentVariable = "MOORESTECH_PLAYTEST_RECEIVER_BASE";
         public const int TicketTimeoutSeconds = 15;
@@ -3476,7 +3476,7 @@ git commit -m "feat(playtest): outboxの受け口アップロードと送信直�
 
 **Interfaces:**
 - Consumes: Task 1〜5 の成果物すべて
-- Produces: 稼働中の `https://playtest.tar-atari.com` と、許可リストに開発者本人の SteamID が1件入った状態
+- Produces: 稼働中の `https://playtest.moores.tech` と、許可リストに開発者本人の SteamID が1件入った状態
 
 - [ ] **Step 1: R2 バケットと secrets を用意する**
 
@@ -3495,15 +3495,15 @@ Expected: 3つの secret が `pnpm exec wrangler secret list` に並ぶ。**値�
 - [ ] **Step 2: デプロイして DNS を確認する**
 
 Run: `cd tools/playtest-receiver && pnpm run deploy`
-Expected: デプロイ成功と `playtest.tar-atari.com` の割り当てが出る。出ない場合は README の手順4（ダッシュボードでカスタムドメイン追加）を行い、README をその実態に合わせて直す
+Expected: デプロイ成功と `playtest.moores.tech` の割り当てが出る。出ない場合は README の手順4（ダッシュボードでカスタムドメイン追加）を行い、README をその実態に合わせて直す
 
-Run: `dig +short playtest.tar-atari.com`
+Run: `dig +short playtest.moores.tech`
 Expected: Cloudflare のアドレスが返る
 
 - [ ] **Step 3: 3本の curl で通しを確認する**
 
 ```bash
-BASE=https://playtest.tar-atari.com
+BASE=https://playtest.moores.tech
 . ~/hermes-agent/data/services/playtest/env.sh
 
 curl -s -o /dev/null -w 'inbox-without-key: %{http_code}\n' "$BASE/v1/inbox"
@@ -3536,7 +3536,7 @@ git commit -m "chore(playtest): 受け口のデプロイと通し確認の記録
 ### Task 11: セッション終了可能状態にすること
 
 - [ ] **Step 1:** `git status` で未コミットが無いことを確認する（`.moorestech-external-revisions.json` が Unity に書き換えられていたら `git checkout --` で戻す）。
-- [ ] **Step 2:** `bd note <本planのissue id> "plan D 完了: <最終コミット> / 受け口: playtest.tar-atari.com / Steam初期化の確認結果: ..."`。
+- [ ] **Step 2:** `bd note <本planのissue id> "plan D 完了: <最終コミット> / 受け口: playtest.moores.tech / Steam初期化の確認結果: ..."`。
 - [ ] **Step 3:** Task 7 Step 8 で AppID 未解決が見つかった場合はそれを `bd create` で plan E の子として積む。
 - [ ] **Step 4:** PR を作り、`moores-wt rm <worktree名>` で worktree と Unity Editor を畳む（CLAUDE.local.md の撤収規約）。
 

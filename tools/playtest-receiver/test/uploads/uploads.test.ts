@@ -10,7 +10,7 @@ describe("uploads", () => {
 
   it("PUTしたファイルがtokenのsteamId配下へ入る", async () => {
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/logs/unity.log`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/logs/unity.log`, {
         method: "PUT",
         headers: { authorization: await bearer(), "content-length": "5" },
         body: "hello",
@@ -25,7 +25,7 @@ describe("uploads", () => {
 
   it("URLに他人のsteamIdは現れずtokenだけが置き場を決める", async () => {
     await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/progress/${ID}/record.json`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/progress/${ID}/record.json`, {
         method: "PUT",
         headers: { authorization: await bearer("76561198000000009"), "content-length": "2" },
         body: "{}",
@@ -41,7 +41,7 @@ describe("uploads", () => {
   // The client percent-encodes each segment, and the decoded real file name is what becomes the key
   it("エスケープされた名前は復号した実ファイル名でキーになる", async () => {
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/snapshots/shot%231%20a%3Fb.png`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/snapshots/shot%231%20a%3Fb.png`, {
         method: "PUT",
         headers: { authorization: await bearer(), "content-length": "3" },
         body: "png",
@@ -55,7 +55,7 @@ describe("uploads", () => {
 
   it("日本語のファイル名も保存できる", async () => {
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/%E3%81%82.png`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/%E3%81%82.png`, {
         method: "PUT",
         headers: { authorization: await bearer(), "content-length": "3" },
         body: "png",
@@ -70,7 +70,7 @@ describe("uploads", () => {
   it("トークンが無ければ401", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/a.txt`, { method: "PUT", body: "x" }),
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/a.txt`, { method: "PUT", body: "x" }),
       workerEnv,
       noNetwork,
     );
@@ -82,7 +82,7 @@ describe("uploads", () => {
   it("completeでREADYと未ACK索引が出来る", async () => {
     const summary = JSON.stringify({ kind: "bug", fileCount: 1 });
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/complete`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/complete`, {
         method: "POST",
         headers: { authorization: await bearer() },
         body: summary,

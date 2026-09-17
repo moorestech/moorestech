@@ -7,7 +7,7 @@ ENV_FILE="${PLAYTEST_ENV_FILE:-$HOME/hermes-agent/data/services/playtest/env.sh}
 # shellcheck disable=SC1090
 [ -f "$ENV_FILE" ] && . "$ENV_FILE"
 
-BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.tar-atari.com}"
+BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.moores.tech}"
 ADMIN_KEY="${PLAYTEST_ADMIN_KEY:?PLAYTEST_ADMIN_KEY が未設定です（$ENV_FILE に書いてください）}"
 CURL_CMD="${CURL_CMD:-curl}"
 
