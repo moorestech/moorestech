@@ -53,9 +53,11 @@ mkdir -p "$(dirname "$out")"; cp "$src" "$out"
 SH
 chmod +x "$TMP/curl"
 
+ISOLATED_TMPDIR="$TMP/tmpdir"; mkdir -p "$ISOLATED_TMPDIR"
+
 run_ingest() {
   MOORESTECH_LOGS="$LOGS" PLAYTEST_ENV_FILE=/dev/null PLAYTEST_ADMIN_KEY=dummy \
-  FAKE_R2="$R2" CURL_CMD="$TMP/curl" GIT_PUSH=0 bash "$HERE/../ingest.sh"
+  FAKE_R2="$R2" CURL_CMD="$TMP/curl" GIT_PUSH=0 TMPDIR="$ISOLATED_TMPDIR" bash "$HERE/../ingest.sh"
 }
 run_ingest
 
@@ -87,4 +89,14 @@ BEFORE="$(cat "$P/reports/7656001/20260913_100000_bug1/ingest.json")"
 run_ingest
 grep -q 'report/7656001/20260913_100000_bug1/ack' "$R2/acked.txt" || { echo "NG: 再 ack されない"; exit 1; }
 [ "$BEFORE" = "$(cat "$P/reports/7656001/20260913_100000_bug1/ingest.json")" ] || { echo "NG: 再ダウンロードされた"; exit 1; }
+
+# 死んだPIDの残骸ロックがあっても取り込みが進む（SIGKILL/OOM/再起動でtrapが走らなかった想定）
+# Ingest still proceeds despite a stale lock left by a dead PID (simulating a killed/OOM'd/rebooted worker)
+sh -c 'exit 0' & DEAD_PID=$!
+wait "$DEAD_PID" 2>/dev/null || true
+LOCK_DIR="$ISOLATED_TMPDIR/moorestech-playtest-ingest.lock"
+mkdir -p "$LOCK_DIR"; echo "$DEAD_PID" > "$LOCK_DIR/pid"
+rm -f "$R2/acked.txt"
+run_ingest
+grep -q 'report/7656001/20260913_100000_bug1/ack' "$R2/acked.txt" || { echo "NG: 死んだPIDの残骸ロックで取り込みが止まった"; exit 1; }
 echo OK

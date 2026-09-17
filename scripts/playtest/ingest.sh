@@ -8,20 +8,29 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck source=lib/receiver-api.sh
 . "$HERE/lib/receiver-api.sh"
 
-ENV_FILE="${PLAYTEST_ENV_FILE:-$HOME/hermes-agent/data/services/playtest/env.sh}"
-# shellcheck disable=SC1090
-[ -f "$ENV_FILE" ] && . "$ENV_FILE"
+log() { echo "[ingest] $*" >&2; }
+now_utc() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
-LOGS="${MOORESTECH_LOGS:-$HOME/hermes-agent/data/repos/moorestech_logs}"
+# 既定値はスクリプト自身の位置から導出する。supervisor は HOME を封じ込め用に
+# 差し替える（~/hermes-agent/data/home）ため、$HOME 基準の既定値は本番で解決しない
+# Defaults derive from the script's own location: supervisor swaps HOME for a
+# containment dir, so a $HOME-based default would resolve nowhere in production
+REPO="${MOORESTECH_REPO:-$(cd "$HERE/../.." && pwd)}"
+ENV_FILE="${PLAYTEST_ENV_FILE:-$REPO/../../services/playtest/env.sh}"
+# shellcheck disable=SC1090
+if [ -f "$ENV_FILE" ]; then
+  . "$ENV_FILE"
+else
+  log "env file が無い（${ENV_FILE}）。PLAYTEST_ADMIN_KEY 等は環境変数頼みになる"
+fi
+
+LOGS="${MOORESTECH_LOGS:-$REPO/../moorestech_logs}"
 PLAYTEST_DIR="$LOGS/harness/playtest"
 GIT_CMD="${GIT_CMD:-git}"
 GIT_PUSH="${GIT_PUSH:-1}"
 MAX_ITEMS="${PLAYTEST_INGEST_MAX_ITEMS:-50}"
 MAX_PAGES="${PLAYTEST_INGEST_MAX_PAGES:-20}"
 LOCK="${TMPDIR:-/tmp}/moorestech-playtest-ingest.lock"
-
-log() { echo "[ingest] $*" >&2; }
-now_utc() { date -u +%Y-%m-%dT%H:%M:%SZ; }
 
 # R2 側の kind（report|progress）と logs 側のディレクトリ名を明示対応させる
 # Maps the receiver kind (report|progress) onto the logs directory name explicitly
@@ -87,9 +96,31 @@ commit_logs() {
   ) || log "ERROR: logs repo の commit/push に失敗（次回に持ち越し）"
 }
 
-mkdir "$LOCK" 2>/dev/null || { log "別の取り込みが進行中（${LOCK}）"; exit 0; }
+# mkdir ロックに PID を添えて生存確認する。worker は nohup で切り離されており
+# SIGKILL・OOM・再起動で EXIT trap が走らず残骸ロックが残りうるため、死んでいれば奪う
+# The mkdir lock carries a PID so a stale one can be reclaimed: the detached
+# nohup worker can die without the EXIT trap running, leaving an orphan lock
+acquire_lock() {
+  if mkdir "$LOCK" 2>/dev/null; then
+    echo $$ > "$LOCK/pid"
+    return 0
+  fi
+  local owner_pid
+  owner_pid="$(cat "${LOCK}/pid" 2>/dev/null || true)"
+  if [ -n "$owner_pid" ] && kill -0 "$owner_pid" 2>/dev/null; then
+    log "別の取り込みが進行中（pid=${owner_pid}, ${LOCK}）"
+    return 1
+  fi
+  log "ロックの所有者（pid=${owner_pid:-不明}）が死んでいる。奪取する（${LOCK}）"
+  rm -rf "$LOCK"
+  mkdir "$LOCK" 2>/dev/null || { log "ロック奪取に失敗（${LOCK}）"; return 1; }
+  echo $$ > "$LOCK/pid"
+  return 0
+}
+
+acquire_lock || exit 0
 WORK="$(mktemp -d)"
-trap 'rmdir "$LOCK"; rm -rf "$WORK"' EXIT
+trap 'rm -rf "$LOCK" "$WORK"' EXIT
 
 ITEMS="$WORK/items.tsv"; : > "$ITEMS"
 cursor=""; page=0

@@ -11,7 +11,8 @@
 
 ## supervisor へ登録する
 
-`~/hermes-agent/data/services/always-on/services.json` の `services` 配列へ次を足す（`services.json` はループ毎に再読込されるので supervisor の再起動は不要）:
+`~/hermes-agent/data/services/always-on/services.json` の `services` 配列へ次を足す（`services.json` はループ毎に再読込されるので supervisor の再起動は不要）。
+supervisor.py の `run_once` はシェルを介さず `subprocess.run(cmd, cwd=cwd, ...)` を呼ぶため `~` は展開されない。既存の `repo-auto-pull` エントリ（`services.json` 実物）と同じく **絶対パスで書く**:
 
 ```json
 {
@@ -19,10 +20,14 @@
   "kind": "periodic",
   "interval_seconds": 300,
   "timeout_seconds": 600,
-  "cwd": "~/hermes-agent/data/repos/moorestech",
-  "command": ["/bin/bash", "~/hermes-agent/data/repos/moorestech/scripts/playtest/ingest-dispatch.sh"]
+  "cwd": "/Users/sakastudio/hermes-agent/data/repos/moorestech",
+  "command": ["/bin/bash", "/Users/sakastudio/hermes-agent/data/repos/moorestech/scripts/playtest/ingest-dispatch.sh"]
 }
 ```
+
+**必ず本体 clone（`/Users/sakastudio/hermes-agent/data/repos/moorestech`）のスクリプトを指すこと。** `moores-wt` が切るタスク用worktree（`moorestech-worktrees/<name>`）は兄弟パス（`../moorestech_logs`・`../../services/...`）が本体と異なる位置にずれるため、そこを指すと壊れる。
+
+`ingest.sh`・`ingest-dispatch.sh` の既定パスはどちらも **`$HOME` を経由せずスクリプト自身の位置から導出**する（supervisor は HOME を封じ込め用ディレクトリへ差し替えるため）。既定を上書きしたい場合は `services.json` の `command` に環境変数を渡すか、`env.sh` で export すればよい（`MOORESTECH_REPO`・`MOORESTECH_LOGS`・`PLAYTEST_ENV_FILE`・`PLAYTEST_INGEST_LOG`）。
 
 確認（periodic の実行は `supervisor.log` には出ない。サービス個別のログを見る）:
 
@@ -38,7 +43,7 @@ tail -f ~/hermes-agent/data/services/always-on/logs/playtest-ingest-worker.log #
 bash ~/hermes-agent/data/repos/moorestech/scripts/playtest/ingest.sh
 ```
 
-ロックは `$TMPDIR/moorestech-playtest-ingest.lock`。前回が生きていれば何もせず終わる。
+ロックは `$TMPDIR/moorestech-playtest-ingest.lock`（PID 入り）。前回のプロセスが生きていれば何もせず終わり、死んでいれば（SIGKILL・OOM・再起動等で trap が走らず残った場合）理由をログして奪取する。
 
 ## 成果物
 
