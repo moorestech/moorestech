@@ -48,11 +48,23 @@ COMMIT_FULL="$("$GIT_BIN" -C "$SCRIPT_DIR" rev-parse --verify "${COMMIT}^{commit
     exit 2
 }
 # 焼く branch が嘘にならないよう、要求コミットが配布元 ref から到達できることをビルド前に確かめる
+# merge-base --is-ancestorは「祖先でない」を1、「refが無い・objectが無い」を128で返すため、終了コードで理由を分ける
+# （128のまま「含まれない」と出すと、ブランチ名の打ち間違いをコミットの取り違えと誤診させてしまう）
 # Confirm before the build that the requested commit is reachable from the distribution ref, so the baked branch never lies
-"$GIT_BIN" -C "$SCRIPT_DIR" merge-base --is-ancestor "$COMMIT_FULL" "origin/$BUILD_BRANCH" || {
+# merge-base --is-ancestor returns 1 for "not an ancestor" and 128 for "ref/object missing"; branch on the exit code
+# (reporting 128 as "not contained" would misdirect a typo'd branch name toward a commit mixup instead)
+if "$GIT_BIN" -C "$SCRIPT_DIR" merge-base --is-ancestor "$COMMIT_FULL" "origin/$BUILD_BRANCH"; then
+    ANCESTOR_STATUS=0
+else
+    ANCESTOR_STATUS=$?
+fi
+if [ "$ANCESTOR_STATUS" -eq 128 ]; then
+    echo "ERROR: origin/${BUILD_BRANCH} が見つかりません（MOORESTECH_BUILD_BRANCH を確認してください）" >&2
+    exit 2
+elif [ "$ANCESTOR_STATUS" -ne 0 ]; then
     echo "ERROR: ${COMMIT_FULL} は origin/${BUILD_BRANCH} に含まれません（配布元 ref が違うなら MOORESTECH_BUILD_BRANCH で指定してください）" >&2
     exit 2
-}
+fi
 
 BUILD_LABEL="${MOORESTECH_STEAM_BUILD_LABEL:-playtest-$(date +%Y%m%d-%H%M)}"
 RUN_DIR="$PLAYTEST_RUN_ROOT/$BUILD_LABEL"

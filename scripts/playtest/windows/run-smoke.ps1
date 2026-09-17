@@ -46,7 +46,13 @@ function Stop-LeftoverGame([string]$Reason) {
     $leftover = Get-Process -Name $GameProcessName -ErrorAction SilentlyContinue
     if ($leftover) {
         Write-Output "stopping leftover $GameProcessName ($Reason): pid=$($leftover.Id -join ',')"
-        $leftover | Stop-Process -Force
+        # 検出と停止の間にゲームが自分で終わると Stop-Process が「プロセスが見つからない」で終了エラーを投げ、
+        # Stop 下ではそれが呼び出し元の意図した終了コードを潰して 1 で抜けてしまう。この競合だけは無害化し、
+        # 本当の失敗（権限不足等）は Stop-Process が書くエラーで見える
+        # If the game quits by itself between detection and stop, Stop-Process throws a terminating
+        # "process not found" error; under Stop that would clobber the caller's intended exit code with 1.
+        # Only this race is muted here; a real failure (e.g. permission) still surfaces via Stop-Process's error
+        $leftover | Stop-Process -Force -ErrorAction SilentlyContinue
     }
 }
 

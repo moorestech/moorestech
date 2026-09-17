@@ -49,6 +49,18 @@ OUTPUT=$(GIT_ANCESTOR_EXIT=1 run_target); STATUS=$?
 [ "$STATUS" -ne 0 ] || fail "a commit outside origin/master did not fail"
 grep -q "^moores-wt" "$SANDBOX/calls.log" && fail "a worktree was created despite a commit outside origin/master"
 case "$OUTPUT" in *MOORESTECH_BUILD_BRANCH*) ;; *) fail "the unreachable failure did not point at MOORESTECH_BUILD_BRANCH: $OUTPUT";; esac
+case "$OUTPUT" in *"見つかりません"*) fail "exit 1 (not an ancestor) was misreported as a missing ref: $OUTPUT" ;; esac
+
+# origin/<branch> 自体が無い(merge-base --is-ancestorが128)場合は「含まれない」ではなく「見つからない」と出す
+# ブランチ名の打ち間違いをコミットの取り違えと誤診させないため
+# When origin/<branch> itself is missing (merge-base --is-ancestor returns 128), report "not found" rather than
+# "not contained", so a typo'd branch name is never misdiagnosed as a commit mixup
+make_sandbox
+OUTPUT=$(GIT_ANCESTOR_EXIT=128 run_target); STATUS=$?
+[ "$STATUS" -ne 0 ] || fail "a missing origin/<branch> did not fail"
+grep -q "^moores-wt" "$SANDBOX/calls.log" && fail "a worktree was created despite a missing origin/<branch>"
+case "$OUTPUT" in *"見つかりません"*MOORESTECH_BUILD_BRANCH*) ;; *) fail "the missing-ref failure did not say 見つかりません and point at MOORESTECH_BUILD_BRANCH: $OUTPUT";; esac
+case "$OUTPUT" in *"含まれません"*) fail "exit 128 (missing ref) was misreported as not contained: $OUTPUT" ;; esac
 
 # 成果物の branch が配布元 ref と違えば（一時ブランチ名を焼いた等）steamcmd へ進まない
 # An artifact whose branch differs from the distribution ref (e.g. the temporary branch was baked) never reaches steamcmd
