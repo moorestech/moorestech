@@ -303,6 +303,7 @@ namespace Server.Boot
             services.AddSingleton<RemoveBlockToSetEventPacket>();
             services.AddSingleton<CompletedChallengeEventPacket>();
             services.AddSingleton<ResearchCompleteEventPacket>();
+            services.AddSingleton<CraftCompletedEventPacket>();
             services.AddSingleton<ItemStackLevelUnlockEventPacket>();
             services.AddSingleton<WorldSaveCompletedEventPacket>();
             services.AddSingleton<BugReportCaptureRequesterRegistry>();

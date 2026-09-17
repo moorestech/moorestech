@@ -21,11 +21,13 @@ import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { EventLanguageGate } from "@/features/eventLanguageGate";
+import { CrashReportGate, PlaytestConsentGate } from "@/features/playtestGate";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud } from "@/shared/uiState";
 import { useUiScaleStore } from "@/shared/uiScale";
 import { useWebInputExclusivity } from "@/shared/uiState/useWebInputExclusivity";
 import styles from "./App.module.css";
+import { useFrontmostStartGate } from "./startGates/useFrontmostStartGate";
 
 // 基準stageをviewportへ収める一様拡縮を同期する
 // Synchronize uniform scaling that fits the reference stage in the viewport
@@ -77,6 +79,7 @@ export default function App() {
   // ビルドメニュー等の独立メニューも背景ディムは共有するが、インベントリは重畳しない
   // Standalone menus (build menu, etc.) share the dim backdrop but do not overlay the inventory
   const modalScreen = screenShowsBackdrop(screen);
+  const frontmostStartGate = useFrontmostStartGate();
 
   // Ctrl+U中はPortalを含む全Web UIをunmountする
   // Unmount the entire Web UI, including portals, while Ctrl+U is active
@@ -158,9 +161,13 @@ export default function App() {
           </Overlay>
         </Portal>
       )}
-      {/* 出展モードの開始ゲート。再接続表示より前へ出し、待機中の操作を全て塞ぐ */}
-      {/* The event-mode start gate; sits ahead of the reconnect overlay and blocks every input while waiting */}
-      <EventLanguageGate />
+      {/* 開始ゲート3種。再接続表示より前へ出し、待機中の操作を全て塞ぐ */}
+      {/* The three start gates; they sit ahead of the reconnect overlay and block every input while waiting */}
+      {/* 同時に待った場合は C# が配る precedence の小さい1枚だけを見せる */}
+      {/* When several wait at once, only the one with the smallest C#-supplied precedence is shown */}
+      <EventLanguageGate visible={frontmostStartGate === "eventLanguage"} />
+      <PlaytestConsentGate visible={frontmostStartGate === "consent"} />
+      <CrashReportGate visible={frontmostStartGate === "crashReport"} />
     </div>
   );
 }

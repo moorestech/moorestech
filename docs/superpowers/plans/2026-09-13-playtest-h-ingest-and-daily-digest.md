@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** Mac mini が受け口（Cloudflare Worker + R2）の inbox を5分ごとに取り込んで `moorestech_logs/harness/playtest/` に保存し、Hermes 内蔵 cron が1日1回、前日分の感想全文・進行記録の集計・自動修正ラン結果・クラッシュ件数・**投入候補のバグ報告一覧**を Discord へ投稿し、人がその一覧を見て選んだものだけを手動コマンドで plan C の自動修正ラン inbox へ投入する（ADR 0058 の「取り込み」「日次ダイジェスト」「テスター報告は自動投入しない」）。
+**Goal:** Mac mini が受け口（Cloudflare Worker + R2）の inbox を5分ごとに取り込んで `moorestech_logs/harness/playtest/` に保存し、Hermes 内蔵 cron が1日1回、前日分の感想全文・進行記録の集計・自動修正ラン結果・クラッシュ件数・**投入候補のバグ報告一覧**を Discord へ投稿し、人がその一覧を見て選んだものだけを手動コマンドで plan C の自動修正ラン inbox へ投入する（ADR 0061 の「取り込み」「日次ダイジェスト」「テスター報告は自動投入しない」）。
 
 **Architecture:** (1) 取り込みは2段。supervisor の periodic（300秒・timeout 600秒）が `scripts/playtest/ingest-dispatch.sh` を呼び、それが `nohup` で worker `scripts/playtest/ingest.sh` を切り離す（`repo-auto-pull` と同型。periodic はメインループ内で同期実行されるため、ダウンロードの長さでトンネル再起動や死活監視を止めない）。worker は単一飛行ロックを持ち、`GET /v1/inbox` をページングして各件を `harness/playtest/{reports|progress}/<steamId>/<id>/` へ `.partial`→`mv` でアトミックに置き、成功したものだけ ack して logs repo を commit/push する。**自動修正ランへの投入はしない**（裁定 2026-09-13）。(2) 集計は Python3 標準ライブラリのみの `scripts/playtest/digest.py`（読み取り・整形）＋ `digest_collect.py`（走査・集計）。前日（JST）分を Markdown で標準出力へ出し、未投入のバグ報告には `scripts/playtest/enqueue-autofix.sh <steamId> <id>` のコマンドをそのまま貼れる形で並べる。全文は `harness/playtest/digests/<date>.md` へ残す。(3) 投入は人が叩く `scripts/playtest/enqueue-autofix.sh`。箱を plan C の `harness/bug-report/inbox/<id>/`（`READY` 付き）へ `.partial`→`mv` で複製し、箱側に `AUTOFIX_QUEUED` マーカーを書いて二重投入を防ぐ。(4) Hermes 内蔵 cron は `--no-agent` で digest を毎日走らせ、stdout をそのまま Discord へ投げる。`--script` は `HERMES_HOME/scripts/` の外を参照できずシンボリックリンクも弾かれるため、実ファイルの shim を1枚置いて repo 側の本体を exec する（既存 `monitors/tiktok-collector-monitor/check.sh` と同じ形）。
 
@@ -13,15 +13,15 @@
 - R1. logs repo レイアウト: `../moorestech_logs` に `harness/playtest/{reports,progress,digests}/` と `harness/playtest/README.md` を追加し、`.gitignore` で動画・連番フレーム・録画リング・取り込み途中の `.partial` を除外する。`README.md` のレイアウト表に1行足す。ベースブランチは `main`（`master` ではない）。受入: PR が `origin/main` 宛で存在する。
 - R2. 受け口 admin API ラッパ: `scripts/playtest/lib/receiver-api.sh` が `receiver_inbox_page`・`receiver_get_object`・`receiver_ack` を提供し、`X-Admin-Key` を付ける。`CURL_CMD` で curl を差し替えられる。admin key は**いかなる経路でも標準出力・ログに出さない**。受入: スタブ curl を使うテストで3関数が期待の URL を叩く。
 - R3. 取り込み worker: `scripts/playtest/ingest.sh` が `GET /v1/inbox` を `cursor` が空になるまで（最大 `PLAYTEST_INGEST_MAX_PAGES`=20 ページ）辿り、各件について `READY` を取得 → 本文の要約 JSON の `files[]` に列挙されたパスだけを `GET /v1/inbox/{kind}/{steamId}/{id}/{path}` で落とし → `harness/playtest/{reports|progress}/<steamId>/<id>.partial/` に貯めて `mv` で公開 → `ingest.json`（`kind`・`steamId`・`id`・`readyAt`・`ingestedAt`）を添える → ack する。1回の実行で扱うのは `PLAYTEST_INGEST_MAX_ITEMS`=50 件まで、残りは次回。受入: スタブ curl のテストで report/progress の箱が正しい場所に置かれ、`ingest.json` があり、ack が記録される。
-- R4. 手動投入コマンド: `scripts/playtest/enqueue-autofix.sh <steamId> <id>` が、取り込み済みの箱を `harness/bug-report/inbox/<id>.partial/` へ複製し `READY` を確かめてから `mv` し、箱に `AUTOFIX_QUEUED` マーカー（本文は `queued at <ISO8601>`）を書く。**取り込み（`ingest.sh`）は自動投入しない**（ADR 0058 の裁定）。`manifest.kind != "bug"` の箱は既定で拒否し、`--force` を付けたときだけ理由をログに出して通す。マーカーが既にある箱は「投入済み」として拒否する（二重投入防止）。箱が無い・`manifest.json` が読めない場合は非0で終わる。受入: テストで bug の箱が `bug-report/inbox/<id>/READY` になり、2回目は拒否され、feedback の箱は `--force` 無しで拒否される。
+- R4. 手動投入コマンド: `scripts/playtest/enqueue-autofix.sh <steamId> <id>` が、取り込み済みの箱を `harness/bug-report/inbox/<id>.partial/` へ複製し `READY` を確かめてから `mv` し、箱に `AUTOFIX_QUEUED` マーカー（本文は `queued at <ISO8601>`）を書く。**取り込み（`ingest.sh`）は自動投入しない**（ADR 0061 の裁定）。`manifest.kind != "bug"` の箱は既定で拒否し、`--force` を付けたときだけ理由をログに出して通す。マーカーが既にある箱は「投入済み」として拒否する（二重投入防止）。箱が無い・`manifest.json` が読めない場合は非0で終わる。受入: テストで bug の箱が `bug-report/inbox/<id>/READY` になり、2回目は拒否され、feedback の箱は `--force` 無しで拒否される。
 - R5. 失敗時の挙動: `READY` 本文に `files[]` が無い／パスに `..` や先頭 `/` を含む箱は、`.partial` を消し **ack せず** `[ingest] ERROR` を出して次の箱へ進む（1件の異常で全体を止めない）。ダウンロード失敗・ack 失敗も同じく次回に持ち越す。`GET /v1/inbox` 自体が失敗したらその回は何もせず終了する。受入: `files[]` 無しの箱を混ぜたテストで、その箱だけ未 ack・未配置になり、他の箱は正常に取り込まれる。
 - R6. supervisor 登録: `scripts/playtest/ingest-dispatch.sh` が worker を `nohup` で切り離し、即座に戻る。`services.json` へ `kind: periodic`・`interval_seconds: 300`・`timeout_seconds: 600` で登録する手順を `scripts/playtest/README-macmini.md` に書く。受入: `logs/playtest-ingest.log` に `run reason=periodic` マーカーが出て、`logs/playtest-ingest-worker.log` に `[ingest]` 行が出る。
 - R7. 日次ダイジェスト: `scripts/playtest/digest.py`（標準ライブラリのみ）が前日（JST）分について (a) プレイ報告の件数（バグ／感想／クラッシュ）、(b) 感想の**全文**、(c) 進行記録の集計＝人数・セッション数・平均プレイ時間・平均研究完了数・到達チャレンジ数の分布・離脱時の最後のイベント上位・離脱時の UI 状態上位・終了理由、(d) 自動修正ラン結果（`harness/bug-report/runs/<id>/fix-result.json` の status・PR番号・base・summary）、(e) **投入候補のバグ報告一覧**＝`manifest.kind == "bug"` かつ `AUTOFIX_QUEUED` の無い箱について、説明文の先頭1行と `scripts/playtest/enqueue-autofix.sh <steamId> <id>` をそのまま貼れる形で並べる、を Markdown で標準出力へ出し、全文を `harness/playtest/digests/<date>.md` へ書く。該当0件の日も見出しと「なし」を出す（沈黙しない）。受入: fixture を並べた `unittest` が全セクションの文字列と enqueue コマンド行を検証する。
 - R8. Discord 1メッセージ長対策: `--max-chars`（既定1800）を超えたら標準出力を切り、切った旨と全文の置き場（`digests/<date>.md`）を必ず末尾に示す。受入: 長い感想を入れた fixture で、切り詰め後の出力に置き場のパスが含まれる。
 - R9. Hermes cron ジョブ: `scripts/playtest/hermes-cron/moorestech-playtest-digest.sh` を `HERMES_HOME/scripts/` へ**コピー**（symlink 不可）し、`hermes cron create` で `--script`・`--no-agent`・`--deliver discord:<チャンネルID>` のジョブを1件作る手順を README に書く。チャンネルIDと admin key は `~/hermes-agent/data/services/playtest/env.sh` に置き、plan・repo には値を書かない。受入: `hermes cron list` に当該ジョブが出て、`hermes cron run <id>` の1回実行で Discord に投稿される。
-- R10. plan A/B/C の改訂メモ: ADR 0058 で変わる点（`manifest.kind`／`steamId`／`buildInfo`、テスター報告は自動投入されず poller が見るのは開発者 rsync 経路と手動投入分のみ、`kind=crash` は自動修正ランを起動せず digest に載せる、`fix-result.json` に `finishedAt` を足す、logs repo のベースは `main`）を、各 plan ファイル先頭のコントローラ用ブロック直後に `> **改訂（ADR 0058 / 2026-09-13）**` として追記する。受入: 3ファイルに改訂ブロックがあり、本文の該当箇所と矛盾しない。
+- R10. plan A/B/C の改訂メモ: ADR 0061 で変わる点（`manifest.kind`／`steamId`／`buildInfo`、テスター報告は自動投入されず poller が見るのは開発者 rsync 経路と手動投入分のみ、`kind=crash` は自動修正ランを起動せず digest に載せる、`fix-result.json` に `finishedAt` を足す、logs repo のベースは `main`）を、各 plan ファイル先頭のコントローラ用ブロック直後に `> **改訂（ADR 0061 / 2026-09-13）**` として追記する。受入: 3ファイルに改訂ブロックがあり、本文の該当箇所と矛盾しない。
 - R11. 最終レビュー: moores-code-review スキルで全ブランチレビューを実行する（省略不可）。
-- やらないこと: 受け口本体の実装（plan D）／ゲーム側の送信・進行記録の生成（plan G）／閲覧ダッシュボード（ADR 0058 で棄却）／許可リスト操作 `allowlist.sh`（plan D）／配布ビルドと検証機（plan E）／セーブ互換（plan F）／取り込んだ動画の logs repo への push（容量のため除外し Mac mini のディスクにだけ残す）／**テスター報告の自動修正ランへの自動投入**（裁定 2026-09-13。投入は人が `enqueue-autofix.sh` を叩く）／ACK 済み分の再照会（`GET /v1/inbox?includeAcked=true` は plan E が plan D へ足す予定。本plan は未ACK前提のまま）。
+- やらないこと: 受け口本体の実装（plan D）／ゲーム側の送信・進行記録の生成（plan G）／閲覧ダッシュボード（ADR 0061 で棄却）／許可リスト操作 `allowlist.sh`（plan D）／配布ビルドと検証機（plan E）／セーブ互換（plan F）／取り込んだ動画の logs repo への push（容量のため除外し Mac mini のディスクにだけ残す）／**テスター報告の自動修正ランへの自動投入**（裁定 2026-09-13。投入は人が `enqueue-autofix.sh` を叩く）／ACK 済み分の再照会（`GET /v1/inbox?includeAcked=true` は plan E が plan D へ足す予定。本plan は未ACK前提のまま）。
 
 ## Global Constraints
 
@@ -100,14 +100,14 @@ harness/playtest/progress/*/*.partial/
 ```markdown
 # playtest
 
-ADR 0058（moorestech `docs/adr/0058-steam-closed-playtest-report-receiver-and-save-compat.md`）の取り込み先。
+ADR 0061（moorestech `docs/adr/0061-steam-closed-playtest-report-receiver-and-save-compat.md`）の取り込み先。
 書き手は moorestech `scripts/playtest/ingest.sh`（Mac mini の always-on supervisor が5分ごとに起動）。
 
 - `reports/<steamId>/<id>/` — プレイ報告1件。受け口から落とした `manifest.json`・スナップショット・パケットログ・ログ・スクリーンショットと、取り込み側が書く `ingest.json`。動画と連番フレームは `.gitignore` で除外（Mac mini のディスクにだけ残る）
 - `progress/<steamId>/<id>/` — 進行記録1件（`record.json` と `ingest.json`）
 - `digests/<YYYY-MM-DD>.md` — 日次ダイジェストの全文。Discord へは先頭 1800 文字だけ出るので、切れた分はここを読む
 - `ingest.json` — `{"kind","steamId","id","readyAt","ingestedAt"}`。日次ダイジェストの日付判定は `readyAt`（受け口が付ける）を使う
-- `AUTOFIX_QUEUED` — 人が `scripts/playtest/enqueue-autofix.sh` で自動修正ランへ投入したときだけ付く二重投入防止マーカー。**取り込みは自動投入しない**（ADR 0058）
+- `AUTOFIX_QUEUED` — 人が `scripts/playtest/enqueue-autofix.sh` で自動修正ランへ投入したときだけ付く二重投入防止マーカー。**取り込みは自動投入しない**（ADR 0061）
 - 閲覧は本人とエージェントのみ。公開PRにはパスと説明だけを書く
 ```
 
@@ -124,7 +124,7 @@ git add -A harness/playtest .gitignore README.md
 git commit -m "harness: playtest の reports/progress/digests レイアウトと容量除外"
 git push -u origin feature/playtest-ingest
 gh pr create --base main --title "harness: playtest の取り込みレイアウト" \
-  --body "moorestech ADR 0058 / plan H。受け口から取り込んだプレイ報告・進行記録・日次ダイジェストの置き場と容量除外。"
+  --body "moorestech ADR 0061 / plan H。受け口から取り込んだプレイ報告・進行記録・日次ダイジェストの置き場と容量除外。"
 ```
 Expected: PR URL が出る。URL を本repoの `## 判断記録（ADR）` に書き足す。
 
@@ -145,7 +145,7 @@ Expected: PR URL が出る。URL を本repoの `## 判断記録（ADR）` に書
   - `harness/playtest/reports/<steamId>/<id>/`・`harness/playtest/progress/<steamId>/<id>/`（Task 3 の `enqueue-autofix.sh` と Task 4 の `digest_collect` が読む）
   - 各箱の `ingest.json` = `{"kind":"report|progress","steamId":"<string>","id":"<string>","readyAt":"<ISO8601>","ingestedAt":"<ISO8601>"}`（Task 4 の `digest_collect.collect_boxes` がこの5キーを読む）
   - シェル関数 `receiver_inbox_page <cursor> <out>`・`receiver_get_object <kind> <steamId> <id> <path> <out>`・`receiver_ack <kind> <steamId> <id>`（Task 3 は使わない。取り込み専用）
-- **Produces しないもの**: `harness/bug-report/inbox/` への複製と `AUTOFIX_QUEUED` マーカー。どちらも Task 3 の手動コマンドの責務（ADR 0058「テスターからのバグ報告は自動修正ランへ自動投入しない」）
+- **Produces しないもの**: `harness/bug-report/inbox/` への複製と `AUTOFIX_QUEUED` マーカー。どちらも Task 3 の手動コマンドの責務（ADR 0061「テスターからのバグ報告は自動修正ランへ自動投入しない」）
 
 - [ ] **Step 1: 失敗するテストを書く**
 
@@ -220,8 +220,8 @@ grep -q '"readyAt":"2026-09-13T01:00:00Z"' "$P/reports/7656001/20260913_100000_b
 [ -f "$P/progress/7656001/20260913_120000_pg1/record.json" ] || { echo "NG: 進行記録が置かれていない"; exit 1; }
 [ ! -e "$P/reports/7656003/20260913_130000_bad1" ] || { echo "NG: files[] 無しの箱が公開された"; exit 1; }
 
-# 自動投入しない（ADR 0058）。inbox は空のまま、マーカーも付かない
-# No auto-enqueue (ADR 0058): the auto-fix inbox stays empty and no marker is written
+# 自動投入しない（ADR 0061）。inbox は空のまま、マーカーも付かない
+# No auto-enqueue (ADR 0061): the auto-fix inbox stays empty and no marker is written
 I="$LOGS/harness/bug-report/inbox"
 [ -z "$(ls -A "$I")" ] || { echo "NG: 取り込みが自動修正ランへ自動投入した"; exit 1; }
 [ ! -e "$P/reports/7656001/20260913_100000_bug1/AUTOFIX_QUEUED" ] || { echo "NG: 取り込みが AUTOFIX_QUEUED を付けた"; exit 1; }
@@ -288,9 +288,9 @@ receiver_ack() {
 
 ```bash
 #!/usr/bin/env bash
-# 受け口の inbox を moorestech_logs へ取り込み、成功したものだけ ack する（ADR 0058）
+# 受け口の inbox を moorestech_logs へ取り込み、成功したものだけ ack する（ADR 0061）
 # 自動修正ランへの投入はしない。人が日次ダイジェストを見て enqueue-autofix.sh で投入する（裁定 2026-09-13）
-# Ingests the receiver inbox into moorestech_logs and acks only what succeeded (ADR 0058)
+# Ingests the receiver inbox into moorestech_logs and acks only what succeeded (ADR 0061)
 # It never enqueues auto-fix runs; a human picks them from the daily digest via enqueue-autofix.sh
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -471,7 +471,7 @@ bash ~/hermes-agent/data/repos/moorestech/scripts/playtest/ingest.sh
 ## 成果物
 
 - `moorestech_logs/harness/playtest/{reports,progress}/<steamId>/<id>/`
-- **自動修正ランへの投入はここでは起きない**（ADR 0058）。投入は日次ダイジェストを見て人が `scripts/playtest/enqueue-autofix.sh <steamId> <id>` を叩く
+- **自動修正ランへの投入はここでは起きない**（ADR 0061）。投入は日次ダイジェストを見て人が `scripts/playtest/enqueue-autofix.sh <steamId> <id>` を叩く
 
 ## 詰まったとき
 
@@ -560,8 +560,8 @@ Expected: FAIL（`enqueue-autofix.sh` が無い）
 #!/usr/bin/env bash
 # 取り込み済みのプレイ報告を1件、自動修正ランの inbox へ投入する（人が日次ダイジェストを見て叩く）
 # Enqueues one ingested play report into the auto-fix inbox; a human runs this after reading the daily digest
-# ADR 0058: テスター報告の自動投入はしない。投入の判断は人が持つ
-# ADR 0058: tester reports are never auto-enqueued; the decision to enqueue belongs to a human
+# ADR 0061: テスター報告の自動投入はしない。投入の判断は人が持つ
+# ADR 0061: tester reports are never auto-enqueued; the decision to enqueue belongs to a human
 set -euo pipefail
 
 FORCE=0
@@ -623,7 +623,7 @@ log "投入した: $ID（poller が最大60秒で拾う）"
 ```markdown
 ## 自動修正ランへ投入する（人の操作）
 
-テスターのバグ報告は**自動では走らない**（ADR 0058）。毎朝の日次ダイジェストの「投入候補のバグ報告」節に
+テスターのバグ報告は**自動では走らない**（ADR 0061）。毎朝の日次ダイジェストの「投入候補のバグ報告」節に
 そのまま貼れるコマンドが並ぶので、直したいものだけ選んで叩く。
 
 ```bash
@@ -1028,8 +1028,8 @@ def format_counts(reports: list[dict]) -> list[str]:
 
 
 def format_feedback(reports: list[dict]) -> list[str]:
-    """感想は要約せず全文を出す（ADR 0058「新着の感想全文」）
-    Feedback is printed in full, never summarised (ADR 0058)"""
+    """感想は要約せず全文を出す（ADR 0061「新着の感想全文」）
+    Feedback is printed in full, never summarised (ADR 0061)"""
     lines = ["", "## 感想（全文）"]
     items = [r for r in reports if r["kind"] == "feedback"]
     if not items:
@@ -1223,7 +1223,7 @@ install -m 755 ~/hermes-agent/data/repos/moorestech/scripts/playtest/hermes-cron
 実行手順:
 1. \`moorestech-playtest-digest.sh\` を実行する。
 2. stdout に出力された Markdown を、そのまま最終回答として送信する。
-3. 要約・整形・並べ替えをしない。感想は全文を載せる（ADR 0058）。
+3. 要約・整形・並べ替えをしない。感想は全文を載せる（ADR 0061）。
 
 補足:
 - 「投入候補のバグ報告」に並ぶ enqueue コマンドは、人が選んで叩くためのもの。エージェントが勝手に実行しない。
@@ -1263,7 +1263,7 @@ git commit -m "feat(playtest): 日次ダイジェストのHermes cron shimと登
 
 ---
 
-### Task 6: plan A/B/C へ ADR 0058 の改訂メモを追記する
+### Task 6: plan A/B/C へ ADR 0061 の改訂メモを追記する
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-09-11-bug-report-a-server-foundation.md:2`（コントローラ用ブロックの直後）
@@ -1271,14 +1271,14 @@ git commit -m "feat(playtest): 日次ダイジェストのHermes cron shimと登
 - Modify: `docs/superpowers/plans/2026-09-11-bug-report-c-transport-and-auto-fix-run.md:2`
 
 **Interfaces:**
-- Consumes: ADR 0058、共有契約 §1〜§3・§6
+- Consumes: ADR 0061、共有契約 §1〜§3・§6
 - Produces: 3つの plan の先頭にある改訂ブロック（plan A/B/C の実装者が最初に読む）。実装コードは変更しない。
 
 - [ ] **Step 1: plan A に改訂ブロックを追記する**
 
 `2026-09-11-bug-report-a-server-foundation.md` のコントローラ用引用ブロックの直後（3行目）に挿入:
 ```markdown
-> **改訂（ADR 0058 / 2026-09-13・plan H より）:** 配布版のテスターも送り手になり、クラッシュ報告が対象に入った。本planで変わるのは次の2点だけで、他は原文どおり。
+> **改訂（ADR 0061 / 2026-09-13・plan H より）:** 配布版のテスターも送り手になり、クラッシュ報告が対象に入った。本planで変わるのは次の2点だけで、他は原文どおり。
 > 1. **常時記録のリングを終了時に消さない。** サーバーのスナップショットリングと受信パケットログは、正常終了時もファイルを残す（次回起動時に「前回異常終了」を検知して前回分を送るため）。消すのは新しいセッションが自分のリングを作り直すときだけ。
 > 2. **`kind=crash` の箱が存在する。** クラッシュ箱は plan C の自動修正ランを起動しない（日次ダイジェストに件数として載るだけ）。サーバー側の再現ツール（`SnapshotReplayer`・`SnapshotJsonComparer`）の要件は変わらない。
 ```
@@ -1287,7 +1287,7 @@ git commit -m "feat(playtest): 日次ダイジェストのHermes cron shimと登
 
 `2026-09-11-bug-report-b-client-capture-and-report-ui.md` の3行目に挿入:
 ```markdown
-> **改訂（ADR 0058 / 2026-09-13・plan H より）:** 受け口（Cloudflare Worker + R2）と進行記録が加わり、manifest が変わった。
+> **改訂（ADR 0061 / 2026-09-13・plan H より）:** 受け口（Cloudflare Worker + R2）と進行記録が加わり、manifest が変わった。
 > 1. **`manifest.json` に `kind`（"bug"|"feedback"|"crash"）・`steamId`（string、Steam未起動なら ""）・`buildInfo` を足す。** `buildInfo` は `StreamingAssets/build-info.json`（`commit`・`branch`・`masterDataCommit`・`dirty`・`steamBuildLabel`・`builtAt`・`target`）で、原文の `BugReportManifest.Repository` を置き換える。Editor 実行時は `build-info.json` が無いので原文の git probe を使い `buildInfo` は null。
 > 2. **報告UIに種別（バグ／感想）の選択を足す。** どちらも同じバンドルを送る。自動修正ランが起動するのはバグだけ。
 > 3. **進行記録の outbox を足す。** `<GameSystemDirectory>/ProgressRecords/outbox/<id>/record.json` + `READY`、送信後 `UPLOADED`。中身は共有契約 §3（`playSeconds`・`reachedChallenges`・`completedResearch`・`lastUiState`・`events[]` 等）。イベントは購読で取り、`Update()` の同値判定は足さない。
@@ -1300,10 +1300,10 @@ git commit -m "feat(playtest): 日次ダイジェストのHermes cron shimと登
 
 `2026-09-11-bug-report-c-transport-and-auto-fix-run.md` の3行目に挿入:
 ```markdown
-> **改訂（ADR 0058 / 2026-09-13・plan H より）:** テスターからの報告は受け口経由で届き、plan H の `scripts/playtest/ingest.sh` が `moorestech_logs/harness/playtest/` へ保存する。**そこから `inbox/<id>/` へ入れるのは自動ではなく、人が日次ダイジェストを見て `scripts/playtest/enqueue-autofix.sh <steamId> <id>` を叩いたときだけ**（裁定 2026-09-13・[[2026-09-13-テスター報告は自動投入せず日次ダイジェストを見て人が自動修正ランへ投入する]]）。本planの inbox 契約（`inbox/*/READY` を古い順に1件・`runs/<id>/` へ移動）と自動修正ランの中身はそのまま。変わるのは次の5点。
+> **改訂（ADR 0061 / 2026-09-13・plan H より）:** テスターからの報告は受け口経由で届き、plan H の `scripts/playtest/ingest.sh` が `moorestech_logs/harness/playtest/` へ保存する。**そこから `inbox/<id>/` へ入れるのは自動ではなく、人が日次ダイジェストを見て `scripts/playtest/enqueue-autofix.sh <steamId> <id>` を叩いたときだけ**（裁定 2026-09-13・[[2026-09-13-テスター報告は自動投入せず日次ダイジェストを見て人が自動修正ランへ投入する]]）。本planの inbox 契約（`inbox/*/READY` を古い順に1件・`runs/<id>/` へ移動）と自動修正ランの中身はそのまま。変わるのは次の5点。
 > 1. **manifest のコミット参照は `manifest.buildInfo.commit` / `manifest.buildInfo.masterDataCommit`。** `ship-outbox.sh` と `prepare-run.sh` の `manifest.repository.commit` / `masterData.commit` を読み替える（配布版の箱には `repository` が無い）。`buildInfo` が null（Editor実行）のときだけ原文の `repository` を見る。
 > 2. **poller は `kind=bug` だけを走らせる。** inbox に入るのは開発者の rsync 経路（感想・クラッシュも運ぶ）と人の手動投入分の2つ。`inbox-poller.sh` は `manifest.kind` を見て `bug` 以外なら `runs/` へ移さず `skipped/<id>/` へ退避し、理由を `[poller]` ログに出す（無音で捨てない）。`kind` が読めない箱も同じく `skipped/` 行き。**例外は箱に `AUTOFIX_FORCED` がある場合**（人が `enqueue-autofix.sh --force` で意図的に入れた印）で、このときは `kind` を問わず走らせ、`[poller] forced: kind=<値>` をログに出す。
-> 3. **`kind=crash` は自動修正ランを起動しない。** 日次ダイジェストに件数として載るだけ（ADR 0058）。
+> 3. **`kind=crash` は自動修正ランを起動しない。** 日次ダイジェストに件数として載るだけ（ADR 0061）。
 > 4. **`fix-result.json` に `finishedAt`（ISO8601・UTC）を足す。** 日次ダイジェストがランの日付をこれで判定する（ラン id の日付はバグ報告が作られた日であってランの日ではない）。書くのはスキル `bug-report-auto-fix` の Step 9 と、poller が result 欠落を埋めるとき。
 > 5. **logs repo のベースブランチは `main`。** 本planの Task 2 が `origin/master` と書いているのは誤り（`moorestech_logs` の既定ブランチは `main`）。
 ```
@@ -1315,7 +1315,7 @@ Expected: 3ファイルがそれぞれ +6〜+10 行
 
 ```bash
 git add docs/superpowers/plans
-git commit -m "docs: plan A/B/C に ADR 0058 の改訂メモを追記"
+git commit -m "docs: plan A/B/C に ADR 0061 の改訂メモを追記"
 ```
 
 ---
@@ -1339,9 +1339,9 @@ git commit -m "docs: plan A/B/C に ADR 0058 の改訂メモを追記"
 | 4 | supervisor 登録 | `services.json` の `periodic`（300s・timeout 600s） | 既存 `unity-modal-watchdog`（120s・timeout 600s）と同じ書き方。`services.json` はループ毎に再読込されるので supervisor 再起動は不要 |
 | 5 | ラン結果・取り込み物の置き場 | `moorestech_logs/harness/playtest/` | AGENTS.md「実行記録はコードrepoに置かず `../moorestech_logs/harness/` へ」。`harness/bug-report/` と兄弟 |
 | 6 | 自動修正ランへの受け渡し | 人が叩く `enqueue-autofix.sh` → plan C の `harness/bug-report/inbox/<id>/`（`READY` 付き・`.partial`→`mv`） | plan C の `ship-outbox.sh` が使う契約をそのまま満たす（書き手が「開発者のMacBook」「人の手動投入」の2人になるだけ）。poller 側は一切変更しない（種別ガードと `AUTOFIX_FORCED` の尊重だけ Task 6 の改訂メモで plan C 側に足す） |
-| 6a | 投入の起動主体 | 取り込みではなく人の明示コマンド | ADR 0058 の裁定「テスターからのバグ報告は自動修正ランへ自動投入しない」。`release-playtest.sh`（plan E）と同じ「起動は手動コマンド」の形 |
+| 6a | 投入の起動主体 | 取り込みではなく人の明示コマンド | ADR 0061 の裁定「テスターからのバグ報告は自動修正ランへ自動投入しない」。`release-playtest.sh`（plan E）と同じ「起動は手動コマンド」の形 |
 | 7 | Hermes cron の shim | `HERMES_HOME/scripts/moorestech-playtest-digest.sh`（repo からコピー） | `~/.hermes/scripts/monitors/tiktok-collector-monitor/check.sh` が同じ理由（symlink は traversal 判定で拒否）で実ファイルの wrapper になっている |
-| 8 | 投稿方式 | `--no-agent`（stdout をそのまま配信） | 既存の `--no-agent` ジョブ群（FANZA 売上・chrome-tab-reaper・daily-5am-digest）と同型。ADR 0058 の「感想全文」を LLM に要約させないための機構選択でもある |
+| 8 | 投稿方式 | `--no-agent`（stdout をそのまま配信） | 既存の `--no-agent` ジョブ群（FANZA 売上・chrome-tab-reaper・daily-5am-digest）と同型。ADR 0061 の「感想全文」を LLM に要約させないための機構選択でもある |
 | 9 | 日付の正 | 箱の `ingest.json.readyAt`（受け口が付ける） | ファイル mtime やラン id の日付接頭辞に依存しない。`fix-result.json` は `finishedAt` を plan C 側へ足して同じ形に揃える |
 
 **Phase 1.5 データフロー地図**
@@ -1354,7 +1354,7 @@ git commit -m "docs: plan A/B/C に ADR 0058 の改訂メモを追記"
                                      harness/bug-report/inbox/<id>/ →［plan C inbox-poller.sh（既存・無改造）］→ runs/<id>/fix-result.json →（翌朝の digest へ）
 ```
 
-本planの新規コンポーネントは全て**書き手**（共有の置き場へ書くだけ）と**読み手**（置かれたものを読んで整形するだけ）で、既存パイプラインへの交差点（分岐・逆流・並行経路）を足さない。plan C の poller は購読も呼び出しもされず、既存どおり `inbox/*/READY` を見るだけである。`enqueue-autofix.sh` は自動化された連鎖の一部ではなく**人が起点の書き手**であり、取り込みと自動修正ランの間に意図的な人の関門を1つ置く（ADR 0058 の裁定）。
+本planの新規コンポーネントは全て**書き手**（共有の置き場へ書くだけ）と**読み手**（置かれたものを読んで整形するだけ）で、既存パイプラインへの交差点（分岐・逆流・並行経路）を足さない。plan C の poller は購読も呼び出しもされず、既存どおり `inbox/*/READY` を見るだけである。`enqueue-autofix.sh` は自動化された連鎖の一部ではなく**人が起点の書き手**であり、取り込みと自動修正ランの間に意図的な人の関門を1つ置く（ADR 0061 の裁定）。
 
 **検査4（機構選択）: 受動的統合案と能動介入案の比較**
 
@@ -1374,15 +1374,16 @@ git commit -m "docs: plan A/B/C に ADR 0058 の改訂メモを追記"
 
 ## 判断記録（ADR）
 
-- 設計ADR: `docs/adr/0058-steam-closed-playtest-report-receiver-and-save-compat.md`（正）、`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（改訂3裁定以外は有効）。裁定: `.decisions/2026-09-13-プレイテスト報告の受け口はCloudflare Worker+R2としMac miniは取り込むだけにする.md`・`2026-09-13-感想とテレメトリは日次ダイジェストをHermes経由でDiscordへ投稿して読む.md`・`2026-09-13-感想もポーズメニューの報告UIで受け種別バグと感想を選ばせる.md`・`2026-09-13-クラッシュは次回起動時に前回の異常終了を検知し記録を送るか聞く.md`・`2026-09-13-プレイ状況はセッションサマリとイベント列を自動送信する.md`・**`2026-09-13-テスター報告は自動投入せず日次ダイジェストを見て人が自動修正ランへ投入する.md`**
-- 共有契約: セッションの `scratchpad/plans/shared-contracts.md` §4・§6（本plan の Global Constraints へ逐語転記済み。plan D〜H で共有）。ただし §6 の「`kind=bug` のプレイ報告だけ plan C の `inbox/<id>/` へも複製」は 2026-09-13 の後続裁定（ADR 0058 追記）で**取り込みの責務から外れ、人の手動コマンドへ移った**。契約の他の項目は変更なし
-- **テスター報告は自動投入しない**（ユーザー裁定 2026-09-13）: ADR 0058 追記「テスターからのバグ報告は自動修正ランへ自動投入しない。取り込みは moorestech_logs への保存までで止め、日次ダイジェストを見て人が手動コマンドで plan C の inbox へ投入する」。ADR 0057 の inbox 監視→自動ランは開発者本人の rsync 経路にだけ残る。棄却案: 全件自動投入し類似はラン内で既存PRへ寄せる／自動投入だが1日の上限件数
+- 設計ADR: `docs/adr/0061-steam-closed-playtest-report-receiver-and-save-compat.md`（正）、`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（改訂3裁定以外は有効）。裁定: `.decisions/2026-09-13-プレイテスト報告の受け口はCloudflare Worker+R2としMac miniは取り込むだけにする.md`・`2026-09-13-感想とテレメトリは日次ダイジェストをHermes経由でDiscordへ投稿して読む.md`・`2026-09-13-感想もポーズメニューの報告UIで受け種別バグと感想を選ばせる.md`・`2026-09-13-クラッシュは次回起動時に前回の異常終了を検知し記録を送るか聞く.md`・`2026-09-13-プレイ状況はセッションサマリとイベント列を自動送信する.md`・**`2026-09-13-テスター報告は自動投入せず日次ダイジェストを見て人が自動修正ランへ投入する.md`**
+- 共有契約: セッションの `scratchpad/plans/shared-contracts.md` §4・§6（本plan の Global Constraints へ逐語転記済み。plan D〜H で共有）。ただし §6 の「`kind=bug` のプレイ報告だけ plan C の `inbox/<id>/` へも複製」は 2026-09-13 の後続裁定（ADR 0061 追記）で**取り込みの責務から外れ、人の手動コマンドへ移った**。契約の他の項目は変更なし
+- 進行記録 `record.json`（共有契約 §3）の正本は plan G の「共有契約」節。ADR 0060 の裁定6・裁定9 で **`missing` 列の追加（`headerMissing` は廃止してこの列へ畳んだ）**・**`blockPlaced.data` が `{"count":N}` の区間合計**・**イベント名 `craftExecuted` → `craftRequested`** に改訂済み。本plan の digest が読む `playSeconds`・`reachedChallenges`・`completedResearch`・`lastUiState`・`endReason` は改訂の影響を受けない（読みは `.get()` で未知キーを拒否しない）
+- **テスター報告は自動投入しない**（ユーザー裁定 2026-09-13）: ADR 0061 追記「テスターからのバグ報告は自動修正ランへ自動投入しない。取り込みは moorestech_logs への保存までで止め、日次ダイジェストを見て人が手動コマンドで plan C の inbox へ投入する」。ADR 0057 の inbox 監視→自動ランは開発者本人の rsync 経路にだけ残る。棄却案: 全件自動投入し類似はラン内で既存PRへ寄せる／自動投入だが1日の上限件数
 - **`--force` は `AUTOFIX_FORCED` マーカーで poller に伝える**（agent前提）: 種別ゲートは inbox の合流点（poller）にも要るため、投入側の `--force` がゲートを素通りできると片方が無意味になる。ゲートを残したまま例外を明示する形として、`--force` のときだけ inbox コピーに印を付け poller がそれを尊重する
 - **ダウンロード対象は `READY` 本文の `files[]` から取る**（plan D へ反映済み）: 共有契約 §4 には R2 のオブジェクト一覧 API が無く、`GET /v1/inbox/{...}/{path}` は1オブジェクト取得しかできない。「`POST /v1/uploads/{kind}/{id}/complete` が書く READY の要約 JSON に、その箱の全ファイルの相対パス配列 `files` を含める」は plan D 側へ反映済み（コーディネータ確認 2026-09-13）。一覧が無い箱は ack せずエラーログを出して据え置く（fail-closed。受け口を直せば次の周期で自然に流れる）
 - **本plan は未ACK前提のまま**（コーディネータ裁定 2026-09-13）: ACK 済みも引ける照会（`GET /v1/inbox?includeAcked=true`）は plan E が plan D へ足す予定。本plan の取り込みは「未ACKのものが `GET /v1/inbox` に出続ける」契約だけに依存し、`includeAcked` は使わない
 - **`fix-result.json` に `finishedAt` を足す**（agent前提。Task 5 で plan C へ申し送り）: ラン id の日付接頭辞は「バグ報告が作られた日」であってランが終わった日ではない。前日分ダイジェストを id で絞ると、古い報告に対する今日のランが永久にどの日のダイジェストにも載らない。`finishedAt` を正とし、欠けている分だけ mtime に落として**件数を出力に明示**する
 - **日付の正は `readyAt`（受け口が付ける時刻）**（agent前提）: 取り込みの遅延・再実行で集計対象が動かないようにするため。`ingest.json` に写して digest がそれだけを読む
-- **`--no-agent` で投稿する**（agent前提）: ADR 0058 は「感想全文」を要求しており、LLM を挟むと要約・整形が入りうる。既存の `--no-agent` ジョブ群と同型。エージェントモード用のプロンプト本文は README に保存し、切り替えを可能にしておく（既存「ポケモンカードPSA10最安値監視」ジョブが `--no-agent` とプロンプトを両方持っている前例に倣う）
+- **`--no-agent` で投稿する**（agent前提）: ADR 0061 は「感想全文」を要求しており、LLM を挟むと要約・整形が入りうる。既存の `--no-agent` ジョブ群と同型。エージェントモード用のプロンプト本文は README に保存し、切り替えを可能にしておく（既存「ポケモンカードPSA10最安値監視」ジョブが `--no-agent` とプロンプトを両方持っている前例に倣う）
 - **Hermes の `--script` は `HERMES_HOME/scripts/` 内の実ファイルでなければならない**（実測 2026-09-13）: `cron/scheduler_script.py` が `resolve()` 後に `relative_to(scripts_dir)` で検査するため、repo へのシンボリックリンクは拒否される。前例 `~/.hermes/scripts/monitors/tiktok-collector-monitor/check.sh` のコメントに同じ理由が書かれている。**生きている `HERMES_HOME` は `~/.hermes`**（プロセス実測。CLAUDE.md が書く封じ込め `data/.hermes` ではなく、`data/cron/jobs.json` は古い残骸）
 - **logs repo の PR ベースは `main`**（実測）: `moorestech_logs` の `origin/HEAD` は `main`。plan C Task 2 の `origin/master` は誤りで、Task 6 の改訂メモで訂正する
 - **取り込みは1件ずつ独立に失敗する**（agent前提）: 1つの壊れた箱で全体を止めない。異常箱は ack されないため受け口に残り、直せば次の周期で流れる。証拠（未 ack 状態）は R2 側にあり Mac mini の再起動・`/tmp` の消去では失われない

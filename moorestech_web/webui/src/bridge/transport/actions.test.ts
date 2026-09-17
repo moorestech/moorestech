@@ -2,7 +2,8 @@ import { afterEach, describe, it, expect, vi, beforeEach } from "vitest";
 
 vi.mock("./notify", () => ({ notify: vi.fn() }));
 
-import { shouldToastFailure, dispatchAction } from "./actions";
+import { shouldToastFailure, dispatchAction, dispatchActionOutcome } from "./actions";
+import { PauseMenuReportKinds } from "./actionContract";
 import * as webSocketClient from "./webSocketClient";
 import { notify } from "./notify";
 
@@ -80,10 +81,35 @@ describe("dispatchAction の toast 配線", () => {
   // At the 5s default, bug_report.submit (ffmpeg concat plus git spawns) reports a success as a failure
   it("bug_report.submit だけ 120 秒の待ち時間で送る", async () => {
     const sendAction = vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
-    await dispatchAction("bug_report.submit", { description: "ベルトが止まる" });
-    expect(sendAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる" }, 120000);
+    const submitPayload = { description: "ベルトが止まる", kind: PauseMenuReportKinds.bug };
+    await dispatchAction("bug_report.submit", submitPayload);
+    expect(sendAction).toHaveBeenCalledWith("bug_report.submit", submitPayload, 120000);
 
     await dispatchAction("inventory.move_item", movePayload);
     expect(sendAction).toHaveBeenLastCalledWith("inventory.move_item", movePayload, 5000);
+  });
+
+  // 退避物の同期コピーは既定の5秒を超える。既定のままだと箱は書けているのに失敗表示が出る
+  // The synchronous salvage copy exceeds the 5s default; at the default the box is written yet a failure is shown
+  it("playtest.crash_report.respond も 120 秒の待ち時間で送る", async () => {
+    const sendAction = vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
+    const respondPayload = { send: true, description: "" };
+    await dispatchAction("playtest.crash_report.respond", respondPayload);
+    expect(sendAction).toHaveBeenCalledWith("playtest.crash_report.respond", respondPayload, 120000);
+  });
+
+  // 「サーバーが断った」と「届かなかった」を真偽値へ潰すと、ゲートが無効な指示（もう一度押す）を出す
+  // Collapsing "the server refused" and "it never arrived" into a boolean makes the gate print an invalid instruction
+  it("dispatchActionOutcome は拒否理由と到達不能を区別して返す", async () => {
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: false, error: "already_responded" });
+    expect(await dispatchActionOutcome("playtest.crash_report.respond", { send: true, description: "" }))
+      .toEqual({ kind: "rejected", error: "already_responded" });
+
+    vi.spyOn(webSocketClient, "sendAction").mockRejectedValue(new Error("timeout"));
+    expect(await dispatchActionOutcome("playtest.consent.acknowledge", {}))
+      .toEqual({ kind: "unreachable", reason: "timeout" });
+
+    vi.spyOn(webSocketClient, "sendAction").mockResolvedValue({ ok: true });
+    expect(await dispatchActionOutcome("playtest.consent.acknowledge", {})).toEqual({ kind: "accepted" });
   });
 });

@@ -51,6 +51,7 @@
         "Unity.Mathematics",
         "Game.PlayerRiding.Interface",
         "Game.Research",
+        "Game.Challenge",
         "VContainer",
         "StarterAssetsInputs",
         "ThirdPersonController",
@@ -59,7 +60,8 @@
         "Game.Hotbar",
         "Game.PlacementTarget",
         "Game.Construction",
-        "Game.Map.Interface"
+        "Game.Map.Interface",
+        "Client.PlaytestReceiver"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,0 +1,21 @@
+/* 記述欄の様式（§8.9の検索入力族）: --gauge-track の面・--text-muted のプレースホルダ・ModeSwitch踏襲のフォーカス */
+/* The textarea style (the §8.9 search-input family): --gauge-track face, --text-muted placeholder, ModeSwitch focus */
+/* 寸法は持たない。幅と高さは使う側が自分の固定長トークンで足す */
+/* It carries no dimensions; the caller adds width and height from its own fixed-length tokens */
+.field {
+  background: var(--gauge-track);
+  border: var(--bevel-1) solid var(--bevel-c1);
+  color: var(--text-default);
+  padding: var(--mode-switch-padding-block) var(--mode-switch-padding-inline);
+  font-family: inherit;
+  resize: none;
+}
+
+.field::placeholder {
+  color: var(--text-muted);
+}
+
+.field:focus-visible {
+  outline: var(--bevel-1) solid var(--text-high-contrast);
+  outline-offset: var(--bevel-1);
+}

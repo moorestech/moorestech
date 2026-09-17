@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 
-**Goal:** ポーズメニューのプレイ報告に種別（バグ／感想）を足し、前回の異常終了をタイトルで検知して前回の記録を `kind=crash` の箱として送れるようにし、セッションの進行記録を購読で集めて終了時に outbox へ書き、初回起動時に「送られる内容」の同意表示を一度だけ出す（ADR 0058 のクライアント側 5 裁定）。
+**Goal:** ポーズメニューのプレイ報告に種別（バグ／感想）を足し、前回の異常終了をタイトルで検知して前回の記録を `kind=crash` の箱として送れるようにし、セッションの進行記録を購読で集めて終了時に outbox へ書き、初回起動時に「送られる内容」の同意表示を一度だけ出す（ADR 0061 のクライアント側 5 裁定）。
 
 **Architecture:** (1) plan B の `BugReportManifest`・`BugReportBundleWriter`・`bug_report.submit` に `kind` を通し、webui は既存の共通 `ModeSwitch` でバグ／感想を選ばせる。(2) 正常終了の意図は `GameShutdownEvent.OnGameShutdown` の購読で `CLEAN_EXIT` マーカーを書き、起動時にマーカーの有無で前回異常終了を判定してから消す。マーカーが無ければ前回の録画リング・スナップショット・パケットログ・`Player-prev.log`・クラッシュダンプを `BugReports/last-session/` へ退避し、タイトル（ADR 0040 の言語選択ゲートと同型の全画面ゲート）で説明欄付きの送信確認を出す。(3) 進行記録は `ProgressRecorder` が `ProgressRecords/current/` に `header.json` と `events.jsonl` を追記し、終了時（`IGameShutdownParticipant`）に純関数 `ProgressRecordComposer` が `record.json` を組んで outbox へ書く。イベントはサーバーの既存イベントパケット購読・`UIStateControl.OnStateChanged` 購読・操作直後のプッシュだけで集め、`Update()` の毎tick判定は足さない。(4) 同意表示は既読フラグファイルで一度きり判定する同型のゲート。(5) `steamId` は plan D が差し替える `IPlaytestSessionIdentity` 経由、`buildInfo` は plan E が焼く `StreamingAssets/build-info.json` を読むだけで、どちらも未実装なら空文字／null で動く。
 
@@ -19,11 +19,11 @@
 - R7. 進行記録の器: セッション開始で `ProgressRecords/current/header.json` を書き、イベントを `events.jsonl` へ追記し、終了時に `record.json`（§3 の形）を `ProgressRecords/outbox/<id>/` に書いて `READY` を置く。受入: EditMode 単体テストで 0 件・1 件のイベントどちらでも `record.json` が書け、必須キーが全て出る。
 - R8. 途中終了の回収: 起動時に `ProgressRecords/current/` が残っていたら必ず閉じて outbox へ出す。前回異常終了なら `endReason="crash-recovered"`、正常終了なら `endReason="quit"`。受入: EditMode 単体テストで、残骸あり×クリーン／非クリーンの2ケースがそれぞれの `endReason` で outbox に出て `current/` が空になる。
 - R9. 進行記録のイベント: 研究完了・チャレンジ達成はサーバーの既存イベントパケット購読、UI遷移は `UIStateControl.OnStateChanged` 購読、ブロック設置は `PlaceBlockEventPacket` 購読、クラフトは `craft.execute` の送信直後プッシュ、報告送信は `bug_report.submit` の成功直後プッシュで記録する。`Update()` のポーリングは足さない。受入: EditMode 単体テストで各 push が `events.jsonl` に1行ずつ出る。
-- R10. 集計値: `record.json` の `reachedChallenges`・`completedResearch` は初期ハンドシェイクの完了集合とセッション中の完了イベントの和、`placedBlockCount`・`craftCount` はイベント数、`lastUiState` は最後の `uiStateChanged`、`buildModeCancelled` は「PlaceBlock 滞在中に `blockPlaced` が1件も無いまま抜けた」ときに合成する。受入: 純関数テストで、設置あり／なしの PlaceBlock 滞在それぞれについて合成の有無が変わる。
+- R10. 集計値: `record.json` の `reachedChallenges`・`completedResearch` は初期ハンドシェイクの完了集合とセッション中の完了イベントの和、`placedBlockCount` は `blockPlaced` イベントの `data.count` の総和（ADR 0060 裁定9 で1件ずつの行から区間合計へ集約）、`craftCount` は `craftRequested` イベント数、`lastUiState` は最後の `uiStateChanged`、`buildModeCancelled` は「PlaceBlock 滞在中に `blockPlaced` が1件も無いまま抜けた」ときに合成する。受入: 純関数テストで、設置あり／なしの PlaceBlock 滞在それぞれについて合成の有無が変わる。
 - R11. 同意表示: 初回起動時のみ、タイトルで「送られる内容」を全画面で出し、了解ボタンでローカル既読フラグを書いて先へ進む。文言は日本語・英語・ドイツ語。受入: EditMode 単体テストでフラグ無し起動だけ待機し、フラグ有り起動は待機しない。vitest で本文と了解ボタンが描かれる。
 - R12. `steamId`・`buildInfo`: プレイ報告 manifest と進行記録 record の両方に `steamId`（未取得は `""`）と `buildInfo`（`build-info.json` 不在なら `null`）を入れる。受入: EditMode 単体テストで、`build-info.json` 不在時に `buildInfo` が `null`・`steamId` が `""` で書け、JSON が壊れない。
 - R13. ローカライズ: 追加文言（種別トグル・クラッシュ確認・同意表示）を `Localization/localization.csv` に ja/en/de で足し、`pnpm gen:i18n` と C# 生成を通す。受入: `L.ui.playtest.*` が TS/C# 両方から参照できる。
-- やらないこと: 受け口へのアップロード（plan D）／`build-info.json` の生成と Windows 配布ビルド（plan E）／セーブ互換とマスタ欠損の除去（plan F）／Mac mini の取り込み・日次ダイジェスト（plan H）／報告ごとの添付選択UI（ADR 0058 で不要と裁定）／進行記録を断る設定トグル（同）／Unity CrashReport 等のクラッシュ自動検知ハンドラ（同）／起動時の許可リスト照合（plan D）。
+- やらないこと: 受け口へのアップロード（plan D）／`build-info.json` の生成と Windows 配布ビルド（plan E）／セーブ互換とマスタ欠損の除去（plan F）／Mac mini の取り込み・日次ダイジェスト（plan H）／報告ごとの添付選択UI（ADR 0061 で不要と裁定）／進行記録を断る設定トグル（同）／Unity CrashReport 等のクラッシュ自動検知ハンドラ（[agent前提]。ADR 0061 は前回正常終了マーカーの欠落による検知のみを裁定しており、この自動検知ハンドラの除外は同ADRに記載が無い）／起動時の許可リスト照合（plan D）。
 
 ## Global Constraints
 
@@ -37,7 +37,9 @@
 - fail-closed 経路（マーカー不在・退避元不在・ダンプ不在・プロトコル失敗・JSONパース失敗）は必ず `Debug.LogWarning/LogError` と manifest／record の `missing` に理由を残す。無音の縮退禁止。
 - 経過時間: クライアントの実世界時刻は `DateTime.UtcNow`（セッション開始・終了・累計プレイ時間の記録用途は AGENTS.md で許可）。サーバーtickは `Core.Update.GameUpdater.CurrentTick` を読むだけ。ゲームロジックの経過時間計測は本planに無い。
 
-### 共有契約（`scratchpad/plans/shared-contracts.md` §2・§3 の逐語転記。変更禁止・矛盾禁止）
+### 共有契約（`scratchpad/plans/shared-contracts.md` §2・§3 の転記。改訂は ADR でのみ行う・矛盾禁止）
+
+> §3 は ADR 0060（裁定6・裁定9）で改訂済み。plan D〜H が読むのは**本節の現在の記述**であり、shared-contracts の初版ではない。
 
 **§2. outbox（plan B `BugReportOutbox` を流用）**
 
@@ -45,14 +47,32 @@
 - 進行記録: `<GameSystemDirectory>/ProgressRecords/outbox/<id>/record.json` + `READY` + 送信後 `UPLOADED`。
 - 前回異常終了: `<GameSystemDirectory>/BugReports/last-session/` に「正常終了マーカー `CLEAN_EXIT`」。起動時に無ければ前回異常終了。常時記録のリング（`BugReports/recording/`・サーバースナップショットリング）は終了時に消さない。
 
-**§3. 進行記録 record.json**
+**§3. 進行記録 record.json**（ADR 0060 裁定6・裁定9 で改訂済み。下の形が実装と一致する正本）
 
 ```json
 { "schemaVersion": 1, "steamId": "7656...", "buildInfo": {...§1}, "sessionStart": "<ISO>", "sessionEnd": "<ISO>", "endReason": "quit|crash-recovered",
   "playSeconds": 1234.5, "worldCreatedAt": "<ISO>", "totalPlaySeconds": 5678.9,
   "reachedChallenges": ["<guid>"], "completedResearch": ["<guid>"], "placedBlockCount": 120, "craftCount": 40,
-  "lastUiState": "GameScreen", "events": [ { "t": "<ISO>", "tick": 12345, "type": "researchCompleted|challengeCompleted|uiStateChanged|buildModeCancelled|blockPlaced|reportSent", "data": {} } ] }
+  "lastUiState": "GameScreen",
+  "missing": [ { "item": "worldPlayTime", "reason": "<日本語の理由>" } ],
+  "events": [ { "t": "<ISO>", "tick": 12345, "type": "researchCompleted|challengeCompleted|uiStateChanged|buildModeCancelled|blockPlaced|craftRequested|reportSent", "data": {} } ] }
 ```
+
+`data` の形は種別ごとに固定:
+
+| type | data |
+| --- | --- |
+| `researchCompleted` | `{"researchGuid":"<guid>"}` |
+| `challengeCompleted` | `{"challengeGuid":"<guid>"}` |
+| `uiStateChanged` | `{"state":"<UIStateEnum名>"}` |
+| `buildModeCancelled` | `{"nextState":"<UIStateEnum名>"}` |
+| `blockPlaced` | `{"count":N}`（1件ずつではなく区間の合計・ADR 0060 裁定9） |
+| `craftRequested` | `{"recipeGuid":"<guid>"}`（送信しただけで結果は見ていない。素材不足で拒否された要求も載る） |
+| `reportSent` | `{"kind":"bug\|feedback\|crash"}` |
+
+**欠損の表明は `missing` 1列に集約する（ADR 0060 裁定6）。** 埋められなかった値は実データと同じ形の既定値（`""`・`0`・現在時刻）で埋めず、
+`{"item","reason"}` として `missing` に積む。旧案の `headerMissing` 列は廃止し、ヘッダ喪失は `item:"header"` としてこの列へ畳んだ。
+`missing` が空でも列自体は必ず出る（読み側は `.get("missing") or []` で足りる）。
 
 イベントは購読で取る（研究完了・チャレンジ達成はサーバーの既存イベントパケット購読、UI遷移は `UIStateControl.OnStateChanged`）。`Update()` ポーリング禁止。
 
@@ -219,8 +239,8 @@ Expected: `PlaytestReportKind` が無い／`BugReportManifest.Kind` が無いと
 ```csharp
 namespace Client.Game.InGame.BugReport.Playtest
 {
-    // プレイ報告の種別。文字列は受け口・取り込み側と共有する契約値なのでここが正本（ADR 0058）
-    // The play-report kind; these strings are the contract shared with the receiver and the ingest side (ADR 0058)
+    // プレイ報告の種別。文字列は受け口・取り込み側と共有する契約値なのでここが正本（ADR 0061）
+    // The play-report kind; these strings are the contract shared with the receiver and the ingest side (ADR 0061)
     public static class PlaytestReportKind
     {
         public const string Bug = "bug";
@@ -246,8 +266,8 @@ namespace Client.Game.InGame.BugReport.Playtest
 
 `BugReportManifest.cs` の `public string Description;` の直後に足す:
 ```csharp
-        // プレイ報告の種別。取り込み側は bug のときだけ自動修正ランを起動する（ADR 0058）
-        // The report kind; the ingest side starts an auto-fix run only for bug (ADR 0058)
+        // プレイ報告の種別。取り込み側は bug のときだけ自動修正ランを起動する（ADR 0061）
+        // The report kind; the ingest side starts an auto-fix run only for bug (ADR 0061)
         public string Kind;
 ```
 
@@ -391,8 +411,8 @@ type Props = {
   onSent: () => void;
 };
 
-// 契約値はC#の PlaytestReportKind と同じ文字列。既定はバグ（ADR 0058）
-// The contract strings match C#'s PlaytestReportKind; bug is the default (ADR 0058)
+// 契約値はC#の PlaytestReportKind と同じ文字列。既定はバグ（ADR 0061）
+// The contract strings match C#'s PlaytestReportKind; bug is the default (ADR 0061)
 const KindBug = "bug";
 const KindFeedback = "feedback";
 
@@ -2023,7 +2043,7 @@ git commit -m "feat(server): ワールド作成日時と累計プレイ時間を
 - Produces:
   - `GameSystemPaths.ProgressRecordDirectory`（`<GameSystemDirectory>/ProgressRecords`）・`ProgressRecordOutboxDirectory`（`.../outbox`）・`ProgressRecordCurrentDirectory`（`.../current`）
   - `public static class ProgressRecordPaths { public const string HeaderFileName = "header.json"; public const string EventsFileName = "events.jsonl"; public const string RecordFileName = "record.json"; public const string ReadyMarkerFileName = "READY"; public static string CurrentHeaderPath { get; } public static string CurrentEventsPath { get; } public static string CreateOutboxDirectory(DateTime now, string shortId); }`
-  - `public static class ProgressEventType { public const string ResearchCompleted = "researchCompleted"; public const string ChallengeCompleted = "challengeCompleted"; public const string UiStateChanged = "uiStateChanged"; public const string BuildModeCancelled = "buildModeCancelled"; public const string BlockPlaced = "blockPlaced"; public const string ReportSent = "reportSent"; public const string CraftExecuted = "craftExecuted"; }`
+  - `public static class ProgressEventType { public const string ResearchCompleted = "researchCompleted"; public const string ChallengeCompleted = "challengeCompleted"; public const string UiStateChanged = "uiStateChanged"; public const string BuildModeCancelled = "buildModeCancelled"; public const string BlockPlaced = "blockPlaced"; public const string ReportSent = "reportSent"; public const string CraftRequested = "craftRequested"; }`
   - `public sealed class ProgressEventEntry { public string T; public ulong Tick; public string Type; public JObject Data; public static ProgressEventEntry Create(DateTime utc, ulong tick, string type, JObject data); public string ToJsonLine(); public JObject ToJObject(); public static ProgressEventEntry FromJsonLine(string line); }`
   - `public sealed class ProgressRecordHeader { public int SchemaVersion = 1; public string SteamId; public BuildInfo BuildInfo; public string SessionStart; public string WorldCreatedAt; public double TotalPlaySecondsAtStart; public List<string> BaselineChallenges = new(); public List<string> BaselineResearch = new(); public string ToJson(); public static ProgressRecordHeader FromJson(string json); }`
   - `public static class ProgressRecordFiles { public static void WriteHeader(ProgressRecordHeader header); public static void AppendEvent(ProgressEventEntry entry); public static bool HasCurrentSession(); public static ProgressRecordHeader ReadHeader(); public static List<ProgressEventEntry> ReadEvents(); public static string CloseCurrentInto(string endReason, DateTime sessionEndUtc); public static void ClearCurrent(); }`（`CloseCurrentInto` は outbox の箱パスを返し、`current/` を空にする）
@@ -2084,7 +2104,7 @@ namespace Client.Tests.Playtest
                 ProgressEventEntry.Create(Start.AddSeconds(2), 20, ProgressEventType.BlockPlaced, new JObject { ["blockGuid"] = "b2" }),
                 ProgressEventEntry.Create(Start.AddSeconds(3), 30, ProgressEventType.ChallengeCompleted, new JObject { ["challengeGuid"] = "22222222-2222-2222-2222-222222222222" }),
                 ProgressEventEntry.Create(Start.AddSeconds(4), 40, ProgressEventType.ResearchCompleted, new JObject { ["researchGuid"] = "33333333-3333-3333-3333-333333333333" }),
-                ProgressEventEntry.Create(Start.AddSeconds(5), 50, "craftExecuted", new JObject { ["recipeGuid"] = "r1" }),
+                ProgressEventEntry.Create(Start.AddSeconds(5), 50, "craftRequested", new JObject { ["recipeGuid"] = "r1" }),
                 ProgressEventEntry.Create(Start.AddSeconds(6), 60, ProgressEventType.UiStateChanged, new JObject { ["state"] = "BuildMenu" }),
             };
 
@@ -2265,7 +2285,7 @@ namespace Client.Game.InGame.Playtest.Progress
         public const string BuildModeCancelled = "buildModeCancelled";
         public const string BlockPlaced = "blockPlaced";
         public const string ReportSent = "reportSent";
-        public const string CraftExecuted = "craftExecuted";
+        public const string CraftRequested = "craftRequested";
     }
 
     public sealed class ProgressEventEntry
@@ -2406,7 +2426,7 @@ namespace Client.Game.InGame.Playtest.Progress
                     case ProgressEventType.BlockPlaced:
                         placedBlockCount++;
                         break;
-                    case ProgressEventType.CraftExecuted:
+                    case ProgressEventType.CraftRequested:
                         craftCount++;
                         break;
                     case ProgressEventType.ChallengeCompleted:
@@ -2599,7 +2619,7 @@ git commit -m "feat(client): 進行記録の追記ファイルと record.json �
 **Interfaces:**
 - Consumes: Task 7 の全型、Task 6 `VanillaApiWithResponse.GetWorldPlaySessionInfo`、Task 4 `IPlaytestSessionIdentity`／`BuildInfoReader`、Task 3 `PreviousSessionSalvage.Artifacts`、`Client.Game.Common.GameShutdownEvent`／`IGameShutdownParticipant`／`ShutdownFlushResult`、`UIStateControl.OnStateChanged`、`ResearchCompleteEventPacket`／`CompletedChallengeEventPacket`／`PlaceBlockEventPacket`、`InitialHandshakeResponse`
 - Produces:
-  - `public interface IPlaytestProgressSink { void RecordCraftExecuted(Guid recipeGuid); void RecordReportSent(string kind); }`
+  - `public interface IPlaytestProgressSink { void RecordCraftRequested(Guid recipeGuid); void RecordReportSent(string kind); }`
   - `public static class ProgressBaseline { public static List<string> CompletedChallengeGuids(IEnumerable<Guid> completedChallenges); public static List<string> CompletedResearchGuids(IEnumerable<KeyValuePair<Guid, ResearchNodeState>> researchStates); }`
   - `public static class ProgressSessionRecovery { public static string RecoverLeftoverSession(bool previousExitWasClean); }`（残骸が無ければ `null`）
   - `public sealed class ProgressRecorder : IInitializable, IDisposable, IGameShutdownParticipant, IPlaytestProgressSink`
@@ -2814,7 +2834,7 @@ namespace Client.Game.InGame.Playtest.Progress
     // The window that pushes actions themselves, which no subscription observes; ProgressRecorder is the only implementation
     public interface IPlaytestProgressSink
     {
-        void RecordCraftExecuted(Guid recipeGuid);
+        void RecordCraftRequested(Guid recipeGuid);
         void RecordReportSent(string kind);
     }
 }
@@ -2840,8 +2860,8 @@ using VContainer.Unity;
 
 namespace Client.Game.InGame.Playtest.Progress
 {
-    // セッションの進行を購読で集めて追記し、終了時に1件の進行記録として書き出す（ADR 0058）
-    // Collects the session's progress through subscriptions, appends it, and writes one progress record at shutdown (ADR 0058)
+    // セッションの進行を購読で集めて追記し、終了時に1件の進行記録として書き出す（ADR 0061）
+    // Collects the session's progress through subscriptions, appends it, and writes one progress record at shutdown (ADR 0061)
     public sealed class ProgressRecorder : IInitializable, IDisposable, IGameShutdownParticipant, IPlaytestProgressSink
     {
         private readonly InitialHandshakeResponse _handshake;
@@ -2889,9 +2909,9 @@ namespace Client.Game.InGame.Playtest.Progress
             return UniTask.FromResult(ShutdownFlushResult.Flushed);
         }
 
-        public void RecordCraftExecuted(Guid recipeGuid)
+        public void RecordCraftRequested(Guid recipeGuid)
         {
-            Append(ProgressEventType.CraftExecuted, new JObject { ["recipeGuid"] = recipeGuid.ToString() });
+            Append(ProgressEventType.CraftRequested, new JObject { ["recipeGuid"] = recipeGuid.ToString() });
         }
 
         public void RecordReportSent(string kind)
@@ -2978,7 +2998,7 @@ namespace Client.Game.InGame.Playtest.Progress
 
             // クラフトは送信のみで応答が無いため、変化を起こした操作の直後にプッシュする
             // A craft has no response, so the progress push happens right after the operation that causes the change
-            _progressSink.RecordCraftExecuted(recipeGuid);
+            _progressSink.RecordCraftRequested(recipeGuid);
             return UniTask.FromResult(ActionResult.Success());
 ```
 （`using Client.Game.InGame.Playtest.Progress;` を追加する）
@@ -3010,7 +3030,7 @@ namespace Client.Tests.Playtest
         public readonly List<Guid> CraftedRecipes = new();
         public readonly List<string> SentReportKinds = new();
 
-        public void RecordCraftExecuted(Guid recipeGuid) => CraftedRecipes.Add(recipeGuid);
+        public void RecordCraftRequested(Guid recipeGuid) => CraftedRecipes.Add(recipeGuid);
         public void RecordReportSent(string kind) => SentReportKinds.Add(kind);
     }
 }
@@ -3565,7 +3585,7 @@ git commit -m "test(client): 種別付き送信と進行記録と前回異常終
 
 - 正常終了マーカー: 受動的統合案「`GameShutdownEvent.OnGameShutdown` を購読して書く」対 能動介入案「`GameShutdownEvent.QuitApplicationAsync` にマーカー書き込みを差し込む」。後者は汎用の終了パイプラインにプレイテストの語彙を持ち込み、かつ `FireGameShutdown()`（待てない経路）を通る終了で書かれない。**購読案を採る**。
 - 録画リングの残骸: 受動的統合案「`GameFrameRecorder.Initialize` の削除を外し、掃除の所有者を `PreviousSessionSalvage` へ一本化」対 能動介入案「recorder に『前回分を残すモード』フラグを足す」。後者は録画部品にセッション跨ぎの概念を持ち込む。**所有者一本化を採る**（削除1行の除去と、起動時の1箇所での掃除）。
-- 前回異常終了の確認UI: 受動的統合案「ADR 0040 の開始ゲートと同型の全画面オーバーレイをもう1枚足す」対 能動介入案「ポーズメニューへ『前回のクラッシュを送る』欄を常設する」。後者はタイトルで聞くというADR 0058 の裁定に反し、ポーズメニューの責務も膨らむ。**同型ゲートを採る**。
+- 前回異常終了の確認UI: 受動的統合案「ADR 0040 の開始ゲートと同型の全画面オーバーレイをもう1枚足す」対 能動介入案「ポーズメニューへ『前回のクラッシュを送る』欄を常設する」。後者はタイトルで聞くというADR 0061 の裁定に反し、ポーズメニューの責務も膨らむ。**同型ゲートを採る**。
 
 **死活表（Phase 2.5）**
 
@@ -3582,7 +3602,7 @@ git commit -m "test(client): 種別付き送信と進行記録と前回異常終
 
 ## 判断記録（ADR）
 
-- 設計ADR: `docs/adr/0058-steam-closed-playtest-report-receiver-and-save-compat.md`（本planはそのクライアント側5裁定）、`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（改訂3裁定以外は有効）、`docs/adr/0040-event-mode-language-select-gate.md`（ゲートの前例）
+- 設計ADR: `docs/adr/0061-steam-closed-playtest-report-receiver-and-save-compat.md`（本planはそのクライアント側5裁定）、`docs/adr/0057-bug-report-bundle-and-isolated-auto-fix.md`（改訂3裁定以外は有効）、`docs/adr/0040-event-mode-language-select-gate.md`（ゲートの前例）
 - 裁定: `.decisions/2026-09-13-感想もポーズメニューの報告UIで受け種別バグと感想を選ばせる.md`／`-クラッシュは次回起動時に前回の異常終了を検知し記録を送るか聞く.md`／`-プレイ状況はセッションサマリとイベント列を自動送信する.md`／`-報告の添付は外せず参加時の包括同意で一式送る.md`／`-進行記録の自動送信は参加条件とし断る選択肢を作らない.md`／`-テスター向け文言は日英独すべて必須とする.md`
 - 共有契約: `scratchpad/plans/shared-contracts.md` §1・§2・§3（本plan Global Constraints へ逐語転記済み）
 - **正常終了マーカーは終了パイプラインの発火時点で書く**（agent前提）: 参加者の書き出し完了を待つと、強制終了で待ちが切れたときに正常終了が異常終了として記録される。「正常終了の意図が表明されたか」を判定軸にすると、クラッシュ（パイプラインに入らない）とだけ確実に区別できる。副作用として、マーカー後に落ちると `current/` の進行記録だけが残るため、起動時の残骸回収を `endReason="quit"` で必ず行う（Task 8 のテストで固定）。
@@ -3590,11 +3610,19 @@ git commit -m "test(client): 種別付き送信と進行記録と前回異常終
 - **「送らない」を選んだ退避物は消さず1世代だけ残す**（agent前提）: `PreviousSessionSalvage.MoveFilesInto` が退避先を毎回空にしてから移すため、`last-session/` に溜まるのは常に直近1回ぶんに限られる。積極的に消さないのは、送らない判断のあとで開発者が手で回収できる余地を残すため。増え続ける経路は無い。
 - **クラッシュダンプは候補ディレクトリの探索で解決する**（agent前提）: Windows 実機が手元に無いため実パスを固定できない。`%LOCALAPPDATA%\Temp\<company>\<product>\Crashes` を第1候補、`%LOCALAPPDATA%\<company>\<product>\Crashes` を第2候補、macOS の `~/Library/Logs/DiagnosticReports` を第3候補として探索し、見つからなければ理由（探索先一覧つき）を `missing` に残す。**Task 10 Step 3 の Windows 検証（plan E の検証機）で実パスを確定し、この項に転記する**。
 - **前回セッションのUnityログは `Player-prev.log`**（agent前提）: Unity は起動時に前回の `Player.log` を `Player-prev.log` へ回すため、`Application.consoleLogPath` の隣を見れば配布版・Editor の双方で同じ規則で解決できる。ハードコードされた OS 別パスは持たない。
-- **進行記録は追記（`events.jsonl`）で持つ**（agent前提）: 終了時にまとめて書くとクラッシュで全部失われる。追記なら直前まで残り、`endReason="crash-recovered"` で回収できる。壊れた最終行は読み飛ばす（ADR 0058 の「イベント列を送る」を満たす最小の耐障害設計）。
+- **進行記録は追記（`events.jsonl`）で持つ**（agent前提）: 終了時にまとめて書くとクラッシュで全部失われる。追記なら直前まで残り、`endReason="crash-recovered"` で回収できる。壊れた最終行は読み飛ばす（ADR 0061 の「イベント列を送る」を満たす最小の耐障害設計）。
 - **`buildModeCancelled` はイベント列から合成する**（agent前提）: 「設置せずに建築モードを抜けた」は単一の通知として存在せず、`uiStateChanged` と `blockPlaced` の順序から導ける。記録側に判定を足すより純関数で後段合成する方がテストしやすく、`PlaceBlockState` に記録の語彙を持ち込まずに済む。
 - **`worldCreatedAt`・`totalPlaySeconds` は新規プロトコルで取る**（agent前提）: 既存の初期ハンドシェイクにも既存イベントにも含まれておらず、他ドメインの応答から推測合成するのは層マップが禁じる「間接導出Applier」に当たる。1回読むだけで可変状態の同期ではないため、イベントパケットは作らず `va:get*` のみとする。
 - **`steamId` は DI 差込口で受ける**（agent前提）: plan D（Steam 認証）の完成を待たずに plan G を出せるようにするため。既定実装は空文字を返し、plan D は `MainGameModelRegistration` の1行を差し替える。
-- Task 10 Step 3 の実機確認結果（ゲート表示・箱の中身・`missing`・クラッシュダンプの実パス）: （実装時に転記）
+- Task 10 Step 3 の実機確認結果（ゲート表示・箱の中身・`missing`・クラッシュダンプの実パス）: 2026-09-14 macOS（Mac mini / Unity Editor 6000.3.8f1・worktree `playtest-client-report`）で1回通した。手順は MainMenu 起動 → `LocalGameLauncher.StartLocalGame()`（常時記録が有効になる本番経路）→ 約100秒プレイ → `kill -9`（`GameShutdownEvent` を通さない）→ 再起動。
+  - **確認の範囲**: ゲートの押下は、CEFへキーボード入力を注入する手段が harness に無いため、webui が押下時に送るのと同一のWSアクション（`playtest.crash_report.respond`）を直送して代替した（ボタン押下→`dispatchAction` の区間は vitest で固定済み）。ゲートが実際に描かれることはスクリーンショットで目視した。
+  - **ゲート表示**: 1回目起動で同意ゲート → 前回異常終了ゲートの順に出て、どちらも応答まで初期化が止まった（設計どおり）。2回目起動では同意ゲートは出ず（`consent-acknowledged-v1` 済み）、前回異常終了ゲートだけが `waiting:true` で出た。**ただし両ゲートとも文言が1文字も表示されない**（黒画面＋無地のボタンのみ。スクリーンショット `.superpowers/sdd/Rendering_20260914_052727_777.png`・`Rendering_20260914_052938_693.png`・`Game_20260914_053430_836.png`）。原因はゲートが `WebUiGameBinder.Bind()`（`localization.current` の配信元）より前に出るため `t()` が辞書不在の空文字を返すこと。WSで観測しても `localization.current` のsnapshotはゲート応答後に初めて届く。EventLanguageGate（ADR 0040）と同じく辞書非依存文言で描くのが前例なので、`DictionaryIndependentText` へのフォールバックに直し `playtestGateDictionaryFallback.test.ts` で固定した。
+    **修正後の確認範囲**: 修正後の見え方は CEF 実機では再確認していない。確認したのは mock-host + vite dev で辞書未配信を再現した webui 側の描画だけで（`.superpowers/sdd/shots/consent-gate-dict-fallback.png`・`crash-gate-dict-fallback.png`）、そこでフォールバック文言が実際に描かれること、および見出しが画面端に接触して折り返す崩れ（本文にだけ幅制約を入れ見出しに入れていなかった）を見つけて `--playtest-gate-title-width` で直したことまで。CEF 上での再現確認は次にゲートを踏んだときの課題として残る。
+  - **箱の中身**: `BugReports/outbox/20260913_203442_b2fe1167/` に `manifest.json`・`READY`・`recording/pid_61195/live_0000/seg_00..06.mp4`（5.2MB）・`snapshots/tick_3600..6000.json`＋`packets_3601..6001.bin`（23MB）・`crashDumps/`。`manifest.kind = "crash"`、`steamId = ""`、`buildInfo = null`（Editor起動）、`platform = OSXEditor`、`description` は上記WSアクションの payload に入れた文字列がそのまま入っていた（ゲートのテキストエリアへ打ち込んではいない）。
+  - **`missing`**: `playerLog`（「前回セッションのPlayer-prev.logが見つからない」）の1件のみ。Editor起動には `Player.log` が無いため `logs/Player-prev.log` は入らない（配布版でのみ入る項目で、欠損理由は正しく残っていた）。
+  - **クラッシュダンプの実パス**: macOS の第3候補 `~/Library/Logs/DiagnosticReports` は実在し拾えたが、`kill -9` はクラッシュレポートを生成しないため**Unity自身のダンプは0件**。代わりに**無関係なnodeプロセスのクラッシュレポート98件（1.5MB）が箱へ同梱された** — 共有置き場を無差別に浚っていたため。プロセス名で絞る修正を入れ（`CrashDumpLocator.SelectDumpFiles`／`IsOwnProcessDumpName`・`CrashDumpLocatorTest`。除外した件数と条件は `Debug.Log` と `missing` の理由文の双方に残すので、絞りで0件になったことと元から0件だったことは読み分けられる）、Windows の第1・第2候補は `<product>` 配下の専用置き場なので従来どおり無差別に拾う。**Windows実機での実パス確定は plan E の検証機で行う（本項は macOS ぶんの確定）**。
+  - **進行記録**: `ProgressRecords/outbox/20260913_203443_38550465/record.json` の `endReason = "crash-recovered"`、`READY` あり、`headerMissing` なし、`worldCreatedAt`・`totalPlaySeconds`（255.8秒）も埋まっていた。`playSeconds` は18.0秒 = 最後のイベント時刻−セッション開始（クラッシュ時刻は不明なので設計どおり最終イベントへ潰れる）。
+  - **副次的に見つかった破れ**: EditModeInPlayingTest は「前回異常終了」状態（PlayModeのStopは終了パイプラインを通らないので常にこうなる）で起動するとゲートが応答を待ち続け、初期化が終わらず `ClientDIContext.DIContainer` が null のまま NRE で落ちる。`EditModeInPlayingTestUtil.EnterPlayModeUtil()` で両ゲートの印を先に置いて回避した（印は本番と同じ `BugReports/` に落ちるため、`PlaytestStartGateBypass` が自分で置いた分だけを PlayMode 終了時に消す。プロダクション側にテスト専用分岐は作っていない）（この worktree に `moorestech_web/node` を入れて WebUiHost が実際に起動するようになるまで、hub==null で素通りしていたため露見していなかった）。あわせて Task 1 の種別必須化で赤のままだった `BugReportBundleWriteTest`（`invalid_kind`）も直した。
 
 ## Execution Handoff
 

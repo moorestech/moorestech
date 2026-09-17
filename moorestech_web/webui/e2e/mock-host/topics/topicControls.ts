@@ -182,6 +182,14 @@ const controls = {
   // The demo-mode inventory topic swaps to demoInventory (no itemId1/wood), so restore the
   // owned itemId1×15 the research tree fixture assumes (needed for the researchable-state visual QA)
   researchOwnedItems: () => control(Topics.inventory, clone(fx.inventory)),
+  // 全画面ゲートの待機を作る。見え方（幅・折り返し・辞書非依存文言）と3枚の排他をe2eと目視QAで再現するため
+  // Puts the full-screen gates into waiting, so e2e and the visual QA can reproduce their look (width, wrapping, fallback copy) and the three-way exclusion
+  eventLanguageGateWaiting: () => control(Topics.eventLanguageGate, { waiting: true, precedence: fx.StartGatePrecedence.eventLanguage }),
+  eventLanguageGateClosed: () => clearingControl(Topics.eventLanguageGate, { waiting: false, precedence: fx.StartGatePrecedence.eventLanguage }),
+  consentGateWaiting: () => control(Topics.consentGate, { waiting: true, precedence: fx.StartGatePrecedence.consent }),
+  consentGateClosed: () => clearingControl(Topics.consentGate, { waiting: false, precedence: fx.StartGatePrecedence.consent }),
+  crashReportGateWaiting: () => control(Topics.crashReportGate, { waiting: true, precedence: fx.StartGatePrecedence.crashReport }),
+  crashReportGateClosed: () => clearingControl(Topics.crashReportGate, { waiting: false, precedence: fx.StartGatePrecedence.crashReport }),
   // 装備枠0のマスタでもHUDが面積を保つかを見るための空装備
   // Zero equipment slots, for checking the HUD keeps an area under a master with no slots
   equipmentEmpty: () => control(Topics.inventory, { ...clone(fx.inventory), equipment: [], selectedEquipment: 0 }),

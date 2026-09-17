@@ -101,13 +101,13 @@ namespace Client.Starter
             _resolver?.Dispose();
         }
         
-        public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse)
+        public IObjectResolver StartGame(InitialHandshakeResponse initialHandshakeResponse, bool collectsPlaytestRecords)
         {
             var builder = new ContainerBuilder();
 
             CameraManager.Initialize();
 
-            MainGameModelRegistration.Register(builder, initialHandshakeResponse);
+            MainGameModelRegistration.Register(builder, initialHandshakeResponse, collectsPlaytestRecords);
             MainGameInteractionRegistration.Register(builder, initialHandshakeResponse);
 
             

@@ -20,6 +20,12 @@ vi.mock("@/features/toast", () => ({ emitToast: mocks.emitToast }));
 vi.mock("@mantine/core", () => ({
   Button: ({ children, ...rest }: { children: ReactNode }) => createElement("button", rest, children),
 }));
+// ModeSwitchは択一トグルの前例（LanguageSelect）と同じ共有UIをスタブする
+// ModeSwitch is stubbed the same way the shared UI precedent (LanguageSelect) does
+vi.mock("@/shared/ui", () => ({
+  ModeSwitch: ({ value, onChange, disabled, testId }: { value: string; onChange: (v: string) => void; disabled?: boolean; testId?: string }) =>
+    createElement("mock-mode-switch", { value, onChange, disabled, "data-testid": testId }),
+}));
 
 import { BugReportForm } from "./BugReportForm";
 
@@ -33,6 +39,9 @@ const dictionary = {
   "ui.bugReport.missing": "欠けている項目: {items}",
   "ui.bugReport.noSession": "ポーズメニューを開き直してください",
   "ui.bugReport.sending": "書き出しています…",
+  "ui.playtest.reportKind.label": "報告の種別",
+  "ui.playtest.reportKind.bug": "バグ",
+  "ui.playtest.reportKind.feedback": "感想",
 };
 
 afterEach(() => {
@@ -57,7 +66,7 @@ describe("BugReportForm", () => {
     act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
     expect(sendButton(renderer).props.disabled).toBe(false);
     await act(async () => sendButton(renderer).props.onClick());
-    expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる" });
+    expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる", kind: "bug" });
     expect(mocks.emitToast).toHaveBeenCalledWith("書き出しました", "info");
     expect(textarea.props.value).toBe("");
     act(() => renderer.unmount());
@@ -129,7 +138,7 @@ describe("BugReportForm", () => {
     expect(mocks.dispatchAction).toHaveBeenCalledTimes(1);
 
     await act(async () => { resolveSubmit(true); });
-    expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる" });
+    expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "ベルトが止まる", kind: "bug" });
     act(() => renderer.unmount());
   });
 
@@ -169,12 +178,64 @@ describe("BugReportForm", () => {
     act(() => renderer.unmount());
   });
 
-  it("確保中と欠損の文言を出す", async () => {
+  // 同じ data-testid の span を2つ同時に描くと、e2e の getByTestId が strict mode violation で落ちる
+  // Two spans sharing one data-testid make the e2e getByTestId fail with a strict-mode violation
+  it("状態行は1本だけ描き、確保中は確保中の文言を出す", async () => {
     setDictionaries("japanese", dictionary, {}, {});
     const renderer = await render({ kind: "capturing", missing: ["video", "screenshot"] });
-    const texts = statusTexts(renderer);
-    expect(texts.some((text) => text.includes("記録を確保しています…"))).toBe(true);
-    expect(texts.some((text) => text.includes("欠けている項目: video, screenshot"))).toBe(true);
+    expect(statusTexts(renderer)).toEqual(["記録を確保しています…"]);
+    act(() => renderer.unmount());
+  });
+
+  it("送れる状態なら欠損の一覧を同じ1本の行で出す", async () => {
+    setDictionaries("japanese", dictionary, {}, {});
+    const renderer = await render({ kind: "ready", missing: ["video", "screenshot"] });
+    expect(statusTexts(renderer)).toEqual(["欠けている項目: video, screenshot"]);
+    act(() => renderer.unmount());
+  });
+
+  // 種別を残すと、感想を1件送った次のバグ報告が feedback のまま箱詰めされる
+  // Leaving the kind boxes the bug report that follows a feedback submission as feedback
+  it("送信成功後は種別が既定のバグへ戻る", async () => {
+    setDictionaries("japanese", dictionary, {}, {});
+    const renderer = await render({ kind: "ready", missing: [] });
+    act(() => modeSwitch(renderer).props.onChange("feedback"));
+    const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
+    act(() => textarea.props.onChange({ currentTarget: { value: "序盤が長い" } }));
+    await act(async () => sendButton(renderer).props.onClick());
+
+    expect(modeSwitch(renderer).props.value).toBe("bug");
+    act(() => renderer.unmount());
+  });
+
+  // 往復中に種別を変えられると、送った kind と画面の表示が食い違ったまま完了する
+  // Changing the kind mid-round-trip leaves the sent kind and the on-screen selection disagreeing
+  it("送信中は種別切替と記述欄を操作できなくする", async () => {
+    setDictionaries("japanese", dictionary, {}, {});
+    let resolveDispatch: ((ok: boolean) => void) | undefined;
+    mocks.dispatchAction.mockImplementation(() => new Promise<boolean>((resolve) => { resolveDispatch = resolve; }));
+
+    const renderer = await render({ kind: "ready", missing: [] });
+    const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
+    act(() => textarea.props.onChange({ currentTarget: { value: "ベルトが止まる" } }));
+    await act(async () => { void sendButton(renderer).props.onClick(); });
+
+    expect(modeSwitch(renderer).props.disabled).toBe(true);
+    expect(renderer.root.findByProps({ "data-testid": "bug-report-description" }).props.disabled).toBe(true);
+
+    await act(async () => { resolveDispatch!(true); });
+    expect(modeSwitch(renderer).props.disabled).toBe(false);
+    act(() => renderer.unmount());
+  });
+
+  it("感想へ切り替えるとkindがfeedbackになる", async () => {
+    setDictionaries("japanese", dictionary, {}, {});
+    const renderer = await render({ kind: "ready", missing: [] });
+    act(() => modeSwitch(renderer).props.onChange("feedback"));
+    const textarea = renderer.root.findByProps({ "data-testid": "bug-report-description" });
+    act(() => textarea.props.onChange({ currentTarget: { value: "序盤が長い" } }));
+    await act(async () => sendButton(renderer).props.onClick());
+    expect(mocks.dispatchAction).toHaveBeenCalledWith("bug_report.submit", { description: "序盤が長い", kind: "feedback" });
     act(() => renderer.unmount());
   });
 });
@@ -189,6 +250,10 @@ async function render(status: Status): Promise<ReactTestRenderer> {
 
 function sendButton(renderer: ReactTestRenderer) {
   return renderer.root.find((node) => node.type === "button" && node.props["data-testid"] === "bug-report-send");
+}
+
+function modeSwitch(renderer: ReactTestRenderer) {
+  return renderer.root.findByProps({ "data-testid": "bug-report-kind" });
 }
 
 function statusTexts(renderer: ReactTestRenderer): string[] {

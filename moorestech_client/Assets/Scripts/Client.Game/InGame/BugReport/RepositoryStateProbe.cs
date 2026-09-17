@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using Client.Game.InGame.BugReport.BuildOrigin;
+using Game.Paths;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -70,10 +72,25 @@ namespace Client.Game.InGame.BugReport
             // Claiming Dirty=false when status is unreadable would reproduce the report as a clean working tree with no edits
             var dirty = !statusRead || status.Trim().Length > 0;
             result.State = new RepositoryState { Commit = commit.Trim(), Branch = branchRead ? branch.Trim() : "", Dirty = dirty };
-            result.TrackedChangesPresent = !statusRead || HasTrackedChange(status);
+            result.TrackedChangesPresent = !statusRead || HasTrackedChange();
             result.DiffText = diff;
             result.UntrackedFiles = new List<string>(untracked.Split('\n', StringSplitOptions.RemoveEmptyEntries));
             return result;
+
+            #region Internal
+
+            // 未追跡だけのdirtyでは diff HEAD は空が正常。先頭2文字が ?? 以外の行だけを追跡ファイルの変更とみなす
+            // With untracked-only dirt an empty diff HEAD is normal; only lines whose first two characters are not ?? count as tracked changes
+            bool HasTrackedChange()
+            {
+                foreach (var line in status.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                {
+                    if (!line.StartsWith("??", StringComparison.Ordinal)) return true;
+                }
+                return false;
+            }
+
+            #endregion
         }
 
         // 失敗した問い合わせは結果へ理由を積む。捨てると「取れなかった」と「空だった」が同じ見た目になる
@@ -86,54 +103,54 @@ namespace Client.Game.InGame.BugReport
             return false;
         }
 
-        // 未追跡だけのdirtyでは diff HEAD は空が正常。先頭2文字が ?? 以外の行だけを追跡ファイルの変更とみなす
-        // With untracked-only dirt an empty diff HEAD is normal; only lines whose first two characters are not ?? count as tracked changes
-        private static bool HasTrackedChange(string statusPorcelain)
+        // 出所を読む唯一の実装（ADR 0059・F01）。Editor・焼き込み情報つきビルド・焼き込み情報の無いビルドの3状態で返す
+        // The sole implementation reading the origin (ADR 0059, F01), returning one of three states: Editor, baked build, build without info
+        // パースと既存消費側への射影は BuildInfoJson へ委譲する（本ファイルの行数分割）
+        // Parsing and projection for existing consumers live in BuildInfoJson (kept out of this file to stay under the line limit)
+        public static BuildOriginReading ReadBuildOrigin()
         {
-            foreach (var line in statusPorcelain.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            // build-info.json はビルドにしか焼かれない。Editorで読まない判断は唯一の読み手であるここが持つ（呼び出し側へ複製しない）
+            // build-info.json is baked only into builds; the "never read it in the Editor" rule lives in this single reader, never copied to callers
+            if (Application.isEditor)
             {
-                if (!line.StartsWith("??", StringComparison.Ordinal)) return true;
+                Debug.Log("Editor実行のため build-info.json は読まず buildInfo は null になります（作業ツリーの状態はgit probeが名乗る）");
+                return BuildOriginReading.Editor();
             }
-            return false;
-        }
 
-        public static BugReportBuildInfo ReadBuildInfo()
-        {
-            var path = Path.Combine(Application.streamingAssetsPath, BuildInfoFileName);
+            var path = GameSystemPaths.BuildInfoFilePath;
             if (!File.Exists(path))
             {
-                Debug.LogWarning($"build-info.json が無いためリポジトリ状態は不明です path:{path}");
-                return new BugReportBuildInfo { Repository = new RepositoryState { Commit = "", Branch = "", Dirty = false } };
+                var absentReason = $"配布ビルドに build-info.json が無いため出所が不明 path:{path}";
+                Debug.LogWarning(absentReason);
+                return BuildOriginReading.WithoutInfo(absentReason);
             }
 
-            var json = JObject.Parse(File.ReadAllText(path));
-            var repository = new RepositoryState { Commit = (string)json["commit"], Branch = (string)json["branch"], Dirty = (bool)json["dirty"] };
+            var buildInfo = BuildInfoJson.Parse(File.ReadAllText(path));
+            if (buildInfo == null) return BuildOriginReading.WithoutInfo($"配布ビルドの build-info.json を解釈できないため出所が不明 path:{path}");
+            return BuildOriginReading.Baked(buildInfo);
+        }
 
-            // マスタを焼いていないビルドもあるため、masterCommit が読めたときだけマスタの状態を名乗る
-            // Some builds bake no master, so the master state is claimed only when masterCommit was actually readable
-            var masterCommit = (string)json["masterCommit"];
-            if (string.IsNullOrEmpty(masterCommit))
-            {
-                Debug.LogWarning($"build-info.json に masterCommit が無いためマスタデータのリポジトリ状態は不明です path:{path}");
-                return new BugReportBuildInfo { Repository = repository };
-            }
-
-            var masterData = new RepositoryState { Commit = masterCommit, Branch = "", Dirty = (bool?)json["masterDirty"] ?? false };
-            return new BugReportBuildInfo { Repository = repository, MasterData = masterData };
+        // 焼き込み情報だけが欲しい消費側（進行記録）への射影。Editorと焼き込み情報の無いビルドではnull
+        // A projection for consumers that want only the baked info (progress records); null for the Editor and for a build without info
+        public static BuildInfo ReadBuildInfo()
+        {
+            return ReadBuildOrigin().BuildInfo;
         }
 
         // ビルド時に焼き込む内容を組み立てる。Editorアセンブリを参照できないテストからも検証できるようここに置く
         // Composes what a build bakes in; it lives here so tests that cannot reference the Editor assembly can verify it
         public static string ComposeBuildInfoJson(RepositoryProbeResult repo, RepositoryProbeResult master, DateTime builtAt)
         {
+            // 取れなかった状態は ""・false で焼かずnullで焼く。false は「クリーンな作業ツリー」という実値に化ける（F02）
+            // An unavailable state is baked as null, not "" or false; false would pose as a real clean working tree (F02)
             var info = new JObject
             {
-                ["commit"] = repo.State?.Commit ?? "",
-                ["branch"] = repo.State?.Branch ?? "",
-                ["dirty"] = repo.State?.Dirty ?? false,
-                ["masterCommit"] = master.State?.Commit ?? "",
-                ["masterDirty"] = master.State?.Dirty ?? false,
-                ["builtAt"] = builtAt.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture),
+                ["commit"] = repo.State?.Commit,
+                ["branch"] = repo.State?.Branch,
+                ["dirty"] = repo.State?.Dirty,
+                ["masterCommit"] = master.State?.Commit,
+                ["masterDirty"] = master.State?.Dirty,
+                ["builtAt"] = builtAt.ToString(BugReportBundleLayout.Utc8601Format, CultureInfo.InvariantCulture),
             };
             return info.ToString(Formatting.Indented);
         }

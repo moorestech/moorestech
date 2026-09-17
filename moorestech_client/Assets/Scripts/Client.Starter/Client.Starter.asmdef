@@ -35,7 +35,8 @@
         "Server.Event",
         "Unity.InputSystem",
         "MessagePack",
-        "Game.Block.Interface"
+        "Game.Block.Interface",
+        "Client.PlaytestReceiver"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

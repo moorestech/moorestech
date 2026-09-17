@@ -16,6 +16,8 @@ using Client.Game.InGame.UI.UIState.State;
 using Client.Game.InGame.UI.UIState.State.NestedPause;
 using Client.Game.InGame.UI.UIState.State.PauseMenu;
 using Client.Game.InGame.Hotbar;
+using Client.Game.InGame.Playtest.Progress;
+using Client.PlaytestReceiver;
 using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Topics;
 using Client.WebUiHost.Game.Topics.BuildMenu;
@@ -48,7 +50,6 @@ namespace Client.WebUiHost.Game
                 UnityEngine.Debug.LogWarning("[WebUiHost] Bind skipped: hub is null (WebUiHost not started)");
                 return;
             }
-
             // DI からインベントリコントローラと UI 系コンポーネントを取得
             // Resolve the inventory controller and UI components from DI
             var resolver = ClientDIContext.DIContainer.DIContainerResolver;
@@ -58,31 +59,25 @@ namespace Client.WebUiHost.Game
             var trainHudState = resolver.Resolve<TrainHUDScreenState>();
             var uiStateDictionary = resolver.Resolve<UIStateDictionary>();
             var localPlayerEquipment = resolver.Resolve<LocalPlayerEquipment>();
-
             // インベントリトピックを生成・登録
             // Create inventory topic and register it (the equipment model supplies the selection state)
             var inventoryTopic = new InventoryTopic(hub, controller, localPlayerEquipment);
             hub.RegisterTopic(InventoryTopic.TopicName, inventoryTopic);
-
             // モーダルブリッジサービスを生成（topic と action で共有）
             // Create the modal bridge service (shared by topic and action)
             var modalService = new WebUiModalService();
-
             // モーダルトピックを登録
             // Register the modal topic
             var modalTopic = new ModalTopic(hub, modalService);
             hub.RegisterTopic(ModalTopic.TopicName, modalTopic);
-
             // 進捗バートピックを登録
             // Register the progress-bar topic
             var progressTopic = new ProgressTopic(hub, resolver.Resolve<ProgressBarState>());
             hub.RegisterTopic(ProgressTopic.TopicName, progressTopic);
-
             // ブロックインベントリトピックを登録
             // Register the block-inventory topic
             var blockInventoryTopic = new BlockInventoryTopic(hub, uiStateControl, subInventoryState);
             hub.RegisterTopic(BlockInventoryTopic.TopicName, blockInventoryTopic);
-
             // UIステートトピックを登録（Web側画面ルーティングの正）
             // Register the UI-state topic (source of truth for web-side routing)
             var nestedPauseScreens = resolver.Resolve<IReadOnlyList<INestedPauseScreenState>>();
@@ -90,23 +85,19 @@ namespace Client.WebUiHost.Game
             hub.RegisterTopic(UiStateTopic.TopicName, uiStateTopic);
             C4WebUiRegistration.Register(hub);
             hub.RegisterTopic(TrainRidingTopic.TopicName, new TrainRidingTopic(hub, uiStateControl, trainHudState));
-            // 現在言語トピックを登録（辞書本体はHTTP endpointから取得）
-            // Register the current-locale topic (dictionary bodies come from the HTTP endpoint)
-            var localizationTopic = new LocalizationTopic(hub);
-            hub.RegisterTopic(LocalizationTopic.TopicName, localizationTopic);
-
+            // 現在言語トピックは開始ゲートより前に登録済み。ゲートを通らない接続経路のためここでも冪等に確かめる
+            // The current-locale topic is registered ahead of the start gates; this idempotent call covers paths that skip them
+            LocalizationTopic.EnsureRegistered(hub);
             // ポーズメニューの切断表示を登録する
             // Register the pause-menu disconnect presentation
             var networkDisconnectState = resolver.Resolve<NetworkDisconnectState>();
             var pauseMenuTopic = new PauseMenuTopic(hub, networkDisconnectState, resolver.Resolve<BugReportCaptureSession>());
             hub.RegisterTopic(PauseMenuTopic.TopicName, pauseMenuTopic);
-
             // 設置モードHUDを既存の設置状態へ接続する
             // Connect the placement HUD to the existing placement state
             var placementModeTopic = new PlacementModeTopic(hub, resolver.Resolve<PlaceSystemStateController>(),
                 resolver.Resolve<PlaceBlockState>());
             hub.RegisterTopic(PlacementModeTopic.TopicName, placementModeTopic);
-
             // 共通HUDを各状態通知へ接続
             // Connect the common HUD to each state's notifications
             hub.RegisterTopic(CrosshairTopic.TopicName, new CrosshairTopic(hub, resolver.Resolve<CrosshairVisibility>()));
@@ -169,6 +160,10 @@ namespace Client.WebUiHost.Game
             var clientHotbarDatastore = resolver.Resolve<ClientHotbarDatastore>();
             HotbarWebUiRegistration.Register(hub, clientHotbarDatastore, placementTargetResolver, blueprintLibrary, resolver.Resolve<PlaceSystemStateController>(), uiStateControl);
 
+            // 購読で観測できない操作は記録側へプッシュする。窓口は記録を集めない起動でも必ず登録されている
+            // Operations no subscription observes are pushed to the recorder; the window is registered even on boots that collect no records
+            var progressSink = resolver.Resolve<IPlaytestProgressSink>();
+
             // action ハンドラ登録
             // Register action handlers
             // debug.echo は EchoActionHandler と同じくエディタ/開発ビルド限定で登録する
@@ -199,7 +194,7 @@ namespace Client.WebUiHost.Game
             hub.RegisterAction(new BlueprintDeleteActionHandler(blueprintLibrary));
             hub.RegisterAction(new PauseMenuSaveActionHandler(resolver.Resolve<GameSaveRequester>()));
             hub.RegisterAction(new PauseMenuSaveAndQuitActionHandler(resolver.Resolve<SaveAndQuitPresenter>()));
-            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), resolver.Resolve<UIStateControl>()));
+            hub.RegisterAction(new BugReportSubmitActionHandler(resolver.Resolve<BugReportBundleWriter>(), resolver.Resolve<BugReportCaptureSession>(), uiStateControl, progressSink, resolver.Resolve<IPlaytestUploadRequester>()));
         }
     }
 }

@@ -56,6 +56,7 @@ Diffを依頼された内容と比較する:
 - **Missing:** スキップした、見落とした、あるいは実装せずに主張した要件
 - **Extra:** 依頼されていない機能、過剰設計、不要な「あると良い」機能
 - **Misunderstood:** 正しい機能を間違った方法で構築した、間違った問題を解いた
+- **Plan-deviated:** planの `Interfaces`/`Produces` に書かれた型・戻り値・判別子（enum/sealed型 vs bool・数値センチネル）と diff を突き合わせ、差分は Important として報告し plan-deviated とラベル付けする。planが正しくても実装が独断で畳み直した分は writing-plans 側では拾えない（裁定: `.decisions/2026-09-13-writing-plans型閉包検査は構造化節だけを字面で見て問い1つを出しplanは書き換えない.md` 第6項）
 
 要件がこのdiffだけからは検証できない場合（未変更コードに存在する、
 タスクをまたぐ）、検索範囲を広げるのではなく⚠️項目として報告すること。
