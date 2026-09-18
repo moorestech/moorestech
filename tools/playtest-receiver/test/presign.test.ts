@@ -14,6 +14,17 @@ describe("presignPut", () => {
     expect(url.searchParams.get("X-Amz-Signature")).toMatch(/^[0-9a-f]{64}$/);
   });
 
+  it.each(["logs/a#b.log", "logs/a?b=c.log", "ログ/ユニティ 1.log", "logs/100%.log"])(
+    "URLの意味を持つ文字や日本語を含むキー %s は別キーへ化けずクエリやフラグメントに漏れない",
+    async (relative) => {
+      const key = `reports/7656/20260913_120000_aaaa1111/${relative}`;
+      const url = new URL(await presignPut(workerEnv, key, 1, new Date("2026-09-18T00:00:00Z")));
+      expect(decodeURIComponent(url.pathname)).toBe(`/${workerEnv.R2_BUCKET_NAME}/${key}`);
+      expect(url.hash).toBe("");
+      expect([...url.searchParams.keys()].every((name) => name.startsWith("X-Amz-"))).toBe(true);
+    },
+  );
+
   it("Content-Lengthが違えば署名も違う", async () => {
     const a = await presignPut(workerEnv, "reports/7656/x/a.bin", 1, new Date("2026-09-18T00:00:00Z"));
     const b = await presignPut(workerEnv, "reports/7656/x/a.bin", 2, new Date("2026-09-18T00:00:00Z"));
