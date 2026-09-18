@@ -3,7 +3,7 @@ import { UPLOAD_URL_TTL_SECONDS } from "../contract";
 import type { Env } from "../env";
 import { fail, json } from "../http";
 import { bundlePrefix, type PlaytestKind } from "../keys";
-import { isSameDeclaration, parseDeclaration, readDeclaration, writeDeclaration, type DeclaredFile } from "../uploads/bundleDeclaration";
+import { classifyRedeclaration, parseDeclaration, readDeclaration, writeDeclaration, type DeclaredFile } from "../uploads/bundleDeclaration";
 import { createR2Client, missingR2SigningSettings, presignPut } from "../uploads/presign";
 import { authorizeUpload } from "./uploadsAuthorize";
 import { listBundleObjectSizes } from "./uploadsVerify";
@@ -40,17 +40,19 @@ export async function prepareUpload(request: Request, env: Env, kind: PlaytestKi
     return fail(declaration.error, declaration.status);
   }
 
-  // DECLAREDはwrite-once。違う宣言での再prepareは箱の上限の迂回と旧宣言分の孤立を招くため拒否する
-  // DECLARED is write-once; a re-prepare with another declaration would dodge the bundle limits and orphan the old files, so refuse it
+  // DECLAREDは縮小だけ許すwrite-once。追加やbytes変更は箱の上限の迂回と旧宣言分の孤立を招くため拒否する
+  // DECLARED is write-once except for shrinking; additions or byte changes would dodge the bundle limits and orphan old files, so refuse them
   const stored = await readDeclaration(env.BUCKET, kind, steamId, id);
-  if (stored !== null && !isSameDeclaration(stored, declaration.files)) {
-    console.warn(`[upload] rejected a re-prepare of ${label} whose declaration differs from the stored DECLARED`);
+  const redeclaration = stored === null ? null : classifyRedeclaration(stored, declaration.files);
+  if (redeclaration === "conflict") {
+    console.warn(`[upload] rejected a re-prepare of ${label} that adds or resizes files against the stored DECLARED`);
     return fail("declaration-conflict", 409);
   }
-  if (stored === null) {
-    // 本文の読み取り中にACKされうる。書く直前に確かめ直す
-    // An ack may land while the body is read, so check again right before writing
+  if (redeclaration !== "same") {
+    // 新規宣言か縮小（D3で見送ったファイルを外した再試行）。本文の読み取り中にACKされうるので書く直前に確かめ直す
+    // A new declaration or a shrink (a retry that dropped files skipped under D3); an ack may land while the body is read, so re-check right before writing
     if (await isAcked(env.BUCKET, kind, steamId, id)) return ackedAnswer(label);
+    if (redeclaration === "shrunk") console.warn(`[upload] ${label} shrank its declaration from ${stored?.length} to ${declaration.files.length} files`);
     await writeDeclaration(env.BUCKET, kind, steamId, id, declaration.files);
   }
 

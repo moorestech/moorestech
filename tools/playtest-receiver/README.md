@@ -32,7 +32,7 @@ Worker はアップロードのバイト列を中継しない。クライアン�
 ```
 ACK済みの箱は書き込みをせず冪等に `{ "outcome": "acked" }`（200）を返す（ACK は受付時・`DECLARED` を書く直前・URL を返す直前の3回確かめる）。
 
-- **宣言は箱ごとに write-once**: 最初の prepare が `DECLARED` を書く。以後の prepare は path+bytes の集合（順序は問わない）が一致すれば同じ宣言のまま URL を出し直し、一致しなければ409 `{ "reason": "declaration-conflict" }` で拒否して `DECLARED` を書き換えない。クライアントはこれを箱固有の恒久失敗として数える（complete の409 `incomplete` / `not-prepared` は再試行対象で、区別は `reason`）。
+- **宣言は箱ごとに write-once（縮小だけ許す）**: 最初の prepare が `DECLARED` を書く。以後の prepare は path+bytes の集合（順序は問わない）が一致すれば同じ宣言のまま URL を出し直す。既存宣言の部分集合（全 path が既存宣言にあり各 bytes が一致）なら `DECLARED` をその部分集合へ縮めて URL を出す（送れないファイルを外した再試行のため。件数・総量は増えない）。path の追加や bytes の変更を含む宣言は409 `{ "reason": "declaration-conflict" }` で拒否して `DECLARED` を書き換えない。クライアントはこれを箱固有の恒久失敗として数える（complete の409 `incomplete` / `not-prepared` は再試行対象で、区別は `reason`）。
 - **送信済みは除外**: 宣言どおりの長さのオブジェクトが既に R2 にあるファイルは `uploads` に載せない（既存判定は箱の prefix の list 1回）。全部送信済みなら `uploads` は空配列で、クライアントは PUT せず complete の照合に任せる。
 - **設定漏れ**: `R2_ACCOUNT_ID` / `R2_BUCKET_NAME` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` のどれかが空なら URL を発行せず500 `{ "reason": "server-misconfigured" }`（`console.error` に空の設定名）。
 

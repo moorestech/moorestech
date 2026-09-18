@@ -45,12 +45,14 @@ function reject(status: 400 | 413, error: string, detail: string): DeclarationCh
   return { ok: false, status, error, detail };
 }
 
-// DECLAREDは箱ごとにwrite-once。再prepareはpath+bytesの集合が一致するときだけ受け、順序の違いは同じ宣言とみなす
-// DECLARED is write-once per box; a re-prepare is accepted only when its path+bytes set matches, ignoring order
-export function isSameDeclaration(stored: DeclaredFile[], requested: DeclaredFile[]): boolean {
-  if (stored.length !== requested.length) return false;
+export type RedeclarationKind = "same" | "shrunk" | "conflict";
+
+// 再prepareの宣言と保存済みDECLAREDの関係。縮小（全pathが既存宣言にあり各bytesが一致）だけは許す。件数も総量も増えず上限を迂回できないため
+// How a re-prepare's declaration relates to the stored DECLARED; only shrinking (every path already declared at the same bytes) is allowed, since it can't grow count or total past the limits
+export function classifyRedeclaration(stored: DeclaredFile[], requested: DeclaredFile[]): RedeclarationKind {
   const storedBytes = new Map(stored.map((file) => [file.path, file.bytes]));
-  return requested.every((file) => storedBytes.get(file.path) === file.bytes);
+  if (!requested.every((file) => storedBytes.get(file.path) === file.bytes)) return "conflict";
+  return requested.length === stored.length ? "same" : "shrunk";
 }
 
 // 宣言はcompleteの照合元としてR2に置く。クライアントの再申告を信じないための唯一の記録

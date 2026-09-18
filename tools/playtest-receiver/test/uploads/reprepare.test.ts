@@ -64,7 +64,7 @@ describe("DECLARED は write-once", () => {
   it.each([
     ["長さが違う", { a: 1, "b/c.bin": 3 }],
     ["ファイルが増えた", { a: 1, "b/c.bin": 2, d: 1 }],
-    ["ファイルが減った", { a: 1 }],
+    ["ファイルが増え別のファイルが減った", { a: 1, d: 2 }],
     ["パスが違う", { a: 1, "b/x.bin": 2 }],
   ])("宣言が%s再prepareは409 declaration-conflictでwarnし、DECLAREDは元のまま", async (_, entries) => {
     await prepare("report", ID, declaration({ a: 1, "b/c.bin": 2 }));
@@ -73,7 +73,37 @@ describe("DECLARED は write-once", () => {
     const response = await prepare("report", ID, declaration(entries));
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({ reason: "declaration-conflict" });
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("differs from the stored DECLARED"));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("adds or resizes files"));
+    expect(await declaredText()).toBe(before);
+  });
+});
+
+describe("宣言の縮小（契約補正 2'）", () => {
+  it("既存宣言の部分集合（bytes一致）の再prepareは受け付け、DECLAREDをその部分集合へ縮めてURLを出す", async () => {
+    await prepare("report", ID, declaration({ a: 1, "b/c.bin": 2, d: 3 }));
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    const response = await prepare("report", ID, declaration({ d: 3, a: 1 }));
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as PrepareBody;
+    expect(body.uploads.map((u) => u.path).sort()).toEqual(["a", "d"]);
+    expect(JSON.parse((await declaredText())!)).toEqual({ files: [{ path: "d", bytes: 3 }, { path: "a", bytes: 1 }] });
+  });
+
+  it("縮めた後で元の宣言へ戻す（追加になる）再prepareは409", async () => {
+    await prepare("report", ID, declaration({ a: 1, d: 3 }));
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    await prepare("report", ID, declaration({ a: 1 }));
+    const response = await prepare("report", ID, declaration({ a: 1, d: 3 }));
+    expect(response.status).toBe(409);
+    expect(JSON.parse((await declaredText())!)).toEqual({ files: [{ path: "a", bytes: 1 }] });
+  });
+
+  it("縮小の途中（DECLAREDを書く直前）にACKされた箱は縮めずackedを返す", async () => {
+    await prepare("report", ID, declaration({ a: 1, d: 3 }));
+    const before = await declaredText();
+    await workerEnv.BUCKET.put(ackedMarkerKey("report", STEAM_ID, ID), "");
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(await (await post(envWhereAckLandsAfter(1), "prepare", declaration({ a: 1 }))).json()).toEqual({ outcome: "acked" });
     expect(await declaredText()).toBe(before);
   });
 });
