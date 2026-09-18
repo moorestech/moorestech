@@ -11,18 +11,20 @@ namespace Client.PlaytestReceiver.Upload
     {
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestOutboxBox _box;
+        private readonly int _generation;
         private readonly IReadOnlyList<PlaytestDeclaredFile> _files;
 
-        public PlaytestPrepareCall(IPlaytestReceiverApi api, PlaytestOutboxBox box, IReadOnlyList<PlaytestDeclaredFile> files)
+        public PlaytestPrepareCall(IPlaytestReceiverApi api, PlaytestOutboxBox box, int generation, IReadOnlyList<PlaytestDeclaredFile> files)
         {
             _api = api;
             _box = box;
+            _generation = generation;
             _files = files;
         }
 
         public UniTask<PlaytestApiResult> SendAsync(string bearerToken, CancellationToken token)
         {
-            return _api.PostPrepareAsync(bearerToken, _box.Kind, _box.BundleId, _files, token);
+            return _api.PostPrepareAsync(bearerToken, _box.Kind, _box.BundleId, _generation, _files, token);
         }
     }
 

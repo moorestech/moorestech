@@ -36,11 +36,11 @@ namespace Client.PlaytestReceiver.Upload
 
         public async UniTask<int> UploadPendingAsync(CancellationToken token)
         {
-            var boxes = PlaytestOutboxScanner.ScanPending(_directories.ReportOutbox, _directories.ProgressOutbox);
+            var boxes = PlaytestOutboxScanner.ScanPending(_directories);
             var sent = 0;
             for (var index = 0; index < boxes.Count; index++)
             {
-                var outcome = await UploadWithinBoxBoundaryAsync(boxes[index], token);
+                var outcome = await UploadWithinBookkeepingBoundaryAsync(boxes[index], token);
                 if (outcome == BoxOutcome.Sent) sent++;
                 if (outcome != BoxOutcome.RunAborted) continue;
 
@@ -50,9 +50,9 @@ namespace Client.PlaytestReceiver.Upload
             return sent;
         }
 
-        // 箱の中身のファイルI/Oは外部境界（消えた・他プロセスに掴まれた）。1箱の例外で走行全体を恒久に止めず、数えて次の箱へ進む
-        // File I/O inside a box is an external boundary (vanished or locked files); one box's exception is counted instead of halting every run
-        private async UniTask<BoxOutcome> UploadWithinBoxBoundaryAsync(PlaytestOutboxBox box, CancellationToken token)
+        // 試行中のファイルI/Oは試行失敗としてDecideへ回る。ここで捕まるのは印（UPLOAD_ATTEMPTS等）の書き込み自体の失敗だけで、箱へ記録できないので理由をログへ残して持ち越す
+        // File I/O during an attempt already goes to Decide as a failed attempt; only a failure to write the markers themselves (UPLOAD_ATTEMPTS and the like) lands here, and since the box cannot record it, the reason is logged and the box deferred
+        private async UniTask<BoxOutcome> UploadWithinBookkeepingBoundaryAsync(PlaytestOutboxBox box, CancellationToken token)
         {
             try
             {
@@ -60,12 +60,12 @@ namespace Client.PlaytestReceiver.Upload
             }
             catch (IOException exception)
             {
-                PlaytestUploadAttemptLog.Increment(box.Directory, $"file I/O failed: {exception.GetType().Name}: {exception.Message}");
+                Debug.LogError($"[PlaytestReceiver] could not record the upload state of {box.BundleId}; deferring it: {exception.GetType().Name}: {exception.Message}");
                 return BoxOutcome.BoxDeferred;
             }
             catch (UnauthorizedAccessException exception)
             {
-                PlaytestUploadAttemptLog.Increment(box.Directory, $"file access denied: {exception.Message}");
+                Debug.LogError($"[PlaytestReceiver] could not record the upload state of {box.BundleId}; deferring it: {exception.Message}");
                 return BoxOutcome.BoxDeferred;
             }
         }
@@ -74,40 +74,34 @@ namespace Client.PlaytestReceiver.Upload
         // One attempt is prepare→PUT to the presigned URLs→complete; a transient failure waits per the schedule and retries the same box, skipping files already sent
         private async UniTask<BoxOutcome> UploadOneAsync(PlaytestOutboxBox box, CancellationToken token)
         {
-            var declaration = PlaytestBoxDeclaration.Build(box);
-            if (IsUnsendable(declaration)) return BoxOutcome.BoxDeferred;
             var attemptRunner = new PlaytestUploadAttempt(_api, _session);
             var sentPaths = new HashSet<string>();
+            PlaytestBoxDeclaration declaration = null;
             var attempt = 0;
             while (true)
             {
-                var failure = await attemptRunner.RunAsync(box, declaration, sentPaths, token);
-                if (failure == null)
-                {
-                    PlaytestUploadAttemptLog.MarkUploaded(box.Directory);
-                    Debug.Log($"[PlaytestReceiver] uploaded {PlaytestUploadPath.KindSegment(box.Kind)}/{box.BundleId} ({declaration.Files.Count} files, {declaration.Skipped.Count} skipped)");
-                    return BoxOutcome.Sent;
-                }
+                var step = await RunAttemptAsync();
+                if (step.Outcome.HasValue) return step.Outcome.Value;
                 // 数えるのは再試行で直らない失敗だけ。一過性の失敗は表が尽きたら数えずに持ち越し、到達不能やトークン不調なら走行ごと止める
                 // Only failures retrying cannot heal are counted; transient ones defer uncounted once the schedule runs out, and unreachability stops the run
-                var decision = PlaytestUploadFailurePolicy.Decide(failure);
+                var decision = PlaytestUploadFailurePolicy.Decide(step.Failure, box.FilePolicy);
                 switch (decision.Kind)
                 {
                     case PlaytestUploadFailureKind.PermanentForFile:
-                        declaration = SkipRefusedFile(failure, decision);
+                        declaration = SkipRefusedFile(step.Failure, decision);
                         if (IsUnsendable(declaration)) return BoxOutcome.BoxDeferred;
                         continue;
                     case PlaytestUploadFailureKind.Retryable:
+                    case PlaytestUploadFailureKind.RetryableThenPermanentForBox:
                         break;
+                    case PlaytestUploadFailureKind.SessionRefused:
+                        Debug.LogWarning($"[PlaytestReceiver] the session was refused; not counting {box.BundleId} and stopping the run: {decision.Description}");
+                        return BoxOutcome.RunAborted;
                     default:
                         PlaytestUploadAttemptLog.Increment(box.Directory, decision.Description);
                         return BoxOutcome.BoxDeferred;
                 }
-                if (_retry.Delays.Count <= attempt)
-                {
-                    PlaytestUploadAttemptLog.LogRetryable(box.Directory, $"{decision.Description} (after {attempt} retries)");
-                    return decision.AbortsRun ? BoxOutcome.RunAborted : BoxOutcome.BoxDeferred;
-                }
+                if (_retry.Delays.Count <= attempt) return GiveUpRetrying(decision);
                 var delay = _retry.Delays[attempt];
                 attempt++;
                 Debug.LogWarning($"[PlaytestReceiver] {decision.Description}; retry {attempt}/{_retry.Delays.Count} in {delay.TotalSeconds:0}s");
@@ -118,13 +112,54 @@ namespace Client.PlaytestReceiver.Upload
 
             #region Internal
 
-            // 再現に要るファイルが欠けた箱・送るものが無い箱は受け口へ行かずに恒久失敗として数える（偽のHTTP応答を合成しない）
-            // A box missing reproduction-critical files or with nothing to send never reaches the receiver and is counted as permanent (no forged HTTP response)
+            // 1試行。箱のファイルの読み書きは外部境界（消えた・他プロセスに掴まれた）で、例外は試行失敗に変えて判定をDecide一本に集める
+            // One attempt; the box's file I/O is an external boundary (vanished or locked files), so an exception becomes a failed attempt and Decide stays the single verdict
+            async UniTask<(BoxOutcome? Outcome, PlaytestUploadAttemptFailure Failure)> RunAttemptAsync()
+            {
+                try
+                {
+                    if (declaration == null)
+                    {
+                        declaration = PlaytestBoxDeclaration.Build(box);
+                        if (IsUnsendable(declaration)) return (BoxOutcome.BoxDeferred, null);
+                    }
+                    var failure = await attemptRunner.RunAsync(box, declaration, sentPaths, token);
+                    if (failure != null) return (null, failure);
+                    PlaytestUploadAttemptLog.MarkUploaded(box.Directory);
+                    Debug.Log($"[PlaytestReceiver] uploaded {PlaytestUploadPath.KindSegment(box.Kind)}/{box.BundleId} ({declaration.Files.Count} files, {declaration.Skipped.Count} skipped)");
+                    return (BoxOutcome.Sent, null);
+                }
+                catch (IOException exception)
+                {
+                    return (null, PlaytestUploadAttemptFailure.AtLocalFiles(PlaytestApiResult.LocalFileUnavailable($"{exception.GetType().Name}: {exception.Message}")));
+                }
+                catch (UnauthorizedAccessException exception)
+                {
+                    return (null, PlaytestUploadAttemptFailure.AtLocalFiles(PlaytestApiResult.LocalFileUnavailable($"access denied: {exception.Message}")));
+                }
+            }
+
+            // 表を使い切った。必須ファイルの拒否ならここで箱を数え、一過性なら数えずに持ち越す（到達不能等は走行ごと止める）
+            // The schedule is spent; a required file's refusal now counts the box, a transient failure defers uncounted (unreachability and the like stop the run)
+            BoxOutcome GiveUpRetrying(PlaytestUploadFailureDecision decision)
+            {
+                var description = $"{decision.Description} (after {attempt} retries)";
+                if (decision.Kind == PlaytestUploadFailureKind.RetryableThenPermanentForBox)
+                {
+                    PlaytestUploadAttemptLog.Increment(box.Directory, description);
+                    return BoxOutcome.BoxDeferred;
+                }
+                PlaytestUploadAttemptLog.LogRetryable(box.Directory, description);
+                return decision.AbortsRun ? BoxOutcome.RunAborted : BoxOutcome.BoxDeferred;
+            }
+
+            // 箱の格付けで必須のファイルが欠けた箱・送るものが無い箱は受け口へ行かずに恒久失敗として数える（偽のHTTP応答を合成しない）
+            // A box missing a file its policy ranks required, or with nothing to send, never reaches the receiver and is counted as permanent (no forged HTTP response)
             bool IsUnsendable(PlaytestBoxDeclaration candidate)
             {
                 if (candidate.MissingRequiredReason != null)
                 {
-                    PlaytestUploadAttemptLog.Increment(box.Directory, $"not sending a box without what reproduction needs: {candidate.MissingRequiredReason}");
+                    PlaytestUploadAttemptLog.Increment(box.Directory, $"not sending a box without its required files: {candidate.MissingRequiredReason}");
                     return true;
                 }
                 if (candidate.Files.Count != 0) return false;
@@ -132,11 +167,11 @@ namespace Client.PlaytestReceiver.Upload
                 return true;
             }
 
-            // R2が1ファイルだけ拒んだ。見送りを箱へ記録して次回起動以降も宣言へ戻さず（受け口は宣言の拡大を拒む）、縮小した宣言でやり直す
-            // R2 refused one file; the skip is recorded in the box so later runs never re-declare it (the receiver refuses a grown declaration), and the box retries with the shrunk one
+            // 1ファイルだけが直らない。見送りを箱へ記録して次回起動以降も宣言へ戻さず（受け口は宣言の拡大を拒む）、縮小した宣言を次の世代でやり直す
+            // A single file never heals; the skip is recorded in the box so later runs never re-declare it (the receiver refuses a grown declaration), and the box retries with the shrunk one as the next generation
             PlaytestBoxDeclaration SkipRefusedFile(PlaytestUploadAttemptFailure refused, PlaytestUploadFailureDecision decision)
             {
-                var reason = $"http-{refused.Result.StatusCode}";
+                var reason = PlaytestUploadFailureDescription.SkipReasonOf(refused);
                 Debug.LogWarning($"[PlaytestReceiver] skipping {refused.Path} of {box.BundleId} and retrying from prepare: {decision.Description}");
                 PlaytestUploadSkipRecord.Append(box.Directory, refused.Path, reason);
                 return declaration.WithSkipped(refused.Path, reason);

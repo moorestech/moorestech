@@ -33,23 +33,23 @@ namespace Client.PlaytestReceiver.Http
             return SendWithHttpTimeoutAsync(request, token);
         }
 
-        public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
+        public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v1/uploads/{PlaytestUploadPath.ForPrepare(kind, bundleId)}")
             {
-                Content = new StringContent(ComposeDeclarationBody(files), Encoding.UTF8, "application/json"),
+                Content = new StringContent(ComposeDeclarationBody(generation, files), Encoding.UTF8, "application/json"),
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             return SendWithHttpTimeoutAsync(request, token);
         }
 
-        // 宣言のワイヤ表現。path と bytes だけを載せ、AbsolutePath は決して出さない（テストで固定）
-        // The wire form of the declaration: only path and bytes, never AbsolutePath (pinned by a test)
-        public static string ComposeDeclarationBody(IReadOnlyList<PlaytestDeclaredFile> files)
+        // 宣言のワイヤ表現。世代と path・bytes だけを載せ、AbsolutePath は決して出さない（テストで固定）
+        // The wire form of the declaration: the generation plus path and bytes only, never AbsolutePath (pinned by a test)
+        internal static string ComposeDeclarationBody(int generation, IReadOnlyList<PlaytestDeclaredFile> files)
         {
             var declared = new JArray();
             foreach (var file in files) declared.Add(new JObject { ["path"] = file.Path, ["bytes"] = file.Bytes });
-            return new JObject { ["files"] = declared }.ToString(Newtonsoft.Json.Formatting.None);
+            return new JObject { ["generation"] = generation, ["files"] = declared }.ToString(Newtonsoft.Json.Formatting.None);
         }
 
         // 署名付きURLへの直接PUT。Bearerは付けず（署名が権限）、Content-Lengthは署名に含まれるため必ず明示する
@@ -59,11 +59,11 @@ namespace Client.PlaytestReceiver.Http
             if (!File.Exists(absoluteFilePath))
             {
                 Debug.LogWarning($"[PlaytestReceiver] {absoluteFilePath} disappeared before upload");
-                return PlaytestApiResult.LocalUnreadableFile($"{absoluteFilePath} does not exist");
+                return PlaytestApiResult.LocalFileChanged($"{absoluteFilePath} does not exist");
             }
 
-            // 手元のディスクI/O境界。開けない・読めない失敗は到達失敗と混ぜずLocalUnreadableFileに分ける
-            // Local disk I/O boundary; an unopenable/unreadable failure is kept apart from unreachability as LocalUnreadableFile
+            // 手元のディスクI/O境界。開けない失敗（ロック・権限）は到達失敗と混ぜず、一過性の手元の問題として分ける
+            // Local disk I/O boundary; failing to open (a lock, permissions) is kept apart from unreachability as a transient local problem
             Stream fileStream;
             try
             {
@@ -71,20 +71,22 @@ namespace Client.PlaytestReceiver.Http
             }
             catch (IOException exception)
             {
-                return PlaytestApiResult.LocalUnreadableFile($"{absoluteFilePath}: {exception.Message}");
+                return PlaytestApiResult.LocalFileUnavailable($"{absoluteFilePath}: {exception.Message}");
             }
             catch (UnauthorizedAccessException exception)
             {
-                return PlaytestApiResult.LocalUnreadableFile($"{absoluteFilePath}: {exception.Message}");
+                return PlaytestApiResult.LocalFileUnavailable($"{absoluteFilePath}: {exception.Message}");
             }
 
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
             var idleTimeoutSeconds = PlaytestReceiverConfig.UploadIdleTimeoutSeconds;
             var content = new IdleTimeoutFileContent(fileStream, bytes, deadline, TimeSpan.FromSeconds(idleTimeoutSeconds), TimeSpan.FromSeconds(PlaytestReceiverConfig.HttpTimeoutSeconds));
             var result = await SendAsync(CreateSignedPutRequest(signedUrl, content), deadline, $"no upload progress for {idleTimeoutSeconds}s or no answer after the body", token);
-            // 送信中に手元のファイルが読めなくなった失敗は、到達失敗ではなく手元の問題として返す
-            // A local read failure mid-send is returned as a local problem, not as unreachability
-            return content.LocalReadFailure == null ? result : PlaytestApiResult.LocalUnreadableFile($"{absoluteFilePath}: {content.LocalReadFailure}");
+            // 送信中に手元のファイルが読めなくなった失敗は、到達失敗ではなく手元の問題として返す（長さの変化は恒久、I/O障害は一過性）
+            // A local read failure mid-send is returned as a local problem, not unreachability (a length change is permanent, an I/O fault transient)
+            if (content.LocalReadFailure == null) return result;
+            var detail = $"{absoluteFilePath}: {content.LocalReadFailure}";
+            return content.LocalFileChanged ? PlaytestApiResult.LocalFileChanged(detail) : PlaytestApiResult.LocalFileUnavailable(detail);
         }
 
         // 署名付きPUTの要求。If-None-Match: * は署名に含まれており（受け口の契約）、既にあるキーを上書きさせない。Bearerは付けない
@@ -120,12 +122,15 @@ namespace Client.PlaytestReceiver.Http
         // The single boundary isolating unreachability, timeouts and an idle cut into TransportFailure; callers only see the kind and status code
         private static async UniTask<PlaytestApiResult> SendAsync(HttpRequestMessage request, CancellationTokenSource deadline, string cutDescription, CancellationToken token)
         {
-            var target = DescribeTargetForLog(request.RequestUri);
+            // 宛先の整形も境界の内側で行う。相対URL等で例外になっても走行を落とさず到達失敗へ畳む
+            // Even formatting the target happens inside the boundary, so a relative URL folds into a transport failure instead of ending the run
+            var target = "an unformattable target";
             try
             {
                 using (request)
-                using (var response = await Client.SendAsync(request, deadline.Token))
                 {
+                    target = DescribeTargetForLog(request.RequestUri);
+                    using var response = await Client.SendAsync(request, deadline.Token);
                     var body = await response.Content.ReadAsStringAsync();
                     return PlaytestApiResult.Responded((int)response.StatusCode, body);
                 }

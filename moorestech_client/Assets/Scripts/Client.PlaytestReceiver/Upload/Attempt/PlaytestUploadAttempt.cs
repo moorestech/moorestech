@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Http.Responses;
@@ -31,38 +32,36 @@ namespace Client.PlaytestReceiver.Upload.Attempt
         // One attempt: null on success, else the stage and result. Only files prepare returned a URL for are PUT (the receiver leaves out what R2 already holds)
         public async UniTask<PlaytestUploadAttemptFailure> RunAsync(PlaytestOutboxBox box, PlaytestBoxDeclaration declaration, HashSet<string> sentPaths, CancellationToken token)
         {
-            // 受け口は宣言の拡大を拒む。送る前に宣言を箱へ残し、次の走行の宣言をその範囲に留める
-            // The receiver refuses a grown declaration; the declaration is kept in the box before sending so the next run stays within it
-            PlaytestUploadDeclaredRecord.Write(box.Directory, declaration.Files);
-            var prepared = await _session.SendAuthorizedAsync(new PlaytestPrepareCall(_api, box, declaration.Files), token);
+            // 受け口は宣言の拡大と同じ世代の食い違いを拒む。送る前に世代と宣言を箱へ残し、次の走行の宣言をその範囲に留める
+            // The receiver refuses a grown declaration or a same-generation mismatch; the generation and declaration are kept in the box before sending so the next run stays within it
+            var generation = PlaytestUploadDeclaredRecord.Declare(box.Directory, declaration.Files);
+            var prepared = await _session.SendAuthorizedAsync(new PlaytestPrepareCall(_api, box, generation, declaration.Files), token);
             if (!prepared.IsSuccess) return PlaytestUploadAttemptFailure.AtPrepare(prepared);
-            if (!PlaytestPrepareResponse.TryParse(prepared.Body, out var response, out var detail))
+            if (!PlaytestPrepareResponse.TryParse(prepared.Body, declaration.Files, out var response, out var detail))
             {
                 return PlaytestUploadAttemptFailure.AtPrepare(PlaytestApiResult.MalformedResponse(prepared.StatusCode, detail));
             }
             if (response.Outcome == PlaytestPrepareOutcome.Prepared)
             {
+                // R2に長さ違いの同名キーがあれば上書きできない。必須を優先して1件ずつ裁定へ回す
+                // A same-named key of another length in R2 can never be overwritten; one at a time goes to the verdict, required ones first
+                if (response.Conflicts.Count != 0) return ConflictFailure(response.Conflicts);
                 foreach (var upload in response.Uploads)
                 {
-                    if (sentPaths.Contains(upload.Path)) continue;
-                    var file = FindDeclared(upload.Path);
-                    if (file == null)
-                    {
-                        Debug.LogWarning($"[PlaytestReceiver] the receiver returned an upload for an undeclared path: {upload.Path}");
-                        return PlaytestUploadAttemptFailure.AtPrepare(PlaytestApiResult.MalformedResponse(prepared.StatusCode, $"undeclared path in prepare response: {upload.Path}"));
-                    }
+                    var file = upload.File;
+                    if (sentPaths.Contains(file.Path)) continue;
                     var put = await _api.PutToSignedUrlAsync(upload.Url, file.AbsolutePath, file.Bytes, token);
                     if (IsAlreadyStored(put))
                     {
                         // If-None-Match: * の412は同じキーが既にR2にある印。上書きせず送信済みとして進み、長さと存在はcompleteの照合に任せる
                         // A 412 under If-None-Match: * means the key already exists in R2; move on as sent without overwriting and leave length and presence to complete
-                        Debug.Log($"[PlaytestReceiver] {upload.Path} is already stored (HTTP 412); treating it as sent and leaving it to complete's verification");
-                        sentPaths.Add(upload.Path);
-                        _alreadyStoredPaths.Add(upload.Path);
+                        Debug.Log($"[PlaytestReceiver] {file.Path} is already stored (HTTP 412); treating it as sent and leaving it to complete's verification");
+                        sentPaths.Add(file.Path);
+                        _alreadyStoredPaths.Add(file.Path);
                         continue;
                     }
-                    if (!put.IsSuccess) return PlaytestUploadAttemptFailure.AtSignedPut(upload.Path, put);
-                    sentPaths.Add(upload.Path);
+                    if (!put.IsSuccess) return PlaytestUploadAttemptFailure.AtSignedPut(file.Path, put);
+                    sentPaths.Add(file.Path);
                 }
             }
             var completed = await _session.SendAuthorizedAsync(new PlaytestCompleteCall(_api, box, ComposeSupplement()), token);
@@ -87,13 +86,11 @@ namespace Client.PlaytestReceiver.Upload.Attempt
                 return put.Kind == PlaytestApiResultKind.Responded && put.StatusCode == 412;
             }
 
-            PlaytestDeclaredFile FindDeclared(string path)
+            PlaytestUploadAttemptFailure ConflictFailure(IReadOnlyList<PlaytestPrepareConflict> conflicts)
             {
-                foreach (var file in declaration.Files)
-                {
-                    if (file.Path == path) return file;
-                }
-                return null;
+                foreach (var conflict in conflicts) Debug.LogWarning($"[PlaytestReceiver] R2 already holds {conflict.File.Path} of {box.BundleId} with {conflict.ActualBytes} bytes instead of the declared {conflict.File.Bytes}");
+                var first = conflicts.OrderBy(conflict => box.FilePolicy.RankOf(conflict.File.Path)).First();
+                return PlaytestUploadAttemptFailure.PrepareConflictAt(first.File.Path, prepared, $"R2 already holds {first.File.Path} with {first.ActualBytes} bytes instead of the declared {first.File.Bytes}");
             }
 
             // completeの補足。manifest原文と見送り一覧だけを載せ、ファイル一覧は受け口が照合して決める

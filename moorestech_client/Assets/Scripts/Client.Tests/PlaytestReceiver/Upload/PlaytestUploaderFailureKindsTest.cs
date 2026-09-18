@@ -18,9 +18,7 @@ namespace Client.Tests.PlaytestReceiver
         public void CreateRoot()
         {
             _root = Path.Combine(Path.GetTempPath(), "playtest-upload-kinds-" + Path.GetRandomFileName());
-            _directories = new PlaytestOutboxDirectories(Path.Combine(_root, "BugReports", "outbox"), Path.Combine(_root, "ProgressRecords", "outbox"));
-            Directory.CreateDirectory(_directories.ReportOutbox);
-            Directory.CreateDirectory(_directories.ProgressOutbox);
+            _directories = PlaytestOutboxTestBoxes.Directories(_root);
         }
 
         [TearDown]
@@ -98,8 +96,8 @@ namespace Client.Tests.PlaytestReceiver
             Assert.AreEqual("1", AttemptCount(box));
         }
 
-        // 期限切れ（S3の AccessDenied「Request has expired」とそれを名乗るCode）とXMLで読めない403だけが一過性。署名不一致等はその箱固有
-        // Only an expiry (S3's AccessDenied "Request has expired" and codes naming one) and a non-XML 403 are transient; a signature mismatch and the like belong to the box
+        // 期限切れ（S3の AccessDenied「Request has expired」とそれを名乗るCode）とXMLで読めない403だけが一過性。署名不一致等は補助ファイルならそのファイルだけ見送る
+        // Only an expiry (S3's AccessDenied "Request has expired" and codes naming one) and a non-XML 403 are transient; a signature mismatch and the like skip just that file when it is supporting
         [TestCase("<Error><Code>AccessDenied</Code><Message>Request has expired</Message></Error>", true)]
         [TestCase("<Error><Code>RequestExpired</Code><Message>x</Message></Error>", true)]
         [TestCase("<Error><Code>ExpiredRequest</Code></Error>", true)]
@@ -112,21 +110,45 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeUploadApi();
             api.EnqueuePut("a.bin", PlaytestApiResult.Responded(403, body));
 
-            Assert.AreEqual(transient ? 1 : 0, Upload(api));
+            Assert.AreEqual(1, Upload(api));
+            Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
             if (transient) CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "prepare", "put:a.bin", "complete" }, api.Calls);
-            else Assert.AreEqual("1", AttemptCount(box));
+            else StringAssert.Contains("{\"path\":\"a.bin\",\"reason\":\"http-403\",\"bytes\":3}", api.LastCompleteBody);
         }
 
+        // 消えた・長さが変わったファイルは戻らない。補助ならそのファイルだけ見送り、必須なら箱を1回と数える
+        // A vanished or resized file never comes back; a supporting one alone is skipped, a required one counts the box once
         [Test]
-        public void 手元のファイルが読めなければ再試行せず1回と数える()
+        public void 手元で変わったファイルは補助なら見送り必須なら再試行せず1回と数える()
+        {
+            var box = MakeBox("20260913_110000_aaaa");
+            var api = new FakeUploadApi();
+            api.EnqueuePut("a.bin", PlaytestApiResult.LocalFileChanged("a.bin: the file ended before its declared 3 bytes"));
+
+            Assert.AreEqual(1, Upload(api));
+            StringAssert.Contains("{\"path\":\"a.bin\",\"reason\":\"local-file-changed\",\"bytes\":3}", api.LastCompleteBody);
+            Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
+
+            var required = MakeBox("20260913_120000_bbbb");
+            api.Calls.Clear();
+            api.EnqueuePut("manifest.json", PlaytestApiResult.LocalFileChanged("manifest.json does not exist"));
+            Assert.AreEqual(0, Upload(api));
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json" }, api.Calls);
+            Assert.AreEqual("1", AttemptCount(required));
+        }
+
+        // ロック等の一時的な読み取り失敗は数えずに再試行表でやり直す
+        // A temporary read failure such as a lock is retried per the schedule without counting
+        [Test]
+        public void 手元のファイルが一時的に読めなければ数えずに再試行する()
         {
             var box = MakeBox("20260913_120000_aaaa");
             var api = new FakeUploadApi();
-            api.EnqueuePut("a.bin", PlaytestApiResult.LocalUnreadableFile("a.bin: locked"));
+            api.EnqueuePut("a.bin", PlaytestApiResult.LocalFileUnavailable("a.bin: locked"));
 
-            Assert.AreEqual(0, Upload(api));
-            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin" }, api.Calls);
-            Assert.AreEqual("1", AttemptCount(box));
+            Assert.AreEqual(1, Upload(api));
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "prepare", "put:a.bin", "complete" }, api.Calls);
+            Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
         }
 
         [Test]
@@ -134,7 +156,7 @@ namespace Client.Tests.PlaytestReceiver
         {
             MakeBox("20260913_120000_aaaa");
             var api = new FakeUploadApi();
-            api.EnqueuePrepare(PlaytestApiResult.Responded(200, "{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a.bin\",\"url\":\"https://r2.test/a.bin\",\"bytes\":3}],\"expiresInSeconds\":3600}"));
+            api.EnqueuePrepare(PlaytestApiResult.Responded(200, "{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a.bin\",\"url\":\"https://r2.test/a.bin\",\"bytes\":3}],\"conflicts\":[],\"expiresInSeconds\":3600}"));
 
             Assert.AreEqual(1, Upload(api));
             CollectionAssert.AreEqual(new[] { "prepare", "put:a.bin", "complete" }, api.Calls);

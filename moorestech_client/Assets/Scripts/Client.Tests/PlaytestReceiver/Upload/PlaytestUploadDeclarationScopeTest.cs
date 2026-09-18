@@ -20,9 +20,7 @@ namespace Client.Tests.PlaytestReceiver
         public void CreateRoot()
         {
             _root = Path.Combine(Path.GetTempPath(), "playtest-upload-scope-" + Path.GetRandomFileName());
-            _directories = new PlaytestOutboxDirectories(Path.Combine(_root, "BugReports", "outbox"), Path.Combine(_root, "ProgressRecords", "outbox"));
-            Directory.CreateDirectory(_directories.ReportOutbox);
-            Directory.CreateDirectory(_directories.ProgressOutbox);
+            _directories = PlaytestOutboxTestBoxes.Directories(_root);
         }
 
         [TearDown]
@@ -91,24 +89,31 @@ namespace Client.Tests.PlaytestReceiver
             for (var i = 0; i < 4; i++) api.EnqueueComplete(PlaytestApiResult.Responded(503, ""));
             Assert.AreEqual(0, Upload(api));
 
+            // 縮めた宣言は世代を1つ上げて送り、同じ集合のやり直しと次の走行は同じ世代を保つ
+            // The shrunk declaration goes out one generation higher, and retries of the same set and the next run keep that generation
+            CollectionAssert.AreEqual(new[] { 1, 2, 2, 2, 2 }, api.PreparedGenerations);
+
             api.Calls.Clear();
             Assert.AreEqual(1, Upload(api));
             CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "complete" }, api.Calls);
             CollectionAssert.AreEqual(new[] { "manifest.json" }, api.LastPreparedPaths);
+            Assert.AreEqual(2, api.PreparedGenerations[api.PreparedGenerations.Count - 1]);
             StringAssert.Contains("{\"path\":\"a.bin\",\"reason\":\"http-400\",\"bytes\":3}", api.LastCompleteBody);
         }
 
-        // 必須群は見送りに記録しない。バケット名の誤り等を直せば次の走行で送れる
-        // Required files are never recorded as skipped; once e.g. a bucket-name typo is fixed, the next run ships
+        // 必須群は見送りに記録せず、一過性かもしれないので再試行表を使い切ってから箱を1回と数える。原因を直せば次の走行で送れる
+        // Required files are never recorded as skipped and may be transient, so the box counts once only after the retry schedule; once the cause is fixed, the next run ships
         [Test]
-        public void 必須ファイルがR2に拒まれた箱は見送りを記録せず1回と数え次の走行で送れる()
+        public void 必須ファイルがR2に拒まれ続けた箱は見送りを記録せず再試行後に1回と数え次の走行で送れる()
         {
             var box = MakeBox(("manifest.json", "{}"), ("a.bin", "abc"));
             var api = new FakeUploadApi();
-            api.EnqueuePut("manifest.json", PlaytestApiResult.Responded(404, "<Error><Code>NoSuchBucket</Code></Error>"));
+            var attempts = 1 + PlaytestUploadRetrySchedule.Default.Delays.Count;
+            for (var i = 0; i < attempts; i++) api.EnqueuePut("manifest.json", PlaytestApiResult.Responded(400, "<Error><Code>InvalidArgument</Code></Error>"));
 
             Assert.AreEqual(0, Upload(api));
-            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json" }, api.Calls);
+            Assert.AreEqual(attempts, api.Calls.FindAll(call => call == "put:manifest.json").Count);
+            CollectionAssert.DoesNotContain(api.Calls, "put:a.bin");
             StringAssert.StartsWith("1\n", File.ReadAllText(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
             Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.SkippedMarker)));
 
@@ -146,9 +151,9 @@ namespace Client.Tests.PlaytestReceiver
             return box;
         }
 
-        private static PlaytestOutboxBox Box(string directory)
+        private PlaytestOutboxBox Box(string directory)
         {
-            return new PlaytestOutboxBox(directory, Path.GetFileName(directory), PlaytestUploadKind.Report);
+            return new PlaytestOutboxBox(directory, Path.GetFileName(directory), PlaytestUploadKind.Report, _directories.ReportFilePolicy);
         }
 
         private int Upload(FakeUploadApi api)

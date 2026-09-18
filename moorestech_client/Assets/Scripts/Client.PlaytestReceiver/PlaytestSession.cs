@@ -15,6 +15,10 @@ namespace Client.PlaytestReceiver
         TicketRejected,
         TicketUnavailable,
         Unreachable,
+
+        // 受け口は200で応答したが本文が契約の形でない（版ずれ・キャプティブポータル等）。到達失敗と混ぜない
+        // The receiver answered 200 but the body breaks the contract (version skew, captive portal); kept apart from unreachability
+        MalformedResponse,
     }
 
     // 認証1回の結末。Outcomeで分岐、Detailはログ専用
@@ -92,10 +96,10 @@ namespace Client.PlaytestReceiver
                 if (response.StatusCode == 401) return Result(PlaytestSessionOutcome.TicketRejected, response.Body);
                 if (response.StatusCode != 200) return Result(PlaytestSessionOutcome.Unreachable, $"HTTP {response.StatusCode} {response.Body}");
 
-                // 200でも本文は外部入力。形が違えば到達できなかったのと同じ扱いにし、トークン無しでAllowedを返さない
-                // Even a 200 body is external input; a malformed one counts as not reaching the receiver, never as Allowed
+                // 200でも本文は外部入力。形が違えば契約違反として返し、トークン無しでAllowedを返さない
+                // Even a 200 body is external input; a malformed one comes back as a contract breach, never as Allowed
                 var parsed = PlaytestSessionResponse.Parse(response.Body);
-                if (parsed == null) return Result(PlaytestSessionOutcome.Unreachable, "malformed session response");
+                if (parsed == null) return Result(PlaytestSessionOutcome.MalformedResponse, "malformed session response");
 
                 if (!parsed.Allowed)
                 {
@@ -126,14 +130,14 @@ namespace Client.PlaytestReceiver
         internal async UniTask<PlaytestApiResult> SendAuthorizedAsync(IPlaytestAuthorizedCall call, CancellationToken token)
         {
             var ensured = await EnsureTokenAsync(DateTime.UtcNow, false, token);
-            if (ensured.Outcome != PlaytestSessionOutcome.Allowed) return PlaytestApiResult.SessionUnavailable($"{ensured.Outcome} {ensured.Detail}");
+            if (ensured.Outcome != PlaytestSessionOutcome.Allowed) return PlaytestApiResult.SessionUnavailable(ensured.Outcome, $"{ensured.Outcome} {ensured.Detail}");
 
             var response = await call.SendAsync(_token, token);
             if (response.Kind != PlaytestApiResultKind.Responded || response.StatusCode != 401) return response;
 
             Debug.Log("[PlaytestReceiver] the receiver rejected the token; renewing it once and retrying");
             var renewed = await EnsureTokenAsync(DateTime.UtcNow, true, token);
-            if (renewed.Outcome != PlaytestSessionOutcome.Allowed) return PlaytestApiResult.SessionUnavailable($"{renewed.Outcome} {renewed.Detail}");
+            if (renewed.Outcome != PlaytestSessionOutcome.Allowed) return PlaytestApiResult.SessionUnavailable(renewed.Outcome, $"{renewed.Outcome} {renewed.Detail}");
 
             return await call.SendAsync(_token, token);
         }

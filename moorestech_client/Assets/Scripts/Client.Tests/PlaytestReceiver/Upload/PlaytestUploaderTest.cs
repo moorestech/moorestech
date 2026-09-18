@@ -21,9 +21,7 @@ namespace Client.Tests.PlaytestReceiver
         public void CreateRoot()
         {
             _root = Path.Combine(Path.GetTempPath(), "playtest-upload-" + Path.GetRandomFileName());
-            _directories = new PlaytestOutboxDirectories(Path.Combine(_root, "BugReports", "outbox"), Path.Combine(_root, "ProgressRecords", "outbox"));
-            Directory.CreateDirectory(_directories.ReportOutbox);
-            Directory.CreateDirectory(_directories.ProgressOutbox);
+            _directories = PlaytestOutboxTestBoxes.Directories(_root);
         }
 
         [TearDown]

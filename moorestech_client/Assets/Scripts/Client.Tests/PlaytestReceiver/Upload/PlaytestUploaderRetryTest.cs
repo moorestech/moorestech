@@ -19,9 +19,7 @@ namespace Client.Tests.PlaytestReceiver
         public void CreateRoot()
         {
             _root = Path.Combine(Path.GetTempPath(), "playtest-upload-retry-" + Path.GetRandomFileName());
-            _directories = new PlaytestOutboxDirectories(Path.Combine(_root, "BugReports", "outbox"), Path.Combine(_root, "ProgressRecords", "outbox"));
-            Directory.CreateDirectory(_directories.ReportOutbox);
-            Directory.CreateDirectory(_directories.ProgressOutbox);
+            _directories = PlaytestOutboxTestBoxes.Directories(_root);
         }
 
         [TearDown]
@@ -139,7 +137,7 @@ namespace Client.Tests.PlaytestReceiver
         {
             MakeBox("20260913_120000_aaaa", "a.bin");
             var api = new FakeUploadApi();
-            api.EnqueuePrepare(PlaytestApiResult.Responded(200, "{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"x.bin\",\"url\":\"https://r2.test/x.bin\",\"bytes\":1}]}"));
+            api.EnqueuePrepare(PlaytestApiResult.Responded(200, "{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"x.bin\",\"url\":\"https://r2.test/x.bin\",\"bytes\":1}],\"conflicts\":[]}"));
 
             Assert.AreEqual(1, Upload(api));
             CollectionAssert.AreEqual(new[] { "prepare", "prepare", "put:manifest.json", "put:a.bin", "complete" }, api.Calls);

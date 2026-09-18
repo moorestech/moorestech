@@ -31,15 +31,18 @@ namespace Client.PlaytestReceiver.Upload.Attempt
         public readonly IReadOnlyList<PlaytestDeclaredFile> Files;
         public readonly IReadOnlyList<PlaytestSkippedFile> Skipped;
 
-        // 再現に要るファイル（manifest・world/・snapshots/）が見送られていればその説明、揃っていればnull
-        // A description of the reproduction-critical file (manifest, world/, snapshots/) that got skipped, or null when all are present
+        // 箱の格付けで必須のファイルが見送られていればその説明、揃っていればnull
+        // A description of a file the box's policy ranks required that got skipped, or null when all are present
         public readonly string MissingRequiredReason;
 
-        private PlaytestBoxDeclaration(IReadOnlyList<PlaytestDeclaredFile> files, IReadOnlyList<PlaytestSkippedFile> skipped)
+        private readonly IPlaytestBoxFilePolicy _filePolicy;
+
+        private PlaytestBoxDeclaration(IReadOnlyList<PlaytestDeclaredFile> files, IReadOnlyList<PlaytestSkippedFile> skipped, IPlaytestBoxFilePolicy filePolicy)
         {
             Files = files;
             Skipped = skipped;
-            var missingRequired = skipped.FirstOrDefault(file => PlaytestBundleFilePriority.IsRequired(file.Path));
+            _filePolicy = filePolicy;
+            var missingRequired = skipped.FirstOrDefault(file => filePolicy.RankOf(file.Path) == PlaytestBundleFileRank.Required);
             MissingRequiredReason = missingRequired == null ? null : $"{missingRequired.Path} was skipped ({missingRequired.Reason})";
         }
 
@@ -54,7 +57,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
             // Priority order (required, supporting, stills), ordinal within a rank; the caps always drop trailing stills, identically on every run
             var payloads = PlaytestOutboxScanner.ListPayloadFiles(box.Directory)
                 .Select(absolute => (Absolute: absolute, Relative: PlaytestOutboxScanner.ToRelativePath(box.Directory, absolute)))
-                .OrderBy(file => PlaytestBundleFilePriority.RankOf(file.Relative))
+                .OrderBy(file => box.FilePolicy.RankOf(file.Relative))
                 .ThenBy(file => file.Relative, StringComparer.Ordinal);
             foreach (var (absolute, relative) in payloads)
             {
@@ -68,7 +71,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
                 files.Add(new PlaytestDeclaredFile(relative, length, absolute));
                 total += length;
             }
-            return new PlaytestBoxDeclaration(files, skipped);
+            return new PlaytestBoxDeclaration(files, skipped, box.FilePolicy);
 
             #region Internal
 
@@ -80,7 +83,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
             {
                 length = new FileInfo(absolute).Length;
                 if (recordedSkips.TryGetValue(relative, out var recorded)) return recorded;
-                if (earlierDeclaration != null && !earlierDeclaration.Contains(relative)) return "outside-earlier-declaration";
+                if (earlierDeclaration != null && !earlierDeclaration.Paths.Contains(relative)) return "outside-earlier-declaration";
                 return PlaytestUploadPath.DescribeRejection(relative, length, declaredCount, declaredTotal);
             }
 
@@ -98,7 +101,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
                 if (file.Path == path) skipped.Add(new PlaytestSkippedFile(path, reason, file.Bytes));
                 else remaining.Add(file);
             }
-            return new PlaytestBoxDeclaration(remaining, skipped);
+            return new PlaytestBoxDeclaration(remaining, skipped, _filePolicy);
         }
     }
 }

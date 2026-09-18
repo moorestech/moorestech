@@ -6,7 +6,15 @@ namespace Client.PlaytestReceiver.Http
     {
         Responded,
         TransportFailure,
-        LocalUnreadableFile,
+
+        // 手元のファイルが消えた・宣言の長さから変わった。やり直しても戻らない
+        // The local file vanished or no longer has its declared length; a retry never brings it back
+        LocalFileChanged,
+
+        // 手元のファイルが一時的に読めない（他プロセスのロック・一時的なI/O障害）。待てば直りうる
+        // The local file is temporarily unreadable (a foreign lock, a transient I/O fault); it may heal with time
+        LocalFileUnavailable,
+
         SessionUnavailable,
 
         // 受け口は2xxで応答したが中身が契約の形でない（版ずれ・キャプティブポータル等）。到達失敗と混ぜない
@@ -26,37 +34,47 @@ namespace Client.PlaytestReceiver.Http
         // Why a non-response ended the call; for logs only
         public readonly string Detail;
 
-        private PlaytestApiResult(PlaytestApiResultKind kind, int statusCode, string body, string detail)
+        // トークンが取れなかった理由。SessionUnavailable でだけ意味を持ち、他の種別では Allowed
+        // Why no token was available; meaningful only for SessionUnavailable, Allowed for every other kind
+        public readonly PlaytestSessionOutcome SessionOutcome;
+
+        private PlaytestApiResult(PlaytestApiResultKind kind, int statusCode, string body, string detail, PlaytestSessionOutcome sessionOutcome)
         {
             Kind = kind;
             StatusCode = statusCode;
             Body = body;
             Detail = detail;
+            SessionOutcome = sessionOutcome;
         }
 
         public static PlaytestApiResult Responded(int statusCode, string body)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.Responded, statusCode, body, "");
+            return new PlaytestApiResult(PlaytestApiResultKind.Responded, statusCode, body, "", PlaytestSessionOutcome.Allowed);
         }
 
         public static PlaytestApiResult TransportFailure(string detail)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.TransportFailure, 0, "", detail);
+            return new PlaytestApiResult(PlaytestApiResultKind.TransportFailure, 0, "", detail, PlaytestSessionOutcome.Allowed);
         }
 
-        public static PlaytestApiResult LocalUnreadableFile(string detail)
+        public static PlaytestApiResult LocalFileChanged(string detail)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.LocalUnreadableFile, 0, "", detail);
+            return new PlaytestApiResult(PlaytestApiResultKind.LocalFileChanged, 0, "", detail, PlaytestSessionOutcome.Allowed);
         }
 
-        public static PlaytestApiResult SessionUnavailable(string detail)
+        public static PlaytestApiResult LocalFileUnavailable(string detail)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.SessionUnavailable, 0, "", detail);
+            return new PlaytestApiResult(PlaytestApiResultKind.LocalFileUnavailable, 0, "", detail, PlaytestSessionOutcome.Allowed);
+        }
+
+        public static PlaytestApiResult SessionUnavailable(PlaytestSessionOutcome sessionOutcome, string detail)
+        {
+            return new PlaytestApiResult(PlaytestApiResultKind.SessionUnavailable, 0, "", detail, sessionOutcome);
         }
 
         public static PlaytestApiResult MalformedResponse(int statusCode, string detail)
         {
-            return new PlaytestApiResult(PlaytestApiResultKind.MalformedResponse, statusCode, "", detail);
+            return new PlaytestApiResult(PlaytestApiResultKind.MalformedResponse, statusCode, "", detail, PlaytestSessionOutcome.Allowed);
         }
 
         public bool IsSuccess => Kind == PlaytestApiResultKind.Responded && 200 <= StatusCode && StatusCode < 300;

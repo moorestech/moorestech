@@ -80,7 +80,7 @@ namespace Client.Tests.PlaytestReceiver
             return UniTask.FromResult(response);
         }
 
-        public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
+        public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
             return UniTask.FromResult(PlaytestApiResult.Responded(200, "{}"));
         }
@@ -106,6 +106,7 @@ namespace Client.Tests.PlaytestReceiver
         public int CompleteCount;
         public string LastCompleteBody = "";
         public List<string> LastPreparedPaths = new();
+        public List<int> PreparedGenerations = new();
         public UniTaskCompletionSource<PlaytestApiResult> PendingPut;
         public PlaytestApiResult SessionResult = PlaytestApiResult.Responded(200, PlaytestSessionBodies.AllowedFarFuture);
 
@@ -128,10 +129,11 @@ namespace Client.Tests.PlaytestReceiver
             return UniTask.FromResult(SessionResult);
         }
 
-        public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
+        public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, int generation, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
             Calls.Add("prepare");
             LastPreparedPaths = files.Select(file => file.Path).ToList();
+            PreparedGenerations.Add(generation);
             return UniTask.FromResult(_prepareResults.Count != 0 ? _prepareResults.Dequeue() : PlaytestApiResult.Responded(200, PrepareBodyFor(files)));
         }
 
@@ -161,7 +163,7 @@ namespace Client.Tests.PlaytestReceiver
         {
             var uploads = new JArray();
             foreach (var f in files) uploads.Add(new JObject { ["path"] = f.Path, ["url"] = SignedUrlPrefix + f.Path, ["bytes"] = f.Bytes });
-            return new JObject { ["outcome"] = "prepared", ["uploads"] = uploads, ["expiresInSeconds"] = 3600 }.ToString(Formatting.None);
+            return new JObject { ["outcome"] = "prepared", ["uploads"] = uploads, ["conflicts"] = new JArray(), ["expiresInSeconds"] = 3600 }.ToString(Formatting.None);
         }
     }
 }

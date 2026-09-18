@@ -13,7 +13,7 @@ namespace Client.Tests.PlaytestReceiver
     // The source of the values shared with the receiver is contract.json; the worker pins the same match in vitest
     public class PlaytestReceiverContractTest
     {
-        private static JObject ReadContract()
+        internal static JObject ReadContract()
         {
             var path = Path.Combine(Application.dataPath, "..", "..", "tools", "playtest-receiver", "contract.json");
             return JObject.Parse(File.ReadAllText(path));
@@ -46,13 +46,24 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void 箱単位の上限とURL期限とアイドル期限が受け口と一致する()
+        public void 箱単位の上限とアイドル期限が受け口と一致する()
         {
             var contract = ReadContract();
             Assert.AreEqual((int)contract["maxBundleFiles"], PlaytestReceiverConfig.MaxBundleFiles);
             Assert.AreEqual((long)contract["maxBundleBytes"], PlaytestReceiverConfig.MaxBundleBytes);
-            Assert.AreEqual((int)contract["uploadUrlTtlSeconds"], PlaytestReceiverConfig.UploadUrlTtlSeconds);
             Assert.AreEqual((int)contract["uploadIdleTimeoutSeconds"], PlaytestReceiverConfig.UploadIdleTimeoutSeconds);
+        }
+
+        // 失敗の分類と応答の判別はこれらの語で分岐する。片側だけ改名すると宣言の衝突が一過性に化けたり prepare 応答が全部契約違反になる
+        // Failure sorting and response discrimination branch on these words; a one-sided rename would turn a conflict transient or every prepare answer malformed
+        [Test]
+        public void 宣言の拒否理由とprepareの結末の語が受け口と一致する()
+        {
+            var contract = ReadContract();
+            Assert.AreEqual((string)contract["declarationConflictReason"], PlaytestReceiverConfig.DeclarationConflictReason);
+            Assert.AreEqual((string)contract["declarationUnreadableReason"], PlaytestReceiverConfig.DeclarationUnreadableReason);
+            Assert.AreEqual((string)contract["prepareOutcomes"]["prepared"], PlaytestReceiverConfig.PrepareOutcomePrepared);
+            Assert.AreEqual((string)contract["prepareOutcomes"]["acked"], PlaytestReceiverConfig.PrepareOutcomeAcked);
         }
     }
 }

@@ -69,6 +69,20 @@ namespace Client.Tests.PlaytestReceiver.Http
             // HttpContent may rewrap the body's exception, so the recorded reason is checked instead of the type
             Assert.Catch(() => Task.Run(() => content.CopyToAsync(Stream.Null)).GetAwaiter().GetResult());
             StringAssert.Contains("declared 16 bytes", content.LocalReadFailure);
+            Assert.IsTrue(content.LocalFileChanged);
+        }
+
+        // 宣言の後に伸びたファイルを宣言の長さで切って送ると、切り詰めた中身が完全として照合を通る
+        // Sending a file that grew after the declaration cut at the declared length would pass verification as complete while truncated
+        [Test]
+        public void 宣言より長くなったファイルは手元の変化として止める()
+        {
+            using var deadline = new CancellationTokenSource();
+            using var content = new IdleTimeoutFileContent(new MemoryStream(new byte[24]), 16, deadline, IdleDeadline, ResponseDeadline);
+
+            Assert.Catch(() => Task.Run(() => content.CopyToAsync(Stream.Null)).GetAwaiter().GetResult());
+            StringAssert.Contains("grew after its declared bytes", content.LocalReadFailure);
+            Assert.IsTrue(content.LocalFileChanged);
         }
 
         [Test]
