@@ -63,8 +63,10 @@ done
 "$SCP_BIN" -o BatchMode=yes "$SCRIPT_DIR/windows/run-smoke.ps1" "$REMOTE:$REMOTE_ROOT/run-smoke.ps1"
 
 echo "[verify] running smoke on $MOORESTECH_VERIFY_HOST"
+# 引数は二重引用符で囲む。検証機のsshd既定シェルがcmd.exeだと単一引用符は剥がされず、-File が「パス形式が不正」で落ちるうえ終了コード0を返す
+# Arguments use double quotes: under a cmd.exe sshd default shell single quotes are not stripped, so -File fails on the path format yet exits 0
 "$SSH_BIN" -o BatchMode=yes "$REMOTE" \
-    "powershell -NoProfile -ExecutionPolicy Bypass -File '$REMOTE_ROOT/run-smoke.ps1' -ResultRoot '$REMOTE_ROOT/results' -ExpectedBuildLabel '$BUILD_LABEL'"
+    "powershell -NoProfile -ExecutionPolicy Bypass -File \"$REMOTE_ROOT/run-smoke.ps1\" -ResultRoot \"$REMOTE_ROOT/results\" -ExpectedBuildLabel \"$BUILD_LABEL\""
 
 # 前回実行の残骸を先に消す。scpは宛先に既存のresultsがあるとその中へ入れ子で置くため、
 # 消さないまま再実行すると古いresult.json/announce.mdを読んでしまう

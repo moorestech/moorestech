@@ -36,7 +36,7 @@
 > - 許可リスト: R2 `config/allowlist.json` = `{ "steamIds": ["..."] }`。Mac mini 側の `scripts/playtest/allowlist.sh add|remove|list <steamId>` が admin API `PUT /v1/allowlist` で更新。
 > - Secrets（wrangler secret）: `STEAM_WEB_API_KEY`（publisher key）、`SESSION_HMAC_SECRET`、`ADMIN_KEY`。`STEAM_APP_ID=1958160` は vars。
 >
-> base は `https://playtest.tar-atari.com`、実装は本repo `tools/playtest-receiver/`、TypeScript + wrangler、R2 バケット `moorestech-playtest`。
+> base は `https://playtest.moores.tech`、実装は本repo `tools/playtest-receiver/`、TypeScript + wrangler、R2 バケット `moorestech-playtest`。
 
 ### 共有契約 §6（Mac mini 取り込み）— 逐語転記・変更禁止
 
@@ -51,7 +51,7 @@
 ### 実装規約
 
 - 作業ブランチ: `feature/playtest-ingest-digest`（`origin/master` から）。`../moorestech_logs` の変更は同名ブランチを **`origin/main` から**切って push し PR を作る（AGENTS.md「別リポジトリも push して PR」。logs repo の既定ブランチは `main`）。
-- Mac mini 固有パスは全て環境変数で受け、既定値を実配置にする: `MOORESTECH_REPO`＝`~/hermes-agent/data/repos/moorestech`、`MOORESTECH_LOGS`＝`~/hermes-agent/data/repos/moorestech_logs`、`PLAYTEST_RECEIVER_BASE`＝`https://playtest.tar-atari.com`、`PLAYTEST_ENV_FILE`＝`~/hermes-agent/data/services/playtest/env.sh`。テストは全て一時ディレクトリへ差し替えて行う。
+- Mac mini 固有パスは全て環境変数で受け、既定値を実配置にする: `MOORESTECH_REPO`＝`~/hermes-agent/data/repos/moorestech`、`MOORESTECH_LOGS`＝`~/hermes-agent/data/repos/moorestech_logs`、`PLAYTEST_RECEIVER_BASE`＝`https://playtest.moores.tech`、`PLAYTEST_ENV_FILE`＝`~/hermes-agent/data/services/playtest/env.sh`。テストは全て一時ディレクトリへ差し替えて行う。
 - シェルは `#!/usr/bin/env bash` + `set -euo pipefail`。外部コマンドは変数（`CURL_CMD`・`GIT_CMD`）で差し替え可能にする。無音の失敗禁止（必ず `echo "[ingest] ..." >&2`）。
 - **秘密値の扱い**: `PLAYTEST_ADMIN_KEY` と Discord チャンネルIDは `~/hermes-agent/data/services/playtest/env.sh`（`chmod 600`）にのみ置く。スクリプト・plan・README・コミットメッセージ・ログに値を書かない。`set -x` を使わない。
 - コメント規約（日本語1行 → 英語1行の2行セット、3〜10行ごと）はシェル・Python にも適用。1ファイル200行以下、1ディレクトリ10ファイルまで。
@@ -249,7 +249,7 @@ Expected: FAIL（`ingest.sh` が無い）
 #!/usr/bin/env bash
 # 受け口 admin API の薄いラッパ。curl は差し替え可能で、admin key は引数にしか現れない
 # Thin wrappers over the receiver admin API; curl is swappable and the admin key appears only as an argument
-RECEIVER_BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.tar-atari.com}"
+RECEIVER_BASE="${PLAYTEST_RECEIVER_BASE:-https://playtest.moores.tech}"
 CURL_CMD="${CURL_CMD:-curl}"
 RECEIVER_MAX_TIME="${RECEIVER_MAX_TIME:-120}"
 

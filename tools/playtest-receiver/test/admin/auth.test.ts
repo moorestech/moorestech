@@ -7,7 +7,7 @@ import { STEAM_ID, noNetwork, workerEnv } from "../support/uploadsFixture";
 describe("admin api auth", () => {
   it("adminキーが無ければ401でwarnする", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(new Request("https://playtest.tar-atari.com/v1/inbox"), workerEnv, noNetwork);
+    const response = await handle(new Request("https://playtest.moores.tech/v1/inbox"), workerEnv, noNetwork);
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({ reason: "unauthorized" });
     expect(warn).toHaveBeenCalled();
@@ -17,7 +17,7 @@ describe("admin api auth", () => {
   it("adminキーが違えば401でwarnする", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request("https://playtest.tar-atari.com/v1/inbox", { headers: { "x-admin-key": "wrong" } }),
+      new Request("https://playtest.moores.tech/v1/inbox", { headers: { "x-admin-key": "wrong" } }),
       workerEnv,
       noNetwork,
     );
@@ -31,7 +31,7 @@ describe("admin api auth", () => {
   it("adminキーが無ければ経路の形に関わらず401になる（不正kindの inbox パス）", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox/badkind/${STEAM_ID}/20260913_120000_aaaa1111/ack`, { method: "POST" }),
+      new Request(`https://playtest.moores.tech/v1/inbox/badkind/${STEAM_ID}/20260913_120000_aaaa1111/ack`, { method: "POST" }),
       workerEnv,
       noNetwork,
     );
@@ -43,7 +43,7 @@ describe("admin api auth", () => {
 
   it("adminキーが無ければ経路の形に関わらず401になる（allowlistへの不正メソッド）", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(new Request("https://playtest.tar-atari.com/v1/allowlist", { method: "POST" }), workerEnv, noNetwork);
+    const response = await handle(new Request("https://playtest.moores.tech/v1/allowlist", { method: "POST" }), workerEnv, noNetwork);
     expect(response.status).toBe(401);
     expect(warn).toHaveBeenCalled();
     warn.mockRestore();

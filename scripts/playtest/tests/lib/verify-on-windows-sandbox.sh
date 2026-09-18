@@ -86,7 +86,7 @@ echo "curl \$*" >>"$SANDBOX/calls.log"
 out=/dev/null
 prev=""
 for arg; do [ "\$prev" = "-o" ] && out="\$arg"; prev="\$arg"; url="\$arg"; done
-expected="https://playtest.tar-atari.com/v1/inbox/report/7656/20260913_180000_\${SMOKE_REPORT_ID:-aaaa1111}"
+expected="https://playtest.moores.tech/v1/inbox/report/7656/20260913_180000_\${SMOKE_REPORT_ID:-aaaa1111}"
 case "\$url" in
   "\$expected/READY")
     if [ "\${RECEIVER_HAS_REPORT:-1}" = "1" ]; then echo '{"files":[]}' >"\$out"; printf 200; else echo nf >"\$out"; printf 404; fi ;;
@@ -100,7 +100,7 @@ EOF
 run_target() {
     ( MOORESTECH_VERIFY_HOST=verify-pc MOORESTECH_VERIFY_USER=moores \
       MOORESTECH_VERIFY_MAC=00:11:22:33:44:55 \
-      PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com \
+      PLAYTEST_RECEIVER_BASE=https://playtest.moores.tech \
       PLAYTEST_ADMIN_KEY=dummy \
       WAKEONLAN_BIN="$SANDBOX/bin/wakeonlan" SSH_BIN="$SANDBOX/bin/ssh" \
       SCP_BIN="$SANDBOX/bin/scp" CURL_CMD="$SANDBOX/bin/curl" \

@@ -4,7 +4,7 @@ import { handle } from "../../src/index";
 import { STEAM_ID, clean, noNetwork, workerEnv } from "../support/uploadsFixture";
 
 const ADMIN = { "x-admin-key": "test-admin-key" };
-const URL_ALLOWLIST = "https://playtest.tar-atari.com/v1/allowlist";
+const URL_ALLOWLIST = "https://playtest.moores.tech/v1/allowlist";
 
 function put(body: string): Promise<Response> {
   return handle(new Request(URL_ALLOWLIST, { method: "PUT", headers: ADMIN, body }), workerEnv, noNetwork);

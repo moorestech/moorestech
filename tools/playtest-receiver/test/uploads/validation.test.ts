@@ -10,7 +10,7 @@ describe("uploads validation", () => {
   it("kindが不正なら400", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/config/${ID}/a.txt`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/config/${ID}/a.txt`, {
         method: "PUT",
         headers: { authorization: await bearer() },
         body: "x",
@@ -29,7 +29,7 @@ describe("uploads validation", () => {
   it("..を含むパスは400で何も書かない", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/%2E%2E/%2E%2E/etc/passwd`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/%2E%2E/%2E%2E/etc/passwd`, {
         method: "PUT",
         headers: { authorization: await bearer() },
         body: "x",
@@ -46,7 +46,7 @@ describe("uploads validation", () => {
   it("不正なpercentエンコードのパスは400で何も書かない", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/%ZZ.png`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/%ZZ.png`, {
         method: "PUT",
         headers: { authorization: await bearer(), "content-length": "1" },
         body: "x",
@@ -64,7 +64,7 @@ describe("uploads validation", () => {
   it("Content-Lengthが100MiBを超えたら413", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/video.mp4`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/video.mp4`, {
         method: "PUT",
         headers: { authorization: await bearer(), "content-length": String(100 * 1024 * 1024 + 1) },
         body: "x",
@@ -81,7 +81,7 @@ describe("uploads validation", () => {
   it("Content-Lengthが無ければ411で何も書かない", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/no-length.txt`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/no-length.txt`, {
         method: "PUT",
         headers: { authorization: await bearer() },
         body: "x",
@@ -99,7 +99,7 @@ describe("uploads validation", () => {
   it("Content-Lengthが数値でなければ400で何も書かない", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/bad-length.txt`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/bad-length.txt`, {
         method: "PUT",
         headers: { authorization: await bearer(), "content-length": "abc" },
         body: "x",
@@ -117,7 +117,7 @@ describe("uploads validation", () => {
   it("idが..なら400で何も書かない", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request("https://playtest.tar-atari.com/v1/uploads/report/%2E%2E/a.txt", {
+      new Request("https://playtest.moores.tech/v1/uploads/report/%2E%2E/a.txt", {
         method: "PUT",
         headers: { authorization: await bearer() },
         body: "x",
@@ -135,7 +135,7 @@ describe("uploads validation", () => {
   it("パスに空セグメント(//)を含むと400で何も書かない", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}//a.txt`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}//a.txt`, {
         method: "PUT",
         headers: { authorization: await bearer(), "content-length": "1" },
         body: "x",
@@ -153,7 +153,7 @@ describe("uploads validation", () => {
   it("パーセントエンコードされた\\を含むセグメントは400で何も書かない", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/a%5Cb.txt`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/a%5Cb.txt`, {
         method: "PUT",
         headers: { authorization: await bearer(), "content-length": "1" },
         body: "x",
@@ -171,7 +171,7 @@ describe("uploads validation", () => {
   it("アップロードにPUT以外のメソッドは405", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/a.txt`, {
+      new Request(`https://playtest.moores.tech/v1/uploads/report/${ID}/a.txt`, {
         method: "GET",
         headers: { authorization: await bearer() },
       }),
