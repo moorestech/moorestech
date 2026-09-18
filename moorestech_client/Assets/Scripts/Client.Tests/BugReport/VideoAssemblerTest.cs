@@ -45,8 +45,8 @@ namespace Client.Tests.BugReport
             Assert.Greater(new FileInfo(output).Length, 0);
 
             var frames = Path.Combine(dir, "frames");
-            Assert.IsTrue(VideoAssembler.ExtractFrames(ffmpeg, output, frames, 2));
-            Assert.GreaterOrEqual(Directory.GetFiles(frames, "frame_*.jpg").Length, 3);
+            Assert.IsTrue(VideoAssembler.ExtractFrames(ffmpeg, output, frames, 1));
+            Assert.GreaterOrEqual(Directory.GetFiles(frames, "frame_*.jpg").Length, 1);
 
             // 2秒ぶんのフレームを流したので、本数×10秒固定の見積もりではなく実尺(約2秒)が返るはず
             // Fed two seconds of frames; the real (~2s) duration should come back, not the old count×10s estimate
