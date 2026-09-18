@@ -10,6 +10,10 @@ routes = [{ pattern = "playtest.tar-atari.com", custom_domain = true }]
 
 [vars]
 STEAM_APP_ID = "1958160"
+# 署名付きURLのホスト（<account>.r2.cloudflarestorage.com）と、URLへ埋めるバケット名。バケットのbindingとは別に文字列で要る
+# Host of the presigned URL (<account>.r2.cloudflarestorage.com) and the bucket name embedded in it; needed as strings apart from the binding
+R2_ACCOUNT_ID = "a60ba10bddf2fc760d75cc378137e8d4"
+R2_BUCKET_NAME = "moorestech-playtest"
 
 [[r2_buckets]]
 binding = "BUCKET"

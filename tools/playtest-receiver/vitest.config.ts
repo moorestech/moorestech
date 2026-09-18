@@ -12,6 +12,8 @@ export default defineConfig({
           STEAM_WEB_API_KEY: "test-steam-key",
           SESSION_HMAC_SECRET: "test-hmac-secret",
           ADMIN_KEY: "test-admin-key",
+          R2_ACCESS_KEY_ID: "test-access-key-id",
+          R2_SECRET_ACCESS_KEY: "test-secret-access-key",
         },
       },
     }),

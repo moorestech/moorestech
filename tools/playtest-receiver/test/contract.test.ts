@@ -1,7 +1,17 @@
 import { describe, expect, it } from "vitest";
 import contract from "../contract.json";
 import { ACKED_MARKER, READY_MARKER } from "../src/bundleMarkers";
-import { CONTRACT_KINDS, MAX_FILE_BYTES, RESERVED_UPLOAD_SEGMENTS, STEAM_IDENTITY, TOKEN_TTL_SECONDS } from "../src/contract";
+import {
+  CONTRACT_KINDS,
+  MAX_BUNDLE_BYTES,
+  MAX_BUNDLE_FILES,
+  MAX_FILE_BYTES,
+  RESERVED_UPLOAD_SEGMENTS,
+  STEAM_IDENTITY,
+  TOKEN_TTL_SECONDS,
+  UPLOAD_IDLE_TIMEOUT_SECONDS,
+  UPLOAD_URL_TTL_SECONDS,
+} from "../src/contract";
 import { KIND_PREFIX } from "../src/keys";
 
 // contract.jsonはC#クライアントと共有する正本。Workerの実効値がそこから外れていないことを固定する
@@ -26,9 +36,25 @@ describe("contract.json", () => {
     expect(contract).toEqual({
       steamIdentity: "moorestech-playtest",
       maxFileBytes: 100 * 1024 * 1024,
-      reservedUploadSegments: ["READY", "ACKED", "complete"],
+      maxBundleFiles: 128,
+      maxBundleBytes: 256 * 1024 * 1024,
+      uploadUrlTtlSeconds: 3600,
+      uploadIdleTimeoutSeconds: 60,
+      reservedUploadSegments: ["READY", "ACKED", "DECLARED", "complete", "prepare"],
       kinds: ["report", "progress"],
       tokenTtlSeconds: 3600,
     });
+  });
+});
+
+// 箱単位の上限・URL期限・アイドル期限は直接アップロードの土台。値の出所はcontract.json一本
+// Bundle-wide limits and the URL/idle deadlines underpin direct upload; contract.json is their sole source
+describe("contract constants", () => {
+  it("箱単位の上限とURL期限とアイドル期限はcontract.jsonと一致する", () => {
+    expect(MAX_BUNDLE_FILES).toBe(contract.maxBundleFiles);
+    expect(MAX_BUNDLE_BYTES).toBe(contract.maxBundleBytes);
+    expect(UPLOAD_URL_TTL_SECONDS).toBe(contract.uploadUrlTtlSeconds);
+    expect(UPLOAD_IDLE_TIMEOUT_SECONDS).toBe(contract.uploadIdleTimeoutSeconds);
+    expect(contract.maxBundleBytes).toBeGreaterThanOrEqual(contract.maxFileBytes);
   });
 });

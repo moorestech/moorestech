@@ -1,7 +1,11 @@
 {
   "steamIdentity": "moorestech-playtest",
   "maxFileBytes": 104857600,
-  "reservedUploadSegments": ["READY", "ACKED", "complete"],
+  "maxBundleFiles": 128,
+  "maxBundleBytes": 268435456,
+  "uploadUrlTtlSeconds": 3600,
+  "uploadIdleTimeoutSeconds": 60,
+  "reservedUploadSegments": ["READY", "ACKED", "DECLARED", "complete", "prepare"],
   "kinds": ["report", "progress"],
   "tokenTtlSeconds": 3600
 }
