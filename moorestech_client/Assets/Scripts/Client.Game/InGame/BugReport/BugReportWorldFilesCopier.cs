@@ -81,42 +81,53 @@ namespace Client.Game.InGame.BugReport
             var world = Path.Combine(bundleDirectory, BugReportBundleLayout.WorldDirectoryName);
             var destination = WorldDataDirectory.FromWorldRoot(world);
             Directory.CreateDirectory(world);
-            // ディスクIO境界（他プロセスのロック・権限不足）でのworld.jsonのコピー失敗を個別にisolateする。ここで例外を外へ逃すと、
-            // 後続のIsGeneratedWorld判定・map.json・terrain/のコピーがすべて巻き込まれて未実行になり、「読めなければ全部入れる」の救済経路に進めない
-            // Isolate a disk-IO-boundary failure (a foreign lock or missing permission) copying world.json here; letting the
-            // exception escape would drag down the IsGeneratedWorld check, map.json and terrain/ that follow, missing the fallback path
-            try { CopyIfExists(source.WorldMetaFilePath, destination.WorldMetaFilePath, manifest); }
-            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing("world.json", $"コピーに失敗した: {e.Message}"); }
+
+            // 宣言は箱に実際に入った物から決める。world.json が入らなければ受け側は生成か手作りかも決められないので not-captured のまま出す
+            // The declaration follows what really landed in the box; without world.json the receiver cannot even tell generated from hand-made, so it stays not-captured
+            // ディスクIO境界（他プロセスのロック・権限不足）でのworld.jsonのコピー失敗はここで個別に閉じ、world/ 全体の欠損と区別して残す
+            // A disk-IO-boundary failure (a foreign lock or missing permission) copying world.json is contained here and recorded apart from the whole world/
+            bool worldMetaCopied;
+            try { worldMetaCopied = CopyIfExists(source.WorldMetaFilePath, destination.WorldMetaFilePath, manifest); }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing("world.json", $"コピーに失敗した: {e.Message}"); worldMetaCopied = false; }
+            if (!worldMetaCopied) return;
+
             if (IsGeneratedWorld(source.WorldMetaFilePath, manifest, out var worldMetaUnreadable))
             {
-                manifest.WorldDefinition = BugReportWorldDefinition.GeneratedWorldJsonOnly;
+                manifest.WorldDefinition = BugReportWorldDefinitionText.ToContractText(BugReportWorldDefinition.GeneratedWorldJsonOnly);
                 return;
             }
-            manifest.WorldDefinition = BugReportWorldDefinition.Full;
-            CopyIfExists(source.MapJsonFilePath, destination.MapJsonFilePath, manifest);
+
+            // 手作りワールドは map.json が入って初めて起動できる。入らなければ not-captured のまま出し、full を名乗るのは地形まで写し終えた後
+            // A hand-made world boots only with map.json; without it the box stays not-captured, and full is claimed only after the terrain is copied too
+            if (!CopyIfExists(source.MapJsonFilePath, destination.MapJsonFilePath, manifest)) return;
             // world.jsonが読めた手作りワールドは地形が無くても欠損にしない（旧挙動）。読めなかったときだけ地形の欠落も箱に残す
             // A hand-made world with a readable world.json is not flagged missing without terrain (legacy behavior); only an unreadable world.json also records the terrain gap
-            CopyTerrain(source, destination, manifest, worldMetaUnreadable);
-        }
+            CopyTerrain(worldMetaUnreadable);
+            manifest.WorldDefinition = BugReportWorldDefinitionText.ToContractText(BugReportWorldDefinition.Full);
 
-        // 生成ワールドの起動は terrain の実ファイルをバイト数まで数えるので、1枚でも欠けると受け側が例外で落ちる。手作りワールドは地形任意が旧来の前提
-        // Booting a generated world counts the terrain files down to their bytes, so one missing file kills the receiving side; a hand-made world's terrain has always been optional
-        private static void CopyTerrain(WorldDataDirectory source, WorldDataDirectory destination, BugReportManifest manifest, bool requiresTerrain)
-        {
-            if (!Directory.Exists(source.TerrainDirectory))
+            #region Internal
+
+            // 生成ワールドの起動は terrain の実ファイルをバイト数まで数えるので、1枚でも欠けると受け側が例外で落ちる。手作りワールドは地形任意が旧来の前提
+            // Booting a generated world counts the terrain files down to their bytes, so one missing file kills the receiving side; a hand-made world's terrain has always been optional
+            void CopyTerrain(bool requiresTerrain)
             {
-                if (requiresTerrain) manifest.AddMissing(TerrainDirectoryName, "world.jsonを読めず地形の要否を判定できなかった");
-                return;
+                if (!Directory.Exists(source.TerrainDirectory))
+                {
+                    if (requiresTerrain) manifest.AddMissing(TerrainDirectoryName, "world.jsonを読めず地形の要否を判定できなかった");
+                    return;
+                }
+
+                Directory.CreateDirectory(destination.TerrainDirectory);
+                var copied = 0;
+                foreach (var path in Directory.GetFiles(source.TerrainDirectory))
+                {
+                    File.Copy(path, Path.Combine(destination.TerrainDirectory, Path.GetFileName(path)), true);
+                    copied++;
+                }
+                if (copied == 0 && requiresTerrain) manifest.AddMissing(TerrainDirectoryName, "world.jsonを読めず地形の要否を判定できなかった");
             }
 
-            Directory.CreateDirectory(destination.TerrainDirectory);
-            var copied = 0;
-            foreach (var path in Directory.GetFiles(source.TerrainDirectory))
-            {
-                File.Copy(path, Path.Combine(destination.TerrainDirectory, Path.GetFileName(path)), true);
-                copied++;
-            }
-            if (copied == 0 && requiresTerrain) manifest.AddMissing(TerrainDirectoryName, "world.jsonを読めず地形の要否を判定できなかった");
+            #endregion
         }
 
         // world.json は外部入力のJSON。読めないときは全部入れる側に倒し、地形を省く判断が読めた内容だけに基づくようにする。読めたか否かは呼び出し側の地形必須判定にも使う
@@ -156,14 +167,17 @@ namespace Client.Game.InGame.BugReport
             }
         }
 
-        private static void CopyIfExists(string sourcePath, string destinationPath, BugReportManifest manifest)
+        // 箱に入ったかを返す。入らなかった理由は欠損に残す
+        // Returns whether the file landed in the box; the reason it did not is recorded as missing
+        private static bool CopyIfExists(string sourcePath, string destinationPath, BugReportManifest manifest)
         {
             if (!File.Exists(sourcePath))
             {
                 manifest.AddMissing(Path.GetFileName(sourcePath), "ワールドディレクトリに無かった");
-                return;
+                return false;
             }
             File.Copy(sourcePath, destinationPath, true);
+            return true;
         }
     }
 }

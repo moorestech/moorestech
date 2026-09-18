@@ -79,8 +79,7 @@ namespace Tests.CombinedTest.Server.Replay.World
 
             var resolution = BugReportBundleWorldMaterializer.Materialize(bundle, _fixture.ServerData());
 
-            Assert.AreEqual(BugReportBundleWorldOutcome.Resolved, resolution.Outcome);
-            var materialized = ((BugReportBundleWorldResolution.ResolvedWorld)resolution).World;
+            var materialized = ResolvedWorld(resolution);
             Assert.AreEqual(Path.Combine(bundle, BugReportBundleLayout.MaterializedWorldDirectoryName), materialized.Root);
             Assert.IsTrue(File.Exists(materialized.MapJsonFilePath));
             Assert.IsTrue(File.Exists(materialized.WorldMetaFilePath));

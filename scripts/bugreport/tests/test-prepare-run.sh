@@ -48,7 +48,9 @@ MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$T
 [ "$LATEST_TICK" = "1200" ] || { echo "NG: LATEST_TICK=$LATEST_TICK"; exit 1; }
 [ "$(cat "$WORLD_DIR/save.json")" = '{"currentTick":1200}' ] || { echo "NG: save.json"; exit 1; }
 [ "$COMMIT_MISSING" = "0" ] && [ "$DIFF_APPLY_FAILED" = "0" ] || { echo "NG: フラグ"; exit 1; }
-[ "$WORLD_DIR" = "$RUN/world" ] && [ "$WORLD_MATERIALIZE_PENDING" = "0" ] || { echo "NG: 宣言の無い箱の WORLD_DIR=$WORLD_DIR"; exit 1; }
+# 宣言の無い旧版の箱は自分で full と決めつけず、resolver の実体化を予約する（F23）
+# An old undeclared box is never assumed full here; materialization through the resolver is reserved (F23)
+[ "$WORLD_DIR" = "$RUN/world-materialized" ] && [ "$WORLD_MATERIALIZE_PENDING" = "1" ] && [ -z "$WORLD_MAP_MODE" ] && [ "$WORLD_SEED" = "0" ] || { echo "NG: 宣言の無い箱の WORLD_DIR=$WORLD_DIR"; exit 1; }
 
 # 二重準備は既存 worktree を消さずに失敗する
 # A second preparation fails instead of destroying the existing worktree
@@ -160,7 +162,8 @@ cat > "$RUN8/manifest.json" <<JSON
 {"repository":{"commit":"$REPORT_COMMIT_1B","branch":"feature/x","dirty":false},"worldDefinition":"generated-world-json-only","snapshotTicks":[900]}
 JSON
 env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r8 2>"$TMP/r8.log"
-( . "$RUN8/run.env"; [ "$WORLD_DIR" = "$RUN8/world-materialized" ] && [ "$WORLD_MATERIALIZE_PENDING" = "1" ] && [ "$(cat "$WORLD_DIR/save.json")" = '{"currentTick":900}' ] ) \
+( . "$RUN8/run.env"; [ "$WORLD_DIR" = "$RUN8/world-materialized" ] && [ "$WORLD_MATERIALIZE_PENDING" = "1" ] && [ "$(cat "$WORLD_DIR/save.json")" = '{"currentTick":900}' ] \
+  && [ "$WORLD_MAP_MODE" = "generated" ] && [ "$WORLD_SEED" = "196" ] ) \
   || { echo "NG: r8 の WORLD_DIR/フラグ/save.json"; cat "$RUN8/run.env"; exit 1; }
 [ ! -e "$RUN8/world/map.json" ] && [ ! -e "$RUN8/world/save.json" ] || { echo "NG: 箱の world/ が書き換えられた"; exit 1; }
 grep -q "地形を同梱しない" "$TMP/r8.log" || { echo "NG: 実体化が要る旨がログされていない"; exit 1; }
@@ -177,5 +180,15 @@ env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r9 2>"$TMP/r9.log"
 ( . "$RUN9/run.env"; [ "$WORLD_NOT_CAPTURED" = "1" ] && [ ! -e "$WORLD_DIR/save.json" ] ) || { echo "NG: r9 の WORLD_NOT_CAPTURED/save.json"; cat "$RUN9/run.env"; exit 1; }
 grep -q "worldDefinition=not-captured" "$TMP/r9.log" || { echo "NG: not-captured の理由がログされていない"; exit 1; }
 ( . "$RUN8/run.env"; [ "$WORLD_NOT_CAPTURED" = "0" ] ) || { echo "NG: r8 に WORLD_NOT_CAPTURED が立った"; exit 1; }
+
+# 箱の world/ をそのまま使うのは full の宣言と map.json が揃った箱だけ。読めない宣言は resolver に委ねる（F23）
+# Only a box declaring full with map.json uses world/ as is; an unreadable declaration is left to the resolver (F23)
+for spec in "r10 full" "r11 Full"; do
+  set -- $spec; R="$TMP/runs/$1"; mkdir -p "$R/world"; echo '{"mapMode":"template","seed":0}' > "$R/world/world.json"; echo '{}' > "$R/world/map.json"
+  echo "{\"repository\":{\"commit\":\"$REPORT_COMMIT_1B\"},\"worldDefinition\":\"$2\",\"snapshotTicks\":[]}" > "$R/manifest.json"
+  env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" "$1" 2>"$TMP/$1.log"
+done
+( . "$TMP/runs/r10/run.env"; [ "$WORLD_DIR" = "$TMP/runs/r10/world" ] && [ "$WORLD_MATERIALIZE_PENDING" = "0" ] && [ "$WORLD_MAP_MODE" = "template" ] ) || { echo "NG: r10 の full 箱"; exit 1; }
+( . "$TMP/runs/r11/run.env"; [ "$WORLD_MATERIALIZE_PENDING" = "1" ] ) && grep -q "自分では土台を決めず" "$TMP/r11.log" || { echo "NG: r11 の読めない宣言"; exit 1; }
 
 echo OK

@@ -2,6 +2,8 @@ using System.IO;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
 using Newtonsoft.Json;
+using NUnit.Framework;
+using Server.Boot.Replay.World;
 
 namespace Tests.CombinedTest.Server.Replay.World
 {
@@ -46,7 +48,12 @@ namespace Tests.CombinedTest.Server.Replay.World
             Directory.CreateDirectory(world.Root);
             File.WriteAllText(world.WorldMetaFilePath, JsonConvert.SerializeObject(meta));
             if (withMapJson) File.WriteAllText(world.MapJsonFilePath, "{}");
-            return Path.Combine(Root, "bundle");
+
+            // 既定は worldDefinition を宣言しない旧版の manifest。宣言を試すテストは WriteManifestDeclaring で上書きする
+            // Defaults to an old manifest that declares no worldDefinition; declaration tests overwrite it with WriteManifestDeclaring
+            var bundle = Path.Combine(Root, "bundle");
+            WriteManifest(bundle, "{\"schemaVersion\":2}");
+            return bundle;
         }
 
         // ワイヤの語をそのまま書く。未知の語や壊れた manifest も同じ口で作れるようにする
@@ -58,7 +65,7 @@ namespace Tests.CombinedTest.Server.Replay.World
 
         public static void WriteManifestDeclaring(string bundle, string worldDefinitionWireWord)
         {
-            WriteManifest(bundle, "{\"schemaVersion\":2,\"worldDefinition\":\"" + worldDefinitionWireWord + "\"}");
+            WriteManifest(bundle, "{\"schemaVersion\":3,\"worldDefinition\":\"" + worldDefinitionWireWord + "\"}");
         }
 
         public static WorldDataDirectory WriteBundledSnapshot(string serverData, WorldMetaJson bundleMeta, WorldMetaJson snapshotMeta, bool withTerrain)
@@ -80,6 +87,18 @@ namespace Tests.CombinedTest.Server.Replay.World
                 File.WriteAllBytes(Path.Combine(snapshot.TerrainDirectory, "tiles", "tile_0.bin"), new byte[4]);
             }
             return snapshot;
+        }
+
+        public static WorldDataDirectory ResolvedWorld(BugReportBundleWorldResolution resolution)
+        {
+            Assert.IsTrue(resolution.TryGetWorld(out var world, out var rejectedReason), $"解決されるはずが拒否された: {rejectedReason}");
+            return world;
+        }
+
+        public static string RejectedReason(BugReportBundleWorldResolution resolution)
+        {
+            Assert.IsFalse(resolution.TryGetWorld(out var world, out var rejectedReason), $"拒否されるはずが解決された: {world?.Root}");
+            return rejectedReason;
         }
 
         public string ServerData()

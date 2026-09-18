@@ -37,13 +37,10 @@ namespace Client.Tests.BugReport.Bundle
 
         // 生成ワールドは world.json だけを入れる。地形は seed・指紋・生成器版から再現側が引き当てる（ADR 0064）
         // A generated world ships only world.json; its terrain is restored by the reproducer from seed, fingerprint and generator version (ADR 0064)
-        // 判定は大文字小文字を無視する。mapModeの表記ゆれで読み側だけ「手作り」に倒れないことを固定する
-        // The check ignores case, pinning that a mapMode spelling variant does not make the reader alone fall back to "hand-made"
-        [TestCase("generated")]
-        [TestCase("Generated")]
-        public void 生成ワールドはworld_jsonだけを入れmanifestに省略を記録する(string mapMode)
+        [Test]
+        public void 生成ワールドはworld_jsonだけを入れmanifestに省略を記録する()
         {
-            WriteWorld(mapMode);
+            WriteWorld("generated");
             Directory.CreateDirectory(Path.Combine(_worldRoot, "terrain"));
             File.WriteAllBytes(Path.Combine(_worldRoot, "terrain", "height_0_0.r16"), new byte[8]);
             WriteStaged("tick_5.json");
@@ -53,7 +50,7 @@ namespace Client.Tests.BugReport.Bundle
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "world.json")));
             Assert.IsFalse(File.Exists(Path.Combine(_bundle, "world", "map.json")));
             Assert.IsFalse(Directory.Exists(Path.Combine(_bundle, "world", "terrain")));
-            Assert.AreEqual(BugReportWorldDefinition.GeneratedWorldJsonOnly, manifest.WorldDefinition);
+            Assert.AreEqual("generated-world-json-only", manifest.WorldDefinition);
             var missingItems = manifest.Missing.Select(item => item.Item).ToList();
             CollectionAssert.DoesNotContain(missingItems, "terrain");
             CollectionAssert.DoesNotContain(missingItems, "map.json");
@@ -71,7 +68,7 @@ namespace Client.Tests.BugReport.Bundle
 
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "map.json")));
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "terrain", "height_0_0.r16")));
-            Assert.AreEqual(BugReportWorldDefinition.Full, manifest.WorldDefinition);
+            Assert.AreEqual("full", manifest.WorldDefinition);
         }
 
         // 手作りワールドの地形は同梱が唯一の入手経路だが、地形任意は旧来の前提（ADR 0064: 手作りワールドは従来どおり全部入れ、地形の有無で欠損にはしない）
@@ -99,7 +96,7 @@ namespace Client.Tests.BugReport.Bundle
             var manifest = Copy(new List<string> { "tick_5.json" }, new List<string>());
 
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "map.json")));
-            Assert.AreEqual(BugReportWorldDefinition.Full, manifest.WorldDefinition);
+            Assert.AreEqual("full", manifest.WorldDefinition);
             var missingItems = manifest.Missing.Select(item => item.Item).ToList();
             CollectionAssert.Contains(missingItems, "world.json");
             CollectionAssert.Contains(missingItems, "terrain");

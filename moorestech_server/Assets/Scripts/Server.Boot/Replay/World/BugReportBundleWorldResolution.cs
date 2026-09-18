@@ -2,35 +2,33 @@ using Game.Paths;
 
 namespace Server.Boot.Replay.World
 {
-    public enum BugReportBundleWorldOutcome
+    // 解決か拒否かの結果。読み手は TryGetWorld 1本だけで分岐し、判別子や型の下調べを書き写さない
+    // A resolved-or-rejected result; readers branch through TryGetWorld alone and never copy a discriminator check or a type test
+    public sealed class BugReportBundleWorldResolution
     {
-        Resolved,
-        Rejected,
-    }
+        private readonly bool _isResolved;
+        private readonly WorldDataDirectory _world;
+        private readonly string _rejectedReason;
 
-    // 解決か拒否かは列挙型一本で判別する。World と Reason を null で使い分けない
-    // Resolved vs rejected is told by the enum alone; World and Reason are never distinguished by null
-    public abstract class BugReportBundleWorldResolution
-    {
-        public abstract BugReportBundleWorldOutcome Outcome { get; }
-
-        public sealed class ResolvedWorld : BugReportBundleWorldResolution
+        private BugReportBundleWorldResolution(bool isResolved, WorldDataDirectory world, string rejectedReason)
         {
-            public readonly WorldDataDirectory World;
-            internal ResolvedWorld(WorldDataDirectory world) { World = world; }
-            public override BugReportBundleWorldOutcome Outcome => BugReportBundleWorldOutcome.Resolved;
+            _isResolved = isResolved;
+            _world = world;
+            _rejectedReason = rejectedReason;
         }
 
-        public sealed class RejectedWorld : BugReportBundleWorldResolution
+        // 解決していれば world、拒否なら rejectedReason だけが意味を持つ
+        // Only world is meaningful when resolved, and only rejectedReason when rejected
+        public bool TryGetWorld(out WorldDataDirectory world, out string rejectedReason)
         {
-            public readonly string Reason;
-            internal RejectedWorld(string reason) { Reason = reason; }
-            public override BugReportBundleWorldOutcome Outcome => BugReportBundleWorldOutcome.Rejected;
+            world = _world;
+            rejectedReason = _rejectedReason;
+            return _isResolved;
         }
 
         // 外から不整合な結果を組み立てられないよう、生成は同じアセンブリの factory だけに絞る
         // Construction stays behind these internal factories so only this assembly can assemble a result
-        internal static BugReportBundleWorldResolution Resolved(WorldDataDirectory world) { return new ResolvedWorld(world); }
-        internal static BugReportBundleWorldResolution Rejected(string reason) { return new RejectedWorld(reason); }
+        internal static BugReportBundleWorldResolution Resolved(WorldDataDirectory world) { return new BugReportBundleWorldResolution(true, world, null); }
+        internal static BugReportBundleWorldResolution Rejected(string reason) { return new BugReportBundleWorldResolution(false, null, reason); }
     }
 }

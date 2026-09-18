@@ -4,7 +4,6 @@ using System.IO;
 using Game.MapGeneration.Provisioning;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Server.Boot.Replay.World
@@ -16,15 +15,25 @@ namespace Server.Boot.Replay.World
         public static BugReportBundleWorldResolution Resolve(string bundleDirectory, string serverDataDirectory)
         {
             var bundled = WorldDataDirectory.FromWorldRoot(Path.Combine(bundleDirectory, BugReportBundleLayout.WorldDirectoryName));
+            // 記録時のワールドが無い箱をtemplateで代用するとinstanceIdがずれ、再生比較に偽の差分が出るので拒否する
+            // Substituting the template for a bundle without its recorded world shifts instance ids and fabricates replay differences, so it is rejected
             if (!Directory.Exists(bundled.Root)) return BugReportBundleWorldResolution.Rejected($"バンドルに {BugReportBundleLayout.WorldDirectoryName}/ がありません（記録時のワールドが無いと再生は成立しません） bundle:{bundleDirectory}");
             var hasMapJson = File.Exists(bundled.MapJsonFilePath);
 
-            // 宣言の無い箱は ADR 0064 以前の版か manifest の破損。旧版は常に全部入れていたので map.json の有無で推定し、推定に倒したことをログに残す
-            // A box without a declaration predates ADR 0064 or has a broken manifest; old versions always shipped everything, so infer from map.json and log the fallback
-            if (!BugReportManifestWorldDefinitionReader.TryRead(bundleDirectory, out var definition, out var undeclaredReason))
+            // 推定に回すのはキーの無い旧版の箱だけ。旧版は常に全部入れていたので map.json の有無で推定し、推定に倒したことをログに残す。壊れた宣言は推定せず拒否する
+            // Only an old box without the key falls back; old versions always shipped everything, so infer from map.json and log it. A broken declaration is refused, never inferred
+            var declarationStatus = BugReportManifestWorldDefinitionReader.Read(bundleDirectory, out var definition, out var declarationReason);
+            switch (declarationStatus)
             {
-                Debug.LogWarning($"箱の worldDefinition 宣言を使えないため map.json の有無で推定します: {undeclaredReason}");
-                return hasMapJson ? BugReportBundleWorldResolution.Resolved(bundled) : ResolveGenerated(bundled, bundleDirectory, serverDataDirectory);
+                case BugReportWorldDeclarationStatus.Malformed:
+                    return BugReportBundleWorldResolution.Rejected($"箱の worldDefinition 宣言を読めず、記録時のワールドを決められません: {declarationReason} bundle:{bundleDirectory}");
+                case BugReportWorldDeclarationStatus.LegacyUndeclared:
+                    Debug.LogWarning($"箱が worldDefinition を宣言していないため map.json の有無で推定します: {declarationReason}");
+                    return hasMapJson ? BugReportBundleWorldResolution.Resolved(bundled) : ResolveGenerated(bundled, bundleDirectory, serverDataDirectory);
+                case BugReportWorldDeclarationStatus.Declared:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(declarationStatus), declarationStatus, "未知の宣言の読み取り結果");
             }
 
             // 宣言と中身が食い違う箱は、どちらを信じても記録時と別のワールドで再生しうるので拒否する
@@ -49,49 +58,48 @@ namespace Server.Boot.Replay.World
         private static BugReportBundleWorldResolution ResolveGenerated(WorldDataDirectory bundled, string bundleDirectory, string serverDataDirectory)
         {
             if (!File.Exists(bundled.WorldMetaFilePath)) return BugReportBundleWorldResolution.Rejected($"バンドルの {BugReportBundleLayout.WorldDirectoryName}/ に map.json も world.json もありません bundle:{bundleDirectory}");
-            var meta = ReadMeta(bundled.WorldMetaFilePath, out var readError);
+            var meta = BugReportGeneratedWorldMetaCheck.ReadMeta(bundled.WorldMetaFilePath, out var readError);
             if (meta == null) return BugReportBundleWorldResolution.Rejected($"箱の world.json を読めません: {readError} path:{bundled.WorldMetaFilePath}");
             if (!WorldMapMode.IsGenerated(meta.MapMode))
             {
                 return BugReportBundleWorldResolution.Rejected($"手作りワールド（mapMode={meta.MapMode}）なのに map.json が無く、記録時のワールドを引き当てられません bundle:{bundleDirectory}");
             }
 
-            // worldId の導出と後段の読み手は必須キーが欠けると例外になる。再生ツールは例外でなく理由付きの拒否で返す
-            // Deriving the worldId and the downstream reader throw on missing keys; the replay tool returns a reasoned rejection instead
-            var bundleProblem = BugReportGeneratedWorldMetaCheck.FindBundleMetaProblem(meta);
+            // worldId の導出と後段の読み手は必須キーが欠けると例外になる。再生ツールは同じ判定で例外でなく理由付きの拒否を返す
+            // Deriving the worldId and the downstream reader throw on missing keys; the replay tool uses the same rule to return a reasoned rejection instead
+            var bundleProblem = TerrainTransferMetaReader.DescribeGeneratedMetaProblem(meta);
             if (bundleProblem != null) return BugReportBundleWorldResolution.Rejected($"生成ワールドの world.json を使えません: {bundleProblem} path:{bundled.WorldMetaFilePath}");
-            var worldId = WorldIdentity.CalculateGenerated(meta.Seed, meta.GenerationMasterFingerprint, meta.GeneratorVersion);
+            var worldId = TerrainTransferMetaReader.CalculateGeneratedWorldId(meta);
 
-            // 同梱スナップショット → 共有キャッシュの順に探す。配置台帳が違えば別物なので次へ進まず拒否する
-            // Search the bundled snapshot then the shared cache; a different placement ledger is a different world, so reject rather than move on
+            // 探索順と置き場の妥当性は WorldSnapshotStore に委ねる。配置台帳が違えば別物なので次へ進まず拒否する
+            // The search order and snapshot validity follow WorldSnapshotStore; a different placement ledger is a different world, so reject rather than move on
             var skipReasons = new List<string>();
-            foreach (var candidate in new[] { WorldDataDirectory.ForBundledSnapshot(serverDataDirectory, worldId), WorldDataDirectory.ForWorldCacheWithoutCreating(worldId) })
+            foreach (var candidate in WorldSnapshotStore.EnumerateSourceCandidates(serverDataDirectory, worldId))
             {
                 if (!Directory.Exists(candidate.Root))
                 {
                     skipReasons.Add($"root:{candidate.Root} が存在しない");
                     continue;
                 }
-                // 妥当性判定は WorldSnapshotStore と同じ基準（map.json・world.json・terrain/ の3点）に委ね、欠けた物を名指しする
-                // Validity follows WorldSnapshotStore's criterion (map.json, world.json and terrain/), naming whichever piece is missing
-                if (!WorldSnapshotStore.IsSnapshot(candidate))
+                var snapshotProblem = WorldSnapshotStore.DescribeSnapshotProblem(candidate);
+                if (snapshotProblem != null)
                 {
-                    LogAndRecordSkip($"root:{candidate.Root} に {DescribeMissingSnapshotParts(candidate)}");
+                    LogAndRecordSkip($"root:{candidate.Root} に {snapshotProblem}");
                     continue;
                 }
 
-                // 再生はこの候補の world.json を読むので、箱側と同じ妥当性検査を候補側にも掛ける
-                // Replay reads this candidate's world.json, so the candidate gets the same validity checks as the bundle's side
-                var candidateMeta = ReadMeta(candidate.WorldMetaFilePath, out var candidateReadError);
+                // 再生はこの候補の world.json を読むので、箱側と同じ妥当性検査に加えて箱と同じワールドかを照合する
+                // Replay reads this candidate's world.json, so beyond the bundle's validity checks it is matched against the box's world
+                var candidateMeta = BugReportGeneratedWorldMetaCheck.ReadMeta(candidate.WorldMetaFilePath, out var candidateReadError);
                 if (candidateMeta == null)
                 {
                     LogAndRecordSkip($"root:{candidate.Root} の world.json を読めない: {candidateReadError}");
                     continue;
                 }
-                var candidateProblem = BugReportGeneratedWorldMetaCheck.FindCandidateMetaProblem(candidateMeta, candidate);
+                var candidateProblem = BugReportGeneratedWorldMetaCheck.FindCandidateProblem(candidate, candidateMeta, meta, worldId);
                 if (candidateProblem != null)
                 {
-                    LogAndRecordSkip($"root:{candidate.Root} の world.json を使えない: {candidateProblem}");
+                    LogAndRecordSkip($"root:{candidate.Root} の {candidateProblem}");
                     continue;
                 }
                 if (candidateMeta.PlacementLedgerDigest != meta.PlacementLedgerDigest)
@@ -117,44 +125,7 @@ namespace Server.Boot.Replay.World
                 return skipReasons.Count == 0 ? "" : $"（使わなかった候補: {string.Join("; ", skipReasons)}）";
             }
 
-            string DescribeMissingSnapshotParts(WorldDataDirectory candidate)
-            {
-                var missing = new List<string>();
-                if (!File.Exists(candidate.MapJsonFilePath)) missing.Add("map.json が無い");
-                if (!File.Exists(candidate.WorldMetaFilePath)) missing.Add("world.json が無い");
-                if (!Directory.Exists(candidate.TerrainDirectory)) missing.Add("terrain/ が無い");
-                return string.Join("・", missing);
-            }
-
             #endregion
-        }
-
-        // world.json は外部入力のファイルとJSON（ファイルI/O・権限とJSONパースの境界）。読めない理由を返し、呼び出し側が拒否理由やログに載せる
-        // world.json is external file + JSON input (file I/O and JSON parse boundary); the reason is returned for the caller's rejection or log
-        private static WorldMetaJson ReadMeta(string path, out string error)
-        {
-            error = null;
-            try
-            {
-                var meta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(path));
-                if (meta == null) error = "world.json が空です";
-                return meta;
-            }
-            catch (JsonException e)
-            {
-                error = e.Message;
-                return null;
-            }
-            catch (IOException e)
-            {
-                error = e.Message;
-                return null;
-            }
-            catch (UnauthorizedAccessException e)
-            {
-                error = e.Message;
-                return null;
-            }
         }
     }
 }

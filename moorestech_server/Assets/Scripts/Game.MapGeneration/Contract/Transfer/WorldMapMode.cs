@@ -9,11 +9,11 @@ namespace Game.MapGeneration.Transfer
         public const string Template = "template";
         public const string Generated = "generated";
 
-        // 生成ワールド判定の唯一の場所。読み手ごとに大文字小文字の扱いがずれるのを防ぐ
-        // The single place that decides "generated"; prevents readers from disagreeing on case sensitivity
+        // 生成ワールド判定。world.json の読み手・ワイヤの復元・バグ報告の書き手と再現側がここを通り、綴りの完全一致だけを生成ワールドとみなす
+        // Decides "generated"; world.json readers, the wire restore, and the bug-report writer and reproducer go through here, and only the exact spelling counts
         public static bool IsGenerated(string mapMode)
         {
-            return string.Equals(mapMode, Generated, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(mapMode, Generated, StringComparison.Ordinal);
         }
     }
 }

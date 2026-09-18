@@ -36,7 +36,7 @@ namespace Game.MapGeneration.Transfer
             TerrainOrigins origins, string generationMasterFingerprint, string generatorVersion, string placementLedgerDigest)
         {
             if (mapMode == WorldMapMode.Template) return new TemplateTerrainTransferMeta(worldId, worldSeed);
-            if (mapMode == WorldMapMode.Generated)
+            if (WorldMapMode.IsGenerated(mapMode))
             {
                 WorldGeneratorVersion.ThrowIfDiffers(generatorVersion, worldId);
                 return new GeneratedTerrainTransferMeta(

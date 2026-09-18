@@ -52,12 +52,18 @@ if not numbers:
     notes.append("snapshotTicks が空。固定ワールド起動はできないがログ・映像だけで続行する")
 latest = str(max(numbers)) if numbers else ""
 
-# world/ の中身の宣言（ADR 0064）。生成ワールドの箱は地形を同梱しないので、受け側は観察の前に実体化が要る
-# The declaration of world/'s contents (ADR 0064); a generated-world box ships no terrain, so the receiver must materialize it before observing
-world_definition = data.get("worldDefinition")
-if not isinstance(world_definition, str) or not world_definition:
-    notes.append("manifest に worldDefinition が無い（ADR 0064 以前の箱）。world/ は全部入りとして扱う")
+# world/ の中身の宣言（ADR 0064）。語の解釈と破損の判定は resolver（BugReportManifestWorldDefinitionReader）1箇所が持つので、ここは語をそのまま渡すだけにする
+# The declaration of world/'s contents (ADR 0064); interpreting the word and judging breakage belong to the resolver alone, so the word is passed through verbatim
+# 文字列でない値は JSON の綴りで渡す。空文字はキーの無い旧版の箱だけを表す
+# A non-string value is passed as its JSON spelling; the empty string stands only for an old box without the key
+if "worldDefinition" not in data:
+    notes.append("manifest に worldDefinition が無い（ADR 0064 以前の箱）。土台は resolver が map.json の有無で推定する")
     world_definition = ""
+elif isinstance(data["worldDefinition"], str):
+    world_definition = data["worldDefinition"]
+else:
+    world_definition = json.dumps(data["worldDefinition"])
+    notes.append("manifest の worldDefinition が文字列でない: %s。判定は resolver に委ねる" % world_definition)
 
 for item in data.get("missing") or []:
     if isinstance(item, dict):

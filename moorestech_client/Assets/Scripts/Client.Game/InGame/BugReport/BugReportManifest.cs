@@ -25,7 +25,9 @@ namespace Client.Game.InGame.BugReport
 
         // 2: serverData（記録時にサーバーがマスタを読んだ場所）を追加。再現側はこれが無いと別マスタで再生する
         // 2: added serverData (where the server read its masters); without it the reproduction replays different masters
-        public int SchemaVersion = 2;
+        // 3: worldDefinitionを追加（ADR 0064）
+        // 3: added worldDefinition (ADR 0064)
+        public int SchemaVersion = 3;
         public string CreatedAt;
         public string Description;
 
@@ -41,9 +43,9 @@ namespace Client.Game.InGame.BugReport
         public bool IsEditor;
         public ulong ReportTick;
 
-        // world/の中身。取り込めなかった箱（前回異常終了の箱を含む）は NotCaptured のまま出る
-        // Contents of world/; a box whose world was not captured (the previous-crash box included) goes out as NotCaptured
-        public BugReportWorldDefinition WorldDefinition = BugReportWorldDefinition.NotCaptured;
+        // world/の中身の契約値（BugReportWorldDefinitionText が綴る）。取り込めなかった箱（前回異常終了の箱を含む）は not-captured のまま出る
+        // The contract value for world/'s contents, spelled by BugReportWorldDefinitionText; a box whose world was not captured (the previous-crash box included) goes out as not-captured
+        public string WorldDefinition = BugReportWorldDefinitionText.ToContractText(BugReportWorldDefinition.NotCaptured);
         public List<ulong> SnapshotTicks = new();
         public List<string> SnapshotFiles = new();
         public List<string> PacketLogFiles = new();

@@ -22,7 +22,7 @@ hooks:
 # bug-report-auto-fix — バグ報告の自動再現・修正（無人実行）
 
 `$RUN = $BUG_REPORT_RUNDIR_BASE/<run-id>`（既定 `~/hermes-agent/data/repos/moorestech_logs/harness/bug-report/runs/<run-id>`）。
-`$RUN/run.env` に `WORKTREE`・`MASTER_DIR`・`SERVER_DATA_DIR`・`WORLD_DIR`・`WORLD_MATERIALIZE_PENDING`・`REPORT_COMMIT`・`REPORT_BRANCH`・`LATEST_TICK` と、
+`$RUN/run.env` に `WORKTREE`・`MASTER_DIR`・`SERVER_DATA_DIR`・`WORLD_DIR`・`WORLD_MATERIALIZE_PENDING`・`WORLD_NOT_CAPTURED`・`WORLD_MAP_MODE`・`WORLD_SEED`（箱の `world.json` の `mapMode`・`seed`。読めなければ空）・`REPORT_COMMIT`・`REPORT_BRANCH`・`LATEST_TICK` と、
 **再現環境の欠けを表すフラグ**（`COMMIT_MISSING`・`DIFF_APPLY_FAILED`・`DIFF_ABSENT`・`UNTRACKED_FAILED`・`MASTER_FAILED`・`MASTER_DIFF_APPLY_FAILED`・`MASTER_DIFF_ABSENT`・`MASTER_UNTRACKED_FAILED`）がある。
 `$RUN/repo/bundle-status.txt` は運搬側が付けた bundle の3状態（`created` / `not-needed-origin-has-commit` / `failed-*` / `skipped-*`）で、`failed-*` は報告者のローカルコミットが受け側に無いことを意味する。
 `SERVER_DATA_DIR` は**記録時にサーバーが実際にマスタを読んだ置き場**（manifest の `serverData` から受け側の worktree 配下へ解決した値）。`MASTER_DIR` とは一致しないことがあり、再生・観察には必ず `SERVER_DATA_DIR` を使う。作業は必ず `$WORKTREE` で行う。
@@ -79,7 +79,7 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 | `$RUN/repo/bundle-status.txt` に `failed-*` がある | 報告者のローカルコミットが受け側に無い。`COMMIT_MISSING=1` と同じ扱いで `summary` と PR 本文に書く |
 | バンドルの欠損（動画・スナップショット・パケットログ） | 残った資料で進める。欠損項目を `summary` に書く |
 | Step 3 の観察で症状が出ない | 追加シナリオを最大3本試し、それでも出なければ `not_reproduced` |
-| `materialize-world.cs` が `ERROR:` を返す（生成ワールドの地形を引き当てられない箱） | Step 3 を飛ばし、返った理由を `summary` に書いて Step 4 へ。地形の無い `world/` を土台に起動しない |
+| `materialize-world.cs` が `ERROR:` を返す（壊れた `worldDefinition` 宣言・宣言と中身の食い違い・生成ワールドの地形を引き当てられない箱） | Step 3 を飛ばし、返った理由を `summary` に書いて Step 4 へ。地形の無い `world/` を土台に起動しない |
 | `WORLD_NOT_CAPTURED=1`（manifest の `worldDefinition` が `not-captured`。報告側が記録時のワールドを取り込めなかった箱） | Step 3 を飛ばす（`prepare-run.sh` は `save.json` を置かないので下の行の関門でも止まる）。起動すれば `world.json` の無い `world/` で落ち、`run-scenario.sh` が300秒空転するだけ。「ワールド定義が取り込まれていない」を `summary` に書いて Step 4 へ |
 | `$WORLD_DIR/save.json` が無い（スナップショット欠損の箱） | Step 3 を飛ばし、ログ・パケット・スクショだけで Step 4 へ。飛ばした理由を `summary` に書く |
 | `SERVER_DATA_DIR` が空（manifest に `serverData` が無い/解決できない箱） | Step 2 を飛ばし、理由を `summary` に書いて Step 3 へ。`MASTER_DIR` で代用しない（別マスタでの再生は偽の結果になる） |
@@ -118,9 +118,10 @@ Editor を PlayMode に置き去りにする**（2026-09-12 リハーサルで�
 [ -s "$WORLD_DIR/save.json" ] || echo "観察を飛ばす: $WORLD_DIR/save.json が無い（スナップショット欠損の箱）"
 ```
 
-**生成ワールドの箱は先に地形付きワールドを実体化する。** `WORLD_MATERIALIZE_PENDING=1` の箱（manifest の `worldDefinition` が `generated-world-json-only`）は、
-`world/` に `world.json` しか無く、そのまま起動すると地形が無く落ちる（ADR 0064）。`prepare-run.sh` は `WORLD_DIR` を `$RUN/world-materialized` にして
-`save.json` だけを置いてあるので、観察の前に Step 2 と同じ resolver で地形を引き当てて写す。返り値が `ERROR:` なら観察を飛ばし、理由を `summary` に書く。
+**実体化が予約された箱は先に土台を実体化する。** `WORLD_MATERIALIZE_PENDING=1` は、manifest の `worldDefinition` が `full` かつ `world/map.json` がある箱以外すべて
+（`generated-world-json-only`・宣言の無い旧版・読めない宣言・`map.json` の欠けた `full`）に立つ。生成ワールドの箱は `world/` に `world.json` しか無く、そのまま起動すると地形が無く落ちる（ADR 0064）。
+`prepare-run.sh` は土台を自分で決めず、`WORLD_DIR` を `$RUN/world-materialized` にして `save.json` だけを置いてあるので、観察の前に Step 2 と同じ resolver で土台を決めて写す。
+返り値が `ERROR:` なら（壊れた宣言・宣言と中身の食い違い・地形を引き当てられない箱）観察を飛ばし、理由を `summary` に書く。
 箱の `world/` には書き足さない（`map.json` が増えると宣言と中身が食い違い、決定性検査が拒否する）。
 
 ```bash
@@ -134,11 +135,13 @@ fi
 ```bash
 sed "s|__BUNDLE__|$RUN|g" $CANON/.agents/skills/bug-report-auto-fix/scripts/scenarios/bug-report-observe.cs > $RUN/observe.cs
 uloop control-play-mode --project-path $WORKTREE/moorestech_client --action stop
-PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=template PLAYTEST_SEED=0 \
+# 生成ワールドは記録時の seed で起動する。mapMode の判定は綴りの完全一致（WorldMapMode.IsGenerated と同じ）
+if [ "$WORLD_MAP_MODE" = "generated" ]; then OBSERVE_MAP_MODE=generated; OBSERVE_SEED=$WORLD_SEED; else OBSERVE_MAP_MODE=template; OBSERVE_SEED=0; fi
+PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=$OBSERVE_MAP_MODE PLAYTEST_SEED=$OBSERVE_SEED \
   $CANON/.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh $WORKTREE/moorestech_client $RUN/observe.cs ${SERVER_DATA_DIR:-$MASTER_DIR}
 ```
 サーバーデータは記録時と同じ `SERVER_DATA_DIR` を渡す。空で `MASTER_DIR` に落ちた場合は、記録時と別のマスタで観察している旨を `summary` に書く。
-（`world.json` の `mapMode` が `generated` なら `PLAYTEST_MAP_MODE=generated PLAYTEST_SEED=<world.jsonのseed>`）
+`WORLD_MAP_MODE=generated` なのに `WORLD_SEED` が空の箱（`world.json` の `seed` を読めない）は記録時の seed で起動できないので観察を飛ばし、理由を `summary` に書く。
 `run-scenario.sh` は失敗しても終了コード 0 を返すので、**成否は `result.json` の有無と `Success` で判定する**（終了コードでは判定しない）。
 `NG: game not ready within 300s` が出たら Editor が PlayMode のまま残っているので、
 `uloop control-play-mode --project-path $WORKTREE/moorestech_client --action Stop` で必ず戻す。

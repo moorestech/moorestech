@@ -47,9 +47,7 @@ namespace Server.Boot.Replay
 
             // 再生は記録時のワールドを読む。箱の map.json か、生成ワールドなら world.json から引き当てた地形を使う（ADR 0064）。同梱スナップショットはサーバーデータ内にあるので照合の後に引く
             // Replay reads the recording's world: the bundle's map.json, or for a generated world the terrain located from world.json (ADR 0064); bundled snapshots live in the server data, so this follows the check
-            var worldResolution = BugReportBundleWorldResolver.Resolve(bundleDirectory, serverDataDirectory);
-            if (worldResolution.Outcome == BugReportBundleWorldOutcome.Rejected) return Reject(((BugReportBundleWorldResolution.RejectedWorld)worldResolution).Reason);
-            var sourceWorld = ((BugReportBundleWorldResolution.ResolvedWorld)worldResolution).World;
+            if (!BugReportBundleWorldResolver.Resolve(bundleDirectory, serverDataDirectory).TryGetWorld(out var sourceWorld, out var worldRejectedReason)) return Reject(worldRejectedReason);
 
             var snapshotFiles = WorldDataDirectory.EnumerateSnapshotFiles(snapshotDirectory);
             if (snapshotFiles.Count < 2) return Reject($"スナップショットが{snapshotFiles.Count}枚しかなく隣接区間を作れません dir:{snapshotDirectory}");
@@ -102,9 +100,8 @@ namespace Server.Boot.Replay
         // Builds the fixed-world boot base (the auto-fix observation) in world-materialized/; a generated-world box holds only world.json, so the terrain is located by the replay's resolver and copied
         public static string MaterializeWorld(string bundleDirectory, string serverDataDirectory)
         {
-            var materialization = BugReportBundleWorldMaterializer.Materialize(bundleDirectory, serverDataDirectory);
-            if (materialization.Outcome == BugReportBundleWorldOutcome.Rejected) return Reject(((BugReportBundleWorldResolution.RejectedWorld)materialization).Reason);
-            return $"world materialized: {((BugReportBundleWorldResolution.ResolvedWorld)materialization).World.Root}";
+            if (!BugReportBundleWorldMaterializer.Materialize(bundleDirectory, serverDataDirectory).TryGetWorld(out var materialized, out var rejectedReason)) return Reject(rejectedReason);
+            return $"world materialized: {materialized.Root}";
         }
 
         private static ulong TickOf(string snapshotFilePath)
