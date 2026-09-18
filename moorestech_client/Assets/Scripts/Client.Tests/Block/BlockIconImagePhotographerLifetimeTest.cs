@@ -11,25 +11,14 @@ namespace Client.Tests.Block
 {
     public class BlockIconImagePhotographerLifetimeTest
     {
-        private const int CaptureCompletionFrameLimit = 30;
-        private const string CaptureRenderTexturePrefix = "BlockIconCapture:";
-        private const string TestObjectPrefix = "BlockIconLifetimeTest";
+        private const int CaptureCompletionFrameLimit = BlockIconCaptureTestEnvironment.CaptureCompletionFrameLimit;
+        private const string CaptureRenderTexturePrefix = BlockIconCaptureTestEnvironment.CaptureRenderTexturePrefix;
+        private const string TestObjectPrefix = BlockIconCaptureTestEnvironment.TestObjectPrefix;
 
         [TearDown]
         public void TearDown()
         {
-            var objects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-            foreach (var target in objects)
-            {
-                if (target == null) continue;
-                if (target.name.StartsWith(TestObjectPrefix)) Object.DestroyImmediate(target);
-            }
-
-            var renderTextures = Resources.FindObjectsOfTypeAll<RenderTexture>();
-            foreach (var renderTexture in renderTextures)
-            {
-                if (renderTexture.name.StartsWith(CaptureRenderTexturePrefix)) Object.DestroyImmediate(renderTexture);
-            }
+            BlockIconCaptureTestEnvironment.DestroyTestObjects();
         }
 
         [UnityTest]
@@ -55,7 +44,7 @@ namespace Client.Tests.Block
                 (targetPrefab, captureDebugName),
             });
 
-            yield return WaitForCompletion(captureTask);
+            yield return BlockIconCaptureTestEnvironment.WaitForCompletion(captureTask);
             var textures = captureTask.GetAwaiter().GetResult();
             yield return null;
 
@@ -134,15 +123,6 @@ namespace Client.Tests.Block
             }
 
             return count;
-        }
-
-        private static IEnumerator WaitForCompletion(UniTask<List<Texture2D>> captureTask)
-        {
-            for (var frame = 0; frame < CaptureCompletionFrameLimit && captureTask.Status == UniTaskStatus.Pending; frame++)
-                yield return null;
-
-            Assert.That(captureTask.Status, Is.Not.EqualTo(UniTaskStatus.Pending),
-                $"Icon capture did not complete within {CaptureCompletionFrameLimit} frames.");
         }
     }
 }
