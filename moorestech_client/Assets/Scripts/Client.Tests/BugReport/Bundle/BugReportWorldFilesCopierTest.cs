@@ -71,23 +71,23 @@ namespace Client.Tests.BugReport.Bundle
             Assert.AreEqual(BugReportBundleLayout.WorldDefinitionFull, manifest.WorldDefinition);
         }
 
-        // world.json が無い生成前提の地形省略と違い、手作りワールドの地形は同梱が唯一の入手経路。無ければ再現できない
-        // Unlike the generated omission, a hand-made world's terrain has no other source; without it reproduction is impossible
+        // 手作りワールドの地形は同梱が唯一の入手経路だが、地形任意は旧来の前提（ADR 0064: 手作りワールドは従来どおり全部入れ、地形の有無で欠損にはしない）
+        // A hand-made world's terrain has no other source, but its terrain has always been optional (ADR 0064: a hand-made world ships as before and its terrain presence is not a missing-item check)
         [Test]
-        public void 手作りワールドは地形が無ければ欠損に載る()
+        public void 手作りワールドは地形が無くても欠損にしない()
         {
             WriteWorld("template");
             WriteStaged("tick_5.json");
 
             var manifest = Copy(new List<string> { "tick_5.json" }, new List<string>());
 
-            CollectionAssert.Contains(manifest.Missing.Select(item => item.Item).ToList(), "terrain");
+            CollectionAssert.DoesNotContain(manifest.Missing.Select(item => item.Item).ToList(), "terrain");
         }
 
-        // 地形省略の判断は読めた world.json だけに基づく。読めなければ全部入れる側に倒す（fail-closedはmapModeを省かない側）
-        // The omission decision rests only on a successfully-read world.json; an unreadable one falls back to shipping everything (fail-closed means not omitting)
+        // 地形省略の判断は読めた world.json だけに基づく。読めなければ全部入れる側に倒す（fail-closedはmapModeを省かない側）。地形の要否も判定できないため必須扱いにし、無ければ欠損を記録する
+        // The omission decision rests only on a successfully-read world.json; an unreadable one falls back to shipping everything (fail-closed means not omitting). Since terrain requirement cannot be determined either, it is treated as required and its absence is recorded
         [Test]
-        public void world_jsonが読めなければ全部入れる側に倒し理由を残す()
+        public void world_jsonが読めなければ全部入れる側に倒し地形欠損も記録する()
         {
             File.WriteAllText(Path.Combine(_worldRoot, "world.json"), "{broken");
             File.WriteAllText(Path.Combine(_worldRoot, "map.json"), "{}");
@@ -97,7 +97,9 @@ namespace Client.Tests.BugReport.Bundle
 
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "map.json")));
             Assert.AreEqual(BugReportBundleLayout.WorldDefinitionFull, manifest.WorldDefinition);
-            CollectionAssert.Contains(manifest.Missing.Select(item => item.Item).ToList(), "world.json");
+            var missingItems = manifest.Missing.Select(item => item.Item).ToList();
+            CollectionAssert.Contains(missingItems, "world.json");
+            CollectionAssert.Contains(missingItems, "terrain");
         }
 
         // 退避に失敗したファイルまで載せると、受け側は存在しないスナップショットを土台にしようとする

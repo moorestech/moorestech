@@ -67,8 +67,8 @@ namespace Client.Game.InGame.BugReport
             return copied;
         }
 
-        // 生成ワールドは world.json だけを入れる。地形は seed・指紋・生成器版から同じものが引き当てられる（ADR 0064）。手作りワールドは全部入れる
-        // A generated world ships only world.json; its terrain is restored from seed, fingerprint and generator version (ADR 0064). A hand-made world ships everything
+        // 生成ワールドは world.json だけを入れる。地形は seed・指紋・生成器版から同じものが引き当てられる（ADR 0064）。手作りワールドは従来どおり全部入れる
+        // A generated world ships only world.json; its terrain is restored from seed, fingerprint and generator version (ADR 0064). A hand-made world ships everything, as before
         private static void CopyWorldDefinition(BugReportCapturedData data, string bundleDirectory, BugReportManifest manifest)
         {
             if (string.IsNullOrEmpty(data.WorldRootDirectory))
@@ -82,23 +82,25 @@ namespace Client.Game.InGame.BugReport
             var destination = WorldDataDirectory.FromWorldRoot(world);
             Directory.CreateDirectory(world);
             CopyIfExists(source.WorldMetaFilePath, destination.WorldMetaFilePath, manifest);
-            if (IsGeneratedWorld(source.WorldMetaFilePath, manifest))
+            if (IsGeneratedWorld(source.WorldMetaFilePath, manifest, out var worldMetaUnreadable))
             {
                 manifest.WorldDefinition = BugReportBundleLayout.WorldDefinitionGeneratedWorldJsonOnly;
                 return;
             }
             manifest.WorldDefinition = BugReportBundleLayout.WorldDefinitionFull;
             CopyIfExists(source.MapJsonFilePath, destination.MapJsonFilePath, manifest);
-            CopyTerrain(source, destination, manifest);
+            // world.jsonが読めた手作りワールドは地形が無くても欠損にしない（旧挙動）。読めなかったときだけ地形の欠落も箱に残す
+            // A hand-made world with a readable world.json is not flagged missing without terrain (legacy behavior); only an unreadable world.json also records the terrain gap
+            CopyTerrain(source, destination, manifest, worldMetaUnreadable);
         }
 
-        // 生成ワールドの起動は terrain の実ファイルをバイト数まで数えるので、1枚でも欠けると受け側が例外で落ちる
-        // Booting a generated world counts the terrain files down to their bytes, so one missing file kills the receiving side
-        private static void CopyTerrain(WorldDataDirectory source, WorldDataDirectory destination, BugReportManifest manifest)
+        // 生成ワールドの起動は terrain の実ファイルをバイト数まで数えるので、1枚でも欠けると受け側が例外で落ちる。手作りワールドは地形任意が旧来の前提
+        // Booting a generated world counts the terrain files down to their bytes, so one missing file kills the receiving side; a hand-made world's terrain has always been optional
+        private static void CopyTerrain(WorldDataDirectory source, WorldDataDirectory destination, BugReportManifest manifest, bool requiresTerrain)
         {
             if (!Directory.Exists(source.TerrainDirectory))
             {
-                manifest.AddMissing(TerrainDirectoryName, "手作りワールドの地形ディレクトリが無かった");
+                if (requiresTerrain) manifest.AddMissing(TerrainDirectoryName, "world.jsonを読めず地形の要否を判定できなかった");
                 return;
             }
 
@@ -109,13 +111,14 @@ namespace Client.Game.InGame.BugReport
                 File.Copy(path, Path.Combine(destination.TerrainDirectory, Path.GetFileName(path)), true);
                 copied++;
             }
-            if (copied == 0) manifest.AddMissing(TerrainDirectoryName, "手作りワールドなのに地形ファイルが1枚も無かった");
+            if (copied == 0 && requiresTerrain) manifest.AddMissing(TerrainDirectoryName, "world.jsonを読めず地形の要否を判定できなかった");
         }
 
-        // world.json は外部入力のJSON。読めないときは全部入れる側に倒し、地形を省く判断が読めた内容だけに基づくようにする
-        // world.json is external JSON input; when it cannot be read, fall back to shipping everything so the omission decision rests only on what was actually read
-        private static bool IsGeneratedWorld(string worldMetaFilePath, BugReportManifest manifest)
+        // world.json は外部入力のJSON。読めないときは全部入れる側に倒し、地形を省く判断が読めた内容だけに基づくようにする。読めたか否かは呼び出し側の地形必須判定にも使う
+        // world.json is external JSON input; when it cannot be read, fall back to shipping everything so the omission decision rests only on what was actually read. The caller also uses readability to decide whether terrain is required
+        private static bool IsGeneratedWorld(string worldMetaFilePath, BugReportManifest manifest, out bool isUnreadable)
         {
+            isUnreadable = false;
             if (!File.Exists(worldMetaFilePath)) return false;
             try
             {
@@ -125,6 +128,7 @@ namespace Client.Game.InGame.BugReport
             catch (JsonException e)
             {
                 manifest.AddMissing("world.json", $"mapModeを読み取れなかった: {e.Message}");
+                isUnreadable = true;
                 return false;
             }
         }
