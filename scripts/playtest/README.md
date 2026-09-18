@@ -11,6 +11,8 @@ export PLAYTEST_ADMIN_KEY=<wrangler secret put ADMIN_KEY で入れたのと同�
 ```
 別の場所に置く場合は `PLAYTEST_ENV_FILE` で指す。worktree から叩くと兄弟パスがずれるので本体 clone のスクリプトを使う。受け口 admin API の呼び出しは `lib/receiver-api.sh` に一本化している。
 
+受け口 Worker 側は別途 R2 API トークン（Object Read & Write、バケット `moorestech-playtest` に限定）を作り `wrangler secret put R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` で Worker の secrets へ入れる（`tools/playtest-receiver/README.md` 手順2b）。この env.sh 側には何も追加しない。
+
 ## 許可リスト
 
 ```bash
@@ -151,6 +153,8 @@ phase2 の `result.json` の `reportSteamId` とバンドルID（`reportBundleDi
 `GET /v1/inbox/report/<steamId>/<id>/READY` を取得して到達を確かめ（ACK 状態に左右されない）、確認後は自分で ACK する
 （取り込み再開後に検証用の報告を拾わせないため。ACK に失敗したら exit 8。7 は run-smoke.ps1 の steam.exe 不在）。
 READY が再試行しても取れなければ exit 6。呼び出しは `lib/receiver-api.sh` 経由だけで行う。
+
+クライアントのアップロード経路が直接 R2 PUT へ変わっても、この確認は Worker の `GET /v1/inbox/.../READY` を読むだけなので変更していない。
 
 ### 注意: 取り込み（plan H）との競合
 

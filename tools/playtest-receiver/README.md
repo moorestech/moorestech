@@ -8,14 +8,38 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
 | メソッド | パス | 認証 | 用途 |
 |---|---|---|---|
 | POST | `/v1/session` | なし（Steamチケット） | チケット検証＋許可リスト照合＋1時間トークン発行 |
-| PUT | `/v1/uploads/{kind}/{id}/{path...}` | `Authorization: Bearer` | 1ファイル保存。`Content-Length` 必須（欠落411・非数値400・100MiB超413） |
-| POST | `/v1/uploads/{kind}/{id}/complete` | `Authorization: Bearer` | `READY` と未ACK索引を書く |
+| POST | `/v1/uploads/{kind}/{id}/prepare` | `Authorization: Bearer` | ファイル宣言を受け、ファイルごとの署名付き R2 PUT URL を発行する |
+| PUT | `/v1/uploads/{kind}/{id}/{path...}` | なし（410固定） | 廃止。旧クライアントの中継PUTは410 `direct-upload-required`（ADR 0064） |
+| POST | `/v1/uploads/{kind}/{id}/complete` | `Authorization: Bearer` | R2の実オブジェクトを宣言と照合し、揃っていれば `READY` と未ACK索引を書く |
 | GET | `/v1/inbox?cursor=` | `X-Admin-Key` | 未ACKの一覧 |
 | GET | `/v1/inbox/{kind}/{steamId}/{id}/{path...}` | `X-Admin-Key` | 個別ファイル取得 |
 | POST | `/v1/inbox/{kind}/{steamId}/{id}/ack` | `X-Admin-Key` | `ACKED` を書き索引を消す |
 | GET / PUT | `/v1/allowlist` | `X-Admin-Key` | 許可SteamIDの取得・全置換 |
 
 `kind` は `report` / `progress`。R2 のキーは `reports/{steamId}/{id}/...` と `progress/{steamId}/{id}/...`（`src/keys.ts` の `KIND_PREFIX` が正本）。
+
+Worker はアップロードのバイト列を中継しない。クライアントは `prepare` で署名付き URL を取り、R2 へ直接 PUT する（Workers 無料プランの CPU 上限のため。ADR 0064）。
+
+### `POST /v1/uploads/{kind}/{id}/prepare`
+
+リクエスト本文（1ファイル100MiB＝`maxFileBytes`まで、箱全体128ファイル＝`maxBundleFiles`・256MiB＝`maxBundleBytes`まで。値は `contract.json` が正）:
+```json
+{ "files": [{ "path": "manifest.json", "bytes": 10 }, { "path": "frames/frame_1.jpg", "bytes": 20 }] }
+```
+成功（200）:
+```json
+{ "outcome": "prepared", "uploads": [{ "path": "manifest.json", "bytes": 10, "url": "https://<account>.r2.cloudflarestorage.com/<bucket>/...?X-Amz-..." }], "expiresInSeconds": 3600 }
+```
+ACK済みの箱は書き込みをせず冪等に `{ "outcome": "acked" }`（200）を返す。エラーは `{ "reason": <string> }` 形（本文が JSON でない/`files`が配列でない等は400 `bad-request`、宣言0件は400 `empty-declaration`、危険パス400 `bad-path`、予約名400 `reserved-name`、重複パス400 `duplicate-path`、ファイル数超過は413 `too-many-files`、1ファイル超過は413 `too-large`、合計超過は413 `bundle-too-large`）。発行URLは `Content-Length` を含めて署名するため（`X-Amz-SignedHeaders` に `content-length`）、宣言と違う長さのPUTはR2自身が拒否する。
+
+### PUT（署名付きURLへ直接）
+
+クライアントは `prepare` が返した URL へ、宣言どおりの `Content-Length` で PUT する（Bearer トークンは不要。署名がそれを兼ねる）。Worker はこの通信を経由しない。
+
+### `POST /v1/uploads/{kind}/{id}/complete`
+
+本文は任意で `{ "manifest": "<原文>", "skipped": [...] }`（無くても・壊れていても READY は書かれる。`manifest`/`skipped` は取り込みの診断補助）。
+Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合してから `READY` を書く。揃っていれば200 `{ "ready": true, "fileCount": <n> }`（ACK済みは書かずに冪等の200 `{ "ready": true }`）。1つでも欠けや長さ違いがあれば `READY` を書かず409 `{ "reason": "incomplete", "missing": [{ "path": ..., "expectedBytes": ..., "actualBytes": <実際の長さ or null> }] }`。宣言（`prepare`）が無い箱への complete は409 `{ "reason": "not-prepared" }`。`READY` の `files` はこの照合で確定した一覧で、クライアントの申告は使わない。
 
 ## 初回セットアップ
 
@@ -42,6 +66,15 @@ Mac mini（plan H の `scripts/playtest/ingest.sh`）が管理APIで取り込む
    pnpm exec wrangler secret put SESSION_HMAC_SECRET   # openssl rand -hex 32
    pnpm exec wrangler secret put ADMIN_KEY             # openssl rand -hex 32
    ```
+2b. R2 の署名付き URL 用に API トークンを作る（Cloudflare ダッシュボード → R2 → Manage R2 API Tokens → Create API token）。
+    権限は「Object Read & Write」、対象バケットは `moorestech-playtest` だけに限定する。表示される Access Key ID と Secret Access Key を secrets に入れる:
+    ```bash
+    pnpm exec wrangler secret put R2_ACCESS_KEY_ID
+    pnpm exec wrangler secret put R2_SECRET_ACCESS_KEY
+    ```
+    アカウント ID とバケット名は `wrangler.toml` の `[vars]`（`R2_ACCOUNT_ID` / `R2_BUCKET_NAME`）。
+    クライアントは Worker が返す署名付き URL（`https://<account>.r2.cloudflarestorage.com/<bucket>/<key>?X-Amz-...`）へ直接 PUT する。
+    Worker はバイト列を中継しない（Workers 無料プランの CPU 上限のため。ADR 0064）。
 3. デプロイ前に `wrangler.toml` の `compatibility_date`（現在 `2026-08-22`。手元 workerd テスト環境が解釈できる上限に固定してある）を Cloudflare の最新日付へ見直す。
 4. デプロイする:
    ```bash
