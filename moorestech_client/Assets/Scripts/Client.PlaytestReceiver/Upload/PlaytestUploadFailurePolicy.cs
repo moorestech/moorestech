@@ -14,12 +14,12 @@ namespace Client.PlaytestReceiver.Upload
     // The single place that sorts failures into a permission matter, a transient one, or one that never heals for that file
     internal static class PlaytestUploadFailurePolicy
     {
-        public static PlaytestUploadFailureKind Classify(PlaytestApiResult result)
+        // isSignedPut は署名付きURL（R2）へのPUTの結果か。受け口の403とR2の403は意味が違う
+        // isSignedPut tells whether the result came from the presigned PUT to R2; a receiver 403 and an R2 403 mean different things
+        public static PlaytestUploadFailureKind Classify(PlaytestApiResult result, bool isSignedPut)
         {
             switch (result.Kind)
             {
-                case PlaytestApiResultKind.LocalUnsafePath:
-                    return PlaytestUploadFailureKind.PermanentForFile;
                 case PlaytestApiResultKind.LocalUnreadableFile:
                 case PlaytestApiResultKind.TransportFailure:
                 case PlaytestApiResultKind.SessionUnavailable:
@@ -32,12 +32,17 @@ namespace Client.PlaytestReceiver.Upload
 
             #region Internal
 
-            // 取り直しても残る401と403は権利の問題、408/429/5xxは混み合いや障害、それ以外の4xxはそのファイル固有
-            // A 401 surviving a refresh or a 403 is a permission matter, 408/429/5xx is congestion or outage, other 4xx belong to the file
+            // 取り直しても残る401と受け口の403は権利の問題、408/409/429/5xxは一過性、それ以外の4xxはその箱固有
+            // A 401 surviving a refresh or a receiver 403 is a permission matter, 408/409/429/5xx is transient, other 4xx belong to the box
             PlaytestUploadFailureKind ClassifyStatusCode(int statusCode)
             {
-                if (statusCode == 401 || statusCode == 403) return PlaytestUploadFailureKind.Unauthorized;
-                if (statusCode == 408 || statusCode == 429) return PlaytestUploadFailureKind.Retryable;
+                if (statusCode == 401 || (statusCode == 403 && !isSignedPut)) return PlaytestUploadFailureKind.Unauthorized;
+                // 署名付きURLへのPUTの403は署名の期限切れか長さ不一致。prepareからやり直せば直るので一過性として扱う
+                // A 403 from the presigned PUT means an expired signature or a length mismatch; redoing from prepare heals it, so it is transient
+                if (statusCode == 403) return PlaytestUploadFailureKind.Retryable;
+                // 409はcompleteの「揃っていない」「prepareが無い」。prepareからやり直せば直る
+                // A 409 is complete's "incomplete" or "not-prepared"; redoing from prepare heals it
+                if (statusCode == 408 || statusCode == 409 || statusCode == 429) return PlaytestUploadFailureKind.Retryable;
                 if (400 <= statusCode && statusCode < 500) return PlaytestUploadFailureKind.PermanentForFile;
                 return PlaytestUploadFailureKind.Retryable;
             }
@@ -50,13 +55,6 @@ namespace Client.PlaytestReceiver.Upload
         public static bool AbortsRun(PlaytestApiResult result)
         {
             return result.Kind == PlaytestApiResultKind.TransportFailure || result.Kind == PlaytestApiResultKind.SessionUnavailable;
-        }
-
-        // 要約JSONのskipped[]へ載せる短い理由。人が読む詳細は本文ではなくログへ出す
-        // The short reason that rides in the summary's skipped[]; the human-readable detail goes to the log, not the body
-        public static string ToSkipReason(PlaytestApiResult result)
-        {
-            return result.Kind == PlaytestApiResultKind.LocalUnsafePath ? "unsafe-path" : $"http-{result.StatusCode}";
         }
 
         public static string Describe(string what, PlaytestApiResult result)

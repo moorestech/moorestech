@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Upload.Attempt;
 using Cysharp.Threading.Tasks;
-using Game.Paths;
-using Newtonsoft.Json;
 using UnityEngine;
 
 namespace Client.PlaytestReceiver.Upload
@@ -24,12 +23,14 @@ namespace Client.PlaytestReceiver.Upload
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestSession _session;
         private readonly PlaytestOutboxDirectories _directories;
+        private readonly PlaytestUploadRetrySchedule _retry;
 
-        public PlaytestUploader(IPlaytestReceiverApi api, PlaytestSession session, PlaytestOutboxDirectories directories)
+        public PlaytestUploader(IPlaytestReceiverApi api, PlaytestSession session, PlaytestOutboxDirectories directories, PlaytestUploadRetrySchedule retry)
         {
             _api = api;
             _session = session;
             _directories = directories;
+            _retry = retry;
         }
 
         public async UniTask<int> UploadPendingAsync(CancellationToken token)
@@ -68,101 +69,50 @@ namespace Client.PlaytestReceiver.Upload
             }
         }
 
+        // prepare→署名付きURLへPUT→completeを1試行とし、一過性の失敗は表の回数だけ待って同じ箱をやり直す。送れたファイルは次の試行で飛ばす
+        // One attempt is prepare→PUT to the presigned URLs→complete; a transient failure waits per the schedule and retries the same box, skipping files already sent
         private async UniTask<BoxOutcome> UploadOneAsync(PlaytestOutboxBox box, CancellationToken token)
         {
-            var skipped = new List<object>();
-            var uploadedFiles = new List<string>();
-
-            foreach (var file in PlaytestOutboxScanner.ListPayloadFiles(box.Directory))
+            var declaration = PlaytestBoxDeclaration.Build(box);
+            if (declaration.Files.Count == 0)
             {
-                var relativePath = PlaytestOutboxScanner.ToRelativePath(box.Directory, file);
-                var skip = DescribeSkip(file, relativePath);
-                if (skip != null)
-                {
-                    skipped.Add(skip);
-                    continue;
-                }
-
-                var result = await _session.SendAuthorizedAsync(new PlaytestPutFileCall(_api, box, relativePath, file), token);
-                if (result.IsSuccess)
-                {
-                    uploadedFiles.Add(relativePath);
-                    continue;
-                }
-
-                // 何度送っても直らないファイルだけ見送り、箱ごと詰まらせない
-                // Only a file that can never succeed is dropped, so the box as a whole does not stall
-                if (PlaytestUploadFailurePolicy.Classify(result) == PlaytestUploadFailureKind.PermanentForFile)
-                {
-                    skipped.Add(new { path = relativePath, reason = PlaytestUploadFailurePolicy.ToSkipReason(result) });
-                    Debug.LogWarning($"[PlaytestReceiver] skipping {PlaytestUploadFailurePolicy.Describe(relativePath, result)}: it can never be accepted");
-                    continue;
-                }
-
-                return Defer(relativePath, result);
+                // 送るものが1つも無い箱は受け口へ行かずに恒久失敗として数える（偽のHTTP応答を合成しない）
+                // A box with nothing sendable never reaches the receiver; it is counted as permanent without forging an HTTP response
+                PlaytestUploadAttemptLog.Increment(box.Directory, $"nothing to send: every file was skipped ({declaration.Skipped.Count} skipped)");
+                return BoxOutcome.BoxDeferred;
             }
-
-            var completed = await _session.SendAuthorizedAsync(new PlaytestCompleteCall(_api, box, ComposeSummary()), token);
-            if (!completed.IsSuccess) return Defer("complete", completed);
-
-            PlaytestUploadAttemptLog.MarkUploaded(box.Directory);
-            Debug.Log($"[PlaytestReceiver] uploaded {PlaytestUploadPath.KindSegment(box.Kind)}/{box.BundleId} ({uploadedFiles.Count} files, {skipped.Count} skipped)");
-            return BoxOutcome.Sent;
-
-            #region Internal
-
-            // 送る前に分かる見送り理由だけを返す。パスの安全性はクライアントの送信口が1箇所で検査する
-            // Returns only the skip reasons knowable before any request; path safety is checked once at the client's send site
-            object DescribeSkip(string absoluteFilePath, string relativePath)
+            var attemptRunner = new PlaytestUploadAttempt(_api, _session);
+            var sentPaths = new HashSet<string>();
+            var attempt = 0;
+            while (true)
             {
-                // 先頭セグメントが受け口の予約名と衝突すると405やREADY/ACKEDの上書きになる。送信前に見送る
-                // A first segment colliding with a receiver-reserved name would 405 or overwrite READY/ACKED; skip before sending
-                var firstSegment = relativePath.Split('/')[0];
-                if (0 <= Array.IndexOf(PlaytestOutboxScanner.ReservedUploadSegments, firstSegment))
+                var failure = await attemptRunner.RunAsync(box, declaration, sentPaths, token);
+                if (failure == null)
                 {
-                    Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: its first segment is a reserved name on the receiver");
-                    return new { path = relativePath, reason = "reserved-name" };
+                    PlaytestUploadAttemptLog.MarkUploaded(box.Directory);
+                    Debug.Log($"[PlaytestReceiver] uploaded {PlaytestUploadPath.KindSegment(box.Kind)}/{box.BundleId} ({declaration.Files.Count} files, {declaration.Skipped.Count} skipped)");
+                    return BoxOutcome.Sent;
                 }
-
-                var length = new FileInfo(absoluteFilePath).Length;
-                if (length <= PlaytestReceiverConfig.MaxFileBytes) return null;
-
-                Debug.LogWarning($"[PlaytestReceiver] skipping {relativePath}: {length} bytes exceeds the {PlaytestReceiverConfig.MaxFileBytes} byte limit");
-                return new { path = relativePath, reason = "too-large", bytes = length };
-            }
-
-            // 数えるのは再試行で直らない失敗だけ。一時的な失敗は数えずに持ち越し、到達不能やトークン不調なら走行ごと止める
-            // Only failures retrying cannot heal are counted; transient ones defer uncounted, and unreachability stops the run
-            BoxOutcome Defer(string what, PlaytestApiResult result)
-            {
-                var description = PlaytestUploadFailurePolicy.Describe(what, result);
-                if (PlaytestUploadFailurePolicy.Classify(result) != PlaytestUploadFailureKind.Retryable)
+                // 数えるのは再試行で直らない失敗だけ。一過性の失敗は表が尽きたら数えずに持ち越し、到達不能やトークン不調なら走行ごと止める
+                // Only failures retrying cannot heal are counted; transient ones defer uncounted once the schedule runs out, and unreachability stops the run
+                var description = PlaytestUploadFailurePolicy.Describe(failure.What, failure.Result);
+                if (PlaytestUploadFailurePolicy.Classify(failure.Result, failure.IsSignedPut) != PlaytestUploadFailureKind.Retryable)
                 {
                     PlaytestUploadAttemptLog.Increment(box.Directory, description);
                     return BoxOutcome.BoxDeferred;
                 }
-
-                PlaytestUploadAttemptLog.LogRetryable(box.Directory, description);
-                return PlaytestUploadFailurePolicy.AbortsRun(result) ? BoxOutcome.RunAborted : BoxOutcome.BoxDeferred;
-            }
-
-            // planBのmanifest生テキストとPUT成功分のfilesを載せる。受け口に一覧APIが無く取り込み側はfilesだけを取得する
-            // Carries plan B's raw manifest and the successfully PUT files; with no listing API the ingest side fetches only files
-            string ComposeSummary()
-            {
-                var manifestPath = Path.Combine(box.Directory, BugReportBundleLayout.ManifestFileName);
-                return JsonConvert.SerializeObject(new
+                if (attempt >= _retry.Delays.Count)
                 {
-                    kind = PlaytestUploadPath.KindSegment(box.Kind),
-                    id = box.BundleId,
-                    fileCount = uploadedFiles.Count,
-                    files = uploadedFiles,
-                    skipped,
-                    manifest = File.Exists(manifestPath) ? File.ReadAllText(manifestPath) : null,
-                });
+                    PlaytestUploadAttemptLog.LogRetryable(box.Directory, $"{description} (after {attempt} retries)");
+                    return PlaytestUploadFailurePolicy.AbortsRun(failure.Result) ? BoxOutcome.RunAborted : BoxOutcome.BoxDeferred;
+                }
+                var delay = _retry.Delays[attempt];
+                attempt++;
+                Debug.LogWarning($"[PlaytestReceiver] {description}; retry {attempt}/{_retry.Delays.Count} in {delay.TotalSeconds:0}s");
+                // 待ち0はフレームを跨がず即座にやり直す（Immediateのテストを同期で完結させる）
+                // A zero wait retries at once without crossing a frame, so Immediate tests complete synchronously
+                if (TimeSpan.Zero < delay) await UniTask.Delay(delay, DelayType.Realtime, PlayerLoopTiming.Update, token);
             }
-
-            #endregion
         }
     }
 }

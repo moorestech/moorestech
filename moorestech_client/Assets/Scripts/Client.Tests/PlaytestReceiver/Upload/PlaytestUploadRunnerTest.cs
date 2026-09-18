@@ -67,10 +67,10 @@ namespace Client.Tests.PlaytestReceiver
             // While the first run is parked on its first PUT, no second run exists, so exactly one PUT happened
             Assert.AreEqual(1, api.PutAttemptCount);
 
-            // 1本目は到達不能で打ち切られ、記録されていた再要求で2本目が同じ箱へPUTする
-            // The first run aborts on unreachability, and the remembered re-request makes a second run PUT the box again
-            gate.TrySetResult(PlaytestApiResult.TransportFailure("offline"));
-            Assert.AreEqual(2, api.PutAttemptCount);
+            // 恒久失敗（400）で解放すると1本目は再試行せず両方の箱を1回ずつ試し、記録されていた再要求で2本目も同じく両方を試す
+            // Releasing with a permanent 400 makes the first run try each box once without retrying, and the remembered re-request makes a second run do the same
+            gate.TrySetResult(PlaytestApiResult.Responded(400, "{\"reason\":\"bad\"}"));
+            Assert.AreEqual(4, api.PutAttemptCount);
         }
     }
 }

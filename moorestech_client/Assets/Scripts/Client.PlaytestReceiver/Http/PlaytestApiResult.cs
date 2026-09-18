@@ -6,7 +6,6 @@ namespace Client.PlaytestReceiver.Http
     {
         Responded,
         TransportFailure,
-        LocalUnsafePath,
         LocalUnreadableFile,
         SessionUnavailable,
     }
@@ -39,11 +38,6 @@ namespace Client.PlaytestReceiver.Http
         public static PlaytestApiResult TransportFailure(string detail)
         {
             return new PlaytestApiResult(PlaytestApiResultKind.TransportFailure, 0, "", detail);
-        }
-
-        public static PlaytestApiResult LocalUnsafePath(string detail)
-        {
-            return new PlaytestApiResult(PlaytestApiResultKind.LocalUnsafePath, 0, "", detail);
         }
 
         public static PlaytestApiResult LocalUnreadableFile(string detail)

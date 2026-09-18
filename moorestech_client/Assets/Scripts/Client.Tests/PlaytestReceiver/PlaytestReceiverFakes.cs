@@ -5,6 +5,8 @@ using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Client.Tests.PlaytestReceiver
 {
@@ -77,31 +79,46 @@ namespace Client.Tests.PlaytestReceiver
             return UniTask.FromResult(response);
         }
 
-        public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
+        public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
             return UniTask.FromResult(PlaytestApiResult.Responded(200, "{}"));
         }
 
-        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string summaryJson, CancellationToken token)
+        public UniTask<PlaytestApiResult> PutToSignedUrlAsync(string signedUrl, string absoluteFilePath, long bytes, CancellationToken token)
+        {
+            return UniTask.FromResult(PlaytestApiResult.Responded(200, ""));
+        }
+
+        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string supplementJson, CancellationToken token)
         {
             return UniTask.FromResult(PlaytestApiResult.Responded(200, "{}"));
         }
     }
 
-    // アップロード用。PUTとcompleteの結果をキューで順に返し、呼ばれた回数を数える
-    // For uploads; PUT and complete results are dequeued in order and every call is counted
+    // アップロード用。prepare/PUT/completeを呼ばれた順に Calls へ記録し、キューが空なら成功の既定応答を返す
+    // For uploads; prepare/PUT/complete are recorded in Calls in order, and an empty queue answers with the default success
     internal sealed class FakeUploadApi : IPlaytestReceiverApi
     {
-        public readonly List<string> PutPaths = new();
-        public readonly Queue<PlaytestApiResult> PutResultQueue = new();
-        public readonly Queue<PlaytestApiResult> CompleteResultQueue = new();
-        public int CompleteCount;
-        public int PutAttemptCount;
+        public readonly List<string> Calls = new();
         public int SessionCallCount;
-        public string LastSummary = "";
+        public int PutAttemptCount;
+        public int CompleteCount;
+        public string LastCompleteBody = "";
         public UniTaskCompletionSource<PlaytestApiResult> PendingPut;
-        public PlaytestApiResult PutResult = PlaytestApiResult.Responded(200, "{}");
         public PlaytestApiResult SessionResult = PlaytestApiResult.Responded(200, PlaytestSessionBodies.AllowedFarFuture);
+
+        private readonly Queue<PlaytestApiResult> _prepareResults = new();
+        private readonly Dictionary<string, Queue<PlaytestApiResult>> _putResults = new();
+        private readonly Queue<PlaytestApiResult> _completeResults = new();
+
+        public void EnqueuePrepare(PlaytestApiResult result) { _prepareResults.Enqueue(result); }
+        public void EnqueueComplete(PlaytestApiResult result) { _completeResults.Enqueue(result); }
+
+        public void EnqueuePut(string path, PlaytestApiResult result)
+        {
+            if (!_putResults.TryGetValue(path, out var queue)) _putResults[path] = queue = new Queue<PlaytestApiResult>();
+            queue.Enqueue(result);
+        }
 
         public UniTask<PlaytestApiResult> PostSessionAsync(string ticketHex, CancellationToken token)
         {
@@ -109,21 +126,39 @@ namespace Client.Tests.PlaytestReceiver
             return UniTask.FromResult(SessionResult);
         }
 
-        public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
+        public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
-            PutAttemptCount++;
-            if (PendingPut != null) return PendingPut.Task;
-
-            var result = PutResultQueue.Count != 0 ? PutResultQueue.Dequeue() : PutResult;
-            if (result.IsSuccess) PutPaths.Add(relativePath);
-            return UniTask.FromResult(result);
+            Calls.Add("prepare");
+            return UniTask.FromResult(_prepareResults.Count != 0 ? _prepareResults.Dequeue() : PlaytestApiResult.Responded(200, PrepareBodyFor(files)));
         }
 
-        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string summaryJson, CancellationToken token)
+        // 既定のprepare応答が返すURLは https://r2.test/<path> なので、URLから宣言のパスへ戻せる
+        // The default prepare answer uses https://r2.test/<path>, so the declared path is recovered from the URL
+        public UniTask<PlaytestApiResult> PutToSignedUrlAsync(string signedUrl, string absoluteFilePath, long bytes, CancellationToken token)
         {
+            var path = signedUrl.Substring(SignedUrlPrefix.Length);
+            Calls.Add($"put:{path}");
+            PutAttemptCount++;
+            if (PendingPut != null) return PendingPut.Task;
+            var queued = _putResults.TryGetValue(path, out var queue) && queue.Count != 0;
+            return UniTask.FromResult(queued ? queue.Dequeue() : PlaytestApiResult.Responded(200, ""));
+        }
+
+        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string supplementJson, CancellationToken token)
+        {
+            Calls.Add("complete");
             CompleteCount++;
-            LastSummary = summaryJson;
-            return UniTask.FromResult(CompleteResultQueue.Count != 0 ? CompleteResultQueue.Dequeue() : PlaytestApiResult.Responded(200, "{}"));
+            LastCompleteBody = supplementJson;
+            return UniTask.FromResult(_completeResults.Count != 0 ? _completeResults.Dequeue() : PlaytestApiResult.Responded(200, "{}"));
+        }
+
+        private const string SignedUrlPrefix = "https://r2.test/";
+
+        private static string PrepareBodyFor(IReadOnlyList<PlaytestDeclaredFile> files)
+        {
+            var uploads = new JArray();
+            foreach (var f in files) uploads.Add(new JObject { ["path"] = f.Path, ["url"] = SignedUrlPrefix + f.Path, ["bytes"] = f.Bytes });
+            return new JObject { ["outcome"] = "prepared", ["uploads"] = uploads, ["expiresInSeconds"] = 3600 }.ToString(Formatting.None);
         }
     }
 }
