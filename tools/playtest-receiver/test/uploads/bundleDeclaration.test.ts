@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { MAX_BUNDLE_BYTES, MAX_BUNDLE_FILES, MAX_FILE_BYTES } from "../src/contract";
-import { parseDeclaration } from "../src/bundleDeclaration";
+import { MAX_BUNDLE_BYTES, MAX_BUNDLE_FILES, MAX_FILE_BYTES } from "../../src/contract";
+import { parseDeclaration } from "../../src/uploads/bundleDeclaration";
 
 function files(count: number, bytes = 1) {
   return { files: Array.from({ length: count }, (_, i) => ({ path: `frames/frame_${i}.jpg`, bytes })) };

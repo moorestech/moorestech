@@ -1,6 +1,6 @@
-import { declaredMarkerKey } from "./bundleMarkers";
-import { MAX_BUNDLE_BYTES, MAX_BUNDLE_FILES, MAX_FILE_BYTES, RESERVED_UPLOAD_SEGMENTS } from "./contract";
-import { joinSafePath, type PlaytestKind } from "./keys";
+import { declaredMarkerKey } from "../bundleMarkers";
+import { MAX_BUNDLE_BYTES, MAX_BUNDLE_FILES, MAX_FILE_BYTES, RESERVED_UPLOAD_SEGMENTS } from "../contract";
+import { joinSafePath, type PlaytestKind } from "../keys";
 
 export interface DeclaredFile {
   path: string;
@@ -45,6 +45,14 @@ function reject(status: 400 | 413, error: string, detail: string): DeclarationCh
   return { ok: false, status, error, detail };
 }
 
+// DECLAREDは箱ごとにwrite-once。再prepareはpath+bytesの集合が一致するときだけ受け、順序の違いは同じ宣言とみなす
+// DECLARED is write-once per box; a re-prepare is accepted only when its path+bytes set matches, ignoring order
+export function isSameDeclaration(stored: DeclaredFile[], requested: DeclaredFile[]): boolean {
+  if (stored.length !== requested.length) return false;
+  const storedBytes = new Map(stored.map((file) => [file.path, file.bytes]));
+  return requested.every((file) => storedBytes.get(file.path) === file.bytes);
+}
+
 // 宣言はcompleteの照合元としてR2に置く。クライアントの再申告を信じないための唯一の記録
 // The declaration is stored in R2 as the reference complete verifies against; it is the only record, so the client's re-statement is never trusted
 export async function writeDeclaration(bucket: R2Bucket, kind: PlaytestKind, steamId: string, id: string, files: DeclaredFile[]): Promise<void> {
@@ -58,7 +66,9 @@ export async function readDeclaration(bucket: R2Bucket, kind: PlaytestKind, stea
   // Although we wrote it, an R2 object is treated as external input; a broken one counts as absent so the client re-prepares
   try {
     const parsed = parseDeclaration(await object.json());
-    return parsed.ok ? parsed.files : null;
+    if (parsed.ok) return parsed.files;
+    console.warn(`[upload] DECLARED of ${steamId}/${id} no longer passes the declaration check (${parsed.error}); treating it as absent`);
+    return null;
   } catch {
     console.warn(`[upload] DECLARED of ${steamId}/${id} is not readable JSON; treating it as absent`);
     return null;
