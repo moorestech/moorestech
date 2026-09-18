@@ -13,7 +13,6 @@ namespace Server.Boot.Replay
         // 置き場の名前は書き側と共有する定義元から取る。ここで再定義すると片方の改名で再現だけが無言で全滅する
         // The directory names come from the definition shared with the writer; redefining them here lets a one-sided rename kill only the reproduction, silently
         private const string SnapshotDirectoryName = BugReportBundleLayout.SnapshotDirectoryName;
-        private const string WorldDirectoryName = BugReportBundleLayout.WorldDirectoryName;
 
         // 区間を覆うパケットが1件も無かったペアの印。不一致の理由が「ログの欠け」なのか非決定性なのかを読み手が分ける
         // Marks a pair whose interval no packet covered, so the reader can tell a missing log from real non-determinism
@@ -38,17 +37,18 @@ namespace Server.Boot.Replay
         public static string ReplayCheck(string bundleDirectory, string serverDataDirectory)
         {
             var snapshotDirectory = Path.Combine(bundleDirectory, SnapshotDirectoryName);
-            var worldRoot = Path.Combine(bundleDirectory, WorldDirectoryName);
             if (!Directory.Exists(snapshotDirectory)) return Reject($"バンドルに {SnapshotDirectoryName}/ がありません bundle:{bundleDirectory}");
-
-            // 再生は記録時のワールド（map.json）を読む。無い箱を template で代用すると instanceId がずれて偽の差分になる
-            // Replay reads the recording's own world (map.json); substituting the template shifts instance ids and fabricates differences
-            if (!Directory.Exists(worldRoot)) return Reject($"バンドルに {WorldDirectoryName}/ がありません（記録時のワールドが無いと再生は成立しません） bundle:{bundleDirectory}");
 
             // 記録時と違うサーバーデータで再生すると、マスタローダーが data[NN] のような読み解けない例外で落ちる
             // Replaying with server data other than the recording's dies in the master loader with an unreadable exception like data[NN]
             var mismatch = BundleServerDataCheck.FindMismatch(bundleDirectory, serverDataDirectory);
             if (mismatch != null) return Reject(mismatch);
+
+            // 再生は記録時のワールドを読む。箱の map.json か、生成ワールドなら world.json から引き当てた地形を使う（ADR 0064）。同梱スナップショットはサーバーデータ内にあるので照合の後に引く
+            // Replay reads the recording's world: the bundle's map.json, or for a generated world the terrain located from world.json (ADR 0064); bundled snapshots live in the server data, so this follows the check
+            var worldResolution = BugReportBundleWorldResolver.Resolve(bundleDirectory, serverDataDirectory);
+            if (worldResolution.Outcome == BugReportBundleWorldOutcome.Rejected) return Reject(((BugReportBundleWorldResolution.RejectedWorld)worldResolution).Reason);
+            var sourceWorld = ((BugReportBundleWorldResolution.ResolvedWorld)worldResolution).World;
 
             var snapshotFiles = WorldDataDirectory.EnumerateSnapshotFiles(snapshotDirectory);
             if (snapshotFiles.Count < 2) return Reject($"スナップショットが{snapshotFiles.Count}枚しかなく隣接区間を作れません dir:{snapshotDirectory}");
@@ -56,7 +56,6 @@ namespace Server.Boot.Replay
             var segments = WorldDataDirectory.EnumeratePacketLogFiles(snapshotDirectory);
             if (segments.Count == 0) Debug.LogWarning($"パケットログ区間が1件もありません。パケット0件の再生になります dir:{snapshotDirectory}");
 
-            var sourceWorld = WorldDataDirectory.FromWorldRoot(worldRoot);
             var pairs = new JArray();
             var allEqual = true;
             var noPacketsInRangePairs = 0;
