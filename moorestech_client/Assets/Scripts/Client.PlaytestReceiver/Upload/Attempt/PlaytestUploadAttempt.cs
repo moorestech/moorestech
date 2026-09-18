@@ -38,7 +38,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
                 foreach (var upload in response.Uploads)
                 {
                     if (sentPaths.Contains(upload.Path)) continue;
-                    var file = FindDeclared(declaration, upload.Path);
+                    var file = FindDeclared(upload.Path);
                     if (file == null)
                     {
                         Debug.LogWarning($"[PlaytestReceiver] the receiver returned an upload for an undeclared path: {upload.Path}");
@@ -49,67 +49,89 @@ namespace Client.PlaytestReceiver.Upload.Attempt
                     sentPaths.Add(upload.Path);
                 }
             }
-            var completed = await _session.SendAuthorizedAsync(new PlaytestCompleteCall(_api, box, ComposeSupplement(box, declaration)), token);
+            var completed = await _session.SendAuthorizedAsync(new PlaytestCompleteCall(_api, box, ComposeSupplement()), token);
             if (completed.IsSuccess) return null;
             // 409 は受け口が数えた欠損。欠けたパスを送信済みから外さないと次の試行で PUT が全部飛び同じ 409 を繰り返す（不明なら全部送り直す）
             // A 409 carries the receiver's count of what is missing; unless those paths leave the sent set, the next attempt skips every PUT and repeats the same 409 (when unknown, resend all)
-            if (completed.Kind == PlaytestApiResultKind.Responded && completed.StatusCode == 409) ForgetMissing(completed.Body, sentPaths);
+            if (completed.Kind == PlaytestApiResultKind.Responded && completed.StatusCode == 409) ForgetMissing(completed.Body);
             return new PlaytestUploadAttemptFailure("complete", completed, false);
-        }
 
-        private static void ForgetMissing(string body, HashSet<string> sentPaths)
-        {
+            #region Internal
+
             // 受け口の応答は外部入力のJSON。読めなければ全部送り直す側に倒す
             // The receiver's body is external JSON; when unreadable, fall back to resending everything
-            try
+            void ForgetMissing(string body)
             {
-                if (JObject.Parse(body)["missing"] is JArray missing)
+                JObject root;
+                try
                 {
-                    // path は型を確かめて読む。1件でも読めなければ欠けを特定できないので全部送り直す（無視すると同じ409を繰り返す）
-                    // Paths are read after a type check; if any entry is unreadable the gap is unknown, so resend all (ignoring it would repeat the same 409)
-                    var missingPaths = new List<string>();
-                    foreach (var entry in missing)
-                    {
-                        if (!(entry is JObject missingEntry) || !(missingEntry["path"] is JValue { Type: JTokenType.String } path))
-                        {
-                            Debug.LogWarning($"[PlaytestReceiver] complete answered 409 with an unreadable missing entry; resending every file: {entry.ToString(Formatting.None)}");
-                            sentPaths.Clear();
-                            return;
-                        }
-                        missingPaths.Add((string)path);
-                    }
-                    foreach (var missingPath in missingPaths) sentPaths.Remove(missingPath);
+                    root = JObject.Parse(body);
+                }
+                catch (JsonException exception)
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] complete answered 409 with an unreadable body; resending every file: {exception.Message}");
+                    sentPaths.Clear();
                     return;
                 }
-                Debug.LogWarning("[PlaytestReceiver] complete answered 409 without a missing list; resending every file");
-                sentPaths.Clear();
-            }
-            catch (JsonException exception)
-            {
-                Debug.LogWarning($"[PlaytestReceiver] complete answered 409 with an unreadable body; resending every file: {exception.Message}");
-                sentPaths.Clear();
-            }
-        }
 
-        private static PlaytestDeclaredFile FindDeclared(PlaytestBoxDeclaration declaration, string path)
-        {
-            foreach (var file in declaration.Files)
-            {
-                if (file.Path == path) return file;
-            }
-            return null;
-        }
+                var reason = root["reason"] is JValue { Type: JTokenType.String } reasonValue ? (string)reasonValue : "unknown";
+                if (!(root["missing"] is JArray missing) || missing.Count == 0)
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] complete answered 409 without a missing list (reason: {reason}); resending every file");
+                    sentPaths.Clear();
+                    return;
+                }
 
-        // completeの補足。manifest原文と見送り一覧だけを載せ、ファイル一覧は受け口が照合して決める
-        // The complete supplement: only the raw manifest and the skips; the file list is settled by the receiver's verification
-        private static string ComposeSupplement(PlaytestOutboxBox box, PlaytestBoxDeclaration declaration)
-        {
-            var manifestPath = Path.Combine(box.Directory, BugReportBundleLayout.ManifestFileName);
-            return JsonConvert.SerializeObject(new
+                // path は型を確かめて読む。1件でも読めなければ欠けを特定できないので全部送り直す（無視すると同じ409を繰り返す）
+                // Paths are read after a type check; if any entry is unreadable the gap is unknown, so resend all (ignoring it would repeat the same 409)
+                var missingPaths = new List<string>();
+                foreach (var entry in missing)
+                {
+                    if (!(entry is JObject missingEntry) || !(missingEntry["path"] is JValue { Type: JTokenType.String } path))
+                    {
+                        Debug.LogWarning($"[PlaytestReceiver] complete answered 409 with an unreadable missing entry (reason: {reason}); resending every file: {entry.ToString(Formatting.None)}");
+                        sentPaths.Clear();
+                        return;
+                    }
+                    missingPaths.Add((string)path);
+                }
+
+                var removed = 0;
+                foreach (var missingPath in missingPaths)
+                {
+                    if (sentPaths.Remove(missingPath)) removed++;
+                }
+                // 送信済み集合から1件も外れなければ次の試行もPUTを全部飛ばし同じ409を繰り返す。全部送り直す側に倒す
+                // When nothing leaves the sent set, the next attempt skips every PUT and repeats the same 409; fall back to resending everything
+                if (removed == 0)
+                {
+                    Debug.LogWarning($"[PlaytestReceiver] complete answered 409 (reason: {reason}) but no sent path matched; resending every file");
+                    sentPaths.Clear();
+                }
+            }
+
+            PlaytestDeclaredFile FindDeclared(string path)
             {
-                skipped = declaration.Skipped,
-                manifest = File.Exists(manifestPath) ? File.ReadAllText(manifestPath) : null,
-            });
+                foreach (var file in declaration.Files)
+                {
+                    if (file.Path == path) return file;
+                }
+                return null;
+            }
+
+            // completeの補足。manifest原文と見送り一覧だけを載せ、ファイル一覧は受け口が照合して決める
+            // The complete supplement: only the raw manifest and the skips; the file list is settled by the receiver's verification
+            string ComposeSupplement()
+            {
+                var manifestPath = Path.Combine(box.Directory, BugReportBundleLayout.ManifestFileName);
+                return JsonConvert.SerializeObject(new
+                {
+                    skipped = declaration.Skipped,
+                    manifest = File.Exists(manifestPath) ? File.ReadAllText(manifestPath) : null,
+                });
+            }
+
+            #endregion
         }
     }
 

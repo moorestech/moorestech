@@ -5,8 +5,8 @@ using Cysharp.Threading.Tasks;
 
 namespace Client.PlaytestReceiver.Upload
 {
-    // 箱の宣言を送りURLを受ける。トークンの取り直しと再送はセッション側が行う
-    // Sends the box declaration and receives the URLs; the session performs any token refresh and resend
+    // 宣言送信・URL受信。トークン再取得はセッション側
+    // Sends the declaration and receives URLs; token refresh is the session's job
     internal sealed class PlaytestPrepareCall : IPlaytestAuthorizedCall
     {
         private readonly IPlaytestReceiverApi _api;

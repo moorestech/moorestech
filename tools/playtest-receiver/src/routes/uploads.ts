@@ -4,7 +4,7 @@ import { UPLOAD_URL_TTL_SECONDS } from "../contract";
 import type { Env } from "../env";
 import { fail, json, requireMethod } from "../http";
 import { bundlePrefix, isKind, isSafeSegment, pendingIndexKey, type PlaytestKind } from "../keys";
-import { presignPut } from "../presign";
+import { createR2Client, presignPut } from "../presign";
 import { verifyToken } from "../token";
 import { verifyDeclaredObjects } from "./uploadsVerify";
 
@@ -103,11 +103,12 @@ async function prepareUpload(request: Request, env: Env, kind: PlaytestKind, id:
   // 宣言を先に保存し、completeの照合元にする。URLは同じ時刻で揃えて発行する
   // The declaration is stored first as complete's reference; every URL is signed at the same instant
   await writeDeclaration(env.BUCKET, kind, steamId, id, declaration.files);
+  const client = createR2Client(env);
   const now = new Date();
   const uploads: { path: string; bytes: number; url: string }[] = [];
   for (const file of declaration.files) {
     const key = `${bundlePrefix(kind, steamId, id)}/${file.path}`;
-    uploads.push({ path: file.path, bytes: file.bytes, url: await presignPut(env, key, file.bytes, now) });
+    uploads.push({ path: file.path, bytes: file.bytes, url: await presignPut(client, env, key, file.bytes, now) });
   }
   return json({ outcome: "prepared", uploads, expiresInSeconds: UPLOAD_URL_TTL_SECONDS });
 }

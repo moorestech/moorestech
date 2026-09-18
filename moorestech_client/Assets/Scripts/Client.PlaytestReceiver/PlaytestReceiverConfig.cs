@@ -24,8 +24,8 @@ namespace Client.PlaytestReceiver
         public const int MaxBundleFiles = 128;
         public const long MaxBundleBytes = 256L * 1024 * 1024;
 
-        // 受け口が予約する先頭セグメント名（印と操作名）。送信前にこの一覧で見送る
-        // First segment names the receiver reserves (markers and verbs); files under them are skipped before sending
+        // 受け口の予約先頭名一覧。送信前に除外
+        // First segment names the receiver reserves; excluded before sending
         internal static readonly string[] ReservedUploadSegments = { "READY", "ACKED", "DECLARED", "complete", "prepare" };
 
         // 配布版は定数に固定する。差し替えを許すと偽の受け口で照合そのものを無効化できる

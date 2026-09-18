@@ -1,5 +1,4 @@
 import type { DeclaredFile } from "../bundleDeclaration";
-import { ACKED_MARKER, DECLARED_MARKER, READY_MARKER } from "../bundleMarkers";
 import { bundlePrefix, type PlaytestKind } from "../keys";
 
 export interface MissingObject {
@@ -23,7 +22,6 @@ export async function verifyDeclaredObjects(bucket: R2Bucket, kind: PlaytestKind
     const page = await bucket.list({ prefix, cursor, limit: 1000 });
     for (const object of page.objects) {
       const relative = object.key.slice(prefix.length);
-      if (relative === READY_MARKER || relative === ACKED_MARKER || relative === DECLARED_MARKER) continue;
       sizes.set(relative, object.size);
     }
     cursor = page.truncated ? page.cursor : undefined;

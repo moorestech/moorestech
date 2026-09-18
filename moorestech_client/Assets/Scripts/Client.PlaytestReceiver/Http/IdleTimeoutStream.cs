@@ -24,14 +24,14 @@ namespace Client.PlaytestReceiver.Http
         public override int Read(byte[] buffer, int offset, int count)
         {
             var read = _inner.Read(buffer, offset, count);
-            if (read > 0) _idle.CancelAfter(_idleTimeout);
+            if (0 < read) _idle.CancelAfter(_idleTimeout);
             return read;
         }
 
         public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             var read = await _inner.ReadAsync(buffer, offset, count, cancellationToken);
-            if (read > 0) _idle.CancelAfter(_idleTimeout);
+            if (0 < read) _idle.CancelAfter(_idleTimeout);
             return read;
         }
 

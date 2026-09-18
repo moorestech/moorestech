@@ -8,8 +8,8 @@ export function ackedMarkerKey(kind: PlaytestKind, steamId: string, id: string):
   return `${bundlePrefix(kind, steamId, id)}/${ACKED_MARKER}`;
 }
 
-// prepareが保存した宣言の置き場。completeがこれと実オブジェクトを照合する
-// Where prepare stores its declaration; complete verifies it against the real objects
+// prepareの宣言置き場。completeが照合に使う
+// Where prepare stores its declaration; complete uses it for verification
 export function declaredMarkerKey(kind: PlaytestKind, steamId: string, id: string): string {
   return `${bundlePrefix(kind, steamId, id)}/${DECLARED_MARKER}`;
 }

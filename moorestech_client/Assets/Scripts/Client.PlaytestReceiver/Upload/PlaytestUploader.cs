@@ -101,7 +101,7 @@ namespace Client.PlaytestReceiver.Upload
                     PlaytestUploadAttemptLog.Increment(box.Directory, description);
                     return BoxOutcome.BoxDeferred;
                 }
-                if (attempt >= _retry.Delays.Count)
+                if (_retry.Delays.Count <= attempt)
                 {
                     PlaytestUploadAttemptLog.LogRetryable(box.Directory, $"{description} (after {attempt} retries)");
                     return PlaytestUploadFailurePolicy.AbortsRun(failure.Result) ? BoxOutcome.RunAborted : BoxOutcome.BoxDeferred;

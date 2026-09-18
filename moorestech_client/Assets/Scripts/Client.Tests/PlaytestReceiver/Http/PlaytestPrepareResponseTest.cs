@@ -13,7 +13,6 @@ namespace Client.Tests.PlaytestReceiver.Http
             Assert.AreEqual(PlaytestPrepareOutcome.Prepared, response.Outcome);
             Assert.AreEqual(1, response.Uploads.Count);
             Assert.AreEqual("a/b.bin", response.Uploads[0].Path);
-            Assert.AreEqual(3, response.Uploads[0].Bytes);
         }
 
         [Test]
@@ -46,10 +45,6 @@ namespace Client.Tests.PlaytestReceiver.Http
         [TestCase("{\"outcome\":\"prepared\",\"uploads\":[[1]]}", "malformed")]
         [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":{},\"url\":\"https://r2/x\",\"bytes\":3}]}", "malformed")]
         [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":[\"x\"],\"bytes\":3}]}", "malformed")]
-        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":\"https://r2/x\",\"bytes\":{}}]}", "malformed")]
-        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":\"https://r2/x\",\"bytes\":\"3\"}]}", "malformed")]
-        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":\"https://r2/x\",\"bytes\":3.5}]}", "malformed")]
-        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":\"https://r2/x\",\"bytes\":99999999999999999999}]}", "malformed")]
         public void 想定外の型の応答は例外を出さず理由付きで失敗する(string body, string expectedDetail)
         {
             Assert.IsFalse(PlaytestPrepareResponse.TryParse(body, out var response, out var detail));

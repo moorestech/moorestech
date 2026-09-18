@@ -4,8 +4,8 @@ using Cysharp.Threading.Tasks;
 
 namespace Client.PlaytestReceiver.Http
 {
-    // 受け口への呼び出し面。バイト列は受け口ではなく署名付きURL（R2）へ送る
-    // The receiver call surface; bytes go to the presigned URL (R2), not to the receiver
+    // 受け口API。バイト列はR2署名URLへ送る
+    // The receiver API; bytes go to the R2 presigned URL
     public interface IPlaytestReceiverApi
     {
         UniTask<PlaytestApiResult> PostSessionAsync(string ticketHex, CancellationToken token);

@@ -7,13 +7,11 @@ namespace Client.PlaytestReceiver.Http
     {
         public readonly string Path;
         public readonly string Url;
-        public readonly long Bytes;
 
-        public PlaytestPreparedUpload(string path, string url, long bytes)
+        public PlaytestPreparedUpload(string path, string url)
         {
             Path = path;
             Url = url;
-            Bytes = bytes;
         }
     }
 
@@ -70,19 +68,19 @@ namespace Client.PlaytestReceiver.Http
             {
                 var path = ReadString(entry, "path");
                 var url = ReadString(entry, "url");
-                if (path == null || url == null || !(entry is JObject entryObject) || !(entryObject["bytes"] is JValue { Value: long bytes }))
+                if (path == null || url == null)
                 {
                     detail = $"prepare response entry is malformed: {entry.ToString(Newtonsoft.Json.Formatting.None)}";
                     return false;
                 }
-                parsed.Add(new PlaytestPreparedUpload(path, url, bytes));
+                parsed.Add(new PlaytestPreparedUpload(path, url));
             }
             response = new PlaytestPrepareResponse(PlaytestPrepareOutcome.Prepared, parsed);
             return true;
         }
 
-        // object の文字列値だけを返す。object でない・キーが無い・文字列でないなら null
-        // Returns a string value of an object only; null when not an object, the key is absent, or the value is not a string
+        // objectの文字列値のみ返す。非object/キー無し/非文字列はnull
+        // Returns an object's string value only; null when not an object, the key is absent, or not a string
         private static string ReadString(JToken token, string key)
         {
             if (!(token is JObject obj) || !(obj[key] is JValue { Type: JTokenType.String } value)) return null;

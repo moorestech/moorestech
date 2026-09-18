@@ -95,8 +95,8 @@ namespace Client.Tests.PlaytestReceiver
         }
     }
 
-    // アップロード用。prepare/PUT/completeを呼ばれた順に Calls へ記録し、キューが空なら成功の既定応答を返す
-    // For uploads; prepare/PUT/complete are recorded in Calls in order, and an empty queue answers with the default success
+    // アップロード用フェイク／呼出順をCallsへ記録／空キューは既定成功応答
+    // Upload fake; records call order in Calls; empty queue answers with default success
     internal sealed class FakeUploadApi : IPlaytestReceiverApi
     {
         public readonly List<string> Calls = new();

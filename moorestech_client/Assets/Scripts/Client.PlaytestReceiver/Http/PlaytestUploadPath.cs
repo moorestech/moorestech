@@ -32,18 +32,22 @@ namespace Client.PlaytestReceiver.Http
             if (PlaytestReceiverConfig.MaxBundleFiles <= declaredCount) return "too-many-files";
             if (PlaytestReceiverConfig.MaxBundleBytes < declaredTotal + bytes) return "bundle-too-large";
             return null;
-        }
 
-        // 受け口の keys.ts isSafeSegment と同じ規則。逸脱と区切り文字・制御文字だけを拒み、UTF-8の実ファイル名は通す
-        // The same rule as the receiver's isSafeSegment in keys.ts; only traversal, separators and control characters are refused, UTF-8 names pass
-        private static bool IsSafeSegment(string segment)
-        {
-            if (segment.Length == 0 || segment == "." || segment == "..") return false;
-            foreach (var character in segment)
+            #region Internal
+
+            // 受け口の keys.ts isSafeSegment と同じ規則。逸脱と区切り文字・制御文字だけを拒み、UTF-8の実ファイル名は通す
+            // The same rule as the receiver's isSafeSegment in keys.ts; only traversal, separators and control characters are refused, UTF-8 names pass
+            bool IsSafeSegment(string segment)
             {
-                if (character == '\\' || character < 0x20 || character == 0x7f) return false;
+                if (segment.Length == 0 || segment == "." || segment == "..") return false;
+                foreach (var character in segment)
+                {
+                    if (character == '\\' || character < 0x20 || character == 0x7f) return false;
+                }
+                return true;
             }
-            return true;
+
+            #endregion
         }
 
         // 種別から受け口の語への唯一の変換。語の集合は contract.json と一致をテストで固定する

@@ -81,7 +81,12 @@ namespace Client.Game.InGame.BugReport
             var world = Path.Combine(bundleDirectory, BugReportBundleLayout.WorldDirectoryName);
             var destination = WorldDataDirectory.FromWorldRoot(world);
             Directory.CreateDirectory(world);
-            CopyIfExists(source.WorldMetaFilePath, destination.WorldMetaFilePath, manifest);
+            // ディスクIO境界（他プロセスのロック・権限不足）でのworld.jsonのコピー失敗を個別にisolateする。ここで例外を外へ逃すと、
+            // 後続のIsGeneratedWorld判定・map.json・terrain/のコピーがすべて巻き込まれて未実行になり、「読めなければ全部入れる」の救済経路に進めない
+            // Isolate a disk-IO-boundary failure (a foreign lock or missing permission) copying world.json here; letting the
+            // exception escape would drag down the IsGeneratedWorld check, map.json and terrain/ that follow, missing the fallback path
+            try { CopyIfExists(source.WorldMetaFilePath, destination.WorldMetaFilePath, manifest); }
+            catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing("world.json", $"コピーに失敗した: {e.Message}"); }
             if (IsGeneratedWorld(source.WorldMetaFilePath, manifest, out var worldMetaUnreadable))
             {
                 manifest.WorldDefinition = BugReportBundleLayout.WorldDefinitionGeneratedWorldJsonOnly;
@@ -123,9 +128,27 @@ namespace Client.Game.InGame.BugReport
             try
             {
                 var meta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldMetaFilePath));
-                return string.Equals(meta?.MapMode, WorldMapMode.Generated, StringComparison.OrdinalIgnoreCase);
+                if (meta == null)
+                {
+                    manifest.AddMissing("world.json", "mapModeを読み取れなかった: 中身が空だった");
+                    isUnreadable = true;
+                    return false;
+                }
+                return WorldMapMode.IsGenerated(meta.MapMode);
             }
             catch (JsonException e)
+            {
+                manifest.AddMissing("world.json", $"mapModeを読み取れなかった: {e.Message}");
+                isUnreadable = true;
+                return false;
+            }
+            catch (IOException e)
+            {
+                manifest.AddMissing("world.json", $"mapModeを読み取れなかった: {e.Message}");
+                isUnreadable = true;
+                return false;
+            }
+            catch (UnauthorizedAccessException e)
             {
                 manifest.AddMissing("world.json", $"mapModeを読み取れなかった: {e.Message}");
                 isUnreadable = true;

@@ -37,10 +37,13 @@ namespace Client.Tests.BugReport.Bundle
 
         // 生成ワールドは world.json だけを入れる。地形は seed・指紋・生成器版から再現側が引き当てる（ADR 0064）
         // A generated world ships only world.json; its terrain is restored by the reproducer from seed, fingerprint and generator version (ADR 0064)
-        [Test]
-        public void 生成ワールドはworld_jsonだけを入れmanifestに省略を記録する()
+        // 判定は大文字小文字を無視する。mapModeの表記ゆれで読み側だけ「手作り」に倒れないことを固定する
+        // The check ignores case, pinning that a mapMode spelling variant does not make the reader alone fall back to "hand-made"
+        [TestCase("generated")]
+        [TestCase("Generated")]
+        public void 生成ワールドはworld_jsonだけを入れmanifestに省略を記録する(string mapMode)
         {
-            WriteWorld("generated");
+            WriteWorld(mapMode);
             Directory.CreateDirectory(Path.Combine(_worldRoot, "terrain"));
             File.WriteAllBytes(Path.Combine(_worldRoot, "terrain", "height_0_0.r16"), new byte[8]);
             WriteStaged("tick_5.json");

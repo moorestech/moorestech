@@ -2,15 +2,20 @@ import { AwsClient } from "aws4fetch";
 import { UPLOAD_URL_TTL_SECONDS } from "./contract";
 import type { Env } from "./env";
 
-// R2のS3互換APIに対するPUT用の署名付きURL。Content-Lengthを署名ヘッダに含め、宣言と違う長さのPUTをR2に拒否させる
-// A presigned PUT for R2's S3-compatible API; content-length is a signed header so R2 rejects a PUT whose length differs from the declaration
-export async function presignPut(env: Env, key: string, contentLength: number, now: Date): Promise<string> {
-  const client = new AwsClient({
+// aws4fetchは署名鍵の派生（HMAC 4段）をインスタンス単位でキャッシュする。1リクエストにつき1つだけ作って使い回す
+// aws4fetch caches its derived signing key per instance; create exactly one per request and reuse it
+export function createR2Client(env: Env): AwsClient {
+  return new AwsClient({
     accessKeyId: env.R2_ACCESS_KEY_ID,
     secretAccessKey: env.R2_SECRET_ACCESS_KEY,
     service: "s3",
     region: "auto",
   });
+}
+
+// R2のS3互換APIに対するPUT用の署名付きURL。Content-Lengthを署名ヘッダに含め、宣言と違う長さのPUTをR2に拒否させる
+// A presigned PUT for R2's S3-compatible API; content-length is a signed header so R2 rejects a PUT whose length differs from the declaration
+export async function presignPut(client: AwsClient, env: Env, key: string, contentLength: number, now: Date): Promise<string> {
   const encodedKey = key.split("/").map(encodeURIComponent).join("/");
   const url = new URL(`https://${env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.R2_BUCKET_NAME}/${encodedKey}`);
   url.searchParams.set("X-Amz-Expires", String(UPLOAD_URL_TTL_SECONDS));

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import contract from "../contract.json";
-import { ACKED_MARKER, READY_MARKER } from "../src/bundleMarkers";
+import { ACKED_MARKER, DECLARED_MARKER, READY_MARKER } from "../src/bundleMarkers";
 import {
   CONTRACT_KINDS,
   MAX_BUNDLE_BYTES,
@@ -29,7 +29,9 @@ describe("contract.json", () => {
     expect(Object.keys(KIND_PREFIX)).toEqual(contract.kinds);
     expect(contract.reservedUploadSegments).toContain(READY_MARKER);
     expect(contract.reservedUploadSegments).toContain(ACKED_MARKER);
+    expect(contract.reservedUploadSegments).toContain(DECLARED_MARKER);
     expect(contract.reservedUploadSegments).toContain("complete");
+    expect(contract.reservedUploadSegments).toContain("prepare");
   });
 
   it("契約値はこれまでの実効値を保つ", () => {

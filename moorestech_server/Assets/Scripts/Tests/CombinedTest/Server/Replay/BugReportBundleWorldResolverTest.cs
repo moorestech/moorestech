@@ -35,13 +35,16 @@ namespace Tests.CombinedTest.Server.Replay
             Assert.AreEqual(Path.Combine(bundle, "world"), ((BugReportBundleWorldResolution.ResolvedWorld)resolution).World.Root);
         }
 
-        [Test]
-        public void 生成ワールドでmap_jsonが無ければ同梱スナップショットを引き当てる()
+        // 判定は大文字小文字を無視する。mapModeの表記ゆれで拒否側に倒れないことを固定する
+        // The check ignores case, pinning that a mapMode spelling variant does not fall back to rejection
+        [TestCase("generated")]
+        [TestCase("Generated")]
+        public void 生成ワールドでmap_jsonが無ければ同梱スナップショットを引き当てる(string mapMode)
         {
-            var meta = Meta("generated", "fp", "digest-a");
+            var meta = Meta(mapMode, "fp", "digest-a");
             var bundle = Bundle(meta, false);
             var serverData = ServerData();
-            var snapshot = WriteBundledSnapshot(serverData, meta, Meta("generated", "fp", "digest-a"));
+            var snapshot = WriteBundledSnapshot(serverData, meta, Meta(mapMode, "fp", "digest-a"), true);
 
             var resolution = BugReportBundleWorldResolver.Resolve(bundle, serverData);
             Assert.AreEqual(BugReportBundleWorldOutcome.Resolved, resolution.Outcome);
@@ -54,11 +57,25 @@ namespace Tests.CombinedTest.Server.Replay
             var meta = Meta("generated", "fp", "digest-a");
             var bundle = Bundle(meta, false);
             var serverData = ServerData();
-            WriteBundledSnapshot(serverData, meta, Meta("generated", "fp", "digest-b"));
+            WriteBundledSnapshot(serverData, meta, Meta("generated", "fp", "digest-b"), true);
 
             var resolution = BugReportBundleWorldResolver.Resolve(bundle, serverData);
             Assert.AreEqual(BugReportBundleWorldOutcome.Rejected, resolution.Outcome);
             StringAssert.Contains("placementLedgerDigest", ((BugReportBundleWorldResolution.RejectedWorld)resolution).Reason);
+        }
+
+        [Test]
+        public void 候補のterrainだけが欠けていれば使われない()
+        {
+            var meta = Meta("generated", "fp", "digest-a");
+            var bundle = Bundle(meta, false);
+            var serverData = ServerData();
+            WriteBundledSnapshot(serverData, meta, Meta("generated", "fp", "digest-a"), false);
+
+            var resolution = BugReportBundleWorldResolver.Resolve(bundle, serverData);
+            Assert.AreEqual(BugReportBundleWorldOutcome.Rejected, resolution.Outcome);
+            StringAssert.Contains("worldSnapshots", ((BugReportBundleWorldResolution.RejectedWorld)resolution).Reason);
+            StringAssert.Contains("terrain", ((BugReportBundleWorldResolution.RejectedWorld)resolution).Reason);
         }
 
         [Test]
@@ -111,7 +128,13 @@ namespace Tests.CombinedTest.Server.Replay
 
         private static WorldMetaJson Meta(string mode, string fingerprint, string digest)
         {
-            return new WorldMetaJson { Seed = 196, GeneratorVersion = "4.0.0", Algorithm = "VanillaGenerator", MapMode = mode, GenerationMasterFingerprint = fingerprint, PlacementLedgerDigest = digest, TerrainResolution = 2049, TerrainTileCount = 9 };
+            return new WorldMetaJson
+            {
+                Seed = 196, GeneratorVersion = "4.0.0", Algorithm = "VanillaGenerator", MapMode = mode,
+                GenerationMasterFingerprint = fingerprint, PlacementLedgerDigest = digest,
+                TerrainResolution = 2049, TerrainTileCount = 9,
+                TerrainNoiseOriginX = 0f, TerrainNoiseOriginZ = 0f, TerrainSceneOriginX = 0f, TerrainSceneOriginZ = 0f,
+            };
         }
 
         private string Bundle(WorldMetaJson meta, bool withMapJson)
@@ -123,13 +146,14 @@ namespace Tests.CombinedTest.Server.Replay
             return Path.Combine(_root, "bundle");
         }
 
-        private static WorldDataDirectory WriteBundledSnapshot(string serverData, WorldMetaJson bundleMeta, WorldMetaJson snapshotMeta)
+        private static WorldDataDirectory WriteBundledSnapshot(string serverData, WorldMetaJson bundleMeta, WorldMetaJson snapshotMeta, bool withTerrain)
         {
             var worldId = WorldIdentity.CalculateGenerated(bundleMeta.Seed, bundleMeta.GenerationMasterFingerprint, bundleMeta.GeneratorVersion);
             var snapshot = WorldDataDirectory.ForBundledSnapshot(serverData, worldId);
             Directory.CreateDirectory(snapshot.Root);
             File.WriteAllText(snapshot.WorldMetaFilePath, JsonConvert.SerializeObject(snapshotMeta));
             File.WriteAllText(snapshot.MapJsonFilePath, "{}");
+            if (withTerrain) Directory.CreateDirectory(snapshot.TerrainDirectory);
             return snapshot;
         }
 

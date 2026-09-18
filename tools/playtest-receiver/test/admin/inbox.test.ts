@@ -5,8 +5,8 @@ import { STEAM_ID, clean, complete, declaration, noNetwork, prepare, putDirect, 
 
 const ADMIN = { "x-admin-key": "test-admin-key" };
 
-// prepare → 直接PUT（R2への直接putで模擬）→ complete の正規経路で1箱を上げる
-// Uploads one box through the real path: prepare, a direct PUT (simulated by an R2 put), then complete
+// prepare→直接PUT(R2模擬)→completeで1箱アップロード
+// Uploads one box via prepare, a direct PUT (simulated R2 put), then complete
 async function upload(kind: PlaytestKind, id: string, path: string, body: string): Promise<void> {
   await prepare(kind, id, declaration({ [path]: body.length }));
   await putDirect(kind, STEAM_ID, id, path, body);

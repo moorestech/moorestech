@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Upload.Attempt
 {
-    // 見送ったファイル1件。completeの補足（skipped[]）にそのまま載る
-    // One skipped file; rides in the complete supplement's skipped[] as is
+    // 見送りファイル1件。complete補足のskipped[]に載る
+    // One skipped file; goes into the complete supplement's skipped[]
     public sealed class PlaytestSkippedFile
     {
         [JsonProperty("path")] public readonly string Path;
