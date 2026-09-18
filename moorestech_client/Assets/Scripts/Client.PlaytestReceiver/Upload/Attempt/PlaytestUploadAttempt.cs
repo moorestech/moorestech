@@ -17,6 +17,10 @@ namespace Client.PlaytestReceiver.Upload.Attempt
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestSession _session;
 
+        // PUTが412（既にある）を返したキー。試行を跨いで持つ（このインスタンスは箱ごとに作られる）
+        // Keys whose PUT answered 412 (already there); kept across attempts (one instance is made per box)
+        private readonly HashSet<string> _alreadyStoredPaths = new();
+
         public PlaytestUploadAttempt(IPlaytestReceiverApi api, PlaytestSession session)
         {
             _api = api;
@@ -27,6 +31,9 @@ namespace Client.PlaytestReceiver.Upload.Attempt
         // One attempt: null on success, else the stage and result. Only files prepare returned a URL for are PUT (the receiver leaves out what R2 already holds)
         public async UniTask<PlaytestUploadAttemptFailure> RunAsync(PlaytestOutboxBox box, PlaytestBoxDeclaration declaration, HashSet<string> sentPaths, CancellationToken token)
         {
+            // 受け口は宣言の拡大を拒む。送る前に宣言を箱へ残し、次の走行の宣言をその範囲に留める
+            // The receiver refuses a grown declaration; the declaration is kept in the box before sending so the next run stays within it
+            PlaytestUploadDeclaredRecord.Write(box.Directory, declaration.Files);
             var prepared = await _session.SendAuthorizedAsync(new PlaytestPrepareCall(_api, box, declaration.Files), token);
             if (!prepared.IsSuccess) return PlaytestUploadAttemptFailure.AtPrepare(prepared);
             if (!PlaytestPrepareResponse.TryParse(prepared.Body, out var response, out var detail))
@@ -51,6 +58,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
                         // A 412 under If-None-Match: * means the key already exists in R2; move on as sent without overwriting and leave length and presence to complete
                         Debug.Log($"[PlaytestReceiver] {upload.Path} is already stored (HTTP 412); treating it as sent and leaving it to complete's verification");
                         sentPaths.Add(upload.Path);
+                        _alreadyStoredPaths.Add(upload.Path);
                         continue;
                     }
                     if (!put.IsSuccess) return PlaytestUploadAttemptFailure.AtSignedPut(upload.Path, put);
@@ -63,7 +71,13 @@ namespace Client.PlaytestReceiver.Upload.Attempt
                 if (PlaytestReceiverResponseBody.IsReady(completed.Body)) return null;
                 return PlaytestUploadAttemptFailure.AtComplete(PlaytestApiResult.MalformedResponse(completed.StatusCode, $"complete answered without ready:true: {completed.Body}"));
             }
-            if (completed.Kind == PlaytestApiResultKind.Responded && completed.StatusCode == 409) PlaytestCompleteMissingPaths.Forget(completed.Body, sentPaths);
+            if (completed.Kind != PlaytestApiResultKind.Responded || completed.StatusCode != 409) return PlaytestUploadAttemptFailure.AtComplete(completed);
+            // 412で送信済みとしたキーが欠けに出たら、やり直しても同じ409を数えずに繰り返すだけなので食い違いとして返す
+            // When a key taken as sent on a 412 shows up missing, retrying would only repeat the same uncounted 409, so it is returned as a mismatch
+            foreach (var missingPath in PlaytestCompleteMissingPaths.Forget(completed.Body, sentPaths))
+            {
+                if (_alreadyStoredPaths.Contains(missingPath)) return PlaytestUploadAttemptFailure.StoredObjectMismatchAt(missingPath, completed);
+            }
             return PlaytestUploadAttemptFailure.AtComplete(completed);
 
             #region Internal

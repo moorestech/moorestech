@@ -9,6 +9,10 @@ namespace Client.PlaytestReceiver.Upload.Attempt
         Prepare,
         SignedPut,
         Complete,
+
+        // completeが欠けと数えたキーに、PUTが412（既にある）を返していた。段ではなくcompleteの結果とPUTの結果の食い違い
+        // complete counted as missing a key whose PUT had answered 412 (already there); a conflict between complete's and the PUT's results rather than a stage
+        StoredObjectMismatch,
     }
 
     // 失敗した試行の段・対象パス・結果。生成は段ごとのファクトリだけに閉じる
@@ -18,8 +22,8 @@ namespace Client.PlaytestReceiver.Upload.Attempt
         public readonly PlaytestUploadStage Stage;
         public readonly PlaytestApiResult Result;
 
-        // 署名付きPUTの対象パス。他の段では空
-        // The target path of the presigned PUT; empty for the other stages
+        // 署名付きPUTの対象パス（食い違いではそのキー）。他の段では空
+        // The target path of the presigned PUT (the key, for a mismatch); empty for the other stages
         public readonly string Path;
 
         private PlaytestUploadAttemptFailure(PlaytestUploadStage stage, string path, PlaytestApiResult result)
@@ -42,6 +46,11 @@ namespace Client.PlaytestReceiver.Upload.Attempt
         public static PlaytestUploadAttemptFailure AtComplete(PlaytestApiResult result)
         {
             return new PlaytestUploadAttemptFailure(PlaytestUploadStage.Complete, "", result);
+        }
+
+        public static PlaytestUploadAttemptFailure StoredObjectMismatchAt(string path, PlaytestApiResult completeResult)
+        {
+            return new PlaytestUploadAttemptFailure(PlaytestUploadStage.StoredObjectMismatch, path, completeResult);
         }
     }
 }

@@ -17,8 +17,9 @@ namespace Client.PlaytestReceiver.Upload
         public const string FailedMarker = "UPLOAD_FAILED";
         public const string AttemptsMarker = "UPLOAD_ATTEMPTS";
         public const string SkippedMarker = "UPLOAD_SKIPPED";
+        public const string DeclaredMarker = "UPLOAD_DECLARED";
 
-        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker, SkippedMarker };
+        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker, SkippedMarker, DeclaredMarker };
 
         public static IReadOnlyList<PlaytestOutboxBox> ScanPending(string reportOutbox, string progressOutbox)
         {

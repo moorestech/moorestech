@@ -44,6 +44,9 @@ namespace Client.PlaytestReceiver.Http
         {
             // 送出はメインスレッドへ戻さない。非前面のEditorではメインスレッドの遅れがそのまま送信の遅れになる
             // Sending never hops back to the main thread; in a backgrounded Editor its lag would become the upload's lag
+            // HTTPスタックは再送（リダイレクト・切れた接続の張り直し）で本文を2度書きうる。毎回先頭から読む
+            // The HTTP stack may write the body twice on a resend (a redirect, a reopened connection); read from the start every time
+            _source.Position = 0;
             var buffer = new byte[ChunkBytes];
             var remaining = _bytes;
             while (0 < remaining)

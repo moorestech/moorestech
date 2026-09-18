@@ -51,6 +51,9 @@ namespace Client.PlaytestReceiver.Upload.Failure
         {
             var result = failure.Result;
             var description = PlaytestUploadFailureDescription.Describe(failure);
+            // 412で送信済みとしたキーがcompleteで欠けた＝R2に長さ違いの別物がある。上書きできないので何度送っても直らない
+            // A key taken as sent on a 412 came back missing from complete: R2 holds another length there, which can never be overwritten
+            if (failure.Stage == PlaytestUploadStage.StoredObjectMismatch) return new PlaytestUploadFailureDecision(PlaytestUploadFailureKind.PermanentForBox, false, description);
             switch (result.Kind)
             {
                 case PlaytestApiResultKind.TransportFailure:
@@ -65,7 +68,7 @@ namespace Client.PlaytestReceiver.Upload.Failure
                 case PlaytestApiResultKind.LocalUnreadableFile:
                     return new PlaytestUploadFailureDecision(PlaytestUploadFailureKind.PermanentForBox, false, description);
                 case PlaytestApiResultKind.Responded:
-                    var kind = failure.Stage == PlaytestUploadStage.SignedPut ? ClassifySignedPut(result) : ClassifyReceiver(result);
+                    var kind = failure.Stage == PlaytestUploadStage.SignedPut ? ClassifySignedPut(failure) : ClassifyReceiver(result);
                     return new PlaytestUploadFailureDecision(kind, false, description);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(failure), result.Kind, "unknown api result kind");
@@ -88,15 +91,17 @@ namespace Client.PlaytestReceiver.Upload.Failure
             return PlaytestUploadFailureKind.Retryable;
         }
 
-        // 署名付きURL（R2）へのPUTの応答。403は理由で分け、それ以外の4xxはそのファイルだけの問題として見送る
-        // An answer to the presigned PUT (R2): a 403 is split by its reason, and any other 4xx is that file's own problem and gets skipped
-        private static PlaytestUploadFailureKind ClassifySignedPut(PlaytestApiResult result)
+        // 署名付きURL（R2）へのPUTの応答。403は理由で分け、それ以外の4xxは補助・静止画ならそのファイルだけの問題として見送る
+        // An answer to the presigned PUT (R2): a 403 is split by its reason, and any other 4xx on a supporting file or still is that file's own problem and gets skipped
+        private static PlaytestUploadFailureKind ClassifySignedPut(PlaytestUploadAttemptFailure failure)
         {
-            var statusCode = result.StatusCode;
-            if (statusCode == 403) return PlaytestSignedPutForbidden.IsExpiredSignature(result.Body) ? PlaytestUploadFailureKind.Retryable : PlaytestUploadFailureKind.PermanentForBox;
+            var statusCode = failure.Result.StatusCode;
+            if (statusCode == 403) return PlaytestSignedPutForbidden.IsExpiredSignature(failure.Result.Body) ? PlaytestUploadFailureKind.Retryable : PlaytestUploadFailureKind.PermanentForBox;
             if (statusCode == 408 || statusCode == 429) return PlaytestUploadFailureKind.Retryable;
-            if (400 <= statusCode && statusCode < 500) return PlaytestUploadFailureKind.PermanentForFile;
-            return PlaytestUploadFailureKind.Retryable;
+            if (statusCode < 400 || 500 <= statusCode) return PlaytestUploadFailureKind.Retryable;
+            // 必須群は見送れない（見送れば箱は永久に送れない）。見送りを記録せず箱の失敗として数え、バケット名の誤り等を直せば次の走行で通る
+            // Required files cannot be skipped (the box would never ship again); the failure is counted to the box unrecorded, so fixing e.g. a bucket-name typo lets the next run through
+            return PlaytestBundleFilePriority.IsRequired(failure.Path) ? PlaytestUploadFailureKind.PermanentForBox : PlaytestUploadFailureKind.PermanentForFile;
         }
     }
 }

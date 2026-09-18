@@ -27,6 +27,7 @@ namespace Client.PlaytestReceiver.Upload.Failure
                 case PlaytestUploadStage.Prepare: return "prepare";
                 case PlaytestUploadStage.SignedPut: return $"PUT {failure.Path}";
                 case PlaytestUploadStage.Complete: return "complete";
+                case PlaytestUploadStage.StoredObjectMismatch: return $"R2 already holds {failure.Path} (PUT answered 412) but complete counts it missing, so it differs from the declaration and cannot be overwritten";
                 default: throw new ArgumentOutOfRangeException(nameof(failure), failure.Stage, "unknown upload stage");
             }
         }

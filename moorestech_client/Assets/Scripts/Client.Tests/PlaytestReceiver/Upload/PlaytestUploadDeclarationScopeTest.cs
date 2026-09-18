@@ -98,17 +98,44 @@ namespace Client.Tests.PlaytestReceiver
             StringAssert.Contains("{\"path\":\"a.bin\",\"reason\":\"http-400\",\"bytes\":3}", api.LastCompleteBody);
         }
 
+        // 必須群は見送りに記録しない。バケット名の誤り等を直せば次の走行で送れる
+        // Required files are never recorded as skipped; once e.g. a bucket-name typo is fixed, the next run ships
         [Test]
-        public void 必須ファイルがR2に拒まれた箱は送らず1回と数える()
+        public void 必須ファイルがR2に拒まれた箱は見送りを記録せず1回と数え次の走行で送れる()
         {
             var box = MakeBox(("manifest.json", "{}"), ("a.bin", "abc"));
             var api = new FakeUploadApi();
-            api.EnqueuePut("manifest.json", PlaytestApiResult.Responded(400, ""));
+            api.EnqueuePut("manifest.json", PlaytestApiResult.Responded(404, "<Error><Code>NoSuchBucket</Code></Error>"));
 
             Assert.AreEqual(0, Upload(api));
             CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json" }, api.Calls);
-            StringAssert.Contains("manifest.json was skipped (http-400)", File.ReadAllText(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
-            Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
+            StringAssert.StartsWith("1\n", File.ReadAllText(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
+            Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.SkippedMarker)));
+
+            api.Calls.Clear();
+            Assert.AreEqual(1, Upload(api));
+            CollectionAssert.AreEqual(new[] { "manifest.json", "a.bin" }, api.LastPreparedPaths);
+        }
+
+        // 上限で前回落ちた静止画が、見送りで空いた枠へ次の走行で入ると宣言の拡大になり受け口に拒まれる
+        // A still the caps dropped last run would enter a slot freed by a skip on the next run, growing the declaration the receiver refuses
+        [Test]
+        public void 前回の宣言に無かったファイルは次の走行の宣言にも入れない()
+        {
+            var box = MakeBox(("manifest.json", "{}"), ("world/world.json", "w"), ("snapshots/s.json", "s"));
+            var frameCount = PlaytestReceiverConfig.MaxBundleFiles - 3 + 1;
+            for (var i = 0; i < frameCount; i++) File.WriteAllText(Path.Combine(box, "frames", $"frame_{i:D4}.jpg"), "f");
+            var droppedByCap = $"frames/frame_{frameCount - 1:D4}.jpg";
+            var api = new FakeUploadApi();
+            api.EnqueuePut("frames/frame_0000.jpg", PlaytestApiResult.Responded(400, ""));
+            for (var i = 0; i < 4; i++) api.EnqueueComplete(PlaytestApiResult.Responded(503, ""));
+            Assert.AreEqual(0, Upload(api));
+            var shrunk = api.LastPreparedPaths;
+            CollectionAssert.DoesNotContain(shrunk, droppedByCap);
+
+            Assert.AreEqual(1, Upload(api));
+            CollectionAssert.AreEqual(shrunk, api.LastPreparedPaths);
+            StringAssert.Contains($"{{\"path\":\"{droppedByCap}\",\"reason\":\"outside-earlier-declaration\"", api.LastCompleteBody);
         }
 
         private string MakeBox(params (string Name, string Content)[] files)

@@ -83,6 +83,21 @@ namespace Client.Tests.PlaytestReceiver
             Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
         }
 
+        // 412で送信済みとしたキーを complete が欠けと数えたら、R2に長さ違いの別物がある。やり直さず1回と数える
+        // When complete counts missing a key taken as sent on a 412, R2 holds a different length there; count once without retrying
+        [Test]
+        public void 送信済みとした412のキーがcompleteで欠ければ再試行せず1回と数える()
+        {
+            var box = MakeBox("20260913_120000_aaaa");
+            var api = new FakeUploadApi();
+            api.EnqueuePut("a.bin", PlaytestApiResult.Responded(412, "<Error><Code>PreconditionFailed</Code></Error>"));
+            api.EnqueueComplete(PlaytestApiResult.Responded(409, "{\"reason\":\"incomplete\",\"missing\":[{\"path\":\"a.bin\",\"expectedBytes\":3,\"actualBytes\":7}]}"));
+
+            Assert.AreEqual(0, Upload(api));
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "complete" }, api.Calls);
+            Assert.AreEqual("1", AttemptCount(box));
+        }
+
         // 期限切れ（S3の AccessDenied「Request has expired」とそれを名乗るCode）とXMLで読めない403だけが一過性。署名不一致等はその箱固有
         // Only an expiry (S3's AccessDenied "Request has expired" and codes naming one) and a non-XML 403 are transient; a signature mismatch and the like belong to the box
         [TestCase("<Error><Code>AccessDenied</Code><Message>Request has expired</Message></Error>", true)]

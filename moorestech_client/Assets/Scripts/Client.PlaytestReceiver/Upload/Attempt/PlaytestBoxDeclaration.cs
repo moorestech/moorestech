@@ -48,6 +48,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
             var files = new List<PlaytestDeclaredFile>();
             var skipped = new List<PlaytestSkippedFile>();
             var recordedSkips = PlaytestUploadSkipRecord.Read(box.Directory);
+            var earlierDeclaration = PlaytestUploadDeclaredRecord.Read(box.Directory);
             long total = 0;
             // 優先度順（必須→補助→静止画）、同順位は序数順。上限で落ちるのは常に後ろの静止画で、実行ごとにも変わらない
             // Priority order (required, supporting, stills), ordinal within a rank; the caps always drop trailing stills, identically on every run
@@ -71,12 +72,15 @@ namespace Client.PlaytestReceiver.Upload.Attempt
 
             #region Internal
 
-            // 過去の走行でR2が拒んだファイルは記録どおり見送る。それ以外の判定は PlaytestUploadPath.DescribeRejection 一本（受け口の parseDeclaration と同じ規則）
-            // Files R2 refused in an earlier run stay skipped as recorded; every other rule lives in PlaytestUploadPath.DescribeRejection (mirroring the receiver's parseDeclaration)
+            // 過去の走行でR2が拒んだファイルは記録どおり見送り、前回の宣言に無いファイルは入れない（前回上限で落ちた静止画が空いた枠へ入ると宣言の拡大で拒まれる）
+            // Files R2 refused earlier stay skipped as recorded, and files outside the last declaration stay out (a still the caps dropped last time would grow the declaration and be refused)
+            // それ以外の判定は PlaytestUploadPath.DescribeRejection 一本（受け口の parseDeclaration と同じ規則）
+            // Every other rule lives in PlaytestUploadPath.DescribeRejection (mirroring the receiver's parseDeclaration)
             string DescribeSkip(string relative, string absolute, int declaredCount, long declaredTotal, out long length)
             {
                 length = new FileInfo(absolute).Length;
                 if (recordedSkips.TryGetValue(relative, out var recorded)) return recorded;
+                if (earlierDeclaration != null && !earlierDeclaration.Contains(relative)) return "outside-earlier-declaration";
                 return PlaytestUploadPath.DescribeRejection(relative, length, declaredCount, declaredTotal);
             }
 

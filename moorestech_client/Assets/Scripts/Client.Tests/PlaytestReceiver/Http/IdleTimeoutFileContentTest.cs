@@ -71,6 +71,23 @@ namespace Client.Tests.PlaytestReceiver.Http
             StringAssert.Contains("declared 16 bytes", content.LocalReadFailure);
         }
 
+        [Test]
+        public void 本文を2度書いても2度目も先頭から全部送る()
+        {
+            using var deadline = new CancellationTokenSource();
+            var payload = new byte[IdleTimeoutFileContent.ChunkBytes + 5];
+            for (var i = 0; i < payload.Length; i++) payload[i] = (byte)(i % 251);
+            using var content = new IdleTimeoutFileContent(new MemoryStream(payload), payload.Length, deadline, IdleDeadline, ResponseDeadline);
+
+            var first = new MemoryStream();
+            var second = new MemoryStream();
+            Task.Run(() => content.CopyToAsync(first)).GetAwaiter().GetResult();
+            Task.Run(() => content.CopyToAsync(second)).GetAwaiter().GetResult();
+            CollectionAssert.AreEqual(payload, first.ToArray());
+            CollectionAssert.AreEqual(payload, second.ToArray());
+            Assert.IsNull(content.LocalReadFailure);
+        }
+
         // 待ちは Task.Run 上で走らせ、メインスレッドの同期コンテキストへ戻ろうとして固まるのを避ける
         // Waits run under Task.Run so they never deadlock trying to return to the main thread's synchronization context
         // 1回のwriteに一定時間かかる出力。遅いが進む回線の代わり
