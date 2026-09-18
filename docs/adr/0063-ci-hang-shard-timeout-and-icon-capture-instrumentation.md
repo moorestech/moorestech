@@ -27,6 +27,11 @@ Unity Editor のメインスレッドごと固着し、job の `timeout-minutes:
 ブロック1個ごとに `Camera.Render()` と `Texture2D.ReadPixels()`（同期GPU読み戻し）を回す。
 GPUの無いLinuxランナーでの固着候補として最有力だが、**撮影内にログが1行も無いため現時点では推定に留まる**。
 
+計装を入れた後の実測（PR #1369 の CI ログ・master pin c219a2f5）: 撮影対象は29件で、1 boot の撮影全体は
+CI で11.4〜17.8秒（1件の中央値80ms・p90 341ms・最遅は毎 boot 1件目の4.57秒）、GPUのある開発機では0.4〜0.5秒。
+client 系 shard は1本で6 boot するため、撮影だけで約70秒／shard（10分の shard の約12%）を使っている。
+ログ増は1 boot あたり147行（29件×5段＋start＋completed）。
+
 ## 裁定
 
 ### 1. CIの赤は workflow 側で止める（step timeout で failure 化する）
