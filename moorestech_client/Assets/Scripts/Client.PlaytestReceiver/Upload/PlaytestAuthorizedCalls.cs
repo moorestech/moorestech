@@ -1,29 +1,28 @@
+using System.Collections.Generic;
 using System.Threading;
 using Client.PlaytestReceiver.Http;
 using Cysharp.Threading.Tasks;
 
 namespace Client.PlaytestReceiver.Upload
 {
-    // ファイル1つのPUT。トークンの取り直しと再送はセッション側が行う
-    // A single file PUT; the session performs any token refresh and resend
-    internal sealed class PlaytestPutFileCall : IPlaytestAuthorizedCall
+    // 箱の宣言を送りURLを受ける。トークンの取り直しと再送はセッション側が行う
+    // Sends the box declaration and receives the URLs; the session performs any token refresh and resend
+    internal sealed class PlaytestPrepareCall : IPlaytestAuthorizedCall
     {
         private readonly IPlaytestReceiverApi _api;
         private readonly PlaytestOutboxBox _box;
-        private readonly string _relativePath;
-        private readonly string _absoluteFilePath;
+        private readonly IReadOnlyList<PlaytestDeclaredFile> _files;
 
-        public PlaytestPutFileCall(IPlaytestReceiverApi api, PlaytestOutboxBox box, string relativePath, string absoluteFilePath)
+        public PlaytestPrepareCall(IPlaytestReceiverApi api, PlaytestOutboxBox box, IReadOnlyList<PlaytestDeclaredFile> files)
         {
             _api = api;
             _box = box;
-            _relativePath = relativePath;
-            _absoluteFilePath = absoluteFilePath;
+            _files = files;
         }
 
         public UniTask<PlaytestApiResult> SendAsync(string bearerToken, CancellationToken token)
         {
-            return _api.PutFileAsync(bearerToken, _box.Kind, _box.BundleId, _relativePath, _absoluteFilePath, token);
+            return _api.PostPrepareAsync(bearerToken, _box.Kind, _box.BundleId, _files, token);
         }
     }
 

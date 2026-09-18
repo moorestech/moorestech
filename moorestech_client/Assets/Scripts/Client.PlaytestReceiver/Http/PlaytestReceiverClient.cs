@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace Client.PlaytestReceiver.Http
@@ -31,43 +33,79 @@ namespace Client.PlaytestReceiver.Http
             return SendAsync(request, TimeSpan.FromSeconds(PlaytestReceiverConfig.HttpTimeoutSeconds), token);
         }
 
-        public UniTask<PlaytestApiResult> PutFileAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string relativePath, string absoluteFilePath, CancellationToken token)
+        public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
-            // 送れるパスかどうかの検査はここ1箇所。受け口の応答とは混ぜず、送る前のローカル拒否として返す
-            // This is the only sendable-path check; it comes back as a local refusal, never mixed with a receiver response
-            var uploadPath = PlaytestUploadPath.ForFile(kind, bundleId, relativePath);
-            if (uploadPath == null)
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v1/uploads/{PlaytestUploadPath.ForPrepare(kind, bundleId)}")
             {
-                Debug.LogWarning($"[PlaytestReceiver] refused to upload '{relativePath}': it is not a safe relative path");
-                return UniTask.FromResult(PlaytestApiResult.LocalUnsafePath($"'{relativePath}' is not a safe relative path"));
-            }
+                Content = new StringContent(ComposeDeclarationBody(files), Encoding.UTF8, "application/json"),
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
+            return SendAsync(request, TimeSpan.FromSeconds(PlaytestReceiverConfig.HttpTimeoutSeconds), token);
+        }
 
-            // 消えたファイルは例外に頼らず先に見分ける。掴まれている等の開けないI/O例外は箱単位の境界（PlaytestUploader）が受ける
-            // A vanished file is detected up front; other I/O failures on open are caught at the per-box boundary in PlaytestUploader
+        // 宣言のワイヤ表現。path と bytes だけを載せ、AbsolutePath は決して出さない（テストで固定）
+        // The wire form of the declaration: only path and bytes, never AbsolutePath (pinned by a test)
+        public static string ComposeDeclarationBody(IReadOnlyList<PlaytestDeclaredFile> files)
+        {
+            var declared = new JArray();
+            foreach (var file in files) declared.Add(new JObject { ["path"] = file.Path, ["bytes"] = file.Bytes });
+            return new JObject { ["files"] = declared }.ToString(Newtonsoft.Json.Formatting.None);
+        }
+
+        // 署名付きURLへの直接PUT。Bearerは付けず（署名が権限）、Content-Lengthは署名に含まれるため必ず明示する
+        // The direct PUT to the presigned URL: no bearer (the signature is the authority) and Content-Length is explicit because it is signed
+        public UniTask<PlaytestApiResult> PutToSignedUrlAsync(string signedUrl, string absoluteFilePath, long bytes, CancellationToken token)
+        {
             if (!File.Exists(absoluteFilePath))
             {
                 Debug.LogWarning($"[PlaytestReceiver] {absoluteFilePath} disappeared before upload");
                 return UniTask.FromResult(PlaytestApiResult.LocalUnreadableFile($"{absoluteFilePath} does not exist"));
             }
-
-            var stream = File.OpenRead(absoluteFilePath);
-            var content = new StreamContent(stream);
-
-            // 受け口は Content-Length 必須で、欠落すると411を返す。長さを明示して chunked 送信に落とさない
-            // The receiver requires Content-Length and answers 411 without it, so the length is set explicitly
-            content.Headers.ContentLength = stream.Length;
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
-
-            var request = new HttpRequestMessage(HttpMethod.Put, $"{_baseUrl}/v1/uploads/{uploadPath}") { Content = content };
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
-            return SendAsync(request, PlaytestReceiverConfig.UploadTimeout(stream.Length), token);
+            return SendWithIdleTimeoutAsync(signedUrl, absoluteFilePath, bytes, token);
         }
 
-        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string summaryJson, CancellationToken token)
+        private static async UniTask<PlaytestApiResult> SendWithIdleTimeoutAsync(string signedUrl, string absoluteFilePath, long bytes, CancellationToken token)
+        {
+            using var idle = CancellationTokenSource.CreateLinkedTokenSource(token);
+            var idleTimeout = TimeSpan.FromSeconds(PlaytestReceiverConfig.UploadIdleTimeoutSeconds);
+            var content = new StreamContent(new IdleTimeoutStream(File.OpenRead(absoluteFilePath), idle, idleTimeout));
+            content.Headers.ContentLength = bytes;
+            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            var request = new HttpRequestMessage(HttpMethod.Put, signedUrl) { Content = content };
+            // ネットワーク送受信は外部境界。到達失敗とアイドル切れをTransportFailureへ隔離する
+            // Network I/O is an external boundary; unreachability and an idle cut are isolated into TransportFailure
+            try
+            {
+                using (request)
+                using (var response = await Client.SendAsync(request, idle.Token))
+                {
+                    var body = await response.Content.ReadAsStringAsync();
+                    return PlaytestApiResult.Responded((int)response.StatusCode, body);
+                }
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (OperationCanceledException)
+            {
+                var message = $"no upload progress for {idleTimeout.TotalSeconds:0}s";
+                Debug.LogWarning($"[PlaytestReceiver] PUT to R2 for {absoluteFilePath} {message}");
+                return PlaytestApiResult.TransportFailure(message);
+            }
+            catch (Exception exception)
+            {
+                var message = $"{exception.GetType().Name}: {exception.GetBaseException().Message}";
+                Debug.LogWarning($"[PlaytestReceiver] PUT to R2 for {absoluteFilePath} failed: {message}");
+                return PlaytestApiResult.TransportFailure(message);
+            }
+        }
+
+        public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string supplementJson, CancellationToken token)
         {
             var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/v1/uploads/{PlaytestUploadPath.ForComplete(kind, bundleId)}")
             {
-                Content = new StringContent(summaryJson, Encoding.UTF8, "application/json"),
+                Content = new StringContent(supplementJson, Encoding.UTF8, "application/json"),
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", bearerToken);
             return SendAsync(request, TimeSpan.FromSeconds(PlaytestReceiverConfig.HttpTimeoutSeconds), token);

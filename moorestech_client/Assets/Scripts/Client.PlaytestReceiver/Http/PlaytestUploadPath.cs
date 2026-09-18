@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace Client.PlaytestReceiver.Http
 {
@@ -7,20 +6,9 @@ namespace Client.PlaytestReceiver.Http
     // The single place where an upload URL path is built; nothing downstream can correct it
     public static class PlaytestUploadPath
     {
-        // 逸脱を含む名前は受け口が400で弾く。送る前にnullで返し、呼び出し側が到達失敗と取り違えないようにする
-        // The receiver rejects traversal with a 400, so an unsafe name returns null here instead of looking unreachable
-        public static string ForFile(PlaytestUploadKind kind, string bundleId, string relativePath)
+        public static string ForPrepare(PlaytestUploadKind kind, string bundleId)
         {
-            var segments = relativePath.Replace('\\', '/').Trim('/').Split('/');
-            var escaped = new List<string>(segments.Length);
-            foreach (var segment in segments)
-            {
-                if (segment.Length == 0 || segment == "." || segment == "..") return null;
-                escaped.Add(Escape(segment));
-            }
-            if (escaped.Count == 0) return null;
-
-            return $"{KindSegment(kind)}/{Escape(bundleId)}/{string.Join("/", escaped)}";
+            return $"{KindSegment(kind)}/{Escape(bundleId)}/prepare";
         }
 
         public static string ForComplete(PlaytestUploadKind kind, string bundleId)
