@@ -66,7 +66,7 @@ namespace Server.Boot.Replay
 
             // 同梱スナップショット → 共有キャッシュの順に探す。配置台帳が違えば別物なので次へ進まず拒否する
             // Search the bundled snapshot then the shared cache; a different placement ledger is a different world, so reject rather than move on
-            foreach (var candidate in new[] { WorldDataDirectory.ForBundledSnapshot(serverDataDirectory, worldId), WorldDataDirectory.ForWorldCache(worldId) })
+            foreach (var candidate in new[] { WorldDataDirectory.ForBundledSnapshot(serverDataDirectory, worldId), WorldDataDirectory.ForWorldCacheWithoutCreating(worldId) })
             {
                 if (!Directory.Exists(candidate.Root)) continue;
                 if (!File.Exists(candidate.MapJsonFilePath) || !File.Exists(candidate.WorldMetaFilePath))
@@ -90,7 +90,7 @@ namespace Server.Boot.Replay
             return BugReportBundleWorldResolution.Rejected($"生成ワールド {worldId} が worldSnapshots にも共有キャッシュにもありません（同じコミットの配布ビルドの game/ を serverDataDirectory に指定すること） serverData:{serverDataDirectory}");
         }
 
-        // world.json は外部入力のファイルとJSON（ファイルI/OとJSONパースの境界）。読めない理由を返し、呼び出し側が拒否理由やログに載せる
+        // world.json は外部入力のファイルとJSON（ファイルI/O・権限とJSONパースの境界）。読めない理由を返し、呼び出し側が拒否理由やログに載せる
         // world.json is external file + JSON input (file I/O and JSON parse boundary); the reason is returned for the caller's rejection or log
         private static WorldMetaJson ReadMeta(string path, out string error)
         {
@@ -107,6 +107,11 @@ namespace Server.Boot.Replay
                 return null;
             }
             catch (IOException e)
+            {
+                error = e.Message;
+                return null;
+            }
+            catch (UnauthorizedAccessException e)
             {
                 error = e.Message;
                 return null;

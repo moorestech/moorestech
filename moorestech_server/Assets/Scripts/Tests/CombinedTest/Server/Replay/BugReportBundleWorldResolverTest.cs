@@ -66,10 +66,19 @@ namespace Tests.CombinedTest.Server.Replay
         {
             // 指紋を毎回ランダムにし、実マシンの共有キャッシュに同じ worldId が偶然あっても結果が変わらないようにする
             // A random fingerprint keeps the result independent of whatever the real machine's shared cache happens to hold
-            var bundle = Bundle(Meta("generated", "fp-" + Path.GetRandomFileName(), "digest-a"), false);
+            var meta = Meta("generated", "fp-" + Path.GetRandomFileName(), "digest-a");
+            var bundle = Bundle(meta, false);
+            var worldId = WorldIdentity.CalculateGenerated(meta.Seed, meta.GenerationMasterFingerprint, meta.GeneratorVersion);
+            var sharedCacheRoot = GameSystemPaths.GetWorldCacheDirectoryPathWithoutCreating(worldId);
+            Assert.IsFalse(Directory.Exists(sharedCacheRoot));
+
             var resolution = BugReportBundleWorldResolver.Resolve(bundle, ServerData());
             Assert.AreEqual(BugReportBundleWorldOutcome.Rejected, resolution.Outcome);
             StringAssert.Contains("worldSnapshots", ((BugReportBundleWorldResolution.RejectedWorld)resolution).Reason);
+
+            // 探すだけで実ユーザーの共有キャッシュに空ディレクトリを作らない
+            // Merely searching must not create an empty directory in the real user's shared cache
+            Assert.IsFalse(Directory.Exists(sharedCacheRoot));
         }
 
         [Test]
@@ -97,7 +106,7 @@ namespace Tests.CombinedTest.Server.Replay
             File.WriteAllText(WorldDataDirectory.FromWorldRoot(Path.Combine(bundle, "world")).WorldMetaFilePath, "{ not json");
             var resolution = BugReportBundleWorldResolver.Resolve(bundle, ServerData());
             Assert.AreEqual(BugReportBundleWorldOutcome.Rejected, resolution.Outcome);
-            StringAssert.Contains("world.json", ((BugReportBundleWorldResolution.RejectedWorld)resolution).Reason);
+            StringAssert.Contains("world.json を読めません", ((BugReportBundleWorldResolution.RejectedWorld)resolution).Reason);
         }
 
         private static WorldMetaJson Meta(string mode, string fingerprint, string digest)
