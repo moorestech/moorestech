@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload.Attempt;
+using Client.PlaytestReceiver.Upload.Failure;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -74,13 +75,7 @@ namespace Client.PlaytestReceiver.Upload
         private async UniTask<BoxOutcome> UploadOneAsync(PlaytestOutboxBox box, CancellationToken token)
         {
             var declaration = PlaytestBoxDeclaration.Build(box);
-            if (declaration.Files.Count == 0)
-            {
-                // 送るものが1つも無い箱は受け口へ行かずに恒久失敗として数える（偽のHTTP応答を合成しない）
-                // A box with nothing sendable never reaches the receiver; it is counted as permanent without forging an HTTP response
-                PlaytestUploadAttemptLog.Increment(box.Directory, $"nothing to send: every file was skipped ({declaration.Skipped.Count} skipped)");
-                return BoxOutcome.BoxDeferred;
-            }
+            if (IsUnsendable(declaration)) return BoxOutcome.BoxDeferred;
             var attemptRunner = new PlaytestUploadAttempt(_api, _session);
             var sentPaths = new HashSet<string>();
             var attempt = 0;
@@ -95,24 +90,59 @@ namespace Client.PlaytestReceiver.Upload
                 }
                 // 数えるのは再試行で直らない失敗だけ。一過性の失敗は表が尽きたら数えずに持ち越し、到達不能やトークン不調なら走行ごと止める
                 // Only failures retrying cannot heal are counted; transient ones defer uncounted once the schedule runs out, and unreachability stops the run
-                var description = PlaytestUploadFailurePolicy.Describe(failure.What, failure.Result);
-                if (PlaytestUploadFailurePolicy.Classify(failure.Result, failure.IsSignedPut) != PlaytestUploadFailureKind.Retryable)
+                var decision = PlaytestUploadFailurePolicy.Decide(failure);
+                switch (decision.Kind)
                 {
-                    PlaytestUploadAttemptLog.Increment(box.Directory, description);
-                    return BoxOutcome.BoxDeferred;
+                    case PlaytestUploadFailureKind.PermanentForFile:
+                        declaration = SkipRefusedFile(failure, decision);
+                        if (IsUnsendable(declaration)) return BoxOutcome.BoxDeferred;
+                        continue;
+                    case PlaytestUploadFailureKind.Retryable:
+                        break;
+                    default:
+                        PlaytestUploadAttemptLog.Increment(box.Directory, decision.Description);
+                        return BoxOutcome.BoxDeferred;
                 }
                 if (_retry.Delays.Count <= attempt)
                 {
-                    PlaytestUploadAttemptLog.LogRetryable(box.Directory, $"{description} (after {attempt} retries)");
-                    return PlaytestUploadFailurePolicy.AbortsRun(failure.Result) ? BoxOutcome.RunAborted : BoxOutcome.BoxDeferred;
+                    PlaytestUploadAttemptLog.LogRetryable(box.Directory, $"{decision.Description} (after {attempt} retries)");
+                    return decision.AbortsRun ? BoxOutcome.RunAborted : BoxOutcome.BoxDeferred;
                 }
                 var delay = _retry.Delays[attempt];
                 attempt++;
-                Debug.LogWarning($"[PlaytestReceiver] {description}; retry {attempt}/{_retry.Delays.Count} in {delay.TotalSeconds:0}s");
+                Debug.LogWarning($"[PlaytestReceiver] {decision.Description}; retry {attempt}/{_retry.Delays.Count} in {delay.TotalSeconds:0}s");
                 // 待ち0はフレームを跨がず即座にやり直す（待ちゼロの表でテストを同期で完結させる）
                 // A zero wait retries at once without crossing a frame, so zero-wait tests complete synchronously
                 if (TimeSpan.Zero < delay) await UniTask.Delay(delay, DelayType.Realtime, PlayerLoopTiming.Update, token);
             }
+
+            #region Internal
+
+            // 再現に要るファイルが欠けた箱・送るものが無い箱は受け口へ行かずに恒久失敗として数える（偽のHTTP応答を合成しない）
+            // A box missing reproduction-critical files or with nothing to send never reaches the receiver and is counted as permanent (no forged HTTP response)
+            bool IsUnsendable(PlaytestBoxDeclaration candidate)
+            {
+                if (candidate.MissingRequiredReason != null)
+                {
+                    PlaytestUploadAttemptLog.Increment(box.Directory, $"not sending a box without what reproduction needs: {candidate.MissingRequiredReason}");
+                    return true;
+                }
+                if (candidate.Files.Count != 0) return false;
+                PlaytestUploadAttemptLog.Increment(box.Directory, $"nothing to send: every file was skipped ({candidate.Skipped.Count} skipped)");
+                return true;
+            }
+
+            // R2が1ファイルだけ拒んだ。見送りを箱へ記録して次回起動以降も宣言へ戻さず（受け口は宣言の拡大を拒む）、縮小した宣言でやり直す
+            // R2 refused one file; the skip is recorded in the box so later runs never re-declare it (the receiver refuses a grown declaration), and the box retries with the shrunk one
+            PlaytestBoxDeclaration SkipRefusedFile(PlaytestUploadAttemptFailure refused, PlaytestUploadFailureDecision decision)
+            {
+                var reason = $"http-{refused.Result.StatusCode}";
+                Debug.LogWarning($"[PlaytestReceiver] skipping {refused.Path} of {box.BundleId} and retrying from prepare: {decision.Description}");
+                PlaytestUploadSkipRecord.Append(box.Directory, refused.Path, reason);
+                return declaration.WithSkipped(refused.Path, reason);
+            }
+
+            #endregion
         }
     }
 }

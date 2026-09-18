@@ -8,6 +8,10 @@ namespace Client.PlaytestReceiver.Http
         TransportFailure,
         LocalUnreadableFile,
         SessionUnavailable,
+
+        // 受け口は2xxで応答したが中身が契約の形でない（版ずれ・キャプティブポータル等）。到達失敗と混ぜない
+        // The receiver answered 2xx but the body breaks the contract (version skew, captive portal); kept apart from unreachability
+        MalformedResponse,
     }
 
     // HTTPの結末。生成は種別ごとのファクトリだけに閉じる
@@ -48,6 +52,11 @@ namespace Client.PlaytestReceiver.Http
         public static PlaytestApiResult SessionUnavailable(string detail)
         {
             return new PlaytestApiResult(PlaytestApiResultKind.SessionUnavailable, 0, "", detail);
+        }
+
+        public static PlaytestApiResult MalformedResponse(int statusCode, string detail)
+        {
+            return new PlaytestApiResult(PlaytestApiResultKind.MalformedResponse, statusCode, "", detail);
         }
 
         public bool IsSuccess => Kind == PlaytestApiResultKind.Responded && 200 <= StatusCode && StatusCode < 300;

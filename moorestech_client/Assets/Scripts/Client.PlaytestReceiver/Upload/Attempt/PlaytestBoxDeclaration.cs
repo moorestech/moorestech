@@ -24,30 +24,39 @@ namespace Client.PlaytestReceiver.Upload.Attempt
         }
     }
 
-    // 箱の走査から宣言（送るもの）と見送り（送らないものと理由）を作る。送信前に分かる理由はすべてここで決まる
-    // Builds the declaration (what to send) and the skips (what not to, with reasons) from the box; every reason knowable before sending is decided here
+    // 箱の走査から宣言（送るもの）と見送り（送らないものと理由）を作る。送信前に分かる理由と、過去の走行で記録した見送りはすべてここで決まる
+    // Builds the declaration (what to send) and the skips (what not to, with reasons); every reason knowable before sending, and the skips recorded by earlier runs, are decided here
     public sealed class PlaytestBoxDeclaration
     {
         public readonly IReadOnlyList<PlaytestDeclaredFile> Files;
         public readonly IReadOnlyList<PlaytestSkippedFile> Skipped;
 
+        // 再現に要るファイル（manifest・world/・snapshots/）が見送られていればその説明、揃っていればnull
+        // A description of the reproduction-critical file (manifest, world/, snapshots/) that got skipped, or null when all are present
+        public readonly string MissingRequiredReason;
+
         private PlaytestBoxDeclaration(IReadOnlyList<PlaytestDeclaredFile> files, IReadOnlyList<PlaytestSkippedFile> skipped)
         {
             Files = files;
             Skipped = skipped;
+            var missingRequired = skipped.FirstOrDefault(file => PlaytestBundleFilePriority.IsRequired(file.Path));
+            MissingRequiredReason = missingRequired == null ? null : $"{missingRequired.Path} was skipped ({missingRequired.Reason})";
         }
 
         public static PlaytestBoxDeclaration Build(PlaytestOutboxBox box)
         {
             var files = new List<PlaytestDeclaredFile>();
             var skipped = new List<PlaytestSkippedFile>();
+            var recordedSkips = PlaytestUploadSkipRecord.Read(box.Directory);
             long total = 0;
-            // 走査順はOS任せなので序数順に揃える。件数・総量の上限でどれが見送られるかを実行ごとに変えない
-            // Directory enumeration order is OS-defined, so sort ordinally; which files the count/total caps skip must not vary between runs
-            var payloads = PlaytestOutboxScanner.ListPayloadFiles(box.Directory).OrderBy(path => path, StringComparer.Ordinal);
-            foreach (var absolute in payloads)
+            // 優先度順（必須→補助→静止画）、同順位は序数順。上限で落ちるのは常に後ろの静止画で、実行ごとにも変わらない
+            // Priority order (required, supporting, stills), ordinal within a rank; the caps always drop trailing stills, identically on every run
+            var payloads = PlaytestOutboxScanner.ListPayloadFiles(box.Directory)
+                .Select(absolute => (Absolute: absolute, Relative: PlaytestOutboxScanner.ToRelativePath(box.Directory, absolute)))
+                .OrderBy(file => PlaytestBundleFilePriority.RankOf(file.Relative))
+                .ThenBy(file => file.Relative, StringComparer.Ordinal);
+            foreach (var (absolute, relative) in payloads)
             {
-                var relative = PlaytestOutboxScanner.ToRelativePath(box.Directory, absolute);
                 var reason = DescribeSkip(relative, absolute, files.Count, total, out var length);
                 if (reason != null)
                 {
@@ -62,15 +71,30 @@ namespace Client.PlaytestReceiver.Upload.Attempt
 
             #region Internal
 
-            // 見送り理由の判定は PlaytestUploadPath.DescribeRejection 一本（受け口の parseDeclaration と同じ規則）。ここでは長さを測って渡すだけ
-            // The rejection rules live in PlaytestUploadPath.DescribeRejection alone (mirroring the receiver's parseDeclaration); this only measures the length
-            static string DescribeSkip(string relative, string absolute, int declaredCount, long declaredTotal, out long length)
+            // 過去の走行でR2が拒んだファイルは記録どおり見送る。それ以外の判定は PlaytestUploadPath.DescribeRejection 一本（受け口の parseDeclaration と同じ規則）
+            // Files R2 refused in an earlier run stay skipped as recorded; every other rule lives in PlaytestUploadPath.DescribeRejection (mirroring the receiver's parseDeclaration)
+            string DescribeSkip(string relative, string absolute, int declaredCount, long declaredTotal, out long length)
             {
                 length = new FileInfo(absolute).Length;
+                if (recordedSkips.TryGetValue(relative, out var recorded)) return recorded;
                 return PlaytestUploadPath.DescribeRejection(relative, length, declaredCount, declaredTotal);
             }
 
             #endregion
+        }
+
+        // 送信後に分かった1ファイルの見送り。宣言から外し見送りへ積んだ新しい宣言を返す（受け口は縮小した再宣言だけを受け付ける）
+        // A skip learned after sending; returns a new declaration with the file moved from the files to the skips (the receiver accepts only a shrunk re-declaration)
+        public PlaytestBoxDeclaration WithSkipped(string path, string reason)
+        {
+            var remaining = new List<PlaytestDeclaredFile>();
+            var skipped = new List<PlaytestSkippedFile>(Skipped);
+            foreach (var file in Files)
+            {
+                if (file.Path == path) skipped.Add(new PlaytestSkippedFile(path, reason, file.Bytes));
+                else remaining.Add(file);
+            }
+            return new PlaytestBoxDeclaration(remaining, skipped);
         }
     }
 }

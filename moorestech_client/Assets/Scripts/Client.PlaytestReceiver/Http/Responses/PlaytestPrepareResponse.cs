@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
-namespace Client.PlaytestReceiver.Http
+namespace Client.PlaytestReceiver.Http.Responses
 {
     public sealed class PlaytestPreparedUpload
     {

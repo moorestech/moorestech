@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver;
@@ -91,7 +92,7 @@ namespace Client.Tests.PlaytestReceiver
 
         public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string supplementJson, CancellationToken token)
         {
-            return UniTask.FromResult(PlaytestApiResult.Responded(200, "{}"));
+            return UniTask.FromResult(PlaytestApiResult.Responded(200, "{\"ready\":true}"));
         }
     }
 
@@ -104,6 +105,7 @@ namespace Client.Tests.PlaytestReceiver
         public int PutAttemptCount;
         public int CompleteCount;
         public string LastCompleteBody = "";
+        public List<string> LastPreparedPaths = new();
         public UniTaskCompletionSource<PlaytestApiResult> PendingPut;
         public PlaytestApiResult SessionResult = PlaytestApiResult.Responded(200, PlaytestSessionBodies.AllowedFarFuture);
 
@@ -129,6 +131,7 @@ namespace Client.Tests.PlaytestReceiver
         public UniTask<PlaytestApiResult> PostPrepareAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, IReadOnlyList<PlaytestDeclaredFile> files, CancellationToken token)
         {
             Calls.Add("prepare");
+            LastPreparedPaths = files.Select(file => file.Path).ToList();
             return UniTask.FromResult(_prepareResults.Count != 0 ? _prepareResults.Dequeue() : PlaytestApiResult.Responded(200, PrepareBodyFor(files)));
         }
 
@@ -149,7 +152,7 @@ namespace Client.Tests.PlaytestReceiver
             Calls.Add("complete");
             CompleteCount++;
             LastCompleteBody = supplementJson;
-            return UniTask.FromResult(_completeResults.Count != 0 ? _completeResults.Dequeue() : PlaytestApiResult.Responded(200, "{}"));
+            return UniTask.FromResult(_completeResults.Count != 0 ? _completeResults.Dequeue() : PlaytestApiResult.Responded(200, "{\"ready\":true}"));
         }
 
         private const string SignedUrlPrefix = "https://r2.test/";

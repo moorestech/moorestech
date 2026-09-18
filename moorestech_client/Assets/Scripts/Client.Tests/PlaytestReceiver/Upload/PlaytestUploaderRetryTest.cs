@@ -35,10 +35,10 @@ namespace Client.Tests.PlaytestReceiver
         {
             var box = MakeBox("20260913_120000_aaaa", "a.bin");
             var api = new FakeUploadApi();
-            api.EnqueuePut("manifest.json", PlaytestApiResult.Responded(503, "{\"error\":\"1102\"}"));
+            api.EnqueuePut("a.bin", PlaytestApiResult.Responded(503, "{\"error\":\"1102\"}"));
 
             Assert.AreEqual(1, Upload(api));
-            CollectionAssert.AreEqual(new[] { "prepare", "put:a.bin", "put:manifest.json", "prepare", "put:manifest.json", "complete" }, api.Calls);
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "prepare", "put:a.bin", "complete" }, api.Calls);
             Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
         }
 
@@ -78,7 +78,7 @@ namespace Client.Tests.PlaytestReceiver
             api.EnqueueComplete(PlaytestApiResult.Responded(409, "{\"reason\":\"incomplete\",\"missing\":[{\"path\":\"a.bin\",\"expectedBytes\":3,\"actualBytes\":null}]}"));
 
             Assert.AreEqual(1, Upload(api));
-            CollectionAssert.AreEqual(new[] { "prepare", "put:a.bin", "put:manifest.json", "complete", "prepare", "put:a.bin", "complete" }, api.Calls);
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "complete", "prepare", "put:a.bin", "complete" }, api.Calls);
         }
 
         [TestCase("not json")]
@@ -93,18 +93,18 @@ namespace Client.Tests.PlaytestReceiver
             api.EnqueueComplete(PlaytestApiResult.Responded(409, body));
 
             Assert.AreEqual(1, Upload(api));
-            CollectionAssert.AreEqual(new[] { "prepare", "put:a.bin", "put:manifest.json", "complete", "prepare", "put:a.bin", "put:manifest.json", "complete" }, api.Calls);
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "complete", "prepare", "put:manifest.json", "put:a.bin", "complete" }, api.Calls);
         }
 
         [Test]
-        public void 署名付きURLの403は数えずにprepareからやり直す()
+        public void 署名付きURLの期限切れ403は数えずにprepareからやり直す()
         {
             var box = MakeBox("20260913_120000_aaaa", "a.bin");
             var api = new FakeUploadApi();
-            api.EnqueuePut("a.bin", PlaytestApiResult.Responded(403, "<Error><Code>AccessDenied</Code></Error>"));
+            api.EnqueuePut("a.bin", PlaytestApiResult.Responded(403, "<Error><Code>AccessDenied</Code><Message>Request has expired</Message></Error>"));
 
             Assert.AreEqual(1, Upload(api));
-            CollectionAssert.AreEqual(new[] { "prepare", "put:a.bin", "prepare", "put:a.bin", "put:manifest.json", "complete" }, api.Calls);
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "prepare", "put:a.bin", "complete" }, api.Calls);
             Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
         }
 
@@ -135,14 +135,14 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void 宣言していないパスが返ってきたら送らずにやり直す()
+        public void 宣言していないパスが返ってきたら送らずに契約違反としてやり直す()
         {
             MakeBox("20260913_120000_aaaa", "a.bin");
             var api = new FakeUploadApi();
             api.EnqueuePrepare(PlaytestApiResult.Responded(200, "{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"x.bin\",\"url\":\"https://r2.test/x.bin\",\"bytes\":1}]}"));
 
             Assert.AreEqual(1, Upload(api));
-            CollectionAssert.AreEqual(new[] { "prepare", "prepare", "put:a.bin", "put:manifest.json", "complete" }, api.Calls);
+            CollectionAssert.AreEqual(new[] { "prepare", "prepare", "put:manifest.json", "put:a.bin", "complete" }, api.Calls);
         }
 
         private string MakeBox(string bundleId, string payloadName)

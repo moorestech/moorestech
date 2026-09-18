@@ -78,14 +78,22 @@ namespace Client.PlaytestReceiver.Http
                 return PlaytestApiResult.LocalUnreadableFile($"{absoluteFilePath}: {exception.Message}");
             }
 
-            using var idle = CancellationTokenSource.CreateLinkedTokenSource(token);
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
             var idleTimeoutSeconds = PlaytestReceiverConfig.UploadIdleTimeoutSeconds;
-            var idleTimeout = TimeSpan.FromSeconds(idleTimeoutSeconds);
-            var content = new StreamContent(new IdleTimeoutStream(fileStream, idle, idleTimeout));
-            content.Headers.ContentLength = bytes;
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            var content = new IdleTimeoutFileContent(fileStream, bytes, deadline, TimeSpan.FromSeconds(idleTimeoutSeconds), TimeSpan.FromSeconds(PlaytestReceiverConfig.HttpTimeoutSeconds));
+            var result = await SendAsync(CreateSignedPutRequest(signedUrl, content), deadline, $"no upload progress for {idleTimeoutSeconds}s or no answer after the body", token);
+            // 送信中に手元のファイルが読めなくなった失敗は、到達失敗ではなく手元の問題として返す
+            // A local read failure mid-send is returned as a local problem, not as unreachability
+            return content.LocalReadFailure == null ? result : PlaytestApiResult.LocalUnreadableFile($"{absoluteFilePath}: {content.LocalReadFailure}");
+        }
+
+        // 署名付きPUTの要求。If-None-Match: * は署名に含まれており（受け口の契約）、既にあるキーを上書きさせない。Bearerは付けない
+        // The presigned PUT request; If-None-Match: * is part of the signature (the receiver's contract) and forbids overwriting an existing key; no bearer is attached
+        internal static HttpRequestMessage CreateSignedPutRequest(string signedUrl, HttpContent content)
+        {
             var request = new HttpRequestMessage(HttpMethod.Put, signedUrl) { Content = content };
-            return await SendAsync(request, idle, $"no upload progress for {idleTimeoutSeconds}s", token);
+            request.Headers.IfNoneMatch.Add(EntityTagHeaderValue.Any);
+            return request;
         }
 
         public UniTask<PlaytestApiResult> PostCompleteAsync(string bearerToken, PlaytestUploadKind kind, string bundleId, string supplementJson, CancellationToken token)
@@ -112,7 +120,7 @@ namespace Client.PlaytestReceiver.Http
         // The single boundary isolating unreachability, timeouts and an idle cut into TransportFailure; callers only see the kind and status code
         private static async UniTask<PlaytestApiResult> SendAsync(HttpRequestMessage request, CancellationTokenSource deadline, string cutDescription, CancellationToken token)
         {
-            var requestUri = request.RequestUri;
+            var target = DescribeTargetForLog(request.RequestUri);
             try
             {
                 using (request)
@@ -128,7 +136,7 @@ namespace Client.PlaytestReceiver.Http
             }
             catch (OperationCanceledException)
             {
-                Debug.LogWarning($"[PlaytestReceiver] request to {requestUri} {cutDescription}");
+                Debug.LogWarning($"[PlaytestReceiver] request to {target} {cutDescription}");
                 return PlaytestApiResult.TransportFailure(cutDescription);
             }
             catch (Exception exception)
@@ -136,9 +144,16 @@ namespace Client.PlaytestReceiver.Http
                 // 例外の型名も残す。到達失敗に見える実装バグを後から選り分けられるようにする
                 // The exception type is kept so an implementation bug disguised as unreachability can be told apart later
                 var message = $"{exception.GetType().Name}: {exception.GetBaseException().Message}";
-                Debug.LogWarning($"[PlaytestReceiver] request to {requestUri} failed: {message}");
+                Debug.LogWarning($"[PlaytestReceiver] request to {target} failed: {message}");
                 return PlaytestApiResult.TransportFailure(message);
             }
+        }
+
+        // ログに出す宛先。署名付きURLのクエリ（X-Amz-Credential・X-Amz-Signature）は1時間有効な権限なので出さない
+        // The destination as logged; a presigned URL's query (X-Amz-Credential, X-Amz-Signature) is an hour-long authority, so it is left out
+        internal static string DescribeTargetForLog(Uri requestUri)
+        {
+            return requestUri.GetLeftPart(UriPartial.Path);
         }
 
         private static HttpClient CreateClient()

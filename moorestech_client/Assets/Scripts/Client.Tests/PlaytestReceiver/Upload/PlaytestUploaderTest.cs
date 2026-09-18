@@ -40,7 +40,7 @@ namespace Client.Tests.PlaytestReceiver
 
             Assert.AreEqual(1, Upload(api));
             Assert.AreEqual(0, Upload(api));
-            CollectionAssert.AreEqual(new[] { "prepare", "put:a.bin", "put:manifest.json", "complete" }, api.Calls);
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "complete" }, api.Calls);
             Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
 
             // ファイル一覧は受け口が照合して決めるので、補足には manifest 原文と見送りだけを載せる

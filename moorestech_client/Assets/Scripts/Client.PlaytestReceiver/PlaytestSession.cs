@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Http.Responses;
 using Client.PlaytestReceiver.Steam;
 using Cysharp.Threading.Tasks;
 using UnityEngine;

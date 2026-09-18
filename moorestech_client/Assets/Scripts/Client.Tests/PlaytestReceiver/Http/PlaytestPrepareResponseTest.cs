@@ -1,4 +1,5 @@
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Http.Responses;
 using NUnit.Framework;
 
 namespace Client.Tests.PlaytestReceiver.Http
