@@ -1,30 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { handle } from "../../src/index";
-import { signToken } from "../../src/token";
-import { STEAM_ID, clean, noNetwork, workerEnv } from "../support/uploadsFixture";
+import type { PlaytestKind } from "../../src/keys";
+import { STEAM_ID, clean, complete, declaration, noNetwork, prepare, putDirect, workerEnv } from "../support/uploadsFixture";
 
 const ADMIN = { "x-admin-key": "test-admin-key" };
 
-async function upload(kind: string, id: string, path: string, body: string): Promise<void> {
-  const token = await signToken(workerEnv.SESSION_HMAC_SECRET, STEAM_ID, Math.floor(Date.now() / 1000));
-  await handle(
-    new Request(`https://playtest.tar-atari.com/v1/uploads/${kind}/${id}/${path}`, {
-      method: "PUT",
-      headers: { authorization: `Bearer ${token}`, "content-length": String(body.length) },
-      body,
-    }),
-    workerEnv,
-    noNetwork,
-  );
-  await handle(
-    new Request(`https://playtest.tar-atari.com/v1/uploads/${kind}/${id}/complete`, {
-      method: "POST",
-      headers: { authorization: `Bearer ${token}` },
-      body: JSON.stringify({ kind: "bug" }),
-    }),
-    workerEnv,
-    noNetwork,
-  );
+// prepare → 直接PUT（R2への直接putで模擬）→ complete の正規経路で1箱を上げる
+// Uploads one box through the real path: prepare, a direct PUT (simulated by an R2 put), then complete
+async function upload(kind: PlaytestKind, id: string, path: string, body: string): Promise<void> {
+  await prepare(kind, id, declaration({ [path]: body.length }));
+  await putDirect(kind, STEAM_ID, id, path, body);
+  const response = await complete(kind, id, JSON.stringify({ manifest: null, skipped: [] }));
+  expect(response.status).toBe(200);
 }
 
 // 認証の合否は admin/auth.test.ts が担う。ここでは admin キーが正しい前提の中身を検証する

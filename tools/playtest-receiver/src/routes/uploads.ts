@@ -1,9 +1,12 @@
+import { parseDeclaration, readDeclaration, writeDeclaration } from "../bundleDeclaration";
 import { isAcked, READY_MARKER } from "../bundleMarkers";
-import { MAX_FILE_BYTES, RESERVED_UPLOAD_SEGMENTS } from "../contract";
+import { UPLOAD_URL_TTL_SECONDS } from "../contract";
 import type { Env } from "../env";
 import { fail, json, requireMethod } from "../http";
-import { bundlePrefix, isKind, isSafeSegment, joinSafePath, pendingIndexKey, type PlaytestKind } from "../keys";
+import { bundlePrefix, isKind, isSafeSegment, pendingIndexKey, type PlaytestKind } from "../keys";
+import { presignPut } from "../presign";
 import { verifyToken } from "../token";
+import { verifyDeclaredObjects } from "./uploadsVerify";
 
 // アップロード経路の一致判定とディスパッチをここへ寄せる。一致しなければnullでindex.tsの次の経路へ委ねる
 // Path matching and dispatch live here; returns null on a non-match so index.ts can try the next route
@@ -30,6 +33,11 @@ export async function routeUploads(request: Request, env: Env, segments: string[
   }
 
   const rest = segments.slice(4);
+  if (rest.length === 1 && rest[0] === "prepare") {
+    const denied = requireMethod(request, ["POST"], "upload prepare");
+    if (denied !== null) return denied;
+    return prepareUpload(request, env, kind, id);
+  }
   if (rest.length === 1 && rest[0] === "complete") {
     const denied = requireMethod(request, ["POST"], "upload complete");
     if (denied !== null) return denied;
@@ -37,7 +45,10 @@ export async function routeUploads(request: Request, env: Env, segments: string[
   }
   const denied = requireMethod(request, ["PUT"], "upload put");
   if (denied !== null) return denied;
-  return putUpload(request, env, kind, id, rest);
+  // 旧クライアントのPUT中継。バイト列はもう受けない（ADR 0064）。理由を返して再ビルドを促す
+  // The old client's relayed PUT; bytes are no longer accepted (ADR 0064), so answer with the reason
+  console.warn(`[upload] rejected a relayed PUT (direct upload required): /${segments.join("/")}`);
+  return fail("direct-upload-required", 410);
 }
 
 // Bearerトークンだけが置き場を決める。戻り値はsteamIdか、そのまま返す拒否応答
@@ -63,99 +74,42 @@ async function authorize(request: Request, env: Env): Promise<string | Response>
   return verification.steamId;
 }
 
-async function putUpload(
-  request: Request,
-  env: Env,
-  kind: PlaytestKind,
-  id: string,
-  pathSegments: string[],
-): Promise<Response> {
+async function prepareUpload(request: Request, env: Env, kind: PlaytestKind, id: string): Promise<Response> {
   const steamId = await authorize(request, env);
   if (typeof steamId !== "string") return steamId;
 
-  const relativePath = joinSafePath(pathSegments);
-  if (relativePath === null) {
-    console.warn(`[upload] rejected an unsafe path: ${pathSegments.join("/")}`);
-    return fail("bad-path", 400);
-  }
-  if (RESERVED_UPLOAD_SEGMENTS.has(pathSegments[0] as string)) {
-    console.warn(`[upload] rejected a PUT into a reserved name: ${relativePath}`);
-    return fail("reserved-name", 400);
+  // 取り込み済みの箱へは宣言もURLも出さない。ACKED後の上書きで取り込み内容とR2がずれるのを防ぐ
+  // An already acked box gets neither a declaration nor URLs, so R2 never drifts from what was ingested
+  if (await isAcked(env.BUCKET, kind, steamId, id)) {
+    console.warn(`[upload] ignored prepare for an already acked bundle: ${steamId}/${id}`);
+    return json({ outcome: "acked" });
   }
 
-  // 解釈できないContent-Lengthは拒否側へ倒す: 欠落は411、数字以外は400、上限超過は413
-  // An unreadable Content-Length is rejected outright: missing is 411, non-digits is 400, over the limit is 413
-  const label = `${steamId}/${id}/${relativePath}`;
-  const rawLength = request.headers.get("content-length");
-  if (rawLength === null) {
-    console.warn(`[upload] ${label} is missing a Content-Length header`);
-    return fail("length-required", 411);
-  }
-  if (!/^\d+$/.test(rawLength)) {
-    console.warn(`[upload] ${label} declares a non-numeric Content-Length: "${rawLength}"`);
+  // 本文は外部入力のJSON（パース例外の境界）。壊れていれば400で理由をwarnする
+  // The body is external JSON (a parse-exception boundary); a broken one is a 400 with the reason warned
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    console.warn(`[upload] prepare body of ${steamId}/${id} is not JSON`);
     return fail("bad-request", 400);
   }
-  const declared = Number(rawLength);
-  if (declared > MAX_FILE_BYTES) {
-    console.warn(`[upload] ${label} declares ${declared} bytes, over the limit`);
-    return fail("too-large", 413);
+  const declaration = parseDeclaration(body);
+  if (!declaration.ok) {
+    console.warn(`[upload] rejected the declaration of ${steamId}/${id}: ${declaration.error} (${declaration.detail})`);
+    return fail(declaration.error, declaration.status);
   }
 
-  // 取り込み済みバンドルへの再送は書かずに成功扱い。ACKED後の上書きで取り込み内容とR2がずれるのを防ぐ
-  // A resend into an already acked bundle succeeds without writing, so R2 never drifts from what was ingested
-  if (await isAcked(env.BUCKET, kind, steamId, id)) {
-    console.warn(`[upload] ignored a PUT into an already acked bundle: ${label}`);
-    return json({ stored: relativePath });
+  // 宣言を先に保存し、completeの照合元にする。URLは同じ時刻で揃えて発行する
+  // The declaration is stored first as complete's reference; every URL is signed at the same instant
+  await writeDeclaration(env.BUCKET, kind, steamId, id, declaration.files);
+  const now = new Date();
+  const uploads: { path: string; bytes: number; url: string }[] = [];
+  for (const file of declaration.files) {
+    const key = `${bundlePrefix(kind, steamId, id)}/${file.path}`;
+    uploads.push({ path: file.path, bytes: file.bytes, url: await presignPut(env, key, file.bytes, now) });
   }
-
-  const key = `${bundlePrefix(kind, steamId, id)}/${relativePath}`;
-  if (request.body === null) {
-    if (declared !== 0) {
-      console.warn(`[upload] ${label} declares ${declared} bytes but has no body`);
-      return fail("length-mismatch", 400);
-    }
-    await env.BUCKET.put(key, "");
-    return json({ stored: relativePath });
-  }
-
-  // 実バイト数を宣言長へ縛る。不一致かどうかは失敗の順序ではなく実際に届いたバイト数で判定する（両側が同時に落ちるため）
-  // Actual bytes are bound to the declared length; a mismatch is judged by the bytes that arrived, not failure order, since both sides fail together
-  let receivedBytes = 0;
-  let bodyEnded = false;
-  const counter = new TransformStream<Uint8Array, Uint8Array>({
-    transform(chunk, controller) {
-      receivedBytes += chunk.byteLength;
-      controller.enqueue(chunk);
-    },
-    flush() {
-      bodyEnded = true;
-    },
-  });
-  const fixedLength = new FixedLengthStream(declared);
-  const pumpAbort = new AbortController();
-  const [pumped, stored] = await Promise.allSettled([
-    request.body.pipeThrough(counter).pipeTo(fixedLength.writable, { signal: pumpAbort.signal }),
-    env.BUCKET.put(key, fixedLength.readable).catch((error: unknown) => {
-      // 保存が落ちたら読み手がいなくなる。送り込みを止めないと待ちが終わらない
-      // Once storing fails nobody reads the stream, so the pump is aborted or the wait never ends
-      pumpAbort.abort(error);
-      throw error;
-    }),
-  ]);
-  if (receivedBytes > declared || (bodyEnded && receivedBytes !== declared)) {
-    console.warn(`[upload] ${label} body did not match Content-Length ${declared}: received ${receivedBytes} bytes`);
-    return fail("length-mismatch", 400);
-  }
-  if (pumped.status === "rejected" || stored.status === "rejected") {
-    const error: unknown = stored.status === "rejected" ? stored.reason : (pumped as PromiseRejectedResult).reason;
-    console.warn(`[upload] ${label} could not be stored in R2: ${describeError(error)}`);
-    return fail("storage-unavailable", 503);
-  }
-  return json({ stored: relativePath });
-}
-
-function describeError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+  return json({ outcome: "prepared", uploads, expiresInSeconds: UPLOAD_URL_TTL_SECONDS });
 }
 
 async function completeUpload(request: Request, env: Env, kind: PlaytestKind, id: string): Promise<Response> {
@@ -168,14 +122,48 @@ async function completeUpload(request: Request, env: Env, kind: PlaytestKind, id
     console.warn(`[upload] ignored complete for an already acked bundle: ${steamId}/${id}`);
     return json({ ready: true });
   }
+  const declared = await readDeclaration(env.BUCKET, kind, steamId, id);
+  if (declared === null) {
+    console.warn(`[upload] complete without a declaration: ${steamId}/${id}`);
+    return fail("not-prepared", 409);
+  }
+  const verified = await verifyDeclaredObjects(env.BUCKET, kind, steamId, id, declared);
+  if (verified.missing.length > 0) {
+    console.warn(`[upload] ${steamId}/${id} is incomplete: ${verified.missing.map((m) => `${m.path}(${m.actualBytes ?? "absent"}/${m.expectedBytes})`).join(", ")}`);
+    return json({ reason: "incomplete", missing: verified.missing }, 409);
+  }
 
-  const summary = await request.text();
-  await env.BUCKET.put(`${bundlePrefix(kind, steamId, id)}/${READY_MARKER}`, summary, {
-    httpMetadata: { contentType: "application/json" },
-  });
+  // ファイル一覧は照合済みの側を使い、クライアントの申告は使わない。本文はmanifest原文とskippedの補足だけ
+  // The file list comes from the verified side, never the client's claim; the body only supplements the raw manifest and skipped
+  const supplement = await readCompleteSupplement(request, `${steamId}/${id}`);
+  const summary = JSON.stringify({ kind, id, fileCount: verified.present.length, files: verified.present, ...supplement });
+  await env.BUCKET.put(`${bundlePrefix(kind, steamId, id)}/${READY_MARKER}`, summary, { httpMetadata: { contentType: "application/json" } });
 
   // 未ACKの列挙をR2の全走査にしないため、READYと対の索引オブジェクトを置く。ackで消す
   // A paired index object keeps "pending" enumerable without scanning all of R2; ack deletes it
   await env.BUCKET.put(pendingIndexKey(kind, steamId, id), "");
-  return json({ ready: true });
+  return json({ ready: true, fileCount: verified.present.length });
+}
+
+// 補足は取り込みの診断用で、欠けても箱は成立する。読めない部分は空に倒してwarnする（READYを止めない）
+// The supplement only aids ingest diagnostics and the box stands without it; unreadable parts fall back to empty with a warning, never blocking READY
+async function readCompleteSupplement(request: Request, label: string): Promise<{ skipped: unknown[]; manifest: string | null }> {
+  // 本文は外部入力のJSON（パース例外の境界）
+  // The body is external JSON (a parse-exception boundary)
+  let body: unknown = null;
+  try {
+    body = await request.json();
+  } catch {
+    console.warn(`[upload] complete body of ${label} is not JSON; storing READY without manifest/skipped`);
+    return { skipped: [], manifest: null };
+  }
+  // manifestのnullは正規（進行記録等）。形が契約と違うときだけwarnする
+  // A null manifest is legitimate (e.g. progress records); only a shape off the contract is warned
+  const fields = typeof body === "object" && body !== null ? (body as { manifest?: unknown; skipped?: unknown }) : {};
+  const skipped = Array.isArray(fields.skipped) ? fields.skipped : [];
+  const manifest = typeof fields.manifest === "string" ? fields.manifest : null;
+  if (!Array.isArray(fields.skipped) || (fields.manifest !== null && typeof fields.manifest !== "string")) {
+    console.warn(`[upload] complete body of ${label} does not match {manifest: string|null, skipped: []}; storing READY with those parts empty`);
+  }
+  return { skipped, manifest };
 }

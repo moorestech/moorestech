@@ -1,186 +1,125 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { handle } from "../../src/index";
-import { bearer, clean, ID, noNetwork, workerEnv } from "../support/uploadsFixture";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { MAX_BUNDLE_BYTES, MAX_BUNDLE_FILES, MAX_FILE_BYTES } from "../../src/contract";
+import { bearer, clean, declaration, handle, ID, noNetwork, prepare, workerEnv } from "../support/uploadsFixture";
 
-// kind不正・path不正・Content-Length不正・メソッド不正の拒否系。成功系は uploads.test.ts
-// Rejection cases for bad kind/path/Content-Length/method; success cases live in uploads.test.ts
-describe("uploads validation", () => {
-  beforeEach(clean);
+// kind・id・宣言・メソッド・設定欠落の拒否系。拒否は必ずwarnし、R2へ何も書かない。成功系は uploads.test.ts
+// Rejections for bad kind/id/declaration/method/misconfiguration; each warns and writes nothing to R2. Success cases live in uploads.test.ts
+afterEach(() => {
+  vi.restoreAllMocks();
+  return clean();
+});
 
-  it("kindが不正なら400", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/config/${ID}/a.txt`, {
-        method: "PUT",
-        headers: { authorization: await bearer() },
-        body: "x",
-      }),
-      workerEnv,
-      noNetwork,
-    );
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ reason: "bad-kind" });
+async function expectRejected(response: Response, status: number, reason: string): Promise<void> {
+  expect(response.status).toBe(status);
+  expect(await response.json()).toEqual({ reason });
+  expect((await workerEnv.BUCKET.list({ limit: 10 })).objects).toHaveLength(0);
+}
+
+function spyWarn() {
+  return vi.spyOn(console, "warn").mockImplementation(() => {});
+}
+
+function manyFiles(count: number): string {
+  const entries: Record<string, number> = {};
+  for (let i = 0; i < count; i++) entries[`f${i}.bin`] = 1;
+  return declaration(entries);
+}
+
+describe("prepare の経路検査", () => {
+  it("kindが不正なら400 bad-kind", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("config", ID, declaration({ a: 1 })), 400, "bad-kind");
     expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
   });
 
   // URLコンストラクタは生の「..」を先に畳んでしまうため、逸脱の試行はパーセントエンコードで送る
   // The URL constructor collapses a raw ".." first, so traversal attempts are sent percent-encoded
-  it("..を含むパスは400で何も書かない", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/%2E%2E/%2E%2E/etc/passwd`, {
-        method: "PUT",
-        headers: { authorization: await bearer() },
-        body: "x",
-      }),
-      workerEnv,
-      noNetwork,
-    );
-    expect(response.status).toBe(400);
-    expect((await workerEnv.BUCKET.list({ limit: 10 })).objects).toHaveLength(0);
+  it("idが..なら400 bad-path", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("report", "%2E%2E", declaration({ a: 1 })), 400, "bad-path");
     expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
   });
 
-  it("不正なpercentエンコードのパスは400で何も書かない", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/%ZZ.png`, {
-        method: "PUT",
-        headers: { authorization: await bearer(), "content-length": "1" },
-        body: "x",
-      }),
-      workerEnv,
-      noNetwork,
-    );
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ reason: "bad-path" });
-    expect((await workerEnv.BUCKET.list({ limit: 10 })).objects).toHaveLength(0);
+  it("idが不正なpercentエンコードなら400 bad-path", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("report", "%ZZ", declaration({ a: 1 })), 400, "bad-path");
     expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
   });
 
-  it("Content-Lengthが100MiBを超えたら413", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/video.mp4`, {
-        method: "PUT",
-        headers: { authorization: await bearer(), "content-length": String(100 * 1024 * 1024 + 1) },
-        body: "x",
-      }),
-      workerEnv,
-      noNetwork,
-    );
-    expect(response.status).toBe(413);
-    expect(await response.json()).toEqual({ reason: "too-large" });
+  it("prepareにPOST以外のメソッドは405", async () => {
+    const warn = spyWarn();
+    const response = await handle(new Request(`https://x/v1/uploads/report/${ID}/prepare`, { method: "GET", headers: { authorization: await bearer() } }), workerEnv, noNetwork);
+    await expectRejected(response, 405, "method-not-allowed");
     expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
   });
 
-  it("Content-Lengthが無ければ411で何も書かない", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/no-length.txt`, {
-        method: "PUT",
-        headers: { authorization: await bearer() },
-        body: "x",
-      }),
-      workerEnv,
-      noNetwork,
-    );
-    expect(response.status).toBe(411);
-    expect(await response.json()).toEqual({ reason: "length-required" });
-    expect((await workerEnv.BUCKET.list({ limit: 10 })).objects).toHaveLength(0);
+  it("旧ファイルパスにPUT以外のメソッドは405", async () => {
+    const warn = spyWarn();
+    const response = await handle(new Request(`https://x/v1/uploads/report/${ID}/a.txt`, { method: "GET", headers: { authorization: await bearer() } }), workerEnv, noNetwork);
+    await expectRejected(response, 405, "method-not-allowed");
     expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
   });
 
-  it("Content-Lengthが数値でなければ400で何も書かない", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("SESSION_HMAC_SECRETが無ければ401ではなく500 server-misconfigured", async () => {
+    const warn = spyWarn();
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/bad-length.txt`, {
-        method: "PUT",
-        headers: { authorization: await bearer(), "content-length": "abc" },
-        body: "x",
-      }),
-      workerEnv,
+      new Request(`https://x/v1/uploads/report/${ID}/prepare`, { method: "POST", headers: { authorization: await bearer() }, body: declaration({ a: 1 }) }),
+      { ...workerEnv, SESSION_HMAC_SECRET: "" },
       noNetwork,
     );
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ reason: "bad-request" });
-    expect((await workerEnv.BUCKET.list({ limit: 10 })).objects).toHaveLength(0);
+    await expectRejected(response, 500, "server-misconfigured");
     expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+  });
+});
+
+describe("prepare の宣言検査", () => {
+  it("本文がJSONでなければ400 bad-request", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("report", ID, "not json"), 400, "bad-request");
+    expect(warn).toHaveBeenCalled();
   });
 
-  it("idが..なら400で何も書かない", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(
-      new Request("https://playtest.tar-atari.com/v1/uploads/report/%2E%2E/a.txt", {
-        method: "PUT",
-        headers: { authorization: await bearer() },
-        body: "x",
-      }),
-      workerEnv,
-      noNetwork,
-    );
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ reason: "bad-path" });
-    expect((await workerEnv.BUCKET.list({ limit: 10 })).objects).toHaveLength(0);
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+  it("..を含むパスは400 bad-path", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("report", ID, declaration({ "../../etc/passwd": 1 })), 400, "bad-path");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("bad-path"));
   });
 
-  it("パスに空セグメント(//)を含むと400で何も書かない", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}//a.txt`, {
-        method: "PUT",
-        headers: { authorization: await bearer(), "content-length": "1" },
-        body: "x",
-      }),
-      workerEnv,
-      noNetwork,
-    );
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ reason: "bad-path" });
-    expect((await workerEnv.BUCKET.list({ limit: 10 })).objects).toHaveLength(0);
+  it("空セグメント(//)を含むパスは400 bad-path", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("report", ID, declaration({ "a//b.txt": 1 })), 400, "bad-path");
     expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
   });
 
-  it("パーセントエンコードされた\\を含むセグメントは400で何も書かない", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/a%5Cb.txt`, {
-        method: "PUT",
-        headers: { authorization: await bearer(), "content-length": "1" },
-        body: "x",
-      }),
-      workerEnv,
-      noNetwork,
-    );
-    expect(response.status).toBe(400);
-    expect(await response.json()).toEqual({ reason: "bad-path" });
-    expect((await workerEnv.BUCKET.list({ limit: 10 })).objects).toHaveLength(0);
+  it("\\を含むパスは400 bad-path", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("report", ID, declaration({ "a\\b.txt": 1 })), 400, "bad-path");
     expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
   });
 
-  it("アップロードにPUT以外のメソッドは405", async () => {
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/uploads/report/${ID}/a.txt`, {
-        method: "GET",
-        headers: { authorization: await bearer() },
-      }),
-      workerEnv,
-      noNetwork,
-    );
-    expect(response.status).toBe(405);
-    expect(await response.json()).toEqual({ reason: "method-not-allowed" });
-    expect(warn).toHaveBeenCalled();
-    warn.mockRestore();
+  it("予約名（READY・DECLARED）を宣言すると400 reserved-name", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("report", ID, declaration({ READY: 1 })), 400, "reserved-name");
+    await expectRejected(await prepare("report", ID, declaration({ DECLARED: 1 })), 400, "reserved-name");
+    expect(warn).toHaveBeenCalledTimes(2);
+  });
+
+  it("1ファイルが100MiBを超えると413 too-large", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("report", ID, declaration({ "video.mp4": MAX_FILE_BYTES + 1 })), 413, "too-large");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("too-large"));
+  });
+
+  it("ファイル数が上限を超えると413 too-many-files", async () => {
+    const warn = spyWarn();
+    await expectRejected(await prepare("report", ID, manyFiles(MAX_BUNDLE_FILES + 1)), 413, "too-many-files");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("too-many-files"));
+  });
+
+  it("合計バイトが上限を超えると413 bundle-too-large", async () => {
+    const warn = spyWarn();
+    const body = declaration({ a: MAX_FILE_BYTES, b: MAX_FILE_BYTES, c: MAX_BUNDLE_BYTES - 2 * MAX_FILE_BYTES + 1 });
+    await expectRejected(await prepare("report", ID, body), 413, "bundle-too-large");
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("bundle-too-large"));
   });
 });
