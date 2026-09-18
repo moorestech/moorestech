@@ -8,8 +8,8 @@ using NUnit.Framework;
 
 namespace Client.Tests.PlaytestReceiver
 {
-    // 同一走行内の再試行（ADR 0064）。待ちは Immediate で消し、呼ばれた順だけを固定する
-    // Retries within one run (ADR 0064); waits are removed with Immediate and only the call order is pinned
+    // 同一走行内の再試行（ADR 0064）。待ちはゼロの表で消し、呼ばれた順だけを固定する
+    // Retries within one run (ADR 0064); waits are removed with a zero-wait schedule and only the call order is pinned
     public class PlaytestUploaderRetryTest
     {
         private string _root;
@@ -43,6 +43,19 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
+        public void 再試行表を使い切る直前の試行で通れば箱は送信済みになる()
+        {
+            var box = MakeBox("20260913_120000_aaaa", "a.bin");
+            var api = new FakeUploadApi();
+            var retryCount = PlaytestUploadRetrySchedule.Default.Delays.Count;
+            for (var i = 0; i < retryCount; i++) api.EnqueuePut("a.bin", PlaytestApiResult.Responded(503, ""));
+
+            Assert.AreEqual(1, Upload(api));
+            Assert.AreEqual(1 + retryCount, api.Calls.FindAll(call => call == "put:a.bin").Count);
+            Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
+        }
+
+        [Test]
         public void 再試行の上限を超えた一過性失敗は数えずに持ち越し次の箱へ進む()
         {
             var first = MakeBox("20260913_110000_aaaa", "a.bin");
@@ -51,7 +64,7 @@ namespace Client.Tests.PlaytestReceiver
             for (var i = 0; i < 4; i++) api.EnqueuePut("a.bin", PlaytestApiResult.Responded(503, ""));
 
             Assert.AreEqual(1, Upload(api));
-            Assert.AreEqual(1 + PlaytestUploadRetrySchedule.Immediate.Delays.Count, api.Calls.FindAll(call => call == "put:a.bin").Count);
+            Assert.AreEqual(1 + PlaytestUploadRetrySchedule.Default.Delays.Count, api.Calls.FindAll(call => call == "put:a.bin").Count);
             Assert.IsFalse(File.Exists(Path.Combine(first, PlaytestOutboxScanner.UploadedMarker)));
             Assert.IsFalse(File.Exists(Path.Combine(first, PlaytestOutboxScanner.AttemptsMarker)));
             Assert.IsTrue(File.Exists(Path.Combine(second, PlaytestOutboxScanner.UploadedMarker)));
@@ -68,12 +81,16 @@ namespace Client.Tests.PlaytestReceiver
             CollectionAssert.AreEqual(new[] { "prepare", "put:a.bin", "put:manifest.json", "complete", "prepare", "put:a.bin", "complete" }, api.Calls);
         }
 
-        [Test]
-        public void 欠損一覧の読めない409は全部送り直す()
+        [TestCase("not json")]
+        [TestCase("{\"reason\":\"not-prepared\"}")]
+        [TestCase("{\"missing\":[\"a.bin\"]}")]
+        [TestCase("{\"missing\":[{\"path\":{}}]}")]
+        [TestCase("{\"missing\":[{\"path\":[\"a.bin\"]}]}")]
+        public void 欠損一覧の読めない409は例外を出さず全部送り直す(string body)
         {
             MakeBox("20260913_120000_aaaa", "a.bin");
             var api = new FakeUploadApi();
-            api.EnqueueComplete(PlaytestApiResult.Responded(409, "not json"));
+            api.EnqueueComplete(PlaytestApiResult.Responded(409, body));
 
             Assert.AreEqual(1, Upload(api));
             CollectionAssert.AreEqual(new[] { "prepare", "put:a.bin", "put:manifest.json", "complete", "prepare", "put:a.bin", "put:manifest.json", "complete" }, api.Calls);
@@ -136,7 +153,7 @@ namespace Client.Tests.PlaytestReceiver
         private int Upload(FakeUploadApi api)
         {
             var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-            var uploader = new PlaytestUploader(api, session, _directories, PlaytestUploadRetrySchedule.Immediate);
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create());
             return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }

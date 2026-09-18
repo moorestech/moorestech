@@ -52,9 +52,10 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void 日本語や空白を含む名前は通す()
+        public void 日本語や空白やURLの意味を持つ文字を含む名前は通す()
         {
             Assert.IsNull(Reject("ログ/ユニティ 1.log", 1));
+            Assert.IsNull(Reject("logs/a#b?c=d%.log", 1));
         }
 
         private static string Reject(string relative, long bytes)

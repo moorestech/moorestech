@@ -38,5 +38,23 @@ namespace Client.Tests.PlaytestReceiver.Http
             Assert.IsFalse(PlaytestPrepareResponse.TryParse("{}", out _, out var d2)); StringAssert.Contains("outcome", d2);
             Assert.IsFalse(PlaytestPrepareResponse.TryParse("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\"}]}", out _, out var d3)); StringAssert.Contains("malformed", d3);
         }
+
+        // 形の崩れた外部JSONでも例外を出さず、理由付きの false で返す
+        // Malformed external JSON never throws; it returns false with a reason
+        [TestCase("{\"outcome\":{},\"uploads\":[]}", "outcome")]
+        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[\"a.bin\"]}", "malformed")]
+        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[[1]]}", "malformed")]
+        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":{},\"url\":\"https://r2/x\",\"bytes\":3}]}", "malformed")]
+        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":[\"x\"],\"bytes\":3}]}", "malformed")]
+        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":\"https://r2/x\",\"bytes\":{}}]}", "malformed")]
+        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":\"https://r2/x\",\"bytes\":\"3\"}]}", "malformed")]
+        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":\"https://r2/x\",\"bytes\":3.5}]}", "malformed")]
+        [TestCase("{\"outcome\":\"prepared\",\"uploads\":[{\"path\":\"a\",\"url\":\"https://r2/x\",\"bytes\":99999999999999999999}]}", "malformed")]
+        public void 想定外の型の応答は例外を出さず理由付きで失敗する(string body, string expectedDetail)
+        {
+            Assert.IsFalse(PlaytestPrepareResponse.TryParse(body, out var response, out var detail));
+            Assert.IsNull(response);
+            StringAssert.Contains(expectedDetail, detail);
+        }
     }
 }

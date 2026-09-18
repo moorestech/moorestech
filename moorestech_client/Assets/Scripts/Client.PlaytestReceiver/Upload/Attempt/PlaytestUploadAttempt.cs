@@ -65,7 +65,20 @@ namespace Client.PlaytestReceiver.Upload.Attempt
             {
                 if (JObject.Parse(body)["missing"] is JArray missing)
                 {
-                    foreach (var entry in missing) sentPaths.Remove((entry as JObject)?.Value<string>("path") ?? "");
+                    // path は型を確かめて読む。1件でも読めなければ欠けを特定できないので全部送り直す（無視すると同じ409を繰り返す）
+                    // Paths are read after a type check; if any entry is unreadable the gap is unknown, so resend all (ignoring it would repeat the same 409)
+                    var missingPaths = new List<string>();
+                    foreach (var entry in missing)
+                    {
+                        if (!(entry is JObject missingEntry) || !(missingEntry["path"] is JValue { Type: JTokenType.String } path))
+                        {
+                            Debug.LogWarning($"[PlaytestReceiver] complete answered 409 with an unreadable missing entry; resending every file: {entry.ToString(Formatting.None)}");
+                            sentPaths.Clear();
+                            return;
+                        }
+                        missingPaths.Add((string)path);
+                    }
+                    foreach (var missingPath in missingPaths) sentPaths.Remove(missingPath);
                     return;
                 }
                 Debug.LogWarning("[PlaytestReceiver] complete answered 409 without a missing list; resending every file");

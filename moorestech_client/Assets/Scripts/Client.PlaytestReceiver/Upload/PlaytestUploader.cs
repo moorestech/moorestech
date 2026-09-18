@@ -109,8 +109,8 @@ namespace Client.PlaytestReceiver.Upload
                 var delay = _retry.Delays[attempt];
                 attempt++;
                 Debug.LogWarning($"[PlaytestReceiver] {description}; retry {attempt}/{_retry.Delays.Count} in {delay.TotalSeconds:0}s");
-                // 待ち0はフレームを跨がず即座にやり直す（Immediateのテストを同期で完結させる）
-                // A zero wait retries at once without crossing a frame, so Immediate tests complete synchronously
+                // 待ち0はフレームを跨がず即座にやり直す（待ちゼロの表でテストを同期で完結させる）
+                // A zero wait retries at once without crossing a frame, so zero-wait tests complete synchronously
                 if (TimeSpan.Zero < delay) await UniTask.Delay(delay, DelayType.Realtime, PlayerLoopTiming.Update, token);
             }
         }

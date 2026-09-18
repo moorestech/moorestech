@@ -164,14 +164,14 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeUploadApi();
 
             Assert.AreEqual(1, Upload(api));
-            CollectionAssert.AreEquivalent(new[] { "prepare", "put:ユニティ.log", "put:a b.log", "complete" }, api.Calls);
+            CollectionAssert.AreEqual(new[] { "prepare", "put:a b.log", "put:ユニティ.log", "complete" }, api.Calls);
             StringAssert.Contains("\"skipped\":[]", api.LastCompleteBody);
         }
 
         private int Upload(FakeUploadApi api)
         {
             var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-            var uploader = new PlaytestUploader(api, session, _directories, PlaytestUploadRetrySchedule.Immediate);
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create());
             return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }

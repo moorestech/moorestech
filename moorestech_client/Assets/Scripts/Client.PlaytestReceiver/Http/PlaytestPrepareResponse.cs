@@ -52,7 +52,9 @@ namespace Client.PlaytestReceiver.Http
                 detail = $"prepare response is not JSON: {e.Message}";
                 return false;
             }
-            var outcome = root.Value<string>("outcome");
+            // 型が想定外でも例外で走行を落とさないよう、値は型を確かめてから読む
+            // Values are read only after checking their type, so an unexpected shape cannot throw out of the run
+            var outcome = ReadString(root, "outcome");
             if (outcome == "acked")
             {
                 response = new PlaytestPrepareResponse(PlaytestPrepareOutcome.AlreadyAcked, new List<PlaytestPreparedUpload>());
@@ -66,18 +68,25 @@ namespace Client.PlaytestReceiver.Http
             var parsed = new List<PlaytestPreparedUpload>();
             foreach (var entry in uploads)
             {
-                var path = entry.Value<string>("path");
-                var url = entry.Value<string>("url");
-                var bytes = entry.Value<long?>("bytes");
-                if (path == null || url == null || bytes == null)
+                var path = ReadString(entry, "path");
+                var url = ReadString(entry, "url");
+                if (path == null || url == null || !(entry is JObject entryObject) || !(entryObject["bytes"] is JValue { Value: long bytes }))
                 {
-                    detail = $"prepare response entry is malformed: {entry}";
+                    detail = $"prepare response entry is malformed: {entry.ToString(Newtonsoft.Json.Formatting.None)}";
                     return false;
                 }
-                parsed.Add(new PlaytestPreparedUpload(path, url, bytes.Value));
+                parsed.Add(new PlaytestPreparedUpload(path, url, bytes));
             }
             response = new PlaytestPrepareResponse(PlaytestPrepareOutcome.Prepared, parsed);
             return true;
+        }
+
+        // object の文字列値だけを返す。object でない・キーが無い・文字列でないなら null
+        // Returns a string value of an object only; null when not an object, the key is absent, or the value is not a string
+        private static string ReadString(JToken token, string key)
+        {
+            if (!(token is JObject obj) || !(obj[key] is JValue { Type: JTokenType.String } value)) return null;
+            return (string)value;
         }
     }
 }
