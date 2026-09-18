@@ -1,4 +1,5 @@
 import { isAcked, READY_MARKER } from "../bundleMarkers";
+import { DECLARATION_UNREADABLE_REASON } from "../contract";
 import type { Env } from "../env";
 import { fail, json } from "../http";
 import { bundlePrefix, pendingIndexKey, type PlaytestKind } from "../keys";
@@ -17,11 +18,17 @@ export async function completeUpload(request: Request, env: Env, kind: PlaytestK
     return json({ ready: true });
   }
   const declared = await readDeclaration(env.BUCKET, kind, steamId, id);
-  if (declared === null) {
+  if (declared.state === "absent") {
     console.warn(`[upload] complete without a declaration: ${steamId}/${id}`);
     return fail("not-prepared", 409);
   }
-  const verified = await verifyDeclaredObjects(env.BUCKET, kind, steamId, id, declared);
+  if (declared.state === "unreadable") {
+    // 壊れたDECLAREDでは照合元が無い。無い扱いにせず、人が箱を調べるまで拒否する
+    // A broken DECLARED leaves nothing to verify against; refuse rather than treat it as absent until a human inspects the box
+    console.warn(`[upload] refused complete of ${steamId}/${id} because its DECLARED ${declared.reason}`);
+    return fail(DECLARATION_UNREADABLE_REASON, 409);
+  }
+  const verified = await verifyDeclaredObjects(env.BUCKET, kind, steamId, id, declared.declaration.files);
   if (verified.missing.length > 0) {
     console.warn(`[upload] ${steamId}/${id} is incomplete: ${verified.missing.map((m) => `${m.path}(${m.actualBytes ?? "absent"}/${m.expectedBytes})`).join(", ")}`);
     return json({ reason: "incomplete", missing: verified.missing }, 409);

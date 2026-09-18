@@ -24,16 +24,17 @@ Worker はアップロードのバイト列を中継しない。クライアン�
 
 リクエスト本文（1ファイル100MiB＝`maxFileBytes`まで、箱全体128ファイル＝`maxBundleFiles`・256MiB＝`maxBundleBytes`まで。値は `contract.json` が正）:
 ```json
-{ "files": [{ "path": "manifest.json", "bytes": 10 }, { "path": "frames/frame_1.jpg", "bytes": 20 }] }
+{ "generation": 1, "files": [{ "path": "manifest.json", "bytes": 10 }, { "path": "frames/frame_1.jpg", "bytes": 20 }] }
 ```
 成功（200）:
 ```json
-{ "outcome": "prepared", "uploads": [{ "path": "manifest.json", "bytes": 10, "url": "https://<account>.r2.cloudflarestorage.com/<bucket>/...?X-Amz-..." }], "expiresInSeconds": 3600 }
+{ "outcome": "prepared", "uploads": [{ "path": "manifest.json", "bytes": 10, "url": "https://<account>.r2.cloudflarestorage.com/<bucket>/...?X-Amz-..." }], "conflicts": [], "expiresInSeconds": 3600 }
 ```
-ACK済みの箱は書き込みをせず冪等に `{ "outcome": "acked" }`（200）を返す（ACK は受付時・`DECLARED` を書く直前・URL を返す直前の3回確かめる）。
+ACK済みの箱は書き込みをせず冪等に `{ "outcome": "acked" }`（200）を返す（ACK は受付時・`DECLARED` を書く直前・URL を返す直前の3回確かめる）。クライアントの失敗分類を左右する `outcome` の値と `declaration-conflict` / `declaration-unreadable` の理由語は `contract.json`（`prepareOutcomes` / `declarationConflictReason` / `declarationUnreadableReason`）が正。
 
-- **宣言は箱ごとに write-once（縮小だけ許す）**: 最初の prepare が `DECLARED` を書く。以後の prepare は path+bytes の集合（順序は問わない）が一致すれば同じ宣言のまま URL を出し直す。既存宣言の部分集合（全 path が既存宣言にあり各 bytes が一致）なら `DECLARED` をその部分集合へ縮めて URL を出す（送れないファイルを外した再試行のため。件数・総量は増えない）。path の追加や bytes の変更を含む宣言は409 `{ "reason": "declaration-conflict" }` で拒否して `DECLARED` を書き換えない。クライアントはこれを箱固有の恒久失敗として数える（complete の409 `incomplete` / `not-prepared` は再試行対象で、区別は `reason`）。
-- **送信済みは除外**: 宣言どおりの長さのオブジェクトが既に R2 にあるファイルは `uploads` に載せない（既存判定は箱の prefix の list 1回）。全部送信済みなら `uploads` は空配列で、クライアントは PUT せず complete の照合に任せる。
+- **宣言は世代付きの write-once**: `generation` は1以上の整数（欠落・非整数・0以下は400 `bad-request`）。`DECLARED` は `{ generation, files }` で保存する。最初の prepare が `DECLARED` を条件付き put（キーが無いときだけ）で書く。以後の prepare は、同じ世代なら path+bytes の集合（順序は問わない）の完全一致だけを許して書かずに URL を出し直す。上の世代なら既存宣言の部分集合（全 path が既存宣言にあり各 bytes が一致）だけを許し、読んだ etag での条件付き put（CAS）で置き換える（送れないファイルを外した再試行のため。件数・総量は増えない）。同世代の集合違い・上の世代での path 追加や bytes 変更・下の世代は409 `{ "reason": "declaration-conflict" }` で拒否して `DECLARED` を書き換えない。同時 prepare に条件付き put で負けたら1回だけ読み直して判定し直し、2回負けたら409 `declaration-conflict`。クライアントはこれを箱固有の恒久失敗として数える（complete の409 `incomplete` / `not-prepared` は再試行対象で、区別は `reason`）。
+- **読めない `DECLARED`**: JSON として壊れている・宣言検査に通らない・`generation` が無い `DECLARED` は無い扱いにせず、prepare も complete も409 `{ "reason": "declaration-unreadable" }`（warn に理由）。人が箱を調べるまで進めない。
+- **送信済みは除外・長さ違いは conflicts**: 存在と長さの判定は complete と同じ照合（箱の prefix の list 1回）を使う。宣言どおりの長さで既にあるファイルは `uploads` に載せない。キーが無いファイルだけに URL を出す。宣言と長さの違うキーが既にあるファイルは `If-None-Match: *` で上書きできないため URL を出さず、`conflicts: [{ "path", "expectedBytes", "actualBytes" }]` で返して warn する（`conflicts` は空でも常に配列）。全部送信済みなら `uploads` は空配列で、クライアントは PUT せず complete の照合に任せる。
 - **設定漏れ**: `R2_ACCOUNT_ID` / `R2_BUCKET_NAME` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` のどれかが空なら URL を発行せず500 `{ "reason": "server-misconfigured" }`（`console.error` に空の設定名）。
 
 エラーは `{ "reason": <string> }` 形（本文が JSON でない/`files`が配列でない等は400 `bad-request`、宣言0件は400 `empty-declaration`、危険パス400 `bad-path`、予約名400 `reserved-name`、重複パス400 `duplicate-path`、ファイル数超過は413 `too-many-files`、1ファイル超過は413 `too-large`、合計超過は413 `bundle-too-large`）。発行URLは `Content-Length` と `If-None-Match: *` を含めて署名するため（`X-Amz-SignedHeaders=content-length;host;if-none-match`）、宣言と違う長さのPUTと、既にあるキーへの上書きをR2自身が拒否する。
@@ -45,7 +46,7 @@ ACK済みの箱は書き込みをせず冪等に `{ "outcome": "acked" }`（200�
 ### `POST /v1/uploads/{kind}/{id}/complete`
 
 本文は任意で `{ "manifest": "<原文>", "skipped": [...] }`（無くても・壊れていても READY は書かれる。`manifest`/`skipped` は取り込みの診断補助）。
-Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合してから `READY` を書く。揃っていれば200 `{ "ready": true, "fileCount": <n> }`（ACK済みは書かずに冪等の200 `{ "ready": true }`。ACK は受付時と `READY` を書く直前に確かめる）。1つでも欠けや長さ違いがあれば `READY` を書かず409 `{ "reason": "incomplete", "missing": [{ "path": ..., "expectedBytes": ..., "actualBytes": <実際の長さ or null> }] }`。宣言（`prepare`）が無い箱への complete は409 `{ "reason": "not-prepared" }`。`READY` の `files` はこの照合で確定した一覧で、クライアントの申告は使わない。
+Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合してから `READY` を書く。揃っていれば200 `{ "ready": true, "fileCount": <n> }`（ACK済みは書かずに冪等の200 `{ "ready": true }`。ACK は受付時と `READY` を書く直前に確かめる）。1つでも欠けや長さ違いがあれば `READY` を書かず409 `{ "reason": "incomplete", "missing": [{ "path": ..., "expectedBytes": ..., "actualBytes": <実際の長さ or null> }] }`。宣言（`prepare`）が無い箱への complete は409 `{ "reason": "not-prepared" }`、`DECLARED` が読めない箱は409 `{ "reason": "declaration-unreadable" }`。`READY` の `files` はこの照合で確定した一覧で、クライアントの申告は使わない。
 
 ## 初回セットアップ
 

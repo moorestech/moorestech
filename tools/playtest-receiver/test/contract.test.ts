@@ -3,9 +3,13 @@ import contract from "../contract.json";
 import { ACKED_MARKER, DECLARED_MARKER, READY_MARKER } from "../src/bundleMarkers";
 import {
   CONTRACT_KINDS,
+  DECLARATION_CONFLICT_REASON,
+  DECLARATION_UNREADABLE_REASON,
   MAX_BUNDLE_BYTES,
   MAX_BUNDLE_FILES,
   MAX_FILE_BYTES,
+  PREPARE_OUTCOME_ACKED,
+  PREPARE_OUTCOME_PREPARED,
   RESERVED_UPLOAD_SEGMENTS,
   STEAM_IDENTITY,
   TOKEN_TTL_SECONDS,
@@ -23,6 +27,13 @@ describe("contract.json", () => {
     expect([...RESERVED_UPLOAD_SEGMENTS]).toEqual(contract.reservedUploadSegments);
     expect(CONTRACT_KINDS).toEqual(contract.kinds);
     expect(TOKEN_TTL_SECONDS).toBe(contract.tokenTtlSeconds);
+  });
+
+  it("失敗分類を左右する応答語はcontract.jsonと一致する", () => {
+    expect(DECLARATION_CONFLICT_REASON).toBe(contract.declarationConflictReason);
+    expect(DECLARATION_UNREADABLE_REASON).toBe(contract.declarationUnreadableReason);
+    expect(PREPARE_OUTCOME_PREPARED).toBe(contract.prepareOutcomes.prepared);
+    expect(PREPARE_OUTCOME_ACKED).toBe(contract.prepareOutcomes.acked);
   });
 
   it("kindの表とマーカー名が契約から外れていない", () => {
@@ -45,6 +56,9 @@ describe("contract.json", () => {
       reservedUploadSegments: ["READY", "ACKED", "DECLARED", "complete", "prepare"],
       kinds: ["report", "progress"],
       tokenTtlSeconds: 3600,
+      declarationConflictReason: "declaration-conflict",
+      declarationUnreadableReason: "declaration-unreadable",
+      prepareOutcomes: { prepared: "prepared", acked: "acked" },
     });
   });
 });

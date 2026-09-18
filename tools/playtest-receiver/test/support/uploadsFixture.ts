@@ -30,8 +30,14 @@ export async function putDirect(kind: PlaytestKind, steamId: string, id: string,
   await workerEnv.BUCKET.put(`${bundlePrefix(kind, steamId, id)}/${path}`, body);
 }
 
+// 初回宣言（世代1）の本文。世代を指定したいテストはdeclarationOfGenerationを使う
+// Body of a first declaration (generation 1); tests that need another generation use declarationOfGeneration
 export function declaration(entries: Record<string, number>): string {
-  return JSON.stringify({ files: Object.entries(entries).map(([path, bytes]) => ({ path, bytes })) });
+  return declarationOfGeneration(1, entries);
+}
+
+export function declarationOfGeneration(generation: number, entries: Record<string, number>): string {
+  return JSON.stringify({ generation, files: Object.entries(entries).map(([path, bytes]) => ({ path, bytes })) });
 }
 
 export async function prepare(kind: string, id: string, body: string, steamId = STEAM_ID): Promise<Response> {

@@ -1,12 +1,13 @@
 import { isAcked } from "../bundleMarkers";
-import { UPLOAD_URL_TTL_SECONDS } from "../contract";
+import { DECLARATION_CONFLICT_REASON, DECLARATION_UNREADABLE_REASON, PREPARE_OUTCOME_ACKED, PREPARE_OUTCOME_PREPARED, UPLOAD_URL_TTL_SECONDS } from "../contract";
 import type { Env } from "../env";
 import { fail, json } from "../http";
 import { bundlePrefix, type PlaytestKind } from "../keys";
-import { classifyRedeclaration, parseDeclaration, readDeclaration, writeDeclaration, type DeclaredFile } from "../uploads/bundleDeclaration";
+import { parseDeclaration, type DeclaredFile } from "../uploads/bundleDeclaration";
+import { settleDeclaration } from "../uploads/declarationSettle";
 import { createR2Client, missingR2SigningSettings, presignPut } from "../uploads/presign";
 import { authorizeUpload } from "./uploadsAuthorize";
-import { listBundleObjectSizes } from "./uploadsVerify";
+import { verifyDeclaredObjects, type MissingObject } from "./uploadsVerify";
 
 export async function prepareUpload(request: Request, env: Env, kind: PlaytestKind, id: string): Promise<Response> {
   const steamId = await authorizeUpload(request, env);
@@ -40,51 +41,51 @@ export async function prepareUpload(request: Request, env: Env, kind: PlaytestKi
     return fail(declaration.error, declaration.status);
   }
 
-  // DECLAREDは縮小だけ許すwrite-once。追加やbytes変更は箱の上限の迂回と旧宣言分の孤立を招くため拒否する
-  // DECLARED is write-once except for shrinking; additions or byte changes would dodge the bundle limits and orphan old files, so refuse them
-  const stored = await readDeclaration(env.BUCKET, kind, steamId, id);
-  const redeclaration = stored === null ? null : classifyRedeclaration(stored, declaration.files);
-  if (redeclaration === "conflict") {
-    console.warn(`[upload] rejected a re-prepare of ${label} that adds or resizes files against the stored DECLARED`);
-    return fail("declaration-conflict", 409);
+  // DECLAREDは世代付きのwrite-once。同世代は完全一致だけ、縮小は上の世代でだけ許す（箱の上限の迂回と旧宣言分の孤立を防ぐ）
+  // DECLARED is generation-scoped write-once: a generation matches exactly, only a higher one may shrink (no dodging limits, no orphaned files)
+  const settlement = await settleDeclaration(env.BUCKET, kind, steamId, id, { generation: declaration.generation, files: declaration.files });
+  if (settlement.kind === "acked") return ackedAnswer(label);
+  if (settlement.kind === "conflict") {
+    console.warn(`[upload] rejected a re-prepare of ${label} against the stored DECLARED: ${settlement.detail}`);
+    return fail(DECLARATION_CONFLICT_REASON, 409);
   }
-  if (redeclaration !== "same") {
-    // 新規宣言か縮小（D3で見送ったファイルを外した再試行）。本文の読み取り中にACKされうるので書く直前に確かめ直す
-    // A new declaration or a shrink (a retry that dropped files skipped under D3); an ack may land while the body is read, so re-check right before writing
-    if (await isAcked(env.BUCKET, kind, steamId, id)) return ackedAnswer(label);
-    if (redeclaration === "shrunk") console.warn(`[upload] ${label} shrank its declaration from ${stored?.length} to ${declaration.files.length} files`);
-    await writeDeclaration(env.BUCKET, kind, steamId, id, declaration.files);
+  if (settlement.kind === "unreadable") {
+    // 壊れたDECLAREDを無い扱いにするとガードが外れる。人が箱を調べるまで拒否し続ける
+    // Treating a broken DECLARED as absent would drop the guard; keep refusing until a human inspects the box
+    console.warn(`[upload] refused prepare of ${label} because its DECLARED ${settlement.reason}`);
+    return fail(DECLARATION_UNREADABLE_REASON, 409);
   }
 
-  const uploads = await presignUnsentFiles(env, kind, steamId, id, declaration.files);
+  const { uploads, conflicts } = await presignUnsentFiles(env, kind, steamId, id, declaration.files);
   // 署名中にACKされた箱へURLを返すと、取り込み後の原本へ送らせてしまう。返す直前に確かめ直す
   // Returning URLs for a box acked while signing would send into an ingested original; check again right before answering
   if (await isAcked(env.BUCKET, kind, steamId, id)) return ackedAnswer(label);
-  return json({ outcome: "prepared", uploads, expiresInSeconds: UPLOAD_URL_TTL_SECONDS });
+  return json({ outcome: PREPARE_OUTCOME_PREPARED, uploads, conflicts, expiresInSeconds: UPLOAD_URL_TTL_SECONDS });
 }
 
 function ackedAnswer(label: string): Response {
   console.warn(`[upload] ignored prepare for an already acked bundle: ${label}`);
-  return json({ outcome: "acked" });
+  return json({ outcome: PREPARE_OUTCOME_ACKED });
 }
 
-// 宣言どおりの長さで既にR2にあるファイルにはURLを出さない（再送も上書きもさせない）。既存判定は箱のlist1回で済ませる
-// Files already in R2 at their declared length get no URL (no resend, no overwrite); existence comes from a single list of the box
-async function presignUnsentFiles(env: Env, kind: PlaytestKind, steamId: string, id: string, files: DeclaredFile[]): Promise<{ path: string; bytes: number; url: string }[]> {
-  const existing = await listBundleObjectSizes(env.BUCKET, kind, steamId, id);
+// 宣言どおりの長さで既にR2にあるかの判定はcompleteと同じverifyDeclaredObjectsに任せ、未送信（キー無し）にだけURLを出す
+// Whether a file already sits in R2 at its declared length is judged by the same verifyDeclaredObjects as complete; only unsent (absent) keys get a URL
+async function presignUnsentFiles(env: Env, kind: PlaytestKind, steamId: string, id: string, files: DeclaredFile[]): Promise<{ uploads: { path: string; bytes: number; url: string }[]; conflicts: MissingObject[] }> {
+  const { missing } = await verifyDeclaredObjects(env.BUCKET, kind, steamId, id, files);
   const client = createR2Client(env);
   const now = new Date();
   const uploads: { path: string; bytes: number; url: string }[] = [];
-  for (const file of files) {
-    const actual = existing.get(file.path);
-    if (actual === file.bytes) continue;
-    if (actual !== undefined) {
-      // 長さ違いの既存キーはIf-None-Matchで上書きできず、completeが欠損として返し続ける。原因を追えるよう残す
-      // An existing key of the wrong length can't be overwritten under If-None-Match and complete keeps reporting it; log it so the cause is traceable
-      console.warn(`[upload] ${steamId}/${id}/${file.path} already exists with ${actual} bytes instead of the declared ${file.bytes}`);
+  const conflicts: MissingObject[] = [];
+  for (const object of missing) {
+    if (object.actualBytes !== null) {
+      // 長さ違いの既存キーはIf-None-Matchで上書きできずURLを出しても送れない。クライアントが見送れるよう応答で返す
+      // An existing key of the wrong length can't be overwritten under If-None-Match, so a URL is useless; report it so the client can give up on it
+      console.warn(`[upload] ${steamId}/${id}/${object.path} already exists with ${object.actualBytes} bytes instead of the declared ${object.expectedBytes}`);
+      conflicts.push(object);
+      continue;
     }
-    const key = `${bundlePrefix(kind, steamId, id)}/${file.path}`;
-    uploads.push({ path: file.path, bytes: file.bytes, url: await presignPut(client, env, key, file.bytes, now) });
+    const key = `${bundlePrefix(kind, steamId, id)}/${object.path}`;
+    uploads.push({ path: object.path, bytes: object.expectedBytes, url: await presignPut(client, env, key, object.expectedBytes, now) });
   }
-  return uploads;
+  return { uploads, conflicts };
 }

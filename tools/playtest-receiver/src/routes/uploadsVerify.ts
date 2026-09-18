@@ -14,7 +14,7 @@ export interface VerifiedObjects {
 
 // 箱配下の実オブジェクトの長さ（箱からの相対パス→bytes）。prefix単位のlistで引き、ファイルごとのheadはしない（無料プランのCPU上限）
 // Sizes of a box's real objects (box-relative path -> bytes); one prefix list, never a head per file (free-plan CPU limit)
-export async function listBundleObjectSizes(bucket: R2Bucket, kind: PlaytestKind, steamId: string, id: string): Promise<Map<string, number>> {
+async function listBundleObjectSizes(bucket: R2Bucket, kind: PlaytestKind, steamId: string, id: string): Promise<Map<string, number>> {
   const prefix = `${bundlePrefix(kind, steamId, id)}/`;
   const sizes = new Map<string, number>();
   let cursor: string | undefined;

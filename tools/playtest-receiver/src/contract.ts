@@ -11,3 +11,7 @@ export const UPLOAD_IDLE_TIMEOUT_SECONDS: number = contract.uploadIdleTimeoutSec
 export const RESERVED_UPLOAD_SEGMENTS: ReadonlySet<string> = new Set(contract.reservedUploadSegments);
 export const CONTRACT_KINDS: readonly string[] = contract.kinds;
 export const TOKEN_TTL_SECONDS: number = contract.tokenTtlSeconds;
+export const DECLARATION_CONFLICT_REASON: string = contract.declarationConflictReason;
+export const DECLARATION_UNREADABLE_REASON: string = contract.declarationUnreadableReason;
+export const PREPARE_OUTCOME_PREPARED: string = contract.prepareOutcomes.prepared;
+export const PREPARE_OUTCOME_ACKED: string = contract.prepareOutcomes.acked;

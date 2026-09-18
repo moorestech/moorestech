@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ACKED_MARKER, ackedMarkerKey, declaredMarkerKey, READY_MARKER } from "../../src/bundleMarkers";
 import type { Env } from "../../src/env";
 import { bundlePrefix, pendingIndexKey } from "../../src/keys";
-import { bearer, clean, declaration, handle, ID, noNetwork, prepare, putDirect, STEAM_ID, workerEnv } from "../support/uploadsFixture";
+import { bearer, clean, declaration, declarationOfGeneration, handle, ID, noNetwork, prepare, putDirect, STEAM_ID, workerEnv } from "../support/uploadsFixture";
 
 // 設定漏れ・DECLAREDのwrite-once・送信済みの除外・ACKの再確認（D4(1)/D6/D7）。基本経路は uploads.test.ts
 // Misconfiguration, write-once DECLARED, skipping sent files and ACK re-checks (D4(1)/D6/D7); the basic paths live in uploads.test.ts
@@ -11,7 +11,7 @@ afterEach(() => {
   return clean();
 });
 
-type PrepareBody = { outcome: string; uploads: { path: string; url: string; bytes: number }[]; expiresInSeconds: number };
+type PrepareBody = { outcome: string; uploads: { path: string; url: string; bytes: number }[]; conflicts: { path: string; expectedBytes: number; actualBytes: number }[]; expiresInSeconds: number };
 
 async function post(env: Env, action: "prepare" | "complete", body: string): Promise<Response> {
   return handle(new Request(`https://x/v1/uploads/report/${ID}/${action}`, { method: "POST", headers: { authorization: await bearer(), "content-type": "application/json" }, body }), env, noNetwork);
@@ -49,7 +49,7 @@ describe("prepare の設定漏れ", () => {
   });
 });
 
-describe("DECLARED は write-once", () => {
+describe("DECLARED は同世代で write-once", () => {
   it("同じpath+bytes集合（順序違い）の再prepareはURLを出し直し、DECLAREDを書き換えない", async () => {
     await prepare("report", ID, declaration({ a: 1, "b/c.bin": 2 }));
     const before = await declaredText();
@@ -66,36 +66,42 @@ describe("DECLARED は write-once", () => {
     ["ファイルが増えた", { a: 1, "b/c.bin": 2, d: 1 }],
     ["ファイルが増え別のファイルが減った", { a: 1, d: 2 }],
     ["パスが違う", { a: 1, "b/x.bin": 2 }],
-  ])("宣言が%s再prepareは409 declaration-conflictでwarnし、DECLAREDは元のまま", async (_, entries) => {
+    ["縮んだ（世代を上げない）", { a: 1 }],
+  ])("同世代で宣言が%s再prepareは409 declaration-conflictでwarnし、DECLAREDは元のまま", async (_, entries) => {
     await prepare("report", ID, declaration({ a: 1, "b/c.bin": 2 }));
     const before = await declaredText();
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await prepare("report", ID, declaration(entries));
     expect(response.status).toBe(409);
     expect(await response.json()).toEqual({ reason: "declaration-conflict" });
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining("adds or resizes files"));
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("declares a different file set"));
     expect(await declaredText()).toBe(before);
   });
 });
 
-describe("宣言の縮小（契約補正 2'）", () => {
-  it("既存宣言の部分集合（bytes一致）の再prepareは受け付け、DECLAREDをその部分集合へ縮めてURLを出す", async () => {
+describe("宣言の縮小は上の世代で（契約補正 2'）", () => {
+  it("上の世代で既存宣言の部分集合（bytes一致）を出す再prepareは受け付け、DECLAREDをその世代の部分集合へ縮めてURLを出す", async () => {
     await prepare("report", ID, declaration({ a: 1, "b/c.bin": 2, d: 3 }));
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    const response = await prepare("report", ID, declaration({ d: 3, a: 1 }));
+    const response = await prepare("report", ID, declarationOfGeneration(2, { d: 3, a: 1 }));
     expect(response.status).toBe(200);
     const body = (await response.json()) as PrepareBody;
     expect(body.uploads.map((u) => u.path).sort()).toEqual(["a", "d"]);
-    expect(JSON.parse((await declaredText())!)).toEqual({ files: [{ path: "d", bytes: 3 }, { path: "a", bytes: 1 }] });
+    expect(JSON.parse((await declaredText())!)).toEqual({ generation: 2, files: [{ path: "d", bytes: 3 }, { path: "a", bytes: 1 }] });
   });
 
-  it("縮めた後で元の宣言へ戻す（追加になる）再prepareは409", async () => {
+  it.each([
+    ["縮めた世代のまま", 2],
+    ["さらに上の世代で", 3],
+    ["縮める前の世代で", 1],
+  ])("縮めた後で元の宣言へ戻す（追加になる）再prepareは%sでも409", async (_, generation) => {
     await prepare("report", ID, declaration({ a: 1, d: 3 }));
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    await prepare("report", ID, declaration({ a: 1 }));
-    const response = await prepare("report", ID, declaration({ a: 1, d: 3 }));
+    await prepare("report", ID, declarationOfGeneration(2, { a: 1 }));
+    const response = await prepare("report", ID, declarationOfGeneration(generation, { a: 1, d: 3 }));
     expect(response.status).toBe(409);
-    expect(JSON.parse((await declaredText())!)).toEqual({ files: [{ path: "a", bytes: 1 }] });
+    expect(await response.json()).toEqual({ reason: "declaration-conflict" });
+    expect(JSON.parse((await declaredText())!)).toEqual({ generation: 2, files: [{ path: "a", bytes: 1 }] });
   });
 
   it("縮小の途中（DECLAREDを書く直前）にACKされた箱は縮めずackedを返す", async () => {
@@ -103,7 +109,7 @@ describe("宣言の縮小（契約補正 2'）", () => {
     const before = await declaredText();
     await workerEnv.BUCKET.put(ackedMarkerKey("report", STEAM_ID, ID), "");
     vi.spyOn(console, "warn").mockImplementation(() => {});
-    expect(await (await post(envWhereAckLandsAfter(1), "prepare", declaration({ a: 1 }))).json()).toEqual({ outcome: "acked" });
+    expect(await (await post(envWhereAckLandsAfter(1), "prepare", declarationOfGeneration(2, { a: 1 }))).json()).toEqual({ outcome: "acked" });
     expect(await declaredText()).toBe(before);
   });
 });
@@ -119,14 +125,15 @@ describe("再prepareは送信済みを除外する", () => {
   it("全部送信済みならuploadsは空配列（outcomeはprepared）", async () => {
     await prepare("report", ID, declaration({ "a.bin": 1 }));
     await putDirect("report", STEAM_ID, ID, "a.bin", "a");
-    expect(await (await prepare("report", ID, declaration({ "a.bin": 1 }))).json()).toEqual({ outcome: "prepared", uploads: [], expiresInSeconds: 3600 });
+    expect(await (await prepare("report", ID, declaration({ "a.bin": 1 }))).json()).toEqual({ outcome: "prepared", uploads: [], conflicts: [], expiresInSeconds: 3600 });
   });
 
-  it("長さ違いで既にあるファイルはURLを出したうえで原因をwarnする", async () => {
+  it("長さ違いで既にあるファイルはURLを出さずconflictsで返し、原因をwarnする", async () => {
     await putDirect("report", STEAM_ID, ID, "a.bin", "abcd");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const body = (await (await prepare("report", ID, declaration({ "a.bin": 3 }))).json()) as PrepareBody;
-    expect(body.uploads.map((u) => u.path)).toEqual(["a.bin"]);
+    const body = (await (await prepare("report", ID, declaration({ "a.bin": 3, "b.bin": 1 }))).json()) as PrepareBody;
+    expect(body.uploads.map((u) => u.path)).toEqual(["b.bin"]);
+    expect(body.conflicts).toEqual([{ path: "a.bin", expectedBytes: 3, actualBytes: 4 }]);
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("already exists with 4 bytes"));
   });
 });
