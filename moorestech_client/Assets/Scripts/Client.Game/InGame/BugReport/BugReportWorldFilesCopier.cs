@@ -89,10 +89,10 @@ namespace Client.Game.InGame.BugReport
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e)) { manifest.AddMissing("world.json", $"コピーに失敗した: {e.Message}"); }
             if (IsGeneratedWorld(source.WorldMetaFilePath, manifest, out var worldMetaUnreadable))
             {
-                manifest.WorldDefinition = BugReportBundleLayout.WorldDefinitionGeneratedWorldJsonOnly;
+                manifest.WorldDefinition = BugReportWorldDefinition.GeneratedWorldJsonOnly;
                 return;
             }
-            manifest.WorldDefinition = BugReportBundleLayout.WorldDefinitionFull;
+            manifest.WorldDefinition = BugReportWorldDefinition.Full;
             CopyIfExists(source.MapJsonFilePath, destination.MapJsonFilePath, manifest);
             // world.jsonが読めた手作りワールドは地形が無くても欠損にしない（旧挙動）。読めなかったときだけ地形の欠落も箱に残す
             // A hand-made world with a readable world.json is not flagged missing without terrain (legacy behavior); only an unreadable world.json also records the terrain gap

@@ -26,9 +26,8 @@ namespace Game.Paths
         public const string RecordingDirectoryName = "recording";
         public const string CrashDumpsDirectoryName = "crashDumps";
 
-        // manifest.worldDefinition の値。生成ワールドは world.json だけを入れ、再現側は同梱スナップショットから地形を引き当てる（ADR 0064）
-        // Values of manifest.worldDefinition; a generated world ships only world.json and the reproducer restores terrain from the bundled snapshot (ADR 0064)
-        public const string WorldDefinitionFull = "full";
-        public const string WorldDefinitionGeneratedWorldJsonOnly = "generated-world-json-only";
+        // 受け側が生成ワールドの箱から地形付きワールドを実体化する置き場。箱の world/ は宣言どおり world.json だけのまま残す（prepare-run.sh も同じ名前を使う）
+        // Where the receiver materializes a terrain-bearing world from a generated-world box; the box's world/ keeps only world.json as declared (prepare-run.sh uses the same name)
+        public const string MaterializedWorldDirectoryName = "world-materialized";
     }
 }

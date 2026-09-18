@@ -53,7 +53,7 @@ namespace Client.Tests.BugReport.Bundle
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "world.json")));
             Assert.IsFalse(File.Exists(Path.Combine(_bundle, "world", "map.json")));
             Assert.IsFalse(Directory.Exists(Path.Combine(_bundle, "world", "terrain")));
-            Assert.AreEqual(BugReportBundleLayout.WorldDefinitionGeneratedWorldJsonOnly, manifest.WorldDefinition);
+            Assert.AreEqual(BugReportWorldDefinition.GeneratedWorldJsonOnly, manifest.WorldDefinition);
             var missingItems = manifest.Missing.Select(item => item.Item).ToList();
             CollectionAssert.DoesNotContain(missingItems, "terrain");
             CollectionAssert.DoesNotContain(missingItems, "map.json");
@@ -71,7 +71,7 @@ namespace Client.Tests.BugReport.Bundle
 
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "map.json")));
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "terrain", "height_0_0.r16")));
-            Assert.AreEqual(BugReportBundleLayout.WorldDefinitionFull, manifest.WorldDefinition);
+            Assert.AreEqual(BugReportWorldDefinition.Full, manifest.WorldDefinition);
         }
 
         // 手作りワールドの地形は同梱が唯一の入手経路だが、地形任意は旧来の前提（ADR 0064: 手作りワールドは従来どおり全部入れ、地形の有無で欠損にはしない）
@@ -99,7 +99,7 @@ namespace Client.Tests.BugReport.Bundle
             var manifest = Copy(new List<string> { "tick_5.json" }, new List<string>());
 
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "map.json")));
-            Assert.AreEqual(BugReportBundleLayout.WorldDefinitionFull, manifest.WorldDefinition);
+            Assert.AreEqual(BugReportWorldDefinition.Full, manifest.WorldDefinition);
             var missingItems = manifest.Missing.Select(item => item.Item).ToList();
             CollectionAssert.Contains(missingItems, "world.json");
             CollectionAssert.Contains(missingItems, "terrain");

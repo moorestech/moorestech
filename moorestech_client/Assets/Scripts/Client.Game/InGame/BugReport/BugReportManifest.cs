@@ -41,9 +41,9 @@ namespace Client.Game.InGame.BugReport
         public bool IsEditor;
         public ulong ReportTick;
 
-        // world/の中身。WorldDefinition*のいずれか
-        // Contents of world/; one of WorldDefinition*
-        public string WorldDefinition;
+        // world/の中身。取り込めなかった箱（前回異常終了の箱を含む）は NotCaptured のまま出る
+        // Contents of world/; a box whose world was not captured (the previous-crash box included) goes out as NotCaptured
+        public BugReportWorldDefinition WorldDefinition = BugReportWorldDefinition.NotCaptured;
         public List<ulong> SnapshotTicks = new();
         public List<string> SnapshotFiles = new();
         public List<string> PacketLogFiles = new();

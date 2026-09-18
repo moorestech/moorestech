@@ -2,6 +2,7 @@ using System.IO;
 using Game.Paths;
 using Game.SaveLoad.Snapshot;
 using Newtonsoft.Json.Linq;
+using Server.Boot.Replay.World;
 using UnityEngine;
 
 namespace Server.Boot.Replay
@@ -95,6 +96,15 @@ namespace Server.Boot.Replay
             };
             File.WriteAllText(Path.Combine(bundleDirectory, "replay-check.json"), document.ToString());
             return $"replay-check.json written: allEqual={allEqual} pairs={pairs.Count} noPacketsInRange={noPacketsInRangePairs}";
+        }
+
+        // 固定ワールド起動（自動修正ランの観察）の土台を world-materialized/ に作る。生成ワールドの箱は world.json だけなので、再生と同じ resolver で地形を引き当てて写す
+        // Builds the fixed-world boot base (the auto-fix observation) in world-materialized/; a generated-world box holds only world.json, so the terrain is located by the replay's resolver and copied
+        public static string MaterializeWorld(string bundleDirectory, string serverDataDirectory)
+        {
+            var materialization = BugReportBundleWorldMaterializer.Materialize(bundleDirectory, serverDataDirectory);
+            if (materialization.Outcome == BugReportBundleWorldOutcome.Rejected) return Reject(((BugReportBundleWorldResolution.RejectedWorld)materialization).Reason);
+            return $"world materialized: {((BugReportBundleWorldResolution.ResolvedWorld)materialization).World.Root}";
         }
 
         private static ulong TickOf(string snapshotFilePath)
