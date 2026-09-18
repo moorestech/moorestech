@@ -45,5 +45,15 @@ namespace Client.Tests.PlaytestReceiver
             // A margin at or above the lifetime would renew on every call right after issue
             Assert.Less(PlaytestReceiverConfig.TokenRefreshMarginSeconds, (int)ReadContract()["tokenTtlSeconds"]);
         }
+
+        [Test]
+        public void 箱単位の上限とURL期限とアイドル期限が受け口と一致する()
+        {
+            var contract = ReadContract();
+            Assert.AreEqual((int)contract["maxBundleFiles"], PlaytestReceiverConfig.MaxBundleFiles);
+            Assert.AreEqual((long)contract["maxBundleBytes"], PlaytestReceiverConfig.MaxBundleBytes);
+            Assert.AreEqual((int)contract["uploadUrlTtlSeconds"], PlaytestReceiverConfig.UploadUrlTtlSeconds);
+            Assert.AreEqual((int)contract["uploadIdleTimeoutSeconds"], PlaytestReceiverConfig.UploadIdleTimeoutSeconds);
+        }
     }
 }
