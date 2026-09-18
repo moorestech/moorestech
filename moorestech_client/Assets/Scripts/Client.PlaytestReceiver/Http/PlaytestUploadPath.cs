@@ -1,5 +1,4 @@
 using System;
-using Client.PlaytestReceiver.Upload;
 
 namespace Client.PlaytestReceiver.Http
 {
@@ -28,7 +27,7 @@ namespace Client.PlaytestReceiver.Http
             }
             // 先頭セグメントが予約名だと受け口の印（READY/ACKED/DECLARED）や操作名と衝突する
             // A reserved first segment would collide with the receiver's markers (READY/ACKED/DECLARED) or verbs
-            if (0 <= Array.IndexOf(PlaytestOutboxScanner.ReservedUploadSegments, segments[0])) return "reserved-name";
+            if (0 <= Array.IndexOf(PlaytestReceiverConfig.ReservedUploadSegments, segments[0])) return "reserved-name";
             if (PlaytestReceiverConfig.MaxFileBytes < bytes) return "too-large";
             if (PlaytestReceiverConfig.MaxBundleFiles <= declaredCount) return "too-many-files";
             if (PlaytestReceiverConfig.MaxBundleBytes < declaredTotal + bytes) return "bundle-too-large";

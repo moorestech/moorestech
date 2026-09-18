@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
-using Client.PlaytestReceiver.Upload;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -32,7 +31,7 @@ namespace Client.Tests.PlaytestReceiver
         public void 予約セグメントと箱の種別の語が受け口と一致する()
         {
             var contract = ReadContract();
-            CollectionAssert.AreEquivalent(contract["reservedUploadSegments"].Select(token => (string)token), PlaytestOutboxScanner.ReservedUploadSegments);
+            CollectionAssert.AreEquivalent(contract["reservedUploadSegments"].Select(token => (string)token), PlaytestReceiverConfig.ReservedUploadSegments);
 
             var kindSegments = Enum.GetValues(typeof(PlaytestUploadKind)).Cast<PlaytestUploadKind>().Select(PlaytestUploadPath.KindSegment);
             CollectionAssert.AreEquivalent(contract["kinds"].Select(token => (string)token), kindSegments);

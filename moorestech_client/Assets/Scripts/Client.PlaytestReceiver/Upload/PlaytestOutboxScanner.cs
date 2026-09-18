@@ -19,10 +19,6 @@ namespace Client.PlaytestReceiver.Upload
 
         private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker };
 
-        // 受け口が予約するセグメント名。送信前にこの一覧で見送る。受け口側の一覧とは contract.json でテスト固定する
-        // Segment names the receiver reserves, skipped before sending; the receiver's list is pinned via contract.json in a test
-        internal static readonly string[] ReservedUploadSegments = { "READY", "ACKED", "DECLARED", "complete", "prepare" };
-
         public static IReadOnlyList<PlaytestOutboxBox> ScanPending(string reportOutbox, string progressOutbox)
         {
             var boxes = new List<PlaytestOutboxBox>();
