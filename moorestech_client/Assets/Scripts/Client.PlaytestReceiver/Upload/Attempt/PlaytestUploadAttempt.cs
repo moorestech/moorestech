@@ -65,7 +65,7 @@ namespace Client.PlaytestReceiver.Upload.Attempt
             {
                 if (JObject.Parse(body)["missing"] is JArray missing)
                 {
-                    foreach (var entry in missing) sentPaths.Remove(entry.Value<string>("path") ?? "");
+                    foreach (var entry in missing) sentPaths.Remove((entry as JObject)?.Value<string>("path") ?? "");
                     return;
                 }
                 Debug.LogWarning("[PlaytestReceiver] complete answered 409 without a missing list; resending every file");
