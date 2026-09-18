@@ -52,6 +52,13 @@ if not numbers:
     notes.append("snapshotTicks が空。固定ワールド起動はできないがログ・映像だけで続行する")
 latest = str(max(numbers)) if numbers else ""
 
+# world/ の中身の宣言（ADR 0064）。生成ワールドの箱は地形を同梱しないので、受け側は観察の前に実体化が要る
+# The declaration of world/'s contents (ADR 0064); a generated-world box ships no terrain, so the receiver must materialize it before observing
+world_definition = data.get("worldDefinition")
+if not isinstance(world_definition, str) or not world_definition:
+    notes.append("manifest に worldDefinition が無い（ADR 0064 以前の箱）。world/ は全部入りとして扱う")
+    world_definition = ""
+
 for item in data.get("missing") or []:
     if isinstance(item, dict):
         notes.append("報告側が欠損を申告している: %s（%s）" % (item.get("item"), item.get("reason")))
@@ -66,6 +73,7 @@ values = [
     ("SERVER_DATA_RELATIVE_PATH", server_relative_path),
     ("SERVER_DATA_PATH", server_path),
     ("LATEST_TICK", latest),
+    ("WORLD_DEFINITION", world_definition),
 ]
 # 値を全部取ってから理由を出す。取得中に増える note を取りこぼさないため
 # Resolve every value first, then emit the notes, so notes added while resolving are not lost

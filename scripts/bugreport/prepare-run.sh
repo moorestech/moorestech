@@ -22,7 +22,7 @@ read_manifest() {
   python3 "$HERE/read-manifest.py" "$RUN/manifest.json"
 }
 
-REPORT_COMMIT=""; REPORT_BRANCH=""; MASTER_COMMIT=""; LATEST_TICK=""
+REPORT_COMMIT=""; REPORT_BRANCH=""; MASTER_COMMIT=""; LATEST_TICK=""; WORLD_DEFINITION=""
 SERVER_DATA_RELATIVE_TO=""; SERVER_DATA_RELATIVE_PATH=""; SERVER_DATA_PATH=""
 manifest_env="$(read_manifest)" || log "manifest の読み取りに失敗した。全項目を空として続行する"
 eval "$manifest_env"
@@ -125,9 +125,19 @@ if [ -d "$REPO/moorestech_client/Library" ] && [ ! -d "$WORKTREE/moorestech_clie
     || { log "APFS クローンに失敗したため通常コピーにする"; cp -R "$REPO/moorestech_client/Library" "$WORKTREE/moorestech_client/Library" || log "Library のコピーに失敗した。初回インポートに任せて続行する"; }
 fi
 
-# world/: 最新スナップショットを save.json にして固定ワールド起動できる形にする
-# world/: place the latest snapshot as save.json so a fixed-world boot can load it
-WORLD_DIR="$RUN/world"; mkdir -p "$WORLD_DIR"
+# 生成ワールドの箱は world.json だけなので、起動の土台は world-materialized/（BugReportBundleLayout.MaterializedWorldDirectoryName）に分ける。地形の引き当ては Unity 側の resolver が要るので、ここでは save.json だけ置き、観察の前に materialize-world.cs を走らせるフラグを立てる（D10）
+# A generated-world box holds only world.json, so its boot base is world-materialized/ (BugReportBundleLayout.MaterializedWorldDirectoryName); locating terrain needs the Unity-side resolver, so only save.json goes here and a flag asks for materialize-world.cs before observing (D10)
+WORLD_DIR="$RUN/world"; WORLD_MATERIALIZE_PENDING=0
+case "$WORLD_DEFINITION" in
+  generated-world-json-only) WORLD_DIR="$RUN/world-materialized"; WORLD_MATERIALIZE_PENDING=1
+    log "生成ワールドの箱は地形を同梱しない。観察の前に materialize-world.cs で地形付きワールドを実体化する: $WORLD_DIR" ;;
+  not-captured) log "報告側が記録時のワールドを取り込めなかった箱（worldDefinition=not-captured）。固定ワールド起動はできない" ;;
+  full|"") ;;
+  *) log "未知の worldDefinition '$WORLD_DEFINITION'。world/ を全部入りとして扱う" ;;
+esac
+# 最新スナップショットを save.json にして固定ワールド起動できる形にする
+# Place the latest snapshot as save.json so a fixed-world boot can load it
+mkdir -p "$WORLD_DIR"
 if [ -z "$LATEST_TICK" ]; then
   log "スナップショットの tick が無いため save.json を置けない。固定ワールド起動はできない"
 elif [ -f "$RUN/snapshots/tick_$LATEST_TICK.json" ]; then
@@ -137,9 +147,11 @@ else
 fi
 # world.json/map.json はワールド定義。欠けていると固定ワールド起動が別の地形になるので必ず告げる
 # world.json/map.json are the world definition; without them a fixed-world boot lands on different terrain
-for world_file in world.json map.json; do
-  [ -f "$WORLD_DIR/$world_file" ] || log "ワールド定義が箱に無い: $world_file"
-done
+if [ "$WORLD_MATERIALIZE_PENDING" = "0" ]; then
+  for world_file in world.json map.json; do
+    [ -f "$WORLD_DIR/$world_file" ] || log "ワールド定義が箱に無い: $world_file"
+  done
+fi
 
 # 値は %q で書く。manifest 由来の文字列がそのまま入ると run.env を source した側が壊れる
 # Values go through %q; a raw manifest string would otherwise break whoever sources run.env
@@ -148,6 +160,7 @@ done
   printf 'MASTER_DIR=%q\n' "$MASTER_DIR"
   printf 'SERVER_DATA_DIR=%q\n' "$SERVER_DATA_DIR"
   printf 'WORLD_DIR=%q\n' "$WORLD_DIR"
+  printf 'WORLD_MATERIALIZE_PENDING=%q\n' "$WORLD_MATERIALIZE_PENDING"
   printf 'REPORT_COMMIT=%q\n' "$REPORT_COMMIT"
   printf 'REPORT_BRANCH=%q\n' "$REPORT_BRANCH"
   printf 'LATEST_TICK=%q\n' "$LATEST_TICK"

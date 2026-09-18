@@ -48,6 +48,7 @@ MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$T
 [ "$LATEST_TICK" = "1200" ] || { echo "NG: LATEST_TICK=$LATEST_TICK"; exit 1; }
 [ "$(cat "$WORLD_DIR/save.json")" = '{"currentTick":1200}' ] || { echo "NG: save.json"; exit 1; }
 [ "$COMMIT_MISSING" = "0" ] && [ "$DIFF_APPLY_FAILED" = "0" ] || { echo "NG: フラグ"; exit 1; }
+[ "$WORLD_DIR" = "$RUN/world" ] && [ "$WORLD_MATERIALIZE_PENDING" = "0" ] || { echo "NG: 宣言の無い箱の WORLD_DIR=$WORLD_DIR"; exit 1; }
 
 # 二重準備は既存 worktree を消さずに失敗する
 # A second preparation fails instead of destroying the existing worktree
@@ -150,5 +151,19 @@ grep -q "master.diff の適用に失敗" "$TMP/r7.log" || { echo "NG: master.dif
 grep -q "commits.bundle を取り込めなかった" "$TMP/r7.log" || { echo "NG: bundle 取り込み失敗の理由がログされていない"; exit 1; }
 grep -q "マスタの未追跡ファイルが箱に無い" "$TMP/r7.log" || { echo "NG: master-untracked 不在の理由がログされていない"; exit 1; }
 ( . "$RUN7/run.env"; [ "$MASTER_DIFF_APPLY_FAILED" = "1" ] ) || { echo "NG: r7 の MASTER_DIFF_APPLY_FAILED"; cat "$RUN7/run.env"; exit 1; }
+
+# D10: 生成ワールドの箱は world.json だけ。土台は world-materialized/ に分け、偽の欠損を出さずに実体化フラグを立てる
+# D10: a generated-world box holds only world.json; its base moves to world-materialized/ with a materialize flag and no false gap
+RUN8="$TMP/runs/r8"; mkdir -p "$RUN8/world" "$RUN8/snapshots"
+echo '{"mapMode":"generated","seed":196}' > "$RUN8/world/world.json"; echo '{"currentTick":900}' > "$RUN8/snapshots/tick_900.json"
+cat > "$RUN8/manifest.json" <<JSON
+{"repository":{"commit":"$REPORT_COMMIT_1B","branch":"feature/x","dirty":false},"worldDefinition":"generated-world-json-only","snapshotTicks":[900]}
+JSON
+env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r8 2>"$TMP/r8.log"
+( . "$RUN8/run.env"; [ "$WORLD_DIR" = "$RUN8/world-materialized" ] && [ "$WORLD_MATERIALIZE_PENDING" = "1" ] && [ "$(cat "$WORLD_DIR/save.json")" = '{"currentTick":900}' ] ) \
+  || { echo "NG: r8 の WORLD_DIR/フラグ/save.json"; cat "$RUN8/run.env"; exit 1; }
+[ ! -e "$RUN8/world/map.json" ] && [ ! -e "$RUN8/world/save.json" ] || { echo "NG: 箱の world/ が書き換えられた"; exit 1; }
+grep -q "地形を同梱しない" "$TMP/r8.log" || { echo "NG: 実体化が要る旨がログされていない"; exit 1; }
+! grep -q "ワールド定義が箱に無い" "$TMP/r8.log" || { echo "NG: 生成ワールドの箱で偽の欠損がログされた"; exit 1; }
 
 echo OK
