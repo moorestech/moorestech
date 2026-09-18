@@ -25,5 +25,10 @@ namespace Game.Paths
         // Places only the previous-crash box has: the recording stays as unconcatenated segments and the dumps as the OS wrote them
         public const string RecordingDirectoryName = "recording";
         public const string CrashDumpsDirectoryName = "crashDumps";
+
+        // manifest.worldDefinition の値。生成ワールドは world.json だけを入れ、再現側は同梱スナップショットから地形を引き当てる（ADR 0064）
+        // Values of manifest.worldDefinition; a generated world ships only world.json and the reproducer restores terrain from the bundled snapshot (ADR 0064)
+        public const string WorldDefinitionFull = "full";
+        public const string WorldDefinitionGeneratedWorldJsonOnly = "generated-world-json-only";
     }
 }

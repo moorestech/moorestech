@@ -13,7 +13,6 @@ namespace Client.Game.InGame.BugReport
     public static class BugReportWorldFilesCopier
     {
         private const string TerrainDirectoryName = "terrain";
-        private const string GeneratedMapMode = "generated";
 
         // スナップショットとワールド定義はディスク上で別の資料。まとめて握ると、どちらが落ちたか分からないまま片方の名前で欠損が立つ
         // The snapshots and the world definition are separate materials on disk; one shared catch would blame one name without knowing which stage failed
@@ -68,8 +67,8 @@ namespace Client.Game.InGame.BugReport
             return copied;
         }
 
-        // 再現にはスナップショット本体だけでなく、その隣のワールド定義（地図・世界メタ・地形）が要る
-        // Reproduction needs the world definition beside the snapshots (map, world meta and terrain), not just the snapshots
+        // 生成ワールドは world.json だけを入れる。地形は seed・指紋・生成器版から同じものが引き当てられる（ADR 0064）。手作りワールドは全部入れる
+        // A generated world ships only world.json; its terrain is restored from seed, fingerprint and generator version (ADR 0064). A hand-made world ships everything
         private static void CopyWorldDefinition(BugReportCapturedData data, string bundleDirectory, BugReportManifest manifest)
         {
             if (string.IsNullOrEmpty(data.WorldRootDirectory))
@@ -83,6 +82,12 @@ namespace Client.Game.InGame.BugReport
             var destination = WorldDataDirectory.FromWorldRoot(world);
             Directory.CreateDirectory(world);
             CopyIfExists(source.WorldMetaFilePath, destination.WorldMetaFilePath, manifest);
+            if (IsGeneratedWorld(source.WorldMetaFilePath, manifest))
+            {
+                manifest.WorldDefinition = BugReportBundleLayout.WorldDefinitionGeneratedWorldJsonOnly;
+                return;
+            }
+            manifest.WorldDefinition = BugReportBundleLayout.WorldDefinitionFull;
             CopyIfExists(source.MapJsonFilePath, destination.MapJsonFilePath, manifest);
             CopyTerrain(source, destination, manifest);
         }
@@ -91,10 +96,9 @@ namespace Client.Game.InGame.BugReport
         // Booting a generated world counts the terrain files down to their bytes, so one missing file kills the receiving side
         private static void CopyTerrain(WorldDataDirectory source, WorldDataDirectory destination, BugReportManifest manifest)
         {
-            var requiresTerrain = RequiresTerrain(source.WorldMetaFilePath, manifest);
             if (!Directory.Exists(source.TerrainDirectory))
             {
-                if (requiresTerrain) manifest.AddMissing(TerrainDirectoryName, "生成ワールドなのに地形ディレクトリが無かった");
+                manifest.AddMissing(TerrainDirectoryName, "手作りワールドの地形ディレクトリが無かった");
                 return;
             }
 
@@ -105,23 +109,23 @@ namespace Client.Game.InGame.BugReport
                 File.Copy(path, Path.Combine(destination.TerrainDirectory, Path.GetFileName(path)), true);
                 copied++;
             }
-            if (copied == 0 && requiresTerrain) manifest.AddMissing(TerrainDirectoryName, "生成ワールドなのに地形ファイルが1枚も無かった");
+            if (copied == 0) manifest.AddMissing(TerrainDirectoryName, "手作りワールドなのに地形ファイルが1枚も無かった");
         }
 
-        // world.json は外部入力のJSON。読めないときは地形を必須扱いにして、欠けていることが箱に残るようにする
-        // world.json is external JSON input; when it cannot be read, terrain is treated as required so its absence still lands in the box
-        private static bool RequiresTerrain(string worldMetaFilePath, BugReportManifest manifest)
+        // world.json は外部入力のJSON。読めないときは全部入れる側に倒し、地形を省く判断が読めた内容だけに基づくようにする
+        // world.json is external JSON input; when it cannot be read, fall back to shipping everything so the omission decision rests only on what was actually read
+        private static bool IsGeneratedWorld(string worldMetaFilePath, BugReportManifest manifest)
         {
             if (!File.Exists(worldMetaFilePath)) return false;
             try
             {
                 var meta = JsonConvert.DeserializeObject<WorldMetaJson>(File.ReadAllText(worldMetaFilePath));
-                return string.Equals(meta?.MapMode, GeneratedMapMode, StringComparison.OrdinalIgnoreCase);
+                return string.Equals(meta?.MapMode, WorldMapMode.Generated, StringComparison.OrdinalIgnoreCase);
             }
             catch (JsonException e)
             {
                 manifest.AddMissing("world.json", $"mapModeを読み取れなかった: {e.Message}");
-                return true;
+                return false;
             }
         }
 

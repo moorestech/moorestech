@@ -40,6 +40,10 @@ namespace Client.Game.InGame.BugReport
         public string Platform;
         public bool IsEditor;
         public ulong ReportTick;
+
+        // world/ に何を入れたか。BugReportBundleLayout.WorldDefinition* のどれか
+        // What world/ holds; one of BugReportBundleLayout.WorldDefinition*
+        public string WorldDefinition;
         public List<ulong> SnapshotTicks = new();
         public List<string> SnapshotFiles = new();
         public List<string> PacketLogFiles = new();

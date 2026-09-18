@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Client.Game.InGame.BugReport;
 using Client.Game.InGame.BugReport.Capture;
+using Game.Paths;
 using NUnit.Framework;
 
 namespace Client.Tests.BugReport.Bundle
@@ -34,28 +35,48 @@ namespace Client.Tests.BugReport.Bundle
             if (Directory.Exists(_root)) Directory.Delete(_root, true);
         }
 
+        // 生成ワールドは world.json だけを入れる。地形は seed・指紋・生成器版から再現側が引き当てる（ADR 0064）
+        // A generated world ships only world.json; its terrain is restored by the reproducer from seed, fingerprint and generator version (ADR 0064)
         [Test]
-        public void 生成ワールドは地形ごと同梱される()
+        public void 生成ワールドはworld_jsonだけを入れmanifestに省略を記録する()
         {
             WriteWorld("generated");
             Directory.CreateDirectory(Path.Combine(_worldRoot, "terrain"));
-            File.WriteAllText(Path.Combine(_worldRoot, "terrain", "height_0_0.r16"), "height");
+            File.WriteAllBytes(Path.Combine(_worldRoot, "terrain", "height_0_0.r16"), new byte[8]);
             WriteStaged("tick_5.json");
 
             var manifest = Copy(new List<string> { "tick_5.json" }, new List<string>());
 
             Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "world.json")));
-            Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "map.json")));
-            Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "terrain", "height_0_0.r16")), "生成ワールドの地形が同梱されていない");
-            CollectionAssert.IsEmpty(manifest.Missing.Select(item => item.Item));
+            Assert.IsFalse(File.Exists(Path.Combine(_bundle, "world", "map.json")));
+            Assert.IsFalse(Directory.Exists(Path.Combine(_bundle, "world", "terrain")));
+            Assert.AreEqual(BugReportBundleLayout.WorldDefinitionGeneratedWorldJsonOnly, manifest.WorldDefinition);
+            var missingItems = manifest.Missing.Select(item => item.Item).ToList();
+            CollectionAssert.DoesNotContain(missingItems, "terrain");
+            CollectionAssert.DoesNotContain(missingItems, "map.json");
         }
 
-        // 地形が無い生成ワールドは受け側が起動できない。黙って落とすと原因が箱から辿れない
-        // A generated world without terrain cannot boot on the receiving side; dropping it silently hides the cause
         [Test]
-        public void 生成ワールドで地形が無ければ欠損に載る()
+        public void 手作りワールドはmap_jsonと地形を全部入れる()
         {
-            WriteWorld("generated");
+            WriteWorld("template");
+            Directory.CreateDirectory(Path.Combine(_worldRoot, "terrain"));
+            File.WriteAllBytes(Path.Combine(_worldRoot, "terrain", "height_0_0.r16"), new byte[8]);
+            WriteStaged("tick_5.json");
+
+            var manifest = Copy(new List<string> { "tick_5.json" }, new List<string>());
+
+            Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "map.json")));
+            Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "terrain", "height_0_0.r16")));
+            Assert.AreEqual(BugReportBundleLayout.WorldDefinitionFull, manifest.WorldDefinition);
+        }
+
+        // world.json が無い生成前提の地形省略と違い、手作りワールドの地形は同梱が唯一の入手経路。無ければ再現できない
+        // Unlike the generated omission, a hand-made world's terrain has no other source; without it reproduction is impossible
+        [Test]
+        public void 手作りワールドは地形が無ければ欠損に載る()
+        {
+            WriteWorld("template");
             WriteStaged("tick_5.json");
 
             var manifest = Copy(new List<string> { "tick_5.json" }, new List<string>());
@@ -63,15 +84,20 @@ namespace Client.Tests.BugReport.Bundle
             CollectionAssert.Contains(manifest.Missing.Select(item => item.Item).ToList(), "terrain");
         }
 
+        // 地形省略の判断は読めた world.json だけに基づく。読めなければ全部入れる側に倒す（fail-closedはmapModeを省かない側）
+        // The omission decision rests only on a successfully-read world.json; an unreadable one falls back to shipping everything (fail-closed means not omitting)
         [Test]
-        public void テンプレートワールドは地形が無くても欠損にしない()
+        public void world_jsonが読めなければ全部入れる側に倒し理由を残す()
         {
-            WriteWorld("template");
+            File.WriteAllText(Path.Combine(_worldRoot, "world.json"), "{broken");
+            File.WriteAllText(Path.Combine(_worldRoot, "map.json"), "{}");
             WriteStaged("tick_5.json");
 
             var manifest = Copy(new List<string> { "tick_5.json" }, new List<string>());
 
-            CollectionAssert.DoesNotContain(manifest.Missing.Select(item => item.Item).ToList(), "terrain");
+            Assert.IsTrue(File.Exists(Path.Combine(_bundle, "world", "map.json")));
+            Assert.AreEqual(BugReportBundleLayout.WorldDefinitionFull, manifest.WorldDefinition);
+            CollectionAssert.Contains(manifest.Missing.Select(item => item.Item).ToList(), "world.json");
         }
 
         // 退避に失敗したファイルまで載せると、受け側は存在しないスナップショットを土台にしようとする
