@@ -127,27 +127,32 @@ fi
 
 # 生成ワールドの箱は world.json だけなので、起動の土台は world-materialized/（BugReportBundleLayout.MaterializedWorldDirectoryName）に分ける。地形の引き当ては Unity 側の resolver が要るので、ここでは save.json だけ置き、観察の前に materialize-world.cs を走らせるフラグを立てる（D10）
 # A generated-world box holds only world.json, so its boot base is world-materialized/ (BugReportBundleLayout.MaterializedWorldDirectoryName); locating terrain needs the Unity-side resolver, so only save.json goes here and a flag asks for materialize-world.cs before observing (D10)
-WORLD_DIR="$RUN/world"; WORLD_MATERIALIZE_PENDING=0
+WORLD_DIR="$RUN/world"; WORLD_MATERIALIZE_PENDING=0; WORLD_NOT_CAPTURED=0
 case "$WORLD_DEFINITION" in
   generated-world-json-only) WORLD_DIR="$RUN/world-materialized"; WORLD_MATERIALIZE_PENDING=1
     log "生成ワールドの箱は地形を同梱しない。観察の前に materialize-world.cs で地形付きワールドを実体化する: $WORLD_DIR" ;;
-  not-captured) log "報告側が記録時のワールドを取り込めなかった箱（worldDefinition=not-captured）。固定ワールド起動はできない" ;;
+  # world.json の無い world/ で起動すると EnsureWorld が落ち、run-scenario.sh は300秒空転する。save.json を置かず観察の関門で止める
+  # Booting a world/ without world.json fails in EnsureWorld and run-scenario.sh idles 300s; withhold save.json so the observation gate stops it
+  not-captured) WORLD_NOT_CAPTURED=1
+    log "報告側が記録時のワールドを取り込めなかった箱（worldDefinition=not-captured）。固定ワールド起動はできないので save.json を置かず観察を飛ばさせる" ;;
   full|"") ;;
   *) log "未知の worldDefinition '$WORLD_DEFINITION'。world/ を全部入りとして扱う" ;;
 esac
 # 最新スナップショットを save.json にして固定ワールド起動できる形にする
 # Place the latest snapshot as save.json so a fixed-world boot can load it
-mkdir -p "$WORLD_DIR"
-if [ -z "$LATEST_TICK" ]; then
+if [ "$WORLD_NOT_CAPTURED" = "1" ]; then
+  :
+elif [ -z "$LATEST_TICK" ]; then
   log "スナップショットの tick が無いため save.json を置けない。固定ワールド起動はできない"
 elif [ -f "$RUN/snapshots/tick_$LATEST_TICK.json" ]; then
+  mkdir -p "$WORLD_DIR"
   cp "$RUN/snapshots/tick_$LATEST_TICK.json" "$WORLD_DIR/save.json" || log "save.json のコピーに失敗した。固定ワールド起動はできない"
 else
   log "tick に対応するスナップショットファイルが無いため save.json を置けない: $RUN/snapshots/tick_$LATEST_TICK.json"
 fi
 # world.json/map.json はワールド定義。欠けていると固定ワールド起動が別の地形になるので必ず告げる
 # world.json/map.json are the world definition; without them a fixed-world boot lands on different terrain
-if [ "$WORLD_MATERIALIZE_PENDING" = "0" ]; then
+if [ "$WORLD_MATERIALIZE_PENDING" = "0" ] && [ "$WORLD_NOT_CAPTURED" = "0" ]; then
   for world_file in world.json map.json; do
     [ -f "$WORLD_DIR/$world_file" ] || log "ワールド定義が箱に無い: $world_file"
   done
@@ -161,6 +166,7 @@ fi
   printf 'SERVER_DATA_DIR=%q\n' "$SERVER_DATA_DIR"
   printf 'WORLD_DIR=%q\n' "$WORLD_DIR"
   printf 'WORLD_MATERIALIZE_PENDING=%q\n' "$WORLD_MATERIALIZE_PENDING"
+  printf 'WORLD_NOT_CAPTURED=%q\n' "$WORLD_NOT_CAPTURED"
   printf 'REPORT_COMMIT=%q\n' "$REPORT_COMMIT"
   printf 'REPORT_BRANCH=%q\n' "$REPORT_BRANCH"
   printf 'LATEST_TICK=%q\n' "$LATEST_TICK"

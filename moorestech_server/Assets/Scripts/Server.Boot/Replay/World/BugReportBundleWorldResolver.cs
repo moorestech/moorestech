@@ -88,7 +88,7 @@ namespace Server.Boot.Replay.World
                     LogAndRecordSkip($"root:{candidate.Root} の world.json を読めない: {candidateReadError}");
                     continue;
                 }
-                var candidateProblem = BugReportGeneratedWorldMetaCheck.FindCandidateMetaProblem(candidateMeta);
+                var candidateProblem = BugReportGeneratedWorldMetaCheck.FindCandidateMetaProblem(candidateMeta, candidate);
                 if (candidateProblem != null)
                 {
                     LogAndRecordSkip($"root:{candidate.Root} の world.json を使えない: {candidateProblem}");

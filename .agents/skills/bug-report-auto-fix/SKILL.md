@@ -80,6 +80,7 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 | バンドルの欠損（動画・スナップショット・パケットログ） | 残った資料で進める。欠損項目を `summary` に書く |
 | Step 3 の観察で症状が出ない | 追加シナリオを最大3本試し、それでも出なければ `not_reproduced` |
 | `materialize-world.cs` が `ERROR:` を返す（生成ワールドの地形を引き当てられない箱） | Step 3 を飛ばし、返った理由を `summary` に書いて Step 4 へ。地形の無い `world/` を土台に起動しない |
+| `WORLD_NOT_CAPTURED=1`（manifest の `worldDefinition` が `not-captured`。報告側が記録時のワールドを取り込めなかった箱） | Step 3 を飛ばす（`prepare-run.sh` は `save.json` を置かないので下の行の関門でも止まる）。起動すれば `world.json` の無い `world/` で落ち、`run-scenario.sh` が300秒空転するだけ。「ワールド定義が取り込まれていない」を `summary` に書いて Step 4 へ |
 | `$WORLD_DIR/save.json` が無い（スナップショット欠損の箱） | Step 3 を飛ばし、ログ・パケット・スクショだけで Step 4 へ。飛ばした理由を `summary` に書く |
 | `SERVER_DATA_DIR` が空（manifest に `serverData` が無い/解決できない箱） | Step 2 を飛ばし、理由を `summary` に書いて Step 3 へ。`MASTER_DIR` で代用しない（別マスタでの再生は偽の結果になる） |
 | `replay-check` が `ERROR: 渡されたサーバーデータが記録時のものと違います` を返す | 渡すディレクトリを間違えている。`SERVER_DATA_DIR` を渡し直す（それでも解決しない箱は Step 2 を飛ばして理由を `summary` に書く） |

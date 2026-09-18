@@ -166,4 +166,16 @@ env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r8 2>"$TMP/r8.log"
 grep -q "地形を同梱しない" "$TMP/r8.log" || { echo "NG: 実体化が要る旨がログされていない"; exit 1; }
 ! grep -q "ワールド定義が箱に無い" "$TMP/r8.log" || { echo "NG: 生成ワールドの箱で偽の欠損がログされた"; exit 1; }
 
+# not-captured の箱は起動しても300秒空転するだけ。save.json を置かず観察の関門で止め、run.env に理由の印を出す
+# A not-captured box would only idle 300s once booted; withhold save.json so the observation gate stops it, and flag it in run.env
+RUN9="$TMP/runs/r9"; mkdir -p "$RUN9/snapshots"
+echo '{"currentTick":300}' > "$RUN9/snapshots/tick_300.json"
+cat > "$RUN9/manifest.json" <<JSON
+{"repository":{"commit":"$REPORT_COMMIT_1B","branch":"feature/x","dirty":false},"worldDefinition":"not-captured","snapshotTicks":[300]}
+JSON
+env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r9 2>"$TMP/r9.log"
+( . "$RUN9/run.env"; [ "$WORLD_NOT_CAPTURED" = "1" ] && [ ! -e "$WORLD_DIR/save.json" ] ) || { echo "NG: r9 の WORLD_NOT_CAPTURED/save.json"; cat "$RUN9/run.env"; exit 1; }
+grep -q "worldDefinition=not-captured" "$TMP/r9.log" || { echo "NG: not-captured の理由がログされていない"; exit 1; }
+( . "$RUN8/run.env"; [ "$WORLD_NOT_CAPTURED" = "0" ] ) || { echo "NG: r8 に WORLD_NOT_CAPTURED が立った"; exit 1; }
+
 echo OK

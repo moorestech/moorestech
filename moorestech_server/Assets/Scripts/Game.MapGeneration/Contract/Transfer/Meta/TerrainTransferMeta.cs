@@ -60,22 +60,30 @@ namespace Game.MapGeneration.Transfer
         // Tile order composing the logical stream: a square grid of side sqrt(TileCount), scanned row (z) then column (x)
         public static List<(int TileX, int TileZ)> EnumerateTileCoordinates(int terrainTileCount)
         {
-            // 0以下は完全平方判定を素通りしてチャンク0本のワイヤ値になる。地形を持つ前提の呼び出しなので例外にする
-            // Non-positive counts slip past the square check and yield a zero-chunk wire value; callers assume terrain exists
-            if (terrainTileCount <= 0)
-                throw new InvalidOperationException($"Terrain tile count must be positive, but was {terrainTileCount}.");
+            var tileCountProblem = DescribeTileCountProblem(terrainTileCount);
+            if (tileCountProblem != null) throw new InvalidOperationException(tileCountProblem);
 
-            // 正方格子でないタイル数は並び順が定義できない。推測で補正せず例外にする
-            // A non-square tile count has no defined ordering; throw instead of guessing a correction
             var tilesPerSide = (int)Math.Round(Math.Sqrt(terrainTileCount));
-            if (tilesPerSide * tilesPerSide != terrainTileCount)
-                throw new InvalidOperationException($"Terrain tile count must be a perfect square, but was {terrainTileCount}.");
-
             var tileCoordinates = new List<(int TileX, int TileZ)>(terrainTileCount);
             for (var tileZ = 0; tileZ < tilesPerSide; tileZ++)
             for (var tileX = 0; tileX < tilesPerSide; tileX++)
                 tileCoordinates.Add((tileX, tileZ));
             return tileCoordinates;
+        }
+
+        // タイル数が並び順を定義できない理由。定義できればnull。例外にせず先に弾きたい呼び出し側（再生の候補検査）と共有する
+        // Why a tile count cannot define the ordering, or null when it can; shared with callers that refuse up front instead of throwing (replay's candidate check)
+        public static string DescribeTileCountProblem(int terrainTileCount)
+        {
+            // 0以下は完全平方判定を素通りしてチャンク0本のワイヤ値になる。地形を持つ前提の呼び出しなので拒む
+            // Non-positive counts slip past the square check and yield a zero-chunk wire value; callers assume terrain exists
+            if (terrainTileCount <= 0) return $"Terrain tile count must be positive, but was {terrainTileCount}.";
+
+            // 正方格子でないタイル数は並び順が定義できない。推測で補正せず拒む
+            // A non-square tile count has no defined ordering; refuse instead of guessing a correction
+            var tilesPerSide = (int)Math.Round(Math.Sqrt(terrainTileCount));
+            if (tilesPerSide * tilesPerSide != terrainTileCount) return $"Terrain tile count must be a perfect square, but was {terrainTileCount}.";
+            return null;
         }
 
         // 論理ストリームを構成するファイルの並び。タイル順にheightだけを並べる

@@ -113,6 +113,27 @@ namespace Tests.CombinedTest.Server.Replay.World
             StringAssert.Contains("地形原点", Reason(resolution));
         }
 
+        // 読み手はタイル数から全 height の長さを読むので、数が並べられない候補・タイルが欠けた候補は使わない
+        // The reader reads every height's length from the tile count, so a candidate with an unlayable count or a missing tile is skipped
+        [TestCase(3, false, "terrainTileCount（3）")]
+        [TestCase(0, false, "terrainTileCount（0）")]
+        [TestCase(1, true, "height_0_0.r16 が無い")]
+        public void 候補の地形タイルが宣言と揃わなければ使われない(int candidateTileCount, bool deleteFirstTile, string expectedReason)
+        {
+            var fingerprint = RandomFingerprint();
+            var meta = Meta("generated", fingerprint, "digest-a");
+            var bundle = _fixture.Bundle(meta, false);
+            var serverData = _fixture.ServerData();
+            var candidateMeta = Meta("generated", fingerprint, "digest-a");
+            candidateMeta.TerrainTileCount = candidateTileCount;
+            var snapshot = WriteBundledSnapshot(serverData, meta, candidateMeta, true);
+            if (deleteFirstTile) File.Delete(snapshot.TerrainHeightFilePath(0, 0));
+
+            var resolution = BugReportBundleWorldResolver.Resolve(bundle, serverData);
+            Assert.AreEqual(BugReportBundleWorldOutcome.Rejected, resolution.Outcome);
+            StringAssert.Contains(expectedReason, Reason(resolution));
+        }
+
         [Test]
         public void 同梱にも共有キャッシュにも無ければ理由付きで拒む()
         {

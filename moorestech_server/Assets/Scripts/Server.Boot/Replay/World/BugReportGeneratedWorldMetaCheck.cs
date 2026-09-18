@@ -1,4 +1,6 @@
+using System.IO;
 using Game.MapGeneration.Transfer;
+using Game.Paths;
 
 namespace Server.Boot.Replay.World
 {
@@ -15,10 +17,23 @@ namespace Server.Boot.Replay.World
 
         // 候補側は再生が TerrainTransferMetaReader でそのまま読む。あちらは mapMode を大文字小文字込みの完全一致で分岐するので、ここも完全一致で見る。問題なければ null
         // The candidate's side is read verbatim by TerrainTransferMetaReader during replay, which switches on the exact mapMode literal, so the exact literal is required here too. Returns null when usable
-        public static string FindCandidateMetaProblem(WorldMetaJson meta)
+        public static string FindCandidateMetaProblem(WorldMetaJson meta, WorldDataDirectory candidate)
         {
             if (meta.MapMode != WorldMapMode.Generated) return $"mapMode（{meta.MapMode}）が再生の読み手の受け付ける \"{WorldMapMode.Generated}\" と一致しない";
-            return FindRequiredKeyProblem(meta);
+            return FindRequiredKeyProblem(meta) ?? FindTerrainTileProblem(meta, candidate);
+        }
+
+        // 読み手はタイル数から全タイルの height を列挙し長さを読む（CalculateChunkTotal）。数が正の平方数でない・1枚でも欠けると例外になる
+        // The reader enumerates every tile's height from the tile count and reads its length (CalculateChunkTotal); a non-square count or any missing tile throws
+        private static string FindTerrainTileProblem(WorldMetaJson meta, WorldDataDirectory candidate)
+        {
+            var tileCountProblem = TerrainTransferMeta.DescribeTileCountProblem(meta.TerrainTileCount);
+            if (tileCountProblem != null) return $"terrainTileCount（{meta.TerrainTileCount}）で地形タイルを並べられない: {tileCountProblem}";
+            foreach (var tilePath in TerrainTransferMeta.EnumerateStreamFilePaths(candidate, meta.TerrainTileCount))
+            {
+                if (!File.Exists(tilePath)) return $"terrainTileCount（{meta.TerrainTileCount}）の地形タイル {tilePath} が無い";
+            }
+            return null;
         }
 
         // 指紋・台帳の指紋・生成器版・地形原点は TerrainTransferMetaReader が欠けると例外にする必須キー

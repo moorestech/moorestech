@@ -35,7 +35,7 @@ namespace Tests.CombinedTest.Server.Replay.World
             {
                 Seed = 196, GeneratorVersion = WorldGeneratorVersion.Current, Algorithm = "VanillaGenerator", MapMode = mode,
                 GenerationMasterFingerprint = fingerprint, PlacementLedgerDigest = digest,
-                TerrainResolution = 2049, TerrainTileCount = 9,
+                TerrainResolution = 2049, TerrainTileCount = 1,
                 TerrainNoiseOriginX = 0f, TerrainNoiseOriginZ = 0f, TerrainSceneOriginX = 0f, TerrainSceneOriginZ = 0f,
             };
         }
@@ -70,8 +70,13 @@ namespace Tests.CombinedTest.Server.Replay.World
             File.WriteAllText(snapshot.MapJsonFilePath, "{\"snapshot\":true}");
             if (withTerrain)
             {
+                // 宣言したタイル数どおりの height を置く。並べられないタイル数（不正値のテスト）では terrain/ だけを作る
+                // Writes a height per declared tile; for a count that cannot be laid out (the invalid-value tests) only terrain/ is created
                 Directory.CreateDirectory(Path.Combine(snapshot.TerrainDirectory, "tiles"));
-                File.WriteAllBytes(Path.Combine(snapshot.TerrainDirectory, "height_0_0.r16"), new byte[8]);
+                if (TerrainTransferMeta.DescribeTileCountProblem(snapshotMeta.TerrainTileCount) == null)
+                {
+                    foreach (var tilePath in TerrainTransferMeta.EnumerateStreamFilePaths(snapshot, snapshotMeta.TerrainTileCount)) File.WriteAllBytes(tilePath, new byte[8]);
+                }
                 File.WriteAllBytes(Path.Combine(snapshot.TerrainDirectory, "tiles", "tile_0.bin"), new byte[4]);
             }
             return snapshot;
