@@ -24,6 +24,10 @@ namespace Game.Block.Blocks.Pump
         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
         public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
 
+        // 直近のUpdateで接続先へ1滴でも搬出できたか。満杯でも搬出中なら次tickには空きができる
+        // Whether the latest Update pushed any fluid out; a full tank that is still draining will have room next tick
+        public bool PushedFluidLastUpdate { get; private set; }
+
         private readonly FluidContainer _tank;
         private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
         private readonly Subject<Unit> _onChangeBlockState = new();
@@ -84,6 +88,7 @@ namespace Game.Block.Blocks.Pump
 
             // 1tickの搬出は接続先が何本でも1つの状態変化。ループ内で発火すると接続数だけ多重通知になる
             // One tick's push is a single state change however many targets there are; firing inside the loop would notify once per target
+            PushedFluidLastUpdate = pushedFluid;
             if (pushedFluid) _onChangeBlockState.OnNext(Unit.Default);
 
             #region Internal
