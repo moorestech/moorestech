@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Client.Game.InGame.Block;
+using Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview;
 using Client.Game.InGame.BlockSystem.PlaceSystem.VeinRestriction;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.PlacementGuide;
@@ -25,6 +26,7 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
         public static readonly Guid ChallengeGuid = Guid.Parse("00000000-0000-0000-4567-000000000001");
 
         public GameObject Root { get; }
+        public RelativeBlockPlacePreviewTutorialManager Relative { get; private set; }
 
         private readonly ChallengeMaster _originalChallengeMaster;
 
@@ -42,35 +44,35 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
             SetChallengeMaster(_originalChallengeMaster);
         }
 
-        public VeinRestrictedPlacementTutorialManager CreateVeinRestrictedManager(VeinRestrictedPlacementState state)
+        // 設置案内の全managerを1回で組み立てる。BlockPlacePreviewTutorialManagerは相対ゴーストとTutorialManager登録で1体を共有する
+        // Builds every placement-guide manager in one call; a single BlockPlacePreviewTutorialManager is shared by the relative ghost and the TutorialManager registration
+        public TutorialManager CreateTutorialManager(VeinRestrictedPlacementState veinState, List<ITutorialViewManager> extraManagers)
         {
+            var blockPlacePreview = Root.AddComponent<BlockPlacePreviewTutorialManager>();
             var veinRestricted = Root.AddComponent<VeinRestrictedPlacementTutorialManager>();
-            veinRestricted.Construct(state);
-            return veinRestricted;
-        }
+            veinRestricted.Construct(veinState);
+            Relative = Root.AddComponent<RelativeBlockPlacePreviewTutorialManager>();
+            Relative.Construct(Root.AddComponent<BlockGameObjectDataStore>(), blockPlacePreview);
 
-        public RelativeBlockPlacePreviewTutorialManager CreateRelativeManager()
-        {
-            var blockGameObjectDataStore = Root.AddComponent<BlockGameObjectDataStore>();
-            var relative = Root.AddComponent<RelativeBlockPlacePreviewTutorialManager>();
-            relative.Construct(blockGameObjectDataStore, Root.AddComponent<BlockPlacePreviewTutorialManager>());
-            return relative;
-        }
-
-        public TutorialManager CreateTutorialManager(VeinRestrictedPlacementTutorialManager veinRestricted, RelativeBlockPlacePreviewTutorialManager relative, List<ITutorialViewManager> extraManagers)
-        {
             var managers = new List<ITutorialViewManager>
             {
                 Root.AddComponent<UIHighlightTutorialManager>(),
                 Root.AddComponent<KeyControlTutorialManager>(),
                 Root.AddComponent<ItemViewHighLightTutorialManager>(),
-                Root.AddComponent<BlockPlacePreviewTutorialManager>(),
+                blockPlacePreview,
                 Root.AddComponent<UiDragGuideTutorialManager>(),
                 veinRestricted,
-                relative,
+                Relative,
             };
             managers.AddRange(extraManagers);
             return new TutorialManager(managers);
+        }
+
+        public ChainBlockPlacePreviewTutorialManager CreateChainManager(ChainPlacePreviewState state)
+        {
+            var chain = Root.AddComponent<ChainBlockPlacePreviewTutorialManager>();
+            chain.Construct(state);
+            return chain;
         }
 
         // 適用中のViewは外向きAPIに現れないため、TutorialManagerが保持している実体を読み出して突き合わせる

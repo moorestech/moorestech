@@ -37,9 +37,8 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
         public void 相対ゴーストは目標セルでも向きが違えば完了しない()
         {
             _fixture.SetTutorial("relativeBlockPlacePreview", CreateRelativeParam("00000000-0000-0000-0000-000000000014", "00000000-0000-0000-0000-00000000000e", 0, 0, 1));
-            var relative = _fixture.CreateRelativeManager();
-            var veinRestricted = _fixture.CreateVeinRestrictedManager(new VeinRestrictedPlacementState());
-            var manager = _fixture.CreateTutorialManager(veinRestricted, relative, new List<ITutorialViewManager>());
+            var manager = _fixture.CreateTutorialManager(new VeinRestrictedPlacementState(), new List<ITutorialViewManager>());
+            var relative = _fixture.Relative;
 
             manager.ApplyTutorial(ChallengeGuid);
             var entry = (RelativeBlockPlacePreviewEntry)GetAppliedView(manager);
@@ -87,9 +86,8 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
             _fixture.SetRelativeTutorials(
                 CreateRelativeParam("00000000-0000-0000-0000-000000000014", "00000000-0000-0000-0000-00000000000e", 0, 0, 1),
                 CreateRelativeParam("00000000-0000-0000-0000-000000000014", "00000000-0000-0000-0000-000000000006", 0, 0, 2));
-            var relative = _fixture.CreateRelativeManager();
-            var veinRestricted = _fixture.CreateVeinRestrictedManager(new VeinRestrictedPlacementState());
-            var manager = _fixture.CreateTutorialManager(veinRestricted, relative, new List<ITutorialViewManager>());
+            var manager = _fixture.CreateTutorialManager(new VeinRestrictedPlacementState(), new List<ITutorialViewManager>());
+            var relative = _fixture.Relative;
 
             manager.ApplyTutorial(ChallengeGuid);
 

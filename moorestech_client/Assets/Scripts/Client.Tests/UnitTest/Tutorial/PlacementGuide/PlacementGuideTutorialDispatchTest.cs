@@ -45,8 +45,7 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
                 ["blockGuid"] = "00000000-0000-0000-0000-000000000006",
             });
             var state = new VeinRestrictedPlacementState();
-            var veinRestricted = _fixture.CreateVeinRestrictedManager(state);
-            var manager = _fixture.CreateTutorialManager(veinRestricted, _fixture.CreateRelativeManager(), new List<ITutorialViewManager>());
+            var manager = _fixture.CreateTutorialManager(state, new List<ITutorialViewManager>());
 
             manager.ApplyTutorial(ChallengeGuid);
 
@@ -62,9 +61,7 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
         public void relativeBlockPlacePreviewは専用managerへdispatchされ完了で解除される()
         {
             _fixture.SetTutorial("relativeBlockPlacePreview", CreateRelativeParam("00000000-0000-0000-0000-000000000014", "00000000-0000-0000-0000-00000000000e", 0, 0, 1));
-            var relative = _fixture.CreateRelativeManager();
-            var veinRestricted = _fixture.CreateVeinRestrictedManager(new VeinRestrictedPlacementState());
-            var manager = _fixture.CreateTutorialManager(veinRestricted, relative, new List<ITutorialViewManager>());
+            var manager = _fixture.CreateTutorialManager(new VeinRestrictedPlacementState(), new List<ITutorialViewManager>());
 
             // 専用managerへ振り分けられた時だけViewが返り、完了で解除される。dispatchが外れれば戻り値がnullになって落ちる
             // A view comes back only when the dedicated manager received the dispatch, and completion releases it; a broken dispatch returns null and fails here
@@ -93,10 +90,7 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
                 ["message"] = "chain preview test",
             });
             var state = new ChainPlacePreviewState();
-            var chain = _fixture.Root.AddComponent<ChainBlockPlacePreviewTutorialManager>();
-            chain.Construct(state);
-            var veinRestricted = _fixture.CreateVeinRestrictedManager(new VeinRestrictedPlacementState());
-            var manager = _fixture.CreateTutorialManager(veinRestricted, _fixture.CreateRelativeManager(), new List<ITutorialViewManager> { chain });
+            var manager = _fixture.CreateTutorialManager(new VeinRestrictedPlacementState(), new List<ITutorialViewManager> { _fixture.CreateChainManager(state) });
 
             manager.ApplyTutorial(ChallengeGuid);
 
