@@ -10,7 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
     /// </summary>
     public static class BlockPlaceRotationInput
     {
-        public static BlockDirection RotateDirection(BlockDirection currentDirection)
+        internal static BlockDirection RotateDirection(BlockDirection currentDirection)
         {
             if (!InputManager.Playable.BlockPlaceRotation.GetKeyDown) return currentDirection;
 
@@ -18,7 +18,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util
             return Rotate(currentDirection, HybridInput.GetKey(KeyCode.LeftShift));
         }
 
-        public static BlockDirection Rotate(BlockDirection currentDirection, bool isVerticalModifierHeld)
+        internal static BlockDirection Rotate(BlockDirection currentDirection, bool isVerticalModifierHeld)
         {
             // Shift+回転は上下回転だけにする。水平回転と同時に掛けると意図より90°余計に回る
             // Shift+rotate is the vertical rotation only; also applying the horizontal one would overshoot by 90 degrees

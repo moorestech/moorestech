@@ -12,14 +12,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative
     {
         private static readonly BlockDirection[] AllDirections = (BlockDirection[])Enum.GetValues(typeof(BlockDirection));
 
-        // 水平アンカーならどのローカル向きも12方位へ回せる。上下向きアンカーは相対レイアウトの基準にしない
-        // A horizontal anchor maps every local direction into the 12 directions; an up/down anchor is never a relative-layout basis
-        public static bool IsSupportedAnchorDirection(BlockDirection anchorDirection)
+        public static BlockDirection RotateByAnchor(BlockDirection localDirection, BlockDirection anchorDirection)
         {
-            return anchorDirection is BlockDirection.North or BlockDirection.East or BlockDirection.South or BlockDirection.West;
+            if (TryRotateByAnchor(localDirection, anchorDirection, out var worldDirection)) return worldDirection;
+
+            // 12方位で表せない合成は無言で潰さず設定ミスとして落とす
+            // A composition outside the 12 directions is a misconfiguration, not something to swallow
+            throw new InvalidOperationException($"Composed block direction is not representable. local:{localDirection} anchor:{anchorDirection}");
         }
 
-        public static BlockDirection RotateByAnchor(BlockDirection localDirection, BlockDirection anchorDirection)
+        // 上下向きアンカー×水平非Northローカル等、12方位で表せない合成は false を返す
+        // Returns false for compositions outside the 12 directions, such as an up/down anchor with a horizontal non-North local
+        public static bool TryRotateByAnchor(BlockDirection localDirection, BlockDirection anchorDirection, out BlockDirection worldDirection)
         {
             // アンカー姿勢とローカル姿勢を合成する
             // Compose the anchor rotation with the local rotation to obtain the world orientation
@@ -34,12 +38,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative
                 var candidateRotation = candidate.GetRotation();
                 if (Vector3Int.RoundToInt(candidateRotation * Vector3.forward) != worldForward) continue;
                 if (Vector3Int.RoundToInt(candidateRotation * Vector3.up) != worldUp) continue;
-                return candidate;
+                worldDirection = candidate;
+                return true;
             }
 
-            // 垂直アンカー×垂直ローカル等、12方位で表せない合成は無言で潰さず設定ミスとして落とす
-            // A composition outside the 12 directions (vertical anchor times vertical local) is a misconfiguration, not something to swallow
-            throw new InvalidOperationException($"Composed block direction is not representable. local:{localDirection} anchor:{anchorDirection}");
+            worldDirection = default;
+            return false;
         }
     }
 }

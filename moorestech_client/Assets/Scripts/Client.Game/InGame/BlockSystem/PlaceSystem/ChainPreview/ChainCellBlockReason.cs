@@ -22,8 +22,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
         // Ground exists but its height disagrees with the placement Y (buried or floating)
         GroundHeightMismatch,
 
-        // アンカーが上下向きで連結レイアウトを12方位へ回せない
-        // The anchor faces up or down, so the chain layout cannot be rotated into the 12 directions
+        // 上下向き設置で連結ゴーストの向きが12方位に収まらない
+        // Facing up/down rotates a chain ghost outside the 12 directions
         VerticalAnchor,
     }
 }

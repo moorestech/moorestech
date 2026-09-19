@@ -21,6 +21,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
         public Vector3Int TargetBlockSize { get; }
         public Vector3Int? TargetCell { get; private set; }
         public BlockDirection? TargetDirection { get; private set; }
+        public bool HasReportedUnrepresentableAnchor { get; private set; }
 
         private readonly RelativeBlockPlacePreviewTutorialManager _manager;
         
@@ -45,6 +46,13 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
             TargetDirection = targetDirection;
         }
         
+        // 表せないアンカーの報告済みフラグ。表せるアンカーに戻れば次の縮退をまた報告する（VeinPin と同じ）
+        // Reported flag for an unrepresentable anchor; returning to a usable anchor re-arms the report (same as VeinPin)
+        public void SetReportedUnrepresentableAnchor(bool reported)
+        {
+            HasReportedUnrepresentableAnchor = reported;
+        }
+
         public void CompleteTutorial()
         {
             _manager.Complete(TutorialGuid);

@@ -61,5 +61,19 @@ namespace Client.Tests.UnitTest.Tutorial
         {
             Assert.Throws<InvalidOperationException>(() => AnchorRelativeDirectionUtil.RotateByAnchor(local, anchor));
         }
+
+        // 表せない組は false、上下向きアンカーでもローカルNorthは表せる。水平アンカーは4方位とも常に表せる
+        // Unrepresentable pairs return false, a local North stays representable under an up/down anchor, and all four horizontal anchors always succeed
+        [TestCase(BlockDirection.East, BlockDirection.UpNorth, false)]
+        [TestCase(BlockDirection.West, BlockDirection.DownSouth, false)]
+        [TestCase(BlockDirection.North, BlockDirection.UpEast, true)]
+        [TestCase(BlockDirection.East, BlockDirection.North, true)]
+        [TestCase(BlockDirection.East, BlockDirection.East, true)]
+        [TestCase(BlockDirection.East, BlockDirection.South, true)]
+        [TestCase(BlockDirection.East, BlockDirection.West, true)]
+        public void TryRotateByAnchorReportsWhetherCompositionIsRepresentable(BlockDirection local, BlockDirection anchor, bool expected)
+        {
+            Assert.AreEqual(expected, AnchorRelativeDirectionUtil.TryRotateByAnchor(local, anchor, out _));
+        }
     }
 }

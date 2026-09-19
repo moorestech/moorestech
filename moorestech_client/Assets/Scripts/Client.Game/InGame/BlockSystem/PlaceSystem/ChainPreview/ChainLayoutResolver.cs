@@ -33,16 +33,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
             }
         }
         
-        // 戻り値はレイアウト全体の不可原因。None以外ならゴーストは解決せず results は空
-        // Returns the layout-wide block reason; anything but None leaves results empty with no ghost resolved
+        // 戻り値は設置全体の不可原因（None=置ける）。12方位で表せないゴーストがあれば VerticalAnchor を返し results は空にする
+        // Returns the placement-wide block reason (None = placeable); an unrepresentable ghost yields VerticalAnchor with results left empty
         public static ChainCellBlockReason Resolve(Vector3Int originPosition, BlockDirection placeDirection, Vector3Int anchorBlockSize, IReadOnlyList<ChainGhost> chain, IExistingBlockQuery existingBlockQuery, IChainGroundQuery groundQuery, bool groundBased, int heightOffset, List<ResolvedChainGhost> results)
         {
             results.Clear();
 
-            // 上下向きの設置では連結ゴーストの向きが12方位に収まらないため、レイアウトごと不可にする
-            // An up/down placement would rotate the chain ghosts outside the 12 directions, so the whole layout is rejected
-            if (!AnchorRelativeDirectionUtil.IsSupportedAnchorDirection(placeDirection)) return ChainCellBlockReason.VerticalAnchor;
-            
             // 設置後にチュートリアルが使う ConvertBlockLocalToWorldCell と同一の換算で解決し、事前検査と実配置のズレを防ぐ
             // Resolve with the same conversion the tutorial uses after placement, so the pre-check and the real layout never disagree
             var footprint = new BlockPositionInfo(originPosition, placeDirection, anchorBlockSize);
@@ -50,13 +46,33 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
             {
                 var ghostBlockSize = MasterHolder.BlockMaster.GetBlockMaster(ghost.BlockId).BlockSize;
                 var worldCell = AnchorRelativeOriginUtil.ResolveWorldOrigin(footprint, ghost.Offset, ghost.LocalDirection, ghostBlockSize);
-                var worldDirection = AnchorRelativeDirectionUtil.RotateByAnchor(ghost.LocalDirection, placeDirection);
+
+                // 上下向き設置では向きが12方位に収まらないゴーストがあり、1件でもあればレイアウトごと不可にする
+                // Facing up/down can push a ghost outside the 12 directions; one such ghost rejects the whole layout
+                if (!AnchorRelativeDirectionUtil.TryRotateByAnchor(ghost.LocalDirection, placeDirection, out var worldDirection))
+                {
+                    results.Clear();
+                    return ChainCellBlockReason.VerticalAnchor;
+                }
+
                 var blockReason = ResolveBlockReason(ghost, worldCell, worldDirection, ghostBlockSize);
                 results.Add(new ResolvedChainGhost(ghost, worldCell, worldDirection, blockReason));
             }
-            return ChainCellBlockReason.None;
+
+            return FindFirstBlockReason();
 
             #region Internal
+
+            // 先に見つかった不可セルの原因を設置全体の原因にする
+            // The first blocked cell's reason becomes the placement-wide reason
+            ChainCellBlockReason FindFirstBlockReason()
+            {
+                foreach (var resolved in results)
+                {
+                    if (resolved.BlockReason != ChainCellBlockReason.None) return resolved.BlockReason;
+                }
+                return ChainCellBlockReason.None;
+            }
 
             // 既存ブロックの重なりを先に見て、次に地表との不整合（地表なし/高さ不一致）を見る。ブロック面スタック設置中は地表基準が無いので地形は見ない
             // Check the existing block overlap first, then the ground mismatch (missing ground or height gap); block-face stacking has no ground basis, so terrain is skipped there
