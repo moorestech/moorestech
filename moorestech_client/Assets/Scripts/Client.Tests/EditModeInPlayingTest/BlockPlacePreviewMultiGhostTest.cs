@@ -13,9 +13,9 @@ using Object = UnityEngine.Object;
 namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
-    ///     EditModeからPlayModeへ切替
+    ///     PlayModeへ切替
     ///     ゴースト生成はClientContextのプレハブ生成を要するため、複数ゴーストの独立性は実機クライアント上で検証する
-    ///     Switches from EditMode to PlayMode.
+    ///     Switches to PlayMode.
     ///     Ghost creation needs ClientContext's prefab container, so per-guid ghost independence is verified on a running client.
     /// </summary>
     // shard割当はクラスと一緒に移動・改名される

@@ -150,8 +150,8 @@ namespace Client.Tests.EditModeInPlayingTest
                 ["tutorialType"] = "relativeBlockPlacePreview",
                 ["tutorialParam"] = new JObject
                 {
-                    ["anchorBlockGuid"] = FindBlockGuid(anchorBlockName).ToString("D"),
-                    ["blockGuid"] = FindBlockGuid(blockName).ToString("D"),
+                    ["anchorBlockGuid"] = MasterHolder.BlockMaster.GetBlockMaster(FindBlockIdByName(anchorBlockName)).BlockGuid.ToString("D"),
+                    ["blockGuid"] = MasterHolder.BlockMaster.GetBlockMaster(FindBlockIdByName(blockName)).BlockGuid.ToString("D"),
                     ["offset"] = new JArray(offset.x, offset.y, offset.z),
                     ["blockDirection"] = direction,
                     ["message"] = "relative preview test",
@@ -160,16 +160,6 @@ namespace Client.Tests.EditModeInPlayingTest
             var master = new ChallengeMaster(json);
             master.Initialize();
             return master.GetChallenge(Guid.Parse(challenge["challengeGuid"].Value<string>())).Tutorials[0];
-        }
-
-        private static Guid FindBlockGuid(string blockName)
-        {
-            foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
-            {
-                var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                if (master.Name == blockName) return master.BlockGuid;
-            }
-            throw new InvalidOperationException($"block not found in the test mod: {blockName}");
         }
     }
 }
