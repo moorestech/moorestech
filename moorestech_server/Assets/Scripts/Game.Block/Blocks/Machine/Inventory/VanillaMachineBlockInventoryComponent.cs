@@ -7,6 +7,7 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
@@ -158,9 +159,13 @@ namespace Game.Block.Blocks.Machine.Inventory
 
             var (subInventory, localSlot) = ResolveSlot(slot);
 
-            // 束縛外のスロットへは置けず、そのまま返す（プレイヤー移動プロトコルの入口）
-            // A stack that violates the binding bounces back untouched (entry point of the player move protocol)
-            if (!subInventory.IsAllowedToPlace(localSlot, itemStack)) return itemStack;
+            // 束縛外のスロットへは置けず、そのまま返す（プレイヤー移動プロトコルの入口）。応答が無いため拒否理由はログで残す
+            // A stack that violates the binding bounces back untouched (entry point of the player move protocol); there is no response, so log the reason
+            if (!subInventory.IsAllowedToPlace(localSlot, itemStack))
+            {
+                Debug.LogWarning($"[MachineInventory] Placement rejected by recipe binding: slot={slot} itemId={itemStack.Id} count={itemStack.Count}");
+                return itemStack;
+            }
 
             var current = subInventory.Items[localSlot];
 

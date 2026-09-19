@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Core.Master;
 using Game.Block.Blocks.Machine.Inventory;
 using Game.Block.Interface;
@@ -13,6 +14,7 @@ using Server.Protocol.PacketResponse.Util.InventoryService;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Tests.CombinedTest.Game
 {
@@ -110,14 +112,42 @@ namespace Tests.CombinedTest.Game
             var playerInventory = playerInventoryData.MainOpenableInventory;
             playerInventory.SetItem(0, itemStackFactory.Create(unboundItemId, boundCount));
 
-            // 全量swapを試みる。束縛外なので両側とも変化しないはず
-            // Attempt a full-stack swap; being unbound, neither side should change
+            // 全量swapを試みる。束縛外なので両側とも変化せず、拒否理由がログに残るはず
+            // Attempt a full-stack swap; being unbound, neither side should change and the rejection reason is logged
+            LogAssert.Expect(LogType.Warning, new Regex(@"^\[InventoryItemMove\] Swap rejected by slot binding"));
             InventoryItemMoveService.Move(playerInventory, 0, blockInventory, 0, boundCount);
 
             Assert.AreEqual(boundItemId, blockInventory.GetItem(0).Id, "束縛外swapで機械側の中身が消失/変化してはならない");
             Assert.AreEqual(boundCount, blockInventory.GetItem(0).Count);
             Assert.AreEqual(unboundItemId, playerInventory.GetItem(0).Id, "束縛外swapでプレイヤー側のアイテムが複製/消失してはならない");
             Assert.AreEqual(boundCount, playerInventory.GetItem(0).Count);
+        }
+
+        // 空の束縛スロットへ束縛外アイテムを置こうとすると、プレイヤー側に残り拒否理由がログに出ることを検証する
+        // Placing an unbound item into an empty bound slot keeps it with the player and logs the rejection reason
+        [Test]
+        public void MoveTest_LogsRejectedPlacementIntoEmptyBoundMachineSlot()
+        {
+            var playerId = 1;
+            var (_, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var itemStackFactory = ServerContext.ItemStackFactory;
+
+            var recipe = MasterHolder.MachineRecipesMaster.MachineRecipes.Data.First(r => 0 < r.InputItems.Length);
+            var unboundItemId = MasterHolder.ItemMaster.GetItemId(recipe.OutputItems[0].ItemGuid);
+            var blockId = MasterHolder.BlockMaster.GetBlockId(recipe.BlockGuid);
+            ServerContext.WorldBlockDatastore.TryAddBlock(blockId, Vector3Int.one, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var block);
+            MachineRecipeSelectTestUtil.SelectRecipe(block, recipe);
+            var blockInventory = block.GetComponent<VanillaMachineBlockInventoryComponent>();
+
+            var playerInventory = serviceProvider.GetService<IPlayerInventoryDataStore>().GetInventoryData(playerId).MainOpenableInventory;
+            playerInventory.SetItem(0, itemStackFactory.Create(unboundItemId, 3));
+
+            LogAssert.Expect(LogType.Warning, new Regex(@"^\[MachineInventory\] Placement rejected by recipe binding: slot=0"));
+            InventoryItemMoveService.Move(playerInventory, 0, blockInventory, 0, 3);
+
+            Assert.AreEqual(0, blockInventory.GetItem(0).Count, "束縛外アイテムは機械の入力スロットへ入らない");
+            Assert.AreEqual(unboundItemId, playerInventory.GetItem(0).Id, "拒否されたアイテムはプレイヤー側に残る");
+            Assert.AreEqual(3, playerInventory.GetItem(0).Count);
         }
     }
 }
