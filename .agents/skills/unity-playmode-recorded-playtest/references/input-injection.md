@@ -40,7 +40,7 @@ KeyboardStateは**全量スナップショット**なので押下中キー集合
 
 ## 画面UI（ボタン・スロット）のクリック
 
-画面UIはWeb UI一本（ADR 0052）で、`CommonSlotView`等のuGUIビューは撤去済み。EventSystem直叩き（`ExecuteEvents.pointerDown/UpHandler`）で押せる対象は現行の画面UIには無い。
+移行済みのゲーム内画面UI（ビルドメニュー・インベントリ等）はWeb UI一本（ADR 0052）で、`CommonSlotView`等のuGUIビューは撤去済み。EventSystem直叩き（`ExecuteEvents.pointerDown/UpHandler`）で押せる対象は無い。ADR 0052の例外4種（MainMenu/ローディング・mapObject HPバー・デバッグUI・CEF描画面）はuGUIのまま。
 
 - Web UIの要素は `data-testid` で指定し、DSLの `ClickWebUi(testid)` / `HoverWebUi(testid)` / `UntilWebUiElement(testid, timeout)` を使う（DOM矩形→座標逆変換→注入マウス→`CefInputForwarder`。write-scenario.mdのWeb UI操作参照）
 - ビルドメニューは `OpenBuildMenuAndSelectBlock(name)`（`PlaytestBuildMenuOps`。CEFが使えなければ例外）
@@ -75,7 +75,7 @@ KeyboardStateは**全量スナップショット**なので押下中キー集合
 
 ## カメラと視界（照準の前提）
 
-- PlaceBlock遷移でカメラはトップダウンへ0.25秒tween（`OpenBuildMenuAndSelectBlock`が0.6秒待つ）。
-  照準は**tween完了後に毎回WorldToScreenPointを取り直す**
+- PlaceBlock遷移で視点は変わらない（`OpenBuildMenuAndSelectBlock`は選択後に0.6秒待つ）。
+  照準は毎回WorldToScreenPointを取り直す
 - カメラcontrollerの`SetEnabled(false)`系は`Camera.main`をnull化しraycast/WorldToScreenPointが全滅する。切り離さない
 - 録画の絵は「実プレイ視点」を守る（アバター・地面・HUDが映ること）。俯瞰直置きカメラは不合格
