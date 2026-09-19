@@ -6,23 +6,28 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Http.Responses
 {
-    // POST /v1/session の200応答。生成はParse経由だけに閉じ、tokenと期限が揃った応答しか作れない
-    // The 200 body of POST /v1/session; Parse is the only constructor, so an instance always carries a token and its expiry
+    // POST /v1/session の200応答。生成はParse経由だけに閉じ、steamId・token・期限が揃った応答しか作れない
+    // The 200 body of POST /v1/session; Parse is the only constructor, so an instance always carries a steamId, a token and its expiry
     internal sealed class PlaytestSessionResponse
     {
-        private PlaytestSessionResponse(string token, bool allowed, DateTime expiresAtUtc)
+        private PlaytestSessionResponse(string steamId, string token, bool allowed, DateTime expiresAtUtc)
         {
+            SteamId = steamId;
             Token = token;
             Allowed = allowed;
             ExpiresAtUtc = expiresAtUtc;
         }
 
+        // 受け口がSteam Web APIで検証したSteamID。報告・進行記録・異常終了箱の識別になる（ADR 0065）
+        // The SteamID the receiver verified through the Steam Web API; it becomes the identity of reports, progress records and crash boxes (ADR 0065)
+        public string SteamId { get; }
         public string Token { get; }
         public bool Allowed { get; }
         public DateTime ExpiresAtUtc { get; }
 
         public static PlaytestSessionResponse Parse(string body)
         {
+            string steamId;
             string token;
             bool allowed;
             string expiresAtText;
@@ -32,6 +37,7 @@ namespace Client.PlaytestReceiver.Http.Responses
             try
             {
                 var parsed = JsonConvert.DeserializeObject<JObject>(body, new JsonSerializerSettings { DateParseHandling = DateParseHandling.None });
+                steamId = (string)parsed["steamId"];
                 token = (string)parsed["token"];
                 allowed = (bool?)parsed["allowed"] ?? false;
                 expiresAtText = (string)parsed["expiresAt"];
@@ -39,6 +45,14 @@ namespace Client.PlaytestReceiver.Http.Responses
             catch (Exception exception)
             {
                 Debug.LogWarning($"[PlaytestReceiver] session response was not the expected JSON: {exception.GetBaseException().Message}");
+                return null;
+            }
+
+            // 誰の記録かを載せられない200で通すと、識別が空のまま報告と進行記録が走る。欠落も空文字も許可しない（ADR 0065）
+            // A 200 that cannot name the tester would run reports and progress records with no identity; neither a missing nor an empty value is accepted (ADR 0065)
+            if (string.IsNullOrEmpty(steamId))
+            {
+                Debug.LogWarning("[PlaytestReceiver] session response lacked steamId");
                 return null;
             }
 
@@ -56,7 +70,7 @@ namespace Client.PlaytestReceiver.Http.Responses
                 return null;
             }
 
-            return new PlaytestSessionResponse(token, allowed, expiresAt.UtcDateTime);
+            return new PlaytestSessionResponse(steamId, token, allowed, expiresAt.UtcDateTime);
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
 using Client.PlaytestReceiver.Gate;
 using Client.PlaytestReceiver.Http;
@@ -43,6 +44,7 @@ namespace Client.Tests.PlaytestReceiver
             Restore(path, _originalBuildInfo);
             Restore(path + ".meta", _originalBuildInfoMeta);
             PlaytestLaunchGate.SetCurrent(PlaytestGateResult.NotEvaluated);
+            PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity());
 
             #region Internal
 

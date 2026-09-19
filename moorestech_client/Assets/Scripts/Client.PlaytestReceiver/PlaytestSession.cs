@@ -40,6 +40,10 @@ namespace Client.PlaytestReceiver
         private DateTime _tokenRefreshAtUtc;
         private UniTaskCompletionSource<PlaytestSessionResult> _inFlight;
 
+        // 受け口が検証したSteamID。Allowedを返した認証の後だけ読む（ADR 0065）
+        // The SteamID the receiver verified; read only after an authentication that returned Allowed (ADR 0065)
+        public string VerifiedSteamId { get; private set; }
+
         public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSteamTicketProvider ticketProvider)
         {
             _api = api;
@@ -109,6 +113,7 @@ namespace Client.PlaytestReceiver
 
                 // 更新時刻は受け口が名乗った期限から逆算する。寿命の正本を受け口1箇所に保つ
                 // The refresh time is derived from the expiry the receiver states, keeping the lifetime's source there alone
+                VerifiedSteamId = parsed.SteamId;
                 _token = parsed.Token;
                 _tokenRefreshAtUtc = parsed.ExpiresAtUtc.AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
                 return Result(PlaytestSessionOutcome.Allowed, "");

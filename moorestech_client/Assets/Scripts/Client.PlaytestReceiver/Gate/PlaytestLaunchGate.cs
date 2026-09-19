@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;
@@ -45,6 +46,10 @@ namespace Client.PlaytestReceiver.Gate
             {
                 Debug.LogError($"[PlaytestReceiver] launch blocked: {result.Status} {result.Detail}");
             }
+
+            // 識別は結果を配る前に据える。購読側（タイトルのゲート・開始経路）が読む時点で検証済みSteamIDが揃っている（ADR 0065）
+            // The identity is set before the verdict goes out, so subscribers (title gates, start paths) already see the verified SteamID (ADR 0065)
+            if (result.TryGetAllowedSession(out var allowedSession)) PlaytestSessionIdentityProvider.SetCurrent(new ReceiverVerifiedSessionIdentity(allowedSession.VerifiedSteamId));
 
             SetCurrent(result);
         }
