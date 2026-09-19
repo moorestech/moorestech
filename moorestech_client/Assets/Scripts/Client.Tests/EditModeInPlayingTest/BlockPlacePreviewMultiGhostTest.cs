@@ -1,8 +1,6 @@
-using System;
 using System.Collections;
 using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
 using Client.Game.InGame.Tutorial;
-using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
 using NUnit.Framework;
@@ -15,9 +13,9 @@ using Object = UnityEngine.Object;
 namespace Client.Tests.EditModeInPlayingTest
 {
     /// <summary>
-    ///     テスト自体はEditModeで実行されるが、実行中にプレイモードに変更する
+    ///     EditModeからPlayModeへ切替
     ///     ゴースト生成はClientContextのプレハブ生成を要するため、複数ゴーストの独立性は実機クライアント上で検証する
-    ///     This test runs in EditMode but switches to PlayMode during execution.
+    ///     Switches from EditMode to PlayMode.
     ///     Ghost creation needs ClientContext's prefab container, so per-guid ghost independence is verified on a running client.
     /// </summary>
     // shard割当はクラスと一緒に移動・改名される
@@ -55,46 +53,37 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 var manager = Object.FindFirstObjectByType<BlockPlacePreviewTutorialManager>(FindObjectsInactive.Include);
                 Assert.IsNotNull(manager, "the scene has no BlockPlacePreviewTutorialManager");
-                var shaftId = FindBlockId("シャフト");
+                var shaftId = FindBlockIdByName("シャフト");
 
                 manager.SetTargetCell(shaftId, FirstCell, BlockDirection.North, FirstTutorialGuid);
                 manager.SetTargetCell(shaftId, SecondCell, BlockDirection.North, SecondTutorialGuid);
 
                 // ゴーストはAddressableの非同期ロード後に立つため、両方の着地を待つ
                 // Ghosts appear after an async Addressable load, so wait until both have landed
-                for (var i = 0; i < 300 && !(HasGhostAt(manager, FirstCell) && HasGhostAt(manager, SecondCell)); i++) await UniTask.Yield();
-                Assert.IsTrue(HasGhostAt(manager, FirstCell), "the first guid's ghost was not shown");
-                Assert.IsTrue(HasGhostAt(manager, SecondCell), "the second guid's ghost was not shown");
+                for (var i = 0; i < 300 && !(HasGhostAt(manager, FirstCell, false) && HasGhostAt(manager, SecondCell, false)); i++) await UniTask.Yield();
+                Assert.IsTrue(HasGhostAt(manager, FirstCell, false), "the first guid's ghost was not shown");
+                Assert.IsTrue(HasGhostAt(manager, SecondCell, false), "the second guid's ghost was not shown");
 
-                // 片方の解除で他方のゴーストは残る。Destroyはフレーム末に反映されるので1フレーム進める
-                // Clearing one guid leaves the other ghost; Destroy lands at frame end, so advance one frame
+                // 片方の解除で他方のゴーストは残る。Destroyはフレーム末に反映されるので1フレーム進め、非アクティブを含めても消えていることを見る
+                // Clearing one guid leaves the other ghost; Destroy lands at frame end, so advance one frame and check inactive objects too
                 manager.ClearTarget(FirstTutorialGuid);
                 await UniTask.Yield();
-                Assert.IsFalse(HasGhostAt(manager, FirstCell), "the cleared guid's ghost is still shown");
-                Assert.IsTrue(HasGhostAt(manager, SecondCell), "clearing one guid removed the other guid's ghost");
+                Assert.IsFalse(HasGhostAt(manager, FirstCell, true), "the cleared guid's ghost is still shown");
+                Assert.IsTrue(HasGhostAt(manager, SecondCell, false), "clearing one guid removed the other guid's ghost");
 
                 manager.ClearTarget(SecondTutorialGuid);
             }
 
+            bool HasGhostAt(BlockPlacePreviewTutorialManager targetManager, Vector3Int cell, bool includeInactive)
+            {
+                foreach (var ghost in targetManager.GetComponentsInChildren<PreviewGhostObject>(includeInactive))
+                {
+                    if (Vector3Int.FloorToInt(ghost.transform.position) == cell) return true;
+                }
+                return false;
+            }
+
             #endregion
-        }
-
-        private static bool HasGhostAt(BlockPlacePreviewTutorialManager manager, Vector3Int cell)
-        {
-            foreach (var ghost in manager.GetComponentsInChildren<PreviewGhostObject>(false))
-            {
-                if (Vector3Int.FloorToInt(ghost.transform.position) == cell) return true;
-            }
-            return false;
-        }
-
-        private static BlockId FindBlockId(string blockName)
-        {
-            foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
-            {
-                if (MasterHolder.BlockMaster.GetBlockMaster(blockId).Name == blockName) return blockId;
-            }
-            throw new InvalidOperationException($"block not found in the test mod: {blockName}");
         }
     }
 }

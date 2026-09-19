@@ -17,8 +17,8 @@ using UnityEngine;
 namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
 {
     /// <summary>
-    ///     設置案内チュートリアルのEditModeテストが共有するマスタ差し替えとmanager組み立て
-    ///     Shared master swapping and manager assembly for the placement-guide tutorial EditMode tests
+    ///     設置案内テスト共有fixture
+    ///     Shared fixture for placement-guide tutorial tests
     /// </summary>
     public class PlacementGuideTutorialTestFixture
     {
@@ -100,8 +100,8 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
             };
         }
 
-        // challenges.json の最初のチャレンジのチュートリアルを1件だけ差し替えて ChallengeMaster を作り直す
-        // Rebuild the ChallengeMaster with the first challenge's tutorial list replaced by a single entry
+        // 1件差替でChallengeMaster再構築
+        // Rebuild ChallengeMaster with a single tutorial entry replaced
         public void SetTutorial(string tutorialType, JObject tutorialParam)
         {
             SetTutorialsCore((tutorialType, tutorialParam));
@@ -126,7 +126,7 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
             for (var i = 0; i < entries.Length; i++)
             {
                 var tutorial = (JObject)template.DeepClone();
-                tutorial["tutorialGuid"] = new Guid($"aaaaaaaa-0000-0000-0000-00000000000{i + 1}").ToString("D");
+                tutorial["tutorialGuid"] = new Guid($"aaaaaaaa-0000-0000-0000-{(i + 1).ToString("x12")}").ToString("D");
                 tutorial["tutorialType"] = entries[i].tutorialType;
                 tutorial["tutorialParam"] = entries[i].tutorialParam;
                 tutorials.Add(tutorial);

@@ -53,6 +53,32 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
 
             InvokeOnBlockPlaced(relative, CreatePlacedBlock(entry.TargetBlockId, targetCell, BlockDirection.East));
             Assert.IsFalse(HasActiveEntry(relative, entry.TutorialGuid), "the matching direction did not complete the guide");
+
+            #region Internal
+
+            // Initializeはプレハブを要するため値だけ注入する
+            // BlockGameObject.Initialize needs a prefab load and a server subscription, so only the placed-block values are injected
+            BlockGameObject CreatePlacedBlock(BlockId blockId, Vector3Int cell, BlockDirection direction)
+            {
+                var block = new GameObject("PlacedBlock").AddComponent<BlockGameObject>();
+                block.transform.SetParent(_fixture.Root.transform);
+
+                var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
+                typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockId)).GetSetMethod(true).Invoke(block, new object[] { blockId });
+                typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).GetSetMethod(true).Invoke(block, new object[] { new BlockPositionInfo(cell, direction, blockSize) });
+                return block;
+            }
+
+            // 設置検知は購読経由なのでprivateハンドラを直接呼ぶ
+            // The placement hook is only reachable through the datastore subscription, so the private handler is invoked directly
+            void InvokeOnBlockPlaced(RelativeBlockPlacePreviewTutorialManager targetRelative, BlockGameObject block)
+            {
+                typeof(RelativeBlockPlacePreviewTutorialManager)
+                    .GetMethod("OnBlockPlaced", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(targetRelative, new object[] { block });
+            }
+
+            #endregion
         }
 
         [Test]
@@ -80,28 +106,6 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
             first.CompleteTutorial();
             Assert.IsFalse(HasActiveEntry(relative, first.TutorialGuid));
             Assert.IsTrue(HasActiveEntry(relative, second.TutorialGuid));
-        }
-
-        // Initializeはプレハブを要するため値だけ注入する
-        // BlockGameObject.Initialize needs a prefab load and a server subscription, so only the placed-block values are injected
-        private BlockGameObject CreatePlacedBlock(BlockId blockId, Vector3Int cell, BlockDirection direction)
-        {
-            var block = new GameObject("PlacedBlock").AddComponent<BlockGameObject>();
-            block.transform.SetParent(_fixture.Root.transform);
-
-            var blockSize = MasterHolder.BlockMaster.GetBlockMaster(blockId).BlockSize;
-            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockId)).GetSetMethod(true).Invoke(block, new object[] { blockId });
-            typeof(BlockGameObject).GetProperty(nameof(BlockGameObject.BlockPosInfo)).GetSetMethod(true).Invoke(block, new object[] { new BlockPositionInfo(cell, direction, blockSize) });
-            return block;
-        }
-
-        // 設置検知は購読経由なのでprivateハンドラを直接呼ぶ
-        // The placement hook is only reachable through the datastore subscription, so the private handler is invoked directly
-        private static void InvokeOnBlockPlaced(RelativeBlockPlacePreviewTutorialManager relative, BlockGameObject block)
-        {
-            typeof(RelativeBlockPlacePreviewTutorialManager)
-                .GetMethod("OnBlockPlaced", BindingFlags.Instance | BindingFlags.NonPublic)
-                .Invoke(relative, new object[] { block });
         }
 
         // manager内部の保持中エントリはproductionに公開しないため、reflectionで読み出して突き合わせる

@@ -15,9 +15,9 @@ using static Client.Tests.UnitTest.Tutorial.PlacementGuide.PlacementGuideTutoria
 namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
 {
     /// <summary>
-    ///     設置システム案内のチュートリアル型が専用managerへdispatchされ、共有状態へ書かれることを検証する
+    ///     guide型のdispatchと状態書込みを検証
     ///     ゴースト生成はClientContextを要するためここでは踏まない。複数ゴーストの独立性はEditModeInPlayingTest側で見る
-    ///     Verifies that the placement-guide tutorial types dispatch to their managers and write the shared state
+    ///     Verifies guide-type dispatch and shared-state writes
     ///     Ghost creation needs ClientContext, so it is not exercised here; multi-ghost independence lives in the EditModeInPlayingTest side
     /// </summary>
     public class PlacementGuideTutorialDispatchTest
