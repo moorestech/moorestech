@@ -160,6 +160,7 @@ namespace Client.Tests.UnitTest.Tutorial
                         ["blockDirection"] = "North",
                     },
                 },
+                ["message"] = "chain preview test",
             });
             var state = new ChainPlacePreviewState();
             var chain = _root.AddComponent<ChainBlockPlacePreviewTutorialManager>();

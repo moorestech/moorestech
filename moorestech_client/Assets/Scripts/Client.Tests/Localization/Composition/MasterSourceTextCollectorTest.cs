@@ -163,6 +163,7 @@ namespace Client.Tests.Localization.Composition
                 UiHighLightTutorialParam uiHighLight => uiHighLight.HighLightText,
                 ItemViewHighLightTutorialParam itemViewHighLight => itemViewHighLight.HighLightText,
                 BlockPlacePreviewTutorialParam blockPlacePreview => blockPlacePreview.Message,
+                ChainBlockPlacePreviewTutorialParam chainPreview => chainPreview.Message,
                 UiDragGuideTutorialParam => null,
                 _ => throw new System.InvalidOperationException($"Unknown tutorial type: {tutorial.TutorialType}"),
             };
