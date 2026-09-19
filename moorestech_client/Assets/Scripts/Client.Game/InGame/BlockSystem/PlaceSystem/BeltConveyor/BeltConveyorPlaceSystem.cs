@@ -79,10 +79,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
             _dragState.UpdateHeightOffsetByInput();
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
-            GroundClickControl(target, feedback);
+            var isSendable = GroundClickControl(target, feedback);
+            PlaceBlockOnRelease(isSendable);
         }
 
-        private void GroundClickControl(BlockPlacementTarget target, PlacementFeedback feedback)
+        // 戻り値はカーソル位置に送信できる設置列があるか
+        // Returns whether the cursor has a sendable placement run
+        private bool GroundClickControl(BlockPlacementTarget target, PlacementFeedback feedback)
         {
             // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
             // Reset the continuous placement state when the build-menu selected block changes
@@ -97,11 +100,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var holdingBlockMaster = holdingBlock.BlockMaster;
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) { _dragState.EndDragWithoutPlacing(InputManager.Playable.ScreenLeftClick.GetKeyUp); return; }
+            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) { return false; }
 
-            // 設置可能な距離かどうか。距離外の解放も通常設置と同じくドラッグを畳む
-            // Whether the cell is within reach; a release out of reach folds the drag just like normal placement
-            if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); _dragState.EndDragWithoutPlacing(InputManager.Playable.ScreenLeftClick.GetKeyUp); return; }
+            // 設置可能な距離かどうか
+            // Whether the cell is within reach
+            if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return false; }
 
             _previewBlockController.SetActive(true);
 
@@ -139,9 +142,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Update preview colors based on the final Placeable state
             _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
 
-            // 設置するブロックをサーバーに送信
-            // send block place info to server
-            PlaceBlock();
+            return true;
 
             #region Internal
 
@@ -164,24 +165,23 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 return (cellCauses, cellBeltReasons);
             }
 
-            void PlaceBlock()
-            {
-                if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
-
-                // デバッグモード時は送信しない
-                // Skip sending in debug mode
-                if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
-
-                // マウスを離したので連続設置状態は解除する（押下未登録の解放はここで打ち切る）
-                // Clear the continuous-placement state on mouse release (a release without a registered press stops here)
-                if (!_dragState.EndDrag()) return;
-
-                // ベルトは電線を伴わないためワイヤー判定は常に許可
-                // Belts never carry wires, so the wire check is always allowed
-                TrySendOnClickRelease(_currentPlaceInfos, true);
-            }
-
             #endregion
+        }
+
+        private void PlaceBlockOnRelease(bool isSendable)
+        {
+            // 解放の畳みはフレームに1回だけ行う。空や距離外、デバッグ時の解放でもドラッグを残さない
+            // Fold on release exactly once per frame, so no drag survives a sky, out-of-reach or debug-mode release
+            if (!_dragState.EndDragOnRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp)) return;
+            if (!isSendable) return;
+
+            // デバッグモード時は送信しない
+            // Skip sending in debug mode
+            if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
+
+            // ベルトは電線を伴わないためワイヤー判定は常に許可
+            // Belts never carry wires, so the wire check is always allowed
+            TrySendOnClickRelease(_currentPlaceInfos, true);
         }
     }
 }

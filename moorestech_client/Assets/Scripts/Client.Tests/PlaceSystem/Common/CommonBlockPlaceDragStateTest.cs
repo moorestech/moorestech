@@ -123,32 +123,43 @@ namespace Client.Tests.PlaceSystem.Common
         }
 
         [Test]
-        public void 設置できない位置で解放されたドラッグは畳まれ次の列は現在位置から始まる()
+        public void 解放フレームはドラッグを畳み次の列は現在位置から始まる()
         {
             var dragState = new CommonBlockPlaceDragState();
-            var startCell = new Vector3Int(1, 2, 3);
             var cursorCell = new Vector3Int(8, 2, 3);
-            dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
+            dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
+            dragState.AdjustHeightOffset(2);
 
-            // 空や距離外で離したフレームは設置せず畳むだけ。残ると押していないのに古い開始点から列が伸びる
-            // A release over the sky or out of reach only folds; a leftover session extends a run from the stale start with no button held
-            dragState.EndDragWithoutPlacing(true);
+            // 空や距離外で離したフレームでも畳む。残ると押していないのに古い開始点から列が伸びる
+            // Fold even on a sky or out-of-reach release; a leftover session extends a run from the stale start with no button held
+            Assert.IsTrue(dragState.EndDragOnRelease(true), "a release with a registered press must allow the send");
 
-            Assert.IsFalse(dragState.IsDragging, "the drag survived a release where nothing could be placed");
+            Assert.IsFalse(dragState.IsDragging, "the drag survived its release frame");
             Assert.AreEqual(cursorCell, dragState.ResolveDragStartCell(cursorCell));
+            Assert.AreEqual(0, dragState.HeightOffset, "the in-drag height was not restored on release");
         }
 
         [Test]
-        public void 設置できない位置でも押している間はドラッグを保つ()
+        public void 押している間は開始点と高さを保ち送信へ進まない()
         {
             var dragState = new CommonBlockPlaceDragState();
-            dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
+            var startCell = new Vector3Int(1, 2, 3);
+            dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
+            dragState.AdjustHeightOffset(2);
 
-            // 押したまま一瞬カーソルが外れただけでは列を捨てない
-            // Briefly aiming away while still holding must not drop the run
-            dragState.EndDragWithoutPlacing(false);
+            Assert.IsFalse(dragState.EndDragOnRelease(false));
 
             Assert.IsTrue(dragState.IsDragging);
+            Assert.AreEqual(startCell, dragState.ResolveDragStartCell(new Vector3Int(8, 2, 3)));
+            Assert.AreEqual(2, dragState.HeightOffset);
+        }
+
+        [Test]
+        public void 押下未登録の解放は送信へ進まない()
+        {
+            var dragState = new CommonBlockPlaceDragState();
+
+            Assert.IsFalse(dragState.EndDragOnRelease(true));
         }
     }
 }

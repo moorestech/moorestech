@@ -38,8 +38,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
             PickedDirection = pickedDirection;
         }
 
-        // スポイトで選び直した直後だけピックした向きを採用し、それ以外は現在の向きを保つ
-        // Adopt the picked direction only right after an eyedropper selection; otherwise keep the current direction
+        // 選択変更直後だけピック向きを採用、他は現在向き維持
+        // Adopt picked direction only right after reselect; else keep current
         public BlockDirection ResolveDirectionOnSelection(BlockDirection currentDirection, bool isSelectionChanged)
         {
             return isSelectionChanged && PickedDirection.HasValue ? PickedDirection.Value : currentDirection;
