@@ -22,12 +22,12 @@ namespace Game.Block.Blocks.Pump
     public class PumpFluidOutputComponent : IFluidInventory, IUpdatableBlockComponent, IBlockSaveState, IBlockStateObservable
     {
         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
-        public bool CanAcceptGeneratedFluid => _tank.Amount < _tank.Capacity;
 
-        // 直近のUpdateで接続先へ1滴でも搬出できたか。満杯でも搬出中なら次tickには空きができる
-        // Whether the latest Update pushed any fluid out; a full tank that is still draining will have room next tick
-        public bool PushedFluidLastUpdate { get; private set; }
+        // 満杯でも搬出中なら次tickには空きができるため稼働を続けてよい（前例 満杯×下流が遅い定常域の振動回避）
+        // Keeps generating on a full tank that is still draining, since room will open next tick (precedent: avoids flip-flop in the full-tank, slow-downstream steady state)
+        public bool CanKeepGenerating => _tank.Amount < _tank.Capacity || _pushedFluidLastUpdate;
 
+        private bool _pushedFluidLastUpdate;
         private readonly FluidContainer _tank;
         private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
         private readonly Subject<Unit> _onChangeBlockState = new();
@@ -88,7 +88,7 @@ namespace Game.Block.Blocks.Pump
 
             // 1tickの搬出は接続先が何本でも1つの状態変化。ループ内で発火すると接続数だけ多重通知になる
             // One tick's push is a single state change however many targets there are; firing inside the loop would notify once per target
-            PushedFluidLastUpdate = pushedFluid;
+            _pushedFluidLastUpdate = pushedFluid;
             if (pushedFluid) _onChangeBlockState.OnNext(Unit.Default);
 
             #region Internal

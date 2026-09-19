@@ -12,6 +12,7 @@ using Game.Block.Interface.State;
 using Game.Context;
 using Game.EnergySystem;
 using MessagePack;
+using Mooresmaster.Model.BlocksModule;
 using NUnit.Framework;
 using Server.Boot;
 using Tests.Module;
@@ -19,38 +20,83 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UniRx;
 using UnityEngine;
-using static Tests.Util.ElectricNetworkReflectionTestUtil;
+using static Tests.CombinedTest.Core.Miner.MinerStateDetailTestUtil;
 
 namespace Tests.CombinedTest.Core.Miner
 {
     /// <summary>
-    ///     採掘機のUI用電力・状態配信を検証する（裁定 2026-08-17 表示用要求電力は供給と同位置でラッチする / ADR 0010）
-    ///     Verifies the miner's UI power and state publishing (ruling 2026-08-17 latch the displayed request with the supply / ADR 0010)
+    ///     採掘機のUI電力配信を検証
+    ///     裁定2026-08-17・ADR0010準拠
+    ///     Verifies the miner's UI power publishing
+    ///     Per ruling 2026-08-17 / ADR 0010
     /// </summary>
     public class MinerBlockStateDetailTest
     {
-        private static readonly Vector3Int PoleOffset = new(2, 0, 0);
-
         [Test]
         public void 採掘と待機の遷移tickでも配信する分子と分母は同じ状態基準になる()
         {
             new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
             var (miner, processor) = PlacePoweredMiner();
-            var publishedRates = new List<float>();
-            using var subscription = miner.BlockStateChange.Subscribe(state => publishedRates.Add(ReadCommonDetail(state).PowerRate));
+            var publishedDetails = new List<CommonMachineBlockStateDetail>();
+            using var subscription = miner.BlockStateChange.Subscribe(state => publishedDetails.Add(ReadCommonDetail(state)));
 
-            // 採掘中→出力満杯で待機→空けて採掘再開、と両向きの遷移tickを踏ませる
-            // Walk through both transition ticks: mining, idle on a full output, then mining again once emptied
+            // 採掘⇄待機の両遷移tickを踏む
+            // Exercise both mining/idle transition ticks
             GameUpdater.RunFrames(5);
             FillOutputSlots(processor);
             GameUpdater.RunFrames(5);
             ClearOutputSlots(processor);
             GameUpdater.RunFrames(5);
 
-            // 発電量は十分なので、分子と分母が同じ基準なら全配信で充足率は1になる
-            // Generation is ample, so every publish reads a satisfaction of 1 when both sides share one basis
-            Assert.Greater(publishedRates.Count, 0, "配信が1件も無いと検査が空振りになる");
-            foreach (var rate in publishedRates) Assert.AreEqual(1f, rate, 0.001f, "遷移tickに分子と分母の状態基準がずれている");
+            // 発電量は十分なので、分子と分母が同じ基準なら全配信で充足率は1になる。分母0固着（=分子分母とも0）を見逃さないよう要求電力が正であることも確認する
+            // Generation is ample, so every publish reads a satisfaction of 1 when both sides share one basis; also assert the request is positive so a stuck zero denominator cannot slip through
+            Assert.Greater(publishedDetails.Count, 0, "配信が1件も無いと検査が空振りになる");
+            foreach (var detail in publishedDetails)
+            {
+                Assert.Greater(detail.RequestPower, 0f, "要求電力が0固着している（配信ラッチ漏れ）");
+                Assert.AreEqual(1f, detail.PowerRate, 0.001f, "遷移tickに分子と分母の状態基準がずれている");
+            }
+        }
+
+        [Test]
+        public void 歯車採掘機も採掘と待機の遷移tickでも配信する分子と分母は同じ状態基準になる()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (miner, processor) = PlacePoweredGearMiner();
+            var publishedDetails = new List<CommonMachineBlockStateDetail>();
+            using var subscription = miner.BlockStateChange.Subscribe(state => publishedDetails.Add(ReadCommonDetail(state)));
+
+            // 電気版と同じく両向きの遷移tickを踏ませる（登録順 gearMiner→processor の経路も対象に入れる）
+            // Walk the same both-direction transitions as the electric version, exercising the gearMiner-then-processor registration order
+            GameUpdater.RunFrames(5);
+            FillOutputSlots(processor);
+            GameUpdater.RunFrames(5);
+            ClearOutputSlots(processor);
+            GameUpdater.RunFrames(5);
+
+            Assert.Greater(publishedDetails.Count, 0, "配信が1件も無いと検査が空振りになる");
+            foreach (var detail in publishedDetails)
+            {
+                Assert.Greater(detail.RequestPower, 0f, "要求電力が0固着している（配信ラッチ漏れ）");
+                Assert.AreEqual(1f, detail.PowerRate, 0.001f, "遷移tickに分子と分母の状態基準がずれている");
+            }
+        }
+
+        [Test]
+        public void 設置直後初回tick前でも要求電力はアイドル基準でラッチされている()
+        {
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
+            var (_, pos) = MinerMiningTest.GetItemMapVein();
+            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var miner);
+
+            var param = (ElectricMinerBlockParam)miner.BlockMasterElement.BlockParam;
+            var detail = ReadCommonDetail(miner.GetBlockState());
+
+            // ctorの初期ラッチのみ検証
+            // Checks only the ctor's initial latch
+            Assert.AreEqual(param.RequiredPower * param.IdlePowerRate, detail.RequestPower, 1e-4f, "設置直後の要求電力はアイドル基準でラッチされているはず");
+            Assert.AreEqual(0f, detail.PowerRate, 1e-4f, "設置直後は供給が無いので充足率は0のはず");
         }
 
         [Test]
@@ -78,8 +124,8 @@ namespace Tests.CombinedTest.Core.Miner
             GameUpdater.RunFrames(3);
             Assert.Greater(ReadCommonDetail(miner.GetBlockState()).CurrentPower, 0f, "待機中も待機分の電力は供給されているはず");
 
-            // 給電経路が消えた後は最後の供給値が固着せず0へ落ちる
-            // Once the supply path is gone the last supplied value must not stick; it falls to zero
+            // 給電断後は供給値が0に落ちる
+            // Power loss drops the published value to zero
             var fired = 0;
             using var subscription = miner.BlockStateChange.Subscribe(_ => fired++);
             ServerContext.WorldBlockDatastore.RemoveBlock(miner.BlockPositionInfo.OriginalPos + PoleOffset, BlockRemoveReason.ManualRemove);
@@ -89,44 +135,20 @@ namespace Tests.CombinedTest.Core.Miner
             Assert.Greater(fired, 0, "待機中でも配信値が動いたなら発火するはず");
         }
 
-        private static (IBlock miner, VanillaMinerProcessorComponent processor) PlacePoweredMiner()
+        [Test]
+        public void 給電中の待機採掘機は配信値が動かない限り毎tick発火しない()
         {
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var (_, pos) = MinerMiningTest.GetItemMapVein();
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricMinerId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var miner);
+            new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            var (miner, processor) = PlacePoweredMiner();
+            FillOutputSlots(processor);
+            GameUpdater.RunFrames(3);
 
-            var polePosition = pos + PoleOffset;
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            ElectricWireTestUtil.Connect(pos, polePosition);
-
-            GameUpdater.UpdateOneTick();
-            var networkDatastore = ServerContext.GetService<IElectricWireNetworkLookup>();
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(miner.BlockInstanceId, out var segment));
-            AddGenerator(segment, new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
-            GameUpdater.UpdateOneTick();
-
-            var processor = miner.GetComponent<VanillaMinerProcessorComponent>();
-            Assert.IsTrue(processor.IsMining, "前提: 鉱脈上で給電された採掘機は採掘中になる");
-            return (miner, processor);
-        }
-
-        // 採掘物と別アイテムで全スロットを塞ぎ、採掘物を入れられない出力満杯を作る
-        // Block every slot with an item other than the mined one so the output cannot take the mined item
-        private static void FillOutputSlots(VanillaMinerProcessorComponent processor)
-        {
-            var miningItems = (List<IItemStack>)typeof(VanillaMinerProcessorComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(processor);
-            var blockerItemId = miningItems[0].Id == new ItemId(1) ? new ItemId(2) : new ItemId(1);
-            for (var i = 0; i < processor.GetSlotSize(); i++) processor.SetItem(i, blockerItemId, 1);
-        }
-
-        private static void ClearOutputSlots(VanillaMinerProcessorComponent processor)
-        {
-            for (var i = 0; i < processor.GetSlotSize(); i++) processor.SetItem(i, ItemMaster.EmptyItemId, 0);
-        }
-
-        private static CommonMachineBlockStateDetail ReadCommonDetail(BlockState state)
-        {
-            return MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(state.CurrentStateDetails[CommonMachineBlockStateDetail.BlockStateDetailKey]);
+            // 待機へ落ちた後は供給値も状態も動かないので、状態配信は発火しない
+            // After settling into idle neither supply nor state moves, so no state publish fires
+            var fired = 0;
+            using var subscription = miner.BlockStateChange.Subscribe(_ => fired++);
+            GameUpdater.RunFrames(10);
+            Assert.AreEqual(0, fired, "給電中の待機採掘機が毎tick発火している");
         }
     }
 }

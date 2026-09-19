@@ -7,11 +7,11 @@ namespace Game.Block.Blocks.Miner
         Idle,
         Mining,
     }
-    
-    public static class ProcessStateExtension
+
+    public static class VanillaMinerStateExtension
     {
         /// <summary>
-        ///     <see cref="ProcessState" />をStringに変換します。
+        ///     <see cref="VanillaMinerState" />をStringに変換します。
         ///     EnumのToStringを使わない理由はアロケーションによる速度低下をなくすためです。
         /// </summary>
         public static string ToStr(this VanillaMinerState state)

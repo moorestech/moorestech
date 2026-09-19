@@ -19,7 +19,6 @@ using Game.Context;
 using Game.Map.Interface.Vein;
 using MessagePack;
 using Mooresmaster.Model.MineSettingsModule;
-using Newtonsoft.Json;
 using UniRx;
 using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
@@ -52,6 +51,10 @@ namespace Game.Block.Blocks.Miner
         // Request power published with the numerator _currentPower, latched at the same point and state basis (precedent: MachineProcessContext.PublishedRequestPower)
         private float _publishedRequestPower;
 
+        // 前回発火時に配信した供給電力。給電の変化を発火条件にする（前例 ElectricPumpProcessorComponent の powerMoved）
+        // Supply published at the last fire; a change in it triggers a fire (precedent: ElectricPumpProcessorComponent's powerMoved)
+        private float _lastPublishedPower;
+
         private uint _defaultMiningTicks;
         private uint _remainingTicks;
         
@@ -71,7 +74,11 @@ namespace Game.Block.Blocks.Miner
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, inputConnectorComponent);
             
             SetMiningItem();
-            
+
+            // 設置直後の1tick目から正しい要求電力を配信できるよう初期状態でラッチする（前例 ElectricPumpProcessorComponent）
+            // Latch the initial request power so it is correct from the first tick even before an Update (precedent: ElectricPumpProcessorComponent)
+            _publishedRequestPower = RequestEnergy;
+
             #region Internal
 
             void SetMiningItem()
@@ -147,12 +154,6 @@ namespace Game.Block.Blocks.Miner
             _suppliedSinceLastUpdate = true;
             _currentPower = power;
             _publishedRequestPower = RequestEnergy;
-            // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う
-            // During idle, even if energy is supplied, the information is not transmitted to the client, so the client is notified explicitly.
-            if (_currentState == VanillaMinerState.Idle)
-            {
-                _blockStateChangeSubject.OnNext(Unit.Default);
-            }
         }
         
         public string SaveKey { get; } = typeof(VanillaMinerProcessorComponent).FullName;
@@ -179,7 +180,6 @@ namespace Game.Block.Blocks.Miner
             
             // 供給が来なかったtickは分子0。分母も状態遷移前の基準で取り直し、古い供給の基準を残さない
             // A tick without supply publishes zero; the denominator is re-latched on the pre-transition basis too
-            var previousPower = _currentPower;
             if (!_suppliedSinceLastUpdate)
             {
                 _currentPower = 0f;
@@ -241,9 +241,10 @@ namespace Game.Block.Blocks.Miner
             void CheckStateAndInvokeEventUpdate()
             {
                 var droppedToIdle = _lastMinerState == VanillaMinerState.Mining && _currentState == VanillaMinerState.Idle;
-                var powerMoved = !Mathf.Approximately(previousPower, _currentPower);
+                var powerMoved = !Mathf.Approximately(_lastPublishedPower, _currentPower);
                 if (_currentState == VanillaMinerState.Mining || droppedToIdle || powerMoved) InvokeChangeStateEvent();
                 _lastMinerState = _currentState;
+                _lastPublishedPower = _currentPower;
             }
             
             void InvokeChangeStateEvent()

@@ -47,13 +47,11 @@ namespace Game.Block.Blocks.Pump
             return entries;
         }
 
-        // 生成対象があり、出力タンクに空きがあるか搬出が続いているかの共通判定（電気・歯車ポンプで同一式を共有）
-        // Shared check: generation targets exist and the tank has room or is still draining (shared by electric and gear pumps)
-        // 満杯×下流が生成より遅い定常域で「空きあり」だけを見ると、搬出で空いたtickと生成で埋まったtickが交互に来て稼働/待機が毎tick反転する
-        // Checking room alone flips generating/idle every tick in the full-tank, slow-downstream steady state, as drained and refilled ticks alternate
+        // 電気・歯車ポンプで共有する判定
+        // Shared by electric and gear pumps
         public static bool CanGenerateFluid(List<FluidGenerationEntry> entries, PumpFluidOutputComponent output)
         {
-            return 0 < entries.Count && (output.CanAcceptGeneratedFluid || output.PushedFluidLastUpdate);
+            return 0 < entries.Count && output.CanKeepGenerating;
         }
 
         // tick毎の発行はキャッシュ済みエントリをpowerRateで按分するだけ

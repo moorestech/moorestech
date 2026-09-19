@@ -117,8 +117,8 @@ namespace Game.Block.Blocks.Pump
         {
             BlockException.CheckDestroy(this);
 
-            // 稼働状態は「汲み上げ対象あり ∧ タンクに空きあり」の2値。停止中は無い
-            // The state is binary, generating or idle; there is no halted state
+            // 稼働状態は「汲み上げ対象あり ∧（空きあり ∨ 直前tickに搬出あり）」の2値。停止中は無い
+            // The state is binary, generating or idle: targets exist and (there is room or the previous tick drained); there is no halted state
             var stateType = _publishedGenerating ? VanillaMachineBlockStateConst.ProcessingState : VanillaMachineBlockStateConst.IdleState;
             var common = new CommonMachineBlockStateDetail(_currentPower, _publishedRequestPower, 0f, stateType, stateType);
 
