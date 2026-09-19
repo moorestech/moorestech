@@ -13,6 +13,10 @@ import {
 import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
 
+// GitHubの100MB上限を超えるファイルはpushできないため、余裕を見てこの大きさを超えたら同期しない
+// Files over GitHub's 100MB limit can never be pushed, so anything above this margin is not synced
+const GITHUB_PUSHABLE_MAX_BYTES = 95 * 1024 * 1024;
+
 function bail() {
   process.exit(0);
 }
@@ -146,19 +150,18 @@ function commitAndPush() {
 // 宛先が無い(かつ7日以内のファイル)か、宛先より新しい時だけコピーする冪等コピー
 // Idempotent copy: only when dest is missing (and src is <7 days old) or src is newer.
 function copyIfUpdated(src, dest) {
-  // 外部境界: 他プロセス管理下のファイル群のためstat/copy失敗はフックを止めず、理由をstderrへ出して次へ進む
-  // External boundary: stat/copy failures on files owned by other processes don't stop the hook; report the reason to stderr and move on.
-  // 元ファイルが無いのは退避すべきものが無いだけで欠落ではない（beadsミラー未生成のclone等）
-  // A missing source only means there is nothing to archive, not a loss (e.g. a clone without the beads mirror)
-  if (!existsSync(src)) return;
+  // 外部境界: 他プロセス管理下のファイル群のためstat/copy失敗はフックを止めず、理由を報告して次へ進む
+  // External boundary: stat/copy failures on files owned by other processes don't stop the hook; report the reason and move on.
+  let srcStat;
   try {
-    const srcStat = statSync(src);
-    // GitHubの100MB上限を超えるファイルはpushできないため同期しない。考古学repoから黙って欠落しないよう理由を出す
-    // Skip files over GitHub's 100MB limit since they can never be pushed; report it so the archive never loses a session silently.
-    if (srcStat.size > 95 * 1024 * 1024) {
-      console.error(`[logs-sync] skipped (over 95MB, GitHub push limit): ${src} size=${srcStat.size}`);
-      return;
-    }
+    srcStat = statSync(src);
+  } catch (error) {
+    // 元ファイルが無いのは退避すべきものが無いだけで欠落ではない（beadsミラー未生成のclone等）。それ以外のstat失敗は理由を出す
+    // A missing source only means there is nothing to archive, not a loss (e.g. a clone without the beads mirror); other stat failures are reported.
+    if (error.code !== "ENOENT") reportSyncLoss(`stat failed: ${src}: ${error.code} ${error.message}`);
+    return;
+  }
+  try {
     if (existsSync(dest)) {
       // utimesSyncはms精度でしか書けずAPFSのns精度mtimeに常に負けるため、ms切り捨てで比較する
       // utimesSync writes ms precision and always loses to APFS ns mtimes, so compare at floored ms.
@@ -166,11 +169,30 @@ function copyIfUpdated(src, dest) {
     } else if (Date.now() - srcStat.mtimeMs > 7 * 24 * 3600 * 1000) {
       return;
     }
+    // 同期すべき更新があるのに上限超過で送れない時だけ報告し、考古学repoから黙って欠落させない
+    // Report only when a due update cannot be sent over the limit, so the archive never loses a session silently
+    if (srcStat.size > GITHUB_PUSHABLE_MAX_BYTES) {
+      reportSyncLoss(`skipped (over ${GITHUB_PUSHABLE_MAX_BYTES} bytes, GitHub push limit): ${src} size=${srcStat.size}`);
+      return;
+    }
     mkdirSync(dirname(dest), { recursive: true });
     copyFileSync(src, dest);
     utimesSync(dest, srcStat.atime, srcStat.mtime);
   } catch (error) {
-    console.error(`[logs-sync] copy failed: ${src} -> ${dest}: ${error.code ?? ""} ${error.message}`);
+    reportSyncLoss(`copy failed: ${src} -> ${dest}: ${error.code ?? ""} ${error.message}`);
+  }
+}
+
+// exit 0のフックではstderrが画面に出ないため、同じ行を.state/logs-sync-skipped.logへも残し開発者が後から読めるようにする
+// A hook exiting 0 has its stderr hidden, so the same line also goes to .state/logs-sync-skipped.log for developers to read later
+function reportSyncLoss(line) {
+  console.error(`logs-sync: ${line}`);
+  // 外部境界: 記録ファイルへの追記失敗（容量不足等）はstderrへ出すだけにしてフックを止めない
+  // External boundary: a failed append (e.g. disk full) is reported to stderr only and does not stop the hook
+  try {
+    appendFileSync(join(stateDir, "logs-sync-skipped.log"), `${new Date().toISOString()} ${line}\n`);
+  } catch (error) {
+    console.error(`logs-sync: failed to record the loss above: ${error.code ?? ""} ${error.message}`);
   }
 }
 
