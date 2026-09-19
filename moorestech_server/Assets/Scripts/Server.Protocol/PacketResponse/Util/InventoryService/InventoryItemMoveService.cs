@@ -1,36 +1,16 @@
-using System;
 using Core.Inventory;
 using Game.Context;
-using UnityEngine;
 
 namespace Server.Protocol.PacketResponse.Util.InventoryService
 {
     public static class InventoryItemMoveService
     {
-        public static void Move(IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
-        {
-            try
-            {
-                ExecuteMove(fromInventory, fromSlot, toInventory, toSlot, itemCount);
-            }
-            catch (ArgumentOutOfRangeException e)
-            {
-                //TODO ログ基盤に入れる
-                var fromInventoryName = fromInventory.GetType().Name;
-                var toInventoryName = toInventory.GetType().Name;
-                Debug.Log(
-                    $"InventoryItemMoveService.Move: \n {e.Message} \n fromInventory={fromInventoryName} fromSlot={fromSlot} toInventory={toInventoryName} toSlot={toSlot} itemCount={itemCount}  \n {e.StackTrace}");
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-            }
-        }
-        
-        private static void ExecuteMove(IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
+        // 拒否時は何も書き込まず、拒否の種類を返す（ログ・通知は識別子を持つプロトコル層が出す）
+        // A rejection writes nothing and returns its kind; the protocol layer, which holds the identifiers, logs and notifies
+        public static InventoryItemMoveResult Move(IOpenableInventory fromInventory, int fromSlot, IOpenableInventory toInventory, int toSlot, int itemCount)
         {
             //移動元と移動先のスロットが同じ場合は移動しない
-            if (fromInventory.GetHashCode() == toInventory.GetHashCode() && fromSlot == toSlot) return;
+            if (fromInventory.GetHashCode() == toInventory.GetHashCode() && fromSlot == toSlot) return InventoryItemMoveResult.NoOp;
             
             
             //移動元からアイテムを取得
@@ -47,6 +27,10 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
             //移動先と同じIDの時は移動先スロットに加算し、余ったアイテムを移動元インベントリに入れる
             if (destinationInventoryItem.Count == 0 || originItem.Id == destinationInventoryItem.Id)
             {
+                // 移動先が受け入れない時は書き込まずに拒否を返す
+                // Return a rejection without writing when the destination refuses the stack
+                if (!toInventory.IsAllowedToPlace(toSlot, moveItem)) return InventoryItemMoveResult.RejectedByDestination;
+
                 //移動先インベントリにアイテムを移動
                 var replaceItem = toInventory.ReplaceItem(toSlot, moveItem);
                 
@@ -58,18 +42,21 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 
                 //移動元インベントリに残りのアイテムをセット
                 fromInventory.SetItem(fromSlot, remainItem);
+                return InventoryItemMoveResult.Moved;
             }
-            //移動元と移動先のIDが異なる時、移動元インベントリのアイテムをすべて入れ替える時にのみ入れ替えを実行する
-            //一部入れ替え時は入れ替え作業は実行しない
-            else if (itemCount == originItem.Count)
-            {
-                // 両側が書き込みを受け入れるか先に確認し、片方だけ書く複製・消失を防ぐ
-                // Confirm both sides accept the write first to avoid a one-sided write that duplicates or loses items
-                if (!toInventory.IsAllowedToPlace(toSlot, originItem) || !fromInventory.IsAllowedToPlace(fromSlot, destinationInventoryItem)) return;
 
-                toInventory.SetItem(toSlot, originItem);
-                fromInventory.SetItem(fromSlot, destinationInventoryItem);
-            }
+            // 異なるアイテムの一部だけの入れ替えは行わない
+            // A partial swap between different items is not performed
+            if (itemCount != originItem.Count) return InventoryItemMoveResult.RejectedPartialSwap;
+
+            // 両側が書き込みを受け入れるか先に確認し、片方だけ書く複製・消失を防ぐ
+            // Confirm both sides accept the write first to avoid a one-sided write that duplicates or loses items
+            if (!toInventory.IsAllowedToPlace(toSlot, originItem)) return InventoryItemMoveResult.RejectedByDestination;
+            if (!fromInventory.IsAllowedToPlace(fromSlot, destinationInventoryItem)) return InventoryItemMoveResult.RejectedBySource;
+
+            toInventory.SetItem(toSlot, originItem);
+            fromInventory.SetItem(fromSlot, destinationInventoryItem);
+            return InventoryItemMoveResult.Moved;
         }
     }
 }

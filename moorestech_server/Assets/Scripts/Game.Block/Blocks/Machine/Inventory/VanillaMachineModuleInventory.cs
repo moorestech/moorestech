@@ -48,9 +48,9 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         // モジュールの適合判定は装備プロトコル側が持つため、ここでは束縛しない
         // The module fit check lives in the equipment protocol, so no binding here
-        public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
+        public MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack)
         {
-            return true;
+            return MachineSlotPlacementCheck.Allowed;
         }
 
         public void SetItemWithoutEvent(int slot, IItemStack itemStack)
