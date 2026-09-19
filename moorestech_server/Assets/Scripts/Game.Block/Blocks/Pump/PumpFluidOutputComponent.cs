@@ -23,11 +23,13 @@ namespace Game.Block.Blocks.Pump
     {
         public string SaveKey  { get; }  = typeof(PumpFluidOutputComponent).FullName;
 
-        // 満杯でも搬出中なら次tickには空きができるため稼働を続けてよい（前例 満杯×下流が遅い定常域の振動回避）
-        // Keeps generating on a full tank that is still draining, since room will open next tick (precedent: avoids flip-flop in the full-tank, slow-downstream steady state)
-        public bool CanKeepGenerating => _tank.Amount < _tank.Capacity || _pushedFluidLastUpdate;
+        // 内部タンクの空き容量。稼働可否の方針はPumpFluidGenerationUtilityが持ち、ここは事実だけを公開する
+        // Free space in the inner tank; the generation policy lives in PumpFluidGenerationUtility, this only exposes the fact
+        public double RoomAmount => _tank.Capacity - _tank.Amount;
 
-        private bool _pushedFluidLastUpdate;
+        // 直前のUpdateで接続先へ搬出した量。セーブしないため、ロード直後の1tickは0（待機基準）から始まる
+        // Amount pushed to the targets in the previous Update; it is not saved, so the first tick after a load starts at zero (the idle basis)
+        public double PushedAmountLastUpdate { get; private set; }
         private readonly FluidContainer _tank;
         private readonly BlockConnectorComponent<IFluidInventory, DefaultConnectJudge> _fluidConnector;
         private readonly Subject<Unit> _onChangeBlockState = new();
@@ -56,7 +58,7 @@ namespace Game.Block.Blocks.Pump
         public void Update()
         {
             // Push fluid to connected inventories
-            var pushedFluid = false;
+            var pushedAmount = 0.0;
             foreach (var (inventory, info) in _fluidConnector.ConnectedTargets)
             {
                 if (_tank.Amount <= 0) break;
@@ -76,7 +78,7 @@ namespace Game.Block.Blocks.Pump
                         _tank.Amount = 0;
                         _tank.FluidId = FluidMaster.EmptyFluidId;
                     }
-                    pushedFluid = true;
+                    pushedAmount += transferred;
                 }
             }
 
@@ -88,8 +90,8 @@ namespace Game.Block.Blocks.Pump
 
             // 1tickの搬出は接続先が何本でも1つの状態変化。ループ内で発火すると接続数だけ多重通知になる
             // One tick's push is a single state change however many targets there are; firing inside the loop would notify once per target
-            _pushedFluidLastUpdate = pushedFluid;
-            if (pushedFluid) _onChangeBlockState.OnNext(Unit.Default);
+            PushedAmountLastUpdate = pushedAmount;
+            if (0 < pushedAmount) _onChangeBlockState.OnNext(Unit.Default);
 
             #region Internal
 

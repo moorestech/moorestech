@@ -16,7 +16,7 @@ using Tests.Module.TestMod;
 using Tests.Util;
 using UniRx;
 using UnityEngine;
-using static Tests.Util.ElectricNetworkReflectionTestUtil;
+using static Tests.CombinedTest.Core.Fluid.PumpStateDetailTestUtil;
 
 namespace Tests.CombinedTest.Core.Fluid
 {
@@ -26,9 +26,7 @@ namespace Tests.CombinedTest.Core.Fluid
     /// </summary>
     public class PumpBlockStateDetailTest
     {
-        private static readonly Vector3Int WaterVeinPos = new(10, 0, 0);
         private static readonly Vector3Int NoVeinPos = new(30, 0, 0);
-        private static readonly Vector3Int PoleOffset = new(2, 0, 0);
         private static readonly Guid WaterFluidGuid = Guid.Parse("00000000-0000-0000-1234-000000000001");
 
         [Test]
@@ -196,30 +194,6 @@ namespace Tests.CombinedTest.Core.Fluid
             Assert.AreEqual(0, fluid.InputTanks.Count);
             Assert.AreEqual(1, fluid.OutputTanks.Count);
             Assert.AreEqual(100, fluid.OutputTanks[0].MaxCapacity, 0.001);
-        }
-
-        private static CommonMachineBlockStateDetail GetCommonDetail(IBlock pump)
-        {
-            var state = pump.GetBlockState();
-            return MessagePackSerializer.Deserialize<CommonMachineBlockStateDetail>(state.CurrentStateDetails[CommonMachineBlockStateDetail.BlockStateDetailKey]);
-        }
-
-        private static IBlock PlacePoweredPump(Vector3Int pos)
-        {
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPump, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
-
-            var polePosition = pos + PoleOffset;
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            ElectricWireTestUtil.Connect(pos, polePosition);
-
-            GameUpdater.UpdateOneTick();
-            var networkDatastore = ServerContext.GetService<IElectricWireNetworkLookup>();
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pump.BlockInstanceId, out var segment));
-            AddGenerator(segment, new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
-            GameUpdater.UpdateOneTick();
-
-            return pump;
         }
     }
 }
