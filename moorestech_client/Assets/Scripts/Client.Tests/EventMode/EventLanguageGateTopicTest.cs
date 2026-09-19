@@ -1,8 +1,6 @@
-using System.Collections.Concurrent;
-using System.Reflection;
 using Client.Localization;
+using Client.Tests.WebUi.Gate;
 using Client.WebUiHost.Boot;
-using Client.WebUiHost.Game.Actions;
 using Client.WebUiHost.Game.Actions.EventMode;
 using Client.WebUiHost.Game.EventMode;
 using Client.WebUiHost.Game.StartGates;
@@ -70,9 +68,9 @@ namespace Client.Tests.EventMode
             var gate = new EventLanguageGate(true);
             WaitingGateTopic.Register(hub, StartGateTopics.EventLanguageName, StartGateTopics.EventLanguagePrecedence, gate);
 
-            var revisionBefore = GetTopicRevision(hub, StartGateTopics.EventLanguageName);
+            var revisionBefore = hub.GetTopicRevision(StartGateTopics.EventLanguageName);
             gate.TrySelectLanguage("english");
-            var revisionAfter = GetTopicRevision(hub, StartGateTopics.EventLanguageName);
+            var revisionAfter = hub.GetTopicRevision(StartGateTopics.EventLanguageName);
 
             Assert.Greater(revisionAfter, revisionBefore);
         }
@@ -84,27 +82,19 @@ namespace Client.Tests.EventMode
 
             EventLanguageGateBinder.Bind(hub, true);
 
-            var topicHandlers = GetPrivateField<ConcurrentDictionary<string, ITopicHandler>>(hub, "_handlers");
-            Assert.IsTrue(topicHandlers.ContainsKey(StartGateTopics.EventLanguageName));
-
-            var actionHandlers = GetPrivateField<ConcurrentDictionary<string, IActionHandler>>(hub, "_actionHandlers");
-            Assert.IsTrue(actionHandlers.ContainsKey("event_mode.select_language"));
+            Assert.IsNotNull(hub.ResolveTopic(StartGateTopics.EventLanguageName));
+            Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
 
-        private static long GetTopicRevision(WebSocketHub hub, string topic)
+        [Test]
+        public void 待機しないBindでもtopicを登録しwaitingをfalseで配る()
         {
-            var revisions = GetPrivateField<ConcurrentDictionary<string, long>>(hub, "_topicRevisions");
-            revisions.TryGetValue(topic, out var revision);
-            return revision;
-        }
+            var hub = new WebSocketHub();
 
-        // 公開動作を駆動する実レジストリを直接読み、配線漏れをテストで検出できるようにする
-        // Read the real registry that drives public behavior directly so wiring gaps are caught by tests
-        private static T GetPrivateField<T>(object instance, string fieldName)
-        {
-            var field = instance.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.IsNotNull(field);
-            return (T)field.GetValue(instance);
+            EventLanguageGateBinder.Bind(hub, false);
+
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.EventLanguageName, false, StartGateTopics.EventLanguagePrecedence);
+            Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
     }
 }

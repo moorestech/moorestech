@@ -7,12 +7,11 @@ namespace Client.Starter.EventMode
     // Exhibition mode enable decision and settings
     public readonly struct EventExhibitionSettings
     {
-        private const string EnableEnvKey = "MOORESTECH_EVENT_MODE";
-        private const string EditorOptInEnvKey = "MOORESTECH_EVENT_MODE_EDITOR";
-        private const string IdleTimeoutEnvKey = "MOORESTECH_EVENT_IDLE_TIMEOUT_SECONDS";
-
         // ログとテストで同じキー名を参照する
-        // Logs and tests reference the same key name
+        // Logs and tests reference the same key names
+        internal const string EnableEnvKey = "MOORESTECH_EVENT_MODE";
+        internal const string EditorOptInEnvKey = "MOORESTECH_EVENT_MODE_EDITOR";
+        internal const string IdleTimeoutEnvKey = "MOORESTECH_EVENT_IDLE_TIMEOUT_SECONDS";
         internal const string LanguageEnvKey = "MOORESTECH_EVENT_LANGUAGE";
         private const int DefaultIdleTimeoutSeconds = 180;
 
