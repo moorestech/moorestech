@@ -95,14 +95,14 @@ namespace Client.Tests.PlaceSystem.Common
         }
 
         [Test]
-        public void ClearDragを挟んでも同一ブロックなら高さオフセットは保たれる()
+        public void Enable時のClearDragは同一ブロックなら高さオフセットを保つ()
         {
             var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.SyncSelectedBlock(new BlockId(1));
             dragState.AdjustHeightOffset(5);
 
-            // 配置システムを跨いだDisable相当の解除。高さの基準はブロック切替だけが動かす
-            // Simulates the Disable-equivalent teardown across place systems; only a block switch moves the height baseline
+            // Enable時のドラッグ解除は高さを動かさない。基準はブロック切替だけが動かす
+            // ClearDrag on enable does not move the height; only a block switch moves the baseline
             dragState.ClearDrag();
             dragState.SyncSelectedBlock(new BlockId(1));
 

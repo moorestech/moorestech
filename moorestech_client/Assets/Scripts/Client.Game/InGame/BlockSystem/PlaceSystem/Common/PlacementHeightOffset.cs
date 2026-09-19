@@ -14,7 +14,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         public int Value => _value.Value;
         public IObservable<int> OnChanged => _value;
 
-        public void SetValue(int value)
+        internal void SetValue(int value)
         {
             _value.Value = value;
         }

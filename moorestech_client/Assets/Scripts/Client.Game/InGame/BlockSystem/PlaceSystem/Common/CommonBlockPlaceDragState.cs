@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
-    /// ドラッグ中のセッションと高さオフセットを保持
-    /// Holds the running drag session and the height offset
+    /// ドラッグセッションを保持。高さは共有PlacementHeightOffsetを読み書きするだけで保持しない
+    /// Holds the drag session; the height offset is only read/written via the shared PlacementHeightOffset, not held here
     /// 終了時に高さは開始値へ戻す
     /// Ending a drag restores the starting height
     /// </summary>
@@ -33,8 +33,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _session = null;
         }
 
-        // 建築モードを抜ける時はドラッグも高さも畳む。次に入った時は地表基準から始める
-        // Leaving build mode folds both the drag and the height, so the next entry starts from ground level
+        // 非アクティブ化時にドラッグと高さを畳む
+        // Folds the drag and the height when this system goes inactive
         public void ClearDragAndHeight()
         {
             _session = null;
@@ -48,8 +48,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             else if (HybridInput.GetKeyDown(KeyCode.E)) AdjustHeightOffset(1);
         }
 
-        // 高さオフセットを動かす唯一の入口。入力の解釈と値の保持を分ける
-        // The only entry that moves the height offset, keeping input interpretation apart from the stored value
+        // 高さを相対に動かす入口。入力の解釈と値の保持を分ける
+        // An entry that moves the height offset relatively, keeping input interpretation apart from the stored value
         public void AdjustHeightOffset(int delta)
         {
             _heightOffset.SetValue(_heightOffset.Value + delta);
