@@ -4,11 +4,11 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Localization;
 using Client.Starter.EventMode;
+using Client.Tests.WebUi.Gate;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.EventMode;
 using Client.WebUiHost.Game.StartGates;
 using Cysharp.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -20,7 +20,7 @@ namespace Client.Tests.EventMode
     {
         private const int IdleTimeoutSeconds = 180;
 
-        private static readonly string[] SavedEnvKeys = { "MOORESTECH_EVENT_MODE", "MOORESTECH_EVENT_MODE_EDITOR" };
+        private static readonly string[] SavedEnvKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey };
         private readonly string[] _savedEnvValues = new string[SavedEnvKeys.Length];
 
         [SetUp]
@@ -60,12 +60,10 @@ namespace Client.Tests.EventMode
         {
             var hub = new WebSocketHub();
 
-            var task = EventModeStartGate.WaitForLanguageSelectionAsync(hub, EventExhibitionSettings.FromEnvironment(), CancellationToken.None);
+            var task = EventModeStartGate.WaitForLanguageSelectionWithHubAsync(hub, EventExhibitionSettings.FromEnvironment(), CancellationToken.None);
 
             Assert.IsTrue(task.Status.IsCompletedSuccessfully());
-            var topic = hub.ResolveTopic(StartGateTopics.EventLanguageName);
-            Assert.IsNotNull(topic, "the event-language topic was not registered outside exhibition mode");
-            Assert.IsFalse(JObject.Parse(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult())["waiting"].Value<bool>());
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.EventLanguageName, false, StartGateTopics.EventLanguagePrecedence);
             Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
 

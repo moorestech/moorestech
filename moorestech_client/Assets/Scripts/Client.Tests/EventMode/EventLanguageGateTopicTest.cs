@@ -1,4 +1,5 @@
 using Client.Localization;
+using Client.Tests.WebUi.Gate;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.Actions.EventMode;
 using Client.WebUiHost.Game.EventMode;
@@ -85,8 +86,6 @@ namespace Client.Tests.EventMode
             Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
 
-        // 待機なしでも登録し配信する
-        // Registers and reports no-wait even without waiting.
         [Test]
         public void 待機しないBindでもtopicを登録しwaitingをfalseで配る()
         {
@@ -94,11 +93,7 @@ namespace Client.Tests.EventMode
 
             EventLanguageGateBinder.Bind(hub, false);
 
-            var topic = hub.ResolveTopic(StartGateTopics.EventLanguageName);
-            Assert.IsNotNull(topic);
-            var snapshot = JObject.Parse(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult());
-            Assert.IsFalse(snapshot["waiting"].Value<bool>());
-            Assert.AreEqual(StartGateTopics.EventLanguagePrecedence, snapshot["precedence"].Value<int>());
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.EventLanguageName, false, StartGateTopics.EventLanguagePrecedence);
             Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
     }

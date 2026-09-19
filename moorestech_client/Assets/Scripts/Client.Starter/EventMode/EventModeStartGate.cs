@@ -14,12 +14,12 @@ namespace Client.Starter.EventMode
     {
         public static UniTask WaitForLanguageSelectionAsync(CancellationToken ct)
         {
-            return WaitForLanguageSelectionAsync(Client.WebUiHost.Boot.WebUiHost.Hub, EventExhibitionSettings.FromEnvironment(), ct);
+            return WaitForLanguageSelectionWithHubAsync(Client.WebUiHost.Boot.WebUiHost.Hub, EventExhibitionSettings.FromEnvironment(), ct);
         }
 
         // hubと設定を引数で受ける本体。Kestrelを立てずに通常モードの無条件登録を検証できるよう分ける（PlaytestStartGatesと同形）
         // The body takes the hub and settings so the unconditional registration in normal mode is verifiable without Kestrel (same shape as PlaytestStartGates)
-        internal static async UniTask WaitForLanguageSelectionAsync(WebSocketHub hub, EventExhibitionSettings settings, CancellationToken ct)
+        internal static async UniTask WaitForLanguageSelectionWithHubAsync(WebSocketHub hub, EventExhibitionSettings settings, CancellationToken ct)
         {
             // topicの登録は出展モードか否かに関わらず無条件に行う。条件付き登録だとWeb側の購読が固着する
             // Registration happens unconditionally regardless of exhibition mode; conditional registration would wedge the web-side subscription
