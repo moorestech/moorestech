@@ -68,8 +68,8 @@ namespace Tests.CombinedTest.Core.Miner
             return (miner, processor);
         }
 
-        // 採掘物と別アイテムで全スロットを塞ぎ、採掘物を入れられない出力満杯を作る
-        // Block every slot with an item other than the mined one so the output cannot take the mined item
+        // 採掘物以外で全スロットを埋め出力満杯にする
+        // Fill every slot with a non-mined item to block the output
         internal static void FillOutputSlots(VanillaMinerProcessorComponent processor)
         {
             var miningItems = (List<IItemStack>)typeof(VanillaMinerProcessorComponent).GetField("_miningItems", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(processor);

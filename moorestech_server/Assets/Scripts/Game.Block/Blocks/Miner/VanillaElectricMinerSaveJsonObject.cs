@@ -14,8 +14,8 @@ namespace Game.Block.Blocks.Miner
         [JsonProperty("remainingSeconds")]
         public double RemainingSeconds;
 
-        // 復元時に採掘対象が変わっていないかを見るための対象アイテム
-        // The target items, used on load to see whether the mining targets changed
+        // 採掘対象の変更検知用アイテム
+        // Items used to detect mining-target changes
         [JsonProperty("miningItemGuids")]
         public List<string> MiningItemGuids;
     }
