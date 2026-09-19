@@ -42,18 +42,13 @@ namespace Game.Block.Blocks.Miner
         private readonly float _baseRequestEnergy;
         private readonly float _idlePowerRate;
         
-        // 前回のUpdate以降に供給が届いたか。届かなかったtickは給電断として分子を0へ落とす
-        // Whether a supply arrived since the previous Update; a tick without one counts as lost supply and zeroes the numerator
-        private bool _suppliedSinceLastUpdate;
-        private float _currentPower;
+        // tick内供給電力の受け皿。Updateの先頭で配信値へ確定して0へ戻す
+        // Accumulates this tick's supply; latched into the published values and reset at the top of Update
+        private float _suppliedPower;
 
-        // 分子_currentPowerと同位置・同じ状態基準で確定する配信用の要求電力（前例 MachineProcessContext.PublishedRequestPower）
-        // Request power published with the numerator _currentPower, latched at the same point and state basis (precedent: MachineProcessContext.PublishedRequestPower)
-        private float _publishedRequestPower;
-
-        // 前回発火時に配信した供給電力。給電の変化を発火条件にする（前例 ElectricPumpProcessorComponent の powerMoved）
-        // Supply published at the last fire; a change in it triggers a fire (precedent: ElectricPumpProcessorComponent's powerMoved)
-        private float _lastPublishedPower;
+        // 配信する分子・分母。Updateの先頭で同じ状態基準から一括確定する（前例 MachineProcessContext.LatchTickPower）
+        // Published numerator and denominator, latched together on one state basis at the top of Update (precedent: MachineProcessContext.LatchTickPower)
+        private PublishedPowerLatch _publishedPower;
 
         private uint _defaultMiningTicks;
         private uint _remainingTicks;
@@ -77,7 +72,7 @@ namespace Game.Block.Blocks.Miner
 
             // 設置直後の1tick目から正しい要求電力を配信できるよう初期状態でラッチする（前例 ElectricPumpProcessorComponent）
             // Latch the initial request power so it is correct from the first tick even before an Update (precedent: ElectricPumpProcessorComponent)
-            _publishedRequestPower = RequestEnergy;
+            _publishedPower = new PublishedPowerLatch(0f, RequestEnergy);
 
             #region Internal
 
@@ -149,11 +144,9 @@ namespace Game.Block.Blocks.Miner
         {
             BlockException.CheckDestroy(this);
 
-            // 供給はこの時点のRequestEnergyに対して行われるので、分母も同じ基準で確定する
-            // The supply answers the RequestEnergy of this moment, so the denominator is latched on the same basis
-            _suppliedSinceLastUpdate = true;
-            _currentPower = power;
-            _publishedRequestPower = RequestEnergy;
+            // 複数の電力セグメントから供給され得るため加算する
+            // Accumulate because multiple electric segments may supply this miner
+            _suppliedPower += power;
         }
         
         public string SaveKey { get; } = typeof(VanillaMinerProcessorComponent).FullName;
@@ -178,14 +171,11 @@ namespace Game.Block.Blocks.Miner
         {
             BlockException.CheckDestroy(this);
             
-            // 供給が来なかったtickは分子0。分母も状態遷移前の基準で取り直し、古い供給の基準を残さない
-            // A tick without supply publishes zero; the denominator is re-latched on the pre-transition basis too
-            if (!_suppliedSinceLastUpdate)
-            {
-                _currentPower = 0f;
-                _publishedRequestPower = RequestEnergy;
-            }
-            _suppliedSinceLastUpdate = false;
+            // 供給はこの状態遷移前のRequestEnergyへの応答なので、分母も遷移前の基準で分子と一括確定する
+            // The supply answered the pre-transition RequestEnergy, so the denominator is latched with the numerator on that basis
+            var previousPublishedPower = _publishedPower;
+            _publishedPower = new PublishedPowerLatch(_suppliedPower, RequestEnergy);
+            _suppliedPower = 0f;
             
             MinerProgressUpdate();
             InsertConnectInventory();
@@ -214,7 +204,7 @@ namespace Game.Block.Blocks.Miner
                 }
 
                 _currentState = VanillaMinerState.Mining;
-                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, _baseRequestEnergy);
+                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_publishedPower.CurrentPower, _baseRequestEnergy);
                 if (subTicks == 0)
                 {
                     // 電力の都合で処理を進められないのでreturn
@@ -236,15 +226,14 @@ namespace Game.Block.Blocks.Miner
                 }
             }
             
-            // 採掘中は毎tick、待機へ落ちたtickと給電断で配信値が動いたtickに発火し、発火後に前tick状態を更新する
-            // Fire every tick while mining, and on the drop to idle or a supply loss that moved the published power; then record this tick's state as the previous one
+            // 採掘中は毎tick、待機へ落ちたtickと配信値（分子・分母）が動いたtickに発火し、発火後に前tick状態を更新する
+            // Fire every tick while mining, and on the drop to idle or a tick where a published value (either side) moved; then record this tick's state
             void CheckStateAndInvokeEventUpdate()
             {
                 var droppedToIdle = _lastMinerState == VanillaMinerState.Mining && _currentState == VanillaMinerState.Idle;
-                var powerMoved = !Mathf.Approximately(_lastPublishedPower, _currentPower);
-                if (_currentState == VanillaMinerState.Mining || droppedToIdle || powerMoved) InvokeChangeStateEvent();
+                var publishedPowerMoved = _publishedPower.MovedFrom(previousPublishedPower);
+                if (_currentState == VanillaMinerState.Mining || droppedToIdle || publishedPowerMoved) InvokeChangeStateEvent();
                 _lastMinerState = _currentState;
-                _lastPublishedPower = _currentPower;
             }
             
             void InvokeChangeStateEvent()
@@ -285,7 +274,7 @@ namespace Game.Block.Blocks.Miner
             BlockStateDetail GetMachineBlockStateDetail()
             {
                 var processingRate = _defaultMiningTicks > 0 ? 1 - (float)_remainingTicks / _defaultMiningTicks : 0;
-                var stateDetail = new CommonMachineBlockStateDetail(_currentPower, _publishedRequestPower, processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
+                var stateDetail = new CommonMachineBlockStateDetail(_publishedPower.CurrentPower, _publishedPower.RequestPower, processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
                 var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
                 return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, stateDetailBytes);
             }
