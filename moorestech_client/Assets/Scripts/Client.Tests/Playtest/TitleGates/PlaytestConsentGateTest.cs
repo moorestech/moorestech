@@ -1,10 +1,10 @@
 using System.IO;
 using Client.Game.InGame.BugReport.Playtest;
-using Client.WebUiHost.Game.Playtest;
+using Client.Starter.Playtest.TitleGates;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 
-namespace Client.Tests.BugReport
+namespace Client.Tests.Playtest.TitleGates
 {
     // 了解が1回だけ効き、その1回で待機が解けることを押さえる（ADR 0040 の言語選択ゲート・CrashReportGateと同じ契約）
     // Pins that exactly one acknowledgement takes effect and releases the wait (the same contract as the ADR 0040 language gate and CrashReportGate)

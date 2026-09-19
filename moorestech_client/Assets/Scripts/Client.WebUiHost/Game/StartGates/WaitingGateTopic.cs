@@ -7,8 +7,8 @@ using UniRx;
 namespace Client.WebUiHost.Game.StartGates
 {
     /// <summary>
-    /// 開始ゲート1枚の待機をsnapshotとeventで配信する。3枚とも同じ形で、違うのはtopic名・順番・ゲート本体だけ
-    /// Publishes one start gate's wait as a snapshot and events; all three share this shape and differ only in topic name, precedence and gate
+    /// 開始ゲート1枚の待機をsnapshotとeventで配信する。違うのはtopic名・順番・ゲート本体だけ
+    /// Publishes one start gate's wait as a snapshot and events; gates differ only in topic name, precedence and gate
     /// </summary>
     internal sealed class WaitingGateTopic : ITopicHandler, IDisposable
     {

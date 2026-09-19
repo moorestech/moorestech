@@ -176,7 +176,7 @@ namespace Client.Starter
 
                 // Forget境界の例外を専用callbackで観測し、DI未構築のMainGameへ取り残さない
                 // Observe the forgotten boundary through its dedicated callback so MainGame is never stranded without DI
-                new MainGameInitializationFinalizer(serverResult, serverDirectory, _proprieties.IsRemoteConnection, collectsPlaytestRecords).RunAsync(exitToken).Forget(exception =>
+                new MainGameInitializationFinalizer(serverResult, serverDirectory, collectsPlaytestRecords).RunAsync(exitToken).Forget(exception =>
                 {
                     // Play終了で開始ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
                     // Cancelling the start-gate wait on play exit is not a failure, so it never returns to the main menu

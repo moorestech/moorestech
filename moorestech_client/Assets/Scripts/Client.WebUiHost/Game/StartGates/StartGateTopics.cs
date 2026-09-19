@@ -1,15 +1,11 @@
 namespace Client.WebUiHost.Game.StartGates
 {
-    // 開始ゲート3枚のtopic名と答えさせる順。precedenceは起動時に待つ順（言語→同意→前回異常終了）の正本で、Web側は比べるだけ
-    // The three start gates' topic names and answer order; precedence owns the boot-time wait order (language, consent, crash) and the web only compares it
+    // 開始ゲートのtopic名と答えさせる順。プレイテストの同意と前回異常終了の確認はタイトル（uGUI）へ移り、WebUIに残るのは出展モードの言語選択だけ（ADR 0065）
+    // Start-gate topic names and answer order; the playtest consent and crash confirmation moved to the title (uGUI), leaving only event mode's language selection in the WebUI (ADR 0065)
     internal static class StartGateTopics
     {
         public const string EventLanguageName = "event_mode.language_gate";
-        public const string ConsentName = "playtest.consent_gate";
-        public const string CrashReportName = "playtest.crash_report_gate";
 
         public const int EventLanguagePrecedence = 0;
-        public const int ConsentPrecedence = 1;
-        public const int CrashReportPrecedence = 2;
     }
 }

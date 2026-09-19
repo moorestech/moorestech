@@ -36,15 +36,6 @@ namespace Client.Tests.EventMode
             Assert.IsFalse(selectedJson["waiting"].Value<bool>());
         }
 
-        // precedence は起動時に待つ順（言語→同意→前回異常終了）そのもの。並びが崩れると同時待機で後ろのゲートが前に出る
-        // Precedence is the boot-time wait order itself (language, consent, crash); a broken sequence would put a later gate in front
-        [Test]
-        public void 開始ゲートの順番は言語_同意_前回異常終了の順に小さい()
-        {
-            Assert.Less(StartGateTopics.EventLanguagePrecedence, StartGateTopics.ConsentPrecedence);
-            Assert.Less(StartGateTopics.ConsentPrecedence, StartGateTopics.CrashReportPrecedence);
-        }
-
         [Test]
         public void 選択アクションはゲートを開き未知localeは失敗を返す()
         {

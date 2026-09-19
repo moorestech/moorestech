@@ -1,13 +1,14 @@
 using System;
 using System.IO;
 using Client.Game.InGame.BugReport.LastSession;
-using Client.WebUiHost.Game.Playtest;
+using Client.Starter.Playtest.TitleGates;
+using Client.Tests.BugReport;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace Client.Tests.BugReport
+namespace Client.Tests.Playtest.TitleGates
 {
     // 応答が1回だけ効き、その1回で待機が解けることを押さえる（ADR 0040 の言語選択ゲートと同じ契約）
     // Pins that exactly one answer takes effect and releases the wait (the same contract as the ADR 0040 language gate)

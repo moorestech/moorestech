@@ -1,5 +1,6 @@
 using System;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.Game.InGame.Playtest.Progress.Storage;
 using Game.Paths;
@@ -44,7 +45,10 @@ namespace Client.Starter.Playtest
         {
             if (!_salvagedThisBoot)
             {
-                Debug.Log("PreviousSessionStartupTasks: タイトルを経由しない起動のため、ここで前回セッションを退避します");
+                // Editorの迂回印は読んだ時点で消費される。ここで読まないと次の手動のタイトル起動へ持ち越され、確認が1回消える
+                // The Editor bypass mark is consumed on read; leaving it unread would carry it to the next manual title boot and skip its confirmations once
+                var unattendedReason = PlaytestStartGateBypass.UnattendedReason();
+                Debug.Log($"PreviousSessionStartupTasks: タイトルを経由しない起動のため、ここで前回セッションを退避します。同意と前回異常終了の確認はこの起動では出さず、未応答の印は次にタイトルを通る起動で聞き直します unattended:{unattendedReason ?? "none"}");
                 Salvage(isRemoteConnection, worldDirectory);
             }
 
