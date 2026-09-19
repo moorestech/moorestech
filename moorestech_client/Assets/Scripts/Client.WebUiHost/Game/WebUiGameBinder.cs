@@ -23,6 +23,7 @@ using Game.Construction;
 using Game.UnlockState;
 using Client.Game.InGame.Presenter.PauseMenu;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.UI.Crosshair;
 using Client.Game.InGame.UI.Tooltip;
@@ -94,7 +95,7 @@ namespace Client.WebUiHost.Game
             // 設置モードHUDを既存の設置状態へ接続する
             // Connect the placement HUD to the existing placement state
             var placementModeTopic = new PlacementModeTopic(hub, resolver.Resolve<PlaceSystemStateController>(),
-                resolver.Resolve<PlaceBlockState>());
+                resolver.Resolve<PlacementHeightOffset>());
             hub.RegisterTopic(PlacementModeTopic.TopicName, placementModeTopic);
             // 共通HUDを各状態通知へ接続
             // Connect the common HUD to each state's notifications

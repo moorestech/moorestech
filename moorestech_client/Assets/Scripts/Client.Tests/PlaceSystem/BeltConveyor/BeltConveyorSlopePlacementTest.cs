@@ -55,7 +55,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(holdingBlockId);
             Assert.AreEqual(BeltSlopeGrade.Up, holdingBlock.SlopeGrade);
 
-            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState());
+            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState(new PlacementHeightOffset()));
             var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(2, 0, 2), BlockDirection.East, holdingBlock, out _, out var beltReasons);
 
             Assert.AreEqual(5, placeInfos.Count);
@@ -76,7 +76,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
 
             RegisterExistingBlock(new Vector3Int(1, 1, 0));
 
-            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState());
+            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState(new PlacementHeightOffset()));
             var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(2, 0, 0), BlockDirection.East, holdingBlock, out var blockCauses, out _);
 
             Assert.IsTrue(placeInfos[0].Placeable);
@@ -97,7 +97,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(straightBlockId);
             Assert.IsNull(holdingBlock.SlopeGrade);
 
-            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState());
+            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState(new PlacementHeightOffset()));
             var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(2, 0, 0), BlockDirection.East, holdingBlock, out _, out _);
 
             Assert.AreEqual(3, placeInfos.Count);
@@ -113,7 +113,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(holdingBlockId);
             Assert.AreEqual(BeltSlopeGrade.Down, holdingBlock.SlopeGrade);
 
-            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState());
+            var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, new CommonBlockPlaceDragState(new PlacementHeightOffset()));
             var placeInfos = runBuilder.Build(Vector3Int.zero, new Vector3Int(2, 0, 0), BlockDirection.East, holdingBlock, out _, out _);
 
             Assert.IsTrue(placeInfos.All(info => info.BlockId == holdingBlockId));

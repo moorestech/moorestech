@@ -15,7 +15,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下未登録の解放は設置送信へ進まず高さも書き換えない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
 
             Assert.IsFalse(dragState.EndDrag());
             Assert.AreEqual(0, dragState.HeightOffset);
@@ -24,7 +24,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下済みの解放はドラッグ終了として成立し高さを開始値へ戻す()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
 
             Assert.IsTrue(dragState.EndDrag());
@@ -34,7 +34,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 同じ解放を二度受けても二度目は成立しない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
 
             Assert.IsTrue(dragState.EndDrag());
@@ -44,7 +44,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下から解放までが進行中のドラッグとして数えられる()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
 
             Assert.IsFalse(dragState.IsDragging);
 
@@ -58,7 +58,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下位置は開始点として返り解放後は現在位置へ戻る()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var cursorCell = new Vector3Int(5, 0, 5);
 
             Assert.AreEqual(cursorCell, dragState.ResolveDragStartCell(cursorCell));
@@ -73,7 +73,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 別ブロックへ切替えると高さオフセットが0へ戻る()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.SyncSelectedBlock(new BlockId(1));
             dragState.AdjustHeightOffset(5);
 
@@ -85,7 +85,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 同じブロックの再選択では高さオフセットが保たれる()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.SyncSelectedBlock(new BlockId(1));
             dragState.AdjustHeightOffset(5);
 
@@ -95,14 +95,14 @@ namespace Client.Tests.PlaceSystem.Common
         }
 
         [Test]
-        public void ClearDragを挟んでも同一ブロックなら高さオフセットは保たれる()
+        public void Enable時のClearDragは同一ブロックなら高さオフセットを保つ()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.SyncSelectedBlock(new BlockId(1));
             dragState.AdjustHeightOffset(5);
 
-            // 配置システムを跨いだDisable相当の解除。高さの基準はブロック切替だけが動かす
-            // Simulates the Disable-equivalent teardown across place systems; only a block switch moves the height baseline
+            // Enable時のドラッグ解除は高さを動かさない。基準はブロック切替だけが動かす
+            // ClearDrag on enable does not move the height; only a block switch moves the baseline
             dragState.ClearDrag();
             dragState.SyncSelectedBlock(new BlockId(1));
 
@@ -112,7 +112,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void ドラッグ中に上げた高さは解放で開始値へ戻る()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.SyncSelectedBlock(new BlockId(1));
             dragState.AdjustHeightOffset(2);
             dragState.BeginDrag(new Vector3Int(0, 0, 0), PlacementHitSurfaceKind.Ground);
