@@ -77,7 +77,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
             _dragState.UpdateHeightOffsetByInput();
-            _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
+            _currentBlockDirection = BlockPlaceRotationInput.RotateDirection(_currentBlockDirection);
             GroundClickControl(target, feedback);
         }
 

@@ -33,9 +33,15 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
             }
         }
         
-        public static void Resolve(Vector3Int originPosition, BlockDirection placeDirection, Vector3Int anchorBlockSize, IReadOnlyList<ChainGhost> chain, IExistingBlockQuery existingBlockQuery, IChainGroundQuery groundQuery, bool groundBased, int heightOffset, List<ResolvedChainGhost> results)
+        // 戻り値はレイアウト全体の不可原因。None以外ならゴーストは解決せず results は空
+        // Returns the layout-wide block reason; anything but None leaves results empty with no ghost resolved
+        public static ChainCellBlockReason Resolve(Vector3Int originPosition, BlockDirection placeDirection, Vector3Int anchorBlockSize, IReadOnlyList<ChainGhost> chain, IExistingBlockQuery existingBlockQuery, IChainGroundQuery groundQuery, bool groundBased, int heightOffset, List<ResolvedChainGhost> results)
         {
             results.Clear();
+
+            // 上下向きの設置では連結ゴーストの向きが12方位に収まらないため、レイアウトごと不可にする
+            // An up/down placement would rotate the chain ghosts outside the 12 directions, so the whole layout is rejected
+            if (!AnchorRelativeDirectionUtil.IsSupportedAnchorDirection(placeDirection)) return ChainCellBlockReason.VerticalAnchor;
             
             // 設置後にチュートリアルが使う ConvertBlockLocalToWorldCell と同一の換算で解決し、事前検査と実配置のズレを防ぐ
             // Resolve with the same conversion the tutorial uses after placement, so the pre-check and the real layout never disagree
@@ -48,6 +54,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
                 var blockReason = ResolveBlockReason(ghost, worldCell, worldDirection, ghostBlockSize);
                 results.Add(new ResolvedChainGhost(ghost, worldCell, worldDirection, blockReason));
             }
+            return ChainCellBlockReason.None;
 
             #region Internal
 

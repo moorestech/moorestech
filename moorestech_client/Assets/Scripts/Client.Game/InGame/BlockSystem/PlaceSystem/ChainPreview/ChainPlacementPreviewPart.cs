@@ -40,7 +40,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
                 return;
             }
             
-            ChainLayoutResolver.Resolve(cursorPlaceInfo.Position, cursorPlaceInfo.Direction, holdingBlockMaster.BlockSize, chain, _existingBlockQuery, _groundQuery, groundBased, heightOffset, _resolvedBuffer);
+            // レイアウトごと不可（上下向き）ならゴーストは出さない。理由はツールチップ側が出す
+            // A layout-wide rejection (facing up/down) shows no ghosts; the tooltip carries the reason
+            if (ChainLayoutResolver.Resolve(cursorPlaceInfo.Position, cursorPlaceInfo.Direction, holdingBlockMaster.BlockSize, chain, _existingBlockQuery, _groundQuery, groundBased, heightOffset, _resolvedBuffer) != ChainCellBlockReason.None)
+            {
+                Hide();
+                return;
+            }
+
             for (var i = 0; i < _resolvedBuffer.Count; i++)
             {
                 var resolved = _resolvedBuffer[i];

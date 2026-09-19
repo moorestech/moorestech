@@ -12,6 +12,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative
     {
         private static readonly BlockDirection[] AllDirections = (BlockDirection[])Enum.GetValues(typeof(BlockDirection));
 
+        // 水平アンカーならどのローカル向きも12方位へ回せる。上下向きアンカーは相対レイアウトの基準にしない
+        // A horizontal anchor maps every local direction into the 12 directions; an up/down anchor is never a relative-layout basis
+        public static bool IsSupportedAnchorDirection(BlockDirection anchorDirection)
+        {
+            return anchorDirection is BlockDirection.North or BlockDirection.East or BlockDirection.South or BlockDirection.West;
+        }
+
         public static BlockDirection RotateByAnchor(BlockDirection localDirection, BlockDirection anchorDirection)
         {
             // アンカー姿勢とローカル姿勢を合成する

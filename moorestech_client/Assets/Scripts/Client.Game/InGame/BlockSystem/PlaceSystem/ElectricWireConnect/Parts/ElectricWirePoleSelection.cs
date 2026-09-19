@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Control;
 using Client.Input;
 using Core.Master;
@@ -80,8 +81,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ElectricWireConnect.Parts
 
             // 通常設置と同じ回転キー（+Shiftで垂直回転）を適用する
             // Apply the same rotate key as normal placement (vertical with Shift)
-            if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
-                CurrentDirection = HybridInput.GetKey(KeyCode.LeftShift) ? CurrentDirection.VerticalRotation() : CurrentDirection.HorizonRotation();
+            CurrentDirection = BlockPlaceRotationInput.RotateDirection(CurrentDirection);
 
             #region Internal
 

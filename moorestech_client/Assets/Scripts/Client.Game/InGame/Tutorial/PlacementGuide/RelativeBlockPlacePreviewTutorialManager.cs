@@ -22,6 +22,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
         
         private readonly Dictionary<Guid, RelativeBlockPlacePreviewEntry> _entries = new();
         private readonly List<Guid> _completedBuffer = new();
+        private readonly HashSet<Guid> _verticalAnchorWarnedTutorials = new();
         
         private BlockGameObjectDataStore _blockGameObjectDataStore;
         private BlockPlacePreviewTutorialManager _blockPlacePreviewTutorialManager;
@@ -87,7 +88,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
                 // アンカーは撤去や増設で変わるため毎フレーム最寄りを取り直す（VeinPin と同じ追従）
                 // The anchor can be removed or duplicated, so re-pick the nearest one every frame (same tracking as VeinPin)
                 var anchor = _blockGameObjectDataStore.SearchNearestBlock(entry.AnchorBlockGuid, playerPosition);
-                if (anchor == null)
+                if (anchor == null || !IsSupportedAnchor(anchor, entry))
                 {
                     entry.SetTarget(null, null);
                     _blockPlacePreviewTutorialManager.ClearTarget(entry.TutorialGuidString);
@@ -112,6 +113,21 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
             }
             
             foreach (var guid in _completedBuffer) Complete(guid);
+
+            #region Internal
+
+            // 上下向きアンカーは相対ゴーストを12方位へ回せないため未検出扱いにし、理由は対象ごと1回だけ出す
+            // An up/down anchor cannot rotate the relative ghost into the 12 directions, so it counts as not found and logs once per tutorial
+            bool IsSupportedAnchor(BlockGameObject anchor, RelativeBlockPlacePreviewEntry entry)
+            {
+                var anchorDirection = anchor.BlockPosInfo.BlockDirection;
+                if (AnchorRelativeDirectionUtil.IsSupportedAnchorDirection(anchorDirection)) return true;
+
+                if (_verticalAnchorWarnedTutorials.Add(entry.TutorialGuid)) Debug.LogWarning($"[RelativeBlockPlacePreview] The nearest anchor faces {anchorDirection}, so the relative ghost is hidden. tutorial:{entry.TutorialGuidString} anchor:{anchor.BlockPosInfo.OriginalPos}");
+                return false;
+            }
+
+            #endregion
         }
     }
 }

@@ -37,8 +37,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     continue;
                 }
                 
-                ChainLayoutResolver.Resolve(placeInfo.Position, placeInfo.Direction, holdingBlockMaster.BlockSize, chain, existingBlockQuery, groundQuery, groundBased, heightOffset, ResolvedBuffer);
-                var blockReason = FindFirstBlockReason();
+                var layoutReason = ChainLayoutResolver.Resolve(placeInfo.Position, placeInfo.Direction, holdingBlockMaster.BlockSize, chain, existingBlockQuery, groundQuery, groundBased, heightOffset, ResolvedBuffer);
+                var blockReason = layoutReason != ChainCellBlockReason.None ? layoutReason : FindFirstBlockReason();
                 if (blockReason == ChainCellBlockReason.None) continue;
 
                 placeInfo.Placeable = false;
