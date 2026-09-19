@@ -14,6 +14,17 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative
 
         public static BlockDirection RotateByAnchor(BlockDirection localDirection, BlockDirection anchorDirection)
         {
+            if (TryRotateByAnchor(localDirection, anchorDirection, out var worldDirection)) return worldDirection;
+
+            // 12方位で表せない合成は無言で潰さず設定ミスとして落とす
+            // A composition outside the 12 directions is a misconfiguration, not something to swallow
+            throw new InvalidOperationException($"Composed block direction is not representable. local:{localDirection} anchor:{anchorDirection}");
+        }
+
+        // 上下向きアンカー×水平非Northローカル等、12方位で表せない合成は false を返す
+        // Returns false for compositions outside the 12 directions, such as an up/down anchor with a horizontal non-North local
+        public static bool TryRotateByAnchor(BlockDirection localDirection, BlockDirection anchorDirection, out BlockDirection worldDirection)
+        {
             // アンカー姿勢とローカル姿勢を合成する
             // Compose the anchor rotation with the local rotation to obtain the world orientation
             var worldRotation = anchorDirection.GetRotation() * localDirection.GetRotation();
@@ -27,12 +38,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative
                 var candidateRotation = candidate.GetRotation();
                 if (Vector3Int.RoundToInt(candidateRotation * Vector3.forward) != worldForward) continue;
                 if (Vector3Int.RoundToInt(candidateRotation * Vector3.up) != worldUp) continue;
-                return candidate;
+                worldDirection = candidate;
+                return true;
             }
 
-            // 垂直アンカー×垂直ローカル等、12方位で表せない合成は無言で潰さず設定ミスとして落とす
-            // A composition outside the 12 directions (vertical anchor times vertical local) is a misconfiguration, not something to swallow
-            throw new InvalidOperationException($"Composed block direction is not representable. local:{localDirection} anchor:{anchorDirection}");
+            worldDirection = default;
+            return false;
         }
     }
 }

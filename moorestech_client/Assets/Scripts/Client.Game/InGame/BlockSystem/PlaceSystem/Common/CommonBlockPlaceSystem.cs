@@ -112,7 +112,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         {
             ApplyPickedDirection();
             _dragState.UpdateHeightOffsetByInput();
-            BlockDirectionControl();
+            _currentBlockDirection = BlockPlaceRotationInput.RotateDirection(_currentBlockDirection);
             GroundClickControl();
 
             #region Internal
@@ -122,17 +122,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // スポイトでピックした向きを選択変化時に反映する
                 // Apply the eyedropped block direction when the selection changes
                 if (isSelectionChanged && target.PickedDirection.HasValue) _currentBlockDirection = target.PickedDirection.Value;
-            }
-
-            void BlockDirectionControl()
-            {
-                if (InputManager.Playable.BlockPlaceRotation.GetKeyDown)
-                    // 東西南北の向きを変更する
-                    _currentBlockDirection = _currentBlockDirection.HorizonRotation();
-
-                //TODo シフトはインプットマネージャーに入れる
-                if (HybridInput.GetKey(KeyCode.LeftShift) && InputManager.Playable.BlockPlaceRotation.GetKeyDown)
-                    _currentBlockDirection = _currentBlockDirection.VerticalRotation();
             }
 
             void GroundClickControl()

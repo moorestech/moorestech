@@ -14,6 +14,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
             {
                 ChainCellBlockReason.GroundNotFound => LocalizationKeys.Ui.Tooltip.PlaceChainGroundNotFound,
                 ChainCellBlockReason.GroundHeightMismatch => LocalizationKeys.Ui.Tooltip.PlaceChainGroundHeightMismatch,
+                ChainCellBlockReason.VerticalAnchor => LocalizationKeys.Ui.Tooltip.PlaceChainVerticalAnchor,
                 // 重なりと、原因が付かないまま不可になった場合は占有の文言に寄せる
                 // Overlap, and any reason that arrives without a cause, fall back to the occupied wording
                 _ => LocalizationKeys.Ui.Tooltip.PlaceChainBlocked,

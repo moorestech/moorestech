@@ -5,5 +5,5 @@ public class LocalizationCompileRequester
 {
 // CSV更新時はこの印もcommit
 // Commit this marker with CSV changes
-    private const string dummyText = "7A-32-A1-1D-F0-F6-4B-3D-DC-D8-A4-70-48-97-DC-17";
+    private const string dummyText = "C4-CE-92-E7-8D-CE-2A-5E-E7-87-B7-89-6A-F3-1C-B8";
 }

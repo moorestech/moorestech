@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative;
 using Client.Game.InGame.Player;
+using Game.Block.Interface;
 using Mooresmaster.Model.ChallengesModule;
 using UniRx;
 using UnityEngine;
@@ -87,7 +88,7 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
                 // アンカーは撤去や増設で変わるため毎フレーム最寄りを取り直す（VeinPin と同じ追従）
                 // The anchor can be removed or duplicated, so re-pick the nearest one every frame (same tracking as VeinPin)
                 var anchor = _blockGameObjectDataStore.SearchNearestBlock(entry.AnchorBlockGuid, playerPosition);
-                if (anchor == null)
+                if (anchor == null || !TryResolveWorldDirection(anchor, entry, out var worldDirection))
                 {
                     entry.SetTarget(null, null);
                     _blockPlacePreviewTutorialManager.ClearTarget(entry.TutorialGuidString);
@@ -97,7 +98,6 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
                 // アンカー向きで回したローカル値を使う
                 // Use the anchor-rotated local cell and direction (same conversion as gearConnects)
                 var targetCell = AnchorRelativeOriginUtil.ResolveWorldOrigin(anchor.BlockPosInfo, entry.Offset, entry.LocalDirection, entry.TargetBlockSize);
-                var worldDirection = AnchorRelativeDirectionUtil.RotateByAnchor(entry.LocalDirection, anchor.BlockPosInfo.BlockDirection);
                 entry.SetTarget(targetCell, worldDirection);
 
                 // アンカーが動いた先に既に同じ向きで対象ブロックがあれば、設置イベントは来ないのでここで完了させる
@@ -112,6 +112,26 @@ namespace Client.Game.InGame.Tutorial.PlacementGuide
             }
             
             foreach (var guid in _completedBuffer) Complete(guid);
+
+            #region Internal
+
+            // 表せないアンカー（上下向き等）は未検出扱いにし、理由は縮退に入るたび1回だけ出す
+            // An unrepresentable anchor (such as one facing up/down) counts as not found, logging once each time it degrades
+            bool TryResolveWorldDirection(BlockGameObject anchor, RelativeBlockPlacePreviewEntry entry, out BlockDirection worldDirection)
+            {
+                var anchorDirection = anchor.BlockPosInfo.BlockDirection;
+                if (AnchorRelativeDirectionUtil.TryRotateByAnchor(entry.LocalDirection, anchorDirection, out worldDirection))
+                {
+                    entry.SetReportedUnrepresentableAnchor(false);
+                    return true;
+                }
+
+                if (!entry.HasReportedUnrepresentableAnchor) Debug.LogWarning($"[RelativeBlockPlacePreview] The nearest anchor faces {anchorDirection}, so the relative ghost is hidden. tutorial:{entry.TutorialGuidString} anchor:{anchor.BlockPosInfo.OriginalPos}");
+                entry.SetReportedUnrepresentableAnchor(true);
+                return false;
+            }
+
+            #endregion
         }
     }
 }

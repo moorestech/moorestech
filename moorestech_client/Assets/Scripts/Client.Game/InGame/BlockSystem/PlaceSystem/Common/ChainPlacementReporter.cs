@@ -37,8 +37,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     continue;
                 }
                 
-                ChainLayoutResolver.Resolve(placeInfo.Position, placeInfo.Direction, holdingBlockMaster.BlockSize, chain, existingBlockQuery, groundQuery, groundBased, heightOffset, ResolvedBuffer);
-                var blockReason = FindFirstBlockReason();
+                var blockReason = ChainLayoutResolver.Resolve(placeInfo.Position, placeInfo.Direction, holdingBlockMaster.BlockSize, chain, existingBlockQuery, groundQuery, groundBased, heightOffset, ResolvedBuffer);
                 if (blockReason == ChainCellBlockReason.None) continue;
 
                 placeInfo.Placeable = false;
@@ -47,19 +46,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // The first blocked cell's reason becomes the wording, so an occupied cell and a terrain mismatch never claim the same thing
                 if (i == cursorIndex) feedback.Add(new TooltipLine(ChainCellBlockReasonTooltipKey.ToKey(blockReason)));
             }
-
-            #region Internal
-
-            ChainCellBlockReason FindFirstBlockReason()
-            {
-                foreach (var resolved in ResolvedBuffer)
-                {
-                    if (resolved.BlockReason != ChainCellBlockReason.None) return resolved.BlockReason;
-                }
-                return ChainCellBlockReason.None;
-            }
-            
-            #endregion
         }
     }
 }

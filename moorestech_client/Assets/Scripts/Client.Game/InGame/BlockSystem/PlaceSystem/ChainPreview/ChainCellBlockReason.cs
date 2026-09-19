@@ -21,5 +21,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.ChainPreview
         // 地表はあるが設置Yと合わない（埋まり/浮き）
         // Ground exists but its height disagrees with the placement Y (buried or floating)
         GroundHeightMismatch,
+
+        // 上下向き設置で連結ゴーストの向きが12方位に収まらない
+        // Facing up/down rotates a chain ghost outside the 12 directions
+        VerticalAnchor,
     }
 }

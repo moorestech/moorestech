@@ -5,6 +5,7 @@ using System.Reflection;
 using Client.Game.InGame.Tutorial;
 using Client.Game.InGame.Tutorial.PlacementGuide;
 using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util.AnchorRelative;
 using Core.Master;
 using Cysharp.Threading.Tasks;
 using Game.Block.Interface;
@@ -64,7 +65,7 @@ namespace Client.Tests.EditModeInPlayingTest
                 PlaceBlock("無限歯車ジェネレーター", AnchorPosition, BlockDirection.North);
                 await WaitBlockGameObjectSpawn(AnchorPosition);
 
-                manager.ApplyTutorial(CreateTutorial("無限歯車ジェネレーター", "シャフト", Offset, "North"));
+                manager.ApplyTutorial(RelativeBlockPlacePreviewTestSupport.CreateTutorial("無限歯車ジェネレーター", "シャフト", Offset, "North"));
 
                 // ゴーストはAddressableの非同期ロード後に立つため、生成を待ってから座標を見る
                 // The ghost appears after an async Addressable load, so wait for it before reading the position
@@ -116,7 +117,7 @@ namespace Client.Tests.EditModeInPlayingTest
 
                 // Addressableロードが終わる前に完了させる。1フレームしか進めないのがこのテストの肝
                 // Complete before the Addressable load finishes; advancing only one frame is the point of this test
-                var view = manager.ApplyTutorial(CreateTutorial("無限歯車ジェネレーター", "シャフト", Offset, "North"));
+                var view = manager.ApplyTutorial(RelativeBlockPlacePreviewTestSupport.CreateTutorial("無限歯車ジェネレーター", "シャフト", Offset, "North"));
                 await UniTask.Yield();
                 view.CompleteTutorial();
 
@@ -130,43 +131,6 @@ namespace Client.Tests.EditModeInPlayingTest
             }
 
             #endregion
-        }
-
-        // テストmodのchallenges.jsonへ相対座標プレビューのチュートリアルを1件差し込み、生成型として取り出す
-        // Insert one relative-placement-preview tutorial into the test mod's challenges.json and take it back as the generated type
-        private static TutorialsElement CreateTutorial(string anchorBlockName, string blockName, Vector3Int offset, string direction)
-        {
-            var path = Path.Combine(EditModeInPlayingTestServerDirectoryPath, "mods", "EditModeInPlayingTestMod", "master", "challenges.json");
-            var json = JObject.Parse(File.ReadAllText(path));
-            var challenge = (JObject)json["data"][0]["challenges"][0];
-            var tutorials = (JArray)challenge["tutorials"];
-            tutorials.Clear();
-            tutorials.Add(new JObject
-            {
-                ["tutorialGuid"] = Guid.NewGuid().ToString("D"),
-                ["tutorialType"] = "relativeBlockPlacePreview",
-                ["tutorialParam"] = new JObject
-                {
-                    ["anchorBlockGuid"] = FindBlockGuid(anchorBlockName).ToString("D"),
-                    ["blockGuid"] = FindBlockGuid(blockName).ToString("D"),
-                    ["offset"] = new JArray(offset.x, offset.y, offset.z),
-                    ["blockDirection"] = direction,
-                    ["message"] = "relative preview test",
-                },
-            });
-            var master = new ChallengeMaster(json);
-            master.Initialize();
-            return master.GetChallenge(Guid.Parse(challenge["challengeGuid"].Value<string>())).Tutorials[0];
-        }
-
-        private static Guid FindBlockGuid(string blockName)
-        {
-            foreach (var blockId in MasterHolder.BlockMaster.GetBlockAllIds())
-            {
-                var master = MasterHolder.BlockMaster.GetBlockMaster(blockId);
-                if (master.Name == blockName) return master.BlockGuid;
-            }
-            throw new InvalidOperationException($"block not found in the test mod: {blockName}");
         }
     }
 }
