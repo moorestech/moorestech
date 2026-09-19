@@ -138,22 +138,19 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             await UniTask.Delay(1000);
         }
         
-        public static IBlock PlaceBlock(string blockName, Vector3Int position, BlockDirection direction)
+        public static BlockId FindBlockIdByName(string blockName)
         {
-            var blockId = new BlockId(-1);
             foreach (var id in MasterHolder.BlockMaster.GetBlockAllIds())
             {
-                var blockMaster = MasterHolder.BlockMaster.GetBlockMaster(id);
-                if (blockMaster.Name != blockName) continue;
-                blockId = id;
+                if (MasterHolder.BlockMaster.GetBlockMaster(id).Name == blockName) return id;
             }
-            if (blockId.AsPrimitive() == -1)
-            {
-                throw new ArgumentException($"Block not found: {blockName}");
-            }
-            
+            throw new ArgumentException($"Block not found: {blockName}");
+        }
+        
+        public static IBlock PlaceBlock(string blockName, Vector3Int position, BlockDirection direction)
+        {
             ServerContext.WorldBlockDatastore.TryAddBlock(
-                blockId,
+                FindBlockIdByName(blockName),
                 position,
                 direction, Array.Empty<BlockCreateParam>(), out var block);
             

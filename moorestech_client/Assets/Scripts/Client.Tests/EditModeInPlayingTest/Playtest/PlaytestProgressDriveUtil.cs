@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Context;
+using Client.Tests.EditModeInPlayingTest.Util;
 using Core.Master;
 using Game.Block.Interface;
 using Game.Challenge;
@@ -23,19 +24,8 @@ namespace Client.Tests.EditModeInPlayingTest.Playtest
         // Goes through the same send port as a build-mode confirmation; placing on the server directly would not count as this player's placement (F16)
         public static void PlaceBlockAsLocalPlayer(string blockName, Vector3Int position)
         {
-            var placeInfo = new PlaceInfo { Position = position, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = FindBlockId(), Placeable = true };
+            var placeInfo = new PlaceInfo { Position = position, Direction = BlockDirection.North, VerticalDirection = BlockVerticalDirection.Horizontal, BlockId = EditModeInPlayingTestUtil.FindBlockIdByName(blockName), Placeable = true };
             Assert.IsTrue(PlaceBlockProtocolSender.SendPlaceBlockProtocol(new List<PlaceInfo> { placeInfo }), "設置確定が送信されていない");
-
-            #region Internal
-
-            BlockId FindBlockId()
-            {
-                foreach (var id in MasterHolder.BlockMaster.GetBlockAllIds())
-                    if (MasterHolder.BlockMaster.GetBlockMaster(id).Name == blockName) return id;
-                throw new ArgumentException($"Block not found: {blockName}");
-            }
-
-            #endregion
         }
 
         // 素材を本人のインベントリへ入れてからクライアントのクラフト要求を送る。成立したクラフトだけが本人へ届く
