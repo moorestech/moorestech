@@ -38,7 +38,7 @@ namespace Tests.CombinedTest.Core.Fluid
             // Get parameters
             var pumpParam = (ElectricPumpBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.ElectricPump).BlockParam;
             var requiredPower = new ElectricPower(pumpParam.RequiredPower);
-            var fullRatePerSec = pumpParam.GenerateFluid.items.Sum(g => g.Amount / Math.Max(0.0001f, g.GenerateTime));
+            var fullRatePerSec = pumpParam.GenerateFluid.items.Sum(g => g.Amount / g.GenerateTime);
 
             const float testSeconds = 4f;
 
