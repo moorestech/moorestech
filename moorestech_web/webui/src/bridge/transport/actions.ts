@@ -6,8 +6,6 @@ import type { ActionPayloads } from "./protocol";
 // The rejection code meaning "already answered" for a full-screen gate; the gate picks its copy from this single table
 export const GATE_ALREADY_ANSWERED_ERRORS = {
   "event_mode.select_language": "already_selected",
-  "playtest.crash_report.respond": "already_responded",
-  "playtest.consent.acknowledge": "already_acknowledged",
 } as const;
 
 export type GateAnswerActionType = keyof typeof GATE_ALREADY_ANSWERED_ERRORS;
@@ -34,8 +32,6 @@ export const BENIGN_ERRORS: Partial<Record<keyof ActionPayloads, ReadonlySet<str
   // 全画面ゲートの二重応答はサーバーが答えを持っており、ゲートが受理として扱う。トーストはゲートの下に隠れて誤報になる
   // A second gate answer finds the server already holding one and the gate treats it as accepted; a toast would be a hidden false alarm
   "event_mode.select_language": new Set([GATE_ALREADY_ANSWERED_ERRORS["event_mode.select_language"]]),
-  "playtest.crash_report.respond": new Set([GATE_ALREADY_ANSWERED_ERRORS["playtest.crash_report.respond"]]),
-  "playtest.consent.acknowledge": new Set([GATE_ALREADY_ANSWERED_ERRORS["playtest.consent.acknowledge"]]),
 };
 
 // 既定の待ち時間。UI操作は即応するので、これを超えたら通信が壊れている
@@ -46,11 +42,8 @@ export const DEFAULT_ACTION_TIMEOUT_MS = 5000;
 // Only actions known to take longer than the default get their own wait
 // bug_report.submit は ffmpeg 結合・未追跡ファイルのコピー・git 4回起動を待つ。既定では成功を失敗と表示していた
 // bug_report.submit waits on ffmpeg concat, untracked file copies and four git spawns; the default reported successes as failures
-// playtest.crash_report.respond は録画リング・スナップショット・パケットログ・ダンプの同期コピーを待つ（実測28MB級）
-// playtest.crash_report.respond waits on synchronous copies of the recording ring, snapshot, packet log and dump (28MB class in practice)
 export const ACTION_TIMEOUTS_MS: Partial<Record<keyof ActionPayloads, number>> = {
   "bug_report.submit": 120000,
-  "playtest.crash_report.respond": 120000,
 };
 
 export function shouldToastFailure(type: keyof ActionPayloads, error: string | undefined): boolean {

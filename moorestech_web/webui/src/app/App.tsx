@@ -21,7 +21,6 @@ import { DictionaryIndependentText, L, useI18n } from "@/shared/i18n";
 import { SkitPresentation, SkitTransition } from "@/features/skit";
 import { KeyControlHintHud, TutorialOverlay, WorldPinOverlay } from "@/features/tutorial";
 import { EventLanguageGate } from "@/features/eventLanguageGate";
-import { CrashReportGate, PlaytestConsentGate } from "@/features/playtestGate";
 import { useConnectionStatus, useTopicSelector, Topics, UiStateNames } from "@/bridge";
 import { screenAllowsGrab, screenAllowsSkitInput, screenForUiState, screenShowsAlwaysOnHud, screenShowsBackdrop, screenShowsPauseMenu, screenShowsTrainHud } from "@/shared/uiState";
 import { useUiScaleStore } from "@/shared/uiScale";
@@ -161,13 +160,11 @@ export default function App() {
           </Overlay>
         </Portal>
       )}
-      {/* 開始ゲート3種。再接続表示より前へ出し、待機中の操作を全て塞ぐ */}
-      {/* The three start gates; they sit ahead of the reconnect overlay and block every input while waiting */}
-      {/* 同時に待った場合は C# が配る precedence の小さい1枚だけを見せる */}
-      {/* When several wait at once, only the one with the smallest C#-supplied precedence is shown */}
+      {/* 開始ゲート（出展モードの言語選択）。再接続表示より前へ出し、待機中の操作を全て塞ぐ */}
+      {/* The start gate (event mode's language selection); it sits ahead of the reconnect overlay and blocks every input while waiting */}
+      {/* プレイテストの同意と前回異常終了の確認はタイトル（uGUI）へ移した（ADR 0065） */}
+      {/* The playtest consent and previous-crash confirmation moved to the title (uGUI) (ADR 0065) */}
       <EventLanguageGate visible={frontmostStartGate === "eventLanguage"} />
-      <PlaytestConsentGate visible={frontmostStartGate === "consent"} />
-      <CrashReportGate visible={frontmostStartGate === "crashReport"} />
     </div>
   );
 }

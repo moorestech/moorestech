@@ -144,10 +144,6 @@
   /* Bug-report textarea in the pause menu; fixed lengths for the inner panel width (420−32×2) and three lines */
   --bug-report-textarea-width: 356px;
   --bug-report-textarea-height: 72px;
-  /* 前回異常終了ゲートの記述欄。全画面に載るためポーズメニュー欄より広く、4行ぶんを固定長で持つ */
-  /* The previous-crash gate's textarea; wider than the pause-menu one since it sits full-screen, with four lines as fixed lengths */
-  --playtest-gate-textarea-width: 480px;
-  --playtest-gate-textarea-height: 96px;
   /* 全画面ゲートの見出し・本文の最大幅。無制約だと画面端まで達し左右の文字が余白ゼロで接触する */
   /* Max width for a full-screen gate's heading and body; unconstrained they reach the screen edge with zero side margin */
   --full-screen-gate-text-width: 900px;

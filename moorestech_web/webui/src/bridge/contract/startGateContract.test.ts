@@ -1,5 +1,5 @@
-// 開始ゲート3枚のワイヤ契約。待機topicの形と、二重応答の拒否コードの扱いをここに集める
-// The wire contract of the three start gates: the waiting topic shape and how double-answer rejection codes are handled
+// 開始ゲートのワイヤ契約。待機topicの形と、二重応答の拒否コードの扱いをここに集める
+// The wire contract of the start gates: the waiting topic shape and how double-answer rejection codes are handled
 import { describe, expect, it } from "vitest";
 import { parseTopicPayload } from "./validators";
 import { BENIGN_ERRORS, GATE_ALREADY_ANSWERED_ERRORS } from "../transport/actions";
@@ -17,8 +17,7 @@ describe("start gate topic schema", () => {
   // A wait without an order cannot decide which gate shows when several wait at once
   it("precedence の欠けた開始ゲートの待機を拒否する", () => {
     expect(parseTopicPayload(Topics.eventLanguageGate, { waiting: true }).valid).toBe(false);
-    expect(parseTopicPayload(Topics.consentGate, { waiting: true }).valid).toBe(false);
-    expect(parseTopicPayload(Topics.crashReportGate, { waiting: true, precedence: -1 }).valid).toBe(false);
+    expect(parseTopicPayload(Topics.eventLanguageGate, { waiting: true, precedence: -1 }).valid).toBe(false);
   });
 });
 

@@ -19,8 +19,8 @@ const copy: GateAnswerCopy = { answerAccepted: "accepted", notClosed: "notClosed
 let pressAnswer: (() => Promise<void>) | undefined;
 
 function Harness() {
-  const { answer } = useGateAnswer("playtest.consent.acknowledge", copy);
-  pressAnswer = () => answer({});
+  const { answer } = useGateAnswer("event_mode.select_language", copy);
+  pressAnswer = () => answer({ locale: "ja" });
   return null;
 }
 
@@ -53,6 +53,6 @@ describe("useGateAnswer", () => {
     expect(vi.getTimerCount()).toBe(0);
     await act(async () => { vi.advanceTimersByTime(10000); });
     expect(warn).not.toHaveBeenCalled();
-    expect(info).toHaveBeenCalledWith("[playtest.consent.acknowledge] gate closed before the answer settled: accepted");
+    expect(info).toHaveBeenCalledWith("[event_mode.select_language] gate closed before the answer settled: accepted");
   });
 });
