@@ -1,5 +1,5 @@
-// 開始ゲートのワイヤ契約。待機topicの形と、二重応答の拒否コードの扱いをここに集める
-// The wire contract of the start gates: the waiting topic shape and how double-answer rejection codes are handled
+// 開始ゲートのワイヤ契約テスト
+// The start gate wire contract tests
 import { describe, expect, it } from "vitest";
 import { parseTopicPayload } from "./validators";
 import { BENIGN_ERRORS, GATE_ALREADY_ANSWERED_ERRORS } from "../transport/actions";

@@ -50,15 +50,15 @@ namespace Client.PlaytestReceiver.Http.Responses
 
             // 誰の記録かを載せられない200で通すと、識別が空のまま報告と進行記録が走る。欠落も空文字も許可しない（ADR 0065）
             // A 200 that cannot name the tester would run reports and progress records with no identity; neither a missing nor an empty value is accepted (ADR 0065)
-            if (string.IsNullOrEmpty(steamId))
+            if (string.IsNullOrWhiteSpace(steamId))
             {
                 Debug.LogWarning("[PlaytestReceiver] session response lacked steamId");
                 return null;
             }
 
-            // トークンの無い200で通すと、照合だけ通ってアップロードが全滅する。欠落は許可しない
-            // A 200 without a token would pass the gate and then fail every upload, so a missing field is refused
-            if (string.IsNullOrEmpty(token))
+            // トークンの無い200で通すと、照合だけ通ってアップロードが全滅する。欠落・空白は許可しない
+            // A 200 without a token would pass the gate and then fail every upload, so a missing or blank field is refused
+            if (string.IsNullOrWhiteSpace(token))
             {
                 Debug.LogWarning("[PlaytestReceiver] session response lacked token");
                 return null;

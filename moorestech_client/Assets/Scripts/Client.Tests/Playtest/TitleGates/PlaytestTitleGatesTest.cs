@@ -93,5 +93,19 @@ namespace Client.Tests.Playtest.TitleGates
             Assert.AreEqual(PlaytestTitleGateStep.CrashReport, PlaytestTitleGates.Step.Value);
             Assert.AreEqual(1, uploads.RequestCount);
         }
+
+        [Test]
+        public void 開発者モードは既読でも送信要求を出さない()
+        {
+            // receiverSessionAllowedがfalse（開発者モード）なら、了解済みでも送信は要求されない
+            // With receiverSessionAllowed false (developer mode), no upload is requested even when consent is already acknowledged
+            PlaytestConsentFlag.Acknowledge();
+            var uploads = new RecordingUploadRequester();
+
+            PlaytestTitleGates.Compose(TestPreviousSessionArtifacts.Clean(), false, uploads, null).RunAsync(CancellationToken.None).Forget();
+
+            Assert.AreEqual(PlaytestTitleGateStep.Passed, PlaytestTitleGates.Step.Value);
+            Assert.AreEqual(0, uploads.RequestCount);
+        }
     }
 }

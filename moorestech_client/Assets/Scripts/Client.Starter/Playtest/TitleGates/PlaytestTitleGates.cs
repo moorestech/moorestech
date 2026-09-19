@@ -35,7 +35,7 @@ namespace Client.Starter.Playtest.TitleGates
             if (verdict.IsBlocked) throw new InvalidOperationException($"PlaytestTitleGates: 照合を通っていない結果（{verdict.Status}）ではタイトルのゲートを始めません");
 
             var artifacts = PreviousSessionStartupTasks.SalvageAtTitle();
-            var sequence = Compose(artifacts, verdict.Status == PlaytestGateStatus.Allowed, uploadRequester, PlaytestStartGateBypass.UnattendedReason());
+            var sequence = Compose(artifacts, verdict.TryGetAllowedSession(out _), uploadRequester, PlaytestStartGateBypass.UnattendedReason());
             sequence.RunAsync(ct).Forget();
             return sequence;
         }
@@ -53,18 +53,19 @@ namespace Client.Starter.Playtest.TitleGates
 
         // 退避結果・照合・無人の理由からゲート一式を組む。CIはバッチモードで常に無人なので、無人の理由は引数で受けて対話起動もテストで組めるようにする
         // Builds the gate set from the salvage result, the check and the unattended reason; CI is always unattended in batch mode, so the reason is a parameter and tests can build an attended boot too
-        internal static PlaytestTitleGateSequence Compose(PreviousSessionArtifacts artifacts, bool launchAllowed, IPlaytestUploadRequester uploadRequester, string unattendedReason)
+        internal static PlaytestTitleGateSequence Compose(PreviousSessionArtifacts artifacts, bool receiverSessionAllowed, IPlaytestUploadRequester uploadRequester, string unattendedReason)
         {
             var consentAcknowledged = PlaytestConsentFlag.IsAcknowledged();
             if (unattendedReason == null)
             {
-                return new PlaytestTitleGateSequence(StepProperty, new PlaytestConsentGate(!consentAcknowledged), new CrashReportGate(new CrashBundleWriter(), artifacts), uploadRequester, launchAllowed);
+                return new PlaytestTitleGateSequence(StepProperty, new PlaytestConsentGate(!consentAcknowledged), new CrashReportGate(new CrashBundleWriter(), artifacts), uploadRequester, receiverSessionAllowed);
             }
 
             // 無人起動には応答者が居ない。閉じたゲートで進め、未読のままなら持ち越しも送らない（「了解まで送らない」を無人でも守る）
             // An unattended boot has nobody to answer: proceed with closed gates, and ship nothing carried over while the consent is unread (the hold applies unattended too)
             Debug.LogWarning($"[PlaytestTitleGates] 無人起動のためタイトルのゲートを出さずに進みます reason:{unattendedReason} previousExitWasClean:{artifacts.PreviousExitWasClean} consentAcknowledged:{consentAcknowledged}（退避物は last-session に残り次回の対話起動で聞き直せます）");
-            return new PlaytestTitleGateSequence(StepProperty, new PlaytestConsentGate(false), CrashReportGate.Closed(), uploadRequester, launchAllowed && consentAcknowledged);
+            var uploadsEnabled = receiverSessionAllowed && consentAcknowledged;
+            return new PlaytestTitleGateSequence(StepProperty, new PlaytestConsentGate(false), CrashReportGate.Closed(), uploadRequester, uploadsEnabled);
         }
 
         internal static void SetStep(PlaytestTitleGateStep step)

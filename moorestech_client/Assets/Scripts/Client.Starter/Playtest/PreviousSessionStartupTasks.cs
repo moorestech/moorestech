@@ -32,7 +32,7 @@ namespace Client.Starter.Playtest
 
         // タイトルの照合通過で1回だけ呼ぶ。Play locally が起動する既定ワールドのスナップショットを退避対象にする
         // Called once when the launch check passes at the title; the default world that Play locally boots is the snapshot source
-        public static PreviousSessionArtifacts SalvageAtTitle()
+        internal static PreviousSessionArtifacts SalvageAtTitle()
         {
             if (_salvagedThisBoot) throw new InvalidOperationException("PreviousSessionStartupTasks: この起動の退避は済んでいます（タイトルの退避が2回目に到達しました）");
             var defaultWorldDirectory = CliConvert.Parse<StartServerSettings>(Array.Empty<string>()).WorldDirectory;

@@ -3,8 +3,8 @@
 import { DictionaryIndependentText } from "./dictionaryIndependentText";
 import type { VanillaLocalizationKey } from "./generated/localizationKeys";
 
-// 辞書を配る WebUiGameBinder より前に描かれる画面の文言。値はlocalization.csvのenglish / japanese / germanを併記したもの
-// Copy for screens that render before WebUiGameBinder publishes the dictionary; each value joins the csv's english / japanese / german
+// 値はlocalization.csvのenglish / japanese / germanを併記
+// Each value joins the csv's english / japanese / german
 export const PreDictionaryText: Partial<Record<VanillaLocalizationKey, string>> = {
   "ui.error.uiErrorOccurred": "A UI error occurred / UIエラーが発生しました",
   "ui.error.renderFailed": "There was a problem rendering the screen. Please reload. / 画面の描画中に問題が発生しました。再読み込みしてください。",

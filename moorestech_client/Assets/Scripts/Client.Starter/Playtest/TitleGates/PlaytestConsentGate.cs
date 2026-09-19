@@ -55,6 +55,7 @@ namespace Client.Starter.Playtest.TitleGates
     public enum PlaytestConsentResult
     {
         Acknowledged,
-        AlreadyAcknowledged
+        AlreadyAcknowledged,
+        NotAsked
     }
 }

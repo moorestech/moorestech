@@ -4,8 +4,8 @@ import { Topics, useTopicSelector } from "@/bridge";
 
 export type StartGate = "eventLanguage";
 
-// topicは同形。precedenceが小さいほど先に答えさせる
-// Topics share this shape; a smaller precedence is answered first
+// precedenceが小さいほど先に答えさせる
+// A smaller precedence is answered first
 type StartGateWaiting = { waiting: boolean; precedence: number };
 
 export function useFrontmostStartGate(): StartGate | null {

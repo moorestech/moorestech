@@ -54,12 +54,14 @@ namespace Client.Tests.PlaytestReceiver
         [Test]
         public void 形の欠けた200では許可しない()
         {
-            // トークン・期限・steamIdの欠落、空のsteamId、JSONでない本文（キャプティブポータル）はいずれも到達不能と混ぜず契約違反として返す
-            // A missing token, expiry or steamId, an empty steamId, or a non-JSON body (captive portal) all come back as a contract breach, not as unreachability
+            // トークン・期限・steamIdの欠落、空や空白のsteamId・token、JSONでない本文（キャプティブポータル）はいずれも到達不能と混ぜず契約違反として返す
+            // A missing token, expiry or steamId, an empty or whitespace-only steamId/token, or a non-JSON body (captive portal) all come back as a contract breach, not as unreachability
             AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":true,\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
             AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"tok-1\"}"), PlaytestSessionOutcome.MalformedResponse);
             AssertOutcome(PlaytestApiResult.Responded(200, "{\"allowed\":true,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
             AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"\",\"allowed\":true,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"  \",\"allowed\":true,\"token\":\"tok-1\",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
+            AssertOutcome(PlaytestApiResult.Responded(200, "{\"steamId\":\"7656\",\"allowed\":true,\"token\":\"  \",\"expiresAt\":\"2999-01-01T00:00:00Z\"}"), PlaytestSessionOutcome.MalformedResponse);
             AssertOutcome(PlaytestApiResult.Responded(200, "<html>sign in to the wifi</html>"), PlaytestSessionOutcome.MalformedResponse);
         }
 

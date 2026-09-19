@@ -135,6 +135,22 @@ namespace Client.Tests.Playtest.TitleGates
             Assert.AreEqual(PlaytestTitleGateStep.Passed, sequence.Step.Value);
         }
 
+        // Consent段階を過ぎた後に届いた了解は、閉じたゲートの「もう答えた」に畳まず、段階違いとしてNotAskedを返す
+        // An acknowledgement arriving after the Consent step has passed returns NotAsked for the wrong-step reason, not folded into the closed gate's "already acknowledged"
+        [Test]
+        public void Consent段階を過ぎた後の了解はNotAskedを返す()
+        {
+            var uploads = new RecordingUploadRequester();
+            var sequence = Sequence(true, new CrashReportGate(new RecordingCrashBundleWriter(WrittenDirectory), TestPreviousSessionArtifacts.Unclean()), uploads, true);
+
+            sequence.RunAsync(CancellationToken.None).Forget();
+            Assert.AreEqual(PlaytestConsentResult.Acknowledged, sequence.AcknowledgeConsent());
+            Assert.AreEqual(PlaytestTitleGateStep.CrashReport, sequence.Step.Value);
+
+            Assert.AreEqual(PlaytestConsentResult.NotAsked, sequence.AcknowledgeConsent());
+            Assert.AreEqual(PlaytestTitleGateStep.CrashReport, sequence.Step.Value, "段階違いの了解で段階が動いている");
+        }
+
         [Test]
         public void 開発者モードでは箱を書いても送信を要求しない()
         {

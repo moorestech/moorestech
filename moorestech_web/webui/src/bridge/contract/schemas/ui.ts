@@ -37,8 +37,8 @@ export const LocalizationDataSchema = z.object({
   locale: z.string().min(1),
   revision: z.number().int().nonnegative(),
 });
-// 開始ゲートの待機。precedence は C# の起動順を正本とする答えさせる順で、小さいほど先（出展モードの言語選択0）
-// A start gate's waiting; precedence is the answer order owned by the C# boot order, smaller first (event mode's language selection is 0)
+// 開始ゲートの待機。precedenceはC#の起動順が正本
+// A start gate's waiting; C# owns the precedence order
 const StartGateWaitingSchema = z.object({ waiting: z.boolean(), precedence: z.number().int().nonnegative() });
 export const EventLanguageGateDataSchema = StartGateWaitingSchema;
 // 送信可否の判定はC#が持ち、その結論そのものが kind で届く。独立booleanの袋は有り得ない組合せを表現できてしまう

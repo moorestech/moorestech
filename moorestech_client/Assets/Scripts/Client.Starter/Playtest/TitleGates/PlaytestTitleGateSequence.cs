@@ -52,10 +52,29 @@ namespace Client.Starter.Playtest.TitleGates
                 await _crashReport.WaitForResponseAsync().AttachExternalCancellation(ct);
             }
             EnterStep(PlaytestTitleGateStep.Passed);
+
+            #region Internal
+
+            // 待ちは上限を持たない。画面が出ないと無音で止まるため、段階の変化は必ずログに残す
+            // The wait is unbounded; a missing screen would stall silently, so every step change is logged
+            void EnterStep(PlaytestTitleGateStep step)
+            {
+                Debug.Log($"[PlaytestTitleGates] step {step}");
+                _step.Value = step;
+            }
+
+            #endregion
         }
 
         public PlaytestConsentResult AcknowledgeConsent()
         {
+            // 段階がConsentでない了解は拒否する。閉じたゲートへ届いた了解を「もう答えた」に畳むと段階違いという実際の理由が読めない
+            // Reject an acknowledgement while the step is not Consent; folding it into "already acknowledged" would hide the real reason (wrong step)
+            if (_step.Value != PlaytestTitleGateStep.Consent)
+            {
+                Debug.LogWarning($"[PlaytestTitleGates] AcknowledgeConsent refused: step is {_step.Value}, not Consent");
+                return PlaytestConsentResult.NotAsked;
+            }
             return _consent.Acknowledge();
         }
 
@@ -75,14 +94,6 @@ namespace Client.Starter.Playtest.TitleGates
             // After writing the box, request an upload again through the same port; the run started after the check may already be over (ADR 0065)
             if (result == CrashReportResponseResult.Sent) RequestUploadIfEnabled("crash box written");
             return result;
-        }
-
-        // 待ちは上限を持たない。画面が出ないと無音で止まるため、段階の変化は必ずログに残す
-        // The wait is unbounded; a missing screen would stall silently, so every step change is logged
-        private void EnterStep(PlaytestTitleGateStep step)
-        {
-            Debug.Log($"[PlaytestTitleGates] step {step}");
-            _step.Value = step;
         }
 
         private void RequestUploadIfEnabled(string trigger)
