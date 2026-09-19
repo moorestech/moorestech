@@ -1,11 +1,15 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using Client.Localization;
 using Client.Starter.EventMode;
+using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.EventMode;
+using Client.WebUiHost.Game.StartGates;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -17,9 +21,13 @@ namespace Client.Tests.EventMode
     {
         private const int IdleTimeoutSeconds = 180;
 
+        private WebSocketHub _originalHub;
+
         [SetUp]
         public void SetUp()
         {
+            _originalHub = Client.WebUiHost.Boot.WebUiHost.Hub;
+
             // TrySetLanguageは公開snapshotの実言語を判定基準にするため、辞書を張ってから検証する
             // TrySetLanguage judges against the published snapshot, so the dictionaries must be loaded first
             Localize.Initialize();
@@ -30,6 +38,7 @@ namespace Client.Tests.EventMode
         {
             Environment.SetEnvironmentVariable("MOORESTECH_EVENT_MODE", null);
             Environment.SetEnvironmentVariable("MOORESTECH_EVENT_MODE_EDITOR", null);
+            SetWebUiHostHub(_originalHub);
         }
 
         [Test]
@@ -39,6 +48,23 @@ namespace Client.Tests.EventMode
 
             Assert.IsTrue(task.Status.IsCompletedSuccessfully());
             Assert.AreEqual(0, Object.FindObjectsByType<EventIdleQuitWatcher>(FindObjectsSortMode.None).Length);
+        }
+
+        // 通常モードでも言語ゲートのtopicは登録する。Web側は3ゲートを無条件購読し、未登録だとWS再接続後にrestoringが解けず全UIが操作不能になる
+        // The language-gate topic is registered even outside exhibition mode; the web subscribes to all three gates unconditionally, and a missing topic leaves restoring stuck after a WS reconnect
+        [Test]
+        public void 出展モードでなくても言語ゲートのtopicとactionを待機なしで登録する()
+        {
+            var hub = new WebSocketHub();
+            SetWebUiHostHub(hub);
+
+            var task = EventModeStartGate.WaitForLanguageSelectionAsync(CancellationToken.None);
+
+            Assert.IsTrue(task.Status.IsCompletedSuccessfully());
+            var topic = hub.ResolveTopic(StartGateTopics.EventLanguageName);
+            Assert.IsNotNull(topic, "the event-language topic was not registered outside exhibition mode");
+            Assert.IsFalse(JObject.Parse(topic.GetSnapshotJsonAsync().GetAwaiter().GetResult())["waiting"].Value<bool>());
+            Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
 
         // PRの中核である「言語選択を待ってから武装する」順序を、武装窓口の呼ばれ方で押さえる
@@ -90,6 +116,13 @@ namespace Client.Tests.EventMode
         // The no-WebUiHost fallback is not EditMode-testable because DontDestroyOnLoad is a PlayMode-only API.
         // 当該分岐はコードレビューとReleaseビルドの通し確認（ADR 0040「実機確認」）で担保する。
         // That branch is covered by code review and the Release build walkthrough recorded in ADR 0040.
+
+        // Hubは起動済みWebUiHostだけが持つ。Kestrelを立てずに登録経路を通すため静的フィールドへ直接差し込む
+        // Only a started WebUiHost owns the hub; it is injected into the static field so the registration path runs without starting Kestrel
+        private static void SetWebUiHostHub(WebSocketHub hub)
+        {
+            typeof(Client.WebUiHost.Boot.WebUiHost).GetField("_hub", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, hub);
+        }
 
         // 武装の呼ばれた回数・引数と、その瞬間のゲート状態を記録して順序を観測する
         // Records the arming calls, their argument, and the gate state at that moment to observe the order

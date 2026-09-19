@@ -1,7 +1,5 @@
-using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Http;
-using System.Reflection;
 using System.Threading.Tasks;
 using Client.Localization;
 using Client.WebUiHost.Boot;
@@ -148,17 +146,8 @@ namespace Client.Tests.WebUi.Localization
         private static IActionHandler GetRegisteredSetLocaleHandler(
             WebSocketHub hub)
         {
-            // 公開動作を駆動する実レジストリから登録済みハンドラを得る
-            // Read the registered handler from the real registry that drives public behavior
-            var field = typeof(WebSocketHub).GetField(
-                "_actionHandlers",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-            Assert.IsNotNull(field);
-            var handlers =
-                (ConcurrentDictionary<string, IActionHandler>)field.GetValue(hub);
-
-            Assert.IsTrue(
-                handlers.TryGetValue("localization.setLocale", out var handler));
+            var handler = hub.ResolveAction("localization.setLocale");
+            Assert.IsNotNull(handler);
             Assert.IsInstanceOf<SetLocaleActionHandler>(handler);
             return handler;
         }
