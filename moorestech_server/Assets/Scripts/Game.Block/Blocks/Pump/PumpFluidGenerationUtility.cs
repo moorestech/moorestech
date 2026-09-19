@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Core.Master;
 using Core.Update;
@@ -30,8 +29,8 @@ namespace Game.Block.Blocks.Pump
 
             // 内部タンクは単一流体しか持てないため、マスタの並び順で最初に重なった1流体だけを対象にする
             // The inner tank holds a single fluid, so only the first overlapping fluid in master order becomes the target
-            // 同一流体の重複行はBlockMasterUtilの検証で禁止済みなので、ここへは一意な流体しか来ない
-            // Duplicate rows for one fluid are rejected by BlockMasterUtil validation, so only unique fluids reach here
+            // 同一流体の重複行はBlockMasterの検証（ExtractionSettingsValidator）で禁止済みなので、ここへは一意な流体しか来ない
+            // Duplicate rows for one fluid are rejected by BlockMaster validation (ExtractionSettingsValidator), so only unique fluids reach here
             foreach (var gen in generateFluids.items)
             {
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(gen.FluidGuid);
