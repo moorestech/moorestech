@@ -6,8 +6,10 @@ using NUnit.Framework;
 namespace Client.Tests.PlaceSystem.Targets
 {
     /// <summary>
-    ///     スポイトで選び直した直後だけピックした向きが設置向きになることを検証（通常設置とベルトの共通入口）
-    ///     Verifies the picked direction becomes the placement direction only right after an eyedropper selection (shared by normal and belt placement)
+    ///     ・スポイト直後のみピック向きを採用
+    ///     ・通常設置とベルトの共通入口
+    ///     - Adopts the picked direction only right after an eyedropper pick
+    ///     - Shared entry for normal and belt placement
     /// </summary>
     public class PlacementTargetPickedDirectionTest
     {

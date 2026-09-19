@@ -41,7 +41,7 @@
 - `PlacementSelection.SetSelectedBlock(BlockId blockId, BlockDirection? direction)` に引数を追加する。デフォルト引数は禁止のため、既存呼び出し元（`BuildMenuState`）は `null` を明示する
 - `PlaceSystemUpdateContext` に `SelectedBlockDirection` を追加し、選択変化検知（IsSelectionChanged）の比較対象に含める。同一ブロックを別向きでピックし直したケースを変化として拾うため
 - `CommonBlockPlaceSystem` は `IsSelectionChanged` かつ direction 有りのとき `_currentBlockDirection` へ適用する
-- ベルト・レール等、ドラッグ操作で向きが決まる PlaceSystem は direction を単に無視する（壊れない）
+- ベルトは単セル設置でピック向きを採用する（複数セルの列は経路から向きを自動決定）。レールは direction を無視する。採用判定は `BlockPlacementTarget.ResolveDirectionOnSelection` に集約する
 
 ## エッジケース
 
