@@ -61,8 +61,8 @@ namespace Client.Playtest.Operations.Ui
                 await UniTask.DelayFrame(10);
             }
 
-            // カメラtween収束を待機
-            // Wait for the camera tween to settle
+            // 選択後の状態遷移が収まるまで待機
+            // Wait for the post-selection state transition to settle
             await UniTask.Delay(TimeSpan.FromSeconds(0.6f));
         }
     }

@@ -1,3 +1,5 @@
+// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 待機するチャレンジ/チュートリアルのGUID（bd5262ed/7bafc2cf）がピン先マスタ c219a2f5 に存在せず、最初の待ちで必ずタイムアウトする（ADR 0038 の序盤圧縮でチェーンが再構成された）。雛形にしないこと
+// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): the challenge/tutorial GUIDs it waits on (bd5262ed/7bafc2cf) do not exist in the pinned master c219a2f5, so the first wait always times out (the chain was rebuilt by the ADR 0038 early-game compression). Do not use this as a template
 // シナリオ: 木チュートリアル(チャレンジ#3)まで進め、k-d tree索引の最寄り探索が
 //           (a)総当たり最寄りと一致 (b)伐採後に次の木へ移る ことを実走検証する
 // Scenario: advance to the tree challenge (#3) and verify the k-d tree nearest search

@@ -1,3 +1,5 @@
+// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 待機するチャレンジ/チュートリアルのGUID（bd5262ed/7bafc2cf/24f72113 ほか）がピン先マスタ c219a2f5 に存在せず、最初の待ちで必ずタイムアウトする（ADR 0038 の序盤圧縮でチェーンが再構成された）。雛形にしないこと
+// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): the challenge/tutorial GUIDs it waits on (bd5262ed/7bafc2cf/24f72113 ほか) do not exist in the pinned master c219a2f5, so the first wait always times out (the chain was rebuilt by the ADR 0038 early-game compression). Do not use this as a template
 // シナリオ: ADR 0029「装備チャレンジ新設・木ピンのearnItem指定・キーヒント/ドラッグ矢印」を実走検証する
 // Scenario: end-to-end check of ADR 0029 (equip challenge, earnItem tree pin, key hint / drag guide)
 // 足場生成やSetupDebugEnvironmentは呼ばない（自然なマップ=小石mapObjectとスポーンを残すため）

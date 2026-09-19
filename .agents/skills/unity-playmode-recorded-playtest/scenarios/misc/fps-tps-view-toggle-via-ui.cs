@@ -1,3 +1,5 @@
+// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みのuGUI型（CrosshairView）を参照しておりexecute-dynamic-codeでコンパイルできない。画面UIはWeb UI一本（ADR 0052）。雛形にしないこと。書き直しはCrosshairVisibility→CrosshairTopic→Web UIの表示をUntilWebUiElementで確認する
+// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): references removed uGUI types (CrosshairView) and does not compile under execute-dynamic-code. The screen UI is Web-only (ADR 0052); do not use this as a template. Rewrite it via CrosshairVisibility -> CrosshairTopic, confirming the Web UI display with UntilWebUiElement
 // FPS/TPS視点切替E2E検証: Vキーでゲーム画面・建設モードのどこでも視点を切替え、建設中もカメラが変化しないことを確認する
 // 検証項目: ゲーム画面でのV切替（FPS化・三人称復帰）→ 建設モード突入でカメラ距離/ピッチが不変（俯瞰化しない）→
 // 三人称マウス照準設置 → 建設中のV切替とFPS中央照準設置 → 削除モード・ゲーム画面復帰後もFPSが維持される
