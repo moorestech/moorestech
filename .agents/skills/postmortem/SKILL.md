@@ -42,7 +42,7 @@ description: 事後検証(ポストモーテム)。「体制・工程があっ�
 - `harness/postmortem/registry.md` — 再発照合の台帳。`harness/postmortem/<日付-slug>/` — 過去事案の fixture・被験体出力・results.md(検証の型の実例)
 - `harness/pr-independent-review/runs/pr-<n>/` — 独立レビューの実入力そのもの: `context.md`・`contract.md`・patch・`agents/`(全観点の出力)・`adjudications.json`(ユーザー裁定)・`digest.md`・`codex-*.final.md`。**フルスケール検証の素材はここ**。`records/pr-<n>.md` はシャドー台帳、`improvement-queue.md` は改善キュー
 - `harness/moores-code-review/records/`・`eval-log.md`、`harness/moores-grill-with-docs/`(backtest・questions)、`harness/user-simulator/`(datasets・improve) — 各工程の実行記録
-- `beads/issues.jsonl` — bd のスナップショット(grep 用。正本は `bd show`)
+- `beads/issues.<hostname>.jsonl` — マシン別の bd スナップショット(grep 用。正本は `bd show`。2026-09-20 以前の共有版 `beads/issues.jsonl` は2機の export が交互に上書きしており、件数の増減を消失と読まない)
 
 **コード repo**
 
