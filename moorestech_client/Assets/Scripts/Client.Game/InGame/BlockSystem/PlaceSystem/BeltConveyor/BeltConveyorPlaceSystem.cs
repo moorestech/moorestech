@@ -76,6 +76,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
+            _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
             _dragState.UpdateHeightOffsetByInput();
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
             GroundClickControl(target, feedback);
@@ -96,10 +97,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var holdingBlockMaster = holdingBlock.BlockMaster;
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) return;
+            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) { _dragState.EndDragWithoutPlacing(InputManager.Playable.ScreenLeftClick.GetKeyUp); return; }
 
-            // 設置可能な距離かどうか
-            if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return; }
+            // 設置可能な距離かどうか。距離外の解放も通常設置と同じくドラッグを畳む
+            // Whether the cell is within reach; a release out of reach folds the drag just like normal placement
+            if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); _dragState.EndDragWithoutPlacing(InputManager.Playable.ScreenLeftClick.GetKeyUp); return; }
 
             _previewBlockController.SetActive(true);
 

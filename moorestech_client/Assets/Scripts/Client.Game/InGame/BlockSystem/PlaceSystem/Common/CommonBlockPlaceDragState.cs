@@ -86,6 +86,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             return _session == null ? cursorCell : _session.StartCell;
         }
 
+        // 設置できない位置での解放はドラッグを畳むだけにする。残すと次フレームに古い開始点から列が伸びる
+        // A release where nothing can be placed only folds the drag; leaving it would extend a run from the stale start next frame
+        public void EndDragWithoutPlacing(bool isPlacementReleased)
+        {
+            if (isPlacementReleased) EndDrag();
+        }
+
         // マウスアップで連続設置解除、高さを開始時へ戻す。戻り値は押下が登録されていたか
         // Clears the drag session on mouse-up and restores the starting height; returns whether a press was registered
         public bool EndDrag()

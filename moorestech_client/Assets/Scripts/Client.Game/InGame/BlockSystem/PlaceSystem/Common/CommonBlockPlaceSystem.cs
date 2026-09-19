@@ -110,19 +110,12 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
-            ApplyPickedDirection();
+            _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
             _dragState.UpdateHeightOffsetByInput();
             BlockDirectionControl();
             GroundClickControl();
 
             #region Internal
-
-            void ApplyPickedDirection()
-            {
-                // スポイトでピックした向きを選択変化時に反映する
-                // Apply the eyedropped block direction when the selection changes
-                if (isSelectionChanged && target.PickedDirection.HasValue) _currentBlockDirection = target.PickedDirection.Value;
-            }
 
             void BlockDirectionControl()
             {
@@ -144,7 +137,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { HideConnectPreviews(); EndDragWithoutPlacing(); return; }
+                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { HideConnectPreviews(); _dragState.EndDragWithoutPlacing(InputManager.Playable.ScreenLeftClick.GetKeyUp); return; }
 
                 // ドラッグ中は押下時の面種別で通す
                 // A drag keeps the surface kind from its press
@@ -171,7 +164,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // 距離外なら理由のみ出しプレビュー無し
                 // Beyond range, show only the reason and no preview
-                if (!IsPlaceableFromPlayer(placePoint)) { HideConnectPreviews(); feedback.AddTooFar(); EndDragWithoutPlacing(); return; }
+                if (!IsPlaceableFromPlayer(placePoint)) { HideConnectPreviews(); feedback.AddTooFar(); _dragState.EndDragWithoutPlacing(InputManager.Playable.ScreenLeftClick.GetKeyUp); return; }
 
                 _previewBlockController.SetActive(true);
 
@@ -213,13 +206,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // 設置するブロックをサーバーに送信
                 // send block place info to server
                 PlaceBlock(wirePlaceable);
-            }
-
-            // 設置できないまま解放されたドラッグを畳む。残すと次フレームに古い開始点から列が伸びる
-            // Folds a drag released with nothing to place; leaving it would extend a run from the stale start next frame
-            void EndDragWithoutPlacing()
-            {
-                if (InputManager.Playable.ScreenLeftClick.GetKeyUp) _dragState.EndDrag();
             }
 
             void PlaceBlock(bool wirePlaceable)

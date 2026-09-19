@@ -121,5 +121,34 @@ namespace Client.Tests.PlaceSystem.Common
             Assert.IsTrue(dragState.EndDrag());
             Assert.AreEqual(2, dragState.HeightOffset);
         }
+
+        [Test]
+        public void 設置できない位置で解放されたドラッグは畳まれ次の列は現在位置から始まる()
+        {
+            var dragState = new CommonBlockPlaceDragState();
+            var startCell = new Vector3Int(1, 2, 3);
+            var cursorCell = new Vector3Int(8, 2, 3);
+            dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
+
+            // 空や距離外で離したフレームは設置せず畳むだけ。残ると押していないのに古い開始点から列が伸びる
+            // A release over the sky or out of reach only folds; a leftover session extends a run from the stale start with no button held
+            dragState.EndDragWithoutPlacing(true);
+
+            Assert.IsFalse(dragState.IsDragging, "the drag survived a release where nothing could be placed");
+            Assert.AreEqual(cursorCell, dragState.ResolveDragStartCell(cursorCell));
+        }
+
+        [Test]
+        public void 設置できない位置でも押している間はドラッグを保つ()
+        {
+            var dragState = new CommonBlockPlaceDragState();
+            dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
+
+            // 押したまま一瞬カーソルが外れただけでは列を捨てない
+            // Briefly aiming away while still holding must not drop the run
+            dragState.EndDragWithoutPlacing(false);
+
+            Assert.IsTrue(dragState.IsDragging);
+        }
     }
 }
