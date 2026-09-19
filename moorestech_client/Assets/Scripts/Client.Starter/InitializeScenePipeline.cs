@@ -85,9 +85,9 @@ namespace Client.Starter
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
 
-            // 前回セッションの印を読む処理はここ1箇所へ束ねてある（ADR 0060 裁定5）。記録を集めるかもここで1度だけ決める
-            // Everything that reads the previous session's marks is bundled into this single spot (ADR 0060 adjudication 5); whether to collect records is decided once here too
-            var collectsPlaytestRecords = Playtest.PlaytestRecordCollection.Decide(_proprieties.IsRemoteConnection, Client.WebUiHost.Boot.WebUiHost.Hub != null);
+            // 退避はタイトル（直接起動ならここ）、書き手の設置はここ。記録を集めるかもここで1度だけ決める（ADR 0060 裁定5・ADR 0065）
+            // Salvage happens at the title (here for a direct boot) and the writers are installed here; whether to collect is decided once here too (ADR 0060 adjudication 5, ADR 0065)
+            var collectsPlaytestRecords = Playtest.PlaytestRecordCollection.Decide(_proprieties.IsRemoteConnection);
             Playtest.PreviousSessionStartupTasks.RunAtStartup(collectsPlaytestRecords, _proprieties.IsRemoteConnection, args.WorldDirectory);
 
             var loadingStopwatch = new Stopwatch();
@@ -190,7 +190,6 @@ namespace Client.Starter
                     // メインメニューへ戻る経路はすべて内蔵サーバーを道連れにする
                     // Every path back to the main menu takes the embedded server down with it
                     GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
-
                     SceneManager.LoadScene(SceneConstant.MainMenuSceneName);
                 });
             }

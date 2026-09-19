@@ -6,10 +6,10 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
-    // 印の消費と同じ起動時1箇所で据える書き手。MainGameスコープに置くと、起動〜ゲート〜ロードの全区間が
-    // The writer is installed at the same boot-time spot that consumes the marks; living in the MainGame scope left
-    // 「消費済み・書き手未生成」になり、落ちていないのに次回起動が毎回「前回異常終了」になる
-    // the whole boot→gate→load span as "consumed with no writer", making every next boot read as a crash
+    // 書き手はパイプライン先頭で据える。前回の印の消費はタイトル（直接起動ならパイプライン）で先に済み、その間この起動は印も録画も書かないので偽の異常終了は生まれない（ADR 0065）
+    // The writer is installed at the head of the pipeline; the previous marks were consumed earlier at the title (or the pipeline for a direct boot), and this boot writes no mark or recording in between, so no false crash arises (ADR 0065)
+    // 設置時に識別を読むため、照合がAllowedで検証済みSteamIDを据えた後でなければならない
+    // It reads the identity at installation, so it must come after the launch check set the verified SteamID on Allowed
     public static class CleanExitMarkWriter
     {
         private static CompositeDisposable _subscriptions;
