@@ -67,9 +67,11 @@ namespace Server.Protocol.PacketResponse.Util.InventoryService
                 // Confirm both sides accept the write first to avoid a one-sided write that duplicates or loses items
                 // 移動プロトコルは片道で応答が無いため、拒否は理由をログへ残して何もしない
                 // The move protocol is one-way with no response, so a rejection logs its reason and changes nothing
-                if (!toInventory.IsAllowedToPlace(toSlot, originItem) || !fromInventory.IsAllowedToPlace(fromSlot, destinationInventoryItem))
+                var toAccepts = toInventory.IsAllowedToPlace(toSlot, originItem);
+                var fromAccepts = fromInventory.IsAllowedToPlace(fromSlot, destinationInventoryItem);
+                if (!toAccepts || !fromAccepts)
                 {
-                    Debug.LogWarning($"[InventoryItemMove] Swap rejected by slot binding: from={fromInventory.GetType().Name}[{fromSlot}] itemId={originItem.Id} to={toInventory.GetType().Name}[{toSlot}] itemId={destinationInventoryItem.Id}");
+                    Debug.LogWarning($"[InventoryItemMove] Swap rejected by IsAllowedToPlace: toAccepts={toAccepts} fromAccepts={fromAccepts} from={fromInventory.GetType().Name}[{fromSlot}] itemId={originItem.Id} to={toInventory.GetType().Name}[{toSlot}] itemId={destinationInventoryItem.Id}");
                     return;
                 }
 

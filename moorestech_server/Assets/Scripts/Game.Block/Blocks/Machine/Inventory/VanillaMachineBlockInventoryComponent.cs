@@ -13,6 +13,7 @@ namespace Game.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots
     {
+        private readonly BlockInstanceId _blockInstanceId;
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
 
@@ -20,8 +21,9 @@ namespace Game.Block.Blocks.Machine.Inventory
         // Sub-inventories in unified slot order
         private readonly IVanillaMachineSubInventory[] _subInventories;
 
-        public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory, VanillaMachineModuleInventory vanillaMachineModuleInventory)
+        public VanillaMachineBlockInventoryComponent(BlockInstanceId blockInstanceId, VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory, VanillaMachineModuleInventory vanillaMachineModuleInventory)
         {
+            _blockInstanceId = blockInstanceId;
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _subInventories = new IVanillaMachineSubInventory[] { vanillaMachineInputInventory, vanillaMachineOutputInventory, vanillaMachineModuleInventory };
@@ -150,9 +152,6 @@ namespace Game.Block.Blocks.Machine.Inventory
         /// <summary>
         ///     アイテムの置き換えを実行しますが、同じアイテムIDの場合はそのまま現在のアイテムにスタックされ、スタックしきらなかったらその分を返します。
         /// </summary>
-        /// <param name="slot"></param>
-        /// <param name="itemStack"></param>
-        /// <returns></returns>
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
@@ -163,7 +162,7 @@ namespace Game.Block.Blocks.Machine.Inventory
             // A stack that violates the binding bounces back untouched (entry point of the player move protocol); there is no response, so log the reason
             if (!subInventory.IsAllowedToPlace(localSlot, itemStack))
             {
-                Debug.LogWarning($"[MachineInventory] Placement rejected by recipe binding: slot={slot} itemId={itemStack.Id} count={itemStack.Count}");
+                Debug.LogWarning($"[MachineInventory] Placement rejected by IsAllowedToPlace: block={_blockInstanceId.AsPrimitive()} sub={subInventory.GetType().Name}[{localSlot}] slot={slot} itemId={itemStack.Id} count={itemStack.Count}");
                 return itemStack;
             }
 
