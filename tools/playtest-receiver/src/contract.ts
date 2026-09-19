@@ -4,6 +4,14 @@ import contract from "../contract.json";
 // contract.json is the single source for values shared with the C# client; the Worker reads them only through here
 export const STEAM_IDENTITY: string = contract.steamIdentity;
 export const MAX_FILE_BYTES: number = contract.maxFileBytes;
+export const MAX_BUNDLE_FILES: number = contract.maxBundleFiles;
+export const MAX_BUNDLE_BYTES: number = contract.maxBundleBytes;
+export const UPLOAD_URL_TTL_SECONDS: number = contract.uploadUrlTtlSeconds;
+export const UPLOAD_IDLE_TIMEOUT_SECONDS: number = contract.uploadIdleTimeoutSeconds;
 export const RESERVED_UPLOAD_SEGMENTS: ReadonlySet<string> = new Set(contract.reservedUploadSegments);
 export const CONTRACT_KINDS: readonly string[] = contract.kinds;
 export const TOKEN_TTL_SECONDS: number = contract.tokenTtlSeconds;
+export const DECLARATION_CONFLICT_REASON: string = contract.declarationConflictReason;
+export const DECLARATION_UNREADABLE_REASON: string = contract.declarationUnreadableReason;
+export const PREPARE_OUTCOME_PREPARED: string = contract.prepareOutcomes.prepared;
+export const PREPARE_OUTCOME_ACKED: string = contract.prepareOutcomes.acked;

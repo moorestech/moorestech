@@ -17,16 +17,22 @@ namespace Client.PlaytestReceiver
         public const int TokenRefreshMarginSeconds = 900;
         public const long MaxFileBytes = 100L * 1024 * 1024;
 
-        // アップロードの期限は本文の送信時間を含む。遅い回線の大きい箱を殺さないよう、サイズに比例した猶予を足す
-        // An upload deadline covers the body too, so slow lines get extra time proportional to the file size
-        public const int UploadBytesPerSecondBudget = 128 * 1024;
-        public const int MaxUploadTimeoutSeconds = 900;
+        // 署名付きURLへのPUTは経過時間で切らず、バイトが進まない時間で切る（低速回線を殺さない。ADR 0064）
+        // A PUT to the presigned URL is cut by stalled bytes, not elapsed time, so slow lines survive (ADR 0064)
+        public const int UploadIdleTimeoutSeconds = 60;
+        public const int MaxBundleFiles = 128;
+        public const long MaxBundleBytes = 256L * 1024 * 1024;
 
-        public static TimeSpan UploadTimeout(long fileBytes)
-        {
-            var seconds = HttpTimeoutSeconds + fileBytes / UploadBytesPerSecondBudget;
-            return TimeSpan.FromSeconds(Math.Min(seconds, MaxUploadTimeoutSeconds));
-        }
+        // 受け口の予約先頭名一覧。送信前に除外
+        // First segment names the receiver reserves; excluded before sending
+        internal static readonly string[] ReservedUploadSegments = { "READY", "ACKED", "DECLARED", "complete", "prepare" };
+
+        // 失敗分類と応答の判別を左右する受け口の語。contract.json との一致をテストで固定する
+        // The receiver's words that steer failure sorting and response discrimination; pinned to contract.json by a test
+        public const string DeclarationConflictReason = "declaration-conflict";
+        public const string DeclarationUnreadableReason = "declaration-unreadable";
+        public const string PrepareOutcomePrepared = "prepared";
+        public const string PrepareOutcomeAcked = "acked";
 
         // 配布版は定数に固定する。差し替えを許すと偽の受け口で照合そのものを無効化できる
         // Release builds are pinned to the constant; allowing an override would let a fake receiver disable the check

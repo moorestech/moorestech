@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Client.PlaytestReceiver.Http
+namespace Client.PlaytestReceiver.Http.Responses
 {
     // POST /v1/session の200応答。生成はParse経由だけに閉じ、tokenと期限が揃った応答しか作れない
     // The 200 body of POST /v1/session; Parse is the only constructor, so an instance always carries a token and its expiry

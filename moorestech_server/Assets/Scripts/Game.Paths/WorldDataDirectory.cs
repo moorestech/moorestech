@@ -171,6 +171,13 @@ namespace Game.Paths
             return FromWorldRoot(GameSystemPaths.GetWorldCacheDirectory(worldId));
         }
 
+        // 共有キャッシュのレイアウトを作らずに導出する。有無を調べるだけの参照側が使う
+        // Derives the shared cache layout without creating it; for callers that only check whether it exists
+        public static WorldDataDirectory ForWorldCacheWithoutCreating(string worldId)
+        {
+            return FromWorldRoot(GameSystemPaths.GetWorldCacheDirectoryPathWithoutCreating(worldId));
+        }
+
         // レガシー形: ワールドディレクトリを持たない構成(テスト427箇所・クライアント早期DI)。
         // mapはServerDataDirectory/map/map.json、saveは明示パス。Root系プロパティはnull
         // Legacy form for DI without a world dir (tests / client early init)

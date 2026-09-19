@@ -25,5 +25,9 @@ namespace Game.Paths
         // Places only the previous-crash box has: the recording stays as unconcatenated segments and the dumps as the OS wrote them
         public const string RecordingDirectoryName = "recording";
         public const string CrashDumpsDirectoryName = "crashDumps";
+
+        // 受け側が生成ワールドの箱から地形付きワールドを実体化する置き場。箱の world/ は宣言どおり world.json だけのまま残す（prepare-run.sh も同じ名前を使う）
+        // Where the receiver materializes a terrain-bearing world from a generated-world box; the box's world/ keeps only world.json as declared (prepare-run.sh uses the same name)
+        public const string MaterializedWorldDirectoryName = "world-materialized";
     }
 }

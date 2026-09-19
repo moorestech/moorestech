@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Game.MapGeneration.Transfer;
 using Game.Paths;
@@ -46,7 +47,7 @@ namespace Game.MapGeneration.Provisioning
             // Writing straight into the production root would bypass WorldProvisioner's rule of writing to a temp dir and committing via Directory.Move
             var worldTemp = WorldDataDirectory.FromWorldRoot(worldDataDirectory.ProvisioningTempDirectory);
             DiscardDirectory(worldTemp.Root);
-            CopyWorldFiles(sharedCache, worldTemp);
+            CopyWorldCore(sharedCache, worldTemp);
             StampCreatedAt();
             Directory.Move(worldTemp.Root, worldDataDirectory.Root);
             Debug.Log($"[WorldSnapshotStore] Restored world '{worldId}' from the shared cache snapshot.");
@@ -84,19 +85,39 @@ namespace Game.MapGeneration.Provisioning
         // Copies a freshly generated world's core (world.json/map.json/terrain) into the shared cache; the prebake already wrote the visuals there
         public static void Store(WorldDataDirectory worldDataDirectory, string worldId)
         {
-            CopyWorldFiles(worldDataDirectory, WorldDataDirectory.ForWorldCache(worldId));
+            CopyWorldCore(worldDataDirectory, WorldDataDirectory.ForWorldCache(worldId));
         }
 
         public static bool IsSnapshot(WorldDataDirectory directory)
         {
-            return File.Exists(directory.WorldMetaFilePath) && File.Exists(directory.MapJsonFilePath) && Directory.Exists(directory.TerrainDirectory);
+            return DescribeSnapshotProblem(directory) == null;
         }
 
-        private static void CopyWorldFiles(WorldDataDirectory source, WorldDataDirectory destination)
+        // スナップショットとして使えない理由（欠けている部品の名指し）。揃っていれば null。バグ報告の再生も同じ基準で候補を選ぶ
+        // Why a directory is not a usable snapshot, naming each missing piece, or null when complete; bug-report replay picks candidates by the same rule
+        public static string DescribeSnapshotProblem(WorldDataDirectory directory)
+        {
+            var missing = new List<string>();
+            if (!File.Exists(directory.MapJsonFilePath)) missing.Add("map.json が無い");
+            if (!File.Exists(directory.WorldMetaFilePath)) missing.Add("world.json が無い");
+            if (!Directory.Exists(directory.TerrainDirectory)) missing.Add("terrain/ が無い");
+            return missing.Count == 0 ? null : string.Join("・", missing);
+        }
+
+        // 復元源の探索順（同梱→共有キャッシュ。TryRestore と同じ順）。探すだけの呼び出し側のため共有キャッシュの置き場は作らない
+        // The restore source search order (bundled then shared cache, as in TryRestore); the shared cache root is not created, for callers that only look
+        public static IReadOnlyList<WorldDataDirectory> EnumerateSourceCandidates(string serverDataDirectory, string worldId)
+        {
+            return new[] { WorldDataDirectory.ForBundledSnapshot(serverDataDirectory, worldId), WorldDataDirectory.ForWorldCacheWithoutCreating(worldId) };
+        }
+
+        // ワールド本体（map.json・terrain/・world.json）を写す。terrain/ を持たない手作りワールドはそれ抜きで写す
+        // Copies the world core (map.json, terrain/, world.json); a hand-made world without terrain/ is copied without it
+        public static void CopyWorldCore(WorldDataDirectory source, WorldDataDirectory destination)
         {
             Directory.CreateDirectory(destination.Root);
             File.Copy(source.MapJsonFilePath, destination.MapJsonFilePath, true);
-            CopyDirectory(source.TerrainDirectory, destination.TerrainDirectory);
+            if (Directory.Exists(source.TerrainDirectory)) CopyDirectory(source.TerrainDirectory, destination.TerrainDirectory);
 
             // world.jsonはコミットマーカーなので最後に写す
             // world.json is the commit marker, so it is copied last
