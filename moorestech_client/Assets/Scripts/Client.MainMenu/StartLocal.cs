@@ -1,6 +1,7 @@
 using Client.MainMenu.PopUp;
 using Client.PlaytestReceiver.Gate;
 using Client.Starter;
+using Client.Starter.Playtest.TitleGates;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -25,6 +26,10 @@ namespace Client.MainMenu
                 messagePopup.SetText(denyReasonText);
                 return;
             }
+
+            // 同意と前回異常終了の確認に答えるまで開始しない。拒否理由はゲートがログへ出す（ADR 0065）
+            // Nothing starts until the consent and previous-crash confirmation are answered; the gate logs the refusal (ADR 0065)
+            if (!PlaytestTitleGates.TryPassStart(nameof(StartLocal))) return;
 
             LocalGameLauncher.StartLocalGame();
         }

@@ -7,17 +7,20 @@ using Client.PlaytestReceiver.Gate;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Steam;
 using Client.PlaytestReceiver.Upload;
+using Client.Starter.Playtest.TitleGates;
 using Cysharp.Threading.Tasks;
 using UniRx;
 using UnityEngine;
 
 namespace Client.MainMenu.Playtest
 {
-    // タイトル用の表示専用View。開始可否は決めず、照合結果を購読して理由を出す
-    // A display-only view on the title screen; it never decides whether to start and only mirrors the verdict it subscribes to
+    // タイトルの合成ルート。照合結果を購読して理由を出し、通ったらタイトルのゲート（同意・前回異常終了の確認）を始めて段階をポップアップへ映す（ADR 0065）
+    // The title's composition root: mirrors the launch verdict, and once it passes begins the title gates (consent, previous-crash confirmation) and reflects their step onto the popups (ADR 0065)
     public class PlaytestLaunchGateView : MonoBehaviour
     {
         [SerializeField] private ServerConnectPopup messagePopup;
+        [SerializeField] private PlaytestConsentPopup consentPopup;
+        [SerializeField] private CrashReportPopup crashReportPopup;
 
         private IPlaytestUploadRequester _uploadRequester;
 
@@ -34,20 +37,40 @@ namespace Client.MainMenu.Playtest
 
         private void Show(PlaytestGateResult result)
         {
-            // 照合しない起動では待ち文言すら出さない。Editorや自作ビルドのタイトルは従来どおり無音で開く
-            // A launch that is never checked shows no message at all, so the Editor title opens silently as before
-            if (result.Status == PlaytestGateStatus.NotEvaluated || result.Status == PlaytestGateStatus.DeveloperMode) return;
-
+            if (result.Status == PlaytestGateStatus.NotEvaluated) return;
             if (result.IsBlocked)
             {
                 messagePopup.SetText(Localize.Get(result.ReasonKey));
                 return;
             }
 
-            // 照合を通った配布版は、前回持ち越した箱をここで送り始める（起動直後の1回）
-            // A distribution build that passed the check starts shipping any deferred boxes here (the once-per-launch run)
-            messagePopup.gameObject.SetActive(false);
-            _uploadRequester.RequestUpload();
+            // 照合しない起動（Editor・自作ビルド）は待ち文言を出していないので閉じない
+            // A launch that is never checked showed no waiting message, so there is nothing to close
+            if (result.Status == PlaytestGateStatus.Allowed) messagePopup.gameObject.SetActive(false);
+            BeginTitleGates(result);
+        }
+
+        private void BeginTitleGates(PlaytestGateResult result)
+        {
+            // 初期化失敗でタイトルへ戻った再訪では始め直さない。退避と確認は起動1回に1度（ADR 0060 裁定5）
+            // A revisit after a failed initialization does not restart them; salvage and confirmations happen once per boot (ADR 0060 adjudication 5)
+            if (PlaytestTitleGates.Step.Value != PlaytestTitleGateStep.NotStarted)
+            {
+                Debug.Log($"[PlaytestTitleGates] already {PlaytestTitleGates.Step.Value}; the title gates are not restarted on this title visit");
+                return;
+            }
+
+            var sequence = PlaytestTitleGates.Begin(result, _uploadRequester, destroyCancellationToken);
+            consentPopup.Initialize(sequence);
+            crashReportPopup.Initialize(sequence);
+
+            // 表示は段階を映すだけ。購読はこの常時有効な合成ルートが持つ（非アクティブのポップアップにAddToしない）
+            // The display only mirrors the step; this always-active root owns the subscription (never AddTo an inactive popup)
+            sequence.Step.Subscribe(step =>
+            {
+                consentPopup.SetVisible(step == PlaytestTitleGateStep.Consent);
+                crashReportPopup.SetVisible(step == PlaytestTitleGateStep.CrashReport);
+            }).AddTo(this);
         }
     }
 }

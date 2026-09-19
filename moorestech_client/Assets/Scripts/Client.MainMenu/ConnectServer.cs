@@ -6,6 +6,7 @@ using Client.Localization;
 using Client.MainMenu.PopUp;
 using Client.PlaytestReceiver.Gate;
 using Client.Starter;
+using Client.Starter.Playtest.TitleGates;
 using Mooresmaster.Localization.Generated;
 using Server.Boot;
 using TMPro;
@@ -42,6 +43,10 @@ namespace Client.MainMenu
                 serverConnectPopup.SetText(gateDenyReasonText);
                 return;
             }
+
+            // 接続先がリモートでもタイトルの確認はタイトル全体の関所。答えるまで接続しない（ADR 0065）
+            // The title confirmations gate the whole title even for a remote server; nothing connects until they are answered (ADR 0065)
+            if (!PlaytestTitleGates.TryPassStart(nameof(Connect))) return;
 
             var playerId = PlayerPrefs.GetInt(PlayerPrefsKeys.PlayerIdKey);
             if (!InitializeProprieties.TryCreateRemoteConnection(serverIp.text, serverPort.text, playerId, out var properties, out var denyReason))
