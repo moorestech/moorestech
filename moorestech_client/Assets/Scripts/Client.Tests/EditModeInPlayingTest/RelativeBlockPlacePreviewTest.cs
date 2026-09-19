@@ -25,6 +25,9 @@ namespace Client.Tests.EditModeInPlayingTest
     ///     This test runs in EditMode but switches to PlayMode during execution.
     ///     Verifies that the relative ghost stands at nearest-anchor origin + offset in a real running client.
     /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay2")]
     public class RelativeBlockPlacePreviewTest
     {
         private static readonly Vector3Int AnchorPosition = new(10, 0, 10);
