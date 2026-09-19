@@ -60,7 +60,7 @@ Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合
    - 紐付けずに1回だけ指定するなら各コマンドへ `--profile <profile>` を付ける。解除は `wrangler auth deactivate`。
    - **`CLOUDFLARE_API_TOKEN` が環境にあるとプロファイルより優先される**ので、プロファイルを使うシェルでは `unset CLOUDFLARE_API_TOKEN` しておく。プロファイルを使わない環境（CI 等）は従来どおり `wrangler login` か `CLOUDFLARE_API_TOKEN` でよい。
    - `whoami` に Account が複数出る場合は `CLOUDFLARE_ACCOUNT_ID` を対象アカウントの ID に設定する。`wrangler.toml` に `account_id` は書かない（秘密ではないが環境依存の値のため、環境変数側で解決する）。
-   - `routes` の `playtest.tar-atari.com`（custom domain）へ出せるのは **tar-atari.com ゾーンを持つアカウントだけ**。別アカウントへデプロイすると手順4が失敗する。
+   - `routes` の `playtest.moores.tech`（custom domain）へ出せるのは **moores.tech ゾーンを持つアカウント（sakastudio@moores.tech）だけ**。別アカウントへデプロイすると手順4が失敗する。
 1. R2 バケットを作る:
    ```bash
    cd tools/playtest-receiver
@@ -87,12 +87,12 @@ Worker は宣言済みファイルを R2 で列挙し、存在と長さを照合
    ```bash
    pnpm run deploy
    ```
-5. DNS: `wrangler.toml` の `routes` に `playtest.tar-atari.com` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が tar-atari.com ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.tar-atari.com` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
+5. DNS: `wrangler.toml` の `routes` に `playtest.moores.tech` を `custom_domain = true` で書いてあるので、`pnpm run deploy` が moores.tech ゾーンへ CNAME を作る。作られない場合は Cloudflare ダッシュボード → Workers & Pages → moorestech-playtest-receiver → Settings → Domains & Routes → Add → Custom domain に `playtest.moores.tech` を追加する。**cloudflared のトンネル（Mac mini）とは無関係の経路なので、`~/.cloudflared/*.yml` は触らない。**
 6. Mac mini 側の env ファイルを作る。`scripts/playtest/allowlist.sh`（Task 5）はここから `PLAYTEST_RECEIVER_BASE`・`PLAYTEST_ADMIN_KEY` を読む。ヒアドキュメントは Markdown リスト内の字下げでコピー時に終端行を見失うため、`echo` を積み上げる形にしてある:
    ```bash
    mkdir -p ~/hermes-agent/data/services/playtest
    {
-     echo 'export PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com'
+     echo 'export PLAYTEST_RECEIVER_BASE=https://playtest.moores.tech'
      echo 'export PLAYTEST_ADMIN_KEY=<手順2でADMIN_KEYに入れた値と同じもの>'
    } > ~/hermes-agent/data/services/playtest/env.sh
    chmod 600 ~/hermes-agent/data/services/playtest/env.sh

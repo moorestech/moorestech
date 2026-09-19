@@ -1566,7 +1566,7 @@ EOF
 run_target() {
     ( MOORESTECH_VERIFY_HOST=verify-pc MOORESTECH_VERIFY_USER=moores \
       MOORESTECH_VERIFY_MAC=00:11:22:33:44:55 \
-      MOORESTECH_RECEIVER_BASE=https://playtest.tar-atari.com \
+      MOORESTECH_RECEIVER_BASE=https://playtest.moores.tech \
       MOORESTECH_RECEIVER_ADMIN_KEY=dummy \
       MOORESTECH_STEAM_USER=steamuser \
       WAKEONLAN_BIN="$SANDBOX/bin/wakeonlan" SSH_BIN="$SANDBOX/bin/ssh" \
@@ -1830,7 +1830,7 @@ Expected: `PASS: verify-on-windows contract`
 - `MOORESTECH_VERIFY_HOST` … Tailscale 上のホスト名
 - `MOORESTECH_VERIFY_USER` … ssh ユーザー
 - `MOORESTECH_VERIFY_MAC` … WoL 用 MAC アドレス
-- `MOORESTECH_RECEIVER_BASE` … `https://playtest.tar-atari.com`
+- `MOORESTECH_RECEIVER_BASE` … `https://playtest.moores.tech`
 - `MOORESTECH_RECEIVER_ADMIN_KEY` … 受け口の admin キー
 - `wakeonlan` が要る: `brew install wakeonlan`
 

@@ -6,7 +6,7 @@
 
 `/Users/sakastudio/hermes-agent/data/services/playtest/env.sh`（git 管理外・実シークレット。既定は本体 clone の位置から `<repo>/../../services/playtest/env.sh` と導出する）:
 ```
-export PLAYTEST_RECEIVER_BASE=https://playtest.tar-atari.com
+export PLAYTEST_RECEIVER_BASE=https://playtest.moores.tech
 export PLAYTEST_ADMIN_KEY=<wrangler secret put ADMIN_KEY で入れたのと同じ値>
 ```
 別の場所に置く場合は `PLAYTEST_ENV_FILE` で指す。worktree から叩くと兄弟パスがずれるので本体 clone のスクリプトを使う。受け口 admin API の呼び出しは `lib/receiver-api.sh` に一本化している。

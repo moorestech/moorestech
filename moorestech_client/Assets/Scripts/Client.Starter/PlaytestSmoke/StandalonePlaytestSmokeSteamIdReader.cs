@@ -1,7 +1,5 @@
 using System;
-#if !UNITY_EDITOR_LINUX
 using Steamworks;
-#endif
 using UnityEngine;
 
 namespace Client.Starter.PlaytestSmoke
@@ -16,13 +14,6 @@ namespace Client.Starter.PlaytestSmoke
         // Returns true with the SteamID when readable, or false with the reason
         public static bool TryRead(out string steamId, out string failureReason)
         {
-#if UNITY_EDITOR_LINUX
-            // Linux EditorのCIには非公開Steamworksアセットが無い（前例: PlaytestSteamTicketProvider）
-            // CI's Linux Editor lacks the private Steamworks asset (precedent: PlaytestSteamTicketProvider)
-            steamId = "";
-            failureReason = "Steam is unavailable in the Linux Editor";
-            return false;
-#else
             // ネイティブ呼び出しはSteam未初期化・dll不在で例外になる外部境界。畳んで理由付きの失敗にする
             // The native call throws when Steam is uninitialized or the dll is absent; this external boundary folds it into a reasoned failure
             ulong rawSteamId;
@@ -48,7 +39,6 @@ namespace Client.Starter.PlaytestSmoke
             steamId = rawSteamId.ToString();
             failureReason = "";
             return true;
-#endif
         }
     }
 }

@@ -7,7 +7,7 @@ namespace Client.PlaytestReceiver
     // Connection and timing constants for the receiver; values shared with the receiver are pinned to contract.json by a test
     public static class PlaytestReceiverConfig
     {
-        private const string DefaultBaseUrl = "https://playtest.tar-atari.com";
+        private const string DefaultBaseUrl = "https://playtest.moores.tech";
         public const string SteamIdentity = "moorestech-playtest";
         public const int TicketTimeoutSeconds = 15;
         public const int HttpTimeoutSeconds = 60;

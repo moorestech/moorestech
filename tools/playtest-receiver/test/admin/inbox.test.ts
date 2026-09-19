@@ -23,7 +23,7 @@ describe("admin api inbox", () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox/config/${STEAM_ID}/20260913_120000_aaaa1111/a.txt`, { headers: ADMIN }),
+      new Request(`https://playtest.moores.tech/v1/inbox/config/${STEAM_ID}/20260913_120000_aaaa1111/a.txt`, { headers: ADMIN }),
       workerEnv,
       noNetwork,
     );
@@ -36,7 +36,7 @@ describe("admin api inbox", () => {
   it("completeした2件がinboxに出る", async () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
     await upload("progress", "20260913_130000_bbbb2222", "record.json", "{}");
-    const response = await handle(new Request("https://playtest.tar-atari.com/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
+    const response = await handle(new Request("https://playtest.moores.tech/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
     const body = (await response.json()) as { items: { kind: string; steamId: string; id: string; readyAt: string }[]; cursor: string | null };
     expect(body.items).toHaveLength(2);
     expect(body.items.map((item) => item.id).sort()).toEqual(["20260913_120000_aaaa1111", "20260913_130000_bbbb2222"]);
@@ -47,7 +47,7 @@ describe("admin api inbox", () => {
   it("inboxの個別ファイルを取れる。不在は404でwarnする", async () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "hello");
     const ok = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/a.txt`, { headers: ADMIN }),
+      new Request(`https://playtest.moores.tech/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/a.txt`, { headers: ADMIN }),
       workerEnv,
       noNetwork,
     );
@@ -57,7 +57,7 @@ describe("admin api inbox", () => {
 
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const missing = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/none.txt`, { headers: ADMIN }),
+      new Request(`https://playtest.moores.tech/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/none.txt`, { headers: ADMIN }),
       workerEnv,
       noNetwork,
     );
@@ -73,13 +73,13 @@ describe("admin api inbox", () => {
       const id = `20260913_120000_${String(i).padStart(4, "0")}`;
       await workerEnv.BUCKET.put(`index/pending/report/${STEAM_ID}/${id}`, "");
     }
-    const first = await handle(new Request("https://playtest.tar-atari.com/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
+    const first = await handle(new Request("https://playtest.moores.tech/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
     const firstBody = (await first.json()) as { items: unknown[]; cursor: string | null };
     expect(firstBody.items).toHaveLength(100);
     expect(firstBody.cursor).not.toBeNull();
 
     const second = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox?cursor=${encodeURIComponent(firstBody.cursor ?? "")}`, { headers: ADMIN }),
+      new Request(`https://playtest.moores.tech/v1/inbox?cursor=${encodeURIComponent(firstBody.cursor ?? "")}`, { headers: ADMIN }),
       workerEnv,
       noNetwork,
     );
@@ -94,7 +94,7 @@ describe("admin api inbox", () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
     await workerEnv.BUCKET.put(`reports/${STEAM_ID}/20260913_120000_aaaa1111/ACKED`, "2026-09-15T00:00:00.000Z");
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const inbox = await handle(new Request("https://playtest.tar-atari.com/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
+    const inbox = await handle(new Request("https://playtest.moores.tech/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
     expect(((await inbox.json()) as { items: unknown[] }).items).toHaveLength(0);
     expect(await workerEnv.BUCKET.head(`index/pending/report/${STEAM_ID}/20260913_120000_aaaa1111`)).toBeNull();
     expect(warn).toHaveBeenCalled();
@@ -104,7 +104,7 @@ describe("admin api inbox", () => {
   it("pendingでないidをackすると404でwarnする", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const response = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox/report/${STEAM_ID}/20260913_999999_zzzz9999/ack`, { method: "POST", headers: ADMIN }),
+      new Request(`https://playtest.moores.tech/v1/inbox/report/${STEAM_ID}/20260913_999999_zzzz9999/ack`, { method: "POST", headers: ADMIN }),
       workerEnv,
       noNetwork,
     );
@@ -117,13 +117,13 @@ describe("admin api inbox", () => {
   it("ackするとinboxから消えACKEDが出来る", async () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
     const acked = await handle(
-      new Request(`https://playtest.tar-atari.com/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/ack`, { method: "POST", headers: ADMIN }),
+      new Request(`https://playtest.moores.tech/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/ack`, { method: "POST", headers: ADMIN }),
       workerEnv,
       noNetwork,
     );
     expect(acked.status).toBe(200);
     expect(await workerEnv.BUCKET.get(`reports/${STEAM_ID}/20260913_120000_aaaa1111/ACKED`)).not.toBeNull();
-    const inbox = await handle(new Request("https://playtest.tar-atari.com/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
+    const inbox = await handle(new Request("https://playtest.moores.tech/v1/inbox", { headers: ADMIN }), workerEnv, noNetwork);
     expect(((await inbox.json()) as { items: unknown[] }).items).toHaveLength(0);
   });
 
@@ -133,7 +133,7 @@ describe("admin api inbox", () => {
     await upload("report", "20260913_120000_aaaa1111", "a.txt", "x");
     const request = () =>
       handle(
-        new Request(`https://playtest.tar-atari.com/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/ack`, { method: "POST", headers: ADMIN }),
+        new Request(`https://playtest.moores.tech/v1/inbox/report/${STEAM_ID}/20260913_120000_aaaa1111/ack`, { method: "POST", headers: ADMIN }),
         workerEnv,
         noNetwork,
       );

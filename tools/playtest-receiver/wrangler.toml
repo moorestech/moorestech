@@ -4,9 +4,9 @@ main = "src/index.ts"
 # The newest date the test workerd understands; a later date would split test and production semantics
 compatibility_date = "2026-08-22"
 
-# プレイテスト受け口の固定ドメイン。DNSはCloudflare上のtar-atari.comゾーンに属する
-# Fixed domain for the playtest receiver; DNS lives in the tar-atari.com zone on Cloudflare
-routes = [{ pattern = "playtest.tar-atari.com", custom_domain = true }]
+# プレイテスト受け口の固定ドメイン。DNSはmoorestechのCloudflareアカウントのmoores.techゾーンに属する
+# Fixed domain for the playtest receiver; DNS lives in the moores.tech zone of the moorestech Cloudflare account
+routes = [{ pattern = "playtest.moores.tech", custom_domain = true }]
 
 [vars]
 STEAM_APP_ID = "1958160"

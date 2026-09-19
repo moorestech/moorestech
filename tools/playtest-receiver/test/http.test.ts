@@ -21,12 +21,12 @@ function envWithAdminKey(adminKey: string): Env {
 describe("requireAdmin", () => {
   it("ADMIN_KEYが空文字列なら、ヘッダの有無に関わらず401を返す", async () => {
     const env = envWithAdminKey("");
-    const withoutHeader = requireAdmin(new Request("https://playtest.tar-atari.com/v1/admin"), env);
+    const withoutHeader = requireAdmin(new Request("https://playtest.moores.tech/v1/admin"), env);
     expect(withoutHeader?.status).toBe(401);
     expect(await withoutHeader?.json()).toEqual({ reason: "unauthorized" });
 
     const withHeader = requireAdmin(
-      new Request("https://playtest.tar-atari.com/v1/admin", { headers: { "x-admin-key": "" } }),
+      new Request("https://playtest.moores.tech/v1/admin", { headers: { "x-admin-key": "" } }),
       env,
     );
     expect(withHeader?.status).toBe(401);
@@ -36,14 +36,14 @@ describe("requireAdmin", () => {
     // secretのput漏れでbindingごと存在しない状況。空文字列とは別経路なので個別に検証する
     // A missed `wrangler secret put` leaves the binding absent, a different path from the empty string
     const env = envWithAdminKey(undefined as unknown as string);
-    const response = requireAdmin(new Request("https://playtest.tar-atari.com/v1/admin"), env);
+    const response = requireAdmin(new Request("https://playtest.moores.tech/v1/admin"), env);
     expect(response?.status).toBe(401);
   });
 
   it("ADMIN_KEYが設定されていて一致すれば通過する", () => {
     const env = envWithAdminKey("secret-admin-key");
     const response = requireAdmin(
-      new Request("https://playtest.tar-atari.com/v1/admin", { headers: { "x-admin-key": "secret-admin-key" } }),
+      new Request("https://playtest.moores.tech/v1/admin", { headers: { "x-admin-key": "secret-admin-key" } }),
       env,
     );
     expect(response).toBeNull();
@@ -52,7 +52,7 @@ describe("requireAdmin", () => {
   it("ADMIN_KEYが設定されていて不一致なら401を返す", () => {
     const env = envWithAdminKey("secret-admin-key");
     const response = requireAdmin(
-      new Request("https://playtest.tar-atari.com/v1/admin", { headers: { "x-admin-key": "wrong-key" } }),
+      new Request("https://playtest.moores.tech/v1/admin", { headers: { "x-admin-key": "wrong-key" } }),
       env,
     );
     expect(response?.status).toBe(401);
