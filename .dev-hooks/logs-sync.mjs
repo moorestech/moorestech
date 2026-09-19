@@ -146,13 +146,19 @@ function commitAndPush() {
 // 宛先が無い(かつ7日以内のファイル)か、宛先より新しい時だけコピーする冪等コピー
 // Idempotent copy: only when dest is missing (and src is <7 days old) or src is newer.
 function copyIfUpdated(src, dest) {
-  // 外部境界: 他プロセス管理下のファイル群のためstat/copy失敗は握りつぶす
-  // External boundary: swallow stat/copy failures on files owned by other processes.
+  // 外部境界: 他プロセス管理下のファイル群のためstat/copy失敗はフックを止めず、理由をstderrへ出して次へ進む
+  // External boundary: stat/copy failures on files owned by other processes don't stop the hook; report the reason to stderr and move on.
+  // 元ファイルが無いのは退避すべきものが無いだけで欠落ではない（beadsミラー未生成のclone等）
+  // A missing source only means there is nothing to archive, not a loss (e.g. a clone without the beads mirror)
+  if (!existsSync(src)) return;
   try {
     const srcStat = statSync(src);
-    // GitHubの100MB上限を超えるファイルはpushできないため同期しない
-    // Skip files over GitHub's 100MB limit; they can never be pushed.
-    if (srcStat.size > 95 * 1024 * 1024) return;
+    // GitHubの100MB上限を超えるファイルはpushできないため同期しない。考古学repoから黙って欠落しないよう理由を出す
+    // Skip files over GitHub's 100MB limit since they can never be pushed; report it so the archive never loses a session silently.
+    if (srcStat.size > 95 * 1024 * 1024) {
+      console.error(`[logs-sync] skipped (over 95MB, GitHub push limit): ${src} size=${srcStat.size}`);
+      return;
+    }
     if (existsSync(dest)) {
       // utimesSyncはms精度でしか書けずAPFSのns精度mtimeに常に負けるため、ms切り捨てで比較する
       // utimesSync writes ms precision and always loses to APFS ns mtimes, so compare at floored ms.
@@ -163,7 +169,9 @@ function copyIfUpdated(src, dest) {
     mkdirSync(dirname(dest), { recursive: true });
     copyFileSync(src, dest);
     utimesSync(dest, srcStat.atime, srcStat.mtime);
-  } catch {}
+  } catch (error) {
+    console.error(`[logs-sync] copy failed: ${src} -> ${dest}: ${error.code ?? ""} ${error.message}`);
+  }
 }
 
 // rollout先頭のsession_metaからcwdを読む（行が巨大なのでJSONパースせずに正規表現で抜く）
