@@ -34,9 +34,9 @@ namespace Tests.CombinedTest.Core.Fluid
     {
         private static readonly Vector3Int PipePos = new(9, 0, 0);
 
-        // 生成量0.125/tick未満に設定
-        // Set below the 0.125/tick generation rate
-        private const double DrainPerTick = 0.05;
+        // 生成量0.125/tick未満かつ待機倍率と別の按分になる値
+        // Below the 0.125/tick generation and prorated apart from the idle rate
+        private const double DrainPerTick = 0.03;
 
         [Test]
         public void 満杯でも搬出が続く間は稼働と搬出量に按分した要求を毎tick保ち搬出が止まると待機へ落ちる()
