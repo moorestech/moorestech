@@ -54,7 +54,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 ### UI経路操作（実プレイヤーと同じキーマウ経路＝検証対象）
 | API | 用途 |
 |---|---|
-| `OpenBuildMenuAndSelectBlock(name)` | B/Tab注入→ビルドメニュー→スロット選択→PlaceBlock遷移＋カメラtween待ち0.6s。**CEF(Web UI)モードではDOMクリック経路、uGUIモードではEventSystem直叩きへ自動分岐** |
+| `OpenBuildMenuAndSelectBlock(name)` | B/Tab注入→ビルドメニュー→スロット選択→PlaceBlock遷移＋カメラtween待ち0.6s。**画面UIはWeb UI一本のためDOMクリック経路のみ（CEFが15秒以内に使えなければ例外。uGUI経路は撤去済み）** |
 | `PlaceBlockViaUi(name, origin, dir)` | 単クリック設置の統合操作（**向きはNorth固定**）。設置反映Until込み |
 | `DragPlaceViaUi(name, from, to)` | ドラッグ設置（ベルト等）。**向きは経路から自動解決** |
 | `ExitToGameScreen()` | B注入でGameScreenへ（**place systemの内部状態をリセットする副作用**が重要。歯車ポールの延長起点等） |

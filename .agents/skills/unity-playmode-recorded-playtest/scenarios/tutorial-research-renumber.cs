@@ -1,3 +1,5 @@
+// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 待機するチャレンジ/チュートリアルのGUID（研究1〜3 837e9697/424be8c1/07d6226c ほか）がピン先マスタ c219a2f5 に存在せず、最初の待ちで必ずタイムアウトする（ADR 0038 の序盤圧縮でチェーンが再構成された）。雛形にしないこと
+// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): the challenge/tutorial GUIDs it waits on (研究1〜3 837e9697/424be8c1/07d6226c ほか) do not exist in the pinned master c219a2f5, so the first wait always times out (the chain was rebuilt by the ADR 0038 early-game compression). Do not use this as a template
 // シナリオ: ADR 0033 のチェーン（研究3→風力掘削機設置(原木鉱脈ピン)→研究4→粘土入手(粘土鉱脈ピン)）を実走検証する
 // Scenario: verify the ADR 0033 chain (research 3 → wind drill (log-vein pin) → research 4 → clay (clay-vein pin)) live
 // 足場生成やSetupDebugEnvironmentは呼ばない（自然なマップ=鉱脈露頭とスポーンを残すため）

@@ -1,4 +1,4 @@
-# ユースケース: キー・マウス・uGUIを注入する / 入力が効かない
+# ユースケース: キー・マウス・画面UIを注入する / 入力が効かない
 
 ## 鉄則: 世界は2つあり両立しない。必ず(A)だけで通す
 
@@ -38,20 +38,13 @@ KeyboardStateは**全量スナップショット**なので押下中キー集合
   （プロダクト修正。操作感は変わらない。移行例はコミット a873f4d57）
 - 移行できない事情がある場合のみ、リフレクションで状態遷移を直接叩く代替を検討
 
-## uGUIボタン・スロットのクリック
+## 画面UI（ボタン・スロット）のクリック
 
-2通りあり、**EventSystem直叩きが第一選択**（OSカーソル非依存・カメラ非干渉・レイアウト非依存）:
+画面UIはWeb UI一本（ADR 0052）で、`CommonSlotView`等のuGUIビューは撤去済み。EventSystem直叩き（`ExecuteEvents.pointerDown/UpHandler`）で押せる対象は現行の画面UIには無い。
 
-```csharp
-var eventData = new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current)
-    { button = UnityEngine.EventSystems.PointerEventData.InputButton.Left };
-UnityEngine.EventSystems.ExecuteEvents.Execute(targetGo, eventData, UnityEngine.EventSystems.ExecuteEvents.pointerDownHandler);
-UnityEngine.EventSystems.ExecuteEvents.Execute(targetGo, eventData, UnityEngine.EventSystems.ExecuteEvents.pointerUpHandler);
-```
-
-- ハンドラは`CommonSlotView`等の**コンポーネントが付いたGameObject**に対して実行する（親ではなく）
-- 座標クリックで押す場合はEventSystemが`InputSystemUIInputModule`であること（本プロジェクトは該当）と、
-  レイアウト確定後の座標であること（生成直後は1フレーム待って`RectTransformUtility.WorldToScreenPoint(null, rt.position)`）
+- Web UIの要素は `data-testid` で指定し、DSLの `ClickWebUi(testid)` / `HoverWebUi(testid)` / `UntilWebUiElement(testid, timeout)` を使う（DOM矩形→座標逆変換→注入マウス→`CefInputForwarder`。write-scenario.mdのWeb UI操作参照）
+- ビルドメニューは `OpenBuildMenuAndSelectBlock(name)`（`PlaytestBuildMenuOps`。CEFが使えなければ例外）
+- uGUI型（`BuildMenuView`/`ItemSlotView`/`CommonSlotView`/`BlueprintNameInputView`/`CrosshairView`）を参照する旧シナリオはコンパイルできない。雛形にしない
 
 ## ワールドクリックの座標
 
