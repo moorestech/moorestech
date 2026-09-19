@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Threading;
 using Client.Localization;
 using Client.Starter.EventMode;
+using Client.Tests.WebUi.Gate;
+using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.EventMode;
+using Client.WebUiHost.Game.StartGates;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
 using UnityEngine;
@@ -17,9 +20,17 @@ namespace Client.Tests.EventMode
     {
         private const int IdleTimeoutSeconds = 180;
 
+        private static readonly string[] SavedEnvKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey };
+        private readonly string[] _savedEnvValues = new string[SavedEnvKeys.Length];
+
         [SetUp]
         public void SetUp()
         {
+            // イベントモード変数を退避し固定する
+            // Save env vars and pin to normal mode.
+            for (var i = 0; i < SavedEnvKeys.Length; i++) _savedEnvValues[i] = Environment.GetEnvironmentVariable(SavedEnvKeys[i]);
+            for (var i = 0; i < SavedEnvKeys.Length; i++) Environment.SetEnvironmentVariable(SavedEnvKeys[i], null);
+
             // TrySetLanguageは公開snapshotの実言語を判定基準にするため、辞書を張ってから検証する
             // TrySetLanguage judges against the published snapshot, so the dictionaries must be loaded first
             Localize.Initialize();
@@ -28,8 +39,9 @@ namespace Client.Tests.EventMode
         [TearDown]
         public void TearDown()
         {
-            Environment.SetEnvironmentVariable("MOORESTECH_EVENT_MODE", null);
-            Environment.SetEnvironmentVariable("MOORESTECH_EVENT_MODE_EDITOR", null);
+            // 退避した値へ正確に書き戻す
+            // Write the saved values back exactly
+            for (var i = 0; i < SavedEnvKeys.Length; i++) Environment.SetEnvironmentVariable(SavedEnvKeys[i], _savedEnvValues[i]);
         }
 
         [Test]
@@ -39,6 +51,20 @@ namespace Client.Tests.EventMode
 
             Assert.IsTrue(task.Status.IsCompletedSuccessfully());
             Assert.AreEqual(0, Object.FindObjectsByType<EventIdleQuitWatcher>(FindObjectsSortMode.None).Length);
+        }
+
+        // 通常モードでも言語ゲートのtopicは登録する。Web側は3ゲートを無条件購読し、未登録だとWS再接続後にrestoringが解けず全UIが操作不能になる
+        // The language-gate topic is registered even outside exhibition mode; the web subscribes to all three gates unconditionally, and a missing topic leaves restoring stuck after a WS reconnect
+        [Test]
+        public void 出展モードでなくても言語ゲートのtopicとactionを待機なしで登録する()
+        {
+            var hub = new WebSocketHub();
+
+            var task = EventModeStartGate.WaitForLanguageSelectionWithHubAsync(hub, EventExhibitionSettings.FromEnvironment(), CancellationToken.None);
+
+            Assert.IsTrue(task.Status.IsCompletedSuccessfully());
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.EventLanguageName, false, StartGateTopics.EventLanguagePrecedence);
+            Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
 
         // PRの中核である「言語選択を待ってから武装する」順序を、武装窓口の呼ばれ方で押さえる

@@ -1,3 +1,5 @@
+// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みのuGUI型（BuildMenuView/ItemSlotView/CommonSlotView）を参照しておりexecute-dynamic-codeでコンパイルできない。画面UIはWeb UI一本（ADR 0052）。雛形にしないこと。書き直しはWeb経路（後継 connect/electric-wire-tool-extend-chain-via-ui.cs を参照）で行う
+// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): references removed uGUI types (BuildMenuView/ItemSlotView/CommonSlotView) and does not compile under execute-dynamic-code. The screen UI is Web-only (ADR 0052); do not use this as a template. Rewrite it on the Web route (後継 connect/electric-wire-tool-extend-chain-via-ui.cs を参照)
 // 電線接続E2E検証(UI経路): ビルドメニューの接続ツール「電線接続」を選択し2本の電柱をクリック結線する
 // 検証項目: 結線前は独立セグメント、接続ツール選択でPlaceBlock遷移、起点→接続クリックでセグメント統合、電柱ブロック選択中の電力範囲表示
 // Electric wire connect E2E (UI route): select the "電線接続" connect tool from the build menu and click-connect two poles.
