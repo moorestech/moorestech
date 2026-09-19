@@ -61,6 +61,14 @@ namespace Client.Starter.Playtest.TitleGates
 
         public async UniTask<CrashReportResponseResult> RespondCrashReportAsync(bool send, string description)
         {
+            // 段階がCrashReportでない応答は拒否する。同意待ち中の応答を通すと、了解前の送信要求と段階の飛び越しが起きる
+            // Reject an answer while the step is not CrashReport; letting it through would request an upload before consent and skip a step
+            if (_step.Value != PlaytestTitleGateStep.CrashReport)
+            {
+                Debug.LogWarning($"[PlaytestTitleGates] RespondCrashReportAsync refused: step is {_step.Value}, not CrashReport");
+                return CrashReportResponseResult.NotAsked;
+            }
+
             var result = await _crashReport.RespondAsync(send, description);
 
             // 箱を書いたら同じ窓口へ送信をもう一度要求する。照合直後の走行はもう終わっていることがある（ADR 0065）

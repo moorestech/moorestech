@@ -81,6 +81,27 @@ namespace Client.Tests.Playtest.TitleGates
             CollectionAssert.AreEqual(new[] { "落ちた" }, writer.Descriptions);
         }
 
+        // 同意待ち中に届いた異常終了応答は段階違いとして拒否する。通してしまうと了解前の送信要求と段階の飛び越しが起きる
+        // An unclean-exit answer arriving while consent is still pending is refused as the wrong step; letting it through would request an upload before consent and skip a step
+        [Test]
+        public void 同意段階中の異常終了応答は拒否され了解後にCrashReport段階へ進む()
+        {
+            var uploads = new RecordingUploadRequester();
+            var writer = new RecordingCrashBundleWriter(WrittenDirectory);
+            var sequence = Sequence(true, new CrashReportGate(writer, TestPreviousSessionArtifacts.Unclean()), uploads, true);
+
+            sequence.RunAsync(CancellationToken.None).Forget();
+            Assert.AreEqual(PlaytestTitleGateStep.Consent, sequence.Step.Value);
+
+            Assert.AreEqual(CrashReportResponseResult.NotAsked, sequence.RespondCrashReportAsync(true, "早すぎる").GetAwaiter().GetResult());
+            Assert.AreEqual(PlaytestTitleGateStep.Consent, sequence.Step.Value, "拒否されたのに段階が進んでいる");
+            Assert.AreEqual(0, uploads.RequestCount, "同意前に送信を要求している");
+            CollectionAssert.IsEmpty(writer.Descriptions, "同意前に箱を書いている");
+
+            sequence.AcknowledgeConsent();
+            Assert.AreEqual(PlaytestTitleGateStep.CrashReport, sequence.Step.Value);
+        }
+
         [Test]
         public void 既読かつ異常終了なら確認だけを出し送らないでも通過して再要求しない()
         {

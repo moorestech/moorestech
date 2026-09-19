@@ -98,6 +98,7 @@ namespace Client.Starter.Playtest.TitleGates
         Sent,
         Skipped,
         WriteFailed,
-        AlreadyResponded
+        AlreadyResponded,
+        NotAsked
     }
 }
