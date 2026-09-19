@@ -34,12 +34,12 @@ namespace Game.Block.Blocks.Pump
             // Duplicate rows for one fluid are rejected by BlockMasterUtil validation, so only unique fluids reach here
             foreach (var gen in generateFluids.items)
             {
-                if (gen.GenerateTime <= 0) continue;
-
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(gen.FluidGuid);
                 if (!targetFluidIds.Remove(fluidId)) continue;
 
-                var perSecond = gen.Amount / Math.Max(0.0001, gen.GenerateTime);
+                // 生成時間・生成量の正値はBlockMasterの検証で保証済み
+                // Positive generate time and amount are guaranteed by BlockMaster validation
+                var perSecond = gen.Amount / gen.GenerateTime;
                 entries.Add(new FluidGenerationEntry(fluidId, perSecond));
                 break;
             }

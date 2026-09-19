@@ -23,7 +23,6 @@ namespace Game.Block.Interface.Vein
             var pumpableFluidIds = new HashSet<FluidId>();
             foreach (var entry in generateFluids.items)
             {
-                if (entry.GenerateTime <= 0) continue;
                 pumpableFluidIds.Add(MasterHolder.FluidMaster.GetFluidId(entry.FluidGuid));
             }
 
