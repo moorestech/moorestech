@@ -85,8 +85,8 @@ namespace Client.Tests.EventMode
             Assert.IsNotNull(hub.ResolveAction("event_mode.select_language"));
         }
 
-        // 待機しない起動（通常モード）でも登録し、snapshotは待機なしを配る。Web側はこのtopicを無条件購読する
-        // A non-waiting boot (normal mode) still registers, and the snapshot reports no wait; the web subscribes to this topic unconditionally
+        // 待機なしでも登録し配信する
+        // Registers and reports no-wait even without waiting.
         [Test]
         public void 待機しないBindでもtopicを登録しwaitingをfalseで配る()
         {

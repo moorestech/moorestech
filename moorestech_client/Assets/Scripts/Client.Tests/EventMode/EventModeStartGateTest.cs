@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using Client.Localization;
 using Client.Starter.EventMode;
@@ -21,12 +20,16 @@ namespace Client.Tests.EventMode
     {
         private const int IdleTimeoutSeconds = 180;
 
-        private WebSocketHub _originalHub;
+        private static readonly string[] SavedEnvKeys = { "MOORESTECH_EVENT_MODE", "MOORESTECH_EVENT_MODE_EDITOR" };
+        private readonly string[] _savedEnvValues = new string[SavedEnvKeys.Length];
 
         [SetUp]
         public void SetUp()
         {
-            _originalHub = Client.WebUiHost.Boot.WebUiHost.Hub;
+            // イベントモード変数を退避し固定する
+            // Save env vars and pin to normal mode.
+            for (var i = 0; i < SavedEnvKeys.Length; i++) _savedEnvValues[i] = Environment.GetEnvironmentVariable(SavedEnvKeys[i]);
+            for (var i = 0; i < SavedEnvKeys.Length; i++) Environment.SetEnvironmentVariable(SavedEnvKeys[i], null);
 
             // TrySetLanguageは公開snapshotの実言語を判定基準にするため、辞書を張ってから検証する
             // TrySetLanguage judges against the published snapshot, so the dictionaries must be loaded first
@@ -36,9 +39,9 @@ namespace Client.Tests.EventMode
         [TearDown]
         public void TearDown()
         {
-            Environment.SetEnvironmentVariable("MOORESTECH_EVENT_MODE", null);
-            Environment.SetEnvironmentVariable("MOORESTECH_EVENT_MODE_EDITOR", null);
-            SetWebUiHostHub(_originalHub);
+            // 退避した値へ正確に書き戻す
+            // Write the saved values back exactly
+            for (var i = 0; i < SavedEnvKeys.Length; i++) Environment.SetEnvironmentVariable(SavedEnvKeys[i], _savedEnvValues[i]);
         }
 
         [Test]
@@ -56,9 +59,8 @@ namespace Client.Tests.EventMode
         public void 出展モードでなくても言語ゲートのtopicとactionを待機なしで登録する()
         {
             var hub = new WebSocketHub();
-            SetWebUiHostHub(hub);
 
-            var task = EventModeStartGate.WaitForLanguageSelectionAsync(CancellationToken.None);
+            var task = EventModeStartGate.WaitForLanguageSelectionAsync(hub, EventExhibitionSettings.FromEnvironment(), CancellationToken.None);
 
             Assert.IsTrue(task.Status.IsCompletedSuccessfully());
             var topic = hub.ResolveTopic(StartGateTopics.EventLanguageName);
@@ -116,13 +118,6 @@ namespace Client.Tests.EventMode
         // The no-WebUiHost fallback is not EditMode-testable because DontDestroyOnLoad is a PlayMode-only API.
         // 当該分岐はコードレビューとReleaseビルドの通し確認（ADR 0040「実機確認」）で担保する。
         // That branch is covered by code review and the Release build walkthrough recorded in ADR 0040.
-
-        // Hubは起動済みWebUiHostだけが持つ。Kestrelを立てずに登録経路を通すため静的フィールドへ直接差し込む
-        // Only a started WebUiHost owns the hub; it is injected into the static field so the registration path runs without starting Kestrel
-        private static void SetWebUiHostHub(WebSocketHub hub)
-        {
-            typeof(Client.WebUiHost.Boot.WebUiHost).GetField("_hub", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, hub);
-        }
 
         // 武装の呼ばれた回数・引数と、その瞬間のゲート状態を記録して順序を観測する
         // Records the arming calls, their argument, and the gate state at that moment to observe the order
