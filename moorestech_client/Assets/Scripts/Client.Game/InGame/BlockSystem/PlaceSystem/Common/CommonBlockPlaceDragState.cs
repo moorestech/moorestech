@@ -13,18 +13,32 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
     /// </summary>
     public class CommonBlockPlaceDragState
     {
-        public int HeightOffset { get; private set; }
+        public int HeightOffset => _heightOffset.Value;
 
         // 左ドラッグ設置は押下から解放までが目に見える進行中操作になる
         // A left-drag placement is a visible in-progress operation from press to release
         public bool IsDragging => _session != null;
 
+        private readonly PlacementHeightOffset _heightOffset;
         private PlacementDragSession _session;
         private BlockId? _previousSelectedBlockId;
+
+        public CommonBlockPlaceDragState(PlacementHeightOffset heightOffset)
+        {
+            _heightOffset = heightOffset;
+        }
 
         public void ClearDrag()
         {
             _session = null;
+        }
+
+        // 建築モードを抜ける時はドラッグも高さも畳む。次に入った時は地表基準から始める
+        // Leaving build mode folds both the drag and the height, so the next entry starts from ground level
+        public void ClearDragAndHeight()
+        {
+            _session = null;
+            _heightOffset.SetValue(0);
         }
 
         public void UpdateHeightOffsetByInput()
@@ -38,7 +52,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         // The only entry that moves the height offset, keeping input interpretation apart from the stored value
         public void AdjustHeightOffset(int delta)
         {
-            HeightOffset += delta;
+            _heightOffset.SetValue(_heightOffset.Value + delta);
         }
 
         // 選択ブロック変更時に連続設置状態をリセット
@@ -50,7 +64,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // 切替後の高さは常に地表基準に戻す
                 // A block switch always returns the height to ground level
                 _session = null;
-                HeightOffset = 0;
+                _heightOffset.SetValue(0);
             }
             _previousSelectedBlockId = blockId;
         }
@@ -94,7 +108,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // Ignore releases without a registered press, so a leaked build-menu click release never rewrites the height
             if (_session == null) return false;
 
-            HeightOffset = _session.StartHeightOffset;
+            _heightOffset.SetValue(_session.StartHeightOffset);
             _session = null;
             return true;
         }

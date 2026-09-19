@@ -34,13 +34,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlaceRunBuilder _placeRunBuilder;
 
-        private readonly CommonBlockPlaceDragState _dragState = new();
+        private readonly CommonBlockPlaceDragState _dragState;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery)
+        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery, PlacementHeightOffset placementHeightOffset)
         {
+            _dragState = new CommonBlockPlaceDragState(placementHeightOffset);
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
@@ -69,8 +70,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Keep preview in debug mode
             if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) _previewBlockController.SetActive(false);
 
-            // 連続設置状態をリセット
-            _dragState.ClearDrag();
+            // 連続設置状態と高さをリセット
+            // Reset the continuous placement state and the height
+            _dragState.ClearDragAndHeight();
             _currentPlaceInfos.Clear();
         }
 

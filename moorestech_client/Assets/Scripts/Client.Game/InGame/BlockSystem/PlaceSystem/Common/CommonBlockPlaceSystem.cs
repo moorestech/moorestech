@@ -48,13 +48,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly IChainGroundQuery _chainGroundQuery;
         private readonly ChainPlacementPreviewPart _chainPlacementPreviewPart;
 
-        private readonly CommonBlockPlaceDragState _dragState = new();
+        private readonly CommonBlockPlaceDragState _dragState;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState, ChainPlacePreviewState chainPlacePreviewState, IChainGroundQuery chainGroundQuery)
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState, ChainPlacePreviewState chainPlacePreviewState, IChainGroundQuery chainGroundQuery, PlacementHeightOffset placementHeightOffset)
         {
+            _dragState = new CommonBlockPlaceDragState(placementHeightOffset);
             _mainCamera = mainCamera;
             _groundFollower = groundFollower;
             _previewBlockController = previewBlockController;
@@ -94,8 +95,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 HideConnectPreviews();
             }
 
-            // 連続設置状態をリセット
-            _dragState.ClearDrag();
+            // 連続設置状態と高さをリセット
+            // Reset the continuous placement state and the height
+            _dragState.ClearDragAndHeight();
             _currentPlaceInfos.Clear();
         }
 

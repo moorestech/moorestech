@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Mooresmaster.Localization.Generated;
 using System;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
@@ -9,6 +8,7 @@ using Client.Game.InGame.Map.MapVein;
 using Client.Game.InGame.UI.UIState.State.CameraPolicy;
 using Client.Game.InGame.UI.UIState.State.CancelInput;
 using Client.Game.InGame.UI.UIState.State.Hotbar;
+using Client.Game.InGame.UI.UIState.State.PlaceBlock;
 using Client.Game.InGame.UI.UIState.State.PlacementPick;
 using Client.Game.Skit;
 using Client.Input;
@@ -29,10 +29,6 @@ namespace Client.Game.InGame.UI.UIState.State
         private readonly IMapVeinRangeView _mapVeinRangeView;
         private readonly HotbarTapInputService _hotbarInputService;
         private readonly RightShortPressInputService _rightShortPressInputService;
-        private readonly ReactiveProperty<int> _placementHeight = new(0);
-
-        public IObservable<int> OnPlacementHeightChanged => _placementHeight;
-        public int GetPlacementHeight() => _placementHeight.Value;
 
         public PlaceBlockState(
             SkitManager skitManager,
@@ -70,7 +66,6 @@ namespace Client.Game.InGame.UI.UIState.State
             _hotbarInputService.ResetKeyState();
             _rightShortPressInputService.ResetPressState();
 
-            _placementHeight.Value = 0;
             // 遷移payloadから設置対象と由来を1組で受け取り所有者へ渡す（無ければEmptyに落ちる）
             // Take the placement target and its origin as one pair from the transition payload and hand them to the owner (falls back to Empty when absent)
             if (context.TryGetContext<PlacementSelection>(out var selection)) _placeSystemStateController.SetTarget(selection.Target, selection.Origin);
@@ -160,11 +155,6 @@ namespace Client.Game.InGame.UI.UIState.State
             // Ctrl+Z detection lives inside the service
             _buildUndoService.ManualUpdate();
 
-            // 実設置系と同じ入力でHUDの高さ表示を更新する
-            // Update the HUD height from the same input used by placement systems
-            if (HybridInput.GetKeyDown(KeyCode.Q)) _placementHeight.Value--;
-            else if (HybridInput.GetKeyDown(KeyCode.E)) _placementHeight.Value++;
-
             return null;
         }
 
@@ -200,22 +190,5 @@ namespace Client.Game.InGame.UI.UIState.State
         {
             return PlaceBlockStateHints.Hints;
         }
-    }
-
-    internal static class PlaceBlockStateHints
-    {
-        public static readonly IReadOnlyList<KeyHint> Hints = new[]
-        {
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Tab, LocalizationKeys.Ui.KeyHint.Text.SelectBlock),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Digits, LocalizationKeys.Ui.KeyHint.Text.SwapTarget),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.B, LocalizationKeys.Ui.KeyHint.Text.ExitPlaceMode),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.G, LocalizationKeys.Ui.KeyHint.Text.DeleteMode),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.R, LocalizationKeys.Ui.KeyHint.Text.Rotate),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.Q, LocalizationKeys.Ui.KeyHint.Text.LowerHeight),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.E, LocalizationKeys.Ui.KeyHint.Text.RaiseHeight),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.MiddleClick, LocalizationKeys.Ui.KeyHint.Text.PickPlacedObject),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.CtrlZ, LocalizationKeys.Ui.KeyHint.Text.Undo),
-            new KeyHint(LocalizationKeys.Ui.KeyHint.Key.V, LocalizationKeys.Ui.KeyHint.Text.ToggleView),
-        };
     }
 }
