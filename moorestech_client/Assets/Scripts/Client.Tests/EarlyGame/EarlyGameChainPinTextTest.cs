@@ -3,6 +3,7 @@ using System.Linq;
 using Client.Game.Localization;
 using Client.Tests.Support;
 using Core.Master;
+using Mooresmaster.LocalizationCsv;
 using Mooresmaster.Model.ChallengesModule;
 using NUnit.Framework;
 using Server.Boot;
@@ -10,8 +11,8 @@ using Server.Boot;
 namespace Client.Tests.EarlyGame
 {
     /// <summary>
-    ///     v8マスタの連結ゴーストのピン文言に原文と訳があり、[!key]にならないことを確認
-    ///     Proves every chain-ghost pin on the pinned v8 master has source text and a translation row, so no [!key] placeholder shows
+    ///     連結ゴーストピンの原文と訳を確認
+    ///     Confirms chain-ghost pin wording has source text and a translation
     /// </summary>
     public class EarlyGameChainPinTextTest
     {
@@ -44,12 +45,19 @@ namespace Client.Tests.EarlyGame
             // ピンはtutorialGuidをキーに文言を引くため、原文と訳行が揃わないと欠落プレースホルダが出る
             // Pins look up wording by tutorialGuid, so a missing source or translation row renders the placeholder
             var sources = MasterSourceTextCollector.Collect();
-            var translationCsv = PinnedMasterRepository.ReadPinnedFile(LocalizationCsvPath);
+            var csv = LocalizationCsvParser.Parse(PinnedMasterRepository.ReadPinnedFile(LocalizationCsvPath));
             foreach (var tutorial in chainTutorials)
             {
                 var key = $"challengeTutorial.{tutorial.TutorialGuid:D}.text";
                 Assert.IsTrue(sources.TryGetValue(key, out var source) && !string.IsNullOrEmpty(source), $"no source text for {key}");
-                StringAssert.Contains(key + ",", translationCsv, $"no translation row for {key}");
+
+                var row = csv.Rows.FirstOrDefault(r => r.Key == key);
+                Assert.IsNotNull(row, $"no translation row for {key}");
+                Assert.IsFalse(string.IsNullOrEmpty(row.Source), $"empty source column for {key}");
+                for (var i = 0; i < row.Texts.Length; i++)
+                {
+                    Assert.IsFalse(string.IsNullOrEmpty(row.Texts[i]), $"empty {csv.LanguageCodes[i]} translation for {key}");
+                }
             }
         }
     }
