@@ -86,13 +86,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             return _session == null ? cursorCell : _session.StartCell;
         }
 
-        // 解放フレームで必ずドラッグを畳む。設置できない位置でも残すと次フレームに古い開始点から列が伸びる
-        // Always fold the drag on the release frame; leaving it even where nothing can be placed extends a run from the stale start next frame
-        // 戻り値は押下が登録された解放か（設置送信へ進んでよいか）
-        // Returns whether this was a release with a registered press, i.e. whether sending may proceed
-        public bool EndDragOnRelease(bool isPlacementReleased)
+        // 解放の畳みと送信可否を決める唯一の入口。設置できない位置でも畳まないと次フレームに古い開始点から列が伸びる
+        // The only entry deciding release folding and sending; an unfolded drag extends a run from the stale start next frame
+        public bool TryConsumeSendableRelease(bool isPlacementReleased, bool isSendable, bool isPreviewKeepDebug)
         {
-            return isPlacementReleased && EndDrag();
+            if (!isPlacementReleased) return false;
+
+            // デバッグのプレビュー維持中は列を畳まず観察用に残す
+            // While debug preview-keep is on, keep the run unfolded for observation
+            if (isPreviewKeepDebug) return false;
+
+            var isPressRegistered = EndDrag();
+            return isPressRegistered && isSendable;
         }
 
         // マウスアップで連続設置解除、高さを開始時へ戻す。戻り値は押下が登録されていたか

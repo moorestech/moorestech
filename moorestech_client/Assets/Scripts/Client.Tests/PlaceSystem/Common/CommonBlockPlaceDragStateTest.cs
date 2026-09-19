@@ -130,13 +130,24 @@ namespace Client.Tests.PlaceSystem.Common
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
             dragState.AdjustHeightOffset(2);
 
-            // 空や距離外で離したフレームでも畳む。残ると押していないのに古い開始点から列が伸びる
-            // Fold even on a sky or out-of-reach release; a leftover session extends a run from the stale start with no button held
-            Assert.IsTrue(dragState.EndDragOnRelease(true), "a release with a registered press must allow the send");
+            Assert.IsTrue(dragState.TryConsumeSendableRelease(true, true, false), "a sendable release with a registered press must allow the send");
 
             Assert.IsFalse(dragState.IsDragging, "the drag survived its release frame");
             Assert.AreEqual(cursorCell, dragState.ResolveDragStartCell(cursorCell));
             Assert.AreEqual(0, dragState.HeightOffset, "the in-drag height was not restored on release");
+        }
+
+        [Test]
+        public void 送信できない位置で離してもドラッグを畳み送信しない()
+        {
+            var dragState = new CommonBlockPlaceDragState();
+            dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
+
+            // 空や距離外で離したフレームでも畳む。残ると押していないのに古い開始点から列が伸びる
+            // Fold even on a sky or out-of-reach release; a leftover session extends a run from the stale start with no button held
+            Assert.IsFalse(dragState.TryConsumeSendableRelease(true, false, false));
+
+            Assert.IsFalse(dragState.IsDragging, "the drag survived an unsendable release");
         }
 
         [Test]
@@ -147,7 +158,7 @@ namespace Client.Tests.PlaceSystem.Common
             dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
             dragState.AdjustHeightOffset(2);
 
-            Assert.IsFalse(dragState.EndDragOnRelease(false));
+            Assert.IsFalse(dragState.TryConsumeSendableRelease(false, true, false));
 
             Assert.IsTrue(dragState.IsDragging);
             Assert.AreEqual(startCell, dragState.ResolveDragStartCell(new Vector3Int(8, 2, 3)));
@@ -155,11 +166,24 @@ namespace Client.Tests.PlaceSystem.Common
         }
 
         [Test]
+        public void プレビュー維持デバッグ中の解放は列を畳まず送信しない()
+        {
+            var dragState = new CommonBlockPlaceDragState();
+            var startCell = new Vector3Int(1, 2, 3);
+            dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
+
+            Assert.IsFalse(dragState.TryConsumeSendableRelease(true, true, true));
+
+            Assert.IsTrue(dragState.IsDragging, "debug preview-keep must keep the run for observation");
+            Assert.AreEqual(startCell, dragState.ResolveDragStartCell(new Vector3Int(8, 2, 3)));
+        }
+
+        [Test]
         public void 押下未登録の解放は送信へ進まない()
         {
             var dragState = new CommonBlockPlaceDragState();
 
-            Assert.IsFalse(dragState.EndDragOnRelease(true));
+            Assert.IsFalse(dragState.TryConsumeSendableRelease(true, true, false));
         }
     }
 }

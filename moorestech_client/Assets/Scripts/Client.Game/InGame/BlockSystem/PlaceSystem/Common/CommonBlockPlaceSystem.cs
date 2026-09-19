@@ -212,14 +212,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
             void PlaceBlockOnRelease(bool isSendable, bool wirePlaceable)
             {
-                // 解放の畳みはフレームに1回だけ行う。設置できない位置やデバッグ時の解放でもドラッグを残さない
-                // Fold on release exactly once per frame, so no drag survives an unplaceable or debug-mode release
-                if (!_dragState.EndDragOnRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp)) return;
-                if (!isSendable) return;
-
-                // デバッグモード時は送信しない
-                // Skip sending in debug mode
-                if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
+                // 解放の畳みと送信可否は1つの入口で決める
+                // Folding and sending on release are decided by a single entry
+                if (!_dragState.TryConsumeSendableRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp, isSendable, DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))) return;
 
                 // 設置でワールドとインベントリが変わるため、接続プレビューの評価キャッシュを破棄する
                 // Placement changes the world and inventory, so drop the connect preview evaluation caches

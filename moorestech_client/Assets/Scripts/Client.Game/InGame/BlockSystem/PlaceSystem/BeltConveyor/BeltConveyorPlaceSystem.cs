@@ -80,7 +80,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _dragState.UpdateHeightOffsetByInput();
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
             var isSendable = GroundClickControl(target, feedback);
-            PlaceBlockOnRelease(isSendable);
+            PlaceBlockOnRelease();
+
+            #region Internal
+
+            void PlaceBlockOnRelease()
+            {
+                // 解放の畳みと送信可否は1つの入口で決める
+                // Folding and sending on release are decided by a single entry
+                if (!_dragState.TryConsumeSendableRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp, isSendable, DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))) return;
+
+                // ベルトは電線を伴わないためワイヤー判定は常に許可
+                // Belts never carry wires, so the wire check is always allowed
+                TrySendOnClickRelease(_currentPlaceInfos, true);
+            }
+
+            #endregion
         }
 
         // 戻り値はカーソル位置に送信できる設置列があるか
@@ -166,22 +181,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             }
 
             #endregion
-        }
-
-        private void PlaceBlockOnRelease(bool isSendable)
-        {
-            // 解放の畳みはフレームに1回だけ行う。空や距離外、デバッグ時の解放でもドラッグを残さない
-            // Fold on release exactly once per frame, so no drag survives a sky, out-of-reach or debug-mode release
-            if (!_dragState.EndDragOnRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp)) return;
-            if (!isSendable) return;
-
-            // デバッグモード時は送信しない
-            // Skip sending in debug mode
-            if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
-
-            // ベルトは電線を伴わないためワイヤー判定は常に許可
-            // Belts never carry wires, so the wire check is always allowed
-            TrySendOnClickRelease(_currentPlaceInfos, true);
         }
     }
 }
