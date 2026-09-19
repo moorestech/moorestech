@@ -178,8 +178,8 @@ namespace Client.Starter
                 // Observe the forgotten boundary through its dedicated callback so MainGame is never stranded without DI
                 new MainGameInitializationFinalizer(serverResult, serverDirectory, collectsPlaytestRecords).RunAsync(exitToken).Forget(exception =>
                 {
-                    // Play終了で開始ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
-                    // Cancelling the start-gate wait on play exit is not a failure, so it never returns to the main menu
+                    // Play終了で言語ゲートの待ちを打ち切っただけなら失敗ではない。メインメニューへ戻さない
+                    // Cancelling the language-gate wait on play exit is not a failure, so it never returns to the main menu
                     if (exception is OperationCanceledException)
                     {
                         Debug.Log("Initialization was aborted because an exit cancellation arrived midway");

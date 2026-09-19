@@ -8,7 +8,7 @@ namespace Client.Starter.Playtest.TitleGates
     /// 前回異常終了の送信確認。応答があるまで開始を止める（ADR 0061・0065）。表示はタイトルの uGUI が持つ。
     /// The previous-crash send confirmation that holds the start until it is answered (ADR 0061, 0065); the title's uGUI owns the display.
     /// </summary>
-    public sealed class CrashReportGate
+    internal sealed class CrashReportGate
     {
         private readonly UniTaskCompletionSource _responseSource = new();
         private readonly ICrashBundleWriter _writer;

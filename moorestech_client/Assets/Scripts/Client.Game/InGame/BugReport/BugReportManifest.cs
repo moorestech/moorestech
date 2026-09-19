@@ -73,7 +73,7 @@ namespace Client.Game.InGame.BugReport
 
             // 空文字のSteamIDは「識別子が空の実テスター」に読める。nullで出し、取れなかった事実を欠損列へ残す（F02）
             // An empty SteamID reads as a real tester with a blank id; it goes out as null with the gap declared in missing (F02)
-            if (manifest.SteamId == null) manifest.AddMissing("steamId", "テスター識別（SteamID）が差し込まれていない（plan D 未導入またはSteam未起動）");
+            if (manifest.SteamId == null) manifest.AddMissing("steamId", "テスター識別（SteamID）が差し込まれていない（開発者モード。build-info.json 無し、または Steam 未起動）");
             return manifest;
         }
 

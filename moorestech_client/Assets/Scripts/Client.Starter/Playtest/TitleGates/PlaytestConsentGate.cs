@@ -8,7 +8,7 @@ namespace Client.Starter.Playtest.TitleGates
     /// 初回だけ「送られる内容」を出して開始を止める（ADR 0061・0065）。表示はタイトルの uGUI が持ち、ここは待機と了解の規則だけを持つ。
     /// Shows what will be sent and holds the start on the first boot only (ADR 0061, 0065); the title's uGUI owns the display and this owns only the wait and acknowledgement rules.
     /// </summary>
-    public sealed class PlaytestConsentGate
+    internal sealed class PlaytestConsentGate
     {
         private readonly UniTaskCompletionSource _acknowledgeSource = new();
 
