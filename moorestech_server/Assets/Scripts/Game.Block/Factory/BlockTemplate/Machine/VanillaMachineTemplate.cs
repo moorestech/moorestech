@@ -38,7 +38,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
             var effectComponent = new MachineModuleEffectComponent(module);
             var processor = new VanillaMachineProcessorComponent(input, output, machineParam.RequiredPower, machineParam.IdlePowerRate, effectComponent);
 
-            var blockInventory = new VanillaMachineBlockInventoryComponent(blockInstanceId, input, output, module);
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             // 機械はConsumer役をワイヤー端点に渡す
@@ -87,7 +87,7 @@ namespace Game.Block.Factory.BlockTemplate.Machine
             var effectComponent = new MachineModuleEffectComponent(module);
             var processor = BlockTemplateUtil.MachineLoadState(componentStates, input, output, module, effectComponent, machineParam.RequiredPower, machineParam.IdlePowerRate, blockMasterElement);
 
-            var blockInventory = new VanillaMachineBlockInventoryComponent(blockInstanceId, input, output, module);
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineSave = new VanillaMachineSaveComponent(input, output, module, processor);
             var machineComponent = new VanillaElectricMachineComponent(blockInstanceId, processor);
             // 機械はConsumer役をワイヤー端点に渡す

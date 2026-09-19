@@ -66,9 +66,9 @@ namespace Game.Block.Blocks.Machine.Inventory
             _slotBinding.SetRecipe(recipe);
         }
 
-        public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
+        public MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack)
         {
-            return _slotBinding.IsAllowedToPlace(localSlot, itemStack);
+            return _slotBinding.CheckPlacement(localSlot, itemStack);
         }
 
         public bool IsAllowedToStartProcess(MachineRecipeMasterElement recipe)

@@ -48,7 +48,7 @@ namespace Game.Block.Factory.BlockTemplate.CleanRoom
 
             // CleanRoomMachineComponentは汚染判定と電力Consumerを兼ねる
             // CleanRoomMachineComponent serves both pollution reporting and the electric consumer role
-            var blockInventory = new VanillaMachineBlockInventoryComponent(blockInstanceId, input, output, module);
+            var blockInventory = new VanillaMachineBlockInventoryComponent(input, output, module);
             var machineComponent = new CleanRoomMachineComponent(blockInstanceId, processor);
             var wireConnector = new ElectricWireConnectorComponent(machineParam.MaxWireConnectionCount, blockInstanceId, machineComponent, componentStates);
 

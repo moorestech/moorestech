@@ -17,6 +17,8 @@ const notificationKeys = new Map<string, TranslationKey>([
   ["denied.craftResultFull", L.ui.notification.craftResultFull],
   ["denied.craftMaterialShortage", L.ui.notification.craftMaterialShortage],
   ["denied.removeTrainCarInventoryFull", L.ui.notification.removeTrainCarInventoryFull],
+  ["denied.inventoryMoveSlotRejected", L.ui.notification.inventoryMoveSlotRejected],
+  ["denied.inventoryMovePartialSwap", L.ui.notification.inventoryMovePartialSwap],
   ["denied.placeBlockNotUnlocked", L.ui.notification.placeBlockNotUnlocked],
   ["denied.placeBlockCostShortage", L.ui.notification.placeBlockCostShortage],
   ["denied.placeBlockWireShortage", L.ui.notification.placeBlockWireShortage],

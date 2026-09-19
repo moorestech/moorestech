@@ -13,7 +13,6 @@ namespace Game.Block.Blocks.Machine.Inventory
 {
     public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots
     {
-        private readonly BlockInstanceId _blockInstanceId;
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
 
@@ -21,9 +20,8 @@ namespace Game.Block.Blocks.Machine.Inventory
         // Sub-inventories in unified slot order
         private readonly IVanillaMachineSubInventory[] _subInventories;
 
-        public VanillaMachineBlockInventoryComponent(BlockInstanceId blockInstanceId, VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory, VanillaMachineModuleInventory vanillaMachineModuleInventory)
+        public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory, VanillaMachineModuleInventory vanillaMachineModuleInventory)
         {
-            _blockInstanceId = blockInstanceId;
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _subInventories = new IVanillaMachineSubInventory[] { vanillaMachineInputInventory, vanillaMachineOutputInventory, vanillaMachineModuleInventory };
@@ -100,14 +98,16 @@ namespace Game.Block.Blocks.Machine.Inventory
             subInventory.SetItem(localSlot, itemStack);
         }
 
-        // 移動/挿入サービスが書き込み前に問い合わせる配置可否。束縛外のスロットは受け付けない
-        // Placement check the move/insert services ask before writing; slots outside the binding refuse the stack
-        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
+        // 移動/挿入サービスが書き込み前に問い合わせる配置可否。CheckPlacementは拒否ログ用に理由まで返す
+        // Placement check the move/insert services ask before writing; CheckPlacement also returns the reason for rejection logs
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack) => CheckPlacement(slot, itemStack) == MachineSlotPlacementCheck.Allowed;
+
+        public MachineSlotPlacementCheck CheckPlacement(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
 
             var (subInventory, localSlot) = ResolveSlot(slot);
-            return subInventory.IsAllowedToPlace(localSlot, itemStack);
+            return subInventory.CheckPlacement(localSlot, itemStack);
         }
 
         public void SetItem(int slot, ItemId itemId, int count)
@@ -158,11 +158,12 @@ namespace Game.Block.Blocks.Machine.Inventory
 
             var (subInventory, localSlot) = ResolveSlot(slot);
 
-            // 束縛外のスロットへは置けず、そのまま返す（プレイヤー移動プロトコルの入口）。応答が無いため拒否理由はログで残す
-            // A stack that violates the binding bounces back untouched (entry point of the player move protocol); there is no response, so log the reason
-            if (!subInventory.IsAllowedToPlace(localSlot, itemStack))
+            // 束縛外のスロットへは置けず、そのまま返す。移動サービスは事前照会で弾くため、ここへ来るのはそれ以外の呼び出し元
+            // A stack that violates the binding bounces back untouched; the move service pre-checks, so only other callers reach here
+            var placement = subInventory.CheckPlacement(localSlot, itemStack);
+            if (placement != MachineSlotPlacementCheck.Allowed)
             {
-                Debug.LogWarning($"[MachineInventory] Placement rejected by IsAllowedToPlace: block={_blockInstanceId.AsPrimitive()} sub={subInventory.GetType().Name}[{localSlot}] slot={slot} itemId={itemStack.Id} count={itemStack.Count}");
+                Debug.LogWarning($"[VanillaMachineBlockInventoryComponent] ReplaceItem rejected: reason={placement} sub={subInventory.GetType().Name}[{localSlot}] slot={slot} itemId={itemStack.Id} count={itemStack.Count}");
                 return itemStack;
             }
 
