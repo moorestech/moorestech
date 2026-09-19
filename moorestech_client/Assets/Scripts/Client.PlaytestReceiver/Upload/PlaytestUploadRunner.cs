@@ -1,6 +1,7 @@
 using Client.Game.InGame.BugReport.Submit;
 using Client.PlaytestReceiver.Gate;
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Upload.Attempt;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -63,7 +64,7 @@ namespace Client.PlaytestReceiver.Upload
             // The flag is always cleared and a pending rerun is honoured even on the exception path; missing either stops later uploads
             try
             {
-                var uploader = new PlaytestUploader(_api, session, _directories);
+                var uploader = new PlaytestUploader(_api, session, _directories, PlaytestUploadRetrySchedule.Default);
                 var sent = await uploader.UploadPendingAsync(Application.exitCancellationToken);
                 Debug.Log($"[PlaytestReceiver] upload run finished: {sent} box(es) sent");
             }

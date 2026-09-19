@@ -1,3 +1,5 @@
+// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みの研究ノードGUID（837e9697/424be8c1/07d6226c）をCompleteResearchへ送りサーバー側でnull参照になる。旧チャレンジ順・旧veinPinを前提としており現行チェーン（ADR 0038）と一致しない。雛形にしないこと
+// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): sends removed research-node GUIDs (837e9697/424be8c1/07d6226c) to CompleteResearch, which null-references server-side. It also assumes the old challenge order and old veinPin, which no longer match the current chain (ADR 0038). Do not use this as a template
 // シナリオ: ADR 0033 のチェーン（研究3→風力掘削機設置(原木鉱脈ピン)→研究4→粘土入手(粘土鉱脈ピン)）を実走検証する
 // Scenario: verify the ADR 0033 chain (research 3 → wind drill (log-vein pin) → research 4 → clay (clay-vein pin)) live
 // 足場生成やSetupDebugEnvironmentは呼ばない（自然なマップ=鉱脈露頭とスポーンを残すため）

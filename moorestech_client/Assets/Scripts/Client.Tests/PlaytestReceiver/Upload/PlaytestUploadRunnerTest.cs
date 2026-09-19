@@ -18,9 +18,7 @@ namespace Client.Tests.PlaytestReceiver
         public void CreateRoot()
         {
             _root = Path.Combine(Path.GetTempPath(), "playtest-runner-" + Path.GetRandomFileName());
-            _directories = new PlaytestOutboxDirectories(Path.Combine(_root, "BugReports", "outbox"), Path.Combine(_root, "ProgressRecords", "outbox"));
-            Directory.CreateDirectory(_directories.ReportOutbox);
-            Directory.CreateDirectory(_directories.ProgressOutbox);
+            _directories = PlaytestOutboxTestBoxes.Directories(_root);
             PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
         }
 
@@ -67,10 +65,10 @@ namespace Client.Tests.PlaytestReceiver
             // While the first run is parked on its first PUT, no second run exists, so exactly one PUT happened
             Assert.AreEqual(1, api.PutAttemptCount);
 
-            // 1本目は到達不能で打ち切られ、記録されていた再要求で2本目が同じ箱へPUTする
-            // The first run aborts on unreachability, and the remembered re-request makes a second run PUT the box again
-            gate.TrySetResult(PlaytestApiResult.TransportFailure("offline"));
-            Assert.AreEqual(2, api.PutAttemptCount);
+            // 箱固有の恒久失敗（必須ファイルが手元で消えた）で解放すると1本目は再試行せず両方の箱を1回ずつ試し、記録されていた再要求で2本目も同じく両方を試す
+            // Releasing with a box-level permanent failure (a required file vanished locally) makes the first run try each box once without retrying, and the remembered re-request makes a second run do the same
+            gate.TrySetResult(PlaytestApiResult.LocalFileChanged("manifest.json does not exist"));
+            Assert.AreEqual(4, api.PutAttemptCount);
         }
     }
 }

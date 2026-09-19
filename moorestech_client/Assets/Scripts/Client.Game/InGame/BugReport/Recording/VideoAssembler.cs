@@ -24,11 +24,11 @@ namespace Client.Game.InGame.BugReport.Recording
             return exit == 0 && File.Exists(outputMp4);
         }
 
-        public static bool ExtractFrames(string ffmpegPath, string inputMp4, string outputDirectory, int fps)
+        public static bool ExtractFrames(string ffmpegPath, string inputMp4, string outputDirectory, int secondsPerFrame)
         {
             Directory.CreateDirectory(outputDirectory);
             var pattern = Path.Combine(outputDirectory, "frame_%04d.jpg");
-            var exit = FfmpegProcess.RunAndWait(ffmpegPath, $"-hide_banner -loglevel error -y -i \"{inputMp4}\" -vf fps={fps} -q:v 4 \"{pattern}\"", outputDirectory);
+            var exit = FfmpegProcess.RunAndWait(ffmpegPath, $"-hide_banner -loglevel error -y -i \"{inputMp4}\" -vf fps=1/{secondsPerFrame} -q:v 4 \"{pattern}\"", outputDirectory);
             return exit == 0;
         }
 

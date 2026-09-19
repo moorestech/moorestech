@@ -90,6 +90,7 @@ namespace Client.Tests.UnitTest.Tutorial.PlacementGuide
                         ["blockDirection"] = "North",
                     },
                 },
+                ["message"] = "chain preview test",
             });
             var state = new ChainPlacePreviewState();
             var chain = _fixture.Root.AddComponent<ChainBlockPlacePreviewTutorialManager>();

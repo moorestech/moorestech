@@ -4,6 +4,7 @@ using System.Threading;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Http;
 using Client.PlaytestReceiver.Upload;
+using Client.PlaytestReceiver.Upload.Attempt;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -20,9 +21,7 @@ namespace Client.Tests.PlaytestReceiver
         public void CreateRoot()
         {
             _root = Path.Combine(Path.GetTempPath(), "playtest-upload-" + Path.GetRandomFileName());
-            _directories = new PlaytestOutboxDirectories(Path.Combine(_root, "BugReports", "outbox"), Path.Combine(_root, "ProgressRecords", "outbox"));
-            Directory.CreateDirectory(_directories.ReportOutbox);
-            Directory.CreateDirectory(_directories.ProgressOutbox);
+            _directories = PlaytestOutboxTestBoxes.Directories(_root);
         }
 
         [TearDown]
@@ -32,78 +31,87 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void READYの箱が送られUPLOADEDが付き再送されない()
+        public void 箱はprepare_全ファイルPUT_completeの順で送られUPLOADEDが置かれ再送されない()
         {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"kind\":\"bug\"}"));
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{\"kind\":\"bug\"}"), ("a.bin", "abc"));
             var api = new FakeUploadApi();
 
             Assert.AreEqual(1, Upload(api));
             Assert.AreEqual(0, Upload(api));
-            Assert.AreEqual(new[] { "manifest.json" }, api.PutPaths.ToArray());
-            Assert.AreEqual(1, api.CompleteCount);
-            StringAssert.Contains("\"kind\":\"report\"", api.LastSummary);
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "put:a.bin", "complete" }, api.Calls);
+            Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
+
+            // ファイル一覧は受け口が照合して決めるので、補足には manifest 原文と見送りだけを載せる
+            // The receiver settles the file list by verification, so the supplement carries only the raw manifest and the skips
+            var supplement = JObject.Parse(api.LastCompleteBody);
+            Assert.IsNull(supplement["files"]);
+            Assert.AreEqual("{\"kind\":\"bug\"}", supplement.Value<string>("manifest"));
+        }
+
+        [Test]
+        public void ackedの応答ならPUTせずcompleteだけ送る()
+        {
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
+            var api = new FakeUploadApi();
+            api.EnqueuePrepare(PlaytestApiResult.Responded(200, "{\"outcome\":\"acked\"}"));
+
+            Assert.AreEqual(1, Upload(api));
+            CollectionAssert.AreEqual(new[] { "prepare", "complete" }, api.Calls);
             Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
         }
 
         [Test]
-        public void 到達不能は数えず走行を打ち切り箱を残す()
+        public void 上限超と予約名は宣言から外れcompleteのskippedに載る()
         {
-            // 残りの箱も同じ理由で失敗するので試さない。一時的な失敗で箱を諦める方向へ数えない
-            // The remaining boxes would fail for the same reason, so they are not tried; a transient failure is never counted
-            var first = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_110000_aaaa", ("manifest.json", "{}"));
-            PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_bbbb", ("manifest.json", "{}"));
-            var api = new FakeUploadApi { PutResult = PlaytestApiResult.TransportFailure("offline") };
-
-            Assert.AreEqual(0, Upload(api));
-            Assert.AreEqual(1, api.PutAttemptCount);
-            Assert.IsFalse(File.Exists(Path.Combine(first, PlaytestOutboxScanner.AttemptsMarker)));
-            Assert.IsFalse(File.Exists(Path.Combine(first, PlaytestOutboxScanner.UploadedMarker)));
-        }
-
-        [Test]
-        public void 混み合いの5xxは数えずに次の箱へ進む()
-        {
-            var first = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_110000_aaaa", ("manifest.json", "{}"));
-            var second = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_bbbb", ("manifest.json", "{}"));
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"), ("ACKED", "x"));
+            using (var stream = new FileStream(Path.Combine(box, "video.mp4"), FileMode.Create)) stream.SetLength(PlaytestReceiverConfig.MaxFileBytes + 1);
             var api = new FakeUploadApi();
-            api.PutResultQueue.Enqueue(PlaytestApiResult.Responded(503, "busy"));
 
             Assert.AreEqual(1, Upload(api));
-            Assert.IsFalse(File.Exists(Path.Combine(first, PlaytestOutboxScanner.AttemptsMarker)));
-            Assert.IsTrue(File.Exists(Path.Combine(second, PlaytestOutboxScanner.UploadedMarker)));
+            CollectionAssert.AreEqual(new[] { "prepare", "put:manifest.json", "complete" }, api.Calls);
+            StringAssert.Contains("{\"path\":\"ACKED\",\"reason\":\"reserved-name\",\"bytes\":1}", api.LastCompleteBody);
+            StringAssert.Contains($"{{\"path\":\"video.mp4\",\"reason\":\"too-large\",\"bytes\":{PlaytestReceiverConfig.MaxFileBytes + 1}}}", api.LastCompleteBody);
         }
 
         [Test]
-        public void 権利の問題が5回に達した箱はUPLOAD_FAILEDになり後続の箱を塞がない()
+        public void 送るものが1つも無い箱は受け口へ行かず1回と数える()
+        {
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa");
+            using (var stream = new FileStream(Path.Combine(box, "video.mp4"), FileMode.Create)) stream.SetLength(PlaytestReceiverConfig.MaxFileBytes + 1);
+            var api = new FakeUploadApi();
+
+            Assert.AreEqual(0, Upload(api));
+            CollectionAssert.IsEmpty(api.Calls);
+            Assert.AreEqual("1", File.ReadAllText(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)).Split('\n')[0]);
+        }
+
+        [Test]
+        public void 受け口の403が5回に達した箱はUPLOAD_FAILEDになり後続の箱を塞がない()
         {
             var stuck = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_110000_aaaa", ("manifest.json", "{}"));
-            var api = new FakeUploadApi { PutResult = PlaytestApiResult.Responded(403, "revoked") };
+            var api = new FakeUploadApi();
+            for (var i = 0; i < PlaytestUploadAttemptLog.MaxAttempts; i++) api.EnqueuePrepare(PlaytestApiResult.Responded(403, "revoked"));
             LogAssert.Expect(LogType.Error, new Regex(".*giving up on 20260913_110000_aaaa.*"));
             for (var attempt = 0; attempt < PlaytestUploadAttemptLog.MaxAttempts; attempt++) Upload(api);
 
             Assert.IsTrue(File.Exists(Path.Combine(stuck, PlaytestOutboxScanner.FailedMarker)));
+            Assert.AreEqual(PlaytestUploadAttemptLog.MaxAttempts, api.Calls.FindAll(call => call == "prepare").Count, "権利の問題は同一走行内で再試行しない");
 
             var later = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_bbbb", ("manifest.json", "{}"));
-            api.PutResult = PlaytestApiResult.Responded(200, "{}");
-
             Assert.AreEqual(1, Upload(api));
             Assert.IsTrue(File.Exists(Path.Combine(later, PlaytestOutboxScanner.UploadedMarker)));
         }
 
         [Test]
-        public void 巨大ファイルと恒久的な4xxのファイルは見送られ箱は完了する()
+        public void 恒久的な4xxは再試行せず1回と数える()
         {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"), ("bad.log", "x"));
-            using (var stream = new FileStream(Path.Combine(box, "video.mp4"), FileMode.Create)) stream.SetLength(PlaytestReceiverConfig.MaxFileBytes + 1);
+            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
             var api = new FakeUploadApi();
-            api.PutResultQueue.Enqueue(PlaytestApiResult.Responded(400, "bad-path"));
+            api.EnqueuePrepare(PlaytestApiResult.Responded(400, "{\"reason\":\"bad-path\"}"));
 
-            Assert.AreEqual(1, Upload(api));
-            Assert.AreEqual(1, api.PutPaths.Count);
-            StringAssert.Contains("video.mp4", api.LastSummary);
-            StringAssert.Contains("too-large", api.LastSummary);
-            StringAssert.Contains("http-400", api.LastSummary);
-            Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
+            Assert.AreEqual(0, Upload(api));
+            CollectionAssert.AreEqual(new[] { "prepare" }, api.Calls);
+            Assert.AreEqual("1", File.ReadAllText(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)).Split('\n')[0]);
         }
 
         [Test]
@@ -113,7 +121,7 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeUploadApi { SessionResult = PlaytestApiResult.TransportFailure("offline") };
 
             Assert.AreEqual(0, Upload(api));
-            Assert.AreEqual(0, api.PutAttemptCount);
+            CollectionAssert.IsEmpty(api.Calls);
             Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
             Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
         }
@@ -123,26 +131,12 @@ namespace Client.Tests.PlaytestReceiver
         {
             var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
             var api = new FakeUploadApi();
-            api.PutResultQueue.Enqueue(PlaytestApiResult.Responded(401, "expired"));
-            api.PutResultQueue.Enqueue(PlaytestApiResult.Responded(200, "{}"));
+            api.EnqueuePrepare(PlaytestApiResult.Responded(401, "expired"));
 
             Assert.AreEqual(1, Upload(api));
-            Assert.AreEqual(2, api.PutAttemptCount);
+            CollectionAssert.AreEqual(new[] { "prepare", "prepare", "put:manifest.json", "complete" }, api.Calls);
             Assert.AreEqual(2, api.SessionCallCount);
             Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
-            Assert.IsTrue(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
-        }
-
-        [Test]
-        public void completeが到達不能なら数えずUPLOADEDを付けない()
-        {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
-            var api = new FakeUploadApi();
-            api.CompleteResultQueue.Enqueue(PlaytestApiResult.TransportFailure("offline"));
-
-            Assert.AreEqual(0, Upload(api));
-            Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.AttemptsMarker)));
-            Assert.IsFalse(File.Exists(Path.Combine(box, PlaytestOutboxScanner.UploadedMarker)));
         }
 
         [Test]
@@ -150,8 +144,8 @@ namespace Client.Tests.PlaytestReceiver
         {
             var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("manifest.json", "{}"));
             var api = new FakeUploadApi();
-            api.CompleteResultQueue.Enqueue(PlaytestApiResult.Responded(401, "expired"));
-            api.CompleteResultQueue.Enqueue(PlaytestApiResult.Responded(401, "still"));
+            api.EnqueueComplete(PlaytestApiResult.Responded(401, "expired"));
+            api.EnqueueComplete(PlaytestApiResult.Responded(401, "still"));
 
             Assert.AreEqual(0, Upload(api));
             Assert.AreEqual(2, api.CompleteCount);
@@ -168,31 +162,14 @@ namespace Client.Tests.PlaytestReceiver
             var api = new FakeUploadApi();
 
             Assert.AreEqual(1, Upload(api));
-            CollectionAssert.AreEquivalent(new[] { "ユニティ.log", "a b.log" }, api.PutPaths);
-            StringAssert.Contains("\"skipped\":[]", api.LastSummary);
-        }
-
-        // 取り込み側はfilesだけを取得するので、見送り・恒久失敗のファイルが混ざると存在しないキーを取りに行く
-        // The ingest side fetches only files, so a skipped or permanently failed file there would be a missing key
-        [Test]
-        public void READY要約のfilesにはPUTに成功した相対パスだけが入る()
-        {
-            var box = PlaytestOutboxTestBoxes.Make(_directories.ReportOutbox, "20260913_120000_aaaa", ("bad.log", "x"), ("good.log", "y"));
-            using (var stream = new FileStream(Path.Combine(box, "video.mp4"), FileMode.Create)) stream.SetLength(PlaytestReceiverConfig.MaxFileBytes + 1);
-            var api = new FakeUploadApi();
-            api.PutResultQueue.Enqueue(PlaytestApiResult.Responded(400, "bad-path"));
-
-            Assert.AreEqual(1, Upload(api));
-            var files = JObject.Parse(api.LastSummary)["files"].ToObject<string[]>();
-            Assert.AreEqual(1, files.Length);
-            CollectionAssert.AreEqual(api.PutPaths, files);
-            CollectionAssert.DoesNotContain(files, "video.mp4");
+            CollectionAssert.AreEqual(new[] { "prepare", "put:a b.log", "put:ユニティ.log", "complete" }, api.Calls);
+            StringAssert.Contains("\"skipped\":[]", api.LastCompleteBody);
         }
 
         private int Upload(FakeUploadApi api)
         {
             var session = new PlaytestSession(api, new FakeTicketProvider("aabb"));
-            var uploader = new PlaytestUploader(api, session, _directories);
+            var uploader = new PlaytestUploader(api, session, _directories, PlaytestNoWaitRetrySchedule.Create());
             return uploader.UploadPendingAsync(CancellationToken.None).GetAwaiter().GetResult();
         }
     }

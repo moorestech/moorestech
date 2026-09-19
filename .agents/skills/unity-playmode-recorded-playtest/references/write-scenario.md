@@ -54,7 +54,7 @@ return PlaytestRunner.Run("my-scenario", options, async p =>
 ### UI経路操作（実プレイヤーと同じキーマウ経路＝検証対象）
 | API | 用途 |
 |---|---|
-| `OpenBuildMenuAndSelectBlock(name)` | B/Tab注入→ビルドメニュー→スロット選択→PlaceBlock遷移＋カメラtween待ち0.6s。**CEF(Web UI)モードではDOMクリック経路、uGUIモードではEventSystem直叩きへ自動分岐** |
+| `OpenBuildMenuAndSelectBlock(name)` | B/Tab注入→ビルドメニュー→スロット選択→PlaceBlock遷移＋選択後0.6s待機。**画面UIはWeb UI一本のためDOMクリック経路のみ（CEFが15秒以内に使えなければ例外。uGUI経路は撤去済み）** |
 | `PlaceBlockViaUi(name, origin, dir)` | 単クリック設置の統合操作（**向きはNorth固定**）。設置反映Until込み |
 | `DragPlaceViaUi(name, from, to)` | ドラッグ設置（ベルト等）。**向きは経路から自動解決** |
 | `ExitToGameScreen()` | B注入でGameScreenへ（**place systemの内部状態をリセットする副作用**が重要。歯車ポールの延長起点等） |
@@ -89,8 +89,8 @@ testidは `moorestech_web/webui/src/features/**` をgrepして実在確認する
 `build-menu-entry-{kind}-{id}`（kind: block/trainCar/connectTool/blueprintCopy/blueprint、
 idは種別を問わず設置対象のGuid文字列。blockのtestidは`PlaytestWebUiOps.BuildMenuBlockTestId(名前)`で組み立てる）。
 表示名はスロットではなく詳細サイドバー(`build-menu-detail`)に出るため、名前を絵に残すには`HoverWebUi`してからScreenshotする。
-カテゴリ切替は`build-menu-category-{categoryGuid}`（カテゴリ名ではなくGuid）。PlaceBlock遷移直後のカメラtweenは`AimAtWorldPosition`内蔵の
-カメラ静定待ちが吸収するため、シナリオ側での追加待ちは不要。
+カテゴリ切替は`build-menu-category-{categoryGuid}`（カテゴリ名ではなくGuid）。PlaceBlock遷移で視点は変わらないため、
+シナリオ側での追加のカメラ待ちは不要。
 仕組み: DOM矩形をWS往復(`playtest.dom_query`)で取得→CEFブラウザ座標→Unityスクリーン座標へ逆変換→
 `SemanticInput`で注入→プレイテスト専用`CefInputForwarder`がInputSystemマウスをCEFへ転送（パッケージのlegacy Input転送は注入不感のため）。
 

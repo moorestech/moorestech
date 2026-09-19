@@ -44,9 +44,13 @@ namespace Client.Tests.BugReport
             Assert.IsTrue(VideoAssembler.Concat(ffmpeg, segments, output));
             Assert.Greater(new FileInfo(output).Length, 0);
 
+            // 2秒に1枚で抜く。1秒に1枚だと fps=1/N の分母が不動点になり、間隔を無視する退行を見逃す
+            // Extract one still per 2 seconds; at 1 the fps=1/N divisor is a fixed point and a regression ignoring the interval would pass
             var frames = Path.Combine(dir, "frames");
             Assert.IsTrue(VideoAssembler.ExtractFrames(ffmpeg, output, frames, 2));
-            Assert.GreaterOrEqual(Directory.GetFiles(frames, "frame_*.jpg").Length, 3);
+            var frameCount = Directory.GetFiles(frames, "frame_*.jpg").Length;
+            Assert.GreaterOrEqual(frameCount, 1);
+            Assert.LessOrEqual(frameCount, 2, "2秒の動画を2秒に1枚で抜いたのに枚数が多すぎる（間隔が効いていない）");
 
             // 2秒ぶんのフレームを流したので、本数×10秒固定の見積もりではなく実尺(約2秒)が返るはず
             // Fed two seconds of frames; the real (~2s) duration should come back, not the old count×10s estimate
