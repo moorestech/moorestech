@@ -7,12 +7,8 @@ namespace Client.Tests.EventMode
 {
     public class EventExhibitionModeTest
     {
-        private const string EnableEnvKey = "MOORESTECH_EVENT_MODE";
-        private const string EditorOptInEnvKey = "MOORESTECH_EVENT_MODE_EDITOR";
-        private const string IdleTimeoutEnvKey = "MOORESTECH_EVENT_IDLE_TIMEOUT_SECONDS";
-        private const string LanguageEnvKey = "MOORESTECH_EVENT_LANGUAGE";
 
-        private static readonly string[] SavedEnvKeys = { EnableEnvKey, EditorOptInEnvKey, IdleTimeoutEnvKey, LanguageEnvKey };
+        private static readonly string[] SavedEnvKeys = { EventExhibitionSettings.EnableEnvKey, EventExhibitionSettings.EditorOptInEnvKey, EventExhibitionSettings.IdleTimeoutEnvKey, EventExhibitionSettings.LanguageEnvKey };
         private readonly string[] savedEnvValues = new string[SavedEnvKeys.Length];
 
         [SetUp]
@@ -97,8 +93,8 @@ namespace Client.Tests.EventMode
         [Test]
         public void FromEnvironment_RequestedLanguageCode_ReadsEnvVariable()
         {
-            Environment.SetEnvironmentVariable(EnableEnvKey, "1");
-            Environment.SetEnvironmentVariable(LanguageEnvKey, "german");
+            Environment.SetEnvironmentVariable(EventExhibitionSettings.EnableEnvKey, "1");
+            Environment.SetEnvironmentVariable(EventExhibitionSettings.LanguageEnvKey, "german");
 
             Assert.AreEqual("german", EventExhibitionSettings.FromEnvironment().RequestedLanguageCode);
         }
@@ -106,8 +102,8 @@ namespace Client.Tests.EventMode
         [Test]
         public void FromEnvironment_RequestedLanguageCode_IsNullWhenUnset()
         {
-            Environment.SetEnvironmentVariable(EnableEnvKey, "1");
-            Environment.SetEnvironmentVariable(LanguageEnvKey, null);
+            Environment.SetEnvironmentVariable(EventExhibitionSettings.EnableEnvKey, "1");
+            Environment.SetEnvironmentVariable(EventExhibitionSettings.LanguageEnvKey, null);
 
             Assert.IsNull(EventExhibitionSettings.FromEnvironment().RequestedLanguageCode);
         }

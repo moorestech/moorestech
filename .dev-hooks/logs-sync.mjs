@@ -10,7 +10,7 @@ import {
   appendFileSync, copyFileSync, existsSync, mkdirSync, openSync, readSync, closeSync,
   readdirSync, readFileSync, statSync, utimesSync, writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
+import { homedir, hostname } from "node:os";
 import { basename, dirname, join } from "node:path";
 
 // GitHubの100MB上限を超えるファイルはpushできないため、余裕を見てこの大きさを超えたら同期しない
@@ -99,14 +99,16 @@ function syncCodexRollouts() {
   }
 }
 
-// Beadsのissues.jsonlミラーをスナップショットコピーする（正本はDolt側）
-// Snapshot-copy the beads issues.jsonl mirror (Dolt remains the source of truth).
+// Beadsのissues.jsonlミラーをマシン別ファイルへスナップショットコピーする（正本はDolt側）
+// 共有1ファイルだと同期の止まった2機のexportが交互に上書きし合い、件数が往復して片側のissueが消えて見えた（2026-09-20）
+// Snapshot-copy the beads issues.jsonl mirror into a per-host file (Dolt remains the source of truth).
+// A single shared file let two out-of-sync hosts overwrite each other's export, so one side's issues looked lost (2026-09-20).
 function syncBeadsMirror() {
   const cwd = input.cwd || process.env.CLAUDE_PROJECT_DIR || process.cwd();
   const common = git(cwd, ["rev-parse", "--git-common-dir"]);
   if (!common) return;
   const mainRoot = dirname(common === ".git" ? join(cwd, ".git") : common);
-  copyIfUpdated(join(mainRoot, ".beads", "issues.jsonl"), join(logsRepo, "beads", "issues.jsonl"));
+  copyIfUpdated(join(mainRoot, ".beads", "issues.jsonl"), join(logsRepo, "beads", `issues.${hostname()}.jsonl`));
 }
 
 // 5分スロットルでcommitし、pushはbest-effort（並行セッションはロックで譲る）
