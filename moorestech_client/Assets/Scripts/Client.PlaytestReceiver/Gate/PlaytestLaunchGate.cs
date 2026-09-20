@@ -80,11 +80,20 @@ namespace Client.PlaytestReceiver.Gate
             // 識別の設定と解除はここ1箇所。Allowed以外へ移ったら空へ戻し、前の検証済みSteamIDを次の起動・再評価へ残さない（ADR 0065）
             // Setting and clearing the identity happens only here; anything but Allowed returns it to empty so no earlier verified SteamID survives a re-evaluation (ADR 0065)
             if (result.TryGetVerifiedSteamId(out var verifiedSteamId)) PlaytestSessionIdentityProvider.SetCurrent(new ReceiverVerifiedSessionIdentity(verifiedSteamId));
-            else PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity());
+            else ClearIdentity(result.Status);
 
             // 識別は結果を配る前に据える。購読側（タイトルのゲート・開始経路）が読む時点で検証済みSteamIDが揃っている（ADR 0065）
             // The identity is set before the verdict goes out, so subscribers (title gates, start paths) already see the verified SteamID (ADR 0065)
             CurrentProperty.Value = result;
+        }
+
+        // 消去も縮退。検証済みSteamIDが載っていた起動で消えたら、記録のsteamIdが欠ける理由を読めるよう必ず痕跡を残す（再評価中のCheckingを含む）
+        // Clearing is a degradation too: when a boot that had a verified SteamID loses it, the reason the records lack a steamId is always left readable (a re-evaluation's Checking included)
+        private static void ClearIdentity(PlaytestGateStatus status)
+        {
+            var cleared = PlaytestSessionIdentityProvider.Current.SteamId;
+            if (!string.IsNullOrEmpty(cleared)) Debug.Log($"[PlaytestReceiver] 検証済みSteamIDを空へ戻します status:{status}（この間に書かれる記録・箱のsteamIdは空になります）");
+            PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity());
         }
 
         // 配布版でSteamが動いている場合だけ照合する
