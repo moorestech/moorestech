@@ -1,9 +1,11 @@
+using System.IO;
 using System.Reflection;
 using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.Starter.Playtest;
+using Game.Paths;
 using NUnit.Framework;
 
 namespace Client.Tests.Playtest
@@ -13,6 +15,16 @@ namespace Client.Tests.Playtest
     public class PreviousSessionStartupTasksTest
     {
         private const int TestProcessId = 424242;
+
+        // 印は実ユーザーの last-session 配下に書かれる。残すと次回の起動が「前回異常終了」として退避・確認する（開発機を汚す）
+        // The marks land under the real user's last-session directory; leaving them would make the next boot salvage and confirm a "previous crash" (it dirties the dev machine)
+        [TearDown]
+        public void DeleteTestProcessMarks()
+        {
+            var marksRoot = Path.Combine(GameSystemPaths.BugReportLastSessionDirectory, CleanExitMarker.MarksDirectoryName);
+            var processDirectory = RecordingProcessDirectories.DirectoryFor(marksRoot, TestProcessId);
+            if (Directory.Exists(processDirectory)) Directory.Delete(processDirectory, true);
+        }
 
         [Test]
         public void 再試行のたびに別のセッション名になり失敗した試行の印は正常終了へ畳まれない()
