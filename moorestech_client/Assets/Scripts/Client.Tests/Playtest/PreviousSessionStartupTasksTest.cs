@@ -16,11 +16,26 @@ namespace Client.Tests.Playtest
     {
         private const int TestProcessId = 424242;
 
+        // セッション名はプロセス共有のstatic。このテストが進めたままにすると、先に印を置いた書き手の正常終了が別の名前の下へ書かれ旧セッションが異常終了として残る
+        // The session name is a process-wide static; leaving it advanced would write an earlier writer's clean exit under a different name and leave its session looking like a crash
+        private static readonly FieldInfo CurrentSessionNameField = typeof(ProcessSessionScope).GetField("_currentSessionName", BindingFlags.Static | BindingFlags.NonPublic);
+
+        private string _sessionNameBeforeTest;
+
+        [SetUp]
+        public void SaveCurrentSessionName()
+        {
+            // getter を通すと未開始の状態まで開始してしまうので、フィールドを直接読んで null のまま保存する
+            // Reading through the getter would start an unstarted session, so the field is read directly and a null is preserved as null
+            _sessionNameBeforeTest = (string)CurrentSessionNameField.GetValue(null);
+        }
+
         // 印は実ユーザーの last-session 配下に書かれる。残すと次回の起動が「前回異常終了」として退避・確認する（開発機を汚す）
         // The marks land under the real user's last-session directory; leaving them would make the next boot salvage and confirm a "previous crash" (it dirties the dev machine)
         [TearDown]
         public void DeleteTestProcessMarks()
         {
+            CurrentSessionNameField.SetValue(null, _sessionNameBeforeTest);
             var marksRoot = Path.Combine(GameSystemPaths.BugReportLastSessionDirectory, CleanExitMarker.MarksDirectoryName);
             var processDirectory = RecordingProcessDirectories.DirectoryFor(marksRoot, TestProcessId);
             if (Directory.Exists(processDirectory)) Directory.Delete(processDirectory, true);
