@@ -1,10 +1,9 @@
-using System;
 using Client.Common;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
 using Client.PlaytestReceiver.Gate;
+using Cysharp.Threading.Tasks;
 using Game.Paths;
-using UniRx;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -23,6 +22,10 @@ namespace Client.Starter.EventMode
     // On boot: delete world, apply the launch language, auto-start
     public static class EventModeAutoStart
     {
+        // 起動時照合は受け口への通信を伴う。前例 StandalonePlaytestSmokeBootstrap と同じ180秒で切り、無応答の受け口に出展機を無期限で預けない
+        // The launch check talks to the receiver, so it is bounded at the precedent's 180 seconds and an unresponsive receiver never holds the exhibition machine forever
+        private const float LaunchVerdictTimeoutSeconds = 180f;
+
         // 起動フックから切り離した発火条件。ワールド削除の是非をここだけで決める
         // The run condition, split from the boot hook, is the single place deciding whether the world gets wiped
         public static bool ShouldRun(EventExhibitionSettings settings, string activeSceneName)
@@ -88,24 +91,34 @@ namespace Client.Starter.EventMode
         // The unattended declaration only covers the funnel's second stage; starting before the launch check settles makes the funnel bounce back to the title, and this boot hook never fires again
         private static void StartWhenLaunchVerdictSettles()
         {
-            Debug.Log("EventModeAutoStart: 起動時照合の確定を待ってから自動開始します");
+            Debug.Log($"EventModeAutoStart: 起動時照合の確定を待ってから自動開始します（上限{LaunchVerdictTimeoutSeconds}秒）");
 
-            var subscription = new SingleAssignmentDisposable();
-            subscription.Disposable = PlaytestLaunchGate.Current.Subscribe(verdict => StartIfSettled(verdict, subscription));
+            // Forgetに吸われた例外も理由付きで残す（前例: StandalonePlaytestSmokeBootstrap）
+            // Exceptions swallowed by Forget are recorded with a reason too (precedent: StandalonePlaytestSmokeBootstrap)
+            StartWhenLaunchVerdictSettlesAsync().Forget(exception => Debug.LogError($"EventModeAutoStart: 確定待ちが例外で終わったため自動開始しません {exception.GetType()} {exception.Message}"));
         }
 
-        private static void StartIfSettled(PlaytestGateResult verdict, IDisposable subscription)
+        // 待ちは期限付き（前例 StandalonePlaytestSmokeBootstrap.StartWhenPreconditionsHoldAsync と同じ形）。無応答の受け口で無言の居座りにしない
+        // The wait is bounded, in the same shape as the StandalonePlaytestSmokeBootstrap precedent, so a silent receiver never turns into a silent stall
+        private static async UniTask StartWhenLaunchVerdictSettlesAsync()
         {
-            var decision = DecideAutoStart(verdict);
-            if (decision == EventModeAutoStartDecision.WaitForVerdict) return;
+            var startedAt = Time.realtimeSinceStartup;
+            var decision = DecideAutoStartWithinDeadline(PlaytestLaunchGate.Current.Value, 0f, LaunchVerdictTimeoutSeconds);
+            while (decision == EventModeAutoStartDecision.WaitForVerdict)
+            {
+                await UniTask.Yield();
+                decision = DecideAutoStartWithinDeadline(PlaytestLaunchGate.Current.Value, Time.realtimeSinceStartup - startedAt, LaunchVerdictTimeoutSeconds);
+            }
 
-            subscription.Dispose();
-
-            // 照合に通らない出展機は自動開始しない。拒否理由を出したままタイトルに留める（fail-closed）
-            // An exhibition machine that fails the check never auto-starts; it stays on the title with the refusal shown (fail closed)
+            // 照合に通らない・期限まで確定しない出展機は自動開始しない。理由を出したままタイトルに留める（fail-closed）
+            // An exhibition machine that fails the check, or never settles before the deadline, does not auto-start; it stays on the title with the reason shown (fail closed)
             if (decision == EventModeAutoStartDecision.Abandon)
             {
-                Debug.LogError($"EventModeAutoStart: 起動時照合に通らなかったため自動開始しません status:{verdict.Status} detail:{verdict.Detail}");
+                var verdict = PlaytestLaunchGate.Current.Value;
+                var reason = DecideAutoStart(verdict) == EventModeAutoStartDecision.WaitForVerdict
+                    ? $"起動時照合が{LaunchVerdictTimeoutSeconds}秒以内に確定しなかった"
+                    : "起動時照合に通らなかった";
+                Debug.LogError($"EventModeAutoStart: {reason}ため自動開始しません status:{verdict.Status} detail:{verdict.Detail}");
                 return;
             }
 
@@ -118,6 +131,15 @@ namespace Client.Starter.EventMode
         {
             if (verdict.Status == PlaytestGateStatus.NotEvaluated || verdict.Status == PlaytestGateStatus.Checking) return EventModeAutoStartDecision.WaitForVerdict;
             return verdict.IsBlocked ? EventModeAutoStartDecision.Abandon : EventModeAutoStartDecision.Start;
+        }
+
+        // 待ち時間込みの可否。期限を過ぎても確定しなければ待ちを断念へ倒す（fail-closed）
+        // The decision including how long it waited; an unsettled verdict past the deadline falls to abandoning rather than waiting on (fail closed)
+        public static EventModeAutoStartDecision DecideAutoStartWithinDeadline(PlaytestGateResult verdict, float secondsWaited, float timeoutSeconds)
+        {
+            var decision = DecideAutoStart(verdict);
+            if (decision != EventModeAutoStartDecision.WaitForVerdict) return decision;
+            return secondsWaited < timeoutSeconds ? EventModeAutoStartDecision.WaitForVerdict : EventModeAutoStartDecision.Abandon;
         }
     }
 }
