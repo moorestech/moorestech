@@ -38,7 +38,7 @@ namespace Client.Tests.BugReport
         // The origin is the Editor, so the box goes through the working tree's git probe and meets plan C's repository contract
         public static PreviousSessionArtifacts Unclean(string lastSessionDirectory, string recordingDirectory, string snapshotsDirectory, string playerLogPath, List<string> crashDumpFiles)
         {
-            var origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor());
+            var origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), null);
             return PreviousSessionArtifacts.Unclean(lastSessionDirectory, recordingDirectory, snapshotsDirectory, playerLogPath, crashDumpFiles, new List<int>(), new Dictionary<int, bool>(), origin, new List<MissingItem>());
         }
     }

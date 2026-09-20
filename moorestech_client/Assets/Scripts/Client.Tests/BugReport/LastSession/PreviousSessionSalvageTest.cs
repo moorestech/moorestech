@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using NUnit.Framework;
@@ -122,13 +123,45 @@ namespace Client.Tests.BugReport
         [Test]
         public void リモート接続ならスナップショットの不在を退避失敗と書かない()
         {
-            var request = Request(Session(DeadProcessId, false, null));
-            request.IsRemoteConnection = true;
+            var remote = Session(DeadProcessId, false, null);
+            remote.Origin = Origin(new SessionSnapshotSource(true, null));
 
-            var artifacts = PreviousSessionSalvage.Salvage(request);
+            var artifacts = PreviousSessionSalvage.Salvage(Request(remote));
 
             Assert.IsNull(artifacts.SnapshotsDirectory);
             StringAssert.Contains("リモート接続", MissingReasons(artifacts));
+        }
+
+        // 退避元を記録しない旧版の印。今回の起動の既定ワールドで代用せず、源が分からないことを欠損として表明する（D-C3）
+        // An older mark that recorded no source; instead of standing in with this boot's default world, the unknown source is declared missing (D-C3)
+        [Test]
+        public void 退避元の記録が無い前回セッションはスナップショット源不明として表明する()
+        {
+            var withoutSource = Session(DeadProcessId, false, null);
+            withoutSource.Origin = Origin(null);
+
+            var artifacts = PreviousSessionSalvage.Salvage(Request(withoutSource));
+
+            Assert.IsNull(artifacts.SnapshotsDirectory);
+            StringAssert.Contains("スナップショット源不明", MissingReasons(artifacts));
+            Assert.AreEqual(2, Directory.GetFiles(_snapshots, "*", SearchOption.AllDirectories).Length, "源が不明なのに今回の既定ワールドから退避している");
+        }
+
+        // 前回セッションが記録した退避元だけを使う。今回の起動が別ワールドでも、落ちたセッションのスナップショットが箱へ入る（D-C3）
+        // Only the source the previous session recorded is used, so the crashed session's snapshots reach the box even when this boot uses another world (D-C3)
+        [Test]
+        public void 退避元は前回セッションが記録したワールドから決まる()
+        {
+            var otherWorldSnapshots = Path.Combine(_root, "generated-world-snapshots");
+            Directory.CreateDirectory(otherWorldSnapshots);
+            File.WriteAllText(Path.Combine(otherWorldSnapshots, "tick_900.json"), "{}");
+            var crashed = Session(DeadProcessId, false, null);
+            crashed.Origin = Origin(new SessionSnapshotSource(false, otherWorldSnapshots));
+
+            var artifacts = PreviousSessionSalvage.Salvage(Request(crashed));
+
+            Assert.IsTrue(File.Exists(Path.Combine(artifacts.SnapshotsDirectory, "tick_900.json")));
+            Assert.AreEqual(2, Directory.GetFiles(_snapshots, "*", SearchOption.AllDirectories).Length, "前回セッションが遊んでいないワールドのスナップショットを退避している");
         }
 
         // 「初回起動を異常終了にしない」は印が1件も無いことから出る。印が1件でも残れば異常終了へ倒れる
@@ -148,16 +181,29 @@ namespace Client.Tests.BugReport
             return directory;
         }
 
-        private static PreviousProcessSession Session(int processId, bool exitedCleanly, string recordingDirectory)
+        // 既定では前回セッションが今回と同じワールドを遊んでいた形。退避元を変える検証だけが Origin を差し替える
+        // By default the previous session played the same world as this boot; only the tests about the source replace the Origin
+        private PreviousProcessSession Session(int processId, bool exitedCleanly, string recordingDirectory)
         {
-            return new PreviousProcessSession { ProcessId = processId, SessionName = SessionName, ExitedCleanly = exitedCleanly, RecordingDirectory = recordingDirectory };
+            return new PreviousProcessSession
+            {
+                ProcessId = processId,
+                SessionName = SessionName,
+                ExitedCleanly = exitedCleanly,
+                RecordingDirectory = recordingDirectory,
+                Origin = Origin(new SessionSnapshotSource(false, _snapshots)),
+            };
+        }
+
+        private static SessionOriginSnapshot Origin(SessionSnapshotSource snapshotSource)
+        {
+            return new SessionOriginSnapshot(null, BuildOriginReading.Editor(), snapshotSource);
         }
 
         private PreviousSessionSalvageRequest Request(params PreviousProcessSession[] sessions)
         {
             return new PreviousSessionSalvageRequest
             {
-                WorldSnapshotDirectory = _snapshots,
                 LastSessionDirectory = _lastSession,
                 PreviousSessions = new List<PreviousProcessSession>(sessions),
             };

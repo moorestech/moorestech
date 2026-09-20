@@ -4,8 +4,6 @@ using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.Game.InGame.Playtest.Progress.Storage;
 using Game.Paths;
-using Server.Boot;
-using Server.Boot.Args;
 using UnityEngine;
 
 namespace Client.Starter.Playtest
@@ -30,8 +28,8 @@ namespace Client.Starter.Playtest
             _salvagedThisBoot = false;
         }
 
-        // タイトルの照合通過で1回だけ呼ぶ。Play locally が起動する既定ワールドのスナップショットを退避対象にする
-        // Called once when the launch check passes at the title; the default world that Play locally boots is the snapshot source
+        // タイトルの照合通過で1回だけ呼ぶ。退避元は前回セッション自身の印が決めるので、ここは今回の起動設定を渡さない（D-C3）
+        // Called once when the launch check passes at the title; the previous session's own mark decides the salvage source, so no setting of this boot is handed over (D-C3)
         internal static PreviousSessionArtifacts SalvageAtTitle()
         {
             if (_salvagedThisBoot) throw new InvalidOperationException("PreviousSessionStartupTasks: この起動の退避は済んでいます（タイトルの退避が2回目に到達しました）");
@@ -39,8 +37,7 @@ namespace Client.Starter.Playtest
             // 退避の前にこの起動のセッション名を確定する。退避は「今回以外」を畳むため（F05）
             // This boot's session name is fixed before salvaging, because the salvage folds everything but this one (F05)
             ProcessSessionScope.BeginNewSession();
-            var defaultWorldDirectory = CliConvert.Parse<StartServerSettings>(Array.Empty<string>()).WorldDirectory;
-            return Salvage(false, defaultWorldDirectory);
+            return Salvage();
         }
 
         // パイプライン先頭で呼ぶ。タイトルで退避済みなら書き手の設置と回収だけを行う
@@ -57,7 +54,7 @@ namespace Client.Starter.Playtest
                 // The Editor bypass mark is consumed on read; leaving it unread would carry it to the next manual title boot and skip its confirmations once
                 var unattendedReason = PlaytestStartGateBypass.UnattendedReason();
                 Debug.Log($"PreviousSessionStartupTasks: タイトルを経由しない起動のため、ここで前回セッションを退避します。同意と前回異常終了の確認はこの起動では出さず、未応答の印は次にタイトルを通る起動で聞き直します unattended:{unattendedReason ?? "none"}");
-                Salvage(isRemoteConnection, worldDirectory);
+                Salvage();
             }
 
             // 記録を集めない起動は今回の印を書かず、前回の進行記録も回収しない。回収は次に集める起動が行う（理由はPlaytestRecordCollectionがログ済み）
@@ -66,7 +63,10 @@ namespace Client.Starter.Playtest
 
             // 書き手は設置時に識別を読む。照合がAllowedで検証済みSteamIDを据えた後のここに置く（ADR 0065）
             // The writer reads the identity at installation, so it sits here, after the launch check set the verified SteamID on Allowed (ADR 0065)
-            CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId(), ProcessSessionScope.CurrentSessionName);
+            // 退避元はこのセッションが自分で書き残す。次に落ちたときの箱は、今回の起動設定ではなくこの記録から組まれる（D-C3）
+            // This session records its own salvage source, so the box after a crash is built from this record rather than from the next boot's settings (D-C3)
+            var snapshotSource = new SessionSnapshotSource(isRemoteConnection, WorldDataDirectory.FromWorldRoot(worldDirectory).SnapshotDirectory);
+            CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId(), ProcessSessionScope.CurrentSessionName, snapshotSource);
 
             // 前回の書きかけの進行記録を、消費した印の結果で畳む（F19）
             // Folds the half-written progress records by the consumed marks' outcome (F19)
@@ -75,9 +75,9 @@ namespace Client.Starter.Playtest
 
         // 呼ぶ前にこの起動のセッション名を確定しておくこと。退避は「今回以外」を畳み、書き手は全員この名前の下へ書く（F05）
         // This boot's session name must be fixed before calling: the salvage folds everything else, and every writer writes under this name (F05)
-        private static PreviousSessionArtifacts Salvage(bool isRemoteConnection, string worldDirectory)
+        private static PreviousSessionArtifacts Salvage()
         {
-            var artifacts = PreviousSessionSalvage.RunAtStartup(isRemoteConnection, WorldDataDirectory.FromWorldRoot(worldDirectory).SnapshotDirectory);
+            var artifacts = PreviousSessionSalvage.RunAtStartup();
             _salvagedThisBoot = true;
             return artifacts;
         }

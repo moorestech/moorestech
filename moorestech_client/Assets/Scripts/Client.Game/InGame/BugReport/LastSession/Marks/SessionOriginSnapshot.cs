@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
-    // セッション開始時点の出所（ビルドとSteamID）。前回クラッシュの箱に「今回起動したビルド」を付けないため、落ちたセッション自身が書き残す（F12）
-    // The origin at session start (build and SteamID); the crashed session writes it itself so the previous crash's box never carries the build launched this time (F12)
+    // セッション開始時点の出所（ビルド・SteamID・退避元）。前回クラッシュの箱に「今回起動したビルドやワールド」を付けないため、落ちたセッション自身が書き残す（F12・D-C3）
+    // The origin at session start (build, SteamID, salvage source); the crashed session writes it itself so the previous crash's box never carries the build or world launched this time (F12, D-C3)
     public sealed class SessionOriginSnapshot
     {
         private static readonly JsonSerializer Serializer = JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
@@ -17,10 +17,15 @@ namespace Client.Game.InGame.BugReport.LastSession
         public string SteamId { get; }
         public BuildOriginReading BuildOrigin { get; }
 
-        public SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin)
+        // 退避元を記録しない旧版の印はnull。無音で今回の既定ワールドへ落とさず「スナップショット源不明」として欠損に表明する（D-C3）
+        // Null for an older mark that recorded no source; instead of silently falling back to this boot's default world it is declared missing as an unknown source (D-C3)
+        public SessionSnapshotSource SnapshotSource { get; }
+
+        public SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin, SessionSnapshotSource snapshotSource)
         {
             SteamId = steamId;
             BuildOrigin = buildOrigin;
+            SnapshotSource = snapshotSource;
         }
 
         public void WriteTo(string path)
@@ -31,6 +36,13 @@ namespace Client.Game.InGame.BugReport.LastSession
                 ["buildOriginKind"] = BuildOrigin.Kind.ToString(),
                 ["buildInfo"] = BuildOrigin.BuildInfo == null ? JValue.CreateNull() : JObject.FromObject(BuildOrigin.BuildInfo, Serializer),
                 ["buildOriginMissingReason"] = BuildOrigin.MissingReason,
+                ["snapshotSource"] = SnapshotSource == null
+                    ? JValue.CreateNull()
+                    : new JObject
+                    {
+                        ["isRemoteConnection"] = SnapshotSource.IsRemoteConnection,
+                        ["worldSnapshotDirectory"] = SnapshotSource.WorldSnapshotDirectory,
+                    },
             };
 
             // 出所の書き出しはディスクIO。失敗しても起動は続け、次回の箱では出所不明として欠損に表明される
@@ -61,6 +73,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             string kindText;
             BuildInfo buildInfo;
             string buildOriginMissingReason;
+            SessionSnapshotSource snapshotSource;
 
             // 読み込みはディスクIO、JObject.Parse は外部入力JSONのパース境界（途中で落ちたセッションは切れたJSONを残しうる）
             // Reading is disk IO and JObject.Parse is the external JSON parse boundary (a session that died midway can leave truncated JSON)
@@ -72,6 +85,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                 var buildInfoToken = obj["buildInfo"];
                 buildInfo = buildInfoToken == null || buildInfoToken.Type == JTokenType.Null ? null : buildInfoToken.ToObject<BuildInfo>(Serializer);
                 buildOriginMissingReason = (string)obj["buildOriginMissingReason"];
+                snapshotSource = ReadSnapshotSource(obj["snapshotSource"]);
             }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e) || e is JsonException || e is ArgumentException)
             {
@@ -80,7 +94,17 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             var buildOrigin = ToBuildOrigin(kindText, buildInfo, buildOriginMissingReason, path, out failureReason);
-            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, buildOrigin);
+            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, buildOrigin, snapshotSource);
+        }
+
+        // 退避元を持たない旧版の印はnullのまま返す。読めた値だけを信じ、欠けている項目を今回の起動設定で埋めない（D-C3）
+        // An older mark without a source comes back as null; only what was read is trusted and no missing field is filled from this boot's settings (D-C3)
+        private static SessionSnapshotSource ReadSnapshotSource(JToken token)
+        {
+            if (token == null || token.Type != JTokenType.Object) return null;
+            var isRemoteConnection = (bool?)token["isRemoteConnection"];
+            if (isRemoteConnection == null) return null;
+            return new SessionSnapshotSource(isRemoteConnection.Value, (string)token["worldSnapshotDirectory"]);
         }
 
         private static BuildOriginReading ToBuildOrigin(string kindText, BuildInfo buildInfo, string missingReason, string path, out string failureReason)

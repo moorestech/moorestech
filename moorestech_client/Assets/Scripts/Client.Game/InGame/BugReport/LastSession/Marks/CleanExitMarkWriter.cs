@@ -14,16 +14,16 @@ namespace Client.Game.InGame.BugReport.LastSession
     {
         private static CompositeDisposable _subscriptions;
 
-        public static void InstallAtStartup(int processId, string sessionName)
+        public static void InstallAtStartup(int processId, string sessionName, SessionSnapshotSource snapshotSource)
         {
             // 起動シーケンスは再入する（Editorの再生し直し）。購読は常に1組に保つ
             // The boot sequence re-enters (an Editor replay), so exactly one set of subscriptions is kept
             _subscriptions?.Dispose();
             _subscriptions = new CompositeDisposable();
 
-            // 出所はこのセッション自身が開始時に書き残す。落ちた後の送信時に読むと、次に起動したビルドの値になる
-            // The session writes its own origin at start; reading it at send time after a crash would yield whatever build launched next
-            var origin = new SessionOriginSnapshot(PlaytestSessionIdentityProvider.Current.SteamId, RepositoryStateProbe.ReadBuildOrigin());
+            // 出所も退避元もこのセッション自身が開始時に書き残す。落ちた後に読むと、次に起動したビルドやワールドの値になる（F12・D-C3）
+            // The session writes both its origin and its salvage source at start; reading them after a crash would yield whatever build or world launched next (F12, D-C3)
+            var origin = new SessionOriginSnapshot(PlaytestSessionIdentityProvider.Current.SteamId, RepositoryStateProbe.ReadBuildOrigin(), snapshotSource);
             CleanExitMarker.MarkSessionStarted(processId, sessionName, origin);
 
             // 終了処理側にプレイテストの語彙を持ち込まないため、直接呼び出しでなく汎用イベントの購読で受ける

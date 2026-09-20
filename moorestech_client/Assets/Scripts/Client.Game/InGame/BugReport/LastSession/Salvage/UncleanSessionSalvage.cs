@@ -31,9 +31,12 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
             else
             {
+                // 退避元は前回セッション自身の印から決める。今回の起動設定で代用すると、別ワールドのスナップショットが異常終了箱へ混入する（D-C3）
+                // The source is decided from the previous session's own mark; standing in with this boot's settings would mix another world's snapshots into the crash box (D-C3)
+                var latest = SelectLatestUncleanSession();
                 MoveUncleanRecordings();
-                MoveWorldSnapshots();
-                previousOrigin = PersistLatestOrigin();
+                MoveWorldSnapshots(latest.Origin);
+                previousOrigin = PersistOrigin(latest);
                 playerLogPath = PlayerLogLocator.PreviousSessionLogPath();
                 if (playerLogPath == null) missing.Report("playerLog", "前回セッションのPlayer-prev.logが見つからない");
             }
@@ -73,27 +76,39 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // リモート接続にはスナップショットを書く内蔵サーバーがそもそも居ない。退避失敗と同じ理由文にすると毎回「失敗」に見える
             // A remote connection has no embedded server writing snapshots at all; sharing the failure wording would read as a failure every time
-            void MoveWorldSnapshots()
+            void MoveWorldSnapshots(SessionOriginSnapshot origin)
             {
-                if (request.IsRemoteConnection)
+                // 退避元を記録しない旧版の印。既定ワールドで代用せず、源が分からないことをそのまま表明する（D-C3）
+                // An older mark that recorded no source; rather than standing in with the default world, the unknown source is declared as it is (D-C3)
+                if (origin?.SnapshotSource == null)
+                {
+                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, "スナップショット源不明: 前回セッションの印に退避元（接続種別・ワールド）の記録が無い");
+                    return;
+                }
+
+                if (origin.SnapshotSource.IsRemoteConnection)
                 {
                     missing.Report(BugReportBundleLayout.SnapshotDirectoryName, "リモート接続のセッションのため内蔵サーバーのスナップショットは存在しない");
                     return;
                 }
 
-                var move = BugReportDiskOperations.MoveFilesInto(request.WorldSnapshotDirectory, snapshotDestination);
+                var move = BugReportDiskOperations.MoveFilesInto(origin.SnapshotSource.WorldSnapshotDirectory, snapshotDestination);
                 if (!move.Succeeded) missing.Report(BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
             }
 
-            // 複数のセッションが落ちていれば最新の出所を載せる。どれを載せたかは欠損列に残し、無音で1つへ潰さない（F12）
-            // With several crashed sessions the newest origin is carried; which one is recorded in missing instead of silently collapsing to one (F12)
-            SessionOriginSnapshot PersistLatestOrigin()
+            // 複数のセッションが落ちていれば最新のものを採る。どれを採ったかは欠損列に残し、無音で1つへ潰さない（F12）
+            // With several crashed sessions the newest one is taken; which one is recorded in missing instead of silently collapsing to one (F12)
+            PreviousProcessSession SelectLatestUncleanSession()
             {
-                var latest = uncleanSessions[0];
+                var newest = uncleanSessions[0];
                 foreach (var session in uncleanSessions)
-                    if (0 < ProcessSessionScope.CompareSessionNames(session.SessionName, latest.SessionName)) latest = session;
-                if (1 < uncleanSessions.Count) missing.Report("previousOrigin", $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {latest.ProcessId} {latest.SessionName} の出所を載せた");
+                    if (0 < ProcessSessionScope.CompareSessionNames(session.SessionName, newest.SessionName)) newest = session;
+                if (1 < uncleanSessions.Count) missing.Report("previousOrigin", $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {newest.ProcessId} {newest.SessionName} の出所を載せた");
+                return newest;
+            }
 
+            SessionOriginSnapshot PersistOrigin(PreviousProcessSession latest)
+            {
                 if (latest.Origin != null)
                 {
                     latest.Origin.WriteTo(originPath);

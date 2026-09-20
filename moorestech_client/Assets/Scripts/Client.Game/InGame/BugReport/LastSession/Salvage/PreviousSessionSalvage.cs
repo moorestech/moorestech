@@ -26,7 +26,7 @@ namespace Client.Game.InGame.BugReport.LastSession
 
         // 呼ぶ前に ProcessSessionScope.BeginNewSession() でこの起動のセッション名を確定しておくこと
         // ProcessSessionScope.BeginNewSession() must have fixed this boot's session name before this is called
-        public static PreviousSessionArtifacts RunAtStartup(bool isRemoteConnection, string worldSnapshotDirectory)
+        public static PreviousSessionArtifacts RunAtStartup()
         {
             var lastSessionDirectory = GameSystemPaths.BugReportLastSessionDirectory;
 
@@ -49,8 +49,6 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             var request = new PreviousSessionSalvageRequest
             {
-                IsRemoteConnection = isRemoteConnection,
-                WorldSnapshotDirectory = worldSnapshotDirectory,
                 LastSessionDirectory = lastSessionDirectory,
                 SkippedLiveProcessIds = scan.SkippedLiveProcessIds,
                 PreviousSessions = ConsumeExitMarks(scan.Sessions),
