@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.DiskOperations;
@@ -107,11 +108,36 @@ namespace Client.Game.InGame.BugReport.LastSession
                 {
                     missing.Report("previousOrigin", $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {newest.ProcessId} {newest.SessionName} の出所を載せた");
 
-                    // 録画は全セッションぶん移すのにスナップショットは最新1件の出所からしか移さない。見送った分を無音にしない（別ワールドの盤面が箱に無い理由）
-                    // The recordings of every session are moved while the snapshots come from the newest origin alone; the skipped ones are declared, never silent (why another world's board is absent from the box)
-                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {newest.ProcessId} {newest.SessionName} の出所のスナップショットだけを退避した（残り{uncleanSessions.Count - 1}件のワールドは見送り）");
+                    // 録画は全セッションぶん移すのにスナップショットは最新1件の出所からしか移さない。実際に取り残す分だけを欠損として表明する（別ワールドの盤面が箱に無い理由）
+                    // The recordings of every session are moved while the snapshots come from the newest origin alone, so only what is really left behind is declared missing (why another world's board is absent from the box)
+                    var skippedCount = CountSessionsLeftBehind();
+                    if (0 < skippedCount)
+                        missing.Report(BugReportBundleLayout.SnapshotDirectoryName, $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {newest.ProcessId} {newest.SessionName} の出所のスナップショットだけを退避した（うち{skippedCount}件は出所が異なるため見送り）");
                 }
                 return newest;
+
+                // 同じワールドで落ちた別セッションは最新の出所を移した時点で一緒に退避済み。見送りに数えると起きていない欠損を報告してしまう
+                // Another session that crashed in the same world is already salvaged by moving the newest origin; counting it would report a loss that never happened
+                int CountSessionsLeftBehind()
+                {
+                    var newestDirectory = newest.Origin?.SnapshotSource?.WorldSnapshotDirectory;
+                    var leftBehind = 0;
+                    foreach (var session in uncleanSessions)
+                    {
+                        if (session == newest) continue;
+
+                        // リモート接続のセッションには内蔵サーバーのスナップショットが無く、見送る盤面がそもそも存在しない
+                        // A remote session has no embedded-server snapshots, so there is no board to leave behind
+                        var source = session.Origin?.SnapshotSource;
+                        if (source != null && source.IsRemoteConnection) continue;
+
+                        // 出所不明は「同じワールドだった」と言い切れない。取り残した側へ倒して黙らない
+                        // An unknown source cannot be claimed to be the same world, so it falls to the left-behind side instead of going silent
+                        if (source != null && newestDirectory != null && string.Equals(source.WorldSnapshotDirectory, newestDirectory, StringComparison.Ordinal)) continue;
+                        leftBehind++;
+                    }
+                    return leftBehind;
+                }
             }
 
             SessionOriginSnapshot PersistOrigin(PreviousProcessSession latest)

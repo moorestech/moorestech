@@ -54,6 +54,18 @@ namespace Client.Tests.BugReport.Salvage
             Assert.IsTrue(File.Exists(Path.Combine(_olderWorldSnapshots, "tick_100.json")));
         }
 
+        // ローカルプレイの既定ワールドは固定なので、同じワールドで複数回落ちるのが多数派。最新の出所を移せば全部退避済みで、見送りは起きていない
+        // The local-play default world is fixed, so crashing several times in the same world is the common case: moving the newest origin salvages them all and nothing is left behind
+        [Test]
+        public void 同じワールドで複数回落ちていれば見送りは表明しない()
+        {
+            var artifacts = PreviousSessionSalvage.Salvage(Request(Crashed(1234, "session_100", _newestWorldSnapshots), Crashed(5678, "session_900", _newestWorldSnapshots)));
+
+            var snapshotReasons = artifacts.Missing.FindAll(missing => missing.Item == BugReportBundleLayout.SnapshotDirectoryName);
+            Assert.AreEqual(0, snapshotReasons.Count, MissingReasons(artifacts));
+            Assert.IsTrue(File.Exists(Path.Combine(artifacts.SnapshotsDirectory, "tick_900.json")));
+        }
+
         private static PreviousProcessSession Crashed(int processId, string sessionName, string worldSnapshotDirectory)
         {
             return new PreviousProcessSession
