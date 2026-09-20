@@ -15,8 +15,11 @@ namespace Client.Starter.Playtest.TitleGates
         private readonly ReactiveProperty<PlaytestTitleGateStep> _step = new(PlaytestTitleGateStep.NotStarted);
         private readonly PlaytestConsentGate _consent;
         private readonly CrashReportGate _crashReport;
-        private readonly IPlaytestUploadRequester _uploadRequester;
         private readonly bool _uploadsEnabled;
+
+        // 列はプロセス寿命、送り手はタイトル（合成ルート）の寿命。再訪で作り直されるので readonly にしない（D-C1）
+        // The sequence lives as long as the process while the requester lives with the title's composition root, which a revisit rebuilds, so it is not readonly (D-C1)
+        private IPlaytestUploadRequester _uploadRequester;
 
         public IReadOnlyReactiveProperty<PlaytestTitleGateStep> Step => _step;
 
@@ -28,6 +31,18 @@ namespace Client.Starter.Playtest.TitleGates
             _crashReport = crashReport;
             _uploadRequester = uploadRequester;
             _uploadsEnabled = uploadsEnabled;
+        }
+
+        // 再訪のタイトルが組んだ送り手へ繋ぎ直す。破棄済みの画面が作った送り手を掴み続けると、答え終えた確認の送信が無音で死ぬ（D-C1）
+        // Re-attaches the requester the revisited title composed; holding the destroyed screen's one would let an answered confirmation's upload die silently (D-C1)
+        internal void SetUploadRequester(IPlaytestUploadRequester uploadRequester)
+        {
+            if (uploadRequester == null)
+            {
+                Debug.LogError("[PlaytestTitleGates] nullの送り手は受け付けません（前のタイトルが組んだ送り手のまま続けます）");
+                return;
+            }
+            _uploadRequester = uploadRequester;
         }
 
         // 待たない段階は同期で抜けるので、既読かつ正常終了なら呼んだその場で Passed になる

@@ -131,6 +131,23 @@ namespace Client.Tests.Playtest.TitleGates
             Assert.AreEqual(0, uploads.RequestCount);
         }
 
+        // 列はプロセス寿命、合成ルートはタイトルの寿命。繋ぎ直さないと、答え終えた確認の送信が破棄済みの画面が組んだ送り手へ流れる（D-C1）
+        // The sequence lives with the process while the composition root lives with the title; without re-attaching, an answered confirmation's upload would go to the destroyed screen's requester (D-C1)
+        [Test]
+        public void 再訪のタイトルが組んだ送り手へ繋ぎ直す()
+        {
+            var firstTitleUploads = new RecordingUploadRequester();
+            var sequence = StartAttendedSequenceWithUnreadConsent(firstTitleUploads);
+
+            var revisitUploads = new RecordingUploadRequester();
+            Assert.IsTrue(PlaytestTitleGates.TryBegin(PlaytestGateResult.DeveloperMode, revisitUploads, out var revisited));
+            Assert.AreSame(sequence, revisited, "再訪で別の列が始まっている");
+
+            sequence.AcknowledgeConsent();
+            Assert.AreEqual(1, revisitUploads.RequestCount);
+            Assert.AreEqual(0, firstTitleUploads.RequestCount, "破棄済みのタイトルが組んだ送り手へ送信を要求している");
+        }
+
         private static PlaytestTitleGateSequence StartAttendedSequenceWithUnreadConsent()
         {
             return StartAttendedSequenceWithUnreadConsent(new RecordingUploadRequester());

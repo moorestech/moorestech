@@ -65,7 +65,13 @@ namespace Client.Starter.Playtest.TitleGates
             // 始動済みなら既存の列を返す。初期化失敗でタイトルへ戻った再訪でも、未応答の確認を繋ぎ直して出せる（D-C1）
             // An already-started sequence comes back so a revisit after a failed initialization can re-attach and show the unanswered confirmation (D-C1)
             sequence = _current;
-            if (sequence != null) return true;
+            if (sequence != null)
+            {
+                // 列は生き残るが合成ルートは再訪のたびに作り直される。送り手だけ今回のタイトルのものへ繋ぎ直す（D-C1）
+                // The sequence survives while the composition root is rebuilt on every revisit, so only the requester is re-attached to this title's one (D-C1)
+                sequence.SetUploadRequester(uploadRequester);
+                return true;
+            }
 
             if (verdict.IsBlocked)
             {
