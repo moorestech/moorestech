@@ -25,34 +25,37 @@ namespace Client.Tests.PlaytestReceiver
         }
 
         [Test]
-        public void READYがある箱だけを古い順にkind付きで拾う()
+        public void READYがある箱だけを古い順にkindと格付け付きで拾う()
         {
-            var reports = MakeOutbox("BugReports");
-            var progress = MakeOutbox("ProgressRecords");
+            var directories = PlaytestOutboxTestBoxes.Directories(_root);
+            var reports = directories.ReportOutbox;
+            var progress = directories.ProgressOutbox;
             MakeBox(reports, "20260913_120000_bbbb", withReady: true);
             MakeBox(reports, "20260913_110000_aaaa", withReady: true);
             MakeBox(reports, "20260913_130000_cccc", withReady: false);
             MakeBox(progress, "20260913_125959_dddd", withReady: true);
 
-            var boxes = PlaytestOutboxScanner.ScanPending(reports, progress);
+            var boxes = PlaytestOutboxScanner.ScanPending(directories);
 
             Assert.AreEqual(3, boxes.Count);
             Assert.AreEqual(new[] { "20260913_110000_aaaa", "20260913_120000_bbbb", "20260913_125959_dddd" }, boxes.Select(box => box.BundleId).ToArray());
             Assert.AreEqual(PlaytestUploadKind.Report, boxes[0].Kind);
             Assert.AreEqual(PlaytestUploadKind.Progress, boxes[2].Kind);
+            Assert.AreSame(directories.ReportFilePolicy, boxes[0].FilePolicy);
+            Assert.AreSame(directories.ProgressFilePolicy, boxes[2].FilePolicy);
         }
 
         [Test]
         public void UPLOADED済みとUPLOAD_FAILED済みは拾わない()
         {
-            var reports = MakeOutbox("BugReports");
-            var progress = MakeOutbox("ProgressRecords");
+            var directories = PlaytestOutboxTestBoxes.Directories(_root);
+            var reports = directories.ReportOutbox;
             var uploaded = MakeBox(reports, "20260913_120000_bbbb", withReady: true);
             File.WriteAllText(Path.Combine(uploaded, PlaytestOutboxScanner.UploadedMarker), "");
             var failed = MakeBox(reports, "20260913_121000_cccc", withReady: true);
             File.WriteAllText(Path.Combine(failed, PlaytestOutboxScanner.FailedMarker), "");
 
-            Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(reports, progress));
+            Assert.IsEmpty(PlaytestOutboxScanner.ScanPending(directories));
         }
 
         [Test]

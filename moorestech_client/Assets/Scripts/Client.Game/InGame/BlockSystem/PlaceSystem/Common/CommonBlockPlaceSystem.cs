@@ -110,19 +110,13 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
-            ApplyPickedDirection();
+            _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
             _dragState.UpdateHeightOffsetByInput();
             BlockDirectionControl();
-            GroundClickControl();
+            var isSendable = GroundClickControl(out var wirePlaceable);
+            PlaceBlockOnRelease(isSendable, wirePlaceable);
 
             #region Internal
-
-            void ApplyPickedDirection()
-            {
-                // スポイトでピックした向きを選択変化時に反映する
-                // Apply the eyedropped block direction when the selection changes
-                if (isSelectionChanged && target.PickedDirection.HasValue) _currentBlockDirection = target.PickedDirection.Value;
-            }
 
             void BlockDirectionControl()
             {
@@ -135,8 +129,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                     _currentBlockDirection = _currentBlockDirection.VerticalRotation();
             }
 
-            void GroundClickControl()
+            // 戻り値はカーソル位置に送信できる設置列があるか
+            // Returns whether the cursor has a sendable placement run
+            bool GroundClickControl(out bool wirePlaceable)
             {
+                wirePlaceable = false;
                 _dragState.SyncSelectedBlock(target.BlockId);
 
                 //基本はプレビュー非表示
@@ -144,7 +141,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
                 var holdingBlockMaster = MasterHolder.BlockMaster.GetBlockMaster(target.BlockId);
-                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { HideConnectPreviews(); EndDragWithoutPlacing(); return; }
+                if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var cursorCell, out var hitSurface)) { HideConnectPreviews(); return false; }
 
                 // ドラッグ中は押下時の面種別で通す
                 // A drag keeps the surface kind from its press
@@ -171,7 +168,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // 距離外なら理由のみ出しプレビュー無し
                 // Beyond range, show only the reason and no preview
-                if (!IsPlaceableFromPlayer(placePoint)) { HideConnectPreviews(); feedback.AddTooFar(); EndDragWithoutPlacing(); return; }
+                if (!IsPlaceableFromPlayer(placePoint)) { HideConnectPreviews(); feedback.AddTooFar(); return false; }
 
                 _previewBlockController.SetActive(true);
 
@@ -196,7 +193,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 
                 // 各セルの自動接続を評価し表示更新。cursorIndexは上で解決済みのため再解決しない
                 // Evaluate auto-connect per cell and update the preview; cursorIndex is already resolved above so it is not re-resolved
-                var wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, cursorIndex, feedback);
+                wirePlaceable = _autoConnectPreview.ApplyAutoConnect(_currentPlaceInfos, target.BlockId, _currentBlockDirection, _localPlayerInventory, cursorIndex, feedback);
 
                 // 歯車はどの座標同士が噛み合うかを線で示す。設置可否には関与しない
                 // Gears show which cells mesh with which via lines; this never affects placeability
@@ -210,29 +207,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 // Update preview colors based on the final Placeable state
                 _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
 
-                // 設置するブロックをサーバーに送信
-                // send block place info to server
-                PlaceBlock(wirePlaceable);
+                return true;
             }
 
-            // 設置できないまま解放されたドラッグを畳む。残すと次フレームに古い開始点から列が伸びる
-            // Folds a drag released with nothing to place; leaving it would extend a run from the stale start next frame
-            void EndDragWithoutPlacing()
+            void PlaceBlockOnRelease(bool isSendable, bool wirePlaceable)
             {
-                if (InputManager.Playable.ScreenLeftClick.GetKeyUp) _dragState.EndDrag();
-            }
-
-            void PlaceBlock(bool wirePlaceable)
-            {
-                if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
-
-                // デバッグモード時は送信しない
-                // Skip sending in debug mode
-                if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
-
-                // マウスを離したので連続設置状態は解除する（押下未登録の解放はここで打ち切る）
-                // Clear the continuous-placement state on mouse release (a release without a registered press stops here)
-                if (!_dragState.EndDrag()) return;
+                // 解放の畳みと送信可否は1つの入口で決める
+                // Folding and sending on release are decided by a single entry
+                if (!_dragState.TryConsumeSendableRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp, isSendable, DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))) return;
 
                 // 設置でワールドとインベントリが変わるため、接続プレビューの評価キャッシュを破棄する
                 // Placement changes the world and inventory, so drop the connect preview evaluation caches

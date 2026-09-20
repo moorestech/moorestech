@@ -2,6 +2,7 @@ using System.IO;
 using System.Threading;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Starter.Playtest;
+using Client.Tests.WebUi.Gate;
 using Client.WebUiHost.Boot;
 using Client.WebUiHost.Game.StartGates;
 using Cysharp.Threading.Tasks;
@@ -80,8 +81,8 @@ namespace Client.Tests.BugReport
 
             // 待機はWebへ配られている。配られなければゲートは描かれず、応答者の居ないまま止まる
             // The wait is published to the web; without it no gate is painted and the boot stalls with nobody to answer
-            AssertWaiting(hub, StartGateTopics.ConsentName, true, StartGateTopics.ConsentPrecedence);
-            AssertWaiting(hub, StartGateTopics.CrashReportName, true, StartGateTopics.CrashReportPrecedence);
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.ConsentName, true, StartGateTopics.ConsentPrecedence);
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.CrashReportName, true, StartGateTopics.CrashReportPrecedence);
 
             // 同意だけ答えても、前回異常終了の確認が残っているので開始はまだ進まない
             // Answering only the consent leaves the crash confirmation outstanding, so the boot still does not proceed
@@ -92,8 +93,8 @@ namespace Client.Tests.BugReport
             // 2つ目に答えると両方の待機が解ける。最後の UniTask.Yield はEditModeでは進まないので待機解除の側を見る
             // Answering the second releases both waits; the trailing UniTask.Yield never advances in EditMode, so the released state is observed instead
             hub.ResolveAction("playtest.crash_report.respond").ExecuteAsync(new JObject { ["send"] = false }).GetAwaiter().GetResult();
-            AssertWaiting(hub, StartGateTopics.CrashReportName, false, StartGateTopics.CrashReportPrecedence);
-            AssertWaiting(hub, StartGateTopics.ConsentName, false, StartGateTopics.ConsentPrecedence);
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.CrashReportName, false, StartGateTopics.CrashReportPrecedence);
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.ConsentName, false, StartGateTopics.ConsentPrecedence);
         }
 
         // 既読の起動では同意を出さず、前回異常終了の確認だけで待つ
@@ -106,8 +107,8 @@ namespace Client.Tests.BugReport
 
             var wait = PlaytestStartGates.WaitForGatesAsync(hub, TestPreviousSessionArtifacts.Unclean(), AttendedBoot, CancellationToken.None);
 
-            AssertWaiting(hub, StartGateTopics.ConsentName, false, StartGateTopics.ConsentPrecedence);
-            AssertWaiting(hub, StartGateTopics.CrashReportName, true, StartGateTopics.CrashReportPrecedence);
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.ConsentName, false, StartGateTopics.ConsentPrecedence);
+            StartGateTopicAssert.AssertWaiting(hub, StartGateTopics.CrashReportName, true, StartGateTopics.CrashReportPrecedence);
             Assert.IsFalse(wait.Status.IsCompleted(), "前回異常終了の確認で待っていない");
 
             // 既読なら了解は二度目扱い。成功に丸めると待機していないゲートへ答えたことが見えなくなる
@@ -129,13 +130,6 @@ namespace Client.Tests.BugReport
             exit.Cancel();
 
             Assert.IsTrue(wait.Status.IsCanceled());
-        }
-
-        private static void AssertWaiting(WebSocketHub hub, string topicName, bool waiting, int precedence)
-        {
-            var json = JObject.Parse(hub.ResolveTopic(topicName).GetSnapshotJsonAsync().GetAwaiter().GetResult());
-            Assert.AreEqual(waiting, json["waiting"].Value<bool>(), $"{topicName} の waiting が期待と違う");
-            Assert.AreEqual(precedence, json["precedence"].Value<int>(), $"{topicName} の precedence が期待と違う");
         }
     }
 }

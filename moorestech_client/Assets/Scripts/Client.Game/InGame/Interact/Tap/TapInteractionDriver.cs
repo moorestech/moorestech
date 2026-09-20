@@ -26,7 +26,7 @@ namespace Client.Game.InGame.Interact.Tap
             _tooltip = tooltip;
         }
 
-        public InteractExecuteResult Step(ITapInteractable target, IInteractSelection selection)
+        public InteractExecuteResult Step(ITapInteractable target, IInteractSelection selection, IReadOnlyList<InputKey> primaryHoldKeys)
         {
             // 主対象の押下は主対象が引き受ける
             // A press the primary target offers is answered by the primary target
@@ -115,6 +115,12 @@ namespace Client.Game.InGame.Interact.Tap
 
             bool Offers(InputKey key)
             {
+                // 主対象が長押しで使うキーは別候補へ回さない
+                // A key the primary target holds is never forwarded to another candidate
+                foreach (var holdKey in primaryHoldKeys)
+                    if (holdKey == key)
+                        return true;
+
                 if (target == null) return false;
 
                 foreach (var action in target.Actions)

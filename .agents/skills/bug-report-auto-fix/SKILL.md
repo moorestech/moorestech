@@ -22,7 +22,7 @@ hooks:
 # bug-report-auto-fix — バグ報告の自動再現・修正（無人実行）
 
 `$RUN = $BUG_REPORT_RUNDIR_BASE/<run-id>`（既定 `~/hermes-agent/data/repos/moorestech_logs/harness/bug-report/runs/<run-id>`）。
-`$RUN/run.env` に `WORKTREE`・`MASTER_DIR`・`SERVER_DATA_DIR`・`WORLD_DIR`・`REPORT_COMMIT`・`REPORT_BRANCH`・`LATEST_TICK` と、
+`$RUN/run.env` に `WORKTREE`・`MASTER_DIR`・`SERVER_DATA_DIR`・`WORLD_DIR`・`WORLD_MATERIALIZE_PENDING`・`WORLD_NOT_CAPTURED`・`WORLD_MAP_MODE`・`WORLD_SEED`（箱の `world.json` の `mapMode`・`seed`。読めなければ空）・`REPORT_COMMIT`・`REPORT_BRANCH`・`LATEST_TICK` と、
 **再現環境の欠けを表すフラグ**（`COMMIT_MISSING`・`DIFF_APPLY_FAILED`・`DIFF_ABSENT`・`UNTRACKED_FAILED`・`MASTER_FAILED`・`MASTER_DIFF_APPLY_FAILED`・`MASTER_DIFF_ABSENT`・`MASTER_UNTRACKED_FAILED`）がある。
 `$RUN/repo/bundle-status.txt` は運搬側が付けた bundle の3状態（`created` / `not-needed-origin-has-commit` / `failed-*` / `skipped-*`）で、`failed-*` は報告者のローカルコミットが受け側に無いことを意味する。
 `SERVER_DATA_DIR` は**記録時にサーバーが実際にマスタを読んだ置き場**（manifest の `serverData` から受け側の worktree 配下へ解決した値）。`MASTER_DIR` とは一致しないことがあり、再生・観察には必ず `SERVER_DATA_DIR` を使う。作業は必ず `$WORKTREE` で行う。
@@ -47,6 +47,7 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 | `run-edc.sh <project> <snippet.cs> <bundle-dir> [<server-dir>]` | スニペットの `__BUNDLE__`／`__SERVER_DIR__` を置換して `uloop execute-dynamic-code` を実行する |
 | `edc/dump-packets.cs` | パケットログを `$RUN/packets.jsonl` へ可読化（Step 1） |
 | `edc/replay-check.cs` | 決定性検査。`$RUN/replay-check.json` を書く（Step 2） |
+| `edc/materialize-world.cs` | 生成ワールドの箱（world.json だけ）から地形付きワールドを `$RUN/world-materialized/` に実体化する（Step 3 の前） |
 | `scenarios/bug-report-observe.cs` | 報告時のワールドを起動し報告者の位置で30秒観察する（Step 3） |
 
 ## HARD GATE
@@ -78,6 +79,8 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 | `$RUN/repo/bundle-status.txt` に `failed-*` がある | 報告者のローカルコミットが受け側に無い。`COMMIT_MISSING=1` と同じ扱いで `summary` と PR 本文に書く |
 | バンドルの欠損（動画・スナップショット・パケットログ） | 残った資料で進める。欠損項目を `summary` に書く |
 | Step 3 の観察で症状が出ない | 追加シナリオを最大3本試し、それでも出なければ `not_reproduced` |
+| `materialize-world.cs` が `ERROR:` を返す（壊れた `worldDefinition` 宣言・宣言と中身の食い違い・生成ワールドの地形を引き当てられない箱） | Step 3 を飛ばし、返った理由を `summary` に書いて Step 4 へ。地形の無い `world/` を土台に起動しない |
+| `WORLD_NOT_CAPTURED=1`（manifest の `worldDefinition` が `not-captured`。報告側が記録時のワールドを取り込めなかった箱） | Step 3 を飛ばす（`prepare-run.sh` は `save.json` を置かないので下の行の関門でも止まる）。起動すれば `world.json` の無い `world/` で落ち、`run-scenario.sh` が300秒空転するだけ。「ワールド定義が取り込まれていない」を `summary` に書いて Step 4 へ |
 | `$WORLD_DIR/save.json` が無い（スナップショット欠損の箱） | Step 3 を飛ばし、ログ・パケット・スクショだけで Step 4 へ。飛ばした理由を `summary` に書く |
 | `SERVER_DATA_DIR` が空（manifest に `serverData` が無い/解決できない箱） | Step 2 を飛ばし、理由を `summary` に書いて Step 3 へ。`MASTER_DIR` で代用しない（別マスタでの再生は偽の結果になる） |
 | `replay-check` が `ERROR: 渡されたサーバーデータが記録時のものと違います` を返す | 渡すディレクトリを間違えている。`SERVER_DATA_DIR` を渡し直す（それでも解決しない箱は Step 2 を飛ばして理由を `summary` に書く） |
@@ -88,7 +91,7 @@ poller は cwd を `$CANON` にして起動する（`scripts/bugreport/inbox-pol
 ## Step 1: 読む
 
 1. `$RUN/manifest.json`（説明文・`snapshotTicks`・`missing`・`clientState`・`repository`）と `$RUN/run.env` のフラグ・`$RUN/repo/bundle-status.txt` を読む。上の既定表のフラグが1つでも立っていたら、再現環境が報告時と違うことを summary に必ず書く
-2. `$RUN/logs/unity.log` の Error/Exception 行、`$RUN/frames/`（2fps の連番。Read で数枚見る）、`$RUN/screenshot.png`
+2. `$RUN/logs/unity.log` の Error/Exception 行、`$RUN/frames/`（3秒に1枚の静止画の連番。最長約140秒の録画で最大47枚。Read で数枚見る）、`$RUN/screenshot.png`
 3. パケットログを可読化: `bash $CANON/.agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client $CANON/.agents/skills/bug-report-auto-fix/scripts/edc/dump-packets.cs $RUN`（Editor が未起動なら先に `uloop launch $WORKTREE/moorestech_client`）。`$RUN/packets.jsonl` の末尾（報告直前の操作）を読む
 4. `bd create "bug-report <run-id>: <説明文の要約>" --type=bug --priority=2 --description="<manifest要約と $RUN パス>"` で追跡 issue を作り、続けて `bd update` の `--claim` で着手する（claim は素のコマンド単体で打つ。パイプ・リダイレクト・複数コマンドの混在は hook に拒否される）
 
@@ -115,16 +118,30 @@ Editor を PlayMode に置き去りにする**（2026-09-12 リハーサルで�
 [ -s "$WORLD_DIR/save.json" ] || echo "観察を飛ばす: $WORLD_DIR/save.json が無い（スナップショット欠損の箱）"
 ```
 
+**実体化が予約された箱は先に土台を実体化する。** `WORLD_MATERIALIZE_PENDING=1` は、manifest の `worldDefinition` が `full` かつ `world/map.json` がある箱以外すべて
+（`generated-world-json-only`・宣言の無い旧版・読めない宣言・`map.json` の欠けた `full`）に立つ。生成ワールドの箱は `world/` に `world.json` しか無く、そのまま起動すると地形が無く落ちる（ADR 0064）。
+`prepare-run.sh` は土台を自分で決めず、`WORLD_DIR` を `$RUN/world-materialized` にして `save.json` だけを置いてあるので、観察の前に Step 2 と同じ resolver で土台を決めて写す。
+返り値が `ERROR:` なら（壊れた宣言・宣言と中身の食い違い・地形を引き当てられない箱）観察を飛ばし、理由を `summary` に書く。
+箱の `world/` には書き足さない（`map.json` が増えると宣言と中身が食い違い、決定性検査が拒否する）。
+
+```bash
+if [ "$WORLD_MATERIALIZE_PENDING" = "1" ]; then
+  bash $CANON/.agents/skills/bug-report-auto-fix/scripts/run-edc.sh $WORKTREE/moorestech_client $CANON/.agents/skills/bug-report-auto-fix/scripts/edc/materialize-world.cs $RUN ${SERVER_DATA_DIR:-$MASTER_DIR}
+fi
+```
+
 観察を実行する場合:
 
 ```bash
 sed "s|__BUNDLE__|$RUN|g" $CANON/.agents/skills/bug-report-auto-fix/scripts/scenarios/bug-report-observe.cs > $RUN/observe.cs
 uloop control-play-mode --project-path $WORKTREE/moorestech_client --action stop
-PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=template PLAYTEST_SEED=0 \
+# 生成ワールドは記録時の seed で起動する。mapMode の判定は綴りの完全一致（WorldMapMode.IsGenerated と同じ）
+if [ "$WORLD_MAP_MODE" = "generated" ]; then OBSERVE_MAP_MODE=generated; OBSERVE_SEED=$WORLD_SEED; else OBSERVE_MAP_MODE=template; OBSERVE_SEED=0; fi
+PLAYTEST_WORLD_DIRECTORY=$WORLD_DIR PLAYTEST_MAP_MODE=$OBSERVE_MAP_MODE PLAYTEST_SEED=$OBSERVE_SEED \
   $CANON/.agents/skills/unity-playmode-recorded-playtest/scripts/run-scenario.sh $WORKTREE/moorestech_client $RUN/observe.cs ${SERVER_DATA_DIR:-$MASTER_DIR}
 ```
 サーバーデータは記録時と同じ `SERVER_DATA_DIR` を渡す。空で `MASTER_DIR` に落ちた場合は、記録時と別のマスタで観察している旨を `summary` に書く。
-（`world.json` の `mapMode` が `generated` なら `PLAYTEST_MAP_MODE=generated PLAYTEST_SEED=<world.jsonのseed>`）
+`WORLD_MAP_MODE=generated` なのに `WORLD_SEED` が空の箱（`world.json` の `seed` を読めない）は記録時の seed で起動できないので観察を飛ばし、理由を `summary` に書く。
 `run-scenario.sh` は失敗しても終了コード 0 を返すので、**成否は `result.json` の有無と `Success` で判定する**（終了コードでは判定しない）。
 `NG: game not ready within 300s` が出たら Editor が PlayMode のまま残っているので、
 `uloop control-play-mode --project-path $WORKTREE/moorestech_client --action Stop` で必ず戻す。

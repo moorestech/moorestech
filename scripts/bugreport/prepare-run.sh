@@ -22,7 +22,7 @@ read_manifest() {
   python3 "$HERE/read-manifest.py" "$RUN/manifest.json"
 }
 
-REPORT_COMMIT=""; REPORT_BRANCH=""; MASTER_COMMIT=""; LATEST_TICK=""
+REPORT_COMMIT=""; REPORT_BRANCH=""; MASTER_COMMIT=""; LATEST_TICK=""; WORLD_DEFINITION=""
 SERVER_DATA_RELATIVE_TO=""; SERVER_DATA_RELATIVE_PATH=""; SERVER_DATA_PATH=""
 manifest_env="$(read_manifest)" || log "manifest の読み取りに失敗した。全項目を空として続行する"
 eval "$manifest_env"
@@ -125,21 +125,47 @@ if [ -d "$REPO/moorestech_client/Library" ] && [ ! -d "$WORKTREE/moorestech_clie
     || { log "APFS クローンに失敗したため通常コピーにする"; cp -R "$REPO/moorestech_client/Library" "$WORKTREE/moorestech_client/Library" || log "Library のコピーに失敗した。初回インポートに任せて続行する"; }
 fi
 
-# world/: 最新スナップショットを save.json にして固定ワールド起動できる形にする
-# world/: place the latest snapshot as save.json so a fixed-world boot can load it
-WORLD_DIR="$RUN/world"; mkdir -p "$WORLD_DIR"
-if [ -z "$LATEST_TICK" ]; then
+# 土台の判定は resolver（materialize-world.cs）1箇所に寄せる。ここで箱の world/ をそのまま使うのは「full の宣言があり map.json もある」箱だけで、生成ワールド・旧版・読めない宣言は world-materialized/ に save.json だけ置いて実体化を予約する（ADR 0064・D10）
+# The base is decided by the resolver (materialize-world.cs) alone; only a box declaring full with map.json present uses world/ as is, and generated, old or unreadable declarations get just save.json in world-materialized/ with materialization reserved (ADR 0064, D10)
+WORLD_DIR="$RUN/world"; WORLD_MATERIALIZE_PENDING=0; WORLD_NOT_CAPTURED=0
+if [ "$WORLD_DEFINITION" = "not-captured" ]; then
+  # world.json の無い world/ で起動すると EnsureWorld が落ち、run-scenario.sh は300秒空転する。save.json を置かず観察の関門で止める
+  # Booting a world/ without world.json fails in EnsureWorld and run-scenario.sh idles 300s; withhold save.json so the observation gate stops it
+  WORLD_NOT_CAPTURED=1; log "報告側が記録時のワールドを取り込めなかった箱（worldDefinition=not-captured）。固定ワールド起動はできないので save.json を置かず観察を飛ばさせる"
+elif [ "$WORLD_DEFINITION" != "full" ] || [ ! -f "$RUN/world/map.json" ]; then
+  WORLD_DIR="$RUN/world-materialized"; WORLD_MATERIALIZE_PENDING=1
+  case "$WORLD_DEFINITION" in
+    generated-world-json-only) log "生成ワールドの箱は地形を同梱しない。観察の前に materialize-world.cs で地形付きワールドを実体化する: $WORLD_DIR" ;;
+    *) log "worldDefinition='$WORLD_DEFINITION' の箱は自分では土台を決めず、観察の前に materialize-world.cs（resolver）の判定で実体化する: $WORLD_DIR" ;;
+  esac
+fi
+# 最新スナップショットを save.json にして固定ワールド起動できる形にする
+# Place the latest snapshot as save.json so a fixed-world boot can load it
+if [ "$WORLD_NOT_CAPTURED" = "1" ]; then
+  :
+elif [ -z "$LATEST_TICK" ]; then
   log "スナップショットの tick が無いため save.json を置けない。固定ワールド起動はできない"
 elif [ -f "$RUN/snapshots/tick_$LATEST_TICK.json" ]; then
+  mkdir -p "$WORLD_DIR"
   cp "$RUN/snapshots/tick_$LATEST_TICK.json" "$WORLD_DIR/save.json" || log "save.json のコピーに失敗した。固定ワールド起動はできない"
 else
   log "tick に対応するスナップショットファイルが無いため save.json を置けない: $RUN/snapshots/tick_$LATEST_TICK.json"
 fi
-# world.json/map.json はワールド定義。欠けていると固定ワールド起動が別の地形になるので必ず告げる
-# world.json/map.json are the world definition; without them a fixed-world boot lands on different terrain
-for world_file in world.json map.json; do
-  [ -f "$WORLD_DIR/$world_file" ] || log "ワールド定義が箱に無い: $world_file"
+# world.json/map.json はワールド定義。欠けていると固定ワールド起動が別の地形になるので必ず告げる（生成ワールドの箱は map.json を持たないのが正）
+# world.json/map.json are the world definition; without them a fixed-world boot lands on different terrain (a generated-world box rightly has no map.json)
+case "$WORLD_DEFINITION" in
+  not-captured) world_files="" ;;
+  generated-world-json-only) world_files="world.json" ;;
+  *) world_files="world.json map.json" ;;
+esac
+for world_file in $world_files; do
+  [ -f "$RUN/world/$world_file" ] || log "ワールド定義が箱に無い: $world_file"
 done
+# 観察の起動引数は箱の world.json から取る。実体化した土台も同じ worldId から引き当てるので seed・mapMode は変わらない
+# The observation boot arguments come from the box's world.json; the materialized base is located by the same worldId, so seed and mapMode match
+WORLD_MAP_MODE=""; WORLD_SEED=""; world_meta_env=""
+[ "$WORLD_NOT_CAPTURED" = "1" ] || world_meta_env="$(python3 "$HERE/read-world-meta.py" "$RUN/world/world.json")" || log "world.json の読み取りに失敗した。mapMode・seed を空として続行する"
+eval "$world_meta_env"
 
 # 値は %q で書く。manifest 由来の文字列がそのまま入ると run.env を source した側が壊れる
 # Values go through %q; a raw manifest string would otherwise break whoever sources run.env
@@ -148,6 +174,10 @@ done
   printf 'MASTER_DIR=%q\n' "$MASTER_DIR"
   printf 'SERVER_DATA_DIR=%q\n' "$SERVER_DATA_DIR"
   printf 'WORLD_DIR=%q\n' "$WORLD_DIR"
+  printf 'WORLD_MATERIALIZE_PENDING=%q\n' "$WORLD_MATERIALIZE_PENDING"
+  printf 'WORLD_NOT_CAPTURED=%q\n' "$WORLD_NOT_CAPTURED"
+  printf 'WORLD_MAP_MODE=%q\n' "$WORLD_MAP_MODE"
+  printf 'WORLD_SEED=%q\n' "$WORLD_SEED"
   printf 'REPORT_COMMIT=%q\n' "$REPORT_COMMIT"
   printf 'REPORT_BRANCH=%q\n' "$REPORT_BRANCH"
   printf 'LATEST_TICK=%q\n' "$LATEST_TICK"

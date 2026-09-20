@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Client.PlaytestReceiver.Http;
+using Client.PlaytestReceiver.Upload.Attempt;
 
 namespace Client.PlaytestReceiver.Upload
 {
@@ -16,18 +17,16 @@ namespace Client.PlaytestReceiver.Upload
         public const string UploadedMarker = "UPLOADED";
         public const string FailedMarker = "UPLOAD_FAILED";
         public const string AttemptsMarker = "UPLOAD_ATTEMPTS";
+        public const string SkippedMarker = "UPLOAD_SKIPPED";
+        public const string DeclaredMarker = "UPLOAD_DECLARED";
 
-        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker };
+        private static readonly string[] Markers = { ReadyMarker, UploadedMarker, FailedMarker, AttemptsMarker, SkippedMarker, DeclaredMarker };
 
-        // 受け口が予約するセグメント名。送信前にこの一覧で見送る。受け口側の一覧とは contract.json でテスト固定する
-        // Segment names the receiver reserves, skipped before sending; the receiver's list is pinned via contract.json in a test
-        internal static readonly string[] ReservedUploadSegments = { "READY", "ACKED", "complete" };
-
-        public static IReadOnlyList<PlaytestOutboxBox> ScanPending(string reportOutbox, string progressOutbox)
+        public static IReadOnlyList<PlaytestOutboxBox> ScanPending(PlaytestOutboxDirectories directories)
         {
             var boxes = new List<PlaytestOutboxBox>();
-            boxes.AddRange(ScanOne(reportOutbox, PlaytestUploadKind.Report));
-            boxes.AddRange(ScanOne(progressOutbox, PlaytestUploadKind.Progress));
+            boxes.AddRange(ScanOne(directories.ReportOutbox, PlaytestUploadKind.Report, directories.ReportFilePolicy));
+            boxes.AddRange(ScanOne(directories.ProgressOutbox, PlaytestUploadKind.Progress, directories.ProgressFilePolicy));
 
             // 箱のIDは yyyyMMdd_HHmmss_<hex> なので辞書順が時刻順になる。古い順に送る
             // Bundle ids are yyyyMMdd_HHmmss_<hex>, so lexicographic order is chronological; ship oldest first
@@ -35,7 +34,7 @@ namespace Client.PlaytestReceiver.Upload
 
             #region Internal
 
-            IEnumerable<PlaytestOutboxBox> ScanOne(string outbox, PlaytestUploadKind kind)
+            IEnumerable<PlaytestOutboxBox> ScanOne(string outbox, PlaytestUploadKind kind, IPlaytestBoxFilePolicy filePolicy)
             {
                 if (!Directory.Exists(outbox)) yield break;
 
@@ -44,7 +43,7 @@ namespace Client.PlaytestReceiver.Upload
                     if (!File.Exists(Path.Combine(directory, ReadyMarker))) continue;
                     if (File.Exists(Path.Combine(directory, UploadedMarker))) continue;
                     if (File.Exists(Path.Combine(directory, FailedMarker))) continue;
-                    yield return new PlaytestOutboxBox(directory, Path.GetFileName(directory), kind);
+                    yield return new PlaytestOutboxBox(directory, Path.GetFileName(directory), kind, filePolicy);
                 }
             }
 

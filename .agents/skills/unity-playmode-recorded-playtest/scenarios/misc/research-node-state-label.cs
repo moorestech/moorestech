@@ -1,3 +1,5 @@
+// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みの研究ノードGUID（837e9697/424be8c1/07d6226c）をCompleteResearchへ送るため、サーバー側でnull参照になり後続の検証へ進めない（ピン先マスタ c219a2f5・ADR 0038）。雛形にしないこと
+// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): sends removed research-node GUIDs (837e9697/424be8c1/07d6226c) to CompleteResearch, which null-references server-side and blocks the rest of the check (pinned master c219a2f5, ADR 0038). Do not use this as a template
 // 研究ノードカードの状態ラベル（完了済み/研究可能/研究不可）の実表示を撮影する
 // Capture the research node card state label (Completed/Available/Unavailable) live
 using System;

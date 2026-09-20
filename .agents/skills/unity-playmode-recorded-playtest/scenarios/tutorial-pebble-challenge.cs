@@ -1,3 +1,5 @@
+// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 待機するチャレンジ/チュートリアルのGUID（bd5262ed/7bafc2cf）がピン先マスタ c219a2f5 に存在せず、最初の待ちで必ずタイムアウトする（ADR 0038 の序盤圧縮でチェーンが再構成された）。雛形にしないこと
+// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): the challenge/tutorial GUIDs it waits on (bd5262ed/7bafc2cf) do not exist in the pinned master c219a2f5, so the first wait always times out (the chain was rebuilt by the ADR 0038 early-game compression). Do not use this as a template
 // シナリオ: v8チュートリアル序盤。開始状態(チャレンジ#1/開幕スキット/小石ピン)を観測し、
 //           小石3個入手でチャレンジ#1完了→#2解放までを実走検証する
 // Scenario: v8 tutorial opening. Observe start state (challenge#1 / opening skit / pebble pin),

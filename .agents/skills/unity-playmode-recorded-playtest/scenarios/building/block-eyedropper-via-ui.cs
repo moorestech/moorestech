@@ -108,12 +108,12 @@ return PlaytestRunner.Run("block-eyedropper-via-ui", options, async p =>
     p.Assert(CurrentBlockTarget()?.BlockId == chestBlockId, "項目1: 選択ブロックがチェストになる");
     await p.Screenshot("01-pick-in-gamescreen");
 
-    // 確認項目3: West向きチェストをピックし、PickedDirectionが元ブロックと一致することを検証する
-    // Check item 3: pick a West-facing chest and verify PickedDirection matches the source block
+    // 確認項目3: West向きチェストをピックし、選択直後の設置向きが元ブロックと一致することを検証する
+    // Check item 3: pick a West-facing chest and verify the placement direction right after selection matches the source block
     p.PlaceBlockDirect("木のチェスト", posC, BlockDirection.West);
     await PickBlockAtAsync(posC);
     p.Assert(CurrentBlockTarget()?.BlockId == chestBlockId, "項目3: 選択ブロックはチェストのまま");
-    p.Assert(CurrentBlockTarget()?.PickedDirection == BlockDirection.West, "項目3: 向きがWestで一致");
+    p.Assert(CurrentBlockTarget()?.ResolveDirectionOnSelection(BlockDirection.North, true) == BlockDirection.West, "項目3: 向きがWestで一致");
     await p.Screenshot("02-pick-west-direction");
 
     // 確認項目2: PlaceBlock中にベルトをピックし、画面遷移せずターゲットだけ持ち替わることを検証する

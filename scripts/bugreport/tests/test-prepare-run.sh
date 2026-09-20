@@ -48,6 +48,9 @@ MOORESTECH_REPO="$TMP/repo" MOORESTECH_WORKTREES="$TMP/wt" MOORESTECH_MASTER="$T
 [ "$LATEST_TICK" = "1200" ] || { echo "NG: LATEST_TICK=$LATEST_TICK"; exit 1; }
 [ "$(cat "$WORLD_DIR/save.json")" = '{"currentTick":1200}' ] || { echo "NG: save.json"; exit 1; }
 [ "$COMMIT_MISSING" = "0" ] && [ "$DIFF_APPLY_FAILED" = "0" ] || { echo "NG: フラグ"; exit 1; }
+# 宣言の無い旧版の箱は自分で full と決めつけず、resolver の実体化を予約する（F23）
+# An old undeclared box is never assumed full here; materialization through the resolver is reserved (F23)
+[ "$WORLD_DIR" = "$RUN/world-materialized" ] && [ "$WORLD_MATERIALIZE_PENDING" = "1" ] && [ -z "$WORLD_MAP_MODE" ] && [ "$WORLD_SEED" = "0" ] || { echo "NG: 宣言の無い箱の WORLD_DIR=$WORLD_DIR"; exit 1; }
 
 # 二重準備は既存 worktree を消さずに失敗する
 # A second preparation fails instead of destroying the existing worktree
@@ -150,5 +153,42 @@ grep -q "master.diff の適用に失敗" "$TMP/r7.log" || { echo "NG: master.dif
 grep -q "commits.bundle を取り込めなかった" "$TMP/r7.log" || { echo "NG: bundle 取り込み失敗の理由がログされていない"; exit 1; }
 grep -q "マスタの未追跡ファイルが箱に無い" "$TMP/r7.log" || { echo "NG: master-untracked 不在の理由がログされていない"; exit 1; }
 ( . "$RUN7/run.env"; [ "$MASTER_DIFF_APPLY_FAILED" = "1" ] ) || { echo "NG: r7 の MASTER_DIFF_APPLY_FAILED"; cat "$RUN7/run.env"; exit 1; }
+
+# D10: 生成ワールドの箱は world.json だけ。土台は world-materialized/ に分け、偽の欠損を出さずに実体化フラグを立てる
+# D10: a generated-world box holds only world.json; its base moves to world-materialized/ with a materialize flag and no false gap
+RUN8="$TMP/runs/r8"; mkdir -p "$RUN8/world" "$RUN8/snapshots"
+echo '{"mapMode":"generated","seed":196}' > "$RUN8/world/world.json"; echo '{"currentTick":900}' > "$RUN8/snapshots/tick_900.json"
+cat > "$RUN8/manifest.json" <<JSON
+{"repository":{"commit":"$REPORT_COMMIT_1B","branch":"feature/x","dirty":false},"worldDefinition":"generated-world-json-only","snapshotTicks":[900]}
+JSON
+env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r8 2>"$TMP/r8.log"
+( . "$RUN8/run.env"; [ "$WORLD_DIR" = "$RUN8/world-materialized" ] && [ "$WORLD_MATERIALIZE_PENDING" = "1" ] && [ "$(cat "$WORLD_DIR/save.json")" = '{"currentTick":900}' ] \
+  && [ "$WORLD_MAP_MODE" = "generated" ] && [ "$WORLD_SEED" = "196" ] ) \
+  || { echo "NG: r8 の WORLD_DIR/フラグ/save.json"; cat "$RUN8/run.env"; exit 1; }
+[ ! -e "$RUN8/world/map.json" ] && [ ! -e "$RUN8/world/save.json" ] || { echo "NG: 箱の world/ が書き換えられた"; exit 1; }
+grep -q "地形を同梱しない" "$TMP/r8.log" || { echo "NG: 実体化が要る旨がログされていない"; exit 1; }
+! grep -q "ワールド定義が箱に無い" "$TMP/r8.log" || { echo "NG: 生成ワールドの箱で偽の欠損がログされた"; exit 1; }
+
+# not-captured の箱は起動しても300秒空転するだけ。save.json を置かず観察の関門で止め、run.env に理由の印を出す
+# A not-captured box would only idle 300s once booted; withhold save.json so the observation gate stops it, and flag it in run.env
+RUN9="$TMP/runs/r9"; mkdir -p "$RUN9/snapshots"
+echo '{"currentTick":300}' > "$RUN9/snapshots/tick_300.json"
+cat > "$RUN9/manifest.json" <<JSON
+{"repository":{"commit":"$REPORT_COMMIT_1B","branch":"feature/x","dirty":false},"worldDefinition":"not-captured","snapshotTicks":[300]}
+JSON
+env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" r9 2>"$TMP/r9.log"
+( . "$RUN9/run.env"; [ "$WORLD_NOT_CAPTURED" = "1" ] && [ ! -e "$WORLD_DIR/save.json" ] ) || { echo "NG: r9 の WORLD_NOT_CAPTURED/save.json"; cat "$RUN9/run.env"; exit 1; }
+grep -q "worldDefinition=not-captured" "$TMP/r9.log" || { echo "NG: not-captured の理由がログされていない"; exit 1; }
+( . "$RUN8/run.env"; [ "$WORLD_NOT_CAPTURED" = "0" ] ) || { echo "NG: r8 に WORLD_NOT_CAPTURED が立った"; exit 1; }
+
+# 箱の world/ をそのまま使うのは full の宣言と map.json が揃った箱だけ。読めない宣言は resolver に委ねる（F23）
+# Only a box declaring full with map.json uses world/ as is; an unreadable declaration is left to the resolver (F23)
+for spec in "r10 full" "r11 Full"; do
+  set -- $spec; R="$TMP/runs/$1"; mkdir -p "$R/world"; echo '{"mapMode":"template","seed":0}' > "$R/world/world.json"; echo '{}' > "$R/world/map.json"
+  echo "{\"repository\":{\"commit\":\"$REPORT_COMMIT_1B\"},\"worldDefinition\":\"$2\",\"snapshotTicks\":[]}" > "$R/manifest.json"
+  env "${ENVS[@]}" bash "$HERE/../prepare-run.sh" "$1" 2>"$TMP/$1.log"
+done
+( . "$TMP/runs/r10/run.env"; [ "$WORLD_DIR" = "$TMP/runs/r10/world" ] && [ "$WORLD_MATERIALIZE_PENDING" = "0" ] && [ "$WORLD_MAP_MODE" = "template" ] ) || { echo "NG: r10 の full 箱"; exit 1; }
+( . "$TMP/runs/r11/run.env"; [ "$WORLD_MATERIALIZE_PENDING" = "1" ] ) && grep -q "自分では土台を決めず" "$TMP/r11.log" || { echo "NG: r11 の読めない宣言"; exit 1; }
 
 echo OK

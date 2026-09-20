@@ -29,6 +29,16 @@ namespace Client.Game.InGame.BugReport
     {
         public const long UntrackedBytesLimit = 20L * 1024 * 1024;
 
+        // 静止画は3秒に1枚。箱は受け口の件数上限（maxBundleFiles=128）に収める必要があり、静止画はその半分以下に抑える
+        // 見積もり: 録画は保持120秒＋最古区間と書き込み中区間の最大10秒×2で最長約140秒 → 静止画は最大47枚。
+        // 残り（manifest・world・snapshots〈30秒周期で約5世代＋即時確保16本、スナップショットとパケット記録で最大約44件〉・logs・video・screenshot・frames.tsv）を足しても約100件で、上限まで余裕が残る。
+        // 旧値の2fpsでは最大280枚になり、上限で manifest・snapshots が見送られていた（D1）
+        // One still every 3 seconds; the box must fit the receiver's file cap (maxBundleFiles=128), and stills are kept under half of it.
+        // Estimate: the recording keeps 120s plus up to 10s each for the oldest and the in-flight segment, about 140s at most, so at most 47 stills.
+        // Adding the rest (manifest, world, snapshots — ~5 periodic generations every 30s plus 16 immediate ones, up to ~44 files with packet logs — logs, video, screenshot, frames.tsv) gives about 100, leaving room under the cap.
+        // The old 2fps produced up to 280 stills, and the cap then skipped manifest and snapshots (D1)
+        public const int StillFrameIntervalSeconds = 3;
+
         private readonly IPlaytestSessionIdentity _identity;
 
         public BugReportBundleWriter(IPlaytestSessionIdentity identity)
@@ -99,7 +109,7 @@ namespace Client.Game.InGame.BugReport
                 // Writing 0 for an unmeasurable duration would bake "a zero-second video" as a real value, so it stays a missing item
                 if (VideoAssembler.TryDurationSeconds(ffmpegPath, output, out var videoSeconds)) manifest.VideoSeconds = videoSeconds;
                 else manifest.AddMissing("videoSeconds", "結合した動画の尺を読み取れなかった");
-                if (!VideoAssembler.ExtractFrames(ffmpegPath, output, Path.Combine(directory, BugReportBundleLayout.FramesDirectoryName), 2)) manifest.AddMissing(BugReportBundleLayout.FramesDirectoryName, "静止画の抜き出しに失敗した");
+                if (!VideoAssembler.ExtractFrames(ffmpegPath, output, Path.Combine(directory, BugReportBundleLayout.FramesDirectoryName), StillFrameIntervalSeconds)) manifest.AddMissing(BugReportBundleLayout.FramesDirectoryName, "静止画の抜き出しに失敗した");
             }
 
             void WriteFrameTicks()

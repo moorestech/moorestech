@@ -132,9 +132,7 @@ namespace Client.Game.Localization
                     // veinRestrictedPlacementは強調対象の指定のみで表示文言フィールドを持たない
                     // veinRestrictedPlacement only names the highlight targets and has no display-text field
                     VeinRestrictedPlacementTutorialParam => null,
-                    // chainBlockPlacePreviewはゴースト配置の指定のみで表示文言フィールドを持たない
-                    // chainBlockPlacePreview only defines the ghost layout and has no display-text field
-                    ChainBlockPlacePreviewTutorialParam => null,
+                    ChainBlockPlacePreviewTutorialParam chainPreview => chainPreview.Message,
                     // uiDragGuideはfrom/toのanchorIdのみで表示文言フィールドを持たない
                     // uiDragGuide has only from/to anchorIds and no display-text field
                     UiDragGuideTutorialParam => null,
