@@ -103,7 +103,14 @@ namespace Client.Game.InGame.BugReport.LastSession
                 var newest = uncleanSessions[0];
                 foreach (var session in uncleanSessions)
                     if (0 < ProcessSessionScope.CompareSessionNames(session.SessionName, newest.SessionName)) newest = session;
-                if (1 < uncleanSessions.Count) missing.Report("previousOrigin", $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {newest.ProcessId} {newest.SessionName} の出所を載せた");
+                if (1 < uncleanSessions.Count)
+                {
+                    missing.Report("previousOrigin", $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {newest.ProcessId} {newest.SessionName} の出所を載せた");
+
+                    // 録画は全セッションぶん移すのにスナップショットは最新1件の出所からしか移さない。見送った分を無音にしない（別ワールドの盤面が箱に無い理由）
+                    // The recordings of every session are moved while the snapshots come from the newest origin alone; the skipped ones are declared, never silent (why another world's board is absent from the box)
+                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {newest.ProcessId} {newest.SessionName} の出所のスナップショットだけを退避した（残り{uncleanSessions.Count - 1}件のワールドは見送り）");
+                }
                 return newest;
             }
 
