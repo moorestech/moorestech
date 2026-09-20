@@ -66,3 +66,78 @@ localization.csv を足したので、`moorestech/Check Schema Changes` を実�
 - 退避元の記録は前回セッションの**パス文字列**なので、ワールドを移動・削除した後の起動では欠損として表明される（黙って別ワールドを退避するよりは良いが、理由文は「移動できない」系になる）。
 - 出展モードを `DeclareUnattendedProcess` で無人宣言したため、出展機でタイトルへ戻って手動で遊ぶ場合もそのプロセスの間はゲートが閉じたままになる。出展機の運用としては意図どおりだが、挙動としては記録しておく。
 - PlayMode 遷移を伴う `PlaytestReportAndProgressTest` 以外の EditModeInPlayingTest 群、および WebUI 側の e2e は今回回していない（D3 の担当範囲と重なるため）。
+
+---
+
+# タイトル開始ゲート レビュー裁定の反映報告（run 2026-09-20-0250 / D2・D3）
+
+D-C1〜C4・C8 の担当（起点 `f3d099bdf`）に続く、Warning 由来の設計判断2件。裁定は design.md の推奨（案A）。
+
+## 前提の修繕: 生成済みLキーの鮮度（commit fd57c9c89）
+
+D-C8 で `Localization/localization.csv` へ足した `ui.playtest.gate.notStarted` が webui 側の生成物へ反映されておらず、
+`localizationKeysFreshness` テストが `f3d099bdf` の時点で赤だった。`npm run gen:i18n` で
+`moorestech_web/webui/src/shared/i18n/generated/localizationKeys.ts` を更新した（D2/D3 とは独立の修繕なので別コミット）。
+
+## D3: WebUI に残った開始ゲート調停一式（commit 1b95817bf）
+
+ゲートが出展モードの言語選択1枚になった後の姿へ畳んだ。C#・TS・mock の wire 契約を同時に変更している。
+
+- WebUI: `src/app/startGates/`（`useFrontmostStartGate`・`pickFrontmostStartGate` とそのテスト）を削除。
+  `App.tsx` が `useTopicSelector(Topics.eventLanguageGate, (d) => d?.waiting === true)` を直接購読し `visible` へ渡す。
+- wire 契約から `precedence` を外し、`EventLanguageGateDataSchema = z.object({ waiting: z.boolean() })` にした。
+  契約テストは `startGateContract.test.ts` → `eventLanguageGateContract.test.ts` へ改名し、「precedence 欠落を拒否する」主張を
+  「waiting だけを受理し欠損・型違いを拒否する」へ差し替えた。
+- C#: `Client.WebUiHost/Game/StartGates/`（`IStartGateWaitState`・`StartGateTopics`・`WaitingGateTopic`）を丸ごと削除し、
+  `Game/EventMode/EventLanguageGateTopic.cs` へ畳んだ（`TopicName` 定数を自分で持ち、payload は `{ waiting }` のみ）。
+  `EventLanguageGate` はインターフェース実装を落とし、`EventLanguageGateBinder` は `EventLanguageGateTopic.Register(hub, gate)` を呼ぶ。
+  この形は元々 plan `2026-08-28-event-mode-language-select-gate.md` が書いていた姿で、そこへ戻したことになる。
+- `GATE_ALREADY_ANSWERED_ERRORS`（1エントリの表）を `EVENT_LANGUAGE_ALREADY_SELECTED` 定数へ畳み、`GateAnswerActionType` を削除した。
+- `shared/ui/FullScreenGate`（外殻・`useGateAnswer`・style）を `features/eventLanguageGate/FullScreenGate/` へ移し、
+  `shared/ui` の公開barrelから外した。受益者が1つになったため。
+  - **design からの逸脱と理由**: `useGateAnswer` は action type の総称型を取る形だったが、抑止コード表が1本の定数になった時点で
+    総称が支える対象が消える。名前を実処理に合わせて `useLanguageSelectionAnswer` へ改名し、action type は
+    ファイル内の `AnswerActionType` 定数に固定した（design は改名まで指示していないが、`GATE_ALREADY_ANSWERED_ERRORS` 撤去の帰結）。
+- mock-host: `fixtures/startGateFixtures.ts`（`StartGatePrecedence`）を削除し、`topicControls`・`topicFixtures` の payload を `{ waiting }` だけにした。
+- `.agents/skills/webui-design/SKILL.md` §8.20 を新しい姿（購読は App.tsx 直・`precedence` 撤去・配置は features 配下）へ書き換えた。
+
+## D2: タイトル uGUI の文言配線（commit aed5b4426）
+
+静的ラベルを前例（`TextMeshProLocalize` + Inspector のキー）へ移した。目的は表示中の言語切替への追従と、全数検査テストの対象化。
+
+- `MainMenu.unity` の以下8点へ `TextMeshProLocalize` を付け、キーを入れた（**すべて `uloop execute-dynamic-code` 経由**。手編集はしていない）:
+  `PlaytestConsentPopup/Panel` の Title・Message・AgreeButton/Text、
+  `CrashReportPopup/Panel` の Title・Message・Description/Text Area/Placeholder・SendButton/Text・SkipButton/Text。
+- `PlaytestConsentPopup` から `titleText`/`bodyText`/`agreeButtonText` を、`CrashReportPopup` から
+  `titleText`/`bodyText`/`descriptionPlaceholderText`/`sendButtonText`/`skipButtonText` を削除し、`SetVisible` の流し込みも消した。
+  C# に残る文言は `CrashReportPopup.statusText`（応答の結末で変わる1行。`ui.playtest.gate.respondFailed` と空文字）だけ。
+- `SetVisible` は「出すときに前回の結末を消す」責務だけ残した（残ると押していない応答の失敗を読ませてしまうため。理由をコメントに書いた）。
+- `ExceptionSceneLocalizedTextTest` に「タイトルのプレイテスト確認の静的ラベルが翻訳キーへ配線されている」を追加し、
+  8点のパスとキーを固定した。既存の全数検査（キーがバニラ辞書に実在すること）も自動でこの8点を見るようになる。
+  - `Client.Tests` は `Client.MainMenu` アセンブリを参照していないため、ポップアップの型ではなくシーン内パスで指定している。
+
+## 実行したコマンドと結果
+
+```
+uloop compile --project-path ./moorestech_client                                   # ErrorCount 0（D3後・D2後の各回）
+uloop run-tests --filter-type regex --filter-value "Client\.Tests\.(EventMode|WebUi)\..*"        # 223 passed / 0 failed
+uloop run-tests --filter-type regex --filter-value "Client\.Tests\.Localization\..*"             # 124 passed / 0 failed
+uloop run-tests --filter-type regex \
+  --filter-value "Client\.Tests\.(Playtest|BugReport|PlaytestReceiver|PlaytestSmoke|Localization|EventMode|WebUi)\..*"  # 726 passed / 0 failed（最終）
+moorestech_web/webui: npx tsc --noEmit -p tsconfig.json                            # エラー0
+moorestech_web/webui: npx tsc -p e2e/tsconfig.json --noEmit                        # エラー0
+moorestech_web/webui: npm run lint                                                  # 指摘0
+moorestech_web/webui: npm run test                                                  # 127 files / 974 passed（gen:i18n 前は鮮度1件赤）
+```
+
+## 残した懸念
+
+- webui e2e は回していない。`eventLanguage`/`language-gate` を触る spec が存在せず（mock-host の topic fixture のみ）、
+  その fixture は型チェックが通っている。merge-base `b7b990251` 時点の既存32件との突き合わせは未実施。
+- `TextMeshProLocalize` は `Awake` で1回引き、以後 `OnLanguageChanged` で追従する。ポップアップは初期非アクティブなので
+  `Awake` は初回表示時に走る。`Description/Text Area/Placeholder` は入力があると `TMP_InputField` が非アクティブにするが、
+  購読は `AddTo(this)`（コンポーネント破棄まで）なので言語切替は取りこぼさない。実機での目視確認はしていない。
+- `TextMeshProLocalize` が引くのは `Localize.GetLegacy(string)` で、型付きキー（`LocalizationKeys.*`）の恩恵は無い。
+  キーの実在は `ExceptionSceneLocalizedTextTest` の全数検査が担保するが、これは MainMenu シーンの前例どおりで本 PR で変えていない。
+- 新テストはシーン内パス（`Canvas/CrashReportPopup/Panel/Title` 等）で指定しているため、GameObject 名の変更で落ちる。
+  落ちたときのメッセージにパスを出しているので気づけるが、名前変更時はテストも直す必要がある。
