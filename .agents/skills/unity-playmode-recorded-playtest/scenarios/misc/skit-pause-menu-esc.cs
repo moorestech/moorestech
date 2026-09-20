@@ -24,7 +24,7 @@ return PlaytestRunner.Run("skit-pause-menu-esc", options, async p =>
     var control = Object.FindFirstObjectByType<UIStateControl>();
     var dictionary = (UIStateDictionary)typeof(UIStateControl).GetField("_uiStateDictionary", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(control);
     var skitState = (SkitState)dictionary.GetState(UIStateEnum.Story);
-    bool MenuOpen() => skitState.SubStateName == nameof(NestedPauseSubStateEnum.PauseMenuScreen);
+    bool MenuOpen() => skitState.SubState == NestedPauseSubStateEnum.PauseMenuScreen;
 
     // 固定world起動はSkitPlaySettingsKeyで開幕スキットを抑止するため、開幕スキットを直接起動する
     // Fixed-world boot suppresses the opening skit via SkitPlaySettingsKey, so start the opening skit directly
