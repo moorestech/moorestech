@@ -1575,9 +1575,11 @@ namespace lilToon
 
         //------------------------------------------------------------------------------------------------------------------------------
         // Skip Variants
+        // URPがmulti_compileで宣言する影キーワードはskipに重ねない（Metalでdefineが二重になり落ちる）
+        // Do not skip shadow keywords URP declares via multi_compile: Metal defines them twice and fails
         private static string GetSkipVariantsShadows()
         {
-            return "#pragma skip_variants SHADOWS_SCREEN _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN _ADDITIONAL_LIGHT_SHADOWS SCREEN_SPACE_SHADOWS_ON SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH";
+            return "#pragma skip_variants SHADOWS_SCREEN SCREEN_SPACE_SHADOWS_ON SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH";
         }
 
         private static string GetSkipVariantsLightmaps()
