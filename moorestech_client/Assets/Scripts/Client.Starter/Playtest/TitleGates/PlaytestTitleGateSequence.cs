@@ -33,6 +33,13 @@ namespace Client.Starter.Playtest.TitleGates
             _uploadsEnabled = uploadsEnabled;
         }
 
+        // 答えを待つ確認が画面に出ている段階か。再照合の待ち文言をその上へ重ねないための問い合わせ（D-C1 の繋ぎ直し経路）
+        // Whether a confirmation awaiting an answer is on screen; asked so a re-check's waiting message is never stacked on top of it (the D-C1 re-attach path)
+        public bool IsShowingConfirmation()
+        {
+            return _step.Value == PlaytestTitleGateStep.Consent || _step.Value == PlaytestTitleGateStep.CrashReport;
+        }
+
         // 再訪のタイトルが組んだ送り手へ繋ぎ直す。破棄済みの画面が作った送り手を掴み続けると、答え終えた確認の送信が無音で死ぬ（D-C1）
         // Re-attaches the requester the revisited title composed; holding the destroyed screen's one would let an answered confirmation's upload die silently (D-C1)
         internal void SetUploadRequester(IPlaytestUploadRequester uploadRequester)

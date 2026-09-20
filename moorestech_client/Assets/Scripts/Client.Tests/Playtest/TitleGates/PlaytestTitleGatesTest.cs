@@ -148,6 +148,19 @@ namespace Client.Tests.Playtest.TitleGates
             Assert.AreEqual(0, firstTitleUploads.RequestCount, "破棄済みのタイトルが組んだ送り手へ送信を要求している");
         }
 
+        // 再訪の再照合は Checking を置き直す。答え待ちの確認が出ている間は待ち文言を重ねないよう、列が「確認を表示中」と答える必要がある
+        // A revisit's re-check re-installs Checking; while a confirmation awaits an answer the sequence must report that it is showing one so no waiting message is stacked on it
+        [Test]
+        public void 答え待ちの確認がある間だけ確認を表示中と答える()
+        {
+            var sequence = StartAttendedSequenceWithUnreadConsent();
+            Assert.IsTrue(sequence.IsShowingConfirmation(), "同意待ちなのに確認を表示していないと答えている");
+
+            sequence.AcknowledgeConsent();
+            Assert.AreEqual(PlaytestTitleGateStep.Passed, sequence.Step.Value);
+            Assert.IsFalse(sequence.IsShowingConfirmation(), "答え終えた後も確認を表示中と答えている");
+        }
+
         private static PlaytestTitleGateSequence StartAttendedSequenceWithUnreadConsent()
         {
             return StartAttendedSequenceWithUnreadConsent(new RecordingUploadRequester());

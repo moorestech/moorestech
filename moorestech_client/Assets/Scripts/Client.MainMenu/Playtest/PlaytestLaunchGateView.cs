@@ -44,6 +44,14 @@ namespace Client.MainMenu.Playtest
             if (result.Status == PlaytestGateStatus.NotEvaluated) return;
             if (result.IsBlocked)
             {
+                // 答え待ちの確認の上に再照合の待ち文言を重ねない。重ねると答えるべき確認が隠れ、テスターは開始も応答もできなくなる（D-C1 の繋ぎ直し経路）
+                // A re-check's waiting message is never stacked on a confirmation awaiting an answer; it would hide what must be answered and leave the tester unable to start or reply (the D-C1 re-attach path)
+                if (result.Status == PlaytestGateStatus.Checking && _boundSequence != null && _boundSequence.IsShowingConfirmation())
+                {
+                    Debug.Log($"[PlaytestLaunchGate] 確認（{_boundSequence.Step.Value}）に答える前なので再照合の待ち文言は出しません");
+                    return;
+                }
+
                 messagePopup.SetText(Localize.Get(result.ReasonKey));
                 return;
             }
