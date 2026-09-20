@@ -69,9 +69,7 @@ struct v2f
     LIL_VERTEX_OUTPUT_STEREO
 };
 
-// URPのfurパスはgeometry段を持たないので、depthonlyと同じくHDRPだけfur頂点経路を使う
-// URP fur passes have no geometry stage, so use the fur vertex path on HDRP only, as depthonly does
-#if defined(LIL_FUR) && defined(LIL_HDRP)
+#if defined(LIL_FUR)
     #define LIL_V2G_TEXCOORD0
     #define LIL_V2G_POSITION_WS
     #if defined(LIL_V2G_FORCE_NORMAL_WS) || defined(WRITE_NORMAL_BUFFER)
@@ -105,7 +103,7 @@ struct v2f
 
 //------------------------------------------------------------------------------------------------------------------------------
 // Shader
-#if defined(LIL_FUR) && defined(LIL_HDRP)
+#if defined(LIL_FUR)
     #include "lil_common_vert_fur.hlsl"
 #else
     #include "lil_common_vert.hlsl"

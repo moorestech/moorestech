@@ -775,7 +775,7 @@ Shader "Hidden/lilToonFur"
             #pragma fragmentoption ARB_precision_hint_fastest
             #define LIL_FUR
 
-            #pragma skip_variants SHADOWS_SCREEN SCREEN_SPACE_SHADOWS_ON SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+            #pragma skip_variants SHADOWS_SCREEN _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN _ADDITIONAL_LIGHT_SHADOWS SCREEN_SPACE_SHADOWS_ON SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
             
             
         ENDHLSL
@@ -1262,7 +1262,7 @@ Shader "Hidden/lilToonFur"
             #pragma fragmentoption ARB_precision_hint_fastest
             #define LIL_FUR
 
-            #pragma skip_variants SHADOWS_SCREEN SCREEN_SPACE_SHADOWS_ON SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
+            #pragma skip_variants SHADOWS_SCREEN _MAIN_LIGHT_SHADOWS _MAIN_LIGHT_SHADOWS_CASCADE _MAIN_LIGHT_SHADOWS_SCREEN _ADDITIONAL_LIGHT_SHADOWS SCREEN_SPACE_SHADOWS_ON SHADOW_LOW SHADOW_MEDIUM SHADOW_HIGH SHADOW_VERY_HIGH
             
             
         ENDHLSL
