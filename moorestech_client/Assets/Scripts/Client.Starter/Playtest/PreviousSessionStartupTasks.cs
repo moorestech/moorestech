@@ -35,6 +35,10 @@ namespace Client.Starter.Playtest
         internal static PreviousSessionArtifacts SalvageAtTitle()
         {
             if (_salvagedThisBoot) throw new InvalidOperationException("PreviousSessionStartupTasks: この起動の退避は済んでいます（タイトルの退避が2回目に到達しました）");
+
+            // 退避の前にこの起動のセッション名を確定する。退避は「今回以外」を畳むため（F05）
+            // This boot's session name is fixed before salvaging, because the salvage folds everything but this one (F05)
+            ProcessSessionScope.BeginNewSession();
             var defaultWorldDirectory = CliConvert.Parse<StartServerSettings>(Array.Empty<string>()).WorldDirectory;
             return Salvage(false, defaultWorldDirectory);
         }
@@ -43,6 +47,10 @@ namespace Client.Starter.Playtest
         // Called at the head of the pipeline; when the title already salvaged, it only installs the writer and recovers
         public static void RunAtStartup(bool collectsPlaytestRecords, bool isRemoteConnection, string worldDirectory)
         {
+            // 試行ごとに新しい段へ書き始める（F05）。同じプロセスでの再試行が、失敗した試行と同じセッション名へ印を上書きして証拠を消さないため
+            // Every attempt starts writing in a fresh level (F05), so a retry in the same process cannot overwrite the failed attempt's marks and erase its evidence
+            ProcessSessionScope.BeginNewSession();
+
             if (!_salvagedThisBoot)
             {
                 // Editorの迂回印は読んだ時点で消費される。ここで読まないと次の手動のタイトル起動へ持ち越され、確認が1回消える
@@ -65,11 +73,10 @@ namespace Client.Starter.Playtest
             ProgressSessionRecovery.RecoverLeftoverSessions(PreviousSessionSalvage.RequireArtifacts().ExitedCleanlyByProcessId);
         }
 
-        // この起動のセッション名を先に確定してから退避する。退避は「今回以外」を畳み、書き手は全員この名前の下へ書く（F05）
-        // This boot's session name is fixed before salvaging: the salvage folds everything else, and every writer writes under this name (F05)
+        // 呼ぶ前にこの起動のセッション名を確定しておくこと。退避は「今回以外」を畳み、書き手は全員この名前の下へ書く（F05）
+        // This boot's session name must be fixed before calling: the salvage folds everything else, and every writer writes under this name (F05)
         private static PreviousSessionArtifacts Salvage(bool isRemoteConnection, string worldDirectory)
         {
-            ProcessSessionScope.BeginNewSession();
             var artifacts = PreviousSessionSalvage.RunAtStartup(isRemoteConnection, WorldDataDirectory.FromWorldRoot(worldDirectory).SnapshotDirectory);
             _salvagedThisBoot = true;
             return artifacts;
