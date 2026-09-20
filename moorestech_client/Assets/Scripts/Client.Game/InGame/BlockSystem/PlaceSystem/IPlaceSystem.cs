@@ -9,6 +9,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
         // Whether this system is consuming wheel input this frame; consumers must not re-derive it from the target kind
         public bool OwnsWheelInput { get; }
 
+        // 設置高さオフセットを使う系か。使わない系へ移る時は共有の高さを地表へ戻す
+        // Whether this system uses the placement height offset; moving to one that does not returns the shared height to ground
+        public bool UsesPlacementHeight { get; }
+
         public void Enable();
 
         public void ManualUpdate(PlaceSystemUpdateContext context);

@@ -3,6 +3,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Empty
     public class EmptyPlaceSystem : IPlaceSystem
     {
         public bool OwnsWheelInput => false;
+        public bool UsesPlacementHeight => false;
 
         public void Enable() { }
         public void ManualUpdate(PlaceSystemUpdateContext context) { }
