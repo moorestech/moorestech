@@ -171,10 +171,13 @@ moorestech_web/webui: npm run test                                              
 `PlaytestTitleGateSequence.SetUploadRequester` で今回のタイトルが組んだ送り手へ繋ぎ直すようにした（`_uploadRequester` の readonly を外した）。
 テスト: `PlaytestTitleGatesTest.再訪のタイトルが組んだ送り手へ繋ぎ直す`。
 
-後半（「まだ開いている同意／異常終了確認ポップアップの上に待ち文言が再表示される」）は成立しない。再訪はシーンの再読込なので
-`PlaytestConsentPopup`/`CrashReportPopup` は新しいインスタンスで初期非表示であり、表示されるのは `Show` が `BeginTitleGates` を
-呼ぶ時点（＝`IsBlocked` でない確定後）。`Allowed` ではその直前に `messagePopup.gameObject.SetActive(false)` が走るため、
-待ち文言と確認ポップアップが同時に出る瞬間は無い。`Checking` の間は確認ポップアップ側がまだ出ていない。よって直していない。
+後半（「まだ開いている同意／異常終了確認ポップアップの上に待ち文言が再表示される」）は、当初この節に書いた棄却根拠
+（「`Allowed` の直前に `messagePopup.gameObject.SetActive(false)` が走るので同時に出る瞬間は無い」）が実コードと食い違っていた。
+再訪の `Start()` は `Subscribe(Show)` で前回の確定値を同期再送され、非 Blocked なら `BeginTitleGates` が確認ポップアップを出し、
+**その直後に** `EvaluateAsync` が同期で `SetCurrent(Checking)` を置く。`Show(Checking)` は `IsBlocked` 側なので `messagePopup.SetText`
+（＝`SetActive(true)`）へ入る。棄却の正しい理由は別で、**配布版は起動シーンが必ず MainMenu のため `_directBootPassReason` 経路が無く、
+`InitializeScenePipeline` の漏斗へ到達できた＝段階は既に `Passed`** であり、現状の呼び出し集合では「未応答の確認が残る再訪」と
+「`RequiresCheck == true`」が両立しない、という点にある（再レビュー2周目 W2 で訂正）。
 
 ### W4 `Checking` の間に検証済みSteamIDが無音で消える — 成立（ログで直した）
 
@@ -187,8 +190,8 @@ moorestech_web/webui: npm run test                                              
 
 `PreviousSessionStartupTasksTest` に `[TearDown]` を足し、`last-session/marks/pid_424242/` をディレクトリごと削除する。
 アサート失敗時も必ず走るため、開発機の次回起動が「前回異常終了」として退避・確認する事故は起きない。
-`ProcessSessionScope.BeginNewSession()` の共有 static 前進については、`CurrentSessionName` は「未開始なら1度だけ始める」契約で、
-依存する側（テスト・本番とも）が自分で `BeginNewSession` を呼んでから読む作りのため、復元は不要と判断した（名前を戻す口も無い）。
+`ProcessSessionScope.BeginNewSession()` の共有 static 前進については、当初「`CurrentSessionName` は未開始なら1度だけ始める契約なので
+復元不要」と棄却したが、これは getter の契約であって「既に開始済みの名前を進めてよい」の根拠にならない（再レビュー2周目 W4 で訂正・後述のとおり復元した）。
 
 ### W6 複数異常終了でスナップショットの見送りが無音 — 成立（直した）
 
@@ -204,4 +207,48 @@ moorestech_web/webui: npm run test                                              
 uloop compile --project-path ./moorestech_client                                                  # ErrorCount 0
 uloop run-tests --filter-type regex \
   --filter-value "Client\.Tests\.(Playtest|BugReport|PlaytestReceiver|PlaytestSmoke|Localization|EventMode)\..*"   # 535 passed / 0 failed
+```
+
+## 再レビュー2周目 Warning の処置（4件・全て直した）
+
+### W1 出展モード自動開始の待ちに期限が無い — 成立（直した）
+
+`EventModeAutoStart` の確定待ちを、前例 `StandalonePlaytestSmokeBootstrap.StartWhenPreconditionsHoldAsync` と同じ
+「期限付きの UniTask 待ち＋超過時に理由を残す」形へ寄せた。`LaunchVerdictTimeoutSeconds = 180f`（前例と同値）を置き、
+`DecideAutoStartWithinDeadline(verdict, secondsWaited, timeoutSeconds)` が期限超過の未確定を `Abandon` へ倒す（fail-closed）。
+超過時は `Debug.LogError` で「起動時照合が180秒以内に確定しなかったため自動開始しません status:… detail:…」を残し、自動開始しない。
+`Forget` には例外ハンドラを付け、待ちが例外で終わった場合も無音にしない。
+テスト: `EventModeAutoStartVerdictTest.期限内は確定を待ち期限を過ぎたら自動開始を断念する` / `確定済みの結論は期限の影響を受けない`。
+
+### W2 タイトル再訪で確認ポップアップの上に待ち文言が重なる — 成立（ガードを置いた・棄却根拠も訂正）
+
+`PlaytestLaunchGateView.Show` の `Checking`（`IsBlocked`）分岐に、答え待ちの確認が画面に出ている間は `messagePopup` を出さない
+ガードを置いた（抑止したことは `Debug.Log` に残す＝無音の縮退にしない）。判定は列が持つ
+`PlaytestTitleGateSequence.IsShowingConfirmation()`（段階が `Consent` か `CrashReport`）。恒久的な拒否（`NotAllowed` 等）は
+テスターが読めないと困るので抑止せず、抑止対象は再照合中の待ち文言だけに限っている。
+上記 W3 節の棄却根拠も、レビュアーが示した正しい理由（配布版は起動シーンが必ず MainMenu なので漏斗到達時点で段階は `Passed`）へ書き直した。
+テスト: `PlaytestTitleGatesTest.答え待ちの確認がある間だけ確認を表示中と答える`。
+
+### W3 見送りの欠損表明が誤報になる — 成立（直した）
+
+`UncleanSessionSalvage.SelectLatestUncleanSession` の「残り N 件のワールドは見送り」は、同じワールドで複数回落ちた場合
+（ローカルプレイの既定ワールドは固定なのでこれが多数派）に実際には見送りが起きていないのに誤報していた。
+判定を「最新以外のうち、`Origin.SnapshotSource.WorldSnapshotDirectory` が最新のそれと異なる件数」へ絞り、0 件なら表明しない。
+リモート接続のセッションは退避すべき盤面がそもそも無いので数えず、出所不明は「同じワールドだった」と言い切れないので取り残した側へ倒す。
+テスト: `UncleanSessionSalvageSelectionTest.同じワールドで複数回落ちていれば見送りは表明しない`（別ワールドの既存テストはそのまま通る）。
+
+### W4 テストが共有 static のセッション名を前へ進める — 成立（安全側へ倒した）
+
+`PreviousSessionStartupTasksTest` に `[SetUp]` を足し、`ProcessSessionScope._currentSessionName` をリフレクションで退避して
+`[TearDown]` で戻す（getter を通すと未開始の状態まで開始してしまうため、フィールドを直接読んで null は null のまま保存する）。
+テスト専用の口をプロダクションへ足さずに、先行書き手のセッション名へ干渉しない形にした。
+棄却根拠（「未開始なら1度だけ始める契約」）は getter の契約であって名前を進めてよい根拠ではない、というレビュアーの指摘どおりで、
+上の W5 節の記述も訂正済み。
+
+### 実行したコマンドと結果（再レビュー2周目対応分）
+
+```
+uloop compile --project-path ./moorestech_client                                                  # ErrorCount 0 / WarningCount 0
+uloop run-tests --project-path ./moorestech_client --filter-type regex \
+  --filter-value "Client\.Tests\.(Playtest|BugReport|PlaytestReceiver|PlaytestSmoke|Localization|EventMode)\..*"   # 539 passed / 0 failed
 ```
