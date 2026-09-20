@@ -53,14 +53,14 @@ namespace Client.Tests.Interact
             InputSystem.AddDevice<Keyboard>();
             var target = new StubTapInteractable(
                 _targetObject,
-                new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory, UIStateEnum.SubInventory),
-                new StubAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen));
+                new StubTapInteractAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory, UIStateEnum.SubInventory),
+                new StubTapInteractAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen));
             var driver = new TapInteractionDriver(_tooltip);
             var selector = new ScriptedInteractTargetSelector();
             selector.SetNext(target);
             InputSystem.Update();
 
-            Assert.IsFalse(driver.Step(target, selector.Scan()).IsHandled);
+            Assert.IsFalse(driver.Step(target, selector.Scan(), Array.Empty<InputKey>()).IsHandled);
             var lines = _tooltip.GetPresentation().Lines;
             Assert.AreEqual(2, lines.Count);
             Assert.AreEqual(LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory.Key, lines[0].Key.Key);
@@ -69,7 +69,7 @@ namespace Client.Tests.Interact
             // 押下キーのみ実行しヒントは畳む
             // Only the pressed key's action runs and the hints fold away
             InputManager.Playable.Ride.SetKeyDownForTest(true);
-            var result = driver.Step(target, selector.Scan());
+            var result = driver.Step(target, selector.Scan(), Array.Empty<InputKey>());
             InputManager.Playable.Ride.SetKeyDownForTest(false);
             Assert.IsTrue(result.IsHandled);
             Assert.AreEqual(UIStateEnum.TrainHUDScreen, result.TransitContext.NextStateEnum);
@@ -82,13 +82,13 @@ namespace Client.Tests.Interact
             InputSystem.AddDevice<Keyboard>();
             var target = new StubTapInteractable(
                 _targetObject,
-                new StubAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen));
+                new StubTapInteractAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen));
             var driver = new TapInteractionDriver(_tooltip);
             var selector = new ScriptedInteractTargetSelector();
             selector.SetNext(target);
             InputSystem.Update();
 
-            Assert.IsFalse(driver.Step(target, selector.Scan()).IsHandled);
+            Assert.IsFalse(driver.Step(target, selector.Scan(), Array.Empty<InputKey>()).IsHandled);
             Assert.IsTrue(_tooltip.GetPresentation().Visible);
 
             // 対象から離れたらヒントも消える
@@ -101,8 +101,8 @@ namespace Client.Tests.Interact
         public void 主対象が応じないキーは応じる別候補へ回る()
         {
             InputSystem.AddDevice<Keyboard>();
-            var primaryAction = new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenBlock, UIStateEnum.SubInventory);
-            var candidateAction = new StubAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen);
+            var primaryAction = new StubTapInteractAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenBlock, UIStateEnum.SubInventory);
+            var candidateAction = new StubTapInteractAction(InputManager.Playable.Ride, LocalizationKeys.Ui.Tooltip.InteractRideTrain, UIStateEnum.TrainHUDScreen);
             var target = new StubTapInteractable(_targetObject, primaryAction);
             var driver = new TapInteractionDriver(_tooltip);
             var selector = new ScriptedInteractTargetSelector();
@@ -111,7 +111,7 @@ namespace Client.Tests.Interact
             InputSystem.Update();
 
             InputManager.Playable.Ride.SetKeyDownForTest(true);
-            var result = driver.Step(target, selector.Scan());
+            var result = driver.Step(target, selector.Scan(), Array.Empty<InputKey>());
             InputManager.Playable.Ride.SetKeyDownForTest(false);
 
             Assert.AreEqual(UIStateEnum.TrainHUDScreen, result.TransitContext.NextStateEnum);
@@ -123,8 +123,8 @@ namespace Client.Tests.Interact
         public void 主対象が応じるキーは転送されず主対象が実行する()
         {
             InputSystem.AddDevice<Keyboard>();
-            var primaryAction = new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenBlock, UIStateEnum.SubInventory);
-            var candidateAction = new StubAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory, UIStateEnum.TrainHUDScreen);
+            var primaryAction = new StubTapInteractAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenBlock, UIStateEnum.SubInventory);
+            var candidateAction = new StubTapInteractAction(InputManager.Playable.Interact, LocalizationKeys.Ui.Tooltip.InteractOpenTrainInventory, UIStateEnum.TrainHUDScreen);
             var target = new StubTapInteractable(_targetObject, primaryAction);
             var driver = new TapInteractionDriver(_tooltip);
             var selector = new ScriptedInteractTargetSelector();
@@ -133,52 +133,12 @@ namespace Client.Tests.Interact
             InputSystem.Update();
 
             InputManager.Playable.Interact.SetKeyDownForTest(true);
-            var result = driver.Step(target, selector.Scan());
+            var result = driver.Step(target, selector.Scan(), Array.Empty<InputKey>());
             InputManager.Playable.Interact.SetKeyDownForTest(false);
 
             Assert.AreEqual(UIStateEnum.SubInventory, result.TransitContext.NextStateEnum);
             Assert.AreEqual(1, primaryAction.ExecutedCount);
             Assert.AreEqual(0, candidateAction.ExecutedCount);
-        }
-
-        private sealed class StubTapInteractable : ITapInteractable
-        {
-            public GameObject GameObject { get; }
-            public bool IsInteractAvailable => true;
-            public IReadOnlyList<ITapInteractAction> Actions { get; }
-
-            public StubTapInteractable(GameObject gameObject, params ITapInteractAction[] actions)
-            {
-                GameObject = gameObject;
-                Actions = actions;
-            }
-
-            public void SetHighlighted(bool highlighted)
-            {
-            }
-        }
-
-        private sealed class StubAction : ITapInteractAction
-        {
-            private readonly UIStateEnum _nextState;
-
-            public InputKey Key { get; }
-            public LocalizationKey HintKey { get; }
-            public IReadOnlyList<string> HintParams => Array.Empty<string>();
-            public int ExecutedCount { get; private set; }
-
-            public StubAction(InputKey key, LocalizationKey hintKey, UIStateEnum nextState)
-            {
-                Key = key;
-                HintKey = hintKey;
-                _nextState = nextState;
-            }
-
-            public InteractExecuteResult Execute()
-            {
-                ExecutedCount++;
-                return InteractExecuteResult.Transit(new UITransitContext(_nextState));
-            }
         }
     }
 }
