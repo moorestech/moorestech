@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading;
-using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
 using Client.PlaytestReceiver.Gate;
 using Client.PlaytestReceiver.Http;
@@ -43,8 +42,9 @@ namespace Client.Tests.PlaytestReceiver
             var path = GameSystemPaths.BuildInfoFilePath;
             Restore(path, _originalBuildInfo);
             Restore(path + ".meta", _originalBuildInfoMeta);
+            // 識別の解除は SetCurrent が担う。ここで直に戻すと、解除の窓口が1箇所という前提をテスト側から崩す（D-C4）
+            // Clearing the identity is SetCurrent's job; doing it directly here would break the single-window premise from the test side (D-C4)
             PlaytestLaunchGate.SetCurrent(PlaytestGateResult.NotEvaluated);
-            PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity());
 
             #region Internal
 

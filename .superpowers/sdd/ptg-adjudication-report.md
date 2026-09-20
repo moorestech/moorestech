@@ -141,3 +141,67 @@ moorestech_web/webui: npm run test                                              
   キーの実在は `ExceptionSceneLocalizedTextTest` の全数検査が担保するが、これは MainMenu シーンの前例どおりで本 PR で変えていない。
 - 新テストはシーン内パス（`Canvas/CrashReportPopup/Panel/Title` 等）で指定しているため、GameObject 名の変更で落ちる。
   落ちたときのメッセージにパスを出しているので気づけるが、名前変更時はテストも直す必要がある。
+
+## 再レビュー Warning の処置（post-check: applied-diff-correctness / refix w7-round1）
+
+対象は `moorestech_logs/harness/moores-code-review/runs/2026-09-20-0250/agents/refix-correctness-w7-r1.md` の Warning 6件。
+各件とも該当コードを読み直して成立可否を判定し、成立するものだけ直した。裁定（2026-09-20 推奨案A・D1/D2 確定）は覆していない。
+
+### W1 `PlaytestGateDecision` が空の検証済みSteamIDで Allowed を組みうる — 成立（直した）
+
+`PlaytestSession.EnsureTokenAsync` のキャッシュ短絡は `Outcome=Allowed・SteamId=null` を返す。現状 `Decide` の呼び手は
+`EvaluateAsync`（毎回新しい `PlaytestSession`）1本なので実害は無いが、不変条件がコメントだけで守られていないのは事実。
+`Decide` で `Allowed` かつ SteamID が空なら `Debug.LogError` を出して `Blocked(Unreachable)` へ倒す（MalformedResponse と同じ落ち先）。
+テスト: `PlaytestGateDecisionTest.検証済みSteamIDの無いAllowedは契約違反として止める`（null と空文字の両方）。
+
+### W2 出展モードの自動開始が漏斗1段目に間に合わず配布版の出展機が固着 — 成立（直した・配布経路の実害）
+
+`AutoStartIfEventMode` は `AfterSceneLoad` で、MainMenu の `Start`（＝`PlaytestLaunchGateView` の `EvaluateAsync`）より前に
+`LoadScene(GameInitializer)` を呼んでいた。配布版（build-info.json あり）＋Steam 稼働では照合が `NotEvaluated` のまま漏斗へ届き、
+`PlaytestTitleGates.TryPassStart` の1段目（`PlaytestLaunchGate`）が拒否して `LoadScene(MainMenu)` へ戻す。
+`RuntimeInitializeOnLoadMethod` は二度と発火しないため、出展機はタイトルで固着する（無人宣言は2段目にしか効かない）。
+直し: `PlaytestLaunchGate.Current` を1回だけ購読し、`NotEvaluated`/`Checking` の間は待ち、確定してから `StartLocalGame`。
+照合に止められた場合は自動開始せず `Debug.LogError` で理由を残す（fail-closed）。同意・異常終了確認を出さない D2 裁定はそのまま
+（`DeclareUnattendedProcess` は従来どおり最初に宣言する）。判定は純関数 `DecideAutoStart` に切り出した。
+テスト: `EventModeAutoStartVerdictTest`（待ち・開始・断念の3件）。
+
+### W3 再訪で新しい `_uploadRequester` が捨てられる — 前半は成立（直した）／後半（ポップアップ重なり）は不成立
+
+前半: 列はプロセス寿命、送り手はタイトル（合成ルート）寿命という寿命の食い違いは実在する。`TryBegin` が既存の列を返すときに
+`PlaytestTitleGateSequence.SetUploadRequester` で今回のタイトルが組んだ送り手へ繋ぎ直すようにした（`_uploadRequester` の readonly を外した）。
+テスト: `PlaytestTitleGatesTest.再訪のタイトルが組んだ送り手へ繋ぎ直す`。
+
+後半（「まだ開いている同意／異常終了確認ポップアップの上に待ち文言が再表示される」）は成立しない。再訪はシーンの再読込なので
+`PlaytestConsentPopup`/`CrashReportPopup` は新しいインスタンスで初期非表示であり、表示されるのは `Show` が `BeginTitleGates` を
+呼ぶ時点（＝`IsBlocked` でない確定後）。`Allowed` ではその直前に `messagePopup.gameObject.SetActive(false)` が走るため、
+待ち文言と確認ポップアップが同時に出る瞬間は無い。`Checking` の間は確認ポップアップ側がまだ出ていない。よって直していない。
+
+### W4 `Checking` の間に検証済みSteamIDが無音で消える — 成立（ログで直した）
+
+`SetCurrent` の解除を `DeveloperMode`/`Blocked` 確定時だけに絞ると「再評価中は前回の識別が読める」ことになり、D-C4 案A
+（Allowed 以外は必ず空へ戻す）と衝突する。よって解除は据え置き、載っていた識別を消すときだけ `status` 付きで `Debug.Log` を出す
+`ClearIdentity` を足した（無音の縮退を解消する側で対処）。あわせて Info-1 の
+`PlaytestLaunchGateCheckingTest` の直接 `PlaytestSessionIdentityProvider.SetCurrent` を削り、解除の窓口を `SetCurrent` 1箇所に揃えた。
+
+### W5 新テストが実ユーザーの印を書き TearDown が無い — 成立（直した）
+
+`PreviousSessionStartupTasksTest` に `[TearDown]` を足し、`last-session/marks/pid_424242/` をディレクトリごと削除する。
+アサート失敗時も必ず走るため、開発機の次回起動が「前回異常終了」として退避・確認する事故は起きない。
+`ProcessSessionScope.BeginNewSession()` の共有 static 前進については、`CurrentSessionName` は「未開始なら1度だけ始める」契約で、
+依存する側（テスト・本番とも）が自分で `BeginNewSession` を呼んでから読む作りのため、復元は不要と判断した（名前を戻す口も無い）。
+
+### W6 複数異常終了でスナップショットの見送りが無音 — 成立（直した）
+
+`MoveUncleanRecordings` は全異常終了セッションの録画を移すのに、`MoveWorldSnapshots` は最新1件の出所からしか移さない。
+`SelectLatestUncleanSession` の `1 < Count` 分岐に `missing.Report(snapshots, …)` を足し、
+「最新の pid/セッションの出所だけを退避した・残り N 件のワールドは見送り」を欠損として表明する。
+テスト: `UncleanSessionSalvageSelectionTest.複数の異常終了があればスナップショットを見送ったセッションも欠損として表明する`
+（テストファイル数の上限のため `Client.Tests/BugReport/LastSession/Salvage/` を新設した）。
+
+### 実行したコマンドと結果（再レビュー対応分）
+
+```
+uloop compile --project-path ./moorestech_client                                                  # ErrorCount 0
+uloop run-tests --filter-type regex \
+  --filter-value "Client\.Tests\.(Playtest|BugReport|PlaytestReceiver|PlaytestSmoke|Localization|EventMode)\..*"   # 535 passed / 0 failed
+```
