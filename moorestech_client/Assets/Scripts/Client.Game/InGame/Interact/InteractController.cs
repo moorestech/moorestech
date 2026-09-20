@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Client.Game.InGame.Interact.Selection;
 using Client.Game.InGame.Interact.Tap;
 using Client.Game.InGame.Mining;
@@ -5,6 +7,7 @@ using Client.Game.InGame.UI.Inventory.Equipment;
 using Client.Game.InGame.UI.ProgressBar;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Game.InGame.UI.UIState;
+using Client.Input;
 using UnityEngine;
 
 namespace Client.Game.InGame.Interact
@@ -19,6 +22,10 @@ namespace Client.Game.InGame.Interact
         private readonly IInteractTargetSelector _selector;
         private readonly TapInteractionDriver _tapDriver;
 
+        // 採掘FSMが長押しで使うキー（ADR 0065）
+        // The key the mining FSM holds (ADR 0065)
+        private readonly IReadOnlyList<InputKey> _miningHoldKeys;
+
         private IInteractable _highlighted;
         private GameObject _highlightedGameObject;
         private IMiningState _miningState;
@@ -29,6 +36,7 @@ namespace Client.Game.InGame.Interact
             _miningContext = new MiningControllerContext(localPlayerEquipment, progressBar, tooltip);
             _tapDriver = new TapInteractionDriver(tooltip);
             _miningState = new MiningIdleState(_miningContext);
+            _miningHoldKeys = new[] { InputManager.Playable.Interact };
         }
 
         public InteractExecuteResult ManualUpdate()
@@ -42,7 +50,10 @@ namespace Client.Game.InGame.Interact
             _miningContext.SetFocusTarget(target as IMiningTargetObject);
             _miningState = _miningState.GetNextUpdate(_miningContext, Time.deltaTime);
 
-            return _tapDriver.Step(target as ITapInteractable, selection);
+            // 採掘対象が主対象ならFは近傍へ回さない
+            // While a mining target is primary, F is never forwarded to nearby candidates
+            var primaryHoldKeys = target is IMiningTargetObject ? _miningHoldKeys : Array.Empty<InputKey>();
+            return _tapDriver.Step(target as ITapInteractable, selection, primaryHoldKeys);
         }
 
         public void Disable()
