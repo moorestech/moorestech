@@ -24,6 +24,10 @@ namespace Client.MainMenu.Playtest
 
         private IPlaytestUploadRequester _uploadRequester;
 
+        // 同じ列へ二度繋がないための表示側の覚え書き。段階そのものはゲートが持つので、ここでは繋いだ相手だけを覚える
+        // The view's own note so one sequence is never wired twice; the step belongs to the gates, so only the wired instance is remembered here
+        private PlaytestTitleGateSequence _boundSequence;
+
         private void Start()
         {
             // MainMenuにはDIコンテナが無いので、ここを合成ルートとして受け口と走行役を組む
@@ -52,15 +56,12 @@ namespace Client.MainMenu.Playtest
 
         private void BeginTitleGates(PlaytestGateResult result)
         {
-            // 初期化失敗でタイトルへ戻った再訪では始め直さない。退避と確認は起動1回に1度（ADR 0060 裁定5）
-            // A revisit after a failed initialization does not restart them; salvage and confirmations happen once per boot (ADR 0060 adjudication 5)
-            if (PlaytestTitleGates.Step.Value != PlaytestTitleGateStep.NotStarted)
-            {
-                Debug.Log($"[PlaytestTitleGates] already {PlaytestTitleGates.Step.Value}; the title gates are not restarted on this title visit");
-                return;
-            }
+            // 始動済みかの判定はゲートが1箇所で持つ。再訪でも同じ列が返るので、未応答の確認をこの画面へ繋ぎ直せる（D-C1）
+            // Whether they already started is decided in one place inside the gates; a revisit gets the same sequence back and re-wires its unanswered confirmation to this screen (D-C1)
+            if (!PlaytestTitleGates.TryBegin(result, _uploadRequester, out var sequence)) return;
+            if (_boundSequence == sequence) return;
 
-            var sequence = PlaytestTitleGates.Begin(result, _uploadRequester, destroyCancellationToken);
+            _boundSequence = sequence;
             consentPopup.Initialize(sequence);
             crashReportPopup.Initialize(sequence);
 

@@ -12,7 +12,7 @@ namespace Client.Starter.Playtest.TitleGates
     /// </summary>
     public sealed class PlaytestTitleGateSequence
     {
-        private readonly ReactiveProperty<PlaytestTitleGateStep> _step;
+        private readonly ReactiveProperty<PlaytestTitleGateStep> _step = new(PlaytestTitleGateStep.NotStarted);
         private readonly PlaytestConsentGate _consent;
         private readonly CrashReportGate _crashReport;
         private readonly IPlaytestUploadRequester _uploadRequester;
@@ -20,11 +20,10 @@ namespace Client.Starter.Playtest.TitleGates
 
         public IReadOnlyReactiveProperty<PlaytestTitleGateStep> Step => _step;
 
-        // 段階の器は持ち主（PlaytestTitleGates）から受け取る。開始経路はそちらの静的窓口から同じ値を読む
-        // The step holder comes from its owner (PlaytestTitleGates), whose static window the start paths read the same value from
-        internal PlaytestTitleGateSequence(ReactiveProperty<PlaytestTitleGateStep> step, PlaytestConsentGate consent, CrashReportGate crashReport, IPlaytestUploadRequester uploadRequester, bool uploadsEnabled)
+        // 段階はこの列が持つ。開始経路は PlaytestTitleGates が保持する現行の列から同じ値を読む（D-C1）
+        // The step belongs to this sequence; the start paths read the same value from the running sequence PlaytestTitleGates holds (D-C1)
+        internal PlaytestTitleGateSequence(PlaytestConsentGate consent, CrashReportGate crashReport, IPlaytestUploadRequester uploadRequester, bool uploadsEnabled)
         {
-            _step = step;
             _consent = consent;
             _crashReport = crashReport;
             _uploadRequester = uploadRequester;
@@ -33,6 +32,8 @@ namespace Client.Starter.Playtest.TitleGates
 
         // 待たない段階は同期で抜けるので、既読かつ正常終了なら呼んだその場で Passed になる
         // A step that does not wait completes synchronously, so a read consent with a clean exit reaches Passed within this call
+        // 打ち切りはプロセス終了のときだけ。タイトルの破棄では打ち切らず、再訪で同じ確認を答えられるようにする（D-C1）
+        // Cancellation happens only at process exit; the title's teardown does not cancel it, so a revisit can answer the same confirmation (D-C1)
         internal async UniTask RunAsync(CancellationToken ct)
         {
             // 未読なら了解まで止める。持ち越しの送信は了解の後ろ（既読ならこの直後）に置く（ADR 0065）

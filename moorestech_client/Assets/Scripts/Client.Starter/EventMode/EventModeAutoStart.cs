@@ -1,4 +1,5 @@
 using Client.Common;
+using Client.Game.InGame.BugReport.Playtest;
 using Client.Localization;
 using Game.Paths;
 using UnityEngine;
@@ -59,6 +60,10 @@ namespace Client.Starter.EventMode
         {
             var settings = EventExhibitionSettings.FromEnvironment();
             if (!ShouldRun(settings, SceneManager.GetActiveScene().name)) return;
+
+            // 出展モードの自動開始には確認へ答える人が居ない。タイトルのゲートを開かないまま開始すると漏斗で止まるので、無人起動として宣言する（D2 裁定）
+            // The exhibition auto start has nobody to answer the confirmations; starting with the title gates still open would be stopped by the funnel, so it is declared an unattended boot (D2 adjudication)
+            PlaytestStartGateBypass.DeclareUnattendedProcess("eventModeAutoStart");
 
             // 新規生成（PlayerPrefs維持）
             // Regenerate world; PlayerPrefs kept

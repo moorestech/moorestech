@@ -1,4 +1,3 @@
-using System;
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Playtest;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
@@ -10,10 +9,10 @@ namespace Client.Starter.Playtest
 {
     /// <summary>
     /// 前回セッションの印を読む処理（退避と印の消費）を起動1回に1度、1箇所で行う（ADR 0060 裁定5・ADR 0065）。
-    /// タイトルを通る起動はタイトルの照合通過で、タイトルを通らない直接起動（テスト・DSL・出展モードの自動開始）はパイプライン先頭で行う。
+    /// タイトルを通る起動（出展モードの自動開始を含む）はタイトルの照合通過で、タイトルを通らない直接起動（テスト・DSL・Editorの直接再生）はパイプライン先頭で行う。
     /// 正常終了の書き手と進行記録の回収は、識別（検証済みSteamID）が確定した後のパイプライン先頭に置く。
     /// Reads the previous session's marks (salvage and consumption) once per boot at a single spot (ADR 0060 adjudication 5, ADR 0065).
-    /// A boot through the title does it when the launch check passes there; a direct boot that skips the title (tests, the DSL, event-mode auto start) does it at the head of the pipeline.
+    /// A boot through the title (the event-mode auto start included) does it when the launch check passes there; a direct boot that skips the title (tests, the DSL, an Editor direct play) does it at the head of the pipeline.
     /// The clean-exit writer and the progress recovery sit at the head of the pipeline, after the identity (verified SteamID) is settled.
     /// </summary>
     public static class PreviousSessionStartupTasks
@@ -32,7 +31,13 @@ namespace Client.Starter.Playtest
         // Called once when the launch check passes at the title; the previous session's own mark decides the salvage source, so no setting of this boot is handed over (D-C3)
         internal static PreviousSessionArtifacts SalvageAtTitle()
         {
-            if (_salvagedThisBoot) throw new InvalidOperationException("PreviousSessionStartupTasks: この起動の退避は済んでいます（タイトルの退避が2回目に到達しました）");
+            // 退避はこの起動に1回（ADR 0060 裁定5）。直接起動の後にタイトルへ戻った再訪では、退避済みの資料をそのまま渡して未応答の確認を出し直す（D-C1）
+            // The salvage happens once per boot (ADR 0060 adjudication 5); a revisit to the title after a direct boot hands the already-salvaged evidence over and asks the unanswered confirmation again (D-C1)
+            if (_salvagedThisBoot)
+            {
+                Debug.Log("PreviousSessionStartupTasks: この起動の退避は済んでいるため、退避済みの資料をそのままタイトルの確認へ渡します");
+                return PreviousSessionSalvage.RequireArtifacts();
+            }
 
             // 退避の前にこの起動のセッション名を確定する。退避は「今回以外」を畳むため（F05）
             // This boot's session name is fixed before salvaging, because the salvage folds everything but this one (F05)

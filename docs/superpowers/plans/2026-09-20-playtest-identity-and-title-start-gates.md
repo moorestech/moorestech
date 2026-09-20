@@ -2,7 +2,7 @@
 
 > **For the controller session (実装を担うsubagentはこのブロックを無視してよい):** このplanの実行は subagent-driven-development スキルが担う。実行モード（規模ゲート未満の単一subagent実装モード／閾値超のタスクごと派遣）は同スキルの規模ゲートに従って決める。ステップはチェックボックス（`- [ ]`）記法で書く。
 >
-> **D1・D2 は暫定 A で進める:** 本文「## 機能の死活表」の行 D1・D2 は要ユーザー裁定だが、ユーザーが 2026-09-20 に「私は寝るから進められるだけすすめて。あとから確認する。意思決定は最後にまとめてやる」と指示したため、推奨案 A（消えてよい）を暫定として plan どおり進める。最終裁定で B/C になった場合は該当タスクを追補する。実装中に質問（AskUserQuestion）はしない。判断が要る点はすべて進捗台帳の「最終裁定待ち」に列挙する。
+> **D1・D2 は案 A で確定済み:** 本文「## 機能の死活表」の行 D1・D2 は、2026-09-20 のユーザー裁定で推奨案 A（Editor の直接再生と出展モードの自動開始では同意・異常終了確認を出さない。未応答の印は残り、次にタイトルを通る起動で聞き直す）に確定した（`.decisions/2026-09-20-タイトル開始ゲートのレビュー保留7件は全て推奨案Aで直す.md`）。plan はこの前提のまま進める。
 
 **Goal:** 起動時照合で受け口が返した検証済みSteamIDを報告・進行記録・異常終了箱の識別に入れ、参加同意と前回異常終了の確認を Play locally 後の WebUI からタイトル（uGUI）へ移して WebUI 側のゲート一式を撤去する。
 
@@ -430,7 +430,7 @@ git commit -m "feat(playtest): 起動時照合で受け口の検証済みSteamID
 
 ## Task 2: 前回セッションの退避をタイトル／直接起動の1回に束ね、記録の判定から WebUiHost を外す（Client.Starter）
 
-**前提:** 「## 機能の死活表」の D1・D2 の裁定が推奨案（A）であること。別案なら本タスクの `RunAtStartup` の直接起動分岐を裁定に合わせて書き直す。
+**前提:** 「## 機能の死活表」の D1・D2 は案 A で裁定済み（2026-09-20）。なお D-C8 の反映で、直接起動の明示通過は `RunAtStartup` の分岐ではなく `PlaytestTitleGates` の起動シーン判定が行う。
 
 **Files:**
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/Playtest/PreviousSessionStartupTasks.cs`
@@ -2280,10 +2280,10 @@ git commit -m "docs(plan): 検証機smokeの結果を記録する"
 | L8 | テスト・DSL の無人迂回 | 生きる | 直接起動はタイトルを通らず、`RunAtStartup` が迂回印を消費してログする |
 | L9 | リモート接続（Connect server） | 変わる（生きる） | 接続前にタイトルの同意・確認へ答える必要が出る（従来はリモートでは出なかった）。記録はリモートでは集めないまま。注目点として PR に書く |
 | L10 | WebUiHost が起動に失敗したときの記録収集 | 変わる | 従来は集めなかった。ADR 0065 agent前提どおり集める（同意はタイトルで済むため） |
-| **D1** | **Editor で GameInitializer シーンを直接再生したとき（開発者の対話起動）の同意・前回異常終了の確認** | **消える** | 直接起動はタイトルを通らないため出ない。退避と未応答の印は残り、次にタイトルを通る起動で聞く。**要ユーザー裁定** |
-| **D2** | **出展モードの自動開始（`EventModeAutoStart`）での同意・前回異常終了の確認** | **消える** | 自動開始は `AfterSceneLoad` で `LocalGameLauncher.StartLocalGame()` を直接呼び、タイトルのゲートを待たない（従来は言語選択の後に WebUI で出ていた）。**要ユーザー裁定** |
+| **D1** | **Editor で GameInitializer シーンを直接再生したとき（開発者の対話起動）の同意・前回異常終了の確認** | **消える** | 直接起動はタイトルを通らないため出ない。退避と未応答の印は残り、次にタイトルを通る起動で聞く。**2026-09-20 ユーザー裁定で案 A に確定** |
+| **D2** | **出展モードの自動開始（`EventModeAutoStart`）での同意・前回異常終了の確認** | **消える** | 自動開始は `AfterSceneLoad` で `PlaytestStartGateBypass.DeclareUnattendedProcess` を宣言してから `LocalGameLauncher.StartLocalGame()` を呼ぶので、タイトルのゲートは閉じたまま即通過する。**2026-09-20 ユーザー裁定で案 A に確定** |
 
-**D1・D2 の裁定の選択肢（実装開始前に AskUserQuestion で聞く）:**
+**D1・D2 の裁定の選択肢（2026-09-20 に A で裁定済み。以下は棄却案の記録）:**
 - A（推奨）: 消えてよい。D1 は開発者の Editor だけの経路、D2 は出展会場の開発者ビルドで、どちらもプレイテスト配布の対象外。未応答の印は `PendingCrashReportMark` で残り、次にタイトルを通る起動で聞き直せる。plan はこの前提で書いてある。
 - B: D2 だけ残す。`EventModeAutoStart.AutoStartIfEventMode` を「`PlaytestTitleGates.Step` が `Passed` になってから `LocalGameLauncher.StartLocalGame()`」に変え、タイトルのポップアップに答えてから自動開始する（出展会場でテスターでない来場者に同意画面が出る点を受け入れる）。Task 4 に 1 ステップと `EventModeLaunchLanguageTest` 系の追加テストが要る。
 - C: D1 も残す。直接起動でもタイトル相当のゲートを出す仕組みが要るが、表示の場（uGUI）が GameInitializer / MainGame に無く、WebUI へ戻すのは ADR 0065 の裁定と矛盾する。事実上 ADR の再裁定になる。
@@ -2297,7 +2297,7 @@ git commit -m "docs(plan): 検証機smokeの結果を記録する"
 | 開始の拒否（`TryPassStart` false） | 段階が `Passed` になる | 照合が Blocked → タイトルのゲートは始まらず、照合の拒否表示が出る（従来どおり）。`NotStarted` のまま押された → 照合結果の購読で同期に始まるので、次の押下で通る | `PlaytestTitleGatesTest` の全段階 |
 | 持ち越し送信の見送り | 了解（対話）／既読（無人） | 無人起動で未読 → この起動では送らずログ。次の対話起動で了解すれば送る | 無人で未読なら送らない |
 | 直接起動で確認を出さない（D1・D2） | 次にタイトルを通る起動 | 印の寿命は `last-session` の `pending_crash_report`（ディスク。プロセス再起動を越える）。退避物も `last-session` に1世代残る | `PlaytestReportAndProgressTest`（直接起動の一巡） |
-| タイトルの待ちの打ち切り | 打ち切り後は通過しない | タイトル破棄（シーン遷移・終了）で打ち切られる。遷移は `Passed` 後にしか起きないので、実際に打ち切られるのはアプリ終了だけ。未応答の印は残る | 打ち切られた後の了解では通過しない |
+| タイトルの待ちの打ち切り | 打ち切り後は通過しない | 待ちの寿命は `Application.exitCancellationToken`（D-C1）。タイトルを破棄しても打ち切られず、初期化失敗で戻った再訪では同じ列に答え直せる。実際に打ち切られるのはアプリ終了だけで、未応答の印は残る | 打ち切られた後の了解では通過しない |
 
 ## 配置と前例
 

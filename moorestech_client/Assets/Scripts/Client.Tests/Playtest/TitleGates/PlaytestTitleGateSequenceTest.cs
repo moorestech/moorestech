@@ -6,7 +6,6 @@ using Client.Tests.BugReport;
 using Client.Tests.PlaytestReceiver;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
-using UniRx;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -165,8 +164,8 @@ namespace Client.Tests.Playtest.TitleGates
             Assert.AreEqual(0, uploads.RequestCount);
         }
 
-        // 打ち切られた待ち（タイトルの破棄）の後に届いた了解では通過しない
-        // An acknowledgement arriving after the wait was cancelled (the title was destroyed) does not pass the gates
+        // 打ち切りはプロセス終了のときだけ起きる（本番は Application.exitCancellationToken）。打ち切られた後の了解では通過しない
+        // Cancellation happens only at process exit in production (Application.exitCancellationToken); an acknowledgement arriving after it does not pass the gates
         [Test]
         public void 打ち切られた後の了解では通過しない()
         {
@@ -184,7 +183,7 @@ namespace Client.Tests.Playtest.TitleGates
 
         private static PlaytestTitleGateSequence Sequence(bool consentWaiting, CrashReportGate crashReport, RecordingUploadRequester uploads, bool uploadsEnabled)
         {
-            return new PlaytestTitleGateSequence(new ReactiveProperty<PlaytestTitleGateStep>(PlaytestTitleGateStep.NotStarted), new PlaytestConsentGate(consentWaiting), crashReport, uploads, uploadsEnabled);
+            return new PlaytestTitleGateSequence(new PlaytestConsentGate(consentWaiting), crashReport, uploads, uploadsEnabled);
         }
     }
 }

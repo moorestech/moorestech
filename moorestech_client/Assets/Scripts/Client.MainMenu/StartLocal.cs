@@ -1,5 +1,4 @@
 using Client.MainMenu.PopUp;
-using Client.PlaytestReceiver.Gate;
 using Client.Starter;
 using Client.Starter.Playtest.TitleGates;
 using UnityEngine;
@@ -19,17 +18,15 @@ namespace Client.MainMenu
 
         private void StartLocalGame()
         {
-            // 開始可否と拒否理由の文言はゲートが決める。ここは表示するだけ
-            // The gate decides whether to start and resolves the refusal text; this only displays it
-            if (!PlaytestLaunchGate.TryPassStart(nameof(StartLocal), out var denyReasonText))
+            // 照合と同意・前回異常終了の確認は1回の問い合わせで通す。可否も拒否理由の文言もゲートが決め、ここは表示するだけ（ADR 0065）
+            // The launch check and the consent / previous-crash confirmation pass in one call; the gate decides both the verdict and the refusal text, and this only displays it (ADR 0065)
+            if (!PlaytestTitleGates.TryPassStart(nameof(StartLocal), out var denyReasonText))
             {
-                messagePopup.SetText(denyReasonText);
+                // 文言が空なのは、答えるべき確認が既に画面に出ている場合。理由はゲートがログへ出している
+                // An empty text means the confirmation to answer is already on screen; the gate logged the reason
+                if (!string.IsNullOrEmpty(denyReasonText)) messagePopup.SetText(denyReasonText);
                 return;
             }
-
-            // 同意と前回異常終了の確認に答えるまで開始しない。拒否理由はゲートがログへ出す（ADR 0065）
-            // Nothing starts until the consent and previous-crash confirmation are answered; the gate logs the refusal (ADR 0065)
-            if (!PlaytestTitleGates.TryPassStart(nameof(StartLocal))) return;
 
             LocalGameLauncher.StartLocalGame();
         }
