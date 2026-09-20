@@ -1,7 +1,10 @@
+using System.Text.RegularExpressions;
 using Client.PlaytestReceiver;
 using Client.PlaytestReceiver.Gate;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Client.Tests.PlaytestReceiver
 {
@@ -77,6 +80,21 @@ namespace Client.Tests.PlaytestReceiver
             {
                 Assert.IsTrue(provisional.IsBlocked, provisional.Status.ToString());
                 Assert.AreEqual(LocalizationKeys.Ui.Playtest.Checking.Key, provisional.ReasonKey.Key);
+            }
+        }
+
+        // トークンのキャッシュ短絡など、SteamIDを載せないAllowedが将来Decideへ届いても、識別が空のまま通らないことを押さえる
+        // Pins that a future Allowed without a SteamID (e.g. the token cache short-circuit) never passes with an empty identity
+        [Test]
+        public void 検証済みSteamIDの無いAllowedは契約違反として止める()
+        {
+            foreach (var emptySteamId in new[] { null, "" })
+            {
+                LogAssert.Expect(LogType.Error, new Regex("allowed without a verified steamId"));
+                var result = PlaytestGateDecision.Decide(true, true, Authenticated(PlaytestSessionOutcome.Allowed, "", emptySteamId), null);
+                Assert.IsTrue(result.IsBlocked);
+                Assert.AreEqual(PlaytestGateStatus.Unreachable, result.Status);
+                Assert.IsFalse(result.TryGetVerifiedSteamId(out _));
             }
         }
 
