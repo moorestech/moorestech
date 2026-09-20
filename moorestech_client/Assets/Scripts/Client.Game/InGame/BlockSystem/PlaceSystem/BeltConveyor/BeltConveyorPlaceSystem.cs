@@ -49,6 +49,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState);
         }
 
+        // Q/Eで動かす設置高さを読む系
+        // A system that reads the placement height moved by Q/E
+        public override bool UsesPlacementHeight => true;
+
         public override void Enable()
         {
             _dragState.ClearDrag();
@@ -70,9 +74,9 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Keep preview in debug mode
             if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) _previewBlockController.SetActive(false);
 
-            // 連続設置状態と高さをリセット
-            // Reset the continuous placement state and the height
-            _dragState.ClearDragAndHeight();
+            // 連続設置状態をリセット。高さは持ち替えまで保つ
+            // Reset the continuous placement state; the height stays until a block switch
+            _dragState.ClearDrag();
             _currentPlaceInfos.Clear();
         }
 
