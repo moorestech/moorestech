@@ -25,27 +25,32 @@ namespace Client.PlaytestReceiver.Gate
 
         private readonly PlaytestSession _allowedSession;
 
-        private PlaytestGateResult(PlaytestGateStatus status, string detail, PlaytestSession allowedSession)
+        // 検証済みSteamIDはAllowedの結末だけが持つ。非Allowedへ移った結果からは読めないので、識別が前の値のまま残らない（ADR 0065）
+        // Only an Allowed verdict carries the verified SteamID, so a non-Allowed verdict cannot be read for one and no stale identity survives (ADR 0065)
+        private readonly string _verifiedSteamId;
+
+        private PlaytestGateResult(PlaytestGateStatus status, string detail, PlaytestSession allowedSession, string verifiedSteamId)
         {
             Status = status;
             Detail = detail ?? "";
             _allowedSession = allowedSession;
+            _verifiedSteamId = verifiedSteamId;
         }
 
         // 未評価は止める側に倒す。判定前に開始経路が素通しできる窓を作らない
         // Not-yet-evaluated counts as blocked so no start path can slip through before the verdict
-        public static PlaytestGateResult NotEvaluated => new(PlaytestGateStatus.NotEvaluated, "", null);
-        public static PlaytestGateResult DeveloperMode => new(PlaytestGateStatus.DeveloperMode, "", null);
-        public static PlaytestGateResult Checking => new(PlaytestGateStatus.Checking, "", null);
+        public static PlaytestGateResult NotEvaluated => new(PlaytestGateStatus.NotEvaluated, "", null, null);
+        public static PlaytestGateResult DeveloperMode => new(PlaytestGateStatus.DeveloperMode, "", null, null);
+        public static PlaytestGateResult Checking => new(PlaytestGateStatus.Checking, "", null, null);
 
-        public static PlaytestGateResult Allowed(PlaytestSession session)
+        public static PlaytestGateResult Allowed(PlaytestSession session, string verifiedSteamId)
         {
-            return new PlaytestGateResult(PlaytestGateStatus.Allowed, "", session);
+            return new PlaytestGateResult(PlaytestGateStatus.Allowed, "", session, verifiedSteamId);
         }
 
         public static PlaytestGateResult Blocked(PlaytestGateStatus status, string detail)
         {
-            return new PlaytestGateResult(status, detail, null);
+            return new PlaytestGateResult(status, detail, null, null);
         }
 
         public bool IsBlocked => Status != PlaytestGateStatus.DeveloperMode && Status != PlaytestGateStatus.Allowed;
@@ -53,6 +58,12 @@ namespace Client.PlaytestReceiver.Gate
         public bool TryGetAllowedSession(out PlaytestSession session)
         {
             session = _allowedSession;
+            return Status == PlaytestGateStatus.Allowed;
+        }
+
+        public bool TryGetVerifiedSteamId(out string verifiedSteamId)
+        {
+            verifiedSteamId = _verifiedSteamId;
             return Status == PlaytestGateStatus.Allowed;
         }
 

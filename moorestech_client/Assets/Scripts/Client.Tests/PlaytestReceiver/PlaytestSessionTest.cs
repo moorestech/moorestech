@@ -22,7 +22,7 @@ namespace Client.Tests.PlaytestReceiver
             Assert.AreEqual(PlaytestSessionOutcome.Allowed, result.Outcome);
             Assert.AreEqual("tok-1", session.GetValidTokenAsync(IssuedAt, CancellationToken.None).GetAwaiter().GetResult());
             Assert.AreEqual(1, api.SessionCallCount);
-            Assert.AreEqual("7656", session.VerifiedSteamId, "受け口が検証したSteamIDを保持していない");
+            Assert.AreEqual("7656", result.SteamId, "受け口が検証したSteamIDを結末に載せていない");
         }
 
         [Test]

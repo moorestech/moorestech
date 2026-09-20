@@ -22,8 +22,8 @@ namespace Client.Tests.PlaytestReceiver
         private byte[] _originalBuildInfo;
         private byte[] _originalBuildInfoMeta;
 
-        // 実物の build-info.json を置き換えるので元の中身を退避し、識別も既定へ戻してから始める
-        // The real build-info.json is replaced, so its content is kept aside and the identity is reset before each test
+        // 実物の build-info.json を置き換えるので元の中身を退避する。識別は照合結果を置き直すだけで戻る（手で空へ戻さないのが本テストの主張）
+        // The real build-info.json is replaced, so its content is kept aside; the identity returns just by placing a verdict (never resetting it by hand is this test's point)
         [SetUp]
         public void SetUp()
         {
@@ -31,7 +31,7 @@ namespace Client.Tests.PlaytestReceiver
             var path = GameSystemPaths.BuildInfoFilePath;
             _originalBuildInfo = File.Exists(path) ? File.ReadAllBytes(path) : null;
             _originalBuildInfoMeta = File.Exists(path + ".meta") ? File.ReadAllBytes(path + ".meta") : null;
-            PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity());
+            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.NotEvaluated);
         }
 
         [TearDown]
@@ -40,7 +40,6 @@ namespace Client.Tests.PlaytestReceiver
             Restore(GameSystemPaths.BuildInfoFilePath, _originalBuildInfo);
             Restore(GameSystemPaths.BuildInfoFilePath + ".meta", _originalBuildInfoMeta);
             PlaytestLaunchGate.SetCurrent(PlaytestGateResult.NotEvaluated);
-            PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity());
         }
 
         [Test]
@@ -84,6 +83,35 @@ namespace Client.Tests.PlaytestReceiver
 
             Assert.AreEqual(PlaytestGateStatus.DeveloperMode, PlaytestLaunchGate.Current.Value.Status);
             Assert.IsNull(PlaytestSessionIdentityProvider.Current.SteamId);
+        }
+
+        // 許可の後にSteamが止まった再評価。開発者モードは「SteamIDは空」の契約なので、前の検証済みSteamIDが残ってはいけない
+        // A re-evaluation after Steam stopped; developer mode contracts for an empty SteamID, so the earlier verified one must not survive
+        [Test]
+        public void 許可された後に開発者モードへ移ると識別は空へ戻る()
+        {
+            PlaceBuildInfoMarker();
+            Evaluate(PlaytestApiResult.Responded(200, PlaytestSessionBodies.AllowedFarFuture));
+            Assert.AreEqual("7656", PlaytestSessionIdentityProvider.Current.SteamId);
+
+            RemoveBuildInfoMarker();
+            Evaluate(PlaytestApiResult.Responded(200, PlaytestSessionBodies.AllowedFarFuture));
+
+            Assert.AreEqual(PlaytestGateStatus.DeveloperMode, PlaytestLaunchGate.Current.Value.Status);
+            Assert.IsNull(PlaytestSessionIdentityProvider.Current.SteamId, "開発者モードへ移ったのに前回の検証済みSteamIDが残っている");
+        }
+
+        [Test]
+        public void 許可された後に不許可へ移ると識別は空へ戻る()
+        {
+            PlaceBuildInfoMarker();
+            Evaluate(PlaytestApiResult.Responded(200, PlaytestSessionBodies.AllowedFarFuture));
+            Assert.AreEqual("7656", PlaytestSessionIdentityProvider.Current.SteamId);
+
+            LogAssert.Expect(LogType.Error, new Regex(@"\[PlaytestReceiver\] launch blocked: NotAllowed"));
+            Evaluate(PlaytestApiResult.Responded(403, "{\"reason\":\"not-allowed\"}"));
+
+            Assert.IsNull(PlaytestSessionIdentityProvider.Current.SteamId, "不許可へ移ったのに前回の検証済みSteamIDが残っている");
         }
 
         private static void Evaluate(PlaytestApiResult sessionResponse)

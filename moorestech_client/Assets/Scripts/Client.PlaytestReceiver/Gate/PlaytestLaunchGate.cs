@@ -12,8 +12,8 @@ using UnityEngine;
 
 namespace Client.PlaytestReceiver.Gate
 {
-    // 起動時照合の唯一の関所。開始経路はここへ問い合わせ、表示側は照合結果を購読する
-    // The single gate for the launch check; start paths ask here and the title view subscribes to the verdict
+    // 起動時照合の関所。開始経路は PlaytestTitleGates.TryPassStart 越しにここを通り、表示側は照合結果を購読する
+    // The launch check's gate; start paths reach it through PlaytestTitleGates.TryPassStart, and the title view subscribes to the verdict
     public static class PlaytestLaunchGate
     {
         // シーン跨ぎで持ち回る必要があり、MainMenuシーンにはDIコンテナが無いのでstaticで保持する
@@ -41,15 +41,11 @@ namespace Client.PlaytestReceiver.Gate
 
             var session = new PlaytestSession(api, ticketProvider);
             var authenticated = await session.AuthenticateAsync(utcNow, token);
-            var result = PlaytestGateDecision.Decide(true, true, authenticated.Outcome, authenticated.Detail, session);
+            var result = PlaytestGateDecision.Decide(true, true, authenticated, session);
             if (result.IsBlocked)
             {
                 Debug.LogError($"[PlaytestReceiver] launch blocked: {result.Status} {result.Detail}");
             }
-
-            // 識別は結果を配る前に据える。購読側（タイトルのゲート・開始経路）が読む時点で検証済みSteamIDが揃っている（ADR 0065）
-            // The identity is set before the verdict goes out, so subscribers (title gates, start paths) already see the verified SteamID (ADR 0065)
-            if (result.TryGetAllowedSession(out var allowedSession)) PlaytestSessionIdentityProvider.SetCurrent(new ReceiverVerifiedSessionIdentity(allowedSession.VerifiedSteamId));
 
             SetCurrent(result);
         }
@@ -81,6 +77,13 @@ namespace Client.PlaytestReceiver.Gate
         // Only this class and the tests may place a verdict; views and start paths never overwrite it
         internal static void SetCurrent(PlaytestGateResult result)
         {
+            // 識別の設定と解除はここ1箇所。Allowed以外へ移ったら空へ戻し、前の検証済みSteamIDを次の起動・再評価へ残さない（ADR 0065）
+            // Setting and clearing the identity happens only here; anything but Allowed returns it to empty so no earlier verified SteamID survives a re-evaluation (ADR 0065)
+            if (result.TryGetVerifiedSteamId(out var verifiedSteamId)) PlaytestSessionIdentityProvider.SetCurrent(new ReceiverVerifiedSessionIdentity(verifiedSteamId));
+            else PlaytestSessionIdentityProvider.SetCurrent(new EmptyPlaytestSessionIdentity());
+
+            // 識別は結果を配る前に据える。購読側（タイトルのゲート・開始経路）が読む時点で検証済みSteamIDが揃っている（ADR 0065）
+            // The identity is set before the verdict goes out, so subscribers (title gates, start paths) already see the verified SteamID (ADR 0065)
             CurrentProperty.Value = result;
         }
 

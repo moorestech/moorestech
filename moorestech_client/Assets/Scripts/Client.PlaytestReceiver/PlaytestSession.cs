@@ -21,12 +21,13 @@ namespace Client.PlaytestReceiver
         MalformedResponse,
     }
 
-    // 認証1回の結末。Outcomeで分岐、Detailはログ専用
-    // The outcome of one authentication; callers branch on Outcome and Detail only feeds developer logs
+    // 認証1回の結末。Outcomeで分岐、Detailはログ専用、SteamIdはAllowedのときだけ入る
+    // The outcome of one authentication; callers branch on Outcome, Detail only feeds developer logs, and SteamId is filled only on Allowed
     public sealed class PlaytestSessionResult
     {
         public PlaytestSessionOutcome Outcome;
         public string Detail;
+        public string SteamId;
     }
 
     // Steamチケットと受け口トークンの保持者。トークンの寿命管理と401時の取り直しはここ1箇所
@@ -39,10 +40,6 @@ namespace Client.PlaytestReceiver
         private string _token;
         private DateTime _tokenRefreshAtUtc;
         private UniTaskCompletionSource<PlaytestSessionResult> _inFlight;
-
-        // 受け口が検証したSteamID。Allowedを返した認証の後だけ読む（ADR 0065）
-        // The SteamID the receiver verified; read only after an authentication that returned Allowed (ADR 0065)
-        public string VerifiedSteamId { get; private set; }
 
         public PlaytestSession(IPlaytestReceiverApi api, IPlaytestSteamTicketProvider ticketProvider)
         {
@@ -113,10 +110,12 @@ namespace Client.PlaytestReceiver
 
                 // 更新時刻は受け口が名乗った期限から逆算する。寿命の正本を受け口1箇所に保つ
                 // The refresh time is derived from the expiry the receiver states, keeping the lifetime's source there alone
-                VerifiedSteamId = parsed.SteamId;
                 _token = parsed.Token;
                 _tokenRefreshAtUtc = parsed.ExpiresAtUtc.AddSeconds(-PlaytestReceiverConfig.TokenRefreshMarginSeconds);
-                return Result(PlaytestSessionOutcome.Allowed, "");
+
+                // 検証済みSteamIDは結末に載せて渡す。セッションに残すと、後の再認証が失敗しても前回の値が読めてしまう（ADR 0065）
+                // The verified SteamID rides on the outcome; keeping it on the session would let a later failed re-authentication still read the old value (ADR 0065)
+                return new PlaytestSessionResult { Outcome = PlaytestSessionOutcome.Allowed, Detail = "", SteamId = parsed.SteamId };
             }
 
             #endregion

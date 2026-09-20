@@ -43,7 +43,7 @@ namespace Client.Tests.PlaytestReceiver
             runner.RequestUpload();
             Assert.AreEqual(0, api.SessionCallCount + api.PutAttemptCount);
 
-            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Allowed(new PlaytestSession(api, new FakeTicketProvider("aabb"))));
+            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Allowed(new PlaytestSession(api, new FakeTicketProvider("aabb")), "7656"));
             runner.RequestUpload();
             Assert.AreEqual(1, api.PutAttemptCount);
             Assert.AreEqual(1, api.CompleteCount);
@@ -56,7 +56,7 @@ namespace Client.Tests.PlaytestReceiver
             var gate = new UniTaskCompletionSource<PlaytestApiResult>();
             var api = new FakeUploadApi { PendingPut = gate };
             IPlaytestUploadRequester runner = new PlaytestUploadRunner(api, _directories);
-            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Allowed(new PlaytestSession(api, new FakeTicketProvider("aabb"))));
+            PlaytestLaunchGate.SetCurrent(PlaytestGateResult.Allowed(new PlaytestSession(api, new FakeTicketProvider("aabb")), "7656"));
 
             runner.RequestUpload();
             runner.RequestUpload();
