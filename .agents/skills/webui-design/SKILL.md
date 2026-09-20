@@ -549,18 +549,19 @@ tunnel・vite・mock-host を落とし、`moores-wt rm` で worktree を削除�
 - 配置は常時表示HUD族の `.viewportOverlay` 内・画面下中央で、ホットバーの床（`--hotbar-floor-offset`）から `--tutorial-key-hint-hotbar-gap` だけ上に置き、採掘ゲージと重ねない。複数は `--tutorial-key-hint-gap` で縦積み。床位置の計算式（`--hotbar-floor-offset` + 各HUD固有のgap）は採掘プログレスバー（§8.18）と共有する。
 - 様式は §7 のキー操作ヒント（`<kbd>{keyName}</kbd>` + `t(challengeTutorial.<guid>.text)`）。実装は `LocalizedShortcutHint`（`shared/i18n`）を `layout="prefix"` で再利用する（kbdを常に先頭へ置く様式を型で表明し、`layout="inline"` の文言中マーカー差し込みと識別可能にする）。文字様式はInventoryScreenChrome/ResearchScreenChromeのkeyHintsと共有する `keyHintText` クラス（§7）、kbdとの間隔・縦積み間隔は `--tutorial-key-hint-*` 固定長トークン。**文字色だけは `--tutorial-key-hint-color`（原色赤 `--tutorial-attention-red` = `#ff0000` を参照）で上書きする**: 面を持たずワールド上に浮くため白文字では埋もれる（ユーザー裁定 2026-08-22、色を原色赤へ引き上げたのはユーザー裁定 2026-08-28 / ADR 0039）。赤の適用はこのHUDだけで、共有様式 `:where(.keyHintText)` の白は変えない（インベントリ画面左下・研究画面左下は白のまま）。面・枠・光彩は持たず `pointer-events: none`。**拡縮ループは持つ**: `animation: var(--tutorial-pulse-strong) var(--tutorial-pulse-duration) ease-in-out infinite`（1.08 / 1200ms）（ユーザー裁定 2026-08-28。従来の「アニメーションは持たず」は撤回）。
 
-## 8.20 全画面ゲートの共有外殻（`shared/ui/FullScreenGate`）
+## 8.20 全画面ゲートの外殻（`features/eventLanguageGate/FullScreenGate`）
 
-- **開始を止める全画面ゲート（現在は出展モードの言語選択1枚。プレイテストの同意と前回異常終了の確認は ADR 0065 でタイトルの uGUI へ移した）は `FullScreenGate` 1本を共有する。**
-  `FullScreenGate` は `visible` / `testId` / `title` / `children`（本体）を受けて描くだけの共通部品で、
-  持つのは外殻（不透明面・Portal・z層・`visible=false` なら何も描かない）だけ。**topicの購読もゲート種別も優先順位も知らない**。
-  新しい全画面ゲートを足すときも独自のOverlayを書かず、これを使う。
-- **どのゲートを見せるかはapp層が決める**（`src/app/startGates/useFrontmostStartGate.ts`）。`event_mode.language_gate` を購読し、
-  `pickFrontmostStartGate` が「待機中のうち `precedence` 最小の1枚」を選ぶ。`App.tsx` はゲートを無条件マウントし、
-  結果と一致する1枚だけに `visible` を渡す。**順序の正本はC#**（`Client.WebUiHost/Game/StartGates/StartGateTopics`：言語0＝起動時に待つ順）で、
-  各topicのpayload `{ waiting: boolean, precedence: number }` に載って届く。Web側に並び順の表を置かない（payloadの `precedence` 欠落はスキーマで拒否される）。
-- 応答の状態機械は `shared/ui/FullScreenGate/useGateAnswer` 1本を全画面ゲートが共有する（押下不可・受理後の閉じ待ち・閉じない/切断/拒否の1行）。
-  結末の文言は `GateAnswerCopy` として注入式で、言語選択は `DictionaryIndependentText` を渡す。
+- **開始を止める全画面ゲートは出展モードの言語選択1枚だけ**（プレイテストの同意と前回異常終了の確認は ADR 0065 でタイトルの uGUI へ移した）。
+  外殻 `FullScreenGate` は `visible` / `testId` / `title` / `children`（本体）を受けて描くだけの部品で、
+  持つのは不透明面・Portal・z層・`visible=false` なら何も描かない、の4つだけ。**topicの購読は知らない**。
+  受益者が1つになったため配置も `features/eventLanguageGate/` 配下で、`shared/ui` の公開barrelには載せない
+  （2枚目の全画面ゲートが要るようになった時点で `shared/ui` へ戻す）。
+- **見せるかどうかは `App.tsx` が決める**。`Topics.eventLanguageGate` を `useTopicSelector` で直接購読し、
+  `waiting === true` をそのまま `visible` に渡す。payload は `{ waiting: boolean }` のみで、
+  複数ゲートを調停する `precedence` は C#・Web・mock から撤去済み（レビュー裁定 2026-09-20 D3）。
+- 応答の状態機械は `features/eventLanguageGate/FullScreenGate/useLanguageSelectionAnswer` が持つ
+  （押下不可・受理後の閉じ待ち・閉じない/切断/拒否の1行）。結末の文言は `GateAnswerCopy` として注入式で、
+  言語選択は `DictionaryIndependentText` を渡す。「すでに応答済み」の拒否コードは `EVENT_LANGUAGE_ALREADY_SELECTED` 1本。
 - 面色は `--full-screen-gate-face`（不透明黒）、z層は `--z-portal-full-screen-gate` の1本を全画面ゲートが共有する
   （**旧 `--event-language-gate-face` / `--z-portal-event-language-gate` / `--playtest-gate-face` / `--z-portal-playtest-gate` は削除済み**。ゲートごとの独自トークンは持たない）。
 - 見出し・本文の最大幅は `--full-screen-gate-text-width`（900px）の1本を全画面ゲートが共有する

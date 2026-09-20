@@ -1,7 +1,7 @@
 // 開始を止める全画面ゲートの外殻。不透明面・Portal・z層と「見せないなら何も描かない」だけを持つ
 // The shell of a full-screen start gate; it owns only the opaque face, portal, z layer and the render-nothing-when-hidden rule
-// どのゲートを見せるか（待機の購読と優先順位）はapp層が決めて visible で渡す
-// Which gate shows (waiting subscriptions and precedence) is decided in the app layer and passed as visible
+// 見せるかどうか（待機の購読）はapp層が決めて visible で渡す
+// Whether it shows (the waiting subscription) is decided in the app layer and passed as visible
 import type { ReactElement, ReactNode } from "react";
 import { Overlay, Portal, Stack, Title } from "@mantine/core";
 import styles from "./style.module.css";

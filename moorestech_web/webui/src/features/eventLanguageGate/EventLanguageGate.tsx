@@ -1,4 +1,4 @@
-import { FullScreenGate } from "@/shared/ui";
+import FullScreenGate from "./FullScreenGate";
 import { EventLanguageGateBody } from "./EventLanguageGateBody";
 
 // 選ばせる対象が辞書そのものなのでt()を通さない。英語固定はADR 0040の裁定

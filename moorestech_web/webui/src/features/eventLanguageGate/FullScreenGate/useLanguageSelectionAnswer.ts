@@ -1,7 +1,11 @@
-// 全画面ゲートの応答1回ぶんの状態機械。押下不可の判断と、テスターに見せる1行をここ1本が持つ
-// The state machine for one full-screen-gate answer; this single place owns the disabled decision and the line the tester reads
+// 言語選択ゲートの応答1回ぶんの状態機械。押下不可の判断と、テスターに見せる1行をここ1本が持つ
+// The state machine for one language-gate answer; this single place owns the disabled decision and the line the tester reads
 import { useEffect, useRef, useState } from "react";
-import { dispatchActionOutcome, GATE_ALREADY_ANSWERED_ERRORS, type ActionPayloads, type GateAnswerActionType } from "@/bridge";
+import { dispatchActionOutcome, EVENT_LANGUAGE_ALREADY_SELECTED, type ActionPayloads } from "@/bridge";
+
+// 応答するactionは言語選択1本。ログの前置きにも同じ名前を使う
+// The answer dispatches one action alone, and the log prefix reuses the same name
+const AnswerActionType = "event_mode.select_language";
 
 // 受理からゲートが閉じるまでの猶予。これを過ぎても閉じないのは待機解除のpublishが落ちた疑い
 // The grace period from acceptance to the gate closing; past it the waiting-release publish is suspected lost
@@ -20,13 +24,13 @@ export type GateAnswerCopy = {
   respondFailed: string;
 };
 
-type GateAnswer<K extends GateAnswerActionType> = {
+type GateAnswer = {
   disabled: boolean;
   message: string | null;
-  answer: (payload: ActionPayloads[K]) => Promise<void>;
+  answer: (payload: ActionPayloads[typeof AnswerActionType]) => Promise<void>;
 };
 
-export function useGateAnswer<K extends GateAnswerActionType>(type: K, copy: GateAnswerCopy): GateAnswer<K> {
+export function useLanguageSelectionAnswer(copy: GateAnswerCopy): GateAnswer {
   const [state, setState] = useState<GateAnswerState>("idle");
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(false);
@@ -49,14 +53,14 @@ export function useGateAnswer<K extends GateAnswerActionType>(type: K, copy: Gat
     answer,
   };
 
-  async function answer(payload: ActionPayloads[K]): Promise<void> {
+  async function answer(payload: ActionPayloads[typeof AnswerActionType]): Promise<void> {
     setState("pending");
-    const outcome = await dispatchActionOutcome(type, payload);
+    const outcome = await dispatchActionOutcome(AnswerActionType, payload);
 
     // ゲートが先に閉じたら結末を描く先が無い。見張りも張らない
     // If the gate closed first there is nowhere to show the outcome, and no watch is armed
     if (!mounted.current) {
-      console.info(`[${type}] gate closed before the answer settled: ${outcome.kind}`);
+      console.info(`[${AnswerActionType}] gate closed before the answer settled: ${outcome.kind}`);
       return;
     }
 
@@ -66,8 +70,8 @@ export function useGateAnswer<K extends GateAnswerActionType>(type: K, copy: Gat
       acceptAnswer();
       return;
     }
-    if (outcome.kind === "rejected" && outcome.error === GATE_ALREADY_ANSWERED_ERRORS[type]) {
-      console.warn(`[${type}] already answered: ${outcome.error}`);
+    if (outcome.kind === "rejected" && outcome.error === EVENT_LANGUAGE_ALREADY_SELECTED) {
+      console.warn(`[${AnswerActionType}] already answered: ${outcome.error}`);
       acceptAnswer();
       return;
     }
@@ -76,11 +80,11 @@ export function useGateAnswer<K extends GateAnswerActionType>(type: K, copy: Gat
     // Toasts hide beneath the gate, so failing to separate the reasons here leaves the tester with nothing
     clearCloseWatch();
     if (outcome.kind === "unreachable" && outcome.reason === "disconnected") {
-      console.warn(`[${type}] not sent: disconnected`);
+      console.warn(`[${AnswerActionType}] not sent: disconnected`);
       setState("disconnected");
       return;
     }
-    console.warn(`[${type}] rejected: ${outcome.kind === "rejected" ? outcome.error : outcome.reason}`);
+    console.warn(`[${AnswerActionType}] rejected: ${outcome.kind === "rejected" ? outcome.error : outcome.reason}`);
     setState("failed");
   }
 
@@ -92,7 +96,7 @@ export function useGateAnswer<K extends GateAnswerActionType>(type: K, copy: Gat
   function startCloseWatch(): void {
     clearCloseWatch();
     closeTimer.current = setTimeout(() => {
-      console.warn(`[${type}] answered but the gate did not close within ${CloseGraceMs}ms`);
+      console.warn(`[${AnswerActionType}] answered but the gate did not close within ${CloseGraceMs}ms`);
       setState("stalled");
     }, CloseGraceMs);
   }

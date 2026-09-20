@@ -13,13 +13,13 @@ vi.mock("@/bridge", async (importOriginal) => ({
   dispatchActionOutcome: mocks.dispatchActionOutcome,
 }));
 
-import { useGateAnswer, type GateAnswerCopy } from "./useGateAnswer";
+import { useLanguageSelectionAnswer, type GateAnswerCopy } from "./useLanguageSelectionAnswer";
 
 const copy: GateAnswerCopy = { answerAccepted: "accepted", notClosed: "notClosed", disconnected: "disconnected", respondFailed: "failed" };
 let pressAnswer: (() => Promise<void>) | undefined;
 
 function Harness() {
-  const { answer } = useGateAnswer("event_mode.select_language", copy);
+  const { answer } = useLanguageSelectionAnswer(copy);
   pressAnswer = () => answer({ locale: "ja" });
   return null;
 }
@@ -31,7 +31,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-describe("useGateAnswer", () => {
+describe("useLanguageSelectionAnswer", () => {
   it("アンマウント後に受理が解決しても閉じない見張りを張らない", async () => {
     vi.useFakeTimers();
     const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);

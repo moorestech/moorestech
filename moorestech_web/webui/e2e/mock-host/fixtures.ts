@@ -20,7 +20,6 @@ export * from "./fixtures/recipeFixtures";
 export * from "./fixtures/itemMasterFixtures";
 export * from "./fixtures/fluidMasterFixtures";
 export * from "./fixtures/blockLocalizationFixtures";
-export * from "./fixtures/startGateFixtures";
 export * from "./fixtures/contentLocalizationFixtures";
 export * from "./fixtures/buildMenuFixtures";
 export * from "./fixtures/hotbarFixtures";

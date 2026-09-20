@@ -37,10 +37,9 @@ export const LocalizationDataSchema = z.object({
   locale: z.string().min(1),
   revision: z.number().int().nonnegative(),
 });
-// 開始ゲートの待機。precedenceはC#の起動順が正本
-// A start gate's waiting; C# owns the precedence order
-const StartGateWaitingSchema = z.object({ waiting: z.boolean(), precedence: z.number().int().nonnegative() });
-export const EventLanguageGateDataSchema = StartGateWaitingSchema;
+// 出展モードの言語選択ゲートの待機。開始を止めるゲートはこれ1枚なので順序は持たない
+// The wait of event mode's language gate; it is the only gate holding the start, so no order travels with it
+export const EventLanguageGateDataSchema = z.object({ waiting: z.boolean() });
 // 送信可否の判定はC#が持ち、その結論そのものが kind で届く。独立booleanの袋は有り得ない組合せを表現できてしまう
 // C# owns the send-permission decision and its verdict arrives as the kind; a bag of booleans could express impossible combinations
 // 欠けた記録は送信可否と独立に起こるため、どの kind でも同じ形で載る
