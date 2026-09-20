@@ -10,16 +10,13 @@ namespace Client.MainMenu.Playtest
 {
     // 前回異常終了の確認。説明を添えて送る／送らないを選ばせ、書けなかったときは閉じずにその旨を出す（ADR 0061・0065）
     // The previous-crash confirmation: send with a description or decline, and on a failed write stay open and say so (ADR 0061, 0065)
+    // 静的な見出し・本文・ボタン文言はシーン側のTextMeshProLocalizeが持ち、ここは結末で変わる1行だけを流し込む
+    // The static title, body and button wording belong to the scene's TextMeshProLocalize; only the outcome line is filled in here
     public class CrashReportPopup : MonoBehaviour
     {
-        [SerializeField] private TMP_Text titleText;
-        [SerializeField] private TMP_Text bodyText;
         [SerializeField] private TMP_InputField descriptionInput;
-        [SerializeField] private TMP_Text descriptionPlaceholderText;
         [SerializeField] private Button sendButton;
-        [SerializeField] private TMP_Text sendButtonText;
         [SerializeField] private Button skipButton;
-        [SerializeField] private TMP_Text skipButtonText;
         [SerializeField] private TMP_Text statusText;
 
         private PlaytestTitleGateSequence _sequence;
@@ -33,15 +30,9 @@ namespace Client.MainMenu.Playtest
 
         public void SetVisible(bool visible)
         {
-            if (visible)
-            {
-                titleText.text = Localize.Get(LocalizationKeys.Ui.Playtest.CrashGate.Title);
-                bodyText.text = Localize.Get(LocalizationKeys.Ui.Playtest.CrashGate.Body);
-                descriptionPlaceholderText.text = Localize.Get(LocalizationKeys.Ui.Playtest.CrashGate.Placeholder);
-                sendButtonText.text = Localize.Get(LocalizationKeys.Ui.Playtest.CrashGate.Send);
-                skipButtonText.text = Localize.Get(LocalizationKeys.Ui.Playtest.CrashGate.Skip);
-                statusText.text = "";
-            }
+            // 前回の結末が残ったまま出ると、まだ押していない応答の失敗を読ませてしまう
+            // A leftover outcome would read as a failure for an answer that has not been pressed yet
+            if (visible) statusText.text = "";
             gameObject.SetActive(visible);
         }
 

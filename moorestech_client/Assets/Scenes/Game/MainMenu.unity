@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 3049583}
   - component: {fileID: 3049585}
   - component: {fileID: 3049584}
+  - component: {fileID: 3049586}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -256,6 +257,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3049582}
   m_CullTransparentMesh: 1
+--- !u!114 &3049586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3049582}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.playtest.consent.agree
 --- !u!1 &8665373
 GameObject:
   m_ObjectHideFlags: 0
@@ -698,14 +712,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ff6ac3f1b57d4f8aa9a808b94e0cf8f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Client.MainMenu.Playtest.CrashReportPopup
-  titleText: {fileID: 1867203722}
-  bodyText: {fileID: 715218427}
   descriptionInput: {fileID: 1928580354}
-  descriptionPlaceholderText: {fileID: 1246407472}
   sendButton: {fileID: 1713787760}
-  sendButtonText: {fileID: 1400658683}
   skipButton: {fileID: 1057289694}
-  skipButtonText: {fileID: 1883738508}
   statusText: {fileID: 1112429371}
 --- !u!224 &59367541
 RectTransform:
@@ -2672,6 +2681,7 @@ GameObject:
   - component: {fileID: 715218425}
   - component: {fileID: 715218426}
   - component: {fileID: 715218427}
+  - component: {fileID: 715218428}
   m_Layer: 5
   m_Name: Message
   m_TagString: Untagged
@@ -2798,6 +2808,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &715218428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 715218424}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.playtest.crashGate.body
 --- !u!1 &840157011
 GameObject:
   m_ObjectHideFlags: 0
@@ -4048,10 +4071,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 899dd204ed9394c378f7763567cb62ee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Client.MainMenu.Playtest.PlaytestConsentPopup
-  titleText: {fileID: 1795685482}
-  bodyText: {fileID: 1627125347}
   agreeButton: {fileID: 1344055517}
-  agreeButtonText: {fileID: 3049584}
 --- !u!1 &1079856802
 GameObject:
   m_ObjectHideFlags: 0
@@ -4748,6 +4768,7 @@ GameObject:
   - component: {fileID: 1246407471}
   - component: {fileID: 1246407472}
   - component: {fileID: 1246407470}
+  - component: {fileID: 1246407473}
   m_Layer: 5
   m_Name: Placeholder
   m_TagString: Untagged
@@ -4894,6 +4915,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1246407473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1246407468}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.playtest.crashGate.placeholder
 --- !u!1 &1293659820
 GameObject:
   m_ObjectHideFlags: 0
@@ -5252,6 +5286,7 @@ GameObject:
   - component: {fileID: 1400658681}
   - component: {fileID: 1400658682}
   - component: {fileID: 1400658683}
+  - component: {fileID: 1400658684}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -5378,6 +5413,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1400658684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1400658680}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.playtest.crashGate.send
 --- !u!1 &1413093373
 GameObject:
   m_ObjectHideFlags: 0
@@ -5868,6 +5916,7 @@ GameObject:
   - component: {fileID: 1627125346}
   - component: {fileID: 1627125348}
   - component: {fileID: 1627125347}
+  - component: {fileID: 1627125349}
   m_Layer: 5
   m_Name: Message
   m_TagString: Untagged
@@ -5994,6 +6043,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1627125345}
   m_CullTransparentMesh: 1
+--- !u!114 &1627125349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1627125345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.playtest.consent.body
 --- !u!1 &1669495172
 GameObject:
   m_ObjectHideFlags: 0
@@ -6452,6 +6514,7 @@ GameObject:
   - component: {fileID: 1795685481}
   - component: {fileID: 1795685483}
   - component: {fileID: 1795685482}
+  - component: {fileID: 1795685484}
   m_Layer: 5
   m_Name: Title
   m_TagString: Untagged
@@ -6578,6 +6641,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1795685480}
   m_CullTransparentMesh: 1
+--- !u!114 &1795685484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1795685480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.playtest.consent.title
 --- !u!1 &1830372037
 GameObject:
   m_ObjectHideFlags: 0
@@ -6966,6 +7042,7 @@ GameObject:
   - component: {fileID: 1867203720}
   - component: {fileID: 1867203721}
   - component: {fileID: 1867203722}
+  - component: {fileID: 1867203723}
   m_Layer: 5
   m_Name: Title
   m_TagString: Untagged
@@ -7092,6 +7169,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1867203723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1867203719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.playtest.crashGate.title
 --- !u!1 &1879782837
 GameObject:
   m_ObjectHideFlags: 0
@@ -7193,6 +7283,7 @@ GameObject:
   - component: {fileID: 1883738506}
   - component: {fileID: 1883738507}
   - component: {fileID: 1883738508}
+  - component: {fileID: 1883738509}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -7319,6 +7410,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1883738509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1883738505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81d42917617e43c086723e27f418754a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Client.Localization::Client.Localization.TextMeshProLocalize
+  key: ui.playtest.crashGate.skip
 --- !u!1 &1886059138
 GameObject:
   m_ObjectHideFlags: 0
