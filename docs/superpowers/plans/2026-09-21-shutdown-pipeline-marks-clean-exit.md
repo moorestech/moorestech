@@ -4,15 +4,20 @@
 
 **Goal:** エディタでPlayを停止しただけで次回起動に「前回異常終了の確認」ゲートが出る問題を、終了パイプライン自身が正常終了の印を書く保険を持つことで根治する。
 
-**Architecture:** `GameShutdownEvent` が `Application.quitting` を購読し、誰も終了の意思を表明しないまま終了要求が来たときだけ自分で `UnawaitableExit` を発火する。これにより `CleanExitMarkWriter` が正常終了の印を書く経路が、MainGameシーン上の `SaveAndQuitPresenter` の生存と例外の有無から切り離される。あわせて `SaveAndQuitPresenter.Disconnect()` が初期化前に投げていた NullReferenceException を潰す。
+**Architecture:** `GameShutdownEvent` が `Application.quitting` を購読し、誰も終了の意思を表明しないまま終了要求が来たときだけ自分で `UnawaitableExit` を発火する。これにより `CleanExitMarkWriter` が正常終了の印を書く経路が、MainGameシーン上の `SaveAndQuitPresenter` の生存と例外の有無から切り離される。あわせて `SaveAndQuitPresenter.Disconnect()` が初期化前に投げていた NullReferenceException を潰す。`PreviousSessionStartupTasks.BeginCurrentSessionMarks()` が最初のawait前に今回sessionとwriterを同期設置し、ホスト起動後のsalvage/recoveryから分離する。終了印はWebUi未ready・起動失敗・remoteでも持ち、同意に依存する記録収集の条件とは分ける。
 
 **Tech Stack:** Unity 6 / C# / UniTask / UniRx / NUnit（EditMode）/ uloop CLI
 
+## 出所とreview r2の更新
+
+元台帳のユーザー原文「プレイを停止しただけなのにこれが出るのうざい」が支持するのは、通常停止を偽クラッシュにしない要求。具体API・所有者・検証方式の個別承認は一次記録を再確認できないため、以下は明示された自律実行委任と正本要件に基づくagent設計判断とする。controllerはD1案A（最早期に終了印を設置）、D2案B（未確認の具体裁定をagent前提へ分離）、D3案B（既存3 API維持）を採用した。チェックボックスの状態はcontrollerが管理する。
+
 ## Requirements
 
-- R1: エディタでPlayを停止したとき、初期化の途中でもゲート応答待ちでも、必ず正常終了の印（`last-session/marks/pid_<PID>/session_<utcTicks>/clean`）が書かれること。受け入れ基準: 起動直後（MainGameシーン読込前）に停止 → 再Play したとき「PlaytestStartGates: 前回異常終了の確認の応答を待ちます」がログに出ず、起動がゲートで止まらない。
+- R1: 未宣言の通常終了としてエディタでPlayを停止したとき、初期化の途中でもゲート応答待ちでも、必ず正常終了の印（`last-session/marks/pid_<PID>/session_<utcTicks>/clean`）が書かれること。受け入れ基準: 起動直後（MainGameシーン読込前）に停止 → 再Play したとき「PlaytestStartGates: 前回異常終了の確認の応答を待ちます」がログに出ず、起動がゲートで止まらない。
 - R2: 正常終了の印を書く責任は `GameShutdownEvent` が持ち、`Application.quitting` 購読による保険として実装すること。受け入れ基準: `SaveAndQuitPresenter` が存在しない状態の終了でも印が書かれる。
 - R3: 正規の終了口（`QuitApplicationAsync`）を通った終了では保険が何もしないこと。受け入れ基準: `_fired` が立っている状態で保険を叩いても二重発火せず、終了処理中の停止が「異常終了」として数えられる従来の検知（F03）が保たれる。
+- 既宣言の例外: IntentionalExitのflush中はR3/F03を維持し、InitializationFailed通知済みの停止は失敗判定を維持する。「必ず」を既宣言の失敗の正常化には用いない。
 - R4: 保険が発火したことを開発者が読めるログに必ず出すこと。受け入れ基準: 保険経路を通った起動の Editor.log に、意思表明が無いまま終了要求が来た旨のログが1行出る。
 - R5: `SaveAndQuitPresenter.Disconnect()` が初期化前（`ClientContext.VanillaApi` 未設定）に NullReferenceException を投げないこと。受け入れ基準: 起動直後に停止しても Editor.log に `SaveAndQuitPresenter.Disconnect` 由来の NRE が出ない。
 - R6: 保険の分岐（未発火なら発火する／発火済みなら何もしない）が EditMode テストで固定されていること。
@@ -37,9 +42,15 @@
 | ファイル | 種別 | 責務 |
 |---|---|---|
 | `moorestech_client/Assets/Scripts/Client.Game/Common/GameShutdownEvent.cs` | Modify | 終了パイプライン。`Application.quitting` 購読の保険を追加する |
-| `moorestech_client/Assets/Scripts/Client.Starter/InitializeScenePipeline.cs` | Modify | 起動シーケンス。保険の据え付けを1行追加する |
+| `moorestech_client/Assets/Scripts/Client.Starter/InitializeScenePipeline.cs` | Modify | 起動シーケンス。保険と今回session/writerを最初のawait前に据える |
 | `moorestech_client/Assets/Scripts/Client.Game/InGame/Presenter/PauseMenu/SaveAndQuitPresenter.cs` | Modify | 破棄・終了時の切断。NRE を潰し、通知が切断の失敗に巻き込まれないようにする |
 | `moorestech_client/Assets/Scripts/Client.Tests/Starter/GameShutdownFlushTest.cs` | Modify | 保険の分岐テストを追記する（同種のテストが既にここにある） |
+| `moorestech_client/Assets/Scripts/Client.Starter/Playtest/PreviousSessionStartupTasks.cs` | Modify | 今回印の同期開始と後段salvage/recoveryを分離する |
+| `moorestech_client/Assets/Scripts/Client.Starter/Playtest/PlaytestRecordCollection.cs` | Modify | 収集同意の対象から終了印を分離しログを整合する |
+| `moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/LastSession/Marks/CleanExitMarkWriter.cs` | Modify | 設置契約のコメントを最初のawait前へ整合する |
+| `moorestech_client/Assets/Scripts/Client.Game/InGame/BugReport/LastSession/Salvage/PreviousSessionSalvage.cs` | Modify | 先行印生成で成立しなくなるfirstBootディレクトリ判定ログを除く |
+| `moorestech_client/Assets/Scripts/Client.Game/Common/ShutdownFlushResultAggregator.cs` | Create | 200行制約のため既存集約とmasked failure報告を抽出、専用処理はローカル関数に閉じる |
+| `moorestech_client/Assets/Scripts/Client.Tests/Starter/PreviousSessionStartupTasksTest.cs` | Create | WebUi/remote条件に依存しない同期印・再Play時のsession分離を固定する |
 
 ### 配置と前例
 
@@ -59,7 +70,7 @@ Play停止／プロセス終了要求
   → 次回起動の PreviousSessionSalvage が印を読む → ゲートを出すかが決まる
 ```
 
-本変更が足すのは「共有モデル（`GameShutdownEvent` の発火状態）への書き手が1人増える」だけで、下流（`CleanExitMarkWriter`・`ProgressRecorder`・`WebUiHost`）の読み方は変えない。分岐・逆流・並行経路は足さない。
+通知は既存の共有モデル（`GameShutdownEvent`）へ集約し、分岐・逆流・並行終了経路は足さない。review r2ではwriterの購読内容は維持したまま設置時点を最初のawait前へ移す。salvage/recoveryは現在のsession識別を再作成せず、既存scannerが今回の印を除外する。ADR 0060裁定5の同時設置は時点のみ部分更新する。
 
 ### 機能パリティ（死活表）
 
@@ -129,10 +140,9 @@ Play停止／プロセス終了要求
         }
 ```
 
-ファイル先頭の using に `using System;`（`Subscribe` の戻り値 `IDisposable` を `using var` で受けるため）と `using UniRx;`（`IObservable<T>.Subscribe` 拡張のため）を追加する。追加後の using は次の5行になる。
+ファイル先頭に `using UniRx;`（`IObservable<T>.Subscribe` 拡張用）を追加する。`using var`は構文なので`using System;`は不要（review r2 C4）。
 
 ```csharp
-using System;
 using Client.Game.Common;
 using Cysharp.Threading.Tasks;
 using NUnit.Framework;
@@ -176,18 +186,26 @@ Expected: FAIL. `CS0117: 'GameShutdownEvent' does not contain a definition for '
             // The boot sequence re-enters (an Editor replay), so a duplicate subscription is ruled out mechanically
             Application.quitting -= OnApplicationQuitting;
             Application.quitting += OnApplicationQuitting;
-        }
 
-        private static void OnApplicationQuitting()
-        {
-            NotifyUnannouncedExit();
+            #region Internal
+
+            static void OnApplicationQuitting()
+            {
+                NotifyUnannouncedExit();
+            }
+
+            #endregion
         }
 
         // 誰も意思表明していない終了だけを拾う。正規の終了口を通った終了は既に_firedが立っており、終了処理中の停止の検知を潰さない
         // Picks up only the exits nobody declared; a canonical exit already set _fired, so the detection of a stall during shutdown stays intact
         internal static bool NotifyUnannouncedExit()
         {
-            if (_fired) return false;
+            if (_fired)
+            {
+                Debug.Log("終了の意思表明は既に通知済みのため、保険の終了通知は行いません");
+                return false;
+            }
             Debug.Log("終了の意思表明が無いまま終了要求が来たため、待てない終了として記録します（エディタのPlay停止・OS由来の終了）");
             FireGameShutdown(GameShutdownReason.UnawaitableExit);
             return true;
@@ -205,7 +223,10 @@ Expected: FAIL. `CS0117: 'GameShutdownEvent' does not contain a definition for '
             // 正規の終了口を通らない終了（エディタのPlay停止）でも、正常終了の印が書かれるようにする
             // Ensures the clean-exit mark is written even for exits that skip the canonical path (an Editor play-stop)
             GameShutdownEvent.InstallUnannouncedExitNotice();
+            Playtest.PreviousSessionStartupTasks.BeginCurrentSessionMarks();
 ```
+
+review r2 D1補完: 先に `PreviousSessionStartupTasksTest` を追加し、未実装 `BeginCurrentSessionMarks` のCS0117をREDとして確認する。次に同メソッドへ `ProcessSessionScope.BeginNewSession()` と現在pid/sessionでの `CleanExitMarkWriter.InstallAtStartup` を移す。後段の `RunAtStartup` はsalvage/recoveryのみとし、session再開始・writer再設置を除く。WebUiのreadyとremoteの4組合せ、同pid再Playの旧/現session分離を5ケースで固定する。共有資料を全消去せず生成sessionのみ片付ける。
 
 - [ ] **Step 5: コンパイルとテストを実行して通ることを確認する**
 
@@ -274,6 +295,8 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GameShutdownFlushTest|Client.Tests.BugReport|Client.Tests.Starter"`
 Expected: すべて PASS
 
+追加関連テスト: `PreviousSessionStartupTasksTest|ProgressSessionRecoveryTest`。同じregexへ含めてもよい。
+
 - [ ] **Step 4: コミットする**
 
 ```bash
@@ -291,7 +314,7 @@ EOF
 ## Task 3: 実機Playで印とゲートの挙動を確かめる
 
 **Files:**
-- 変更なし（検証のみ。結果は `moorestech-6git` の bd note に残す）
+- 変更なし（検証のみ。結果は `moorestech-ot11` の bd note に残す（このmachineには元の`moorestech-6git`が無い））
 
 **Interfaces:**
 - Consumes: Task 1・Task 2 の実装
@@ -302,10 +325,12 @@ EOF
 - [ ] **Step 1: 前回セッションの残骸を空にする**
 
 ```bash
-rm -rf "$HOME/Library/Application Support/moorestech/BugReports/last-session"
-ls "$HOME/Library/Application Support/moorestech/BugReports/"
+test -d "/Users/sakastudio/Library/Application Support/moorestech/BugReports/last-session"
+session_backup_dir=$(mktemp -d "/Users/sakastudio/hermes-agent/data/repos/moorestech-worktrees/editor-stop-clean-exit-mark/.superpowers/sdd/task3-backup.XXXXXX")
+mv "/Users/sakastudio/Library/Application Support/moorestech/BugReports/last-session" "$session_backup_dir/last-session"
+ls "/Users/sakastudio/Library/Application Support/moorestech/BugReports/"
 ```
-Expected: `last-session` が無い状態
+Expected: 検証済み絶対パスの`last-session`が無く、旧資料は退避先から復元できる状態。初めから存在しなければ移動は不要。再帰削除は使わない。
 
 - [ ] **Step 2: Playを開始し、初期化が終わる前に停止する**
 
@@ -313,7 +338,7 @@ Expected: `last-session` が無い状態
 uloop control-play-mode --project-path ./moorestech_client --action Play
 uloop control-play-mode --project-path ./moorestech_client --action Stop
 ```
-（`play` の直後に `stop` を出すことで、MainGameシーンの読込前後の早い段階で停止させる）
+（`play` の直後に `stop` を出す。writer設置・started生成・WebUi readyを待たず、最早期停止を検証する）
 
 - [ ] **Step 3: 保険が発火し、正常終了の印が書かれたことを確認する**
 
@@ -321,7 +346,7 @@ uloop control-play-mode --project-path ./moorestech_client --action Stop
 grep -c "終了の意思表明が無いまま終了要求が来たため" "$HOME/Library/Logs/Unity/Editor.log"
 find "$HOME/Library/Application Support/moorestech/BugReports/last-session/marks" -name clean
 ```
-Expected: grep が1以上、`clean` のパスが1件以上見つかる
+Expected: 保険ログが1件、今回の新しいpid/sessionに`started`と`clean`がある。前回の残存cleanを証拠にしない。ログファイルがrotate済みなら対象EditorのConsoleを区間分離して同じ文字列を確認する。
 
 ```bash
 grep -c "SaveAndQuitPresenter.Disconnect" "$HOME/Library/Logs/Unity/Editor.log"
@@ -345,7 +370,7 @@ Expected: 1つ目のgrepは今回の起動区間で0件、2つ目の最終行が
 
 ```bash
 uloop control-play-mode --project-path ./moorestech_client --action Stop
-bd note moorestech-6git "実機確認: 初期化途中で停止 → clean の印あり・保険のログあり・SaveAndQuitPresenter の NRE なし。再Playで clean:True・ゲート無しを確認"
+bd note moorestech-ot11 "実機確認: 初期化途中で停止 → clean の印あり・保険のログあり・SaveAndQuitPresenter の NRE なし。再Playで clean:True・ゲート無しを確認"
 ```
 
 ---
@@ -399,8 +424,10 @@ planning 中に生じた判断:
 - **`Application.quitting` の購読は `-=` してから `+=` する。** 起動シーケンスは再入する（Editorの再生し直し・ドメインリロード無効設定）ため、重複購読を機械的に防ぐ。
   出所: agent前提（前例 `Client.DebugSystem/DebugSheet/DebugObjectsBootstrap.cs:36-37`）
 - **保険の本体は `internal static bool NotifyUnannouncedExit()` として切り出す。** `Application.quitting` はテストから発火できないため、分岐だけを直接叩けるようにする。`Client.Game` は `InternalsVisibleTo("Client.Tests")` を宣言済みで、新たな公開面を増やさずに済む。
-  出所: ユーザー裁定 2026-09-21「単体テスト＋実機Play確認」＋ agent前提（`Client.Game/AssemblyInfo.cs` の既存宣言）
+  出所: agent前提（正本の検証要件と`Client.Game/AssemblyInfo.cs`の既存宣言。具体検証方式へのユーザー個別承認は未確認）
 - **`SaveAndQuitPresenter.Disconnect()` は通知を先に出し、その後に未初期化ガード付きで切断する。** 保険があるので順序だけでも印は残るが、通知が切断の失敗に巻き込まれない形にしておく方が意図に合う。ガードの縮退理由はログへ出す。
   出所: agent前提（AGENTS.md「無音の縮退は禁止」）
-- **テストは新規ファイルを作らず既存の `GameShutdownFlushTest.cs` へ追記する。** 同じクラスの分岐テストが既にそこにあり、1ディレクトリ10ファイル・1ファイル200行の制約にも収まる。
+- **終了分岐のテストは既存の `GameShutdownFlushTest.cs` へ追記し、r2の起動印回帰は `PreviousSessionStartupTasksTest.cs` へ置く。** 同じクラスの分岐テストが既にそこにあり、1ディレクトリ10ファイル・1ファイル200行の制約にも収まる。
   出所: agent前提（既存 `Client.Tests/Starter/GameShutdownFlushTest.cs` の前例）
+
+- **review r2の設計判断:** D1案Aで最初のawait前にsession/writerを確立し、収集同意から終了印を分離する。D2案Bで未確認の具体採択はagent前提とする。D3案Bでshutdown初期化3 APIを維持する。出所: 明示された自律実行委任の下で正本要件を適用したcontroller判断。個別ユーザー承認ではない。

@@ -55,11 +55,15 @@ namespace Client.Game.Common
             // The boot sequence re-enters (an Editor replay), so a duplicate subscription is ruled out mechanically
             Application.quitting -= OnApplicationQuitting;
             Application.quitting += OnApplicationQuitting;
-        }
 
-        private static void OnApplicationQuitting()
-        {
-            NotifyUnannouncedExit();
+            #region Internal
+
+            static void OnApplicationQuitting()
+            {
+                NotifyUnannouncedExit();
+            }
+
+            #endregion
         }
 
         // 正規の終了口を通った終了には介入せず、終了処理中の停止の検知を保つ

@@ -56,6 +56,7 @@ namespace Client.Starter
             // 正規の終了口を通らない終了（エディタのPlay停止）でも、正常終了の印が書かれるようにする
             // Ensures the clean-exit mark is written even for exits that skip the canonical path (an Editor play-stop)
             GameShutdownEvent.InstallUnannouncedExitNotice();
+            Playtest.PreviousSessionStartupTasks.BeginCurrentSessionMarks();
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
             var exitToken = Application.exitCancellationToken;

@@ -6,10 +6,8 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
-    // 印の消費と同じ起動時1箇所で据える書き手。MainGameスコープに置くと、起動〜ゲート〜ロードの全区間が
-    // The writer is installed at the same boot-time spot that consumes the marks; living in the MainGame scope left
-    // 「消費済み・書き手未生成」になり、落ちていないのに次回起動が毎回「前回異常終了」になる
-    // the whole boot→gate→load span as "consumed with no writer", making every next boot read as a crash
+    // 最初のawait前に据える書き手。ホストやシーンを待つと、その待機中の停止を記録できない
+    // Install before the first await; waiting for a host or scene would leave stops during that wait unrecorded
     public static class CleanExitMarkWriter
     {
         private static CompositeDisposable _subscriptions;
