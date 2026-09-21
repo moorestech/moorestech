@@ -22,6 +22,7 @@ namespace Game.Paths
         // 常時記録の置き場。セーブファイルの隣に置き、セーブごと持ち出せるようにする
         // Where always-on capture lives: beside the save file so a bundle can carry both
         public string SnapshotDirectory { get; }
+        public const string SnapshotOwnerFileName = "capture-owner.json";
 
         // マイグレーション前の原本と、マスタ欠損で除去したデータの置き場。どちらもセーブファイルの隣
         // Where pre-migration originals and data pruned for missing masters live: both beside the save file

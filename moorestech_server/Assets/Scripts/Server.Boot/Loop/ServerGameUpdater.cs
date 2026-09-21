@@ -17,7 +17,7 @@ namespace Server.Boot.Loop
             
             var stopwatch = new Stopwatch();
             
-            while (true)
+            while (!token.IsCancellationRequested)
             {
                 profilerMarker.Begin();
                 

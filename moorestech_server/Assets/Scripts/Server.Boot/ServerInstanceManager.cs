@@ -1,27 +1,10 @@
 using System;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
-using Core.Master;
-using Game.PlayerConnection;
 using Core.Update;
-using Game.Context;
-using Game.MapGeneration.Provisioning;
-using Game.MapGeneration.Transfer;
-using Game.Paths;
 using Game.SaveLoad;
-using Game.SaveLoad.Interface;
 using Game.SaveLoad.Snapshot;
-using Microsoft.Extensions.DependencyInjection;
-using Mod.Base;
-using Mod.Config;
-using Mod.Loader;
-using Server.Boot.Args;
-using Server.Boot.Loop;
-using Server.Boot.Loop.PacketProcessing;
-using Server.Event;
 using UnityEngine;
 
 namespace Server.Boot
@@ -62,7 +45,7 @@ namespace Server.Boot
 
         public void Start()
         {
-            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener, _worldSaveCoordinator, _worldSnapshotRing) = Start(_args);
+            (_connectionUpdateThread, _gameUpdateThread, _cancellationTokenSource, _listener) = ServerInstanceStartup.Start(_args, out _worldSaveCoordinator, out _worldSnapshotRing);
         }
 
         // 終了直前の保存を通信を介さず直接要求する。パケット到達待ちの競合を作らない
@@ -72,112 +55,6 @@ namespace Server.Boot
             _worldSaveCoordinator?.RequestSave();
         }
 
-        private static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener, WorldSaveCoordinator worldSaveCoordinator, WorldSnapshotRing worldSnapshotRing) Start(string[] args)
-        {
-            // 起動引数からワールドディレクトリのルートを解決する
-            // Resolve the world directory root from launch arguments
-            var settings = CliConvert.Parse<StartServerSettings>(args);
-            var worldDataDirectory = WorldDataDirectory.FromWorldRoot(settings.WorldDirectory);
-
-            // 生成設定はマスタなのでプロビジョニング前にマスタをロードする（Create()内の再ロードは冪等）
-            // Generation config lives in master data, so load masters before provisioning (reload in Create() is idempotent)
-            var modResource = new ModsResource(new ServerDataDirectory(settings.ServerDataDirectory).ModsDirectory);
-            MasterHolder.Load(new MasterJsonFileContainer(ModJsonStringLoader.GetMasterString(modResource)));
-
-            // generatedモードの未指定シードを固定し、同じマスタから常に同じワールドを生成する
-            // Fix the unspecified generated-mode seed so the same master always produces the same world
-            // 明示指定なら0も含めそのまま使い、templateモードの従来値0も維持する
-            // Preserve every explicit value including zero, as well as template mode's existing zero
-            var seed = settings.Seed ?? (settings.MapMode == WorldMapMode.Generated ? DefaultGeneratedWorldProvisioner.DefaultGeneratedSeed : 0);
-
-            // ワールドディレクトリをDI構築前に整備する（無ければ生成/テンプレートコピー）
-            // Provision the world directory before DI container construction
-            WorldProvisioner.EnsureWorld(new WorldProvisionSettings(
-                worldDataDirectory, settings.ServerDataDirectory, settings.MapMode, seed));
-
-            // 共有キャッシュは現在のワールド1つ分だけ残す。テストはEnsureWorldを直接呼ぶのでここ(製品起動)にだけ置く
-            // Keep the shared cache to the current world alone; tests call EnsureWorld directly, so this lives only on the product boot path
-            // templateのIDは作成時刻由来で毎回変わりキャッシュも持たないため、template起動で生成済みキャッシュを消さない
-            // A template id derives from createdAt and owns no cache, so a template boot must not wipe the generated caches
-            var terrainMeta = TerrainTransferMetaReader.Read(worldDataDirectory);
-            if (terrainMeta is GeneratedTerrainTransferMeta generatedMeta)
-                StaleWorldCacheCollector.Collect(GameSystemPaths.WorldCacheDirectory, generatedMeta.WorldId);
-
-            var serverDirectory = settings.ServerDataDirectory;
-            var options = new MoorestechServerDIContainerOptions(serverDirectory)
-                {
-                    worldDataDirectory = worldDataDirectory,
-                };
-
-            Debug.Log("データをロードします　パス:" + serverDirectory);
-            
-            var (packet, serviceProvider) = new MoorestechServerDIContainerGenerator().Create(options);
-            
-            //マップをロードする
-            serviceProvider.GetService<IWorldSaveDataLoader>().LoadOrInitialize();
-
-            //初期ロード完了後にIPostLoadInitializableのLoadを一括で呼ぶ。ロード中の設置等はクライアントへ配信しない
-            //Invoke Load on all IPostLoadInitializable implementations after initial load, so load-time placements etc. are not sent to clients
-            foreach (var postLoadInitializable in serviceProvider.GetServices<IPostLoadInitializable>()) postLoadInitializable.Load();
-
-            //modのOnLoadコードを実行する
-            var modsResource = serviceProvider.GetService<ModsResource>();
-            modsResource.Mods.ToList().ForEach(
-                m => m.Value.ModEntryPoints.ForEach(
-                    e =>
-                    {
-                        Debug.Log("Modをロードしました modId:" + m.Value + " className:" + e.GetType().Name);
-                        e.OnLoad(new ServerModEntryInterface(serviceProvider, packet));
-                    }));
-            
-            
-            //サーバーの起動とゲームアップデートの開始
-            var cancellationToken = new CancellationTokenSource();
-            var token = cancellationToken.Token;
-            var connectionRegistry = (PlayerConnectionRegistry)serviceProvider.GetService<IPlayerConnectionChecker>();
-            var eventProtocolProvider = serviceProvider.GetService<EventProtocolProvider>();
-            var tickEndPacketQueue = serviceProvider.GetRequiredService<TickEndPacketQueue>();
-            var receivedPacketLog = serviceProvider.GetRequiredService<ReceivedPacketLog>();
-
-            // 起動設定のポートで待ち受けソケットをバインドする
-            // Bind the listen socket with the configured port
-            var listener = ServerListenAcceptor.CreateBoundListener(settings.Port);
-
-            // パケットキュープロセッサを作成してメインスレッドで処理を開始
-            var connectionUpdateThread = new Thread(() =>
-                ServerListenAcceptor.StartServer(listener, packet, connectionRegistry, eventProtocolProvider, tickEndPacketQueue, receivedPacketLog, token));
-            connectionUpdateThread.Name = "[moorestech]通信受け入れスレッド";
-            connectionUpdateThread.Start();
-            
-            if (settings.AutoSave)
-            {
-                Task.Run(() => AutoSaveSystem.AutoSave(serviceProvider.GetRequiredService<IWorldSaveRequest>(), token), cancellationToken.Token);
-            }
-
-            // 常時記録はtickスレッド開始前に開始し、開始tickの次から区間を切る
-            // Start always-on capture before the tick thread so the first segment begins right after the start tick
-            var worldSnapshotRing = serviceProvider.GetRequiredService<WorldSnapshotRing>();
-            if (AlwaysOnCaptureSetting.Current.IsEnabled)
-            {
-                // 運転値は常時記録が持つ。起動側が値を決めると、意味が変わったときここだけ古い値のまま残る
-                // The operating values belong to always-on capture; deciding them here would leave this one caller stale when their meaning changes
-                worldSnapshotRing.Start(null, null, null);
-            }
-            else
-            {
-                // 無音で記録しないと、報告が空で届いたときに原因がどこにも残らない
-                // Skipping silently would leave no trace of why a report arrived empty
-                Debug.Log($"[ServerInstanceManager] スナップショットリングを開始しません: {AlwaysOnCaptureSetting.DisabledReason}");
-            }
-            // アップデートのタスク名を設定
-            var gameUpdateThread = new Thread(() => ServerGameUpdater.StartUpdate(token));
-            gameUpdateThread.Name = "[moorestech]ゲームアップデートスレッド";
-            gameUpdateThread.Start();
-
-            return (connectionUpdateThread, gameUpdateThread, cancellationToken, listener, serviceProvider.GetRequiredService<WorldSaveCoordinator>(), worldSnapshotRing);
-        }
-        
-        
         public void Dispose()
         {
             try
@@ -190,25 +67,27 @@ namespace Server.Boot
             }
             try
             {
-                _connectionUpdateThread?.Abort();
+                WaitForThread(_connectionUpdateThread, "通信受け入れ");
             }
             catch (Exception e)
             {
                 Debug.LogException(e);
             }
-            // ネットワーク境界のソケット破棄。閉じ損ねるとポートが解放されないため隔離して確実に閉じる
-            // Socket teardown at the network boundary; isolate so the port is always released
+            try
+            {
+                WaitForThread(_gameUpdateThread, "ゲーム更新");
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
+            // AcceptとCloseを競合させず、両thread停止後に通信資源を閉じる
+            // Close network resources after both threads stop so Accept never races Close
+            // ソケット破棄は外部境界。例外を隔離して記録し、保存と記録資源の後始末を継続する
+            // Socket disposal is an external boundary; isolate and log failures so save and capture cleanup can continue
             try
             {
                 _listener?.Close();
-            }
-            catch (Exception e)
-            {
-                Debug.LogException(e);
-            }
-            try
-            {
-                _gameUpdateThread?.Abort();
             }
             catch (Exception e)
             {
@@ -254,6 +133,17 @@ namespace Server.Boot
             {
                 Debug.LogException(e);
             }
+
+            #region Internal
+
+            static void WaitForThread(Thread thread, string label)
+            {
+                if (thread == null || !thread.IsAlive) return;
+                if (!thread.Join(TimeSpan.FromSeconds(5)))
+                    Debug.LogError($"{label}threadがcancel後5秒で停止しませんでした。終了処理完了後もthreadが残る可能性があります");
+            }
+
+            #endregion
         }
     }
 }

@@ -40,11 +40,44 @@ namespace Client.Game.Common
         // Holds OS-originated quit requests (closing the window) and routes them through the awaiting exit; otherwise the process dies before the flush
         public static void InstallApplicationQuitDeferral()
         {
-            // Editorの終了要求を止めるとEditor自体が閉じられなくなる。Editorでの停止はUnawaitableExitで記録する
-            // Holding the Editor's own quit would keep the Editor from closing; an Editor stop is recorded as UnawaitableExit instead
+            // Editorの終了要求を止めるとEditor自体が閉じられなくなる。Editorでの停止は待たずに InstallUnannouncedExitNotice の保険が記録する
+            // Holding the Editor's own quit would keep the Editor from closing; an Editor stop is instead recorded, without waiting, by InstallUnannouncedExitNotice
             if (Application.isEditor || _quitDeferralInstalled) return;
             _quitDeferralInstalled = true;
             Application.wantsToQuit += OnApplicationWantsToQuit;
+        }
+
+        // 終了の意思表明が誰からも出ないまま終わる経路の保険。シーンの生存に依らず初期化途中やゲート待ちも扱う
+        // Catch undeclared exits independently of scene lifetime, including stops during initialization or start gates
+        public static void InstallUnannouncedExitNotice()
+        {
+            // 起動シーケンスは再入する（Editorの再生し直し）。重複購読を機械的に防ぐ
+            // The boot sequence re-enters (an Editor replay), so a duplicate subscription is ruled out mechanically
+            Application.quitting -= OnApplicationQuitting;
+            Application.quitting += OnApplicationQuitting;
+
+            #region Internal
+
+            static void OnApplicationQuitting()
+            {
+                NotifyUnannouncedExit();
+            }
+
+            #endregion
+        }
+
+        // 正規の終了口を通った終了には介入せず、終了処理中の停止の検知を保つ
+        // Leave declared exits alone to preserve detection of stalls during their shutdown
+        internal static bool NotifyUnannouncedExit()
+        {
+            if (_fired)
+            {
+                Debug.Log("終了の意思表明は既に通知済みのため、保険の終了通知は行いません");
+                return false;
+            }
+            Debug.Log("終了の意思表明が無いまま終了要求が来たため、待てない終了として記録します（エディタのPlay停止・OS由来の終了）");
+            FireGameShutdown(GameShutdownReason.UnawaitableExit);
+            return true;
         }
 
         private static bool OnApplicationWantsToQuit()
@@ -102,47 +135,9 @@ namespace Client.Game.Common
 
             // 戻り値は1つだけなので、畳んで消える失敗は捨てる前にログへ残す
             // Only one value can come back, so the failures that folding erases are logged before they go
-            var aggregated = AggregateByPriority(results);
-            ReportMaskedFailures(results, aggregated);
+            var aggregated = ShutdownFlushResultAggregator.AggregateAndReport(results);
             _onShutdownFlushed.OnNext(aggregated);
             return aggregated;
-        }
-
-        private static ShutdownFlushResult AggregateByPriority(ShutdownFlushResult[] results)
-        {
-            // 諦めは上限到達より重い。世界が保存されていない事実は待ち切れなかった事実に埋もれてはいけない
-            // A give-up outweighs a timeout: an unsaved world must not be hidden behind "did not finish waiting"
-            foreach (var result in results)
-                if (result == ShutdownFlushResult.SaveAbandoned)
-                    return ShutdownFlushResult.SaveAbandoned;
-
-            // 書き出しが失敗した参加者は「書けた」と名乗れない。正常値のNothingFlushedへ潰すと、保存されていない世界がFlushedとして閉じる
-            // A participant whose flush failed cannot claim success; folding it into the normal NothingFlushed would close an unsaved world as Flushed
-            foreach (var result in results)
-                if (result == ShutdownFlushResult.FlushFailed)
-                    return ShutdownFlushResult.FlushFailed;
-
-            // 1つでも書き切れていなければ全体を上限到達として返す
-            // Report the whole flush as timed out if any single participant failed to finish
-            foreach (var result in results)
-                if (result == ShutdownFlushResult.FlushTimedOut)
-                    return ShutdownFlushResult.FlushTimedOut;
-            return ShutdownFlushResult.Flushed;
-        }
-
-        // 例外と上限到達が同時に起きると、戻り値に残らなかった側は QuitApplicationAsync のログにも出ない。種類ごとに1度だけ事実を残す
-        // When an exception and a timeout happen together, the one the return value dropped never reaches QuitApplicationAsync's log, so each kind is stated once here
-        private static void ReportMaskedFailures(ShutdownFlushResult[] results, ShutdownFlushResult aggregated)
-        {
-            var reported = new List<ShutdownFlushResult>();
-            foreach (var result in results)
-            {
-                if (result == aggregated || result == ShutdownFlushResult.Flushed) continue;
-                if (result == ShutdownFlushResult.NothingFlushed || result == ShutdownFlushResult.AlreadyShutdown) continue;
-                if (reported.Contains(result)) continue;
-                reported.Add(result);
-                Debug.LogError($"終了時の書き出しで別の失敗も同時に起きています（戻り値は {aggregated} に畳まれます）: {result}");
-            }
         }
 
         // アプリを終了する唯一の口。書き出しを待ってから落とす

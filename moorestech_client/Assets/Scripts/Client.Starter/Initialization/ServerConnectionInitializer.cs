@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Game.Common;
+using Client.Game.InGame.BugReport.LastSession;
 using Client.Network;
 using Client.Network.API;
 using Client.Network.Settings;
@@ -109,6 +110,7 @@ namespace Client.Starter.Initialization
                 await UniTask.WaitUntil(() => serverStarter.BoundPort != 0, PlayerLoopTiming.Update, boundPortWait.Token)
                     .Timeout(TimeSpan.FromSeconds(60), taskCancellationTokenSource: boundPortWait);
                 var localServerProperties = new ConnectionServerProperties(_proprieties.ServerIp, serverStarter.BoundPort);
+                LocalSnapshotCaptureRegistration.RecordStartedLocalServer();
 
                 // ローカル接続も同じくタイムアウトでタスクとソケットを残さない
                 // The local connection likewise leaves no task or socket behind on timeout

@@ -1,33 +1,32 @@
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.Game.InGame.Playtest.Progress.Storage;
-using Game.Paths;
 
 namespace Client.Starter.Playtest
 {
     /// <summary>
-    /// 前回セッションの印を読む処理を起動時の1箇所へ束ねる（ADR 0060 裁定5）。消費と書き手の設置がここで並ぶ。
-    /// Bundles everything that reads the previous session's marks into one boot-time spot (ADR 0060 adjudication 5), where consumption and writer installation sit together.
+    /// 終了印を同期設置し、前回資料を後で退避する。
+    /// Installs exit marks now and salvages prior evidence later.
     /// </summary>
     public static class PreviousSessionStartupTasks
     {
-        public static void RunAtStartup(bool collectsPlaytestRecords, bool isRemoteConnection, string worldDirectory)
+        public static void BeginCurrentSessionMarks()
         {
-            // この起動のセッション名を最初に確定する。退避は「今回以外」を畳み、書き手は全員この名前の下へ書く（F05）
-            // This boot's session name is fixed first: the salvage folds everything else, and every writer writes under this name (F05)
+            // 最初のawait前に識別と書き手を揃え、ホスト未起動でも停止を記録する
+            // Establish identity and writer before the first await so stops are recorded even without a host
             ProcessSessionScope.BeginNewSession();
+            CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId(), ProcessSessionScope.CurrentSessionName);
+        }
 
+        public static void RunAtStartup(bool collectsPlaytestRecords)
+        {
             // 内蔵サーバーのスナップショットリングと録画リングが上書きを始める前に、前回セッションの記録を退避する
             // Salvage the previous session's records before the embedded snapshot ring and the recording ring start overwriting
-            var artifacts = PreviousSessionSalvage.RunAtStartup(isRemoteConnection, WorldDataDirectory.FromWorldRoot(worldDirectory).SnapshotDirectory);
+            var artifacts = PreviousSessionSalvage.RunAtStartup();
 
-            // 記録を集めない起動は今回の印を書かず、前回の進行記録も回収しない。回収は次に集める起動が行う（理由はPlaytestRecordCollectionがログ済み）
-            // A boot that collects nothing writes no marks of its own and leaves the leftover progress records to the next collecting boot (PlaytestRecordCollection logged why)
+            // 終了印と収集同意は独立。収集しない起動は前回の進行記録を次の収集起動に残す（理由はPlaytestRecordCollectionがログ済み）
+            // Exit marks are independent of collection consent; a non-collecting boot leaves leftover progress for the next collecting boot (PlaytestRecordCollection logged why)
             if (!collectsPlaytestRecords) return;
-
-            // 正常終了マーカーの書き手を、消費と同じこの1箇所で据える。ロード中やゲート表示中の終了が異常終了に化ける窓を開けない
-            // The clean-exit writer is installed at the same single spot that consumes the marks, leaving no window where a load-time or gate-time exit reads as a crash
-            CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId(), ProcessSessionScope.CurrentSessionName);
 
             // 前回の書きかけの進行記録も、印を読む同じ1箇所で畳む。終わり方は残骸のpidごとに、消費した印の結果で決める（F19）
             // The half-written progress records are folded at the same single spot; each leftover's ending is decided per pid from the consumed marks (F19)

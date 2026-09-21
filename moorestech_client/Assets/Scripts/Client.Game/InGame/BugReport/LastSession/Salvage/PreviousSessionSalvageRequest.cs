@@ -19,8 +19,6 @@ namespace Client.Game.InGame.BugReport.LastSession
     // The salvage's input; liveness and marker consumption happen in RunAtStartup, and only their results arrive here
     public sealed class PreviousSessionSalvageRequest
     {
-        public bool IsRemoteConnection;
-        public string WorldSnapshotDirectory;
         public string LastSessionDirectory;
         public List<PreviousProcessSession> PreviousSessions = new();
 

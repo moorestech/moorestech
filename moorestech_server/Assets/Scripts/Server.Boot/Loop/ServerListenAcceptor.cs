@@ -37,10 +37,11 @@ namespace Server.Boot.Loop
             ReceivedPacketLog receivedPacketLog,
             CancellationToken token)
         {
-            Debug.Log($"moorestechサーバー 起動完了 port:{((IPEndPoint)listener.LocalEndPoint).Port}");
-
-            while (true)
+            // 接続が来なくてもcancelを観測し、破棄側のJoinを完了させる
+            // Observe cancellation without an incoming connection so disposal can join the thread
+            while (!token.IsCancellationRequested)
             {
+                if (!listener.Poll(100_000, SelectMode.SelectRead) || token.IsCancellationRequested) continue;
                 //通信の確立
                 var client = listener.Accept();
                 Debug.Log("接続確立");
