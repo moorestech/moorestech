@@ -5,10 +5,12 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.Context;
 using Client.Game.InGame.Control;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
+using Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar.Cost;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Game.InGame.Train.Unit;
 using Client.Game.InGame.Train.View.Object.Core;
 using Client.Game.InGame.Train.View.Object.Material;
+using Client.Game.InGame.UI.Inventory.Main;
 using Client.Game.InGame.UI.Tooltip;
 using Client.Input;
 using Cysharp.Threading.Tasks;
@@ -23,17 +25,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
         private readonly TrainCarPreviewController _previewController;
         private readonly TrainCarObjectDatastore _trainCarObjectDatastore;
         private readonly TrainUnitClientCache _trainUnitClientCache;
+        private readonly ILocalPlayerInventory _localPlayerInventory;
 
         public TrainCarPlaceSystem(
             ITrainCarPlacementDetector detector,
             TrainCarPreviewController previewController,
             TrainCarObjectDatastore trainCarObjectDatastore,
-            TrainUnitClientCache trainUnitClientCache)
+            TrainUnitClientCache trainUnitClientCache,
+            ILocalPlayerInventory localPlayerInventory)
         {
             _detector = detector;
             _previewController = previewController;
             _trainCarObjectDatastore = trainCarObjectDatastore;
             _trainUnitClientCache = trainUnitClientCache;
+            _localPlayerInventory = localPlayerInventory;
         }
 
         public override void Enable()
@@ -79,18 +84,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             // Request current-frame highlight for existing trains that are snap targets
             RequestPlacementOverlapHighlight(hit.OverlapTrainUnitInstanceIds);
 
+            // 建設コスト不足は幾何の可否と合成して色へ反映する（サーバーは不足で拒否する）
+            // Fold the construction cost shortage into the geometric placeability for the color (the server rejects on shortage)
+            var materialShortages = TrainCarConstructionCostShortage.Calculate(target.TrainCarGuid, _localPlayerInventory);
+            var isPlaceable = hit.IsPlaceable && materialShortages.Count == 0;
+
             // railpositionからpreviewを描画する
             // Render the preview directly from railposition
             var railPosition = hit.RailPosition;
-            var hasPreview = railPosition != null && _previewController.ShowPreview(target.TrainCarGuid, railPosition, hit.IsPlaceable);
+            var hasPreview = railPosition != null && _previewController.ShowPreview(target.TrainCarGuid, railPosition, isPlaceable);
             _previewController.SetActive(hasPreview);
-            if (!hit.IsPlaceable)
-            {
-                // 候補が立たない理由をツールチップへ積む
-                // Push why no placement candidate holds into the tooltip
-                feedback.Add(new TooltipLine(TrainCarPlacementBlockReasonTooltipKey.ToKey(hit.BlockReason)));
-                return;
-            }
+
+            // 候補が立たない理由と不足素材をツールチップへ積み、どちらかがあれば送らない
+            // Push why no candidate holds and the short materials into the tooltip; either one blocks the send
+            if (!hit.IsPlaceable) feedback.Add(new TooltipLine(TrainCarPlacementBlockReasonTooltipKey.ToKey(hit.BlockReason)));
+            feedback.AddMaterialShortages(materialShortages);
+            if (!isPlaceable) return;
 
             // クリック時に選択中の車両Guidで設置リクエストを送る
             // Send the placement request with the selected car guid on click
