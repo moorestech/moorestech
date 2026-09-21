@@ -81,6 +81,7 @@ namespace Client.Starter.Registration
         private static void RegisterPlacement(ContainerBuilder builder)
         {
             builder.Register<IPlacementGroundFollower, PlacementGroundFollowStep>(Lifetime.Singleton);
+            builder.Register<PlacementHeightOffset>(Lifetime.Singleton);
             builder.Register<CommonBlockPlaceSystem>(Lifetime.Singleton);
             builder.Register<BeltConveyorPlaceSystem>(Lifetime.Singleton);
             builder.Register<ITrainCarPlacementDetector, TrainCarPlacementDetector>(Lifetime.Singleton);

@@ -6,24 +6,34 @@ using UnityEngine;
 namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
 {
     /// <summary>
-    /// ドラッグ中のセッションと高さオフセットを保持
-    /// Holds the running drag session and the height offset
+    /// ドラッグセッションを保持。高さは共有PlacementHeightOffsetを読み書きするだけで保持しない
     /// 終了時に高さは開始値へ戻す
+    /// Holds the drag session; the height offset is only read/written via the shared PlacementHeightOffset, not held here
     /// Ending a drag restores the starting height
     /// </summary>
     public class CommonBlockPlaceDragState
     {
-        public int HeightOffset { get; private set; }
+        public int HeightOffset => _heightOffset.Value;
 
         // 左ドラッグ設置は押下から解放までが目に見える進行中操作になる
         // A left-drag placement is a visible in-progress operation from press to release
         public bool IsDragging => _session != null;
 
+        private readonly PlacementHeightOffset _heightOffset;
         private PlacementDragSession _session;
-        private BlockId? _previousSelectedBlockId;
 
+        public CommonBlockPlaceDragState(PlacementHeightOffset heightOffset)
+        {
+            _heightOffset = heightOffset;
+        }
+
+        // 進行中ドラッグを畳む。ドラッグ中に上げた高さは一時的なものなので開始値へ戻す
+        // Folds an in-progress drag; the height raised during it is temporary, so it returns to the starting value
         public void ClearDrag()
         {
+            if (_session == null) return;
+
+            _heightOffset.Restore(_session.StartHeightOffset);
             _session = null;
         }
 
@@ -34,25 +44,18 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             else if (HybridInput.GetKeyDown(KeyCode.E)) AdjustHeightOffset(1);
         }
 
-        // 高さオフセットを動かす唯一の入口。入力の解釈と値の保持を分ける
-        // The only entry that moves the height offset, keeping input interpretation apart from the stored value
+        // 入力の解釈だけを担い、高さの規則と保持は共有の正へ委ねる
+        // Interprets input only; the height rule and the stored value belong to the shared source
         public void AdjustHeightOffset(int delta)
         {
-            HeightOffset += delta;
+            _heightOffset.Adjust(delta);
         }
 
-        // 選択ブロック変更時に連続設置状態をリセット
-        // Resets the drag session when the selected block changes
+        // 持ち替え判定は共有の正が持つ。こちらは自分のドラッグを畳むだけ
+        // The shared source owns the block-switch check; this only folds its own drag
         public void SyncSelectedBlock(BlockId blockId)
         {
-            if (_previousSelectedBlockId != blockId)
-            {
-                // 切替後の高さは常に地表基準に戻す
-                // A block switch always returns the height to ground level
-                _session = null;
-                HeightOffset = 0;
-            }
-            _previousSelectedBlockId = blockId;
+            if (_heightOffset.SyncSelectedBlock(blockId)) _session = null;
         }
 
         public void BeginDrag(Vector3Int startCell, PlacementHitSurfaceKind surfaceKind)
@@ -108,8 +111,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             // Ignore releases without a registered press, so a leaked build-menu click release never rewrites the height
             if (_session == null) return false;
 
-            HeightOffset = _session.StartHeightOffset;
-            _session = null;
+            ClearDrag();
             return true;
         }
     }

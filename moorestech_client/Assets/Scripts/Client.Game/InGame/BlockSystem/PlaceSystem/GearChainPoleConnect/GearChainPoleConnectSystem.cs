@@ -35,6 +35,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.GearChainPoleConnect
         // 歯車チェーンツールはスクロールを読まないため装備切替を妨げない
         // The gear chain tool never reads scroll, so it must not block equipment switching
         public bool OwnsWheelInput => false;
+        public bool UsesPlacementHeight => false;
 
         public GearChainPoleConnectSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, LocalPlayerInventoryController localPlayerInventory, BlockGameObjectDataStore blockGameObjectDataStore, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery walletQuery)
         {

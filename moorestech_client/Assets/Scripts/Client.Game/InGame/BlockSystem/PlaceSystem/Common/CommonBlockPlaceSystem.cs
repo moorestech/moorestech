@@ -48,13 +48,14 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
         private readonly IChainGroundQuery _chainGroundQuery;
         private readonly ChainPlacementPreviewPart _chainPlacementPreviewPart;
 
-        private readonly CommonBlockPlaceDragState _dragState = new();
+        private readonly CommonBlockPlaceDragState _dragState;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState, ChainPlacePreviewState chainPlacePreviewState, IChainGroundQuery chainGroundQuery)
+        public CommonBlockPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, IGameUnlockStateData gameUnlockStateData, ConstructionWalletQuery constructionWalletQuery, MapVeinAabbRegistry veinAabbRegistry, IPlacementGroundFollower groundFollower, VeinRestrictedPlacementState veinRestrictedPlacementState, ChainPlacePreviewState chainPlacePreviewState, IChainGroundQuery chainGroundQuery, PlacementHeightOffset placementHeightOffset)
         {
+            _dragState = new CommonBlockPlaceDragState(placementHeightOffset);
             _mainCamera = mainCamera;
             _groundFollower = groundFollower;
             _previewBlockController = previewBlockController;
@@ -70,6 +71,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             _chainPlacementPreviewPart = new ChainPlacementPreviewPart(chainPlacePreviewState, _blockPlacePointCalculator, chainGroundQuery);
         }
         
+        // Q/Eで動かす設置高さを読む系
+        // A system that reads the placement height moved by Q/E
+        public override bool UsesPlacementHeight => true;
+
         public override void Enable()
         {
             _dragState.ClearDrag();
@@ -94,7 +99,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
                 HideConnectPreviews();
             }
 
-            // 連続設置状態をリセット
+            // 連続設置状態をリセット。高さは持ち替えまで保つ
+            // Reset the continuous placement state; the height stays until a block switch
             _dragState.ClearDrag();
             _currentPlaceInfos.Clear();
         }

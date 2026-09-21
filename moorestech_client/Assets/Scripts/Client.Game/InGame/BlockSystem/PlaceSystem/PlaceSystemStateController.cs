@@ -1,4 +1,5 @@
 using System;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using UniRx;
@@ -9,6 +10,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
     {
         private readonly IPlaceSystemSelector _placeSystemSelector;
         private readonly IPlacementFeedbackPresenter _feedbackPresenter;
+        private readonly PlacementHeightOffset _placementHeightOffset;
         private readonly PlacementFeedback _feedback = new();
 
         private IPlaceSystem _currentPlaceSystem;
@@ -32,10 +34,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
 
         // 表示面へ触るのは初期化ではなくManualUpdate/Disableの仕事。ctorはフィールドを埋めるだけにする
         // Touching the view is ManualUpdate/Disable's job, not construction; the ctor only fills fields
-        public PlaceSystemStateController(IPlaceSystemSelector placeSystemSelector, IPlacementFeedbackPresenter feedbackPresenter)
+        public PlaceSystemStateController(IPlaceSystemSelector placeSystemSelector, IPlacementFeedbackPresenter feedbackPresenter, PlacementHeightOffset placementHeightOffset)
         {
             _placeSystemSelector = placeSystemSelector;
             _feedbackPresenter = feedbackPresenter;
+            _placementHeightOffset = placementHeightOffset;
 
             _currentPlaceSystem = _placeSystemSelector.EmptyPlaceSystem;
             CurrentOrigin = PlacementOrigin.NonHotbar;
@@ -98,6 +101,10 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem
                 _currentPlaceSystem.Disable();
                 _currentPlaceSystem = nextPlaceSystem;
                 _currentPlaceSystem.Enable();
+
+                // 高さを持たない系へ移ったらHUDの高さも地表へ畳む。表示だけ前の系の高さが残るのを防ぐ
+                // Moving to a system without height folds the HUD height to ground, so no stale height is shown
+                if (!_currentPlaceSystem.UsesPlacementHeight) _placementHeightOffset.ResetToGround();
             }
 
             _currentPlaceSystem.ManualUpdate(updateContext);

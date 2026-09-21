@@ -34,19 +34,24 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
         private readonly Camera _mainCamera;
         private readonly BeltConveyorPlaceRunBuilder _placeRunBuilder;
 
-        private readonly CommonBlockPlaceDragState _dragState = new();
+        private readonly CommonBlockPlaceDragState _dragState;
 
         private BlockDirection _currentBlockDirection = BlockDirection.North;
         private List<PlaceInfo> _currentPlaceInfos = new();
 
-        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery)
+        public BeltConveyorPlaceSystem(Camera mainCamera, IPlacementPreviewBlockGameObjectController previewBlockController, BlockGameObjectDataStore blockGameObjectDataStore, ILocalPlayerInventory localPlayerInventory, ConstructionWalletQuery constructionWalletQuery, PlacementHeightOffset placementHeightOffset)
         {
+            _dragState = new CommonBlockPlaceDragState(placementHeightOffset);
             _mainCamera = mainCamera;
             _previewBlockController = previewBlockController;
             _localPlayerInventory = localPlayerInventory;
             _constructionWalletQuery = constructionWalletQuery;
             _placeRunBuilder = new BeltConveyorPlaceRunBuilder(blockGameObjectDataStore, _dragState);
         }
+
+        // Q/Eで動かす設置高さを読む系
+        // A system that reads the placement height moved by Q/E
+        public override bool UsesPlacementHeight => true;
 
         public override void Enable()
         {
@@ -69,7 +74,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Keep preview in debug mode
             if (!DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) _previewBlockController.SetActive(false);
 
-            // 連続設置状態をリセット
+            // 連続設置状態をリセット。高さは持ち替えまで保つ
+            // Reset the continuous placement state; the height stays until a block switch
             _dragState.ClearDrag();
             _currentPlaceInfos.Clear();
         }

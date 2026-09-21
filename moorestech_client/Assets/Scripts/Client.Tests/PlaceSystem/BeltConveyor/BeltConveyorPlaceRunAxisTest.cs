@@ -40,7 +40,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void 起点セルへ戻すとBuildが軸を引き直す()
         {
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(ForUnitTestModBlockId.GearBeltConveyor);
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, dragState);
             dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);
 
@@ -73,7 +73,7 @@ namespace Client.Tests.PlaceSystem.BeltConveyor
         public void ドラッグ終了で軸も一緒に捨てられる()
         {
             var holdingBlock = BeltConveyorHoldingBlock.Resolve(ForUnitTestModBlockId.GearBeltConveyor);
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var runBuilder = new BeltConveyorPlaceRunBuilder(_dataStore, dragState);
 
             dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);

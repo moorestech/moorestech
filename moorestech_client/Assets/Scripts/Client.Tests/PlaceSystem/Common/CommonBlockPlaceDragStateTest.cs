@@ -15,7 +15,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下未登録の解放は設置送信へ進まず高さも書き換えない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
 
             Assert.IsFalse(dragState.EndDrag());
             Assert.AreEqual(0, dragState.HeightOffset);
@@ -24,7 +24,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下済みの解放はドラッグ終了として成立し高さを開始値へ戻す()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
 
             Assert.IsTrue(dragState.EndDrag());
@@ -34,7 +34,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 同じ解放を二度受けても二度目は成立しない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
 
             Assert.IsTrue(dragState.EndDrag());
@@ -44,7 +44,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下から解放までが進行中のドラッグとして数えられる()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
 
             Assert.IsFalse(dragState.IsDragging);
 
@@ -58,7 +58,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下位置は開始点として返り解放後は現在位置へ戻る()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var cursorCell = new Vector3Int(5, 0, 5);
 
             Assert.AreEqual(cursorCell, dragState.ResolveDragStartCell(cursorCell));
@@ -73,7 +73,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 別ブロックへ切替えると高さオフセットが0へ戻る()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.SyncSelectedBlock(new BlockId(1));
             dragState.AdjustHeightOffset(5);
 
@@ -85,7 +85,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 同じブロックの再選択では高さオフセットが保たれる()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.SyncSelectedBlock(new BlockId(1));
             dragState.AdjustHeightOffset(5);
 
@@ -97,7 +97,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void ClearDragを挟んでも同一ブロックなら高さオフセットは保たれる()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.SyncSelectedBlock(new BlockId(1));
             dragState.AdjustHeightOffset(5);
 
@@ -112,7 +112,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void ドラッグ中に上げた高さは解放で開始値へ戻る()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.SyncSelectedBlock(new BlockId(1));
             dragState.AdjustHeightOffset(2);
             dragState.BeginDrag(new Vector3Int(0, 0, 0), PlacementHitSurfaceKind.Ground);
@@ -125,7 +125,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 解放フレームはドラッグを畳み次の列は現在位置から始まる()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var cursorCell = new Vector3Int(8, 2, 3);
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
             dragState.AdjustHeightOffset(2);
@@ -140,7 +140,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 送信できない位置で離してもドラッグを畳み送信しない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
 
             // 空や距離外で離したフレームでも畳む。残ると押していないのに古い開始点から列が伸びる
@@ -153,7 +153,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押している間は開始点と高さを保ち送信へ進まない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var startCell = new Vector3Int(1, 2, 3);
             dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
             dragState.AdjustHeightOffset(2);
@@ -168,7 +168,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void プレビュー維持デバッグ中の解放は列を畳まず送信しない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var startCell = new Vector3Int(1, 2, 3);
             dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
 
@@ -181,7 +181,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下未登録の解放は送信へ進まない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
 
             Assert.IsFalse(dragState.TryConsumeSendableRelease(true, true, false));
         }
