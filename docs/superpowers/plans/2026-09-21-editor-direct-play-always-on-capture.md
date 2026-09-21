@@ -347,12 +347,12 @@ namespace Client.Starter.Editor
 
 前提: 画面ロック中は uloop が無言ハングする。別 worktree の Unity が PlayMode 中でないこと（ポート11564固定）。
 
-- [ ] **Step 0: 残留印の掃除** — 直前の無人テストが開始ゲートへ届かずに落ちていると印が残り、Step 1 が無人扱いになって空振りする。`uloop execute-dynamic-code` で `Client.Game.InGame.BugReport.Playtest.PlaytestStartGateBypass.UnattendedReason();` を1回呼んで読み捨てる（戻り値が非 null だったら残留していた旨を bd note に書く）。
-- [ ] **Step 1: 有人の直Play** — GameInitializer シーンを開いた状態で `uloop clear-console` → `uloop control-play-mode --project-path ./moorestech_client --action Play`（印を立てない素のPlay＝人のPlayと同じ扱い・ADR 0066 裁定2）。MainGame 到達後に `uloop get-logs --project-path ./moorestech_client --log-type Log`。
+- [x] **Step 0: 残留印の掃除** — 直前の無人テストが開始ゲートへ届かずに落ちていると印が残り、Step 1 が無人扱いになって空振りする。`uloop execute-dynamic-code` で `Client.Game.InGame.BugReport.Playtest.PlaytestStartGateBypass.UnattendedReason();` を1回呼んで読み捨てる（戻り値が非 null だったら残留していた旨を bd note に書く）。
+- [x] **Step 1: 有人の直Play** — GameInitializer シーンを開いた状態で `uloop clear-console` → `uloop control-play-mode --project-path ./moorestech_client --action Play`（印を立てない素のPlay＝人のPlayと同じ扱い・ADR 0066 裁定2）。MainGame 到達後に `uloop get-logs --project-path ./moorestech_client --log-type Log`。
   合格: `常時記録 enabled:True` が1行以上あり、警告・拒否側の語 `開始しません`／`無効のため`／`有効にしません` が**0件**。続けて Error ログも引き、今回の変更由来の例外が無いこと。
-- [ ] **Step 2: バグ報告の中身** — 同じPlayの中でバグ報告を1件送る（Web UI のバグ報告。操作は unity-playmode-recorded-playtest スキルの references を参照）。`~/Library/Application Support/moorestech/BugReports/outbox/` の最新箱の `manifest.json` を読む。
+- [x] **Step 2: バグ報告の中身** — 同じPlayの中でバグ報告を1件送る（Web UI のバグ報告。操作は unity-playmode-recorded-playtest スキルの references を参照）。`~/Library/Application Support/moorestech/BugReports/outbox/` の最新箱の `manifest.json` を読む。
   合格: `missing` に `video`・`serverSnapshot` が**無い**（`steamId` は Steam 未起動なら残ってよい）。進行記録へ reportSent が追記されている。アップロードされず outbox に残るのは仕様（DeveloperMode）。Play を Stop する。
-- [ ] **Step 3: 無人起動** — `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestReportAndProgressTest|EditModeInPlayingTestUtilTest"`（ドメインリロードのエラーは45秒待って再試行）。
+- [x] **Step 3: 無人起動** — `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestReportAndProgressTest|EditModeInPlayingTestUtilTest"`（ドメインリロードのエラーは45秒待って再試行）。
   合格: 全件 PASS（無人でもゲートで停止しない＝印が消費されていない、明示 Enabled が潰れていない）。可能なら DSL シナリオも1本回し、ログに `無人起動のため直Playの常時記録を自動では有効にしません reason:unattendedBootMark` が出て `enabled:True` が出ないこと。
 - [ ] **Step 4: 記録** — 各ステップの実測（ログ行・manifest の missing）を `bd note moorestech-sdme "..."` へ。未確認が残ったら Task 5 (a) で起票する。
 
