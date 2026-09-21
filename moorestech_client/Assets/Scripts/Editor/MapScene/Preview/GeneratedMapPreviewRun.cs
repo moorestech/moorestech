@@ -31,9 +31,9 @@ namespace Client.MapScene.Editor
             _executed = true;
             cancellationToken.ThrowIfCancellationRequested();
 
-            // まずUIへ制御を返し、重い同期生成の前にもCloseを受け付ける
-            // Return control to the UI so Close can be processed before synchronous generation
-            await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+            // UIへ制御を返し、reload直前のCancelも次の更新を待たず終端へ伝える
+            // Return control to the UI and propagate cancellation before reload without waiting for another update
+            await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken, true);
             cancellationToken.ThrowIfCancellationRequested();
             _world = GeneratedMapPreviewWorld.Create(ServerDirectory.GetDirectory());
             ExpectedMapObjectCount = _world.Map.MapObjects.Count;
@@ -76,6 +76,8 @@ namespace Client.MapScene.Editor
             #endregion
         }
 
+        internal void RetainPendingContent() => _content?.RetainUntilDisposed();
+
         public void Dispose()
         {
             if (_disposed) return;
@@ -99,7 +101,7 @@ namespace Client.MapScene.Editor
                 // 配置値は再計算せず、50件ごとにEditorへ制御を返す
                 // Preserve placement values and return control to the editor after each fifty instances
                 if ((index + 1) % 50 != 0) continue;
-                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken, true);
                 cancellationToken.ThrowIfCancellationRequested();
             }
 

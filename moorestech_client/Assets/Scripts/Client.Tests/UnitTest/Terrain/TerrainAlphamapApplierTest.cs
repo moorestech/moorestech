@@ -108,9 +108,10 @@ namespace Client.Tests.UnitTest.Terrain
             var task = TerrainAlphamapApplier.ApplyAsync(_terrainData, terrainLayers, CreateTile(alphamap), cancellation.Token);
             Assert.That(task.Status, Is.EqualTo(UniTaskStatus.Pending));
 
-            // Stage終了と同じ順でキャンセルして破棄し、次の継続の例外を観測する
-            // Cancel then destroy in stage-close order and observe the next continuation's exception
+            // reload直前でも次の更新を待たず終端へ進み、所有者が安全に破棄できることを確かめる
+            // Verify termination without another update before reload so the owner can safely destroy its data
             cancellation.Cancel();
+            Assert.That(task.Status, Is.EqualTo(UniTaskStatus.Canceled));
             Object.DestroyImmediate(_terrainData);
             System.Exception thrown = null;
             yield return task.ToCoroutine(exception => thrown = exception);

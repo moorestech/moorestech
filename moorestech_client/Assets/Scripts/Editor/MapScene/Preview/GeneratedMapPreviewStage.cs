@@ -15,6 +15,7 @@ namespace Client.MapScene.Editor
         private readonly Dictionary<SceneView, ViewState> _views = new();
         private GeneratedMapPreviewRun _run;
         private CancellationTokenSource _cancellation;
+        private bool _executionPending;
         private Scene _mainActiveScene;
         public GeneratedMapPreviewState State { get; private set; } = GeneratedMapPreviewState.Empty;
         public string StatusText { get; private set; } = "生成ボタンでマップを表示します。";
@@ -55,14 +56,15 @@ namespace Client.MapScene.Editor
             _cancellation = new CancellationTokenSource();
             State = GeneratedMapPreviewState.Generating;
             StatusText = "生成中…";
-            GenerateAsync(_run, _cancellation.Token).Forget(OnGenerationException);
+            GenerateAsync(_run, _run.ExecuteAsync(scene, _cancellation.Token), _cancellation.Token).Forget(OnGenerationException);
         }
 
-        private async UniTask GenerateAsync(GeneratedMapPreviewRun run, CancellationToken cancellationToken)
+        private async UniTask GenerateAsync(GeneratedMapPreviewRun run, UniTask execution, CancellationToken cancellationToken)
         {
+            _executionPending = true;
             try
             {
-                await run.ExecuteAsync(scene, cancellationToken);
+                await execution;
                 cancellationToken.ThrowIfCancellationRequested();
                 StatusText = $"期待数: {run.ExpectedMapObjectCount} / 作成数: {run.CreatedMapObjectCount} / 欠損数: {run.MissingMapObjectCount}";
                 State = run.MissingMapObjectCount == 0 ? GeneratedMapPreviewState.Ready : GeneratedMapPreviewState.Failed;
@@ -77,7 +79,13 @@ namespace Client.MapScene.Editor
             {
                 // 閉じたStageをcontinuationで戻さず、例外時だけ再生成可能な失敗へ戻す
                 // Never reopen a closed stage from a continuation; only unfinished generation becomes retryable failure
-                if (State == GeneratedMapPreviewState.Generating)
+                _executionPending = false;
+                if (State is GeneratedMapPreviewState.Closing or GeneratedMapPreviewState.Closed)
+                {
+                    try { run.Dispose(); }
+                    finally { _cancellation.Dispose(); }
+                }
+                else if (State == GeneratedMapPreviewState.Generating)
                 {
                     State = GeneratedMapPreviewState.Failed;
                     StatusText = "生成を完了できませんでした。";
@@ -137,14 +145,15 @@ namespace Client.MapScene.Editor
             EditorApplication.playModeStateChanged -= OnPlayModeChanged;
             try
             {
-                // awaitの再開を禁止してから、root・TerrainData・ディスクの順で解放する
-                // Cancel resumptions before releasing the root, terrain data, and disk contents
+                // Cancelだけで終了を仮定せず、未完了の所有物は終端finallyまで別Sceneへ退避する
+                // Preserve pending resources in another scene until the terminal finally instead of assuming Cancel completed them
                 _cancellation?.Cancel();
-                _run?.Dispose();
+                if (_executionPending) _run.RetainPendingContent();
+                else _run?.Dispose();
             }
             finally
             {
-                _cancellation?.Dispose();
+                if (!_executionPending) _cancellation?.Dispose();
                 foreach (var view in _views.Values) view.Restore();
                 _views.Clear();
                 if (_mainActiveScene.IsValid() && _mainActiveScene.isLoaded) SceneManager.SetActiveScene(_mainActiveScene);

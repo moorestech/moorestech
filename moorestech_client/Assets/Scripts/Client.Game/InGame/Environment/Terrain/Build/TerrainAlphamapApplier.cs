@@ -50,9 +50,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                 alphamap.Planes[planeIndex].Span.CopyTo(alphamapTextures[planeIndex].GetRawTextureData<byte>().AsSpan());
                 alphamapTextures[planeIndex].Apply(false);
 
-                // 平面ごとに描画機会を返し、巨大なタイルでもロード画面を占有し続けない
-                // Yield after each plane so even a large tile does not keep the loading screen occupied
-                await UniTask.Yield();
+                // 平面ごとに制御を返し、Editor終了時は次の更新を待たずキャンセルを伝える
+                // Yield after each plane and propagate editor shutdown cancellation without waiting for another update
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken, true);
                 cancellationToken.ThrowIfCancellationRequested();
             }
 
