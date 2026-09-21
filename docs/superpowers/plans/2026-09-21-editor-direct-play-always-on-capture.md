@@ -63,7 +63,7 @@
 **Interfaces:**
 - Produces: `public static string PlaytestStartGateBypass.PeekUnattendedReason()` — 無人なら理由文字列、有人なら null。印を消費しない。既存の `UnattendedReason()` は「覗く＋消費」のまま戻り値不変。
 
-- [ ] **Step 1: 失敗するテストを書く** — `PlaytestStartGatesTest` の最後のテストの後ろへ追加する（SetUp/TearDown が印を読み捨てているのでそのまま使える）。
+- [x] **Step 1: 失敗するテストを書く** — `PlaytestStartGatesTest` の最後のテストの後ろへ追加する（SetUp/TearDown が印を読み捨てているのでそのまま使える）。
 
 ```csharp
         // 常時記録の判定は開始ゲートより先に走る。覗いただけで印が消えると、後から読むゲートが応答待ちで恒久停止する
@@ -81,9 +81,9 @@
         }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認** — Run: `uloop compile --project-path ./moorestech_client` / Expected: `PeekUnattendedReason` 未定義の CS0117。
+- [x] **Step 2: コンパイルして失敗を確認** — Run: `uloop compile --project-path ./moorestech_client` / Expected: `PeekUnattendedReason` 未定義の CS0117。
 
-- [ ] **Step 3: 実装** — `UnattendedReason()` を次の2メソッドへ置き換える（上のコメント3組は `UnattendedReason` の上に残す）。
+- [x] **Step 3: 実装** — `UnattendedReason()` を次の2メソッドへ置き換える（上のコメント3組は `UnattendedReason` の上に残す）。
 
 ```csharp
         public static string UnattendedReason()
@@ -130,8 +130,8 @@
         }
 ```
 
-- [ ] **Step 4: テスト** — Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestStartGatesTest"` / Expected: 全件 PASS（既存の消費系テストも含む）。
-- [ ] **Step 5: コミット** — `git add` 上記2ファイル → `git commit -m "feat: 無人起動の理由を消費せずに覗く入口を足す"`
+- [x] **Step 4: テスト** — Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestStartGatesTest"` / Expected: 全件 PASS（既存の消費系テストも含む）。
+- [x] **Step 5: コミット** — `git add` 上記2ファイル → `git commit -m "feat: 無人起動の理由を消費せずに覗く入口を足す"`
 
 ### Task 2: 直Playの常時記録有効化
 
