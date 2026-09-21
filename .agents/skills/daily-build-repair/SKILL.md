@@ -23,6 +23,12 @@ hooks:
 `repair-result.json` を書いて終える無人スキル。poller はこのスキルを起動するだけで、
 修復ロジック自体は持たない（`pr-independent-review` / `pr-adjudicated-apply` と同じ役割分担）。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **無人の関所** — Claude: frontmatter の `hooks:` が AskUserQuestion を deny し、`repair-result.json`（または `abort.json`）を書くまで Stop をブロックする。Codex: この関所は存在しない。質問せず既定表で進め、ターンを終える前に `$RUNDIR/repair-result.json` か `abort.json` の実在を自分で `ls` して確かめる（無いまま終えると poller が1200秒の無音で自壊判定し RESUME 予算を消費する）。
+
 ## HARD GATE
 
 **修復対象は日次ビルドを赤くしている原因のみ。** ついでのリファクタ・無関係な改善・

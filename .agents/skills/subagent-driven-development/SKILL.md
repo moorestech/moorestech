@@ -10,6 +10,16 @@ description: 現在のセッションで、独立したタスクからなる実�
 - **核となる原則:** 本体は実装を書かない。subagentにはセッション履歴を継承させず、必要なコンテキストだけをファイルで渡す。本体コンテキストは調整作業のために温存する
 - **継続実行:** タスクの合間に「続けてよいですか？」と確認しない。止まってよいのは解決できないBLOCKED・真に進行を妨げる曖昧さ・全タスク完了のみ
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **implementer / fix subagent** — Claude: `Agent`・`model: opus`・フォアグラウンド。Codex: `spawn_agent`・`model: gpt-6-astra`・`fork_turns: "none"`、直後に `wait_agent`（`timeout_ms` 600000 以上）で待つ。`gpt-5.6-luna` へ落とさない（2026-09-21: luna の implementer が Unity 待ちで 543 秒空転）。
+- **派遣前の Unity 疎通** — 両者共通だが Codex で特に漏れた: 派遣前に本体が `moores-wt status` で自分の worktree の Editor を確かめ、`uloop compile` が通ることを見てから渡す。`UNITY_NOT_REACHABLE` のまま派遣すると RED が実測されない。
+- **生存確認** — Claude: `ListAgents`。Codex: `list_agents`。`wait_agent` のタイムアウトは死亡ではない。
+- **最終レビューの起動** — Claude: `Skill` ツールで moores-code-review。Codex: `.agents/skills/moores-code-review/SKILL.md` を全文読んで手順を実行する（同skillの実行体別節に従い Workflow 不可のフォールバックになる）。
+- **承認ゲート** — このskillに実装前の承認待ちは無い。Codex は superpowers プラグインの brainstorming ゲートを持ち込まない。
+
 ## 必須ゲート（3つ）
 
 免除は人間がこのセッション内で自分の言葉で明示した場合だけで、その指示を進捗台帳に記録する。

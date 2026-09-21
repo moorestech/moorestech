@@ -24,6 +24,14 @@ hooks:
 
 # Writing Plans
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **関所** — Claude: frontmatter の `hooks:` が plan への Write/Edit を追跡し、user-simulator review と判断台帳（`ledger_gate.py`）が済むまで Stop をブロック、AskUserQuestion の直前に preanswer を強制する。Codex: どれも効かない。plan を書いたら終了前に (1) user-simulator の review モード (2) 判断台帳の記入 (3) 裁定を仰ぐ前の preanswer を、この順で自分で実行する。
+- **plan の機械検査の委譲** — Claude: fresh-context の opus subagent。Codex: `spawn_agent`・`model: gpt-6-astra`・`fork_turns: "none"`（plan を書いた文脈を引き継がせないことが要件）。
+- **強／弱の問い** — Claude: `AskUserQuestion` で強は1問ずつ。Codex: 対話なら番号付きで本文に出してターンを終える。委任済みなら推奨で進め、採った案を `## 判断記録` に `[agent前提]` ラベルで残す（`[ユーザー裁定]` とは書かない）。
+
 ## 概要
 
 このコードベースについて前提知識ゼロのエンジニアを想定して、包括的な実装計画を書く。各タスクでどのファイルを触るか、コード、テスト、確認すべきドキュメント、テスト方法まで、必要なことをすべて記述する。plan全体を一口サイズのタスクとして渡す。DRY。YAGNI。タスクごとにコミット。

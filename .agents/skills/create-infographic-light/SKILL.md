@@ -16,6 +16,12 @@ description: 技術文書・設計仕様・実装計画・レポートを、ビ�
 
 Markdown 等の技術文書を、単一の `index.html`（インライン CSS + vanilla JS、ビルド不要、file:// で開いて動く）に図解する。外部依存は原則なしだが、**ファイル拡張子アイコン等の軽微な装飾に限り CDN 参照可**（オフライン時のフォールバック必須。後述）。create-infographic の 5 フェーズ（原稿レビュー・Mermaid・React/Vite・品質ゲート）を省いた軽量版で、**レビュー用コメント機能だけは本家同等を必ず組み込む**。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **実装の委譲** — Claude: `Agent`・`model: sonnet`。Codex: `spawn_agent`・`model: gpt-5.6-sol` → `wait_agent`。
+
 ## 本家との使い分け
 
 | 条件 | 使うスキル |

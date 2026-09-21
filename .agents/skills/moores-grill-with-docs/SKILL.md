@@ -23,6 +23,15 @@ Run a `/grilling` session, using the `/domain-modeling` skill.
 
 設計対話中のB判定（設計原則との照合）には [references/moorestech-principles.md](references/moorestech-principles.md) を参照する（旧brainstormingから移設。user-simulatorの知識indexも同ファイルを参照している）。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **質問の出し方** — Claude: `AskUserQuestion`。Codex: 1問ずつ、選択肢（推奨を先頭）と各案の帰結を本文に書いてターンを終える。grill は裁定を取ることが目的なので、Codex でも**推奨で勝手に進めない**（無人・委任済みで grill が要る依頼に当たったら、実装せず未決事項を報告して止まる）。
+- **シャドー採点の関所** — Claude: frontmatter の `hooks:`（`shadow-gate.sh`）が設計成果物の執筆を追跡し、採点が済むまで Stop をブロックする。Codex: 関所は無く、採点スクリプトも Claude の transcript 形式前提で Codex の rollout を読めない。Codex セッションではシャドー採点をスキップし、その旨を報告に書く。
+- **generate の裏起動** — Claude: `run_in_background`。Codex: `exec_command` を短い `yield_time_ms` で返して後で読む。
+- **予測体** — Claude: `model: opus`。Codex: `gpt-6-astra`。
+
 ## HARD GATE（実装着手の禁止）
 
 設計裁定が出揃いADRを書き終えてwriting-plansへ接続するまで、実装スキルの起動・コードの書き込み・プロジェクトのscaffoldを一切行わない。「シンプルすぎて設計不要」という例外は無い — TODOリスト1個・関数1本・設定変更1行でも通す。真に単純なら対話は数問で終わる。短くてよいが省略しない。

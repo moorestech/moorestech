@@ -29,6 +29,12 @@ hooks:
 `$RUN`・`$WORKTREE` 等は本ドキュメント上のプレースホルダである。コマンドへ渡すときは `. $RUN/run.env` で読み込むか、実値の絶対パスへ展開して書く。
 「バンドル」＝報告1件分の記録一式であり、運搬後は `$RUN` そのものを指す（`manifest.json`・`snapshots/`・`frames/`・`logs/`・`world/`）。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **無人の関所** — Claude: frontmatter の `hooks:` が AskUserQuestion を deny し、`fix-result.json`（または `abort.json`）を書くまで Stop をブロックする。Codex: この関所は存在しない。質問せず既定表で進め、ターンを終える前に `$RUNDIR/fix-result.json` か `abort.json` の実在を自分で `ls` して確かめる（無いまま終えると poller が1200秒の無音で自壊判定し RESUME 予算を消費する）。
+
 ## 実行位置（正本と修正先を分ける）
 
 | 置き場 | 役割 | 規律 |

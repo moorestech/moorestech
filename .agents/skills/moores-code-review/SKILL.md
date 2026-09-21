@@ -22,6 +22,15 @@ moorestechのコードレビューを **決定論チェック → 6系統の並�
 
 系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②mooresレンズ11本 ③汎用reviewer 30本 ④Codex外部監査3本 ⑤Fable全般 ⑥分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **Step 3.5〜6.5 の実行** — Claude: `Workflow` ツール（`scripts/review_workflow.js`）が既定。Codex: Workflow は無いので、下の「旧既定: sonnet 委譲」節のフォールバックへ落ちる（理由 (a)）。オーケストレータは `spawn_agent`・`model: gpt-5.6-sol` の1体で、`references/orchestrator-steps.md` を読ませる。落ちた事実を報告冒頭に書く。
+- **Codex 外部監査3本** — Claude: 別モデルによる独立監査として `codex exec` をバックグラウンド起動する。Codex: 同じコマンドで起動してよいが、自分と同系モデルなので「別モデルの目」という独立性は無い。報告の系統一覧に `④ Codex監査（実行体もCodex・モデル独立性なし）` と明記する。
+- **Step 7 の設計判断** — Claude: 末尾で `AskUserQuestion` 一括提示。Codex: 対話なら保留した設計判断を番号付き（推奨を先頭・各案の帰結つき）で本文に書いてターンを終える。無人・委任済みなら聞かず、PR本文の「裁定事項」へ列挙して進める。
+- **fix subagent のモデル** — 本文の `sonnet` は `gpt-5.6-sol`、`opus` は `gpt-6-astra`。
+
 ## Workflow実行（既定・2026-08-20）
 
 **既定では Step 2 を本体が回し、Step 3.5〜6.5（系統の並列発火→統合→自動適用→post-check）を Workflow ツール（`scripts/review_workflow.js`）で実行する。** 2026-08-18〜20 の sonnet オーケストレータ委譲は、系統群 $164〜225/回 に対し **オーケストレータ1体が待機だけで $194〜240/回**（590〜625ターン・毎ターン25万トークン再送・`Concurrent subagent limit` の再起動16〜34回）を燃やしていた（`docs/research/2026-08-20-moores-code-review-diet-assessment.md`）。Workflow は待機が JS の `await` なのでこの項目が消え、「全員に model 明示」「起動失敗の再起動」「欠員の申告」「fable quota 時の opus fallback」「Codex 完了待ち」が散文でなくコードで強制される（「1メッセージ12体」は Agent 直起動時の規律で、Workflow では同時数をランタイムがキューイングする）。同じ `args` での再実行（`resumeFromRunId`）は完了済みの体をキャッシュから返すので、上限死からの再開で全系統をやり直さない。

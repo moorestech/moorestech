@@ -9,6 +9,13 @@ description: 事後検証(ポストモーテム)。「体制・工程があっ�
 
 調べ方・裁定の枠組み・対策の作り方は縛らない。事案に合わせて自分で組み、下の「使える道具」は選択肢として使う。縛るのは次の 7 つだけ。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **一次資料** — Claude セッションは `~/.claude/projects/<slug>/<session>.jsonl` と `subagents/`。Codex セッションは `~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl`（subagent は別 rollout で、`session_meta` の `source.subagent.thread_spawn.parent_thread_id` が親を指す。`spawn_agent` / `send_message` の本文は暗号化されていて読めないので、子 rollout の先頭 user メッセージから復元する）。
+- **他セッションへの転送** — Claude: `SendMessage` / `bd note`。Codex: 他セッションへ送る手段は無いので `bd note` のみ。
+
 ## 硬い規則(7 つ・すべて過去の差し戻しから)
 
 1. **裁定を出すまで適用しない(HARD GATE)。** 裁定と「要するに」を提示して GO を得るまで、ファイル編集・コミット・PR・push を一切しない。裁定と対策を同ターンに混載しない(先に対策を出すと裁定が対策に引っ張られる)。PR 作成・push はユーザーの明示指示があるときだけ。

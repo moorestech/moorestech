@@ -162,6 +162,7 @@ partialは禁止。如何なる条件でもpartialを絶対に使ってはいけ
 
 # スキル配置と実行記録
 - スキルのgit正本は `.agents/skills/` のみ。`.claude/skills` と `.codex/skills` はそこへのsymlink（tracked）。ミラー実体の複製・CI同期は禁止（マージ衝突が3倍になるため廃止済み）
+- skill本文はClaude Codeのツール名（AskUserQuestion・Agent・SendMessage・Workflow・`model: opus`等）で書かれている。Codex等ほかの実行体で動くときは、skill実行前に `agent-runtime-compat` スキルの対応表で読み替える。skillに実行体依存の手順を足すときは、共通表で足りない差分だけを各skillの「実行体別（Claude Code / Codex）」節へ「Claude: … / Codex: …」の形で併記する
 - レビュー実行記録（moores-code-reviewのrecords/eval-log、pr-independent-reviewのrecords/シャドー台帳）はコードrepoに置かず `../moorestech_logs/harness/` へ書く。featureブランチで記録ファイルをコミットしない
 - `../moorestech_logs` 内で作業する前に同repoの `README.md` を読む（レイアウト・考古学手順・消失事故の落とし穴が書いてある）
 

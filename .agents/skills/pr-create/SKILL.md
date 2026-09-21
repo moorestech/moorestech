@@ -10,6 +10,14 @@ description: |
 このスキルは実タスクを sonnet subagent に委譲する薄いオーケストレータ。
 本体は詳細を実行せず、subagent を立てて `.claude/skills/pr-create/agent.md` の手順を実行させる。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **委譲** — Claude: `Agent`・`model: sonnet`・同期。Codex: `spawn_agent`・`model: gpt-5.6-sol` → `wait_agent`。subagent に読ませるパスは `.agents/skills/pr-create/agent.md`。
+- **コンフリクト解消** — Claude: opus subagent。Codex: `gpt-6-astra` の subagent。
+- **PR後の撤収** — 両者共通: この環境では PR 作成直後に `moores-wt rm <name>`（Codex の2026-09-21セッションは PR 未作成のまま使用量上限で終わり worktree が残った。上限が近いなら先に push だけ済ませる）。
+
 ## 手順
 
 1. **引数を確認する。** `/pr-create` が引数なし（無言）で呼ばれた場合は、確認を一切せず日本語で全自動実行する。追加指示（対象ブランチ・タイトル方針等）がある場合はそれを subagent へ引き継ぐ。

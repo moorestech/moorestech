@@ -29,6 +29,13 @@ hooks:
 **このスキルは無人パイプラインの一部として動く。AskUserQuestionは使わない**。
 ユーザーに確認を求めたくなった判断は、実装せずapply-result.jsonのsummaryへ記載して終える。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **無人の関所** — Claude: frontmatter の `hooks:` が AskUserQuestion を deny し、`apply-result.json`（または `abort.json`）を書くまで Stop をブロックする。Codex: この関所は存在しない。質問せず既定表で進め、ターンを終える前に `$RUNDIR/apply-result.json` か `abort.json` の実在を自分で `ls` して確かめる（無いまま終えると poller が1200秒の無音で自壊判定し RESUME 予算を消費する）。
+- **apply 本体と検証体** — Claude: `Agent`・`model: opus`。Codex: `spawn_agent`・`model: gpt-6-astra`。post-check・centralization reviewer の「opus 1体」も同じ。
+
 ## 最重要: 無人起動でも「apply-result.json で終える」
 
 このスキルは poller から cmux ワークスペース上の**対話モード** claude でフォアグラウンド起動されている

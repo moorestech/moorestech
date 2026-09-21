@@ -36,6 +36,16 @@ hooks:
 規則の由来（どの事故・裁定から生まれたか）は `references/changelog.md`。記録の固定書式は `references/record-format.md`。
 対応spec: `docs/superpowers/specs/2026-07-27-pr-independent-review-design.md`
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **無人の関所** — Claude: frontmatter の `hooks:` が AskUserQuestion を deny し、`session-done.marker`（または `abort.json`）を書くまで Stop をブロックする。Codex: この関所は存在しない。質問せず既定表で進め、ターンを終える前に `$RUNDIR/session-done.marker` か `abort.json` の実在を自分で `ls` して確かめる（無いまま終えると poller が1200秒の無音で自壊判定し RESUME 予算を消費する）。
+- **checkout ガード** — Claude: PreToolUse(Bash) hook が `pr-<番号>` worktree 以外での `gh pr checkout` を拒否する。Codex: hook は無い。`gh pr checkout` は必ず `cd <…>/pr-<番号> && gh pr checkout …` の形でだけ叩く（メインworktreeで叩くと他セッションのブランチを引き剥がす・2026-08-05実事故）。
+- **系統の実行** — Claude: `Workflow`。Codex: Workflow 不可のフォールバック（全 prompt へ `Repo root`・`Skill root` を自分で注入する側）になる。
+- **中断からの続行** — Claude: 保持している agent id へ `SendMessage`。Codex: `list_agents` で生存を見て、作業中なら `send_message`、完了済みなら `followup_task`。
+- **digest 生成** — Claude: sonnet subagent。Codex: `gpt-5.6-sol`。
+
 ## 記法（本文全体の共通規約）
 
 - `$ORIGIN` / `$CANON` / `$PRWT` / `$RUNDIR` / `$LOGS` / `BASE_REF` / `<mergeCommit>` は**本ドキュメント上のプレースホルダであり、シェル変数ではない**。

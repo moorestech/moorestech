@@ -12,6 +12,12 @@ description: >
 
 体系的にバグの原因を特定し修正する。**推測で修正せず、証拠に基づいて行動する**。仮説の生成は単一視点ではなく **複数観点のサブエージェントを並列起動** して網羅的に行い、ログ検証ゲートを通してから修正に進む。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **観点別の並列派遣** — Claude: `Agent`（`subagent_type: "general-purpose"`・観点ごとに `opus` / `sonnet`）を1メッセージで同時起動。Codex: 観点ごとに `spawn_agent`（`opus`→`gpt-6-astra`、`sonnet`→`gpt-5.6-sol`）を続けて投げ、全部投げ終えてから `wait_agent` で回収する（1体ずつ投げて待つと直列になる）。
+
 ## 中核ルール (絶対に守る)
 
 1. **Step 4 のログ検証は Step 5 への必須ゲート**。スキップ禁止。

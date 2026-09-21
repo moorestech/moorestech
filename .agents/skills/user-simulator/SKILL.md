@@ -16,6 +16,14 @@ description: |
 
 このファイルは配線だけを持つ。スキルの素性と動き方は `agents/judge.md`、各モードの手順は `modes/` が正。
 
+## 実行体別（Claude Code / Codex）
+
+共通の読み替え（質問・subagent派遣・待機・モデル名・パス）は `agent-runtime-compat` スキルが正本。このskill固有の差分のみ:
+
+- **判事・斥候・反証役** — Claude: `Agent` で判事 `fable`・斥候 `sonnet`・反証役 `opus`。Codex: `spawn_agent` で判事 `gpt-6-astra`・斥候 `gpt-5.6-sol`・反証役 `gpt-6-astra`。
+- **preanswer の発動点** — Claude: `AskUserQuestion` を出す直前（hook が強制）。Codex: ユーザーへの裁定質問を本文に書く直前に自分で発動する。
+- **shadow モード** — 採点スクリプトは Claude の transcript（`~/.claude/projects/…jsonl`）前提。Codex の rollout は対象外。
+
 ## モード判定
 
 | 状況 | 読むファイル |
