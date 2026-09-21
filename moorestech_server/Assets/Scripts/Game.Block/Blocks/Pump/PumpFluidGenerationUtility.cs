@@ -30,16 +30,16 @@ namespace Game.Block.Blocks.Pump
 
             // 内部タンクは単一流体しか持てないため、マスタの並び順で最初に重なった1流体だけを対象にする
             // The inner tank holds a single fluid, so only the first overlapping fluid in master order becomes the target
-            // 同一流体の重複行はBlockMasterUtilの検証で禁止済みなので、ここへは一意な流体しか来ない
-            // Duplicate rows for one fluid are rejected by BlockMasterUtil validation, so only unique fluids reach here
+            // 同一流体の重複行はBlockMasterの検証（ExtractionSettingsValidator）で禁止済みなので、ここへは一意な流体しか来ない
+            // Duplicate rows for one fluid are rejected by BlockMaster validation (ExtractionSettingsValidator), so only unique fluids reach here
             foreach (var gen in generateFluids.items)
             {
-                if (gen.GenerateTime <= 0) continue;
-
                 var fluidId = MasterHolder.FluidMaster.GetFluidId(gen.FluidGuid);
                 if (!targetFluidIds.Remove(fluidId)) continue;
 
-                var perSecond = gen.Amount / Math.Max(0.0001, gen.GenerateTime);
+                // 生成時間・生成量の正値はBlockMasterの検証で保証済み
+                // Positive generate time and amount are guaranteed by BlockMaster validation
+                var perSecond = gen.Amount / gen.GenerateTime;
                 entries.Add(new FluidGenerationEntry(fluidId, perSecond));
                 break;
             }
@@ -47,15 +47,27 @@ namespace Game.Block.Blocks.Pump
             return entries;
         }
 
-        // 生成対象があり出力タンクが受け入れ可能かの共通判定（電気・歯車ポンプで同一式を共有）
-        // Shared check for whether generation targets exist and the output tank can accept them (shared by electric and gear pumps)
-        public static bool CanGenerateFluid(List<FluidGenerationEntry> entries, PumpFluidOutputComponent output)
+        // 稼働率の上限 =（空き容量＋直前tickの搬出量）÷ 満額1tick生成量。満杯でも搬出分だけは稼働し、超過生成に電力を払わない
+        // Demand cap = (free space + last tick's push) / full per-tick generation; a full but draining tank runs only as much as it drains, paying nothing for overflow
+        public static float GenerationDemandRate(List<FluidGenerationEntry> entries, PumpFluidOutputComponent output)
         {
-            return 0 < entries.Count && output.CanAcceptGeneratedFluid;
+            var fullGenerationPerTick = 0.0;
+            foreach (var entry in entries) fullGenerationPerTick += entry.PerSecond * GameUpdater.SecondsPerTick;
+            if (fullGenerationPerTick <= 0) return 0f;
+
+            var acceptableAmount = output.RoomAmount + output.PushedAmountLastUpdate;
+            return (float)Math.Clamp(acceptableAmount / fullGenerationPerTick, 0.0, 1.0);
         }
 
-        // tick毎の発行はキャッシュ済みエントリをpowerRateで按分するだけ
-        // Per-tick emission just scales cached entries by powerRate
+        // 電気・歯車ポンプで共有する稼働判定。上限が0（汲み上げ対象なし・満杯かつ搬出なし）なら待機
+        // Generation check shared by electric and gear pumps; a zero cap (no target, or full with no push) means idle
+        public static bool CanGenerateFluid(List<FluidGenerationEntry> entries, PumpFluidOutputComponent output)
+        {
+            return 0f < GenerationDemandRate(entries, output);
+        }
+
+        // tick毎の発行はキャッシュ済みエントリをpowerRateで按分するだけ。powerRateは呼び出し側で稼働率の上限を適用済み
+        // Per-tick emission just scales cached entries by powerRate; callers have already applied the demand cap to it
         public static void GenerateFluids(List<FluidGenerationEntry> entries, float powerRate, PumpFluidOutputComponent output)
         {
             foreach (var entry in entries)

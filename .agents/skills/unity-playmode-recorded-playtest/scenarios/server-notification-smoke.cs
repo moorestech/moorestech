@@ -1,3 +1,5 @@
+// ⚠ 現行masterでは動かない（2026-09-19棚卸し・beads moorestech-q3ei）: 削除済みの研究ノードGUID（837e9697）をCompleteResearchへ送るため、サーバー側でnull参照になり後続の検証へ進めない（ピン先マスタ c219a2f5・ADR 0038）。雛形にしないこと
+// ⚠ Broken on current master (2026-09-19 inventory, beads moorestech-q3ei): sends a removed research-node GUID (837e9697) to CompleteResearch, which null-references server-side and blocks the rest of the check (pinned master c219a2f5, ADR 0038). Do not use this as a template
 // サーバー発通知基盤スモーク
 // 1) 素材ゼロで研究完了を試みる→操作拒否(operationDenied)通知が右上に出る
 // 2) 素材を付与して研究を完了→実績(achievement)通知「Research completed: 原始研究1」が出る

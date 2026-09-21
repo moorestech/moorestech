@@ -89,6 +89,20 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Common
             return _session == null ? cursorCell : _session.StartCell;
         }
 
+        // 解放の畳みと送信可否を決める唯一の入口。設置できない位置でも畳まないと次フレームに古い開始点から列が伸びる
+        // The only entry deciding release folding and sending; an unfolded drag extends a run from the stale start next frame
+        public bool TryConsumeSendableRelease(bool isPlacementReleased, bool isSendable, bool isPreviewKeepDebug)
+        {
+            if (!isPlacementReleased) return false;
+
+            // デバッグのプレビュー維持中は列を畳まず観察用に残す
+            // While debug preview-keep is on, keep the run unfolded for observation
+            if (isPreviewKeepDebug) return false;
+
+            var isPressRegistered = EndDrag();
+            return isPressRegistered && isSendable;
+        }
+
         // マウスアップで連続設置解除、高さを開始時へ戻す。戻り値は押下が登録されていたか
         // Clears the drag session on mouse-up and restores the starting height; returns whether a press was registered
         public bool EndDrag()

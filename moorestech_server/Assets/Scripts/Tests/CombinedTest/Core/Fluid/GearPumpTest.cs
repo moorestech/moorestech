@@ -41,7 +41,7 @@ namespace Tests.CombinedTest.Core.Fluid
 
             // 期待生成レート（full power時の1秒あたり）
             var pumpParam = (GearPumpBlockParam)MasterHolder.BlockMaster.GetBlockMaster(ForUnitTestModBlockId.GearPump).BlockParam;
-            var fullRatePerSec = pumpParam.GenerateFluid.items.Sum(g => g.Amount / Math.Max(0.0001f, g.GenerateTime));
+            var fullRatePerSec = pumpParam.GenerateFluid.items.Sum(g => g.Amount / g.GenerateTime);
 
             // テストウィンドウ（tick数で制御）
             // Test window (controlled by tick count)

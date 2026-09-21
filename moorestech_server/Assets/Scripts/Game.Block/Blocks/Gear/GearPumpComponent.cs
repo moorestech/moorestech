@@ -41,8 +41,8 @@ namespace Game.Block.Blocks.Gear
         {
             BlockException.CheckDestroy(this);
 
-            // 稼働率（RPM比 × torqueRate、下限未満で0）を排出量に乗じる
-            // Apply operating rate (rpmRatio × torqueRate, zero below minimum) to fluid generation
+            // 稼働率（RPM比 × torqueRate、下限未満で0）を排出量に乗じる。torqueRateは要求トルク倍率＝稼働率の上限で頭打ちになる
+            // Apply operating rate (rpmRatio × torqueRate, zero below minimum) to fluid generation; torqueRate is capped by the request rate, i.e. the demand cap
             PumpFluidGenerationUtility.GenerateFluids(_entries, _gearEnergyTransformer.GetCurrentOperatingRate(), _output);
 
             UpdateTorqueRequestRate();
@@ -71,9 +71,10 @@ namespace Game.Block.Blocks.Gear
 
         private void UpdateTorqueRequestRate()
         {
-            // 流体を生成できるかどうかで要求トルク倍率を変更要求する
-            // Push the torque request rate based on whether fluid can be generated
-            _gearEnergyTransformer.SetTorqueRequestRate(CanGenerateFluid ? 1f : _idleTorqueRate);
+            // 稼働中は稼働率の上限を、待機中は待機倍率を要求トルク倍率として変更要求する
+            // Push the demand cap as the torque request rate while generating, and the idle rate while idle
+            var demandRate = PumpFluidGenerationUtility.GenerationDemandRate(_entries, _output);
+            _gearEnergyTransformer.SetTorqueRequestRate(0f < demandRate ? demandRate : _idleTorqueRate);
         }
 
         public bool IsDestroy { get; private set; }

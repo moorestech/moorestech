@@ -430,6 +430,11 @@ properties:
                       - DownEast
                       - DownSouth
                       - DownWest
+                # 連結ゴースト群の上に出すWebピンの文言
+                # Wording of the web pins shown over the chain ghosts
+                - key: message
+                  type: string
+                  default: Place these together with the block
         - key: startedActions
           ref: gameAction
         - key: clearedActions

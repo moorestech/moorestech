@@ -20,8 +20,7 @@ namespace Core.Master.Validator
             errorLogs += ConnectorSettingsValidation();
             errorLogs += ConnectorShapeGuidValidation();
             errorLogs += MeshingAxisValidation();
-            errorLogs += MinerOutputSlotCountValidation();
-            errorLogs += MapObjectMineSettingsValidation();
+            errorLogs += ExtractionSettingsValidator.Validate(blocks);
             errorLogs += BeltConveyorFamilyValidator.Validate(blocks);
             return string.IsNullOrEmpty(errorLogs);
 
@@ -104,27 +103,6 @@ namespace Core.Master.Validator
                             if (!ExistsBlockGuid(baseCamp.UpgradBlockGuid))
                             {
                                 logs += $"[BlockMaster] Name:{block.Name} has invalid UpgradBlockGuid:{baseCamp.UpgradBlockGuid}\n";
-                            }
-                        }
-                    }
-
-                    // ポンプ全般: generateFluid
-                    // Any pump: generateFluid
-                    if (block.BlockParam is IPumpParam pump)
-                    {
-                        // 内部タンクは単一流体で先頭行だけを採用するため、同一流体の重複行は表現を許さない
-                        // The inner tank is single-fluid and only the first row is used, so duplicate rows for one fluid are not allowed
-                        var declaredFluidGuids = new HashSet<Guid>();
-                        foreach (var generateFluid in pump.GenerateFluid.items)
-                        {
-                            var id = MasterHolder.FluidMaster.GetFluidIdOrNull(generateFluid.FluidGuid);
-                            if (id == null)
-                            {
-                                logs += $"[BlockMaster] Name:{block.Name} has invalid GenerateFluid.FluidGuid:{generateFluid.FluidGuid}\n";
-                            }
-                            if (!declaredFluidGuids.Add(generateFluid.FluidGuid))
-                            {
-                                logs += $"[BlockMaster] Name:{block.Name} has duplicated GenerateFluid.FluidGuid:{generateFluid.FluidGuid}\n";
                             }
                         }
                     }
@@ -350,47 +328,6 @@ namespace Core.Master.Validator
                     if (shapeGuid == null || ExistsConnectorShape(shapeGuid.Value)) return "";
                     return $"[BlockMaster] Name:{blockName} has invalid connector ShapeGuid:{shapeGuid}\n";
                 }
-            }
-
-            string MinerOutputSlotCountValidation()
-            {
-                // 採掘機は跨いだ鉱脈のアイテムを1種1スロットで同時に出す。枠が足りないとInsertionCheckが通らず永久Idleになる
-                // A miner outputs one slot per straddled vein item at once; too few slots fail InsertionCheck and leave it idle forever
-                var logs = "";
-                foreach (var block in blocks.Data)
-                {
-                    if (block.BlockParam is not IMinerParam minerParam) continue;
-
-                    var uniqueItemGuids = new HashSet<Guid>();
-                    foreach (var miningSetting in minerParam.MineSettings.items) uniqueItemGuids.Add(miningSetting.ItemGuid);
-
-                    if (minerParam.OutputItemSlotCount < uniqueItemGuids.Count)
-                        logs += $"[BlockMaster] Name:{block.Name} has outputItemSlotCount:{minerParam.OutputItemSlotCount} smaller than the {uniqueItemGuids.Count} unique mineSettings items\n";
-                }
-                return logs;
-            }
-
-            string MapObjectMineSettingsValidation()
-            {
-                // 装飾物は削れないので、採掘機が対象に載せても永久に何も採れない誤設定になる
-                // A decoration can never be worn down, so listing one as a miner target mines nothing forever
-                var logs = "";
-                foreach (var block in blocks.Data)
-                {
-                    if (block.BlockParam is not GearMapObjectMinerBlockParam mapObjectMinerParam) continue;
-
-                    foreach (var mineSetting in mapObjectMinerParam.MapObjectMineSettings.items)
-                    {
-                        var mapObjectElement = MasterHolder.MapObjectMaster.GetMapObjectElementOrNull(mineSetting.MapObjectGuid);
-                        if (mapObjectElement == null) continue;
-
-                        if (MapObjectMaster.IsDecoration(mapObjectElement))
-                        {
-                            logs += $"[BlockMaster] Name:{block.Name} points MapObjectMineSettings.MapObjectGuid:{mineSetting.MapObjectGuid} which forbids mining\n";
-                        }
-                    }
-                }
-                return logs;
             }
 
             string MeshingAxisValidation()

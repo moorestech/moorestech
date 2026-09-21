@@ -82,12 +82,31 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
 
         protected override void ManualUpdate(BlockPlacementTarget target, bool isSelectionChanged, PlacementFeedback feedback)
         {
+            _currentBlockDirection = target.ResolveDirectionOnSelection(_currentBlockDirection, isSelectionChanged);
             _dragState.UpdateHeightOffsetByInput();
             _currentBlockDirection = BeltConveyorInputControl.RotateDirection(_currentBlockDirection);
-            GroundClickControl(target, feedback);
+            var isSendable = GroundClickControl(target, feedback);
+            PlaceBlockOnRelease();
+
+            #region Internal
+
+            void PlaceBlockOnRelease()
+            {
+                // 解放の畳みと送信可否は1つの入口で決める
+                // Folding and sending on release are decided by a single entry
+                if (!_dragState.TryConsumeSendableRelease(InputManager.Playable.ScreenLeftClick.GetKeyUp, isSendable, DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey))) return;
+
+                // ベルトは電線を伴わないためワイヤー判定は常に許可
+                // Belts never carry wires, so the wire check is always allowed
+                TrySendOnClickRelease(_currentPlaceInfos, true);
+            }
+
+            #endregion
         }
 
-        private void GroundClickControl(BlockPlacementTarget target, PlacementFeedback feedback)
+        // 戻り値はカーソル位置に送信できる設置列があるか
+        // Returns whether the cursor has a sendable placement run
+        private bool GroundClickControl(BlockPlacementTarget target, PlacementFeedback feedback)
         {
             // ビルドメニューの選択ブロックが変わったら連続設置状態をリセット
             // Reset the continuous placement state when the build-menu selected block changes
@@ -102,10 +121,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             var holdingBlockMaster = holdingBlock.BlockMaster;
 
             // ブロック設置用のrayが当たっているか、当たっていたら設置位置を取得する
-            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) return;
+            if (!TryGetRayHitBlockPosition(_mainCamera, _dragState.HeightOffset, _currentBlockDirection, holdingBlockMaster, out var placePoint, out var hitSurface)) { return false; }
 
             // 設置可能な距離かどうか
-            if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return; }
+            // Whether the cell is within reach
+            if (!IsPlaceableFromPlayer(placePoint)) { feedback.AddTooFar(); return false; }
 
             _previewBlockController.SetActive(true);
 
@@ -143,9 +163,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
             // Update preview colors based on the final Placeable state
             _previewBlockController.UpdatePlaceableColors(_currentPlaceInfos);
 
-            // 設置するブロックをサーバーに送信
-            // send block place info to server
-            PlaceBlock();
+            return true;
 
             #region Internal
 
@@ -166,23 +184,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.BeltConveyor
                 var dragStartPoint = _dragState.ResolveDragStartCell(placePoint);
                 _currentPlaceInfos = _placeRunBuilder.Build(dragStartPoint, placePoint, _currentBlockDirection, holdingBlock, out var cellCauses, out var cellBeltReasons);
                 return (cellCauses, cellBeltReasons);
-            }
-
-            void PlaceBlock()
-            {
-                if (!InputManager.Playable.ScreenLeftClick.GetKeyUp) return;
-
-                // デバッグモード時は送信しない
-                // Skip sending in debug mode
-                if (DebugParameters.GetValueOrDefaultBool(PlacePreviewKeepKey)) return;
-
-                // マウスを離したので連続設置状態は解除する（押下未登録の解放はここで打ち切る）
-                // Clear the continuous-placement state on mouse release (a release without a registered press stops here)
-                if (!_dragState.EndDrag()) return;
-
-                // ベルトは電線を伴わないためワイヤー判定は常に許可
-                // Belts never carry wires, so the wire check is always allowed
-                TrySendOnClickRelease(_currentPlaceInfos, true);
             }
 
             #endregion

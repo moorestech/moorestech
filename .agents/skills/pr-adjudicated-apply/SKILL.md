@@ -193,6 +193,11 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
 - **反映 diff の再レビュー**: `EDITED_PATHS` にテスト以外のソースがあれば `git diff <PRのhead SHA> -- <EDITED_PATHS>` を `$RUNDIR/apply.diff` に書き、
   `moores-code-review/post-checks/applied-diff-correctness.md`（opus・5行契約、Patch path = apply.diff）を1体起動する（理由は同ファイル冒頭）。
   Critical は adopt の意図を保つ範囲で直して再検証、直せなければ push せず `status: "failure"`（summary に要約）。Warning/Info は summary へ1行ずつ
+- **設計判断を反映した diff の構造レビュー（2026-09-20 導入）**: 採用裁定に `category: design-decision` が1件でもあり、`apply.diff` が型・スキーマ（`VanillaSchema/*.yml`）・公開シグネチャを新設または変更していれば、上に加えて
+  `moores-code-review/reviewers/core-cs-centralization-duplication.md`（`.ts`/`.tsx` のみの diff なら `core-ts_tsx-centralization-duplication.md`）を同じ `apply.diff`・同じ5行契約で opus 1体起動する。
+  設計判断の反映 diff は「新しい設計そのもの」なのに、どの設計観点の入力にもならず出荷される（applied-diff-correctness は行単位バグ狩り専用で設計に言及しない）。
+  Critical の扱いは上と同じ。**`設計判断: あり` の内容は捨てず、apply-result.json の summary の「人へ返す事項」へ案の形ごと必ず載せる**（無人 apply は設計を選び直さない。選ぶのは人）。
+  根拠（2026-09-20 実測・後知恵なし opus 各1体）: 当時の反映diffへこの reviewer を当てるリプレイ4回のうち3回が、本番レビューが見逃してマージ済みの実在Critical（`BiomeObjectConfigRuntimeApplier` がバイオーム列挙を4箇所目に増やし、「1箇所化」という導入理由を導入物自身の文字列 switch が打ち消している件）を独立に検出した。一方この工程の契機となった bands 二重定義そのものは 4回中1回しか出ない — **特定の指摘の再発防止ではなく、反映diffに残る設計欠陥一般への網として入れている**（reviewer の焦点は毎回揺れるので、1回の検出を当てにしない）。
 - **コンパイルまたはテストが失敗し、かつStep 4の範囲内で直しきれない場合は、pushせず失敗として終了する**
   （apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
 - Unityがこのworktreeで起動していなければ `cd <$REPOの実値> && uloop launch ./moorestech_client` で起動する

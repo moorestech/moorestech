@@ -1,0 +1,89 @@
+using System.Collections;
+using Client.Game.InGame.BlockSystem.PlaceSystem.PreviewGhost;
+using Client.Game.InGame.Tutorial;
+using Cysharp.Threading.Tasks;
+using Game.Block.Interface;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.TestTools;
+using static Client.Tests.EditModeInPlayingTest.Util.EditModeInPlayingTestUtil;
+using Object = UnityEngine.Object;
+
+namespace Client.Tests.EditModeInPlayingTest
+{
+    /// <summary>
+    ///     PlayModeへ切替
+    ///     ゴースト生成はClientContextのプレハブ生成を要するため、複数ゴーストの独立性は実機クライアント上で検証する
+    ///     Switches to PlayMode.
+    ///     Ghost creation needs ClientContext's prefab container, so per-guid ghost independence is verified on a running client.
+    /// </summary>
+    // shard割当はクラスと一緒に移動・改名される
+    // The shard assignment travels with the class through moves and renames
+    [Category("CiShardClientPlay2")]
+    public class BlockPlacePreviewMultiGhostTest
+    {
+        private const string FirstTutorialGuid = "aaaaaaaa-0000-0000-0000-000000000001";
+        private const string SecondTutorialGuid = "aaaaaaaa-0000-0000-0000-000000000002";
+        private static readonly Vector3Int FirstCell = new(20, 0, 20);
+        private static readonly Vector3Int SecondCell = new(22, 0, 22);
+
+        [UnityTest]
+        public IEnumerator 複数ゴーストはtutorialGuidごとに独立し片方の解除で他方が残る()
+        {
+            EnterPlayModeUtil();
+
+            // yield return new EnterPlayMode　は必ず[UnityTest]関数の直下で呼び出すこと
+            // Always call yield return new EnterPlayMode directly under the [UnityTest] function
+            yield return new EnterPlayMode(expectDomainReload: true);
+
+            LogAssert.ignoreFailingMessages = true;
+
+            yield return Body().ToCoroutine();
+
+            yield return new ExitPlayMode();
+
+            SessionState.SetBool("DebugObjectsBootstrap_Disabled", false);
+
+            #region Internal
+
+            async UniTask Body()
+            {
+                await LoadMainGame();
+
+                var manager = Object.FindFirstObjectByType<BlockPlacePreviewTutorialManager>(FindObjectsInactive.Include);
+                Assert.IsNotNull(manager, "the scene has no BlockPlacePreviewTutorialManager");
+                var shaftId = FindBlockIdByName("シャフト");
+
+                manager.SetTargetCell(shaftId, FirstCell, BlockDirection.North, FirstTutorialGuid);
+                manager.SetTargetCell(shaftId, SecondCell, BlockDirection.North, SecondTutorialGuid);
+
+                // ゴーストはAddressableの非同期ロード後に立つため、両方の着地を待つ
+                // Ghosts appear after an async Addressable load, so wait until both have landed
+                for (var i = 0; i < 300 && !(HasGhostAt(manager, FirstCell, false) && HasGhostAt(manager, SecondCell, false)); i++) await UniTask.Yield();
+                Assert.IsTrue(HasGhostAt(manager, FirstCell, false), "the first guid's ghost was not shown");
+                Assert.IsTrue(HasGhostAt(manager, SecondCell, false), "the second guid's ghost was not shown");
+
+                // 片方の解除で他方のゴーストは残る。Destroyはフレーム末に反映されるので1フレーム進め、非アクティブを含めても消えていることを見る
+                // Clearing one guid leaves the other ghost; Destroy lands at frame end, so advance one frame and check inactive objects too
+                manager.ClearTarget(FirstTutorialGuid);
+                await UniTask.Yield();
+                Assert.IsFalse(HasGhostAt(manager, FirstCell, true), "the cleared guid's ghost is still shown");
+                Assert.IsTrue(HasGhostAt(manager, SecondCell, false), "clearing one guid removed the other guid's ghost");
+
+                manager.ClearTarget(SecondTutorialGuid);
+            }
+
+            bool HasGhostAt(BlockPlacePreviewTutorialManager targetManager, Vector3Int cell, bool includeInactive)
+            {
+                foreach (var ghost in targetManager.GetComponentsInChildren<PreviewGhostObject>(includeInactive))
+                {
+                    if (Vector3Int.FloorToInt(ghost.transform.position) == cell) return true;
+                }
+                return false;
+            }
+
+            #endregion
+        }
+    }
+}

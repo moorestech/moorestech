@@ -17,7 +17,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
 
         // スポイト由来の向き（メニュー選択時はnull）
         // Direction picked by the eyedropper (null when selected from the menu)
-        public readonly BlockDirection? PickedDirection;
+        private readonly BlockDirection? _pickedDirection;
 
         public BlockId BlockId => MasterHolder.BlockMaster.GetBlockId(BlockGuid);
 
@@ -35,15 +35,22 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.Targets
         public BlockPlacementTarget(Guid blockGuid, BlockDirection? pickedDirection)
         {
             BlockGuid = blockGuid;
-            PickedDirection = pickedDirection;
+            _pickedDirection = pickedDirection;
+        }
+
+        // 選択変更直後だけピック向きを採用、他は現在向き維持
+        // Adopt picked direction only right after reselect; else keep current
+        public BlockDirection ResolveDirectionOnSelection(BlockDirection currentDirection, bool isSelectionChanged)
+        {
+            return isSelectionChanged && _pickedDirection.HasValue ? _pickedDirection.Value : currentDirection;
         }
 
         public bool Equals(IPlacementTarget other)
         {
-            return other is BlockPlacementTarget target && BlockGuid == target.BlockGuid && PickedDirection == target.PickedDirection;
+            return other is BlockPlacementTarget target && BlockGuid == target.BlockGuid && _pickedDirection == target._pickedDirection;
         }
 
         public override bool Equals(object obj) => obj is IPlacementTarget target && Equals(target);
-        public override int GetHashCode() => HashCode.Combine(BlockGuid, PickedDirection);
+        public override int GetHashCode() => HashCode.Combine(BlockGuid, _pickedDirection);
     }
 }
