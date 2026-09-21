@@ -39,6 +39,10 @@ public static class SchemaWatcher
             watchTargets,
             new SchemaWatchCache(cacheFilePath),
             new UnitySchemaCompilationRequester());
+
+        // CI中の再コンパイルでTest Runnerを中断しない。
+        // Avoid interrupting the Test Runner with recompilation in CI.
+        if (Application.isBatchMode) return;
         EditorApplication.update += Update;
     }
 
