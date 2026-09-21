@@ -116,7 +116,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                     if (WorldDataDirectory.TryParseSnapshotTick(name, out _)) manifest.SnapshotFiles.Add(relativePath);
                     if (WorldDataDirectory.TryParsePacketLogFromTick(name, out _)) manifest.PacketLogFiles.Add(relativePath);
                 }
-                if (move.Succeeded) DeclareEmptySource(BugReportBundleLayout.SnapshotDirectoryName, source, moved.Count);
+                if (move.Succeeded) DeclareEmptySource(BugReportBundleLayout.SnapshotDirectoryName, source, manifest.SnapshotFiles.Count + manifest.PacketLogFiles.Count);
             }
 
             // Player-prev.log とクラッシュダンプは Unity と OS が持つファイル。所有者から取り上げないよう写すだけにする

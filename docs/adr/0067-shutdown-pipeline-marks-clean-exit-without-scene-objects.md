@@ -63,6 +63,9 @@
 - remote・WebUi未ready/起動失敗・記録無効はnotStartedのまま。資料不在は理由ログと既存manifestのMissingへ残す。未知version・所有情報のない旧origin・必須値不正はunknownとして扱い、ビルド出所は保持するがsnapshot/packetは回収しない。今回の設定や既定パスへの補完はしない。
 - 未応答資料の再提示にも退避先の所有印照合を適用する。新たな未記録sessionのクラッシュへ古い退避snapshotを混ぜない。既存manifestの項目・Missing形式は変更しない。旧版の未応答snapshotには所有を証明できないものがあるため、推測で添付せずMissingを明記する。
 - world save JSON、WorldSaveAllInfo.CurrentVersion、アイテム/液体/ブロックのGUID解決、マスタ由来値は変更しない。これは診断資料の出所契約であり、world save migrationは不要。
+- refix round2: 記録開始をsocket・通信thread・autosave開始より前へ移し、開始前に既存Managerへring/保存調停役の所有を渡す。削除拒否時に通信資源を生成せず、後続bind失敗でも記録資源を破棄できる。200行制約のため起動本体をinternal ServerInstanceStartupへ抽出することはcontroller裁定済み。
+- 部分退避では、退避先の掃除後に実際に移った資料だけを返し、未移動分をMissingにする。所有印だけはsnapshot/packet資料数へ含めず、回収・再提示・箱生成の各入口で実資料なしの理由を残す。
+- 起動直後の破棄回帰でAbortとsocket.Closeの競合を実測したため、controller裁定Bとして既存tokenを通信・ゲーム更新loopへ通し、cancel→有限Join→socket.Closeへ順序を固定する。通信待機は100msのPollでcancelを観測し、5秒のJoin上限は既存SendQueueProcessorに合わせ、未終了は理由ログで表明する。
 
 - `GameShutdownEvent` の「Editorでの停止は UnawaitableExit で記録する」というコメントは、実際の記録主体が Presenter から終了パイプライン自身へ移るので書き換える。
 - 配布ビルドで、正規の終了口を通らずプロセスが終了処理に入った場合（OSからの終了要求など）も、待てない終了として正常終了に記録されるようになる。ハードクラッシュ・強制終了では `Application.quitting` が飛ばないので、従来どおり異常終了として検知される。

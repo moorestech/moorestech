@@ -37,8 +37,8 @@ namespace Client.Tests.BugReport
         [TestCase("webui-failed")]
         public void LocalCleanThenUnrecordedCrash_DoesNotSalvageLocalFiles(string unrecordedBoot)
         {
-            // local Aの正常終了を次の起動が消費しても、ワールド内の元資料は残る
-            // Consuming local A's clean exit leaves its original world evidence on disk
+            // 正常終了の消費後も元資料は残る
+            // Source evidence remains after consuming the clean exit.
             var localA = new PreviousProcessSession { ProcessId = 1234, SessionName = "session_100", ExitedCleanly = true };
             PreviousSessionSalvage.Salvage(Request(localA));
 
@@ -50,8 +50,8 @@ namespace Client.Tests.BugReport
             };
             var artifacts = PreviousSessionSalvage.Salvage(Request(crashed));
 
-            // 今回がlocal Aでも、前回のremote/未開始sessionへAの資料を結び付けない
-            // Restarting local A must not attach A's evidence to the previous remote or unstarted session
+            // 未記録sessionへA資料を結ばない
+            // Do not attach A's evidence to an unrecorded session.
             Assert.IsNull(artifacts.SnapshotsDirectory);
             Assert.AreEqual("local-A", File.ReadAllText(Path.Combine(_snapshots, "tick_100.json")));
             Assert.AreEqual("local-A-packets", File.ReadAllText(Path.Combine(_snapshots, "packets_101.bin")));

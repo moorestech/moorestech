@@ -41,7 +41,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             var recordingDirectory = ResolveSalvagedDirectory(recordingDestination, BugReportBundleLayout.RecordingDirectoryName);
-            var snapshotsDirectory = hasOwnedSnapshots ? ResolveSalvagedDirectory(snapshotDestination, BugReportBundleLayout.SnapshotDirectoryName) : null;
+            var snapshotsDirectory = hasOwnedSnapshots ? ResolveSnapshots() : null;
             var crashDumpScan = CrashDumpLocator.FindDumpFiles();
             if (crashDumpScan.Files.Count == 0) missing.Report("crashDump", CrashDumpLocator.MissingReason(crashDumpScan));
 
@@ -79,9 +79,22 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 var capture = previousOrigin?.SnapshotCapture;
                 if (!SnapshotOwnershipMatches(capture?.Directory)) return false;
-                var move = BugReportDiskOperations.MoveFilesInto(capture.Directory, snapshotDestination);
+                var move = BugReportDiskOperations.MoveFilesInto(capture.Directory, snapshotDestination, out var moved);
                 if (!move.Succeeded) missing.Report(BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
-                return move.Succeeded;
+                if (moved.Count == 0) return false;
+                // 掃除後に移せた資料だけを返し、部分回収の所有も再提示へ残す
+                // Return only files moved after clearing, and retain partial salvage ownership for replay
+                previousOrigin.WriteTo(Path.Combine(snapshotDestination, WorldDataDirectory.SnapshotOwnerFileName));
+                return true;
+            }
+
+            string ResolveSnapshots()
+            {
+                var probe = BugReportDiskOperations.ProbeHasAnyFile(snapshotDestination,
+                    new[] { WorldDataDirectory.SnapshotFileSearchPattern, WorldDataDirectory.PacketLogFileSearchPattern });
+                if (probe.Succeeded) return snapshotDestination;
+                missing.Report(BugReportBundleLayout.SnapshotDirectoryName, $"所有印だけではsnapshot/packet資料にならない: {probe.FailureReason}");
+                return null;
             }
 
             bool SnapshotOwnershipMatches(string directory)

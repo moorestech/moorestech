@@ -117,8 +117,9 @@ namespace Client.Game.InGame.BugReport.DiskOperations
 
         // 移動先を空にしてから入れ子ごと移す。空の移動元で移動先を消さないよう、中身の確認を先に行う
         // Empties the destination and then moves the tree; the source is checked first so an empty source never wipes the destination
-        public static SalvageOperationResult MoveFilesInto(string source, string destination)
+        public static SalvageOperationResult MoveFilesInto(string source, string destination, out List<string> moved)
         {
+            moved = new List<string>();
             var sourceProbe = ProbeHasAnyFile(source);
             if (!sourceProbe.Succeeded) return SalvageOperationResult.Failure($"退避元を移せない: {sourceProbe.FailureReason}");
 
@@ -126,18 +127,24 @@ namespace Client.Game.InGame.BugReport.DiskOperations
             // Swallowing a failed clean would mix two generations of snapshots, and the reproduction cannot tell them apart by tick number alone
             var clearing = ClearDirectory(destination);
             if (!clearing.Succeeded) return SalvageOperationResult.Failure($"退避先を空にできなかった: {clearing.FailureReason}");
-            return MoveTree(source, destination, out _);
+            return MoveTree(source, destination, out moved);
         }
 
         // 走査自体が失敗したら「中身なし」ではなく理由付きで返す。無音で空扱いにすると退避物の消失に気づけない
         // A failed scan comes back with its reason instead of reading as empty, so a lost salvage never goes unnoticed
         public static SalvageOperationResult ProbeHasAnyFile(string directory)
         {
+            return ProbeHasAnyFile(directory, new[] { "*" });
+        }
+
+        internal static SalvageOperationResult ProbeHasAnyFile(string directory, IReadOnlyList<string> searchPatterns)
+        {
             if (directory == null || !Directory.Exists(directory)) return SalvageOperationResult.Failure($"ディレクトリが無い: {directory}");
             try
             {
-                if (Directory.GetFiles(directory, "*", SearchOption.AllDirectories).Length == 0) return SalvageOperationResult.Failure($"ディレクトリが空: {directory}");
-                return SalvageOperationResult.Success();
+                foreach (var pattern in searchPatterns)
+                    if (Directory.GetFiles(directory, pattern, SearchOption.AllDirectories).Length != 0) return SalvageOperationResult.Success();
+                return SalvageOperationResult.Failure($"対象資料が無い: {directory} patterns:{string.Join(",", searchPatterns)}");
             }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
             {

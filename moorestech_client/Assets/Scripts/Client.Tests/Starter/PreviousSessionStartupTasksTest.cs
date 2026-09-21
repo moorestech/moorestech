@@ -44,8 +44,6 @@ namespace Client.Tests.Starter
             _sessions.Add(session);
             var processId = RecordingProcessDirectories.CurrentProcessId();
 
-            // 終了印は記録収集の可否が確定する前に存在する
-            // Exit marks exist before record-collection eligibility is known
             Assert.IsTrue(ContainsSession(processId, session));
             Assert.AreEqual(!isRemoteConnection && hostReady, PlaytestRecordCollection.Decide(isRemoteConnection, hostReady));
             Assert.IsTrue(GameShutdownEvent.NotifyUnannouncedExit());
