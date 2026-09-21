@@ -30,15 +30,18 @@
 
 Editor側は生成入口への依頼、公開された生成結果の表示、プレビュー資源の寿命管理を担う。seedの再定義、生成パラメータの組み直し、キャッシュのヒット判定、配置の再抽選は行わない。地形や配置が生成途中で欠損している状態を完了として表示しない。
 
-## 未裁定の表示場所
+## 専用の一時シーンをEdit Modeで表示
 
-専用の一時シーンで見るか、作業中のゲームシーンへ一時配置して既存の照明や背景と合わせて見るかは未裁定。一時プレビューという回答だけから専用シーンを採択した扱いにはしない。
+専用の一時シーンに表示し、Edit Modeで生成から確認まで完結させる。閉じると元の作業へ戻る。
+出所: ユーザー裁定 2026-09-22「1、エディットモードで確認できるように」→ 選択1「専用の一時シーンで表示（推奨）：生成マップだけを確認し、閉じると元の作業に戻る」。提示した棄却案はゲームシーン内に一時表示して既存の照明・空・背景と合わせる案。
 
-専用シーンの場合はPreviewSceneStageが候補。既存のMapObjectWrapperGeneratorMenuはNewPreviewSceneで作業シーンを汚さず生成する前例だが、ユーザーにSceneビューで見せる用途ではStageへの切り替えまで必要になる。[Unity公式のPreviewSceneStage](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/SceneManagement.PreviewSceneStage.html)を参照。ゲームシーンへの追加の場合は既存の地形と照明との重なり、閉じた後の復元を設計する。
+実装候補はPreviewSceneStage。既存のMapObjectWrapperGeneratorMenuはNewPreviewSceneで作業シーンを汚さず生成する前例だが、ユーザーにSceneビューで見せる用途ではStageへの切り替えまで必要になる。[Unity公式のPreviewSceneStage](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/SceneManagement.PreviewSceneStage.html)を参照。APIの選択自体はagent前提である。
 
 ## 独立質問の照合
 
-2026-09-22にgenerateの14問をfilterで照合。Q1/Q2/Q5/Q12がユーザー裁定で解決し、10問は未裁定と判定された。agent前提をユーザー裁定として消し込んでいない。設定編集・試遊・既存セーブ復元等の追加機能を求める質問は「自明すぎる質問しないで」という指示に従い繰り返さず、上記のagent前提として分離する。表示場所は既存シーンとの合成結果が変わるため質問する。writing-plansにはまだ接続していない。
+2026-09-22にgenerateの14問をfilterで照合。初回はQ1/Q2/Q5/Q12がユーザー裁定で解決し、10問は未裁定と判定された。その後Q7（表示場所）を質問し、専用一時シーンの裁定を得た。agent前提をユーザー裁定として消し込んでいない。設定編集・試遊・既存セーブ復元等の追加機能を求める質問は「自明すぎる質問しないで」という指示に従い繰り返さず、上記のagent前提として分離する。
+
+最終filterでもQ7の追加解決を確認した（5件answered/9件remaining）。残9件は裁定済みにせずagent前提として実装計画へ記載。writing-plansへ接続し、[実装計画](../superpowers/plans/2026-09-22-generated-map-scene-preview.md)を作成した。
 
 ## 検証対象
 
