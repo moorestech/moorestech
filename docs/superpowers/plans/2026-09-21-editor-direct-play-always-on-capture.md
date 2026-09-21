@@ -361,8 +361,10 @@ namespace Client.Starter.Editor
 - [x] **Step 1:** 必ず最後に moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。
 - [x] **Step 2:** レビュー反映が判定経路（`PeekUnattendedReason`・`ApplyForUnattendedReason`・`PlayModeLaunchOverrides` の呼び出し位置）に触れたら、反映後のコードで Task 4 を再実施してから完了とする。
 - [ ] **Step 3 (a):** plan・bd note に書いた「未確認」「残差」は1件ずつ `bd create --parent moorestech-sdme` で起票し、結論には issue id を列挙する。
+  - 2026-09-21実行: `moorestech-scmp`・`moorestech-ckur`・`moorestech-74yb`・`moorestech-wpgy` を起票し、既存 `moorestech-zxj`・`moorestech-kf4y` へ実測を追記。`moorestech-sdme` がpull後も現DBに存在しないため親付けのみ未完。
 - [x] **Step 4 (b):** Task 4 の合否は肯定行の存在ではなく、警告・拒否語（`開始しません`・`有効にしません`・`無効のため`・`missing`）が該当区間で期待どおり（有人=0件／無人=理由付き1件）であることで判定する。
 - [ ] **Step 5:** `bd close moorestech-sdme --reason="..."`、全作業をコミット、pr-create スキルで PR を作る（マージは通常のマージコミット）。
+  - 2026-09-21実行: 全作業をコミット・pushし、PR #1393を作成（masterと競合なし）。`moorestech-sdme` が現DBに存在しないためcloseのみ未完。
 
 ## Self-Review 結果
 
