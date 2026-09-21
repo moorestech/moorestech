@@ -125,7 +125,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 解放フレームはドラッグを畳み次の列は現在位置から始まる()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var cursorCell = new Vector3Int(8, 2, 3);
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
             dragState.AdjustHeightOffset(2);
@@ -140,7 +140,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 送信できない位置で離してもドラッグを畳み送信しない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.BeginDrag(new Vector3Int(1, 2, 3), PlacementHitSurfaceKind.Ground);
 
             // 空や距離外で離したフレームでも畳む。残ると押していないのに古い開始点から列が伸びる
@@ -153,7 +153,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押している間は開始点と高さを保ち送信へ進まない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var startCell = new Vector3Int(1, 2, 3);
             dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
             dragState.AdjustHeightOffset(2);
@@ -168,7 +168,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void プレビュー維持デバッグ中の解放は列を畳まず送信しない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             var startCell = new Vector3Int(1, 2, 3);
             dragState.BeginDrag(startCell, PlacementHitSurfaceKind.Ground);
 
@@ -181,7 +181,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下未登録の解放は送信へ進まない()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
 
             Assert.IsFalse(dragState.TryConsumeSendableRelease(true, true, false));
         }
