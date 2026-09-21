@@ -17,8 +17,8 @@ namespace Server.Boot
             IsEnabled = isEnabled;
         }
 
-        // 既定は無効。有効化を明示した起動経路（人が始めたプレイ）だけが録り始め、無人起動は無効のまま走る
-        // Disabled by default; only a boot path that explicitly enables it — a play a person started — begins recording, while unattended boots stay disabled
+        // 既定無効。有人の明示経路だけが有効化する
+        // Disabled by default; only an explicit attended path enables it
         public static AlwaysOnCaptureSetting Current { get; private set; } = Disabled();
 
         public static AlwaysOnCaptureSetting Enabled()

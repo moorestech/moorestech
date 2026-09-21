@@ -11,8 +11,8 @@ namespace Client.Starter
     {
         public static void StartLocalGame()
         {
-            // 人が始めたプレイは常時記録を有効にする。エディタの直Playは DirectPlayAlwaysOnCaptureSettings が同じ決定を入れる
-            // A play a person started enables always-on capture; an Editor direct play gets the same decision from DirectPlayAlwaysOnCaptureSettings
+            // 直Playも専用設定で同じ決定を適用する
+            // Direct play applies the same decision through its dedicated setting
             AlwaysOnCaptureSetting.Apply(AlwaysOnCaptureSetting.Enabled());
 
             // 多重呼び出しでも購読が1本に収まるよう先に外しておく

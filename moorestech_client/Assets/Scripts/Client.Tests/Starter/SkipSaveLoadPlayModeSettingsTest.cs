@@ -7,8 +7,8 @@ using UnityEditor;
 
 namespace Client.Tests.Starter
 {
-    // SkipSaveLoadPlayModeがAutoSaveを無効にして起動させ続けることの回帰ガード。常時記録はここでは決めない（ADR 0066）
-    // Regression guard that SkipSaveLoadPlayMode keeps booting with auto-save off; always-on capture is not decided here (ADR 0066)
+    // セーブ省略起動の自動保存無効化を守る（ADR 0066）
+    // Guards disabled auto-save for skip-save boots (ADR 0066)
     public class SkipSaveLoadPlayModeSettingsTest
     {
         [SetUp]

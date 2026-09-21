@@ -47,6 +47,23 @@ namespace Client.Game.InGame.BugReport.Playtest
 #if UNITY_EDITOR
         private const string SessionStateKey = "PlaytestStartGateBypass_UnattendedBoot";
 
+        // リロード後も終了を購読し、未消費の印を次のPlayへ漏らさない
+        // Resubscribe after reload so an unconsumed mark cannot leak into the next play
+        [UnityEditor.InitializeOnLoadMethod]
+        private static void Initialize()
+        {
+            UnityEditor.EditorApplication.playModeStateChanged -= HandlePlayModeStateChanged;
+            UnityEditor.EditorApplication.playModeStateChanged += HandlePlayModeStateChanged;
+        }
+
+        private static void HandlePlayModeStateChanged(UnityEditor.PlayModeStateChange state)
+        {
+            if (state == UnityEditor.PlayModeStateChange.EnteredEditMode)
+            {
+                EraseUnattendedBootMark();
+            }
+        }
+
         // 自動起動の入口（テストのPlayMode突入・DSLの起動準備）から呼ぶ
         // Called from the unattended entry points (a test entering Play Mode, the DSL's boot preparation)
         public static void Apply()

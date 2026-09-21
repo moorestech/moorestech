@@ -6,8 +6,8 @@ using UnityEngine;
 namespace Client.Starter.Editor
 {
     /// <summary>
-    /// エディタの直Playで常時記録を有効にする。メインメニューを通らない起動でもバグ報告の中身が揃うようにする（ADR 0066）。
-    /// Enables always-on capture for an Editor direct play, so a boot that skips the main menu still yields a complete bug report (ADR 0066).
+    /// 直Playでも完全なバグ報告を揃える（ADR 0066）。
+    /// Makes direct-play bug reports complete (ADR 0066).
     /// </summary>
     public static class DirectPlayAlwaysOnCaptureSettings
     {
@@ -18,8 +18,8 @@ namespace Client.Starter.Editor
             ApplyForUnattendedReason(PlaytestStartGateBypass.PeekUnattendedReason());
         }
 
-        // 無人の理由を引数で受ける本体。CIは常にbatchModeで無人になるため、有人の経路も検証できるよう分ける
-        // The body takes the unattended reason, so the attended path stays verifiable under CI's always-unattended batch mode
+        // CIでも有人経路を検証するため、無人理由を受け取る
+        // Takes the unattended reason so CI can verify the attended path
         internal static void ApplyForUnattendedReason(string unattendedReason)
         {
             // 無人起動は有効にしないだけで、無効へは上書きしない。記録したい無人テストは起動前に明示的に有効化している

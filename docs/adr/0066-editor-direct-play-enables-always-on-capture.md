@@ -36,6 +36,7 @@
   出所: agent前提（`SkipSaveLoadPlayModeSettings`／`GeneratedWorldPlayModeSettings` と同型の前例）
 
 - **無人起動の印を消費するのは従来どおり開始ゲートだけ。常時記録の判定は印を消費せずに覗く。** 起動上書き（`InitializeScenePipeline` 序盤）は開始ゲート（`MainGameInitializationFinalizer` 終盤）より先に走るので、ここで消費するとゲートが印を見失い、無人起動が応答待ちで恒久停止する。
+  開始ゲートへ到達せずにPlayが終了した場合は、印の所有者が `EnteredEditMode` で未消費印を失効させ、次の有人起動へ持ち越さない。購読はEditorのドメインリロード後にも登録する。
   出所: agent前提（`PlaytestStartGateBypass` の消費セマンティクスと、両者の呼び出し順の実測）
 
 - **エディタ直Playの進行記録は既存の `ProgressRecords/` にそのまま書く。保存先は分けない。** 記録には `BuildInfo`（エディタでは null）が入るので、開発セッションは後から見分けられる。
