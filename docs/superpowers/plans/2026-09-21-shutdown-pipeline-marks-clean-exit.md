@@ -79,26 +79,26 @@
 - Produces: `ExitingPlayMode`のとき`GameShutdownEvent.FireGameShutdown(GameShutdownReason.UnawaitableExit)`を`CleanupAllSync()`より先に1回呼ぶ。
 - Consumes: 既存`GameShutdownEvent`の二重発火防止、既存`CleanExitMarkWriter`の`UnawaitableExit`購読。
 
-- [ ] **Step 1: 失敗するテストを書く** — `WebUiHostEditorCleanupTest`で一意なpid/sessionへ`CleanExitMarkWriter.InstallAtStartup`を設定し、`GameShutdownEvent.ResetForNewSession()`後に`OnPlayModeStateChanged(ExitingPlayMode)`を呼ぶ。`ConsumeSessionMarks(...).ExitedCleanly`がtrueであることを検証する。SetUp/TearDownで当該セッションの印とshutdown guardを片付ける。
-- [ ] **Step 2: 対象テストが失敗することを確認** — `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value WebUiHostEditorCleanupTest`。既存実装はshutdownを発火しないためclean assertionが失敗すること。
-- [ ] **Step 3: 最小実装** — `WebUiHostEditorCleanup`へ`using Client.Game.Common;`を追加し、`ExitingPlayMode`分岐で`GameShutdownEvent.FireGameShutdown(GameShutdownReason.UnawaitableExit);`を`CleanupAllSync()`より前に呼ぶ。処理意図を日英2行コメントで示す。
-- [ ] **Step 4: コンパイルと対象テスト** — `uloop compile --project-path ./moorestech_client`、続けてregex `WebUiHostEditorCleanupTest|CleanExitMarkerTest|GameShutdownFlushTest`。全件PASS、Errorログ0件。
-- [ ] **Step 5: 構造チェック** — 両ファイル200行未満、新規publicなし、`Func<>`/`partial`なし、Unity YAML手編集なしを確認する。
-- [ ] **Step 6: コミット** — Unityが自動生成した新規`.meta`を含め、`git commit -m "fix(client): Editor停止を正常終了として記録する"`。
+- [x] **Step 1: 失敗するテストを書く** — `WebUiHostEditorCleanupTest`で一意なpid/sessionへ`CleanExitMarkWriter.InstallAtStartup`を設定し、`GameShutdownEvent.ResetForNewSession()`後に`OnPlayModeStateChanged(ExitingPlayMode)`を呼ぶ。`ConsumeSessionMarks(...).ExitedCleanly`がtrueであることを検証する。SetUp/TearDownで当該セッションの印とshutdown guardを片付ける。
+- [x] **Step 2: 対象テストが失敗することを確認** — `uloop run-tests --project-path ./moorestech_client --filter-type class --filter-value WebUiHostEditorCleanupTest`。既存実装はshutdownを発火しないためclean assertionが失敗すること。
+- [x] **Step 3: 最小実装** — `WebUiHostEditorCleanup`へ`using Client.Game.Common;`を追加し、`ExitingPlayMode`分岐で`GameShutdownEvent.FireGameShutdown(GameShutdownReason.UnawaitableExit);`を`CleanupAllSync()`より前に呼ぶ。処理意図を日英2行コメントで示す。
+- [x] **Step 4: コンパイルと対象テスト** — `uloop compile --project-path ./moorestech_client`、続けてregex `WebUiHostEditorCleanupTest|CleanExitMarkerTest|GameShutdownFlushTest`。全件PASS、Errorログ0件。
+- [x] **Step 5: 構造チェック** — 両ファイル200行未満、新規publicなし、`Func<>`/`partial`なし、Unity YAML手編集なしを確認する。
+- [x] **Step 6: コミット** — Unityが自動生成した新規`.meta`を含め、`git commit -m "fix(client): Editor停止を正常終了として記録する"`。
 
 ### Task 2: 実Editor停止の回帰確認
 
 **Files:** なし（検証結果は報告ファイルとBeadsへ記録）
 
-- [ ] **Step 1: 対象テストを再実行** — Task 1 Step 4のregexが全件PASSすること。
-- [ ] **Step 2: PlayMode境界を確認** — 記録対象になる有人ローカル起動でPlayへ入り、Stop後に最新セッションのmarkがcleanとして消費可能で、Errorログに今回由来の例外が無いことを確認する。環境上の起動ゲートで実走不能なら、その理由を報告へ残し単体テストを代替証拠にする。
-- [ ] **Step 3: コミット** — コード変更が無ければコミット不要。検証で修正した場合のみTask 1と同じゲートを再実行してコミットする。
+- [x] **Step 1: 対象テストを再実行** — Task 1 Step 4のregexが全件PASSすること。
+- [x] **Step 2: PlayMode境界を確認** — 記録対象になる有人ローカル起動でPlayへ入り、Stop後に最新セッションのmarkがcleanとして消費可能で、Errorログに今回由来の例外が無いことを確認する。環境上の起動ゲートで実走不能なら、その理由を報告へ残し単体テストを代替証拠にする。
+- [x] **Step 3: コミット** — コード変更が無ければコミット不要。検証で修正した場合のみTask 1と同じゲートを再実行してコミットする。
 
 ### Task 3: 全ブランチレビュー（省略不可）
 
-- [ ] `moores-code-review`スキルでmerge-baseからHEADまでの全ブランチレビューを実行する。
-- [ ] Critical/Important所見は単一fix subagentで全件修正し、再レビューする。
-- [ ] 全変更・レビュー修正・検証結果をコミットする。
+- [x] `moores-code-review`スキルでmerge-baseからHEADまでの全ブランチレビューを実行する。
+- [x] Critical/Important所見は単一fix subagentで全件修正し、再レビューする。
+- [x] 全変更・レビュー修正・検証結果をコミットする。
 
 ### Task 4: PR作成（省略不可）
 
