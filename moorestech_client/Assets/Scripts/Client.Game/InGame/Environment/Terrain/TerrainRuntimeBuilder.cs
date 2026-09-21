@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Common.Asset;
+using Client.Game.InGame.Environment.Terrain.Assets;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
@@ -23,15 +25,9 @@ namespace Client.Game.InGame.Environment.Terrain
     {
         private const string TerrainObjectName = "Terrain";
 
-        // URPのdefaultTerrainMaterialはエディタ専用でビルドではnullを返すため、プロジェクト所有のマテリアルをアドレスから引く
-        // URP's defaultTerrainMaterial is editor-only and returns null in builds, so a project-owned material is resolved by address
-        private const string TerrainMaterialAddress = "Vanilla/Environment/Terrain/TerrainLitMaterial";
-
         public static async UniTask BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, string localMasterDirectory)
         {
-            var terrainMaterial = await AddressableLoader.LoadAsyncDefault<Material>(TerrainMaterialAddress);
-            if (terrainMaterial == null)
-                throw new InvalidOperationException($"[TerrainRuntimeBuilder] Terrain material '{TerrainMaterialAddress}' could not be loaded from Addressables.");
+            var terrainMaterial = await TerrainMaterialAssetLoader.LoadAsync(new RuntimeTerrainAssetLoader(), CancellationToken.None);
 
             // 生成システムへはメタをそのまま戻す。中身（seed・原点）はここでは解釈しない
             // The meta goes straight back to the generation system; nothing here interprets its contents (seed, origins)

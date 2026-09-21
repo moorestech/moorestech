@@ -1,0 +1,21 @@
+{
+    "name": "Client.MapScene.Editor",
+    "rootNamespace": "Client.MapScene.Editor",
+    "references": [
+        "Client.Game",
+        "Game.Map.Interface",
+        "UniTask",
+        "Unity.Addressables.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

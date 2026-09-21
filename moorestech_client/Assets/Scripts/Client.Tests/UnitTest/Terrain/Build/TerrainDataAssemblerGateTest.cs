@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
@@ -87,9 +88,11 @@ namespace Client.Tests.UnitTest.Terrain.Build
         [TestCase(48)]
         public void RejectsDetailResolutionUnityWouldRound(int detailResolution)
         {
+            var terrainCountBefore = Resources.FindObjectsOfTypeAll<TerrainData>().Length;
             var task = AssembleWithDetailMaps(new List<int[,]> { new int[detailResolution, detailResolution] });
 
             Assert.Throws<System.InvalidOperationException>(() => task.GetAwaiter().GetResult());
+            Assert.That(Resources.FindObjectsOfTypeAll<TerrainData>().Length, Is.EqualTo(terrainCountBefore));
         }
 
         [Test]
@@ -98,6 +101,33 @@ namespace Client.Tests.UnitTest.Terrain.Build
             var task = AssembleWithDetailMaps(new List<int[,]> { new int[16, 16], new int[16, 15] });
 
             Assert.Throws<System.InvalidOperationException>(() => task.GetAwaiter().GetResult());
+        }
+
+        [Test]
+        public void AssembleIntoLeavesCallerOwnedDataAliveWhenValidationFails()
+        {
+            var layout = WorldTerrainLayout.CreateTileMaps(
+                new List<(int TileX, int TileZ)> { (0, 0) }, new Vector3(TerrainWidth, TerrainHeight, TerrainWidth), Resolution,
+                new List<string>(), new List<DetailPrototypeSpec>());
+            var tile = new BakedTerrainTile(Vector3.zero, CreateHeights(), null, new[] { new int[15, 15] });
+            _terrainData = new TerrainData();
+            var initialResolution = _terrainData.heightmapResolution;
+            var task = TerrainDataAssembler.AssembleIntoAsync(_terrainData, layout, tile,
+                new[] { new DetailPrototype() }, _terrainLayers, CancellationToken.None);
+
+            Assert.Throws<System.InvalidOperationException>(() => task.GetAwaiter().GetResult());
+            Assert.That(_terrainData != null, Is.True);
+            Assert.That(_terrainData.heightmapResolution, Is.EqualTo(initialResolution));
+        }
+
+        [Test]
+        public void AssembleIntoChecksCancellationBeforeInputsOrNativeData()
+        {
+            using var cancellation = new CancellationTokenSource();
+            cancellation.Cancel();
+            var task = TerrainDataAssembler.AssembleIntoAsync(null, null, null, null, null, cancellation.Token);
+
+            Assert.Throws<System.OperationCanceledException>(() => task.GetAwaiter().GetResult());
         }
 
         private IEnumerator Assemble(TileAlphamap alphamap)

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
@@ -86,6 +87,35 @@ namespace Client.Tests.UnitTest.Terrain
             Assert.That(_terrainData.alphamapResolution, Is.EqualTo(32));
             Assert.That(_terrainData.terrainLayers.Length, Is.EqualTo(LayerCount));
             Assert.That(_terrainData.GetAlphamaps(0, 0, 32, 32)[0, 0, 0], Is.EqualTo(initialWeight));
+        }
+
+        [UnityTest]
+        public IEnumerator CancellationAfterFirstPlaneStopsBeforeTouchingDestroyedTextures()
+        {
+            yield return CancelAfterYield(CreatePlanes(), _terrainLayers);
+        }
+
+        [UnityTest]
+        public IEnumerator CancellationAfterLastPlaneStopsBeforeDirtyingDestroyedTerrain()
+        {
+            yield return CancelAfterYield(new[] { CreatePlanes()[0] }, new[] { _terrainLayers[0] });
+        }
+
+        private IEnumerator CancelAfterYield(byte[][] planes, TerrainLayer[] terrainLayers)
+        {
+            var alphamap = TileAlphamap.Create(planes, AlphamapResolution, terrainLayers.Length);
+            using var cancellation = new CancellationTokenSource();
+            var task = TerrainAlphamapApplier.ApplyAsync(_terrainData, terrainLayers, CreateTile(alphamap), cancellation.Token);
+            Assert.That(task.Status, Is.EqualTo(UniTaskStatus.Pending));
+
+            // Stage終了と同じ順でキャンセルして破棄し、次の継続の例外を観測する
+            // Cancel then destroy in stage-close order and observe the next continuation's exception
+            cancellation.Cancel();
+            Object.DestroyImmediate(_terrainData);
+            System.Exception thrown = null;
+            yield return task.ToCoroutine(exception => thrown = exception);
+
+            Assert.That(thrown, Is.TypeOf<System.OperationCanceledException>());
         }
 
         // 各平面の南東端へ別の値を置き、最後の端数チャンネルも明示する

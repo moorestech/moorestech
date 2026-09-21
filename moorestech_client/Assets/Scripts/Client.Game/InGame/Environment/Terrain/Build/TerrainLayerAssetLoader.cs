@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Client.Common.Asset;
+using System.Threading;
+using Client.Game.InGame.Environment.Terrain.Assets;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
@@ -14,14 +15,20 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     /// </summary>
     public static class TerrainLayerAssetLoader
     {
-        public static async UniTask<TerrainLayer[]> LoadAsync(IReadOnlyList<string> orderedLayerAddresses)
+        public static UniTask<TerrainLayer[]> LoadAsync(IReadOnlyList<string> orderedLayerAddresses)
+        {
+            return LoadAsync(orderedLayerAddresses, new RuntimeTerrainAssetLoader(), CancellationToken.None);
+        }
+
+        public static async UniTask<TerrainLayer[]> LoadAsync(
+            IReadOnlyList<string> orderedLayerAddresses, ITerrainAssetLoader assets, CancellationToken cancellationToken)
         {
             var terrainLayers = new TerrainLayer[orderedLayerAddresses.Count];
 
             for (var index = 0; index < orderedLayerAddresses.Count; index++)
             {
                 var layerAddress = orderedLayerAddresses[index];
-                var terrainLayer = await AddressableLoader.LoadAsyncDefault<TerrainLayer>(layerAddress);
+                var terrainLayer = await assets.LoadAsync<TerrainLayer>(layerAddress, cancellationToken);
 
                 // 解決できない1本を飛ばすと以降の列が繰り上がる。欠番のまま進めず落とす
                 // Skipping one unresolved layer would shift every later column up, so this fails instead of leaving a gap

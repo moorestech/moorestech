@@ -7,6 +7,7 @@
         "Server.Tests",
         "Server.Tests.Module",
         "Client.Game",
+        "Client.MapScene.Editor",
         "Game.Block",
         "Game.Gear",
         "Game.EnergySystem",

@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using Client.Common;
 using Client.Common.Asset;
-using Client.Game.InGame.Map.MapObject;
 using Client.Game.InGame.Map.MapVein;
+using Client.MapScene.Editor;
 using Core.Master;
 using Game.Map.Interface.Json;
 using Mod.Config;
@@ -73,26 +73,9 @@ public static class MapAuthoringImporter
                 var prefab = ResolvePrefabOrNull(info.MapObjectGuid);
                 if (prefab == null) continue;
 
-                // Prefabリンクを保ったままシーンへ生成し、ID/GUIDをシリアライズフィールドへ注入する
-                // Instantiate with the prefab link intact, then inject id/guid into the serialized fields
-                var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
-                instance.transform.position = info.Position;
-
-                // Exportが姿勢とスケールを書き出すため、戻さないとImport→Exportの往復でprefab既定値へ痩せる
-                // Export writes the rotation and scale out, so skipping them here would shrink an import-export round trip back to the prefab defaults
-                instance.transform.rotation = info.Rotation;
-                instance.transform.localScale = info.Scale;
-
-                var mapObject = instance.GetComponent<MapObjectGameObject>();
-                if (mapObject == null)
-                {
-                    Debug.LogError($"[MapAuthoring] MapObjectGameObjectがrootに無いprefabです MapObjectGuid:{info.MapObjectGuidStr}");
-                    Object.DestroyImmediate(instance);
-                    continue;
-                }
-
-                mapObject.SetRuntimeIdentity(info.InstanceId, info.MapObjectGuidStr);
-                importedCount++;
+                // 配置の成功だけを集計し、壊れたPrefabを取り込み済みに数えない
+                // Count only successful placements so malformed prefabs are not reported as imported
+                if (MapObjectPrefabPlacement.Instantiate(info, prefab, parent) != null) importedCount++;
             }
 
             return importedCount;
