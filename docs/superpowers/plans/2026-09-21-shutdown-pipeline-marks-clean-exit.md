@@ -97,7 +97,7 @@ Play停止／プロセス終了要求
   - `public static void GameShutdownEvent.InstallUnannouncedExitNotice()` — 引数なし・戻り値なし。`Application.quitting` へ保険を据える。二重呼び出し安全
   - `internal static bool GameShutdownEvent.NotifyUnannouncedExit()` — 引数なし。未発火なら `UnawaitableExit` を発火して `true`、発火済みなら何もせず `false`
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 `moorestech_client/Assets/Scripts/Client.Tests/Starter/GameShutdownFlushTest.cs` の `GameShutdownFlushTest` クラス内、既存の `FireGameShutdownAsync_SecondFireIsAlreadyShutdown` の**直後**に以下の2テストを追加する（`private class ControllableShutdownParticipant` の定義より前に置く）。
 
@@ -149,12 +149,12 @@ using NUnit.Framework;
 using UniRx;
 ```
 
-- [ ] **Step 2: テストを実行して失敗を確認する**
+- [x] **Step 2: テストを実行して失敗を確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: FAIL. `CS0117: 'GameShutdownEvent' does not contain a definition for 'NotifyUnannouncedExit'`
 
-- [ ] **Step 3: 保険を実装する**
+- [x] **Step 3: 保険を実装する**
 
 `GameShutdownEvent.cs` を2箇所編集する。フィールドは追加しない（重複購読は `-=`／`+=` で防ぐため、据え付け済みフラグは持たない）。
 
@@ -212,7 +212,7 @@ Expected: FAIL. `CS0117: 'GameShutdownEvent' does not contain a definition for '
         }
 ```
 
-- [ ] **Step 4: 起動シーケンスへ据え付けを追加する**
+- [x] **Step 4: 起動シーケンスへ据え付けを追加する**
 
 `moorestech_client/Assets/Scripts/Client.Starter/InitializeScenePipeline.cs` の56-57行目を次に置き換える。
 
@@ -228,7 +228,7 @@ Expected: FAIL. `CS0117: 'GameShutdownEvent' does not contain a definition for '
 
 review r2 D1補完: 先に `PreviousSessionStartupTasksTest` を追加し、未実装 `BeginCurrentSessionMarks` のCS0117をREDとして確認する。次に同メソッドへ `ProcessSessionScope.BeginNewSession()` と現在pid/sessionでの `CleanExitMarkWriter.InstallAtStartup` を移す。後段の `RunAtStartup` はsalvage/recoveryのみとし、session再開始・writer再設置を除く。WebUiのreadyとremoteの4組合せ、同pid再Playの旧/現session分離を5ケースで固定する。共有資料を全消去せず生成sessionのみ片付ける。
 
-- [ ] **Step 5: コンパイルとテストを実行して通ることを確認する**
+- [x] **Step 5: コンパイルとテストを実行して通ることを確認する**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
@@ -236,7 +236,7 @@ Expected: エラー0件
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GameShutdownFlushTest"`
 Expected: 4テストすべて PASS（既存2＋新規2）
 
-- [ ] **Step 6: コミットする**
+- [x] **Step 6: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/Common/GameShutdownEvent.cs moorestech_client/Assets/Scripts/Client.Starter/InitializeScenePipeline.cs moorestech_client/Assets/Scripts/Client.Tests/Starter/GameShutdownFlushTest.cs
@@ -259,7 +259,7 @@ EOF
 - Consumes: Task 1 で追加した保険（このタスクの修正が無くても印は残る前提に立てる）、既存の `ClientContext.VanillaApi`, `GameShutdownEvent.FireGameShutdown(GameShutdownReason)`
 - Produces: なし（private メソッドの修正のみ）
 
-- [ ] **Step 1: Disconnect の順序と未初期化ガードを直す**
+- [x] **Step 1: Disconnect の順序と未初期化ガードを直す**
 
 `SaveAndQuitPresenter.cs` の `Disconnect()` を次に置き換える。
 
@@ -285,19 +285,19 @@ EOF
         }
 ```
 
-- [ ] **Step 2: コンパイルする**
+- [x] **Step 2: コンパイルする**
 
 Run: `uloop compile --project-path ./moorestech_client`
 Expected: エラー0件
 
-- [ ] **Step 3: 周辺テストが壊れていないことを確認する**
+- [x] **Step 3: 周辺テストが壊れていないことを確認する**
 
 Run: `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "GameShutdownFlushTest|Client.Tests.BugReport|Client.Tests.Starter"`
 Expected: すべて PASS
 
 追加関連テスト: `PreviousSessionStartupTasksTest|ProgressSessionRecoveryTest`。同じregexへ含めてもよい。
 
-- [ ] **Step 4: コミットする**
+- [x] **Step 4: コミットする**
 
 ```bash
 git add moorestech_client/Assets/Scripts/Client.Game/InGame/Presenter/PauseMenu/SaveAndQuitPresenter.cs
@@ -322,7 +322,7 @@ EOF
 
 前提: このタスクは Unity Editor の GUI を動かす。画面ロック中は `uloop` が無言でハングするので、画面のロックを解除してから実行すること。
 
-- [ ] **Step 1: 前回セッションの残骸を空にする**
+- [x] **Step 1: 前回セッションの残骸を空にする**
 
 ```bash
 test -d "/Users/sakastudio/Library/Application Support/moorestech/BugReports/last-session"
@@ -332,7 +332,7 @@ ls "/Users/sakastudio/Library/Application Support/moorestech/BugReports/"
 ```
 Expected: 検証済み絶対パスの`last-session`が無く、旧資料は退避先から復元できる状態。初めから存在しなければ移動は不要。再帰削除は使わない。
 
-- [ ] **Step 2: Playを開始し、初期化が終わる前に停止する**
+- [x] **Step 2: Playを開始し、初期化が終わる前に停止する**
 
 ```bash
 uloop control-play-mode --project-path ./moorestech_client --action Play
@@ -340,7 +340,7 @@ uloop control-play-mode --project-path ./moorestech_client --action Stop
 ```
 （`play` の直後に `stop` を出す。writer設置・started生成・WebUi readyを待たず、最早期停止を検証する）
 
-- [ ] **Step 3: 保険が発火し、正常終了の印が書かれたことを確認する**
+- [x] **Step 3: 保険が発火し、正常終了の印が書かれたことを確認する**
 
 ```bash
 grep -c "終了の意思表明が無いまま終了要求が来たため" "$HOME/Library/Logs/Unity/Editor.log"
@@ -353,7 +353,7 @@ grep -c "SaveAndQuitPresenter.Disconnect" "$HOME/Library/Logs/Unity/Editor.log"
 ```
 Expected: 0（NREが出ていない）
 
-- [ ] **Step 4: 再度Playし、ゲートで止まらないことを確認する**
+- [x] **Step 4: 再度Playし、ゲートで止まらないことを確認する**
 
 ```bash
 uloop control-play-mode --project-path ./moorestech_client --action Play
@@ -366,7 +366,7 @@ grep "前回セッションの退避が終わりました" "$HOME/Library/Logs/U
 ```
 Expected: 1つ目のgrepは今回の起動区間で0件、2つ目の最終行が `clean:True`
 
-- [ ] **Step 5: 停止して結果を記録する**
+- [x] **Step 5: 停止して結果を記録する**
 
 ```bash
 uloop control-play-mode --project-path ./moorestech_client --action Stop
@@ -388,11 +388,11 @@ bd note moorestech-ot11 "実機確認: 初期化途中で停止 → clean の印
 
 `moores-code-review` スキルを起動し、`master..fix/editor-stop-clean-exit-mark` の差分をレビューする。ゴール文言による省略は不可。
 
-- [ ] **Step 2: 指摘を反映する**
+- [x] **Step 2: 指摘を反映する**
 
 指摘を反映する。反映が判定経路・条件式・その評価時点（`_fired` の判定、`Application.quitting` の購読位置、`VanillaApi == null` の判定）に触れた場合は、**Task 3 の実機検証を反映後のコードで最初からやり直してから**このタスクを完了させる。テストの通過・ログの無音は代替にならない。
 
-- [ ] **Step 3: 残課題を1件ずつ起票する**
+- [x] **Step 3: 残課題を1件ずつ起票する**
 
 plan・実機検証記録・レビュー結果に書いた「未検証」「未確認」「残差」を、1件ずつ `bd create` で起票する。結論には issue 番号を列挙する（「残差は○○のみ」と要約しない）。起票が済んでいない残課題は残課題と呼ばない。
 

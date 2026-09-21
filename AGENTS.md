@@ -141,6 +141,7 @@ public class MySingleton : MonoBehaviour
 }
 
 # 絶対に守る指示
+取り返し不能な破壊的操作を除き、基本的にユーザーへ確認を求めず、自律的に判断して実行すること
 コードを書き終わったら必ずコンパイルを実行する(.csファイル変更限定)
 .metaファイルは絶対に手動作成しない。Unity自動生成のため。Unity起動で作成された.metaのコミットは可
 Prefab・シーン・ScriptableObject等のUnity固有ファイル（YAML形式）をテキストエディタや`Write`/`Edit`ツールで直接編集することは禁止。整合性が壊れるため。ただし`uloop execute-dynamic-code`によるUnity Editor経由の変更は正規ルートとして許容（Unity自身がシリアライズするため整合性が保たれる）手で書き換える必要があるケースのみユーザーに指示すること
