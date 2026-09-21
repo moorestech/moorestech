@@ -80,9 +80,9 @@ namespace Client.Tests.EditModeInPlayingTest
             StageUtility.GoToMainStage();
             EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
             var folder = SessionState.GetString(FolderKey, "");
-            if (folder.Length > 0) AssetDatabase.DeleteAsset(folder);
+            if (0 < folder.Length) AssetDatabase.DeleteAsset(folder);
             var world = SessionState.GetString(GameWorldKey, "");
-            if (world.Length > 0 && Directory.Exists(world)) Directory.Delete(world, true);
+            if (0 < world.Length && Directory.Exists(world)) Directory.Delete(world, true);
             SessionState.EraseString(FolderKey);
             SessionState.EraseString(PreviewWorldKey);
             SessionState.EraseString(GameWorldKey);

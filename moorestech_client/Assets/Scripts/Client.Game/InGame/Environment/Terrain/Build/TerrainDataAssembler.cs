@@ -18,13 +18,13 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     {
         public static async UniTask<TerrainData> AssembleAsync(
             WorldTerrainLayout layout, BakedTerrainTile tile,
-            IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers)
+            IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers, CancellationToken cancellationToken)
         {
             var terrainData = new TerrainData();
             var assembled = false;
             try
             {
-                await AssembleIntoAsync(terrainData, layout, tile, detailPrototypes, terrainLayers, CancellationToken.None);
+                await AssembleIntoAsync(terrainData, layout, tile, detailPrototypes, terrainLayers, cancellationToken);
                 assembled = true;
                 return terrainData;
             }

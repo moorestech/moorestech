@@ -14,16 +14,16 @@ namespace Client.MapScene.Editor
 {
     public sealed class GeneratedMapPreviewRun : IDisposable
     {
+        private const int EditorYieldPlacementInterval = 50;
         private GeneratedMapPreviewWorld _world;
         private GeneratedMapPreviewContent _content;
         private bool _executed;
         private bool _disposed;
-        public int ExpectedMapObjectCount { get; private set; }
-        public int CreatedMapObjectCount { get; private set; }
-        public int MissingMapObjectCount => ExpectedMapObjectCount - CreatedMapObjectCount;
+        internal int ExpectedMapObjectCount { get; private set; }
+        internal int CreatedMapObjectCount { get; private set; }
         internal int ExpectedOutcropCount { get; private set; }
         internal int CreatedOutcropCount { get; private set; }
-        internal int MissingPlacementCount => MissingMapObjectCount + ExpectedOutcropCount - CreatedOutcropCount;
+        internal int MissingPlacementCount => ExpectedMapObjectCount - CreatedMapObjectCount + ExpectedOutcropCount - CreatedOutcropCount;
         internal Vector3 SpawnPosition { get; private set; }
         internal Bounds TerrainBounds { get; private set; }
 
@@ -45,9 +45,15 @@ namespace Client.MapScene.Editor
             await GeneratedMapPreviewTerrain.BuildAsync((TiledTerrainSession)_world.TerrainSession, _content, assets, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
-            // 全地形のBoundsと正本のスポーン位置をフレーミングへ渡す
-            // Supply complete terrain bounds and the authoritative spawn position for framing
+            // 全地形Boundsとスポーン位置を渡す
+            // Pass full terrain bounds and authoritative spawn position for framing
             var terrains = _content.Root.GetComponentsInChildren<Terrain>();
+            if (terrains.Length == 0)
+            {
+                var message = $"[GeneratedMapPreview] No terrain tiles were built. ExpectedTiles:{_world.TerrainSession.Layout.TileCoordinates.Count}";
+                Debug.LogError(message);
+                throw new InvalidOperationException(message);
+            }
             var bounds = new Bounds(terrains[0].transform.position + terrains[0].terrainData.bounds.center, terrains[0].terrainData.bounds.size);
             foreach (var terrain in terrains)
                 bounds.Encapsulate(new Bounds(terrain.transform.position + terrain.terrainData.bounds.center, terrain.terrainData.bounds.size));
@@ -111,9 +117,9 @@ namespace Client.MapScene.Editor
                 if (prefab != null && MapObjectPrefabPlacement.Instantiate(info, prefab, parent) != null)
                     CreatedMapObjectCount++;
 
-                // 配置値は再計算せず、50件ごとにEditorへ制御を返す
-                // Preserve placement values and return control to the editor after each fifty instances
-                if ((index + 1) % 50 != 0) continue;
+                // 配置値を保ち、一定数ごとに制御を返す
+                // Preserve placement values and yield at the editor interval
+                if ((index + 1) % EditorYieldPlacementInterval != 0) continue;
                 await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken, true);
                 cancellationToken.ThrowIfCancellationRequested();
             }

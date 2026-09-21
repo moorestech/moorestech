@@ -50,7 +50,7 @@ namespace Client.Tests.UnitTest.Terrain
 
             // 一括適用でロード画面を止めず、少なくとも1度は次フレームへ制御を返す
             // Return control to a later frame at least once instead of stalling the loading screen with one bulk apply
-            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, _terrainLayers, CreateTile(alphamap));
+            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, _terrainLayers, CreateTile(alphamap), CancellationToken.None);
             Assert.That(applyTask.Status, Is.EqualTo(UniTaskStatus.Pending));
             yield return applyTask.ToCoroutine();
 
@@ -76,7 +76,7 @@ namespace Client.Tests.UnitTest.Terrain
             var initialWeight = _terrainData.GetAlphamaps(0, 0, 32, 32)[0, 0, 0];
             var alphamap = TileAlphamap.Create(
                 new[] { new byte[AlphamapResolution * AlphamapResolution * 4] }, AlphamapResolution, 1);
-            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, System.Array.Empty<TerrainLayer>(), CreateTile(alphamap));
+            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, System.Array.Empty<TerrainLayer>(), CreateTile(alphamap), CancellationToken.None);
             Assert.That(applyTask.Status, Is.EqualTo(UniTaskStatus.Faulted));
             var thrownException = Assert.Throws<System.InvalidOperationException>(() => applyTask.GetAwaiter().GetResult());
             Assert.That(thrownException.Message,

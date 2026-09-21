@@ -13,6 +13,11 @@ namespace Client.MapScene.Editor
             // Prefabリンクと世界姿勢を保ち、Exportと同じローカルスケールを戻す
             // Preserve the prefab link and world pose, restoring the local scale written by Export
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab, parent);
+            if (instance == null)
+            {
+                Debug.LogError($"Map object prefab could not be instantiated: InstanceId:{info.InstanceId} MapObjectGuid:{info.MapObjectGuidStr}");
+                return null;
+            }
             instance.transform.SetPositionAndRotation(info.Position, info.Rotation);
             instance.transform.localScale = info.Scale;
 

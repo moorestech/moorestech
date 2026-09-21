@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace Client.MapScene.Editor
 {
-    public static class GeneratedMapPreviewTerrain
+    internal static class GeneratedMapPreviewTerrain
     {
         public static async UniTask BuildAsync(TiledTerrainSession session, GeneratedMapPreviewContent content,
             ITerrainAssetLoader assets, CancellationToken cancellationToken)

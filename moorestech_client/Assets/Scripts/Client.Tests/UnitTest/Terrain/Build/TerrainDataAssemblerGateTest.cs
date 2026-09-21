@@ -138,7 +138,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
             var tile = new BakedTerrainTile(
                 Vector3.zero, CreateHeights(), alphamap, new List<int[,]>());
 
-            var assembleTask = TerrainDataAssembler.AssembleAsync(layout, tile, new List<DetailPrototype>(), _terrainLayers);
+            var assembleTask = TerrainDataAssembler.AssembleAsync(layout, tile, new List<DetailPrototype>(), _terrainLayers, CancellationToken.None);
 
             yield return assembleTask.ToCoroutine(terrainData => _terrainData = terrainData);
         }
@@ -153,7 +153,7 @@ namespace Client.Tests.UnitTest.Terrain.Build
             var prototypes = new List<DetailPrototype>();
             for (var index = 0; index < detailMaps.Count; index++) prototypes.Add(new DetailPrototype());
 
-            return TerrainDataAssembler.AssembleAsync(layout, tile, prototypes, System.Array.Empty<TerrainLayer>());
+            return TerrainDataAssembler.AssembleAsync(layout, tile, prototypes, System.Array.Empty<TerrainLayer>(), CancellationToken.None);
         }
 
         private static float[,] CreateHeights()

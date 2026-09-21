@@ -15,11 +15,6 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     /// </summary>
     public static class TerrainLayerAssetLoader
     {
-        public static UniTask<TerrainLayer[]> LoadAsync(IReadOnlyList<string> orderedLayerAddresses)
-        {
-            return LoadAsync(orderedLayerAddresses, new RuntimeTerrainAssetLoader(), CancellationToken.None);
-        }
-
         public static async UniTask<TerrainLayer[]> LoadAsync(
             IReadOnlyList<string> orderedLayerAddresses, ITerrainAssetLoader assets, CancellationToken cancellationToken)
         {

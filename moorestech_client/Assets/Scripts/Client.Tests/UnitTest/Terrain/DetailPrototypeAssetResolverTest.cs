@@ -96,7 +96,7 @@ namespace Client.Tests.UnitTest.Terrain
             try
             {
                 Exception thrown = null;
-                yield return DetailPrototypeAssetResolver.ResolveAsync(specs).ToCoroutine(_ => { }, exception => thrown = exception);
+                yield return DetailPrototypeAssetResolver.ResolveAsync(specs, new RuntimeTerrainAssetLoader(), CancellationToken.None).ToCoroutine(_ => { }, exception => thrown = exception);
                 Assert.That(thrown, Is.TypeOf<InvalidOperationException>());
 
                 for (var frame = 0; frame < 5; frame++) yield return null;

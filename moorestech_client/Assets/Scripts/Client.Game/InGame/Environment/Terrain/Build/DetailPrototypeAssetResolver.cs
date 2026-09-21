@@ -16,11 +16,6 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     /// </summary>
     public static class DetailPrototypeAssetResolver
     {
-        public static UniTask<List<DetailPrototype>> ResolveAsync(IReadOnlyList<DetailPrototypeSpec> prototypeSpecs)
-        {
-            return ResolveAsync(prototypeSpecs, new RuntimeTerrainAssetLoader(), CancellationToken.None);
-        }
-
         public static async UniTask<List<DetailPrototype>> ResolveAsync(
             IReadOnlyList<DetailPrototypeSpec> prototypeSpecs, ITerrainAssetLoader assets, CancellationToken cancellationToken)
         {

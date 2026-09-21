@@ -20,8 +20,8 @@ namespace Client.MapScene.Editor
             var settings = AddressableAssetSettingsDefaultObject.Settings;
             if (settings == null) throw new InvalidOperationException("Preview Addressables settings are missing.");
 
-            // フォルダ登録も展開し、完全一致のアドレスだけを解決する
-            // Expand folder entries and resolve only exact addresses
+            // フォルダ登録も展開し完全一致で解決
+            // Expand folder entries; resolve exact addresses only
             var entries = new List<AddressableAssetEntry>();
             settings.GetAllAssets(entries, false);
             foreach (var entry in entries)

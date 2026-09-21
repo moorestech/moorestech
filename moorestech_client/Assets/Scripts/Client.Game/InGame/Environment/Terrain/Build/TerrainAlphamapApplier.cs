@@ -17,12 +17,6 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     /// </summary>
     public static class TerrainAlphamapApplier
     {
-        public static UniTask ApplyAsync(
-            TerrainData terrainData, TerrainLayer[] terrainLayers, BakedTerrainTile tile)
-        {
-            return ApplyAsync(terrainData, terrainLayers, tile, CancellationToken.None);
-        }
-
         public static async UniTask ApplyAsync(
             TerrainData terrainData, TerrainLayer[] terrainLayers, BakedTerrainTile tile, CancellationToken cancellationToken)
         {
