@@ -275,7 +275,7 @@ namespace Client.Starter.Editor
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Util/EditModeInPlayingTestUtilTest.cs:20-21`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/StandaloneQa/StandaloneTerrainQaSettingsTest.cs:35-36`
 
-- [ ] **Step 1: プロダクションのコメント4箇所を置換**
+- [x] **Step 1: プロダクションのコメント4箇所を置換**
 
 `AlwaysOnCaptureSetting.cs`:
 ```csharp
@@ -299,7 +299,7 @@ namespace Client.Starter.Editor
         // AlwaysOnCaptureSetting holds the only decision on whether to record; without it even unattended boots (tests, recorded playtests) write into the real ProgressRecords/
 ```
 
-- [ ] **Step 2: `SkipSaveLoadPlayModeSettingsTest` を書き換える** — クラス上のコメント、1本目のテスト名、末尾のアサートを次へ。`using Server.Boot;` は `CliConvert`／`StartServerSettings` が `Server.Boot`／`Server.Boot.Args` 由来なので残す。
+- [x] **Step 2: `SkipSaveLoadPlayModeSettingsTest` を書き換える** — クラス上のコメント、1本目のテスト名、末尾のアサートを次へ。`using Server.Boot;` は `CliConvert`／`StartServerSettings` が `Server.Boot`／`Server.Boot.Args` 由来なので残す。
 
 ```csharp
     // SkipSaveLoadPlayModeがAutoSaveを無効にして起動させ続けることの回帰ガード。常時記録はここでは決めない（ADR 0066）
@@ -319,7 +319,7 @@ namespace Client.Starter.Editor
         }
 ```
 
-- [ ] **Step 3: 残すアサートのコメント3箇所を置換** — アサート自体は触らない。
+- [x] **Step 3: 残すアサートのコメント3箇所を置換** — アサート自体は触らない。
 
 `PlaytestWorldBootSessionTest.cs`:
 ```csharp
@@ -337,9 +337,9 @@ namespace Client.Starter.Editor
             // Only a play a person started enables always-on capture, so a QA boot leaves it disabled
 ```
 
-- [ ] **Step 4: 取りこぼし確認** — Run: `grep -rn "本番のプレイ開始だけ" --include="*.cs" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts` と `grep -n "調査用" moorestech_client/Assets/Scripts/Client.Game/InGame/Playtest/Progress/ProgressRecorder.cs` / Expected: どちらも0件（`ServerShutdownReleasesCaptureTest.cs` の「本番のプレイ開始と同じく明示的に有効化」は事実のままなので対象外）。
-- [ ] **Step 5: テスト** — compile → Task 2 Step 4 と同じ regex / Expected: 全件 PASS。
-- [ ] **Step 6: コミット** — `git commit -m "docs: 常時記録の有効化条件のコメントとテストをADR 0066へ合わせる"`
+- [x] **Step 4: 取りこぼし確認** — Run: `grep -rn "本番のプレイ開始だけ" --include="*.cs" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts` と `grep -n "調査用" moorestech_client/Assets/Scripts/Client.Game/InGame/Playtest/Progress/ProgressRecorder.cs` / Expected: どちらも0件（`ServerShutdownReleasesCaptureTest.cs` の「本番のプレイ開始と同じく明示的に有効化」は事実のままなので対象外）。
+- [x] **Step 5: テスト** — compile → Task 2 Step 4 と同じ regex / Expected: 全件 PASS。
+- [x] **Step 6: コミット** — `git commit -m "docs: 常時記録の有効化条件のコメントとテストをADR 0066へ合わせる"`
 
 ### Task 4: 実機確認（エディタ直Play／無人起動）
 
