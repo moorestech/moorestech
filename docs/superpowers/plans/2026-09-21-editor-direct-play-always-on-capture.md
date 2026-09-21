@@ -14,7 +14,7 @@
 - R2: 無人起動（`PlaytestStartGateBypass` の印・batchMode・無人プロセス宣言）では自動有効化しない。受入: 理由入りのログ `[DirectPlayAlwaysOnCaptureSettings] 無人起動のため直Playの常時記録を自動では有効にしません reason:<理由>` が出て、`AlwaysOnCaptureSetting.Current` は呼び出し前の値のまま。
 - R3: 無人起動のときに Disabled へ上書きしない。受入: 事前に `Apply(Enabled())` 済みの状態で無人判定を通しても `Current.IsEnabled == true` のまま（`PlaytestReportAndProgressTest` が通り続ける）。
 - R4: 常時記録の判定は無人起動の印を消費しない。受入: 印を立てて覗いた後でも、開始ゲート側の `PlaytestStartGateBypass.UnattendedReason()` が非 null を返す。理由: 起動上書きは `InitializeScenePipeline` 序盤、開始ゲートは `MainGameInitializationFinalizer.cs:58` の終盤で走る。先に消費するとゲートが応答待ちで恒久停止する。
-- R5: 「本番のプレイ開始だけが有効にする」旨のコメント（プロダクション3箇所・テスト4箇所）を実態に合わせて書き換える。
+- R5: 「本番のプレイ開始だけが有効にする」旨のコメント（プロダクション4箇所＝うち `ProgressRecorder` は文言違いの同趣旨・テスト4箇所）を実態に合わせて書き換える。
 - R6: `SkipSaveLoadPlayModeSettingsTest` から「セーブ無しPlayでは常時記録が無効」のアサートを外す（裁定で有効になったため）。`EditModeInPlayingTestUtilTest`・`PlaytestWorldBootSessionTest`・`StandaloneTerrainQaSettingsTest` の「無効のまま」アサートは維持する。
 - やらないこと: バグ報告のアップロード判定（エディタは DeveloperMode で outbox 止まり）の変更／`ProgressRecords/` の保存先分離／uloop起動Playの除外／トグル・専用ボタンの追加／`PlaytestStartGateBypass` のクラス名変更。
 
@@ -269,12 +269,13 @@ namespace Client.Starter.Editor
 - Modify: `moorestech_server/Assets/Scripts/Server.Boot/Args/AlwaysOnCaptureSetting.cs:20-21`
 - Modify: `moorestech_client/Assets/Scripts/Client.Starter/LocalGameLauncher.cs:14-15`
 - Modify: `moorestech_client/Assets/Scripts/Client.MainMenu/ConnectServer.cs:59-60`
+- Modify: `moorestech_client/Assets/Scripts/Client.Game/InGame/Playtest/Progress/ProgressRecorder.cs:47-48`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Starter/SkipSaveLoadPlayModeSettingsTest.cs`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/Playtest/PlaytestWorldBootSessionTest.cs:36-37`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Util/EditModeInPlayingTestUtilTest.cs:20-21`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/StandaloneQa/StandaloneTerrainQaSettingsTest.cs:35-36`
 
-- [ ] **Step 1: プロダクションのコメント3箇所を置換**
+- [ ] **Step 1: プロダクションのコメント4箇所を置換**
 
 `AlwaysOnCaptureSetting.cs`:
 ```csharp
@@ -290,6 +291,12 @@ namespace Client.Starter.Editor
 ```csharp
             // 人が始めたプレイは常時記録を有効にする。接続先が別プロセスでも録画リングはこちらで回る
             // A play a person started enables always-on capture; the recording ring runs here even when the server is another process
+```
+
+`ProgressRecorder.cs`（直Play＝開発・調査のプレイは裁定で `ProgressRecords/` へ書くことになったので「調査用」の語を外す）:
+```csharp
+        // 記録するかの決定は AlwaysOnCaptureSetting が1つだけ持つ。持たないと無人起動（テスト・プレイ録画テスト）まで本番のProgressRecords/へ書き始める
+        // AlwaysOnCaptureSetting holds the only decision on whether to record; without it even unattended boots (tests, recorded playtests) write into the real ProgressRecords/
 ```
 
 - [ ] **Step 2: `SkipSaveLoadPlayModeSettingsTest` を書き換える** — クラス上のコメント、1本目のテスト名、末尾のアサートを次へ。`using Server.Boot;` は `CliConvert`／`StartServerSettings` が `Server.Boot`／`Server.Boot.Args` 由来なので残す。
@@ -330,7 +337,7 @@ namespace Client.Starter.Editor
             // Only a play a person started enables always-on capture, so a QA boot leaves it disabled
 ```
 
-- [ ] **Step 4: 取りこぼし確認** — Run: `grep -rn "本番のプレイ開始だけ" --include="*.cs" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts` / Expected: 0件（`ServerShutdownReleasesCaptureTest.cs` の「本番のプレイ開始と同じく明示的に有効化」は事実のままなので対象外）。
+- [ ] **Step 4: 取りこぼし確認** — Run: `grep -rn "本番のプレイ開始だけ" --include="*.cs" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts` と `grep -n "調査用" moorestech_client/Assets/Scripts/Client.Game/InGame/Playtest/Progress/ProgressRecorder.cs` / Expected: どちらも0件（`ServerShutdownReleasesCaptureTest.cs` の「本番のプレイ開始と同じく明示的に有効化」は事実のままなので対象外）。
 - [ ] **Step 5: テスト** — compile → Task 2 Step 4 と同じ regex / Expected: 全件 PASS。
 - [ ] **Step 6: コミット** — `git commit -m "docs: 常時記録の有効化条件のコメントとテストをADR 0066へ合わせる"`
 
@@ -340,6 +347,7 @@ namespace Client.Starter.Editor
 
 前提: 画面ロック中は uloop が無言ハングする。別 worktree の Unity が PlayMode 中でないこと（ポート11564固定）。
 
+- [ ] **Step 0: 残留印の掃除** — 直前の無人テストが開始ゲートへ届かずに落ちていると印が残り、Step 1 が無人扱いになって空振りする。`uloop execute-dynamic-code` で `Client.Game.InGame.BugReport.Playtest.PlaytestStartGateBypass.UnattendedReason();` を1回呼んで読み捨てる（戻り値が非 null だったら残留していた旨を bd note に書く）。
 - [ ] **Step 1: 有人の直Play** — GameInitializer シーンを開いた状態で `uloop clear-console` → `uloop control-play-mode --project-path ./moorestech_client --action Play`（印を立てない素のPlay＝人のPlayと同じ扱い・ADR 0066 裁定2）。MainGame 到達後に `uloop get-logs --project-path ./moorestech_client --log-type Log`。
   合格: `常時記録 enabled:True` が1行以上あり、警告・拒否側の語 `開始しません`／`無効のため`／`有効にしません` が**0件**。続けて Error ログも引き、今回の変更由来の例外が無いこと。
 - [ ] **Step 2: バグ報告の中身** — 同じPlayの中でバグ報告を1件送る（Web UI のバグ報告。操作は unity-playmode-recorded-playtest スキルの references を参照）。`~/Library/Application Support/moorestech/BugReports/outbox/` の最新箱の `manifest.json` を読む。

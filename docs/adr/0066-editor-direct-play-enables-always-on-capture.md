@@ -46,5 +46,5 @@
 
 ## Consequences
 
-- `AlwaysOnCaptureSetting`・`LocalGameLauncher`・`ProgressRecorder` にある「本番のプレイ開始だけが有効にする」旨のコメントは実態と合わなくなるので書き換える。
+- `AlwaysOnCaptureSetting`・`LocalGameLauncher`・`ConnectServer` にある「本番のプレイ開始だけが有効にする」旨のコメントと、`ProgressRecorder` の「調査用・テスト用の起動まで書き始める」旨のコメントは実態と合わなくなるので書き換える。
 - 常時記録が無効であることを確かめている既存テストのうち、`EditModeInPlayingTestUtilTest` は無人起動の印の下で引き続き無効であることを確かめる形で維持し、`SkipSaveLoadPlayModeSettingsTest` はセーブ無しPlayでも有効になる裁定に合わせて書き換える。
