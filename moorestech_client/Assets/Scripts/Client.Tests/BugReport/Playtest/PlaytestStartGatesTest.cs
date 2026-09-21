@@ -131,5 +131,19 @@ namespace Client.Tests.BugReport
 
             Assert.IsTrue(wait.Status.IsCanceled());
         }
+
+        // 常時記録の判定は開始ゲートより先に走る。覗いただけで印が消えると、後から読むゲートが応答待ちで恒久停止する
+        // The capture decision runs before the start gates; if peeking erased the mark, the gates reading later would wait forever
+        [Test]
+        public void 無人起動の理由は覗いても消費されない()
+        {
+            PlaytestStartGateBypass.Apply();
+
+            var peeked = PlaytestStartGateBypass.PeekUnattendedReason();
+            var consumed = PlaytestStartGateBypass.UnattendedReason();
+
+            Assert.IsNotNull(peeked);
+            Assert.AreEqual(peeked, consumed, "覗いた後にゲートが読む理由が変わっている");
+        }
     }
 }

@@ -18,10 +18,18 @@ namespace Client.Game.InGame.BugReport.Playtest
         // Waiting with nobody to answer halts forever, so the reason is handed back to the gate that logs it
         public static string UnattendedReason()
         {
-            var marked = ConsumeUnattendedBootMark();
+            var reason = PeekUnattendedReason();
+            EraseUnattendedBootMark();
+            return reason;
+        }
+
+        // 印を消費せずに同じ判定を返す。開始ゲートより先に走る判定（直Playの常時記録）が使う
+        // Returns the same decision without consuming the mark, for decisions that run before the start gates (direct-play capture)
+        public static string PeekUnattendedReason()
+        {
             if (Application.isBatchMode) return "batchMode";
             if (_unattendedProcessReason != null) return _unattendedProcessReason;
-            return marked ? "unattendedBootMark" : null;
+            return IsUnattendedBootMarked() ? "unattendedBootMark" : null;
         }
 
         // 引数で自動運転される実機プロセスの入口から呼ぶ。退避物は迂回しても last-session に残り、通常のsalvageとして扱われる
@@ -46,18 +54,25 @@ namespace Client.Game.InGame.BugReport.Playtest
             UnityEditor.SessionState.SetBool(SessionStateKey, true);
         }
 
-        private static bool ConsumeUnattendedBootMark()
+        private static bool IsUnattendedBootMarked()
         {
-            var marked = UnityEditor.SessionState.GetBool(SessionStateKey, false);
+            return UnityEditor.SessionState.GetBool(SessionStateKey, false);
+        }
+
+        private static void EraseUnattendedBootMark()
+        {
             UnityEditor.SessionState.EraseBool(SessionStateKey);
-            return marked;
         }
 #else
         // 実機ビルドにはEditorの印が無い。実機の無人起動は DeclareUnattendedProcess で宣言する
         // A player build has no Editor mark; a player's unattended boot is declared through DeclareUnattendedProcess
-        private static bool ConsumeUnattendedBootMark()
+        private static bool IsUnattendedBootMarked()
         {
             return false;
+        }
+
+        private static void EraseUnattendedBootMark()
+        {
         }
 #endif
     }
