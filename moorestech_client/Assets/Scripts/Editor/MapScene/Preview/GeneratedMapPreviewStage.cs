@@ -66,8 +66,8 @@ namespace Client.MapScene.Editor
             {
                 await execution;
                 cancellationToken.ThrowIfCancellationRequested();
-                StatusText = $"期待数: {run.ExpectedMapObjectCount} / 作成数: {run.CreatedMapObjectCount} / 欠損数: {run.MissingMapObjectCount}";
-                State = run.MissingMapObjectCount == 0 ? GeneratedMapPreviewState.Ready : GeneratedMapPreviewState.Failed;
+                StatusText = $"期待数: {run.ExpectedMapObjectCount + run.ExpectedOutcropCount} / 作成数: {run.CreatedMapObjectCount + run.CreatedOutcropCount} / 欠損数: {run.MissingPlacementCount}";
+                State = run.MissingPlacementCount == 0 ? GeneratedMapPreviewState.Ready : GeneratedMapPreviewState.Failed;
                 if (State == GeneratedMapPreviewState.Ready) FrameSpawn();
                 else
                 {

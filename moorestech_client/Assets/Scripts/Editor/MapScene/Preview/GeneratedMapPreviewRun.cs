@@ -21,6 +21,9 @@ namespace Client.MapScene.Editor
         public int ExpectedMapObjectCount { get; private set; }
         public int CreatedMapObjectCount { get; private set; }
         public int MissingMapObjectCount => ExpectedMapObjectCount - CreatedMapObjectCount;
+        internal int ExpectedOutcropCount { get; private set; }
+        internal int CreatedOutcropCount { get; private set; }
+        internal int MissingPlacementCount => MissingMapObjectCount + ExpectedOutcropCount - CreatedOutcropCount;
         internal Vector3 SpawnPosition { get; private set; }
         internal Bounds TerrainBounds { get; private set; }
 
@@ -63,6 +66,8 @@ namespace Client.MapScene.Editor
             light.intensity = 1f;
             await PlaceMapObjectsAsync(assets, CreateChild("MapObjects").transform, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
+            await PlaceOutcropsAsync(assets, CreateChild("VeinOutcrops").transform, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
 
             #region Internal
 
@@ -84,6 +89,14 @@ namespace Client.MapScene.Editor
             _disposed = true;
             try { _content?.Dispose(); }
             finally { _world?.Dispose(); }
+        }
+
+        private async UniTask PlaceOutcropsAsync(EditorTerrainAssetLoader assets, Transform parent, CancellationToken cancellationToken)
+        {
+            // 公開された鉱脈配置から露頭を作り、欠損を走行全体へ集計する
+            // Render outcrops from public vein placements and include missing instances in the run's accounting
+            ExpectedOutcropCount = _world.Map.MapVeins.Count;
+            CreatedOutcropCount = await GeneratedMapPreviewOutcrops.PlaceAsync(_world.Map.MapVeins, assets, parent, cancellationToken);
         }
 
         private async UniTask PlaceMapObjectsAsync(EditorTerrainAssetLoader assets, Transform parent, CancellationToken cancellationToken)
