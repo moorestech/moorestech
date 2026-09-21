@@ -101,8 +101,6 @@ namespace Client.Tests.WebUi.Boot
             hub.RegisterTopic("shutdown-test", topic);
             hubField.SetValue(null, hub);
 
-            // 通知を受ける前に同期cleanupが完了していないことも観測する
-            // Also observe that synchronous cleanup has not completed before the notification arrives
             using var notified = new ManualResetEventSlim();
             using var callbackReturned = new ManualResetEventSlim();
             Task firstStopTask = null;
