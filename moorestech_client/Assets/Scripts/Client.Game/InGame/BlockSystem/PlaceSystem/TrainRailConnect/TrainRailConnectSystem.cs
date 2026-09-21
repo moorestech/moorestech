@@ -104,8 +104,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                     }
                     else
                     {
-                        // 橋脚がある場合は設置可能。配置予定の TrainRail ブロックの最大長を参照する
-                        // Pier available: pass the placing TrainRail block's max length
                         var pierMaxLength = TrainRailConnectPreviewCalculator.GetMaxConnectableRailLength(pierBlockMaster);
                         var placeInfo = _trainRailPlaceSystemService.ManualUpdate(pierBlockId, feedback);
 
@@ -118,9 +116,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect
                         var previewData = CalculatePreviewData(fromDestination, _trainRailPlaceSystemService.ConnectorPosition, _trainRailPlaceSystemService.RailDirection, _cache, _playerInventory, _blockGameObjectDataStore, pierMaxLength, connectToolGuid, pierBlockMaster.RequiredItems, _constructionWalletQuery.GetRequiredCostSets(pierBlockId, 1));
                         ShowPreview(previewData);
 
-                        // 地面干渉・橋脚コスト不足・レール判定不可のいずれでも送らない（サーバーが拒否する組み合わせをここで塞ぐ）
-                        // Never send on terrain block, pier cost shortage or a failed rail judgement, closing every combination the server would reject
-                        if (!placeInfo.Placeable || !previewData.IsPlaceable) return;
+                        // レール判定の不可を橋脚ゴーストへ合成して塗り直す。どれか1つでも不可なら送らない（不足行はReportが積み済み）
+                        // Merge a failed rail judgement into the pier ghost and repaint; any single failure blocks the send (Report already pushed the shortage lines)
+                        TrainRailPierPlaceability.ApplyConnectJudgement(placeInfo, previewData);
+                        _trainRailPlaceSystemService.UpdatePreviewColor(placeInfo);
+                        if (!placeInfo.Placeable) return;
                         SendConnectRailWithPlacePierProtocol(placeInfo, previewData.RailTypeGuid, pierBlockId);
                     }
                 }
