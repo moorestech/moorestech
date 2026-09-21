@@ -87,7 +87,7 @@ namespace Client.Starter
             // 前回セッションの印を読む処理はここ1箇所へ束ねてある（ADR 0060 裁定5）。記録を集めるかもここで1度だけ決める
             // Everything that reads the previous session's marks is bundled into this single spot (ADR 0060 adjudication 5); whether to collect records is decided once here too
             var collectsPlaytestRecords = Playtest.PlaytestRecordCollection.Decide(_proprieties.IsRemoteConnection, Client.WebUiHost.Boot.WebUiHost.Hub != null);
-            Playtest.PreviousSessionStartupTasks.RunAtStartup(collectsPlaytestRecords, _proprieties.IsRemoteConnection, args.WorldDirectory);
+            Playtest.PreviousSessionStartupTasks.RunAtStartup(collectsPlaytestRecords);
 
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();

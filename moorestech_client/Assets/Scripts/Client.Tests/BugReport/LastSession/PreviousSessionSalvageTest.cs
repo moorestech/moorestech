@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.LastSession;
+using Client.Game.InGame.BugReport.BuildOrigin;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
+using Game.Paths;
 using NUnit.Framework;
 
 namespace Client.Tests.BugReport
@@ -42,7 +44,10 @@ namespace Client.Tests.BugReport
         {
             var deadDirectory = CreateSessionRecording(DeadProcessId);
 
-            var artifacts = PreviousSessionSalvage.Salvage(Request(Session(DeadProcessId, false, deadDirectory)));
+            var crashed = Session(DeadProcessId, false, deadDirectory);
+            crashed.Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), SessionSnapshotCapture.Started(_snapshots, DeadProcessId, SessionName));
+            crashed.Origin.WriteTo(Path.Combine(_snapshots, WorldDataDirectory.SnapshotOwnerFileName));
+            var artifacts = PreviousSessionSalvage.Salvage(Request(crashed));
 
             Assert.IsFalse(artifacts.PreviousExitWasClean);
             Assert.Contains(DeadProcessId, (System.Collections.ICollection)artifacts.SalvagedProcessIds);
@@ -123,7 +128,7 @@ namespace Client.Tests.BugReport
         public void リモート接続ならスナップショットの不在を退避失敗と書かない()
         {
             var request = Request(Session(DeadProcessId, false, null));
-            request.IsRemoteConnection = true;
+            request.PreviousSessions[0].Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor());
 
             var artifacts = PreviousSessionSalvage.Salvage(request);
 
@@ -157,7 +162,6 @@ namespace Client.Tests.BugReport
         {
             return new PreviousSessionSalvageRequest
             {
-                WorldSnapshotDirectory = _snapshots,
                 LastSessionDirectory = _lastSession,
                 PreviousSessions = new List<PreviousProcessSession>(sessions),
             };

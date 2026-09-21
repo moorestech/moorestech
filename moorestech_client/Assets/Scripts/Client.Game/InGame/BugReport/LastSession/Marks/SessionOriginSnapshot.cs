@@ -16,11 +16,17 @@ namespace Client.Game.InGame.BugReport.LastSession
 
         public string SteamId { get; }
         public BuildOriginReading BuildOrigin { get; }
+        internal readonly SessionSnapshotCapture SnapshotCapture;
 
-        public SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin)
+        public SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin) : this(steamId, buildOrigin, SessionSnapshotCapture.NotStarted())
+        {
+        }
+
+        internal SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin, SessionSnapshotCapture snapshotCapture)
         {
             SteamId = steamId;
             BuildOrigin = buildOrigin;
+            SnapshotCapture = snapshotCapture;
         }
 
         public void WriteTo(string path)
@@ -31,6 +37,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                 ["buildOriginKind"] = BuildOrigin.Kind.ToString(),
                 ["buildInfo"] = BuildOrigin.BuildInfo == null ? JValue.CreateNull() : JObject.FromObject(BuildOrigin.BuildInfo, Serializer),
                 ["buildOriginMissingReason"] = BuildOrigin.MissingReason,
+                ["snapshotCapture"] = SnapshotCapture.ToJson(),
             };
 
             // 出所の書き出しはディスクIO。失敗しても起動は続け、次回の箱では出所不明として欠損に表明される
@@ -61,6 +68,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             string kindText;
             BuildInfo buildInfo;
             string buildOriginMissingReason;
+            SessionSnapshotCapture snapshotCapture;
 
             // 読み込みはディスクIO、JObject.Parse は外部入力JSONのパース境界（途中で落ちたセッションは切れたJSONを残しうる）
             // Reading is disk IO and JObject.Parse is the external JSON parse boundary (a session that died midway can leave truncated JSON)
@@ -72,6 +80,7 @@ namespace Client.Game.InGame.BugReport.LastSession
                 var buildInfoToken = obj["buildInfo"];
                 buildInfo = buildInfoToken == null || buildInfoToken.Type == JTokenType.Null ? null : buildInfoToken.ToObject<BuildInfo>(Serializer);
                 buildOriginMissingReason = (string)obj["buildOriginMissingReason"];
+                snapshotCapture = SessionSnapshotCapture.Read(obj["snapshotCapture"]);
             }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e) || e is JsonException || e is ArgumentException)
             {
@@ -80,7 +89,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             var buildOrigin = ToBuildOrigin(kindText, buildInfo, buildOriginMissingReason, path, out failureReason);
-            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, buildOrigin);
+            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, buildOrigin, snapshotCapture);
         }
 
         private static BuildOriginReading ToBuildOrigin(string kindText, BuildInfo buildInfo, string missingReason, string path, out string failureReason)

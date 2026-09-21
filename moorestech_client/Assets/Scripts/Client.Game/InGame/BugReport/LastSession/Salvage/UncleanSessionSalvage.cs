@@ -19,6 +19,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             var salvagedProcessIds = new List<int>();
             SessionOriginSnapshot previousOrigin;
             string playerLogPath;
+            var hasOwnedSnapshots = carriesPendingReport;
 
             if (carriesPendingReport)
             {
@@ -26,20 +27,21 @@ namespace Client.Game.InGame.BugReport.LastSession
                 // The last exit was clean, yet nobody answered an older crash's evidence; nothing is moved or overwritten and that generation is presented again (F04)
                 Debug.Log("前回異常終了の確認が未応答のため、last-session に残る前世代の資料を再提示します");
                 previousOrigin = ReadPersistedOrigin();
+                hasOwnedSnapshots = SnapshotOwnershipMatches(snapshotDestination);
                 playerLogPath = null;
                 missing.Report("playerLog", "未応答のクラッシュ資料を再提示する起動のため、その後の正常終了セッションが Player-prev.log を上書き済み");
             }
             else
             {
                 MoveUncleanRecordings();
-                MoveWorldSnapshots();
                 previousOrigin = PersistLatestOrigin();
+                hasOwnedSnapshots = MoveWorldSnapshots();
                 playerLogPath = PlayerLogLocator.PreviousSessionLogPath();
                 if (playerLogPath == null) missing.Report("playerLog", "前回セッションのPlayer-prev.logが見つからない");
             }
 
             var recordingDirectory = ResolveSalvagedDirectory(recordingDestination, BugReportBundleLayout.RecordingDirectoryName);
-            var snapshotsDirectory = ResolveSalvagedDirectory(snapshotDestination, BugReportBundleLayout.SnapshotDirectoryName);
+            var snapshotsDirectory = hasOwnedSnapshots ? ResolveSalvagedDirectory(snapshotDestination, BugReportBundleLayout.SnapshotDirectoryName) : null;
             var crashDumpScan = CrashDumpLocator.FindDumpFiles();
             if (crashDumpScan.Files.Count == 0) missing.Report("crashDump", CrashDumpLocator.MissingReason(crashDumpScan));
 
@@ -71,18 +73,34 @@ namespace Client.Game.InGame.BugReport.LastSession
                 }
             }
 
-            // リモート接続にはスナップショットを書く内蔵サーバーがそもそも居ない。退避失敗と同じ理由文にすると毎回「失敗」に見える
-            // A remote connection has no embedded server writing snapshots at all; sharing the failure wording would read as a failure every time
-            void MoveWorldSnapshots()
+            // 起動先設定や前世代の退避物を、落ちたsessionの資料として代用しない
+            // Neither this boot's settings nor older salvaged files substitute for the crashed session's evidence
+            bool MoveWorldSnapshots()
             {
-                if (request.IsRemoteConnection)
+                var capture = previousOrigin?.SnapshotCapture;
+                if (!SnapshotOwnershipMatches(capture?.Directory)) return false;
+                var move = BugReportDiskOperations.MoveFilesInto(capture.Directory, snapshotDestination);
+                if (!move.Succeeded) missing.Report(BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
+                return move.Succeeded;
+            }
+
+            bool SnapshotOwnershipMatches(string directory)
+            {
+                var capture = previousOrigin?.SnapshotCapture;
+                if (capture == null || capture.MissingReason != null)
                 {
-                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, "リモート接続のセッションのため内蔵サーバーのスナップショットは存在しない");
-                    return;
+                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, capture?.MissingReason ?? "前回sessionの出所が読めずsnapshot所有を確認できない");
+                    return false;
                 }
 
-                var move = BugReportDiskOperations.MoveFilesInto(request.WorldSnapshotDirectory, snapshotDestination);
-                if (!move.Succeeded) missing.Report(BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
+                var source = SessionOriginSnapshot.ReadFrom(Path.Combine(directory, WorldDataDirectory.SnapshotOwnerFileName), out var reason);
+                if (source == null || source.SnapshotCapture.MissingReason != null || source.SnapshotCapture.Owner != capture.Owner || source.SnapshotCapture.Directory != capture.Directory)
+                {
+                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, $"保存元の所有印が前回sessionと一致しない（別sessionによる再利用、印の欠落を含む）: {reason}");
+                    return false;
+                }
+
+                return true;
             }
 
             // 複数のセッションが落ちていれば最新の出所を載せる。どれを載せたかは欠損列に残し、無音で1つへ潰さない（F12）

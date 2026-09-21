@@ -121,7 +121,6 @@ namespace Client.Tests.BugReport
         {
             return new PreviousSessionSalvageRequest
             {
-                WorldSnapshotDirectory = _snapshots,
                 LastSessionDirectory = _lastSession,
                 PreviousSessions = new List<PreviousProcessSession>(sessions),
             };

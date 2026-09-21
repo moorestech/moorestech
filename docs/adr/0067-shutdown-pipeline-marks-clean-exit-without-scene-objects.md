@@ -55,6 +55,15 @@
 
 ## Consequences
 
+### 資料の所有契約（review r2 refix、agent設計判断）
+
+- 無条件のsession/writer設置は維持する。終了印があることとsnapshot記録を開始したことを同一視しない。起動後のsalvage APIから今回のremote/world設定を除き、落ちたsession自身の記録だけで保存元を選ぶ。
+- `origin.json` と退避後の `previous-origin.json` に `snapshotCapture` を追加する。`version: 1`、`state: notStarted | started | unknown`、`directory`、`owner`、`missingReason` のJSONオブジェクト。開始時はnotStarted、実際の内蔵サーバーのringがactiveになった後だけstartedへ更新する。startedのdirectoryは実際のWorldDataDirectoryから得た絶対パス、ownerはpid/sessionの組である。
+- 同じoriginを保存元の `capture-owner.json` にも書く。回収時はsession側と保存元側のowner/directory一致を必要条件とする。同じワールドを別sessionが再利用した場合、古いoriginだけを根拠に資料を回収しない。ring開始時は所有印を最初に削除し、旧snapshot/packetの削除失敗もログ後に起動を中断する。旧資料へ新所有印を付けないためであり、既存IO境界のcatchを使用する。
+- remote・WebUi未ready/起動失敗・記録無効はnotStartedのまま。資料不在は理由ログと既存manifestのMissingへ残す。未知version・所有情報のない旧origin・必須値不正はunknownとして扱い、ビルド出所は保持するがsnapshot/packetは回収しない。今回の設定や既定パスへの補完はしない。
+- 未応答資料の再提示にも退避先の所有印照合を適用する。新たな未記録sessionのクラッシュへ古い退避snapshotを混ぜない。既存manifestの項目・Missing形式は変更しない。旧版の未応答snapshotには所有を証明できないものがあるため、推測で添付せずMissingを明記する。
+- world save JSON、WorldSaveAllInfo.CurrentVersion、アイテム/液体/ブロックのGUID解決、マスタ由来値は変更しない。これは診断資料の出所契約であり、world save migrationは不要。
+
 - `GameShutdownEvent` の「Editorでの停止は UnawaitableExit で記録する」というコメントは、実際の記録主体が Presenter から終了パイプライン自身へ移るので書き換える。
 - 配布ビルドで、正規の終了口を通らずプロセスが終了処理に入った場合（OSからの終了要求など）も、待てない終了として正常終了に記録されるようになる。ハードクラッシュ・強制終了では `Application.quitting` が飛ばないので、従来どおり異常終了として検知される。
 

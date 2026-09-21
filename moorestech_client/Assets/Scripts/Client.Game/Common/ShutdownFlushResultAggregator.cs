@@ -27,8 +27,8 @@ namespace Client.Game.Common
                     if (result == ShutdownFlushResult.FlushFailed)
                         return ShutdownFlushResult.FlushFailed;
 
-                // 1つでも書き切れていなければ全体を上限到達として返す
-                // Report the whole flush as timed out if any single participant failed to finish
+                // 未完了が1件でもあれば上限到達
+                // Any unfinished flush makes the aggregate time out.
                 foreach (var result in results)
                     if (result == ShutdownFlushResult.FlushTimedOut)
                         return ShutdownFlushResult.FlushTimedOut;

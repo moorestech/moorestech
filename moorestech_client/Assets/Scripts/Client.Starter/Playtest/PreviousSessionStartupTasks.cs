@@ -1,7 +1,6 @@
 using Client.Game.InGame.BugReport.LastSession;
 using Client.Game.InGame.BugReport.Recording.ProcessScope;
 using Client.Game.InGame.Playtest.Progress.Storage;
-using Game.Paths;
 
 namespace Client.Starter.Playtest
 {
@@ -19,11 +18,11 @@ namespace Client.Starter.Playtest
             CleanExitMarkWriter.InstallAtStartup(RecordingProcessDirectories.CurrentProcessId(), ProcessSessionScope.CurrentSessionName);
         }
 
-        public static void RunAtStartup(bool collectsPlaytestRecords, bool isRemoteConnection, string worldDirectory)
+        public static void RunAtStartup(bool collectsPlaytestRecords)
         {
             // 内蔵サーバーのスナップショットリングと録画リングが上書きを始める前に、前回セッションの記録を退避する
             // Salvage the previous session's records before the embedded snapshot ring and the recording ring start overwriting
-            var artifacts = PreviousSessionSalvage.RunAtStartup(isRemoteConnection, WorldDataDirectory.FromWorldRoot(worldDirectory).SnapshotDirectory);
+            var artifacts = PreviousSessionSalvage.RunAtStartup();
 
             // 終了印と収集同意は独立。収集しない起動は前回の進行記録を次の収集起動に残す（理由はPlaytestRecordCollectionがログ済み）
             // Exit marks are independent of collection consent; a non-collecting boot leaves leftover progress for the next collecting boot (PlaytestRecordCollection logged why)
