@@ -4,6 +4,7 @@ using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail;
 using Client.Game.InGame.BlockSystem.PlaceSystem.TrainRailConnect;
 using Client.Game.InGame.Construction;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Util;
 using Client.Localization;
 using Core.Item.Interface;
 using Core.Master;
@@ -18,8 +19,8 @@ using UnityEngine;
 namespace Client.Tests.PlaceSystem.TrainRailConnect
 {
     /// <summary>
-    /// 橋脚1セルの最終可否（コスト不足・接続判定との合成）を検証する
-    /// Verifies the final placeability of a single pier cell: cost shortage and the merge with the connect judgement
+    /// 橋脚1セルのコスト・接続可否を検証
+    /// Verifies cost and connection gates for one pier cell.
     /// </summary>
     public class TrainRailPierPlaceabilityTest
     {
@@ -78,11 +79,27 @@ namespace Client.Tests.PlaceSystem.TrainRailConnect
         {
             var placeInfo = BuildPierCell();
 
-            // Invalidは FailureReason が None でないため IsPlaceable=false
-            // Invalid carries a non-None failure reason, so IsPlaceable is false
+            // Invalidは失敗理由付きで設置不可
+            // Invalid has a failure reason and is unplaceable.
             TrainRailPierPlaceability.ApplyConnectJudgement(placeInfo, TrainRailConnectPreviewData.Invalid);
 
             Assert.IsFalse(placeInfo.Placeable);
+        }
+
+        [TestCase(true)]
+        [TestCase(false)]
+        public void 接続判定が正常なら橋脚の既存可否を維持する(bool wasPlaceable)
+        {
+            var placeInfo = BuildPierCell();
+            placeInfo.Placeable = wasPlaceable;
+            var judgement = new RailPlacementJudgement(RailConnectionEditProtocol.RailConnectionEditFailureReason.None,
+                Guid.Parse("c0000000-0000-0000-0000-000000000002"), Array.Empty<ConnectToolMaterialCost>());
+            var preview = new TrainRailConnectPreviewData(Vector3.zero, Vector3.forward, Vector3.forward * 2, Vector3.forward * 3,
+                judgement, true, Array.Empty<ConstructionMaterialShortage>(), Array.Empty<ConstructionMaterialShortage>());
+
+            Assert.IsTrue(preview.IsPlaceable);
+            TrainRailPierPlaceability.ApplyConnectJudgement(placeInfo, preview);
+            Assert.AreEqual(wasPlaceable, placeInfo.Placeable);
         }
 
         private static PlaceInfo BuildPierCell()

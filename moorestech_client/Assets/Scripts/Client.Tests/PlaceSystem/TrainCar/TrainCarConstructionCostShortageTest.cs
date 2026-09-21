@@ -11,13 +11,17 @@ using Tests.Module.TestMod;
 namespace Client.Tests.PlaceSystem.TrainCar
 {
     /// <summary>
-    /// 車両1両分の建設コスト不足がサーバーと同じ基準（RequiredItems 1セット・財布なし）で出ることを検証する
-    /// Verifies a single car's cost shortage follows the server's gate: one RequiredItems set, no wallet
+    /// 車両コスト判定を検証する
+    /// - RequiredItems 1セット
+    /// - 財布を使わない
+    /// Verifies the train-car cost gate:
+    /// - One RequiredItems set
+    /// - No wallet
     /// </summary>
     public class TrainCarConstructionCostShortageTest
     {
-        // TestTrainCarの建設コストはTest3×3とTest4×2
-        // TestTrainCar costs Test3 x3 and Test4 x2
+        // 費用: Test3×3、Test4×2
+        // Cost: Test3 x3; Test4 x2.
         private static readonly Guid TestTrainCarGuid = Guid.Parse("dc82cf3f-709d-49eb-bdb2-67ffcaff561b");
         private static readonly Guid Material1Guid = Guid.Parse("00000000-0000-0000-1234-000000000003");
         private static readonly Guid Material2Guid = Guid.Parse("00000000-0000-0000-1234-000000000004");

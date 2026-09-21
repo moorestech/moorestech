@@ -12,11 +12,11 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
     /// 橋脚1セルの最終的な設置可否を決める
     /// Settles the final placeability of a single pier cell
     /// </summary>
-    public static class TrainRailPierPlaceability
+    internal static class TrainRailPierPlaceability
     {
         // 橋脚単体設置用。不足行は可否を落とす前に積む（Reporterの契約）
         // For standalone pier placement; shortage lines are pushed before placeability drops (the reporter's contract)
-        public static void ApplyCostShortage(PlaceInfo placeInfo, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems, PlacementFeedback feedback)
+        internal static void ApplyCostShortage(PlaceInfo placeInfo, ConstructionWalletQuery walletQuery, IEnumerable<IItemStack> inventoryItems, PlacementFeedback feedback)
         {
             var placeInfos = new List<PlaceInfo> { placeInfo };
             ConstructionMaterialShortageReporter.ReportShortages(placeInfos, placeInfo.BlockId, walletQuery, inventoryItems, feedback);
@@ -25,7 +25,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
 
         // 接続モード用。橋脚とレールは1リクエストなので、レール側が不可なら橋脚も不可
         // For connect mode; the pier and the rail travel in one request, so a failed rail judgement blocks the pier too
-        public static void ApplyConnectJudgement(PlaceInfo placeInfo, TrainRailConnectPreviewData previewData)
+        internal static void ApplyConnectJudgement(PlaceInfo placeInfo, TrainRailConnectPreviewData previewData)
         {
             if (!previewData.IsPlaceable) placeInfo.Placeable = false;
         }

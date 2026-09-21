@@ -89,8 +89,6 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainCar
             var materialShortages = TrainCarConstructionCostShortage.Calculate(target.TrainCarGuid, _localPlayerInventory);
             var isPlaceable = hit.IsPlaceable && materialShortages.Count == 0;
 
-            // railpositionからpreviewを描画する
-            // Render the preview directly from railposition
             var railPosition = hit.RailPosition;
             var hasPreview = railPosition != null && _previewController.ShowPreview(target.TrainCarGuid, railPosition, isPlaceable);
             _previewController.SetActive(hasPreview);

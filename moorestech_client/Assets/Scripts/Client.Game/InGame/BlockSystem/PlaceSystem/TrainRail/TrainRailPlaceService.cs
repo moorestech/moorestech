@@ -109,7 +109,7 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
         
         // 呼び出し側が確定させた最終可否でゴーストを塗り直す
         // Repaint the ghost with the final placeability the caller settled
-        public void UpdatePreviewColor(PlaceInfo placeInfo)
+        internal void UpdatePreviewColor(PlaceInfo placeInfo)
         {
             _previewBlockController.UpdatePlaceableColors(new List<PlaceInfo> { placeInfo });
         }

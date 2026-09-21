@@ -41,8 +41,8 @@ namespace Client.Game.InGame.BlockSystem.PlaceSystem.TrainRail
             // Nothing to do without a preview beyond range (the service already pushed the reason)
             if (placeInfo == null) return;
 
-            // 建設コスト不足を可否と理由行へ反映し、最終可否で塗り直す
-            // Fold the construction cost shortage into placeability and the reason lines, then repaint with the final state
+            // 不足を可否・理由・色へ反映
+            // Apply shortages to placeability, reasons, and color.
             TrainRailPierPlaceability.ApplyCostShortage(placeInfo, _constructionWalletQuery, _localPlayerInventory, feedback);
             _trainRailPlaceSystemService.UpdatePreviewColor(placeInfo);
 
