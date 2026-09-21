@@ -359,7 +359,7 @@ bd note moorestech-6git "実機確認: 初期化途中で停止 → clean の印
 - Consumes: Task 1〜3 の全コミット
 - Produces: なし
 
-- [ ] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
+- [x] **Step 1: moores-code-review スキルでブランチ全体をレビューする**
 
 `moores-code-review` スキルを起動し、`master..fix/editor-stop-clean-exit-mark` の差分をレビューする。ゴール文言による省略は不可。
 
@@ -371,7 +371,7 @@ bd note moorestech-6git "実機確認: 初期化途中で停止 → clean の印
 
 plan・実機検証記録・レビュー結果に書いた「未検証」「未確認」「残差」を、1件ずつ `bd create` で起票する。結論には issue 番号を列挙する（「残差は○○のみ」と要約しない）。起票が済んでいない残課題は残課題と呼ばない。
 
-- [ ] **Step 4: コミットしてPRを作る**
+- [x] **Step 4: コミットしてPRを作る**
 
 ```bash
 uloop compile --project-path ./moorestech_client
