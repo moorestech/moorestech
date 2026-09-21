@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using Client.Game.Common;
 using Client.WebUiHost.Vite;
 using UnityEditor;
 
@@ -25,12 +26,15 @@ namespace Client.WebUiHost.Boot
             EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
         }
 
-        private static void OnPlayModeStateChanged(PlayModeStateChange state)
+        internal static void OnPlayModeStateChanged(PlayModeStateChange state)
         {
             // Play mode 終了直前にクリーンアップ。Domain Reload が走る前にポート解放を完了させる
             // Clean up just before exiting play mode so ports are released before Domain Reload
             if (state == PlayModeStateChange.ExitingPlayMode)
             {
+                // 待てないEditor停止を、同期クリーンアップ前に終了パイプラインへ通知する
+                // Notify the shutdown pipeline of the unawaitable Editor stop before synchronous cleanup
+                GameShutdownEvent.FireGameShutdown(GameShutdownReason.UnawaitableExit);
                 CleanupAllSync();
             }
         }
