@@ -3,6 +3,7 @@ using Core.Inventory;
 using Game.PlayerInventory.Interface;
 using MessagePack;
 using Microsoft.Extensions.DependencyInjection;
+using Server.Event.Notification;
 using Server.Protocol.PacketResponse.Util.InventoryService;
 using Server.Protocol.PacketResponse.Util.InventoryMoveUtil;
 using Server.Util.MessagePack;
@@ -17,10 +18,12 @@ namespace Server.Protocol.PacketResponse
         public const string ProtocolTag = "va:invItemMove";
 
         private readonly OpenableInventoryResolver _openableInventoryResolver;
+        private readonly InventoryItemMoveRejectionReporter _rejectionReporter;
 
         public InventoryItemMoveProtocol(ServiceProvider serviceProvider)
         {
             _openableInventoryResolver = serviceProvider.GetService<OpenableInventoryResolver>();
+            _rejectionReporter = new InventoryItemMoveRejectionReporter(serviceProvider.GetService<NotificationService>());
         }
 
         public ProtocolMessagePackBase GetResponse(byte[] payload, PacketResponseContext context)
@@ -40,7 +43,13 @@ namespace Server.Protocol.PacketResponse
             switch (data.ItemMoveType)
             {
                 case ItemMoveType.SwapSlot:
-                    InventoryItemMoveService.Move(fromInventory, fromSlot, toInventory, toSlot, data.Count);
+                    // 移動・無操作以外は拒否なので、識別子つきでログと通知へ出す
+                    // Anything other than moved/no-op is a rejection, so report it with identifiers to the log and notification
+                    var result = InventoryItemMoveService.Move(fromInventory, fromSlot, toInventory, toSlot, data.Count);
+                    if (result != InventoryItemMoveResult.Moved && result != InventoryItemMoveResult.NoOp)
+                    {
+                        _rejectionReporter.Report(result, context.PlayerId, data.FromInventoryIdentifier, fromInventory, fromSlot, data.ToInventoryIdentifier, toInventory, toSlot, data.Count);
+                    }
                     break;
                 case ItemMoveType.InsertSlot:
                     InventoryItemInsertService.Insert(fromInventory, fromSlot, toInventory, data.Count);

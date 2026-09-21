@@ -60,9 +60,9 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         // 出力スロットjは生産物jのレベルファミリーだけ置ける。プレイヤー操作の可否判定
         // Output slot j accepts only output j's level family; used for player-placement checks
-        public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
+        public MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack)
         {
-            return _slotBinding.IsAllowedToPlace(localSlot, itemStack);
+            return _slotBinding.CheckPlacement(localSlot, itemStack);
         }
 
         /// <summary>

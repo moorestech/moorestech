@@ -47,7 +47,7 @@ namespace Game.Block.Blocks.Machine.RecipeSelection
             {
                 var item = inputInventory.InputSlot[slot];
                 if (item.Id == ItemMaster.EmptyItemId || item.Count == 0) continue;
-                if (inputInventory.IsAllowedToPlace(slot, item)) continue;
+                if (inputInventory.CheckPlacement(slot, item) == MachineSlotPlacementCheck.Allowed) continue;
 
                 var remainder = refundOverflowInventory.InsertItem(item);
                 inputInventory.SetItem(slot, remainder);

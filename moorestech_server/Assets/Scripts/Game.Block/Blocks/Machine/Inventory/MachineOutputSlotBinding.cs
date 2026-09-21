@@ -29,11 +29,13 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         // 空アイテムは取り出しなのでどのスロットでも許す
         // An empty stack means a take-out, so it is allowed on any slot
-        public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
+        public MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack)
         {
-            if (itemStack.Id == ItemMaster.EmptyItemId) return true;
-            if (localSlot < 0 || _allowedItemsPerSlot.Count <= localSlot) return false;
-            return _allowedItemsPerSlot[localSlot].Contains(itemStack.Id);
+            if (itemStack.Id == ItemMaster.EmptyItemId) return MachineSlotPlacementCheck.Allowed;
+            if (localSlot < 0 || _allowedItemsPerSlot.Count <= localSlot) return MachineSlotPlacementCheck.SlotBeyondRecipeOutputs;
+            return _allowedItemsPerSlot[localSlot].Contains(itemStack.Id)
+                ? MachineSlotPlacementCheck.Allowed
+                : MachineSlotPlacementCheck.ItemNotBoundToSlot;
         }
     }
 }
