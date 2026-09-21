@@ -146,8 +146,6 @@ namespace Client.Tests.WebUi.Boot
             var reasons = new List<GameShutdownReason>();
             using var subscription = GameShutdownEvent.OnGameShutdown.Subscribe(reasons.Add);
 
-            // 初期化失敗の後に届くEditor停止でも、最初の終了理由を維持する
-            // Preserve the original shutdown reason when an Editor stop follows initialization failure
             GameShutdownEvent.FireGameShutdown(GameShutdownReason.InitializationFailed);
             WebUiHostEditorCleanup.OnPlayModeStateChanged(PlayModeStateChange.ExitingPlayMode);
 
