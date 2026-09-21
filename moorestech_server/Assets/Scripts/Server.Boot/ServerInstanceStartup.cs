@@ -28,8 +28,6 @@ namespace Server.Boot
     {
         internal static (Thread connectionUpdateThread, Thread gameUpdateThread, CancellationTokenSource cancellationTokenSource, Socket listener) Start(string[] args, out WorldSaveCoordinator worldSaveCoordinator, out WorldSnapshotRing worldSnapshotRing)
         {
-            // 起動引数からワールドディレクトリのルートを解決する
-            // Resolve the world directory root from launch arguments
             var settings = CliConvert.Parse<StartServerSettings>(args);
             var worldDataDirectory = WorldDataDirectory.FromWorldRoot(settings.WorldDirectory);
 
@@ -89,6 +87,8 @@ namespace Server.Boot
             worldSnapshotRing = serviceProvider.GetRequiredService<WorldSnapshotRing>();
             if (AlwaysOnCaptureSetting.Current.IsEnabled)
             {
+                // tick threadより先に開始し、初期snapshotと最初のpacket区間のtickを揃える
+                // Start before the tick thread so the baseline snapshot and first packet interval share the starting tick
                 // 運転値は常時記録が持つ。起動側が値を決めると、意味が変わったときここだけ古い値のまま残る
                 // The operating values belong to always-on capture; deciding them here would leave this one caller stale when their meaning changes
                 worldSnapshotRing.Start(null, null, null);
@@ -107,8 +107,6 @@ namespace Server.Boot
             var tickEndPacketQueue = serviceProvider.GetRequiredService<TickEndPacketQueue>();
             var receivedPacketLog = serviceProvider.GetRequiredService<ReceivedPacketLog>();
 
-            // 起動設定のポートで待ち受けソケットをバインドする
-            // Bind the listen socket with the configured port
             var listener = ServerListenAcceptor.CreateBoundListener(settings.Port);
             Debug.Log($"moorestechサーバー 起動完了 port:{((System.Net.IPEndPoint)listener.LocalEndPoint).Port}");
 

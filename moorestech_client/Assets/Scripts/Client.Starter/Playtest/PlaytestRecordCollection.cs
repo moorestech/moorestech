@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Client.Starter.Playtest
 {
     /// <summary>
-    /// 同意表示を要する記録（ログ・録画・バグ報告の確保・進行記録）を集めるか決める。終了印はこの判断に依存しない。
-    /// Decides whether to collect consent-gated records (logs, recording, bug-report capture, progress); exit marks are independent.
+    /// 同意対象の記録収集を判断する。終了印は独立。
+    /// Decides consent-gated record collection; exit marks stay independent.
     /// </summary>
     public static class PlaytestRecordCollection
     {

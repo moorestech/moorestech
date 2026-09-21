@@ -83,6 +83,8 @@ namespace Server.Boot
             }
             // AcceptとCloseを競合させず、両thread停止後に通信資源を閉じる
             // Close network resources after both threads stop so Accept never races Close
+            // ソケット破棄は外部境界。例外を隔離して記録し、保存と記録資源の後始末を継続する
+            // Socket disposal is an external boundary; isolate and log failures so save and capture cleanup can continue
             try
             {
                 _listener?.Close();

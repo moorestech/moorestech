@@ -34,7 +34,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             else
             {
                 MoveUncleanRecordings();
-                previousOrigin = PersistLatestOrigin();
+                previousOrigin = SelectLatestOrigin();
                 hasOwnedSnapshots = MoveWorldSnapshots();
                 playerLogPath = PlayerLogLocator.PreviousSessionLogPath();
                 if (playerLogPath == null) missing.Report("playerLog", "前回セッションのPlayer-prev.logが見つからない");
@@ -44,6 +44,15 @@ namespace Client.Game.InGame.BugReport.LastSession
             var snapshotsDirectory = hasOwnedSnapshots ? ResolveSnapshots() : null;
             var crashDumpScan = CrashDumpLocator.FindDumpFiles();
             if (crashDumpScan.Files.Count == 0) missing.Report("crashDump", CrashDumpLocator.MissingReason(crashDumpScan));
+
+            // 未応答でも同じ世代の部分退避理由を保持する
+            // Retain partial salvage reasons with their generation across unanswered prompts
+            if (!carriesPendingReport && previousOrigin != null)
+            {
+                previousOrigin = previousOrigin.WithSalvageMissing(missing.Items);
+                var write = previousOrigin.WriteTo(originPath);
+                if (!write.Succeeded) missing.Report("previousOrigin", write.FailureReason);
+            }
 
             return PreviousSessionArtifacts.Unclean(request.LastSessionDirectory, recordingDirectory, snapshotsDirectory, playerLogPath, crashDumpScan.Files, salvagedProcessIds, exitedCleanlyByProcessId, previousOrigin, missing.Items);
 
@@ -82,9 +91,13 @@ namespace Client.Game.InGame.BugReport.LastSession
                 var move = BugReportDiskOperations.MoveFilesInto(capture.Directory, snapshotDestination, out var moved);
                 if (!move.Succeeded) missing.Report(BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
                 if (moved.Count == 0) return false;
-                // 掃除後に移せた資料だけを返し、部分回収の所有も再提示へ残す
-                // Return only files moved after clearing, and retain partial salvage ownership for replay
-                previousOrigin.WriteTo(Path.Combine(snapshotDestination, WorldDataDirectory.SnapshotOwnerFileName));
+                // 有効な所有印の再書込みで資料を失わせない
+                // Avoid losing evidence through unnecessary rewrites of valid ownership marks
+                var ownerPath = Path.Combine(snapshotDestination, WorldDataDirectory.SnapshotOwnerFileName);
+                var owner = SessionOriginSnapshot.ReadFrom(ownerPath, out _);
+                if (owner != null && owner.SnapshotCapture.MissingReason == null && owner.SnapshotCapture.Owner == capture.Owner && owner.SnapshotCapture.Directory == capture.Directory) return true;
+                var write = previousOrigin.WriteTo(ownerPath);
+                if (!write.Succeeded) missing.Report(BugReportBundleLayout.SnapshotDirectoryName, write.FailureReason);
                 return true;
             }
 
@@ -118,18 +131,14 @@ namespace Client.Game.InGame.BugReport.LastSession
 
             // 複数のセッションが落ちていれば最新の出所を載せる。どれを載せたかは欠損列に残し、無音で1つへ潰さない（F12）
             // With several crashed sessions the newest origin is carried; which one is recorded in missing instead of silently collapsing to one (F12)
-            SessionOriginSnapshot PersistLatestOrigin()
+            SessionOriginSnapshot SelectLatestOrigin()
             {
                 var latest = uncleanSessions[0];
                 foreach (var session in uncleanSessions)
                     if (0 < ProcessSessionScope.CompareSessionNames(session.SessionName, latest.SessionName)) latest = session;
                 if (1 < uncleanSessions.Count) missing.Report("previousOrigin", $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {latest.ProcessId} {latest.SessionName} の出所を載せた");
 
-                if (latest.Origin != null)
-                {
-                    latest.Origin.WriteTo(originPath);
-                    return latest.Origin;
-                }
+                if (latest.Origin != null) return latest.Origin;
 
                 missing.Report("previousOrigin", $"前回セッションの出所が不明（どのビルドで落ちたか分からない）: {latest.OriginMissingReason}");
                 var deletion = BugReportFileOperations.DeleteFile(originPath);
@@ -141,6 +150,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 var origin = SessionOriginSnapshot.ReadFrom(originPath, out var failureReason);
                 if (origin == null) missing.Report("previousOrigin", $"再提示するクラッシュ資料の出所が不明: {failureReason}");
+                else foreach (var item in origin.SalvageMissing) missing.Report(item.Item, item.Reason);
                 return origin;
             }
 

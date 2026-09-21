@@ -5,8 +5,8 @@ using Client.Game.InGame.Playtest.Progress.Storage;
 namespace Client.Starter.Playtest
 {
     /// <summary>
-    /// 今回の終了印を同期で設置し、前回資料の退避はホスト起動後に行う。
-    /// Installs current exit marks synchronously and salvages previous evidence after host startup.
+    /// 終了印を同期設置し、前回資料を後で退避する。
+    /// Installs exit marks now and salvages prior evidence later.
     /// </summary>
     public static class PreviousSessionStartupTasks
     {
