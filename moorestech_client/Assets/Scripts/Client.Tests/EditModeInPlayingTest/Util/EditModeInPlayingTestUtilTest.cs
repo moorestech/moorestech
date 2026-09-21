@@ -17,8 +17,8 @@ namespace Client.Tests.EditModeInPlayingTest.Util
             Assert.That(settings.ServerDataDirectory, Is.EqualTo("/tmp/server"));
             Assert.That(settings.MapMode, Is.EqualTo("template"));
 
-            // 常時記録は本番のプレイ開始だけが有効にするので、テスト起動では無効のまま
-            // Only the real play start enables always-on capture, so a test boot leaves it disabled
+            // 常時記録は人が始めたプレイだけが有効にするので、無人のテスト起動では無効のまま
+            // Only a play a person started enables always-on capture, so an unattended test boot leaves it disabled
             Assert.That(AlwaysOnCaptureSetting.Current.IsEnabled, Is.False);
         }
     }

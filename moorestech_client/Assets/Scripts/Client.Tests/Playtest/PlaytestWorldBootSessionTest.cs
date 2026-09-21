@@ -33,8 +33,8 @@ namespace Client.Tests.Playtest
             Assert.That(settings.Seed, Is.EqualTo(seed));
             Assert.That(settings.AutoSave, Is.False);
 
-            // 常時記録は本番のプレイ開始だけが有効にするので、この経路を通っても無効のまま
-            // Only the real play start enables always-on capture, so this path leaves it disabled
+            // 常時記録は人が始めたプレイだけが有効にするので、この経路を通っても無効のまま
+            // Only a play a person started enables always-on capture, so this path leaves it disabled
             Assert.That(AlwaysOnCaptureSetting.Current.IsEnabled, Is.False);
         }
 

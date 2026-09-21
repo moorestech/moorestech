@@ -7,8 +7,8 @@ using UnityEditor;
 
 namespace Client.Tests.Starter
 {
-    // SkipSaveLoadPlayModeがAutoSaveと常時記録を無効のまま起動させ続けることの回帰ガード
-    // Regression guard that SkipSaveLoadPlayMode keeps booting with auto-save off and always-on capture disabled
+    // SkipSaveLoadPlayModeがAutoSaveを無効にして起動させ続けることの回帰ガード。常時記録はここでは決めない（ADR 0066）
+    // Regression guard that SkipSaveLoadPlayMode keeps booting with auto-save off; always-on capture is not decided here (ADR 0066)
     public class SkipSaveLoadPlayModeSettingsTest
     {
         [SetUp]
@@ -26,7 +26,7 @@ namespace Client.Tests.Starter
         }
 
         [Test]
-        public void フラグ有効時はAutoSaveを無効化し常時記録も無効のままにする()
+        public void フラグ有効時はAutoSaveを無効化する()
         {
             SessionState.SetBool(SkipSaveLoadPlayModeSettings.SessionStateKey, true);
             var proprieties = InitializeProprieties.CreateLocalServer(null);
@@ -36,9 +36,6 @@ namespace Client.Tests.Starter
             var settings = CliConvert.Parse<StartServerSettings>(proprieties.CreateLocalServerArgs);
             Assert.That(settings.AutoSave, Is.False);
 
-            // 常時記録は本番のプレイ開始だけが有効にするので、この経路を通っても無効のまま
-            // Only the real play start enables always-on capture, so this path leaves it disabled
-            Assert.That(AlwaysOnCaptureSetting.Current.IsEnabled, Is.False);
         }
 
         [Test]
