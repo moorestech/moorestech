@@ -3,7 +3,15 @@
     "rootNamespace": "Client.MapScene.Editor",
     "references": [
         "Client.Game",
+        "Client.Common",
+        "Core.Master",
         "Game.Map.Interface",
+        "Game.MapGeneration.Facade",
+        "Game.MapGeneration.Contract",
+        "Game.Paths",
+        "Mod.Config",
+        "Mod.Loader",
+        "Server.Boot",
         "UniTask",
         "Unity.Addressables.Editor"
     ],
