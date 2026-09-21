@@ -110,10 +110,15 @@ namespace Client.WebUiHost.Boot
             Debug.Log($"[WebUiHost] ready. Open {WebUiUrl}");
             return true;
         }
-        // 停止開始（通常経路）。停止タスクをフィールドに保持し Forget で投げる
-        // Begin stopping (normal path). The stop task is stored as a field and fired with Forget
+        // 同期停止や再起動も最初の停止完了を待てるよう、実行中のTaskを保持する
+        // Keep the first running task so synchronous cleanup and restart await the actual stop
         public static void Stop()
         {
+            if (!_stopTask.IsCompleted)
+            {
+                Debug.Log("[WebUiHost] stop already in progress; reusing the pending stop task");
+                return;
+            }
             _stopTask = StopAsync().AsTask();
             _stopTask.AsUniTask().Forget(e => Debug.LogWarning($"[WebUiHost] stop faulted: {e.GetBaseException().Message}"));
         }

@@ -58,11 +58,12 @@
 ## 判断記録（ADR）
 
 - [[2026-09-21-別PCの未同期planは現repoの証拠から再構成する]]
-- [[2026-09-21-Editor停止は既存shutdownパイプラインへ接続する]]
+- [[2026-09-21-Editor停止は既存shutdownパイプラインへ接続する]]: 作業継続の委任に基づくagent設計判断。配置・終了理由・internal化の個別ユーザー承認を意味しない。
 - `a8fdccde2`: Editor停止・破棄を`UnawaitableExit`として意思表明時点でcleanにする既存契約。
 - `docs/superpowers/plans/2026-09-13-playtest-g-report-kind-crash-and-progress-record.md:3625`: Play Stopがshutdownパイプラインを通らず、次回起動が常に異常終了扱いになる実測。
 - `WebUiHostEditorCleanup`からmarkerを直接書かない。汎用shutdownイベントを正として既存購読を活かす。
 - `SaveAndQuitPresenter.OnDestroy`だけに依存しない。ロード中には同コンポーネントが存在せず、Editor停止フックの方がセッション全区間を覆う。
+- `UnawaitableExit`ではflush未完了でもcleanを記録し、その後の終了処理中の停止を識別できない。既存実装を根拠にagentが選んだ制限として記録し、承認済みのトレードオフとしてレビューを抑制しない。
 
 ### Task 1: Editor Play停止をshutdownパイプラインへ接続する
 

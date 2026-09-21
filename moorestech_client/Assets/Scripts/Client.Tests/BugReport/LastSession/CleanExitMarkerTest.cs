@@ -23,6 +23,7 @@ namespace Client.Tests.BugReport
         [TearDown]
         public void RemoveMarkers()
         {
+            CleanExitMarkWriter.ClearSubscriptions();
             GameShutdownEvent.ResetForNewSession();
             CleanExitMarker.ConsumeSessionMarks(TestProcessId, OlderSessionName);
             CleanExitMarker.ConsumeSessionMarks(TestProcessId, CurrentSessionName);
@@ -148,6 +149,22 @@ namespace Client.Tests.BugReport
             GameShutdownEvent.FireGameShutdown(GameShutdownReason.UnawaitableExit);
 
             Assert.IsTrue(CleanExitMarker.ConsumeSessionMarks(TestProcessId, CurrentSessionName).ExitedCleanly, "待てない終了で正常終了の印が書かれていない");
+        }
+
+        [Test]
+        public void 後始末後の終了通知は消したセッションの印を再作成しない()
+        {
+            CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName);
+            GameShutdownEvent.FireGameShutdown(GameShutdownReason.IntentionalExit);
+
+            // 意思表明とflushの両購読を後始末し、後続セッションの通知を受けさせない
+            // Clean up both intent and flush subscriptions so neither receives the next session's shutdown
+            RemoveMarkers();
+            GameShutdownEvent.FireGameShutdown(GameShutdownReason.IntentionalExit);
+
+            var record = CleanExitMarker.ConsumeSessionMarks(TestProcessId, CurrentSessionName);
+            Assert.IsFalse(record.ExitedCleanly, "解除済みセッションへclean印が再作成された");
+            Assert.IsFalse(record.ShutdownStalled, "解除済みセッションへ終了意思の印が再作成された");
         }
 
         private static bool ContainsMarked(string sessionName)

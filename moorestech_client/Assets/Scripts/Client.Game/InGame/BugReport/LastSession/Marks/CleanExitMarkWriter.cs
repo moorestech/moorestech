@@ -18,7 +18,7 @@ namespace Client.Game.InGame.BugReport.LastSession
         {
             // 起動シーケンスは再入する（Editorの再生し直し）。購読は常に1組に保つ
             // The boot sequence re-enters (an Editor replay), so exactly one set of subscriptions is kept
-            _subscriptions?.Dispose();
+            ClearSubscriptions();
             _subscriptions = new CompositeDisposable();
 
             // 出所はこのセッション自身が開始時に書き残す。落ちた後の送信時に読むと、次に起動したビルドの値になる
@@ -64,6 +64,14 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             #endregion
+        }
+
+        // 再設置と後始末で同じ解除を使い、古いセッションへの書き込みを止める
+        // Share subscription cleanup between reinstallation and teardown to stop writes to old sessions
+        internal static void ClearSubscriptions()
+        {
+            _subscriptions?.Dispose();
+            _subscriptions = null;
         }
     }
 }
