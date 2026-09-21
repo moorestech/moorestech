@@ -144,7 +144,7 @@
 - Consumes: `PlaytestStartGateBypass.PeekUnattendedReason()`（Task 1）、`AlwaysOnCaptureSetting.Apply/Enabled/Disabled/Current`（`Server.Boot`）。
 - Produces: `DirectPlayAlwaysOnCaptureSettings.ApplyIfNeeded()`（public）、`DirectPlayAlwaysOnCaptureSettings.ApplyForUnattendedReason(string unattendedReason)`（internal）。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using System.Text.RegularExpressions;
@@ -207,9 +207,9 @@ namespace Client.Tests.Starter
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認** — Expected: `DirectPlayAlwaysOnCaptureSettings` 未定義の CS0103/CS0246。
+- [x] **Step 2: コンパイルして失敗を確認** — Expected: `DirectPlayAlwaysOnCaptureSettings` 未定義の CS0103/CS0246。
 
-- [ ] **Step 3: 実装** — 新規ファイル:
+- [x] **Step 3: 実装** — 新規ファイル:
 
 ```csharp
 #if UNITY_EDITOR
@@ -260,8 +260,8 @@ namespace Client.Starter.Editor
             DirectPlayAlwaysOnCaptureSettings.ApplyIfNeeded();
 ```
 
-- [ ] **Step 4: テスト** — Run: compile → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DirectPlayAlwaysOnCaptureSettingsTest|AlwaysOnCaptureSettingTest|SkipSaveLoadPlayModeSettingsTest|PlaytestWorldBootSessionTest|StandaloneTerrainQaSettingsTest|EditModeInPlayingTestUtilTest"` / Expected: 全件 PASS。
-- [ ] **Step 5: コミット** — Unity が生成した新規 `.meta` 2本も含めて `git add` → `git commit -m "feat: エディタの直Playで常時記録を有効にする（無人起動は除外）"`
+- [x] **Step 4: テスト** — Run: compile → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DirectPlayAlwaysOnCaptureSettingsTest|AlwaysOnCaptureSettingTest|SkipSaveLoadPlayModeSettingsTest|PlaytestWorldBootSessionTest|StandaloneTerrainQaSettingsTest|EditModeInPlayingTestUtilTest"` / Expected: 全件 PASS。
+- [x] **Step 5: コミット** — Unity が生成した新規 `.meta` 2本も含めて `git add` → `git commit -m "feat: エディタの直Playで常時記録を有効にする（無人起動は除外）"`
 
 ### Task 3: コメントと既存テストを裁定に合わせる
 
