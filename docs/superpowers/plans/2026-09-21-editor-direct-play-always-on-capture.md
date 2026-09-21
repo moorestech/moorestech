@@ -358,10 +358,10 @@ namespace Client.Starter.Editor
 
 ### Task 5: 全ブランチレビュー（省略不可）
 
-- [ ] **Step 1:** 必ず最後に moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。
-- [ ] **Step 2:** レビュー反映が判定経路（`PeekUnattendedReason`・`ApplyForUnattendedReason`・`PlayModeLaunchOverrides` の呼び出し位置）に触れたら、反映後のコードで Task 4 を再実施してから完了とする。
+- [x] **Step 1:** 必ず最後に moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。
+- [x] **Step 2:** レビュー反映が判定経路（`PeekUnattendedReason`・`ApplyForUnattendedReason`・`PlayModeLaunchOverrides` の呼び出し位置）に触れたら、反映後のコードで Task 4 を再実施してから完了とする。
 - [ ] **Step 3 (a):** plan・bd note に書いた「未確認」「残差」は1件ずつ `bd create --parent moorestech-sdme` で起票し、結論には issue id を列挙する。
-- [ ] **Step 4 (b):** Task 4 の合否は肯定行の存在ではなく、警告・拒否語（`開始しません`・`有効にしません`・`無効のため`・`missing`）が該当区間で期待どおり（有人=0件／無人=理由付き1件）であることで判定する。
+- [x] **Step 4 (b):** Task 4 の合否は肯定行の存在ではなく、警告・拒否語（`開始しません`・`有効にしません`・`無効のため`・`missing`）が該当区間で期待どおり（有人=0件／無人=理由付き1件）であることで判定する。
 - [ ] **Step 5:** `bd close moorestech-sdme --reason="..."`、全作業をコミット、pr-create スキルで PR を作る（マージは通常のマージコミット）。
 
 ## Self-Review 結果
