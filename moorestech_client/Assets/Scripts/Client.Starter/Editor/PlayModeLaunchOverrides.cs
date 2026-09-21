@@ -18,6 +18,10 @@ namespace Client.Starter.Editor
             // 生成ワールド起動引数を上書き
             // Override launch args for the generated-world play button
             GeneratedWorldPlayModeSettings.ApplyIfNeeded(proprieties);
+
+            // 人が押した直Playは常時記録を有効にする
+            // A direct play started by a person enables always-on capture
+            DirectPlayAlwaysOnCaptureSettings.ApplyIfNeeded();
         }
     }
 }
