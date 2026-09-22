@@ -381,7 +381,7 @@ class RequirementReportTests(unittest.TestCase):
 
 ### Task 3: 検査手順と既存reviewerの配線を両正本へ接続
 
-**Files:** Create both ROOT/references/requirement-proof.md。Modify both ROOT/SKILL.md、ROOT/reviewers/core-any-user-intent-fulfillment.md、ROOT/references/integration-rules.md、ROOT/references/output-contract.md、ROOT/tests/test_skill_wiring.py。必要に応じて巨大既存テストファイルへの追加の代わりに新規tests/requirements/test_requirement_wiring.pyを作り、既存test_skill_wiringから不変条件を呼ぶ。
+**Files:** Create both ROOT/references/requirement-proof.md。Modify both ROOT/SKILL.md、ROOT/reviewers/core-any-user-intent-fulfillment.md、ROOT/references/integration-rules.md、ROOT/references/output-contract.md、ROOT/integrators/finding-integrator.md、ROOT/tests/test_skill_wiring.py。必要に応じて巨大既存テストファイルへの追加の代わりに新規tests/requirements/test_requirement_wiring.pyを作り、既存test_skill_wiringから不変条件を呼ぶ。
 
 **Interfaces:** Consumes Task 2 CLI/summary。Produces 既存reviewerと同じCritical/Warning/設計判断の報告。selector YAML/priority/modelはそのまま。
 
@@ -447,6 +447,7 @@ python3 <skill-root>/scripts/requirements/main.py --repo-root <Repo-root> --cont
 
 - [ ] 配線テストはSKILLとreviewerのmain.py参照、requirement-proofの実在、動詞痕跡だけで合格する旧記述の除去、§5引用単独/免責禁止の維持、model sonnet、各scriptsバナーを検査する。単に文字列があるだけでなくreviewer→main→bundle/launch→proofのimport/path解決を実行テストする。
 - [ ] integration-rules §2.5とoutput-contractに要求別判定の最終出口を接続する。UNCONFIRMED/MISSING/INTERPRETATION/OUT_OF_SCOPEを要求ID・理由・報告先付きで独立欄に保持し、Critical 0や全worker回収を達成の意味にしない。未確認は自動で設計質問やコード欠陥へ昇格せず、未実測として次の検証/必要情報を記す。INTERPRETATIONのみ既存設計判断の経路へ。依頼の完了条件にかかる未確認・欠員が残るときは完了/Readyを宣言しない。統合で判定を変更する場合は実コード証拠と元IDを残す。既存Criticalの照合・棄却規則は維持し、誤判定も永久保存強制しない。
+- [ ] integrators/finding-integrator.mdの固定出力構成にも同じ独立欄を足す。SKILLの最終報告stepはintegrated.mdからこの欄を引き渡し、親reviewer内で止めない。配線テストはこの最後のconsumerまで参照/見出しを確認する。
 - [ ] globalの既定lightでも当該priority reviewerが発火し追加N workerを使うことをSKILL/費用説明に明記する。実測単価はモデル/試行条件付きでPRへ記録し、固定価格保証にしない。
 - [ ] このPRに残る旧候補の文書矛盾を修理する（additional Files: 両repoのwriting-plans/SKILL.md、writing-plans/references/incidents.md、repo側eval/README.md・expected-findings.md・make-fixture.sh、必要な配線/fixtureテスト）。writing-plansの保証表はArchitectureの2〜3文へ詰め込まず、テンプレートに専用節を置く。要求除外の裁定先は既存Phase2.5を名指しする。Self-Reviewは表をゼロから再導出するのでなく、凍結した原文/表の各行とタスク/受入を照合する。Phase2.6は型閉包等の字面検査であって保証表の意味検証ではないと区別する。これを検出力が実証済みの追加策と呼ばない。Bの独立観測要約案は追加しない。
 - [ ] evalの無条件「未検出なら配管退行」・固定22件・由来事例をblindと誤読させる説明を修理し、未達/解釈依存/既知の成功を区別する。pr1299対象クラス名を実在のTrainRailPlaceServiceへ訂正し、無条件色Criticalのoracleを当時原文の解釈依存と明記する。旧不合格記録を合格へ書換えない。make-fixtureの既定review入力から.meta/録画シナリオを除外し、必要なら明示raw出力と区別する。pr1299の標準出力が保存3796行patchとバイト一致すること、全fixture生成/既存suiteの結果を報告する。
