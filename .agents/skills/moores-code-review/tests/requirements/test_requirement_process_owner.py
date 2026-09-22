@@ -31,19 +31,23 @@ class ProcessOwnershipTests(unittest.TestCase):
             process = owner.spawn([sys.executable, "-c", script], stdin=subprocess.DEVNULL,
                                   stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
             child_pid = int(process.stdout.readline())
-            owner.stop_all()
-            self.assertIsNotNone(process.returncode)
-            self.assertEqual(subprocess.run(["ps", "-p", str(child_pid), "-o", "pid="],
-                                            capture_output=True, check=False).returncode, 1)
-            with self.assertRaises(ChildProcessError):
-                os.waitpid(process.pid, os.WNOHANG)
-            with self.assertRaises(OSError):
-                owner.spawn(["never"])
-            lock.close()
-            contender = lock_path.open("a")
-            fcntl.flock(contender, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            contender.close()
-            process.stdout.close()
+            try:
+                owner.stop_all()
+                self.assertIsNotNone(process.returncode)
+                self.assertEqual(subprocess.run(["ps", "-p", str(child_pid), "-o", "pid="],
+                                                capture_output=True, check=False).returncode, 1)
+                with self.assertRaises(ChildProcessError):
+                    os.waitpid(process.pid, os.WNOHANG)
+                with self.assertRaises(OSError):
+                    owner.spawn(["never"])
+                lock.close()
+                contender = lock_path.open("a")
+                fcntl.flock(contender, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                contender.close()
+            finally:
+                owner.stop_all()
+                lock.close()
+                process.stdout.close()
 
     def test_signal_stops_running_worker_and_queued_work_never_spawns(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -72,6 +76,7 @@ class ProcessOwnershipTests(unittest.TestCase):
                 self.assertIsNone(failures[0])
                 self.assertTrue(all(isinstance(error, OSError) for error in failures[1:]))
             finally:
+                owner.stop_all()
                 owner.restore_signals()
             lock.close()
 
@@ -91,11 +96,29 @@ class ProcessOwnershipTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             lock = (Path(temp) / "lock").open("a")
             owner = FailingOwner(lock.fileno(), termination_grace=0.05)
-            result = launch(data, unit, Path(temp) / "R001", owner)
-            self.assertEqual(result["verdict"], "MISSING")
-            self.assertIsNotNone(owner.process.returncode)
-            with self.assertRaises(ChildProcessError):
-                os.waitpid(owner.process.pid, os.WNOHANG)
+            try:
+                result = launch(data, unit, Path(temp) / "R001", owner)
+                self.assertEqual(result["verdict"], "MISSING")
+                self.assertIsNotNone(owner.process.returncode)
+                with self.assertRaises(ChildProcessError):
+                    os.waitpid(owner.process.pid, os.WNOHANG)
+            finally:
+                owner.stop_all()
+                lock.close()
+
+    def test_cleanup_failure_is_logged_and_kept_owned(self):
+        with tempfile.TemporaryDirectory() as temp:
+            lock = (Path(temp) / "lock").open("a")
+            owner = ProcessOwner(lock.fileno(), termination_grace=0)
+            process = mock.Mock(pid=12345)
+            owner.processes.add(process)
+            with mock.patch.object(owner, "stop", side_effect=PermissionError("denied")), \
+                 mock.patch("sys.stderr") as stderr:
+                owner.stop_all()
+            self.assertIn(process, owner.processes)
+            self.assertIn("denied", owner.failures[0])
+            stderr.write.assert_called()
+            owner.processes.clear()
             lock.close()
 
     def test_inherited_lock_blocks_resume_after_parent_sigkill(self):
@@ -108,11 +131,19 @@ class ProcessOwnershipTests(unittest.TestCase):
             parent = subprocess.Popen([sys.executable, "-c", script, str(lock_path)],
                                       stdout=subprocess.PIPE, text=True)
             child_pid = int(parent.stdout.readline())
-            os.kill(parent.pid, signal.SIGKILL)
-            parent.wait()
             contender = lock_path.open("a")
-            with self.assertRaises(BlockingIOError):
-                fcntl.flock(contender, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            os.killpg(child_pid, signal.SIGKILL)
-            contender.close()
-            parent.stdout.close()
+            try:
+                os.kill(parent.pid, signal.SIGKILL)
+                parent.wait()
+                with self.assertRaises(BlockingIOError):
+                    fcntl.flock(contender, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            finally:
+                try:
+                    os.killpg(child_pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                if parent.poll() is None:
+                    parent.kill()
+                    parent.wait()
+                contender.close()
+                parent.stdout.close()

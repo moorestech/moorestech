@@ -102,7 +102,12 @@ def launch(data, unit, directory, owner):
                 if process:
                     if process.stdin:
                         process.stdin.close()
-                    owner.stop(process)
+                    try:
+                        owner.stop(process)
+                    except (OSError, subprocess.SubprocessError) as cleanup_error:
+                        err.write(f"worker cleanup failure: {cleanup_error}\n")
+                        print(f"{unit['id']}: worker cleanup failure: {cleanup_error}", file=sys.stderr)
+                        raise
             finally:
                 if process and process.poll() is not None:
                     owner.finished(process)

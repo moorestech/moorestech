@@ -7,6 +7,7 @@
 import os
 import signal
 import subprocess
+import sys
 import threading
 import time
 
@@ -19,6 +20,7 @@ class ProcessOwner:
         self.lock = threading.Lock()
         self.stopping = False
         self.previous = {}
+        self.failures = []
 
     def install_signals(self):
         for signum in (signal.SIGTERM, signal.SIGINT):
@@ -55,7 +57,7 @@ class ProcessOwner:
             self._signal_group(process.pid, signal.SIGKILL)
         try:
             process.wait()
-        except (ChildProcessError, OSError):
+        except ChildProcessError:
             pass
         self.finished(process)
 
@@ -66,20 +68,38 @@ class ProcessOwner:
         for process in processes:
             try:
                 self.stop(process)
-            except (OSError, subprocess.SubprocessError):
-                self.finished(process)
+            except (OSError, subprocess.SubprocessError) as error:
+                message = f"process group {process.pid} cleanup failure: {error}"
+                print(message, file=sys.stderr)
+                with self.lock:
+                    self.failures.append(message)
 
     @staticmethod
     def _signal_group(group, signum):
         try:
             os.killpg(group, signum)
-        except (ProcessLookupError, PermissionError):
+        except ProcessLookupError:
             pass
+        except PermissionError:
+            if ProcessOwner._live_group_members(group):
+                raise
 
     @staticmethod
     def _group_exists(group):
         try:
             os.killpg(group, 0)
             return True
-        except (ProcessLookupError, PermissionError):
+        except ProcessLookupError:
             return False
+        except PermissionError:
+            return ProcessOwner._live_group_members(group)
+
+    @staticmethod
+    def _live_group_members(group):
+        result = subprocess.run(["ps", "-axo", "pgid=,stat="], check=True,
+                                capture_output=True, text=True)
+        for line in result.stdout.splitlines():
+            fields = line.split()
+            if len(fields) == 2 and fields[0] == str(group) and not fields[1].startswith("Z"):
+                return True
+        return False

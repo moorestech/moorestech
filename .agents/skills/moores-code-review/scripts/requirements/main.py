@@ -65,6 +65,9 @@ def execute(args):
         finally:
             owner.stop_all()
             owner.restore_signals()
+        if owner.failures and results:
+            results[0] = {"id": results[0]["id"], "verdict": "MISSING",
+                          "reason": "; ".join(owner.failures)}
         try:
             changed = snapshot(repo) != data["snapshot"]
         except (OSError, subprocess.SubprocessError) as error:
