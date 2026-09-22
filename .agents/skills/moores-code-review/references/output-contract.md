@@ -9,4 +9,6 @@ suppressed: 0行以上 — トレードオフ免責で降格した指摘。`- [C
 
 依頼動詞優先ガード（全観点共通）: 起動promptの `User prompt` 行のファイルをRead。「許容するトレードオフ」「非目標」に合致する指摘は破棄せず、`suppressed-by: <トレードオフ1行, 出所ラベル>` を付けて重大度そのままで suppressed 節へ返す。免責力を持つのは出所が `[ユーザー裁定: ...]` / `[ADR: ...]` の行だけで、`[agent前提]`・ラベル無し・spec/plan等の文書記載（AI自身が書いた文書は特に）は免責事由にならない（通常のCritical/Warningとして返す）。
 
+`core-any-user-intent-fulfillment` の要求別 `UNCONFIRMED` / `MISSING` / `INTERPRETATION` / `OUT_OF_SCOPE` は、一般所見と別に要求ID・理由・個別報告先を保持する。0 Criticalや全worker回収を達成の意味にせず、未確認には次の検証または必要情報を書く。INTERPRETATIONだけを設計判断へ接続する。
+
 報告は `Write full report to` のファイルへ全文を書く。返答（親へ返す文）には指摘本文を書かず、Critical件数・設計判断あり/なし・一行要約だけを返す。

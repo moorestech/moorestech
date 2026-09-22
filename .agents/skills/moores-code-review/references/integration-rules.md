@@ -47,6 +47,12 @@
 - **Info** — 照合不要・対応不要。報告末尾に圧縮列挙する（過検知ガードで落とした事実の記録はレンズ改善の材料になる）。
 - Warning/InfoはAskUserQuestionに載せない（§4の対象は設計判断のみ）。
 
+### 要求別判定の独立出口
+
+`core-any-user-intent-fulfillment` の要求別判定は一般Warning/Infoへ潰さず、要求ID・判定理由・個別報告先付きで `UNCONFIRMED` / `MISSING` / `INTERPRETATION` / `OUT_OF_SCOPE` を独立欄に保持する。Critical 0、全worker回収、OUT_OF_SCOPEは要求達成を意味しない。未確認は自動で設計質問やコード欠陥へ昇格させず、未実測として次の検証または必要情報を書く。`INTERPRETATION` のみ既存§4の設計判断経路へ回す。
+
+依頼の完了条件にかかる未確認・欠員が残る場合、統合結果と最終報告は完了/Readyを宣言しない。統合側が元判定を変更する場合は、変更後コードの実証拠と元の要求IDを残す。既存Criticalの照合・棄却規則は維持し、誤判定を永久保存する義務にはしない。
+
 ## 2.6. suppressed指摘の統合（免責は消音でなく降格）
 
 - 観点ファイルが `suppressed:` 節で返した指摘は、統合結果から**削除しない**。最終報告の「免責で消された指摘」専用セクションに固定形式 `- [Critical|Warning] <指摘要約> — suppressed-by: <トレードオフ1行, 出所ラベル>` で必ず列挙する（元の重大度を行頭に保持。0件なら「suppressed: 0件」）。

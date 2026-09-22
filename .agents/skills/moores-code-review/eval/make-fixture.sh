@@ -2,8 +2,8 @@
 # レビュー当時のPR diffをgit履歴から再生成する（コミットはマージ済みなので永続）
 # Regenerate the at-review-time PR diff from git history (commits are merged, hence permanent)
 #
-# Usage: ./make-fixture.sh <label> [out_dir]
-#        ./make-fixture.sh all [out_dir]
+# Usage: ./make-fixture.sh <label> [out_dir] [review|raw]
+#        ./make-fixture.sh all [out_dir] [review|raw]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -11,6 +11,11 @@ TSV="$SCRIPT_DIR/fixtures.tsv"
 # 既定の出力先はスキル実体配下のoutputs/（.gitignore除外済み）。/tmpはOSに掃除されるため使わない
 # Default output lives under the skill's own outputs/ (gitignored); /tmp is swept by the OS.
 OUT_DIR="${2:-$SCRIPT_DIR/../outputs/fixtures}"
+MODE="${3:-review}"
+if [[ "$MODE" != review && "$MODE" != raw ]]; then
+    echo "mode must be review or raw" >&2
+    exit 2
+fi
 mkdir -p "$OUT_DIR"
 
 gen() {
@@ -25,7 +30,13 @@ gen() {
     else
         base=$(git merge-base "${merge}^1" "$review")
     fi
-    git diff "$base" "$review" > "$OUT_DIR/$label.diff"
+    if [[ "$MODE" == raw ]]; then
+        git -c core.quotepath=false diff "$base" "$review" -- ':(top)' > "$OUT_DIR/$label.diff"
+    else
+        git -c core.quotepath=false diff "$base" "$review" -- ':(top)' \
+            ':(top,exclude,glob)**/*.meta' \
+            ':(top,exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs' > "$OUT_DIR/$label.diff"
+    fi
     echo "$OUT_DIR/$label.diff ($(wc -l < "$OUT_DIR/$label.diff") lines)"
 }
 

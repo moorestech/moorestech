@@ -1,21 +1,21 @@
 # リプレイ評価: 期待検出リスト
 
-各fixtureに対しレンズ/決定論チェックを走らせた際、検出されるべき指摘。
-「検出器」列が本ハーネスの担当。リプレイで検出できなければ配管の退行（レンズ・selector・スクリプトを疑う）。
-注意: 由来事例の全件検出は「配管が正しい」証明であって汎化の証明ではない。未達と明記した期待値は未検出でも退行とは限らない。
+各fixtureに対しレンズ/決定論チェックを走らせた際の較正表。件数はfixture追加で変わるため固定総数を合否に使わない。
+「検出器」列が本ハーネスの担当でも、未検出の意味は状態で異なる。既知の成功事例の未検出は配管退行を疑い、未達・解釈依存の事例は未検出だけで退行と断定しない。
+注意: 由来事例は期待値を知った入力でありblindではない。全件検出は汎化の証明ではない。
 汎化はレンズ作成に使っていないPRのブラインドリプレイ（README参照）で別途確認する。
 
 ## pr1299（PR1394 postmortemによる追加事例・未達）
 
 | # | 指摘 | 対象 | 検出器 |
 |---|---|---|---|
-| 48 | 橋脚の素材不足で接続可否はfalseになるが、先に描画された橋脚色へ結果が戻らない | TrainRailPlaceSystemService.ManualUpdate → TrainRailConnectSystem.UpdateNotConnected | core-any-user-intent-fulfillment（要求結果までの経路追跡・Critical） |
+| 48 | 橋脚の素材不足で接続可否はfalseになるが、先に描画された橋脚色へ結果が戻らない | TrainRailPlaceService → TrainRailConnectSystem.UpdateNotConnected | core-any-user-intent-fulfillment（当時原文の色要求解釈に依存・Critical oracle未確定） |
 
 当時の全patch/context/contract・head `bdb5bced9e830442959de0d9a3b5cfc56a38f082` を使う。入力・出力・採点は `moorestech_logs/harness/postmortem/2026-09-22-pr1394-guarantee-handoff/`。本表への追加は合格宣言ではなく期待値の登録であり、汎化・安定性の証明ではない。
 
 2026-09-22実測: 改稿候補の初版・第2版（sonnet / claude-sonnet-5）はともに本件未捕獲。検出0/2は異なる規則候補の各1回であり、同一規則の再現率ではない。PR前レビュー後の文面修理版は被験体で未再実行。opus対照・別ドメイン陽性陰性・安定性は未検証。現時点で再発防止の有効性を確認できていない。
 
-`make-fixture.sh pr1299` は元の生diff（3930行）を生成する。当時レビュー入力（3796行）は `.meta`・録画プレイ用シナリオを除外していたため、厳密な再検証では保存済みpatchを使うか次で再生成する（保存patchとのバイト一致を確認済み）。context/contractも上記logsの保存版を使い、判定対象の欠陥をpromptへ追加しない。
+`make-fixture.sh pr1299` は既定で当時レビュー入力と同じく `.meta`・録画プレイ用シナリオを除外する。生diffが必要な場合だけ第3引数 `raw` を明示する。厳密な再検証では3796行の保存済みpatchとのバイト一致を確認する。context/contractも上記logsの保存版を使い、判定対象の欠陥をpromptへ追加しない。旧不合格記録は合格へ書き換えない。
 
 ```bash
 git -c core.quotepath=false diff 95d3f14de91d3d0130098aadbd2ba640c4111744 bdb5bced9e830442959de0d9a3b5cfc56a38f082 -- ':(top)' ':(top,exclude,glob)**/*.meta' ':(top,exclude,glob)**/unity-playmode-recorded-playtest/**/*.cs'

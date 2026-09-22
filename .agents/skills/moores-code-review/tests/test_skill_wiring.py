@@ -20,6 +20,10 @@ REPO_ROOT = SKILL_DIR.parent.parent.parent
 
 
 class SkillWiringTest(unittest.TestCase):
+    def test_requirement_wiring_suite_is_discoverable(self):
+        self.assertTrue((SKILL_DIR / "tests/requirements/__init__.py").is_file())
+        self.assertTrue((SKILL_DIR / "tests/requirements/test_requirement_wiring.py").is_file())
+
     def test_every_verifier_is_wired_in_skill_md(self):
         # verifiers/配下の全ファイルがSKILL.md本文から参照されていること
         # Every verifier file must be referenced from SKILL.md
