@@ -15,7 +15,7 @@ from pathlib import Path
 from input_bundle import bundle, snapshot
 from process_owner import ProcessOwner
 from run_state import atomic_json, atomic_text
-from worker_runs import VERDICTS, launch
+from worker_runs import VERDICTS, failure_result, launch
 
 
 def _manifest(path, data):
@@ -58,9 +58,7 @@ def execute(args):
                     try:
                         result = future.result()
                     except (OSError, subprocess.SubprocessError) as error:
-                        report_path = target / unit["id"] / "attempt-1" / "report.md"
-                        result = {"id": unit["id"], "verdict": "MISSING", "reason": str(error),
-                                  "reportPath": str(report_path.resolve())}
+                        result = failure_result(unit["id"], target / unit["id"], str(error))
                         print(f'{unit["id"]}: worker failure: {error}', file=sys.stderr)
                     results.append(result)
                     print(f'{unit["id"]}: {result["verdict"]}', file=sys.stderr)
@@ -70,7 +68,8 @@ def execute(args):
         if owner.failures and results:
             results[0] = {"id": results[0]["id"], "verdict": "MISSING",
                           "reason": "; ".join(owner.failures),
-                          "reportPath": results[0].get("reportPath", "")}
+                          "reportPath": results[0].get("reportPath"),
+                          "evidencePath": results[0].get("evidencePath", str(target.resolve()))}
         try:
             changed = snapshot(repo) != data["snapshot"]
         except (OSError, subprocess.SubprocessError) as error:
@@ -83,7 +82,8 @@ def execute(args):
                  f"検査中のコード変化: {changed}", ""]
         for row in results:
             lines.extend([f'## {row["id"]}: {VERDICTS.get(row["verdict"], "未完了")}',
-                          f'個別報告先: {row.get("reportPath", "未記録")}',
+                          f'個別報告先: {row.get("reportPath") or "なし"}',
+                          f'失敗証拠先: {row.get("evidencePath") or "該当なし"}',
                           row.get("report", row.get("reason", "欠損")), ""])
         atomic_text(target / "summary.md", "\n".join(lines))
         atomic_json(target / "results.json", {"results": results, "codeChanged": changed,

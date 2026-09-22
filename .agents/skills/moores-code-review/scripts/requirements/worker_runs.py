@@ -20,6 +20,28 @@ VERDICTS = {"COUNTEREXAMPLE": "Critical", "SUPPORTED": "静的根拠あり",
             "OUT_OF_SCOPE": "コード検査対象外"}
 
 
+def failure_result(unit_id, directory, reason):
+    directory = Path(directory)
+    attempts = sorted(directory.glob("attempt-*"), key=lambda path: int(path.name.split("-")[-1]))
+    attempt = attempts[-1] if attempts else None
+    report = attempt / "report.md" if attempt else None
+    evidence = None
+    if attempt:
+        for name in ("status.json", "stderr.txt", "launch.json"):
+            candidate = attempt / name
+            if candidate.exists():
+                evidence = candidate
+                break
+        evidence = evidence or attempt
+    elif directory.exists():
+        evidence = directory
+    else:
+        evidence = directory.parent
+    return {"id": unit_id, "verdict": "MISSING", "reason": reason,
+            "reportPath": str(report.resolve()) if report and report.is_file() else None,
+            "evidencePath": str(evidence.resolve())}
+
+
 def read_report(path, unit_id):
     if not path.is_file():
         return None
@@ -129,7 +151,5 @@ def launch(data, unit, directory, owner):
         atomic_json(attempt / "status.json", status)
     except OSError as error:
         print(f"{unit['id']}: status IO failure: {error}", file=sys.stderr)
-        return {"id": unit["id"], "verdict": "MISSING", "reason": str(error),
-                "reportPath": str(report_path.resolve())}
-    return report if ok else {"id": unit["id"], "verdict": "MISSING", "reason": reason,
-                              "reportPath": str(report_path.resolve())}
+        return failure_result(unit["id"], directory, str(error))
+    return report if ok else failure_result(unit["id"], directory, reason)

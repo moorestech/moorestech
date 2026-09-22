@@ -112,10 +112,14 @@ class RequirementReportTests(unittest.TestCase):
             root = Path(temp) / "R001"
             missing = launch(data, unit, root, FakeOwner(lambda _path: FakeProcess()))
             self.assertEqual(missing["verdict"], "MISSING")
+            self.assertIsNone(missing["reportPath"])
+            self.assertTrue(Path(missing["evidencePath"]).exists())
             process = FakeProcess()
             process.returncode = 7
             failed = launch(data, unit, root, FakeOwner(lambda path: (setattr(process, "report", path) or process)))
             self.assertEqual(failed["verdict"], "MISSING")
+            self.assertEqual(failed["reportPath"], str((root / "attempt-2/report.md").resolve()))
+            self.assertTrue(Path(failed["evidencePath"]).exists())
             good = launch(data, unit, root, FakeOwner(FakeProcess))
             self.assertEqual(good["verdict"], "SUPPORTED")
             report = root / "attempt-3" / "report.md"

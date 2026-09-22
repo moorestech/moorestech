@@ -67,7 +67,7 @@ class RequirementExecuteTests(unittest.TestCase):
                 mock.patch("main.launch", return_value={"id": "R001", "verdict": "MISSING", "reason": "failed"}):
                 self.assertEqual(runtime_main.execute(args), 2)
             missing_summary = Path(args.run_dir, "summary.md").read_text(encoding="utf-8")
-            self.assertIn("個別報告先: 未記録", missing_summary)
+            self.assertIn("個別報告先: なし", missing_summary)
             with mock.patch.object(runtime_main, "__file__", str(fake_main)), \
                  mock.patch("main.launch", return_value=report), \
                  mock.patch("main.snapshot", return_value="changed"):
@@ -110,6 +110,33 @@ class RequirementExecuteTests(unittest.TestCase):
                                       "--context", args.context, "--patch", args.patch,
                                       "--run-dir", args.run_dir, "--model", "sonnet"]):
                     self.assertEqual(runtime_main.main(), 2)
+
+    def test_resumed_future_exception_reports_latest_real_evidence(self):
+        with tempfile.TemporaryDirectory() as temp:
+            args, fake_main = self.fixture(Path(temp))
+            unit = Path(args.run_dir, "R001")
+            first = unit / "attempt-1"
+            first.mkdir(parents=True)
+            (first / "status.json").write_text('{"ok":false}', encoding="utf-8")
+
+            def fail_on_second_attempt(*_args, **_options):
+                second = unit / "attempt-2"
+                second.mkdir()
+                (second / "stderr.txt").write_text("cleanup exploded", encoding="utf-8")
+                raise OSError("attempt-2 failure")
+
+            with mock.patch.object(runtime_main, "__file__", str(fake_main)), \
+                 mock.patch("main.launch", side_effect=fail_on_second_attempt), \
+                 mock.patch("main.ProcessOwner.install_signals"), \
+                 mock.patch("main.ProcessOwner.restore_signals"), \
+                 mock.patch("main.ProcessOwner.stop_all"):
+                self.assertEqual(runtime_main.execute(args), 2)
+            row = json.loads(Path(args.run_dir, "results.json").read_text(encoding="utf-8"))["results"][0]
+            self.assertIsNone(row["reportPath"])
+            self.assertEqual(row["evidencePath"], str((unit / "attempt-2/stderr.txt").resolve()))
+            summary = Path(args.run_dir, "summary.md").read_text(encoding="utf-8")
+            self.assertIn(f"失敗証拠先: {row['evidencePath']}", summary)
+            self.assertNotIn("attempt-1/report.md", summary)
 
 
 if __name__ == "__main__":
