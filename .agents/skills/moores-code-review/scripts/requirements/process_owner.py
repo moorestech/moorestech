@@ -8,11 +8,13 @@ import os
 import signal
 import subprocess
 import threading
+import time
 
 
 class ProcessOwner:
-    def __init__(self, lock_fd):
+    def __init__(self, lock_fd, termination_grace=10):
         self.lock_fd = lock_fd
+        self.termination_grace = termination_grace
         self.processes = set()
         self.lock = threading.Lock()
         self.stopping = False
@@ -35,9 +37,8 @@ class ProcessOwner:
         with self.lock:
             if self.stopping:
                 raise OSError("runner is stopping; worker was not started")
-            process = subprocess.Popen(
-                args, start_new_session=True, pass_fds=(self.lock_fd,), **options
-            )
+            process = subprocess.Popen(args, start_new_session=True,
+                                       pass_fds=(self.lock_fd,), **options)
             self.processes.add(process)
             return process
 
@@ -45,21 +46,40 @@ class ProcessOwner:
         with self.lock:
             self.processes.discard(process)
 
+    def stop(self, process):
+        self._signal_group(process.pid, signal.SIGTERM)
+        deadline = time.monotonic() + self.termination_grace
+        while self._group_exists(process.pid) and time.monotonic() < deadline:
+            time.sleep(0.02)
+        if self._group_exists(process.pid):
+            self._signal_group(process.pid, signal.SIGKILL)
+        try:
+            process.wait()
+        except (ChildProcessError, OSError):
+            pass
+        self.finished(process)
+
     def stop_all(self):
         with self.lock:
             self.stopping = True
             processes = list(self.processes)
         for process in processes:
-            if process.poll() is None:
-                os.killpg(process.pid, signal.SIGTERM)
-        for process in processes:
-            if process.poll() is not None:
-                continue
             try:
-                process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                os.killpg(process.pid, signal.SIGKILL)
-                process.wait()
-        with self.lock:
-            for process in processes:
-                self.processes.discard(process)
+                self.stop(process)
+            except (OSError, subprocess.SubprocessError):
+                self.finished(process)
+
+    @staticmethod
+    def _signal_group(group, signum):
+        try:
+            os.killpg(group, signum)
+        except (ProcessLookupError, PermissionError):
+            pass
+
+    @staticmethod
+    def _group_exists(group):
+        try:
+            os.killpg(group, 0)
+            return True
+        except (ProcessLookupError, PermissionError):
+            return False

@@ -34,6 +34,8 @@ def execute(args):
     repo = Path(args.repo_root).resolve()
     target = Path(args.run_dir).resolve()
     inputs = [Path(args.context).resolve(), Path(args.patch).resolve()]
+    procedure = Path(__file__).resolve().parents[2] / "references" / "requirement-proof.md"
+    inputs.append(procedure.resolve())
     if target == repo or repo in target.parents:
         raise ValueError("run-dirはコードrepo外のログ置場を指定する")
     if any(path == target or target in path.parents or path in target.parents for path in inputs):
@@ -41,7 +43,6 @@ def execute(args):
     target.mkdir(parents=True, exist_ok=True)
     with (target / "run.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        procedure = Path(__file__).resolve().parents[2] / "references" / "requirement-proof.md"
         data = bundle(inputs[0].read_text(encoding="utf-8"), inputs[1].read_text(encoding="utf-8"),
                       procedure.read_text(encoding="utf-8"), repo, args.model)
         _manifest(target / "manifest.json", data)

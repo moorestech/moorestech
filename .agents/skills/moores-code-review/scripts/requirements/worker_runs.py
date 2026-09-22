@@ -7,7 +7,6 @@
 import json
 import os
 import re
-import signal
 import subprocess
 import sys
 from pathlib import Path
@@ -24,7 +23,11 @@ VERDICTS = {"COUNTEREXAMPLE": "Critical", "SUPPORTED": "静的根拠あり",
 def read_report(path, unit_id):
     if not path.is_file():
         return None
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as error:
+        print(f"{unit_id}: report読取失敗: {error}", file=sys.stderr)
+        return None
     ids = re.findall(r"^Requirement: (R\d+)\s*$", text, re.M)
     verdicts = re.findall(r"^Verdict: ([A-Z_]+)\s*$", text, re.M)
     headings = ("## 原文と観測", "## 経路と証拠", "## 差と限界")
@@ -42,7 +45,7 @@ def _completed(attempt, unit_id):
         return None
     try:
         status = json.loads(status_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
         print(f"{unit_id}: 壊れたstatusを保存し再実行: {error}", file=sys.stderr)
         return None
     if not isinstance(status, dict):
@@ -90,19 +93,18 @@ def launch(data, unit, directory, owner):
                 try:
                     process.communicate(text, timeout=1800)
                 except subprocess.TimeoutExpired:
-                    os.killpg(process.pid, signal.SIGTERM)
-                    try:
-                        process.communicate(timeout=10)
-                    except subprocess.TimeoutExpired:
-                        os.killpg(process.pid, signal.SIGKILL)
-                        process.communicate()
                     failure = "worker timed out"
+                    owner.stop(process)
                 code = process.returncode
             except (OSError, subprocess.SubprocessError) as error:
                 failure = str(error)
                 err.write(f"worker process failure: {error}\n")
-            finally:
                 if process:
+                    if process.stdin:
+                        process.stdin.close()
+                    owner.stop(process)
+            finally:
+                if process and process.poll() is not None:
                     owner.finished(process)
     except OSError as error:
         failure = str(error)

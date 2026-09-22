@@ -74,6 +74,14 @@ class RequirementExecuteTests(unittest.TestCase):
                 runtime_main.execute(args)
             lock.close()
 
+    def test_run_directory_cannot_share_procedure_directory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            args, fake_main = self.fixture(Path(temp))
+            args.run_dir = str(fake_main.parents[2] / "references")
+            with mock.patch.object(runtime_main, "__file__", str(fake_main)):
+                with self.assertRaisesRegex(ValueError, "run-dir"):
+                    runtime_main.execute(args)
+
     def test_external_git_failure_returns_cli_failure(self):
         with tempfile.TemporaryDirectory() as temp:
             args, fake_main = self.fixture(Path(temp))
