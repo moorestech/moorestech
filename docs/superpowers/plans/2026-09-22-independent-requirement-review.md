@@ -188,7 +188,8 @@ class RequirementInputTests(unittest.TestCase):
 - JSON/summary/statusは同じディレクトリ内の一時ファイル＋replaceで原子的に保存する。壊れた既存statusは理由をstderrへ出し、元attemptを残して未完了だけ次attemptで再実行する。壊れたmanifestは入力同一性を証明できないため拒否する。
 - 子環境はcopyして `CLAUDECODE` だけを除去する。親環境は変更しない。snapshotのgit失敗（CalledProcessError）も未完了へ返す。全プロセス/IO失敗をログと欠損へ残す。
 - ランナーが子プロセスの所有者となり、TERM/INT時は起動済みの自分の子groupだけ終了・回収する。起動と停止の競合を防ぐ。run.lockのfdを子へ継承し、親の強制終了後も生きているworkerがあれば再開がロックで拒否され、同じ要求の二重起動にならない。PIDだけで他プロセスを殺す復旧はしない。
-- 親reviewerは長い処理をBashのbackground taskとして1回起動し、対応する待機ツールで終了まで待つ。短周期のLLMポーリングや同じ入力の再起動はしない。このnested起動/待機契約はTask4で実測する。利用できない環境では理由付き未完了にする。
+- 親reviewerは長い処理をBashのbackground taskとして1回起動し、完了通知を受けて回収する。通知待機を明示する必要がある実行体ではblock:true・60秒上限の待機ツールを使う。block:falseや数秒ごとのbusy polling、同じ入力の再起動は禁止。外側の待機推論費用は0ではなく、内側への全入力再配達とも区別する。このnested起動/待機契約はTask4で実測する。利用できない環境では理由付き未完了にする。
+- lockファイルは削除/replace/明示LOCK_UNをしない。SIGKILL後のfd継承は二重起動防止であり孤児自動回復ではない。実Claudeのfd保持はfake試験だけで実証済みにせずTask4で確認する。停止後の待機futureが新たにspawnしないことと、TERM無視→KILLもfake試験へ含める。
 - run-dirはコードrepo外かつ既存の要求入力/procedureとは別。完了報告の形式チェックは意味内容の証明ではない。報告SHAが変化した場合は旧成功を流用しない。
 
 追加テスト: 壊れたstatusからの復旧/壊れたmanifest拒否/子環境だけのCLAUDECODE除去/TERM後子回収/親強制終了中の再開ロック拒否/外部git失敗。プロセス寿命のテストは有料CLIでなく短いfake workerを使う。
@@ -425,7 +426,7 @@ Verdict: COUNTEREXAMPLE または SUPPORTED または UNCONFIRMED または INTE
 
 自分のファイルからskill rootを解決する。`Write full report to` の親ディレクトリ内に、自分の報告名に対応する `.requirements` ディレクトリを置く。コードrepo内を保存先にせず、既存のreview runログ置場を使う。
 
-次の実コマンドをBashのbackground taskとして1回起動し、そのtaskの待機ツールで終了を待つ。待機1回は60秒以下、待機中に新規起動しない。パスは起動promptの絶対パスを用い、shell quotingを行う。待機の仕組みが利用できなければ未完了を明示する。
+次の実コマンドをBashのbackground taskとして1回起動し、完了通知を第一選択として回収する。明示待機が必要ならblock:trueの待機ツールを1回60秒以下で使い、block:false/数秒busy pollingは禁止。待機中に新規起動しない。パスは起動promptの絶対パスを用い、shell quotingを行う。通知/待機の仕組みが利用できなければ未完了を明示する。
 
 python3 <skill-root>/scripts/requirements/main.py --repo-root <Repo-root> --context <User-prompt> --patch <Patch-path> --run-dir <report-parent>/<report-stem>.requirements --model sonnet
 
@@ -447,6 +448,8 @@ python3 <skill-root>/scripts/requirements/main.py --repo-root <Repo-root> --cont
 - [ ] 配線テストはSKILLとreviewerのmain.py参照、requirement-proofの実在、動詞痕跡だけで合格する旧記述の除去、§5引用単独/免責禁止の維持、model sonnet、各scriptsバナーを検査する。単に文字列があるだけでなくreviewer→main→bundle/launch→proofのimport/path解決を実行テストする。
 - [ ] integration-rules §2.5とoutput-contractに要求別判定の最終出口を接続する。UNCONFIRMED/MISSING/INTERPRETATION/OUT_OF_SCOPEを要求ID・理由・報告先付きで独立欄に保持し、Critical 0や全worker回収を達成の意味にしない。未確認は自動で設計質問やコード欠陥へ昇格せず、未実測として次の検証/必要情報を記す。INTERPRETATIONのみ既存設計判断の経路へ。依頼の完了条件にかかる未確認・欠員が残るときは完了/Readyを宣言しない。統合で判定を変更する場合は実コード証拠と元IDを残す。既存Criticalの照合・棄却規則は維持し、誤判定も永久保存強制しない。
 - [ ] globalの既定lightでも当該priority reviewerが発火し追加N workerを使うことをSKILL/費用説明に明記する。実測単価はモデル/試行条件付きでPRへ記録し、固定価格保証にしない。
+- [ ] このPRに残る旧候補の文書矛盾を修理する（additional Files: 両repoのwriting-plans/SKILL.md、writing-plans/references/incidents.md、repo側eval/README.md・expected-findings.md・make-fixture.sh、必要な配線/fixtureテスト）。writing-plansの保証表はArchitectureの2〜3文へ詰め込まず、テンプレートに専用節を置く。要求除外の裁定先は既存Phase2.5を名指しする。Self-Reviewは表をゼロから再導出するのでなく、凍結した原文/表の各行とタスク/受入を照合する。Phase2.6は型閉包等の字面検査であって保証表の意味検証ではないと区別する。これを検出力が実証済みの追加策と呼ばない。Bの独立観測要約案は追加しない。
+- [ ] evalの無条件「未検出なら配管退行」・固定22件・由来事例をblindと誤読させる説明を修理し、未達/解釈依存/既知の成功を区別する。pr1299対象クラス名を実在のTrainRailPlaceServiceへ訂正し、無条件色Criticalのoracleを当時原文の解釈依存と明記する。旧不合格記録を合格へ書換えない。make-fixtureの既定review入力から.meta/録画シナリオを除外し、必要なら明示raw出力と区別する。pr1299の標準出力が保存3796行patchとバイト一致すること、全fixture生成/既存suiteの結果を報告する。
 - [ ] 両全suiteとselectorを実行。global light/fullで既存の選択対象・モデルが変わらないことを検査。Task 3を両repoでコミット。
 
 ### Task 4: 本番契約で再検証し、残存欠陥を明示
@@ -456,6 +459,7 @@ python3 <skill-root>/scripts/requirements/main.py --repo-root <Repo-root> --cont
 - [ ] 事前期待を記録: 元の全diff/固定head/全contextから、可視結果の末端、全数集約、公開境界の反例を対象に原文どおり採点。再選択は既知の見逃しとして別列。型強制の反例はCritical、色解釈の分岐は要裁定とする。全文配達・report保存・集約・引用検査への経路も実測する。
 - [ ] 同じ本番起動契約（観点ファイル、User prompt、Patch path、Repo root、Write full report to、Skill root＋既存Output contract）で外側reviewerをn=1起動する（将来修正・旧採点・期待欠陥を渡さない）。当時全diffを短縮しない。CLI作業ログは中立パス、コードcwdは固定head。
 - [ ] 少なくとも未確認・欠員を含む統合fixtureを実際のintegrator/output手順へ渡し、最終報告にIDと未達状態が残ることを確認する。worker→親だけの検証で最終出口まで成立したとしない。
+- [ ] 親の起動task ID・待機ターン数・完了通知/回収を記録し、実Claude子のrun.lock fd保持を非破壊で観測する。fakeで証明した範囲と実CLIで未実証の範囲を分離する。
 - [ ] 別分野のkappa/lambdaも同じ本番契約で各n=1。fixtureの期待値は別保管。由来試行のモデル・入力差、parent追加・Write追加を明記する。
 - [ ] 全tool入出力を独立採点へ渡し、未読の確認済み化/虚偽Critical/欠員を確認する。glob/Grep存在だけをRead確認としない。残る見逃しは隠さずmatrixへ記録。成立しない候補を検証済みにしない。
 - [ ] 計画側Bの同モデル試行を別に採点し、必要ならwriting-plans候補の修理を別タスク化する（レビュー側の結果で代替しない）。
