@@ -445,6 +445,7 @@ python3 <skill-root>/scripts/requirements/main.py --repo-root <Repo-root> --cont
 `core-any-user-intent-fulfillment` は内部で `scripts/requirements/main.py` を実行する。原文ゴールN件なら独立sonnet worker N件（自由文は全文1件）と既存親reviewerが動くため、通常のreviewer本数とは別にmanifest/summaryの要求件数・欠員・追加費用を確認する。全入力は各workerへ全文配達される。未完了・達成未確認・設計判断は最終報告まで保持し、Critical 0だけで要求達成としない。引用含意検査も継続する。CLIが利用不能ならその理由を報告し、未検証のまま完了扱いしない。
 ```
 
+- [ ] 旧inline起動契約にはRepo root/Skill rootが無い箇所がある。追加Filesとしてrepoのreferences/orchestrator-steps.md Step4、globalのreferences/light-mode.mdとfull-mode.mdの起動契約部分へ対象worktree/skillの絶対パスを明示して渡す行を足す。Workflow/build scriptsは変更しない。reviewerは必須Repo rootが無い場合にcwdを推測せず理由付き未完了にする。各入口の配線テストへ含める。
 - [ ] 配線テストはSKILLとreviewerのmain.py参照、requirement-proofの実在、動詞痕跡だけで合格する旧記述の除去、§5引用単独/免責禁止の維持、model sonnet、各scriptsバナーを検査する。単に文字列があるだけでなくreviewer→main→bundle/launch→proofのimport/path解決を実行テストする。
 - [ ] integration-rules §2.5とoutput-contractに要求別判定の最終出口を接続する。UNCONFIRMED/MISSING/INTERPRETATION/OUT_OF_SCOPEを要求ID・理由・報告先付きで独立欄に保持し、Critical 0や全worker回収を達成の意味にしない。未確認は自動で設計質問やコード欠陥へ昇格せず、未実測として次の検証/必要情報を記す。INTERPRETATIONのみ既存設計判断の経路へ。依頼の完了条件にかかる未確認・欠員が残るときは完了/Readyを宣言しない。統合で判定を変更する場合は実コード証拠と元IDを残す。既存Criticalの照合・棄却規則は維持し、誤判定も永久保存強制しない。
 - [ ] integrators/finding-integrator.mdの固定出力構成にも同じ独立欄を足す。SKILLの最終報告stepはintegrated.mdからこの欄を引き渡し、親reviewer内で止めない。配線テストはこの最後のconsumerまで参照/見出しを確認する。
