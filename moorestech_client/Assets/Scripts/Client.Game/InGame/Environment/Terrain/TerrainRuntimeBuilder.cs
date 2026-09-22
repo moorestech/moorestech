@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Client.Common.Asset;
+using Client.Game.InGame.Environment.Terrain.Assets;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
@@ -23,15 +25,11 @@ namespace Client.Game.InGame.Environment.Terrain
     {
         private const string TerrainObjectName = "Terrain";
 
-        // URPのdefaultTerrainMaterialはエディタ専用でビルドではnullを返すため、プロジェクト所有のマテリアルをアドレスから引く
-        // URP's defaultTerrainMaterial is editor-only and returns null in builds, so a project-owned material is resolved by address
-        private const string TerrainMaterialAddress = "Vanilla/Environment/Terrain/TerrainLitMaterial";
-
         public static async UniTask BuildAsync(GetMapDataProtocol.ResponseMapDataMessagePack mapLayout, Transform environmentRoot, string localMasterDirectory)
         {
-            var terrainMaterial = await AddressableLoader.LoadAsyncDefault<Material>(TerrainMaterialAddress);
-            if (terrainMaterial == null)
-                throw new InvalidOperationException($"[TerrainRuntimeBuilder] Terrain material '{TerrainMaterialAddress}' could not be loaded from Addressables.");
+            ITerrainAssetLoader assets = new RuntimeTerrainAssetLoader();
+            var cancellationToken = CancellationToken.None;
+            var terrainMaterial = await TerrainMaterialAssetLoader.LoadAsync(assets, cancellationToken);
 
             // 生成システムへはメタをそのまま戻す。中身（seed・原点）はここでは解釈しない
             // The meta goes straight back to the generation system; nothing here interprets its contents (seed, origins)
@@ -61,13 +59,13 @@ namespace Client.Game.InGame.Environment.Terrain
             async UniTask BuildTileMapsAsync(TiledTerrainSession tiledSession)
             {
                 var buildStopwatch = Stopwatch.StartNew();
-                var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layout.TextureLayerAddresses);
-                var detailPrototypes = await DetailPrototypeAssetResolver.ResolveAsync(layout.DetailPrototypes);
+                var terrainLayers = await TerrainLayerAssetLoader.LoadAsync(layout.TextureLayerAddresses, assets, cancellationToken);
+                var detailPrototypes = await DetailPrototypeAssetResolver.ResolveAsync(layout.DetailPrototypes, assets, cancellationToken);
                 var terrainsByTileCoordinate = new Dictionary<Vector2Int, UnityEngine.Terrain>();
                 foreach (var (tileX, tileZ) in layout.TileCoordinates)
                 {
                     var tile = tiledSession.BakeTile(tileX, tileZ);
-                    var terrainData = await TerrainDataAssembler.AssembleAsync(layout, tile, detailPrototypes, terrainLayers);
+                    var terrainData = await TerrainDataAssembler.AssembleAsync(layout, tile, detailPrototypes, terrainLayers, cancellationToken);
                     var terrain = TerrainObjectFactory.Create(environmentRoot, $"{TerrainObjectName}_{tileX}_{tileZ}", tile.ScenePosition,
                         terrainData, terrainMaterial, layout.DetailObjectDistance, layout.DetailObjectDensity);
                     terrainsByTileCoordinate[new Vector2Int(tileX, tileZ)] = terrain;

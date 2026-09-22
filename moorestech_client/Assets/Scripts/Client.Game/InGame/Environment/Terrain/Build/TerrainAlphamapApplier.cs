@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
 using Unity.Collections;
@@ -17,8 +18,9 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     public static class TerrainAlphamapApplier
     {
         public static async UniTask ApplyAsync(
-            TerrainData terrainData, TerrainLayer[] terrainLayers, BakedTerrainTile tile)
+            TerrainData terrainData, TerrainLayer[] terrainLayers, BakedTerrainTile tile, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var alphamap = tile.Alphamap;
             if (alphamap == null) return;
 
@@ -36,18 +38,21 @@ namespace Client.Game.InGame.Environment.Terrain.Build
 
             for (var planeIndex = 0; planeIndex < alphamapTextures.Length; planeIndex++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 // テクスチャの生バッファへ直接写す。中間配列を挟むとタイル毎に平面ぶんのフルサイズ確保が増える
                 // Copy straight into the texture's raw buffer; an intermediate array would add one full-size allocation per plane per tile
                 alphamap.Planes[planeIndex].Span.CopyTo(alphamapTextures[planeIndex].GetRawTextureData<byte>().AsSpan());
                 alphamapTextures[planeIndex].Apply(false);
 
-                // 平面ごとに描画機会を返し、巨大なタイルでもロード画面を占有し続けない
-                // Yield after each plane so even a large tile does not keep the loading screen occupied
-                await UniTask.Yield();
+                // 平面ごとに制御を返し、Editor終了時は次の更新を待たずキャンセルを伝える
+                // Yield after each plane and propagate editor shutdown cancellation without waiting for another update
+                await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken, true);
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
             // テクスチャを直接書いた事実はTerrain側へ伝える必要がある。伝えないとbasemapと衝突判定が古い重みのまま残る
             // Writing the textures directly must be announced to the terrain, or its basemap and collision keep the old weights
+            cancellationToken.ThrowIfCancellationRequested();
             terrainData.DirtyTextureRegion(
                 TerrainData.AlphamapTextureName, new RectInt(0, 0, alphamap.Resolution, alphamap.Resolution), false);
         }

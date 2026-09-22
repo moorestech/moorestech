@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Client.Common.Asset;
+using System.Threading;
+using Client.Game.InGame.Environment.Terrain.Assets;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
 using UnityEngine;
@@ -15,7 +16,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     /// </summary>
     public static class DetailPrototypeAssetResolver
     {
-        public static async UniTask<List<DetailPrototype>> ResolveAsync(IReadOnlyList<DetailPrototypeSpec> prototypeSpecs)
+        public static async UniTask<List<DetailPrototype>> ResolveAsync(
+            IReadOnlyList<DetailPrototypeSpec> prototypeSpecs, ITerrainAssetLoader assets, CancellationToken cancellationToken)
         {
             var detailPrototypes = new List<DetailPrototype>();
             foreach (var spec in prototypeSpecs)
@@ -59,7 +61,7 @@ namespace Client.Game.InGame.Environment.Terrain.Build
             // Skipping an unresolved entry would surface a missing address only as absent grass, so it fails here instead
             async UniTask<T> LoadAsync<T>(string address) where T : UnityEngine.Object
             {
-                var asset = await AddressableLoader.LoadAsyncDefault<T>(address);
+                var asset = await assets.LoadAsync<T>(address, cancellationToken);
                 if (asset == null)
                     throw new InvalidOperationException(
                         $"[DetailPrototypeAssetResolver] Detail prototype asset '{address}' was not resolved before detail generation.");
