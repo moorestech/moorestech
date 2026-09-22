@@ -11,6 +11,7 @@
 
 import hashlib
 import json
+import os
 import re
 import subprocess
 from pathlib import Path
@@ -102,9 +103,12 @@ def snapshot(repo):
     state.update(git(repo, "diff", "--binary", "HEAD", "--"))
     for name in sorted(git(repo, "ls-files", "--others", "--exclude-standard", "-z").split(b"\0")):
         if name:
-            content = (repo / name.decode("utf-8")).read_bytes()
+            source = repo / name.decode("utf-8")
+            is_link = source.is_symlink()
+            content = os.fsencode(os.readlink(source)) if is_link else source.read_bytes()
             state.update(len(name).to_bytes(8, "big"))
             state.update(name)
+            state.update(b"L" if is_link else b"F")
             state.update(len(content).to_bytes(8, "big"))
             state.update(content)
     return state.hexdigest()

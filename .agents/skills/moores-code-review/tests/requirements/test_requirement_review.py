@@ -93,3 +93,31 @@ class RequirementInputTests(unittest.TestCase):
             (repo / "a").unlink()
             (repo / "ab").write_text("c", encoding="utf-8")
             self.assertNotEqual(first, snapshot(repo))
+
+    def test_untracked_symlink_hashes_type_and_target_without_dereferencing(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            repo = root / "repo"
+            subprocess.run(["git", "init", "-q", str(repo)], check=True)
+            subprocess.run(["git", "-C", str(repo), "config", "user.email", "test@example.com"], check=True)
+            subprocess.run(["git", "-C", str(repo), "config", "user.name", "Test"], check=True)
+            (repo / "tracked").write_text("base", encoding="utf-8")
+            subprocess.run(["git", "-C", str(repo), "add", "tracked"], check=True)
+            subprocess.run(["git", "-C", str(repo), "commit", "-qm", "initial"], check=True)
+            targets = [root / "target-one", root / "target-two"]
+            for target in targets:
+                target.write_text("same content", encoding="utf-8")
+            link = repo / "entry"
+            link.symlink_to(targets[0])
+            first_target = snapshot(repo)
+            link.unlink()
+            link.symlink_to(targets[1])
+            second_target = snapshot(repo)
+            self.assertNotEqual(first_target, second_target)
+            targets[1].write_text("external change", encoding="utf-8")
+            self.assertEqual(second_target, snapshot(repo))
+            targets[1].unlink()
+            self.assertEqual(second_target, snapshot(repo))
+            link.unlink()
+            link.write_bytes(str(targets[1]).encode())
+            self.assertNotEqual(second_target, snapshot(repo))
