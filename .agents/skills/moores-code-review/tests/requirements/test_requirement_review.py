@@ -23,7 +23,8 @@ class RequirementInputTests(unittest.TestCase):
 
     def test_empty_ambiguous_and_missing_goals_fail(self):
         invalid = ("", "## ゴール\n\n## 目指さない\n- C",
-                   *(f"{heading}\n- C" for heading in ("## 目指さない", "## 非目標", "## 制約", "## トレードオフ")),
+                   *(f"{heading}\n- C" for heading in ("## 目指さない", "## 非目標", "## 制約", "## トレードオフ",
+                                                       "## 目指さない（非目標）", "## 尊重すべき制約", "## 許容するトレードオフ")),
                    "## 目指す\n- A\n## ゴール\n- B\n")
         for raw in invalid:
             with self.subTest(raw=raw), self.assertRaises(ValueError):
@@ -59,15 +60,36 @@ class RequirementInputTests(unittest.TestCase):
             tracked.write_text("one\n", encoding="utf-8")
             subprocess.run(["git", "-C", str(repo), "add", "consumer.txt"], check=True)
             subprocess.run(["git", "-C", str(repo), "commit", "-qm", "initial"], check=True)
-            clean = snapshot(repo)
+            initial = bundle("request", "patch", "procedure", repo, "sonnet")
             tracked.write_text("two\n", encoding="utf-8")
-            dirty = snapshot(repo)
+            subprocess.run(["git", "-C", str(repo), "add", "consumer.txt"], check=True)
+            subprocess.run(["git", "-C", str(repo), "commit", "-qm", "change consumer"], check=True)
+            committed = bundle("request", "patch", "procedure", repo, "sonnet")
+            tracked.write_text("three\n", encoding="utf-8")
+            dirty = bundle("request", "patch", "procedure", repo, "sonnet")
             (repo / "new.txt").write_text("new\n", encoding="utf-8")
-            untracked = snapshot(repo)
-            self.assertEqual(len({clean, dirty, untracked}), 3)
-            first = bundle("request", "patch", "procedure", repo, "sonnet")
+            untracked = bundle("request", "patch", "procedure", repo, "sonnet")
+            fingerprints = {row["fingerprint"] for row in (initial, committed, dirty, untracked)}
+            self.assertEqual(len(fingerprints), 4)
+            first = untracked
             (repo / "new.txt").write_text("changed\n", encoding="utf-8")
             second = bundle("request", "patch", "procedure", repo, "sonnet")
             self.assertNotEqual(first["fingerprint"], second["fingerprint"])
             with self.assertRaises(ValueError):
                 snapshot(Path("relative"))
+
+    def test_untracked_name_and_content_boundaries_are_unambiguous(self):
+        with tempfile.TemporaryDirectory() as directory:
+            repo = Path(directory).resolve()
+            subprocess.run(["git", "init", "-q", str(repo)], check=True)
+            subprocess.run(["git", "-C", str(repo), "config", "user.email", "test@example.com"], check=True)
+            subprocess.run(["git", "-C", str(repo), "config", "user.name", "Test"], check=True)
+            tracked = repo / "tracked"
+            tracked.write_text("base", encoding="utf-8")
+            subprocess.run(["git", "-C", str(repo), "add", "tracked"], check=True)
+            subprocess.run(["git", "-C", str(repo), "commit", "-qm", "initial"], check=True)
+            (repo / "a").write_text("bc", encoding="utf-8")
+            first = snapshot(repo)
+            (repo / "a").unlink()
+            (repo / "ab").write_text("c", encoding="utf-8")
+            self.assertNotEqual(first, snapshot(repo))

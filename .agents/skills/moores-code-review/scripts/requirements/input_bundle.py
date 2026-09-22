@@ -17,7 +17,10 @@ from pathlib import Path
 
 
 GOAL_HEADINGS = {"## 目指す", "## 目指す（ゴール）", "## ゴール"}
-OTHER_STRUCTURED_HEADINGS = {"## 目指さない", "## 非目標", "## 制約", "## トレードオフ"}
+OTHER_STRUCTURED_HEADINGS = {
+    "## 目指さない", "## 非目標", "## 目指さない（非目標）",
+    "## 制約", "## 尊重すべき制約", "## トレードオフ", "## 許容するトレードオフ",
+}
 LIST_ITEM = re.compile(r"^(?:[-*+] |\d+[.)] )")
 HEADING = re.compile(r"^#{1,2}\s")
 FENCE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
@@ -99,8 +102,11 @@ def snapshot(repo):
     state.update(git(repo, "diff", "--binary", "HEAD", "--"))
     for name in sorted(git(repo, "ls-files", "--others", "--exclude-standard", "-z").split(b"\0")):
         if name:
+            content = (repo / name.decode("utf-8")).read_bytes()
+            state.update(len(name).to_bytes(8, "big"))
             state.update(name)
-            state.update((repo / name.decode("utf-8")).read_bytes())
+            state.update(len(content).to_bytes(8, "big"))
+            state.update(content)
     return state.hexdigest()
 
 
