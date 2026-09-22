@@ -8,6 +8,10 @@ from unittest import mock
 SCRIPTS = Path(__file__).resolve().parents[2] / "scripts" / "requirements"
 sys.path.insert(0, str(SCRIPTS))
 from worker_runs import launch, read_report
+try:
+    from .paid_cli_guard import reject_paid_cli
+except ImportError:
+    from paid_cli_guard import reject_paid_cli
 
 
 REPORT = ("Requirement: R001\nVerdict: SUPPORTED\n## 原文と観測\nx\n"
@@ -43,8 +47,18 @@ class FakeOwner:
     def finished(self, _process):
         pass
 
+    def complete(self, process):
+        self.finished(process)
+
 
 class RequirementReportTests(unittest.TestCase):
+    def setUp(self):
+        self.paid_cli_guard = reject_paid_cli()
+        self.paid_cli_guard.start()
+
+    def tearDown(self):
+        self.paid_cli_guard.stop()
+
     def test_typed_verdict_and_identity(self):
         with tempfile.TemporaryDirectory() as temp:
             path = Path(temp) / "report.md"

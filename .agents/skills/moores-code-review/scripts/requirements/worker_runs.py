@@ -110,7 +110,13 @@ def launch(data, unit, directory, owner):
                         raise
             finally:
                 if process and process.poll() is not None:
-                    owner.finished(process)
+                    try:
+                        owner.complete(process)
+                    except (OSError, subprocess.SubprocessError) as cleanup_error:
+                        err.write(f"worker final cleanup failure: {cleanup_error}\n")
+                        print(f"{unit['id']}: worker final cleanup failure: {cleanup_error}",
+                              file=sys.stderr)
+                        raise
     except OSError as error:
         failure = str(error)
         print(f"{unit['id']}: worker log IO failure: {error}", file=sys.stderr)

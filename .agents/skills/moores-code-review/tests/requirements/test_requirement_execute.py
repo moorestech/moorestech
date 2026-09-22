@@ -11,9 +11,20 @@ from unittest import mock
 SCRIPTS = Path(__file__).resolve().parents[2] / "scripts" / "requirements"
 sys.path.insert(0, str(SCRIPTS))
 import main as runtime_main
+try:
+    from .paid_cli_guard import reject_paid_cli
+except ImportError:
+    from paid_cli_guard import reject_paid_cli
 
 
 class RequirementExecuteTests(unittest.TestCase):
+    def setUp(self):
+        self.paid_cli_guard = reject_paid_cli()
+        self.paid_cli_guard.start()
+
+    def tearDown(self):
+        self.paid_cli_guard.stop()
+
     def fixture(self, root):
         source = root / "source"
         source.mkdir()

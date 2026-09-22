@@ -48,6 +48,12 @@ class ProcessOwner:
         with self.lock:
             self.processes.discard(process)
 
+    def complete(self, process):
+        if self._group_exists(process.pid):
+            self.stop(process)
+            return
+        self.finished(process)
+
     def stop(self, process):
         self._signal_group(process.pid, signal.SIGTERM)
         deadline = time.monotonic() + self.termination_grace
