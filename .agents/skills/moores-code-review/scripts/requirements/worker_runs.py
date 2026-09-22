@@ -36,7 +36,7 @@ def read_report(path, unit_id):
     if not all(label in text for label in headings):
         return None
     return {"id": unit_id, "verdict": verdicts[0], "report": text,
-            "sha256": digest(text)}
+            "reportPath": str(path.resolve()), "sha256": digest(text)}
 
 
 def _completed(attempt, unit_id):
@@ -129,5 +129,7 @@ def launch(data, unit, directory, owner):
         atomic_json(attempt / "status.json", status)
     except OSError as error:
         print(f"{unit['id']}: status IO failure: {error}", file=sys.stderr)
-        return {"id": unit["id"], "verdict": "MISSING", "reason": str(error)}
-    return report if ok else {"id": unit["id"], "verdict": "MISSING", "reason": reason}
+        return {"id": unit["id"], "verdict": "MISSING", "reason": str(error),
+                "reportPath": str(report_path.resolve())}
+    return report if ok else {"id": unit["id"], "verdict": "MISSING", "reason": reason,
+                              "reportPath": str(report_path.resolve())}

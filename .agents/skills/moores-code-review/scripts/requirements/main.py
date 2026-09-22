@@ -58,7 +58,9 @@ def execute(args):
                     try:
                         result = future.result()
                     except (OSError, subprocess.SubprocessError) as error:
-                        result = {"id": unit["id"], "verdict": "MISSING", "reason": str(error)}
+                        report_path = target / unit["id"] / "attempt-1" / "report.md"
+                        result = {"id": unit["id"], "verdict": "MISSING", "reason": str(error),
+                                  "reportPath": str(report_path.resolve())}
                         print(f'{unit["id"]}: worker failure: {error}', file=sys.stderr)
                     results.append(result)
                     print(f'{unit["id"]}: {result["verdict"]}', file=sys.stderr)
@@ -67,7 +69,8 @@ def execute(args):
             owner.restore_signals()
         if owner.failures and results:
             results[0] = {"id": results[0]["id"], "verdict": "MISSING",
-                          "reason": "; ".join(owner.failures)}
+                          "reason": "; ".join(owner.failures),
+                          "reportPath": results[0].get("reportPath", "")}
         try:
             changed = snapshot(repo) != data["snapshot"]
         except (OSError, subprocess.SubprocessError) as error:
@@ -80,6 +83,7 @@ def execute(args):
                  f"検査中のコード変化: {changed}", ""]
         for row in results:
             lines.extend([f'## {row["id"]}: {VERDICTS.get(row["verdict"], "未完了")}',
+                          f'個別報告先: {row.get("reportPath", "未記録")}',
                           row.get("report", row.get("reason", "欠損")), ""])
         atomic_text(target / "summary.md", "\n".join(lines))
         atomic_json(target / "results.json", {"results": results, "codeChanged": changed,

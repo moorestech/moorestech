@@ -52,15 +52,22 @@ class RequirementExecuteTests(unittest.TestCase):
     def test_execute_success_missing_and_changed_snapshot(self, _stop, _restore, _install):
         with tempfile.TemporaryDirectory() as temp:
             args, fake_main = self.fixture(Path(temp))
-            report = {"id": "R001", "verdict": "SUPPORTED", "report": "ok", "sha256": "x"}
+            report_path = Path(args.run_dir, "R001/report.md").resolve()
+            report = {"id": "R001", "verdict": "SUPPORTED", "report": "ok",
+                      "reportPath": str(report_path), "sha256": "x"}
             with mock.patch.object(runtime_main, "__file__", str(fake_main)), \
                  mock.patch("main.launch", return_value=report):
                 self.assertEqual(runtime_main.execute(args), 0)
+            success = json.loads(Path(args.run_dir, "results.json").read_text(encoding="utf-8"))["results"][0]
+            self.assertEqual(success["reportPath"], str(report_path))
+            self.assertIn("個別報告先:", Path(args.run_dir, "summary.md").read_text(encoding="utf-8"))
             Path(args.run_dir, "results.json").unlink()
             Path(args.run_dir, "summary.md").unlink()
             with mock.patch.object(runtime_main, "__file__", str(fake_main)), \
-                 mock.patch("main.launch", return_value={"id": "R001", "verdict": "MISSING", "reason": "failed"}):
+                mock.patch("main.launch", return_value={"id": "R001", "verdict": "MISSING", "reason": "failed"}):
                 self.assertEqual(runtime_main.execute(args), 2)
+            missing_summary = Path(args.run_dir, "summary.md").read_text(encoding="utf-8")
+            self.assertIn("個別報告先: 未記録", missing_summary)
             with mock.patch.object(runtime_main, "__file__", str(fake_main)), \
                  mock.patch("main.launch", return_value=report), \
                  mock.patch("main.snapshot", return_value="changed"):
