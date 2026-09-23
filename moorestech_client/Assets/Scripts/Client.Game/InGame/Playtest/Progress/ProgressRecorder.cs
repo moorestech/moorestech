@@ -44,8 +44,8 @@ namespace Client.Game.InGame.Playtest.Progress
             _identity = identity;
         }
 
-        // 記録するかの決定は AlwaysOnCaptureSetting が1つだけ持つ。持たないと調査用・テスト用の起動まで本番のProgressRecords/へ書き始める
-        // AlwaysOnCaptureSetting holds the only decision on whether to record; without it even investigation and test boots write into the real ProgressRecords/
+        // 記録するかの決定は AlwaysOnCaptureSetting が1つだけ持つ。持たないと無人起動（テスト・プレイ録画テスト）まで本番のProgressRecords/へ書き始める
+        // AlwaysOnCaptureSetting holds the only decision on whether to record; without it even unattended boots (tests, recorded playtests) write into the real ProgressRecords/
         public void Initialize()
         {
             if (!AlwaysOnCaptureSetting.Current.IsEnabled)

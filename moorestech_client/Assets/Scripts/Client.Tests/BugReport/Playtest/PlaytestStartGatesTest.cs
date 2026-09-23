@@ -20,6 +20,7 @@ namespace Client.Tests.BugReport
         // CIはバッチモードで無人判定が常に立つ。対話起動の待ち方を検証するテストは理由なし（対話）を明示して渡す
         // CI runs in batch mode where the unattended check always fires, so attended-wait tests pass an explicit no-reason (attended) boot
         private const string AttendedBoot = null;
+        private const string UnattendedBootKey = "PlaytestStartGateBypass_UnattendedBoot";
 
         private bool _consentExisted;
 
@@ -30,15 +31,15 @@ namespace Client.Tests.BugReport
             // The consent flag lives in the production location, so only what this test creates is cleaned up
             _consentExisted = PlaytestConsentFlag.IsAcknowledged();
 
-            // 迂回の印は読んだ時点で消費される。前のテストの残りをここで読み捨てる
-            // The bypass mark is consumed on read, so any leftover from an earlier test is read away here
-            PlaytestStartGateBypass.UnattendedReason();
+            // 消費実装の退行時も印を後続へ漏らさない
+            // Prevent mark leaks even when the consumption implementation regresses
+            UnityEditor.SessionState.EraseBool(UnattendedBootKey);
         }
 
         [TearDown]
         public void TearDown()
         {
-            PlaytestStartGateBypass.UnattendedReason();
+            UnityEditor.SessionState.EraseBool(UnattendedBootKey);
             if (!_consentExisted && File.Exists(PlaytestConsentFlag.FilePath)) File.Delete(PlaytestConsentFlag.FilePath);
         }
 
@@ -130,6 +131,30 @@ namespace Client.Tests.BugReport
             exit.Cancel();
 
             Assert.IsTrue(wait.Status.IsCanceled());
+        }
+
+        // 常時記録の判定は開始ゲートより先に走る。覗いただけで印が消えると、後から読むゲートが応答待ちで恒久停止する
+        // The capture decision runs before the start gates; if peeking erased the mark, the gates reading later would wait forever
+        [Test]
+        public void 無人起動の理由は覗いても消費されない()
+        {
+            PlaytestStartGateBypass.Apply();
+            Assert.That(UnityEditor.SessionState.GetBool(UnattendedBootKey, false), Is.True);
+
+            var peeked = PlaytestStartGateBypass.PeekUnattendedReason();
+            Assert.That(UnityEditor.SessionState.GetBool(UnattendedBootKey, false), Is.True, "Peekが印を消費している");
+            var consumed = PlaytestStartGateBypass.UnattendedReason();
+            Assert.That(UnityEditor.SessionState.GetBool(UnattendedBootKey, false), Is.False, "ゲートが印を消費していない");
+
+            // 印の副作用を実行環境と分けて検証する
+            // Verify mark side effects separately from the environment
+            Assert.IsNotNull(peeked);
+            Assert.AreEqual(peeked, consumed, "覗いた後にゲートが読む理由が変わっている");
+            if (!Application.isBatchMode)
+            {
+                Assert.That(peeked, Is.EqualTo("unattendedBootMark"));
+                Assert.That(PlaytestStartGateBypass.PeekUnattendedReason(), Is.Null);
+            }
         }
     }
 }

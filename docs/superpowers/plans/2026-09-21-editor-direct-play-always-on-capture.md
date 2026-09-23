@@ -63,7 +63,7 @@
 **Interfaces:**
 - Produces: `public static string PlaytestStartGateBypass.PeekUnattendedReason()` — 無人なら理由文字列、有人なら null。印を消費しない。既存の `UnattendedReason()` は「覗く＋消費」のまま戻り値不変。
 
-- [ ] **Step 1: 失敗するテストを書く** — `PlaytestStartGatesTest` の最後のテストの後ろへ追加する（SetUp/TearDown が印を読み捨てているのでそのまま使える）。
+- [x] **Step 1: 失敗するテストを書く** — `PlaytestStartGatesTest` の最後のテストの後ろへ追加する（SetUp/TearDown が印を読み捨てているのでそのまま使える）。
 
 ```csharp
         // 常時記録の判定は開始ゲートより先に走る。覗いただけで印が消えると、後から読むゲートが応答待ちで恒久停止する
@@ -81,9 +81,9 @@
         }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認** — Run: `uloop compile --project-path ./moorestech_client` / Expected: `PeekUnattendedReason` 未定義の CS0117。
+- [x] **Step 2: コンパイルして失敗を確認** — Run: `uloop compile --project-path ./moorestech_client` / Expected: `PeekUnattendedReason` 未定義の CS0117。
 
-- [ ] **Step 3: 実装** — `UnattendedReason()` を次の2メソッドへ置き換える（上のコメント3組は `UnattendedReason` の上に残す）。
+- [x] **Step 3: 実装** — `UnattendedReason()` を次の2メソッドへ置き換える（上のコメント3組は `UnattendedReason` の上に残す）。
 
 ```csharp
         public static string UnattendedReason()
@@ -130,8 +130,8 @@
         }
 ```
 
-- [ ] **Step 4: テスト** — Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestStartGatesTest"` / Expected: 全件 PASS（既存の消費系テストも含む）。
-- [ ] **Step 5: コミット** — `git add` 上記2ファイル → `git commit -m "feat: 無人起動の理由を消費せずに覗く入口を足す"`
+- [x] **Step 4: テスト** — Run: `uloop compile --project-path ./moorestech_client` → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestStartGatesTest"` / Expected: 全件 PASS（既存の消費系テストも含む）。
+- [x] **Step 5: コミット** — `git add` 上記2ファイル → `git commit -m "feat: 無人起動の理由を消費せずに覗く入口を足す"`
 
 ### Task 2: 直Playの常時記録有効化
 
@@ -144,7 +144,7 @@
 - Consumes: `PlaytestStartGateBypass.PeekUnattendedReason()`（Task 1）、`AlwaysOnCaptureSetting.Apply/Enabled/Disabled/Current`（`Server.Boot`）。
 - Produces: `DirectPlayAlwaysOnCaptureSettings.ApplyIfNeeded()`（public）、`DirectPlayAlwaysOnCaptureSettings.ApplyForUnattendedReason(string unattendedReason)`（internal）。
 
-- [ ] **Step 1: 失敗するテストを書く**
+- [x] **Step 1: 失敗するテストを書く**
 
 ```csharp
 using System.Text.RegularExpressions;
@@ -207,9 +207,9 @@ namespace Client.Tests.Starter
 }
 ```
 
-- [ ] **Step 2: コンパイルして失敗を確認** — Expected: `DirectPlayAlwaysOnCaptureSettings` 未定義の CS0103/CS0246。
+- [x] **Step 2: コンパイルして失敗を確認** — Expected: `DirectPlayAlwaysOnCaptureSettings` 未定義の CS0103/CS0246。
 
-- [ ] **Step 3: 実装** — 新規ファイル:
+- [x] **Step 3: 実装** — 新規ファイル:
 
 ```csharp
 #if UNITY_EDITOR
@@ -260,8 +260,8 @@ namespace Client.Starter.Editor
             DirectPlayAlwaysOnCaptureSettings.ApplyIfNeeded();
 ```
 
-- [ ] **Step 4: テスト** — Run: compile → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DirectPlayAlwaysOnCaptureSettingsTest|AlwaysOnCaptureSettingTest|SkipSaveLoadPlayModeSettingsTest|PlaytestWorldBootSessionTest|StandaloneTerrainQaSettingsTest|EditModeInPlayingTestUtilTest"` / Expected: 全件 PASS。
-- [ ] **Step 5: コミット** — Unity が生成した新規 `.meta` 2本も含めて `git add` → `git commit -m "feat: エディタの直Playで常時記録を有効にする（無人起動は除外）"`
+- [x] **Step 4: テスト** — Run: compile → `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "DirectPlayAlwaysOnCaptureSettingsTest|AlwaysOnCaptureSettingTest|SkipSaveLoadPlayModeSettingsTest|PlaytestWorldBootSessionTest|StandaloneTerrainQaSettingsTest|EditModeInPlayingTestUtilTest"` / Expected: 全件 PASS。
+- [x] **Step 5: コミット** — Unity が生成した新規 `.meta` 2本も含めて `git add` → `git commit -m "feat: エディタの直Playで常時記録を有効にする（無人起動は除外）"`
 
 ### Task 3: コメントと既存テストを裁定に合わせる
 
@@ -275,7 +275,7 @@ namespace Client.Starter.Editor
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/Util/EditModeInPlayingTestUtilTest.cs:20-21`
 - Modify: `moorestech_client/Assets/Scripts/Client.Tests/StandaloneQa/StandaloneTerrainQaSettingsTest.cs:35-36`
 
-- [ ] **Step 1: プロダクションのコメント4箇所を置換**
+- [x] **Step 1: プロダクションのコメント4箇所を置換**
 
 `AlwaysOnCaptureSetting.cs`:
 ```csharp
@@ -299,7 +299,7 @@ namespace Client.Starter.Editor
         // AlwaysOnCaptureSetting holds the only decision on whether to record; without it even unattended boots (tests, recorded playtests) write into the real ProgressRecords/
 ```
 
-- [ ] **Step 2: `SkipSaveLoadPlayModeSettingsTest` を書き換える** — クラス上のコメント、1本目のテスト名、末尾のアサートを次へ。`using Server.Boot;` は `CliConvert`／`StartServerSettings` が `Server.Boot`／`Server.Boot.Args` 由来なので残す。
+- [x] **Step 2: `SkipSaveLoadPlayModeSettingsTest` を書き換える** — クラス上のコメント、1本目のテスト名、末尾のアサートを次へ。`using Server.Boot;` は `CliConvert`／`StartServerSettings` が `Server.Boot`／`Server.Boot.Args` 由来なので残す。
 
 ```csharp
     // SkipSaveLoadPlayModeがAutoSaveを無効にして起動させ続けることの回帰ガード。常時記録はここでは決めない（ADR 0066）
@@ -319,7 +319,7 @@ namespace Client.Starter.Editor
         }
 ```
 
-- [ ] **Step 3: 残すアサートのコメント3箇所を置換** — アサート自体は触らない。
+- [x] **Step 3: 残すアサートのコメント3箇所を置換** — アサート自体は触らない。
 
 `PlaytestWorldBootSessionTest.cs`:
 ```csharp
@@ -337,9 +337,9 @@ namespace Client.Starter.Editor
             // Only a play a person started enables always-on capture, so a QA boot leaves it disabled
 ```
 
-- [ ] **Step 4: 取りこぼし確認** — Run: `grep -rn "本番のプレイ開始だけ" --include="*.cs" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts` と `grep -n "調査用" moorestech_client/Assets/Scripts/Client.Game/InGame/Playtest/Progress/ProgressRecorder.cs` / Expected: どちらも0件（`ServerShutdownReleasesCaptureTest.cs` の「本番のプレイ開始と同じく明示的に有効化」は事実のままなので対象外）。
-- [ ] **Step 5: テスト** — compile → Task 2 Step 4 と同じ regex / Expected: 全件 PASS。
-- [ ] **Step 6: コミット** — `git commit -m "docs: 常時記録の有効化条件のコメントとテストをADR 0066へ合わせる"`
+- [x] **Step 4: 取りこぼし確認** — Run: `grep -rn "本番のプレイ開始だけ" --include="*.cs" moorestech_client/Assets/Scripts moorestech_server/Assets/Scripts` と `grep -n "調査用" moorestech_client/Assets/Scripts/Client.Game/InGame/Playtest/Progress/ProgressRecorder.cs` / Expected: どちらも0件（`ServerShutdownReleasesCaptureTest.cs` の「本番のプレイ開始と同じく明示的に有効化」は事実のままなので対象外）。
+- [x] **Step 5: テスト** — compile → Task 2 Step 4 と同じ regex / Expected: 全件 PASS。
+- [x] **Step 6: コミット** — `git commit -m "docs: 常時記録の有効化条件のコメントとテストをADR 0066へ合わせる"`
 
 ### Task 4: 実機確認（エディタ直Play／無人起動）
 
@@ -347,22 +347,24 @@ namespace Client.Starter.Editor
 
 前提: 画面ロック中は uloop が無言ハングする。別 worktree の Unity が PlayMode 中でないこと（ポート11564固定）。
 
-- [ ] **Step 0: 残留印の掃除** — 直前の無人テストが開始ゲートへ届かずに落ちていると印が残り、Step 1 が無人扱いになって空振りする。`uloop execute-dynamic-code` で `Client.Game.InGame.BugReport.Playtest.PlaytestStartGateBypass.UnattendedReason();` を1回呼んで読み捨てる（戻り値が非 null だったら残留していた旨を bd note に書く）。
-- [ ] **Step 1: 有人の直Play** — GameInitializer シーンを開いた状態で `uloop clear-console` → `uloop control-play-mode --project-path ./moorestech_client --action Play`（印を立てない素のPlay＝人のPlayと同じ扱い・ADR 0066 裁定2）。MainGame 到達後に `uloop get-logs --project-path ./moorestech_client --log-type Log`。
+- [x] **Step 0: 残留印の掃除** — 直前の無人テストが開始ゲートへ届かずに落ちていると印が残り、Step 1 が無人扱いになって空振りする。`uloop execute-dynamic-code` で `Client.Game.InGame.BugReport.Playtest.PlaytestStartGateBypass.UnattendedReason();` を1回呼んで読み捨てる（戻り値が非 null だったら残留していた旨を bd note に書く）。
+- [x] **Step 1: 有人の直Play** — GameInitializer シーンを開いた状態で `uloop clear-console` → `uloop control-play-mode --project-path ./moorestech_client --action Play`（印を立てない素のPlay＝人のPlayと同じ扱い・ADR 0066 裁定2）。MainGame 到達後に `uloop get-logs --project-path ./moorestech_client --log-type Log`。
   合格: `常時記録 enabled:True` が1行以上あり、警告・拒否側の語 `開始しません`／`無効のため`／`有効にしません` が**0件**。続けて Error ログも引き、今回の変更由来の例外が無いこと。
-- [ ] **Step 2: バグ報告の中身** — 同じPlayの中でバグ報告を1件送る（Web UI のバグ報告。操作は unity-playmode-recorded-playtest スキルの references を参照）。`~/Library/Application Support/moorestech/BugReports/outbox/` の最新箱の `manifest.json` を読む。
+- [x] **Step 2: バグ報告の中身** — 同じPlayの中でバグ報告を1件送る（Web UI のバグ報告。操作は unity-playmode-recorded-playtest スキルの references を参照）。`~/Library/Application Support/moorestech/BugReports/outbox/` の最新箱の `manifest.json` を読む。
   合格: `missing` に `video`・`serverSnapshot` が**無い**（`steamId` は Steam 未起動なら残ってよい）。進行記録へ reportSent が追記されている。アップロードされず outbox に残るのは仕様（DeveloperMode）。Play を Stop する。
-- [ ] **Step 3: 無人起動** — `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestReportAndProgressTest|EditModeInPlayingTestUtilTest"`（ドメインリロードのエラーは45秒待って再試行）。
+- [x] **Step 3: 無人起動** — `uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value "PlaytestReportAndProgressTest|EditModeInPlayingTestUtilTest"`（ドメインリロードのエラーは45秒待って再試行）。
   合格: 全件 PASS（無人でもゲートで停止しない＝印が消費されていない、明示 Enabled が潰れていない）。可能なら DSL シナリオも1本回し、ログに `無人起動のため直Playの常時記録を自動では有効にしません reason:unattendedBootMark` が出て `enabled:True` が出ないこと。
 - [ ] **Step 4: 記録** — 各ステップの実測（ログ行・manifest の missing）を `bd note moorestech-sdme "..."` へ。未確認が残ったら Task 5 (a) で起票する。
 
 ### Task 5: 全ブランチレビュー（省略不可）
 
-- [ ] **Step 1:** 必ず最後に moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。
-- [ ] **Step 2:** レビュー反映が判定経路（`PeekUnattendedReason`・`ApplyForUnattendedReason`・`PlayModeLaunchOverrides` の呼び出し位置）に触れたら、反映後のコードで Task 4 を再実施してから完了とする。
+- [x] **Step 1:** 必ず最後に moores-code-review スキルで全ブランチレビューを実行すること（自動実行・ゴール文言による省略不可）。
+- [x] **Step 2:** レビュー反映が判定経路（`PeekUnattendedReason`・`ApplyForUnattendedReason`・`PlayModeLaunchOverrides` の呼び出し位置）に触れたら、反映後のコードで Task 4 を再実施してから完了とする。
 - [ ] **Step 3 (a):** plan・bd note に書いた「未確認」「残差」は1件ずつ `bd create --parent moorestech-sdme` で起票し、結論には issue id を列挙する。
-- [ ] **Step 4 (b):** Task 4 の合否は肯定行の存在ではなく、警告・拒否語（`開始しません`・`有効にしません`・`無効のため`・`missing`）が該当区間で期待どおり（有人=0件／無人=理由付き1件）であることで判定する。
+  - 2026-09-21実行: `moorestech-scmp`・`moorestech-ckur`・`moorestech-74yb`・`moorestech-wpgy` を起票し、既存 `moorestech-zxj`・`moorestech-kf4y` へ実測を追記。`moorestech-sdme` がpull後も現DBに存在しないため親付けのみ未完。
+- [x] **Step 4 (b):** Task 4 の合否は肯定行の存在ではなく、警告・拒否語（`開始しません`・`有効にしません`・`無効のため`・`missing`）が該当区間で期待どおり（有人=0件／無人=理由付き1件）であることで判定する。
 - [ ] **Step 5:** `bd close moorestech-sdme --reason="..."`、全作業をコミット、pr-create スキルで PR を作る（マージは通常のマージコミット）。
+  - 2026-09-21実行: 全作業をコミット・pushし、PR #1393を作成（masterと競合なし）。`moorestech-sdme` が現DBに存在しないためcloseのみ未完。
 
 ## Self-Review 結果
 

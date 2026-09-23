@@ -56,8 +56,8 @@ namespace Client.MainMenu
                 return;
             }
 
-            // 本番のプレイ開始だけが常時記録を有効にする。接続先が別プロセスでも録画リングはこちらで回る
-            // Only the real play start enables always-on capture; the recording ring runs here even when the server is another process
+            // 別プロセス接続でも録画リングは手元で回る
+            // The recording ring runs locally even for a separate server process
             AlwaysOnCaptureSetting.Apply(AlwaysOnCaptureSetting.Enabled());
 
             _connectedProperties = properties;
