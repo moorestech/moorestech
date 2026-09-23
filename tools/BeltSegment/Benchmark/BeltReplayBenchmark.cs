@@ -12,7 +12,7 @@ internal static class BeltReplayBenchmark
 {
     internal static int Run(int segmentCount, int capacity, int ticks, int warmup)
     {
-        var workload = new BeltRecordedWorkload(segmentCount, capacity, ticks);
+        var workload = new BeltRecordedWorkload(segmentCount, capacity, ticks, false);
         var initial = workload.Initial; var frames = workload.Frames;
         long inputEvents = workload.InputEvents, outputEvents = workload.OutputEvents;
         var warm=new BeltReplaySimulation(initial);

@@ -13,7 +13,7 @@ namespace Client.Tests.BeltSegment.Measurement
         internal readonly BeltReplayTick[] Frames;
         internal readonly long InputEvents, OutputEvents;
         internal readonly uint FinalHash;
-        internal BeltRecordedWorkload(int segmentCount, int capacity, int ticks, bool freshIngressIdentity = false)
+        internal BeltRecordedWorkload(int segmentCount, int capacity, int ticks, bool freshIngressIdentity)
         {
             var states = new BeltReplaySegmentState[segmentCount];
             var inputs = new BeltReplayInput[segmentCount];

@@ -16,7 +16,7 @@ namespace Client.Tests.BeltSegment.Measurement
         {
             const int segments = 129, capacity = 64, ticks = 10000, warmup = 1000;
             BeltNetworkFixture.LoadMaster();
-            var workload = new BeltRecordedWorkload(segments, capacity, ticks);
+            var workload = new BeltRecordedWorkload(segments, capacity, ticks, false);
             var routes = Enumerable.Range(0, segments).Select(segment => new BeltRoute(
                 Enumerable.Range(0, capacity).Select(cell => new BeltRouteCell(new(segment * 2, cell, 0), BeltEntryDirection.FromBack, 0, 0)).ToArray(),
                 Enumerable.Repeat(new BeltRouteCell(new(segment * 2, -1, 0), BeltEntryDirection.FromBack, 0, 0), 4).ToArray())).ToArray();

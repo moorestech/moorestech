@@ -150,6 +150,60 @@ namespace Client.Tests.BeltSegment.Rendering
             }
             #endregion
         }
+        [TestCase(false)][TestCase(true)]
+        public void UnchangedCurvedLoopReloadPreservesVisibleStateAndFutureTransport(bool seedHead)
+        {
+            var (_, services) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            GameUpdater.RestoreCurrentTick(0);
+            var world = services.GetRequiredService<BeltWorldDatastore>();
+            var origin = new Vector3Int(20, 0, 30);
+            var positions = new[] { origin, origin + Vector3Int.forward, origin + Vector3Int.forward + Vector3Int.right, origin + Vector3Int.right };
+            var directions = new[] { BlockDirection.North, BlockDirection.East, BlockDirection.South, BlockDirection.West };
+            var belts = new SegmentBeltComponent[4];
+            for (int i = 3; 0 <= i; i--)
+            {
+                Assert.IsTrue(ServerContext.WorldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, positions[i], directions[i], Array.Empty<BlockCreateParam>(), out var block));
+                belts[i] = block.GetComponent<SegmentBeltComponent>();
+            }
+            belts[seedHead ? 0 : 1].SetItem(0, ServerContext.ItemStackFactory.Create(new ItemId(7), 1));
+            for (int tick = 0; tick < 3; tick++) GameUpdater.Update();
+            var before = world.CaptureSnapshot();
+            string save = services.GetRequiredService<AssembleSaveJsonText>().AssembleSaveJson();
+            var (_, loaded) = new MoorestechServerDIContainerGenerator().Create(new MoorestechServerDIContainerOptions(TestModDirectory.ForUnitTestModDirectory));
+            ((WorldLoaderFromJson)loaded.GetRequiredService<IWorldSaveDataLoader>()).Load(save);
+            var restoredWorld = loaded.GetRequiredService<BeltWorldDatastore>(); restoredWorld.Load();
+            var after = restoredWorld.CaptureSnapshot();
+            Assert.AreEqual(1, before.Routes.Length); Assert.AreEqual(1, after.Routes.Length);
+            CollectionAssert.AreEqual(before.Routes[0].Cells, after.Routes[0].Cells, "unchanged curved path and deterministic cut");
+            CollectionAssert.AreEqual(before.Routes[0].EntryCells, after.Routes[0].EntryCells, "head entry geometry");
+            for (int i = 0; i < before.Simulation.Segments.Length; i++)
+            {
+                Assert.AreEqual(before.Simulation.Segments[i].PriorityIndex, after.Simulation.Segments[i].PriorityIndex);
+                Assert.AreEqual(before.Simulation.Segments[i].BufferedItem, after.Simulation.Segments[i].BufferedItem);
+            }
+            if (seedHead) Assert.AreEqual(before.Simulation.Segments[0].Items[0].Item.AcceptedInput, after.Simulation.Segments[0].Items[0].Item.AcceptedInput);
+            var original = new BeltReplaySimulation(before.Simulation);
+            var restored = new BeltReplaySimulation(after.Simulation);
+            var empty = new BeltReplayTick(Array.Empty<BeltReplaySpeedChange>(), Array.Empty<int>(), Array.Empty<int>(), Array.Empty<BeltReplayInsertion>());
+            // 内部セルの入口正規化は描画と将来の搬送を変えず、周回後はheadの受入値も一致する。
+            // Interior entry normalization must preserve rendering/future transport and converge after crossing the head.
+            for (int tick = 0; tick <= 80; tick++)
+            {
+                if (tick % 4 == 0)
+                {
+                    var a = original.CaptureSnapshot(); var b = restored.CaptureSnapshot();
+                    CollectionAssert.AreEqual(a.Segments.SelectMany(s => s.Items).Select(i => (i.Item.Guid, i.Item.ItemId, i.DistanceToExit)),
+                        b.Segments.SelectMany(s => s.Items).Select(i => (i.Item.Guid, i.Item.ItemId, i.DistanceToExit)), $"ordered transport at tick {tick}");
+                    Assert.AreEqual(1, a.Segments.Sum(s => s.Items.Length)); Assert.AreEqual(1, b.Segments.Sum(s => s.Items.Length));
+                    using var drawA = new DrawFixture(before.Routes, a.Segments);
+                    using var drawB = new DrawFixture(after.Routes, b.Segments);
+                    Assert.That(Vector3.Distance(drawA.Positions().Single(), drawB.Positions().Single()), Is.LessThan(0.0001f), $"GPU position at tick {tick}");
+                }
+                if (tick == 80) break;
+                original.ApplyTick(empty, false); restored.ApplyTick(empty, false);
+            }
+            Assert.AreEqual(original.ComputeStateHash(), restored.ComputeStateHash(), "full state converges after a complete lap");
+        }
         private static void AssertPoint(BeltRoute route,int distance,Vector3 expected)
         {
             using var f = new DrawFixture(new[]{route},new[]{BeltReplaySegmentState.Normal(route.Cells.Length,16,new[]{Item(7,BeltDirection.Back,distance)})});
