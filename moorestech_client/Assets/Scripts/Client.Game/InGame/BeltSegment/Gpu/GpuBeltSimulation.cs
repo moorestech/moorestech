@@ -25,72 +25,79 @@ namespace Client.Game.InGame.BeltSegment.Gpu
             upload = new GpuBeltTickUpload(inputCount, outputCount, segmentCount);
             shader = UnityEngine.Object.Instantiate(source);
             Buffers = new GpuBeltBuffers(layout, initial, upload.Events.Length);
-            clearExternal = Kernel("ClearExternal", b =>
-            {
-                b("_ExternalReady", Buffers.ExternalReady); b("_ExternalSuccess", Buffers.ExternalSuccess);
-            });
-            applyExternal = Kernel("ApplyExternal", b =>
-            {
-                b("_Events", Buffers.Events); b("_ExternalReady", Buffers.ExternalReady);
-                b("_ExternalSuccess", Buffers.ExternalSuccess); b("_Speeds", Buffers.Speeds);
-            });
-            captureNormalOffers = Kernel("CaptureNormalOffers", b =>
-            {
-                b("_Topology", Buffers.Topology); b("_States", Buffers.States);
-                b("_Reservations", Buffers.Reservations); b("_NormalLinks", Buffers.NormalLinks);
-                b("_NormalStates", Buffers.NormalStates);
-            });
-            collect = Kernel("Collect", b =>
-            {
-                BindQueue(b); b("_Buffers", Buffers.Buffers); b("_Speeds", Buffers.Speeds);
-            });
-            reserve = Kernel("Reserve", b =>
-            {
-                b("_Topology", Buffers.Topology); b("_States", Buffers.States);
-                b("_Buffers", Buffers.Buffers); b("_Gaps", Buffers.Gaps);
-                b("_Speeds", Buffers.Speeds); b("_InputPorts", Buffers.InputPorts);
-                b("_OutputPorts", Buffers.OutputPorts); b("_ExternalReady", Buffers.ExternalReady);
-                b("_Reservations", Buffers.Reservations);
-            });
-            transfer = Kernel("Transfer", b =>
-            {
-                BindQueue(b); b("_Buffers", Buffers.Buffers); b("_Speeds", Buffers.Speeds);
-                b("_Reservations", Buffers.Reservations); b("_OutputPorts", Buffers.OutputPorts);
-                b("_ExternalSuccess", Buffers.ExternalSuccess);
-            });
-            advanceNormal = Kernel("AdvanceNormal", b =>
-            {
-                BindQueue(b); b("_Speeds", Buffers.Speeds); b("_Reservations", Buffers.Reservations);
-                b("_OutputPorts", Buffers.OutputPorts); b("_ExternalSuccess", Buffers.ExternalSuccess);
-                b("_NormalStates", Buffers.NormalStates);
-            });
-            commitNormal = Kernel("CommitNormal", b =>
-            {
-                BindQueue(b); b("_Reservations", Buffers.Reservations);
-                b("_NormalLinks", Buffers.NormalLinks); b("_NormalStates", Buffers.NormalStates);
-            });
-            insertExternal = Kernel("InsertExternal", b =>
-            {
-                BindQueue(b); b("_Reservations", Buffers.Reservations);
-                b("_Events", Buffers.Events); b("_ExternalInputs", Buffers.ExternalInputs);
-            });
+            clearExternal = shader.FindKernel("ClearExternal");
+            shader.SetBuffer(clearExternal, "_ExternalReady", Buffers.ExternalReady);
+            shader.SetBuffer(clearExternal, "_ExternalSuccess", Buffers.ExternalSuccess);
+
+            applyExternal = shader.FindKernel("ApplyExternal");
+            shader.SetBuffer(applyExternal, "_Events", Buffers.Events);
+            shader.SetBuffer(applyExternal, "_ExternalReady", Buffers.ExternalReady);
+            shader.SetBuffer(applyExternal, "_ExternalSuccess", Buffers.ExternalSuccess);
+            shader.SetBuffer(applyExternal, "_Speeds", Buffers.Speeds);
+
+            captureNormalOffers = shader.FindKernel("CaptureNormalOffers");
+            shader.SetBuffer(captureNormalOffers, "_Topology", Buffers.Topology);
+            shader.SetBuffer(captureNormalOffers, "_States", Buffers.States);
+            shader.SetBuffer(captureNormalOffers, "_Reservations", Buffers.Reservations);
+            shader.SetBuffer(captureNormalOffers, "_NormalLinks", Buffers.NormalLinks);
+            shader.SetBuffer(captureNormalOffers, "_NormalStates", Buffers.NormalStates);
+
+            collect = shader.FindKernel("Collect");
+            BindQueue(collect);
+            shader.SetBuffer(collect, "_Buffers", Buffers.Buffers);
+            shader.SetBuffer(collect, "_Speeds", Buffers.Speeds);
+
+            reserve = shader.FindKernel("Reserve");
+            shader.SetBuffer(reserve, "_Topology", Buffers.Topology);
+            shader.SetBuffer(reserve, "_States", Buffers.States);
+            shader.SetBuffer(reserve, "_Buffers", Buffers.Buffers);
+            shader.SetBuffer(reserve, "_Gaps", Buffers.Gaps);
+            shader.SetBuffer(reserve, "_Speeds", Buffers.Speeds);
+            shader.SetBuffer(reserve, "_InputPorts", Buffers.InputPorts);
+            shader.SetBuffer(reserve, "_OutputPorts", Buffers.OutputPorts);
+            shader.SetBuffer(reserve, "_ExternalReady", Buffers.ExternalReady);
+            shader.SetBuffer(reserve, "_Reservations", Buffers.Reservations);
+
+            transfer = shader.FindKernel("Transfer");
+            BindQueue(transfer);
+            shader.SetBuffer(transfer, "_Buffers", Buffers.Buffers);
+            shader.SetBuffer(transfer, "_Speeds", Buffers.Speeds);
+            shader.SetBuffer(transfer, "_Reservations", Buffers.Reservations);
+            shader.SetBuffer(transfer, "_OutputPorts", Buffers.OutputPorts);
+            shader.SetBuffer(transfer, "_ExternalSuccess", Buffers.ExternalSuccess);
+
+            advanceNormal = shader.FindKernel("AdvanceNormal");
+            BindQueue(advanceNormal);
+            shader.SetBuffer(advanceNormal, "_Speeds", Buffers.Speeds);
+            shader.SetBuffer(advanceNormal, "_Reservations", Buffers.Reservations);
+            shader.SetBuffer(advanceNormal, "_OutputPorts", Buffers.OutputPorts);
+            shader.SetBuffer(advanceNormal, "_ExternalSuccess", Buffers.ExternalSuccess);
+            shader.SetBuffer(advanceNormal, "_NormalStates", Buffers.NormalStates);
+
+            commitNormal = shader.FindKernel("CommitNormal");
+            BindQueue(commitNormal);
+            shader.SetBuffer(commitNormal, "_Reservations", Buffers.Reservations);
+            shader.SetBuffer(commitNormal, "_NormalLinks", Buffers.NormalLinks);
+            shader.SetBuffer(commitNormal, "_NormalStates", Buffers.NormalStates);
+
+            insertExternal = shader.FindKernel("InsertExternal");
+            BindQueue(insertExternal);
+            shader.SetBuffer(insertExternal, "_Reservations", Buffers.Reservations);
+            shader.SetBuffer(insertExternal, "_Events", Buffers.Events);
+            shader.SetBuffer(insertExternal, "_ExternalInputs", Buffers.ExternalInputs);
             shader.SetInt("_SegmentCount", segmentCount);
             shader.SetInt("_InputCount", inputCount);
             shader.SetInt("_OutputCount", outputCount);
             shader.SetInt("_NormalLinkCount", normalLinkCount);
         }
 
-        int Kernel(string name, Action<Action<string, GraphicsBuffer>> bind)
+        void BindQueue(int kernel)
         {
-            int id = shader.FindKernel(name);
-            bind((property, buffer) => shader.SetBuffer(id, property, buffer));
-            return id;
-        }
-
-        void BindQueue(Action<string, GraphicsBuffer> bind)
-        {
-            bind("_Topology", Buffers.Topology); bind("_States", Buffers.States);
-            bind("_Gaps", Buffers.Gaps); bind("_Blocks", Buffers.Blocks); bind("_Items", Buffers.Items);
+            shader.SetBuffer(kernel, "_Topology", Buffers.Topology);
+            shader.SetBuffer(kernel, "_States", Buffers.States);
+            shader.SetBuffer(kernel, "_Gaps", Buffers.Gaps);
+            shader.SetBuffer(kernel, "_Blocks", Buffers.Blocks);
+            shader.SetBuffer(kernel, "_Items", Buffers.Items);
         }
 
         internal void ApplyTick(BeltReplayTick tick)

@@ -140,6 +140,38 @@ namespace Client.Tests.BeltSegment
             }
         }
 
+        [Test]
+        public void TwoNormalCycleTransfersBothItemsWithoutLoss()
+        {
+            var snapshot = new BeltReplaySnapshot(new[]
+            {
+                BeltReplaySegmentState.Normal(2, 64, new[] { GpuBeltReplayTest.State(11, 32) }),
+                BeltReplaySegmentState.Normal(2, 64, new[] { GpuBeltReplayTest.State(22, 32) })
+            }, new[]
+            {
+                new BeltReplayLink(0, 1, BeltDirection.Front),
+                new BeltReplayLink(1, 0, BeltDirection.Right)
+            }, Array.Empty<BeltReplayInput>(), Array.Empty<BeltReplayOutput>());
+            using (var gpu = new GpuBeltSimulation(snapshot, GpuBeltReplayTest.Shader()))
+            {
+                var cpu = new BeltReplaySimulation(snapshot);
+                for (int tick = 0; tick < 18; tick++)
+                {
+                    GpuBeltReplayTest.Apply(cpu, gpu, GpuBeltReplayTest.Tick());
+                    var segments = cpu.CaptureSnapshot().Segments;
+                    Assert.That(segments[0].Items.Length, Is.EqualTo(1), $"tick {tick}");
+                    Assert.That(segments[1].Items.Length, Is.EqualTo(1), $"tick {tick}");
+                    Assert.That(new[] { segments[0].Items[0].Item.ItemId, segments[1].Items[0].Item.ItemId },
+                        Is.EquivalentTo(new[] { 11, 22 }), $"tick {tick} conservation");
+                    if (tick == 0 || tick == 8)
+                    {
+                        Assert.That(segments[0].Items[0].DistanceToExit, Is.EqualTo(480));
+                        Assert.That(segments[1].Items[0].DistanceToExit, Is.EqualTo(480));
+                    }
+                }
+            }
+        }
+
         static BeltItem Item(int kind) => new BeltItem { ItemId = kind };
 
         sealed class Receiver : IBeltReceiver

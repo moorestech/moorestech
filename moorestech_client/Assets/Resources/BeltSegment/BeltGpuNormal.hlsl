@@ -2,6 +2,8 @@
 #define BELT_GPU_NORMAL_INCLUDED
 #include "BeltGpuPorts.hlsl"
 
+// 全Normalの前進前に、相手入口の実空きを固定する。
+// Freeze receiver entrance space before any Normal advances.
 [numthreads(64, 1, 1)]
 void CaptureNormalOffers(uint3 tid : SV_DispatchThreadID)
 {
@@ -13,6 +15,8 @@ void CaptureNormalOffers(uint3 tid : SV_DispatchThreadID)
     state.Length = 0;
     _NormalStates[i] = state;
 }
+// Normal間の全長搬送は記録だけ行い、同時更新を分離する。
+// Stage full-length Normal transfers to separate simultaneous queue updates.
 [numthreads(64, 1, 1)]
 void AdvanceNormal(uint3 tid : SV_DispatchThreadID)
 {
@@ -51,6 +55,8 @@ void AdvanceNormal(uint3 tid : SV_DispatchThreadID)
     Advance(t, s, speed, sent);
     _States[i] = s;
 }
+// 全Normal前進後の現在の入口へ、記録済み搬入を一度だけ確定する。
+// Commit each staged insertion to the current entrance after all advances.
 [numthreads(64, 1, 1)]
 void CommitNormal(uint3 tid : SV_DispatchThreadID)
 {

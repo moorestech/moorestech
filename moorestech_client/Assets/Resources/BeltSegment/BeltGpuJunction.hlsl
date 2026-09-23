@@ -2,6 +2,8 @@
 #define BELT_GPU_JUNCTION_INCLUDED
 #include "BeltGpuPorts.hlsl"
 
+// 速度0でも出口にある走行品を空bufferへ回収する。
+// Collect an item already at the exit into an empty buffer even at speed zero.
 [numthreads(64, 1, 1)]
 void Collect(uint3 tid : SV_DispatchThreadID)
 {
@@ -21,6 +23,8 @@ void Collect(uint3 tid : SV_DispatchThreadID)
     }
     _States[i] = s;
 }
+// 回収後の空Mergeで、登録順と開始indexから唯一の入口を予約する。
+// Reserve one input by registration order and start index after collection.
 [numthreads(64, 1, 1)]
 void Reserve(uint3 tid : SV_DispatchThreadID)
 {
@@ -40,6 +44,8 @@ void Reserve(uint3 tid : SV_DispatchThreadID)
         return;
     }
 }
+// 成功時は選ばれた出力でなく旧開始indexを一つ進める。
+// On success rotate from the old starting index, not the chosen output.
 [numthreads(64, 1, 1)]
 void Transfer(uint3 tid : SV_DispatchThreadID)
 {
