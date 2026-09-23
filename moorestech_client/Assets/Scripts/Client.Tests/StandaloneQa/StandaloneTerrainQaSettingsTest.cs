@@ -32,8 +32,8 @@ namespace Client.Tests.StandaloneQa
             Assert.That(serverSettings.AutoSave, Is.False);
             Assert.That(settings.ResultDirectory, Is.EqualTo("/tmp/result"));
 
-            // 常時記録は本番のプレイ開始だけが有効にするので、QA起動では無効のまま
-            // Only the real play start enables always-on capture, so a QA boot leaves it disabled
+            // QA起動では記録しない
+            // Do not record QA boots
             Assert.That(AlwaysOnCaptureSetting.Current.IsEnabled, Is.False);
         }
 

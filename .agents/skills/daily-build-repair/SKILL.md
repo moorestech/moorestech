@@ -36,11 +36,10 @@ hooks:
 ターンを閉じただけでは何も終わらない。
 
 - **ターンを終える前に必ず `repair-result.json` を書くこと。** 「後で確認します」と述べて
-  ターンを閉じてはいけない。スケジュールされた再開はこの実行環境に存在しない
+  ターンを閉じてはいけない（スケジュールされた再開はこの実行環境に存在しない）。成功・失敗
+  いずれの意図でも、書く前に終わる終わり方はバグである
 - Step 6 のビルド待ちのように結果が返るまで数分〜数十分かかる処理は、**同一ターン内で
   ブロッキングして待つ**。待つこと自体がこのスキルの仕事である
-- 終了は `repair-result.json` を書いた直後だけ。書く前に終わる終わり方は、成功・失敗
-  いずれの意図であってもバグである
 - リトライは**1回のみ**（`pr-adjudicated-apply` の `MAX_APPLY_RETRY=1` と同じ思想）。
   プロセスが死んで `repair-result.json` も無ければ、poller が新しいセッションで
   1回だけ作り直す。それ以上の救済は無い
@@ -121,9 +120,6 @@ runを特定してからポーリングする。
 `build.yml` は `pull_request: types: [labeled]` で発火するため、無関係なラベル付与
 （poller が付ける `独立レビュー:実行中` 等）でも空run（`conclusion: skipped`）が生成されうる。
 `--limit 1` はこの空runを掴む恐れがあるため、複数件取得して `skipped` を除外する。
-# `build.yml` triggers on `pull_request: types: [labeled]`, so any unrelated label
-# (e.g. poller's `独立レビュー:実行中`) also spawns a run that completes as `skipped`.
-# Fetch several runs and discard `skipped` ones instead of trusting `--limit 1`.
 
 ```bash
 # (4) run登録待ち: 15秒間隔・最大20回で、事前ID集合に無く・headShaが一致し・skippedでない最初のrunを採る
@@ -179,7 +175,6 @@ gh run watch "$RUN_ID" --exit-status
 - `status: "timeout"` は深夜枠の打ち切りによる中断で使う（Step 8参照）。`failure` との違いは、
   `timeout` は翌朝 `remaining` を元にセッションを継続できる中断であり、`failure` は
   このIssueに対する試行を打ち切る終端であること。
-- **このファイルを書くまでセッションを終えない。**
 
 poller（Task 3/4）はこのファイルの出現をフェーズ完了の合図にする。
 

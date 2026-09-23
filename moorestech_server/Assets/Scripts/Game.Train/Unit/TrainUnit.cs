@@ -478,6 +478,9 @@ namespace Game.Train.Unit
                     Reverse();
                     Debug.Log("diagramの登録nodeに対する経路が全てない。自動運転off");
                     TurnOffAutoRun();
+                    // 経路が無いので newPath は null。距離計算へ落とさず打ち切る。
+                    // newPath is null here, so bail out before the distance calculation.
+                    return;
                 }
             }
             // _remainingDistance を更新する。

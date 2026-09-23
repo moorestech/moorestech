@@ -14,7 +14,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void ブロック面から始めたドラッグは地面へ入っても面のまま()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.BlockFace);
 
             Assert.AreEqual(PlacementHitSurfaceKind.BlockFace, dragState.ResolveSurfaceKind(PlacementHitSurfaceKind.Ground));
@@ -25,7 +25,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 地面から始めたドラッグは面をまたいでも地面のまま()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.Ground);
 
             Assert.AreEqual(PlacementHitSurfaceKind.Ground, dragState.ResolveSurfaceKind(PlacementHitSurfaceKind.BlockFace));
@@ -36,7 +36,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 押下していない間は当フレームの判定を返す()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
 
             Assert.AreEqual(PlacementHitSurfaceKind.Ground, dragState.ResolveSurfaceKind(PlacementHitSurfaceKind.Ground));
             Assert.AreEqual(PlacementHitSurfaceKind.BlockFace, dragState.ResolveSurfaceKind(PlacementHitSurfaceKind.BlockFace));
@@ -47,7 +47,7 @@ namespace Client.Tests.PlaceSystem.Common
         [Test]
         public void 解放すると固定が解ける()
         {
-            var dragState = new CommonBlockPlaceDragState();
+            var dragState = new CommonBlockPlaceDragState(new PlacementHeightOffset());
             dragState.BeginDrag(Vector3Int.zero, PlacementHitSurfaceKind.BlockFace);
             dragState.EndDrag();
 

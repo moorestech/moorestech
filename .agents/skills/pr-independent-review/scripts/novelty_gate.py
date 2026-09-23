@@ -22,7 +22,7 @@ from git_query import (
     git,
 )
 
-# 汎用層とみなすディレクトリ（generic_origin判定）。レンズpaths由来＋クライアント設置系
+# 汎用層とみなすディレクトリ（generic_origin判定）。moores-* reviewer の paths 由来＋クライアント設置系
 # Directories treated as generic layer, seeded from lens paths + client place system
 GENERIC_DIR_RES = [
     re.compile(r"/Common/"),

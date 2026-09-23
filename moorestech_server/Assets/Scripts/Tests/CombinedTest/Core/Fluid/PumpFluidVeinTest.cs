@@ -15,7 +15,7 @@ using Tests.Module;
 using Tests.Module.TestMod;
 using Tests.Util;
 using UnityEngine;
-using static Tests.Util.ElectricNetworkReflectionTestUtil;
+using static Tests.CombinedTest.Core.Fluid.PumpStateDetailTestUtil;
 
 namespace Tests.CombinedTest.Core.Fluid
 {
@@ -27,7 +27,6 @@ namespace Tests.CombinedTest.Core.Fluid
     {
         // ForUnitTestModの map.json で定義された FluidVein 座標
         // Coordinates of FluidVein defined in ForUnitTestMod map.json
-        private static readonly Vector3Int WaterVeinPos = new(10, 0, 0);
         private static readonly Vector3Int SteamVeinPos = new(20, 0, 0);
         private static readonly Vector3Int NoVeinPos = new(30, 0, 0);
 
@@ -130,34 +129,6 @@ namespace Tests.CombinedTest.Core.Fluid
             var pumpDetail = MessagePackSerializer.Deserialize<PumpBlockStateDetail>(state.CurrentStateDetails[PumpBlockStateDetail.BlockStateDetailKey]);
             Assert.AreEqual(1, pumpDetail.PumpingFluids.Count);
             Assert.AreEqual(expectedFluidId.AsPrimitive(), pumpDetail.PumpingFluids[0].FluidId);
-        }
-
-        private static IBlock PlacePoweredPump(Vector3Int pos)
-        {
-            return PlacePoweredPump(pos, ForUnitTestModBlockId.ElectricPump, new Vector3Int(2, 0, 0));
-        }
-
-        private static IBlock PlacePoweredPump(Vector3Int pos, BlockId blockId, Vector3Int poleOffset)
-        {
-            var worldBlockDatastore = ServerContext.WorldBlockDatastore;
-            var added = worldBlockDatastore.TryAddBlock(blockId, pos, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var pump);
-            Assert.IsTrue(added, $"Failed to place pump at {pos}");
-
-            // ポンプを電柱へ接続して電力網を成立させる
-            // Connect the pump to a pole so it belongs to a usable electric network
-            var polePosition = pos + poleOffset;
-            worldBlockDatastore.TryAddBlock(ForUnitTestModBlockId.ElectricPoleId, polePosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out _);
-            ElectricWireTestUtil.Connect(pos, polePosition);
-
-            // ポンプが属するワイヤーセグメントへテスト発電機を登録し powerRate=1.0 にする
-            // Register a test generator into the pump's wire segment so powerRate = 1.0
-            GameUpdater.UpdateOneTick();
-            var networkDatastore = ServerContext.GetService<IElectricWireNetworkLookup>();
-            Assert.IsTrue(networkDatastore.TryGetEnergySegment(pump.BlockInstanceId, out var segment));
-            AddGenerator(segment, new TestElectricGenerator(new ElectricPower(10000), new BlockInstanceId(10)));
-            GameUpdater.UpdateOneTick();
-
-            return pump;
         }
     }
 }

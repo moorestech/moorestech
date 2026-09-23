@@ -8,8 +8,8 @@ using NUnit.Framework;
 
 namespace Client.Tests.BugReport.Salvage
 {
-    // 複数のセッションが落ちた起動で、退避したものと見送ったものが欠損列に残ることを押さえる（AGENTS.md の fail-closed ログ規約）
-    // Pins that a boot with several crashed sessions records both what was salvaged and what was skipped in the missing list (AGENTS.md's fail-closed logging rule)
+    // 複数のセッションが落ちた起動で、最新セッションの所有するスナップショットだけを退避し、どれを採ったかを欠損列に残すことを押さえる（F12・D-C3）
+    // Pins that a boot with several crashed sessions salvages only the newest session's owned snapshots and records which one was taken in the missing list (F12, D-C3)
     public class UncleanSessionSalvageSelectionTest
     {
         private string _root;
@@ -37,27 +37,26 @@ namespace Client.Tests.BugReport.Salvage
         }
 
         [Test]
-        public void 複数の異常終了があればスナップショットを見送ったセッションも欠損として表明する()
+        public void 複数の異常終了があれば最新セッションの所有するスナップショットだけを退避し採った出所を表明する()
         {
             var artifacts = PreviousSessionSalvage.Salvage(Request(Crashed(1234, "session_100", _olderWorldSnapshots), Crashed(5678, "session_900", _newestWorldSnapshots)));
 
-            // 最新の出所からしか移さない以上、別ワールドの盤面が箱に無い理由が報告に残っていないと読み手が事故に気づけない
-            // Since only the newest origin is moved, the report must say why another world's board is absent or nobody notices the loss
-            var snapshotReasons = artifacts.Missing.FindAll(missing => missing.Item == BugReportBundleLayout.SnapshotDirectoryName);
-            Assert.AreEqual(1, snapshotReasons.Count, MissingReasons(artifacts));
-            StringAssert.Contains("見送り", snapshotReasons[0].Reason);
-            StringAssert.Contains("pid 5678", snapshotReasons[0].Reason);
+            // どのセッションの出所を載せたかが報告に残っていないと、読み手が別セッションの資料と取り違える
+            // Unless the report says whose origin was carried, a reader can mistake it for another session's evidence
+            var originReasons = artifacts.Missing.FindAll(missing => missing.Item == "previousOrigin");
+            Assert.AreEqual(1, originReasons.Count, MissingReasons(artifacts));
+            StringAssert.Contains("pid 5678", originReasons[0].Reason);
 
-            // 退避したのは最新セッションのワールドだけ。古い方は元の場所に残る
-            // Only the newest session's world was salvaged; the older one stays where it was
+            // 退避したのは最新セッションが所有印を残したワールドだけ。古い方は元の場所に残る
+            // Only the world the newest session marked as owned was salvaged; the older one stays where it was
             Assert.IsTrue(File.Exists(Path.Combine(artifacts.SnapshotsDirectory, "tick_900.json")));
             Assert.IsTrue(File.Exists(Path.Combine(_olderWorldSnapshots, "tick_100.json")));
         }
 
-        // ローカルプレイの既定ワールドは固定なので、同じワールドで複数回落ちるのが多数派。最新の出所を移せば全部退避済みで、見送りは起きていない
-        // The local-play default world is fixed, so crashing several times in the same world is the common case: moving the newest origin salvages them all and nothing is left behind
+        // 同じ保存先を後のセッションが使い直すと所有印は後の方になる。最新セッションの印と一致するので退避される
+        // When a later session reuses the same directory the ownership mark belongs to it, which matches the newest session so the files are salvaged
         [Test]
-        public void 同じワールドで複数回落ちていれば見送りは表明しない()
+        public void 同じワールドで複数回落ちていれば最新セッションの所有印で退避する()
         {
             var artifacts = PreviousSessionSalvage.Salvage(Request(Crashed(1234, "session_100", _newestWorldSnapshots), Crashed(5678, "session_900", _newestWorldSnapshots)));
 
@@ -66,15 +65,19 @@ namespace Client.Tests.BugReport.Salvage
             Assert.IsTrue(File.Exists(Path.Combine(artifacts.SnapshotsDirectory, "tick_900.json")));
         }
 
+        // 各セッションはスナップショット開始時に保存先へ所有印を書く。引数順に書くので後に渡したものが所有者として残る
+        // Each session writes an ownership mark into its directory when snapshots start; marks are written in argument order so the later one remains the owner
         private static PreviousProcessSession Crashed(int processId, string sessionName, string worldSnapshotDirectory)
         {
+            var origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), SessionSnapshotCapture.Started(worldSnapshotDirectory, processId, sessionName));
+            origin.WriteTo(Path.Combine(worldSnapshotDirectory, WorldDataDirectory.SnapshotOwnerFileName));
             return new PreviousProcessSession
             {
                 ProcessId = processId,
                 SessionName = sessionName,
                 ExitedCleanly = false,
                 RecordingDirectory = null,
-                Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), new SessionSnapshotSource(false, worldSnapshotDirectory)),
+                Origin = origin,
             };
         }
 

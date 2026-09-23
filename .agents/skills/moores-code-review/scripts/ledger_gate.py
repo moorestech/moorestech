@@ -12,12 +12,12 @@
 """writing-plans の判断台帳関所（sim-gate.sh前例踏襲）。
 
 track: plan（docs/superpowers/plans/*.md）へのWrite/Editを状態ファイルに記録
-stop : plan本文の Modify:/Create: 対象のうち lenses/*.md の paths（＋extensions）に
+stop : plan本文の Modify:/Create: 対象のうち reviewers/moores-*.md の paths（＋extensions）に
        マッチするファイルが、plan自身の判断台帳（## 判断記録（ADR）/ ## 判断台帳。
        次の##見出しまで）にbasenameで言及されているか検査。未掲載があれば exit 2 で
        ブロック（自前カウンタ上限2）。旧plan互換: frontmatter `spec:` が解決できる
        場合はspec側の台帳も連結して検査対象に含める（spec廃止・2026-08-05裁定）。
-       レンズ該当対象が無いplanは台帳欠落でもブロックしない（既存plan互換）。
+       moores-* reviewer 該当対象が無いplanは台帳欠落でもブロックしない（既存plan互換）。
 """
 from __future__ import annotations
 
@@ -28,9 +28,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from select_lenses import parse_yaml_header  # noqa: E402
+from select_reviewers import parse_yaml_header  # noqa: E402
 
-LENSES_DIR = Path(__file__).resolve().parent.parent / "lenses"
+REVIEWERS_DIR = Path(__file__).resolve().parent.parent / "reviewers"
 LEDGER_HEADING_RE = re.compile(r"^##\s*(判断記録（ADR）|判断台帳)")
 # checkbox・太字・行番号サフィックス付きの表記揺れも拾う（fail-open防止）
 # Also match checkbox/bold variants and strip :line-range suffixes
@@ -39,9 +39,9 @@ TARGET_RE = re.compile(
     re.MULTILINE)
 
 
-def lens_rules() -> list[tuple[list[str], list[str]]]:
+def moores_reviewer_rules() -> list[tuple[list[str], list[str]]]:
     rules: list[tuple[list[str], list[str]]] = []
-    for md in sorted(LENSES_DIR.glob("*.md")):
+    for md in sorted(REVIEWERS_DIR.glob("moores-*.md")):
         header = parse_yaml_header(md.read_text(encoding="utf-8"))
         paths = [p for p in header.get("paths", []) if p]
         if paths:
@@ -49,7 +49,7 @@ def lens_rules() -> list[tuple[list[str], list[str]]]:
     return rules
 
 
-def matches_lens(target: str, rules: list[tuple[list[str], list[str]]]) -> bool:
+def matches_moores_reviewer(target: str, rules: list[tuple[list[str], list[str]]]) -> bool:
     for paths, exts in rules:
         if any(re.search(p, target) for p in paths) and (not exts or target.endswith(tuple(exts))):
             return True
@@ -99,7 +99,7 @@ def missing_entries(plan_path: Path, rules: list[tuple[list[str], list[str]]]) -
     plan_text = plan_path.read_text(encoding="utf-8", errors="replace")
     targets = [t.rstrip("`").split("`")[0] for t in dict.fromkeys(TARGET_RE.findall(plan_text))]
     gated = [re.sub(r":\d+(?:-\d+)?$", "", t) for t in targets]
-    gated = [t for t in gated if matches_lens(t, rules)]
+    gated = [t for t in gated if matches_moores_reviewer(t, rules)]
     if not gated:
         return []
     # 台帳の正はplan自身の『## 判断記録（ADR）』。spec:があれば旧plan互換で連結する
@@ -148,7 +148,7 @@ def main() -> int:
         count = int(blocks_state.read_text()) if blocks_state.is_file() else 0
         if count >= 2:
             return 0
-        rules = lens_rules()
+        rules = moores_reviewer_rules()
         problems: list[str] = []
         alive = [p for p in plans_state.read_text().splitlines() if p.strip() and Path(p).is_file()]
         plans_state.write_text("\n".join(alive) + ("\n" if alive else ""))
@@ -158,7 +158,7 @@ def main() -> int:
             return 0
         blocks_state.write_text(str(count + 1))
         print(
-            "ledger-gate: planのModify/Create対象にレンズpaths該当ファイルがありますが、"
+            "ledger-gate: planのModify/Create対象にmoores-* reviewerのpaths該当ファイルがありますが、"
             "planの判断台帳に未掲載です: " + " / ".join(problems)
             + " — planの『## 判断記録（ADR）』へ1行追記（対象ファイル名を含める）して"
             "ください。掲載なき判断は免責力を持ちません。",

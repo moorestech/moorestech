@@ -16,25 +16,16 @@ uloop execute-dynamic-code --project-path <client> --code 'return "playing=" + U
 
 ## 1. ready.markerが出ない（`NG: game not ready within 300s`）
 
-原因は2大別。ログで判定する:
+まずログで判定する:
 
 ```bash
 uloop get-logs --project-path <client> --log-type Error 2>&1 | grep -o '"Message": "[^"]*"' | sort | uniq -c | sort -rn | head
 uloop get-logs --project-path <client> --log-type Exception 2>&1 | grep -o '"Message": "[^"]*"' | sort | uniq -c | sort -rn | head
 ```
 
-**(a) `SocketException: Address already in use`** — **ゲームサーバーポート11564は固定・全worktree共通**。
-他worktreeのUnityがPlayMode中だと起動不能。さらに**PlayMode停止後もソケットがリークして残る**ことがある:
-```bash
-lsof -nP -iTCP:11564          # ESTABLISHED/LISTENの保持プロセスを特定（ps -p <PID> -o command=）
-# 保持EditorのPlayModeを停止 → まだ残るなら当該Editorへドメインリロードを要求（これでソケットが死ぬ）:
-uloop execute-dynamic-code --project-path <保持側client> --code 'UnityEditor.EditorUtility.RequestScriptReload(); return "ok";'
-```
-※他セッションのEditorを止める前にユーザーへ確認する。preflight [5/5]が事前検出する。
-
-**(b) `MooresmasterLoaderException`（例: PropertyPath: data[0].priority）** — masterスキーマ不整合。
+**`MooresmasterLoaderException`（例: PropertyPath: data[0].priority）** — masterスキーマ不整合。
 作業中ブランチの互換コミットにピン留めしたmaster worktreeを使っているか確認（スキル固定パスは無い。既存の別ブランチ用worktreeがドリフトしていることがある）。
-互換コミットは作業中プロジェクトの`.moorestech-external-revisions.json`の`moorestech_master.commitHash`が正で、`run-scenario.sh`はこれにHEADが一致するworktreeを自動解決する。該当worktree未作成なら自動解決失敗のエラーになるので`git -C ../moorestech_master worktree add <path> <互換コミット>`で作る。preflight [4/5]が不整合を検出する。
+互換コミットは作業中プロジェクトの`.moorestech-external-revisions.json`の`moorestech_master.commitHash`が正で、`run-scenario.sh`はこれにHEADが一致するworktreeを自動解決する。該当worktree未作成なら自動解決失敗のエラーになるので`git -C ../moorestech_master worktree add <path> <互換コミット>`で作る。preflight [4/4]が不整合を検出する。
 なお本番マスタは`IMasterValidator.Validate`が走るため、ロジックテストで出なかったmaster不整合を
 このスキルが最初に検出することが多い（それ自体がバグ検出の成果になる）。
 
@@ -65,7 +56,8 @@ PlayModeは生きているので**ライブで観測**する。効いた実績�
 4. **アクティブなplace system**（リフレクション）: UIStateControl→`_uiStateDictionary`→PlaceBlockState→
    `_placeSystemStateController`→`_currentPlaceSystem` を辿り型名を確認。応答待ちフラグ等の内部状態も同様に読める
 5. **同じ操作を手で1回だけ注入**して差分観測（`SemanticInput.MouseButtonDown(0)`→sleep→`MouseButtonUp(0)`→GetBlock）
-6. それでも不明なら**当該ロジックの入力読み取り・分岐条件を実コードでReadする**
+6. サーバー側の状態（ブロック・コンポーネント・接続先・インベントリ）は runtime-state-probe.md のエントリーポイントで1コールダンプする
+7. それでも不明なら**当該ロジックの入力読み取り・分岐条件を実コードでReadする**
    （この手順でPlaceInfo.BlockId未設定によるプレビュー毎フレーム例外＝実プロダクトバグを特定した実績あり）
 
 チェック観点: legacy Input直読み（input-injection.md）/ `IsPointerOverGameObject` /
@@ -117,8 +109,7 @@ EditModeInPlayingTestを一括実行すると、後半のテストが
 - `Library`(28G)はメインから`cp -Rc`（APFS clonefile）で複製すると再インポート不要で数秒。
   **メイン側のUnityを閉じてから行う**
 - `Assets/PersonalAssets`（非公開アセット）・`UserSettings` も同様にコピー
-- 複数worktreeのUnity Editorは同時起動できる（プロジェクトパスが違えば独立）。
-  ただし**PlayModeの同時実行は不可**（ポート11564固定・上記1(a)）
+- 複数worktreeのUnity Editorは同時起動でき、PlayModeの同時実行も可（内蔵サーバーはポート0で自動採番し`BoundPort`へ接続する。`ServerConnectionInitializer`参照）
 - 初回はPlayMode前に`uloop compile`を一度通す（スキーマ再コンパイルのPlayMode中発火を防ぐ）
 - DebugObjectsBootstrap: 無効化しないとIngameDebugConsoleが毎フレームNREを吐く環境がある
   （エラー1.9万件で本当のエラーが埋もれた実績）。DSLの`PlaytestBoot`が

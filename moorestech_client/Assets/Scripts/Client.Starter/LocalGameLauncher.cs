@@ -11,8 +11,8 @@ namespace Client.Starter
     {
         public static void StartLocalGame()
         {
-            // 本番のプレイ開始だけが常時記録を有効にする。テスト・プレイテスト・QAは既定の無効のまま走る
-            // Only the real play start enables always-on capture; tests, playtests and QA run on the disabled default
+            // 直Playも専用設定で同じ決定を適用する
+            // Direct play applies the same decision through its dedicated setting
             AlwaysOnCaptureSetting.Apply(AlwaysOnCaptureSetting.Enabled());
 
             // 多重呼び出しでも購読が1本に収まるよう先に外しておく

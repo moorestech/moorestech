@@ -3,8 +3,8 @@ using UnityEngine;
 namespace Client.Starter.Playtest
 {
     /// <summary>
-    /// プレイテストの記録（ログ・録画・バグ報告の確保・進行記録・正常終了の印）をこの起動で集めるかを1箇所で決める。
-    /// Decides in one place whether this boot collects playtest records (logs, recording, bug-report capture, progress record, clean-exit marks).
+    /// 同意対象の記録収集を判断する。終了印は独立。
+    /// Decides consent-gated record collection; exit marks stay independent.
     /// </summary>
     public static class PlaytestRecordCollection
     {
@@ -13,7 +13,7 @@ namespace Client.Starter.Playtest
         public static bool Decide(bool isRemoteConnection)
         {
             if (!isRemoteConnection) return true;
-            Debug.Log("PlaytestRecordCollection: リモート接続のためプレイテストの記録（ログ・録画・進行記録・終了の印）を集めません");
+            Debug.Log("PlaytestRecordCollection: リモート接続のためプレイテストの記録（ログ・録画・進行記録）を集めません。終了の印は記録します");
             return false;
         }
     }

@@ -89,7 +89,7 @@ AskUserQuestion は deny される。ブロックは同一セッション2回で
 
 | tree | 中身 | 規律 |
 | --- | --- | --- |
-| `$CANON`（`skills-canon-<sha8>`） | 起動時の `origin/master` SHAへピンした測定器（スクリプト・レンズ・reviewer・統合ルール・テンプレート）の唯一の読み取り元 | 不変が契約。`fetch`・`reset`・`clean` も書き込みも一切しない（`.last-used` の `touch` だけ例外）。並列レビューが同じピンを読むため |
+| `$CANON`（`skills-canon-<sha8>`） | 起動時の `origin/master` SHAへピンした測定器（スクリプト・reviewer・統合ルール・テンプレート）の唯一の読み取り元 | 不変が契約。`fetch`・`reset`・`clean` も書き込みも一切しない（`.last-used` の `touch` だけ例外）。並列レビューが同じピンを読むため |
 | `$ORIGIN`（起動元・多くはメインworktree） | 他セッションの作業中ブランチ | worktreeを生やす起点としてのみ使う。読み取り元にも書き込み先にもしない |
 | `$PRWT`（`pr-<番号>`） | PRのheadブランチ | PRのコード修正だけ書いてよい。skill改修・`.decisions/` の裁定記録は積まない |
 
@@ -123,7 +123,7 @@ AskUserQuestion は deny される。ブロックは同一セッション2回で
    | --- | --- | --- |
    | 0 | 用意完了 | 進む |
    | 10 / 11 / 12 | fetch・rev-parse 失敗 / worktree add 失敗 / `novelty_gate.py` 不在 | 即エラー終了。起動元treeの `.claude/` で代替しない |
-   | 13 | SKILL.md 同一性ガードで差分（`$ORIGIN` に未マージのskill改修があり「新しい指示 × 古いレンズ」の版ズレ） | 人が起動したならユーザーへ報告して指示を仰ぎ、続行を選んだ場合のみ `--allow-skew` で再実行して records の `canonical:` に `skew` と両SHAを明記する。無人起動では即エラー終了 |
+   | 13 | SKILL.md 同一性ガードで差分（`$ORIGIN` に未マージのskill改修があり「新しい指示 × 古いreviewer」の版ズレ） | 人が起動したならユーザーへ報告して指示を仰ぎ、続行を選んだ場合のみ `--allow-skew` で再実行して records の `canonical:` に `skew` と両SHAを明記する。無人起動では即エラー終了 |
    | 14 | `$ORIGIN` が作業ツリーのルートでない / `$CANON` が `$ORIGIN` と同一 | 即エラー終了（`$ORIGIN` の特定をやり直す） |
 
 ### skill改修・裁定記録を書きたいとき
@@ -152,7 +152,7 @@ Step 10 の付与条件を確認する。
 
     gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate --jq 'length'
 
-- **1件以上 → そのPRのreconcile（「reconcileモード」）を新規レビューより先に実行する（ブロック型）**。
+- **1件以上 → そのPRのreconcile（「reconcileモード」＝`references/reconcile-mode.md`）を新規レビューより先に実行する（ブロック型）**。
   未reconcileの見逃しを放置したまま同じ測定器で次のPRを測っても同じ見逃しを再生産するだけ
 - 0件 → 人間がまだレビューしていないだけなので保留のまま進む
 - スタブ行（verdict=未測定（スタブ））は測定外なので `reconcile` 列に `対象外（スタブ）` と記入して負債から外す
@@ -293,9 +293,9 @@ python3 <$CANONの実値>/.claude/skills/moores-code-review/scripts/build_workfl
   patch＋detchecks.json で発火し、contract.md に report-only の前提が付く。修正適用が無いので最終diff＝Step 3のpatchであり、
   決定論チェックの再実行はしない。convention-guardの「機械的は自動適用」も指摘として出す
 - Workflow には `workflow-args.json` の中身をそのまま `args` に渡す。Workflow が `Repo root`（`$PRWT`）と `Skill root`（`$CANON`）を
-  全subagentのpromptへ注入する。**Workflow不可でsonnet委譲へフォールバックする場合のみ**、全prompt（レンズ・reviewer・Fable全般・
+  全subagentのpromptへ注入する。**Workflow不可でsonnet委譲へフォールバックする場合のみ**、全prompt（reviewer・Fable全般・
   verifier・post-checks）の `Read this :` / `Candidates :` / `Patch path :` / `User prompt :` を `$CANON` / `$RUNDIR` の絶対パスで書き、
-  次の2行を足す: 「対象コードのルート: <$PRWTの実値>。コードのReadは必ずこの配下」「スキル・レンズ・post-checks・統合ルールのReadは <$CANONの実値> 配下」
+  次の2行を足す: 「対象コードのルート: <$PRWTの実値>。コードのReadは必ずこの配下」「スキル・reviewer・post-checks・統合ルールのReadは <$CANONの実値> 配下」
 - AskUserQuestionは使わない。設計判断もダイジェストの裁定カードへ。本体Step 7の記録（`$LOGS/harness/moores-code-review/records/`・`eval-log.md`）は書かない
 - 統合結果は `integrated.md` を読む。指摘は全部ダイジェストへ
 
@@ -393,40 +393,7 @@ exit 33（findings.json が読めない）/ 34（gh 不在・未認証）は環�
 
 ## reconcileモード（人間レビューとの突き合わせ・改善発火）
 
-`/pr-independent-review reconcile <番号>` で単独起動、またはStep 0.5から強制実行される。**ここは改善機構の発火装置であり、改善の
-手法・検証・回帰コーパスは moores-code-review 側（`references/skill-improvement.md`・`eval/`）が単一の正。手順・fixture・検証規則を複製しない。**
-
-`$RUNDIR` は自分で決めず、records の `pr-<番号>.md`（最新の `-rN`）の `- rundir:` 行が指すディレクトリを使う。その行が無い古い記録
-（2026-08-08以前）は中間生成物が無い前提で、人間コメントとrecordsのテキストだけで突き合わせる。
-
-1. **入力は人間のGitHubコメントのみ**（人間に台帳記入・ラベル付け・分類を求めない）:
-
-       gh api repos/moorestech/moorestech/pulls/<番号>/comments --paginate \
-         --jq '.[] | {path, line, body, html_url, commit_id}' > <$RUNDIRの実値>/reconcile-comments.json
-
-   **`commit_id` は必ず一緒に取る** — 改善時のフォレンジック・リプレイのピン先はこの `commit_id` で、自動レビュー当時のheadではない。
-   レビューbody（`gh api .../pulls/<番号>/reviews --paginate`）と通常コメント（`gh pr view <番号> --comments`）も読む。
-   全部0件なら「人間レビュー未実施」として `reconcile` 列は空欄のまま終了
-2. **突き合わせ**: records の裁定・suppressed・Warning（折りたたみ参考含む）と各コメントを照合し、caught / missed / 対象外
-   （質問・運用連絡・雑談）に分類する。**迷ったらmissedに倒す**。**verdictが一致していてもreconcileを省かない**
-3. **内訳をrecordsへ追記**（`references/record-format.md` の「突き合わせ内訳」）。missedの各行に分類タグとコメントURLを付ける:
-   - `[レンズ盲点]` `[reviewer盲点]` `[決定論較正]` — ハーネス既存観点の欠落・較正ミス
-   - `[L1語彙]` `[配管]` — 本スキル固有部品（novelty gate・patch生成・context再構成・digest）の欠陥
-   - `[規範初出]` — AGENTS.md・レンズ・reviewerのどこにも成文化されていない規範を人間が初めて示したもの。ハーネスの欠陥ではなく
-     成文化の入力であり、人間にしか出せない類として分計する（この割合の推移が自動マージ移行可否の実測境界）
-4. **ルーティング（改善の実施は全部あちらの規則で）**:
-   - `[レンズ盲点]` `[reviewer盲点]` `[決定論較正]` → `<$CANONの実値>/.claude/skills/moores-code-review/references/skill-improvement.md` の手順
-     （フォレンジック・リプレイ診断 → 対策先決定 → 実例追記 → 4段階検証（発火・由来サニティ・ブラインド陽陰・実diffバックテスト）→
-     `eval/fixtures.tsv`・`eval/expected-findings.md` へ追記）。完了しない改修は改善と認めない。診断をrecordsのテキスト照合で代用しない
-   - `[規範初出]` → まずAGENTS.mdまたは決定論チェックへ成文化し、同じ4段階検証に通す
-   - `[L1語彙]` `[配管]` → 本スキルの `scripts/` を修正し `tests/test_novelty_gate.py` に赤→緑のケースを追加する
-5. **改善キューへ起票**: `records/improvement-queue.md` に1行/件。`closed` にできるのは**手順4の検証完了根拠を `closed根拠` 列に書けた時だけ**:
-   - レンズ/reviewer/決定論較正/規範成文化 → 4段階検証の完了記録。特に段階4の「見逃しsurface×検出元マトリクス＋過検知数」が必須。
-     合成fixture緑（段階3まで）だけではclosedにしない
-   - `[L1語彙]` `[配管]` → 赤→緑を実証したテストの緑
-   観点ファイルへの追記だけではclosedにしない（作文はclosedの根拠にならない）
-6. **前向きログ**: `$LOGS/harness/moores-code-review/eval-log.md` に1行追記（PR番号・人間指摘数・分類内訳・ハーネス事前検出数・却下数・recordsへの相対リンク）
-7. **台帳更新**: `reconcile` 列に実施日。`あなたの実判断`・`一致` 列が空欄なら観測可能な事実（差し戻しコメント・approve・マージ状態）から記入する
+`/pr-independent-review reconcile <番号>` で単独起動、またはStep 0.5から強制実行される。**手順は `references/reconcile-mode.md` を Read して従う。**
 
 ## verdict判定規則
 

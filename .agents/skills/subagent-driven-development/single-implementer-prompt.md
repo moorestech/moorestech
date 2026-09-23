@@ -3,7 +3,7 @@
 規模ゲート未満の計画を、`opus` 固定のimplementer subagent 1体に丸ごと実装させる際に使う。
 作業手順・自己レビュー・報告フォーマットの定型部分は[implementer-contract.md](implementer-contract.md)に
 あり、subagentが自分で読む。派遣プロンプトには計画固有の情報だけを書くこと。
-**フォアグラウンドで派遣する**（バックグラウンド派遣は孤児化して止まる事故があった）。
+派遣と待ちのやり方は実行環境別の [references/runtime-claude.md](references/runtime-claude.md) / [references/runtime-codex.md](references/runtime-codex.md) に従う（下の「フォアグラウンド」は Claude Code 向けの表記）。
 
 ```
 Subagent (general-purpose, フォアグラウンド):
@@ -68,7 +68,7 @@ Subagent (general-purpose, フォアグラウンド):
 - `[PLAN_NAME]` — 計画の名前（planファイルのH1）
 - `[SKILL_DIR_ABS]` — このスキルディレクトリの絶対パス
 - `[PLAN_FILE_ABS]` — 計画ファイルの絶対パス（`scripts/task-brief` は使わない）
-- `[LENS_DIGEST_ABS]` — moorestech設計レンズダイジェストの絶対パス（`<repo>/.claude/skills/moores-code-review/references/lens-digest.md`）
+- `[LENS_DIGEST_ABS]` — moores-* reviewer ダイジェストの絶対パス（`<repo>/.claude/skills/moores-code-review/references/moores-reviewer-digest.md`）
 - `[TASK_RANGE]` — 実装するタスク番号の範囲（例: `Task 1〜4`。継続派遣では残りのみ）
 - `[WORKTREE_ABS_PATH]` — 隔離worktreeの絶対パス
 - `[REPORT_FILE]` — `scripts/sdd-workspace` が表示したディレクトリ配下の `single-report.md`

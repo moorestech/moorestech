@@ -2,13 +2,16 @@
 namespace Client.Starter.Editor
 {
     /// <summary>
-    /// 専用再生ボタンによる起動引数の上書きを1口へ束ねる。上書きは内蔵サーバー専用なのでリモート接続では何もしない。
-    /// Bundles the dedicated play buttons' launch-arg overrides into one port; the overrides belong to the embedded server, so a remote connection gets none.
+    /// 記録設定と内蔵サーバーの起動上書きを束ねる。
+    /// Bundles capture settings with embedded-server launch overrides.
     /// </summary>
     public static class PlayModeLaunchOverrides
     {
         public static void ApplyIfNeeded(InitializeProprieties proprieties)
         {
+            // 接続先を問わず直Play記録を判断する
+            // Decide direct-play capture regardless of destination
+            DirectPlayAlwaysOnCaptureSettings.ApplyIfNeeded();
             if (proprieties.IsRemoteConnection) return;
 
             // 専用再生ボタン時はセーブ無効化
@@ -18,6 +21,7 @@ namespace Client.Starter.Editor
             // 生成ワールド起動引数を上書き
             // Override launch args for the generated-world play button
             GeneratedWorldPlayModeSettings.ApplyIfNeeded(proprieties);
+
         }
     }
 }

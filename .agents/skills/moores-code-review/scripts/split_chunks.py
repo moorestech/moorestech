@@ -37,7 +37,7 @@ DEFAULT_MIN = 10
 REVIEWABLE_EXTS = (".cs", ".ts", ".tsx", ".js", ".mjs", ".py", ".sh", ".yml", ".yaml", ".json")
 
 # サーバー状態同期3点セットの縫い目は同一ドメインへ束ねる
-# Merge the server-state-sync seam directories into one domain
+# Merge the moores-any-server-state-sync seam directories into one domain
 SEAM_DOMAINS = {
     "Server.Protocol": "protocol-sync-seam",
     "Server.Event": "protocol-sync-seam",

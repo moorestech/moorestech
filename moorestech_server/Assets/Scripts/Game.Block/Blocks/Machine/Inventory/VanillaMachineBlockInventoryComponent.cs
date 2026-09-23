@@ -7,6 +7,7 @@ using Core.Master;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
+using UnityEngine;
 
 namespace Game.Block.Blocks.Machine.Inventory
 {
@@ -97,14 +98,16 @@ namespace Game.Block.Blocks.Machine.Inventory
             subInventory.SetItem(localSlot, itemStack);
         }
 
-        // 移動/挿入サービスが書き込み前に問い合わせる配置可否。束縛外のスロットは受け付けない
-        // Placement check the move/insert services ask before writing; slots outside the binding refuse the stack
-        public bool IsAllowedToPlace(int slot, IItemStack itemStack)
+        // 移動/挿入サービスが書き込み前に問い合わせる配置可否。CheckPlacementは拒否ログ用に理由まで返す
+        // Placement check the move/insert services ask before writing; CheckPlacement also returns the reason for rejection logs
+        public bool IsAllowedToPlace(int slot, IItemStack itemStack) => CheckPlacement(slot, itemStack) == MachineSlotPlacementCheck.Allowed;
+
+        public MachineSlotPlacementCheck CheckPlacement(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
 
             var (subInventory, localSlot) = ResolveSlot(slot);
-            return subInventory.IsAllowedToPlace(localSlot, itemStack);
+            return subInventory.CheckPlacement(localSlot, itemStack);
         }
 
         public void SetItem(int slot, ItemId itemId, int count)
@@ -149,18 +152,20 @@ namespace Game.Block.Blocks.Machine.Inventory
         /// <summary>
         ///     アイテムの置き換えを実行しますが、同じアイテムIDの場合はそのまま現在のアイテムにスタックされ、スタックしきらなかったらその分を返します。
         /// </summary>
-        /// <param name="slot"></param>
-        /// <param name="itemStack"></param>
-        /// <returns></returns>
         public IItemStack ReplaceItem(int slot, IItemStack itemStack)
         {
             BlockException.CheckDestroy(this);
 
             var (subInventory, localSlot) = ResolveSlot(slot);
 
-            // 束縛外のスロットへは置けず、そのまま返す（プレイヤー移動プロトコルの入口）
-            // A stack that violates the binding bounces back untouched (entry point of the player move protocol)
-            if (!subInventory.IsAllowedToPlace(localSlot, itemStack)) return itemStack;
+            // 束縛外のスロットへは置けず、そのまま返す。移動サービスは事前照会で弾くため、ここへ来るのはそれ以外の呼び出し元
+            // A stack that violates the binding bounces back untouched; the move service pre-checks, so only other callers reach here
+            var placement = subInventory.CheckPlacement(localSlot, itemStack);
+            if (placement != MachineSlotPlacementCheck.Allowed)
+            {
+                Debug.LogWarning($"[VanillaMachineBlockInventoryComponent] ReplaceItem rejected: reason={placement} sub={subInventory.GetType().Name}[{localSlot}] slot={slot} itemId={itemStack.Id} count={itemStack.Count}");
+                return itemStack;
+            }
 
             var current = subInventory.Items[localSlot];
 

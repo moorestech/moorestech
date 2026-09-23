@@ -30,9 +30,7 @@ namespace Client.Starter
     {
         [SerializeField] private BlockIconImagePhotographer blockIconImagePhotographer;
         [SerializeField] private BlockGameObject missingBlockIdObject;
-
         [SerializeField] private TMP_Text loadingLog;
-
         private InitializeProprieties _proprieties = InitializeProprieties.CreateLocalServer(null);
 
         public void SetProperty(InitializeProprieties proprieties)
@@ -54,11 +52,13 @@ namespace Client.Starter
             // A new boot sequence begins; clear the previous session's shutdown guard here
             GameShutdownEvent.ResetForNewSession();
             GameShutdownEvent.InstallApplicationQuitDeferral();
-
+            // 正規の終了口を通らない終了（エディタのPlay停止）でも、正常終了の印が書かれるようにする
+            // Ensures the clean-exit mark is written even for exits that skip the canonical path (an Editor play-stop)
+            GameShutdownEvent.InstallUnannouncedExitNotice();
+            Playtest.PreviousSessionStartupTasks.BeginCurrentSessionMarks();
             // Play終了で各await継続を打ち切る。Task系境界の継続がEditModeで再開しシーンを汚すのを防ぐ
             // Play-mode exit cancels every await so Task-based continuations never resume in EditMode and dirty the scene
             var exitToken = Application.exitCancellationToken;
-
             // ---- Web UI サーバーの起動（最序盤）----
             // GameShutdownEvent の購読は WebUiHost 側で 1 度だけ張られる
             // ---- Web UI server bootstrap (earliest phase) ----
@@ -80,14 +80,13 @@ namespace Client.Starter
 #if UNITY_EDITOR
             Editor.PlayModeLaunchOverrides.ApplyIfNeeded(_proprieties);
 #endif
-
             var args = CliConvert.Parse<StartServerSettings>(_proprieties.CreateLocalServerArgs);
             var serverDirectory = args.ServerDataDirectory;
 
-            // 退避はタイトル（直接起動ならここ）、書き手の設置はここ。記録を集めるかもここで1度だけ決める（ADR 0060 裁定5・ADR 0065）
-            // Salvage happens at the title (here for a direct boot) and the writers are installed here; whether to collect is decided once here too (ADR 0060 adjudication 5, ADR 0065)
+            // 退避はタイトル（直接起動ならここ）、終了印の書き手は上の最初のawait前。記録を集めるかもここで1度だけ決める（ADR 0060 裁定5・ADR 0065）
+            // Salvage happens at the title (here for a direct boot) and the exit-mark writer before the first await above; whether to collect is decided once here too (ADR 0060 adjudication 5, ADR 0065)
             var collectsPlaytestRecords = Playtest.PlaytestRecordCollection.Decide(_proprieties.IsRemoteConnection);
-            Playtest.PreviousSessionStartupTasks.RunAtStartup(collectsPlaytestRecords, _proprieties.IsRemoteConnection, args.WorldDirectory);
+            Playtest.PreviousSessionStartupTasks.RunAtStartup(collectsPlaytestRecords);
 
             var loadingStopwatch = new Stopwatch();
             loadingStopwatch.Start();

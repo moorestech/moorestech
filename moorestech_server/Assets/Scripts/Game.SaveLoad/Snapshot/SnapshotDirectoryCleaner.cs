@@ -13,6 +13,9 @@ namespace Game.SaveLoad.Snapshot
         {
             if (!Directory.Exists(directory)) return;
 
+            // 上書き前に所有印を失効させ、前回sessionへの誤帰属を防ぐ
+            // Invalidate ownership before overwriting to prevent attribution to the previous session
+            DeleteMatching(directory, WorldDataDirectory.SnapshotOwnerFileName);
             DeleteMatching(directory, WorldDataDirectory.SnapshotFileSearchPattern);
             DeleteMatching(directory, WorldDataDirectory.PacketLogFileSearchPattern);
         }
@@ -31,8 +34,8 @@ namespace Game.SaveLoad.Snapshot
 
             void DeleteFile(string path)
             {
-                // ディスク削除は外部境界。消せなくても記録は開始したいので、失敗は出力して次のファイルへ進む
-                // Disk deletion is an external boundary; capture must still start, so a failure is logged and the loop moves on
+                // ディスク削除の失敗時は開始を止め、旧資料へ新sessionの所有印を付けない
+                // Stop capture on disk deletion failure so old evidence never receives the new session's ownership
                 try
                 {
                     File.Delete(path);
@@ -40,10 +43,12 @@ namespace Game.SaveLoad.Snapshot
                 catch (IOException e)
                 {
                     Debug.LogError($"前セッションの常時記録の削除に失敗しました path:{path} message:{e.Message}");
+                    throw;
                 }
                 catch (UnauthorizedAccessException e)
                 {
                     Debug.LogError($"前セッションの常時記録の削除が権限で拒否されました path:{path} message:{e.Message}");
+                    throw;
                 }
             }
 

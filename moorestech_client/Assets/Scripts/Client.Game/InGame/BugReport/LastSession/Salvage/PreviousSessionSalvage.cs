@@ -30,10 +30,6 @@ namespace Client.Game.InGame.BugReport.LastSession
         {
             var lastSessionDirectory = GameSystemPaths.BugReportLastSessionDirectory;
 
-            // 印もディレクトリも無い＝初回インストール直後。異常終了と読むと、一度も遊んでいないテスターに確認ゲートが出る
-            // No marks and no directory means a fresh install; reading that as a crash would show the gate to a tester who never played
-            var isFirstBoot = !Directory.Exists(lastSessionDirectory);
-
             var currentProcessId = RecordingProcessDirectories.CurrentProcessId();
             var currentSessionName = ProcessSessionScope.CurrentSessionName;
 
@@ -55,7 +51,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             };
 
             _artifacts = Salvage(request);
-            Debug.Log($"前回セッションの退避が終わりました clean:{_artifacts.PreviousExitWasClean} firstBoot:{isFirstBoot} sessions:{request.PreviousSessions.Count} salvagedPids:{_artifacts.SalvagedProcessIds.Count} sendable:{_artifacts.HasAnythingToSend} missing:{_artifacts.Missing.Count}");
+            Debug.Log($"前回セッションの退避が終わりました clean:{_artifacts.PreviousExitWasClean} sessions:{request.PreviousSessions.Count} salvagedPids:{_artifacts.SalvagedProcessIds.Count} sendable:{_artifacts.HasAnythingToSend} missing:{_artifacts.Missing.Count}");
             return _artifacts;
         }
 

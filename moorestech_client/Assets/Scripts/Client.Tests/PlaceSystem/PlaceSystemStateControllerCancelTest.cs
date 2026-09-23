@@ -1,4 +1,5 @@
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using NUnit.Framework;
 
@@ -14,7 +15,7 @@ namespace Client.Tests.PlaceSystem
         public void 現在の設置系が解除できれば結果をそのまま返す()
         {
             var placeSystem = new CancellablePlaceSystem { CancelResult = true };
-            var controller = new PlaceSystemStateController(new SingleSelector(placeSystem), new NullPresenter());
+            var controller = new PlaceSystemStateController(new SingleSelector(placeSystem), new NullPresenter(), new PlacementHeightOffset());
             controller.ManualUpdate();
 
             Assert.IsTrue(controller.TryCancelInProgressOperation());
@@ -25,7 +26,7 @@ namespace Client.Tests.PlaceSystem
         public void 解除対象が無ければfalseを返す()
         {
             var placeSystem = new CancellablePlaceSystem { CancelResult = false };
-            var controller = new PlaceSystemStateController(new SingleSelector(placeSystem), new NullPresenter());
+            var controller = new PlaceSystemStateController(new SingleSelector(placeSystem), new NullPresenter(), new PlacementHeightOffset());
             controller.ManualUpdate();
 
             Assert.IsFalse(controller.TryCancelInProgressOperation());
@@ -34,7 +35,7 @@ namespace Client.Tests.PlaceSystem
         [Test]
         public void ManualUpdate前はEmptyPlaceSystemに委譲されfalseになる()
         {
-            var controller = new PlaceSystemStateController(new SingleSelector(new CancellablePlaceSystem { CancelResult = true }), new NullPresenter());
+            var controller = new PlaceSystemStateController(new SingleSelector(new CancellablePlaceSystem { CancelResult = true }), new NullPresenter(), new PlacementHeightOffset());
 
             Assert.IsFalse(controller.TryCancelInProgressOperation());
         }
@@ -44,6 +45,7 @@ namespace Client.Tests.PlaceSystem
             public bool CancelResult;
             public int CancelCallCount;
             public bool OwnsWheelInput => false;
+            public bool UsesPlacementHeight => false;
             public void Enable() { }
             public void ManualUpdate(PlaceSystemUpdateContext context) { }
             public void Disable() { }

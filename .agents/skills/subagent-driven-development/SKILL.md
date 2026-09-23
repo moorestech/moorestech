@@ -8,6 +8,7 @@ description: 現在のセッションで、独立したタスクからなる実�
 実装計画を、本体セッションが実装コードを書かずに完走させる。規模ゲート未満はopus固定の単一subagentが計画全体を実装し（**単一subagent実装モード**）、閾値超はタスクごとにimplementerを派遣してタスクレビューを挟む（**SDD本体**）。どちらも最後に moores-code-review → pr-create で閉じる。
 
 - **核となる原則:** 本体は実装を書かない。subagentにはセッション履歴を継承させず、必要なコンテキストだけをファイルで渡す。本体コンテキストは調整作業のために温存する
+- **実行環境別の手順(最初に読む):** Claude Code は [references/runtime-claude.md](references/runtime-claude.md) を読め。Codex は [references/runtime-codex.md](references/runtime-codex.md) を読め。派遣・待ち・生存確認の具体的なやり方はそこにだけ書く
 - **継続実行:** タスクの合間に「続けてよいですか？」と確認しない。止まってよいのは解決できないBLOCKED・真に進行を妨げる曖昧さ・全タスク完了のみ
 
 ## 必須ゲート（3つ）
@@ -39,14 +40,14 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 1. 台帳を確認する: `cat "$(git rev-parse --show-toplevel)/.superpowers/sdd/progress.md"`。完了記載のタスクは再派遣せず、完了マークの無い最初のタスクから再開する
 2. ワークスペース隔離（ゲート1）
-3. 計画を一度読み、**事前計画レビュー**を行う: タスク間・Global Constraintsとの矛盾、レビュー基準で欠陥になる義務付け、`moores-code-review/references/lens-digest.md` 違反を一括で人間へ提示する（問題なければ無言で進む）。詳細: controller-gates.md
+3. 計画を一度読み、**事前計画レビュー**を行う: タスク間・Global Constraintsとの矛盾、レビュー基準で欠陥になる義務付け、`moores-code-review/references/moores-reviewer-digest.md` 違反を一括で人間へ提示する（問題なければ無言で進む）。詳細: controller-gates.md
 4. 規模判定を1行で声に出す
 
 ## 単一subagent実装モード（閾値未満）
 
 1. **隔離worktree側をcwdにして** `scripts/sdd-workspace` を実行し、報告ファイルを `<workspace>/single-report.md` に決める。既存の同名ファイルは削除する。`git rev-parse --short HEAD` を BASE として控える
 2. 台帳へ `Single-subagent: dispatched base <sha7> report <path>` を書く
-3. [single-implementer-prompt.md](single-implementer-prompt.md) で `model: opus` を明示し**フォアグラウンド**で派遣する。`scripts/task-brief` は使わず計画ファイル全体の絶対パスを直渡しし、`[TASK_RANGE]` を列挙し、計画ヘッダ・末尾タスクの無効化文言を必ず含める
+3. [single-implementer-prompt.md](single-implementer-prompt.md) で `model: opus` を明示して派遣し、返るまで待つ（派遣と待ちのやり方は runtime-*.md）。`scripts/task-brief` は使わず計画ファイル全体の絶対パスを直渡しし、`[TASK_RANGE]` を列挙し、計画ヘッダ・末尾タスクの無効化文言を必ず含める
 4. ステータスに対応する（下表）。DONE なら報告ファイルの `Task N: done` 行が `[TASK_RANGE]` を全て覆い、`git log <base>..HEAD` の `Task N:` コミットと一致することを確認する
 5. 台帳へ `Single-subagent: complete (commits <base7>..<head7>)` を書き、ゲート2 → ゲート3 へ進む。タスクレビュアーは派遣しない
 
@@ -85,7 +86,7 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 - SDD本体: タスクごとに `Task N: complete (commits <base7>..<head7>, review clean)`
 - 単一モード: `dispatched` / `continuation #k from Task N base <sha7>`（PARTIAL継続のみ。この行数がそのまま継続回数） / `switched to SDD per-task …` / `complete`
-- 単一モードの復旧順: **台帳 → 元subagentの生存確認（ListAgents。生きていれば結果を待つ） → 報告ファイル → `git log`**。`dispatched` だけで `complete` が無いとき、生存確認なしに再派遣しない（死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）
+- 単一モードの復旧順: **台帳 → 元subagentの生存確認（手段は runtime-*.md。生きていれば結果を待つ） → 報告ファイル → `git log`**。`dispatched` だけで `complete` が無いとき、生存確認なしに再派遣しない（死亡と決めつけて再派遣し同一worktreeを二重編集した実事故がある）
 - `git clean -fdx` は台帳を消す。発生したら `git log` から復旧する
 
 ## モデル選定
@@ -98,7 +99,7 @@ description: 現在のセッションで、独立したタスクからなる実�
 
 - ユーザー同意なしにmain/masterで実装を始める／worktreeを作らず（既にworktree内かも確認せず）最初の派遣をする。「小さい計画だから」は理由にならない
 - 規模ゲート未満だからという理由で本体セッションが実装コードを書く（ADR 0053）
-- 単一subagentを `opus` 以外・model未指定・バックグラウンドで派遣する
+- 単一subagentを `opus` 以外・model未指定で派遣する、または結果を待たずに先へ進む（待ち方は runtime-*.md）
 - 計画ファイル全体を渡すときにヘッダ・末尾タスクの無効化文言を省く（入れ子のSDD起動や勝手なPR作成が起きる）
 - 単一subagentの途中終了時に、生存確認・報告ファイル・`git log` を経ずに再派遣する
 - SDD本体でタスクレビューを飛ばす／spec・qualityの片方を欠く報告を受け入れる／spec ❌ を「まあ十分」で通す／Critical・Importantが開いたまま次タスクへ進む

@@ -6,24 +6,22 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
-    // 書き手はパイプライン先頭で据える。前回の印の消費はタイトル（直接起動ならパイプライン）で先に済み、その間この起動は印も録画も書かないので偽の異常終了は生まれない（ADR 0065）
-    // The writer is installed at the head of the pipeline; the previous marks were consumed earlier at the title (or the pipeline for a direct boot), and this boot writes no mark or recording in between, so no false crash arises (ADR 0065)
-    // 設置時に識別を読むため、照合がAllowedで検証済みSteamIDを据えた後でなければならない
-    // It reads the identity at installation, so it must come after the launch check set the verified SteamID on Allowed
+    // 最初のawait前に据える書き手（待機中の停止も記録するため）。タイトル経由の起動では照合がAllowedで検証済みSteamIDを据えた後（TryPassStart通過後）なので識別も確定している
+    // Installed before the first await so stops during any wait are recorded; on a title boot it runs after TryPassStart set the verified SteamID on Allowed, so the identity is settled
     public static class CleanExitMarkWriter
     {
         private static CompositeDisposable _subscriptions;
 
-        public static void InstallAtStartup(int processId, string sessionName, SessionSnapshotSource snapshotSource)
+        public static void InstallAtStartup(int processId, string sessionName)
         {
             // 起動シーケンスは再入する（Editorの再生し直し）。購読は常に1組に保つ
             // The boot sequence re-enters (an Editor replay), so exactly one set of subscriptions is kept
             _subscriptions?.Dispose();
             _subscriptions = new CompositeDisposable();
 
-            // 出所も退避元もこのセッション自身が開始時に書き残す。落ちた後に読むと、次に起動したビルドやワールドの値になる（F12・D-C3）
-            // The session writes both its origin and its salvage source at start; reading them after a crash would yield whatever build or world launched next (F12, D-C3)
-            var origin = new SessionOriginSnapshot(PlaytestSessionIdentityProvider.Current.SteamId, RepositoryStateProbe.ReadBuildOrigin(), snapshotSource);
+            // 出所はこのセッション自身が開始時に書き残す。退避元はスナップショット開始時に所有印として後から足す（F12・D-C3）
+            // The session writes its own origin at start; the salvage source is added later as an ownership mark when snapshots begin (F12, D-C3)
+            var origin = new SessionOriginSnapshot(PlaytestSessionIdentityProvider.Current.SteamId, RepositoryStateProbe.ReadBuildOrigin());
             CleanExitMarker.MarkSessionStarted(processId, sessionName, origin);
 
             // 終了処理側にプレイテストの語彙を持ち込まないため、直接呼び出しでなく汎用イベントの購読で受ける

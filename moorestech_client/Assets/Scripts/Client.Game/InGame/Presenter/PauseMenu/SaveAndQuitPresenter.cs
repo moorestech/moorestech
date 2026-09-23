@@ -40,8 +40,18 @@ namespace Client.Game.InGame.Presenter.PauseMenu
         // Only unawaitable paths arrive here; a build's window close already went through the awaiting exit via the quit deferral
         private void Disconnect()
         {
-            ClientContext.VanillaApi.Disconnect();
+            // 通知が先。切断で例外が出ても終了の意思表明が飛ばない状態を作らない
+            // The notice goes first so a failing disconnect can never strand the declared exit
             GameShutdownEvent.FireGameShutdown(GameShutdownReason.UnawaitableExit);
+
+            // 接続の確立前に破棄されるとAPIはまだ居ない（起動途中のPlay停止）。切断する相手が居ないので何もしない
+            // Destroyed before the connection is established (a play-stop mid-boot) leaves no API, so there is nothing to disconnect
+            if (ClientContext.VanillaApi == null)
+            {
+                Debug.Log("サーバーとの接続が確立する前に破棄されたため、切断は行いません");
+                return;
+            }
+            ClientContext.VanillaApi.Disconnect();
         }
 
         private void LogQuitFailure(Exception exception)

@@ -2,24 +2,25 @@
 
 moores-code-review の実行本体。**既定（2026-08-20）ではこの手順書の Step 3.5〜6.5 を `scripts/review_workflow.js`（Workflow ツール）が実行する** — 本体が Step 2（check_all.py・split_chunks・Codex起動・`build_workflow_args.py`）まで行い、Workflow が系統の並列発火→統合→適用→post-check を決定論的に回す。この手順書は Workflow スクリプトの**仕様の正本**であり、JS を変えるときは先にここを直す。sonnet オーケストレータ委譲（旧既定）・インライン実行の場合は、派遣プロンプトの `Run dir` / `Patch path` / `User prompt` / `Repo root` を前提に Step 2 から自分で始める（Step 0〜1 は親が完了済み）。Step 7（報告・AskUserQuestion・記録）は親が行う — このファイルには含まれない。
 
-## 6系統の構成
+## 5系統の構成
 
 1. **決定論チェック**（`scripts/deterministic_checks.py`）— AGENTS.md・moorestech規約の機械判定分（partial・try-catch・Func・200行・10ファイル・デフォルト引数・SerializeField命名・比較演算子・コメント長・region・master_default_fallback・packet_response_root・server_realtime_api・server_elapsed_time・init_method_naming・schema_optional_true・event_tag_sync・try_catch_boundary）。0トークン。
-2. **moores設計レンズ群**（`lenses/`・11本）— moorestech固有の設計規約。実PRレビュー指摘（PR978/987/988/996/997/1000/1095/1108）由来。
-3. **汎用reviewer群**（`reviewers/`・30本）— 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外、2026-08-16再監査で採用ゼロの2本を追加削除。根拠は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`.cs` ゲートの設計レンズ5本（speculative-abstraction・type-driven-structure・hardcoded-content-enumeration・default-resolution-ownership・implicit-cardinality-assumption）の **ts/tsx翻案版**を採録し、webui差分にも同じ意味構造の検査を当てる（`_ts_lens_ports`・2026-08-04逆輸入）。
-4. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
-5. **Fable全般レビュー**（`generalists/fable-holistic-review.md`）— チェックリスト非依存の俯瞰監査。自己裏取り契約。
-6. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止（ユーザー裁定 2026-08-03）。
+2. **reviewer群**（`reviewers/`・41本）— 命名は `<出自>-<言語>-<観点>`。言語は拡張子ゲート（`cs`/`ts_tsx`、ゲート無しは `any`）。発火条件は各ファイル先頭YAML、モデルは `scripts/model_map.json`、選択は `select_reviewers.py` の1本（2026-09-23 に旧 `lenses/` を統合。実行時は同じsubagentで、違いは出自と選択条件だけだったため）。
+   - **`moores-*`（12本）** — moorestech固有の設計規約。実PRレビュー指摘（PR978/987/988/996/997/1000/1095/1108）由来。
+   - **`core-*`（29本）** — 言語横断のコード品質。全数調査（63セッション/1029起動）で採用実績のある観点のみ採録（採用0/冗長の20本と決定論代替1本は除外、2026-08-16再監査で採用ゼロの2本を追加削除。根拠は `scripts/model_map.json` の `_excluded_from_port`）。加えて、`moores-cs-*` 5本（moores-cs-speculative-abstraction・moores-cs-type-driven-structure・moores-cs-hardcoded-content-enumeration・moores-cs-default-resolution-ownership・moores-cs-implicit-cardinality-assumption）の **ts/tsx翻案版**を採録し、webui差分にも同じ意味構造の検査を当てる（`_ts_lens_ports`・2026-08-04逆輸入）。
+3. **Codex外部監査**（`scripts/codex-audit-template.md`）— 別モデルCLIの独立第三者視点。
+4. **Fable全般レビュー**（`generalists/fable-holistic-review.md`）— チェックリスト非依存の俯瞰監査。自己裏取り契約。
+5. **分割深掘り調査**（`investigators/`・3観点）— 変更ファイル（テスト・非コード除外後）が16以上の大規模PRのみ発火。`scripts/split_chunks.py` がドメイン単位で10-15ファイルのチャンクに分割し、チャンクごとに深読みバグ狩り・縫い目統合・チャンク内一貫性の3エージェントが**変更後ファイル全文**をagenticにReadする（全体diff一括の系統では希釈される注意を担保）。テストは完全隔離＝チャンク割当もReadも禁止（ユーザー裁定 2026-08-03）。
 
 ## Step 2: 機械チェック統一窓口 ①（check_all.py）
 
-**1コマンドで機械層の全観点を同時実行する。** 内部で `deterministic_checks.py`（規約の機械判定）・`dead_member_gate.py`（IL解析）・`select_lenses.py`/`select_reviewers.py`（発火観点とモデル）を全部呼び、単一JSONに束ねる。個別スクリプトを別々に叩かない（呼び忘れ・結果の取りこぼしの温床）:
+**1コマンドで機械層の全観点を同時実行する。** 内部で `deterministic_checks.py`（規約の機械判定）・`dead_member_gate.py`（IL解析）・`select_reviewers.py`（発火reviewerとモデル）を全部呼び、単一JSONに束ねる。個別スクリプトを別々に叩かない（呼び忘れ・結果の取りこぼしの温床）:
 
 ```bash
 python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --repo-root "$(pwd)" --context "<USER_PROMPT_PATH>" > <$RUNDIRの実値>/checks.json
 ```
 
-出力JSONの読み方: `deterministic`（confirmed/candidates）・`dead_member`（Step 2.5の節を参照）・`ts_dead_code`（Step 2.6の節を参照）・`lenses`/`reviewers`（Step 4で使うTSV相当の`{path, model}`一覧）・**`verifiers_to_launch`（候補件数から計算済みの起動すべきverifier一覧 — Step 4はこれに従うだけ）**・`summary`（全体集計と`errors`。errorsが空でないまま先へ進むのは禁止）。
+出力JSONの読み方: `deterministic`（confirmed/candidates）・`dead_member`（Step 2.5の節を参照）・`ts_dead_code`（Step 2.6の節を参照）・`reviewers`（Step 4で使うTSV相当の`{path, model}`一覧）・**`verifiers_to_launch`（候補件数から計算済みの起動すべきverifier一覧 — Step 4はこれに従うだけ）**・`summary`（全体集計と`errors`。errorsが空でないまま先へ進むのは禁止）。
 
 `deterministic` 節の解釈:
 
@@ -32,8 +33,8 @@ python3 .claude/skills/moores-code-review/scripts/check_all.py "<PATCH_PATH>" --
 - **`candidates.try_catch_boundary`** — 1件以上あればStep 4でtry-catch境界verifier（opus）を並列起動。0件なら起動しない。**根拠コメントの実在を免除として扱ってはならない**（コメントがあるだけの try-catch は `confirmed` のまま。許可された境界3種を主張しているものだけがこの候補に降り、verifierが実コードで裁定する。ユーザー指摘由来の較正 2026-08-02・PR1095）。
 - **`candidates.server_elapsed_time`** — 1件以上あればStep 4でサーバDateTime用途verifier（sonnet）を並列起動。0件なら起動しない。サーバ`Game.*`の`DateTime.Now/UtcNow`は「セーブへの実世界時刻記録（正当）」と「ゲーム進行の経過時間ゲート（違反）」が同じ実装形になるため、確定検出にせずverifierが用途を裁定する（PR1095 `MapObjectMiningService` のDateTimeクールダウン由来・2026-08-02）。
 - **`candidates.comment_length` / `region_internal`** — この時点では保持のみ（commentはStep 5.5で最終diffに再計測、regionはregion-internal reviewerの裏付け）。
-- **`candidates.schema_optional_true`** は master-data-defense レンズ、**`candidates.event_tag_sync`** は server-state-sync レンズの裏付けデータとして渡す（正当な例外がありうるためレンズが裁定）。
-- **`candidates.guid_literal`** は hardcoded-content-enumeration レンズ、**`candidates.event_action`**（`event Action`宣言=UniRx規約違反疑い）は domain-boundary レンズ、**`candidates.mutable_auto_property`**（`{ get; set; }`=SetHogeメソッド規約違反疑い）と **`candidates.passthrough_property`** は redundant-member-duplication レンズの裏付けデータとして渡す（DTOシリアライズ・外部interop等の正当例外はレンズが裁定。2026-08-16決定論化第2弾）。
+- **`candidates.schema_optional_true`** は moores-any-master-data-defense、**`candidates.event_tag_sync`** は moores-any-server-state-syncの裏付けデータとして渡す（正当な例外がありうるためreviewerが裁定）。
+- **`candidates.guid_literal`** は moores-cs-hardcoded-content-enumeration、**`candidates.event_action`**（`event Action`宣言=UniRx規約違反疑い）は moores-cs-domain-boundary、**`candidates.mutable_auto_property`**（`{ get; set; }`=SetHogeメソッド規約違反疑い）と **`candidates.passthrough_property`** は moores-cs-redundant-member-duplicationの裏付けデータとして渡す（DTOシリアライズ・外部interop等の正当例外はreviewerが裁定。2026-08-16決定論化第2弾）。
 
 ## Step 2.5: 死にメンバー・公開範囲・配置・キャンセルゲート（IL解析） ①.5
 
@@ -85,11 +86,11 @@ python3 .claude/skills/moores-code-review/scripts/codex_recover.py \
 
 終了コードで系統の扱いが決まる: `0`=結論あり（`.final.md` を回収して**通常どおり1系統として数える**）/ `3`=セッションはあるが未完走（再実行）/ `4`=セッション自体が無い（起動失敗＝真の欠員）/ `5`=認証失効（`.out.md` に 401・`Please log in again`。この `CODEX_HOME` で `codex login` が必要＝環境起因の欠員として報告し「codex不在」とは書かない）。**「完走したが回収に失敗した」を「Codexが失敗した」と報告するのは禁止**（前者は結論が現に存在する）。
 
-## Step 4: レンズ群＋reviewer群＋Fable全般＋verifierを並列発火する ③
+## Step 4: reviewer群＋Fable全般＋verifierを並列発火する ③
 
-発火対象とモデルは **Step 2のcheck_all.py出力の `lenses` / `reviewers` 節**（`{path, model}` の一覧）をそのまま使う。起動すべきverifierも同出力の `verifiers_to_launch` に計算済み（候補0件の種は載らない＝起動しない）。セレクタを単体で再実行したい時だけ `select_lenses.py` / `select_reviewers.py` にPATCHを渡す（TSV出力）。
+発火対象とモデルは **Step 2のcheck_all.py出力の `reviewers` 節**（`{path, model}` の一覧）をそのまま使う。起動すべきverifierも同出力の `verifiers_to_launch` に計算済み（候補0件の種は載らない＝起動しない）。セレクタを単体で再実行したい時だけ `select_reviewers.py` にPATCHを渡す（TSV出力）。
 
-チャンク分割（第6系統・分割深掘り調査用）はcheck_all.py出力に含まれないため別途実行する:
+チャンク分割（第5系統・分割深掘り調査用）はcheck_all.py出力に含まれないため別途実行する:
 
 ```bash
 python3 .claude/skills/moores-code-review/scripts/split_chunks.py "<PATCH_PATH>" > <$RUNDIRの実値>/chunks.tsv
@@ -99,9 +100,9 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 
 **並列にAgent起動する。ただし1メッセージ最大12体**（同時実行20体上限に他セッション分を含め当たると起動が黙って消えるため。mac miniで実測17%が消失・2026-08-16再監査）。13体以上になる場合は残りを次のメッセージで**完了を待たずに**続けて起動する。起動失敗（`Concurrent subagent limit`）が返った体は控えておき必ず再起動する。起動対象:
 
-1. **各発火レンズ**（select_lensesのTSVどおりの `model`）— 3行契約＋共通出力契約:
+1. **各発火reviewer**（select_reviewersのTSVどおりの `model`）— 3行契約＋共通出力契約:
    ```
-   Read this : <レンズの絶対パス>
+   Read this : <reviewerの絶対パス>
    Patch path : <PATCH_PATH>
    User prompt : <USER_PROMPT_PATH>
 
@@ -114,9 +115,8 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
    suppressed: 0行以上 — トレードオフ免責で降格した指摘。`- [Critical|Warning] <ファイル:行>: <指摘要約> / suppressed-by: <トレードオフ1行, 出所ラベル>`。Critical/Warning節には入れない（重大度は行頭表記で保持）
    設計判断: あり/なし — 従来通り（代替案の具体形・シグネチャ付き比較）
    ```
-   `precedent-alignment.md`（always発火）は発火レンズが0件でも必ず起動する。
-2. **各reviewer**（select_reviewersのTSVどおりの `model`）— 同じ3行契約＋共通出力契約。
-3. **Fable全般レビュー**（常時・`model: "fable"`）— 同じ3行契約＋共通出力契約で `generalists/fable-holistic-review.md` を渡す。
+   `moores-any-precedent-alignment.md`（always発火）は他の発火reviewerが0件でも必ず起動する。
+2. **Fable全般レビュー**（常時・`model: "fable"`）— 同じ3行契約＋共通出力契約で `generalists/fable-holistic-review.md` を渡す。
 4. **分割深掘り調査**（CHUNKS_TSVが非空のときだけ）— チャンクごとに `investigators/` の3観点（chunk-deep-correctness.md / chunk-seam-integration.md / chunk-context-consistency.md）を起動する（起動数 = チャンク数×3）。モデルは各investigator先頭YAMLの `model` を**必ずそのまま**渡す。5行契約＋共通出力契約:
    ```
    Read this : <investigatorの絶対パス>
@@ -144,7 +144,7 @@ split_chunksの出力が空（stderrに `below-threshold`）なら分割深掘�
 
 ## Step 5: 回収・統合（integratorへ委譲） ④
 
-- Step 4の全サブエージェント（レンズ・reviewer・Fable・investigator・verifier）の**完了**と、Step 3のバックグラウンドCodex3本の**完了**を確認する（未完了なら待つ。Workflow 経路では `review_workflow.js` が haiku の待機係1体（until ループ・最大 `codexWaitMaxMinutes` 分）で `.final.md` 非空を待ち、期限切れ分は `codex_recover.py` の終了コードを integrator へ渡す）。各返答は3行契約なのでそのまま受けるが、**生の報告本文・Codex出力をオーケストレータが読むのは禁止** — 中身の回収と照合はintegratorが行う。
+- Step 4の全サブエージェント（reviewer・Fable・investigator・verifier）の**完了**と、Step 3のバックグラウンドCodex3本の**完了**を確認する（未完了なら待つ。Workflow 経路では `review_workflow.js` が haiku の待機係1体（until ループ・最大 `codexWaitMaxMinutes` 分）で `.final.md` 非空を待ち、期限切れ分は `codex_recover.py` の終了コードを integrator へ渡す）。各返答は3行契約なのでそのまま受けるが、**生の報告本文・Codex出力をオーケストレータが読むのは禁止** — 中身の回収と照合はintegratorが行う。
 - 全部揃ったら**統合integrator**を1体起動する（`model: "opus"` 明示・5行契約）:
   ```
   Read this : .claude/skills/moores-code-review/integrators/finding-integrator.md
@@ -180,7 +180,7 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
    python3 .claude/skills/moores-code-review/scripts/select_post_checks.py <$RUNDIRの実値>/final.diff <$RUNDIRの実値>/checks-final.json
    ```
 
-   出力は `<post-check絶対パス>\t<モデル>` のTSV（レンズ/レビュアーのセレクタと同形式）。**出力された行だけを起動し、出力が空なら全部スキップ**（=0トークン）。発火条件は選択スクリプトが判定する: rationale-guardは最終diffにコメント削除行があるとき、convention-guardは `candidates.comment_length` が1件以上のとき。手動のgrep判定はしない。
+   出力は `<post-check絶対パス>\t<モデル>` のTSV（reviewerセレクタと同形式）。**出力された行だけを起動し、出力が空なら全部スキップ**（=0トークン）。発火条件は選択スクリプトが判定する: rationale-guardは最終diffにコメント削除行があるとき、convention-guardは `candidates.comment_length` が1件以上のとき。手動のgrep判定はしない。
    - **comment-rationale-guard**（3行契約）— load-bearingな根拠コメントがコード本体を残したまま削除・希薄化されていないか（削除行 `-` が対象）。`Read this : .claude/skills/moores-code-review/post-checks/comment-rationale-guard.md` + Patch path（最終diff）+ User prompt。
    - **comment-convention-guard**（4行契約）— スクリプト計測の文字数超過候補の例外判定・短縮案 + 名前重複コメント検出。**文字数はスクリプトの値が正**。`Read this : .claude/skills/moores-code-review/post-checks/comment-convention-guard.md` + `Candidates : <$RUNDIRの実値>/checks-final.json` + Patch path（最終diff）+ User prompt。
    - **applied-diff-correctness** はここでは選択されない（2.5 の Refix が反映 diff に対して起動する。最終 diff 全体に当てるものではない）。
@@ -192,19 +192,19 @@ Step 6の修正適用後に走らせるpost-fixガード群。**人間の変更�
 
 ## モデル割り当て
 
-モデルの正本はファイルにある。レンズ・investigator・post-check・Fable全般は各ファイル先頭YAMLの `model`、reviewerは `scripts/model_map.json`（未記載はopus）、verifierは `scripts/check_all.py` の `verifiers_to_launch`、integratorは `opus` 固定。`build_workflow_args.py` と両セレクタはこれを読んで具体値を出すので、手順書側で表を持たない。レンズの発火条件は各レンズYAMLの `extensions`/`keywords`（`select_lenses.py` が判定）。Codex監査は別CLIなので対象外。
+モデルの正本はファイルにある。investigator・post-check・Fable全般は各ファイル先頭YAMLの `model`、reviewer（moores-*・core-*とも）は `scripts/model_map.json`（`sonnet`/`fable` に列挙、未記載はopus）、verifierは `scripts/check_all.py` の `verifiers_to_launch`、integratorは `opus` 固定。`build_workflow_args.py` とセレクタはこれを読んで具体値を出すので、手順書側で表を持たない。reviewerの発火条件は各ファイル先頭YAMLの `paths`/`extensions`/`keywords`/`keywords_re`/`keywords_all`/`always`（`select_reviewers.py` が判定）。Codex監査は別CLIなので対象外。
 
 ## Gotchas（実行系）
 
-- **「並列」の実体はバックグラウンド起動** — Codexを `run_in_background` で先に投げ、完了を待たずにレンズ・reviewer・Fableを起動する。
+- **「並列」の実体はバックグラウンド起動** — Codexを `run_in_background` で先に投げ、完了を待たずにreviewer・Fableを起動する。
 - **`codex exec` のフラグ順序** — `--sandbox` `--skip-git-repo-check` はサブコマンドより**前**に置く。監査プロンプトは `$RUNDIR`（logs repo側）に置く（コードrepo内は誤コミットの恐れ・`/tmp` は消える）。
 - **verifierは候補ゼロなら起動しない** — `candidates.comparison_operator` / `candidates.try_catch_boundary` / `candidates.server_elapsed_time` / `candidates.dead_member` が空なら対応verifierは不要（0トークン）。
 - **try-catchの免除はverifierだけが出せる** — オーケストレータが「根拠コメントがあるからAGENTS.md例外を充足」と判断してCritical計上から外すのは禁止（PR1095の較正ミスそのもの）。コメントは検証対象であって証拠ではない。
-- **分割深掘り調査は閾値未満なら起動しない** — split_chunksが `below-threshold` を返したら第6系統は丸ごと不発火（0トークン）。閾値を無視してinvestigatorを手動起動しない（小PRでは既存系統と重複するだけ）。
+- **分割深掘り調査は閾値未満なら起動しない** — split_chunksが `below-threshold` を返したら第5系統は丸ごと不発火（0トークン）。閾値を無視してinvestigatorを手動起動しない（小PRでは既存系統と重複するだけ）。
 - **investigatorにテストを絶対に見せない** — チャンク割当除外だけでなくRead自体が禁止（ユーザー裁定 2026-08-03 完全隔離）。テスト不足の検知はtest系reviewerの担当のまま。
 - **文字数はスクリプトの値が正** — LLMに日本語の文字数を数え直させない。convention-guardは `count` を信頼し例外判定と短縮案だけ行う。
 - **post-checksはreviewerではない** — `post-checks/` はStep 6.5専用でセレクタのglobに含まれない。applied-diff-correctness はセレクタで選ばれず、Step 6.5-2.5 の Refix・Step 7 の設計判断反映・pr-adjudicated-apply が反映 diff（`refix_snapshot.py` の snapshot 間 diff）に対して直接起動する（手順は各 SKILL.md）。
-- **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。委譲時のあなたはsonnetなので、model未指定のサブエージェントが誤ってsonnetで起動しうる（opus/fable指定系統の無言降格）。両セレクタはTSV2列目に**常に具体値**を出す（`select_lenses.py` はmodel未記載lensを `opus` に、`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `precedent-alignment` レンズ（YAMLに `model: fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
+- **Agent起動時に必ずmodel列を渡す（モデル継承事故の防止）** — Agentツールは `model` を省略すると**親（＝あなた＝オーケストレータ）のモデルを継承**する。委譲時のあなたはsonnetなので、model未指定のサブエージェントが誤ってsonnetで起動しうる（opus/fable指定系統の無言降格）。セレクタはTSV2列目に**常に具体値**を出す（`select_reviewers.py` は未記載reviewerを `default:opus` に具体化。空欄は絶対に出さない）。この2列目を**必ずそのまま** Agentの `model` に渡すこと。fableが正になるのは `moores-any-precedent-alignment`（`model_map.json` の `fable`）とFable全般（prose指定）だけで、それ以外にfableは現れない。
 - **系統を間引かない／中断しない** — レポートはファイルへ書かせ返答は3行に絞る（Step 4の回収方式）。系統を落とすなら報告に明記する（[[2026-08-14-大規模ファンアウトは回収方式を変えて完走する]]）。
 - **Codexの `.out.md` が途中で切れていても失敗ではない** — 判定材料は `.final.md`（`-o` の出力）と `codex_recover.py` の終了コードだけ。`.out.md` を `grep` して「結論が無い＝失敗」と断じない（stdoutにはツール実行ログしか残っていないことがある）。真の失敗は「rollout にセッションが無い（exit 4）」「task_complete が無い（exit 3）」「認証失効（exit 5。rollout に結論が無いときだけ `.out.md` 両端の codex ERROR 行で判定）」の3つだけ。
-- **fableクォータ切れは黙って欠員にしない** — fable指定の系統（precedent-alignment・Fable全般）が「weekly limit」等の失敗応答を返したら、その系統を `model: "opus"` で再起動する（2026-07〜08で14起動が無言消失した実測より）。再起動した事実は最終報告に1行明記。
+- **fableクォータ切れは黙って欠員にしない** — fable指定の系統（moores-any-precedent-alignment・Fable全般）が「weekly limit」等の失敗応答を返したら、その系統を `model: "opus"` で再起動する（2026-07〜08で14起動が無言消失した実測より）。再起動した事実は最終報告に1行明記。

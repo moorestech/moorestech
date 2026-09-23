@@ -1,0 +1,29 @@
+{
+    "name": "Client.MapScene.Editor",
+    "rootNamespace": "Client.MapScene.Editor",
+    "references": [
+        "Client.Game",
+        "Client.Common",
+        "Core.Master",
+        "Game.Map.Interface",
+        "Game.MapGeneration.Facade",
+        "Game.MapGeneration.Contract",
+        "Game.Paths",
+        "Mod.Config",
+        "Mod.Loader",
+        "Server.Boot",
+        "UniTask",
+        "Unity.Addressables.Editor"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

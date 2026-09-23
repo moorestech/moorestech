@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading;
 using Client.Game.InGame.Environment.Terrain.Build;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
@@ -49,7 +50,7 @@ namespace Client.Tests.UnitTest.Terrain
 
             // 一括適用でロード画面を止めず、少なくとも1度は次フレームへ制御を返す
             // Return control to a later frame at least once instead of stalling the loading screen with one bulk apply
-            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, _terrainLayers, CreateTile(alphamap));
+            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, _terrainLayers, CreateTile(alphamap), CancellationToken.None);
             Assert.That(applyTask.Status, Is.EqualTo(UniTaskStatus.Pending));
             yield return applyTask.ToCoroutine();
 
@@ -75,7 +76,7 @@ namespace Client.Tests.UnitTest.Terrain
             var initialWeight = _terrainData.GetAlphamaps(0, 0, 32, 32)[0, 0, 0];
             var alphamap = TileAlphamap.Create(
                 new[] { new byte[AlphamapResolution * AlphamapResolution * 4] }, AlphamapResolution, 1);
-            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, System.Array.Empty<TerrainLayer>(), CreateTile(alphamap));
+            var applyTask = TerrainAlphamapApplier.ApplyAsync(_terrainData, System.Array.Empty<TerrainLayer>(), CreateTile(alphamap), CancellationToken.None);
             Assert.That(applyTask.Status, Is.EqualTo(UniTaskStatus.Faulted));
             var thrownException = Assert.Throws<System.InvalidOperationException>(() => applyTask.GetAwaiter().GetResult());
             Assert.That(thrownException.Message,
@@ -86,6 +87,36 @@ namespace Client.Tests.UnitTest.Terrain
             Assert.That(_terrainData.alphamapResolution, Is.EqualTo(32));
             Assert.That(_terrainData.terrainLayers.Length, Is.EqualTo(LayerCount));
             Assert.That(_terrainData.GetAlphamaps(0, 0, 32, 32)[0, 0, 0], Is.EqualTo(initialWeight));
+        }
+
+        [UnityTest]
+        public IEnumerator CancellationAfterFirstPlaneStopsBeforeTouchingDestroyedTextures()
+        {
+            yield return CancelAfterYield(CreatePlanes(), _terrainLayers);
+        }
+
+        [UnityTest]
+        public IEnumerator CancellationAfterLastPlaneStopsBeforeDirtyingDestroyedTerrain()
+        {
+            yield return CancelAfterYield(new[] { CreatePlanes()[0] }, new[] { _terrainLayers[0] });
+        }
+
+        private IEnumerator CancelAfterYield(byte[][] planes, TerrainLayer[] terrainLayers)
+        {
+            var alphamap = TileAlphamap.Create(planes, AlphamapResolution, terrainLayers.Length);
+            using var cancellation = new CancellationTokenSource();
+            var task = TerrainAlphamapApplier.ApplyAsync(_terrainData, terrainLayers, CreateTile(alphamap), cancellation.Token);
+            Assert.That(task.Status, Is.EqualTo(UniTaskStatus.Pending));
+
+            // reload直前でも次の更新を待たず終端へ進み、所有者が安全に破棄できることを確かめる
+            // Verify termination without another update before reload so the owner can safely destroy its data
+            cancellation.Cancel();
+            Assert.That(task.Status, Is.EqualTo(UniTaskStatus.Canceled));
+            Object.DestroyImmediate(_terrainData);
+            System.Exception thrown = null;
+            yield return task.ToCoroutine(exception => thrown = exception);
+
+            Assert.That(thrown, Is.TypeOf<System.OperationCanceledException>());
         }
 
         // 各平面の南東端へ別の値を置き、最後の端数チャンネルも明示する

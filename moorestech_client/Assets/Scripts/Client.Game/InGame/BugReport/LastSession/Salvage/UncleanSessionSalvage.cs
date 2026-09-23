@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.DiskOperations;
@@ -20,6 +19,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             var salvagedProcessIds = new List<int>();
             SessionOriginSnapshot previousOrigin;
             string playerLogPath;
+            var hasOwnedSnapshots = carriesPendingReport;
 
             if (carriesPendingReport)
             {
@@ -27,25 +27,32 @@ namespace Client.Game.InGame.BugReport.LastSession
                 // The last exit was clean, yet nobody answered an older crash's evidence; nothing is moved or overwritten and that generation is presented again (F04)
                 Debug.Log("前回異常終了の確認が未応答のため、last-session に残る前世代の資料を再提示します");
                 previousOrigin = ReadPersistedOrigin();
+                hasOwnedSnapshots = SnapshotOwnershipMatches(snapshotDestination);
                 playerLogPath = null;
                 missing.Report("playerLog", "未応答のクラッシュ資料を再提示する起動のため、その後の正常終了セッションが Player-prev.log を上書き済み");
             }
             else
             {
-                // 退避元は前回セッション自身の印から決める。今回の起動設定で代用すると、別ワールドのスナップショットが異常終了箱へ混入する（D-C3）
-                // The source is decided from the previous session's own mark; standing in with this boot's settings would mix another world's snapshots into the crash box (D-C3)
-                var latest = SelectLatestUncleanSession();
                 MoveUncleanRecordings();
-                MoveWorldSnapshots(latest.Origin);
-                previousOrigin = PersistOrigin(latest);
+                previousOrigin = SelectLatestOrigin();
+                hasOwnedSnapshots = MoveWorldSnapshots();
                 playerLogPath = PlayerLogLocator.PreviousSessionLogPath();
                 if (playerLogPath == null) missing.Report("playerLog", "前回セッションのPlayer-prev.logが見つからない");
             }
 
             var recordingDirectory = ResolveSalvagedDirectory(recordingDestination, BugReportBundleLayout.RecordingDirectoryName);
-            var snapshotsDirectory = ResolveSalvagedDirectory(snapshotDestination, BugReportBundleLayout.SnapshotDirectoryName);
+            var snapshotsDirectory = hasOwnedSnapshots ? ResolveSnapshots() : null;
             var crashDumpScan = CrashDumpLocator.FindDumpFiles();
             if (crashDumpScan.Files.Count == 0) missing.Report("crashDump", CrashDumpLocator.MissingReason(crashDumpScan));
+
+            // 未応答でも同じ世代の部分退避理由を保持する
+            // Retain partial salvage reasons with their generation across unanswered prompts
+            if (!carriesPendingReport && previousOrigin != null)
+            {
+                previousOrigin = previousOrigin.WithSalvageMissing(missing.Items);
+                var write = previousOrigin.WriteTo(originPath);
+                if (!write.Succeeded) missing.Report("previousOrigin", write.FailureReason);
+            }
 
             return PreviousSessionArtifacts.Unclean(request.LastSessionDirectory, recordingDirectory, snapshotsDirectory, playerLogPath, crashDumpScan.Files, salvagedProcessIds, exitedCleanlyByProcessId, previousOrigin, missing.Items);
 
@@ -75,78 +82,63 @@ namespace Client.Game.InGame.BugReport.LastSession
                 }
             }
 
-            // リモート接続にはスナップショットを書く内蔵サーバーがそもそも居ない。退避失敗と同じ理由文にすると毎回「失敗」に見える
-            // A remote connection has no embedded server writing snapshots at all; sharing the failure wording would read as a failure every time
-            void MoveWorldSnapshots(SessionOriginSnapshot origin)
+            // 起動先設定や前世代の退避物を、落ちたsessionの資料として代用しない
+            // Neither this boot's settings nor older salvaged files substitute for the crashed session's evidence
+            bool MoveWorldSnapshots()
             {
-                // 退避元を記録しない旧版の印。既定ワールドで代用せず、源が分からないことをそのまま表明する（D-C3）
-                // An older mark that recorded no source; rather than standing in with the default world, the unknown source is declared as it is (D-C3)
-                if (origin?.SnapshotSource == null)
-                {
-                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, "スナップショット源不明: 前回セッションの印に退避元（接続種別・ワールド）の記録が無い");
-                    return;
-                }
-
-                if (origin.SnapshotSource.IsRemoteConnection)
-                {
-                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, "リモート接続のセッションのため内蔵サーバーのスナップショットは存在しない");
-                    return;
-                }
-
-                var move = BugReportDiskOperations.MoveFilesInto(origin.SnapshotSource.WorldSnapshotDirectory, snapshotDestination);
+                var capture = previousOrigin?.SnapshotCapture;
+                if (!SnapshotOwnershipMatches(capture?.Directory)) return false;
+                var move = BugReportDiskOperations.MoveFilesInto(capture.Directory, snapshotDestination, out var moved);
                 if (!move.Succeeded) missing.Report(BugReportBundleLayout.SnapshotDirectoryName, move.FailureReason);
+                if (moved.Count == 0) return false;
+                // 有効な所有印の再書込みで資料を失わせない
+                // Avoid losing evidence through unnecessary rewrites of valid ownership marks
+                var ownerPath = Path.Combine(snapshotDestination, WorldDataDirectory.SnapshotOwnerFileName);
+                var owner = SessionOriginSnapshot.ReadFrom(ownerPath, out _);
+                if (owner != null && owner.SnapshotCapture.MissingReason == null && owner.SnapshotCapture.Owner == capture.Owner && owner.SnapshotCapture.Directory == capture.Directory) return true;
+                var write = previousOrigin.WriteTo(ownerPath);
+                if (!write.Succeeded) missing.Report(BugReportBundleLayout.SnapshotDirectoryName, write.FailureReason);
+                return true;
             }
 
-            // 複数のセッションが落ちていれば最新のものを採る。どれを採ったかは欠損列に残し、無音で1つへ潰さない（F12）
-            // With several crashed sessions the newest one is taken; which one is recorded in missing instead of silently collapsing to one (F12)
-            PreviousProcessSession SelectLatestUncleanSession()
+            string ResolveSnapshots()
             {
-                var newest = uncleanSessions[0];
+                var probe = BugReportDiskOperations.ProbeHasAnyFile(snapshotDestination,
+                    new[] { WorldDataDirectory.SnapshotFileSearchPattern, WorldDataDirectory.PacketLogFileSearchPattern });
+                if (probe.Succeeded) return snapshotDestination;
+                missing.Report(BugReportBundleLayout.SnapshotDirectoryName, $"所有印だけではsnapshot/packet資料にならない: {probe.FailureReason}");
+                return null;
+            }
+
+            bool SnapshotOwnershipMatches(string directory)
+            {
+                var capture = previousOrigin?.SnapshotCapture;
+                if (capture == null || capture.MissingReason != null)
+                {
+                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, capture?.MissingReason ?? "前回sessionの出所が読めずsnapshot所有を確認できない");
+                    return false;
+                }
+
+                var source = SessionOriginSnapshot.ReadFrom(Path.Combine(directory, WorldDataDirectory.SnapshotOwnerFileName), out var reason);
+                if (source == null || source.SnapshotCapture.MissingReason != null || source.SnapshotCapture.Owner != capture.Owner || source.SnapshotCapture.Directory != capture.Directory)
+                {
+                    missing.Report(BugReportBundleLayout.SnapshotDirectoryName, $"保存元の所有印が前回sessionと一致しない（別sessionによる再利用、印の欠落を含む）: {reason}");
+                    return false;
+                }
+
+                return true;
+            }
+
+            // 複数のセッションが落ちていれば最新の出所を載せる。どれを載せたかは欠損列に残し、無音で1つへ潰さない（F12）
+            // With several crashed sessions the newest origin is carried; which one is recorded in missing instead of silently collapsing to one (F12)
+            SessionOriginSnapshot SelectLatestOrigin()
+            {
+                var latest = uncleanSessions[0];
                 foreach (var session in uncleanSessions)
-                    if (0 < ProcessSessionScope.CompareSessionNames(session.SessionName, newest.SessionName)) newest = session;
-                if (1 < uncleanSessions.Count)
-                {
-                    missing.Report("previousOrigin", $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {newest.ProcessId} {newest.SessionName} の出所を載せた");
+                    if (0 < ProcessSessionScope.CompareSessionNames(session.SessionName, latest.SessionName)) latest = session;
+                if (1 < uncleanSessions.Count) missing.Report("previousOrigin", $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {latest.ProcessId} {latest.SessionName} の出所を載せた");
 
-                    // 録画は全セッションぶん移すのにスナップショットは最新1件の出所からしか移さない。実際に取り残す分だけを欠損として表明する（別ワールドの盤面が箱に無い理由）
-                    // The recordings of every session are moved while the snapshots come from the newest origin alone, so only what is really left behind is declared missing (why another world's board is absent from the box)
-                    var skippedCount = CountSessionsLeftBehind();
-                    if (0 < skippedCount)
-                        missing.Report(BugReportBundleLayout.SnapshotDirectoryName, $"異常終了したセッションが{uncleanSessions.Count}件あり、最新の pid {newest.ProcessId} {newest.SessionName} の出所のスナップショットだけを退避した（うち{skippedCount}件は出所が異なるため見送り）");
-                }
-                return newest;
-
-                // 同じワールドで落ちた別セッションは最新の出所を移した時点で一緒に退避済み。見送りに数えると起きていない欠損を報告してしまう
-                // Another session that crashed in the same world is already salvaged by moving the newest origin; counting it would report a loss that never happened
-                int CountSessionsLeftBehind()
-                {
-                    var newestDirectory = newest.Origin?.SnapshotSource?.WorldSnapshotDirectory;
-                    var leftBehind = 0;
-                    foreach (var session in uncleanSessions)
-                    {
-                        if (session == newest) continue;
-
-                        // リモート接続のセッションには内蔵サーバーのスナップショットが無く、見送る盤面がそもそも存在しない
-                        // A remote session has no embedded-server snapshots, so there is no board to leave behind
-                        var source = session.Origin?.SnapshotSource;
-                        if (source != null && source.IsRemoteConnection) continue;
-
-                        // 出所不明は「同じワールドだった」と言い切れない。取り残した側へ倒して黙らない
-                        // An unknown source cannot be claimed to be the same world, so it falls to the left-behind side instead of going silent
-                        if (source != null && newestDirectory != null && string.Equals(source.WorldSnapshotDirectory, newestDirectory, StringComparison.Ordinal)) continue;
-                        leftBehind++;
-                    }
-                    return leftBehind;
-                }
-            }
-
-            SessionOriginSnapshot PersistOrigin(PreviousProcessSession latest)
-            {
-                if (latest.Origin != null)
-                {
-                    latest.Origin.WriteTo(originPath);
-                    return latest.Origin;
-                }
+                if (latest.Origin != null) return latest.Origin;
 
                 missing.Report("previousOrigin", $"前回セッションの出所が不明（どのビルドで落ちたか分からない）: {latest.OriginMissingReason}");
                 var deletion = BugReportFileOperations.DeleteFile(originPath);
@@ -158,6 +150,7 @@ namespace Client.Game.InGame.BugReport.LastSession
             {
                 var origin = SessionOriginSnapshot.ReadFrom(originPath, out var failureReason);
                 if (origin == null) missing.Report("previousOrigin", $"再提示するクラッシュ資料の出所が不明: {failureReason}");
+                else foreach (var item in origin.SalvageMissing) missing.Report(item.Item, item.Reason);
                 return origin;
             }
 

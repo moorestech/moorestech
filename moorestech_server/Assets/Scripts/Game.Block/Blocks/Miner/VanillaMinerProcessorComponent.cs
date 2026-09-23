@@ -19,7 +19,6 @@ using Game.Context;
 using Game.Map.Interface.Vein;
 using MessagePack;
 using Mooresmaster.Model.MineSettingsModule;
-using Newtonsoft.Json;
 using UniRx;
 using UnityEngine;
 using Game.Block.Interface.Component.ConnectJudge;
@@ -43,10 +42,13 @@ namespace Game.Block.Blocks.Miner
         private readonly float _baseRequestEnergy;
         private readonly float _idlePowerRate;
         
-        // 次のエネルギー供給かアップデートがあるまでは_currentPowerを維持しておきたいのでこのフラグを使う
-        // Use this flag because you want to keep _currentPower until the next energy supply or update
-        private bool _usedPower;
-        private float _currentPower;
+        // tick内供給電力の受け皿。Updateの先頭で配信値へ確定して0へ戻す
+        // Accumulates this tick's supply; latched into the published values and reset at the top of Update
+        private float _suppliedPower;
+
+        // 配信する分子・分母。Updateの先頭で同じ状態基準から一括確定する（前例 MachineProcessContext.LatchTickPower）
+        // Published numerator and denominator, latched together on one state basis at the top of Update (precedent: MachineProcessContext.LatchTickPower)
+        private PublishedPowerLatch _publishedPower;
 
         private uint _defaultMiningTicks;
         private uint _remainingTicks;
@@ -67,7 +69,11 @@ namespace Game.Block.Blocks.Miner
             _connectInventoryService = new ConnectingInventoryListPriorityInsertItemService(blockInstanceId, inputConnectorComponent);
             
             SetMiningItem();
-            
+
+            // 設置直後の1tick目から正しい要求電力を配信できるよう初期状態でラッチする（前例 ElectricPumpProcessorComponent）
+            // Latch the initial request power so it is correct from the first tick even before an Update (precedent: ElectricPumpProcessorComponent)
+            _publishedPower = new PublishedPowerLatch(0f, RequestEnergy);
+
             #region Internal
 
             void SetMiningItem()
@@ -138,14 +144,9 @@ namespace Game.Block.Blocks.Miner
         {
             BlockException.CheckDestroy(this);
 
-            _usedPower = false;
-            _currentPower = power;
-            // アイドル中はエネルギーの供給を受けてもその情報がクライアントに伝わらないため、明示的に通知を行う
-            // During idle, even if energy is supplied, the information is not transmitted to the client, so the client is notified explicitly.
-            if (_currentState == VanillaMinerState.Idle)
-            {
-                _blockStateChangeSubject.OnNext(Unit.Default);
-            }
+            // 複数の電力セグメントから供給され得るため加算する
+            // Accumulate because multiple electric segments may supply this miner
+            _suppliedPower += power;
         }
         
         public string SaveKey { get; } = typeof(VanillaMinerProcessorComponent).FullName;
@@ -170,11 +171,11 @@ namespace Game.Block.Blocks.Miner
         {
             BlockException.CheckDestroy(this);
             
-            if (_usedPower)
-            {
-                _usedPower = false;
-                _currentPower = 0f;
-            }
+            // 供給はこの状態遷移前のRequestEnergyへの応答なので、分母も遷移前の基準で分子と一括確定する
+            // The supply answered the pre-transition RequestEnergy, so the denominator is latched with the numerator on that basis
+            var previousPublishedPower = _publishedPower;
+            _publishedPower = new PublishedPowerLatch(_suppliedPower, RequestEnergy);
+            _suppliedPower = 0f;
             
             MinerProgressUpdate();
             InsertConnectInventory();
@@ -203,7 +204,7 @@ namespace Game.Block.Blocks.Miner
                 }
 
                 _currentState = VanillaMinerState.Mining;
-                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_currentPower, _baseRequestEnergy);
+                var subTicks = MachineCurrentPowerToSubSecond.GetSubTicks(_publishedPower.CurrentPower, _baseRequestEnergy);
                 if (subTicks == 0)
                 {
                     // 電力の都合で処理を進められないのでreturn
@@ -223,26 +224,16 @@ namespace Game.Block.Blocks.Miner
                 {
                     _remainingTicks -= subTicks;
                 }
-
-                _usedPower = true;
             }
             
+            // 採掘中は毎tick、待機へ落ちたtickと配信値（分子・分母）が動いたtickに発火し、発火後に前tick状態を更新する
+            // Fire every tick while mining, and on the drop to idle or a tick where a published value (either side) moved; then record this tick's state
             void CheckStateAndInvokeEventUpdate()
             {
-                if (_lastMinerState == VanillaMinerState.Mining && _currentState == VanillaMinerState.Idle)
-                {
-                    //Miningからidleに切り替わったのでイベントを発火
-                    InvokeChangeStateEvent();
-                    _lastMinerState = _currentState;
-                    return;
-                }
-                
-                if (_currentState == VanillaMinerState.Idle)
-                    //Idle中は発火しない
-                    return;
-                
-                //マイニング中 この時は常にイベントを発火
-                InvokeChangeStateEvent();
+                var droppedToIdle = _lastMinerState == VanillaMinerState.Mining && _currentState == VanillaMinerState.Idle;
+                var publishedPowerMoved = _publishedPower.MovedFrom(previousPublishedPower);
+                if (_currentState == VanillaMinerState.Mining || droppedToIdle || publishedPowerMoved) InvokeChangeStateEvent();
+                _lastMinerState = _currentState;
             }
             
             void InvokeChangeStateEvent()
@@ -283,7 +274,7 @@ namespace Game.Block.Blocks.Miner
             BlockStateDetail GetMachineBlockStateDetail()
             {
                 var processingRate = _defaultMiningTicks > 0 ? 1 - (float)_remainingTicks / _defaultMiningTicks : 0;
-                var stateDetail = new CommonMachineBlockStateDetail(_currentPower, RequestEnergy, processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
+                var stateDetail = new CommonMachineBlockStateDetail(_publishedPower.CurrentPower, _publishedPower.RequestPower, processingRate, _currentState.ToStr(), _lastMinerState.ToStr());
                 var stateDetailBytes = MessagePackSerializer.Serialize(stateDetail);
                 return new BlockStateDetail(CommonMachineBlockStateDetail.BlockStateDetailKey, stateDetailBytes);
             }
@@ -406,44 +397,5 @@ namespace Game.Block.Blocks.Miner
             _blockStateChangeSubject.Dispose();
             _blockStateChangeSubject = null;
         }
-    }
-    
-    public enum VanillaMinerState
-    {
-        Idle,
-        Mining,
-    }
-    
-    public static class ProcessStateExtension
-    {
-        /// <summary>
-        ///     <see cref="ProcessState" />をStringに変換します。
-        ///     EnumのToStringを使わない理由はアロケーションによる速度低下をなくすためです。
-        /// </summary>
-        public static string ToStr(this VanillaMinerState state)
-        {
-            return state switch
-            {
-                VanillaMinerState.Idle => "idle",
-                VanillaMinerState.Mining =>"mining",
-                _ => throw new ArgumentOutOfRangeException(nameof(state), state, null),
-            };
-        }
-    }
-    
-    public class VanillaElectricMinerSaveJsonObject
-    {
-        [JsonProperty("items")]
-        public List<ItemStackSaveJsonObject> Items;
-
-        // 秒数として保存（tick数の変動に対応）
-        // Save as seconds (to handle tick rate changes)
-        [JsonProperty("remainingSeconds")]
-        public double RemainingSeconds;
-
-        // 復元時に採掘対象が変わっていないかを見るための対象アイテム
-        // The target items, used on load to see whether the mining targets changed
-        [JsonProperty("miningItemGuids")]
-        public List<string> MiningItemGuids;
     }
 }

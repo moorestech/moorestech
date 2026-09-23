@@ -1,7 +1,10 @@
 using System;
 using System.IO;
-using System.Linq;
+using System.Net;
+using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
+using Core.Update;
 using Game.Paths;
 using NUnit.Framework;
 using Server.Boot;
@@ -13,8 +16,9 @@ namespace Tests.CombinedTest.Server
     // The production shutdown path must release the OS resources always-on capture holds; leftovers accumulate per session
     public class ServerShutdownReleasesCaptureTest
     {
-        [Test]
-        public void 終了経路が常時記録の区間ファイルのハンドルを手放す()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void 終了経路が常時記録の区間ファイルのハンドルを手放す(bool waitForTick)
         {
             // 常時記録は既定で無効なので、本番のプレイ開始と同じく明示的に有効化してから起動する
             // Always-on capture is disabled by default, so it is enabled explicitly here just like the real play start
@@ -33,10 +37,23 @@ namespace Tests.CombinedTest.Server
             try
             {
                 manager.Start();
+                var connection = (Thread)typeof(ServerInstanceManager).GetField("_connectionUpdateThread", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(manager);
+                var gameUpdate = (Thread)typeof(ServerInstanceManager).GetField("_gameUpdateThread", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(manager);
+                var port = manager.BoundPort;
+                if (waitForTick)
+                {
+                    var firstTick = GameUpdater.CurrentTick;
+                    for (var attempt = 0; attempt < 500 && GameUpdater.CurrentTick == firstTick; attempt++) Thread.Sleep(10);
+                    Assert.AreNotEqual(firstTick, GameUpdater.CurrentTick, "ゲーム更新が開始されていない");
+                }
                 var snapshotDirectory = WorldDataDirectory.FromWorldRoot(worldRoot).SnapshotDirectory;
                 Assert.IsTrue(Directory.Exists(snapshotDirectory), "常時記録が開始されていない");
 
                 manager.Dispose();
+                Assert.IsFalse(connection.IsAlive);
+                Assert.IsFalse(gameUpdate.IsAlive);
+                using var probe = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                Assert.DoesNotThrow(() => probe.Bind(new IPEndPoint(IPAddress.Any, port)));
 
                 // 開いたままのFileStreamが残っていれば排他オープンが失敗する。これが積み上がりの唯一の外形的な証拠
                 // An exclusive open fails while a FileStream is still held; that is the only externally visible evidence of the leak
@@ -55,9 +72,6 @@ namespace Tests.CombinedTest.Server
                 AlwaysOnCaptureSetting.Apply(AlwaysOnCaptureSetting.Disabled());
 
                 manager.Dispose();
-                // 終了スレッドがディレクトリを離すのを少しだけ待ってから消す
-                // Give the shutdown threads a moment to let go of the directory before deleting it
-                Thread.Sleep(100);
                 if (Directory.Exists(worldRoot)) Directory.Delete(worldRoot, true);
             }
         }

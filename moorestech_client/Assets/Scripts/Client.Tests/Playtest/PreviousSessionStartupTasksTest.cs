@@ -52,7 +52,7 @@ namespace Client.Tests.Playtest
 
             // 失敗した試行は開始の印だけを残し、成功した再試行が正常終了の印を置く
             // The failed attempt leaves only its start mark while the successful retry places the clean-exit mark
-            var origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), null);
+            var origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor());
             CleanExitMarker.MarkSessionStarted(TestProcessId, failedAttempt, origin);
             CleanExitMarker.MarkSessionStarted(TestProcessId, retriedAttempt, origin);
             CleanExitMarker.MarkCleanExit(TestProcessId, retriedAttempt);
@@ -61,16 +61,29 @@ namespace Client.Tests.Playtest
             Assert.IsTrue(CleanExitMarker.ConsumeSessionMarks(TestProcessId, retriedAttempt).ExitedCleanly);
         }
 
-        // 退避済みでもセッション名は更新する。退避の分岐の中へ移すと、再試行が失敗した試行の段へ書き戻る
-        // The session name is renewed even when the salvage already ran; moving it into that branch would send a retry back into the failed attempt's level
+        // 書き手の設置より先にセッション名を更新する。逆だと再試行が失敗した試行の段へ印を書き戻す
+        // The session name is renewed before installing the writer; the other way round a retry would write back into the failed attempt's level
         [Test]
-        public void RunAtStartupは退避の判断より前にセッション名を更新する()
+        public void BeginCurrentSessionMarksは書き手の設置より前にセッション名を更新する()
+        {
+            var beginCurrentSessionMarks = typeof(PreviousSessionStartupTasks).GetMethod(nameof(PreviousSessionStartupTasks.BeginCurrentSessionMarks), BindingFlags.Static | BindingFlags.Public);
+            var beginNewSession = typeof(ProcessSessionScope).GetMethod(nameof(ProcessSessionScope.BeginNewSession), BindingFlags.Static | BindingFlags.Public);
+            var installWriter = typeof(CleanExitMarkWriter).GetMethod(nameof(CleanExitMarkWriter.InstallAtStartup), BindingFlags.Static | BindingFlags.Public);
+
+            Assert.IsTrue(MethodCallInspector.CallsInOrder(beginCurrentSessionMarks, beginNewSession, installWriter));
+        }
+
+        // パイプラインでのセッション名の更新は BeginCurrentSessionMarks の1回に一本化する。退避側で進めると書き手の段と食い違い、今回の印を前回として畳む
+        // The pipeline renews the session name only once in BeginCurrentSessionMarks; renewing it again at salvage would split from the writer's level and fold this boot's marks as previous
+        [Test]
+        public void RunAtStartupはセッション名を更新しない()
         {
             var runAtStartup = typeof(PreviousSessionStartupTasks).GetMethod(nameof(PreviousSessionStartupTasks.RunAtStartup), BindingFlags.Static | BindingFlags.Public);
             var beginNewSession = typeof(ProcessSessionScope).GetMethod(nameof(ProcessSessionScope.BeginNewSession), BindingFlags.Static | BindingFlags.Public);
             var unattendedReason = typeof(PlaytestStartGateBypass).GetMethod(nameof(PlaytestStartGateBypass.UnattendedReason), BindingFlags.Static | BindingFlags.Public);
 
-            Assert.IsTrue(MethodCallInspector.CallsInOrder(runAtStartup, beginNewSession, unattendedReason));
+            Assert.IsFalse(MethodCallInspector.ContainsCall(runAtStartup, beginNewSession));
+            Assert.IsTrue(MethodCallInspector.ContainsCall(runAtStartup, unattendedReason));
         }
     }
 }

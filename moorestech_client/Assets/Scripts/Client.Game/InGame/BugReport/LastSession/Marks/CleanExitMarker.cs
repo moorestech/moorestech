@@ -56,6 +56,23 @@ namespace Client.Game.InGame.BugReport.LastSession
             WriteMarker(ExitIntentMarkerPath(processId, sessionName), "終了の意思表明の印");
         }
 
+        internal static void RecordSnapshotCapture(int processId, string sessionName, string snapshotDirectory)
+        {
+            var originPath = Path.Combine(SessionMarkDirectory(processId, sessionName), OriginFileName);
+            var origin = SessionOriginSnapshot.ReadFrom(originPath, out var reason);
+            if (origin == null)
+            {
+                Debug.LogWarning($"snapshot所有情報を記録できません: {reason}");
+                return;
+            }
+
+            // 保存元とsessionの両方が同じ所有者を指す場合だけ次回回収を許す
+            // Next-boot salvage requires both the source and session to name the same owner
+            var ownedOrigin = new SessionOriginSnapshot(origin.SteamId, origin.BuildOrigin, SessionSnapshotCapture.Started(snapshotDirectory, processId, sessionName));
+            ownedOrigin.WriteTo(Path.Combine(snapshotDirectory, WorldDataDirectory.SnapshotOwnerFileName));
+            ownedOrigin.WriteTo(originPath);
+        }
+
         public static void MarkCleanExit(int processId, string sessionName)
         {
             WriteMarker(CleanMarkerPath(processId, sessionName), "正常終了の印");

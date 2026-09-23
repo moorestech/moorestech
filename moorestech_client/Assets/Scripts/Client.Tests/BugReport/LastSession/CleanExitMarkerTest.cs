@@ -31,7 +31,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 正常終了の印があれば前回は正常終了と判定し印ごと消える()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot("steam-1", BuildOriginReading.Editor(), new SessionSnapshotSource(false, "/tmp/world/snapshots")));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot("steam-1", BuildOriginReading.Editor()));
             CleanExitMarker.MarkExitIntent(TestProcessId, OlderSessionName);
             CleanExitMarker.MarkCleanExit(TestProcessId, OlderSessionName);
 
@@ -41,11 +41,6 @@ namespace Client.Tests.BugReport
             Assert.IsFalse(record.ShutdownStalled);
             Assert.AreEqual("steam-1", record.Origin.SteamId, "開始時に書いた出所が読み戻せていない");
             Assert.AreEqual(BuildOriginKind.Editor, record.Origin.BuildOrigin.Kind);
-
-            // 退避元も開始時の記録から読み戻す。次回起動の設定で代用しないための土台（D-C3）
-            // The salvage source is read back from the start-time record too; this is the ground for never standing in with the next boot's settings (D-C3)
-            Assert.IsFalse(record.Origin.SnapshotSource.IsRemoteConnection);
-            Assert.AreEqual("/tmp/world/snapshots", record.Origin.SnapshotSource.WorldSnapshotDirectory);
 
             // 消えていれば一覧に出ず、もう一度消費しても正常終了の印も出所も読めない
             // Once removed it is not listed, and consuming again reads neither the clean mark nor the origin
@@ -58,7 +53,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 開始の印だけが残っていれば前回は異常終了と判定する()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor(), null));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
 
             Assert.IsTrue(ContainsMarked(OlderSessionName));
             var record = CleanExitMarker.ConsumeSessionMarks(TestProcessId, OlderSessionName);
@@ -71,7 +66,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 終了の意思表明だけで書き出し完了の印が無ければ終了処理中の停止として数える()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor(), null));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
             CleanExitMarker.MarkExitIntent(TestProcessId, OlderSessionName);
 
             var record = CleanExitMarker.ConsumeSessionMarks(TestProcessId, OlderSessionName);
@@ -84,7 +79,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 生存している他pidの印は回収の対象にならず消えない()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor(), null));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
 
             var scan = PreviousProcessScanner.Scan(0, CurrentSessionName, new RecordingProcessTakeover(), CleanExitMarker.MarkedSessions(), new[] { TestProcessId });
 
@@ -97,8 +92,8 @@ namespace Client.Tests.BugReport
         [Test]
         public void 自pidの今回以外のセッションは前回として数え今回のセッションは数えない()
         {
-            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor(), null));
-            CleanExitMarker.MarkSessionStarted(TestProcessId, CurrentSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor(), null));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, OlderSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
+            CleanExitMarker.MarkSessionStarted(TestProcessId, CurrentSessionName, new SessionOriginSnapshot(null, BuildOriginReading.Editor()));
 
             var scan = PreviousProcessScanner.Scan(TestProcessId, CurrentSessionName, new RecordingProcessTakeover(), CleanExitMarker.MarkedSessions(), new[] { TestProcessId });
 
@@ -110,7 +105,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 意図的な終了以外は終了の印を書かない()
         {
-            CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName, new SessionSnapshotSource(false, "/tmp/world/snapshots"));
+            CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName);
 
             // 初期化失敗でメインメニューへ戻る経路は、拾いたいクラッシュ側。ここで印を書くと録画が次回起動で捨てられる
             // The fold-up to the main menu after a failed initialization is the crash side; a mark here would discard the recording at the next boot
@@ -125,7 +120,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 正常終了の印は全参加者の書き出しが終わるまで書かれない()
         {
-            CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName, new SessionSnapshotSource(false, "/tmp/world/snapshots"));
+            CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName);
             var participant = new ControllableShutdownParticipant();
             GameShutdownEvent.RegisterParticipant(participant);
 
@@ -146,7 +141,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 待てない終了は意思表明の時点で正常終了の印を書く()
         {
-            CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName, new SessionSnapshotSource(false, "/tmp/world/snapshots"));
+            CleanExitMarkWriter.InstallAtStartup(TestProcessId, CurrentSessionName);
             GameShutdownEvent.RegisterParticipant(new ControllableShutdownParticipant());
 
             UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, "書き出し完了を待てない終了のため、意思表明の時点で正常終了として記録します（終了処理中の停止はこの経路では検知できません）");

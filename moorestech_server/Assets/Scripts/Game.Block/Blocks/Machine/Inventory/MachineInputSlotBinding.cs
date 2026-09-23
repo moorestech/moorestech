@@ -70,11 +70,13 @@ namespace Game.Block.Blocks.Machine.Inventory
 
         // 空アイテムは取り出しなのでどのスロットでも許す
         // An empty stack means a take-out, so it is allowed on any slot
-        public bool IsAllowedToPlace(int localSlot, IItemStack itemStack)
+        public MachineSlotPlacementCheck CheckPlacement(int localSlot, IItemStack itemStack)
         {
-            if (itemStack.Id == ItemMaster.EmptyItemId) return true;
-            if (_recipe == null) return false;
-            return MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, localSlot, itemStack.Id);
+            if (itemStack.Id == ItemMaster.EmptyItemId) return MachineSlotPlacementCheck.Allowed;
+            if (_recipe == null) return MachineSlotPlacementCheck.RecipeNotSelected;
+            return MachineRecipeSlotBindingUtil.IsInputBoundTo(_recipe, localSlot, itemStack.Id)
+                ? MachineSlotPlacementCheck.Allowed
+                : MachineSlotPlacementCheck.ItemNotBoundToSlot;
         }
 
         public bool IsFluidAllowedAt(int tankIndex, FluidId fluidId)

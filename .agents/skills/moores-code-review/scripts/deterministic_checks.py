@@ -22,19 +22,19 @@ Usage:
         "try_catch_boundary":   [...],  # verifiers/try-catch-boundary-verifier.md(opus)で裁定
         "comment_length":       [...],  # post-checks/comment-convention-guard.md(sonnet)で裁定
         "region_internal":      [...],  # core-cs-region-internal reviewer の裏付けデータ
-        "schema_optional_true": [...],  # master-data-defense レンズの裏付けデータ
-        "event_tag_sync":       [...],  # server-state-sync レンズの裏付けデータ
-        "guid_literal":         [...],  # hardcoded-content-enumeration レンズの裏付けデータ
-        "event_action":         [...],  # domain-boundary レンズの裏付けデータ（UniRx規約）
-        "mutable_auto_property":[...],  # redundant-member-duplication レンズの裏付けデータ
-        "passthrough_property": [...]   # redundant-member-duplication レンズの裏付けデータ
+        "schema_optional_true": [...],  # moores-any-master-data-defenseの裏付けデータ
+        "event_tag_sync":       [...],  # moores-any-server-state-syncの裏付けデータ
+        "guid_literal":         [...],  # moores-cs-hardcoded-content-enumerationの裏付けデータ
+        "event_action":         [...],  # moores-cs-domain-boundaryの裏付けデータ（UniRx規約）
+        "mutable_auto_property":[...],  # moores-cs-redundant-member-duplicationの裏付けデータ
+        "passthrough_property": [...]   # moores-cs-redundant-member-duplicationの裏付けデータ
       }
     }
 
 confirmed は汎用(checks_static: partial・try-catch・デフォルト引数・SerializeField命名・200行・10ファイル)
 と moorestech固有(checks_moores: master_default_fallback・packet_response_root)、
 および --context 指定時の出所ラベル欠落(checks_context: context_source_label)の和。
-空リストは対応 verifier/レンズ裏付けを起動しない合図（0トークン）。
+空リストは対応 verifier/moores-* reviewer の裏付けを起動しない合図（0トークン）。
 """
 from __future__ import annotations
 
@@ -46,7 +46,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import checks_comment_length
 import checks_comparison
-import checks_lens_evidence
+import checks_moores_reviewer_evidence
 import checks_moores
 import checks_region
 import checks_static
@@ -77,10 +77,10 @@ def main(argv: list[str]) -> int:
             "region_internal": checks_region.run(files, repo_root),
             "schema_optional_true": checks_moores.schema_optional_true(files),
             "event_tag_sync": checks_moores.event_tag_sync(files, patch_text, repo_root),
-            "guid_literal": checks_lens_evidence.guid_literal(files),
-            "event_action": checks_lens_evidence.event_action(files),
-            "mutable_auto_property": checks_lens_evidence.mutable_auto_property(files),
-            "passthrough_property": checks_lens_evidence.passthrough_property(files),
+            "guid_literal": checks_moores_reviewer_evidence.guid_literal(files),
+            "event_action": checks_moores_reviewer_evidence.event_action(files),
+            "mutable_auto_property": checks_moores_reviewer_evidence.mutable_auto_property(files),
+            "passthrough_property": checks_moores_reviewer_evidence.passthrough_property(files),
         },
     }
     json.dump(result, sys.stdout, ensure_ascii=False, indent=2)

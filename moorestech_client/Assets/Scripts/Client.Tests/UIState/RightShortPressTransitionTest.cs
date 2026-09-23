@@ -2,6 +2,7 @@ using System;
 using System.Runtime.Serialization;
 using Client.Game.InGame.Block;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Targets;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Undo;
@@ -146,7 +147,7 @@ namespace Client.Tests.UIState
         {
             var skitManager = (SkitManager)FormatterServices.GetUninitializedObject(typeof(SkitManager));
             var dataStore = CreateComponent<BlockGameObjectDataStore>("BlockDataStore");
-            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter(new MouseCursorTooltipState()));
+            var placeStateController = new PlaceSystemStateController(selector, new PlacementFeedbackTooltipPresenter(new MouseCursorTooltipState()), new PlacementHeightOffset());
             var pickService = new PlacementTargetPickService(null, null);
             var hotbarInputService = CreateHotbarTapInputService(placeStateController);
             var rightShortPressInputService = new RightShortPressInputService(new RightShortPressInput());
@@ -179,6 +180,7 @@ namespace Client.Tests.UIState
             public bool CancelResult;
             public int CancelCallCount;
             public bool OwnsWheelInput => false;
+            public bool UsesPlacementHeight => false;
             public void Enable() { }
             public void ManualUpdate(PlaceSystemUpdateContext context) { }
             public void Disable() { }

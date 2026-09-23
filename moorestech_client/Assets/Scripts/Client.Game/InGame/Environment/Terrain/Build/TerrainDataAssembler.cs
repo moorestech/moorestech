@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Core.Master.Validator;
 using Cysharp.Threading.Tasks;
 using Game.MapGeneration.Facade;
@@ -17,14 +18,38 @@ namespace Client.Game.InGame.Environment.Terrain.Build
     {
         public static async UniTask<TerrainData> AssembleAsync(
             WorldTerrainLayout layout, BakedTerrainTile tile,
-            IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers)
+            IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers, CancellationToken cancellationToken)
         {
-            var detailResolution = ValidateDetailInputs();
             var terrainData = new TerrainData();
+            var assembled = false;
+            try
+            {
+                await AssembleIntoAsync(terrainData, layout, tile, detailPrototypes, terrainLayers, cancellationToken);
+                assembled = true;
+                return terrainData;
+            }
+            finally
+            {
+                // 失敗時だけ自身の確保分を破棄し、成功時の所有権は呼び手へ渡す
+                // Release this allocation on failure and transfer ownership to the caller on success
+                if (!assembled)
+                {
+                    if (Application.isPlaying) Object.Destroy(terrainData);
+                    else Object.DestroyImmediate(terrainData);
+                }
+            }
+        }
+
+        public static async UniTask AssembleIntoAsync(
+            TerrainData terrainData, WorldTerrainLayout layout, BakedTerrainTile tile,
+            IReadOnlyList<DetailPrototype> detailPrototypes, TerrainLayer[] terrainLayers, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var detailResolution = ValidateDetailInputs();
             ApplyHeightmap();
-            await TerrainAlphamapApplier.ApplyAsync(terrainData, terrainLayers, tile);
+            await TerrainAlphamapApplier.ApplyAsync(terrainData, terrainLayers, tile, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
             ApplyDetail();
-            return terrainData;
 
             #region Internal
 
@@ -56,8 +81,8 @@ namespace Client.Game.InGame.Environment.Terrain.Build
                     terrainData.SetDetailLayer(0, 0, layerIndex, detailMaps[layerIndex]);
             }
 
-            // native TerrainDataを作る前に、全detail入力の本数と寸法を確定する
-            // Settle every detail count and dimension before allocating the native TerrainData
+            // native TerrainDataを変更する前に、全detail入力の本数と寸法を確定する
+            // Settle every detail count and dimension before modifying the native TerrainData
             int ValidateDetailInputs()
             {
                 var detailMaps = tile.DetailMaps;

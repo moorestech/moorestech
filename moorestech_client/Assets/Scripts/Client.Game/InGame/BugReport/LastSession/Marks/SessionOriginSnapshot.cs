@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Client.Game.InGame.BugReport.BuildOrigin;
+using Client.Game.InGame.BugReport.DiskOperations;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -8,27 +10,39 @@ using UnityEngine;
 
 namespace Client.Game.InGame.BugReport.LastSession
 {
-    // セッション開始時点の出所（ビルド・SteamID・退避元）。前回クラッシュの箱に「今回起動したビルドやワールド」を付けないため、落ちたセッション自身が書き残す（F12・D-C3）
-    // The origin at session start (build, SteamID, salvage source); the crashed session writes it itself so the previous crash's box never carries the build or world launched this time (F12, D-C3)
+    // セッション開始時点の出所（ビルド・SteamID・スナップショット記録）。前回クラッシュの箱に「今回起動したビルドやワールド」を付けないため、落ちたセッション自身が書き残す（F12・D-C3）
+    // The origin at session start (build, SteamID, snapshot capture); the crashed session writes it itself so the previous crash's box never carries the build or world launched this time (F12, D-C3)
     public sealed class SessionOriginSnapshot
     {
         private static readonly JsonSerializer Serializer = JsonSerializer.Create(new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() });
 
         public string SteamId { get; }
         public BuildOriginReading BuildOrigin { get; }
+        internal readonly SessionSnapshotCapture SnapshotCapture;
+        internal readonly IReadOnlyList<MissingItem> SalvageMissing;
 
-        // 退避元を記録しない旧版の印はnull。無音で今回の既定ワールドへ落とさず「スナップショット源不明」として欠損に表明する（D-C3）
-        // Null for an older mark that recorded no source; instead of silently falling back to this boot's default world it is declared missing as an unknown source (D-C3)
-        public SessionSnapshotSource SnapshotSource { get; }
+        public SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin) : this(steamId, buildOrigin, SessionSnapshotCapture.NotStarted())
+        {
+        }
 
-        public SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin, SessionSnapshotSource snapshotSource)
+        internal SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin, SessionSnapshotCapture snapshotCapture) : this(steamId, buildOrigin, snapshotCapture, new List<MissingItem>())
+        {
+        }
+
+        private SessionOriginSnapshot(string steamId, BuildOriginReading buildOrigin, SessionSnapshotCapture snapshotCapture, IReadOnlyList<MissingItem> salvageMissing)
         {
             SteamId = steamId;
             BuildOrigin = buildOrigin;
-            SnapshotSource = snapshotSource;
+            SnapshotCapture = snapshotCapture;
+            SalvageMissing = salvageMissing;
         }
 
-        public void WriteTo(string path)
+        internal SessionOriginSnapshot WithSalvageMissing(IReadOnlyList<MissingItem> missing)
+        {
+            return new SessionOriginSnapshot(SteamId, BuildOrigin, SnapshotCapture, new List<MissingItem>(missing));
+        }
+
+        public SalvageOperationResult WriteTo(string path)
         {
             var json = new JObject
             {
@@ -36,13 +50,8 @@ namespace Client.Game.InGame.BugReport.LastSession
                 ["buildOriginKind"] = BuildOrigin.Kind.ToString(),
                 ["buildInfo"] = BuildOrigin.BuildInfo == null ? JValue.CreateNull() : JObject.FromObject(BuildOrigin.BuildInfo, Serializer),
                 ["buildOriginMissingReason"] = BuildOrigin.MissingReason,
-                ["snapshotSource"] = SnapshotSource == null
-                    ? JValue.CreateNull()
-                    : new JObject
-                    {
-                        ["isRemoteConnection"] = SnapshotSource.IsRemoteConnection,
-                        ["worldSnapshotDirectory"] = SnapshotSource.WorldSnapshotDirectory,
-                    },
+                ["snapshotCapture"] = SnapshotCapture.ToJson(),
+                ["salvageMissing"] = new JObject { ["version"] = 1, ["owner"] = SnapshotCapture.Owner, ["items"] = JArray.FromObject(SalvageMissing, Serializer) },
             };
 
             // 出所の書き出しはディスクIO。失敗しても起動は続け、次回の箱では出所不明として欠損に表明される
@@ -50,11 +59,19 @@ namespace Client.Game.InGame.BugReport.LastSession
             try
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(path));
-                File.WriteAllText(path, json.ToString(Formatting.Indented));
+                // 容量不足でも既存の所有証明を壊さない
+                // Preserve existing ownership evidence even when disk space runs out
+                var temporaryPath = path + ".tmp";
+                File.WriteAllText(temporaryPath, json.ToString(Formatting.Indented));
+                if (File.Exists(path)) File.Replace(temporaryPath, path, null);
+                else File.Move(temporaryPath, path);
+                return SalvageOperationResult.Success();
             }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e))
             {
-                Debug.LogError($"セッションの出所を書けませんでした（このセッションが落ちると出所不明の箱になります） {path}: {e.Message}");
+                var reason = $"セッションの出所を書けませんでした（このセッションが落ちると出所不明の箱になります） {path}: {e.Message}";
+                Debug.LogError(reason);
+                return SalvageOperationResult.Failure(reason);
             }
         }
 
@@ -73,7 +90,8 @@ namespace Client.Game.InGame.BugReport.LastSession
             string kindText;
             BuildInfo buildInfo;
             string buildOriginMissingReason;
-            SessionSnapshotSource snapshotSource;
+            SessionSnapshotCapture snapshotCapture;
+            IReadOnlyList<MissingItem> salvageMissing;
 
             // 読み込みはディスクIO、JObject.Parse は外部入力JSONのパース境界（途中で落ちたセッションは切れたJSONを残しうる）
             // Reading is disk IO and JObject.Parse is the external JSON parse boundary (a session that died midway can leave truncated JSON)
@@ -85,7 +103,8 @@ namespace Client.Game.InGame.BugReport.LastSession
                 var buildInfoToken = obj["buildInfo"];
                 buildInfo = buildInfoToken == null || buildInfoToken.Type == JTokenType.Null ? null : buildInfoToken.ToObject<BuildInfo>(Serializer);
                 buildOriginMissingReason = (string)obj["buildOriginMissingReason"];
-                snapshotSource = ReadSnapshotSource(obj["snapshotSource"]);
+                snapshotCapture = SessionSnapshotCapture.Read(obj["snapshotCapture"]);
+                salvageMissing = ReadSalvageMissing(obj["salvageMissing"], snapshotCapture.Owner);
             }
             catch (Exception e) when (BugReportBundleWriter.IsDiskFailure(e) || e is JsonException || e is ArgumentException)
             {
@@ -94,17 +113,29 @@ namespace Client.Game.InGame.BugReport.LastSession
             }
 
             var buildOrigin = ToBuildOrigin(kindText, buildInfo, buildOriginMissingReason, path, out failureReason);
-            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, buildOrigin, snapshotSource);
-        }
+            return buildOrigin == null ? null : new SessionOriginSnapshot(steamId, buildOrigin, snapshotCapture, salvageMissing);
 
-        // 退避元を持たない旧版の印はnullのまま返す。読めた値だけを信じ、欠けている項目を今回の起動設定で埋めない（D-C3）
-        // An older mark without a source comes back as null; only what was read is trusted and no missing field is filled from this boot's settings (D-C3)
-        private static SessionSnapshotSource ReadSnapshotSource(JToken token)
-        {
-            if (token == null || token.Type != JTokenType.Object) return null;
-            var isRemoteConnection = (bool?)token["isRemoteConnection"];
-            if (isRemoteConnection == null) return null;
-            return new SessionSnapshotSource(isRemoteConnection.Value, (string)token["worldSnapshotDirectory"]);
+            #region Internal
+
+            static IReadOnlyList<MissingItem> ReadSalvageMissing(JToken token, string owner)
+            {
+                // 旧形式や世代不一致を「欠損なし」にしない
+                // Never interpret legacy or mismatched generations as having no missing evidence
+                var unknown = new List<MissingItem> { new MissingItem { Item = "previousOrigin", Reason = "退避欠損の履歴が不明（旧形式・不正形式・所有世代不一致）" } };
+                if (!(token is JObject ledger) || !JToken.DeepEquals(ledger["version"], new JValue(1)) ||
+                    !JToken.DeepEquals(ledger["owner"], owner == null ? JValue.CreateNull() : new JValue(owner)) || !(ledger["items"] is JArray items)) return unknown;
+
+                var result = new List<MissingItem>();
+                foreach (var item in items)
+                {
+                    if (!(item is JObject entry) || entry["item"]?.Type != JTokenType.String || entry["reason"]?.Type != JTokenType.String ||
+                        string.IsNullOrWhiteSpace((string)entry["item"]) || string.IsNullOrWhiteSpace((string)entry["reason"])) return unknown;
+                    result.Add(new MissingItem { Item = (string)entry["item"], Reason = (string)entry["reason"] });
+                }
+                return result;
+            }
+
+            #endregion
         }
 
         private static BuildOriginReading ToBuildOrigin(string kindText, BuildInfo buildInfo, string missingReason, string path, out string failureReason)

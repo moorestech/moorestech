@@ -57,7 +57,7 @@ class LedgerGateTest(unittest.TestCase):
         self.assertEqual(len(problems), 1)
         self.assertIn("判断台帳セクション", problems[0])
 
-    def test_no_lens_target_never_blocks(self):
+    def test_no_moores_reviewer_target_never_blocks(self):
         plan = self.write_plan("# Plan\n\n- Modify: `docs/notes.md`\n")
         self.assertEqual(ledger_gate.missing_entries(plan, RULES), [])
 

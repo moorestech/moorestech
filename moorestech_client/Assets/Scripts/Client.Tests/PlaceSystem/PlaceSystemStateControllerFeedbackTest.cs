@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Client.Game.InGame.BlockSystem.PlaceSystem;
+using Client.Game.InGame.BlockSystem.PlaceSystem.Common;
 using Client.Game.InGame.BlockSystem.PlaceSystem.Feedback;
 using Mooresmaster.Localization.Generated;
 using NUnit.Framework;
@@ -17,7 +18,7 @@ namespace Client.Tests.PlaceSystem
         {
             var placeSystem = new FakePlaceSystem();
             var presenter = new FakePlacementFeedbackPresenter();
-            var controller = new PlaceSystemStateController(new FakePlaceSystemSelector(placeSystem), presenter);
+            var controller = new PlaceSystemStateController(new FakePlaceSystemSelector(placeSystem), presenter, new PlacementHeightOffset());
 
             controller.ManualUpdate();
             controller.ManualUpdate();
@@ -34,7 +35,7 @@ namespace Client.Tests.PlaceSystem
         public void 設置モード離脱で理由表示を消す()
         {
             var presenter = new FakePlacementFeedbackPresenter();
-            var controller = new PlaceSystemStateController(new FakePlaceSystemSelector(new FakePlaceSystem()), presenter);
+            var controller = new PlaceSystemStateController(new FakePlaceSystemSelector(new FakePlaceSystem()), presenter, new PlacementHeightOffset());
 
             controller.ManualUpdate();
             controller.Disable();
@@ -47,7 +48,7 @@ namespace Client.Tests.PlaceSystem
         {
             var presenter = new FakePlacementFeedbackPresenter();
 
-            var controller = new PlaceSystemStateController(new FakePlaceSystemSelector(new FakePlaceSystem()), presenter);
+            var controller = new PlaceSystemStateController(new FakePlaceSystemSelector(new FakePlaceSystem()), presenter, new PlacementHeightOffset());
 
             Assert.IsNotNull(controller);
             Assert.AreEqual(0, presenter.HideCount);
@@ -57,6 +58,7 @@ namespace Client.Tests.PlaceSystem
         private class FakePlaceSystem : IPlaceSystem
         {
             public bool OwnsWheelInput => false;
+            public bool UsesPlacementHeight => false;
 
             public void Enable() { }
 

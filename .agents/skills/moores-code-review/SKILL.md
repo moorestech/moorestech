@@ -1,26 +1,26 @@
 ---
 name: moores-code-review
 description: |
-  moorestechのPR作成前・マージ前レビューを単体で完結させる統合スキル。6系統を並列実行する:
-  ①決定論チェック（汎用+moorestech固有の機械判定）②moores設計レンズ群（ドメイン境界・サーバー状態同期3点セット・
-  DataStore分離・マスタデータ防御・型構造・前例一致）③汎用reviewer群（汎用コード品質の採用実績ある観点＋webui向けts/tsx設計観点）
-  ④Codex外部監査 ⑤Fable全般レビュー ⑥分割深掘り調査（大規模PR時のみ・10-15ファイル/チャンクで全文精読）。
+  moorestechのPR作成前・マージ前レビューを単体で完結させる統合スキル。5系統を並列実行する:
+  ①決定論チェック（汎用+moorestech固有の機械判定）②reviewer群（moores-*: ドメイン境界・サーバー状態同期3点セット・
+  DataStore分離・マスタデータ防御・型構造・前例一致などmoorestech固有の設計規約／core-*: 汎用コード品質の採用実績ある観点＋webui向けts/tsx設計観点）
+  ③Codex外部監査 ④Fable全般レビュー ⑤分割深掘り調査（大規模PR時のみ・10-15ファイル/チャンクで全文精読）。
   指摘を実コード照合・重複排除のうえ統合し、機械的修正を自動適用、
-  設計判断だけ末尾でAskUserQuestion。設計レンズと汎用レビュー機構を1本に束ね、これ単体でレビューが完結する。
+  設計判断だけ末尾でAskUserQuestion。moorestech固有の設計規約と汎用レビュー機構を1本に束ね、これ単体でレビューが完結する。
   既定ではStep 3.5〜6.5をWorkflowツール（scripts/review_workflow.js）で決定論的に実行する（2026-08-20。本体は対象確定・機械チェック・Codex起動・AskUserQuestionのみ。sonnet委譲はWorkflow不可時のフォールバック）。
   Use when:
   1. moorestechでPR作成前・マージ前のレビューを行う時（pr-create前に必ず1パス）
   2. subagent-driven-development の最終ブランチレビューを行う時
-  3. 「moores-code-reviewで」「moorestechレンズでレビュー」「設計レンズを通して」「コードレビューして」と言われた時
+  3. 「moores-code-reviewで」「moorestechの設計規約でレビュー」「コードレビューして」と言われた時
 ---
 
 # moores-code-review
 
-moorestechのコードレビューを **決定論チェック → 6系統の並列レビュー → 実コード照合・重複排除 → 自動適用 → 報告** の順で単体完結させる（外部スキルへの依存なし）。
+moorestechのコードレビューを **決定論チェック → 5系統の並列レビュー → 実コード照合・重複排除 → 自動適用 → 報告** の順で単体完結させる（外部スキルへの依存なし）。
 
-**この SKILL.md は本体セッション用のディスパッチャである**（2026-08-18 分割・2026-08-20 Workflow化）。本体がやるのは Step 0〜2（対象確定・機械チェック・Codex起動・Workflow args）・Workflow 起動・Step 7（報告と AskUserQuestion）だけで、**Step 3〜6.5 の実行手順・6系統の詳細・モデル割り当て・実行系 Gotchas の正本は `references/orchestrator-steps.md`**、その実行形が `scripts/review_workflow.js` にある。本体が orchestrator-steps.md を通読するのはインライン実行(後述)の場合のみ。
+**この SKILL.md は本体セッション用のディスパッチャである**（2026-08-18 分割・2026-08-20 Workflow化）。本体がやるのは Step 0〜2（対象確定・機械チェック・Codex起動・Workflow args）・Workflow 起動・Step 7（報告と AskUserQuestion）だけで、**Step 3〜6.5 の実行手順・5系統の詳細・モデル割り当て・実行系 Gotchas の正本は `references/orchestrator-steps.md`**、その実行形が `scripts/review_workflow.js` にある。本体が orchestrator-steps.md を通読するのはインライン実行(後述)の場合のみ。
 
-系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②mooresレンズ11本 ③汎用reviewer 30本 ④Codex外部監査3本 ⑤Fable全般 ⑥分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。
+系統の要約（詳細は orchestrator-steps.md）: ①決定論チェック(check_all.py・0トークン) ②reviewer 41本（moores-* 12・core-* 29） ③Codex外部監査3本 ④Fable全般 ⑤分割深掘り調査(16ファイル以上のみ) + 条件発火verifier + post-checks 2本（コメント保全）+ Refix（反映diff再レビュー `applied-diff-correctness.md`・`scripts/refix_snapshot.py` の snapshot 間 diff・最大3周）+ opus integrator。
 
 ## Workflow実行（既定・2026-08-20）
 
@@ -67,7 +67,7 @@ Workflow の返り値を報告へ転記する前に、`systems.planned` が `che
      シナリオは実プレイを踏ませるための使い捨ての操作台本であり、プロダクトコードの規約（重複排除・
      命名・行数）で裁く対象ではない。指摘しても設計判断の裁定コストだけが増える
      （ユーザー裁定 2026-08-16 / PR#1137-F12）。`Client.Playtest` のDSL本体はこのパス外なので通常どおり見る
-2. **4カテゴリcontextを書く** — `<$RUNDIRの実値>/context.md`（**USER_PROMPT_PATH**）に埋める。埋め忘れるとレンズ/reviewerがfalse-positiveを量産する:
+2. **4カテゴリcontextを書く** — `<$RUNDIRの実値>/context.md`（**USER_PROMPT_PATH**）に埋める。埋め忘れるとreviewerがfalse-positiveを量産する:
    - **目指す（ゴール）** / **目指さない（非目標）** / **許容するトレードオフ** / **尊重すべき制約**
    - **4カテゴリは必ず `##` 見出しで書く**（太字箇条書き形式は出所ラベル検査の対象外になり沈黙故障する。見出しゼロはfail-closedでconfirmedになる）。
    - **「許容するトレードオフ」「非目標」の各行に出所ラベル必須**: `[ユーザー裁定: "発言引用" または AskUserQuestion結果 YYYY-MM-DD]` / `[ADR: <spec名>#<台帳項目>]` / `[agent前提]`。ラベル無し・引用不能な行は自動的に `[agent前提]` 扱いで免責力を持たない（`references/integration-rules.md` §6）。ユーザー裁定の出所はspec/planの判断台帳（ADRセクション）から引く（台帳がSSOT）。
@@ -111,11 +111,12 @@ Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_P
 
 ## Step 7: 報告＋AskUserQuestion ⑥
 
-1. **統合報告** — Critical/Warning/Info件数、各指摘の出所（決定論/レンズ名/reviewer名/Codex/Fable/N系統一致）、適用した修正、コンパイル・テスト結果。Warningは1件1行で全件載せる（保険としてコンテキストに乗せるのが目的。黙って落とさない）。Infoは末尾に圧縮列挙。raw出力やレビュー表をそのまま貼らない。Codex/Fableをスキップした場合はその旨を明記。
+1. **統合報告** — Critical/Warning/Info件数、各指摘の出所（決定論/reviewer名/Codex/Fable/N系統一致）、適用した修正、コンパイル・テスト結果。Warningは1件1行で全件載せる（保険としてコンテキストに乗せるのが目的。黙って落とさない）。Infoは末尾に圧縮列挙。raw出力やレビュー表をそのまま貼らない。Codex/Fableをスキップした場合はその旨を明記。
    - **「免責で消された指摘」セクション必須**: 各観点の `suppressed:` 節を固定形式 `- [Critical|Warning] <指摘要約> — suppressed-by: <トレードオフ1行, 出所ラベル>` で列挙する（元の重大度を行頭に保持。0件なら「suppressed: 0件」と明記）。§2.6参照。
 2. **保留した設計判断だけ**をAskUserQuestionで選択肢付き一括提示（0件ならスキップ）。回答に従い適用（§5の安全規則・検証を再適用）。裁定結果の適用は、1〜2箇所の機械的な直しなら本体が最小Edit、まとまった量なら fix subagent（`model: "sonnet"`）1体に design.md のパス+裁定を渡す。
    - **例外: SDD の単一subagent実装モードから呼ばれた場合**（`subagent-driven-development` の規模ゲート未満の派遣を経てこのレビューに来た場合）は、**裁定反映の fix subagent を `model: "opus"` とし、本体による最小Editは行わない**（量が1〜2箇所でも fix subagent に渡す）。ADR 0053「本体セッションは実装コードを書かない」を最終レビュー局面でも守り切るため。通常の呼び出しでは従来どおり本体の最小Edit or fix subagent（`sonnet`）。
    - **裁定反映 diff の再レビュー（Refix・Step 6 と同じ手順）**: 裁定を適用する**前**に `python3 .claude/skills/moores-code-review/scripts/refix_snapshot.py snapshot --repo-root "$(pwd)" --run-dir $RUNDIR --name w7-s0` を取り、適用後に `--name w7-s1` → `refix_snapshot.py diff --from w7-s0 --to w7-s1 --out $RUNDIR/refix/w7-round1.diff` で反映 diff と `scope` を得る。`source` なら `post-checks/applied-diff-correctness.md`（`model: "opus"`・Step 4 と同じ5行契約＋`Refix of : design.md の該当裁定`・Patch path = その diff・報告先 `agents/refix-correctness-w7-r1.md`）を1体起動する（理由は同ファイル冒頭。Step 6 側は Workflow の Refix フェーズが同じ手順を回す）。Critical は直して `w7-s2` を取り直し直した差分だけで再実行（最大3周。機械的でなければ再度 AskUserQuestion）、上限超過・適用0件は未収束として報告冒頭に明記、Warning/Info は最終報告へ。`non-source`/`none` なら起動せず報告に1行。
+   - **設計判断を反映した diff の構造レビュー（2026-09-20 導入）**: 上の反映 diff が型・スキーマ・公開シグネチャを新設または変更していれば、`reviewers/core-cs-centralization-duplication.md`（`.ts`/`.tsx` のみなら `core-ts_tsx-centralization-duplication.md`）を同じ diff・同じ5行契約で opus 1体起動する（報告先 `agents/refix-structure-w7-r1.md`）。裁定を反映した diff は新しい設計そのものだが、applied-diff-correctness は設計に言及しない。Critical は上と同じ扱い、`設計判断: あり` は最終報告へ案の形ごと載せる。根拠（2026-09-20 実測・後知恵なし opus 各1体）: 当時の反映diffへこの reviewer を当てるリプレイ4回のうち3回が、本番レビューが見逃してマージ済みの実在Critical（`BiomeObjectConfigRuntimeApplier` がバイオーム列挙を4箇所目に増やし、「1箇所化」という導入理由を導入物自身の文字列 switch が打ち消している件）を独立に検出した。一方この工程の契機となった bands 二重定義そのものは 4回中1回しか出ない — **特定の指摘の再発防止ではなく、反映diffに残る設計欠陥一般への網として入れている**（reviewer の焦点は毎回揺れるので、1回の検出を当てにしない）。
    - **載せてよいのは本質的な設計判断のみ**（アーキテクチャ・パターン選択・スコープ影響・両立不能な指摘・サブエージェントの `設計判断: あり`）。**載せるの禁止**: コメントの短縮・文体（convention-guard が自己完結）、200行超過・ファイル分割（努力目標・報告のみ）。混ぜた時点で規約違反（ユーザー裁定 2026-07-23）。
    - **design.md に無い選択肢を本体が足すのも禁止** — 「現状維持」「別issueへ」を付け足さない。推奨は design.md の正解形に揃える（`references/integration-rules.md` §4）。
    - **設問は「症状 → 原因 → 推奨」の順**（ユーザー裁定 2026-08-03）。書き出しはコードを読まなくても分かるゲーム上・開発上の症状、原因は1〜2行、推奨を第1選択肢に置き末尾に `（推奨）`、各選択肢に症状が消える理由を1行。観点名・レビュアー名・「N系統一致」は設問の主役にせず報告本文へ。症状を1文で書けない指摘は設問にせず Warning へ落とす。判定基準: **その設問だけを読んだ人が、コードを開かずに選べるか**。
@@ -124,7 +125,7 @@ Run dir : <$RUNDIRの実値> / Patch path : <PATCH_PATH> / User prompt : <USER_P
 
 ## Gotchas（本体側）
 
-- **4カテゴリcontextを埋めないとレンズ/reviewerが誤検知する** — 空contextは「合意なし」と解釈され既定Criticalが出る。
+- **4カテゴリcontextを埋めないとreviewerが誤検知する** — 空contextは「合意なし」と解釈され既定Criticalが出る。
 - **AskUserQuestionは末尾だけ** — 確定修正の途中で割り込まない。
 - **人間指摘の見逃しが出たら** — その場で観点をいじらず `references/skill-improvement.md` の手順（フォレンジック・リプレイ診断→対策→4段階検証）に従う。
 - 実行系のGotchas（codexフラグ順序・verifier発火条件・モデル継承事故・fableクォータ・生出力を読まない等）の正本は `references/orchestrator-steps.md` — インラインで回すときは必ずそちらを読む。

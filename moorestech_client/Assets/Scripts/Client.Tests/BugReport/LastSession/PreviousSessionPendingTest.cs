@@ -65,7 +65,7 @@ namespace Client.Tests.BugReport
         [Test]
         public void 異常終了セッションの出所は再提示の起動でも読み戻せる()
         {
-            var origin = new SessionOriginSnapshot("steam-crashed", BuildOriginReading.Editor(), new SessionSnapshotSource(false, _snapshots));
+            var origin = new SessionOriginSnapshot("steam-crashed", BuildOriginReading.Editor());
             var crashed = Session(DeadProcessId, "session_1", false, null);
             crashed.Origin = origin;
 
@@ -80,7 +80,6 @@ namespace Client.Tests.BugReport
         public void 出所が読めない異常終了は欠損として表明する()
         {
             var crashed = Session(DeadProcessId, "session_1", false, null);
-            crashed.Origin = null;
             crashed.OriginMissingReason = "印が無い";
 
             var artifacts = PreviousSessionSalvage.Salvage(Request(crashed));
@@ -113,16 +112,9 @@ namespace Client.Tests.BugReport
             Assert.IsNull(artifacts.PreviousOrigin);
         }
 
-        private PreviousProcessSession Session(int processId, string sessionName, bool exitedCleanly, string recordingDirectory)
+        private static PreviousProcessSession Session(int processId, string sessionName, bool exitedCleanly, string recordingDirectory)
         {
-            return new PreviousProcessSession
-            {
-                ProcessId = processId,
-                SessionName = sessionName,
-                ExitedCleanly = exitedCleanly,
-                RecordingDirectory = recordingDirectory,
-                Origin = new SessionOriginSnapshot(null, BuildOriginReading.Editor(), new SessionSnapshotSource(false, _snapshots)),
-            };
+            return new PreviousProcessSession { ProcessId = processId, SessionName = sessionName, ExitedCleanly = exitedCleanly, RecordingDirectory = recordingDirectory };
         }
 
         private PreviousSessionSalvageRequest Request(params PreviousProcessSession[] sessions)
