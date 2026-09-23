@@ -1,6 +1,6 @@
 # Rider Debugger 運用の詰まりどころ集
 
-SKILL.md の Step 4 / 5 で BP を使うときに参照する、実運用で踏んだ罠の詳細。SKILL.md のサマリで足りない時だけ読む。
+SKILL.md の Step 4 / 5 と Gotchas G1/G3/G6 が指す、Rider debugger の運用手順と実運用で踏んだ罠の正本。
 
 ## 1. BP設置の順序
 

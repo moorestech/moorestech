@@ -99,33 +99,7 @@ BP運用の詳細・コツ・失敗パターンは [references/debugger-gotchas.
 
 BP が当たったら `get_variables` でローカル変数一覧を取得。個別値は `evaluate_expression` で見る。
 
-**重要な制約: Riderの soft debugger は "Implicit evaluation is disabled" がデフォルト。** property getter と method call は動かない。フィールド直アクセスが必要:
-
-```csharp
-// 動かない例
-someList.Count                     // property getter
-someDict[key]                      // indexer（property）
-obj.ComputeSomething()             // method call
-
-// 動く例
-someList._size                     // List<T>.Count の実体
-someList._items[i]                 // List<T> の内部配列
-obj._privateField                  // 直接フィールドアクセス
-```
-
-`List<T>` は `_items` (T[]) と `_size` (int) がランタイムフィールド。property `Count` は使えない。配列インデクサ `[i]` はフィールド経由 (`_items[i]`) なら効く。
-
-型判定で `is` を使うときは **fully qualified name** が必須:
-
-```csharp
-// NG: The type or namespace name 'XXX' does not exist
-_items[i] is ItemStack
-
-// OK
-_items[i] is Core.Item.Implementation.ItemStack
-```
-
-**internal クラスでも namespace.Class まで書けば参照できる。** エラーメッセージが出たら `Grep` で namespace を確認して付け直す。
+Riderの soft debugger は既定で "Implicit evaluation is disabled" のため property getter とメソッド呼び出しが動かない。`List<T>` なら `_size` / `_items[i]` のフィールド直アクセス、`is` 判定は `Core.Item.Implementation.ItemStack` のような完全修飾名で書く（internal クラスも可）。内部フィールド早見表・条件付きBPの組み立て手順・Dictionary/HashSet の扱いは [references/debugger-gotchas.md](references/debugger-gotchas.md) §4/§5。複雑な集計は debugger でがんばらず `execute-dynamic-code`（通常のC#環境。LINQ・property・await が全部使える）へ移す。
 
 ### Step 5.5. コード修正に入る前に PlayMode を停止する
 
@@ -135,7 +109,7 @@ _items[i] is Core.Item.Implementation.ItemStack
 uloop control-play-mode --action stop --project-path ./{project}
 ```
 
-**理由:** PlayMode 中に C# ファイルを編集すると Unity は中途半端な domain reload を試み、走行中の世界とロード後の世界が混在して状態が壊れる。配置済みオブジェクトが古いクラス定義のまま動き続け、新しいインターフェース実装は反映されないなど、再現困難なバグが派生する（詳細 G9）。
+**理由:** PlayMode 中に `.cs` を保存すると Unity は scripts compiled in PlayMode に入り、走行中の世界のオブジェクトは古いクラス定義のまま動き続ける（Domain Reload 無効なら永久にすり替わらない）。他コンポーネントを `is` / `as` で型判定して接続する機構（コネクタ・インベントリ等）が壊滅的に壊れ、切り分けに数十分かかる。ユーザーが手動で PlayMode を回している時も、編集に入る瞬間に「PlayMode を停止します」と一言入れて停止する。
 
 **例外:** 1ファイルも触らず、再度ランタイム観測だけする場合は停止不要。あくまで「`.cs` / `.asmdef` を Edit/Write する直前」で停止する。
 
@@ -154,44 +128,31 @@ uloop control-play-mode --action stop --project-path ./{project}
 
 ### G1: Unity が busy になったら即 Rider debugger セッションを停止する
 
-**症状:** `uloop execute-dynamic-code` が 180秒タイムアウトでエラー、Unity Editor が応答しない、`get-logs` も返ってこない。
+`execute-dynamic-code` が180秒タイムアウトし `get-logs` も返らないのは、debugger が paused/step のまま Unity のスクリプトスレッドを止めている状態。Rider の停止ボタン (Shift+F5) か `stop_debug_session` で即復活する。復旧手順・tracepoint の地雷は debugger-gotchas.md §6/§7。
 
-**原因:** Rider debugger が paused/step 状態で止まったまま離脱されると、Unity のスクリプトスレッドが debugger のコマンド待ちで固まる。特に tracepoint/logpoint で複雑な `{this}` 式を評価させると頻発する。
-
-**対処:** **Rider側でdebugger停止ボタンを押す** (Shift+F5) → Unity が即座に復活する。MCP経由で`stop_debug_session`を呼んでもよい。
-
-**予防:**
-- tracepoint/logpoint には複雑な式（`{this}` やフィールド連鎖）を入れない。`i={i}` 程度にする
-- 長時間 Unity に触れない時は BP を外しておく
-- 作業が終わったら Step 6 のクリーンアップを忠実に実行
-
-### G2: 「Implicit evaluation is disabled」は debugger 側の制限。dynamic code では全機能使える
-
-Debugger の `evaluate_expression` / 条件付きBP では property getter やメソッドが呼べないが、`uloop execute-dynamic-code` は通常のC#実行環境なので **LINQ・property・拡張メソッド・await すべて使える**。複雑な集計は debugger でがんばらず動的コードに移すと速い。
-
-### G3: 静的state は PlayMode 停止後も残ることがある
+### G2: 静的state は PlayMode 停止後も残ることがある
 
 Unity Editor の Domain Reload を無効にしている場合、静的フィールド（例: シングルトン、サービスプロバイダ、UniRx Subject）は PlayMode 停止→再開後も前回の状態を引きずる。「さっき見たインスタンスが再開後にも見える」のは新しくロードされたのではなく残骸の可能性がある。
 
 **確認法:** PlayMode 再開後に `list_threads` で期待するバックグラウンドスレッドが**新しく**存在しているか、プロジェクト特有の初期化ログが出ているかを見る。
 
-### G4: BPのhitCount=0は「通っていない」の強い証拠
+### G3: BPのhitCount=0は「通っていない」の強い証拠
 
-`list_breakpoints` は各line BPのhitCountを返す。数十秒PlayMode継続後にhitCount=0なら、そのコードは実行されていない。**「BPの設定漏れ？」と疑う前にhitCountを信じる。** 逆に、hitCountが増えているのにwait_for_pauseがタイムアウトするなら、suspend policyが`none`（tracepoint）になっているか、別スレッドでヒットしている。
+「BPの設定漏れ？」と疑う前に hitCount を信じ、呼び出し元へ遡って次のBPを張る（debugger-gotchas.md §2）。hitCount が増えるのに `wait_for_pause` がタイムアウトするなら suspend policy が `none` か別スレッドでのヒット。
 
-### G5: 複数インスタンスへのBPは「全ヒット」する
+### G4: 複数インスタンスへのBPは「全ヒット」する
 
 同じクラスのインスタンスが N 個ある場合、そのクラスのメソッドに張った BP は N 個全部でヒットする。「対象のインスタンスだけ見たい」時は Step 3 の動的コードダンプでインスタンスID（`BlockInstanceId` や `GetInstanceID()` 等）を先に特定し、BPの条件に `this._instanceId == ...` を入れる。
 
-### G6: for ループで empty 要素を早期 skip する条件があると BP body は発火しない
+### G5: for ループで empty 要素を早期 skip する条件があると BP body は発火しない
 
 例: 「全スロット舐めるループだが、空アイテムは `continue` / ループ条件で skip」というパターン。外側のループ先頭BPは当たるが、内部処理のBPは永久に当たらない。「呼ばれているはず」なのに当たらない時は **外側ループの条件** を読んで早期 skip がないか確認する。
 
-### G7: 条件付きBP の式は最初に `i == 0` 等で syntax 検証する
+### G6: 条件付きBP の式は段階を踏んで組み立てる
 
-いきなり複雑な条件（`_items[i] is My.Ns.Class`）を書くと、式エラーで **silent に BP が無効化** されることがある（Rider の場合ダイアログで "ブレークポイントで停止しますか？" が出る）。まず確実に true になる条件（`i == 0` 等）で一度ヒットさせ、その後にステップで `evaluate_expression` しながら本条件を組み立てると確実。
+複雑な条件をいきなり書くと式エラーで silent に BP が無効化される。条件なしで一度ヒットさせ、`evaluate_expression` で式を検証してから `condition` に載せる（debugger-gotchas.md §5）。
 
-### G8: field 名や型名からアーキテクチャ構成を推論するな。必ず probe で確定
+### G7: field 名や型名からアーキテクチャ構成を推論するな。必ず probe で確定
 
 **症状:** `_localServerProcess (Process)` のような field を見て「サーバーは別OSプロセスだから見えない」と判断し、動的コードを試さずに「届かない」と結論。実際には PlayMode 中は同一プロセスで `ServerContext.*` が普通に引ける構成だった。
 
@@ -208,21 +169,6 @@ return ctx == null ? "null" : $"OK count={ctx.BlockMasterDictionary.Count}";
 `ServerContext` / `ClientContext` / 静的 singleton など、「見えるかどうか」が構成依存の対象は **プロジェクトごとに [references/project-api-cheatsheet.md](references/project-api-cheatsheet.md) に in-process 可否を記載する**。未登録なら probe してから追記する。
 
 **黄金律の再掲:** 「見えない」は推論でなく probe の結果として宣言する。推論で諦めると、余計なインストゥルメント提案や別 Unity 起動提案で時間を溶かす。
-
-### G9: PlayMode 中に `.cs` を絶対に編集しない
-
-**症状:** コード修正後に再観測すると配置済みオブジェクトの挙動が想定と食い違う、`is` 判定が新しいインターフェースを認識しない、再現テストが通るのに PlayMode で動かない、Unity がフリーズする・例外をあげる。
-
-**原因:** Unity は PlayMode 中に `.cs` を保存されると **scripts compiled in PlayMode** モードに入る。既に走っている世界のオブジェクトは古いクラス定義のまま動き、ある瞬間から新クラスにすり替わる（あるいは Domain Reload が無効なら**永久にすり替わらない**）。コネクタ機構やインベントリのように「他のコンポーネントを `is` / `as` で型判定して接続を確立する」コードはここで壊滅的に壊れる（古いインスタンスは新インターフェースを実装していないとみなされる）。
-
-**対処:**
-- **編集前に必ず `uloop control-play-mode --action stop`** を実行する（Step 5.5）
-- ユーザーが手動で PlayMode を回している時も、編集に入る瞬間に「PlayMode を停止します」と一言入れて停止する
-- 編集 → `uloop compile` → ユーザーに **「PlayMode を再開して再確認してください」** と明示的に依頼する
-
-**やってはいけないこと:**
-- 「コンパイルが通ったから大丈夫」と思って PlayMode を回したまま放置する
-- 編集前停止を「面倒だから」とスキップする（一回壊れると原因切り分けに数十分かかる）
 
 ## 典型的な調査フロー例
 

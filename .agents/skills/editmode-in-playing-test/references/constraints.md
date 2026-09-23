@@ -14,8 +14,7 @@ EditModeInPlayingTestは`EnterPlayMode`によるドメインリロードを含�
 
 ### uloop接続断とTestResults.xml
 
-ドメインリロードによりuloopの接続が一度切れる。「Unity is reloading (Domain Reload in progress)」
-エラーが出たら45秒以上待ってからリトライすること。結果が取得できない場合は
+ドメインリロードによりuloopの接続が一度切れる（待機・リトライの規約はAGENTS.md）。結果が取得できない場合は
 `~/Library/Application Support/sakastudio/moorestech/TestResults.xml` を直接読む。
 
 ### worktree環境での注意

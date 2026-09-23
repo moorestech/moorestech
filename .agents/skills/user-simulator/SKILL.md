@@ -4,7 +4,7 @@ description: |
   spec/planをユーザーレビューに出す直前や、ユーザーに設計判断を尋ねる直前に、
   「ユーザーなら何を指摘し、どう答えるか」を先回りで予測して適用するスキル。
   Use when:
-  1. brainstorming完了後・specをユーザーレビューに出す直前（reviewモード・毎回必須）
+  1. moores-grill-with-docs完了後・specをユーザーレビューに出す直前（reviewモード・毎回必須）
   2. writing-plans完了後・planをユーザーレビューに出す直前（reviewモード・毎回必須）
   3. ユーザーにしか決められない設計質問（AskUserQuestion）を出す直前（preanswerモード・毎回）
   4. 「/user-simulator improve <id>」で起動された時、またはシミュレーターの外し（追加指摘・誤検知）が起きた時（improveモード）
@@ -40,7 +40,7 @@ protocol  : <このスキルdir>/modes/<mode>/protocol.md
 
 ## 不変の規律（全モード共通）
 
-- 実行結果の採点は必ず `modes/improve/misses.md` に追記（メインセッションの責務）
+- 実行結果の採点は必ず `../moorestech_logs/harness/user-simulator/improve/misses.md`（moorestechルート相対・logs repo）に追記（メインセッションの責務）
 - 外しは溜めない。その場でハンドオフ発行（`modes/improve/pending/`）
 - 知識・エージェント・プロトコルの変更は必ず `decisions.md` に行を残す（追記型）
 - 予測をユーザー裁定と偽装しない。docのADRへは出所「シミュレーター予測→ユーザー承認」と書く

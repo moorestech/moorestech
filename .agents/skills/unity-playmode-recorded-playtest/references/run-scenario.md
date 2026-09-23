@@ -40,7 +40,7 @@ PLAYTEST_SEED=12345 \
 
 ## ランナー内部の流れ（すべて自動・リトライ内蔵）
 
-1. **preflight** (スキル同梱 `scripts/preflight.sh`): CLI Loop疎通（タイムアウト=モーダル/ビジー検出兼務）→ コンパイル → master実在 → **マスタロードのドライラン**（EditモードでMasterHolder.Loadを試しスキーマ不整合をPlayMode前に検出）→ **サーバーポート11564の空き確認**
+1. **preflight** (スキル同梱 `scripts/preflight.sh`): CLI Loop疎通（タイムアウト=モーダル/ビジー検出兼務）→ コンパイル → master実在 → **マスタロードのドライラン**（EditモードでMasterHolder.Loadを試しスキーマ不整合をPlayMode前に検出）
 2. **boot**: 通常は `PlaytestBoot.PrepareAndEnterPlayMode(masterDir, noSave:true)`、固定worldの3変数指定時は `PrepareWorldAndEnterPlayMode(masterDir, worldDir, mapMode, seed)` をEDC 1回で実行してPlayMode突入
 3. **ready待ち**: ゲーム初期化完了イベントで書かれる `ready.marker` をファイルポーリング（EDCを連打しない）
 4. **シナリオ投入**: シナリオ全文をEDC 1回で `PlaytestRunner.Run` に渡す（DSLは事前コンパイル済みなのでAPI推測ミスが構造的に起きない）
@@ -67,7 +67,7 @@ Success=false のときは Error の先頭行と「最後にPASSしたAssert」�
 
 | 症状 | 原因 | 即応 |
 |---|---|---|
-| `NG: game not ready within 300s` | ポート11564占有 or masterスキーマ不整合 | preflight [5/5]/[4/5]の出力確認 → troubleshooting.md |
+| `NG: game not ready within 300s` | masterスキーマ不整合が典型 | preflight [4/4]の出力確認 → troubleshooting.md |
 | `Unity is reloading (Domain Reload...)` | コンパイル/リロード直後 | 45秒待って再実行 |
 | `Unity CLI Loop is not installed` | run-testsの退避 or **bootのPlayMode突入ドメインリロード**（run-tests非並走でも発生する） | `cp .../UserSettings/UnityMcpSettings.json.bak .../UnityMcpSettings.json` → PlayMode停止→フレッシュ再実行 |
 | シナリオ投入で `error CS****` | シナリオのコンパイルエラー | 型名/usingを実ファイルで確認して修正 |
