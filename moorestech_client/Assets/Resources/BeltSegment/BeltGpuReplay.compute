@@ -1,0 +1,14 @@
+#pragma kernel ClearExternal
+#pragma kernel ApplyExternal
+#pragma kernel CaptureNormalOffers
+#pragma kernel Collect
+#pragma kernel Reserve
+#pragma kernel Transfer
+#pragma kernel AdvanceNormal
+#pragma kernel CommitNormal
+#pragma kernel InsertExternal
+#pragma target 5.0
+
+#include "BeltGpuExternal.hlsl"
+#include "BeltGpuJunction.hlsl"
+#include "BeltGpuNormal.hlsl"

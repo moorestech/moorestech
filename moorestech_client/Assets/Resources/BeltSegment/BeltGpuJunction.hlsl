@@ -1,0 +1,68 @@
+#ifndef BELT_GPU_JUNCTION_INCLUDED
+#define BELT_GPU_JUNCTION_INCLUDED
+#include "BeltGpuPorts.hlsl"
+
+[numthreads(64, 1, 1)]
+void Collect(uint3 tid : SV_DispatchThreadID)
+{
+    uint i = tid.x + _DispatchOffset;
+    if (i >= _SegmentCount) return;
+    GpuBeltTopology t = _Topology[i];
+    if (t.Kind == 0) return;
+    GpuBeltState s = _States[i];
+    GpuBeltBufferState b = _Buffers[i];
+    Advance(t, s, _Speeds[i], false);
+    if (b.HasItem == 0 && s.Count > 0 && _Gaps[Physical(t, s, 0)] == 0)
+    {
+        b.ItemKind = _Items[Physical(t, s, 0)];
+        b.HasItem = 1;
+        Dequeue(t, s);
+        _Buffers[i] = b;
+    }
+    _States[i] = s;
+}
+[numthreads(64, 1, 1)]
+void Reserve(uint3 tid : SV_DispatchThreadID)
+{
+    uint i = tid.x + _DispatchOffset;
+    if (i >= _SegmentCount) return;
+    GpuBeltTopology t = _Topology[i];
+    if (t.Kind != 1) return;
+    _Reservations[i] = -1;
+    GpuBeltState s = _States[i];
+    if (s.Count != 0) return;
+    for (int offset = 0; offset < t.InputCount; offset++)
+    {
+        int index = (s.PriorityIndex + offset) % t.InputCount;
+        GpuBeltPort input = _InputPorts[t.FirstInput + index];
+        if (!SourceReady(input)) continue;
+        _Reservations[i] = input.Direction;
+        return;
+    }
+}
+[numthreads(64, 1, 1)]
+void Transfer(uint3 tid : SV_DispatchThreadID)
+{
+    uint i = tid.x + _DispatchOffset;
+    if (i >= _SegmentCount) return;
+    GpuBeltTopology t = _Topology[i];
+    if (t.Kind == 0) return;
+    GpuBeltBufferState b = _Buffers[i];
+    int speed = _Speeds[i];
+    if (b.HasItem == 0 || speed == 0) return;
+    for (int offset = 0; offset < t.OutputCount; offset++)
+    {
+        int index = (b.PriorityIndex + offset) % t.OutputCount;
+        GpuBeltPort output = _OutputPorts[t.FirstOutput + index];
+        int length = min(speed, OutputOffer(output));
+        if (length <= 0) continue;
+        if (!Send(output, length, b.ItemKind)) continue;
+        b.HasItem = 0;
+        b.ItemKind = 0;
+        b.PriorityIndex = (b.PriorityIndex + 1) % t.OutputCount;
+        _Buffers[i] = b;
+        return;
+    }
+}
+
+#endif
