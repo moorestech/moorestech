@@ -15,9 +15,9 @@
 - 設置順に依存しない。上側候補の追加で下側が外れ、撤去で下側が再評価される。各候補の入出力面が同じ境界で向き合う場合だけ候補とする。異なる高さ・面・向きを混同しない。
 - 自分自身のWorld登録前に走るfactory初期化で、未登録の自分をWorldから引かない。位置・slope・コネクタ定義をcontextのctorへ明示する。
 - 撤去前の `OnBlockRemoveEvent` の意味・呼び順は変えない。座標辞書・block辞書の削除後に新しい撤去完了通知を発火し、その購読内でWorldから撤去ブロックが見えないことを検証する。
-- 機械などベルコン以外へ向く接続は今回の置換処理の対象外。Q2の最終仕様を裁定せず既存経路を継続させる。歯車・流体の汎用コネクタにベルコンの語彙を入れない。
+- 機械などベルコン以外へ向く接続は今回の置換処理の対象外。D9の機械→segment／segment→機械、機械内部の競合を対象外とする回答に従い、既存ポート位置による接続経路を利用する。歯車・流体の汎用コネクタにベルコンの語彙を入れない。
 - 図で保証される範囲は1cell、connector offset=0、東西南北の方位、非nullの方向配列と水平単位面。実マスタの16種類はコネクタ条件を満たすが、単一cell設置のShift回転は縦向きにもなる。Q7が未回答のため、この段階の新規則は保証範囲内のベルコン同士だけに適用し、それ以外の組は既存接続経路を維持する。混在境界全体の上位1組保証や縦向きsegment完成を主張しない。
-- tick/seq、アイテム搬送Core、セーブ形式、クライアント同期、描画はこの接続段階では変更しない。全体goalとADR0069のQ1〜Q7は未完了・未回答のまま。
+- tick/seq、アイテム搬送Core、セーブ形式、クライアント同期、描画はこの接続段階では変更しない。全体goalは未完了。ADR0069のQ2はD9で回答済み、その他の未回答事項を推測で確定しない。
 - `uloop compile`、焦点EditModeテスト、実ゲーム起動のEditModeInPlayingTestを通す。旧搬送テストを新接続仕様の期待値にしない。
 
 ## Global Constraints
@@ -146,6 +146,8 @@ private void OnPlaceBlock(Vector3Int changedPosition)
 **Files:** Create `moorestech_client/Assets/Scripts/Client.Tests/EditModeInPlayingTest/BeltConnectionOverrideInPlayingTest.cs`。
 
 - [ ] **Step 1: editmode-in-playing-testスキルの既存起動テンプレートに従う。** `EnterPlayModeUtil()`、直下の `EnterPlayMode(expectDomainReload: true)`、`LoadMainGame`、`ExitPlayMode`を用いる。稼働ワールドへ図のFlat+Up→Flat+Downの4ブロックを配置し、実際のConnectedTargetsから上側ペアだけを確認する。上側の片方をRemoveBlockし、実Worldと接続集合の再評価結果を確認する。再配置で元の集合へ戻ることも確認する。移植前アイテムの見た目を新Coreの完成条件として扱わない。
+
+  実ゲームのserver tickは別threadで走るため、設置・撤去・接続集合読み取りを既存 `TickEndPacketQueue` の `ITickEndPacketEntry` としてserver threadへ渡す。結果は完了通知を介してテストへ戻し、Unity側でassertする。テストのためにproductionのpublic APIを増やさない。責務を分ける必要があれば同ディレクトリの `BeltConnectionWorldTestEntry.cs` にテスト専用entryを置いてよい。接続切替は一つのentryで順に実行し、各段階の結果を保持する。待機にはタイムアウトを設ける。実ゲーム用テストmasterには「直進高速ベルトコンベア」「上り高速ベルトコンベア」「下り高速ベルトコンベア」が既にあり、Tests.Moduleのunit-test専用GUIDを流用しない。
 - [ ] **Step 2: plain compile後、CLIのEditModeでこのクラスを実行する。** Domain Reload中は45秒待ち、同じ生きた実行ハンドルを監視する。成功をログの静かさで推定しない。ゲーム起動が既存依存の問題で失敗したら実際の例外を調べて復旧し、テストのアサーションを除去して通さない。
 - [ ] **Step 3: コンパイル、テスト、git diff --checkの結果を記録してコミットする。**
 
@@ -159,10 +161,10 @@ private void OnPlaceBlock(Vector3Int changedPosition)
 
 ## 判断記録（ADR）
 
-- [ADR0069](../../adr/0069-belt-segment-simulation.md) のユーザー裁定D1が図と接続配置、D2が搬送Coreを規定する。本planはD1のうちベルコン同士の接続を実Worldへ反映する独立段階。Q1〜Q6の答えを仮造しない。
+- [ADR0069](../../adr/0069-belt-segment-simulation.md) のユーザー裁定D1が図と接続配置、D2が搬送Coreを規定する。本planはD1のうちベルコン同士の接続を実Worldへ反映する独立段階。未回答事項の答えを仮造しない。
 - 出所: agent前提（PR1134のInventoryContextという役割、AGENTS.mdのドメイン分離、既存BlockConnectorComponentの座標購読）。汎用部分は観測と集合、具体contextは面の選択を担当する。staticな状態contextは使わない。
 - 出所: agent前提（WorldBlockDatastore.RemoveBlockの実際の通知順）。既存pre通知を維持し、completed通知を追加する。World全体を一時的に偽装する除外lookupや次tickのポーリングは導入しない。
-- 出所: agent前提（Q2は機械ポートの競合仕様であり、ベルコン同士の図の分類とは別）。今回のcontextは機械宛ての要素を編集せず、Q2の最終裁定も既存互換も完成条件として固定しない。
+- 出所: ユーザー裁定D9（機械の搬入出はsegmentに対して行い、機械内部の競合は考慮しない）。既存ポート位置で接続先を決めるのはagentの実装判断。今回のcontextは機械宛ての要素を編集しない。
 - 出所: agent前提（実装の依存関係）。汎用hook単体を成果物にせず、Task1で具体利用・新仕様テストまで一緒に実装する。実ゲーム接続の検証はTask2。
 - 出所: agent前提（変更は接続集合であり、入力・画面・GPUを変更しない）。今回は録画付き通し検証の代わりに実ゲームを起動するEditModeInPlayingTestを選ぶ。全体切替時のunityプレイ録画テストは別途必要。
 - 出所: agent前提（single-cell pathはShift回転の12方向を保存し、正本図は4方位の面を規定する）。Q7を非同期で質問した。回答が届くまで保証領域内のペアだけを置換する段階に限定する。この段階分離を旧仕様維持のユーザー裁定にしない。
