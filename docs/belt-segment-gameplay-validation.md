@@ -103,3 +103,21 @@ Protocol rejection now logs the block ID, direction and position before declinin
 Compile and the 20 affected tests passed (`review-fixes-focused-2.json`, `review-fixes-focused.xml`). The initial compile failure from a missing Blueprint test assembly reference was corrected. Existing warning artifacts remain; neither the full suite nor recordings were repeated for these diagnostic/measurement changes. The remaining 28 full-suite failures retain their stated unresolved status.
 
 The final wire fixture passed again after adding the allocation-counter positive control (`review-wire-final-test.json`, `review-wire-final.xml`): snapshot 3.8182 ms, frames 24.8777 ms; serializer allocation fields are null because an 8,192-byte allocation also reports zero. Snapshot/frame byte totals and parity remain unchanged.
+
+## Final review update — 2026-09-24
+
+The measurements above retain the historical `ApplyTick`/packing and wire paths. Their zero-allocation observations do not describe the current client `TryApplyTick` guard. To exercise the current CPU replay entry:
+
+```sh
+uloop run-tests --project-path ./moorestech_client --filter-type regex --filter-value 'BeltRecordedWireMeasurementTest' --unsaved-changes fail --timeout-seconds 1200
+```
+
+The fresh-ingress workload uses the same 129 × 64 topology, 10,000 ticks, 2,064 initial/final items and 20,253 input/output events, but assigns a new deterministic transport GUID on ingress, as production does. The historical workload recycles a just-output GUID in the same tick and is rejected by the new live-identity guard. `TryApplyTick` timing includes the previous-state hash, live/same-frame GUID checks and CPU replay; it excludes construction, workload/oracle preparation, DTO decode/validation and GPU work. Two uncontrolled Unity Editor repetitions took **4100.7293 ms and 1837.1325 ms** with parity preserved. These are observations, not a speedup claim or a cross-runtime comparison. The known 8,192-byte allocation probe reported zero, so allocated bytes are unavailable, not measured zero. Historical wire scope remains DTO payloads only: snapshot 176,594 B, 10,000 frames 1,192,320 B, transport envelope excluded; the earlier results remain intact above.
+
+The exact focused test sequence was **241/247 → 246/247 → affected subset 4/4 → latest relevant subset 27/27**. These are separate runs. Final functional-source compilation succeeded, and the comment-only follow-up also compiled (0 errors, 32 warnings). The existing 28 full-suite failures remain without a baseline rerun. Current recorded removal in `20260924_063846/belt-step6-removal-template` passed 28/28; its side view passed 1/1. The earlier generated-map attempt `20260924_062437/belt-step6-removal` remains failed (74/75, startup UI assertion); its terrain-obscured views are not visual acceptance.
+
+Cell saves normalize unused interior `AcceptedInput`, so exact raw graph/hash restoration is not claimed. Head entry and buffer/RR checks remain; unchanged curved-loop tests compare deterministic cut/geometry, ordered GUID/kind/distance and actual GPU positions through 80 replay ticks, with full-hash convergence after a lap. This preserves the observed rendering and future transport contract.
+
+C03/D01 (server failure-tick ownership/policy) is still pending. Refix reported no new Criticals in its applied-diff scope and retained two Warnings: live identity/target checks cost O(K×N + K²) for K insertions and N live items; late `BeltItemRenderer.Start` reconstruction can fail outside the world's Failed/startup-fault boundary when snapshot application already completed. Frequency and large-world impact are unmeasured. These warnings and the pending decision are not resolved by the passing focused checks.
+
+Clean representative views were recaptured in PlayMode, active scene `MainGame`, from the saved world with the playtest diagnostic `PlaytestOverlayView` disabled during capture and restored afterward: [belt items](pr-assets/belt-segment-gameplay/belt-items-clean.png), [player inventory](pr-assets/belt-segment-gameplay/inventory-clean.png). These are unchanged GameView PNGs; ordinary game/tutorial HUD remains visible.
