@@ -3,8 +3,8 @@
 import { DictionaryIndependentText } from "./dictionaryIndependentText";
 import type { VanillaLocalizationKey } from "./generated/localizationKeys";
 
-// 値はlocalization.csvのenglish / japanese / germanを併記
-// Each value joins the csv's english / japanese / german
+// 値はcsvのen/ja/de併記
+// Values join the csv's en/ja/de
 export const PreDictionaryText: Partial<Record<VanillaLocalizationKey, string>> = {
   "ui.error.uiErrorOccurred": "A UI error occurred / UIエラーが発生しました",
   "ui.error.renderFailed": "There was a problem rendering the screen. Please reload. / 画面の描画中に問題が発生しました。再読み込みしてください。",

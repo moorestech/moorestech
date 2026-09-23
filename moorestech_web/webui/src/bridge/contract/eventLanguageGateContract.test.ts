@@ -1,5 +1,5 @@
-// 出展モードの言語選択ゲートのワイヤ契約テスト
-// The wire contract tests of event mode's language gate
+// 出展モード言語選択ゲートの契約テスト
+// Wire contract tests for the event mode language gate
 import { describe, expect, it } from "vitest";
 import { parseTopicPayload } from "./validators";
 import { BENIGN_ERRORS, EVENT_LANGUAGE_ALREADY_SELECTED } from "../transport/actions";
