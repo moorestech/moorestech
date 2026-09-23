@@ -202,8 +202,7 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
   （apply-result.jsonの `status` を `"failure"`、`tests` に失敗内容を書く）
 - Unityがこのworktreeで起動していなければ `cd <$REPOの実値> && uloop launch ./moorestech_client` で起動する
   （apply専用worktreeは常駐対象ではないため、接続できない状態から始まることがある。
-  `--project-path` は `launch` には無く位置引数で渡す。起動後 `uloop compile` が通るまで45秒間隔でリトライする。
-  ドメインリロード中のエラー（「Unity is reloading」）も同じ45秒待ちでリトライする）。
+  `--project-path` は `launch` には無く位置引数で渡す。起動後 `uloop compile` が通るまで AGENTS.md の45秒待ち規約でリトライする）。
   `Unity CLI Loop is not installed in this project` が出たら
   `moorestech_client/UserSettings/UnityMcpSettings.json` が無い状態。本来スロット配備時に固有ポートで
   設置済みのはずのファイルなので、メインクローンの同ファイルをコピーし `customPort` を
@@ -219,9 +218,7 @@ subagentの報告（コンフリクトなし／解消済み／解消不能）へ
   `git add -A` / `git add .` / `git commit -a` は禁止。
   apply実行中もUnityがdirtyを作り続けるため（Step 5の `uloop compile` はコンパイルトリガーを必ず書き換え、
   外部リビジョンピンは常駐Unityが数十秒ごとに書き換える）、全体addすると実行中に湧いた痕跡がPRのcommitへ混入する。
-  コミットメッセージ末尾に必ず次を含める:
-
-      Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+  コミットメッセージ末尾の Co-Authored-By はハーネスが注入する帰属行に従う（モデル名を本文に固定しない）。
 
 - 全commit後、PRブランチへpushする: `git -C <$REPOの実値> push origin HEAD:<headRefName>`。
   **push先は常にPRのheadRefName**。`git push origin HEAD:master` 等のmasterへの直接pushは禁止

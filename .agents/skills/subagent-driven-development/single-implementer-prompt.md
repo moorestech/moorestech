@@ -3,7 +3,7 @@
 規模ゲート未満の計画を、`opus` 固定のimplementer subagent 1体に丸ごと実装させる際に使う。
 作業手順・自己レビュー・報告フォーマットの定型部分は[implementer-contract.md](implementer-contract.md)に
 あり、subagentが自分で読む。派遣プロンプトには計画固有の情報だけを書くこと。
-**フォアグラウンドで派遣する**（バックグラウンド派遣は孤児化して止まる事故があった）。
+派遣と待ちのやり方は実行環境別の [references/runtime-claude.md](references/runtime-claude.md) / [references/runtime-codex.md](references/runtime-codex.md) に従う（下の「フォアグラウンド」は Claude Code 向けの表記）。
 
 ```
 Subagent (general-purpose, フォアグラウンド):
