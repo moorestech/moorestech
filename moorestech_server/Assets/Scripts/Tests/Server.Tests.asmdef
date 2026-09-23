@@ -44,6 +44,7 @@
         "MessagePack.Annotations",
         "Game.Context",
         "Game.Gear",
+        "Game.BeltSegment",
         "Game.Train",
         "Game.Challenge",
         "Game.Challenge.Interface",
