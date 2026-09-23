@@ -1,0 +1,2255 @@
+{
+  "source": "E:/Dropbox/seg/images/08_vertex_patterns_generator/generate_vertex_patterns.py classify_pattern; Empty is skipped",
+  "cases": [
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Up",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Flat",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Flat",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Up",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Flat",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Up",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Down",
+      "upperTarget": "Down",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    }
+  ],
+  "diagramCases": [
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Empty",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Empty",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": "Lower",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Flat",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Empty",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Empty",
+      "source": null,
+      "target": null
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Empty",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Lower"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Flat",
+      "lowerTarget": "Down",
+      "source": "Upper",
+      "target": "Upper"
+    },
+    {
+      "upperSource": "Down",
+      "lowerSource": "Up",
+      "upperTarget": "Up",
+      "lowerTarget": "Down",
+      "source": null,
+      "target": null
+    }
+  ]
+}

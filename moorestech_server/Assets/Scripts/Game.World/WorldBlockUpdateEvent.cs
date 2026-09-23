@@ -12,11 +12,14 @@ namespace Game.World
     {
         private readonly Subject<BlockPlaceProperties> _onBlockPlaceEvent = new();
         private readonly Subject<BlockRemoveProperties> _onBlockRemoveEvent = new();
+        private readonly Subject<BlockRemoveProperties> _onBlockRemovalCompleted = new();
         private readonly Dictionary<Vector3Int, Subject<BlockPlaceProperties>> _placeSubjectsByPos = new();
         private readonly Dictionary<Vector3Int, Subject<BlockRemoveProperties>> _removeSubjectsByPos = new();
+        private readonly Dictionary<Vector3Int, Subject<BlockRemoveProperties>> _completedSubjectsByPos = new();
         public IObservable<BlockPlaceProperties> OnBlockPlaceEvent => _onBlockPlaceEvent;
         
         public IObservable<BlockRemoveProperties> OnBlockRemoveEvent => _onBlockRemoveEvent;
+        public IObservable<BlockRemoveProperties> OnBlockRemovalCompleted => _onBlockRemovalCompleted;
         
         public IObservable<BlockPlaceProperties> GetBlockPlaceEvent(Vector3Int subscribePos)
         {
@@ -30,6 +33,12 @@ namespace Game.World
             return Observable.Create<BlockRemoveProperties>(
                 observer => SubscribeCoordinateEvent(_removeSubjectsByPos, subscribePos, observer),
                 false);
+        }
+
+        public IObservable<BlockRemoveProperties> GetBlockRemovalCompletedEvent(Vector3Int subscribePos)
+        {
+            return Observable.Create<BlockRemoveProperties>(
+                observer => SubscribeCoordinateEvent(_completedSubjectsByPos, subscribePos, observer), false);
         }
         
         public void OnBlockPlaceEventInvoke(Vector3Int pos, WorldBlockData worldBlockData)
@@ -54,6 +63,16 @@ namespace Game.World
             // Dispatch coordinate events to subjects keyed by occupied cell
             foreach (var occupiedPos in worldBlockData.BlockPositionInfo.EnumeratePositions())
                 PublishRemoveCoordinateEvent(occupiedPos, worldBlockData, removeReason);
+        }
+
+        public void OnBlockRemovalCompletedInvoke(Vector3Int pos, WorldBlockData worldBlockData, BlockRemoveReason removeReason)
+        {
+            _onBlockRemovalCompleted.OnNext(new BlockRemoveProperties(pos, worldBlockData, removeReason));
+            foreach (var occupiedPos in worldBlockData.BlockPositionInfo.EnumeratePositions())
+            {
+                if (_completedSubjectsByPos.TryGetValue(occupiedPos, out var subject))
+                    subject.OnNext(new BlockRemoveProperties(occupiedPos, worldBlockData, removeReason));
+            }
         }
 
         private IDisposable SubscribeCoordinateEvent<TProperties>(

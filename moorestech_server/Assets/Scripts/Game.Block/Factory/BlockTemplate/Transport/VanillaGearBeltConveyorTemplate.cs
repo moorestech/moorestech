@@ -3,8 +3,10 @@ using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
 using Game.Block.Blocks.Gear;
 using Game.Block.Component;
+using Game.Block.Component.ConnectOverride;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Component.ConnectJudge;
 using Game.Gear.Common;
 using Mooresmaster.Model.BlocksModule;
 
@@ -31,15 +33,18 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 gearBeltParam.Gear.GearConnects,
                 blockPositionInfo
             );
-            var inventoryConnector = BlockTemplateUtil.CreateInventoryConnector(gearBeltParam.InventoryConnectors, blockPositionInfo);
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, inventoryConnector); 
-            
             var slopeType = gearBeltParam.SlopeType switch
             {
                 GearBeltConveyorBlockParam.SlopeTypeConst.Up => BeltConveyorSlopeType.Up,
                 GearBeltConveyorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 GearBeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
+            var inventoryConnector = new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(
+                gearBeltParam.InventoryConnectors.InputConnects,
+                gearBeltParam.InventoryConnectors.OutputConnects, blockPositionInfo,
+                new BeltConnectionOverride(blockPositionInfo, slopeType,
+                    gearBeltParam.InventoryConnectors));
+            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, inventoryConnector);
             var itemCount = gearBeltParam.BeltConveyorItemCount;
             
             // RPM供給前は搬送を停止させるため、無限大の時間を設定する

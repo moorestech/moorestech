@@ -1,8 +1,11 @@
 using System.Collections.Generic;
 using Game.Block.Blocks;
 using Game.Block.Blocks.BeltConveyor;
+using Game.Block.Component;
+using Game.Block.Component.ConnectOverride;
 using Game.Block.Interface;
 using Game.Block.Interface.Component;
+using Game.Block.Interface.Component.ConnectJudge;
 using Mooresmaster.Model.BlocksModule;
 
 namespace Game.Block.Factory.BlockTemplate.Transport
@@ -30,7 +33,10 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 BeltConveyorBlockParam.SlopeTypeConst.Down => BeltConveyorSlopeType.Down,
                 BeltConveyorBlockParam.SlopeTypeConst.Straight => BeltConveyorSlopeType.Straight
             };
-            var connectorComponent = BlockTemplateUtil.CreateInventoryConnector(beltParam.InventoryConnectors, blockPositionInfo);
+            var connectorComponent = new BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>(
+                beltParam.InventoryConnectors.InputConnects, beltParam.InventoryConnectors.OutputConnects,
+                blockPositionInfo, new BeltConnectionOverride(blockPositionInfo, slopeType,
+                    beltParam.InventoryConnectors));
             var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, connectorComponent);
             var itemCount = beltParam.BeltConveyorItemCount;
             var time = beltParam.TimeOfItemEnterToExit;
