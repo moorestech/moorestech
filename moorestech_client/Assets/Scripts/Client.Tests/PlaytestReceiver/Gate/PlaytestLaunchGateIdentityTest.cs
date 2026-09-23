@@ -68,7 +68,7 @@ namespace Client.Tests.PlaytestReceiver
         public void steamIdの欠けた200は止めて識別は空のまま()
         {
             PlaceBuildInfoMarker();
-            LogAssert.Expect(LogType.Error, new Regex(@"\[PlaytestReceiver\] launch blocked: Unreachable malformed session response"));
+            LogAssert.Expect(LogType.Error, new Regex(@"\[PlaytestReceiver\] launch blocked: MalformedResponse malformed session response"));
             Evaluate(PlaytestApiResult.Responded(200, "{\"allowed\":true,\"token\":\"tok\",\"expiresAt\":\"2999-01-01T00:00:00.000Z\"}"));
 
             Assert.IsTrue(PlaytestLaunchGate.Current.Value.IsBlocked);
