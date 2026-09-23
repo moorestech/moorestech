@@ -14,8 +14,14 @@ using static Game.Block.Interface.BlockException;
 
 namespace Game.Block.Blocks.Chest
 {
-    public class VanillaChestComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent
+    public class VanillaChestComponent : IBlockOutputAvailability, IOpenableBlockInventoryComponent, IBlockSaveState, IUpdatableBlockComponent
     {
+        public bool HasOutputItem()
+        {
+            foreach (var item in InventoryItems) if (item.Count > 0) return true;
+            return false;
+        }
+
         public IReadOnlyList<IItemStack> InventoryItems => _itemDataStoreService.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }
         

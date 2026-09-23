@@ -29,7 +29,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lowerBlock);
             world.TryAddBlock(ForUnitTestModBlockId.GearBeltConveyor, target,
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var targetBlock);
-            var targetInventory = targetBlock.GetComponent<VanillaBeltConveyorComponent>();
+            var targetInventory = targetBlock.GetComponent<SegmentBeltComponent>();
             var lowerConnector = InventoryConnector(lowerBlock);
             Assert.IsTrue(lowerConnector.ConnectedTargets.ContainsKey(targetInventory));
 
@@ -59,7 +59,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lower);
             world.TryAddBlock(ForUnitTestModBlockId.TestGearBeltConveyorUp, new Vector3Int(0, 1, 1),
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var target);
-            var inventory = target.GetComponent<VanillaBeltConveyorComponent>();
+            var inventory = target.GetComponent<SegmentBeltComponent>();
             Assert.IsTrue(InventoryConnector(lower).ConnectedTargets.ContainsKey(inventory));
             world.TryAddBlock(ForUnitTestModBlockId.TestGearBeltConveyorDown, new Vector3Int(0, 1, 0),
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var upper);
@@ -85,7 +85,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
                 world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, position, direction,
                     Array.Empty<BlockCreateParam>(), out var target);
                 Assert.IsTrue(InventoryConnector(splitter).ConnectedTargets.ContainsKey(
-                    target.GetComponent<VanillaBeltConveyorComponent>()), direction.ToString());
+                    target.GetComponent<SegmentBeltComponent>()), direction.ToString());
             }
             Assert.AreEqual(3, InventoryConnector(splitter).ConnectedTargets.Count);
         }
@@ -100,7 +100,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lower);
             world.TryAddBlock(ForUnitTestModBlockId.TestBeltShapeTarget, new Vector3Int(0, 1, 1),
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var target);
-            var inventory = target.GetComponent<VanillaBeltConveyorComponent>();
+            var inventory = target.GetComponent<SegmentBeltComponent>();
             Assert.IsTrue(InventoryConnector(lower).ConnectedTargets.ContainsKey(inventory));
             world.TryAddBlock(ForUnitTestModBlockId.TestBeltShapeDown, new Vector3Int(0, 1, 0),
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var upper);
@@ -118,17 +118,17 @@ namespace Tests.UnitTest.Game.ConnectOverride
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltShapeDown, Vector3Int.up, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var source));
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltConveyorDown, Vector3Int.forward, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var lower));
             var connector = InventoryConnector(source);
-            var lowerInventory = lower.GetComponent<VanillaBeltConveyorComponent>();
+            var lowerInventory = lower.GetComponent<SegmentBeltComponent>();
             Assert.IsTrue(connector.ConnectedTargets.ContainsKey(lowerInventory));
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltShapeTarget, upperPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out var upper));
-            var upperInventory = upper.GetComponent<VanillaBeltConveyorComponent>();
+            var upperInventory = upper.GetComponent<SegmentBeltComponent>();
             Assert.IsFalse(connector.ConnectedTargets.ContainsKey(lowerInventory));
             Assert.IsFalse(connector.ConnectedTargets.ContainsKey(upperInventory));
             Assert.IsTrue(world.RemoveBlock(upperPosition, BlockRemoveReason.ManualRemove));
             Assert.IsTrue(connector.ConnectedTargets.ContainsKey(lowerInventory));
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltShapeTarget, upperPosition, BlockDirection.North, Array.Empty<BlockCreateParam>(), out upper));
             Assert.IsFalse(connector.ConnectedTargets.ContainsKey(lowerInventory));
-            Assert.IsFalse(connector.ConnectedTargets.ContainsKey(upper.GetComponent<VanillaBeltConveyorComponent>()));
+            Assert.IsFalse(connector.ConnectedTargets.ContainsKey(upper.GetComponent<SegmentBeltComponent>()));
         }
         [Test]
         public void IneligibleOffsetSourceKeepsLegacyConnection()
@@ -141,7 +141,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
             world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId, new Vector3Int(0, 0, 2),
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var target);
             Assert.IsTrue(InventoryConnector(source).ConnectedTargets.ContainsKey(
-                target.GetComponent<VanillaBeltConveyorComponent>()));
+                target.GetComponent<SegmentBeltComponent>()));
         }
 
         [Test]
@@ -160,9 +160,9 @@ namespace Tests.UnitTest.Game.ConnectOverride
                 Array.Empty<BlockCreateParam>(), out var ruled);
             var connector = InventoryConnector(source);
             Assert.IsTrue(connector.ConnectedTargets.ContainsKey(
-                unrestricted.GetComponent<VanillaBeltConveyorComponent>()));
+                unrestricted.GetComponent<SegmentBeltComponent>()));
             Assert.IsFalse(connector.ConnectedTargets.ContainsKey(
-                ruled.GetComponent<VanillaBeltConveyorComponent>()));
+                ruled.GetComponent<SegmentBeltComponent>()));
             world.RemoveBlock(new Vector3Int(0, 1, 1), BlockRemoveReason.ManualRemove);
             Assert.AreEqual(0, connector.ConnectedTargets.Count);
         }
@@ -183,8 +183,8 @@ namespace Tests.UnitTest.Game.ConnectOverride
             world.TryAddBlock(ForUnitTestModBlockId.TestBeltConveyorDown, new Vector3Int(0, 0, 1),
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var ruledTarget);
             var connector = InventoryConnector(source);
-            var legacyInventory = legacyTarget.GetComponent<VanillaBeltConveyorComponent>();
-            var ruledInventory = ruledTarget.GetComponent<VanillaBeltConveyorComponent>();
+            var legacyInventory = legacyTarget.GetComponent<SegmentBeltComponent>();
+            var ruledInventory = ruledTarget.GetComponent<SegmentBeltComponent>();
             Assert.IsTrue(connector.ConnectedTargets.ContainsKey(legacyInventory));
             Assert.IsTrue(connector.ConnectedTargets.ContainsKey(ruledInventory));
             world.RemoveBlock(upper, BlockRemoveReason.ManualRemove);

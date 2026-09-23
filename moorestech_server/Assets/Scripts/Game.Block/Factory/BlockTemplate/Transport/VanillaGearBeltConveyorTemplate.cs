@@ -44,19 +44,11 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 gearBeltParam.InventoryConnectors.OutputConnects, blockPositionInfo,
                 new BeltConnectionOverride(blockPositionInfo, slopeType,
                     gearBeltParam.InventoryConnectors));
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, inventoryConnector);
-            var itemCount = gearBeltParam.BeltConveyorItemCount;
-            
-            // RPM供給前は搬送を停止させるため、無限大の時間を設定する
-            // Use infinite time to stop transport before RPM is supplied
-            var time = float.PositiveInfinity;
-            
-            var vanillaBeltConveyorComponent = componentStates == null ? 
-                    new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) :
-                    new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector,slopeType, gearBeltParam.InventoryConnectors);
-            
-            var gearBeltConveyorComponent = new GearBeltConveyorComponent(vanillaBeltConveyorComponent, blockInstanceId, gearBeltParam.TimeOfItemEnterToExit, gearBeltParam.GearConsumption, gearEnergyTransformerConnector);
-            
+            var world = Game.Context.ServerContext.GetService<IBeltWorldMutation>();
+            var belt = new SegmentBeltComponent(blockInstanceId, blockPositionInfo, slopeType,
+                inventoryConnector, world, componentStates);
+            var gearBeltConveyorComponent = new GearBeltConveyorComponent(blockInstanceId, gearBeltParam.GearConsumption, gearEnergyTransformerConnector);
+
             // 過負荷破壊コンポーネントを追加
             // Add overload breakage component
             var overloadParam = gearBeltParam as IGearOverloadParam;
@@ -65,7 +57,8 @@ namespace Game.Block.Factory.BlockTemplate.Transport
             var blockComponents = new List<IBlockComponent>
             {
                 gearBeltConveyorComponent,
-                vanillaBeltConveyorComponent,
+                belt,
+                new SegmentBeltSaveComponent(belt, world),
                 gearEnergyTransformerConnector,
                 inventoryConnector,
                 overloadBreakageComponent

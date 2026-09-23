@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Core.Update;
@@ -14,8 +14,9 @@ using Mooresmaster.Model.MapObjectMineSettingsModule;
 
 namespace Game.Block.Blocks.MapObjectMiner
 {
-    public class VanillaGearMapObjectMinerProcessorComponent : IUpdatableBlockComponent, IBlockSaveState
+    public class VanillaGearMapObjectMinerProcessorComponent : IUpdatableBlockComponent, IBlockSaveState, IBlockOutputAvailability
     {
+        public bool HasOutputItem() => _vanillaChestComponent.HasOutputItem();
         private readonly float _requestEnergy;
         private readonly VanillaChestComponent _vanillaChestComponent;
         private readonly GearEnergyTransformer _gearEnergyTransformer;

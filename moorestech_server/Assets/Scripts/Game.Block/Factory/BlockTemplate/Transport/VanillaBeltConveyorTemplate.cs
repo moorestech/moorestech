@@ -37,18 +37,14 @@ namespace Game.Block.Factory.BlockTemplate.Transport
                 beltParam.InventoryConnectors.InputConnects, beltParam.InventoryConnectors.OutputConnects,
                 blockPositionInfo, new BeltConnectionOverride(blockPositionInfo, slopeType,
                     beltParam.InventoryConnectors));
-            var beltConveyorConnector = new VanillaBeltConveyorBlockInventoryInserter(blockInstanceId, connectorComponent);
-            var itemCount = beltParam.BeltConveyorItemCount;
-            var time = beltParam.TimeOfItemEnterToExit;
-            
-            var beltComponent = componentStates == null ? 
-                new VanillaBeltConveyorComponent(itemCount, time, beltConveyorConnector, slopeType) : 
-                new VanillaBeltConveyorComponent(componentStates, itemCount, time, beltConveyorConnector, slopeType, beltParam.InventoryConnectors);
-            
-            
+            var world = Game.Context.ServerContext.GetService<IBeltWorldMutation>();
+            var beltComponent = new SegmentBeltComponent(blockInstanceId, blockPositionInfo, slopeType,
+                connectorComponent, world, componentStates);
+
             var components = new List<IBlockComponent>
             {
                 beltComponent,
+                new SegmentBeltSaveComponent(beltComponent, world),
                 connectorComponent
             };
             

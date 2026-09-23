@@ -1,4 +1,5 @@
-﻿using System.IO;
+using System.IO;
+using Game.Block.Blocks.BeltConveyor;
 using Core.Item;
 using Core.Item.Interface;
 using Core.Master;
@@ -131,6 +132,7 @@ namespace Server.Boot
             initializerCollection.AddSingleton<IBlockOpenableInventoryUpdateEvent, BlockOpenableInventoryUpdateEvent>();
             initializerCollection.AddSingleton<GearNetworkDatastore>();
             initializerCollection.AddSingleton<FluidNetworkDatastore>();
+            initializerCollection.AddSingleton<BeltWorldDatastore>();
             initializerCollection.AddSingleton<CleanRoomDatastore>();
             initializerCollection.AddSingleton<RailGraphDatastore>();
             initializerCollection.AddSingleton<IRailGraphDatastore>(provider => provider.GetService<RailGraphDatastore>());
@@ -238,6 +240,9 @@ namespace Server.Boot
             services.AddSingleton<ElectricTickUpdater>();
             services.AddSingleton<GearTickUpdater>();
             services.AddSingleton<FluidTickUpdater>();
+            services.AddSingleton(initializerProvider.GetRequiredService<BeltWorldDatastore>());
+            services.AddSingleton<IBeltWorldLookup>(provider => provider.GetRequiredService<BeltWorldDatastore>());
+            services.AddSingleton<IBeltWorldMutation>(provider => provider.GetRequiredService<BeltWorldDatastore>());
             services.AddSingleton<MasterTickUpdater>();
             services.AddSingleton<IBlockRemovalReservationService, BlockRemovalReservationService>();
             // クライアント操作は全接続共通FIFOへ集め、tick末尾に一括適用する
@@ -278,7 +283,7 @@ namespace Server.Boot
             // 退避先はワールドのセーブファイルの隣。登録時に解決すると実セーブ領域をテストからも掴んでしまう
             // The archives sit beside that world's save file; resolving at registration time would grab the real save area even from tests
             services.AddSingleton<SaveArchiveWriter>();
-            services.AddSingleton(SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2() }));
+            services.AddSingleton(SaveMigrationChain.ForCurrentVersion(new ISaveMigrationStep[] { new SaveMigrationStepV1ToV2(), new SaveMigrationStepV2ToV3() }));
             services.AddSingleton<MissingMasterPruner>();
             services.AddSingleton<MissingMasterPruneReportStore>();
             services.AddSingleton<IMissingMasterPruneReportLookup>(provider => provider.GetRequiredService<MissingMasterPruneReportStore>());

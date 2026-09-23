@@ -8,25 +8,26 @@ using Game.Block.Interface;
 using Game.Block.Interface.Component;
 using Game.Context;
 using UnityEngine;
-
 namespace Game.Block.Blocks.Machine.Inventory
 {
-    public class VanillaMachineBlockInventoryComponent : IOpenableBlockInventoryComponent, ISortExcludedSlots
+    public class VanillaMachineBlockInventoryComponent : IBlockOutputAvailability, IOpenableBlockInventoryComponent, ISortExcludedSlots
     {
+        public bool HasOutputItem()
+        {
+            foreach (var item in _vanillaMachineOutputInventory.OutputSlot) if (item.Count > 0) return true;
+            return false;
+        }
         private readonly VanillaMachineInputInventory _vanillaMachineInputInventory;
         private readonly VanillaMachineOutputInventory _vanillaMachineOutputInventory;
-
         // 統合スロット順のサブインベントリ列
         // Sub-inventories in unified slot order
         private readonly IVanillaMachineSubInventory[] _subInventories;
-
         public VanillaMachineBlockInventoryComponent(VanillaMachineInputInventory vanillaMachineInputInventory, VanillaMachineOutputInventory vanillaMachineOutputInventory, VanillaMachineModuleInventory vanillaMachineModuleInventory)
         {
             _vanillaMachineInputInventory = vanillaMachineInputInventory;
             _vanillaMachineOutputInventory = vanillaMachineOutputInventory;
             _subInventories = new IVanillaMachineSubInventory[] { vanillaMachineInputInventory, vanillaMachineOutputInventory, vanillaMachineModuleInventory };
         }
-
         public IReadOnlyList<IItemStack> InventoryItems
         {
             get
@@ -37,7 +38,6 @@ namespace Game.Block.Blocks.Machine.Inventory
                 return items;
             }
         }
-
         // スロットは全て束縛済みで整理対象にならない（ADR 0042）
         // Every slot is recipe-bound, so none participates in sorting (ADR 0042)
         public IReadOnlyCollection<int> SortExcludedSlots

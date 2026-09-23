@@ -25,8 +25,14 @@ using Game.Block.Interface.Component.ConnectJudge;
 
 namespace Game.Block.Blocks.Miner
 {
-    public class VanillaMinerProcessorComponent : IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateObservable, IUpdatableBlockComponent
+    public class VanillaMinerProcessorComponent : IBlockOutputAvailability, IOpenableBlockInventoryComponent, IBlockSaveState, IBlockStateObservable, IUpdatableBlockComponent
     {
+        public bool HasOutputItem()
+        {
+            foreach (var item in InventoryItems) if (item.Count > 0) return true;
+            return false;
+        }
+
         public bool IsDestroy { get; private set; }
         public float RequestEnergy => _baseRequestEnergy * (_currentState == VanillaMinerState.Mining ? 1f : _idlePowerRate);
         public bool IsMining => _currentState == VanillaMinerState.Mining;

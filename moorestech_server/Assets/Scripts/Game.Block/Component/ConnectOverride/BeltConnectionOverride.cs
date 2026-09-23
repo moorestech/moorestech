@@ -109,7 +109,7 @@ namespace Game.Block.Component.ConnectOverride
             {
                 slope = default;
                 connectors = null;
-                if (block == null || !block.TryGetComponent<VanillaBeltConveyorComponent>(out var belt)) return false;
+                if (block == null || !block.TryGetComponent<SegmentBeltComponent>(out var belt)) return false;
                 var param = MasterHolder.BlockMaster.GetBlockMaster(block.BlockGuid).BlockParam;
                 if (param is not IInventoryConnectors inventoryConnectors) return false;
                 connectors = inventoryConnectors.InventoryConnectors;

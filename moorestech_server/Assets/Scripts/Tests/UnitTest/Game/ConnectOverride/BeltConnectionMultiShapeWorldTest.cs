@@ -30,7 +30,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
             Assert.IsTrue(world.TryAddBlock(targetId, Vector3Int.up + Vector3Int.forward,
                 BlockDirection.North, Array.Empty<BlockCreateParam>(), out var target));
             Assert.IsTrue(Connector(source).ConnectedTargets.ContainsKey(
-                target.GetComponent<VanillaBeltConveyorComponent>()));
+                target.GetComponent<SegmentBeltComponent>()));
         }
 
         [TestCase(false)]
@@ -48,7 +48,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
                 Vector3Int.up + Vector3Int.forward, BlockDirection.North,
                 Array.Empty<BlockCreateParam>(), out var target));
             Assert.IsTrue(Connector(source).ConnectedTargets.ContainsKey(
-                target.GetComponent<VanillaBeltConveyorComponent>()));
+                target.GetComponent<SegmentBeltComponent>()));
         }
 
         [Test]
@@ -62,7 +62,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltShapeTarget,
                 Vector3Int.up + Vector3Int.forward, BlockDirection.North,
                 Array.Empty<BlockCreateParam>(), out var target));
-            var targetInventory = target.GetComponent<VanillaBeltConveyorComponent>();
+            var targetInventory = target.GetComponent<SegmentBeltComponent>();
             Assert.IsTrue(Connector(lower).ConnectedTargets.ContainsKey(targetInventory));
 
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.TestBeltMultiOutputAA,
@@ -88,7 +88,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
             Assert.IsTrue(world.TryAddBlock(ForUnitTestModBlockId.BeltConveyorId,
                 targetPosition, direction, Array.Empty<BlockCreateParam>(), out var target));
             Assert.IsFalse(Connector(source).ConnectedTargets.ContainsKey(
-                target.GetComponent<VanillaBeltConveyorComponent>()));
+                target.GetComponent<SegmentBeltComponent>()));
         }
 
         private static void CreateWorld()

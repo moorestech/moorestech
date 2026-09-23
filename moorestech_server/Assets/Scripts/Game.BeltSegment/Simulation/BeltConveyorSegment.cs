@@ -91,7 +91,9 @@ namespace Game.BeltSegment
         {
             int offer = GetOffer(inputDirection);
             if (offer < length) return false;
-            queue.EnqueueTail(offer - length, item);
+            var accepted = item;
+            accepted.AcceptedInput = inputDirection;
+            queue.EnqueueTail(offer - length, accepted);
             if (Kind == BeltSegmentKind.Merge)
             {
                 nextInput = (nextInput + 1) % inputCount;
@@ -150,6 +152,14 @@ namespace Game.BeltSegment
         }
 
         /// <summary>tick境界で、出口に近い順のアイテムと出口までの距離を複製する。</summary>
+        internal uint ComputeStateHash(uint hash)
+        {
+            hash = BeltStateHash.Add(BeltStateHash.Add(hash, n), (int)Kind);
+            hash = BeltStateHash.Add(BeltStateHash.Add(hash, Speed), PriorityIndex);
+            hash = queue.ComputeStateHash(hash);
+            return Buffer == null ? BeltStateHash.Add(hash, 0) : Buffer.ComputeStateHash(hash);
+        }
+
         public BeltItemState[] CaptureItems() => queue.CaptureItems();
 
         /// <summary>再生成した空のsegmentへ、出口に近い順のアイテムを復元する。</summary>

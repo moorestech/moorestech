@@ -14,6 +14,8 @@ namespace Game.BeltSegment
             graph = new BeltSimulationGraph(snapshot, ports.Sources, ports.Receivers);
         }
 
+        public uint ComputeStateHash() => graph.ComputeStateHash();
+
         public BeltReplaySnapshot CaptureSnapshot() => graph.CaptureSnapshot();
 
         public void ApplyTick(BeltReplayTick tick, bool parallel)

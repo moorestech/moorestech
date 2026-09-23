@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Game.Block.Event;
 using Game.Block.Factory.BlockTemplate;
 using Game.Block.Factory.BlockTemplate.CleanRoom;
@@ -58,7 +58,7 @@ namespace Game.Block.Factory
             BlockTypesDictionary.Add(BlockTypeConst.BaseCamp, new BaseCampBlockTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.GearPump, new VanillaGearPumpTemplate());
             BlockTypesDictionary.Add(BlockTypeConst.ElectricPump, new VanillaElectricPumpTemplate());
-            BlockTypesDictionary.Add(BlockTypeConst.FilterSplitter, new VanillaFilterSplitterTemplate());
+
 
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomWall, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.Wall));
             BlockTypesDictionary.Add(BlockTypeConst.CleanRoomDoor, new VanillaCleanRoomBoundaryTemplate(CleanRoomBoundaryKind.Door));

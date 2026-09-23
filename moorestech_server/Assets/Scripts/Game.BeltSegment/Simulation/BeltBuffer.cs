@@ -45,10 +45,16 @@ namespace Game.BeltSegment
         /// <summary>段階2では、現在の最優先出力だけを搬出候補として提示する。</summary>
         public bool TryGetOutput(BeltDirection inputDirection)
         {
-            return HasItem && outputDirections[nextOutput] == BeltDirections.Opposite(inputDirection);
+            return HasItem && outputCount > 0 && outputDirections[nextOutput % outputCount] == BeltDirections.Opposite(inputDirection);
         }
 
         /// <summary>段階1。出口でクランプしてから回収する。回収後に残りの移動量を使わない。</summary>
+        internal uint ComputeStateHash(uint hash)
+        {
+            hash = BeltStateHash.Add(hash, HasItem ? 1 : 0);
+            return HasItem ? BeltStateHash.Item(hash, item) : hash;
+        }
+
         internal void Collect()
         {
             if (!Segment.CollectForBuffer(out var collected)) return;

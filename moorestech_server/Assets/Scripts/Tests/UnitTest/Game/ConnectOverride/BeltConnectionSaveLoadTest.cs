@@ -58,8 +58,8 @@ namespace Tests.UnitTest.Game.ConnectOverride
             void AssertConnections(bool upperRemoved)
             {
                 var currentWorld = ServerContext.WorldBlockDatastore;
-                var upperTarget = currentWorld.GetBlock(targetUpper).GetComponent<VanillaBeltConveyorComponent>();
-                var lowerTarget = currentWorld.GetBlock(targetLower).GetComponent<VanillaBeltConveyorComponent>();
+                var upperTarget = currentWorld.GetBlock(targetUpper).GetComponent<SegmentBeltComponent>();
+                var lowerTarget = currentWorld.GetBlock(targetLower).GetComponent<SegmentBeltComponent>();
                 var lower = Connector(currentWorld.GetBlock(sourceLower));
                 if (upperRemoved)
                 {

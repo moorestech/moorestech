@@ -41,7 +41,9 @@ namespace Tests.UnitTest.Game.BeltSegment
             var replay = new BeltReplaySimulation(Single(BeltReplaySegmentState.Normal(1, 64, new[] { item }), true, true));
             replay.ApplyTick(Frame(new[] { 0, 0 }, new[] { 0, 0 }, new BeltReplayInsertion(0, 256, item.Item)), false);
             replay.ApplyTick(Frame(Array.Empty<int>(), Array.Empty<int>()), false);
-            Assert.That(replay.CaptureSnapshot().Segments[0].Items, Is.EqualTo(new[] { item }));
+            var accepted = item.Item;
+            accepted.AcceptedInput = BeltDirection.Back;
+            Assert.That(replay.CaptureSnapshot().Segments[0].Items, Is.EqualTo(new[] { new BeltItemState(accepted, item.DistanceToExit) }));
         }
 
         [Test]

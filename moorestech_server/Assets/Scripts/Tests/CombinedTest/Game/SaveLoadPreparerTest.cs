@@ -117,10 +117,7 @@ namespace Tests.CombinedTest.Game
         public void 補填した項目名はロードしてセーブし直しても残るTest()
         {
             var save = SaveLoadPreparerTestFixture.BuildSaveJson();
-            save["worldVersion"] = 1;
-            save.Remove("currentTick");
-            save.Remove("randomState");
-            save.Remove("backfilledFields");
+            save["backfilledFields"] = new JArray("currentTick", "randomState");
 
             var (_, preparer) = SaveLoadPreparerTestFixture.CreatePreparer(_archiveRoot);
             var prepared = preparer.Prepare(save.ToString());

@@ -18,8 +18,14 @@ using UniRx;
 
 namespace Game.Block.Blocks.TrainRail.ContainerComponents
 {
-    public class TrainPlatformItemContainerComponent : IUpdatableBlockComponent, IOpenableBlockInventoryComponent, IBlockSaveState
+    public class TrainPlatformItemContainerComponent : IBlockOutputAvailability, IUpdatableBlockComponent, IOpenableBlockInventoryComponent, IBlockSaveState
     {
+        public bool HasOutputItem()
+        {
+            foreach (var item in Container.InventoryItems) if (item.Count > 0) return true;
+            return false;
+        }
+
         public IReadOnlyList<IItemStack> InventoryItems => Container.InventoryItems;
         public BlockInstanceId BlockInstanceId { get; }
         public bool IsDestroy { get; private set; }

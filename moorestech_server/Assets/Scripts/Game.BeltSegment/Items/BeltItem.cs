@@ -6,6 +6,7 @@ namespace Game.BeltSegment
     {
         public Guid Guid;
         public int ItemId;
+        public BeltDirection AcceptedInput;
         public ItemPosition Position;
     }
 }

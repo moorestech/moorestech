@@ -76,6 +76,23 @@ namespace Game.BeltSegment
             return segments[input.TargetSegmentId].TryReceive(input.InputDirection, length, item);
         }
 
+        public uint ComputeStateHash()
+        {
+            uint hash = BeltStateHash.Add(BeltStateHash.Initial, segments.Length);
+            foreach (var segment in segments) hash = segment.ComputeStateHash(hash);
+            hash = BeltStateHash.Add(hash, links.Length);
+            foreach (var link in links)
+                hash = BeltStateHash.Add(BeltStateHash.Add(BeltStateHash.Add(hash,
+                    link.SourceSegmentId), link.TargetSegmentId), (int)link.OutputDirection);
+            hash = BeltStateHash.Add(hash, inputs.Length);
+            foreach (var input in inputs)
+                hash = BeltStateHash.Add(BeltStateHash.Add(hash, input.TargetSegmentId), (int)input.InputDirection);
+            hash = BeltStateHash.Add(hash, outputs.Length);
+            foreach (var output in outputs)
+                hash = BeltStateHash.Add(BeltStateHash.Add(hash, output.SourceSegmentId), (int)output.OutputDirection);
+            return hash;
+        }
+
         public BeltReplaySnapshot CaptureSnapshot()
         {
             var states = new BeltReplaySegmentState[segments.Length];

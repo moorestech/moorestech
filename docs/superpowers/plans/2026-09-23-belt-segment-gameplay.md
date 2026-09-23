@@ -28,7 +28,7 @@
 ## Global Constraints
 
 - 正本repoは `C:/Users/5080/Documents/GitHub/moorestech`。外部scratchからこのplanを `docs/superpowers/plans/2026-09-23-belt-segment-gameplay.md` に保存するのはGPU review owner解放後。masterの確認済みrevisionは `3fecf603f17897c96a34bd3a84863c220c993b64`、着手前再確認。
-- D14–D21の原文は `C:/Users/5080/Documents/ChatGPT/segment-normal-diagnostics/user-steering-d14-d15.md` とADR0069。通常の型/メソッド選択はagent判断。重大な挙動/範囲/工数/手戻り分岐は実装前にユーザーへ質問する。
+- D14–D22の原文は `C:/Users/5080/Documents/ChatGPT/segment-normal-diagnostics/user-steering-d14-d15.md` とADR0069。通常の型/メソッド選択はagent判断。重大な挙動/範囲/工数/手戻り分岐は実装前にユーザーへ質問する。
 - AGENTS.md: 200行/file、10 code files/directory、partial/Func禁止、Actionへの置換禁止、UniRx通知、Unity YAML/meta手書き禁止、Library削除禁止。C#変更はcompile。境界以外のtry-catch禁止。
 - 無関係dirty5を維持: client `.uloop/project-runner-pin.json`、client `Client.Localization/_CompileRequester.cs`、client `ProjectSettings/ShaderGraphSettings.asset`、server `Core.Master/_CompileRequester.cs`、server `Game.Block.Interface/Component/ConnectOverride.meta`。
 - 全般的な差分通知refactor、旧save移行、実ゲーム並列化、補間、custom modelは今回のタスクに足さない。Coreのparallel/explicit speed APIを削除しない。
@@ -176,7 +176,7 @@ public interface IBlockOutputAvailability : IBlockComponent
 // BeltItem adds public BeltDirection AcceptedInput; set only on successful TryReceive.
 ```
 
-- [ ] **Step 1: Implement canonical topology and detached boundary values.** Map actual connector edges including machine edges; sort cells lexicographically X/Z/Y in Unity (X/Y/Z Core), directions in Core enum order, connector identity as final tie-breaker. Never sort by allocation/registration order. A regular cell with >=2 incoming connections is a one-cell Merge; a branch block terminates its upstream maximal Branch path. Trace non-junction cells from boundary to next junction/machine/dead-end; remaining cycles use minimal cell as head and one Normal self-link. Validate impossible multi-output Merge shapes rather than silently dropping edges. Runtime IDs are rebuilt every generation; cell identity uses BlockInstanceId plus position, so replacement clears RR. No per-cell independent transport Update remains.
+- [ ] **Step 1: Implement canonical topology and detached boundary values.** Map actual connector edges including machine edges; sort cells lexicographically X/Z/Y in Unity (X/Y/Z Core), directions in Core enum order within each array, connector identity as final tie-breaker. Preserve Graph attachment groups Links → Outputs → Inputs; machine and internal ports are not interleaved. Never sort by allocation/registration order. A regular cell with >=2 incoming connections is a one-cell Merge; a cell with >=2 actual outgoing connections terminates its upstream maximal Branch path (D22); 2→1 removes its junction buffer, preserves running items under D13 and retains cell RR. Trace non-junction cells from boundary to next junction/machine/dead-end; remaining cycles use minimal cell as head and one Normal self-link. Validate impossible multi-output Merge shapes rather than silently dropping edges. Runtime IDs are rebuilt every generation; cell identity uses BlockInstanceId plus position, so replacement clears RR. No per-cell independent transport Update remains.
 
 ```csharp
 // Core receive change, immediately before queue.EnqueueTail:
@@ -331,7 +331,7 @@ await p.PrepareBlockForUiPlacement("木のコンベアチェスト", 2);
 
 ## 判断記録（ADR）
 
-- [ADR0069](../../adr/0069-belt-segment-simulation.md) and explicit D7/D9/D11–D21 govern behavior. D10 is superseded by D14; old implementation is not authority for occupancy-dependent load.
+- [ADR0069](../../adr/0069-belt-segment-simulation.md) and explicit D7/D9/D11–D22 govern behavior. D10 is superseded by D14; old implementation is not authority for occupancy-dependent load.
 - Agent implementation choices: fixed game speed16, constant gear request rate1, per-cell JSON capture, typed belt stream preserving per-tick seq, pure shared boundary values, one integrated plan with3 implementation tasks. Do not label these user choices.
 - Rationale for one plan: isolated Core/replay/GPU stages already exist; remaining tasks jointly produce the user's requested playable prototype. Splitting into more standalone computational PRs would not satisfy D15's stated priority.
 - Retain original machine mutation ownership; add only output-readiness role, because generic inventory slots include machine input/module items and cannot truthfully reserve Merge input.
@@ -340,6 +340,8 @@ await p.PrepareBlockForUiPlacement("木のコンベアチェスト", 2);
 - GPU buffer invisibility matches supplied MyBeltConvSegment BuildPositions, which emits running queue count only. No new rule about inventory loss is introduced by display.
 - Full game recorded validation is required because server and compute tests do not establish real rendering/placement/save integration. Review/PR tasks remain in this session under the explicit ongoing completion request.
 - Self-review caught an incorrect globally monotonic seq assumption and corrected it to per-tick reset; removed an invented gear-animation Update change after inspecting the current class; limited item persistence to the actual existing item-save contract; split slope surface geometry from logical ownership to avoid raising items on an adjacent flat belt.
-- Structure review found1 strong lookup-boundary trigger and1 weak shared-contract placement trigger. Agent resolved the lookup with one diagnostic fallback at the external image boundary. Keep pure snapshot/route/frame contracts in existing shared Game.BeltSegment with its graph/replay contracts; both CPU implementations already consume that assembly, so creating another Interface assembly adds no present separation benefit. These ordinary implementation decisions do not alter D14–D21 or claim user approval.
+- Structure review found1 strong lookup-boundary trigger and1 weak shared-contract placement trigger. Agent resolved the lookup with one diagnostic fallback at the external image boundary. Keep pure snapshot/route/frame contracts in existing shared Game.BeltSegment with its graph/replay contracts; both CPU implementations already consume that assembly, so creating another Interface assembly adds no present separation benefit. These ordinary implementation decisions do not alter D14–D22 or claim user approval.
 - Content self-review coverage: R1–R6 Task1; R7–R8 Task2; R9–R12 Task3, with Task1/2 focused tests feeding Task3's integration evidence. Request timing was corrected to the actual tick-end FIFO precedent: dirty read requests return a coherent prior graph; only the next boundary rebuild advances topology. This avoids read APIs mutating state and preserves existing placement/network timing.
 - user-simulator review completed with new Critical0/Warning0/user-only choices0. It checked actual rulings and private corpus plus a bounded scout for collection operations; IItemCollectableBeltConveyor is entity collection for rendering, not an independently established hand-pick action. Fable unavailable: disclosed gpt-6-astra high fallback. No Critical meant no refuter invocation. User outcome score remains unconfirmed, not a claimed prediction hit.
+
+- D22（2026-09-24）: 「出口が2本以上のときだけ分岐segmentにする（READMEの接続数に合わせる・推奨）」。Branchは実outdegree>=2。2→1のbuffer消失と走行列/RR保持をWorld regressionで固定する。

@@ -38,6 +38,19 @@ namespace Game.BeltSegment
             return result;
         }
 
+        internal uint ComputeStateHash(uint hash)
+        {
+            hash = BeltStateHash.Add(hash, count);
+            int distance = 0;
+            for (int i = 0; i < count; i++)
+            {
+                int p = (head + i) % n;
+                distance += gaps[p] + (i == 0 ? 0 : BeltConstants.ItemWidth);
+                hash = BeltStateHash.Add(BeltStateHash.Item(hash, items[p]), distance);
+            }
+            return hash;
+        }
+
         internal void RestoreItems(BeltItemState[] restoredItems)
         {
             foreach (var state in restoredItems)

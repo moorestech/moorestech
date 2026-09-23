@@ -88,7 +88,7 @@ namespace Tests.UnitTest.Game.ConnectOverride
                         !CentralSource(sourceName, kinds[sourceName]) ||
                         !CentralTarget(targetName, kinds[targetName])) continue;
                     var connector = source.GetComponent<BlockConnectorComponent<IBlockInventory, DefaultConnectJudge>>();
-                    var inventory = target.GetComponent<VanillaBeltConveyorComponent>();
+                    var inventory = target.GetComponent<SegmentBeltComponent>();
                     var actual = connector.ConnectedTargets.ContainsKey(inventory);
                     var expected = row.Source == (sourceName == "UpperSource" ? "Upper" : "Lower") &&
                                    row.Target == (targetName == "UpperTarget" ? "Upper" : "Lower");
